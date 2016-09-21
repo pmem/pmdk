@@ -76,6 +76,8 @@ MANPAGES = $(TOP)/doc/pmempool.1\
 
 BASH_COMP_FILES = pmempool.sh
 
+EXTRA_CFLAGS=-g
+
 include ../Makefile.inc
 
 .PHONY: test check

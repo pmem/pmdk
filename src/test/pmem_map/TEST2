@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,47 +29,32 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/device_dax_linux.c\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/pool_hdr_linux.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
-	$(COMMON)/util_linux.c\
-	bucket.c\
-	ctree.c\
-	cuckoo.c\
-	heap.c\
-	lane.c\
-	libpmemobj.c\
-	list.c\
-	memblock.c\
-	memops.c\
-	obj.c\
-	palloc.c\
-	pmalloc.c\
-	pvector.c\
-	redo.c\
-	sync.c\
-	tx.c
+#
+# src/test/pmem_map/TEST2 -- unit test for pmem_map
+#
+export UNITTEST_NAME=pmem_map/TEST2
+export UNITTEST_NUM=2
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CFLAGS += -DUSE_LIBDL
+require_test_type medium
+require_dax_devices 1
+require_fs_type any
 
-LIBS += -pthread -lpmem -ldl
+configure_valgrind memcheck force-disable
+
+setup
+
+# this test invokes sigsegvs by design
+export ASAN_OPTIONS=handle_segv=0
+
+# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+
+# pass the file of zero length
+expect_normal_exit ./pmem_map$EXESUFFIX \
+    $DEVICE_DAX_PATH 0 D 0666 1 1
+
+pass
