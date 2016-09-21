@@ -282,8 +282,20 @@ pmalloc_boot(PMEMobjpool *pop)
 	COMPILE_ERROR_ON(PALLOC_DATA_OFF != OBJ_OOB_SIZE);
 	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_ALIGNMENT);
 
-	return palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
+	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
 			pop->heap_size, pop, &pop->p_ops);
+	if (ret)
+		return ret;
+
+#ifdef USE_VG_MEMCHECK
+	palloc_heap_vg_open(&pop->heap, pop->vg_cb, pop, pop->vg_boot);
+#endif
+
+	ret = palloc_buckets_init(&pop->heap);
+	if (ret)
+		palloc_heap_cleanup(&pop->heap);
+
+	return ret;
 }
 
 static struct section_operations allocator_ops = {

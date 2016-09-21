@@ -577,7 +577,7 @@ pmemobj_vg_check_no_undef(struct pmemobjpool *pop)
 
 		VALGRIND_PRINTF("Part of the pool is left in undefined state on"
 				" boot. This is pmemobj's bug.\nUndefined"
-				" regions:\n");
+				" regions: [pool address: %p]\n", pop);
 		for (int i = 0; i < num_undefs; ++i)
 			VALGRIND_PRINTF("   [%p, %p]\n", undefs[i].start,
 					undefs[i].end);
@@ -597,21 +597,8 @@ pmemobj_vg_boot(struct pmemobjpool *pop)
 {
 	if (!On_valgrind)
 		return;
+
 	LOG(4, "pop %p", pop);
-
-	PMEMoid oid;
-	size_t rs = pmemobj_root_size(pop);
-	if (rs) {
-		oid = pmemobj_root(pop, rs);
-		palloc_vg_register_object(&pop->heap, pmemobj_direct(oid),
-				pmemobj_root_size(pop));
-	}
-
-	for (oid = pmemobj_first(pop);
-			!OID_IS_NULL(oid); oid = pmemobj_next(oid)) {
-		palloc_vg_register_object(&pop->heap, pmemobj_direct(oid),
-				pmemobj_alloc_usable_size(oid));
-	}
 
 	if (getenv("PMEMOBJ_VG_CHECK_UNDEF"))
 		pmemobj_vg_check_no_undef(pop);
@@ -1203,6 +1190,32 @@ pmemobj_check_basic(PMEMobjpool *pop)
 		return pmemobj_check_basic_remote(pop);
 }
 
+#ifdef USE_VG_MEMCHECK
+/*
+ * obj_vg_register -- (internal) register object in valgrind
+ */
+static int
+obj_vg_register(uint64_t off, void *arg)
+{
+	PMEMobjpool *pop = arg;
+	struct oob_header *oobh = OBJ_OFF_TO_PTR(pop, off);
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(oobh, sizeof(*oobh));
+
+	uint64_t obj_off = off + OBJ_OOB_SIZE;
+	void *obj_ptr = OBJ_OFF_TO_PTR(pop, obj_off);
+
+	size_t obj_size = OBJ_IS_ROOT(oobh) ?
+		OBJ_ROOT_SIZE(oobh) :
+		palloc_usable_size(&pop->heap, obj_off) - OBJ_OOB_SIZE;
+
+	VALGRIND_DO_MEMPOOL_ALLOC(pop->heap.layout, obj_ptr, obj_size);
+	VALGRIND_DO_MAKE_MEM_DEFINED(obj_ptr, obj_size);
+
+	return 0;
+}
+#endif
+
 /*
  * pmemobj_open_common -- open a transactional memory pool (set)
  *
@@ -1328,9 +1341,9 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	pop->lanes_desc.runtime_nlanes = 0;
 
 #ifdef USE_VG_MEMCHECK
-	palloc_heap_vg_open((char *)pop + pop->heap_offset, pop->heap_size);
+	pop->vg_cb = obj_vg_register;
+	pop->vg_boot = boot;
 #endif
-
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (pmemobj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
@@ -2138,7 +2151,7 @@ pmemobj_root_size(PMEMobjpool *pop)
 	if (pop->root_offset) {
 		struct oob_header *ro =
 			OOB_HEADER_FROM_OFF(pop, pop->root_offset);
-		return ro->size & ~OBJ_INTERNAL_OBJECT_MASK;
+		return OBJ_ROOT_SIZE(ro);
 	} else
 		return 0;
 }
