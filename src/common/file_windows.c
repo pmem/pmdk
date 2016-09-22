@@ -81,14 +81,18 @@ util_tmpfile(const char *dir, const char *templ)
 	 */
 
 	fd = mkstemp(fullname);
-
 	if (fd < 0) {
 		ERR("!mkstemp");
 		goto err;
 	}
 
-	(void) unlink(fullname);
-	LOG(3, "unlinked file is \"%s\"", fullname);
+	/*
+	 * There is no point to use unlink() here.  First, because it does not
+	 * work on open files.  Second, because the file is created with
+	 * O_TEMPORARY flag, and it looks like such temp files cannot be open
+	 * from another process, even though they are visible on
+	 * the filesystem.
+	 */
 
 	return fd;
 
