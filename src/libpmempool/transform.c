@@ -109,16 +109,6 @@ check_part_dirs(struct pool_set *set)
 static int
 validate_args(struct pool_set *set_in, struct pool_set *set_out)
 {
-	if (set_in == NULL || set_out == NULL) {
-		ERR("Passed poolset file paths cannot be NULL");
-		goto err;
-	}
-
-	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
-		ERR("Source poolset is not of pmemobj type");
-		goto err;
-	}
-
 	/*
 	 * check if all parts in the target poolset are large enough
 	 * (now replication works only for pmemobj pools)
@@ -360,6 +350,8 @@ transform_replica(struct pool_set *set_in, struct pool_set *set_out,
 		if (delete_replicas(set_in, set_in_s))
 			goto err;
 
+	/* signal that sync is called by transform */
+	flags |= IS_TRANSFORMED;
 	if (sync_replica(set_out, flags))
 		goto err;
 

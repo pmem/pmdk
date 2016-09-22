@@ -52,6 +52,12 @@
 #define IS_INCONSISTENT (1 << 1)
 
 /*
+ * A flag which can be passed to pmempool_sync to indicate that the function is
+ * called by pmempool_transform
+ */
+#define IS_TRANSFORMED (1 << 10)
+
+/*
  * Helping structures for storing replica and poolset's health status
  */
 struct replica_health_status {
@@ -105,6 +111,7 @@ int replica_is_replica_healthy(unsigned repn,
 		struct poolset_health_status *set_hs);
 unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
 int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
+int replica_is_poolset_transformed(unsigned flags);
 size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
 
 

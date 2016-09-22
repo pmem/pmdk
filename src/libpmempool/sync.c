@@ -109,7 +109,7 @@ fill_struct_part_uuids(struct pool_set *set, unsigned repn,
  */
 static int
 fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
-		struct poolset_health_status *set_hs)
+		struct poolset_health_status *set_hs, unsigned flags)
 {
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
@@ -117,6 +117,17 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 		/* skip unbroken parts */
 		if (!replica_is_part_broken(repn, p, set_hs))
 			continue;
+
+		/* check if part was damaged or was added by transform */
+		if (replica_is_poolset_transformed(flags)) {
+			/* generate new uuid for this part */
+			if (util_uuid_generate(rep->part[p].uuid) < 0) {
+				ERR("Cannot generate pool set part UUID");
+				errno = EINVAL;
+				return -1;
+			}
+			continue;
+		}
 
 		if (!replica_is_part_broken(repn, p + 1, set_hs)) {
 			/* try to get part uuid from the next part */
@@ -158,7 +169,7 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
  */
 static int
 fill_struct_uuids(struct pool_set *set, unsigned src_replica,
-		struct poolset_health_status *set_hs)
+		struct poolset_health_status *set_hs, unsigned flags)
 {
 	/* set poolset uuid */
 	struct pool_hdr *src_hdr0 = HDR(REP(set, src_replica), 0);
@@ -171,7 +182,7 @@ fill_struct_uuids(struct pool_set *set, unsigned src_replica,
 
 	/* set broken parts' uuids */
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (fill_struct_broken_part_uuids(set, r, set_hs))
+		if (fill_struct_broken_part_uuids(set, r, set_hs, flags))
 			return -1;
 	}
 	return 0;
@@ -477,7 +488,7 @@ sync_replica(struct pool_set *set, unsigned flags)
 	}
 
 	/* update uuid fields in the set structure with part headers */
-	if (fill_struct_uuids(set, healthy_replica, set_hs)) {
+	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
 		LOG(1, "Gathering uuids failed");
 		goto err;
 	}
