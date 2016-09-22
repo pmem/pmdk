@@ -253,9 +253,11 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			size_t fpoff = (p == 0) ? POOL_HDR_SIZE : 0;
 
 			/* copy all data */
-			if (!is_dry_run(flags))
+			if (!is_dry_run(flags)) {
 				memcpy(ADDR_SUM(part->addr, fpoff),
 						src_addr, len);
+				pmem_msync(ADDR_SUM(part->addr, fpoff), len);
+			}
 		}
 	}
 	return 0;
@@ -480,6 +482,12 @@ sync_replica(struct pool_set *set, unsigned flags)
 		goto err;
 	}
 
+	/* check and copy data if possible */
+	if (copy_data_to_broken_parts(set, healthy_replica, flags, set_hs)) {
+		LOG(1, "Copying data to broken parts failed");
+		goto err;
+	}
+
 	/* create headers for broken parts */
 	if (!is_dry_run(flags)) {
 		if (create_headers_for_broken_parts(set, healthy_replica,
@@ -487,12 +495,6 @@ sync_replica(struct pool_set *set, unsigned flags)
 			LOG(1, "Creating headers for broken parts failed");
 			goto err;
 		}
-	}
-
-	/* check and copy data if possible */
-	if (copy_data_to_broken_parts(set, healthy_replica, flags, set_hs)) {
-		LOG(1, "Copying data to broken parts failed");
-		goto err;
 	}
 
 	/* grand permission for all created parts */
