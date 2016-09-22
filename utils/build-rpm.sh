@@ -73,26 +73,6 @@ function create_changelog() {
 	done < $1
 }
 
-function add_experimental_packages() {
-cat << EOF >> $RPM_SPEC_FILE
-
-%package -n ${OBJ_CPP_NAME}
-Summary: C++ bindings for libpmemobj
-Group: Development/Libraries
-Requires: libpmemobj-devel = %{version}
-%description -n ${OBJ_CPP_NAME}
-Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
-
-%files -n ${OBJ_CPP_NAME}
-%defattr(-,root,root,-)
-%{_libdir}/pkgconfig/libpmemobj++.pc
-%{_includedir}/libpmemobj++/*.hpp
-%{_includedir}/libpmemobj++/detail/*.hpp
-%{_docdir}/${OBJ_CPP_NAME}-%{version}/*
-
-EOF
-}
-
 function add_rpmem_packages() {
 cat << EOF >> $RPM_SPEC_FILE
 %package -n librpmem
@@ -217,7 +197,7 @@ Source0:	$PACKAGE_TARBALL
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	gcc glibc-devel
-BuildRequires:	autoconf, automake, make
+BuildRequires:	autoconf, automake, make, doxygen
 BuildArch:	x86_64
 
 %description
@@ -420,6 +400,20 @@ Development files for NVML libvmmalloc library
 %{_includedir}/libvmmalloc.h
 %{_mandir}/man3/libvmmalloc.3.gz
 
+%package -n ${OBJ_CPP_NAME}
+Summary: C++ bindings for libpmemobj
+Group: Development/Libraries
+Requires: libpmemobj-devel = %{version}
+%description -n ${OBJ_CPP_NAME}
+Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
+
+%files -n ${OBJ_CPP_NAME}
+%defattr(-,root,root,-)
+%{_libdir}/pkgconfig/libpmemobj++.pc
+%{_includedir}/libpmemobj++/*.hpp
+%{_includedir}/libpmemobj++/detail/*.hpp
+%{_docdir}/${OBJ_CPP_NAME}-%{version}/*
+
 %package tools
 Group:		%{package_group}
 Summary:	Tools for %{name}
@@ -436,6 +430,8 @@ Usefull applications for administration and diagnostic purposes.
 %{_mandir}/man1/pmempool-check.1.gz
 %{_mandir}/man1/pmempool-rm.1.gz
 %{_mandir}/man1/pmempool-convert.1.gz
+%{_mandir}/man1/pmempool-sync.1.gz
+%{_mandir}/man1/pmempool-transform.1.gz
 %{_sysconfdir}/bash_completion.d/pmempool.sh
 
 %prep
@@ -478,7 +474,6 @@ EOF
 # Experimental features
 if [ "${EXPERIMENTAL}" = "y" ]
 then
-	add_experimental_packages;
 	if [ "${BUILD_RPMEM}" = "y" ]
 	then
 		add_rpmem_packages;

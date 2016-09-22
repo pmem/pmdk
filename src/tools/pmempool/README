@@ -11,6 +11,8 @@ This file contains the high-level description of pmempool utility.
 	   2.3. create
 	   2.4. dump
 	   2.5. rm
+	   2.6. sync
+	   2.7. transform
 	3. Source code
 	4. Packaging
 	5. Versioning
@@ -46,6 +48,10 @@ Currently there is a following set of commands available:
 	* rm		- Removes pool file or all pool files listed in poolset
 			  configuration file.
 
+	* sync		- Synchronizes replicas within a poolset.
+
+	* transform	- Modifies internal structure of a poolset.
+
 This file contains high-level description of available commands and their
 features. For details about usage and available command line arguments please
 refer to specific manual pages. There is one common manual page with description
@@ -56,6 +62,8 @@ in detail:
 	pmempool-create(1)
 	pmempool-dump(1)
 	pmempool-rm(1)
+	pmempool-sync(1)
+	pmempool-transform(1)
 
 Subsequent sections contain detailed description of each command, information
 about the source code, packaging and versioning scheme.
@@ -236,6 +244,28 @@ created using either NVML libraries or pmempool *create* command.
 
  * The command line interface is similar to interface provided by standard,
    system *rm* command.
+
+2.6. sync
+---------
+
+The pmempool *sync* synchronize data between replicas within a poolset.
+
+The command has the following features:
+
+ * Metadata in a poolset are checked for consistency.
+
+ * Missing or damaged parts are recreated.
+
+2.7. transform
+--------------
+
+The pmempool *transform* command modifies internal structure of a poolset.
+
+Available features of the command:
+
+ * Adding replicas.
+
+ * Removing replicas.
 
 3. Source code
 --------------

@@ -41,6 +41,8 @@ export UNITTEST_NUM=6
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_build_type debug
+
 configure_valgrind pmemcheck force-enable
 export VALGRIND_OPTS="--mult-stores=yes"
 setup
@@ -53,25 +55,25 @@ truncate -s $FSIZE $FILE
 
 expect_normal_exit ./obj_redo_log$EXESUFFIX $FILE $RSIZE\
 	C\
-	s:0:0x00000200:0x11111111\
-	s:1:0x00000208:0x22222222\
-	s:2:0x00000210:0x33333333\
-	f:3:0x00000218:0x44444444\
+	s:0:0x00004200:0x11111111\
+	s:1:0x00004208:0x22222222\
+	s:2:0x00004210:0x33333333\
+	f:3:0x00004218:0x44444444\
 	P\
-	r:0x00000200\
-	r:0x00000208\
-	r:0x00000210\
-	r:0x00000218\
-	s:0:0x00000300:0x55555555\
-	s:1:0x00000308:0x66666666\
-	s:2:0x00000310:0x77777777\
-	s:3:0x00000318:0x88888888\
+	r:0x00004200\
+	r:0x00004208\
+	r:0x00004210\
+	r:0x00004218\
+	s:0:0x00004300:0x55555555\
+	s:1:0x00004308:0x66666666\
+	s:2:0x00004310:0x77777777\
+	s:3:0x00004318:0x88888888\
 	F:3\
 	R\
-	r:0x00000300\
-	r:0x00000308\
-	r:0x00000310\
-	r:0x00000318\
+	r:0x00004300\
+	r:0x00004308\
+	r:0x00004310\
+	r:0x00004318\
 	C
 
 check

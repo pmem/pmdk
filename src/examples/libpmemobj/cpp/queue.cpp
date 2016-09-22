@@ -158,7 +158,7 @@ public:
 	 * Prints the entire contents of the queue.
 	 */
 	void
-	show(void)
+	show(void) const
 	{
 		for (auto n = head; n != nullptr; n = n->next)
 			std::cout << n->value << std::endl;

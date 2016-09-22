@@ -271,6 +271,12 @@ $(TESTCONFIG):
 
 $(SYNC_FILE): $(TARGET) $(TESTCONFIG)
 ifeq ($(SCP_TO_REMOTE_NODES), y)
+ifeq ($(SCP_TARGET),)
+	$(error SCP_TARGET is not set)
+endif
+ifeq ($(SCP_SRC_DIR),)
+	$(error SCP_SRC_DIR is not set)
+endif
 	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_SRC_DIR)/$(SCP_TARGET).static-debug $(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
 	@touch $(SYNC_FILE)
 endif

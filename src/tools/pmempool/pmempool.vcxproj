@@ -43,6 +43,8 @@
     <ClCompile Include="output.c" />
     <ClCompile Include="pmempool.c" />
     <ClCompile Include="rm.c" />
+    <ClCompile Include="synchronize.c" />
+    <ClCompile Include="transform.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\out.h" />
@@ -56,6 +58,8 @@
     <ClInclude Include="info.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="rm.h" />
+    <ClInclude Include="synchronize.h" />
+    <ClInclude Include="transform.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">

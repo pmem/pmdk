@@ -135,7 +135,7 @@ public:
 	 * Return number of elements in list
 	 */
 	unsigned
-	size()
+	size() const
 	{
 		return len;
 	}

@@ -125,7 +125,8 @@ rpmemd_db_concat(const char *path1, const char *path2)
 	if (path2[0] == '/') {
 		RPMEMD_LOG(ERR, "the second path is not a relative one -- '%s'",
 				path2);
-		errno = EINVAL;
+		/* set to EBADR to distinguish this case from other errors */
+		errno = EBADR;
 		return NULL;
 	}
 

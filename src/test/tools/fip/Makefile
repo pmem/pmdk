@@ -32,14 +32,13 @@
 # Makefile -- Makefile for fip tool
 #
 
-SCP_TO_REMOTE_NODES = y
-
 TOP = ../../../..
 include $(TOP)/src/common.inc
 
 vpath %.c $(TOP)/src/rpmem_common/
 
 ifeq ($(BUILD_RPMEM),y)
+SCP_TO_REMOTE_NODES = y
 TARGET = fip
 
 OBJS = fip.o rpmem_fip_common.o rpmem_common.o

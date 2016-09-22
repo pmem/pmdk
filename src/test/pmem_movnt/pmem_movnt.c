@@ -75,8 +75,8 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(dst[size], 0);
 	}
 
-	FREE(dst);
-	FREE(src);
+	ALIGNED_FREE(dst);
+	ALIGNED_FREE(src);
 
 	DONE(NULL);
 }

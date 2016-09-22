@@ -281,6 +281,7 @@ void *ut_malloc(const char *file, int line, const char *func, size_t size);
 void *ut_calloc(const char *file, int line, const char *func,
     size_t nmemb, size_t size);
 void ut_free(const char *file, int line, const char *func, void *ptr);
+void ut_aligned_free(const char *file, int line, const char *func, void *ptr);
 void *ut_realloc(const char *file, int line, const char *func,
     void *ptr, size_t size);
 char *ut_strdup(const char *file, int line, const char *func,
@@ -308,6 +309,9 @@ int ut_munmap_anon_aligned(const char *file, int line, const char *func,
 
 #define FREE(ptr)\
     ut_free(__FILE__, __LINE__, __func__, ptr)
+
+#define ALIGNED_FREE(ptr)\
+    ut_aligned_free(__FILE__, __LINE__, __func__, ptr)
 
 /* a realloc() that can't return NULL */
 #define REALLOC(ptr, size)\
@@ -596,12 +600,38 @@ int ut_pthread_join(const char *file, int line, const char *func,
 
 /*
  * mocks...
+ *
+ * NOTE: On Linux, function mocking is implemented using wrapper functions.
+ * See "--wrap" option of the GNU linker.
+ * There is no such feature in VC++, so on Windows we do the mocking at
+ * compile time, by redefining symbol names:
+ * - all the references to <symbol> are replaced with <__wrap_symbol>
+ *   in all the compilation units, except the one where the <symbol> is
+ *   defined and the test source file
+ * - the original definition of <symbol> is replaced with <__real_symbol>
+ * - a wrapper function <__wrap_symbol> must be defined in the test program
+ *   (it may still call the original function via <__real_symbol>)
+ * Such solution seems to be sufficient for the purpose of our tests, even
+ * though it has some limitations.  I.e. it does no work well with malloc/free,
+ * so to wrap the system memory allocator functions, we use the built-in
+ * feature of all the NVML libraries, allowing to override default memory
+ * allocator with the custom one.
  */
+#ifndef _WIN32
 #define _FUNC_REAL_DECL(name, ret_type, ...)\
 	ret_type __real_##name(__VA_ARGS__) __attribute__((unused));
+#else
+#define _FUNC_REAL_DECL(name, ret_type, ...)\
+	ret_type name(__VA_ARGS__);
+#endif
 
+#ifndef _WIN32
 #define _FUNC_REAL(name)\
 	__real_##name
+#else
+#define _FUNC_REAL(name)\
+	name
+#endif
 
 #define RCOUNTER(name)\
 	_rcounter##name

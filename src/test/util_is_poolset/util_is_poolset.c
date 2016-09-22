@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 
 	for (int i = 1; i < argc; i++) {
 		char *fname = argv[i];
-		int is_poolset = util_is_poolset(fname);
+		int is_poolset = util_is_poolset_file(fname);
 
 		UT_OUT("util_is_poolset(%s): %d", fname, is_poolset);
 	}

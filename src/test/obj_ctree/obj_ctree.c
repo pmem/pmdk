@@ -50,12 +50,12 @@ enum {
 #define TEST_VAL_B 2
 #define TEST_VAL_C 3
 
-static int Rcounter;
+static int Rcounter_malloc;
 
 static void *
-malloc_mock(size_t size)
+__wrap_malloc(size_t size)
 {
-	switch (__sync_fetch_and_add(&Rcounter, 1)) {
+	switch (__sync_fetch_and_add(&Rcounter_malloc, 1)) {
 		default:
 			return malloc(size);
 		case TEST_INSERT + 3: /* accessor malloc */
@@ -70,7 +70,7 @@ test_ctree_new_delete_empty()
 {
 	struct ctree *t = NULL;
 
-	Rcounter = TEST_NEW_DELETE;
+	Rcounter_malloc = TEST_NEW_DELETE;
 
 	/* t Malloc fail */
 	t = ctree_new();
@@ -89,7 +89,7 @@ test_ctree_insert()
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
 
-	Rcounter = TEST_INSERT;
+	Rcounter_malloc = TEST_INSERT;
 
 	UT_ASSERT(ctree_is_empty(t));
 
@@ -144,7 +144,7 @@ test_ctree_remove()
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
 
-	Rcounter = TEST_REMOVE;
+	Rcounter_malloc = TEST_REMOVE;
 
 	/* remove from empty tree */
 	UT_ASSERT(ctree_remove(t, TEST_VAL_A, 0) == 0);
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctree");
 
-	Malloc = malloc_mock;
+	Malloc = __wrap_malloc;
 
 	test_ctree_new_delete_empty();
 	test_ctree_insert();

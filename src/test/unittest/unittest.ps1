@@ -36,6 +36,13 @@ function touch {
     Out-File -InputObject $null -Encoding ascii -FilePath $args[0]
 }
 
+function cmp {
+    fc.exe /b $args[0] $args[1] > $null
+    if ($LASTEXITCODE -ne 0) {
+        "$args differ"
+    }
+}
+
 function epoch {
     return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
 }
@@ -422,12 +429,18 @@ function expect_abnormal_exit {
     sv -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
-	    $params.add([string]$param) | Out-Null
+	    if ($param -is [array]) {
+	        foreach ($param_entry in $param) {
+		        [string]$params += -join(" '", $param_entry, "' ")
+	        }
+	    } else {
+            [string]$params += -join(" '", $param, "' ")
+	    }
     }
 
     Invoke-Expression "$command $params"
     if ($LASTEXITCODE -eq 0) {
-	Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
+	    Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
 }
 
@@ -807,10 +820,18 @@ function dump_pool_info {
 # compare_replicas -- check replicas consistency by comparing `pmempool info` output
 #
 function compare_replicas {
-    $params = ""
-    for ($i=0;$i -lt $args.count - 2;$i++) {
-        [string]$params += -join($args[$i], " ")
+    $count = $args
+
+    foreach ($param in $Args[0 .. ($Args.Count - 3)]) {
+	    if ($param -is [array]) {
+	        foreach ($param_entry in $param) {
+		        [string]$params += -join(" '", $param_entry, "' ")
+	        }
+	    } else {
+            [string]$params += -join(" '", $param, "' ")
+	    }
     }
+
     $rep1 = $args[$cnt + 1]
     $rep2 = $args[$cnt + 2]
 

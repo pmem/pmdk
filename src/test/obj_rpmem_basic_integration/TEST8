@@ -61,6 +61,8 @@ require_node_libfabric 2 $RPMEM_PROVIDER
 
 init_rpmem_on_node 0 1 2
 
+STDERR=stderr${UNITTEST_NUM}.log
+
 # binary for this test
 EXE=obj_basic_integration
 
@@ -87,6 +89,6 @@ copy_files_to_node 1 . $DIR/${TEST_SET_REMOTE}1
 copy_files_to_node 2 . $DIR/${TEST_SET_REMOTE}2
 
 # execute test
-expect_abnormal_exit run_on_node 0 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+expect_abnormal_exit run_on_node 0 ./$EXE$EXESUFFIX $TEST_SET_LOCAL 2>$STDERR
 
 pass

@@ -30,10 +30,8 @@ seamless persistent memory integration in mind. It is designed to be used with
 basic types within classes, to signify that these members in fact reside in
 persistent memory and need to be handled appropriately.
 
-Please keep in mind that these C++ bindings are still in the experimental stage
-and *SHOULD NOT* be used in production quality code. If you find any issues or
-have suggestion about these bindings please file an issue in
-https://github.com/pmem/issues. There are also blog articles in
+If you find any issues or have suggestion about these bindings please file an
+issue in https://github.com/pmem/issues. There are also blog articles in
 http://pmem.io/blog/ which you might find helpful.
 
 Have fun!

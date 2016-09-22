@@ -38,7 +38,8 @@ TARGET = pmempool
 
 OBJS = pmempool.o\
        info.o info_blk.o info_log.o info_obj.o redo.o\
-       create.o dump.o check.o rm.o convert.o convert_obj_v1_v2.o
+       create.o dump.o check.o rm.o convert.o convert_obj_v1_v2.o\
+       synchronize.o transform.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
@@ -63,7 +64,9 @@ MANPAGES = $(TOP)/doc/pmempool.1\
 	   $(TOP)/doc/pmempool-check.1\
 	   $(TOP)/doc/pmempool-dump.1\
 	   $(TOP)/doc/pmempool-rm.1\
-	   $(TOP)/doc/pmempool-convert.1
+	   $(TOP)/doc/pmempool-convert.1\
+	   $(TOP)/doc/pmempool-sync.1\
+	   $(TOP)/doc/pmempool-tranform.1
 
 BASH_COMP_FILES = pmempool.sh
 

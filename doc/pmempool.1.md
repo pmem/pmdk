@@ -103,6 +103,12 @@ Removes pool file or all pool files listed in poolset configuration file.
 + **pmempool-convert**(1) -
 Updates the pool to the latest available layout version.
 
++ **pmempool-sync**(1) -
+Synchronizes replicas within a poolset.
+
++ **pmempool-transform**(1) -
+Modifies internal structure of a poolset.
+
 In order to get more information about specific *command* you can use **pmempool help <command>.**
 
 

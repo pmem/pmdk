@@ -108,6 +108,9 @@ main(int argc, char *argv[])
 			UT_FATAL("failed to create pool\n");
 		}
 		scenarios[scenario].create(pop);
+
+		/* if we get here, something is wrong with function mocking */
+		UT_ASSERT(0);
 	} else {
 		if ((pop = pmemobj_open(path,
 			POBJ_LAYOUT_NAME(heap_interrupt)))

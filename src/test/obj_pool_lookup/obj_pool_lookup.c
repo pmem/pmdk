@@ -52,6 +52,12 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
+	/* check before pool creation */
+	PMEMoid some_oid = {2, 3};
+
+	UT_ASSERTeq(pmemobj_pool_by_ptr(&some_oid), NULL);
+	UT_ASSERTeq(pmemobj_pool_by_oid(some_oid), NULL);
+
 	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
 	void **guard_after = MALLOC(npools * sizeof(void *));
 

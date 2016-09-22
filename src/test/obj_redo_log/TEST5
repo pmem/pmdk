@@ -40,11 +40,13 @@ export UNITTEST_NUM=5
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_build_type debug
+
 setup
 
 FILE=${DIR}/pool
 AREASIZE=4096
-FSIZE=$(($AREASIZE + 8192))
+FSIZE=$(($AREASIZE + 16384))
 RSIZE=$(($AREASIZE / 16))
 
 truncate -s $FSIZE $FILE

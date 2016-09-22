@@ -1494,6 +1494,10 @@ pmemobj_pool_by_oid(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016jx", oid.off);
 
+	/* XXX this is a temporary fix, to be fixed properly later */
+	if (pools_ht == NULL)
+		return NULL;
+
 	return cuckoo_get(pools_ht, oid.pool_uuid_lo);
 }
 
@@ -1504,6 +1508,10 @@ PMEMobjpool *
 pmemobj_pool_by_ptr(const void *addr)
 {
 	LOG(3, "addr %p", addr);
+
+	/* XXX this is a temporary fix, to be fixed properly later */
+	if (pools_tree == NULL)
+		return NULL;
 
 	uint64_t key = (uint64_t)addr;
 	size_t pool_size = ctree_find_le(pools_tree, &key);

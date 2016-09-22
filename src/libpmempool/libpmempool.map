@@ -39,6 +39,8 @@ LIBPMEMPOOL_1.0 {
 		pmempool_check_init;
 		pmempool_check;
 		pmempool_check_end;
+		pmempool_transform;
+		pmempool_sync;
 	local:
 		*;
 };

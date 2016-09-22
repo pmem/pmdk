@@ -103,10 +103,48 @@ err_malloc:
 }
 
 /*
- * rpmem_ssh_open -- open ssh connection with specified node
+ * get_cmd -- return an RPMEM_CMD with appended list of arguments
+ */
+static char *
+get_cmd(va_list args)
+{
+	const char *env_cmd = rpmem_util_cmd_get();
+	char *cmd = strdup(env_cmd);
+	if (!cmd)
+		return NULL;
+
+	size_t cmd_len = strlen(cmd) + 1;
+
+	const char *arg;
+	while ((arg = va_arg(args, const char *)) != NULL) {
+		size_t len = strlen(arg);
+		size_t new_cmd_len = cmd_len + len + 1;
+		char *tmp = realloc(cmd, new_cmd_len);
+		if (!tmp)
+			goto err;
+
+		cmd = tmp;
+
+		/* append the argument to the command */
+		cmd[cmd_len - 1] = ' ';
+		memcpy(&cmd[cmd_len], arg, len);
+		cmd[cmd_len + len] = '\0';
+
+		cmd_len = new_cmd_len;
+	}
+
+	return cmd;
+err:
+	free(cmd);
+	return NULL;
+}
+
+/*
+ * rpmem_ssh_run -- open ssh connection and run $RPMEMD_CMD with
+ * additional NULL-terminated list of arguments.
  */
 struct rpmem_ssh *
-rpmem_ssh_open(const struct rpmem_target_info *info)
+rpmem_ssh_run(const struct rpmem_target_info *info, ...)
 {
 	struct rpmem_ssh *rps = calloc(1, sizeof(*rps));
 	if (!rps)
@@ -120,6 +158,17 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 	rps->cmd = rpmem_cmd_init();
 	if (!rps->cmd)
 		goto err_cmd_init;
+
+	va_list args;
+	va_start(args, info);
+
+	char *cmd = get_cmd(args);
+
+	va_end(args);
+
+	if (!cmd)
+		goto err_cmd;
+
 	int ret = rpmem_cmd_push(rps->cmd, get_ssh());
 	if (ret)
 		goto err_push;
@@ -157,7 +206,7 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 	if (ret)
 		goto err_push;
 
-	ret = rpmem_cmd_push(rps->cmd, rpmem_util_cmd_get());
+	ret = rpmem_cmd_push(rps->cmd, cmd);
 	if (ret)
 		goto err_push;
 
@@ -165,16 +214,46 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 	if (ret)
 		goto err_run;
 
+
+	free(user_at_node);
+	free(cmd);
+
+	return rps;
+err_run:
+	rpmem_cmd_term(rps->cmd);
+	rpmem_cmd_wait(rps->cmd, NULL);
+err_push:
+	free(cmd);
+err_cmd:
+	rpmem_cmd_fini(rps->cmd);
+err_cmd_init:
+	free(user_at_node);
+err_user_node:
+	free(rps);
+err_zalloc:
+	return NULL;
+}
+
+/*
+ * rpmem_ssh_open -- open ssh connection with specified node and wait for status
+ */
+struct rpmem_ssh *
+rpmem_ssh_open(const struct rpmem_target_info *info)
+{
+	struct rpmem_ssh *ssh = rpmem_ssh_run(info, NULL);
+	if (!ssh)
+		return NULL;
+
 	/*
 	 * Read initial status from invoked command.
 	 * This is for synchronization purposes and to make it possible
 	 * to inform client that command's initialization failed.
 	 */
 	int32_t status;
-	ret = rpmem_ssh_recv(rps, &status, sizeof(status));
+	int ret = rpmem_ssh_recv(ssh, &status, sizeof(status));
 	if (ret) {
 		if (ret == 1 || errno == ECONNRESET)
-			ERR("%s", rpmem_ssh_strerror(rps));
+			ERR("%s", rpmem_ssh_strerror(ssh));
 		else
 			ERR("!%s", info->node);
 		goto err_recv_status;
@@ -188,21 +267,10 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 
 	RPMEM_LOG(INFO, "received status: %u", status);
 
-	free(user_at_node);
-
-	return rps;
-err_status:
+	return ssh;
 err_recv_status:
-err_run:
-	rpmem_cmd_term(rps->cmd);
-	rpmem_cmd_wait(rps->cmd, NULL);
-err_push:
-	rpmem_cmd_fini(rps->cmd);
-err_cmd_init:
-	free(user_at_node);
-err_user_node:
-	free(rps);
-err_zalloc:
+err_status:
+	rpmem_ssh_close(ssh);
 	return NULL;
 }
 
