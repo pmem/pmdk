@@ -1,0 +1,44 @@
+win_signal\TEST0: START: win_signal
+ $(nW)win_signal.exe
+0; Unknown signal 0
+1; Hangup
+2; Interrupt
+3; Quit
+4; Illegal instruction
+5; Trace/breakpoint trap
+6; Aborted
+7; Bus error
+33; Unknown signal
+34; Real-time signal
+35; Real-time signal
+36; Real-time signal
+37; Real-time signal
+38; Real-time signal
+39; Real-time signal
+40; Real-time signal
+41; Real-time signal
+42; Real-time signal
+43; Real-time signal
+44; Real-time signal
+45; Real-time signal
+46; Real-time signal
+47; Real-time signal
+48; Real-time signal
+49; Real-time signal
+50; Real-time signal
+51; Real-time signal
+52; Real-time signal
+53; Real-time signal
+54; Real-time signal
+55; Real-time signal
+56; Real-time signal
+57; Real-time signal
+58; Real-time signal
+59; Real-time signal
+60; Real-time signal
+61; Real-time signal
+62; Real-time signal
+63; Real-time signal
+64; Real-time signal
+65; Unknown signal
+win_signal\TEST0: Done
