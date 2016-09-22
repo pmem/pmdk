@@ -72,6 +72,7 @@ const char * const sys_siglist[] = {
 	"Bad system call",		/* 31 */
 	"Unknown signal 32"		/* 32 */
 };
+int sys_siglist_size = ARRAYSIZE(sys_siglist);
 
 /*
  * string constants for strsignal
