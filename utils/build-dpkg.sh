@@ -205,7 +205,7 @@ Maintainer: $PACKAGE_MAINTAINER
 Section: misc
 Priority: optional
 Standards-version: 3.9.4
-Build-Depends: debhelper (>= 9), doxygen, pandoc
+Build-Depends: debhelper (>= 9), doxygen
 
 Package: libpmem
 Architecture: any
