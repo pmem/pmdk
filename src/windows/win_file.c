@@ -61,12 +61,18 @@
 int
 mkstemp(char *temp)
 {
-	/* XXX - limited number of unique file names */
+	/* XXX - limited number of unique file names - 26 per thread */
 	char *path = _mktemp(temp);
 	if (path == NULL)
 		return -1;
 
-	return open(path, O_RDWR | O_CREAT | O_EXCL, S_IWRITE | S_IREAD);
+	/*
+	 * Use O_TEMPORARY flag to make sure the file is deleted when
+	 * the last file descriptor is closed.  Also, it prevents opening
+	 * this file from another process.
+	 */
+	return open(path, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
+		S_IWRITE | S_IREAD);
 }
 
 /*
