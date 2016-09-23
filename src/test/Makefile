@@ -188,7 +188,9 @@ PMEMPOOL_TESTS = \
 	pmempool_dump\
 	pmempool_help\
 	pmempool_info\
-	pmempool_rm
+	pmempool_rm\
+	pmempool_sync\
+	pmempool_transform
 
 RPMEM_TESTS =\
 	rpmemd_config\

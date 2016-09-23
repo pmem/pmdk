@@ -31,10 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST0 -- test for checking replica transform
+# pmempool_transform/TEST0 -- test for checking pmempool transform;
+#                             removing replica
 #
-export UNITTEST_NAME=libpmempool_transform/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=pmempool_transform/TEST0
+export UNITTEST_NUM=0
 
 . ../unittest/unittest.sh
 
@@ -60,6 +61,9 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
+REPLICA
+10M $DIR/testfile5
+20M $DIR/testfile6
 EOF
 
 cat << EOF > $POOLSET_OUT
@@ -70,9 +74,6 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
 EOF
 
 # CLI script for writing some data hitting all the parts
@@ -104,17 +105,15 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
 # Transform poolset
-FLAGS=0
-expect_normal_exit ./libpmempool_transform$EXESUFFIX \
-	$POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
+	$POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \
 	$LOG_TEMP
 
 # Check metadata by pmempool info
-for i in `seq 0 6`
+for i in `seq 0 4`
 do
 	dump_pool_info $DIR/testfile$i >> $LOG_TEMP
 done
