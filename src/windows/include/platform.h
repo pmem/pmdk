@@ -56,6 +56,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 
 #include <windows.h>
 #include <stdint.h>
+#include <time.h>
 #include <io.h>
 #include <process.h>
 #include <fcntl.h>
@@ -129,6 +130,12 @@ __sync_fetch_and_add(volatile uint32_t *a, uint32_t val)
 	return InterlockedExchangeAdd(a, val);
 }
 
+__inline uint64_t
+__sync_fetch_and_add64(volatile uint64_t *a, uint64_t val)
+{
+	return InterlockedExchangeAdd64(a, val);
+}
+
 __inline void
 __sync_synchronize()
 {
@@ -167,6 +174,16 @@ int posix_fallocate(int fd, off_t offset, off_t size);
 
 const char *strsignal(int sig);
 extern const char * const sys_siglist[];
+
+#define CLOCK_MONOTONIC 1
+#define CLOCK_REALTIME 2
+
+#ifndef DELTA_WIN2UNIX
+/* number of useconds between 1970-01-01T00:00:00Z and 1601-01-01T00:00:00Z */
+#define DELTA_WIN2UNIX (11644473600000000ull)
+#endif
+
+void clock_gettime(clock_t id, struct timespec *ts);
 
 /* signal.h */
 typedef unsigned long long sigset_t; /* one bit for each signal */
