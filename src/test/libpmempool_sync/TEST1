@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_replica_sync/TEST0 -- test for checking replica sync
+# libpmempool_sync/TEST0 -- test for checking replica sync
 #
 export UNITTEST_NAME=libpmempool_sync/TEST1
 export UNITTEST_NUM=1
@@ -42,9 +42,6 @@ require_fs_type any
 
 setup
 
-# 55MB
-DATA_LEN=$((55*1024*1024))
-
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -rf $LOG && touch $LOG
@@ -52,9 +49,6 @@ rm -rf $LOG_TEMP && touch $LOG_TEMP
 
 LAYOUT=OBJ_LAYOUT
 POOLSET=$DIR/pool0.set
-M=$(( 1024 * 1024 ))
-M20=$(( 20 * $M ))
-M40=$(( 40 * $M ))
 POOL_HEADER_OFFSET=4096
 ADDR_MASK=0xFFFFF000
 
@@ -69,12 +63,7 @@ REPLICA
 20M $DIR/testfile5
 EOF
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
-	obj $POOLSET
-cat $LOG >> $LOG_TEMP
-
-
-# CLI script for writing some data at 0, 20 and 40 MB
+# CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data
 cat << EOF > $WRITE_SCRIPT
 pr 55M
@@ -83,13 +72,18 @@ srcp 20M TestOK222
 srcp 40M TestOK333
 EOF
 
-# CLI script for reading 9 characters from 0, 20 and 40 MB offset
+# CLI script for reading 9 characters from all the parts
 READ_SCRIPT=$DIR/read_data
 cat << EOF > $READ_SCRIPT
 srpr 0 9
 srpr 20M 9
 srpr 40M 9
 EOF
+
+# Create a pool
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
+	obj $POOLSET
+cat $LOG >> $LOG_TEMP
 
 # Write some data into the pool, hitting three part files
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP

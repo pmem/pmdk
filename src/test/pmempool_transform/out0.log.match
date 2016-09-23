@@ -1,0 +1,40 @@
+pr(23068672): off = 0x382440 uuid = $(nW)
+TestOK111
+TestOK222
+TestOK111
+TestOK222
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)

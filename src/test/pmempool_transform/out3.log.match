@@ -1,0 +1,48 @@
+poolset_in
+PMEMPOOLSET
+20M $(nW)/testfile00
+
+poolset_out
+PMEMPOOLSET
+20M $(nW)/testfile00
+REPLICA
+20M $(nW)/testfile10
+1M $(nW)/testfile11
+
+pr($(nW)): off = 0x382440 uuid = $(nW)
+TestOK111
+error: Invalid argument
+error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: Transformation failed
+TestOK111
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : $(nW) [OK]
+Root offset              : 0x382440
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 17817600
+Checksum                 : $(nW) [OK]
+Root offset              : 0x382440
