@@ -313,6 +313,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 			if (access(rep->part[p].path, F_OK|R_OK|W_OK) != 0) {
 				LOG(1, "Part file %s is not accessible",
 						rep->part[p].path);
+				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
 				if (is_dry_run(flags))
 					continue;

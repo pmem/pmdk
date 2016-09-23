@@ -52,7 +52,7 @@
 #define IS_INCONSISTENT (1 << 1)
 
 /*
- * A flag which can be passed to pmempool_sync to indicate that the function is
+ * A flag which can be passed to sync_replica() to indicate that the function is
  * called by pmempool_transform
  */
 #define IS_TRANSFORMED (1 << 10)
