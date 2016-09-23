@@ -1,3 +1,4 @@
+#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -31,17 +32,14 @@
 #
 
 #
-# src/test/obj_include/Makefile -- build include tests
+# src/test/libpmempool_include/TEST0 - if it compiles it's perfect
 #
-TARGET = obj_include
-OBJS = obj_atomic_base_include.o obj_atomic_include.o \
-       obj_base_include.o obj_iterator_base_include.o obj_iterator_include.o \
-       obj_lists_atomic_base_include.o obj_lists_atomic_include.o \
-       obj_pool_base_include.o obj_pool_include.o obj_thread_include.o \
-       obj_tx_base_include.o obj_tx_include.o obj_types_include.o
+export UNITTEST_NAME=libpmempool_include/TEST0
+export UNITTEST_NUM=0
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+setup
 
+pass

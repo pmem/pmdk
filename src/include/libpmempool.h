@@ -39,6 +39,10 @@
 #ifndef LIBPMEMPOOL_H
 #define LIBPMEMPOOL_H 1
 
+#ifdef _WIN32
+#include <pmemcompat.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
