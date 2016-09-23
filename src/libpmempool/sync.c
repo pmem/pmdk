@@ -79,13 +79,6 @@ recreate_broken_parts(struct pool_set *set,
 				errno = EINVAL;
 				return -1;
 			}
-
-			/* generate new uuids for removed parts */
-			if (util_uuid_generate(broken_r->part[p].uuid) < 0) {
-				ERR("Cannot generate pool set part UUID");
-				errno = EINVAL;
-				return -1;
-			}
 		}
 	}
 	return 0;
@@ -98,25 +91,85 @@ static void
 fill_struct_part_uuids(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs)
 {
-	struct pool_replica *replica = REP(set, repn);
+	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
-	for (unsigned p = 0; p < replica->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nparts; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
 
-		hdrp = HDR(replica, p);
-		memcpy(replica->part[p].uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
+		hdrp = HDR(rep, p);
+		memcpy(rep->part[p].uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 	}
+}
+
+/*
+ * fill_struct_broken_part_uuids -- (internal) set part uuids in pool_set
+ *                                  structure
+ */
+static int
+fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
+		struct poolset_health_status *set_hs, unsigned flags)
+{
+	struct pool_replica *rep = REP(set, repn);
+	struct pool_hdr *hdrp;
+	for (unsigned p = 0; p < rep->nparts; ++p) {
+		/* skip unbroken parts */
+		if (!replica_is_part_broken(repn, p, set_hs))
+			continue;
+
+		/* check if part was damaged or was added by transform */
+		if (replica_is_poolset_transformed(flags)) {
+			/* generate new uuid for this part */
+			if (util_uuid_generate(rep->part[p].uuid) < 0) {
+				ERR("Cannot generate pool set part UUID");
+				errno = EINVAL;
+				return -1;
+			}
+			continue;
+		}
+
+		if (!replica_is_part_broken(repn, p + 1, set_hs)) {
+			/* try to get part uuid from the next part */
+			hdrp = HDR(rep, p + 1);
+			memcpy(rep->part[p].uuid, hdrp->prev_part_uuid,
+					POOL_HDR_UUID_LEN);
+		} else if (!replica_is_part_broken(repn, p - 1, set_hs)) {
+			/* try to get part uuid from the previous part */
+			hdrp = HDR(rep, p - 1);
+			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
+					POOL_HDR_UUID_LEN);
+		} else if (p == 0 &&
+			replica_find_unbroken_part(repn + 1, set_hs) == 0) {
+			/* try to get part uuid from the next replica */
+			hdrp = HDR(REP(set, repn + 1), 0);
+			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
+						POOL_HDR_UUID_LEN);
+		} else if (p == 0 &&
+			replica_find_unbroken_part(repn - 1, set_hs) == 0) {
+			/* try to get part uuid from the previous replica */
+			hdrp = HDR(REP(set, repn - 1), 0);
+			memcpy(rep->part[p].uuid, hdrp->next_repl_uuid,
+						POOL_HDR_UUID_LEN);
+		} else {
+			/* generate new uuid for this part */
+			if (util_uuid_generate(rep->part[p].uuid) < 0) {
+				ERR("Cannot generate pool set part UUID");
+				errno = EINVAL;
+				return -1;
+			}
+		}
+	}
+	return 0;
 }
 
 /*
  * fill_struct_uuids -- (internal) fill fields in pool_set needed for further
  *                      altering of uuids
  */
-static void
+static int
 fill_struct_uuids(struct pool_set *set, unsigned src_replica,
-		struct poolset_health_status *set_hs)
+		struct poolset_health_status *set_hs, unsigned flags)
 {
 	/* set poolset uuid */
 	struct pool_hdr *src_hdr0 = HDR(REP(set, src_replica), 0);
@@ -126,6 +179,13 @@ fill_struct_uuids(struct pool_set *set, unsigned src_replica,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		fill_struct_part_uuids(set, r, set_hs);
 	}
+
+	/* set broken parts' uuids */
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (fill_struct_broken_part_uuids(set, r, set_hs, flags))
+			return -1;
+	}
+	return 0;
 }
 
 /*
@@ -153,7 +213,7 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 					src_hdr->incompat_features,
 					src_hdr->ro_compat_features,
 					NULL, NULL, NULL) != 0) {
-				LOG(2, "part headers create failed for"
+				LOG(1, "part headers create failed for"
 						" replica %u part %u", r, p);
 				errno = EINVAL;
 				return -1;
@@ -171,11 +231,10 @@ static int
 copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 		unsigned flags, struct poolset_health_status *set_hs)
 {
-	size_t poolsize = replica_get_pool_size(set);
+	size_t poolsize = replica_get_pool_size(set, healthy_replica);
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken and consistent replicas */
-		if (!replica_is_replica_broken(r, set_hs) &&
-				!replica_is_replica_inconsistent(r, set_hs))
+		if (replica_is_replica_healthy(r, set_hs))
 			continue;
 
 		struct pool_replica *rep = REP(set, r);
@@ -184,7 +243,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			/* skip unbroken parts from consistent replicas */
 			if (!replica_is_part_broken(r, p, set_hs) &&
-				!replica_is_replica_inconsistent(r, set_hs))
+				replica_is_replica_consistent(r, set_hs))
 				continue;
 
 			const struct pool_set_part *part = &rep->part[p];
@@ -194,7 +253,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 
 			/* do not allow copying too much data */
 			if (off >= poolsize)
-				return 0;
+				continue;
 
 			if (off + len > poolsize)
 				len = poolsize - off;
@@ -205,9 +264,11 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			size_t fpoff = (p == 0) ? POOL_HDR_SIZE : 0;
 
 			/* copy all data */
-			if (!is_dry_run(flags))
+			if (!is_dry_run(flags)) {
 				memcpy(ADDR_SUM(part->addr, fpoff),
 						src_addr, len);
+				pmem_msync(ADDR_SUM(part->addr, fpoff), len);
+			}
 		}
 	}
 	return 0;
@@ -218,9 +279,24 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
  *                            the parts created in place of the broken ones
  */
 static int
-grant_broken_parts_perm(struct pool_set *set,
+grant_broken_parts_perm(struct pool_set *set, unsigned src_repn,
 		struct poolset_health_status *set_hs)
 {
+	/* choose the default permissions */
+	mode_t def_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+
+	/* get permissions of the first part of the source replica */
+	mode_t src_mode;
+	struct stat sb;
+	if (stat(PART(REP(set, src_repn), 0).path, &sb) != 0) {
+		ERR("Cannot check file permissions of %s (replica %u, part %u)",
+				PART(REP(set, src_repn), 0).path, src_repn, 0);
+		src_mode = def_mode;
+	} else {
+		src_mode = sb.st_mode;
+	}
+
+	/* set permissions to all recreated parts */
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
@@ -231,9 +307,8 @@ grant_broken_parts_perm(struct pool_set *set,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
-			/* XXX set rights to those of existing part files */
-			if (chmod(PART(REP(set, r), p).path,
-				S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) {
+			/* set rights to those of existing part files */
+			if (chmod(PART(REP(set, r), p).path, src_mode)) {
 				ERR("Cannot set permission rights for created"
 					" parts: replica %u, part %u", r, p);
 				errno = EPERM;
@@ -313,7 +388,6 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	/* set uuids in the previous replica */
 	for (unsigned p = 0; p < prev_r->nparts; ++p) {
 		struct pool_hdr *prev_hdrp = HDR(prev_r, p);
-
 		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0).uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
@@ -351,6 +425,9 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 		struct pool_hdr *hdrp = HDR(rep, p);
 		memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+
+		/* store pool's header */
+		pmem_msync(hdrp, sizeof(*hdrp));
 	}
 	return 0;
 }
@@ -363,8 +440,7 @@ static int
 update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (replica_is_replica_broken(r, set_hs) ||
-				replica_is_replica_inconsistent(r, set_hs))
+		if (!replica_is_replica_healthy(r, set_hs))
 			update_parts_linkage(set, r, set_hs);
 
 		update_replicas_linkage(set, r);
@@ -383,49 +459,74 @@ sync_replica(struct pool_set *set, unsigned flags)
 
 	/* examine poolset's health */
 	struct poolset_health_status *set_hs = NULL;
-	if (replica_check_poolset_health(set, &set_hs, flags))
+	if (replica_check_poolset_health(set, &set_hs, flags)) {
+		LOG(1, "Poolset health check failed");
 		return -1;
+	}
 
 	/* check if poolset is broken; if not, nothing to do */
 	if (replica_is_poolset_healthy(set_hs)) {
-		LOG(2, "Poolset is healthy");
+		LOG(1, "Poolset is healthy");
 		goto OK_close;
 	}
 
 	/* find one good replica; it will be the source of data */
 	unsigned healthy_replica = replica_find_healthy_replica(set_hs);
-	if (healthy_replica == UNDEF_REPLICA)
+	if (healthy_replica == UNDEF_REPLICA) {
+		LOG(1, "No healthy replica found");
 		goto err;
+	}
+
+	/* in dry-run mode we can stop here */
+	if (is_dry_run(flags)) {
+		LOG(1, "Sync in dry-run mode finished successfully");
+		goto OK_close;
+	}
 
 	/* recreate broken parts */
-	if (recreate_broken_parts(set, set_hs, flags))
+	if (recreate_broken_parts(set, set_hs, flags)) {
+		LOG(1, "Recreating broken parts failed");
 		goto err;
+	}
 
 	/* open all part files */
-	if (replica_open_poolset_part_files(set))
+	if (replica_open_poolset_part_files(set)) {
+		LOG(1, "Opening poolset part files failed");
 		goto err;
+	}
 
 	/* map all replicas */
-	if (util_poolset_open(set))
+	if (util_poolset_open(set)) {
+		LOG(1, "Opening poolset failed");
 		goto err;
+	}
 
 	/* update uuid fields in the set structure with part headers */
-	fill_struct_uuids(set, healthy_replica, set_hs);
+	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
+		LOG(1, "Gathering uuids failed");
+		goto err;
+	}
+
+	/* check and copy data if possible */
+	if (copy_data_to_broken_parts(set, healthy_replica, flags, set_hs)) {
+		LOG(1, "Copying data to broken parts failed");
+		goto err;
+	}
 
 	/* create headers for broken parts */
 	if (!is_dry_run(flags)) {
 		if (create_headers_for_broken_parts(set, healthy_replica,
-				set_hs))
+				set_hs)) {
+			LOG(1, "Creating headers for broken parts failed");
 			goto err;
+		}
 	}
 
-	/* check and copy data if possible */
-	if (copy_data_to_broken_parts(set, healthy_replica, flags, set_hs))
+	/* grant permissions to all created parts */
+	if (grant_broken_parts_perm(set, healthy_replica, set_hs)) {
+		LOG(1, "Granting permissions to broken parts failed");
 		goto err;
-
-	/* grand permission for all created parts */
-	if (grant_broken_parts_perm(set, set_hs))
-		goto err;
+	}
 
 	/* update uuids of replicas and parts */
 	if (!is_dry_run(flags))
