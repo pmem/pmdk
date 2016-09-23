@@ -48,10 +48,20 @@
 #define MINOR_VERSION 0
 
 static int
-cb(const char *name, void *arg)
+cb(struct part_file *pf, void *arg)
 {
-	char *set_name = (char *)arg;
-	UT_OUT("%s: %s", set_name, name);
+	if (pf->is_remote) {
+		/* remote replica */
+		const char *node_addr = pf->node_addr;
+		const char *pool_desc = pf->pool_desc;
+		char *set_name = (char *)arg;
+		UT_OUT("%s: %s %s", set_name, node_addr, pool_desc);
+	} else {
+		const char *name = pf->path;
+		char *set_name = (char *)arg;
+		UT_OUT("%s: %s", set_name, name);
+	}
+
 	return 0;
 }
 

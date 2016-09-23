@@ -37,7 +37,7 @@
 #ifndef MAP_SKIPLIST_H
 #define MAP_SKIPLIST_H
 
-#include <libpmemobj.h>
+#include "map.h"
 
 extern struct map_ops skiplist_map_ops;
 

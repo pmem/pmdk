@@ -43,6 +43,7 @@
 #include <math.h>
 #include <float.h>
 #include <sys/queue.h>
+#include <sys/wait.h>
 #include <linux/limits.h>
 #include <dirent.h>
 #include <errno.h>
@@ -56,6 +57,9 @@
 #include "clo.h"
 #include "config_reader.h"
 #include "util.h"
+#include "rpmem_common.h"
+#include "rpmem_ssh.h"
+#include "rpmem_util.h"
 
 /*
  * struct pmembench -- main context
@@ -840,13 +844,42 @@ out:
 }
 
 /*
+ * remove_remote -- remove remote pool
+ */
+static int
+remove_remote(const char *node, const char *pool)
+{
+	struct rpmem_target_info *info = rpmem_target_parse(node);
+	if (!info)
+		err(1, "parsing target node -- '%s", node);
+
+	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove", pool, NULL);
+	if (!ssh)
+		err(1, "rpmem_ssh_exec: remove -- '%s'", pool);
+
+	if (rpmem_ssh_monitor(ssh, 0))
+		err(1, "rpmem_ssh_monitor");
+
+	rpmem_ssh_close(ssh);
+	rpmem_target_free(info);
+
+	return 0;
+}
+
+/*
  * remove_part_cb -- callback function for removing all pool set part files
  */
 static int
-remove_part_cb(const char *part_file, void *arg)
+remove_part_cb(struct part_file *pf, void *arg)
 {
+	if (pf->is_remote)
+		return remove_remote(pf->node_addr, pf->pool_desc);
+
+	const char *part_file = pf->path;
+
 	if (access(part_file, F_OK) == 0)
 		return remove(part_file);
+
 	return 0;
 }
 
@@ -1209,6 +1242,7 @@ int
 main(int argc, char *argv[])
 {
 	util_init();
+	rpmem_util_cmds_init();
 	util_mmap_init();
 	int ret = 0;
 	struct pmembench *pb = calloc(1, sizeof(*pb));

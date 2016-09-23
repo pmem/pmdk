@@ -37,6 +37,8 @@
 #include <map.h>
 #include <hashmap_tx.h>
 
+#include "map_hashmap_tx.h"
+
 /*
  * map_hm_tx_check -- wrapper for hm_tx_check
  */

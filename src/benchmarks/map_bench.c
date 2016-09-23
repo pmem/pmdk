@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * map_bench.c -- benchmarks for: ctree, btree, rbtree, hashmap_atomic
+ * map_bench.c -- benchmarks for: ctree, btree, rtree, rbtree, hashmap_atomic
  * and hashmap_tx from examples.
  */
 #include <assert.h>
@@ -40,11 +40,13 @@
 #include "map.h"
 #include "map_ctree.h"
 #include "map_btree.h"
+#include "map_rtree.h"
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
 
-#define FACTOR	2
+/* Values less than 3 is not suitable for current rtree implementation */
+#define FACTOR	3
 #define ALLOC_OVERHEAD	64
 
 TOID_DECLARE_ROOT(struct root);
@@ -61,7 +63,8 @@ struct root {
 	(b) = _tmp;\
 } while (0)
 
-#define SIZE_PER_KEY	1024
+/* Values less than 2048 is not suitable for current rtree implementation */
+#define SIZE_PER_KEY	2048
 
 static const struct {
 	const char *str;
@@ -69,6 +72,7 @@ static const struct {
 } map_types[] = {
 	{"ctree",		MAP_CTREE},
 	{"btree",		MAP_BTREE},
+	{"rtree",		MAP_RTREE},
 	{"rbtree",		MAP_RBTREE},
 	{"hashmap_tx",		MAP_HASHMAP_TX},
 	{"hashmap_atomic",	MAP_HASHMAP_ATOMIC},
@@ -115,7 +119,7 @@ static struct benchmark_clo map_bench_clos[] = {
 		.opt_short	= 'T',
 		.opt_long	= "type",
 		.descr		= "Type of container "
-			"[ctree|btree|rbtree|hashmap_tx|hashmap_atomic]",
+			"[ctree|btree|rtree|rbtree|hashmap_tx|hashmap_atomic]",
 		.off		= clo_field_offset(struct map_bench_args, type),
 		.type		= CLO_TYPE_STR,
 		.def		= "ctree",
@@ -784,7 +788,7 @@ REGISTER_BENCHMARK(map_insert_info);
 
 static struct benchmark_info map_remove_info = {
 	.name		= "map_remove",
-	.brief		= "Inserting to tree map",
+	.brief		= "Removing from tree map",
 	.init		= map_remove_init,
 	.exit		= map_remove_exit,
 	.multithread	= true,

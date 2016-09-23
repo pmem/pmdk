@@ -229,7 +229,7 @@ static int
 rpmem_remove_pool(const struct rpmem_target_info *info, const char *pool_set)
 {
 	RPMEM_LOG(NOTICE, "removing pool -- '%s'", pool_set);
-	struct rpmem_ssh *ssh = rpmem_ssh_run(info, "--remove",
+	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove",
 			pool_set, NULL);
 	if (!ssh) {
 		RPMEM_LOG(ERR, "executing remove command failed");

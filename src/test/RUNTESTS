@@ -178,7 +178,7 @@ EOF
 #
 # defaults...
 #
-buildtype=all
+def_buildtype=all
 testtype=check
 fstype=all
 testconfig="./testconfig.sh"
@@ -209,9 +209,8 @@ do
 		shift
 		;;
 	-b)
-		buildtype="$2"
-		shift 2
-		case "$buildtype"
+		buildtype="$buildtype $2"
+		case "$2"
 		in
 		debug|nondebug|static-debug|static-nondebug|all)
 			;;
@@ -219,6 +218,7 @@ do
 			usage "bad build-type: $buildtype"
 			;;
 		esac
+		shift 2
 		;;
 	-t)
 		testtype="$2"
@@ -342,6 +342,9 @@ do
 		;;
 	esac
 done
+
+[ -z "$buildtype" ] && buildtype=$def_buildtype
+[[ $buildtype =~ .*all.* ]] && buildtype=all
 
 
 [ "$verbose" ] && {

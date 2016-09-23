@@ -37,7 +37,7 @@
 #ifndef MAP_RBTREE_H
 #define MAP_RBTREE_H
 
-#include <libpmemobj.h>
+#include "map.h"
 
 extern struct map_ops rbtree_map_ops;
 

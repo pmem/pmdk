@@ -590,13 +590,13 @@ function check {
         while($p.HasExited -eq $false) {
             # output streams have limited size, we need to read it
             # during an application runtime to prevent application hang.
-            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
             Write-Host -NoNewline $p.StandardError.ReadToEnd();
+            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
         }
 
         if ($p.ExitCode -ne 0) {
-            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
             Write-Host -NoNewline $p.StandardError.ReadToEnd();
+            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
             fail $p.ExitCode
         }
     } else {

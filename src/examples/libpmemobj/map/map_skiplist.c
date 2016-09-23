@@ -37,6 +37,8 @@
 #include <map.h>
 #include <skiplist_map.h>
 
+#include "map_skiplist.h"
+
 /*
  * map_skiplist_check -- wrapper for skiplist_map_check
  */

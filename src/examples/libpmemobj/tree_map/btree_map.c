@@ -103,6 +103,10 @@ btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 	int ret = 0;
 	TX_BEGIN(pop) {
 		btree_map_clear_node(D_RO(map)->root);
+
+		TX_ADD_FIELD(map, root);
+
+		D_RW(map)->root = TOID_NULL(struct tree_map_node);
 	} TX_ONABORT {
 		ret = 1;
 	} TX_END

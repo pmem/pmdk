@@ -2533,7 +2533,7 @@ out:
  */
 int
 util_poolset_foreach_part(const char *path,
-	int (*cb)(const char *part_file, void *arg), void *arg)
+	int (*cb)(struct part_file *pf, void *arg), void *arg)
 {
 	int fd = open(path, O_RDONLY);
 	if (fd < 0)
@@ -2545,11 +2545,22 @@ util_poolset_foreach_part(const char *path,
 		goto err_close;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
-		for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-			const char *part_file = set->replica[r]->part[p].path;
-			ret = cb(part_file, arg);
+		struct part_file part;
+		if (set->replica[r]->remote) {
+			part.is_remote = 1;
+			part.node_addr = set->replica[r]->remote->node_addr;
+			part.pool_desc = set->replica[r]->remote->pool_desc;
+			ret = cb(&part, arg);
 			if (ret)
 				goto out;
+		} else {
+			part.is_remote = 0;
+			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
+				part.path = set->replica[r]->part[p].path;
+				ret = cb(&part, arg);
+				if (ret)
+					goto out;
+			}
 		}
 	}
 out:

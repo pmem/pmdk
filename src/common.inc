@@ -140,6 +140,8 @@ endif
 
 INC_PREFIX ?= include
 
+test_build=$(addprefix -b, $(TEST_BUILD))
+
 export libdir := $(exec_prefix)/$(LIB_PREFIX)
 export includedir := $(prefix)/$(INC_PREFIX)
 export pkgconfigdir := $(libdir)/pkgconfig

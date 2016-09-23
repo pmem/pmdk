@@ -96,10 +96,19 @@ replica_get_part_data_offset(struct pool_set *set, unsigned repn,
 int
 replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 {
-	if (unlink(set->replica[repn]->part[partn].path)) {
-		if (errno != ENOENT)
+	struct pool_set_part *part = &PART(REP(set, repn), partn);
+	if (part->fd != -1)
+		close(part->fd);
+
+	if (unlink(part->path)) {
+		if (errno != ENOENT) {
+			ERR("Removing part %u from replica %u failed",
+					partn, repn);
 			return -1;
+		}
 	}
+	LOG(1, "Removed part %s number %u from replica %u", part->path, partn,
+			repn);
 	return 0;
 }
 
@@ -195,13 +204,25 @@ replica_is_replica_broken(unsigned repn, struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_is_replica_inconsistent -- check if replica is marked as inconsistent
+ * replica_is_replica_consistent -- check if replica is not marked as
+ *                                  inconsistent
  */
 int
-replica_is_replica_inconsistent(unsigned repn,
+replica_is_replica_consistent(unsigned repn,
 		struct poolset_health_status *set_hs)
 {
-	return REP(set_hs, repn)->flags & IS_INCONSISTENT;
+	return !(REP(set_hs, repn)->flags & IS_INCONSISTENT);
+}
+
+/*
+ * replica_is_replica_healthy -- check if replica is unbroken and consistent
+ */
+int
+replica_is_replica_healthy(unsigned repn,
+		struct poolset_health_status *set_hs)
+{
+	return !replica_is_replica_broken(repn, set_hs) &&
+			replica_is_replica_consistent(repn, set_hs);
 }
 
 /*
@@ -213,12 +234,22 @@ int
 replica_is_poolset_healthy(struct poolset_health_status *set_hs)
 {
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (replica_is_replica_broken(r, set_hs) ||
-				replica_is_replica_inconsistent(r, set_hs))
+		if (!replica_is_replica_healthy(r, set_hs))
 			return 0;
 	}
 	return 1;
 }
+
+/*
+ * replica_is_poolset_transformed -- check if the flag indicating a call from
+ *                                   pmempool_transform is on
+ */
+int
+replica_is_poolset_transformed(unsigned flags)
+{
+	return flags & IS_TRANSFORMED;
+}
+
 
 /*
  * find_consistent_replica -- (internal) find a replica number, which is not
@@ -228,7 +259,7 @@ static unsigned
 find_consistent_replica(struct poolset_health_status *set_hs)
 {
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (!replica_is_replica_inconsistent(r, set_hs))
+		if (replica_is_replica_consistent(r, set_hs))
 			return r;
 	}
 	return UNDEF_REPLICA;
@@ -238,8 +269,8 @@ find_consistent_replica(struct poolset_health_status *set_hs)
  * find_unbroken_part -- (internal) find a part number in a given replica,
  *                       which is not marked as broken in the helping structure
  */
-static unsigned
-find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
+unsigned
+replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 {
 	for (unsigned p = 0; p < REP(set_hs, repn)->nparts; ++p) {
 		if (!replica_is_part_broken(repn, p, set_hs))
@@ -259,8 +290,7 @@ replica_find_healthy_replica(struct poolset_health_status *set_hs)
 		return replica_is_replica_broken(0, set_hs) ? UNDEF_REPLICA : 0;
 	} else {
 		for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-			if (!replica_is_replica_broken(r, set_hs) &&
-				!replica_is_replica_inconsistent(r, set_hs))
+			if (replica_is_replica_healthy(r, set_hs))
 				return r;
 		}
 		return UNDEF_REPLICA;
@@ -280,20 +310,22 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (access(rep->part[p].path, F_OK|R_OK|W_OK) != 0)
+			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
+				LOG(1, "Part file %s is not accessible",
+						rep->part[p].path);
+				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
-
-			int create = !is_dry_run(flags);
-			if (util_part_open(&rep->part[p], 0, create))
-				goto err;
+				if (is_dry_run(flags))
+					continue;
+			}
+			if (util_part_open(&rep->part[p], 0, 0)) {
+				LOG(1, "Opening part %s failed",
+						rep->part[p].path);
+				rep_hs->part[p] |= IS_BROKEN;
+			}
 		}
 	}
 	return 0;
-
-err:
-	util_poolset_fdclose(set);
-	errno = EINVAL;
-	return -1;
 }
 
 /*
@@ -314,7 +346,7 @@ map_all_unbroken_headers(struct pool_set *set,
 				continue;
 
 			if (util_map_hdr(&rep->part[p], MAP_SHARED) != 0) {
-				LOG(2, "header mapping failed - part #%d", p);
+				LOG(1, "header mapping failed - part #%d", p);
 				rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
@@ -535,7 +567,7 @@ check_poolset_uuids(struct pool_set *set,
 
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		/* skip inconsistent replicas */
-		if (replica_is_replica_inconsistent(r, set_hs) || r == r_h)
+		if (!replica_is_replica_consistent(r, set_hs) || r == r_h)
 			continue;
 
 		check_replica_poolset_uuids(set, r, poolset_uuid, set_hs);
@@ -553,8 +585,8 @@ check_uuids_between_replicas(struct pool_set *set,
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		/* skip comparing inconsistent pairs of replicas */
-		if (replica_is_replica_inconsistent(r, set_hs) ||
-				replica_is_replica_inconsistent(r + 1, set_hs))
+		if (!replica_is_replica_consistent(r, set_hs) ||
+				!replica_is_replica_consistent(r + 1, set_hs))
 			continue;
 
 		struct pool_replica *rep = REP(set, r);
@@ -563,8 +595,8 @@ check_uuids_between_replicas(struct pool_set *set,
 		struct replica_health_status *rep_n_hs = REP(set_hs, r + 1);
 
 		/* check adjacent replica uuids for yet unbroken parts */
-		unsigned p = find_unbroken_part(r, set_hs);
-		unsigned p_n = find_unbroken_part(r + 1, set_hs);
+		unsigned p = replica_find_unbroken_part(r, set_hs);
+		unsigned p_n = replica_find_unbroken_part(r + 1, set_hs);
 
 		/* if the first part is broken, cannot compare replica uuids */
 		if (p > 0) {
@@ -616,14 +648,15 @@ int
 replica_check_poolset_health(struct pool_set *set,
 		struct poolset_health_status **set_hsp, unsigned flags)
 {
-	if (replica_create_poolset_health_status(set, set_hsp))
+	if (replica_create_poolset_health_status(set, set_hsp)) {
+		LOG(1, "Creating poolset health status failed");
 		return -1;
+	}
 
 	struct poolset_health_status *set_hs = *set_hsp;
 
 	/* check if part files exist, and if not - create them, and open them */
-	if (check_and_open_poolset_part_files(set, set_hs, flags))
-		goto err_hs;
+	check_and_open_poolset_part_files(set, set_hs, flags);
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
@@ -632,16 +665,22 @@ replica_check_poolset_health(struct pool_set *set,
 	check_checksums(set, set_hs);
 
 	/* check if uuids in parts across each replica are consistent */
-	if (check_replicas_consistency(set, set_hs))
+	if (check_replicas_consistency(set, set_hs)) {
+		LOG(1, "Replica consistency check failed");
 		goto err;
+	}
 
 	/* check poolset_uuid values between replicas */
-	if (check_poolset_uuids(set, set_hs))
+	if (check_poolset_uuids(set, set_hs)) {
+		LOG(1, "Poolset uuids check failed");
 		goto err;
+	}
 
 	/* check if uuids for adjacent replicas are consistent */
-	if (check_uuids_between_replicas(set, set_hs))
+	if (check_uuids_between_replicas(set, set_hs)) {
+		LOG(1, "Replica uuids check failed");
 		goto err;
+	}
 
 	unmap_all_headers(set);
 	util_poolset_fdclose(set);
@@ -650,19 +689,18 @@ replica_check_poolset_health(struct pool_set *set,
 err:
 	unmap_all_headers(set);
 	util_poolset_fdclose(set);
-
-err_hs:
 	replica_free_poolset_health_status(set_hs);
 	return -1;
 }
 
 /*
- * replica_get_pool_size -- find the effective size (mapped) of a pool
+ * replica_get_pool_size -- find the effective size (mapped) of a pool based
+ *                          on metadata from given replica
  */
 size_t
-replica_get_pool_size(struct pool_set *set)
+replica_get_pool_size(struct pool_set *set, unsigned repn)
 {
-	struct pool_set_part *part = &PART(REP(set, 0), 0);
+	struct pool_set_part *part = &PART(REP(set, repn), 0);
 	int should_close_part = 0;
 	if (part->fd == -1) {
 		if (util_part_open(part, 0, 0))
@@ -699,7 +737,7 @@ replica_open_replica_part_files(struct pool_set *set, unsigned repn)
 			continue;
 
 		if (util_part_open(&rep->part[p], 0, 0)) {
-			LOG(2, "part files open failed for replica %u, part %u",
+			LOG(1, "part files open failed for replica %u, part %u",
 					repn, p);
 			errno = EINVAL;
 			goto err;
@@ -718,9 +756,12 @@ err:
 int
 replica_open_poolset_part_files(struct pool_set *set)
 {
-	for (unsigned r = 0; r < set->nreplicas; ++r)
-		if (replica_open_replica_part_files(set, r))
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (replica_open_replica_part_files(set, r)) {
+			LOG(1, "Opening replica %u, part files failed", r);
 			goto err;
+		}
+	}
 
 	return 0;
 
@@ -738,13 +779,17 @@ pmempool_sync(const char *poolset, unsigned flags)
 	ASSERTne(poolset, NULL);
 
 	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset) != 1)
+	if (util_is_poolset_file(poolset) != 1) {
+		ERR("File is not a poolset file");
 		goto err;
+	}
 
 	/* open poolset file */
 	int fd = util_file_open(poolset, NULL, 0, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("Cannot open a poolset file");
 		goto err;
+	}
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;
@@ -786,37 +831,68 @@ pmempool_transform(const char *poolset_file_src,
 	ASSERTne(poolset_file_src, NULL);
 	ASSERTne(poolset_file_dst, NULL);
 
-	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset_file_src) != 1)
+	/* check if the source poolset has correct signature */
+	if (util_is_poolset_file(poolset_file_src) != 1) {
+		ERR("Source file is not a poolset file");
 		goto err;
+	}
 
-	/* check if poolset has correct signature */
-	if (util_is_poolset_file(poolset_file_dst) != 1)
+	/* check if the destination poolset has correct signature */
+	if (util_is_poolset_file(poolset_file_dst) != 1) {
+		ERR("Destination file is not a poolset file");
 		goto err;
+	}
 
-	/* open poolset file */
+	/* open the source poolset file */
 	int fd_in = util_file_open(poolset_file_src, NULL, 0, O_RDONLY);
-	if (fd_in < 0)
+	if (fd_in < 0) {
+		ERR("Cannot open source poolset file");
 		goto err;
+	}
 
-	/* open poolset file */
-	int fd_out = util_file_open(poolset_file_dst, NULL, 0, O_RDONLY);
-	if (fd_out < 0)
-		goto err_close_fin;
-
+	/* parse the source poolset file */
 	struct pool_set *set_in = NULL;
+	if (util_poolset_parse(&set_in, poolset_file_src, fd_in)) {
+		ERR("Parsing source poolset failed");
+		close(fd_in);
+		goto err;
+	}
+	close(fd_in);
+
+	/* open the destination poolset file */
+	int fd_out = util_file_open(poolset_file_dst, NULL, 0, O_RDONLY);
+	if (fd_out < 0) {
+		ERR("Cannot open destination poolset file");
+		goto err;
+	}
+
+	/* parse the destination poolset file */
 	struct pool_set *set_out = NULL;
-
-	/* parse input poolset file */
-	if (util_poolset_parse(&set_in, poolset_file_src, fd_in))
-		goto err_close_fout;
-
-	/* parse output poolset file */
-	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out))
+	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out)) {
+		ERR("Parsing destination poolset failed");
+		close(fd_out);
 		goto err_free_poolin;
+	}
+	close(fd_out);
 
-	if (pool_set_type(set_in) != POOL_TYPE_OBJ)
+	/* check if the source poolset is of a correct type */
+	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
+		ERR("Source poolset is of a wrong type");
 		goto err_free_poolout;
+	}
+
+	/* check if the source poolset is healthy */
+	struct poolset_health_status *set_in_hs = NULL;
+	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
+		ERR("Source poolset health check failed");
+		goto err_free_poolout;
+	}
+	if (!replica_is_poolset_healthy(set_in_hs)) {
+		ERR("Source poolset is broken");
+		replica_free_poolset_health_status(set_in_hs);
+		goto err_free_poolout;
+	}
+	replica_free_poolset_health_status(set_in_hs);
 
 	/* transform poolset */
 	if (transform_replica(set_in, set_out, flags)) {
@@ -826,8 +902,6 @@ pmempool_transform(const char *poolset_file_src,
 
 	util_poolset_close(set_in, 0);
 	util_poolset_close(set_out, 0);
-	close(fd_in);
-	close(fd_out);
 	return 0;
 
 err_free_poolout:
@@ -836,11 +910,6 @@ err_free_poolout:
 err_free_poolin:
 	util_poolset_close(set_in, 0);
 
-err_close_fout:
-	close(fd_out);
-
-err_close_fin:
-	close(fd_in);
 err:
 	if (errno == 0)
 		errno = EINVAL;

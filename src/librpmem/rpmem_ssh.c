@@ -140,11 +140,11 @@ err:
 }
 
 /*
- * rpmem_ssh_run -- open ssh connection and run $RPMEMD_CMD with
+ * rpmem_ssh_exec -- open ssh connection and run $RPMEMD_CMD with
  * additional NULL-terminated list of arguments.
  */
 struct rpmem_ssh *
-rpmem_ssh_run(const struct rpmem_target_info *info, ...)
+rpmem_ssh_exec(const struct rpmem_target_info *info, ...)
 {
 	struct rpmem_ssh *rps = calloc(1, sizeof(*rps));
 	if (!rps)
@@ -240,7 +240,7 @@ err_zalloc:
 struct rpmem_ssh *
 rpmem_ssh_open(const struct rpmem_target_info *info)
 {
-	struct rpmem_ssh *ssh = rpmem_ssh_run(info, NULL);
+	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, NULL);
 	if (!ssh)
 		return NULL;
 

@@ -52,6 +52,12 @@
 #define IS_INCONSISTENT (1 << 1)
 
 /*
+ * A flag which can be passed to sync_replica() to indicate that the function is
+ * called by pmempool_transform
+ */
+#define IS_TRANSFORMED (1 << 10)
+
+/*
  * Helping structures for storing replica and poolset's health status
  */
 struct replica_health_status {
@@ -95,13 +101,18 @@ int replica_check_poolset_health(struct pool_set *set,
 		unsigned flags);
 int replica_is_part_broken(unsigned repn, unsigned partn,
 		struct poolset_health_status *set_hs);
+unsigned replica_find_unbroken_part(unsigned repn,
+		struct poolset_health_status *set_hs);
 int replica_is_replica_broken(unsigned repn,
 		struct poolset_health_status *set_hs);
-int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
-int replica_is_replica_inconsistent(unsigned repn,
+int replica_is_replica_consistent(unsigned repn,
+		struct poolset_health_status *set_hs);
+int replica_is_replica_healthy(unsigned repn,
 		struct poolset_health_status *set_hs);
 unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
-size_t replica_get_pool_size(struct pool_set *set);
+int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
+int replica_is_poolset_transformed(unsigned flags);
+size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
 
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);

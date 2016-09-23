@@ -37,6 +37,8 @@
 #include <map.h>
 #include <rbtree_map.h>
 
+#include "map_rbtree.h"
+
 /*
  * map_rbtree_check -- wrapper for rbtree_map_check
  */

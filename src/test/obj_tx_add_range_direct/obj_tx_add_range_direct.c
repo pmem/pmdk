@@ -92,7 +92,7 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -129,7 +129,7 @@ do_tx_add_range_alloc_abort(PMEMobjpool *pop)
 		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ_ABORT));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -166,7 +166,7 @@ do_tx_add_range_twice_commit(PMEMobjpool *pop)
 	UT_ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -199,7 +199,7 @@ do_tx_add_range_twice_abort(PMEMobjpool *pop)
 	UT_ASSERT(!TOID_IS_NULL(obj));
 
 	TX_BEGIN(pop) {
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -234,7 +234,7 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		char *ptr1 = pmemobj_direct(obj1.oid);
+		char *ptr1 = (char *)pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -242,7 +242,7 @@ do_tx_add_range_abort_after_nested(PMEMobjpool *pop)
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			char *ptr2 = pmemobj_direct(obj2.oid);
+			char *ptr2 = (char *)pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
 					DATA_SIZE);
 			UT_ASSERTeq(ret, 0);
@@ -279,7 +279,7 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		char *ptr1 = pmemobj_direct(obj1.oid);
+		char *ptr1 = (char *)pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -287,7 +287,7 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			char *ptr2 = pmemobj_direct(obj2.oid);
+			char *ptr2 = (char *)pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
 					DATA_SIZE);
 			UT_ASSERTeq(ret, 0);
@@ -323,7 +323,7 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 	TOID_ASSIGN(obj2, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		char *ptr1 = pmemobj_direct(obj1.oid);
+		char *ptr1 = (char *)pmemobj_direct(obj1.oid);
 		ret = pmemobj_tx_add_range_direct(ptr1 + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -331,7 +331,7 @@ do_tx_add_range_commit_nested(PMEMobjpool *pop)
 		D_RW(obj1)->value = TEST_VALUE_1;
 
 		TX_BEGIN(pop) {
-			char *ptr2 = pmemobj_direct(obj2.oid);
+			char *ptr2 = (char *)pmemobj_direct(obj2.oid);
 			ret = pmemobj_tx_add_range_direct(ptr2 + DATA_OFF,
 					DATA_SIZE);
 			UT_ASSERTeq(ret, 0);
@@ -363,7 +363,7 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
@@ -389,7 +389,7 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
 
 	TX_BEGIN(pop) {
-		char *ptr = pmemobj_direct(obj.oid);
+		char *ptr = (char *)pmemobj_direct(obj.oid);
 		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF,
 				VALUE_SIZE);
 		UT_ASSERTeq(ret, 0);
