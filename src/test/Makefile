@@ -153,6 +153,7 @@ OTHER_TESTS = \
 	out_err_mt\
 	pmemobjcli\
 	pmemspoil\
+	pmem_provider\
 	bttdevice\
 	scope\
 	set_funcs\
