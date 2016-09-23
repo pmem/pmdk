@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "win_getopt/TEST1"
+$Env:UNITTEST_NAME = "win_getopt\TEST1"
 $Env:UNITTEST_NUM = "1"
 
 #$ERR="stderr$Env:UNITTEST_NUM.log"

@@ -36,10 +36,8 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "win_mmap/TEST0"
+$Env:UNITTEST_NAME = "win_mmap\TEST0"
 $Env:UNITTEST_NUM = "0"
-
-$DIR = ""
 
 # standard unit test setup
 . ../unittest/unittest.ps1

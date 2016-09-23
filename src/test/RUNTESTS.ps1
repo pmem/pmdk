@@ -61,7 +61,7 @@ Param(
     [alias("i")]
     $testdir = "all",
     [alias("c")]
-    $check_pool = "0"
+    $check_pool = "1"
     )
 
 # -v is a built in PS thing

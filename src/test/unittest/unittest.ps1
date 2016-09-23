@@ -448,16 +448,28 @@ function expect_abnormal_exit {
 # check_pool -- run pmempool check on specified pool file
 #
 function check_pool {
-    # XXX - - tool not available on windows yet
-    Write-Host "function check_pool() Not yet implemented"
+    $file = $Args[0]
+	if ($Env:CHECK_POOL -eq "1") {
+		if ($Env:VERBOSE -ne "0") {
+			echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
+		}
+		Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error("$PMEMPOOL$Env:EXESUFFIX returned error code $LASTEXITCODE")
+            Exit $LASTEXITCODE
+        }
+	}
 }
 
 #
 # check_pools -- run pmempool check on specified pool files
 #
 function check_pools {
-    # XXX - tool not available on windows yet
-    Write-Host "function check_pools() Not yet implemented"
+	if ($Env:CHECK_POOL -eq "1") {
+        foreach ($arg in $Args[0 .. $Args.Count]) {
+            check_pool $arg
+        }
+    }
 }
 
 #
@@ -490,8 +502,8 @@ function require_test_type() {
         if ($args[$i] -eq $Env:TEST) {
             return
         }
-        #XXX look at the bash code w/someone and confirm the logic here
-        if (! $Env:UNITTEST_QUIET) {
+
+        if (-Not $Env:UNITTEST_QUIET) {
             echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TEST ($* required)"
         }
         exit 0
@@ -506,8 +518,8 @@ function require_build_type {
         if ($args[$i] -eq $Env:BUILD) {
             return
         }
-        #XXX look at the bash code w/someone and confirm the logic here
-        if (! $Env:UNITTEST_QUIET) {
+
+        if (-Not $Env:UNITTEST_QUIET) {
             echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
         }
         exit 0
@@ -518,7 +530,7 @@ function require_build_type {
 # require_pkg -- only allow script to continue if specified package exists
 #
 function require_pkg {
-    # XXX: placeholder for checking dependencies if we can
+    # XXX: placeholder for checking dependencies if we have a need
 }
 
 #
@@ -535,7 +547,7 @@ function memcheck {
 #
 function require_binary() {
     if (-Not (Test-Path $Args[0])) {
-       if (! $Env:UNITTEST_QUIET) {
+       if (-Not $Env:UNITTEST_QUIET) {
             Write-Host "${Env:UNITTEST_NAME}: SKIP no binary found"
        }
        exit 0
@@ -765,7 +777,6 @@ function check_layout {
     sv -Name layout -Scope "Local" $args[0]
     sv -Name file -Scope "Local" ($args[1])
 
-    # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
     $stream.Position = $LAYOUT_OFFSET
     $buff = New-Object Byte[] $LAYOUT_LEN
@@ -785,7 +796,6 @@ function check_layout {
 function check_arena {
     sv -Name file -Scope "Local" ($args[0])
 
-    # XXX: not fully tested
     $stream = [System.IO.File]::OpenRead($file)
     $stream.Position = $ARENA_OFF
     $buff = New-Object Byte[] $ARENA_SIG_LEN
@@ -864,7 +874,7 @@ function require_fs_type {
             }
         }
     }
-    if (! $Env:UNITTEST_QUIET) {
+    if (-Not $Env:UNITTEST_QUIET) {
         Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
     }
     exit 0
@@ -921,8 +931,7 @@ function dump_last_n_lines {
         } else {
             Write-Error "$fname below."
         }
-        # bla, ask Andy what this does exactly (format wise this wil likely be a PITA)
-        # paste -d " " <(yes $UNITTEST_NAME $1 | head -n $ln) <(tail -n $ln $1) >&2
+
         Write-Host (Get-Content $fname -Tail $ln)
     }
 
@@ -931,12 +940,12 @@ function dump_last_n_lines {
 #######################################################
 
 # defaults
-if (! $Env:TEST) { $Env:TEST = 'check'}
-if (! $Env:FS) { $Env:FS = 'any'}
-if (! $Env:BUILD) { $Env:BUILD = 'debug'}
-if (! $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
-if (! $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
-if (! $Env:VERBOSE) { $Env:VERBOSE = '0'}
+if (-Not $Env:TEST) { $Env:TEST = 'check'}
+if (-Not $Env:FS) { $Env:FS = 'any'}
+if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
+if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
+if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
+if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
 $Env:EXESUFFIX = ".exe"
 
 if ($Env:EXE_DIR -eq $null) {
@@ -960,7 +969,7 @@ $SPARSEFILE="$Env:EXE_DIR\sparsefile"
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
 #
-if (! $Env:TEST_LD_LIBRARY_PATH) {
+if (-Not $Env:TEST_LD_LIBRARY_PATH) {
     switch -regex ($Env:BUILD) {
         'debug' { $Env:TEST_LD_LIBRARY_PATH = '..\..\debug' }
         'nondebug' { $Env:TEST_LD_LIBRARY_PATH = '..\..\nondebug' }
@@ -987,18 +996,18 @@ if (! $Env:TEST_LD_LIBRARY_PATH) {
 sv -Name curtestdir (Get-Item -Path ".\").BaseName
 
 # just in case
-if (! $curtestdir) {
+if (-Not $curtestdir) {
     Write-Error -Message "$curtestdir does not exist"
 }
 
 sv -Name curtestdir ("test_" + $curtestdir)
 
-if (! $Env:UNITTEST_NUM) {
+if (-Not $Env:UNITTEST_NUM) {
     Write-Error "UNITTEST_NUM does not have a value"
     exit 1
 }
 
-if (! $Env:UNITTEST_NAME) {
+if (-Not $Env:UNITTEST_NAME) {
     Write-Error "UNITTEST_NAME does not have a value"
     exit 1
 }
@@ -1096,7 +1105,7 @@ $Env:VMMALLOC_LOG_FILE = "vmmalloc${Env:UNITTEST_NUM}.log"
 $Env:MEMCHECK_LOG_FILE = "memcheck_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 $Env:VALIDATE_MEMCHECK_LOG = 1
 
-if (! $UT_DUMP_LINES) {
+if (-Not($UT_DUMP_LINES)) {
     sv -Name "UT_DUMP_LINES" 30
 }
 

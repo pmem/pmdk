@@ -55,8 +55,6 @@ setup
 #        (pool set with replica section)
 #
 
-# XXX - implement support for providing size with K/M/G units
-
 create_poolset $DIR\testset 20M:$DIR\testfile1:x R 20M:$DIR\testfile2:x
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `

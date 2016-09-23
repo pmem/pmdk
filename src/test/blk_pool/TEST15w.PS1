@@ -54,8 +54,6 @@ setup
 # TEST15 non-existing file, poolsize >= min required size, bsize > min bsize
 #        (pool set)
 
-# XXX - implement support for providing size with K/M/G units
-
 create_poolset $DIR\testset 20M:$DIR\testfile1:x 20M:$DIR\testfile2:x
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
