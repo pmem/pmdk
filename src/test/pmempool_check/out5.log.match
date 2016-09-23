@@ -1,4 +1,8 @@
-Creating pmem blk pool with block size 512.0M
+Creating pool: $(nW)
+	type  : blk
+	size  : 0
+	mode  : 0664
+	bsize : 536870912
 Writing BTT layout using block $(*).
 checking pool header
 incorrect pool header checksum
