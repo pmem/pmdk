@@ -129,7 +129,7 @@ pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
 		char *appname, int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "dh",
+	while ((opt = getopt_long(argc, argv, "dhv",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
