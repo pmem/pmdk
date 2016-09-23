@@ -37,6 +37,13 @@ http://pmem.io/blog/ which you might find helpful.
 Have fun!
 The NVML team
 
+### Compiler notice ###
+The C++ bindings require a C++11 compliant compiler, therefore the minimal
+versions of GCC and Clang are 4.8.1 and 3.3 respectively. However the
+nvml::obj::transaction::automatic class requires C++17, so
+you need a more recent version for this to be available(GCC 6.1/Clang 3.7).
+It is recommended to use these or newer versions of GCC or Clang.
+
 ### Important classes/functions ###
 
  * Transactional allocations - make_persistent.hpp
