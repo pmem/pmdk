@@ -1,6 +1,7 @@
 util_file_open$(nW)TEST0w: START: util_file_open
- $(nW)util_file_open$(nW) 0x4000 $(nW)testdir1 $(nW)testlink0 $(nW)$(nW)testlink1 $(nW)testlink2 $(nW)testfile0 $(nW)testfile1 $(nW)testfile2
+ $(nW)util_file_open$(nW) 0x4000 $(nW)testdir1 $(nW)NUL $(nW)testlink0 $(nW)$(nW)testlink1 $(nW)testlink2 $(nW)testfile0 $(nW)testfile1 $(nW)testfile2
 $(nW)testdir1: util_file_open: $(*)
+$(nW)NUL: util_file_open: $(*)
 $(nW)testlink0: util_file_open: $(*)
 $(nW)testlink1: util_file_open: $(*)
 $(nW)testlink2: util_file_open: $(*)

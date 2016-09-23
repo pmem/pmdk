@@ -46,7 +46,7 @@ $Env:UNITTEST_NUM = "2"
 . ..\unittest\unittest.ps1
 
 require_fs_type any
-#require_test_type long
+require_test_type long
 
 setup
 

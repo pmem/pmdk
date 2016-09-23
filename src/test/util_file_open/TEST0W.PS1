@@ -58,6 +58,7 @@ ln -s testdir1 $DIR/testlink1
 
 expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR/testdir1 `
+    $DIR/NUL `
     $DIR/testlink0 `
     $DIR/testlink1 `
     $DIR/testlink2 `

@@ -46,6 +46,7 @@ $Env:UNITTEST_NUM = "1"
 . ..\unittest\unittest.ps1
 
 require_fs_type any
+require_no_superuser
 
 setup
 
