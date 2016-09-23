@@ -92,6 +92,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The <code>p&lt;&gt;</code>, which is called the <em>persistent property</em>, was designed with seamless persistent memory integration in mind. It is designed to be used with basic types within classes, to signify that these members in fact reside in persistent memory and need to be handled appropriately.</p>
 <p>If you find any issues or have suggestion about these bindings please file an issue in <a href="https://github.com/pmem/issues">https://github.com/pmem/issues</a>. There are also blog articles in <a href="http://pmem.io/blog/">http://pmem.io/blog/</a> which you might find helpful.</p>
 <p>Have fun! The NVML team</p>
+<h3>Compiler notice</h3>
+<p>The C++ bindings require a C++11 compliant compiler, therefore the minimal versions of GCC and Clang are 4.8.1 and 3.3 respectively. However the <a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html" title="C++ automatic scope transaction class. ">nvml::obj::transaction::automatic</a> class requires C++17, so you need a more recent version for this to be available(GCC 6.1/Clang 3.7). It is recommended to use these or newer versions of GCC or Clang.</p>
 <h3>Important classes/functions</h3>
 <ul>
 <li>Transactional allocations - <a class="el" href="make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. ">make_persistent.hpp</a></li>
