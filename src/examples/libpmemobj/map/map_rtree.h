@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,16 +31,16 @@
  */
 
 /*
- * map_hashmap_tx.h -- common interface for maps
+ * map_rtree.h -- common interface for maps
  */
 
-#ifndef MAP_HASHMAP_TX_H
-#define MAP_HASHMAP_TX_H
+#ifndef MAP_RTREE_H
+#define MAP_RTREE_H
 
 #include "map.h"
 
-extern struct map_ops hashmap_tx_ops;
+extern struct map_ops rtree_map_ops;
 
-#define MAP_HASHMAP_TX (&hashmap_tx_ops)
+#define MAP_RTREE (&rtree_map_ops)
 
-#endif /* MAP_HASHMAP_TX_H */
+#endif /* MAP_RTREE_H */

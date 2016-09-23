@@ -106,9 +106,9 @@ my $fmt;
 my $hdr_comment_start;
 
 if ($verbose) {
-	$fmt = "%s: %d: %s\n%s\n";
+	$fmt = "%s:%d: %s\n%s\n";
 } else {
-	$fmt = "%s: %d: %s\n";
+	$fmt = "%s:%d: %s\n";
 }
 
 if ($doxygen_comments) {
