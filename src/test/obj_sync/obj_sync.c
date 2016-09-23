@@ -97,7 +97,12 @@ FUNC_MOCK_END
 static void
 mock_open_pool(PMEMobjpool *pop)
 {
+#ifdef _WIN32
+	__sync_fetch_and_add64(&pop->run_id, 2);
+#else
 	__sync_fetch_and_add(&pop->run_id, 2);
+#endif
+
 }
 
 /*
@@ -360,14 +365,16 @@ main(int argc, char *argv[])
 
 	unsigned long runs = strtoul(argv[3], NULL, 10);
 
-	pthread_t *write_threads = MALLOC(num_threads * sizeof(pthread_t));
-	pthread_t *check_threads = MALLOC(num_threads * sizeof(pthread_t));
+	pthread_t *write_threads
+		= (pthread_t *)MALLOC(num_threads * sizeof(pthread_t));
+	pthread_t *check_threads
+		= (pthread_t *)MALLOC(num_threads * sizeof(pthread_t));
 
 	/* first pool open */
 	mock_open_pool(&Mock_pop);
 	Mock_pop.p_ops.persist = obj_sync_persist;
 	Mock_pop.p_ops.base = &Mock_pop;
-	Test_obj = MALLOC(sizeof(struct mock_obj));
+	Test_obj = (struct mock_obj *)MALLOC(sizeof(struct mock_obj));
 	/* zero-initialize the test object */
 	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex);
 	pmemobj_mutex_zero(&Mock_pop, &Test_obj->mutex_locked);
@@ -376,19 +383,19 @@ main(int argc, char *argv[])
 	Test_obj->check_data = 0;
 	memset(&Test_obj->data, 0, DATA_SIZE);
 
-	for (int run = 0; run < runs; run++) {
+	for (unsigned run = 0; run < runs; run++) {
 		if (test_type == 't') {
 			pmemobj_mutex_lock(&Mock_pop,
 					&Test_obj->mutex_locked);
 		}
 
-		for (int i = 0; i < num_threads; i++) {
+		for (unsigned i = 0; i < num_threads; i++) {
 			PTHREAD_CREATE(&write_threads[i], NULL, writer,
 				(void *)(uintptr_t)i);
 			PTHREAD_CREATE(&check_threads[i], NULL, checker,
 				(void *)(uintptr_t)i);
 		}
-		for (int i = 0; i < num_threads; i++) {
+		for (unsigned i = 0; i < num_threads; i++) {
 			PTHREAD_JOIN(write_threads[i], NULL);
 			PTHREAD_JOIN(check_threads[i], NULL);
 		}

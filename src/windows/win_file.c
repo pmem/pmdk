@@ -137,3 +137,22 @@ flock(int fd, int operation)
 
 	return res;
 }
+
+void
+clock_gettime(clock_t id, struct timespec *ts)
+{
+	if (id == CLOCK_MONOTONIC) {
+		// not implementing yet
+	} else if (id == CLOCK_REALTIME) {
+		FILETIME current_time_ft;
+		GetSystemTimeAsFileTime(&current_time_ft);
+		ULARGE_INTEGER current_time = {
+			.HighPart = current_time_ft.dwHighDateTime,
+			.LowPart = current_time_ft.dwLowDateTime,
+		};
+		ts->tv_sec = (current_time.QuadPart - DELTA_WIN2UNIX * 10)
+			/ 10000000;
+		ts->tv_nsec = ((current_time.QuadPart - DELTA_WIN2UNIX * 10) %
+			10000000) * 100;
+	}
+}
