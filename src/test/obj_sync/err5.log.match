@@ -1,2 +1,2 @@
-$(OPT){obj_sync.c:$(N) cond_write_worker} obj_sync/TEST5: pmemobj_cond_signal
-$(OPT){obj_sync.c:$(N) cond_check_worker} obj_sync/TEST5: pmemobj_cond_wait
+$(OPT){$(nW)obj_sync.c:$(N) cond_write_worker} obj_sync$(nW)TEST5: pmemobj_cond_signal
+$(OPT){$(nW)obj_sync.c:$(N) cond_check_worker} obj_sync$(nW)TEST5: pmemobj_cond_wait
