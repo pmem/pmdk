@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,24 +35,29 @@
 # src/test/pmem_movnt_align/TEST2 -- unit test for pmem_memmove_persist
 # in backward direction
 #
-export UNITTEST_NAME=pmem_movnt_align/TEST2
-export UNITTEST_NUM=2
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmem_movnt_align\TEST2"
+$Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_fs_type pmem non-pmem
 require_build_type debug static-debug
 
 setup
 
-export PMEM_LOG_LEVEL=15
+$Env:PMEM_LOG_LEVEL=15
 
-expect_normal_exit ./pmem_movnt_align$EXESUFFIX B
+expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX B
 
-grep "pmem_flush" pmem$UNITTEST_NUM.log | sed 's/.*len //' > grep$UNITTEST_NUM.log
+Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
+	%{[string]$_ -replace '^.* len ',""} > grep$Env:UNITTEST_NUM.log
 
 check
 
 pass
-
