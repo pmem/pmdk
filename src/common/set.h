@@ -99,6 +99,14 @@ struct pool_set {
 	struct pool_replica *replica[];
 };
 
+struct part_file {
+	int is_remote;
+	const char *path;	/* not-NULL only for a local part file */
+	const char *node_addr;	/* address of a remote node */
+	/* poolset descriptor is a pool set file name on a remote node */
+	const char *pool_desc;	/* descriptor of a poolset */
+};
+
 #define REP(set, r)\
 	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
 
@@ -117,7 +125,7 @@ int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
 int util_is_poolset_file(const char *path);
 int util_poolset_foreach_part(const char *path,
-	int (*cb)(const char *part_file, void *arg), void *arg);
+	int (*cb)(struct part_file *pf, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,

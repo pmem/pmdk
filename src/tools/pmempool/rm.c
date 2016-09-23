@@ -135,23 +135,32 @@ rm_file(const char *file)
 }
 
 static int
-rm_poolset_cb(const char *part_file, void *arg)
+rm_poolset_cb(struct part_file *pf, void *arg)
 {
-	outv(2, "part file   : %s\n", part_file);
-
-	int exists = access(part_file, F_OK) == 0;
-	if (!exists) {
+	if (pf->is_remote) {
 		/*
-		 * Ignore not accessible file if force
-		 * flag is set
+		 * XXX add support for remote replicas
 		 */
-		if (force)
-			return 0;
+		err(1, "removing remote poolset files is not supported yet");
+	} else {
+		const char *part_file = pf->path;
 
-		err(1, "cannot remove file '%s'", part_file);
+		outv(2, "part file   : %s\n", part_file);
+
+		int exists = access(part_file, F_OK) == 0;
+		if (!exists) {
+			/*
+			 * Ignore not accessible file if force
+			 * flag is set
+			 */
+			if (force)
+				return 0;
+
+			err(1, "cannot remove file '%s'", part_file);
+		}
+
+		rm_file(part_file);
 	}
-
-	rm_file(part_file);
 
 	return 0;
 }
