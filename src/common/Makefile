@@ -45,7 +45,8 @@ SOURCE =\
 	util.c\
 	uuid.c\
 	uuid_linux.c\
-	util_linux.c
+	util_linux.c\
+	pmem_provider.c
 
 include ../Makefile.inc
 

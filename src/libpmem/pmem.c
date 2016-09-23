@@ -184,6 +184,7 @@
 #include "util.h"
 #include "mmap.h"
 #include "file.h"
+#include "pmem_provider.h"
 #include "valgrind_internal.h"
 
 #ifndef _MSC_VER
@@ -513,144 +514,6 @@ pmem_is_pmem(const void *addr, size_t len)
 #define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
-#ifndef USE_O_TMPFILE
-#ifdef O_TMPFILE
-#define USE_O_TMPFILE 1
-#else
-#define USE_O_TMPFILE 0
-#endif
-#endif
-
-#define DEVICE_DAX_PREFIX "/sys/class/dax"
-#define MAX_SIZE_LENGTH 64
-
-enum pmem_file_type {
-	PMEM_FILE_UNKNOWN,
-	PMEM_FILE_REGULAR,
-	PMEM_FILE_DEVICE_DAX,
-
-	MAX_PMEM_FILE_TYPE
-};
-
-struct pmem_file {
-	int fd;
-	util_stat_t st;
-	enum pmem_file_type type;
-	const struct pmem_file_ops *pfops;
-};
-
-/*
- * file_device_dax_get_size -- (internal) returns the size of a dax char device
- */
-static ssize_t
-file_device_dax_get_size(struct pmem_file *f)
-{
-	char path[PATH_MAX] = {0};
-	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/size",
-		major(f->st.st_rdev), minor(f->st.st_rdev));
-	int fd = open(path, O_RDONLY);
-	if (fd < 0)
-		goto err;
-
-	char sizebuf[MAX_SIZE_LENGTH] = {0};
-	if (read(fd, sizebuf, MAX_SIZE_LENGTH) < 0)
-		goto err_read;
-
-	char *endptr;
-
-	int olderrno = errno;
-	errno = 0;
-
-	ssize_t size = strtoll(sizebuf, &endptr, 0);
-	if (endptr == sizebuf || *endptr != '\n' ||
-		((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE))
-		goto err_read;
-
-	errno = olderrno;
-
-	(void) close(fd);
-
-	return size;
-
-err_read:
-	(void) close(fd);
-err:
-	return -1;
-}
-
-/*
- * file_regular_get_size -- (internal) returns the size of a regular file
- */
-static ssize_t
-file_regular_get_size(struct pmem_file *f)
-{
-	if (f->st.st_size < 0)
-		return -1;
-
-	return (ssize_t)f->st.st_size;
-}
-
-static struct pmem_file_ops {
-	ssize_t (*get_size)(struct pmem_file *f);
-	int (*is_pmem)(const void *addr, size_t len);
-} pmem_file_operations[MAX_PMEM_FILE_TYPE] = {
-	[PMEM_FILE_UNKNOWN] = {
-		.get_size = NULL,
-		.is_pmem = NULL,
-	},
-	[PMEM_FILE_REGULAR] = {
-		.get_size = file_regular_get_size,
-		.is_pmem = pmem_is_pmem,
-	},
-	[PMEM_FILE_DEVICE_DAX] = {
-		.get_size = file_device_dax_get_size,
-		.is_pmem = is_pmem_always,
-	},
-};
-
-/*
- * pmem_file_query_type -- (internal) checks the type of a pmem file
- */
-static enum pmem_file_type
-pmem_file_query_type(const util_stat_t *st)
-{
-	if (!S_ISCHR(st->st_mode))
-		return PMEM_FILE_REGULAR;
-
-	char path[PATH_MAX] = {0};
-	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
-		major(st->st_rdev), minor(st->st_rdev));
-
-	char npath[PATH_MAX] = {0};
-	char *rpath = realpath(path, npath);
-	if (rpath == NULL)
-		return PMEM_FILE_UNKNOWN;
-
-	return strncmp(DEVICE_DAX_PREFIX, rpath, strlen(DEVICE_DAX_PREFIX))
-		== 0 ? PMEM_FILE_DEVICE_DAX : PMEM_FILE_UNKNOWN;
-}
-
-/*
- * pmem_file_init -- (internal) initializes an instance of peristent memory file
- *
- * This should be called only with an open file descriptor.
- */
-static int
-pmem_file_init(struct pmem_file *pf, int fd)
-{
-	pf->fd = fd;
-	if (util_fstat(fd, &pf->st) < 0)
-		return -1;
-
-	pf->type = pmem_file_query_type(&pf->st);
-	if (pf->type == PMEM_FILE_UNKNOWN)
-		return -1;
-
-	pf->pfops = &pmem_file_operations[pf->type];
-
-	return 0;
-}
-
 /*
  * pmem_map_file -- create or open the file and map it to memory
  */
@@ -661,8 +524,6 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	LOG(3, "path \"%s\" size %zu flags %x mode %o mapped_lenp %p "
 		"is_pmemp %p", path, len, flags, mode, mapped_lenp, is_pmemp);
 
-	int oerrno;
-	int fd;
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
 
@@ -702,81 +563,68 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		return NULL;
 	}
 
-#if USE_O_TMPFILE
-	if (flags & PMEM_FILE_TMPFILE)
-		open_flags |= O_TMPFILE;
-
-	if ((fd = open(path, open_flags, mode)) < 0) {
-		ERR("!open %s", path);
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) != 0) {
+		ERR("failed to initialize persistent memory provider %s", path);
 		return NULL;
 	}
-#else
-	if (flags & PMEM_FILE_TMPFILE) {
-		if ((fd = util_tmpfile(path, "/pmem.XXXXXX")) < 0) {
-			return NULL;
-		}
-	} else {
-		if ((fd = open(path, open_flags, mode)) < 0) {
-			ERR("!open %s", path);
-			return NULL;
-		}
-		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
-			delete_on_err = 1;
-	}
-#endif
 
-	struct pmem_file pf;
-	if (pmem_file_init(&pf, fd) < 0) {
-		ERR("uknown file type provided for mapping");
-		goto err;
+	if (p.pops->open(&p,
+		open_flags, mode, flags & PMEM_FILE_TMPFILE) != 0) {
+		ERR("failed to open persistent memory provider %s", path);
+		goto err_open;
 	}
+	if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
+		delete_on_err = 1;
 
 	if (flags & PMEM_FILE_CREATE) {
 		if (flags & PMEM_FILE_SPARSE) {
-			if (ftruncate(fd, (off_t)len) != 0) {
+			if (ftruncate(p.fd, (off_t)len) != 0) {
 				ERR("!ftruncate");
-				goto err;
+				goto err_after_open;
 			}
 		} else {
-			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
+			errno = posix_fallocate(p.fd, 0, (off_t)len);
+			if (errno != 0) {
 				ERR("!posix_fallocate");
-				goto err;
+				goto err_after_open;
 			}
 		}
 	} else {
-		ssize_t size = pf.pfops->get_size(&pf);
+		ssize_t size = p.pops->get_size(&p);
 		if (size < 0) {
 			ERR("cannot retrieve size of the provided file");
-			goto err;
+			goto err_after_open;
 		}
 		len = (size_t)size;
 	}
 
 	void *addr;
-	if ((addr = util_map(fd, len, 0, 0)) == NULL)
-		goto err;    /* util_map() set errno, called LOG */
+	if ((addr = util_map(p.fd, len, 0, 0)) == NULL)
+		goto err_after_open; /* util_map() set errno, called LOG */
 
 	if (mapped_lenp != NULL)
 		*mapped_lenp = len;
 
 	if (is_pmemp != NULL)
-		*is_pmemp = pf.pfops->is_pmem(addr, len);
+		*is_pmemp = p.pops->is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
 	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
-	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
+	VALGRIND_REGISTER_PMEM_FILE(p.fd, addr, len, 0);
 
-	(void) close(fd);
+	p.pops->close(&p);
+	pmem_provider_fini(&p);
 
 	return addr;
 
-err:
-	oerrno = errno;
-	(void) close(fd);
+err_after_open:
+	p.pops->close(&p);
 	if (delete_on_err)
-		(void) unlink(path);
-	errno = oerrno;
+		p.pops->unlink(&p);
+err_open:
+	pmem_provider_fini(&p);
 	return NULL;
 }
 
