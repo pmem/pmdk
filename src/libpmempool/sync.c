@@ -279,9 +279,24 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
  *                            the parts created in place of the broken ones
  */
 static int
-grant_broken_parts_perm(struct pool_set *set,
+grant_broken_parts_perm(struct pool_set *set, unsigned src_repn,
 		struct poolset_health_status *set_hs)
 {
+	/* choose the default permissions */
+	mode_t def_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+
+	/* get permissions of the first part of the source replica */
+	mode_t src_mode;
+	struct stat sb;
+	if (stat(PART(REP(set, src_repn), 0).path, &sb) != 0) {
+		ERR("Cannot check file permissions of %s (replica %u, part %u)",
+				PART(REP(set, src_repn), 0).path, src_repn, 0);
+		src_mode = def_mode;
+	} else {
+		src_mode = sb.st_mode;
+	}
+
+	/* set permissions to all recreated parts */
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
@@ -292,9 +307,8 @@ grant_broken_parts_perm(struct pool_set *set,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
-			/* XXX set rights to those of existing part files */
-			if (chmod(PART(REP(set, r), p).path,
-				S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) {
+			/* set rights to those of existing part files */
+			if (chmod(PART(REP(set, r), p).path, src_mode)) {
 				ERR("Cannot set permission rights for created"
 					" parts: replica %u, part %u", r, p);
 				errno = EPERM;
@@ -508,9 +522,9 @@ sync_replica(struct pool_set *set, unsigned flags)
 		}
 	}
 
-	/* grand permission for all created parts */
-	if (grant_broken_parts_perm(set, set_hs)) {
-		LOG(1, "Granting permissions to broken parts faile");
+	/* grant permissions to all created parts */
+	if (grant_broken_parts_perm(set, healthy_replica, set_hs)) {
+		LOG(1, "Granting permissions to broken parts failed");
 		goto err;
 	}
 

@@ -61,7 +61,7 @@ struct poolset_compare_status {
 };
 
 /*
- * check_part_sizes -- (internal check if all parts are large enough
+ * check_part_sizes -- (internal) check if all parts are large enough
  */
 static int
 check_part_sizes(struct pool_set *set, size_t min_size)
