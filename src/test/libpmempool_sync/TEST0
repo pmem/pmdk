@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_replica_sync/TEST0 -- test for checking replica sync
+# libpmempool_sync/TEST0 -- test for checking replica sync
 #
 export UNITTEST_NAME=libpmempool_sync/TEST0
 export UNITTEST_NUM=0
@@ -41,9 +41,6 @@ export UNITTEST_NUM=0
 require_fs_type any
 
 setup
-
-# 55MB
-DATA_LEN=$((55*1024*1024))
 
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
