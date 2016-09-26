@@ -84,6 +84,13 @@
 #ifndef _UNITTEST_H
 #define _UNITTEST_H 1
 
+#include <libpmem.h>
+#include <libpmemblk.h>
+#include <libpmemlog.h>
+#include <libpmemobj.h>
+#include <libpmempool.h>
+#include <libvmem.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -108,13 +115,6 @@ extern "C" {
 #include <errno.h>
 #include <dirent.h>
 #include <pthread.h>
-
-#include <libpmem.h>
-#include <libpmemblk.h>
-#include <libpmemlog.h>
-#include <libpmemobj.h>
-#include <libpmempool.h>
-#include <libvmem.h>
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128

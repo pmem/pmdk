@@ -163,8 +163,9 @@ uninstall:
 
 
 # [!q] to skip windows/include/sys/queue.h
+# include/lib*.h - skip include/pmemcompat.h
 cstyle:
-	$(STYLE_CHECK) check include/*.h
+	$(STYLE_CHECK) check include/lib*.h
 	$(STYLE_CHECK) check include/libpmemobj/*.h
 	$(STYLE_CHECK) check include/libpmemobj++/*.hpp
 	$(STYLE_CHECK) check include/libpmemobj++/detail/*.hpp
