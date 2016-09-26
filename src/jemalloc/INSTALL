@@ -178,7 +178,7 @@ any of the following arguments (not a definitive list) to 'configure':
 --with-xslroot=<path>
     Specify where to find DocBook XSL stylesheets when building the
     documentation.
-	
+
 --with-relative-path=<path>
 	Path to generated jemalloc headers
 
