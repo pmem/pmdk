@@ -126,6 +126,9 @@ compress: $(GZFILES_BUILD)
 %.gz: %
 	gzip -c ./$< > $@
 
+check pcheck check-remote:
+	../utils/check-doc.sh $(MANPAGES_BUILDDIR)
+
 clean:
 
 clobber: clean
@@ -155,4 +158,4 @@ uninstall:
 	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR_3)/$(f))
 
 .PHONY: all html clean compress clobber cstyle install uninstall install-cpp\
-	uninstall-cpp doxygen_docs
+	uninstall-cpp doxygen_docs check pcheck check-remote
