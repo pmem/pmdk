@@ -1,5 +1,5 @@
-obj_list_macro/TEST0: START: obj_list_macro
- ../obj_list_macro/obj_list_macro$(nW) $(nW)testfile i:0:0:1 P:1 R:1 i:0:0:2 P:1 R:1 i:0:0:3 P:1 R:1 i:0:2:4 P:1 R:1 i:0:0:5 P:1 R:1 i:0:3:6 P:1 R:1 i:0:0:7 P:1 R:1 i:0:4:8 P:1 R:1 i:0:0:9 P:1 R:1 i:0:5:10 P:1 R:1
+obj_list_macro$(nW)TEST0: START: obj_list_macro
+ $(nW)obj_list_macro$(nW) $(nW)testfile i:0:0:1 P:1 R:1 i:0:0:2 P:1 R:1 i:0:0:3 P:1 R:1 i:0:2:4 P:1 R:1 i:0:0:5 P:1 R:1 i:0:3:6 P:1 R:1 i:0:0:7 P:1 R:1 i:0:4:8 P:1 R:1 i:0:0:9 P:1 R:1 i:0:5:10 P:1 R:1
 constructor(id = 1)
 list:
 id = 1
@@ -140,4 +140,4 @@ id = 5
 id = 7
 id = 9
 id = 1
-obj_list_macro/TEST0: Done
+obj_list_macro$(nW)TEST0: Done
