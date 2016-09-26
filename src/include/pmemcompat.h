@@ -43,7 +43,7 @@ typedef int mode_t;
  * XXX: this code will not work on windows if our library is included in
  * an extern block.
  */
-#if defined(__cplusplus) && defined(_MSC_VER)
+#if defined(__cplusplus) && defined(_MSC_VER) && !defined(__typeof__)
 #include <type_traits>
 /*
  * These templates are used to remove a type reference(T&) which, in some

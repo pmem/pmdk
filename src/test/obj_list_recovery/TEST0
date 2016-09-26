@@ -44,7 +44,7 @@ require_test_type medium
 
 setup
 
-truncate -s1M $DIR/testfile
+create_holey_file 1M $DIR/testfile
 
 rm -f log${UNITTEST_NUM}.log
 

@@ -46,7 +46,8 @@ require_test_type medium
 
 setup
 
-truncate -s1M $DIR/testfile
+create_holey_file 1M $DIR/testfile
+
 expect_normal_exit ../obj_list/obj_list$EXESUFFIX $DIR/testfile\
 	i:1:-1 P:2 R:2\
 	i:1:-1 P:2 R:2\

@@ -1,5 +1,5 @@
-obj_list_valgrind/TEST2: START: obj_list
- ../obj_list/obj_list$(nW) $(nW)testfile n:1:0 n:0:0 n:1:-1 n:0:-1 n:1:2 n:0:1 P:2 R:2 f:2:2:2 f:2:-1:2 f:2:0:2 P:2 R:2
+obj_list_valgrind$(nW)TEST2: START: obj_list
+ $(nW)obj_list$(nW) $(nW)testfile n:1:0 n:0:0 n:1:-1 n:0:-1 n:1:2 n:0:1 P:2 R:2 f:2:2:2 f:2:-1:2 f:2:0:2 P:2 R:2
 pmalloc(id = 0)
 pmalloc(id = 1)
 pmalloc(id = 2)
@@ -31,4 +31,4 @@ list reverse:
 id = 1
 id = 4
 id = 2
-obj_list_valgrind/TEST2: Done
+obj_list_valgrind$(nW)TEST2: Done

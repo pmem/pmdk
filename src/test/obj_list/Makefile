@@ -34,7 +34,7 @@
 # src/test/obj_list/Makefile -- build obj_list test
 #
 TARGET = obj_list
-OBJS = obj_list.o
+OBJS = obj_list.o obj_list_mocks.o obj_list_mocks_palloc.o
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug
@@ -42,3 +42,6 @@ LIBPMEMOBJ=internal-debug
 include ../Makefile.inc
 CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
+LDFLAGS += $(call extract_funcs, obj_list_mocks.c)
+LDFLAGS += $(call extract_funcs, obj_list_mocks_palloc.c)
+
