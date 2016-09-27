@@ -266,8 +266,8 @@ find_consistent_replica(struct poolset_health_status *set_hs)
 }
 
 /*
- * find_unbroken_part -- (internal) find a part number in a given replica,
- *                       which is not marked as broken in the helping structure
+ * replica_find_unbroken_part -- find a part number in a given
+ * replica, which is not marked as broken in the helping structure
  */
 unsigned
 replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
@@ -298,6 +298,65 @@ replica_find_healthy_replica(struct poolset_health_status *set_hs)
 }
 
 /*
+ * replica_check_store_size -- (internal) store size from pool descriptor for
+ * replica
+ */
+static int
+replica_check_store_size(struct pool_set *set,
+	struct poolset_health_status *set_hs, unsigned r)
+{
+	struct pool_replica *rep = set->replica[r];
+	struct pmemobjpool pop;
+
+	if (rep->remote) {
+		memcpy(&pop.hdr, rep->part[0].hdr, sizeof(pop.hdr));
+		void *descr = (void *)((uintptr_t)&pop + POOL_HDR_SIZE);
+		if (Rpmem_read(rep->remote->rpp, descr, 0,
+				sizeof(pop) - POOL_HDR_SIZE)) {
+			return -1;
+		}
+	} else {
+		if (util_map_part(&rep->part[0], NULL, sizeof(pop),
+				0, MAP_PRIVATE|MAP_NORESERVE)) {
+			return -1;
+		}
+
+		memcpy(&pop, rep->part[0].addr, sizeof(pop));
+
+		util_unmap_part(&rep->part[0]);
+	}
+
+	void *dscp = (void *)((uintptr_t)&pop + sizeof(pop.hdr));
+
+	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop.checksum, 0)) {
+		set_hs->replica[r]->flags |= IS_BROKEN;
+		return 0;
+	}
+
+	set_hs->replica[r]->pool_size = pop.heap_offset + pop.heap_size;
+
+	return 0;
+}
+
+/*
+ * check_store_all_sizes -- (internal) store sizes from pool desciptor for all
+ * healthy replicas
+ */
+static int
+check_store_all_sizes(struct pool_set *set,
+	struct poolset_health_status *set_hs)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (!replica_is_replica_healthy(r, set_hs))
+			continue;
+		if (replica_check_store_size(set, set_hs, r))
+			return -1;
+	}
+
+	return 0;
+}
+
+/*
  * check_and_open_poolset_part_files -- (internal) for each part in a poolset
  * check if the part files are accessible, and if not, mark it as broken
  * in a helping structure; then open the part file
@@ -309,6 +368,23 @@ check_and_open_poolset_part_files(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
+		if (rep->remote) {
+			if (util_replica_open_remote(set, r, 0)) {
+				LOG(1, "Cannot open remote replica");
+				return -1;
+			}
+
+			unsigned nlanes = REMOTE_NLANES;
+			int ret = util_poolset_remote_open(rep, r,
+					rep->repsize, 0,
+					rep->part[0].addr,
+					rep->part[0].size, &nlanes);
+			if (ret)
+				rep_hs->flags |= IS_BROKEN;
+
+			continue;
+		}
+
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
 				LOG(1, "Part file %s is not accessible",
@@ -340,6 +416,9 @@ map_all_unbroken_headers(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
+		if (rep->remote)
+			continue;
+
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			/* skip broken parts */
 			if (replica_is_part_broken(r, p, set_hs))
@@ -362,10 +441,12 @@ unmap_all_headers(struct pool_set *set)
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			util_unmap_hdr(&rep->part[p]);
-		}
+		util_replica_close(set, r);
+
+		if (rep->remote && rep->remote->rpp)
+			Rpmem_close(rep->remote->rpp);
 	}
+
 	return 0;
 }
 
@@ -379,6 +460,9 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
 		struct replica_health_status *rep_hs = REP(set_hs, r);
+
+		if (rep->remote)
+			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 
@@ -682,6 +766,11 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+	if (check_store_all_sizes(set, set_hs)) {
+		LOG(1, "Reading pool sizes failed");
+		goto err;
+	}
+
 	unmap_all_headers(set);
 	util_poolset_fdclose(set);
 	return 0;
@@ -757,6 +846,8 @@ int
 replica_open_poolset_part_files(struct pool_set *set)
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (set->replica[r]->remote)
+			continue;
 		if (replica_open_replica_part_files(set, r)) {
 			LOG(1, "Opening replica %u, part files failed", r);
 			goto err;
@@ -796,6 +887,12 @@ pmempool_sync(const char *poolset, unsigned flags)
 	if (util_poolset_parse(&set, poolset, fd)) {
 		ERR("Parsing input poolset failed");
 		goto err_close_file;
+	}
+	if (set->remote) {
+		if (util_remote_load()) {
+			ERR("remote replication not available");
+			goto err_close_file;
+		}
 	}
 
 	/* sync all replicas */

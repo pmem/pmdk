@@ -46,6 +46,11 @@
 #include "replica.h"
 #include "out.h"
 
+#ifdef USE_RPMEM
+#include "rpmem_common.h"
+#include "rpmem_ssh.h"
+#endif
+
 #define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*
@@ -53,9 +58,12 @@
  */
 static int
 recreate_broken_parts(struct pool_set *set,
-		struct poolset_health_status *set_hs, unsigned flags)
+	struct poolset_health_status *set_hs, unsigned flags)
 {
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
+		if (set->replica[r]->remote)
+			continue;
+
 		struct pool_replica *broken_r = set->replica[r];
 
 		for (unsigned p = 0; p < set_hs->replica[r]->nparts; ++p) {
@@ -81,6 +89,7 @@ recreate_broken_parts(struct pool_set *set,
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -231,7 +240,9 @@ static int
 copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 		unsigned flags, struct poolset_health_status *set_hs)
 {
-	size_t poolsize = replica_get_pool_size(set, healthy_replica);
+	/* get pool size from healthy replica */
+	size_t poolsize = set->poolsize;
+
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken and consistent replicas */
 		if (replica_is_replica_healthy(r, set_hs))
@@ -251,23 +262,51 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			size_t off = replica_get_part_data_offset(set, r, p);
 			size_t len = replica_get_part_data_len(set, r, p);
 
+			if (rep->remote)
+				len = poolsize - off;
+
 			/* do not allow copying too much data */
 			if (off >= poolsize)
 				continue;
 
-			if (off + len > poolsize)
-				len = poolsize - off;
-
-			void *src_addr = ADDR_SUM(rep_h->part[0].addr, off);
-
-			/* First part of replica is mapped with header */
+			/*
+			 * First part of replica is mapped
+			 * with header
+			 */
 			size_t fpoff = (p == 0) ? POOL_HDR_SIZE : 0;
+			void *dst_addr = ADDR_SUM(part->addr, fpoff);
 
-			/* copy all data */
-			if (!is_dry_run(flags)) {
-				memcpy(ADDR_SUM(part->addr, fpoff),
-						src_addr, len);
-				pmem_msync(ADDR_SUM(part->addr, fpoff), len);
+			if (rep->remote) {
+				int ret = Rpmem_persist(rep->remote->rpp,
+						off - POOL_HDR_SIZE, len, 0);
+				if (ret) {
+					LOG(1, "Copying data to remote node "
+						"failed -- '%s' on '%s'",
+						rep->remote->pool_desc,
+						rep->remote->node_addr);
+					return -1;
+				}
+			} else if (rep_h->remote) {
+				int ret = Rpmem_read(rep_h->remote->rpp,
+						dst_addr,
+						off - POOL_HDR_SIZE, len);
+				if (ret) {
+					LOG(1, "Reading data from remote node "
+						"failed -- '%s' on '%s'",
+						rep->remote->pool_desc,
+						rep->remote->node_addr);
+					return -1;
+				}
+			} else {
+				if (off + len > poolsize)
+					len = poolsize - off;
+
+				void *src_addr =
+					ADDR_SUM(rep_h->part[0].addr, off);
+
+				/* copy all data */
+				memcpy(dst_addr, src_addr, len);
+				pmem_msync(dst_addr, len);
 			}
 		}
 	}
@@ -300,6 +339,9 @@ grant_broken_parts_perm(struct pool_set *set, unsigned src_repn,
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
+			continue;
+
+		if (set->replica[r]->remote)
 			continue;
 
 		for (unsigned p = 0; p < set_hs->replica[r]->nparts; p++) {
@@ -450,6 +492,103 @@ update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 }
 
 /*
+ * remove_remote -- (internal) remove remote pool
+ */
+static int
+remove_remote(const char *target, const char *pool_set)
+{
+#ifdef USE_RPMEM
+	struct rpmem_target_info *info = rpmem_target_parse(target);
+	if (!info)
+		goto err_parse;
+
+	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove",
+			pool_set, "--force", NULL);
+	if (!ssh) {
+		goto err_ssh_exec;
+	}
+
+	if (rpmem_ssh_monitor(ssh, 0))
+		goto err_ssh_monitor;
+
+	int ret = rpmem_ssh_close(ssh);
+	rpmem_target_free(info);
+
+	return ret;
+err_ssh_monitor:
+	rpmem_ssh_close(ssh);
+err_ssh_exec:
+	rpmem_target_free(info);
+err_parse:
+	return -1;
+#else
+	FATAL("remote replication not supported");
+	return -1;
+#endif
+}
+
+/*
+ * open_remote_replicas -- (internal) open all unbroken remote replicas
+ */
+static int
+open_remote_replicas(struct pool_set *set,
+	struct poolset_health_status *set_hs)
+{
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		if (!rep->remote)
+			continue;
+		if (!replica_is_replica_healthy(r, set_hs))
+			continue;
+
+		unsigned nlanes = REMOTE_NLANES;
+		int ret = util_poolset_remote_replica_open(set, r,
+				set->poolsize, 0, &nlanes);
+		if (ret) {
+			LOG(1, "Opening '%s' on '%s' failed",
+					rep->remote->pool_desc,
+					rep->remote->node_addr);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * create_remote_replicas -- (internal) recreate all broken replicas
+ */
+static int
+create_remote_replicas(struct pool_set *set,
+	struct poolset_health_status *set_hs)
+{
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		if (!rep->remote)
+			continue;
+		if (replica_is_replica_healthy(r, set_hs))
+			continue;
+
+		/* ignore errors from remove operation */
+		remove_remote(rep->remote->node_addr,
+					rep->remote->pool_desc);
+
+		unsigned nlanes = REMOTE_NLANES;
+		int ret = util_poolset_remote_replica_open(set, r,
+				set->poolsize, 1, &nlanes);
+		if (ret) {
+			LOG(1, "Creating '%s' on '%s' failed",
+					rep->remote->pool_desc,
+					rep->remote->node_addr);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+
+/*
  * sync_replica -- synchronize data across replicas within a poolset
  */
 int
@@ -501,15 +640,18 @@ sync_replica(struct pool_set *set, unsigned flags)
 		goto err;
 	}
 
-	/* update uuid fields in the set structure with part headers */
-	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
-		LOG(1, "Gathering uuids failed");
+	/* this is required for opening remote pools */
+	set->poolsize = set_hs->replica[healthy_replica]->pool_size;
+
+	/* open all remote replicas */
+	if (open_remote_replicas(set, set_hs)) {
+		LOG(1, "Opening remote replicas failed");
 		goto err;
 	}
 
-	/* check and copy data if possible */
-	if (copy_data_to_broken_parts(set, healthy_replica, flags, set_hs)) {
-		LOG(1, "Copying data to broken parts failed");
+	/* update uuid fields in the set structure with part headers */
+	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
+		LOG(1, "Gathering uuids failed");
 		goto err;
 	}
 
@@ -522,15 +664,27 @@ sync_replica(struct pool_set *set, unsigned flags)
 		}
 	}
 
+	if (is_dry_run(flags))
+		goto OK_close;
+
+	/* update uuids of replicas and parts */
+	update_uuids(set, set_hs);
+
+	/* create all remote replicas */
+	create_remote_replicas(set, set_hs);
+
+	/* check and copy data if possible */
+	if (copy_data_to_broken_parts(set, healthy_replica,
+			flags, set_hs)) {
+		LOG(1, "Copying data to broken parts failed");
+		goto err;
+	}
+
 	/* grant permissions to all created parts */
 	if (grant_broken_parts_perm(set, healthy_replica, set_hs)) {
 		LOG(1, "Granting permissions to broken parts failed");
 		goto err;
 	}
-
-	/* update uuids of replicas and parts */
-	if (!is_dry_run(flags))
-		update_uuids(set, set_hs);
 
 OK_close:
 	replica_free_poolset_health_status(set_hs);

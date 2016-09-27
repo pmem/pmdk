@@ -47,7 +47,7 @@
 
 #include "set.h"
 
-#ifndef _WIN32
+#ifdef USE_RPMEM
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
 #endif
@@ -140,12 +140,12 @@ rm_file(const char *file)
 }
 
 /*
- * remove_remote -- remove remote pool
+ * remove_remote -- (internal) remove remote pool
  */
 static int
 remove_remote(const char *target, const char *pool_set)
 {
-#ifndef _WIN32
+#ifdef USE_RPMEM
 	char cask = 'y';
 	switch (ask_mode) {
 	case ASK_ALWAYS:
@@ -206,7 +206,7 @@ err_parse:
 }
 
 /*
- * rm_poolset_cb -- callback for removing replicas
+ * rm_poolset_cb -- (internal) callback for removing replicas
  */
 static int
 rm_poolset_cb(struct part_file *pf, void *arg)

@@ -312,7 +312,7 @@ rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp)
 }
 
 /*
- * rm_poolset_cb -- callback for removing part files
+ * rm_poolset_cb -- (internal) callback for removing part files
  */
 static int
 rm_poolset_cb(struct part_file *pf, void *arg)
@@ -350,7 +350,7 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 	if (force) {
 		ret = util_poolset_foreach_part(path, rm_poolset_cb, NULL);
 		if (ret) {
-			RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
+			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
 			goto err_free_path;
 		}
 	} else {
@@ -358,7 +358,7 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 		if (ret == 0)
 			ret = util_pool_open_nocheck(set, 0);
 		if (ret) {
-			RPMEMD_LOG(ERR, "!cannot parse pool set -- '%s'", path);
+			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
 			goto err_free_path;
 		}
 
