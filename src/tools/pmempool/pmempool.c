@@ -51,6 +51,9 @@
 #include "convert.h"
 #include "synchronize.h"
 #include "transform.h"
+#include "set.h"
+#include "rpmem_common.h"
+#include "rpmem_util.h"
 
 #define APPNAME	"pmempool"
 
@@ -237,6 +240,8 @@ main(int argc, char *argv[])
 	int option_index;
 
 	util_init();
+	util_remote_init();
+	rpmem_util_cmds_init();
 
 	if (argc < 2) {
 		print_usage(APPNAME);
@@ -262,10 +267,14 @@ main(int argc, char *argv[])
 
 	struct command *cmdp = get_command(cmd_str);
 
+	int ret = 0;
 	if (cmdp)
-		return cmdp->func(APPNAME, argc - 1, argv + 1);
+		ret = cmdp->func(APPNAME, argc - 1, argv + 1);
+	else
+		outv_err("'%s' -- unknown command\n", cmd_str);
 
-	outv_err("'%s' -- unknown command\n", cmd_str);
+	util_remote_fini();
+	rpmem_util_cmds_fini();
 
-	return -1;
+	return ret;
 }
