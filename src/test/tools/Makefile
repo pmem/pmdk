@@ -50,7 +50,9 @@ DIRS = \
 
 REMOTE_TOOLS = \
 	ctrld\
-	fip
+	fip\
+	pmemobjcli\
+	pmemspoil
 
 all     : TARGET = all
 clean   : TARGET = clean

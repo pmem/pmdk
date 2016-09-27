@@ -1,4 +1,5 @@
-# Copyright 2014-2016, Intel Corporation
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,20 +29,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for pmemalloc tool
+
 #
+# src/test/pmempool_sync_remote/Makefile -- build unittest for pmempool
+# sync with remote replication
+#
+SCP_TO_REMOTE_NODES=y
 
-TOP=../../../..
-
-SCP_TO_REMOTE_NODES = y
-
-TARGET = pmemobjcli
-
-OBJS = pmemobjcli.o
-
-LIBPMEM=y
-LIBPMEMOBJ=y
-TOOLS_COMMON=y
-LIBPMEMBLK_PRIV=btt_info_convert2h
-
-include $(TOP)/src/tools/Makefile.inc
+include ../Makefile.inc
