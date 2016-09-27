@@ -73,7 +73,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define PATH_MAX MAX_PATH
 #define __thread __declspec(thread)
 #define __func__ __FUNCTION__
-#define __typeof__ decltype
 
 /*
  * The inline keyword is available only in VC++.
