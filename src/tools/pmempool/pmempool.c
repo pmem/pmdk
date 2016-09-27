@@ -51,6 +51,12 @@
 #include "convert.h"
 #include "synchronize.h"
 #include "transform.h"
+#include "set.h"
+
+#ifndef _WIN32
+#include "rpmem_common.h"
+#include "rpmem_util.h"
+#endif
 
 #define APPNAME	"pmempool"
 
@@ -238,6 +244,11 @@ main(int argc, char *argv[])
 
 	util_init();
 
+#ifndef _WIN32
+	util_remote_init();
+	rpmem_util_cmds_init();
+#endif
+
 	if (argc < 2) {
 		print_usage(APPNAME);
 		return 0;
@@ -262,10 +273,15 @@ main(int argc, char *argv[])
 
 	struct command *cmdp = get_command(cmd_str);
 
+	int ret = 0;
 	if (cmdp)
-		return cmdp->func(APPNAME, argc - 1, argv + 1);
+		ret = cmdp->func(APPNAME, argc - 1, argv + 1);
+	else
+		outv_err("'%s' -- unknown command\n", cmd_str);
+#ifndef _WIN32
+	util_remote_fini();
+	rpmem_util_cmds_fini();
+#endif
 
-	outv_err("'%s' -- unknown command\n", cmd_str);
-
-	return -1;
+	return ret;
 }
