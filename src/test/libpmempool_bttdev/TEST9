@@ -56,7 +56,7 @@ declare -A btt_info_dic_err=(["sig"]="ERROR" ["uuid"]="01-02"
 	["nfree"]="7" ["infosize"]="7" ["nextoff"]="7"
 	["dataoff"]="7" ["infooff"]="7" ["unused"]="7")
 
-for field in "${!btt_info_dic_err[@]}";
+for field in flags unused major sig nextoff infosize infooff dataoff nfree uuid minor
 do
 	spcmd=$spcmd"bttdevice.arena(0).btt_info.$field=${btt_info_dic_err["$field"]} "
 
