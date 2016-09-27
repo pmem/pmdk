@@ -41,18 +41,23 @@
 
 #include "unittest.h"
 
-sigjmp_buf Jmp;
-
+ut_jmp_buf_t Jmp;
 /*
  * signal_handler -- called on SIGSEGV
  */
+
+#define SET_SIGACTIONS(v) \
+SIGACTION(SIGSEGV, &v, NULL); \
+SIGACTION(SIGABRT, &v, NULL); \
+SIGACTION(SIGILL, &v, NULL);
+
 static void
 signal_handler(int sig)
 {
 	UT_OUT("\tsignal: %s", strsignal(sig));
-
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
+
 
 int
 main(int argc, char *argv[])
@@ -61,7 +66,6 @@ main(int argc, char *argv[])
 
 	VMEM *vmp;
 	void *ptr;
-
 	if (argc < 2)
 		UT_FATAL("usage: %s op:h|f|m|c|r|a|s|d", argv[0]);
 
@@ -82,9 +86,7 @@ main(int argc, char *argv[])
 	sigemptyset(&v.sa_mask);
 	v.sa_flags = 0;
 	v.sa_handler = signal_handler;
-	SIGACTION(SIGSEGV, &v, NULL);
-	SIGACTION(SIGABRT, &v, NULL);
-	SIGACTION(SIGILL, &v, NULL);
+	SET_SIGACTIONS(v);
 
 	/* go through all arguments one by one */
 	for (int arg = 1; arg < argc; arg++) {
@@ -96,7 +98,7 @@ main(int argc, char *argv[])
 		switch (argv[arg][0]) {
 		case 'h':
 			UT_OUT("Testing vmem_check...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				UT_OUT("\tvmem_check returned %i",
 							vmem_check(vmp));
 			}
@@ -104,7 +106,7 @@ main(int argc, char *argv[])
 
 		case 'f':
 			UT_OUT("Testing vmem_free...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				vmem_free(vmp, ptr);
 				UT_OUT("\tvmem_free succeeded");
 			}
@@ -112,7 +114,7 @@ main(int argc, char *argv[])
 
 		case 'm':
 			UT_OUT("Testing vmem_malloc...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				ptr = vmem_malloc(vmp, sizeof(long long));
 				if (ptr != NULL)
 					UT_OUT("\tvmem_malloc succeeded");
@@ -123,7 +125,7 @@ main(int argc, char *argv[])
 
 		case 'c':
 			UT_OUT("Testing vmem_calloc...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				ptr = vmem_calloc(vmp, 10, sizeof(int));
 				if (ptr != NULL)
 					UT_OUT("\tvmem_calloc succeeded");
@@ -134,7 +136,7 @@ main(int argc, char *argv[])
 
 		case 'r':
 			UT_OUT("Testing vmem_realloc...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				ptr = vmem_realloc(vmp, ptr, 128);
 				if (ptr != NULL)
 					UT_OUT("\tvmem_realloc succeeded");
@@ -145,7 +147,7 @@ main(int argc, char *argv[])
 
 		case 'a':
 			UT_OUT("Testing vmem_aligned_alloc...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				ptr = vmem_aligned_alloc(vmp, 128, 128);
 				if (ptr != NULL)
 					UT_OUT("\tvmem_aligned_alloc "
@@ -158,7 +160,7 @@ main(int argc, char *argv[])
 
 		case 's':
 			UT_OUT("Testing vmem_strdup...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				ptr = vmem_strdup(vmp, "Test string");
 				if (ptr != NULL)
 					UT_OUT("\tvmem_strdup succeeded");
@@ -169,9 +171,9 @@ main(int argc, char *argv[])
 
 		case 'd':
 			UT_OUT("Testing vmem_delete...");
-			if (!sigsetjmp(Jmp, 1)) {
+			if (!ut_sigsetjmp(Jmp)) {
 				vmem_delete(vmp);
-				if (errno != 0)
+				if (get_error() != 0)
 					UT_OUT("\tvmem_delete failed: %s",
 						vmem_errormsg());
 				else

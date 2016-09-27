@@ -38,12 +38,6 @@
 
 #include "unittest.h"
 
-#ifdef _WIN32
-#define get_error() GetLastError()
-#else
-#define get_error() errno
-#endif
-
 static char mem_pool[VMEM_MIN_POOL];
 
 int

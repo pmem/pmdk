@@ -41,6 +41,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <inttypes.h>
 
 #include "libvmem.h"
 
@@ -256,7 +257,7 @@ vmem_delete(VMEM *vmp)
 
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
-		ERR("invalid pool handle: %p", vmp);
+		ERR("invalid pool handle: 0x%" PRIx64, (long unsigned)vmp);
 		set_error(EINVAL);
 		return;
 	}
