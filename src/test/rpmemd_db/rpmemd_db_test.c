@@ -127,7 +127,7 @@ test_create(const char *root_dir, const char *pool_desc)
 		goto fini;
 	}
 	rpmemd_db_pool_close(db, prp);
-	ret = rpmemd_db_pool_remove(db, pool_desc);
+	ret = rpmemd_db_pool_remove(db, pool_desc, 0);
 	if (ret) {
 		FAILED_FUNC("rpmemd_db_pool_remove");
 	}
@@ -168,12 +168,12 @@ test_create_dual(const char *root_dir, const char *pool_desc_1,
 	rpmemd_db_pool_close(db, prp2);
 	rpmemd_db_pool_close(db, prp1);
 
-	ret = rpmemd_db_pool_remove(db, pool_desc_2);
+	ret = rpmemd_db_pool_remove(db, pool_desc_2, 0);
 	if (ret) {
 		FAILED_FUNC_PARAM("rpmemd_db_pool_remove", pool_desc_2);
 		goto err_remove_2;
 	}
-	ret = rpmemd_db_pool_remove(db, pool_desc_1);
+	ret = rpmemd_db_pool_remove(db, pool_desc_1, 0);
 	if (ret) {
 		FAILED_FUNC_PARAM("rpmemd_db_pool_remove", pool_desc_1);
 	}
@@ -182,7 +182,7 @@ test_create_dual(const char *root_dir, const char *pool_desc_1,
 err_create_2:
 	rpmemd_db_pool_close(db, prp1);
 err_remove_2:
-	rpmemd_db_pool_remove(db, pool_desc_1);
+	rpmemd_db_pool_remove(db, pool_desc_1, 0);
 err_create_1:
 fini:
 	rpmemd_db_fini(db);
@@ -277,7 +277,7 @@ test_open(const char *root_dir, const char *pool_desc)
 
 	compare_attr(&attr1, &attr2);
 
-	ret = rpmemd_db_pool_remove(db, pool_desc);
+	ret = rpmemd_db_pool_remove(db, pool_desc, 0);
 	if (ret) {
 		FAILED_FUNC("rpmemd_db_pool_remove");
 	}
@@ -339,12 +339,12 @@ test_open_dual(const char *root_dir, const char *pool_desc_1,
 	compare_attr(&attr1a, &attr2a);
 	compare_attr(&attr1b, &attr2b);
 
-	ret = rpmemd_db_pool_remove(db, pool_desc_2);
+	ret = rpmemd_db_pool_remove(db, pool_desc_2, 0);
 	if (ret) {
 		FAILED_FUNC_PARAM("rpmemd_db_pool_remove", pool_desc_2);
 		goto err_remove_2;
 	}
-	ret = rpmemd_db_pool_remove(db, pool_desc_1);
+	ret = rpmemd_db_pool_remove(db, pool_desc_1, 0);
 	if (ret) {
 		FAILED_FUNC_PARAM("rpmemd_db_pool_remove", pool_desc_1);
 	}
@@ -353,10 +353,10 @@ test_open_dual(const char *root_dir, const char *pool_desc_1,
 err_open_2:
 	rpmemd_db_pool_close(db, prp1);
 err_open_1:
-	rpmemd_db_pool_remove(db, pool_desc_2);
+	rpmemd_db_pool_remove(db, pool_desc_2, 0);
 err_create_2:
 err_remove_2:
-	rpmemd_db_pool_remove(db, pool_desc_1);
+	rpmemd_db_pool_remove(db, pool_desc_1, 0);
 err_create_1:
 fini:
 	rpmemd_db_fini(db);

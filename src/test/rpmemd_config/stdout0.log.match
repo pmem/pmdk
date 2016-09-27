@@ -9,8 +9,8 @@ rpmemd version $(*)
 
 Options:
   -c, --config <path>           configuration file location
-  -f, --foreground              run in foreground - do not run as a daemon
   -r, --remove <poolset>        remove pool described by given poolset file
+  -f, --force                   ignore errors when removing a pool
   -h, --help                    display help message and exit
   -V, --version                 display target daemon version and exit
       --log-file <path>         log file location
@@ -32,8 +32,8 @@ rpmemd version $(*)
 
 Options:
   -c, --config <path>           configuration file location
-  -f, --foreground              run in foreground - do not run as a daemon
   -r, --remove <poolset>        remove pool described by given poolset file
+  -f, --force                   ignore errors when removing a pool
   -h, --help                    display help message and exit
   -V, --version                 display target daemon version and exit
       --log-file <path>         log file location
