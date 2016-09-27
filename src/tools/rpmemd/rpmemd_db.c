@@ -312,10 +312,25 @@ rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp)
 }
 
 /*
+ * rm_poolset_cb -- callback for removing part files
+ */
+static int
+rm_poolset_cb(struct part_file *pf, void *arg)
+{
+	if (pf->is_remote) {
+		RPMEMD_LOG(ERR, "removing remote replica not supported");
+		return -1;
+	}
+
+	unlink(pf->path);
+	return 0;
+}
+
+/*
  * rpmemd_db_pool_remove -- remove a pool set
  */
 int
-rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc)
+rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 {
 	RPMEMD_ASSERT(db != NULL);
 	RPMEMD_ASSERT(pool_desc != NULL);
@@ -332,26 +347,35 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc)
 		goto err_unlock;
 	}
 
-	ret = util_poolset_create_set(&set, path, 0, 0);
-	if (ret == 0) {
-		ret = util_pool_open_nocheck(set, 0);
-	}
-	if (ret) {
-		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
-		goto err_free_path;
-	}
+	if (force) {
+		ret = util_poolset_foreach_part(path, rm_poolset_cb, NULL);
+		if (ret) {
+			RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
+			goto err_free_path;
+		}
+	} else {
+		ret = util_poolset_create_set(&set, path, 0, 0);
+		if (ret == 0)
+			ret = util_pool_open_nocheck(set, 0);
+		if (ret) {
+			RPMEMD_LOG(ERR, "!cannot parse pool set -- '%s'", path);
+			goto err_free_path;
+		}
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-			const char *part_file = set->replica[r]->part[p].path;
-			ret = unlink(part_file);
-			if (ret) {
-				RPMEMD_LOG(ERR, "!unlink -- '%s'", part_file);
+		for (unsigned r = 0; r < set->nreplicas; r++) {
+			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
+				const char *part_file =
+					set->replica[r]->part[p].path;
+				ret = unlink(part_file);
+				if (ret) {
+					RPMEMD_LOG(ERR, "!unlink -- '%s'",
+							part_file);
+				}
 			}
 		}
-	}
 
-	util_poolset_close(set, 1);
+		util_poolset_close(set, 1);
+	}
 
 err_free_path:
 	free(path);
