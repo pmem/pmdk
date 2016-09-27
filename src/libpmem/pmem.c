@@ -572,42 +572,35 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	if (p.pops->open(&p,
 		open_flags, mode, flags & PMEM_FILE_TMPFILE) != 0) {
 		ERR("failed to open persistent memory provider %s", path);
-		goto err_open;
+		goto error_open;
 	}
 	if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
 		delete_on_err = 1;
 
 	if (flags & PMEM_FILE_CREATE) {
-		if (flags & PMEM_FILE_SPARSE) {
-			if (ftruncate(p.fd, (off_t)len) != 0) {
-				ERR("!ftruncate");
-				goto err_after_open;
-			}
-		} else {
-			errno = posix_fallocate(p.fd, 0, (off_t)len);
-			if (errno != 0) {
-				ERR("!posix_fallocate");
-				goto err_after_open;
-			}
+		if (p.pops->allocate_space(&p, len,
+				flags & PMEM_FILE_SPARSE) != 0) {
+			ERR("unable to allocate space for the provider");
+			goto error_after_open;
 		}
 	} else {
 		ssize_t size = p.pops->get_size(&p);
 		if (size < 0) {
 			ERR("cannot retrieve size of the provided file");
-			goto err_after_open;
+			goto error_after_open;
 		}
 		len = (size_t)size;
 	}
 
 	void *addr;
-	if ((addr = util_map(p.fd, len, 0, 0)) == NULL)
-		goto err_after_open; /* util_map() set errno, called LOG */
+	if ((addr = p.pops->map(&p, 0)) == NULL)
+		goto error_after_open; /* util_map() set errno, called LOG */
 
 	if (mapped_lenp != NULL)
 		*mapped_lenp = len;
 
 	if (is_pmemp != NULL)
-		*is_pmemp = p.pops->is_pmem(addr, len);
+		*is_pmemp = p.pops->always_pmem() ? 1 : pmem_is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
@@ -619,11 +612,11 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 
 	return addr;
 
-err_after_open:
+error_after_open:
 	p.pops->close(&p);
 	if (delete_on_err)
 		p.pops->unlink(&p);
-err_open:
+error_open:
 	pmem_provider_fini(&p);
 	return NULL;
 }

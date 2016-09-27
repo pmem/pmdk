@@ -41,12 +41,12 @@ SOURCE =\
 	out.c\
 	pool_hdr.c\
 	pool_hdr_linux.c\
+	pmem_provider.c\
 	set.c\
 	util.c\
 	uuid.c\
 	uuid_linux.c\
-	util_linux.c\
-	pmem_provider.c
+	util_linux.c
 
 include ../Makefile.inc
 

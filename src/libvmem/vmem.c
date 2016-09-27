@@ -41,6 +41,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #include "libvmem.h"
 
@@ -48,6 +49,10 @@
 #include "pmemcommon.h"
 #include "sys_util.h"
 #include "vmem.h"
+#include "pmem_provider.h"
+
+#define VMEM_TMPFILE_MASK S_IRUSR | S_IWUSR | S_IRGRP |\
+S_IWGRP | S_IROTH | S_IWOTH /* 0666 */
 
 /*
  * private to this file...
@@ -153,9 +158,26 @@ vmem_create(const char *dir, size_t size)
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
 
-	void *addr;
-	if ((addr = util_map_tmpfile(dir, size, 4 << 20)) == NULL)
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, dir) < 0)
 		return NULL;
+
+	if (p.pops->open(&p, O_RDWR, VMEM_TMPFILE_MASK, 1) < 0)
+		goto error_provider_open;
+
+	if (p.pops->allocate_space(&p, size, 0) < 0)
+		goto error_after_open;
+
+	ssize_t real_size = p.pops->get_size(&p);
+	if (real_size < 0 || (size_t)real_size < size)
+		goto error_after_open;
+
+	void *addr;
+	if ((addr = p.pops->map(&p, 4 << 20)) == NULL)
+		goto error_after_open;
+
+	p.pops->close(&p);
+	pmem_provider_fini(&p);
 
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
@@ -183,6 +205,14 @@ vmem_create(const char *dir, size_t size)
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
+
+error_after_open:
+	p.pops->close(&p);
+
+error_provider_open:
+	pmem_provider_fini(&p);
+
+	return NULL;
 }
 
 /*
