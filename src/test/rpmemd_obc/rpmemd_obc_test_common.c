@@ -266,8 +266,7 @@ clnt_connect(char *target)
 void
 clnt_close(struct rpmem_ssh *ssh)
 {
-	int ret = rpmem_ssh_close(ssh);
-	UT_ASSERTeq(ret, 0);
+	rpmem_ssh_close(ssh);
 }
 
 /*

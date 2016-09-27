@@ -288,7 +288,7 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 	free(rps);
 
 	if (WIFEXITED(ret))
-		return 0;
+		return WEXITSTATUS(ret);
 	if (WIFSIGNALED(ret)) {
 		ERR("signal received -- %d", WTERMSIG(ret));
 		return ret;
