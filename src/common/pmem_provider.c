@@ -42,6 +42,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/file.h>
 
 #include "pmem_provider.h"
 #include "mmap.h"
@@ -57,14 +58,6 @@
 
 #define DEVICE_DAX_PREFIX "/sys/class/dax"
 #define MAX_SIZE_LENGTH 64
-
-enum pmem_provider_type {
-	PMEM_PROVIDER_UNKNOWN,
-	PMEM_PROVIDER_REGULAR_FILE,
-	PMEM_PROVIDER_DEVICE_DAX,
-
-	MAX_PMEM_PROVIDER_TYPE
-};
 
 /*
  * provider_device_dax_open -- (internal) opens a dax device
@@ -97,6 +90,14 @@ static int
 provider_regular_file_open(struct pmem_provider *p,
 	int flags, mode_t mode, int tmp)
 {
+#ifdef _WIN32
+	/*
+	 * POSIX does not differentiate between binary/text file modes and
+	 * neither should we.
+	 */
+	flags |= O_BINARY;
+#endif
+
 	if (tmp) {
 #if USE_O_TMPFILE
 		open_flags |= O_TMPFILE;
@@ -265,12 +266,15 @@ provider_regular_file_allocate_space(struct pmem_provider *p,
 	size_t size, int sparse)
 {
 	if (sparse) {
-		if (ftruncate(p->fd, (off_t)size) != 0)
+		if (ftruncate(p->fd, (off_t)size) != 0) {
+			ERR("!ftruncate");
 			return -1;
+		}
 	} else {
 		int olderrno = errno;
 		errno = posix_fallocate(p->fd, 0, (off_t)size);
 		if (errno != 0) {
+			ERR("!posix_fallocate");
 			return -1;
 		}
 		errno = olderrno;
@@ -287,6 +291,15 @@ provider_device_dax_allocate_space(struct pmem_provider *p,
 	size_t size, int sparse)
 {
 	return 0;
+}
+
+/*
+ * provider_common_lock -- (internal) grabs a file lock, released on close
+ */
+static int
+provider_common_lock(struct pmem_provider *p)
+{
+	return flock(p->fd, LOCK_EX | LOCK_NB);
 }
 
 /*
@@ -319,6 +332,7 @@ pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
 		.open = NULL,
 		.close = NULL,
 		.unlink = NULL,
+		.lock = NULL,
 		.map = NULL,
 		.get_size = NULL,
 		.allocate_space = NULL,
@@ -328,6 +342,7 @@ pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
 		.open = provider_regular_file_open,
 		.close = provider_common_close,
 		.unlink = provider_regular_file_unlink,
+		.lock = provider_common_lock,
 		.map = provider_common_map,
 		.get_size = provider_regular_file_get_size,
 		.allocate_space = provider_regular_file_allocate_space,
@@ -337,6 +352,7 @@ pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
 		.open = provider_device_dax_open,
 		.close = provider_common_close,
 		.unlink = provider_device_dax_unlink,
+		.lock = provider_common_lock,
 		.map = provider_common_map,
 		.get_size = provider_device_dax_get_size,
 		.allocate_space = provider_device_dax_allocate_space,
@@ -364,13 +380,13 @@ pmem_provider_init(struct pmem_provider *p, const char *path)
 	}
 	errno = olderrno; /* file not existing is not an error */
 
-	enum pmem_provider_type type = pmem_provider_query_type(p);
-	if (type == PMEM_PROVIDER_UNKNOWN)
+	p->type = pmem_provider_query_type(p);
+	if (p->type == PMEM_PROVIDER_UNKNOWN)
 		goto error_init;
 
-	ASSERTne(type, MAX_PMEM_PROVIDER_TYPE);
+	ASSERTne(p->type, MAX_PMEM_PROVIDER_TYPE);
 
-	p->pops = &pmem_provider_operations[type];
+	p->pops = &pmem_provider_operations[p->type];
 
 	return 0;
 

@@ -40,12 +40,21 @@
 #include "util.h"
 #include "file.h"
 
+enum pmem_provider_type {
+	PMEM_PROVIDER_UNKNOWN,
+	PMEM_PROVIDER_REGULAR_FILE,
+	PMEM_PROVIDER_DEVICE_DAX,
+
+	MAX_PMEM_PROVIDER_TYPE
+};
+
 struct pmem_provider {
 	char *path;
 	int fd;
 	util_stat_t st;
 	int exists;
 
+	enum pmem_provider_type type;
 	const struct pmem_provider_ops *pops;
 };
 
@@ -53,6 +62,7 @@ struct pmem_provider_ops {
 	int (*open)(struct pmem_provider *p, int flags, mode_t mode, int tmp);
 	void (*close)(struct pmem_provider *p);
 	void (*unlink)(struct pmem_provider *p);
+	int (*lock)(struct pmem_provider *p);
 	void *(*map)(struct pmem_provider *p, size_t alignment);
 	ssize_t (*get_size)(struct pmem_provider *p);
 	int (*allocate_space)(struct pmem_provider *p, size_t size, int sparse);

@@ -40,6 +40,7 @@
 
 #include "file.h"
 #include "out.h"
+#include "pmem_provider.h"
 
 /*
  * util_file_create -- create a new memory pool file
@@ -120,6 +121,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 #ifdef _WIN32
 	flags |= O_BINARY;
 #endif
+
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
