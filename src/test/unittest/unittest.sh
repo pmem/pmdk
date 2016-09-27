@@ -456,7 +456,7 @@ function create_poolset() {
 		fpath=`readlink -mn ${fparms[1]}`
 		cmd=${fparms[2]}
 		asize=${fparams[3]}
-		mode=${fparms[4]]}
+		mode=${fparms[4]}
 
 		if [ ! $asize ]; then
 			asize=$fsize
