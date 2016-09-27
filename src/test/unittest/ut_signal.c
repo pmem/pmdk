@@ -40,10 +40,9 @@
 /*
  * On Windows, Access Violation exception does not raise SIGSEGV signal.
  * The trick is to catch the exception and... call the signal handler.
- *
- * XXX - add support for registering more than one signal/exception handler
  */
 
+static struct sigaction t;
 static void (*Sa_handler) (int signum);
 static int Signum;
 
@@ -58,6 +57,23 @@ exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
 		Sa_handler(Signum);
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
+
+/*
+ * exception_handler_sig_dfl - called for set handler default func,
+ * by default after execution exception
+ * handler func value is set to SIG_DFL,
+ * this enables handle more than one
+ * exceptions without new signal initialization
+ */
+static void
+exception_handler_sig_dfl(int signum)
+{
+	_crt_signal_t retval = signal(signum, t.sa_handler);
+	if (retval == SIG_ERR)
+		UT_FATAL("!signal: %d", signum);
+	Sa_handler(signum);
+}
+
 #endif
 
 /*
@@ -73,6 +89,8 @@ ut_sigaction(const char *file, int line, const char *func,
 		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
 	return retval;
 #else
+	Sa_handler = act->sa_handler;
+
 	if (signum == SIGABRT) {
 		DWORD dwMode = GetErrorMode();
 		SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX |
@@ -80,12 +98,15 @@ ut_sigaction(const char *file, int line, const char *func,
 		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 	}
 	if (signum == SIGSEGV) {
-		Sa_handler = act->sa_handler;
 		Signum = signum;
 		AddVectoredExceptionHandler(0, exception_handler);
 	}
 
-	_crt_signal_t retval = signal(signum, act->sa_handler);
+	sigemptyset(&t.sa_mask);
+	t.sa_flags = 0;
+	t.sa_handler = exception_handler_sig_dfl;
+
+	_crt_signal_t retval = signal(signum, t.sa_handler);
 	if (retval == SIG_ERR)
 		ut_fatal(file, line, func, "!signal: %d", signum);
 
