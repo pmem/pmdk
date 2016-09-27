@@ -58,12 +58,19 @@
 #define IS_TRANSFORMED (1 << 10)
 
 /*
+ * Number of lanes utilized when working with remote replicas
+ */
+#define REMOTE_NLANES	1
+
+/*
  * Helping structures for storing replica and poolset's health status
  */
 struct replica_health_status {
 	unsigned nparts;
 	/* a flag for the replica */
 	unsigned flags;
+	/* effective size of a pool, valid only for healthy replica */
+	size_t pool_size;
 	/* flags for each part */
 	unsigned part[];
 };
