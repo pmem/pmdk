@@ -1,5 +1,5 @@
-vmem_delete/TEST0: START: vmem_delete
- ./vmem_delete$(nW) h f m c r a s d
+vmem_delete$(nW)TEST0: START: vmem_delete
+ $(nW)vmem_delete$(nW) h f m c r a s d
 Testing vmem_check...
 	vmem_check returned -1
 Testing vmem_free...
@@ -16,4 +16,4 @@ Testing vmem_strdup...
 	signal: $(*)
 Testing vmem_delete...
 	vmem_delete failed: invalid pool handle: 0x$(X)
-vmem_delete/TEST0: Done
+vmem_delete$(nW)TEST0: Done
