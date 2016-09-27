@@ -44,7 +44,7 @@
 #include <limits.h>
 
 #include "pmem_provider.h"
-#include "libpmem.h"
+#include "mmap.h"
 #include "out.h"
 
 #ifndef USE_O_TMPFILE
@@ -157,6 +157,19 @@ provider_regular_file_unlink(struct pmem_provider *p)
 }
 
 /*
+ * provider_common_map -- (internal) creates a new virtual address space mapping
+ */
+static void *
+provider_common_map(struct pmem_provider *p, size_t alignment)
+{
+	ssize_t size = p->pops->get_size(p);
+	if (size < 0)
+		return NULL;
+
+	return util_map(p->fd, (size_t)size, 0, alignment);
+}
+
+/*
  * pmem_provider_query_type -- (internal) checks the type of a pmem provider
  */
 static enum pmem_provider_type
@@ -168,11 +181,11 @@ pmem_provider_query_type(struct pmem_provider *p)
 	if (!S_ISCHR(p->st.st_mode))
 		return PMEM_PROVIDER_REGULAR_FILE;
 
-	char path[PATH_MAX] = {0};
+	char path[PATH_MAX];
 	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
 		major(p->st.st_rdev), minor(p->st.st_rdev));
 
-	char npath[PATH_MAX] = {0};
+	char npath[PATH_MAX];
 	char *rpath = realpath(path, npath);
 	if (rpath == NULL)
 		return PMEM_PROVIDER_UNKNOWN;
@@ -188,16 +201,19 @@ pmem_provider_query_type(struct pmem_provider *p)
 static ssize_t
 provider_device_dax_get_size(struct pmem_provider *p)
 {
-	char path[PATH_MAX] = {0};
+	char path[PATH_MAX];
 	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/size",
 		major(p->st.st_rdev), minor(p->st.st_rdev));
 	int fd = open(path, O_RDONLY);
 	if (fd < 0)
 		goto err;
 
-	char sizebuf[MAX_SIZE_LENGTH] = {0};
-	if (read(fd, sizebuf, MAX_SIZE_LENGTH) < 0)
+	char sizebuf[MAX_SIZE_LENGTH] = {1};
+	ssize_t nread;
+	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0)
 		goto err_read;
+
+	sizebuf[nread] = 0; /* null termination */
 
 	char *endptr;
 
@@ -228,6 +244,11 @@ err:
 static ssize_t
 provider_regular_file_get_size(struct pmem_provider *p)
 {
+	/* refresh stat, size might have changed */
+	if (util_fstat(p->fd, &p->st) < 0) {
+		return -1;
+	}
+
 	if (p->st.st_size < 0)
 		return -1;
 
@@ -235,16 +256,61 @@ provider_regular_file_get_size(struct pmem_provider *p)
 }
 
 /*
- * device_dax_is_pmem -- (internal) returns whether the dax device provider
- *	supports pmem.
- *
- * Because dax device can only be created on actual pmem storage, this is always
- * true.
+ * provider_regular_file_allocate_space --
+ *	(internal) reserves space in the provider, either by allocating the
+ *	blocks or truncating the file to requested size.
  */
 static int
-device_dax_is_pmem(const void *addr, size_t len)
+provider_regular_file_allocate_space(struct pmem_provider *p,
+	size_t size, int sparse)
 {
-	return 1; /* reversed logic... 1 means that the memory is pmem */
+	if (sparse) {
+		if (ftruncate(p->fd, (off_t)size) != 0)
+			return -1;
+	} else {
+		int olderrno = errno;
+		errno = posix_fallocate(p->fd, 0, (off_t)size);
+		if (errno != 0) {
+			return -1;
+		}
+		errno = olderrno;
+	}
+	return 0;
+}
+
+/*
+ * provider_device_dax_allocate_space --
+ *	(internal) device dax is fixed-length, this is a no-op
+ */
+static int
+provider_device_dax_allocate_space(struct pmem_provider *p,
+	size_t size, int sparse)
+{
+	return 0;
+}
+
+/*
+ * provider_device_dax_always_pmem -- (internal) returns whether the provider
+ *	always guarantees that the storage is persistent.
+ *
+ * Always true for device dax.
+ */
+static int
+provider_device_dax_always_pmem()
+{
+	return 1;
+}
+
+/*
+ * provider_regular_file_always_pmem -- (internal) returns whether the provider
+ *	always guarantees that the storage is persistent.
+ *
+ * For regular files persistence depends on the underlying file system.
+ */
+static int
+provider_regular_file_always_pmem()
+{
+	return 0;
 }
 
 static struct pmem_provider_ops
@@ -253,22 +319,28 @@ pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
 		.open = NULL,
 		.close = NULL,
 		.unlink = NULL,
+		.map = NULL,
 		.get_size = NULL,
-		.is_pmem = NULL,
+		.allocate_space = NULL,
+		.always_pmem = NULL,
 	},
 	[PMEM_PROVIDER_REGULAR_FILE] = {
 		.open = provider_regular_file_open,
 		.close = provider_common_close,
 		.unlink = provider_regular_file_unlink,
+		.map = provider_common_map,
 		.get_size = provider_regular_file_get_size,
-		.is_pmem = pmem_is_pmem,
+		.allocate_space = provider_regular_file_allocate_space,
+		.always_pmem = provider_regular_file_always_pmem,
 	},
 	[PMEM_PROVIDER_DEVICE_DAX] = {
 		.open = provider_device_dax_open,
 		.close = provider_common_close,
 		.unlink = provider_device_dax_unlink,
+		.map = provider_common_map,
 		.get_size = provider_device_dax_get_size,
-		.is_pmem = device_dax_is_pmem,
+		.allocate_space = provider_device_dax_allocate_space,
+		.always_pmem = provider_device_dax_always_pmem,
 	},
 };
 
@@ -283,12 +355,14 @@ pmem_provider_init(struct pmem_provider *p, const char *path)
 		goto error_path_strdup;
 
 	p->exists = 1;
+	int olderrno = errno;
 	if (util_stat(path, &p->st) < 0) {
 		if (errno == ENOENT)
 			p->exists = 0;
 		else
 			goto error_init;
 	}
+	errno = olderrno; /* file not existing is not an error */
 
 	enum pmem_provider_type type = pmem_provider_query_type(p);
 	if (type == PMEM_PROVIDER_UNKNOWN)

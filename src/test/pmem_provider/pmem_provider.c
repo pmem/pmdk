@@ -102,7 +102,6 @@ FUNC_MOCK(realpath, char *, const char *path, char *resolved_path)
 	}
 FUNC_MOCK_END
 
-int read_ret;
 #define TEST_DEVICE_DAX_SIZE 12345
 FUNC_MOCK(read, ssize_t, int fd, void *buf, size_t count)
 	FUNC_MOCK_RUN_DEFAULT {
@@ -111,7 +110,7 @@ FUNC_MOCK(read, ssize_t, int fd, void *buf, size_t count)
 
 		snprintf(buf, count, "%d\n", TEST_DEVICE_DAX_SIZE);
 
-		return read_ret;
+		return strlen(buf);
 	}
 FUNC_MOCK_END
 

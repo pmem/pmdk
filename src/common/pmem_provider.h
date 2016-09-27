@@ -53,8 +53,10 @@ struct pmem_provider_ops {
 	int (*open)(struct pmem_provider *p, int flags, mode_t mode, int tmp);
 	void (*close)(struct pmem_provider *p);
 	void (*unlink)(struct pmem_provider *p);
+	void *(*map)(struct pmem_provider *p, size_t alignment);
 	ssize_t (*get_size)(struct pmem_provider *p);
-	int (*is_pmem)(const void *addr, size_t len);
+	int (*allocate_space)(struct pmem_provider *p, size_t size, int sparse);
+	int (*always_pmem)(void);
 };
 
 int pmem_provider_init(struct pmem_provider *p, const char *path);
