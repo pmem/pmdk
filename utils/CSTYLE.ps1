@@ -43,7 +43,7 @@ $checkdir = $rootdir
 $include = @( "*.c", "*.h" )
 
 # exclude external files not following NVML coding style
-$exclude = @( "queue.h", "getopt.h", "getopt.c")
+$exclude = @( "queue.h", "getopt.h", "getopt.c", "pmemcompat.h")
 
 If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
 	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `

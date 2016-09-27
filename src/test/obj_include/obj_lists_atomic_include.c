@@ -30,10 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef BUILD_MAIN
-int
-main()
-{
-	return 0;
-}
-#endif
+/*
+ * obj_lists_atomic_include.c -- include test for libpmemobj
+ */
+
+#include <libpmemobj/lists_atomic.h>
