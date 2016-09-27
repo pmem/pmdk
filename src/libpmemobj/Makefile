@@ -43,6 +43,7 @@ SOURCE =\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/pool_hdr_linux.c\
+	$(COMMON)/pmem_provider.c\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
