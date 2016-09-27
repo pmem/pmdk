@@ -70,6 +70,8 @@ ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
+LIBS += -ldl
+CFLAGS += -DUSE_LIBDL
 endif
 
 ifeq ($(LIBPMEMBLK), y)
