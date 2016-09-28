@@ -5,6 +5,7 @@ before_install:
   - ./pull-or-rebuild-image.sh
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
   - rm -f push_image_to_repo_flag
+  - ../check-doc.sh
 
 script:
   - ./build.sh
