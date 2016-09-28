@@ -42,3 +42,5 @@ echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 # Configure tests (e.g. ssh for remote tests)
 ./configure-tests.sh
 
+# Check for changes in automatically generated docs
+../check-doc.sh

@@ -97,11 +97,7 @@ clobber:
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 
-test: all
-	$(MAKE) -C src $@
-
-check pcheck check-remote: all
-	$(MAKE) -C doc $@
+test check pcheck check-remote: all
 	$(MAKE) -C src $@
 
 cstyle:
