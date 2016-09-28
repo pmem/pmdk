@@ -7,6 +7,7 @@ before_install:
   - rm -f push_image_to_repo_flag
 
 script:
+  - ../check-doc.sh
   - ./build.sh
 
 env:
