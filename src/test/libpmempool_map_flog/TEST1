@@ -54,7 +54,7 @@ declare -A map_err=(["Initial"]="0" ["Error"]="4"
 
 ent_val=6
 
-for field in "${!map_err[@]}";
+for field in Zeroed Error Initial Normal;
 do
 	expect_normal_exit $BTTCREATE $POOL
 

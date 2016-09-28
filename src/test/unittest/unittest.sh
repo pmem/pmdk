@@ -456,7 +456,7 @@ function create_poolset() {
 		fpath=`readlink -mn ${fparms[1]}`
 		cmd=${fparms[2]}
 		asize=${fparams[3]}
-		mode=${fparms[4]]}
+		mode=${fparms[4]}
 
 		if [ ! $asize ]; then
 			asize=$fsize
@@ -1860,7 +1860,7 @@ check_signature()
 {
 	local sig=$1
 	local file=$2
-	local file_sig=$(dd if=$file bs=1 count=$SIG_LEN 2>/dev/null)
+	local file_sig=$(dd if=$file bs=1 count=$SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $file_sig ]]
 	then
@@ -1890,7 +1890,7 @@ check_layout()
 	local layout=$1
 	local file=$2
 	local file_layout=$(dd if=$file bs=1\
-		skip=$LAYOUT_OFFSET count=$LAYOUT_LEN 2>/dev/null)
+		skip=$LAYOUT_OFFSET count=$LAYOUT_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $layout != $file_layout ]]
 	then
@@ -1905,7 +1905,7 @@ check_layout()
 check_arena()
 {
 	local file=$1
-	local sig=$(dd if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null)
+	local sig=$(dd if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $ARENA_SIG ]]
 	then
