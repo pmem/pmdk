@@ -6,6 +6,9 @@ before_install:
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
   - rm -f push_image_to_repo_flag
 
+before_script:
+  - ../check-doc.sh
+
 script:
   - ./build.sh
 

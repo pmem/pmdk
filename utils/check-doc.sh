@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # Copyright 2016, Intel Corporation
 #
@@ -33,34 +33,49 @@
 
 #
 # Used to check whether changes to the generated documentation directory
-# are made by the authorised user.
+# are made by the authorised user. Used only by travis builds.
 #
-# usage: ./check-doc.sh <directory>
+# usage: ./check-doc.sh [-v]
 #
 
-directory=$1
-
+directory=doc/generated
 allowed_user="Generic builder <nvml-bot@intel.com>"
 
-# check if git is installed and the check is performed on a git repository
-if ! git status ${directory} > /dev/null; then
-	echo "SKIP: no git installed or not a git repository"
-	exit 0
-fi
-
-# check for changes and the author of the last commit
-# the bot makes one commit pull requests
-base_branch=$(git show-branch --current 2>/dev/null | grep '\*' | grep -v "add-doc-check" | head -n1 | sed 's/.*\[\(.*\)\].*/\1/' | sed 's/[\^~].*//')
-base_commit=$(diff -u <(git rev-list --first-parent HEAD) <(git rev-list --first-parent ${base_branch}) | sed -ne 's/^ //p' | head -1)
-changes=$(git diff --name-only ${base_commit} ${directory} | wc -l)
-last_author=$(git --no-pager show -s --format='%aN <%aE>')
-
-# no changes made to the given directory
-if [ "$changes" -eq 0 ]; then
-	exit 0
-fi
-
-if [ "$last_author" != "$allowed_user" ]; then
-	echo "FAIL: changes to ${directory} allowed only by \"${allowed_user}\""
+if [[ -z "$TRAVIS" ]]; then
+	echo "ERROR: This script can only be executed on Travis CI."
 	exit -1
 fi
+
+# Find all the commits for the current build
+if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
+	commits=$(git rev-list $TRAVIS_COMMIT_RANGE)
+else
+	commits=$TRAVIS_COMMIT
+fi
+
+# Get the list of files modified by the commits
+files=$(for commit in $commits; do git diff-tree --no-commit-id --name-only \
+	-r $commit; done | sort -u)
+
+if [[ "$1" == "-v" ]]; then
+	echo "Commits in the commit range:"
+	for commit in $commits; do echo $commit; done
+	echo "Files modified within the commit range:"
+	for file in $files; do echo $file; done
+fi
+
+# Check for changes in the generated docs directory
+for file in $files; do
+	# Check if modified files are relevant to the current build
+	if [[ $file =~ ^($directory)\/* ]] \
+			&& [[ $TRAVIS_REPO_SLUG == "pmem/nvml" \
+			&& $TRAVIS_BRANCH == "master" \
+			&& $TRAVIS_EVENT_TYPE != "pull_request" ]]
+	then
+		last_author=$(git --no-pager show -s --format='%aN <%aE>')
+		if [ "$last_author" != "$allowed_user" ]; then
+			echo "FAIL: changes to ${directory} allowed only by \"${allowed_user}\""
+			exit -1
+		fi
+	fi
+done
