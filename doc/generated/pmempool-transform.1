@@ -65,15 +65,24 @@ The \f[I]poolset_file_dst\f[] argument points to the target poolset.
 .PP
 When adding or deleting replica, the two poolset files can differ only
 in the definitions of replicas which are to be added or deleted.
-Also, to add a replica it is necessary for its size to match or exceed
-the poolset size.
+Also, to add a replica it is necessary for its effective size to match
+or exceed the pool size.
 Otherwise the whole operation fails and no changes are applied.
+Effective size of a replica is the sum of sizes of all its part files
+decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal
+metadata of the pool part files.
 .SS Available options:
 .TP
 .B \f[C]\-d,\ \-\-dry\-run\f[]
 Enable dry run mode.
 In this mode no changes are applied, only check for viability of the
 operation is performed.
+.RS
+.RE
+.TP
+.B \f[C]\-v,\ \-\-verbose\f[]
+Increase verbosity level.
 .RS
 .RE
 .TP
@@ -84,15 +93,15 @@ Display help message and exit.
 .SH EXAMPLES
 .SS Example 1.
 .PP
-Let us assume that files \f[C]/poolset_file_src\f[] and
-\f[C]/poolset_file_dst\f[] have the following contents, respectively:
+Let files \f[C]/path/poolset_file_src\f[] and
+\f[C]/path/poolset_file_dst\f[] have the following contents:
 .IP
 .nf
 \f[C]
 PMEMPOOLSET
 20M\ /0/partfile1
 20M\ /0/partfile2
-21M\ /0/partfile3
+25M\ /0/partfile3
 REPLICA
 40M\ /1/partfile1
 20M\ /1/partfile2
@@ -102,11 +111,12 @@ REPLICA
 .nf
 \f[C]
 PMEMPOOLSET
-40M\ /0/partfile4
-21M\ /0/partfile3
+20M\ /0/partfile1
+20M\ /0/partfile2
+25M\ /0/partfile3
 REPLICA
-30M\ /1/partfile3
-30M\ /1/partfile4
+40M\ /1/partfile1
+20M\ /1/partfile2
 REPLICA
 50M\ /2/partfile1
 20M\ /2/partfile2
@@ -115,30 +125,22 @@ REPLICA
 .PP
 Then, the command
 .PP
-\f[C]pmempool\ transform\ /poolset_file_src\ /poolset_file_dst\f[]
+\f[C]pmempool\ transform\ /path/poolset_file_src\ /path/poolset_file_dst\f[]
 .PP
-yields the following:
-.IP \[bu] 2
-The first two parts of the master replica are joined into one large
-part.
-The third part of the replica remains unchanged.
-.IP \[bu] 2
-The first regular replica\[aq]s structure will change from two parts of
-size 40M and 20M to two parts of size 30M and 30M.
-.IP \[bu] 2
-The second regular replica consisting of two parts will be created.
-The size of the new replica is 70M, but the size of the pool remains
+adds a replica to the poolset.
+All other replicas remain unchanged and the size of the pool remains
 60M.
 .SS Example 2.
 .PP
-Now, let \f[C]/poolset_file_src\f[] and \f[C]/poolset_file_dst\f[] have
-the following contents, respectively:
+Let files \f[C]/path/poolset_file_src\f[] and
+\f[C]/path/poolset_file_dst\f[] have the following contents:
 .IP
 .nf
 \f[C]
 PMEMPOOLSET
 20M\ /0/partfile1
-50M\ /0/partfile2
+20M\ /0/partfile2
+25M\ /0/partfile3
 REPLICA
 40M\ /1/partfile1
 20M\ /1/partfile2
@@ -149,16 +151,17 @@ REPLICA
 \f[C]
 PMEMPOOLSET
 20M\ /0/partfile1
-50M\ /0/partfile2
+20M\ /0/partfile2
+25M\ /0/partfile3
 \f[]
 .fi
 .PP
 Then
 .PP
-\f[C]pmempool_transform\ "/poolset_file_src"\ "/poolset_file_dst");\f[]
+\f[C]pmempool_transform\ /path/poolset_file_src\ /path/poolset_file_dst\f[]
 .PP
 deletes the second replica from the poolset.
-The second replica remains unchanged and the size of the pool remains(!)
+The first replica remains unchanged and the size of the pool is still
 60M.
 .SH SEE ALSO
 .PP
