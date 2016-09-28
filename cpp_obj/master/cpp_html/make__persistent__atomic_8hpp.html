@@ -126,7 +126,7 @@ Include dependency graph for make_persistent_atomic.hpp:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a73ebedf67806bd258c48d1c1605e3597"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... Args&gt; </td></tr>
 <tr class="memitem:a73ebedf67806bd258c48d1c1605e3597"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="make__persistent__atomic_8hpp.html#a73ebedf67806bd258c48d1c1605e3597">nvml::obj::make_persistent_atomic</a> (pool_base &amp;pool, typename detail::pp_if_not_array&lt; T &gt;::type &amp;ptr, Args &amp;&amp;...args)</td></tr>
-<tr class="memdesc:a73ebedf67806bd258c48d1c1605e3597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Atomically TEST allocate and construct an object.  <a href="make__persistent__atomic_8hpp.html#a73ebedf67806bd258c48d1c1605e3597">More...</a><br /></td></tr>
+<tr class="memdesc:a73ebedf67806bd258c48d1c1605e3597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Atomically allocate and construct an object.  <a href="make__persistent__atomic_8hpp.html#a73ebedf67806bd258c48d1c1605e3597">More...</a><br /></td></tr>
 <tr class="separator:a73ebedf67806bd258c48d1c1605e3597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4829c17b4db1755e79a2fa928879c54"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ab4829c17b4db1755e79a2fa928879c54"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="make__persistent__atomic_8hpp.html#ab4829c17b4db1755e79a2fa928879c54">nvml::obj::delete_persistent_atomic</a> (typename detail::pp_if_not_array&lt; T &gt;::type &amp;ptr) noexcept</td></tr>
@@ -198,7 +198,7 @@ template&lt;typename T , typename... Args&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Atomically TEST allocate and construct an object. </p>
+<p>Atomically allocate and construct an object. </p>
 <p>Constructor parameters are passed through variadic parameters. Do <em>NOT</em> use this inside transactions, as it might lead to undefined behavior in the presence of transaction aborts.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
