@@ -66,6 +66,9 @@ struct pmempool_create {
 	int max_size;
 	char *str_type;
 	struct pmem_pool_params params;
+	struct pmem_pool_params inherit_params;
+	char *str_size;
+	char *str_mode;
 	char *str_bsize;
 	uint64_t csize;
 	int write_btt_layout;
@@ -168,15 +171,6 @@ pmempool_create_help(char *appname)
 static int
 pmempool_create_obj(struct pmempool_create *pcp)
 {
-	if (pcp->layout && strlen(pcp->layout) >= PMEMOBJ_MAX_LAYOUT) {
-		outv_err("Layout name is to long, "
-			"maximum number of characters is %d\n",
-			PMEMOBJ_MAX_LAYOUT);
-		return -1;
-	}
-
-	outv(1, "Creating pmem obj pool with layout '%s'\n",
-			pcp->layout ? pcp->layout : "");
 	PMEMobjpool *pop = pmemobj_create(pcp->fname, pcp->layout,
 			pcp->params.size, pcp->params.mode);
 	if (!pop) {
@@ -202,9 +196,6 @@ pmempool_create_blk(struct pmempool_create *pcp)
 				" - picking minimum block size.\n");
 		pcp->params.blk.bsize = PMEMBLK_MIN_BLK;
 	}
-
-	outv(1, "Creating pmem blk pool with block size %s\n",
-		out_get_size_str(pcp->params.blk.bsize, 1));
 
 	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
 			pcp->params.size, pcp->params.mode);
@@ -234,7 +225,6 @@ pmempool_create_blk(struct pmempool_create *pcp)
 static int
 pmempool_create_log(struct pmempool_create *pcp)
 {
-	outv(1, "Creating pmem log pool\n");
 	PMEMlogpool *plp = pmemlog_create(pcp->fname,
 					pcp->params.size, pcp->params.mode);
 
@@ -289,6 +279,61 @@ pmempool_get_max_size(const char *fname, uint64_t *sizep)
 #endif
 
 /*
+ * print_pool_params -- print some parameters of a pool
+ */
+static void
+print_pool_params(struct pmem_pool_params *params)
+{
+	outv(1, "\ttype  : %s\n", out_get_pool_type_str(params->type));
+	outv(1, "\tsize  : %s\n", out_get_size_str(params->size, 2));
+	outv(1, "\tmode  : 0%o\n", params->mode);
+	switch (params->type) {
+	case PMEM_POOL_TYPE_BLK:
+		outv(1, "\tbsize : %s\n",
+			out_get_size_str(params->blk.bsize, 0));
+		break;
+	case PMEM_POOL_TYPE_OBJ:
+		outv(1, "\tlayout: '%s'\n", params->obj.layout);
+		break;
+	default:
+		break;
+	}
+}
+
+/*
+ * inherit_pool_params -- inherit pool parameters from specified file
+ */
+static int
+inherit_pool_params(struct pmempool_create *pcp)
+{
+	outv(1, "Parsing pool: '%s'\n", pcp->inherit_fname);
+
+	/*
+	 * If no type string passed, --inherit option must be passed
+	 * so parse file and get required parameters.
+	 */
+	if (pmem_pool_parse_params(pcp->inherit_fname,
+			&pcp->inherit_params, 1)) {
+		if (errno)
+			perror(pcp->inherit_fname);
+		else
+			outv_err("%s: cannot determine type of pool\n",
+				pcp->inherit_fname);
+		return -1;
+	}
+
+	if (PMEM_POOL_TYPE_UNKNOWN == pcp->inherit_params.type) {
+		outv_err("'%s' -- unknown pool type\n",
+				pcp->inherit_fname);
+		return -1;
+	}
+
+	print_pool_params(&pcp->inherit_params);
+
+	return 0;
+}
+
+/*
  * pmempool_create_parse_args -- parse command line args
  */
 static int
@@ -306,6 +351,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pmempool_create_help(appname);
 			exit(EXIT_SUCCESS);
 		case 's':
+			pcp->str_size = optarg;
 			ret = util_parse_size(optarg, &pcp->params.size);
 			if (ret || pcp->params.size == 0) {
 				outv_err("invalid size value specified '%s'\n",
@@ -317,6 +363,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			pcp->max_size = 1;
 			break;
 		case 'm':
+			pcp->str_mode = optarg;
 			if (util_parse_mode(optarg, &pcp->params.mode)) {
 				outv_err("invalid mode value specified '%s'\n",
 						optarg);
@@ -381,6 +428,14 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	pc.fexists = access(pc.fname, F_OK) == 0;
 	int is_poolset = util_is_poolset_file(pc.fname) == 1;
 
+	if (pc.inherit_fname)  {
+		if (inherit_pool_params(&pc)) {
+			outv_err("parsing pool '%s' failed\n",
+					pc.inherit_fname);
+			return -1;
+		}
+	}
+
 	/*
 	 * Parse pool type and other parameters if --inherit option
 	 * passed. It is possible to either pass --inherit option
@@ -408,47 +463,8 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 				return -1;
 			}
 		}
-
 	} else if (pc.inherit_fname) {
-		int is_inherit_poolset =
-				util_is_poolset_file(pc.inherit_fname) == 1;
-		if (is_inherit_poolset || is_poolset) {
-			outv_err("-i|--inherit is not supported for "
-					"poolset file\n");
-			return -1;
-		}
-		/*
-		 * If no type string passed, --inherit option must be passed
-		 * so parse file and get required parameters.
-		 */
-		outv(1, "Parsing '%s' file:\n", pc.inherit_fname);
-		if (pmem_pool_parse_params(pc.inherit_fname, &pc.params, 1)) {
-			if (errno)
-				perror(pc.inherit_fname);
-			else
-				outv_err("%s: cannot determine type of pool\n",
-					pc.inherit_fname);
-			return -1;
-		}
-
-		if (PMEM_POOL_TYPE_UNKNOWN == pc.params.type) {
-			outv_err("'%s' -- unknown pool type\n",
-					pc.inherit_fname);
-			return -1;
-		} else {
-			outv(1, "  type  : %s\n",
-					out_get_pool_type_str(pc.params.type));
-			outv(1, "  size  : %s\n",
-					out_get_size_str(pc.params.size, 2));
-			if (pc.params.type == PMEM_POOL_TYPE_BLK) {
-				outv(1, "  bsize : %s\n",
-					out_get_size_str(
-						pc.params.blk.bsize, 0));
-			} else if (pc.params.type == PMEM_POOL_TYPE_OBJ) {
-				pc.layout = pc.params.obj.layout;
-				outv(1, "  layout: %s\n", pc.layout);
-			}
-		}
+		pc.params.type = pc.inherit_params.type;
 	} else {
 		/* neither pool type string nor --inherit options passed */
 		print_usage(appname);
@@ -485,6 +501,38 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		return -1;
 	}
 
+	if (pc.layout && strlen(pc.layout) >= PMEMOBJ_MAX_LAYOUT) {
+		outv_err("Layout name is to long, "
+			"maximum number of characters is %d\n",
+			PMEMOBJ_MAX_LAYOUT);
+		return -1;
+	}
+
+	if (pc.inherit_fname)  {
+		if (!pc.str_size && !pc.max_size)
+			pc.params.size = pc.inherit_params.size;
+		if (!pc.str_mode)
+			pc.params.mode = pc.inherit_params.mode;
+		switch (pc.params.type) {
+		case PMEM_POOL_TYPE_BLK:
+			if (!pc.str_bsize)
+				pc.params.blk.bsize =
+					pc.inherit_params.blk.bsize;
+			break;
+		case PMEM_POOL_TYPE_OBJ:
+			if (!pc.layout)
+				memcpy(pc.params.obj.layout,
+					pc.inherit_params.obj.layout,
+					sizeof(pc.params.obj.layout));
+			else
+				strncpy(pc.params.obj.layout, pc.layout,
+					sizeof(pc.params.obj.layout));
+			break;
+		default:
+			break;
+		}
+	}
+
 	/*
 	 * If neither --size nor --inherit options passed, check
 	 * for --max-size option - if not passed use minimum pool size.
@@ -519,6 +567,10 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 			return -1;
 		}
 	}
+
+
+	outv(1, "Creating pool: %s\n", pc.fname);
+	print_pool_params(&pc.params);
 
 	switch (pc.params.type) {
 	case PMEM_POOL_TYPE_BLK:

@@ -89,7 +89,8 @@ Set size of pool to available space of underlying file system.
 
 `-m, --mode <octal>`
 
-Set permissions to <octal> (the default is 0664).
+Set permissions to <octal> (the default is 0664) when creating the files.
+If the file already exist the permissions are not changed.
 
 `-i, --inherit <file>`
 
