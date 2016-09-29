@@ -245,11 +245,6 @@ err:
 static ssize_t
 provider_regular_file_get_size(struct pmem_provider *p)
 {
-	/* refresh stat, size might have changed */
-	if (util_fstat(p->fd, &p->st) < 0) {
-		return -1;
-	}
-
 	if (p->st.st_size < 0)
 		return -1;
 
@@ -278,6 +273,10 @@ provider_regular_file_allocate_space(struct pmem_provider *p,
 			return -1;
 		}
 		errno = olderrno;
+	}
+	/* refresh stat, size might have changed */
+	if (util_fstat(p->fd, &p->st) < 0) {
+		return -1;
 	}
 	return 0;
 }
