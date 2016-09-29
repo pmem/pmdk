@@ -55,7 +55,7 @@ require_fs_type none
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_check_version$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\vmem_check_version$Env:EXESUFFIX
 
 check
 

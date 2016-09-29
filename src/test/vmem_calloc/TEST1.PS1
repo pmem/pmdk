@@ -54,7 +54,7 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_calloc$Env:EXESUFFIX $DIR `
+expect_normal_exit $Env:EXE_DIR\vmem_calloc$Env:EXESUFFIX $DIR
 
 check
 

@@ -56,7 +56,7 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_create_error$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\vmem_create_error$Env:EXESUFFIX
 
 check
 
