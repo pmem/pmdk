@@ -509,8 +509,8 @@ object stores spanning multiple memory devices by creation of persistent memory 
 stored on different pmem-aware filesystem.
 
 To improve reliability and eliminate the single point of failure, all the changes of the data stored in the persistent memory pool could be also automatically
-written to local pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool replicas may
-be considered binary copies of the "master" pool set.
+written to local or remote pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
+replicas may be considered as binary copies of the "master" pool set.
 
 Creation of all the parts of the pool set and the associated replica sets can be done with the **pmemobj_create**() function or by using the **pmempool**(1)
 utility.
@@ -528,13 +528,22 @@ being opened, or if the actual size of any file does not match the corresponding
 The set file is a plain text file, which must start with the line containing a *PMEMPOOLSET* string, followed by the specification of all the pool parts in the
 next lines. For each part, the file size and the absolute path must be provided. The size has to be compliant with the format specified in IEC 80000-13, IEEE
 1541 or the Metric Interchange Format. Standards accept SI units with obligatory B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
-- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
+- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024). The minimum file size of each part of the pool set is the same as the minimum size allowed
+for a transactional object store consisting of one file. It is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
 
-The minimum file size of each part of the pool set is the same as the minimum size allowed for a transactional object store consisting of one file. It is
-defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**. Sections defining the replica sets are optional. There could be multiple replica sections and each must
-start with the line containing a *REPLICA* string. Lines starting with "#" character are ignored.
+Sections defining the replica sets are optional. There could be multiple replica sections and each must start with the line containing a *REPLICA* string.
+Lines starting with "#" character are ignored. A replica can be local or remote. In case of a local replica, the REPLICA line has to consist of the *REPLICA*
+string only and it has to be followed by at least one line defining a part of the local replica. The format of such line is the same as the format of the line
+defining a part of the PMEMOBJ pool as described above.
 
-Here is the example "myobjpool.set" file:
+In case of a remote replica, the *REPLICA* keyword has to be followed by an address of a remote host (in the format recognized by the **ssh**(1) remote login client)
+and a relative path to a remote pool set file (located in the root config directory on the target node - see **librpmem**(3)):
+
+```
+REPLICA [<user>@]<hostname> [<relative-path>/]<remote-pool-set-file>
+```
+
+There are no other lines in the remote replica section – the REPLICA line defines a remote replica entirely. Here is the example of "myobjpool.set" file:
 
 ```
 PMEMPOOLSET
@@ -542,9 +551,13 @@ PMEMPOOLSET
 200G /mountpoint1/myfile.part1
 400G /mountpoint2/myfile.part2
 
+# local replica
 REPLICA
 500G /mountpoint3/mymirror.part0
 200G /mountpoint4/mymirror.part1
+
+# remote replica
+REPLICA user@example.com remote-objpool.set
 ```
 
 The files in the set may be created by running the following command:
