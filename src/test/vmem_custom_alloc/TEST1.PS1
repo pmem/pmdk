@@ -52,7 +52,7 @@ require_fs_type none
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_custom_alloc$Env:EXESUFFIX 1 `
+expect_normal_exit $Env:EXE_DIR\vmem_custom_alloc$Env:EXESUFFIX 1
 
 check
 

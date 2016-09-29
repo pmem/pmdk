@@ -53,7 +53,7 @@ setup
 # this test invokes sigsegvs by design
 $Env:ASAN_OPTIONS="handle_segv=0"
 
-expect_normal_exit $Env:EXE_DIR\vmem_create$Env:EXESUFFIX $DIR `
+expect_normal_exit $Env:EXE_DIR\vmem_create$Env:EXESUFFIX $DIR
 
 check
 
