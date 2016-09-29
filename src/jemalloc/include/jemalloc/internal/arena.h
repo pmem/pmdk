@@ -968,7 +968,7 @@ JEMALLOC_INLINE unsigned
 arena_run_regind(arena_run_t *run, arena_bin_info_t *bin_info, const void *ptr)
 {
 	unsigned shift, diff, regind;
-	size_t interval;
+	unsigned int interval;
 
 	/*
 	 * Freeing a pointer lower than region zero can cause assertion

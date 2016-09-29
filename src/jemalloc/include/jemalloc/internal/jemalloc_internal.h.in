@@ -471,7 +471,7 @@ arena_t	*choose_arena(arena_t *arena);
  * for allocations.
  */
 malloc_tsd_externs(arenas, tsd_pool_t)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, NULL,
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, {0},
     arenas_cleanup)
 
 
@@ -818,7 +818,7 @@ pool_isalloc(pool_t *pool, const void *ptr, bool demote)
 JEMALLOC_ALWAYS_INLINE size_t
 ivsalloc(const void *ptr, bool demote)
 {
-	int i;
+	size_t i;
 
 	malloc_mutex_lock(&pools_lock);
 
@@ -1063,3 +1063,31 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, thread_allocated, thread_allocated_t,
 #undef JEMALLOC_H_INLINES
 /******************************************************************************/
 #endif /* JEMALLOC_INTERNAL_H */
+
+# ifdef _MSC_VER
+static inline int
+msc_clz(unsigned int val)
+{
+	unsigned int res = 0;
+
+# if LG_SIZEOF_INT == 2
+	if (_BitScanReverse(&res, val)) {
+		return 31 - res;
+	}
+	else {
+		return 32;
+	}
+# elif LG_SIZEOF_INT == 3
+	if (_BitScanReverse64(&res, val)) {
+		return 63 - res;
+	}
+	else {
+		return 64;
+	}
+# else
+#	error "Unsupported clz function for that size of int"
+# endif
+}
+
+#    define __builtin_clz(x) msc_clz(x)
+#endif

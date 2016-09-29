@@ -49,6 +49,12 @@
 #define VMEM_FORMAT_INCOMPAT 0x0000
 #define VMEM_FORMAT_RO_COMPAT 0x0000
 
+#ifdef _WIN32
+#define set_error(x) SetLastError(x)
+#else
+#define set_error(x) errno = x
+#endif
+
 struct vmem {
 	struct pool_hdr hdr;	/* memory pool header */
 

@@ -13,7 +13,7 @@ repercussions for real world applications.
 The COPYING file contains copyright and licensing information.
 
 The INSTALL file contains information on how to configure, build, and install
-jemalloc.
+jemalloc for Linux and Windows.
 
 The ChangeLog file contains a brief summary of changes for each release.
 
