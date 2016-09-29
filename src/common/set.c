@@ -67,6 +67,7 @@
 #include "pmem_provider.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
+#define SIZE_AUTODETECT_STR "AUTO"
 
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
@@ -544,6 +545,31 @@ util_poolset_fdclose(struct pool_set *set)
 }
 
 /*
+ * util_autodetect_size -- (internal) retrieves size of an existing file
+ */
+static ssize_t
+util_autodetect_size(const char *path)
+{
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) < 0)
+		return -1;
+
+	ssize_t s = -1;
+
+	if (p.type != PMEM_PROVIDER_DEVICE_DAX) {
+		ERR("size autodetection is supported only for device dax");
+		goto out;
+	}
+
+	s = p.pops->get_size(&p);
+
+out:
+	pmem_provider_fini(&p);
+
+	return s;
+}
+
+/*
  * parser_read_line -- (internal) read line and validate size and path
  *                      from a pool set file
  */
@@ -573,16 +599,32 @@ parser_read_line(char *line, size_t *size, char **path)
 	if (!util_is_absolute_path(path_str))
 		return PARSER_ABSOLUTE_PATH_EXPECTED;
 
-	ret = util_parse_size(size_str, size);
-	if (ret != 0 || *size == 0) {
-		return PARSER_WRONG_SIZE;
-	}
-
 	*path = Strdup(path_str);
 	if (!(*path)) {
 		ERR("!Strdup");
 		return PARSER_OUT_OF_MEMORY;
 	}
+
+	if (strcmp(SIZE_AUTODETECT_STR, size_str) == 0) {
+		/*
+		 * XXX: this should be done after the parsing completes, but
+		 * currently this operation is performed in simply too many
+		 * places in the code to move this someplace else.
+		 */
+		ssize_t s = util_autodetect_size(path_str);
+		if (s < 0)
+			return PARSER_WRONG_SIZE;
+
+		*size = (size_t)s;
+
+		return PARSER_CONTINUE;
+	}
+
+	ret = util_parse_size(size_str, size);
+	if (ret != 0 || *size == 0) {
+		return PARSER_WRONG_SIZE;
+	}
+
 
 	return PARSER_CONTINUE;
 }
