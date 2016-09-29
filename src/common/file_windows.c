@@ -100,7 +100,7 @@ err:
 	oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);
-	errno = oerrno;
+	SetLastError(oerrno);
 	return -1;
 }
 
