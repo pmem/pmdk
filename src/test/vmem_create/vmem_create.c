@@ -57,10 +57,12 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "vmem_create");
+
 	if (argc < 2 || argc > 3)
 		UT_FATAL("usage: %s directory", argv[0]);
 
 	Vmp = vmem_create(argv[1], VMEM_MIN_POOL);
+
 	if (Vmp == NULL)
 		UT_OUT("!vmem_create");
 	else {

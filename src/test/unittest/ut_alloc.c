@@ -164,15 +164,6 @@ void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	size_t alignment, size_t size)
 {
-	unsigned long Ut_mmap_align;
-#ifdef _WIN32
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	Ut_mmap_align = si.dwAllocationGranularity;
-#else
-	Ut_mmap_align = Ut_pagesize;
-#endif
-
 	char *d, *d_aligned;
 	uintptr_t di, di_aligned;
 	size_t sz;
@@ -217,9 +208,6 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	return d_aligned;
 }
 
-
-#ifndef _WIN32
-
 /*
  * ut_munmap_anon_aligned -- unmaps anonymous memory allocated by
  *                           ut_mmap_anon_aligned
@@ -228,8 +216,6 @@ int
 ut_munmap_anon_aligned(const char *file, int line, const char *func,
 	void *start, size_t size)
 {
-	return ut_munmap(file, line, func, (char *)start - Ut_pagesize,
-		size + 2 * Ut_pagesize);
+	return ut_munmap(file, line, func, (char *)start - Ut_mmap_align,
+		size + 2 * Ut_mmap_align);
 }
-
-#endif

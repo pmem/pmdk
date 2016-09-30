@@ -42,22 +42,16 @@
 #include "unittest.h"
 
 ut_jmp_buf_t Jmp;
+
 /*
  * signal_handler -- called on SIGSEGV
  */
-
-#define SET_SIGACTIONS(v) \
-SIGACTION(SIGSEGV, &v, NULL); \
-SIGACTION(SIGABRT, &v, NULL); \
-SIGACTION(SIGILL, &v, NULL);
-
 static void
 signal_handler(int sig)
 {
 	UT_OUT("\tsignal: %s", strsignal(sig));
 	ut_siglongjmp(Jmp);
 }
-
 
 int
 main(int argc, char *argv[])
@@ -86,7 +80,9 @@ main(int argc, char *argv[])
 	sigemptyset(&v.sa_mask);
 	v.sa_flags = 0;
 	v.sa_handler = signal_handler;
-	SET_SIGACTIONS(v);
+	SIGACTION(SIGSEGV, &v, NULL);
+	SIGACTION(SIGABRT, &v, NULL);
+	SIGACTION(SIGILL, &v, NULL);
 
 	/* go through all arguments one by one */
 	for (int arg = 1; arg < argc; arg++) {

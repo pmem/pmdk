@@ -682,6 +682,7 @@ int ut_pthread_join(const char *file, int line, const char *func,
 	FUNC_MOCK_END
 
 extern unsigned long Ut_pagesize;
+extern unsigned long long Ut_mmap_align;
 
 void ut_dump_backtrace(void);
 void ut_sighandler(int);

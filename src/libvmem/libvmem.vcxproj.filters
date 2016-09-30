@@ -13,7 +13,7 @@
     <ClInclude Include="vmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\jemalloc\include\jemalloc\jemalloc.h">
+    <ClInclude Include="..\windows\jemalloc_gen\include\jemalloc\jemalloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

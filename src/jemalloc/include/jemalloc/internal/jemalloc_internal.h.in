@@ -670,10 +670,38 @@ void	*pool_iralloc(pool_t *pool, void *ptr, size_t size, size_t extra,
     size_t alignment, bool zero);
 bool	ixalloc(void *ptr, size_t size, size_t extra, size_t alignment,
     bool zero);
+int		msc_clz(unsigned int val);
 malloc_tsd_protos(JEMALLOC_ATTR(unused), thread_allocated, thread_allocated_t)
 #endif
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_C_))
+
+# ifdef _WIN32
+JEMALLOC_ALWAYS_INLINE int
+msc_clz(unsigned int val)
+{
+	unsigned int res = 0;
+
+# if LG_SIZEOF_INT == 2
+	if (_BitScanReverse(&res, val)) {
+		return 31 - res;
+	}
+	else {
+		return 32;
+	}
+# elif LG_SIZEOF_INT == 3
+	if (_BitScanReverse64(&res, val)) {
+		return 63 - res;
+	}
+	else {
+		return 64;
+	}
+# else
+#	error "Unsupported clz function for that size of int"
+# endif
+}
+#endif
+
 JEMALLOC_ALWAYS_INLINE void *
 imalloct(size_t size, bool try_tcache, arena_t *arena)
 {
@@ -1061,33 +1089,9 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, thread_allocated, thread_allocated_t,
 #include "jemalloc/internal/prof.h"
 
 #undef JEMALLOC_H_INLINES
+
+#ifdef _WIN32
+	#define __builtin_clz(x) msc_clz(x)
+#endif
 /******************************************************************************/
 #endif /* JEMALLOC_INTERNAL_H */
-
-# ifdef _MSC_VER
-JEMALLOC_ALWAYS_INLINE int
-msc_clz(unsigned int val)
-{
-	unsigned int res = 0;
-
-# if LG_SIZEOF_INT == 2
-	if (_BitScanReverse(&res, val)) {
-		return 31 - res;
-	}
-	else {
-		return 32;
-	}
-# elif LG_SIZEOF_INT == 3
-	if (_BitScanReverse64(&res, val)) {
-		return 63 - res;
-	}
-	else {
-		return 64;
-	}
-# else
-#	error "Unsupported clz function for that size of int"
-# endif
-}
-
-#    define __builtin_clz(x) msc_clz(x)
-#endif

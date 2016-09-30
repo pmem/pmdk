@@ -32,7 +32,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{25B5C601-03D7-4861-9C0F-7F0453B04227}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>blk_non_zero</RootNamespace>
+    <RootNamespace>vmem_aligned_alloc</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

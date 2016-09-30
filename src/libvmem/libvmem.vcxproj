@@ -14,7 +14,7 @@
     <ClInclude Include="..\..\src\common\out.h" />
     <ClInclude Include="..\..\src\common\util.h" />
     <ClInclude Include="..\..\src\libpmemlog\log.h" />
-    <ClInclude Include="..\jemalloc\include\jemalloc\jemalloc.h" />
+    <ClInclude Include="..\windows\jemalloc_gen\include\jemalloc\jemalloc.h" />
     <ClInclude Include="vmem.h" />
   </ItemGroup>
   <ItemGroup>
@@ -80,7 +80,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <AdditionalIncludeDirectories>$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;$(SolutionDir)\jemalloc\include\jemalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;$(SolutionDir)windows\jemalloc_gen\include\jemalloc;$(SolutionDir)\jemalloc\include\jemalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;DEBUG;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
@@ -111,7 +111,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <AdditionalIncludeDirectories>$(SolutionDir)\jemalloc\include\jemalloc;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;$(SolutionDir)windows\jemalloc_gen\include\jemalloc;$(SolutionDir)\jemalloc\include\jemalloc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;WINAPI_PARTITION_SYSTEM;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <CompileAs>CompileAsC</CompileAs>
