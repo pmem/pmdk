@@ -206,5 +206,7 @@ main(int argc, char *argv[])
 	run_worker(tx_worker, args);
 	run_worker(alloc_free_worker, args);
 
+	pmemobj_close(pop);
+
 	DONE(NULL);
 }
