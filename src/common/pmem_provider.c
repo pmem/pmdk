@@ -69,18 +69,41 @@ provider_device_dax_open(struct pmem_provider *p,
 	if (tmp)
 		return -1;
 
-	if (flags & O_CREAT)
-		return -1;
-
 #ifdef O_TMPFILE
 	if (flags & O_TMPFILE)
 		return -1;
 #endif
 
+	int init_device = 0;
+	if (flags & O_CREAT) {
+		flags &= ~O_CREAT;
+		flags &= ~O_EXCL; /* just in case */
+		init_device = 1;
+	}
+
 	if ((p->fd = open(p->path, flags, mode)) < 0)
 		return -1;
 
+	if (init_device) {
+		ssize_t size = p->pops->get_size(p);
+		if (size < 0)
+			goto error_after_open;
+
+		void *addr = util_map(p->fd, (size_t)size, 0, 0);
+		if (addr == NULL)
+			goto error_after_open;
+
+		/* zero initialize the entire device */
+		memset(addr, 0, (size_t)size);
+
+		util_unmap(addr, (size_t)size);
+	}
+
 	return 0;
+
+error_after_open:
+	p->pops->close(p);
+	return -1;
 }
 
 /*
@@ -100,7 +123,7 @@ provider_regular_file_open(struct pmem_provider *p,
 
 	if (tmp) {
 #if USE_O_TMPFILE
-		open_flags |= O_TMPFILE;
+		flags |= O_TMPFILE;
 		if ((p->fd = open(p->path, flags, mode)) < 0)
 			return -1;
 #else
@@ -293,6 +316,19 @@ provider_device_dax_allocate_space(struct pmem_provider *p,
 }
 
 /*
+ * provider_device_dax_lock -- (internal) grabs a file lock, released on close
+ */
+static int
+provider_device_dax_lock(struct pmem_provider *p)
+{
+	/*
+	 * XXX: flock does work on a dax device, but it has a slightly different
+	 * behavior that breaks some functionality
+	 */
+	return 0;
+}
+
+/*
  * provider_common_lock -- (internal) grabs a file lock, released on close
  */
 static int
@@ -351,7 +387,7 @@ pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
 		.open = provider_device_dax_open,
 		.close = provider_common_close,
 		.unlink = provider_device_dax_unlink,
-		.lock = provider_common_lock,
+		.lock = provider_device_dax_lock,
 		.map = provider_common_map,
 		.get_size = provider_device_dax_get_size,
 		.allocate_space = provider_device_dax_allocate_space,

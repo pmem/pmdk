@@ -730,6 +730,16 @@ function require_no_superuser() {
 }
 
 #
+# require_superuser -- require superuser rights
+#
+function require_superuser() {
+	local user_id=$(id -u)
+	[ "$user_id" == "0" ] && return
+	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	exit 0
+}
+
+#
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
@@ -770,6 +780,15 @@ function require_pmem() {
 function require_non_pmem() {
 	[ $NON_PMEM_IS_PMEM -ne 0 ] && return
 	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device" >&2
+	exit 1
+}
+
+#
+# require_device_dax -- only allow script to continue for a dax device
+#
+function require_device_dax() {
+	[ ! -z ${DEVICE_DAX_PATH+x} ] && return
+	echo "error: DEVICE_DAX_PATH=$DEVICE_DAX_PATH does not point to a dax device"
 	exit 1
 }
 
