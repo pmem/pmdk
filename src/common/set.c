@@ -293,21 +293,46 @@ util_map_hdr(struct pool_set_part *part, int flags)
 	COMPILE_ERROR_ON(POOL_HDR_SIZE == 0);
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
-	void *hdrp = mmap(NULL, POOL_HDR_SIZE,
-		PROT_READ|PROT_WRITE, flags, part->fd, 0);
-
-	if (hdrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, part->path) < 0)
 		return -1;
+
+	void *hdrp;
+	if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+		/*
+		 * Workaround for dax device not allowing an mmap only of a
+		 * part of the device. This means that currently only one device
+		 * is allowed to be a part of a poolset.
+		 */
+		hdrp = mmap(NULL, part->filesize,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			goto error;
+		}
+		part->hdrsize = part->filesize;
+	} else {
+		hdrp = mmap(NULL, POOL_HDR_SIZE,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			goto error;
+		}
+		part->hdrsize = POOL_HDR_SIZE;
 	}
 
-	part->hdrsize = POOL_HDR_SIZE;
 	part->hdr = hdrp;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
 	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->hdr, part->hdrsize, 0);
 
+	pmem_provider_fini(&p);
 	return 0;
+
+error:
+	pmem_provider_fini(&p);
+	return -1;
 }
 
 /*
@@ -1035,18 +1060,14 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
-	/* check if file exists */
-	int olderrno = errno;
-	if (access(part->path, F_OK) == 0) {
-		create = 0;
-	}
-	errno = olderrno;
-
 	part->created = 0;
 
 	struct pmem_provider p;
 	if (pmem_provider_init(&p, part->path) < 0)
 		return -1;
+
+	if (p.exists && p.type != PMEM_PROVIDER_DEVICE_DAX)
+		create = 0;
 
 	int flags = create ? O_RDWR | O_CREAT | O_EXCL : O_RDWR;
 	if (p.pops->open(&p, flags, 0, 0) < 0) {
@@ -1374,7 +1395,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		if (*setp == NULL)
 			goto error_after_open;
 
-		/* do not close the file */
+		p.pops->close(&p);
 		pmem_provider_fini(&p);
 		return 0;
 	}
@@ -1401,13 +1422,12 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		}
 
 		p.pops->close(&p);
+		pmem_provider_fini(&p);
 
 		*setp = util_poolset_single(path, (size_t)size, 0);
 		if (*setp == NULL)
-			goto error_after_open;
+			return -1;
 
-		/* do not close the file */
-		pmem_provider_fini(&p);
 		return 0;
 	}
 

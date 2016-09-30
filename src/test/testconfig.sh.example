@@ -31,6 +31,11 @@ NON_PMEM_FS_DIR=/tmp
 #PMEM_FS_DIR_FORCE_PMEM=1
 
 #
+# Device DAX - XXX
+#
+#DEVICE_DAX_PATH=/dev/dax0.0
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh

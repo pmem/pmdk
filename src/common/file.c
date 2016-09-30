@@ -40,7 +40,6 @@
 
 #include "file.h"
 #include "out.h"
-#include "pmem_provider.h"
 
 /*
  * util_file_create -- create a new memory pool file
