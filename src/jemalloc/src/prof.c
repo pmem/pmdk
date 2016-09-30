@@ -27,7 +27,7 @@ bool		opt_prof_accum = false;
 char		opt_prof_prefix[
     /* Minimize memory bloat for non-prof builds. */
 #ifdef JEMALLOC_PROF
-    PATH_MAX +
+    JE_PATH_MAX +
 #endif
     1];
 
@@ -973,7 +973,7 @@ prof_dump_maps(bool propagate_err)
 {
 	bool ret;
 	int mfd;
-	char filename[PATH_MAX + 1];
+	char filename[JE_PATH_MAX + 1];
 
 	cassert(config_prof);
 #ifdef __FreeBSD__
@@ -1100,7 +1100,7 @@ label_open_close_error:
 	return (true);
 }
 
-#define	DUMP_FILENAME_BUFSIZE	(PATH_MAX + 1)
+#define	DUMP_FILENAME_BUFSIZE	(JE_PATH_MAX + 1)
 #define	VSEQ_INVALID		UINT64_C(0xffffffffffffffff)
 static void
 prof_dump_filename(char *filename, char v, uint64_t vseq)
@@ -1144,7 +1144,7 @@ void
 prof_idump(void)
 {
 	prof_tdata_t *prof_tdata;
-	char filename[PATH_MAX + 1];
+	char filename[JE_PATH_MAX + 1];
 
 	cassert(config_prof);
 

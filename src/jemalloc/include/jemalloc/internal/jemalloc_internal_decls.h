@@ -40,7 +40,6 @@
 #ifdef _MSC_VER
 #  include <io.h>
 typedef intptr_t ssize_t;
-#  define PATH_MAX 1024
 #  define STDERR_FILENO 2
 #  define __func__ __FUNCTION__
 /* Disable warnings about deprecated system functions */
@@ -49,5 +48,5 @@ typedef intptr_t ssize_t;
 #  include <unistd.h>
 #endif
 #include <fcntl.h>
-
+#  define JE_PATH_MAX 1024
 #endif /* JEMALLOC_INTERNAL_H */

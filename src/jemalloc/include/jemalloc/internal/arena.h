@@ -986,7 +986,7 @@ arena_run_regind(arena_run_t *run, arena_bin_info_t *bin_info, const void *ptr)
 
 	/* Rescale (factor powers of 2 out of the numerator and denominator). */
 	interval = bin_info->reg_interval;
-	shift = jemalloc_ffs(interval) - 1;
+	shift = jemalloc_ffs((int)interval) - 1;
 	diff >>= shift;
 	interval >>= shift;
 
@@ -1026,7 +1026,7 @@ arena_run_regind(arena_run_t *run, arena_bin_info_t *bin_info, const void *ptr)
 			regind = (diff * interval_invs[interval - 3]) >>
 			    SIZE_INV_SHIFT;
 		} else
-			regind = diff / interval;
+			regind = diff / (unsigned)interval;
 #undef SIZE_INV
 #undef SIZE_INV_SHIFT
 	}

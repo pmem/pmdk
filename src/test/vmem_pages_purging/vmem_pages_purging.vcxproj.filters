@@ -41,7 +41,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\jemalloc\include\jemalloc\internal\jemalloc_internal.h">
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\jemalloc_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

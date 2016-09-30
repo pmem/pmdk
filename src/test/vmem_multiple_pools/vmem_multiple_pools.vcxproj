@@ -35,7 +35,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CD7A18D5-55D9-4922-A000-FFAA08ABB006}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>blk_non_zero</RootNamespace>
+    <RootNamespace>vmem_multiple_pools</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

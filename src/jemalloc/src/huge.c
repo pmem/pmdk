@@ -277,7 +277,7 @@ size_t
 huge_salloc(const void *ptr)
 {
 	size_t ret = 0;
-	int i;
+	unsigned i;
 	extent_node_t *node, key;
 
 	malloc_mutex_lock(&pools_lock);

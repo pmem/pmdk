@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	int *pool_idx = CALLOC(nthreads, sizeof(int));
 	UT_ASSERTne(pool_idx, NULL);
 
-	for (int pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
+	for (unsigned pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
 		/* allocate memory for function vmem_create_in_region() */
 		mem_pools[pool_id] = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 	}
@@ -130,6 +130,8 @@ main(int argc, char *argv[])
 
 	FREE(mem_pools);
 	FREE(pools);
+	FREE(threads);
+	FREE(pool_idx);
 
 	DONE(NULL);
 }

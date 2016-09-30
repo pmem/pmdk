@@ -524,7 +524,7 @@ static void
 malloc_conf_init(void)
 {
 	unsigned i;
-	char buf[PATH_MAX + 1];
+	char buf[JE_PATH_MAX + 1];
 	const char *opts, *k, *v;
 	size_t klen, vlen;
 
