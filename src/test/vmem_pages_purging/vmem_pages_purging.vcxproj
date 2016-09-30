@@ -30,7 +30,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\jemalloc\include\jemalloc\internal\jemalloc_internal.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\jemalloc_internal.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}</ProjectGuid>
@@ -75,7 +75,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\test\unittest;$(SolutionDir)\windows\getopt;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\jemalloc\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)windows\jemalloc_gen\include\;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\getopt;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\jemalloc\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
@@ -95,7 +95,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\test\unittest;$(SolutionDir)\windows\getopt;$(SolutionDir)\windows\include;$(SolutionDir)\jemalloc\include;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)windows\jemalloc_gen\include\;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\getopt;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\jemalloc\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
