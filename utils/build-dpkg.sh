@@ -131,7 +131,7 @@ Package: librpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
- NVML library for Remote Persistent Memory support
+ NVM Library for Remote Persistent Memory support
 
 Package: rpmemd
 Section: misc
@@ -211,7 +211,7 @@ Package: libpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libpmem library
- NVML library for Persistent Memory support
+ NVM Library for Persistent Memory support
 
 Package: libpmem-dev
 Section: libdevel
@@ -224,7 +224,7 @@ Package: libpmemblk
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libpmemblk library
- NVML library for Persistent Memory support - block memory pool.
+ NVM Library for Persistent Memory support - block memory pool.
 
 Package: libpmemblk-dev
 Section: libdevel
@@ -237,7 +237,7 @@ Package: libpmemlog
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libpmemlog library
- NVML library for Persistent Memory support - log memory pool.
+ NVM Library for Persistent Memory support - log memory pool.
 
 Package: libpmemlog-dev
 Section: libdevel
@@ -250,7 +250,7 @@ Package: libpmemobj
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libpmemobj library
- NVML library for Persistent Memory support - transactional object store.
+ NVM Library for Persistent Memory support - transactional object store.
 
 Package: libpmemobj-dev
 Section: libdevel
@@ -263,7 +263,7 @@ Package: libpmempool
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libpmempool library
- NVML library for Persistent Memory support - pool management library.
+ NVM Library for Persistent Memory support - pool management library.
 
 Package: libpmempool-dev
 Section: libdevel
@@ -276,7 +276,7 @@ Package: libvmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML libvmem library
- NVML library for volatile-memory support on top of Persistent Memory.
+ NVM Library for volatile-memory support on top of Persistent Memory.
 
 Package: libvmem-dev
 Section: libdevel

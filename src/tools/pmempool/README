@@ -1,4 +1,4 @@
-Linux NVM Library
+Non-Volatile Memory Library
 
 This is src/tools/pmempool/README.
 
@@ -28,7 +28,7 @@ pool, but some of them may create new or modify existing one.
 
 The pmempool may be useful for troubleshooting and may be used by system
 administrators and by software developers work on applications based on
-NVML library. The latter may find these tools useful for testing and debugging
+NVM Library. The latter may find these tools useful for testing and debugging
 purposes also.
 
 Currently there is a following set of commands available:
