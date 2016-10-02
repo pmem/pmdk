@@ -54,9 +54,7 @@ touch $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\log_recovery$Env:EXESUFFIX $DIR\testfile1 a
 
-# XXX:  check_pool for windows is not implemented uncomment
-# the below line when it's available.
-# check_pool $DIR\testfile1
+check_pool $DIR\testfile1
 
 check
 
