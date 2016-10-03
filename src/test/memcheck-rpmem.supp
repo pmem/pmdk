@@ -1,0 +1,116 @@
+{
+   Leaks in libfabric
+   Memcheck:Leak
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Conditional jumps in libfabric
+   Memcheck:Cond
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric close(fd)
+   Memcheck:Param
+   close(fd)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric write(buf)
+   Memcheck:Param
+   write(buf)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Use of uninitialized value in libfabric 8
+   Memcheck:Value8
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric munmap(length)
+   Memcheck:Param
+   munmap(length)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric munmap(start)
+   Memcheck:Param
+   munmap(start)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric read(fd)
+   Memcheck:Param
+   read(fd)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric fcntl(fd)
+   Memcheck:Param
+   fcntl(fd)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric poll(ufds.fd)
+   Memcheck:Param
+   poll(ufds.fd)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric mmap(offset)
+   Memcheck:Param
+   mmap(offset)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in libfabric mmap(length)
+   Memcheck:Param
+   mmap(length)
+   ...
+   fun:fi_*
+   ...
+}
+{
+   Uninitialized parameters in librdmacm close(fd)
+   Memcheck:Param
+   close(fd)
+   ...
+   obj:*librdmacm*
+   ...
+}
+{
+   Uninitialized parameters in librdmacm munmap(length)
+   Memcheck:Param
+   munmap(length)
+   ...
+   obj:*librdmacm*
+   ...
+}
+{
+   Conditional jumps in librdmacm
+   Memcheck:Cond
+   ...
+   obj:*librdmacm*
+   ...
+}

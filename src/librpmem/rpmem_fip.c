@@ -60,6 +60,7 @@
 #include "rpmem_fip_msg.h"
 #include "rpmem_fip_lane.h"
 #include "rpmem_fip.h"
+#include "valgrind_internal.h"
 
 #define RPMEM_FI_ERR(e, fmt, args...)\
 	RPMEM_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))
@@ -210,6 +211,10 @@ rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
 		RPMEM_FI_ERR(ret, "getting fabric interface information");
 		goto err_fi_getinfo;
 	}
+
+#ifdef USE_VG_MEMCHECK
+	rpmem_fi_vg(fip->fi);
+#endif
 
 	rpmem_fip_print_info(fip->fi);
 
@@ -833,6 +838,7 @@ rpmem_fip_process_gpspm(struct rpmem_fip *fip, void *context, uint64_t flags)
 		struct rpmem_fip_msg *resp = context;
 		struct rpmem_msg_persist_resp *msg_resp =
 			rpmem_fip_msg_get_pres(resp);
+		VALGRIND_DO_MAKE_MEM_DEFINED(msg_resp, sizeof(*msg_resp));
 
 		if (unlikely(msg_resp->lane >= fip->nlanes)) {
 			RPMEM_LOG(ERR, "lane number received (%lu) is greater "
@@ -1295,6 +1301,8 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 
 		ret = rpmem_fip_readmsg(fip->ep, &fip->rd_lane.read,
 				fip->rd_buff, rd_len, raddr);
+
+		VALGRIND_DO_MAKE_MEM_DEFINED(fip->rd_buff, rd_len);
 
 		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);
 		if (ret)
