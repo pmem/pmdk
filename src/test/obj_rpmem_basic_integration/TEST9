@@ -1,4 +1,5 @@
-
+#!/bin/bash -e
+#
 # Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,32 +30,56 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for fip tool
 #
+# obj_rpmem_basic_integration/TEST9 -- rpmem replication to single remote
+#       replica with valgrind memcheck
+#
+export UNITTEST_NAME=obj_rpmem_basic_integration/TEST9
+export UNITTEST_NUM=9
 
-TOP = ../../../..
-include $(TOP)/src/common.inc
+EXE=obj_basic_integration
 
-vpath %.c $(TOP)/src/rpmem_common/
-vpath %.c $(TOP)/src/common/
+# standard unit test setup
+. ../unittest/unittest.sh
 
-ifeq ($(BUILD_RPMEM),y)
-SCP_TO_REMOTE_NODES = y
-TARGET = fip
+require_test_type medium
 
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o
+require_nodes 2
 
-else
-$(info NOTE: Skipping fip because libfabric is missing \
--- see src/test/tools/fip/README for details.)
-endif
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
 
-include $(TOP)/src/tools/Makefile.inc
+require_valgrind_memcheck ../$EXE/$EXE.static-debug
 
-ifeq ($(BUILD_RPMEM),y)
-CFLAGS += -I$(TOP)/src/rpmem_common
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-endif
+require_valgrind_libs_on_node 1
 
+setup
+
+init_valgrind_on_node memcheck 1
+
+init_rpmem_on_node 1 0
+
+# define files and directories
+TEST_SET_LOCAL="testset_local"
+TEST_SET_REMOTE="testset_remote"
+
+TEST_FILE_LOCAL="testfile_local"
+TEST_FILE_REMOTE="testfile_remote"
+
+NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
+
+# create and upload poolset files
+create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
+	m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_REMOTE 9M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+
+rm_files_from_node 0 $TEST_FILE_REMOTE
+rm_files_from_node 1 $TEST_FILE_LOCAL
+
+# execute test
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+
+pass
