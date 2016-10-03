@@ -45,6 +45,8 @@
 
 #include "rpmem_common_log.h"
 
+#include "valgrind_internal.h"
+
 #include <rdma/fi_errno.h>
 
 /*
@@ -164,6 +166,8 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	struct fi_eq_err_entry err;
 
 	sret = fi_eq_sread(eq, &event, entry, sizeof(*entry), timeout, 0);
+	VALGRIND_DO_MAKE_MEM_DEFINED(&sret, sizeof(sret));
+
 	if (timeout != -1 && sret == -FI_ETIMEDOUT) {
 		errno = ETIMEDOUT;
 		return 1;

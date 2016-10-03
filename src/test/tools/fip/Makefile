@@ -36,12 +36,13 @@ TOP = ../../../..
 include $(TOP)/src/common.inc
 
 vpath %.c $(TOP)/src/rpmem_common/
+vpath %.c $(TOP)/src/common/
 
 ifeq ($(BUILD_RPMEM),y)
 SCP_TO_REMOTE_NODES = y
 TARGET = fip
 
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o
+OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o
 
 else
 $(info NOTE: Skipping fip because libfabric is missing \
@@ -52,6 +53,7 @@ include $(TOP)/src/tools/Makefile.inc
 
 ifeq ($(BUILD_RPMEM),y)
 CFLAGS += -I$(TOP)/src/rpmem_common
+CFLAGS += -I$(TOP)/src/common
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 endif

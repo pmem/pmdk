@@ -60,6 +60,7 @@
 #include "rpmemd_log.h"
 
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define FATAL RPMEMD_FATAL
 #include "sys_util.h"
@@ -740,6 +741,7 @@ rpmemd_fip_worker(void *arg, void *data)
 	struct rpmem_msg_persist *pmsg = rpmem_fip_msg_get_pmsg(&lanep->recv);
 	struct rpmem_msg_persist_resp *pres =
 		rpmem_fip_msg_get_pres(&lanep->send);
+	VALGRIND_DO_MAKE_MEM_DEFINED(pmsg, sizeof(*pmsg));
 
 	/* verify persist message */
 	ret = rpmemd_fip_check_pmsg(fip, pmsg);
