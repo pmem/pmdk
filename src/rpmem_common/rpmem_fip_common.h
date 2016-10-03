@@ -41,6 +41,8 @@
 #include <rdma/fi_cm.h>
 #include <rdma/fi_rma.h>
 
+#include "valgrind_internal.h"
+
 #define RPMEM_FIVERSION FI_VERSION(1, 1)
 #define RPMEM_FIP_CQ_WAIT_MS	100
 
@@ -95,3 +97,21 @@ size_t rpmem_fip_max_nlanes(struct fi_info *fi, enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);
 
 void rpmem_fip_print_info(struct fi_info *fi);
+
+/*
+ * rpmem_fi_vg -- suppress Valgrind issues with provided structure
+ */
+static void inline
+rpmem_fi_vg(struct fi_info *fi)
+{
+#ifdef USE_VG_MEMCHECK
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi, sizeof(*fi));
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->src_addr, fi->src_addrlen);
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->dest_addr, fi->dest_addrlen);
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->tx_attr, sizeof(*fi->tx_attr));
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->rx_attr, sizeof(*fi->rx_attr));
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->ep_attr, sizeof(*fi->ep_attr));
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->domain_attr, sizeof(*fi->domain_attr));
+	VALGRIND_DO_MAKE_MEM_DEFINED(fi->fabric_attr, sizeof(*fi->fabric_attr));
+#endif
+}
