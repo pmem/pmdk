@@ -49,7 +49,7 @@ require_test_type medium
 #
 #require_fs_type any
 #require_build_type nondebug debug
-#require_valgrind_memcheck $TEST_LD_LIBRARY_PATH/libpmemobj.so
+#require_valgrind_tool memcheck $TEST_LD_LIBRARY_PATH/libpmemobj.so
 #
 #configure_valgrind memcheck force-enable
 #export PMEMOBJ_VG_CHECK_UNDEF=1

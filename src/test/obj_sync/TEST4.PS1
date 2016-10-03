@@ -53,7 +53,7 @@ require_build_type debug nondebug
 
 # XXX: valgrind
 # require_valgrind_dev_3_10
-# require_valgrind_helgrind
+# require_valgrind_tool helgrind
 # configure_valgrind helgrind force-enable
 
 setup
