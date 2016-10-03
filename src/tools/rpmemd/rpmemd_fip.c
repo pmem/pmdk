@@ -647,7 +647,8 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 	return 0;
 err_lane_init:
 	for (unsigned j = 0; j < i; j++)
-		rpmem_fip_lane_fini(&fip->lanes[i].lane);
+		rpmem_fip_lane_fini(&fip->lanes[j].lane);
+	free(fip->lanes);
 err_alloc_lanes:
 	RPMEMD_FI_CLOSE(fip->pres_mr,
 			"unregistering GPSPM messages response buffer");
@@ -681,6 +682,10 @@ rpmemd_fip_fini_gpspm(struct rpmemd_fip *fip)
 			"unregistering GPSPM messages response buffer");
 	if (ret)
 		lret = ret;
+
+	for (unsigned i = 0; i < fip->nlanes; i++)
+		rpmem_fip_lane_fini(&fip->lanes[i].lane);
+	free(fip->lanes);
 
 	free(fip->pmsg);
 	free(fip->pres);
@@ -1080,6 +1085,7 @@ rpmemd_fip_fini(struct rpmemd_fip *fip)
 	rpmemd_fip_fini_memory(fip);
 	rpmemd_fip_fini_fabric_res(fip);
 	fi_freeinfo(fip->fi);
+	free(fip);
 }
 
 /*
