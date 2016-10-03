@@ -50,6 +50,7 @@
 #include "rpmem_fip.h"
 #include "rpmem_fip_common.h"
 #include "rpmem_ssh.h"
+#include "valgrind_internal.h"
 
 extern int Rpmem_fork_fail;
 
@@ -651,5 +652,6 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length)
 		return -1;
 	}
 
+	VALGRIND_DO_MAKE_MEM_DEFINED(buff, length);
 	return 0;
 }
