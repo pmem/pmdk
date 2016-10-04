@@ -138,7 +138,7 @@ public:
 	 *	NULL-terminated string.
 	 * @param size Size of the pool in bytes. If zero and the file
 	 *	exists the pool is created in-place.
-	 * @param mode File mode for the new file.
+	 * @param mode File mode for the new file. Default S_IWUSR | S_IRUSR.
 	 *
 	 * @return handle to the created pool.
 	 *
@@ -146,8 +146,7 @@ public:
 	 */
 	static pool_base
 	create(const std::string &path, const std::string &layout,
-	       std::size_t size = PMEMOBJ_MIN_POOL,
-	       mode_t mode = S_IWUSR | S_IRUSR)
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = 0x600)
 	{
 		pmemobjpool *pop = pmemobj_create(path.c_str(), layout.c_str(),
 						  size, mode);
@@ -417,7 +416,7 @@ public:
 	 *	NULL-terminated string.
 	 * @param size Size of the pool in bytes. If zero and the file
 	 *	exists the pool is created in-place.
-	 * @param mode File mode for the new file.
+	 * @param mode File mode for the new file. Default S_IWUSR | S_IRUSR.
 	 *
 	 * @return handle to the created pool.
 	 *
@@ -425,8 +424,7 @@ public:
 	 */
 	static pool<T>
 	create(const std::string &path, const std::string &layout,
-	       std::size_t size = PMEMOBJ_MIN_POOL,
-	       mode_t mode = S_IWUSR | S_IRUSR)
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = 0x600)
 	{
 		return pool<T>(pool_base::create(path, layout, size, mode));
 	}

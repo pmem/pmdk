@@ -122,7 +122,7 @@ delete_persistent(typename detail::pp_if_not_array<T>::type ptr)
 	 * At this point, everything in the object should be tracked
 	 * and reverted on transaction abort.
 	 */
-	ptr->T::~T();
+	ptr->~T();
 
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
 		throw transaction_alloc_error("failed to delete "
