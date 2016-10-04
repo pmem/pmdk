@@ -1,0 +1,49 @@
+pr(47185920): off = 0x382440 uuid = $(nW)
+TestOK111
+TestOK222
+TestOK111
+TestOK222
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT
+Lanes offset             : 0x2000
+Number of lanes          : 1024
+Heap offset              : 0x302000
+Heap size                : 49270784
+Checksum                 : 0x60a8e0ab1c3ebf0 [OK]
+Root offset              : 0x382440
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+POOL Header:
+Signature                : PMEMOBJ [part file]
+Major                    : 2
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)

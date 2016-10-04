@@ -31,10 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST0 -- test for checking replica transform
+# pmempool_transform/TEST2 -- test for checking pmempool transform in dry-run
+#                             mode; pmem/issues#250
 #
-export UNITTEST_NAME=libpmempool_transform/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=pmempool_transform/TEST2
+export UNITTEST_NUM=2
 
 . ../unittest/unittest.sh
 
@@ -55,24 +56,16 @@ POOLSET_OUT=$DIR/poolset.out
 cat << EOF > $POOLSET_IN
 PMEMPOOLSET
 20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
+20M $DIR/testfile1
 EOF
 
 cat << EOF > $POOLSET_OUT
 PMEMPOOLSET
 20M $DIR/testfile0
-10M $DIR/testfile1
+20M $DIR/testfile1
 REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
+20M $DIR/testfile2
+20M $DIR/testfile3
 EOF
 
 # CLI script for writing some data hitting all the parts
@@ -103,21 +96,22 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET_IN >> \
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
-# Transform poolset
-FLAGS=0
-expect_normal_exit ./libpmempool_transform$EXESUFFIX \
-	$POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
+# Run transform in dry-run mode
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -d \
+	$POOLSET_IN $POOLSET_OUT>> $LOG
 cat $LOG >> $LOG_TEMP
 
-# Check if correctly copied
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \
+# Check if stored data can be read
+expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
 # Check metadata by pmempool info
-for i in `seq 0 6`
-do
-	dump_pool_info $DIR/testfile$i >> $LOG_TEMP
-done
+dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile0 >> $LOG_TEMP
+dump_pool_info $DIR/testfile1 >> $LOG_TEMP
+
+# Make sure no other parts were created
+check_no_files $DIR/testfile2 $DIR/testfile3
 
 mv $LOG_TEMP $LOG
 check

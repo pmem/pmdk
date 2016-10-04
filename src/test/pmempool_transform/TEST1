@@ -31,9 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST0 -- test for checking replica transform
+# pmempool_transform/TEST1 -- test for checking pmempool transform;
+#                             adding a replica
 #
-export UNITTEST_NAME=libpmempool_transform/TEST1
+export UNITTEST_NAME=pmempool_transform/TEST1
 export UNITTEST_NUM=1
 
 . ../unittest/unittest.sh
@@ -105,7 +106,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 
 # Transform poolset
 FLAGS=0
-expect_normal_exit ./libpmempool_transform$EXESUFFIX \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
 	$POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
 cat $LOG >> $LOG_TEMP
 
