@@ -174,7 +174,8 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT, LOG_FORMAT_INCOMPAT,
-			LOG_FORMAT_RO_COMPAT, NULL) != 0) {
+			LOG_FORMAT_RO_COMPAT, NULL,
+			CANNOT_HAVE_REPLICAS) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
@@ -191,12 +192,6 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->addr = plp;
 	plp->size = rep->repsize;
 	plp->set = set;
-
-	if (set->nreplicas > 1) {
-		errno = ENOTSUP;
-		ERR("!replicas not supported");
-		goto err;
-	}
 
 	/* create pool descriptor */
 	if (pmemlog_descr_create(plp, rep->repsize) != 0) {

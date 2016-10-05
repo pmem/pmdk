@@ -1888,16 +1888,17 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid,
 	const unsigned char *arch_flags,
-	int remote)
+	int can_have_rep, int remote)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
 		"nlanes %p poolset_uuid %p first_part_uuid %p"
-		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p remote %i",
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p "
+		"can_have_rep %i remote %i",
 		setp, path, poolsize, minsize,
 		sig, major, compat, incompat, ro_compat, nlanes,
 		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
-		arch_flags, remote);
+		arch_flags, can_have_rep, remote);
 
 	int flags = MAP_SHARED;
 	int oerrno;
@@ -1921,11 +1922,17 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	if (remote) {
 		/* it is a remote replica - it cannot have replicas */
-		if (set->nreplicas != 1) {
+		if (set->nreplicas > 1) {
 			LOG(2, "remote pool set cannot have replicas");
 			errno = EINVAL;
 			return -1;
 		}
+	}
+
+	if (!can_have_rep && set->nreplicas > 1) {
+		ERR("replicas not supported");
+		errno = ENOTSUP;
+		return -1;
 	}
 
 	if (set->remote && util_remote_load()) {
@@ -2022,18 +2029,19 @@ err_remote:
 int
 util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes)
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes,
+	int can_have_rep)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x "
-		"ro_comapt %#x nlanes %p",
+		"ro_comapt %#x nlanes %p can_have_rep %i",
 		setp, path, poolsize, minsize,
-		sig, major, compat, incompat, ro_compat, nlanes);
+		sig, major, compat, incompat, ro_compat, nlanes, can_have_rep);
 
 	return util_pool_create_uuids(setp, path, poolsize, minsize, sig, major,
 					compat, incompat, ro_compat, nlanes,
 					NULL, NULL, NULL, NULL, NULL,
-					POOL_LOCAL);
+					can_have_rep, POOL_LOCAL);
 }
 
 /*

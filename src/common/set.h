@@ -57,6 +57,9 @@
 #define POOL_LOCAL 0
 #define POOL_REMOTE 1
 
+#define CANNOT_HAVE_REPLICAS 0
+#define CAN_HAVE_REPLICAS 1
+
 struct pool_set_part {
 	/* populated by a pool set file parser */
 	const char *path;
@@ -131,7 +134,7 @@ size_t util_poolset_size(const char *path);
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes);
+	unsigned *nlanes, int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
@@ -141,7 +144,7 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid,
 	const unsigned char *arch_flags,
-	int remote);
+	int can_have_rep, int remote);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);

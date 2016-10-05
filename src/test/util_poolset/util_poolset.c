@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 		switch (argv[1][0]) {
 		case 'c':
 			ret = util_pool_create(&set, fname, 0, minsize,
-				SIG, 1, 0, 0, 0, NULL);
+				SIG, 1, 0, 0, 0, NULL, CAN_HAVE_REPLICAS);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {

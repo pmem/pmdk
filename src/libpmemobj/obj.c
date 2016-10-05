@@ -1022,7 +1022,8 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
-			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes) != 0) {
+			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes,
+			CAN_HAVE_REPLICAS) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
