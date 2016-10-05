@@ -118,6 +118,8 @@ struct part_file {
 
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);
+int util_poolset_create_set(struct pool_set **setp, const char *path,
+	size_t poolsize, size_t minsize);
 int util_poolset_open(struct pool_set *set);
 void util_poolset_close(struct pool_set *set, int del);
 void util_poolset_free(struct pool_set *set);
@@ -160,8 +162,7 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 int util_map_hdr(struct pool_set_part *part, int flags);
 int util_unmap_hdr(struct pool_set_part *part);
 
-int util_pool_open_nocheck(struct pool_set **setp, const char *path,
-	int rdonly);
+int util_pool_open_nocheck(struct pool_set *set, int rdonly);
 int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
 	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes);
