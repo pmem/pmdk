@@ -36,5 +36,10 @@
 struct logentry {
 	size_t len;		/* length of the rest of the log entry */
 	time_t timestamp;
+#ifndef _WIN32
 	pid_t pid;
+#else
+	int pid;
+#endif
+
 };
