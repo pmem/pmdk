@@ -104,6 +104,30 @@ check_part_dirs(struct pool_set *set)
 }
 
 /*
+ * check_paths_repat - (internal) check if paths for part files do not repeat
+ */
+static int
+check_paths_repeat(struct pool_set *set)
+{
+	for (unsigned r1 = 0; r1 < set->nreplicas; ++r1) {
+		struct pool_replica *rep1 = set->replica[r1];
+		for (unsigned r2 = 0; r2 < set->nreplicas; ++r2) {
+			struct pool_replica *rep2 = set->replica[r2];
+			for (unsigned p1 = 0; p1 < rep1->nparts; ++p1) {
+				for (unsigned p2 = 0; p2 < rep2->nparts; ++p2) {
+					if ((r1 != r2 || p1 != p2) &&
+						strcmp(PART(rep1, p1).path,
+						PART(rep2, p2).path) == 0)
+					/* the same file multiple times */
+						return -1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+/*
  * validate_args -- (internal) check whether passed arguments are valid
  */
 static int
@@ -123,6 +147,14 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 */
 	if (check_part_dirs(set_out)) {
 		ERR("Part directories check failed");
+		goto err;
+	}
+
+	/*
+	 * check if part files do not repeat
+	 */
+	if (check_paths_repeat(set_out)) {
+		ERR("Some part file's path is used multiple times");
 		goto err;
 	}
 
