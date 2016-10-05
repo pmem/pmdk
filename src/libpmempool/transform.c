@@ -79,25 +79,43 @@ check_part_sizes(struct pool_set *set, size_t min_size)
 }
 
 /*
- * check_part_dirs -- (internal) check if directories for part files exist
+ * check_paths - (internal) check if directories for part files exist
+ *                     and if paths for part files do not repeat in the poolset
  */
 static int
-check_part_dirs(struct pool_set *set)
+check_paths(struct pool_set *set)
 {
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			char *path = strdup(PART(rep, p).path);
+	for (unsigned r1 = 0; r1 < set->nreplicas; ++r1) {
+		struct pool_replica *rep1 = set->replica[r1];
+		for (unsigned p1 = 0; p1 < rep1->nparts; ++p1) {
+			/* check if directory for the part file exists */
+			char *path = strdup(PART(rep1, p1).path);
 			const char *dir = dirname(path);
 			struct stat sb;
 			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
 				ERR("A directory %s for part %u in replica %u"
 					" does not exist or is not accessible",
-					path, p, r);
+					path, p1, r1);
 				free(path);
 				return -1;
 			}
 			free(path);
+
+			/* check if the path does not reoccur in the poolset */
+			for (unsigned r2 = r1; r2 < set->nreplicas; ++r2) {
+				struct pool_replica *rep2 = set->replica[r2];
+				/* avoid superfluous comparisons */
+				unsigned i = (r1 == r2) ? p1 + 1 : 0;
+				for (unsigned p2 = i; p2 < rep2->nparts; ++p2) {
+					if (strcmp(PART(rep1, p1).path,
+						PART(rep2, p2).path) == 0) {
+						/* same file multiple times */
+						ERR("Some part file's path is"
+							"used multiple times");
+						return -1;
+					}
+				}
+			}
 		}
 	}
 	return 0;
@@ -119,12 +137,11 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	}
 
 	/*
-	 * check if all directories for part files exist
+	 * check if all directories for part files exist and if part files
+	 * do not reoccur in the poolset
 	 */
-	if (check_part_dirs(set_out)) {
-		ERR("Part directories check failed");
+	if (check_paths(set_out))
 		goto err;
-	}
 
 	/*
 	 * check if set_out has enough size, i.e. if the target poolset
