@@ -130,6 +130,7 @@ typedef struct stat ut_util_stat_t;
 #define ut_util_stat stat
 #define ut_util_lseek lseek
 #else
+static struct signal_handler *Sa_handler_tab;
 typedef struct _stat64 ut_util_stat_t;
 #define ut_util_fstat _fstat64
 static inline int ut_util_stat(const char *path,
