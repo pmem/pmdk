@@ -1231,12 +1231,12 @@ util_poolset_read(struct pool_set **setp, const char *path)
 }
 
 /*
- * util_poolset_create_set -- (internal) create a new pool set structure
+ * util_poolset_create_set -- create a new pool set structure
  *
  * On success returns 0 and a pointer to a newly allocated structure
  * containing the info of all the parts of the pool set and replicas.
  */
-static int
+int
 util_poolset_create_set(struct pool_set **setp, const char *path,
 				size_t poolsize, size_t minsize)
 {
@@ -2266,21 +2266,14 @@ util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
  * This function opens opens a pool set without checking the header values.
  */
 int
-util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly)
+util_pool_open_nocheck(struct pool_set *set, int rdonly)
 {
-	LOG(3, "setp %p path %s rdonly %i", setp, path, rdonly);
+	LOG(3, "set %p rdonly %i", set, rdonly);
 
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
-	int ret = util_poolset_create_set(setp, path, 0, 0);
-	if (ret < 0) {
-		LOG(2, "cannot open pool set -- '%s'", path);
-		return -1;
-	}
-
-	struct pool_set *set = *setp;
-
+	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
 
 	if (set->remote && util_remote_load()) {
@@ -2290,7 +2283,7 @@ util_pool_open_nocheck(struct pool_set **setp, const char *path, int rdonly)
 		return -1;
 	}
 
-	ret = util_poolset_files_local(set, 0, 0);
+	int ret = util_poolset_files_local(set, 0, 0);
 	if (ret != 0)
 		goto err_poolset;
 

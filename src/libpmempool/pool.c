@@ -181,8 +181,7 @@ err_pool_set:
 static int
 pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	if (util_is_poolset_file(fname) != 1)
-		return util_pool_open_nocheck(poolset, fname, rdonly);
+	ASSERTeq(util_is_poolset_file(fname), 1);
 
 	struct pool_hdr hdr;
 	if (pool_set_read_header(fname, &hdr))
@@ -301,7 +300,18 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			if (pool_set_map(ppc->path, &set, 1))
 				return -1;
 		} else {
-			if (util_pool_open_nocheck(&set, ppc->path, 1))
+			ret = util_poolset_create_set(&set, ppc->path, 0, 0);
+			if (ret < 0) {
+				LOG(2, "cannot open pool set -- '%s'",
+					ppc->path);
+				return -1;
+			}
+			if (set->remote) {
+				ERR("poolsets with remote replicas are not "
+					"supported");
+				return -1;
+			}
+			if (util_pool_open_nocheck(set, 1))
 				return -1;
 		}
 
@@ -376,7 +386,12 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 	const char *path = file->fname;
 
 	if (params->type != POOL_TYPE_BTT) {
-		if (util_pool_open_nocheck(&file->poolset, file->fname, rdonly))
+		int ret = util_poolset_create_set(&file->poolset, path, 0, 0);
+		if (ret < 0) {
+			LOG(2, "cannot open pool set -- '%s'", path);
+			goto err_free_fname;
+		}
+		if (util_pool_open_nocheck(file->poolset, rdonly))
 			goto err_free_fname;
 
 		file->size = file->poolset->poolsize;
