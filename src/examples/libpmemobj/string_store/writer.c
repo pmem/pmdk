@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	rootp->len = strlen(buf);
+	rootp->len = (int)strlen(buf);
 	pmemobj_persist(pop, &rootp->len, sizeof(rootp->len));
 
 	pmemobj_memcpy_persist(pop, rootp->buf, buf, rootp->len);

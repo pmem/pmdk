@@ -37,7 +37,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 #include "pmemobj_list.h"
 
 POBJ_LAYOUT_BEGIN(list);
@@ -45,8 +49,10 @@ POBJ_LAYOUT_ROOT(list, struct fifo_root);
 POBJ_LAYOUT_TOID(list, struct tqnode);
 POBJ_LAYOUT_END(list);
 
+POBJ_TAILQ_HEAD(tqueuehead, struct tqnode);
+
 struct fifo_root {
-	POBJ_TAILQ_HEAD(tqueuehead, struct tqnode) head;
+	struct tqueuehead head;
 };
 
 struct tqnode {
@@ -76,7 +82,7 @@ main(int argc, const char *argv[])
 	}
 	path = argv[1];
 
-	if (access(path, F_OK) != 0) {
+	if (access(path, 0) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(list),
 			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
 			perror("failed to create pool\n");

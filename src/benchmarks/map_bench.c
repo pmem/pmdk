@@ -606,7 +606,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->root_oid = map_bench->root.oid;
 
-	if (map_new(map_bench->mapc, &D_RW(map_bench->root)->map, NULL)) {
+	if (map_create(map_bench->mapc, &D_RW(map_bench->root)->map, NULL)) {
 		perror("map_new");
 		goto err_free_map;
 	}

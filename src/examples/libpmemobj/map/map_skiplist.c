@@ -52,27 +52,27 @@ map_skiplist_check(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_skiplist_new -- wrapper for skiplist_map_new
+ * map_skiplist_create -- wrapper for skiplist_map_new
  */
 static int
-map_skiplist_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_skiplist_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct skiplist_map_node) *skiplist_map =
 		(TOID(struct skiplist_map_node) *)map;
 
-	return skiplist_map_new(pop, skiplist_map, arg);
+	return skiplist_map_create(pop, skiplist_map, arg);
 }
 
 /*
- * map_skiplist_delete -- wrapper for skiplist_map_delete
+ * map_skiplist_destroy -- wrapper for skiplist_map_delete
  */
 static int
-map_skiplist_delete(PMEMobjpool *pop, TOID(struct map) *map)
+map_skiplist_destroy(PMEMobjpool *pop, TOID(struct map) *map)
 {
 	TOID(struct skiplist_map_node) *skiplist_map =
 		(TOID(struct skiplist_map_node) *)map;
 
-	return skiplist_map_delete(pop, skiplist_map);
+	return skiplist_map_destroy(pop, skiplist_map);
 }
 
 /*
@@ -192,19 +192,19 @@ map_skiplist_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 struct map_ops skiplist_map_ops = {
-	.check		= map_skiplist_check,
-	.new		= map_skiplist_new,
-	.delete		= map_skiplist_delete,
-	.init		= NULL,
-	.insert		= map_skiplist_insert,
-	.insert_new	= map_skiplist_insert_new,
-	.remove		= map_skiplist_remove,
-	.remove_free	= map_skiplist_remove_free,
-	.clear		= map_skiplist_clear,
-	.get		= map_skiplist_get,
-	.lookup		= map_skiplist_lookup,
-	.is_empty	= map_skiplist_is_empty,
-	.foreach	= map_skiplist_foreach,
-	.count		= NULL,
-	.cmd		= NULL,
+	/* .check	= */ map_skiplist_check,
+	/* .create	= */ map_skiplist_create,
+	/* .destroy	= */ map_skiplist_destroy,
+	/* .init	= */ NULL,
+	/* .insert	= */ map_skiplist_insert,
+	/* .insert_new	= */ map_skiplist_insert_new,
+	/* .remove	= */ map_skiplist_remove,
+	/* .remove_free	= */ map_skiplist_remove_free,
+	/* .clear	= */ map_skiplist_clear,
+	/* .get		= */ map_skiplist_get,
+	/* .lookup	= */ map_skiplist_lookup,
+	/* .foreach	= */ map_skiplist_foreach,
+	/* .is_empty	= */ map_skiplist_is_empty,
+	/* .count	= */ NULL,
+	/* .cmd		= */ NULL,
 };

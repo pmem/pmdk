@@ -468,7 +468,7 @@ main(int argc, char *argv[])
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 	if (TOID_IS_NULL(D_RO(root)->map)) {
 		/* create new if it doesn't exist (a fresh pool) */
-		map_new(mapc, &D_RW(root)->map, NULL);
+		map_create(mapc, &D_RW(root)->map, NULL);
 	}
 	map = D_RO(root)->map;
 

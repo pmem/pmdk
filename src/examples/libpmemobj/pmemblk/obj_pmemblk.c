@@ -59,7 +59,7 @@
 
 #define USABLE_SIZE (9.0 / 10)
 #define POOL_SIZE ((size_t)(1024 * 1024 * 50))
-#define MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
+#define MAX_POOL_SIZE ((size_t)(1024LL * 1024 * 1024 * 16))
 #define MAX_THREADS 256
 #define BSIZE_MAX ((size_t)(1024 * 1024 * 10))
 
@@ -98,7 +98,7 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 	TX_BEGIN(pop) {
 		TX_ADD(bp);
 		D_RW(bp)->bsize = bsize;
-		size_t pool_size = fsize * USABLE_SIZE;
+		size_t pool_size = (size_t)(fsize * USABLE_SIZE);
 		D_RW(bp)->nblocks = pool_size / bsize;
 		D_RW(bp)->data = TX_ZALLOC(uint8_t, pool_size);
 	} TX_ONABORT {
@@ -206,7 +206,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno)
 	TOID(struct base) bp;
 	bp = POBJ_ROOT(pop, struct base);
 
-	if (blockno >= D_RO(bp)->nblocks)
+	if (blockno >= (long long)D_RO(bp)->nblocks)
 		return 1;
 
 	pmemobj_mutex_lock(pop, &D_RW(bp)->locks[blockno % MAX_THREADS]);
@@ -229,7 +229,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno)
 	TOID(struct base) bp;
 	bp = POBJ_ROOT(pop, struct base);
 
-	if (blockno >= D_RO(bp)->nblocks)
+	if (blockno >= (long long)D_RO(bp)->nblocks)
 		return 1;
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX,
@@ -257,7 +257,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, long long blockno)
 	TOID(struct base) bp;
 	bp = POBJ_ROOT(pop, struct base);
 
-	if (blockno >= D_RO(bp)->nblocks)
+	if (blockno >= (long long)D_RO(bp)->nblocks)
 		return 1;
 
 	TX_BEGIN_LOCK(pop, TX_LOCK_MUTEX,
@@ -287,8 +287,13 @@ main(int argc, char *argv[])
 
 	PMEMblkpool *pbp;
 	if (strncmp(argv[1], "c", 1) == 0) {
+#ifndef _WIN32
 		pbp = pmemblk_create(argv[2], bsize, POOL_SIZE,
 			S_IRUSR | S_IWUSR);
+#else
+		pbp = pmemblk_create(argv[2], bsize, POOL_SIZE,
+			S_IREAD | S_IWRITE);
+#endif
 	} else if (strncmp(argv[1], "o", 1) == 0) {
 		pbp = pmemblk_open(argv[2], bsize);
 	} else {
@@ -319,7 +324,7 @@ main(int argc, char *argv[])
 			}
 			case 'r': {
 				printf("read: %s\n", argv[i] + 2);
-				char *buf = malloc(bsize + 1);
+				char *buf = (char *)malloc(bsize + 1);
 				assert(buf != NULL);
 				const char *block_str = strtok(argv[i] + 2,
 							":");

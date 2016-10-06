@@ -33,9 +33,12 @@
 /*
  * array.c -- example of arrays usage
  */
-
+#ifndef _WIN32
 #include <pthread.h>
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +50,10 @@
 #define COUNT_OF(x) (sizeof(x) / sizeof(x[0]))
 #define MAX_BUFFLEN 30
 #define MAX_TYPE_NUM 8
+
+#ifdef _WIN32
+#define S_IRWXU S_IREAD | S_IWRITE
+#endif
 
 POBJ_LAYOUT_BEGIN(array);
 POBJ_LAYOUT_TOID(array, struct array_elm);
@@ -94,7 +101,8 @@ get_type(const char *type_name)
 {
 	const char *names[UNKNOWN_ARRAY_TYPE] = {"int", "PMEMoid", "TOID"};
 	enum array_types type;
-	for (type = 0; type < UNKNOWN_ARRAY_TYPE; type++) {
+	for (type = (enum array_types)0; type < UNKNOWN_ARRAY_TYPE;
+			type = (enum array_types)(type + 1)) {
 		if (strcmp(names[type], type_name) == 0)
 			break;
 	}
@@ -123,8 +131,8 @@ find_array(const char *name)
 static int
 elm_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct array_elm *obj = ptr;
-	int *id = arg;
+	struct array_elm *obj = (struct array_elm *)ptr;
+	int *id = (int *)arg;
 	obj->id = *id;
 	pmemobj_persist(pop, obj, sizeof(*obj));
 
@@ -235,8 +243,9 @@ realloc_int(PMEMoid *info, size_t prev_size, size_t size)
 {
 	TOID(int) array;
 	TOID_ASSIGN(array, *info);
+
 	POBJ_REALLOC(pop, &array, int, size * sizeof(int));
-	for (int i = prev_size; i < size; i++)
+	for (int i = (int)prev_size; i < size; i++)
 			D_RW(array)[i] = i;
 	return array.oid;
 }
@@ -252,7 +261,7 @@ realloc_pmemoid(PMEMoid *info, size_t prev_size, size_t size)
 	pmemobj_zrealloc(pop, &array.oid, sizeof(PMEMoid) * size,
 							TOID_TYPE_NUM(PMEMoid));
 
-	for (int i = prev_size; i < size; i++) {
+	for (int i = (int)prev_size; i < size; i++) {
 		if (pmemobj_alloc(pop, &D_RW(array)[i],
 			sizeof(struct array_elm), TOID_TYPE_NUM(PMEMoid),
 							elm_constructor, &i)) {
@@ -274,7 +283,7 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 	pmemobj_zrealloc(pop, &array.oid,
 			sizeof(TOID(struct array_elm)) * size,
 			TOID_TYPE_NUM_OF(array));
-	for (int i = prev_size; i < size; i++) {
+	for (int i = (int)prev_size; i < size; i++) {
 		POBJ_NEW(pop, &D_RW(array)[i], struct array_elm,
 						elm_constructor, &i);
 		if (TOID_IS_NULL(D_RW(array)[i])) {
@@ -491,7 +500,7 @@ main(int argc, char *argv[])
 
 	pop = NULL;
 
-	if (access(path, F_OK) != 0) {
+	if (access(path, 0) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(array),
 			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
 			printf("failed to create pool\n");

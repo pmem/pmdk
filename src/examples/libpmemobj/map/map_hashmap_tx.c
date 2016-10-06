@@ -76,15 +76,15 @@ map_hm_tx_init(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_hm_tx_new -- wrapper for hm_tx_new
+ * map_hm_tx_create -- wrapper for hm_tx_create
  */
 static int
-map_hm_tx_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_hm_tx_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct hashmap_tx) *hashmap_tx =
 		(TOID(struct hashmap_tx) *)map;
 
-	return hm_tx_new(pop, hashmap_tx, arg);
+	return hm_tx_create(pop, hashmap_tx, arg);
 }
 
 /*
@@ -164,14 +164,19 @@ map_hm_tx_cmd(PMEMobjpool *pop, TOID(struct map) map,
 }
 
 struct map_ops hashmap_tx_ops = {
-	.check		= map_hm_tx_check,
-	.new		= map_hm_tx_new,
-	.init		= map_hm_tx_init,
-	.insert		= map_hm_tx_insert,
-	.remove		= map_hm_tx_remove,
-	.get		= map_hm_tx_get,
-	.lookup		= map_hm_tx_lookup,
-	.foreach	= map_hm_tx_foreach,
-	.count		= map_hm_tx_count,
-	.cmd		= map_hm_tx_cmd,
+	/* .check	= */ map_hm_tx_check,
+	/* .create	= */ map_hm_tx_create,
+	/* .delete	= */ NULL,
+	/* .init	= */ map_hm_tx_init,
+	/* .insert	= */ map_hm_tx_insert,
+	/* .insert_new	= */ NULL,
+	/* .remove	= */ map_hm_tx_remove,
+	/* .remove_free	= */ NULL,
+	/* .clear	= */ NULL,
+	/* .get		= */ map_hm_tx_get,
+	/* .lookup	= */ map_hm_tx_lookup,
+	/* .foreach	= */ map_hm_tx_foreach,
+	/* .is_empty	= */ NULL,
+	/* .count	= */ map_hm_tx_count,
+	/* .cmd		= */ map_hm_tx_cmd,
 };

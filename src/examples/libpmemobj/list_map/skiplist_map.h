@@ -47,9 +47,9 @@ struct skiplist_map_node;
 TOID_DECLARE(struct skiplist_map_node, SKIPLIST_MAP_TYPE_OFFSET + 0);
 
 int skiplist_map_check(PMEMobjpool *pop, TOID(struct skiplist_map_node) map);
-int skiplist_map_new(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map,
+int skiplist_map_create(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map,
 	void *arg);
-int skiplist_map_delete(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map);
+int skiplist_map_destroy(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map);
 int skiplist_map_insert(PMEMobjpool *pop, TOID(struct skiplist_map_node) map,
 		uint64_t key, PMEMoid value);
 int skiplist_map_insert_new(PMEMobjpool *pop,

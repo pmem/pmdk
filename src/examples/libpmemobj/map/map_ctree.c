@@ -52,27 +52,27 @@ map_ctree_check(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_ctree_new -- wrapper for ctree_map_new
+ * map_ctree_create -- wrapper for ctree_map_create
  */
 static int
-map_ctree_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_ctree_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct ctree_map) *ctree_map =
 		(TOID(struct ctree_map) *)map;
 
-	return ctree_map_new(pop, ctree_map, arg);
+	return ctree_map_create(pop, ctree_map, arg);
 }
 
 /*
- * map_ctree_delete -- wrapper for ctree_map_delete
+ * map_ctree_destroy -- wrapper for ctree_map_destroy
  */
 static int
-map_ctree_delete(PMEMobjpool *pop, TOID(struct map) *map)
+map_ctree_destroy(PMEMobjpool *pop, TOID(struct map) *map)
 {
 	TOID(struct ctree_map) *ctree_map =
 		(TOID(struct ctree_map) *)map;
 
-	return ctree_map_delete(pop, ctree_map);
+	return ctree_map_destroy(pop, ctree_map);
 }
 
 /*
@@ -192,19 +192,19 @@ map_ctree_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 struct map_ops ctree_map_ops = {
-	.check		= map_ctree_check,
-	.new		= map_ctree_new,
-	.delete		= map_ctree_delete,
-	.init		= NULL,
-	.insert		= map_ctree_insert,
-	.insert_new	= map_ctree_insert_new,
-	.remove		= map_ctree_remove,
-	.remove_free	= map_ctree_remove_free,
-	.clear		= map_ctree_clear,
-	.get		= map_ctree_get,
-	.lookup		= map_ctree_lookup,
-	.is_empty	= map_ctree_is_empty,
-	.foreach	= map_ctree_foreach,
-	.count		= NULL,
-	.cmd		= NULL,
+	/* .check	= */ map_ctree_check,
+	/* .create	= */ map_ctree_create,
+	/* .destroy	= */ map_ctree_destroy,
+	/* .init	= */ NULL,
+	/* .insert	= */ map_ctree_insert,
+	/* .insert_new	= */ map_ctree_insert_new,
+	/* .remove	= */ map_ctree_remove,
+	/* .remove_free	= */ map_ctree_remove_free,
+	/* .clear	= */ map_ctree_clear,
+	/* .get		= */ map_ctree_get,
+	/* .lookup	= */ map_ctree_lookup,
+	/* .foreach	= */ map_ctree_foreach,
+	/* .is_empty	= */ map_ctree_is_empty,
+	/* .count	= */ NULL,
+	/* .cmd		= */ NULL,
 };

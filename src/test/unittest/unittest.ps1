@@ -392,7 +392,16 @@ function expect_normal_exit {
     }
 
     Invoke-Expression "$command $params"
-    if ($LASTEXITCODE -ne 0) {
+
+    check_exit_code
+    # XXX: if we impement a memcheck thing... set some env vars here
+}
+
+#
+# check_exit_code -- check if $LASTEXITCODE is equal 0
+#
+function check_exit_code {
+ if ($LASTEXITCODE -ne 0) {
         sv -Name msg "failed with exit code $LASTEXITCODE"
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
@@ -415,8 +424,6 @@ function expect_normal_exit {
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
     }
-
-    # XXX: if we impement a memcheck thing... set some env vars here
 }
 
 #

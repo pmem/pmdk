@@ -328,13 +328,14 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 static int
 process_chunk(const void *buf, size_t len, void *arg)
 {
-	char tmp[len + 1];
+	char *tmp = malloc(len + 1);
 
 	memcpy(tmp, buf, len);
 	tmp[len] = '\0';
 
 	printf("log contains:\n");
 	printf("%s\n", tmp);
+	free(tmp);
 	return 1;
 }
 
@@ -380,7 +381,11 @@ main(int argc, char *argv[])
 
 	PMEMlogpool *plp;
 	if (strncmp(argv[1], "c", 1) == 0) {
+#ifndef _WIN32
 		plp = pmemlog_create(argv[2], POOL_SIZE, S_IRUSR | S_IWUSR);
+#else
+		plp = pmemlog_create(argv[2], POOL_SIZE, S_IREAD | S_IWRITE);
+#endif
 	} else if (strncmp(argv[1], "o", 1) == 0) {
 		plp = pmemlog_open(argv[2]);
 	} else {
