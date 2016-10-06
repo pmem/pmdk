@@ -33,7 +33,6 @@
 #
 # src/test/rpmem_basic/Makefile -- build rpmem_basic test
 #
-SCP_TO_REMOTE_NODES = y
 
 include ../../common.inc
 
@@ -41,6 +40,7 @@ vpath %.c ../../common
 vpath %.c ../../rpmem_common
 
 ifeq ($(BUILD_RPMEM), y)
+SCP_TO_REMOTE_NODES = y
 TARGET = rpmem_basic
 OBJS = rpmem_basic.o\
        rpmem_fip_common.o\
