@@ -39,7 +39,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
