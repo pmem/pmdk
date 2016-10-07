@@ -44,7 +44,11 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <process.h>
+#endif
 #include <libpmemlog.h>
 
 #include "logentry.h"
@@ -66,7 +70,12 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	/* create the log in the given file, or open it if already created */
-	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL &&
+#ifndef _WIN32
+	plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR);
+#else
+	plp = pmemlog_create(path, 0, S_IREAD | S_IWRITE);
+#endif
+	if (plp == NULL &&
 	    (plp = pmemlog_open(path)) == NULL) {
 		perror(path);
 		exit(1);
