@@ -43,7 +43,7 @@
 
 #include "util.h"
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 
 #define OUT_LOG out_log
 #define OUT_NONL out_nonl

@@ -71,7 +71,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAs>CompileAsCpp</CompileAs>
       <TreatWarningAsError>true</TreatWarningAsError>

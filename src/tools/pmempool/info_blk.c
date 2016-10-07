@@ -509,7 +509,7 @@ info_blk_descriptor(struct pmem_info *pip, int v, struct pmemblk *pbp)
 {
 	size_t pmemblk_size;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	pmemblk_size = offsetof(struct pmemblk, write_lock);
 #else
 	pmemblk_size = sizeof(*pbp);

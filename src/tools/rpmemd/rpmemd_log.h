@@ -36,7 +36,7 @@
 
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 #define RPMEMD_LOG(level, fmt, arg...)\
 	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
 #else
@@ -44,7 +44,7 @@
 	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
 #endif
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 #define RPMEMD_DBG(fmt, arg...)\
 	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
 #else

@@ -56,7 +56,7 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 /*
  * macros for micromanaging range protections for the debug version
  */
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 
 #define RANGE_RO(addr, len) ASSERT(util_range_ro(addr, len) >= 0)
 #define RANGE_RW(addr, len) ASSERT(util_range_rw(addr, len) >= 0)

@@ -129,7 +129,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 	void *dest = (char *)pbp->data + off;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/* grab debug write lock */
 	util_mutex_lock(&pbp->write_lock);
 #endif
@@ -145,7 +145,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 	/* protect the memory again (debug version only) */
 	RANGE_RO(dest, count);
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/* release debug write lock */
 	util_mutex_unlock(&pbp->write_lock);
 #endif
@@ -363,7 +363,7 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 
 	pbp->locks = locks;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/* initialize debug lock */
 	util_mutex_init(&pbp->write_lock, NULL);
 #endif
@@ -563,7 +563,7 @@ pmemblk_close(PMEMblkpool *pbp)
 		Free((void *)pbp->locks);
 	}
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/* destroy debug lock */
 	pthread_mutex_destroy(&pbp->write_lock);
 #endif

@@ -146,7 +146,7 @@ Last_errormsg_get()
 
 #endif /* NO_LIBPTHREAD */
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 /*
  * getexecname -- return name of current executable
  *
@@ -195,7 +195,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 	Log_prefix = log_prefix;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	char *log_level;
 	char *log_file;
 
@@ -240,7 +240,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	else
 		setlinebuf(Out_fp);
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());
 #endif
 	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
@@ -441,7 +441,7 @@ out_error(const char *file, int line, const char *func,
 				sep, errstr);
 	}
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	if (Log_level >= 1) {
 		char buf[MAXPRINT];
 		cc = 0;

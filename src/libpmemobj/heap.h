@@ -106,7 +106,7 @@ typedef int (*object_callback)(uint64_t off, void *arg);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 int heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m);
 #endif /* DEBUG */
 

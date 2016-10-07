@@ -1128,7 +1128,7 @@ heap_buckets_init(struct palloc_heap *heap)
 		h->bucket_map[i] = bucket;
 	}
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/*
 	 * Verify that each bucket's unit size points back to the bucket by the
 	 * bucket map. This must be true for the default allocation classes,
@@ -1275,7 +1275,7 @@ heap_get_block_data(struct palloc_heap *heap, struct memory_block m)
 	return (char *)&run->data + (run->block_size * m.block_off);
 }
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 /*
  * heap_block_is_allocated -- checks whether the memory block is allocated
  */

@@ -56,7 +56,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAs>CompileAsC</CompileAs>
       <TreatWarningAsError>true</TreatWarningAsError>

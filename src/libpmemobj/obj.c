@@ -2379,7 +2379,7 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 void
 _pobj_debug_notice(const char *api_name, const char *file, int line)
 {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	if (pmemobj_tx_stage() != TX_STAGE_NONE) {
 		if (file)
 			LOG(4, "Notice: non-transactional API"

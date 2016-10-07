@@ -331,7 +331,7 @@ palloc_operation(struct palloc_heap *heap,
 
 	/* lock and persistently free the existing memory block */
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 		if (!heap_block_is_allocated(heap, existing_block)) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
@@ -363,7 +363,7 @@ palloc_operation(struct palloc_heap *heap,
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 		if (heap_block_is_allocated(heap, new_block)) {
 			ERR("heap corruption");
 			ASSERT(0);
@@ -473,7 +473,7 @@ palloc_operation(struct palloc_heap *heap,
 			 * before this operation started.
 			 */
 			CNT_OP(b, insert, heap, reclaimed_block);
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 			if (heap_block_is_allocated(heap, reclaimed_block)) {
 				ERR("heap corruption");
 				ASSERT(0);

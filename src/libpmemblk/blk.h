@@ -74,7 +74,7 @@ struct pmemblk {
 
 	struct pool_set *set;		/* pool set info */
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	/* held during read/write mprotected sections */
 	pthread_mutex_t write_lock;
 #endif

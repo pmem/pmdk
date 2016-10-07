@@ -69,7 +69,7 @@ struct rpmemd {
 	int closing;		/* set when closing connection */
 };
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 /*
  * bool2str -- convert bool to yes/no string
  */

@@ -495,7 +495,7 @@ list_insert_new(PMEMobjpool *pop,
 
 	struct lane_section *lane_section;
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
 	ASSERTeq(r, 0);
 #endif
@@ -730,7 +730,7 @@ list_remove_free(PMEMobjpool *pop, size_t pe_offset,
 	LOG(3, NULL);
 	ASSERT(user_head != NULL);
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
 	ASSERTeq(r, 0);
 #endif
