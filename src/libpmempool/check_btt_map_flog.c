@@ -447,15 +447,12 @@ flog_entry_check(PMEMpoolcheck *ppc, union location *loc, uint32_t i,
 		 * - current_btt_flog.seq == 0b01 and
 		 * - second flog entry in pair is zeroed
 		 * or
-		 * btt_map[current_btt_flog.lba] == current_btt_flog.new_map
+		 * current_btt_flog.old_map != current_btt_flog.new_map
 		 */
 		if (entry == new_entry)
 			flog_valid = (next == 1) && (flog_cur->seq == 1) &&
 				util_is_zeroed((const void *)&flog[1],
 				sizeof(flog[1]));
-		else
-			flog_valid = (loc->arenap->map[flog_cur->lba] &
-				BTT_MAP_ENTRY_LBA_MASK) == new_entry;
 
 		if (flog_valid) {
 			/* totally fine case */
