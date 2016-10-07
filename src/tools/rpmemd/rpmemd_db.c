@@ -184,6 +184,13 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_prp;
 	}
 
+	struct pool_attr pattr;
+	pattr.poolset_uuid = attr->poolset_uuid;
+	pattr.first_part_uuid = attr->uuid;
+	pattr.prev_repl_uuid = attr->prev_uuid;
+	pattr.next_repl_uuid = attr->next_uuid;
+	pattr.user_flags = attr->user_flags;
+
 	ret = util_pool_create_uuids(&set, path,
 					0, pool_size,
 					attr->signature,
@@ -192,12 +199,8 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 					attr->incompat_features,
 					attr->ro_compat_features,
 					NULL,
-					attr->poolset_uuid,
-					attr->uuid,
-					attr->prev_uuid,
-					attr->next_uuid,
-					attr->user_flags,
-					POOL_REMOTE);
+					POOL_REMOTE,
+					&pattr);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
 		goto err_free_path;

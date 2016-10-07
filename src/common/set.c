@@ -1882,22 +1882,14 @@ int
 util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes,
-	const unsigned char *poolset_uuid,
-	const unsigned char *first_part_uuid,
-	const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid,
-	const unsigned char *arch_flags,
-	int remote)
+	unsigned *nlanes, int remote, struct pool_attr *pattr)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
-		"nlanes %p poolset_uuid %p first_part_uuid %p"
-		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p remote %i",
+		"nlanes %p remote %i pattr %p",
 		setp, path, poolsize, minsize,
-		sig, major, compat, incompat, ro_compat, nlanes,
-		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
-		arch_flags, remote);
+		sig, major, compat, incompat, ro_compat,
+		nlanes, remote, pattr);
 
 	int flags = MAP_SHARED;
 	int oerrno;
@@ -1937,8 +1929,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	set->zeroed = 1;
 
-	if (poolset_uuid) {
-		memcpy(set->uuid, poolset_uuid, POOL_HDR_UUID_LEN);
+	if (pattr && pattr->poolset_uuid) {
+		memcpy(set->uuid, pattr->poolset_uuid, POOL_HDR_UUID_LEN);
 	} else {
 		/* generate pool set UUID */
 		ret = util_uuid_generate(set->uuid);
@@ -1961,8 +1953,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	}
 
 	/* overwrite UUID of the first part if given */
-	if (first_part_uuid) {
-		memcpy(set->replica[0]->part[0].uuid, first_part_uuid,
+	if (pattr && pattr->first_part_uuid) {
+		memcpy(set->replica[0]->part[0].uuid, pattr->first_part_uuid,
 			POOL_HDR_UUID_LEN);
 	}
 
@@ -1972,8 +1964,10 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	if (remote) {
 		if (util_replica_create(set, 0, flags, sig, major, compat,
-					incompat, ro_compat, prev_repl_uuid,
-					next_repl_uuid, arch_flags) != 0) {
+					incompat, ro_compat,
+					pattr->prev_repl_uuid,
+					pattr->next_repl_uuid,
+					pattr->user_flags) != 0) {
 			LOG(2, "replica #0 creation failed");
 			goto err_create;
 		}
@@ -2032,8 +2026,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 
 	return util_pool_create_uuids(setp, path, poolsize, minsize, sig, major,
 					compat, incompat, ro_compat, nlanes,
-					NULL, NULL, NULL, NULL, NULL,
-					POOL_LOCAL);
+					POOL_LOCAL, NULL);
 }
 
 /*
