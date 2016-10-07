@@ -455,7 +455,10 @@ ifneq ($(SKIP_SYNC_REMOTES),y)
 	$(MAKE) -C tools $@
 	$(MAKE) -C ../tools $@
 	$(MAKE) -C sync-remotes $@
-	$(foreach test, $(REMOTE_TESTS), $(MAKE) -C $(test) sync-test;)
+	@for test in $(REMOTE_TESTS); do \
+		echo "$(MAKE) -C $$test sync-test" ; \
+		$(MAKE) -C $$test sync-test || exit 1 ; \
+	done
 	@rm -rf $(DIR_SYNC)
 endif
 
