@@ -743,8 +743,18 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 			ans = def_anslo;
 		else
 			ans = (char)tolower(c);
-		if (ans != '\n')
-			(void) getchar();
+		if (ans != '\n') {
+			/*
+			 * Valid answer must consist of a single letter and new
+			 * line character just after it. Otherwise it is
+			 * invalid.
+			 */
+			if ((char)getchar() != '\n') {
+				ans = '\0';
+				while((char)getchar() != '\n')
+					;
+			}
+		}
 	} while (ans != '\n' && strchr(answers, ans) == NULL);
 
 	char ret = ans == '\n' ? def_ans : ans;
