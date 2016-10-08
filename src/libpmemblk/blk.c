@@ -420,7 +420,8 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
 			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
 			BLK_FORMAT_COMPAT, BLK_FORMAT_INCOMPAT,
-			BLK_FORMAT_RO_COMPAT, NULL) != 0) {
+			BLK_FORMAT_RO_COMPAT, NULL,
+			CANNOT_HAVE_REPLICAS) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
@@ -437,12 +438,6 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
 	pbp->set = set;
-
-	if (set->nreplicas > 1) {
-		errno = ENOTSUP;
-		ERR("!replicas not supported");
-		goto err;
-	}
 
 	/* create pool descriptor */
 	if (pmemblk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {

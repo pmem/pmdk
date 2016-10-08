@@ -57,6 +57,9 @@
 #define POOL_LOCAL 0
 #define POOL_REMOTE 1
 
+#define CANNOT_HAVE_REPLICAS 0
+#define CAN_HAVE_REPLICAS 1
+
 struct pool_set_part {
 	/* populated by a pool set file parser */
 	const char *path;
@@ -107,6 +110,14 @@ struct part_file {
 	const char *pool_desc;	/* descriptor of a poolset */
 };
 
+struct pool_attr {
+	const unsigned char *poolset_uuid;	/* pool uuid */
+	const unsigned char *first_part_uuid;	/* first part uuid */
+	const unsigned char *prev_repl_uuid;	/* prev replica uuid */
+	const unsigned char *next_repl_uuid;	/* next replica uuid */
+	const unsigned char *user_flags;	/* user flags */
+};
+
 #define REP(set, r)\
 	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
 
@@ -131,17 +142,12 @@ size_t util_poolset_size(const char *path);
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes);
+	unsigned *nlanes, int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes,
-	const unsigned char *poolset_uuid,
-	const unsigned char *first_part_uuid,
-	const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid,
-	const unsigned char *arch_flags,
-	int remote);
+	unsigned *nlanes, int can_have_rep,
+	int remote, struct pool_attr *poolattr);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);
