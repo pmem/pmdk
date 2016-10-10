@@ -146,8 +146,7 @@ public:
 	 */
 	static pool_base
 	create(const std::string &path, const std::string &layout,
-	       std::size_t size = PMEMOBJ_MIN_POOL,
-	       mode_t mode = S_IWUSR | S_IRUSR)
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
 	{
 		pmemobjpool *pop = pmemobj_create(path.c_str(), layout.c_str(),
 						  size, mode);
@@ -317,6 +316,14 @@ public:
 protected:
 	/* The pool opaque handle */
 	PMEMobjpool *pop;
+
+#ifndef _WIN32
+	/* Default create mode */
+	static const int DEFAULT_MODE = S_IWUSR | S_IRUSR;
+#else
+	/* Default create mode */
+	static const int DEFAULT_MODE = S_IWRITE | S_IREAD;
+#endif
 };
 
 /**
@@ -425,8 +432,7 @@ public:
 	 */
 	static pool<T>
 	create(const std::string &path, const std::string &layout,
-	       std::size_t size = PMEMOBJ_MIN_POOL,
-	       mode_t mode = S_IWUSR | S_IRUSR)
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
 	{
 		return pool<T>(pool_base::create(path, layout, size, mode));
 	}
