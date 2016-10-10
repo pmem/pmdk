@@ -45,6 +45,11 @@
 #include "pool.h"
 #include "check.h"
 
+#ifdef USE_RPMEM
+#include "rpmem_common.h"
+#include "rpmem_util.h"
+#endif
+
 /*
  * libpmempool_init -- load-time initialization for libpmempool
  *
@@ -58,6 +63,10 @@ libpmempool_init(void)
 		PMEMPOOL_LOG_FILE_VAR, PMEMPOOL_MAJOR_VERSION,
 		PMEMPOOL_MINOR_VERSION);
 	LOG(3, NULL);
+#ifdef USE_RPMEM
+	util_remote_init();
+	rpmem_util_cmds_init();
+#endif
 }
 
 /*
@@ -70,6 +79,10 @@ static void
 libpmempool_fini(void)
 {
 	LOG(3, NULL);
+#ifdef USE_RPMEM
+	util_remote_fini();
+	rpmem_util_cmds_fini();
+#endif
 	common_fini();
 }
 

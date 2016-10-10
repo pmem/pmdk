@@ -37,6 +37,9 @@ include $(TOP)/src/common.inc
 
 INCLUDE = $(TOP)/src/include
 
+RPMEM_COMMON = $(TOP)/src/rpmem_common
+vpath %.c $(RPMEM_COMMON)
+
 COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
 
@@ -113,7 +116,10 @@ LIB_OUTDIR = $(objdir)/..
 LDFLAGS += -L$(LIB_OUTDIR)
 
 ifneq ($(SOURCE),)
-OBJS += $(addprefix $(objdir)/, $(patsubst $(COMMON)/%, %, $(SOURCE:.c=.o)))
+_OBJS = $(SOURCE:.c=.o)
+_OBJS_COMMON = $(patsubst $(COMMON)/%, %, $(_OBJS))
+_OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_COMMON))
+OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
 endif
 
 ifneq ($(LIBRARY_NAME),)

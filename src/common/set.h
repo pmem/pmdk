@@ -68,6 +68,7 @@ struct pool_set_part {
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */
+	void *remote_hdr;	/* allocated header for remote replica */
 	void *hdr;		/* base address of header */
 	size_t hdrsize;		/* size of the header mapping */
 	void *addr;		/* base address of the mapping */
@@ -187,10 +188,18 @@ void util_remote_destroy_lock(void);
 int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
+int util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
+			size_t minsize, int create, void *pool_addr,
+			size_t pool_size, unsigned *nlanes);
+int util_remote_load(void);
+int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
+int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
+	size_t minsize, int create, unsigned *nlanes);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
 extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
 							size_t length);
+extern int (*Rpmem_close)(RPMEMpool *rpp);
 
 #endif

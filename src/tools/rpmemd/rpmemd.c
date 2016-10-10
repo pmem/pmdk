@@ -329,7 +329,7 @@ err_create_resp:
 err_fip_init:
 err_pool_check:
 	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
-	rpmemd_db_pool_remove(rpmemd->db, req->pool_desc);
+	rpmemd_db_pool_remove(rpmemd->db, req->pool_desc, 0);
 err_pool_create:
 err_pool_opened:
 	if (err_send)
@@ -560,7 +560,8 @@ main(int argc, char *argv[])
 		RPMEMD_LOG(INFO, "removing '%s'",
 				rpmemd->config.rm_poolset);
 		if (rpmemd_db_pool_remove(rpmemd->db,
-				rpmemd->config.rm_poolset)) {
+				rpmemd->config.rm_poolset,
+				rpmemd->config.force)) {
 			RPMEMD_LOG(ERR, "removing '%s' failed",
 					rpmemd->config.rm_poolset);
 		} else {

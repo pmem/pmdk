@@ -33,13 +33,16 @@
 SCP_TO_REMOTE_NODES = y
 
 vpath %.c ../../libpmemobj/
+vpath %.c ../../librpmem/
+vpath %.c ../../rpmem_common/
 
 TARGET = pmempool
 
 OBJS = pmempool.o\
        info.o info_blk.o info_log.o info_obj.o redo.o\
        create.o dump.o check.o rm.o convert.o convert_obj_v1_v2.o\
-       synchronize.o transform.o
+       synchronize.o transform.o rpmem_ssh.o rpmem_cmd.o rpmem_util.o\
+       rpmem_common.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
@@ -54,9 +57,12 @@ LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
 INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/rpmem_common
+INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
+CFLAGS += -DUSE_RPMEM
 
 MANPAGES = $(TOP)/doc/pmempool.1\
            $(TOP)/doc/pmempool-info.1\

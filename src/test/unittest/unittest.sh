@@ -209,6 +209,8 @@ export PMEMLOG_LOG_LEVEL=3
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
+export PMEMPOOL_LOG_LEVEL=3
+export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 
 export VMMALLOC_POOL_DIR="$DIR"
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
@@ -830,7 +832,7 @@ function require_node_pkg() {
 	COMMAND="$COMMAND pkg-config $1"
 
 	set +e
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1
+	run_command ssh $SSH_OPTS ${NODE[$N]} "$COMMAND" 2>&1
 	ret=$?
 	set -e
 
@@ -2037,6 +2039,8 @@ function init_rpmem_on_node() {
 	export_vars_node $master RPMEM_LOG_FILE
 	export_vars_node $master PMEMOBJ_LOG_LEVEL
 	export_vars_node $master PMEMOBJ_LOG_FILE
+	export_vars_node $master PMEMPOOL_LOG_FILE
+	export_vars_node $master PMEMPOOL_LOG_LEVEL
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
 	require_node_log_files $slave rpmemd$UNITTEST_NUM.log
@@ -2142,4 +2146,6 @@ function copy_test_to_remote_nodes() {
 		# copy all required files
 		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR
 	done
+
+	return 0
 }

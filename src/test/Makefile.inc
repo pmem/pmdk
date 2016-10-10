@@ -70,6 +70,8 @@ ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
+LIBS += -ldl
+CFLAGS += -DUSE_LIBDL
 endif
 
 ifeq ($(LIBPMEMBLK), y)
@@ -272,12 +274,13 @@ $(TESTCONFIG):
 $(SYNC_FILE): $(TARGET) $(TESTCONFIG)
 ifeq ($(SCP_TO_REMOTE_NODES), y)
 ifeq ($(SCP_TARGET),)
-	$(error SCP_TARGET is not set)
-endif
+	$(SCP) test
+else
 ifeq ($(SCP_SRC_DIR),)
-	$(error SCP_SRC_DIR is not set)
+$(error SCP_SRC_DIR is not set)
 endif
 	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_SRC_DIR)/$(SCP_TARGET).static-debug $(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+endif
 	@touch $(SYNC_FILE)
 endif
 

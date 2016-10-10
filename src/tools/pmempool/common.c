@@ -587,6 +587,12 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	size_t minsize = pmem_pool_get_min_size(type);
 
 	/*
+	 * Just use one thread - there is no need for multi-threaded access
+	 * to remote pool.
+	 */
+	unsigned nlanes = 1;
+
+	/*
 	 * Open the poolset, the values passed to util_pool_open are read
 	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
@@ -595,7 +601,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			hdr.signature, hdr.major,
 			hdr.compat_features,
 			hdr.incompat_features,
-			hdr.ro_compat_features, NULL)) {
+			hdr.ro_compat_features, &nlanes)) {
 		outv_err("openning poolset failed\n");
 		return -1;
 	}
@@ -1384,6 +1390,11 @@ pool_set_file_set_replica(struct pool_set_file *file, size_t replica)
 
 	if (replica >= file->poolset->nreplicas)
 		return -1;
+
+	if (file->poolset->replica[replica]->remote) {
+		outv_err("reading from remote replica not supported");
+		return -1;
+	}
 
 	file->replica = replica;
 	file->addr = file->poolset->replica[replica]->part[0].addr;

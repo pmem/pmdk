@@ -51,6 +51,7 @@
 #include "common.h"
 #include "output.h"
 #include "info.h"
+#include "set.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\
@@ -685,7 +686,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		if (util_options_verify(pip->opts, pip->type))
 			return -1;
 
-		pip->pfile = pool_set_file_open(file_name, 1, 1);
+		pip->pfile = pool_set_file_open(file_name, 1, !pip->args.force);
 		if (!pip->pfile) {
 			perror(file_name);
 			return -1;

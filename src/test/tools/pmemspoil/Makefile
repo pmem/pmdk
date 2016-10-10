@@ -33,6 +33,8 @@
 
 TOP=../../../..
 
+SCP_TO_REMOTE_NODES = y
+
 TARGET = pmemspoil
 
 OBJS = spoil.o
