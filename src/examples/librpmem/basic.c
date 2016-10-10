@@ -35,6 +35,9 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include <librpmem.h>
 
@@ -44,8 +47,6 @@
 #define SET_UUID 2
 #define SET_NEXT 3
 #define SET_PREV 4
-
-unsigned char pool[POOL_SIZE];
 
 /*
  * default_attr -- fill pool attributes to default values
@@ -70,10 +71,18 @@ main(int argc, char *argv[])
 			" <target> <pool_set> [options]\n", argv[0]);
 		return 1;
 	}
+
 	char *op = argv[1];
 	char *target = argv[2];
 	char *pool_set = argv[3];
 	unsigned nlanes = NLANES;
+	void *pool;
+	size_t align = sysconf(_SC_PAGESIZE);
+	errno = posix_memalign(&pool, align, POOL_SIZE);
+	if (errno) {
+		perror("posix_memalign");
+		return -1;
+	}
 
 	if (strcmp(op, "create") == 0) {
 		struct rpmem_pool_attr pool_attr;
@@ -121,4 +130,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "unsupported operation -- '%s'\n", op);
 		return 1;
 	}
+
+	free(pool);
 }

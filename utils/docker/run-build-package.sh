@@ -38,6 +38,9 @@
 # Get and prepare nvml source
 ./prepare-for-build.sh
 
+# Build librpmem even if libfabric is not compiled with ibverbs
+export RPMEM_DISABLE_LIBIBVERBS=y
+
 # Build all and run tests
 cd $WORKDIR
 export PCHECK_OPTS=-j2

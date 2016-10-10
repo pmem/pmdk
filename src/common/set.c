@@ -1801,15 +1801,16 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 	 * size for storing pool header and pool descriptor.
 	 */
 	part->size = rep->repsize;
-	part->remote_hdr = Zalloc(part->size);
-	if (part->remote_hdr == NULL) {
-		ERR("!Malloc");
+	ASSERT(IS_PAGE_ALIGNED(part->size));
+	part->remote_hdr = Zalloc(2 * Pagesize);
+	if (!part->remote_hdr) {
+		ERR("!Zalloc");
 		return -1;
 	}
 
-	part->hdr = part->remote_hdr;
+	part->hdr = PAGE_ALIGN_UP(part->remote_hdr);
+	part->addr = PAGE_ALIGN_UP(part->remote_hdr);
 	part->hdrsize = POOL_HDR_SIZE;
-	part->addr = part->remote_hdr;
 
 	/* create header, set UUID's */
 	if (util_header_create(set, repidx, 0, sig, major,
@@ -2185,15 +2186,16 @@ util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags)
 	struct pool_set_part *part = rep->part;
 
 	part->size = rep->repsize;
-	part->remote_hdr = Zalloc(part->size);
-	if (part->remote_hdr == NULL) {
-		ERR("!Malloc");
+	ASSERT(IS_PAGE_ALIGNED(part->size));
+	part->remote_hdr = Zalloc(2 * Pagesize);
+	if (!part->remote_hdr) {
+		ERR("!Zalloc");
 		return -1;
 	}
 
-	part->hdr = part->remote_hdr;
+	part->hdr = PAGE_ALIGN_UP(part->remote_hdr);
+	part->addr = PAGE_ALIGN_UP(part->remote_hdr);
 	part->hdrsize = POOL_HDR_SIZE;
-	part->addr = part->remote_hdr;
 
 	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
 
