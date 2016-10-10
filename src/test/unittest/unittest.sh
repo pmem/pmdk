@@ -770,11 +770,11 @@ function require_non_pmem() {
 }
 
 #
-# require_device_dax -- only allow script to continue for a dax device
+# require_dax_devices -- only allow script to continue for a dax device
 #
-function require_device_dax() {
-	[ ! -z ${DEVICE_DAX_PATH+x} ] && return
-	echo "error: DEVICE_DAX_PATH=$DEVICE_DAX_PATH does not point to a dax device"
+function require_dax_devices() {
+	[ ${#DEVICE_DAX_PATH[*]} -ge $1 ] && return
+	echo "error: DEVICE_DAX_PATH does not specify enough dax devices"
 	exit 1
 }
 
