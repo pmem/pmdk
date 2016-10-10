@@ -58,4 +58,8 @@ LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 INCS += -I../../common
 INCS += -I../../rpmem_common
+ifeq ($(HAS_LIBIBVERBS),y)
+LIBS += -libverbs
+CFLAGS += -DHAS_IBVERBS
+endif
 endif

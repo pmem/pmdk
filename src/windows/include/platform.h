@@ -174,6 +174,7 @@ typedef long long ssize_t;
 
 /* stdlib.h */
 int mkstemp(char *temp);
+int posix_memalign(void **memptr, size_t alignment, size_t size);
 
 /* fcntl.h */
 int posix_fallocate(int fd, off_t offset, off_t size);

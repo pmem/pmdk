@@ -1801,11 +1801,14 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 	 * size for storing pool header and pool descriptor.
 	 */
 	part->size = rep->repsize;
-	part->remote_hdr = Zalloc(part->size);
-	if (part->remote_hdr == NULL) {
-		ERR("!Malloc");
+	ASSERT(IS_PAGE_ALIGNED(part->size));
+	errno = posix_memalign(&part->remote_hdr, Pagesize, part->size);
+	if (errno) {
+		ERR("!posix_memalign");
 		return -1;
 	}
+
+	memset(part->remote_hdr, 0, part->size);
 
 	part->hdr = part->remote_hdr;
 	part->hdrsize = POOL_HDR_SIZE;
@@ -2185,11 +2188,14 @@ util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags)
 	struct pool_set_part *part = rep->part;
 
 	part->size = rep->repsize;
-	part->remote_hdr = Zalloc(part->size);
-	if (part->remote_hdr == NULL) {
-		ERR("!Malloc");
+	ASSERT(IS_PAGE_ALIGNED(part->size));
+	errno = posix_memalign(&part->remote_hdr, Pagesize, part->size);
+	if (errno) {
+		ERR("!posix_memalign");
 		return -1;
 	}
+
+	memset(part->remote_hdr, 0, part->size);
 
 	part->hdr = part->remote_hdr;
 	part->hdrsize = POOL_HDR_SIZE;

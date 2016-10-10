@@ -94,7 +94,9 @@ init_pool(struct pool_entry *pool, const char *pool_path,
 	UT_ASSERTeq(ret, 0);
 
 	if (strcmp(pool_path, "mem") == 0) {
-		pool->pool = MALLOC(pool->size);
+		ret = posix_memalign(&pool->pool, Pagesize, pool->size);
+		UT_ASSERTeq(ret, 0);
+
 		pool->is_mem = 1;
 	} else {
 		pool->pool = pmem_map_file(pool_path, pool->size,

@@ -50,7 +50,10 @@ extern "C" {
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
-#define PAGE_ALIGNED_DOWN_SIZE(size) (size & ~(Pagesize - 1))
+#define PAGE_ALIGNED_DOWN_SIZE(size) ((size) & ~(Pagesize - 1))
+#define PAGE_ALIGNED_UP_SIZE(size)\
+	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))
+#define IS_PAGE_ALIGNED(size) (((size) & (Pagesize - 1)) == 0)
 
 /*
  * overridable names for malloc & friends used by this library
