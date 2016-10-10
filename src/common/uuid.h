@@ -38,6 +38,7 @@
 #define NVML_UUID_H 1
 
 #include <stdint.h>
+#include <string.h>
 
 /*
  * Structure for binary version of uuid. From RFC4122,
@@ -62,5 +63,14 @@ int util_uuid_generate(uuid_t uuid);
 int util_uuid_to_string(const uuid_t u, char *buf);
 int util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN],
 	struct uuid *ud);
+
+/*
+ * uuidcmp -- compare two uuids
+ */
+static inline int
+uuidcmp(const uuid_t uuid1, const uuid_t uuid2)
+{
+	return memcmp(uuid1, uuid2, POOL_HDR_UUID_LEN);
+}
 
 #endif
