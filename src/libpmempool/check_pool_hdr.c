@@ -59,6 +59,8 @@ union location {
 		unsigned step;
 		char prefix[PREFIX_MAX_SIZE];
 		int header_modified;
+
+		uuid_t *valid_uuid;
 	};
 	/* global check step data */
 	struct check_step_data step_data;
@@ -87,6 +89,7 @@ enum question {
 	Q_UUID_FROM_VALID_PART,
 	Q_REGENERATE_UUIDS,
 	Q_SET_VALID_UUID,
+	Q_SET_VALID_UUID_FROM_LINK,
 	Q_SET_NEXT_PART_UUID,
 	Q_SET_PREV_PART_UUID,
 	Q_SET_NEXT_REPL_UUID,
@@ -657,6 +660,93 @@ pool_hdr_uuids_single_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 /*
+ * pool_hdr_uuid_multiple -- (internal) check UUID value
+ */
+static int
+pool_hdr_uuid_multiple(PMEMpoolcheck *ppc, union location *loc)
+{
+	LOG(3, NULL);
+
+	const struct pool_set *poolset = ppc->pool->set_file->poolset;
+	int single_repl = poolset->nreplicas == 1;
+	int single_part = poolset->replica[loc->replica]->nparts == 1;
+
+	if (single_repl && single_part)
+		return 0;
+
+	struct pool_replica *rep = REP(poolset, loc->replica);
+	struct pool_replica *next_rep = REP(poolset, loc->replica + 1);
+	struct pool_replica *prev_rep = REP(poolset, loc->replica - 1);
+
+	struct pool_hdr *next_part_hdrp = HDR(rep, loc->part + 1);
+	struct pool_hdr *prev_part_hdrp = HDR(rep, loc->part - 1);
+	struct pool_hdr *next_repl_hdrp = HDR(next_rep, 0);
+	struct pool_hdr *prev_repl_hdrp = HDR(prev_rep, 0);
+
+	int next_part_cs_valid = pool_hdr_valid(next_part_hdrp);
+	int prev_part_cs_valid = pool_hdr_valid(prev_part_hdrp);
+	int next_repl_cs_valid = pool_hdr_valid(next_repl_hdrp);
+	int prev_repl_cs_valid = pool_hdr_valid(prev_repl_hdrp);
+
+	struct pool_hdr hdr;
+	pool_hdr_get(ppc, &hdr, NULL, loc);
+	util_convert2h_hdr_nocheck(&hdr);
+
+	/* validate header uuid value */
+	loc->valid_uuid = NULL;
+	if (next_part_cs_valid) {
+		if (uuidcmp(hdr.uuid, next_part_hdrp->prev_part_uuid) != 0) {
+			loc->valid_uuid = &next_part_hdrp->prev_part_uuid;
+		}
+	} else if (prev_part_cs_valid) {
+		if (uuidcmp(hdr.uuid, prev_part_hdrp->next_part_uuid) != 0) {
+			loc->valid_uuid = &prev_part_hdrp->next_part_uuid;
+		}
+	} else if (next_repl_cs_valid) {
+		if (uuidcmp(hdr.uuid, next_repl_hdrp->prev_repl_uuid) != 0) {
+			loc->valid_uuid = &next_repl_hdrp->prev_repl_uuid;
+		}
+	} else if (prev_repl_cs_valid) {
+		if (uuidcmp(hdr.uuid, prev_repl_hdrp->next_repl_uuid) != 0) {
+			loc->valid_uuid = &prev_repl_hdrp->next_repl_uuid;
+		}
+	}
+	if (loc->valid_uuid) {
+		CHECK_ASK(ppc, Q_SET_VALID_UUID_FROM_LINK,
+			"%sinvalid pool_hdr.uuid.|Do you want to set it to "
+			"valid value?", loc->prefix);
+	}
+
+	return check_questions_sequence_validate(ppc);
+}
+
+/*
+ * pool_hdr_uuid_multiple_fix -- (internal) fix UUID value
+ */
+static int
+pool_hdr_uuid_multiple_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+	uint32_t question, void *context)
+{
+	LOG(3, NULL);
+
+	ASSERT(context != NULL);
+	union location *loc = (union location *)location;
+	struct context *ctx = (struct context *)context;
+
+	switch (question) {
+	case Q_SET_VALID_UUID_FROM_LINK:
+		CHECK_INFO(ppc, "%ssetting pool_hdr.uuid to %s", loc->prefix,
+			check_get_uuid_str(*loc->valid_uuid));
+		memcpy(ctx->hdr.uuid, *loc->valid_uuid, POOL_HDR_UUID_LEN);
+		break;
+	default:
+		ERR("not implemented question id: %u", question);
+	}
+
+	return 0;
+}
+
+/*
  * pool_hdr_uuids_check -- (internal) check UUID values for pool file
  */
 static int
@@ -694,7 +784,7 @@ pool_hdr_uuids_check(PMEMpoolcheck *ppc, union location *loc)
 	int next_repl_valid = !uuidcmp(hdr.next_repl_uuid, next_repl_hdrp->uuid);
 	int prev_repl_valid = !uuidcmp(hdr.prev_repl_uuid, prev_repl_hdrp->uuid);
 
-	if ((single_part || next_part_cs_valid) && !next_part_valid) {
+	if ((!single_part && next_part_cs_valid) && !next_part_valid) {
 		CHECK_ASK(ppc, Q_SET_NEXT_PART_UUID,
 			"%sinvalid pool_hdr.next_part_uuid.|Do you want to set "
 			"it to valid value?", loc->prefix);
@@ -799,6 +889,14 @@ static const struct step steps[] = {
 	{
 		.fix	= pool_hdr_uuids_single_fix,
 		.num_of_elements = NUM_OF_PAR_SINGLE,
+	},
+	{
+		.check	= pool_hdr_uuid_multiple,
+		.num_of_elements = NUM_OF_PAR_MANY,
+	},
+	{
+		.fix	= pool_hdr_uuid_multiple_fix,
+		.num_of_elements = NUM_OF_PAR_MANY,
 	},
 	{
 		.check	= pool_hdr_uuids_check,
