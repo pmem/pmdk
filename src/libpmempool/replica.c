@@ -506,8 +506,9 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 
 		if (!next_is_broken) {
 			int next_decoupled =
-				uuidcmp(next_hdrp->prev_part_uuid, hdrp->uuid) ||
-				uuidcmp(hdrp->next_part_uuid, next_hdrp->uuid);
+				uuidcmp(next_hdrp->prev_part_uuid,
+				hdrp->uuid) || uuidcmp(hdrp->next_part_uuid,
+				next_hdrp->uuid);
 			if (next_decoupled) {
 				rep_hs->flags |= IS_INCONSISTENT;
 				/* skip further checking */
@@ -691,8 +692,9 @@ check_uuids_between_replicas(struct pool_set *set,
 		}
 
 		/* check if replica uuids are consistent between replicas */
-		if (uuidcmp(HDR(rep_n, p_n)->prev_repl_uuid, HDR(rep, p)->uuid) ||
-				uuidcmp(HDR(rep, p)->next_repl_uuid,
+		if (uuidcmp(HDR(rep_n, p_n)->prev_repl_uuid,
+				HDR(rep, p)->uuid) || uuidcmp(
+				HDR(rep, p)->next_repl_uuid,
 				HDR(rep_n, p_n)->uuid)) {
 
 			if (set->nreplicas == 1) {
