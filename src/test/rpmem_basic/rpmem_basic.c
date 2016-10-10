@@ -378,7 +378,9 @@ check_pool(const struct test_case *tc, int argc, char *argv[])
 	ret = util_parse_size(argv[2], &size);
 
 	struct pool_set *set;
-	ret = util_pool_open_nocheck(&set, pool_set, 0);
+	ret = util_poolset_create_set(&set, pool_set, 0, 0);
+	UT_ASSERTeq(ret, 0);
+	ret = util_pool_open_nocheck(set, 0);
 	UT_ASSERTeq(ret, 0);
 
 	uint8_t *data = set->replica[0]->part[0].addr;
@@ -407,7 +409,9 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 	int ret;
 
 	struct pool_set *set;
-	ret = util_pool_open_nocheck(&set, pool_set, 0);
+	ret = util_poolset_create_set(&set, pool_set, 0, 0);
+	UT_ASSERTeq(ret, 0);
+	ret = util_pool_open_nocheck(set, 0);
 	UT_ASSERTeq(ret, 0);
 
 	uint8_t *data = set->replica[0]->part[0].addr;

@@ -528,14 +528,20 @@ pmem_pool_get_min_size(pmem_pool_type_t type)
 int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
-	if (util_is_poolset_file(fname) != 1)
-		return util_pool_open_nocheck(poolset, fname, rdonly);
+	int ret = 0;
+
+	if (util_is_poolset_file(fname) != 1) {
+		ret = util_poolset_create_set(poolset, fname, 0, 0);
+		if (ret < 0) {
+			outv_err("cannot open pool set -- '%s'", fname);
+			return -1;
+		}
+		return util_pool_open_nocheck(*poolset, rdonly);
+	}
 
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
-
-	int ret = 0;
 
 	struct pool_set *set;
 
@@ -644,7 +650,12 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 			if (util_poolset_map(fname, &set, 1))
 				return -1;
 		} else {
-			if (util_pool_open_nocheck(&set, fname, 1))
+			ret = util_poolset_create_set(&set, fname, 0, 0);
+			if (ret < 0) {
+				outv_err("cannot open pool set -- '%s'", fname);
+				return -1;
+			}
+			if (util_pool_open_nocheck(set, 1))
 				return -1;
 		}
 
@@ -1258,8 +1269,14 @@ pool_set_file_open(const char *fname,
 					&file->poolset, rdonly))
 				goto err_free_fname;
 		} else {
-			if (util_pool_open_nocheck(&file->poolset, file->fname,
-					rdonly))
+			int ret = util_poolset_create_set(&file->poolset,
+				file->fname, 0, 0);
+			if (ret < 0) {
+				outv_err("cannot open pool set -- '%s'",
+					file->fname);
+				goto err_free_fname;
+			}
+			if (util_pool_open_nocheck(file->poolset, rdonly))
 				goto err_free_fname;
 		}
 

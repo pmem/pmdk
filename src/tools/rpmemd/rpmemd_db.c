@@ -332,7 +332,10 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc)
 		goto err_unlock;
 	}
 
-	ret = util_pool_open_nocheck(&set, path, 0);
+	ret = util_poolset_create_set(&set, path, 0, 0);
+	if (ret == 0) {
+		ret = util_pool_open_nocheck(set, 0);
+	}
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
 		goto err_free_path;
