@@ -227,10 +227,8 @@ pool_params_from_header(struct pool_params *params, const struct pool_hdr *hdr)
 	 * next part UUID. If it is the same it means the pool consist of a
 	 * single file.
 	 */
-	int uuid_eq_next = memcmp(hdr->uuid, hdr->next_part_uuid,
-		POOL_HDR_UUID_LEN);
-	int uuid_eq_prev = memcmp(hdr->uuid, hdr->prev_part_uuid,
-		POOL_HDR_UUID_LEN);
+	int uuid_eq_next = uuidcmp(hdr->uuid, hdr->next_part_uuid);
+	int uuid_eq_prev = uuidcmp(hdr->uuid, hdr->prev_part_uuid);
 	params->is_part = !params->is_poolset && (uuid_eq_next || uuid_eq_prev);
 
 	params->type = pool_hdr_get_type(hdr);

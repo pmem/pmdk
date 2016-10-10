@@ -372,9 +372,8 @@ pool_hdr_poolset_uuid(PMEMpoolcheck *ppc, union location *loc)
 	/* for blk pool we can take the UUID from BTT Info header */
 	if (ppc->pool->params.type == POOL_TYPE_BLK &&
 		ppc->pool->bttc.valid) {
-		if (memcmp(hdr.poolset_uuid,
-				ppc->pool->bttc.btt_info.parent_uuid,
-				POOL_HDR_UUID_LEN) == 0) {
+		if (uuidcmp(hdr.poolset_uuid,
+				ppc->pool->bttc.btt_info.parent_uuid) == 0) {
 			return 0;
 		}
 
@@ -394,8 +393,7 @@ pool_hdr_poolset_uuid(PMEMpoolcheck *ppc, union location *loc)
 				"pool_hdr.poolset_uuid");
 		}
 		struct pool_hdr *valid_hdrp = valid_part->hdr;
-		if (memcmp(hdr.poolset_uuid, valid_hdrp->poolset_uuid,
-				POOL_HDR_UUID_LEN) == 0)
+		if (uuidcmp(hdr.poolset_uuid, valid_hdrp->poolset_uuid) == 0)
 			return 0;
 		CHECK_ASK(ppc, Q_UUID_FROM_VALID_PART,
 			"%sinvalid pool_hdr.poolset_uuid.|Do you want to set "
@@ -538,7 +536,7 @@ pool_hdr_all_uuid_same(unsigned char (*uuids)[POOL_HDR_UUID_LEN])
 	if (util_is_zeroed(uuids[0], POOL_HDR_UUID_LEN))
 		return 0;
 	for (int i = 1; i < POOL_HDR_UUIDS_NUM; i++) {
-		if (memcmp(uuids[0], uuids[i], POOL_HDR_UUID_LEN))
+		if (uuidcmp(uuids[0], uuids[i]))
 			return 0;
 	}
 
@@ -558,7 +556,7 @@ uuid_get_max_same(unsigned char (*uuids)[POOL_HDR_UUID_LEN], int *indexp)
 		if (util_is_zeroed(uuids[i], POOL_HDR_UUID_LEN))
 			continue;
 		for (int j = i + 1; j < POOL_HDR_UUIDS_NUM; j++) {
-			if (!memcmp(uuids[i], uuids[j], POOL_HDR_UUID_LEN))
+			if (!uuidcmp(uuids[i], uuids[j]))
 				icount++;
 		}
 
@@ -691,14 +689,10 @@ pool_hdr_uuids_check(PMEMpoolcheck *ppc, union location *loc)
 	pool_hdr_get(ppc, &hdr, NULL, loc);
 	util_convert2h_hdr_nocheck(&hdr);
 
-	int next_part_valid = !memcmp(hdr.next_part_uuid, next_part_hdrp->uuid,
-		POOL_HDR_UUID_LEN);
-	int prev_part_valid = !memcmp(hdr.prev_part_uuid, prev_part_hdrp->uuid,
-		POOL_HDR_UUID_LEN);
-	int next_repl_valid = !memcmp(hdr.next_repl_uuid, next_repl_hdrp->uuid,
-		POOL_HDR_UUID_LEN);
-	int prev_repl_valid = !memcmp(hdr.prev_repl_uuid, prev_repl_hdrp->uuid,
-		POOL_HDR_UUID_LEN);
+	int next_part_valid = !uuidcmp(hdr.next_part_uuid, next_part_hdrp->uuid);
+	int prev_part_valid = !uuidcmp(hdr.prev_part_uuid, prev_part_hdrp->uuid);
+	int next_repl_valid = !uuidcmp(hdr.next_repl_uuid, next_repl_hdrp->uuid);
+	int prev_repl_valid = !uuidcmp(hdr.prev_repl_uuid, prev_repl_hdrp->uuid);
 
 	if ((single_part || next_part_cs_valid) && !next_part_valid) {
 		CHECK_ASK(ppc, Q_SET_NEXT_PART_UUID,
