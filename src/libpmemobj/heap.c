@@ -1290,6 +1290,8 @@ heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m)
 	if (hdr->type == CHUNK_TYPE_FREE)
 		return 0;
 
+	MEMBLOCK_OPS(RUN, m)->lock(&m, heap);
+
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
@@ -1301,11 +1303,17 @@ heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m)
 	unsigned b_last = b + m.size_idx;
 	ASSERT(b_last <= BITS_PER_VALUE);
 
-	for (unsigned i = b; i < b_last; ++i)
-		if (!BIT_IS_CLR(bitmap, i))
-			return 1;
+	int ret = 0;
+	for (unsigned i = b; i < b_last; ++i) {
+		if (!BIT_IS_CLR(bitmap, i)) {
+			ret = 1;
+			goto out;
+		}
+	}
 
-	return 0;
+out:
+	MEMBLOCK_OPS(RUN, m)->unlock(&m, heap);
+	return ret;
 }
 #endif /* DEBUG */
 
