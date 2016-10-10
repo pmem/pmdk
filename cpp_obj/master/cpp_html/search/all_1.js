@@ -10,6 +10,6 @@ var searchData=
   ['condition_5fvariable_2ehpp',['condition_variable.hpp',['../condition__variable_8hpp.html',1,'']]],
   ['conversions_2ehpp',['conversions.hpp',['../conversions_8hpp.html',1,'']]],
   ['count',['count',['../classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html#aa26c6d46aceac3527f0abf4a18814256',1,'nvml::obj::transaction::automatic::uncaught_exception_counter']]],
-  ['create',['create',['../classnvml_1_1obj_1_1pool__base.html#a8d4e09552651eb92ca807130f8faf1d1',1,'nvml::obj::pool_base::create()'],['../classnvml_1_1obj_1_1pool.html#a967d97854e7cfcc913ca3c84a474ebb2',1,'nvml::obj::pool::create()']]],
+  ['create',['create',['../classnvml_1_1obj_1_1pool__base.html#acf5f99143644c56492b8e8f95a20e64b',1,'nvml::obj::pool_base::create()'],['../classnvml_1_1obj_1_1pool.html#a106e32988ee2e780632db1ca20778ad2',1,'nvml::obj::pool::create()']]],
   ['c_2b_2b_20bindings_20for_20libpmemobj',['C++ Bindings For libpmemobj',['../index.html',1,'']]]
 ];

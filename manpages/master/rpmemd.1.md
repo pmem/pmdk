@@ -106,6 +106,10 @@ See **CONFIGURATION FILES** section for details.
 Remove a pool described by given pool set file descriptor. It is interpreted
 as a path to the pool set file relative to the pool set directory.
 
+`-f, --force`
+
+Ignore errors when removing a pool file using **--remove** option.
+
 # CONFIGURATION FILES #
 
 The **rpmemd** searches for the configuration files with following priorities:
