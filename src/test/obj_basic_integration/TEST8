@@ -38,7 +38,7 @@ export UNITTEST_NUM=8
 . ../unittest/unittest.sh
 
 require_superuser
-require_device_dax
+require_dax_devices 1
 
 setup
 
