@@ -148,4 +148,26 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-export BUILD_RPMEM := $(call check_package, libfabric)
+export HAS_LIBFABRIC = $(call check_package, libfabric)
+export HAS_LIBIBVERBS = $(shell fi_info --list 2>/dev/null | grep -q verbs && echo y || echo n)
+
+ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),ny)
+$(error HAS_LIBFABRIC=$(HAS_LIBFABRIC) and HAS_LIBIBVERBS=$(HAS_LIBIBVERBS) not possible)
+endif
+
+ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),nn)
+export BUILD_RPMEM := n
+endif
+
+ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),yy)
+export BUILD_RPMEM := y
+endif
+
+ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),yn)
+ifeq ($(RPMEM_DISABLE_LIBIBVERBS),y)
+export BUILD_RPMEM := y
+else
+export BUILD_RPMEM := n
+endif
+endif
+
