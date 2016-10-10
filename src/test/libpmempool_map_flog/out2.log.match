@@ -22,18 +22,12 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: invalid BTT Flog entry at 7
-arena 0: invalid BTT Flog entry at 8
 arena 0: unmapped block 40325
 arena 0: unmapped block 40326
 arena 0: unmapped block 40327
-arena 0: unmapped block 40329
-arena 0: unmapped block 40330
-arena 0: number of unmapped blocks: 5
-arena 0: number of invalid BTT Flog entries: 5
+arena 0: number of unmapped blocks: 3
+arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 8 with free block entry 0x40009d8a
-arena 0: repairing BTT Flog at 7 with free block entry 0x40009d89
 arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
@@ -63,18 +57,12 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: invalid BTT Flog entry at 7
-arena 0: invalid BTT Flog entry at 8
 arena 0: unmapped block 40325
 arena 0: unmapped block 40326
 arena 0: unmapped block 40327
-arena 0: unmapped block 40329
-arena 0: unmapped block 40330
-arena 0: number of unmapped blocks: 5
-arena 0: number of invalid BTT Flog entries: 5
+arena 0: number of unmapped blocks: 3
+arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 8 with free block entry 0x40009d8a
-arena 0: repairing BTT Flog at 7 with free block entry 0x40009d89
 arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
@@ -104,18 +92,12 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: invalid BTT Flog entry at 7
-arena 0: invalid BTT Flog entry at 8
 arena 0: unmapped block 40325
 arena 0: unmapped block 40326
 arena 0: unmapped block 40327
-arena 0: unmapped block 40329
-arena 0: unmapped block 40330
-arena 0: number of unmapped blocks: 5
-arena 0: number of invalid BTT Flog entries: 5
+arena 0: number of unmapped blocks: 3
+arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 8 with free block entry 0x40009d8a
-arena 0: repairing BTT Flog at 7 with free block entry 0x40009d89
 arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
@@ -145,18 +127,12 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: invalid BTT Flog entry at 7
-arena 0: invalid BTT Flog entry at 8
 arena 0: unmapped block 40325
 arena 0: unmapped block 40326
 arena 0: unmapped block 40327
-arena 0: unmapped block 40329
-arena 0: unmapped block 40330
-arena 0: number of unmapped blocks: 5
-arena 0: number of invalid BTT Flog entries: 5
+arena 0: number of unmapped blocks: 3
+arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 8 with free block entry 0x40009d8a
-arena 0: repairing BTT Flog at 7 with free block entry 0x40009d89
 arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
