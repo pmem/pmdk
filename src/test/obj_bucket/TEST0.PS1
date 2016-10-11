@@ -44,6 +44,8 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ../unittest/unittest.ps1
 
+require_test_type medium
+
 # mocked allocator does not play well with memcheck
 # XXX: no memcheck for Windows yet, but whatever tool we'll use, it must
 # be aware we're mocking the system allocator

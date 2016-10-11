@@ -40,6 +40,8 @@ export UNITTEST_NUM=7
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 expect_normal_exit ../obj_list_macro/obj_list_macro$EXESUFFIX $DIR/testfile\

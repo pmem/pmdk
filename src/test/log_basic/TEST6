@@ -44,6 +44,8 @@ export UNITTEST_NUM=6
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 create_poolset $DIR/testset1 2M:$DIR/testfile1:x 2M:$DIR/testfile2:x

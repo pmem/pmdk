@@ -56,6 +56,8 @@ $Env:UNITTEST_NUM = "1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 # doesn't make sense to run in local directory
 require_fs_type any
 

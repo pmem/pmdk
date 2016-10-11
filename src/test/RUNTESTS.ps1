@@ -87,7 +87,8 @@ function usage {
         -b build-type   run only specified build type
                 build-type: debug, nondebug, static-debug, static-nondebug, all (default)
         -t test-type    run only specified test type
-                test-type: check (default), short, long
+                test-type: check (default), short, medium, long, all
+                where: check = short + medium; all = short + medium + long
         -f fs-type  run tests only on specified file systems
                 fs-type: pmem, non-pmem, any, none, all (default)
         -o timeout  set timeout for test execution

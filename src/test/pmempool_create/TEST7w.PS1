@@ -43,6 +43,8 @@ $Env:UNITTEST_NUM = "7w"
 
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 # XXX: missing valgrind equivalent
 #
 #require_fs_type any

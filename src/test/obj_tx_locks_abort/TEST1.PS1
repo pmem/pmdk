@@ -47,6 +47,8 @@ $ENV:NON_PMEM_IS_PMEM = $true
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 $ENV:PMEM_LOG_LEVEL = $null
 $ENV:PMEM_LOG_FILE = $null
 $ENV:PMEMOBJ_LOG_LEVEL = $null

@@ -44,6 +44,8 @@ $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 $Env:PMEM_IS_PMEM_FORCE=1

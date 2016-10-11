@@ -46,6 +46,8 @@ $Env:UNITTEST_NUM = "3"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 require_build_type debug
 
 setup

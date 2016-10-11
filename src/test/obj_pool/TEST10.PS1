@@ -47,6 +47,8 @@ $Env:UNITTEST_NUM = "10"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 create_holey_file 20M $DIR\testfile

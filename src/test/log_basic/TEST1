@@ -51,6 +51,8 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 create_holey_file 2M $DIR/testfile1

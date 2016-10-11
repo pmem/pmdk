@@ -40,6 +40,8 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 # must be non-static debug release of the binary because the test relies on the
 # gdb ability to interrupt the program at a static method inside the tx module
 # of the libpmemobj library

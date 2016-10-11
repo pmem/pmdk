@@ -49,6 +49,8 @@ $Env:UNITTEST_NUM = "1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 $Env:PMEM_LOG_LEVEL = ""
 $Env:PMEM_LOG_FILE = ""
 $Env:PMEMOBJ_LOG_LEVEL = ""

@@ -44,6 +44,8 @@ export UNITTEST_NUM=5
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 export PMEMLOG_LOG_LEVEL=10

@@ -48,6 +48,8 @@ $Env:UNITTEST_NUM = "7"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 create_nonzeroed_file 17M 0K $DIR\testfile

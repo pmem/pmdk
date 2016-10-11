@@ -46,6 +46,8 @@ $Env:UNITTEST_NUM = "5"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 require_fs_type pmem non-pmem
 
 # XXX: we don't have valgrind in Windows yet
