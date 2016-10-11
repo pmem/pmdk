@@ -47,6 +47,8 @@ $Env:UNITTEST_NUM = "8"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 create_nonzeroed_file 8M 8K $DIR\testfile

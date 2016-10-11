@@ -49,6 +49,8 @@ $Env:UNITTEST_NUM = "4"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 require_fs_type pmem non-pmem
 
 setup

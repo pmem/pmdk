@@ -40,6 +40,8 @@ export UNITTEST_NUM=3
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 
 setup
 rm -rf log$UNITTEST_NUM.log

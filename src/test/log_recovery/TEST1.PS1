@@ -46,6 +46,8 @@ $ENV:UNITTEST_NUM="1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 require_build_type nondebug static-nondebug
 
 setup

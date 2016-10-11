@@ -52,6 +52,8 @@ export UNITTEST_NUM=4
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 # long test, run only on pmem
 configure_valgrind pmemcheck force-enable
 setup

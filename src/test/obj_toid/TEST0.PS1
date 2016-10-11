@@ -49,6 +49,8 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 expect_normal_exit $Env:EXE_DIR\obj_toid$Env:EXESUFFIX $DIR\testfile1

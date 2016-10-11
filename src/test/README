@@ -59,15 +59,27 @@ file system type, and build type to test.
 
 RUNTESTS takes options to limit what it runs.  The usage is:
 
- RUNTESTS [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	  [ -o timeout ] [test...]
+ RUNTESTS [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+	    [ -o timeout ] [ -s test-file ]
+	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+	    [ -q provider ] [ -r persistency-method ]
+	    [tests...]
 
  Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
- Test types are: check (default), short, long
+ Test types are: check (default), short, medium, long, all
+		 where: check = short + medium; all = short + medium + long
  File system types are: none, pmem, non-pmem, any, all (default)
  Timeout is: a floating point number with an optional suffix: 's' for seconds
 		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
 		 Default value is 3 minutes.
+ Test file is: a name of the particular test script (test case).
+		 all (default), TEST0, TEST1, ...
+ Memcheck, helgrind, drd and pmemcheck modes are:
+		 auto (default, enable/disable based on test requirements),
+		 force-enable (enable when test does not require given valgrind tool,
+		 but obey test's explicit tool disable)
+ Providers are: verbs, sockets, all (default)
+ Persistency methods are: GPSPM, APM, all (default)
 
 For example:
 
@@ -173,9 +185,10 @@ Similar to the above, tests can require a specific build types:
 	require_build_type debug
 
 Most tests are short "make check" tests, designed to run quickly when
-smoke-checking a build.  Two other test types are available: short and long.  A
-test script can indicate it should only run during a long test run, for
-example, using:
+smoke-checking a build.  Three other test types are available: short, medium
+and long (check is a synonym of short + medium).
+A test script can indicate it should only run during a long test run,
+for example, using:
 
 	require_test_type long
 

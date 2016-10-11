@@ -41,6 +41,8 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 
 # XXX reduce the number of reallocs performed under pmemcheck so that the
 # execution time is reasonable and within the time limit (5 minutes) on both

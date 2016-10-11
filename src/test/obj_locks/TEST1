@@ -41,6 +41,8 @@ export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 require_build_type debug
 require_valgrind_dev_3_10
 configure_valgrind drd force-enable

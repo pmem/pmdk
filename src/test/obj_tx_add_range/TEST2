@@ -40,6 +40,8 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 configure_valgrind memcheck force-disable
 require_fs_type pmem
 

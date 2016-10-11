@@ -38,6 +38,8 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 export PMEM_IS_PMEM_FORCE=1

@@ -46,6 +46,8 @@ $Env:UNITTEST_NUM = "5"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 
 # XXX: no memcheck on Windows yet, but whatever tool we'll use instead,
