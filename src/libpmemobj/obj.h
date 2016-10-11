@@ -239,4 +239,10 @@ void obj_fini(void);
 int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 		size_t length);
 
+/*
+ * (debug helper macro) logs notice message if used inside a transaction
+ */
+#define _POBJ_DEBUG_NOTICE_IN_TX()\
+	_pobj_debug_notice(__func__, NULL, 0)
+
 #endif
