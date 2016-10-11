@@ -137,3 +137,31 @@ flock(int fd, int operation)
 
 	return res;
 }
+
+void
+clock_gettime(int id, struct timespec *ts)
+{
+	if (id == CLOCK_MONOTONIC) {
+
+		unsigned long elapsed_time_milisec;
+		unsigned long milisecond;
+
+		/*
+		 * GetTickCount retrieves the number of milliseconds
+		 * that have elapsed since the system was started
+		 */
+		elapsed_time_milisec = GetTickCount();
+		if (elapsed_time_milisec % MILISEC_IN_SEC == 0) {
+			ts->tv_sec = elapsed_time_milisec / MILISEC_IN_SEC;
+			ts->tv_nsec = 0;
+		} else if (elapsed_time_milisec <= MILISEC_IN_SEC) {
+			ts->tv_sec = elapsed_time_milisec / MILISEC_IN_SEC;
+			ts->tv_nsec = elapsed_time_milisec * NANOSEC_IN_MILISEC;
+		} else {
+			milisecond = elapsed_time_milisec %  MILISEC_IN_SEC;
+			ts->tv_sec = (elapsed_time_milisec - milisecond)
+				/ MILISEC_IN_SEC;
+			ts->tv_nsec = milisecond *  NANOSEC_IN_MILISEC;
+		}
+	}
+}
