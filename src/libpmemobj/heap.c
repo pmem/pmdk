@@ -735,7 +735,15 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b)
 
 		ASSERT(m.block_off == 0);
 
+		/*
+		 * The default bucket is still the owner of the chunk, up to the
+		 * moment that the chunk type is changed to run. This lock is
+		 * especially important in the free codepath when we are
+		 * searching for neighbour blocks in blocks list.
+		 */
+		util_mutex_lock(&def_bucket->lock);
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
+		util_mutex_unlock(&def_bucket->lock);
 	} else {
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
 	}
