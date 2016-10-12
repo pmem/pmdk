@@ -46,7 +46,7 @@
 
 TOID_DECLARE(struct tree_map_node, RTREE_MAP_TYPE_OFFSET + 1);
 
-/* Good values: 0x10 an 0x100, but implementation is binded to 0x100 */
+/* Good values: 0x10 an 0x100, but implementation is bound to 0x100 */
 #ifndef ALPHABET_SIZE
 #define ALPHABET_SIZE 0x100
 #endif
@@ -357,7 +357,7 @@ remove_extra_node(TOID(struct tree_map_node) *node)
 	tmp_child = D_RO(tmp)->slots[child_idx];
 
 	/*
-	 * That child's incoming label is appended to the our's incoming label
+	 * That child's incoming label is appended to the ours incoming label
 	 * and the child is removed.
 	 */
 	unsigned new_key_size = D_RO(tmp)->key_size + D_RO(tmp_child)->key_size;
