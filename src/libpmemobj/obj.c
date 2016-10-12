@@ -154,7 +154,8 @@ obj_init(void)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != POOL_HDR_SIZE + 4096);
+	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) !=
+		POOL_HDR_SIZE + POOL_DESC_SIZE);
 
 #ifdef USE_COW_ENV
 	char *env = getenv("PMEMOBJ_COW");
