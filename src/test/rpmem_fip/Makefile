@@ -67,6 +67,7 @@ ifeq ($(BUILD_RPMEM), y)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 CFLAGS += -DDEBUG
+CFLAGS += -DRPMEMC_LOG_RPMEM
 INCS += -I../../librpmem/
 INCS += -I../../rpmem_common/
 INCS += -I../../tools/rpmemd

@@ -225,7 +225,8 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
 	UT_ASSERTne(fip, NULL);
 
-	client_close(client);
+	client_close_begin(client);
+	client_close_end(client);
 
 	rpmem_fip_fini(fip);
 	rpmem_target_free(info);
@@ -329,10 +330,12 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	client_close(client);
+	client_close_begin(client);
 
 	ret = rpmem_fip_close(fip);
 	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
 
 	rpmem_fip_fini(fip);
 	rpmem_target_free(info);
@@ -531,10 +534,12 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_process_stop(fip);
 	UT_ASSERTeq(ret, 0);
 
-	client_close(client);
+	client_close_begin(client);
 
 	ret = rpmem_fip_close(fip);
 	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
 
 	rpmem_fip_fini(fip);
 
@@ -623,10 +628,12 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_process_stop(fip);
 	UT_ASSERTeq(ret, 0);
 
-	client_close(client);
+	client_close_begin(client);
 
 	ret = rpmem_fip_close(fip);
 	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
 
 	rpmem_fip_fini(fip);
 
@@ -704,10 +711,12 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_process_stop(fip);
 	UT_ASSERTeq(ret, 0);
 
-	client_close(client);
+	client_close_begin(client);
 
 	ret = rpmem_fip_close(fip);
 	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
 
 	rpmem_fip_fini(fip);
 
