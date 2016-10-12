@@ -57,8 +57,8 @@
 #define POOL_LOCAL 0
 #define POOL_REMOTE 1
 
-#define CANNOT_HAVE_REPLICAS 0
-#define CAN_HAVE_REPLICAS 1
+#define REPLICAS_DISABLED 0
+#define REPLICAS_ENABLED 1
 
 struct pool_set_part {
 	/* populated by a pool set file parser */
