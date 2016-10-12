@@ -72,7 +72,7 @@ pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
 	plp->write_offset = plp->start_offset;
 
 	/* store non-volatile part of pool's descriptor */
-	pmem_msync(&plp->start_offset, 3 * sizeof(uint64_t));
+	PERSIST_GENERIC(plp->is_pmem, &plp->start_offset, 3 * sizeof(uint64_t));
 
 	return 0;
 }
@@ -117,9 +117,9 @@ pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
  * pmemlog_runtime_init -- (internal) initialize log memory pool runtime data
  */
 static int
-pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
+pmemlog_runtime_init(PMEMlogpool *plp, int rdonly)
 {
-	LOG(3, "plp %p rdonly %d is_pmem %d", plp, rdonly, is_pmem);
+	LOG(3, "plp %p rdonly %d", plp, rdonly);
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&plp->addr,
@@ -133,7 +133,6 @@ pmemlog_runtime_init(PMEMlogpool *plp, int rdonly, int is_pmem)
 	 * created here, so no need to worry about byte-order.
 	 */
 	plp->rdonly = rdonly;
-	plp->is_pmem = is_pmem;
 
 	if ((plp->rwlockp = Malloc(sizeof(*plp->rwlockp))) == NULL) {
 		ERR("!Malloc for a RW lock");
@@ -192,6 +191,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->addr = plp;
 	plp->size = rep->repsize;
 	plp->set = set;
+	plp->is_pmem = rep->is_pmem;
 
 	/* create pool descriptor */
 	if (pmemlog_descr_create(plp, rep->repsize) != 0) {
@@ -200,7 +200,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, 0, rep->is_pmem) != 0) {
+	if (pmemlog_runtime_init(plp, 0) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -252,6 +252,7 @@ pmemlog_open_common(const char *path, int cow)
 	plp->addr = plp;
 	plp->size = rep->repsize;
 	plp->set = set;
+	plp->is_pmem = rep->is_pmem;
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
@@ -266,7 +267,7 @@ pmemlog_open_common(const char *path, int cow)
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, set->rdonly, rep->is_pmem) != 0) {
+	if (pmemlog_runtime_init(plp, set->rdonly) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}

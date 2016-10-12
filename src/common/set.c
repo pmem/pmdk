@@ -1490,7 +1490,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	 */
 	void *descp = (void *)((uintptr_t)hdrp + sizeof(*hdrp));
 	memset(descp, 0, POOL_HDR_SIZE - sizeof(*hdrp));
-	pmem_msync(descp, POOL_HDR_SIZE - sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(descp, POOL_HDR_SIZE - sizeof(*hdrp));
 
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
@@ -1542,7 +1542,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	pmem_msync(hdrp, sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
