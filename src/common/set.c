@@ -1484,14 +1484,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		return -1;
 	}
 
-	/*
-	 * Zero out the pool descriptor - just in case we fail right after
-	 * header checksum is stored.
-	 */
-	void *descp = (void *)((uintptr_t)hdrp + sizeof(*hdrp));
-	memset(descp, 0, POOL_HDR_SIZE - sizeof(*hdrp));
-	/*PERSIST_GENERIC_AUTO(descp, POOL_HDR_SIZE - sizeof(*hdrp));*/
-
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 	hdrp->major = major;
