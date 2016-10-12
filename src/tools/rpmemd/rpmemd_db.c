@@ -199,7 +199,7 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 					attr->incompat_features,
 					attr->ro_compat_features,
 					NULL,
-					CANNOT_HAVE_REPLICAS,
+					REPLICAS_DISABLED,
 					POOL_REMOTE,
 					&pattr);
 	if (ret) {

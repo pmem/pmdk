@@ -1936,7 +1936,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	}
 
 	if (!can_have_rep && set->nreplicas > 1) {
-		ERR("replicas not supported");
+		ERR("replication not supported");
 		errno = ENOTSUP;
 		return -1;
 	}
