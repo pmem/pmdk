@@ -46,6 +46,11 @@
 
 #define _CRT_RAND_S
 
+/* Prevent NVML compilation for 32-bit platforms */
+#if defined(_WIN32) && !defined(_WIN64)
+#error "32-bit builds of NVML are not supported!"
+#endif
+
 /*
  * Define off_t before windows.h is included!
  * XXX - make sure it has no side-effects
