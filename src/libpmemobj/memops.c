@@ -44,6 +44,7 @@
  */
 
 #include "memops.h"
+#include "obj.h"
 #include "out.h"
 #include "valgrind_internal.h"
 
@@ -141,6 +142,11 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 	int from_pool = ((uintptr_t)ptr >= (uintptr_t)p_ops->base &&
 			(uintptr_t)ptr < (uintptr_t)p_ops->base +
 				p_ops->pool_size);
+
+	int is_valid = OBJ_OFF_IS_VALID((struct pmemobjpool *)p_ops->base,
+		(uintptr_t)ptr - (uintptr_t)p_ops->base);
+
+	ASSERTeq(from_pool, is_valid);
 
 	operation_add_typed_entry(ctx, ptr, value, type,
 		from_pool ? ENTRY_PERSISTENT : ENTRY_TRANSIENT);
