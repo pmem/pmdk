@@ -42,7 +42,7 @@
  * Command line toggle indicating use of a bigger node structure for querying
  * pool size expressed in a number of possible allocations. A small node
  * structure results in a great number of allocations impossible to replicate
- * in assumed timeout. It is required by unittests using remote replication to
+ * in assumed timeout. It is required by unit tests using remote replication to
  * pass on Travis.
  */
 #define USE_BIG_ALLOC "--big-alloc"

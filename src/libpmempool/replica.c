@@ -339,7 +339,7 @@ replica_check_store_size(struct pool_set *set,
 }
 
 /*
- * check_store_all_sizes -- (internal) store sizes from pool desciptor for all
+ * check_store_all_sizes -- (internal) store sizes from pool descriptor for all
  * healthy replicas
  */
 static int

@@ -135,7 +135,7 @@ public:
 	 *	the pool can be created in-place depending on the size
 	 *	parameter. Existing file must be zeroed.
 	 * @param layout Unique identifier of the pool, can be a
-	 *	NULL-terminated string.
+	 *	null-terminated string.
 	 * @param size Size of the pool in bytes. If zero and the file
 	 *	exists the pool is created in-place.
 	 * @param mode File mode for the new file.
@@ -421,7 +421,7 @@ public:
 	 *	the pool can be created in-place depending on the size
 	 *	parameter. Existing file must be zeroed.
 	 * @param layout Unique identifier of the pool, can be a
-	 *	NULL-terminated string.
+	 *	null-terminated string.
 	 * @param size Size of the pool in bytes. If zero and the file
 	 *	exists the pool is created in-place.
 	 * @param mode File mode for the new file.

@@ -40,7 +40,7 @@
  * It would replace default implementation with mocked functions defined
  * in obj_bucket.c.
  *
- * These defines could be also passed as preprocesor definitions.
+ * These defines could be also passed as preprocessor definitions.
  */
 
 #ifndef WRAP_REAL
