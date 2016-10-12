@@ -49,6 +49,7 @@
 #include "rpmem_util.h"
 
 #define ERR_BUFF_SIZE	4095
+#define RPMEM_WAIT_CLOSE 100
 
 /* +1 in order to be sure it is always null-terminated */
 static char error_str[ERR_BUFF_SIZE + 1];
@@ -220,8 +221,8 @@ rpmem_ssh_exec(const struct rpmem_target_info *info, ...)
 
 	return rps;
 err_run:
-	rpmem_cmd_term(rps->cmd);
-	rpmem_cmd_wait(rps->cmd, NULL);
+	rpmem_cmd_kill(rps->cmd);
+	rpmem_cmd_wait(rps->cmd, NULL, -1);
 err_push:
 	free(cmd);
 err_cmd:
@@ -282,8 +283,13 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 {
 	int ret;
 
-	rpmem_cmd_term(rps->cmd);
-	rpmem_cmd_wait(rps->cmd, &ret);
+	ret = rpmem_cmd_wait(rps->cmd, &ret, RPMEM_WAIT_CLOSE);
+	if (ret) {
+		/* kill process after timeout */
+		rpmem_cmd_kill(rps->cmd);
+		rpmem_cmd_wait(rps->cmd, &ret, -1);
+	}
+
 	rpmem_cmd_fini(rps->cmd);
 	free(rps);
 

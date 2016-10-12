@@ -251,7 +251,7 @@ err_monitor:
 }
 
 /*
- * rpmem_common_fini -- common routing for deinitialization
+ * rpmem_common_fini -- common routine for deinitialization
  */
 static void
 rpmem_common_fini(RPMEMpool *rpp, int join, const char *pool_set)

@@ -50,6 +50,6 @@ struct rpmem_cmd {
 struct rpmem_cmd *rpmem_cmd_init(void);
 int rpmem_cmd_push(struct rpmem_cmd *cmd, const char *arg);
 int rpmem_cmd_run(struct rpmem_cmd *cmd);
-int rpmem_cmd_term(struct rpmem_cmd *cmd);
-int rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status);
+int rpmem_cmd_kill(struct rpmem_cmd *cmd);
+int rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status, int timeout);
 void rpmem_cmd_fini(struct rpmem_cmd *cmd);

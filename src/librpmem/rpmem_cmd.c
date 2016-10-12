@@ -72,6 +72,13 @@ err_alloc_cmd:
 void
 rpmem_cmd_fini(struct rpmem_cmd *cmd)
 {
+	if (cmd->fd_in != -1)
+		close(cmd->fd_in);
+	if (cmd->fd_out != -1)
+		close(cmd->fd_out);
+	if (cmd->fd_err != -1)
+		close(cmd->fd_err);
+
 	for (int i = 0; i < cmd->args.argc; i++)
 		free(cmd->args.argv[i]);
 	free(cmd->args.argv);
@@ -230,29 +237,44 @@ err_pipe_in:
 }
 
 /*
- * rpmem_cmd_wait -- wait for process to change state
+ * rpmem_cmd_wait -- wait for process to change state up to timeout
+ * miliseconds, if timeout == -1 wait infinite time.
  */
 int
-rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status)
+rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status, int timeout)
 {
 	if (!cmd->pid)
 		return -1;
 
-	if (waitpid(cmd->pid, status, 0) != cmd->pid)
-		return -1;
+	if (timeout == -1) {
+		if (waitpid(cmd->pid, status, 0) != cmd->pid)
+			return -1;
+		return 0;
+	}
 
-	return 0;
+	for (int i = 0; i < timeout; i++) {
+		int ret = waitpid(cmd->pid, status, WNOHANG);
+		if (ret == 0) {
+			/* 1 ms */
+			usleep(1000);
+			continue;
+		}
+
+		if (ret != cmd->pid)
+			return -1;
+
+		return 0;
+	}
+
+	/* timeout */
+	return -1;
 }
 
 /*
  * rpmem_cmd_term -- terminate process by sending SIGINT signal
  */
 int
-rpmem_cmd_term(struct rpmem_cmd *cmd)
+rpmem_cmd_kill(struct rpmem_cmd *cmd)
 {
-	close(cmd->fd_in);
-	close(cmd->fd_out);
-	close(cmd->fd_err);
-
-	return kill(cmd->pid, SIGINT);
+	return kill(cmd->pid, SIGKILL);
 }
