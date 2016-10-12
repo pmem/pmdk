@@ -153,7 +153,7 @@ The allowed options are:
   + **info** - informational message
   + **debug** - debug-level message
 
-The **$HOME** substring in the *poolset-dir* path is replaced with the current user
+The **$HOME** sub-string in the *poolset-dir* path is replaced with the current user
 home directory.
 
 

@@ -63,7 +63,7 @@ REPLICA
 20M $DIR/testfile11
 EOF
 
-# CLI script for writing some data hittin all the parts
+# CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data
 cat << EOF > $WRITE_SCRIPT
 pr 45M
