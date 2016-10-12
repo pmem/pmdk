@@ -119,7 +119,7 @@ rpmemd_obc_check_pool_desc(struct rpmem_msg_hdr *hdrp, size_t msg_size,
 
 	if (pool_desc->desc[pool_desc->size - 1] != '\0') {
 		RPMEMD_LOG(ERR, "invalid pool descriptor "
-			"(must be NULL-terminated string)");
+			"(must be null-terminated string)");
 		return -1;
 	}
 

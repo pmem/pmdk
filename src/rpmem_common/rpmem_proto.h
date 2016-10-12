@@ -83,7 +83,7 @@ struct rpmem_msg_ibc_attr {
  */
 struct rpmem_msg_pool_desc {
 	uint32_t size;		/* size of pool descriptor */
-	uint8_t desc[0];	/* pool descriptor, NULL-terminated string */
+	uint8_t desc[0];	/* pool descriptor, null-terminated string */
 } PACKED;
 
 /*
