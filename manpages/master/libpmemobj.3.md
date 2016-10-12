@@ -902,7 +902,7 @@ The **POBJ_LAYOUT_END**() macro ends the declaration of layout.
 POBJ_LAYOUT_NAME(LAYOUT)
 ```
 
-The **POBJ_LAYOUT_NAME**() macro returns the name of layout as a NUL-terminated string.
+The **POBJ_LAYOUT_NAME**() macro returns the name of layout as a null-terminated string.
 
 ```c
 POBJ_LAYOUT_TYPES_NUM(LAYOUT)

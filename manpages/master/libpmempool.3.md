@@ -272,7 +272,7 @@ return one of the following values:
 + **PMEMPOOL_CHECK_RESULT_CONSISTENT** - the *pool* is consistent
 + **PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT** - the *pool* is not consistent
 + **PMEMPOOL_CHECK_RESULT_REPAIRED** - the *pool* has issues but all repair
-  steps completed succesfully
+  steps completed successfully
 + **PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR** - the *pool* has issues which
   can not be repaired
 + **PMEMPOOL_CHECK_RESULT_ERROR** - the *pool* has errors or the check
@@ -307,7 +307,7 @@ are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 
-The function returns either 0 on succcess or -1 in case of error
+The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
 
 
@@ -354,7 +354,7 @@ Effective size of a replica is the sum of sizes of all its part files decreased
 by 4096 bytes per each part file. The 4096 bytes of each part file is
 utilized for storing internal metadata of the pool part files.
 
-The function returns either 0 on succcess or -1 in case of error
+The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
 
 
