@@ -32,21 +32,14 @@
 #
 
 #
-# src/test/win_getopt/TEST1 -- unit test for windows getopt implementation
+# src/test/log_include/TEST0 - if it compiles it's perfect
 #
-export UNITTEST_NAME=win_getopt/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=log_include/TEST0
+export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
-ERR=stderr${UNITTEST_NUM}.log
-
-require_fs_type none
 
 setup
-
-expect_normal_exit ./win_getopt$EXESUFFIX -Z --arg_Z -A 2>$ERR
-
-check
 
 pass
