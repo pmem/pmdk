@@ -119,10 +119,10 @@ client_exchange(struct rpmem_target_info *info,
 }
 
 /*
- * client_close -- close connection
+ * client_close_begin -- begin closing connection
  */
 void
-client_close(client_t *c)
+client_close_begin(client_t *c)
 {
 	int cmd = 1;
 	int ret;
@@ -133,7 +133,14 @@ client_close(client_t *c)
 	ret = rpmem_ssh_recv(c, &cmd, sizeof(cmd));
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(cmd, 0);
+}
 
+/*
+ * client_close_end -- end closing connection
+ */
+void
+client_close_end(client_t *c)
+{
 	rpmem_ssh_close(c);
 }
 
@@ -189,5 +196,4 @@ server_close_end(void)
 	int cmd = 0;
 
 	WRITE(STDOUT_FILENO, &cmd, sizeof(cmd));
-	READ(STDIN_FILENO, &cmd, sizeof(cmd));
 }
