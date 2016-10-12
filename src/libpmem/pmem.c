@@ -642,7 +642,10 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
 	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
 
+	/* On windows we cannot close handle, it will be closed in unmap */
+#ifndef __WIN32
 	(void) close(fd);
+#endif
 
 	return addr;
 

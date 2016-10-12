@@ -36,13 +36,6 @@ function touch {
     Out-File -InputObject $null -Encoding ascii -FilePath $args[0]
 }
 
-function cmp {
-    fc.exe /b $args[0] $args[1] > $null
-    if ($LASTEXITCODE -ne 0) {
-        "$args differ"
-    }
-}
-
 function epoch {
     return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
 }
@@ -934,6 +927,35 @@ function dump_last_n_lines {
 
         Write-Host (Get-Content $fname -Tail $ln)
     }
+
+}
+
+function cmp {
+    $file1 = $Args[0]
+    $file2 = $Args[1]
+    $argc = $Args.Count
+
+    if($argc -gt 2) {
+        $limit = $Args[2]
+    } else {
+        # fc does not support / in file path
+        fc.exe /b ([String]$file1).Replace('/','\') ([string]$file2).Replace('/','\') > $null
+        if ($LASTEXITCODE -ne 0) {
+            "$args differ"
+        }
+        return
+    }
+
+    $stream1 = [System.IO.File]::OpenRead($file1)
+    $stream2 = [System.IO.File]::OpenRead($file2)
+    for ($i=0; $i -lt $limit; $i++) {
+        if($stream1.ReadByte() -ne $stream2.ReadByte()) {
+            "$args differ"
+            break;
+        }
+    }
+    $stream1.Close()
+    $stream2.Close()
 
 }
 #######################################################

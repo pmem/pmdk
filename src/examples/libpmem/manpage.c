@@ -40,7 +40,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 #include <string.h>
 #include <libpmem.h>
 
