@@ -39,13 +39,13 @@ export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
-$ERR=stderr${UNITTEST_NUM}.log
+ERR=stderr${UNITTEST_NUM}.log
 
 require_fs_type none
 
 setup
 
-expect_normal_exit ./win_getopt$EXESUFFIX ./win_getopt nonOption -f -3arg \
+expect_normal_exit ./win_getopt$EXESUFFIX nonOption -f -3arg \
 -Barg -b --arg_4=a --arg_G -5 -a -A arg --arg_g -d -1 -e nonOption2 --arg_8 \
 nonOption3 --arg_6 -E-a --arg_C=arg -a -7arg --arg_c --arg_D arg -h \
 --arg_H arg -2 nonOption4 2>$ERR
