@@ -73,6 +73,10 @@ enum pobj_tx_lock {
 	TX_LOCK_RWLOCK	/* PMEMrwlock */
 };
 
+#define PMEMOBJ_FLAG_ZERO (1 << 0)
+#define PMEMOBJ_FLAG_NO_FLUSH (1 << 1)
+#define PMEMOBJ_VALID_FLAGS (PMEMOBJ_FLAG_ZERO | PMEMOBJ_FLAG_NO_FLUSH)
+
 /*
  * Starts a new transaction in the current thread.
  * If called within an open transaction, starts a nested transaction.
@@ -162,6 +166,20 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 
 /*
+ * Behaves exactly the same as pmemobj_tx_add_range when 'flags' equals 0.
+ * 'Flags' is a bitmask of the following values:
+ *  - PMEMOBJ_FLAG_NO_FLUSH - skips flush on commit
+ */
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, int flags);
+
+/*
+ * Behaves exactly the same as pmemobj_tx_add_range_direct when 'flags' equals
+ * 0. 'Flags' is a bitmask of the following values:
+ *  - PMEMOBJ_FLAG_NO_FLUSH - skips flush on commit
+ */
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, int flags);
+
+/*
  * Transactionally allocates a new object.
  *
  * If successful, returns PMEMoid.
@@ -171,15 +189,14 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  */
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 
-#define PMEMOBJ_FLAG_ZERO (1 << 0)
-#define PMEMOBJ_FLAG_NO_FLUSH (1 << 1)
-#define PMEMOBJ_VALID_FLAGS (PMEMOBJ_FLAG_ZERO | PMEMOBJ_FLAG_NO_FLUSH)
-
 /*
  * Transactionally allocates a new object.
  *
  * If successful, returns PMEMoid.
  * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ * 'Flags' is a bitmask of the following values:
+ *  - PMEMOBJ_FLAG_ZERO - zero the allocated object
+ *  - PMEMOBJ_FLAG_NO_FLUSH - skip flush on commit
  *
  * This function must be called during TX_STAGE_WORK.
  */

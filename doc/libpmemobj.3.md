@@ -305,6 +305,8 @@ void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, int flags);
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, int flags);
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
@@ -325,6 +327,11 @@ TX_ADD(TOID o)
 TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
+
+TX_XADD(TOID o, int flags)
+TX_XADD_FIELD(TOID o, FIELD, int flags)
+TX_XADD_DIRECT(TYPE *p, int flags)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, int flags)
 
 TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
@@ -1610,6 +1617,15 @@ range will be rolled-back. The supplied block of memory has to be within the poo
 changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
 
 ```c
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, int flags);
+```
+
+The **pmemobj_tx_xadd_range**() function behaves exactly the same as **pmemobj_tx_add_range**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **PMEMOBJ_FLAG_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
+
+```c
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 ```
 
@@ -1618,6 +1634,15 @@ persistent memory objects. It takes a "snapshot" of a persistent memory block of
 space and saves it to the undo log. The application is then free to directly modify the object in that memory range. In case of a failure or abort, all the
 changes within this range will be rolled-back. The supplied block of memory has to be within the pool registered in the transaction. If successful, returns
 zero. Otherwise, state changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
+
+```c
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size);
+```
+
+The **pmemobj_tx_xadd_range_direct**() function behaves exactly the same as **pmemobj_tx_add_range_direct**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **PMEMOBJ_FLAG_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
 
 ```c
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
@@ -1756,11 +1781,25 @@ The **TX_ADD_FIELD**() macro saves in the undo log the current value of given *F
 directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD(TOID o, FIELD, int flags)
+```
+
+The **TX_XADD_FIELD**() macro works exactly like **TX_ADD_FIELD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
+
+```c
 TX_ADD(TOID o)
 ```
 
 The **TX_ADD**() macro takes a "snapshot" of the entire object referenced by object handle *o* and saves it in the undo log. The object size is determined from
 its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
+
+```c
+TX_XADD(TOID o, int flags)
+```
+
+The **TX_XADD**() macro works exactly like **TX_ADD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
 
 ```c
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
@@ -1770,12 +1809,26 @@ The **TX_ADD_FIELD_DIRECT**() macro saves in the undo log the current value of g
 is then free to directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, int flags)
+```
+
+The **TX_XADD_FIELD_DIRECT**() macro works exactly like **TX_ADD_FIELD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
+
+```c
 TX_ADD_DIRECT(TYPE *p)
 ```
 
 The **TX_ADD_DIRECT**() macro takes a "snapshot" of the entire object referenced by (direct) pointer *p* and saves it in the undo log. The object size is
 determined from its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will
 be rolled-back.
+
+```c
+TX_XADD_DIRECT(TYPE *p, int flags)
+```
+
+The **TX_XADD_DIRECT**() macro works exactly like **TX_ADD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
 
 ```c
 TX_SET(TOID o, FIELD, VALUE)

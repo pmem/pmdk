@@ -81,6 +81,8 @@ struct tx_undo_runtime {
 	struct pvector_context *ctx[MAX_UNDO_TYPES];
 };
 
+#define PMEMOBJ_XADD_VALID_FLAGS PMEMOBJ_FLAG_NO_FLUSH
+
 #define RANGE_FLAGS_MIN_BIT 48
 #define RANGE_FLAGS_MASK (0xffffULL << RANGE_FLAGS_MIN_BIT)
 
@@ -115,6 +117,7 @@ struct tx_add_range_args {
 	PMEMobjpool *pop;
 	uint64_t offset;
 	uint64_t size;
+	int flags;
 };
 
 /*
@@ -1585,6 +1588,8 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 	uint64_t spoint = args->offset + args->size - 1; /* start point */
 	uint64_t apoint = 0; /* add point */
 	int ret = 0;
+	uint64_t range_flags = (args->flags & PMEMOBJ_FLAG_NO_FLUSH) ?
+			RANGE_FLAG_NO_FLUSH : 0;
 
 	while (spoint >= args->offset) {
 		apoint = spoint + 1;
@@ -1632,7 +1637,7 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 			break;
 
 		ret = ctree_insert_unlocked(runtime->ranges, nargs.offset,
-				nargs.size);
+				nargs.size | range_flags);
 		if (ret != 0) {
 			if (ret == EEXIST)
 				FATAL("invalid state of ranges tree");
@@ -1673,7 +1678,44 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
 		.offset = (uint64_t)((char *)ptr - (char *)lane->pop),
-		.size = size
+		.size = size,
+		.flags = 0,
+	};
+
+	return pmemobj_tx_add_common(&args);
+}
+
+/*
+ * pmemobj_tx_xadd_range_direct -- adds persistent memory range into the
+ *					transaction
+ */
+int
+pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, int flags)
+{
+	LOG(3, NULL);
+
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	if ((char *)ptr < (char *)lane->pop ||
+			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
+		ERR("object outside of pool");
+		return obj_tx_abort_err(EINVAL);
+	}
+
+	if (flags & ~PMEMOBJ_XADD_VALID_FLAGS) {
+		ERR("unknown flags 0x%x", flags & ~PMEMOBJ_XADD_VALID_FLAGS);
+		return obj_tx_abort_err(EINVAL);
+	}
+
+	struct tx_add_range_args args = {
+		.pop = lane->pop,
+		.offset = (uint64_t)((char *)ptr - (char *)lane->pop),
+		.size = size,
+		.flags = flags,
 	};
 
 	return pmemobj_tx_add_common(&args);
@@ -1702,7 +1744,51 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	struct tx_add_range_args args = {
 		.pop = lane->pop,
 		.offset = oid.off + hoff,
-		.size = size
+		.size = size,
+		.flags = 0,
+	};
+
+	/*
+	 * If internal type is in undo log it means
+	 * the object was allocated within this transaction
+	 * and there is no need to create a snapshot.
+	 */
+	if (!OBJ_OID_IS_IN_UNDO_LOG(lane->pop, oid))
+		return pmemobj_tx_add_common(&args);
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_xadd_range -- adds persistent memory range into the transaction
+ */
+int
+pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, int flags)
+{
+	LOG(3, NULL);
+
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
+		ERR("invalid pool uuid");
+		return obj_tx_abort_err(EINVAL);
+	}
+	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+
+	if (flags & ~PMEMOBJ_XADD_VALID_FLAGS) {
+		ERR("unknown flags 0x%x", flags & ~PMEMOBJ_XADD_VALID_FLAGS);
+		return obj_tx_abort_err(EINVAL);
+	}
+
+	struct tx_add_range_args args = {
+		.pop = lane->pop,
+		.offset = oid.off + hoff,
+		.size = size,
+		.flags = flags,
 	};
 
 	/*
