@@ -84,6 +84,8 @@ provider_regular_file_open(struct pmem_provider *p,
 	 * neither should we.
 	 */
 	flags |= O_BINARY;
+	if (!mode)
+		mode = S_IWRITE | S_IREAD;
 #endif
 
 	if (tmp) {
@@ -196,7 +198,7 @@ provider_regular_file_lock(struct pmem_provider *p)
  * For regular files persistence depends on the underlying file system.
  */
 static int
-provider_regular_file_always_pmem()
+provider_regular_file_always_pmem(void)
 {
 	return 0;
 }
