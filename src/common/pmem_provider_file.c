@@ -196,7 +196,7 @@ provider_regular_file_lock(struct pmem_provider *p)
  * For regular files persistence depends on the underlying file system.
  */
 static int
-provider_regular_file_always_pmem()
+provider_regular_file_always_pmem(void)
 {
 	return 0;
 }

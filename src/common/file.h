@@ -62,6 +62,7 @@ typedef struct _stat64 util_stat_t;
 /* XXX - consider adding an assertion on (count <= UINT_MAX) */
 #define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
+#define	S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #endif
 
 #endif
