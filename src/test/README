@@ -136,6 +136,17 @@ In additional to TEST0, there can be as many TEST<num> scripts as desired, and
 RUNTESTS will execute them in numeric order for each of the test runs it
 executes.
 
+There are two ways of setting test requirements:
+	- using config.sh file located in a test sub-directory. It is the new and
+	recommended method but it is still under development and does not cover all
+	possible requirements. It is applied prior to the second method. If
+	config.sh includes test requirements which are not met, the test will not be
+	run at all. For details see config.sh.example.
+
+	- using require_* utility functions. It is the old but still supported
+	method. It can be used simultaneously with config.sh. Available require_*
+	utility functions are described below.
+
 If a test does not need any storage, the script uses this line:
 
 	require_fs_type none

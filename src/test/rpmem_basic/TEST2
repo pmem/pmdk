@@ -40,12 +40,6 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type any
-require_build_type nondebug debug
-
-rpmem_foreach_provider
-rpmem_foreach_persist
-
 setup
 
 . setup.sh
