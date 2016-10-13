@@ -225,7 +225,7 @@ provider_device_dax_lock(struct pmem_provider *p)
  * Always true for device dax.
  */
 static int
-provider_device_dax_always_pmem()
+provider_device_dax_always_pmem(void)
 {
 	return 1;
 }

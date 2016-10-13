@@ -26,5 +26,8 @@
     <ClCompile Include="..\..\..\libpmemblk\btt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\common\pmem_provider_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
