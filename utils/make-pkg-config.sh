@@ -71,6 +71,7 @@ Version: \${version}
 URL: http://pmem.io/nvml
 Requires: libpmem
 Libs: -L\${libdir} -lpmemobj
+Libs.private: -ldl
 Cflags: -I\${includedir}
 EOF
 
@@ -86,6 +87,7 @@ Version: \${version}
 URL: http://pmem.io/nvml
 Requires: libpmem
 Libs: -L\${libdir} -lpmempool
+Libs.private: -ldl
 Cflags: -I\${includedir}
 EOF
 
