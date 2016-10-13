@@ -122,5 +122,5 @@ increased verbosity level.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
-and **<http://pmem.io>**
+**pmempool**(1), **libpmempool**(3), **libpmemlog**(3), **libpmemblk**(3),
+**libpmemobj**(3) and **<http://pmem.io>**
