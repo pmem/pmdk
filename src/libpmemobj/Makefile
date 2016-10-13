@@ -44,6 +44,8 @@ SOURCE =\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/pool_hdr_linux.c\
 	$(COMMON)/pmem_provider.c\
+	$(COMMON)/pmem_provider_dax.c\
+	$(COMMON)/pmem_provider_file.c\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
