@@ -443,8 +443,10 @@ unmap_all_headers(struct pool_set *set)
 		struct pool_replica *rep = set->replica[r];
 		util_replica_close(set, r);
 
-		if (rep->remote && rep->remote->rpp)
+		if (rep->remote && rep->remote->rpp) {
 			Rpmem_close(rep->remote->rpp);
+			rep->remote->rpp = NULL;
+		}
 	}
 
 	return 0;
