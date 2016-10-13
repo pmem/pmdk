@@ -791,12 +791,14 @@ static const struct step steps[] = {
 	},
 	{
 		.fix	= pool_hdr_default_fix,
+		.check	= pool_hdr_checksum_retry,
 	},
 	{
 		.check	= pool_hdr_poolset_uuid,
 	},
 	{
 		.fix	= pool_hdr_poolset_uuid_fix,
+		.check	= pool_hdr_checksum_retry,
 	},
 	{
 		.check	= pool_hdr_uuids_single,
@@ -804,6 +806,7 @@ static const struct step steps[] = {
 	},
 	{
 		.fix	= pool_hdr_uuids_single_fix,
+		.check	= pool_hdr_checksum_retry,
 		.num_of_elements = NUM_OF_PAR_SINGLE,
 	},
 	{
@@ -812,10 +815,8 @@ static const struct step steps[] = {
 	},
 	{
 		.fix	= pool_hdr_uuids_fix,
-		.num_of_elements = NUM_OF_PAR_MANY,
-	},
-	{
 		.check	= pool_hdr_checksum_retry,
+		.num_of_elements = NUM_OF_PAR_MANY,
 	},
 	{
 		.check	= pool_hdr_gen,
@@ -879,6 +880,11 @@ step_exe(PMEMpoolcheck *ppc, union location *loc,
 	memcpy(ctx.hdrp, &ctx.hdr, sizeof(*ctx.hdrp));
 	msync(ctx.hdrp, sizeof(*ctx.hdrp), MS_SYNC);
 	loc->header_modified = 1;
+
+	/* execute check after fix if available */
+	if (step->check)
+		return step->check(ppc, loc);
+
 	return 0;
 }
 
