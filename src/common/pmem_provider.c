@@ -48,149 +48,17 @@
 #include "mmap.h"
 #include "out.h"
 
-#ifndef USE_O_TMPFILE
-#ifdef O_TMPFILE
-#define USE_O_TMPFILE 1
-#else
-#define USE_O_TMPFILE 0
-#endif
-#endif
-
-#define DEVICE_DAX_PREFIX "/sys/class/dax"
-#define MAX_SIZE_LENGTH 64
+static struct pmem_provider_ops *
+pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {NULL};
 
 /*
- * provider_device_dax_open -- (internal) opens a dax device
+ * pmem_provider_type_register -- adds a new type to the pmem providers
  */
-static int
-provider_device_dax_open(struct pmem_provider *p,
-	int flags, mode_t mode, int tmp)
+void
+pmem_provider_type_register(enum pmem_provider_type type,
+	struct pmem_provider_ops *ops)
 {
-	if (tmp)
-		return -1;
-
-#ifdef O_TMPFILE
-	if (flags & O_TMPFILE)
-		return -1;
-#endif
-
-	int init_device = 0;
-	if (flags & O_CREAT) {
-		flags &= ~O_CREAT;
-		flags &= ~O_EXCL; /* just in case */
-		init_device = 1;
-	}
-
-	if ((p->fd = open(p->path, flags, mode)) < 0)
-		return -1;
-
-	if (init_device) {
-		ssize_t size = p->pops->get_size(p);
-		if (size < 0)
-			goto error_after_open;
-
-		void *addr = util_map(p->fd, (size_t)size, 0, 0);
-		if (addr == NULL)
-			goto error_after_open;
-
-		/* zero initialize the entire device */
-		memset(addr, 0, (size_t)size);
-
-		util_unmap(addr, (size_t)size);
-	}
-
-	return 0;
-
-error_after_open:
-	p->pops->close(p);
-	return -1;
-}
-
-/*
- * provider_regular_file_open -- (internal) opens, or creates, a regular file
- */
-static int
-provider_regular_file_open(struct pmem_provider *p,
-	int flags, mode_t mode, int tmp)
-{
-#ifdef _WIN32
-	/*
-	 * POSIX does not differentiate between binary/text file modes and
-	 * neither should we.
-	 */
-	flags |= O_BINARY;
-#endif
-
-	if (tmp) {
-#if USE_O_TMPFILE
-		flags |= O_TMPFILE;
-		if ((p->fd = open(p->path, flags, mode)) < 0)
-			return -1;
-#else
-		if ((p->fd = util_tmpfile(p->path, "/pmem.XXXXXX")) < 0) {
-			return -1;
-		}
-#endif
-	} else {
-		if ((p->fd = open(p->path, flags, mode)) < 0)
-			return -1;
-	}
-
-	if (!p->exists) {
-		if (util_fstat(p->fd, &p->st) < 0) {
-			p->pops->unlink(p);
-			p->pops->close(p);
-			return -1;
-		}
-		p->exists = 1;
-	}
-
-	return 0;
-}
-
-/*
- * provider_common_close -- (internal) closes the pmem provider
- */
-static void
-provider_common_close(struct pmem_provider *p)
-{
-	int olderrno = errno;
-	(void) close(p->fd);
-	errno = olderrno;
-}
-
-/*
- * provider_device_dax_unlink --
- *	(internal) no-op, doesn't make sense on dax device.
- */
-static void
-provider_device_dax_unlink(struct pmem_provider *p)
-{
-	ASSERT(0);
-}
-
-/*
- * provider_regular_file_unlink -- (internal) unlinks a regular file
- */
-static void
-provider_regular_file_unlink(struct pmem_provider *p)
-{
-	int olderrno = errno;
-	(void) unlink(p->path);
-	errno = olderrno;
-}
-
-/*
- * provider_common_map -- (internal) creates a new virtual address space mapping
- */
-static void *
-provider_common_map(struct pmem_provider *p, size_t alignment)
-{
-	ssize_t size = p->pops->get_size(p);
-	if (size < 0)
-		return NULL;
-
-	return util_map(p->fd, (size_t)size, 0, alignment);
+	pmem_provider_operations[type] = ops;
 }
 
 /*
@@ -199,201 +67,14 @@ provider_common_map(struct pmem_provider *p, size_t alignment)
 static enum pmem_provider_type
 pmem_provider_query_type(struct pmem_provider *p)
 {
-	if (!p->exists) /* if it doesn't exist a regular file will be created */
-		return PMEM_PROVIDER_REGULAR_FILE;
+	for (enum pmem_provider_type type = PMEM_PROVIDER_UNKNOWN;
+		type < MAX_PMEM_PROVIDER_TYPE; ++type)
+		if (pmem_provider_operations[type] &&
+			pmem_provider_operations[type]->type_match(p))
+			return type;
 
-	if (!S_ISCHR(p->st.st_mode))
-		return PMEM_PROVIDER_REGULAR_FILE;
-
-	char path[PATH_MAX];
-	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
-		major(p->st.st_rdev), minor(p->st.st_rdev));
-
-	char npath[PATH_MAX];
-	char *rpath = realpath(path, npath);
-	if (rpath == NULL)
-		return PMEM_PROVIDER_UNKNOWN;
-
-	return strncmp(DEVICE_DAX_PREFIX, rpath, strlen(DEVICE_DAX_PREFIX))
-		== 0 ? PMEM_PROVIDER_DEVICE_DAX : PMEM_PROVIDER_UNKNOWN;
+	return PMEM_PROVIDER_UNKNOWN;
 }
-
-/*
- * provider_device_dax_get_size --
- *	(internal) returns the size of a dax char device
- */
-static ssize_t
-provider_device_dax_get_size(struct pmem_provider *p)
-{
-	char path[PATH_MAX];
-	snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/size",
-		major(p->st.st_rdev), minor(p->st.st_rdev));
-	int fd = open(path, O_RDONLY);
-	if (fd < 0)
-		goto err;
-
-	char sizebuf[MAX_SIZE_LENGTH] = {1};
-	ssize_t nread;
-	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0)
-		goto err_read;
-
-	sizebuf[nread] = 0; /* null termination */
-
-	char *endptr;
-
-	int olderrno = errno;
-	errno = 0;
-
-	ssize_t size = strtoll(sizebuf, &endptr, 0);
-	if (endptr == sizebuf || *endptr != '\n' ||
-		((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE))
-		goto err_read;
-
-	errno = olderrno;
-
-	(void) close(fd);
-
-	return size;
-
-err_read:
-	(void) close(fd);
-err:
-	return -1;
-}
-
-/*
- * provider_regular_file_get_size --
- *	(internal) returns the size of a regular file
- */
-static ssize_t
-provider_regular_file_get_size(struct pmem_provider *p)
-{
-	if (p->st.st_size < 0)
-		return -1;
-
-	return (ssize_t)p->st.st_size;
-}
-
-/*
- * provider_regular_file_allocate_space --
- *	(internal) reserves space in the provider, either by allocating the
- *	blocks or truncating the file to requested size.
- */
-static int
-provider_regular_file_allocate_space(struct pmem_provider *p,
-	size_t size, int sparse)
-{
-	if (sparse) {
-		if (ftruncate(p->fd, (off_t)size) != 0) {
-			ERR("!ftruncate");
-			return -1;
-		}
-	} else {
-		int olderrno = errno;
-		errno = posix_fallocate(p->fd, 0, (off_t)size);
-		if (errno != 0) {
-			ERR("!posix_fallocate");
-			return -1;
-		}
-		errno = olderrno;
-	}
-	/* refresh stat, size might have changed */
-	if (util_fstat(p->fd, &p->st) < 0) {
-		return -1;
-	}
-	return 0;
-}
-
-/*
- * provider_device_dax_allocate_space --
- *	(internal) device dax is fixed-length, this is a no-op
- */
-static int
-provider_device_dax_allocate_space(struct pmem_provider *p,
-	size_t size, int sparse)
-{
-	return 0;
-}
-
-/*
- * provider_device_dax_lock -- (internal) grabs a file lock, released on close
- */
-static int
-provider_device_dax_lock(struct pmem_provider *p)
-{
-	/*
-	 * XXX: flock does work on a dax device, but it has a slightly different
-	 * behavior that breaks some functionality
-	 */
-	return 0;
-}
-
-/*
- * provider_common_lock -- (internal) grabs a file lock, released on close
- */
-static int
-provider_common_lock(struct pmem_provider *p)
-{
-	return flock(p->fd, LOCK_EX | LOCK_NB);
-}
-
-/*
- * provider_device_dax_always_pmem -- (internal) returns whether the provider
- *	always guarantees that the storage is persistent.
- *
- * Always true for device dax.
- */
-static int
-provider_device_dax_always_pmem()
-{
-	return 1;
-}
-
-/*
- * provider_regular_file_always_pmem -- (internal) returns whether the provider
- *	always guarantees that the storage is persistent.
- *
- * For regular files persistence depends on the underlying file system.
- */
-static int
-provider_regular_file_always_pmem()
-{
-	return 0;
-}
-
-static struct pmem_provider_ops
-pmem_provider_operations[MAX_PMEM_PROVIDER_TYPE] = {
-	[PMEM_PROVIDER_UNKNOWN] = {
-		.open = NULL,
-		.close = NULL,
-		.unlink = NULL,
-		.lock = NULL,
-		.map = NULL,
-		.get_size = NULL,
-		.allocate_space = NULL,
-		.always_pmem = NULL,
-	},
-	[PMEM_PROVIDER_REGULAR_FILE] = {
-		.open = provider_regular_file_open,
-		.close = provider_common_close,
-		.unlink = provider_regular_file_unlink,
-		.lock = provider_common_lock,
-		.map = provider_common_map,
-		.get_size = provider_regular_file_get_size,
-		.allocate_space = provider_regular_file_allocate_space,
-		.always_pmem = provider_regular_file_always_pmem,
-	},
-	[PMEM_PROVIDER_DEVICE_DAX] = {
-		.open = provider_device_dax_open,
-		.close = provider_common_close,
-		.unlink = provider_device_dax_unlink,
-		.lock = provider_device_dax_lock,
-		.map = provider_common_map,
-		.get_size = provider_device_dax_get_size,
-		.allocate_space = provider_device_dax_allocate_space,
-		.always_pmem = provider_device_dax_always_pmem,
-	},
-};
 
 /*
  * pmem_file_init -- initializes an instance of peristent memory provider
@@ -421,7 +102,7 @@ pmem_provider_init(struct pmem_provider *p, const char *path)
 
 	ASSERTne(p->type, MAX_PMEM_PROVIDER_TYPE);
 
-	p->pops = &pmem_provider_operations[p->type];
+	p->pops = pmem_provider_operations[p->type];
 
 	return 0;
 

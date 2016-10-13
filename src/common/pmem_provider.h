@@ -59,6 +59,7 @@ struct pmem_provider {
 };
 
 struct pmem_provider_ops {
+	int (*type_match)(struct pmem_provider *p);
 	int (*open)(struct pmem_provider *p, int flags, mode_t mode, int tmp);
 	void (*close)(struct pmem_provider *p);
 	void (*unlink)(struct pmem_provider *p);
@@ -71,5 +72,23 @@ struct pmem_provider_ops {
 
 int pmem_provider_init(struct pmem_provider *p, const char *path);
 void pmem_provider_fini(struct pmem_provider *p);
+
+void pmem_provider_type_register(enum pmem_provider_type type,
+	struct pmem_provider_ops *ops);
+
+#ifndef _MSC_VER
+
+#define PMEM_PROVIDER_TYPE(n, ops)\
+__attribute__((constructor)) static void _pmem_provider_##n(void)\
+{ pmem_provider_type_register(n, ops); }
+
+#else
+
+#define PMEM_PROVIDER_TYPE(n, ops)\
+static void _pmem_provider_##n(void)\
+{ pmem_provider_type_register(n, ops); }\
+MSVC_CONSTR(_pmem_provider_##n)
+
+#endif
 
 #endif /* PMEM_PROVIDER_H */

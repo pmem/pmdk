@@ -43,6 +43,8 @@ SOURCE =\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/pmem_provider.c\
+	$(COMMON)/pmem_provider_dax.c\
+	$(COMMON)/pmem_provider_file.c\
 	libpmem.c\
 	cpu.c\
 	pmem.c\
