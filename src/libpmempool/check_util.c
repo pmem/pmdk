@@ -359,7 +359,7 @@ check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			snprintf(st->msg + p, MAX_MSG_STR_SIZE - (size_t)p,
-				": %s", buff);
+				": %s\n", buff);
 		}
 
 		st->status.type = type;
