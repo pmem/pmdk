@@ -378,6 +378,10 @@ if [ $? != 0 ]; then
 	unset use_timeout
 fi
 
+if [ -n "$TRACE" ]; then
+	unset use_timeout
+fi
+
 if [ "$1" ]; then
 	for test in $*
 	do
