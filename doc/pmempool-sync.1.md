@@ -77,4 +77,4 @@ viability of synchronization.
 
 # SEE ALSO #
 
-**libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
+**libpmempool(3)**, **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
