@@ -42,6 +42,11 @@
 #include <fcntl.h>
 #include <endian.h>
 
+#ifndef _WIN32
+#include <sys/ioctl.h>
+#include <linux/fs.h>
+#endif
+
 #include "libpmem.h"
 #include "libpmemlog.h"
 #include "libpmemblk.h"
@@ -316,6 +321,10 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		addr = set->replica[0]->part[0].addr;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
+#ifndef _WIN32
+		if (params->mode &= S_IFBLK)
+			ioctl(fd, BLKGETSIZE64, &params->size);
+#endif
 		addr = NULL;
 	} else {
 		params->size = (size_t)stat_buf.st_size;
