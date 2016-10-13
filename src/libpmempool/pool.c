@@ -38,9 +38,11 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <endian.h>
+#include <linux/fs.h>
 
 #include "libpmem.h"
 #include "libpmemlog.h"
@@ -285,6 +287,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		ASSERT(stat_buf.st_size >= 0);
 		params->size = (uint64_t)stat_buf.st_size;
 		params->mode = stat_buf.st_mode;
+		if (params->mode &= S_IFBLK)
+			ioctl(fd, BLKGETSIZE64, &params->size);
 	}
 
 	void *addr = NULL;
