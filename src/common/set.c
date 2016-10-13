@@ -1069,6 +1069,23 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	if (p.exists && p.type != PMEM_PROVIDER_DEVICE_DAX)
 		create = 0;
 
+	if (!p.exists && !create) {
+		errno = ENOENT;
+		ERR("!open %s", part->path);
+		goto error_init;
+	}
+
+	ssize_t real_size = create ?
+		(ssize_t)part->filesize : p.pops->get_size(&p);
+	if (real_size < 0)
+		goto error_init;
+
+	if ((size_t)real_size < minsize) {
+		ERR("size %zu smaller than %zu", real_size, minsize);
+		errno = EINVAL;
+		goto error_init;
+	}
+
 	int flags = create ? O_RDWR | O_CREAT | O_EXCL : O_RDWR;
 	if (p.pops->open(&p, flags, 0, 0) < 0) {
 		ERR("!open %s", part->path);
@@ -1084,16 +1101,6 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 
 	if (p.pops->lock(&p) < 0) {
 		ERR("!flock");
-		goto error_after_open;
-	}
-
-	ssize_t real_size = p.pops->get_size(&p);
-	if (real_size < 0)
-		goto error_after_open;
-
-	if ((size_t)real_size < minsize) {
-		ERR("size %zu smaller than %zu", real_size, minsize);
-		errno = EINVAL;
 		goto error_after_open;
 	}
 
