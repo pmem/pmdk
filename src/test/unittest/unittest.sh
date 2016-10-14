@@ -455,7 +455,7 @@ function create_poolset() {
 		shift 1
 
 		fsize=${fparms[0]}
-		fpath=`readlink -mn ${fparms[1]}`
+		fpath=${fparms[1]}
 		cmd=${fparms[2]}
 		asize=${fparams[3]}
 		mode=${fparms[4]}
@@ -1163,6 +1163,20 @@ function require_binary() {
 }
 
 #
+# check_absolute_path -- continue script execution only if $DIR path is
+#                        an absolute path
+#
+function check_absolute_path() {
+	ABS_DIR=`realpath -m $DIR`
+	if [ "${DIR%/}" != "${ABS_DIR%/}" ]; then
+		echo "Directory \$DIR has to be an absolute path."
+		echo "$DIR was given."
+		echo "Absolute path would be: $ABS_DIR"
+		exit 1
+	fi
+}
+
+#
 # run_command -- run a command in a verbose or quiet way
 #
 function run_command()
@@ -1674,6 +1688,9 @@ function setup() {
 	for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 		rm -f $f
 	done
+
+	# $DIR has to be an absolute path
+	check_absolute_path
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
