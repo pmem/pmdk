@@ -44,7 +44,8 @@ client_t *client_exchange(struct rpmem_target_info *info,
 		unsigned nlanes,
 		enum rpmem_provider provider,
 		struct rpmem_resp_attr *resp);
-void client_close(client_t *c);
+void client_close_begin(client_t *c);
+void client_close_end(client_t *c);
 
 void server_exchange_begin(unsigned *lanes, enum rpmem_provider *provider,
 		char **addr);
