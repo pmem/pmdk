@@ -206,12 +206,6 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
  */
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
 
-/*
- * (debug helper macro) logs notice message if used inside a transaction
- *                      - to be used only in FOREACH macros
- */
-#define _POBJ_DEBUG_NOTICE_IN_TX_FOR(macro_name)\
-	_pobj_debug_notice(macro_name, __FILE__, __LINE__),
 
 #ifdef __cplusplus
 }

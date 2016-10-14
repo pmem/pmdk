@@ -58,6 +58,7 @@
 struct mock_pop {
 	PMEMobjpool p;
 	char lanes[LANE_SECTION_LEN * MAX_LANE_SECTION];
+	char padding[1024]; /* to page boundary */
 	uint64_t ptr;
 };
 
@@ -188,8 +189,8 @@ test_mock_pool_allocs()
 	mock_pop->size = MOCK_POOL_SIZE;
 	mock_pop->rdonly = 0;
 	mock_pop->is_pmem = 0;
-	mock_pop->heap_offset =
-		ALIGN_CEILING(sizeof(struct mock_pop), Ut_pagesize);
+	mock_pop->heap_offset = offsetof(struct mock_pop, ptr);
+	UT_ASSERTeq(mock_pop->heap_offset % Ut_pagesize, 0);
 	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 	mock_pop->nlanes = 1;
 	mock_pop->lanes_offset = sizeof(PMEMobjpool);
