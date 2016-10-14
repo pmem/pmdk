@@ -36,10 +36,21 @@
 
 #include <string.h>
 #include <util.h>
+#include <limits.h>
+#include <stdlib.h>
 
 /* pass through for Linux */
 void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
+}
+
+/*
+ * util_get_full_path -- get full form of the path
+ */
+char *
+util_get_full_path(const char *path)
+{
+	return realpath(path, NULL);
 }

@@ -79,25 +79,84 @@ check_part_sizes(struct pool_set *set, size_t min_size)
 }
 
 /*
- * check_part_dirs -- (internal) check if directories for part files exist
+ * check_part_dir_exists -- (internal) check if directory for the part file
+ *                          exists
  */
 static int
-check_part_dirs(struct pool_set *set)
+check_if_part_dir_exists(struct pool_set *set, unsigned repn, unsigned partn)
 {
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			char *path = strdup(PART(rep, p).path);
-			const char *dir = dirname(path);
-			struct stat sb;
-			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-				ERR("A directory %s for part %u in replica %u"
-					" does not exist or is not accessible",
-					path, p, r);
-				free(path);
-				return -1;
+	char *path = strdup(PART(REP(set, repn), partn).path);
+	const char *dir = dirname(path);
+	struct stat sb;
+	if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+		ERR("A directory %s for part %u in replica %u"
+			" does not exist or is not accessible",
+			path, partn, repn);
+		free(path);
+		return -1;
+	}
+	free(path);
+	return 0;
+}
+
+/*
+ * check_if_part_path_reoccur -- (internal) check if the part path reoccur later
+ *                               in the poolset (in this or subsequent replicas)
+ */
+static int
+check_if_part_path_reoccurs(struct pool_set *set, unsigned repn, unsigned partn)
+{
+	struct pool_replica *rep = REP(set, repn);
+	char *path = util_get_full_path(PART(rep, partn).path);
+	if (path == NULL) {
+		LOG(1, "Cannot get absolute path for %s, replica %u, part %u",
+				PART(rep, partn).path, repn, partn);
+		path = strdup(PART(rep, partn).path);
+	}
+	int ret = 0;
+	for (unsigned r = repn; r < set->nreplicas; ++r) {
+		struct pool_replica *repr = set->replica[r];
+		/* avoid superfluous comparisons */
+		unsigned i = (r == repn) ? partn + 1 : 0;
+		for (unsigned p = i; p < repr->nparts; ++p) {
+			char *pathp = util_get_full_path(PART(repr, p).path);
+			if (pathp == NULL) {
+				LOG(1, "Cannot get absolute path for %s,"
+					" replica %u, part %u",
+					PART(rep, partn).path, repn, partn);
+				pathp = strdup(PART(repr, p).path);
 			}
-			free(path);
+			if (strcmp(path, pathp) == 0) {
+				/* same file multiple times */
+				ERR("Some part file's path is"
+					" used multiple times");
+				ret = -1;
+				free(pathp);
+				goto out;
+			}
+			free(pathp);
+		}
+	}
+out:
+	free(path);
+	return ret;
+}
+
+/*
+ * check_paths - (internal) check if directories for part files exist
+ *                     and if paths for part files do not repeat in the poolset
+ */
+static int
+check_paths(struct pool_set *set)
+{
+	for (unsigned r1 = 0; r1 < set->nreplicas; ++r1) {
+		struct pool_replica *rep1 = set->replica[r1];
+		for (unsigned p1 = 0; p1 < rep1->nparts; ++p1) {
+			if (check_if_part_dir_exists(set, r1, p1))
+				return -1;
+
+			if (check_if_part_path_reoccurs(set, r1, p1))
+				return -1;
 		}
 	}
 	return 0;
@@ -119,12 +178,11 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	}
 
 	/*
-	 * check if all directories for part files exist
+	 * check if all directories for part files exist and if part files
+	 * do not reoccur in the poolset
 	 */
-	if (check_part_dirs(set_out)) {
-		ERR("Part directories check failed");
+	if (check_paths(set_out))
 		goto err;
-	}
 
 	/*
 	 * check if set_out has enough size, i.e. if the target poolset
