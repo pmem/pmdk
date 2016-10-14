@@ -51,8 +51,13 @@ unique_guard_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = nvobj::pool<root>::create(
 		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+#else
+	auto pop = nvobj::pool<root>::create(
+		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWRITE | S_IREAD);
+#endif
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -79,8 +84,13 @@ shared_mutex_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = nvobj::pool<root>::create(
 		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+#else
+	auto pop = nvobj::pool<root>::create(
+		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWRITE | S_IREAD);
+#endif
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -107,8 +117,13 @@ timed_mutex_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = nvobj::pool<root>::create(
 		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+#else
+	auto pop = nvobj::pool<root>::create(
+		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWRITE | S_IREAD);
+#endif
 	auto proot = pop.get_root();
 
 	const auto timeout = std::chrono::milliseconds(100);
@@ -142,8 +157,13 @@ cond_var_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = nvobj::pool<root>::create(
 		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+#else
+	auto pop = nvobj::pool<root>::create(
+		"poolfile", "layout", PMEMOBJ_MIN_POOL, S_IWRITE | S_IREAD);
+#endif
 	auto proot = pop.get_root();
 
 	// run worker to bump up the counter

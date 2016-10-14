@@ -65,8 +65,13 @@ p_property_example()
 	} proot;
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 
 	// typical usage schemes
 	transaction::exec_tx(pop, [&] {
@@ -113,8 +118,13 @@ persistent_ptr_example()
 	} proot;
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 
 	// typical usage schemes
 	transaction::exec_tx(pop, [&] {

@@ -54,8 +54,13 @@ pool_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 	// close a pmemobj pool
 	pop.close();
 
@@ -101,8 +106,13 @@ pool_base_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool_base::create("poolfile", "", PMEMOBJ_MIN_POOL,
-				     S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool_base::create("poolfile", "", PMEMOBJ_MIN_POOL,
+		S_IWRITE | S_IREAD);
+#endif
 	// close a pmemobj pool
 	pop.close();
 

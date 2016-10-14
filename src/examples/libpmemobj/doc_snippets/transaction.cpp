@@ -37,7 +37,7 @@
 /*
  * The following might be necessary to compile the examples on older compilers.
  */
-#ifndef __cpp_lib_uncaught_exceptions
+#if !defined(__cpp_lib_uncaught_exceptions) && !defined(_WIN32)
 #define __cpp_lib_uncaught_exceptions 201411
 namespace std
 {
@@ -74,8 +74,13 @@ general_tx_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
 				      S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -125,8 +130,13 @@ manual_tx_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 	auto proot = pop.get_root();
 
 	try {
@@ -179,8 +189,13 @@ automatic_tx_example()
 	};
 
 	// create a pmemobj pool
+#ifndef _WIN32
 	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+		S_IWUSR | S_IRUSR);
+#else
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
+		S_IREAD | S_IWRITE);
+#endif
 	auto proot = pop.get_root();
 
 	try {

@@ -48,9 +48,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <unistd.h>
-
+#else
+#include <io.h>
+#endif
 #define LAYOUT "queue"
+
+#ifdef _WIN32
+#define S_IRWXU S_IREAD | S_IWRITE
+#endif
 
 namespace
 {
@@ -186,7 +193,7 @@ main(int argc, char *argv[])
 
 	pool<examples::pmem_queue> pop;
 
-	if (access(path, F_OK) != 0) {
+	if (access(path, 0) != 0) {
 		pop = pool<examples::pmem_queue>::create(
 			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IRWXU);
 	} else {

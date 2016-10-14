@@ -35,6 +35,9 @@
 #include <cstdint>
 #include <functional>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
@@ -328,7 +331,16 @@ private:
 	static int
 	find_crit_bit(key_type lhs, key_type rhs)
 	{
+#ifndef _WIN32
 		return 64 - __builtin_clzll(lhs ^ rhs) - 1;
+#else
+		DWORD lz = 0;
+
+		if (BitScanReverse64(&lz, lhs ^ rhs))
+			return 64 - (63 - (int)lz);
+		else
+			return 0;
+#endif
 	}
 
 	/*

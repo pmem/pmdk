@@ -78,7 +78,7 @@ public:
 		auto pop = nvobj::pool_by_vptr(this);
 
 		nvobj::transaction::exec_tx(
-			pop, [&] { root = nvobj::make_persistent<entry>(); });
+			pop, [&] { this->root = nvobj::make_persistent<entry>(); });
 	}
 
 	/**
@@ -203,15 +203,15 @@ public:
 	{
 		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
-			if (root->inode) {
-				root->inode->clear();
-				nvobj::delete_persistent<node>(root->inode);
-				root->inode = nullptr;
+			if (this->root->inode) {
+				this->root->inode->clear();
+				nvobj::delete_persistent<node>(this->root->inode);
+				this->root->inode = nullptr;
 			}
 
-			nvobj::delete_persistent<T>(root->value);
-			root->value = nullptr;
-			root->key = 0;
+			nvobj::delete_persistent<T>(this->root->value);
+			this->root->value = nullptr;
+			this->root->key = 0;
 		});
 		return 0;
 	}
@@ -356,9 +356,18 @@ private:
 	 * Find critical bit.
 	 */
 	static int
-	find_crit_bit(key_type lhs, key_type rhs)
+	find_crit_bit(uint64_t lhs, uint64_t rhs)
 	{
+#ifndef _WIN32
 		return 64 - __builtin_clzll(lhs ^ rhs) - 1;
+#else
+		DWORD lz = 0;
+
+		if (BitScanReverse64(&lz, lhs ^ rhs))
+			return 64 - (63 - (int)lz);
+		else
+			return 0;
+#endif
 	}
 
 	/*

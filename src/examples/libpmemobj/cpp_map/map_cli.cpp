@@ -36,7 +36,12 @@
 #include <libpmemobj++/pool.hpp>
 #include <memory>
 #include <string.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+/*#include <io.h>*/
+#define S_IRWXU S_IREAD | S_IWRITE
+#endif
 
 namespace
 {
@@ -48,8 +53,19 @@ using nvml::obj::delete_persistent;
 using nvml::obj::pool;
 using nvml::obj::pool_base;
 
+struct foo {
+	foo(long long val) : value(val) {}
+
+	operator long long() const {
+		return value;
+	}
+
+	long long value;
+};
+
+
 /* convenience typedefs */
-typedef long long value_t;
+typedef foo value_t;
 typedef uint64_t key_type;
 typedef examples::ctree_map_p<key_type, value_t> pmap;
 typedef examples::ctree_map_transient<key_type, value_t> vmap;
@@ -224,12 +240,12 @@ main(int argc, char *argv[])
 
 	pool<root> pop;
 
-	if (access(path.c_str(), F_OK) != 0) {
+	/*if (access(path.c_str(), 0) != 0) {*/
 		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 					 S_IRWXU);
-	} else {
+	/*} else {
 		pop = pool<root>::open(path, LAYOUT);
-	}
+	}*/
 
 	auto q = pop.get_root();
 	if (!q->ptree) {
