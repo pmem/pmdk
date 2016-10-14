@@ -57,7 +57,7 @@ struct check_status;
  *
  * It's size is equal to the size of the biggest state structure it must store.
  */
-#define CHECK_INSTEP_LOCATION_NUM 517
+#define CHECK_INSTEP_LOCATION_NUM 527
 
 struct check_step_data {
 	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
