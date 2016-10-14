@@ -242,7 +242,11 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 /*
  * (debug helper macro) logs notice message if used inside a transaction
  */
+#ifdef DEBUG
 #define _POBJ_DEBUG_NOTICE_IN_TX()\
 	_pobj_debug_notice(__func__, NULL, 0)
+#else
+#define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#endif
 
 #endif

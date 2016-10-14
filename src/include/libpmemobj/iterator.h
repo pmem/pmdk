@@ -77,7 +77,7 @@ POBJ_NEXT_TYPE_NUM(PMEMoid o)
  * Iterates through every existing allocated object.
  */
 #define POBJ_FOREACH(pop, varoid)\
-for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
+for (_pobj_debug_notice("POBJ_FOREACH", __FILE__, __LINE__),\
 	varoid = pmemobj_first(pop);\
 		(varoid).off != 0; varoid = pmemobj_next(varoid))
 
@@ -85,7 +85,7 @@ for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH")\
  * Safe variant of POBJ_FOREACH in which pmemobj_free on varoid is allowed
  */
 #define POBJ_FOREACH_SAFE(pop, varoid, nvaroid)\
-for (_POBJ_DEBUG_NOTICE_IN_TX_FOR("POBJ_FOREACH_SAFE")\
+for (_pobj_debug_notice("POBJ_FOREACH_SAFE", __FILE__, __LINE__),\
 	varoid = pmemobj_first(pop);\
 		(varoid).off != 0 && (nvaroid = pmemobj_next(varoid), 1);\
 		varoid = nvaroid)
