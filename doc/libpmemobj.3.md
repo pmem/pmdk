@@ -537,10 +537,10 @@ Lines starting with "#" character are ignored. A replica can be local or remote.
 string only and it has to be followed by at least one line defining a part of the local replica. The format of such line is the same as the format of the line
 defining a part of the PMEMOBJ pool as described above.
 
-The path of a part can point to a raw device dax and in such case the size
-argument can be set to an "AUTO" string which means that the size of the device
-will be automatically resolved at the pool creation time. When using device dax
-there's also one additional restriction that a pool can only consist of a
+The path of a part can point to a raw dax device and in such case the size
+argument can be set to an "AUTO" string, which means that the size of the device
+will be automatically resolved at pool creation time. When using device dax
+there's also one additional restriction, that a pool set can consist only of a
 single part.
 
 In case of a remote replica, the *REPLICA* keyword has to be followed by an address of a remote host (in the format recognized by the **ssh**(1) remote login client)

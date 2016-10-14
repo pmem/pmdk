@@ -31,7 +31,7 @@
  */
 
 /*
- * pmem_provider_file.c --
+ * pmem_provider_file.c -- implementation of a regular file pmem provider
  */
 
 #include <stdio.h>
@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/file.h>
+#include <sys/mman.h>
 
 #include "pmem_provider.h"
 #include "mmap.h"
@@ -56,8 +57,8 @@
 #endif
 
 /*
- * provider_regular_file_type_match -- checks whether the pmem provider is of
- *	regular file type
+ * provider_regular_file_type_match -- (internal) checks whether the pmem
+ *	provider is of regular file type
  */
 static int
 provider_regular_file_type_match(struct pmem_provider *p)
@@ -94,9 +95,8 @@ provider_regular_file_open(struct pmem_provider *p,
 		if ((p->fd = open(p->path, flags, mode)) < 0)
 			return -1;
 #else
-		if ((p->fd = util_tmpfile(p->path, "/pmem.XXXXXX")) < 0) {
+		if ((p->fd = util_tmpfile(p->path, "/pmem.XXXXXX")) < 0)
 			return -1;
-		}
 #endif
 	} else {
 		if ((p->fd = open(p->path, flags, mode)) < 0)
@@ -217,6 +217,52 @@ provider_regular_file_map(struct pmem_provider *p, size_t alignment)
 	return util_map(p->fd, (size_t)size, 0, alignment);
 }
 
+/*
+ * provider_regular_file_protect_range -- (internal) changes protection for the
+ *	provided memory range
+ */
+static int
+provider_regular_file_protect_range(struct pmem_provider *p,
+	void *addr, size_t len, enum pmem_provider_protection prot)
+{
+	uintptr_t uptr;
+	int retval;
+
+	/*
+	 * mprotect requires addr to be a multiple of pagesize, so
+	 * adjust addr and len to represent the full 4k chunks
+	 * covering the given range.
+	 */
+
+	/* increase len by the amount we gain when we round addr down */
+	len += (uintptr_t)addr & (Pagesize - 1);
+
+	/* round addr down to page boundary */
+	uptr = (uintptr_t)addr & ~(Pagesize - 1);
+
+	int protv = -1;
+	switch (prot) {
+		case PMEM_PROT_NONE:
+			protv = PROT_NONE;
+			break;
+		case PMEM_PROT_READ_ONLY:
+			protv = PROT_READ;
+			break;
+		case PMEM_PROT_READ_WRITE:
+			protv = PROT_READ | PROT_WRITE;
+			break;
+		default:
+			ASSERT(0);
+			break;
+	}
+	ASSERTne(protv, -1);
+
+	if ((retval = mprotect((void *)uptr, len, protv)) < 0)
+		ERR("!mprotect");
+
+	return retval;
+}
+
 static struct pmem_provider_ops pmem_provider_regular_file_ops = {
 	.type_match = provider_regular_file_type_match,
 	.open = provider_regular_file_open,
@@ -227,6 +273,7 @@ static struct pmem_provider_ops pmem_provider_regular_file_ops = {
 	.get_size = provider_regular_file_get_size,
 	.allocate_space = provider_regular_file_allocate_space,
 	.always_pmem = provider_regular_file_always_pmem,
+	.protect_range = provider_regular_file_protect_range,
 };
 
 PMEM_PROVIDER_TYPE(PMEM_PROVIDER_REGULAR_FILE, &pmem_provider_regular_file_ops);

@@ -730,16 +730,6 @@ function require_no_superuser() {
 }
 
 #
-# require_superuser -- require superuser rights
-#
-function require_superuser() {
-	local user_id=$(id -u)
-	[ "$user_id" == "0" ] && return
-	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
-	exit 0
-}
-
-#
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
@@ -787,9 +777,18 @@ function require_non_pmem() {
 # require_dax_devices -- only allow script to continue for a dax device
 #
 function require_dax_devices() {
+	for path in ${DEVICE_DAX_PATH}
+	do
+		if [[ ! -w $path ]]; then
+			[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: no access to specified dax devices"
+			exit 0
+		fi
+	done
+
 	[ ${#DEVICE_DAX_PATH[*]} -ge $1 ] && return
-	echo "error: DEVICE_DAX_PATH does not specify enough dax devices"
-	exit 1
+
+	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: DEVICE_DAX_PATH does not specify enough dax devices"
+	exit 0
 }
 
 #

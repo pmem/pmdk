@@ -201,7 +201,8 @@ vmem_create(const char *dir, size_t size)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(addr, sizeof(struct pool_hdr));
+	p.pops->protect_range(&p,
+		addr, sizeof(struct pool_hdr), PMEM_PROT_NONE);
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;

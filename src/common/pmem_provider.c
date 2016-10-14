@@ -31,8 +31,7 @@
  */
 
 /*
- * pmem_provider.c -- persistent memory provider interface and its two basic
- *	implementations: a regular file and dax character device.
+ * pmem_provider.c -- persistent memory provider interface
  */
 
 #include <stdio.h>
@@ -68,10 +67,11 @@ static enum pmem_provider_type
 pmem_provider_query_type(struct pmem_provider *p)
 {
 	for (enum pmem_provider_type type = PMEM_PROVIDER_UNKNOWN;
-		type < MAX_PMEM_PROVIDER_TYPE; ++type)
+		type < MAX_PMEM_PROVIDER_TYPE; ++type) {
 		if (pmem_provider_operations[type] &&
 			pmem_provider_operations[type]->type_match(p))
 			return type;
+	}
 
 	return PMEM_PROVIDER_UNKNOWN;
 }
@@ -119,4 +119,5 @@ void
 pmem_provider_fini(struct pmem_provider *p)
 {
 	Free(p->path);
+	p->path = NULL;
 }

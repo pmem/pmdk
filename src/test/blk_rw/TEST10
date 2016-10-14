@@ -31,19 +31,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST7
-export UNITTEST_NUM=7
+#
+# src/test/blk_rw/TEST10 -- unit test for pmemblk_read/write/set_zero/set_error
+#
+export UNITTEST_NAME=blk_rw/TEST10
+export UNITTEST_NUM=10
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_fs_type any
 require_dax_devices 1
-
-# covered by TEST5
-configure_valgrind memcheck force-disable
 
 setup
 
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
+expect_normal_exit ./blk_rw$EXESUFFIX 512 $DEVICE_DAX_PATH c\
+	r:0 r:1 r:32201 r:32313 z:0 z:1 r:0
+
+check_pool $DEVICE_DAX_PATH
+
 
 pass

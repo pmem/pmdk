@@ -31,7 +31,7 @@
  */
 
 /*
- * pmem_provider_file.c --
+ * pmem_provider_dax.c -- implementation of a dax device pmem provider
  */
 
 #include <stdio.h>
@@ -51,8 +51,8 @@
 #define MAX_SIZE_LENGTH 64
 
 /*
- * provider_device_dax_type_match -- checks whether the pmem provider is of
- *	device dax type
+ * provider_device_dax_type_match -- (internal) checks whether the pmem provider
+ *	is of device dax type
  */
 static int
 provider_device_dax_type_match(struct pmem_provider *p)
@@ -76,16 +76,13 @@ static int
 provider_device_dax_open(struct pmem_provider *p,
 	int flags, mode_t mode, int tmp)
 {
-	if (tmp)
-		return -1;
-
 #ifdef O_TMPFILE
 	if (flags & O_TMPFILE)
-		return -1;
+		tmp = 1;
 #endif
 
 	int init_device = 0;
-	if (flags & O_CREAT) {
+	if (flags & O_CREAT || tmp) {
 		flags &= ~O_CREAT;
 		flags &= ~O_EXCL; /* just in case */
 		init_device = 1;
@@ -134,7 +131,6 @@ provider_device_dax_close(struct pmem_provider *p)
 static void
 provider_device_dax_unlink(struct pmem_provider *p)
 {
-	ASSERT(0);
 }
 
 /*
@@ -211,10 +207,6 @@ provider_device_dax_allocate_space(struct pmem_provider *p,
 static int
 provider_device_dax_lock(struct pmem_provider *p)
 {
-	/*
-	 * XXX: flock does work on a dax device, but it has a slightly different
-	 * behavior that breaks some functionality
-	 */
 	return flock(p->fd, LOCK_EX | LOCK_NB);
 }
 
@@ -230,6 +222,20 @@ provider_device_dax_always_pmem(void)
 	return 1;
 }
 
+/*
+ * provider_dax_protect_range -- (internal) changes protection for the
+ *	provided memory range
+ *
+ * Due to the lack of transparent huge page support in dax device changing
+ * protection with the desired granularity (4 kilobytes) is impossible.
+ */
+static int
+provider_dax_protect_range(struct pmem_provider *p,
+	void *addr, size_t len, enum pmem_provider_protection prot)
+{
+	return 0;
+}
+
 static struct pmem_provider_ops pmem_provider_device_dax_ops = {
 	.type_match = provider_device_dax_type_match,
 	.open = provider_device_dax_open,
@@ -240,6 +246,7 @@ static struct pmem_provider_ops pmem_provider_device_dax_ops = {
 	.get_size = provider_device_dax_get_size,
 	.allocate_space = provider_device_dax_allocate_space,
 	.always_pmem = provider_device_dax_always_pmem,
+	.protect_range = provider_dax_protect_range,
 };
 
 PMEM_PROVIDER_TYPE(PMEM_PROVIDER_DEVICE_DAX, &pmem_provider_device_dax_ops);
