@@ -81,7 +81,8 @@ setup
 #	>> $LOG
 #
 #expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOLSET >> $LOG
+#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOLSET >> $LOG
+#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avyr $POOLSET >> $LOG
 #expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
 #
 #check
