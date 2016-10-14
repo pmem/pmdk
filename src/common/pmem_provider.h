@@ -48,6 +48,12 @@ enum pmem_provider_type {
 	MAX_PMEM_PROVIDER_TYPE
 };
 
+enum pmem_provider_protection {
+	PMEM_PROT_NONE,
+	PMEM_PROT_READ_ONLY,
+	PMEM_PROT_READ_WRITE,
+};
+
 struct pmem_provider {
 	char *path;
 	int fd;
@@ -68,6 +74,8 @@ struct pmem_provider_ops {
 	ssize_t (*get_size)(struct pmem_provider *p);
 	int (*allocate_space)(struct pmem_provider *p, size_t size, int sparse);
 	int (*always_pmem)(void);
+	int (*protect_range)(struct pmem_provider *p,
+		void *addr, size_t len, enum pmem_provider_protection prot);
 };
 
 int pmem_provider_init(struct pmem_provider *p, const char *path);

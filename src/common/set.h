@@ -44,6 +44,7 @@
 
 #include "pool_hdr.h"
 #include "librpmem.h"
+#include "pmem_provider.h"
 
 /*
  * pool sets & replicas
@@ -65,6 +66,7 @@ struct pool_set_part {
 	const char *path;
 	size_t filesize;	/* aligned to page size */
 	int fd;
+	struct pmem_provider provider;
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */

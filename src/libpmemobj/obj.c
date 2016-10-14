@@ -970,8 +970,9 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	/* currently disabled due to device dax issue */
-	/* util_range_none(pop->addr, sizeof(struct pool_hdr)); */
+	struct pmem_provider *p = &pop->set->replica[0]->part[0].provider;
+	p->pops->protect_range(p,
+		pop->addr, sizeof(struct pool_hdr), PMEM_PROT_NONE);
 
 	return 0;
 }

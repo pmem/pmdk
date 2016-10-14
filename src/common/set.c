@@ -69,6 +69,9 @@
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
 
+#define PMEM_PROVIDER_EMPTY (struct pmem_provider)\
+{0}
+
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
 			void *pool_addr, size_t pool_size, unsigned *nlanes,
@@ -293,12 +296,8 @@ util_map_hdr(struct pool_set_part *part, int flags)
 	COMPILE_ERROR_ON(POOL_HDR_SIZE == 0);
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
-	struct pmem_provider p;
-	if (pmem_provider_init(&p, part->path) < 0)
-		return -1;
-
 	void *hdrp;
-	if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+	if (part->provider.type == PMEM_PROVIDER_DEVICE_DAX) {
 		/*
 		 * Workaround for dax device not allowing an mmap only of a
 		 * part of the device. This means that currently only one device
@@ -308,7 +307,7 @@ util_map_hdr(struct pool_set_part *part, int flags)
 			PROT_READ|PROT_WRITE, flags, part->fd, 0);
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
-			goto error;
+			return -1;
 		}
 		part->hdrsize = part->filesize;
 	} else {
@@ -317,7 +316,7 @@ util_map_hdr(struct pool_set_part *part, int flags)
 
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
-			goto error;
+			return -1;
 		}
 		part->hdrsize = POOL_HDR_SIZE;
 	}
@@ -327,12 +326,7 @@ util_map_hdr(struct pool_set_part *part, int flags)
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
 	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->hdr, part->hdrsize, 0);
 
-	pmem_provider_fini(&p);
 	return 0;
-
-error:
-	pmem_provider_fini(&p);
-	return -1;
 }
 
 /*
@@ -444,8 +438,9 @@ util_poolset_free(struct pool_set *set)
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote == NULL) {
-			/* only local replicas have paths */
+			/* only local replicas have paths and providers */
 			for (unsigned p = 0; p < rep->nparts; p++) {
+				pmem_provider_fini(&rep->part[p].provider);
 				Free((void *)(rep->part[p].path));
 			}
 		} else {
@@ -720,6 +715,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
+	rep->part[p].provider = PMEM_PROVIDER_EMPTY;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
@@ -1032,6 +1028,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
+	rep->part[0].provider = PMEM_PROVIDER_EMPTY;
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -1061,22 +1058,22 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
 	part->created = 0;
+	struct pmem_provider *p = &part->provider;
 
-	struct pmem_provider p;
-	if (pmem_provider_init(&p, part->path) < 0)
+	if (pmem_provider_init(&part->provider, part->path) < 0)
 		return -1;
 
-	if (p.exists && p.type != PMEM_PROVIDER_DEVICE_DAX)
+	if (p->exists && p->type != PMEM_PROVIDER_DEVICE_DAX)
 		create = 0;
 
-	if (!p.exists && !create) {
+	if (!p->exists && !create) {
 		errno = ENOENT;
 		ERR("!open %s", part->path);
 		goto error_init;
 	}
 
 	ssize_t real_size = create ?
-		(ssize_t)part->filesize : p.pops->get_size(&p);
+		(ssize_t)part->filesize : p->pops->get_size(p);
 	if (real_size < 0)
 		goto error_init;
 
@@ -1087,7 +1084,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	}
 
 	int flags = create ? O_RDWR | O_CREAT | O_EXCL : O_RDWR;
-	if (p.pops->open(&p, flags, 0, 0) < 0) {
+	if (p->pops->open(p, flags, 0, 0) < 0) {
 		ERR("!open %s", part->path);
 		goto error_init;
 	}
@@ -1095,11 +1092,11 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	if (create) {
 		part->created = 1;
 
-		if (p.pops->allocate_space(&p, part->filesize, 0) < 0)
+		if (p->pops->allocate_space(p, part->filesize, 0) < 0)
 			goto error_after_open;
 	}
 
-	if (p.pops->lock(&p) < 0) {
+	if (p->pops->lock(p) < 0) {
 		ERR("!flock");
 		goto error_after_open;
 	}
@@ -1111,17 +1108,15 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 		goto error_after_open;
 	}
 
-	part->fd = p.fd;
-
-	pmem_provider_fini(&p);
+	part->fd = p->fd;
 
 	return 0;
 
 error_after_open:
-	p.pops->close(&p);
+	p->pops->close(p);
 
 error_init:
-	pmem_provider_fini(&p);
+	pmem_provider_fini(p);
 
 	return -1;
 }

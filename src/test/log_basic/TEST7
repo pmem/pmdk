@@ -31,19 +31,32 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST7
-export UNITTEST_NUM=7
+#
+# src/test/log_basic/TEST1 -- unit test for:
+# - pmemlog_append
+# and:
+# - pmemlog_nbyte
+# - pmemlog_tell
+# - pmemlog_walk
+# - pmemlog_rewind
+# in case of non-empty pool and
+# - pmemlog_check
+# - pmemlog_open
+# - pmemlog_close
+#
+export UNITTEST_NAME=log_basic/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_dax_devices 1
-
-# covered by TEST5
-configure_valgrind memcheck force-disable
+require_fs_type any
 
 setup
 
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
+expect_normal_exit ./log_basic$EXESUFFIX $DEVICE_DAX_PATH a n t w r t w
+
+check_pool $DEVICE_DAX_PATH
 
 pass
