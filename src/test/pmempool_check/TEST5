@@ -53,7 +53,9 @@ $PMEMSPOIL $POOL pool_hdr.checksum=0x0\
 	"pmemblk.arena(1).btt_info.sig=ERROR"\
 	"pmemblk.arena(1).btt_info_backup.sig=ERROR"
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -avry $POOL >> $LOG
 
 check
 
