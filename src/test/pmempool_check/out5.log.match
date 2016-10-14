@@ -1,11 +1,21 @@
-Creating pool: $(nW)
-	type  : blk
-	size  : 0
-	mode  : 0664
-	bsize : 536870912
-Writing BTT layout using block $(*).
 checking pool header
 incorrect pool header checksum
+Can not repair pool_hdr.poolset_uuid
+$(nW)file.pool: cannot repair
+checking pool header
+incorrect pool header checksum
+invalid pool_hdr.poolset_uuid
+setting pool_hdr.pooset_uuid to $(*)
+invalid pool_hdr.uuid
+setting pool_hdr.uuid to $(*)
+invalid pool_hdr.next_part_uuid
+invalid pool_hdr.prev_part_uuid
+invalid pool_hdr.next_repl_uuid
+invalid pool_hdr.prev_repl_uuid
+setting pool_hdr.next_part_uuid to $(*)
+setting pool_hdr.prev_part_uuid to $(*)
+setting pool_hdr.next_repl_uuid to $(*)
+setting pool_hdr.prev_repl_uuid to $(*)
 setting pool_hdr.checksum to $(*)
 checking pmemblk header
 pmemblk header correct
@@ -23,4 +33,4 @@ arena 0: checking BTT Map and Flog
 arena 1: checking BTT Map and Flog
 arena 2: checking BTT Map and Flog
 arena 3: checking BTT Map and Flog
-$(*): repaired
+$(nW): repaired

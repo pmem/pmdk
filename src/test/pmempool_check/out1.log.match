@@ -1,9 +1,9 @@
 PMEMLOG: pool_hdr
-$(*): spoil: pool_hdr.major=$(*)
-$(*): spoil: pool_hdr.compat_features=$(*)
-$(*): spoil: pool_hdr.incompat_features=$(*)
-$(*): spoil: pool_hdr.ro_compat_features=$(*)
-$(*): spoil: pool_hdr.unused=$(*)
+$(nW): spoil: pool_hdr.major=$(*)
+$(nW): spoil: pool_hdr.compat_features=$(*)
+$(nW): spoil: pool_hdr.incompat_features=$(*)
+$(nW): spoil: pool_hdr.ro_compat_features=$(*)
+$(nW): spoil: pool_hdr.unused=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.major is not valid
@@ -18,10 +18,10 @@ setting pool_hdr.ro_compat_features to 0x0
 setting pool_hdr.unused to zeros
 checking pmemlog header
 pmemlog header correct
-$(*): repaired
+$(nW): repaired
 PMEMLOG: pmemlog
-$(*): spoil: pmemlog.start_offset=$(*)
-$(*): spoil: pmemlog.end_offset=$(*)
+$(nW): spoil: pmemlog.start_offset=$(*)
+$(nW): spoil: pmemlog.end_offset=$(*)
 checking pool header
 pool header checksum correct
 checking pmemlog header
@@ -29,14 +29,14 @@ invalid pmemlog.start_offset: 0x0
 invalid pmemlog.end_offset: 0x0
 setting pmemlog.start_offset to 0x2000
 setting pmemlog.end_offset to 0x200000
-$(*): repaired
+$(nW): repaired
 PMEMBLK: pool_hdr
-$(*): spoil: pool_hdr.signature=$(*)
-$(*): spoil: pool_hdr.major=$(*)
-$(*): spoil: pool_hdr.compat_features=$(*)
-$(*): spoil: pool_hdr.incompat_features=$(*)
-$(*): spoil: pool_hdr.ro_compat_features=$(*)
-$(*): spoil: pool_hdr.unused=$(*)
+$(nW): spoil: pool_hdr.signature=$(*)
+$(nW): spoil: pool_hdr.major=$(*)
+$(nW): spoil: pool_hdr.compat_features=$(*)
+$(nW): spoil: pool_hdr.incompat_features=$(*)
+$(nW): spoil: pool_hdr.ro_compat_features=$(*)
+$(nW): spoil: pool_hdr.unused=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.signature is not valid
@@ -57,10 +57,10 @@ checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
-$(*): repaired
+$(nW): repaired
 PMEMBLK: pmemblk
-$(*): spoil: pool_hdr.signature=$(*)
-$(*): spoil: pmemblk.bsize=$(*)
+$(nW): spoil: pool_hdr.signature=$(*)
+$(nW): spoil: pmemblk.bsize=$(*)
 checking pool header
 incorrect pool header checksum
 pool_hdr.signature is not valid
@@ -72,4 +72,4 @@ checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
-$(*): repaired
+$(nW): repaired

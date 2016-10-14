@@ -49,13 +49,15 @@ LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
 truncate -s2T $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -v -w blk 512M $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -v -w blk 512M $POOL
 check_file $POOL
 $PMEMSPOIL $POOL pool_hdr.checksum=0x0\
 	"pmemblk.arena(1).btt_info.sig=ERROR"\
 	"pmemblk.arena(1).btt_info_backup.sig=ERROR"
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -avry $POOL >> $LOG
 
 check
 
