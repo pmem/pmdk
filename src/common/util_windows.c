@@ -35,7 +35,9 @@
  */
 
 #include <string.h>
+#include <Windows.h>
 #include "util.h"
+#include <tchar.h>
 
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"
@@ -43,6 +45,7 @@
 #define ENOERROR 0
 #define ENOERROR_STR "Success"
 #define UNMAPPED_STR "Unmapped error"
+#define BUFSIZE 4096
 
 /*
  * util_strerror -- return string describing error number
@@ -67,5 +70,36 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 	default:
 		if (strerror_s(buff, bufflen, errnum))
 			strcpy_s(buff, bufflen, UNMAPPED_STR);
+	}
+}
+
+/*
+ * util_get_full_path -- get full form of the path
+ */
+char *
+util_get_full_path(const char *path)
+{
+	DWORD ret = 0;
+	TCHAR buf[BUFSIZE] = TEXT("");
+
+	ret = GetFullPathName(path, BUFSIZE, buf, NULL);
+	if (ret == 0) {
+		/* the function failed */
+		return NULL;
+	} else if (ret <= BUFSIZE) {
+		/* the function succeeded */
+		return strdup(buf);
+	} else {
+		/*
+		 * the buffer was too small, try again with a buffer large
+		 * enough
+		 */
+		TCHAR *buffer = Malloc(ret * sizeof(TCHAR));
+		DWORD ret2 = GetFullPathName(path, BUFSIZE, buffer, NULL);
+		char *result = NULL;
+		if (ret2 == ret - 1)
+			result = strdup(buffer);
+		Free(buffer);
+		return result;
 	}
 }
