@@ -69,9 +69,6 @@
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
 
-#define PMEM_PROVIDER_EMPTY (struct pmem_provider)\
-{0}
-
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
 			void *pool_addr, size_t pool_size, unsigned *nlanes,
@@ -715,7 +712,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
-	rep->part[p].provider = PMEM_PROVIDER_EMPTY;
+	rep->part[p].provider.path = NULL;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
@@ -1028,7 +1025,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
-	rep->part[0].provider = PMEM_PROVIDER_EMPTY;
+	rep->part[0].provider.path = NULL;
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;

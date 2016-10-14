@@ -103,6 +103,7 @@ FUNC_MOCK(realpath, char *, const char *path, char *resolved_path)
 FUNC_MOCK_END
 
 #define TEST_DEVICE_DAX_SIZE 12345
+int read_fail = 0;
 FUNC_MOCK(read, ssize_t, int fd, void *buf, size_t count)
 	FUNC_MOCK_RUN_DEFAULT {
 		if (!test_running)
@@ -110,7 +111,7 @@ FUNC_MOCK(read, ssize_t, int fd, void *buf, size_t count)
 
 		snprintf(buf, count, "%d\n", TEST_DEVICE_DAX_SIZE);
 
-		return strlen(buf);
+		return read_fail ? -1 : strlen(buf);
 	}
 FUNC_MOCK_END
 
@@ -153,9 +154,6 @@ test_provider_device_dax_positive()
 	UT_ASSERTeq(strcmp(p.path, TEST_PATH), 0);
 	UT_ASSERTeq(strcmp(realpath_path, TEST_REALPATH), 0);
 
-	ret = p.pops->open(&p, O_RDWR, 0666, 1);
-	UT_ASSERTeq(ret, -1);
-
 	ret = p.pops->open(&p, O_RDWR, 0666, 0);
 	UT_ASSERTeq(ret, 0);
 
@@ -164,6 +162,43 @@ test_provider_device_dax_positive()
 	ssize_t size = p.pops->get_size(&p);
 	UT_ASSERTeq(size, TEST_DEVICE_DAX_SIZE);
 	UT_ASSERTeq(strcmp(open_path, TEST_OPEN_SIZE_PATH), 0);
+
+	pmem_provider_fini(&p);
+}
+
+static void
+test_provider_device_dax_negative()
+{
+	int ret;
+	struct pmem_provider p;
+
+	stat_ret = -1;
+	stat_mode = S_IFCHR;
+	stat_major = 5;
+	stat_minor = 10;
+	realpath_ret = "/sys/class/dax";
+	ret = pmem_provider_init(&p, TEST_PATH);
+	UT_ASSERTeq(ret, -1);
+
+	stat_ret = 0;
+	stat_mode = S_IFCHR;
+	stat_major = 5;
+	stat_minor = 10;
+	realpath_ret = "/sys/class/not_dax";
+	ret = pmem_provider_init(&p, TEST_PATH);
+	UT_ASSERTeq(ret, -1);
+
+	stat_ret = 0;
+	stat_mode = S_IFCHR;
+	stat_major = 5;
+	stat_minor = 10;
+	realpath_ret = "/sys/class/dax";
+	ret = pmem_provider_init(&p, TEST_PATH);
+	UT_ASSERTeq(ret, 0);
+
+	read_fail = 1;
+	ssize_t size = p.pops->get_size(&p);
+	UT_ASSERTeq(size, -1);
 
 	pmem_provider_fini(&p);
 }
@@ -182,6 +217,8 @@ main(int argc, char *argv[])
 
 	test_provider_regular_file_positive();
 	test_provider_device_dax_positive();
+	test_provider_device_dax_negative();
+
 	test_running = 0;
 
 	DONE(NULL);
