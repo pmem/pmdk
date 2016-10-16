@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
+#include "out.h"
 #include "common.h"
 #include "output.h"
 #include "rm.h"
@@ -244,6 +245,11 @@ rm_poolset(const char *file)
 {
 	int ret = util_poolset_foreach_part(file, rm_poolset_cb, NULL);
 	if (ret) {
+		if (ret == -1) {
+			outv_err("parsing poolset failed: %s\n",
+					out_get_errormsg());
+			exit(1);
+		}
 		if (!force) {
 			outv_err("removing '%s' failed\n", file);
 			exit(1);
