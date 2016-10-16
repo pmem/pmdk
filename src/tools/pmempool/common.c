@@ -61,6 +61,7 @@
 #include "set.h"
 
 #define REQ_BUFF_SIZE	2048U
+#define Q_BUFF_SIZE	8192
 
 typedef const char *(*enum_to_str_fn)(int);
 
@@ -734,16 +735,23 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 	return 0;
 }
 
+/*
+ * ask -- print question and wait for single-char answer
+ */
 char
 ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 {
+	char qbuff[Q_BUFF_SIZE];
 	char ans = '\0';
 	int valid = 0;
 	if (op != '?')
 		return op;
+
+	vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
+
 	int is_tty = isatty(fileno(stdin));
 	do {
-		vprintf(fmt, ap);
+		printf("%s", qbuff);
 		size_t len = strlen(answers);
 		size_t i;
 		char def_anslo = (char)tolower(def_ans);
