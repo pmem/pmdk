@@ -166,6 +166,13 @@ static int
 rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 	int *status)
 {
+	if (rpmemd->pool->pool_size < RPMEM_MIN_POOL) {
+		RPMEMD_LOG(ERR, "invalid pool size -- must be >= %zu",
+				RPMEM_MIN_POOL);
+		*status = RPMEM_ERR_FATAL;
+		return -1;
+	}
+
 	if (rpmemd->pool->pool_size - POOL_HDR_SIZE < req->pool_size) {
 		RPMEMD_LOG(ERR, "requested size is too big");
 		*status = RPMEM_ERR_BADSIZE;
