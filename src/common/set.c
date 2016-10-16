@@ -2549,8 +2549,10 @@ util_poolset_foreach_part(const char *path,
 
 	struct pool_set *set;
 	int ret = util_poolset_parse(&set, path, fd);
-	if (ret)
+	if (ret) {
+		ret = -1;
 		goto err_close;
+	}
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct part_file part;
@@ -2572,6 +2574,12 @@ util_poolset_foreach_part(const char *path,
 		}
 	}
 out:
+	/*
+	 * Make sure callback does not return -1,
+	 * because this value is reserved for parsing
+	 * error.
+	 */
+	ASSERTne(ret, -1);
 	util_poolset_free(set);
 err_close:
 	close(fd);
