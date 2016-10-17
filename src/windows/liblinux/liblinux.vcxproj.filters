@@ -13,7 +13,7 @@
     <ClCompile Include="..\win_signal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win_time.c">
+    <ClCompile Include="..\win_time.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
