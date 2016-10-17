@@ -1,7 +1,7 @@
 C++ Bindings For libpmemobj	{#mainpage}
 ===========================
 
-This is the experimental C++ API for libpmemobj.
+This is the C++ API for libpmemobj.
 
 During the development of libpmemobj, many difficulties were encountered and
 compromises were made to make the C API as much user-friendly as possible. This
