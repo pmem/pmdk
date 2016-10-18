@@ -671,7 +671,10 @@ sync_replica(struct pool_set *set, unsigned flags)
 	update_uuids(set, set_hs);
 
 	/* create all remote replicas */
-	create_remote_replicas(set, set_hs);
+	if (create_remote_replicas(set, set_hs)) {
+		LOG(1, "Creating remote replicas failed");
+		goto err;
+	}
 
 	/* check and copy data if possible */
 	if (copy_data_to_broken_parts(set, healthy_replica,
