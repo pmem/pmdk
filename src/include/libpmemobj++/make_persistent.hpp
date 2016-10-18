@@ -42,10 +42,12 @@
 
 #include "libpmemobj++/detail/check_persistent_ptr_array.hpp"
 #include "libpmemobj++/detail/common.hpp"
+#include "libpmemobj++/detail/life.hpp"
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj/tx_base.h"
 
 #include <new>
+#include <utility>
 
 namespace nvml
 {
@@ -83,7 +85,8 @@ make_persistent(Args &&... args)
 		throw transaction_alloc_error("failed to allocate "
 					      "persistent memory object");
 	try {
-		new (ptr.get()) T(args...);
+		detail::create<T, Args...>(ptr.get(),
+					   std::forward<Args>(args)...);
 	} catch (...) {
 		pmemobj_tx_free(*ptr.raw_ptr());
 		throw;
@@ -122,7 +125,7 @@ delete_persistent(typename detail::pp_if_not_array<T>::type ptr)
 	 * At this point, everything in the object should be tracked
 	 * and reverted on transaction abort.
 	 */
-	ptr->~T();
+	detail::destroy<T>(*ptr);
 
 	if (pmemobj_tx_free(*ptr.raw_ptr()) != 0)
 		throw transaction_alloc_error("failed to delete "
