@@ -132,6 +132,38 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_NODE_END
 };
 
+static int
+CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+
+	char *config_value = arg;
+	UT_ASSERTeq(strcmp(config_value, TEST_CONFIG_VALUE), 0);
+	test_config_written = 1;
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_ro = arg;
+	*arg_ro = 0;
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(global_debug)[] = {
+	CTL_LEAF_RO(gtest_ro),
+	CTL_LEAF_WO(gtest_config),
+
+	CTL_NODE_END
+};
+
 static void
 test_ctl_parser(PMEMobjpool *pop)
 {
@@ -359,10 +391,23 @@ test_file_config(PMEMobjpool *pop)
 	create_and_test_file_config(pop,
 		"", 0);
 
+	create_and_test_file_config(NULL,
+		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 1);
+
 	test_too_large_file(pop);
 
 	struct ctl_query_provider *p = ctl_file_provider_new("does_not_exist");
 	UT_ASSERTeq(p, NULL);
+}
+
+static void
+test_ctl_global_namespace(PMEMobjpool *pop)
+{
+	int arg_read = 1;
+
+	int ret = pmemobj_ctl(pop, "global_debug.gtest_ro", &arg_read, NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(arg_read, 0);
 }
 
 int
@@ -375,12 +420,20 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
+	CTL_REGISTER_MODULE(NULL, global_debug);
+
+	test_ctl_global_namespace(NULL);
+
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, "ctl", PMEMOBJ_MIN_POOL,
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	test_ctl_global_namespace(NULL);
+
 	CTL_REGISTER_MODULE(pop->ctl, debug);
+
+	test_ctl_global_namespace(pop);
 
 	test_ctl_parser(pop);
 	test_string_query_provider(pop);
