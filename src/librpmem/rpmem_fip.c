@@ -62,7 +62,7 @@
 #include "rpmem_fip.h"
 
 #define RPMEM_FI_ERR(e, fmt, args...)\
-	RPMEM_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))
+	ERR(fmt ": %s", ## args, fi_strerror((e)))
 
 #define RPMEM_FI_CLOSE(f, fmt, args...) (\
 {\
@@ -630,7 +630,7 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	/* wait for READ completion */
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_READ);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "waiting for READ completion failed");
+		ERR("waiting for READ completion failed");
 		return ret;
 	}
 
@@ -874,7 +874,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "waiting for SEND buffer");
+		ERR("waiting for SEND buffer failed");
 		return ret;
 	}
 
@@ -909,7 +909,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	/* wait for persist operation completion */
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_RECV);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "persist operation failed");
+		ERR("waiting for RECV completion failed");
 		return ret;
 	}
 
@@ -1268,8 +1268,9 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	}
 
 	int ret = fip->ops->persist(fip, offset, len, lane);
-	if (ret)
-		ERR("persist operation failed");
+	if (ret) {
+		RPMEM_LOG(ERR, "persist operation failed");
+	}
 
 	return ret;
 }
@@ -1297,8 +1298,10 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 				fip->rd_buff, rd_len, raddr);
 
 		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);
-		if (ret)
+		if (ret) {
+			ERR("error when processing read request");
 			return ret;
+		}
 
 		memcpy(&cbuff[rd], fip->rd_buff, rd_len);
 
