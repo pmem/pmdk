@@ -54,8 +54,8 @@ pool_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
+
 	// close a pmemobj pool
 	pop.close();
 
@@ -101,8 +101,8 @@ pool_base_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool_base::create("poolfile", "", PMEMOBJ_MIN_POOL,
-				     S_IWUSR | S_IRUSR);
+	auto pop = pool_base::create("poolfile", "", PMEMOBJ_MIN_POOL);
+
 	// close a pmemobj pool
 	pop.close();
 
