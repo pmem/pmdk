@@ -599,7 +599,7 @@ sync_replica(struct pool_set *set, unsigned flags)
 	/* examine poolset's health */
 	struct poolset_health_status *set_hs = NULL;
 	if (replica_check_poolset_health(set, &set_hs, flags)) {
-		LOG(1, "Poolset health check failed");
+		ERR("Poolset health check failed");
 		return -1;
 	}
 
@@ -612,7 +612,7 @@ sync_replica(struct pool_set *set, unsigned flags)
 	/* find one good replica; it will be the source of data */
 	unsigned healthy_replica = replica_find_healthy_replica(set_hs);
 	if (healthy_replica == UNDEF_REPLICA) {
-		LOG(1, "No healthy replica found");
+		ERR("No healthy replica found");
 		goto err;
 	}
 
@@ -624,19 +624,19 @@ sync_replica(struct pool_set *set, unsigned flags)
 
 	/* recreate broken parts */
 	if (recreate_broken_parts(set, set_hs, flags)) {
-		LOG(1, "Recreating broken parts failed");
+		ERR("Recreating broken parts failed");
 		goto err;
 	}
 
 	/* open all part files */
 	if (replica_open_poolset_part_files(set)) {
-		LOG(1, "Opening poolset part files failed");
+		ERR("Opening poolset part files failed");
 		goto err;
 	}
 
 	/* map all replicas */
 	if (util_poolset_open(set)) {
-		LOG(1, "Opening poolset failed");
+		ERR("Opening poolset failed");
 		goto err;
 	}
 
@@ -645,13 +645,13 @@ sync_replica(struct pool_set *set, unsigned flags)
 
 	/* open all remote replicas */
 	if (open_remote_replicas(set, set_hs)) {
-		LOG(1, "Opening remote replicas failed");
+		ERR("Opening remote replicas failed");
 		goto err;
 	}
 
 	/* update uuid fields in the set structure with part headers */
 	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
-		LOG(1, "Gathering uuids failed");
+		ERR("Gathering uuids failed");
 		goto err;
 	}
 
@@ -659,7 +659,7 @@ sync_replica(struct pool_set *set, unsigned flags)
 	if (!is_dry_run(flags)) {
 		if (create_headers_for_broken_parts(set, healthy_replica,
 				set_hs)) {
-			LOG(1, "Creating headers for broken parts failed");
+			ERR("Creating headers for broken parts failed");
 			goto err;
 		}
 	}
@@ -672,20 +672,20 @@ sync_replica(struct pool_set *set, unsigned flags)
 
 	/* create all remote replicas */
 	if (create_remote_replicas(set, set_hs)) {
-		LOG(1, "Creating remote replicas failed");
+		ERR("Creating remote replicas failed");
 		goto err;
 	}
 
 	/* check and copy data if possible */
 	if (copy_data_to_broken_parts(set, healthy_replica,
 			flags, set_hs)) {
-		LOG(1, "Copying data to broken parts failed");
+		ERR("Copying data to broken parts failed");
 		goto err;
 	}
 
 	/* grant permissions to all created parts */
 	if (grant_broken_parts_perm(set, healthy_replica, set_hs)) {
-		LOG(1, "Granting permissions to broken parts failed");
+		ERR("Granting permissions to broken parts failed");
 		goto err;
 	}
 
