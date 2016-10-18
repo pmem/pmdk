@@ -899,7 +899,7 @@ pmempool_sync(const char *poolset, unsigned flags)
 
 	/* sync all replicas */
 	if (sync_replica(set, flags)) {
-		ERR("Synchronization failed");
+		LOG(1, "Synchronization failed");
 		goto err_close_all;
 	}
 

@@ -171,9 +171,9 @@ pmempool_sync_func(char *appname, int argc, char *argv[])
 	ret = pmempool_sync(ctx.poolset_file, ctx.flags);
 
 	if (ret) {
+		outv_err("failed to synchronize: %s\n", pmempool_errormsg());
 		if (errno)
 			outv_err("%s\n", strerror(errno));
-		outv_err("failed to synchronize: %s\n", pmempool_errormsg());
 		return -1;
 	} else {
 		outv(1, "%s: synchronized\n", ctx.poolset_file);
