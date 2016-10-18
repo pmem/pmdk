@@ -41,7 +41,8 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_open;
 		pmemobj_close;
 		pmemobj_check;
-		pmemobj_ctl;
+		pmemobj_ctl_get;
+		pmemobj_ctl_set;
 		pmemobj_mutex_zero;
 		pmemobj_mutex_lock;
 		pmemobj_mutex_timedlock;
