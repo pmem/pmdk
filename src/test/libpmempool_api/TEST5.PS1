@@ -42,6 +42,8 @@ $Env:UNITTEST_NUM = "5"
 
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 require_fs_type any
 
 setup

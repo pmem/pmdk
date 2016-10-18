@@ -84,7 +84,6 @@ function getLineCount {
 #   "1K" --> "1024"
 #   "10" --> "10"
 #
-
 function convert_to_bytes() {
 
     param([string]$size)
@@ -359,9 +358,9 @@ function create_poolset {
             'h' { create_nonzeroed_file $asize 4K $fpath }
         }
         # XXX: didn't convert chmod
-        #	if [ $mode ]; then
-        #	    chmod $mode $fpath
-        #	fi
+        # if [ $mode ]; then
+        #     chmod $mode $fpath
+        # fi
 
         echo "$fsize $fpath" | out-file -Append -encoding ASCII $psfile
     } # for args
@@ -382,13 +381,13 @@ function expect_normal_exit {
     sv -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
-	    if ($param -is [array]) {
-	        foreach ($param_entry in $param) {
-		        [string]$params += -join(" '", $param_entry, "' ")
-	        }
-	    } else {
+       if ($param -is [array]) {
+            foreach ($param_entry in $param) {
+                [string]$params += -join(" '", $param_entry, "' ")
+            }
+        } else {
             [string]$params += -join(" '", $param, "' ")
-	    }
+        }
     }
 
     Invoke-Expression "$command $params"
@@ -429,18 +428,18 @@ function expect_abnormal_exit {
     sv -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
-	    if ($param -is [array]) {
-	        foreach ($param_entry in $param) {
-		        [string]$params += -join(" '", $param_entry, "' ")
-	        }
-	    } else {
+        if ($param -is [array]) {
+            foreach ($param_entry in $param) {
+                [string]$params += -join(" '", $param_entry, "' ")
+            }
+        } else {
             [string]$params += -join(" '", $param, "' ")
-	    }
+        }
     }
 
     Invoke-Expression "$command $params"
     if ($LASTEXITCODE -eq 0) {
-	    Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
+        Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
 }
 
@@ -449,23 +448,23 @@ function expect_abnormal_exit {
 #
 function check_pool {
     $file = $Args[0]
-	if ($Env:CHECK_POOL -eq "1") {
-		if ($Env:VERBOSE -ne "0") {
-			echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
-		}
-		Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+    if ($Env:CHECK_POOL -eq "1") {
+        if ($Env:VERBOSE -ne "0") {
+            echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
+        }
+        Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
         if ($LASTEXITCODE -ne 0) {
             Write-Error("$PMEMPOOL$Env:EXESUFFIX returned error code $LASTEXITCODE")
             Exit $LASTEXITCODE
         }
-	}
+    }
 }
 
 #
 # check_pools -- run pmempool check on specified pool files
 #
 function check_pools {
-	if ($Env:CHECK_POOL -eq "1") {
+    if ($Env:CHECK_POOL -eq "1") {
         foreach ($arg in $Args[0 .. $Args.Count]) {
             check_pool $arg
         }
@@ -498,11 +497,28 @@ function require_no_superuser {
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
+    sv -Name req_test_type 1 -Scope Global
+
+    if ($Env:TEST -eq 'all') {
+        return
+    }
+
     for ($i=0;$i -lt $args.count;$i++) {
         if ($args[$i] -eq $Env:TEST) {
             return
         }
-
+        switch ($Env:TEST) {
+            'check' { # "check" is a synonym of "short + medium"
+                if ($args[$i] -eq 'short' -Or $args[$i] -eq 'medium') {
+                    return
+                }
+            }
+            default {
+                if ($args[$i] -eq $Env:TEST) {
+                    return
+                }
+            }
+        }
         if (-Not $Env:UNITTEST_QUIET) {
             echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TEST ($* required)"
         }
@@ -833,13 +849,13 @@ function compare_replicas {
     $count = $args
 
     foreach ($param in $Args[0 .. ($Args.Count - 3)]) {
-	    if ($param -is [array]) {
-	        foreach ($param_entry in $param) {
-		        [string]$params += -join(" '", $param_entry, "' ")
-	        }
-	    } else {
+        if ($param -is [array]) {
+            foreach ($param_entry in $param) {
+                [string]$params += -join(" '", $param_entry, "' ")
+            }
+        } else {
             [string]$params += -join(" '", $param, "' ")
-	    }
+        }
     }
 
     $rep1 = $args[$cnt + 1]
@@ -885,6 +901,12 @@ function require_fs_type {
 #
 function setup {
     $Env:LC_ALL = "C"
+
+    # test type must be explicitly specified
+    if ($req_test_type -ne "1") {
+        Write-Error "error: required test type is not specified"
+        exit 1
+    }
 
     # fs type "none" must be explicitly enabled
     if ($Env:FS -eq "none" -and $req_fs_type -ne "1") {

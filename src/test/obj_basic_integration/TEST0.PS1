@@ -44,6 +44,8 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 # XXX: however we don't have valgrind in Windows yet
 #configure_valgrind memcheck force-disable
 

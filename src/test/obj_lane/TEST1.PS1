@@ -46,6 +46,8 @@ $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 setup
 expect_normal_exit $Env:EXE_DIR\obj_lane$Env:EXESUFFIX m
 

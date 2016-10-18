@@ -48,6 +48,8 @@ $ENV:UNITTEST_NUM = "1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
+
 # XXX: however we don't have valgrind in Windows yet
 # configure_valgrind pmemcheck force-enable
 

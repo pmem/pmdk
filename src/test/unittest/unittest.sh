@@ -733,9 +733,23 @@ function require_no_superuser() {
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
+	req_test_type=1
 	for type in $*
 	do
-		[ "$type" = "$TEST" ] && return
+		case "$TEST"
+		in
+		all)
+			# "all" is a synonym of "short + medium + long"
+			return
+			;;
+		check)
+			# "check" is a synonym of "short + medium"
+			[ "$type" = "short" -o "$type" = "medium" ] && return
+			;;
+		*)
+			[ "$type" = "$TEST" ] && return
+			;;
+		esac
 	done
 	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP test-type $TEST ($* required)"
 	exit 0
@@ -1648,6 +1662,12 @@ function create_holey_file_on_node() {
 # setup -- print message that test setup is commencing
 #
 function setup() {
+	# test type must be explicitly specified
+	if [ "$req_test_type" != "1" ]; then
+		echo "error: required test type is not specified" >&2
+		exit 1
+	fi
+
 	# fs type "none" must be explicitly enabled
 	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
 		exit 0

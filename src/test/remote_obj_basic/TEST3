@@ -43,6 +43,8 @@ TIMEOUT=5
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
+
 setup
 
 # how much remote nodes are required

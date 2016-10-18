@@ -39,9 +39,11 @@ export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
-ERR=stderr${UNITTEST_NUM}.log
 
+require_test_type medium
 require_fs_type none
+
+ERR=stderr${UNITTEST_NUM}.log
 
 setup
 
