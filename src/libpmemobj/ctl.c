@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,9 @@
 #define CTL_NAME_VALUE_SEPARATOR "="
 #define CTL_QUERY_NODE_SEPARATOR "."
 
+static int ctl_global_first_free = 0;
+static struct ctl_node CTL_NODE(global)[CTL_MAX_ENTRIES];
+
 /*
  * This is the top level node of the ctl tree structure. Each node can contain
  * children and leaf nodes.
@@ -111,31 +114,22 @@ struct ctl_file_provider {
 };
 
 /*
- * ctl_query -- (internal) parses the name and calls the appropriate methods
- *	from the ctl tree.
+ * ctl_find_node -- (internal) searches for a matching entry point in the
+ *	provided nodes
+ *
+ * The caller is responsible for freeing all of the allocated indexes,
+ * regardless of the return value.
  */
-static int
-ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
-	const char *name, void *read_arg, void *write_arg)
+static struct ctl_node *
+ctl_find_node(struct ctl_node *nodes, const char *name,
+	struct ctl_indexes *indexes)
 {
-	struct ctl_node *nodes = pop->ctl->root;
 	struct ctl_node *n = NULL;
-
-	/*
-	 * All of the indexes are put on this list so that the handlers can
-	 * easily retrieve the index values. The list is cleared once the ctl
-	 * query has been handled.
-	 */
-	struct ctl_indexes indexes;
-	SLIST_INIT(&indexes);
-
-	int ret = -1;
-
+	char *sptr = NULL;
 	char *parse_str = Strdup(name);
 	if (parse_str == NULL)
-		goto error_strdup_name;
+		return NULL;
 
-	char *sptr = NULL;
 	char *node_name = strtok_r(parse_str, CTL_QUERY_NODE_SEPARATOR, &sptr);
 
 	/*
@@ -149,9 +143,9 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 		if (endptr != node_name) { /* a valid index */
 			index_entry = Malloc(sizeof(*index_entry));
 			if (index_entry == NULL)
-				goto error_invalid_arguments;
+				goto error;
 			index_entry->value = index_value;
-			SLIST_INSERT_HEAD(&indexes, index_entry, entry);
+			SLIST_INSERT_HEAD(indexes, index_entry, entry);
 		}
 
 		for (n = &nodes[0]; n->name != NULL; ++n) {
@@ -160,10 +154,9 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 			else if (strcmp(n->name, node_name) == 0)
 				break;
 		}
-		if (n->name == NULL) {
-			errno = EINVAL;
-			goto error_invalid_arguments;
-		}
+		if (n->name == NULL)
+			goto error;
+
 		if (index_entry)
 			index_entry->name = n->name;
 
@@ -171,11 +164,59 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 		node_name = strtok_r(NULL, CTL_QUERY_NODE_SEPARATOR, &sptr);
 	}
 
+	Free(parse_str);
+	return n;
+error:
+	Free(parse_str);
+	return NULL;
+}
+
+/*
+ * ctl_delete_indexes --
+ *	(internal) removes and frees all entires on the index list
+ */
+static void
+ctl_delete_indexes(struct ctl_indexes *indexes)
+{
+	while (!SLIST_EMPTY(indexes)) {
+		struct ctl_index *index = SLIST_FIRST(indexes);
+		SLIST_REMOVE_HEAD(indexes, entry);
+		Free(index);
+	}
+}
+
+/*
+ * ctl_query -- (internal) parses the name and calls the appropriate methods
+ *	from the ctl tree
+ */
+static int
+ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
+	const char *name, void *read_arg, void *write_arg)
+{
+	/*
+	 * All of the indexes are put on this list so that the handlers can
+	 * easily retrieve the index values. The list is cleared once the ctl
+	 * query has been handled.
+	 */
+	struct ctl_indexes indexes;
+	SLIST_INIT(&indexes);
+
+	int ret = -1;
+
+	struct ctl_node *n = ctl_find_node(CTL_NODE(global),
+		name, &indexes);
+
+	if (n == NULL && pop) {
+		ctl_delete_indexes(&indexes);
+		n = ctl_find_node(pop->ctl->root, name, &indexes);
+	}
+
 	/*
 	 * Discard invalid calls, this includes the ones that are mostly correct
 	 * but include an extraneous arguments.
 	 */
-	if (n == NULL || (read_arg != NULL && n->read_cb == NULL) ||
+	if (n == NULL ||
+		(read_arg != NULL && n->read_cb == NULL) ||
 		(write_arg != NULL && n->write_cb == NULL) ||
 		(write_arg == NULL && read_arg == NULL)) {
 		errno = EINVAL;
@@ -193,15 +234,8 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 		ret = n->write_cb(pop, type, write_arg, &indexes);
 
 error_invalid_arguments:
-	while (!SLIST_EMPTY(&indexes)) {
-		struct ctl_index *index = SLIST_FIRST(&indexes);
-		SLIST_REMOVE_HEAD(&indexes, entry);
-		Free(index);
-	}
+	ctl_delete_indexes(&indexes);
 
-	Free(parse_str);
-
-error_strdup_name:
 	return ret;
 }
 
@@ -221,7 +255,10 @@ pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
 void
 ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 {
-	struct ctl_node *nnode = &c->root[c->first_free++];
+	struct ctl_node *nnode = c == NULL ?
+		&CTL_NODE(global)[ctl_global_first_free++] :
+		&c->root[c->first_free++];
+
 	nnode->children = n;
 	nnode->type = CTL_NODE_NAMED;
 	nnode->name = Strdup(name);
