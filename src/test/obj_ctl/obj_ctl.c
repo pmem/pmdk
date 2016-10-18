@@ -168,21 +168,21 @@ static void
 test_ctl_parser(PMEMobjpool *pop)
 {
 	int ret;
-	ret = pmemobj_ctl(pop, "a.b.c.d", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "a.b.c.d", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, ".", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, ".", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "..", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "..", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "1.2.3.4", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "1.2.3.4", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.1.", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.1.", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.1.invalid", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.1.invalid", NULL);
 	UT_ASSERTne(ret, 0);
 
 	/* test methods set read to 0 and write to 1 if successful */
@@ -190,18 +190,25 @@ test_ctl_parser(PMEMobjpool *pop)
 	int arg_write = 0;
 
 	/* correct name, wrong args */
-	ret = pmemobj_ctl(pop, "debug.test_rw", NULL, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.test_wo", &arg_read, NULL);
+	ret = pmemobj_ctl_set(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.test_wo", &arg_read, &arg_write);
+	ret = pmemobj_ctl_get(pop, "debug.test_wo", &arg_read);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.test_ro", NULL, &arg_write);
+	ret = pmemobj_ctl_get(pop, "debug.test_wo", NULL);
 	UT_ASSERTne(ret, 0);
-	ret = pmemobj_ctl(pop, "debug.test_ro", &arg_read, &arg_write);
+	ret = pmemobj_ctl_set(pop, "debug.test_ro", &arg_write);
+	UT_ASSERTne(ret, 0);
+	ret = pmemobj_ctl_set(pop, "debug.test_ro", NULL);
 	UT_ASSERTne(ret, 0);
 
-	ret = pmemobj_ctl(pop, "debug.test_rw", &arg_read, &arg_write);
+	ret = pmemobj_ctl_get(pop, "debug.test_rw", &arg_read);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(arg_read, 0);
+	UT_ASSERTeq(arg_write, 0);
+
+	ret = pmemobj_ctl_set(pop, "debug.test_rw", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 1);
@@ -209,7 +216,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl(pop, "debug.test_ro", &arg_read, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.test_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
@@ -217,17 +224,17 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl(pop, "debug.test_wo", NULL, &arg_write);
+	ret = pmemobj_ctl_set(pop, "debug.test_wo", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
 
 	long index_value = 0;
-	ret = pmemobj_ctl(pop, "debug.5.index_value", &index_value, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.5.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 5);
 
-	ret = pmemobj_ctl(pop, "debug.10.index_value", &index_value, NULL);
+	ret = pmemobj_ctl_get(pop, "debug.10.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 10);
 }
@@ -405,7 +412,7 @@ test_ctl_global_namespace(PMEMobjpool *pop)
 {
 	int arg_read = 1;
 
-	int ret = pmemobj_ctl(pop, "global_debug.gtest_ro", &arg_read, NULL);
+	int ret = pmemobj_ctl_get(pop, "global_debug.gtest_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 }

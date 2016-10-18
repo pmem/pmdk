@@ -240,13 +240,23 @@ error_invalid_arguments:
 }
 
 /*
- * pmemobj_ctl -- programmatically executes a ctl query
+ * pmemobj_ctl -- programmatically executes a read ctl query
  */
 int
-pmemobj_ctl(PMEMobjpool *pop, const char *name, void *read_arg, void *write_arg)
+pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
 {
 	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, read_arg, write_arg);
+		name, arg, NULL);
+}
+
+/*
+ * pmemobj_ctl -- programmatically executes a write ctl query
+ */
+int
+pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
+		name, NULL, arg);
 }
 
 /*

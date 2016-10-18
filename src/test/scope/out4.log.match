@@ -14,8 +14,9 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
+pmemobj_ctl_get
+pmemobj_ctl_set
 pmemobj_direct
-pmemobj_ctl
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -91,8 +92,9 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
+pmemobj_ctl_get
+pmemobj_ctl_set
 pmemobj_direct
-pmemobj_ctl
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -168,8 +170,9 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
+pmemobj_ctl_get
+pmemobj_ctl_set
 pmemobj_direct
-pmemobj_ctl
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -245,11 +248,9 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
-<<<<<<< HEAD
+pmemobj_ctl_get
+pmemobj_ctl_set
 pmemobj_direct
-=======
-pmemobj_ctl
->>>>>>> d2f16f3... obj: add initial CTL support and related tests
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
