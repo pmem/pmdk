@@ -198,6 +198,10 @@ To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
 
 ### Experimental Packages ###
 
+Some components in the source tree are treated as experimental. By default
+those components are built but not installed (and thus not included in
+packages).
+
 If you want to build/install experimental packages run:
 ```
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
