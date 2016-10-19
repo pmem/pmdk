@@ -42,6 +42,7 @@
 #include "list.h"
 #include "mmap.h"
 #include "obj.h"
+#include "ctl_global.h"
 
 #include "pmemops.h"
 #include "set.h"
@@ -216,6 +217,7 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
+	ctl_global_register();
 
 	lane_info_boot();
 

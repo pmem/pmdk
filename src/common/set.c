@@ -85,6 +85,10 @@ static int Remote_replication_available;
 static pthread_mutex_t Remote_lock;
 static int Remote_usage_counter;
 
+int Prefault_at_open = 0;
+int Prefault_at_create = 0;
+
+
 /*
  * util_remote_init -- initialize remote replication
  */
@@ -289,6 +293,19 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"allocating memory failed",
 	"" /* format correct */
 };
+
+/*
+ * util_replica_force_page_allocation - (internal) forces page allocation for
+ * replica
+ */
+static void
+util_replica_force_page_allocation(struct pool_replica *rep)
+{
+	volatile char *cur_addr = rep->part[0].addr;
+	char *addr_end = (char *)cur_addr + rep->part[0].size;
+	for (; cur_addr < addr_end; cur_addr += Pagesize)
+		*cur_addr = *cur_addr;
+}
 
 /*
  * util_map_hdr -- map a header of a pool set
@@ -1861,6 +1878,9 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
+	if (Prefault_at_create)
+		util_replica_force_page_allocation(rep);
+
 	ASSERTeq(mapsize, rep->repsize);
 
 	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
@@ -2258,6 +2278,9 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	} while (retry_for_contiguous_addr);
 
 	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+
+	if (Prefault_at_open)
+		util_replica_force_page_allocation(rep);
 
 	ASSERTeq(mapsize, rep->repsize);
 
