@@ -34,6 +34,9 @@
  * pmembench.c -- main source file for benchmark framework
  */
 
+#define _GNU_SOURCE
+
+#include <features.h>
 #include <stdio.h>
 #include <string.h>
 #include <err.h>
@@ -47,6 +50,8 @@
 #include <linux/limits.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sched.h>
+#include <pthread.h>
 
 #include "mmap.h"
 #include "set.h"
@@ -204,6 +209,15 @@ static struct benchmark_clo pmembench_clos[] = {
 			.min	= 1,
 			.max	= ULLONG_MAX,
 		},
+	},
+	{
+		.opt_short	= 'F',
+		.opt_long	= "no-affinity",
+		.descr		= "Turn off working threads affinity",
+		.type		= CLO_TYPE_FLAG,
+		.off		= clo_field_offset(struct benchmark_args,
+						no_affinity),
+		.def		= "false"
 	},
 	{
 		.opt_short	= 'd',
@@ -509,9 +523,12 @@ static int
 pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 	size_t n_ops, struct benchmark *bench, struct benchmark_args *args)
 {
+	size_t ncpus = (size_t)sysconf(_SC_NPROCESSORS_ONLN);
+
 	size_t i;
 	for (i = 0; i < nworkers; i++) {
-		workers[i] = benchmark_worker_alloc();
+		workers[i] = benchmark_worker_alloc((i + 1) % ncpus,
+			args->no_affinity);
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = calloc(n_ops,
@@ -930,6 +947,8 @@ pmembench_remove_file(const char *path)
 static int
 pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
+	cpu_set_t cpuset_default, cpuset_affine;
+	pthread_t main_thread = pthread_self();
 	char old_wd[PATH_MAX];
 	int ret = 0;
 
@@ -988,6 +1007,24 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	if (args->help) {
 		pmembench_print_help_single(bench);
 		goto out;
+	}
+
+	if (!args->no_affinity) {
+		if (pthread_getaffinity_np(main_thread, sizeof(cpu_set_t),
+				&cpuset_default)) {
+			fprintf(stderr, "Cannot get main thread affinity");
+			ret = -1;
+			goto out;
+		}
+
+		CPU_ZERO(&cpuset_affine);
+		CPU_SET(0, &cpuset_affine);
+		if (pthread_setaffinity_np(main_thread, sizeof(cpu_set_t),
+				&cpuset_affine)) {
+			fprintf(stderr, "Cannot set main thread affinity");
+			ret = -1;
+			goto out;
+		}
 	}
 
 	pmembench_print_header(pb, bench, clovec);
@@ -1102,6 +1139,15 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		workers_times = NULL;
 	}
 out:
+	if (!args->no_affinity) {
+		if (pthread_setaffinity_np(main_thread, sizeof(cpu_set_t),
+				&cpuset_default)) {
+			fprintf(stderr, "Cannot set main thread affinity");
+			ret = -1;
+			goto out;
+		}
+	}
+
 	if (stats)
 		free(stats);
 	if (workers_times)

@@ -34,6 +34,10 @@
  * rpmemd_fip.c -- rpmemd libfabric provider module source file
  */
 
+#define _GNU_SOURCE
+
+#include <features.h>
+#include <sched.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -42,7 +46,6 @@
 #include <pthread.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <pthread.h>
 
 #include <rdma/fabric.h>
 #include <rdma/fi_domain.h>
@@ -862,9 +865,11 @@ rpmemd_fip_process_start_gpspm(struct rpmemd_fip *fip)
 	 * the worker threads.
 	 */
 	size_t wi;
+	int force_thread_affinity = (getenv(RPMEM_AFFINITY_ENV) != NULL);
 	for (wi = 0; wi < fip->nthreads; wi++) {
-		fip->workers[wi] = rpmemd_fip_worker_init(fip,
-				&fip->closing, ring_size, rpmemd_fip_worker);
+		fip->workers[wi] = rpmemd_fip_worker_init(wi,
+			force_thread_affinity, fip, &fip->closing, ring_size,
+			rpmemd_fip_worker);
 		if (!fip->workers[wi]) {
 			RPMEMD_LOG(ERR, "!initializing worker");
 			ret = -1;

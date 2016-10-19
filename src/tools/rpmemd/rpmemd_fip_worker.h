@@ -38,7 +38,8 @@ struct rpmemd_fip_worker;
 
 typedef int (*rpmemd_fip_worker_fn)(void *arg, void *data);
 
-struct rpmemd_fip_worker *rpmemd_fip_worker_init(void *arg,
-	volatile int *stop, size_t size, rpmemd_fip_worker_fn func);
+struct rpmemd_fip_worker *rpmemd_fip_worker_init(size_t cpu,
+	int force_thread_affinity, void *arg, volatile int *stop, size_t size,
+	rpmemd_fip_worker_fn func);
 int rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker);
 int rpmemd_fip_worker_push(struct rpmemd_fip_worker *worker, void *data);

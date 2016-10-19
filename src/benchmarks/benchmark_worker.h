@@ -33,7 +33,6 @@
  * benchmark_worker.h -- benchmark_worker module declarations
  */
 
-#include <pthread.h>
 #include "benchmark.h"
 
 /*
@@ -89,7 +88,7 @@ struct benchmark_worker
 	enum benchmark_worker_state state;
 };
 
-struct benchmark_worker *benchmark_worker_alloc(void);
+struct benchmark_worker *benchmark_worker_alloc(int cpu, int no_affinity);
 void benchmark_worker_free(struct benchmark_worker *);
 
 int benchmark_worker_init(struct benchmark_worker *);

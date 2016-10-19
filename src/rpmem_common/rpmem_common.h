@@ -55,6 +55,7 @@
 #define RPMEM_DEF_SSH	"ssh"
 #define RPMEM_PROV_SOCKET_ENV	"RPMEM_ENABLE_SOCKETS"
 #define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
+#define RPMEM_AFFINITY_ENV	"RPMEM_FORCE_THREAD_AFFINITY"
 
 #include <sys/socket.h>
 #include <netdb.h>

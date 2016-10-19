@@ -33,8 +33,12 @@
 /*
  * rpmemd_fip_worker.c -- worker thread with ring buffer source file
  */
+
+#define _GNU_SOURCE
+
+#include <features.h>
+#include <sched.h>
 #include <stdint.h>
-#include <pthread.h>
 
 #include "rpmemd_log.h"
 #include "rpmemd_fip_ring.h"
@@ -99,8 +103,8 @@ rpmemd_fip_worker_thread_func(void *arg)
  * rpmemd_fip_worker_init -- initialize worker thread
  */
 struct rpmemd_fip_worker *
-rpmemd_fip_worker_init(void *arg, volatile int *stop,
-	size_t size, rpmemd_fip_worker_fn func)
+rpmemd_fip_worker_init(size_t cpu, int force_thread_affinity, void *arg,
+	volatile int *stop, size_t size, rpmemd_fip_worker_fn func)
 {
 	struct rpmemd_fip_worker *worker = malloc(sizeof(*worker));
 	if (!worker) {
@@ -138,7 +142,24 @@ rpmemd_fip_worker_init(void *arg, volatile int *stop,
 		goto err_thread;
 	}
 
+	if (force_thread_affinity) {
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+
+		if (pthread_setaffinity_np(worker->thread, sizeof(cpu_set_t),
+				&cpuset))
+			goto err_affinity;
+	}
+
 	return worker;
+err_affinity:
+	util_mutex_lock(&worker->lock);
+	*worker->stop = 1;
+	pthread_cond_signal(&worker->cond);
+	util_mutex_unlock(&worker->lock);
+
+	pthread_join(worker->thread, NULL);
 err_thread:
 	pthread_cond_destroy(&worker->cond);
 err_cond:
