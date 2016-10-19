@@ -106,6 +106,7 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/container_ctree.o\
 	$(TOP)/src/debug/libpmemobj/container_seglists.o\
 	$(TOP)/src/debug/libpmemobj/ctl.o\
+	$(TOP)/src/debug/libpmemobj/ctl_global.o\
 	$(TOP)/src/debug/libpmemobj/ctree.o\
 	$(TOP)/src/debug/libpmemobj/cuckoo.o\
 	$(TOP)/src/debug/libpmemobj/heap.o\
@@ -135,6 +136,7 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ctree.o\
 	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
 	$(TOP)/src/nondebug/libpmemobj/ctl.o\
+	$(TOP)/src/nondebug/libpmemobj/ctl_global.o\
 	$(TOP)/src/nondebug/libpmemobj/ctree.o\
 	$(TOP)/src/nondebug/libpmemobj/cuckoo.o\
 	$(TOP)/src/nondebug/libpmemobj/heap.o\

@@ -496,3 +496,23 @@ ctl_delete(struct ctl *c)
 
 	Free(c);
 }
+
+/*
+ * ctl_helper_is_yes_input -- checks whether the provided argument contains
+ *	either a number larger than zero or y or Y. This is used to indicate
+ *	whether a config setting should be set or not.
+ */
+int
+ctl_helper_is_yes_input(const char *arg)
+{
+	char *endptr;
+	int olderrno = errno;
+	errno = 0;
+	long long val = strtoll(arg, &endptr, 0);
+	if (endptr == arg || errno != 0)
+		val = LLONG_MIN;
+
+	errno = olderrno;
+
+	return val > 0 || strcmp(arg, "y") == 0 || strcmp(arg, "Y") == 0;
+}

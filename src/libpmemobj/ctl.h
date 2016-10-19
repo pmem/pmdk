@@ -114,6 +114,8 @@ void ctl_delete(struct ctl *stats);
 void ctl_register_module_node(struct ctl *c,
 	const char *name, struct ctl_node *n);
 
+int ctl_helper_is_yes_input(const char *arg);
+
 #define CTL_STR(name) #name
 
 #define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, NULL, NULL, NULL}
