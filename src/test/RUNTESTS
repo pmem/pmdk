@@ -246,7 +246,7 @@ runtest() {
 		local sid=${runscript#TEST}
 		read_test_configuration $sid
 
-		ttype=$(intersection "$testtype" "$req_testtype")
+		ttype=$(intersection "$testtype" "$req_testtype" "short medium long check")
 		[ -z "$ttype" ] && {
 			continue
 		}

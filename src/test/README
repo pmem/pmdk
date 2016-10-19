@@ -185,10 +185,11 @@ Similar to the above, tests can require a specific build types:
 	require_build_type debug
 
 Most tests are short "make check" tests, designed to run quickly when
-smoke-checking a build.  Three other test types are available: short, medium
-and long (check is a synonym of short + medium).
-A test script can indicate it should only run during a long test run,
-for example, using:
+smoke-checking a build.
+Three test types are available: short, medium and long.
+Each test script must use require_test_type to indicate to which group
+of tests it belongs to.  For example, if it should only run during a long
+test run, it can use this line:
 
 	require_test_type long
 
