@@ -85,7 +85,7 @@ function configure_poolsets() {
 	expect_normal_exit run_on_node 1 ../pmemobjcli -s $PMEMOBJCLI_SCRIPT $POOLSET_LOCAL
 }
 
-DUMP_INFO_LOG="../pmempool info -HZCOoAa"
+DUMP_INFO_LOG="../pmempool info -lHZCOoAa"
 DUMP_INFO_LOG_REMOTE="$DUMP_INFO_LOG -f obj"
 DUMP_INFO_SED="sed -e '/^Checksum/d' -e '/^Creation/d'"
 DUMP_INFO_SED_REMOTE="$DUMP_INFO_SED -e '/^Previous part UUID/d' -e '/^Next part UUID/d'"
