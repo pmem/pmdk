@@ -36,6 +36,7 @@
 
 #include <string.h>
 #include "util.h"
+#include <tchar.h>
 
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"
@@ -67,5 +68,33 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 	default:
 		if (strerror_s(buff, bufflen, errnum))
 			strcpy_s(buff, bufflen, UNMAPPED_STR);
+	}
+}
+
+/*
+ * util_realpath -- get canonicalized absolute pathname
+ */
+char *
+util_realpath(const char *path)
+{
+	DWORD len = 0;
+	char *buf = "";
+
+	/* get the length of the full pathname incl. terminating null char */
+	len = GetFullPathNameA(path, 1, buf, NULL);
+	if (len == 0) {
+		/* the function failed */
+		return NULL;
+	} else {
+		/* allocate a buffer large enough to store the pathname */
+		/* XXX: consider using Malloc/Free */
+		char *buffer = malloc(len);
+		DWORD ret = GetFullPathNameA(path, len, buffer, NULL);
+		if (ret == len - 1) {
+			return buffer;
+		} else {
+			free(buffer);
+			return NULL;
+		}
 	}
 }
