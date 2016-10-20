@@ -73,6 +73,7 @@ SRC=pmembench.c\
     pmem_memcpy.c\
     pmem_flush.c\
     pmemobj_gen.c\
+    pmemobj_persist.c\
     obj_pmalloc.c\
     obj_locks.c\
     obj_lanes.c\
@@ -93,6 +94,7 @@ CONFIGS=pmembench_log\
 	pmembench_memcpy\
 	pmembench_flush\
 	pmembench_obj_pmalloc\
+	pmembench_obj_persist\
 	pmembench_obj_gen\
 	pmembench_obj_locks\
 	pmembench_obj_lanes\
@@ -113,6 +115,16 @@ LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -ldl
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
+
+ifeq ($(BUILD_RPMEM),y)
+SRC += rpmem_persist.c
+LIBS += -lrpmem
+CONFIGS += pmembench_rpmem
+else
+$(info NOTE: Skipping librpmem benchmark because libfabric is missing \
+-- see src/librpmem/README for details.)
+endif
+
 CFLAGS  = -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror
