@@ -30,15 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_check/TEST8 -- test for checking pools
+# pmempool_check/TEST5 -- test for checking pools
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_check\TEST8w"
-$Env:UNITTEST_NUM = "8w"
+$Env:UNITTEST_NAME = "pmempool_check\TEST5"
+$Env:UNITTEST_NUM = "5"
 
 
 . ..\unittest\unittest.ps1
@@ -49,43 +49,21 @@ require_fs_type any
 
 setup
 
-#XXX: port poolsets tests
-#
-#POOLSET=$DIR/pool.set
-#POOL_P1=$DIR/pool.p1
-#POOL_P2=$DIR/pool.p2
-#POOL_P3=$DIR/pool.p3
-#POOL_P4=$DIR/pool.p4
-#POOLS="$POOL_P1 $POOL_P2 $POOL_P3 $POOL_P4"
-#
-#LOG=out${UNITTEST_NUM}.log
-#rm -rf $LOG && touch $LOG
-#
-#create_poolset $POOLSET\
-#	32M:$POOL_P1:z\
-#	32M:$POOL_P2:z\
-#	32M:$POOL_P3:z\
-#	32M:$POOL_P4:z
-#
-#check_file $POOLSET
-#
-#rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
-#check_files $POOLS
-#$PMEMSPOIL -v $POOL_P1\
-#	pool_hdr.next_part_uuid=ERROR_NEXT\
-#	pool_hdr.prev_part_uuid=ERROR_PREV\
-#	pool_hdr.next_repl_uuid=ERROR_NEXT_REP\
-#	pool_hdr.prev_repl_uuid=ERROR_PREV_REP\
-#	pool_hdr.poolset_uuid=ERROR\
-#	>> $LOG
-#
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avyr $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#
-#check
-#
+$POOL="$DIR\file.pool"
+sleep 10
+$LOG="out$Env:UNITTEST_NUM.log"
+
+rm $LOG -Force -Recurse -ea si
+
+create_holey_file 2M $POOL
+sleep 10
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -v -w blk 512M $POOL >> $LOG
+check_file $POOL
+
+&$PMEMSPOIL $POOL "pool_hdr.checksum=0x0" "pmemblk.arena(1).btt_info.sig=ERROR" "pmemblk.arena(1).btt_info_backup.sig=ERROR"
+
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
+
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOL >> $LOG
 
 pass
