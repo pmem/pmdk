@@ -1553,7 +1553,7 @@ of values. Currently there are 4 types:
 + **TX_PARAM_NONE**, used as a termination marker (no following value)
 + **TX_PARAM_MUTEX**, followed by one pmem-resident PMEMmutex
 + **TX_PARAM_RWLOCK**, followed by one pmem-resident PMEMrwlock
-+ **TX_PARAM_CB**, followed by a callback function of type pmemobj_tx_callback and a void pointer (so 2 values)
++ (EXPERIMENTAL) **TX_PARAM_CB**, followed by a callback function of type pmemobj_tx_callback and a void pointer (so 2 values)
 
 Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
 it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
@@ -1723,7 +1723,7 @@ TX_BEGIN(Pop) {
 
 ```c
 TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
-TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
 TX_BEGIN(PMEMobjpool *pop)
 ```
 

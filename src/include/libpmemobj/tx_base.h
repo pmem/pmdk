@@ -71,7 +71,7 @@ enum pobj_tx_param {
 	TX_PARAM_NONE,
 	TX_PARAM_MUTEX,	 /* PMEMmutex */
 	TX_PARAM_RWLOCK, /* PMEMrwlock */
-	TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
+	/* EXPERIMENTAL */ TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
 };
 
 #if !defined(_has_deprecated_with_message) && defined(__clang__)

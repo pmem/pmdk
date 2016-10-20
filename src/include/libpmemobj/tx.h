@@ -85,6 +85,7 @@ _pobj_validate_cb_sig(pmemobj_tx_callback cb)
 	return cb;
 }
 
+/* EXPERIMENTAL */
 #define TX_BEGIN_CB(pop, cb, arg, ...) _POBJ_TX_BEGIN(pop, TX_PARAM_CB,\
 		_pobj_validate_cb_sig(cb), arg, ##__VA_ARGS__)
 
