@@ -72,6 +72,7 @@
 #define CTL_STRING_QUERY_SEPARATOR ";"
 #define CTL_NAME_VALUE_SEPARATOR "="
 #define CTL_QUERY_NODE_SEPARATOR "."
+#define CTL_VALUE_ARG_SEPARATOR ","
 
 static int ctl_global_first_free = 0;
 static struct ctl_node CTL_NODE(global)[CTL_MAX_ENTRIES];
@@ -186,6 +187,83 @@ ctl_delete_indexes(struct ctl_indexes *indexes)
 }
 
 /*
+ * ctl_parse_args -- (internal) parses a string argument based on the node
+ *	structure
+ */
+static void *
+ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
+{
+	char *dest_arg = Malloc(arg_proto->dest_size);
+	if (dest_arg == NULL)
+		return NULL;
+
+	char *sptr = NULL;
+	char *arg_sep = strtok_r(arg, CTL_VALUE_ARG_SEPARATOR, &sptr);
+	for (struct ctl_argument_parser *p = arg_proto->parsers;
+		p->parser != NULL; ++p) {
+		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
+		if (arg_sep == NULL)
+			goto error_parsing;
+
+		if (p->parser(arg_sep, dest_arg + p->dest_offset,
+			p->dest_size) != 0)
+			goto error_parsing;
+
+		arg_sep = strtok_r(NULL, CTL_VALUE_ARG_SEPARATOR, &sptr);
+	}
+
+	return dest_arg;
+
+error_parsing:
+	Free(dest_arg);
+	return NULL;
+}
+
+/*
+ * ctl_query_get_real_args -- (internal) returns a pointer with actual argument
+ *	structure as required by the node callback
+ */
+static void *
+ctl_query_get_real_args(struct ctl_node *n, void *write_arg,
+	enum ctl_query_type type)
+{
+	void *real_arg = NULL;
+	switch (type) {
+		case CTL_QUERY_CONFIG_INPUT:
+			real_arg = ctl_parse_args(n->arg, write_arg);
+			break;
+		case CTL_QUERY_PROGRAMMATIC:
+			real_arg = write_arg;
+			break;
+		default:
+			ASSERT(0);
+			break;
+	}
+
+	return real_arg;
+}
+
+/*
+ * ctl_query_cleanup_real_args -- (internal) cleanups relevant argument
+ *	structures allocated as a result of the get_real_args call
+ */
+static void
+ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
+	enum ctl_query_type type)
+{
+	switch (type) {
+		case CTL_QUERY_CONFIG_INPUT:
+			Free(real_arg);
+			break;
+		case CTL_QUERY_PROGRAMMATIC:
+			break;
+		default:
+			ASSERT(0);
+			break;
+	}
+}
+
+/*
  * ctl_query -- (internal) parses the name and calls the appropriate methods
  *	from the ctl tree
  */
@@ -230,8 +308,15 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 	if (read_arg)
 		ret = n->read_cb(pop, type, read_arg, &indexes);
 
-	if (write_arg && ret == 0)
-		ret = n->write_cb(pop, type, write_arg, &indexes);
+	if (write_arg && ret == 0) {
+		void *real_arg = ctl_query_get_real_args(n, write_arg, type);
+		if (real_arg == NULL) {
+			errno = EINVAL;
+			goto error_invalid_arguments;
+		}
+		ret = n->write_cb(pop, type, real_arg, &indexes);
+		ctl_query_cleanup_real_args(n, real_arg, type);
+	}
 
 error_invalid_arguments:
 	ctl_delete_indexes(&indexes);
@@ -498,21 +583,85 @@ ctl_delete(struct ctl *c)
 }
 
 /*
- * ctl_helper_is_yes_input -- checks whether the provided argument contains
- *	either a number larger than zero or y or Y. This is used to indicate
- *	whether a config setting should be set or not.
+ * ctl_parse_ll -- (internal) parses and returns a long long signed integer
  */
-int
-ctl_helper_is_yes_input(const char *arg)
+static long long
+ctl_parse_ll(const char *str)
 {
 	char *endptr;
 	int olderrno = errno;
 	errno = 0;
-	long long val = strtoll(arg, &endptr, 0);
-	if (endptr == arg || errno != 0)
-		val = LLONG_MIN;
-
+	long long val = strtoll(str, &endptr, 0);
+	if (endptr == str || errno != 0)
+		return LLONG_MIN;
 	errno = olderrno;
 
-	return val > 0 || strcmp(arg, "y") == 0 || strcmp(arg, "Y") == 0;
+	return val;
+}
+
+/*
+ * ctl_arg_boolean -- checks whether the provided argument contains
+ *	either a number larger than zero or y or Y.
+ */
+int
+ctl_arg_boolean(const void *arg, void *dest, size_t dest_size)
+{
+	int *intp = dest;
+
+	errno = 0;
+	long long val = ctl_parse_ll(arg);
+	if (strncmp("y", arg, 1) == 0 || strncmp("Y", arg, 1) == 0 || val > 0) {
+		*intp = 1;
+		return 0;
+	} else if (strncmp("n", arg, 1) == 0 ||  strncmp("N", arg, 1) == 0) {
+		*intp = 0;
+		return 0;
+	}
+	if (val == LLONG_MIN)
+		return -1;
+
+	*intp = 0;
+
+	return 0;
+}
+
+/*
+ * ctl_arg_integer -- parses signed integer argument
+ */
+int
+ctl_arg_integer(const void *arg, void *dest, size_t dest_size)
+{
+	long long val = ctl_parse_ll(arg);
+	if (val == LLONG_MIN)
+		return -1;
+
+	switch (dest_size) {
+		case sizeof(int):
+			if (val > INT_MAX || val < INT_MIN)
+				return -1;
+			*(int *)dest = (int)val;
+			break;
+		case sizeof(long long):
+			*(long long *)dest = val;
+			break;
+	}
+
+	return 0;
+}
+
+/*
+ * ctl_arg_string -- verifies length and copies a string argument into a zeroed
+ *	buffer
+ */
+int
+ctl_arg_string(const void *arg, void *dest, size_t dest_size)
+{
+	/* check if the incoming string is longer or equal to dest_size */
+	if (strnlen(arg, dest_size) == dest_size)
+		return -1;
+
+	memset(dest, 0, dest_size);
+	strncpy(dest, arg, dest_size);
+
+	return 0;
 }
