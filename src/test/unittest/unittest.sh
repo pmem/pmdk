@@ -760,7 +760,7 @@ function require_test_type() {
 #
 function require_pmem() {
 	[ $PMEM_IS_PMEM -eq 0 ] && return
-	echo "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device"
+	echo "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device" >&2
 	exit 1
 }
 
@@ -769,7 +769,7 @@ function require_pmem() {
 #
 function require_non_pmem() {
 	[ $NON_PMEM_IS_PMEM -ne 0 ] && return
-	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"
+	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device" >&2
 	exit 1
 }
 
@@ -1295,7 +1295,7 @@ function require_node_libfabric() {
 		echo "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
 		exit 0
 	else
-		echo "NODE $N: require_libfabric $*: $fip_out"
+		echo "NODE $N: require_libfabric $*: $fip_out" >&2
 		exit 1
 	fi
 }
