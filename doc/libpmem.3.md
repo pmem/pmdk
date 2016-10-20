@@ -550,6 +550,12 @@ processor caches on platforms that support the instruction, but where
 **CLWB** is not available. This variable is intended for use during
 library testing.
 
++ **PMEM_NO_FLUSH**=1
+
+Setting this environment variable to 1 forces **libpmem** to never issue
+any of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions on Intel hardware.
+This variable is intended for use during library testing.
+
 + **PMEM_NO_MOVNT**=1
 
 Setting this environment variable to 1 forces **libpmem** to never use
