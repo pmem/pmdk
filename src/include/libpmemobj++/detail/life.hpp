@@ -125,8 +125,8 @@ destroy(typename if_not_array<T>::type &arg)
 }
 
 /*
-* Don't call destructors for POD types.
-*/
+ * Don't call destructors for POD types.
+ */
 template <typename T, typename dummy = void,
 	  typename = typename std::enable_if<std::is_pod<T>::value>::type>
 void

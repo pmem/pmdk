@@ -33,6 +33,7 @@
 #ifndef EXAMPLES_CTREE_MAP_PERSISTENT_HPP
 #define EXAMPLES_CTREE_MAP_PERSISTENT_HPP
 #include <cstdint>
+#include <ex_common.h>
 #include <functional>
 #include <stdlib.h>
 
@@ -77,8 +78,9 @@ public:
 	{
 		auto pop = nvobj::pool_by_vptr(this);
 
-		nvobj::transaction::exec_tx(
-			pop, [&] { root = nvobj::make_persistent<entry>(); });
+		nvobj::transaction::exec_tx(pop, [&] {
+			this->root = nvobj::make_persistent<entry>();
+		});
 	}
 
 	/**
@@ -92,7 +94,7 @@ public:
 	 * @return 0 on success, negative values on error.
 	 */
 	int
-	insert(uint64_t key, value_type value)
+	insert(key_type key, value_type value)
 	{
 		auto dest_entry = root;
 		while (dest_entry->inode != nullptr) {
@@ -203,15 +205,16 @@ public:
 	{
 		auto pop = nvobj::pool_by_vptr(this);
 		nvobj::transaction::exec_tx(pop, [&] {
-			if (root->inode) {
-				root->inode->clear();
-				nvobj::delete_persistent<node>(root->inode);
-				root->inode = nullptr;
+			if (this->root->inode) {
+				this->root->inode->clear();
+				nvobj::delete_persistent<node>(
+					this->root->inode);
+				this->root->inode = nullptr;
 			}
 
-			nvobj::delete_persistent<T>(root->value);
-			root->value = nullptr;
-			root->key = 0;
+			nvobj::delete_persistent<T>(this->root->value);
+			this->root->value = nullptr;
+			this->root->key = 0;
 		});
 		return 0;
 	}
@@ -358,7 +361,7 @@ private:
 	static int
 	find_crit_bit(key_type lhs, key_type rhs)
 	{
-		return 64 - __builtin_clzll(lhs ^ rhs) - 1;
+		return fls(lhs ^ rhs);
 	}
 
 	/*
@@ -393,7 +396,7 @@ private:
 	 * Fetch leaf from the tree.
 	 */
 	nvobj::persistent_ptr<entry>
-	get_leaf(uint64_t key, nvobj::persistent_ptr<entry> *parent)
+	get_leaf(key_type key, nvobj::persistent_ptr<entry> *parent)
 	{
 		auto n = root;
 		nvobj::persistent_ptr<entry> p = nullptr;

@@ -32,11 +32,11 @@
 
 #include "ctree_map_transient.hpp"
 #include <ctree_map_persistent.hpp>
+#include <ex_common.h>
 #include <iostream>
 #include <libpmemobj++/pool.hpp>
 #include <memory>
 #include <string.h>
-#include <unistd.h>
 
 namespace
 {
@@ -224,9 +224,9 @@ main(int argc, char *argv[])
 
 	pool<root> pop;
 
-	if (access(path.c_str(), F_OK) != 0) {
+	if (file_exists(path.c_str()) != 0) {
 		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					 S_IRWXU);
+					 CREATE_MODE_RW);
 	} else {
 		pop = pool<root>::open(path, LAYOUT);
 	}

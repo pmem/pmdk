@@ -37,7 +37,9 @@
 /*
  * The following might be necessary to compile the examples on older compilers.
  */
-#ifndef __cpp_lib_uncaught_exceptions
+#if !defined(__cpp_lib_uncaught_exceptions) && !defined(_MSC_VER) ||           \
+	(_MSC_VER < 1900)
+
 #define __cpp_lib_uncaught_exceptions 201411
 namespace std
 {
@@ -74,8 +76,7 @@ general_tx_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -125,8 +126,8 @@ manual_tx_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
+
 	auto proot = pop.get_root();
 
 	try {
@@ -179,8 +180,7 @@ automatic_tx_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	try {
