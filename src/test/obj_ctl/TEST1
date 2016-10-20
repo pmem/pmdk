@@ -38,6 +38,7 @@ export UNITTEST_NUM=1
 . ../unittest/unittest.sh
 
 require_build_type debug static-debug
+require_test_type medium
 
 configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1

@@ -38,6 +38,7 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_build_type debug static-debug
+require_test_type short
 
 setup
 
