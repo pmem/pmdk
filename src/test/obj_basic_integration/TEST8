@@ -1,7 +1,6 @@
 #!/bin/bash -e
 #
 # Copyright 2015-2016, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,23 +31,19 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_basic_integration/TEST8
+export UNITTEST_NUM=8
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type medium
-
-# covered by TEST5
-configure_valgrind memcheck force-disable
+require_superuser
+require_dax_devices 1
 
 setup
 
-create_holey_file 8M $DIR/testfile1
+create_poolset $DIR/testset1 AUTO:$DEVICE_DAX_PATH
 
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check
+expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1
 
 pass

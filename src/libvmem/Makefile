@@ -40,6 +40,9 @@ SOURCE = libvmem.c vmem.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/out.c\
+	$(COMMON)/pmem_provider.c\
+	$(COMMON)/pmem_provider_dax.c\
+	$(COMMON)/pmem_provider_file.c\
 	$(COMMON)/util_linux.c\
 	$(COMMON)/util.c
 

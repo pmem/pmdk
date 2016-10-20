@@ -32,22 +32,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_basic_integration/TEST10
+export UNITTEST_NUM=10
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type medium
+require_superuser
+require_dax_devices 1
 
 # covered by TEST5
 configure_valgrind memcheck force-disable
 
 setup
 
-create_holey_file 8M $DIR/testfile1
-
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testfile1
+expect_normal_exit strace -emsync -ostrace$UNITTEST_NUM.log \
+	./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
 
 check
 

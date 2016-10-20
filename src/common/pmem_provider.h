@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,38 +31,64 @@
  */
 
 /*
- * file.h -- internal definitions for file module
+ * pmem_provider.h -- definitions for persistent memory provider interface
  */
 
-#ifndef NVML_FILE_H
-#define NVML_FILE_H 1
+#ifndef PMEM_PROVIDER_H
+#define PMEM_PROVIDER_H 1
 
-#include <stddef.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "util.h"
+#include "file.h"
 
-int util_tmpfile(const char *dir, const char *templ);
-int util_is_absolute_path(const char *path);
+enum pmem_provider_type {
+	PMEM_PROVIDER_UNKNOWN,
+	PMEM_PROVIDER_REGULAR_FILE,
+	PMEM_PROVIDER_DEVICE_DAX,
 
-int util_file_create(const char *path, size_t size, size_t minsize);
-int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
+	MAX_PMEM_PROVIDER_TYPE
+};
 
-#ifndef _WIN32
-typedef struct stat util_stat_t;
-#define util_fstat	fstat
-#define util_stat	stat
-#define util_lseek	lseek
-#define util_read	read
-#define util_write	write
+struct pmem_provider {
+	char *path;
+	int fd;
+	util_stat_t st;
+	int exists;
+
+	enum pmem_provider_type type;
+	const struct pmem_provider_ops *pops;
+};
+
+struct pmem_provider_ops {
+	int (*type_match)(struct pmem_provider *p);
+	int (*open)(struct pmem_provider *p, int flags, mode_t mode, int tmp);
+	void (*close)(struct pmem_provider *p);
+	void (*unlink)(struct pmem_provider *p);
+	int (*lock)(struct pmem_provider *p);
+	void *(*map)(struct pmem_provider *p, size_t alignment);
+	ssize_t (*get_size)(struct pmem_provider *p);
+	int (*allocate_space)(struct pmem_provider *p, size_t size, int sparse);
+	int (*always_pmem)(void);
+};
+
+int pmem_provider_init(struct pmem_provider *p, const char *path);
+void pmem_provider_fini(struct pmem_provider *p);
+
+void pmem_provider_type_register(enum pmem_provider_type type,
+	struct pmem_provider_ops *ops);
+
+#ifndef _MSC_VER
+
+#define PMEM_PROVIDER_TYPE(n, ops)\
+__attribute__((constructor)) static void _pmem_provider_##n(void)\
+{ pmem_provider_type_register(n, ops); }
+
 #else
-typedef struct _stat64 util_stat_t;
-#define util_fstat	_fstat64
-#define util_stat	_stat64
-#define util_lseek	_lseeki64
-/* XXX - consider adding an assertion on (count <= UINT_MAX) */
-#define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
-#define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
-#define	S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
-#endif
+
+#define PMEM_PROVIDER_TYPE(n, ops)\
+static void _pmem_provider_##n(void)\
+{ pmem_provider_type_register(n, ops); }\
+MSVC_CONSTR(_pmem_provider_##n)
 
 #endif
+
+#endif /* PMEM_PROVIDER_H */

@@ -226,6 +226,12 @@ or the Metric Interchange Format. Standards accept SI units with obligatory
 B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
 - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
+The path of a part can point to a raw device dax and in such case the size
+argument can be set to an "AUTO" string which means that the size of the device
+will be automatically resolved at the pool creation time. When using device dax
+there's also one additional restriction that a pool can only consist of a
+single part.
+
 The minimum file size of each part of the pool set is the same as the minimum size
 allowed for a block pool consisting of one file. It is defined in **\<libpmemblk.h\>**
 as **PMEMBLK_MIN_POOL**. Lines starting with "#" character are ignored.
