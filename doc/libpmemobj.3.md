@@ -305,12 +305,12 @@ void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
-int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags);
-int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags); (EXPERIMENTAL)
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
-PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
@@ -329,16 +329,16 @@ TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
 
-TX_XADD(TOID o, uint64_t flags)
-TX_XADD_FIELD(TOID o, FIELD, uint64_t flags)
-TX_XADD_DIRECT(TYPE *p, uint64_t flags)
-TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags)
+TX_XADD(TOID o, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_DIRECT(TYPE *p, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags) (EXPERIMENTAL)
 
 TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE, size_t size)
-TX_XALLOC(TYPE, size_t size, uint64_t flags)
+TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
