@@ -37,9 +37,8 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_check\TEST6w"
-$Env:UNITTEST_NUM = "6w"
-
+$Env:UNITTEST_NAME = "pmempool_check\TEST6"
+$Env:UNITTEST_NUM = "6"
 
 . ..\unittest\unittest.ps1
 
@@ -49,44 +48,42 @@ require_fs_type any
 
 setup
 
-#XXX: port poolsets tests
-#
-#POOL_PART1=$DIR/pool.part1
-#POOL_PART2=$DIR/pool.part2
-#POOLS="$POOL_PART1 $POOL_PART2"
-#
-#LOG=out${UNITTEST_NUM}.log
-#rm -rf $LOG && touch $LOG
-#
-#create_poolset $POOLSET 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2
-#check_file $POOLSET
-#
-#echo "PMEMLOG: pool_hdr" >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
-#check_files $POOLS
-#$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
-#
-#echo "PMEMLOG: pmemlog" >> $LOG
-#rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
-#check_files $POOLS
-#$PMEMSPOIL -v $POOLSET pmemlog.start_offset=0 pmemlog.end_offset=0 >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
-#
-#echo "PMEMBLK: pool_hdr" >> $LOG
-#rm -f $POOLS
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
-#check_files $POOLS
-#$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
-#
-#check
-#
+$POOLSET="$DIR/pool.set"
+$POOL_PART1="$DIR\pool.part1"
+$POOL_PART2="$DIR\pool.part2"
+
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -ea si
+
+create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2
+check_file $POOLSET
+
+echo "PMEMLOG: pool_hdr" >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+check_files $POOL_PART1 $POOL_PART2
+&$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
+
+echo "PMEMLOG: pmemlog" >> $LOG
+rm $POOL_PART1, $POOL_PART2 -Force -ea si
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+check_files $POOL_PART1 $POOL_PART2
+&$PMEMSPOIL -v $POOLSET pmemlog.start_offset=0 pmemlog.end_offset=0 >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
+
+echo "PMEMBLK: pool_hdr" >> $LOG
+rm $POOL_PART1, $POOL_PART2 -Force -ea si
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
+check_files $POOL_PART1 $POOL_PART2
+&$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART1 >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL_PART2 >> $LOG
+
+check
+
 pass

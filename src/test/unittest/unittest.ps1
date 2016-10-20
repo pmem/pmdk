@@ -345,8 +345,6 @@ function create_poolset {
             $asize = $fsize
         }
 
-        $asize = (convert_to_bytes $asize)
-
         switch -regex ($cmd) {
             # do nothing
             'x' { }
