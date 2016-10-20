@@ -63,6 +63,8 @@ CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
 	return 0;
 }
 
+struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
+
 static int
 CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_type type,
 	void *arg, struct ctl_indexes *indexes)
@@ -74,6 +76,8 @@ CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_type type,
 
 	return 0;
 }
+
+struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 
 static int test_config_written = 0;
 #define TEST_CONFIG_VALUE "abcd"
@@ -90,6 +94,47 @@ CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_type type,
 
 	return 0;
 }
+
+struct ctl_argument CTL_ARG(test_config) = CTL_ARG_STRING(8);
+
+struct complex_arg {
+	int a;
+	char b[5];
+	long long c;
+	int d;
+};
+
+#define COMPLEX_ARG_TEST_A 12345
+#define COMPLEX_ARG_TEST_B "abcd"
+#define COMPLEX_ARG_TEST_C 3147483647
+#define COMPLEX_ARG_TEST_D 1
+
+static int
+CTL_WRITE_HANDLER(test_config_complex_arg)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+
+	struct complex_arg *c = arg;
+	UT_ASSERTeq(c->a, COMPLEX_ARG_TEST_A);
+	UT_ASSERT(strcmp(COMPLEX_ARG_TEST_B, c->b) == 0);
+	UT_ASSERTeq(c->c, COMPLEX_ARG_TEST_C);
+	UT_ASSERTeq(c->d, COMPLEX_ARG_TEST_D);
+	test_config_written = 1;
+
+	return 0;
+}
+
+struct ctl_argument CTL_ARG(test_config_complex_arg) = {
+	.dest_size = sizeof(struct complex_arg),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct complex_arg, a, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct complex_arg, b, ctl_arg_string),
+		CTL_ARG_PARSER_STRUCT(struct complex_arg, c, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct complex_arg, d, ctl_arg_boolean),
+		CTL_ARG_PARSER_END
+	}
+};
 
 static int
 CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_type type,
@@ -128,6 +173,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_LEAF_RW(test_rw),
 	CTL_INDEXED(test_index),
 	CTL_LEAF_WO(test_config),
+	CTL_LEAF_WO(test_config_complex_arg),
 
 	CTL_NODE_END
 };
@@ -144,6 +190,8 @@ CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_type type,
 
 	return 0;
 }
+
+struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
 
 static int
 CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_type type,
@@ -398,6 +446,13 @@ test_file_config(PMEMobjpool *pop)
 	create_and_test_file_config(pop,
 		"", 0);
 
+	create_and_test_file_config(pop,
+		"debug.test_config_complex_arg=;", 0);
+	create_and_test_file_config(pop,
+		"debug.test_config_complex_arg=1,2,3;", 0);
+	create_and_test_file_config(pop,
+		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 1);
+
 	create_and_test_file_config(NULL,
 		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 1);
 
@@ -415,6 +470,168 @@ test_ctl_global_namespace(PMEMobjpool *pop)
 	int ret = pmemobj_ctl_get(pop, "global_debug.gtest_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
+}
+
+static void
+test_ctl_arg_parsers()
+{
+	char *input;
+
+	input = "";
+	int boolean = -1;
+	int ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(boolean, -1);
+
+	input = "abcdefgh";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(boolean, -1);
+
+	input = "N";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 0);
+
+	input = "0";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 0);
+
+	input = "-999";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 0);
+
+	input = "yes";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 1);
+
+	input = "Yes";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 1);
+
+	input = "1";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 1);
+
+	input = "1234";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(boolean, 1);
+
+	input = "";
+	int small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "abcd";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "12345678901234567890";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "-12345678901234567890";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "2147483648"; /* INT_MAX + 1 */
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "-2147483649"; /* INT_MIN - 2 */
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(small_int, -1);
+
+	input = "0";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(small_int, 0);
+
+	input = "500";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(small_int, 500);
+
+	input = "-500";
+	small_int = -1;
+	ret = ctl_arg_integer(input, &small_int, sizeof(small_int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(small_int, -500);
+
+	input = "";
+	long long ll_int = -1;
+	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(ll_int, -1);
+
+	input = "12345678901234567890";
+	ll_int = -1;
+	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(ll_int, -1);
+
+	input = "-12345678901234567890";
+	ll_int = -1;
+	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(ll_int, -1);
+
+	input = "2147483648";
+	ll_int = -1;
+	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ll_int, 2147483648);
+
+	input = "-2147483649";
+	ll_int = -1;
+	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ll_int, -2147483649);
+
+	input = "";
+	char string[1000] = {0};
+	ret = ctl_arg_string(input, string, 0);
+	UT_ASSERTeq(ret, -1);
+
+	input = "abcd";
+	ret = ctl_arg_string(input, string, 3);
+	UT_ASSERTeq(ret, -1);
+
+	input = "abcdefg";
+	ret = ctl_arg_string(input, string, 3);
+	UT_ASSERTeq(ret, -1);
+
+	input = "abc";
+	ret = ctl_arg_string(input, string, 4);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(strcmp(input, string) == 0);
 }
 
 int
@@ -446,6 +663,7 @@ main(int argc, char *argv[])
 	test_string_query_provider(pop);
 	test_string_config(pop);
 	test_file_config(pop);
+	test_ctl_arg_parsers();
 
 	pmemobj_close(pop);
 

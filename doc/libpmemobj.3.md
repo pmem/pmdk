@@ -55,6 +55,7 @@ date: pmemobj API version 2.1.0
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[CONTROL AND STATISTICS](#control-and-statistics)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
@@ -380,6 +381,12 @@ int pmemobj_check(const char *path, const char *layout);
 const char *pmemobj_errormsg(void);
 ```
 
+##### Control and statistics: #####
+
+```c
+int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
+```
 
 # DESCRIPTION #
 
@@ -2193,6 +2200,10 @@ goes to stderr.
 Setting the environment variable **PMEMOBJ_LOG_LEVEL** has no effect on the non-debug version of **libpmemobj**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemobj** behavior.
 
+# CONTROL AND STATISTICS #
+
+The library provides a uniform interface that allows to impact its behavior as
+well as reason about its internals.
 
 # EXAMPLE #
 

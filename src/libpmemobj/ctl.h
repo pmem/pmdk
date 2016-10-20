@@ -70,6 +70,29 @@ enum ctl_node_type {
 	MAX_CTL_NODE
 };
 
+typedef int (*ctl_arg_parser)(const void *arg, void *dest, size_t dest_size);
+
+struct ctl_argument_parser {
+	size_t dest_offset;
+	size_t dest_size;
+	ctl_arg_parser parser;
+};
+
+struct ctl_argument {
+	size_t dest_size;
+	struct ctl_argument_parser parsers[];
+};
+
+#define sizeof_member(t, m) sizeof(((t *)0)->m)
+
+#define CTL_ARG_PARSER(t, p)\
+{0, sizeof(t), p}
+
+#define CTL_ARG_PARSER_STRUCT(t, m, p)\
+{offsetof(t, m), sizeof_member(t, m), p}
+
+#define CTL_ARG_PARSER_END {0, 0, NULL}
+
 /*
  * CTL Tree node structure, do not use directly. All the necessery functionality
  * is provided by the included macros.
@@ -80,6 +103,7 @@ struct ctl_node {
 
 	node_callback read_cb;
 	node_callback write_cb;
+	struct ctl_argument *arg;
 
 	struct ctl_node *children;
 };
@@ -114,22 +138,37 @@ void ctl_delete(struct ctl *stats);
 void ctl_register_module_node(struct ctl *c,
 	const char *name, struct ctl_node *n);
 
-int ctl_helper_is_yes_input(const char *arg);
+int ctl_arg_boolean(const void *arg, void *dest, size_t dest_size);
+#define CTL_ARG_BOOLEAN {sizeof(int),\
+	{{0, sizeof(int), ctl_arg_boolean},\
+	CTL_ARG_PARSER_END}};
+
+int ctl_arg_integer(const void *arg, void *dest, size_t dest_size);
+#define CTL_ARG_INT {sizeof(int),\
+	{{0, sizeof(int), ctl_arg_integer},\
+	CTL_ARG_PARSER_END}};
+
+int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
+#define CTL_ARG_STRING(len) {len,\
+	{{0, len, ctl_arg_string},\
+	CTL_ARG_PARSER_END}};
 
 #define CTL_STR(name) #name
 
-#define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, NULL, NULL, NULL}
+#define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, NULL, NULL, NULL, NULL}
 
 #define CTL_NODE(name)\
 ctl_node_##name
 
 /* Declaration of a new child node */
 #define CTL_CHILD(name)\
-{CTL_STR(name), CTL_NODE_NAMED, NULL, NULL, (struct ctl_node *)CTL_NODE(name)}
+{CTL_STR(name), CTL_NODE_NAMED, NULL, NULL, NULL,\
+	(struct ctl_node *)CTL_NODE(name)}
 
 /* Declaration of a new indexed node */
 #define CTL_INDEXED(name)\
-{CTL_STR(name), CTL_NODE_INDEXED, NULL, NULL, (struct ctl_node *)CTL_NODE(name)}
+{CTL_STR(name), CTL_NODE_INDEXED, NULL, NULL, NULL,\
+	(struct ctl_node *)CTL_NODE(name)}
 
 #define CTL_READ_HANDLER(name)\
 ctl_##name##_read
@@ -137,19 +176,23 @@ ctl_##name##_read
 #define CTL_WRITE_HANDLER(name)\
 ctl_##name##_write
 
+#define CTL_ARG(name)\
+ctl_arg_##name
+
 /*
  * Declaration of a new read-only leaf. If used the corresponding read function
  * must be declared by CTL_READ_HANDLER or CTL_GEN_RO_STAT macros.
  */
 #define CTL_LEAF_RO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, CTL_READ_HANDLER(name), NULL, NULL}
+{CTL_STR(name), CTL_NODE_LEAF, CTL_READ_HANDLER(name), NULL, NULL, NULL}
 
 /*
  * Declaration of a new write-only leaf. If used the corresponding write
  * function must be declared by CTL_WRITE_HANDLER macro.
  */
 #define CTL_LEAF_WO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, NULL, CTL_WRITE_HANDLER(name), NULL}
+{CTL_STR(name), CTL_NODE_LEAF, NULL, CTL_WRITE_HANDLER(name),\
+	&CTL_ARG(name), NULL}
 
 /*
  * Declaration of a new read-write leaf. If used both read and write function
@@ -157,7 +200,8 @@ ctl_##name##_write
  */
 #define CTL_LEAF_RW(name)\
 {CTL_STR(name), CTL_NODE_LEAF,\
-	CTL_READ_HANDLER(name), CTL_WRITE_HANDLER(name), NULL}
+	CTL_READ_HANDLER(name), CTL_WRITE_HANDLER(name),\
+	&CTL_ARG(name), NULL}
 
 #define CTL_REGISTER_MODULE(_ctl, name)\
 ctl_register_module_node((_ctl), CTL_STR(name),\
