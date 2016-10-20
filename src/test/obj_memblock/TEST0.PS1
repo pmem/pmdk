@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -34,17 +33,22 @@
 #
 # src/test/obj_memblock/TEST0 -- unit test for memblock interface
 #
-export UNITTEST_NAME=obj_memblock/TEST0
-export UNITTEST_NUM=0
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_memblock\TEST0"
+$Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type none
 
 setup
 
-expect_normal_exit ./obj_memblock$EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\obj_memblock$Env:EXESUFFIX
 
 pass

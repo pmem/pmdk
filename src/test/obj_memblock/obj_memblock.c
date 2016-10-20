@@ -217,5 +217,7 @@ main(int argc, char *argv[])
 	test_block_offset();
 	test_prep_hdr();
 
+	FREE(pop->heap.layout);
+
 	DONE(NULL);
 }
