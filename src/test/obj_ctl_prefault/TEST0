@@ -37,6 +37,8 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type short
+
 setup
 
 # create, don't prefault

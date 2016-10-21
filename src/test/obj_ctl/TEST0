@@ -43,6 +43,8 @@ require_test_type short
 setup
 
 expect_normal_exit\
-	./obj_ctl$EXESUFFIX $DIR/testfile1
+	./obj_ctl$EXESUFFIX $DIR/testfile1 $DIR/testconfig
+
+rm -rf $DIR/testconfig
 
 pass
