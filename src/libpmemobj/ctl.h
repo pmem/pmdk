@@ -38,12 +38,12 @@
 #define LIBPMEMOBJ_CTL_H 1
 
 #include "libpmemobj.h"
-#include <sys/queue.h>
+#include "queue.h"
 
 struct ctl;
 
 struct ctl_index {
-	char *name;
+	const char *name;
 	long value;
 	SLIST_ENTRY(ctl_index) entry;
 };
@@ -52,7 +52,9 @@ SLIST_HEAD(ctl_indexes, ctl_index);
 
 enum ctl_query_type {
 	CTL_UNKNOWN_QUERY_TYPE,
+	/* query executed directly from the program */
 	CTL_QUERY_PROGRAMMATIC,
+	/* query executed from the config file */
 	CTL_QUERY_CONFIG_INPUT,
 
 	MAX_CTL_QUERY_TYPE
@@ -73,14 +75,14 @@ enum ctl_node_type {
 typedef int (*ctl_arg_parser)(const void *arg, void *dest, size_t dest_size);
 
 struct ctl_argument_parser {
-	size_t dest_offset;
-	size_t dest_size;
+	size_t dest_offset; /* offset of the field inside of the argument */
+	size_t dest_size; /* size of the field inside of the argument */
 	ctl_arg_parser parser;
 };
 
 struct ctl_argument {
-	size_t dest_size;
-	struct ctl_argument_parser parsers[];
+	size_t dest_size; /* sizeof the entire argument */
+	struct ctl_argument_parser parsers[]; /* array of 'fields' in arg */
 };
 
 #define sizeof_member(t, m) sizeof(((t *)0)->m)
@@ -98,7 +100,7 @@ struct ctl_argument {
  * is provided by the included macros.
  */
 struct ctl_node {
-	char *name;
+	const char *name;
 	enum ctl_node_type type;
 
 	node_callback read_cb;

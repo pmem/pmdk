@@ -39,6 +39,8 @@
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
+    <ClCompile Include="ctl.c" />
+    <ClCompile Include="ctl_global.c" />
     <ClCompile Include="libpmemobj_main.c" />
     <ClCompile Include="memblock.c" />
     <ClCompile Include="pvector.c" />
@@ -86,6 +88,8 @@
     <ClInclude Include="..\include\libpmemobj\tx.h" />
     <ClInclude Include="..\include\libpmemobj\tx_base.h" />
     <ClInclude Include="..\include\libpmemobj\types.h" />
+    <ClInclude Include="ctl.h" />
+    <ClInclude Include="ctl_global.h" />
     <ClInclude Include="memblock.h" />
     <ClInclude Include="pvector.h" />
     <ClInclude Include="sync.h" />

@@ -2211,22 +2211,26 @@ int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
 int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
 ```
 
-The name argument specifies an entry point as defined in the CTL namespace
-specification, the function also usually requires an additional argument. Those
-two parameters together create a CTL query. The pop argument is optional if
-the entry point resides in a global namespace (i.e. is shared for all the pools).
+The *name* argument specifies an entry point as defined in the CTL namespace
+specification. The entry point description specifies whether the extra *arg* is
+required.
+Those two parameters together create a CTL query. The *pop* argument is optional if
+the entry point resides in a global namespace (i.e. shared for all the pools).
+The functions themselves are thread-safe and most of the entry points are too.
+If there are special conditions in which an entry point has to be called, they
+are explicitly stated in its description.
 
 Entry points are leafs of a tree-like structure. Each one can read from the
-internal state, write to the internal state or both.
+internal state, write to the internal state or do both.
 
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
 Internal nodes themselves can only contain other nodes and cannot be entry
-points. There are two types of those nodes, named and indexed. Named nodes are
-simply represented by a string identifier. An indexed nodes represents an
-abstract array index and has an associated string identifier. The index itself
-is user provided. A collection of indexes present on the path of an entry point
-is provided to the handler functions as name and index pairs.
+points. There are two types of those nodes: named and indexed. Named nodes have
+string identifiers. Indexed nodes represent an abstract array index and have an
+associated string identifier. The index itself is user provided. A collection of
+indexes present on the path of an entry point is provided to the handler
+functions as name and index pairs.
 
 The entry points are listed in the following format:
 name | r(ead)w(rite) | global/- | read argument type | write argument type
@@ -2237,10 +2241,10 @@ description...
 prefault.at_create | rw | global | int | int
 If set, every single page of the pool will be touched and written to, in order
 to trigger page allocation. This can be used to minimize performance impact of
-pagefaults. Affects only the pmemobj_create() function.
+pagefaults. Affects only the **pmemobj_create()** function.
 
 prefault.at_open | rw | global | int | int
-As above, but affects pmemobj_open() function.
+As above, but affects **pmemobj_open()** function.
 
 # EXAMPLE #
 

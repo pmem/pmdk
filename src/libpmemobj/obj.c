@@ -1041,6 +1041,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
 
+
 #ifdef USE_VG_MEMCHECK
 		if (On_valgrind) {
 			/* mark unused part of the pool as not accessible */
@@ -1054,13 +1055,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
-			return -1;
+			goto err;
 		}
 
 		if ((errno = ctree_insert(pools_tree, (uint64_t)pop, pop->size))
 				!= 0) {
 			ERR("!ctree_insert");
-			return -1;
+			goto err;
 		}
 	}
 
@@ -1073,6 +1074,10 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	RANGE_NONE(pop->addr, sizeof(struct pool_hdr), pop->is_dev_dax);
 
 	return 0;
+err:
+	ctl_delete(pop->ctl);
+
+	return -1;
 }
 
 /*
