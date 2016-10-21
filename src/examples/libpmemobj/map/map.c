@@ -33,8 +33,6 @@
 /*
  * map.c -- common interface for maps
  */
-
-#include <err.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <libpmemobj.h>
@@ -57,7 +55,7 @@ map_ctx_init(const struct map_ops *ops, PMEMobjpool *pop)
 	if (!ops)
 		return NULL;
 
-	struct map_ctx *mapc = calloc(1, sizeof(*mapc));
+	struct map_ctx *mapc = (struct map_ctx *)calloc(1, sizeof(*mapc));
 	if (!mapc)
 		return NULL;
 
@@ -77,23 +75,23 @@ map_ctx_free(struct map_ctx *mapc)
 }
 
 /*
- * map_new -- create new map
+ * map_create -- create new map
  */
 int
-map_new(struct map_ctx *mapc, TOID(struct map) *map, void *arg)
+map_create(struct map_ctx *mapc, TOID(struct map) *map, void *arg)
 {
-	ABORT_NOT_IMPLEMENTED(mapc, new);
-	return mapc->ops->new(mapc->pop, map, arg);
+	ABORT_NOT_IMPLEMENTED(mapc, create);
+	return mapc->ops->create(mapc->pop, map, arg);
 }
 
 /*
- * map_delete -- free the map
+ * map_destroy -- free the map
  */
 int
-map_delete(struct map_ctx *mapc, TOID(struct map) *map)
+map_destroy(struct map_ctx *mapc, TOID(struct map) *map)
 {
-	ABORT_NOT_IMPLEMENTED(mapc, delete);
-	return mapc->ops->delete(mapc->pop, map);
+	ABORT_NOT_IMPLEMENTED(mapc, destroy);
+	return mapc->ops->destroy(mapc->pop, map);
 }
 
 /*

@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <sys/param.h>
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 #include "rtree_map.h"
 
@@ -64,10 +64,10 @@ struct rtree_map {
 };
 
 /*
- * rtree_map_new -- allocates a new rtree instance
+ * rtree_map_create -- allocates a new rtree instance
  */
 int
-rtree_map_new(PMEMobjpool *pop, TOID(struct rtree_map) *map, void *arg)
+rtree_map_create(PMEMobjpool *pop, TOID(struct rtree_map) *map, void *arg)
 {
 	int ret = 0;
 
@@ -119,10 +119,10 @@ rtree_map_clear(PMEMobjpool *pop, TOID(struct rtree_map) map)
 
 
 /*
- * rtree_map_delete -- cleanups and frees rtree instance
+ * rtree_map_destroy -- cleanups and frees rtree instance
  */
 int
-rtree_map_delete(PMEMobjpool *pop, TOID(struct rtree_map) *map)
+rtree_map_destroy(PMEMobjpool *pop, TOID(struct rtree_map) *map)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
@@ -360,8 +360,8 @@ remove_extra_node(TOID(struct tree_map_node) *node)
 	 * That child's incoming label is appended to the ours incoming label
 	 * and the child is removed.
 	 */
-	unsigned new_key_size = D_RO(tmp)->key_size + D_RO(tmp_child)->key_size;
-	unsigned char *new_key = malloc(new_key_size);
+	uint64_t new_key_size = D_RO(tmp)->key_size + D_RO(tmp_child)->key_size;
+	unsigned char *new_key = (unsigned char *)malloc(new_key_size);
 	memcpy(new_key, D_RO(tmp)->key, D_RO(tmp)->key_size);
 	memcpy(new_key + D_RO(tmp)->key_size,
 		D_RO(tmp_child)->key,

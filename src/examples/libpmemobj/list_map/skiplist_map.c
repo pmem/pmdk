@@ -54,10 +54,10 @@ struct skiplist_map_node {
 };
 
 /*
- * skiplist_map_new -- allocates a new skiplist instance
+ * skiplist_map_create -- allocates a new skiplist instance
  */
 int
-skiplist_map_new(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map,
+skiplist_map_create(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map,
 	void *arg)
 {
 	int ret = 0;
@@ -85,10 +85,10 @@ skiplist_map_clear(PMEMobjpool *pop, TOID(struct skiplist_map_node) map)
 }
 
 /*
- * skiplist_map_delete -- cleanups and frees skiplist instance
+ * skiplist_map_destroy -- cleanups and frees skiplist instance
  */
 int
-skiplist_map_delete(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map)
+skiplist_map_destroy(PMEMobjpool *pop, TOID(struct skiplist_map_node) *map)
 {
 	int ret = 0;
 

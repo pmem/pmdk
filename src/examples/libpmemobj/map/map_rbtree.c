@@ -52,27 +52,27 @@ map_rbtree_check(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_rbtree_new -- wrapper for rbtree_map_new
+ * map_rbtree_create -- wrapper for rbtree_map_new
  */
 static int
-map_rbtree_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_rbtree_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct rbtree_map) *rbtree_map =
 		(TOID(struct rbtree_map) *)map;
 
-	return rbtree_map_new(pop, rbtree_map, arg);
+	return rbtree_map_create(pop, rbtree_map, arg);
 }
 
 /*
- * map_rbtree_delete -- wrapper for rbtree_map_delete
+ * map_rbtree_destroy -- wrapper for rbtree_map_delete
  */
 static int
-map_rbtree_delete(PMEMobjpool *pop, TOID(struct map) *map)
+map_rbtree_destroy(PMEMobjpool *pop, TOID(struct map) *map)
 {
 	TOID(struct rbtree_map) *rbtree_map =
 		(TOID(struct rbtree_map) *)map;
 
-	return rbtree_map_delete(pop, rbtree_map);
+	return rbtree_map_destroy(pop, rbtree_map);
 }
 
 /*
@@ -192,19 +192,19 @@ map_rbtree_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 struct map_ops rbtree_map_ops = {
-	.check		= map_rbtree_check,
-	.new		= map_rbtree_new,
-	.delete		= map_rbtree_delete,
-	.init		= NULL,
-	.insert		= map_rbtree_insert,
-	.insert_new	= map_rbtree_insert_new,
-	.remove		= map_rbtree_remove,
-	.remove_free	= map_rbtree_remove_free,
-	.clear		= map_rbtree_clear,
-	.get		= map_rbtree_get,
-	.lookup		= map_rbtree_lookup,
-	.is_empty	= map_rbtree_is_empty,
-	.foreach	= map_rbtree_foreach,
-	.count		= NULL,
-	.cmd		= NULL,
+	/* .check	= */ map_rbtree_check,
+	/* .create	= */ map_rbtree_create,
+	/* .destroy	= */ map_rbtree_destroy,
+	/* .init	= */ NULL,
+	/* .insert	= */ map_rbtree_insert,
+	/* .insert_new	= */ map_rbtree_insert_new,
+	/* .remove	= */ map_rbtree_remove,
+	/* .remove_free	= */ map_rbtree_remove_free,
+	/* .clear	= */ map_rbtree_clear,
+	/* .get		= */ map_rbtree_get,
+	/* .lookup	= */ map_rbtree_lookup,
+	/* .foreach	= */ map_rbtree_foreach,
+	/* .is_empty	= */ map_rbtree_is_empty,
+	/* .count	= */ NULL,
+	/* .cmd		= */ NULL,
 };
