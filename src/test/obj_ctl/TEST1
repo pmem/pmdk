@@ -41,11 +41,12 @@ require_build_type debug static-debug
 require_test_type medium
 
 configure_valgrind memcheck force-enable
-export PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
 
 expect_normal_exit\
-	./obj_ctl$EXESUFFIX $DIR/testfile1
+	./obj_ctl$EXESUFFIX $DIR/testfile1 $DIR/testconfig
+
+rm -rf $DIR/testconfig
 
 pass

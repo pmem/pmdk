@@ -23,6 +23,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
+    <ClCompile Include="..\..\libpmemobj\ctl.c" />
+    <ClCompile Include="..\..\libpmemobj\ctl_global.c" />
     <ClCompile Include="..\..\libpmemobj\ctree.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>

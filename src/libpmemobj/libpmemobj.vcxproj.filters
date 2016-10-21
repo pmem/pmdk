@@ -52,6 +52,12 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -180,6 +186,12 @@
     <ClInclude Include="tx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctl_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -205,3 +217,4 @@
     </ResourceCompile>
   </ItemGroup>
 </Project>
+>>>>>>> fca523f... obj: add ctl to win project
