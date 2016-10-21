@@ -75,7 +75,7 @@ free_onabort(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)
 {
 	UT_OUT("cb stage: %s", desc[stage]);
 	if (stage == TX_STAGE_ONABORT) {
-		struct free_info *f = arg;
+		struct free_info *f = (struct free_info *)arg;
 		UT_OUT("rt_onabort: free");
 		free(f->to_free);
 		freed++;
@@ -87,7 +87,8 @@ allocate_pmem(struct free_info *f, TOID(struct pmem_root) root, int val)
 {
 	TOID(struct pmem_obj) obj = TX_NEW(struct pmem_obj);
 	D_RW(obj)->pmem_info = val;
-	D_RW(obj)->rt = malloc(sizeof(struct runtime_info));
+	D_RW(obj)->rt =
+		(struct runtime_info *)malloc(sizeof(struct runtime_info));
 
 	f->to_free = D_RW(obj)->rt;
 
@@ -107,7 +108,7 @@ free_oncommit(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)
 {
 	UT_OUT("cb stage: %s", desc[stage]);
 	if (stage == TX_STAGE_ONCOMMIT) {
-		struct free_info *f = arg;
+		struct free_info *f = (struct free_info *)arg;
 		UT_OUT("rt_oncommit: free");
 		free(f->to_free);
 		freed++;
@@ -132,7 +133,7 @@ log_stages(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)
 static void
 test(PMEMobjpool *pop, TOID(struct pmem_root) root)
 {
-	struct free_info *volatile f = ZALLOC(sizeof(*f));
+	struct free_info *volatile f = (struct free_info *)ZALLOC(sizeof(*f));
 	TX_BEGIN_CB(pop, free_onabort, f) {
 		allocate_pmem(f, root, 7);
 		do_something_fishy(root);
