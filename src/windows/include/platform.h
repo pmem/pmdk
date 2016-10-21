@@ -43,6 +43,7 @@
 #define PLATFORM_H 1
 
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4200)
 
 #define _CRT_RAND_S
 
