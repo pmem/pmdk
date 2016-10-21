@@ -13,6 +13,8 @@ pmemobj_cond_timedwait
 pmemobj_cond_wait
 pmemobj_cond_zero
 pmemobj_create
+pmemobj_ctl_get
+pmemobj_ctl_set
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg

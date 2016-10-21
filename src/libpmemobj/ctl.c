@@ -31,8 +31,8 @@
  */
 
 /*
- * ctl.c -- implementation of the interface for examining and modification of
- *	the library internal state
+ * ctl.c -- implementation of the interface for examination and modification of
+ *	the library's internal state
  */
 
 #include <sys/param.h>
@@ -167,6 +167,7 @@ ctl_find_node(struct ctl_node *nodes, const char *name,
 
 	Free(parse_str);
 	return n;
+
 error:
 	Free(parse_str);
 	return NULL;
@@ -271,6 +272,9 @@ static int
 ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 	const char *name, void *read_arg, void *write_arg)
 {
+	if (name == NULL)
+		return -1;
+
 	/*
 	 * All of the indexes are put on this list so that the handlers can
 	 * easily retrieve the index values. The list is cleared once the ctl
@@ -325,7 +329,7 @@ error_invalid_arguments:
 }
 
 /*
- * pmemobj_ctl -- programmatically executes a read ctl query
+ * pmemobj_ctl_get -- programmatically executes a read ctl query
  */
 int
 pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
@@ -335,7 +339,7 @@ pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
 }
 
 /*
- * pmemobj_ctl -- programmatically executes a write ctl query
+ * pmemobj_ctl_set -- programmatically executes a write ctl query
  */
 int
 pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
@@ -356,7 +360,7 @@ ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 
 	nnode->children = n;
 	nnode->type = CTL_NODE_NAMED;
-	nnode->name = Strdup(name);
+	nnode->name = name;
 }
 
 /*
@@ -378,9 +382,10 @@ ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p)
 
 	struct ctl_query_config q = {NULL, NULL};
 
-	for (r = p->first(p, &q); r == 0; r = p->next(p, &q))
+	for (r = p->first(p, &q); r == 0; r = p->next(p, &q)) {
 		if ((r = ctl_exec_query_config(pop, &q)) != 0)
 			break;
+	}
 
 	/* the method 'next' from data provider returns 1 to indicate end */
 	return r >= 0 ? 0 : -1;
@@ -438,6 +443,8 @@ ctl_string_provider_next(struct ctl_query_provider *p,
 {
 	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
 
+	ASSERTne(sp->sptr, NULL);
+
 	char *qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sp->sptr);
 
 	return ctl_string_provider_parse_query(qbuf, q);
@@ -481,8 +488,8 @@ ctl_string_provider_delete(struct ctl_query_provider *p)
 }
 
 /*
- * ctl_string_provider_new --
- *	creates and initializes a new string query provider
+ * ctl_file_provider_new --
+ *	creates and initializes a new file query provider
  *
  * This function opens up the config file, allocates a buffer of size equal to
  * the size of the file, reads its content and sanitizes it for the string query
@@ -548,7 +555,7 @@ error_provider_alloc:
 }
 
 /*
- * ctl_string_provider_delete -- cleanups and deallocates provider instance
+ * ctl_file_provider_delete -- cleanups and deallocates provider instance
  */
 void
 ctl_file_provider_delete(struct ctl_query_provider *p)
@@ -571,14 +578,11 @@ ctl_new(void)
 }
 
 /*
- * ctl_delete -- deletes statistics
+ * ctl_delete -- deletes ctl
  */
 void
 ctl_delete(struct ctl *c)
 {
-	for (struct ctl_node *n = c->root; n->name != NULL; ++n)
-		Free(n->name);
-
 	Free(c);
 }
 
@@ -601,29 +605,23 @@ ctl_parse_ll(const char *str)
 
 /*
  * ctl_arg_boolean -- checks whether the provided argument contains
- *	either a number larger than zero or y or Y.
+ *	either a 1 or y or Y.
  */
 int
 ctl_arg_boolean(const void *arg, void *dest, size_t dest_size)
 {
 	int *intp = dest;
+	char in = ((char *)arg)[0];
 
-	errno = 0;
-	long long val = ctl_parse_ll(arg);
-	if (strncmp("y", arg, 1) == 0 || strncmp("Y", arg, 1) == 0 || val > 0) {
+	if (tolower(in) == 'y' || in == '1') {
 		*intp = 1;
 		return 0;
-	} else if (strncmp("n", arg, 1) == 0 || strncmp("N", arg, 1) == 0) {
+	} else if (tolower(in) == 'n' || in == '0') {
 		*intp = 0;
 		return 0;
 	}
 
-	if (val == LLONG_MIN)
-		return -1;
-
-	*intp = 0;
-
-	return 0;
+	return -1;
 }
 
 /*
@@ -661,7 +659,6 @@ ctl_arg_string(const void *arg, void *dest, size_t dest_size)
 	if (strnlen(arg, dest_size) == dest_size)
 		return -1;
 
-	memset(dest, 0, dest_size);
 	strncpy(dest, arg, dest_size);
 
 	return 0;

@@ -103,6 +103,12 @@
     <ClCompile Include="alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -231,6 +237,7 @@
     <ClInclude Include="tx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="recycler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -244,6 +251,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="alloc_class.h">
+=======
+    <ClInclude Include="ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctl_global.h">
+>>>>>>> e0534cc... obj: add ctl to win project
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -271,3 +284,7 @@
     </ResourceCompile>
   </ItemGroup>
 </Project>
+<<<<<<< HEAD
+=======
+>>>>>>> fca523f... obj: add ctl to win project
+>>>>>>> e0534cc... obj: add ctl to win project
