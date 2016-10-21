@@ -39,6 +39,7 @@
 #define LIBPMEMOBJ_DESTROYER_HPP
 
 #include <stddef.h>
+#include <utility>
 
 #include "libpmemobj++/detail/array_traits.hpp"
 
@@ -91,35 +92,46 @@ struct if_size_array<T[N]> {
 /*
  * Calls object's constructor.
  */
-template <typename T>
+template <typename T, typename... Args>
 void
-create(typename if_not_array<T>::type *args)
+create(typename if_not_array<T>::type *ptr, Args &&... args)
 {
-	::new (args) T();
+	::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
 }
 
 /*
  * Recursively calls array's elements' constructors.
  */
-template <typename T>
+template <typename T, typename... Args>
 void
-create(typename if_size_array<T>::type *args)
+create(typename if_size_array<T>::type *ptr, Args &&... args)
 {
 	typedef typename detail::pp_array_type<T>::type I;
 	enum { N = pp_array_elems<T>::elems };
 
 	for (std::size_t i = 0; i < N; ++i)
-		create<I>(&(*args)[i]);
+		create<I>(&(*ptr)[i], std::forward<Args>(args)...);
 }
 
 /*
  * Calls object's destructor.
  */
-template <typename T>
+template <typename T,
+	  typename = typename std::enable_if<!std::is_pod<T>::value>::type>
 void
 destroy(typename if_not_array<T>::type &arg)
 {
 	arg.~T();
+}
+
+/*
+ * Don't call destructors for POD types.
+ */
+template <typename T, typename dummy = void,
+	  typename = typename std::enable_if<std::is_pod<T>::value>::type>
+void
+destroy(typename if_not_array<T>::type &arg)
+{
 }
 
 /*
