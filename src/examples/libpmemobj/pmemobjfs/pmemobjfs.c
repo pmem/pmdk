@@ -259,7 +259,7 @@ pmemobjfs_ioctl(struct pmemobjfs *objfs)
 {
 	switch (objfs->ioctl_cmd) {
 	case PMEMOBJFS_CTL_TX_BEGIN:
-		pmemobj_tx_begin(objfs->pop, NULL, TX_LOCK_NONE);
+		pmemobj_tx_begin(objfs->pop, NULL, TX_PARAM_NONE);
 		break;
 	case PMEMOBJFS_CTL_TX_ABORT:
 		pmemobj_tx_abort(-1);

@@ -93,17 +93,17 @@ main(int argc, char *argv[])
 
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
-	int lock_type = TX_LOCK_NONE;
+	int lock_type = TX_PARAM_NONE;
 	void *lock = NULL;
 
 	if (argv[2][0] == 'y') {
-		lock_type = TX_LOCK_MUTEX;
+		lock_type = TX_PARAM_MUTEX;
 		lock = &D_RW(root)->lock;
 	}
 
 	if (type == TEST_SET) {
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, lock_type, lock) {
+			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TX_ADD(root);
 
 				TOID(struct foo) f = TX_NEW(struct foo);
@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 				D_RW(f)->bar = BAR_VALUE;
 			} TX_END
 
-			TX_BEGIN_LOCK(pop, lock_type, lock) {
+			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TX_ADD_FIELD(D_RW(root)->foo, bar);
 
 				D_RW(D_RW(root)->foo)->bar = BAR_VALUE * 2;
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 		}
 	} else if (type == TEST_NEW) {
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, lock_type, lock) {
+			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TOID(struct foo) f = TX_NEW(struct foo);
 				TX_SET(root, foo, f);
 				D_RW(f)->bar = BAR_VALUE;
@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 		}
 	} else { /* TEST_FREE */
 		if (!exists) {
-			TX_BEGIN_LOCK(pop, lock_type, lock) {
+			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TX_ADD(root);
 
 				TOID(struct foo) f = TX_NEW(struct foo);
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 				D_RW(f)->bar = BAR_VALUE;
 			} TX_END
 
-			TX_BEGIN_LOCK(pop, lock_type, lock) {
+			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TX_ADD(root);
 				TX_FREE(D_RW(root)->foo);
 				D_RW(root)->foo = TOID_NULL(struct foo);

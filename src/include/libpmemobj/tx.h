@@ -65,7 +65,7 @@ extern "C" {
 		errno = pmemobj_tx_errno();\
 	} else {\
 		_pobj_errno = pmemobj_tx_begin(pop, _tx_env, __VA_ARGS__,\
-				TX_LOCK_NONE);\
+				TX_PARAM_NONE);\
 		if (_pobj_errno)\
 			errno = _pobj_errno;\
 	}\
@@ -73,10 +73,23 @@ extern "C" {
 		switch (_stage) {\
 			case TX_STAGE_WORK:
 
-#define TX_BEGIN_LOCK(pop, ...)\
+#define TX_BEGIN_PARAM(pop, ...)\
 _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 
-#define TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_LOCK_NONE)
+#define TX_BEGIN_LOCK TX_BEGIN_PARAM
+
+/* Just to let compiler warn when incompatible function pointer is used */
+static inline pmemobj_tx_callback
+_pobj_validate_cb_sig(pmemobj_tx_callback cb)
+{
+	return cb;
+}
+
+/* EXPERIMENTAL */
+#define TX_BEGIN_CB(pop, cb, arg, ...) _POBJ_TX_BEGIN(pop, TX_PARAM_CB,\
+		_pobj_validate_cb_sig(cb), arg, ##__VA_ARGS__)
+
+#define TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_PARAM_NONE)
 
 #define TX_ONABORT\
 				pmemobj_tx_process();\

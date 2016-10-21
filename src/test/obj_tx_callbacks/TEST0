@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +32,20 @@
 #
 
 #
-# src/test/obj_tx_locks/Makefile -- build obj_tx_locks unit test
+# src/test/obj_tx_callbacks/TEST0 -- unit test for transaction stage callbacks
 #
-TARGET = obj_tx_locks
-OBJS = obj_tx_locks.o
+export UNITTEST_NAME=obj_tx_callbacks/TEST0
+export UNITTEST_NUM=0
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type medium
 
-# one of the functions tests that deprecated functionality still works
-# so we have to disable this warning to let it compile with -Werror
-CFLAGS += -Wno-deprecated-declarations
+setup
+
+expect_normal_exit ./obj_tx_callbacks$EXESUFFIX $DIR/testfile1
+
+check
+
+pass

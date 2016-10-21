@@ -295,7 +295,7 @@ POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool *pop, POBJ_LIST_HEAD *head,
 ```c
 enum tx_stage pmemobj_tx_stage(void);
 
-int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, enum tx_lock, ...);
+int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, enum pobj_tx_param, ...);
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);
 void pmemobj_tx_abort(int errnum);
 void pmemobj_tx_commit(void);
@@ -313,7 +313,8 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
-TX_BEGIN_LOCK(PMEMobjpool *pop, ...)
+TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
 TX_BEGIN(PMEMobjpool *pop)
 TX_ONABORT
 TX_ONCOMMIT
@@ -1543,14 +1544,41 @@ The **pmemobj_tx_begin**() function starts a new transaction in the current thre
 caller may use *env* argument to provide a pointer to the information of a calling environment to be restored in case of transaction abort. This information
 must be filled by a caller, using **setjmp**(3) macro.
 
-Optionally, a list of pmem-resident locks may be provided as the last arguments. Each lock is specified by a pair of lock type (**TX_LOCK_MUTEX** or
-**TX_LOCK_RWLOCK**) and the pointer to the lock of type *PMEMmutex* or *PMEMrwlock* respectively. The list must be terminated with **TX_LOCK_NONE**. In case of
-rwlocks, a write lock is acquired. It is guaranteed that **pmemobj_tx_begin**() will grab all the locks prior to successful completion and they will be held by
-the current thread until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care about the proper
-order of locks.
+New transaction may be started only if the current stage is **TX_STAGE_NONE** or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK**
+and function returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
 
-New transaction may be started only if the current stage is **TX_STAGE_NONE** or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK** and
-function returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
+Optionally, a list of parameters for the transaction may be provided as the following arguments. Each parameter consists of a type and type-specific number
+of values. Currently there are 4 types:
+
++ **TX_PARAM_NONE**, used as a termination marker (no following value)
++ **TX_PARAM_MUTEX**, followed by one pmem-resident PMEMmutex
++ **TX_PARAM_RWLOCK**, followed by one pmem-resident PMEMrwlock
++ (EXPERIMENTAL) **TX_PARAM_CB**, followed by a callback function of type pmemobj_tx_callback and a void pointer (so 2 values)
+
+Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
+it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
+until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
+
+**TX_PARAM_CB** registers specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
+stages as a first operation after stage change. It will also be called after each transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
+pmemobj_tx_callback must be compatible with:
+
+```void func(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)```
+
+*pop* is a pool identifier used in **pmemobj_tx_begin**(), *stage* is a current transaction stage and *arg* is a second parameter of **TX_PARAM_CB**.
+Without considering transaction nesting this mechanism can be deemed as an alternative method for executing code between stages (instead of **TX_ONCOMMIT**,
+**TX_ONABORT**, etc).
+However there are 2 significant differences when nested transactions are used:
+
++  Registered function is executed only in the most outer transaction (even if registered in the inner one).
+
++  There can be only one callback in the whole transaction (it can't be changed in the inner transaction).
+
+Note that **TX_PARAM_CB** does not replace **TX_ONCOMMIT**/**TX_ONABORT**/etc. macros. They can be used together - a callback will be executed *before*
+**TX_ONCOMMIT**/**TX_ONABORT**/etc. section.
+
+**TX_PARAM_CB** can be used when the code dealing with transaction stage changes is shared between multiple users or when it must be executed only in the outer
+transaction. For example it can be very useful when application must synchronize persistent and transient state.
 
 ```c
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);
@@ -1693,16 +1721,18 @@ TX_BEGIN(Pop) {
 } TX_END /* mandatory */
 ```
 
-
 ```c
-TX_BEGIN_LOCK(PMEMobjpool *pop, ...)
+TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
 TX_BEGIN(PMEMobjpool *pop)
 ```
 
-The **TX_BEGIN_LOCK**() and **TX_BEGIN**() macros start a new transaction in the same way as **pmemobj_tx_begin**(), except that instead of the environment
-buffer provided by a caller, they set up the local *jmp_buf* buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro may be used in case
-when there is no need to grab any locks prior to starting a transaction (like for a single-threaded program). Each of those macros shall be followed by a block
-of code with all the operations that are to be performed atomically.
+The **TX_BEGIN_PARAM**(), **TX_BEGIN_CB**() and **TX_BEGIN**() macros start a new transaction in the same way as **pmemobj_tx_begin**(), except that instead
+of the environment buffer provided by a caller, they set up the local *jmp_buf* buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro
+starts a transaction without any options. **TX_BEGIN_PARAM** may be used in case when there is a need to grab locks prior to starting a transaction (like
+for a multi-threaded program) or set up transaction stage callback. **TX_BEGIN_CB** is just a wrapper around **TX_BEGIN_PARAM** that validates callback
+signature. (For compatibility there is also **TX_BEGIN_LOCK** macro which is an alias for **TX_BEGIN_PARAM**). Each of those macros shall be followed by
+a block of code with all the operations that are to be performed atomically.
 
 ```c
 TX_ONABORT
@@ -1730,8 +1760,8 @@ The **TX_FINALLY** macro starts a block of code that will be executed regardless
 TX_END
 ```
 
-The **TX_END** macro cleans up and closes the transaction started by **TX_BEGIN**() or **TX_BEGIN_LOCK**() macro. It is mandatory to terminate each transaction
-with this macro. If the transaction was aborted, *errno* is set appropriately.
+The **TX_END** macro cleans up and closes the transaction started by **TX_BEGIN**() / **TX_BEGIN_PARAM**() / **TX_BEGIN_CB**() macros. It is mandatory
+to terminate each transaction with this macro. If the transaction was aborted, *errno* is set appropriately.
 
 Similarly to the macros controlling the transaction flow, the **libpmemobj** defines a set of macros that simplify the transactional operations on persistent
 objects. Note that those macros operate on typed object handles, thus eliminating the need to specify the size of the object, or the size and offset of the

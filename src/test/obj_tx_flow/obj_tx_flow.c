@@ -150,7 +150,7 @@ static void
 do_tx_commit(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
 
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	D_RW(*obj)->a = TEST_VALUE_A;
 	TX_ADD(*obj);
 	D_RW(*obj)->b = TEST_VALUE_B;
@@ -164,10 +164,10 @@ static void
 do_tx_commit_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
 
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	TX_ADD(*obj);
 	D_RW(*obj)->a = TEST_VALUE_A;
-		pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+		pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 		TX_ADD(*obj);
 		D_RW(*obj)->b = TEST_VALUE_B;
 		pmemobj_tx_commit();
@@ -184,7 +184,7 @@ static void
 do_tx_abort(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
 	D_RW(*obj)->a = TEST_VALUE_A;
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	D_RW(*obj)->b = TEST_VALUE_B;
 	TX_ADD(*obj);
 	D_RW(*obj)->a = 0;
@@ -199,10 +199,10 @@ do_tx_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
 	D_RW(*obj)->a = TEST_VALUE_A;
 	D_RW(*obj)->b = TEST_VALUE_B;
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	TX_ADD(*obj);
 	D_RW(*obj)->a = 0;
-		pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+		pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 		TX_ADD(*obj);
 		D_RW(*obj)->b = 0;
 		pmemobj_tx_abort(EINVAL);
@@ -222,7 +222,7 @@ fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
 static void
 do_tx_process(PMEMobjpool *pop)
 {
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_WORK);
 	pmemobj_tx_process();
 	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_ONCOMMIT);
@@ -237,9 +237,9 @@ do_tx_process(PMEMobjpool *pop)
 static void
 do_tx_process_nested(PMEMobjpool *pop)
 {
-	pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+	pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_WORK);
-		pmemobj_tx_begin(pop, NULL, TX_LOCK_NONE);
+		pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
 		pmemobj_tx_process();
 		UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_ONCOMMIT);
 		pmemobj_tx_process();
