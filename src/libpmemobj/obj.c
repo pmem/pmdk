@@ -1242,6 +1242,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	/* pop is master replica from now on */
 	pop = set->replica[0]->part[0].addr;
+	set->poolsize = pop->heap_offset + pop->heap_size;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *repset = set->replica[r];

@@ -18,6 +18,8 @@ REPLICA
 pr(26214400): off = 0x382440 uuid = $(nW)
 TestOK111
 TestOK111
+TestOK111
+TestOK111
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : 2
