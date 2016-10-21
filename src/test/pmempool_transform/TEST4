@@ -115,8 +115,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
 	$POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
 # Check if correctly read
-#expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \
-#	$LOG_TEMP
+expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \
+	$LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $DIR/testfile00 >> $LOG_TEMP
