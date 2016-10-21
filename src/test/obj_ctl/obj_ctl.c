@@ -38,6 +38,7 @@
 #include "obj.h"
 #include "ctl.h"
 
+static char *testconfig_path;
 
 static int
 CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
@@ -216,6 +217,8 @@ static void
 test_ctl_parser(PMEMobjpool *pop)
 {
 	int ret;
+	ret = pmemobj_ctl_get(pop, NULL, NULL);
+	UT_ASSERTne(ret, 0);
 	ret = pmemobj_ctl_get(pop, "a.b.c.d", NULL);
 	UT_ASSERTne(ret, 0);
 	ret = pmemobj_ctl_get(pop, "", NULL);
@@ -373,13 +376,11 @@ test_string_config(PMEMobjpool *pop)
 	ctl_string_provider_delete(p);
 }
 
-#define CONFIG_FILE_NAME "testconfig"
-
 static void
 config_file_create(const char *buf)
 {
 	/* the test script will take care of removing this file for us */
-	FILE *f = fopen(CONFIG_FILE_NAME, "w+");
+	FILE *f = fopen(testconfig_path, "w+");
 	fwrite(buf, sizeof(char), strlen(buf), f);
 	fclose(f);
 }
@@ -389,7 +390,7 @@ create_and_test_file_config(PMEMobjpool *pop, const char *buf, int result)
 {
 	config_file_create(buf);
 
-	struct ctl_query_provider *p = ctl_file_provider_new(CONFIG_FILE_NAME);
+	struct ctl_query_provider *p = ctl_file_provider_new(testconfig_path);
 	UT_ASSERTne(p, NULL);
 
 	test_config_written = 0;
@@ -408,7 +409,7 @@ test_too_large_file(PMEMobjpool *pop)
 
 	config_file_create(too_large_buf);
 
-	struct ctl_query_provider *p = ctl_file_provider_new(CONFIG_FILE_NAME);
+	struct ctl_query_provider *p = ctl_file_provider_new(testconfig_path);
 	UT_ASSERTeq(p, NULL);
 
 	free(too_large_buf);
@@ -451,6 +452,8 @@ test_file_config(PMEMobjpool *pop)
 	create_and_test_file_config(pop,
 		"debug.test_config_complex_arg=1,2,3;", 0);
 	create_and_test_file_config(pop,
+		"debug.test_config_complex_arg=12345,abcd,,1;", 0);
+	create_and_test_file_config(pop,
 		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 1);
 
 	create_and_test_file_config(NULL,
@@ -489,6 +492,12 @@ test_ctl_arg_parsers()
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(boolean, -1);
 
+	input = "-999";
+	boolean = -1;
+	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(boolean, -1);
+
 	input = "N";
 	boolean = -1;
 	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
@@ -496,12 +505,6 @@ test_ctl_arg_parsers()
 	UT_ASSERTeq(boolean, 0);
 
 	input = "0";
-	boolean = -1;
-	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(boolean, 0);
-
-	input = "-999";
 	boolean = -1;
 	ret = ctl_arg_boolean(input, &boolean, sizeof(int));
 	UT_ASSERTeq(ret, 0);
@@ -628,6 +631,10 @@ test_ctl_arg_parsers()
 	ret = ctl_arg_string(input, string, 3);
 	UT_ASSERTeq(ret, -1);
 
+	input = "abcd";
+	ret = ctl_arg_string(input, string, 4);
+	UT_ASSERTeq(ret, -1);
+
 	input = "abc";
 	ret = ctl_arg_string(input, string, 4);
 	UT_ASSERTeq(ret, 0);
@@ -639,10 +646,11 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctl");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s file-name testconfig", argv[0]);
 
 	const char *path = argv[1];
+	testconfig_path = argv[2];
 
 	CTL_REGISTER_MODULE(NULL, global_debug);
 
