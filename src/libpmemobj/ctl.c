@@ -613,10 +613,11 @@ ctl_arg_boolean(const void *arg, void *dest, size_t dest_size)
 	if (strncmp("y", arg, 1) == 0 || strncmp("Y", arg, 1) == 0 || val > 0) {
 		*intp = 1;
 		return 0;
-	} else if (strncmp("n", arg, 1) == 0 ||  strncmp("N", arg, 1) == 0) {
+	} else if (strncmp("n", arg, 1) == 0 || strncmp("N", arg, 1) == 0) {
 		*intp = 0;
 		return 0;
 	}
+
 	if (val == LLONG_MIN)
 		return -1;
 
