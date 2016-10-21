@@ -2170,6 +2170,9 @@ The name argument specifies an entry point as defined in the CTL namespace
 specification, the function also usually requires an additional argument. Those
 two parameters together create a CTL query. The pop argument is optional if
 the entry point resides in a global namespace (i.e. is shared for all the pools).
+The functions themselves are thread-safe and most of the entry points are too.
+If there are special conditions in which an entry point has to be called, they
+are explicitly stated in its description.
 
 Entry points are leafs of a tree-like structure. Each one can read from the
 internal state, write to the internal state or both.
@@ -2192,10 +2195,10 @@ description...
 prefault.at_create | rw | global | int | int
 If set, every single page of the pool will be touched and written to, in order
 to trigger page allocation. This can be used to minimize performance impact of
-pagefaults. Affects only the pmemobj_create() function.
+pagefaults. Affects only the **pmemobj_create()** function.
 
 prefault.at_open | rw | global | int | int
-As above, but affects pmemobj_open() function.
+As above, but affects **pmemobj_open()** function.
 
 # EXAMPLE #
 
