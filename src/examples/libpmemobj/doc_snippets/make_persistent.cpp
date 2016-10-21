@@ -71,8 +71,7 @@ make_persistent_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -126,8 +125,7 @@ make_persistent_array_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -186,8 +184,7 @@ make_persistent_atomic_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	// typical usage schemes
@@ -243,8 +240,7 @@ make_persistent_array_atomic_example()
 	};
 
 	// create a pmemobj pool
-	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL,
-				      S_IWUSR | S_IRUSR);
+	auto pop = pool<root>::create("poolfile", "layout", PMEMOBJ_MIN_POOL);
 	auto proot = pop.get_root();
 
 	// typical usage schemes
