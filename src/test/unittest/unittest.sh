@@ -1278,6 +1278,19 @@ function require_node_libfabric() {
 	shift
 
 	require_node_pkg $N libfabric
+	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
+		if ! fi_info --list | grep -q verbs; then
+			echo "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
+			exit 0
+		fi
+
+		if ! run_on_node $N "fi_info --list | grep -q verbs"; then
+			echo "$UNITTEST_NAME: SKIP libfabric on node $N not compiled with verbs provider"
+			exit 0
+
+		fi
+
+	fi
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="$COMMAND ${NODE_ENV[$N]}"

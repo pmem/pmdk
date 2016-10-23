@@ -126,8 +126,9 @@ The *pool_set_name* is a relative path in the root config directory on
 the *target* node that uniquely identifies the pool set file on remote node
 to be used when mapping the remote pool. The *pool_addr* is a pointer to the
 associated local memory pool of a given size specified by the *pool_size*
-argument. The size of the remote pool must be at least *pool_size*.
-See **REMOTE POOL SIZE** section for details.
+argument. Both *pool_addr* and *pool_size* must be aligned to system's page
+size (see **sysconf**(3)). The size of the remote pool must be at least
+*pool_size*. See **REMOTE POOL SIZE** section for details.
 The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successfully opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
@@ -151,8 +152,9 @@ node. The *pool_set_name* is a relative path in the root config directory on
 the *target* node that uniquely identifies the pool set file on remote node
 to be used when mapping the remote pool. The *pool_addr* is a pointer to the
 associated local memory pool of a given size specified by the *pool_size*
-argument. The size of the remote pool must be at least *pool_size*.
-See **REMOTE POOL SIZE** section for details.
+argument. Both *pool_addr* and *pool_size* must be aligned to system's page
+size (see **sysconf**(3)). The size of the remote pool must be at least
+*pool_size*. See **REMOTE POOL SIZE** section for details.
 The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successfully opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
@@ -298,14 +300,21 @@ is executed with **-4** option which forces using **IPv4** addressing.
 The SSH command executed by **librpmem** can be overwritten by
 **RPMEM_SSH** environment variable. The command executed by the **ssh**
 can be overwritten by **RPMEM_CMD** variable. See **ENVIRONMENT**
-section for details.
+section for details. See **FORK** section for more details.
 
->WARNING:
+# FORK #
 The **ssh** process is executed
-by **rpmem_open**() and **rpmem_create**() after forking a child process.
-The application must take into account this fact when using **wait**(3)
-and **waitpid**(3) functions which may return a PID of the **ssh** process
-executed by **librpmem**.
+by **rpmem_open**() and **rpmem_create**() after forking a child process
+using **fork**(2).  The application must take into account this fact when
+using **wait**(2) and **waitpid**(2) functions which may return a PID of
+the **ssh** process executed by **librpmem**.
+
+The **librpmem** library calls the **ibv_fork_init**(3) function in library's
+constructor in order to enable **fork**(2) support in **libibverbs**.
+If an application uses the **libibverbs** before loading the **librpmem**
+library it must call the **ibv_fork_inif**(3) function before allocating
+any resources using **libibverbs**, otherwise **rpmem_open** and
+**rpmem_create** functions will return an error.
 
 # REMOTE POOL SIZE #
 The remote pool size depends on the configuration of pool set file on remote

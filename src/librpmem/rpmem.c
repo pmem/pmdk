@@ -51,6 +51,21 @@
 #include "rpmem_fip_common.h"
 #include "rpmem_ssh.h"
 
+extern int Rpmem_fork_fail;
+
+/*
+ * If set, indicates the ibv_fork_init() failed and consecutive calls to
+ * rpmem_create/rpmem_open must fail.
+ */
+int Rpmem_fork_fail;
+
+#define RPMEM_CHECK_FORK() do {\
+if (Rpmem_fork_fail) {\
+	ERR("initialization libibverbs to support fork() failed");\
+	return NULL;\
+}\
+} while (0)
+
 /*
  * rpmem_pool -- remote pool context
  */
@@ -398,6 +413,20 @@ rpmem_check_args(void *pool_addr, size_t pool_size, unsigned *nlanes)
 		return -1;
 	}
 
+	if (!IS_PAGE_ALIGNED((uintptr_t)pool_addr)) {
+		errno = EINVAL;
+		ERR("Pool address must be aligned to page size (%llu)",
+				Pagesize);
+		return -1;
+	}
+
+	if (!IS_PAGE_ALIGNED(pool_size)) {
+		errno = EINVAL;
+		ERR("Pool size must be aligned to page size (%llu)",
+				Pagesize);
+		return -1;
+	}
+
 	if (!pool_size) {
 		errno = EINVAL;
 		ERR("invalid pool size");
@@ -434,6 +463,8 @@ rpmem_create(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr)
 {
+	RPMEM_CHECK_FORK();
+
 	rpmem_log_args("create", target, pool_set_name,
 			pool_addr, pool_size, *nlanes);
 
@@ -500,6 +531,8 @@ rpmem_open(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr)
 {
+	RPMEM_CHECK_FORK();
+
 	rpmem_log_args("open", target, pool_set_name,
 			pool_addr, pool_size, *nlanes);
 

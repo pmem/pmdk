@@ -62,7 +62,7 @@
 #include "rpmem_fip.h"
 
 #define RPMEM_FI_ERR(e, fmt, args...)\
-	RPMEM_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))
+	ERR(fmt ": %s", ## args, fi_strerror((e)))
 
 #define RPMEM_FI_CLOSE(f, fmt, args...) (\
 {\
@@ -73,6 +73,8 @@
 })
 
 #define RPMEM_RD_BUFF_SIZE 8192
+#define RPMEM_RAW_BUFF_SIZE 4096
+#define RPMEM_RAW_SIZE 8
 
 typedef int (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
 		size_t len, unsigned lane);
@@ -163,7 +165,7 @@ struct rpmem_fip {
 
 	struct rpmem_fip_msg *recv;	/* RECV operation messages */
 
-	uint64_t raw_buff;		/* READ-after-WRITE buffer */
+	void *raw_buff;			/* READ-after-WRITE buffer */
 	struct fid_mr *raw_mr;		/* RAW memory region */
 	void *raw_mr_desc;		/* RAW memory descriptor */
 
@@ -279,6 +281,7 @@ rpmem_fip_fini_fabric_res(struct rpmem_fip *fip)
 static int
 rpmem_fip_init_memory(struct rpmem_fip *fip)
 {
+	ASSERTne(Pagesize, 0);
 	int ret;
 
 	/*
@@ -297,8 +300,10 @@ rpmem_fip_init_memory(struct rpmem_fip *fip)
 	fip->mr_desc = fi_mr_desc(fip->mr);
 
 	/* allocate buffer for read operation */
-	fip->rd_buff = malloc(RPMEM_RD_BUFF_SIZE);
-	if (!fip->rd_buff) {
+	ASSERT(IS_PAGE_ALIGNED(RPMEM_RD_BUFF_SIZE));
+	errno = posix_memalign((void **)&fip->rd_buff, Pagesize,
+			RPMEM_RD_BUFF_SIZE);
+	if (errno) {
 		RPMEM_LOG(ERR, "!allocating read buffer");
 		ret = -1;
 		goto err_malloc_rd_buff;
@@ -500,6 +505,7 @@ rpmem_fip_fini_ep(struct rpmem_fip *fip)
 static int
 rpmem_fip_init_lanes_apm(struct rpmem_fip *fip)
 {
+	ASSERTne(Pagesize, 0);
 	int ret;
 
 	/* allocate APM lanes */
@@ -509,8 +515,16 @@ rpmem_fip_init_lanes_apm(struct rpmem_fip *fip)
 		goto err_malloc_lanes;
 	}
 
+	ASSERT(IS_PAGE_ALIGNED(RPMEM_RAW_BUFF_SIZE));
+	errno = posix_memalign((void **)&fip->raw_buff, Pagesize,
+			RPMEM_RAW_BUFF_SIZE);
+	if (errno) {
+		RPMEM_LOG(ERR, "!allocating APM RAW buffer");
+		goto err_malloc_raw;
+	}
+
 	/* register read-after-write buffer */
-	ret = fi_mr_reg(fip->domain, &fip->raw_buff, sizeof(fip->raw_buff),
+	ret = fi_mr_reg(fip->domain, fip->raw_buff, RPMEM_RAW_BUFF_SIZE,
 			FI_REMOTE_WRITE, 0, 0, 0, &fip->raw_mr, NULL);
 	if (ret) {
 		RPMEM_FI_ERR(ret, "registering APM read buffer");
@@ -556,6 +570,8 @@ err_lane_init:
 	for (unsigned j = 0; j < i; j++)
 		rpmem_fip_lane_fini(&fip->lanes.apm[i].lane);
 err_fi_raw_mr:
+	free(fip->raw_buff);
+err_malloc_raw:
 	free(fip->lanes.apm);
 err_malloc_lanes:
 	return -1;
@@ -568,6 +584,7 @@ static void
 rpmem_fip_fini_lanes_apm(struct rpmem_fip *fip)
 {
 	RPMEM_FI_CLOSE(fip->raw_mr, "unregistering APM read buffer");
+	free(fip->raw_buff);
 	free(fip->lanes.apm);
 }
 
@@ -620,8 +637,8 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	}
 
 	/* READ to read-after-write buffer */
-	ret = rpmem_fip_readmsg(fip->ep, &lanep->read, &fip->raw_buff,
-			sizeof(fip->raw_buff), raddr);
+	ret = rpmem_fip_readmsg(fip->ep, &lanep->read, fip->raw_buff,
+			RPMEM_RAW_SIZE, raddr);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "RMA read");
 		return ret;
@@ -630,7 +647,7 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	/* wait for READ completion */
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_READ);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "waiting for READ completion failed");
+		ERR("waiting for READ completion failed");
 		return ret;
 	}
 
@@ -676,6 +693,8 @@ rpmem_fip_post_lanes_gpspm(struct rpmem_fip *fip)
 static int
 rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 {
+	ASSERTne(Pagesize, 0);
+
 	int ret = 0;
 
 	/* allocate GPSPM lanes */
@@ -687,8 +706,9 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 
 	/* allocate persist messages buffer */
 	size_t msg_size = fip->nlanes * sizeof(struct rpmem_msg_persist);
-	fip->pmsg = malloc(msg_size);
-	if (!fip->pmsg) {
+	msg_size = PAGE_ALIGNED_UP_SIZE(msg_size);
+	errno = posix_memalign((void **)&fip->pmsg, Pagesize, msg_size);
+	if (errno) {
 		RPMEM_LOG(ERR, "!allocating messages buffer");
 		ret = -1;
 		goto err_malloc_pmsg;
@@ -711,8 +731,9 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 	/* allocate persist response messages buffer */
 	size_t msg_resp_size = fip->nlanes *
 				sizeof(struct rpmem_msg_persist_resp);
-	fip->pres = malloc(msg_resp_size);
-	if (!fip->pres) {
+	msg_resp_size = PAGE_ALIGNED_UP_SIZE(msg_resp_size);
+	errno = posix_memalign((void **)&fip->pres, Pagesize, msg_resp_size);
+	if (errno) {
 		RPMEM_LOG(ERR, "!allocating messages response buffer");
 		ret = -1;
 		goto err_malloc_pres;
@@ -874,7 +895,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "waiting for SEND buffer");
+		ERR("waiting for SEND buffer failed");
 		return ret;
 	}
 
@@ -909,7 +930,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	/* wait for persist operation completion */
 	ret = rpmem_fip_lane_wait(&lanep->lane, FI_RECV);
 	if (unlikely(ret)) {
-		RPMEM_LOG(ERR, "persist operation failed");
+		ERR("waiting for RECV completion failed");
 		return ret;
 	}
 
@@ -1268,8 +1289,9 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	}
 
 	int ret = fip->ops->persist(fip, offset, len, lane);
-	if (ret)
-		ERR("persist operation failed");
+	if (ret) {
+		RPMEM_LOG(ERR, "persist operation failed");
+	}
 
 	return ret;
 }
@@ -1297,8 +1319,10 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 				fip->rd_buff, rd_len, raddr);
 
 		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);
-		if (ret)
+		if (ret) {
+			ERR("error when processing read request");
 			return ret;
+		}
 
 		memcpy(&cbuff[rd], fip->rd_buff, rd_len);
 
