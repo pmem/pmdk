@@ -140,9 +140,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af42eb0a9df1736871f16ed2673c55e88"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classnvml_1_1obj_1_1shared__mutex.html#a69782a8dc36151ef54ba7089385f1804">native_handle_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1shared__mutex.html#af42eb0a9df1736871f16ed2673c55e88">native_handle</a> () noexcept</td></tr>
 <tr class="memdesc:af42eb0a9df1736871f16ed2673c55e88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Access a native handle to this shared mutex.  <a href="#af42eb0a9df1736871f16ed2673c55e88">More...</a><br /></td></tr>
 <tr class="separator:af42eb0a9df1736871f16ed2673c55e88"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bcb181d1e27a8805f2c7b315a69434e"><td class="memItemLeft" align="right" valign="top">enum pobj_tx_lock&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1shared__mutex.html#a9bcb181d1e27a8805f2c7b315a69434e">lock_type</a> () const noexcept</td></tr>
-<tr class="memdesc:a9bcb181d1e27a8805f2c7b315a69434e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of lock needed for the transaction API.  <a href="#a9bcb181d1e27a8805f2c7b315a69434e">More...</a><br /></td></tr>
-<tr class="separator:a9bcb181d1e27a8805f2c7b315a69434e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c3fb5a7050bd2a0ad5e938ab64e31ca"><td class="memItemLeft" align="right" valign="top">enum pobj_tx_param&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1shared__mutex.html#a3c3fb5a7050bd2a0ad5e938ab64e31ca">lock_type</a> () const noexcept</td></tr>
+<tr class="memdesc:a3c3fb5a7050bd2a0ad5e938ab64e31ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of lock needed for the transaction API.  <a href="#a3c3fb5a7050bd2a0ad5e938ab64e31ca">More...</a><br /></td></tr>
+<tr class="separator:a3c3fb5a7050bd2a0ad5e938ab64e31ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b63e4da703df61bd113bf4b81f959d9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b63e4da703df61bd113bf4b81f959d9"></a>
 <a class="el" href="classnvml_1_1obj_1_1shared__mutex.html">shared_mutex</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1shared__mutex.html#a6b63e4da703df61bd113bf4b81f959d9">operator=</a> (const <a class="el" href="classnvml_1_1obj_1_1shared__mutex.html">shared_mutex</a> &amp;)=delete</td></tr>
 <tr class="memdesc:a6b63e4da703df61bd113bf4b81f959d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deleted assignment operator. <br /></td></tr>
@@ -160,7 +160,7 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Persistent memory resident <a class="el" href="classnvml_1_1obj_1_1shared__mutex.html" title="Persistent memory resident shared_mutex implementation. ">shared_mutex</a> implementation. </p>
-<p>This class is an implementation of a PMEM-resident share_mutex which mimics in behavior the C++11 std::mutex. This class satisfies all requirements of the SharedMutex and StandardLayoutType concepts. The typical usage would be: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="persistent__ptr_8hpp.html">libpmemobj++/persistent_ptr.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="pool_8hpp.html">libpmemobj++/pool.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="shared__mutex_8hpp.html">libpmemobj++/shared_mutex.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mutex&gt;</span></div><div class="line"></div><div class="line"><span class="keyword">namespace </span>nvobj = <a class="code" href="namespacenvml_1_1obj.html">nvml::obj</a>;</div><div class="line"></div><div class="line"><span class="keywordtype">void</span></div><div class="line">shared_mutex_example()</div><div class="line">{</div><div class="line">    <span class="comment">// pool root structure</span></div><div class="line">    <span class="keyword">struct </span>root {</div><div class="line">        nvobj::shared_mutex pmutex;</div><div class="line">    };</div><div class="line"></div><div class="line">    <span class="comment">// create a pmemobj pool</span></div><div class="line">    <span class="keyword">auto</span> pop = nvobj::pool&lt;root&gt;::create(</div><div class="line">        <span class="stringliteral">&quot;poolfile&quot;</span>, <span class="stringliteral">&quot;layout&quot;</span>, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);</div><div class="line">    <span class="keyword">auto</span> proot = pop.get_root();</div><div class="line"></div><div class="line">    <span class="comment">// typical usage schemes</span></div><div class="line">    proot-&gt;pmutex.lock_shared();</div><div class="line"></div><div class="line">    std::unique_lock&lt;nvobj::shared_mutex&gt; guard(proot-&gt;pmutex);</div><div class="line">}</div></div><!-- fragment --></div><h2 class="groupheader">Member Typedef Documentation</h2>
+<p>This class is an implementation of a PMEM-resident share_mutex which mimics in behavior the C++11 std::mutex. This class satisfies all requirements of the SharedMutex and StandardLayoutType concepts. The typical usage would be: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="persistent__ptr_8hpp.html">libpmemobj++/persistent_ptr.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="pool_8hpp.html">libpmemobj++/pool.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="shared__mutex_8hpp.html">libpmemobj++/shared_mutex.hpp</a>&gt;</span></div><div class="line"><span class="preprocessor">#include &lt;mutex&gt;</span></div><div class="line"></div><div class="line"><span class="keyword">namespace </span>nvobj = <a class="code" href="namespacenvml_1_1obj.html">nvml::obj</a>;</div><div class="line"></div><div class="line"><span class="keywordtype">void</span></div><div class="line">shared_mutex_example()</div><div class="line">{</div><div class="line">    <span class="comment">// pool root structure</span></div><div class="line">    <span class="keyword">struct </span>root {</div><div class="line">        nvobj::shared_mutex pmutex;</div><div class="line">    };</div><div class="line"></div><div class="line">    <span class="comment">// create a pmemobj pool</span></div><div class="line">    <span class="keyword">auto</span> pop = nvobj::pool&lt;root&gt;::create(<span class="stringliteral">&quot;poolfile&quot;</span>, <span class="stringliteral">&quot;layout&quot;</span>,</div><div class="line">                         PMEMOBJ_MIN_POOL);</div><div class="line">    <span class="keyword">auto</span> proot = pop.get_root();</div><div class="line"></div><div class="line">    <span class="comment">// typical usage schemes</span></div><div class="line">    proot-&gt;pmutex.lock_shared();</div><div class="line"></div><div class="line">    std::unique_lock&lt;nvobj::shared_mutex&gt; guard(proot-&gt;pmutex);</div><div class="line">}</div></div><!-- fragment --></div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a class="anchor" id="a69782a8dc36151ef54ba7089385f1804"></a>
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +241,7 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a9bcb181d1e27a8805f2c7b315a69434e"></a>
+<a class="anchor" id="a3c3fb5a7050bd2a0ad5e938ab64e31ca"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -249,7 +249,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">enum pobj_tx_lock nvml::obj::shared_mutex::lock_type </td>
+          <td class="memname">enum pobj_tx_param nvml::obj::shared_mutex::lock_type </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -263,7 +263,7 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The type of lock needed for the transaction API. </p>
-<dl class="section return"><dt>Returns</dt><dd>TX_LOCK_RWLOCK </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>TX_PARAM_RWLOCK </dd></dl>
 
 </div>
 </div>
