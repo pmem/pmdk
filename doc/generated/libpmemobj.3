@@ -276,7 +276,7 @@ POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool\ *pop,\ POBJ_LIST_HEAD\ *head,
 \f[C]
 enum\ tx_stage\ pmemobj_tx_stage(void);
 
-int\ pmemobj_tx_begin(PMEMobjpool\ *pop,\ jmp_buf\ *env,\ enum\ tx_lock,\ ...);
+int\ pmemobj_tx_begin(PMEMobjpool\ *pop,\ jmp_buf\ *env,\ enum\ pobj_tx_param,\ ...);
 int\ pmemobj_tx_lock(enum\ tx_lock\ lock_type,\ void\ *lockp);
 void\ pmemobj_tx_abort(int\ errnum);
 void\ pmemobj_tx_commit(void);
@@ -294,7 +294,8 @@ PMEMoid\ pmemobj_tx_zrealloc(PMEMoid\ oid,\ size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_strdup(const\ char\ *s,\ uint64_t\ type_num);
 int\ pmemobj_tx_free(PMEMoid\ oid);
 
-TX_BEGIN_LOCK(PMEMobjpool\ *pop,\ ...)
+TX_BEGIN_PARAM(PMEMobjpool\ *pop,\ ...)
+TX_BEGIN_CB(PMEMobjpool\ *pop,\ cb,\ arg,\ ...)
 TX_BEGIN(PMEMobjpool\ *pop)
 TX_ONABORT
 TX_ONCOMMIT
@@ -2369,25 +2370,74 @@ transaction abort.
 This information must be filled by a caller, using \f[B]setjmp\f[](3)
 macro.
 .PP
-Optionally, a list of pmem\-resident locks may be provided as the last
-arguments.
-Each lock is specified by a pair of lock type (\f[B]TX_LOCK_MUTEX\f[] or
-\f[B]TX_LOCK_RWLOCK\f[]) and the pointer to the lock of type
-\f[I]PMEMmutex\f[] or \f[I]PMEMrwlock\f[] respectively.
-The list must be terminated with \f[B]TX_LOCK_NONE\f[].
-In case of rwlocks, a write lock is acquired.
-It is guaranteed that \f[B]pmemobj_tx_begin\f[]() will grab all the
-locks prior to successful completion and they will be held by the
-current thread until the transaction is finished.
-Locks are taken in the order from left to right.
-To avoid deadlocks, user must take care about the proper order of locks.
-.PP
 New transaction may be started only if the current stage is
 \f[B]TX_STAGE_NONE\f[] or \f[B]TX_STAGE_WORK\f[].
 If successful, transaction stage changes to \f[B]TX_STAGE_WORK\f[] and
 function returns zero.
 Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[] and an error
 number is returned.
+.PP
+Optionally, a list of parameters for the transaction may be provided as
+the following arguments.
+Each parameter consists of a type and type\-specific number of values.
+Currently there are 4 types:
+.IP \[bu] 2
+\f[B]TX_PARAM_NONE\f[], used as a termination marker (no following
+value)
+.IP \[bu] 2
+\f[B]TX_PARAM_MUTEX\f[], followed by one pmem\-resident PMEMmutex
+.IP \[bu] 2
+\f[B]TX_PARAM_RWLOCK\f[], followed by one pmem\-resident PMEMrwlock
+.IP \[bu] 2
+(EXPERIMENTAL) \f[B]TX_PARAM_CB\f[], followed by a callback function of
+type pmemobj_tx_callback and a void pointer (so 2 values)
+.PP
+Using \f[B]TX_PARAM_MUTEX\f[] or \f[B]TX_PARAM_RWLOCK\f[] means that at
+the beginning of a transaction specified lock will be acquired.
+In case of \f[B]TX_PARAM_RWLOCK\f[] it\[aq]s a write lock.
+It is guaranteed that \f[B]pmemobj_tx_begin\f[]() will grab all locks
+prior to successful completion and they will be held by the current
+thread until the transaction is finished.
+Locks are taken in the order from left to right.
+To avoid deadlocks, user must take care of the proper order of locks.
+.PP
+\f[B]TX_PARAM_CB\f[] registers specified callback function to be
+executed at each transaction stage.
+For \f[B]TX_STAGE_WORK\f[] it\[aq]s executed before commit, for all
+other stages as a first operation after stage change.
+It will also be called after each transaction \- in such case
+\f[I]stage\f[] parameter will be set to \f[B]TX_STAGE_NONE\f[].
+pmemobj_tx_callback must be compatible with:
+.PP
+\f[C]void\ func(PMEMobjpool\ *pop,\ enum\ pobj_tx_stage\ stage,\ void\ *arg)\f[]
+.PP
+\f[I]pop\f[] is a pool identifier used in \f[B]pmemobj_tx_begin\f[](),
+\f[I]stage\f[] is a current transaction stage and \f[I]arg\f[] is a
+second parameter of \f[B]TX_PARAM_CB\f[].
+Without considering transaction nesting this mechanism can be deemed as
+an alternative method for executing code between stages (instead of
+\f[B]TX_ONCOMMIT\f[], \f[B]TX_ONABORT\f[], etc).
+However there are 2 significant differences when nested transactions are
+used:
+.IP \[bu] 2
+Registered function is executed only in the most outer transaction (even
+if registered in the inner one).
+.IP \[bu] 2
+There can be only one callback in the whole transaction (it can\[aq]t be
+changed in the inner transaction).
+.PP
+Note that \f[B]TX_PARAM_CB\f[] does not replace
+\f[B]TX_ONCOMMIT\f[]/\f[B]TX_ONABORT\f[]/etc.
+macros.
+They can be used together \- a callback will be executed \f[I]before\f[]
+\f[B]TX_ONCOMMIT\f[]/\f[B]TX_ONABORT\f[]/etc.
+section.
+.PP
+\f[B]TX_PARAM_CB\f[] can be used when the code dealing with transaction
+stage changes is shared between multiple users or when it must be
+executed only in the outer transaction.
+For example it can be very useful when application must synchronize
+persistent and transient state.
 .IP
 .nf
 \f[C]
@@ -2651,18 +2701,25 @@ TX_BEGIN(Pop)\ {
 .IP
 .nf
 \f[C]
-TX_BEGIN_LOCK(PMEMobjpool\ *pop,\ ...)
+TX_BEGIN_PARAM(PMEMobjpool\ *pop,\ ...)
+TX_BEGIN_CB(PMEMobjpool\ *pop,\ cb,\ arg,\ ...)\ (EXPERIMENTAL)
 TX_BEGIN(PMEMobjpool\ *pop)
 \f[]
 .fi
 .PP
-The \f[B]TX_BEGIN_LOCK\f[]() and \f[B]TX_BEGIN\f[]() macros start a new
-transaction in the same way as \f[B]pmemobj_tx_begin\f[](), except that
-instead of the environment buffer provided by a caller, they set up the
-local \f[I]jmp_buf\f[] buffer and use it to catch the transaction abort.
-The \f[B]TX_BEGIN\f[]() macro may be used in case when there is no need
-to grab any locks prior to starting a transaction (like for a
-single\-threaded program).
+The \f[B]TX_BEGIN_PARAM\f[](), \f[B]TX_BEGIN_CB\f[]() and
+\f[B]TX_BEGIN\f[]() macros start a new transaction in the same way as
+\f[B]pmemobj_tx_begin\f[](), except that instead of the environment
+buffer provided by a caller, they set up the local \f[I]jmp_buf\f[]
+buffer and use it to catch the transaction abort.
+The \f[B]TX_BEGIN\f[]() macro starts a transaction without any options.
+\f[B]TX_BEGIN_PARAM\f[] may be used in case when there is a need to grab
+locks prior to starting a transaction (like for a multi\-threaded
+program) or set up transaction stage callback.
+\f[B]TX_BEGIN_CB\f[] is just a wrapper around \f[B]TX_BEGIN_PARAM\f[]
+that validates callback signature.
+(For compatibility there is also \f[B]TX_BEGIN_LOCK\f[] macro which is
+an alias for \f[B]TX_BEGIN_PARAM\f[]).
 Each of those macros shall be followed by a block of code with all the
 operations that are to be performed atomically.
 .IP
@@ -2712,7 +2769,8 @@ TX_END
 .fi
 .PP
 The \f[B]TX_END\f[] macro cleans up and closes the transaction started
-by \f[B]TX_BEGIN\f[]() or \f[B]TX_BEGIN_LOCK\f[]() macro.
+by \f[B]TX_BEGIN\f[]() / \f[B]TX_BEGIN_PARAM\f[]() /
+\f[B]TX_BEGIN_CB\f[]() macros.
 It is mandatory to terminate each transaction with this macro.
 If the transaction was aborted, \f[I]errno\f[] is set appropriately.
 .PP
