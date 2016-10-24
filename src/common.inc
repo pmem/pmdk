@@ -148,11 +148,14 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-export HAS_LIBFABRIC = $(call check_package, libfabric)
-export HAS_LIBIBVERBS = $(shell fi_info --list 2>/dev/null | grep -q verbs && echo y || echo n)
+check_ibv_fork_init = $(shell echo "\#include <infiniband/verbs.h> int main(void) { return ibv_fork_init(); }" |\
+	$(CC) -c $(CFLAGS) -x c -o /dev/null -libverbs - 2>/dev/null && echo y || echo n)
+
+export HAS_LIBFABRIC := $(call check_package, libfabric)
+export HAS_LIBIBVERBS := $(call check_ibv_fork_init)
 
 ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),ny)
-$(error HAS_LIBFABRIC=$(HAS_LIBFABRIC) and HAS_LIBIBVERBS=$(HAS_LIBIBVERBS) not possible)
+export BUILD_RPMEM := n
 endif
 
 ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),nn)

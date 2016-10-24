@@ -66,8 +66,8 @@ INSTALL_TARGET=$(EXPERIMENTAL)
 
 else
 ifeq ($(HAS_LIBIBVERBS),n)
-$(info NOTE: Skipping librpmem because libfabric is not compiled \
-with verbs provider. Set RPMEM_DISABLE_LIBIBVERBS=y to build librpmem anyway.)
+$(info NOTE: Skipping librpmem because libibverbs headers are missing. \
+Set RPMEM_DISABLE_LIBIBVERBS=y to build librpmem anyway.)
 else
 $(info NOTE: Skipping rpmemd because libfabric is missing \
 -- see src/tools/rpmemd/README for details.)
