@@ -50,8 +50,6 @@ Param(
     $mreceivetype = "auto",
     [alias("p")]
     $preceivetype = "auto",
-    [alias("h")]
-    $hreceivetype = "auto",
     [alias("d")]
     $dreceivetype = "auto",
     [alias("o")]
@@ -61,7 +59,9 @@ Param(
     [alias("i")]
     $testdir = "all",
     [alias("c")]
-    $check_pool = "0"
+    $check_pool = "0",
+    [alias("h")][switch]
+    $help= $false
     )
 
 # -v is a built in PS thing
@@ -69,6 +69,11 @@ if ($VerbosePreference -ne 'SilentlyContinue') {
     $verbose = 1
 } else {
     $verbose = 0
+}
+
+if ($help) {
+    usage
+    exit 0
 }
 
 #
@@ -321,10 +326,10 @@ RUNTESTS: stopping because no testconfig.ps1 is found.
 
 if ($verbose -eq "1") {
     Write-Host -NoNewline "Options:"
-    if ($dryrun) {
+    if ($dryrun -eq "1") {
         Write-Host -NoNewline " -n"
     }
-    if ($verbose) {
+    if ($verbose -eq "1") {
         Write-Host -NoNewline " -v"
     }
     Write-Host ""
