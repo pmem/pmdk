@@ -100,7 +100,8 @@ allocate_pmem(struct free_info *f, TOID(struct pmem_root) root, int val)
 static void
 do_something_fishy(TOID(struct pmem_root) root)
 {
-	(void) TX_ALLOC(struct pmem_obj, 1 << 30);
+	TX_ADD_FIELD(root, obj);
+	D_RW(root)->obj = TX_ALLOC(struct pmem_obj, 1 << 30);
 }
 
 static void
