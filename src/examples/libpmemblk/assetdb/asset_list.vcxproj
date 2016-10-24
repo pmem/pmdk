@@ -44,12 +44,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(Platform)\$(Configuration)\asset_list\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(solutionDir)examples;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(Platform)\$(Configuration)\asset_list\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(solutionDir)examples;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
