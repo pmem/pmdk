@@ -49,8 +49,10 @@ struct tree_map_node_item {
 	PMEMoid value;
 };
 
-#define EMPTY_ITEM ((struct tree_map_node_item)\
-		{0, OID_NULL})
+#define SET_EMPTY_ITEM(item) do { \
+				(item).key = 0;\
+				(item).value = OID_NULL; \
+				} while (0);
 
 struct tree_map_node {
 	int n; /* number of occupied slots */
@@ -63,10 +65,10 @@ struct btree_map {
 };
 
 /*
- * btree_map_new -- allocates a new btree instance
+ * btree_map_create -- allocates a new btree instance
  */
 int
-btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
+btree_map_create(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 {
 	int ret = 0;
 
@@ -116,10 +118,10 @@ btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 
 
 /*
- * btree_map_delete -- cleanups and frees btree instance
+ * btree_map_destroy -- cleanups and frees btree instance
  */
 int
-btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
+btree_map_destroy(PMEMobjpool *pop, TOID(struct btree_map) *map)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
@@ -190,15 +192,14 @@ btree_map_create_split_node(TOID(struct tree_map_node) node,
 
 	int c = (BTREE_ORDER / 2);
 	*m = D_RO(node)->items[c - 1]; /* select median item */
-	D_RW(node)->items[c - 1] = EMPTY_ITEM;
+	SET_EMPTY_ITEM(D_RW(node)->items[c - 1]);
 
 	/* move everything right side of median to the new node */
 	for (int i = c; i < BTREE_ORDER; ++i) {
 		if (i != BTREE_ORDER - 1) {
 			D_RW(right)->items[D_RW(right)->n++] =
 				D_RO(node)->items[i];
-
-			D_RW(node)->items[i] = EMPTY_ITEM;
+			SET_EMPTY_ITEM(D_RW(node)->items[i]);
 		}
 		D_RW(right)->slots[i - c] = D_RO(node)->slots[i];
 		D_RW(node)->slots[i] = TOID_NULL(struct tree_map_node);
@@ -458,9 +459,9 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 {
 	if (TOID_IS_NULL(D_RO(node)->slots[0])) { /* leaf */
 		TX_ADD(node);
-		if (D_RO(node)->n == 1 || p == BTREE_ORDER - 2)
-			D_RW(node)->items[p] = EMPTY_ITEM;
-		else if (D_RO(node)->n != 1) {
+		if (D_RO(node)->n == 1 || p == BTREE_ORDER - 2) {
+			SET_EMPTY_ITEM(D_RW(node)->items[p]);
+		} else if (D_RO(node)->n != 1) {
 			memmove(&D_RW(node)->items[p],
 				&D_RW(node)->items[p + 1],
 				sizeof(struct tree_map_node_item) *

@@ -47,8 +47,8 @@ struct rtree_map;
 TOID_DECLARE(struct rtree_map, RTREE_MAP_TYPE_OFFSET + 0);
 
 int rtree_map_check(PMEMobjpool *pop, TOID(struct rtree_map) map);
-int rtree_map_new(PMEMobjpool *pop, TOID(struct rtree_map) *map, void *arg);
-int rtree_map_delete(PMEMobjpool *pop, TOID(struct rtree_map) *map);
+int rtree_map_create(PMEMobjpool *pop, TOID(struct rtree_map) *map, void *arg);
+int rtree_map_destroy(PMEMobjpool *pop, TOID(struct rtree_map) *map);
 int rtree_map_insert(PMEMobjpool *pop, TOID(struct rtree_map) map,
 	const unsigned char *key, uint64_t key_size, PMEMoid value);
 int rtree_map_insert_new(PMEMobjpool *pop, TOID(struct rtree_map) map,

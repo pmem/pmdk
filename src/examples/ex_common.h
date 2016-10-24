@@ -78,7 +78,7 @@ fls(uint64_t val)
 static inline int
 file_exists(char const *file)
 {
-	return access(file, 0);
+	return _access(file, 0);
 }
 
 /*

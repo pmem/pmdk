@@ -39,6 +39,6 @@
 #define MAX_BUF_LEN 10
 
 struct my_root {
-	int len;
+	size_t len;
 	char buf[MAX_BUF_LEN];
 };
