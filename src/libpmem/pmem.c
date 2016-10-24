@@ -615,7 +615,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 error_after_open:
 	p.pops->close(&p);
 	if (delete_on_err)
-		p.pops->unlink(&p);
+		p.pops->rm(&p);
 error_open:
 	pmem_provider_fini(&p);
 	return NULL;

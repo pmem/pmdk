@@ -50,10 +50,13 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_test_type medium
 require_dax_devices 1
 require_fs_type any
 
 setup
+
+dax_device_zero
 
 expect_normal_exit ./log_basic$EXESUFFIX $DEVICE_DAX_PATH a n t w r t w
 

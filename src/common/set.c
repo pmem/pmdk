@@ -1060,7 +1060,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	if (pmem_provider_init(&part->provider, part->path) < 0)
 		return -1;
 
-	if (p->exists && p->type != PMEM_PROVIDER_DEVICE_DAX)
+	if (p->exists)
 		create = 0;
 
 	if (!p->exists && !create) {
@@ -2635,6 +2635,11 @@ util_is_poolset_file(const char *path)
 	if (p.pops->open(&p, O_RDONLY, 0, 0) < 0) {
 		ERR("!open %s", path);
 		goto error_init;
+	}
+
+	if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+		ret = 0;
+		goto out;
 	}
 
 	char signature[POOLSET_HDR_SIG_LEN];

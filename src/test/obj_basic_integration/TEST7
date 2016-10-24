@@ -38,11 +38,14 @@ export UNITTEST_NUM=7
 . ../unittest/unittest.sh
 
 require_dax_devices 1
+require_test_type medium
 
 # covered by TEST5
 configure_valgrind memcheck force-disable
 
 setup
+
+dax_device_zero
 
 expect_normal_exit ./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
 

@@ -780,15 +780,22 @@ function require_dax_devices() {
 	for path in ${DEVICE_DAX_PATH}
 	do
 		if [[ ! -w $path ]]; then
-			[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: no access to specified dax devices"
+			[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP no access to specified dax devices"
 			exit 0
 		fi
 	done
 
 	[ ${#DEVICE_DAX_PATH[*]} -ge $1 ] && return
 
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: DEVICE_DAX_PATH does not specify enough dax devices"
+	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
 	exit 0
+}
+
+function dax_device_zero() {
+	for path in ${DEVICE_DAX_PATH}
+	do
+		sudo ${PMEMPOOL}.static-debug rm -f $path
+	done
 }
 
 #

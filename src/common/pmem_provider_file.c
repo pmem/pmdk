@@ -105,7 +105,7 @@ provider_regular_file_open(struct pmem_provider *p,
 
 	if (!p->exists) {
 		if (util_fstat(p->fd, &p->st) < 0) {
-			p->pops->unlink(p);
+			p->pops->rm(p);
 			p->pops->close(p);
 			return -1;
 		}
@@ -128,14 +128,12 @@ provider_regular_file_close(struct pmem_provider *p)
 
 
 /*
- * provider_regular_file_unlink -- (internal) unlinks a regular file
+ * provider_regular_file_rm -- (internal) unlinks a regular file
  */
-static void
-provider_regular_file_unlink(struct pmem_provider *p)
+static int
+provider_regular_file_rm(struct pmem_provider *p)
 {
-	int olderrno = errno;
-	(void) unlink(p->path);
-	errno = olderrno;
+	return unlink(p->path);
 }
 
 /*
@@ -267,7 +265,7 @@ static struct pmem_provider_ops pmem_provider_regular_file_ops = {
 	.type_match = provider_regular_file_type_match,
 	.open = provider_regular_file_open,
 	.close = provider_regular_file_close,
-	.unlink = provider_regular_file_unlink,
+	.rm = provider_regular_file_rm,
 	.lock = provider_regular_file_lock,
 	.map = provider_regular_file_map,
 	.get_size = provider_regular_file_get_size,

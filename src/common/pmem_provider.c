@@ -104,6 +104,8 @@ pmem_provider_init(struct pmem_provider *p, const char *path)
 
 	p->pops = pmem_provider_operations[p->type];
 
+	p->fd = -1;
+
 	return 0;
 
 error_init:

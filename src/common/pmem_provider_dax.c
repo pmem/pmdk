@@ -81,36 +81,15 @@ provider_device_dax_open(struct pmem_provider *p,
 		tmp = 1;
 #endif
 
-	int init_device = 0;
 	if (flags & O_CREAT || tmp) {
 		flags &= ~O_CREAT;
 		flags &= ~O_EXCL; /* just in case */
-		init_device = 1;
 	}
 
 	if ((p->fd = open(p->path, flags, mode)) < 0)
 		return -1;
 
-	if (init_device) {
-		ssize_t size = p->pops->get_size(p);
-		if (size < 0)
-			goto error_after_open;
-
-		void *addr = util_map(p->fd, (size_t)size, 0, 0);
-		if (addr == NULL)
-			goto error_after_open;
-
-		/* zero initialize the entire device */
-		memset(addr, 0, (size_t)size);
-
-		util_unmap(addr, (size_t)size);
-	}
-
 	return 0;
-
-error_after_open:
-	p->pops->close(p);
-	return -1;
 }
 
 /*
@@ -125,12 +104,39 @@ provider_device_dax_close(struct pmem_provider *p)
 }
 
 /*
- * provider_device_dax_unlink --
- *	(internal) no-op, doesn't make sense on dax device.
+ * provider_device_dax_rm -- zeroes the device
  */
-static void
-provider_device_dax_unlink(struct pmem_provider *p)
+static int
+provider_device_dax_rm(struct pmem_provider *p)
 {
+	int fd;
+	if (p->fd == -1) {
+		if ((fd = open(p->path, O_RDWR)) < -1)
+			return -1;
+	} else {
+		fd = p->fd;
+	}
+
+	ssize_t size = p->pops->get_size(p);
+	if (size < 0)
+		return -1;
+
+	void *addr = util_map(fd, (size_t)size, 0, 0);
+	if (addr == NULL)
+		return -1;
+
+	/* zero initialize the entire device */
+	memset(addr, 0, (size_t)size);
+
+	util_unmap(addr, (size_t)size);
+
+	if (p->fd == -1) {
+		int olderrno = errno;
+		close(fd);
+		errno = olderrno;
+	}
+
+	return 0;
 }
 
 /*
@@ -240,7 +246,7 @@ static struct pmem_provider_ops pmem_provider_device_dax_ops = {
 	.type_match = provider_device_dax_type_match,
 	.open = provider_device_dax_open,
 	.close = provider_device_dax_close,
-	.unlink = provider_device_dax_unlink,
+	.rm = provider_device_dax_rm,
 	.lock = provider_device_dax_lock,
 	.map = provider_device_dax_map,
 	.get_size = provider_device_dax_get_size,

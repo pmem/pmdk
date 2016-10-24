@@ -68,7 +68,7 @@ struct pmem_provider_ops {
 	int (*type_match)(struct pmem_provider *p);
 	int (*open)(struct pmem_provider *p, int flags, mode_t mode, int tmp);
 	void (*close)(struct pmem_provider *p);
-	void (*unlink)(struct pmem_provider *p);
+	int (*rm)(struct pmem_provider *p);
 	int (*lock)(struct pmem_provider *p);
 	void *(*map)(struct pmem_provider *p, size_t alignment);
 	ssize_t (*get_size)(struct pmem_provider *p);
