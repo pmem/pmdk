@@ -95,10 +95,10 @@ struct rbtree_map {
 };
 
 /*
- * rbtree_map_new -- allocates a new red-black tree instance
+ * rbtree_map_create -- allocates a new red-black tree instance
  */
 int
-rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
+rbtree_map_create(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
@@ -166,10 +166,10 @@ rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 
 
 /*
- * rbtree_map_delete -- cleanups and frees red-black tree instance
+ * rbtree_map_destroy -- cleanups and frees red-black tree instance
  */
 int
-rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
+rbtree_map_destroy(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {
@@ -256,7 +256,7 @@ rbtree_map_recolor(TOID(struct rbtree_map) map,
 
 		TX_SET(NODE_P(n), color, COLOR_BLACK);
 		TX_SET(NODE_GRANDP(n), color, COLOR_RED);
-		rbtree_map_rotate(map, NODE_GRANDP(n), !c);
+		rbtree_map_rotate(map, NODE_GRANDP(n), (enum rb_children)!c);
 	}
 
 	return n;
@@ -280,7 +280,7 @@ rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 
 		D_RW(n)->color = COLOR_RED;
 		while (D_RO(NODE_P(n))->color == COLOR_RED)
-			n = rbtree_map_recolor(map, n,
+			n = rbtree_map_recolor(map, n, (enum rb_children)
 					NODE_LOCATION(NODE_P(n)));
 
 		TX_SET(RB_FIRST(map), color, COLOR_BLACK);
@@ -356,7 +356,7 @@ rbtree_map_repair_branch(TOID(struct rbtree_map) map,
 		if (D_RO(D_RO(sb)->slots[!c])->color == COLOR_BLACK) {
 			TX_SET(D_RW(sb)->slots[c], color, COLOR_BLACK);
 			TX_SET(sb, color, COLOR_RED);
-			rbtree_map_rotate(map, sb, !c);
+			rbtree_map_rotate(map, sb, (enum rb_children)!c);
 			sb = NODE_PARENT_AT(n, !c);
 		}
 		TX_SET(sb, color, D_RO(NODE_P(n))->color);
@@ -379,7 +379,8 @@ rbtree_map_repair(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 {
 	/* if left, repair right sibling, otherwise repair left sibling. */
 	while (!TOID_EQUALS(n, RB_FIRST(map)) && D_RO(n)->color == COLOR_BLACK)
-		n = rbtree_map_repair_branch(map, n, NODE_LOCATION(n));
+		n = rbtree_map_repair_branch(map, n, (enum rb_children)
+				NODE_LOCATION(n));
 
 	TX_SET(n, color, COLOR_BLACK);
 }

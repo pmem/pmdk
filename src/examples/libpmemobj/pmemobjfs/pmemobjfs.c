@@ -335,7 +335,7 @@ pmemobjfs_inode_init_file(struct pmemobjfs *objfs,
 		TOID(struct objfs_inode) inode)
 {
 	TX_BEGIN(objfs->pop) {
-		map_new(objfs->mapc, &D_RW(inode)->file.blocks, NULL);
+		map_create(objfs->mapc, &D_RW(inode)->file.blocks, NULL);
 	} TX_END
 }
 
@@ -347,7 +347,7 @@ pmemobjfs_inode_destroy_file(struct pmemobjfs *objfs,
 		TOID(struct objfs_inode) inode)
 {
 	TX_BEGIN(objfs->pop) {
-		map_delete(objfs->mapc, &D_RW(inode)->file.blocks);
+		map_destroy(objfs->mapc, &D_RW(inode)->file.blocks);
 	} TX_END
 }
 
@@ -2207,7 +2207,7 @@ pmemobjfs_mkfs(const char *fname, size_t size, size_t bsize, mode_t mode)
 		TX_ADD(super);
 
 		/* create an opened files map */
-		map_new(objfs->mapc, &D_RW(super)->opened, NULL);
+		map_create(objfs->mapc, &D_RW(super)->opened, NULL);
 
 		/* create root inode, inherit uid and gid from current user */
 		D_RW(super)->root_inode =

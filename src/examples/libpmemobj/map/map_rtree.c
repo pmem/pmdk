@@ -51,27 +51,27 @@ map_rtree_check(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_rtree_new -- wrapper for rtree_map_new
+ * map_rtree_create -- wrapper for rtree_map_new
  */
 static int
-map_rtree_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_rtree_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct rtree_map) *rtree_map =
 		(TOID(struct rtree_map) *)map;
 
-	return rtree_map_new(pop, rtree_map, arg);
+	return rtree_map_create(pop, rtree_map, arg);
 }
 
 /*
- * map_rtree_delete -- wrapper for rtree_map_delete
+ * map_rtree_destroy -- wrapper for rtree_map_delete
  */
 static int
-map_rtree_delete(PMEMobjpool *pop, TOID(struct map) *map)
+map_rtree_destroy(PMEMobjpool *pop, TOID(struct map) *map)
 {
 	TOID(struct rtree_map) *rtree_map =
 		(TOID(struct rtree_map) *)map;
 
-	return rtree_map_delete(pop, rtree_map);
+	return rtree_map_destroy(pop, rtree_map);
 }
 
 /*
@@ -182,7 +182,7 @@ static int
 map_rtree_foreach_cb(const unsigned char *key,
 		uint64_t key_size, PMEMoid value, void *arg2)
 {
-	const struct cb_arg2 *const a2 = arg2;
+	const struct cb_arg2 *const a2 = (const struct cb_arg2 *)arg2;
 	const uint64_t *const k2 = (uint64_t *)key;
 
 	return a2->cb(*k2, value, a2->arg);
@@ -217,19 +217,19 @@ map_rtree_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 struct map_ops rtree_map_ops = {
-	.check		= map_rtree_check,
-	.new		= map_rtree_new,
-	.delete		= map_rtree_delete,
-	.init		= NULL,
-	.insert		= map_rtree_insert,
-	.insert_new	= map_rtree_insert_new,
-	.remove		= map_rtree_remove,
-	.remove_free	= map_rtree_remove_free,
-	.clear		= map_rtree_clear,
-	.get		= map_rtree_get,
-	.lookup		= map_rtree_lookup,
-	.is_empty	= map_rtree_is_empty,
-	.foreach	= map_rtree_foreach,
-	.count		= NULL,
-	.cmd		= NULL,
+/*	.check		= */map_rtree_check,
+/*	.create		= */map_rtree_create,
+/*	.destroy	= */map_rtree_destroy,
+/*	.init		= */NULL,
+/*	.insert		= */map_rtree_insert,
+/*	.insert_new	= */map_rtree_insert_new,
+/*	.remove		= */map_rtree_remove,
+/*	.remove_free	= */map_rtree_remove_free,
+/*	.clear		= */map_rtree_clear,
+/*	.get		= */map_rtree_get,
+/*	.lookup		= */map_rtree_lookup,
+/*	.foreach	= */map_rtree_foreach,
+/*	.is_empty	= */map_rtree_is_empty,
+/*	.count		= */NULL,
+/*	.cmd		= */NULL,
 };

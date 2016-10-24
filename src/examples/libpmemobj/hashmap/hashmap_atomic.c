@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include <libpmemobj.h>
 #include "hashmap_atomic.h"
@@ -58,11 +59,12 @@ struct entry_args {
 	PMEMoid value;
 };
 
+POBJ_LIST_HEAD(entries_head, struct entry);
 struct buckets {
 	/* number of buckets */
 	size_t nbuckets;
 	/* array of lists */
-	POBJ_LIST_HEAD(entries_head, struct entry) bucket[];
+	struct entries_head bucket[];
 };
 
 struct hashmap_atomic {
@@ -91,8 +93,8 @@ struct hashmap_atomic {
 static int
 create_entry(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct entry *e = ptr;
-	struct entry_args *args = arg;
+	struct entry *e = (struct entry *)ptr;
+	struct entry_args *args = (struct entry_args *)arg;
 
 	e->key = args->key;
 	e->value = args->value;
@@ -110,7 +112,7 @@ create_entry(PMEMobjpool *pop, void *ptr, void *arg)
 static int
 create_buckets(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct buckets *b = ptr;
+	struct buckets *b = (struct buckets *)ptr;
 
 	b->nbuckets = *((size_t *)arg);
 	pmemobj_memset_persist(pop, &b->bucket, 0,
@@ -223,7 +225,8 @@ hm_atomic_rebuild(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 			create_buckets, &new_len);
 	if (TOID_IS_NULL(D_RO(hashmap)->buckets_tmp)) {
 		fprintf(stderr,
-			"failed to allocate temporary space of size: %lu, %s\n",
+			"failed to allocate temporary space of size: %" PRIu64
+			", %s\n",
 			new_len, pmemobj_errormsg());
 		return;
 	}
@@ -258,10 +261,10 @@ hm_atomic_insert(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	pmemobj_persist(pop, &D_RW(hashmap)->count_dirty,
 			sizeof(D_RW(hashmap)->count_dirty));
 
-	struct entry_args args = {
-		.key = key,
-		.value = value,
-	};
+	struct entry_args args;
+	args.key = key;
+	args.value = value;
+
 	PMEMoid oid = POBJ_LIST_INSERT_NEW_HEAD(pop,
 			&D_RW(buckets)->bucket[h],
 			list, sizeof(struct entry), create_entry, &args);
@@ -367,19 +370,19 @@ hm_atomic_debug(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	TOID(struct buckets) buckets = D_RO(hashmap)->buckets;
 	TOID(struct entry) var;
 
-	fprintf(out, "a: %u b: %u p: %lu\n", D_RO(hashmap)->hash_fun_a,
+	fprintf(out, "a: %u b: %u p: %" PRIu64 "\n", D_RO(hashmap)->hash_fun_a,
 		D_RO(hashmap)->hash_fun_b, D_RO(hashmap)->hash_fun_p);
-	fprintf(out, "count: %lu, buckets: %lu\n", D_RO(hashmap)->count,
-		D_RO(buckets)->nbuckets);
+	fprintf(out, "count: %" PRIu64 ", buckets: %" PRIu64 "\n",
+		D_RO(hashmap)->count, D_RO(buckets)->nbuckets);
 
 	for (size_t i = 0; i < D_RO(buckets)->nbuckets; ++i) {
 		if (POBJ_LIST_EMPTY(&D_RO(buckets)->bucket[i]))
 			continue;
 
 		int num = 0;
-		fprintf(out, "%lu: ", i);
+		fprintf(out, "%" PRIu64": ", i);
 		POBJ_LIST_FOREACH(var, &D_RO(buckets)->bucket[i], list) {
-			fprintf(out, "%lu ", D_RO(var)->key);
+			fprintf(out, "%" PRIu64 " ", D_RO(var)->key);
 			num++;
 		}
 		fprintf(out, "(%d)\n", num);
@@ -425,12 +428,12 @@ hm_atomic_lookup(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 }
 
 /*
- * hm_atomic_new --  initializes hashmap state, called after pmemobj_create
+ * hm_atomic_create --  initializes hashmap state, called after pmemobj_create
  */
 int
-hm_atomic_new(PMEMobjpool *pop, TOID(struct hashmap_atomic) *map, void *arg)
+hm_atomic_create(PMEMobjpool *pop, TOID(struct hashmap_atomic) *map, void *arg)
 {
-	struct hashmap_args *args = arg;
+	struct hashmap_args *args = (struct hashmap_args *)arg;
 	uint32_t seed = args ? args->seed : 0;
 
 	POBJ_ZNEW(pop, map, struct hashmap_atomic);
@@ -481,7 +484,7 @@ hm_atomic_init(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 			POBJ_LIST_FOREACH(var, &D_RO(buckets)->bucket[i], list)
 				cnt++;
 
-		printf("old count: %lu, new count: %lu\n",
+		printf("old count: %" PRIu64 ", new count: %" PRIu64 "\n",
 			D_RO(hashmap)->count, cnt);
 		D_RW(hashmap)->count = cnt;
 		pmemobj_persist(pop, &D_RW(hashmap)->count,

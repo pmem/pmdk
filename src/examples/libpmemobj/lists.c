@@ -34,11 +34,11 @@
  * lists.c -- example usage of atomic lists API
  */
 
+#include <ex_common.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <assert.h>
 #include <libpmemobj.h>
 
@@ -112,16 +112,16 @@ list_print(PMEMobjpool *pop, struct listbase *base, enum list_type type)
 int
 list_element_constr(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct list_constr_args *args = arg;
+	struct list_constr_args *args = (struct list_constr_args *)arg;
 
 	switch (args->type) {
 	case LIST_FOO: {
-		struct foo_el *e = ptr;
+		struct foo_el *e = (struct foo_el *)ptr;
 		e->value = args->value;
 		pmemobj_persist(pop, &e->value, sizeof(e->value));
 	} break;
 	case LIST_BAR: {
-		struct bar_el *e = ptr;
+		struct bar_el *e = (struct bar_el *)ptr;
 		e->value = args->value;
 		pmemobj_persist(pop, &e->value, sizeof(e->value));
 	} break;
@@ -169,7 +169,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if (access(path, F_OK) != 0) {
+	if (file_exists(path) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(two_lists),
 			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
 			perror("failed to create pool\n");

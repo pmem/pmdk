@@ -47,21 +47,20 @@
  *   t - tell
  * "a", "w" and "v" require a parameter string(s) separated by a colon
  */
-
+#include <ex_common.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <sys/param.h>
 
 #include "libpmemobj.h"
 #include "libpmem.h"
 #include "libpmemlog.h"
 
 #define USABLE_SIZE (9.0 / 10)
-#define MAX_POOL_SIZE ((size_t)(1024L * 1024 * 1024 * 16))
+#define MAX_POOL_SIZE (((size_t)1024 * 1024 * 1024 * 16))
 #define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 
 POBJ_LAYOUT_BEGIN(obj_pmemlog_simple);
@@ -100,7 +99,7 @@ pmemlog_map(PMEMobjpool *pop, size_t fsize)
 	if (!TOID_IS_NULL(D_RO(bp)->log))
 		return retval;
 
-	size_t pool_size = fsize * USABLE_SIZE;
+	size_t pool_size = (size_t)(fsize * USABLE_SIZE);
 	/* max size of a single allocation is 16GB */
 	if (pool_size > MAX_POOL_SIZE) {
 		errno = EINVAL;
@@ -245,7 +244,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		TX_ADD(D_RW(bp)->log);
 		/* append the data */
 		for (int i = 0; i < iovcnt; ++i) {
-			char *buf = iov[i].iov_base;
+			char *buf = (char *)iov[i].iov_base;
 			size_t count = iov[i].iov_len;
 			char *dst = D_RW(logp)->data
 				+ D_RO(logp)->hdr.write_offset;
@@ -317,13 +316,13 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	TOID(struct log) logp;
 	logp = D_RW(bp)->log;
 
-	size_t read_size = chunksize ? : D_RO(logp)->hdr.data_size;
+	size_t read_size = chunksize ? chunksize : D_RO(logp)->hdr.data_size;
 
 	char *read_ptr = D_RW(logp)->data;
 	const char *write_ptr = (D_RO(logp)->data
 					+ D_RO(logp)->hdr.write_offset);
 	while (read_ptr	< write_ptr) {
-		read_size = MIN(read_size, write_ptr - read_ptr);
+		read_size = MIN(read_size, (size_t)(write_ptr - read_ptr));
 		(*process_chunk)(read_ptr, read_size, arg);
 		read_ptr += read_size;
 	}
@@ -337,13 +336,18 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 static int
 process_chunk(const void *buf, size_t len, void *arg)
 {
-	char tmp[len + 1];
+	char *tmp = (char *)malloc(len + 1);
+	if (tmp == NULL) {
+		fprintf(stderr, "malloc error\n");
+		return 0;
+	}
 
 	memcpy(tmp, buf, len);
 	tmp[len] = '\0';
 
 	printf("log contains:\n");
 	printf("%s\n", tmp);
+	free(tmp);
 	return 1; /* continue */
 }
 
@@ -389,7 +393,7 @@ main(int argc, char *argv[])
 
 	PMEMlogpool *plp;
 	if (strncmp(argv[1], "c", 1) == 0) {
-		plp = pmemlog_create(argv[2], POOL_SIZE, S_IRUSR | S_IWUSR);
+		plp = pmemlog_create(argv[2], POOL_SIZE, CREATE_MODE_RW);
 	} else if (strncmp(argv[1], "o", 1) == 0) {
 		plp = pmemlog_open(argv[2]);
 	} else {
@@ -416,8 +420,8 @@ main(int argc, char *argv[])
 			case 'v': {
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
-				struct iovec *iov = malloc(count
-						* sizeof(struct iovec));
+				struct iovec *iov = (struct iovec *)malloc(
+						count * sizeof(struct iovec));
 				if (iov == NULL) {
 					fprintf(stderr, "malloc error\n");
 					return 1;

@@ -76,15 +76,15 @@ map_hm_atomic_init(PMEMobjpool *pop, TOID(struct map) map)
 }
 
 /*
- * map_hm_atomic_new -- wrapper for hm_atomic_new
+ * map_hm_atomic_new -- wrapper for hm_atomic_create
  */
 static int
-map_hm_atomic_new(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
+map_hm_atomic_create(PMEMobjpool *pop, TOID(struct map) *map, void *arg)
 {
 	TOID(struct hashmap_atomic) *hashmap_atomic =
 		(TOID(struct hashmap_atomic) *)map;
 
-	return hm_atomic_new(pop, hashmap_atomic, arg);
+	return hm_atomic_create(pop, hashmap_atomic, arg);
 }
 
 /*
@@ -164,14 +164,19 @@ map_hm_atomic_cmd(PMEMobjpool *pop, TOID(struct map) map,
 }
 
 struct map_ops hashmap_atomic_ops = {
-	.check		= map_hm_atomic_check,
-	.new		= map_hm_atomic_new,
-	.init		= map_hm_atomic_init,
-	.insert		= map_hm_atomic_insert,
-	.remove		= map_hm_atomic_remove,
-	.get		= map_hm_atomic_get,
-	.lookup		= map_hm_atomic_lookup,
-	.foreach	= map_hm_atomic_foreach,
-	.count		= map_hm_atomic_count,
-	.cmd		= map_hm_atomic_cmd,
+	/* .check	= */ map_hm_atomic_check,
+	/* .create	= */ map_hm_atomic_create,
+	/* .destroy	= */ NULL,
+	/* .init	= */ map_hm_atomic_init,
+	/* .insert	= */ map_hm_atomic_insert,
+	/* .insert_new	= */ NULL,
+	/* .remove	= */ map_hm_atomic_remove,
+	/* .remove_free	= */ NULL,
+	/* .clear	= */ NULL,
+	/* .get		= */ map_hm_atomic_get,
+	/* .lookup	= */ map_hm_atomic_lookup,
+	/* .foreach	= */ map_hm_atomic_foreach,
+	/* .is_empty	= */ NULL,
+	/* .count	= */ map_hm_atomic_count,
+	/* .cmd		= */ map_hm_atomic_cmd,
 };

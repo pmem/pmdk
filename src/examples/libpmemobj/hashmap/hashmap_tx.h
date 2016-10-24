@@ -45,7 +45,7 @@ struct hashmap_tx;
 TOID_DECLARE(struct hashmap_tx, HASHMAP_TX_TYPE_OFFSET + 0);
 
 int hm_tx_check(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap);
-int hm_tx_new(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg);
+int hm_tx_create(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg);
 int hm_tx_init(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap);
 int hm_tx_insert(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
 		uint64_t key, PMEMoid value);
