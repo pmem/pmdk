@@ -122,6 +122,11 @@ void *pmemobj_direct(PMEMoid oid);
 
 #endif /* _WIN32 */
 
+/*
+ * Returns the OID of the object pointed to by addr.
+ */
+PMEMoid pmemobj_oid(const void *addr);
+
 const char *pmemobj_errormsg(void);
 
 /*

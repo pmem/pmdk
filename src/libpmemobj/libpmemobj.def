@@ -103,5 +103,6 @@ EXPORTS
 	pmemobj_flush
 	pmemobj_drain
 	pmemobj_direct
+	pmemobj_oid
 	_pobj_debug_notice
 	DllMain

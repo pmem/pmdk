@@ -76,6 +76,9 @@ struct _pobj_pcache {
 static pthread_once_t Cached_pool_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Cached_pool_key;
 
+/*
+ * _Cached_pool_key_alloc -- (internal) allocate pool cache pthread key
+ */
 static void
 _Cached_pool_key_alloc(void)
 {
@@ -84,6 +87,9 @@ _Cached_pool_key_alloc(void)
 		FATAL("!pthread_key_create");
 }
 
+/*
+ * pmemobj_direct -- returns the direct pointer of an object
+ */
 void *
 pmemobj_direct(PMEMoid oid)
 {
@@ -136,6 +142,22 @@ obj_pool_init(void)
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)
 		FATAL("!ctree_new");
+}
+
+/*
+ * pmemobj_oid -- return a PMEMoid based on the virtual address
+ *
+ * If the address does not belong to any pool OID_NULL is returned.
+ */
+PMEMoid
+pmemobj_oid(const void *addr)
+{
+	PMEMobjpool *pop = pmemobj_pool_by_ptr(addr);
+	if (pop == NULL)
+		return OID_NULL;
+
+	PMEMoid oid = {pop->uuid_lo, (uintptr_t)addr - (uintptr_t)pop};
+	return oid;
 }
 
 /*
