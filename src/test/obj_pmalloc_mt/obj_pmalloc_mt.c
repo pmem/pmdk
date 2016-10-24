@@ -176,7 +176,9 @@ main(int argc, char *argv[])
 
 	if (access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
-		THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION, 0666);
+		PMEMOBJ_MIN_POOL +
+		(THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION),
+		0666);
 	} else {
 		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
 			printf("failed to open pool\n");
