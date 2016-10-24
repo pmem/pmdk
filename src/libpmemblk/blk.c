@@ -384,8 +384,6 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly, int is_pmem)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	if (locks)
-		Free((void *)locks);
 	if (bttp)
 		btt_fini(bttp);
 	errno = oerrno;
