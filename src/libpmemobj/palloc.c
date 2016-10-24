@@ -464,6 +464,12 @@ palloc_operation(struct palloc_heap *heap,
 
 		/* we might have been operating on inactive run */
 		if (b != NULL) {
+#ifdef DEBUG
+			if (heap_block_is_allocated(heap, reclaimed_block)) {
+				ERR("heap corruption");
+				ASSERT(0);
+			}
+#endif /* DEBUG */
 			/*
 			 * Even though the initial condition is to check
 			 * whether the existing block exists it's important to
@@ -473,12 +479,7 @@ palloc_operation(struct palloc_heap *heap,
 			 * before this operation started.
 			 */
 			CNT_OP(b, insert, heap, reclaimed_block);
-#ifdef DEBUG
-			if (heap_block_is_allocated(heap, reclaimed_block)) {
-				ERR("heap corruption");
-				ASSERT(0);
-			}
-#endif /* DEBUG */
+
 			/*
 			 * Degrading of a run means turning it back into a chunk
 			 * in case it's no longer needed.
