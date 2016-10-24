@@ -44,12 +44,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(Platform)\$(Configuration)\printlog\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(SolutionDir)\windows\getopt;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(solutionDir)examples;$(SolutionDir)\windows\getopt;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(Platform)\$(Configuration)\printlog\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(SolutionDir)\windows\getopt;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(solutionDir)examples;$(SolutionDir)\windows\getopt;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
