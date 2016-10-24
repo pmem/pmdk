@@ -40,12 +40,10 @@
  * The asset-file should contain the names of the assets, one per line.
  */
 
+#include <ex_common.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
@@ -73,11 +71,7 @@ main(int argc, char *argv[])
 
 	/* create pmemblk pool in existing (but as yet unmodified) file */
 	pbp = pmemblk_create(path_pool, sizeof(struct asset),
-#ifndef _WIN32
-		0, S_IWUSR | S_IRUSR);
-#else
-		0, S_IREAD | S_IWRITE);
-#endif
+			0, CREATE_MODE_RW);
 
 	if (pbp == NULL) {
 		perror(path_pool);

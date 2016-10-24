@@ -39,15 +39,13 @@
  * -t option means truncate the file after printing it.
  */
 
+#include <ex_common.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 #include <libpmemlog.h>
 
 #include "logentry.h"
