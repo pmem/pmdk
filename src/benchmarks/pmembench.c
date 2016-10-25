@@ -1012,7 +1012,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			}
 			args->fsize = util_poolset_size(args->fname);
 			if (!args->fsize) {
-				fprintf(stderr, "invalid size of poolset");
+				fprintf(stderr, "invalid size of poolset\n");
 				goto out;
 			}
 		}
@@ -1070,7 +1070,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				if (workers[j]->ret != 0) {
 					ret = workers[j]->ret;
 					fprintf(stderr,
-					"thread number %d failed \n", j);
+					"thread number %d failed\n", j);
 				}
 			}
 			if (ret == 0)
