@@ -64,7 +64,7 @@ copy_files_to_node 0 . $POOLSET_FILE
 rm -f $POOLSET_FILE
 
 # PID file name for remote test run in background
-PID_FILE="./pid-file-$$.txt"
+PID_FILE="pid-file-$$.txt"
 
 # register the list of PID files to be cleaned in case of an error
 clean_remote_node 0 $PID_FILE
