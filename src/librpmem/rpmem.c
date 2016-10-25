@@ -238,38 +238,10 @@ err_malloc_rpmem:
 }
 
 /*
- * rpmem_remove_pool -- remove pool on remote node
- */
-static int
-rpmem_remove_pool(const struct rpmem_target_info *info, const char *pool_set)
-{
-	RPMEM_LOG(NOTICE, "removing pool -- '%s'", pool_set);
-	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove",
-			pool_set, NULL);
-	if (!ssh) {
-		RPMEM_LOG(ERR, "executing remove command failed");
-		return -1;
-	}
-
-	int ret = 0;
-
-	if (rpmem_ssh_monitor(ssh, 0)) {
-		RPMEM_LOG(ERR, "waiting for remove command failed");
-		ret = -1;
-		goto err_monitor;
-	}
-
-err_monitor:
-	rpmem_ssh_close(ssh);
-
-	return ret;
-}
-
-/*
  * rpmem_common_fini -- common routing for deinitialization
  */
 static void
-rpmem_common_fini(RPMEMpool *rpp, int join, const char *pool_set)
+rpmem_common_fini(RPMEMpool *rpp, int join)
 {
 	rpmem_obc_disconnect(rpp->obc);
 
@@ -282,12 +254,6 @@ rpmem_common_fini(RPMEMpool *rpp, int join, const char *pool_set)
 	}
 
 	rpmem_obc_fini(rpp->obc);
-
-	if (pool_set) {
-		if (rpmem_remove_pool(rpp->info, pool_set))
-			RPMEM_LOG(ERR, "removing '%s' pool failed",
-					pool_set);
-	}
 
 	rpmem_target_free(rpp->info);
 	free(rpp);
@@ -338,18 +304,9 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 	}
 
 	RPMEM_LOG(NOTICE, "in-band connection established");
-
-	ret = rpmem_fip_process_start(rpp->fip);
-	if (ret) {
-		ERR("!starting in-band connection thread");
-		goto err_fip_process;
-	}
-
 	RPMEM_LOG(NOTICE, "final nlanes: %u", *nlanes);
 
 	return 0;
-err_fip_process:
-	rpmem_fip_close(rpp->fip);
 err_fip_connect:
 	rpmem_fip_fini(rpp->fip);
 err_fip_init:
@@ -365,7 +322,6 @@ rpmem_common_fip_fini(RPMEMpool *rpp)
 {
 	RPMEM_LOG(INFO, "closing in-band connection");
 
-	rpmem_fip_process_stop(rpp->fip);
 	rpmem_fip_close(rpp->fip);
 	rpmem_fip_fini(rpp->fip);
 
@@ -482,7 +438,6 @@ rpmem_create(const char *target, const char *pool_set_name,
 		.pool_desc	= pool_set_name,
 	};
 
-	const char *remove_pool_set = NULL;
 	struct rpmem_resp_attr resp;
 	int ret = rpmem_obc_create(rpp->obc, &req, &resp, create_attr);
 	if (ret) {
@@ -490,14 +445,18 @@ rpmem_create(const char *target, const char *pool_set_name,
 		goto err_obc_create;
 	}
 
-	remove_pool_set = pool_set_name;
-
 	rpmem_log_resp("create", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
 			pool_addr, pool_size, nlanes);
 	if (ret)
 		goto err_fip_init;
+
+	ret = rpmem_fip_process_start(rpp->fip);
+	if (ret) {
+		ERR("!starting in-band connection thread");
+		goto err_fip_process;
+	}
 
 	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
 	if (ret) {
@@ -508,10 +467,13 @@ rpmem_create(const char *target, const char *pool_set_name,
 
 	return rpp;
 err_monitor:
+	rpmem_fip_process_stop(rpp->fip);
+err_fip_process:
 	rpmem_common_fip_fini(rpp);
 err_fip_init:
+	rpmem_obc_close(rpp->obc);
 err_obc_create:
-	rpmem_common_fini(rpp, 0, remove_pool_set);
+	rpmem_common_fini(rpp, 0);
 err_common_init:
 	return NULL;
 }
@@ -565,6 +527,12 @@ rpmem_open(const char *target, const char *pool_set_name,
 	if (ret)
 		goto err_fip_init;
 
+	ret = rpmem_fip_process_start(rpp->fip);
+	if (ret) {
+		ERR("!starting in-band connection thread");
+		goto err_fip_process;
+	}
+
 	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
 	if (ret) {
 		errno = ret;
@@ -574,10 +542,13 @@ rpmem_open(const char *target, const char *pool_set_name,
 
 	return rpp;
 err_monitor:
+	rpmem_fip_process_stop(rpp->fip);
+err_fip_process:
 	rpmem_common_fip_fini(rpp);
 err_fip_init:
+	rpmem_obc_close(rpp->obc);
 err_obc_create:
-	rpmem_common_fini(rpp, 0, NULL);
+	rpmem_common_fini(rpp, 0);
 err_common_init:
 	return NULL;
 }
@@ -590,6 +561,8 @@ rpmem_close(RPMEMpool *rpp)
 {
 	RPMEM_LOG(INFO, "closing out-of-band connection");
 
+	rpmem_fip_process_stop(rpp->fip);
+
 	int ret = rpmem_obc_close(rpp->obc);
 	if (ret)
 		ERR("!close request failed");
@@ -597,7 +570,7 @@ rpmem_close(RPMEMpool *rpp)
 	RPMEM_LOG(NOTICE, "out-of-band connection closed");
 
 	rpmem_common_fip_fini(rpp);
-	rpmem_common_fini(rpp, 1, NULL);
+	rpmem_common_fini(rpp, 1);
 
 	return ret;
 }

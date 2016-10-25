@@ -37,17 +37,6 @@
 /*
  * Values for SO_KEEPALIVE socket option
  */
-/*
- * The time (in seconds) the connection needs to remain idle
- * before starting keepalive.
- */
-#define RPMEM_TCP_KEEPIDLE	1
-
-/*
- * The time (in seconds) between keepalive probes.
- */
-#define RPMEM_TCP_KEEPINTVL	1
-
 
 #define RPMEM_CMD_ENV	"RPMEM_CMD"
 #define RPMEM_SSH_ENV	"RPMEM_SSH"
@@ -55,6 +44,8 @@
 #define RPMEM_DEF_SSH	"ssh"
 #define RPMEM_PROV_SOCKET_ENV	"RPMEM_ENABLE_SOCKETS"
 #define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
+#define RPMEM_ACCEPT_TIMEOUT 30000
+#define RPMEM_CONNECT_TIMEOUT 30000
 
 #include <sys/socket.h>
 #include <netdb.h>
