@@ -179,7 +179,7 @@ DRD = auto
 # in the unittest framework. It scans the code for functions that should be
 # wrapped and adds required linker flags.
 #
-WRAPPER_FUNCS=FUNC_MOCK_RET_ALWAYS|FUNC_MOCK
+WRAPPER_FUNCS=FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK
 PAREN=(
 extract_funcs = $(shell \
     grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
