@@ -35,16 +35,17 @@
  *
  * Calculates pi number with multiple threads using Leibniz formula.
  */
-
-#include <pthread.h>
-#include <unistd.h>
+#include <ex_common.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <libpmemobj.h>
-
+#ifndef _WIN32
+#include <pthread.h>
+#endif
 /*
  * Layout definition
  */
@@ -79,8 +80,8 @@ struct pi {
 int
 pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct pi_task *t = ptr;
-	struct pi_task_proto *p = arg;
+	struct pi_task *t = (struct pi_task *)ptr;
+	struct pi_task_proto *p = (struct pi_task_proto *)arg;
 	t->proto = *p;
 	pmemobj_persist(pop, t, sizeof(*t));
 
@@ -90,15 +91,21 @@ pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
 /*
  * calc_pi -- worker for pi calculation
  */
+#ifndef _WIN32
 void *
 calc_pi(void *arg)
+#else
+DWORD WINAPI
+calc_pi(LPVOID arg)
+#endif
 {
 	TOID(struct pi) pi = POBJ_ROOT(pop, struct pi);
 	TOID(struct pi_task) task = *((TOID(struct pi_task) *)arg);
 
 	long double result = 0;
-	for (int i = D_RO(task)->proto.start; i < D_RO(task)->proto.stop; ++i) {
-		result += (pow(-1, i) / (2 * i + 1));
+	for (uint64_t i = D_RO(task)->proto.start;
+		i < D_RO(task)->proto.stop; ++i) {
+		result += (pow(-1, (double)i) / (2 * i + 1));
 	}
 	D_RW(task)->proto.result = result;
 	pmemobj_persist(pop, &D_RW(task)->proto.result, sizeof(double));
@@ -126,18 +133,34 @@ calc_pi_mt()
 		return;
 
 	int i = 0;
-	TOID(struct pi_task) tasks[pending];
+	TOID(struct pi_task) *tasks = (TOID(struct pi_task) *)malloc(
+		sizeof(TOID(struct pi_task)) * pending);
 	POBJ_LIST_FOREACH(iter, &D_RO(pi)->todo, todo)
 		tasks[i++] = iter;
-
+#ifndef _WIN32
 	pthread_t workers[pending];
-
 	for (i = 0; i < pending; ++i)
 		if (pthread_create(&workers[i], NULL, calc_pi, &tasks[i]) != 0)
 			break;
 
 	for (i = i - 1; i >= 0; --i)
 		pthread_join(workers[i], NULL);
+#else
+	HANDLE *workers = (HANDLE *) malloc(sizeof(HANDLE) * pending);
+	for (i = 0; i < pending; ++i) {
+		workers[i] = CreateThread(NULL, 0, calc_pi,
+			&tasks[i], 0, NULL);
+		if (workers[i] == NULL)
+			break;
+	}
+	WaitForMultipleObjects(i, workers, TRUE, INFINITE);
+
+	for (i = i - 1; i >= 0; --i)
+		CloseHandle(workers[i]);
+	free(workers);
+#endif
+
+	free(tasks);
 }
 
 /*
@@ -163,11 +186,10 @@ prep_todo_list(int threads, int ops)
 	int i;
 	for (i = 0; i < threads; ++i) {
 		uint64_t start = last + (i * ops_per_thread);
-		struct pi_task_proto proto = {
-			.start = start,
-			.stop = start + ops_per_thread,
-			.result = 0
-		};
+		struct pi_task_proto proto;
+		proto.start = start;
+		proto.stop = start + ops_per_thread;
+		proto.result = 0;
 
 		POBJ_LIST_INSERT_NEW_HEAD(pop, &D_RW(pi)->todo, todo,
 			sizeof(struct pi_task), pi_task_construct, &proto);
@@ -190,9 +212,9 @@ main(int argc, char *argv[])
 
 	pop = NULL;
 
-	if (access(path, F_OK) != 0) {
+	if (file_exists(path) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pi),
-			PMEMOBJ_MIN_POOL, S_IRWXU)) == NULL) {
+			PMEMOBJ_MIN_POOL, CREATE_MODE_RW)) == NULL) {
 			printf("failed to create pool\n");
 			return 1;
 		}
@@ -219,7 +241,7 @@ main(int argc, char *argv[])
 		case 'd': { /* print done list */
 			TOID(struct pi_task) iter;
 			POBJ_LIST_FOREACH(iter, &D_RO(pi)->done, done) {
-				printf("(%lu - %lu) = %Lf\n",
+				printf("(%" PRIu64 " - %" PRIu64 ") = %Lf\n",
 					D_RO(iter)->proto.start,
 					D_RO(iter)->proto.stop,
 					D_RO(iter)->proto.result);
@@ -228,7 +250,7 @@ main(int argc, char *argv[])
 		case 't': { /* print to-do list */
 			TOID(struct pi_task) iter;
 			POBJ_LIST_FOREACH(iter, &D_RO(pi)->todo, todo) {
-				printf("(%lu - %lu) = %Lf\n",
+				printf("(%" PRIu64 " - %" PRIu64 ") = %Lf\n",
 					D_RO(iter)->proto.start,
 					D_RO(iter)->proto.stop,
 					D_RO(iter)->proto.result);

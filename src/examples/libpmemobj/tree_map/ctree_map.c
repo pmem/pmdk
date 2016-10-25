@@ -34,6 +34,7 @@
  * ctree_map.c -- Crit-bit trie implementation
  */
 
+#include <ex_common.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -64,14 +65,14 @@ struct ctree_map {
 static int
 find_crit_bit(uint64_t lhs, uint64_t rhs)
 {
-	return 64 - __builtin_clzll(lhs ^ rhs) - 1;
+	return fls(lhs ^ rhs);
 }
 
 /*
- * ctree_map_new -- allocates a new crit-bit tree instance
+ * ctree_map_create -- allocates a new crit-bit tree instance
  */
 int
-ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
+ctree_map_create(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 {
 	int ret = 0;
 
@@ -122,10 +123,10 @@ ctree_map_clear(PMEMobjpool *pop, TOID(struct ctree_map) map)
 }
 
 /*
- * ctree_map_delete -- cleanups and frees crit-bit tree instance
+ * ctree_map_destroy -- cleanups and frees crit-bit tree instance
  */
 int
-ctree_map_delete(PMEMobjpool *pop, TOID(struct ctree_map) *map)
+ctree_map_destroy(PMEMobjpool *pop, TOID(struct ctree_map) *map)
 {
 	int ret = 0;
 	TX_BEGIN(pop) {

@@ -38,7 +38,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <stdint.h>
 #include <string.h>
 #include <libpmemobj.h>

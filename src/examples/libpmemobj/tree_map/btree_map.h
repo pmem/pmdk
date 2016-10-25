@@ -47,8 +47,8 @@ struct btree_map;
 TOID_DECLARE(struct btree_map, BTREE_MAP_TYPE_OFFSET + 0);
 
 int btree_map_check(PMEMobjpool *pop, TOID(struct btree_map) map);
-int btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg);
-int btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map);
+int btree_map_create(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg);
+int btree_map_destroy(PMEMobjpool *pop, TOID(struct btree_map) *map);
 int btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value);
 int btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,

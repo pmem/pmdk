@@ -33,11 +33,13 @@
 /*
  * btree.c -- implementation of persistent binary search tree
  */
+
+#include <ex_common.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <inttypes.h>
 #include <libpmemobj.h>
 
 POBJ_LAYOUT_BEGIN(btree);
@@ -67,8 +69,8 @@ struct btree_node_arg {
 int
 btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct btree_node *node = ptr;
-	struct btree_node_arg *a = arg;
+	struct btree_node *node = (struct btree_node *)ptr;
+	struct btree_node_arg *a = (struct btree_node_arg *)arg;
 
 	node->key = a->key;
 	strcpy(node->value, a->value);
@@ -93,11 +95,10 @@ btree_insert(PMEMobjpool *pop, int64_t key, const char *value)
 		dst = &D_RW(*dst)->slots[key > D_RO(*dst)->key];
 	}
 
-	struct btree_node_arg args = {
-		.size = sizeof(struct btree_node) + strlen(value) + 1,
-		.key = key,
-		.value = value
-	};
+	struct btree_node_arg args;
+	args.size = sizeof(struct btree_node) + strlen(value) + 1;
+	args.key = key;
+	args.value = value;
 
 	POBJ_ALLOC(pop, dst, struct btree_node, args.size,
 		btree_node_construct, &args);
@@ -128,7 +129,7 @@ btree_find(PMEMobjpool *pop, int64_t key)
 void
 btree_node_print(const TOID(struct btree_node) node)
 {
-	printf("%ld %s\n", D_RO(node)->key, D_RO(node)->value);
+	printf("%" PRIu64 " %s\n", D_RO(node)->key, D_RO(node)->value);
 }
 
 /*
@@ -171,7 +172,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if (access(path, F_OK) != 0) {
+	if (file_exists(path) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(btree),
 			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
 			perror("failed to create pool\n");

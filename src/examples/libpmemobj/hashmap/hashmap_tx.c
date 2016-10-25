@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include <libpmemobj.h>
 #include "hashmap_tx.h"
@@ -311,20 +312,20 @@ hm_tx_debug(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, FILE *out)
 	TOID(struct buckets) buckets = D_RO(hashmap)->buckets;
 	TOID(struct entry) var;
 
-	fprintf(out, "a: %u b: %u p: %lu\n", D_RO(hashmap)->hash_fun_a,
+	fprintf(out, "a: %u b: %u p: %" PRIu64 "\n", D_RO(hashmap)->hash_fun_a,
 		D_RO(hashmap)->hash_fun_b, D_RO(hashmap)->hash_fun_p);
-	fprintf(out, "count: %lu, buckets: %lu\n", D_RO(hashmap)->count,
-		D_RO(buckets)->nbuckets);
+	fprintf(out, "count: %" PRIu64 ", buckets: %" PRIu64 "\n",
+		D_RO(hashmap)->count, D_RO(buckets)->nbuckets);
 
 	for (size_t i = 0; i < D_RO(buckets)->nbuckets; ++i) {
 		if (TOID_IS_NULL(D_RO(buckets)->bucket[i]))
 			continue;
 
 		int num = 0;
-		fprintf(out, "%lu: ", i);
+		fprintf(out, "%" PRIu64 ": ", i);
 		for (var = D_RO(buckets)->bucket[i]; !TOID_IS_NULL(var);
 				var = D_RO(var)->next) {
-			fprintf(out, "%lu ", D_RO(var)->key);
+			fprintf(out, "%" PRIu64 " ", D_RO(var)->key);
 			num++;
 		}
 		fprintf(out, "(%d)\n", num);
@@ -391,12 +392,12 @@ hm_tx_init(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap)
 }
 
 /*
- * hm_tx_new -- allocates new hashmap
+ * hm_tx_create -- allocates new hashmap
  */
 int
-hm_tx_new(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg)
+hm_tx_create(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg)
 {
-	struct hashmap_args *args = arg;
+	struct hashmap_args *args = (struct hashmap_args *)arg;
 	int ret = 0;
 	TX_BEGIN(pop) {
 		*map = TX_ZNEW(struct hashmap_tx);
