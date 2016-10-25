@@ -335,6 +335,15 @@ flush_clflushopt(const void *addr, size_t len)
 }
 
 /*
+ * flush_empty -- (internal) do not flush the CPU cache
+ */
+static void
+flush_empty(const void *addr, size_t len)
+{
+	/* nop */
+}
+
+/*
  * pmem_flush() calls through Func_flush to do the work.  Although
  * initialized to flush_clflush(), once the existence of the clflushopt
  * feature is confirmed by pmem_init() at library initialization time,
@@ -1105,6 +1114,8 @@ pmem_log_cpuinfo(void)
 		LOG(3, "using clflushopt");
 	else if (Func_flush == flush_clflush)
 		LOG(3, "using clflush");
+	else if (Func_flush == flush_empty)
+		LOG(3, "not flushing CPU cache");
 	else
 		FATAL("invalid flush function address");
 
@@ -1161,6 +1172,13 @@ pmem_init(void)
 	LOG(3, NULL);
 
 	pmem_get_cpuinfo();
+
+	char *e = getenv("PMEM_NO_FLUSH");
+	if (e && strcmp(e, "1") == 0) {
+		LOG(3, "forced not flushing CPU cache");
+		Func_flush = flush_empty;
+		Func_predrain_fence = predrain_fence_sfence;
+	}
 
 	/*
 	 * For testing, allow overriding the default threshold
