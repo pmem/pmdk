@@ -47,6 +47,7 @@
 
 #include "libpmemobj.h"
 #include "benchmark.h"
+#include "util.h"
 
 /*
  * The factor used for PMEM pool size calculation, accounts for metadata,
@@ -225,6 +226,8 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 			poolsize = PMEMOBJ_MIN_POOL;
 
 	}
+
+	poolsize = PAGE_ALIGNED_UP_SIZE(poolsize);
 
 	ob->pop = pmemobj_create(args->fname, NULL, poolsize, args->fmode);
 	if (ob->pop == NULL) {
