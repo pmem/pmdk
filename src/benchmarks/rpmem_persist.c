@@ -269,24 +269,24 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 
 	/* read and validate poolset */
 	if (util_poolset_read(&set, path)) {
-		fprintf(stderr, "Invalid poolset file '%s'", path);
+		fprintf(stderr, "Invalid poolset file '%s'\n", path);
 		return -1;
 	}
 
 	assert(set);
 	if (set->nreplicas < 2) {
-		fprintf(stderr, "No replicas defined");
+		fprintf(stderr, "No replicas defined\n");
 		goto err_poolset_free;
 	}
 
 	if (set->remote == 0) {
-		fprintf(stderr, "No remote replicas defined");
+		fprintf(stderr, "No remote replicas defined\n");
 		goto err_poolset_free;
 	}
 
 	for (r = 1; r < set->nreplicas; ++r) {
 		if (!set->replica[r]->remote) {
-			fprintf(stderr, "Local replicas are not supported");
+			fprintf(stderr, "Local replicas are not supported\n");
 			goto err_poolset_free;
 		}
 	}
@@ -297,12 +297,13 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	assert(rep);
 	assert(rep->remote == NULL);
 	if (rep->nparts != 1) {
-		fprintf(stderr, "Multipart master replicas are not supported");
+		fprintf(stderr, "Multipart master replicas "
+				"are not supported\n");
 		goto err_poolset_free;
 	}
 
 	if (rep->repsize < mb->fsize) {
-		fprintf(stderr, "A master replica is too small (%zu < %zu)",
+		fprintf(stderr, "A master replica is too small (%zu < %zu)\n",
 			rep->repsize, mb->fsize);
 		goto err_poolset_free;
 	}
@@ -387,7 +388,7 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
-		fprintf(stderr, "Invalid operation mode argument '%s'",
+		fprintf(stderr, "Invalid operation mode argument '%s'\n",
 			mb->pargs->mode);
 		goto err_free_mb;
 	}
@@ -412,7 +413,7 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	if (!mb->pargs->no_warmup) {
 		if (do_warmup(
 			mb, args->n_threads * args->n_ops_per_thread) != 0) {
-			fprintf(stderr, "do_warmup() function failed.");
+			fprintf(stderr, "do_warmup() function failed.\n");
 			goto err_poolset_fini;
 		}
 	}
