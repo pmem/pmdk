@@ -49,6 +49,7 @@
 #include "libpmem.h"
 #include "librpmem.h"
 #include "benchmark.h"
+#include "util.h"
 
 #define MAX_OFFSET 63
 #define CONST_B 0xFF
@@ -397,6 +398,7 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t large = size * args->n_ops_per_thread * args->n_threads;
 	size_t small = size * args->n_threads;
 	mb->fsize = (op_mode == OP_MODE_STAT) ? small : large;
+	mb->fsize = PAGE_ALIGNED_UP_SIZE(mb->fsize);
 
 	/* initialize offsets[] array depending on benchmark args */
 	if (init_offsets(args, mb, op_mode) < 0) {
