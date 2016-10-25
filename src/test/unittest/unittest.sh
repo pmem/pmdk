@@ -222,7 +222,7 @@ export VALIDATE_VALGRIND_LOG=1
 
 export RPMEM_LOG_LEVEL=3
 export RPMEM_LOG_FILE=rpmem$UNITTEST_NUM.log
-export RPMEMD_LOG_LEVEL=err
+export RPMEMD_LOG_LEVEL=info
 export RPMEMD_LOG_FILE=rpmemd$UNITTEST_NUM.log
 
 export REMOTE_VARS="
@@ -2005,6 +2005,7 @@ function init_rpmem_on_node() {
 		CMD="$CMD LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
 		CMD="$CMD ../rpmemd"
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
+		CMD="$CMD --log-level=$RPMEMD_LOG_LEVEL"
 		CMD="$CMD --poolset-dir=$poolset_dir"
 
 		if [ "$RPMEM_PM" == "APM" ]; then
