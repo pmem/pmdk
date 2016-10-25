@@ -608,6 +608,13 @@ platforms that support the instruction, but where \f[B]CLWB\f[] is not
 available.
 This variable is intended for use during library testing.
 .IP \[bu] 2
+\f[B]PMEM_NO_FLUSH\f[]=1
+.PP
+Setting this environment variable to 1 forces \f[B]libpmem\f[] to never
+issue any of \f[B]CLFLUSH\f[], \f[B]CLFLUSHOPT\f[] or \f[B]CLWB\f[]
+instructions on Intel hardware.
+This variable is intended for use during library testing.
+.IP \[bu] 2
 \f[B]PMEM_NO_MOVNT\f[]=1
 .PP
 Setting this environment variable to 1 forces \f[B]libpmem\f[] to never
