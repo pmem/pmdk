@@ -148,26 +148,19 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-export HAS_LIBFABRIC = $(call check_package, libfabric)
-export HAS_LIBIBVERBS = $(shell fi_info --list 2>/dev/null | grep -q verbs && echo y || echo n)
+check_ibv_fork_init = $(shell echo "\#include <infiniband/verbs.h> int main(void) { return ibv_fork_init(); }" |\
+	$(CC) -c $(CFLAGS) -x c -o /dev/null -libverbs - 2>/dev/null && echo y || echo n)
 
-ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),ny)
-$(error HAS_LIBFABRIC=$(HAS_LIBFABRIC) and HAS_LIBIBVERBS=$(HAS_LIBIBVERBS) not possible)
-endif
+export HAS_LIBFABRIC := $(call check_package, libfabric)
 
-ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),nn)
-export BUILD_RPMEM := n
-endif
-
-ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),yy)
-export BUILD_RPMEM := y
-endif
-
-ifeq ($(HAS_LIBFABRIC)$(HAS_LIBIBVERBS),yn)
+ifeq ($(HAS_LIBFABRIC),y)
 ifeq ($(RPMEM_DISABLE_LIBIBVERBS),y)
+export HAS_LIBIBVERBS := n
 export BUILD_RPMEM := y
+else
+export HAS_LIBIBVERBS := $(call check_ibv_fork_init)
+export BUILD_RPMEM := $(HAS_LIBIBVERBS)
+endif
 else
 export BUILD_RPMEM := n
 endif
-endif
-
