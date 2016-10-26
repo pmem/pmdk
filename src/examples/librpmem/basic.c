@@ -66,6 +66,8 @@ default_attr(struct rpmem_pool_attr *attr)
 int
 main(int argc, char *argv[])
 {
+	int ret = 0;
+
 	if (argc < 4) {
 		fprintf(stderr, "usage: %s [create|open]"
 			" <target> <pool_set> [options]\n", argv[0]);
@@ -94,15 +96,15 @@ main(int argc, char *argv[])
 		if (!rpp) {
 			fprintf(stderr, "rpmem_create: %s\n",
 					rpmem_errormsg());
-			return 1;
+			ret = 1;
+			goto end;
 		}
 
-		int ret = rpmem_close(rpp);
+		ret = rpmem_close(rpp);
 		if (ret)
 			fprintf(stderr, "rpmem_close: %s\n",
 					rpmem_errormsg());
 
-		return ret;
 	} else if (strcmp(op, "open") == 0) {
 		struct rpmem_pool_attr def_attr;
 		default_attr(&def_attr);
@@ -113,23 +115,25 @@ main(int argc, char *argv[])
 		if (!rpp) {
 			fprintf(stderr, "rpmem_open: %s\n",
 					rpmem_errormsg());
-			return 1;
+			ret = 1;
+			goto end;
 		}
 
 		if (memcmp(&def_attr, &pool_attr, sizeof(def_attr))) {
 			fprintf(stderr, "remote pool not consistent\n");
 		}
 
-		int ret = rpmem_close(rpp);
+		ret = rpmem_close(rpp);
 		if (ret)
 			fprintf(stderr, "rpmem_close: %s\n",
 					rpmem_errormsg());
 
-		return ret;
 	} else {
 		fprintf(stderr, "unsupported operation -- '%s'\n", op);
-		return 1;
+		ret = 1;
 	}
 
+end:
 	free(pool);
+	return ret;
 }
