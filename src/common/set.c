@@ -1907,6 +1907,9 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		sig, major, compat, incompat, ro_compat,
 		nlanes, can_have_rep, remote, pattr);
 
+	/* attributes must be set for remote replicas */
+	ASSERT(!remote || pattr != NULL);
+
 	int flags = MAP_SHARED;
 	int oerrno;
 
