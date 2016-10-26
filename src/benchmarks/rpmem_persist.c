@@ -318,7 +318,15 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
 	mb->nlanes = malloc(mb->nreplicas * sizeof(unsigned));
+	if (mb->nlanes == NULL) {
+		perror("malloc");
+		goto err_unmap_file;
+	}
 	mb->rpp = malloc(mb->nreplicas * sizeof(RPMEMpool *));
+	if (mb->rpp == NULL) {
+		perror("malloc");
+		goto err_free_lanes;
+	}
 
 	struct rpmem_pool_attr attr;
 	memset(&attr, 0, sizeof(attr));
@@ -347,7 +355,12 @@ err_rpmem_close:
 	for (r = 0; mb->rpp[r]; ++r) {
 		rpmem_close(mb->rpp[r]);
 	}
+	free(mb->rpp);
 
+err_free_lanes:
+	free(mb->nlanes);
+
+err_unmap_file:
 	rpmem_unmap_file(mb);
 
 err_poolset_free:
