@@ -293,8 +293,8 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 				if (ret) {
 					LOG(1, "Reading data from remote node "
 						"failed -- '%s' on '%s'",
-						rep->remote->pool_desc,
-						rep->remote->node_addr);
+						rep_h->remote->pool_desc,
+						rep_h->remote->node_addr);
 					return -1;
 				}
 			} else {
