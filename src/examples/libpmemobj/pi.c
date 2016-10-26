@@ -135,6 +135,11 @@ calc_pi_mt()
 	int i = 0;
 	TOID(struct pi_task) *tasks = (TOID(struct pi_task) *)malloc(
 		sizeof(TOID(struct pi_task)) * pending);
+	if (tasks == NULL) {
+		fprintf(stderr, "failed to allocate tasks\n");
+		return;
+	}
+
 	POBJ_LIST_FOREACH(iter, &D_RO(pi)->todo, todo)
 		tasks[i++] = iter;
 #ifndef _WIN32
