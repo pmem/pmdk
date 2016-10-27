@@ -18,4 +18,4 @@ arena 0: number of invalid BTT Flog entries: 1
 arena 0: storing $(*) at $(*) BTT Map entry
 arena 0: storing $(*) at $(*) BTT Map entry
 arena 0: repairing BTT Flog at $(*) with free block entry $(*)
-$(*): repaired
+$(nW): repaired

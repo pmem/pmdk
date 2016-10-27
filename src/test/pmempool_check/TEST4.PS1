@@ -58,7 +58,9 @@ expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL -v $POOL pool_hdr.checksum=0x0 >> $LOG
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
+
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOL >> $LOG
 
 check
 

@@ -508,10 +508,9 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 
 		if (!next_is_broken) {
 			int next_decoupled =
-				memcmp(next_hdrp->prev_part_uuid,
-					hdrp->uuid, POOL_HDR_UUID_LEN) ||
-				memcmp(hdrp->next_part_uuid, next_hdrp->uuid,
-					POOL_HDR_UUID_LEN);
+				uuidcmp(next_hdrp->prev_part_uuid,
+					hdrp->uuid) ||
+				uuidcmp(hdrp->next_part_uuid, next_hdrp->uuid);
 			if (next_decoupled) {
 				rep_hs->flags |= IS_INCONSISTENT;
 				/* skip further checking */
@@ -533,10 +532,10 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 		}
 
 		struct pool_hdr *hdrp = HDR(rep, p);
-		int prev_differ = memcmp(HDR(rep, unbroken_p)->prev_repl_uuid,
-				hdrp->prev_repl_uuid, POOL_HDR_UUID_LEN);
-		int next_differ = memcmp(HDR(rep, unbroken_p)->next_repl_uuid,
-				hdrp->next_repl_uuid, POOL_HDR_UUID_LEN);
+		int prev_differ = uuidcmp(HDR(rep, unbroken_p)->prev_repl_uuid,
+				hdrp->prev_repl_uuid);
+		int next_differ = uuidcmp(HDR(rep, unbroken_p)->next_repl_uuid,
+				hdrp->next_repl_uuid);
 
 		if (prev_differ || next_differ) {
 			ERR("different adjacent replica UUID between parts");
@@ -561,8 +560,7 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 			continue;
 		}
 
-		if (memcmp(HDR(rep, p)->poolset_uuid, poolset_uuid,
-				POOL_HDR_UUID_LEN)) {
+		if (uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
 			rep_hs->flags |= IS_INCONSISTENT;
 			/* skip further checking */
 			return;
@@ -604,8 +602,7 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
 
-		if (!memcmp(HDR(rep, p)->poolset_uuid, poolset_uuid,
-				POOL_HDR_UUID_LEN)) {
+		if (!uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
 			/*
 			 * two internally consistent replicas have
 			 * different poolset_uuid
@@ -697,10 +694,10 @@ check_uuids_between_replicas(struct pool_set *set,
 		}
 
 		/* check if replica uuids are consistent between replicas */
-		if (memcmp(HDR(rep_n, p_n)->prev_repl_uuid,
-				HDR(rep, p)->uuid, POOL_HDR_UUID_LEN) ||
-				memcmp(HDR(rep, p)->next_repl_uuid,
-				HDR(rep_n, p_n)->uuid, POOL_HDR_UUID_LEN)) {
+		if (uuidcmp(HDR(rep_n, p_n)->prev_repl_uuid,
+				HDR(rep, p)->uuid) || uuidcmp(
+				HDR(rep, p)->next_repl_uuid,
+				HDR(rep_n, p_n)->uuid)) {
 
 			if (set->nreplicas == 1) {
 				rep_hs->flags |= IS_INCONSISTENT;
