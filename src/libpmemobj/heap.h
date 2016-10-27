@@ -62,6 +62,8 @@
  */
 #define SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
 
+#define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
+
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		void *base, struct pmem_ops *p_ops);
 int heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
@@ -79,9 +81,6 @@ struct bucket *heap_get_auxiliary_bucket(struct palloc_heap *heap,
 void heap_drain_to_auxiliary(struct palloc_heap *heap, struct bucket *auxb,
 	uint32_t size_idx);
 void *heap_get_block_data(struct palloc_heap *heap, struct memory_block m);
-struct memory_block heap_coalesce(struct palloc_heap *heap,
-	struct memory_block *blocks[], int n, enum memblock_hdr_op op,
-	struct operation_context *ctx);
 
 int heap_get_adjacent_free_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m, struct memory_block cnt, int prev);
@@ -105,10 +104,6 @@ typedef int (*object_callback)(uint64_t off, void *arg);
 
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
-
-#ifdef DEBUG
-int heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m);
-#endif /* DEBUG */
 
 void *heap_end(struct palloc_heap *heap);
 

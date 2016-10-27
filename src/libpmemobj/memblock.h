@@ -154,11 +154,12 @@ enum memory_block_type {
 	MAX_MEMORY_BLOCK
 };
 
-enum memblock_hdr_op {
-	HDR_OP_ALLOC,
-	HDR_OP_FREE,
+enum memblock_state {
+	MEMBLOCK_STATE_UNKNOWN,
+	MEMBLOCK_ALLOCATED,
+	MEMBLOCK_FREE,
 
-	MAX_MEMBLOCK_HDR_OP
+	MAX_MEMBLOCK_STATE,
 };
 
 enum memory_block_type memblock_autodetect_type(struct memory_block *m,
@@ -169,9 +170,10 @@ struct memory_block_ops {
 	uint16_t (*block_offset)(struct memory_block *m,
 			struct palloc_heap *heap, void *ptr);
 	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
-		enum memblock_hdr_op, struct operation_context *ctx);
-	void (*lock)(struct memory_block *m, struct palloc_heap *heap);
-	void (*unlock)(struct memory_block *m, struct palloc_heap *heap);
+		enum memblock_state, struct operation_context *ctx);
+	void *(*get_lock)(struct memory_block *m, struct palloc_heap *heap);
+	enum memblock_state (*get_state)(struct memory_block *m,
+		struct palloc_heap *heap);
 };
 
 extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];

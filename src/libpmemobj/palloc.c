@@ -41,6 +41,7 @@
 #include "heap_layout.h"
 #include "heap.h"
 #include "out.h"
+#include "sys_util.h"
 #include "palloc.h"
 #include "valgrind_internal.h"
 
@@ -284,6 +285,16 @@ palloc_operation(struct palloc_heap *heap,
 	struct memory_block new_block = {0, 0, 0, 0};
 	struct memory_block reclaimed_block = {0, 0, 0, 0};
 
+	int ret = 0;
+
+	/*
+	 * These two lock are responsible for protecting the metadata for the
+	 * persistent representation of a chunk. Depending on the operation and
+	 * the type of a chunk, they might be NULL.
+	 */
+	pthread_mutex_t *existing_block_lock = NULL;
+	pthread_mutex_t *new_block_lock = NULL;
+
 	size_t sizeh = size + sizeof(struct allocation_header);
 
 	/*
@@ -294,6 +305,26 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (off != 0) {
 		alloc = ALLOC_GET_HEADER(heap, off);
+		existing_block = get_mblock_from_alloc(heap, alloc);
+		/*
+		 * This lock must be held until the operation is processed
+		 * successfully, because other threads might operate on the
+		 * same bitmap value.
+		 */
+		existing_block_lock = MEMBLOCK_OPS(AUTO, &existing_block)->
+				get_lock(&existing_block, heap);
+		if (existing_block_lock != NULL)
+			util_mutex_lock(existing_block_lock);
+
+#ifdef DEBUG
+		if (MEMBLOCK_OPS(AUTO,
+			&existing_block)->get_state(&existing_block, heap) !=
+				MEMBLOCK_ALLOCATED) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
 		/*
 		 * The memory block must return back to the originating bucket,
 		 * otherwise coalescing of neighbouring blocks will be rendered
@@ -308,18 +339,19 @@ palloc_operation(struct palloc_heap *heap,
 		 */
 		b = heap_get_chunk_bucket(heap, alloc->chunk_id,
 				alloc->zone_id);
-		existing_block = get_mblock_from_alloc(heap, alloc);
 	}
 
 	/* if allocation or reallocation, reserve new memory */
 	if (size != 0) {
 		/* reallocation to exactly the same size, which is a no-op */
 		if (alloc != NULL && alloc->size == sizeh)
-			return 0;
+			goto out;
 
 		errno = alloc_reserve_block(heap, &new_block, sizeh);
-		if (errno != 0)
-			return -1;
+		if (errno != 0) {
+			ret = -1;
+			goto out;
+		}
 	}
 
 
@@ -331,21 +363,6 @@ palloc_operation(struct palloc_heap *heap,
 
 	/* lock and persistently free the existing memory block */
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
-#ifdef DEBUG
-		if (!heap_block_is_allocated(heap, existing_block)) {
-			ERR("Double free or heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-
-		/*
-		 * This lock must be held until the operation is processed
-		 * successfully, because other threads might operate on the
-		 * same bitmap value.
-		 */
-		MEMBLOCK_OPS(AUTO, &existing_block)->
-				lock(&existing_block, heap);
-
 		/*
 		 * This method will insert new entries into the operation
 		 * context which will, after processing, update the chunk
@@ -363,13 +380,6 @@ palloc_operation(struct palloc_heap *heap,
 	}
 
 	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
-#ifdef DEBUG
-		if (heap_block_is_allocated(heap, new_block)) {
-			ERR("heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-
 		if (alloc_prep_block(heap, new_block, constructor,
 				arg, &offset_value) != 0) {
 			/*
@@ -394,7 +404,8 @@ palloc_operation(struct palloc_heap *heap,
 					new_bucket, new_block);
 
 			errno = ECANCELED;
-			return -1;
+			ret = -1;
+			goto out;
 		}
 
 		/*
@@ -404,7 +415,24 @@ palloc_operation(struct palloc_heap *heap,
 		 * thread might operate on the same 8-byte value of the run
 		 * bitmap and override allocation performed by this thread.
 		 */
-		MEMBLOCK_OPS(AUTO, &new_block)->lock(&new_block, heap);
+		new_block_lock = MEMBLOCK_OPS(AUTO, &new_block)->
+			get_lock(&new_block, heap);
+
+		/* the locks might be identical in the case of realloc */
+		if (new_block_lock == existing_block_lock)
+			new_block_lock = NULL;
+
+		if (new_block_lock != NULL)
+			util_mutex_lock(new_block_lock);
+
+#ifdef DEBUG
+		if (MEMBLOCK_OPS(AUTO,
+			&new_block)->get_state(&new_block, heap) !=
+				MEMBLOCK_FREE) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
 
 		/*
 		 * The actual required metadata modifications are chunk-type
@@ -413,7 +441,7 @@ palloc_operation(struct palloc_heap *heap,
 		 * changing a chunk type from free to used.
 		 */
 		MEMBLOCK_OPS(AUTO, &new_block)->prep_hdr(&new_block,
-				heap, HDR_OP_ALLOC, ctx);
+				heap, MEMBLOCK_ALLOCATED, ctx);
 	}
 
 	/* not in-place realloc */
@@ -447,29 +475,13 @@ palloc_operation(struct palloc_heap *heap,
 	 * but in some cases it might not be in-sync with the its transient
 	 * representation.
 	 */
-
-	if (!MEMORY_BLOCK_IS_EMPTY(new_block)) {
-		/* new block run lock */
-		MEMBLOCK_OPS(AUTO, &new_block)->unlock(&new_block, heap);
-	}
-
 	if (!MEMORY_BLOCK_IS_EMPTY(existing_block)) {
-		/* existing (freed) run lock */
-		MEMBLOCK_OPS(AUTO, &existing_block)->
-				unlock(&existing_block, heap);
-
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
 			(char *)heap_get_block_data(heap, existing_block)
 			+ ALLOC_OFF);
 
 		/* we might have been operating on inactive run */
 		if (b != NULL) {
-#ifdef DEBUG
-			if (heap_block_is_allocated(heap, reclaimed_block)) {
-				ERR("heap corruption");
-				ASSERT(0);
-			}
-#endif /* DEBUG */
 			/*
 			 * Even though the initial condition is to check
 			 * whether the existing block exists it's important to
@@ -495,7 +507,14 @@ palloc_operation(struct palloc_heap *heap,
 		}
 	}
 
-	return 0;
+out:
+	if (new_block_lock != NULL)
+		util_mutex_unlock(new_block_lock);
+
+	if (existing_block_lock != NULL)
+		util_mutex_unlock(existing_block_lock);
+
+	return ret;
 }
 
 /*
