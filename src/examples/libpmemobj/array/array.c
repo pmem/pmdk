@@ -173,7 +173,7 @@ print_toid(struct array_info *info)
 }
 
 typedef void (*fn_print)(struct array_info *info);
-fn_print print_array[] = {print_int, print_pmemoid, print_toid};
+fn_print print_array[] = {NULL, print_int, print_pmemoid, print_toid};
 
 /*
  * free_int -- de-allocate array of int type
@@ -227,7 +227,7 @@ free_toid(struct array_info *info)
 }
 
 typedef void (*fn_free)(struct array_info *info);
-fn_free free_array[] = {free_int, free_pmemoid, free_toid};
+fn_free free_array[] = {NULL, free_int, free_pmemoid, free_toid};
 
 /*
  * realloc_int -- reallocate array of int type
@@ -289,7 +289,7 @@ realloc_toid(PMEMoid *info, size_t prev_size, size_t size)
 }
 
 typedef PMEMoid (*fn_realloc)(PMEMoid *info, size_t prev_size, size_t size);
-fn_realloc realloc_array[] = {realloc_int, realloc_pmemoid, realloc_toid};
+fn_realloc realloc_array[] = {NULL, realloc_int, realloc_pmemoid, realloc_toid};
 
 /*
  * alloc_int -- allocate array of int type
@@ -379,7 +379,7 @@ alloc_toid(size_t size)
 }
 
 typedef PMEMoid (*fn_alloc)(size_t size);
-fn_alloc alloc_array[] = {alloc_int, alloc_pmemoid, alloc_toid};
+fn_alloc alloc_array[] = {NULL, alloc_int, alloc_pmemoid, alloc_toid};
 
 /*
  * do_print -- print values stored by proper array
