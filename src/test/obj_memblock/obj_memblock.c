@@ -178,27 +178,27 @@ test_prep_hdr()
 	run->bitmap[2] = 0ULL;
 
 	MEMBLOCK_OPS(, &mhuge_used)->prep_hdr(&mhuge_used,
-			heap, HDR_OP_FREE, NULL);
+			heap, MEMBLOCK_FREE, NULL);
 	UT_ASSERTeq(layout->zone0.chunk_headers[0].type, CHUNK_TYPE_FREE);
 
 	MEMBLOCK_OPS(, &mhuge_free)->prep_hdr(&mhuge_free,
-			heap, HDR_OP_ALLOC, NULL);
+			heap, MEMBLOCK_ALLOCATED, NULL);
 	UT_ASSERTeq(layout->zone0.chunk_headers[1].type, CHUNK_TYPE_USED);
 
 	MEMBLOCK_OPS(, &mrun_used)->prep_hdr(&mrun_used,
-			heap, HDR_OP_FREE, NULL);
+			heap, MEMBLOCK_FREE, NULL);
 	UT_ASSERTeq(run->bitmap[0], 0ULL);
 
 	MEMBLOCK_OPS(, &mrun_free)->prep_hdr(&mrun_free,
-			heap, HDR_OP_ALLOC, NULL);
+			heap, MEMBLOCK_ALLOCATED, NULL);
 	UT_ASSERTeq(run->bitmap[0], 0b11110000);
 
 	MEMBLOCK_OPS(, &mrun_large_used)->prep_hdr(&mrun_large_used,
-			heap, HDR_OP_FREE, NULL);
+			heap, MEMBLOCK_FREE, NULL);
 	UT_ASSERTeq(run->bitmap[1], 0ULL);
 
 	MEMBLOCK_OPS(, &mrun_large_free)->prep_hdr(&mrun_large_free,
-			heap, HDR_OP_ALLOC, NULL);
+			heap, MEMBLOCK_ALLOCATED, NULL);
 	UT_ASSERTeq(run->bitmap[2], ~0ULL);
 }
 
