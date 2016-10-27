@@ -108,32 +108,16 @@ test_heap()
 		UT_ASSERT(blocks[i].block_off == 0);
 	}
 
-	struct memory_block *blocksp[MAX_BLOCKS] = {NULL};
-
 	struct memory_block prev;
 	heap_get_adjacent_free_block(heap, b_def, &prev, blocks[1], 1);
 	UT_ASSERT(prev.chunk_id == blocks[0].chunk_id);
-	blocksp[0] = &prev;
-
 	struct memory_block cnt;
 	heap_get_adjacent_free_block(heap, b_def, &cnt, blocks[0], 0);
 	UT_ASSERT(cnt.chunk_id == blocks[1].chunk_id);
-	blocksp[1] = &cnt;
 
 	struct memory_block next;
 	heap_get_adjacent_free_block(heap, b_def, &next, blocks[1], 0);
 	UT_ASSERT(next.chunk_id == blocks[2].chunk_id);
-	blocksp[2] = &next;
-
-	struct operation_context ctx;
-	operation_init(&ctx, pop, NULL, NULL);
-	ctx.p_ops = &pop->p_ops;
-	struct memory_block result =
-		heap_coalesce(heap, blocksp, MAX_BLOCKS, HDR_OP_FREE, &ctx);
-	operation_process(&ctx);
-
-	UT_ASSERT(result.size_idx == 3);
-	UT_ASSERT(result.chunk_id == prev.chunk_id);
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);

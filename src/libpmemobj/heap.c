@@ -68,8 +68,6 @@
  */
 #define MAX_UNITS_PCT_DRAINED_TOTAL 2 /* 200% */
 
-#define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
-
 /*
  * Value used to mark a reserved spot in the bucket array.
  */
@@ -439,36 +437,33 @@ heap_create_run(struct palloc_heap *heap, struct bucket *b,
 
 /*
  * heap_reuse_run -- (internal) reuses existing run
+ *
+ * The lock on this run must be held by the caller.
  */
 static void
 heap_reuse_run(struct palloc_heap *heap, struct bucket *b,
 	uint32_t chunk_id, uint32_t zone_id)
 {
-	util_mutex_lock(heap_get_run_lock(heap, chunk_id));
-
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
 
 	/* the run might have changed back to a chunk */
 	if (hdr->type != CHUNK_TYPE_RUN)
-		goto out;
+		return;
 
 	/*
 	 * Between the call to this function and this moment a different
 	 * thread might have already claimed this run.
 	 */
 	if (run->bucket_vptr != 0)
-		goto out;
+		return;
 
 	heap_set_run_bucket(run, b);
 	ASSERTeq(hdr->size_idx, 1);
 	ASSERTeq(b->unit_size, run->block_size);
 
 	heap_process_run_metadata(heap, b, run, chunk_id, zone_id);
-
-out:
-	util_mutex_unlock(heap_get_run_lock(heap, chunk_id));
 }
 
 /*
@@ -745,7 +740,10 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b)
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
 		util_mutex_unlock(&def_bucket->lock);
 	} else {
+		pthread_mutex_t *lock = heap_get_run_lock(heap, m.chunk_id);
+		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
+		util_mutex_unlock(lock);
 	}
 
 	return 0;
@@ -831,6 +829,7 @@ heap_assign_run_bucket(struct palloc_heap *heap, struct chunk_run *run,
 
 	struct bucket *b = heap_get_bucket_by_idx(heap->rt, bucket_idx);
 
+	/* this entire function is called with an acquired lock on the run */
 	heap_reuse_run(heap, b, chunk_id, zone_id);
 
 	/* different thread might have used this run, hence this get */
@@ -1283,49 +1282,6 @@ heap_get_block_data(struct palloc_heap *heap, struct memory_block m)
 	return (char *)&run->data + (run->block_size * m.block_off);
 }
 
-#ifdef DEBUG
-/*
- * heap_block_is_allocated -- checks whether the memory block is allocated
- */
-int
-heap_block_is_allocated(struct palloc_heap *heap, struct memory_block m)
-{
-	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type == CHUNK_TYPE_USED)
-		return 1;
-
-	if (hdr->type == CHUNK_TYPE_FREE)
-		return 0;
-
-	MEMBLOCK_OPS(RUN, m)->lock(&m, heap);
-
-	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
-
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m.chunk_id];
-
-	unsigned v = m.block_off / BITS_PER_VALUE;
-	uint64_t bitmap = r->bitmap[v];
-	unsigned b = m.block_off % BITS_PER_VALUE;
-
-	unsigned b_last = b + m.size_idx;
-	ASSERT(b_last <= BITS_PER_VALUE);
-
-	int ret = 0;
-	for (unsigned i = b; i < b_last; ++i) {
-		if (!BIT_IS_CLR(bitmap, i)) {
-			ret = 1;
-			goto out;
-		}
-	}
-
-out:
-	MEMBLOCK_OPS(RUN, m)->unlock(&m, heap);
-	return ret;
-}
-#endif /* DEBUG */
-
 /*
  * heap_run_get_block -- (internal) returns next/prev memory block from run
  */
@@ -1426,12 +1382,11 @@ int heap_get_adjacent_free_block(struct palloc_heap *heap, struct bucket *b,
 }
 
 /*
- * heap_coalesce -- merges adjacent memory blocks
+ * heap_coalesce -- (internal) merges adjacent memory blocks
  */
-struct memory_block
+static struct memory_block
 heap_coalesce(struct palloc_heap *heap,
-	struct memory_block *blocks[], int n, enum memblock_hdr_op op,
-	struct operation_context *ctx)
+	struct memory_block *blocks[], int n, struct operation_context *ctx)
 {
 	struct memory_block ret;
 	struct memory_block *b = NULL;
@@ -1454,7 +1409,8 @@ heap_coalesce(struct palloc_heap *heap,
 	 * have to worry about difference of persistent/volatile states.
 	 */
 	if (ctx != NULL)
-		MEMBLOCK_OPS(AUTO, &ret)->prep_hdr(&ret, heap, op, ctx);
+		MEMBLOCK_OPS(AUTO, &ret)->prep_hdr(&ret, heap,
+			MEMBLOCK_FREE, ctx);
 
 	return ret;
 }
@@ -1480,8 +1436,7 @@ heap_free_block(struct palloc_heap *heap, struct bucket *b,
 		blocks[2] = &next;
 	}
 
-	struct memory_block res = heap_coalesce(heap, blocks, 3, HDR_OP_FREE,
-		ctx);
+	struct memory_block res = heap_coalesce(heap, blocks, 3, ctx);
 
 	return res;
 }
@@ -1543,7 +1498,6 @@ heap_degrade_run_if_empty(struct palloc_heap *heap,
 	ctx.p_ops = &heap->p_ops;
 
 	util_mutex_lock(&b->lock);
-	MEMBLOCK_OPS(RUN, &m)->lock(&m, heap);
 
 	unsigned i;
 	unsigned nval = r->bitmap_nval;
@@ -1582,7 +1536,6 @@ heap_degrade_run_if_empty(struct palloc_heap *heap,
 	util_mutex_unlock(&defb->lock);
 
 out:
-	MEMBLOCK_OPS(RUN, &m)->unlock(&m, heap);
 	util_mutex_unlock(&b->lock);
 }
 
@@ -1649,16 +1602,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	util_mutex_init(&h->active_run_lock, NULL);
 
-	pthread_mutexattr_t lock_attr;
-	if ((err = pthread_mutexattr_init(&lock_attr)) != 0)
-		FATAL("!pthread_mutexattr_init");
-
-	if ((err = pthread_mutexattr_settype(
-			&lock_attr, PTHREAD_MUTEX_RECURSIVE)) != 0)
-		FATAL("!pthread_mutexattr_settype");
-
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		util_mutex_init(&h->run_locks[i], &lock_attr);
+		util_mutex_init(&h->run_locks[i], NULL);
 
 	memset(h->last_drained, 0, sizeof(h->last_drained));
 
@@ -1677,11 +1622,9 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	if ((err = heap_buckets_init(heap)) != 0)
 		goto error_buckets_init;
 
-	pthread_mutexattr_destroy(&lock_attr);
 	return 0;
 
 error_buckets_init:
-	pthread_mutexattr_destroy(&lock_attr);
 	/* there's really no point in destroying the locks */
 	Free(h->caches);
 error_heap_cache_malloc:
