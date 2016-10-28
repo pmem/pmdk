@@ -1076,6 +1076,8 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	if (util_poolset_chmod(set, mode))
 		goto err;
 
+	util_poolset_fdclose(set);
+
 	LOG(3, "pop %p", pop);
 
 	return pop;
@@ -1339,6 +1341,8 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	if (boot)
 		pmemobj_vg_boot(pop);
 #endif
+
+	util_poolset_fdclose(set);
 
 	LOG(3, "pop %p", pop);
 

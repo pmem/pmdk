@@ -1032,7 +1032,7 @@ void
 util_part_fdclose(struct pool_set_part *part)
 {
 	if (part->fd != -1) {
-		close(part->fd);
+		(void) close(part->fd);
 		part->fd = -1;
 	}
 }
