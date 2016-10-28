@@ -1970,7 +1970,6 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	uint64_t unused_bits = RUN_BITMAP_SIZE - bitmap_nallocs;
 	uint64_t unused_values = unused_bits / BITS_PER_VALUE;
 	uint64_t bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-	unused_bits -= unused_values * BITS_PER_VALUE;
 
 	struct allocation_header *alloc;
 
