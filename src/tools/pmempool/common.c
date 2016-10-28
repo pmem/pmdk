@@ -283,7 +283,7 @@ util_parse_range_from(char *str, struct range *rangep, struct range entire)
 	if (str1 == NULL)
 		return -1;
 
-	if (sscanf(str, "%s[^-]%c", str1, &sep) == 2 &&
+	if (sscanf(str, "%[^-]%c", str1, &sep) == 2 &&
 			sep == '-' &&
 			strlen(str) == (strlen(str1) + 1)) {
 		if (util_parse_size(str1, &rangep->first) == 0) {
@@ -315,7 +315,7 @@ util_parse_range_to(char *str, struct range *rangep, struct range entire)
 	if (str1 == NULL)
 		return -1;
 
-	if (sscanf(str, "%c%s[^-]", &sep, str1) == 2 &&
+	if (sscanf(str, "%c%[^-]", &sep, str1) == 2 &&
 			sep == '-' &&
 			strlen(str) == (1 + strlen(str1))) {
 		if (util_parse_size(str1, &rangep->last) == 0) {
