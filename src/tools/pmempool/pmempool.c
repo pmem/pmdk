@@ -273,11 +273,13 @@ main(int argc, char *argv[])
 
 	struct command *cmdp = get_command(cmd_str);
 
-	int ret = 0;
-	if (cmdp)
+	int ret;
+	if (cmdp) {
 		ret = cmdp->func(APPNAME, argc - 1, argv + 1);
-	else
+	} else {
 		outv_err("'%s' -- unknown command\n", cmd_str);
+		ret = 1;
+	}
 #ifndef _WIN32
 	util_remote_fini();
 	rpmem_util_cmds_fini();
