@@ -112,12 +112,11 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	}
 
 	struct pool_set_file *psf = pool_set_file_open(f, 0, 0);
-
 	if (psf == NULL) {
 		perror(f);
-
 		return -1;
 	}
+
 	void *addr = pool_set_file_map(psf, 0);
 	if (addr == NULL) {
 		perror(f);
@@ -127,7 +126,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 
 	struct pool_hdr *phdr = addr;
 	if (memcmp(phdr->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) != 0) {
-		fprintf(stderr, "Conversion is currently supported only for"
+		fprintf(stderr, "Conversion is currently supported only for "
 				"pmemobj pools\n");
 		ret = -1;
 		goto out;
@@ -136,7 +135,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	uint32_t m = le32toh(phdr->major);
 	if (m >= COUNT_OF(version_convert) || !version_convert[m]) {
 		fprintf(stderr, "There's no conversion method for the pool.\n"
-				"Please make sure the pmempool utility"
+				"Please make sure the pmempool utility "
 				"is up-to-date.\n");
 		ret = -1;
 		goto out;

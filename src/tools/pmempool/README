@@ -52,6 +52,9 @@ Currently there is a following set of commands available:
 
 	* transform	- Modifies internal structure of a poolset.
 
+	* convert	- Updates the pool to the latest available
+			  layout version.
+
 This file contains high-level description of available commands and their
 features. For details about usage and available command line arguments please
 refer to specific manual pages. There is one common manual page with description
@@ -266,6 +269,14 @@ Available features of the command:
  * Adding replicas.
 
  * Removing replicas.
+
+2.8. convert
+--------------
+
+The pmempool invoked with the *convert* command performs a conversion of the
+specified pool to the newest layout supported by this tool. Currently only
+libpmemobj pools are supported. It is advised to have a backup of the pool
+before conversion.
 
 3. Source code
 --------------
