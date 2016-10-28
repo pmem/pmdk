@@ -81,11 +81,11 @@ static const struct pmempool_dump pmempool_dump_default = {
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"output",	required_argument,	0,	'o'},
-	{"binary",	no_argument,		0,	'b'},
-	{"range",	required_argument,	0,	'r'},
-	{"chunk",	required_argument,	0,	'c'},
-	{"help",	no_argument,		0,	'h'},
+	{"output",	required_argument,	0,	'o' | OPT_ALL},
+	{"binary",	no_argument,		0,	'b' | OPT_ALL},
+	{"range",	required_argument,	0,	'r' | OPT_ALL},
+	{"chunk",	required_argument,	0,	'c' | OPT_LOG},
+	{"help",	no_argument,		0,	'h' | OPT_ALL},
 	{0,		0,			0,	 0 },
 };
 
@@ -286,6 +286,10 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 	return ret;
 }
 
+static const struct option_requirement option_requirements[] = {
+	{ 0,  0, 0}
+};
+
 /*
  * pmempool_dump_func -- dump command main function
  */
@@ -296,11 +300,19 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	LIST_INIT(&pd.ranges.head);
 	out_set_vlevel(VERBOSE_DEFAULT);
 
+	struct options *opts = util_options_alloc(long_options,
+				sizeof(long_options) / sizeof(long_options[0]),
+				option_requirements);
+	if (!opts) {
+		outv_err("cannot allocate options structure\n");
+		exit(EXIT_FAILURE);
+	}
+
 	int ret = 0;
 	long long chunksize;
 	int opt;
-	while ((opt = getopt_long(argc, argv, "ho:br:c:",
-				long_options, NULL)) != -1) {
+	while ((opt = util_options_getopt(argc, argv,
+			"ho:br:c:", opts)) != -1) {
 		switch (opt) {
 		case 'o':
 			pd.ofname = optarg;
@@ -359,6 +371,10 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	/* parse pool type and block size for pmem blk pool */
 	pmem_pool_parse_params(pd.fname, &params, 1);
 
+	ret = util_options_verify(opts, params.type);
+	if (ret)
+		goto out;
+
 	switch (params.type) {
 	case PMEM_POOL_TYPE_LOG:
 		ret = pmempool_dump_log(&pd);
@@ -390,6 +406,8 @@ out:
 		fclose(pd.ofh);
 
 	util_ranges_clear(&pd.ranges);
+
+	util_options_free(opts);
 
 	return ret;
 }
