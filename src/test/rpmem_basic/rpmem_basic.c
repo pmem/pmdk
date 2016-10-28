@@ -443,7 +443,7 @@ int
 main(int argc, char *argv[])
 {
 	util_init();
-	rpmem_fip_probe_get(NULL, NULL);
+	rpmem_fip_probe_get("localhost", NULL);
 	START(argc, argv, "rpmem_basic");
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);

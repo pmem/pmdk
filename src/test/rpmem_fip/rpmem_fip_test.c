@@ -748,7 +748,7 @@ int
 main(int argc, char *argv[])
 {
 	/* workaround for left-opened files by libfabric */
-	rpmem_fip_probe_get(NULL, NULL);
+	rpmem_fip_probe_get("localhost", NULL);
 	START(argc, argv, "rpmem_obc");
 	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
