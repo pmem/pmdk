@@ -35,7 +35,10 @@
  */
 
 #include <string.h>
+#include <tchar.h>
 #include "util.h"
+#include "out.h"
+#include "file.h"
 
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"
@@ -68,4 +71,23 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 		if (strerror_s(buff, bufflen, errnum))
 			strcpy_s(buff, bufflen, UNMAPPED_STR);
 	}
+}
+
+/*
+ * util_realpath -- get canonicalized absolute pathname
+ */
+char *
+util_realpath(const char *path)
+{
+	ASSERT(util_is_absolute_path(path));
+	return strdup(path);
+}
+
+/*
+ * util_compare_file_inodes -- compare device and inodes of two files
+ */
+int
+util_compare_file_inodes(const char *path1, const char *path2)
+{
+	return strcmp(path1, path2);
 }
