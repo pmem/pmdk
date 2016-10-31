@@ -70,7 +70,7 @@ check_part_sizes(struct pool_set *set, size_t min_size)
 		struct pool_replica *rep = set->replica[r];
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (PART(rep, p).filesize < min_size) {
-				ERR("Some part files are too small");
+				ERR("some part files are too small");
 				return -1;
 			}
 		}
@@ -91,7 +91,7 @@ check_part_dirs(struct pool_set *set)
 			const char *dir = dirname(path);
 			struct stat sb;
 			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-				ERR("A directory %s for part %u in replica %u"
+				ERR("a directory %s for part %u in replica %u"
 					" does not exist or is not accessible",
 					path, p, r);
 				free(path);
@@ -114,7 +114,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * (now replication works only for pmemobj pools)
 	 */
 	if (check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
-		ERR("Part sizes check failed");
+		ERR("part sizes check failed");
 		goto err;
 	}
 
@@ -122,7 +122,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * check if all directories for part files exist
 	 */
 	if (check_part_dirs(set_out)) {
-		ERR("Part directories check failed");
+		ERR("part directories check failed");
 		goto err;
 	}
 
@@ -132,7 +132,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * the source poolset
 	 */
 	if (set_out->poolsize < replica_get_pool_size(set_in, 0)) {
-		ERR("Target poolset is too small");
+		ERR("target poolset is too small");
 		goto err;
 	}
 
@@ -221,7 +221,7 @@ check_compare_poolsets_status(struct pool_set *set_in, struct pool_set *set_out,
 			if (set_in_s->replica[ri] != UNDEF_REPLICA ||
 				set_out_s->replica[ro] != UNDEF_REPLICA) {
 			/* i.e. if there are more than one counterparts */
-				ERR("There are more then one corresponding"
+				ERR("there are more then one corresponding"
 						" replicas");
 				return -1;
 			}
@@ -342,7 +342,7 @@ transform_replica(struct pool_set *set_in, struct pool_set *set_out,
 		return -1;
 
 	if (!are_poolsets_transformable(set_in_s, set_out_s)) {
-		ERR("Poolsets are not transformable");
+		ERR("poolsets are not transformable");
 		goto err;
 	}
 

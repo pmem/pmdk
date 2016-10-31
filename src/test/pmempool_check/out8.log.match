@@ -9,7 +9,7 @@ replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header checksum
 replica 0 part 0: invalid pool_hdr.poolset_uuid
 replica 0 part 0: setting pool_hdr.poolset_uuid to $(nW)
-Can not repair pool_hdr.uuid
+can not repair pool_hdr.uuid
 $(nW)pool.set: cannot repair
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header checksum
