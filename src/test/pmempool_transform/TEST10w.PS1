@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -31,101 +30,67 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST5 -- test for checking pmempool transform;
-#                             pmem/issues#262
+# pmempool_transform/TEST10w -- test for checking pmempool transform;
+#                             pmem/issues#285
 #
-export UNITTEST_NAME=pmempool_transform/TEST5
-export UNITTEST_NUM=5
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmempool_transform\TEST10w"
+$Env:UNITTEST_NUM = "10w"
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
 require_fs_type any
-
 setup
 
-LOG=out${UNITTEST_NUM}.log
-LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
+$LOG="out$Env:UNITTEST_NUM.log"
+$LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
+rm $LOG -Force -ea si
+touch $LOG
+rm $LOG_TEMP -Force -ea si
+touch $LOG_TEMP
 
-LAYOUT=OBJ_LAYOUT
-POOLSET_IN=$DIR/poolset.in
-POOLSET_OUT=$DIR/poolset.out
+$LAYOUT="OBJ_LAYOUT"
+$POOLSET_IN="$DIR/poolset.in"
+$POOLSET_OUT="$DIR/poolset.out"
 
 # Create poolset files
-cat << EOF > $POOLSET_IN
-PMEMPOOLSET
-20M $DIR/testfile00
-20M $DIR/testfile01
-20M $DIR/testfile02
-REPLICA
-60M $DIR/testfile10
-EOF
+create_poolset $POOLSET_IN `
+	20M:$DIR/testfile00:x `
+	20M:$DIR/testfile01:x
 
-cat << EOF > $POOLSET_OUT
-PMEMPOOLSET
-20M $DIR/testfile00
-20M $DIR/testfile01
-20M $DIR/testfile02
-REPLICA
-90M $DIR/abc/testfile10
-EOF
-
-# CLI script for writing some data hitting all the parts
-WRITE_SCRIPT=$DIR/write_data
-cat << EOF > $WRITE_SCRIPT
-pr 50M
-srcp 0 TestOK111
-srcp 25M TestOK222
-srcp 45M TestOK333
-EOF
-
-# CLI script for reading 9 characters from all the parts
-READ_SCRIPT=$DIR/read_data
-cat << EOF > $READ_SCRIPT
-srpr 0 9
-srpr 25M 9
-srpr 45M 9
-EOF
+create_poolset $POOLSET_OUT `
+	20M:$DIR/testfile00:x `
+	20M:$DIR/testfile01:x `
+	r `
+	20M:$DIR/testfile01:x `
+	20M:$DIR/testfile21:x
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP
 cat $POOLSET_IN >> $LOG_TEMP
-echo >> $LOG_TEMP
+echo "" >> $LOG_TEMP
 echo poolset_out >> $LOG_TEMP
 cat $POOLSET_OUT >> $LOG_TEMP
-echo >> $LOG_TEMP
+echo "" >> $LOG_TEMP
 
 # Create a pool
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
-	obj $POOLSET_IN
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT `
+	obj $POOLSET_IN >> $LOG_TEMP
 
-# Write some data into the pool, hitting two part files
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET_IN >> \
-	$LOG_TEMP
-
-# Check if correctly written
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
-	$LOG_TEMP
-
-# Try to transform the poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform \
-	$POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>&1
-
-# Check if correctly read
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
-	$LOG_TEMP
+# Try to transform poolset
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform `
+	$POOLSET_IN $POOLSET_OUT
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
-dump_pool_info $DIR/testfile00 >> $LOG_TEMP
-dump_pool_info $DIR/testfile01 >> $LOG_TEMP
-dump_pool_info $DIR/testfile02 >> $LOG_TEMP
-dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 
+rm $LOG -Force -ea si
 mv $LOG_TEMP $LOG
 check
 

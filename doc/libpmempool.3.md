@@ -328,9 +328,11 @@ int pmempool_transform(const char *poolset_file_src,
 The **pmempool_transform**() function modifies internal structure of a poolset.
 It supports the following operations:
 
-* adding replicas,
+* adding one or more replicas,
 
-* removing replicas.
+* removing one or more replicas,
+
+* reordering of replicas.
 
 Currently these operations are allowed only for **pmemobj** pools (see
 **libpmemobj**(3)).
@@ -352,8 +354,10 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-When adding or deleting replica, the two poolset files can differ only in the
-definitions of replicas which are to be added or deleted.
+When adding or deleting replicas, the two poolset files can differ only in the
+definitions of replicas which are to be added or deleted. One cannot add and
+remove replicas in the same step. Only one of these operations can be performed
+at a time. Reordering replicas can be combined with any of them.
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased

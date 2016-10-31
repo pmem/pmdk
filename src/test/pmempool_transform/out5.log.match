@@ -18,6 +18,8 @@ pr(52428800): off = 0x382440 uuid = $(nW)
 TestOK111
 TestOK222
 TestOK333
+error: No such file or directory
+error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: transformation failed
 TestOK111
 TestOK222
 TestOK333
