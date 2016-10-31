@@ -537,7 +537,6 @@ check_btt_info(PMEMpoolcheck *ppc)
 		/* jump to next offset */
 		if (ppc->result != CHECK_RESULT_PROCESS_ANSWERS) {
 			loc->offset += nextoff;
-			nextoff = 0;
 			loc->step = 0;
 			loc->valid.btti_header = 0;
 			loc->valid.btti_backup = 0;
