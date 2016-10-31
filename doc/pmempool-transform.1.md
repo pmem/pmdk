@@ -59,10 +59,12 @@ the `poolset_file_dst` file.
 
 The following operations are supported:
 
-* adding replicas - a new replica can be added and synchronized with other
-replicas in the poolset,
+* adding replicas - one or more new replicas can be added and synchronized with
+other replicas in the poolset,
 
-* removing replicas - replicas can be removed from the poolset.
+* removing replicas - one or more replicas can be removed from the poolset,
+
+* reordering of replicas - the order of existing replicas can be changed.
 
 Currently these operations are allowed only for **pmemobj** pools (see
 **libpmemobj**(3)).
@@ -72,8 +74,10 @@ The *poolset_file_src* argument provides the source poolset to be changed.
 
 The *poolset_file_dst* argument points to the target poolset.
 
-When adding or deleting replica, the two poolset files can differ only in the
-definitions of replicas which are to be added or deleted.
+When adding or deleting replicas, the two poolset files can differ only in the
+definitions of replicas which are to be added or deleted. One cannot add and
+remove replicas in the same step. Only one of these operations can be performed
+at a time. Reordering replicas can be combined with any of them.
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased
