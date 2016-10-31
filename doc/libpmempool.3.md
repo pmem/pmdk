@@ -350,7 +350,8 @@ The following flags are available:
 synchronization.
 
 When adding or deleting replica, the two poolset files can differ only in the
-definitions of replicas which are to be added or deleted.
+definitions of replicas which are to be added or deleted. Only one of the
+operations (addition or deletion) can be performed at a time.
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased

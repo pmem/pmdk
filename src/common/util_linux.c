@@ -36,10 +36,39 @@
 
 #include <string.h>
 #include <util.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include "out.h"
 
 /* pass through for Linux */
 void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
+}
+
+/*
+ * util_realpath -- get canonicalized absolute pathname
+ */
+char *
+util_realpath(const char *path)
+{
+	return realpath(path, NULL);
+}
+
+/*
+ * util_compare_file_inodes -- compare device and inodes of two files;
+ *                             this resolves hard links
+ */
+int
+util_compare_file_inodes(const char *path1, const char *path2)
+{
+	struct stat sb1, sb2;
+	if (stat(path1, &sb1) || stat(path2, &sb2)) {
+		LOG(2, "stat failed for %s or %s", path1, path2);
+		return strcmp(path1, path2);
+	}
+
+	return sb1.st_dev != sb2.st_dev || sb1.st_ino != sb2.st_ino;
 }
