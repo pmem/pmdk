@@ -382,7 +382,7 @@ pool_hdr_poolset_uuid(PMEMpoolcheck *ppc, union location *loc)
 regenerate:
 	if (CHECK_IS_NOT(ppc, ADVANCED)) {
 		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "Can not repair pool_hdr.poolset_uuid");
+		return CHECK_ERR(ppc, "can not repair pool_hdr.poolset_uuid");
 	} else {
 		CHECK_ASK(ppc, Q_POOLSET_UUID_REGENERATE,
 			"%sinvalid pool_hdr.poolset_uuid.|Do you want to "
@@ -555,7 +555,7 @@ pool_hdr_uuid(PMEMpoolcheck *ppc, union location *loc)
 			"it?", loc->prefix);
 	} else {
 		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "Can not repair pool_hdr.uuid");
+		return CHECK_ERR(ppc, "can not repair pool_hdr.uuid");
 	}
 
 	return check_questions_sequence_validate(ppc);
@@ -667,7 +667,7 @@ pool_hdr_uuid_links(PMEMpoolcheck *ppc, union location *loc)
 
 cannot_repair:
 	ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-	return CHECK_ERR(ppc, "Can not repair %s", field);
+	return CHECK_ERR(ppc, "can not repair %s", field);
 }
 
 /*

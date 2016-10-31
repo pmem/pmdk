@@ -12,7 +12,7 @@ REPLICA
 pr($(nW)): off = 0x382440 uuid = $(nW)
 TestOK111
 error: Invalid argument
-error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: Transformation failed
+error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: transformation failed
 TestOK111
 POOL Header:
 Signature                : PMEMOBJ
