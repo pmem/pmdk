@@ -1,21 +1,28 @@
 poolset_in
 PMEMPOOLSET
-20M $(nW)/testfile00
-20M $(nW)/testfile01
+20M $(nW)/part00
+20M $(nW)/part01
 REPLICA
-15M $(nW)/testfile10
-15M $(nW)/testfile11
+15M $(nW)/part10
+15M $(nW)/part11
 
-poolset_out
+poolset_out1
 PMEMPOOLSET
-20M $(nW)/testfile00
-20M $(nW)/testfile01
+20M $(nW)/part00
+20M $(nW)/part01
+
+poolset_out2
+PMEMPOOLSET
+20M $(nW)/part00
+20M $(nW)/part01
 REPLICA
-15M $(nW)/testfile10
-15M $(nW)/testfile11
-20M $(nW)/testfile12
+15M $(nW)/part10
+15M $(nW)/part11
+20M $(nW)/part12
 
 pr(26214400): off = 0x382440 uuid = $(nW)
+TestOK111
+TestOK111
 TestOK111
 TestOK111
 TestOK111
