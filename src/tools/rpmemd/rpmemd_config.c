@@ -72,7 +72,7 @@ enum rpmemd_option {
 	RPD_OPT_INVALID			= UINT64_MAX,
 };
 
-static const char *optstr = "c:hV";
+static const char *optstr = "c:hVr:f";
 
 /*
  * options -- cl and config file options
