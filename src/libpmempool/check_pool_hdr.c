@@ -908,6 +908,9 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 					goto cleanup;
 			}
 		}
+
+		loc->step = 0;
+		loc->part = 0;
 	}
 
 	memcpy(&ppc->pool->hdr.pool, poolset->replica[0]->part[0].hdr,
