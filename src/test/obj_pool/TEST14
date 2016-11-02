@@ -49,7 +49,7 @@ umask 0
 # TEST14 non-existing file, poolsize >= min required size
 #        layout string is too long
 #
-LAYOUT=`dd if=/dev/urandom bs=1 count=768 2>/dev/null | base64 -w 0`
+LAYOUT=$(tr -cd '[:alnum:]' < /dev/urandom | head -c1024)
 
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile $LAYOUT 20 0640
 
