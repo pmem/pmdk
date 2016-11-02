@@ -52,7 +52,7 @@ chmod 0640 $DIR/testfile
 # TEST6 existing file, file length < min required size, poolsize == 0,
 #       layout string is too long
 #
-LAYOUT=`dd if=/dev/urandom bs=1 count=768 2>/dev/null | base64 -w 0`
+LAYOUT=$(tr -cd '[:alnum:]' < /dev/urandom | head -c1024)
 
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile $LAYOUT 0 0640
 
