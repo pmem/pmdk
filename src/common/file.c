@@ -34,14 +34,14 @@
  * file.c -- file utilities
  */
 
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <errno.h>
- #include <fcntl.h>
- #include <unistd.h>
- #include <limits.h>
- #include <sys/file.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <limits.h>
+#include <sys/file.h>
 
 #include "file.h"
 #include "out.h"
@@ -144,9 +144,11 @@ util_file_is_device_dax(const char *path)
 ssize_t
 util_file_get_size(const char *path)
 {
+#ifndef _WIN32
 	if (util_file_is_device_dax(path)) {
 		return device_dax_size(path);
 	}
+#endif
 
 	util_stat_t stbuf;
 	if (util_stat(path, &stbuf) < 0) {

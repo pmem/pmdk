@@ -62,7 +62,6 @@ INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
-INCS += -I/usr/include/ndctl
 
 CFLAGS += -DUSE_RPMEM
 

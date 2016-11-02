@@ -87,7 +87,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\device_dax_windows.c" />
     <ClCompile Include="util_is_poolset.c" />
   </ItemGroup>
   <ItemGroup>

@@ -26,8 +26,5 @@
     <ClCompile Include="..\..\..\libpmemblk\btt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\common\device_dax_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
