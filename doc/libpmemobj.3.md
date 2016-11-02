@@ -419,7 +419,7 @@ PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 
 The **pmemobj_create**() function creates a transactional object store with the given total *poolsize*. *path* specifies the name of the memory pool file to be
 created. *layout* specifies the application's layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a
-check when **pmemobj_open**() is called. The layout name, including the null termination, cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
+check when **pmemobj_open**() is called. The layout name, including the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
 **\<libpmemobj.h\>**. It is allowed to pass NULL as *layout*, which is equivalent for using an empty string as a layout name. *mode* specifies the permissions to
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_create**() and then specifying *poolsize* as

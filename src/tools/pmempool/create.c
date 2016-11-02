@@ -502,8 +502,8 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	}
 
 	if (pc.layout && strlen(pc.layout) >= PMEMOBJ_MAX_LAYOUT) {
-		outv_err("Layout name is to long, "
-			"maximum number of characters is %d\n",
+		outv_err("Layout name is to long, maximum number of characters"
+			" (including the terminating null byte '\0') is %d\n",
 			PMEMOBJ_MAX_LAYOUT);
 		return -1;
 	}
