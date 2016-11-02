@@ -1435,7 +1435,7 @@ function copy_files_to_node() {
 
 #
 # copy_files_from_node -- copy all required files from the given remote node
-#    usage: copy_files_from_node <node> <destination dir> <file_1> [<file_2>] ...
+#    usage: copy_files_from_node <node> <destination_dir> <file_1> [<file_2>] ...
 #
 function copy_files_from_node() {
 
@@ -1443,17 +1443,18 @@ function copy_files_from_node() {
 
 	local N=$1
 	local DEST_DIR=$2
+	[ ! -d $DEST_DIR ] &&\
+		echo "error: destination directory $DEST_DIR does not exist" >&2 && exit 1
 	shift 2
 	[ $# -eq 0 ] &&\
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
-
 
 	# compress required files, copy and extract
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local temp_file=node_${N}_temp_file.tar
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DIR
-	cd $DIR \
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR
+	cd $DEST_DIR \
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
 		&& cd - > /dev/null
