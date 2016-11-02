@@ -174,6 +174,12 @@ struct memory_block_ops {
 	void *(*get_lock)(struct memory_block *m, struct palloc_heap *heap);
 	enum memblock_state (*get_state)(struct memory_block *m,
 		struct palloc_heap *heap);
+	void *(*get_data)(struct memory_block *m, struct palloc_heap *heap);
+
+	/* only runs can be claimed, functions are invalid for huge blocks */
+	int (*claim)(struct memory_block *m, struct palloc_heap *heap);
+	void (*claim_revoke)(struct memory_block *m, struct palloc_heap *heap);
+	int (*is_claimed)(struct memory_block *m, struct palloc_heap *heap);
 };
 
 extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];

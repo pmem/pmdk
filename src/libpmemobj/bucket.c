@@ -83,7 +83,8 @@ bucket_vg_mark_noaccess(struct palloc_heap *heap, struct block_container *bc,
 {
 	if (On_valgrind) {
 		size_t rsize = m.size_idx * bc->unit_size;
-		void *block_data = heap_get_block_data(heap, m);
+		void *block_data = MEMBLOCK_OPS(AUTO, &m)
+			->get_data(&m, heap);
 		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
 	}
 }
@@ -192,6 +193,16 @@ bucket_tree_is_empty(struct block_container *bc)
 }
 
 /*
+ * bucket_tree_rm_all -- (internal) removes all elements from the tree
+ */
+static void
+bucket_tree_rm_all(struct block_container *bc)
+{
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+	ctree_clear(c->tree);
+}
+
+/*
  * Tree-based block container used to provide best-fit functionality to the
  * bucket. The time complexity for this particular container is O(k) where k is
  * the length of the key.
@@ -204,7 +215,8 @@ static struct block_container_ops container_ctree_ops = {
 	.get_rm_exact = bucket_tree_get_rm_block_exact,
 	.get_rm_bestfit = bucket_tree_get_rm_block_bestfit,
 	.get_exact = bucket_tree_get_block_exact,
-	.is_empty = bucket_tree_is_empty
+	.is_empty = bucket_tree_is_empty,
+	.rm_all = bucket_tree_rm_all,
 };
 
 /*
@@ -342,6 +354,7 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
 	b->unit_max_alloc = unit_max_alloc;
+	b->is_active = 0;
 
 	/*
 	 * Here the bitmap definition is calculated based on the size of the

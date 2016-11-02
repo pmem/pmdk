@@ -101,6 +101,33 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
 }
 
 /*
+ * run_get_data -- returns pointer to the data of a huge block
+ */
+static void *
+huge_get_data(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	void *data = &z->chunks[m->chunk_id].data;
+
+	return data;
+}
+
+/*
+ * run_get_data -- returns pointer to the data of a run block
+ */
+static void *
+run_get_data(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+
+	struct chunk_run *run =
+		(struct chunk_run *)&z->chunks[m->chunk_id].data;
+	ASSERT(run->block_size != 0);
+
+	return (char *)&run->data + (run->block_size * m->block_off);
+}
+
+/*
  * huge_block_offset -- huge chunks do not use the offset information of the
  *	memory blocks and must always be zeroed.
  */
@@ -124,7 +151,7 @@ run_block_offset(struct memory_block *m, struct palloc_heap *heap, void *ptr)
 {
 	size_t block_size = MEMBLOCK_OPS(RUN, &m)->block_size(m, heap->layout);
 
-	void *data = heap_get_block_data(heap, *m);
+	void *data = run_get_data(m, heap);
 	uintptr_t diff = (uintptr_t)ptr - (uintptr_t)data;
 	ASSERT(diff <= RUNSIZE);
 	ASSERT((size_t)diff / block_size <= UINT16_MAX);
@@ -319,6 +346,64 @@ run_get_state(struct memory_block *m, struct palloc_heap *heap)
 	return MEMBLOCK_FREE;
 }
 
+/*
+ * run_claim -- marks the run as claimed by an owner in the current heap. This
+ *	means that no-one but the actual owner use this memory block.
+ */
+static int
+run_claim(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	uint64_t claimant = r->incarnation_claim;
+	if (claimant == heap->run_id)
+		return -1; /* already claimed */
+
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
+	int ret = __sync_bool_compare_and_swap(&r->incarnation_claim,
+		claimant, heap->run_id) ? 0 : -1;
+	VALGRIND_SET_CLEAN(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+
+	return ret;
+}
+
+/*
+ * run_claim_revoke -- removes the claim of the current owner of the run
+ */
+static void
+run_claim_revoke(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	ASSERTeq(r->incarnation_claim, heap->run_id);
+
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
+	r->incarnation_claim = 0;
+	VALGRIND_SET_CLEAN(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+}
+
+/*
+ * run_is_claimed -- checks whether the run already has an owner in the current
+ *	incarnation of the heap.
+ */
+static int
+run_is_claimed(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	uint64_t claimant = r->incarnation_claim;
+	if (claimant == heap->run_id)
+		return 1;
+
+	return 0;
+}
+
 const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
@@ -326,6 +411,10 @@ const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.prep_hdr = huge_prep_operation_hdr,
 		.get_lock = huge_get_lock,
 		.get_state = huge_get_state,
+		.get_data = huge_get_data,
+		.claim = NULL,
+		.claim_revoke = NULL,
+		.is_claimed = NULL,
 	},
 	[MEMORY_BLOCK_RUN] = {
 		.block_size = run_block_size,
@@ -333,5 +422,9 @@ const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.prep_hdr = run_prep_operation_hdr,
 		.get_lock = run_get_lock,
 		.get_state = run_get_state,
+		.get_data = run_get_data,
+		.claim = run_claim,
+		.claim_revoke = run_claim_revoke,
+		.is_claimed = run_is_claimed,
 	}
 };

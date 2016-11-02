@@ -283,7 +283,7 @@ pmalloc_boot(PMEMobjpool *pop)
 	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_ALIGNMENT);
 
 	return palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
-			pop->heap_size, pop, &pop->p_ops);
+			pop->heap_size, pop->run_id, pop, &pop->p_ops);
 }
 
 static struct section_operations allocator_ops = {

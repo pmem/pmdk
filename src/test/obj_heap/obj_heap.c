@@ -42,6 +42,8 @@
 
 #define MAX_BLOCKS 3
 
+#define TEST_RUN_ID 5
+
 struct mock_pop {
 	PMEMobjpool p;
 	void *heap;
@@ -82,7 +84,8 @@ test_heap()
 
 	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
 	UT_ASSERT(heap_init(heap_start, heap_size, p_ops) == 0);
-	UT_ASSERT(heap_boot(heap, heap_start, heap_size, pop, p_ops) == 0);
+	UT_ASSERT(heap_boot(heap, heap_start, heap_size, TEST_RUN_ID,
+		pop, p_ops) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
 	struct bucket *b_small = heap_get_best_bucket(heap, 1);
@@ -107,17 +110,6 @@ test_heap()
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
 		UT_ASSERT(blocks[i].block_off == 0);
 	}
-
-	struct memory_block prev;
-	heap_get_adjacent_free_block(heap, b_def, &prev, blocks[1], 1);
-	UT_ASSERT(prev.chunk_id == blocks[0].chunk_id);
-	struct memory_block cnt;
-	heap_get_adjacent_free_block(heap, b_def, &cnt, blocks[0], 0);
-	UT_ASSERT(cnt.chunk_id == blocks[1].chunk_id);
-
-	struct memory_block next;
-	heap_get_adjacent_free_block(heap, b_def, &next, blocks[1], 0);
-	UT_ASSERT(next.chunk_id == blocks[2].chunk_id);
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);

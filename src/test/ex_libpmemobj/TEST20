@@ -64,7 +64,6 @@ expect_normal_exit $EX_PATH/array $DIR/testfile print int >> out$UNITTEST_NUM.lo
 expect_normal_exit $EX_PATH/array $DIR/testfile print PMEMoid >> out$UNITTEST_NUM.log
 expect_normal_exit $EX_PATH/array $DIR/testfile print TOID >> out$UNITTEST_NUM.log
 
-
 check
 
 pass
