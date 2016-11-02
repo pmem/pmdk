@@ -49,7 +49,7 @@ setup
 
 rm -f $DIR/testfile1
 expect_normal_exit $PMEMPOOL$EXESUFFIX\
-	create obj --layout realloc --size=64M $DIR/testfile1
+	create obj --layout realloc --size=128M $DIR/testfile1
 
 export PMEM_IS_PMEM_FORCE=1
 expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1

@@ -52,7 +52,7 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\file.c">
+   <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\file_windows.c">
@@ -89,6 +89,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\util_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -174,6 +177,7 @@
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="..\include\libpmemobj\atomic.h">
       <Filter>Header Files\libpmemobj</Filter>
     </ClInclude>
@@ -217,6 +221,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tx.h">
+=======
+    <ClInclude Include="recycler.h">
+>>>>>>> bd494e7... obj: rewrite palloc free and unused run handling logic
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
