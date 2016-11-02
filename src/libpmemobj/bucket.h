@@ -69,6 +69,7 @@ struct block_container_ops {
 		struct memory_block *m);
 	int (*get_exact)(struct block_container *c, struct memory_block m);
 	int (*is_empty)(struct block_container *c);
+	void (*rm_all)(struct block_container *c);
 };
 
 #define CNT_OP(_b, _op, ...)\
@@ -137,6 +138,9 @@ struct bucket_run {
 	 * remainder is returned back to the bucket.
 	 */
 	unsigned unit_max_alloc;
+
+	struct memory_block active_memory_block;
+	int is_active;
 };
 
 struct bucket_huge *bucket_huge_new(uint8_t id, enum block_container_type ctype,

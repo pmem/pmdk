@@ -61,6 +61,7 @@ SOURCE =\
 	palloc.c\
 	pmalloc.c\
 	pvector.c\
+	recycler.c\
 	redo.c\
 	sync.c\
 	tx.c

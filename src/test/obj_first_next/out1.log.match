@@ -24,12 +24,12 @@ first id = 2
 constructor(id = 3)
 constructor(id = 3)
 type:
-id = 3
-id = 0
-id = 2
+id = $(nW)
+id = $(nW)
+id = $(nW)
 type_sec:
-id = 3
-id = 2
-first id = 3
-first id = 3
+id = $(nW)
+id = $(nW)
+first id = $(nW)
+first id = $(nW)
 obj_first_next$(nW)TEST1: Done

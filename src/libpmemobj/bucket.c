@@ -83,7 +83,8 @@ bucket_vg_mark_noaccess(struct palloc_heap *heap, struct block_container *bc,
 {
 	if (On_valgrind) {
 		size_t rsize = m.size_idx * bc->unit_size;
-		void *block_data = heap_get_block_data(heap, m);
+		void *block_data = MEMBLOCK_OPS(AUTO, &m)
+			->get_data(&m, heap);
 		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
 	}
 }
@@ -122,7 +123,7 @@ bucket_tree_insert_block(struct block_container *bc, struct palloc_heap *heap,
 	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
 				m.size_idx);
 
-	return ctree_insert(c->tree, key, 0);
+	return ctree_insert_unlocked(c->tree, key, 0);
 }
 
 /*
@@ -138,7 +139,7 @@ bucket_tree_get_rm_block_bestfit(struct block_container *bc,
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	if ((key = ctree_remove(c->tree, key, 0)) == 0)
+	if ((key = ctree_remove_unlocked(c->tree, key, 0)) == 0)
 		return ENOMEM;
 
 	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
@@ -161,7 +162,7 @@ bucket_tree_get_rm_block_exact(struct block_container *bc,
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	if ((key = ctree_remove(c->tree, key, 1)) == 0)
+	if ((key = ctree_remove_unlocked(c->tree, key, 1)) == 0)
 		return ENOMEM;
 
 	return 0;
@@ -178,7 +179,7 @@ bucket_tree_get_block_exact(struct block_container *bc, struct memory_block m)
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	return ctree_find(c->tree, key) == key ? 0 : ENOMEM;
+	return ctree_find_unlocked(c->tree, key) == key ? 0 : ENOMEM;
 }
 
 /*
@@ -188,7 +189,17 @@ static int
 bucket_tree_is_empty(struct block_container *bc)
 {
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-	return ctree_is_empty(c->tree);
+	return ctree_is_empty_unlocked(c->tree);
+}
+
+/*
+ * bucket_tree_rm_all -- (internal) removes all elements from the tree
+ */
+static void
+bucket_tree_rm_all(struct block_container *bc)
+{
+	struct block_container_ctree *c = (struct block_container_ctree *)bc;
+	ctree_clear_unlocked(c->tree);
 }
 
 /*
@@ -204,7 +215,8 @@ static struct block_container_ops container_ctree_ops = {
 	.get_rm_exact = bucket_tree_get_rm_block_exact,
 	.get_rm_bestfit = bucket_tree_get_rm_block_bestfit,
 	.get_exact = bucket_tree_get_block_exact,
-	.is_empty = bucket_tree_is_empty
+	.is_empty = bucket_tree_is_empty,
+	.rm_all = bucket_tree_rm_all,
 };
 
 /*
@@ -342,6 +354,7 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
 	b->unit_max_alloc = unit_max_alloc;
+	b->is_active = 0;
 
 	/*
 	 * Here the bitmap definition is calculated based on the size of the

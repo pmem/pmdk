@@ -37,6 +37,6 @@ TARGET = obj_pmalloc_basic
 OBJS = obj_pmalloc_basic.o
 
 LIBPMEM=y
-LIBPMEMOBJ=internal-nondebug
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc

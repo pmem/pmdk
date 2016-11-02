@@ -30,14 +30,14 @@ next id = 3
 constructor(id = 4)
 constructor(id = 4)
 type:
-id = 4
-id = 1
-id = 2
-id = 3
+id = $(nW)
+id = $(nW)
+id = $(nW)
+id = $(nW)
 type_sec:
-id = 4
-id = 2
-id = 3
-next id = 2
-next id = 3
+id = $(nW)
+id = $(nW)
+id = $(nW)
+next id = $(nW)
+next id = $(nW)
 obj_first_next$(nW)TEST0: Done

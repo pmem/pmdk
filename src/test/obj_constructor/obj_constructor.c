@@ -131,6 +131,12 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	errno = 0;
+	root.oid = pmemobj_root_construct(pop, sizeof(struct root),
+			root_constr_cancel, NULL);
+	UT_ASSERT(TOID_IS_NULL(root));
+	UT_ASSERTeq(errno, ECANCELED);
+
 	/*
 	 * Allocate memory until OOM, so we can check later if the alloc
 	 * cancellation didn't damage the heap in any way.
@@ -145,12 +151,6 @@ main(int argc, char *argv[])
 	PMEMoid next;
 	POBJ_FOREACH_SAFE(pop, oid, next)
 		pmemobj_free(&oid);
-
-	errno = 0;
-	root.oid = pmemobj_root_construct(pop, sizeof(struct root),
-			root_constr_cancel, NULL);
-	UT_ASSERT(TOID_IS_NULL(root));
-	UT_ASSERTeq(errno, ECANCELED);
 
 	errno = 0;
 	ret = pmemobj_alloc(pop, NULL, node_size, 1, node_constr_cancel, NULL);

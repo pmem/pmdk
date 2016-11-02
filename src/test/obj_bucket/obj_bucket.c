@@ -91,6 +91,23 @@ FUNC_MOCK(ctree_remove, uint64_t, struct ctree *c, uint64_t key, int eq)
 	}
 FUNC_MOCK_END
 
+FUNC_MOCK(ctree_insert_unlocked, int, struct ctree *c, uint64_t key)
+	FUNC_MOCK_RUN_DEFAULT {
+		inserted_key = key;
+		return 0;
+	}
+FUNC_MOCK_END
+
+FUNC_MOCK(ctree_remove_unlocked, uint64_t,
+	struct ctree *c, uint64_t key, int eq)
+	FUNC_MOCK_RUN_DEFAULT {
+		return inserted_key;
+	}
+	FUNC_MOCK_RUN(0) {
+		return 0;
+	}
+FUNC_MOCK_END
+
 static void
 test_new_delete_bucket()
 {

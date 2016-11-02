@@ -43,8 +43,7 @@ require_fs_type pmem
 
 setup
 
-expect_normal_exit\
-	./obj_fragmentation$EXESUFFIX 1024 \
+expect_normal_exit ./obj_fragmentation$EXESUFFIX 1024 \
 		$DIR/testfile1
 
 pass

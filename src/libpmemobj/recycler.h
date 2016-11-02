@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,60 +31,17 @@
  */
 
 /*
- * obj_pmalloc_oom_mt.c -- build multithreaded out of memory test
+ * recycler.h -- internal definitions of run recycler
  *
+ * This is a container that stores runs that are currently not used by any of
+ * the buckets.
  */
 
-#include <stddef.h>
+#include "memblock.h"
 
-#include "unittest.h"
+struct recycler;
 
-#define TEST_ALLOC_SIZE (32 * 1024)
-#define LAYOUT_NAME "oom_mt"
-
-int allocated;
-PMEMobjpool *pop;
-
-static void *
-oom_worker(void *arg)
-{
-	allocated = 0;
-	while (pmemobj_alloc(pop, NULL, TEST_ALLOC_SIZE, 0, NULL, NULL) == 0)
-		allocated++;
-
-	PMEMoid iter, iter2;
-	POBJ_FOREACH_SAFE(pop, iter, iter2)
-		pmemobj_free(&iter);
-
-	return NULL;
-}
-
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "obj_pmalloc_oom_mt");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
-
-	const char *path = argv[1];
-
-	if ((pop = pmemobj_create(path, LAYOUT_NAME,
-			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_create: %s", path);
-
-	pthread_t t;
-	pthread_create(&t, NULL, oom_worker, NULL);
-	pthread_join(t, NULL);
-
-	int first_thread_allocated = allocated;
-
-	pthread_create(&t, NULL, oom_worker, NULL);
-	pthread_join(t, NULL);
-
-	UT_ASSERTeq(first_thread_allocated, allocated);
-
-	pmemobj_close(pop);
-
-	DONE(NULL);
-}
+struct recycler *recycler_new(struct palloc_heap *layout);
+void recycler_delete(struct recycler *r);
+int recycler_put(struct recycler *r, const struct memory_block *m);
+int recycler_get(struct recycler *r, struct memory_block *m);

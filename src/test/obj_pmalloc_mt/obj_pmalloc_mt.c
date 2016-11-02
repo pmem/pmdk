@@ -43,8 +43,10 @@
 #define OPS_PER_THREAD 1000
 #define ALLOC_SIZE 100
 #define REALLOC_SIZE (ALLOC_SIZE * 3)
-#define FRAGMENTATION 3
 #define MIX_RERUNS 2
+
+#define CHUNKSIZE (1 << 18)
+#define CHUNKS_PER_THREAD 3
 
 struct root {
 	uint64_t offs[THREADS][OPS_PER_THREAD];
@@ -176,8 +178,7 @@ main(int argc, char *argv[])
 
 	if (access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
-		PMEMOBJ_MIN_POOL +
-		(THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION),
+		(PMEMOBJ_MIN_POOL) + (THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);
 	} else {
 		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
