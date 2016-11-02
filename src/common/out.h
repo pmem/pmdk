@@ -43,6 +43,16 @@
 
 #include "util.h"
 
+/*
+ * Suppress errors which are after appropriate ASSERT* macro for nondebug
+ * builds.
+ */
+#if !defined(DEBUG) && defined(__clang_analyzer__)
+#define OUT_FATAL_DISCARD_NORETURN __attribute__((noreturn))
+#else
+#define OUT_FATAL_DISCARD_NORETURN
+#endif
+
 #ifdef DEBUG
 
 #define OUT_LOG out_log
@@ -70,7 +80,7 @@ out_nonl_discard(int level, const char *fmt, ...)
 	(void) fmt;
 }
 
-static __attribute__((always_inline)) inline void
+static __attribute__((always_inline)) OUT_FATAL_DISCARD_NORETURN inline void
 out_fatal_discard(const char *file, int line, const char *func,
 		const char *fmt, ...)
 {

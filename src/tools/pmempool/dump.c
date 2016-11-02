@@ -56,6 +56,7 @@
 struct pmempool_dump {
 	char *fname;
 	char *ofname;
+	char *range;
 	FILE *ofh;
 	int hex;
 	uint64_t bsize;
@@ -70,6 +71,7 @@ struct pmempool_dump {
 static const struct pmempool_dump pmempool_dump_default = {
 	.fname		= NULL,
 	.ofname		= NULL,
+	.range		= NULL,
 	.ofh		= NULL,
 	.hex		= 1,
 	.bsize		= 0,
@@ -81,11 +83,11 @@ static const struct pmempool_dump pmempool_dump_default = {
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"output",	required_argument,	0,	'o'},
-	{"binary",	no_argument,		0,	'b'},
-	{"range",	required_argument,	0,	'r'},
-	{"chunk",	required_argument,	0,	'c'},
-	{"help",	no_argument,		0,	'h'},
+	{"output",	required_argument,	0,	'o' | OPT_ALL},
+	{"binary",	no_argument,		0,	'b' | OPT_ALL},
+	{"range",	required_argument,	0,	'r' | OPT_ALL},
+	{"chunk",	required_argument,	0,	'c' | OPT_LOG},
+	{"help",	no_argument,		0,	'h' | OPT_ALL},
 	{0,		0,			0,	 0 },
 };
 
@@ -186,6 +188,29 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 }
 
 /*
+ * pmempool_dump_parse_range -- parse range passed by arguments
+ */
+static int
+pmempool_dump_parse_range(struct pmempool_dump *pdp, size_t max)
+{
+	struct range entire;
+	memset(&entire, 0, sizeof(entire));
+
+	entire.last = max;
+
+	if (util_parse_ranges(pdp->range, &pdp->ranges, entire)) {
+		outv_err("invalid range value specified"
+				" -- '%s'\n", pdp->range);
+		return -1;
+	}
+
+	if (LIST_EMPTY(&pdp->ranges.head))
+		util_ranges_add(&pdp->ranges, entire);
+
+	return 0;
+}
+
+/*
  * pmempool_dump_log -- dump data from pmem log pool
  */
 static int
@@ -197,24 +222,22 @@ pmempool_dump_log(struct pmempool_dump *pdp)
 		return -1;
 	}
 
-	if (LIST_EMPTY(&pdp->ranges.head)) {
-		off_t off = pmemlog_tell(plp);
-		if (off < 0) {
-			warn("%s", pdp->fname);
-			pmemlog_close(plp);
-			return -1;
-		}
-
-		if (off == 0)
-			goto end;
-
-		struct range entire;
-		entire.first = 0;
-		entire.last = (uint64_t)off - 1;
-		if (pdp->chunksize)
-			entire.last = entire.last / pdp->chunksize;
-		util_ranges_add(&pdp->ranges, entire);
+	off_t off = pmemlog_tell(plp);
+	if (off < 0) {
+		warn("%s", pdp->fname);
+		pmemlog_close(plp);
+		return -1;
 	}
+
+	if (off == 0)
+		goto end;
+
+	size_t max = (size_t)off - 1;
+	if (pdp->chunksize)
+		max /= pdp->chunksize;
+
+	if (pmempool_dump_parse_range(pdp, max))
+		return -1;
 
 	pdp->chunkcnt = 0;
 	pmemlog_walk(plp, pdp->chunksize, pmempool_dump_log_process_chunk, pdp);
@@ -237,13 +260,8 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 		return -1;
 	}
 
-	struct range entire;
-	entire.first = 0;
-	entire.last = pmemblk_nblock(pbp) - 1;
-
-	if (LIST_EMPTY(&pdp->ranges.head)) {
-		util_ranges_add(&pdp->ranges, entire);
-	}
+	if (pmempool_dump_parse_range(pdp, pmemblk_nblock(pbp) - 1))
+		return -1;
 
 	uint8_t *buff = malloc(pdp->bsize);
 	if (!buff)
@@ -253,11 +271,9 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 	uint64_t i;
 	struct range *curp = NULL;
-	assert((off_t)entire.last >= 0);
 	LIST_FOREACH(curp, &pdp->ranges.head, next) {
 		assert((off_t)curp->last >= 0);
-		for (i = curp->first;
-				i <= curp->last && i <= entire.last; i++) {
+		for (i = curp->first; i <= curp->last; i++) {
 			if (pmemblk_read(pbp, buff, (off_t)i)) {
 				ret = -1;
 				outv_err("reading block number %lu "
@@ -286,6 +302,10 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 	return ret;
 }
 
+static const struct option_requirement option_requirements[] = {
+	{ 0,  0, 0}
+};
+
 /*
  * pmempool_dump_func -- dump command main function
  */
@@ -296,11 +316,19 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	LIST_INIT(&pd.ranges.head);
 	out_set_vlevel(VERBOSE_DEFAULT);
 
+	struct options *opts = util_options_alloc(long_options,
+				sizeof(long_options) / sizeof(long_options[0]),
+				option_requirements);
+	if (!opts) {
+		outv_err("cannot allocate options structure\n");
+		exit(EXIT_FAILURE);
+	}
+
 	int ret = 0;
 	long long chunksize;
 	int opt;
-	while ((opt = getopt_long(argc, argv, "ho:br:c:",
-				long_options, NULL)) != -1) {
+	while ((opt = util_options_getopt(argc, argv,
+			"ho:br:c:", opts)) != -1) {
 		switch (opt) {
 		case 'o':
 			pd.ofname = optarg;
@@ -309,12 +337,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 			pd.hex = 0;
 			break;
 		case 'r':
-			if (util_parse_ranges(optarg, &pd.ranges,
-				ENTIRE_UINT64)) {
-				outv_err("invalid range value specified"
-						" -- '%s'\n", optarg);
-				exit(EXIT_FAILURE);
-			}
+			pd.range = optarg;
 			break;
 		case 'c':
 			chunksize = atoll(optarg);
@@ -359,6 +382,10 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	/* parse pool type and block size for pmem blk pool */
 	pmem_pool_parse_params(pd.fname, &params, 1);
 
+	ret = util_options_verify(opts, params.type);
+	if (ret)
+		goto out;
+
 	switch (params.type) {
 	case PMEM_POOL_TYPE_LOG:
 		ret = pmempool_dump_log(&pd);
@@ -390,6 +417,8 @@ out:
 		fclose(pd.ofh);
 
 	util_ranges_clear(&pd.ranges);
+
+	util_options_free(opts);
 
 	return ret;
 }

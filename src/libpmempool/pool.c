@@ -263,34 +263,33 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 	int check)
 {
 	LOG(3, NULL);
-
 	int is_btt = ppc->args.pool_type == PMEMPOOL_POOL_TYPE_BTT;
-	util_stat_t stat_buf;
-	int ret = 0;
 
 	params->type = POOL_TYPE_UNKNOWN;
-	params->is_poolset = is_btt ?
-			false : util_is_poolset_file(ppc->path) == 1;
+	params->is_poolset = util_is_poolset_file(ppc->path) == 1;
+
 	int fd = util_file_open(ppc->path, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
-	if (!params->is_poolset) {
-		/* get file size and mode */
-		if (util_fstat(fd, &stat_buf)) {
-			ret = -1;
-			goto out_close;
-		}
+	int ret = 0;
 
-		ASSERT(stat_buf.st_size >= 0);
-		params->size = (uint64_t)stat_buf.st_size;
-		params->mode = stat_buf.st_mode;
-	}
+	util_stat_t stat_buf;
+	ret = util_fstat(fd, &stat_buf);
+	if (ret)
+		goto out_close;
 
-	void *addr = NULL;
-	struct pool_set *set = NULL;
+	ASSERT(stat_buf.st_size >= 0);
+
+	params->mode = stat_buf.st_mode;
+
+	struct pool_set *set;
+	void *addr;
 	if (params->is_poolset) {
-		/* close the file */
+		/*
+		 * Need to close the poolset because it will be opened with
+		 * flock in the following instructions.
+		 */
 		close(fd);
 		fd = -1;
 
@@ -315,14 +314,21 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 		params->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
-	} else if (!is_btt) {
+	} else if (is_btt) {
+		params->size = (size_t)stat_buf.st_size;
+		addr = NULL;
+	} else {
+		params->size = (size_t)stat_buf.st_size;
 		addr = mmap(NULL, (uint64_t)stat_buf.st_size, PROT_READ,
 			MAP_PRIVATE, fd, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
 			goto out_close;
 		}
-	} else {
+	}
+
+	/* stop processing for BTT device */
+	if (is_btt) {
 		params->type = POOL_TYPE_BTT;
 		params->is_part = false;
 		goto out_close;
@@ -355,13 +361,18 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 	}
 
 out_unmap:
-	if (params->is_poolset)
+	if (params->is_poolset) {
+		ASSERTeq(fd, -1);
+		ASSERTne(addr, NULL);
 		util_poolset_close(set, 0);
-	else if (!is_btt)
-		munmap(addr, (uint64_t)stat_buf.st_size);
+	} else if (!is_btt) {
+		ASSERTne(fd, -1);
+		ASSERTne(addr, NULL);
+		munmap(addr, params->size);
+	}
 out_close:
-	if (fd >= 0)
-		(void) close(fd);
+	if (fd != -1)
+		close(fd);
 	return ret;
 }
 

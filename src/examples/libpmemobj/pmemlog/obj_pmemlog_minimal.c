@@ -308,8 +308,8 @@ main(int argc, char *argv[])
 			case 'v': {
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
-				struct iovec *iov = malloc(count
-						* sizeof(struct iovec));
+				struct iovec *iov = calloc(count,
+						sizeof(struct iovec));
 				if (iov == NULL) {
 					fprintf(stderr, "malloc error\n");
 					return 1;

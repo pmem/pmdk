@@ -413,8 +413,8 @@ main(int argc, char *argv[])
 			case 'v': {
 				printf("appendv: %s\n", argv[i] + 2);
 				int count = count_iovec(argv[i] + 2);
-				struct iovec *iov = malloc(count
-						* sizeof(struct iovec));
+				struct iovec *iov = calloc(count,
+						sizeof(struct iovec));
 				fill_iovec(iov, argv[i] + 2);
 				if (pmemlog_appendv(plp, iov, count))
 					fprintf(stderr, "pmemlog_appendv"

@@ -181,11 +181,12 @@ remove_remote(const char *target, const char *pool_set)
 
 	int ret = 0;
 
-	if (rpmem_ssh_monitor(ssh, 0)) {
+	if (rpmem_ssh_monitor(ssh, 0))
 		ret = -1;
-	}
 
-	ret = rpmem_ssh_close(ssh);
+	if (rpmem_ssh_close(ssh))
+		ret = -1;
+
 	if (ret)
 		goto err_ssh_exec;
 
