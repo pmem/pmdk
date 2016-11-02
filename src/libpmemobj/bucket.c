@@ -50,210 +50,6 @@
 #include "valgrind_internal.h"
 
 /*
- * The elements in the tree are sorted by the key and it's vital that the
- * order is by size, hence the order of the pack arguments.
- */
-#define CHUNK_KEY_PACK(z, c, b, s)\
-((uint64_t)(s) << 48 | (uint64_t)(b) << 32 | (uint64_t)(c) << 16 | (z))
-
-#define CHUNK_KEY_GET_ZONE_ID(k)\
-((uint16_t)((k & 0xFFFF)))
-
-#define CHUNK_KEY_GET_CHUNK_ID(k)\
-((uint16_t)((k & 0xFFFF0000) >> 16))
-
-#define CHUNK_KEY_GET_BLOCK_OFF(k)\
-((uint16_t)((k & 0xFFFF00000000) >> 32))
-
-#define CHUNK_KEY_GET_SIZE_IDX(k)\
-((uint16_t)((k & 0xFFFF000000000000) >> 48))
-
-struct block_container_ctree {
-	struct block_container super;
-	struct ctree *tree;
-};
-
-#ifdef USE_VG_MEMCHECK
-/*
- * bucket_vg_mark_noaccess -- (internal) marks memory block as no access for vg
- */
-static void
-bucket_vg_mark_noaccess(struct palloc_heap *heap, struct block_container *bc,
-	struct memory_block m)
-{
-	if (On_valgrind) {
-		size_t rsize = m.size_idx * bc->unit_size;
-		void *block_data = heap_get_block_data(heap, m);
-		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
-	}
-}
-#endif
-
-/*
- * bucket_tree_insert_block -- (internal) inserts a new memory block
- *	into the container
- */
-static int
-bucket_tree_insert_block(struct block_container *bc, struct palloc_heap *heap,
-	struct memory_block m)
-{
-	/*
-	 * Even though the memory block representation of an object uses
-	 * relatively large types in practise the entire memory block structure
-	 * needs to fit in a single 64 bit value - the type of the key in the
-	 * container tree.
-	 * Given those limitations a reasonable idea might be to make the
-	 * memory_block structure be the size of single uint64_t, which would
-	 * work for now, but if someday someone decides there's a need for
-	 * larger objects the current implementation would allow them to simply
-	 * replace this container instead of making little changes all over
-	 * the heap code.
-	 */
-	ASSERT(m.chunk_id < MAX_CHUNK);
-	ASSERT(m.zone_id < UINT16_MAX);
-	ASSERTne(m.size_idx, 0);
-
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-
-#ifdef USE_VG_MEMCHECK
-	bucket_vg_mark_noaccess(heap, bc, m);
-#endif
-
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-				m.size_idx);
-
-	return ctree_insert(c->tree, key, 0);
-}
-
-/*
- * bucket_tree_get_rm_block_bestfit -- (internal) removes and returns the
- *	best-fit memory block for size
- */
-static int
-bucket_tree_get_rm_block_bestfit(struct block_container *bc,
-	struct memory_block *m)
-{
-	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
-			m->size_idx);
-
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-
-	if ((key = ctree_remove(c->tree, key, 0)) == 0)
-		return ENOMEM;
-
-	m->chunk_id = CHUNK_KEY_GET_CHUNK_ID(key);
-	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
-	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
-	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
-
-	return 0;
-}
-
-/*
- * bucket_tree_get_rm_block_exact -- (internal) removes exact match memory block
- */
-static int
-bucket_tree_get_rm_block_exact(struct block_container *bc,
-	struct memory_block m)
-{
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
-
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-
-	if ((key = ctree_remove(c->tree, key, 1)) == 0)
-		return ENOMEM;
-
-	return 0;
-}
-
-/*
- * bucket_tree_get_block_exact -- (internal) finds exact match memory block
- */
-static int
-bucket_tree_get_block_exact(struct block_container *bc, struct memory_block m)
-{
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
-
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-
-	return ctree_find(c->tree, key) == key ? 0 : ENOMEM;
-}
-
-/*
- * bucket_tree_is_empty -- (internal) checks whether the bucket is empty
- */
-static int
-bucket_tree_is_empty(struct block_container *bc)
-{
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-	return ctree_is_empty(c->tree);
-}
-
-/*
- * Tree-based block container used to provide best-fit functionality to the
- * bucket. The time complexity for this particular container is O(k) where k is
- * the length of the key.
- *
- * The get methods also guarantee that the block with lowest possible address
- * that best matches the requirements is provided.
- */
-static struct block_container_ops container_ctree_ops = {
-	.insert = bucket_tree_insert_block,
-	.get_rm_exact = bucket_tree_get_rm_block_exact,
-	.get_rm_bestfit = bucket_tree_get_rm_block_bestfit,
-	.get_exact = bucket_tree_get_block_exact,
-	.is_empty = bucket_tree_is_empty
-};
-
-/*
- * bucket_tree_create -- (internal) creates a new tree-based container
- */
-static struct block_container *
-bucket_tree_create(size_t unit_size)
-{
-	struct block_container_ctree *bc = Malloc(sizeof(*bc));
-	if (bc == NULL)
-		goto error_container_malloc;
-
-	bc->super.type = CONTAINER_CTREE;
-	bc->super.unit_size = unit_size;
-
-	bc->tree = ctree_new();
-	if (bc->tree == NULL)
-		goto error_ctree_new;
-
-	return &bc->super;
-
-error_ctree_new:
-	Free(bc);
-
-error_container_malloc:
-	return NULL;
-}
-
-/*
- * bucket_tree_delete -- (internal) deletes a tree container
- */
-static void
-bucket_tree_delete(struct block_container *bc)
-{
-	struct block_container_ctree *c = (struct block_container_ctree *)bc;
-	ctree_delete(c->tree);
-	Free(bc);
-}
-
-static struct {
-	struct block_container_ops *ops;
-	struct block_container *(*create)(size_t unit_size);
-	void (*delete)(struct block_container *c);
-} block_containers[MAX_CONTAINER_TYPE] = {
-	{NULL, NULL, NULL},
-	{&container_ctree_ops, bucket_tree_create, bucket_tree_delete},
-};
-
-/*
  * bucket_calc_units -- (internal) calculates the size index of a memory block
  *	whose size in bytes is equal or exceeds the value 'size' provided
  *	by the caller.
@@ -269,21 +65,20 @@ bucket_calc_units(struct bucket *b, size_t size)
  * bucket_init -- (internal) initializes bucket instance
  */
 static int
-bucket_init(struct bucket *b, uint8_t id, enum block_container_type ctype,
+bucket_init(struct bucket *b, uint8_t id, struct block_container *c,
 	size_t unit_size)
 {
+	if (c == NULL)
+		return -1;
+
 	b->id = id;
 	b->calc_units = bucket_calc_units;
 
-	b->container = block_containers[ctype].create(unit_size);
-	if (b->container == NULL)
-		return -1;
-
-	b->container->unit_size = unit_size;
+	b->container = c;
+	b->c_ops = c->c_ops;
 
 	util_mutex_init(&b->lock, NULL);
 
-	b->c_ops = block_containers[ctype].ops;
 	b->unit_size = unit_size;
 
 	return 0;
@@ -297,14 +92,13 @@ bucket_init(struct bucket *b, uint8_t id, enum block_container_type ctype,
  * required for runs and is not relevant for huge chunks.
  */
 struct bucket_huge *
-bucket_huge_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size)
+bucket_huge_new(uint8_t id, struct block_container *c, size_t unit_size)
 {
 	struct bucket_huge *b = Malloc(sizeof(*b));
 	if (b == NULL)
 		return NULL;
 
-	if (bucket_init(&b->super, id, ctype, unit_size) != 0) {
+	if (bucket_init(&b->super, id, c, unit_size) != 0) {
 		Free(b);
 		return NULL;
 	}
@@ -327,14 +121,14 @@ bucket_huge_new(uint8_t id, enum block_container_type ctype,
  * TYPE of bitmap run.
  */
 struct bucket_run *
-bucket_run_new(uint8_t id, enum block_container_type ctype,
+bucket_run_new(uint8_t id, struct block_container *c,
 	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
 {
 	struct bucket_run *b = Malloc(sizeof(*b));
 	if (b == NULL)
 		return NULL;
 
-	if (bucket_init(&b->super, id, ctype, unit_size) != 0) {
+	if (bucket_init(&b->super, id, c, unit_size) != 0) {
 		Free(b);
 		return NULL;
 	}
@@ -342,6 +136,7 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 	b->super.type = BUCKET_RUN;
 	b->unit_max = unit_max;
 	b->unit_max_alloc = unit_max_alloc;
+	b->is_active = 0;
 
 	/*
 	 * Here the bitmap definition is calculated based on the size of the
@@ -376,13 +171,32 @@ bucket_run_new(uint8_t id, enum block_container_type ctype,
 }
 
 /*
+ * bucket_insert_block -- inserts a block into the bucket
+ */
+int
+bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
+	struct memory_block m)
+{
+	if (b->type == BUCKET_HUGE && m.block_off != 0)
+		ASSERT(0);
+
+#ifdef USE_VG_MEMCHECK
+	if (On_valgrind) {
+		size_t rsize = m.size_idx * b->unit_size;
+		void *block_data = MEMBLOCK_OPS(AUTO, &m)->get_data(&m, heap);
+		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
+	}
+#endif
+	return b->c_ops->insert(b->container, m);
+}
+
+/*
  * bucket_delete -- cleanups and deallocates bucket instance
  */
 void
 bucket_delete(struct bucket *b)
 {
 	util_mutex_destroy(&b->lock);
-
-	block_containers[b->container->type].delete(b->container);
+	b->c_ops->delete(b->container);
 	Free(b);
 }

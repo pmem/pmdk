@@ -16,6 +16,7 @@
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />
+    <ClCompile Include="..\..\libpmemobj\recycler.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c" />
     <ClCompile Include="obj_heap.c" />
   </ItemGroup>

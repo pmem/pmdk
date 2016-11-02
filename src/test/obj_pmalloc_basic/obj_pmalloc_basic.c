@@ -175,6 +175,8 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
+#define MOCK_RUN_ID 5
+
 static void
 test_mock_pool_allocs()
 {
@@ -210,7 +212,7 @@ test_mock_pool_allocs()
 	uint64_t heap_size = mock_pop->heap_size;
 
 	heap_init(heap_start, heap_size, &mock_pop->p_ops);
-	heap_boot(&mock_pop->heap, heap_start, heap_size, mock_pop,
+	heap_boot(&mock_pop->heap, heap_start, heap_size, MOCK_RUN_ID, mock_pop,
 			&mock_pop->p_ops);
 	heap_buckets_init(&mock_pop->heap);
 

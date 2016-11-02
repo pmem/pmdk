@@ -53,6 +53,7 @@ struct palloc_heap {
 	struct heap_layout *layout;
 	struct heap_rt *rt;
 	uint64_t size;
+	uint64_t run_id;
 
 	void *base;
 };
@@ -69,7 +70,7 @@ uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 
 size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
 
-int palloc_boot(struct palloc_heap *heap, void *heap_start,
+int palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t run_id,
 		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
 int palloc_buckets_init(struct palloc_heap *heap);
 

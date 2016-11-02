@@ -63,6 +63,9 @@
     <ClCompile Include="..\..\libpmemobj\obj.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\recycler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">

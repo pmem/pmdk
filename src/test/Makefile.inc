@@ -95,6 +95,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
 OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
+	$(TOP)/src/debug/libpmemobj/container_ctree.o\
 	$(TOP)/src/debug/libpmemobj/ctree.o\
 	$(TOP)/src/debug/libpmemobj/cuckoo.o\
 	$(TOP)/src/debug/libpmemobj/heap.o\
@@ -107,6 +108,7 @@ OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/palloc.o\
 	$(TOP)/src/debug/libpmemobj/pmalloc.o\
 	$(TOP)/src/debug/libpmemobj/pvector.o\
+	$(TOP)/src/debug/libpmemobj/recycler.o\
 	$(TOP)/src/debug/libpmemobj/redo.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o
@@ -119,6 +121,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
+	$(TOP)/src/nondebug/libpmemobj/container_ctree.o\
 	$(TOP)/src/nondebug/libpmemobj/ctree.o\
 	$(TOP)/src/nondebug/libpmemobj/cuckoo.o\
 	$(TOP)/src/nondebug/libpmemobj/heap.o\
@@ -131,6 +134,7 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/palloc.o\
 	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
 	$(TOP)/src/nondebug/libpmemobj/pvector.o\
+	$(TOP)/src/nondebug/libpmemobj/recycler.o\
 	$(TOP)/src/nondebug/libpmemobj/redo.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o

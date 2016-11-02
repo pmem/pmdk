@@ -31,23 +31,17 @@
  */
 
 /*
- * ctree_mocks.h -- redefinitions of ctree_*() functions
+ * recycler.h -- internal definitions of run recycler
  *
- * This file is Windows-specific.
- *
- * This file should be included (i.e. using Forced Include) by libpmemobj
- * files, when compiled for the purpose of obj_bucket test.
- * It would replace default implementation with mocked functions defined
- * in obj_bucket.c.
- *
- * These defines could be also passed as preprocessor definitions.
+ * This is a container that stores runs that are currently not used by any of
+ * the buckets.
  */
 
-#ifndef WRAP_REAL
-#define ctree_new __wrap_ctree_new
-#define ctree_delete __wrap_ctree_delete
-#define ctree_insert __wrap_ctree_insert
-#define ctree_remove __wrap_ctree_remove
-#define ctree_insert_unlocked __wrap_ctree_insert_unlocked
-#define ctree_remove_unlocked __wrap_ctree_remove_unlocked
-#endif
+#include "memblock.h"
+
+struct recycler;
+
+struct recycler *recycler_new(struct palloc_heap *layout);
+void recycler_delete(struct recycler *r);
+int recycler_put(struct recycler *r, const struct memory_block *m);
+int recycler_get(struct recycler *r, struct memory_block *m);

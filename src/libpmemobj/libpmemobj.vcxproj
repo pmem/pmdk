@@ -41,6 +41,7 @@
     <ClCompile Include="libpmemobj_main.c" />
     <ClCompile Include="memblock.c" />
     <ClCompile Include="pvector.c" />
+    <ClCompile Include="recycler.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -85,6 +86,7 @@
     <ClInclude Include="pvector.h" />
     <ClInclude Include="sync.h" />
     <ClInclude Include="tx.h" />
+    <ClInclude Include="recycler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />
