@@ -1060,6 +1060,18 @@ function require_valgrind_dev_3_7() {
 }
 
 #
+# valgrind_version -- returns Valgrind version
+#
+function valgrind_version() {
+	echo "#include <valgrind/valgrind.h>
+#if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
+__VALGRIND_MAJOR__*100+__VALGRIND_MINOR__
+#else
+0
+#endif" | gcc ${EXTRA_CFLAGS} -E - | tail -n 1 | bc
+}
+
+#
 # require_valgrind_dev_3_8 -- continue script execution only if
 #	version 3.8 (or later) of valgrind-devel package is installed
 #
