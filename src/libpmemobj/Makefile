@@ -49,6 +49,7 @@ SOURCE =\
 	$(COMMON)/uuid_linux.c\
 	$(COMMON)/util_linux.c\
 	bucket.c\
+	container_ctree.c\
 	ctree.c\
 	cuckoo.c\
 	heap.c\
@@ -61,6 +62,7 @@ SOURCE =\
 	palloc.c\
 	pmalloc.c\
 	pvector.c\
+	recycler.c\
 	redo.c\
 	sync.c\
 	tx.c
