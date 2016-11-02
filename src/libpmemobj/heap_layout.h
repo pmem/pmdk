@@ -86,7 +86,7 @@ struct chunk {
 
 struct chunk_run {
 	uint64_t block_size;
-	uint64_t bucket_vptr; /* runtime information */
+	uint64_t incarnation_claim; /* run_id of the last claimant */
 	uint64_t bitmap[MAX_BITMAP_VALUES];
 	uint8_t data[RUNSIZE];
 };

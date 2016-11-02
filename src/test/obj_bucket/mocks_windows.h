@@ -48,4 +48,6 @@
 #define ctree_delete __wrap_ctree_delete
 #define ctree_insert __wrap_ctree_insert
 #define ctree_remove __wrap_ctree_remove
+#define ctree_insert_unlocked __wrap_ctree_insert_unlocked
+#define ctree_remove_unlocked __wrap_ctree_remove_unlocked
 #endif

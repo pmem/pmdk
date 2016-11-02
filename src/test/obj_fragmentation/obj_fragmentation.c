@@ -78,9 +78,10 @@ main(int argc, char *argv[])
 	do {
 		PMEMoid oid;
 		err = pmemobj_alloc(pop, &oid, alloc_size, 0, NULL, NULL);
-		allocated += pmemobj_alloc_usable_size(oid) + OBJECT_OVERHEAD;
+		if (err == 0)
+			allocated += pmemobj_alloc_usable_size(oid) +
+				OBJECT_OVERHEAD;
 	} while (err == 0);
-
 
 	float allocated_pct = ((float)allocated / file_size);
 	float overhead_pct = 1.f - allocated_pct;

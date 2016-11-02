@@ -128,6 +128,19 @@ ctree_free_internal_recursive(void *dst, ctree_destroy_cb cb, void *ctx)
 void
 ctree_delete(struct ctree *t)
 {
+	ctree_clear_unlocked(t);
+
+	util_mutex_destroy(&t->lock);
+
+	Free(t);
+}
+
+/*
+ * ctree_clear_unlocked -- removes all elements from the tree
+ */
+void
+ctree_clear_unlocked(struct ctree *t)
+{
 #if	CTREE_FAST_RECURSIVE_DELETE
 	if (t->root)
 		ctree_free_internal_recursive(t->root, NULL, NULL);
@@ -135,10 +148,18 @@ ctree_delete(struct ctree *t)
 	while (t->root)
 		ctree_remove_unlocked(t, 0, 0);
 #endif
+	t->root = NULL;
+}
 
-	util_mutex_destroy(&t->lock);
-
-	Free(t);
+/*
+ * ctree_clear -- removes all elements from the tree
+ */
+void
+ctree_clear(struct ctree *t)
+{
+	util_mutex_lock(&t->lock);
+	ctree_clear_unlocked(t);
+	util_mutex_unlock(&t->lock);
 }
 
 /*
@@ -329,6 +350,68 @@ ctree_find_le(struct ctree *t, uint64_t *key)
 {
 	util_mutex_lock(&t->lock);
 	uint64_t ret = ctree_find_le_unlocked(t, key);
+	util_mutex_unlock(&t->lock);
+	return ret;
+}
+
+/*
+ * ctree_remove_leaf -- (internal) removes provided root leaf
+ */
+static void
+ctree_remove_leaf(struct ctree *t, void **dst, void **pparent)
+{
+	/*
+	 * If the node that is being removed isn't root then simply swap the
+	 * remaining child with the parent.
+	 */
+	if (t->root == *dst) {
+		Free(*dst);
+		*dst = NULL;
+	} else {
+		struct node *parent = NODE_INTERNAL_GET(*pparent);
+		*pparent = parent->slots[parent->slots[0] == *dst];
+		/* Free the internal node and the leaf */
+		Free(*dst);
+		Free(parent);
+	}
+}
+
+/*
+ * ctree_remove_max_unlocked -- removes the biggest element from the tree
+ */
+int
+ctree_remove_max_unlocked(struct ctree *t, uint64_t *key, uint64_t *value)
+{
+	void **dst = &t->root;
+	void **p = NULL; /* parent ref */
+	struct node *a = NULL;
+
+	while (NODE_IS_INTERNAL(*dst)) {
+		a = NODE_INTERNAL_GET(*dst);
+		p = dst;
+		dst = &a->slots[1];
+	}
+
+	struct node_leaf *l = *dst;
+	if (l == NULL) {
+		return -1;
+	}
+
+	*key =  l->key;
+	*value = l->value;
+	ctree_remove_leaf(t, dst, p);
+
+	return 0;
+}
+
+/*
+ * ctree_remove_max -- removes the biggest element from the tree
+ */
+int
+ctree_remove_max(struct ctree *t, uint64_t *key, uint64_t *value)
+{
+	util_mutex_lock(&t->lock);
+	int ret = ctree_remove_max_unlocked(t, key, value);
 	util_mutex_unlock(&t->lock);
 	return ret;
 }

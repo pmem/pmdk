@@ -41,6 +41,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "container.h"
 #include "memblock.h"
 
 #define RUN_NALLOCS(_bs)\
@@ -48,31 +49,6 @@
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
 ((uint32_t)(((_size - 1) / _unit_size) + 1))
-
-enum block_container_type {
-	CONTAINER_UNKNOWN,
-	CONTAINER_CTREE,
-
-	MAX_CONTAINER_TYPE
-};
-
-struct block_container {
-	enum block_container_type type;
-	size_t unit_size; /* required only for valgrind... */
-};
-
-struct block_container_ops {
-	int (*insert)(struct block_container *c, struct palloc_heap *heap,
-		struct memory_block m);
-	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
-	int (*get_rm_bestfit)(struct block_container *c,
-		struct memory_block *m);
-	int (*get_exact)(struct block_container *c, struct memory_block m);
-	int (*is_empty)(struct block_container *c);
-};
-
-#define CNT_OP(_b, _op, ...)\
-(_b)->c_ops->_op((_b)->container, ##__VA_ARGS__)
 
 enum bucket_type {
 	BUCKET_UNKNOWN,
@@ -137,13 +113,19 @@ struct bucket_run {
 	 * remainder is returned back to the bucket.
 	 */
 	unsigned unit_max_alloc;
+
+	struct memory_block active_memory_block;
+	int is_active;
 };
 
-struct bucket_huge *bucket_huge_new(uint8_t id, enum block_container_type ctype,
+struct bucket_huge *bucket_huge_new(uint8_t id, struct block_container *c,
 	size_t unit_size);
 
-struct bucket_run *bucket_run_new(uint8_t id, enum block_container_type ctype,
+struct bucket_run *bucket_run_new(uint8_t id, struct block_container *c,
 	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc);
+
+int bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
+		struct memory_block m);
 
 void bucket_delete(struct bucket *b);
 
