@@ -240,10 +240,7 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if (!ob->pa->no_warmup) {
-		if (do_warmup(ob)) {
-			fprintf(stderr, "do_warmup() function failed.");
-			goto free_objs;
-		}
+		do_warmup(ob);
 	}
 
 	return 0;

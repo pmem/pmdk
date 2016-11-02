@@ -192,7 +192,9 @@ do_warmup(struct rpmem_bench *mb, size_t nops)
 
 	memset(mb->addrp, 0, len);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		rpmem_persist(mb->rpp[r], (size_t)0, len, 0);
+		int ret = rpmem_persist(mb->rpp[r], (size_t)0, len, 0);
+		if (ret)
+			return ret;
 	}
 
 	return 0;

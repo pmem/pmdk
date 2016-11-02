@@ -369,12 +369,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 				libpmem_memset_persist : libpmem_memset_nodrain;
 
 	if (!mb->pargs->no_warmup) {
-		if (do_warmup(
-			mb, args->n_threads * args->n_ops_per_thread) != 0) {
-			fprintf(stderr, "do_warmup() function failed.");
-			ret = -1;
-			goto err_unmap;
-		}
+		do_warmup(mb, args->n_threads * args->n_ops_per_thread);
 	}
 
 	pmembench_set_priv(bench, mb);
