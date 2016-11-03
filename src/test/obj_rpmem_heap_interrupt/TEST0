@@ -85,6 +85,8 @@ create_holey_file_on_node 0 9M ${NODE_DIRS[0]}/$TEST_FILE_REMOTE
 
 # execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL c 0
+expect_normal_exit run_on_node 1 ../pmempool rm -sf $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool create --layout heap_interrupt obj $TEST_SET_LOCAL
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL o 0
 
 # download pools and compare them

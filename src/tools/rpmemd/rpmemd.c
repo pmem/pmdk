@@ -40,6 +40,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -61,12 +62,16 @@ struct rpmemd {
 	struct rpmemd_obc *obc;	/* out-of-band connection handle */
 	struct rpmemd_db *db;	/* pool set database handle */
 	struct rpmemd_db_pool *pool; /* pool handle */
+	char *pool_desc;	/* pool descriptor */
 	struct rpmemd_fip *fip;	/* fabric provider handle */
 	struct rpmemd_config config; /* configuration */
 	size_t nthreads;	/* number of processing threads */
 	enum rpmem_persist_method persist_method;
 	void (*persist)(const void *addr, size_t len); /* used for GPSPM */
 	int closing;		/* set when closing connection */
+	int created;		/* pool created */
+	pthread_t fip_thread;
+	int fip_running;
 };
 
 #ifdef DEBUG
@@ -246,6 +251,9 @@ rpmemd_print_pool_attr(const struct rpmem_pool_attr *attr)
 	RPMEMD_LOG(INFO, "\tprev_uuid: %s", uuid2str(attr->prev_uuid));
 }
 
+/*
+ * rpmemd_print_resp_attr -- print response attributes
+ */
 static void
 rpmemd_print_resp_attr(const struct rpmem_resp_attr *attr)
 {
@@ -255,6 +263,149 @@ rpmemd_print_resp_attr(const struct rpmem_resp_attr *attr)
 	RPMEMD_LOG(NOTICE, "\tnlanes: %u", attr->nlanes);
 	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
 			rpmem_persist_method_to_str(attr->persist_method));
+}
+
+/*
+ * rpmemd_fip_thread -- background thread for establishing in-band connection
+ */
+static void *
+rpmemd_fip_thread(void *arg)
+{
+	struct rpmemd *rpmemd = (struct rpmemd *)arg;
+	int ret;
+
+	RPMEMD_LOG(INFO, "waiting for in-band connection");
+
+	ret = rpmemd_fip_accept(rpmemd->fip, RPMEM_ACCEPT_TIMEOUT);
+	if (ret)
+		goto err_accept;
+
+	RPMEMD_LOG(NOTICE, "in-band connection established");
+
+	ret = rpmemd_fip_process_start(rpmemd->fip);
+	if (ret)
+		goto err_process_start;
+
+	return NULL;
+err_process_start:
+	rpmemd_fip_close(rpmemd->fip);
+err_accept:
+	return (void *)(uintptr_t)ret;
+}
+
+/*
+ * rpmemd_fip_start_thread -- start background thread for establishing
+ * in-band connection
+ */
+static int
+rpmemd_fip_start_thread(struct rpmemd *rpmemd)
+{
+	errno = pthread_create(&rpmemd->fip_thread, NULL,
+			rpmemd_fip_thread, rpmemd);
+	if (errno) {
+		RPMEMD_LOG(ERR, "!creating in-band thread");
+		goto err_pthread_create;
+	}
+
+	rpmemd->fip_running = 1;
+
+	return 0;
+err_pthread_create:
+	return -1;
+}
+
+/*
+ * rpmemd_fip_stop_thread -- stop background thread for in-band connection
+ */
+static int
+rpmemd_fip_stop_thread(struct rpmemd *rpmemd)
+{
+	RPMEMD_ASSERT(rpmemd->fip_running);
+	void *tret;
+	errno = pthread_join(rpmemd->fip_thread, &tret);
+	if (errno)
+		RPMEMD_LOG(ERR, "!waiting for in-band thread");
+
+	int ret = (int)(uintptr_t)tret;
+	if (ret)
+		RPMEMD_LOG(ERR, "in-band thread failed -- '%d'", ret);
+
+	return ret;
+}
+
+/*
+ * rpmemd_fip-stop -- stop in-band thread and stop processing thread
+ */
+static int
+rpmemd_fip_stop(struct rpmemd *rpmemd)
+{
+	int ret;
+
+	int fip_ret = rpmemd_fip_stop_thread(rpmemd);
+	if (fip_ret) {
+		RPMEMD_LOG(ERR, "!in-band thread failed");
+	}
+
+	if (!fip_ret) {
+		ret = rpmemd_fip_process_stop(rpmemd->fip);
+		if (ret) {
+			RPMEMD_LOG(ERR, "!stopping fip process failed");
+		}
+	}
+
+	rpmemd->fip_running = 0;
+
+	return fip_ret;
+}
+
+/*
+ * rpmemd_close_pool -- close pool and remove it if required
+ */
+static int
+rpmemd_close_pool(struct rpmemd *rpmemd, int remove)
+{
+	int ret = 0;
+
+	RPMEMD_LOG(NOTICE, "closing pool");
+	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
+	RPMEMD_LOG(INFO, "pool closed");
+
+	if (remove) {
+		RPMEMD_LOG(NOTICE, "removing '%s'", rpmemd->pool_desc);
+		ret = rpmemd_db_pool_remove(rpmemd->db, rpmemd->pool_desc, 0);
+		if (ret) {
+			RPMEMD_LOG(ERR, "!removing pool '%s' failed",
+					rpmemd->pool_desc);
+		} else {
+			RPMEMD_LOG(INFO, "removed '%s'", rpmemd->pool_desc);
+		}
+	}
+
+	free(rpmemd->pool_desc);
+
+	return ret;
+}
+
+/*
+ * rpmemd_req_cleanup -- cleanup in-band connection and all resources allocated
+ * during open/create requests
+ */
+static void
+rpmemd_req_cleanup(struct rpmemd *rpmemd)
+{
+	if (!rpmemd->fip_running)
+		return;
+
+	int ret;
+
+	ret = rpmemd_fip_stop(rpmemd);
+	if (!ret) {
+		rpmemd_fip_close(rpmemd->fip);
+		rpmemd_fip_fini(rpmemd->fip);
+	}
+
+	int remove = rpmemd->created && ret;
+	rpmemd_close_pool(rpmemd, remove);
 }
 
 /*
@@ -281,17 +432,29 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 
 	if (rpmemd->pool) {
 		RPMEMD_LOG(ERR, "pool already opened");
+		ret = -1;
 		status = RPMEM_ERR_FATAL;
 		goto err_pool_opened;
+	}
+
+	rpmemd->pool_desc = strdup(req->pool_desc);
+	if (!rpmemd->pool_desc) {
+		RPMEMD_LOG(ERR, "!allocating pool descriptor");
+		ret = -1;
+		status = RPMEM_ERR_FATAL;
+		goto err_strdup;
 	}
 
 	rpmemd->pool = rpmemd_db_pool_create(rpmemd->db,
 			req->pool_desc,
 			0, (struct rpmem_pool_attr *)pool_attr);
 	if (!rpmemd->pool) {
+		ret = -1;
 		status = rpmemd_db_get_status(errno);
 		goto err_pool_create;
 	}
+
+	rpmemd->created = 1;
 
 	ret = rpmemd_check_pool(rpmemd, req, &status);
 	if (ret)
@@ -305,39 +468,25 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 	if (!status)
 		rpmemd_print_resp_attr(&resp);
 	ret = rpmemd_obc_create_resp(rpmemd->obc, status, &resp);
-	if (ret) {
-		err_send = 0;
+	if (ret)
 		goto err_create_resp;
-	}
 
-	RPMEMD_LOG(INFO, "waiting for in-band connection");
-
-	ret = rpmemd_fip_accept(rpmemd->fip);
-	if (ret) {
-		status = RPMEM_ERR_FATAL_CONN;
-		goto err_accept;
-	}
-
-	RPMEMD_LOG(NOTICE, "in-band connection established");
-
-	ret = rpmemd_fip_process_start(rpmemd->fip);
-	if (ret) {
-		status = RPMEM_ERR_FATAL_CONN;
-		goto err_process_start;
-	}
+	ret = rpmemd_fip_start_thread(rpmemd);
+	if (ret)
+		goto err_fip_start;
 
 	return 0;
-err_process_start:
-	rpmemd_fip_close(rpmemd->fip);
-err_accept:
-	err_send = 0;
+err_fip_start:
 err_create_resp:
+	err_send = 0;
 	rpmemd_fip_fini(rpmemd->fip);
 err_fip_init:
 err_pool_check:
 	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
 	rpmemd_db_pool_remove(rpmemd->db, req->pool_desc, 0);
 err_pool_create:
+	free(rpmemd->pool_desc);
+err_strdup:
 err_pool_opened:
 	if (err_send)
 		ret = rpmemd_obc_create_resp(rpmemd->obc, status, &resp);
@@ -355,7 +504,6 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 	RPMEMD_ASSERT(arg != NULL);
 	RPMEMD_LOG(NOTICE, "open request:");
 	rpmemd_print_req_attr(req);
-
 	struct rpmemd *rpmemd = (struct rpmemd *)arg;
 
 	int ret;
@@ -369,13 +517,23 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 
 	if (rpmemd->pool) {
 		RPMEMD_LOG(ERR, "pool already opened");
+		ret = -1;
 		status = RPMEM_ERR_FATAL;
 		goto err_pool_opened;
+	}
+
+	rpmemd->pool_desc = strdup(req->pool_desc);
+	if (!rpmemd->pool_desc) {
+		RPMEMD_LOG(ERR, "!allocating pool descriptor");
+		ret = -1;
+		status = RPMEM_ERR_FATAL;
+		goto err_strdup;
 	}
 
 	rpmemd->pool = rpmemd_db_pool_open(rpmemd->db,
 			req->pool_desc, 0, &pool_attr);
 	if (!rpmemd->pool) {
+		ret = -1;
 		status = rpmemd_db_get_status(errno);
 		goto err_pool_open;
 	}
@@ -396,38 +554,24 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 		rpmemd_print_resp_attr(&resp);
 
 	ret = rpmemd_obc_open_resp(rpmemd->obc, status, &resp, &pool_attr);
-	if (ret) {
-		err_send = 0;
+	if (ret)
 		goto err_open_resp;
-	}
 
-	RPMEMD_LOG(INFO, "waiting for in-band connection");
-
-	ret = rpmemd_fip_accept(rpmemd->fip);
-	if (ret) {
-		status = RPMEM_ERR_FATAL_CONN;
-		goto err_accept;
-	}
-
-	RPMEMD_LOG(NOTICE, "in-band connection established");
-
-	ret = rpmemd_fip_process_start(rpmemd->fip);
-	if (ret) {
-		status = RPMEM_ERR_FATAL_CONN;
-		goto err_process_start;
-	}
+	ret = rpmemd_fip_start_thread(rpmemd);
+	if (ret)
+		goto err_fip_start;
 
 	return 0;
-err_process_start:
-	rpmemd_fip_close(rpmemd->fip);
-err_accept:
-	err_send = 0;
+err_fip_start:
 err_open_resp:
+	err_send = 0;
 	rpmemd_fip_fini(rpmemd->fip);
 err_fip_init:
 err_pool_check:
 	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
 err_pool_open:
+	free(rpmemd->pool_desc);
+err_strdup:
 err_pool_opened:
 	if (err_send)
 		ret = rpmemd_obc_open_resp(rpmemd->obc, status,
@@ -458,21 +602,19 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 		return rpmemd_obc_close_resp(rpmemd->obc, status);
 	}
 
-	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
-
-	ret = rpmemd_fip_process_stop(rpmemd->fip);
+	ret = rpmemd_fip_stop(rpmemd);
 	if (ret) {
-		RPMEMD_LOG(ERR, "!stopping fip process failed");
-		status = errno;
+		status = RPMEM_ERR_FATAL;
+	} else {
+		rpmemd_fip_close(rpmemd->fip);
+		rpmemd_fip_fini(rpmemd->fip);
 	}
+
+	int remove = rpmemd->created && status;
+	ret = rpmemd_close_pool(rpmemd, remove);
 
 	RPMEMD_LOG(NOTICE, "close request response (status = %u)", status);
 	ret = rpmemd_obc_close_resp(rpmemd->obc, status);
-	if (!ret)
-		rpmemd_fip_wait_close(rpmemd->fip, -1);
-
-	rpmemd_fip_close(rpmemd->fip);
-	rpmemd_fip_fini(rpmemd->fip);
 
 	return ret;
 }
@@ -608,6 +750,7 @@ main(int argc, char *argv[])
 
 	return 0;
 err:
+	rpmemd_req_cleanup(rpmemd);
 err_status:
 out_rm:
 	rpmemd_db_fini(rpmemd->db);

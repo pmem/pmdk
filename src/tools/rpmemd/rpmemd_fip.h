@@ -55,7 +55,7 @@ struct rpmemd_fip *rpmemd_fip_init(const char *node,
 		enum rpmem_err *err);
 void rpmemd_fip_fini(struct rpmemd_fip *fip);
 
-int rpmemd_fip_accept(struct rpmemd_fip *fip);
+int rpmemd_fip_accept(struct rpmemd_fip *fip, int timeout);
 int rpmemd_fip_process_start(struct rpmemd_fip *fip);
 int rpmemd_fip_process_stop(struct rpmemd_fip *fip);
 int rpmemd_fip_wait_close(struct rpmemd_fip *fip, int timeout);

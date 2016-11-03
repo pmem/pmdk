@@ -115,6 +115,8 @@ err_realloc:
 static void
 rpmem_cmd_log(struct rpmem_cmd *cmd)
 {
+	RPMEM_ASSERT(cmd->args.argc > 0);
+
 	size_t size = 0;
 	for (int i = 0; i < cmd->args.argc; i++) {
 		size += strlen(cmd->args.argv[i]) + 1;

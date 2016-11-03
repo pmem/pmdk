@@ -1186,7 +1186,7 @@ rpmem_fip_connect(struct rpmem_fip *fip)
 	}
 
 	ret = rpmem_fip_read_eq(fip->eq, &entry, FI_CONNECTED,
-			&fip->ep->fid, -1);
+			&fip->ep->fid, RPMEM_CONNECT_TIMEOUT);
 	if (ret)
 		goto err_fi_eq_read;
 
@@ -1215,12 +1215,6 @@ rpmem_fip_close(struct rpmem_fip *fip)
 		RPMEM_FI_ERR(ret, "disconnecting endpoint");
 		lret = ret;
 	}
-
-	struct fi_eq_cm_entry entry;
-	ret = rpmem_fip_read_eq(fip->eq, &entry, FI_SHUTDOWN,
-			&fip->ep->fid, -1);
-	if (ret)
-		lret = ret;
 
 	ret = rpmem_fip_fini_ep(fip);
 	if (ret)

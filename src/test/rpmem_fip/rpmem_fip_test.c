@@ -380,7 +380,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 
 	server_exchange_end(resp);
 
-	ret = rpmemd_fip_accept(fip);
+	ret = rpmemd_fip_accept(fip, -1);
 	UT_ASSERTeq(ret, 0);
 
 	server_close_begin();
@@ -438,7 +438,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 
 	server_exchange_end(resp);
 
-	ret = rpmemd_fip_accept(fip);
+	ret = rpmemd_fip_accept(fip, -1);
 	UT_ASSERTeq(ret, 0);
 
 	ret = rpmemd_fip_process_start(fip);
@@ -748,7 +748,7 @@ int
 main(int argc, char *argv[])
 {
 	/* workaround for left-opened files by libfabric */
-	rpmem_fip_probe_get(NULL, NULL);
+	rpmem_fip_probe_get("localhost", NULL);
 	START(argc, argv, "rpmem_obc");
 	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
