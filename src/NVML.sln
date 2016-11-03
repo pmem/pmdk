@@ -217,6 +217,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_mix_allocations", "tes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_delete", "test\vmem_delete\vmem_delete.vcxproj", "{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signal_handle", "test\signal_handle\signal_handle.vcxproj", "{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_mmap", "test\win_mmap\win_mmap.vcxproj", "{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
