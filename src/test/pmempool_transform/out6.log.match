@@ -20,7 +20,7 @@ REPLICA
 20M $(nW)/testfile21
 
 error: Invalid argument
-error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out2: Source poolset is broken
+error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out2: source poolset is broken
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : 2

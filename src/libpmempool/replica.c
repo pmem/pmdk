@@ -102,7 +102,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 
 	if (unlink(part->path)) {
 		if (errno != ENOENT) {
-			ERR("Removing part %u from replica %u failed",
+			ERR("removing part %u from replica %u failed",
 					partn, repn);
 			return -1;
 		}
@@ -640,7 +640,7 @@ check_poolset_uuids(struct pool_set *set,
 {
 	unsigned r_h = replica_find_healthy_replica(set_hs);
 	if (r_h == UNDEF_REPLICA) {
-		ERR("No healthy replica. Cannot synchronize.");
+		ERR("no healthy replica. Cannot synchronize.");
 		return -1;
 	}
 
@@ -870,21 +870,21 @@ pmempool_sync(const char *poolset, unsigned flags)
 
 	/* check if poolset has correct signature */
 	if (util_is_poolset_file(poolset) != 1) {
-		ERR("File is not a poolset file");
+		ERR("file is not a poolset file");
 		goto err;
 	}
 
 	/* open poolset file */
 	int fd = util_file_open(poolset, NULL, 0, O_RDONLY);
 	if (fd < 0) {
-		ERR("Cannot open a poolset file");
+		ERR("cannot open a poolset file");
 		goto err;
 	}
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;
 	if (util_poolset_parse(&set, poolset, fd)) {
-		ERR("Parsing input poolset failed");
+		ERR("parsing input poolset failed");
 		goto err_close_file;
 	}
 	if (set->remote) {
@@ -929,27 +929,27 @@ pmempool_transform(const char *poolset_file_src,
 
 	/* check if the source poolset has correct signature */
 	if (util_is_poolset_file(poolset_file_src) != 1) {
-		ERR("Source file is not a poolset file");
+		ERR("source file is not a poolset file");
 		goto err;
 	}
 
 	/* check if the destination poolset has correct signature */
 	if (util_is_poolset_file(poolset_file_dst) != 1) {
-		ERR("Destination file is not a poolset file");
+		ERR("destination file is not a poolset file");
 		goto err;
 	}
 
 	/* open the source poolset file */
 	int fd_in = util_file_open(poolset_file_src, NULL, 0, O_RDONLY);
 	if (fd_in < 0) {
-		ERR("Cannot open source poolset file");
+		ERR("cannot open source poolset file");
 		goto err;
 	}
 
 	/* parse the source poolset file */
 	struct pool_set *set_in = NULL;
 	if (util_poolset_parse(&set_in, poolset_file_src, fd_in)) {
-		ERR("Parsing source poolset failed");
+		ERR("parsing source poolset failed");
 		close(fd_in);
 		goto err;
 	}
@@ -958,14 +958,14 @@ pmempool_transform(const char *poolset_file_src,
 	/* open the destination poolset file */
 	int fd_out = util_file_open(poolset_file_dst, NULL, 0, O_RDONLY);
 	if (fd_out < 0) {
-		ERR("Cannot open destination poolset file");
+		ERR("cannot open destination poolset file");
 		goto err;
 	}
 
 	/* parse the destination poolset file */
 	struct pool_set *set_out = NULL;
 	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out)) {
-		ERR("Parsing destination poolset failed");
+		ERR("parsing destination poolset failed");
 		close(fd_out);
 		goto err_free_poolin;
 	}
@@ -973,18 +973,18 @@ pmempool_transform(const char *poolset_file_src,
 
 	/* check if the source poolset is of a correct type */
 	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
-		ERR("Source poolset is of a wrong type");
+		ERR("source poolset is of a wrong type");
 		goto err_free_poolout;
 	}
 
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
 	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
-		ERR("Source poolset health check failed");
+		ERR("source poolset health check failed");
 		goto err_free_poolout;
 	}
 	if (!replica_is_poolset_healthy(set_in_hs)) {
-		ERR("Source poolset is broken");
+		ERR("source poolset is broken");
 		replica_free_poolset_health_status(set_in_hs);
 		goto err_free_poolout;
 	}
@@ -992,7 +992,7 @@ pmempool_transform(const char *poolset_file_src,
 
 	/* transform poolset */
 	if (transform_replica(set_in, set_out, flags)) {
-		ERR("Transformation failed");
+		ERR("transformation failed");
 		goto err_free_poolin;
 	}
 

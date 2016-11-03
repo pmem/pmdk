@@ -292,7 +292,7 @@ btt_info_gen_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 		/* other parameters can be calculated */
 		if (btt_info_set(bttd, btts->external_lbasize, btts->nfree,
 				arena_size, space_left)) {
-			CHECK_ERR(ppc, "Can not restore BTT Info");
+			CHECK_ERR(ppc, "can not restore BTT Info");
 			return -1;
 		}
 
