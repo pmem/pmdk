@@ -687,6 +687,7 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
 
 extern unsigned long Ut_pagesize;
 extern unsigned long long Ut_mmap_align;
+extern pthread_mutex_t Sigactions_lock;
 
 void ut_dump_backtrace(void);
 void ut_sighandler(int);
