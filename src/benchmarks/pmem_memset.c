@@ -216,7 +216,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 /*
  * do_warmup -- does the warmup by writing the whole pool area
  */
-static int
+static void
 do_warmup(struct memset_bench *mb, size_t nops)
 {
 	void *dest = mb->pmem_addr;
@@ -224,8 +224,6 @@ do_warmup(struct memset_bench *mb, size_t nops)
 	size_t len = mb->fsize;
 
 	pmem_memset_persist(dest, c, len);
-
-	return 0;
 }
 
 /*
@@ -369,20 +367,13 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 				libpmem_memset_persist : libpmem_memset_nodrain;
 
 	if (!mb->pargs->no_warmup) {
-		if (do_warmup(
-			mb, args->n_threads * args->n_ops_per_thread) != 0) {
-			fprintf(stderr, "do_warmup() function failed.");
-			ret = -1;
-			goto err_unmap;
-		}
+		do_warmup(mb, args->n_threads * args->n_ops_per_thread);
 	}
 
 	pmembench_set_priv(bench, mb);
 
 	return 0;
 
-err_unmap:
-	pmem_unmap(mb->pmem_addr, mb->fsize);
 err_free_offsets:
 	free(mb->offsets);
 err_free_mb:
