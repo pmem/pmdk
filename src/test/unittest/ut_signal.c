@@ -40,12 +40,31 @@
 /*
  * On Windows, Access Violation exception does not raise SIGSEGV signal.
  * The trick is to catch the exception and... call the signal handler.
- *
- * XXX - add support for registering more than one signal/exception handler
  */
 
-static void (*Sa_handler) (int signum);
-static int Signum;
+struct signal_handler {
+	int signum;
+	void(*Sa_handler)(int);
+};
+
+static int defined_handlers = 0;
+
+/*
+ * find_handler_index -- retreive signals array to find assigned handler
+ */
+int
+find_handler_index(int signum)
+{
+	int used_handler = -1;
+
+	for (int i = 0; i < defined_handlers; i++) {
+		if (Sa_handler_tab[i].signum == signum) {
+			used_handler = i;
+			break;
+		}
+	}
+	return used_handler;
+}
 
 /*
  * exception_handler -- called for unhandled exceptions
@@ -54,9 +73,36 @@ static LONG CALLBACK
 exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
 {
 	DWORD excode = ExceptionInfo->ExceptionRecord->ExceptionCode;
-	if (excode == EXCEPTION_ACCESS_VIOLATION)
-		Sa_handler(Signum);
+	if (excode == EXCEPTION_ACCESS_VIOLATION) {
+		int index = find_handler_index(SIGSEGV);
+		if (index == -1) {
+			UT_FATAL("!signal: %d is not defined in handler array",
+				SIGSEGV);
+		} else {
+			Sa_handler_tab[index].Sa_handler(SIGSEGV);
+		}
+	}
 	return EXCEPTION_CONTINUE_EXECUTION;
+}
+
+/*
+ * exception_handler_sig_wrapper - called for set handler default func,
+ * by default after execution exception handler func value is set to
+ * SIG_DFL, this enables handle more than one exceptions
+ * without new signal initialization
+ */
+static void
+exception_handler_sig_wrapper(int signum)
+{
+	_crt_signal_t retval = signal(signum, exception_handler_sig_wrapper);
+	if (retval == SIG_ERR)
+		UT_FATAL("!signal: %d", signum);
+
+	int index = find_handler_index(signum);
+	if (index == -1)
+		UT_FATAL("!signal: %d is not defined in handler array", signum);
+	else
+		Sa_handler_tab[index].Sa_handler(signum);
 }
 #endif
 
@@ -73,16 +119,43 @@ ut_sigaction(const char *file, int line, const char *func,
 		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
 	return retval;
 #else
+	int handler_assigned = 0;
+
+	if (Sa_handler_tab == NULL) {
+		Sa_handler_tab = (struct signal_handler *)
+			MALLOC(sizeof(struct signal_handler));
+		Sa_handler_tab->signum = signum;
+		Sa_handler_tab->Sa_handler = act->sa_handler;
+		defined_handlers++;
+		handler_assigned = 1;
+	}
+
+	for (int i = 0; i < defined_handlers && handler_assigned != 1; i++) {
+		if (Sa_handler_tab[i].signum == signum) {
+			Sa_handler_tab[i].Sa_handler = act->sa_handler;
+			handler_assigned = 1;
+			break;
+		}
+	}
+
+	if (handler_assigned == 0) {
+		Sa_handler_tab = (struct signal_handler *)
+			REALLOC(Sa_handler_tab,
+			sizeof(struct signal_handler) * (defined_handlers + 1));
+		Sa_handler_tab[defined_handlers].signum = signum;
+		Sa_handler_tab[defined_handlers].Sa_handler =
+			act->sa_handler;
+		defined_handlers++;
+	}
+
 	if (signum == SIGABRT) {
 		ut_suppress_errmsg();
 	}
 	if (signum == SIGSEGV) {
-		Sa_handler = act->sa_handler;
-		Signum = signum;
 		AddVectoredExceptionHandler(0, exception_handler);
 	}
 
-	_crt_signal_t retval = signal(signum, act->sa_handler);
+	_crt_signal_t retval = signal(signum, exception_handler_sig_wrapper);
 	if (retval == SIG_ERR)
 		ut_fatal(file, line, func, "!signal: %d", signum);
 
