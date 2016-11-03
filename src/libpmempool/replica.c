@@ -44,6 +44,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #include "obj.h"
 #include "file.h"
@@ -107,7 +108,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 			return -1;
 		}
 	}
-	LOG(1, "Removed part %s number %u from replica %u", part->path, partn,
+	LOG(1, "removed part %s number %u from replica %u", part->path, partn,
 			repn);
 	return 0;
 }
@@ -370,7 +371,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		if (rep->remote) {
 			if (util_replica_open_remote(set, r, 0)) {
-				LOG(1, "Cannot open remote replica");
+				LOG(1, "cannot open remote replica");
 				return -1;
 			}
 
@@ -387,7 +388,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
-				LOG(1, "Part file %s is not accessible",
+				LOG(1, "part file %s is not accessible",
 						rep->part[p].path);
 				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
@@ -395,7 +396,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 					continue;
 			}
 			if (util_part_open(&rep->part[p], 0, 0)) {
-				LOG(1, "Opening part %s failed",
+				LOG(1, "opening part %s failed",
 						rep->part[p].path);
 				rep_hs->part[p] |= IS_BROKEN;
 			}
@@ -724,6 +725,58 @@ check_uuids_between_replicas(struct pool_set *set,
 }
 
 /*
+ * check_replica_cycles -- (internal) check if all parts are large enough
+ */
+static int
+check_replica_cycles(struct pool_set *set,
+		struct poolset_health_status *set_hs)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		unsigned first_healthy;
+		unsigned count_healthy = 0;
+		if (replica_is_replica_healthy(r, set_hs)) {
+			if (count_healthy == 0)
+				first_healthy = r;
+
+			++count_healthy;
+			struct pool_hdr *hdrh =
+					PART(REP(set, first_healthy), 0).hdr;
+			struct pool_hdr *hdr = PART(REP(set, r), 0).hdr;
+			if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
+					count_healthy < set->nreplicas) {
+				/*
+				 * healthy replicas form a cycle shorter than
+				 * the number of all replicas; for the user it
+				 * means that:
+				 */
+				ERR("there exist healthy replicas which come"
+					" from a different poolset file");
+				return -1;
+			}
+		} else {
+			count_healthy = 0;
+		}
+	}
+	return 0;
+}
+
+/*
+ * check_replica_sizes -- (internal) check if all replicas are large
+ *	enough to hold data from a healthy replica
+ */
+static int
+check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
+{
+	unsigned healthy_replica = replica_find_healthy_replica(set_hs);
+	if (set->poolsize < replica_get_pool_size(set, healthy_replica)) {
+		ERR("some replicas are too small to hold synchronized data");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * replica_check_poolset_health -- check if a given poolset can be considered as
  *                         healthy, and store the status in a helping structure
  */
@@ -732,7 +785,7 @@ replica_check_poolset_health(struct pool_set *set,
 		struct poolset_health_status **set_hsp, unsigned flags)
 {
 	if (replica_create_poolset_health_status(set, set_hsp)) {
-		LOG(1, "Creating poolset health status failed");
+		LOG(1, "creating poolset health status failed");
 		return -1;
 	}
 
@@ -749,24 +802,37 @@ replica_check_poolset_health(struct pool_set *set,
 
 	/* check if uuids in parts across each replica are consistent */
 	if (check_replicas_consistency(set, set_hs)) {
-		LOG(1, "Replica consistency check failed");
+		LOG(1, "replica consistency check failed");
 		goto err;
 	}
 
 	/* check poolset_uuid values between replicas */
 	if (check_poolset_uuids(set, set_hs)) {
-		LOG(1, "Poolset uuids check failed");
+		LOG(1, "poolset uuids check failed");
 		goto err;
 	}
 
 	/* check if uuids for adjacent replicas are consistent */
 	if (check_uuids_between_replicas(set, set_hs)) {
-		LOG(1, "Replica uuids check failed");
+		LOG(1, "replica uuids check failed");
+		goto err;
+	}
+
+	/* check if healthy replicas make up another poolset */
+	if ((flags & IS_TRANSFORMED) == 0 &&
+			check_replica_cycles(set, set_hs)) {
+		LOG(1, "replica cycles check failed");
+		goto err;
+	}
+
+	/* check if replicas are large enough */
+	if (check_replica_sizes(set, set_hs)) {
+		LOG(1, "replica sizes check failed");
 		goto err;
 	}
 
 	if (check_store_all_sizes(set, set_hs)) {
-		LOG(1, "Reading pool sizes failed");
+		LOG(1, "reading pool sizes failed");
 		goto err;
 	}
 
@@ -790,26 +856,75 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 {
 	struct pool_set_part *part = &PART(REP(set, repn), 0);
 	int should_close_part = 0;
+	int should_unmap_part = 0;
 	if (part->fd == -1) {
 		if (util_part_open(part, 0, 0))
 			return set->poolsize;
 
+		should_close_part = 1;
+	}
+
+	if (part->addr == NULL) {
 		if (util_map_part(part, NULL, sizeof(PMEMobjpool), 0,
 				MAP_PRIVATE|MAP_NORESERVE)) {
 			util_part_fdclose(part);
 			return set->poolsize;
 		}
-		should_close_part = 1;
+		should_unmap_part = 1;
 	}
 
 	PMEMobjpool *pop = (PMEMobjpool *)part->addr;
 	size_t ret = pop->heap_offset + pop->heap_size;
 
-	if (should_close_part) {
+	if (should_unmap_part)
 		util_unmap_part(part);
+	if (should_close_part)
 		util_part_fdclose(part);
-	}
+
 	return ret;
+}
+
+/*
+ * replica_check_part_sizes -- check if all parts are large enough
+ */
+int
+replica_check_part_sizes(struct pool_set *set, size_t min_size)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (PART(rep, p).filesize < min_size) {
+				ERR("some part files are too small");
+				return -1;
+			}
+		}
+	}
+	return 0;
+}
+
+/*
+ * check_part_dirs -- (internal) check if directories for part files exist
+ */
+int
+check_part_dirs(struct pool_set *set)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			char *path = strdup(PART(rep, p).path);
+			const char *dir = dirname(path);
+			struct stat sb;
+			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+				ERR("a directory %s for part %u in replica %u"
+					" does not exist or is not accessible",
+					path, p, r);
+				free(path);
+				return -1;
+			}
+			free(path);
+		}
+	}
+	return 0;
 }
 
 /*
@@ -848,7 +963,7 @@ replica_open_poolset_part_files(struct pool_set *set)
 		if (set->replica[r]->remote)
 			continue;
 		if (replica_open_replica_part_files(set, r)) {
-			LOG(1, "Opening replica %u, part files failed", r);
+			LOG(1, "opening replica %u, part files failed", r);
 			goto err;
 		}
 	}
@@ -896,7 +1011,7 @@ pmempool_sync(const char *poolset, unsigned flags)
 
 	/* sync all replicas */
 	if (sync_replica(set, flags)) {
-		LOG(1, "Synchronization failed");
+		LOG(1, "synchronization failed");
 		goto err_close_all;
 	}
 
