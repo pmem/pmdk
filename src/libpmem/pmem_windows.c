@@ -47,6 +47,7 @@
 int
 is_direct_mapped(const void *begin, const void *end)
 {
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 	int retval = 1;
 	WIN32_MEMORY_REGION_INFORMATION region_info;
 	SIZE_T bytes_returned;
@@ -75,8 +76,12 @@ is_direct_mapped(const void *begin, const void *end)
 			break;
 		}
 	}
-
 	return retval;
+#else
+	/* if the MM API is not available the safest answer is NO */
+	return 0;
+#endif	/* NTDDI_VERSION >= NTDDI_WIN10_RS1 */
+
 }
 
 /*
