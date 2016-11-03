@@ -38,6 +38,7 @@ BIN_FILE="utils\/check_license\/check-license"
 LIC_FILE="LICENSE"
 
 PWD=`pwd -P`
+SELF=$0
 SELF_FULL=`echo "$PWD/$0" | sed "s/\/\.\//\//g" `
 NVML=`echo $SELF_FULL | sed "s/$SH_FILE//g" `
 LICENSE=`echo $SELF_FULL | sed "s/$SH_FILE/$LIC_FILE/g" `
@@ -56,15 +57,12 @@ function exit_if_not_exist()
 }
 
 if [ "$1" == "-h" -o "$1" == "--help" ]; then
-	echo "Usage: $0 [-h|-v]"
+	echo "Usage: $0 [-h|-v|-a]"
 	echo "   -h, --help      this help message"
 	echo "   -v, --verbose   verbose mode"
+	echo "   -a, --all       check all files (only modified files are checked by default)"
 	exit 0
 fi
-
-[ "$1" == "-v" -o "$1" == "--verbose" ] && VERBOSE=1 || VERBOSE=0
-
-echo "Checking copyright headers..."
 
 exit_if_not_exist $LICENSE
 exit_if_not_exist $CHECK_LICENSE
@@ -73,21 +71,61 @@ git rev-parse || exit 1
 
 if [ -f $NVML/.git/shallow ]; then
 	SHALLOW_CLONE=1
+	echo
 	echo "Warning: This is a shallow clone. Checking dates in copyright headers"
 	echo "         will be skipped in case of files that have no history."
+	echo
 else
 	SHALLOW_CLONE=0
 fi
 
-FILES=`git ls-tree -r --name-only HEAD | \
-	grep -v -E -e 'jemalloc' -e 'queue.h' -e 'ListEntry.h' \
-		   -e 'getopt.h' -e 'getopt.c' | \
-	grep    -E -e '*\.[ch]$' -e '*\.[ch]pp$' -e '*\.sh$' \
-		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' | \
-	xargs`
+VERBOSE=0
+CHECK_ALL=0
+while [ "$1" != "" ]; do
+	case $1 in
+	-v|--verbose)
+		VERBOSE=1
+		;;
+	-a|--all)
+		CHECK_ALL=1
+		;;
+	esac
+	shift
+done
 
-FILES="$FILES $NVML/src/common.inc $NVML/src/jemalloc/jemalloc.mk \
-	$NVML/src/test/match $NVML/utils/check_whitespace $NVML/LICENSE"
+if [ $CHECK_ALL -eq 0 ]; then
+	CURRENT_COMMIT=$(git log --pretty=%H -1)
+	MERGE_BASE=$(git merge-base HEAD origin/master 2>/dev/null)
+	[ -z $MERGE_BASE ] && \
+		MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+	[ -z $MERGE_BASE -o "$CURRENT_COMMIT" = "$MERGE_BASE" ] && \
+		CHECK_ALL=1
+fi
+
+if [ $CHECK_ALL -eq 1 ]; then
+	echo "Checking copyright headers of all files..."
+	GIT_COMMAND="ls-tree -r --name-only HEAD"
+else
+	echo
+	echo "Warning: will check copyright headers of modified files only,"
+	echo "         in order to check all files issue the following command:"
+	echo "         $ $SELF -a"
+	echo
+	echo "Checking copyright headers of modified files only..."
+	GIT_COMMAND="diff --name-only $MERGE_BASE $CURRENT_COMMIT"
+fi
+
+FILES=$(git $GIT_COMMAND | \
+	grep -v -E -e 'src/jemalloc/' -e '/queue.h$' -e '/ListEntry.h$' \
+		   -e '/getopt.h$' -e '/getopt.c$' | \
+	grep    -E -e '*\.[ch]$' -e '*\.[ch]pp$' -e '*\.sh$' \
+		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \
+		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
+		   -e 'LICENSE$' | \
+	xargs)
+
+# jemalloc.mk has to be checked always, because of the grep rules above
+FILES="$FILES $NVML/src/jemalloc/jemalloc.mk"
 
 # create a license pattern file
 $CHECK_LICENSE create $LICENSE $PATTERN
