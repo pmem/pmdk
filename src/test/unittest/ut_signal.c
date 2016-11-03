@@ -40,12 +40,13 @@
 /*
  * On Windows, Access Violation exception does not raise SIGSEGV signal.
  * The trick is to catch the exception and... call the signal handler.
- *
- * XXX - add support for registering more than one signal/exception handler
  */
 
-static void (*Sa_handler) (int signum);
-static int Signum;
+/*
+ * actions[] - allows registering more than one signal/exception handler
+ */
+static struct sigaction actions[32];
+static pthread_mutex_t actions_lock;
 
 /*
  * exception_handler -- called for unhandled exceptions
@@ -55,7 +56,7 @@ exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
 {
 	DWORD excode = ExceptionInfo->ExceptionRecord->ExceptionCode;
 	if (excode == EXCEPTION_ACCESS_VIOLATION)
-		Sa_handler(Signum);
+		actions[SIGSEGV - 1].sa_handler(SIGSEGV);
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
@@ -72,9 +73,12 @@ signal_handler_wrapper(int signum)
 	_crt_signal_t retval = signal(signum, signal_handler_wrapper);
 	if (retval == SIG_ERR)
 		UT_FATAL("!signal: %d", signum);
-	Sa_handler(signum);
-}
 
+	if (actions[signum - 1].sa_handler)
+		actions[signum - 1].sa_handler(signum);
+	else
+		UT_FATAL("handler for signal: %d is not defined", signum);
+}
 #endif
 
 /*
@@ -82,7 +86,7 @@ signal_handler_wrapper(int signum)
  */
 int
 ut_sigaction(const char *file, int line, const char *func,
-		int signum, struct sigaction *act, struct sigaction *oldact)
+	int signum, struct sigaction *act, struct sigaction *oldact)
 {
 #ifndef _WIN32
 	int retval = sigaction(signum, act, oldact);
@@ -90,13 +94,21 @@ ut_sigaction(const char *file, int line, const char *func,
 		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
 	return retval;
 #else
-	Sa_handler = act->sa_handler;
+	pthread_mutex_init(&actions_lock, NULL);
+	if (signum > 32)
+		signum = 32;
+
+	pthread_mutex_lock(&actions_lock);
+	if (oldact)
+		*oldact = actions[signum - 1];
+	if (act)
+		actions[signum - 1] = *act;
+	pthread_mutex_unlock(&actions_lock);
 
 	if (signum == SIGABRT) {
 		ut_suppress_errmsg();
 	}
 	if (signum == SIGSEGV) {
-		Signum = signum;
 		AddVectoredExceptionHandler(0, exception_handler);
 	}
 
