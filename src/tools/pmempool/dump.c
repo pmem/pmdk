@@ -319,11 +319,6 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 	struct options *opts = util_options_alloc(long_options,
 				sizeof(long_options) / sizeof(long_options[0]),
 				option_requirements);
-	if (!opts) {
-		outv_err("cannot allocate options structure\n");
-		exit(EXIT_FAILURE);
-	}
-
 	int ret = 0;
 	long long chunksize;
 	int opt;
