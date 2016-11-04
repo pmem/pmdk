@@ -146,6 +146,12 @@ limited by **libvmem**, but by the file system specified by the *dir* argument. 
 use some of that space for its own metadata. **vmem_create**() returns an opaque memory pool handle or NULL if an error occurred (in which case *errno* is set
 appropriately). The opaque memory pool handle is then used with the other functions described in this man page that operate on a specific memory pool.
 
+This function can also be called with the **dir** argument pointing to a device
+DAX, and in that case the entire device will serve as a volatile pool.
+Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
+ranges to be allocated and mapped without need of an intervening file system.
+For more information please see **ndctl-create-namespace**(1).
+
 ```c
 VMEM *vmem_create_in_region(void *addr, size_t size);
 ```

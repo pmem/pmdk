@@ -64,8 +64,10 @@
 #include "dlsym.h"
 #include "valgrind_internal.h"
 #include "sys_util.h"
+#include "pmem_provider.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
+#define SIZE_AUTODETECT_STR "AUTO"
 
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
@@ -291,15 +293,31 @@ util_map_hdr(struct pool_set_part *part, int flags)
 	COMPILE_ERROR_ON(POOL_HDR_SIZE == 0);
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
-	void *hdrp = mmap(NULL, POOL_HDR_SIZE,
-		PROT_READ|PROT_WRITE, flags, part->fd, 0);
+	void *hdrp;
+	if (part->provider.type == PMEM_PROVIDER_DEVICE_DAX) {
+		/*
+		 * Workaround for dax device not allowing an mmap only of a
+		 * part of the device. This means that currently only one device
+		 * is allowed to be a part of a poolset.
+		 */
+		hdrp = mmap(NULL, part->filesize,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			return -1;
+		}
+		part->hdrsize = part->filesize;
+	} else {
+		hdrp = mmap(NULL, POOL_HDR_SIZE,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
 
-	if (hdrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
-		return -1;
+		if (hdrp == MAP_FAILED) {
+			ERR("!mmap: %s", part->path);
+			return -1;
+		}
+		part->hdrsize = POOL_HDR_SIZE;
 	}
 
-	part->hdrsize = POOL_HDR_SIZE;
 	part->hdr = hdrp;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
@@ -417,8 +435,9 @@ util_poolset_free(struct pool_set *set)
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote == NULL) {
-			/* only local replicas have paths */
+			/* only local replicas have paths and providers */
 			for (unsigned p = 0; p < rep->nparts; p++) {
+				pmem_provider_fini(&rep->part[p].provider);
 				Free((void *)(rep->part[p].path));
 			}
 		} else {
@@ -543,6 +562,31 @@ util_poolset_fdclose(struct pool_set *set)
 }
 
 /*
+ * util_autodetect_size -- (internal) retrieves size of an existing file
+ */
+static ssize_t
+util_autodetect_size(const char *path)
+{
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) < 0)
+		return -1;
+
+	ssize_t s = -1;
+
+	if (p.type != PMEM_PROVIDER_DEVICE_DAX) {
+		ERR("size autodetection is supported only for device dax");
+		goto out;
+	}
+
+	s = p.pops->get_size(&p);
+
+out:
+	pmem_provider_fini(&p);
+
+	return s;
+}
+
+/*
  * parser_read_line -- (internal) read line and validate size and path
  *                      from a pool set file
  */
@@ -572,16 +616,32 @@ parser_read_line(char *line, size_t *size, char **path)
 	if (!util_is_absolute_path(path_str))
 		return PARSER_ABSOLUTE_PATH_EXPECTED;
 
-	ret = util_parse_size(size_str, size);
-	if (ret != 0 || *size == 0) {
-		return PARSER_WRONG_SIZE;
-	}
-
 	*path = Strdup(path_str);
 	if (!(*path)) {
 		ERR("!Strdup");
 		return PARSER_OUT_OF_MEMORY;
 	}
+
+	if (strcmp(SIZE_AUTODETECT_STR, size_str) == 0) {
+		/*
+		 * XXX: this should be done after the parsing completes, but
+		 * currently this operation is performed in simply too many
+		 * places in the code to move this someplace else.
+		 */
+		ssize_t s = util_autodetect_size(path_str);
+		if (s < 0)
+			return PARSER_WRONG_SIZE;
+
+		*size = (size_t)s;
+
+		return PARSER_CONTINUE;
+	}
+
+	ret = util_parse_size(size_str, size);
+	if (ret != 0 || *size == 0) {
+		return PARSER_WRONG_SIZE;
+	}
+
 
 	return PARSER_CONTINUE;
 }
@@ -652,6 +712,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
+	rep->part[p].provider.path = NULL;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
@@ -964,6 +1025,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
+	rep->part[0].provider.path = NULL;
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -992,37 +1054,68 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
-	/* check if file exists */
-	if (access(part->path, F_OK) == 0)
+	part->created = 0;
+	struct pmem_provider *p = &part->provider;
+
+	if (pmem_provider_init(&part->provider, part->path) < 0)
+		return -1;
+
+	if (p->exists)
 		create = 0;
 
-	part->created = 0;
-	if (create) {
-		part->fd = util_file_create(part->path, part->filesize,
-				minsize);
-		if (part->fd == -1) {
-			LOG(2, "failed to create file: %s", part->path);
-			return -1;
-		}
-		part->created = 1;
-	} else {
-		size_t size = 0;
-		part->fd = util_file_open(part->path, &size, minsize, O_RDWR);
-		if (part->fd == -1) {
-			LOG(2, "failed to open file: %s", part->path);
-			return -1;
-		}
-
-		/* check if filesize matches */
-		if (part->filesize != size) {
-			ERR("file size does not match config: %s, %zu != %zu",
-				part->path, size, part->filesize);
-			errno = EINVAL;
-			return -1;
-		}
+	if (!p->exists && !create) {
+		errno = ENOENT;
+		ERR("!open %s", part->path);
+		goto error_init;
 	}
 
+	ssize_t real_size = create ?
+		(ssize_t)part->filesize : p->pops->get_size(p);
+	if (real_size < 0)
+		goto error_init;
+
+	if ((size_t)real_size < minsize) {
+		ERR("size %zu smaller than %zu", real_size, minsize);
+		errno = EINVAL;
+		goto error_init;
+	}
+
+	int flags = create ? O_RDWR | O_CREAT | O_EXCL : O_RDWR;
+	if (p->pops->open(p, flags, 0, 0) < 0) {
+		ERR("!open %s", part->path);
+		goto error_init;
+	}
+
+	if (create) {
+		part->created = 1;
+
+		if (p->pops->allocate_space(p, part->filesize, 0) < 0)
+			goto error_after_open;
+	}
+
+	if (p->pops->lock(p) < 0) {
+		ERR("!flock");
+		goto error_after_open;
+	}
+
+	if (part->filesize != (size_t)real_size) {
+		ERR("file size does not match config: %s, %zu != %zu",
+			part->path, real_size, part->filesize);
+		errno = EINVAL;
+		goto error_after_open;
+	}
+
+	part->fd = p->fd;
+
 	return 0;
+
+error_after_open:
+	p->pops->close(p);
+
+error_init:
+	pmem_provider_fini(p);
+
+	return -1;
 }
 
 /*
@@ -1259,12 +1352,20 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu",
 		setp, path, poolsize, minsize);
 
-	int oerrno;
-	int ret = 0;
-	int fd;
-	size_t size = 0;
+	ssize_t size = 0;
+
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) != 0)
+		return -1;
 
 	if (poolsize != 0) {
+		if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+			ERR("size must be zero for device dax");
+			goto error_init;
+		}
+
+		pmem_provider_fini(&p);
+
 		*setp = util_poolset_single(path, poolsize, 1);
 		if (*setp == NULL)
 			return -1;
@@ -1272,65 +1373,87 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		return 0;
 	}
 
-	/* do not check minsize */
-	if ((fd = util_file_open(path, &size, 0, O_RDONLY)) == -1)
-		return -1;
+	if (p.pops->open(&p, O_RDONLY, 0, 0) != 0) {
+		ERR("!open %s", path);
+		goto error_init;
+	}
+
+	if (p.pops->lock(&p) != 0) {
+		ERR("!flock");
+		goto error_after_open;
+	}
+
+	size = p.pops->get_size(&p);
+	if (size < 0) {
+		ERR("failed to retrieve file size");
+		goto error_after_open;
+	}
+
+	if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+		*setp = util_poolset_single(path, (size_t)size, 0);
+		if (*setp == NULL)
+			goto error_after_open;
+
+		p.pops->close(&p);
+		pmem_provider_fini(&p);
+		return 0;
+	}
 
 	char signature[POOLSET_HDR_SIG_LEN];
 	/*
 	 * read returns ssize_t, but we know it will return value between -1
 	 * and POOLSET_HDR_SIG_LEN (11), so we can safely cast it to int
 	 */
-	ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
-	if (ret < 0) {
-		ERR("!read %d", fd);
-		goto err;
+	ssize_t nread = read(p.fd, signature, POOLSET_HDR_SIG_LEN);
+	if (nread < 0) {
+		ERR("!read %d", p.fd);
+		goto error_after_open;
 	}
 
-	if (ret < POOLSET_HDR_SIG_LEN ||
-	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
+	if (nread < POOLSET_HDR_SIG_LEN ||
+		strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
 
-		if (size < minsize) {
-			ERR("size %zu smaller than %zu", size, minsize);
+		if ((size_t)size < minsize) {
+			ERR("size %zu smaller than %zu", (size_t)size, minsize);
 			errno = EINVAL;
-			ret = -1;
-			goto err;
+			goto error_after_open;
 		}
 
-		(void) close(fd);
+		p.pops->close(&p);
+		pmem_provider_fini(&p);
 
-		*setp = util_poolset_single(path, size, 0);
-		if (*setp == NULL) {
-			ret = -1;
-			goto err;
-		}
+		*setp = util_poolset_single(path, (size_t)size, 0);
+		if (*setp == NULL)
+			return -1;
 
-		/* do not close the file */
 		return 0;
 	}
 
-	ret = util_poolset_parse(setp, path, fd);
+	if (util_poolset_parse(setp, path, p.fd) != 0)
+		goto error_after_open;
 
 #ifdef _WIN32
-	if (ret)
-		goto err;
-
 	/* remote replication is not supported on Windows */
 	if ((*setp)->remote) {
 		util_poolset_free(*setp);
 		ERR("remote replication is not supported on Windows");
 		errno = ENOTSUP;
-		ret = -1;
-		goto err;
+		goto error_after_open;
 	}
 #endif /* _WIN32 */
 
-err:
-	oerrno = errno;
-	(void) close(fd);
-	errno = oerrno;
-	return ret;
+	p.pops->close(&p);
+	pmem_provider_fini(&p);
+	return 0;
+
+error_after_open:
+	p.pops->close(&p);
+
+error_init:
+	pmem_provider_fini(&p);
+
+	return -1;
 }
 
 /*
@@ -1359,14 +1482,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		errno = EEXIST;
 		return -1;
 	}
-
-	/*
-	 * Zero out the pool descriptor - just in case we fail right after
-	 * header checksum is stored.
-	 */
-	void *descp = (void *)((uintptr_t)hdrp + sizeof(*hdrp));
-	memset(descp, 0, POOL_HDR_SIZE - sizeof(*hdrp));
-	pmem_msync(descp, POOL_HDR_SIZE - sizeof(*hdrp));
 
 	/* create pool's header */
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
@@ -1418,7 +1533,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	pmem_msync(hdrp, sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -2515,22 +2630,36 @@ err_poolset:
 int
 util_is_poolset_file(const char *path)
 {
-	int fd = util_file_open(path, NULL, 0, O_RDONLY);
-	if (fd < 0)
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) < 0)
 		return -1;
 
-	int ret = 0;
+	int ret = -1;
+	if (p.pops->open(&p, O_RDONLY, 0, 0) < 0) {
+		ERR("!open %s", path);
+		goto error_init;
+	}
+
+	if (p.type == PMEM_PROVIDER_DEVICE_DAX) {
+		ret = 0;
+		goto out;
+	}
+
 	char signature[POOLSET_HDR_SIG_LEN];
-	if (read(fd, signature, sizeof(signature)) != sizeof(signature)) {
+	if (read(p.fd, signature, sizeof(signature)) != sizeof(signature)) {
 		ERR("!read");
-		ret = -1;
 		goto out;
 	}
 
 	if (memcmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
 		ret = 1;
+	else
+		ret = 0;
+
 out:
-	close(fd);
+	p.pops->close(&p);
+error_init:
+	pmem_provider_fini(&p);
 	return ret;
 }
 

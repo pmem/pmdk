@@ -174,6 +174,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "libpmem.h"
 
@@ -183,6 +184,7 @@
 #include "util.h"
 #include "mmap.h"
 #include "file.h"
+#include "pmem_provider.h"
 #include "valgrind_internal.h"
 
 #ifndef _MSC_VER
@@ -521,14 +523,6 @@ pmem_is_pmem(const void *addr, size_t len)
 #define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
-#ifndef USE_O_TMPFILE
-#ifdef O_TMPFILE
-#define USE_O_TMPFILE 1
-#else
-#define USE_O_TMPFILE 0
-#endif
-#endif
-
 /*
  * pmem_map_file -- create or open the file and map it to memory
  */
@@ -539,8 +533,6 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	LOG(3, "path \"%s\" size %zu flags %x mode %o mapped_lenp %p "
 		"is_pmemp %p", path, len, flags, mode, mapped_lenp, is_pmemp);
 
-	int oerrno;
-	int fd;
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
 
@@ -580,87 +572,61 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		return NULL;
 	}
 
-#if USE_O_TMPFILE
-
-	if (flags & PMEM_FILE_TMPFILE)
-		open_flags |= O_TMPFILE;
-
-	if ((fd = open(path, open_flags, mode)) < 0) {
-		ERR("!open %s", path);
+	struct pmem_provider p;
+	if (pmem_provider_init(&p, path) != 0) {
+		ERR("failed to initialize persistent memory provider %s", path);
 		return NULL;
 	}
 
-#else
-
-	if (flags & PMEM_FILE_TMPFILE) {
-		if ((fd = util_tmpfile(path, "/pmem.XXXXXX")) < 0) {
-			return NULL;
-		}
-	} else {
-		if ((fd = open(path, open_flags, mode)) < 0) {
-			ERR("!open %s", path);
-			return NULL;
-		}
-		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
-			delete_on_err = 1;
+	if (p.pops->open(&p,
+		open_flags, mode, flags & PMEM_FILE_TMPFILE) != 0) {
+		ERR("failed to open persistent memory provider %s", path);
+		goto error_open;
 	}
-
-#endif
+	if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
+		delete_on_err = 1;
 
 	if (flags & PMEM_FILE_CREATE) {
-		if (flags & PMEM_FILE_SPARSE) {
-			if (ftruncate(fd, (off_t)len) != 0) {
-				ERR("!ftruncate");
-				goto err;
-			}
-		} else {
-			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
-				ERR("!posix_fallocate");
-				goto err;
-			}
+		if (p.pops->allocate_space(&p, len,
+				flags & PMEM_FILE_SPARSE) != 0) {
+			ERR("unable to allocate space for the provider");
+			goto error_after_open;
 		}
 	} else {
-		util_stat_t stbuf;
-
-		if (util_fstat(fd, &stbuf) < 0) {
-			ERR("!fstat %s", path);
-			goto err;
+		ssize_t size = p.pops->get_size(&p);
+		if (size < 0) {
+			ERR("cannot retrieve size of the provided file");
+			goto error_after_open;
 		}
-
-		if (stbuf.st_size < 0) {
-			ERR("stat %s: negative size", path);
-			errno = EINVAL;
-			goto err;
-		}
-
-		len = (size_t)stbuf.st_size;
+		len = (size_t)size;
 	}
 
 	void *addr;
-	if ((addr = util_map(fd, len, 0, 0)) == NULL)
-		goto err;    /* util_map() set errno, called LOG */
+	if ((addr = p.pops->map(&p, 0)) == NULL)
+		goto error_after_open; /* util_map() set errno, called LOG */
 
 	if (mapped_lenp != NULL)
 		*mapped_lenp = len;
 
 	if (is_pmemp != NULL)
-		*is_pmemp = pmem_is_pmem(addr, len);
+		*is_pmemp = p.pops->always_pmem() ? 1 : pmem_is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
 	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
-	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
+	VALGRIND_REGISTER_PMEM_FILE(p.fd, addr, len, 0);
 
-	(void) close(fd);
+	p.pops->close(&p);
+	pmem_provider_fini(&p);
 
 	return addr;
 
-err:
-	oerrno = errno;
-	(void) close(fd);
+error_after_open:
+	p.pops->close(&p);
 	if (delete_on_err)
-		(void) unlink(path);
-	errno = oerrno;
+		p.pops->rm(&p);
+error_open:
+	pmem_provider_fini(&p);
 	return NULL;
 }
 

@@ -181,6 +181,16 @@ next lines. For each part, the file size and the absolute path must be provided.
 The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541 or the Metric Interchange Format.  Standards accept SI units with obligatory
 B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
+The path of a part can point to a device DAX and in such case the size
+argument can be set to an "AUTO" string, which means that the size of the device
+will be automatically resolved at pool creation time. When using device DAX
+there's also one additional restriction, that a pool set can consist only of a
+single part.
+
+Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
+ranges to be allocated and mapped without need of an intervening file system.
+For more information please see **ndctl-create-namespace**(1).
+
 The minimum file size of each part of the pool set is the same as the minimum size allowed for a log pool consisting of one file. It is defined in
 **\<libpmemlog.h\>** as **PMEMLOG_MIN_POOL**. Lines starting with "#" character are ignored.
 
@@ -451,5 +461,5 @@ by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **mmap**(2), **munmap**(2), **msync**(2), **strerror**(3), **libpmemobj**(3),
-**libpmemblk**(3), **libpmem**(3), **libvmem**(3)
+**libpmemblk**(3), **libpmem**(3), **libvmem**(3), **ndctl-create-namespace**(1)
 and **<http://pmem.io>**

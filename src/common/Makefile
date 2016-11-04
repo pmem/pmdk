@@ -41,6 +41,9 @@ SOURCE =\
 	out.c\
 	pool_hdr.c\
 	pool_hdr_linux.c\
+	pmem_provider.c\
+	pmem_provider_dax.c\
+	pmem_provider_file.c\
 	set.c\
 	util.c\
 	uuid.c\

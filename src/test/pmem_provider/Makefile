@@ -1,7 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,23 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_basic_integration/TEST0
-export UNITTEST_NUM=0
+#
+# src/test/pmem_provider/Makefile -- build pmem_provider() unit test
+#
+TARGET = pmem_provider
+OBJS = pmem_provider.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-require_test_type medium
+include ../Makefile.inc
 
-# covered by TEST5
-configure_valgrind memcheck force-disable
-
-setup
-
-create_holey_file 8M $DIR/testfile1
-
-expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check
-
-pass
+LDFLAGS += $(call extract_funcs, pmem_provider.c)

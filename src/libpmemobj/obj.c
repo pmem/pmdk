@@ -154,7 +154,8 @@ obj_init(void)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) != POOL_HDR_SIZE + 4096);
+	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) !=
+		POOL_HDR_SIZE + POOL_DESC_SIZE);
 
 #ifdef USE_COW_ENV
 	char *env = getenv("PMEMOBJ_COW");
@@ -969,7 +970,9 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	util_range_none(pop->addr, sizeof(struct pool_hdr));
+	struct pmem_provider *p = &pop->set->replica[0]->part[0].provider;
+	p->pops->protect_range(p,
+		pop->addr, sizeof(struct pool_hdr), PMEM_PROT_NONE);
 
 	return 0;
 }
