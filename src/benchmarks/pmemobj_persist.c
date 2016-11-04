@@ -243,11 +243,6 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 
 	return 0;
 
-	for (uint64_t i = 0; i < ob->nobjs; ++i) {
-		pmemobj_free(&ob->oids[i]);
-	}
-	free(ob->oids);
-	free(ob->ptrs);
 free_pop:
 	pmemobj_close(ob->pop);
 free_ob:
