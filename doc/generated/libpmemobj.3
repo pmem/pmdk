@@ -444,8 +444,9 @@ store with the given total \f[I]poolsize\f[].
 of a string.
 The layout name is not interpreted by \f[B]libpmemobj\f[], but may be
 used as a check when \f[B]pmemobj_open\f[]() is called.
-The layout name, including the null termination, cannot be longer than
-\f[B]PMEMOBJ_MAX_LAYOUT\f[] as defined in \f[B]<libpmemobj.h>\f[].
+The layout name, including the terminating null byte (\[aq]\[aq]),
+cannot be longer than \f[B]PMEMOBJ_MAX_LAYOUT\f[] as defined in
+\f[B]<libpmemobj.h>\f[].
 It is allowed to pass NULL as \f[I]layout\f[], which is equivalent for
 using an empty string as a layout name.
 \f[I]mode\f[] specifies the permissions to use when creating the file as
