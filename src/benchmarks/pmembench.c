@@ -421,16 +421,16 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 	} else {
 		printf("%s [%ld]\n", bench->info->name, clovec->nargs);
 	}
-	printf("total-avg;"
-		"ops-per-second;"
-		"total-max;"
-		"total-min;"
-		"total-median;"
-		"total-std-dev;"
-		"latency-avg;"
-		"latency-min;"
-		"latency-max;"
-		"latency-std-dev");
+	printf("total-avg[sec];"
+		"ops-per-second[1/sec];"
+		"total-max[sec];"
+		"total-min[sec];"
+		"total-median[sec];"
+		"total-std-dev[sec];"
+		"latency-avg[nsec];"
+		"latency-min[nsec];"
+		"latency-max[nsec];"
+		"latency-std-dev[nsec]");
 	size_t i;
 	for (i = 0; i < bench->nclos; i++) {
 		if (!bench->clos[i].ignore_in_res) {
