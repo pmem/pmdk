@@ -63,7 +63,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 check_files $PARTS
 $PMEMSPOIL -v $POOL_R2_PART1 pool_hdr.uuid=ERROR >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET 2> /dev/null
 
 check
 
