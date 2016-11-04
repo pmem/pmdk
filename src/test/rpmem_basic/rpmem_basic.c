@@ -116,7 +116,7 @@ free_pool(struct pool_entry *pool)
 	if (pool->is_mem)
 		FREE(pool->pool);
 	else
-		pmem_unmap(pool->pool, pool->size);
+		UT_ASSERTeq(pmem_unmap(pool->pool, pool->size), 0);
 
 	pool->pool = NULL;
 	pool->rpp = NULL;

@@ -153,7 +153,9 @@ do_check(int fd, void *addr, size_t mlen)
 	memset(pat, 0xA5, CHECK_BYTES);
 	memcpy(addr, pat, CHECK_BYTES);
 
-	pmem_unmap(addr, mlen);
+	UT_ASSERTeq(pmem_msync(addr, CHECK_BYTES), 0);
+
+	UT_ASSERTeq(pmem_unmap(addr, mlen), 0);
 
 	if (!sigsetjmp(Jmp, 1)) {
 		/* same memcpy from above should now fail */
@@ -244,7 +246,7 @@ main(int argc, char *argv[])
 							argv[i]);
 				}
 			} else {
-				pmem_unmap(addr, mlen);
+				UT_ASSERTeq(pmem_unmap(addr, mlen), 0);
 			}
 		}
 	}
