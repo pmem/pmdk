@@ -143,15 +143,13 @@ err_malloc:
 /*
  * do_warmup -- does the warmup by writing the whole pool area
  */
-static int
+static void
 do_warmup(struct obj_bench *ob)
 {
 	for (uint64_t i = 0; i < ob->nobjs; ++i) {
 		memset(ob->ptrs[i], 0, ob->obj_size);
 		pmemobj_persist(ob->pop, ob->ptrs[i], ob->obj_size);
 	}
-
-	return 0;
 }
 
 /*
@@ -240,15 +238,11 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if (!ob->pa->no_warmup) {
-		if (do_warmup(ob)) {
-			fprintf(stderr, "do_warmup() function failed.");
-			goto free_objs;
-		}
+		do_warmup(ob);
 	}
 
 	return 0;
 
-free_objs:
 	for (uint64_t i = 0; i < ob->nobjs; ++i) {
 		pmemobj_free(&ob->oids[i]);
 	}
