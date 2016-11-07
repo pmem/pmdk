@@ -133,6 +133,7 @@ $CHECK_LICENSE create $LICENSE $PATTERN
 
 RV=0
 for file in $FILES ; do
+	[ ! -f $file ] && continue
 	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $file`
 	if [ $? -ne 0 ]; then
 		echo -n $YEARS
