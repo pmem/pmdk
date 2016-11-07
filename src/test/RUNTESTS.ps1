@@ -60,6 +60,8 @@ Param(
     $testdir = "all",
     [alias("c")]
     $check_pool = "0",
+    [alias("k")]
+    $skip_test = "none",
     [alias("h")][switch]
     $help= $false
     )
@@ -82,6 +84,7 @@ function usage {
         -t test-type    run only specified test type
                 test-type: check (default), short, medium, long, all
                 where: check = short + medium; all = short + medium + long
+        -k skip-dir skip a specific test directories (for >1 dir enclose in "" and separaate with spaces)
         -f fs-type  run tests only on specified file systems
                 fs-type: pmem, non-pmem, any, none, all (default)
         -o timeout  set timeout for test execution
@@ -191,7 +194,10 @@ function runtest {
     if ($builds -eq "all") {
         $builds = "debug nondebug"
     }
-
+    if ($skip_test.split() -contains $testName) {
+        Write-Host "RUNTESTS: SKIPPING Tests: $testName"
+        return
+    }
     cd $testName
     if ($testfile -eq "all") {
         sv -Name dirCheck ".\TEST*.ps1"
