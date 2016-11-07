@@ -324,7 +324,7 @@ cleanup(char test_type)
 static void
 obj_sync_persist(void *ctx, const void *ptr, size_t sz)
 {
-	pmem_msync(ptr, sz);
+	/* no-op */
 }
 
 int

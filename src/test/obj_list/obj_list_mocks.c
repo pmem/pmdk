@@ -199,7 +199,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
-		munmap(Pop, Pop->size);
+		UT_ASSERTeq(pmem_unmap(Pop, Pop->size), 0);
 		Pop = NULL;
 	}
 FUNC_MOCK_END

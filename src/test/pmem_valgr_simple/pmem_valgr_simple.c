@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 	if (is_pmem) {
 		pmem_persist(tmp64dst, sizeof(*tmp64dst));
 	} else {
-		pmem_msync(tmp64dst, sizeof(*tmp64dst));
+		UT_ASSERTeq(pmem_msync(tmp64dst, sizeof(*tmp64dst)), 0);
 	}
 
 	uint16_t *tmp16dst = (void *)((uintptr_t)dest + 1024);
@@ -78,7 +78,7 @@ main(int argc, char *argv[])
 	/* shows strange behavior of memset in some cases */
 	memset(dest + dest_off, 0, bytes);
 
-	pmem_unmap(dest, mapped_len);
+	UT_ASSERTeq(pmem_unmap(dest, mapped_len), 0);
 
 	DONE(NULL);
 }

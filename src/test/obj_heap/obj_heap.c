@@ -50,14 +50,14 @@ struct mock_pop {
 static void
 obj_heap_persist(void *ctx, const void *ptr, size_t sz)
 {
-	pmem_msync(ptr, sz);
+	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
 }
 
 static void *
 obj_heap_memset_persist(void *ctx, void *ptr, int c, size_t sz)
 {
 	memset(ptr, c, sz);
-	pmem_msync(ptr, sz);
+	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
 	return ptr;
 }
 

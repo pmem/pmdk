@@ -159,7 +159,7 @@ pmemobj_close_mock(PMEMobjpool *pop)
 {
 	redo_log_config_delete(pop->redo);
 
-	munmap(pop, pop->size);
+	UT_ASSERTeq(pmem_unmap(pop, pop->size), 0);
 }
 
 int
