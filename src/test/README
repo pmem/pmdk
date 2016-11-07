@@ -60,7 +60,7 @@ file system type, and build type to test.
 RUNTESTS takes options to limit what it runs.  The usage is:
 
  RUNTESTS [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [ -s test-file ]
+	    [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
 	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
 	    [ -q provider ] [ -r persistency-method ]
 	    [tests...]
