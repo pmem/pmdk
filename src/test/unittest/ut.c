@@ -498,7 +498,8 @@ ut_done(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
-	check_open_files();
+	if (!getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+		check_open_files();
 
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "Done", fmt, ap);
