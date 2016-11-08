@@ -50,4 +50,6 @@ setup
 
 expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile1 0
 
+check
+
 pass

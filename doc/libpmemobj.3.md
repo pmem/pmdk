@@ -305,9 +305,12 @@ void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags); (EXPERIMENTAL)
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
@@ -326,10 +329,16 @@ TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
 
+TX_XADD(TOID o, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_DIRECT(TYPE *p, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags) (EXPERIMENTAL)
+
 TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE, size_t size)
+TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
@@ -1636,6 +1645,15 @@ range will be rolled-back. The supplied block of memory has to be within the poo
 changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
 
 ```c
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags);
+```
+
+The **pmemobj_tx_xadd_range**() function behaves exactly the same as **pmemobj_tx_add_range**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **POBJ_XADD_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
+
+```c
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 ```
 
@@ -1644,6 +1662,15 @@ persistent memory objects. It takes a "snapshot" of a persistent memory block of
 space and saves it to the undo log. The application is then free to directly modify the object in that memory range. In case of a failure or abort, all the
 changes within this range will be rolled-back. The supplied block of memory has to be within the pool registered in the transaction. If successful, returns
 zero. Otherwise, state changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
+
+```c
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size);
+```
+
+The **pmemobj_tx_xadd_range_direct**() function behaves exactly the same as **pmemobj_tx_add_range_direct**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **POBJ_XADD_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
 
 ```c
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
@@ -1658,9 +1685,18 @@ set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is s
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
 ```
 
-The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly
-allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is
-returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+
+```c
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
+```
+
+The **pmemobj_tx_xalloc**() function transactionally allocates a new object of given *size* and *type_num*. The *flags* argument is a bitmask of the following values:
+
++ **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
++ **POBJ_XALLOC_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
+
+If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
 
 ```c
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
@@ -1775,11 +1811,25 @@ The **TX_ADD_FIELD**() macro saves in the undo log the current value of given *F
 directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags)
+```
+
+The **TX_XADD_FIELD**() macro works exactly like **TX_ADD_FIELD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
+
+```c
 TX_ADD(TOID o)
 ```
 
 The **TX_ADD**() macro takes a "snapshot" of the entire object referenced by object handle *o* and saves it in the undo log. The object size is determined from
 its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
+
+```c
+TX_XADD(TOID o, uint64_t flags)
+```
+
+The **TX_XADD**() macro works exactly like **TX_ADD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
 
 ```c
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
@@ -1789,12 +1839,26 @@ The **TX_ADD_FIELD_DIRECT**() macro saves in the undo log the current value of g
 is then free to directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags)
+```
+
+The **TX_XADD_FIELD_DIRECT**() macro works exactly like **TX_ADD_FIELD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
+
+```c
 TX_ADD_DIRECT(TYPE *p)
 ```
 
 The **TX_ADD_DIRECT**() macro takes a "snapshot" of the entire object referenced by (direct) pointer *p* and saves it in the undo log. The object size is
 determined from its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will
 be rolled-back.
+
+```c
+TX_XADD_DIRECT(TYPE *p, uint64_t flags)
+```
+
+The **TX_XADD_DIRECT**() macro works exactly like **TX_ADD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
 
 ```c
 TX_SET(TOID o, FIELD, VALUE)
@@ -1849,12 +1913,18 @@ size is determined from the size of the user-defined structure *TYPE*. If succes
 allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
-TX_ZALLOC(TYPE)
+TX_ZALLOC(TYPE, size_t size)
 ```
 
 The **TX_ZALLOC**() macro transactionally allocates a new zeroed object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation
 size is passed by *size* argument. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes
 to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
+
+```c
+TX_XALLOC(TYPE, size_t size, uint64_t flags)
+```
+
+The **TX_XALLOC**() macro transactionally allocates a new object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation size is passed by *size* argument. The *flags* argument is a bitmask of values described in **pmemobj_tx_xalloc** section. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
 TX_REALLOC(TOID o, size_t size)

@@ -63,6 +63,9 @@ pmemobj_tx_process
 pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
+pmemobj_tx_xadd_range
+pmemobj_tx_xadd_range_direct
+pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
@@ -132,6 +135,9 @@ pmemobj_tx_process
 pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
+pmemobj_tx_xadd_range
+pmemobj_tx_xadd_range_direct
+pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
@@ -201,6 +207,9 @@ pmemobj_tx_process
 pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
+pmemobj_tx_xadd_range
+pmemobj_tx_xadd_range_direct
+pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
@@ -270,6 +279,9 @@ pmemobj_tx_process
 pmemobj_tx_realloc
 pmemobj_tx_stage
 pmemobj_tx_strdup
+pmemobj_tx_xadd_range
+pmemobj_tx_xadd_range_direct
+pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num

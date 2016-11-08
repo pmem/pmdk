@@ -448,6 +448,16 @@ test_tx_api(PMEMobjpool *pop)
 
 	errno = 0;
 	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
+		D_RW(root)->node = TX_XALLOC(struct dummy_node, SIZE_MAX,
+				POBJ_XALLOC_ZERO);
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_ONABORT {
+		UT_ASSERT(TOID_IS_NULL(D_RO(root)->node));
+		UT_ASSERTeq(errno, ENOMEM);
+	} TX_END
+
+	errno = 0;
+	TX_BEGIN_LOCK(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
 		D_RW(root)->node = TX_ALLOC(struct dummy_node,
 			PMEMOBJ_MAX_ALLOC_SIZE + 1);
 		UT_ASSERT(0); /* should not get to this point */

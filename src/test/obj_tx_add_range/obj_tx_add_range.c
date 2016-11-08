@@ -395,6 +395,30 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_xadd_range_commit -- call pmemobj_tx_xadd_range and commit the tx
+ */
+static void
+do_tx_xadd_range_commit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_xadd_range(obj.oid, VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_NO_FLUSH);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		/* let pmemcheck find we didn't flush it */
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
  * do_tx_add_range_overlapping -- call pmemobj_tx_add_range with overlapping
  */
 static void
@@ -611,6 +635,7 @@ main(int argc, char *argv[])
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_too_large(pop);
 		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_commit(pop);
 		pmemobj_close(pop);
 	}
 

@@ -103,6 +103,16 @@ enum tx_lock_deprecated pobj_tx_lock {
 typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
 		void *);
 
+#define POBJ_FLAG_ZERO		(((uint64_t)1) << 0)
+#define POBJ_FLAG_NO_FLUSH	(((uint64_t)1) << 1)
+
+#define POBJ_XALLOC_ZERO	POBJ_FLAG_ZERO
+#define POBJ_XALLOC_NO_FLUSH	POBJ_FLAG_NO_FLUSH
+#define POBJ_XALLOC_VALID_FLAGS	(POBJ_XALLOC_ZERO | POBJ_XALLOC_NO_FLUSH)
+
+#define POBJ_XADD_NO_FLUSH	POBJ_FLAG_NO_FLUSH
+#define POBJ_XADD_VALID_FLAGS	POBJ_XADD_NO_FLUSH
+
 /*
  * Starts a new transaction in the current thread.
  * If called within an open transaction, starts a nested transaction.
@@ -192,6 +202,23 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 
 /*
+ * Behaves exactly the same as pmemobj_tx_add_range when 'flags' equals 0.
+ * 'Flags' is a bitmask of the following values:
+ *  - POBJ_XADD_NO_FLUSH - skips flush on commit
+ * This is EXPERIMENTAL API.
+ */
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size,
+		uint64_t flags);
+
+/*
+ * Behaves exactly the same as pmemobj_tx_add_range_direct when 'flags' equals
+ * 0. 'Flags' is a bitmask of the following values:
+ *  - POBJ_XADD_NO_FLUSH - skips flush on commit
+ * This is EXPERIMENTAL API.
+ */
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
+
+/*
  * Transactionally allocates a new object.
  *
  * If successful, returns PMEMoid.
@@ -200,6 +227,20 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  * This function must be called during TX_STAGE_WORK.
  */
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
+
+/*
+ * Transactionally allocates a new object.
+ *
+ * If successful, returns PMEMoid.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ * 'Flags' is a bitmask of the following values:
+ *  - POBJ_XALLOC_ZERO - zero the allocated object
+ *  - POBJ_XALLOC_NO_FLUSH - skip flush on commit
+ *
+ * This function must be called during TX_STAGE_WORK.
+ * This is EXPERIMENTAL API.
+ */
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
 
 /*
  * Transactionally allocates new zeroed object.

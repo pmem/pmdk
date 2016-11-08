@@ -105,20 +105,22 @@ ctree_new(void)
 	return t;
 }
 
-#if	CTREE_FAST_RECURSIVE_DELETE
 static void
-ctree_free_internal_recursive(void *dst)
+ctree_free_internal_recursive(void *dst, ctree_destroy_cb cb, void *ctx)
 {
 	if (NODE_IS_INTERNAL(dst)) {
 		struct node *a = NODE_INTERNAL_GET(dst);
-		ctree_free_internal_recursive(a->slots[0]);
-		ctree_free_internal_recursive(a->slots[1]);
+		ctree_free_internal_recursive(a->slots[0], cb, ctx);
+		ctree_free_internal_recursive(a->slots[1], cb, ctx);
 		Free(a);
 	} else {
+		if (cb) {
+			struct node_leaf *leaf = dst;
+			cb(leaf->key, leaf->value, ctx);
+		}
 		Free(dst);
 	}
 }
-#endif
 
 /*
  * ctree_delete -- cleanups and frees crit-bit tree instance
@@ -128,11 +130,25 @@ ctree_delete(struct ctree *t)
 {
 #if	CTREE_FAST_RECURSIVE_DELETE
 	if (t->root)
-		ctree_free_internal_recursive(t->root);
+		ctree_free_internal_recursive(t->root, NULL, NULL);
 #else
 	while (t->root)
 		ctree_remove_unlocked(t, 0, 0);
 #endif
+
+	util_mutex_destroy(&t->lock);
+
+	Free(t);
+}
+
+/*
+ * ctree_delete_cb -- cleanups and frees crit-bit tree instance
+ */
+void
+ctree_delete_cb(struct ctree *t, ctree_destroy_cb cb, void *ctx)
+{
+	if (t->root)
+		ctree_free_internal_recursive(t->root, cb, ctx);
 
 	util_mutex_destroy(&t->lock);
 
