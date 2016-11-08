@@ -192,8 +192,8 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 
 	uint64_t real_size = unit_size * m.size_idx;
 
-	ASSERT((uint64_t)block_data % _POBJ_CL_ALIGNMENT == 0);
-	ASSERT((uint64_t)userdatap % _POBJ_CL_ALIGNMENT == 0);
+	ASSERT((uint64_t)block_data % ALLOC_BLOCK_SIZE == 0);
+	ASSERT((uint64_t)userdatap % ALLOC_BLOCK_SIZE == 0);
 
 	/* mark everything (including headers) as accessible */
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(block_data, real_size);
@@ -648,9 +648,8 @@ palloc_heap_cleanup(struct palloc_heap *heap)
  * palloc_vg_register_object -- registers object in Valgrind
  */
 void
-palloc_vg_register_object(struct palloc_heap *heap, PMEMoid oid, size_t size)
+palloc_vg_register_object(struct palloc_heap *heap, void *addr, size_t size)
 {
-	void *addr = pmemobj_direct(oid);
 	size_t headers = sizeof(struct allocation_header) + PALLOC_DATA_OFF;
 
 	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, addr, size);

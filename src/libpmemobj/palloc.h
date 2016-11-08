@@ -79,7 +79,7 @@ int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
 void palloc_heap_cleanup(struct palloc_heap *heap);
 
-void palloc_vg_register_object(struct palloc_heap *heap, PMEMoid oid,
+void palloc_vg_register_object(struct palloc_heap *heap, void *addr,
 		size_t size);
 void palloc_heap_vg_open(void *heap_start, uint64_t heap_size);
 

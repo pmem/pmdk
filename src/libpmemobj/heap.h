@@ -45,7 +45,7 @@
 #include "heap_layout.h"
 #include "memblock.h"
 #include "memops.h"
-#include "pmalloc.h"
+#include "palloc.h"
 
 #define MAX_BUCKETS (UINT8_MAX)
 #define RUN_UNIT_MAX 64U
