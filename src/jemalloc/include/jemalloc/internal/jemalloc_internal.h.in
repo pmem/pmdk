@@ -676,7 +676,7 @@ malloc_tsd_protos(JEMALLOC_ATTR(unused), thread_allocated, thread_allocated_t)
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_C_))
 
-# ifdef _WIN32
+# ifdef _MSC_VER
 JEMALLOC_ALWAYS_INLINE int
 msc_clz(unsigned int val)
 {

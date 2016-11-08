@@ -43,12 +43,13 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
 require_fs_type none
 
 setup
 
 # limit output for file vmem*.log to reduce time of test execution
-$Env:VMEM_LOG_LEVEL = 2
+$Env:VMEM_LOG_LEVEL = "2"
 
 expect_normal_exit $Env:EXE_DIR\vmem_check_allocations$Env:EXESUFFIX
 

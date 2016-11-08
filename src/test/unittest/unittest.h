@@ -142,12 +142,6 @@ static inline int ut_util_stat(const char *path,
 #define ut_util_lseek _lseeki64
 #endif
 
-#ifdef _WIN32
-#define get_error() GetLastError()
-#else
-#define get_error() errno
-#endif
-
 /*
  * unit test support...
  */

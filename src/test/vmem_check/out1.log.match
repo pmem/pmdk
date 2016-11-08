@@ -1,3 +1,0 @@
-vmem_check$(nW)TEST1: START: vmem_check
- $(nW)vmem_check$(nW) $(nW)
-vmem_check$(nW)TEST1: Done

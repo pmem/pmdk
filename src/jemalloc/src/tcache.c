@@ -420,7 +420,7 @@ tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
 	assert(len < POOLS_MAX);
 
 	/* round up the new length to the nearest power of 2... */
-	size_t npools = 1 << (32 - __builtin_clz(len + 1));
+	size_t npools = 1ULL << (32 - __builtin_clz(len + 1));
 
 	/* ... but not less than */
 	if (npools < POOLS_MIN)
@@ -538,12 +538,12 @@ tcache_boot0(void)
 	 * If necessary, clamp opt_lg_tcache_max, now that arena_maxclass is
 	 * known.
 	 */
-	if (opt_lg_tcache_max < 0 || (1U << opt_lg_tcache_max) < SMALL_MAXCLASS)
+	if (opt_lg_tcache_max < 0 || (1ULL << opt_lg_tcache_max) < SMALL_MAXCLASS)
 		tcache_maxclass = SMALL_MAXCLASS;
-	else if ((1U << opt_lg_tcache_max) > arena_maxclass)
+	else if ((1ULL << opt_lg_tcache_max) > arena_maxclass)
 		tcache_maxclass = arena_maxclass;
 	else
-		tcache_maxclass = (1U << opt_lg_tcache_max);
+		tcache_maxclass = (1ULL << opt_lg_tcache_max);
 
 	nhbins = NBINS + (tcache_maxclass >> LG_PAGE);
 

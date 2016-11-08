@@ -187,7 +187,7 @@ huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size,
 
 		malloc_mutex_unlock(&pool->huge_mtx);
 
-		excess_addr = node->addr + CHUNK_CEILING(size);
+		excess_addr = (char *)node->addr + CHUNK_CEILING(size);
 		excess_size = CHUNK_CEILING(oldsize) - CHUNK_CEILING(size);
 
 		/* Zap the excess chunks. */
@@ -277,7 +277,7 @@ size_t
 huge_salloc(const void *ptr)
 {
 	size_t ret = 0;
-	unsigned i;
+	size_t i;
 	extent_node_t *node, key;
 
 	malloc_mutex_lock(&pools_lock);

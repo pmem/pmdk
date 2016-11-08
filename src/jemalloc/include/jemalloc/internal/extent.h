@@ -19,7 +19,7 @@ struct extent_node_s {
 	prof_ctx_t		*prof_ctx;
 
 	/* Pointer to the extent that this tree node is responsible for. */
-	char			*addr;
+	void			*addr;
 
 	/* Total region size. */
 	size_t			size;

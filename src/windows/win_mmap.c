@@ -892,6 +892,11 @@ mprotect(void *addr, size_t len, int prot)
 		void *end2 = end < mt->EndAddress ?
 				end : mt->EndAddress;
 
+		/*
+		 * protect of region to VirtualProtection must be compatible
+		 * with the access protection specified for this region
+		 * when the view was mapped using MapViewOfFileEx
+		 */
 		if (mt->Access == FILE_MAP_COPY) {
 			if (protect & PAGE_READWRITE) {
 				protect &= ~PAGE_READWRITE;

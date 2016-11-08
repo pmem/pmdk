@@ -18,12 +18,6 @@
     <None Include="err1.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="TEST0.PS1">
       <Filter>Tests Scripts</Filter>
     </None>

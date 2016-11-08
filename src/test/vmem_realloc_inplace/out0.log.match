@@ -1,3 +1,0 @@
-vmem_realloc_inplace$(nW)TEST0: START: vmem_realloc_inplace
- $(nW)vmem_realloc_inplace$(nW)
-vmem_realloc_inplace$(nW)TEST0: Done

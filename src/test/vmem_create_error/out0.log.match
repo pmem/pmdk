@@ -1,3 +1,0 @@
-vmem_create_error$(nW)TEST0: START: vmem_create_error
- $(nW)vmem_create_error$(nW)
-vmem_create_error$(nW)TEST0: Done

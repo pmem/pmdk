@@ -46,7 +46,8 @@
 static void
 usage(char *appname)
 {
-	UT_FATAL("usage: %s [-z - use calloc] directory ", appname);
+	UT_FATAL("usage: %s <z - use calloc | \
+		n - do not use calloc> directory ", appname);
 }
 
 int
@@ -57,24 +58,23 @@ main(int argc, char *argv[])
 	int count = DEFAULT_COUNT;
 	int n = DEFAULT_N;
 	VMEM *vmp;
-	int opt;
 	int i, j;
 	int use_calloc = 0;
 
 	START(argc, argv, "vmem_pages_purging");
 
-	while ((opt = getopt(argc, argv, "z")) != -1) {
-		switch (opt) {
-		case 'z':
-			use_calloc = 1;
-			break;
-		default:
-			usage(argv[0]);
-		}
+	switch (argv[1][0]) {
+	case 'z':
+		use_calloc = 1;
+		break;
+	case 'n':
+		break;
+	default:
+		usage(argv[0]);
 	}
 
-	if (optind < argc) {
-		dir = argv[optind];
+	if (argv[2]) {
+		dir = argv[2];
 	} else {
 		usage(argv[0]);
 	}

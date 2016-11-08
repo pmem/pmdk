@@ -64,7 +64,8 @@ obj_heap_memset_persist(void *ctx, void *ptr, int c, size_t sz)
 static void
 test_heap()
 {
-	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_pagesize);
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
+		Ut_mmap_align);
 	PMEMobjpool *pop = &mpop->p;
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->size = MOCK_POOL_SIZE;

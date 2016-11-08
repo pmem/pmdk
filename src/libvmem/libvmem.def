@@ -37,20 +37,20 @@ LIBRARY libvmem
 VERSION 1.0
 
 EXPORTS
-	vmem_create;
-	vmem_create_in_region;
-	vmem_delete;
-	vmem_check;
-	vmem_stats_print;
-	vmem_malloc;
-	vmem_free;
-	vmem_calloc;
-	vmem_realloc;
-	vmem_aligned_alloc;
-	vmem_strdup;
-	vmem_malloc_usable_size;
-	vmem_check_version;
-	vmem_set_funcs;
-	vmem_errormsg;
+	vmem_create
+	vmem_create_in_region
+	vmem_delete
+	vmem_check
+	vmem_stats_print
+	vmem_malloc
+	vmem_free
+	vmem_calloc
+	vmem_realloc
+	vmem_aligned_alloc
+	vmem_strdup
+	vmem_malloc_usable_size
+	vmem_check_version
+	vmem_set_funcs
+	vmem_errormsg
 
 	DllMain

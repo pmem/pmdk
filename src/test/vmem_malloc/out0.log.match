@@ -1,3 +1,0 @@
-vmem_malloc$(nW)TEST0: START: vmem_malloc
- $(nW)vmem_malloc$(nW)
-vmem_malloc$(nW)TEST0: Done
