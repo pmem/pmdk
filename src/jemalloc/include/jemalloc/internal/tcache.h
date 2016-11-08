@@ -141,9 +141,9 @@ void	tcache_flush(pool_t *pool);
 bool	tcache_enabled_get(void);
 tcache_t *tcache_get(pool_t *pool, bool create);
 void	tcache_enabled_set(bool enabled);
-char	*tcache_alloc_easy(tcache_bin_t *tbin);
-char	*tcache_alloc_small(tcache_t *tcache, size_t size, bool zero);
-char	*tcache_alloc_large(tcache_t *tcache, size_t size, bool zero);
+void	*tcache_alloc_easy(tcache_bin_t *tbin);
+void	*tcache_alloc_small(tcache_t *tcache, size_t size, bool zero);
+void	*tcache_alloc_large(tcache_t *tcache, size_t size, bool zero);
 void	tcache_dalloc_small(tcache_t *tcache, void *ptr, size_t binind);
 void	tcache_dalloc_large(tcache_t *tcache, void *ptr, size_t size);
 #endif
@@ -281,7 +281,7 @@ tcache_event(tcache_t *tcache)
 		tcache_event_hard(tcache);
 }
 
-JEMALLOC_ALWAYS_INLINE char *
+JEMALLOC_ALWAYS_INLINE void *
 tcache_alloc_easy(tcache_bin_t *tbin)
 {
 	void *ret;
@@ -297,7 +297,7 @@ tcache_alloc_easy(tcache_bin_t *tbin)
 	return (ret);
 }
 
-JEMALLOC_ALWAYS_INLINE char *
+JEMALLOC_ALWAYS_INLINE void *
 tcache_alloc_small(tcache_t *tcache, size_t size, bool zero)
 {
 	void *ret;
@@ -340,7 +340,7 @@ tcache_alloc_small(tcache_t *tcache, size_t size, bool zero)
 	return (ret);
 }
 
-JEMALLOC_ALWAYS_INLINE char *
+JEMALLOC_ALWAYS_INLINE void *
 tcache_alloc_large(tcache_t *tcache, size_t size, bool zero)
 {
 	void *ret;

@@ -1481,7 +1481,7 @@ void pools_shared_data_destroy(void)
 }
 
 pool_t *
-je_pool_create(char *addr, size_t size, int zeroed)
+je_pool_create(void *addr, size_t size, int zeroed)
 {
 	if (malloc_init())
 		return (NULL);
@@ -1566,13 +1566,13 @@ je_pool_create(char *addr, size_t size, int zeroed)
 	pool->memory_range_list = base_alloc(pool, sizeof (*pool->memory_range_list));
 
 	/* pointer to the address of chunks, align the address to chunksize */
-	char* usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+	char *usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 
 	/* reduce end of base allocator up to chunks start */
 	pool->base_past_addr = usable_addr;
 
 	/* usable chunks space, must be multiple of chunksize */
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size = (size - (uintptr_t)(usable_addr - (char *)addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
@@ -1882,9 +1882,9 @@ je_pool_check(pool_t *pool)
  * add more memory to a pool
  */
 size_t
-je_pool_extend(pool_t *pool, char *addr, size_t size, int zeroed)
+je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 {
-	char* usable_addr = addr;
+	char *usable_addr = addr;
 	size_t nodes_number = size/chunksize;
 	if (size < POOL_MINIMAL_SIZE)
 		return 0;
@@ -1914,14 +1914,14 @@ je_pool_extend(pool_t *pool, char *addr, size_t size, int zeroed)
 		assert(node != NULL);
 
 		/* pointer to the address of chunks, align the address to chunksize */
-		usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+		usable_addr = (void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 		/* reduce end of base allocator up to chunks */
 		pool->base_past_addr = usable_addr;
 	}
 
 	usable_addr = (void *)CHUNK_CEILING((uintptr_t)usable_addr);
 
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size = (size - (uintptr_t)(usable_addr - (char *)addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);

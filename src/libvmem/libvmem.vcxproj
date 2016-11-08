@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\common\out.h" />
-    <ClInclude Include="..\..\src\common\util.h" />
-    <ClInclude Include="..\..\src\libpmemlog\log.h" />
     <ClInclude Include="..\windows\jemalloc_gen\include\jemalloc\jemalloc.h" />
     <ClInclude Include="vmem.h" />
   </ItemGroup>
@@ -26,8 +23,17 @@
     <None Include="libvmem.def" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\jemalloc\msvc\jemalloc.vcxproj">
       <Project>{8d6bb292-9e1c-413d-9f98-4864bdc1514a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libpmem\libpmem.vcxproj">
+      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\windows\liblinux\liblinux.vcxproj">
+      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -38,7 +44,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Windows Store</ApplicationType>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
   </PropertyGroup>
@@ -94,7 +100,7 @@
       <SubSystem>Console</SubSystem>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalDependencies>libpmem.lib;$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;liblinux.lib;shlwapi.lib;jemalloc.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(WindowsSDK_LibraryPath)\$(PlatformTarget)\kernel32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>libvmem.def</ModuleDefinitionFile>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

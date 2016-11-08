@@ -116,7 +116,7 @@ else
 fi
 
 FILES=$(git $GIT_COMMAND | \
-	grep -v -E -e 'src/jemalloc/' -e '/queue.h$' -e '/ListEntry.h$' \
+	grep -v -E -e 'src/jemalloc/' -e 'src/windows/jemalloc_gen/' -e '/queue.h$' -e '/ListEntry.h$' \
 		   -e '/getopt.h$' -e '/getopt.c$' | \
 	grep    -E -e '*\.[ch]$' -e '*\.[ch]pp$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \

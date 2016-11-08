@@ -13,8 +13,6 @@
   <ItemGroup>
     <None Include="err0.log.match" />
     <None Include="err1.log.match" />
-    <None Include="out0.log.match" />
-    <None Include="out1.log.match" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
   </ItemGroup>
@@ -25,12 +23,15 @@
     <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
       <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{718CA6FA-6446-4E43-83DF-BA4E85E5886B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_calloc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -79,7 +80,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;Shlwapi.lib;libut.lib;libpmem.lib;liblinux.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -99,7 +100,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;libut.lib;libpmem.lib;libvmem.lib;liblinux.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>

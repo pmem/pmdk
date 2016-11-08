@@ -1,3 +1,0 @@
-vmem_out_of_memory$(nW)TEST0: START: vmem_out_of_memory
- $(nW)vmem_out_of_memory$(nW)
-vmem_out_of_memory$(nW)TEST0: Done

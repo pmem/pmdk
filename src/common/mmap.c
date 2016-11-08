@@ -145,7 +145,6 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 	}
 
 	int fd = util_tmpfile(dir, "/vmem.XXXXXX");
-
 	if (fd == -1) {
 		LOG(2, "cannot create temporary file in dir %s", dir);
 		goto err;

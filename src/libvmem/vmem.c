@@ -56,7 +56,7 @@
  * private to this file...
  */
 static size_t Header_size;
-static pthread_mutex_t vmem_init_lock;
+static pthread_mutex_t Vmem_init_lock;
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
  *
@@ -96,7 +96,7 @@ vmem_init(void)
 	if (initialized)
 		return;
 
-	util_mutex_lock(&vmem_init_lock);
+	util_mutex_lock(&Vmem_init_lock);
 
 	if (!initialized) {
 		common_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
@@ -112,7 +112,7 @@ vmem_init(void)
 		initialized = true;
 	}
 
-	util_mutex_unlock(&vmem_init_lock);
+	util_mutex_unlock(&Vmem_init_lock);
 }
 
 /*
@@ -124,7 +124,7 @@ ATTR_CONSTRUCTOR
 void
 vmem_construct(void)
 {
-	pthread_mutex_init(&vmem_init_lock, NULL);
+	pthread_mutex_init(&Vmem_init_lock, NULL);
 	vmem_init();
 }
 
@@ -138,17 +138,9 @@ void
 vmem_fini(void)
 {
 	LOG(3, NULL);
+	pthread_mutex_destroy(&Vmem_init_lock);
 	common_fini();
 }
-
-#ifdef _MSC_VER
-/*
- * libvmem constructor/destructor functions
- */
-MSVC_CONSTR(vmem_construct)
-MSVC_DESTR(vmem_fini)
-#endif
-
 
 /*
  * vmem_create -- create a memory pool in a temp file
@@ -156,13 +148,12 @@ MSVC_DESTR(vmem_fini)
 VMEM *
 vmem_create(const char *dir, size_t size)
 {
-
 	vmem_init();
 
 	LOG(3, "dir \"%s\" size %zu", dir, size);
 	if (size < VMEM_MIN_POOL) {
 		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
-		set_error(EINVAL);
+		errno = EINVAL;
 		return NULL;
 	}
 
@@ -220,13 +211,13 @@ vmem_create_in_region(void *addr, size_t size)
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
 		ERR("addr %p not aligned to pagesize %llu", addr, Pagesize);
-		set_error(EINVAL);
+		errno = EINVAL;
 		return NULL;
 	}
 
 	if (size < VMEM_MIN_POOL) {
 		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
-		set_error(EINVAL);
+		errno = EINVAL;
 		return NULL;
 	}
 
@@ -267,8 +258,8 @@ vmem_delete(VMEM *vmp)
 
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
-		ERR("invalid pool handle: 0x%" PRIx64, (long unsigned)vmp);
-		set_error(EINVAL);
+		ERR("invalid pool handle: 0x%" PRIx64, (uintptr_t)vmp);
+		errno = EINVAL;
 		return;
 	}
 
@@ -391,3 +382,11 @@ vmem_malloc_usable_size(VMEM *vmp, void *ptr)
 	return je_vmem_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
 }
+
+#ifdef _MSC_VER
+/*
+ * libvmem constructor/destructor functions
+ */
+MSVC_CONSTR(vmem_construct)
+MSVC_DESTR(vmem_fini)
+#endif

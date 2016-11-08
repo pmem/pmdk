@@ -1,3 +1,0 @@
-vmem_strdup$(nW)TEST0: START: vmem_strdup
- $(nW)vmem_strdup$(nW)
-vmem_strdup$(nW)TEST0: Done

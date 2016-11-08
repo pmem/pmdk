@@ -43,15 +43,16 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
+require_test_type medium
 require_fs_type none
 
 setup
 
 # this test invokes sigsegvs by design
-$Env:ASAN_OPTIONS="handle_segv=0"
+# XXX - AddressSanitizer detector not supported on Windows
+#$Env:ASAN_OPTIONS="handle_segv=0"
 
 expect_normal_exit $Env:EXE_DIR\vmem_delete$Env:EXESUFFIX h f m c r a s d
-# h f m c r a s d
 
 check
 

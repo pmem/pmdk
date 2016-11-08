@@ -69,8 +69,15 @@ mkstemp(char *temp)
 		return -1;
 
 	char npath[MAX_PATH];
-
 	strcpy(npath, path);
+
+	/*
+	 * Use rand_s to generate more unique tmp file name than _mktemp do.
+	 * In case with multiple threads and multiple files even after close()
+	 * file name conflicts occurred.
+	 * It resolved issue with synchronous removing
+	 * multiples files by system.
+	 */
 	rand_s(&rnd);
 	_snprintf(npath + strlen(npath), MAX_PATH, "%d", rnd);
 

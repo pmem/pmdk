@@ -11,6 +11,50 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\jemalloc_internal.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\jemalloc_internal_defs.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\private_namespace.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\private_unnamespace.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\public_namespace.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\public_unnamespace.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\internal\size_classes.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_defs.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_macros.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_mangle.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_mangle_jet.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_protos.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_protos_jet.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_rename.h" />
+    <ClInclude Include="..\..\windows\jemalloc_gen\include\jemalloc\jemalloc_typedefs.h" />
+    <ClInclude Include="..\include\jemalloc\internal\arena.h" />
+    <ClInclude Include="..\include\jemalloc\internal\atomic.h" />
+    <ClInclude Include="..\include\jemalloc\internal\base.h" />
+    <ClInclude Include="..\include\jemalloc\internal\bitmap.h" />
+    <ClInclude Include="..\include\jemalloc\internal\chunk.h" />
+    <ClInclude Include="..\include\jemalloc\internal\chunk_dss.h" />
+    <ClInclude Include="..\include\jemalloc\internal\chunk_mmap.h" />
+    <ClInclude Include="..\include\jemalloc\internal\ckh.h" />
+    <ClInclude Include="..\include\jemalloc\internal\ctl.h" />
+    <ClInclude Include="..\include\jemalloc\internal\extent.h" />
+    <ClInclude Include="..\include\jemalloc\internal\hash.h" />
+    <ClInclude Include="..\include\jemalloc\internal\huge.h" />
+    <ClInclude Include="..\include\jemalloc\internal\mb.h" />
+    <ClInclude Include="..\include\jemalloc\internal\mutex.h" />
+    <ClInclude Include="..\include\jemalloc\internal\pool.h" />
+    <ClInclude Include="..\include\jemalloc\internal\prng.h" />
+    <ClInclude Include="..\include\jemalloc\internal\prof.h" />
+    <ClInclude Include="..\include\jemalloc\internal\ql.h" />
+    <ClInclude Include="..\include\jemalloc\internal\qr.h" />
+    <ClInclude Include="..\include\jemalloc\internal\quarantine.h" />
+    <ClInclude Include="..\include\jemalloc\internal\rb.h" />
+    <ClInclude Include="..\include\jemalloc\internal\rtree.h" />
+    <ClInclude Include="..\include\jemalloc\internal\size_classes.h" />
+    <ClInclude Include="..\include\jemalloc\internal\stats.h" />
+    <ClInclude Include="..\include\jemalloc\internal\tcache.h" />
+    <ClInclude Include="..\include\jemalloc\internal\tsd.h" />
+    <ClInclude Include="..\include\jemalloc\internal\util.h" />
+    <ClInclude Include="..\include\jemalloc\internal\vector.h" />
     <ClInclude Include="..\include\msvc_compat\C99\stdbool.h" />
     <ClInclude Include="..\include\msvc_compat\C99\stdint.h" />
     <ClInclude Include="..\include\msvc_compat\strings.h" />
@@ -45,7 +89,7 @@
     <ProjectGuid>{8D6BB292-9E1C-413D-9F98-4864BDC1514A}</ProjectGuid>
     <Keyword>DynamicLibrary</Keyword>
     <RootNamespace>jemalloc</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -102,6 +146,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)windows\jemalloc_gen\include\;..\include;..\include\msvc_compat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4090;4146;4267;4334</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutputPath)$(TargetName).pdb</ProgramDataBaseFileName>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

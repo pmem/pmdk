@@ -87,8 +87,8 @@ struct pool_s {
 	 * pages are carved up in cacheline-size quanta, so that there is no chance of
 	 * false cache line sharing.
 	 */
-	char		*base_next_addr;
-	char		*base_past_addr; /* Addr immediately past base_pages. */
+	void		*base_next_addr;
+	void		*base_past_addr; /* Addr immediately past base_pages. */
 	extent_node_t	*base_nodes;
 
 	/*

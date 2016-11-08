@@ -169,7 +169,7 @@ main(int argc, char *argv[])
 			UT_OUT("Testing vmem_delete...");
 			if (!ut_sigsetjmp(Jmp)) {
 				vmem_delete(vmp);
-				if (get_error() != 0)
+				if (errno != 0)
 					UT_OUT("\tvmem_delete failed: %s",
 						vmem_errormsg());
 				else

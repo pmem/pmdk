@@ -178,7 +178,7 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 static void
 test_mock_pool_allocs()
 {
-	addr = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_pagesize);
+	addr = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_mmap_align);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
 	mock_pop->size = MOCK_POOL_SIZE;

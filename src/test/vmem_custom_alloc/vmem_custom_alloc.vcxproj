@@ -14,6 +14,9 @@
     <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
       <Project>{b011232e-3187-4388-acc4-a9a071669749}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
@@ -30,7 +33,7 @@
     <ProjectGuid>{4ED1E400-CF16-48C2-B176-2BF186E73531}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_custom_alloc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -71,13 +74,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
-      <DisableSpecificWarnings></DisableSpecificWarnings>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;libut.lib;libpmem.lib;liblinux.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -88,13 +92,14 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;WINAPI_PARTITION_SYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
-      <DisableSpecificWarnings></DisableSpecificWarnings>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;libut.lib;libpmem.lib;liblinux.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

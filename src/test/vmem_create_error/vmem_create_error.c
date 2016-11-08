@@ -53,17 +53,17 @@ main(int argc, char *argv[])
 	errno = 0;
 	vmp = vmem_create_in_region(mem_pool, 0);
 	UT_ASSERTeq(vmp, NULL);
-	UT_ASSERTeq(get_error(), EINVAL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("./", 0);
 	UT_ASSERTeq(vmp, NULL);
-	UT_ASSERTeq(get_error(), EINVAL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("invalid dir !@#$%^&*()=", VMEM_MIN_POOL);
 	UT_ASSERTeq(vmp, NULL);
-	UT_ASSERTne(get_error(), 0);
+	UT_ASSERTne(errno, 0);
 
 	DONE(NULL);
 }

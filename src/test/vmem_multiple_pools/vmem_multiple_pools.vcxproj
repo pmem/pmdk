@@ -17,6 +17,9 @@
     <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
       <Project>{b011232e-3187-4388-acc4-a9a071669749}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="err0.log.match" />
@@ -36,7 +39,7 @@
     <ProjectGuid>{CD7A18D5-55D9-4922-A000-FFAA08ABB006}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_multiple_pools</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -84,7 +87,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;libut.lib;libpmem.lib;libvmem.lib;liblinux.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceFileOutput>
       </ForceFileOutput>
     </Link>
@@ -104,7 +107,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DbgHelp.lib;libut.lib;libpmem.lib;libvmem.lib;liblinux.lib;libpmemcommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DbgHelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

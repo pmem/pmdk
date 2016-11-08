@@ -12,9 +12,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="vmem_stats.c" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
@@ -75,5 +72,10 @@
     <None Include="TEST9.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="vmem_stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
