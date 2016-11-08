@@ -603,13 +603,13 @@ pmemobj_vg_boot(struct pmemobjpool *pop)
 	size_t rs = pmemobj_root_size(pop);
 	if (rs) {
 		oid = pmemobj_root(pop, rs);
-		palloc_vg_register_object(&pop->heap, oid,
+		palloc_vg_register_object(&pop->heap, pmemobj_direct(oid),
 				pmemobj_root_size(pop));
 	}
 
 	for (oid = pmemobj_first(pop);
 			!OID_IS_NULL(oid); oid = pmemobj_next(oid)) {
-		palloc_vg_register_object(&pop->heap, oid,
+		palloc_vg_register_object(&pop->heap, pmemobj_direct(oid),
 				pmemobj_alloc_usable_size(oid));
 	}
 

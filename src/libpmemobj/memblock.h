@@ -42,7 +42,7 @@
 
 #include "heap_layout.h"
 #include "memops.h"
-#include "pmalloc.h"
+#include "palloc.h"
 
 struct memory_block {
 	uint32_t chunk_id; /* index of the memory block in its zone */
