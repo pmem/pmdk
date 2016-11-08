@@ -42,8 +42,15 @@ directory=doc/generated
 allowed_user="Generic builder <nvml-bot@intel.com>"
 
 if [[ -z "$TRAVIS" ]]; then
-	echo "ERROR: This script can only be executed on Travis CI."
-	exit -1
+	echo "ERROR: $0 can only be executed on Travis CI."
+	exit 1
+fi
+
+if [[ $TRAVIS_REPO_SLUG != "pmem/nvml" \
+	|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
+then
+	echo "SKIP: $0 can only be executed for pull requests to pmem/nvml"
+	exit 0
 fi
 
 # Find all the commits for the current build
@@ -67,10 +74,7 @@ fi
 # Check for changes in the generated docs directory
 for file in $files; do
 	# Check if modified files are relevant to the current build
-	if [[ $file =~ ^($directory)\/* ]] \
-			&& [[ $TRAVIS_REPO_SLUG == "pmem/nvml" \
-			&& $TRAVIS_BRANCH == "master" \
-			&& $TRAVIS_EVENT_TYPE != "pull_request" ]]
+	if [[ $file =~ ^($directory)\/* ]];
 	then
 		last_author=$(git --no-pager show -s --format='%aN <%aE>')
 		if [ "$last_author" != "$allowed_user" ]; then

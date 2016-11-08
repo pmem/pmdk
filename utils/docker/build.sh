@@ -51,8 +51,8 @@ imageName=nvml/${OS}:${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
 if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi
-if [[ $MAKE_PKG -eq 0 ]] ; then command="/bin/bash ./run-build.sh"; fi
-if [[ $MAKE_PKG -eq 1 ]] ; then command="/bin/bash ./run-build-package.sh"; fi
+if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
+if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
@@ -74,7 +74,13 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format-3.8\
+	--env CLANG_FORMAT=clang-format-3.8 \
+	--env TRAVIS=$TRAVIS \
+	--env TRAVIS_COMMIT_RANGE=$TRAVIS_COMMIT_RANGE \
+	--env TRAVIS_COMMIT=$TRAVIS_COMMIT \
+	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
+	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
+	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-w $SCRIPTSDIR \
 	$imageName $command
