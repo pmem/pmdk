@@ -665,6 +665,13 @@ test_msync(int fd)
 	UT_ASSERTeq(ptr2, ptr1 + MMAP_SIZE * 2);
 	UT_ASSERTeq(msync(ptr1 + MMAP_SIZE, MMAP_SIZE * 2, MS_SYNC), 0);
 	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE * 4), 0);
+
+	/* anonymous mapping */
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE,
+			MAP_SHARED|MAP_ANON, -1, 0);
+	UT_ASSERTne(ptr1, MAP_FAILED);
+	UT_ASSERTeq(msync(ptr1, FILE_SIZE, MS_SYNC), 0);
+	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
 }
 
 #define PROT_ALL (PROT_READ|PROT_WRITE|PROT_EXEC)

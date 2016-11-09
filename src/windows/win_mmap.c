@@ -738,14 +738,19 @@ msync(void *addr, size_t len, int flags)
 
 		size_t len2 = (char *)end2 - (char *)begin2;
 
-		if (FlushViewOfFile(begin2, len2) == FALSE) {
-			ERR("FlushViewOfFile, gle: 0x%08x", GetLastError());
-			goto err;
-		}
+		/* do nothing for anonymous mappings */
+		if (mt->FileHandle != (HANDLE)-1) {
+			if (FlushViewOfFile(begin2, len2) == FALSE) {
+				ERR("FlushViewOfFile, gle: 0x%08x",
+					GetLastError());
+				goto err;
+			}
 
-		if (FlushFileBuffers(mt->FileHandle) == FALSE) {
-			ERR("FlushFileBuffers, gle: 0x%08x", GetLastError());
-			goto err;
+			if (FlushFileBuffers(mt->FileHandle) == FALSE) {
+				ERR("FlushFileBuffers, gle: 0x%08x",
+					GetLastError());
+				goto err;
+			}
 		}
 
 		len -= len2;
