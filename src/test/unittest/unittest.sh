@@ -528,7 +528,10 @@ function ignore_debug_info_errors() {
 #	usage: get_trace <check type> <log file> [<node>]
 #
 function get_trace() {
-	[ "$1" == "none" ] && return $TRACE
+	if [ "$1" == "none" ]; then
+		echo "$TRACE"
+		return
+	fi
 	local exe=$VALGRINDEXE
 	local check_type=$1
 	local log_file=$2
