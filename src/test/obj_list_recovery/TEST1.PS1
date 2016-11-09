@@ -50,7 +50,7 @@ setup
 
 create_holey_file 1M $DIR/testfile
 
-rm -Force log$Env:UNITTEST_NUM.log
+rm -Force log$Env:UNITTEST_NUM.log -ErrorAction SilentlyContinue
 
 function concat_log {
 	cat out$Env:UNITTEST_NUM.log >> log$Env:UNITTEST_NUM.log
