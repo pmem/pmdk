@@ -286,9 +286,12 @@ void\ pmemobj_tx_process(void);
 
 int\ pmemobj_tx_add_range(PMEMoid\ oid,\ uint64_t\ off,\ size_t\ size);
 int\ pmemobj_tx_add_range_direct(const\ void\ *ptr,\ size_t\ size);
+int\ pmemobj_tx_xadd_range(PMEMoid\ oid,\ uint64_t\ off,\ size_t\ size,\ uint64_t\ flags);\ (EXPERIMENTAL)
+int\ pmemobj_tx_xadd_range_direct(const\ void\ *ptr,\ size_t\ size,\ uint64_t\ flags);\ (EXPERIMENTAL)
 
 PMEMoid\ pmemobj_tx_alloc(size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_zalloc(size_t\ size,\ uint64_t\ type_num);
+PMEMoid\ pmemobj_tx_xalloc(size_t\ size,\ uint64_t\ type_num,\ uint64_t\ flags);\ (EXPERIMENTAL)
 PMEMoid\ pmemobj_tx_realloc(PMEMoid\ oid,\ size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_zrealloc(PMEMoid\ oid,\ size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_strdup(const\ char\ *s,\ uint64_t\ type_num);
@@ -307,10 +310,16 @@ TX_ADD_FIELD(TOID\ o,\ FIELD)
 TX_ADD_DIRECT(TYPE\ *p)
 TX_ADD_FIELD_DIRECT(TYPE\ *p,\ FIELD)
 
+TX_XADD(TOID\ o,\ uint64_t\ flags)\ (EXPERIMENTAL)
+TX_XADD_FIELD(TOID\ o,\ FIELD,\ uint64_t\ flags)\ (EXPERIMENTAL)
+TX_XADD_DIRECT(TYPE\ *p,\ uint64_t\ flags)\ (EXPERIMENTAL)
+TX_XADD_FIELD_DIRECT(TYPE\ *p,\ FIELD,\ uint64_t\ flags)\ (EXPERIMENTAL)
+
 TX_NEW(TYPE)
 TX_ALLOC(TYPE,\ size_t\ size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE,\ size_t\ size)
+TX_XALLOC(TYPE,\ size_t\ size,\ uint64_t\ flags)\ (EXPERIMENTAL)
 TX_REALLOC(TOID\ o,\ size_t\ size)
 TX_ZREALLOC(TOID\ o,\ size_t\ size)
 TX_STRDUP(const\ char\ *s,\ uint64_t\ type_num)
@@ -2550,6 +2559,19 @@ This function must be called during \f[B]TX_STAGE_WORK\f[].
 .IP
 .nf
 \f[C]
+int\ pmemobj_tx_xadd_range(PMEMoid\ oid,\ uint64_t\ off,\ size_t\ size,\ uint64_t\ flags);
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_tx_xadd_range\f[]() function behaves exactly the same
+as \f[B]pmemobj_tx_add_range\f[]() when \f[I]flags\f[] equals zero.
+\f[I]flags\f[] is a bitmask of the following values:
+.IP \[bu] 2
+\f[B]POBJ_XADD_NO_FLUSH\f[] \- skip flush on commit (when application
+deals with flushing or uses pmemobj_memcpy_persist)
+.IP
+.nf
+\f[C]
 int\ pmemobj_tx_add_range_direct(const\ void\ *ptr,\ size_t\ size);
 \f[]
 .fi
@@ -2570,6 +2592,20 @@ If successful, returns zero.
 Otherwise, state changes to \f[B]TX_STAGE_ONABORT\f[] and an error
 number is returned.
 This function must be called during \f[B]TX_STAGE_WORK\f[].
+.IP
+.nf
+\f[C]
+int\ pmemobj_tx_xadd_range_direct(const\ void\ *ptr,\ size_t\ size);
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_tx_xadd_range_direct\f[]() function behaves exactly the
+same as \f[B]pmemobj_tx_add_range_direct\f[]() when \f[I]flags\f[]
+equals zero.
+\f[I]flags\f[] is a bitmask of the following values:
+.IP \[bu] 2
+\f[B]POBJ_XADD_NO_FLUSH\f[] \- skip flush on commit (when application
+deals with flushing or uses pmemobj_memcpy_persist)
 .IP
 .nf
 \f[C]
@@ -2598,6 +2634,29 @@ PMEMoid\ pmemobj_tx_zalloc(size_t\ size,\ uint64_t\ type_num);
 .PP
 The \f[B]pmemobj_tx_zalloc\f[]() function transactionally allocates new
 zeroed object of given \f[I]size\f[] and \f[I]type_num\f[].
+If successful, returns a handle to the newly allocated object.
+Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
+is returned, and \f[I]errno\f[] is set appropriately.
+If \f[I]size\f[] equals 0, \f[B]OID_NULL\f[] is returned and
+\f[I]errno\f[] is set appropriately.
+This function must be called during \f[B]TX_STAGE_WORK\f[].
+.IP
+.nf
+\f[C]
+PMEMoid\ pmemobj_tx_xalloc(size_t\ size,\ uint64_t\ type_num,\ uint64_t\ flags);
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_tx_xalloc\f[]() function transactionally allocates a
+new object of given \f[I]size\f[] and \f[I]type_num\f[].
+The \f[I]flags\f[] argument is a bitmask of the following values:
+.IP \[bu] 2
+\f[B]POBJ_XALLOC_ZERO\f[] \- zero the object (equivalent of
+pmemobj_tx_zalloc)
+.IP \[bu] 2
+\f[B]POBJ_XALLOC_NO_FLUSH\f[] \- skip flush on commit (when application
+deals with flushing or uses pmemobj_memcpy_persist)
+.PP
 If successful, returns a handle to the newly allocated object.
 Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
 is returned, and \f[I]errno\f[] is set appropriately.
@@ -2797,6 +2856,17 @@ In case of a failure or abort, the saved value will be restored.
 .IP
 .nf
 \f[C]
+TX_XADD_FIELD(TOID\ o,\ FIELD,\ uint64_t\ flags)
+\f[]
+.fi
+.PP
+The \f[B]TX_XADD_FIELD\f[]() macro works exactly like
+\f[B]TX_ADD_FIELD\f[] when \f[I]flags\f[] equals 0.
+The \f[I]flags\f[] argument is a bitmask of values described in
+\f[B]pmemobj_tx_xadd_range\f[] section.
+.IP
+.nf
+\f[C]
 TX_ADD(TOID\ o)
 \f[]
 .fi
@@ -2807,6 +2877,17 @@ The object size is determined from its \f[I]TYPE\f[].
 The application is then free to directly modify the object.
 In case of a failure or abort, all the changes within the object will be
 rolled\-back.
+.IP
+.nf
+\f[C]
+TX_XADD(TOID\ o,\ uint64_t\ flags)
+\f[]
+.fi
+.PP
+The \f[B]TX_XADD\f[]() macro works exactly like \f[B]TX_ADD\f[] when
+\f[I]flags\f[] equals 0.
+The \f[I]flags\f[] argument is a bitmask of values described in
+\f[B]pmemobj_tx_xadd_range\f[] section.
 .IP
 .nf
 \f[C]
@@ -2823,6 +2904,17 @@ In case of a failure or abort, the saved value will be restored.
 .IP
 .nf
 \f[C]
+TX_XADD_FIELD_DIRECT(TYPE\ *p,\ FIELD,\ uint64_t\ flags)
+\f[]
+.fi
+.PP
+The \f[B]TX_XADD_FIELD_DIRECT\f[]() macro works exactly like
+\f[B]TX_ADD_FIELD_DIRECT\f[] when \f[I]flags\f[] equals 0.
+The \f[I]flags\f[] argument is a bitmask of values described in
+\f[B]pmemobj_tx_xadd_range_direct\f[] section.
+.IP
+.nf
+\f[C]
 TX_ADD_DIRECT(TYPE\ *p)
 \f[]
 .fi
@@ -2834,6 +2926,17 @@ The object size is determined from its \f[I]TYPE\f[].
 The application is then free to directly modify the object.
 In case of a failure or abort, all the changes within the object will be
 rolled\-back.
+.IP
+.nf
+\f[C]
+TX_XADD_DIRECT(TYPE\ *p,\ uint64_t\ flags)
+\f[]
+.fi
+.PP
+The \f[B]TX_XADD_DIRECT\f[]() macro works exactly like
+\f[B]TX_ADD_DIRECT\f[] when \f[I]flags\f[] equals 0.
+The \f[I]flags\f[] argument is a bitmask of values described in
+\f[B]pmemobj_tx_xadd_range_direct\f[] section.
 .IP
 .nf
 \f[C]
@@ -2929,7 +3032,7 @@ is returned, and \f[I]errno\f[] is set appropriately.
 .IP
 .nf
 \f[C]
-TX_ZALLOC(TYPE)
+TX_ZALLOC(TYPE,\ size_t\ size)
 \f[]
 .fi
 .PP
@@ -2937,6 +3040,23 @@ The \f[B]TX_ZALLOC\f[]() macro transactionally allocates a new zeroed
 object of given \f[I]TYPE\f[] and assigns it a type number read from the
 typed \f[I]OID\f[].
 The allocation size is passed by \f[I]size\f[] argument.
+If successful and called during \f[B]TX_STAGE_WORK\f[] it returns a
+handle to the newly allocated object.
+Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
+is returned, and \f[I]errno\f[] is set appropriately.
+.IP
+.nf
+\f[C]
+TX_XALLOC(TYPE,\ size_t\ size,\ uint64_t\ flags)
+\f[]
+.fi
+.PP
+The \f[B]TX_XALLOC\f[]() macro transactionally allocates a new object of
+given \f[I]TYPE\f[] and assigns it a type number read from the typed
+\f[I]OID\f[].
+The allocation size is passed by \f[I]size\f[] argument.
+The \f[I]flags\f[] argument is a bitmask of values described in
+\f[B]pmemobj_tx_xalloc\f[] section.
 If successful and called during \f[B]TX_STAGE_WORK\f[] it returns a
 handle to the newly allocated object.
 Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
