@@ -863,7 +863,7 @@ function compare_replicas {
                 [string]$params += -join(" '", $param_entry, "' ")
             }
         } else {
-            [string]$params += -join(" '", $param, "' ")
+            [string]$params += -join($param, " ")
         }
     }
 
