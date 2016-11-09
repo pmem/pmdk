@@ -421,8 +421,7 @@ function check_exit_code {
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
 
-        # XXX: return the actual exit code
-        #fail 1
+        fail $LASTEXITCODE
     }
 }
 
@@ -449,8 +448,6 @@ function expect_abnormal_exit {
 
     if ($LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
-
-        # XXX: return the actual exit code
         fail 1
     }
 }
