@@ -182,10 +182,10 @@ remove_remote(const char *target, const char *pool_set)
 	int ret = 0;
 
 	if (rpmem_ssh_monitor(ssh, 0))
-		ret = -1;
+		ret = 1;
 
 	if (rpmem_ssh_close(ssh))
-		ret = -1;
+		ret = 1;
 
 	if (ret)
 		goto err_ssh_exec;
@@ -199,11 +199,12 @@ remove_remote(const char *target, const char *pool_set)
 err_ssh_exec:
 	rpmem_target_free(info);
 err_parse:
-	outv_err("cannot remove '%s' on '%s'", pool_set, target);
-	return -1;
+	if (!force)
+		outv_err("cannot remove '%s' on '%s'", pool_set, target);
+	return 1;
 #else
 	outv_err("remote replication not supported");
-	return -1;
+	return 1;
 #endif
 }
 
