@@ -398,7 +398,7 @@ function expect_normal_exit {
 # check_exit_code -- check if $LASTEXITCODE is equal 0
 #
 function check_exit_code {
- if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -ne 0) {
         sv -Name msg "failed with exit code $LASTEXITCODE"
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
@@ -420,6 +420,9 @@ function check_exit_code {
         dump_last_n_lines $Env:PMEMBLK_LOG_FILE
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
+
+        # XXX: return the actual exit code
+        #fail 1
     }
 }
 
@@ -443,8 +446,12 @@ function expect_abnormal_exit {
     }
 
     Invoke-Expression "$command $params"
+
     if ($LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
+
+        # XXX: return the actual exit code
+        fail 1
     }
 }
 
