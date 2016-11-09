@@ -30,6 +30,10 @@ seamless persistent memory integration in mind. It is designed to be used with
 basic types within classes, to signify that these members in fact reside in
 persistent memory and need to be handled appropriately.
 
+Please remember to take extra care when using _static class members_. They are
+not stored in persistent memory, therefore their value will _not_ always be
+consistent across subsequent executions or compilations of user applications.
+
 If you find any issues or have suggestion about these bindings please file an
 issue in https://github.com/pmem/issues. There are also blog articles in
 http://pmem.io/blog/ which you might find helpful.
