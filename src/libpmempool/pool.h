@@ -109,7 +109,7 @@ struct pool_data {
 	enum {
 		UUID_NOP = 0,
 		UUID_FROM_BTT,
-		UUID_REGENERATED,
+		UUID_NOT_FROM_BTT,
 	} uuid_op;
 	struct arena bttc;
 	TAILQ_HEAD(arenashead, arena) arenas;
