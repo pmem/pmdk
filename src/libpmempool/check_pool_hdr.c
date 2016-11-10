@@ -753,6 +753,36 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 	return 0;
 }
 
+/*
+ * pool_hdr_uuid_links_quick -- (internal) check pool hdr links and return only
+ *	single logic answer
+ */
+static int
+pool_hdr_uuid_links_valid(union location *loc)
+{
+	if (loc->next_part_hdr_valid && uuidcmp(loc->hdr.next_part_uuid,
+			loc->next_part_hdrp->uuid)) {
+		return 0;
+	}
+
+	if (loc->prev_part_hdr_valid && uuidcmp(loc->hdr.prev_part_uuid,
+			loc->prev_part_hdrp->uuid)) {
+		return 0;
+	}
+
+	if (loc->next_repl_hdr_valid && uuidcmp(loc->hdr.next_repl_uuid,
+			loc->next_repl_hdrp->uuid)) {
+		return 0;
+	}
+
+	if (loc->prev_repl_hdr_valid && uuidcmp(loc->hdr.prev_repl_uuid,
+			loc->prev_repl_hdrp->uuid)) {
+		return 0;
+	}
+
+	return 1;
+}
+
 struct step {
 	int (*check)(PMEMpoolcheck *, union location *);
 	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
@@ -907,9 +937,18 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 				if (step_exe(ppc, loc, rep, nreplicas))
 					goto cleanup;
 			}
+
+			if (loc->step == CHECK_STEP_COMPLETE &&
+					!pool_hdr_uuid_links_valid(loc)) {
+				check_end(ppc->data);
+				ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+				CHECK_ERR(ppc,
+					"%sincorrect pool header UUID links",
+					loc->prefix);
+				goto cleanup;
+			}
 		}
 
-		loc->step = 0;
 		loc->part = 0;
 	}
 
