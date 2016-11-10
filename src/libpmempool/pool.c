@@ -330,8 +330,13 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 #endif
 		addr = NULL;
 	} else {
-		params->size = (size_t)stat_buf.st_size;
-		addr = mmap(NULL, (uint64_t)stat_buf.st_size, PROT_READ,
+		ssize_t s = util_file_get_size(ppc->path);
+		if (s < 0) {
+			ret = -1;
+			goto out_close;
+		}
+		params->size = (size_t)s;
+		addr = mmap(NULL, (uint64_t)params->size, PROT_READ,
 			MAP_PRIVATE, fd, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
