@@ -233,7 +233,7 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 	off_t offset)
 {
 	if (!util_file_is_device_dax(path)) {
-		int fd = open(path, O_RDWR, 0);
+		int fd = util_file_open(path, NULL, 0, O_RDWR);
 		if (fd < 0)
 			return -1;
 
@@ -272,7 +272,7 @@ util_file_pread(const char *path, void *buffer, size_t size,
 	off_t offset)
 {
 	if (!util_file_is_device_dax(path)) {
-		int fd = open(path, O_RDONLY, 0);
+		int fd = util_file_open(path, NULL, 0, O_RDONLY);
 		if (fd < 0)
 			return -1;
 
