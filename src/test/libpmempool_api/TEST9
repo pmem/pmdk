@@ -65,6 +65,9 @@ do
 	expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL\
 		-d 1 -r 1 -y 1 -t ${field} >> $LOG
 	cat $LOG >> $LOG_TEMP
+	expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL\
+		-d 1 -r 1 -y 1 -t ${field} -a 1 >> $LOG
+	cat $LOG >> $LOG_TEMP
 	cmp $POOL ${POOL}_copy >> $LOG_TEMP || true
 
 	rm -f $POOL

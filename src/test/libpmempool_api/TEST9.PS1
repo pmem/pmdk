@@ -67,6 +67,9 @@ foreach ($h in $pool_args.GetEnumerator()) {
 	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL `
 		-d 1 -r 1 -y 1 -t $($h.Name)
 	cat $LOG >> $LOG_TEMP
+	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL `
+		-d 1 -r 1 -y 1 -t $($h.Name) -a 1
+	cat $LOG >> $LOG_TEMP
 	cmp $POOL ${POOL}_copy >> $LOG_TEMP
 
 	rm $POOL -Force -Recurse -ea si

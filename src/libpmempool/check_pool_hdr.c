@@ -66,6 +66,7 @@ union location {
 		struct pool_hdr *hdrp;
 		/* copy of the pool header in host byte order */
 		struct pool_hdr hdr;
+		int hdr_valid;
 
 		struct pool_hdr *next_part_hdrp;
 		struct pool_hdr *prev_part_hdrp;
@@ -77,6 +78,7 @@ union location {
 		int next_repl_hdr_valid;
 		int prev_repl_hdr_valid;
 
+		uuid_t *valid_puuid;
 		uuid_t *valid_uuid;
 	};
 	/* global check step data */
@@ -92,19 +94,15 @@ enum question {
 	Q_ZERO_UNUSED_AREA,
 	Q_CRTIME,
 	Q_CHECKSUM,
+	Q_POOLSET_UUID_SET,
 	Q_POOLSET_UUID_FROM_BTT_INFO,
-	Q_POOLSET_UUID_FROM_VALID_PART,
 	Q_POOLSET_UUID_REGENERATE,
-	Q_UUID_FROM_LINK,
+	Q_UUID_SET,
 	Q_UUID_REGENERATE,
 	Q_NEXT_PART_UUID_SET,
-	Q_NEXT_PART_UUID_REGENERATE,
 	Q_PREV_PART_UUID_SET,
-	Q_PREV_PART_UUID_REGENERATE,
 	Q_NEXT_REPL_UUID_SET,
-	Q_NEXT_REPL_UUID_REGENERATE,
-	Q_PREV_REPL_UUID_SET,
-	Q_PREV_REPL_UUID_REGENERATE
+	Q_PREV_REPL_UUID_SET
 };
 
 /*
@@ -155,19 +153,15 @@ pool_hdr_checksum(PMEMpoolcheck *ppc, union location *loc)
 	LOG(3, NULL);
 
 	CHECK_INFO(ppc, "%schecking pool header", loc->prefix);
-	struct pool_hdr hdr;
-	memcpy(&hdr, loc->hdrp, sizeof(hdr));
 
-	int hdr_valid = pool_hdr_valid(&hdr);
-
-	if (util_is_zeroed((void *)&hdr, sizeof(hdr))) {
+	if (util_is_zeroed((void *)&loc->hdr, sizeof(loc->hdr))) {
 		if (CHECK_IS_NOT(ppc, REPAIR)) {
 			check_end(ppc->data);
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc, "empty pool hdr");
 		}
-	} else if (hdr_valid) {
-		enum pool_type type = pool_hdr_get_type(&hdr);
+	} else if (loc->hdr_valid) {
+		enum pool_type type = pool_hdr_get_type(&loc->hdr);
 		if (type == POOL_TYPE_UNKNOWN) {
 			if (CHECK_IS_NOT(ppc, REPAIR)) {
 				check_end(ppc->data);
@@ -319,77 +313,151 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 /*
- * pool_get_valid_part -- (internal) returns valid part replica and part ids
- *
- * Assume part of replica indicated by rid and pid as invalid.
+ * pool_hdr_checksum_retry -- (internal) check if checksum match after all
+ *	performed fixes
  */
-static struct pool_set_part *
-pool_get_valid_part(PMEMpoolcheck *ppc, unsigned rid, unsigned pid)
+static int
+pool_hdr_checksum_retry(PMEMpoolcheck *ppc, union location *loc)
 {
-	const struct pool_set *poolset = ppc->pool->set_file->poolset;
-	for (unsigned r = 0; r < poolset->nreplicas; r++) {
-		struct pool_replica *rep = poolset->replica[r];
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			/* skip part of replica known as invalid */
-			if (r == rid && p == pid)
-				continue;
+	LOG(3, NULL);
+	if (pool_hdr_valid(loc->hdrp))
+		loc->step = CHECK_STEP_COMPLETE;
 
-			if (pool_hdr_valid(rep->part[p].hdr))
-				return &rep->part[p];
+	return 0;
+}
+
+/*
+ * pool_hdr_crtime -- (internal) validate creation time
+ */
+static int
+pool_hdr_crtime(PMEMpoolcheck *ppc, union location *loc)
+{
+	LOG(3, NULL);
+
+	if (loc->hdr.crtime > (uint64_t)ppc->pool->set_file->mtime) {
+		if (CHECK_IS_NOT(ppc, ADVANCED)) {
+			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+			return CHECK_ERR(ppc, "%spool_hdr.crtime is not valid",
+				loc->prefix);
 		}
+
+		CHECK_ASK(ppc, Q_CRTIME,
+			"%spool_hdr.crtime is not valid.|Do you want to set it "
+			"to file's modtime [%s]?", loc->prefix,
+			check_get_time_str(ppc->pool->set_file->mtime));
 	}
 
-	return NULL;
+	return check_questions_sequence_validate(ppc);
+}
+
+/*
+ * pool_hdr_crtime_fix -- (internal) fix creation time
+ */
+static int
+pool_hdr_crtime_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+	uint32_t question, void *context)
+{
+	LOG(3, NULL);
+
+	union location *loc = (union location *)location;
+
+	switch (question) {
+	case Q_CRTIME:
+		CHECK_INFO(ppc, "setting pool_hdr.crtime to file's modtime: %s",
+			check_get_time_str(ppc->pool->set_file->mtime));
+		util_convert2h_hdr_nocheck(&loc->hdr);
+		loc->hdr.crtime = (uint64_t)ppc->pool->set_file->mtime;
+		util_convert2le_hdr(&loc->hdr);
+		break;
+	default:
+		ERR("not implemented question id: %u", question);
+	}
+
+	return 0;
 }
 
 /*
  * pool_hdr_poolset_uuid -- (internal) check poolset_uuid field
  */
 static int
-pool_hdr_poolset_uuid(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_poolset_uuid_find(PMEMpoolcheck *ppc, union location *loc)
 {
 	LOG(3, NULL);
 
+	if (loc->hdr_valid && loc->single_repl && loc->single_part)
+		return 0;
+
+	if (loc->replica != 0 || loc->part != 0)
+		goto after_lookup;
+
 	/* for blk pool we can take the UUID from BTT Info header */
-	if (ppc->pool->params.type == POOL_TYPE_BLK &&
-		ppc->pool->bttc.valid) {
-		if (uuidcmp(loc->hdr.poolset_uuid,
-				ppc->pool->bttc.btt_info.parent_uuid) == 0) {
+	if (ppc->pool->params.type == POOL_TYPE_BLK && ppc->pool->bttc.valid) {
+		loc->valid_puuid = &ppc->pool->bttc.btt_info.parent_uuid;
+		if (uuidcmp(loc->hdr.poolset_uuid, *loc->valid_puuid) == 0) {
 			return 0;
 		}
 
 		CHECK_ASK(ppc, Q_POOLSET_UUID_FROM_BTT_INFO,
 			"%sinvalid pool_hdr.poolset_uuid.|Do you want to set "
 			"it to %s from BTT Info?", loc->prefix,
-			check_get_uuid_str(
-			ppc->pool->bttc.btt_info.parent_uuid));
-		goto exit_question;
-	} else if (ppc->pool->params.is_poolset) {
-		const struct pool_set_part *valid_part =
-			pool_get_valid_part(ppc, loc->replica, loc->part);
-		if (!valid_part)
-			goto regenerate;
-
-		loc->valid_uuid = &((struct pool_hdr *)valid_part->hdr)->
-			poolset_uuid;
-		if (uuidcmp(loc->hdr.poolset_uuid, *loc->valid_uuid) == 0)
-			return 0;
-		CHECK_ASK(ppc, Q_POOLSET_UUID_FROM_VALID_PART,
-			"%sinvalid pool_hdr.poolset_uuid.|Do you want to set "
-			"it to %s from a valid pool file part?", loc->prefix,
-			check_get_uuid_str(*loc->valid_uuid));
+			check_get_uuid_str(*loc->valid_puuid));
 		goto exit_question;
 	}
 
-regenerate:
+	/*
+	 * if all valid poolset part files have the same poolset uuid it is
+	 * valid poolset uuid
+	 */
+	struct pool_set *poolset = ppc->pool->set_file->poolset;
+	unsigned nreplicas = poolset->nreplicas;
+	for (unsigned r = 0; r < nreplicas; r++) {
+		struct pool_replica *rep = REP(poolset, r);
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_hdr *hdr = HDR(rep, p);
+			if (!pool_hdr_valid(hdr))
+				continue;
+
+			if (loc->valid_puuid == NULL) {
+				loc->valid_puuid = &hdr->poolset_uuid;
+			} else if (uuidcmp(*loc->valid_puuid, hdr->poolset_uuid)
+					!= 0) {
+				ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+				return CHECK_ERR(ppc, "the poolset contains "
+					"part files from various poolsets");
+			}
+		}
+	}
+
+	if (loc->valid_puuid)
+		goto after_lookup;
+
 	if (CHECK_IS_NOT(ppc, ADVANCED)) {
-		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "can not repair pool_hdr.poolset_uuid");
+		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+		return CHECK_ERR(ppc, "%sinvalid pool_hdr.poolset_uuid",
+			loc->prefix);
 	} else {
 		CHECK_ASK(ppc, Q_POOLSET_UUID_REGENERATE,
 			"%sinvalid pool_hdr.poolset_uuid.|Do you want to "
 			"regenerate pool_hdr.poolset_uuid?", loc->prefix);
+		goto exit_question;
 	}
+
+after_lookup:
+	if (loc->valid_puuid) {
+		if (uuidcmp(*loc->valid_puuid, loc->hdr.poolset_uuid) != 0) {
+			if (CHECK_IS_NOT(ppc, REPAIR)) {
+				ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+				return CHECK_ERR(ppc, "%sinvalid "
+					"pool_hdr.poolset_uuid", loc->prefix);
+			}
+
+			CHECK_ASK(ppc, Q_POOLSET_UUID_SET, "%sinvalid "
+				"pool_hdr.poolset_uuid.|Do you want to set "
+				"it to %s from a valid part file?", loc->prefix,
+				check_get_uuid_str(*loc->valid_puuid));
+		}
+	}
+
 exit_question:
 	return check_questions_sequence_validate(ppc);
 }
@@ -406,30 +474,26 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 	union location *loc = (union location *)location;
 
 	switch (question) {
+	case Q_POOLSET_UUID_SET:
 	case Q_POOLSET_UUID_FROM_BTT_INFO:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.poolset_uuid to %s",
-			loc->prefix, check_get_uuid_str(
-			ppc->pool->bttc.btt_info.parent_uuid));
-		memcpy(loc->hdr.poolset_uuid,
-			ppc->pool->bttc.btt_info.parent_uuid,
+			loc->prefix, check_get_uuid_str(*loc->valid_puuid));
+		memcpy(loc->hdr.poolset_uuid, loc->valid_puuid,
 			POOL_HDR_UUID_LEN);
-		ppc->pool->uuid_op = UUID_FROM_BTT;
-		break;
-	case Q_POOLSET_UUID_FROM_VALID_PART:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.poolset_uuid to %s",
-			loc->prefix,
-			check_get_uuid_str(*loc->valid_uuid));
-		memcpy(loc->hdr.poolset_uuid, loc->valid_uuid,
-			POOL_HDR_UUID_LEN);
+		if (question == Q_POOLSET_UUID_SET)
+			ppc->pool->uuid_op = UUID_NOT_FROM_BTT;
+		else
+			ppc->pool->uuid_op = UUID_FROM_BTT;
 		break;
 	case Q_POOLSET_UUID_REGENERATE:
 		if (util_uuid_generate(loc->hdr.poolset_uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+			ppc->result = CHECK_RESULT_INTERNAL_ERROR;
 			return CHECK_ERR(ppc, "uuid generation failed");
 		}
 		CHECK_INFO(ppc, "%ssetting pool_hdr.pooset_uuid to %s",
 			loc->prefix,
 			check_get_uuid_str(loc->hdr.poolset_uuid));
+		ppc->pool->uuid_op = UUID_NOT_FROM_BTT;
 		break;
 	default:
 		ERR("not implemented question id: %u", question);
@@ -438,75 +502,7 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 	return 0;
 }
 
-/*
- * pool_hdr_checksum_retry -- (internal) check if checksum match after all
- *	performed fixes
- */
-static int
-pool_hdr_checksum_retry(PMEMpoolcheck *ppc, union location *loc)
-{
-	LOG(3, NULL);
-
-	struct pool_hdr hdr;
-	memcpy(&hdr, loc->hdrp, sizeof(hdr));
-
-	if (pool_hdr_valid(&hdr))
-		loc->step = CHECK_STEP_COMPLETE;
-
-	return 0;
-}
-
-/*
- * pool_hdr_gen -- (internal) validate creation time and checksum
- */
-static int
-pool_hdr_gen(PMEMpoolcheck *ppc, union location *loc)
-{
-	LOG(3, NULL);
-
-	if (loc->hdr.crtime > (uint64_t)ppc->pool->set_file->mtime) {
-		CHECK_ASK(ppc, Q_CRTIME,
-			"%spool_hdr.crtime is not valid.|Do you want to set it "
-			"to file's modtime [%s]?", loc->prefix,
-			check_get_time_str(ppc->pool->set_file->mtime));
-	}
-
-	CHECK_ASK(ppc, Q_CHECKSUM, "Do you want to regenerate checksum?");
-
-	return check_questions_sequence_validate(ppc);
-}
-
-/*
- * pool_hdr_gen_fix -- (internal) fix creation time and checksum
- */
-static int
-pool_hdr_gen_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
-{
-	LOG(3, NULL);
-
-	union location *loc = (union location *)location;
-
-	switch (question) {
-	case Q_CRTIME:
-		CHECK_INFO(ppc, "setting pool_hdr.crtime to file's modtime: %s",
-			check_get_time_str(ppc->pool->set_file->mtime));
-		util_convert2h_hdr_nocheck(&loc->hdr);
-		loc->hdr.crtime = (uint64_t)ppc->pool->set_file->mtime;
-		util_convert2le_hdr(&loc->hdr);
-		break;
-	case Q_CHECKSUM:
-		util_checksum(&loc->hdr, sizeof(loc->hdr), &loc->hdr.checksum,
-			1);
-		CHECK_INFO(ppc, "setting pool_hdr.checksum to 0x%jx",
-			le64toh(loc->hdr.checksum));
-		break;
-	default:
-		ERR("not implemented question id: %u", question);
-	}
-
-	return 0;
-}
+#define COMPARE_TO_FIRST_PART_ONLY 2
 
 /*
  * pool_hdr_uuid -- (internal) check UUID value
@@ -516,48 +512,56 @@ pool_hdr_uuid(PMEMpoolcheck *ppc, union location *loc)
 {
 	LOG(3, NULL);
 
-	int valid;
+	if (loc->hdr_valid && loc->single_repl && loc->single_part)
+		return 0;
+
+	int hdrs_valid[] = {
+		loc->next_part_hdr_valid, loc->prev_part_hdr_valid,
+		loc->next_repl_hdr_valid, loc->prev_repl_hdr_valid};
+	uuid_t *uuids[] = {
+		&loc->next_part_hdrp->prev_part_uuid,
+		&loc->prev_part_hdrp->next_part_uuid,
+		&loc->next_repl_hdrp->prev_repl_uuid,
+		&loc->prev_repl_hdrp->next_repl_uuid
+	};
+
 	loc->valid_uuid = NULL;
-	if (loc->next_part_hdr_valid) {
-		valid = uuidcmp(
-			loc->hdr.uuid, loc->next_part_hdrp->prev_part_uuid);
-		if (valid != 0) {
-			loc->valid_uuid = &loc->next_part_hdrp->prev_part_uuid;
-		}
-	} else if (loc->prev_part_hdr_valid) {
-		valid = uuidcmp(
-			loc->hdr.uuid, loc->prev_part_hdrp->next_part_uuid);
-		if (valid != 0) {
-			loc->valid_uuid = &loc->prev_part_hdrp->next_part_uuid;
-		}
-	} else if (loc->part == 0) {
-		if (loc->next_repl_hdr_valid) {
-			valid = uuidcmp(loc->hdr.uuid,
-				loc->next_repl_hdrp->prev_repl_uuid);
-			if (valid != 0) {
-				loc->valid_uuid =
-					&loc->next_repl_hdrp->prev_repl_uuid;
-			}
-		} else if (loc->prev_repl_hdr_valid) {
-			valid = uuidcmp(loc->hdr.uuid,
-				loc->prev_repl_hdrp->next_repl_uuid);
-			if (valid != 0) {
-				loc->valid_uuid =
-					&loc->prev_repl_hdrp->next_repl_uuid;
-			}
+	if (loc->hdr_valid)
+		loc->valid_uuid = &loc->hdr.uuid;
+	else
+		loc->valid_uuid = NULL;
+
+	COMPILE_ERROR_ON(ARRAY_SIZE(uuids) != ARRAY_SIZE(hdrs_valid));
+	COMPILE_ERROR_ON(COMPARE_TO_FIRST_PART_ONLY >= ARRAY_SIZE(uuids));
+	for (uint16_t i = 0; i < ARRAY_SIZE(uuids); ++i) {
+		if (i >= COMPARE_TO_FIRST_PART_ONLY && loc->part != 0)
+			continue;
+
+		if (!hdrs_valid[i])
+			continue;
+
+		if (!loc->valid_uuid) {
+			loc->valid_uuid = uuids[i];
+		} else if (uuidcmp(*loc->valid_uuid, *uuids[i]) != 0) {
+			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+			return CHECK_ERR(ppc, "%sinvalid pool_hdr.uuid",
+				loc->prefix);
 		}
 	}
-	if (loc->valid_uuid) {
-		CHECK_ASK(ppc, Q_UUID_FROM_LINK,
-			"%sinvalid pool_hdr.uuid.|Do you want to set it to a "
-			"valid value?", loc->prefix);
+
+	if (loc->valid_uuid != 0) {
+		if (uuidcmp(*loc->valid_uuid, loc->hdr.uuid) != 0) {
+			CHECK_ASK(ppc, Q_UUID_SET, "%sinvalid pool_hdr.uuid.|"
+				"Do you want to set it to %s from a valid "
+				"part file?", loc->prefix,
+				check_get_uuid_str(*loc->valid_uuid));
+		}
 	} else if (CHECK_IS(ppc, ADVANCED)) {
-		CHECK_ASK(ppc, Q_UUID_REGENERATE,
-			"%sinvalid pool_hdr.uuid.|Do you want to regenerate "
-			"it?", loc->prefix);
+		CHECK_ASK(ppc, Q_UUID_REGENERATE, "%sinvalid pool_hdr.uuid.|"
+			"Do you want to regenerate it?", loc->prefix);
 	} else {
-		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "can not repair pool_hdr.uuid");
+		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+		return CHECK_ERR(ppc, "%sinvalud pool_hdr.uuid", loc->prefix);
 	}
 
 	return check_questions_sequence_validate(ppc);
@@ -575,14 +579,14 @@ pool_hdr_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 	union location *loc = (union location *)location;
 
 	switch (question) {
-	case Q_UUID_FROM_LINK:
+	case Q_UUID_SET:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.uuid to %s", loc->prefix,
 			check_get_uuid_str(*loc->valid_uuid));
-		memcpy(loc->hdr.uuid, *loc->valid_uuid, POOL_HDR_UUID_LEN);
+		memcpy(loc->hdr.uuid, loc->valid_uuid, POOL_HDR_UUID_LEN);
 		break;
 	case Q_UUID_REGENERATE:
 		if (util_uuid_generate(loc->hdr.uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+			ppc->result = CHECK_RESULT_INTERNAL_ERROR;
 			return CHECK_ERR(ppc, "uuid generation failed");
 		}
 		CHECK_INFO(ppc, "%ssetting pool_hdr.uuid to %s", loc->prefix,
@@ -603,73 +607,44 @@ pool_hdr_uuid_links(PMEMpoolcheck *ppc, union location *loc)
 {
 	LOG(3, NULL);
 
-	const char *field = "";
+	if (loc->hdr_valid && loc->single_repl && loc->single_part)
+		return 0;
 
-	if (uuidcmp(loc->hdr.next_part_uuid, loc->next_part_hdrp->uuid)) {
-		field = "pool_hdr.next_part_uuid";
-		if (loc->single_part || loc->next_part_hdr_valid) {
-			CHECK_ASK(ppc, Q_NEXT_PART_UUID_SET,
-				"%sinvalid %s.|Do you want to set it to a "
-				"valid value?", loc->prefix, field);
-		} else if (CHECK_IS(ppc, ADVANCED)) {
-			CHECK_ASK(ppc, Q_NEXT_PART_UUID_REGENERATE,
-				"%sinvalid %s.|Do you want to regenerate it?",
-				loc->prefix, field);
-		} else {
-			goto cannot_repair;
-		}
-	}
+	uuid_t *links[] = {
+		&loc->hdr.next_part_uuid, &loc->hdr.prev_part_uuid,
+		&loc->hdr.next_repl_uuid, &loc->hdr.prev_repl_uuid};
+	uuid_t *uuids[] = {
+		&loc->next_part_hdrp->uuid, &loc->prev_part_hdrp->uuid,
+		&loc->next_repl_hdrp->uuid, &loc->prev_repl_hdrp->uuid
+	};
+	uint32_t questions[] = {
+		Q_NEXT_PART_UUID_SET, Q_PREV_PART_UUID_SET,
+		Q_NEXT_REPL_UUID_SET, Q_PREV_REPL_UUID_SET
+	};
+	const char *fields[] = {
+		"pool_hdr.next_part_uuid", "pool_hdr.prev_part_uuid",
+		"pool_hdr.next_repl_uuid", "pool_hdr.prev_repl_uuid"
+	};
 
-	if (uuidcmp(loc->hdr.prev_part_uuid, loc->prev_part_hdrp->uuid)) {
-		field = "pool_hdr.prev_part_uuid";
-		if (loc->single_part || loc->prev_part_hdr_valid) {
-			CHECK_ASK(ppc, Q_PREV_PART_UUID_SET,
-				"%sinvalid %s.|Do you want to set it to a "
-				"valid value?", loc->prefix, field);
-		} else if (CHECK_IS(ppc, ADVANCED)) {
-			CHECK_ASK(ppc, Q_PREV_PART_UUID_REGENERATE,
-				"%sinvalid %s.|Do you want to regenerate it?",
-				loc->prefix, field);
-		} else {
-			goto cannot_repair;
-		}
-	}
+	COMPILE_ERROR_ON(ARRAY_SIZE(links) != ARRAY_SIZE(uuids));
+	COMPILE_ERROR_ON(ARRAY_SIZE(links) != ARRAY_SIZE(questions));
+	COMPILE_ERROR_ON(ARRAY_SIZE(links) != ARRAY_SIZE(fields));
+	for (uint64_t i = 0; i < ARRAY_SIZE(links); ++i) {
+		if (uuidcmp(*links[i], *uuids[i]) == 0)
+			continue;
 
-	if (uuidcmp(loc->hdr.next_repl_uuid, loc->next_repl_hdrp->uuid)) {
-		field = "pool_hdr.next_repl_uuid";
-		if (loc->single_repl || loc->next_repl_hdr_valid) {
-			CHECK_ASK(ppc, Q_NEXT_REPL_UUID_SET,
+		if (CHECK_IS(ppc, REPAIR)) {
+			CHECK_ASK(ppc, questions[i],
 				"%sinvalid %s.|Do you want to set it to a "
-				"valid value?", loc->prefix, field);
-		} else if (CHECK_IS(ppc, ADVANCED)) {
-			CHECK_ASK(ppc, Q_NEXT_REPL_UUID_REGENERATE,
-				"%sinvalid %s.|Do you want to regenerate it?",
-				loc->prefix, field);
+				"valid value?", loc->prefix, fields[i]);
 		} else {
-			goto cannot_repair;
-		}
-	}
-
-	if (uuidcmp(loc->hdr.prev_repl_uuid, loc->prev_repl_hdrp->uuid)) {
-		field = "pool_hdr.prev_repl_uuid";
-		if (loc->single_repl || loc->prev_repl_hdr_valid) {
-			CHECK_ASK(ppc, Q_PREV_REPL_UUID_SET,
-				"%sinvalid %s.|Do you want to set it to a "
-				"valid value?", loc->prefix, field);
-		} else if (CHECK_IS(ppc, ADVANCED)) {
-			CHECK_ASK(ppc, Q_PREV_REPL_UUID_REGENERATE,
-				"%sinvalid %s.|Do you want to regenerate it?",
-				loc->prefix, field);
-		} else {
-			goto cannot_repair;
+			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+			return CHECK_ERR(ppc, "%sinvalid %s", loc->prefix,
+				fields[i]);
 		}
 	}
 
 	return check_questions_sequence_validate(ppc);
-
-cannot_repair:
-	ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-	return CHECK_ERR(ppc, "can not repair %s", field);
 }
 
 /*
@@ -691,30 +666,12 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 		memcpy(loc->hdr.next_part_uuid, loc->next_part_hdrp->uuid,
 			POOL_HDR_UUID_LEN);
 		break;
-	case Q_NEXT_PART_UUID_REGENERATE:
-		if (util_uuid_generate(loc->hdr.next_part_uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-			return CHECK_ERR(ppc, "uuid generation failed");
-		}
-		CHECK_INFO(ppc, "%ssetting pool_hdr.next_part_uuid to %s",
-			loc->prefix,
-			check_get_uuid_str(loc->hdr.next_part_uuid));
-		break;
 	case Q_PREV_PART_UUID_SET:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.prev_part_uuid to %s",
 			loc->prefix,
 			check_get_uuid_str(loc->prev_part_hdrp->uuid));
 		memcpy(loc->hdr.prev_part_uuid, loc->prev_part_hdrp->uuid,
 			POOL_HDR_UUID_LEN);
-		break;
-	case Q_PREV_PART_UUID_REGENERATE:
-		if (util_uuid_generate(loc->hdr.prev_part_uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-			return CHECK_ERR(ppc, "uuid generation failed");
-		}
-		CHECK_INFO(ppc, "%ssetting pool_hdr.prev_part_uuid to %s",
-			loc->prefix,
-			check_get_uuid_str(loc->hdr.prev_part_uuid));
 		break;
 	case Q_NEXT_REPL_UUID_SET:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.next_repl_uuid to %s",
@@ -723,15 +680,6 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 		memcpy(loc->hdr.next_repl_uuid, loc->next_repl_hdrp->uuid,
 			POOL_HDR_UUID_LEN);
 		break;
-	case Q_NEXT_REPL_UUID_REGENERATE:
-		if (util_uuid_generate(loc->hdr.next_repl_uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-			return CHECK_ERR(ppc, "uuid generation failed");
-		}
-		CHECK_INFO(ppc, "%ssetting pool_hdr.next_repl_uuid to %s",
-			loc->prefix,
-			check_get_uuid_str(loc->hdr.next_repl_uuid));
-		break;
 	case Q_PREV_REPL_UUID_SET:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.prev_repl_uuid to %s",
 			loc->prefix,
@@ -739,14 +687,51 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 		memcpy(loc->hdr.prev_repl_uuid, loc->prev_repl_hdrp->uuid,
 			POOL_HDR_UUID_LEN);
 		break;
-	case Q_PREV_REPL_UUID_REGENERATE:
-		if (util_uuid_generate(loc->hdr.prev_repl_uuid) != 0) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-			return CHECK_ERR(ppc, "uuid generation failed");
-		}
-		CHECK_INFO(ppc, "%ssetting pool_hdr.prev_repl_uuid to %s",
-			loc->prefix,
-			check_get_uuid_str(loc->hdr.prev_repl_uuid));
+	default:
+		ERR("not implemented question id: %u", question);
+	}
+
+	return 0;
+}
+
+/*
+ * pool_hdr_checksum_final -- (internal) validate checksum
+ */
+static int
+pool_hdr_checksum_final(PMEMpoolcheck *ppc, union location *loc)
+{
+	LOG(3, NULL);
+
+	if (loc->hdr_valid)
+		return 0;
+
+	if (CHECK_IS_NOT(ppc, ADVANCED)) {
+		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+		return CHECK_ERR(ppc, "%sinvalid pool_hdr.checksum",
+			loc->prefix);
+	}
+
+	CHECK_ASK(ppc, Q_CHECKSUM, "Do you want to regenerate checksum?");
+	return check_questions_sequence_validate(ppc);
+}
+
+/*
+ * pool_hdr_checksum_fix -- (internal) fix checksum
+ */
+static int
+pool_hdr_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+	uint32_t question, void *context)
+{
+	LOG(3, NULL);
+
+	union location *loc = (union location *)location;
+
+	switch (question) {
+	case Q_CHECKSUM:
+		util_checksum(&loc->hdr, sizeof(loc->hdr), &loc->hdr.checksum,
+			1);
+		CHECK_INFO(ppc, "%ssetting pool_hdr.checksum to 0x%jx",
+			loc->prefix, le64toh(loc->hdr.checksum));
 		break;
 	default:
 		ERR("not implemented question id: %u", question);
@@ -760,7 +745,7 @@ struct step {
 	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
 };
 
-static const struct step steps[] = {
+static const struct step steps_initial[] = {
 	{
 		.check	= pool_hdr_checksum,
 	},
@@ -772,31 +757,40 @@ static const struct step steps[] = {
 		.check	= pool_hdr_checksum_retry,
 	},
 	{
-		.check	= pool_hdr_poolset_uuid,
+		.check	= pool_hdr_crtime,
+	},
+	{
+		.fix	= pool_hdr_crtime_fix,
+	},
+	{
+		.check	= NULL,
+	},
+};
+
+static const struct step steps_links[] = {
+	{
+		.check	= pool_hdr_poolset_uuid_find,
 	},
 	{
 		.fix	= pool_hdr_poolset_uuid_fix,
-		.check	= pool_hdr_checksum_retry,
 	},
 	{
 		.check	= pool_hdr_uuid,
 	},
 	{
 		.fix	= pool_hdr_uuid_fix,
-		.check	= pool_hdr_checksum_retry,
 	},
 	{
 		.check	= pool_hdr_uuid_links,
 	},
 	{
 		.fix	= pool_hdr_uuid_links_fix,
-		.check	= pool_hdr_checksum_retry,
 	},
 	{
-		.check	= pool_hdr_gen,
+		.check	= pool_hdr_checksum_final,
 	},
 	{
-		.fix	= pool_hdr_gen_fix,
+		.fix	= pool_hdr_checksum_fix,
 	},
 	{
 		.check	= NULL,
@@ -807,7 +801,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static int
-step_exe(PMEMpoolcheck *ppc, union location *loc,
+step_exe(PMEMpoolcheck *ppc, const struct step *steps, union location *loc,
 	struct pool_replica *rep, unsigned nreplicas)
 {
 	const struct step *step = &steps[loc->step++];
@@ -823,6 +817,7 @@ step_exe(PMEMpoolcheck *ppc, union location *loc,
 
 	util_convert2le_hdr(&loc->hdr);
 	memcpy(loc->hdrp, &loc->hdr, sizeof(loc->hdr));
+	loc->hdr_valid = pool_hdr_valid(loc->hdrp);
 	PERSIST_GENERIC_AUTO(loc->hdrp, sizeof(*loc->hdrp));
 
 	util_convert2h_hdr_nocheck(&loc->hdr);
@@ -865,6 +860,7 @@ init_location_data(PMEMpoolcheck *ppc, union location *loc)
 	loc->hdrp = HDR(rep, loc->part);
 	memcpy(&loc->hdr, loc->hdrp, sizeof(loc->hdr));
 	util_convert2h_hdr_nocheck(&loc->hdr);
+	loc->hdr_valid = pool_hdr_valid(loc->hdrp);
 
 	loc->next_part_hdrp = HDR(rep, loc->part + 1);
 	loc->prev_part_hdrp = HDR(rep, loc->part - 1);
@@ -907,13 +903,67 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 			init_location_data(ppc, loc);
 
 			/* do all checks */
-			while (CHECK_NOT_COMPLETE(loc, steps)) {
-				if (step_exe(ppc, loc, rep, nreplicas))
+			while (CHECK_NOT_COMPLETE(loc, steps_initial)) {
+				if (step_exe(ppc, steps_initial, loc, rep,
+						nreplicas))
 					goto cleanup;
 			}
 		}
 
-		loc->step = 0;
+		loc->part = 0;
+	}
+
+	memcpy(&ppc->pool->hdr.pool, poolset->replica[0]->part[0].hdr,
+		sizeof(struct pool_hdr));
+
+	if (loc->header_modified) {
+		struct pool_hdr hdr;
+		memcpy(&hdr, &ppc->pool->hdr.pool, sizeof(struct pool_hdr));
+		util_convert2h_hdr_nocheck(&hdr);
+		pool_params_from_header(&ppc->pool->params, &hdr);
+	}
+
+cleanup:
+	pool_set_file_unmap_headers(ppc->pool->set_file);
+}
+
+/*
+ * check_pool_hdr_links -- entry point for pool header links checks
+ */
+void
+check_pool_hdr_links(PMEMpoolcheck *ppc)
+{
+	LOG(3, NULL);
+
+	COMPILE_ERROR_ON(sizeof(union location) !=
+		sizeof(struct check_step_data));
+
+	int rdonly = CHECK_IS_NOT(ppc, REPAIR);
+	int prv = CHECK_IS(ppc, DRY_RUN);
+
+	if (pool_set_file_map_headers(ppc->pool->set_file, rdonly, prv)) {
+		ppc->result = CHECK_RESULT_ERROR;
+		CHECK_ERR(ppc, "cannot map pool headers");
+		return;
+	}
+
+	union location *loc = (union location *)check_get_step_data(ppc->data);
+	unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
+	struct pool_set *poolset = ppc->pool->set_file->poolset;
+
+	for (; loc->replica < nreplicas; loc->replica++) {
+		struct pool_replica *rep = poolset->replica[loc->replica];
+		for (; loc->part < rep->nparts; loc->part++) {
+			init_location_data(ppc, loc);
+
+			/* do all checks */
+			while (CHECK_NOT_COMPLETE(loc, steps_links)) {
+				if (step_exe(ppc, steps_links, loc, rep,
+						nreplicas))
+					goto cleanup;
+			}
+		}
+
 		loc->part = 0;
 	}
 
