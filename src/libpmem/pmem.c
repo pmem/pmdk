@@ -522,6 +522,9 @@ pmem_is_pmem(const void *addr, size_t len)
 #define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
+#define PMEM_DAX_VALID_FLAGS\
+	(PMEM_FILE_CREATE|PMEM_FILE_SPARSE)
+
 #ifndef USE_O_TMPFILE
 #ifdef O_TMPFILE
 #define USE_O_TMPFILE 1
@@ -547,16 +550,19 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	int dax = util_file_is_device_dax(path);
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
-			ERR("invalid flag specified %x", flags);
-			errno = EINVAL;
-			return NULL;
-	}
-
-	/* only the create flag is valid on device dax */
-	if (dax && flags != PMEM_FILE_CREATE) {
 		ERR("invalid flag specified %x", flags);
 		errno = EINVAL;
 		return NULL;
+	}
+
+	if (dax) {
+		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
+			ERR("invalid flag for device dax %x", flags);
+			errno = EINVAL;
+			return NULL;
+		} else {
+			flags = 0;
+		}
 	}
 
 	if (flags & PMEM_FILE_CREATE) {
@@ -616,13 +622,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 
 #endif
 
-	if (flags & PMEM_FILE_CREATE) {
+	if (!dax || flags & PMEM_FILE_CREATE) {
 		if (flags & PMEM_FILE_SPARSE) {
 			if (ftruncate(fd, (off_t)len) != 0) {
 				ERR("!ftruncate");
 				goto err;
 			}
-		} else if (!dax) {
+		} else {
 			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
 				ERR("!posix_fallocate");
 				goto err;
