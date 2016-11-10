@@ -52,9 +52,6 @@
 #define MAX_MALLOC_FREE_LOOP 1000
 #define MALLOC_FREE_SIZE 8000
 
-#define ALIGN_CEILING(addr, alignment)\
-	(((addr) + (alignment - 1)) & ~(alignment - 1))
-
 struct mock_pop {
 	PMEMobjpool p;
 	char lanes[LANE_SECTION_LEN * MAX_LANE_SECTION];
@@ -181,9 +178,7 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 static void
 test_mock_pool_allocs()
 {
-	void *real_address = ZALLOC(MOCK_POOL_SIZE * 2);
-	addr = (void *)ALIGN_CEILING((uint64_t)real_address,
-		(uint64_t)Ut_pagesize);
+	addr = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_pagesize);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
 	mock_pop->size = MOCK_POOL_SIZE;
@@ -242,7 +237,7 @@ test_mock_pool_allocs()
 	lane_cleanup(mock_pop);
 	heap_cleanup(&mock_pop->heap);
 
-	FREE(real_address);
+	MUNMAP_ANON_ALIGNED(addr, MOCK_POOL_SIZE);
 }
 
 static void

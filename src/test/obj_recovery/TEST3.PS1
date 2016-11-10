@@ -59,11 +59,13 @@ create_poolset $DIR\testset 16M:$DIR\testfile1 R 16M:$DIR\testfile2
 
 expect_normal_exit $Env:EXE_DIR\obj_recovery$Env:EXESUFFIX $DIR\testset n c s
 
-compare_replicas "-soOaAbd -l -Z -H -C" $DIR\testfile1 $DIR\testfile2 > diff_pre$Env:UNITTEST_NUM.log
+compare_replicas "-soOaAbd -l -Z -H -C" `
+    $DIR\testfile1 $DIR\testfile2 > diff_pre$Env:UNITTEST_NUM.log
 
 expect_normal_exit $Env:EXE_DIR\obj_recovery$Env:EXESUFFIX $DIR\testset n o s
 
-compare_replicas "-soOaAbd -l -Z -H -C" $DIR\testfile1 $DIR\testfile2 > diff_post$Env:UNITTEST_NUM.log
+compare_replicas "-soOaAbd -l -Z -H -C" `
+    $DIR\testfile1 $DIR\testfile2 > diff_post$Env:UNITTEST_NUM.log
 
 check
 

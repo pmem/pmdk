@@ -276,7 +276,6 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		 * are similar, we are deferring it as we don't rely on it
 		 * yet.
 		 */
-
 		munmap(addr, len);
 	}
 
@@ -300,10 +299,23 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			errno = EBADF;
 			return MAP_FAILED;
 		}
-		fh = (HANDLE)_get_osfhandle(fd);
 
 		/*
-		 * if we are asked to map more than the file size, map till the
+		 * We need to keep file handle open for proper
+		 * implementation of msync() and to hold the file lock.
+		 */
+		if (!DuplicateHandle(GetCurrentProcess(),
+				(HANDLE)_get_osfhandle(fd),
+				GetCurrentProcess(), &fh,
+				0, FALSE, DUPLICATE_SAME_ACCESS)) {
+			ERR("cannot duplicate handle - fd: %d, gle: 0x%08x",
+					fd, GetLastError());
+			errno = ENOMEM;
+			return MAP_FAILED;
+		}
+
+		/*
+		 * If we are asked to map more than the file size, map till the
 		 * file size and reserve the following.
 		 */
 
@@ -358,14 +370,14 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		}
 	}
 
-	HANDLE fileMapping = CreateFileMapping(fh,
-					NULL, /* security attributes */
-					protect,
-					(DWORD) ((len + offset) >> 32),
-					(DWORD) ((len + offset) & 0xFFFFFFFF),
-					NULL);
+	HANDLE fmh = CreateFileMapping(fh,
+			NULL, /* security attributes */
+			protect,
+			(DWORD) ((len + offset) >> 32),
+			(DWORD) ((len + offset) & 0xFFFFFFFF),
+			NULL);
 
-	if (fileMapping == NULL) {
+	if (fmh == NULL) {
 		DWORD gle = GetLastError();
 		ERR("CreateFileMapping, gle: 0x%08x", gle);
 		if (gle == ERROR_ACCESS_DENIED)
@@ -375,23 +387,23 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		return MAP_FAILED;
 	}
 
-	void *base = MapViewOfFileEx(fileMapping,
-				access,
-				(DWORD) (offset >> 32),
-				(DWORD) (offset & 0xFFFFFFFF),
-				len,
-				addr); /* hint address */
+	void *base = MapViewOfFileEx(fmh,
+			access,
+			(DWORD) (offset >> 32),
+			(DWORD) (offset & 0xFFFFFFFF),
+			len,
+			addr); /* hint address */
 
 	if (base == NULL) {
 		if (addr == NULL || (flags & MAP_FIXED) != 0) {
 			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 			errno = EINVAL;
-			CloseHandle(fileMapping);
+			CloseHandle(fmh);
 			return MAP_FAILED;
 		}
 
 		/* try again w/o hint */
-		base = MapViewOfFileEx(fileMapping,
+		base = MapViewOfFileEx(fmh,
 				access,
 				(DWORD) (offset >> 32),
 				(DWORD) (offset & 0xFFFFFFFF),
@@ -401,7 +413,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (base == NULL) {
 		ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
-		CloseHandle(fileMapping);
+		CloseHandle(fmh);
 		return MAP_FAILED;
 	}
 
@@ -416,12 +428,12 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (mt == NULL) {
 		ERR("!malloc");
-		CloseHandle(fileMapping);
+		CloseHandle(fmh);
 		return MAP_FAILED;
 	}
 
 	mt->FileHandle = fh;
-	mt->FileMappingHandle = fileMapping;
+	mt->FileMappingHandle = fmh;
 	mt->BaseAddress = base;
 	mt->EndAddress = (PVOID *)((char *)base + roundup(len, Mmap_align));
 	mt->Access = access;
@@ -436,6 +448,9 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 /*
  * mmap_split -- (internal) replace existing mapping with another one(s)
+ *
+ * Unmaps the region between [begin,end].  If it's in a middle of the existing
+ * mapping, it results in two new mappings and duplicated file/mapping handles.
  */
 static int
 mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
@@ -445,9 +460,22 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 
 	PFILE_MAPPING_TRACKER mtb = NULL;
 	PFILE_MAPPING_TRACKER mte = NULL;
+	HANDLE fh = mt->FileHandle;
 	HANDLE fmh = mt->FileMappingHandle;
 
+	/*
+	 * 1)    b    e           b     e
+	 *    xxxxxxxxxxxxx => xxx.......xxxx  -  mtb+mte
+	 * 2)       b     e           b     e
+	 *    xxxxxxxxxxxxx => xxxxxxx.......  -  mtb
+	 * 3) b     e          b      e
+	 *    xxxxxxxxxxxxx => ........xxxxxx  -  mte
+	 * 4) b           e    b            e
+	 *    xxxxxxxxxxxxx => ..............  -  <none>
+	 */
+
 	if (begin > mt->BaseAddress) {
+		/* case #1/2 */
 		/* new mapping at the beginning */
 		mtb = malloc(sizeof(struct FILE_MAPPING_TRACKER));
 		if (mtb == NULL) {
@@ -455,7 +483,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			goto err;
 		}
 
-		mtb->FileHandle = mt->FileHandle;
+		mtb->FileHandle = fh;
 		mtb->FileMappingHandle = fmh;
 		mtb->BaseAddress = mt->BaseAddress;
 		mtb->EndAddress = begin;
@@ -464,6 +492,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 	}
 
 	if (end < mt->EndAddress) {
+		/* case #1/3 */
 		/* new mapping at the end */
 		mte = malloc(sizeof(struct FILE_MAPPING_TRACKER));
 		if (mte == NULL) {
@@ -471,14 +500,30 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 			goto err;
 		}
 
-		mte->FileHandle = mt->FileHandle;
-		if (!mtb)
+		if (!mtb) {
+			/* case #3 */
+			mte->FileHandle = fh;
 			mte->FileMappingHandle = fmh;
-		else if (!DuplicateHandle(GetCurrentProcess(), fmh,
-				GetCurrentProcess(), &mte->FileMappingHandle,
-				0, FALSE, DUPLICATE_SAME_ACCESS)) {
-			ERR("DuplicateHandle, gle: 0x%08x", GetLastError());
-			goto err;
+		} else {
+			/* case #1 - need to duplicate handles */
+			if (!DuplicateHandle(GetCurrentProcess(), fh,
+					GetCurrentProcess(),
+					&mte->FileHandle,
+					0, FALSE, DUPLICATE_SAME_ACCESS)) {
+				ERR("DuplicateHandle, gle: 0x%08x",
+					GetLastError());
+				goto err;
+			}
+
+			if (!DuplicateHandle(GetCurrentProcess(), fmh,
+					GetCurrentProcess(),
+					&mte->FileMappingHandle,
+					0, FALSE, DUPLICATE_SAME_ACCESS)) {
+				ERR("DuplicateHandle, gle: 0x%08x",
+					GetLastError());
+				CloseHandle(mte->FileHandle);
+				goto err;
+			}
 		}
 		mte->BaseAddress = end;
 		mte->EndAddress = mt->EndAddress;
@@ -492,8 +537,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, PVOID *begin, PVOID *end)
 		goto err;
 	}
 
-	if (!mtb && !mte)
+	if (!mtb && !mte) {
 		CloseHandle(fmh);
+		CloseHandle(fh);
+	}
 
 	LIST_REMOVE(mt, ListEntry);
 	free(mt);
@@ -538,6 +585,7 @@ err_close:
 	 * we can do...
 	 */
 	CloseHandle(fmh);
+	CloseHandle(fh);
 
 err:
 	free(mtb);
@@ -690,14 +738,19 @@ msync(void *addr, size_t len, int flags)
 
 		size_t len2 = (char *)end2 - (char *)begin2;
 
-		if (FlushViewOfFile(begin2, len2) == FALSE) {
-			ERR("FlushViewOfFile, gle: 0x%08x", GetLastError());
-			goto err;
-		}
+		/* do nothing for anonymous mappings */
+		if (mt->FileHandle != (HANDLE)-1) {
+			if (FlushViewOfFile(begin2, len2) == FALSE) {
+				ERR("FlushViewOfFile, gle: 0x%08x",
+					GetLastError());
+				goto err;
+			}
 
-		if (FlushFileBuffers(mt->FileHandle) == FALSE) {
-			ERR("FlushFileBuffers, gle: 0x%08x", GetLastError());
-			goto err;
+			if (FlushFileBuffers(mt->FileHandle) == FALSE) {
+				ERR("FlushFileBuffers, gle: 0x%08x",
+					GetLastError());
+				goto err;
+			}
 		}
 
 		len -= len2;
@@ -730,7 +783,6 @@ err:
 int
 mprotect(void *addr, size_t len, int prot)
 {
-
 	if (((uintptr_t)addr % Pagesize) != 0) {
 		ERR("address is not page-aligned: %p", addr);
 		errno = EINVAL;
