@@ -53,12 +53,49 @@
 #endif
 
 /*
+ * validate_args -- (internal) check whether passed arguments are valid
+ */
+static int
+validate_args(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+	ASSERTne(set, NULL);
+
+	/* the checks below help detect use of incorrect poolset file */
+
+	/*
+	 * check if all parts in the poolset are large enough
+	 * (now replication works only for pmemobj pools)
+	 */
+	if (replica_check_part_sizes(set, PMEMOBJ_MIN_POOL)) {
+		ERR("part sizes check failed");
+		goto err;
+	}
+
+	/*
+	 * check if all directories for part files exist
+	 */
+	if (replica_check_part_dirs(set)) {
+		ERR("part directories check failed");
+		goto err;
+	}
+
+	return 0;
+
+err:
+	if (errno == 0)
+		errno = EINVAL;
+	return -1;
+}
+
+/*
  * recreate_broken_parts -- (internal) create parts in place of the broken ones
  */
 static int
 recreate_broken_parts(struct pool_set *set,
 	struct poolset_health_status *set_hs, unsigned flags)
 {
+	LOG(3, "set %p, set_hs %p, flags %u", set, set_hs, flags);
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		if (set->replica[r]->remote)
 			continue;
@@ -99,6 +136,7 @@ static void
 fill_struct_part_uuids(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
 	for (unsigned p = 0; p < rep->nparts; ++p) {
@@ -119,6 +157,8 @@ static int
 fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs, unsigned flags)
 {
+	LOG(3, "set %p, repn %u, set_hs %p, flags %u", set, repn, set_hs,
+			flags);
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
 	for (unsigned p = 0; p < rep->nparts; ++p) {
@@ -148,13 +188,13 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
 					POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
-			replica_find_unbroken_part(repn + 1, set_hs) == 0) {
+			!replica_is_part_broken(repn + 1, 0, set_hs)) {
 			/* try to get part uuid from the next replica */
 			hdrp = HDR(REP(set, repn + 1), 0);
 			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
 						POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
-			replica_find_unbroken_part(repn - 1, set_hs) == 0) {
+			!replica_is_part_broken(repn - 1, 0, set_hs)) {
 			/* try to get part uuid from the previous replica */
 			hdrp = HDR(REP(set, repn - 1), 0);
 			memcpy(rep->part[p].uuid, hdrp->next_repl_uuid,
@@ -179,6 +219,9 @@ static int
 fill_struct_uuids(struct pool_set *set, unsigned src_replica,
 		struct poolset_health_status *set_hs, unsigned flags)
 {
+	LOG(3, "set %p, src_replica %u, set_hs %p, flags %u", set, src_replica,
+			set_hs, flags);
+
 	/* set poolset uuid */
 	struct pool_hdr *src_hdr0 = HDR(REP(set, src_replica), 0);
 	memcpy(set->uuid, src_hdr0->poolset_uuid, POOL_HDR_UUID_LEN);
@@ -204,6 +247,7 @@ static int
 create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 		struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, src_replica %u, set_hs %p", set, src_replica, set_hs);
 	struct pool_hdr *src_hdr = HDR(REP(set, src_replica), 0);
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
@@ -239,6 +283,9 @@ static int
 copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 		unsigned flags, struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, healthy_replica %u, flags %u, set_hs %p", set,
+			healthy_replica, flags, set_hs);
+
 	/* get pool size from healthy replica */
 	size_t poolsize = set->poolsize;
 
@@ -313,13 +360,15 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 }
 
 /*
- * grant_broken_parts_perm -- (internal) set RW permission rights to all
+ * grant_created_parts_perm -- (internal) set RW permission rights to all
  *                            the parts created in place of the broken ones
  */
 static int
-grant_broken_parts_perm(struct pool_set *set, unsigned src_repn,
+grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 		struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, src_repn %u, set_hs %p", set, src_repn, set_hs);
+
 	/* choose the default permissions */
 	mode_t def_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
@@ -348,6 +397,9 @@ grant_broken_parts_perm(struct pool_set *set, unsigned src_repn,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
+			LOG(4, "setting permissions for part %u, replica %u",
+					p, r);
+
 			/* set rights to those of existing part files */
 			if (chmod(PART(REP(set, r), p).path, src_mode)) {
 				ERR("cannot set permission rights for created"
@@ -368,6 +420,7 @@ static int
 update_parts_linkage(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
@@ -410,6 +463,7 @@ update_parts_linkage(struct pool_set *set, unsigned repn,
 static int
 update_replicas_linkage(struct pool_set *set, unsigned repn)
 {
+	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_replica *prev_r = REP(set, repn - 1);
 	struct pool_replica *next_r = REP(set, repn + 1);
@@ -468,6 +522,7 @@ static int
 update_poolset_uuids(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
@@ -487,6 +542,7 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 static int
 update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		if (!replica_is_replica_healthy(r, set_hs))
 			update_parts_linkage(set, r, set_hs);
@@ -503,6 +559,7 @@ update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 static int
 remove_remote(const char *target, const char *pool_set)
 {
+	LOG(3, "target %s, pool_set %s", target, pool_set);
 #ifdef USE_RPMEM
 	struct rpmem_target_info *info = rpmem_target_parse(target);
 	if (!info)
@@ -540,6 +597,7 @@ static int
 open_remote_replicas(struct pool_set *set,
 	struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote)
@@ -568,6 +626,7 @@ static int
 create_remote_replicas(struct pool_set *set,
 	struct poolset_health_status *set_hs)
 {
+	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote)
@@ -598,9 +657,12 @@ create_remote_replicas(struct pool_set *set,
  * sync_replica -- synchronize data across replicas within a poolset
  */
 int
-sync_replica(struct pool_set *set, unsigned flags)
+replica_sync(struct pool_set *set, unsigned flags)
 {
-	ASSERTne(set, NULL);
+	LOG(3, "set %p, flags %u", set, flags);
+	/* validate user arguments, if not called from transform */
+	if (!(flags & IS_TRANSFORMED) && validate_args(set))
+		return -1;
 
 	/* examine poolset's health */
 	struct poolset_health_status *set_hs = NULL;
@@ -690,8 +752,8 @@ sync_replica(struct pool_set *set, unsigned flags)
 	}
 
 	/* grant permissions to all created parts */
-	if (grant_broken_parts_perm(set, healthy_replica, set_hs)) {
-		ERR("granting permissions to broken parts failed");
+	if (grant_created_parts_perm(set, healthy_replica, set_hs)) {
+		ERR("granting permissions to created parts failed");
 		goto err;
 	}
 

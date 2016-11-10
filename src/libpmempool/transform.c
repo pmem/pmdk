@@ -41,7 +41,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <libgen.h>
 #include <dirent.h>
 
 #include "replica.h"
@@ -61,59 +60,18 @@ struct poolset_compare_status {
 };
 
 /*
- * check_part_sizes -- (internal) check if all parts are large enough
- */
-static int
-check_part_sizes(struct pool_set *set, size_t min_size)
-{
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (PART(rep, p).filesize < min_size) {
-				ERR("some part files are too small");
-				return -1;
-			}
-		}
-	}
-	return 0;
-}
-
-/*
- * check_part_dirs -- (internal) check if directories for part files exist
- */
-static int
-check_part_dirs(struct pool_set *set)
-{
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			char *path = strdup(PART(rep, p).path);
-			const char *dir = dirname(path);
-			struct stat sb;
-			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-				ERR("a directory %s for part %u in replica %u"
-					" does not exist or is not accessible",
-					path, p, r);
-				free(path);
-				return -1;
-			}
-			free(path);
-		}
-	}
-	return 0;
-}
-
-/*
  * validate_args -- (internal) check whether passed arguments are valid
  */
 static int
 validate_args(struct pool_set *set_in, struct pool_set *set_out)
 {
+	LOG(3, "set_in %p, set_out %p", set_in, set_out);
+
 	/*
 	 * check if all parts in the target poolset are large enough
 	 * (now replication works only for pmemobj pools)
 	 */
-	if (check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
+	if (replica_check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
 		ERR("part sizes check failed");
 		goto err;
 	}
@@ -121,7 +79,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	/*
 	 * check if all directories for part files exist
 	 */
-	if (check_part_dirs(set_out)) {
+	if (replica_check_part_dirs(set_out)) {
 		ERR("part directories check failed");
 		goto err;
 	}
@@ -152,6 +110,7 @@ static int
 create_poolset_compare_status(struct pool_set *set,
 		struct poolset_compare_status **set_sp)
 {
+	LOG(3, "set %p, set_sp %p", set, set_sp);
 	struct poolset_compare_status *set_s;
 	set_s = Zalloc(sizeof(struct poolset_compare_status)
 			+ set->nreplicas * sizeof(unsigned));
@@ -173,8 +132,9 @@ create_poolset_compare_status(struct pool_set *set,
 static int
 compare_parts(struct pool_set_part *p1, struct pool_set_part *p2)
 {
-	LOG(2, "p1->path: %s, p1->filesize: %lu", p1->path, p1->filesize);
-	LOG(2, "p2->path: %s, p2->filesize: %lu", p2->path, p2->filesize);
+	LOG(3, "p1 %p, p2 %p", p1, p2);
+	LOG(4, "p1->path: %s, p1->filesize: %lu", p1->path, p1->filesize);
+	LOG(4, "p2->path: %s, p2->filesize: %lu", p2->path, p2->filesize);
 	return strcmp(p1->path, p2->path) || (p1->filesize != p2->filesize);
 }
 
@@ -185,8 +145,9 @@ compare_parts(struct pool_set_part *p1, struct pool_set_part *p2)
 static int
 compare_replicas(struct pool_replica *r1, struct pool_replica *r2)
 {
+	LOG(3, "r1 %p, r2 %p", r1, r2);
 	int result = 0;
-	LOG(2, "r1->nparts: %u, r2->nparts: %u", r1->nparts, r2->nparts);
+	LOG(4, "r1->nparts: %u, r2->nparts: %u", r1->nparts, r2->nparts);
 	if ((result = (r1->nparts != r2->nparts)))
 		return result;
 
@@ -209,11 +170,13 @@ check_compare_poolsets_status(struct pool_set *set_in, struct pool_set *set_out,
 		struct poolset_compare_status *set_in_s,
 		struct poolset_compare_status *set_out_s)
 {
+	LOG(3, "set_in %p, set_out %p, set_in_s %p, set_out_s %p", set_in,
+			set_out, set_in_s, set_out_s);
 	for (unsigned ri = 0; ri < set_in->nreplicas; ++ri) {
 		struct pool_replica *rep_in = REP(set_in, ri);
 		for (unsigned ro = 0; ro < set_out->nreplicas; ++ro) {
 			struct pool_replica *rep_out = REP(set_out, ro);
-			LOG(1, "Comparing rep_in %u with rep_out %u", ri, ro);
+			LOG(1, "comparing rep_in %u with rep_out %u", ri, ro);
 			/* skip different replicas */
 			if (compare_replicas(rep_in, rep_out))
 				continue;
@@ -243,6 +206,8 @@ compare_poolsets(struct pool_set *set_in, struct pool_set *set_out,
 		struct poolset_compare_status **set_in_s,
 		struct poolset_compare_status **set_out_s)
 {
+	LOG(3, "set_in %p, set_out %p, set_in_s %p, set_out_s %p", set_in,
+			set_out, set_in_s, set_out_s);
 	if (create_poolset_compare_status(set_in, set_in_s))
 		return -1;
 
@@ -281,13 +246,14 @@ static int
 are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 		struct poolset_compare_status *set_out_s)
 {
+	LOG(3, "set_in_s %p, set_out_s %p", set_in_s, set_out_s);
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
 		if (has_counterpart(r, set_in_s)) {
-			LOG(2, "Replica %u has a counterpart %u", r,
+			LOG(2, "replica %u has a counterpart %u", r,
 					set_in_s->replica[r]);
 			return 1;
 		} else {
-			LOG(2, "Replica %u has no counterpar", r);
+			LOG(2, "replica %u has no counterpar", r);
 		}
 	}
 	return 0;
@@ -300,6 +266,7 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 static int
 delete_replica_local(struct pool_set *set, unsigned repn)
 {
+	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_replica *rep = set->replica[repn];
 	for (unsigned p = 0; p < rep->nparts; ++p)
 		replica_remove_part(set, repn, p);
@@ -314,6 +281,7 @@ delete_replica_local(struct pool_set *set, unsigned repn)
 static int
 delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 {
+	LOG(3, "set %p, set_s %p", set, set_s);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		if (!has_counterpart(r, set_s)) {
 			util_replica_close(set, r);
@@ -327,9 +295,11 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
  * transform_replica -- transforming one poolset into another
  */
 int
-transform_replica(struct pool_set *set_in, struct pool_set *set_out,
+replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		unsigned flags)
 {
+	LOG(3, "set_in %p, set_out %p", set_in, set_out);
+
 	/* validate user arguments */
 	if (validate_args(set_in, set_out))
 		return -1;
@@ -351,7 +321,7 @@ transform_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* signal that sync is called by transform */
 	flags |= IS_TRANSFORMED;
-	if (sync_replica(set_out, flags))
+	if (replica_sync(set_out, flags))
 		goto err;
 
 	Free(set_in_s);

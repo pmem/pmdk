@@ -51,6 +51,9 @@ date: pmem Tools version 1.0.1
 pmempool sync [options] <poolset_file>
 ```
 
+NOTE: Only the poolset file used to create the pool should be used
+for syncing the pool.
+
 # DESCRIPTION #
 
 The **pmempool sync** command synchronizes data between replicas within
