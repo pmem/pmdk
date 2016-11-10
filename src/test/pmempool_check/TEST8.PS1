@@ -68,6 +68,7 @@ check_file $POOLSET
 rm $POOL_P1, $POOL_P2, $POOL_P3, $POOL_P4 -Force -ea si
 
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOLSET
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET > $null
 check_files $POOL_P1 $POOL_P2 $POOL_P3 $POOL_P4
 &$PMEMSPOIL -v $POOL_P1 `
 	pool_hdr.next_part_uuid=ERROR_NEXT `
@@ -81,6 +82,7 @@ expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avyr $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET > $null
 
 check
 

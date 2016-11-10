@@ -66,6 +66,7 @@ struct check_step_data {
 /* check steps */
 void check_backup(PMEMpoolcheck *ppc);
 void check_pool_hdr(PMEMpoolcheck *ppc);
+void check_pool_hdr_links(PMEMpoolcheck *ppc);
 void check_log_blk(PMEMpoolcheck *ppc);
 void check_btt_info(PMEMpoolcheck *ppc);
 void check_btt_map_flog(PMEMpoolcheck *ppc);
