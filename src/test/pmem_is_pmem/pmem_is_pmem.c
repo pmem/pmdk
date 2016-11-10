@@ -1,5 +1,6 @@
 /*
  * Copyright 2014-2016, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,7 +68,7 @@ main(int argc, char *argv[])
 
 	int fd = OPEN(argv[1], O_RDWR);
 
-	struct stat stbuf;
+	ut_util_stat_t stbuf;
 	FSTAT(fd, &stbuf);
 
 	Size = stbuf.st_size;
