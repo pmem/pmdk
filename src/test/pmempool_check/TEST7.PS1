@@ -57,8 +57,7 @@ expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL -v $POOL pool_hdr.uuid=ERROR >> $LOG
 expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL >> $LOG
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOL >> $LOG
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avyr $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vyr $POOL >> $LOG
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -v $POOL >> $LOG
 
 rm $POOL -Force -Recurse -ea si

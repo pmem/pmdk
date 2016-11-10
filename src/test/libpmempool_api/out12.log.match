@@ -14,7 +14,9 @@ arena 0: invalid BTT Flog entry at 0
 arena 0: unmapped block 40322
 arena 0: number of unmapped blocks: 1
 arena 0: number of invalid BTT Flog entries: 1
-status = not consistent
+the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
+BTT Map and / or BTT Flog contain invalid entries
+status = cannot repair
 libpmempool_api/TEST12: Done
 libpmempool_api/TEST12: START: libpmempool_test
  ./libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
