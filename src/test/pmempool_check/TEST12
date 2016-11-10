@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,34 +30,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/pmem_map/TEST2 -- unit test for pmem_map
+# pmempool_check/TEST12 -- test for checking pools with device dax
 #
-export UNITTEST_NAME=pmem_map/TEST2
-export UNITTEST_NUM=2
+export UNITTEST_NAME=pmempool_check/TEST12
+export UNITTEST_NUM=12
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
+
 require_dax_devices 1
 require_fs_type any
 
-configure_valgrind memcheck force-disable
-
 setup
 
-# this test invokes sigsegvs by design
-export ASAN_OPTIONS=handle_segv=0
+dax_device_zero
 
-# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-# pass the file of zero length
-expect_normal_exit ./pmem_map$EXESUFFIX\
-    $DEVICE_DAX_PATH 0 D 0666 1 1\
-    $DEVICE_DAX_PATH 0 DSC 0666 1 1\
-    $DEVICE_DAX_PATH 0 DT 0666 1 1\
-    $DEVICE_DAX_PATH 0 DCE 0666 1 1\
+POOLSET=$DIR/testset1
+create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 pass
