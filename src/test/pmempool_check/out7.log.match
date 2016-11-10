@@ -3,8 +3,8 @@ incorrect pool header checksum
 $(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
-$(nW)file.pool: cannot repair
+invalid pool_hdr.poolset_uuid
+$(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
 invalid pool_hdr.poolset_uuid
@@ -38,8 +38,8 @@ incorrect pool header checksum
 $(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
-$(nW)file.pool: cannot repair
+invalid pool_hdr.poolset_uuid
+$(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
 invalid pool_hdr.poolset_uuid
@@ -75,8 +75,8 @@ incorrect pool header checksum
 $(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
-$(nW)file.pool: cannot repair
+invalid pool_hdr.poolset_uuid
+$(nW)file.pool: not consistent
 checking pool header
 incorrect pool header checksum
 invalid pool_hdr.poolset_uuid

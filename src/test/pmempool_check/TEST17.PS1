@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,32 +30,46 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_check/TEST4 -- test for checking pools
+# pmempool_check/TEST17 -- test for limit checksum generation to check run with
+#  advanced repair flag
 #
-export UNITTEST_NAME=pmempool_check/TEST4
-export UNITTEST_NUM=4
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmempool_check\TEST17"
+$Env:UNITTEST_NUM = "17"
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
-require_fs_type pmem non-pmem
+require_fs_type any
 
 setup
 
-POOL=$DIR/file.pool
-LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+$POOLSET="$DIR\pool.set"
+$POOL_P1="$DIR\pool.p1"
+$POOL_P2="$DIR\pool.p2"
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -ea si
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
-check_file $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL > /dev/null
-$PMEMSPOIL -v $POOL pool_hdr.checksum=0x0 >> $LOG
+create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -avry $POOL >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL &> /dev/null
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+
+&$PMEMSPOIL -v $POOL_P1 "pool_hdr.checksum=0x0" >> $LOG
+
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
+
+&$PMEMSPOIL -v $POOL_P1 "pool_hdr.uuid=ERROR" >> $LOG
+
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET 2>&1 >> $null
+
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $null
 
 check
 
