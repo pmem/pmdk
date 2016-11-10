@@ -3,8 +3,9 @@ libpmempool_api/TEST11: START: libpmempool_test
 checking BTT Info headers
 arena 0: BTT Info header checksum incorrect. Do you want to regenerate BTT Info?
 arena 0: regenerating BTT Info header
+the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 arena 0: BTT Info header checksum incorrect
-status = not consistent
+status = cannot repair
 libpmempool_api/TEST11: Done
 libpmempool_api/TEST11: START: libpmempool_test
  ./libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1

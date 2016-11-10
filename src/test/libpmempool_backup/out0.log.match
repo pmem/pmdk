@@ -5,13 +5,13 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 replica 0 part 0: checking pool header
-replica 0 part 0: pool header checksum correct
+replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
-replica 0 part 1: pool header checksum correct
+replica 0 part 1: pool header correct
 replica 0 part 2: checking pool header
-replica 0 part 2: pool header checksum correct
+replica 0 part 2: pool header correct
 replica 0 part 3: checking pool header
-replica 0 part 3: pool header checksum correct
+replica 0 part 3: pool header correct
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
@@ -27,13 +27,13 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 replica 0 part 0: checking pool header
-replica 0 part 0: pool header checksum correct
+replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
-replica 0 part 1: pool header checksum correct
+replica 0 part 1: pool header correct
 replica 0 part 2: checking pool header
-replica 0 part 2: pool header checksum correct
+replica 0 part 2: pool header correct
 replica 0 part 3: checking pool header
-replica 0 part 3: pool header checksum correct
+replica 0 part 3: pool header correct
 checking pmemlog header
 pmemlog header correct
 status = consistent
@@ -45,12 +45,12 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 replica 0 part 0: checking pool header
-replica 0 part 0: pool header checksum correct
+replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
-replica 0 part 1: pool header checksum correct
+replica 0 part 1: pool header correct
 replica 0 part 2: checking pool header
-replica 0 part 2: pool header checksum correct
+replica 0 part 2: pool header correct
 replica 0 part 3: checking pool header
-replica 0 part 3: pool header checksum correct
+replica 0 part 3: pool header correct
 status = consistent
 libpmempool_backup$(nW)TEST0: Done

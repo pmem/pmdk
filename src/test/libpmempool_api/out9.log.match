@@ -2,7 +2,7 @@ Pool type: log Params: log
 libpmempool_api$(nW)TEST9: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW) -d 1 -r 1 -y 1 -t log
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.major is not valid
 setting pool_hdr.major to 0x1
 checking pmemlog header
@@ -13,7 +13,7 @@ Pool type: blk Params: blk 512
 libpmempool_api$(nW)TEST9: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW) -d 1 -r 1 -y 1 -t blk
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.major is not valid
 setting pool_hdr.major to 0x1
 checking pmemblk header

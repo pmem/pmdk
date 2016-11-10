@@ -1,32 +1,17 @@
 $(nW)file.pool: spoil: pool_hdr.uuid=ERROR
-incorrect pool header checksum
+incorrect pool header
 $(nW)file.pool: not consistent
 checking pool header
-incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
-$(nW)file.pool: cannot repair
-checking pool header
-incorrect pool header checksum
-invalid pool_hdr.poolset_uuid
-setting pool_hdr.pooset_uuid to $(*)
+incorrect pool header
 invalid pool_hdr.uuid
-setting pool_hdr.uuid to $(*)
-invalid pool_hdr.next_part_uuid
-invalid pool_hdr.prev_part_uuid
-invalid pool_hdr.next_repl_uuid
-invalid pool_hdr.prev_repl_uuid
-setting pool_hdr.next_part_uuid to $(*)
-setting pool_hdr.prev_part_uuid to $(*)
-setting pool_hdr.next_repl_uuid to $(*)
-setting pool_hdr.prev_repl_uuid to $(*)
-setting pool_hdr.checksum to $(*)
+setting pool_hdr.uuid to $(nW)
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
@@ -34,16 +19,15 @@ BTT Layout not written
 $(nW)file.pool: consistent
 $(nW)file.pool: spoil: pool_hdr.prev_part_uuid=ERROR_PREV
 $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
-incorrect pool header checksum
+incorrect pool header
 $(nW)file.pool: not consistent
 checking pool header
-incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
+incorrect pool header
+the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
+invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
 checking pool header
-incorrect pool header checksum
-invalid pool_hdr.poolset_uuid
-setting pool_hdr.pooset_uuid to $(*)
+incorrect pool header
 invalid pool_hdr.uuid
 setting pool_hdr.uuid to $(*)
 invalid pool_hdr.next_part_uuid
@@ -54,6 +38,7 @@ setting pool_hdr.next_part_uuid to $(*)
 setting pool_hdr.prev_part_uuid to $(*)
 setting pool_hdr.next_repl_uuid to $(*)
 setting pool_hdr.prev_repl_uuid to $(*)
+invalid pool_hdr.checksum
 setting pool_hdr.checksum to $(*)
 checking pmemblk header
 pmemblk header correct
@@ -61,7 +46,7 @@ checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
@@ -71,16 +56,15 @@ $(nW)file.pool: spoil: pool_hdr.prev_part_uuid=ERROR_PREV
 $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
 $(nW)file.pool: spoil: pool_hdr.prev_repl_uuid=ERROR_RPREV
 $(nW)file.pool: spoil: pool_hdr.next_repl_uuid=ERROR_RNEXT
-incorrect pool header checksum
+incorrect pool header
 $(nW)file.pool: not consistent
 checking pool header
-incorrect pool header checksum
-can not repair pool_hdr.poolset_uuid
+incorrect pool header
+the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
+invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
 checking pool header
-incorrect pool header checksum
-invalid pool_hdr.poolset_uuid
-setting pool_hdr.pooset_uuid to $(*)
+incorrect pool header
 invalid pool_hdr.uuid
 setting pool_hdr.uuid to $(*)
 invalid pool_hdr.next_part_uuid
@@ -91,6 +75,7 @@ setting pool_hdr.next_part_uuid to $(*)
 setting pool_hdr.prev_part_uuid to $(*)
 setting pool_hdr.next_repl_uuid to $(*)
 setting pool_hdr.prev_repl_uuid to $(*)
+invalid pool_hdr.checksum
 setting pool_hdr.checksum to $(*)
 checking pmemblk header
 pmemblk header correct
@@ -98,7 +83,7 @@ checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
