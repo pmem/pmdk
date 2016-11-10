@@ -56,11 +56,13 @@ rm $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOL > $null
 &$PMEMSPOIL -v $POOL pool_hdr.checksum=0x0 >> $LOG
 
 expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOL >> $LOG
-
 expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check $POOL >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL 2>&1 > $null
 
 check
 

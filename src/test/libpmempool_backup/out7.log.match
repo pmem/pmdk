@@ -2,7 +2,7 @@ libpmempool_backup/TEST7: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.blk -b $(nW)pool.blk_backup -t blk -r 1
 destionation of the backup already exists. Do you want to overwrite it?
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemblk header
 pmemblk header correct
 checking BTT Info headers
@@ -20,7 +20,7 @@ libpmempool_backup/TEST7: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.log -b $(nW)pool.log_backup -t log -r 1
 destionation of the backup already exists. Do you want to overwrite it?
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemlog header
 pmemlog header correct
 status = consistent
@@ -34,7 +34,7 @@ libpmempool_backup/TEST7: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.obj -b $(nW)pool.obj_backup -t obj -r 1
 destionation of the backup already exists. Do you want to overwrite it?
 checking pool header
-pool header checksum correct
+pool header correct
 status = consistent
 libpmempool_backup/TEST7: Done
 libpmempool_backup/TEST7: START: libpmempool_test

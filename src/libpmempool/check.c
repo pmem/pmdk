@@ -68,6 +68,12 @@ static const struct step steps[] = {
 		.part		= true,
 	},
 	{
+		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG |
+					POOL_TYPE_OBJ | POOL_TYPE_UNKNOWN,
+		.func		= check_pool_hdr_uuids,
+		.part		= true,
+	},
+	{
 		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG,
 		.func		= check_log_blk,
 		.part		= false,

@@ -331,9 +331,10 @@ btt_info_checksum_retry(PMEMpoolcheck *ppc, union location *loc)
 	}
 
 	if (CHECK_IS_NOT(ppc, ADVANCED)) {
+		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+		CHECK_INFO(ppc, REQUIRE_ADVANCED);
 		CHECK_ERR(ppc, "arena %u: BTT Info header checksum incorrect",
 			loc->arena->id);
-		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 		check_end(ppc->data);
 		goto error_cleanup;
 	}

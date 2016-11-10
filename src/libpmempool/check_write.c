@@ -177,7 +177,7 @@ btt_data_write(PMEMpoolcheck *ppc, union location *loc)
 
 	TAILQ_FOREACH(arenap, &ppc->pool->arenas, next) {
 
-		if (ppc->pool->uuid_op == UUID_REGENERATED) {
+		if (ppc->pool->uuid_op == UUID_NOT_FROM_BTT) {
 			memcpy(arenap->btt_info.parent_uuid,
 				ppc->pool->hdr.pool.poolset_uuid,
 					sizeof(arenap->btt_info.parent_uuid));
