@@ -547,13 +547,14 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	int dax = util_file_is_device_dax(path);
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
-		ERR("invalid flag specified %x", flags);
-		errno = EINVAL;
-		return NULL;
+			ERR("invalid flag specified %x", flags);
+			errno = EINVAL;
+			return NULL;
 	}
 
-	if (dax && flags != 0) {
-		ERR("no flags are supported on device dax");
+	/* only the create flag is valid on device dax */
+	if (dax && flags != PMEM_FILE_CREATE) {
+		ERR("invalid flag specified %x", flags);
 		errno = EINVAL;
 		return NULL;
 	}
@@ -621,7 +622,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 				ERR("!ftruncate");
 				goto err;
 			}
-		} else {
+		} else if (!dax) {
 			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
 				ERR("!posix_fallocate");
 				goto err;

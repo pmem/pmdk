@@ -697,6 +697,12 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	struct pool_replica *rep = set->replica[set->nreplicas - 1];
 	ASSERTne(rep, NULL);
 
+	int is_dax = util_file_is_device_dax(path);
+	if (rep->nparts != 0 && (is_dax || rep->part[0].is_dax)) {
+		ERR("device dax must be the only part in the poolset");
+		return -1;
+	}
+
 	/* XXX - pre-allocate space for X parts, and reallocate every X parts */
 	rep = Realloc(rep, sizeof(struct pool_replica) +
 			(rep->nparts + 1) * sizeof(struct pool_set_part));
@@ -711,7 +717,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
-	rep->part[p].is_dax = util_file_is_device_dax(path);
+	rep->part[p].is_dax = is_dax;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
