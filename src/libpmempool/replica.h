@@ -120,11 +120,13 @@ unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
 int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
 int replica_is_poolset_transformed(unsigned flags);
 size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
+int replica_check_part_sizes(struct pool_set *set, size_t min_size);
+int replica_check_part_dirs(struct pool_set *set);
 
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
 int replica_open_poolset_part_files(struct pool_set *set);
 
-int sync_replica(struct pool_set *set_in, unsigned flags);
-int transform_replica(struct pool_set *set_in, struct pool_set *set_out,
+int replica_sync(struct pool_set *set_in, unsigned flags);
+int replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		unsigned flags);
