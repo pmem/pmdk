@@ -962,6 +962,8 @@ pmempool_transform(const char *poolset_file_src,
 		goto err;
 	}
 
+	int del = 0;
+
 	/* parse the destination poolset file */
 	struct pool_set *set_out = NULL;
 	if (util_poolset_parse(&set_out, poolset_file_dst, fd_out)) {
@@ -983,17 +985,21 @@ pmempool_transform(const char *poolset_file_src,
 		ERR("source poolset health check failed");
 		goto err_free_poolout;
 	}
+
 	if (!replica_is_poolset_healthy(set_in_hs)) {
 		ERR("source poolset is broken");
 		replica_free_poolset_health_status(set_in_hs);
 		goto err_free_poolout;
 	}
+
 	replica_free_poolset_health_status(set_in_hs);
+
+	del = !is_dry_run(flags);
 
 	/* transform poolset */
 	if (transform_replica(set_in, set_out, flags)) {
 		ERR("transformation failed");
-		goto err_free_poolin;
+		goto err_free_poolout;
 	}
 
 	util_poolset_close(set_in, 0);
@@ -1001,7 +1007,7 @@ pmempool_transform(const char *poolset_file_src,
 	return 0;
 
 err_free_poolout:
-	util_poolset_close(set_out, 0);
+	util_poolset_close(set_out, del);
 
 err_free_poolin:
 	util_poolset_close(set_in, 0);
