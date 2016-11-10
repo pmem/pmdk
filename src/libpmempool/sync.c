@@ -305,7 +305,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 
 				/* copy all data */
 				memcpy(dst_addr, src_addr, len);
-				pmem_msync(dst_addr, len);
+				PERSIST_GENERIC(part->is_dax, dst_addr, len);
 			}
 		}
 	}
@@ -394,9 +394,11 @@ update_parts_linkage(struct pool_set *set, unsigned repn,
 				&next_hdrp->checksum, 1);
 
 		/* store pool's header */
-		pmem_msync(hdrp, sizeof(*hdrp));
-		pmem_msync(prev_hdrp, sizeof(*prev_hdrp));
-		pmem_msync(next_hdrp, sizeof(*next_hdrp));
+		PERSIST_GENERIC(PART(rep, p).is_dax, hdrp, sizeof(*hdrp));
+		PERSIST_GENERIC(PART(rep, p - 1).is_dax,
+			prev_hdrp, sizeof(*prev_hdrp));
+		PERSIST_GENERIC(PART(rep, p + 1).is_dax,
+			next_hdrp, sizeof(*next_hdrp));
 
 	}
 	return 0;
@@ -422,8 +424,7 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
-		pmem_msync(hdrp, sizeof(*hdrp));
-
+		PERSIST_GENERIC(PART(rep, p).is_dax, hdrp, sizeof(*hdrp));
 	}
 
 	/* set uuids in the previous replica */
@@ -435,7 +436,8 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 				&prev_hdrp->checksum, 1);
 
 		/* store pool's header */
-		pmem_msync(prev_hdrp, sizeof(*prev_hdrp));
+		PERSIST_GENERIC(PART(prev_r, p).is_dax,
+			prev_hdrp, sizeof(*prev_hdrp));
 	}
 
 	/* set uuids in the next replica */
@@ -448,7 +450,8 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 				&next_hdrp->checksum, 1);
 
 		/* store pool's header */
-		pmem_msync(next_hdrp, sizeof(*next_hdrp));
+		PERSIST_GENERIC(PART(next_r, p).is_dax,
+			next_hdrp, sizeof(*next_hdrp));
 	}
 
 	return 0;
@@ -468,7 +471,7 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
-		pmem_msync(hdrp, sizeof(*hdrp));
+		PERSIST_GENERIC(PART(rep, p).is_dax, hdrp, sizeof(*hdrp));
 	}
 	return 0;
 }

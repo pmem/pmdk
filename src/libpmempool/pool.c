@@ -711,7 +711,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart)
 		pmem_memcpy_persist(daddr, saddr, smapped);
 	} else {
 		memcpy(daddr, saddr, smapped);
-		pmem_msync(daddr, smapped);
+		PERSIST_GENERIC(dpart->is_dax, daddr, smapped);
 	}
 
 	pmem_unmap(daddr, dmapped);

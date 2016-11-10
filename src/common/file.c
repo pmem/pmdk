@@ -131,7 +131,7 @@ util_file_is_device_dax(const char *path)
 
 	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
 
-	out:
+out:
 	errno = olderrno;
 	return ret;
 #endif
