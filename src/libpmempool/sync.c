@@ -54,6 +54,41 @@
 #define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*
+ * validate_args -- (internal) check whether passed arguments are valid
+ */
+static int
+validate_args(struct pool_set *set)
+{
+	ASSERTne(set, NULL);
+
+	/* the checks below help detect use of incorrect poolset file */
+
+	/*
+	 * check if all parts in the poolset are large enough
+	 * (now replication works only for pmemobj pools)
+	 */
+	if (replica_check_part_sizes(set, PMEMOBJ_MIN_POOL)) {
+		ERR("part sizes check failed");
+		goto err;
+	}
+
+	/*
+	 * check if all directories for part files exist
+	 */
+	if (check_part_dirs(set)) {
+		ERR("part directories check failed");
+		goto err;
+	}
+
+	return 0;
+
+err:
+	if (errno == 0)
+		errno = EINVAL;
+	return -1;
+}
+
+/*
  * recreate_broken_parts -- (internal) create parts in place of the broken ones
  */
 static int
@@ -149,13 +184,13 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
 					POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
-			replica_find_unbroken_part(repn + 1, set_hs) == 0) {
+			!replica_is_part_broken(repn + 1, 0, set_hs)) {
 			/* try to get part uuid from the next replica */
 			hdrp = HDR(REP(set, repn + 1), 0);
 			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
 						POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
-			replica_find_unbroken_part(repn - 1, set_hs) == 0) {
+			!replica_is_part_broken(repn - 1, 0, set_hs)) {
 			/* try to get part uuid from the previous replica */
 			hdrp = HDR(REP(set, repn - 1), 0);
 			memcpy(rep->part[p].uuid, hdrp->next_repl_uuid,
@@ -594,7 +629,9 @@ create_remote_replicas(struct pool_set *set,
 int
 sync_replica(struct pool_set *set, unsigned flags)
 {
-	ASSERTne(set, NULL);
+	/* validate user arguments, if not called from transform */
+	if (!(flags & IS_TRANSFORMED) && validate_args(set))
+		return -1;
 
 	/* examine poolset's health */
 	struct poolset_health_status *set_hs = NULL;

@@ -300,6 +300,9 @@ a poolset.
 * *flags* - a combination of flags (ORed) which modify the way of
 synchronization.
 
+NOTE: Only the poolset file used to create the pool should be used
+for syncing the pool.
+
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of

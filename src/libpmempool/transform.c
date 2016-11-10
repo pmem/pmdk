@@ -41,7 +41,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <libgen.h>
 #include <dirent.h>
 
 #include "replica.h"
@@ -61,49 +60,6 @@ struct poolset_compare_status {
 };
 
 /*
- * check_part_sizes -- (internal) check if all parts are large enough
- */
-static int
-check_part_sizes(struct pool_set *set, size_t min_size)
-{
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (PART(rep, p).filesize < min_size) {
-				ERR("some part files are too small");
-				return -1;
-			}
-		}
-	}
-	return 0;
-}
-
-/*
- * check_part_dirs -- (internal) check if directories for part files exist
- */
-static int
-check_part_dirs(struct pool_set *set)
-{
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			char *path = strdup(PART(rep, p).path);
-			const char *dir = dirname(path);
-			struct stat sb;
-			if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-				ERR("a directory %s for part %u in replica %u"
-					" does not exist or is not accessible",
-					path, p, r);
-				free(path);
-				return -1;
-			}
-			free(path);
-		}
-	}
-	return 0;
-}
-
-/*
  * validate_args -- (internal) check whether passed arguments are valid
  */
 static int
@@ -113,7 +69,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * check if all parts in the target poolset are large enough
 	 * (now replication works only for pmemobj pools)
 	 */
-	if (check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
+	if (replica_check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
 		ERR("part sizes check failed");
 		goto err;
 	}
@@ -213,7 +169,7 @@ check_compare_poolsets_status(struct pool_set *set_in, struct pool_set *set_out,
 		struct pool_replica *rep_in = REP(set_in, ri);
 		for (unsigned ro = 0; ro < set_out->nreplicas; ++ro) {
 			struct pool_replica *rep_out = REP(set_out, ro);
-			LOG(1, "Comparing rep_in %u with rep_out %u", ri, ro);
+			LOG(1, "comparing rep_in %u with rep_out %u", ri, ro);
 			/* skip different replicas */
 			if (compare_replicas(rep_in, rep_out))
 				continue;
@@ -283,11 +239,11 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 {
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
 		if (has_counterpart(r, set_in_s)) {
-			LOG(2, "Replica %u has a counterpart %u", r,
+			LOG(2, "replica %u has a counterpart %u", r,
 					set_in_s->replica[r]);
 			return 1;
 		} else {
-			LOG(2, "Replica %u has no counterpar", r);
+			LOG(2, "replica %u has no counterpar", r);
 		}
 	}
 	return 0;
