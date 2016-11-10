@@ -61,6 +61,7 @@ check_files $POOLS
 $PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL_PART2 &> /dev/null
 expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
 
 echo "PMEMLOG: pmemlog" >> $LOG
