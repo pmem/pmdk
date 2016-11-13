@@ -159,6 +159,7 @@ size_t\ pmemobj_alloc_usable_size(PMEMoid\ oid);
 PMEMobjpool\ *pmemobj_pool_by_oid(PMEMoid\ oid);
 PMEMobjpool\ *pmemobj_pool_by_ptr(const\ void\ *addr);
 void\ *pmemobj_direct(PMEMoid\ oid);
+PMEMoid\ pmemobj_oid(const\ void\ *addr);\ (EXPERIMENTAL)
 uint64_t\ pmemobj_type_num(PMEMoid\ oid);
 
 POBJ_NEW(PMEMobjpool\ *pop,\ TOID\ *oidp,\ TYPE,
@@ -977,6 +978,26 @@ void\ *pmemobj_direct(PMEMoid\ oid);
 The \f[B]pmemobj_direct\f[]() function returns a pointer to an object
 represented by \f[I]oid\f[].
 If \f[B]OID_NULL\f[] is passed as an argument, function returns NULL.
+.IP
+.nf
+\f[C]
+PMEMoid\ pmemobj_oid(const\ void\ *addr);\ (EXPERIMENTAL)
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_oid\f[]() function returns a \f[I]PMEMoid\f[] to an
+object pointed to by \f[I]addr\f[].
+If \f[I]addr\f[] is not from within a pmemobj pool, \f[B]OID_NULL\f[] is
+returned.
+If \f[I]addr\f[] is not the start of an object (does not point to the
+beginning of a valid allocation), the resulting \f[I]PMEMoid\f[] can be
+safely used only with:
+.IP \[bu] 2
+\f[B]pmemobj_pool_by_oid\f[]
+.IP \[bu] 2
+\f[B]pmemobj_direct\f[]
+.IP \[bu] 2
+\f[B]pmemobj_tx_add_range\f[]
 .IP
 .nf
 \f[C]
