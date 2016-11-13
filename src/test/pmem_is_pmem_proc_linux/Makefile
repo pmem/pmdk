@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2014-2016, Intel Corporation
 #
@@ -32,34 +31,13 @@
 #
 
 #
-# src/test/pmem_is_pmem_proc/TEST5 -- unit test for pmem_is_pmem /proc parsing
+# src/test/pmem_is_pmem_proc_linux/Makefile -- build pmem_is_pmem_proc_linux unit test
 #
-export UNITTEST_NAME=pmem_is_pmem_proc/TEST5
-export UNITTEST_NUM=5
+TARGET = pmem_is_pmem_proc_linux
+OBJS = pmem_is_pmem_proc_linux.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
 
-require_test_type medium
+include ../Makefile.inc
 
-require_fs_type none
-
-setup
-
-# 7fff77424000 2147479552
-#	exactly matches smaps second mm entry, should produce: 1
-# 7fff77424000 8192
-#	entirely encompassed by smaps second mm entry, should produce: 1
-# 7fff77423000 8192
-#	start at smaps first mm entry, extends into second: should produce: 0
-# 7fff77423000 4096
-#	exactly matches smaps first mm entry, should produce: 0
-expect_normal_exit ./pmem_is_pmem_proc$EXESUFFIX smaps_unexp_vmflags\
-	7fff77424000 2147479552\
-	7fff77424000 8192\
-	7fff77423000 8192\
-	7fff77423000 4096
-
-check
-
-pass
+LIBS += -ldl

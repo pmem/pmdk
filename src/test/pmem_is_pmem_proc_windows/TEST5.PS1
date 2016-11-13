@@ -1,5 +1,6 @@
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,13 +32,29 @@
 #
 
 #
-# src/test/pmem_is_pmem_proc/Makefile -- build pmem_is_pmem_proc unit test
+# src\test\pmem_is_pmem_proc_windows\TEST5 -- unit test for pmem_is_pmem
 #
-TARGET = pmem_is_pmem_proc
-OBJS = pmem_is_pmem_proc.o
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "pmem_is_pmem_proc_windows\TEST5"
+$ENV:UNITTEST_NUM = "5"
 
-LIBPMEM=y
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_fs_type pmem
+require_test_type medium
 
-LIBS += -ldl
+setup
+
+create_holey_file 4M $DIR\testfile1
+
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_proc_windows$EXESUFFIX `
+	$DIR\testfile1 middle
+
+check
+
+pass

@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2014-2016, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,30 +32,32 @@
 #
 
 #
-# src/test/pmem_is_pmem_proc/TEST1 -- unit test for pmem_is_pmem /proc parsing
+# src\test\pmem_is_pmem\TEST1 -- unit test for pmem_is_pmem
 #
-export UNITTEST_NAME=pmem_is_pmem_proc/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "pmem_is_pmem\TEST1"
+$ENV:UNITTEST_NUM = "1"
+
+# XXX:  bash has a few calls to tools that we don't have on
+# Windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
+# on their output
+$ENV:PMEM_IS_PMEM = $true
+$ENV:NON_PMEM_IS_PMEM = $true
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
+require_fs_type pmem
 require_test_type medium
-
-require_fs_type none
 
 setup
 
-# 7fff77424000 2147479552
-#	exactly matches smaps second non-mm entry, should produce: 0
-# 7fff77423000 8192
-#	start at smaps first mm entry, extends into second: should produce: 0
-# 7fff77423000 4096
-#	exactly matches smaps first mm entry, should produce: 1
-expect_normal_exit ./pmem_is_pmem_proc$EXESUFFIX smaps_mm_first\
-	7fff77424000 2147479552\
-	7fff77423000 8192\
-	7fff77423000 4096
+create_holey_file 2M $DIR\testfile1
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$EXESUFFIX $DIR\testfile1
 
 check
 
