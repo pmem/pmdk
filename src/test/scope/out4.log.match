@@ -31,6 +31,7 @@ pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
 pmemobj_next
+pmemobj_oid
 pmemobj_open
 pmemobj_persist
 pmemobj_pool_by_oid
@@ -103,6 +104,7 @@ pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
 pmemobj_next
+pmemobj_oid
 pmemobj_open
 pmemobj_persist
 pmemobj_pool_by_oid
@@ -175,6 +177,7 @@ pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
 pmemobj_next
+pmemobj_oid
 pmemobj_open
 pmemobj_persist
 pmemobj_pool_by_oid
@@ -247,6 +250,7 @@ pmemobj_mutex_trylock
 pmemobj_mutex_unlock
 pmemobj_mutex_zero
 pmemobj_next
+pmemobj_oid
 pmemobj_open
 pmemobj_persist
 pmemobj_pool_by_oid
