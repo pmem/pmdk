@@ -69,7 +69,7 @@ static struct ddmap_context ddmap_default;
  * print_usage -- print short description of usage
  */
 static void
-print_usage()
+print_usage(void)
 {
 	printf("Usage: ddmap [option] ...\n");
 	printf("Valid options:\n");
