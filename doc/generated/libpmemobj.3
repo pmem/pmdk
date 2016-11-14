@@ -658,6 +658,17 @@ line defining a part of the local replica.
 The format of such line is the same as the format of the line defining a
 part of the PMEMOBJ pool as described above.
 .PP
+The path of a part can point to a device DAX and in such case the size
+argument can be set to an "AUTO" string, which means that the size of
+the device will be automatically resolved at pool creation time.
+When using device DAX there\[aq]s also one additional restriction, that
+a pool set can consist only of a single part.
+.PP
+Device DAX is the device\-centric analogue of Filesystem DAX.
+It allows memory ranges to be allocated and mapped without need of an
+intervening file system.
+For more information please see \f[B]ndctl\-create\-namespace\f[](1).
+.PP
 In case of a remote replica, the \f[I]REPLICA\f[] keyword has to be
 followed by an address of a remote host (in the format recognized by the
 \f[B]ssh\f[](1) remote login client) and a relative path to a remote
@@ -3381,5 +3392,5 @@ recommended by the SNIA NVM Programming Technical Work Group:
 \f[B]mmap\f[](2), \f[B]munmap\f[](2), \f[B]msync\f[](2),
 \f[B]pthread_mutex\f[](3), \f[B]pthread_rwlock\f[](3),
 \f[B]pthread_cond\f[](3), \f[B]strerror\f[](3), \f[B]libpmemblk\f[](3),
-\f[B]libpmemlog\f[](3), \f[B]libpmem\f[](3), \f[B]libvmem\f[](3) and
-\f[B]<http://pmem.io>\f[]
+\f[B]libpmemlog\f[](3), \f[B]libpmem\f[](3), \f[B]libvmem\f[](3),
+\f[B]ndctl\-create\-namespace\f[](1) and \f[B]<http://pmem.io>\f[]
