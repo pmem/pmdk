@@ -62,6 +62,7 @@ INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
+
 CFLAGS += -DUSE_RPMEM
 
 MANPAGES = $(TOP)/doc/pmempool.1\

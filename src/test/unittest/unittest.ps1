@@ -848,7 +848,9 @@ function dump_pool_info {
     Invoke-Expression "$PMEMPOOL info $params" | `
         Select-String -notmatch -Pattern 'UUID' | `
         Select-String -notmatch -Pattern '^Checksum' | `
-        Select-String -notmatch -Pattern '^Creation Time'
+        Select-String -notmatch -Pattern '^Creation Time' | `
+        Select-String -notmatch -Pattern '^path' | `
+        Select-String -notmatch -Pattern '^size'
 }
 
 #

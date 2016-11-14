@@ -17,7 +17,7 @@
 #PMEM_FS_DIR=/mnt/pmem
 
 #
-# For tests that require true a non-persitent memory aware file system (i.e.
+# For tests that require true a non-persistent memory aware file system (i.e.
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
@@ -29,6 +29,13 @@ NON_PMEM_FS_DIR=/tmp
 # tests that require pmem.
 #
 #PMEM_FS_DIR_FORCE_PMEM=1
+
+#
+# For tests that require raw dax devices without a file system, set a path to
+# those devices in an array format. For most tests one device is enough, but
+# some might require more.
+#
+#DEVICE_DAX_PATH=(/dev/dax0.0)
 
 #
 # 2) *** REMOTE CONFIGURATION ***

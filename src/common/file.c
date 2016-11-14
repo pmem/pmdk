@@ -34,12 +34,273 @@
  * file.c -- file utilities
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
-#include <sys/file.h>
+#include <fcntl.h>
 #include <unistd.h>
-
+#include <limits.h>
+#include <sys/file.h>
 #include "file.h"
 #include "out.h"
+#include "mmap.h"
+
+#define DEVICE_DAX_PREFIX "/sys/class/dax"
+#define MAX_SIZE_LENGTH 64
+
+#ifndef _WIN32
+/*
+ * device_dax_size -- (internal) checks the size of a given dax device
+ */
+static ssize_t
+device_dax_size(const char *path)
+{
+	util_stat_t st;
+	int olderrno;
+
+	if (util_stat(path, &st) < 0)
+		return -1;
+
+	char spath[PATH_MAX];
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/size",
+		major(st.st_rdev), minor(st.st_rdev));
+	int fd = open(spath, O_RDONLY);
+	if (fd < 0)
+		return -1;
+
+	ssize_t size = -1;
+
+	char sizebuf[MAX_SIZE_LENGTH];
+	ssize_t nread;
+	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0)
+		goto out;
+
+	sizebuf[nread] = 0; /* null termination */
+
+	char *endptr;
+
+	olderrno = errno;
+	errno = 0;
+
+	size = strtoll(sizebuf, &endptr, 0);
+	if (endptr == sizebuf || *endptr != '\n' ||
+		((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
+		size = -1;
+		goto out;
+	}
+
+	errno = olderrno;
+
+out:
+	olderrno = errno;
+	(void) close(fd);
+	errno = olderrno;
+
+	return size;
+}
+#endif
+
+/*
+ * util_file_is_device_dax -- checks whether the path points to a device dax
+ */
+int
+util_file_is_device_dax(const char *path)
+{
+#ifdef _WIN32
+	return 0;
+#else
+	util_stat_t st;
+	int olderrno = errno;
+	int ret = 0;
+
+	if (util_stat(path, &st) < 0)
+		goto out;
+
+	if (!S_ISCHR(st.st_mode))
+		goto out;
+
+	char spath[PATH_MAX];
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
+		major(st.st_rdev), minor(st.st_rdev));
+
+	char npath[PATH_MAX];
+	char *rpath = realpath(spath, npath);
+	if (rpath == NULL)
+		goto out;
+
+	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
+
+out:
+	errno = olderrno;
+	return ret;
+#endif
+}
+
+/*
+ * util_file_get_size -- returns size of a file
+ */
+ssize_t
+util_file_get_size(const char *path)
+{
+#ifndef _WIN32
+	if (util_file_is_device_dax(path)) {
+		return device_dax_size(path);
+	}
+#endif
+
+	util_stat_t stbuf;
+	if (util_stat(path, &stbuf) < 0) {
+		ERR("!fstat %s", path);
+		return -1;
+	}
+
+	return stbuf.st_size;
+}
+
+/*
+ * util_file_map_whole -- maps the entire file into memory
+ */
+void *
+util_file_map_whole(const char *path)
+{
+	int fd;
+	int olderrno;
+	void *addr = NULL;
+
+	if ((fd = open(path, O_RDWR)) < -1)
+		return NULL;
+
+	ssize_t size = util_file_get_size(path);
+	if (size < 0)
+		goto out;
+
+	addr = util_map(fd, (size_t)size, 0, 0);
+	if (addr == NULL)
+		goto out;
+
+out:
+	olderrno = errno;
+	(void) close(fd);
+	errno = olderrno;
+
+	return addr;
+}
+
+/*
+ * util_file_zero_whole -- zeroes the entire file
+ */
+int
+util_file_zero_whole(const char *path)
+{
+	int fd;
+	int olderrno;
+	int ret = 0;
+
+	if ((fd = open(path, O_RDWR)) < -1)
+		return -1;
+
+	ssize_t size = util_file_get_size(path);
+	if (size < 0) {
+		ret = -1;
+		goto out;
+	}
+
+	void *addr = util_map(fd, (size_t)size, 0, 0);
+	if (addr == NULL) {
+		ret = -1;
+		goto out;
+	}
+
+	/* zero initialize the entire device */
+	memset(addr, 0, (size_t)size);
+
+	util_unmap(addr, (size_t)size);
+
+out:
+	olderrno = errno;
+	(void) close(fd);
+	errno = olderrno;
+
+	return ret;
+}
+
+/*
+ * util_file_pwrite -- writes to a file with an offset
+ */
+ssize_t
+util_file_pwrite(const char *path, const void *buffer, size_t size,
+	off_t offset)
+{
+	if (!util_file_is_device_dax(path)) {
+		int fd = util_file_open(path, NULL, 0, O_RDWR);
+		if (fd < 0)
+			return -1;
+
+		ssize_t write_len = pwrite(fd, buffer, size, offset);
+		int olderrno = errno;
+		(void) close(fd);
+		errno = olderrno;
+		return write_len;
+	}
+
+	ssize_t file_size = util_file_get_size(path);
+	if (file_size < 0)
+		return -1;
+
+	size_t max_size = (size_t)(file_size - offset);
+	if (size > max_size) {
+		LOG(1, "Requested size of write goes beyond the mapped memory");
+		size = max_size;
+	}
+
+	void *addr = util_file_map_whole(path);
+	if (addr == NULL)
+		return -1;
+
+	memcpy(ADDR_SUM(addr, offset), buffer, size);
+	util_unmap(addr, (size_t)file_size);
+	return (ssize_t)size;
+
+}
+
+/*
+ * util_file_pread -- reads from a file with an offset
+ */
+ssize_t
+util_file_pread(const char *path, void *buffer, size_t size,
+	off_t offset)
+{
+	if (!util_file_is_device_dax(path)) {
+		int fd = util_file_open(path, NULL, 0, O_RDONLY);
+		if (fd < 0)
+			return -1;
+
+		ssize_t read_len = pread(fd, buffer, size, offset);
+		int olderrno = errno;
+		(void) close(fd);
+		errno = olderrno;
+		return read_len;
+	}
+
+	ssize_t file_size = util_file_get_size(path);
+	if (file_size < 0)
+		return -1;
+
+	size_t max_size = (size_t)(file_size - offset);
+	if (size > max_size) {
+		LOG(1, "Requested size of read goes beyond the mapped memory");
+		size = max_size;
+	}
+
+	void *addr = util_file_map_whole(path);
+	if (addr == NULL)
+		return -1;
+
+	memcpy(buffer, ADDR_SUM(addr, offset), size);
+	util_unmap(addr, (size_t)file_size);
+	return (ssize_t)size;
+}
 
 /*
  * util_file_create -- create a new memory pool file
@@ -120,6 +381,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 #ifdef _WIN32
 	flags |= O_BINARY;
 #endif
+
 	if ((fd = open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
@@ -135,25 +397,22 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
-		util_stat_t stbuf;
-		if (util_fstat(fd, &stbuf) < 0) {
-			ERR("!fstat %s", path);
-			goto err;
-		}
-		if (stbuf.st_size < 0) {
+		ssize_t actual_size = util_file_get_size(path);
+		if (actual_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
-		if ((size_t)stbuf.st_size < minsize) {
+
+		if ((size_t)actual_size < minsize) {
 			ERR("size %zu smaller than %zu",
-					(size_t)stbuf.st_size, minsize);
+					(size_t)actual_size, minsize);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if (size)
-			*size = (size_t)stbuf.st_size;
+			*size = (size_t)actual_size;
 	}
 
 	return fd;
@@ -164,4 +423,17 @@ err:
 	(void) close(fd);
 	errno = oerrno;
 	return -1;
+}
+
+/*
+ * util_unlink -- unlinks a file or zeroes a device dax
+ */
+int
+util_unlink(const char *path)
+{
+	if (util_file_is_device_dax(path)) {
+		return util_file_zero_whole(path);
+	} else {
+		return unlink(path);
+	}
 }

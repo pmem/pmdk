@@ -48,7 +48,7 @@ require_fs_type any
 
 setup
 
-$POOLSET="$DIR/pool.set"
+$POOLSET="$DIR\pool.set"
 $POOL_PART1="$DIR\pool.part1"
 $POOL_PART2="$DIR\pool.part2"
 

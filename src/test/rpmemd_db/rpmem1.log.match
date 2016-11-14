@@ -1,2 +1,2 @@
-<librpmem>: <1> [$(*) util_file_open] flock: Resource temporarily unavailable
-<librpmem>: <1> [$(*) util_header_create] Non-empty file detected
+<librpmem>: <1> [$(*)] flock: Resource temporarily unavailable
+<librpmem>: <1> [$(*)] Non-empty file detected

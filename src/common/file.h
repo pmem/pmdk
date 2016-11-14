@@ -41,11 +41,21 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+int util_file_is_device_dax(const char *path);
+ssize_t util_file_get_size(const char *path);
+void *util_file_map_whole(const char *path);
+int util_file_zero_whole(const char *path);
+ssize_t util_file_pread(const char *path, void *buffer, size_t size,
+	off_t offset);
+ssize_t util_file_pwrite(const char *path, const void *buffer, size_t size,
+	off_t offset);
+
 int util_tmpfile(const char *dir, const char *templ);
 int util_is_absolute_path(const char *path);
 
 int util_file_create(const char *path, size_t size, size_t minsize);
 int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
+int util_unlink(const char *path);
 
 #ifndef _WIN32
 typedef struct stat util_stat_t;
@@ -62,6 +72,7 @@ typedef struct _stat64 util_stat_t;
 /* XXX - consider adding an assertion on (count <= UINT_MAX) */
 #define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
+#define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #endif
 
 #endif

@@ -57,6 +57,7 @@
 #include "clo.h"
 #include "config_reader.h"
 #include "util.h"
+#include "file.h"
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
 #include "rpmem_util.h"
@@ -878,7 +879,7 @@ remove_part_cb(struct part_file *pf, void *arg)
 	const char *part_file = pf->path;
 
 	if (access(part_file, F_OK) == 0)
-		return remove(part_file);
+		return util_unlink(part_file);
 
 	return 0;
 }
@@ -898,7 +899,7 @@ pmembench_remove_file(const char *path)
 		if (access(path, F_OK) == 0) {
 			ret = util_is_poolset_file(path);
 			if (ret == 0) {
-				return remove(path);
+				return util_unlink(path);
 			} else if (ret == 1) {
 				return util_poolset_foreach_part(path,
 						remove_part_cb, NULL);
@@ -915,7 +916,7 @@ pmembench_remove_file(const char *path)
 			return -1;
 		sprintf(tmp, "%s/%s", path, d->d_name);
 		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
-								: remove(tmp);
+							: util_unlink(tmp);
 		free(tmp);
 		if (ret != 0)
 			return ret;

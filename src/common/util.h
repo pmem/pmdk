@@ -55,6 +55,7 @@ extern unsigned long long Mmap_align;
 	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))
 #define IS_PAGE_ALIGNED(size) (((size) & (Pagesize - 1)) == 0)
 #define PAGE_ALIGN_UP(addr) ((void *)PAGE_ALIGNED_UP_SIZE((uintptr_t)(addr)))
+#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*
  * overridable names for malloc & friends used by this library
@@ -196,6 +197,22 @@ char *util_concat_str(const char *s1, const char *s2);
 #else
 #define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
 #endif /* __GNUC__ */
+
+#define PERSIST_GENERIC(is_pmem, addr, len) do {\
+	void *raddr = addr; size_t rlen = len;\
+	if (is_pmem) \
+		pmem_persist(raddr, rlen);\
+	else\
+		pmem_msync(raddr, rlen);\
+} while (0)
+
+#define PERSIST_GENERIC_AUTO(addr, len) do {\
+	void *raddr = addr; size_t rlen = len;\
+	if (pmem_is_pmem(raddr, rlen)) \
+		pmem_persist(raddr, rlen);\
+	else\
+		pmem_msync(raddr, rlen);\
+} while (0)
 
 #ifdef __cplusplus
 }

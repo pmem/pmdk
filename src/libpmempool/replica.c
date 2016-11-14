@@ -97,16 +97,21 @@ int
 replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 {
 	struct pool_set_part *part = &PART(REP(set, repn), partn);
-	if (part->fd != -1)
+	if (part->fd != -1) {
 		close(part->fd);
+		part->fd = -1;
+	}
 
-	if (unlink(part->path)) {
+	int olderrno = errno;
+	if (util_unlink(part->path)) {
 		if (errno != ENOENT) {
 			ERR("removing part %u from replica %u failed",
 					partn, repn);
 			return -1;
 		}
 	}
+
+	errno = olderrno;
 	LOG(1, "Removed part %s number %u from replica %u", part->path, partn,
 			repn);
 	return 0;
@@ -397,6 +402,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 			if (util_part_open(&rep->part[p], 0, 0)) {
 				LOG(1, "Opening part %s failed",
 						rep->part[p].path);
+				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
@@ -478,6 +484,8 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 					&hdrp->checksum, 0)) {;
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p] |= IS_BROKEN;
+			} else if (util_is_zeroed(hdrp, sizeof(*hdrp))) {
+					rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
 	}

@@ -330,8 +330,13 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 #endif
 		addr = NULL;
 	} else {
-		params->size = (size_t)stat_buf.st_size;
-		addr = mmap(NULL, (uint64_t)stat_buf.st_size, PROT_READ,
+		ssize_t s = util_file_get_size(ppc->path);
+		if (s < 0) {
+			ret = -1;
+			goto out_close;
+		}
+		params->size = (size_t)s;
+		addr = mmap(NULL, (uint64_t)params->size, PROT_READ,
 			MAP_PRIVATE, fd, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
@@ -706,7 +711,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart)
 		pmem_memcpy_persist(daddr, saddr, smapped);
 	} else {
 		memcpy(daddr, saddr, smapped);
-		pmem_msync(daddr, smapped);
+		PERSIST_GENERIC(dpart->is_dax, daddr, smapped);
 	}
 
 	pmem_unmap(daddr, dmapped);
@@ -891,20 +896,13 @@ pool_set_type(struct pool_set *set)
 
 	/* open the first part file to read the pool header values */
 	const struct pool_set_part *part = &PART(REP(set, 0), 0);
-	int fdp = util_file_open(part->path, NULL, 0, O_RDONLY);
-	if (fdp < 0) {
-		ERR("cannot open poolset part file");
-		return POOL_TYPE_UNKNOWN;
-	}
 
-	/* read the pool header from first pool set file */
-	if (read(fdp, &hdr, sizeof(hdr)) != sizeof(hdr)) {
+	if (util_file_pread(part->path, &hdr, sizeof(hdr), 0) !=
+			sizeof(hdr)) {
 		ERR("cannot read pool header from poolset");
-		close(fdp);
 		return POOL_TYPE_UNKNOWN;
 	}
 
-	close(fdp);
 	util_convert2h_hdr_nocheck(&hdr);
 	enum pool_type type = pool_hdr_get_type(&hdr);
 	return type;
