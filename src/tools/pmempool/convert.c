@@ -111,7 +111,26 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		return 0;
 	}
 
-	struct pool_set_file *psf = pool_set_file_open(f, 0, 0);
+	struct pmem_pool_params params;
+	if (pmem_pool_parse_params(f, &params, 1)) {
+		fprintf(stderr, "Cannot determine type of pool\n");
+		return -1;
+	}
+
+	if (params.type != PMEM_POOL_TYPE_OBJ) {
+		fprintf(stderr, "Conversion is currently supported only for "
+				"pmemobj pools\n");
+		return -1;
+	}
+
+	if (params.is_part) {
+		fprintf(stderr, "Conversion cannot be performed on "
+			"a poolset part\n");
+		return -1;
+	}
+
+	struct pool_set_file *psf = pool_set_file_open(f, 0, 1);
+
 	if (psf == NULL) {
 		perror(f);
 		return -1;
@@ -125,13 +144,6 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	}
 
 	struct pool_hdr *phdr = addr;
-	if (memcmp(phdr->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) != 0) {
-		fprintf(stderr, "Conversion is currently supported only for "
-				"pmemobj pools\n");
-		ret = -1;
-		goto out;
-	}
-
 	uint32_t m = le32toh(phdr->major);
 	if (m >= COUNT_OF(version_convert) || !version_convert[m]) {
 		fprintf(stderr, "There's no conversion method for the pool.\n"
