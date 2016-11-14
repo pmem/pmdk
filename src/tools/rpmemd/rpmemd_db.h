@@ -53,7 +53,7 @@ struct rpmemd_db_pool *rpmemd_db_pool_create(struct rpmemd_db *db,
 struct rpmemd_db_pool *rpmemd_db_pool_open(struct rpmemd_db *db,
 	const char *pool_desc, size_t pool_size, struct rpmem_pool_attr *attr);
 int rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
-		int force);
+		int force, int pool_set);
 void rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp);
 void rpmemd_db_fini(struct rpmemd_db *db);
 int rpmemd_db_check_dir(struct rpmemd_db *db);

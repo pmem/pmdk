@@ -37,13 +37,6 @@
 export UNITTEST_NAME=rpmemd_db/TEST0
 export UNITTEST_NUM=0
 
-SRC_DIR=../..
-ROOT_DIR=./test$UNITTEST_NUM-root/
-POOL_DESC_0=test$UNITTEST_NUM-pool0.set
-POOL_DESC_1=test$UNITTEST_NUM-pool1.set
-LOG_FILE=rpmemd$UNITTEST_NUM.log
-rm -f $LOG_FILE
-
 # standard unit test setup
 . ../unittest/unittest.sh
 
@@ -53,10 +46,31 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_0
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/$POOL_DESC_1
+ROOT_DIR=$DIR/poolset-dir
+PART_DIR=$DIR/parts-dir
+LOG_FILE=rpmemd$UNITTEST_NUM.log
+rm -f $LOG_FILE
+
+mkdir -p $ROOT_DIR
+mkdir -p $PART_DIR
+
+create_poolset $ROOT_DIR/pool0.set\
+	8M:$PART_DIR/pool0.part.0:x\
+	8M:$PART_DIR/pool0.part.1:x\
+	8M:$PART_DIR/pool0.part.2:x\
+	8M:$PART_DIR/pool0.part.3:x
+
+create_poolset $ROOT_DIR/pool1.set\
+	8M:$PART_DIR/pool1.part.0:x\
+	8M:$PART_DIR/pool1.part.1:x\
+	8M:$PART_DIR/pool1.part.2:x\
+	8M:$PART_DIR/pool1.part.3:x
+
+expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool0.set
+expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool1.set
+
 expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
-				$POOL_DESC_0 $POOL_DESC_1
+				pool0.set pool1.set
 
 mv rpmem0.log rpmem0_tmp.log
 grep -e flock -e Non-empty rpmem0_tmp.log > rpmem0.log || true
