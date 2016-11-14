@@ -79,6 +79,7 @@ int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 			unsigned lane);
 int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
 
 static int Remote_replication_available;
 static pthread_mutex_t Remote_lock;
@@ -141,6 +142,7 @@ util_remote_unload_core()
 	Rpmem_close = NULL;
 	Rpmem_persist = NULL;
 	Rpmem_read = NULL;
+	Rpmem_remove = NULL;
 }
 
 /*
@@ -189,6 +191,7 @@ util_remote_load(void)
 	CHECK_FUNC_COMPATIBLE(rpmem_close, *Rpmem_close);
 	CHECK_FUNC_COMPATIBLE(rpmem_persist, *Rpmem_persist);
 	CHECK_FUNC_COMPATIBLE(rpmem_read, *Rpmem_read);
+	CHECK_FUNC_COMPATIBLE(rpmem_remove, *Rpmem_remove);
 
 	util_mutex_lock(&Remote_lock);
 
@@ -230,6 +233,12 @@ util_remote_load(void)
 	Rpmem_read = util_dlsym(Rpmem_handle_remote, "rpmem_read");
 	if (util_dl_check_error(Rpmem_read, "dlsym")) {
 		ERR("symbol 'rpmem_read' not found");
+		goto err;
+	}
+
+	Rpmem_remove = util_dlsym(Rpmem_handle_remote, "rpmem_remove");
+	if (util_dl_check_error(Rpmem_remove, "dlsym")) {
+		ERR("symbol 'rpmem_remove' not found");
 		goto err;
 	}
 
@@ -480,6 +489,45 @@ util_poolset_open(struct pool_set *set)
 }
 
 /*
+ * util_replica_close_local -- (internal) close local replica
+ */
+static void
+util_replica_close_local(struct pool_replica *rep, int del)
+{
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		if (rep->part[p].fd != -1)
+			(void) close(rep->part[p].fd);
+		if (del && rep->part[p].created) {
+			LOG(4, "unlink %s", rep->part[p].path);
+			unlink(rep->part[p].path);
+		}
+	}
+}
+
+/*
+ * util_replica_close_remote -- (internal) close remote replica
+ */
+static void
+util_replica_close_remote(struct pool_replica *rep, unsigned r, int del)
+{
+	if (!rep->remote || !rep->remote->rpp)
+		return;
+
+	LOG(4, "closing remote replica #%u", r);
+	Rpmem_close(rep->remote->rpp);
+	rep->remote->rpp = NULL;
+
+	if (del) {
+		LOG(4, "removing remote replica #%u", r);
+		int ret = Rpmem_remove(rep->remote->node_addr,
+			rep->remote->pool_desc, 0);
+		if (ret) {
+			LOG(1, "!removing remote replica #%u failed", r);
+		}
+	}
+}
+
+/*
  * util_poolset_close -- unmap and close all the parts of the pool set
  *
  * Optionally, it also unlinks the newly created pool set files.
@@ -495,22 +543,10 @@ util_poolset_close(struct pool_set *set, int del)
 		util_replica_close(set, r);
 
 		struct pool_replica *rep = set->replica[r];
-		if (rep->remote == NULL) {
-			for (unsigned p = 0; p < rep->nparts; p++) {
-				if (rep->part[p].fd != -1)
-					(void) close(rep->part[p].fd);
-				if (del && rep->part[p].created) {
-					LOG(4, "unlink %s", rep->part[p].path);
-					unlink(rep->part[p].path);
-				}
-			}
-		} else {
-			if (rep->remote->rpp) {
-				LOG(4, "closing remote replica #%u", r);
-				Rpmem_close(rep->remote->rpp);
-				rep->remote->rpp = NULL;
-			}
-		}
+		if (!rep->remote)
+			util_replica_close_local(rep, del);
+		else
+			util_replica_close_remote(rep, r, del);
 	}
 
 	util_poolset_free(set);
