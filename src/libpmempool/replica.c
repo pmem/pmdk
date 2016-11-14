@@ -481,10 +481,11 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 			/* check part's checksum */
 			struct pool_hdr *hdrp = HDR(rep, p);
 			if (!util_checksum(hdrp, sizeof(*hdrp),
-					&hdrp->checksum, 0) ||
-					hdrp->checksum == 0) {;
+					&hdrp->checksum, 0)) {;
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p] |= IS_BROKEN;
+			} else if (util_is_zeroed(hdrp, sizeof(*hdrp))) {
+					rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
 	}

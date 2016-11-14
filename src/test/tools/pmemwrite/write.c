@@ -75,7 +75,6 @@ print_usage(char *appname)
 	printf("<blockno>:w:<string>  - write <string> to <blockno> block\n");
 	printf("<blockno>:z           - set zero flag on <blockno> block\n");
 	printf("<blockno>:z           - set error flag on <blockno> block\n");
-
 }
 
 /*
