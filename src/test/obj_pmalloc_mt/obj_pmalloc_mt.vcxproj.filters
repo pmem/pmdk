@@ -8,9 +8,6 @@
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{17dad56b-13c3-4265-99f7-1bf22c0650ce}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmemobj\bucket.c">

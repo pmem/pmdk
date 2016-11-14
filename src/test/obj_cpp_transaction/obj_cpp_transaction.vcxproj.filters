@@ -9,10 +9,6 @@
       <UniqueIdentifier>{e47bc62c-f75d-466f-8715-ced19986a41a}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{5f1b59b3-561d-434f-91e0-3f5e210ddeac}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_cpp_transaction\obj_cpp_transaction.cpp">

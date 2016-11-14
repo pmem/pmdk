@@ -9,10 +9,6 @@
       <UniqueIdentifier>{9d26fb90-e468-4290-bae8-5ff878f3ea85}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{5c937128-12e6-4e25-9c48-9921496e7dd7}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_cpp_mutex\obj_cpp_mutex.cpp">

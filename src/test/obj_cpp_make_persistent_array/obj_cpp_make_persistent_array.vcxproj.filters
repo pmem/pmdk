@@ -9,10 +9,6 @@
       <UniqueIdentifier>{b5395226-0fa0-490a-a24b-8c1cf9b76d97}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{a81e927f-21f8-497c-91f3-4e58f2b637fb}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_cpp_make_persistent_array\obj_cpp_make_persistent_array.cpp">

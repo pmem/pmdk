@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{327d8c64-1cc1-40d5-bb10-6dd8faf0fc71}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{f72994aa-3255-41a1-a95c-37d6e2e0fdaa}</UniqueIdentifier>
     </Filter>

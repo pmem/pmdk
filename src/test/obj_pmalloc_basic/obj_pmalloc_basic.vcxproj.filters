@@ -8,9 +8,6 @@
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{6867f25d-78bc-4c27-81bf-39dc7a24df14}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="obj_pmalloc_basic.c">
