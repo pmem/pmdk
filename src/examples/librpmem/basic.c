@@ -100,6 +100,11 @@ main(int argc, char *argv[])
 			goto end;
 		}
 
+		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+		if (ret)
+			fprintf(stderr, "rpmem_persist: %s\n",
+					rpmem_errormsg());
+
 		ret = rpmem_close(rpp);
 		if (ret)
 			fprintf(stderr, "rpmem_close: %s\n",
@@ -123,11 +128,20 @@ main(int argc, char *argv[])
 			fprintf(stderr, "remote pool not consistent\n");
 		}
 
+		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+		if (ret)
+			fprintf(stderr, "rpmem_persist: %s\n",
+					rpmem_errormsg());
+
 		ret = rpmem_close(rpp);
 		if (ret)
 			fprintf(stderr, "rpmem_close: %s\n",
 					rpmem_errormsg());
-
+	} else if (strcmp(op, "remove") == 0) {
+		int ret = rpmem_remove(target, pool_set, 0);
+		if (ret)
+			fprintf(stderr, "removing pool failed: %s\n",
+					rpmem_errormsg());
 	} else {
 		fprintf(stderr, "unsupported operation -- '%s'\n", op);
 		ret = 1;
