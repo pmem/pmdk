@@ -39,22 +39,13 @@
 #include <libgen.h>
 #include <string.h>
 #include <sys/queue.h>
-#include <sys/mman.h>
 #include <inttypes.h>
 #include <err.h>
-#include <fcntl.h>
 #include "common.h"
 #include "output.h"
 #include <libpmemlog.h>
 #include <libpmemblk.h>
 #include "mmap.h"
-#include <wchar.h>
-#include "file.h"
-
-enum pmemwrite_mode {
-	BLOCK_MODE,
-	STRING_MODE
-};
 
 /*
  * pmemwrite -- context and arguments
@@ -64,8 +55,6 @@ struct pmemwrite
 	char *fname;	/* file name */
 	int nargs;	/* number of arguments */
 	char **args;	/* list of arguments */
-	size_t offset;	/* offset from BOF for read/write operations */
-	size_t len;	/* number of bytes to read */
 };
 
 
@@ -73,8 +62,6 @@ static struct pmemwrite pmemwrite = {
 	.fname = NULL,
 	.nargs = 0,
 	.args = NULL,
-	.offset = 0,
-	.len = 0,
 };
 
 /*
@@ -83,21 +70,11 @@ static struct pmemwrite pmemwrite = {
 static void
 print_usage(char *appname)
 {
-	printf("Usage: %s [options] <file> <args>...\n", appname);
-	printf("Valid options:\n");
-	printf("-b                    - block operations mode (default)\n");
-	printf("-s                    - string operations mode\n");
-	printf("Valid arguments in block operations mode:\n");
+	printf("Usage: %s <file> <args>...\n", appname);
+	printf("Valid arguments:\n");
 	printf("<blockno>:w:<string>  - write <string> to <blockno> block\n");
 	printf("<blockno>:z           - set zero flag on <blockno> block\n");
 	printf("<blockno>:z           - set error flag on <blockno> block\n");
-	printf("Valid arguments in string operations mode:\n");
-	printf("<offset>:w:<string>   - write <string> to the file at offset"
-			" <offset>\n");
-	printf("<offset>:r:<len>      - read a string of length <len> from the"
-			" file at the offset <offset>\n");
-	printf("<offset>:z:<len>      - zero the part of length <len> at the"
-			" offset <offset> of the file\n");
 
 }
 
@@ -215,221 +192,15 @@ nomem:
 	return ret;
 }
 
-/*
- * block_operations -- (internal) operations in block mode
- */
-static int
-block_operations()
-{
-	struct pmem_pool_params params;
-
-	/* parse pool type from file */
-
-	pmem_pool_parse_params(pmemwrite.fname, &params, 1);
-
-	switch (params.type) {
-	case PMEM_POOL_TYPE_BLK:
-		return pmemwrite_blk(&pmemwrite);
-	case PMEM_POOL_TYPE_LOG:
-		return pmemwrite_log(&pmemwrite);
-	default:
-		break;
-	}
-
-	return -1;
-}
-
-/*
- * string_write -- (internal) write the string to the file at the offset
- */
-static int
-string_write(const char *path, off_t offset, const char *buff)
-{
-	if (offset < 0) {
-		outv_err("invalid argument(s)");
-		return -1;
-	}
-	size_t len = strlen(buff);
-	if (util_file_pwrite(path, buff, len, offset) < 0) {
-		outv_err("pwrite for dax device failed: path %s,"
-			" len %lu, offset %ll", path, len, offset);
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
- * string_read -- (internal) read a string from the file at the offset and
- *	print it to stdout
- */
-static int
-string_print(const char *path, off_t offset, ssize_t len)
-{
-	if (offset < 0 || len < 0) {
-		outv_err("invalid argument(s)");
-		return -1;
-	}
-
-	char *read_buff = Zalloc((size_t)len + 1);
-	if (read_buff == NULL) {
-		outv_err("Zalloc(%lu) failed\n", len + 1);
-		return -1;
-	}
-
-	ssize_t read_len;
-	read_len = util_file_pread(path, read_buff, (size_t)len, offset);
-
-	if (read_len < 0) {
-		outv_err("pread failed");
-		free(read_buff);
-		return -1;
-	} else if (read_len < len) {
-		outv(1, "read less bytes than requested: %ld vs. %ld\n",
-				read_len, len);
-	}
-
-	for (int i = 0; i < read_len; ++i) {
-		if (read_buff[i] == '\0')
-			printf("\u00B0");
-		else if (read_buff[i] >= ' ' &&
-				read_buff[i] <= '~')
-			printf("%c", read_buff[i]);
-		else
-			printf("\u00B7");
-	}
-	printf("\n");
-	free(read_buff);
-	return 0;
-}
-
-/*
- * string_zero -- (internal) zero file data at the offset
- */
-static int
-string_zero(const char *path, off_t offset, ssize_t len)
-{
-	if (offset < 0 || len < 0) {
-		outv_err("invalid argument(s)");
-		return -1;
-	}
-
-	int is_dax = util_file_is_device_dax(path);
-	void *addr;
-	ssize_t filesize;
-	if (is_dax) {
-		filesize = util_file_get_size(path);
-		if (filesize < 0) {
-			outv_err("invalid file size");
-			return -1;
-		}
-		if (offset + len > filesize)
-			len = filesize - offset;
-
-		addr = util_file_map_whole(path);
-		if (addr == NULL) {
-			outv_err("map failed");
-			return -1;
-		}
-	} else {
-		int fd;
-		if ((fd = open(path, O_RDWR)) < 0) {
-			outv_err("!open %s", path);
-			return -1;
-		}
-
-		util_stat_t stbuf;
-		if (util_fstat(fd, &stbuf) < 0) {
-			outv_err("!fstat %s", path);
-			(void) close(fd);
-			return -1;
-		}
-		filesize = stbuf.st_size;
-		if (filesize < 0) {
-			outv_err("invalid file size");
-			(void) close(fd);
-			return -1;
-		}
-		if (offset + len > filesize)
-			len = filesize - offset;
-
-		addr = mmap(NULL, (size_t)len, PROT_READ|PROT_WRITE, MAP_SHARED,
-				fd, (off_t)offset);
-		if (addr == MAP_FAILED) {
-			ERR("!mmap: %s", path);
-			(void) close(fd);
-			return -1;
-		}
-		(void) close(fd);
-	}
-	memset(ADDR_SUM(addr, offset), 0, (size_t)len);
-	util_unmap(addr, (size_t)filesize);
-	return 0;
-}
-
-
-/*
- * string_operations -- (internal) operations in string mode
- */
-static int
-string_operations()
-{
-	for (int i = 0; i < pmemwrite.nargs; i++) {
-		int ret = 0;
-
-		/* params to be get from arguments */
-		off_t offset;
-		ssize_t len;
-		char *write_buff;
-		size_t write_buff_size = strlen(pmemwrite.args[i]) + 1;
-		write_buff = Zalloc(write_buff_size);
-		if (write_buff == NULL) {
-			outv_err("Zalloc(%lu) failed\n", write_buff_size);
-			return -1;
-		}
-
-		/* <offset>:w:<string> - write the string at the offset */
-		if (sscanf(pmemwrite.args[i], "%" SCNi64 ":w:%[^:]",
-					&offset, write_buff) == 2) {
-			ret = string_write(pmemwrite.fname, offset, write_buff);
-
-		/* <offset>:r:<len> - read a string from the offset and print */
-		} else if (sscanf(pmemwrite.args[i], "%" SCNi64 ":r:%" SCNi64,
-					&offset, &len) == 2) {
-			ret = string_print(pmemwrite.fname, offset, len);
-
-		/* <offset>:z:<len> - zero data at the offset */
-		} else if (sscanf(pmemwrite.args[i], "%" SCNi64 ":z:%" SCNi64,
-					&offset, &len) == 2) {
-			ret = string_zero(pmemwrite.fname, offset, len);
-
-		} else {
-			outv_err("Invalid argument '%s'\n", pmemwrite.args[i]);
-			ret = -1;
-		}
-		free(write_buff);
-		if (ret)
-			return ret;
-	}
-	return 0;
-}
-
 int
 main(int argc, char *argv[])
 {
 	int opt;
 	util_init();
 	char *appname = basename(argv[0]);
-	enum pmemwrite_mode mode = BLOCK_MODE;
 
-	while ((opt = getopt(argc, argv, "hbs")) != -1) {
+	while ((opt = getopt(argc, argv, "h")) != -1) {
 		switch (opt) {
-		case 'b':
-			mode = BLOCK_MODE;
-			break;
-		case 's':
-			mode = STRING_MODE;
-			break;
 		case 'h':
 			print_usage(appname);
 			exit(EXIT_SUCCESS);
@@ -451,11 +222,17 @@ main(int argc, char *argv[])
 
 	out_set_vlevel(1);
 
-	switch (mode) {
-	case BLOCK_MODE:
-		return block_operations();
-	case STRING_MODE:
-		return string_operations();
+	struct pmem_pool_params params;
+
+	/* parse pool type from file */
+
+	pmem_pool_parse_params(pmemwrite.fname, &params, 1);
+
+	switch (params.type) {
+	case PMEM_POOL_TYPE_BLK:
+		return pmemwrite_blk(&pmemwrite);
+	case PMEM_POOL_TYPE_LOG:
+		return pmemwrite_log(&pmemwrite);
 	default:
 		break;
 	}

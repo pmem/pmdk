@@ -60,13 +60,10 @@ struct ddmap_context {
 	size_t len;	/* number of bytes to read */
 };
 
-static struct ddmap_context ddmap_default = {
-	.file_in = NULL,
-	.file_out = NULL,
-	.str = NULL,
-	.offset = 0,
-	.len = 0,
-};
+/*
+ * the default context, with all fields initialized to zero or NULL
+ */
+static struct ddmap_context ddmap_default;
 
 /*
  * print_usage -- print short description of usage
