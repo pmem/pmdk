@@ -13,6 +13,7 @@ This file contains the high-level description of pmempool utility.
 	   2.5. rm
 	   2.6. sync
 	   2.7. transform
+	   2.8. convert
 	3. Source code
 	4. Packaging
 	5. Versioning
@@ -67,6 +68,7 @@ in detail:
 	pmempool-rm(1)
 	pmempool-sync(1)
 	pmempool-transform(1)
+	pmempool-convert(1)
 
 Subsequent sections contain detailed description of each command, information
 about the source code, packaging and versioning scheme.
