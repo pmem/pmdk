@@ -51,6 +51,11 @@
 #include "rpmem_fip_common.h"
 #include "rpmem_ssh.h"
 
+#define RPMEM_REMOVE_FLAGS_ALL (\
+	RPMEM_REMOVE_FORCE |	\
+	RPMEM_REMOVE_POOL_SET	\
+)
+
 extern int Rpmem_fork_fail;
 
 /*
@@ -625,4 +630,77 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length)
 	}
 
 	return 0;
+}
+
+/*
+ * rpmem_remove -- remove pool from remote node
+ *
+ * target        -- target node in format [<user>@]<target_name>[:<port>]
+ * pool_set_name -- remote pool set name
+ * flags         -- bitwise OR of one or more of the following flags:
+ *  - RPMEM_REMOVE_FORCE
+ *  - RPMEM_REMOVE_POOL_SET
+ */
+int
+rpmem_remove(const char *target, const char *pool_set, int flags)
+{
+	if (flags & ~(RPMEM_REMOVE_FLAGS_ALL)) {
+		ERR("invalid flags specified");
+		errno = EINVAL;
+		return -1;
+	}
+
+	struct rpmem_target_info *info = rpmem_target_parse(target);
+	if (!info) {
+		ERR("!parsing target node address failed");
+		goto err_target;
+	}
+
+	const char *argv[5];
+	argv[0] = "--remove";
+	argv[1] = pool_set;
+	const char **cur = &argv[2];
+
+	if (flags & RPMEM_REMOVE_FORCE)
+		*cur++ = "--force";
+
+	if (flags & RPMEM_REMOVE_POOL_SET)
+		*cur++ = "--pool-set";
+
+	*cur = NULL;
+
+	struct rpmem_ssh *ssh = rpmem_ssh_execv(info, argv);
+	if (!ssh) {
+		ERR("!executing ssh command failed");
+		goto err_ssh_exec;
+	}
+
+	int ret;
+
+	ret = rpmem_ssh_monitor(ssh, 0);
+	if (ret) {
+		ERR("!waiting for remote command failed");
+		ret = -1;
+		goto err_ssh_monitor;
+	}
+
+	ret = rpmem_ssh_close(ssh);
+	if (ret) {
+		if (ret > 0) {
+			errno = ret;
+			ERR("!remote command failed");
+		} else {
+			ERR("remote command failed");
+		}
+		goto err_ssh_close;
+	}
+
+	return 0;
+err_ssh_monitor:
+	rpmem_ssh_close(ssh);
+err_ssh_close:
+err_ssh_exec:
+	rpmem_target_free(info);
+err_target:
+	return -1;
 }

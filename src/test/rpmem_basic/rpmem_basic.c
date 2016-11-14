@@ -362,6 +362,37 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_remove -- test case for remove operation
+ */
+static int
+test_remove(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 4)
+		UT_FATAL("usage: test_remove <target> <pool set> "
+			"<force> <rm pool set>");
+
+	const char *target = argv[0];
+	const char *pool_set = argv[1];
+	int force = atoi(argv[2]);
+	int rm_pool_set = atoi(argv[3]);
+
+	int flags = 0;
+
+	if (force)
+		flags |= RPMEM_REMOVE_FORCE;
+
+	if (rm_pool_set)
+		flags |= RPMEM_REMOVE_POOL_SET;
+
+	int ret;
+
+	ret = rpmem_remove(target, pool_set, flags);
+	UT_ASSERTeq(ret, 0);
+
+	return 4;
+}
+
+/*
  * check_pool -- check if remote pool contains specified random sequence
  */
 static int
@@ -433,6 +464,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_close),
 	TEST_CASE(test_persist),
 	TEST_CASE(test_read),
+	TEST_CASE(test_remove),
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
 };
