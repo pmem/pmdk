@@ -82,6 +82,11 @@ int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		unsigned lane);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
 
+#define RPMEM_REMOVE_FORCE 0x1
+#define RPMEM_REMOVE_POOL_SET 0x2
+
+int rpmem_remove(const char *target, const char *pool_set, int flags);
+
 /*
  * RPMEM_MAJOR_VERSION and RPMEM_MINOR_VERSION provide the current version of
  * the librpmem API as provided by this header file.  Applications can verify
