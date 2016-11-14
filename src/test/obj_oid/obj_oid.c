@@ -40,8 +40,8 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t lock;
+pthread_cond_t cond;
 int flag = 1;
 
 PMEMoid thread_oid;
@@ -79,6 +79,9 @@ main(int argc, char *argv[])
 
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
+
+	pthread_mutex_init(&lock, NULL);
+	pthread_cond_init(&cond, NULL);
 
 	int npools = atoi(argv[2]);
 	const char *dir = argv[1];
@@ -147,6 +150,9 @@ main(int argc, char *argv[])
 	FREE(tmpoids);
 	FREE(oids);
 	FREE(pops);
+
+	pthread_mutex_destroy(&lock);
+	pthread_cond_destroy(&cond);
 
 	DONE(NULL);
 }
