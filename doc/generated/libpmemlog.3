@@ -235,6 +235,17 @@ Standards accept SI units with obligatory B \- kB, MB, GB, ...
 ..., K, M, G, ...
 \- (multiplier by 1024).
 .PP
+The path of a part can point to a device DAX and in such case the size
+argument can be set to an "AUTO" string, which means that the size of
+the device will be automatically resolved at pool creation time.
+When using device DAX there\[aq]s also one additional restriction, that
+a pool set can consist only of a single part.
+.PP
+Device DAX is the device\-centric analogue of Filesystem DAX.
+It allows memory ranges to be allocated and mapped without need of an
+intervening file system.
+For more information please see \f[B]ndctl\-create\-namespace\f[](1).
+.PP
 The minimum file size of each part of the pool set is the same as the
 minimum size allowed for a log pool consisting of one file.
 It is defined in \f[B]<libpmemlog.h>\f[] as \f[B]PMEMLOG_MIN_POOL\f[].
@@ -617,4 +628,5 @@ recommended by the SNIA NVM Programming Technical Work Group:
 .PP
 \f[B]mmap\f[](2), \f[B]munmap\f[](2), \f[B]msync\f[](2),
 \f[B]strerror\f[](3), \f[B]libpmemobj\f[](3), \f[B]libpmemblk\f[](3),
-\f[B]libpmem\f[](3), \f[B]libvmem\f[](3) and \f[B]<http://pmem.io>\f[]
+\f[B]libpmem\f[](3), \f[B]libvmem\f[](3),
+\f[B]ndctl\-create\-namespace\f[](1) and \f[B]<http://pmem.io>\f[]
