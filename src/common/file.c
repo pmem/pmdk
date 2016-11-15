@@ -452,3 +452,33 @@ util_unlink(const char *path)
 		return unlink(path);
 	}
 }
+
+/*
+ * util_unlink_flock -- flocks the file and unlinks it
+ *
+ * The unlink(2) call on a file which is opened and locked using flock(2)
+ * by different process works on linux. Thus in order to forbid removing a
+ * pool when in use by different process we need to flock(2) the pool files
+ * first before unlinking.
+ */
+int
+util_unlink_flock(const char *path)
+{
+#ifdef WIN32
+	/*
+	 * On Windows it is not possible to unlink the
+	 * file if it is flocked.
+	 */
+	return util_unlink(path);
+#else
+	int fd = util_file_open(path, NULL, 0, O_RDONLY);
+	if (fd < 0)
+		return fd;
+
+	int ret = util_unlink(path);
+
+	(void) close(fd);
+
+	return ret;
+#endif
+}
