@@ -588,10 +588,19 @@ static int
 pmempool_info_replica(struct pmem_info *pip, unsigned repn, int v)
 {
 	struct pool_replica *rep = pip->pfile->poolset->replica[repn];
-	outv(v, "Replica %u%s - %s, %u part(s):\n", repn,
+	outv(v, "Replica %u%s - %s", repn,
 		repn == 0 ? " (master)" : "",
-		rep->remote == NULL ? "local" : "remote",
-		rep->nparts);
+		rep->remote == NULL ? "local" : "remote");
+
+	if (rep->remote) {
+		outv(v, ":\n");
+		outv_field(v, "node", "%s", rep->remote->node_addr);
+		outv_field(v, "pool set", "%s", rep->remote->pool_desc);
+
+		return 0;
+	}
+
+	outv(v, ", %u part(s):\n", rep->nparts);
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		if (pmempool_info_part(pip, repn, p, v))
 			return -1;
