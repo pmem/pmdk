@@ -170,7 +170,7 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags);
 
-int util_map_hdr(struct pool_set_part *part, int flags);
+int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_open_nocheck(struct pool_set *set, int rdonly);

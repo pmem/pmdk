@@ -294,7 +294,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
  * util_map_hdr -- map a header of a pool set
  */
 int
-util_map_hdr(struct pool_set_part *part, int flags)
+util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 {
 	LOG(3, "part %p flags %d", part, flags);
 
@@ -309,7 +309,8 @@ util_map_hdr(struct pool_set_part *part, int flags)
 		 * is allowed to be a part of a poolset.
 		 */
 		hdrp = mmap(NULL, part->filesize,
-			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, part->fd, 0);
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -317,7 +318,8 @@ util_map_hdr(struct pool_set_part *part, int flags)
 		part->hdrsize = part->filesize;
 	} else {
 		hdrp = mmap(NULL, POOL_HDR_SIZE,
-			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, part->fd, 0);
 
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
@@ -1785,7 +1787,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_map_hdr(&rep->part[p], flags) != 0) {
+			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
 				LOG(2, "header mapping failed - part #%d", p);
 				goto err;
 			}
@@ -2201,7 +2203,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_map_hdr(&rep->part[p], flags) != 0) {
+			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
 				LOG(2, "header mapping failed - part #%d", p);
 				goto err;
 			}
