@@ -132,7 +132,7 @@ int pool_set_part_copy(struct pool_set_part *dpart,
 int pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count);
 
 unsigned pool_set_files_count(struct pool_set_file *file);
-int pool_set_file_map_headers(struct pool_set_file *file, int rdonly);
+int pool_set_file_map_headers(struct pool_set_file *file, int rdonly, int prv);
 void pool_set_file_unmap_headers(struct pool_set_file *file);
 
 void pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp);
