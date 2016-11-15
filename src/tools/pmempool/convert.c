@@ -109,7 +109,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		return -1;
 	}
 
-	if (params.is_part) {
+	if (params.is_part || params.is_part_file) {
 		fprintf(stderr, "Conversion cannot be performed on "
 			"a poolset part.\n");
 		return -1;
