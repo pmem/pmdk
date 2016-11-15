@@ -149,6 +149,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\file.c">
+    <ClCompile Include="rm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
