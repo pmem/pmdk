@@ -430,7 +430,7 @@ map_all_unbroken_headers(struct pool_set *set,
 			if (replica_is_part_broken(r, p, set_hs))
 				continue;
 
-			if (util_map_hdr(&rep->part[p], MAP_SHARED) != 0) {
+			if (util_map_hdr(&rep->part[p], MAP_SHARED, 0) != 0) {
 				LOG(1, "header mapping failed - part #%d", p);
 				rep_hs->part[p] |= IS_BROKEN;
 			}
