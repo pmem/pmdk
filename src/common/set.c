@@ -2780,7 +2780,7 @@ util_is_poolset_file(const char *path)
 	char signature[POOLSET_HDR_SIG_LEN];
 	size_t rd = 0;
 	do {
-		sret = read(fd, &signature[rd], sizeof(signature) - rd);
+		sret = util_read(fd, &signature[rd], sizeof(signature) - rd);
 		if (sret > 0)
 			rd += (size_t)sret;
 	} while (sret > 0);

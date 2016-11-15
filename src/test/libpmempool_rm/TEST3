@@ -1,4 +1,6 @@
-# Copyright 2016, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,71 +29,30 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# src/libpmempool/Makefile -- Makefile for libpmempool
 #
+# libpmempool_rm/TEST3 -- test for pmempool_rm with directories
+#
+export UNITTEST_NAME=libpmempool_rm/TEST3
+export UNITTEST_NUM=3
 
-LIBRARY_NAME = pmempool
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
+. ../unittest/unittest.sh
 
-INCS += -I$(TOP)/src/libpmemlog
-INCS += -I$(TOP)/src/libpmemblk
-INCS += -I$(TOP)/src/libpmemobj
-INCS += -I$(TOP)/src/rpmem_common
-INCS += -I$(TOP)/src/librpmem
+require_test_type medium
 
-vpath %.c ../librpmem
+require_fs_type any
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/pool_hdr_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
-	$(COMMON)/util_linux.c\
-	libpmempool.c\
-	check.c\
-	check_backup.c\
-	check_btt_info.c\
-	check_btt_map_flog.c\
-	check_log_blk.c\
-	check_pool_hdr.c\
-	check_util.c\
-	check_write.c\
-	pool.c\
-	replica.c\
-	$(RPMEM_COMMON)/rpmem_common.c\
-	rpmem_ssh.c\
-	rpmem_cmd.c\
-	rpmem_util.c\
-	sync.c\
-	transform.c\
-	rm.c
+setup
 
-LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
-	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
-	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
+enable_log_append
 
-LIBPMEMLOG_PRIV_FUNCS=pmemlog_convert2h pmemlog_convert2le
+mkdir $DIR/dir.1
+mkdir $DIR/dir.2
+mkdir $DIR/dir.2/dir.3
 
-include ../Makefile.inc
+expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/dir.1 $DIR/dir.2 $DIR/dir.2/dir.3
+expect_normal_exit ./libpmempool_rm$EXESUFFIX -f $DIR/dir.1 $DIR/dir.2 $DIR/dir.2/dir.3
 
-LIBS += -lpmem -ldl
-CFLAGS += -DUSE_LIBDL
-CFLAGS += -DUSE_RPMEM
+check
 
-pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \
-	$< $@
-
-pmemlog_priv_funcs.o: $(PMEMLOG_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV_FUNCS)) \
-	$< $@
+pass
