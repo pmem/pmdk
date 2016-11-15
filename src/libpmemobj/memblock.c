@@ -173,10 +173,6 @@ huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 
 	operation_add_entry(ctx, hdr, val, OPERATION_SET);
 
-	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr + 1,
-			(hdr->size_idx - 1) *
-			sizeof(struct chunk_header));
-
 	/*
 	 * In the case of chunks larger than one unit the footer must be
 	 * created immediately AFTER the persistent state is safely updated.
