@@ -2369,7 +2369,7 @@ time, but only one transaction per thread.
 Nested transactions are supported but flattened.
 Committing the nested transaction does not commit the outer transaction,
 however errors in the nested transaction are propagated up to the
-outer\-most level, resulting in the interruption of the entire
+outermost level, resulting in the interruption of the entire
 transaction.
 .PP
 Please see the \f[B]CAVEATS\f[] section for known limitations of the
@@ -2439,7 +2439,7 @@ the beginning of a transaction specified lock will be acquired.
 In case of \f[B]TX_PARAM_RWLOCK\f[] it\[aq]s a write lock.
 It is guaranteed that \f[B]pmemobj_tx_begin\f[]() will grab all locks
 prior to successful completion and they will be held by the current
-thread until the transaction is finished.
+thread until the outermost transaction is finished.
 Locks are taken in the order from left to right.
 To avoid deadlocks, user must take care of the proper order of locks.
 .PP
@@ -2520,7 +2520,7 @@ void\ pmemobj_tx_commit(void);
 .PP
 The \f[B]pmemobj_tx_commit\f[]() function commits the current open
 transaction and causes transition to \f[B]TX_STAGE_ONCOMMIT\f[] stage.
-If called in context of the outer\-most transaction, all the changes may
+If called in context of the outermost transaction, all the changes may
 be considered as durably written upon successful completion.
 This function must be called during \f[B]TX_STAGE_WORK\f[].
 .IP
@@ -2532,7 +2532,7 @@ int\ pmemobj_tx_end(void);
 .PP
 The \f[B]pmemobj_tx_end\f[]() function performs a clean up of a current
 transaction.
-If called in context of the outer\-most transaction, it releases all the
+If called in context of the outermost transaction, it releases all the
 locks acquired by \f[B]pmemobj_tx_begin\f[]() for outer and nested
 transactions.
 Then it causes the transition to \f[B]TX_STAGE_NONE\f[].
