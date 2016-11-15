@@ -161,7 +161,7 @@ void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
 int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
-	size_t offset, int flags);
+	size_t offset, int flags, int rdonly);
 int util_unmap_part(struct pool_set_part *part);
 int util_unmap_parts(struct pool_replica *rep, unsigned start_index,
 	unsigned end_index);
@@ -170,7 +170,7 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags);
 
-int util_map_hdr(struct pool_set_part *part, int flags);
+int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_open_nocheck(struct pool_set *set, int rdonly);

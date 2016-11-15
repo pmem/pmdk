@@ -501,8 +501,12 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	if (pool_params_parse(ppc, &pool->params, 0))
 		goto error;
 
-	int rdonly = CHECK_WITHOUT_FIXING(ppc);
-	pool->set_file = pool_set_file_open(ppc->path, &pool->params, rdonly);
+	int rdonly = CHECK_IS_NOT(ppc, REPAIR);
+	int prv = CHECK_IS(ppc, DRY_RUN);
+	pool->set_file = pool_set_file_open(ppc->path, &pool->params, prv);
+	if (rdonly)
+		mprotect(pool->set_file->addr, pool->set_file->size, PROT_READ);
+
 	if (!pool->set_file)
 		goto error;
 
@@ -776,17 +780,17 @@ pool_set_files_count(struct pool_set_file *file)
  * pool_set_file_map_headers -- map headers of each pool set part file
  */
 int
-pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
+pool_set_file_map_headers(struct pool_set_file *file, int rdonly, int prv)
 {
 	if (!file->poolset)
 		return -1;
 
-	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
 	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
 		struct pool_replica *rep = file->poolset->replica[r];
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
-			if (util_map_hdr(part, flags)) {
+			if (util_map_hdr(part,
+				prv ? MAP_PRIVATE : MAP_SHARED, rdonly)) {
 				part->hdr = NULL;
 				goto err;
 			}

@@ -266,6 +266,14 @@ check_write(PMEMpoolcheck *ppc)
 	COMPILE_ERROR_ON(sizeof(union location) !=
 		sizeof(struct check_step_data));
 
+	if (CHECK_IS_NOT(ppc, REPAIR)) {
+		if (CHECK_IS(ppc, DRY_RUN) &&
+		ppc->pool->set_file->poolset->replica[0]->part[0].is_dax) {
+			return;
+		}
+		return;
+	}
+
 	union location *loc = (union location *)check_get_step_data(ppc->data);
 
 	/* do all steps */
