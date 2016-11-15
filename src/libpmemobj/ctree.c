@@ -420,6 +420,7 @@ remove:
 		Free(*dst);
 		*dst = NULL;
 	} else {
+		ASSERTne(p, NULL);
 		*p = a->slots[a->slots[0] == *dst];
 		/* Free the internal node and the leaf */
 		Free(*dst);
