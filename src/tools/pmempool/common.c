@@ -694,7 +694,9 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	 */
 	paramsp->is_part = !paramsp->is_poolset &&
 		(memcmp(hdr.uuid, hdr.next_part_uuid, POOL_HDR_UUID_LEN) ||
-		memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN));
+		memcmp(hdr.uuid, hdr.prev_part_uuid, POOL_HDR_UUID_LEN) ||
+		memcmp(hdr.uuid, hdr.next_repl_uuid, POOL_HDR_UUID_LEN) ||
+		memcmp(hdr.uuid, hdr.prev_repl_uuid, POOL_HDR_UUID_LEN));
 
 	if (check)
 		paramsp->type = pmem_pool_type(addr);
