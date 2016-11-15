@@ -164,4 +164,4 @@ unchanged and the size of the pool is still 60M.
 
 # SEE ALSO #
 
-**libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
+**libpmempool(3)**, **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**

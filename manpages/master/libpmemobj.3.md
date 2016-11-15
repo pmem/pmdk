@@ -182,6 +182,7 @@ size_t pmemobj_alloc_usable_size(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 void *pmemobj_direct(PMEMoid oid);
+PMEMoid pmemobj_oid(const void *addr); (EXPERIMENTAL)
 uint64_t pmemobj_type_num(PMEMoid oid);
 
 POBJ_NEW(PMEMobjpool *pop, TOID *oidp, TYPE,
@@ -295,7 +296,7 @@ POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool *pop, POBJ_LIST_HEAD *head,
 ```c
 enum tx_stage pmemobj_tx_stage(void);
 
-int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, enum tx_lock, ...);
+int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, enum pobj_tx_param, ...);
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);
 void pmemobj_tx_abort(int errnum);
 void pmemobj_tx_commit(void);
@@ -305,15 +306,19 @@ void pmemobj_tx_process(void);
 
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags); (EXPERIMENTAL)
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
-TX_BEGIN_LOCK(PMEMobjpool *pop, ...)
+TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
 TX_BEGIN(PMEMobjpool *pop)
 TX_ONABORT
 TX_ONCOMMIT
@@ -325,10 +330,16 @@ TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
 
+TX_XADD(TOID o, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_DIRECT(TYPE *p, uint64_t flags) (EXPERIMENTAL)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags) (EXPERIMENTAL)
+
 TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE, size_t size)
+TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
@@ -418,7 +429,7 @@ PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 
 The **pmemobj_create**() function creates a transactional object store with the given total *poolsize*. *path* specifies the name of the memory pool file to be
 created. *layout* specifies the application's layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a
-check when **pmemobj_open**() is called. The layout name, including the null termination, cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
+check when **pmemobj_open**() is called. The layout name, including the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
 **\<libpmemobj.h\>**. It is allowed to pass NULL as *layout*, which is equivalent for using an empty string as a layout name. *mode* specifies the permissions to
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_create**() and then specifying *poolsize* as
@@ -535,6 +546,16 @@ Sections defining the replica sets are optional. There could be multiple replica
 Lines starting with "#" character are ignored. A replica can be local or remote. In case of a local replica, the REPLICA line has to consist of the *REPLICA*
 string only and it has to be followed by at least one line defining a part of the local replica. The format of such line is the same as the format of the line
 defining a part of the PMEMOBJ pool as described above.
+
+The path of a part can point to a device DAX and in such case the size
+argument can be set to an "AUTO" string, which means that the size of the device
+will be automatically resolved at pool creation time. When using device DAX
+there's also one additional restriction, that a pool set can consist only of a
+single part.
+
+Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
+ranges to be allocated and mapped without need of an intervening file system.
+For more information please see **ndctl-create-namespace**(1).
 
 In case of a remote replica, the *REPLICA* keyword has to be followed by an address of a remote host (in the format recognized by the **ssh**(1) remote login client)
 and a relative path to a remote pool set file (located in the root config directory on the target node - see **librpmem**(3)):
@@ -731,6 +752,16 @@ void *pmemobj_direct(PMEMoid oid);
 ```
 
 The **pmemobj_direct**() function returns a pointer to an object represented by *oid*. If **OID_NULL** is passed as an argument, function returns NULL.
+
+```c
+PMEMoid pmemobj_oid(const void *addr); (EXPERIMENTAL)
+```
+The **pmemobj_oid**() function returns a *PMEMoid* to an object pointed to by *addr*. If *addr* is not from within a pmemobj pool, **OID_NULL** is returned. If *addr* is not the start of an object (does not point to the beginning of a valid allocation), the resulting *PMEMoid* can be safely used only with:
+
++ **pmemobj_pool_by_oid**
++ **pmemobj_direct**
++ **pmemobj_tx_add_range**
+
 
 ```c
 uint64_t pmemobj_type_num(PMEMoid oid);
@@ -1543,14 +1574,41 @@ The **pmemobj_tx_begin**() function starts a new transaction in the current thre
 caller may use *env* argument to provide a pointer to the information of a calling environment to be restored in case of transaction abort. This information
 must be filled by a caller, using **setjmp**(3) macro.
 
-Optionally, a list of pmem-resident locks may be provided as the last arguments. Each lock is specified by a pair of lock type (**TX_LOCK_MUTEX** or
-**TX_LOCK_RWLOCK**) and the pointer to the lock of type *PMEMmutex* or *PMEMrwlock* respectively. The list must be terminated with **TX_LOCK_NONE**. In case of
-rwlocks, a write lock is acquired. It is guaranteed that **pmemobj_tx_begin**() will grab all the locks prior to successful completion and they will be held by
-the current thread until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care about the proper
-order of locks.
+New transaction may be started only if the current stage is **TX_STAGE_NONE** or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK**
+and function returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
 
-New transaction may be started only if the current stage is **TX_STAGE_NONE** or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK** and
-function returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
+Optionally, a list of parameters for the transaction may be provided as the following arguments. Each parameter consists of a type and type-specific number
+of values. Currently there are 4 types:
+
++ **TX_PARAM_NONE**, used as a termination marker (no following value)
++ **TX_PARAM_MUTEX**, followed by one pmem-resident PMEMmutex
++ **TX_PARAM_RWLOCK**, followed by one pmem-resident PMEMrwlock
++ (EXPERIMENTAL) **TX_PARAM_CB**, followed by a callback function of type pmemobj_tx_callback and a void pointer (so 2 values)
+
+Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
+it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
+until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
+
+**TX_PARAM_CB** registers specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
+stages as a first operation after stage change. It will also be called after each transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
+pmemobj_tx_callback must be compatible with:
+
+```void func(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)```
+
+*pop* is a pool identifier used in **pmemobj_tx_begin**(), *stage* is a current transaction stage and *arg* is a second parameter of **TX_PARAM_CB**.
+Without considering transaction nesting this mechanism can be deemed as an alternative method for executing code between stages (instead of **TX_ONCOMMIT**,
+**TX_ONABORT**, etc).
+However there are 2 significant differences when nested transactions are used:
+
++  Registered function is executed only in the most outer transaction (even if registered in the inner one).
+
++  There can be only one callback in the whole transaction (it can't be changed in the inner transaction).
+
+Note that **TX_PARAM_CB** does not replace **TX_ONCOMMIT**/**TX_ONABORT**/etc. macros. They can be used together - a callback will be executed *before*
+**TX_ONCOMMIT**/**TX_ONABORT**/etc. section.
+
+**TX_PARAM_CB** can be used when the code dealing with transaction stage changes is shared between multiple users or when it must be executed only in the outer
+transaction. For example it can be very useful when application must synchronize persistent and transient state.
 
 ```c
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);
@@ -1608,6 +1666,15 @@ range will be rolled-back. The supplied block of memory has to be within the poo
 changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
 
 ```c
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags);
+```
+
+The **pmemobj_tx_xadd_range**() function behaves exactly the same as **pmemobj_tx_add_range**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **POBJ_XADD_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
+
+```c
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 ```
 
@@ -1616,6 +1683,15 @@ persistent memory objects. It takes a "snapshot" of a persistent memory block of
 space and saves it to the undo log. The application is then free to directly modify the object in that memory range. In case of a failure or abort, all the
 changes within this range will be rolled-back. The supplied block of memory has to be within the pool registered in the transaction. If successful, returns
 zero. Otherwise, state changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
+
+```c
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size);
+```
+
+The **pmemobj_tx_xadd_range_direct**() function behaves exactly the same as **pmemobj_tx_add_range_direct**() when *flags* equals zero.
+*flags* is a bitmask of the following values:
+
++ **POBJ_XADD_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
 
 ```c
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
@@ -1630,9 +1706,18 @@ set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is s
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
 ```
 
-The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly
-allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is
-returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed object of given *size* and *type_num*. If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
+
+```c
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
+```
+
+The **pmemobj_tx_xalloc**() function transactionally allocates a new object of given *size* and *type_num*. The *flags* argument is a bitmask of the following values:
+
++ **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
++ **POBJ_XALLOC_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
+
+If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
 
 ```c
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
@@ -1693,16 +1778,18 @@ TX_BEGIN(Pop) {
 } TX_END /* mandatory */
 ```
 
-
 ```c
-TX_BEGIN_LOCK(PMEMobjpool *pop, ...)
+TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
 TX_BEGIN(PMEMobjpool *pop)
 ```
 
-The **TX_BEGIN_LOCK**() and **TX_BEGIN**() macros start a new transaction in the same way as **pmemobj_tx_begin**(), except that instead of the environment
-buffer provided by a caller, they set up the local *jmp_buf* buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro may be used in case
-when there is no need to grab any locks prior to starting a transaction (like for a single-threaded program). Each of those macros shall be followed by a block
-of code with all the operations that are to be performed atomically.
+The **TX_BEGIN_PARAM**(), **TX_BEGIN_CB**() and **TX_BEGIN**() macros start a new transaction in the same way as **pmemobj_tx_begin**(), except that instead
+of the environment buffer provided by a caller, they set up the local *jmp_buf* buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro
+starts a transaction without any options. **TX_BEGIN_PARAM** may be used in case when there is a need to grab locks prior to starting a transaction (like
+for a multi-threaded program) or set up transaction stage callback. **TX_BEGIN_CB** is just a wrapper around **TX_BEGIN_PARAM** that validates callback
+signature. (For compatibility there is also **TX_BEGIN_LOCK** macro which is an alias for **TX_BEGIN_PARAM**). Each of those macros shall be followed by
+a block of code with all the operations that are to be performed atomically.
 
 ```c
 TX_ONABORT
@@ -1730,8 +1817,8 @@ The **TX_FINALLY** macro starts a block of code that will be executed regardless
 TX_END
 ```
 
-The **TX_END** macro cleans up and closes the transaction started by **TX_BEGIN**() or **TX_BEGIN_LOCK**() macro. It is mandatory to terminate each transaction
-with this macro. If the transaction was aborted, *errno* is set appropriately.
+The **TX_END** macro cleans up and closes the transaction started by **TX_BEGIN**() / **TX_BEGIN_PARAM**() / **TX_BEGIN_CB**() macros. It is mandatory
+to terminate each transaction with this macro. If the transaction was aborted, *errno* is set appropriately.
 
 Similarly to the macros controlling the transaction flow, the **libpmemobj** defines a set of macros that simplify the transactional operations on persistent
 objects. Note that those macros operate on typed object handles, thus eliminating the need to specify the size of the object, or the size and offset of the
@@ -1745,11 +1832,25 @@ The **TX_ADD_FIELD**() macro saves in the undo log the current value of given *F
 directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags)
+```
+
+The **TX_XADD_FIELD**() macro works exactly like **TX_ADD_FIELD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
+
+```c
 TX_ADD(TOID o)
 ```
 
 The **TX_ADD**() macro takes a "snapshot" of the entire object referenced by object handle *o* and saves it in the undo log. The object size is determined from
 its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
+
+```c
+TX_XADD(TOID o, uint64_t flags)
+```
+
+The **TX_XADD**() macro works exactly like **TX_ADD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range** section.
 
 ```c
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
@@ -1759,12 +1860,26 @@ The **TX_ADD_FIELD_DIRECT**() macro saves in the undo log the current value of g
 is then free to directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags)
+```
+
+The **TX_XADD_FIELD_DIRECT**() macro works exactly like **TX_ADD_FIELD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
+
+```c
 TX_ADD_DIRECT(TYPE *p)
 ```
 
 The **TX_ADD_DIRECT**() macro takes a "snapshot" of the entire object referenced by (direct) pointer *p* and saves it in the undo log. The object size is
 determined from its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will
 be rolled-back.
+
+```c
+TX_XADD_DIRECT(TYPE *p, uint64_t flags)
+```
+
+The **TX_XADD_DIRECT**() macro works exactly like **TX_ADD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
+**pmemobj_tx_xadd_range_direct** section.
 
 ```c
 TX_SET(TOID o, FIELD, VALUE)
@@ -1819,12 +1934,18 @@ size is determined from the size of the user-defined structure *TYPE*. If succes
 allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
-TX_ZALLOC(TYPE)
+TX_ZALLOC(TYPE, size_t size)
 ```
 
 The **TX_ZALLOC**() macro transactionally allocates a new zeroed object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation
 size is passed by *size* argument. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes
 to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
+
+```c
+TX_XALLOC(TYPE, size_t size, uint64_t flags)
+```
+
+The **TX_XALLOC**() macro transactionally allocates a new object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation size is passed by *size* argument. The *flags* argument is a bitmask of values described in **pmemobj_tx_xalloc** section. If successful and called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
 TX_REALLOC(TOID o, size_t size)
@@ -2027,5 +2148,5 @@ by the SNIA NVM Programming Technical Work Group:
 
 **mmap**(2), **munmap**(2), **msync**(2), **pthread_mutex**(3),
 **pthread_rwlock**(3), **pthread_cond**(3), **strerror**(3), **libpmemblk**(3),
-**libpmemlog**(3), **libpmem**(3), **libvmem**(3)
+**libpmemlog**(3), **libpmem**(3), **libvmem**(3), **ndctl-create-namespace**(1)
 and **<http://pmem.io>**

@@ -191,6 +191,9 @@ described by the *backup_path* *poolset*.
 
 Backup is supported only if the source *poolset* has no defined replicas.
 
+Poolsets with remote replicas are not supported neither as *path* nor as
+*backup_path*.
+
 This is an example of a *check context* initialization:
 
 ```c
