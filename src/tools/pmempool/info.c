@@ -802,7 +802,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 				ret = -1;
 				goto out_close;
 			}
-			if (pip->params.is_part_file &&
+			if (!pip->params.is_poolset &&
 					pmempool_info_part(pip, UNDEF_REPLICA,
 						UNDEF_PART, VERBOSE_DEFAULT)) {
 				ret = -1;
