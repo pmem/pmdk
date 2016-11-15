@@ -451,3 +451,20 @@ util_unlink(const char *path)
 		return unlink(path);
 	}
 }
+
+/*
+ * util_unlink_flock -- flocks the file and unlinks it
+ */
+int
+util_unlink_flock(const char *path)
+{
+	int fd = util_file_open(path, NULL, 0, O_RDWR);
+	if (fd < 0)
+		return fd;
+
+	int ret = util_unlink(path);
+
+	(void) close(fd);
+
+	return ret;
+}

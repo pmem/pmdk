@@ -57,6 +57,7 @@
     <ClCompile Include="libpmempool_main.c" />
     <ClCompile Include="pool.c" />
     <ClCompile Include="replica.c" />
+    <ClCompile Include="rm.c" />
     <ClCompile Include="sync.c" />
     <ClCompile Include="transform.c" />
   </ItemGroup>

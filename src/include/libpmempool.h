@@ -51,6 +51,17 @@ extern "C" {
 #include <stddef.h>
 #include <limits.h>
 
+
+/* COMMON FLAGS */
+
+/*
+ * do not apply changes, only check if operation is viable
+ */
+#define PMEMPOOL_DRY_RUN (1 << 1)
+
+
+/* PMEMPOOL CHECK */
+
 /*
  * pool types
  */
@@ -62,6 +73,7 @@ enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_BTT,
 };
 
+
 /*
  * perform repairs
  */
@@ -69,7 +81,7 @@ enum pmempool_pool_type {
 /*
  * emulate repairs
  */
-#define PMEMPOOL_CHECK_DRY_RUN		(1 << 1)
+#define PMEMPOOL_CHECK_DRY_RUN PMEMPOOL_DRY_RUN
 /*
  * perform hazardous repairs
  */
@@ -150,6 +162,29 @@ struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 
 /*
+ * LIBPMEMPOOL SYNC & TRANSFORM
+ */
+
+/*
+ * Synchronize data between replicas within a poolset.
+ */
+int pmempool_sync(const char *poolset_file, unsigned flags);
+
+/*
+ * Modify internal structure of a poolset.
+ */
+int pmempool_transform(const char *poolset_file_src,
+		const char *poolset_file_dst, unsigned flags);
+
+
+/* PMEMPOOL RM */
+
+#define PMEMPOOL_RM_FORCE		(1 << 0) /* ignore any errors */
+#define PMEMPOOL_RM_POOLSET_LOCAL	(1 << 1) /* remove local poolsets */
+#define PMEMPOOL_RM_POOLSET_REMOTE	(1 << 2) /* remove remote poolsets */
+int pmempool_rm(const char *path, int flags);
+
+/*
  * PMEMPOOL_MAJOR_VERSION and PMEMPOOL_MINOR_VERSION provide the current version
  * of the libpmempool API as provided by this header file.  Applications can
  * verify that the version available at run-time is compatible with the version
@@ -164,29 +199,6 @@ const char *pmempool_check_version(unsigned major_required,
  * get the last error message
  */
 const char *pmempool_errormsg(void);
-
-
-/*
- * LIBPMEMPOOL SYNC & TRANSFORM
- */
-
-/*
- * A flag for sync and transform: do not apply changes, only check viability
- * of conversion
- */
-#define PMEMPOOL_DRY_RUN (1 << 1)
-
-/*
- * Synchronize data between replicas within a poolset.
- */
-int pmempool_sync(const char *poolset_file, unsigned flags);
-
-/*
- * Modify internal structure of a poolset.
- */
-int pmempool_transform(const char *poolset_file_src,
-		const char *poolset_file_dst, unsigned flags);
-
 
 #ifdef __cplusplus
 }

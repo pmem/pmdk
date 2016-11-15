@@ -151,6 +151,9 @@
     <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="libpmempool.rc">
