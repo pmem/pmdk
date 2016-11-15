@@ -1587,7 +1587,7 @@ of values. Currently there are 4 types:
 
 Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
 it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
-until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
+until the outer-most transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
 
 **TX_PARAM_CB** registers specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
 stages as a first operation after stage change. It will also be called after each transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
