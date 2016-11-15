@@ -55,7 +55,7 @@ ut_malloc(const char *file, int line, const char *func, size_t size)
  */
 void *
 ut_calloc(const char *file, int line, const char *func,
-    size_t nmemb, size_t size)
+	size_t nmemb, size_t size)
 {
 	void *retval = calloc(nmemb, size);
 
@@ -95,7 +95,7 @@ ut_aligned_free(const char *file, int line, const char *func, void *ptr)
  */
 void *
 ut_realloc(const char *file, int line, const char *func,
-    void *ptr, size_t size)
+	void *ptr, size_t size)
 {
 	void *retval = realloc(ptr, size);
 
@@ -110,13 +110,13 @@ ut_realloc(const char *file, int line, const char *func,
  */
 char *
 ut_strdup(const char *file, int line, const char *func,
-    const char *str)
+	const char *str)
 {
 	char *retval = strdup(str);
 
 	if (retval == NULL)
 		ut_fatal(file, line, func, "cannot strdup %zu bytes",
-		    strlen(str));
+			strlen(str));
 
 	return retval;
 }
@@ -160,19 +160,29 @@ ut_pagealignmalloc(const char *file, int line, const char *func,
  *                         multiple of page size) alignment and adds guard
  *                         pages around it
  */
+
 void *
 ut_mmap_anon_aligned(const char *file, int line, const char *func,
-    size_t alignment, size_t size)
+	size_t alignment, size_t size)
 {
+	unsigned long Ut_mmap_align;
+#ifdef _WIN32
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	Ut_mmap_align = si.dwAllocationGranularity;
+#else
+	Ut_mmap_align = Ut_pagesize;
+#endif
+
 	char *d, *d_aligned;
 	uintptr_t di, di_aligned;
 	size_t sz;
 
 	if (alignment == 0)
-		alignment = Ut_pagesize;
+		alignment = Ut_mmap_align;
 
 	/* alignment must be a multiple of page size */
-	if (alignment & (Ut_pagesize - 1))
+	if (alignment & (Ut_mmap_align - 1))
 		return NULL;
 
 	/* power of two */
@@ -180,7 +190,7 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 		return NULL;
 
 	d = ut_mmap(file, line, func, NULL, size + 2 * alignment,
-			PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	di = (uintptr_t)d;
 	di_aligned = (di + alignment - 1) & ~(alignment - 1);
 
@@ -189,22 +199,43 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
 	d_aligned = (void *)di_aligned;
 
 	sz = di_aligned - di;
-	if (sz - Ut_pagesize)
-		ut_munmap(file, line, func, d, sz - Ut_pagesize);
+	if (sz - Ut_mmap_align)
+		ut_munmap(file, line, func, d, sz - Ut_mmap_align);
 
 	/* guard page before */
-	ut_mprotect(file, line, func, d_aligned - Ut_pagesize, Ut_pagesize,
-			PROT_NONE);
+	ut_mprotect(file, line, func,
+		d_aligned - Ut_mmap_align, Ut_mmap_align, PROT_NONE);
 
 	/* guard page after */
-	ut_mprotect(file, line, func, d_aligned + size, Ut_pagesize, PROT_NONE);
+	ut_mprotect(file, line, func,
+		d_aligned + size, Ut_mmap_align, PROT_NONE);
 
-	sz = di + size + 2 * alignment - (di_aligned + size) - Ut_pagesize;
+	sz = di + size + 2 * alignment - (di_aligned + size) - Ut_mmap_align;
 	if (sz)
-		ut_munmap(file, line, func, d_aligned + size + Ut_pagesize, sz);
+		ut_munmap(file, line, func,
+			d_aligned + size + Ut_mmap_align, sz);
 
 	return d_aligned;
 }
+
+
+/*
+ * ut_memalign -- like malloc but page-aligned memory
+ */
+void *
+ut_memalign(const char *file, int line, const char *func, size_t alignment,
+	size_t size)
+{
+	void *retval;
+
+	if ((errno = posix_memalign(&retval, alignment, size)) != 0)
+		ut_fatal(file, line, func,
+			"!memalign %zu bytes (%zu alignment)", size, alignment);
+
+	return retval;
+}
+
+#ifndef _WIN32
 
 /*
  * ut_munmap_anon_aligned -- unmaps anonymous memory allocated by
@@ -212,13 +243,10 @@ ut_mmap_anon_aligned(const char *file, int line, const char *func,
  */
 int
 ut_munmap_anon_aligned(const char *file, int line, const char *func,
-    void *start, size_t size)
+	void *start, size_t size)
 {
 	return ut_munmap(file, line, func, (char *)start - Ut_pagesize,
-			size + 2 * Ut_pagesize);
+		size + 2 * Ut_pagesize);
 }
-
-
-#ifndef _WIN32
 
 #endif

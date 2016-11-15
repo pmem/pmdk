@@ -325,9 +325,10 @@ case "${host}" in
 	fi
 	abi="xcoff"
 	;;
-  *-*-mingw*)
+  *-*-mingw* | *-*-cygwin*)
 	abi="pecoff"
 	force_tls="0"
+	force_lazy_lock="0"
 	RPATH=""
 	so="dll"
 	if test "x$je_cv_msvc" = "xyes" ; then
@@ -1107,6 +1108,8 @@ if test "x$enable_lazy_lock" = "x1" ; then
       ])
   fi
   AC_DEFINE([JEMALLOC_LAZY_LOCK], [ ])
+else
+  enable_lazy_lock="0"
 fi
 AC_SUBST([enable_lazy_lock])
 

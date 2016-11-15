@@ -88,7 +88,10 @@ void
 vmem_init(void)
 {
 	static bool initialized = false;
-	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+	static pthread_mutex_t lock;
+	pthread_mutex_init(&lock, NULL);
+	int (*je_vmem_navsnprintf)
+		(char *, size_t, const char *, va_list) = NULL;
 
 	if (initialized)
 		return;
@@ -144,11 +147,11 @@ VMEM *
 vmem_create(const char *dir, size_t size)
 {
 	vmem_init();
-	LOG(3, "dir \"%s\" size %zu", dir, size);
 
+	LOG(3, "dir \"%s\" size %zu", dir, size);
 	if (size < VMEM_MIN_POOL) {
 		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
-		errno = EINVAL;
+		set_error(EINVAL);
 		return NULL;
 	}
 
@@ -156,7 +159,6 @@ vmem_create(const char *dir, size_t size)
 
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
-
 	void *addr;
 	if (dax) {
 		if ((addr = util_file_map_whole(dir)) == NULL)
@@ -206,13 +208,13 @@ vmem_create_in_region(void *addr, size_t size)
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
 		ERR("addr %p not aligned to pagesize %llu", addr, Pagesize);
-		errno = EINVAL;
+		set_error(EINVAL);
 		return NULL;
 	}
 
 	if (size < VMEM_MIN_POOL) {
 		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
-		errno = EINVAL;
+		set_error(EINVAL);
 		return NULL;
 	}
 
@@ -254,7 +256,7 @@ vmem_delete(VMEM *vmp)
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
 		ERR("invalid pool handle: %p", vmp);
-		errno = EINVAL;
+		set_error(EINVAL);
 		return;
 	}
 

@@ -89,7 +89,7 @@ huge_dalloc_junk_t *huge_dalloc_junk = JEMALLOC_N(huge_dalloc_junk_impl);
 #endif
 
 static bool
-huge_ralloc_no_move_expand(pool_t *pool, void *ptr, size_t oldsize, size_t size, bool zero) {
+huge_ralloc_no_move_expand(pool_t *pool, char *ptr, size_t oldsize, size_t size, bool zero) {
 	size_t csize;
 	void *expand_addr;
 	size_t expand_size;
@@ -172,7 +172,7 @@ huge_ralloc_no_move(pool_t *pool, void *ptr, size_t oldsize, size_t size,
 	/* Shrink the allocation in-place. */
 	if (CHUNK_CEILING(oldsize) > CHUNK_CEILING(size)) {
 		extent_node_t *node, key;
-		void *excess_addr;
+		void* excess_addr;
 		size_t excess_size;
 
 		malloc_mutex_lock(&pool->huge_mtx);
@@ -276,8 +276,7 @@ huge_dalloc(pool_t *pool, void *ptr)
 size_t
 huge_salloc(const void *ptr)
 {
-	size_t ret = 0;
-	int i;
+	size_t ret = 0, i;
 	extent_node_t *node, key;
 
 	malloc_mutex_lock(&pools_lock);
@@ -323,7 +322,7 @@ prof_ctx_t *
 huge_prof_ctx_get(const void *ptr)
 {
 	prof_ctx_t *ret = NULL;
-	int i;
+	size_t i;
 	extent_node_t *node, key;
 
 	malloc_mutex_lock(&pools_lock);
@@ -352,7 +351,7 @@ void
 huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx)
 {
 	extent_node_t *node, key;
-	int i;
+	size_t i;
 
 	malloc_mutex_lock(&pools_lock);
 	for (i = 0; i < npools; ++i) {

@@ -57,26 +57,23 @@ main(int argc, char *argv[])
 	int count = DEFAULT_COUNT;
 	int n = DEFAULT_N;
 	VMEM *vmp;
-	int opt;
 	int i, j;
 	int use_calloc = 0;
 
 	START(argc, argv, "vmem_pages_purging");
 
-	while ((opt = getopt(argc, argv, "z")) != -1) {
-		switch (opt) {
-		case 'z':
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-z") == 0) {
 			use_calloc = 1;
-			break;
-		default:
-			usage(argv[0]);
-		}
-	}
 
-	if (optind < argc) {
-		dir = argv[optind];
-	} else {
-		usage(argv[0]);
+			if (i < argc)
+				dir = argv[i + 1];
+			else
+				usage(argv[0]);
+			break;
+		}
+		else
+			dir = argv[i];
 	}
 
 	vmp = vmem_create(dir, VMEM_MIN_POOL);

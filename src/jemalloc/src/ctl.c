@@ -711,7 +711,7 @@ ctl_refresh_pool(pool_t *pool)
 static void
 ctl_refresh(void)
 {
-	for (int i = 0; i < npools; ++i) {
+	for (size_t i = 0; i < npools; ++i) {
 		if (pools[i] != NULL) {
 			ctl_refresh_pool(pools[i]);
 		}
@@ -769,7 +769,7 @@ ctl_init(void)
 {
 	bool ret;
 	malloc_mutex_lock(&ctl_mtx);
-	for (int i = 0; i < npools; ++i) {
+	for (size_t i = 0; i < npools; ++i) {
 		if (pools[i] != NULL && pools[i]->ctl_initialized == false) {
 			if (ctl_init_pool(pools[i])) {
 				ret = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,36 +31,26 @@
  */
 
 /*
- * vmem.h -- internal definitions for libvmem
+ * libvmem_main.c -- entry point for libvmem.dll
+ *
+ * XXX - This is a placeholder.  All the library initialization/cleanup
+ * that is done in library ctors/dtors, as well as TLS initialization
+ * should be moved here.
  */
 
-#include <stddef.h>
+int APIENTRY
+DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
+{
+	switch (dwReason) {
+	case DLL_PROCESS_ATTACH:
+		break;
 
-#include "pool_hdr.h"
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
 
-#define VMEM_LOG_PREFIX "libvmem"
-#define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
-#define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
-
-/* attributes of the vmem memory pool format for the pool header */
-#define VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */
-#define VMEM_FORMAT_MAJOR 1
-#define VMEM_FORMAT_COMPAT 0x0000
-#define VMEM_FORMAT_INCOMPAT 0x0000
-#define VMEM_FORMAT_RO_COMPAT 0x0000
-
-#ifdef _WIN32
-#define set_error(x) SetLastError(x)
-#else
-#define set_error(x) errno = x
-#endif
-
-struct vmem {
-	struct pool_hdr hdr;	/* memory pool header */
-
-	void *addr;	/* mapped region */
-	size_t size;	/* size of mapped region */
-	int caller_mapped;
-};
-
-void vmem_init(void);
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
