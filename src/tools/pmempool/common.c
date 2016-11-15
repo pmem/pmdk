@@ -702,7 +702,6 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		paramsp->type = pmem_pool_type_parse_hdr(addr);
 
 	paramsp->is_checksum_ok = pmem_pool_checksum(addr);
-	paramsp->is_part_file = !paramsp->is_poolset && paramsp->is_checksum_ok;
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
 		struct pmemblk pbp;

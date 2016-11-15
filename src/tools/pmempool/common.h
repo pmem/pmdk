@@ -167,7 +167,6 @@ struct pmem_pool_params {
 	mode_t mode;
 	int is_poolset;
 	int is_part;
-	int is_part_file;
 	int is_checksum_ok;
 	union {
 		struct {
