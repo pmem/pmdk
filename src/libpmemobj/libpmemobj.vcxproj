@@ -55,8 +55,23 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\include\libpmemobj\atomic.h" />
+    <ClInclude Include="..\include\libpmemobj\atomic_base.h" />
+    <ClInclude Include="..\include\libpmemobj\base.h" />
+    <ClInclude Include="..\include\libpmemobj\iterator.h" />
+    <ClInclude Include="..\include\libpmemobj\iterator_base.h" />
+    <ClInclude Include="..\include\libpmemobj\lists_atomic.h" />
+    <ClInclude Include="..\include\libpmemobj\lists_atomic_base.h" />
+    <ClInclude Include="..\include\libpmemobj\pool.h" />
+    <ClInclude Include="..\include\libpmemobj\pool_base.h" />
+    <ClInclude Include="..\include\libpmemobj\thread.h" />
+    <ClInclude Include="..\include\libpmemobj\tx.h" />
+    <ClInclude Include="..\include\libpmemobj\tx_base.h" />
+    <ClInclude Include="..\include\libpmemobj\types.h" />
     <ClInclude Include="memblock.h" />
     <ClInclude Include="pvector.h" />
+    <ClInclude Include="sync.h" />
+    <ClInclude Include="tx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />

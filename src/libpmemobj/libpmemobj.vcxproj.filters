@@ -135,6 +135,51 @@
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\atomic.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\atomic_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\iterator.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\iterator_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\lists_atomic.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\lists_atomic_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\pool.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\pool_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\thread.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\tx.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\tx_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\types.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="sync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -144,6 +189,9 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{60288a68-9214-4faa-b5c4-bf33b1020120}</UniqueIdentifier>
       <Extensions>c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Files\libpmemobj">
+      <UniqueIdentifier>{ab47d7d2-14e7-4ab2-af19-e7cf10e43fbf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
