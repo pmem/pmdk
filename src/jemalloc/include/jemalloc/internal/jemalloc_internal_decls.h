@@ -4,14 +4,7 @@
 #include <math.h>
 #ifdef _WIN32
 #  include <windows.h>
-#  define ENOENT ERROR_PATH_NOT_FOUND
-#  define EINVAL ERROR_BAD_ARGUMENTS
-#  define EAGAIN ERROR_OUTOFMEMORY
-#  define EPERM  ERROR_WRITE_FAULT
-#  define EFAULT ERROR_INVALID_ADDRESS
-#  define ENOMEM ERROR_NOT_ENOUGH_MEMORY
-#  undef ERANGE
-#  define ERANGE ERROR_INVALID_DATA
+#  include "msvc_compat/windows_extra.h"
 #else
 #  include <sys/param.h>
 #  include <sys/mman.h>
