@@ -71,7 +71,7 @@ device_dax_size(const char *path)
 
 	ssize_t size = -1;
 
-	char sizebuf[MAX_SIZE_LENGTH];
+	char sizebuf[MAX_SIZE_LENGTH + 1];
 	ssize_t nread;
 	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0)
 		goto out;
