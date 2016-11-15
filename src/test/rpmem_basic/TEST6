@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/rpmemd_db/TEST0 -- unit test for remote tests support
+# src/test/rpmem_basic/TEST6 -- unit test for rpmemd --remove
 #
-export UNITTEST_NAME=rpmemd_db/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=rpmem_basic/TEST6
+export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -43,37 +43,34 @@ export UNITTEST_NUM=0
 require_test_type medium
 
 require_fs_type any
+require_build_type nondebug debug
 
 setup
 
-ROOT_DIR=$DIR/poolset-dir
-PART_DIR=$DIR/parts-dir
-LOG_FILE=rpmemd$UNITTEST_NUM.log
-rm -f $LOG_FILE
+. setup.sh
 
-mkdir -p $ROOT_DIR
-mkdir -p $PART_DIR
+cat > $DIR/pool0.set << EOF
+PMEMPOOLSET
+8M $PART_DIR/pool0.part0
+8M $PART_DIR/pool0.part1
+EOF
 
-create_poolset $ROOT_DIR/pool0.set\
-	8M:$PART_DIR/pool0.part.0:x\
-	8M:$PART_DIR/pool0.part.1:x\
-	8M:$PART_DIR/pool0.part.2:x\
-	8M:$PART_DIR/pool0.part.3:x
+expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
+expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
 
-create_poolset $ROOT_DIR/pool1.set\
-	8M:$PART_DIR/pool1.part.0:x\
-	8M:$PART_DIR/pool1.part.1:x\
-	8M:$PART_DIR/pool1.part.2:x\
-	8M:$PART_DIR/pool1.part.3:x
+expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
 
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool0.set
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool1.set
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_remove ${NODE_ADDR[0]} pool0.set 0 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_remove ${NODE_ADDR[0]} pool0.set 1 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_remove ${NODE_ADDR[0]} pool0.set 0 1
 
-expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
-				pool0.set pool1.set
-
-mv rpmem0.log rpmem0_tmp.log
-grep -e flock -e Non-empty rpmem0_tmp.log > rpmem0.log || true
+expect_normal_exit run_on_node 0 "[ ! -f $POOLS_DIR/pool0.set ]"
 
 check
 

@@ -72,7 +72,7 @@ enum rpmemd_option {
 	RPD_OPT_INVALID			= UINT64_MAX,
 };
 
-static const char *optstr = "c:hV";
+static const char *optstr = "c:hVr:fs";
 
 /*
  * options -- cl and config file options
@@ -89,7 +89,8 @@ static const struct option options[] = {
 {"log-level",		required_argument,	0, RPD_OPT_LOG_LEVEL},
 {"remove",		required_argument,	0, 'r'},
 {"force",		no_argument,		0, 'f'},
-{0,			0,			0, 0},
+{"pool-set",		no_argument,		0, 's'},
+{0,			0,			0,  0},
 };
 
 #define VALUE_INDENT	"                                        "
@@ -455,6 +456,9 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 			break;
 		case 'f':
 			config->force = true;
+			break;
+		case 's':
+			config->pool_set = true;
 			break;
 		case 'h':
 			print_help(argv[0]);

@@ -372,7 +372,8 @@ rpmemd_close_pool(struct rpmemd *rpmemd, int remove)
 
 	if (remove) {
 		RPMEMD_LOG(NOTICE, "removing '%s'", rpmemd->pool_desc);
-		ret = rpmemd_db_pool_remove(rpmemd->db, rpmemd->pool_desc, 0);
+		ret = rpmemd_db_pool_remove(rpmemd->db,
+				rpmemd->pool_desc, 0, 0);
 		if (ret) {
 			RPMEMD_LOG(ERR, "!removing pool '%s' failed",
 					rpmemd->pool_desc);
@@ -483,7 +484,7 @@ err_create_resp:
 err_fip_init:
 err_pool_check:
 	rpmemd_db_pool_close(rpmemd->db, rpmemd->pool);
-	rpmemd_db_pool_remove(rpmemd->db, req->pool_desc, 0);
+	rpmemd_db_pool_remove(rpmemd->db, req->pool_desc, 0, 0);
 err_pool_create:
 	free(rpmemd->pool_desc);
 err_strdup:
@@ -711,9 +712,11 @@ main(int argc, char *argv[])
 				rpmemd->config.rm_poolset);
 		if (rpmemd_db_pool_remove(rpmemd->db,
 				rpmemd->config.rm_poolset,
-				rpmemd->config.force)) {
+				rpmemd->config.force,
+				rpmemd->config.pool_set)) {
 			RPMEMD_LOG(ERR, "removing '%s' failed",
 					rpmemd->config.rm_poolset);
+			ret = errno;
 		} else {
 			RPMEMD_LOG(NOTICE, "removed '%s'",
 					rpmemd->config.rm_poolset);

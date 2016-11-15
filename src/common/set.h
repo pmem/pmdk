@@ -206,4 +206,7 @@ extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
 							size_t length);
 extern int (*Rpmem_close)(RPMEMpool *rpp);
 
+extern int (*Rpmem_remove)(const char *target,
+		const char *pool_set_name, int flags);
+
 #endif

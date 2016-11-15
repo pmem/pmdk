@@ -331,7 +331,8 @@ rm_poolset_cb(struct part_file *pf, void *arg)
  * rpmemd_db_pool_remove -- remove a pool set
  */
 int
-rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
+rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
+	int force, int pool_set)
 {
 	RPMEMD_ASSERT(db != NULL);
 	RPMEMD_ASSERT(pool_desc != NULL);
@@ -355,9 +356,19 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 			goto err_free_path;
 		}
 	} else {
-		ret = util_poolset_create_set(&set, path, 0, 0);
-		if (ret == 0)
-			ret = util_pool_open_nocheck(set, 0);
+		struct rpmem_pool_attr attr;
+		ret = util_pool_open_remote(&set, path, 0,
+				RPMEM_MIN_POOL,
+				attr.signature,
+				&attr.major,
+				&attr.compat_features,
+				&attr.incompat_features,
+				&attr.ro_compat_features,
+				attr.poolset_uuid,
+				attr.uuid,
+				attr.prev_uuid,
+				attr.next_uuid,
+				attr.user_flags);
 		if (ret) {
 			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
 			goto err_free_path;
@@ -375,8 +386,12 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc, int force)
 			}
 		}
 
-		util_poolset_close(set, 1);
+		util_poolset_close(set, 0);
+
 	}
+
+	if (pool_set)
+		unlink(path);
 
 err_free_path:
 	free(path);

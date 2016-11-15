@@ -106,7 +106,7 @@ err_malloc:
  * get_cmd -- return an RPMEM_CMD with appended list of arguments
  */
 static char *
-get_cmd(va_list args)
+get_cmd(const char **argv)
 {
 	const char *env_cmd = rpmem_util_cmd_get();
 	char *cmd = strdup(env_cmd);
@@ -116,7 +116,7 @@ get_cmd(va_list args)
 	size_t cmd_len = strlen(cmd) + 1;
 
 	const char *arg;
-	while ((arg = va_arg(args, const char *)) != NULL) {
+	while ((arg = *argv++) != NULL) {
 		size_t len = strlen(arg);
 		size_t new_cmd_len = cmd_len + len + 1;
 		char *tmp = realloc(cmd, new_cmd_len);
@@ -140,16 +140,47 @@ err:
 }
 
 /*
- * rpmem_ssh_exec -- open ssh connection and run $RPMEMD_CMD with
+ * valist_to_argv -- convert va_list to argv array
+ */
+static const char **
+valist_to_argv(va_list args)
+{
+	const char **argv = malloc(sizeof(const char *));
+	if (!argv)
+		return NULL;
+
+	argv[0] = NULL;
+	size_t nargs = 0;
+
+	const char *arg;
+	while ((arg = va_arg(args, const char *)) != NULL) {
+		nargs++;
+		const char **tmp = realloc(argv,
+				(nargs + 1) * sizeof(const char *));
+		if (!tmp)
+			goto err;
+
+		argv = tmp;
+		argv[nargs - 1] = arg;
+		argv[nargs] = NULL;
+	}
+
+	return argv;
+err:
+	free(argv);
+	return NULL;
+}
+
+/*
+ * rpmem_ssh_execv -- open ssh connection and run $RPMEMD_CMD with
  * additional NULL-terminated list of arguments.
  */
 struct rpmem_ssh *
-rpmem_ssh_exec(const struct rpmem_target_info *info, ...)
+rpmem_ssh_execv(const struct rpmem_target_info *info, const char **argv)
 {
 	struct rpmem_ssh *rps = calloc(1, sizeof(*rps));
 	if (!rps)
 		goto err_zalloc;
-
 
 	char *user_at_node = get_user_at_node(info);
 	if (!user_at_node)
@@ -159,13 +190,7 @@ rpmem_ssh_exec(const struct rpmem_target_info *info, ...)
 	if (!rps->cmd)
 		goto err_cmd_init;
 
-	va_list args;
-	va_start(args, info);
-
-	char *cmd = get_cmd(args);
-
-	va_end(args);
-
+	char *cmd = get_cmd(argv);
 	if (!cmd)
 		goto err_cmd;
 
@@ -235,6 +260,31 @@ err_zalloc:
 }
 
 /*
+ * rpmem_ssh_exec -- open ssh connection and run $RPMEMD_CMD with
+ * additional NULL-terminated list of arguments.
+ */
+struct rpmem_ssh *
+rpmem_ssh_exec(const struct rpmem_target_info *info, ...)
+{
+	struct rpmem_ssh *ssh;
+
+	va_list args;
+	va_start(args, info);
+
+	const char **argv = valist_to_argv(args);
+	if (argv)
+		ssh = rpmem_ssh_execv(info, argv);
+	else
+		ssh = NULL;
+
+	va_end(args);
+
+	free(argv);
+
+	return ssh;
+}
+
+/*
  * rpmem_ssh_open -- open ssh connection with specified node and wait for status
  */
 struct rpmem_ssh *
@@ -289,14 +339,15 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 
 	if (WIFEXITED(ret))
 		return WEXITSTATUS(ret);
+
 	if (WIFSIGNALED(ret)) {
 		ERR("signal received -- %d", WTERMSIG(ret));
-		return ret;
+		return -1;
 	}
 
 	ERR("exit status -- %d", WEXITSTATUS(ret));
 
-	return ret;
+	return -1;
 }
 
 /*
