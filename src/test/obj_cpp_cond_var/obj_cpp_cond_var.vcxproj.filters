@@ -5,14 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{35b50f54-7956-45c0-8d25-95fb55b7bdea}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{728e8c61-2ebf-485b-8645-d2160364940b}</UniqueIdentifier>
       <Extensions>ps1</Extensions>

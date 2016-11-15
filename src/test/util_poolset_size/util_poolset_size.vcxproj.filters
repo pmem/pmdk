@@ -5,21 +5,24 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Test scripts">
       <UniqueIdentifier>{e28485cc-c4d8-48eb-ac5d-8ce63d54ec6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{0da4884d-5cd1-4a6c-be92-51a8b267079b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_poolset_size.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0w.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="out0w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

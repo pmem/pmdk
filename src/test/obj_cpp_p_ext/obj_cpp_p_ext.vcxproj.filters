@@ -5,10 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{4a4d6151-c003-493c-baa3-4ff6bff4cf52}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{ef271958-5eef-46b1-90cd-3539f46970ca}</UniqueIdentifier>
       <Extensions>ps1</Extensions>

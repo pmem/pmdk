@@ -8,10 +8,6 @@
       <UniqueIdentifier>{a334316f-c0d2-4f89-becc-58c8d3584626}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{80851826-e3cd-4e24-97c5-80380048a6f2}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win_mmap.c">

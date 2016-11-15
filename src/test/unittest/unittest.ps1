@@ -637,9 +637,9 @@ function check {
             fail $p.ExitCode
         }
     } else {
-        fail "No match file found for test $Env:UNITTEST_NAME"
+        Write-Error "No match file found for test $Env:UNITTEST_NAME"
+        fail 1
     }
-
 }
 
 #

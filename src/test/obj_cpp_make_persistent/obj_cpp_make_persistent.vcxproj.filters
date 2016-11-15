@@ -9,10 +9,6 @@
       <UniqueIdentifier>{fbbc73ed-824e-4752-85c3-68c28c46027e}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{fed590ae-fddb-439f-b49e-943201e4a451}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_cpp_make_persistent\obj_cpp_make_persistent.cpp">

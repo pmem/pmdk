@@ -5,16 +5,11 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Test scripts">
       <UniqueIdentifier>{2721ff07-d9d0-499c-aa87-1f13d13d9570}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{38bac2e4-0303-4387-b23e-19deacd0a753}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +23,18 @@
     </None>
     <None Include="TEST1.PS1">
       <Filter>Test scripts</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out1.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="stderr0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="stderr1.log.match">
+      <Filter>Match Files</Filter>
     </None>
   </ItemGroup>
 </Project>

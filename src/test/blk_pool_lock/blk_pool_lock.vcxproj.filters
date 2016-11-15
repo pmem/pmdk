@@ -4,10 +4,6 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{74231ced-8305-465e-a1b5-6a7b6df99b8d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{745c3f90-acab-43d3-9744-7efce235e8d5}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{4a152f11-4b02-4fe8-bd10-041087036c45}</UniqueIdentifier>
       <Extensions>ps1</Extensions>

@@ -9,10 +9,6 @@
       <UniqueIdentifier>{6d37b40d-35c6-4331-804a-a1ada34b9d30}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{bca4779a-dbc1-4684-b675-3f1adb6bdc2a}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\obj_cpp_ptr_arith\obj_cpp_ptr_arith.cpp">
