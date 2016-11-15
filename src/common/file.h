@@ -98,6 +98,7 @@ typedef struct _stat64 util_stat_t;
 #define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
+#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
 #endif
 #ifdef __cplusplus
 }
