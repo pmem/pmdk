@@ -66,18 +66,9 @@ type                     : device dax
 size                     : $(nW)
 
 POOL Header:
-Signature                : PMEMOBJ
+Signature                : PMEMOBJ [part file]
 Major                    : 2
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
-
-PMEM OBJ Header:
-Layout                   : OBJ_LAYOUT
-Lanes offset             : 0x2000
-Number of lanes          : 1024
-Heap offset              : 0x302000
-Heap size                : 38785024
-Checksum                 : 0x69ca8e0ab123ebf0 [OK]
-Root offset              : 0x382440
