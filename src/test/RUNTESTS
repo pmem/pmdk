@@ -141,7 +141,7 @@ load_default_global_test_configuration() {
 	global_req_buildtype=all
 	global_req_provider=none
 	global_req_pmethod=none
-	global_req_nodes=
+	global_req_rpmem_valgrind=n
 	global_req_timeout='3m'
 
 	return 0
@@ -163,6 +163,7 @@ read_global_test_configuration() {
 	[ -n "$CONF_GLOBAL_BUILD_TYPE" ] && global_req_buildtype=$CONF_GLOBAL_BUILD_TYPE
 	[ -n "$CONF_GLOBAL_RPMEM_PROVIDER" ] && global_req_provider=$CONF_GLOBAL_RPMEM_PROVIDER
 	[ -n "$CONF_GLOBAL_RPMEM_PMETHOD" ] && global_req_pmethod=$CONF_GLOBAL_RPMEM_PMETHOD
+	[ -n "$CONF_GLOBAL_RPMEM_VALGRIND" ] && global_req_rpmem_valgrind=$CONF_GLOBAL_RPMEM_VALGRIND
 	[ -n "$CONF_GLOBAL_TIMEOUT" ] && global_req_timeout=$CONF_GLOBAL_TIMEOUT
 
 	return 0
@@ -179,6 +180,7 @@ read_test_configuration() {
 	req_buildtype=$global_req_buildtype
 	req_provider=$global_req_provider
 	req_pmethod=$global_req_pmethod
+	req_rpmem_valgrind=$global_req_rpmem_valgrind
 	req_timeout=$global_req_timeout
 
 	[ -n "${CONF_TEST_TYPE[$1]}" ] && req_testtype=${CONF_TEST_TYPE[$1]}
@@ -186,6 +188,7 @@ read_test_configuration() {
 	[ -n "${CONF_BUILD_TYPE[$1]}" ] && req_buildtype=${CONF_BUILD_TYPE[$1]}
 	[ -n "${CONF_RPMEM_PROVIDER[$1]}" ] && req_provider=${CONF_RPMEM_PROVIDER[$1]}
 	[ -n "${CONF_RPMEM_PMETHOD[$1]}" ] && req_pmethod=${CONF_RPMEM_PMETHOD[$1]}
+	[ -n "${CONF_RPMEM_VALGRIND[$1]}" ] && req_rpmem_valgrind=${CONF_RPMEM_VALGRIND[$1]}
 	if [ -n "$runtest_timeout" ]; then
 		req_timeout="$runtest_timeout"
 	else
@@ -243,11 +246,17 @@ runtest() {
 	# for each TEST script found...
 	for runscript in $runscripts
 	do
+		UNITTEST_NAME="$1/$runscript"
 		local sid=${runscript#TEST}
 		read_test_configuration $sid
 
 		ttype=$(intersection "$testtype" "$req_testtype" "short medium long check")
 		[ -z "$ttype" ] && {
+			continue
+		}
+
+		[ "$req_rpmem_valgrind" == "y" -a "$RPMEM_VALGRIND_ENABLED" != "y" ] && {
+			echo "$UNITTEST_NAME: SKIP: remote valgrind tests disabled"
 			continue
 		}
 

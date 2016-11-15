@@ -36,6 +36,10 @@
 	CONF_GLOBAL_RPMEM_PROVIDER=all
 	CONF_GLOBAL_RPMEM_PMETHOD=all
 
+# If remote test requires Valgrind support it must explicitly set this
+# requirement:
+	CONF_GLOBAL_RPMEM_VALGRIND=y
+
 
 # PER TEST<num> REQUIREMENTS
 
@@ -50,3 +54,4 @@
 #	CONF_BUILD_TYPE[<num>]="debug nondebug"
 #	CONF_RPMEM_PROVIDER[<num>]=verbs
 #	CONF_RPMEM_PMETHOD[<num>]=GPSPM
+#	CONF_RPMEM_VALGRIND[<num>]=y

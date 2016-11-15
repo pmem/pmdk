@@ -85,3 +85,10 @@ NON_PMEM_FS_DIR=/tmp
 #NODE_ENV[0]="VAR=1"
 #NODE_ENV[1]="VAR=\$VAR:1"
 #NODE_ENV[2]=""
+
+#
+# RPMEM_VALGRIND_ENABLED variable enables valgrind rpmem tests
+# Valgrind rpmem tests require libibverbs and librdmacm compiled with valgrind
+# support.
+#
+#RPMEM_VALGRIND_ENABLED=y
