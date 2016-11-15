@@ -334,7 +334,7 @@ replica_check_store_size(struct pool_set *set,
 		}
 	} else {
 		if (util_map_part(&rep->part[0], NULL, sizeof(pop),
-				0, MAP_PRIVATE|MAP_NORESERVE)) {
+				0, MAP_SHARED, 1)) {
 			return -1;
 		}
 
@@ -446,7 +446,7 @@ map_all_unbroken_headers(struct pool_set *set,
 				continue;
 
 			LOG(4, "mapping header for part %u, replica %u", p, r);
-			if (util_map_hdr(&rep->part[p], MAP_SHARED) != 0) {
+			if (util_map_hdr(&rep->part[p], MAP_SHARED, 0) != 0) {
 				LOG(1, "header mapping failed - part #%d", p);
 				rep_hs->part[p] |= IS_BROKEN;
 			}
@@ -909,7 +909,7 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 
 	if (part->addr == NULL) {
 		if (util_map_part(part, NULL, sizeof(PMEMobjpool), 0,
-				MAP_PRIVATE|MAP_NORESERVE)) {
+				MAP_SHARED, 1)) {
 			util_part_fdclose(part);
 			return set->poolsize;
 		}
