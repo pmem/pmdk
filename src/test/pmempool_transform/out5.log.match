@@ -100,18 +100,9 @@ type                     : regular file
 size                     : $(nW)
 
 POOL Header:
-Signature                : PMEMOBJ
+Signature                : PMEMOBJ [part file]
 Major                    : 2
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
-
-PMEM OBJ Header:
-Layout                   : OBJ_LAYOUT
-Lanes offset             : 0x2000
-Number of lanes          : 1024
-Heap offset              : 0x302000
-Heap size                : 59752448
-Checksum                 : 0xa23aee0ab263dbf0 [OK]
-Root offset              : 0x382440
