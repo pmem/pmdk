@@ -78,6 +78,12 @@ int pmempool_transform(const char *poolset_file_src,
 	unsigned flags); (EXPERIMENTAL)
 ```
 
+#### Pool set management functions: ####
+
+```c
+int pmempool_rm(const char *path, int flags);
+```
+
 ##### Library API versioning: #####
 
 ```c
@@ -370,6 +376,33 @@ with proper errno set accordingly.
 
 >NOTE: The **pmempool_transform**() API is experimental and it may change in future
 versions of the library.
+
+# Pool set management functions: #
+
+### Removing pool ###
+
+```c
+int pmempool_rm(const char *path, int flags);
+```
+
+The **pmempool_rm**() function removes pool pointed by *path*. The *path* can
+point to either a regular file, device dax or pool set file. In case of pool
+set file the **pmempool_rm**() will remove all part files from local replicas
+using **unlink**(3) and all remote replicas using **rpmem_remove**()
+function (see **librpmem**(3)), before removing the pool set file itself.
+
+The *flags* argument determines the behavior of **pmempool_rm**() function.
+It is either 0 or the bitwise OR of one or more of the following flags:
+
++ **PMEMPOOL_RM_FORCE**
+Ignore all errors when removing part files from local replicas or remote
+replica.
+
++ **PMEMPOOL_RM_POOLSET_LOCAL**
+Also remove local poolset file.
+
++ **PMEMPOOL_RM_POOLSET_REMOTE**
+Also remote remote poolset file.
 
 # LIBRARY API VERSIONING #
 
