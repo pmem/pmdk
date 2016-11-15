@@ -83,6 +83,7 @@ test_heap()
 	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
 	UT_ASSERT(heap_init(heap_start, heap_size, p_ops) == 0);
 	UT_ASSERT(heap_boot(heap, heap_start, heap_size, pop, p_ops) == 0);
+	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
 	struct bucket *b_small = heap_get_best_bucket(heap, 1);

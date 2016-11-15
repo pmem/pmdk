@@ -38,6 +38,7 @@
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
+#include "valgrind_internal.h"
 #include "heap.h"
 #include "lane.h"
 #include "memops.h"
@@ -45,7 +46,6 @@
 #include "out.h"
 #include "palloc.h"
 #include "pmalloc.h"
-#include "valgrind_internal.h"
 
 /*
  * pmalloc_redo_hold -- acquires allocator lane section and returns a pointer to
@@ -282,8 +282,20 @@ pmalloc_boot(PMEMobjpool *pop)
 	COMPILE_ERROR_ON(PALLOC_DATA_OFF != OBJ_OOB_SIZE);
 	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_ALIGNMENT);
 
-	return palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
+	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
 			pop->heap_size, pop, &pop->p_ops);
+	if (ret)
+		return ret;
+
+#ifdef USE_VG_MEMCHECK
+	palloc_heap_vg_open(&pop->heap, obj_vg_register, pop, pop->vg_boot);
+#endif
+
+	ret = palloc_buckets_init(&pop->heap);
+	if (ret)
+		palloc_heap_cleanup(&pop->heap);
+
+	return ret;
 }
 
 static struct section_operations allocator_ops = {
