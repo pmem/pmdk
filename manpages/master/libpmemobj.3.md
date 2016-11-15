@@ -1549,7 +1549,7 @@ Each transaction is visible only for the thread that started it. No other thread
 thread. There may be multiple open transactions on given memory pool at the same time, but only one transaction per thread.
 
 Nested transactions are supported but flattened. Committing the nested transaction does not commit the outer transaction, however errors in the nested
-transaction are propagated up to the outer-most level, resulting in the interruption of the entire transaction.
+transaction are propagated up to the outermost level, resulting in the interruption of the entire transaction.
 
 Please see the **CAVEATS** section for known limitations of the transactional API.
 
@@ -1587,7 +1587,7 @@ of values. Currently there are 4 types:
 
 Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
 it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
-until the transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
+until the outermost transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
 
 **TX_PARAM_CB** registers specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
 stages as a first operation after stage change. It will also be called after each transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
@@ -1631,13 +1631,13 @@ void pmemobj_tx_commit(void);
 ```
 
 The **pmemobj_tx_commit**() function commits the current open transaction and causes transition to **TX_STAGE_ONCOMMIT** stage. If called in context of the
-outer-most transaction, all the changes may be considered as durably written upon successful completion. This function must be called during **TX_STAGE_WORK**.
+outermost transaction, all the changes may be considered as durably written upon successful completion. This function must be called during **TX_STAGE_WORK**.
 
 ```c
 int pmemobj_tx_end(void);
 ```
 
-The **pmemobj_tx_end**() function performs a clean up of a current transaction. If called in context of the outer-most transaction, it releases all the locks
+The **pmemobj_tx_end**() function performs a clean up of a current transaction. If called in context of the outermost transaction, it releases all the locks
 acquired by **pmemobj_tx_begin**() for outer and nested transactions. Then it causes the transition to **TX_STAGE_NONE**. In case of the nested transaction, it
 returns to the context of the outer transaction with **TX_STAGE_WORK** stage without releasing any locks. Must always be called for each **pmemobj_tx_begin**(),
 even if starting the transaction failed. This function must *not* be called during **TX_STAGE_WORK**. If transaction was successful, returns 0. Otherwise returns
