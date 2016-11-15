@@ -44,4 +44,5 @@ EXPORTS
 	pmempool_check_end
 	pmempool_sync
 	pmempool_transform
+	pmempool_rm
 	DllMain
