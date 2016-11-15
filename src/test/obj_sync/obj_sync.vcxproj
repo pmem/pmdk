@@ -104,10 +104,6 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="..\..\common\set.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="obj_sync.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
@@ -142,9 +138,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
-      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>

@@ -24,9 +24,6 @@
     <ClCompile Include="..\..\common\pthread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\set.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\sync.c">
       <Filter>Source Files</Filter>
     </ClCompile>
