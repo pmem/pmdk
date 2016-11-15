@@ -414,6 +414,10 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	struct pool_replica *prev_r = REP(set, repn - 1);
 	struct pool_replica *next_r = REP(set, repn + 1);
 
+	ASSERT(rep->nparts > 0);
+	ASSERT(prev_r->nparts > 0);
+	ASSERT(next_r->nparts > 0);
+
 	/* set uuids in the current replica */
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
