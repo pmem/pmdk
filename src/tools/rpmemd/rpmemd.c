@@ -159,6 +159,8 @@ rpmemd_db_get_status(int err)
 		return RPMEM_ERR_BUSY;
 	case EBADR:
 		return RPMEM_ERR_BADNAME;
+	case EINVAL:
+		return RPMEM_ERR_POOL_CFG;
 	default:
 		return RPMEM_ERR_FATAL;
 	}
@@ -174,7 +176,7 @@ rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 	if (rpmemd->pool->pool_size < RPMEM_MIN_POOL) {
 		RPMEMD_LOG(ERR, "invalid pool size -- must be >= %zu",
 				RPMEM_MIN_POOL);
-		*status = RPMEM_ERR_FATAL;
+		*status = RPMEM_ERR_POOL_CFG;
 		return -1;
 	}
 
