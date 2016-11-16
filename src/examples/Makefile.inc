@@ -94,10 +94,12 @@ endif
 clean-progs clean-libraries:
 	$(RM) *.o
 
-.c.o:
+MAKEFILE_DEPS=Makefile $(TOP)/src/examples/Makefile.inc $(TOP)/src/common.inc
+
+%.o: %.c $(MAKEFILE_DEPS)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
-.cpp.o:
+%.o: %.cpp $(MAKEFILE_DEPS)
 	$(CXX) -c -o $@ $(CXXFLAGS) $(INCS) $<
 
 $(PROGS):
