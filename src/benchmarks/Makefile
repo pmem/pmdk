@@ -169,7 +169,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 objdir=.
 
-%.o: %.c
+%.o: %.c Makefile
 	@mkdir -p .deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $<
 	$(create-deps)
