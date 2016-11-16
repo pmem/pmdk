@@ -168,7 +168,7 @@ util_file_map_whole(const char *path)
 	int olderrno;
 	void *addr = NULL;
 
-	if ((fd = open(path, O_RDWR)) < -1)
+	if ((fd = open(path, O_RDWR)) < 0)
 		return NULL;
 
 	ssize_t size = util_file_get_size(path);
@@ -197,7 +197,7 @@ util_file_zero_whole(const char *path)
 	int olderrno;
 	int ret = 0;
 
-	if ((fd = open(path, O_RDWR)) < -1)
+	if ((fd = open(path, O_RDWR)) < 0)
 		return -1;
 
 	ssize_t size = util_file_get_size(path);
