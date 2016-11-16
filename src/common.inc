@@ -39,6 +39,7 @@ MKDIR = mkdir
 INSTALL = install
 CP = cp
 CSTYLE = $(TOP)/utils/cstyle
+CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
@@ -119,6 +120,10 @@ cstyle-%:
 cstyle: cstyle-check
 
 format: cstyle-format
+
+define check-cstyle
+	if [ "$(CSTYLEON)" -eq "1" ]; then $(STYLE_CHECK) check $1; fi
+endef
 
 define sub-target-foreach
 $(1)-$(2):

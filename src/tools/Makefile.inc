@@ -249,6 +249,7 @@ pmemblk_priv.o: $(PMEMBLK_PRIV_OBJ)
 objdir=.
 
 %.o: %.c $(MAKEFILE_DEPS)
+	@$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
 	$(create-deps)

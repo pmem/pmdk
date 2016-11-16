@@ -227,6 +227,7 @@ endif
 $(eval $(cstyle-rule))
 
 $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
+	@$(call check-cstyle, $<)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 	$(create-deps)

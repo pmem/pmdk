@@ -83,6 +83,7 @@ $(TARGET): $(OBJS)
 objdir=.
 
 .c.o:
+	@$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
 	$(create-deps)

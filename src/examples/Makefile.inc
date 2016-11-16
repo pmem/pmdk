@@ -97,9 +97,11 @@ clean-progs clean-libraries:
 MAKEFILE_DEPS=Makefile $(TOP)/src/examples/Makefile.inc $(TOP)/src/common.inc
 
 %.o: %.c $(MAKEFILE_DEPS)
+	@$(call check-cstyle, $<)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
 %.o: %.cpp $(MAKEFILE_DEPS)
+	@$(call check-cstyle, $<)
 	$(CXX) -c -o $@ $(CXXFLAGS) $(INCS) $<
 
 $(PROGS):
