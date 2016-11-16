@@ -714,8 +714,12 @@ static int
 heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b)
 {
 	if (b->type == BUCKET_HUGE) {
+		util_mutex_lock(&b->lock);
 		/* not much to do here apart from using the next zone */
-		return heap_populate_buckets(heap);
+		int ret = heap_populate_buckets(heap);
+		util_mutex_unlock(&b->lock);
+
+		return ret;
 	}
 
 	struct heap_rt *h = heap->rt;
@@ -1223,9 +1227,11 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	int ret = 0;
 
 	while (CNT_OP(b, get_rm_bestfit, m) != 0) {
+		util_mutex_unlock(&b->lock);
 		if ((ret = heap_ensure_bucket_filled(heap, b)) != 0) {
-			goto out;
+			return ret;
 		}
+		util_mutex_lock(&b->lock);
 	}
 
 	ASSERT(m->size_idx >= units);
@@ -1233,10 +1239,9 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	if (units != m->size_idx)
 		heap_recycle_block(heap, b, m, units);
 
-out:
 	util_mutex_unlock(&b->lock);
 
-	return ret;
+	return 0;
 }
 
 /*
