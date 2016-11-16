@@ -323,6 +323,9 @@ within a poolset.
 \f[I]flags\f[] \- a combination of flags (ORed) which modify the way of
 synchronization.
 .PP
+NOTE: Only the poolset file used to create the pool should be used for
+syncing the pool.
+.PP
 The following flags are available:
 .IP \[bu] 2
 \f[B]PMEMPOOL_DRY_RUN\f[] \- do not apply changes, only check for
