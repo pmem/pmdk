@@ -130,8 +130,11 @@ create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 		uint32_t seed)
 {
 	D_RW(hashmap)->seed = seed;
-	D_RW(hashmap)->hash_fun_a = (uint32_t)(1000.0 * rand() / RAND_MAX) + 1;
-	D_RW(hashmap)->hash_fun_b = (uint32_t)(100000.0 * rand() / RAND_MAX);
+
+	do {
+		D_RW(hashmap)->hash_fun_a = (uint32_t)rand();
+	} while (D_RW(hashmap)->hash_fun_a == 0);
+	D_RW(hashmap)->hash_fun_b = (uint32_t)rand();
 	D_RW(hashmap)->hash_fun_p = HASH_FUNC_COEFF_P;
 
 	size_t len = INIT_BUCKETS_NUM;
