@@ -40,7 +40,9 @@
 #include <endian.h>
 
 #include "out.h"
+#include "util.h"
 #include "libpmempool.h"
+#include "libpmem.h"
 #include "pmempool.h"
 #include "pool.h"
 #include "set.h"
@@ -821,7 +823,7 @@ step_exe(PMEMpoolcheck *ppc, union location *loc,
 
 	util_convert2le_hdr(&loc->hdr);
 	memcpy(loc->hdrp, &loc->hdr, sizeof(loc->hdr));
-	msync(loc->hdrp, sizeof(*loc->hdrp), MS_SYNC);
+	PERSIST_GENERIC_AUTO(loc->hdrp, sizeof(*loc->hdrp));
 
 	util_convert2h_hdr_nocheck(&loc->hdr);
 	loc->header_modified = 1;
