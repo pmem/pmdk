@@ -600,6 +600,11 @@ main(int argc, char *argv[])
 
 	if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) == NULL)
 		UT_FATAL("!pmemobj_open: %s", path);
+
+	/* second open should fail, checks file locking */
+	if ((pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) != NULL)
+		UT_FATAL("!pmemobj_open: %s", path);
+
 	pmemobj_close(pop);
 
 	if (pmemobj_check(path, POBJ_LAYOUT_NAME(basic)) != 1)

@@ -371,12 +371,13 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	void *addrp;
 	if (part->is_dax) {
 		/*
-		 * dax device must be the only part in a replica, so we can map
-		 * it all
+		 * DAX device can only be in a poolset in which it's the only
+		 * part. This means we can map the whole device.
 		 */
-		addrp = util_file_map_whole(part->path);
+		addrp = mmap(NULL, part->filesize,
+			PROT_READ|PROT_WRITE, flags, part->fd, 0);
 		if (addrp == MAP_FAILED) {
-			ERR("!map for dax device: %s", part->path);
+			ERR("!mmap: %s", part->path);
 			return -1;
 		}
 		part->addr = addrp;
