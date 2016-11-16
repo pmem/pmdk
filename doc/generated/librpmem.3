@@ -56,6 +56,7 @@ int\ rpmem_close(RPMEMpool\ *rpp);
 
 int\ rpmem_persist(RPMEMpool\ *rpp,\ size_t\ offset,\ size_t\ length,\ unsigned\ lane);
 int\ rpmem_read(RPMEMpool\ *rpp,\ void\ *buff,\ size_t\ offset,\ size_t\ length);
+int\ rpmem_remove(const\ char\ *target,\ const\ char\ *pool_set_name,\ int\ flags);
 \f[]
 .fi
 .SS Library API versioning:
@@ -113,6 +114,8 @@ directory on the \f[I]target\f[] node that uniquely identifies the pool
 set file on remote node to be used when mapping the remote pool.
 The \f[I]pool_addr\f[] is a pointer to the associated local memory pool
 of a given size specified by the \f[I]pool_size\f[] argument.
+Both \f[I]pool_addr\f[] and \f[I]pool_size\f[] must be aligned to
+system\[aq]s page size (see \f[B]sysconf\f[](3)).
 The size of the remote pool must be at least \f[I]pool_size\f[].
 See \f[B]REMOTE POOL SIZE\f[] section for details.
 The \f[I]nlanes\f[] points to the maximum number of lanes which the
@@ -146,6 +149,8 @@ directory on the \f[I]target\f[] node that uniquely identifies the pool
 set file on remote node to be used when mapping the remote pool.
 The \f[I]pool_addr\f[] is a pointer to the associated local memory pool
 of a given size specified by the \f[I]pool_size\f[] argument.
+Both \f[I]pool_addr\f[] and \f[I]pool_size\f[] must be aligned to
+system\[aq]s page size (see \f[B]sysconf\f[](3)).
 The size of the remote pool must be at least \f[I]pool_size\f[].
 See \f[B]REMOTE POOL SIZE\f[] section for details.
 The \f[I]nlanes\f[] points to the maximum number of lanes which the
@@ -173,7 +178,7 @@ The \f[B]rpmem_close\f[]() function closes a remote pool indicated by
 All resources are released on both local and remote side.
 The pool itself lives on the remote node and may be re\-opened at a
 later time using \f[B]rpmem_open\f[]() function as described above.
-If any error occured when closing remote pool, non\-zero value is
+If any error occurred when closing remote pool, non\-zero value is
 returned and \f[I]errno\f[] value is set.
 .IP
 .nf
@@ -217,6 +222,32 @@ non\-zero value is returned and \f[I]errno\f[] set appropriately.
 The \f[I]rpp\f[] must point to a remote pool opened or created
 previously by \f[B]rpmem_open\f[]() or \f[B]rpmem_create\f[]() functions
 respectively.
+.IP
+.nf
+\f[C]
+int\ rpmem_remove(const\ char\ *target,\ const\ char\ *pool_set_name,\ int\ flags);
+\f[]
+.fi
+.PP
+The \f[B]rpmem_remove\f[]() function removes a remote pool on a given
+\f[I]target\f[] node.
+The \f[I]pool_set_name\f[] is a relative path in the root config
+directory on the \f[I]target\f[] node that uniquely identifies the pool
+set file on remote node.
+By default only the pool part files are removed and pool set file is
+left untouched.
+If the pool is not consistent the \f[B]rpmem_remove\f[]() function
+fails, unless otherwise specified.
+The \f[I]flags\f[] argument determines the behavior of
+\f[B]rpmem_remove\f[]() function.
+It is either 0 or the bitwise OR of one or more of the following flags:
+.IP \[bu] 2
+\f[B]RPMEM_REMOVE_FORCE\f[] Ignore errors when opening inconsistent
+pool.
+The pool set file must be in appropriate format though.
+.IP \[bu] 2
+\f[B]RPMEM_REMOVE_POOL_SET\f[] Remove pool set file after removing the
+pool described by this pool set.
 .SH LANES
 .PP
 The term \f[I]lane\f[] means an isolated path of execution.
@@ -321,14 +352,24 @@ The SSH command executed by \f[B]librpmem\f[] can be overwritten by
 The command executed by the \f[B]ssh\f[] can be overwritten by
 \f[B]RPMEM_CMD\f[] variable.
 See \f[B]ENVIRONMENT\f[] section for details.
-.RS
+See \f[B]FORK\f[] section for more details.
+.SH FORK
 .PP
-WARNING: The \f[B]ssh\f[] process is executed by \f[B]rpmem_open\f[]()
-and \f[B]rpmem_create\f[]() after forking a child process.
+The \f[B]ssh\f[] process is executed by \f[B]rpmem_open\f[]() and
+\f[B]rpmem_create\f[]() after forking a child process using
+\f[B]fork\f[](2).
 The application must take into account this fact when using
-\f[B]wait\f[](3) and \f[B]waitpid\f[](3) functions which may return a
+\f[B]wait\f[](2) and \f[B]waitpid\f[](2) functions which may return a
 PID of the \f[B]ssh\f[] process executed by \f[B]librpmem\f[].
-.RE
+.PP
+The \f[B]librpmem\f[] library calls the \f[B]ibv_fork_init\f[](3)
+function in library\[aq]s constructor in order to enable
+\f[B]fork\f[](2) support in \f[B]libibverbs\f[].
+If an application uses the \f[B]libibverbs\f[] before loading the
+\f[B]librpmem\f[] library it must call the \f[B]ibv_fork_inif\f[](3)
+function before allocating any resources using \f[B]libibverbs\f[],
+otherwise \f[B]rpmem_open\f[] and \f[B]rpmem_create\f[] functions will
+return an error.
 .SH REMOTE POOL SIZE
 .PP
 The remote pool size depends on the configuration of pool set file on

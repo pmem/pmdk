@@ -91,6 +91,11 @@ See \f[B]CONFIGURATION FILES\f[] section for details.
 Remove a pool described by given pool set file descriptor.
 It is interpreted as a path to the pool set file relative to the pool
 set directory.
+.PP
+\f[C]\-f,\ \-\-force\f[]
+.PP
+Ignore errors when removing a pool file using \f[B]\-\-remove\f[]
+option.
 .SH CONFIGURATION FILES
 .PP
 The \f[B]rpmemd\f[] searches for the configuration files with following
@@ -147,7 +152,7 @@ Accepted \f[I]<level>\f[] values are:
 .IP \[bu] 2
 \f[B]debug\f[] \- debug\-level message
 .PP
-The \f[B]$HOME\f[] substring in the \f[I]poolset\-dir\f[] path is
+The \f[B]$HOME\f[] sub\-string in the \f[I]poolset\-dir\f[] path is
 replaced with the current user home directory.
 .SH EXAMPLE
 .PP
