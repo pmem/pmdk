@@ -574,10 +574,11 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(convert) != 2);
 
 	if (argc != 4)
-		UT_FATAL("usage: %s file [c|va|vc] scenario", argv[0]);
+		UT_FATAL("usage: %s file [c|cs|va|vc] scenario", argv[0]);
 
 	const char *path = argv[1];
 	int create_pool = argv[2][0] == 'c';
+	int create_zero = argv[2][1] == 's';
 	int verify_abort = argv[2][1] == 'a';
 	int sc = atoi(argv[3]);
 
@@ -585,7 +586,8 @@ main(int argc, char *argv[])
 
 	if (create_pool) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(convert),
-			2 * PMEMOBJ_MIN_POOL, 0666)) == NULL) {
+			create_zero ? 0 : 2 * PMEMOBJ_MIN_POOL,
+			0666)) == NULL) {
 			UT_FATAL("failed to create pool\n");
 		}
 		scenarios[sc].create(pop);

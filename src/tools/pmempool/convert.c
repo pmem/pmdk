@@ -44,6 +44,8 @@
 #include <sys/mman.h>
 #include <endian.h>
 #include "common.h"
+#include "set.h"
+#include "libpmem.h"
 #include "convert.h"
 
 static const char *help_str = "";
@@ -122,10 +124,18 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	}
 
 	struct pool_set_file *psf = pool_set_file_open(f, 0, 1);
-
 	if (psf == NULL) {
 		perror(f);
 		return -1;
+	}
+
+	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+		if (psf->poolset->replica[r]->remote != NULL) {
+			fprintf(stderr, "Conversion of remotely replicated "
+				"pools is currently not supported. Remove the "
+				"replica first\n");
+			return -1;
+		}
 	}
 
 	void *addr = pool_set_file_map(psf, 0);
@@ -155,12 +165,50 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 
 	PMEMobjpool *pop = addr;
 
-	if (version_convert[m](pop) != 0)
-		fprintf(stderr, "Failed to convert the pool\n");
+	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+		struct pool_replica *rep = psf->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			struct pool_set_part *part = &rep->part[p];
+			if (util_map_hdr(part, MAP_SHARED) != 0) {
+				fprintf(stderr, "Failed to map headers.\n"
+						"Conversion did not start.\n");
+				ret = -1;
+				goto out;
+			}
+		}
+	}
 
-	msync(pop, psf->size, 0);
+	if (version_convert[m](pop) != 0) {
+		fprintf(stderr, "Failed to convert the pool\n");
+	} else {
+		/* need to update every header of every part */
+		uint32_t target_m = m + 1;
+		for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+			struct pool_replica *rep = psf->poolset->replica[r];
+			for (unsigned p = 0; p < rep->nparts; ++p) {
+				struct pool_set_part *part = &rep->part[p];
+
+				struct pool_hdr *hdr = part->hdr;
+				hdr->major = htole32(target_m);
+				util_checksum(hdr, sizeof(*hdr),
+					&hdr->checksum, 1);
+				PERSIST_GENERIC_AUTO(hdr,
+					sizeof(struct pool_hdr));
+			}
+		}
+	}
+
+	PERSIST_GENERIC_AUTO(pop, psf->size);
 
 out:
+	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+		struct pool_replica *rep = psf->poolset->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			struct pool_set_part *part = &rep->part[p];
+			if (part->hdr != NULL)
+				util_unmap_hdr(part);
+		}
+	}
 	pool_set_file_close(psf);
 
 	return ret;
