@@ -328,7 +328,7 @@ The **pmemlog_check**() function performs a consistency check of the file indica
 inconsistencies found will cause **pmemlog_check**() to return 0, in which case the use of the file with **libpmemlog** will result in undefined behavior. The
 debug version of **libpmemlog** will provide additional details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
 ERROR HANDLING** section below. **pmemlog_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
-**pmemlog_check**() opens the given *path* read-only so it never makes any changes to the file.
+**pmemlog_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on device dax.
 
 
 # DEBUGGING AND ERROR HANDLING #

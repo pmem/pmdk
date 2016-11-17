@@ -607,8 +607,11 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
-	if (pmemobj_check(path, POBJ_LAYOUT_NAME(basic)) != 1)
-		UT_FATAL("!pmemobj_check: %s", path);
+	int result = pmemobj_check(path, POBJ_LAYOUT_NAME(basic));
+	if (result < 0)
+		UT_OUT("!%s: pmemobj_check", path);
+	else if (result == 0)
+		UT_OUT("%s: pmemobj_check: not consistent", path);
 
 	DONE(NULL);
 }
