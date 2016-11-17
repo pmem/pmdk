@@ -333,8 +333,8 @@ replica_check_store_size(struct pool_set *set,
 			return -1;
 		}
 	} else {
-		if (util_map_part(&rep->part[0], NULL, sizeof(pop),
-				0, MAP_PRIVATE|MAP_NORESERVE)) {
+		if (util_map_part(&rep->part[0], NULL, 0, 0,
+				MAP_PRIVATE|MAP_NORESERVE)) {
 			return -1;
 		}
 
@@ -908,7 +908,7 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 	}
 
 	if (part->addr == NULL) {
-		if (util_map_part(part, NULL, sizeof(PMEMobjpool), 0,
+		if (util_map_part(part, NULL, 0, 0,
 				MAP_PRIVATE|MAP_NORESERVE)) {
 			util_part_fdclose(part);
 			return set->poolsize;
