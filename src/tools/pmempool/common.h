@@ -200,6 +200,8 @@ int pool_set_file_write(struct pool_set_file *file, void *buff,
 int pool_set_file_set_replica(struct pool_set_file *file, size_t replica);
 size_t pool_set_file_nreplicas(struct pool_set_file *file);
 void *pool_set_file_map(struct pool_set_file *file, uint64_t offset);
+void pool_set_file_persist(struct pool_set_file *file,
+		const void *addr, size_t len);
 
 struct range {
 	LIST_ENTRY(range) next;

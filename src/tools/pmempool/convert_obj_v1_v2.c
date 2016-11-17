@@ -41,8 +41,9 @@
 #include <endian.h>
 #include "convert.h"
 
-#define PMEMOBJ_MAX_LAYOUT ((size_t)1024)
+static void *poolset;
 
+#define PMEMOBJ_MAX_LAYOUT ((size_t)1024)
 
 struct arch_flags {
 	uint64_t alignment_desc;	/* alignment descriptor */
@@ -321,6 +322,7 @@ redo_recover(struct redo_log *redo, size_t nentries)
 	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
 		val = (uint64_t *)((uintptr_t)pop + redo->offset);
 		*val = redo->value;
+		pmempool_convert_persist(poolset, val, sizeof(uint64_t));
 
 		redo++;
 	}
@@ -328,6 +330,7 @@ redo_recover(struct redo_log *redo, size_t nentries)
 	uint64_t offset = redo->offset & REDO_FLAG_MASK;
 	val = (uint64_t *)((uintptr_t)pop + offset);
 	*val = redo->value;
+	pmempool_convert_persist(poolset, val, sizeof(uint64_t));
 }
 
 static int
@@ -346,6 +349,10 @@ pfree(uint64_t *off)
 	struct chunk_header *chdr = &z->chunk_headers[hdr->chunk_id];
 	if (chdr->type == CHUNK_TYPE_USED) {
 		chdr->type = CHUNK_TYPE_FREE;
+		pmempool_convert_persist(poolset, &chdr->type,
+			sizeof(chdr->type));
+		*off = 0;
+		pmempool_convert_persist(poolset, off, sizeof(*off));
 		return 0;
 	} else if (chdr->type != CHUNK_TYPE_RUN) {
 		assert(0);
@@ -363,7 +370,10 @@ pfree(uint64_t *off)
 	uint64_t bpos = block_off / BITS_PER_VALUE;
 
 	run->bitmap[bpos] &= ~bmask;
+	pmempool_convert_persist(poolset, &run->bitmap[bpos],
+		sizeof(run->bitmap[bpos]));
 	*off = 0;
+	pmempool_convert_persist(poolset, off, sizeof(*off));
 
 	return 0;
 }
@@ -419,6 +429,7 @@ restore_range(struct tx_range *r)
 {
 	void *dest = (char *)pop + r->offset;
 	memcpy(dest, r->data, r->size);
+	pmempool_convert_persist(poolset, dest, r->size);
 }
 
 static void
@@ -518,8 +529,10 @@ util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
 }
 
 int
-convert_v1_v2(void *addr)
+convert_v1_v2(void *psf, void *addr)
 {
+	poolset = psf;
+
 	pop = addr;
 	heap = (struct heap_layout *)((char *)addr + pop->heap_offset);
 	if (le32toh(pop->hdr.major) != SOURCE_MAJOR_VERSION)
@@ -539,6 +552,8 @@ convert_v1_v2(void *addr)
 			&lanes[i].sections[LANE_SECTION_TRANSACTION]);
 	}
 	memset(lanes, 0, pop->nlanes * sizeof(struct lane_layout));
+	pmempool_convert_persist(poolset, lanes,
+		pop->nlanes * sizeof(struct lane_layout));
 
 	return 0;
 }
