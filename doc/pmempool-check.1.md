@@ -87,6 +87,11 @@ Don't execute, just show what would be done. Not supported on device dax.
 Create backup of a pool file before executing. Terminate if it is *not*
 possible to create a backup file. This option requires **-r** option.
 
+`-a, --advanced`
+
+Perform advanced repairs. This option enables more aggressive steps in attempts
+to repair a pool. This option requires `-r, --repair`.
+
 `-q, --quiet`
 
 Be quiet and don't print any messages.
