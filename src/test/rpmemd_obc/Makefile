@@ -56,6 +56,8 @@ OBJS = rpmemd_obc_test.o\
        rpmemd_obc_test_open.o\
        rpmemd_obc_test_close.o
 
+HEADERS = rpmemd_obc_test_common.h
+
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 

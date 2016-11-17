@@ -65,6 +65,25 @@ SOURCE =\
 	sync.c\
 	tx.c
 
+HEADERS =\
+	bucket.h\
+	ctree.h\
+	cuckoo.h\
+	heap_layout.h\
+	heap.h\
+	lane.h\
+	list.h\
+	memblock.h\
+	memops.h\
+	obj.h\
+	palloc.h\
+	pmalloc.h\
+	pmemops.h\
+	pvector.h\
+	redo.h\
+	sync.h\
+	tx.h
+
 include ../Makefile.inc
 
 CFLAGS += -DUSE_LIBDL

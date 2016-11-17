@@ -51,6 +51,15 @@ SOURCE = $(COMMON)/util.c\
 	rpmem_util.c\
 	rpmem_fip_common.c\
 	rpmem_fip.c
+
+HEADERS =\
+	rpmem_cmd.h\
+	rpmem_fip.h\
+	rpmem_obc.h\
+	rpmem_ssh.h\
+	rpmem_util.h\
+	rpmem.h
+
 else
 ifeq ($(HAS_LIBIBVERBS),n)
 $(info NOTE: Skipping librpmem because libibverbs headers are missing. \

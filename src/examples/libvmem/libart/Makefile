@@ -49,6 +49,8 @@
 PROGS = arttree
 LIBRARIES = art
 
+HEADERS = art.h arttree.h
+
 include ../../Makefile.inc
 
 LIBS = -lvmem -pthread -lart

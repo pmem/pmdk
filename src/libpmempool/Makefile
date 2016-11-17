@@ -75,6 +75,13 @@ SOURCE =\
 	sync.c\
 	transform.c
 
+HEADERS =\
+	check_util.h\
+	check.h\
+	pmempool.h\
+	pool.h\
+	replica.h
+
 LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le

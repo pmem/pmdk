@@ -34,6 +34,7 @@
 # examples/libpmemobj/tree_map/Makefile -- build the tree map example
 #
 LIBRARIES = ctree_map btree_map rtree_map rbtree_map
+HEADERS = btree_map.h ctree_map.h rbtree_map.h rtree_map.h
 
 LIBS = -lpmemobj -pthread
 

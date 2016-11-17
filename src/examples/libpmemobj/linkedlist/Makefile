@@ -35,6 +35,8 @@ PROGS = fifo
 
 LIBS = -lpmemobj -lpmem -pthread
 
+HEADERS = pmemobj_list.h
+
 include ../../Makefile.inc
 
 fifo: fifo.o

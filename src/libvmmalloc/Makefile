@@ -43,6 +43,9 @@ SOURCE = libvmmalloc.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_linux.c
 
+HEADERS =\
+	vmmalloc.h
+
 default: all
 
 include ../jemalloc/jemalloc.mk

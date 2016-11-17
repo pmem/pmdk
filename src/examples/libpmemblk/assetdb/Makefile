@@ -37,6 +37,8 @@ PROGS = asset_load asset_list asset_checkout asset_checkin
 
 LIBS = -lpmemblk -lpmem -pthread
 
+HEADERS = asset.h
+
 include ../../Makefile.inc
 
 asset_load: asset_load.o

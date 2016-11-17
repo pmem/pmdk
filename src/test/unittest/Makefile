@@ -77,7 +77,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 all test: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(TARGET): unittest.htmp $(OBJS)
 	$(AR) rv $@ $(OBJS)
 
 objdir=.
@@ -88,8 +88,12 @@ objdir=.
 	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
 	$(create-deps)
 
+%.htmp: %.h
+	@$(call check-cstyle, $<)
+	@touch $@
+
 clean:
-	$(RM) *.o core a.out
+	$(RM) *.o core a.out unittest.htmp
 
 clobber: clean
 	$(RM) $(TARGET)

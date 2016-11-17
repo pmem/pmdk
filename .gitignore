@@ -17,3 +17,5 @@ dpkg/
 *.user
 ~*
 *.db
+*.htmp
+*.hpptmp

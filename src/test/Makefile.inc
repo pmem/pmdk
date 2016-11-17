@@ -236,18 +236,22 @@ endif
 
 MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 
+ifneq ($(HEADERS),)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
+
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
 
 $(UT):
 	$(MAKE) -C ../unittest
 
-$(TARGET_STATIC_DEBUG): $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
+$(TARGET_STATIC_DEBUG): $(TMP_HEADERS) $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
-$(TARGET_STATIC_NONDEBUG): $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
+$(TARGET_STATIC_NONDEBUG): $(TMP_HEADERS) $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
 
-$(TARGET): $(OBJS) $(UT) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
+$(TARGET): $(TMP_HEADERS) $(OBJS) $(UT) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
 
 objdir=.
@@ -264,8 +268,12 @@ objdir=.
 	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
 	$(create-deps)
 
+%.htmp: %.h
+	@$(call check-cstyle, $<)
+	@touch $@
+
 clean:
-	$(RM) *.o */*.o core a.out *.log testfile* $(SYNC_FILE)
+	$(RM) *.o */*.o core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)

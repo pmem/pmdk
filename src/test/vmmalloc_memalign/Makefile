@@ -36,6 +36,7 @@
 TARGET = vmmalloc_memalign
 OBJS = vmmalloc_memalign.o
 EXTRA_DEPS = libaa.so
+HEADERS = aligned_alloc.h
 
 vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
 

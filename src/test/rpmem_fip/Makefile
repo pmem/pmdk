@@ -55,6 +55,7 @@ OBJS = rpmem_fip_test.o\
        rpmemd_fip_worker.o\
        rpmemd_obc.o\
        rpmemd_log.o
+HEADERS = rpmem_fip_oob.h
 
 endif
 

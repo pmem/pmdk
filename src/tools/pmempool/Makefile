@@ -44,6 +44,18 @@ OBJS = pmempool.o\
        synchronize.o transform.o rpmem_ssh.o rpmem_cmd.o rpmem_util.o\
        rpmem_common.o
 
+HEADERS =\
+	check.h\
+	common.h\
+	convert.h\
+	create.h\
+	dump.h\
+	info.h\
+	output.h\
+	rm.h\
+	synchronize.h\
+	transform.h
+
 LIBPMEM=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y

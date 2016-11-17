@@ -47,6 +47,19 @@ SOURCE =\
 	uuid_linux.c\
 	util_linux.c
 
+HEADERS =\
+	dlsym.h\
+	file.h\
+	mmap.h\
+	out.h\
+	pmemcommon.h\
+	pool_hdr.h\
+	set.h\
+	sys_util.h\
+	util.h\
+	uuid.h\
+	valgrind_internal.h
+
 include ../Makefile.inc
 
 CFLAGS += -DUSE_LIBDL

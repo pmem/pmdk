@@ -85,6 +85,14 @@ SRC=pmembench.c\
     rpmem_common.c\
     rpmem_util.c
 
+HEADERS =\
+	benchmark_time.h\
+	benchmark_worker.h\
+	benchmark.h\
+	clo_vec.h\
+	clo.h\
+	config_reader.h\
+	scenario.h
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -103,6 +111,7 @@ CONFIGS=pmembench_log\
 	pmembench_atomic_lists
 
 OBJS=$(SRC:.c=.o)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
@@ -175,14 +184,18 @@ objdir=.
 	$(CC) -MD -c -o $@ $(CFLAGS) $<
 	$(create-deps)
 
-$(BENCHMARK): $(OBJS) $(LIBMAP)
-	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+%.htmp: %.h
+	@$(call check-cstyle, $<)
+	@touch $@
+
+$(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
 
 $(LIBMAP):
 	$(MAKE) -C $(LIBMAP_DIR) map
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(TMP_HEADERS)
 	$(RM) *.csv
 
 clobber: clean

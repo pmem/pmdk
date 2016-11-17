@@ -122,6 +122,11 @@ _OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_COMMON))
 OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
 endif
 
+ifneq ($(HEADERS),)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+TMP_HEADERS := $(addprefix $(objdir)/, $(TMP_HEADERS))
+endif
+
 ifneq ($(LIBRARY_NAME),)
 LIB_NAME = lib$(LIBRARY_NAME)
 endif
@@ -168,7 +173,7 @@ endif
 
 MAKEFILE_DEPS=../Makefile.inc Makefile $(TOP)/src/common.inc
 
-all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
+all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO) $(TMP_HEADERS)
 
 $(objdir) $(LIB_OUTDIR):
 	$(MKDIR) -p $@
@@ -214,7 +219,7 @@ endif
 
 clean: $(EXTRA_TARGETS_CLEAN)
 ifneq ($(LIBRARY_NAME),)
-	$(RM) $(OBJS)
+	$(RM) $(OBJS) $(TMP_HEADERS)
 	$(RM) $(LIB_AR_ALL) $(LIB_AR_UNSCOPED)
 endif
 
@@ -231,6 +236,10 @@ $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 	$(create-deps)
+
+$(objdir)/%.htmp: %.h
+	@$(call check-cstyle, $<)
+	@touch $@
 
 .PHONY: all clean clobber install uninstall cstyle
 

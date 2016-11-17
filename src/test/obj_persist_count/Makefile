@@ -35,6 +35,7 @@
 #
 TARGET = obj_persist_count
 OBJS = obj_persist_count.o
+HEADERS = mocks_windows.h
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug

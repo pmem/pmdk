@@ -92,9 +92,15 @@ ifneq ($(LIBRARIES),)
 endif
 
 clean-progs clean-libraries:
-	$(RM) *.o
+	$(RM) *.o $(TMP_HEADERS)
 
 MAKEFILE_DEPS=Makefile $(TOP)/src/examples/Makefile.inc $(TOP)/src/common.inc
+
+ifneq ($(HEADERS),)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
+
+all: $(TMP_HEADERS)
 
 %.o: %.c $(MAKEFILE_DEPS)
 	@$(call check-cstyle, $<)
@@ -104,7 +110,15 @@ MAKEFILE_DEPS=Makefile $(TOP)/src/examples/Makefile.inc $(TOP)/src/common.inc
 	@$(call check-cstyle, $<)
 	$(CXX) -c -o $@ $(CXXFLAGS) $(INCS) $<
 
-$(PROGS):
+%.htmp: %.h
+	@$(call check-cstyle, $<)
+	@touch $@
+
+%.hpptmp: %.hpp
+	@$(call check-cstyle, $<)
+	@touch $@
+
+$(PROGS): | $(TMP_HEADERS)
 	$(LINKER) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 lib%.o:
