@@ -78,14 +78,14 @@ static int
 rpmem_obc_check_ibc_attr(struct rpmem_msg_ibc_attr *ibc)
 {
 	if (ibc->port == 0 || ibc->port > UINT16_MAX) {
-		RPMEM_LOG(ERR, "invalid port number -- %u", ibc->port);
+		ERR("invalid port number received -- %u", ibc->port);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (ibc->persist_method != RPMEM_PM_GPSPM &&
 		ibc->persist_method != RPMEM_PM_APM) {
-		RPMEM_LOG(ERR, "invalid persistency method -- %u",
+		ERR("invalid persistency method received -- %u",
 				ibc->persist_method);
 		errno = EPROTO;
 		return -1;
@@ -181,7 +181,7 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	size_t msg_size = sizeof(struct rpmem_msg_create) + pool_desc_size;
 	struct rpmem_msg_create *msg = malloc(msg_size);
 	if (!msg) {
-		RPMEM_LOG(ERR, "!cannot allocate create request message");
+		ERR("!cannot allocate create request message");
 		return NULL;
 	}
 
@@ -214,7 +214,7 @@ static int
 rpmem_obc_check_req(const struct rpmem_req_attr *req)
 {
 	if (req->provider >= MAX_RPMEM_PROV) {
-		RPMEM_LOG(ERR, "invalid provider");
+		ERR("invalid provider specified -- %u", req->provider);
 		errno = EINVAL;
 		return -1;
 	}
@@ -230,27 +230,26 @@ rpmem_obc_check_hdr_resp(struct rpmem_msg_hdr_resp *resp,
 	enum rpmem_msg_type type, size_t size)
 {
 	if (resp->type != type) {
-		RPMEM_LOG(ERR, "invalid message type -- %u", resp->type);
+		ERR("invalid message type received -- %u", resp->type);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->size != size) {
-		RPMEM_LOG(ERR, "invalid message size -- %lu", resp->size);
+		ERR("invalid message size received -- %lu", resp->size);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->status >= MAX_RPMEM_ERR) {
-		RPMEM_LOG(ERR, "invalid status -- %u", resp->status);
+		ERR("invalid status received -- %u", resp->status);
 		errno = EPROTO;
 		return -1;
 	}
 
 	if (resp->status) {
 		enum rpmem_err status = (enum rpmem_err)resp->status;
-		RPMEM_LOG(ERR, "request failed: %s",
-			rpmem_util_proto_errstr(status));
+		ERR("%s", rpmem_util_proto_errstr(status));
 		errno = rpmem_util_proto_errno(status);
 		return -1;
 	}
@@ -300,7 +299,7 @@ rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 	size_t msg_size = sizeof(struct rpmem_msg_open) + pool_desc_size;
 	struct rpmem_msg_open *msg = malloc(msg_size);
 	if (!msg) {
-		RPMEM_LOG(ERR, "!cannot allocate open request message");
+		ERR("!cannot allocate open request message");
 		return NULL;
 	}
 
@@ -465,7 +464,7 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 	const struct rpmem_pool_attr *pool_attr)
 {
 	if (!rpmem_obc_is_connected(rpc)) {
-		RPMEM_LOG(ERR, "not connected");
+		ERR("out-of-band connection not established");
 		errno = ENOTCONN;
 		goto err_notconnected;
 	}
@@ -483,7 +482,7 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 
 	rpmem_hton_msg_create(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
-		RPMEM_LOG(ERR, "!sending create request message failed");
+		ERR("!sending create request message failed");
 		goto err_msg_send;
 	}
 
@@ -493,7 +492,7 @@ rpmem_obc_create(struct rpmem_obc *rpc,
 	struct rpmem_msg_create_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp,
 			sizeof(resp))) {
-		RPMEM_LOG(ERR, "!receiving create request response failed");
+		ERR("!receiving create request response failed");
 		goto err_msg_recv;
 	}
 
@@ -530,6 +529,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	struct rpmem_pool_attr *pool_attr)
 {
 	if (!rpmem_obc_is_connected(rpc)) {
+		ERR("out-of-band connection not established");
 		errno = ENOTCONN;
 		goto err_notconnected;
 	}
@@ -547,7 +547,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 
 	rpmem_hton_msg_open(msg);
 	if (rpmem_ssh_send(rpc->ssh, msg, msg_size)) {
-		RPMEM_LOG(ERR, "!sending open request message failed");
+		ERR("!sending open request message failed");
 		goto err_msg_send;
 	}
 
@@ -556,7 +556,7 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 
 	struct rpmem_msg_open_resp resp;
 	if (rpmem_ssh_recv(rpc->ssh, &resp, sizeof(resp))) {
-		RPMEM_LOG(ERR, "!receiving open request response failed");
+		ERR("!receiving open request response failed");
 		goto err_msg_recv;
 	}
 
