@@ -371,7 +371,7 @@ inconsistencies found will cause **pmemblk_check**() to return 0, in which case 
 debug version of **libpmemblk** will provide additional details on inconsistencies when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
 ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_check**() will compare it to the block size of the pool and return 0 when they don't
 match. **pmemblk_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors. **pmemblk_check**() opens the given
-*path* read-only so it never makes any changes to the file.
+*path* read-only so it never makes any changes to the file. This function is not supported on device dax.
 
 
 # DEBUGGING AND ERROR HANDLING #
