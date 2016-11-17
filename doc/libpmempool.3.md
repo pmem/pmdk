@@ -108,10 +108,6 @@ is for applications that need high reliability or built-in
 troubleshooting. It may be useful for testing and debugging
 purposes also.
 
-Currently **libpmempool** implements only consistency check and
-repair functions.
-
-
 # POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
