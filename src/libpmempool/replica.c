@@ -333,8 +333,11 @@ replica_check_store_size(struct pool_set *set,
 			return -1;
 		}
 	} else {
-		if (util_map_part(&rep->part[0], NULL, sizeof(pop),
-				0, MAP_SHARED, 1)) {
+		/* round up map size to Mmap align size */
+		size_t map_size = (sizeof(pop) + Mmap_align - 1) &
+				~(Mmap_align - 1);
+		if (util_map_part(&rep->part[0], NULL, map_size, 0,
+				MAP_SHARED, 1)) {
 			return -1;
 		}
 
@@ -908,7 +911,10 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 	}
 
 	if (part->addr == NULL) {
-		if (util_map_part(part, NULL, sizeof(PMEMobjpool), 0,
+		/* round up map size to Mmap align size */
+		size_t map_size = (sizeof(PMEMobjpool) + Mmap_align - 1) &
+				~(Mmap_align - 1);
+		if (util_map_part(part, NULL, map_size, 0,
 				MAP_SHARED, 1)) {
 			util_part_fdclose(part);
 			return set->poolsize;
