@@ -59,5 +59,6 @@ expect_normal_exit ./pmem_map$EXESUFFIX\
     $DEVICE_DAX_PATH 0 DSC 0666 1 1\
     $DEVICE_DAX_PATH 0 DT 0666 1 1\
     $DEVICE_DAX_PATH 0 DCE 0666 1 1\
+    $DEVICE_DAX_PATH 2097152 DC 0666 1 1\ # hardcoded 2 megabytes
 
 pass

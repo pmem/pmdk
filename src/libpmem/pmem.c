@@ -578,7 +578,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	if (flags & PMEM_FILE_EXCL)
 		open_flags |= O_EXCL;
 
-	if ((len != 0) && !(flags & PMEM_FILE_CREATE)) {
+	if (!dax && (len != 0) && !(flags & PMEM_FILE_CREATE)) {
 		ERR("non-zero 'len' not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
