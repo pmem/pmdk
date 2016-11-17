@@ -135,9 +135,10 @@ use. Upon successfully opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
 See **LANES** section for details.
 The *create_attr* structure contains the attributes used for creating the
-remote pool. The attributes are stored in pool's meta-data and can be read
-when opening the remote pool using **rpmem_open**() function call. Upon
-success the **rpmem_create**() returns an opaque handle to the remote pool
+remote pool. If *create_attr* is NULL, a zeroed structure with attributes will
+be used to create the pool. The attributes are stored in pool's meta-data and
+can be read when opening the remote pool using **rpmem_open**() function call.
+Upon success the **rpmem_create**() returns an opaque handle to the remote pool
 which shall be used in subsequent API calls. If any error prevents the
 **librpmem** from creating the remote pool, the **rpmem_create**() returns
 NULL and sets *errno* appropriately.

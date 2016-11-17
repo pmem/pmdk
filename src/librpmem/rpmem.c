@@ -431,6 +431,13 @@ rpmem_create(const char *target, const char *pool_set_name,
 
 	if (rpmem_check_args(pool_addr, pool_size, nlanes))
 		return NULL;
+	struct rpmem_pool_attr zeroed;
+	memset(&zeroed, 0, sizeof(zeroed));
+
+	if (!create_attr) {
+		RPMEM_LOG(INFO, "using zeroed pool attributes");
+		create_attr = &zeroed;
+	}
 
 	RPMEMpool *rpp = rpmem_common_init(target);
 	if (!rpp)
