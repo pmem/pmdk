@@ -1300,7 +1300,7 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 {
 	RPMEM_ASSERT(!rpmem_fip_lane_busy(&fip->rd_lane.lane));
 
-	int ret = 0;
+	int ret;
 	size_t rd = 0;
 	uint8_t *cbuff = buff;
 	while (rd < len) {
@@ -1318,7 +1318,8 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);
 		if (ret) {
 			ERR("error when processing read request");
-			return ret;
+			errno = ret;
+			return -1;
 		}
 
 		memcpy(&cbuff[rd], fip->rd_buff, rd_len);
@@ -1326,7 +1327,7 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 		rd += rd_len;
 	}
 
-	return ret;
+	return 0;
 }
 
 /*
