@@ -79,7 +79,7 @@ pmempool_convert_help(char *appname)
 	printf(help_str, appname);
 }
 
-typedef int (*convert_func)(void *addr);
+typedef int (*convert_func)(void *poolset, void *addr);
 
 /*
  * Collection of pool converting functions. Each array index is used as a
@@ -89,6 +89,15 @@ static convert_func version_convert[] = {
 	NULL, /* from version 0 to version 1 - does not exist */
 	convert_v1_v2, /* from v1 to v2 */
 };
+
+/*
+ * pmempool_convert_persist -- calls the appropriate persist func for poolset
+ */
+void
+pmempool_convert_persist(void *poolset, const void *addr, size_t len)
+{
+	pool_set_file_persist(poolset, addr, len);
+}
 
 /*
  * pmempool_convert_func -- main function for convert command
@@ -129,13 +138,10 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		return -1;
 	}
 
-	for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
-		if (psf->poolset->replica[r]->remote != NULL) {
-			fprintf(stderr, "Conversion of remotely replicated "
-				"pools is currently not supported. Remove the "
-				"replica first\n");
-			return -1;
-		}
+	if (psf->poolset->remote) {
+		fprintf(stderr, "Conversion of remotely replicated  pools is "
+			"currently not supported. Remove the replica first\n");
+		return -1;
 	}
 
 	void *addr = pool_set_file_map(psf, 0);
@@ -178,7 +184,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		}
 	}
 
-	if (version_convert[m](pop) != 0) {
+	if (version_convert[m](psf, pop) != 0) {
 		fprintf(stderr, "Failed to convert the pool\n");
 	} else {
 		/* need to update every header of every part */
