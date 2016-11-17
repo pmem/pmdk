@@ -128,6 +128,9 @@ Check must be finalized using **pmempool_check_end**().
 It returns *enum pmempool_check_result* describing
 result of the whole check.
 
+# NOTE #
+Currently, checking consistency of *pmemobj* pool is **not** supported.
+
 ```c
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
 	size_t args_size);
