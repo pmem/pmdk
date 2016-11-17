@@ -104,7 +104,7 @@ err:
 }
 
 /*
- * util_is_absolute_path -- check if the path is absolute;
+ * util_is_absolute_path -- check if the path is absolute
  */
 int
 util_is_absolute_path(const char *path)

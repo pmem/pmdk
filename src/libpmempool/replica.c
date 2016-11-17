@@ -952,7 +952,7 @@ replica_check_part_sizes(struct pool_set *set, size_t min_size)
 }
 
 /*
- * check_if_part_dir_exists -- (internal) check if directory for the part file
+ * check_if_part_dir_exists -- check if directory for the part file
  *                             exists
  */
 int
