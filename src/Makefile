@@ -38,6 +38,7 @@ include $(TOP)/src/common.inc
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 	libvmmalloc tools
 ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
+SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
 
 DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
 	libpmempool libvmmalloc librpmem
@@ -73,8 +74,8 @@ ifeq ($(BUILD_RPMEM),y)
 endif
 endif
 
-SCOPE_SRC_DIRS = $(TARGETS) include jemalloc/src
-SCOPE_HDR_DIRS = $(TARGETS) include jemalloc/src\
+SCOPE_SRC_DIRS = $(SCOPE_DIRS) include jemalloc/src
+SCOPE_HDR_DIRS = $(SCOPE_DIRS) include jemalloc/src\
 		jemalloc/include/jemalloc\
 		jemalloc/include/jemalloc/internal\
 		debug/jemalloc/include/jemalloc\
