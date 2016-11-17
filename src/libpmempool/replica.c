@@ -952,8 +952,8 @@ replica_check_part_sizes(struct pool_set *set, size_t min_size)
 }
 
 /*
- * check_if_part_dir_exists -- (internal) check if directory for the part file
- *                             exists
+ * replica_check_local_part_dir -- check if directory for the part file
+ *                                 exists
  */
 int
 replica_check_local_part_dir(struct pool_set *set, unsigned repn,
@@ -962,8 +962,8 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	char *path = Strdup(PART(REP(set, repn), partn).path);
 	const char *dir = dirname(path);
-	struct stat sb;
-	if (stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+	util_stat_t sb;
+	if (util_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
 		ERR("a directory %s for part %u in replica %u"
 			" does not exist or is not accessible",
 			path, partn, repn);

@@ -1,15 +1,15 @@
 poolset_in
 PMEMPOOLSET
-20M $(nW)/testfile00
-20M $(nW)/testfile01
+20M $(nW)testfile00
+20M $(nW)testfile01
 
 poolset_out
 PMEMPOOLSET
-20M $(nW)/testfile00
-20M $(nW)/testfile01
+20M $(nW)testfile00
+20M $(nW)testfile01
 REPLICA
-20M $(nW)/testfile01
-20M $(nW)/testfile21
+20M $(nW)testfile01
+20M $(nW)testfile21
 
 
 Poolset structure:
