@@ -526,6 +526,14 @@ replicas may be considered as binary copies of the "master" pool set.
 Creation of all the parts of the pool set and the associated replica sets can be done with the **pmemobj_create**() function or by using the **pmempool**(1)
 utility.
 
+Restoring data from a local or remote replica can be done by using the
+**pmempool-sync**(1) command or **pmempool_sync**() API from the
+**libpmempool**(3) library.
+
+Modifications of a pool set file configuration can be done by using the
+**pmempool-transform**(1) command or **pmempool_transform**() API from the
+**libpmempool**(3) library.
+
 When creating the pool set consisting of multiple files, or when creating the replicated pool set, the *path* argument passed to **pmemobj_create**() must
 point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The *poolsize* argument must be 0. The meaning
 of *layout* and *mode* arguments doesn't change, except that the same *mode* is used for creation of all the parts of the pool set and replicas. If the error
@@ -586,7 +594,6 @@ The files in the set may be created by running the following command:
 ```
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
-
 
 # LOCKING #
 
