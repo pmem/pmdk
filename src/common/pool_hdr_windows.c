@@ -35,26 +35,9 @@
  */
 
 #include <Shlwapi.h>
+#include <elf.h>
 #include "pool_hdr.h"
 #include "out.h"
-
-/* ELF-compatible enums */
-
-/* machine */
-#define MACHINE_NONE 0
-#define MACHINE_386 3
-#define MACHINE_IA_64 50
-#define MACHINE_X86_64 62
-
-/* class */
-#define CLASS_NONE 0
-#define CLASS_32 1
-#define CLASS_64 2
-
-/* data */
-#define DATA_NONE 0
-#define DATA_2LSB 1
-#define DATA_2MSB 2
 
 /*
  * arch_machine -- (internal) translate CPU arch into ELF-compatible machine id
@@ -66,14 +49,14 @@ arch_machine(WORD cpuarch)
 
 	switch (cpuarch) {
 		case PROCESSOR_ARCHITECTURE_AMD64:
-			return MACHINE_X86_64;
+			return EM_X86_64;
 		case PROCESSOR_ARCHITECTURE_IA64:
-			return MACHINE_IA_64;
+			return EM_IA_64;
 		case PROCESSOR_ARCHITECTURE_INTEL:
-			return MACHINE_386;
+			return EM_386;
 		default:
 			ASSERT(0); /* shouldn't happen */
-			return MACHINE_NONE;
+			return EM_NONE;
 	}
 }
 
@@ -83,7 +66,7 @@ arch_machine(WORD cpuarch)
 static int
 arch_endianess(void)
 {
-	short word = (DATA_2MSB << 8) + DATA_2LSB;
+	short word = (ELFDATA2MSB << 8) + ELFDATA2LSB;
 	return ((char *)&word)[0];
 }
 
@@ -98,13 +81,13 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 
 	arch_flags->e_machine = arch_machine(si.wProcessorArchitecture);
 #ifdef _WIN64
-	arch_flags->ei_class = CLASS_64;
+	arch_flags->ei_class = ELFCLASS64;
 #else
 	/*
 	 * XXX - Just in case someone would remove the guard from platform.h
 	 * and attempt to compile NVML for 32-bit.
 	 */
-	arch_flags->ei_class = CLASS_32;
+	arch_flags->ei_class = ELFCLASS32;
 #endif
 	arch_flags->ei_data = arch_endianess();
 	arch_flags->alignment_desc = alignment_desc();
