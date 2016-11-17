@@ -115,10 +115,10 @@ html: $(HTMLFILES) doxygen_docs
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
 
-$(MANPAGES_BUILDDIR)/%.3: %.3.md default.man ../utils/md2man.sh
+$(MANPAGES_BUILDDIR)/%.3: %.3.md default.man ../utils/md2man.sh FORCE
 	../utils/md2man.sh ./$< default.man $@
 
-$(MANPAGES_BUILDDIR)/%.1: %.1.md default.man ../utils/md2man.sh
+$(MANPAGES_BUILDDIR)/%.1: %.1.md default.man ../utils/md2man.sh FORCE
 	../utils/md2man.sh ./$< default.man $@
 
 compress: $(GZFILES_BUILD)
@@ -153,6 +153,8 @@ install: compress
 uninstall:
 	$(foreach f, $(GZFILES_1), $(RM) $(MANPAGES_DESTDIR_1)/$(f))
 	$(foreach f, $(GZFILES_3), $(RM) $(MANPAGES_DESTDIR_3)/$(f))
+
+FORCE:
 
 .PHONY: all html clean compress clobber cstyle install uninstall install-cpp\
 	uninstall-cpp doxygen_docs
