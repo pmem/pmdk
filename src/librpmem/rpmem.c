@@ -453,7 +453,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 	struct rpmem_resp_attr resp;
 	int ret = rpmem_obc_create(rpp->obc, &req, &resp, create_attr);
 	if (ret) {
-		ERR("!create request failed");
+		RPMEM_LOG(ERR, "!create request failed");
 		goto err_obc_create;
 	}
 
@@ -528,7 +528,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 
 	int ret = rpmem_obc_open(rpp->obc, &req, &resp, open_attr);
 	if (ret) {
-		ERR("!open request failed");
+		RPMEM_LOG(ERR, "!open request failed");
 		goto err_obc_create;
 	}
 
