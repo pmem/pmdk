@@ -89,5 +89,5 @@ util_realpath(const char *path)
 int
 util_compare_file_inodes(const char *path1, const char *path2)
 {
-	return strcmp(path1, path2);
+	return strcmp(path1, path2) != 0;
 }
