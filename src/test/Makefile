@@ -189,6 +189,7 @@ OTHER_TESTS = \
 	unicode_api\
 	unicode_match_script\
 	util_cpuid\
+	util_daxemu\
 	util_uuid_generate\
 	util_file_create\
 	util_file_open\

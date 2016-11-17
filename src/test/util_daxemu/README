@@ -1,0 +1,12 @@
+Non-Volatile Memory Library
+
+This is src/test/util_daxemu/README.
+
+This directory contains unit tests for memory mapping and file I/O
+routines on Device DAX.  It is mostly intended to verify in libdaxemu
+provides exactly the same behavior as the real Device DAX.
+
+The program in util_daxemu.c takes a list of paths to Device DAX
+devices.  For example:
+
+	./util_daxemu /dev/dax0.0 /dev/dax1.0

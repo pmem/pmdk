@@ -34,7 +34,6 @@ set -e
 
 # make sure we have a well defined locale for string operations here
 export LC_ALL="C"
-#export LC_ALL="en_US.UTF-8"
 
 . ../testconfig.sh
 
@@ -49,6 +48,7 @@ export LC_ALL="C"
 [ "$SUFFIX" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
 
 TOOLS=../tools
+
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
 [ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
@@ -60,6 +60,7 @@ TOOLS=../tools
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
+[ "$LIBDAXEMU" ] || LIBDAXEMU=$TOOLS/libdaxemu/libdaxemu.so
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -101,6 +102,11 @@ NODE_PID_FILES[0]=""
 		REMOTE_LD_LIBRARY_PATH=../debug
 		;;
 	nondebug)
+		TEST_LD_LIBRARY_PATH=../../nondebug
+		REMOTE_LD_LIBRARY_PATH=../nondebug
+		;;
+	static-*)
+		# only required by pmempool
 		TEST_LD_LIBRARY_PATH=../../nondebug
 		REMOTE_LD_LIBRARY_PATH=../nondebug
 		;;
@@ -190,13 +196,13 @@ if [ -d "$PMEM_FS_DIR" ]; then
 	if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 		PMEM_IS_PMEM=0
 	else
-		$PMEMDETECT "$PMEM_FS_DIR" && true
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PMEMDETECT "$PMEM_FS_DIR" && true
 		PMEM_IS_PMEM=$?
 	fi
 fi
 
 if [ -d "$NON_PMEM_FS_DIR" ]; then
-	$PMEMDETECT "$NON_PMEM_FS_DIR" && true
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PMEMDETECT "$NON_PMEM_FS_DIR" && true
 	NON_PMEM_IS_PMEM=$?
 fi
 
@@ -230,6 +236,11 @@ export RPMEM_LOG_FILE=rpmem$UNITTEST_NUM.log
 export RPMEMD_LOG_LEVEL=info
 export RPMEMD_LOG_FILE=rpmemd$UNITTEST_NUM.log
 
+export DAXEMU_LOG_LEVEL=3
+export DAXEMU_LOG_FILE=daxemu$UNITTEST_NUM.log
+
+export DAXEMU_CFG_FILE=../daxemu.cfg
+
 export REMOTE_VARS="
 RPMEMD_LOG_FILE
 RPMEMD_LOG_LEVEL
@@ -242,6 +253,8 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 # In case a lock is required for Device DAXes
 DEVDAX_LOCK=../devdax.lock
+
+DAXEMU_ACTIVE=0
 
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
@@ -722,6 +735,7 @@ function expect_normal_exit() {
 			dump_last_n_lines $VMMALLOC_LOG_FILE
 			dump_last_n_lines $RPMEM_LOG_FILE
 			dump_last_n_lines $RPMEMD_LOG_FILE
+			dump_last_n_lines $DAXEMU_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
@@ -764,7 +778,7 @@ function expect_abnormal_exit() {
 
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-	$TRACE $*
+		$TRACE $*
 	ret=$?
 	restore_exit_on_error
 
@@ -790,7 +804,8 @@ function check_pool() {
 		then
 			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
 		fi
-		${PMEMPOOL}.static-nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+			$PMEMPOOL check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
 	fi
 }
 
@@ -899,6 +914,11 @@ unlock_devdax() {
 # usage: require_dev_dax_node <N devices> [<node>]
 #
 function require_dev_dax_node() {
+	if [ "$TEST_DAXEMU" == "1" ]; then
+		DAXEMU_ACTIVE=1
+		export TEST_LD_PRELOAD="$LIBDAXEMU"
+	fi
+
 	local min=$1
 	local node=$2
 	if [ -n "$node" ]; then
@@ -923,7 +943,7 @@ function require_dev_dax_node() {
 	for path in ${device_dax_path[@]}
 	do
 		disable_exit_on_error
-		out=$($cmd $path 2>&1)
+		out=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $cmd $path 2>&1)
 		ret=$?
 		restore_exit_on_error
 
@@ -934,6 +954,7 @@ function require_dev_dax_node() {
 			exit 0
 		else
 			echo "$UNITTEST_NAME: pmemdetect: $out" >&2
+			dump_last_n_lines $DAXEMU_LOG_FILE
 			exit 1
 		fi
 	done
@@ -946,7 +967,8 @@ function require_dev_dax_node() {
 function dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
-		${PMEMPOOL}.static-debug rm -f $path
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+			$PMEMPOOL rm -f $path
 	done
 }
 
@@ -958,6 +980,15 @@ function require_dax_devices() {
 }
 
 #
+# require_dax_real -- only allow script to continue for a real dax device
+#
+function require_dax_real() {
+	[ "$TEST_DAXEMU" != "1" ] && return
+	echo "$UNITTEST_NAME: SKIP required: real Device DAX"
+	exit 0
+}
+
+#
 # require_dax_device_alignments -- only allow script to continue if
 #    the internal Device DAX alignments are as specified.
 # If necessary, it sorts DEVICE_DAX_PATH entries to match
@@ -966,6 +997,11 @@ function require_dax_devices() {
 # usage: require_dax_device_alignments alignment1 [ alignment2 ... ]
 #
 function require_dax_device_alignments() {
+	if [ "$TEST_DAXEMU" == "1" ]; then
+		DAXEMU_ACTIVE=1
+		export TEST_LD_PRELOAD="$LIBDAXEMU"
+	fi
+
 	local cnt=${#DEVICE_DAX_PATH[@]}
 	local j=0
 
@@ -977,7 +1013,7 @@ function require_dax_device_alignments() {
 			path=${DEVICE_DAX_PATH[$i]}
 
 			disable_exit_on_error
-			out=`$PMEMDETECT -a $alignment $path 2>&1`
+			out=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $PMEMDETECT -a $alignment $path 2>&1)
 			ret=$?
 			restore_exit_on_error
 
@@ -1160,6 +1196,11 @@ function configure_valgrind() {
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
+	fi
+
+	if [ $DAXEMU_ACTIVE -eq 1 -a "$CHECK_TYPE" != "none" ]; then
+		echo "$UNITTEST_NAME: SKIP RUNTESTS Device DAX emulation cannot be used with valgrind"
+		exit 0
 	fi
 
 	if [ "$UT_VALGRIND_SKIP_PRINT_MISMATCHED" == 1 ]; then
@@ -2219,7 +2260,8 @@ check_arena()
 #
 function dump_pool_info() {
 	# ignore selected header fields that differ by definition
-	${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+		$PMEMPOOL info $* | sed -e "/^UUID/,/^Checksum/d"
 }
 
 #

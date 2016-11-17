@@ -48,7 +48,8 @@ DIRS = \
        bttcreate\
        fip\
        ddmap\
-       cmpmap
+       cmpmap\
+       libdaxemu
 
 REMOTE_TOOLS = \
 	ctrld\

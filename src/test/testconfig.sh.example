@@ -52,6 +52,13 @@ NON_PMEM_FS_DIR=/tmp
 #DEVICE_DAX_PATH=(/dev/dax0.0)
 
 #
+# On systems that have no Device DAX devices, or in case you have no permissions
+# to create/access those device you may emulate them with libdaxemu.so.
+# When enabled, there must be daxemu.cfg file.
+#
+#TEST_DAXEMU=1
+
+#
 # Overwrite default test type:
 # check (default), short, medium, long, all
 # where: check = short + medium; all = short + medium + long

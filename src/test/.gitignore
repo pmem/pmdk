@@ -14,3 +14,5 @@ libs.tar
 .sync-dir
 # ignore lock files
 *.lock
+# ignore custom daxemu config file
+daxemu.cfg

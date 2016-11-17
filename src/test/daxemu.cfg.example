@@ -1,0 +1,9 @@
+# kernel version
+version: 4.11.0
+
+# devices configuration
+# device: path fake_path size alignment major:minor
+device:	/dev/dax10.0	/tmp/dax10.0.emu	33554432	4096	240:1
+device:	/dev/dax20.0	/tmp/dax20.0.emu	33554432	2097152	240:2
+device:	/dev/dax30.0	/tmp/dax30.0.emu	33554432	4096	240:3
+device:	/dev/dax40.0	/tmp/dax40.0.emu	33554432	2097152	240:4
