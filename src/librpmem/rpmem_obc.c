@@ -196,7 +196,12 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	rpmem_obc_set_pool_desc(&msg->pool_desc,
 			req->pool_desc, pool_desc_size);
 
-	memcpy(&msg->pool_attr, pool_attr, sizeof(msg->pool_attr));
+	if (pool_attr) {
+		memcpy(&msg->pool_attr, pool_attr, sizeof(msg->pool_attr));
+	} else {
+		RPMEM_LOG(INFO, "using zeroed pool attributes");
+		memset(&msg->pool_attr, 0, sizeof(msg->pool_attr));
+	}
 
 	*msg_sizep = msg_size;
 	return msg;
