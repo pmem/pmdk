@@ -30,10 +30,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /*
- * elf.h -- fake implementation of ELF macros
+ * elf.h -- ELF-compatible enums
  */
 
-#define EM_X86_64 PROCESSOR_ARCHITECTURE_AMD64
-#define EM_NUM PROCESSOR_ARCHITECTURE_UNKNOWN
+#ifndef ELF_H
+#define ELF_H 1
+
+/* machine */
+#define EM_NONE 0
+#define EM_386 3
+#define EM_IA_64 50
+#define EM_X86_64 62
+#define EM_NUM 95
+
+/* class */
+#define ELFCLASSNONE 0
+#define ELFCLASS32 1
+#define ELFCLASS64 2
+
+/* data */
+#define ELFDATANONE 0
+#define ELFDATA2LSB 1
+#define ELFDATA2MSB 2
+
+#endif

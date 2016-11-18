@@ -53,7 +53,6 @@
 #include <windows.h>
 #include <sys/stat.h> // XXX
 #include <sys/file.h> // XXX
-#include <Shlwapi.h>
 
 #include "file.h"
 #include "out.h"
@@ -105,15 +104,18 @@ err:
 }
 
 /*
- * util_is_absolute_path -- check if the path is an absolute one
+ * util_is_absolute_path -- check if the path is absolute
  */
 int
 util_is_absolute_path(const char *path)
 {
 	LOG(3, "path: %s", path);
 
-	if (PathIsRelativeA(path))
+	if (path == NULL || path[0] == '\0')
 		return 0;
-	else
+
+	if (path[0] == '\\' || path[1] == ':')
 		return 1;
+
+	return 0;
 }

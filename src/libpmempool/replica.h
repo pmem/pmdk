@@ -122,6 +122,8 @@ int replica_is_poolset_transformed(unsigned flags);
 size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
 int replica_check_part_sizes(struct pool_set *set, size_t min_size);
 int replica_check_part_dirs(struct pool_set *set);
+int replica_check_local_part_dir(struct pool_set *set, unsigned repn,
+		unsigned partn);
 
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
