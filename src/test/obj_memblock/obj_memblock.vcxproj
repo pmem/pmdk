@@ -42,6 +42,8 @@
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ctree.c" />
+    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="obj_memblock.c" />
   </ItemGroup>
   <ItemGroup>

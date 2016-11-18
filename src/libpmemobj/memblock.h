@@ -39,6 +39,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "heap_layout.h"
 #include "memops.h"
@@ -171,7 +172,8 @@ struct memory_block_ops {
 			struct palloc_heap *heap, void *ptr);
 	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
 		enum memblock_state, struct operation_context *ctx);
-	void *(*get_lock)(struct memory_block *m, struct palloc_heap *heap);
+	pthread_mutex_t *(*get_lock)(struct memory_block *m,
+		struct palloc_heap *heap);
 	enum memblock_state (*get_state)(struct memory_block *m,
 		struct palloc_heap *heap);
 	void *(*get_data)(struct memory_block *m, struct palloc_heap *heap);

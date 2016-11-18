@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,11 +67,11 @@ recycler_new(struct palloc_heap *heap)
 {
 	struct recycler *r = Malloc(sizeof(struct recycler));
 	if (r == NULL)
-		goto error_alloc_tree;
+		goto error_alloc_recycler;
 
 	r->runs = ctree_new();
 	if (r->runs == NULL)
-		goto error_alloc_recycler;
+		goto error_alloc_tree;
 
 	r->heap = heap;
 

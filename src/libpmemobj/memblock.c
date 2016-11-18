@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,7 +101,7 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
 }
 
 /*
- * run_get_data -- returns pointer to the data of a huge block
+ * huge_get_data -- returns pointer to the data of a huge block
  */
 static void *
 huge_get_data(struct memory_block *m, struct palloc_heap *heap)
@@ -284,7 +284,7 @@ run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
  *	single bucket there's no reason to lock them - the bucket itself is
  *	protected.
  */
-static void *
+static pthread_mutex_t *
 huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
 {
 	return NULL;
@@ -293,7 +293,7 @@ huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
 /*
  * run_get_lock -- gets the runtime mutex from the heap.
  */
-static void *
+static pthread_mutex_t *
 run_get_lock(struct memory_block *m, struct palloc_heap *heap)
 {
 	return heap_get_run_lock(heap, m->chunk_id);

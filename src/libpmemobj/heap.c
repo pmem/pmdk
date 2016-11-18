@@ -48,6 +48,7 @@
 #include "valgrind_internal.h"
 #include "recycler.h"
 #include "container_ctree.h"
+#include "container_seglists.h"
 
 #define MAX_RUN_LOCKS 1024
 
@@ -466,7 +467,7 @@ heap_create_alloc_class_buckets(struct heap_rt *h,
 	if (slot == MAX_BUCKETS)
 		goto out;
 
-	h->buckets[slot] = &(bucket_run_new(slot, container_new_ctree(),
+	h->buckets[slot] = &(bucket_run_new(slot, container_new_seglists(),
 			unit_size, unit_max, unit_max_alloc)->super);
 
 	if (h->buckets[slot] == NULL)
@@ -475,7 +476,7 @@ heap_create_alloc_class_buckets(struct heap_rt *h,
 	int i;
 	for (i = 0; i < (int)h->ncaches; ++i) {
 		h->caches[i].buckets[slot] =
-			&(bucket_run_new(slot, container_new_ctree(),
+			&(bucket_run_new(slot, container_new_seglists(),
 				unit_size, unit_max, unit_max_alloc)->super);
 		if (h->caches[i].buckets[slot] == NULL)
 			goto error_cache_bucket_new;
