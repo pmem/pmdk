@@ -101,6 +101,10 @@ static struct rpmem_err_str_errno {
 		.err	= EACCES,
 		.str	= "Pool set permission denied",
 	},
+	[RPMEM_ERR_POOL_CFG] = {
+		.err	= EINVAL,
+		.str	= "Invalid pool set configuration",
+	},
 };
 
 static char *Rpmem_cmds;

@@ -69,7 +69,7 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	if (argc < 4) {
-		fprintf(stderr, "usage: %s [create|open]"
+		fprintf(stderr, "usage: %s [create|open|remove]"
 			" <target> <pool_set> [options]\n", argv[0]);
 		return 1;
 	}
