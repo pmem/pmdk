@@ -555,17 +555,6 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		return NULL;
 	}
 
-	if (dax) {
-		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
-			ERR("invalid flag for device dax %x", flags);
-			errno = EINVAL;
-			return NULL;
-		} else {
-			/* we are ignoring all of the flags anyway */
-			flags = 0;
-		}
-	}
-
 	if (flags & PMEM_FILE_CREATE) {
 		if ((off_t)len < 0) {
 			ERR("invalid file length %zu", len);
@@ -594,6 +583,18 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		ERR("PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
+	}
+
+	if (dax) {
+		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
+			ERR("invalid flag for device dax %x", flags);
+			errno = EINVAL;
+			return NULL;
+		} else {
+			/* we are ignoring all of the flags anyway */
+			flags = 0;
+			open_flags = O_RDWR;
+		}
 	}
 
 #if USE_O_TMPFILE
