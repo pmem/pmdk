@@ -40,6 +40,9 @@
 #include "obj.h"
 #include "unittest.h"
 #include "util.h"
+#include "container_ctree.h"
+#include "container_seglists.h"
+#include "container.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
@@ -64,6 +67,98 @@ obj_heap_memset_persist(void *ctx, void *ptr, int c, size_t sz)
 	memset(ptr, c, sz);
 	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
 	return ptr;
+}
+
+static void
+init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
+{
+	l->zone0.chunk_headers[chunk_id].size_idx = 1;
+	l->zone0.chunk_headers[chunk_id].type = CHUNK_TYPE_RUN;
+
+	struct chunk_run *run = (struct chunk_run *)
+		&l->zone0.chunks[chunk_id];
+
+	run->block_size = 1024;
+	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+	UT_ASSERT(score % 64 == 0);
+	score /= 64;
+
+	for (; score > 0; --score) {
+		run->bitmap[score] = 0;
+	}
+}
+
+static void
+test_container(struct block_container *bc, struct palloc_heap *heap)
+{
+	UT_ASSERTne(bc, NULL);
+
+	struct memory_block a = {1, 0, 1, 0};
+	struct memory_block b = {2, 0, 2, 0};
+	struct memory_block c = {3, 0, 3, 0};
+	struct memory_block d = {3, 0, 5, 0};
+	init_run_with_score(heap->layout, 1, 128);
+	init_run_with_score(heap->layout, 2, 128);
+	init_run_with_score(heap->layout, 3, 128);
+	init_run_with_score(heap->layout, 5, 128);
+
+	int ret;
+	ret = bc->c_ops->insert(bc, heap, a);
+	UT_ASSERTeq(ret, 0);
+
+	ret = bc->c_ops->insert(bc, heap, b);
+	UT_ASSERTeq(ret, 0);
+
+	ret = bc->c_ops->insert(bc, heap, c);
+	UT_ASSERTeq(ret, 0);
+
+	ret = bc->c_ops->insert(bc, heap, d);
+	UT_ASSERTeq(ret, 0);
+
+	struct memory_block invalid_ret = {0, 0, 6, 0};
+	ret = bc->c_ops->get_rm_bestfit(bc, &invalid_ret);
+	UT_ASSERTeq(ret, ENOMEM);
+
+	struct memory_block b_ret = {0, 0, 2, 0};
+	ret = bc->c_ops->get_rm_bestfit(bc, &b_ret);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(b_ret.chunk_id, b.chunk_id);
+
+	struct memory_block a_ret = {0, 0, 1, 0};
+	ret = bc->c_ops->get_rm_bestfit(bc, &a_ret);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(a_ret.chunk_id, a.chunk_id);
+
+	struct memory_block c_ret = {0, 0, 3, 0};
+	ret = bc->c_ops->get_rm_bestfit(bc, &c_ret);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(c_ret.chunk_id, c.chunk_id);
+
+	struct memory_block d_ret = {0, 0, 4, 0}; /* less one than target */
+	ret = bc->c_ops->get_rm_bestfit(bc, &d_ret);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(d_ret.chunk_id, c.chunk_id);
+
+	ret = bc->c_ops->get_rm_bestfit(bc, &c_ret);
+	UT_ASSERTeq(ret, ENOMEM);
+
+	ret = bc->c_ops->insert(bc, heap, a);
+	UT_ASSERTeq(ret, 0);
+
+	ret = bc->c_ops->insert(bc, heap, b);
+	UT_ASSERTeq(ret, 0);
+
+	ret = bc->c_ops->insert(bc, heap, c);
+	UT_ASSERTeq(ret, 0);
+
+	bc->c_ops->rm_all(bc);
+	ret = bc->c_ops->is_empty(bc);
+	UT_ASSERTeq(ret, 1);
+
+	ret = bc->c_ops->get_rm_bestfit(bc, &c_ret);
+	UT_ASSERTeq(ret, ENOMEM);
+
+	bc->c_ops->destroy(bc);
 }
 
 static void
@@ -92,6 +187,12 @@ test_heap()
 		pop, p_ops) == 0);
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
+
+	test_container((struct block_container *)container_new_ctree(),
+		heap);
+
+	test_container((struct block_container *)container_new_seglists(),
+		heap);
 
 	struct bucket *b_small = heap_get_best_bucket(heap, 1);
 	struct bucket *b_big = heap_get_best_bucket(heap, 2048);
@@ -146,28 +247,10 @@ test_heap()
 }
 
 static void
-init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
-{
-	l->zone0.chunk_headers[chunk_id].size_idx = 1;
-	l->zone0.chunk_headers[chunk_id].type = CHUNK_TYPE_RUN;
-
-	struct chunk_run *run = (struct chunk_run *)
-		&l->zone0.chunks[chunk_id];
-
-	run->block_size = 1024;
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
-	UT_ASSERT(score % 64 == 0);
-	score /= 64;
-
-	for (; score > 0; --score) {
-		run->bitmap[score] = 0;
-	}
-}
-
-static void
 test_recycler()
 {
-	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_pagesize);
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
+		Ut_mmap_align);
 	PMEMobjpool *pop = &mpop->p;
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->size = MOCK_POOL_SIZE;

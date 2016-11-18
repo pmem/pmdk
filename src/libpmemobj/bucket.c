@@ -177,9 +177,6 @@ int
 bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
 	struct memory_block m)
 {
-	if (b->type == BUCKET_HUGE && m.block_off != 0)
-		ASSERT(0);
-
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
 		size_t rsize = m.size_idx * b->unit_size;
@@ -187,7 +184,7 @@ bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
 		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
 	}
 #endif
-	return b->c_ops->insert(b->container, m);
+	return b->c_ops->insert(b->container, heap, m);
 }
 
 /*
@@ -197,6 +194,6 @@ void
 bucket_delete(struct bucket *b)
 {
 	util_mutex_destroy(&b->lock);
-	b->c_ops->delete(b->container);
+	b->c_ops->destroy(b->container);
 	Free(b);
 }

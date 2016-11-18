@@ -94,6 +94,12 @@
     <ClCompile Include="recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="container_ctree.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="container_seglists.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -177,7 +183,6 @@
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="..\include\libpmemobj\atomic.h">
       <Filter>Header Files\libpmemobj</Filter>
     </ClInclude>
@@ -221,9 +226,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tx.h">
-=======
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="recycler.h">
->>>>>>> bd494e7... obj: rewrite palloc free and unused run handling logic
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="container_ctree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="container_seglists.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

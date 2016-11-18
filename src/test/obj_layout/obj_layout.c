@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct chunk_run);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, block_size);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, bucket_vptr);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, incarnation_claim);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, bitmap);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, data);
 	ASSERT_ALIGNED_CHECK(struct chunk_run);
