@@ -30,7 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_backup/TEST6 -- test backup to poolset which part already exists
+# libpmempool_backup/TEST6 -- test backup to poolset which parts already exist
+# or almost all parts already exist
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -38,7 +39,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_backup\TEST6"
+$Env:UNITTEST_NAME = "libpmempool_backup/TEST6"
 $Env:UNITTEST_NUM = "6"
 
 . ..\unittest\unittest.ps1
@@ -62,8 +63,19 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create $POOL_TYPES[$i] `
 		$POOL_CREATE_PARAMS[$i] $POOLSET
 
-    touch ${POOL_PART}3$BACKUP
+	# create backup poolset parts
+	for ($j=1; $j -lt 5; $j++ ) {
+		truncate -s 20M $POOL_PART$j$BACKUP
+	}
 
+	backup_and_compare $POOLSET $POOL_TYPES[$i]
+
+	# one of parts is too small
+	truncate -s 10M ${POOL_PART}3${BACKUP}
+	backup_and_compare $POOLSET $POOL_TYPES[$i]
+
+	# one of parts does not exist
+	rm ${POOL_PART}3${BACKUP}
 	backup_and_compare $POOLSET $POOL_TYPES[$i]
 }
 
