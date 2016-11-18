@@ -53,6 +53,7 @@
 
 #include "common.h"
 #include "output.h"
+#include "libpmem.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 #include "libpmemobj.h"
@@ -1432,4 +1433,23 @@ pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 	if (file->addr == MAP_FAILED)
 		return NULL;
 	return (char *)file->addr + offset;
+}
+
+/*
+ * pool_set_file_persist -- propagates and persists changes to a memory range
+ */
+void
+pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
+{
+	uintptr_t offset = (uintptr_t)((char *)addr -
+		(char *)file->poolset->replica[0]->part[0].addr);
+
+	for (unsigned r = 1; r < file->poolset->nreplicas; ++r) {
+		struct pool_replica *rep = file->poolset->replica[r];
+		void *dst = (char *)rep->part[0].addr + offset;
+		memcpy(dst, addr, len);
+		PERSIST_GENERIC(rep->is_pmem, dst, len);
+	}
+	struct pool_replica *rep = file->poolset->replica[0];
+	PERSIST_GENERIC(rep->is_pmem, (void *)addr, len);
 }
