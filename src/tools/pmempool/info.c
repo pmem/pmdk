@@ -47,6 +47,7 @@
 #include <sys/param.h>
 #define __USE_UNIX98
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "common.h"
 #include "output.h"
@@ -773,10 +774,19 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		if (util_options_verify(pip->opts, pip->type))
 			return -1;
 
-		pip->pfile = pool_set_file_open(file_name, 1, !pip->args.force);
+		pip->pfile = pool_set_file_open(file_name, 0, !pip->args.force);
 		if (!pip->pfile) {
 			perror(file_name);
 			return -1;
+		}
+
+		if (pip->type != PMEM_POOL_TYPE_BTT &&
+			mprotect(pip->pfile->addr, pip->pfile->size,
+			PROT_READ) < 0) {
+			outv_err("%s: failed to change pool protection",
+				pip->pfile->fname);
+			ret = -1;
+			goto out_close;
 		}
 
 		if (pip->args.obj.replica) {

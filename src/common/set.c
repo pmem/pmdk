@@ -2401,6 +2401,12 @@ util_pool_open_nocheck(struct pool_set *set, int rdonly)
 {
 	LOG(3, "set %p rdonly %i", set, rdonly);
 
+	if (rdonly && set->replica[0]->part[0].is_dax) {
+		ERR("device dax cannot be mapped privately");
+		errno = ENOTSUP;
+		return -1;
+	}
+
 	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
@@ -2472,6 +2478,12 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	int ret = util_poolset_create_set(setp, path, 0, minsize);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
+		ERR("device dax cannot be mapped privately");
+		errno = ENOTSUP;
 		return -1;
 	}
 
@@ -2553,6 +2565,12 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 	int ret = util_poolset_create_set(setp, path, 0, minsize);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
+		ERR("device dax cannot be mapped privately");
+		errno = ENOTSUP;
 		return -1;
 	}
 
