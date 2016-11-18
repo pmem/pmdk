@@ -78,7 +78,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset3 $DIR/testset4\
 	$DIR/testset5 $DIR/testset6\
 	$DIR/testset7\
-	-mo:`readlink -mn $DIR/testfile82` $DIR/testset8\
+	-mo:$DIR/testfile82 $DIR/testset8\
 	$DIR/testset9 $DIR/testset10\
 	$DIR/testset11
 
