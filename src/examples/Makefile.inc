@@ -104,19 +104,19 @@ endif
 all: $(TMP_HEADERS)
 
 %.o: %.c $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	$(CC) -c -o $@ $(CFLAGS) $(INCS) $<
 
 %.o: %.cpp $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	$(CXX) -c -o $@ $(CXXFLAGS) $(INCS) $<
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 %.hpptmp: %.hpp
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 $(PROGS): | $(TMP_HEADERS)

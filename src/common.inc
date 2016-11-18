@@ -123,7 +123,7 @@ cstyle: cstyle-check
 format: cstyle-format
 
 define check-cstyle
-	if [ "$(CSTYLEON)" -eq "1" ]; then $(STYLE_CHECK) check $1; fi
+	@if [ "$(CSTYLEON)" -eq "1" ]; then $(STYLE_CHECK) check $1; fi
 endef
 
 define sub-target-foreach

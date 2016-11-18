@@ -253,13 +253,13 @@ pmemblk_priv.o: $(PMEMBLK_PRIV_OBJ)
 objdir=.
 
 %.o: %.c $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
 	$(create-deps)
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 test check pcheck: all

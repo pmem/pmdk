@@ -232,13 +232,13 @@ endif
 $(eval $(cstyle-rule))
 
 $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 	$(create-deps)
 
 $(objdir)/%.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 .PHONY: all clean clobber install uninstall cstyle

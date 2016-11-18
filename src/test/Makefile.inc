@@ -257,19 +257,19 @@ $(TARGET): $(TMP_HEADERS) $(OBJS) $(UT) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 objdir=.
 
 %.o: %.c $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
 	$(create-deps)
 
 %.o: %.cpp $(MAKEFILE_DEPS)
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
 	$(create-deps)
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 clean:

@@ -46,7 +46,7 @@ cstyle:
 	$(CSTYLE) *.[ch]
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 clean:

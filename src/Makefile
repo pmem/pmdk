@@ -101,12 +101,12 @@ HEADERS =\
 TMP_HEADERS := $(addprefix debug/, $(addsuffix tmp, $(HEADERS)))
 
 debug/%.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p `dirname $@`
 	@touch $@
 
 debug/%.hpptmp: %.hpp
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p `dirname $@`
 	@touch $@
 

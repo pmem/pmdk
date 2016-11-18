@@ -170,13 +170,13 @@ CFLAGS += $(EXTRA_CFLAGS)
 objdir=.
 
 %.o: %.c Makefile
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $<
 	$(create-deps)
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 $(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)

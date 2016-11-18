@@ -83,13 +83,13 @@ $(TARGET): unittest.htmp $(OBJS)
 objdir=.
 
 .c.o:
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
 	$(create-deps)
 
 %.htmp: %.h
-	@$(call check-cstyle, $<)
+	$(call check-cstyle, $<)
 	@touch $@
 
 clean:
