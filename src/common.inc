@@ -126,6 +126,10 @@ ifeq ($(CSTYLEON),1)
 define check-cstyle
 	@$(STYLE_CHECK) check $1
 endef
+else ifeq ($(CSTYLEON),2)
+define check-cstyle
+	@$(STYLE_CHECK) check $1 || true
+endef
 else
 define check-cstyle
 endef
