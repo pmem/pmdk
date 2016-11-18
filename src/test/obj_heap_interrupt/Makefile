@@ -35,7 +35,6 @@
 #
 TARGET = obj_heap_interrupt
 OBJS = obj_heap_interrupt.o
-HEADERS = mocks_windows.h
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug

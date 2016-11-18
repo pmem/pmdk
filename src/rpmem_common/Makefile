@@ -34,13 +34,7 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
-HEADERS =\
-	rpmem_common.h\
-	rpmem_common_log.h\
-	rpmem_fip_common.h\
-	rpmem_fip_lane.h\
-	rpmem_fip_msg.h\
-	rpmem_proto.h
+HEADERS = $(wildcard *.h)
 
 include $(TOP)/src/common.inc
 

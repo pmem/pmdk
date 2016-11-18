@@ -32,12 +32,6 @@
 
 LIBRARIES = hashmap_atomic hashmap_tx
 
-HEADERS =\
-	hashmap_atomic.h\
-	hashmap_internal.h\
-	hashmap_tx.h\
-	hashmap.h
-
 LIBS = -lpmemobj -lpmem -pthread
 
 include ../../Makefile.inc

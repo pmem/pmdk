@@ -34,7 +34,6 @@
 # examples/libpmemobj/list_map/Makefile -- build the list map example
 #
 LIBRARIES = skiplist_map
-HEADERS = skiplist_map.h
 
 LIBS = -lpmemobj -pthread
 

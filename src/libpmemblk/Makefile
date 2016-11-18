@@ -52,11 +52,6 @@ SOURCE =\
 	btt.c\
 	libpmemblk.c
 
-HEADERS =\
-	blk.h\
-	btt_layout.h\
-	btt.h
-
 include ../Makefile.inc
 
 LIBS += -pthread -lpmem

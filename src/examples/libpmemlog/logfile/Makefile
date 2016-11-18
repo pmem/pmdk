@@ -37,8 +37,6 @@ PROGS = addlog printlog
 
 LIBS = -lpmemlog -lpmem -pthread
 
-HEADERS = logentry.h
-
 include ../../Makefile.inc
 
 addlog: addlog.o

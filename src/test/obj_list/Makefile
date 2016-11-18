@@ -35,7 +35,6 @@
 #
 TARGET = obj_list
 OBJS = obj_list.o obj_list_mocks.o obj_list_mocks_palloc.o
-HEADERS = mocks_windows.h obj_list.h
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug

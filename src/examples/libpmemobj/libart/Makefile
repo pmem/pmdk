@@ -49,7 +49,6 @@
 
 PROGS = arttree arttree_structures
 LIBRARIES = art
-HEADERS = art.h arttree_structures.h arttree.h
 
 include ../../Makefile.inc
 

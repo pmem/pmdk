@@ -39,7 +39,6 @@ include $(TOP)/src/common.inc
 NCURSES := $(call check_package, ncurses)
 ifeq ($(NCURSES),y)
 PROGS = panaconda
-HEADERS = panaconda.hpp
 else
 $(info NOTE: Skipping panaconda because ncurses is missing \
 -- see src/examples/libpmemobj/panaconda/README for details.)

@@ -35,7 +35,6 @@
 #
 TARGET = obj_bucket
 OBJS = obj_bucket.o
-HEADERS = mocks_windows.h
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug

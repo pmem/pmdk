@@ -31,8 +31,6 @@
 #
 PROGS = map_cli
 
-HEADERS = ctree_map_persistent.hpp ctree_map_transient.hpp
-
 LIBS = -lpmemobj -lpmem -pthread
 
 COMPILE_LANG = cpp

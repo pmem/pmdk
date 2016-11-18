@@ -35,7 +35,6 @@
 #
 TARGET = vmmalloc_init
 OBJS = vmmalloc_init.o
-HEADERS = libtest.h
 
 include ../Makefile.inc
 

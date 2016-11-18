@@ -34,7 +34,6 @@
 # examples/libpmemobj/string_store_tx/Makefile -- build the intro 2 example
 #
 PROGS = writer reader
-HEADERS = layout.h
 
 LIBS = -lpmemobj -lpmem -pthread
 

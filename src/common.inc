@@ -43,6 +43,7 @@ CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
+HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)

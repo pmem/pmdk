@@ -40,16 +40,6 @@ PROGS = mapcli data_store
 LIBRARIES = map_ctree map_btree map_rbtree map_skiplist\
 	    map_hashmap_atomic map_hashmap_tx map_rtree\
 	    map
-HEADERS =\
-	kv_protocol.h\
-	map_btree.h\
-	map_ctree.h\
-	map_hashmap_atomic.h\
-	map_hashmap_tx.h\
-	map_rbtree.h\
-	map_rtree.h\
-	map_skiplist.h\
-	map.h
 
 LIBUV := $(call check_package, libuv --atleast-version 1.0)
 ifeq ($(LIBUV),y)

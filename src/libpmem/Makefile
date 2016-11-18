@@ -48,10 +48,6 @@ SOURCE =\
 	pmem.c\
 	pmem_linux.c
 
-HEADERS =\
-	cpu.h\
-	pmem.h\
-
 include ../Makefile.inc
 
 CFLAGS += -DNO_LIBPTHREAD

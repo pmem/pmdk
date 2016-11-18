@@ -51,9 +51,6 @@ SOURCE =\
 	libpmemlog.c\
 	log.c
 
-HEADERS =\
-	log.h
-
 include ../Makefile.inc
 
 LIBS += -pthread -lpmem

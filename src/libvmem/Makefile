@@ -44,9 +44,6 @@ SOURCE = libvmem.c vmem.c\
 	$(COMMON)/util_linux.c\
 	$(COMMON)/util.c
 
-HEADERS =\
-	vmem.h
-
 default: all
 
 include ../jemalloc/jemalloc.mk

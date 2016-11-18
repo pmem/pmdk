@@ -35,6 +35,7 @@
 #
 TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..
+HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
 INCDIR = $(TOP_SRC)/include
 LIBDIR = $(TOP_SRC)/debug

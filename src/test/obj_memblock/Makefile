@@ -35,7 +35,6 @@
 #
 TARGET = obj_memblock
 OBJS = obj_memblock.o
-HEADERS = mocks_windows.h
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug

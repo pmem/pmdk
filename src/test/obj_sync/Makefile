@@ -40,7 +40,6 @@ vpath %.c $(TOP)/src/libpmemobj
 TARGET = obj_sync
 OBJS = obj_sync.o sync.o
 LIBS = -lrt
-HEADERS = mocks_windows.h
 
 LIBPMEMCOMMON=y
 LIBPMEM=y

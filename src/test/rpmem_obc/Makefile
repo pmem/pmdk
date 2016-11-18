@@ -49,8 +49,6 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmem_ssh.o rpmem_cmd.o
 
-HEADERS = rpmem_obc_test_common.h
-
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 
