@@ -105,6 +105,7 @@ check_data_alloc(void)
 		return NULL;
 	}
 
+	memset(&data->step_data, 0, sizeof(struct check_step_data));
 	data->check_status_cache = NULL;
 	data->error = NULL;
 	data->step = 0;
