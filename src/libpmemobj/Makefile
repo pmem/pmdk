@@ -50,6 +50,7 @@ SOURCE =\
 	$(COMMON)/util_linux.c\
 	bucket.c\
 	container_ctree.c\
+	container_seglists.c\
 	ctree.c\
 	cuckoo.c\
 	heap.c\

@@ -284,7 +284,7 @@ run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
  *	single bucket there's no reason to lock them - the bucket itself is
  *	protected.
  */
-static void *
+static pthread_mutex_t *
 huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
 {
 	return NULL;
@@ -293,7 +293,7 @@ huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
 /*
  * run_get_lock -- gets the runtime mutex from the heap.
  */
-static void *
+static pthread_mutex_t *
 run_get_lock(struct memory_block *m, struct palloc_heap *heap)
 {
 	return heap_get_run_lock(heap, m->chunk_id);
