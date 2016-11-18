@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_backup/TEST7 -- backup pool file to the backup poolset
+# libpmempool_backup/TEST7 -- test backup to pool which already exists
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -38,7 +38,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_backup\TEST7"
+$Env:UNITTEST_NAME = "libpmempool_backup/TEST7"
 $Env:UNITTEST_NUM = "7"
 
 . ..\unittest\unittest.ps1
@@ -57,14 +57,16 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	$POOLFILE= -join("$DIR/pool.", $POOL_TYPES[$i]);
 	rm $POOLFILE -Force -ea si
 
-	# prepare backup poolset file
-	create_poolset_variation 1 $BACKUP
-	mv $POOLSET$BACKUP $POOLFILE$BACKUP
-
 	# create source poolset
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create $POOL_TYPES[$i] `
-		$POOL_CREATE_PARAMS[$i] $POOLFILE
+		$POOL_CREATE_PARAMS[$i] --size 20M $POOLFILE
 
+	# create backup pool file
+	truncate -s 20M $POOLFILE$BACKUP
+	backup_and_compare $POOLFILE $POOL_TYPES[$i]
+
+	# create too small backup pool file
+	truncate -s 10M $POOLFILE$BACKUP
 	backup_and_compare $POOLFILE $POOL_TYPES[$i]
 }
 rm $OUT -Force -ea si

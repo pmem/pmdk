@@ -1,18 +1,109 @@
-libpmempool_backup$(nW)TEST6: START: libpmempool_test
+libpmempool_backup/TEST6: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t blk -r 1
-unable to backup to the poolset with already existing parts
-unable to backup poolset
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+arena 0: BTT Info header checksum correct
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+status = consistent
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t blk -r 1
+destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 status = fatal
-libpmempool_backup$(nW)TEST6: Done
-libpmempool_backup$(nW)TEST6: START: libpmempool_test
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t blk -r 1
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+checking pmemblk header
+pmemblk header correct
+checking BTT Info headers
+arena 0: BTT Info header checksum correct
+checking BTT Map and Flog
+arena 0: checking BTT Map and Flog
+status = consistent
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
-unable to backup to the poolset with already existing parts
-unable to backup poolset
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+checking pmemlog header
+pmemlog header correct
+status = consistent
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
+destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 status = fatal
-libpmempool_backup$(nW)TEST6: Done
-libpmempool_backup$(nW)TEST6: START: libpmempool_test
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+checking pmemlog header
+pmemlog header correct
+status = consistent
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
-unable to backup to the poolset with already existing parts
-unable to backup poolset
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+status = consistent
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
+destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 status = fatal
-libpmempool_backup$(nW)TEST6: Done
+libpmempool_backup/TEST6: Done
+libpmempool_backup/TEST6: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
+part files of the destionation poolset of the backup already exist. Do you want to overwrite them?
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header checksum correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header checksum correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header checksum correct
+replica 0 part 3: checking pool header
+replica 0 part 3: pool header checksum correct
+status = consistent
+libpmempool_backup/TEST6: Done
