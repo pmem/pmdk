@@ -126,6 +126,8 @@ nodes\[aq] hardware.
 See \f[B]LANES\f[] section for details.
 The \f[I]create_attr\f[] structure contains the attributes used for
 creating the remote pool.
+If \f[I]create_attr\f[] is NULL, a zeroed structure with attributes will
+be used to create the pool.
 The attributes are stored in pool\[aq]s meta\-data and can be read when
 opening the remote pool using \f[B]rpmem_open\f[]() function call.
 Upon success the \f[B]rpmem_create\f[]() returns an opaque handle to the

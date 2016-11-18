@@ -3308,6 +3308,7 @@ described in the \f[B]DEBUGGING AND ERROR HANDLING\f[] section below.
 cannot perform the consistency check due to other errors.
 \f[B]pmemobj_check\f[]() opens the given \f[I]path\f[] read\-only so it
 never makes any changes to the file.
+This function is not supported on device dax.
 .SH DEBUGGING AND ERROR HANDLING
 .PP
 Two versions of \f[B]libpmemobj\f[] are typically available on a

@@ -50,10 +50,13 @@ structure described in the \f[C]poolset_file_dst\f[] file.
 .PP
 The following operations are supported:
 .IP \[bu] 2
-adding replicas \- a new replica can be added and synchronized with
-other replicas in the poolset,
+adding replicas \- one or more new replicas can be added and
+synchronized with other replicas in the poolset,
 .IP \[bu] 2
-removing replicas \- replicas can be removed from the poolset.
+removing replicas \- one or more replicas can be removed from the
+poolset,
+.IP \[bu] 2
+reordering of replicas \- the order of existing replicas can be changed.
 .PP
 Currently these operations are allowed only for \f[B]pmemobj\f[] pools
 (see \f[B]libpmemobj\f[](3)).
@@ -63,8 +66,11 @@ changed.
 .PP
 The \f[I]poolset_file_dst\f[] argument points to the target poolset.
 .PP
-When adding or deleting replica, the two poolset files can differ only
+When adding or deleting replicas, the two poolset files can differ only
 in the definitions of replicas which are to be added or deleted.
+One cannot add and remove replicas in the same step.
+Only one of these operations can be performed at a time.
+Reordering replicas can be combined with any of them.
 Also, to add a replica it is necessary for its effective size to match
 or exceed the pool size.
 Otherwise the whole operation fails and no changes are applied.
