@@ -319,6 +319,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 		params->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
+		params->is_device_dax = set->replica[0]->part[0].is_dax;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
 #ifndef _WIN32
@@ -342,6 +343,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			ret = -1;
 			goto out_close;
 		}
+		params->is_device_dax = util_file_is_device_dax(ppc->path);
 	}
 
 	/* stop processing for BTT device */
@@ -501,8 +503,21 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	if (pool_params_parse(ppc, &pool->params, 0))
 		goto error;
 
-	int rdonly = CHECK_WITHOUT_FIXING(ppc);
-	pool->set_file = pool_set_file_open(ppc->path, &pool->params, rdonly);
+	int rdonly = CHECK_IS_NOT(ppc, REPAIR);
+	int prv = CHECK_IS(ppc, DRY_RUN);
+
+	if (prv && pool->params.is_device_dax) {
+		errno = ENOTSUP;
+		ERR("!cannot perform a dry run on dax device");
+		goto error;
+	}
+
+	pool->set_file = pool_set_file_open(ppc->path, &pool->params, prv);
+
+	if (rdonly && mprotect(pool->set_file->addr, pool->set_file->size,
+		PROT_READ) < 0)
+		goto error;
+
 	if (!pool->set_file)
 		goto error;
 
@@ -776,17 +791,17 @@ pool_set_files_count(struct pool_set_file *file)
  * pool_set_file_map_headers -- map headers of each pool set part file
  */
 int
-pool_set_file_map_headers(struct pool_set_file *file, int rdonly)
+pool_set_file_map_headers(struct pool_set_file *file, int rdonly, int prv)
 {
 	if (!file->poolset)
 		return -1;
 
-	int flags = rdonly ? MAP_PRIVATE : MAP_SHARED;
 	for (unsigned r = 0; r < file->poolset->nreplicas; r++) {
 		struct pool_replica *rep = file->poolset->replica[r];
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
-			if (util_map_hdr(part, flags)) {
+			if (util_map_hdr(part,
+				prv ? MAP_PRIVATE : MAP_SHARED, rdonly)) {
 				part->hdr = NULL;
 				goto err;
 			}

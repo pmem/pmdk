@@ -294,7 +294,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
  * util_map_hdr -- map a header of a pool set
  */
 int
-util_map_hdr(struct pool_set_part *part, int flags)
+util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 {
 	LOG(3, "part %p flags %d", part, flags);
 
@@ -309,7 +309,8 @@ util_map_hdr(struct pool_set_part *part, int flags)
 		 * is allowed to be a part of a poolset.
 		 */
 		hdrp = mmap(NULL, part->filesize,
-			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, part->fd, 0);
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -317,7 +318,8 @@ util_map_hdr(struct pool_set_part *part, int flags)
 		part->hdrsize = part->filesize;
 	} else {
 		hdrp = mmap(NULL, POOL_HDR_SIZE,
-			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, part->fd, 0);
 
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
@@ -358,7 +360,7 @@ util_unmap_hdr(struct pool_set_part *part)
  */
 int
 util_map_part(struct pool_set_part *part, void *addr, size_t size,
-	size_t offset, int flags)
+	size_t offset, int flags, int rdonly)
 {
 	LOG(3, "part %p addr %p size %zu offset %zu flags %d",
 		part, addr, size, offset, flags);
@@ -375,7 +377,8 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 		 * part. This means we can map the whole device.
 		 */
 		addrp = mmap(NULL, part->filesize,
-			PROT_READ|PROT_WRITE, flags, part->fd, 0);
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, part->fd, 0);
 		if (addrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -386,7 +389,9 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 		if (!size)
 			size = (part->filesize & ~(Mmap_align - 1)) - offset;
 
-		addrp = mmap(addr, size, PROT_READ|PROT_WRITE, flags, part->fd,
+		addrp = mmap(addr, size,
+			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+				flags, part->fd,
 				(off_t)offset);
 		if (addrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
@@ -1772,7 +1777,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 
 		/* map the first part and reserve space for remaining parts */
 		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
-			flags) != 0) {
+			flags, 0) != 0) {
 			LOG(2, "pool mapping failed - replica #%u part #0",
 				repidx);
 			return -1;
@@ -1785,7 +1790,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_map_hdr(&rep->part[p], flags) != 0) {
+			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
 				LOG(2, "header mapping failed - part #%d", p);
 				goto err;
 			}
@@ -1817,7 +1822,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		for (unsigned p = 1; p < rep->nparts; p++) {
 			/* map data part */
 			if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
-					flags | MAP_FIXED) != 0) {
+					flags | MAP_FIXED, 0) != 0) {
 				/*
 				 * if we can't map the part at the address we
 				 * asked for, unmap all the parts that are
@@ -2188,7 +2193,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 		/* map the first part and reserve space for remaining parts */
 		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
-			flags) != 0) {
+			flags, 0) != 0) {
 			LOG(2, "pool mapping failed - replica #%u part #0",
 				repidx);
 			return -1;
@@ -2201,7 +2206,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_map_hdr(&rep->part[p], flags) != 0) {
+			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
 				LOG(2, "header mapping failed - part #%d", p);
 				goto err;
 			}
@@ -2216,7 +2221,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		for (unsigned p = 1; p < rep->nparts; p++) {
 			/* map data part */
 			if (util_map_part(&rep->part[p], addr, 0, Mmap_align,
-					flags | MAP_FIXED) != 0) {
+					flags | MAP_FIXED, 0) != 0) {
 				/*
 				 * if we can't map the part at the address we
 				 * asked for, unmap all the parts that are

@@ -77,7 +77,7 @@ Answer yes on all questions.
 
 `-N, --no-exec`
 
-Don't execute, just show what would be done.
+Don't execute, just show what would be done. Not supported on device dax.
 
 `-b, --backup <file>`
 

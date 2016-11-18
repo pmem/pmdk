@@ -888,8 +888,10 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 	COMPILE_ERROR_ON(sizeof(union location) !=
 		sizeof(struct check_step_data));
 
-	int rdonly = CHECK_WITHOUT_FIXING(ppc);
-	if (pool_set_file_map_headers(ppc->pool->set_file, rdonly)) {
+	int rdonly = CHECK_IS_NOT(ppc, REPAIR);
+	int prv = CHECK_IS(ppc, DRY_RUN);
+
+	if (pool_set_file_map_headers(ppc->pool->set_file, rdonly, prv)) {
 		ppc->result = CHECK_RESULT_ERROR;
 		CHECK_ERR(ppc, "cannot map pool headers");
 		return;

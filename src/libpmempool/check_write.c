@@ -266,6 +266,14 @@ check_write(PMEMpoolcheck *ppc)
 	COMPILE_ERROR_ON(sizeof(union location) !=
 		sizeof(struct check_step_data));
 
+	/*
+	 * XXX: Disabling individual checks based on type should be done in the
+	 *	step structure. This however requires refactor of the step
+	 *	processing code.
+	 */
+	if (CHECK_IS_NOT(ppc, REPAIR))
+		return;
+
 	union location *loc = (union location *)check_get_step_data(ppc->data);
 
 	/* do all steps */

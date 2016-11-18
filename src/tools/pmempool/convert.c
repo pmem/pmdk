@@ -175,7 +175,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		struct pool_replica *rep = psf->poolset->replica[r];
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			struct pool_set_part *part = &rep->part[p];
-			if (util_map_hdr(part, MAP_SHARED) != 0) {
+			if (util_map_hdr(part, MAP_SHARED, 0) != 0) {
 				fprintf(stderr, "Failed to map headers.\n"
 						"Conversion did not start.\n");
 				ret = -1;

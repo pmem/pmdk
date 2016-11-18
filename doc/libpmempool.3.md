@@ -163,7 +163,7 @@ struct pmempool_check_args
 The *flags* argument accepts any combination of the following values (ORed):
 
 + **PMEMPOOL_CHECK_REPAIR** - perform repairs
-+ **PMEMPOOL_CHECK_DRY_RUN** - emulate repairs
++ **PMEMPOOL_CHECK_DRY_RUN** - emulate repairs, not supported on device dax
 + **PMEMPOOL_CHECK_ADVANCED** - perform hazardous repairs
 + **PMEMPOOL_CHECK_ALWAYS_YES** - do not ask before repairs
 + **PMEMPOOL_CHECK_VERBOSE** - generate info statuses
