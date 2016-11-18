@@ -79,8 +79,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET1
 cat $LOG >> $LOG_TEMP
 
 # Delete parts from the second replica
-rm -f $DIR/part00
-rm -f $DIR/part01
+rm -f $DIR/part10
+rm -f $DIR/part11
 
 # Synchronize replicas using the second poolset
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
