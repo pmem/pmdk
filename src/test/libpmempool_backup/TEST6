@@ -31,7 +31,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_backup/TEST6 -- test backup to poolset which part already exists
+# libpmempool_backup/TEST6 -- test backup to poolset which parts already exist
+# or almost all parts already exist
 #
 export UNITTEST_NAME=libpmempool_backup/TEST6
 export UNITTEST_NUM=6
@@ -58,9 +59,20 @@ do
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${POOL_TYPES[$i]} \
 		"${POOL_CREATE_PARAMS[$i]}" $POOLSET
 
-	# create one of the backup poolset parts
-	touch ${POOL_PART}3$BACKUP
+	# create backup poolset parts
+	for j in `seq 1 4`
+	do
+		truncate -s 20M $POOL_PART$j$BACKUP
+	done
 
+	backup_and_compare $POOLSET ${POOL_TYPES[$i]}
+
+	# one of parts is too small
+	truncate -s 10M ${POOL_PART}3${BACKUP}
+	backup_and_compare $POOLSET ${POOL_TYPES[$i]}
+
+	# one of parts does not exist
+	rm ${POOL_PART}3${BACKUP}
 	backup_and_compare $POOLSET ${POOL_TYPES[$i]}
 done
 

@@ -126,9 +126,9 @@ int pool_read(struct pool_data *pool, void *buff, size_t nbytes,
 	uint64_t off);
 int pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	uint64_t off);
-int pool_copy(struct pool_data *pool, const char *dst_path);
+int pool_copy(struct pool_data *pool, const char *dst_path, int overwrite);
 int pool_set_part_copy(struct pool_set_part *dpart,
-	struct pool_set_part *spart);
+	struct pool_set_part *spart, int overwrite);
 int pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count);
 
 unsigned pool_set_files_count(struct pool_set_file *file);

@@ -36,7 +36,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -617,16 +616,30 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
  * pool_copy -- make a copy of the pool
  */
 int
-pool_copy(struct pool_data *pool, const char *dst_path)
+pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 {
 	struct pool_set_file *file = pool->set_file;
-	int dfd = util_file_create(dst_path, file->size, 0);
+	int dfd;
+	if (!access(dst_path, F_OK)) {
+		if (!overwrite) {
+			errno = EEXIST;
+			return -1;
+		}
+		dfd = util_file_open(dst_path, NULL, 0, O_RDWR);
+	} else {
+		if (errno == ENOENT) {
+			errno = 0;
+			dfd = util_file_create(dst_path, file->size, 0);
+		} else {
+			return -1;
+		}
+	}
 	if (dfd < 0)
 		return -1;
 
 	int result = 0;
-	struct stat stat_buf;
-	if (stat(file->fname, &stat_buf)) {
+	util_stat_t stat_buf;
+	if (util_stat(file->fname, &stat_buf)) {
 		result = -1;
 		goto out_close;
 	}
@@ -680,7 +693,8 @@ out_close:
  * pool_set_part_copy -- make a copy of the poolset part
  */
 int
-pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart)
+pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
+	int overwrite)
 {
 	LOG(3, "dpart %p spart %p", dpart, spart);
 
@@ -699,9 +713,28 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart)
 
 	size_t dmapped = 0;
 	int is_pmem;
-	void *daddr = pmem_map_file(dpart->path, dpart->filesize,
-		PMEM_FILE_CREATE | PMEM_FILE_EXCL, stat_buf.st_mode, &dmapped,
-		&is_pmem);
+	void *daddr;
+
+	if (!access(dpart->path, F_OK)) {
+		if (!overwrite) {
+			errno = EEXIST;
+			result = -1;
+			goto out_sunmap;
+		}
+
+		daddr = pmem_map_file(dpart->path, 0, 0, S_IWRITE, &dmapped,
+			&is_pmem);
+	} else {
+		if (errno == ENOENT) {
+			errno = 0;
+			daddr = pmem_map_file(dpart->path, dpart->filesize,
+				PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+				stat_buf.st_mode, &dmapped, &is_pmem);
+		} else {
+			result = -1;
+			goto out_sunmap;
+		}
+	}
 	if (!daddr) {
 		result = -1;
 		goto out_sunmap;
