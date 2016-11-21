@@ -174,7 +174,7 @@ const char *pmempool_errormsg(void);
  * A flag for sync and transform: do not apply changes, only check viability
  * of conversion
  */
-#define PMEMPOOL_DRY_RUN (1 << 0)
+#define PMEMPOOL_DRY_RUN (1 << 1)
 
 /*
  * Synchronize data between replicas within a poolset.
