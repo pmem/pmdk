@@ -69,7 +69,7 @@ cat $LOG >> $LOG_TEMP
 rm -f $DIR/part10
 
 # Try to synchronize replicas
-FLAG=2
+FLAG=1 #invalid flag
 expect_abnormal_exit ./libpmempool_sync$EXESUFFIX $POOLSET $FLAG
 cat $LOG >> $LOG_TEMP
 
