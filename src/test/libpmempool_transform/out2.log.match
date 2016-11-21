@@ -1,5 +1,5 @@
 libpmempool_transform$(nW)TEST2: START: libpmempool_transform
- $(nW)libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 2
+ $(nW)libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 1
 result: -1, errno: 22
 libpmempool_transform$(nW)TEST2: START: libpmempool_transform
  $(nW)libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 1024
