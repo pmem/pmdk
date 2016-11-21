@@ -73,28 +73,27 @@ function get_version_item() {
 	local INPUT=$1
 	local TARGET=$2
 	local REGEX="([^0-9]*)(([0-9]+\.){,2}[0-9]+)([.+-]?.*)"
+	local VERSION="0.0"
+	local RELEASE="-$INPUT"
 
 	if [[ $INPUT =~ $REGEX ]]
 	then
-		local VERSION="${BASH_REMATCH[2]}"
-		local RELEASE="${BASH_REMATCH[4]}"
-
-		case $TARGET in
-			version)
-				echo -n $VERSION
-				;;
-			release)
-				echo -n $RELEASE
-				;;
-			*)
-				error "Wrong target"
-				exit 1
-				;;
-		esac
-	else
-		error "Wrong tag format"
-		exit 1
+		VERSION="${BASH_REMATCH[2]}"
+		RELEASE="${BASH_REMATCH[4]}"
 	fi
+
+	case $TARGET in
+		version)
+			echo -n $VERSION
+			;;
+		release)
+			echo -n $RELEASE
+			;;
+		*)
+			error "Wrong target"
+			exit 1
+			;;
+	esac
 }
 
 function get_version() {
