@@ -75,7 +75,7 @@ expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
 # Try to transform poolset
-$FLAGS = "2"
+$FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
 cat $LOG >> $LOG_TEMP
