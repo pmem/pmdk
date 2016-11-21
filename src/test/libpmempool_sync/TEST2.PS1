@@ -74,7 +74,7 @@ cat $LOG >> $LOG_TEMP
 rm $DIR\part10 -Force -ea si
 
 # Try to synchronize replicas
-$FLAGS = "2"
+$FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
 cat $LOG >> $LOG_TEMP
