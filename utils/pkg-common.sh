@@ -73,6 +73,7 @@ function get_version_item() {
 	local INPUT=$1
 	local TARGET=$2
 	local REGEX="([^0-9]*)(([0-9]+\.){,2}[0-9]+)([.+-]?.*)"
+	local REGEX_FBACK="([[:xdigit:]])(.*)"
 
 	if [[ $INPUT =~ $REGEX ]]
 	then
@@ -85,6 +86,23 @@ function get_version_item() {
 				;;
 			release)
 				echo -n $RELEASE
+				;;
+			*)
+				error "Wrong target"
+				exit 1
+				;;
+		esac
+	elif [[ $INPUT =~ $REGEX_FBACK ]]
+	then
+		local VERSION="0.0"
+		local RELEASE="${BASH_REMATCH[1]}"
+
+		case $TARGET in
+			version)
+				echo -n $VERSION
+				;;
+			release)
+				echo -n -$RELEASE
 				;;
 			*)
 				error "Wrong target"
