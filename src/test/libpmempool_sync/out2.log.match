@@ -1,5 +1,5 @@
 libpmempool_sync$(nW)TEST2: START: libpmempool_sync
- $(nW)libpmempool_sync$(nW) $(nW)poolset 2
+ $(nW)libpmempool_sync$(nW) $(nW)poolset 1
 result: -1, errno: 22
 libpmempool_sync$(nW)TEST2: START: libpmempool_sync
  $(nW)libpmempool_sync$(nW) $(nW)poolset 1024
