@@ -299,7 +299,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		fd = -1;
 
 		if (check) {
-			if (pool_set_map(ppc->path, &set, 1))
+			if (pool_set_map(ppc->path, &set, 0))
 				return -1;
 		} else {
 			ret = util_poolset_create_set(&set, ppc->path, 0, 0);
@@ -313,12 +313,16 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 					"supported");
 				return -1;
 			}
-			if (util_pool_open_nocheck(set, 1))
+			if (util_pool_open_nocheck(set, 0))
 				return -1;
 		}
 
 		params->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
+		if (mprotect(addr, set->poolsize, PROT_READ) < 0) {
+			ERR("!mprotect");
+			goto out_unmap;
+		}
 		params->is_device_dax = set->replica[0]->part[0].is_dax;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
