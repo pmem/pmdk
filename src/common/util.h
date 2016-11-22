@@ -55,7 +55,10 @@ extern unsigned long long Mmap_align;
 	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))
 #define IS_PAGE_ALIGNED(size) (((size) & (Pagesize - 1)) == 0)
 #define PAGE_ALIGN_UP(addr) ((void *)PAGE_ALIGNED_UP_SIZE((uintptr_t)(addr)))
+
 #define MMAP_ALIGN_UP(size) (((size) + Mmap_align - 1) & ~(Mmap_align - 1))
+#define MMAP_ALIGN_DOWN(size) ((size) & ~(Mmap_align - 1))
+
 #define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 /*

@@ -61,9 +61,9 @@ size_t
 replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn)
 {
-	return PAGE_ALIGNED_DOWN_SIZE(
+	return MMAP_ALIGN_DOWN(
 			set_in->replica[repn]->part[partn].filesize) -
-			POOL_HDR_SIZE;
+			((partn == 0) ? POOL_HDR_SIZE : Mmap_align);
 }
 
 /*
@@ -646,8 +646,7 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
 			 */
 			if (replica_is_replica_broken(repn, set_hs)) {
 				/* mark broken replica as inconsistent */
-				REP(set_hs, repn)->flags |=
-						IS_INCONSISTENT;
+				REP(set_hs, repn)->flags |= IS_INCONSISTENT;
 			} else {
 				/*
 				 * two consistent unbroken replicas
@@ -751,9 +750,11 @@ check_uuids_between_replicas(struct pool_set *set,
 					continue;
 				}
 
-				// two unbroken and internally consistent
-				// adjacent replicas have different adjacent
-				// replica uuids - mark one as inconsistent
+				/*
+				 * two unbroken and internally consistent
+				 * adjacent replicas have different adjacent
+				 * replica uuids - mark one as inconsistent
+				 */
 				rep_n_hs->flags |= IS_INCONSISTENT;
 				continue;
 			}
