@@ -147,7 +147,7 @@ function get_build_dir() {
 if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
     usage "bad build-type: $buildtype"
 }
-if (-Not ("check short long" -match $testtype)) {
+if (-Not ("check short medium long all" -match $testtype)) {
     usage "bad test-type: $testtype"
 }
 if (-Not ("none pmem non-pmem any all" -match $fstype)) {
