@@ -31,10 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_check/TEST14 -- test for checking pools with device dax
+# pmempool_info/TEST18 -- test for info command with device dax
 #
-export UNITTEST_NAME=pmempool_check/TEST14
-export UNITTEST_NUM=14
+export UNITTEST_NAME=pmempool_info/TEST18
+export UNITTEST_NUM=18
 
 . ../unittest/unittest.sh
 
@@ -46,29 +46,16 @@ require_fs_type any
 setup
 
 LOG=out${UNITTEST_NUM}.log
+
 rm -rf $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
-
-#remove the pools in the poolset while preserving the file itself
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm -s $POOLSET
-#verify that the poolset still exists
-check_files $POOLSET
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $DEVICE_DAX_PATH >> $LOG
 
 check
 
