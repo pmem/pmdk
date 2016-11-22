@@ -1203,7 +1203,7 @@ function require_binary() {
 #                        an absolute path; do not resolve symlinks
 #
 function check_absolute_path() {
-	ABS_DIR=`realpath -m -s $DIR`
+	ABS_DIR=`readlink -fm $DIR`
 	if [ "${DIR%/}" != "${ABS_DIR%/}" ]; then
 		echo "Directory \$DIR has to be an absolute path."
 		echo "$DIR was given."
