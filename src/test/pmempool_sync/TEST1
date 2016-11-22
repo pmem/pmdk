@@ -51,8 +51,6 @@ rm -rf $LOG_TEMP && touch $LOG_TEMP
 
 LAYOUT=OBJ_LAYOUT
 POOLSET=$DIR/pool0.set
-POOL_HEADER_OFFSET=4096
-ADDR_MASK=0xFFFFF000
 
 # Create poolset file
 cat << EOF > $POOLSET
