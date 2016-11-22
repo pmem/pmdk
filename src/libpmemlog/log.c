@@ -217,7 +217,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	util_poolset_close(set, 1);
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return NULL;
 }
@@ -284,7 +284,7 @@ pmemlog_open_common(const char *path, int cow)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 	return NULL;
 }
@@ -312,7 +312,7 @@ pmemlog_close(PMEMlogpool *plp)
 		ERR("!pthread_rwlock_destroy");
 	Free((void *)plp->rwlockp);
 
-	util_poolset_close(plp->set, 0);
+	util_poolset_close(plp->set, DO_NOT_DELETE_PARTS);
 }
 
 /*

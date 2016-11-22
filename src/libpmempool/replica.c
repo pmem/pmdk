@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1105,11 +1105,10 @@ pmempool_sync(const char *poolset, unsigned flags)
 		ERR("parsing input poolset failed");
 		goto err_close_file;
 	}
-	if (set->remote) {
-		if (util_remote_load()) {
-			ERR("remote replication not available");
-			goto err_close_file;
-		}
+
+	if (set->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_close_file;
 	}
 
 	/* sync all replicas */
@@ -1118,12 +1117,12 @@ pmempool_sync(const char *poolset, unsigned flags)
 		goto err_close_all;
 	}
 
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	close(fd);
 	return 0;
 
 err_close_all:
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 err_close_file:
 	close(fd);
@@ -1189,7 +1188,7 @@ pmempool_transform(const char *poolset_src,
 		goto err;
 	}
 
-	int del = 0;
+	int del = DO_NOT_DELETE_PARTS;
 
 	/* parse the destination poolset file */
 	struct pool_set *set_out = NULL;
@@ -1203,6 +1202,16 @@ pmempool_transform(const char *poolset_src,
 	/* check if the source poolset is of a correct type */
 	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
 		ERR("source poolset is of a wrong type");
+		goto err_free_poolout;
+	}
+
+	/* load remote library if needed */
+	if (set_in->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_free_poolout;
+	}
+	if (set_out->remote && util_remote_load()) {
+		ERR("remote replication not available");
 		goto err_free_poolout;
 	}
 
@@ -1221,7 +1230,7 @@ pmempool_transform(const char *poolset_src,
 
 	replica_free_poolset_health_status(set_in_hs);
 
-	del = !is_dry_run(flags);
+	del = is_dry_run(flags) ? DO_NOT_DELETE_PARTS : DELETE_CREATED_PARTS;
 
 	/* transform poolset */
 	if (replica_transform(set_in, set_out, flags)) {
@@ -1229,15 +1238,15 @@ pmempool_transform(const char *poolset_src,
 		goto err_free_poolout;
 	}
 
-	util_poolset_close(set_in, 0);
-	util_poolset_close(set_out, 0);
+	util_poolset_close(set_in, DO_NOT_DELETE_PARTS);
+	util_poolset_close(set_out, DO_NOT_DELETE_PARTS);
 	return 0;
 
 err_free_poolout:
 	util_poolset_close(set_out, del);
 
 err_free_poolin:
-	util_poolset_close(set_in, 0);
+	util_poolset_close(set_in, DO_NOT_DELETE_PARTS);
 
 err:
 	if (errno == 0)
