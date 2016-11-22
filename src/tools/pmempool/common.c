@@ -917,7 +917,7 @@ util_options_alloc(const struct option *options,
 	if (!opts)
 		err(1, "Cannot allocate memory for options structure");
 
-	opts->options = options;
+	opts->opts = options;
 	opts->noptions = nopts;
 	opts->req = req;
 	size_t bitmap_size = howmany(nopts, 8);
@@ -945,7 +945,7 @@ util_options_free(struct options *opts)
 static int
 util_opt_get_index(const struct options *opts, int opt)
 {
-	const struct option *lopt = &opts->options[0];
+	const struct option *lopt = &opts->opts[0];
 	int ret = 0;
 	while (lopt->name) {
 		if ((lopt->val & ~OPT_MASK) == opt)
@@ -1028,7 +1028,7 @@ util_opt_print_requirements(const struct options *opts,
 	unsigned n = 0;
 	uint64_t tmp;
 	const struct option *opt =
-		&opts->options[util_opt_get_index(opts, req->opt)];
+		&opts->opts[util_opt_get_index(opts, req->opt)];
 	int sn;
 
 	sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
@@ -1059,7 +1059,7 @@ util_opt_print_requirements(const struct options *opts,
 			int req_opt_ind =
 				util_opt_get_index(opts, tmp & OPT_REQ_MASK);
 			const struct option *req_option =
-				&opts->options[req_opt_ind];
+				&opts->opts[req_opt_ind];
 
 			sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
 				"-%c|--%s", req_option->val, req_option->name);
@@ -1089,7 +1089,7 @@ static int
 util_opt_verify_requirements(const struct options *opts, size_t index,
 		pmem_pool_type_t type)
 {
-	const struct option *opt = &opts->options[index];
+	const struct option *opt = &opts->opts[index];
 	int val = opt->val & ~OPT_MASK;
 	struct option_requirement *req;
 
@@ -1114,7 +1114,7 @@ static int
 util_opt_verify_type(const struct options *opts, pmem_pool_type_t type,
 		size_t index)
 {
-	const struct option *opt = &opts->options[index];
+	const struct option *opt = &opts->opts[index];
 	int val = opt->val & ~OPT_MASK;
 	int opt_type = opt->val;
 	opt_type >>= OPT_SHIFT;
@@ -1136,7 +1136,7 @@ int
 util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts)
 {
-	int opt = getopt_long(argc, argv, optstr, opts->options, NULL);
+	int opt = getopt_long(argc, argv, optstr, opts->opts, NULL);
 	if (opt == -1 || opt == '?')
 		return opt;
 
