@@ -46,6 +46,7 @@
 #include "pmemops.h"
 #include "set.h"
 #include "sync.h"
+#include "tx.h"
 
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
@@ -1551,6 +1552,12 @@ PMEMobjpool *
 pmemobj_pool_by_ptr(const void *addr)
 {
 	LOG(3, "addr %p", addr);
+
+	/* fastpath for transactions */
+	PMEMobjpool *pop = tx_get_pop();
+
+	if ((pop != NULL) && OBJ_PTR_FROM_POOL(pop, addr))
+		return pop;
 
 	/* XXX this is a temporary fix, to be fixed properly later */
 	if (pools_tree == NULL)
