@@ -847,13 +847,51 @@ function dump_pool_info {
     }
 
     # ignore selected header fields that differ by definition
-    # XXX: not exactly the same as 'sed -e "/^UUID/,/^Checksum/d"'
-    Invoke-Expression "$PMEMPOOL info $params" | `
-        Select-String -notmatch -Pattern 'UUID' | `
-        Select-String -notmatch -Pattern '^Checksum' | `
-        Select-String -notmatch -Pattern '^Creation Time' | `
-        Select-String -notmatch -Pattern '^path' | `
-        Select-String -notmatch -Pattern '^size'
+    # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
+    $output = Invoke-Expression "$PMEMPOOL info $params"
+    $print = $True
+    ForEach ($line In $output) {
+        If ($line -match '^UUID') {
+            $print= $False
+        }
+        If ($print -eq $True) {
+            $line
+        }
+        If ($line -match '^Checksum') {
+            $print = $True
+        }
+    }
+}
+
+#
+# dump_replica_info -- dump selected pool metadata and/or user data
+#
+# Used by compare_replicas() - filters out file paths and sizes.
+#
+function dump_replica_info {
+    $params = ""
+    for ($i=0;$i -lt $args.count;$i++) {
+        [string]$params += -join($args[$i], " ")
+    }
+
+    # ignore selected header fields that differ by definition
+    # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
+    $output = Invoke-Expression "$PMEMPOOL info $params"
+    $print = $True
+    ForEach ($line In $output) {
+        If ($line -match '^UUID') {
+            $print= $False
+        }
+        If ($print -eq $True) {
+            # 'sed -e "/^path/d" -e "/^size/d"
+            If (-not ($line -match '^path' -or  $line -match '^size')) {
+                $line
+            }
+        }
+        If ($line -match '^Checksum') {
+            $print = $True
+        }
+    }
 }
 
 #
@@ -875,7 +913,7 @@ function compare_replicas {
     $rep1 = $args[$cnt + 1]
     $rep2 = $args[$cnt + 2]
 
-    diff (dump_pool_info $params $rep1) (dump_pool_info $params $rep2)
+    diff (dump_replica_info $params $rep1) (dump_replica_info $params $rep2)
 }
 
 #
@@ -884,7 +922,7 @@ function compare_replicas {
 function require_non_pmem {
     if ($NON_PMEM_IS_PMEM -eq "1") {
         return $true
-    } Else {
+    } else {
         Write-Error "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
         exit 1
     }
