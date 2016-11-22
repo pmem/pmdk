@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016, Intel Corporation
 #
@@ -31,68 +30,77 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST4 -- test for checking pmempool sync;
-#                        pmem/issues#269
+# pmempool_sync/TEST2 -- test for checking pmempool sync;
+#                        pmem/issues#254
 #
-export UNITTEST_NAME=pmempool_sync/TEST4
-export UNITTEST_NUM=4
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmempool_sync\TEST2"
+$Env:UNITTEST_NUM = "2w"
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
 
 setup
 
-LOG=out${UNITTEST_NUM}.log
-LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
+rm $LOG -Force -ea si
+touch $LOG
+rm $LOG_TEMP -Force -ea si
+touch $LOG_TEMP
 
-LAYOUT=OBJ_LAYOUT
-POOLSET=$DIR/pool0.set
+$LAYOUT = "OBJ_LAYOUT"
+$POOLSET = "$DIR/pool0.set"
 
 # Create poolset file
-cat << EOF > $POOLSET
+echo @"
 PMEMPOOLSET
 20M $DIR/testfile00
-20M $DIR/testfile01
+30M $DIR/testfile01
 REPLICA
-20M $DIR/testfile10
+30M $DIR/testfile10
 20M $DIR/testfile11
-EOF
+"@ | out-file -encoding ASCII $POOLSET
 
 # CLI script for writing some data hitting all the parts
-WRITE_SCRIPT=$DIR/write_data
-cat << EOF > $WRITE_SCRIPT
-pr 30M
+$WRITE_SCRIPT = "$DIR/write_data"
+echo @"
+pr 45M
 srcp 0 TestOK111
-srcp 25M TestOK222
-EOF
+srcp 35M TestOK222
+"@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-READ_SCRIPT=$DIR/read_data
-cat << EOF > $READ_SCRIPT
+$READ_SCRIPT = "$DIR/read_data"
+echo @"
 srpr 0 9
-srpr 25M 9
-EOF
+srpr 35M 9
+"@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Create a poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
 cat $LOG >> $LOG_TEMP
 
 # Write some data into the pool, hitting all part files
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm -f $DIR/testfile00
+echo "some string" >> $DIR/testfile10
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
+
+# Check if correctly synchronized
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET >> $LOG_TEMP
@@ -101,7 +109,7 @@ dump_pool_info $DIR/testfile01 >> $LOG_TEMP
 dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 dump_pool_info $DIR/testfile11 >> $LOG_TEMP
 
-mv $LOG_TEMP $LOG
+mv -Force $LOG_TEMP $LOG
 check
 
 pass
