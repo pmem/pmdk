@@ -30,18 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# pmempool_transform/TEST0 -- test for checking pmempool transform;
+#                             removing replica
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST10"
+$Env:UNITTEST_NUM = "0"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -69,6 +68,9 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
+REPLICA
+10M $DIR/testfile5
+20M $DIR/testfile6
 "@ | out-file -encoding ASCII $POOLSET_IN
 
 echo @"
@@ -79,10 +81,7 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
-"@ | out-file -encoding ASCII $POOLSET_OUT
+"@  | out-file -encoding ASCII $POOLSET_OUT
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
@@ -110,17 +109,14 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
-    $POOLSET_IN $POOLSET_OUT $FLAGS
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL transform $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
 
 # Check metadata by pmempool info
-for ($i=0; $i -lt 7; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
+for ($i=0; $i -lt 5; $i++) {
+    dump_pool_info "$DIR/testfile$i" >> $LOG_TEMP
 }
 
 mv -Force $LOG_TEMP $LOG

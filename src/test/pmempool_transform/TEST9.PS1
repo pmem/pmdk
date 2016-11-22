@@ -30,24 +30,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# pmempool_transform/TEST9 -- test for checking pmempool transform;
+#                             remove master replica as dax device,
+#                             another dax device as the second replica
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST9"
+$Env:UNITTEST_NUM = "9"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_dax_devices 2
 require_fs_type any
 
 setup
+
+dax_device_zero
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
@@ -59,49 +62,41 @@ touch $LOG_TEMP
 $LAYOUT = "OBJ_LAYOUT"
 $POOLSET_IN = "$DIR/poolset.in"
 $POOLSET_OUT = "$DIR/poolset.out"
+$HDR_LEN = "4096"
 
 # Create poolset files
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-"@ | out-file -encoding ASCII $POOLSET_IN
+create_poolset $POOLSET_IN `
+	AUTO:$Env:DEVICE_DAX_PATH[0]:x `
+	r `
+	AUTO:$Env:DEVICE_DAX_PATH[1]:x
 
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
-"@ | out-file -encoding ASCII $POOLSET_OUT
+create_poolset $POOLSET_OUT `
+	AUTO:$Env:DEVICE_DAX_PATH[1]:x
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
 echo @"
-pr 22M
+pr 1M
 srcp 0 TestOK111
-srcp 20M TestOK222
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
 echo @"
 srpr 0 9
-srpr 20M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
+# Log poolset structures
+echo poolset_in >> $LOG_TEMP
+cat $POOLSET_IN >> $LOG_TEMP
+echo "" >> $LOG_TEMP
+echo poolset_out >> $LOG_TEMP
+cat $POOLSET_OUT >> $LOG_TEMP
+echo "" >> $LOG_TEMP
+
 # Create a pool
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT `
+    obj $POOLSET_IN >> $LOG_TEMP
 
 # Write some data into the pool, hitting two part files
 expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
@@ -110,18 +105,18 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
-    $POOLSET_IN $POOLSET_OUT $FLAGS
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL transform `
+    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
-# Check if correctly copied
+# Check if correctly read
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
 
 # Check metadata by pmempool info
-for ($i=0; $i -lt 7; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
-}
+dump_pool_info $POOLSET_OUT >> $LOG_TEMP
+dump_pool_info $Env:DEVICE_DAX_PATH[1] >> $LOG_TEMP
+
+# Check if dax device's header is cleaned
+expect_normal_exit $DDMAP -i $Env:DEVICE_DAX_PATH[0] -l $HDR_LEN >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

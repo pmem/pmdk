@@ -30,18 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# pmempool_transform/TEST5 -- test for checking pmempool transform;
+#                             pmem/issues#262
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST5"
+$Env:UNITTEST_NUM = "5w"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -63,41 +62,46 @@ $POOLSET_OUT = "$DIR/poolset.out"
 # Create poolset files
 echo @"
 PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
+20M $DIR/testfile00
+20M $DIR/testfile01
+20M $DIR/testfile02
 REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
+60M $DIR/testfile10
 "@ | out-file -encoding ASCII $POOLSET_IN
 
 echo @"
 PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
+20M $DIR/testfile00
+20M $DIR/testfile01
+20M $DIR/testfile02
 REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
+90M $DIR/abc/testfile10
 "@ | out-file -encoding ASCII $POOLSET_OUT
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
 echo @"
-pr 22M
+pr 50M
 srcp 0 TestOK111
-srcp 20M TestOK222
+srcp 25M TestOK222
+srcp 45M TestOK333
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
 echo @"
 srpr 0 9
-srpr 20M 9
+srpr 25M 9
+srpr 45M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
+
+# Log poolset structures
+echo poolset_in >> $LOG_TEMP
+cat $POOLSET_IN >> $LOG_TEMP
+echo "" >> $LOG_TEMP
+echo poolset_out >> $LOG_TEMP
+cat $POOLSET_OUT >> $LOG_TEMP
+echo "" >> $LOG_TEMP
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
@@ -109,19 +113,19 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 # Check if correctly written
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
-# Transform poolset
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
-    $POOLSET_IN $POOLSET_OUT $FLAGS
-cat $LOG >> $LOG_TEMP
+# Try to transform the poolset
+expect_abnormal_exit $PMEMPOOL transform `
+    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
-# Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
+# Check if correctly read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
-for ($i=0; $i -lt 7; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
-}
+dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile00 >> $LOG_TEMP
+dump_pool_info $DIR/testfile01 >> $LOG_TEMP
+dump_pool_info $DIR/testfile02 >> $LOG_TEMP
+dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

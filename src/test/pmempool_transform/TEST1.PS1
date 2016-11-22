@@ -30,18 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# pmempool_transform/TEST1 -- test for checking pmempool transform;
+#                             adding a replica
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST1"
 $Env:UNITTEST_NUM = "1"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -111,8 +110,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
 $FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
-    $POOLSET_IN $POOLSET_OUT $FLAGS
+expect_normal_exit $PMEMPOOL transform $POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
 cat $LOG >> $LOG_TEMP
 
 # Check if correctly copied
@@ -120,7 +118,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
 
 # Check metadata by pmempool info
 for ($i=0; $i -lt 7; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
+    dump_pool_info "$DIR/testfile$i" >> $LOG_TEMP
 }
 
 mv -Force $LOG_TEMP $LOG

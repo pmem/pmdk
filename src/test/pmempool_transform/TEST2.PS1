@@ -30,18 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# pmempool_transform/TEST2 -- test for checking pmempool transform in dry-run
+#                             mode; pmem/issues#250
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST2"
+$Env:UNITTEST_NUM = "2w"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -64,24 +63,16 @@ $POOLSET_OUT = "$DIR/poolset.out"
 echo @"
 PMEMPOOLSET
 20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
+20M $DIR/testfile1
 "@ | out-file -encoding ASCII $POOLSET_IN
 
 echo @"
 PMEMPOOLSET
 20M $DIR/testfile0
-10M $DIR/testfile1
+20M $DIR/testfile1
 REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
+20M $DIR/testfile2
+20M $DIR/testfile3
 "@ | out-file -encoding ASCII $POOLSET_OUT
 
 # CLI script for writing some data hitting all the parts
@@ -109,19 +100,20 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 # Check if correctly written
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
-# Transform poolset
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
-    $POOLSET_IN $POOLSET_OUT $FLAGS
+# Run transform in dry-run mode
+expect_normal_exit $PMEMPOOL transform -d $POOLSET_IN $POOLSET_OUT >> $LOG
 cat $LOG >> $LOG_TEMP
 
-# Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
+# Check if stored data can be read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
-for ($i=0; $i -lt 7; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
-}
+dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile0 >> $LOG_TEMP
+dump_pool_info $DIR/testfile1 >> $LOG_TEMP
+
+# Make sure no other parts were created
+check_no_files $DIR/testfile2 $DIR/testfile3
 
 mv -Force $LOG_TEMP $LOG
 check
