@@ -516,12 +516,11 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	}
 
 	pool->set_file = pool_set_file_open(ppc->path, &pool->params, prv);
+	if (pool->set_file == NULL)
+		goto error;
 
 	if (rdonly && mprotect(pool->set_file->addr, pool->set_file->size,
 		PROT_READ) < 0)
-		goto error;
-
-	if (!pool->set_file)
 		goto error;
 
 	return pool;

@@ -141,6 +141,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	if (psf->poolset->remote) {
 		fprintf(stderr, "Conversion of remotely replicated  pools is "
 			"currently not supported. Remove the replica first\n");
+		pool_set_file_close(psf);
 		return -1;
 	}
 
@@ -166,7 +167,8 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		"Proceed only if the pool has been backed up or\n"
 		"the risks are fully understood and acceptable.\n");
 	if (ask_Yn('?', "convert the pool '%s' ?", f) != 'y') {
-		return 0;
+		ret = 0;
+		goto out;
 	}
 
 	PMEMobjpool *pop = addr;
