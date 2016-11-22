@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2014-2016, Intel Corporation
 #
@@ -33,47 +32,50 @@
 #
 # pmemspoil/TEST0 -- test for pmemspoil
 #
-export UNITTEST_NAME=pmemspoil/TEST0
-export UNITTEST_NUM=0
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmemspoil\TEST0"
+$Env:UNITTEST_NUM = "0"
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type pmem non-pmem
-require_build_type nondebug
 
 setup
 
-LOG=out${UNITTEST_NUM}.log
+$LOG = "out${Env:UNITTEST_NUM}.log"
 
-rm -rf $LOG && touch $LOG
+rm $LOG -Force -ea si
+touch $LOG
 
-POOLSET=$DIR/pool.set
-POOL1=$DIR/pool.part1
-POOL2=$DIR/pool.part2
-POOL3=$DIR/pool.part3
-REPL1=$DIR/pool.rep.part1
-REPL2=$DIR/pool.rep.part2
-REPL3=$DIR/pool.rep.part3
-POOLS="$POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3"
+$POOLSET = "$DIR/pool.set"
+$POOL1 = "$DIR/pool.part1"
+$POOL2 = "$DIR/pool.part2"
+$POOL3 = "$DIR/pool.part3"
+$REPL1 = "$DIR/pool.rep.part1"
+$REPL2 = "$DIR/pool.rep.part2"
+$REPL3 = "$DIR/pool.rep.part3"
+$POOLS = "$POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3"
 
-rm -f $POOLS
-create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
-	R 32M:$REPL1:z 32M:$REPL2:z 32M:$REPL3:z
+rm $POOLS -Force -ea si
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z `
+    R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
 check_file $POOLSET
 
-rm -f $POOLS
+rm $POOLS -Force -ea si
 expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 0 "pmemobj.layout=replica0"
-expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET -f obj\
-	| grep '^Layout.*' >> $LOG
+expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET -f obj `
+    | sls '^Layout.*' | %{$_.Line} >> $LOG
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 1 "pmemobj.layout=replica1"
-expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET -f obj\
-	| grep '^Layout.*' >> $LOG
-
+expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET -f obj `
+    | sls '^Layout.*' | %{$_.Line} >> $LOG
 
 check
 
