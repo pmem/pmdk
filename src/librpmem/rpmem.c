@@ -695,6 +695,8 @@ rpmem_remove(const char *target, const char *pool_set, int flags)
 		goto err_ssh_close;
 	}
 
+	rpmem_target_free(info);
+
 	return 0;
 err_ssh_monitor:
 	rpmem_ssh_close(ssh);
