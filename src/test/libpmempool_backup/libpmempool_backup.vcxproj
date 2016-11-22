@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}</ProjectGuid>
+    <ProjectGuid>{60B463D4-8CD5-4BF6-A25B-01BE13B87590}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>libpmempool_test</RootNamespace>
+    <RootNamespace>libpmempool_backup</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -21,12 +21,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -89,50 +91,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libpmempool\libpmempool.vcxproj">
-      <Project>{cf9a0883-6334-44c7-ac29-349468c78e27}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\windows\getopt\getopt.vcxproj">
-      <Project>{9186eac4-2f34-4f17-b940-6585d7869bcd}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\unittest\libut.vcxproj">
-      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="libpmempool_test.c" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="common.PS1" />
+    <None Include="diff0.log.match" />
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
-    <None Include="out10.log.match" />
-    <None Include="out11.log.match" />
-    <None Include="out12.log.match" />
-    <None Include="out13.log.match" />
     <None Include="out2.log.match" />
     <None Include="out3.log.match" />
     <None Include="out4.log.match" />
     <None Include="out5.log.match" />
     <None Include="out6.log.match" />
     <None Include="out7.log.match" />
-    <None Include="out8.log.match" />
-    <None Include="out9.log.match" />
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
-    <None Include="TEST10.PS1" />
-    <None Include="TEST13.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />
     <None Include="TEST6.PS1" />
     <None Include="TEST7.PS1" />
-    <None Include="TEST8.PS1" />
-    <None Include="TEST9.PS1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libpmempool_api\libpmempool_test.vcxproj">
+      <Project>{a2a0faea-2b7c-4fc3-b904-1db4deacf88d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
