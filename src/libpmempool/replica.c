@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1105,11 +1105,10 @@ pmempool_sync(const char *poolset, unsigned flags)
 		ERR("parsing input poolset failed");
 		goto err_close_file;
 	}
-	if (set->remote) {
-		if (util_remote_load()) {
-			ERR("remote replication not available");
-			goto err_close_file;
-		}
+
+	if (set->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_close_file;
 	}
 
 	/* sync all replicas */
@@ -1206,6 +1205,16 @@ pmempool_transform(const char *poolset_src,
 		goto err_free_poolout;
 	}
 
+	/* load remote library if needed */
+	if (set_in->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_free_poolout;
+	}
+	if (set_out->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_free_poolout;
+	}
+
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
 	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
@@ -1221,7 +1230,7 @@ pmempool_transform(const char *poolset_src,
 
 	replica_free_poolset_health_status(set_in_hs);
 
-	del = !is_dry_run(flags);
+	del = is_dry_run(flags) ? 0 : DELETE_CREATED_PARTS;
 
 	/* transform poolset */
 	if (replica_transform(set_in, set_out, flags)) {

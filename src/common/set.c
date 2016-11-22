@@ -496,48 +496,72 @@ util_poolset_open(struct pool_set *set)
 }
 
 /*
- * util_replica_close_local -- (internal) close local replica
+ * util_replica_close_local -- close local replica
+ *
+ * Optionally remove parts:
+ * del == 0                    -> do not unlink parts
+ * del == DELETE_CREATED_PARTS -> delete only newly created parts
+ * del == DELETE_ALL_PARTS     -> force delete all parts
  */
-static void
-util_replica_close_local(struct pool_replica *rep, int del)
+int
+util_replica_close_local(struct pool_replica *rep, unsigned repn, int del)
 {
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		if (rep->part[p].fd != -1)
 			(void) close(rep->part[p].fd);
-		if (del && rep->part[p].created) {
+
+		if ((del == DELETE_CREATED_PARTS && rep->part[p].created) ||
+				del == DELETE_ALL_PARTS) {
 			LOG(4, "unlink %s", rep->part[p].path);
-			unlink(rep->part[p].path);
+			int olderrno = errno;
+			if (util_unlink(rep->part[p].path) && errno != ENOENT) {
+				ERR("!unlink %s failed (part %u, replica %u)",
+						rep->part[p].path, p, repn);
+				return -1;
+			}
+			errno = olderrno;
 		}
 	}
+	return 0;
 }
 
 /*
- * util_replica_close_remote -- (internal) close remote replica
+ * util_replica_close_remote -- close remote replica
+ *
+ * Optionally remove the replica.
  */
-static void
-util_replica_close_remote(struct pool_replica *rep, unsigned r, int del)
+int
+util_replica_close_remote(struct pool_replica *rep, unsigned repn, int del)
 {
-	if (!rep->remote || !rep->remote->rpp)
-		return;
+	if (!rep->remote)
+		return 0;
 
-	LOG(4, "closing remote replica #%u", r);
-	Rpmem_close(rep->remote->rpp);
-	rep->remote->rpp = NULL;
+	if (rep->remote->rpp) {
+		LOG(4, "closing remote replica #%u", repn);
+		Rpmem_close(rep->remote->rpp);
+		rep->remote->rpp = NULL;
+	}
 
 	if (del) {
-		LOG(4, "removing remote replica #%u", r);
+		LOG(4, "removing remote replica #%u", repn);
 		int ret = Rpmem_remove(rep->remote->node_addr,
 			rep->remote->pool_desc, 0);
 		if (ret) {
-			LOG(1, "!removing remote replica #%u failed", r);
+			LOG(1, "!removing remote replica #%u failed", repn);
+			return -1;
 		}
 	}
+	return 0;
 }
 
 /*
  * util_poolset_close -- unmap and close all the parts of the pool set
  *
- * Optionally, it also unlinks the newly created pool set files.
+ * Optionally, it also unlinks the pool set files:
+ * del == 0                    => do not unlink parts
+ * del == DELETE_CREATED_PARTS => unlink remote parts and newly created local
+ *                                files
+ * del == DELETE_ALL_PARTS     => force unlink all files
  */
 void
 util_poolset_close(struct pool_set *set, int del)
@@ -551,13 +575,15 @@ util_poolset_close(struct pool_set *set, int del)
 
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote)
-			util_replica_close_local(rep, del);
+			(void) util_replica_close_local(rep, r, del);
 		else
-			util_replica_close_remote(rep, r, del);
+			(void) util_replica_close_remote(rep, r, del);
 	}
 
+	if (set->remote)
+		util_remote_unload();
+
 	util_poolset_free(set);
-	util_remote_unload();
 
 	errno = oerrno;
 }
@@ -2160,12 +2186,13 @@ err_create:
 	errno = oerrno;
 err_poolset:
 	oerrno = errno;
-	util_poolset_close(set, 1);
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return -1;
 err_remote:
 	oerrno = errno;
-	util_remote_unload();
+	if (set->remote)
+		util_remote_unload();
 	errno = oerrno;
 	return -1;
 }

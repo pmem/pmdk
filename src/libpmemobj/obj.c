@@ -1126,7 +1126,7 @@ err:
 	int oerrno = errno;
 	if (set->remote)
 		pmemobj_cleanup_remote(pop);
-	util_poolset_close(set, 1);
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return NULL;
 }
