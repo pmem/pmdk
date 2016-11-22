@@ -62,7 +62,7 @@ expect_normal_exit $PMEMPOOL info $POOL > $null
 expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check -avry $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check $POOL >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL 2>&1 > $null
+expect_normal_exit $PMEMPOOL info $POOL 2>&1 > $null
 
 check
 

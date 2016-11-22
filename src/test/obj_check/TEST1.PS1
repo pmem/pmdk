@@ -48,10 +48,10 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR\testfile
+expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 
 & $PMEMSPOIL $DIR\testfile pool_hdr.signature=ERROR
-expect_normal_exit $Env:EXE_DIR\obj_check$EXESUFFIX $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
 
 check
 

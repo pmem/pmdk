@@ -79,12 +79,12 @@ cat $POOLSET_OUT >> $LOG_TEMP
 echo "" >> $LOG_TEMP
 
 # Create a pool
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT `
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT `
 	obj $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
 $FLAGS=0
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$EXESUFFIX $POOLSET_IN $POOLSET_OUT `
+expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX $POOLSET_IN $POOLSET_OUT `
 	$FLAGS >> $LOG_TEMP
 
 # Check metadata by pmempool info
