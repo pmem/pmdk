@@ -30,68 +30,87 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST10w -- test for checking pmempool transform;
-#                             pmem/issues#285
+# pmempool_transform/TEST6 -- test for checking pmempool transform;
+#                             pmem/issues#274
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST10w"
-$Env:UNITTEST_NUM = "10w"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST6"
+$Env:UNITTEST_NUM = "6w"
 
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
+
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-$LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT="OBJ_LAYOUT"
-$POOLSET_IN="$DIR/poolset.in"
-$POOLSET_OUT="$DIR/poolset.out"
+$LAYOUT = "OBJ_LAYOUT"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT1 = "$DIR/poolset.out1"
+$POOLSET_OUT2 = "$DIR/poolset.out2"
 
 # Create poolset files
-create_poolset $POOLSET_IN `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile00
+20M $DIR/testfile01
+"@ | out-file -encoding ASCII $POOLSET_IN
 
-create_poolset $POOLSET_OUT `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x `
-	r `
-	20M:$DIR/testfile01:x `
-	20M:$DIR/testfile21:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile00
+20M $DIR/testfile01
+REPLICA
+20M $DIR/testfile10
+20M $DIR/testfile11
+"@ | out-file -encoding ASCII $POOLSET_OUT1
+
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile00
+20M $DIR/testfile01
+REPLICA
+20M $DIR/testfile20
+20M $DIR/testfile21
+"@ | out-file -encoding ASCII $POOLSET_OUT2
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP
 cat $POOLSET_IN >> $LOG_TEMP
 echo "" >> $LOG_TEMP
-echo poolset_out >> $LOG_TEMP
-cat $POOLSET_OUT >> $LOG_TEMP
+echo poolset_out1 >> $LOG_TEMP
+cat $POOLSET_OUT1 >> $LOG_TEMP
+echo "" >> $LOG_TEMP
+echo poolset_out2 >> $LOG_TEMP
+cat $POOLSET_OUT2 >> $LOG_TEMP
 echo "" >> $LOG_TEMP
 
 # Create a pool
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT `
-	obj $POOLSET_IN >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
+cat $LOG >> $LOG_TEMP
 
-# Try to transform poolset
+# Transform poolset
+expect_normal_exit $PMEMPOOL transform $POOLSET_IN $POOLSET_OUT1 >> $LOG_TEMP
+
+# Try to transform poolset again
 expect_abnormal_exit $PMEMPOOL transform `
-    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
+    $POOLSET_IN $POOLSET_OUT2 >> $LOG_TEMP 2>$null
 
 # Check metadata by pmempool info
-dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $POOLSET_OUT1 >> $LOG_TEMP
 
-rm $LOG -Force -ea si
-mv $LOG_TEMP $LOG
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

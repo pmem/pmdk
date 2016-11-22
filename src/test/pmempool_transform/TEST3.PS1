@@ -30,46 +30,61 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST10w -- test for checking pmempool transform;
-#                             pmem/issues#285
+# pmempool_transform/TEST3 -- test for checking pmempool transform;
+#                             pmem/issues#252
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST10w"
-$Env:UNITTEST_NUM = "10w"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST3"
+$Env:UNITTEST_NUM = "3w"
 
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
+
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-$LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT="OBJ_LAYOUT"
-$POOLSET_IN="$DIR/poolset.in"
-$POOLSET_OUT="$DIR/poolset.out"
+$LAYOUT = "OBJ_LAYOUT"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT = "$DIR/poolset.out"
 
 # Create poolset files
-create_poolset $POOLSET_IN `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile00
+"@ | out-file -encoding ASCII $POOLSET_IN
 
-create_poolset $POOLSET_OUT `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x `
-	r `
-	20M:$DIR/testfile01:x `
-	20M:$DIR/testfile21:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile00
+REPLICA
+20M $DIR/testfile10
+1M $DIR/testfile11
+"@ | out-file -encoding ASCII $POOLSET_OUT
+
+# CLI script for writing some data hitting all the parts
+$WRITE_SCRIPT = "$DIR/write_data"
+echo @"
+pr 15M
+srcp 0 TestOK111
+"@ | out-file -encoding ASCII $WRITE_SCRIPT
+
+# CLI script for reading 9 characters from all the parts
+$READ_SCRIPT = "$DIR/read_data"
+echo @"
+srpr 0 9
+"@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP
@@ -80,18 +95,30 @@ cat $POOLSET_OUT >> $LOG_TEMP
 echo "" >> $LOG_TEMP
 
 # Create a pool
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT `
-	obj $POOLSET_IN >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
+cat $LOG >> $LOG_TEMP
 
-# Try to transform poolset
+# Write some data into the pool, hitting two part files
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
+# Check if correctly written
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
+# Transform poolset
 expect_abnormal_exit $PMEMPOOL transform `
     $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
 
+# Check if correctly read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile00 >> $LOG_TEMP
 
-rm $LOG -Force -ea si
-mv $LOG_TEMP $LOG
+# Make sure no other parts were created
+check_no_files $DIR/testfile10 $DIR/testfile11
+
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

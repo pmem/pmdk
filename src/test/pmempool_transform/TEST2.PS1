@@ -30,68 +30,92 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST10w -- test for checking pmempool transform;
-#                             pmem/issues#285
+# pmempool_transform/TEST2 -- test for checking pmempool transform in dry-run
+#                             mode; pmem/issues#250
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST10w"
-$Env:UNITTEST_NUM = "10w"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST2"
+$Env:UNITTEST_NUM = "2w"
 
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
+
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-$LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT="OBJ_LAYOUT"
-$POOLSET_IN="$DIR/poolset.in"
-$POOLSET_OUT="$DIR/poolset.out"
+$LAYOUT = "OBJ_LAYOUT"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT = "$DIR/poolset.out"
 
 # Create poolset files
-create_poolset $POOLSET_IN `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile0
+20M $DIR/testfile1
+"@ | out-file -encoding ASCII $POOLSET_IN
 
-create_poolset $POOLSET_OUT `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x `
-	r `
-	20M:$DIR/testfile01:x `
-	20M:$DIR/testfile21:x
+echo @"
+PMEMPOOLSET
+20M $DIR/testfile0
+20M $DIR/testfile1
+REPLICA
+20M $DIR/testfile2
+20M $DIR/testfile3
+"@ | out-file -encoding ASCII $POOLSET_OUT
 
-# Log poolset structures
-echo poolset_in >> $LOG_TEMP
-cat $POOLSET_IN >> $LOG_TEMP
-echo "" >> $LOG_TEMP
-echo poolset_out >> $LOG_TEMP
-cat $POOLSET_OUT >> $LOG_TEMP
-echo "" >> $LOG_TEMP
+# CLI script for writing some data hitting all the parts
+$WRITE_SCRIPT = "$DIR/write_data"
+echo @"
+pr 22M
+srcp 0 TestOK111
+srcp 20M TestOK222
+"@ | out-file -encoding ASCII $WRITE_SCRIPT
+
+# CLI script for reading 9 characters from all the parts
+$READ_SCRIPT = "$DIR/read_data"
+echo @"
+srpr 0 9
+srpr 20M 9
+"@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Create a pool
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT `
-	obj $POOLSET_IN >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
+cat $LOG >> $LOG_TEMP
 
-# Try to transform poolset
-expect_abnormal_exit $PMEMPOOL transform `
-    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
+# Write some data into the pool, hitting two part files
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
+# Check if correctly written
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
+# Run transform in dry-run mode
+expect_normal_exit $PMEMPOOL transform -d $POOLSET_IN $POOLSET_OUT >> $LOG
+cat $LOG >> $LOG_TEMP
+
+# Check if stored data can be read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile0 >> $LOG_TEMP
+dump_pool_info $DIR/testfile1 >> $LOG_TEMP
 
-rm $LOG -Force -ea si
-mv $LOG_TEMP $LOG
+# Make sure no other parts were created
+check_no_files $DIR/testfile2 $DIR/testfile3
+
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

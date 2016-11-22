@@ -30,16 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# libpmempool_transform/TEST0 -- test for checking replica transform
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST1"
-$Env:UNITTEST_NUM = "1"
+$Env:UNITTEST_NAME = "libpmempool_transform\TEST0"
+$Env:UNITTEST_NUM = "0"
+
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -51,9 +51,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+rm $LOG -Force -Recurse -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+rm $LOG_TEMP -Force -Recurse -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
@@ -69,6 +69,9 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
+REPLICA
+10M $DIR/testfile5
+20M $DIR/testfile6
 "@ | out-file -encoding ASCII $POOLSET_IN
 
 echo @"
@@ -79,9 +82,6 @@ REPLICA
 10M $DIR/testfile2
 10M $DIR/testfile3
 10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
 "@ | out-file -encoding ASCII $POOLSET_OUT
 
 # CLI script for writing some data hitting all the parts
@@ -119,7 +119,7 @@ cat $LOG >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
 
 # Check metadata by pmempool info
-for ($i=0; $i -lt 7; $i++) {
+for ($i=0; $i -lt 5; $i++) {
     dump_pool_info $DIR/testfile$i >> $LOG_TEMP
 }
 
