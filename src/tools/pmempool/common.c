@@ -642,7 +642,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		fd = -1;
 
 		if (check) {
-			if (util_poolset_map(fname, &set, 1)) {
+			if (util_poolset_map(fname, &set, 0)) {
 				ret = -1;
 				goto out_close;
 			}
@@ -653,7 +653,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 				ret = -1;
 				goto out_close;
 			}
-			if (util_pool_open_nocheck(set, 1)) {
+			if (util_pool_open_nocheck(set, 0)) {
 				ret = -1;
 				goto out_close;
 			}
@@ -661,6 +661,10 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 		paramsp->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
+		if (mprotect(addr, set->poolsize, PROT_READ) < 0) {
+			ERR("!mprotect");
+			goto out_close;
+		}
 	} else {
 		/* read first two pages */
 		if (util_file_is_device_dax(fname)) {
