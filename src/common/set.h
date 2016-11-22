@@ -199,6 +199,9 @@ int util_remote_load(void);
 int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
 int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	size_t minsize, int create, unsigned *nlanes);
+int util_replica_close_local(struct pool_replica *rep, unsigned repn, int del);
+int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
+		int del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);

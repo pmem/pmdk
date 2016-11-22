@@ -1077,11 +1077,10 @@ pmempool_sync(const char *poolset, unsigned flags)
 		ERR("parsing input poolset failed");
 		goto err_close_file;
 	}
-	if (set->remote) {
-		if (util_remote_load()) {
-			ERR("remote replication not available");
-			goto err_close_file;
-		}
+
+	if (set->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_close_file;
 	}
 
 	/* sync all replicas */
@@ -1168,6 +1167,16 @@ pmempool_transform(const char *poolset_src,
 	/* check if the source poolset is of a correct type */
 	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
 		ERR("source poolset is of a wrong type");
+		goto err_free_poolout;
+	}
+
+	/* load remote library if needed */
+	if (set_in->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_free_poolout;
+	}
+	if (set_out->remote && util_remote_load()) {
+		ERR("remote replication not available");
 		goto err_free_poolout;
 	}
 
