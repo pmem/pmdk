@@ -39,6 +39,7 @@
 #include <sys/queue.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <getopt.h> /* XXX */
 
 #include "log.h"
 #include "blk.h"
@@ -154,7 +155,7 @@ struct option_requirement {
 };
 
 struct options {
-	const struct option *options;
+	const struct option *opts;
 	size_t noptions;
 	char *bitmap;
 	const struct option_requirement *req;
@@ -256,6 +257,8 @@ util_count_ones(uint64_t val)
 	return (uint32_t)__builtin_popcountll(val);
 }
 
-static const struct range ENTIRE_UINT64 = { .first = 0,
-.last = UINT64_MAX
+static const struct range ENTIRE_UINT64 = {
+	{ NULL, NULL },	/* range */
+	0,		/* first */
+	UINT64_MAX	/* last */
 };
