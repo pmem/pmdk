@@ -1,21 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{b7d9fc2e-949d-4e29-840a-977c514a3ace}</UniqueIdentifier>
     </Filter>
     <Filter Include="Match Files">
-      <UniqueIdentifier>{ebe671a1-5994-4fb2-a32a-7d594157a7ed}</UniqueIdentifier>
+      <UniqueIdentifier>{69c8e99a-d0b9-4288-a418-1b2674e8fa5d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Test Scripts">
-      <UniqueIdentifier>{d625cd8f-94b7-45c5-b123-7c0c730edbd9}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="libpmempool_test.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="out0.log.match">
@@ -33,7 +24,7 @@
     <None Include="out4.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out5.log.match">
+    <None Include="out5w.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out6.log.match">
@@ -58,6 +49,18 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="out13.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out14.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out15.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out16.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out17.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="TEST0.PS1">
@@ -93,7 +96,25 @@
     <None Include="TEST10.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+    <None Include="TEST11.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST12.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
     <None Include="TEST13.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST14.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST15.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST16w.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST17w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="README" />
