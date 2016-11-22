@@ -53,6 +53,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_bucket$EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\obj_bucket$Env:EXESUFFIX
 
 pass

@@ -56,7 +56,7 @@ require_fs_type non-pmem
 
 setup
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj --layout realloc --size=64M $DIR\testfile1
+expect_normal_exit $PMEMPOOL create obj --layout realloc --size=64M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\obj_realloc$Env:EXESUFFIX $DIR\testfile1 0
 

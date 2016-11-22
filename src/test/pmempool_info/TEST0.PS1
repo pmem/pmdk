@@ -53,8 +53,8 @@ $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create blk 512 $POOL
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOL >> $LOG
+expect_normal_exit $PMEMPOOL create blk 512 $POOL
+expect_normal_exit $PMEMPOOL info $POOL >> $LOG
 
 check
 

@@ -454,9 +454,9 @@ function check_pool {
         if ($Env:VERBOSE -ne "0") {
             echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
         }
-        Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+        Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
         if ($LASTEXITCODE -ne 0) {
-            Write-Error("$PMEMPOOL$Env:EXESUFFIX returned error code $LASTEXITCODE")
+            Write-Error("$PMEMPOOL returned error code $LASTEXITCODE")
             Exit $LASTEXITCODE
         }
     }
@@ -1002,13 +1002,14 @@ $Env:EXESUFFIX = ".exe"
 if ($Env:EXE_DIR -eq $null) {
     $Env:EXE_DIR = "..\..\x64\debug"
 }
-$PMEMPOOL="$Env:EXE_DIR\pmempool"
-$PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
-$PMEMWRITE="$Env:EXE_DIR\pmemwrite"
-$PMEMALLOC="$Env:EXE_DIR\pmemalloc"
-$PMEMDETECT="$Env:EXE_DIR\pmemdetect"
-
-$SPARSEFILE="$Env:EXE_DIR\sparsefile"
+$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
+$PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
+$PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
+$PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
+$PMEMDETECT="$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
+$PMEMOBJCLI="$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
+$SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
+$DDMAP="$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
 
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is

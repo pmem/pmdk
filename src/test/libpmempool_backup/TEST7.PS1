@@ -58,7 +58,7 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	rm $POOLFILE -Force -ea si
 
 	# create source poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create $POOL_TYPES[$i] `
+	expect_normal_exit $PMEMPOOL create $POOL_TYPES[$i] `
 		$POOL_CREATE_PARAMS[$i] --size 20M $POOLFILE
 
 	# create backup pool file

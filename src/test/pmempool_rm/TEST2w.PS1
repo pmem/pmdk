@@ -72,10 +72,10 @@ rm $LOG -Force -Recurse -ea si
 #	$DIR/rep.part2
 #
 ## Try to remove files without force flag
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX rm -v $DIR/pool.obj >> $LOG 2>&1
-#expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX rm -sv $DIR/pool.set >> $LOG 2>&1
+#expect_abnormal_exit $PMEMPOOL rm -v $DIR/pool.obj >> $LOG 2>&1
+#expect_abnormal_exit $PMEMPOOL rm -sv $DIR/pool.set >> $LOG 2>&1
 ## Try to remove files with force flag
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX rm -fv\
+#expect_normal_exit $PMEMPOOL rm -fv\
 #	$DIR/pool.obj\
 #	$DIR/pool.set >> $LOG 2>&1
 #

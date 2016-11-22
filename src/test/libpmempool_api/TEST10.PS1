@@ -55,7 +55,7 @@ $LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 rm $LOG_TEMP -Force -ea si
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOL >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create log $POOL >> $LOG_TEMP
 &$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 check_file $POOL
 
@@ -64,7 +64,7 @@ expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL `
 cat $LOG >> $LOG_TEMP
 rm $POOL -Force
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOL >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create log $POOL >> $LOG_TEMP
 &$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 check_file $POOL
 
