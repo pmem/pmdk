@@ -81,7 +81,7 @@ struct rpmem_pool {
 	char fip_service[NI_MAXSERV];
 	enum rpmem_provider provider;
 	pthread_t monitor;
-
+	int closing;
 	/*
 	 * Last error code, need to be volatile because it can
 	 * be accessed by multiple threads.
@@ -172,7 +172,8 @@ rpmem_monitor_thread(void *arg)
 	RPMEMpool *rpp = arg;
 
 	int ret = rpmem_obc_monitor(rpp->obc, 0);
-	if (ret) {
+	if (ret && !rpp->closing) {
+		RPMEM_LOG(ERR, "unexpected data received");
 		rpp->error = errno;
 	}
 
@@ -565,6 +566,8 @@ int
 rpmem_close(RPMEMpool *rpp)
 {
 	RPMEM_LOG(INFO, "closing out-of-band connection");
+
+	rpp->closing = 1;
 
 	rpmem_fip_process_stop(rpp->fip);
 

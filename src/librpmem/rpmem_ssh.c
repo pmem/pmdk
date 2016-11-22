@@ -408,7 +408,6 @@ rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock)
 	int ret = rpmem_xread(rps->cmd->fd_out, &buff, sizeof(buff), flags);
 
 	if (!ret) {
-		RPMEM_LOG(ERR, "unexpected data received");
 		errno = EPROTO;
 		return -1;
 	}
