@@ -911,6 +911,21 @@ function require_fs_type {
 }
 
 #
+# require_dax_devices -- only allow script to continue for a dax device
+#
+function require_dax_devices() {
+    # XXX: no device dax on Windows
+    if (-Not $Env:UNITTEST_QUIET) {
+        Write-Host "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
+    }
+    exit 0
+}
+
+function dax_device_zero() {
+    # XXX: no device dax on Windows
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup {
