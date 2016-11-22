@@ -60,11 +60,11 @@ template <typename T>
 inline void
 conditional_add_to_tx(const T *that)
 {
-	/* 'that' is not in any open pool */
-	if (!pmemobj_pool_by_ptr(that))
+	if (pmemobj_tx_stage() != TX_STAGE_WORK)
 		return;
 
-	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that))
 		return;
 
 	if (pmemobj_tx_add_range_direct(that, sizeof(*that)))
