@@ -780,13 +780,20 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			return -1;
 		}
 
-		if (pip->type != PMEM_POOL_TYPE_BTT &&
-			mprotect(pip->pfile->addr, pip->pfile->size,
-			PROT_READ) < 0) {
-			outv_err("%s: failed to change pool protection",
-				pip->pfile->fname);
-			ret = -1;
-			goto out_close;
+		if (pip->type != PMEM_POOL_TYPE_BTT) {
+			struct pool_set *ps = pip->pfile->poolset;
+			for (unsigned r = 0; r < ps->nreplicas; ++r) {
+				if (mprotect(ps->replica[r]->part[0].addr,
+					ps->replica[r]->repsize,
+					PROT_READ) < 0) {
+					outv_err(
+					"%s: failed to change pool protection",
+					pip->pfile->fname);
+
+					ret = -1;
+					goto out_close;
+				}
+			}
 		}
 
 		if (pip->args.obj.replica) {
