@@ -71,11 +71,11 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ##### Poolset synchronization and transformation: #####
 
 ```c
-int pmempool_sync(const char *poolset_file, unsigned flags);
+int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
-	unsigned flags);
+	unsigned flags); (EXPERIMENTAL)
 ```
 
 ##### Library API versioning: #####
@@ -108,10 +108,6 @@ is for applications that need high reliability or built-in
 troubleshooting. It may be useful for testing and debugging
 purposes also.
 
-Currently **libpmempool** implements only consistency check and
-repair functions.
-
-
 # POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
@@ -131,6 +127,9 @@ When check is completed **pmempool_check**() returns NULL pointer.
 Check must be finalized using **pmempool_check_end**().
 It returns *enum pmempool_check_result* describing
 result of the whole check.
+
+# NOTE #
+Currently, checking the consistency of a *pmemobj* pool is **not** supported.
 
 ```c
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
@@ -287,7 +286,7 @@ return one of the following values:
 ### POOLSET SYNC ###
 
 ```c
-int pmempool_sync(const char *poolset_file, unsigned flags);
+int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 ```
 
 The **pmempool_sync**() function synchronizes data between replicas within
@@ -316,13 +315,15 @@ the healthy replicas.
 The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
 
+>NOTE: The **pmempool_sync**() API is experimental and it may change in future
+versions of the library.
 
 ### POOLSET TRANSFORM ###
 
 ```c
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
-	unsigned flags);
+	unsigned flags); (EXPERIMENTAL)
 ```
 
 The **pmempool_transform**() function modifies internal structure of a poolset.
@@ -367,6 +368,8 @@ utilized for storing internal metadata of the pool part files.
 The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
 
+>NOTE: The **pmempool_transform**() API is experimental and it may change in future
+versions of the library.
 
 # LIBRARY API VERSIONING #
 

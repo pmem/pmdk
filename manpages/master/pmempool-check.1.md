@@ -65,6 +65,9 @@ In case of any errors, the proper message is printed. The verbosity level may be
 It is possible to try to fix encountered problems using **-r** option. In order to be sure this will not corrupt your data you can either create backup of the
 pool file using **-b** option or just print what would be fixed without modifying original pool using **-N** option.
 
+> NOTE:
+Currently, checking the consistency of a *pmemobj* pool is **not** supported.
+
 ##### Available options: #####
 
 `-r, --repair`
@@ -83,6 +86,11 @@ Don't execute, just show what would be done. Not supported on device dax.
 
 Create backup of a pool file before executing. Terminate if it is *not*
 possible to create a backup file. This option requires **-r** option.
+
+`-a, --advanced`
+
+Perform advanced repairs. This option enables more aggressive steps in attempts
+to repair a pool. This option requires `-r, --repair`.
 
 `-q, --quiet`
 
