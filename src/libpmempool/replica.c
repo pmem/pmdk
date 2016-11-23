@@ -990,8 +990,10 @@ replica_check_part_dirs(struct pool_set *set)
 			/* skip remote replicas */
 			continue;
 
-		for (unsigned p = 0; p < rep->nparts; ++p)
-			replica_check_local_part_dir(set, r, p);
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (replica_check_local_part_dir(set, r, p))
+				return -1;
+		}
 	}
 	return 0;
 }
