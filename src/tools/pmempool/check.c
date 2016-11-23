@@ -320,7 +320,10 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 	case CHECK_RESULT_ERROR:
 		if (errno)
 			outv_err("%s\n", strerror(errno));
-		outv_err("repairing failed\n");
+		if (pc.repair)
+			outv_err("repairing failed\n");
+		else
+			outv_err("checking consistency failed\n");
 		ret = -1;
 		break;
 	}
