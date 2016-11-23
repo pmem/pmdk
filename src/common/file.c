@@ -114,6 +114,9 @@ util_file_is_device_dax(const char *path)
 	int olderrno = errno;
 	int ret = 0;
 
+	if (path == NULL)
+		goto out;
+
 	if (util_stat(path, &st) < 0)
 		goto out;
 
