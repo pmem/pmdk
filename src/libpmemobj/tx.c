@@ -867,6 +867,22 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 }
 
 /*
+ * tx_get_pop -- returns the current transaction's pool handle, NULL if not
+ * within a transaction.
+ */
+PMEMobjpool *
+tx_get_pop(void)
+{
+	if (tx.stage == TX_STAGE_NONE)
+		return NULL;
+
+	struct lane_tx_runtime *lane =
+			(struct lane_tx_runtime *)tx.section->runtime;
+
+	return lane->pop;
+}
+
+/*
  * add_to_tx_and_lock -- (internal) add lock to the transaction and acquire it
  */
 static int
@@ -1767,8 +1783,7 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
-	if ((char *)ptr < (char *)lane->pop ||
-			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
+	if (!OBJ_PTR_FROM_POOL(lane->pop, ptr)) {
 		ERR("object outside of pool");
 		return obj_tx_abort_err(EINVAL);
 	}

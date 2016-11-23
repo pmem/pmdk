@@ -81,4 +81,10 @@ struct lane_tx_layout {
 	struct pvector undo_log[MAX_UNDO_TYPES];
 };
 
+/*
+ * Returns the current transaction's pool handle, NULL if not within
+ * a transaction.
+ */
+PMEMobjpool *tx_get_pop(void);
+
 #endif
