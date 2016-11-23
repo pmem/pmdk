@@ -318,7 +318,15 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 		params->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
-		if (mprotect(addr, set->poolsize, PROT_READ) < 0) {
+
+		/*
+		 * XXX mprotect for device dax with length not aligned to its
+		 * page granularity causes SIGBUS on the next page fault.
+		 * The length argument of this call should be changed to
+		 * set->poolsize once the kernel issue is solved.
+		 */
+		if (mprotect(addr, set->replica[0]->repsize,
+			PROT_READ) < 0) {
 			ERR("!mprotect");
 			goto out_unmap;
 		}
@@ -519,7 +527,14 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	if (pool->set_file == NULL)
 		goto error;
 
-	if (rdonly && mprotect(pool->set_file->addr, pool->set_file->size,
+	/*
+	 * XXX mprotect for device dax with length not aligned to its
+	 * page granularity causes SIGBUS on the next page fault.
+	 * The length argument of this call should be changed to
+	 * pool->set_file->poolsize once the kernel issue is solved.
+	 */
+	if (rdonly && mprotect(pool->set_file->addr,
+		pool->set_file->poolset->replica[0]->repsize,
 		PROT_READ) < 0)
 		goto error;
 
