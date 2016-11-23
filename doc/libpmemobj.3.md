@@ -1638,10 +1638,11 @@ int pmemobj_tx_end(void);
 ```
 
 The **pmemobj_tx_end**() function performs a clean up of a current transaction. If called in context of the outermost transaction, it releases all the locks
-acquired by **pmemobj_tx_begin**() for outer and nested transactions. Then it causes the transition to **TX_STAGE_NONE**. In case of the nested transaction, it
-returns to the context of the outer transaction with **TX_STAGE_WORK** stage without releasing any locks. Must always be called for each **pmemobj_tx_begin**(),
-even if starting the transaction failed. This function must *not* be called during **TX_STAGE_WORK**. If transaction was successful, returns 0. Otherwise returns
-error code set by **pmemobj_tx_abort**(). Note that **pmemobj_tx_abort**() can be called internally by the library.
+acquired by **pmemobj_tx_begin**() for outer and nested transactions. The **pmemobj_tx_end**() function can be called during **TX_STAGE_NONE** if transitioned
+to this stage using **pmemobj_tx_process**(). If not already in **TX_STAGE_NONE** state, it causes the transition to **TX_STAGE_NONE**.
+In case of the nested transaction, it returns to the context of the outer transaction with **TX_STAGE_WORK** stage without releasing any locks. Must always be
+called for each **pmemobj_tx_begin**(), even if starting the transaction failed. This function must *not* be called during **TX_STAGE_WORK**. If transaction
+was successful, returns 0. Otherwise returns error code set by **pmemobj_tx_abort**(). Note that **pmemobj_tx_abort**() can be called internally by the library.
 
 ```c
 int pmemobj_tx_errno(void);
@@ -1654,7 +1655,16 @@ void pmemobj_tx_process(void);
 ```
 
 The **pmemobj_tx_process**() function performs the actions associated with current stage of the transaction, and makes the transition to the next stage. It
-must be called in transaction. Current stage must always be obtained by a call to **pmemobj_tx_stage**().
+must be called in transaction. Current stage must always be obtained by a call to **pmemobj_tx_stage**(). The **pmemobj_tx_process**() performs the following
+transitions in the transaction stage flow:
+
++ **TX_STAGE_WORK** -> **TX_STAGE_ONCOMMIT**
++ **TX_STAGE_ONABORT** -> **TX_STAGE_FINALLY**
++ **TX_STAGE_ONCOMMIT** -> **TX_STAGE_FINALLY**
++ **TX_STAGE_FINALLY** -> **TX_STAGE_NONE**
++ **TX_STAGE_NONE** -> **TX_STAGE_NONE**
+
+The **pmemobj_tx_process**() must not be called after calling **pmemobj_tx_end**() for the outermost transaction.
 
 ```c
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
