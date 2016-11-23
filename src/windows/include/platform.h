@@ -69,7 +69,6 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <malloc.h>
 #include <signal.h>
 #include <intrin.h>
-#include <time.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
