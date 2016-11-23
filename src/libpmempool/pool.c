@@ -318,7 +318,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 		params->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
-		if (mprotect(addr, set->poolsize, PROT_READ) < 0) {
+		if (mprotect(addr, set->replica[0]->part[0].size,
+			PROT_READ) < 0) {
 			ERR("!mprotect");
 			goto out_unmap;
 		}
@@ -519,7 +520,8 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	if (pool->set_file == NULL)
 		goto error;
 
-	if (rdonly && mprotect(pool->set_file->addr, pool->set_file->size,
+	if (rdonly && mprotect(pool->set_file->addr,
+		pool->set_file->poolset->replica[0]->part[0].size,
 		PROT_READ) < 0)
 		goto error;
 

@@ -781,8 +781,9 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		}
 
 		if (pip->type != PMEM_POOL_TYPE_BTT &&
-			mprotect(pip->pfile->addr, pip->pfile->size,
-			PROT_READ) < 0) {
+			mprotect(pip->pfile->addr,
+				pip->pfile->poolset->replica[0]->part[0].size,
+				PROT_READ) < 0) {
 			outv_err("%s: failed to change pool protection",
 				pip->pfile->fname);
 			ret = -1;
