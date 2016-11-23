@@ -95,9 +95,6 @@
 #define OOB_HEADER_FROM_OID(pop, oid)\
 	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
 
-#define OBJ_OID_IS_IN_UNDO_LOG(pop, oid)\
-	(OOB_HEADER_FROM_OID(pop, oid)->undo_entry_offset != 0)
-
 #define OOB_HEADER_FROM_PTR(ptr)\
 	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_SIZE))
 
@@ -192,9 +189,7 @@ struct pmemobjpool {
  * together with allocator's header (of size 16B) located just before it.
  */
 struct oob_header {
-	uint8_t unused[24];
-
-	uint64_t undo_entry_offset;
+	uint8_t unused[32];
 
 	/* used only in root object, last bit used as a mask */
 	uint64_t size;
