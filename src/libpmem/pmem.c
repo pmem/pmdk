@@ -555,6 +555,31 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		return NULL;
 	}
 
+	if (dax) {
+		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
+			ERR("invalid flag for device dax %x", flags);
+			errno = EINVAL;
+			return NULL;
+		} else {
+			/* we are ignoring all of the flags */
+			flags = 0;
+			ssize_t actual_len = util_file_get_size(path);
+			if (actual_len < 0) {
+				ERR("unable to read device dax size");
+				errno = EINVAL;
+				return NULL;
+			}
+			if (len != 0 && len != (size_t)actual_len) {
+				ERR("device dax length must be either 0 or "
+					"the exact size of the device %zu",
+					len);
+				errno = EINVAL;
+				return NULL;
+			}
+			len = 0;
+		}
+	}
+
 	if (flags & PMEM_FILE_CREATE) {
 		if ((off_t)len < 0) {
 			ERR("invalid file length %zu", len);
@@ -583,18 +608,6 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 		ERR("PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
-	}
-
-	if (dax) {
-		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
-			ERR("invalid flag for device dax %x", flags);
-			errno = EINVAL;
-			return NULL;
-		} else {
-			/* we are ignoring all of the flags anyway */
-			flags = 0;
-			open_flags = O_RDWR;
-		}
 	}
 
 #if USE_O_TMPFILE
