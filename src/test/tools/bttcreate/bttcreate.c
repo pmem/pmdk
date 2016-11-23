@@ -193,7 +193,7 @@ print_result(struct bbtcreate_options *opts)
 {
 	if (opts->verbose) {
 		printf("BTT successfully created: %s\n", opts->fpath);
-		printf("poolsize\t%luB\n", opts->poolsize);
+		printf("poolsize\t%zuB\n", opts->poolsize);
 		printf("blocksize\t%uB\n", opts->blocksize);
 		printf("maxlanes\t%u\n", opts->maxlanes);
 		print_uuid(opts->uuid);
@@ -204,7 +204,7 @@ print_result(struct bbtcreate_options *opts)
 int
 main(int argc, char *argv[])
 {
-	common_init(0, 0, 0, 0, 0);
+	common_init("", "", "", 0, 0);
 
 	int opt;
 	size_t size;
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
 		return -1;
 	}
 	if (opts.blocksize < BTT_MIN_LBA_SIZE) {
-		fprintf(stderr, "Block size is less then %ld B\n",
+		fprintf(stderr, "Block size is less then %zu B\n",
 				BTT_MIN_LBA_SIZE);
 		return -1;
 	}

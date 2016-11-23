@@ -51,9 +51,6 @@ rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
 EXE=../libpmempool_api/libpmempool_test
 
-declare -A map_err=(["Initial"]="0" ["Error"]="4"
-	["Zeroed"]="8" ["Normal"]="C")
-
 ent_val=10
 
 expect_normal_exit $BTTCREATE $POOL
@@ -61,32 +58,32 @@ expect_normal_exit $BTTCREATE $POOL
 for((i=0;i<ent_val;i++));
 do
 	spcmd="bttdevice.arena.btt_map(${i})=0xC000000${i}"
-	echo ${field}: $spcmd >> $LOG_TEMP
+	echo $spcmd >> $LOG_TEMP
 	$PMEMSPOIL $POOL $spcmd
 done
 
 spcmd="bttdevice.arena.btt_map(5)=0xC0000002"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 spcmd="bttdevice.arena.btt_map(6)=0xC0000002"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 spcmd="bttdevice.arena.btt_map(7)=0xC0000002"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 spcmd="bttdevice.arena.btt_map(10)=0xC0000002"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 spcmd="bttdevice.arena.btt_map(11)=0xC0000002"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 spcmd="bttdevice.arena.btt_map(12)=0xC0000003"
-echo ${field}: $spcmd >> $LOG_TEMP
+echo $spcmd >> $LOG_TEMP
 $PMEMSPOIL $POOL $spcmd
 
 expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt -a 1
