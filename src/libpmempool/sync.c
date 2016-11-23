@@ -150,6 +150,20 @@ fill_struct_part_uuids(struct pool_set *set, unsigned repn,
 }
 
 /*
+ * is_uuid_already_used -- (internal) check if given uuid is assigned to
+ *                         any of the earlier replicas
+ */
+static int
+is_uuid_already_used(uuid_t uuid, struct pool_set *set, unsigned repn)
+{
+	for (unsigned r = 0; r < repn; ++r) {
+		if (uuidcmp(uuid, PART(REP(set, r), 0).uuid) == 0)
+			return 1;
+	}
+	return 0;
+}
+
+/*
  * fill_struct_broken_part_uuids -- (internal) set part uuids in pool_set
  *                                  structure
  */
@@ -191,12 +205,26 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			!replica_is_part_broken(repn + 1, 0, set_hs)) {
 			/* try to get part uuid from the next replica */
 			hdrp = HDR(REP(set, repn + 1), 0);
+			if (is_uuid_already_used(hdrp->prev_repl_uuid, set,
+					repn)) {
+				ERR("repeated uuid - some replicas were created"
+					" with a different poolset file");
+				errno = EINVAL;
+				return -1;
+			}
 			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
 						POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
 			!replica_is_part_broken(repn - 1, 0, set_hs)) {
 			/* try to get part uuid from the previous replica */
 			hdrp = HDR(REP(set, repn - 1), 0);
+			if (is_uuid_already_used(hdrp->next_repl_uuid, set,
+					repn)) {
+				ERR("repeated uuid - some replicas were created"
+					" with a different poolset file");
+				errno = EINVAL;
+				return -1;
+			}
 			memcpy(rep->part[p].uuid, hdrp->next_repl_uuid,
 						POOL_HDR_UUID_LEN);
 		} else {
