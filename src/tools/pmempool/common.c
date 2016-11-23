@@ -661,7 +661,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 		paramsp->size = set->poolsize;
 		addr = set->replica[0]->part[0].addr;
-		if (mprotect(addr, set->poolsize, PROT_READ) < 0) {
+		if (mprotect(addr, set->replica[0]->repsize,
+			PROT_READ) < 0) {
 			ERR("!mprotect");
 			goto out_close;
 		}
