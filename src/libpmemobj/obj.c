@@ -2101,10 +2101,6 @@ constructor_alloc_root(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	VALGRIND_REMOVE_FROM_TX(ro, OBJ_OOB_SIZE + usable_size);
 
-	pmemops_persist(p_ops, &ro->size,
-		/* there's no padding between these, so we can add sizes */
-		sizeof(ro->size) + sizeof(ro->type_num));
-
 	return ret;
 }
 
