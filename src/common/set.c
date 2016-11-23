@@ -763,6 +763,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
+	rep->part[p].remote_hdr = NULL;
 
 	return 0;
 }
