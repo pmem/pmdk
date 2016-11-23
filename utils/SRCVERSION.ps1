@@ -37,18 +37,87 @@ $file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
 $git = Get-Command -Name git -ErrorAction SilentlyContinue
 
 if (Test-Path $file_path) {
-    $old_version = Get-Content $file_path | Where-Object { $_ -like '#define*' }
+    $old_src_version = Get-Content $file_path | Where-Object { $_ -like '#define SRCVERSION*' }
 } else {
-    $old_version = ""
+    $old_src_version = ""
 }
-
+ $PRERELEASE = $false
+ $BUGFIX = $false
+ $PRIVATE = $true
+ $CUSTOM = $false
 if ($git -eq $null) {
-    $version = "#define SRCVERSION `"1.0`""
+    $MAJOR = 0
+    $MINOR = 0
+    $REVISION = 0
+    $BUILD = 0
+
+    $CUSTOM = $true
+    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"Git was not installed during a build, couldn't determine library version`" "
 } else {
-    $version = "#define SRCVERSION `"$(git describe)`""
+    $version = $(git describe)
+    $no_git = $false
+    $ver_array = $(git describe --long).split("-")
+
+    if($ver_array.length -eq 4) {
+        # <MAJOR>.<MINOR>-RC<REVISION>-<BUILDNUMBER>-<HASH>
+        $MAJOR = $ver_array[0].split(".")[0]
+        $MINOR = $ver_array[0].split(".")[1]
+        $REVISION = $ver_array[1].Substring("rc".Length)
+        $BUILD = $ver_array[2]
+        $PRERELEASE = $true
+    } elseif($ver_array.length -eq 3) {
+
+        if($ver_array[0].split("+").Length -gt 1) {
+            # <MAJOR>.<MINOR>+b<REVISION>-<BUILDNUMBER>-<HASH>
+            $MAJOR = $ver_array[0].split("+")[0].split(".")[0]
+            $MINOR = $ver_array[0].split("+")[0].split(".")[1]
+            $REVISION = 1000 + $ver_array[0].split("+")[1].Substring("b".Length)
+            $BUILD = $ver_array[1]
+            $BUGFIX = $true
+        } else {
+            # <MAJOR>.<MINOR>-<BUILDNUMBER>-<HASH>
+            $MAJOR = $ver_array[0].split(".")[0]
+            $MINOR = $ver_array[0].split(".")[1]
+            $REVISION = 1000
+            $BUILD = $ver_array[1]
+        }
+    }
+    if($BUILD -eq 0 ) {
+        # it is not a (pre)release build
+       $PRIVATE = $false
+    }
+}
+$src_version = "#define SRCVERSION `"$version`""
+
+if ($old_src_version -eq $src_version) {
+    exit 0
 }
 
-if ($old_version -ne $version) {
     echo "updating source version: $version"
-    echo $version > $file_path
-}
+    echo $src_version > $file_path
+
+    echo "#ifdef RC_INVOKED" >> $file_path
+
+    echo "#define MAJOR $MAJOR" >> $file_path
+    echo "#define MINOR $MINOR" >> $file_path
+    echo "#define REVISION $REVISION" >> $file_path
+    echo "#define BUILD $BUILD" >> $file_path
+
+    if($PRERELEASE) {
+        echo "#define PRERELEASE 1"  >> $file_path
+    }
+    if($BUGFIX) {
+        echo "#define BUGFIX 1"  >> $file_path
+    }
+    if($PRIVATE) {
+        echo "#define PRIVATE 1"  >> $file_path
+    }
+    if($CUSTOM) {
+        echo "#define CUSTOM 1"  >> $file_path
+        echo $version_custom_msg  >> $file_path
+    }
+
+    echo "#endif" >> $file_path
+
+
+
