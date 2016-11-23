@@ -1,15 +1,15 @@
 Zeroed: bttdevice.arena.btt_map(0)=0x80000000
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Zeroed: bttdevice.arena.btt_map(0)=0x80000001
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -22,19 +22,19 @@ Do you want to repair invalid BTT Map entries?
 arena 0: storing 0x40000001 at 0 BTT Map entry
 arena 0: storing 0x40000000 at 1 BTT Map entry
 status = repaired
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Error: bttdevice.arena.btt_map(0)=0x40000000
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Error: bttdevice.arena.btt_map(0)=0x40000001
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -47,37 +47,37 @@ Do you want to repair invalid BTT Map entries?
 arena 0: storing 0x40000001 at 0 BTT Map entry
 arena 0: storing 0x40000000 at 1 BTT Map entry
 status = repaired
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Initial: bttdevice.arena.btt_map(0)=0x00000000
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Initial: bttdevice.arena.btt_map(0)=0x00000001
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Normal: bttdevice.arena.btt_map(0)=0xC0000000
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done
 Normal: bttdevice.arena.btt_map(0)=0xC0000001
-libpmempool_map_flog/TEST0: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST0: START: libpmempool_test
+ $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -90,4 +90,4 @@ Do you want to repair invalid BTT Map entries?
 arena 0: storing 0x40000001 at 0 BTT Map entry
 arena 0: storing 0x40000000 at 1 BTT Map entry
 status = repaired
-libpmempool_map_flog/TEST0: Done
+libpmempool_map_flog$(nW)TEST0: Done

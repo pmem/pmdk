@@ -1002,13 +1002,14 @@ $Env:EXESUFFIX = ".exe"
 if ($Env:EXE_DIR -eq $null) {
     $Env:EXE_DIR = "..\..\x64\debug"
 }
+
 $PMEMPOOL="$Env:EXE_DIR\pmempool"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc"
 $PMEMDETECT="$Env:EXE_DIR\pmemdetect"
-
 $SPARSEFILE="$Env:EXE_DIR\sparsefile"
+$BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
 
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
