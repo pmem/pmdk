@@ -373,9 +373,10 @@ delete_replica_local(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_replica *rep = set->replica[repn];
-	for (unsigned p = 0; p < rep->nparts; ++p)
-		replica_remove_part(set, repn, p);
-
+	for (unsigned p = 0; p < rep->nparts; ++p) {
+		if (replica_remove_part(set, repn, p))
+			return -1;
+	}
 	return 0;
 }
 
@@ -390,7 +391,8 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		if (!has_counterpart(r, set_s)) {
 			util_replica_close(set, r);
-			delete_replica_local(set, r);
+			if (delete_replica_local(set, r))
+				return -1;
 		}
 	}
 	return 0;
