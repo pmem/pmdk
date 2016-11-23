@@ -340,7 +340,8 @@ static const struct step steps[] = {
 		.poolset	= true
 	},
 	{
-		.check	= NULL,
+		.check		= NULL,
+		.fix		= NULL,
 	},
 };
 
@@ -350,6 +351,8 @@ static const struct step steps[] = {
 static int
 step_exe(PMEMpoolcheck *ppc, union location *loc)
 {
+	ASSERT(loc->step < (sizeof(steps) / sizeof(steps[0])));
+
 	const struct step *step = &steps[loc->step++];
 
 	if (step->poolset == 0 && ppc->pool->params.is_poolset == 1)
