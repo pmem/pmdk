@@ -56,11 +56,11 @@ enum\ pmempool_check_result\ pmempool_check_end(PMEMpoolcheck\ *ppc);
 .IP
 .nf
 \f[C]
-int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);
+int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);\ (EXPERIMENTAL)
 
 int\ pmempool_transform(const\ char\ *poolset_file_src,
 \ \ \ \ const\ char\ *poolset_file_dst,
-\ \ \ \ unsigned\ flags);
+\ \ \ \ unsigned\ flags);\ (EXPERIMENTAL)
 \f[]
 .fi
 .SS Library API versioning:
@@ -91,9 +91,6 @@ modify an existing one.
 \f[B]libpmempool\f[] is for applications that need high reliability or
 built\-in troubleshooting.
 It may be useful for testing and debugging purposes also.
-.PP
-Currently \f[B]libpmempool\f[] implements only consistency check and
-repair functions.
 .SH POOL CHECKING FUNCTIONS
 .PP
 To perform check provided by \f[B]libpmempool\f[], a \f[I]check
@@ -113,6 +110,10 @@ When check is completed \f[B]pmempool_check\f[]() returns NULL pointer.
 Check must be finalized using \f[B]pmempool_check_end\f[]().
 It returns \f[I]enum pmempool_check_result\f[] describing result of the
 whole check.
+.SH NOTE
+.PP
+Currently, checking the consistency of a \f[I]pmemobj\f[] pool is
+\f[B]not\f[] supported.
 .IP
 .nf
 \f[C]
@@ -310,7 +311,7 @@ the check encountered issue
 .IP
 .nf
 \f[C]
-int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);
+int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);\ (EXPERIMENTAL)
 \f[]
 .fi
 .PP
@@ -340,13 +341,18 @@ replicas.
 .PP
 The function returns either 0 on success or \-1 in case of error with
 proper errno set accordingly.
+.RS
+.PP
+NOTE: The \f[B]pmempool_sync\f[]() API is experimental and it may change
+in future versions of the library.
+.RE
 .SS POOLSET TRANSFORM
 .IP
 .nf
 \f[C]
 int\ pmempool_transform(const\ char\ *poolset_file_src,
 \ \ \ \ const\ char\ *poolset_file_dst,
-\ \ \ \ unsigned\ flags);
+\ \ \ \ unsigned\ flags);\ (EXPERIMENTAL)
 \f[]
 .fi
 .PP
@@ -394,6 +400,11 @@ metadata of the pool part files.
 .PP
 The function returns either 0 on success or \-1 in case of error with
 proper errno set accordingly.
+.RS
+.PP
+NOTE: The \f[B]pmempool_transform\f[]() API is experimental and it may
+change in future versions of the library.
+.RE
 .SH LIBRARY API VERSIONING
 .PP
 This section describes how the library API is versioned, allowing
