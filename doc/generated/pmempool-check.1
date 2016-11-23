@@ -58,6 +58,11 @@ In order to be sure this will not corrupt your data you can either
 create backup of the pool file using \f[B]\-b\f[] option or just print
 what would be fixed without modifying original pool using \f[B]\-N\f[]
 option.
+.RS
+.PP
+NOTE: Currently, checking the consistency of a \f[I]pmemobj\f[] pool is
+\f[B]not\f[] supported.
+.RE
 .SS Available options:
 .PP
 \f[C]\-r,\ \-\-repair\f[]
@@ -78,6 +83,12 @@ Not supported on device dax.
 Create backup of a pool file before executing.
 Terminate if it is \f[I]not\f[] possible to create a backup file.
 This option requires \f[B]\-r\f[] option.
+.PP
+\f[C]\-a,\ \-\-advanced\f[]
+.PP
+Perform advanced repairs.
+This option enables more aggressive steps in attempts to repair a pool.
+This option requires \f[C]\-r,\ \-\-repair\f[].
 .PP
 \f[C]\-q,\ \-\-quiet\f[]
 .PP
