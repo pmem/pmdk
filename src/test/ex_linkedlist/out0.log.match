@@ -1,5 +1,5 @@
-ex_linkedlist/TEST0: START: ex_linkedlist
- ./ex_linkedlist $(nW)
+ex_linkedlist$(nW)TEST0: START: ex_linkedlist
+ $(nW)ex_linkedlist$(*) $(nW)
 after init start
 after init end
 after insert[head|tail] start
@@ -386,4 +386,4 @@ after remove_free2 start
 after remove_free2 end
 Outcome for tail queue is correct!
 Outcome for singly linked list is correct!
-ex_linkedlist/TEST0: Done
+ex_linkedlist$(nW)TEST0: Done
