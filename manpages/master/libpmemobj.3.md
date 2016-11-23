@@ -526,6 +526,14 @@ replicas may be considered as binary copies of the "master" pool set.
 Creation of all the parts of the pool set and the associated replica sets can be done with the **pmemobj_create**() function or by using the **pmempool**(1)
 utility.
 
+Restoring data from a local or remote replica can be done by using the
+**pmempool-sync**(1) command or **pmempool_sync**() API from the
+**libpmempool**(3) library.
+
+Modifications of a pool set file configuration can be done by using the
+**pmempool-transform**(1) command or **pmempool_transform**() API from the
+**libpmempool**(3) library.
+
 When creating the pool set consisting of multiple files, or when creating the replicated pool set, the *path* argument passed to **pmemobj_create**() must
 point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The *poolsize* argument must be 0. The meaning
 of *layout* and *mode* arguments doesn't change, except that the same *mode* is used for creation of all the parts of the pool set and replicas. If the error
@@ -586,7 +594,6 @@ The files in the set may be created by running the following command:
 ```
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
-
 
 # LOCKING #
 
@@ -1638,10 +1645,11 @@ int pmemobj_tx_end(void);
 ```
 
 The **pmemobj_tx_end**() function performs a clean up of a current transaction. If called in context of the outermost transaction, it releases all the locks
-acquired by **pmemobj_tx_begin**() for outer and nested transactions. Then it causes the transition to **TX_STAGE_NONE**. In case of the nested transaction, it
-returns to the context of the outer transaction with **TX_STAGE_WORK** stage without releasing any locks. Must always be called for each **pmemobj_tx_begin**(),
-even if starting the transaction failed. This function must *not* be called during **TX_STAGE_WORK**. If transaction was successful, returns 0. Otherwise returns
-error code set by **pmemobj_tx_abort**(). Note that **pmemobj_tx_abort**() can be called internally by the library.
+acquired by **pmemobj_tx_begin**() for outer and nested transactions. The **pmemobj_tx_end**() function can be called during **TX_STAGE_NONE** if transitioned
+to this stage using **pmemobj_tx_process**(). If not already in **TX_STAGE_NONE** state, it causes the transition to **TX_STAGE_NONE**.
+In case of the nested transaction, it returns to the context of the outer transaction with **TX_STAGE_WORK** stage without releasing any locks. Must always be
+called for each **pmemobj_tx_begin**(), even if starting the transaction failed. This function must *not* be called during **TX_STAGE_WORK**. If transaction
+was successful, returns 0. Otherwise returns error code set by **pmemobj_tx_abort**(). Note that **pmemobj_tx_abort**() can be called internally by the library.
 
 ```c
 int pmemobj_tx_errno(void);
@@ -1654,7 +1662,16 @@ void pmemobj_tx_process(void);
 ```
 
 The **pmemobj_tx_process**() function performs the actions associated with current stage of the transaction, and makes the transition to the next stage. It
-must be called in transaction. Current stage must always be obtained by a call to **pmemobj_tx_stage**().
+must be called in transaction. Current stage must always be obtained by a call to **pmemobj_tx_stage**(). The **pmemobj_tx_process**() performs the following
+transitions in the transaction stage flow:
+
++ **TX_STAGE_WORK** -> **TX_STAGE_ONCOMMIT**
++ **TX_STAGE_ONABORT** -> **TX_STAGE_FINALLY**
++ **TX_STAGE_ONCOMMIT** -> **TX_STAGE_FINALLY**
++ **TX_STAGE_FINALLY** -> **TX_STAGE_NONE**
++ **TX_STAGE_NONE** -> **TX_STAGE_NONE**
+
+The **pmemobj_tx_process**() must not be called after calling **pmemobj_tx_end**() for the outermost transaction.
 
 ```c
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
