@@ -58,7 +58,6 @@ Size idx                 : $(*)
    Size                     : $(*)
 
    OOB Header:
-   Undo offset              : $(*)
    Type Number              : $(*)
 
 Statistics:

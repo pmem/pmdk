@@ -1595,7 +1595,6 @@ constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 	struct carg_bytype *carg = arg;
 
-	pobj->undo_entry_offset = 0;
 	pobj->type_num = carg->user_type;
 	pobj->size = 0;
 	memset(pobj->unused, 0, sizeof(pobj->unused));
@@ -1746,7 +1745,6 @@ constructor_realloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 	struct oob_header *pobj = OOB_HEADER_FROM_PTR(ptr);
 
 	if (ptr != carg->ptr) {
-		pobj->undo_entry_offset = 0;
 		pobj->type_num = carg->user_type;
 		pobj->size = 0;
 	}
@@ -2098,7 +2096,6 @@ constructor_alloc_root(void *ctx, void *ptr, size_t usable_size, void *arg)
 	else
 		pmemops_memset_persist(p_ops, ptr, 0, usable_size);
 
-	ro->undo_entry_offset = 0;
 	ro->type_num = POBJ_ROOT_TYPE_NUM;
 	ro->size = carg->size | OBJ_INTERNAL_OBJECT_MASK;
 
