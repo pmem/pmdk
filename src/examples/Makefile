@@ -38,3 +38,8 @@ DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
 	libpmempool
 
 include Makefile.inc
+
+rmtmp:
+	$(RM) $(TMP_HEADERS)
+
+clobber clean: rmtmp
