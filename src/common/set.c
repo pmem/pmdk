@@ -2051,6 +2051,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		/* it is a remote replica - it cannot have replicas */
 		if (set->nreplicas > 1) {
 			LOG(2, "remote pool set cannot have replicas");
+			util_poolset_free(set);
 			errno = EINVAL;
 			return -1;
 		}
@@ -2058,6 +2059,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	if (!can_have_rep && set->nreplicas > 1) {
 		ERR("replication not supported");
+		util_poolset_free(set);
 		errno = ENOTSUP;
 		return -1;
 	}
@@ -2066,6 +2068,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		ERR("the pool set requires a remote replica, "
 			"but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
+		util_poolset_free(set);
 		return -1;
 	}
 
