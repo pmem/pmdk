@@ -63,6 +63,9 @@
       <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libpmempool.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CF9A0883-6334-44C7-AC29-349468C78E27}</ProjectGuid>
     <Keyword>DynamicLibrary</Keyword>
@@ -144,6 +147,9 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
