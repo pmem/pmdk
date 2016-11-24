@@ -72,6 +72,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 	if (path == NULL) {
 		LOG(1, "cannot get absolute path for %s, replica %u, part %u",
 				PART(rep, partn).path, repn, partn);
+		errno = 0;
 		path = strdup(PART(rep, partn).path);
 		if (path == NULL) {
 			ERR("!strdup");
