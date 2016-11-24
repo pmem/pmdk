@@ -42,7 +42,8 @@
  * Allocates the memory using linear allocator.
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
-FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr, size_t size)
+FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr,
+	size_t size, uint64_t extra_field, uint16_t flags)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
@@ -97,7 +98,8 @@ FUNC_MOCK_END
  * Prints the id of allocated struct oob_item for tracking purposes.
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, palloc_constr constructor, void *arg)
+	size_t size, palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = 2 * (size - OOB_OFF) + OOB_OFF;
@@ -122,7 +124,8 @@ FUNC_MOCK_END
 /*
  * prealloc -- prealloc mock
  */
-FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size)
+FUNC_MOCK(prealloc, int, PMEMobjpool *pop, uint64_t *off, size_t size,
+	uint64_t extra_field, uint16_t flags)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop +
 				*off - sizeof(uint64_t));
@@ -150,9 +153,10 @@ FUNC_MOCK_END
  * prealloc_construct -- prealloc_construct mock
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
-	size_t size, palloc_constr constructor, void *arg)
+	size_t size, palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags)
 	FUNC_MOCK_RUN_DEFAULT {
-		int ret = __wrap_prealloc(pop, off, size);
+		int ret = __wrap_prealloc(pop, off, size, 0, 0);
 		if (!ret) {
 			void *ptr = (void *)((uintptr_t)Pop + *off + OOB_OFF);
 			constructor(pop, ptr, size, arg);

@@ -240,7 +240,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 	uint64_t i = info->index +
 		info->worker->index * info->args->n_ops_per_thread;
 
-	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
+	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0, 0);
 	if (ret) {
 		fprintf(stderr, "pmalloc ret: %d\n", ret);
 		return ret;
@@ -280,7 +280,7 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
-		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
+		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0, 0);
 		if (ret) {
 			fprintf(stderr, "pmalloc at idx %" PRIu64 " ret: %s\n",
 				i, pmemobj_errormsg());

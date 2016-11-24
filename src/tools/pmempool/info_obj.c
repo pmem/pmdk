@@ -329,32 +329,18 @@ info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
 }
 
 /*
- * info_obj_oob_hdr -- print OOB header
- */
-static void
-info_obj_oob_hdr(struct pmem_info *pip, int v, struct oob_header *oob)
-{
-
-	outv_title(v, "OOB Header");
-	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof(*oob),
-		PTR_TO_OFF(pip->obj.pop, oob), 1);
-	outv_field(v, "Type Number", "0x%016lx", oob->type_num);
-
-}
-
-/*
  * info_obj_alloc_hdr -- print allocation header
  */
 static void
 info_obj_alloc_hdr(struct pmem_info *pip, int v,
-	struct allocation_header *alloc)
+	struct legacy_object_header *alloc)
 {
 	outv_title(v, "Allocation Header");
 	outv_hexdump(v && pip->args.vhdrdump, alloc,
 			sizeof(*alloc), PTR_TO_OFF(pip->obj.pop, alloc), 1);
-	outv_field(v, "Zone id", "%u", alloc->zone_id);
-	outv_field(v, "Chunk id", "%u", alloc->chunk_id);
 	outv_field(v, "Size", "%s", out_get_size_str(alloc->size,
+				pip->args.human));
+	outv_field(v, "Type num", "%s", out_get_size_str(alloc->type_num,
 				pip->args.human));
 }
 
@@ -366,8 +352,7 @@ info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
 	void *ptr, uint64_t id)
 {
 	struct pmemobjpool *pop = pip->obj.pop;
-	struct oob_header *oob = OOB_HEADER_FROM_PTR(ptr);
-	struct allocation_header *alloc = PTR_TO_ALLOC_HDR(ptr);
+	struct legacy_object_header *alloc = PTR_TO_ALLOC_HDR(ptr);
 	void *data = ptr;
 
 	outv_nl(vid);
@@ -380,7 +365,6 @@ info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
 	outv_indent(vahdr || voobh, 1);
 
 	info_obj_alloc_hdr(pip, vahdr, alloc);
-	info_obj_oob_hdr(pip, voobh, oob);
 
 	outv_hexdump(v && pip->args.vdata, data,
 			alloc->size, PTR_TO_OFF(pip->obj.pop, data), 1);
@@ -579,31 +563,24 @@ info_obj_zone_hdr(struct pmem_info *pip, int v, struct zone_header *zone)
  * info_obj_object -- print information about object
  */
 static void
-info_obj_object(struct pmem_info *pip, struct obj_header *objh,
+info_obj_object(struct pmem_info *pip, struct legacy_object_header *objh,
 	uint64_t objid)
 {
-	uint64_t real_size = objh->ahdr.size - sizeof(struct obj_header);
+	uint64_t real_size = objh->alloc_hdr.size -
+		sizeof(struct legacy_object_header);
 
 	if (!util_ranges_contain(&pip->args.ranges, objid))
 		return;
 
 	if (!util_ranges_contain(&pip->args.obj.type_ranges,
-			objh->oobh.type_num))
-		return;
-
-	if (!util_ranges_contain(&pip->args.obj.zone_ranges,
-			objh->ahdr.zone_id))
-		return;
-
-	if (!util_ranges_contain(&pip->args.obj.chunk_ranges,
-			objh->ahdr.chunk_id))
+			objh->type_num))
 		return;
 
 	pip->obj.stats.n_total_objects++;
 	pip->obj.stats.n_total_bytes += real_size;
 
 	struct pmem_obj_type_stats *type_stats =
-		pmem_obj_stats_get_type(&pip->obj.stats, objh->oobh.type_num);
+		pmem_obj_stats_get_type(&pip->obj.stats, objh->type_num);
 
 	type_stats->n_objects++;
 	type_stats->n_bytes += real_size;
@@ -635,16 +612,17 @@ info_obj_run_objects(struct pmem_info *pip, int v, struct chunk_run *run)
 			continue;
 		}
 
-		struct obj_header *objh =
-			(struct obj_header *)&run->data[run->block_size * i];
+		struct legacy_object_header *objh =
+			(struct legacy_object_header *)
+			&run->data[run->block_size * i];
 
 		/* skip root object */
-		if (!objh->oobh.size) {
+		if (!objh->alloc_hdr.size) {
 			info_obj_object(pip, objh, pip->obj.objid);
 			pip->obj.objid++;
 		}
 
-		i += (uint32_t)(objh->ahdr.size / run->block_size);
+		i += (uint32_t)(objh->alloc_hdr.size / run->block_size);
 	}
 }
 
@@ -708,11 +686,11 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c,
 			stats->class_stats[DEFAULT_BUCKET].n_used +=
 				chunk_hdr->size_idx;
 
-			struct obj_header *objh =
-				(struct obj_header *)chunk->data;
+			struct legacy_object_header *objh =
+				(struct legacy_object_header *)chunk->data;
 
 			/* skip root object */
-			if (!objh->oobh.size) {
+			if (!objh->alloc_hdr.size) {
 				info_obj_object(pip, objh, pip->obj.objid);
 				pip->obj.objid++;
 			}
@@ -805,11 +783,11 @@ info_obj_root_obj(struct pmem_info *pip)
 	}
 
 	void *data = OFF_TO_PTR(pop, pop->root_offset);
-	struct obj_header *objh = OBJH_FROM_PTR(data);
+	struct legacy_object_header *objh = OBJH_FROM_PTR(data);
 
 	outv_title(v, "Root object");
 	outv_field(v, "Offset", "0x%016x", PTR_TO_OFF(pop, data));
-	uint64_t root_size = objh->oobh.size & ~OBJ_INTERNAL_OBJECT_MASK;
+	uint64_t root_size = pop->root_size;
 	outv_field(v, "Size",
 			out_get_size_str(root_size, pip->args.human));
 

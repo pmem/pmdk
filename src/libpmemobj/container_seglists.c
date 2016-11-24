@@ -79,7 +79,8 @@ container_seglists_insert_block(struct block_container *bc,
 
 	ASSERT(m.size_idx <= SEGLIST_BLOCK_LISTS);
 
-	struct seglist_entry *e = MEMBLOCK_OPS(AUTO, &m)->get_data(&m, heap);
+	struct seglist_entry *e = MEMBLOCK_OPS(AUTO, &m)
+		->get_user_data(&m, heap);
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
 		VALGRIND_DO_MAKE_MEM_DEFINED(e, sizeof(*e));

@@ -1180,36 +1180,6 @@ util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 }
 
 /*
- * util_plist_nelements -- count number of elements on a list
- */
-size_t
-util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp)
-{
-	size_t i = 0;
-	struct list_entry *entryp;
-	PLIST_FOREACH(entryp, pop, headp)
-		i++;
-	return i;
-}
-
-/*
- * util_plist_get_entry -- return nth element from list
- */
-struct list_entry *
-util_plist_get_entry(struct pmemobjpool *pop,
-	struct list_head *headp, size_t n)
-{
-	struct list_entry *entryp;
-	PLIST_FOREACH(entryp, pop, headp) {
-		if (n == 0)
-			return entryp;
-		n--;
-	}
-
-	return NULL;
-}
-
-/*
  * pool_set_file_open -- opens pool set file or regular file
  */
 struct pool_set_file *

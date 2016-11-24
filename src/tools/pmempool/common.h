@@ -93,30 +93,11 @@
 #define PLIST_OFF_TO_PTR(pop, off)\
 ((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
 
-#define PLIST_FOREACH(entry, pop, head)\
-for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
-	(entry) != NULL;\
-	(entry) = ((entry)->pe_next.off == (head)->pe_first.off ?\
-	NULL : PLIST_OFF_TO_PTR(pop, (entry)->pe_next.off)))
-
-#define PLIST_FIRST(pop, head)\
-((struct list_entry *)PLIST_OFF_TO_PTR(pop, (head)->pe_first.off))
-
-#define PLIST_EMPTY(head) ((head)->pe_first.off == 0)
-
-#define ENTRY_TO_OOB_HDR(entry) ((struct oob_header *)(entry))
-
-#define ENTRY_TO_TX_RANGE(entry)\
-((void *)((uintptr_t)(entry) + sizeof(struct oob_header)))
-
 #define ENTRY_TO_ALLOC_HDR(entry)\
 ((void *)((uintptr_t)(entry) - sizeof(struct allocation_header)))
 
-#define ENTRY_TO_DATA(entry)\
-((void *)((uintptr_t)(entry) + sizeof(struct oob_header)))
-
 #define OBJH_FROM_PTR(ptr)\
-((void *)((uintptr_t)ptr - sizeof(struct obj_header)))
+((void *)((uintptr_t)ptr - sizeof(struct legacy_object_header)))
 
 #define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
 #define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
@@ -124,16 +105,10 @@ for ((entry) = PLIST_OFF_TO_PTR(pop, (head)->pe_first.off);\
 
 #define PTR_TO_ALLOC_HDR(ptr)\
 ((void *)((uintptr_t)(ptr) -\
-	sizeof(struct oob_header) -\
-	sizeof(struct allocation_header)))
+	sizeof(struct legacy_object_header)))
 
 #define OBJH_TO_PTR(objh)\
-((void *)((uintptr_t)objh + sizeof(struct obj_header)))
-
-struct obj_header {
-	struct allocation_header ahdr;
-	struct oob_header oobh;
-};
+((void *)((uintptr_t)objh + sizeof(struct legacy_object_header)))
 
 /*
  * pmem_pool_type_t -- pool types
@@ -246,9 +221,6 @@ char ask_yN(char op, const char *fmt, ...);
 unsigned util_heap_max_zone(size_t size);
 int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp);
-size_t util_plist_nelements(struct pmemobjpool *pop, struct list_head *headp);
-struct list_entry *util_plist_get_entry(struct pmemobjpool *pop,
-	struct list_head *headp, size_t n);
 
 static inline uint32_t
 util_count_ones(uint64_t val)

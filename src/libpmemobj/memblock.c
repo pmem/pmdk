@@ -77,6 +77,47 @@ memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
 	return ret;
 }
 
+#define MEMBLOCK_GET_LEGACY_HEADER(_heap, _off) (struct legacy_object_header *)\
+	((char *)HEAP_OFF_TO_PTR((_heap), (_off)) -\
+		sizeof (struct legacy_object_header))
+
+/*
+ * memblock_from_offset -- resolves a memory block data from an offset that
+ *	originates from the heap
+ */
+struct memory_block
+memblock_from_offset(struct palloc_heap *heap, uint64_t off)
+{
+	struct legacy_object_header *hdr =
+		MEMBLOCK_GET_LEGACY_HEADER(heap, off);
+
+	struct memory_block m = {0, 0, 0, 0};
+
+	off -= sizeof (struct legacy_object_header);
+
+	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
+	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
+
+	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof (struct zone);
+	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
+
+	off -= CHUNKSIZE * m.chunk_id;
+
+	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)
+		->block_size(&m, heap->layout);
+
+	m.size_idx = CALC_SIZE_IDX(unit_size, hdr->alloc_hdr.size);
+
+	if (off == 0) { /* huge */
+		return m;
+	}
+
+	off -= RUN_METASIZE;
+	m.block_off = (uint16_t)(off / unit_size);
+
+	return m;
+}
+
 /*
  * huge_block_size -- returns the compile-time constant which defines the
  *	huge memory block size.
@@ -101,22 +142,32 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
 }
 
 /*
- * huge_get_data -- returns pointer to the data of a huge block
+ * huge_get_real_data -- returns pointer to the beginning data of a huge block
  */
 static void *
-huge_get_data(struct memory_block *m, struct palloc_heap *heap)
+huge_get_real_data(struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	void *data = &z->chunks[m->chunk_id].data;
 
-	return data;
+	return (char *)data;
 }
 
 /*
- * run_get_data -- returns pointer to the data of a run block
+ * huge_get_user_data -- returns pointer to the data of a huge block
  */
 static void *
-run_get_data(struct memory_block *m, struct palloc_heap *heap)
+huge_get_user_data(struct memory_block *m, struct palloc_heap *heap)
+{
+	return (char *)huge_get_real_data(m, heap) +
+		sizeof (struct legacy_object_header);
+}
+
+/*
+ * run_get_real_data -- returns pointer to the beginning data of a run block
+ */
+static void *
+run_get_real_data(struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 
@@ -128,37 +179,13 @@ run_get_data(struct memory_block *m, struct palloc_heap *heap)
 }
 
 /*
- * huge_block_offset -- huge chunks do not use the offset information of the
- *	memory blocks and must always be zeroed.
+ * run_get_user_data -- returns pointer to the data of a run block
  */
-static uint16_t
-huge_block_offset(struct memory_block *m, struct palloc_heap *heap, void *ptr)
+static void *
+run_get_user_data(struct memory_block *m, struct palloc_heap *heap)
 {
-	return 0;
-}
-
-/*
- * run_block_offset -- calculates the block offset based on the number of bytes
- *	between the beginning of the chunk and the allocation data.
- *
- * Because the block offset is not represented in bytes but in 'unit size',
- * the number of bytes must also be divided by the chunks block size.
- * A non-zero remainder would mean that either the caller provided incorrect
- * pointer or the allocation algorithm created an invalid allocation block.
- */
-static uint16_t
-run_block_offset(struct memory_block *m, struct palloc_heap *heap, void *ptr)
-{
-	size_t block_size = MEMBLOCK_OPS(RUN, &m)->block_size(m, heap->layout);
-
-	void *data = run_get_data(m, heap);
-	uintptr_t diff = (uintptr_t)ptr - (uintptr_t)data;
-	ASSERT(diff <= RUNSIZE);
-	ASSERT((size_t)diff / block_size <= UINT16_MAX);
-	ASSERT(diff % block_size == 0);
-	uint16_t block_off = (uint16_t)((size_t)diff / block_size);
-
-	return block_off;
+	return (char *)run_get_real_data(m, heap) +
+		sizeof (struct legacy_object_header);
 }
 
 /*
@@ -412,27 +439,95 @@ run_is_claimed(const struct memory_block *m, struct palloc_heap *heap)
 	return 0;
 }
 
+static size_t
+block_get_real_size(struct memory_block *m, struct palloc_heap *heap)
+{
+	return MEMBLOCK_OPS(AUTO, m)->block_size(m, heap->layout) * m->size_idx;
+}
+
+static size_t
+block_get_user_size(struct memory_block *m, struct palloc_heap *heap)
+{
+	return block_get_real_size(m, heap) -
+		sizeof (struct legacy_object_header);
+}
+
+static void
+block_write_header(struct memory_block *m, struct palloc_heap *heap,
+	uint64_t extra_field, uint16_t flags)
+{
+	struct legacy_object_header *h = (struct legacy_object_header *)
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(h, sizeof(*h));
+
+	VALGRIND_ADD_TO_TX(h, sizeof(*h));
+	h->alloc_hdr.size = block_get_user_size(m, heap) +
+		sizeof (struct legacy_object_header);
+	h->type_num = extra_field;
+	h->size = ((uint64_t)flags << 48ULL);
+	heap->p_ops.persist(heap->base, h, sizeof (*h));
+	VALGRIND_REMOVE_FROM_TX(h, sizeof(*h));
+
+	/* unused fields of the legacy headers are used as a red zone */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(h->unused, sizeof(h->unused));
+}
+
+/*
+ * block_get_extra --
+ */
+static uint64_t
+block_get_extra(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct legacy_object_header *h = (struct legacy_object_header *)
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return h->type_num;
+}
+
+/*
+ * block_get_flags --
+ */
+static uint16_t
+block_get_flags(struct memory_block *m, struct palloc_heap *heap)
+{
+	struct legacy_object_header *h = (struct legacy_object_header *)
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return (uint16_t)(h->size >> 48ULL);
+}
+
 const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
-		.block_offset = huge_block_offset,
 		.prep_hdr = huge_prep_operation_hdr,
 		.get_lock = huge_get_lock,
 		.get_state = huge_get_state,
-		.get_data = huge_get_data,
+		.get_user_data = huge_get_user_data,
+		.get_real_data = huge_get_real_data,
 		.claim = NULL,
 		.claim_revoke = NULL,
 		.is_claimed = NULL,
+		.get_user_size = block_get_user_size,
+		.get_real_size = block_get_real_size,
+		.write_header = block_write_header,
+		.get_extra = block_get_extra,
+		.get_flags = block_get_flags,
 	},
 	[MEMORY_BLOCK_RUN] = {
 		.block_size = run_block_size,
-		.block_offset = run_block_offset,
 		.prep_hdr = run_prep_operation_hdr,
 		.get_lock = run_get_lock,
 		.get_state = run_get_state,
-		.get_data = run_get_data,
+		.get_user_data = run_get_user_data,
+		.get_real_data = run_get_real_data,
 		.claim = run_claim,
 		.claim_revoke = run_claim_revoke,
 		.is_claimed = run_is_claimed,
+		.get_user_size = block_get_user_size,
+		.get_real_size = block_get_real_size,
+		.write_header = block_write_header,
+		.get_extra = block_get_extra,
+		.get_flags = block_get_flags,
 	}
 };

@@ -47,7 +47,7 @@
 #define ALLOC_CLASS_MUL	RUN_UNIT_MAX_ALLOC
 #define MAX_ALLOC_MUL	RUN_UNIT_MAX_ALLOC
 #define MAX_ALLOC_CLASS	5
-#define ALLOC_HDR	(OBJ_OOB_SIZE + sizeof(struct allocation_header))
+#define ALLOC_HDR	(sizeof(struct legacy_object_header))
 
 POBJ_LAYOUT_BEGIN(realloc);
 POBJ_LAYOUT_ROOT(realloc, struct root);

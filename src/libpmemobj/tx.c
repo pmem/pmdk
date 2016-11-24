@@ -167,17 +167,6 @@ constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	struct tx_alloc_args *args = arg;
 
-	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
-
-	/* temporarily add the OOB header */
-	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
-
-	oobh->type_num = args->type_num;
-	oobh->size = 0;
-	memset(oobh->unused, 0, sizeof(oobh->unused));
-
-	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
-
 	/* do not report changes to the new object */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
@@ -229,13 +218,8 @@ constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 	struct tx_range *range = ptr;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
 	/* temporarily add the object copy to the transaction */
-	VALGRIND_ADD_TO_TX(oobh,
-				sizeof(struct tx_range) + args->size
-				+ OBJ_OOB_SIZE);
-
-	oobh->size = OBJ_INTERNAL_OBJECT_MASK;
+	VALGRIND_ADD_TO_TX(range, sizeof(struct tx_range) + args->size);
 
 	range->offset = args->offset;
 	range->size = args->size;
@@ -247,9 +231,7 @@ constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 	/* memcpy data and persist */
 	pmemops_memcpy_persist(p_ops, range->data, src, args->size);
 
-	VALGRIND_REMOVE_FROM_TX(oobh,
-				sizeof(struct tx_range) + args->size
-				+ OBJ_OOB_SIZE);
+	VALGRIND_REMOVE_FROM_TX(range, sizeof(struct tx_range) + args->size);
 
 	/* do not report changes to the original object */
 	VALGRIND_ADD_TO_TX(src, args->size);
@@ -304,10 +286,10 @@ tx_clear_undo_log_vg(PMEMobjpool *pop, uint64_t off, enum tx_clr_flag flags)
 	 * modifications after abort are not reported.
 	 */
 	if (flags & TX_CLR_FLAG_VG_CLEAN) {
-		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, off);
+		void *ptr = OBJ_OFF_TO_PTR(pop, off);
 		size_t size = palloc_usable_size(&pop->heap, off);
 
-		VALGRIND_SET_CLEAN(oobh, size);
+		VALGRIND_SET_CLEAN(ptr, size);
 	}
 
 	if (flags & TX_CLR_FLAG_VG_TX_REMOVE) {
@@ -316,8 +298,7 @@ tx_clear_undo_log_vg(PMEMobjpool *pop, uint64_t off, enum tx_clr_flag flags)
 		 * recovery, so in such case pmemobj_alloc_usable_size
 		 * is not yet available. Use pmalloc version.
 		 */
-		size_t size = palloc_usable_size(&pop->heap, off) -
-				OBJ_OOB_SIZE;
+		size_t size = palloc_usable_size(&pop->heap, off);
 		VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, off), size);
 	}
 #endif
@@ -759,7 +740,7 @@ tx_abort_register_valgrind(PMEMobjpool *pop, struct pvector_context *ctx)
 		 * because pool has not been registered yet.
 		 */
 		void *p = (char *)pop + off;
-		size_t sz = palloc_usable_size(&pop->heap, off) - OBJ_OOB_SIZE;
+		size_t sz = palloc_usable_size(&pop->heap, off);
 
 		VALGRIND_DO_MEMPOOL_ALLOC(pop->heap.layout, p, sz);
 		VALGRIND_DO_MAKE_MEM_DEFINED(p, sz);
@@ -939,8 +920,8 @@ tx_alloc_common(size_t size, type_num_t type_num, palloc_constr constructor,
 	PMEMoid retoid = OID_NULL;
 	PMEMobjpool *pop = lane->pop;
 
-	pmalloc_construct(pop, entry_offset, size + OBJ_OOB_SIZE, constructor,
-			&args);
+	pmalloc_construct(pop, entry_offset, size, constructor, &args,
+		type_num, 0);
 
 	retoid.off = *entry_offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
@@ -950,7 +931,7 @@ tx_alloc_common(size_t size, type_num_t type_num, palloc_constr constructor,
 
 	uint64_t range_flags = (flags & POBJ_FLAG_NO_FLUSH) ?
 			RANGE_FLAG_NO_FLUSH : 0;
-	size = palloc_usable_size(&pop->heap, retoid.off) - OBJ_OOB_SIZE;
+	size = palloc_usable_size(&pop->heap, retoid.off);
 	ASSERTeq(size & RANGE_FLAGS_MASK, 0);
 
 	if (ctree_insert_unlocked(lane->ranges, retoid.off,
@@ -1003,8 +984,8 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	/* allocate object to undo log */
 	PMEMoid retoid;
 	PMEMobjpool *pop = lane->pop;
-	int ret = pmalloc_construct(pop, entry_offset, size + OBJ_OOB_SIZE,
-			constructor, &args);
+	int ret = pmalloc_construct(pop, entry_offset, size,
+			constructor, &args, type_num, 0);
 
 	retoid.off = *entry_offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
@@ -1012,7 +993,7 @@ tx_alloc_copy_common(size_t size, type_num_t type_num, const void *ptr,
 	if (ret || OBJ_OID_IS_NULL(retoid))
 		goto err_oom;
 
-	size = palloc_usable_size(&pop->heap, retoid.off) - OBJ_OOB_SIZE;
+	size = palloc_usable_size(&pop->heap, retoid.off);
 	if (ctree_insert_unlocked(lane->ranges, retoid.off, size) != 0)
 		goto err_oom;
 
@@ -1063,8 +1044,7 @@ tx_realloc_common(PMEMoid oid, size_t size, uint64_t type_num,
 
 	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
 	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
-	size_t old_size = palloc_usable_size(&lane->pop->heap,
-			oid.off) - OBJ_OOB_SIZE;
+	size_t old_size = palloc_usable_size(&lane->pop->heap, oid.off);
 
 	size_t copy_size = old_size < size ? old_size : size;
 
@@ -1464,8 +1444,9 @@ pmemobj_tx_add_large(struct tx_add_range_args *args)
 
 	/* insert snapshot to undo log */
 	int ret = pmalloc_construct(args->pop, entry,
-			args->size + sizeof(struct tx_range) + OBJ_OOB_SIZE,
-			constructor_tx_add_range, args);
+			args->size + sizeof(struct tx_range),
+			constructor_tx_add_range, args,
+			0, OBJ_INTERNAL_OBJECT_MASK);
 
 	if (ret != 0) {
 		pvector_pop_back(undo, NULL);
@@ -1486,18 +1467,7 @@ constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	ASSERTne(ptr, NULL);
 
-	struct oob_header *oobh = OOB_HEADER_FROM_PTR(ptr);
-	/* temporarily add the object copy to the transaction */
-	VALGRIND_ADD_TO_TX(oobh,
-		OBJ_OOB_SIZE + sizeof(struct tx_range_cache));
-
-	oobh->size = OBJ_INTERNAL_OBJECT_MASK;
-	pmemops_flush(p_ops, &oobh->size, sizeof(oobh->size));
-
 	pmemops_memset_persist(p_ops, ptr, 0, sizeof(struct tx_range_cache));
-
-	VALGRIND_REMOVE_FROM_TX(oobh,
-		OBJ_OOB_SIZE + sizeof(struct tx_range_cache));
 
 	return 0;
 }
@@ -1524,8 +1494,9 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct pvector_context *undo)
 			return NULL;
 		}
 		int err = pmalloc_construct(pop, entry,
-			sizeof(struct tx_range_cache) + OBJ_OOB_SIZE,
-			constructor_tx_range_cache, NULL);
+			sizeof(struct tx_range_cache),
+			constructor_tx_range_cache, NULL,
+			0, OBJ_INTERNAL_OBJECT_MASK);
 
 		if (err != 0) {
 			pvector_pop_back(undo, NULL);

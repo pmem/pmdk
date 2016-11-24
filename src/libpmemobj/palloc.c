@@ -45,59 +45,8 @@
 #include "sys_util.h"
 #include "palloc.h"
 
-/*
- * Number of bytes between beginning of memory block and beginning of user data.
- */
-#define ALLOC_OFF (PALLOC_DATA_OFF + sizeof(struct allocation_header))
-
-#define USABLE_SIZE(_a)\
-((_a)->size - sizeof(struct allocation_header))
-
 #define MEMORY_BLOCK_IS_NONE(_m)\
 ((_m).size_idx == 0)
-
-#define PMALLOC_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
-#define PMALLOC_PTR_TO_OFF(heap, ptr)\
-	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
-
-#define ALLOC_GET_HEADER(_heap, _off) (struct allocation_header *)\
-((char *)PMALLOC_OFF_TO_PTR((_heap), (_off)) - ALLOC_OFF)
-
-/*
- * alloc_write_header -- (internal) creates allocation header
- */
-static void
-alloc_write_header(struct palloc_heap *heap, struct allocation_header *alloc,
-	struct memory_block m, uint64_t size)
-{
-	VALGRIND_ADD_TO_TX(alloc, sizeof(*alloc));
-	alloc->chunk_id = m.chunk_id;
-	alloc->size = size;
-	alloc->zone_id = m.zone_id;
-	VALGRIND_REMOVE_FROM_TX(alloc, sizeof(*alloc));
-}
-
-/*
- * get_mblock_from_alloc -- (internal) returns allocation memory block
- */
-static struct memory_block
-get_mblock_from_alloc(struct palloc_heap *heap,
-		struct allocation_header *alloc)
-{
-	struct memory_block m = {
-		alloc->chunk_id,
-		alloc->zone_id,
-		0,
-		0
-	};
-
-	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->
-			block_size(&m, heap->layout);
-	m.block_off = MEMBLOCK_OPS(AUTO, &m)->block_offset(&m, heap, alloc);
-	m.size_idx = CALC_SIZE_IDX(unit_size, alloc->size);
-
-	return m;
-}
 
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
@@ -112,31 +61,21 @@ get_mblock_from_alloc(struct palloc_heap *heap,
  */
 static int
 alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
-	palloc_constr constructor, void *arg, uint64_t *offset_value)
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags,
+	uint64_t *offset_value)
 {
-	void *block_data = MEMBLOCK_OPS(AUTO, &m)->get_data(&m, heap);
-	void *userdatap = (char *)block_data + ALLOC_OFF;
+	void *user_datap = MEMBLOCK_OPS(AUTO, &m)->get_user_data(&m, heap);
+	size_t user_size = MEMBLOCK_OPS(AUTO, &m)->get_user_size(&m, heap);
 
-	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)->
-			block_size(&m, heap->layout);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(user_datap, user_size);
 
-	uint64_t real_size = unit_size * m.size_idx;
-
-	ASSERT((uint64_t)block_data % ALLOC_BLOCK_SIZE == 0);
-	ASSERT((uint64_t)userdatap % ALLOC_BLOCK_SIZE == 0);
-
-	/* mark everything (including headers) as accessible */
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(block_data, real_size);
-	/* mark space as allocated */
-	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, userdatap,
-			real_size - ALLOC_OFF);
-
-	alloc_write_header(heap, block_data, m, real_size);
+	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, user_datap, user_size);
 
 	int ret;
 	if (constructor != NULL &&
-		(ret = constructor(heap->base, userdatap,
-			real_size - ALLOC_OFF, arg)) != 0) {
+		(ret = constructor(heap->base, user_datap,
+			user_size, arg)) != 0) {
 
 		/*
 		 * If canceled, revert the block back to the free state in vg
@@ -144,21 +83,12 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 		 * the user data, the allocation header is made inaccessible
 		 * in a separate call.
 		 */
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout, userdatap);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(block_data, ALLOC_OFF);
-
-		/*
-		 * During this method there are several stores to pmem that are
-		 * not immediately flushed and in case of a cancellation those
-		 * stores are no longer relevant anyway.
-		 */
-		VALGRIND_SET_CLEAN(block_data, ALLOC_OFF);
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout, user_datap);
 
 		return ret;
 	}
 
-	/* flushes both the alloc and oob headers */
-	pmemops_persist(&heap->p_ops, block_data, ALLOC_OFF);
+	MEMBLOCK_OPS(AUTO, &m)->write_header(&m, heap, extra_field, flags);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -166,7 +96,7 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 	 * will be used to set the offset destination pointer provided by the
 	 * caller.
 	 */
-	*offset_value = PMALLOC_PTR_TO_OFF(heap, userdatap);
+	*offset_value = HEAP_PTR_TO_OFF(heap, user_datap);
 
 	return 0;
 }
@@ -209,9 +139,9 @@ int
 palloc_operation(struct palloc_heap *heap,
 	uint64_t off, uint64_t *dest_off, size_t size,
 	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx)
 {
-	struct allocation_header *alloc = NULL;
 	struct memory_block existing_block = {0, 0, 0, 0};
 	struct memory_block new_block = {0, 0, 0, 0};
 	enum memory_block_type existing_block_type = MAX_MEMORY_BLOCK;
@@ -226,8 +156,6 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	pthread_mutex_t *existing_block_lock = NULL;
 	pthread_mutex_t *new_block_lock = NULL;
-
-	size_t sizeh = size + sizeof(struct allocation_header);
 
 	/*
 	 * The offset value which is to be written to the destination pointer
@@ -249,6 +177,7 @@ palloc_operation(struct palloc_heap *heap,
 	 * (best-fit, next-fit, ...) varies depending on the bucket container.
 	 */
 	if (size != 0) {
+		size_t sizeh = size + sizeof (struct legacy_object_header);
 		struct bucket *b = heap_get_best_bucket(heap, sizeh);
 		util_mutex_lock(&b->lock);
 
@@ -270,7 +199,7 @@ palloc_operation(struct palloc_heap *heap,
 		}
 
 		if (alloc_prep_block(heap, new_block, constructor,
-				arg, &offset_value) != 0) {
+				arg, extra_field, flags, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
@@ -309,8 +238,7 @@ palloc_operation(struct palloc_heap *heap,
 
 #ifdef DEBUG
 		if (MEMBLOCK_OPS(AUTO, &new_block)
-			->get_state(&new_block, heap) !=
-				MEMBLOCK_FREE) {
+			->get_state(&new_block, heap) != MEMBLOCK_FREE) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
 		}
@@ -333,13 +261,15 @@ palloc_operation(struct palloc_heap *heap,
 	 * methods operate in.
 	 */
 	if (off != 0) {
-		alloc = ALLOC_GET_HEADER(heap, off);
+		existing_block = memblock_from_offset(heap, off);
+
+		size_t user_size = MEMBLOCK_OPS(AUTO, &existing_block)
+			->get_user_size(&existing_block, heap);
 
 		/* reallocation to exactly the same size, which is a no-op */
-		if (alloc->size == sizeh)
+		if (user_size == size)
 			goto out;
 
-		existing_block = get_mblock_from_alloc(heap, alloc);
 		/*
 		 * This lock must be held until the operation is processed
 		 * successfully, because other threads might operate on the
@@ -369,24 +299,23 @@ palloc_operation(struct palloc_heap *heap,
 
 		/* not in-place realloc */
 		if (!MEMORY_BLOCK_IS_NONE(new_block)) {
-			size_t old_size = alloc->size;
-			size_t to_cpy = old_size > sizeh ? sizeh : old_size;
+			size_t old_size = user_size;
+			size_t to_cpy = old_size > size ? size : old_size;
 			VALGRIND_ADD_TO_TX(
-				PMALLOC_OFF_TO_PTR(heap, offset_value),
-				to_cpy - ALLOC_OFF);
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				to_cpy);
 			pmemops_memcpy_persist(&heap->p_ops,
-				PMALLOC_OFF_TO_PTR(heap, offset_value),
-				PMALLOC_OFF_TO_PTR(heap, off),
-				to_cpy - ALLOC_OFF);
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				HEAP_OFF_TO_PTR(heap, off),
+				to_cpy);
 			VALGRIND_REMOVE_FROM_TX(
-				PMALLOC_OFF_TO_PTR(heap, offset_value),
-				to_cpy - ALLOC_OFF);
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				to_cpy);
 		}
 
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
 			(char *)MEMBLOCK_OPS(AUTO, &existing_block)->
-				get_data(&existing_block, heap)
-			+ ALLOC_OFF);
+				get_user_data(&existing_block, heap));
 
 		if (existing_block_type == MEMORY_BLOCK_HUGE) {
 			util_mutex_lock(&default_bucket->lock);
@@ -444,7 +373,31 @@ out:
 size_t
 palloc_usable_size(struct palloc_heap *heap, uint64_t off)
 {
-	return USABLE_SIZE(ALLOC_GET_HEADER(heap, off));
+	struct memory_block m = memblock_from_offset(heap, off);
+
+	return MEMBLOCK_OPS(AUTO, &m)->get_user_size(&m, heap);
+}
+
+/*
+ * palloc_extra --
+ */
+uint64_t
+palloc_extra(struct palloc_heap *heap, uint64_t off)
+{
+	struct memory_block m = memblock_from_offset(heap, off);
+
+	return MEMBLOCK_OPS(AUTO, &m)->get_extra(&m, heap);
+}
+
+/*
+ * palloc_flags --
+ */
+uint16_t
+palloc_flags(struct palloc_heap *heap, uint64_t off)
+{
+	struct memory_block m = memblock_from_offset(heap, off);
+
+	return MEMBLOCK_OPS(AUTO, &m)->get_flags(&m, heap);
 }
 
 /*
@@ -484,7 +437,7 @@ palloc_first(struct palloc_heap *heap)
 	if (off_search == UINT64_MAX)
 		return 0;
 
-	return off_search + sizeof(struct allocation_header);
+	return off_search + sizeof(struct legacy_object_header);
 }
 
 /*
@@ -493,19 +446,18 @@ palloc_first(struct palloc_heap *heap)
 uint64_t
 palloc_next(struct palloc_heap *heap, uint64_t off)
 {
-	struct allocation_header *alloc = ALLOC_GET_HEADER(heap, off);
-	struct memory_block m = get_mblock_from_alloc(heap, alloc);
+	struct memory_block m = memblock_from_offset(heap, off);
 
-	uint64_t off_search = off - ALLOC_OFF;
+	uint64_t off_search = off - sizeof(struct legacy_object_header);
 
 	heap_foreach_object(heap, pmalloc_search_cb, &off_search, m);
 
-	if (off_search == (off - ALLOC_OFF) ||
+	if (off_search == (off - sizeof(struct legacy_object_header)) ||
 		off_search == 0 ||
 		off_search == UINT64_MAX)
 		return 0;
 
-	return off_search + sizeof(struct allocation_header);
+	return off_search + sizeof(struct legacy_object_header);
 }
 
 /*
@@ -589,12 +541,13 @@ static int
 palloc_vg_register_alloc(uint64_t off, void *arg)
 {
 	struct palloc_vg_args *args = arg;
-	struct allocation_header *alloc =
-		(void *)((uintptr_t)args->heap->base + off);
+	struct palloc_heap *heap = args->heap;
+	struct legacy_object_header *hdr = HEAP_OFF_TO_PTR(heap, off);
 
-	VALGRIND_DO_MAKE_MEM_DEFINED(alloc, sizeof(*alloc));
+	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
 
-	return args->cb(off + sizeof(*alloc), args->arg);
+	uint64_t user_offset = off + sizeof(struct legacy_object_header);
+	return args->cb(user_offset, args->arg);
 }
 
 /*

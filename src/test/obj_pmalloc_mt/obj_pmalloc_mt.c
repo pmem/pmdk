@@ -64,7 +64,7 @@ alloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
+		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -77,7 +77,7 @@ realloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE);
+		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -108,7 +108,8 @@ mix_worker(void *arg)
 	 */
 	for (int i = 0; i < MIX_RERUNS; ++i) {
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
-			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
+			pmalloc(a->pop, &a->r->offs[a->idx][i],
+				ALLOC_SIZE, 0, 0);
 			UT_ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
