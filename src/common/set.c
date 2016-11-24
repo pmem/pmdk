@@ -670,8 +670,11 @@ parser_read_line(char *line, size_t *size, char **path)
 		 * places in the code to move this someplace else.
 		 */
 		ssize_t s = util_autodetect_size(path_str);
-		if (s < 0)
+		if (s < 0) {
+			Free(*path);
+			*path = NULL;
 			return PARSER_WRONG_SIZE;
+		}
 
 		*size = (size_t)s;
 
@@ -680,6 +683,8 @@ parser_read_line(char *line, size_t *size, char **path)
 
 	ret = util_parse_size(size_str, size);
 	if (ret != 0 || *size == 0) {
+		Free(*path);
+		*path = NULL;
 		return PARSER_WRONG_SIZE;
 	}
 
