@@ -474,6 +474,7 @@ static const struct step steps[] = {
 	},
 	{
 		.check		= NULL,
+		.fix		= NULL,
 	},
 };
 
@@ -483,6 +484,8 @@ static const struct step steps[] = {
 static inline int
 step_exe(PMEMpoolcheck *ppc, union location *loc)
 {
+	ASSERT(loc->step < ARRAY_SIZE(steps));
+
 	const struct step *step = &steps[loc->step++];
 
 	if (!step->fix)
