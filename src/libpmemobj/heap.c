@@ -648,7 +648,6 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 	return empty;
 }
 
-
 /*
  * heap_reclaim_zone_garbage -- (internal) creates volatile state of unused runs
  */
@@ -1504,9 +1503,6 @@ heap_check(void *heap_start, uint64_t heap_size)
 	return 0;
 }
 
-#define PMALLOC_PTR_TO_OFF(heap, ptr)\
-	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
-
 /*
  * heap_check_remote -- verifies if the heap of a remote pool is consistent
  *                      and can be opened properly
@@ -1568,7 +1564,8 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	uint64_t unused_values = unused_bits / BITS_PER_VALUE;
 	uint64_t bitmap_nval = MAX_BITMAP_VALUES - unused_values;
 
-	struct allocation_header *alloc;
+	struct memory_block m;
+	void *ptr;
 
 	uint64_t i = 0;
 	uint64_t block_start = 0;
@@ -1583,12 +1580,17 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 				break;
 
 			if (!BIT_IS_CLR(v, j)) {
-				alloc = (struct allocation_header *)
-					(run->data + (block_off + j) * bs);
-				if (cb(PMALLOC_PTR_TO_OFF(heap, alloc), arg)
+				ptr = (run->data + (block_off + j) * bs);
+
+				if (cb(HEAP_PTR_TO_OFF(heap, ptr), arg)
 						!= 0)
 					return 1;
-				j += (alloc->size / bs);
+
+				m = memblock_from_offset(heap,
+					HEAP_PTR_TO_OFF(heap, ptr) +
+					sizeof (struct legacy_object_header));
+
+				j += m.size_idx;
 			} else {
 				++j;
 			}
@@ -1610,7 +1612,7 @@ heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 		case CHUNK_TYPE_FREE:
 			return 0;
 		case CHUNK_TYPE_USED:
-			return cb(PMALLOC_PTR_TO_OFF(heap, chunk), arg);
+			return cb(HEAP_PTR_TO_OFF(heap, chunk), arg);
 		case CHUNK_TYPE_RUN:
 			return heap_run_foreach_object(heap, cb, arg,
 				(struct chunk_run *)chunk);
@@ -1686,10 +1688,7 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 		VALGRIND_DO_MAKE_MEM_NOACCESS(addr, size);
 
 		if (objects && hdr->type == CHUNK_TYPE_USED) {
-			struct allocation_header *alloc = addr;
-
-			VALGRIND_DO_MAKE_MEM_DEFINED(alloc, sizeof(*alloc));
-			size_t off = PMALLOC_PTR_TO_OFF(heap, alloc);
+			size_t off = HEAP_PTR_TO_OFF(heap, addr);
 
 			int ret = cb(off, arg);
 			ASSERTeq(ret, 0);

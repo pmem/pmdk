@@ -179,9 +179,9 @@ bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
 {
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
-		size_t rsize = m.size_idx * b->unit_size;
-		void *block_data = MEMBLOCK_OPS(AUTO, &m)->get_data(&m, heap);
-		VALGRIND_MAKE_MEM_NOACCESS(block_data, rsize);
+		size_t size = MEMBLOCK_OPS(AUTO, &m)->get_real_size(&m, heap);
+		void *data = MEMBLOCK_OPS(AUTO, &m)->get_real_data(&m, heap);
+		VALGRIND_MAKE_MEM_NOACCESS(data, size);
 	}
 #endif
 	return b->c_ops->insert(b->container, heap, m);

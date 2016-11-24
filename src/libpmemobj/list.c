@@ -505,8 +505,6 @@ list_insert_new(PMEMobjpool *pop,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	/* increase allocation size by oob header size */
-	size += OBJ_OOB_SIZE;
 	struct lane_list_layout *section =
 		(struct lane_list_layout *)lane_section->layout;
 	struct redo_log *redo = section->redo;
@@ -516,12 +514,12 @@ list_insert_new(PMEMobjpool *pop,
 	if (constructor) {
 		if ((ret = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg))) {
+				constructor, arg, 0, 0))) {
 			ERR("!pmalloc_construct");
 			goto err_pmalloc;
 		}
 	} else {
-		ret = pmalloc(pop, &section->obj_offset, size);
+		ret = pmalloc(pop, &section->obj_offset, size, 0, 0);
 		if (ret) {
 			ERR("!pmalloc");
 			goto err_pmalloc;

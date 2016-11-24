@@ -121,31 +121,6 @@ test_block_size()
 }
 
 static void
-test_block_offset()
-{
-	struct memory_block mhuge = { .chunk_id = 0, 0, 0, 0 };
-	struct memory_block mrun = { .chunk_id = 1, 0, 0, 0 };
-
-	struct palloc_heap *heap = &pop->heap;
-	struct heap_layout *layout = heap->layout;
-
-	layout->zone0.chunk_headers[0].size_idx = 1;
-	layout->zone0.chunk_headers[0].type = CHUNK_TYPE_USED;
-
-	layout->zone0.chunk_headers[1].size_idx = 1;
-	layout->zone0.chunk_headers[1].type = CHUNK_TYPE_RUN;
-	struct chunk_run *run = (struct chunk_run *)&layout->zone0.chunks[1];
-	run->block_size = 100;
-
-	UT_ASSERTeq(MEMBLOCK_OPS(, &mhuge)->block_offset(&mhuge, heap, NULL),
-			0);
-
-	void *ptr = (char *)run->data + 300;
-
-	UT_ASSERTeq(MEMBLOCK_OPS(, &mrun)->block_offset(&mrun, heap, ptr), 3);
-}
-
-static void
 test_prep_hdr()
 {
 	struct memory_block mhuge_used = { .chunk_id = 0, 0, 0, 0 };
@@ -214,7 +189,6 @@ main(int argc, char *argv[])
 
 	test_detect();
 	test_block_size();
-	test_block_offset();
 	test_prep_hdr();
 
 	FREE(pop->heap.layout);
