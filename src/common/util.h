@@ -79,6 +79,8 @@ int util_parse_size(const char *str, size_t *sizep);
 char *util_fgets(char *buffer, int max, FILE *stream);
 char *util_realpath(const char *path);
 int util_compare_file_inodes(const char *path1, const char *path2);
+void *util_memalign_malloc(size_t alignment, size_t size);
+void util_memalign_free(void *ptr);
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
@@ -191,6 +193,25 @@ char *util_concat_str(const char *s1, const char *s2);
 #else
 #define ATTR_CONSTRUCTOR
 #define ATTR_DESTRUCTOR
+#endif
+
+#ifndef _MSC_VER
+#define CONSTRUCTOR(fun) ATTR_CONSTRUCTOR
+#else
+#ifdef __cplusplus
+#define CONSTRUCTOR(fun)		\
+void fun();				\
+struct _##fun {			\
+	_##fun() {			\
+		fun();			\
+	}				\
+}; static  _##fun foo;			\
+static
+#else
+#define CONSTRUCTOR(fun) \
+	MSVC_CONSTR(fun) \
+	static
+#endif
 #endif
 
 #ifdef __GNUC__
