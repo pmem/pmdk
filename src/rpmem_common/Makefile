@@ -34,7 +34,22 @@
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
+HEADERS = $(wildcard *.h)
+
 include $(TOP)/src/common.inc
+
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+
+all: $(TMP_HEADERS)
 
 cstyle:
 	$(CSTYLE) *.[ch]
+
+%.htmp: %.h
+	$(call check-cstyle, $<)
+	@touch $@
+
+clean:
+	$(RM) $(TMP_HEADERS)
+
+clobber: clean

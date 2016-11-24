@@ -168,6 +168,10 @@ ifneq ($(LIBPMEMBLK_PRIV),)
 OBJS += pmemblk_priv.o
 endif
 
+ifneq ($(HEADERS),)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
+
 MAKEFILE_DEPS=$(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
 
 ifneq ($(TARGET),)
@@ -179,7 +183,7 @@ endif
 SYNC_FILE=.synced
 
 clean:
-	$(RM) $(OBJS) $(CLEAN_FILES) $(SYNC_FILE)
+	$(RM) $(OBJS) $(CLEAN_FILES) $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
 ifneq ($(TARGET),)
@@ -217,7 +221,7 @@ endif
 %.txt: %
 	man ./$< > $@
 
-$(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG): $(OBJS) $(MAKEFILE_DEPS)
+$(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG): $(TMP_HEADERS) $(OBJS) $(MAKEFILE_DEPS)
 
 $(TARGET_STATIC_DEBUG): $(STATIC_DEBUG_LIBS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
@@ -249,9 +253,14 @@ pmemblk_priv.o: $(PMEMBLK_PRIV_OBJ)
 objdir=.
 
 %.o: %.c $(MAKEFILE_DEPS)
+	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
 	$(create-deps)
+
+%.htmp: %.h
+	$(call check-cstyle, $<)
+	@touch $@
 
 test check pcheck: all
 

@@ -72,8 +72,10 @@ Before contributing please remember to run:
 
 This will check all C/C++ files in the tree for style issues. To check C++
 files you have to have clang-format version 3.8+, otherwise they will be
-skipped. There is also a target for automatic C++ code formatting, to do this
-run:
+skipped. If you want to run this target automatically at build time, you can
+pass CSTYLEON=1 to make. If you want cstyle to be run, but not fail the build,
+pass CSTYLEON=2 to make.
+There is also a target for automatic C++ code formatting, to do this run:
 ```
 	$ make format
 ```

@@ -39,9 +39,11 @@ MKDIR = mkdir
 INSTALL = install
 CP = cp
 CSTYLE = $(TOP)/utils/cstyle
+CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
+HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
@@ -119,6 +121,19 @@ cstyle-%:
 cstyle: cstyle-check
 
 format: cstyle-format
+
+ifeq ($(CSTYLEON),1)
+define check-cstyle
+	@$(STYLE_CHECK) check $1
+endef
+else ifeq ($(CSTYLEON),2)
+define check-cstyle
+	@$(STYLE_CHECK) check $1 || true
+endef
+else
+define check-cstyle
+endef
+endif
 
 define sub-target-foreach
 $(1)-$(2):

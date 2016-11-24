@@ -44,9 +44,9 @@ DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
 	libpmempool libvmmalloc librpmem
 RELEASE_TARGETS = tools examples benchmarks
 
-CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
+CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
 CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
-CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
+CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
 CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) test rpmem_common
 INSTALL_TARGETS = $(TARGETS)
@@ -87,7 +87,31 @@ SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
-all: $(ALL_TARGETS) pkg-config
+# include/lib*.h - skip include/pmemcompat.h
+# [!q] to skip windows/include/sys/queue.h
+HEADERS =\
+	$(foreach f, $(wildcard\
+		include/lib*.h\
+		include/libpmemobj/*.h\
+		include/libpmemobj++/*.hpp\
+		include/libpmemobj++/detail/*.hpp\
+		windows/include/*.h\
+		windows/include/*/[!q]*.h\
+		), $(f))
+
+TMP_HEADERS := $(addprefix debug/, $(addsuffix tmp, $(HEADERS)))
+
+debug/%.htmp: %.h
+	$(call check-cstyle, $<)
+	@mkdir -p `dirname $@`
+	@touch $@
+
+debug/%.hpptmp: %.hpp
+	$(call check-cstyle, $<)
+	@mkdir -p `dirname $@`
+	@touch $@
+
+all: $(TMP_HEADERS) $(ALL_TARGETS) pkg-config
 install: $(INSTALL_TARGETS:=-install)
 uninstall: $(INSTALL_TARGETS:=-uninstall)
 clean: $(CLEAN_TARGETS:=-clean)
@@ -162,31 +186,25 @@ uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
-
-# [!q] to skip windows/include/sys/queue.h
-# include/lib*.h - skip include/pmemcompat.h
 cstyle:
-	$(STYLE_CHECK) check include/lib*.h
-	$(STYLE_CHECK) check include/libpmemobj/*.h
-	$(STYLE_CHECK) check include/libpmemobj++/*.hpp
-	$(STYLE_CHECK) check include/libpmemobj++/detail/*.hpp
-	$(STYLE_CHECK) check windows/include/*.h
-	$(STYLE_CHECK) check windows/include/*/[!q]*.h
+	$(STYLE_CHECK) check $(HEADERS)
 
 format:
-	$(STYLE_CHECK) format include/libpmemobj/*.h
-	$(STYLE_CHECK) format include/libpmemobj++/*.hpp
-	$(STYLE_CHECK) format include/libpmemobj++/detail/*.hpp
+	$(STYLE_CHECK) format $(HEADERS)
 
 cscope:
 	cscope -q -b $(SCOPEFILES)
 	ctags -e $(SCOPEFILES)
 
-clean:
-	$(RM) tags cscope.in.out cscope.out cscope.po.out
+clean-here:
+	$(RM) tags cscope.in.out cscope.out cscope.po.out $(TMP_HEADERS)
+
+clean: clean-here
+
+clobber: clean-here
 
 .NOTPARALLEL: libvmem libvmmalloc
 
-.PHONY: all install uninstall uninstall-cpp install-cpp clean clobber cstyle format test check pcheck\
-	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
-	pkg-config check-remote
+.PHONY: all install uninstall uninstall-cpp install-cpp clean clobber cstyle\
+	format test check pcheck jemalloc jemalloc-clean jemalloc-test\
+	jemalloc-check cscope $(ALL_TARGETS) pkg-config check-remote clean-here

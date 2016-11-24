@@ -52,7 +52,6 @@ SOURCE =\
 	btt.c\
 	libpmemblk.c
 
-
 include ../Makefile.inc
 
 LIBS += -pthread -lpmem
