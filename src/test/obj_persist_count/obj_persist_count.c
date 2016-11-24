@@ -174,14 +174,14 @@ main(int argc, char *argv[])
 	} TX_END
 	print_reset_counters("tx_add_next");
 
-	pmalloc(pop, &f->dest, sizeof(f->val));
+	pmalloc(pop, &f->dest, sizeof(f->val), 0, 0);
 	print_reset_counters("pmalloc");
 
 	pfree(pop, &f->dest);
 	print_reset_counters("pfree");
 
 	uint64_t stack_var;
-	pmalloc(pop, &stack_var, sizeof(f->val));
+	pmalloc(pop, &stack_var, sizeof(f->val), 0, 0);
 	print_reset_counters("pmalloc_stack");
 
 	pfree(pop, &stack_var);
