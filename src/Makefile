@@ -197,7 +197,7 @@ cscope:
 	ctags -e $(SCOPEFILES)
 
 clean-here:
-	$(RM) tags cscope.in.out cscope.out cscope.po.out $(TMP_HEADERS)
+	$(RM) tags cscope.in.out cscope.out cscope.po.out *.pc $(TMP_HEADERS)
 
 clean: clean-here
 
