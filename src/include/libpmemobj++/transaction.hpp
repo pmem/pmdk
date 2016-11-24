@@ -133,7 +133,7 @@ public:
 			if (pmemobj_tx_stage() == TX_STAGE_WORK)
 				pmemobj_tx_abort(ECANCELED);
 
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 		}
 
 		/**
@@ -228,7 +228,7 @@ public:
 		{
 			/* manual abort or commit end transaction */
 			if (pmemobj_tx_stage() != TX_STAGE_WORK) {
-				pmemobj_tx_end();
+				(void)pmemobj_tx_end();
 				return;
 			}
 
@@ -239,7 +239,7 @@ public:
 				/* normal exit commit tx */
 				pmemobj_tx_commit();
 
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 		}
 
 		/**
@@ -408,7 +408,7 @@ public:
 
 		if (err) {
 			pmemobj_tx_abort(err);
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 			throw transaction_error("failed to add a lock to the"
 						" transaction");
 		}
@@ -416,7 +416,7 @@ public:
 		try {
 			tx();
 		} catch (manual_tx_abort &) {
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 			throw;
 		} catch (...) {
 			/* first exception caught */
@@ -424,7 +424,7 @@ public:
 				pmemobj_tx_abort(ECANCELED);
 
 			/* waterfall tx_end for outer tx */
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 			throw;
 		}
 
@@ -433,14 +433,14 @@ public:
 		if (stage == TX_STAGE_WORK) {
 			pmemobj_tx_commit();
 		} else if (stage == TX_STAGE_ONABORT) {
-			pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 			throw transaction_error("transaction aborted");
 		} else if (stage == TX_STAGE_NONE) {
 			throw transaction_error("transaction ended"
 						"prematurely");
 		}
 
-		pmemobj_tx_end();
+		(void)pmemobj_tx_end();
 	}
 
 private:
