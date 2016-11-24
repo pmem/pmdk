@@ -76,7 +76,7 @@ conditional_add_to_tx(const T *that)
  * Return type number for given type.
  */
 template <typename T>
-constexpr uint64_t
+uint64_t
 type_num()
 {
 	return typeid(T).hash_code();
