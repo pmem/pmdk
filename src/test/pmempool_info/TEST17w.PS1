@@ -69,11 +69,11 @@ setup
 #check_file $POOLSET
 #
 #rm -f $POOLS $REPS
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create obj --layout pmempool $POOLSET
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOL1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOL1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $REPL1 >> $LOG
-#expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $REPL2 >> $LOG
+#expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
+#expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
+#expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
+#expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG
+#expect_normal_exit $PMEMPOOL info $REPL2 >> $LOG
 #
 #check
 #

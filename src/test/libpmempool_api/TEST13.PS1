@@ -56,7 +56,7 @@ rm $LOG -Force -ea si
 rm $LOG_TEMP -Force -ea si
 
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOL
+expect_normal_exit $PMEMPOOL create log $POOL
 
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL -s 0
 cat $LOG >> $LOG_TEMP

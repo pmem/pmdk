@@ -59,7 +59,7 @@ $pool_args=@{"blk"="blk 512"; "log"="log"}
 
 foreach ($h in $pool_args.GetEnumerator()) {
 	echo "Pool type: $($h.Name) Params: $($h.Value)" >> $LOG_TEMP
-	expect_normal_exit "$PMEMPOOL$Env:EXESUFFIX create $($h.Value) $POOL" >> $LOG_TEMP
+	expect_normal_exit "$PMEMPOOL create $($h.Value) $POOL" >> $LOG_TEMP
 	&$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 	check_file $POOL
 

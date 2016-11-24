@@ -57,7 +57,7 @@ rm $LOG -Force -ea si
 
 create_poolset $POOLSET 20M:$POOL_P1 50M:$POOL_P2
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL create log $POOLSET
 
 &$PMEMSPOIL -v $POOL_P1 `
     "pool_hdr.major=0x0" `
@@ -65,8 +65,8 @@ expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
     "pool_hdr.uuid=0x0" `
     >> $LOG
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -rvy $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $null
+expect_normal_exit $PMEMPOOL check -rvy $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
 check
 

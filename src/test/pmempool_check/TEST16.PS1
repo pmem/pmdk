@@ -57,16 +57,16 @@ rm $LOG -Force -ea si
 
 create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL create log $POOLSET
 
 [int]$FUTURE_TIME=[int][double]::Parse((Get-Date -UFormat %s))
 $FUTURE_TIME+=60*60
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.crtime=$FUTURE_TIME" >> $LOG
 
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -v $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -vrya $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $null
+expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL check -vrya $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
 check
 

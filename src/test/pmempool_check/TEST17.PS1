@@ -57,19 +57,19 @@ rm $LOG -Force -ea si
 
 create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL create log $POOLSET
 
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.checksum=0x0" >> $LOG
 
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
 
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.uuid=ERROR" >> $LOG
 
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET 2>&1 >> $null
+expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL info $POOLSET 2>&1 >> $null
 
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX check -avry $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX info $POOLSET >> $null
+expect_normal_exit $PMEMPOOL check -avry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
 check
 

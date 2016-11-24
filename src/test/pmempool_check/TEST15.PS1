@@ -114,17 +114,17 @@ foreach ($args in "log","blk","obj") {
 			rm $PARTS -Force -ea si
 
 			if ($args -eq "blk") {
-				expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create $args 512 $POOLSET1
-				expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create $args 512 $POOLSET2
+				expect_normal_exit $PMEMPOOL create $args 512 $POOLSET1
+				expect_normal_exit $PMEMPOOL create $args 512 $POOLSET2
 			} else {
-				expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create $args $POOLSET1
-				expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create $args $POOLSET2
+				expect_normal_exit $PMEMPOOL create $args $POOLSET1
+				expect_normal_exit $PMEMPOOL create $args $POOLSET2
 			}
 			check_files $PART1 $PART2 $PART3 $PART4
 
-			expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -v $POOLSET >> $LOG
-			expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vry $POOLSET >> $LOG
-			expect_abnormal_exit $PMEMPOOL$Env:EXESUFFIX check -vary $POOLSET >> $LOG
+			expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
+			expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
+			expect_abnormal_exit $PMEMPOOL check -vary $POOLSET >> $LOG
 		}
 	}
 }
