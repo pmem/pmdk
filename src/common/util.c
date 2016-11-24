@@ -204,7 +204,7 @@ util_parse_size(const char *str, size_t *sizep)
 	int res = -1;
 	unsigned i;
 	size_t size = 0;
-	char unit[8] = {0};
+	char unit[9] = {0};
 
 	int ret = sscanf(str, "%zu%8s", &size, unit);
 	if (ret == 1) {
