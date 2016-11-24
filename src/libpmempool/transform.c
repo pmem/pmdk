@@ -124,19 +124,19 @@ out:
 
 /*
  * check_paths - (internal) check if directories for part files exist
- *                     and if paths for part files do not repeat in the poolset
+ *               and if paths for part files do not repeat in the poolset
  */
 static int
 check_paths(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
-	for (unsigned r1 = 0; r1 < set->nreplicas; ++r1) {
-		struct pool_replica *rep1 = set->replica[r1];
-		for (unsigned p1 = 0; p1 < rep1->nparts; ++p1) {
-			if (replica_check_local_part_dir(set, r1, p1))
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (replica_check_local_part_dir(set, r, p))
 				return -1;
 
-			if (check_if_part_used_once(set, r1, p1))
+			if (check_if_part_used_once(set, r, p))
 				return -1;
 		}
 	}
