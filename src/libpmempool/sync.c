@@ -393,8 +393,8 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 			continue;
 
 		for (unsigned p = 0; p < set_hs->replica[r]->nparts; p++) {
-			/* skip unbroken parts */
-			if (!replica_is_part_broken(r, p, set_hs))
+			/* skip parts which were not created */
+			if (!PART(REP(set, r), p).created)
 				continue;
 
 			LOG(4, "setting permissions for part %u, replica %u",
