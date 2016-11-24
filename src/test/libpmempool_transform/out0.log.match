@@ -1,4 +1,4 @@
-pr(23068672): off = 0x382440 uuid = $(nW)
+pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
 libpmempool_transform/TEST0: START: libpmempool_transform
