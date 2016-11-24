@@ -126,9 +126,15 @@ struct heap_layout {
 };
 
 struct allocation_header {
-	uint32_t zone_id;
-	uint32_t chunk_id;
+	uint8_t unused[8];
 	uint64_t size;
+};
+
+struct legacy_object_header {
+	struct allocation_header alloc_hdr;
+	uint8_t unused[32];
+	uint64_t size;
+	uint64_t type_num;
 };
 
 #endif

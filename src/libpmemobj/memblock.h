@@ -166,17 +166,29 @@ enum memblock_state {
 enum memory_block_type memblock_autodetect_type(struct memory_block *m,
 	struct heap_layout *h);
 
+struct memory_block memblock_from_offset(struct palloc_heap *heap,
+	uint64_t off);
+
 struct memory_block_ops {
 	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
-	uint16_t (*block_offset)(struct memory_block *m,
-			struct palloc_heap *heap, void *ptr);
 	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
 		enum memblock_state, struct operation_context *ctx);
 	pthread_mutex_t *(*get_lock)(struct memory_block *m,
 		struct palloc_heap *heap);
 	enum memblock_state (*get_state)(struct memory_block *m,
 		struct palloc_heap *heap);
-	void *(*get_data)(struct memory_block *m, struct palloc_heap *heap);
+	void *(*get_user_data)(struct memory_block *m,
+		struct palloc_heap *heap);
+	size_t (*get_user_size)(struct memory_block *m,
+		struct palloc_heap *heap);
+	void *(*get_real_data)(struct memory_block *m,
+		struct palloc_heap *heap);
+	size_t (*get_real_size)(struct memory_block *m,
+		struct palloc_heap *heap);
+	void (*write_header)(struct memory_block *m, struct palloc_heap *heap,
+		uint64_t extra_field, uint16_t flags);
+	uint64_t (*get_extra)(struct memory_block *m, struct palloc_heap *heap);
+	uint16_t (*get_flags)(struct memory_block *m, struct palloc_heap *heap);
 
 	/* only runs can be claimed, functions are invalid for huge blocks */
 	int (*claim)(const struct memory_block *m,

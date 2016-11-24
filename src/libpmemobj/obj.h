@@ -64,7 +64,6 @@
 #define OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
 #define OBJ_NLANES		1024	/* number of lanes */
 
-#define OBJ_OOB_SIZE		(sizeof(struct oob_header))
 #define OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 #define OBJ_PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 #define OBJ_OID_IS_NULL(oid)	((oid).off == 0)
@@ -82,24 +81,13 @@
 	(uintptr_t)(ptr) < (uintptr_t)(pop) + (pop)->size)
 
 #define OBJ_OFF_IS_VALID(pop, off)\
-	((OBJ_OFF_FROM_HEAP(pop, off) ||\
-	(OBJ_PTR_TO_OFF(pop, &(pop)->root_offset) == (off))) ||\
+	(OBJ_OFF_FROM_HEAP(pop, off) ||\
+	(OBJ_PTR_TO_OFF(pop, &(pop)->root_offset) == (off)) ||\
+	(OBJ_PTR_TO_OFF(pop, &(pop)->root_size) == (off)) ||\
 	(OBJ_OFF_FROM_LANES(pop, off)))
 
 #define OBJ_PTR_IS_VALID(pop, ptr)\
 	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
-
-#define OOB_HEADER_FROM_OFF(pop, off)\
-	((struct oob_header *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
-
-#define OOB_HEADER_FROM_OID(pop, oid)\
-	((struct oob_header *)((uintptr_t)(pop) + (oid).off - OBJ_OOB_SIZE))
-
-#define OOB_HEADER_FROM_PTR(ptr)\
-	((struct oob_header *)((uintptr_t)(ptr) - OBJ_OOB_SIZE))
-
-#define OOB_OFFSET_OF(oid, field)\
-	((oid).off - OBJ_OOB_SIZE + offsetof(struct oob_header, field))
 
 typedef void (*persist_local_fn)(const void *, size_t);
 typedef void (*flush_local_fn)(const void *, size_t);
@@ -130,6 +118,8 @@ struct pmemobjpool {
 
 	/* unique runID for this program run - persistent but not checksummed */
 	uint64_t run_id;
+
+	uint64_t root_size;
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
@@ -171,7 +161,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1588];
+	char unused2[1580];
 };
 
 /*
@@ -179,23 +169,7 @@ struct pmemobjpool {
  * is internal or not. Internal objects are skipped in pmemobj iteration
  * functions.
  */
-#define OBJ_INTERNAL_OBJECT_MASK ((1ULL) << 63)
-#define OBJ_ROOT_SIZE(oobh) ((oobh)->size & ~OBJ_INTERNAL_OBJECT_MASK)
-#define OBJ_IS_INTERNAL(oobh) (((oobh)->size & OBJ_INTERNAL_OBJECT_MASK))
-#define OBJ_IS_ROOT(oobh) (OBJ_IS_INTERNAL(oobh) && OBJ_ROOT_SIZE(oobh))
-
-/*
- * Out-Of-Band Header - it is padded to 48B to fit one cache line (64B)
- * together with allocator's header (of size 16B) located just before it.
- */
-struct oob_header {
-	uint8_t unused[32];
-
-	/* used only in root object, last bit used as a mask */
-	uint64_t size;
-
-	uint64_t type_num;
-};
+#define OBJ_INTERNAL_OBJECT_MASK ((1ULL) << 15)
 
 enum internal_type {
 	TYPE_NONE,
