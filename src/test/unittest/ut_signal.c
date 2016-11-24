@@ -58,6 +58,22 @@ exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
 		Sa_handler(Signum);
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
+
+/*
+ * exception_handler_sig_wrapper - called for set handler default func,
+ * by default after execution exception handler func value is set to
+ * SIG_DFL, this enables handle more than one exceptions
+ * without new signal initialization
+ */
+static void
+exception_handler_sig_wrapper(int signum)
+{
+	_crt_signal_t retval = signal(signum, exception_handler_sig_wrapper);
+	if (retval == SIG_ERR)
+		UT_FATAL("!signal: %d", signum);
+	Sa_handler(signum);
+}
+
 #endif
 
 /*
@@ -73,16 +89,17 @@ ut_sigaction(const char *file, int line, const char *func,
 		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
 	return retval;
 #else
+	Sa_handler = act->sa_handler;
+
 	if (signum == SIGABRT) {
 		ut_suppress_errmsg();
 	}
 	if (signum == SIGSEGV) {
-		Sa_handler = act->sa_handler;
 		Signum = signum;
 		AddVectoredExceptionHandler(0, exception_handler);
 	}
 
-	_crt_signal_t retval = signal(signum, act->sa_handler);
+	_crt_signal_t retval = signal(signum, exception_handler_sig_wrapper);
 	if (retval == SIG_ERR)
 		ut_fatal(file, line, func, "!signal: %d", signum);
 
