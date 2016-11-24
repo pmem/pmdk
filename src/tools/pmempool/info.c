@@ -783,7 +783,8 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		if (pip->type != PMEM_POOL_TYPE_BTT) {
 			struct pool_set *ps = pip->pfile->poolset;
 			for (unsigned r = 0; r < ps->nreplicas; ++r) {
-				if (mprotect(ps->replica[r]->part[0].addr,
+				if (ps->replica[r]->remote == NULL &&
+					mprotect(ps->replica[r]->part[0].addr,
 					ps->replica[r]->repsize,
 					PROT_READ) < 0) {
 					outv_err(
