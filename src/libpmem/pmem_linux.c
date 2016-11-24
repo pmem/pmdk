@@ -36,44 +36,38 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/mman.h>
 
 #include "pmem.h"
 #include "out.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
+enum parse_res {
+	RES_ERROR = -1,		/* error when parsing */
+	RES_FOUND = 0,		/* range found and has mm flag */
+	RES_FOUND_NO_FLAG,	/* range found but no mm flag */
+	RES_NOT_FOUND,		/* range not found */
+};
+
 /*
- * is_pmem_proc -- use /proc to implement pmem_is_pmem()
- *
- * This function returns true only if the entire range can be confirmed
- * as being direct access persistent memory.  Finding any part of the
- * range is not direct access, or failing to look up the information
- * because it is unmapped or because any sort of error happens, just
- * results in returning false.
- *
- * This function works by lookup up the range in /proc/self/smaps and
- * verifying the "mixed map" vmflag is set for that range.  While this
- * isn't exactly the same as direct access, there is no DAX flag in
- * the vmflags and the mixed map flag is only true on regular files when
- * DAX is in-use, so it serves the purpose.
- *
- * The range passed in may overlap with multiple entries in the smaps list
- * so this function loops through the smaps entries until the entire range
- * is verified as direct access, or until it is clear the answer is false
- * in which case it stops the loop and returns immediately.
+ * is_pmem_proc_parse -- (internal) parse /proc/self/smaps and check if
+ * memory range is from pmem
  */
-int
-is_pmem_proc(const void *addr, size_t len)
+static enum parse_res
+is_pmem_proc_parse(const void *addr, size_t len)
 {
 	const char *caddr = addr;
 
 	FILE *fp;
 	if ((fp = fopen("/proc/self/smaps", "r")) == NULL) {
 		ERR("!/proc/self/smaps");
-		return 0;
+		return RES_ERROR;
 	}
 
-	int retval = 0;		/* assume false until proven otherwise */
+	/* assume 'not found' until proven otherwise */
+	enum parse_res res = RES_NOT_FOUND;
 	char line[PROCMAXLEN];	/* for fgets() */
 	char *lo = NULL;	/* beginning of current range in smaps file */
 	char *hi = NULL;	/* end of current range in smaps file */
@@ -87,10 +81,12 @@ is_pmem_proc(const void *addr, size_t len)
 			if (needmm) {
 				/* last range matched, but no mm flag found */
 				LOG(4, "never found mm flag");
+				res = RES_FOUND_NO_FLAG;
 				break;
 			} else if (caddr < lo) {
 				/* never found the range for caddr */
 				LOG(4, "no match for addr %p", caddr);
+				res = RES_NOT_FOUND;
 				break;
 			} else if (caddr < hi) {
 				/* start address is in this range */
@@ -118,19 +114,95 @@ is_pmem_proc(const void *addr, size_t len)
 				LOG(4, "mm flag found");
 				if (len == 0) {
 					/* entire range matched */
-					retval = 1;
+					res = RES_FOUND;
 					break;
 				}
 				needmm = 0;	/* saw what was needed */
 			} else {
 				/* mm flag not set for some or all of range */
 				LOG(4, "range has no mm flag");
+				res = RES_FOUND_NO_FLAG;
 				break;
 			}
 		}
 	}
 
 	fclose(fp);
+
+	LOG(4, "returning %d", res);
+	return res;
+}
+
+/*
+ * is_mem_mapped -- (internal) checks if specified memory is mapped
+ * using mincore(2)
+ *
+ * returns 1 if memory is mapped, 0 if not and -1 if cannot determine.
+ */
+static int
+is_mem_mapped(const void *addr, size_t len)
+{
+	ASSERTne(Pagesize, 0);
+
+	/* increase len by the amount we gain when we round addr down */
+	len += (uintptr_t)addr & (Pagesize - 1);
+	/* round addr down to page boundary */
+	void *ptr = (void *)((uintptr_t)addr & ~((uintptr_t)Pagesize - 1));
+
+	size_t size = (len + Pagesize - 1) / Pagesize;
+	unsigned char *vec = Malloc(size);
+	if (!vec) {
+		ERR("!Malloc");
+		return -1;
+	}
+
+	int ret = mincore(ptr, len, vec);
+
+	Free(vec);
+
+	if (!ret) {
+		/* specified memory range is mapped */
+		return 1;
+	}
+
+	if (errno == ENOMEM) {
+		/* specified memory range is not fully mapped */
+		return 0;
+	}
+
+	/* error when determining */
+	return -1;
+}
+
+/*
+ * is_pmem_proc -- use /proc to implement pmem_is_pmem()
+ *
+ * This function returns true only if the entire range can be confirmed
+ * as being direct access persistent memory.  Finding any part of the
+ * range is not direct access, or failing to look up the information
+ * because it is unmapped or because any sort of error happens, just
+ * results in returning false.
+ *
+ * This function works by lookup up the range in /proc/self/smaps and
+ * verifying the "mixed map" vmflag is set for that range.  While this
+ * isn't exactly the same as direct access, there is no DAX flag in
+ * the vmflags d the mixed map flag is only true on regular files when
+ * DAX is in-use, so it serves the purpose.
+ *
+ * The range passed in may overlap with multiple entries in the smaps list
+ * so this function loops through the smaps entries until the entire range
+ * is verified as direct access, or until it is clear the answer is false
+ * in which case it stops the loop and returns immediately.
+ */
+int
+is_pmem_proc(const void *addr, size_t len)
+{
+	enum parse_res res;
+	do {
+		res = is_pmem_proc_parse(addr, len);
+	} while (res == RES_NOT_FOUND && is_mem_mapped(addr, len) == 1);
+
+	int retval = (res == RES_FOUND) ? 1 : 0;
 
 	LOG(3, "returning %d", retval);
 	return retval;
