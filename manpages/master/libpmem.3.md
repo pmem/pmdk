@@ -267,6 +267,11 @@ mapping for an existing file. In such case, *len* should be zero. The
 entire file is mapped to memory; its length is used as the length of the
 mapping and returned via *mapped_lenp*.
 
+The path of a file can point to a device dax and in such case only
+**PMEM_FILE_CREATE** and **PMEM_FILE_SPARSE** flags are valid, but they both
+effectively do nothing. For device dax mappings, the *len* argument must be,
+regardless of the flags, equal to either 0 or the exact size of the device.
+
 To delete mappings created with **pmem_map_file**(), use **pmem_unmap**().
 
 ```c
