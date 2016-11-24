@@ -1,4 +1,4 @@
-pr(31457280): off = 0x382440 uuid = $(nW)
+pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
 Poolset structure:
@@ -34,10 +34,10 @@ PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
-Heap offset              : 0x302000
-Heap size                : 38785024
-Checksum                 : 0x69ca8e0ab123ebf0 [OK]
-Root offset              : 0x382440
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : $(nW) [OK]
+Root offset              : $(nW)
 Part file:
 path                     : $(nW)testfile00
 type                     : regular file
