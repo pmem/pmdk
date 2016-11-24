@@ -5,7 +5,7 @@ $(nW): spoil: pool_hdr.incompat_features=$(*)
 $(nW): spoil: pool_hdr.ro_compat_features=$(*)
 $(nW): spoil: pool_hdr.unused=$(*)
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.major is not valid
 pool_hdr.compat_features is not valid
 pool_hdr.incompat_features is not valid
@@ -23,7 +23,7 @@ PMEMLOG: pmemlog
 $(nW): spoil: pmemlog.start_offset=$(*)
 $(nW): spoil: pmemlog.end_offset=$(*)
 checking pool header
-pool header checksum correct
+pool header correct
 checking pmemlog header
 invalid pmemlog.start_offset: 0x0
 invalid pmemlog.end_offset: 0x0
@@ -38,7 +38,7 @@ $(nW): spoil: pool_hdr.incompat_features=$(*)
 $(nW): spoil: pool_hdr.ro_compat_features=$(*)
 $(nW): spoil: pool_hdr.unused=$(*)
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.signature is not valid
 pool_hdr.major is not valid
 pool_hdr.compat_features is not valid
@@ -62,7 +62,7 @@ PMEMBLK: pmemblk
 $(nW): spoil: pool_hdr.signature=$(*)
 $(nW): spoil: pmemblk.bsize=$(*)
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.signature is not valid
 setting pool_hdr.signature to PMEMBLK
 checking pmemblk header

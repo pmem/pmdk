@@ -454,9 +454,9 @@ function check_pool {
         if ($Env:VERBOSE -ne "0") {
             echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
         }
-        Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+        Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
         if ($LASTEXITCODE -ne 0) {
-            Write-Error("$PMEMPOOL$Env:EXESUFFIX returned error code $LASTEXITCODE")
+            Write-Error("$PMEMPOOL returned error code $LASTEXITCODE")
             Exit $LASTEXITCODE
         }
     }

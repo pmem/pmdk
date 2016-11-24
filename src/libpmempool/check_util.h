@@ -41,6 +41,9 @@
 #define CHECK_STEP_COMPLETE	UINT_MAX
 #define CHECK_INVALID_QUESTION	UINT_MAX
 
+#define REQUIRE_ADVANCED	"the following error can be fixed using " \
+				"PMEMPOOL_CHECK_ADVANCED flag"
+
 #ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif
@@ -57,7 +60,7 @@ struct check_status;
  *
  * Its size is equal to the size of the biggest state structure it must store.
  */
-#define CHECK_INSTEP_LOCATION_NUM 527
+#define CHECK_INSTEP_LOCATION_NUM 529
 
 struct check_step_data {
 	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
@@ -66,6 +69,7 @@ struct check_step_data {
 /* check steps */
 void check_backup(PMEMpoolcheck *ppc);
 void check_pool_hdr(PMEMpoolcheck *ppc);
+void check_pool_hdr_uuids(PMEMpoolcheck *ppc);
 void check_log_blk(PMEMpoolcheck *ppc);
 void check_btt_info(PMEMpoolcheck *ppc);
 void check_btt_map_flog(PMEMpoolcheck *ppc);

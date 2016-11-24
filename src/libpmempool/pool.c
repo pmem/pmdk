@@ -538,6 +538,11 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 		PROT_READ) < 0)
 		goto error;
 
+	if (pool->params.type != POOL_TYPE_BTT) {
+		if (pool_set_file_map_headers(pool->set_file, rdonly, prv))
+			goto error;
+	}
+
 	return pool;
 
 error:
@@ -573,8 +578,11 @@ pool_data_free(struct pool_data *pool)
 {
 	LOG(3, NULL);
 
-	if (pool->set_file)
+	if (pool->set_file) {
+		if (pool->params.type != POOL_TYPE_BTT)
+			pool_set_file_unmap_headers(pool->set_file);
 		pool_set_file_close(pool->set_file);
+	}
 
 	while (!TAILQ_EMPTY(&pool->arenas)) {
 		struct arena *arenap = TAILQ_FIRST(&pool->arenas);

@@ -1,5 +1,5 @@
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.signature is not valid
 setting pool_hdr.signature to PMEMBLK
 checking pmemblk header

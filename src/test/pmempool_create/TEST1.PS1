@@ -51,7 +51,7 @@ setup
 $POOL="$DIR\file.pool"
 
 # PMEMBLK with layout
-expect_normal_exit $PMEMPOOL$Env:EXESUFFIX create -w blk 512 $POOL
+expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
 check_arena $POOL

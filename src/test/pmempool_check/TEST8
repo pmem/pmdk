@@ -64,6 +64,7 @@ check_file $POOLSET
 
 rm -f $POOLS
 expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET > /dev/null
 check_files $POOLS
 $PMEMSPOIL -v $POOL_P1\
 	pool_hdr.next_part_uuid=ERROR_NEXT\
@@ -74,9 +75,9 @@ $PMEMSPOIL -v $POOL_P1\
 	>> $LOG
 
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vyr $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -avyr $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vyr $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET > /dev/null
 
 check
 

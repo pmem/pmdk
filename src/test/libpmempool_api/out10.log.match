@@ -1,13 +1,13 @@
 libpmempool_api$(nW)TEST10: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW) -d 0 -r 0 -y 0
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 status = not consistent
 libpmempool_api$(nW)TEST10: Done
 libpmempool_api$(nW)TEST10: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW) -d 0 -r 1 -y 1
 checking pool header
-incorrect pool header checksum
+incorrect pool header
 pool_hdr.major is not valid
 setting pool_hdr.major to 0x1
 checking pmemlog header

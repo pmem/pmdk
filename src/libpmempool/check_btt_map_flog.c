@@ -535,7 +535,10 @@ arena_map_flog_check(PMEMpoolcheck *ppc, union location *loc)
 
 	if (CHECK_IS_NOT(ppc, ADVANCED) && loc->list_inval->count +
 			loc->list_flog_inval->count > 0) {
-		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+		CHECK_INFO(ppc, REQUIRE_ADVANCED);
+		CHECK_ERR(ppc, "BTT Map and / or BTT Flog contain invalid "
+			"entries");
 		check_end(ppc->data);
 		goto cleanup;
 	}
