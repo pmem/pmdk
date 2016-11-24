@@ -845,6 +845,7 @@ static const struct step steps_initial[] = {
 	},
 	{
 		.check	= NULL,
+		.fix	= NULL,
 	},
 };
 
@@ -875,6 +876,7 @@ static const struct step steps_uuids[] = {
 	},
 	{
 		.check	= NULL,
+		.fix	= NULL,
 	},
 };
 
@@ -976,6 +978,7 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 
 			/* do all checks */
 			while (CHECK_NOT_COMPLETE(loc, steps_initial)) {
+				ASSERT(loc->step < ARRAY_SIZE(steps_initial));
 				if (step_exe(ppc, steps_initial, loc, rep,
 						nreplicas))
 					return;
@@ -1018,6 +1021,7 @@ check_pool_hdr_uuids(PMEMpoolcheck *ppc)
 
 			/* do all checks */
 			while (CHECK_NOT_COMPLETE(loc, steps_uuids)) {
+				ASSERT(loc->step < ARRAY_SIZE(steps_uuids));
 				if (step_exe(ppc, steps_uuids, loc, rep,
 						nreplicas))
 					return;
