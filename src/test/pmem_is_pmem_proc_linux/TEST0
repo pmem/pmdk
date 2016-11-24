@@ -46,6 +46,9 @@ require_fs_type none
 
 setup
 
+
+
+
 # 7fff77424000 2147479552
 #	exactly matches smaps second mm entry, should produce: 1
 # 7fff77424000 2147479553
@@ -56,7 +59,9 @@ setup
 #	start at smaps first mm entry, extends into second: should produce: 1
 # 7fff77423000 2147483648
 #	exactly matches sum of both mm entries: should produce 1
-expect_normal_exit ./pmem_is_pmem_proc_linux$EXESUFFIX smaps_mm_both\
+expect_normal_exit ./pmem_is_pmem_proc_linux$EXESUFFIX\
+	1 smaps_mm_both\
+	1 7fff77423000 2147483648\
 	7fff77424000 2147479552\
 	7fff77424000 2147479553\
 	7fff77424000 8192\
