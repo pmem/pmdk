@@ -101,7 +101,7 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, union location *loc)
 			ppc->backup_path);
 	}
 
-	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE, "destionation of the backup "
+	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE, "destination of the backup "
 		"already exists.|Do you want to overwrite it?");
 
 	return check_questions_sequence_validate(ppc);
@@ -223,7 +223,7 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, union location *loc)
 
 	if (overwrite_required) {
 		CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_PARTS, "part files of the "
-			"destionation poolset of the backup already exist.|Do "
+			"destination poolset of the backup already exist.|Do "
 			"you want to overwrite them?");
 	}
 
