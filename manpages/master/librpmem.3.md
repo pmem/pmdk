@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: librpmem(3)
 header: NVM Library
-date: rpmem API version 1.0.1
+date: rpmem API version 1.0.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)

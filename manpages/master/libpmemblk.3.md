@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemblk(3)
 header: NVM Library
-date: pmemblk API version 1.0.4
+date: pmemblk API version 1.0.5
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
