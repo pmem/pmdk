@@ -123,8 +123,8 @@ $(MANPAGES_BUILDDIR)/%.1: %.1.md default.man ../utils/md2man.sh FORCE
 
 compress: $(GZFILES_BUILD)
 
-%.gz: %
-	gzip -c ./$< > $@
+%.gz:
+	gzip -c ./$* > $@
 
 clean:
 
