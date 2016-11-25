@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: pmempool-rm(1)
 header: NVM Library
-date: pmem Tools version 1.0.2
+date: pmem Tools version 1.2.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)

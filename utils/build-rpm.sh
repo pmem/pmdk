@@ -405,7 +405,7 @@ Summary: C++ bindings for libpmemobj
 Group: Development/Libraries
 Requires: libpmemobj-devel = %{version}
 %description -n ${OBJ_CPP_NAME}
-Development files for NVML C++ libpmemobj bindings - EXPERIMENTAL
+Development files for NVML C++ libpmemobj bindings
 
 %files -n ${OBJ_CPP_NAME}
 %defattr(-,root,root,-)
