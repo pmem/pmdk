@@ -124,11 +124,11 @@ format: cstyle-format
 
 ifeq ($(CSTYLEON),1)
 define check-cstyle
-	@$(STYLE_CHECK) check $1
+	@$(STYLE_CHECK) check $1 && if [ "$2" != "" ]; then mkdir -p `dirname $2` && touch $2; fi
 endef
 else ifeq ($(CSTYLEON),2)
 define check-cstyle
-	@$(STYLE_CHECK) check $1 || true
+	@$(STYLE_CHECK) check $1 && if [ "$2" != "" ]; then mkdir -p `dirname $2` && touch $2; fi || true
 endef
 else
 define check-cstyle

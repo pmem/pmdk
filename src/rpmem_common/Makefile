@@ -38,7 +38,9 @@ HEADERS = $(wildcard *.h)
 
 include $(TOP)/src/common.inc
 
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
 
 all: $(TMP_HEADERS)
 
@@ -46,8 +48,7 @@ cstyle:
 	$(CSTYLE) *.[ch]
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 clean:
 	$(RM) $(TMP_HEADERS)

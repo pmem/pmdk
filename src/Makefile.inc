@@ -123,8 +123,10 @@ OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
 endif
 
 ifneq ($(HEADERS),)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 TMP_HEADERS := $(addprefix $(objdir)/, $(TMP_HEADERS))
+endif
 endif
 
 ifneq ($(LIBRARY_NAME),)
@@ -238,8 +240,7 @@ $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	$(create-deps)
 
 $(objdir)/%.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 .PHONY: all clean clobber install uninstall cstyle
 

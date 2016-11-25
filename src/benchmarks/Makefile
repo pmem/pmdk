@@ -102,7 +102,9 @@ CONFIGS=pmembench_log\
 	pmembench_atomic_lists
 
 OBJS=$(SRC:.c=.o)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
 LDFLAGS = -L$(LIBS_PATH)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
@@ -176,8 +178,7 @@ objdir=.
 	$(create-deps)
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 $(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
