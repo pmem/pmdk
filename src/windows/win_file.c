@@ -95,6 +95,15 @@ posix_fallocate(int fd, off_t offset, off_t size)
 }
 
 /*
+ * ftruncate -- truncate a file to a specified length
+ */
+int
+ftruncate(int fd, off_t length)
+{
+	return _chsize_s(fd, length);
+}
+
+/*
  * flock -- apply or remove an advisory lock on an open file
  */
 int

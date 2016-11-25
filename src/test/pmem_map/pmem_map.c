@@ -39,43 +39,10 @@
 #define _GNU_SOURCE
 #include "unittest.h"
 #include <stdlib.h>
-#include <dlfcn.h>
 
 #define CHECK_BYTES 4096	/* bytes to compare before/after map call */
 
-sigjmp_buf Jmp;
-
-/*
- * posix_fallocate -- interpose on libc posix_fallocate()
- */
-int
-posix_fallocate(int fd, off_t offset, off_t len)
-{
-	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
-
-	static int (*posix_fallocate_ptr)(int fd, off_t offset, off_t len);
-
-	if (posix_fallocate_ptr == NULL)
-		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
-
-	return (*posix_fallocate_ptr)(fd, offset, len);
-}
-
-/*
- * ftruncate -- interpose on libc ftruncate()
- */
-int
-ftruncate(int fd, off_t len)
-{
-	UT_OUT("ftruncate: len %ju", len);
-
-	static int (*ftruncate_ptr)(int fd, off_t len);
-
-	if (ftruncate_ptr == NULL)
-		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");
-
-	return (*ftruncate_ptr)(fd, len);
-}
+ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
@@ -83,7 +50,7 @@ ftruncate(int fd, off_t len)
 static void
 signal_handler(int sig)
 {
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 #define PMEM_FILE_ALL_FLAGS\
@@ -132,7 +99,7 @@ parse_flags(const char *flags_str)
 }
 
 /*
- * do_check --
+ * do_check -- check the mapping
  */
 static void
 do_check(int fd, void *addr, size_t mlen)
@@ -162,7 +129,7 @@ do_check(int fd, void *addr, size_t mlen)
 
 	UT_ASSERTeq(pmem_unmap(addr, mlen), 0);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		/* same memcpy from above should now fail */
 		memcpy(addr, pat, CHECK_BYTES);
 	} else {
@@ -238,7 +205,7 @@ main(int argc, char *argv[])
 				fd = OPEN(argv[i], O_RDWR);
 
 				if (!use_mlen) {
-					struct stat stbuf;
+					ut_util_stat_t stbuf;
 					FSTAT(fd, &stbuf);
 					mlen = stbuf.st_size;
 				}

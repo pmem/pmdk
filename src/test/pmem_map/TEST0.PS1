@@ -31,13 +31,50 @@
 #
 
 #
-# src/test/pmem_map/Makefile -- build pmem_map() unit test
+# src/test/pmem_map/TEST0 -- unit test for pmem_map
 #
-TARGET = pmem_map
-OBJS = pmem_map.o mocks_linux.o
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmem_map\TEST0"
+$Env:UNITTEST_NUM = "0"
 
-LIBPMEM=y
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_test_type medium
+require_fs_type any
 
-LIBS += -ldl
+# XXX: no valgrind for Windows
+#configure_valgrind memcheck force-disable
+
+setup
+
+# XXX: no AddressSanitizer on Windows
+# this test invokes sigsegvs by design
+# export ASAN_OPTIONS=handle_segv=0
+
+create_holey_file 2G $DIR/testfile1
+
+# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+
+expect_normal_exit $Env:EXE_DIR/pmem_map$Env:EXESUFFIX `
+    $DIR/testfile1 0 - 0 1 1 `
+    $DIR/testfile1 -1 - 0 1 1 `
+    $DIR/testfile1 0 - 0 0 0 `
+    $DIR/testfile1 0 X 0 0 0 `
+    $DIR/testfile1 0 - 0644 1 1 `
+    $DIR/testfile1 1024 - 0 1 1 `
+    $DIR/testfile1 0 C 0 1 1 `
+    $DIR/testfile1 0 E 0 1 1 `
+    $DIR/testfile1 4096 T 0644 1 1 `
+    $DIR/testfile1 4096 E 0644 1 1 `
+    $DIR/testfile1 0 - 0644 1 1
+
+check_files $DIR/testfile1
+
+check
+
+pass

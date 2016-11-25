@@ -128,13 +128,6 @@ dirname(char *path)
 	return path;
 }
 
-/*
- * ftruncate -- truncate a file to a specified length
- */
-static int
-ftruncate(int fd, off_t length)
-{
-	return _chsize_s(fd, length);
-}
+int ftruncate(int fd, off_t length);
 
 #endif /* UNISTD_H */
