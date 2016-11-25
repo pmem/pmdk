@@ -48,7 +48,7 @@
  * internal definitions of PMEM-locks
  */
 typedef union padded_pmemmutex {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 	struct {
 		uint64_t runid;
 		pthread_mutex_t mutex;
@@ -56,7 +56,7 @@ typedef union padded_pmemmutex {
 } PMEMmutex_internal;
 
 typedef union padded_pmemrwlock {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 	struct {
 		uint64_t runid;
 		pthread_rwlock_t rwlock;
@@ -64,7 +64,7 @@ typedef union padded_pmemrwlock {
 } PMEMrwlock_internal;
 
 typedef union padded_pmemcond {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 	struct {
 		uint64_t runid;
 		pthread_cond_t cond;

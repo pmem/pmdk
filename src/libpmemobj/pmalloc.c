@@ -280,7 +280,7 @@ static int
 pmalloc_boot(PMEMobjpool *pop)
 {
 	COMPILE_ERROR_ON(PALLOC_DATA_OFF != OBJ_OOB_SIZE);
-	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_ALIGNMENT);
+	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_SIZE);
 
 	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
 			pop->heap_size, pop, &pop->p_ops);

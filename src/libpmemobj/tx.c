@@ -464,9 +464,9 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 static void
 tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 {
-	COMPILE_ERROR_ON(sizeof(PMEMmutex) != _POBJ_CL_ALIGNMENT);
-	COMPILE_ERROR_ON(sizeof(PMEMrwlock) != _POBJ_CL_ALIGNMENT);
-	COMPILE_ERROR_ON(sizeof(PMEMcond) != _POBJ_CL_ALIGNMENT);
+	COMPILE_ERROR_ON(sizeof(PMEMmutex) != _POBJ_CL_SIZE);
+	COMPILE_ERROR_ON(sizeof(PMEMrwlock) != _POBJ_CL_SIZE);
+	COMPILE_ERROR_ON(sizeof(PMEMcond) != _POBJ_CL_SIZE);
 
 	struct lane_tx_runtime *runtime =
 			(struct lane_tx_runtime *)tx.section->runtime;
@@ -491,7 +491,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx_range *range)
 	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
 		void *lock_begin = txl->lock.mutex;
 		/* all PMEM locks have the same size */
-		void *lock_end = (char *)lock_begin + _POBJ_CL_ALIGNMENT;
+		void *lock_end = (char *)lock_begin + _POBJ_CL_SIZE;
 
 		tx_remove_range(&tx_ranges, lock_begin, lock_end);
 	}
