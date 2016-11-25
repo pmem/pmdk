@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemobj(3)
 header: NVM Library
-date: pmemobj API version 1.0.5
+date: pmemobj API version 1.1.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
