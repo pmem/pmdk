@@ -101,3 +101,13 @@ util_is_absolute_path(const char *path)
 	else
 		return 0;
 }
+
+/*
+ * util_create_dir -- creates new dir
+ */
+int
+util_create_dir(const char *path, mode_t mode)
+{
+	LOG(3, "path: %s", path);
+	return mkdir(path, mode);
+}

@@ -36,7 +36,9 @@
 
 #ifndef NVML_FILE_H
 #define NVML_FILE_H 1
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <stddef.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -56,6 +58,7 @@ int util_is_absolute_path(const char *path);
 int util_file_create(const char *path, size_t size, size_t minsize);
 int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 int util_unlink(const char *path);
+int util_create_dir(const char *path, mode_t mode);
 
 #ifndef _WIN32
 typedef struct stat util_stat_t;
@@ -74,5 +77,7 @@ typedef struct _stat64 util_stat_t;
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #endif
-
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -119,3 +119,18 @@ util_is_absolute_path(const char *path)
 
 	return 0;
 }
+
+/*
+ * util_create_dir -- creates new dir
+ */
+int
+util_create_dir(const char *path, mode_t mode)
+{
+	/*
+	 * On windows we cannot create read only dir so mode
+	 * parameter is useless
+	 */
+	UNREFERENCED_PARAMETER(mode);
+	LOG(3, "path: %s", path);
+	return _mkdir(path);
+}
