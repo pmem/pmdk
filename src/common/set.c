@@ -670,8 +670,11 @@ parser_read_line(char *line, size_t *size, char **path)
 		 * places in the code to move this someplace else.
 		 */
 		ssize_t s = util_autodetect_size(path_str);
-		if (s < 0)
+		if (s < 0) {
+			Free(*path);
+			*path = NULL;
 			return PARSER_WRONG_SIZE;
+		}
 
 		*size = (size_t)s;
 
@@ -680,6 +683,8 @@ parser_read_line(char *line, size_t *size, char **path)
 
 	ret = util_parse_size(size_str, size);
 	if (ret != 0 || *size == 0) {
+		Free(*path);
+		*path = NULL;
 		return PARSER_WRONG_SIZE;
 	}
 
@@ -2046,6 +2051,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		/* it is a remote replica - it cannot have replicas */
 		if (set->nreplicas > 1) {
 			LOG(2, "remote pool set cannot have replicas");
+			util_poolset_free(set);
 			errno = EINVAL;
 			return -1;
 		}
@@ -2053,6 +2059,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	if (!can_have_rep && set->nreplicas > 1) {
 		ERR("replication not supported");
+		util_poolset_free(set);
 		errno = ENOTSUP;
 		return -1;
 	}
@@ -2061,6 +2068,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		ERR("the pool set requires a remote replica, "
 			"but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
+		util_poolset_free(set);
 		return -1;
 	}
 
