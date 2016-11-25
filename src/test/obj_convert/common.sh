@@ -32,32 +32,49 @@
 #
 
 #
-# src/test/obj_convert/TEST0 -- unit test for pool conversion
+# src/test/obj_convert/common.sh -- common part of conversion tool tests
 #
-export UNITTEST_NAME=obj_convert/TEST0
-export UNITTEST_NUM=0
 
-# standard unit test setup
-. ../unittest/unittest.sh
+# exits in the middle of transaction, so pool cannot be closed
+export MEMCHECK_DONT_CHECK_LEAKS=1
 
-require_test_type medium
+verify_scenario() {
+	# convert tool always ask for confirmation, so say yes ;)
+	echo -e "y\n" | expect_normal_exit\
+		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
+	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
 
-# must be non-static debug release of the binary because the test relies on the
-# gdb ability to interrupt the program at a static method inside the tx module
-# of the libpmemobj library
-require_build_type debug
+	echo -e "y\n" | expect_normal_exit\
+		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
+	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
+}
 
-require_fs_type non-pmem
+create_scenario() {
+	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
+		--command=trip_on_pre_commit.gdb --args\
+		./obj_convert$EXESUFFIX $DIR/scenario$1a c $1 &> /dev/null
 
-setup
+	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
+		--command=trip_on_post_commit.gdb --args\
+		./obj_convert$EXESUFFIX $DIR/scenario$1c c $1 &> /dev/null
+}
 
-. common.sh
+run_scenarios() {
+	sc=("$@")
 
-# set this to enable runtime creation of pools based on the old version of
-# the library. If not set the pools to convert and verify are extracted from
-# a prebuilt archive.
-#PATH_TO_1_0_DBG=/path/to/nvml_1.0/debug
+	if [ -z ${PATH_TO_1_0_DBG+x} ];
+	then
+		tar -xzf pools.tar.gz -C $DIR
+	else
+		for i in "${sc[@]}"
+		do
+			create_scenario $i
+		done
+	fi
 
-run_scenarios 0
+	for i in "${sc[@]}"
+	do
+		verify_scenario $i
+	done
+}
 
-pass

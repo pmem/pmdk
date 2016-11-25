@@ -32,15 +32,15 @@
 #
 
 #
-# src/test/obj_convert/TEST0 -- unit test for pool conversion
+# src/test/obj_convert/TEST17 -- unit test for pool conversion
 #
-export UNITTEST_NAME=obj_convert/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_convert/TEST17
+export UNITTEST_NUM=17
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type medium
+require_test_type long
 
 # must be non-static debug release of the binary because the test relies on the
 # gdb ability to interrupt the program at a static method inside the tx module
@@ -58,6 +58,6 @@ setup
 # a prebuilt archive.
 #PATH_TO_1_0_DBG=/path/to/nvml_1.0/debug
 
-run_scenarios 0
+run_scenarios 7
 
 pass
