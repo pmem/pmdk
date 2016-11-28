@@ -49,21 +49,19 @@ require_fs_type any
 
 setup
 
-#XXX: check_mode does not work correctly
-
 $POOL="$DIR\file.pool"
 # PMEMBLK
 expect_normal_exit $PMEMPOOL create -m 0600 blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
-#check_mode -a--- $POOL
+check_mode 0600 $POOL
 
 # PMEMLOG
 rm -Force $POOL
 expect_normal_exit $PMEMPOOL create -m 0500 log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
-#check_mode -ar-- $POOL
+check_mode 0500 $POOL
 
 # PMEMOBJ
 rm -Force $POOL
@@ -71,6 +69,6 @@ expect_normal_exit $PMEMPOOL create -m 0500 --layout=LAYOUT_NAME obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout LAYOUT_NAME $POOL
-#check_mode -ar-- $POOL
+check_mode 0500 $POOL
 
 pass

@@ -36,6 +36,13 @@ function touch {
     Out-File -InputObject $null -Encoding ascii -FilePath $args[0]
 }
 
+function cmp {
+    fc.exe /b $args[0] $args[1] > $null
+    if ($LASTEXITCODE -ne 0) {
+        "$args differ"
+    }
+}
+
 function epoch {
     return [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
 }
@@ -454,9 +461,9 @@ function check_pool {
         if ($Env:VERBOSE -ne "0") {
             echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
         }
-        Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+        Invoke-Expression "$PMEMPOOL$Env:EXESUFFIX check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
         if ($LASTEXITCODE -ne 0) {
-            Write-Error("$PMEMPOOL returned error code $LASTEXITCODE")
+            Write-Error("$PMEMPOOL$Env:EXESUFFIX returned error code $LASTEXITCODE")
             Exit $LASTEXITCODE
         }
     }
@@ -748,15 +755,27 @@ function check_size {
 #
 # check_mode -- validate file mode
 #
-# XXX: get_mode return diffrent value on appveyor
 function check_mode {
     sv -Name mode -Scope "Local" $args[0]
     sv -Name file -Scope "Local" $args[1]
-    sv -Name file_mode -Scope "Local" (get_mode $file)
+    $mode = [math]::floor($mode / 100) # get last dig
+    $file_mode = (gp $file IsReadOnly).IsReadOnly
 
-    if ($file_mode -ne $mode) {
-        Write-Error "error: wrong mode $file_mode != $mode"
+    $status = @{1 = "Execute" ; 2 = "Write" ; 4 = "Read"}
+    $writeOnly = 0;
+    if ($mode -band 2 ) {
+        if($file_mode -eq $true) {
+            Write-Error "error: wrong file mode"
+            fail 1
+        } else {
+            return
+        }
+    }
+    if($file_mode -eq $false) {
+        Write-Error "error: wrong file mode"
         fail 1
+    } else {
+        return
     }
 }
 
@@ -959,31 +978,6 @@ function dump_last_n_lines {
         }
 
         Write-Host (Get-Content $fname -Tail $ln)
-    }
-
-}
-
-#
-# cmp -- compare two files
-#
-function cmp {
-    $file1 = $Args[0]
-    $file2 = $Args[1]
-    $argc = $Args.Count
-
-    if($argc -le 2) {
-        # fc does not support / in file path
-        fc.exe /b ([String]$file1).Replace('/','\') ([string]$file2).Replace('/','\') > $null
-        if ($LASTEXITCODE -ne 0) {
-            "$args differ"
-        }
-        return
-    }
-    $limit = $Args[2]
-    $s1 = Get-Content $file1 -totalcount $limit -encoding byte
-    $s2 = Get-Content $file1 -totalcount $limit -encoding byte
-    if ("$s1" -ne "$s2") {
-        "$args differ"
     }
 
 }
