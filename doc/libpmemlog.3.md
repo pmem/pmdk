@@ -181,9 +181,9 @@ next lines. For each part, the file size and the absolute path must be provided.
 The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541 or the Metric Interchange Format.  Standards accept SI units with obligatory
 B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
-The path of a part can point to a device DAX and in such case the size
+The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using device DAX
+will be automatically resolved at pool creation time. When using Device DAX
 there's also one additional restriction, that a pool set can consist only of a
 single part.
 
@@ -328,7 +328,7 @@ The **pmemlog_check**() function performs a consistency check of the file indica
 inconsistencies found will cause **pmemlog_check**() to return 0, in which case the use of the file with **libpmemlog** will result in undefined behavior. The
 debug version of **libpmemlog** will provide additional details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
 ERROR HANDLING** section below. **pmemlog_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
-**pmemlog_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on device dax.
+**pmemlog_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
