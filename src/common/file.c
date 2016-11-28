@@ -42,6 +42,11 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/file.h>
+
+#ifndef _WIN32
+#include <sys/sysmacros.h>
+#endif
+
 #include "file.h"
 #include "out.h"
 #include "mmap.h"
