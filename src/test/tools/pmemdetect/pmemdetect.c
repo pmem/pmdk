@@ -37,25 +37,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+
 #include "mmap.h"
 #include "libpmem.h"
+#include "file.h"
 
 #define SIZE 4096
 
-int
-main(int argc, char *argv[])
+/*
+ * is_pmem -- checks if given path points to pmem-aware filestem
+ */
+static int
+is_pmem(const char *path)
 {
 	int ret;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s path\n", argv[0]);
-		exit(2);
-	}
-
-	const char *path = argv[1];
-
-	util_init();
-	util_mmap_init();
 	void *addr = util_map_tmpfile(path, SIZE, 0);
 	if (addr == NULL) {
 		fprintf(stderr, "file creation failed\n");
@@ -68,6 +65,54 @@ main(int argc, char *argv[])
 		ret = 1;
 
 	util_unmap(addr, SIZE);
+
+	return ret;
+}
+
+/*
+ * is_pmem -- checks if given path points to device dax
+ */
+static int
+is_dev_dax(const char *path)
+{
+	if (!util_file_is_device_dax(path)) {
+		printf("%s -- not device dax\n", path);
+		return 1;
+	}
+
+	if (access(path, W_OK|R_OK)) {
+		printf("%s -- permission denied\n", path);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+	int ret;
+
+	if (argc != 2 && argc != 3) {
+		fprintf(stderr, "usage: %s [-d] path\n", argv[0]);
+		exit(2);
+	}
+
+	const char *path = argv[1];
+	int dev_dax = 0;
+
+	if (argc == 3 && strcmp(argv[1], "-d") == 0) {
+		path = argv[2];
+		dev_dax = 1;
+	}
+
+	util_init();
+	util_mmap_init();
+
+	if (dev_dax)
+		ret = is_dev_dax(path);
+	else
+		ret = is_pmem(path);
 
 	return ret;
 }
