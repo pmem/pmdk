@@ -600,6 +600,13 @@ int ut_pthread_join(const char *file, int line, const char *func,
     ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
+ * processes...
+ */
+#ifdef _WIN32
+intptr_t ut_spawnv(int argc, const char **argv, ...);
+#endif
+
+/*
  * mocks...
  *
  * NOTE: On Linux, function mocking is implemented using wrapper functions.

@@ -117,6 +117,43 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 				strcpy_s(buff, bufflen, UNMAPPED_STR);
 	}
 }
+
+/*
+ * ut_spawnv -- creates and executes new synchronous process,
+ * ... are additional parameters to new process,
+ * the last argument must be a NULL
+ */
+intptr_t
+ut_spawnv(int argc, const char **argv, ...)
+{
+	int va_count = 0;
+
+	va_list ap;
+	va_start(ap, argv);
+	while (va_arg(ap, char *)) {
+		va_count++;
+	}
+	va_end(ap);
+
+	/* 1 for terminating NULL */
+	char **argv2 = calloc(argc + va_count + 1, sizeof(char *));
+	if (argv2 == NULL) {
+		UT_ERR("Cannot calloc memory for new array");
+		return -1;
+	}
+	memcpy(argv2, argv, argc * sizeof(char *));
+
+	va_start(ap, argv);
+	for (int i = 0; i < va_count; i++) {
+		argv2[argc + i] = va_arg(ap, char *);
+	}
+	va_end(ap);
+
+	intptr_t ret = _spawnv(_P_WAIT, argv2[0], argv2);
+	free(argv2);
+
+	return ret;
+}
 #endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
