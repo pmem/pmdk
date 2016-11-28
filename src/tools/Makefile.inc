@@ -169,7 +169,9 @@ OBJS += pmemblk_priv.o
 endif
 
 ifneq ($(HEADERS),)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
 endif
 
 MAKEFILE_DEPS=$(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
@@ -259,8 +261,7 @@ objdir=.
 	$(create-deps)
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 test check pcheck: all
 

@@ -98,7 +98,9 @@ clean-progs clean-libraries:
 MAKEFILE_DEPS=Makefile $(TOP)/src/examples/Makefile.inc $(TOP)/src/common.inc
 
 ifneq ($(HEADERS),)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
 endif
 
 all: $(TMP_HEADERS)
@@ -112,12 +114,10 @@ all: $(TMP_HEADERS)
 	$(CXX) -c -o $@ $(CXXFLAGS) $(INCS) $<
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 %.hpptmp: %.hpp
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 $(PROGS): | $(TMP_HEADERS)
 	$(LINKER) -o $@ $(LDFLAGS) $^ $(LIBS)

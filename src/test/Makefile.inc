@@ -237,7 +237,9 @@ endif
 MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 
 ifneq ($(HEADERS),)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
 endif
 
 all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
@@ -269,8 +271,7 @@ objdir=.
 	$(create-deps)
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 clean:
 	$(RM) *.o */*.o core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)

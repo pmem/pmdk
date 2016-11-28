@@ -89,8 +89,7 @@ objdir=.
 	$(create-deps)
 
 %.htmp: %.h
-	$(call check-cstyle, $<)
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 clean:
 	$(RM) *.o core a.out unittest.htmp

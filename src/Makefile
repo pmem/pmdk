@@ -99,17 +99,15 @@ HEADERS =\
 		windows/include/*/[!q]*.h\
 		), $(f))
 
+ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addprefix debug/, $(addsuffix tmp, $(HEADERS)))
+endif
 
 debug/%.htmp: %.h
-	$(call check-cstyle, $<)
-	@mkdir -p `dirname $@`
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 debug/%.hpptmp: %.hpp
-	$(call check-cstyle, $<)
-	@mkdir -p `dirname $@`
-	@touch $@
+	$(call check-cstyle, $<, $@)
 
 all: $(TMP_HEADERS) $(ALL_TARGETS) pkg-config
 install: $(INSTALL_TARGETS:=-install)
