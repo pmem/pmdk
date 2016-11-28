@@ -62,6 +62,8 @@
 #include <stdio.h>
 #include <limits.h>
 
+#include <util.h>
+
 #include "benchmark_time.h"
 
 #ifndef ARRAY_SIZE
@@ -106,14 +108,11 @@ struct benchmark_results
 /*
  * Command Line Option integer value base.
  */
-enum clo_int_base
-{
-	CLO_INT_BASE_NONE = 0x0,
-	CLO_INT_BASE_DEC = 0x1,
-	CLO_INT_BASE_HEX = 0x2,
-	CLO_INT_BASE_OCT = 0x4,
-	CLO_INT_BASE_ANY = 0xf,
-};
+#define CLO_INT_BASE_NONE 0x0
+#define CLO_INT_BASE_DEC 0x1
+#define CLO_INT_BASE_HEX 0x2
+#define CLO_INT_BASE_OCT 0x4
+
 
 /*
  * Command Line Option type.
@@ -175,14 +174,14 @@ struct benchmark_clo
 	struct
 	{
 		size_t size;
-		enum clo_int_base base;
+		int base;
 		int64_t min;
 		int64_t max;
 	} type_int;
 	struct
 	{
 		size_t size;
-		enum clo_int_base base;
+		int base;
 		uint64_t min;
 		uint64_t max;
 	} type_uint;
@@ -197,7 +196,7 @@ struct benchmark_clo
  */
 struct worker_info
 {
-	unsigned index;			/* index of worker thread */
+	size_t index;			/* index of worker thread */
 	struct operation_info *opinfo;	/* operation info structure */
 	size_t nops;			/* number of operations */
 	void *priv;			/* worker's private data */
@@ -210,7 +209,7 @@ struct operation_info
 {
 	struct worker_info *worker;	/* worker's info */
 	struct benchmark_args *args;	/* benchmark arguments */
-	unsigned index;			/* operation's index */
+	size_t index;			/* operation's index */
 	benchmark_time_t t_diff;	/* timestamp of start */
 };
 
@@ -290,15 +289,27 @@ void pmembench_set_priv(struct benchmark *bench, void *priv);
 struct benchmark_info *pmembench_get_info(struct benchmark *bench);
 int pmembench_register(struct benchmark_info *bench_info);
 
-#define REGISTER_BENCHMARK(bench)					\
-__attribute__((constructor))						\
+
+#define CREATE_BENCHMARK(bench)						\
+static struct benchmark_info bench;					\
+CONSTRUCTOR(__register_and_initialize_benchmark_##bench)		\
 static void								\
-__register_benchmark_##bench(void)					\
+__register_and_initialize_benchmark_##bench(void)			\
 {									\
+	__initialize_benchmark2_##bench(&bench);			\
 	if (pmembench_register(&bench)) {				\
 		fprintf(stderr, "Unable to register benchmark '%s'\n",	\
 				bench.name);				\
 	}								\
-}
+}									\
+MSVC_CONSTR(__register_and_initialize_benchmark_##bench);		\
+static void								\
+__initialize_benchmark2_##bench(struct benchmark_info *b)
+
+#define REGISTER_BENCHMARK(bench)					\
+	if (pmembench_register(&bench)) {				\
+		fprintf(stderr, "Unable to register benchmark '%s'\n",	\
+				bench.name);				\
+	}
 
 #endif /* _BENCHMARK_H */

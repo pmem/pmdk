@@ -56,6 +56,9 @@
 
 #ifndef PTHREAD_H
 #define PTHREAD_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 #include <time.h>
@@ -159,7 +162,7 @@ typedef struct {
 	void *arg;
 	void *(*start_routine)(void *);
 	void *result;
-} pthread_info, * pthread_t;
+} pthread_info, *pthread_t;
 
 typedef void pthread_attr_t;
 
@@ -168,4 +171,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 
 int pthread_join(pthread_t thread, void **result);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* PTHREAD_H */

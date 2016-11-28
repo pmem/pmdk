@@ -71,7 +71,7 @@ struct memset_args
 struct memset_bench {
 	struct memset_args *pargs; /* benchmark specific arguments */
 	uint64_t *offsets;	/* random/sequential address offsets */
-	int n_offsets;		/* number of random elements */
+	size_t n_offsets;		/* number of random elements */
 	int const_b;		/* memset() value */
 	size_t fsize;		/* file size */
 	void *pmem_addr;	/* mapped file address */
@@ -81,68 +81,7 @@ struct memset_bench {
 struct memset_worker {
 };
 
-static struct benchmark_clo memset_clo[] = {
-	{
-		.opt_short	= 'M',
-		.opt_long	= "mem-mode",
-		.descr		= "Memory writing mode - stat, seq, rand",
-		.def		= "seq",
-		.off		= clo_field_offset(struct memset_args, mode),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "memset",
-		.descr		= "Use libc memset()",
-		.def		= "false",
-		.off		= clo_field_offset(struct memset_args, memset),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'p',
-		.opt_long	= "persist",
-		.descr		= "Use pmem_persist()",
-		.def		= "true",
-		.off		= clo_field_offset(struct memset_args, persist),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'D',
-		.opt_long	= "dest-offset",
-		.descr		= "Destination cache line alignment offset",
-		.def		= "0",
-		.off	= clo_field_offset(struct memset_args, dest_off),
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct memset_args, dest_off),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= MAX_OFFSET
-		}
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.def		= false,
-		.type		= CLO_TYPE_FLAG,
-		.off	= clo_field_offset(struct memset_args, no_warmup),
-	},
-	{
-		.opt_short	= 'S',
-		.opt_long	= "seed",
-		.descr		= "seed for random numbers",
-		.def		= "1",
-		.off		= clo_field_offset(struct memset_args, seed),
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct memset_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT_MAX,
-		},
-	},
-};
+static struct benchmark_clo memset_clo[6];
 
 /*
  * operation_mode -- mode of operation of memset()
@@ -181,7 +120,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 	uint64_t n_ops = args->n_ops_per_thread;
 
 	mb->n_offsets = n_ops * n_threads;
-	mb->offsets = malloc(mb->n_offsets * sizeof(*mb->offsets));
+	mb->offsets = (uint64_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");
 		return -1;
@@ -318,13 +257,14 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret = 0;
 
-	struct memset_bench *mb = malloc(sizeof(struct memset_bench));
+	struct memset_bench *mb = (struct memset_bench *)
+		malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
 	}
 
-	mb->pargs = args->opts;
+	mb->pargs = (struct memset_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
@@ -337,9 +277,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	size_t size = MAX_OFFSET + mb->pargs->chunk_size;
 	size_t large = size * args->n_ops_per_thread * args->n_threads;
-	size_t small = size * args->n_threads;
+	size_t little = size * args->n_threads;
 
-	mb->fsize = (op_mode == OP_MODE_STAT) ? small : large;
+	mb->fsize = (op_mode == OP_MODE_STAT) ? little : large;
 
 	/* initialize offsets[] array depending on benchmark args */
 	if (init_offsets(args, mb, op_mode) < 0) {
@@ -397,21 +337,75 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* Stores information about benchmark. */
-static struct benchmark_info memset_info = {
-	.name		= "pmem_memset",
-	.brief		= "Benchmark for pmem_memset_persist() and"
-				" pmem_memset_nodrain() operations",
-	.init		= memset_init,
-	.exit		= memset_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= memset_op,
-	.measure_time	= true,
-	.clos		= memset_clo,
-	.nclos		= ARRAY_SIZE(memset_clo),
-	.opts_size	= sizeof(struct memset_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
+static struct benchmark_info memset_info;
+CONSTRUCTOR(pmem_memset_costructor)
+void
+pmem_memset_costructor(void)
+{
+	memset_clo[0].opt_short = 'M';
+	memset_clo[0].opt_long = "mem-mode";
+	memset_clo[0].descr = "Memory writing mode - stat, seq, rand";
+	memset_clo[0].def = "seq";
+	memset_clo[0].off = clo_field_offset(struct memset_args, mode);
+	memset_clo[0].type = CLO_TYPE_STR;
 
-REGISTER_BENCHMARK(memset_info);
+	memset_clo[1].opt_short = 'm';
+	memset_clo[1].opt_long = "memset";
+	memset_clo[1].descr = "Use libc memset()";
+	memset_clo[1].def = "false";
+	memset_clo[1].off = clo_field_offset(struct memset_args, memset);
+	memset_clo[1].type = CLO_TYPE_FLAG;
+
+	memset_clo[2].opt_short = 'p';
+	memset_clo[2].opt_long = "persist";
+	memset_clo[2].descr = "Use pmem_persist()";
+	memset_clo[2].def = "true";
+	memset_clo[2].off = clo_field_offset(struct memset_args, persist);
+	memset_clo[2].type = CLO_TYPE_FLAG;
+
+	memset_clo[3].opt_short = 'D';
+	memset_clo[3].opt_long = "dest-offset";
+	memset_clo[3].descr = "Destination cache line alignment offset";
+	memset_clo[3].def = "0";
+	memset_clo[3].off = clo_field_offset(struct memset_args, dest_off);
+	memset_clo[3].type = CLO_TYPE_UINT;
+	memset_clo[3].type_uint.size = clo_field_size(struct memset_args,
+			dest_off);
+	memset_clo[3].type_uint.base = CLO_INT_BASE_DEC;
+	memset_clo[3].type_uint.min = 0;
+	memset_clo[3].type_uint.max = MAX_OFFSET;
+
+	memset_clo[4].opt_short = 'w';
+	memset_clo[4].opt_long = "no-warmup";
+	memset_clo[4].descr = "Don't do warmup";
+	memset_clo[4].def = false;
+	memset_clo[4].type = CLO_TYPE_FLAG;
+	memset_clo[4].off = clo_field_offset(struct memset_args, no_warmup);
+
+	memset_clo[5].opt_short = 'S';
+	memset_clo[5].opt_long = "seed";
+	memset_clo[5].descr = "seed for random numbers";
+	memset_clo[5].def = "1";
+	memset_clo[5].off = clo_field_offset(struct memset_args, seed);
+	memset_clo[5].type = CLO_TYPE_UINT;
+	memset_clo[5].type_uint.size = clo_field_size(struct memset_args, seed);
+	memset_clo[5].type_uint.base = CLO_INT_BASE_DEC;
+	memset_clo[5].type_uint.min = 1;
+	memset_clo[5].type_uint.max = UINT_MAX;
+
+	memset_info.name = "pmem_memset";
+	memset_info.brief = "Benchmark for pmem_memset_persist() and"
+		" pmem_memset_nodrain() operations";
+	memset_info.init = memset_init;
+	memset_info.exit = memset_exit;
+	memset_info.multithread = true;
+	memset_info.multiops = true;
+	memset_info.operation = memset_op;
+	memset_info.measure_time = true;
+	memset_info.clos = memset_clo;
+	memset_info.nclos = ARRAY_SIZE(memset_clo);
+	memset_info.opts_size = sizeof(struct memset_args);
+	memset_info.rm_file = true;
+	memset_info.allow_poolset = false;
+	REGISTER_BENCHMARK(memset_info);
+};

@@ -40,8 +40,13 @@
 
 #include "libpmemobj.h"
 #include "benchmark.h"
+#ifdef __cplusplus
+extern "C" {
 #include "lane.h"
-
+}
+#else
+#include "lane.h"
+#endif
 /*
  * The number of times to repeat the operation, used to get more accurate
  * results, because the operation time was minimal compared to the framework
@@ -92,14 +97,15 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
-	struct obj_bench *ob = malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob = (struct obj_bench *)
+			malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, ob);
 
-	ob->pa = args->opts;
+	ob->pa = (struct prog_args *)args->opts;
 	size_t psize = args->is_poolset ? 0 : PMEMOBJ_MIN_POOL;
 
 	/* create pmemobj pool */
@@ -129,7 +135,7 @@ err:
 static int
 lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	pmemobj_close(ob->pop);
 	free(ob);
@@ -143,7 +149,7 @@ lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 lanes_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct lane_section *section;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {
@@ -154,38 +160,34 @@ lanes_op(struct benchmark *bench, struct operation_info *info)
 
 	return 0;
 }
+static struct benchmark_clo lanes_clo[1];
+static struct benchmark_info lanes_info;
 
-/* structure defining command line arguments */
-static struct benchmark_clo lanes_clo[] = {
-	{
-		.opt_short	= 's',
-		.opt_long	= "lane_section",
-		.descr		= "The lane section type: allocator,"
-					" list or transaction",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct prog_args,
-							lane_section_name),
-		.def		= "allocator",
-	},
-};
+CONSTRUCTOR(obj_lines_costructor)
+void
+obj_lines_costructor(void)
+{
+	lanes_clo[0].opt_short = 's';
+	lanes_clo[0].opt_long = "lane_section";
+	lanes_clo[0].descr = "The lane section type: allocator,"
+			" list or transaction";
+	lanes_clo[0].type = CLO_TYPE_STR;
+	lanes_clo[0].off = clo_field_offset(struct prog_args,
+			lane_section_name);
+	lanes_clo[0].def = "allocator";
 
-/*
- * stores information about lane benchmark
- */
-static struct benchmark_info lanes_info = {
-	.name		= "obj_lanes",
-	.brief		= "Benchmark for internal lanes operation",
-	.init		= lanes_init,
-	.exit		= lanes_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= lanes_op,
-	.measure_time	= true,
-	.clos		= lanes_clo,
-	.nclos		= ARRAY_SIZE(lanes_clo),
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-
-REGISTER_BENCHMARK(lanes_info);
+	lanes_info.name = "obj_lanes";
+	lanes_info.brief = "Benchmark for internal lanes operation";
+	lanes_info.init = lanes_init;
+	lanes_info.exit = lanes_exit;
+	lanes_info.multithread = true;
+	lanes_info.multiops = true;
+	lanes_info.operation = lanes_op;
+	lanes_info.measure_time = true;
+	lanes_info.clos = lanes_clo;
+	lanes_info.nclos = ARRAY_SIZE(lanes_clo);
+	lanes_info.opts_size = sizeof(struct prog_args);
+	lanes_info.rm_file = true;
+	lanes_info.allow_poolset = true;
+	REGISTER_BENCHMARK(lanes_info);
+}

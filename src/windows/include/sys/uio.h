@@ -36,10 +36,29 @@
 
 #ifndef SYS_UIO_H
 #define SYS_UIO_H 1
+#include <pmemcompat.h>
 
-struct iovec {
-	void  *iov_base;
-	size_t iov_len;
-};
+/*
+ * writev - windows version of writev function
+ */
+static ssize_t
+writev(int fd, const struct iovec *iov, int iovcnt)
+{
+	unsigned size = 0;
+	/* XXX: _write is 32 bit on windows */
+	for (int i = 0; i < iovcnt; i++)
+		size += (unsigned)iov[i].iov_len;
+
+	void *buf = malloc(size);
+	if (buf == NULL)
+		return -ENOMEM;
+	for (int i = 0; i < iovcnt; i++) {
+		memcpy(buf, iov[i].iov_base, iov[i].iov_len);
+	}
+	unsigned ret = _write(fd, buf, size);
+
+	free(buf);
+	return ret;
+}
 
 #endif /* SYS_UIO_H */

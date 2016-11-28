@@ -39,6 +39,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <endian.h>
+#include <errno.h>
 
 #include "util.h"
 #include "valgrind_internal.h"
@@ -267,4 +268,36 @@ util_concat_str(const char *s1, const char *s2)
 	strcat(result, s2);
 
 	return result;
+}
+
+/*
+ * util_memalign_malloc -- like malloc but page-aligned memory
+ */
+void *
+util_memalign_malloc(size_t alignment, size_t size)
+{
+	void *retval = NULL;
+
+#ifndef _WIN32
+	if ((errno = posix_memalign(&retval, alignment, size)) != 0)
+		;
+
+#else
+	retval = _aligned_malloc(size, alignment);
+#endif
+
+	return retval;
+}
+
+/*
+ * util_memalign_free -- free allocated memory in util_memalign_free
+ */
+void
+util_memalign_free(void *ptr)
+{
+#ifndef _WIN32
+	free(ptr);
+#else
+	_aligned_free(ptr);
+#endif
 }

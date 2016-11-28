@@ -38,6 +38,11 @@
 #define PMEMCOMPAT_H
 #include <windows.h>
 
+struct iovec {
+	void  *iov_base;
+	size_t iov_len;
+};
+
 typedef int mode_t;
 /*
  * XXX: this code will not work on windows if our library is included in

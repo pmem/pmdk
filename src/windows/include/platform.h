@@ -44,7 +44,9 @@
 
 #pragma warning(disable : 4996)
 
-#define _CRT_RAND_S
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Prevent NVML compilation for 32-bit platforms */
 #if defined(_WIN32) && !defined(_WIN64)
@@ -58,6 +60,7 @@
 typedef long long off_t;	/* use 64-bit off_t */
 typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define _OFF_T_DEFINED
+#define _CRT_RAND_S		/* rand_s() */
 
 #include <windows.h>
 #include <stdint.h>
@@ -69,6 +72,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <malloc.h>
 #include <signal.h>
 #include <intrin.h>
+#include <direct.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
@@ -162,6 +166,8 @@ __sync_synchronize()
 #define S_IWUSR S_IWRITE
 #define S_IRGRP S_IRUSR
 #define S_IWGRP S_IWUSR
+
+#define O_SYNC 0
 
 typedef int mode_t;
 
@@ -269,7 +275,7 @@ void func(void); \
 __pragma(comment(linker, "/include:_" #func)) \
 __pragma(section(".CRT$XCU", read)) \
 __declspec(allocate(".CRT$XCU")) \
-const void (WINAPI *_##func)(void) = func;
+const void (WINAPI *_##func)(void) = (const void (WINAPI *)(void))func;
 
 #define MSVC_DESTR(func) \
 void func(void); \
@@ -277,14 +283,30 @@ static void _##func##_reg(void) { atexit(func); }; \
 MSVC_CONSTR(_##func##_reg)
 
 /*
- * If multi-threaded version of CRT is used (which should be the
- * case always now-a-days), we can define the thread safe version
- * of few CRT functions to be their regular versions, if an explicit
- * thread safe version is not available in windows.
+ * rand_r -- rand_r for windows
+ *
+ * XXX: RAND_MAX is equal 0x7fff on Windows, so to get 32 bit random number
+ *	we need to merge two numbers returned by rand_s()
+ *	it is not to the best solution as subsequences returned by rand_s are
+ *	not guaranteed to be independent
+ *
+ * XXX: Windows doesn't implement deterministic thread-safe pseudorandom
+ *	generator (generator which can be initialized be seed ).
+ *	We have to chose between a deterministic nonthread-safe generator
+ *	(rand(), srand()) or a non-deterministic thread-safe generator(rand_s())
+ *	as thread-safety is more important a seed parameter is ignored in this
+ *	implementation
  */
-
-#ifdef _MT
-#define rand_r rand_s
-#endif /* _MT */
-
+static __inline int
+rand_r(unsigned *seedp)
+{
+	UNREFERENCED_PARAMETER(seedp);
+	unsigned part1, part2;
+	rand_s(&part1);
+	rand_s(&part2);
+	return part1 << 16 ^ part2;
+}
+#ifdef __cplusplus
+}
+#endif
 #endif /* PLATFORM_H */
