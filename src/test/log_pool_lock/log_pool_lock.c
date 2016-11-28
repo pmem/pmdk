@@ -45,18 +45,16 @@
  * CreateProcess works just fine.
  */
 int
-test_process(const char *path, int sleep)
+test_process(char **path, int sleep)
 {
 	STARTUPINFO statusInfo;
 	PROCESS_INFORMATION procInfo;
-	TCHAR cmd[MAX_PATH] = TEXT("..\\..\\x64\\debug\\log_pool_lock.exe ");
-	TCHAR parm[MAX_PATH] = TEXT("");
+	char cmd[MAX_PATH] = "";
 
-	/* build the cmd to start a 2nd test process */
-	int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-	MultiByteToWideChar(CP_ACP, 0, path, -1, parm, nChars);
-	_tcscat(cmd, parm);
-	_tcscat(cmd, L" X");
+	strcat(cmd, path[0]);
+	strcat(cmd, " ");
+	strcat(cmd, path[1]);
+	strcat(cmd, " X");
 
 	ZeroMemory(&statusInfo, sizeof(statusInfo));
 	statusInfo.cb = sizeof(statusInfo);
@@ -111,7 +109,7 @@ test_reopen(const char *path)
 
 #ifndef _WIN32
 static void
-test_open_in_different_process(const char *path, int sleep)
+test_open_in_different_process(char **path, int sleep)
 {
 	pid_t pid = fork();
 	PMEMlogpool *log;
@@ -123,10 +121,10 @@ test_open_in_different_process(const char *path, int sleep)
 		/* child */
 		if (sleep)
 			usleep(sleep);
-		while (access(path, R_OK))
+		while (access(path[1], R_OK))
 			usleep(100 * 1000);
 
-		log = pmemlog_open(path);
+		log = pmemlog_open(path[1]);
 		if (log)
 			UT_FATAL("pmemlog_open after fork should not succeed");
 
@@ -137,7 +135,7 @@ test_open_in_different_process(const char *path, int sleep)
 		exit(0);
 	}
 
-	log = pmemlog_create(path, PMEMLOG_MIN_POOL, S_IWUSR | S_IRUSR);
+	log = pmemlog_create(path[1], PMEMLOG_MIN_POOL, S_IWUSR | S_IRUSR);
 	if (!log)
 		UT_FATAL("!create");
 
@@ -151,11 +149,11 @@ test_open_in_different_process(const char *path, int sleep)
 
 	pmemlog_close(log);
 
-	UNLINK(path);
+	UNLINK(path[1]);
 }
 #else
 static void
-test_open_in_different_process(const char *path, int sleep)
+test_open_in_different_process(char **path, int sleep)
 {
 	PMEMlogpool *log;
 
@@ -163,7 +161,7 @@ test_open_in_different_process(const char *path, int sleep)
 		return;
 
 	/* before starting the 2nd process, create a pool */
-	log = pmemlog_create(path, PMEMLOG_MIN_POOL, S_IWUSR | S_IRUSR);
+	log = pmemlog_create(path[1], PMEMLOG_MIN_POOL, S_IWUSR | S_IRUSR);
 	if (!log)
 		UT_FATAL("!create");
 
@@ -185,9 +183,9 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		test_reopen(argv[1]);
 
-		test_open_in_different_process(argv[1], 0);
+		test_open_in_different_process(argv, 0);
 		for (int i = 1; i < 100000; i *= 2)
-			test_open_in_different_process(argv[1], i);
+			test_open_in_different_process(argv, i);
 	} else if (argc == 3) {
 		PMEMlogpool *log;
 		/* 2nd arg used by windows for 2 process test */
