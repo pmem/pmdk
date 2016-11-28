@@ -80,6 +80,16 @@ NON_PMEM_FS_DIR=/tmp
 #
 
 #
+# NODE_DEVICE_DAX_PATH variable for each remote node which
+# can be used to specify path to device dax on remote node.
+#
+# There can be only one device dax specified for each node.
+#
+#NODE_DEVICE_DAX_PATH[0]=/dev/dax0.0
+#NODE_DEVICE_DAX_PATH[1]=/dev/dax0.0
+#NODE_DEVICE_DAX_PATH[2]=/dev/dax0.0
+
+#
 # NODE_ENV variable for setting environment variables on specified nodes
 #
 #NODE_ENV[0]="VAR=1"

@@ -53,7 +53,8 @@ REMOTE_TOOLS = \
 	ctrld\
 	fip\
 	pmemobjcli\
-	pmemspoil
+	pmemspoil\
+	pmemdetect
 
 all     : TARGET = all
 clean   : TARGET = clean
