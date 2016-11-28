@@ -37,52 +37,6 @@
 
 #include "unittest.h"
 
-#ifdef _WIN32
-#include <tchar.h>
-#include <Strsafe.h>
-/*
- * So this is not like really a fork at all but overloading for testing using
- * CreateProcess works just fine.
- */
-int
-test_process(const char *path, int sleep)
-{
-	STARTUPINFO statusInfo;
-	PROCESS_INFORMATION procInfo;
-	TCHAR cmd[MAX_PATH] = TEXT("..\\..\\x64\\debug\\blk_pool_lock.exe ");
-	TCHAR parm[MAX_PATH] = TEXT("");
-
-	/* build the cmd to start a 2nd test process */
-	int nChars = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
-	MultiByteToWideChar(CP_ACP, 0, path, -1, parm, nChars);
-	_tcscat(cmd, parm);
-	_tcscat(cmd, L" X");
-
-	ZeroMemory(&statusInfo, sizeof(statusInfo));
-	statusInfo.cb = sizeof(statusInfo);
-	ZeroMemory(&procInfo, sizeof(procInfo));
-
-	/* start the 2nd test process */
-	if (!CreateProcess(NULL,
-			cmd,
-			NULL,
-			NULL,
-			FALSE,
-			0,
-			NULL,
-			NULL,
-			&statusInfo,
-			&procInfo)) {
-		return 0;
-	}
-
-	WaitForSingleObject(procInfo.hProcess, INFINITE);
-	CloseHandle(procInfo.hProcess);
-	CloseHandle(procInfo.hThread);
-	return 1;
-}
-#endif
-
 static void
 test_reopen(const char *path)
 {
@@ -111,7 +65,7 @@ test_reopen(const char *path)
 
 #ifndef _WIN32
 static void
-test_open_in_different_process(const char *path, int sleep)
+test_open_in_different_process(char **argv, int argc, int sleep)
 {
 	pid_t pid = fork();
 	PMEMblkpool *blk;
@@ -123,10 +77,10 @@ test_open_in_different_process(const char *path, int sleep)
 		/* child */
 		if (sleep)
 			usleep(sleep);
-		while (access(path, R_OK))
+		while (access(argv[1], R_OK))
 			usleep(100 * 1000);
 
-		blk = pmemblk_open(path, 4096);
+		blk = pmemblk_open(argv[1], 4096);
 		if (blk)
 			UT_FATAL("pmemblk_open after fork should not succeed");
 
@@ -137,7 +91,8 @@ test_open_in_different_process(const char *path, int sleep)
 		exit(0);
 	}
 
-	blk = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL, S_IWUSR | S_IRUSR);
+	blk = pmemblk_create(argv[1], 4096, PMEMBLK_MIN_POOL,
+		S_IWUSR | S_IRUSR);
 	if (!blk)
 		UT_FATAL("!create");
 
@@ -151,24 +106,31 @@ test_open_in_different_process(const char *path, int sleep)
 
 	pmemblk_close(blk);
 
-	UNLINK(path);
+	UNLINK(argv[1]);
 }
 #else
 static void
-test_open_in_different_process(const char *path, int sleep)
+test_open_in_different_process(char **argv, int argc, int sleep)
 {
 	PMEMblkpool *blk;
+	char *third_arg = "X";
+	int new_size;
 
 	if (sleep > 0)
 		return;
 
 	/* before starting the 2nd process, create a pool */
-	blk = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL, S_IWUSR | S_IRUSR);
+	blk = pmemblk_create(argv[1], 4096, PMEMBLK_MIN_POOL,
+		S_IWUSR | S_IRUSR);
 	if (!blk)
 		UT_FATAL("!create");
 
-	if (!test_process(path, sleep))
-		UT_FATAL("CreateProcess failed error: %d", GetLastError());
+	char **cmd = ut_append_to_array(argc, argv, third_arg, &new_size);
+	uintptr_t result = ut_new_process(new_size, cmd);
+
+	free(cmd);
+	if (result == -1)
+		UT_FATAL("Create new process failed error: %d", GetLastError());
 
 	pmemblk_close(blk);
 }
@@ -184,19 +146,19 @@ main(int argc, char *argv[])
 
 	if (argc == 2) {
 		test_reopen(argv[1]);
-		test_open_in_different_process(argv[1], 0);
+		test_open_in_different_process(argv, argc, 0);
 		for (int i = 1; i < 100000; i *= 2)
-			test_open_in_different_process(argv[1], i);
+			test_open_in_different_process(argv, argc, i);
 	} else if (argc == 3) {
 		PMEMblkpool *blk;
 		/* 2nd arg used by windows for 2 process test */
 		blk = pmemblk_open(argv[1], 4096);
 		if (blk)
-			UT_FATAL("pmemblk_open after CreateProcess should "
+			UT_FATAL("pmemblk_open after create process should "
 				"not succeed");
 
 		if (errno != EWOULDBLOCK)
-			UT_FATAL("!pmemblk_open after CreateProcess failed "
+			UT_FATAL("!pmemblk_open after create process failed "
 				"but for unexpected reason");
 	}
 

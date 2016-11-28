@@ -600,6 +600,14 @@ int ut_pthread_join(const char *file, int line, const char *func,
     ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
+ * processes...
+ */
+intptr_t ut_new_process(int argc, const char *argv[]);
+
+char ** ut_append_to_array(int size, const char *array[],
+	char *elem, int *new_size);
+
+/*
  * mocks...
  *
  * NOTE: On Linux, function mocking is implemented using wrapper functions.

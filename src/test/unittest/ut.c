@@ -117,6 +117,20 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 				strcpy_s(buff, bufflen, UNMAPPED_STR);
 	}
 }
+
+/*
+ * ut_new_process -- creates and executes new synchronous process
+ */
+intptr_t
+ut_new_process(int argc, const char *argv[])
+{
+	int new_size;
+	char **cmd = ut_append_to_array(argc, argv, NULL, &new_size);
+	intptr_t result = _spawnv(_P_WAIT, cmd[0], cmd);
+
+	return result;
+}
+
 #endif
 
 #define MAXLOGNAME 100		/* maximum expected .log file name length */
@@ -592,4 +606,26 @@ ut_checksum(uint8_t *addr, size_t len)
 	}
 
 	return (uint16_t)(sum2 << 8) | sum1;
+}
+
+/*
+ * ut_append_array -- append new element to array
+ * returns increased array and new size by argument
+ */
+char **
+ut_append_to_array(int size, const char *array[],
+	char *elem, int *new_size)
+{
+	int i = 0;
+	char **arg = malloc(sizeof(char *) * ((size_t)size + 1));
+
+	for (i = 0; i < size; ++i) {
+		arg[i] = malloc(strlen(*array) + 1);
+		strcpy(arg[i], *array);
+		++array;
+	}
+	arg[i] = elem;
+	*new_size = size + 1;
+
+	return arg;
 }
