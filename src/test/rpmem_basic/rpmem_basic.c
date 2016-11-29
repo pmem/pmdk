@@ -93,17 +93,27 @@ init_pool(struct pool_entry *pool, const char *pool_path,
 	int ret = util_parse_size(pool_size, &pool->size);
 	UT_ASSERTeq(ret, 0);
 
+	int flags = PMEM_FILE_CREATE;
+	if (pool->size)
+		flags |= PMEM_FILE_EXCL;
+
+
 	if (strcmp(pool_path, "mem") == 0) {
 		pool->pool = PAGEALIGNMALLOC(pool->size);
 
 		pool->is_mem = 1;
 	} else {
 		pool->pool = pmem_map_file(pool_path, pool->size,
-			PMEM_FILE_CREATE | PMEM_FILE_EXCL,
-			0666, &pool->size, NULL);
+			flags, 0666, &pool->size, NULL);
 		UT_ASSERTne(pool->pool, NULL);
+
+		/* workaround for dev dax */
+		ret = madvise(pool->pool, pool->size, MADV_DONTFORK);
+		UT_ASSERTeq(ret, 0);
+
 		pool->is_mem = 0;
 		unlink(pool_path);
+		pool->size -= POOL_HDR_SIZE;
 	}
 }
 
@@ -116,7 +126,8 @@ free_pool(struct pool_entry *pool)
 	if (pool->is_mem)
 		FREE(pool->pool);
 	else
-		UT_ASSERTeq(pmem_unmap(pool->pool, pool->size), 0);
+		UT_ASSERTeq(pmem_unmap(pool->pool,
+			pool->size + POOL_HDR_SIZE), 0);
 
 	pool->pool = NULL;
 	pool->rpp = NULL;
@@ -294,17 +305,19 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 	int id = atoi(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
-
-	srand(atoi(argv[1]));
+	int seed = atoi(argv[1]);
 
 	int nthreads = atoi(argv[2]);
 	int nops = atoi(argv[3]);
 
-	uint8_t *buff = (uint8_t *)pool->pool;
 	size_t buff_size = pool->size;
 
-	for (size_t i = 0; i < buff_size; i++)
-		buff[i] = rand();
+	if (seed) {
+		srand(seed);
+		uint8_t *buff = (uint8_t *)pool->pool;
+		for (size_t i = 0; i < buff_size; i++)
+			buff[i] = rand();
+	}
 
 	pthread_t *threads = MALLOC(nthreads * sizeof(*threads));
 	struct thread_arg *args = MALLOC(nthreads * sizeof(*args));
@@ -408,6 +421,7 @@ check_pool(const struct test_case *tc, int argc, char *argv[])
 
 	size_t size;
 	ret = util_parse_size(argv[2], &size);
+	size -= POOL_HDR_SIZE;
 
 	struct pool_set *set;
 	ret = util_poolset_create_set(&set, pool_set, 0, 0);
