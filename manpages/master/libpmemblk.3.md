@@ -226,9 +226,9 @@ or the Metric Interchange Format. Standards accept SI units with obligatory
 B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
 - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
-The path of a part can point to a device DAX and in such case the size
+The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using device DAX
+will be automatically resolved at pool creation time. When using Device DAX
 there's also one additional restriction, that a pool set can consist only of a
 single part.
 
@@ -371,7 +371,7 @@ inconsistencies found will cause **pmemblk_check**() to return 0, in which case 
 debug version of **libpmemblk** will provide additional details on inconsistencies when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
 ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_check**() will compare it to the block size of the pool and return 0 when they don't
 match. **pmemblk_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors. **pmemblk_check**() opens the given
-*path* read-only so it never makes any changes to the file. This function is not supported on device dax.
+*path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #

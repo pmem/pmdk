@@ -555,9 +555,9 @@ Lines starting with "#" character are ignored. A replica can be local or remote.
 string only and it has to be followed by at least one line defining a part of the local replica. The format of such line is the same as the format of the line
 defining a part of the PMEMOBJ pool as described above.
 
-The path of a part can point to a device DAX and in such case the size
+The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using device DAX
+will be automatically resolved at pool creation time. When using Device DAX
 there's also one additional restriction, that a pool set can consist only of a
 single part.
 
@@ -2105,7 +2105,7 @@ The **pmemobj_check**() function performs a consistency check of the file indica
 inconsistencies found will cause **pmemobj_check**() to return 0, in which case the use of the file with **libpmemobj** will result in undefined behavior. The
 debug version of **libpmemobj** will provide additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
 ERROR HANDLING** section below. **pmemobj_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
-**pmemobj_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on device dax.
+**pmemobj_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
