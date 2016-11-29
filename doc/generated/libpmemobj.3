@@ -666,10 +666,10 @@ line defining a part of the local replica.
 The format of such line is the same as the format of the line defining a
 part of the PMEMOBJ pool as described above.
 .PP
-The path of a part can point to a device DAX and in such case the size
+The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of
 the device will be automatically resolved at pool creation time.
-When using device DAX there\[aq]s also one additional restriction, that
+When using Device DAX there\[aq]s also one additional restriction, that
 a pool set can consist only of a single part.
 .PP
 Device DAX is the device\-centric analogue of Filesystem DAX.
@@ -3335,7 +3335,7 @@ described in the \f[B]DEBUGGING AND ERROR HANDLING\f[] section below.
 cannot perform the consistency check due to other errors.
 \f[B]pmemobj_check\f[]() opens the given \f[I]path\f[] read\-only so it
 never makes any changes to the file.
-This function is not supported on device dax.
+This function is not supported on Device DAX.
 .SH DEBUGGING AND ERROR HANDLING
 .PP
 Two versions of \f[B]libpmemobj\f[] are typically available on a
