@@ -56,9 +56,7 @@ create_holey_file 1G $DIR\testfile1
 # 100 threads, each doing 100 random I/Os
 expect_normal_exit $Env:EXE_DIR\blk_rw_mt$Env:EXESUFFIX 4096 $DIR\testfile1 456 100 100
 
-# XXX:  check_pool for windows is not implemented uncomment
-# the below line when it's available.
-# check_pool $DIR\testfile1
+check_pool $DIR\testfile1
 
 check
 
