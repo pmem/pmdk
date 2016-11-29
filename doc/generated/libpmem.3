@@ -283,10 +283,10 @@ In such case, \f[I]len\f[] should be zero.
 The entire file is mapped to memory; its length is used as the length of
 the mapping and returned via \f[I]mapped_lenp\f[].
 .PP
-The path of a file can point to a device dax and in such case only
+The path of a file can point to a Device DAX and in such case only
 \f[B]PMEM_FILE_CREATE\f[] and \f[B]PMEM_FILE_SPARSE\f[] flags are valid,
 but they both effectively do nothing.
-For device dax mappings, the \f[I]len\f[] argument must be, regardless
+For Device DAX mappings, the \f[I]len\f[] argument must be, regardless
 of the flags, equal to either 0 or the exact size of the device.
 .PP
 To delete mappings created with \f[B]pmem_map_file\f[](), use
