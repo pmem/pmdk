@@ -63,6 +63,11 @@ expect_normal_exit $PMEMPOOL create log $POOLSET
 $FUTURE_TIME+=60*60
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.crtime=$FUTURE_TIME" >> $LOG
 
+[DateTime]$past=Get-Date
+$past=$past.AddHours(-1)
+$file=Get-Item $POOL_P1
+$file.LastWriteTime=$past
+
 expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL check -vrya $POOLSET >> $LOG
