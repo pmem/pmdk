@@ -50,79 +50,70 @@
 #define CALC_SIZE_IDX(_unit_size, _size)\
 ((uint32_t)(((_size - 1) / _unit_size) + 1))
 
-enum bucket_type {
-	BUCKET_UNKNOWN,
-	BUCKET_HUGE,
-	BUCKET_RUN,
+enum allocation_class_type {
+	CLASS_UNKNOWN,
+	CLASS_HUGE,
+	CLASS_RUN,
 
-	MAX_BUCKET_TYPE
+	MAX_ALLOCATION_CLASS_TYPES
+};
+
+struct allocation_class {
+	uint8_t id;
+
+	size_t unit_size;
+	size_t overhead;
+	enum allocation_class_type type;
+
+	union {
+		struct {
+		} huge;
+		struct {
+			/*
+			 * Last value of a bitmap representing completely free run from this
+			 * bucket.
+			 */
+			uint64_t bitmap_lastval;
+
+			/*
+			 * Number of 8 byte values this run bitmap is composed of.
+			 */
+			unsigned bitmap_nval;
+
+			/*
+			 * Number of allocations that can be performed from a single run.
+			 */
+			unsigned bitmap_nallocs;
+
+			/*
+			 * Maximum multiplication factor of unit_size for memory blocks.
+			 */
+			unsigned unit_max;
+
+			/*
+			 * Maximum multiplication factor of unit_size for allocations.
+			 * If a memory block is larger than the allowed size it is split and the
+			 * remainder is returned back to the bucket.
+			 */
+			unsigned unit_max_alloc;
+		} run;
+	};
 };
 
 struct bucket {
-	enum bucket_type type;
-
-	/*
-	 * Identifier of this bucket in the heap's bucket map.
-	 */
-	uint8_t id;
-
-	/*
-	 * Size of a single memory block in bytes.
-	 */
-	size_t unit_size;
-
-	uint32_t (*calc_units)(struct bucket *b, size_t size);
-
 	pthread_mutex_t lock;
+
+	struct allocation_class *aclass;
 
 	struct block_container *container;
 	struct block_container_ops *c_ops;
-};
-
-struct bucket_huge {
-	struct bucket super;
-};
-
-struct bucket_run {
-	struct bucket super;
-
-	/*
-	 * Last value of a bitmap representing completely free run from this
-	 * bucket.
-	 */
-	uint64_t bitmap_lastval;
-
-	/*
-	 * Number of 8 byte values this run bitmap is composed of.
-	 */
-	unsigned bitmap_nval;
-
-	/*
-	 * Number of allocations that can be performed from a single run.
-	 */
-	unsigned bitmap_nallocs;
-
-	/*
-	 * Maximum multiplication factor of unit_size for memory blocks.
-	 */
-	unsigned unit_max;
-
-	/*
-	 * Maximum multiplication factor of unit_size for allocations.
-	 * If a memory block is larger than the allowed size it is split and the
-	 * remainder is returned back to the bucket.
-	 */
-	unsigned unit_max_alloc;
 
 	struct memory_block active_memory_block;
 	int is_active;
 };
 
-struct bucket_huge *bucket_huge_new(uint8_t id, struct block_container *c,
-	size_t unit_size);
-
-struct bucket_run *bucket_run_new(uint8_t id, struct block_container *c,
-	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc);
+struct bucket *bucket_new(struct block_container *c,
+	struct allocation_class *aclass);
 
 int bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
 		struct memory_block m);

@@ -52,8 +52,6 @@
 
 #define MAX_RUN_LOCKS 1024
 
-#define USE_PER_THREAD_BUCKETS
-
 #define NCACHES_PER_CPU	2
 
 /*
@@ -73,9 +71,9 @@
 #define MAX_RUN_WASTED_BYTES 1024
 
 /*
- * Converts size (in bytes) to bucket index.
+ * Converts size (in bytes) to class index.
  */
-#define SIZE_TO_BID(_h, _s) ((_h)->bucket_map[SIZE_TO_ALLOC_BLOCKS(_s)])
+#define SIZE_TO_CLASS_ID(_h, _s) ((_h)->class_map[SIZE_TO_ALLOC_BLOCKS(_s)])
 
 /*
  * Allocation categories are used for allocation classes generation. Each one
@@ -112,15 +110,18 @@ struct active_run {
 };
 
 struct bucket_cache {
-	struct bucket *buckets[MAX_BUCKETS]; /* no default bucket */
+	/* one cache bucket per allocation class */
+	struct bucket *buckets[MAX_ALLOCATION_CLASSES]; /* no default bucket */
 };
 
 struct heap_rt {
-	struct bucket *default_bucket;
-	struct bucket *buckets[MAX_BUCKETS];
-	struct recycler *recyclers[MAX_BUCKETS];
+	uint8_t *class_map;
+	struct allocation_class *allocation_classes[MAX_ALLOCATION_CLASSES];
+	struct allocation_class *default_allocation_class;
 
-	uint8_t *bucket_map;
+	struct bucket *default_bucket;
+	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
+
 	pthread_mutex_t run_locks[MAX_RUN_LOCKS];
 	unsigned max_zone;
 	unsigned zones_exhausted;
@@ -128,11 +129,10 @@ struct heap_rt {
 
 	struct bucket_cache *caches;
 	unsigned ncaches;
-	uint32_t last_drained[MAX_BUCKETS];
 };
 
-static __thread unsigned Cache_idx = UINT32_MAX;
-static unsigned Next_cache_idx;
+static __thread unsigned Cache_id = UINT32_MAX;
+static unsigned Next_cache_id;
 
 /*
  * bucket_group_init -- (internal) creates new bucket group instance
@@ -140,7 +140,7 @@ static unsigned Next_cache_idx;
 static void
 bucket_group_init(struct bucket **buckets)
 {
-	for (int i = 0; i < MAX_BUCKETS; ++i)
+	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
 		buckets[i] = NULL;
 }
 
@@ -150,7 +150,7 @@ bucket_group_init(struct bucket **buckets)
 static void
 bucket_group_destroy(struct bucket **buckets)
 {
-	for (int i = 0; i < MAX_BUCKETS; ++i)
+	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
 		if (buckets[i] != NULL)
 			bucket_delete(buckets[i]);
 }
@@ -262,12 +262,12 @@ static void
 heap_run_init(struct palloc_heap *heap, struct bucket *b,
 		struct chunk_header *hdr, struct chunk_run *run)
 {
-	ASSERTeq(b->type, BUCKET_RUN);
-	struct bucket_run *r = (struct bucket_run *)b;
+	struct allocation_class *c = b->aclass;
+	ASSERTeq(c->type, CLASS_RUN);
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
 	VALGRIND_ADD_TO_TX(run, sizeof(*run));
-	run->block_size = b->unit_size;
+	run->block_size = c->unit_size;
 	pmemops_persist(&heap->p_ops, &run->block_size,
 			sizeof(run->block_size));
 
@@ -276,11 +276,11 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	/* set all the bits */
 	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
 
-	unsigned nval = r->bitmap_nval;
+	unsigned nval = c->run.bitmap_nval;
 	ASSERT(nval > 0);
 	/* clear only the bits available for allocations from this bucket */
 	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
-	run->bitmap[nval - 1] = r->bitmap_lastval;
+	run->bitmap[nval - 1] = c->run.bitmap_lastval;
 
 	run->incarnation_claim = heap->run_id;
 	VALGRIND_SET_CLEAN(&run->incarnation_claim,
@@ -304,13 +304,13 @@ static void
 heap_run_insert(struct palloc_heap *heap, struct bucket *b, uint32_t chunk_id,
 		uint32_t zone_id, uint32_t size_idx, uint16_t block_off)
 {
-	ASSERTeq(b->type, BUCKET_RUN);
-	struct bucket_run *r = (struct bucket_run *)b;
+	struct allocation_class *c = b->aclass;
+	ASSERTeq(c->type, CLASS_RUN);
 
 	ASSERT(size_idx <= BITS_PER_VALUE);
-	ASSERT(block_off + size_idx <= r->bitmap_nallocs);
+	ASSERT(block_off + size_idx <= c->run.bitmap_nallocs);
 
-	uint32_t unit_max = r->unit_max;
+	uint32_t unit_max = c->run.unit_max;
 	struct memory_block m = {chunk_id, zone_id,
 		unit_max - (block_off % unit_max), block_off};
 
@@ -343,8 +343,8 @@ static uint32_t
 heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 	struct chunk_run *run, uint32_t chunk_id, uint32_t zone_id)
 {
-	ASSERTeq(b->type, BUCKET_RUN);
-	struct bucket_run *r = (struct bucket_run *)b;
+	struct allocation_class *c = b->aclass;
+	ASSERTeq(c->type, CLASS_RUN);
 
 	ASSERT(RUN_NALLOCS(run->block_size) <= UINT16_MAX);
 
@@ -354,7 +354,7 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
 
-	for (unsigned i = 0; i < r->bitmap_nval; ++i) {
+	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
 		uint64_t v = run->bitmap[i];
 		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
@@ -432,70 +432,130 @@ heap_reuse_run(struct palloc_heap *heap, struct bucket *b,
 
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
 	ASSERTeq(hdr->size_idx, 1);
-	ASSERTeq(b->unit_size, run->block_size);
+	ASSERTeq(b->aclass->unit_size, run->block_size);
 
 	return heap_process_run_metadata(heap, b, run, chunk_id, zone_id);
 }
 
 /*
- * heap_find_first_free_bucket_slot -- (internal) searches for the first
- *	available bucket slot
+ * heap_find_first_free_allocation_class_slot -- (internal) searches for the
+ *	first available allocation class slot
  *
- * This function must be thread-safe because buckets can be created at runtime.
+ * This function must be thread-safe because allocation classes can be created
+ * at runtime.
  */
-static uint8_t
-heap_find_first_free_bucket_slot(struct heap_rt *h)
+static int
+heap_find_first_free_allocation_class_slot(struct heap_rt *h, uint8_t *slot)
 {
 	int n;
-	for (n = 0; n < MAX_BUCKETS; ++n)
-		if (util_bool_compare_and_swap64(&h->buckets[n],
-				NULL, BUCKET_RESERVED))
-			return (uint8_t)n;
+	for (n = 0; n < MAX_ALLOCATION_CLASSES; ++n) {
+		if (util_bool_compare_and_swap64(&h->allocation_classes[n],
+				NULL, BUCKET_RESERVED)) {
+			*slot = (uint8_t)n;
+			return 0;
+		}
+	}
 
-	return MAX_BUCKETS;
+	return -1;
+}
+
+static struct allocation_class *
+heap_create_allocation_class(struct heap_rt *h, enum allocation_class_type type,
+	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
+{
+	struct allocation_class *c = Malloc(sizeof(*c));
+	if (c == NULL)
+		return NULL;
+
+	c->unit_size = unit_size;
+	c->overhead = sizeof(struct legacy_object_header);
+	c->type = type;
+
+	switch (type) {
+		case CLASS_HUGE:
+			break;
+		case CLASS_RUN:
+			c->run.unit_max = unit_max;
+			c->run.unit_max_alloc = unit_max_alloc;
+			/*
+			 * Here the bitmap definition is calculated based on the size of the
+			 * available memory and the size of a memory block - the result of
+			 * dividing those two numbers is the number of possible allocations from
+			 * that block, and in other words, the amount of bits in the bitmap.
+			 */
+			ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
+			c->run.bitmap_nallocs = (unsigned)(RUN_NALLOCS(unit_size));
+
+			/*
+			 * The two other numbers that define our bitmap is the size of the
+			 * array that represents the bitmap and the last value of that array
+			 * with the bits that exceed number of blocks marked as set (1).
+			 */
+			ASSERT(c->run.bitmap_nallocs <= RUN_BITMAP_SIZE);
+			unsigned unused_bits = RUN_BITMAP_SIZE - c->run.bitmap_nallocs;
+
+			unsigned unused_values = unused_bits / BITS_PER_VALUE;
+
+			ASSERT(MAX_BITMAP_VALUES >= unused_values);
+			c->run.bitmap_nval = MAX_BITMAP_VALUES - unused_values;
+
+			ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
+			unused_bits -= unused_values * BITS_PER_VALUE;
+
+			c->run.bitmap_lastval = unused_bits ?
+				(((1ULL << unused_bits) - 1ULL) <<
+					(BITS_PER_VALUE - unused_bits)) : 0;
+			break;
+		default:
+			ASSERT(0);
+	}
+
+	if (type == CLASS_HUGE) {
+		c->id = MAX_ALLOCATION_CLASSES;
+		h->default_allocation_class = c;
+	} else {
+		uint8_t slot;
+		if (heap_find_first_free_allocation_class_slot(h, &slot) != 0) {
+			Free(c);
+			return NULL;
+		}
+		c->id = slot;
+		h->allocation_classes[slot] = c;
+	}
+
+	return c;
+}
+
+static void
+heap_delete_allocation_class(struct heap_rt *h, struct allocation_class *c)
+{
+	h->allocation_classes[c->id] = NULL;
+	Free(c);
 }
 
 /*
  * heap_create_alloc_class_buckets -- (internal) allocates all cache bucket
  * instances of the specified type
  */
-static uint8_t
-heap_create_alloc_class_buckets(struct heap_rt *h,
-	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
+static int
+heap_create_alloc_class_buckets(struct heap_rt *h, struct allocation_class *c)
 {
-	uint8_t slot = heap_find_first_free_bucket_slot(h);
-	if (slot == MAX_BUCKETS)
-		goto out;
-
-	h->buckets[slot] = &(bucket_run_new(slot, container_new_seglists(),
-			unit_size, unit_max, unit_max_alloc)->super);
-
-	if (h->buckets[slot] == NULL)
-		goto error_bucket_new;
-
 	int i;
 	for (i = 0; i < (int)h->ncaches; ++i) {
-		h->caches[i].buckets[slot] =
-			&(bucket_run_new(slot, container_new_seglists(),
-				unit_size, unit_max, unit_max_alloc)->super);
-		if (h->caches[i].buckets[slot] == NULL)
+		h->caches[i].buckets[c->id] = bucket_new(
+			container_new_seglists(), c);
+		if (h->caches[i].buckets[c->id] == NULL)
 			goto error_cache_bucket_new;
 	}
 
-out:
-	return slot;
+	return 0;
 
 error_cache_bucket_new:
-	bucket_delete(h->buckets[slot]);
-
 	for (i -= 1; i >= 0; --i) {
-		bucket_delete(h->caches[i].buckets[slot]);
+		bucket_delete(h->caches[i].buckets[c->id]);
 	}
 
-error_bucket_new:
-	h->buckets[slot] = NULL; /* clear the reservation */
-
-	return MAX_BUCKETS;
+	return -1;
 }
 
 /*
@@ -503,11 +563,13 @@ error_bucket_new:
  *	the memory bucket index that points to buckets that are responsible
  *	for allocations with the given unit size.
  */
-static uint8_t
-heap_get_create_bucket_idx_by_unit_size(struct heap_rt *h, uint64_t unit_size)
+static struct allocation_class *
+heap_get_create_alloc_class_idx_by_unit_size(struct heap_rt *h,
+	uint64_t unit_size)
 {
-	uint8_t bucket_idx = SIZE_TO_BID(h, unit_size);
-	if (h->buckets[bucket_idx]->unit_size != unit_size) {
+	uint8_t class_id = SIZE_TO_CLASS_ID(h, unit_size);
+	struct allocation_class *c = h->allocation_classes[class_id];
+	if (h->allocation_classes[class_id]->unit_size != unit_size) {
 		/*
 		 * This code path is taken only if the allocation class
 		 * generation algorithm have changed or the user created a
@@ -515,12 +577,15 @@ heap_get_create_bucket_idx_by_unit_size(struct heap_rt *h, uint64_t unit_size)
 		 * the pool. Normally all the buckets are created at
 		 * initialization time.
 		 */
-		bucket_idx = heap_create_alloc_class_buckets(h, unit_size,
-			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+		c = heap_create_allocation_class(h, CLASS_RUN, unit_size,
+				RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 
-		if (bucket_idx == MAX_BUCKETS) {
-			ERR("Failed to allocate new bucket class");
-			return MAX_BUCKETS;
+		if (c == NULL)
+			return NULL;
+
+		if (heap_create_alloc_class_buckets(h, c) != 0) {
+			heap_delete_allocation_class(h, c);
+			return NULL;
 		}
 
 		/*
@@ -532,55 +597,44 @@ heap_get_create_bucket_idx_by_unit_size(struct heap_rt *h, uint64_t unit_size)
 		 * will get freed.
 		 */
 		size_t supported_block = unit_size / ALLOC_BLOCK_SIZE;
-		h->bucket_map[supported_block] = bucket_idx;
+		h->class_map[supported_block] = c->id;
 	}
 
-	ASSERTne(bucket_idx, MAX_BUCKETS);
-	return bucket_idx;
+	return c;
 }
 
 /*
  * heap_get_cache_bucket -- (internal) returns the bucket for given id from
  *	semi-per-thread cache
  */
-static struct bucket *
-heap_get_cache_bucket(struct heap_rt *heap, int bucket_id)
+struct bucket *
+heap_get_bucket_by_class(struct palloc_heap *heap, struct allocation_class *c)
 {
+	if (c == heap->rt->default_allocation_class)
+		return heap->rt->default_bucket;
+
 	/*
 	 * Choose cache index only once in a threads lifetime.
 	 * Sadly there are no thread exclusivity guarantees.
 	 */
-	while (Cache_idx == UINT32_MAX) {
-		Cache_idx = __sync_fetch_and_add(&Next_cache_idx, 1);
+	while (Cache_id == UINT32_MAX) {
+		Cache_id = __sync_fetch_and_add(&Next_cache_id, 1);
 	}
 
-	return heap->caches[Cache_idx % heap->ncaches].buckets[bucket_id];
-}
-
-/*
- * heap_get_bucket_by_idx -- (internal) returns bucket with the given index
- */
-static struct bucket *
-heap_get_bucket_by_idx(struct heap_rt *heap, uint8_t idx)
-{
-#ifdef USE_PER_THREAD_BUCKETS
-	return heap_get_cache_bucket(heap, idx);
-#else
-	return heap->buckets[idx];
-#endif
+	return heap->rt->caches[Cache_id % heap->rt->ncaches].buckets[c->id];
 }
 
 /*
  * heap_get_best_bucket -- returns the bucket that best fits the requested size
  */
-struct bucket *
-heap_get_best_bucket(struct palloc_heap *heap, size_t size)
+struct allocation_class *
+heap_get_best_class(struct palloc_heap *heap, size_t size)
 {
 	struct heap_rt *rt = heap->rt;
 	if (size <= rt->last_run_max_size) {
-		return heap_get_bucket_by_idx(rt, SIZE_TO_BID(rt, size));
+		return rt->allocation_classes[SIZE_TO_CLASS_ID(rt, size)];
 	} else {
-		return rt->default_bucket;
+		return rt->default_allocation_class;
 	}
 }
 
@@ -599,18 +653,22 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 	pthread_mutex_t *lock = MEMBLOCK_OPS(RUN, m)->get_lock(m, heap);
 	util_mutex_lock(lock);
 
-	uint8_t bid = heap_get_create_bucket_idx_by_unit_size(heap->rt,
+	struct allocation_class *c =
+		heap_get_create_alloc_class_idx_by_unit_size(heap->rt,
 		run->block_size);
-	struct bucket_run *r =
-		(struct bucket_run *)heap_get_bucket_by_idx(heap->rt, bid);
+	if (c == NULL)
+		return -1;
+
+	ASSERTeq(c->type, CLASS_RUN);
 
 	unsigned i;
-	unsigned nval = r->bitmap_nval;
+	unsigned nval = c->run.bitmap_nval;
 	for (i = 0; nval > 0 && i < nval - 1; ++i)
 		if (run->bitmap[i] != 0)
 			break;
 
-	int empty = (i == (nval - 1)) && (run->bitmap[i] == r->bitmap_lastval);
+	int empty = (i == (nval - 1)) &&
+		(run->bitmap[i] == c->run.bitmap_lastval);
 	if (empty) {
 		struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 		struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -640,7 +698,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 
 		*m = fm;
 	} else {
-		recycler_put(heap->rt->recyclers[bid], m);
+		recycler_put(heap->rt->recyclers[c->id], m);
 	}
 
 	util_mutex_unlock(lock);
@@ -722,7 +780,7 @@ static int
 heap_reclaim_garbage(struct palloc_heap *heap)
 {
 	struct memory_block m;
-	for (size_t i = 0; i < MAX_BUCKETS; ++i) {
+	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
 			MEMBLOCK_OPS(RUN, &m)->claim_revoke(&m, heap);
 		}
@@ -753,24 +811,23 @@ static int
 heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	uint32_t units)
 {
-	if (b->type == BUCKET_HUGE) {
+	if (b->aclass->type == CLASS_HUGE) {
 		return (heap_reclaim_garbage(heap) == 0 ||
 			heap_populate_buckets(heap) == 0) ? 0 : ENOMEM;
 	}
 
-	struct bucket_run *r = (struct bucket_run *)b;
-	if (r->is_active) {
+	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
-		MEMBLOCK_OPS(RUN, &r->active_memory_block)
-			->claim_revoke(&r->active_memory_block, heap);
+		MEMBLOCK_OPS(RUN, &b->active_memory_block)
+			->claim_revoke(&b->active_memory_block, heap);
 
-		r->is_active = 0;
+		b->is_active = 0;
 	}
 
 	struct heap_rt *h = heap->rt;
 	struct memory_block m = {0, 0, 1, 0};
 
-	if (recycler_get(h->recyclers[b->id], &m) == 0) {
+	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
 		pthread_mutex_t *lock = MEMBLOCK_OPS(RUN, &m)
 			->get_lock(&m, heap);
 
@@ -778,8 +835,8 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
 		util_mutex_unlock(lock);
 
-		r->active_memory_block = m;
-		r->is_active = 1;
+		b->active_memory_block = m;
+		b->is_active = 1;
 
 		return 0;
 	}
@@ -791,8 +848,8 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		ASSERTeq(m.block_off, 0);
 
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
-		r->active_memory_block = m;
-		r->is_active = 1;
+		b->active_memory_block = m;
+		b->is_active = 1;
 
 		util_mutex_unlock(&def_bucket->lock);
 
@@ -804,7 +861,7 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	 * Try the recycler again, the previous call to the bestfit_block for
 	 * huge chunks might have reclaimed some unused runs.
 	 */
-	if (recycler_get(h->recyclers[b->id], &m) == 0) {
+	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
 
 		/*
@@ -822,8 +879,8 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 			bucket_insert_block(b, heap, tmp);
 		}
 
-		r->active_memory_block = m;
-		r->is_active = 1;
+		b->active_memory_block = m;
+		b->is_active = 1;
 
 		return 0;
 	}
@@ -836,21 +893,21 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
  * biggest bucket allocation class for which unit_size is evenly divisible by n.
  * If no such class exists, create one.
  */
-static uint8_t
+static struct allocation_class *
 heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
 {
 	struct heap_rt *h = heap->rt;
-	COMPILE_ERROR_ON(MAX_BUCKETS > UINT8_MAX);
+	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 
-	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
-		if (h->buckets[i] == NULL)
+	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
+		if (h->allocation_classes[i] == NULL)
 			continue;
 
-		struct bucket_run *run = (struct bucket_run *)h->buckets[i];
+	 	struct allocation_class *c = h->allocation_classes[i];
 
-		if (n % run->super.unit_size == 0 &&
-			n / run->super.unit_size <= run->unit_max_alloc)
-			return (uint8_t)i;
+		if (n % c->unit_size == 0 &&
+			n / c->unit_size <= c->run.unit_max_alloc)
+			return c;
 	}
 
 	/*
@@ -867,15 +924,17 @@ heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
 	 * to be searched for possible duplicates. If a class with the
 	 * calculated unit size already exists, simply return that.
 	 */
-	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
-		if (h->buckets[i] == NULL)
+	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
+		if (h->allocation_classes[i] == NULL)
 			continue;
-		if (h->buckets[i]->unit_size == n)
-			return (uint8_t)i;
+		if (h->allocation_classes[i]->unit_size == n)
+			return h->allocation_classes[i];
 	}
 
-	return heap_create_alloc_class_buckets(h, n,
-		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+	struct allocation_class *c = heap_create_allocation_class(h,
+		CLASS_RUN, n, RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+
+	return c;
 }
 
 /*
@@ -883,39 +942,39 @@ heap_find_or_create_alloc_class(struct palloc_heap *heap, size_t n)
  * class that will provide the smallest internal fragmentation for the given
  * size.
  */
-static uint8_t
+static struct allocation_class *
 heap_find_min_frag_alloc_class(struct palloc_heap *h, size_t n)
 {
-	uint8_t best_bucket = MAX_BUCKETS;
+	struct allocation_class *best_c = NULL;
 	float best_frag = FLT_MAX;
 	/*
 	 * Start from the largest buckets in order to minimize unit size of
 	 * allocated memory blocks.
 	 */
-	for (int i = MAX_BUCKETS - 1; i >= 0; --i) {
-		if (h->rt->buckets[i] == NULL)
+	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
+		if (h->rt->allocation_classes[i] == NULL)
 			continue;
 
-		struct bucket_run *run = (struct bucket_run *)h->rt->buckets[i];
+		struct allocation_class *c = h->rt->allocation_classes[i];
 
-		size_t units = run->super.calc_units((struct bucket *)run, n);
+		size_t units = CALC_SIZE_IDX(c->unit_size, n);
 		/* can't exceed the maximum allowed run unit max */
-		if (units > run->unit_max_alloc)
+		if (units > c->run.unit_max_alloc)
 			break;
 
-		float frag = (float)(run->super.unit_size * units) / (float)n;
+		float frag = (float)(c->unit_size * units) / (float)n;
 		if (frag == 1.f)
-			return (uint8_t)i;
+			return c;
 
 		ASSERT(frag >= 1.f);
 		if (frag < best_frag) {
-			best_bucket = (uint8_t)i;
+			best_c = c;
 			best_frag = frag;
 		}
 	}
 
-	ASSERTne(best_bucket, MAX_BUCKETS);
-	return best_bucket;
+	ASSERTne(best_c, NULL);
+	return best_c;
 }
 
 /*
@@ -927,70 +986,64 @@ heap_buckets_init(struct palloc_heap *heap)
 	struct heap_rt *h = heap->rt;
 
 	h->last_run_max_size = MAX_RUN_SIZE;
-	h->bucket_map = Malloc((MAX_RUN_SIZE / ALLOC_BLOCK_SIZE) + 1);
-	if (h->bucket_map == NULL)
+	h->class_map = Malloc((MAX_RUN_SIZE / ALLOC_BLOCK_SIZE) + 1);
+	if (h->class_map == NULL)
 		goto error_bucket_map_malloc;
 
-	h->default_bucket = &(bucket_huge_new(MAX_BUCKETS,
-		container_new_ctree(), CHUNKSIZE)->super);
-	if (h->default_bucket == NULL)
-		goto error_default_bucket_new;
+	heap_create_allocation_class(h, CLASS_HUGE, CHUNKSIZE, 0, 0);
+	if (h->default_allocation_class == NULL)
+		goto error_alloc_class_create;
+
+
+	struct allocation_class *min_aclass =
+		heap_create_allocation_class(h, CLASS_RUN, MIN_RUN_SIZE,
+			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 
 	/*
-	 * To make use of every single bit available in the run the unit size
-	 * would have to be calculated using following expression:
-	 * (RUNSIZE / (MAX_BITMAP_VALUES * BITS_PER_VALUE)), but to preserve
-	 * cacheline alignment a little bit of memory at the end of the run
-	 * is left unused.
-	 */
-	size_t size = 0;
-	uint8_t slot = heap_create_alloc_class_buckets(h,
-		MIN_RUN_SIZE, RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
-	if (slot == MAX_BUCKETS)
-		goto error_bucket_create;
-
-	/*
-	 * The first couple of bucket map slots are predefined and use the
+	 * The first couple of alloc class map slots are predefined and use the
 	 * smallest bucket available.
 	 */
 	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE; ++i)
-		h->bucket_map[i] = slot;
+		h->class_map[i] = min_aclass->id;
 
 	/*
 	 * Based on the defined categories, a set of allocation classes is
 	 * created. The unit size of those classes is depended on the category
 	 * initial size and step.
 	 */
+	size_t size = 0;
 	for (int c = 1; c < MAX_ALLOC_CATEGORIES; ++c) {
 		for (size_t i = categories[c - 1].size + 1;
 			i <= categories[c].size; i += categories[c].step) {
 
 			size = i + (categories[c].step - 1);
-			if ((slot = heap_find_or_create_alloc_class(heap,
-				size * ALLOC_BLOCK_SIZE)) == MAX_BUCKETS)
-				goto error_bucket_create;
+			if (heap_find_or_create_alloc_class(heap,
+				size * ALLOC_BLOCK_SIZE) == NULL)
+				goto error_alloc_class_create;
 		}
 	}
 
 	/*
-	 * Find the largest bucket and use it's unit size as run allocation
+	 * Find the largest alloc class and use it's unit size as run allocation
 	 * threshold.
 	 */
-	for (slot = MAX_BUCKETS - 1;
-			slot > 0 && h->buckets[slot] == NULL;
-			--slot)
-		;
+	uint8_t largest_aclass_slot;
+	for (largest_aclass_slot = MAX_ALLOCATION_CLASSES - 1;
+			largest_aclass_slot > 0 &&
+			h->allocation_classes[largest_aclass_slot] == NULL;
+			--largest_aclass_slot)
+			{} /* intentional noop */
 
-	struct bucket_run *b = (struct bucket_run *)h->buckets[slot];
+	struct allocation_class *c = h->allocation_classes[largest_aclass_slot];
 
 	/*
 	 * The actual run might contain less unit blocks than the theoretical
 	 * unit max variable. This may be the case for very large unit sizes.
 	 */
-	size_t real_unit_max = b->bitmap_nallocs < b->unit_max_alloc ?
-		b->bitmap_nallocs : b->unit_max_alloc;
+	size_t real_unit_max = c->run.bitmap_nallocs < c->run.unit_max_alloc ?
+		c->run.bitmap_nallocs : c->run.unit_max_alloc;
 
-	size_t theoretical_run_max_size = b->super.unit_size * real_unit_max;
+	size_t theoretical_run_max_size = c->unit_size * real_unit_max;
 
 	h->last_run_max_size = MAX_RUN_SIZE > theoretical_run_max_size ?
 		theoretical_run_max_size : MAX_RUN_SIZE;
@@ -1001,25 +1054,38 @@ heap_buckets_init(struct palloc_heap *heap)
 	 */
 	for (size_t i = FIRST_GENERATED_CLASS_SIZE;
 		i <= h->last_run_max_size / ALLOC_BLOCK_SIZE; ++i) {
-		uint8_t bucket = heap_find_min_frag_alloc_class(heap,
-			i * ALLOC_BLOCK_SIZE);
-		h->bucket_map[i] = bucket;
+		struct allocation_class *c =
+			heap_find_min_frag_alloc_class(heap,
+				i * ALLOC_BLOCK_SIZE);
+		h->class_map[i] = c->id;
 	}
-
 #ifdef DEBUG
 	/*
 	 * Verify that each bucket's unit size points back to the bucket by the
 	 * bucket map. This must be true for the default allocation classes,
 	 * otherwise duplicate buckets will be created.
 	 */
-	for (size_t i = 0; i < MAX_BUCKETS; ++i) {
-		if (h->buckets[i] != NULL) {
-			struct bucket *b = h->buckets[i];
-			size_t b_id = SIZE_TO_BID(h, b->unit_size);
-			ASSERTeq(b_id, i);
+	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		struct allocation_class *c = h->allocation_classes[i];
+		if (c != NULL) {
+			size_t class_id = SIZE_TO_CLASS_ID(h, c->unit_size);
+			ASSERTeq(class_id, i);
 		}
 	}
 #endif
+
+	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		struct allocation_class *c = h->allocation_classes[i];
+		if (c != NULL) {
+			if (heap_create_alloc_class_buckets(h, c) != 0)
+				goto error_bucket_create;
+		}
+	}
+
+	h->default_bucket = bucket_new(container_new_ctree(),
+		h->default_allocation_class);
+	if (h->default_bucket == NULL)
+		goto error_bucket_create;
 
 	heap_populate_buckets(heap);
 
@@ -1027,12 +1093,18 @@ heap_buckets_init(struct palloc_heap *heap)
 
 error_bucket_create:
 	bucket_delete(h->default_bucket);
-	bucket_group_destroy(h->buckets);
 	for (unsigned i = 0; i < h->ncaches; ++i)
 		bucket_group_destroy(h->caches[i].buckets);
 
-error_default_bucket_new:
-	Free(h->bucket_map);
+error_alloc_class_create:
+	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		struct allocation_class *c = h->allocation_classes[i];
+		if (c != NULL) {
+			heap_delete_allocation_class(h, c);
+		}
+	}
+
+	Free(h->class_map);
 
 error_bucket_map_malloc:
 	return ENOMEM;
@@ -1067,7 +1139,7 @@ static void
 heap_recycle_block(struct palloc_heap *heap, struct bucket *b,
 		struct memory_block *m, uint32_t units)
 {
-	if (b->type == BUCKET_RUN) {
+	if (b->aclass->type == CLASS_RUN) {
 		ASSERT(units <= UINT16_MAX);
 		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
@@ -1256,8 +1328,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_init(&h->run_locks[i], NULL);
 
-	memset(h->last_drained, 0, sizeof(h->last_drained));
-
 	heap->run_id = run_id;
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
@@ -1266,13 +1336,14 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->base = base;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
-	bucket_group_init(h->buckets);
-
 	for (unsigned i = 0; i < h->ncaches; ++i)
 		bucket_group_init(h->caches[i].buckets);
 
+	memset(heap->rt->allocation_classes, 0,
+		sizeof(heap->rt->allocation_classes));
+
 	size_t rec_i;
-	for (rec_i = 0; rec_i < MAX_BUCKETS; ++rec_i) {
+	for (rec_i = 0; rec_i < MAX_ALLOCATION_CLASSES; ++rec_i) {
 		if ((h->recyclers[rec_i] = recycler_new(heap)) == NULL) {
 			err = ENOMEM;
 			goto error_recycler_new;
@@ -1356,9 +1427,13 @@ heap_cleanup(struct palloc_heap *heap)
 {
 	struct heap_rt *rt = heap->rt;
 
-	bucket_delete(rt->default_bucket);
+	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		struct allocation_class *c = rt->allocation_classes[i];
+		if (c != NULL)
+			heap_delete_allocation_class(rt, c);
+	}
 
-	bucket_group_destroy(rt->buckets);
+	bucket_delete(rt->default_bucket);
 
 	for (unsigned i = 0; i < rt->ncaches; ++i)
 		bucket_group_destroy(rt->caches[i].buckets);
@@ -1366,11 +1441,11 @@ heap_cleanup(struct palloc_heap *heap)
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_destroy(&rt->run_locks[i]);
 
-	Free(rt->bucket_map);
+	Free(rt->class_map);
 
 	Free(rt->caches);
 
-	for (int i = 0; i < MAX_BUCKETS; ++i) {
+	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		recycler_delete(rt->recyclers[i]);
 	}
 
