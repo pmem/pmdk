@@ -37,6 +37,8 @@
 export UNITTEST_NAME=obj_pmalloc_mt/TEST0
 export UNITTEST_NUM=0
 
+export VALGRIND_OPTS="--suppressions=helgrind_adjacent_block.supp"
+
 # standard unit test setup
 . ../unittest/unittest.sh
 
