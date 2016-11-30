@@ -51,7 +51,8 @@
 #define HEAP_PTR_TO_OFF(heap, ptr)\
 	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
 
-#define MAX_BUCKETS (UINT8_MAX)
+#define MAX_ALLOCATION_CLASSES (UINT8_MAX)
+
 #define RUN_UNIT_MAX 64U
 #define RUN_UNIT_MAX_ALLOC 8U
 
@@ -78,7 +79,10 @@ int heap_check_remote(void *heap_start, uint64_t heap_size,
 int heap_buckets_init(struct palloc_heap *heap);
 
 struct bucket *heap_get_default_bucket(struct palloc_heap *heap);
-struct bucket *heap_get_best_bucket(struct palloc_heap *heap, size_t size);
+struct allocation_class *
+heap_get_best_class(struct palloc_heap *heap, size_t size);
+struct bucket *
+heap_get_bucket_by_class(struct palloc_heap *heap, struct allocation_class *c);
 
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
