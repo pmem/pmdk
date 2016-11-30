@@ -49,123 +49,23 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
-/*
- * bucket_calc_units -- (internal) calculates the size index of a memory block
- *	whose size in bytes is equal or exceeds the value 'size' provided
- *	by the caller.
- */
-static uint32_t
-bucket_calc_units(struct bucket *b, size_t size)
-{
-	ASSERTne(size, 0);
-	return CALC_SIZE_IDX(b->unit_size, size);
-}
-
-/*
- * bucket_init -- (internal) initializes bucket instance
- */
-static int
-bucket_init(struct bucket *b, uint8_t id, struct block_container *c,
-	size_t unit_size)
+struct bucket *
+bucket_new(struct block_container *c, struct allocation_class *aclass)
 {
 	if (c == NULL)
-		return -1;
+		return NULL;
 
-	b->id = id;
-	b->calc_units = bucket_calc_units;
+	struct bucket *b = Malloc(sizeof(*b));
+	if (b == NULL)
+		return NULL;
 
 	b->container = c;
 	b->c_ops = c->c_ops;
 
 	util_mutex_init(&b->lock, NULL);
 
-	b->unit_size = unit_size;
-
-	return 0;
-}
-
-/*
- * bucket_huge_new -- creates a huge bucket
- *
- * Huge bucket contains chunks with either free or used types. The only reason
- * there's a separate huge data structure is the bitmap information that is
- * required for runs and is not relevant for huge chunks.
- */
-struct bucket_huge *
-bucket_huge_new(uint8_t id, struct block_container *c, size_t unit_size)
-{
-	struct bucket_huge *b = Malloc(sizeof(*b));
-	if (b == NULL)
-		return NULL;
-
-	if (bucket_init(&b->super, id, c, unit_size) != 0) {
-		Free(b);
-		return NULL;
-	}
-
-	b->super.type = BUCKET_HUGE;
-
-	return b;
-}
-
-/*
- * bucket_run_new -- creates a run bucket
- *
- * This type of bucket is responsible for holding memory blocks from runs, which
- * means that each object it contains has a representation in a bitmap.
- *
- * The run buckets also contain the detailed information about the bitmap
- * all of the memory blocks contained within this container must be
- * represented by. This is not to say that a single bucket contains objects
- * only from a single chunk/bitmap - a bucket contains objects from a single
- * TYPE of bitmap run.
- */
-struct bucket_run *
-bucket_run_new(uint8_t id, struct block_container *c,
-	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
-{
-	struct bucket_run *b = Malloc(sizeof(*b));
-	if (b == NULL)
-		return NULL;
-
-	if (bucket_init(&b->super, id, c, unit_size) != 0) {
-		Free(b);
-		return NULL;
-	}
-
-	b->super.type = BUCKET_RUN;
-	b->unit_max = unit_max;
-	b->unit_max_alloc = unit_max_alloc;
 	b->is_active = 0;
-
-	/*
-	 * Here the bitmap definition is calculated based on the size of the
-	 * available memory and the size of a memory block - the result of
-	 * dividing those two numbers is the number of possible allocations from
-	 * that block, and in other words, the amount of bits in the bitmap.
-	 */
-	ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
-	b->bitmap_nallocs = (unsigned)(RUN_NALLOCS(unit_size));
-
-	/*
-	 * The two other numbers that define our bitmap is the size of the
-	 * array that represents the bitmap and the last value of that array
-	 * with the bits that exceed number of blocks marked as set (1).
-	 */
-	ASSERT(b->bitmap_nallocs <= RUN_BITMAP_SIZE);
-	unsigned unused_bits = RUN_BITMAP_SIZE - b->bitmap_nallocs;
-
-	unsigned unused_values = unused_bits / BITS_PER_VALUE;
-
-	ASSERT(MAX_BITMAP_VALUES >= unused_values);
-	b->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-
-	ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
-	unused_bits -= unused_values * BITS_PER_VALUE;
-
-	b->bitmap_lastval = unused_bits ?
-		(((1ULL << unused_bits) - 1ULL) <<
-			(BITS_PER_VALUE - unused_bits)) : 0;
+	b->aclass = aclass;
 
 	return b;
 }

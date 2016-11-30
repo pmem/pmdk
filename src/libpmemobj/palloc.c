@@ -178,7 +178,9 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (size != 0) {
 		size_t sizeh = size + sizeof (struct legacy_object_header);
-		struct bucket *b = heap_get_best_bucket(heap, sizeh);
+		struct allocation_class *c = heap_get_best_class(heap, sizeh);
+		struct bucket *b = heap_get_bucket_by_class(heap, c);
+
 		util_mutex_lock(&b->lock);
 
 		/*
@@ -189,7 +191,7 @@ palloc_operation(struct palloc_heap *heap,
 		 * For example, to allocate 500 bytes from a bucket that
 		 * provides 256 byte blocks two memory 'units' are required.
 		 */
-		new_block.size_idx = b->calc_units(b, sizeh);
+		new_block.size_idx = CALC_SIZE_IDX(c->unit_size, sizeh);
 
 		errno = heap_get_bestfit_block(heap, b, &new_block);
 		if (errno != 0) {
@@ -204,7 +206,8 @@ palloc_operation(struct palloc_heap *heap,
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
 			 */
-			if (b->type == BUCKET_HUGE) {
+			enum memory_block_type t = memblock_autodetect_type(&new_block, heap->layout);
+			if (t == MEMORY_BLOCK_HUGE) {
 				new_block = heap_coalesce_huge(heap, new_block);
 				bucket_insert_block(b, heap, new_block);
 			}
