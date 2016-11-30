@@ -675,6 +675,18 @@ function fail {
 }
 
 #
+# remove_files - removes list of files included in variable
+#
+function remove_files {
+    for ($i=0;$i -lt $args.count;$i++) {
+        $arr = $args[$i] -split ' '
+        ForEach ($file In $arr) {
+            Remove-Item $file -Force -ea si
+        }
+    }
+}
+
+#
 # check_file -- check if file exists and print error message if not
 #
 function check_file {
@@ -793,8 +805,8 @@ function check_signature {
 # check_signatures -- check if multiple files contain specified signature
 #
 function check_signatures {
-    for ($i=0;$i -lt $args.count;$i+=2) {
-        check_signature $args[$i] $args[$i+1]
+    for ($i=1;$i -lt $args.count;$i+=1) {
+        check_signature $args[0] $args[$i]
     }
 }
 
