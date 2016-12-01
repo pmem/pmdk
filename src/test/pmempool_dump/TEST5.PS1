@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_dump/TEST6 -- test for dump command
+# pmempool_dump/TEST5.PS1 -- test for dump command
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_dump\TEST6w"
-$Env:UNITTEST_NUM = "6w"
+$Env:UNITTEST_NAME = "pmempool_dump\TEST5"
+$Env:UNITTEST_NUM = "5"
 
 
 . ..\unittest\unittest.ps1
@@ -49,24 +49,23 @@ require_fs_type any
 
 setup
 
+$POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 
 rm $LOG -Force -Recurse -ea si
 
-#XXX: port poolsets tests
-#
-#POOLSET=$DIR/pool.set
-#POOL_PART1=$DIR/pool.part1
-#POOL_PART2=$DIR/pool.part2
-#
-#rm -f $POOLSET $POOL_PART1 $POOL_PART2
-#
-#create_poolset $POOLSET 32M:$POOL_PART1:z 32M:$POOL_PART2:z
-#
-#expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
-#expect_normal_exit $PMEMWRITE $POOLSET 0:w:PMEMPOOL_DUMP_TEST
-#expect_normal_exit $PMEMPOOL dump -r 0 $POOLSET >> $LOG
-#
-#check
+$POOLSET="$DIR\pool.set"
+$POOL_PART1="$DIR\pool.part1"
+$POOL_PART2="$DIR\pool.part2"
+
+remove_files $POOLSET $POOL_PART1 $POOL_PART2
+
+create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z
+
+expect_normal_exit $PMEMPOOL create log $POOLSET
+expect_normal_exit $PMEMWRITE $POOLSET PMEMPOOL_DUMP_TEST
+expect_normal_exit $PMEMPOOL dump $POOLSET >> $LOG
+
+check
 
 pass
