@@ -901,7 +901,8 @@ function require_node_pkg() {
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="${NODE_ENV[$N]}"
 	if [ -n "${NODE_LD_LIBRARY_PATH[$N]}" ]; then
-		COMMAND="$COMMAND PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:${NODE_LD_LIBRARY_PATH[$N]}/pkgconfig"
+		local PKG_CONFIG_PATH=${NODE_LD_LIBRARY_PATH[$N]//:/\/pkgconfig:}/pkgconfig
+		COMMAND="$COMMAND PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
 	fi
 
 	COMMAND="$COMMAND pkg-config $1"
