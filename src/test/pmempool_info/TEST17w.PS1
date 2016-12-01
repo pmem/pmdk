@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info/TEST17 -- test for info command
+# pmempool_info/TEST17w.PS1 -- test for info command
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -49,32 +49,29 @@ require_fs_type any
 
 setup
 
-#XXX: port poolsets tests
-#
-#LOG=out${UNITTEST_NUM}.log
-#
-#rm -rf $LOG && touch $LOG
-#
-#POOLSET=$DIR/pool.set
-#POOL1=$DIR/pool.part1
-#POOL2=$DIR/pool.part2
-#POOLS="$POOL1 $POOL2"
-#REPL1=$DIR/pool.rep.part1
-#REPL2=$DIR/pool.rep.part2
-#REPS="$REPL1 $REPL2"
-#
-#rm -f $POOLSET
-#create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z\
-#	R 32M:$REPL1:z 32M:$REPL2:z
-#check_file $POOLSET
-#
-#rm -f $POOLS $REPS
-#expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
-#expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
-#expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
-#expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG
-#expect_normal_exit $PMEMPOOL info $REPL2 >> $LOG
-#
-#check
-#
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -ea si
+
+$POOLSET="$DIR\pool.set"
+$POOL1="$DIR\pool.part1"
+$POOL2="$DIR\pool.part2"
+$POOLS="$POOL1 $POOL2"
+$REPL1="$DIR\pool.rep.part1"
+$REPL2="$DIR\pool.rep.part2"
+$REPS="$REPL1 $REPL2"
+
+rm $POOLSET -Force -ea si
+create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z `
+	R 32M:$DIR\pool.rep.part1:z 32M:$DIR\pool.rep.part2:z
+check_file $POOLSET
+
+remove_files $POOLS $REPS
+expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
+expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
+expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
+expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG
+expect_normal_exit $PMEMPOOL info $REPL2 >> $LOG
+
+check
+
 pass

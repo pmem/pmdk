@@ -188,11 +188,13 @@ function create_file {
 function create_holey_file {
 
     [int64]$size = (convert_to_bytes $args[0])
+    # it causes CreateFile with CREATE_ALWAYS flag
+    $mode = "-f"
     for ($i=1;$i -lt $args.count;$i++) {
         # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
-        & $SPARSEFILE $fname $size
+        & $SPARSEFILE $mode $fname $size
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Error $LASTEXITCODE with sparsefile create"
             exit $LASTEXITCODE
