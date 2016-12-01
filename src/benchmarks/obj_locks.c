@@ -96,7 +96,7 @@ struct prog_args {
  * mutex similar to PMEMmutex, but with pthread_mutex_t in RAM
  */
 typedef union padded_volatile_pmemmutex {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 	struct {
 		uint64_t runid;
 		pthread_mutex_t *mutexp; /* pointer to pthread mutex in RAM */

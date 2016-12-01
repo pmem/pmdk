@@ -47,18 +47,18 @@ extern "C" {
 /*
  * Locking.
  */
-#define _POBJ_CL_ALIGNMENT 64 /* cache line alignment for performance */
+#define _POBJ_CL_SIZE 64 /* cache line size */
 
 typedef struct {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 } PMEMmutex;
 
 typedef struct {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 } PMEMrwlock;
 
 typedef struct {
-	char padding[_POBJ_CL_ALIGNMENT];
+	char padding[_POBJ_CL_SIZE];
 } PMEMcond;
 
 void pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp);
