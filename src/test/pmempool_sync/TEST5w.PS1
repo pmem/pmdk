@@ -48,6 +48,8 @@ require_fs_type any
 
 setup
 
+# XXX: Not sure how to deal with the file permissions (chmod) on Windows.
+
 #$LOG = "out${Env:UNITTEST_NUM}.log"
 #$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 #rm $LOG -Force -ea si
@@ -59,14 +61,12 @@ setup
 #$POOLSET = "$DIR/pool0.set"
 
 ## Create poolset file
-#echo @"
-#PMEMPOOLSET
-#20M $DIR/testfile00
-#30M $DIR/testfile01
-#REPLICA
-#30M $DIR/testfile10
-#20M $DIR/testfile11
-#"@ | out-file -encoding ASCII $POOLSET
+#create_poolset $POOLSET `
+#    20M:$DIR/testfile00:x `
+#    30M:$DIR/testfile01:x `
+#    R `
+#    30M:$DIR/testfile10:x `
+#    20M:$DIR/testfile11:x
 
 ## Create a poolset
 #expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
@@ -85,8 +85,10 @@ setup
 ## Delete the first part in the second replica
 #rm $DIR/testfile10 -Force -ea si
 
+# XXX: Need chmod() equivalent on Windows
+
 ## Change permissions of all the files
-## XXX:
+#chmod 600 $DIR/testfile*
 
 ## Synchronize replicas
 #expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP

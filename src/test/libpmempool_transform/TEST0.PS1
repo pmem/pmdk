@@ -61,28 +61,25 @@ $POOLSET_IN = "$DIR/poolset.in"
 $POOLSET_OUT = "$DIR/poolset.out"
 
 # Create poolset files
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-REPLICA
-10M $DIR/testfile5
-20M $DIR/testfile6
-"@ | out-file -encoding ASCII $POOLSET_IN
+create_poolset $POOLSET_IN `
+    20M:$DIR/testfile0:x `
+    10M:$DIR/testfile1:x `
+    R `
+    10M:$DIR/testfile2:x `
+    10M:$DIR/testfile3:x `
+    10M:$DIR/testfile4:x `
+    R `
+    10M:$DIR/testfile5:x `
+    20M:$DIR/testfile6:x
 
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile0
-10M $DIR/testfile1
-REPLICA
-10M $DIR/testfile2
-10M $DIR/testfile3
-10M $DIR/testfile4
-"@ | out-file -encoding ASCII $POOLSET_OUT
+create_poolset $POOLSET_OUT `
+    20M:$DIR/testfile0:x `
+    10M:$DIR/testfile1:x `
+    R `
+    10M:$DIR/testfile2:x `
+    10M:$DIR/testfile3:x `
+    10M:$DIR/testfile4:x
+
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"

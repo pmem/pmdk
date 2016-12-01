@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST0 -- test for checking pmempool sync
+# pmempool_sync/TEST1 -- test for checking pmempool sync
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -58,15 +58,13 @@ $LAYOUT = "OBJ_LAYOUT"
 $POOLSET = "$DIR/pool0.set"
 
 # Create poolset file
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile1
-20M $DIR/testfile2
-21M $DIR/testfile3
-REPLICA
-40M $DIR/testfile4
-20M $DIR/testfile5
-"@ | out-file -encoding ASCII $POOLSET
+create_poolset $POOLSET `
+    20M:$DIR/testfile1:x `
+    20M:$DIR/testfile2:x `
+    21M:$DIR/testfile3:x `
+    R `
+    40M:$DIR/testfile4:x `
+    20M:$DIR/testfile5:x
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"

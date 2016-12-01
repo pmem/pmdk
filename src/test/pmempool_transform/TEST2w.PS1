@@ -30,16 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST4 -- test for checking pmempool sync;
-#                        pmem/issues#269
+# pmempool_transform/TEST2 -- test for checking pmempool transform in dry-run
+#                             mode; pmem/issues#250
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST4"
-$Env:UNITTEST_NUM = "4w"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST2"
+$Env:UNITTEST_NUM = "2w"
 
 . ..\unittest\unittest.ps1
 
@@ -56,55 +56,60 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT = "$DIR/poolset.out"
 
-# Create poolset file
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile00
-20M $DIR/testfile01
-REPLICA
-20M $DIR/testfile10
-20M $DIR/testfile11
-"@ | out-file -encoding ASCII $POOLSET
+# Create poolset files
+create_poolset $POOLSET_IN `
+    20M:$DIR/testfile0:x `
+    20M:$DIR/testfile1:x
+
+create_poolset $POOLSET_OUT `
+    20M:$DIR/testfile0:x `
+    20M:$DIR/testfile1:x `
+    R `
+    20M:$DIR/testfile2:x `
+    20M:$DIR/testfile3:x
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
 echo @"
-pr 30M
+pr 22M
 srcp 0 TestOK111
-srcp 25M TestOK222
+srcp 20M TestOK222
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
 echo @"
 srpr 0 9
-srpr 25M 9
+srpr 20M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
-# Create a poolset
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
+# Create a pool
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
-# Write some data into the pool, hitting all part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
+# Write some data into the pool, hitting two part files
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
-# Delete the second part in the primary replica
-rm $DIR/testfile00 -Force -ea si
+# Run transform in dry-run mode
+expect_normal_exit $PMEMPOOL transform -d $POOLSET_IN $POOLSET_OUT >> $LOG
+cat $LOG >> $LOG_TEMP
 
-# Synchronize replicas
-expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
+# Check if stored data can be read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
-dump_pool_info $POOLSET >> $LOG_TEMP
-dump_pool_info $DIR/testfile00 >> $LOG_TEMP
-dump_pool_info $DIR/testfile01 >> $LOG_TEMP
-dump_pool_info $DIR/testfile10 >> $LOG_TEMP
-dump_pool_info $DIR/testfile11 >> $LOG_TEMP
+dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR/testfile0 >> $LOG_TEMP
+dump_pool_info $DIR/testfile1 >> $LOG_TEMP
+
+# Make sure no other parts were created
+check_no_files $DIR/testfile2 $DIR/testfile3
 
 mv -Force $LOG_TEMP $LOG
 check

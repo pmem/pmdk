@@ -63,15 +63,13 @@ $MMAP_ALIGN = "65536"
 $ADDR_MASK = "0xFFFF0000"
 
 # Create poolset file
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile1
-20M $DIR/testfile2
-21M $DIR/testfile3
-REPLICA
-40M $DIR/testfile4
-20M $DIR/testfile5
-"@ | out-file -encoding ASCII $POOLSET
+create_poolset $POOLSET `
+    20M:$DIR/testfile1:x `
+    20M:$DIR/testfile2:x `
+    21M:$DIR/testfile3:x `
+    R `
+    40M:$DIR/testfile4:x `
+    20M:$DIR/testfile5:x
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"

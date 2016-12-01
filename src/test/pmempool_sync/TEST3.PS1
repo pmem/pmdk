@@ -59,14 +59,12 @@ $LAYOUT = "OBJ_LAYOUT"
 $POOLSET = "$DIR/pool0.set"
 
 # Create poolset file
-echo @"
-PMEMPOOLSET
-20M $DIR/testfile00
-30M $DIR/testfile01
-REPLICA
-30M $DIR/testfile10
-20M $DIR/testfile11
-"@ | out-file -encoding ASCII $POOLSET
+create_poolset  $POOLSET `
+    20M:$DIR/testfile00:x `
+    30M:$DIR/testfile01:x `
+    R `
+    30M:$DIR/testfile10:x `
+    20M:$DIR/testfile11:x
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"

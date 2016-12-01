@@ -31,13 +31,13 @@
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST10.PS1" />
-    <None Include="TEST2.PS1" />
+    <None Include="TEST2w.PS1" />
     <None Include="TEST3.PS1" />
-    <None Include="TEST4.PS1" />
-    <None Include="TEST5.PS1" />
+    <None Include="TEST4w.PS1" />
+    <None Include="TEST5w.PS1" />
     <None Include="TEST6.PS1" />
     <None Include="TEST7.PS1" />
-    <None Include="TEST8.PS1" />
+    <None Include="TEST8w.PS1" />
     <None Include="TEST9.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -39,7 +39,6 @@
 #include <sys/queue.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <getopt.h> /* XXX */
 
 #include "log.h"
 #include "blk.h"
