@@ -442,6 +442,9 @@ util_unlink(const char *path)
 	if (util_file_is_device_dax(path)) {
 		return util_file_zero_whole(path);
 	} else {
+#ifdef _WIN32
+		_chmod(path, _S_IREAD | _S_IWRITE);
+#endif
 		return unlink(path);
 	}
 }

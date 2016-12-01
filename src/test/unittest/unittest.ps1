@@ -371,9 +371,18 @@ function expect_normal_exit {
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
-    sv -Name command $args[0]
+	$iterator = 0
+    switch ($args[$iterator]) {
+        '-p' { $input = $args[1]
+               [string]$prompt += -join("echo ", $input, " | ")
+               $iterator = 2
+               { return }}
+        'none' { return }
+    }
+
+    sv -Name command $args[$iterator]
     $params = New-Object System.Collections.ArrayList
-    foreach ($param in $Args[1 .. $Args.Count]) {
+    foreach ($param in $Args[($iterator+1) .. $Args.Count]) {
        if ($param -is [array]) {
             foreach ($param_entry in $param) {
                 [string]$params += -join(" '", $param_entry, "' ")
@@ -383,7 +392,7 @@ function expect_normal_exit {
         }
     }
 
-    Invoke-Expression "$command $params"
+    Invoke-Expression "$prompt $command $params"
 
     check_exit_code
     # XXX: if we implement a memcheck thing... set some env vars here
@@ -734,6 +743,17 @@ function get_size {
     if (Test-Path $args[0]) {
         return (Get-Item $args[0]).length
     }
+}
+
+#
+# set_file_mode - set access mode to files
+#
+function set_file_mode {
+	$mode = $args[0]
+	$flag = $args[1]
+	for ($i=2;$i -lt $args.count;$i++) {
+		Set-ItemProperty $args[$i] -name $mode -value $flag
+	}
 }
 
 #
