@@ -39,12 +39,6 @@ Param(
     )
 $ENV:UNITTEST_NAME = "win_lists\TEST1"
 $ENV:UNITTEST_NUM = "1"
-# XXX:  bash has a few calls to tools that we don't have on
-# windows (yet) that set PMEM_IS_PMEM and NON_PMEM_IS_PMEM based
-# on their output
-$ENV:PMEM_IS_PMEM = $true
-$ENV:NON_PMEM_IS_PMEM = $true
-$DIR = ""
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
