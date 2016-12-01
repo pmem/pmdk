@@ -748,15 +748,25 @@ function check_size {
 #
 # check_mode -- validate file mode
 #
-# XXX: get_mode return diffrent value on appveyor
 function check_mode {
     sv -Name mode -Scope "Local" $args[0]
     sv -Name file -Scope "Local" $args[1]
-    sv -Name file_mode -Scope "Local" (get_mode $file)
+    $mode = [math]::floor($mode / 100) # get first digit (user/owner permision)
+    $read_only = (gp $file IsReadOnly).IsReadOnly
 
-    if ($file_mode -ne $mode) {
-        Write-Error "error: wrong mode $file_mode != $mode"
+    if ($mode -band 2) {
+        if ($read_only -eq $true) {
+            Write-Error "error: wrong file mode"
+            fail 1
+        } else {
+            return
+        }
+    }
+    if($read_only -eq $false) {
+        Write-Error "error: wrong file mode"
         fail 1
+    } else {
+        return
     }
 }
 
