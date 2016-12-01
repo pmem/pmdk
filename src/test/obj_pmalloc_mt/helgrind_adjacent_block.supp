@@ -1,0 +1,6 @@
+{
+  <intentional layout race, protected by transient state>
+  Helgrind:Race
+  ...
+  fun:heap_get_adjacent_free_block
+}
