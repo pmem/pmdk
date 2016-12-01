@@ -36,7 +36,7 @@
 
 #include <sched.h>
 #include <stdint.h>
-
+#include <pthread.h>
 /*
  * rpmem_fip_lane -- basic lane structure
  *
@@ -48,8 +48,9 @@
  * separate bit.
  */
 struct rpmem_fip_lane {
-	volatile int ret;
-	volatile uint64_t sync;
+	pthread_spinlock_t lock;
+	int ret;
+	uint64_t sync;
 };
 
 /*
@@ -61,7 +62,7 @@ rpmem_fip_lane_init(struct rpmem_fip_lane *lanep)
 	lanep->ret = 0;
 	lanep->sync = 0;
 
-	return 0;
+	return pthread_spin_init(&lanep->lock, PTHREAD_PROCESS_PRIVATE);
 }
 
 /*
@@ -70,7 +71,7 @@ rpmem_fip_lane_init(struct rpmem_fip_lane *lanep)
 static inline void
 rpmem_fip_lane_fini(struct rpmem_fip_lane *lanep)
 {
-	/* nothing to do */
+	pthread_spin_destroy(&lanep->lock);
 }
 
 /*
@@ -79,7 +80,11 @@ rpmem_fip_lane_fini(struct rpmem_fip_lane *lanep)
 static inline int
 rpmem_fip_lane_busy(struct rpmem_fip_lane *lanep)
 {
-	return lanep->sync != 0;
+	pthread_spin_lock(&lanep->lock);
+	int ret = lanep->sync != 0;
+	pthread_spin_unlock(&lanep->lock);
+
+	return ret;
 }
 
 /*
@@ -88,8 +93,30 @@ rpmem_fip_lane_busy(struct rpmem_fip_lane *lanep)
 static inline void
 rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t sig)
 {
+	pthread_spin_lock(&lanep->lock);
 	lanep->ret = 0;
-	__sync_fetch_and_or(&lanep->sync, sig);
+	lanep->sync |= sig;
+	pthread_spin_unlock(&lanep->lock);
+}
+
+static inline int
+rpmem_fip_lane_is_busy(struct rpmem_fip_lane *lanep, uint64_t sig)
+{
+	pthread_spin_lock(&lanep->lock);
+	int ret = (lanep->sync & sig) != 0;
+	pthread_spin_unlock(&lanep->lock);
+
+	return ret;
+}
+
+static inline int
+rpmem_fip_lane_ret(struct rpmem_fip_lane *lanep)
+{
+	pthread_spin_lock(&lanep->lock);
+	int ret = lanep->ret;
+	pthread_spin_unlock(&lanep->lock);
+
+	return ret;
 }
 
 /*
@@ -98,10 +125,10 @@ rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t sig)
 static inline int
 rpmem_fip_lane_wait(struct rpmem_fip_lane *lanep, uint64_t sig)
 {
-	while (lanep->sync & sig)
+	while (rpmem_fip_lane_is_busy(lanep, sig))
 		sched_yield();
 
-	return lanep->ret;
+	return rpmem_fip_lane_ret(lanep);
 }
 
 /*
@@ -110,7 +137,9 @@ rpmem_fip_lane_wait(struct rpmem_fip_lane *lanep, uint64_t sig)
 static inline void
 rpmem_fip_lane_signal(struct rpmem_fip_lane *lanep, uint64_t sig)
 {
-	__sync_fetch_and_and(&lanep->sync, ~sig);
+	pthread_spin_lock(&lanep->lock);
+	lanep->sync &= ~sig;
+	pthread_spin_unlock(&lanep->lock);
 }
 
 /*
@@ -120,6 +149,8 @@ rpmem_fip_lane_signal(struct rpmem_fip_lane *lanep, uint64_t sig)
 static inline void
 rpmem_fip_lane_sigret(struct rpmem_fip_lane *lanep, uint64_t sig, int ret)
 {
+	pthread_spin_lock(&lanep->lock);
 	lanep->ret = ret;
-	rpmem_fip_lane_signal(lanep, sig);
+	lanep->sync &= ~sig;
+	pthread_spin_unlock(&lanep->lock);
 }
