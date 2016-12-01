@@ -848,16 +848,15 @@ function dump_pool_info {
 
     # ignore selected header fields that differ by definition
     # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
-    $output = Invoke-Expression "$PMEMPOOL info $params"
     $print = $True
-    ForEach ($line In $output) {
-        If ($line -match '^UUID') {
-            $print= $False
+    Invoke-Expression "$PMEMPOOL info $params" | % {
+        If ($_ -match '^UUID') {
+            $print = $False
         }
         If ($print -eq $True) {
-            $line
+            $_
         }
-        If ($line -match '^Checksum') {
+        If ($_ -match '^Checksum') {
             $print = $True
         }
     }
@@ -876,19 +875,18 @@ function dump_replica_info {
 
     # ignore selected header fields that differ by definition
     # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
-    $output = Invoke-Expression "$PMEMPOOL info $params"
     $print = $True
-    ForEach ($line In $output) {
-        If ($line -match '^UUID') {
-            $print= $False
+    Invoke-Expression "$PMEMPOOL info $params" | % {
+        If ($_ -match '^UUID') {
+            $print = $False
         }
         If ($print -eq $True) {
             # 'sed -e "/^path/d" -e "/^size/d"
-            If (-not ($line -match '^path' -or  $line -match '^size')) {
-                $line
+            If (-not ($_ -match '^path' -or  $_ -match '^size')) {
+                $_
             }
         }
-        If ($line -match '^Checksum') {
+        If ($_ -match '^Checksum') {
             $print = $True
         }
     }
