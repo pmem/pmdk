@@ -60,3 +60,5 @@ expect_normal_exit `
 		$DIR\testfile2 `
 		$DIR\testset1 `
 		$DIR\testset2
+
+pass

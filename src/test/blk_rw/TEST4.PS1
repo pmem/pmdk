@@ -63,3 +63,4 @@ check_pool $DIR\testfile1
 
 check
 
+pass
