@@ -810,28 +810,77 @@ function require_non_pmem() {
 }
 
 #
-# require_dax_devices -- only allow script to continue for a dax device
+# require_dev_dax_node -- common function for require_dax_devices and
+# node_require_dax_device
 #
-function require_dax_devices() {
-	for path in ${DEVICE_DAX_PATH[@]}
-	do
-		if [[ ! -w $path ]]; then
-			echo "$UNITTEST_NAME: SKIP no access to specified dax devices"
+# usage: require_dev_dax_node <N devices> [<node>]
+#
+function require_dev_dax_node() {
+	local min=$1
+	local node=$2
+	if [ -n "$node" ]; then
+		local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
+		local prefix="$UNITTEST_NAME: SKIP NODE $node:"
+		if [ -z "${NODE_DEVICE_DAX_PATH[$node]}" ]; then
+			echo "$prefix NODE_DEVICE_DAX_PATH[$node] is not set"
 			exit 0
 		fi
+		local device_dax_path=${NODE_DEVICE_DAX_PATH[$node]}
+		local cmd="run_command ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -d"
+	else
+		local prefix="$UNITTEST_NAME: SKIP"
+		if [ ${#DEVICE_DAX_PATH[@]} -lt $min ]; then
+			echo "$prefix DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
+			exit 0
+		fi
+		local device_dax_path=${DEVICE_DAX_PATH[@]}
+		local var_name="DEVICE_DAX_PATH"
+		local cmd="$PMEMDETECT -d"
+	fi
+
+	for path in ${device_dax_path[@]}
+	do
+		set +e
+		out=$($cmd $path 2>&1)
+		ret=$?
+		set -e
+
+		if [ "$ret" == "0" ]; then
+			return
+		elif [ "$ret" == "1" ]; then
+			echo "$prefix $out"
+			exit 0
+		else
+			echo "$UNITTEST_NAME: pmemdetect: $out" >&2
+			exit 1
+		fi
 	done
-
-	[ ${#DEVICE_DAX_PATH[*]} -ge $1 ] && return
-
-	echo "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
-	exit 0
 }
 
+#
+# dax_device_zero -- zero all dax devices
+#
 function dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
 		${PMEMPOOL}.static-debug rm -f $path
 	done
+}
+
+#
+# require_dax_devices -- only allow script to continue for a dax device
+#
+function require_dax_devices() {
+	require_dev_dax_node $1
+}
+
+#
+# require_node_dax_device -- only allow script to continue if specified node
+# has defined device dax in testconfig.sh
+#
+function require_node_dax_device() {
+	validate_node_number $1
+	require_dev_dax_node 1 $1
 }
 
 #
