@@ -22,7 +22,7 @@ type                     : regular file
 
 POOL Header:
 Signature                : PMEMOBJ
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -38,5 +38,3 @@ Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
 Root offset              : 0x0
-
-

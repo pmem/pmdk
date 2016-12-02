@@ -38,15 +38,22 @@
 # exits in the middle of transaction, so pool cannot be closed
 export MEMCHECK_DONT_CHECK_LEAKS=1
 
+# XXX With the major change to 3, we introduced a non-convertible layout change.
+# This test assumed that the verify will receive the latest available layout but
+# instead it receives a layout to which conversion was successful and the open
+# will fail. The test needs to be changed to clone appropriate tag version for
+# the verifiable major version, compile that version, and verify against that.
+# For now, all this test verifies is that an open from a lower major version
+# won't work.
 verify_scenario() {
 	# convert tool always ask for confirmation, so say yes ;)
 	echo -e "y\n" | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
-	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
+	expect_abnormal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
 
 	echo -e "y\n" | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
-	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
+	expect_abnormal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
 
 create_scenario() {
@@ -77,4 +84,3 @@ run_scenarios() {
 		verify_scenario $i
 	done
 }
-

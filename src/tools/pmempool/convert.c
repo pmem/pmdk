@@ -82,12 +82,29 @@ pmempool_convert_help(char *appname)
 typedef int (*convert_func)(void *poolset, void *addr);
 
 /*
+ * convert_v2_v3 -- (internal) informs the user of the unfortunate fate of their
+ *	pools.
+ *
+ * The change introduced in the third major layout version impacts the internal
+ * alignment of user structures and as such a generic conversion is not
+ * possible.
+ */
+static int
+convert_v2_v3(void *poolset, void *addr)
+{
+	fprintf(stderr, "conversion from v2 to v3 is not supported.\n");
+
+	return -1;
+}
+
+/*
  * Collection of pool converting functions. Each array index is used as a
  * source version.
  */
 static convert_func version_convert[] = {
 	NULL, /* from version 0 to version 1 - does not exist */
 	convert_v1_v2, /* from v1 to v2 */
+	convert_v2_v3, /* from v2 to v3 */
 };
 
 /*
