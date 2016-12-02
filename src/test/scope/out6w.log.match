@@ -1,0 +1,10 @@
+scope\TEST6:
+$(*)\libpmempool.dll:
+DllMain
+pmempool_check
+pmempool_check_end
+pmempool_check_init
+pmempool_check_version
+pmempool_errormsg
+pmempool_sync
+pmempool_transform
