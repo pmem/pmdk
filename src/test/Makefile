@@ -79,6 +79,7 @@ OBJ_TESTS = \
 	obj_heap_state\
 	obj_include\
 	obj_lane\
+	obj_layout\
 	obj_list_insert\
 	obj_list_move\
 	obj_list_recovery\
