@@ -82,12 +82,36 @@ pmempool_convert_help(char *appname)
 typedef int (*convert_func)(void *poolset, void *addr);
 
 /*
+ * convert_v2_v3 -- (internal) informs the user of the unfortunate fate of their
+ *	pools.
+ *
+ * The change introduced in the third major layout version impacts the internal
+ * alignment of user structures and as such, a generic conversion is not
+ * possible.
+ */
+static int
+convert_v2_v3(void *poolset, void *addr)
+{
+	printf("The conversion can only be made automatically if the\n"
+		"PMEMmutex, PMEMrwlock and PMEMcond types are not used in the\n"
+		"pool or all of the variables of those three types are aligned "
+		"to 8 bytes.\nProceed only if you are sure that the above is "
+		"true for this pool.\n");
+	if (ask_Yn('?', "convert the pool ?") == 'y') {
+		return 0;
+	}
+
+	return -1;
+}
+
+/*
  * Collection of pool converting functions. Each array index is used as a
  * source version.
  */
 static convert_func version_convert[] = {
 	NULL, /* from version 0 to version 1 - does not exist */
 	convert_v1_v2, /* from v1 to v2 */
+	convert_v2_v3, /* from v2 to v3 */
 };
 
 /*
@@ -186,25 +210,34 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		}
 	}
 
-	if (version_convert[m](psf, pop) != 0) {
-		fprintf(stderr, "Failed to convert the pool\n");
-	} else {
-		/* need to update every header of every part */
-		uint32_t target_m = m + 1;
-		for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
-			struct pool_replica *rep = psf->poolset->replica[r];
-			for (unsigned p = 0; p < rep->nparts; ++p) {
-				struct pool_set_part *part = &rep->part[p];
+	uint32_t i;
+	for (i = m; i < COUNT_OF(version_convert); ++i) {
+		if (version_convert[i](psf, pop) != 0) {
+			fprintf(stderr, "Failed to convert the pool\n");
+			break;
+		} else {
+			/* need to update every header of every part */
+			uint32_t target_m = i + 1;
+			for (unsigned r = 0; r < psf->poolset->nreplicas; ++r) {
+				struct pool_replica *rep =
+					psf->poolset->replica[r];
+				for (unsigned p = 0; p < rep->nparts; ++p) {
+					struct pool_set_part *part =
+						&rep->part[p];
 
-				struct pool_hdr *hdr = part->hdr;
-				hdr->major = htole32(target_m);
-				util_checksum(hdr, sizeof(*hdr),
-					&hdr->checksum, 1);
-				PERSIST_GENERIC_AUTO(hdr,
-					sizeof(struct pool_hdr));
+					struct pool_hdr *hdr = part->hdr;
+					hdr->major = htole32(target_m);
+					util_checksum(hdr, sizeof(*hdr),
+						&hdr->checksum, 1);
+					PERSIST_GENERIC_AUTO(hdr,
+						sizeof(struct pool_hdr));
+				}
 			}
 		}
 	}
+
+	if (i != m) /* at least one step has been performed */
+		printf("The pool has been converted to version %d\n.", i);
 
 	PERSIST_GENERIC_AUTO(pop, psf->size);
 

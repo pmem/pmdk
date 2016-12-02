@@ -49,15 +49,18 @@ extern "C" {
  */
 #define _POBJ_CL_SIZE 64 /* cache line size */
 
-typedef struct {
+typedef union {
+	long long align;
 	char padding[_POBJ_CL_SIZE];
 } PMEMmutex;
 
-typedef struct {
+typedef union {
+	long long align;
 	char padding[_POBJ_CL_SIZE];
 } PMEMrwlock;
 
-typedef struct {
+typedef union {
+	long long align;
 	char padding[_POBJ_CL_SIZE];
 } PMEMcond;
 

@@ -40,11 +40,11 @@ export MEMCHECK_DONT_CHECK_LEAKS=1
 
 verify_scenario() {
 	# convert tool always ask for confirmation, so say yes ;)
-	echo -e "y\n" | expect_normal_exit\
+	echo -e "y\ny\n" | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
 
-	echo -e "y\n" | expect_normal_exit\
+	echo -e "y\ny\n" | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
@@ -77,4 +77,3 @@ run_scenarios() {
 		verify_scenario $i
 	done
 }
-
