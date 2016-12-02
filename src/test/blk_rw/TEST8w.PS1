@@ -68,3 +68,4 @@ check_pool $DIR\testfile2
 
 check
 
+pass

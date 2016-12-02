@@ -65,3 +65,4 @@ expect_normal_exit $Env:EXE_DIR\blk_rw$Env:EXESUFFIX 512 $DIR\testset1 c `
 
 check
 
+pass
