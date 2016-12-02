@@ -58,15 +58,13 @@ POOL_HEADER_OFFSET=4096
 ADDR_MASK=0xFFFFF000
 
 # Create poolset file
-cat << EOF > $POOLSET
-PMEMPOOLSET
-20M $DIR/testfile1
-20M $DIR/testfile2
-21M $DIR/testfile3
-REPLICA
-40M $DIR/testfile4
-20M $DIR/testfile5
-EOF
+create_poolset $POOLSET \
+	20M:$DIR/testfile1:x \
+	20M:$DIR/testfile2:x \
+	21M:$DIR/testfile3:x \
+	R \
+	40M:$DIR/testfile4:x \
+	20M:$DIR/testfile5:x
 
 # CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data
@@ -115,12 +113,9 @@ PART3_OFFSET=$(( $M40 - ($PART1_SIZE + $PART2_SIZE)\
 	+ $POOL_HEADER_OFFSET ))
 
 # Corrupt data in primary replica
-echo "Wrong1234" | dd count=10 bs=1 seek=$ROOT_ADDR\
-	of=$DIR/testfile1 conv=notrunc status=none
-echo "Wrong5678" | dd count=10 bs=1 seek=$PART2_OFFSET\
-	of=$DIR/testfile2 conv=notrunc status=none
-echo "Wrong9ABC" | dd count=10 bs=1 seek=$PART3_OFFSET\
-	of=$DIR/testfile3 conv=notrunc status=none
+expect_normal_exit $DDMAP$EXESUFFIX -o "$DIR/testfile1" -s $ROOT_ADDR -d "Wrong1234"
+expect_normal_exit $DDMAP$EXESUFFIX -o "$DIR/testfile2" -s $PART2_OFFSET -d "Wrong5678"
+expect_normal_exit $DDMAP$EXESUFFIX -o "$DIR/testfile3" -s $PART3_OFFSET -d "Wrong9ABC"
 
 # Check if corrupted
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP

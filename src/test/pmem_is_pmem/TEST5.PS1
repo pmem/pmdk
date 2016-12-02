@@ -53,7 +53,7 @@ setup
 create_holey_file 2M $DIR\testfile1
 $ENV:PMEM_IS_PMEM_FORCE = "1"
 # program would overwrite PMEM_IS_PMEM_FORCE
-expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$EXESUFFIX $DIR\testfile1 0
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$Env:EXESUFFIX $DIR\testfile1 0
 
 check
 

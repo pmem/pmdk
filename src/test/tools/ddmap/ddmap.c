@@ -239,7 +239,7 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 			ctx->str = optarg;
 			break;
 		case 's':
-			offset = strtol(optarg, &endptr, 10);
+			offset = strtol(optarg, &endptr, 0);
 			if ((endptr && *endptr != '\0') || errno) {
 				outv_err("'%s' -- invalid offset", optarg);
 				return -1;
@@ -247,7 +247,7 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 			ctx->offset = offset;
 			break;
 		case 'l':
-			length = strtoul(optarg, &endptr, 10);
+			length = strtoul(optarg, &endptr, 0);
 			if ((endptr && *endptr != '\0') || errno) {
 				outv_err("'%s' -- invalid length", optarg);
 				return -1;

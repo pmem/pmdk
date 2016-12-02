@@ -52,7 +52,7 @@ setup
 
 create_holey_file 4M $DIR\testfile1
 
-expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_proc_windows$EXESUFFIX `
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_proc_windows$Env:EXESUFFIX `
 	$DIR\testfile1 nothing
 
 check

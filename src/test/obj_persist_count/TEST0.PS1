@@ -50,7 +50,7 @@ require_fs_type non-pmem
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_persist_count$EXESUFFIX $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\obj_persist_count$Env:EXESUFFIX $DIR\testfile
 
 check
 

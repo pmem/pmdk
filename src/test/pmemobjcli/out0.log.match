@@ -1,4 +1,4 @@
-pmemobj_direct(r): off = 0x0 uuid = 0x0 ptr = (nil)
+pmemobj_direct(r): off = 0x0 uuid = 0x0 ptr = $(nW)
 pmemobj_root(1024): off = $(nW) uuid = $(nW)
 pmemobj_direct(r): off = $(nW) uuid = $(nW) ptr = $(nW)
 pmemobj_root_size: size = 1024
@@ -41,4 +41,4 @@ pmemobj_free($(nW)): off = 0x0 uuid = 0x0
 pmemobj_free($(nW)): off = 0x0 uuid = 0x0
 pmemobj_free($(nW)): off = 0x0 uuid = 0x0
 pmemobj_free($(nW)): off = 0x0 uuid = 0x0
-pmemobj_direct(r.0): off = 0x0 uuid = 0x0 ptr = (nil)
+pmemobj_direct(r.0): off = 0x0 uuid = 0x0 ptr = $(nW)

@@ -41,6 +41,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <setjmp.h>
+#include <inttypes.h>
 
 #include <libpmemobj.h>
 #include "common.h"
@@ -51,9 +52,9 @@
 #define POCLI_ENV_EMPTY_CMDS	"PMEMOBJCLI_EMPTY_CMDS"
 #define POCLI_ENV_LONG_NAMES	"PMEMOBJCLI_LONG_NAMES"
 #define POCLI_ENV_HELP		"PMEMOBJCLI_HELP"
-#define POCLI_CMD_DELIM	" "
-#define POCLI_CMD_PROMPT "pmemobjcli $ "
-#define POCLI_INBUF_LEN	4096
+#define POCLI_CMD_DELIM		" "
+#define POCLI_CMD_PROMPT	"pmemobjcli $ "
+#define POCLI_INBUF_LEN		4096
 struct pocli;
 
 TOID_DECLARE(struct item, 1);
@@ -185,7 +186,7 @@ pocli_args_number(struct pocli_args *args, int arg, uint64_t *type_num)
 
 	uint64_t tn;
 	char c;
-	int ret = sscanf(args->argv[arg], "%lu%c", &tn, &c);
+	int ret = sscanf(args->argv[arg], "%" SCNu64 "%c", &tn, &c);
 	if (ret != 1)
 		return POCLI_ERR_PARS;
 
@@ -220,7 +221,7 @@ pocli_args_alloc(char *cmdstr, char *argstr, char *delim)
 	struct pocli_args *args = NULL;
 	if (cmdstr) {
 		size += sizeof(char *);
-		args = malloc(size);
+		args = (struct pocli_args *)malloc(size);
 		if (!args)
 			return NULL;
 		args->argc = 1;
@@ -231,7 +232,8 @@ pocli_args_alloc(char *cmdstr, char *argstr, char *delim)
 	while (n) {
 		int cur = args ? args->argc++ : 0;
 		size += sizeof(char *);
-		struct pocli_args *nargs = realloc(args, size);
+		struct pocli_args *nargs =
+			(struct pocli_args *)realloc(args, size);
 		if (!nargs) {
 			free(args);
 			return NULL;
@@ -287,7 +289,7 @@ pocli_args_obj_root(struct pocli_ctx *ctx, char *in, PMEMoid **oidp)
 			goto out;
 		}
 
-		PMEMoid *oids = pmemobj_direct(*oid);
+		PMEMoid *oids = (PMEMoid *)pmemobj_direct(*oid);
 		oid = &oids[ind];
 		size = pmemobj_alloc_usable_size(*oid);
 	}
@@ -732,7 +734,7 @@ pocli_str_root_copy(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid root = pmemobj_root(ctx->pop, root_size);
 	assert(!OID_IS_NULL(root));
-	char *root_data = pmemobj_direct(root);
+	char *root_data = (char *)pmemobj_direct(root);
 	pmemobj_memcpy_persist(ctx->pop, root_data + offset, str, len);
 	return ret;
 }
@@ -762,9 +764,9 @@ pocli_str_root_print(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid root = pmemobj_root(ctx->pop, root_size);
 	assert(!OID_IS_NULL(root));
-	char *root_data = pmemobj_direct(root);
+	char *root_data = (char *)pmemobj_direct(root);
 
-	char *buff = malloc(len + 1);
+	char *buff = (char *)malloc(len + 1);
 	assert(buff != NULL);
 	memcpy(buff, root_data + offset, len);
 	buff[len] = '\0';
@@ -838,7 +840,7 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
 
-	char *dest_p = pmemobj_direct(*dest);
+	char *dest_p = (char *)pmemobj_direct(*dest);
 	dest_p += offset;
 
 	if ((ret = pocli_args_obj(ctx, args, 3, &src)))
@@ -846,7 +848,7 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 4, &offset)))
 		return ret;
 
-	char *src_p = pmemobj_direct(*src);
+	char *src_p = (char *)pmemobj_direct(*src);
 	src_p += offset;
 
 	if ((ret = pocli_args_number(args, 5, &len)))
@@ -880,7 +882,7 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
 
-	char *dest_p = pmemobj_direct(*oid);
+	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
 	if ((ret = pocli_args_number(args, 3, &c)))
@@ -916,7 +918,7 @@ pocli_pmemobj_do_persist(struct pocli_ctx *ctx, struct pocli_args *args,
 		return ret;
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
-	char *dest_p = pmemobj_direct(*oid);
+	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
 	if ((ret = pocli_args_number(args, 3, &len)))
@@ -982,7 +984,7 @@ pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
 		return ret;
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
-	char *dest_p = pmemobj_direct(*oid);
+	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
 	PMEMobjpool *pop = pmemobj_pool_by_ptr(dest_p);
@@ -1036,7 +1038,7 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (pocli_args_obj(ctx, args, 2, &head_oid))
 		return ret;
 
-	struct plist *head = pmemobj_direct(*head_oid);
+	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
 		return ret;
@@ -1088,7 +1090,7 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
 
-	struct plist *head = pmemobj_direct(*head_oid);
+	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
 		return ret;
@@ -1137,7 +1139,7 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
 
-	struct plist *head = pmemobj_direct(*head_oid);
+	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 1, &oid, head)))
 		return ret;
@@ -1182,12 +1184,12 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
 
-	struct plist *head_src = pmemobj_direct(*head_oid);
+	struct plist *head_src = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_obj(ctx, args, 3, &head_oid)))
 		return ret;
 
-	struct plist *head_dest = pmemobj_direct(*head_oid);
+	struct plist *head_dest = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 1, &oid, head_src)))
 		return ret;
@@ -1718,264 +1720,264 @@ pocli_quit(struct pocli_ctx *ctx, struct pocli_args *args)
  */
 static struct pocli_cmd pocli_commands[] = {
 	{
-		.name		= "help",
-		.name_short	= "h",
-		.func		= pocli_help,
-		.usage		= "[<cmd>]",
+		"help",		/* name */
+		"h",		/* name_short */
+		"[<cmd>]",	/* usage */
+		pocli_help,	/* func */
 	},
 	{
-		.name		= "quit",
-		.name_short	= "q",
-		.func		= pocli_quit,
-		.usage		= "",
+		"quit",
+		"q",
+		"",
+		pocli_quit,
 	},
 	{
-		.name		= "pmemobj_root",
-		.name_short	= "pr",
-		.func		= pocli_pmemobj_root,
-		.usage		= "<size>",
+		"pmemobj_root",
+		"pr",
+		"<size>",
+		pocli_pmemobj_root,
 	},
 	{
-		.name		= "pmemobj_root_size",
-		.name_short	= "prs",
-		.func		= pocli_pmemobj_root_size,
-		.usage		= "",
+		"pmemobj_root_size",
+		"prs",
+		"",
+		pocli_pmemobj_root_size,
 	},
 	{
-		.name		= "pmemobj_direct",
-		.name_short	= "pdr",
-		.func		= pocli_pmemobj_direct,
-		.usage		= "<obj>",
+		"pmemobj_direct",
+		"pdr",
+		"<obj>",
+		pocli_pmemobj_direct,
 	},
 	{
-		.name		= "pmemobj_alloc_usable_size",
-		.name_short	= "paus",
-		.func		= pocli_pmemobj_alloc_usable_size,
-		.usage		= "<obj>",
+		"pmemobj_alloc_usable_size",
+		"paus",
+		"<obj>",
+		pocli_pmemobj_alloc_usable_size,
 	},
 	{
-		.name		= "pmemobj_alloc",
-		.name_short	= "pa",
-		.func		= pocli_pmemobj_alloc,
-		.usage		= "<obj> <type_num> <size>",
+		"pmemobj_alloc",
+		"pa",
+		"<obj> <type_num> <size>",
+		pocli_pmemobj_alloc,
 	},
 	{
-		.name		= "pmemobj_zalloc",
-		.name_short	= "pza",
-		.func		= pocli_pmemobj_zalloc,
-		.usage		= "<obj> <type_num> <size>",
+		"pmemobj_zalloc",
+		"pza",
+		"<obj> <type_num> <size>",
+		pocli_pmemobj_zalloc,
 	},
 	{
-		.name		= "pmemobj_realloc",
-		.name_short	= "pre",
-		.func		= pocli_pmemobj_realloc,
-		.usage		= "<obj> <type_num> <size>",
+		"pmemobj_realloc",
+		"pre",
+		"<obj> <type_num> <size>",
+		pocli_pmemobj_realloc,
 	},
 	{
-		.name		= "pmemobj_zrealloc",
-		.name_short	= "pzre",
-		.func		= pocli_pmemobj_zrealloc,
-		.usage		= "<obj> <type_num> <size>",
+		"pmemobj_zrealloc",
+		"pzre",
+		"<obj> <type_num> <size>",
+		pocli_pmemobj_zrealloc,
 	},
 	{
-		.name		= "pmemobj_free",
-		.name_short	= "pf",
-		.func		= pocli_pmemobj_free,
-		.usage		= "<obj>",
+		"pmemobj_free",
+		"pf",
+		"<obj>",
+		pocli_pmemobj_free,
 	},
 	{
-		.name		= "pmemobj_type_num",
-		.name_short	= "ptn",
-		.func		= pocli_pmemobj_type_num,
-		.usage		= "<obj>",
+		"pmemobj_type_num",
+		"ptn",
+		"<obj>",
+		pocli_pmemobj_type_num,
 	},
 	{
-		.name		= "pmemobj_strdup",
-		.name_short	= "psd",
-		.func		= pocli_pmemobj_strdup,
-		.usage		= "<obj> <string> <type_num>",
+		"pmemobj_strdup",
+		"psd",
+		"<obj> <string> <type_num>",
+		pocli_pmemobj_strdup,
 	},
 	{
-		.name		= "pmemobj_first",
-		.name_short	= "pfi",
-		.func		= pocli_pmemobj_first,
-		.usage		= "<type_num>",
+		"pmemobj_first",
+		"pfi",
+		"<type_num>",
+		pocli_pmemobj_first,
 	},
 	{
-		.name		= "pmemobj_next",
-		.name_short	= "pn",
-		.func		= pocli_pmemobj_next,
-		.usage		= "<obj>",
+		"pmemobj_next",
+		"pn",
+		"<obj>",
+		pocli_pmemobj_next,
 	},
 	{
-		.name		= "pmemobj_memcpy_persist",
-		.name_short	= "pmcp",
-		.func		= pocli_pmemobj_memcpy_persist,
-		.usage		= "<dest> <off_dest> <src> <off_src> <len>",
+		"pmemobj_memcpy_persist",
+		"pmcp",
+		"<dest> <off_dest> <src> <off_src> <len>",
+		pocli_pmemobj_memcpy_persist,
 	},
 	{
-		.name		= "pmemobj_memset_persist",
-		.name_short	= "pmsp",
-		.func		= pocli_pmemobj_memset_persist,
-		.usage		= "<obj> <offset> <pattern> <len>",
+		"pmemobj_memset_persist",
+		"pmsp",
+		"<obj> <offset> <pattern> <len>",
+		pocli_pmemobj_memset_persist,
 	},
 	{
-		.name		= "pmemobj_persist",
-		.name_short	= "pp",
-		.func		= pocli_pmemobj_persist,
-		.usage		= "<obj> <offset> <len>",
+		"pmemobj_persist",
+		"pp",
+		"<obj> <offset> <len>",
+		pocli_pmemobj_persist,
 	},
 	{
-		.name		= "pmemobj_flush",
-		.name_short	= "pfl",
-		.func		= pocli_pmemobj_flush,
-		.usage		= "<obj> <offset> <len>",
+		"pmemobj_flush",
+		"pfl",
+		"<obj> <offset> <len>",
+		pocli_pmemobj_flush,
 	},
 	{
-		.name		= "pmemobj_drain",
-		.name_short	= "pd",
-		.func		= pocli_pmemobj_drain,
-		.usage		= "",
+		"pmemobj_drain",
+		"pd",
+		"",
+		pocli_pmemobj_drain,
 	},
 	{
-		.name		= "pmemobj_pool_by_oid",
-		.name_short	= "ppbo",
-		.func		= pocli_pmemobj_pool_by_oid,
-		.usage		= "<obj>",
+		"pmemobj_pool_by_oid",
+		"ppbo",
+		"<obj>",
+		pocli_pmemobj_pool_by_oid,
 	},
 	{
-		.name		= "pmemobj_pool_by_ptr",
-		.name_short	= "ppbp",
-		.func		= pocli_pmemobj_pool_by_ptr,
-		.usage		= "<obj> <offset>",
+		"pmemobj_pool_by_ptr",
+		"ppbp",
+		"<obj> <offset>",
+		pocli_pmemobj_pool_by_ptr,
 	},
 	{
-		.name		= "pmemobj_list_insert",
-		.name_short	= "pli",
-		.func		= pocli_pmemobj_list_insert,
-		.usage		= "<obj> <head> <dest> <before>",
+		"pmemobj_list_insert",
+		"pli",
+		"<obj> <head> <dest> <before>",
+		pocli_pmemobj_list_insert,
 	},
 	{
-		.name		= "pmemobj_list_insert_new",
-		.name_short	= "plin",
-		.func		= pocli_pmemobj_list_insert_new,
-		.usage		= "<obj> <head> <dest> <before>"
+		"pmemobj_list_insert_new",
+		"plin",
+		"<obj> <head> <dest> <before>"
 							" <size> <type_num>",
+		pocli_pmemobj_list_insert_new,
 	},
 	{
-		.name		= "pmemobj_list_remove",
-		.name_short	= "plr",
-		.func		= pocli_pmemobj_list_remove,
-		.usage		= "<obj> <head> <free>",
+		"pmemobj_list_remove",
+		"plr",
+		"<obj> <head> <free>",
+		pocli_pmemobj_list_remove,
 	},
 	{
-		.name		= "pmemobj_list_move",
-		.name_short	= "plm",
-		.func		= pocli_pmemobj_list_move,
-		.usage		= "<obj> <head_src> <head_dest> "
+		"pmemobj_list_move",
+		"plm",
+		"<obj> <head_src> <head_dest> "
 							"<dest> <before>",
+		pocli_pmemobj_list_move,
 	},
 	{
-		.name		= "pmemobj_tx_begin",
-		.name_short	= "ptb",
-		.func		= pocli_pmemobj_tx_begin,
-		.usage		= "[<jmp>]",
+		"pmemobj_tx_begin",
+		"ptb",
+		"[<jmp>]",
+		pocli_pmemobj_tx_begin,
 	},
 	{
-		.name		= "pmemobj_tx_end",
-		.name_short	= "pte",
-		.func		= pocli_pmemobj_tx_end,
-		.usage		= "",
+		"pmemobj_tx_end",
+		"pte",
+		"",
+		pocli_pmemobj_tx_end,
 	},
 	{
-		.name		= "pmemobj_tx_abort",
-		.name_short	= "ptab",
-		.func		= pocli_pmemobj_tx_abort,
-		.usage		= "<errnum>",
+		"pmemobj_tx_abort",
+		"ptab",
+		"<errnum>",
+		pocli_pmemobj_tx_abort,
 	},
 	{
-		.name		= "pmemobj_tx_commit",
-		.name_short	= "ptc",
-		.func		= pocli_pmemobj_tx_commit,
-		.usage		= "",
+		"pmemobj_tx_commit",
+		"ptc",
+		"",
+		pocli_pmemobj_tx_commit,
 	},
 	{
-		.name		= "pmemobj_tx_stage",
-		.name_short	= "pts",
-		.func		= pocli_pmemobj_tx_stage,
-		.usage		= "",
+		"pmemobj_tx_stage",
+		"pts",
+		"",
+		pocli_pmemobj_tx_stage,
 	},
 	{
-		.name		= "pmemobj_tx_add_range",
-		.name_short	= "ptar",
-		.func		= pocli_pmemobj_tx_add_range,
-		.usage		= "<obj> <offset> <size>",
+		"pmemobj_tx_add_range",
+		"ptar",
+		"<obj> <offset> <size>",
+		pocli_pmemobj_tx_add_range,
 	},
 	{
-		.name		= "pmemobj_tx_add_range_direct",
-		.name_short	= "ptard",
-		.func		= pocli_pmemobj_tx_add_range_direct,
-		.usage		= "<obj> <offset> <size>",
+		"pmemobj_tx_add_range_direct",
+		"ptard",
+		"<obj> <offset> <size>",
+		pocli_pmemobj_tx_add_range_direct,
 	},
 	{
-		.name		= "pmemobj_tx_process",
-		.name_short	= "ptp",
-		.func		= pocli_pmemobj_tx_process,
-		.usage		= "",
+		"pmemobj_tx_process",
+		"ptp",
+		"",
+		pocli_pmemobj_tx_process,
 	},
 	{
-		.name		= "pmemobj_tx_alloc",
-		.name_short	= "ptal",
-		.func		= pocli_pmemobj_tx_alloc,
-		.usage		= "<obj> <size> <type_num>",
+		"pmemobj_tx_alloc",
+		"ptal",
+		"<obj> <size> <type_num>",
+		pocli_pmemobj_tx_alloc,
 	},
 	{
-		.name		= "pmemobj_tx_zalloc",
-		.name_short	= "ptzal",
-		.func		= pocli_pmemobj_tx_zalloc,
-		.usage		= "<obj> <size> <type_num>",
+		"pmemobj_tx_zalloc",
+		"ptzal",
+		"<obj> <size> <type_num>",
+		pocli_pmemobj_tx_zalloc,
 	},
 	{
-		.name		= "pmemobj_tx_realloc",
-		.name_short	= "ptre",
-		.func		= pocli_pmemobj_tx_realloc,
-		.usage		= "<obj> <size> <type_num>",
+		"pmemobj_tx_realloc",
+		"ptre",
+		"<obj> <size> <type_num>",
+		pocli_pmemobj_tx_realloc,
 	},
 	{
-		.name		= "pmemobj_tx_zrealloc",
-		.name_short	= "ptzre",
-		.func		= pocli_pmemobj_tx_zrealloc,
-		.usage		= "<obj> <size> <type_num>",
+		"pmemobj_tx_zrealloc",
+		"ptzre",
+		"<obj> <size> <type_num>",
+		pocli_pmemobj_tx_zrealloc,
 	},
 	{
-		.name		= "pmemobj_tx_strdup",
-		.name_short	= "ptsd",
-		.func		= pocli_pmemobj_tx_strdup,
-		.usage		= "<obj> <string> <type_num>",
+		"pmemobj_tx_strdup",
+		"ptsd",
+		"<obj> <string> <type_num>",
+		pocli_pmemobj_tx_strdup,
 	},
 	{
-		.name		= "pmemobj_tx_free",
-		.name_short	= "ptf",
-		.func		= pocli_pmemobj_tx_free,
-		.usage		= "<obj>",
+		"pmemobj_tx_free",
+		"ptf",
+		"<obj>",
+		pocli_pmemobj_tx_free,
 	},
 	{
-		.name		= "pmemobj_tx_errno",
-		.name_short	= "pter",
-		.func		= pocli_pmemobj_tx_errno,
-		.usage		= "",
+		"pmemobj_tx_errno",
+		"pter",
+		"",
+		pocli_pmemobj_tx_errno,
 	},
 	{
-		.name		= "str_root_copy",
-		.name_short	= "srcp",
-		.func		= pocli_str_root_copy,
-		.usage		= "<size> <string>",
+		"str_root_copy",
+		"srcp",
+		"<size> <string>",
+		pocli_str_root_copy,
 	},
 	{
-		.name		= "str_root_print",
-		.name_short	= "srpr",
-		.func		= pocli_str_root_print,
-		.usage		= "<size> <size>",
+		"str_root_print",
+		"srpr",
+		"<size> <size>",
+		pocli_str_root_print,
 	}
 };
 
@@ -1996,7 +1998,7 @@ pocli_env_parse_bool(const char *envname, bool *value)
 		return -1;
 	}
 
-	*value = env[0] - '0';
+	*value = env[0] != '0';
 
 	return 0;
 }
@@ -2062,7 +2064,7 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 	if (pocli_read_opts(&opts))
 		return NULL;
 
-	struct pocli *pcli = calloc(1, sizeof(*pcli));
+	struct pocli *pcli = (struct pocli *)calloc(1, sizeof(*pcli));
 	if (!pcli)
 		return NULL;
 
@@ -2085,7 +2087,7 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 		pcli->ctx.root = pmemobj_root(pcli->ctx.pop, root_size);
 
 	pcli->inbuf_len = inbuf_len;
-	pcli->inbuf = malloc(inbuf_len);
+	pcli->inbuf = (char *)malloc(inbuf_len);
 	if (!pcli->inbuf)
 		goto err_close_pool;
 
@@ -2166,7 +2168,7 @@ pocli_process(struct pocli *pcli)
 		char *cmds = pcli->inbuf;
 		const struct pocli_cmd *cmd = pocli_get_cmd(pcli, cmds);
 		if (!cmd) {
-			pocli_err(&pcli->ctx, 0,
+			pocli_err(&pcli->ctx, POCLI_RET_OK, /* XXX */
 				"unknown command -- '%s'\n", cmds);
 			if (pcli->opts.exit_on_error)
 				return 1;

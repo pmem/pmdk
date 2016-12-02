@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST10w -- test for checking pmempool transform;
+# pmempool_transform/TEST10 -- test for checking pmempool transform;
 #                             pmem/issues#285
 #
 [CmdletBinding(PositionalBinding=$false)]
@@ -38,26 +38,26 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST10w"
+$Env:UNITTEST_NAME = "pmempool_transform\TEST10"
 $Env:UNITTEST_NUM = "10w"
 
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
+
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-$LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT="OBJ_LAYOUT"
-$POOLSET_IN="$DIR/poolset.in"
-$POOLSET_OUT="$DIR/poolset.out"
+$LAYOUT = "OBJ_LAYOUT"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT = "$DIR/poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
@@ -80,18 +80,17 @@ cat $POOLSET_OUT >> $LOG_TEMP
 echo "" >> $LOG_TEMP
 
 # Create a pool
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT `
-	obj $POOLSET_IN >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
+cat $LOG >> $LOG_TEMP
 
 # Try to transform poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform `
-	$POOLSET_IN $POOLSET_OUT
+expect_abnormal_exit $PMEMPOOL transform `
+    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
 
-rm $LOG -Force -ea si
-mv $LOG_TEMP $LOG
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

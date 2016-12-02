@@ -847,13 +847,49 @@ function dump_pool_info {
     }
 
     # ignore selected header fields that differ by definition
-    # XXX: not exactly the same as 'sed -e "/^UUID/,/^Checksum/d"'
-    Invoke-Expression "$PMEMPOOL info $params" | `
-        Select-String -notmatch -Pattern 'UUID' | `
-        Select-String -notmatch -Pattern '^Checksum' | `
-        Select-String -notmatch -Pattern '^Creation Time' | `
-        Select-String -notmatch -Pattern '^path' | `
-        Select-String -notmatch -Pattern '^size'
+    # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
+    $print = $True
+    Invoke-Expression "$PMEMPOOL info $params" | % {
+        If ($_ -match '^UUID') {
+            $print = $False
+        }
+        If ($print -eq $True) {
+            $_
+        }
+        If ($_ -match '^Checksum') {
+            $print = $True
+        }
+    }
+}
+
+#
+# dump_replica_info -- dump selected pool metadata and/or user data
+#
+# Used by compare_replicas() - filters out file paths and sizes.
+#
+function dump_replica_info {
+    $params = ""
+    for ($i=0;$i -lt $args.count;$i++) {
+        [string]$params += -join($args[$i], " ")
+    }
+
+    # ignore selected header fields that differ by definition
+    # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
+    $print = $True
+    Invoke-Expression "$PMEMPOOL info $params" | % {
+        If ($_ -match '^UUID') {
+            $print = $False
+        }
+        If ($print -eq $True) {
+            # 'sed -e "/^path/d" -e "/^size/d"
+            If (-not ($_ -match '^path' -or  $_ -match '^size')) {
+                $_
+            }
+        }
+        If ($_ -match '^Checksum') {
+            $print = $True
+        }
+    }
 }
 
 #
@@ -875,7 +911,7 @@ function compare_replicas {
     $rep1 = $args[$cnt + 1]
     $rep2 = $args[$cnt + 2]
 
-    diff (dump_pool_info $params $rep1) (dump_pool_info $params $rep2)
+    diff (dump_replica_info $params $rep1) (dump_replica_info $params $rep2)
 }
 
 #
@@ -884,7 +920,7 @@ function compare_replicas {
 function require_non_pmem {
     if ($NON_PMEM_IS_PMEM -eq "1") {
         return $true
-    } Else {
+    } else {
         Write-Error "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
         exit 1
     }
@@ -908,6 +944,21 @@ function require_fs_type {
         Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
     }
     exit 0
+}
+
+#
+# require_dax_devices -- only allow script to continue for a dax device
+#
+function require_dax_devices() {
+    # XXX: no device dax on Windows
+    if (-Not $Env:UNITTEST_QUIET) {
+        Write-Host "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
+    }
+    exit 0
+}
+
+function dax_device_zero() {
+    # XXX: no device dax on Windows
 }
 
 #
@@ -1012,13 +1063,14 @@ $Env:EXESUFFIX = ".exe"
 if ($Env:EXE_DIR -eq $null) {
     $Env:EXE_DIR = "..\..\x64\debug"
 }
-$PMEMPOOL="$Env:EXE_DIR\pmempool"
-$PMEMSPOIL="$Env:EXE_DIR\pmemspoil"
-$PMEMWRITE="$Env:EXE_DIR\pmemwrite"
-$PMEMALLOC="$Env:EXE_DIR\pmemalloc"
-$PMEMDETECT="$Env:EXE_DIR\pmemdetect"
-
-$SPARSEFILE="$Env:EXE_DIR\sparsefile"
+$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
+$PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
+$PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
+$PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
+$PMEMDETECT="$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
+$PMEMOBJCLI="$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
+$SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
+$DDMAP="$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
 
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
@@ -1157,6 +1209,8 @@ $Env:PMEMLOG_LOG_LEVE = 3
 $Env:PMEMLOG_LOG_FILE = "pmemlog${Env:UNITTEST_NUM}.log"
 $Env:PMEMOBJ_LOG_LEVEL = 3
 $Env:PMEMOBJ_LOG_FILE= "pmemobj${Env:UNITTEST_NUM}.log"
+$Env:PMEMPOOL_LOG_LEVEL = 3
+$Env:PMEMPOOL_LOG_FILE= "pmempool${Env:UNITTEST_NUM}.log"
 
 $Env:VMMALLOC_POOL_DIR = $DIR
 $Env:VMMALLOC_POOL_SIZE = $((16 * 1024 * 1024))

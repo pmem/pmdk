@@ -52,18 +52,14 @@ rm -rf $LOG_TEMP && touch $LOG_TEMP
 
 LAYOUT=OBJ_LAYOUT
 POOLSET=$DIR/pool0.set
-POOL_HEADER_OFFSET=4096
-ADDR_MASK=0xFFFFF000
 
 # Create poolset file
-cat << EOF > $POOLSET
-PMEMPOOLSET
-20M $DIR/testfile00
-30M $DIR/testfile01
-REPLICA
-30M $DIR/testfile10
-20M $DIR/testfile11
-EOF
+create_poolset $POOLSET \
+	20M:$DIR/testfile00:x \
+	30M:$DIR/testfile01:x \
+	R \
+	30M:$DIR/testfile10:x \
+	20M:$DIR/testfile11:x
 
 # Create a poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET

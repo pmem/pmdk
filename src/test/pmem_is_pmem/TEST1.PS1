@@ -51,7 +51,7 @@ require_test_type medium
 setup
 
 create_holey_file 2M $DIR\testfile1
-expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$EXESUFFIX $DIR\testfile1
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem$Env:EXESUFFIX $DIR\testfile1
 
 check
 

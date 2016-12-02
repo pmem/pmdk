@@ -60,7 +60,7 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	create_poolset_variation 1 $BACKUP
 
 	# create source poolset parts
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create $POOL_TYPES[$i] `
+	expect_normal_exit $PMEMPOOL create $POOL_TYPES[$i] `
 		$POOL_CREATE_PARAMS[$i] $POOLSET
 
 	# create backup poolset parts

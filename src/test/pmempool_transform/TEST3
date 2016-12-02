@@ -55,18 +55,14 @@ POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
 
 # Create poolset files
-cat << EOF > $POOLSET_IN
-PMEMPOOLSET
-20M $DIR/testfile00
-EOF
+create_poolset $POOLSET_IN \
+	20M:$DIR/testfile00:x
 
-cat << EOF > $POOLSET_OUT
-PMEMPOOLSET
-20M $DIR/testfile00
-REPLICA
-20M $DIR/testfile10
-1M $DIR/testfile11
-EOF
+create_poolset $POOLSET_OUT \
+	20M:$DIR/testfile00:x \
+	R \
+	20M:$DIR/testfile10:x \
+	1M:$DIR/testfile11:x
 
 # CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data
