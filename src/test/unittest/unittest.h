@@ -732,6 +732,28 @@ _name(const struct test_case *tc, int argc, char *argv[])
 	.func = _name,\
 }
 
+#define STR(x) #x
+
+#define ASSERT_ALIGNED_BEGIN(type) do {\
+size_t off = 0;\
+const char *last = "(none)";\
+type t;
+
+#define ASSERT_ALIGNED_FIELD(type, field) do {\
+if (offsetof(type, field) != off)\
+	UT_FATAL("%s: padding, missing field or fields not in order between "\
+		"'%s' and '%s' -- offset %lu, real offset %lu",\
+		STR(type), last, STR(field), off, offsetof(type, field));\
+off += sizeof(t.field);\
+last = STR(field);\
+} while (0)
+
+#define ASSERT_ALIGNED_CHECK(type)\
+if (off != sizeof(type))\
+	UT_FATAL("%s: missing field or padding after '%s': "\
+		"sizeof(%s) = %lu, fields size = %lu",\
+		STR(type), last, STR(type), sizeof(type), off);\
+} while (0)
 
 #ifdef __cplusplus
 }

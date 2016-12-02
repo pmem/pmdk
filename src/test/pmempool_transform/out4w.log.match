@@ -54,7 +54,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -75,7 +75,7 @@ size                     : 20971520
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -87,7 +87,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -99,7 +99,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -111,7 +111,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0
@@ -123,7 +123,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
-Major                    : 2
+Major                    : $(nW)
 Mandatory features       : 0x0
 Not mandatory features   : 0x0
 Forced RO                : 0x0

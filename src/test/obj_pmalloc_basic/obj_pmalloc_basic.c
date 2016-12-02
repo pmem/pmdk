@@ -249,8 +249,6 @@ test_spec_compliance()
 		sizeof(struct oob_header);
 
 	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
-	UT_COMPILE_ERROR_ON(sizeof(struct allocation_header) != 16);
-	UT_COMPILE_ERROR_ON(sizeof(struct chunk_header) != 8);
 	UT_COMPILE_ERROR_ON(offsetof(struct chunk_run, data) <
 		MAX_CACHELINE_ALIGNMENT);
 }

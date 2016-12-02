@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,12 +31,12 @@
 #
 
 #
-# src/test/obj_pmalloc_basic/Makefile -- build obj_pmalloc_basic unit test
+# src/test/obj_layout/Makefile -- build layout unit test
 #
-TARGET = obj_pmalloc_basic
-OBJS = obj_pmalloc_basic.o
+TARGET = obj_layout
+OBJS = obj_layout.o
 
 LIBPMEM=y
-LIBPMEMOBJ=internal-nondebug
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc

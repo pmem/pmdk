@@ -5,7 +5,7 @@ size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
-Major                    : 2
+Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
