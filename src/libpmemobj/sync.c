@@ -73,6 +73,13 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
 		*runid, lock, init_lock);
 
+	COMPILE_ERROR_ON(util_alignof(PMEMmutex)
+		!= util_alignof(pthread_mutex_t));
+	COMPILE_ERROR_ON(util_alignof(PMEMrwlock)
+		!= util_alignof(pthread_rwlock_t));
+	COMPILE_ERROR_ON(util_alignof(PMEMcond)
+		!= util_alignof(pthread_cond_t));
+
 	uint64_t tmp_runid;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(runid, sizeof(*runid));

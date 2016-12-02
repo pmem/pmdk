@@ -58,6 +58,8 @@ extern unsigned long long Mmap_align;
 #define MMAP_ALIGN_UP(size) (((size) + Mmap_align - 1) & ~(Mmap_align - 1))
 #define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
+#define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
+
 /*
  * overridable names for malloc & friends used by this library
  */
