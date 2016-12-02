@@ -1103,9 +1103,11 @@ $PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
 $PMEMDETECT="$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
 $PMEMOBJCLI="$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
-$SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
 $DDMAP="$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
 $BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
+
+$SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
+$DLLVIEW="$Env:EXE_DIR\dllview$Env:EXESUFFIX"
 
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
