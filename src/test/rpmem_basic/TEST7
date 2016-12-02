@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,47 +32,46 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/rpmem_basic/TEST7 -- unit test for rpmem with device dax
 #
+export UNITTEST_NAME=rpmem_basic/TEST7
+export UNITTEST_NUM=7
 
-TOP = ../../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+require_test_type medium
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap
+require_fs_type any
+require_build_type nondebug debug
 
-REMOTE_TOOLS = \
-	ctrld\
-	fip\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
+setup
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
+. setup.sh
 
-all test cstyle clean clobber format: $(DIRS)
+require_node_dax_device 0
+require_node_dax_device 1
 
-$(TESTCONFIG):
+cat > $DIR/pool0.set << EOF
+PMEMPOOLSET
+AUTO ${NODE_DEVICE_DAX_PATH[1]}
+EOF
 
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
+expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
+expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
+expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+expect_normal_exit run_on_node 0 ../pmempool rm -sf $POOLS_DIR/pool0.set
+expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DEVICE_DAX_PATH[0]}
 
-check pcheck:
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_create 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[0]} 0\
+	test_persist 0 0 1 1\
+	test_close 0\
+	test_open 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[0]} 0\
+	test_persist 0 0 8 8\
+	test_close 0\
+	test_remove ${NODE_ADDR[0]} pool0.set 0 0
 
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+pass

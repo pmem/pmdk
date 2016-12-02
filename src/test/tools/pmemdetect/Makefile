@@ -41,4 +41,6 @@ LIBPMEM=y
 TOOLS_COMMON=y
 LIBPMEMBLK_PRIV=btt_info_convert2h
 
+SCP_TO_REMOTE_NODES = y
+
 include $(TOP)/src/tools/Makefile.inc

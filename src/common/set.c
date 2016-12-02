@@ -53,6 +53,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <linux/limits.h>
+#include <sys/mman.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -1301,6 +1302,28 @@ int
 util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	size_t minsize, int create, unsigned *nlanes)
 {
+#ifndef _WIN32
+	/*
+	 * This is a workaround for an issue with using device dax with
+	 * libibverbs. The problem is that we use ibv_fork_init(3) which
+	 * makes all registered memory being madvised with MADV_DONTFORK
+	 * flag. In libpmemobj the remote replication is performed without
+	 * pool header (first 4k). In such case the address passed to
+	 * madvise(2) is aligned to 4k, but device dax can require different
+	 * alignment (default is 2MB). This workaround madvises the entire
+	 * memory region before registering it by ibv_reg_mr(3).
+	 */
+	if (set->replica[0]->part[0].is_dax) {
+		int ret = madvise(set->replica[0]->part[0].addr,
+				set->replica[0]->part[0].filesize,
+				MADV_DONTFORK);
+		if (ret) {
+			ERR("!madvise");
+			return ret;
+		}
+	}
+#endif
+
 	/*
 	 * The pool header is not visible on the remote node from the local host
 	 * perspective, so we replicate the pool without the pool header.

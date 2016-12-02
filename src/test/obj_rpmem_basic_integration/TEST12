@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,49 +30,51 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/tools/Makefile -- build unit test helpers
+# obj_rpmem_basic_integration/TEST12 -- remote replication from and to
+# device dax
 #
+export UNITTEST_NAME=obj_rpmem_basic_integration/TEST12
+export UNITTEST_NUM=12
 
-TOP = ../../..
+EXE=obj_basic_integration
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+# standard unit test setup
+. ../unittest/unittest.sh
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap
+require_test_type medium
 
-REMOTE_TOOLS = \
-	ctrld\
-	fip\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
+require_nodes 2
+require_node_dax_device 0
+require_node_dax_device 1
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
+setup
 
-all test cstyle clean clobber format: $(DIRS)
+init_rpmem_on_node 1 0
 
-$(TESTCONFIG):
+# upload test
+copy_files_to_node 1 . ../$EXE/$EXE$EXESUFFIX
 
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
+# define files and directories
+TEST_SET_LOCAL="testset_local"
+TEST_SET_REMOTE="testset_remote"
 
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
+NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 
-check pcheck:
+# create and upload poolset files
+create_poolset $DIR/$TEST_SET_LOCAL AUTO:${NODE_DEVICE_DAX_PATH[1]}:x \
+	m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_REMOTE AUTO:${NODE_DEVICE_DAX_PATH[0]}:x
 
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+
+expect_normal_exit run_on_node 1 ../pmempool rm -sf $TEST_SET_LOCAL
+expect_normal_exit run_on_node 0 ../pmempool rm -sf $TEST_SET_REMOTE
+
+# execute test
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+
+pass
