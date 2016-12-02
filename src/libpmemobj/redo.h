@@ -52,7 +52,7 @@ struct redo_log {
 	uint64_t value;
 };
 
-typedef int  (*redo_check_offset_fn)(void *ctx, uint64_t offset);
+typedef int (*redo_check_offset_fn)(void *ctx, uint64_t offset);
 
 struct redo_ctx *redo_log_config_new(void *base,
 		const struct pmem_ops *p_ops,
