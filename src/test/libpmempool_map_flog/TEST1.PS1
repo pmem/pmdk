@@ -31,47 +31,66 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_map_flog/TEST0 -- test for checking map and flog
+# libpmempool_map_flog/TEST1 -- test for checking map and flog
 #
-export UNITTEST_NAME=libpmempool_map_flog/TEST0
-export UNITTEST_NUM=0
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
-. ../unittest/unittest.sh
+$Env:UNITTEST_NAME = "libpmempool_map_flog\TEST1"
+$Env:UNITTEST_NUM = "1"
+
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
 
 setup
 
-POOL=$DIR/file.pool
-LOG=out${UNITTEST_NUM}.log
-LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -f $LOG && touch $LOG
-rm -f $LOG_TEMP && touch $LOG_TEMP
-EXE=../libpmempool_api/libpmempool_test
+$POOL = "$DIR/file.pool"
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
+rm $LOG -Force -ea si
+touch $LOG
+rm $LOG_TEMP -Force -ea si
+touch $LOG_TEMP
 
-declare -A map_err=(["Initial"]="0" ["Error"]="4"
-	["Zeroed"]="8" ["Normal"]="C")
+$EXE = "$Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX"
 
-ent_val=2
+$map_err = @{ "Initial"="0"
+              "Error"="4"
+              "Zeroed"="8"
+              "Normal"="C" }
 
-for field in Zeroed Error Initial Normal;
-do
-	for((i=0;i<ent_val;i++));
-	do
-		spcmd="bttdevice.arena.btt_map(0)=0x${map_err["$field"]}000000${i}"
+$ent_val = 6
 
-		expect_normal_exit $BTTCREATE $POOL
-		echo ${field}: $spcmd >> $LOG_TEMP
-		$PMEMSPOIL $POOL $spcmd
+foreach ($field in ("Zeroed", "Error", "Initial", "Normal")) {
+    expect_normal_exit $BTTCREATE $POOL
 
-		expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt -a 1
-		cat $LOG >> $LOG_TEMP
-	done
-done
+    $x = $map_err[$field]
+    for ($i=0; $i -lt $ent_val; $i++) {
+        $spcmd = "bttdevice.arena.btt_map($i)=0x${x}000000${i}"
+        echo "${field}: $spcmd" >> $LOG_TEMP
+        &$PMEMSPOIL $POOL $spcmd
+    }
 
-mv $LOG_TEMP $LOG
+    # duplicated entry
+    $spcmd = "bttdevice.arena.btt_map(6)=0x${x}0000003"
+    echo "${field}: $spcmd" >> $LOG_TEMP
+    &$PMEMSPOIL $POOL $spcmd
+
+    # lba number is higher then internal nlba
+    $spcmd = "bttdevice.arena.btt_map(2)=0x${x}000FFFF"
+    echo "${field}: $spcmd" >> $LOG_TEMP
+    &$PMEMSPOIL $POOL $spcmd
+
+    expect_normal_exit $EXE $POOL -r 1 -t btt -a 1
+    cat $LOG >> $LOG_TEMP
+}
+
+mv -Force $LOG_TEMP $LOG
 check_file $POOL
 
 check
