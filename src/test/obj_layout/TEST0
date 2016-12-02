@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,12 +32,18 @@
 #
 
 #
-# src/test/obj_pmalloc_basic/Makefile -- build obj_pmalloc_basic unit test
+# src/test/obj_layout/TEST0 -- unit test for obj_layout interface
 #
-TARGET = obj_pmalloc_basic
-OBJS = obj_pmalloc_basic.o
+export UNITTEST_NAME=obj_layout/TEST0
+export UNITTEST_NUM=0
 
-LIBPMEM=y
-LIBPMEMOBJ=internal-nondebug
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type short
+
+setup
+
+expect_normal_exit ./obj_layout$EXESUFFIX
+
+pass

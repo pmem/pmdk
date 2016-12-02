@@ -73,6 +73,8 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
 		*runid, lock, init_lock);
 
+	ASSERTeq((uintptr_t)runid % util_alignof(uint64_t), 0);
+
 	COMPILE_ERROR_ON(util_alignof(PMEMmutex)
 		!= util_alignof(pthread_mutex_t));
 	COMPILE_ERROR_ON(util_alignof(PMEMrwlock)
@@ -151,8 +153,11 @@ pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
+
 	if (mutex == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
 
 	return pthread_mutex_lock(mutex);
 }
@@ -171,6 +176,8 @@ pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
 	if (mutex == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
 
 	int ret = pthread_mutex_trylock(mutex);
 	if (ret == EBUSY)
@@ -203,6 +210,8 @@ pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
 	if (mutex == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
+
 	return pthread_mutex_timedlock(mutex, abs_timeout);
 }
 
@@ -222,6 +231,8 @@ pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
 	if (mutex == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
+
 	return pthread_mutex_trylock(mutex);
 }
 
@@ -238,6 +249,8 @@ pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
 	if (mutex == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
 
 	return pthread_mutex_unlock(mutex);
 }
@@ -274,6 +287,8 @@ pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	if (rwlock == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
+
 	return pthread_rwlock_rdlock(rwlock);
 }
 
@@ -292,6 +307,8 @@ pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
 
 	return pthread_rwlock_wrlock(rwlock);
 }
@@ -314,6 +331,8 @@ pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	if (rwlock == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
+
 	return pthread_rwlock_timedrdlock(rwlock, abs_timeout);
 }
 
@@ -335,6 +354,8 @@ pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	if (rwlock == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
+
 	return pthread_rwlock_timedwrlock(rwlock, abs_timeout);
 }
 
@@ -353,6 +374,8 @@ pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
 
 	return pthread_rwlock_tryrdlock(rwlock);
 }
@@ -373,6 +396,8 @@ pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	if (rwlock == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
+
 	return pthread_rwlock_trywrlock(rwlock);
 }
 
@@ -389,6 +414,8 @@ pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)rwlock % util_alignof(pthread_rwlock_t), 0);
 
 	return pthread_rwlock_unlock(rwlock);
 }
@@ -425,6 +452,8 @@ pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
 	if (cond == NULL)
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)cond % util_alignof(pthread_cond_t), 0);
+
 	return pthread_cond_broadcast(cond);
 }
 
@@ -443,6 +472,8 @@ pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
 	pthread_cond_t *cond = GET_COND(pop, condip);
 	if (cond == NULL)
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)cond % util_alignof(pthread_cond_t), 0);
 
 	return pthread_cond_signal(cond);
 }
@@ -468,6 +499,9 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 	if ((cond == NULL) || (mutex == NULL))
 		return EINVAL;
 
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
+	ASSERTeq((uintptr_t)cond % util_alignof(pthread_cond_t), 0);
+
 	return pthread_cond_timedwait(cond, mutex, abs_timeout);
 }
 
@@ -489,6 +523,9 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
 	if ((cond == NULL) || (mutex == NULL))
 		return EINVAL;
+
+	ASSERTeq((uintptr_t)mutex % util_alignof(pthread_mutex_t), 0);
+	ASSERTeq((uintptr_t)cond % util_alignof(pthread_cond_t), 0);
 
 	return pthread_cond_wait(cond, mutex);
 }
