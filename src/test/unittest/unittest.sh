@@ -2139,7 +2139,6 @@ function init_rpmem_on_node() {
 	export_vars_node $master PMEMPOOL_LOG_LEVEL
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
-	require_node_log_files $slave rpmemd$UNITTEST_NUM.log
 	require_node_log_files $master $PMEMOBJ_LOG_FILE
 
 	# Workaround for SIGSEGV in the infinipath-psm during abort
