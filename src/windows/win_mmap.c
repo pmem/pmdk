@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2016, Intel Corporation
  * Copyright (c) 2015-2016, Microsoft Corporation. All rights reserved.
+ * Copyright (c) 2016, Hewlett Packard Enterprise Development LP
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,9 +72,54 @@ unsigned long long Mmap_align;
 /* page size */
 unsigned long long Pagesize;
 
-HANDLE FileMappingQMutex = NULL;
+HANDLE FileMappingQMutex = INVALID_HANDLE_VALUE;
 struct FMLHead FileMappingQHead =
 	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
+
+/*
+ * LockFileMappingQ -- (internal) acquires the mapping list mutex
+ *
+ * Note that this logic dove-tails with mmap_fini() to also detect
+ * race conditions around acquire while delete.
+ *
+ * Case 1: mmap_fini() fully called first - FileMappingQMutex will
+ *     be INVALID_HANDLE_VALUE and the WaitForSingleObject will fail.
+ * Case 2: mmap_fini() runs while this thread is blocked
+ *     in WaitForSingleObject - We will detect
+ *     FileMappingQMutex == INVALID_HANDLE_VALUE
+ *     E.g., Lock() by Thrd1, Thrd2 Lock by mmap_fini (blocked),
+ *     Thrd3 Lock (blocked); eventually map_fini runs before Thrd3.
+ * Case 3: Call to acquire is made before call to mmap_init or after map_fini.
+ *
+ * Note: WAIT_ABANDONED is treated as fatal, as no assumptions can be made
+ *     about the consistency of FileMappingQHead or its link list elements.
+ */
+static BOOL
+LockFileMappingQ(void)
+{
+	HANDLE Mutex = FileMappingQMutex;
+
+	DWORD ret = WaitForSingleObject(FileMappingQMutex, INFINITE);
+	if (ret != WAIT_OBJECT_0)
+		FATAL("WaitForSingleObject failed");
+
+	if (FileMappingQMutex == INVALID_HANDLE_VALUE) {
+		ERR("acquire-while-delete race error");
+		ReleaseMutex(Mutex);
+		return FALSE; /* XXX - FATAL() */
+	}
+
+	return TRUE;
+}
+
+/*
+ * UnlockFileMappingQ -- (internal) releases the mapping list mutex
+ */
+static BOOL
+UnlockFileMappingQ(void)
+{
+	return ReleaseMutex(FileMappingQMutex);
+}
 
 /*
  * mmap_file_mapping_comparer -- (internal) compares the two file mapping
@@ -93,14 +139,33 @@ mmap_file_mapping_comparer(PFILE_MAPPING_TRACKER a, PFILE_MAPPING_TRACKER b)
 static void
 mmap_init(void)
 {
-	SORTEDQ_INIT(&FileMappingQHead);
+	if (FileMappingQMutex != INVALID_HANDLE_VALUE)
+		FATAL("multiple calls to mmap_init()");
 
-	FileMappingQMutex = CreateMutex(NULL, FALSE, NULL);
+	HANDLE Mutex = CreateMutex(NULL, TRUE, NULL);
+	if (Mutex == INVALID_HANDLE_VALUE)
+		FATAL("CreateMutex failed");
+
+#ifdef C_ASSERT
+	C_ASSERT(sizeof(HANDLE) == sizeof(LONG64));
+#endif
+
+	LONG64 ret = InterlockedCompareExchange64(
+			(PLONG64)&FileMappingQMutex,
+			(LONG64)Mutex, (LONG64)INVALID_HANDLE_VALUE);
+	if (ret != (LONG64)INVALID_HANDLE_VALUE) {
+		CloseHandle(Mutex);
+		FATAL("multiple calls to mmap_init()");
+	}
 
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 	Mmap_align = si.dwAllocationGranularity;
 	Pagesize = si.dwPageSize;
+
+	SORTEDQ_INIT(&FileMappingQHead);
+
+	UnlockFileMappingQ();
 }
 
 /*
@@ -111,17 +176,15 @@ mmap_init(void)
 static void
 mmap_fini(void)
 {
-	if (FileMappingQMutex == NULL)
-		return;
+	ASSERTne(FileMappingQMutex, INVALID_HANDLE_VALUE);
 
 	/*
 	 * Let's make sure that no one is in the middle of updating the
-	 * list by grabbing the lock.  There is still a race condition
-	 * with someone coming in while we're tearing it down and trying
+	 * list by grabbing the lock.
 	 */
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
-	ReleaseMutex(FileMappingQMutex);
-	CloseHandle(FileMappingQMutex);
+	HANDLE Mutex = FileMappingQMutex;
+	if (!LockFileMappingQ())
+		return; /* XXX - FATAL() */
 
 	while (!SORTEDQ_EMPTY(&FileMappingQHead)) {
 		PFILE_MAPPING_TRACKER mt;
@@ -140,6 +203,10 @@ mmap_fini(void)
 
 		free(mt);
 	}
+
+	FileMappingQMutex = INVALID_HANDLE_VALUE;
+	ReleaseMutex(Mutex);
+	CloseHandle(Mutex);
 }
 
 #define PROT_ALL (PROT_READ|PROT_WRITE|PROT_EXEC)
@@ -456,10 +523,16 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			GetLastError());
 	}
 
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
-	SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry, FILE_MAPPING_TRACKER,
-		mmap_file_mapping_comparer);
-	ReleaseMutex(FileMappingQMutex);
+	if (!LockFileMappingQ()) {
+		ERR("cannot lock mapping list");
+		errno = EBUSY;
+		return MAP_FAILED; /* XXX - clean up */
+	}
+
+	SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
+			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
+
+	UnlockFileMappingQ();
 
 	return base;
 }
@@ -665,7 +738,11 @@ munmap(void *addr, size_t len)
 	void *begin = addr;
 	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	if (!LockFileMappingQ()) {
+		ERR("cannot lock mapping list");
+		errno = EBUSY;
+		return -1;
+	}
 
 	PFILE_MAPPING_TRACKER mt;
 	PFILE_MAPPING_TRACKER next;
@@ -718,7 +795,7 @@ munmap(void *addr, size_t len)
 	retval = 0;
 
 err:
-	ReleaseMutex(FileMappingQMutex);
+	UnlockFileMappingQ();
 
 	if (retval == -1)
 		errno = EINVAL;
@@ -773,7 +850,11 @@ msync(void *addr, size_t len, int flags)
 	void *begin = addr;
 	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	if (!LockFileMappingQ()) {
+		ERR("cannot lock mapping list");
+		errno = EBUSY;
+		return -1;
+	}
 
 	PFILE_MAPPING_TRACKER mt;
 	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
@@ -821,7 +902,7 @@ msync(void *addr, size_t len, int flags)
 	}
 
 err:
-	ReleaseMutex(FileMappingQMutex);
+	UnlockFileMappingQ();
 	return retval;
 }
 
@@ -874,7 +955,11 @@ mprotect(void *addr, size_t len, int prot)
 	void *begin = addr;
 	void *end = (void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	if (!LockFileMappingQ()) {
+		ERR("cannot lock mapping list");
+		errno = EBUSY;
+		return -1;
+	}
 
 	PFILE_MAPPING_TRACKER mt;
 	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
@@ -926,7 +1011,7 @@ mprotect(void *addr, size_t len, int prot)
 	}
 
 err:
-	ReleaseMutex(FileMappingQMutex);
+	UnlockFileMappingQ();
 	return retval;
 }
 
