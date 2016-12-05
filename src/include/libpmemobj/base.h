@@ -187,8 +187,8 @@ void pmemobj_drain(PMEMobjpool *pop);
  * verify that the version available at run-time is compatible with the version
  * used at compile-time by passing these defines to pmemobj_check_version().
  */
-#define PMEMOBJ_MAJOR_VERSION 1
-#define PMEMOBJ_MINOR_VERSION 1
+#define PMEMOBJ_MAJOR_VERSION 2
+#define PMEMOBJ_MINOR_VERSION 0
 const char *pmemobj_check_version(
 		unsigned major_required,
 		unsigned minor_required);

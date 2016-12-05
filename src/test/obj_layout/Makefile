@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,48 +31,12 @@
 #
 
 #
-# src/test/obj_convert/common.sh -- common part of conversion tool tests
+# src/test/obj_layout/Makefile -- build layout unit test
 #
+TARGET = obj_layout
+OBJS = obj_layout.o
 
-# exits in the middle of transaction, so pool cannot be closed
-export MEMCHECK_DONT_CHECK_LEAKS=1
+LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
-verify_scenario() {
-	# convert tool always ask for confirmation, so say yes ;)
-	echo -e "y\ny\n" | expect_normal_exit\
-		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
-	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
-
-	echo -e "y\ny\n" | expect_normal_exit\
-		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
-	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
-}
-
-create_scenario() {
-	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
-		--command=trip_on_pre_commit.gdb --args\
-		./obj_convert$EXESUFFIX $DIR/scenario$1a c $1 &> /dev/null
-
-	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
-		--command=trip_on_post_commit.gdb --args\
-		./obj_convert$EXESUFFIX $DIR/scenario$1c c $1 &> /dev/null
-}
-
-run_scenarios() {
-	sc=("$@")
-
-	if [ -z ${PATH_TO_1_0_DBG+x} ];
-	then
-		tar -xzf pools.tar.gz -C $DIR
-	else
-		for i in "${sc[@]}"
-		do
-			create_scenario $i
-		done
-	fi
-
-	for i in "${sc[@]}"
-	do
-		verify_scenario $i
-	done
-}
+include ../Makefile.inc

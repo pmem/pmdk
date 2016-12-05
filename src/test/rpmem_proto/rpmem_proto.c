@@ -42,32 +42,6 @@
 #include "librpmem.h"
 #include "rpmem_proto.h"
 
-#define STR(x)	#x
-
-#define ASSERT_ALIGNED_BEGIN(type) do {\
-size_t off = 0;\
-const char *last = "(none)";\
-type t;\
-
-#define ASSERT_ALIGNED_FIELD(type, field) do {\
-if (0)\
-	UT_OUT("%s.%s\t\t: offset %lu real offset %lu",\
-		STR(type), STR(field), off, offsetof(type, field));\
-if (offsetof(type, field) != off)\
-	UT_FATAL("%s: padding, missing field or fields not in order between "\
-		"'%s' and '%s' -- offset %lu, real offset %lu",\
-		STR(type), last, STR(field), off, offsetof(type, field));\
-off += sizeof(t.field);\
-last = STR(field);\
-} while (0)
-
-#define ASSERT_ALIGNED_CHECK(type)\
-if (off != sizeof(type))\
-	UT_FATAL("%s: missing field or padding after '%s': "\
-		"sizeof(%s) = %lu, fields size = %lu",\
-		STR(type), last, STR(type), sizeof(type), off);\
-} while (0)
-
 int
 main(int argc, char *argv[])
 {
