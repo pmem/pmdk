@@ -87,6 +87,9 @@
       <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pmempool.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -145,6 +148,9 @@
       <Command>
       </Command>
     </PreBuildEvent>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
