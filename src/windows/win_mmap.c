@@ -135,6 +135,9 @@ mmap_fini(void)
 		if (mt->FileMappingHandle != NULL)
 			CloseHandle(mt->FileMappingHandle);
 
+		if (mt->FileHandle != NULL)
+			CloseHandle(mt->FileHandle);
+
 		free(mt);
 	}
 }
