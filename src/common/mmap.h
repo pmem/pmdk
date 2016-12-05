@@ -36,6 +36,9 @@
 
 #ifndef NVML_MMAP_H
 #define NVML_MMAP_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -104,4 +107,7 @@ util_map_hint_align(size_t len, size_t req_align)
 	return align;
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif

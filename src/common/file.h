@@ -36,11 +36,35 @@
 
 #ifndef NVML_FILE_H
 #define NVML_FILE_H 1
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <stddef.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 
+#define MAX_NAME 260 /* max from linux 255 and windows 260 */
+
+struct file_info {
+	char filename[MAX_NAME];
+	int is_dir;
+};
+
+struct dir_handle {
+	const char *path;
+#ifdef _WIN32
+	HANDLE handle;
+	char *_file;
+#else
+	DIR *dirp;
+#endif
+};
+
+int util_file_dir_open(struct dir_handle *a, const char *path);
+int util_file_dir_next(struct dir_handle *a, struct file_info *info);
+int util_file_dir_close(struct dir_handle *a);
+int util_file_dir_remove(const char *path);
 int util_file_is_device_dax(const char *path);
 ssize_t util_file_get_size(const char *path);
 void *util_file_map_whole(const char *path);
@@ -56,6 +80,7 @@ int util_is_absolute_path(const char *path);
 int util_file_create(const char *path, size_t size, size_t minsize);
 int util_file_open(const char *path, size_t *size, size_t minsize, int flags);
 int util_unlink(const char *path);
+int util_file_mkdir(const char *path, mode_t mode);
 
 #ifndef _WIN32
 typedef struct stat util_stat_t;
@@ -74,5 +99,7 @@ typedef struct _stat64 util_stat_t;
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #endif
-
+#ifdef __cplusplus
+}
+#endif
 #endif
