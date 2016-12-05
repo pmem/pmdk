@@ -179,9 +179,6 @@ any of the following arguments (not a definitive list) to 'configure':
     Specify where to find DocBook XSL stylesheets when building the
     documentation.
 
---with-relative-path=<path>
-	Path to generated jemalloc headers
-
 The following environment variables (not a definitive list) impact configure's
 behavior:
 
@@ -318,7 +315,6 @@ How to build jemalloc for Windows
 		--with-private-namespace=je_vmem_
 		--disable-xmalloc
 		--disable-munmap
-		--with-relative-path=/../windows/jemalloc_gen
 		EXTRA_CFLAGS="-DJEMALLOC_LIBVMEM""
 
 6. Now the project can be opened and built in Visual Studio:

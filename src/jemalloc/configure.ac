@@ -41,18 +41,6 @@ AC_CACHE_CHECK([whether $1 is compilable],
                                [$4=no])])
 ])
 
-dnl Base path to generated jemalloc headers
-
-AC_ARG_WITH([relative_path],
-  [AS_HELP_STRING([--with-relative-path], [Path to generated jemalloc headers])],
-  [RELATIVE_PATH="$with_relative_path"],
-  [RELATIVE_PATH=]
-)
-relative_path="$RELATIVE_PATH"
-AC_SUBST([relative_path])
-	path_base="${srcdir}${relative_path}/include/jemalloc"
-	path_base_internal="${path_base}/internal"
-
 dnl ============================================================================
 
 dnl Library revision.
@@ -567,10 +555,10 @@ cfgoutputs_out="Makefile"
 cfgoutputs_out="${cfgoutputs_out} doc/html.xsl"
 cfgoutputs_out="${cfgoutputs_out} doc/manpages.xsl"
 cfgoutputs_out="${cfgoutputs_out} doc/jemalloc.xml"
-cfgoutputs_out="${cfgoutputs_out} ${path_base}/jemalloc_macros.h"
-cfgoutputs_out="${cfgoutputs_out} ${path_base}/jemalloc_protos.h"
-cfgoutputs_out="${cfgoutputs_out} ${path_base}/jemalloc_typedefs.h"
-cfgoutputs_out="${cfgoutputs_out} ${path_base_internal}/jemalloc_internal.h"
+cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_macros.h"
+cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_protos.h"
+cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_typedefs.h"
+cfgoutputs_out="${cfgoutputs_out} include/jemalloc/internal/jemalloc_internal.h"
 cfgoutputs_out="${cfgoutputs_out} test/test.sh"
 cfgoutputs_out="${cfgoutputs_out} test/include/test/jemalloc_test.h"
 
@@ -578,10 +566,10 @@ cfgoutputs_tup="Makefile"
 cfgoutputs_tup="${cfgoutputs_tup} doc/html.xsl:doc/html.xsl.in"
 cfgoutputs_tup="${cfgoutputs_tup} doc/manpages.xsl:doc/manpages.xsl.in"
 cfgoutputs_tup="${cfgoutputs_tup} doc/jemalloc.xml:doc/jemalloc.xml.in"
-cfgoutputs_tup="${cfgoutputs_tup} ${path_base}/jemalloc_macros.h:include/jemalloc/jemalloc_macros.h.in"
-cfgoutputs_tup="${cfgoutputs_tup} ${path_base}/jemalloc_protos.h:include/jemalloc/jemalloc_protos.h.in"
-cfgoutputs_tup="${cfgoutputs_tup} ${path_base}/jemalloc_typedefs.h:include/jemalloc/jemalloc_typedefs.h.in"
-cfgoutputs_tup="${cfgoutputs_tup} ${path_base_internal}/jemalloc_internal.h:include/jemalloc/internal/jemalloc_internal.h.in"
+cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_macros.h:include/jemalloc/jemalloc_macros.h.in"
+cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_protos.h:include/jemalloc/jemalloc_protos.h.in"
+cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_typedefs.h:include/jemalloc/jemalloc_typedefs.h.in"
+cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/internal/jemalloc_internal.h"
 cfgoutputs_tup="${cfgoutputs_tup} test/test.sh:test/test.sh.in"
 cfgoutputs_tup="${cfgoutputs_tup} test/include/test/jemalloc_test.h:test/include/test/jemalloc_test.h.in"
 
@@ -599,31 +587,23 @@ cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc.sh"
 cfghdrs_in="${cfghdrs_in} test/include/test/jemalloc_test_defs.h.in"
 
 cfghdrs_out="include/jemalloc/jemalloc_defs.h"
-cfghdrs_out="${cfghdrs_out} ${path_base}/jemalloc${install_suffix}.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc${install_suffix}.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/private_namespace.h"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/private_unnamespace.h"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/public_symbols.txt"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/public_namespace.h"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/public_unnamespace.h"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/size_classes.h"
-cfghdrs_out="${cfghdrs_out} ${path_base}/jemalloc_protos_jet.h"
-cfghdrs_out="${cfghdrs_out} ${path_base}/jemalloc_rename.h"
-cfghdrs_out="${cfghdrs_out} ${path_base}/jemalloc_mangle.h"
-cfghdrs_out="${cfghdrs_out} ${path_base}/jemalloc_mangle_jet.h"
-cfghdrs_out="${cfghdrs_out} ${path_base_internal}/jemalloc_internal_defs.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/private_unnamespace.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_symbols.txt"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_namespace.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/public_unnamespace.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/size_classes.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_protos_jet.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_rename.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_mangle.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc_mangle_jet.h"
+cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/jemalloc_internal_defs.h"
 cfghdrs_out="${cfghdrs_out} test/include/test/jemalloc_test_defs.h"
 
-cfghdrs_tup="${path_base}/jemalloc_defs.h:include/jemalloc/jemalloc_defs.h.in"
-cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/jemalloc_internal_defs.h:include/jemalloc/internal/jemalloc_internal_defs.h.in"
+cfghdrs_tup="include/jemalloc/jemalloc_defs.h:include/jemalloc/jemalloc_defs.h.in"
+cfghdrs_tup="${cfghdrs_tup} include/jemalloc/internal/jemalloc_internal_defs.h:include/jemalloc/internal/jemalloc_internal_defs.h.in"
 cfghdrs_tup="${cfghdrs_tup} test/include/test/jemalloc_test_defs.h:test/include/test/jemalloc_test_defs.h.in"
-dnl cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/private_namespace.h:include/jemalloc/internal/private_namespace.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/private_unnamespace.h:include/jemalloc/internal/private_unnamespace.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/public_namespace.h:include/jemalloc/internal/public_namespace.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/public_unnamespace.h:include/jemalloc/internal/public_unnamespace.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base_internal}/size_classes.h:include/jemalloc/internal/size_classes.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base}/jemalloc_rename.h:include/jemalloc/jemalloc_rename.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base}/jemalloc_mangle.h:include/jemalloc/jemalloc_mangle.sh"
-cfghdrs_tup="${cfghdrs_tup} ${path_base}/jemalloc.h:include/jemalloc/jemalloc.sh"
 
 dnl Silence irrelevant compiler warnings by default.
 AC_ARG_ENABLE([cc-silence],
@@ -1373,19 +1353,19 @@ AC_HEADER_STDBOOL
 dnl ============================================================================
 dnl Define commands that generate output files.
 
-AC_CONFIG_COMMANDS([${path_base_internal}/private_namespace.h], [
-  mkdir -p "${path_base_internal}"
-  "${srcdir}/include/jemalloc/internal/private_namespace.sh" "${srcdir}/include/jemalloc/internal/private_symbols.txt" > "${path_base_internal}/private_namespace.h"
+AC_CONFIG_COMMANDS([include/jemalloc/internal/private_namespace.h], [
+  mkdir -p "${objroot}include/jemalloc/internal"
+  "${srcdir}/include/jemalloc/internal/private_namespace.sh" "${srcdir}/include/jemalloc/internal/private_symbols.txt" > "${objroot}include/jemalloc/internal/private_namespace.h"
 ], [
-  path_base_internal="${path_base_internal}"
   srcdir="${srcdir}"
+  objroot="${objroot}"
 ])
-AC_CONFIG_COMMANDS([${path_base_internal}/private_unnamespace.h], [
-  mkdir -p "${path_base_internal}"
-  "${srcdir}/include/jemalloc/internal/private_unnamespace.sh" "${srcdir}/include/jemalloc/internal/private_symbols.txt" > "${path_base_internal}/private_unnamespace.h"
+AC_CONFIG_COMMANDS([include/jemalloc/internal/private_unnamespace.h], [
+  mkdir -p "${objroot}include/jemalloc/internal"
+  "${srcdir}/include/jemalloc/internal/private_unnamespace.sh" "${srcdir}/include/jemalloc/internal/private_symbols.txt" > "${objroot}include/jemalloc/internal/private_unnamespace.h"
 ], [
-  path_base_internal="${path_base_internal}"
   srcdir="${srcdir}"
+  objroot="${objroot}"
 ])
 AC_CONFIG_COMMANDS([include/jemalloc/internal/public_symbols.txt], [
   f="${objroot}include/jemalloc/internal/public_symbols.txt"
@@ -1409,69 +1389,63 @@ AC_CONFIG_COMMANDS([include/jemalloc/internal/public_symbols.txt], [
   mangling_map="${mangling_map}"
   public_syms="${public_syms}"
   JEMALLOC_PREFIX="${JEMALLOC_PREFIX}"
-  path_base_internal="${path_base_internal}"
 ])
-
-AC_CONFIG_COMMANDS([${path_base_internal}/public_namespace.h], [
-  mkdir -p "${path_base_internal}"
-  "${srcdir}/include/jemalloc/internal/public_namespace.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${path_base_internal}/public_namespace.h"
-], [
-  srcdir="${srcdir}"
-  path_base_internal="${path_base_internal}"
-])
-AC_CONFIG_COMMANDS([${path_base_internal}/public_unnamespace.h], [
-  mkdir -p "${objroot}${path_base_internal}"
-  "${srcdir}/include/jemalloc/internal/public_unnamespace.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${path_base_internal}/public_unnamespace.h"
+AC_CONFIG_COMMANDS([include/jemalloc/internal/public_namespace.h], [
+  mkdir -p "${objroot}include/jemalloc/internal"
+  "${srcdir}/include/jemalloc/internal/public_namespace.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${objroot}include/jemalloc/internal/public_namespace.h"
 ], [
   srcdir="${srcdir}"
   objroot="${objroot}"
-  path_base_internal="${path_base_internal}"
 ])
-AC_CONFIG_COMMANDS([${path_base_internal}/size_classes.h], [
-  mkdir -p "${path_base_internal}"
-  "${srcdir}/include/jemalloc/internal/size_classes.sh" > "${path_base_internal}/size_classes.h"
-], [
-  srcdir="${srcdir}"
-  path_base_internal="${path_base_internal}"
-])
-AC_CONFIG_COMMANDS([${path_base}/jemalloc_protos_jet.h], [
-  mkdir -p "${path_base}"
-  cat "${srcdir}/include/jemalloc/jemalloc_protos.h.in" | sed -e 's/@je_@/jet_/g' > "${path_base}/jemalloc_protos_jet.h"
-], [
-  srcdir="${srcdir}"
-  path_base="${path_base}"
-])
-AC_CONFIG_COMMANDS([${path_base}/jemalloc_rename.h], [
-  mkdir -p "${path_base}"
-  "${srcdir}/include/jemalloc/jemalloc_rename.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${path_base}/jemalloc_rename.h"
+AC_CONFIG_COMMANDS([include/jemalloc/internal/public_unnamespace.h], [
+  mkdir -p "${objroot}include/jemalloc/internal"
+  "${srcdir}/include/jemalloc/internal/public_unnamespace.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${objroot}include/jemalloc/internal/public_unnamespace.h"
 ], [
   srcdir="${srcdir}"
   objroot="${objroot}"
-  path_base="${path_base}"
 ])
-AC_CONFIG_COMMANDS([${path_base}/jemalloc_mangle.h], [
-  mkdir -p "${path_base}"
-  "${srcdir}/include/jemalloc/jemalloc_mangle.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" je_ > "${path_base}/jemalloc_mangle.h"
+AC_CONFIG_COMMANDS([include/jemalloc/internal/size_classes.h], [
+  mkdir -p "${objroot}include/jemalloc/internal"
+  "${srcdir}/include/jemalloc/internal/size_classes.sh" > "${objroot}include/jemalloc/internal/size_classes.h"
 ], [
   srcdir="${srcdir}"
   objroot="${objroot}"
-  path_base="${path_base}"
 ])
-AC_CONFIG_COMMANDS([${path_base}/jemalloc_mangle_jet.h], [
-  mkdir -p "${path_base}"
-  "${srcdir}/include/jemalloc/jemalloc_mangle.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" jet_ > "${path_base}/jemalloc_mangle_jet.h"
+AC_CONFIG_COMMANDS([include/jemalloc/jemalloc_protos_jet.h], [
+  mkdir -p "${objroot}include/jemalloc"
+  cat "${srcdir}/include/jemalloc/jemalloc_protos.h.in" | sed -e 's/@je_@/jet_/g' > "${objroot}include/jemalloc/jemalloc_protos_jet.h"
 ], [
   srcdir="${srcdir}"
   objroot="${objroot}"
-  path_base="${path_base}"
 ])
-AC_CONFIG_COMMANDS([${path_base}/jemalloc.h], [
-  mkdir -p "${path_base}"
-  "${srcdir}/include/jemalloc/jemalloc.sh" "${path_base}" > "${path_base}/jemalloc${install_suffix}.h"
+AC_CONFIG_COMMANDS([include/jemalloc/jemalloc_rename.h], [
+  mkdir -p "${objroot}include/jemalloc"
+  "${srcdir}/include/jemalloc/jemalloc_rename.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" > "${objroot}include/jemalloc/jemalloc_rename.h"
 ], [
   srcdir="${srcdir}"
+  objroot="${objroot}"
+])
+AC_CONFIG_COMMANDS([include/jemalloc/jemalloc_mangle.h], [
+  mkdir -p "${objroot}include/jemalloc"
+  "${srcdir}/include/jemalloc/jemalloc_mangle.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" je_ > "${objroot}include/jemalloc/jemalloc_mangle.h"
+], [
+  srcdir="${srcdir}"
+  objroot="${objroot}"
+])
+AC_CONFIG_COMMANDS([include/jemalloc/jemalloc_mangle_jet.h], [
+  mkdir -p "${objroot}include/jemalloc"
+  "${srcdir}/include/jemalloc/jemalloc_mangle.sh" "${objroot}include/jemalloc/internal/public_symbols.txt" jet_ > "${objroot}include/jemalloc/jemalloc_mangle_jet.h"
+], [
+  srcdir="${srcdir}"
+  objroot="${objroot}"
+])
+AC_CONFIG_COMMANDS([include/jemalloc/jemalloc.h], [
+  mkdir -p "${objroot}include/jemalloc"
+  "${srcdir}/include/jemalloc/jemalloc.sh" "${objroot}" > "${objroot}include/jemalloc/jemalloc${install_suffix}.h"
+], [
+  srcdir="${srcdir}"
+  objroot="${objroot}"
   install_suffix="${install_suffix}"
-  path_base="${path_base}"
 ])
 
 dnl Process .in files.
