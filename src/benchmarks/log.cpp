@@ -37,11 +37,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <fcntl.h>
 #include <errno.h>
 
 #include "libpmemlog.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 /*
  * Size of pool header, pool descriptor
@@ -95,72 +96,7 @@ struct log_bench
 };
 
 /* command line options definition */
-static struct benchmark_clo log_clo[] = {
-	{
-		.opt_short	= 'r',
-		.opt_long	= "random",
-		.descr		= "Use random sizes for append/read",
-		.off		= clo_field_offset(struct prog_args, rand),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'S',
-		.opt_long	= "seed",
-		.descr		= "Random mode",
-		.off		= clo_field_offset(struct prog_args, seed),
-		.def		= "1",
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct prog_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT_MAX,
-		}
-	},
-	{
-		.opt_short	= 'i',
-		.opt_long	= "file-io",
-		.descr		= "File I/O mode",
-		.off		= clo_field_offset(struct prog_args, fileio),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct prog_args, no_warmup),
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "min-size",
-		.descr		= "Minimum size of append/read for random mode",
-		.type		= CLO_TYPE_UINT,
-		.off		= clo_field_offset(struct prog_args, min_size),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct prog_args, min_size),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT64_MAX,
-		},
-	},
-	/* this one is only for log_append */
-	{
-		.opt_short	= 'v',
-		.opt_long	= "vector",
-		.descr		= "Vector size",
-		.off		= clo_field_offset(struct prog_args, vec_size),
-		.def		= "1",
-		.type		= CLO_TYPE_INT,
-		.type_int	= {
-			.size	= clo_field_size(struct prog_args, vec_size),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= MIN_VEC_SIZE,
-			.max	= INT_MAX
-		}
-	},
-};
+static struct benchmark_clo log_clo[6];
 
 /*
  * do_warmup -- do warmup by writing the whole pool area
@@ -170,7 +106,7 @@ do_warmup(struct log_bench *lb, size_t nops)
 {
 	int ret = 0;
 	size_t bsize = lb->args->vec_size * lb->args->el_size;
-	char *buf = calloc(1, bsize);
+	char *buf = (char *)calloc(1, bsize);
 	if (!buf) {
 		perror("calloc");
 		return -1;
@@ -190,8 +126,8 @@ do_warmup(struct log_bench *lb, size_t nops)
 
 	} else {
 		for (size_t i = 0; i < nops; i++) {
-			if (write(lb->fd, buf, lb->args->el_size) !=
-					lb->args->el_size) {
+			if (write(lb->fd, buf, (unsigned)lb->args->el_size) !=
+					(ssize_t)lb->args->el_size) {
 				ret = -1;
 				perror("write");
 				close(lb->fd);
@@ -214,10 +150,12 @@ out:
 static int
 log_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info = info->worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+			info->worker->priv;
+
 	assert(worker_info);
 
 	size_t size = lb->args->rand ?
@@ -238,10 +176,12 @@ log_append(struct benchmark *bench, struct operation_info *info)
 static int
 log_appendv(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info = info->worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+			info->worker->priv;
+
 	assert(worker_info);
 
 	struct iovec *iov = &worker_info->iov[info->index * lb->args->vec_size];
@@ -260,17 +200,19 @@ log_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 fileio_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info = info->worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+			info->worker->priv;
+
 	assert(worker_info);
 
 	size_t size = lb->args->rand ?
 		worker_info->rand_sizes[info->index] :
 		lb->args->el_size;
 
-	if (write(lb->fd, worker_info->buf, size) != size) {
+	if (write(lb->fd, worker_info->buf, (unsigned)size) != (ssize_t)size) {
 		perror("write");
 		return -1;
 	}
@@ -287,13 +229,15 @@ fileio_appendv(struct benchmark *bench, struct operation_info *info)
 	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb != NULL);
 
-	struct log_worker_info *worker_info = info->worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+			info->worker->priv;
+
 	assert(worker_info);
 
 	struct iovec *iov = &worker_info->iov[info->index * lb->args->vec_size];
 	size_t vec_size = worker_info->vec_sizes[info->index];
 
-	if (writev(lb->fd, iov, lb->args->vec_size) != vec_size) {
+	if (writev(lb->fd, iov, lb->args->vec_size) != (ssize_t)vec_size) {
 		perror("writev");
 		return -1;
 	}
@@ -307,7 +251,7 @@ fileio_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 log_process_data(const void *buf, size_t len, void *arg)
 {
-	struct log_worker_info *worker_info = arg;
+	struct log_worker_info *worker_info = (struct log_worker_info *)arg;
 	size_t left = worker_info->buf_size - worker_info->buf_ptr;
 	if (len > left) {
 		worker_info->buf_ptr = 0;
@@ -355,10 +299,12 @@ fileio_read(int fd, ssize_t len, struct log_worker_info *worker_info)
 static int
 log_read_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info = info->worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+			info->worker->priv;
+
 	assert(worker_info);
 
 	worker_info->buf_ptr = 0;
@@ -388,10 +334,11 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 	int ret = 0;
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	size_t i_size, n_vectors;
 	assert(lb);
 
-	struct log_worker_info *worker_info =
+	struct log_worker_info *worker_info = (struct log_worker_info *)
 		malloc(sizeof(struct log_worker_info));
 	if (!worker_info) {
 		perror("malloc");
@@ -400,7 +347,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	/* allocate buffer for append / read */
 	worker_info->buf_size = lb->args->el_size * lb->args->vec_size;
-	worker_info->buf = malloc(worker_info->buf_size);
+	worker_info->buf = (char *)malloc(worker_info->buf_size);
 	if (!worker_info->buf) {
 		perror("malloc");
 		ret = -1;
@@ -412,9 +359,9 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	 * random sizes. Otherwise there is only one vector with
 	 * equal sizes.
 	 */
-	size_t n_vectors = args->n_ops_per_thread;
-	worker_info->iov = malloc(n_vectors * lb->args->vec_size *
-			sizeof(struct iovec));
+	n_vectors = args->n_ops_per_thread;
+	worker_info->iov = (struct iovec *)malloc(n_vectors *
+			lb->args->vec_size * sizeof(struct iovec));
 	if (!worker_info->iov) {
 		perror("malloc");
 		ret = -1;
@@ -427,7 +374,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 		/* each vector element has its own random size */
 		uint64_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
-		worker_info->rand_sizes = malloc(n_sizes *
+		worker_info->rand_sizes = (size_t *)malloc(n_sizes *
 				sizeof(*worker_info->rand_sizes));
 		if (!worker_info->rand_sizes) {
 			perror("malloc");
@@ -448,7 +395,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		worker_info->rand_sizes = NULL;
 	}
 
-	worker_info->vec_sizes = calloc(args->n_ops_per_thread,
+	worker_info->vec_sizes = (size_t *)calloc(args->n_ops_per_thread,
 			sizeof(*worker_info->vec_sizes));
 	if (!worker_info->vec_sizes) {
 		perror("malloc\n");
@@ -457,7 +404,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	/* fill up the io vectors */
-	size_t i_size = 0;
+	i_size = 0;
 	for (size_t n = 0; n < args->n_ops_per_thread; n++) {
 		size_t buf_ptr = 0;
 		size_t vec_off = n * lb->args->vec_size;
@@ -500,7 +447,8 @@ log_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 
-	struct log_worker_info *worker_info = worker->priv;
+	struct log_worker_info *worker_info = (struct log_worker_info *)
+						worker->priv;
 	assert(worker_info);
 
 	free(worker_info->buf);
@@ -520,14 +468,16 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench);
 	assert(args != NULL);
 	assert(args->opts != NULL);
+	struct benchmark_info *bench_info;
+	struct log_bench *lb = (struct log_bench *)
+					malloc(sizeof(struct log_bench));
 
-	struct log_bench *lb = malloc(sizeof(struct log_bench));
 	if (!lb) {
 		perror("malloc");
 		return -1;
 	}
 
-	lb->args = args->opts;
+	lb->args = (struct prog_args *)args->opts;
 	lb->args->el_size = args->dsize;
 
 	if (lb->args->vec_size == 0)
@@ -544,9 +494,9 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 			lb->args->min_size == lb->args->el_size)
 		lb->args->rand = false;
 
-	lb->psize = POOL_HDR_SIZE
+	lb->psize = MMAP_ALIGN_UP(POOL_HDR_SIZE
 		+ args->n_ops_per_thread * args->n_threads
-		* lb->args->vec_size * lb->args->el_size;
+		* lb->args->vec_size * lb->args->el_size);
 
 	/* calculate a required pool size */
 	if (lb->psize < PMEMLOG_MIN_POOL)
@@ -562,7 +512,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		lb->psize = 0;
 	}
 
-	struct benchmark_info *bench_info = pmembench_get_info(bench);
+	bench_info = pmembench_get_info(bench);
 
 	if (!lb->args->fileio) {
 		if ((lb->plp = pmemlog_create(args->fname,
@@ -624,7 +574,7 @@ err_free_lb:
 static int
 log_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct log_bench *lb = pmembench_get_priv(bench);
+	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
 
 	if (!lb->args->fileio)
 		pmemlog_close(lb->plp);
@@ -637,42 +587,98 @@ log_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* log_append benchmark info */
-static struct benchmark_info log_append_info = {
-	.name		= "log_append",
-	.brief		= "Benchmark for pmemlog_append() operation",
-	.init		= log_init,
-	.exit		= log_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= log_init_worker,
-	.free_worker	= log_free_worker,
-	.operation	= NULL, /* this will be assigned in log_init */
-	.measure_time	= true,
-	.clos		= log_clo,
-	.nclos		= ARRAY_SIZE(log_clo),
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-
+static struct benchmark_info log_append_info;
 /* log_read benchmark info */
-static struct benchmark_info log_read_info = {
-	.name		= "log_read",
-	.brief		= "Benchmark for pmemlog_walk() operation",
-	.init		= log_init,
-	.exit		= log_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= log_init_worker,
-	.free_worker	= log_free_worker,
-	.operation	= log_read_op,
-	.measure_time	= true,
-	.clos		= log_clo,
-	.nclos		= ARRAY_SIZE(log_clo) - 1, /* without vector */
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+static struct benchmark_info log_read_info;
 
-REGISTER_BENCHMARK(log_append_info);
-REGISTER_BENCHMARK(log_read_info);
+CONSTRUCTOR(log_costructor)
+void
+log_costructor(void)
+{
+	log_clo[0].opt_short = 'r';
+	log_clo[0].opt_long = "random";
+	log_clo[0].descr = "Use random sizes for append/read";
+	log_clo[0].off = clo_field_offset(struct prog_args, rand);
+	log_clo[0].type = CLO_TYPE_FLAG;
+
+	log_clo[1].opt_short = 'S';
+	log_clo[1].opt_long = "seed";
+	log_clo[1].descr = "Random mode";
+	log_clo[1].off = clo_field_offset(struct prog_args, seed);
+	log_clo[1].def = "1";
+	log_clo[1].type = CLO_TYPE_UINT;
+	log_clo[1].type_uint.size = clo_field_size(struct prog_args, seed);
+	log_clo[1].type_uint.base = CLO_INT_BASE_DEC;
+	log_clo[1].type_uint.min = 1;
+	log_clo[1].type_uint.max = UINT_MAX;
+
+	log_clo[2].opt_short = 'i';
+	log_clo[2].opt_long = "file-io";
+	log_clo[2].descr = "File I/O mode";
+	log_clo[2].off = clo_field_offset(struct prog_args, fileio);
+	log_clo[2].type = CLO_TYPE_FLAG;
+
+	log_clo[3].opt_short = 'w',
+	log_clo[3].opt_long = "no-warmup",
+	log_clo[3].descr = "Don't do warmup",
+	log_clo[3].type = CLO_TYPE_FLAG,
+	log_clo[3].off = clo_field_offset(struct prog_args, no_warmup),
+
+	log_clo[4].opt_short = 'm',
+	log_clo[4].opt_long = "min-size",
+	log_clo[4].descr = "Minimum size of append/read for random mode",
+	log_clo[4].type = CLO_TYPE_UINT;
+	log_clo[4].off = clo_field_offset(struct prog_args, min_size);
+	log_clo[4].def = "1";
+	log_clo[4].type_uint.size = clo_field_size(struct prog_args, min_size);
+	log_clo[4].type_uint.base = CLO_INT_BASE_DEC;
+	log_clo[4].type_uint.min = 1;
+	log_clo[4].type_uint.max = UINT64_MAX;
+
+	/* this one is only for log_append */
+	log_clo[5].opt_short = 'v';
+	log_clo[5].opt_long = "vector";
+	log_clo[5].descr = "Vector size";
+	log_clo[5].off = clo_field_offset(struct prog_args, vec_size);
+	log_clo[5].def = "1";
+	log_clo[5].type = CLO_TYPE_INT;
+	log_clo[5].type_int.size = clo_field_size(struct prog_args, vec_size);
+	log_clo[5].type_int.base = CLO_INT_BASE_DEC;
+	log_clo[5].type_int.min = MIN_VEC_SIZE;
+	log_clo[5].type_int.max = INT_MAX;
+
+	log_append_info.name = "log_append";
+	log_append_info.brief = "Benchmark for pmemlog_append() operation";
+	log_append_info.init = log_init;
+	log_append_info.exit = log_exit;
+	log_append_info.multithread = true;
+	log_append_info.multiops = true;
+	log_append_info.init_worker = log_init_worker;
+	log_append_info.free_worker = log_free_worker;
+	/* this will be assigned in log_init */
+	log_append_info.operation = NULL;
+	log_append_info.measure_time = true;
+	log_append_info.clos = log_clo;
+	log_append_info.nclos = ARRAY_SIZE(log_clo);
+	log_append_info.opts_size = sizeof(struct prog_args);
+	log_append_info.rm_file = true;
+	log_append_info.allow_poolset = true;
+	REGISTER_BENCHMARK(log_append_info);
+
+	log_read_info.name = "log_read";
+	log_read_info.brief = "Benchmark for pmemlog_walk() operation";
+	log_read_info.init = log_init;
+	log_read_info.exit = log_exit;
+	log_read_info.multithread = true;
+	log_read_info.multiops = true;
+	log_read_info.init_worker = log_init_worker;
+	log_read_info.free_worker = log_free_worker;
+	log_read_info.operation = log_read_op;
+	log_read_info.measure_time = true;
+	log_read_info.clos = log_clo;
+	log_read_info.nclos = ARRAY_SIZE(log_clo) - 1; /* without vector */
+	log_read_info.opts_size = sizeof(struct prog_args);
+	log_read_info.rm_file = true;
+	log_read_info.allow_poolset = true;
+	REGISTER_BENCHMARK(log_read_info);
+};

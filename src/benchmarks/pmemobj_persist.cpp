@@ -86,16 +86,7 @@ struct obj_bench {
 	int const_b;			/* memset() value */
 };
 
-static struct benchmark_clo obj_persist_clo[] = {
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.def		= false,
-		.type		= CLO_TYPE_FLAG,
-		.off	= clo_field_offset(struct prog_args, no_warmup),
-	},
-};
+static struct benchmark_clo obj_persist_clo[1];
 
 /*
  * init_objects -- allocate persistent objects and obtain direct pointers
@@ -103,13 +94,13 @@ static struct benchmark_clo obj_persist_clo[] = {
 static int
 init_objects(struct obj_bench *ob)
 {
-	ob->oids = malloc(ob->nobjs * sizeof(*ob->oids));
+	ob->oids = (PMEMoid *)malloc(ob->nobjs * sizeof(*ob->oids));
 	if (!ob->oids) {
 		perror("malloc");
 		return -1;
 	}
 
-	ob->ptrs = malloc(ob->nobjs * sizeof(*ob->ptrs));
+	ob->ptrs = (void **)malloc(ob->nobjs * sizeof(*ob->ptrs));
 	if (!ob->ptrs) {
 		perror("malloc");
 		goto err_malloc;
@@ -188,7 +179,8 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob = malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob = (struct obj_bench *)
+			malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -256,7 +248,7 @@ free_ob:
 static int
 obj_persist_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (uint64_t i = 0; i < ob->nobjs; ++i) {
 		pmemobj_free(&ob->oids[i]);
@@ -271,20 +263,30 @@ obj_persist_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* Stores information about benchmark. */
-static struct benchmark_info obj_persist_info = {
-	.name		= "pmemobj_persist",
-	.brief		= "Benchmark for pmemobj_persist() operation",
-	.init		= obj_persist_init,
-	.exit		= obj_persist_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= obj_persist_op,
-	.measure_time	= true,
-	.clos		= obj_persist_clo,
-	.nclos		= ARRAY_SIZE(obj_persist_clo),
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+static struct benchmark_info obj_persist_info;
+CONSTRUCTOR(pmemobj_persist_costructor)
+void
+pmemobj_persist_costructor(void)
+{
+	obj_persist_clo[0].opt_short = 'w';
+	obj_persist_clo[0].opt_long = "no-warmup";
+	obj_persist_clo[0].descr = "Don't do warmup";
+	obj_persist_clo[0].def = false;
+	obj_persist_clo[0].type = CLO_TYPE_FLAG;
+	obj_persist_clo[0].off = clo_field_offset(struct prog_args, no_warmup);
 
-REGISTER_BENCHMARK(obj_persist_info);
+	obj_persist_info.name = "pmemobj_persist";
+	obj_persist_info.brief = "Benchmark for pmemobj_persist() operation";
+	obj_persist_info.init = obj_persist_init;
+	obj_persist_info.exit = obj_persist_exit;
+	obj_persist_info.multithread = true;
+	obj_persist_info.multiops = true;
+	obj_persist_info.operation = obj_persist_op;
+	obj_persist_info.measure_time = true;
+	obj_persist_info.clos = obj_persist_clo;
+	obj_persist_info.nclos = ARRAY_SIZE(obj_persist_clo);
+	obj_persist_info.opts_size = sizeof(struct prog_args);
+	obj_persist_info.rm_file = true;
+	obj_persist_info.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_persist_info);
+};

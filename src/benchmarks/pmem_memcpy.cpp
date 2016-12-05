@@ -222,76 +222,7 @@ parse_op_mode(const char *arg)
 }
 
 /* structure to define command line arguments */
-static struct benchmark_clo pmem_memcpy_clo[] = {
-	{
-		.opt_short	= 'o',
-		.opt_long	= "operation",
-		.descr		= "Operation type - write, read",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct pmem_args, operation),
-		.def		= "write"
-	},
-	{
-		.opt_short	= 'S',
-		.opt_long	= "src-offset",
-		.descr		= "Source cache line alignment offset",
-		.type		= CLO_TYPE_UINT,
-		.off		= clo_field_offset(struct pmem_args, src_off),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct pmem_args, src_off),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= MAX_OFFSET
-		}
-	},
-	{
-		.opt_short	= 'D',
-		.opt_long	= "dest-offset",
-		.descr		= "Destination cache line alignment offset",
-		.type		= CLO_TYPE_UINT,
-		.off		= clo_field_offset(struct pmem_args, dest_off),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct pmem_args, dest_off),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= MAX_OFFSET
-		}
-	},
-	{
-		.opt_short	= 0,
-		.opt_long	= "src-mode",
-		.descr		= "Source reading mode",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct pmem_args, src_mode),
-		.def		= "seq",
-	},
-	{
-		.opt_short	= 0,
-		.opt_long	= "dest-mode",
-		.descr		= "Destination writing mode",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct pmem_args, dest_mode),
-		.def		= "seq",
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "libc-memcpy",
-		.descr		= "Use libc memcpy()",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct pmem_args, memcpy),
-		.def		= "false",
-	},
-	{
-		.opt_short	= 'p',
-		.opt_long	= "persist",
-		.descr		= "Use pmem_persist()",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct pmem_args, persist),
-		.def		= "true"
-	}
-};
+static struct benchmark_clo pmem_memcpy_clo[7];
 
 /*
  * mode_seq -- if copy mode is sequential mode_seq() returns
@@ -424,19 +355,19 @@ assign_size(struct pmem_bench *pmb, struct benchmark_args *args,
 
 	size_t large = args->n_ops_per_thread
 				* pmb->pargs->chunk_size * args->n_threads;
-	size_t small = pmb->pargs->chunk_size;
+	size_t little = pmb->pargs->chunk_size;
 
 	if (*op_type == OP_TYPE_WRITE) {
-		pmb->bsize = op_mode_src == OP_MODE_STAT ? small : large;
-		pmb->fsize = op_mode_dest == OP_MODE_STAT ? small : large;
+		pmb->bsize = op_mode_src == OP_MODE_STAT ? little : large;
+		pmb->fsize = op_mode_dest == OP_MODE_STAT ? little : large;
 
 		if (pmb->pargs->src_off != 0)
 			pmb->bsize += MAX_OFFSET;
 		if (pmb->pargs->dest_off != 0)
 			pmb->fsize += MAX_OFFSET;
 	} else {
-		pmb->fsize = op_mode_src == OP_MODE_STAT ? small : large;
-		pmb->bsize = op_mode_dest == OP_MODE_STAT ? small : large;
+		pmb->fsize = op_mode_src == OP_MODE_STAT ? little : large;
+		pmb->bsize = op_mode_dest == OP_MODE_STAT ? little : large;
 
 		if (pmb->pargs->src_off != 0)
 			pmb->fsize += MAX_OFFSET;
@@ -459,10 +390,11 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	int ret = 0;
 
-	struct pmem_bench *pmb = malloc(sizeof(struct pmem_bench));
+	struct pmem_bench *pmb = (struct pmem_bench *)
+			malloc(sizeof(struct pmem_bench));
 	assert(pmb != NULL);
 
-	pmb->pargs = args->opts;
+	pmb->pargs = (struct pmem_args *)args->opts;
 	assert(pmb->pargs != NULL);
 
 	pmb->pargs->chunk_size = args->dsize;
@@ -476,16 +408,16 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 		ret = -1;
 		goto err_free_pmb;
 	}
-
-	if ((errno = posix_memalign(
-		(void **) &pmb->buf, FLUSH_ALIGN, pmb->bsize)) != 0) {
+	pmb->buf = (unsigned char *)util_aligned_malloc(FLUSH_ALIGN,
+							pmb->bsize);
+	if (pmb->buf == 0) {
 		perror("posix_memalign");
 		ret = -1;
 		goto err_free_pmb;
 	}
 
 	pmb->n_rand_offsets = args->n_ops_per_thread * args->n_threads;
-	pmb->rand_offsets = malloc(pmb->n_rand_offsets *
+	pmb->rand_offsets = (unsigned *)malloc(pmb->n_rand_offsets *
 			sizeof(*pmb->rand_offsets));
 
 	if (pmb->rand_offsets == NULL) {
@@ -498,8 +430,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
 	/* create a pmem file and memory map it */
-	if ((pmb->pmem_addr = pmem_map_file(args->fname, pmb->fsize,
-				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
+	if ((pmb->pmem_addr = (unsigned char *)pmem_map_file(args->fname,
+				pmb->fsize, PMEM_FILE_CREATE|PMEM_FILE_EXCL,
 				args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
@@ -545,7 +477,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 err_unmap:
 	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 err_free_buf:
-	free(pmb->buf);
+	util_aligned_free(pmb->buf);
 err_free_pmb:
 	free(pmb);
 
@@ -591,28 +523,91 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args  *args)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 	munmap(pmb->pmem_addr, pmb->fsize);
-	free(pmb->buf);
+	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);
 	free(pmb);
 	return 0;
 }
 
 /* Stores information about benchmark. */
-static struct benchmark_info pmem_memcpy = {
-	.name		= "pmem_memcpy",
-	.brief		= "Benchmark for pmem_memcpy_persist() and "
-				"pmem_memcpy_nodrain() operations",
-	.init		= pmem_memcpy_init,
-	.exit		= pmem_memcpy_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= pmem_memcpy_operation,
-	.measure_time	= true,
-	.clos		= pmem_memcpy_clo,
-	.nclos		= ARRAY_SIZE(pmem_memcpy_clo),
-	.opts_size	= sizeof(struct pmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
 
-REGISTER_BENCHMARK(pmem_memcpy);
+static struct benchmark_info pmem_memcpy;
+CONSTRUCTOR(pmem_memcpy_costructor)
+void
+pmem_memcpy_costructor(void)
+{
+	pmem_memcpy_clo[0].opt_short = 'o';
+	pmem_memcpy_clo[0].opt_long = "operation";
+	pmem_memcpy_clo[0].descr = "Operation type - write, read";
+	pmem_memcpy_clo[0].type = CLO_TYPE_STR;
+	pmem_memcpy_clo[0].off = clo_field_offset(struct pmem_args, operation);
+	pmem_memcpy_clo[0].def = "write";
+
+	pmem_memcpy_clo[1].opt_short = 'S';
+	pmem_memcpy_clo[1].opt_long = "src-offset";
+	pmem_memcpy_clo[1].descr = "Source cache line alignment offset";
+	pmem_memcpy_clo[1].type = CLO_TYPE_UINT;
+	pmem_memcpy_clo[1].off = clo_field_offset(struct pmem_args, src_off);
+	pmem_memcpy_clo[1].def = "0";
+	pmem_memcpy_clo[1].type_uint.size = clo_field_size(struct pmem_args,
+							src_off);
+	pmem_memcpy_clo[1].type_uint.base = CLO_INT_BASE_DEC;
+	pmem_memcpy_clo[1].type_uint.min = 0;
+	pmem_memcpy_clo[1].type_uint.max = MAX_OFFSET;
+
+	pmem_memcpy_clo[2].opt_short = 'D';
+	pmem_memcpy_clo[2].opt_long = "dest-offset";
+	pmem_memcpy_clo[2].descr = "Destination cache line alignment offset";
+	pmem_memcpy_clo[2].type = CLO_TYPE_UINT;
+	pmem_memcpy_clo[2].off = clo_field_offset(struct pmem_args, dest_off);
+	pmem_memcpy_clo[2].def = "0";
+	pmem_memcpy_clo[2].type_uint.size = clo_field_size(struct pmem_args,
+							dest_off);
+	pmem_memcpy_clo[2].type_uint.base = CLO_INT_BASE_DEC;
+	pmem_memcpy_clo[2].type_uint.min = 0;
+	pmem_memcpy_clo[2].type_uint.max = MAX_OFFSET;
+
+	pmem_memcpy_clo[3].opt_short = 0;
+	pmem_memcpy_clo[3].opt_long = "src-mode";
+	pmem_memcpy_clo[3].descr = "Source reading mode";
+	pmem_memcpy_clo[3].type = CLO_TYPE_STR;
+	pmem_memcpy_clo[3].off = clo_field_offset(struct pmem_args, src_mode);
+	pmem_memcpy_clo[3].def = "seq";
+
+	pmem_memcpy_clo[4].opt_short = 0;
+	pmem_memcpy_clo[4].opt_long = "dest-mode";
+	pmem_memcpy_clo[4].descr = "Destination writing mode";
+	pmem_memcpy_clo[4].type = CLO_TYPE_STR;
+	pmem_memcpy_clo[4].off = clo_field_offset(struct pmem_args, dest_mode);
+	pmem_memcpy_clo[4].def = "seq";
+
+	pmem_memcpy_clo[5].opt_short = 'm';
+	pmem_memcpy_clo[5].opt_long = "libc-memcpy";
+	pmem_memcpy_clo[5].descr = "Use libc memcpy()";
+	pmem_memcpy_clo[5].type = CLO_TYPE_FLAG;
+	pmem_memcpy_clo[5].off = clo_field_offset(struct pmem_args, memcpy);
+	pmem_memcpy_clo[5].def = "false";
+
+	pmem_memcpy_clo[6].opt_short = 'p';
+	pmem_memcpy_clo[6].opt_long = "persist";
+	pmem_memcpy_clo[6].descr = "Use pmem_persist()";
+	pmem_memcpy_clo[6].type = CLO_TYPE_FLAG;
+	pmem_memcpy_clo[6].off = clo_field_offset(struct pmem_args, persist);
+	pmem_memcpy_clo[6].def = "true";
+
+	pmem_memcpy.name = "pmem_memcpy";
+	pmem_memcpy.brief = "Benchmark for pmem_memcpy_persist() and "
+			"pmem_memcpy_nodrain() operations";
+	pmem_memcpy.init = pmem_memcpy_init;
+	pmem_memcpy.exit = pmem_memcpy_exit;
+	pmem_memcpy.multithread = true;
+	pmem_memcpy.multiops = true;
+	pmem_memcpy.operation = pmem_memcpy_operation;
+	pmem_memcpy.measure_time = true;
+	pmem_memcpy.clos = pmem_memcpy_clo;
+	pmem_memcpy.nclos = ARRAY_SIZE(pmem_memcpy_clo);
+	pmem_memcpy.opts_size = sizeof(struct pmem_args);
+	pmem_memcpy.rm_file = true;
+	pmem_memcpy.allow_poolset = false;
+	REGISTER_BENCHMARK(pmem_memcpy);
+};

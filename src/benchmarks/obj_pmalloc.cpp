@@ -41,13 +41,19 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include "libpmemobj.h"
 #include "benchmark.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
-
+#ifdef __cplusplus
+}
+#endif
 /*
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.
@@ -108,14 +114,15 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob = malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob = (struct obj_bench *)
+		malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, ob);
 
-	ob->pa = args->opts;
+	ob->pa = (struct prog_args *)args->opts;
 
 	uint64_t n_ops_total = args->n_ops_per_thread * args->n_threads;
 
@@ -166,7 +173,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	ob->offs = D_RW(D_RW(ob->root)->offs);
 
-	ob->sizes = malloc(n_ops_total * sizeof(size_t));
+	ob->sizes = (size_t *)malloc(n_ops_total * sizeof(size_t));
 	if (ob->sizes == NULL) {
 		fprintf(stderr, "malloc rand size vect err\n");
 		goto free_pop;
@@ -202,7 +209,7 @@ free_ob:
 static int
 obj_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	free(ob->sizes);
 
@@ -228,9 +235,9 @@ pmalloc_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 pmalloc_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
-	unsigned i = info->index + info->worker->index *
+	uint64_t i = info->index + info->worker->index *
 					info->args->n_ops_per_thread;
 
 	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
@@ -249,7 +256,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 static int
 pmalloc_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		if (ob->offs[i])
@@ -270,12 +277,13 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 	if (ret)
 		return ret;
 
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
 		if (ret) {
-			fprintf(stderr, "pmalloc at idx %lu ret: %s\n", i,
+			fprintf(stderr, "pmalloc at idx %" PRIu64
+				" ret: %s\n", i,
 				pmemobj_errormsg());
 			/* free the allocated memory */
 			while (i != 0) {
@@ -296,9 +304,9 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 pfree_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = pmembench_get_priv(bench);
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
-	unsigned i = info->index + info->worker->index *
+	uint64_t i = info->index + info->worker->index *
 					info->args->n_ops_per_thread;
 
 	pfree(ob->pop, &ob->offs[i]);
@@ -307,83 +315,78 @@ pfree_op(struct benchmark *bench, struct operation_info *info)
 }
 
 /* command line options definition */
-static struct benchmark_clo pmalloc_clo[] = {
-	{
-		.opt_short	= 'r',
-		.opt_long	= "random",
-		.descr		= "Use random size allocations - from min-size"
-					" to data-size",
-		.off		= clo_field_offset(struct prog_args,
-							use_random_size),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "min-size",
-		.descr		= "Minimum size of allocation for random mode",
-		.type		= CLO_TYPE_UINT,
-		.off		= clo_field_offset(struct prog_args, minsize),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct prog_args, minsize),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT64_MAX,
-		},
-	},
-	{
-		.opt_short	= 'S',
-		.opt_long	= "seed",
-		.descr		= "Random mode seed value",
-		.off		= clo_field_offset(struct prog_args, seed),
-		.def		= "1",
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct prog_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT_MAX,
-		}
-	},
-};
-
+static struct benchmark_clo pmalloc_clo[3];
 /*
  * Stores information about pmalloc benchmark.
  */
-static struct benchmark_info pmalloc_info = {
-	.name		= "pmalloc",
-	.brief		= "Benchmark for internal pmalloc() operation",
-	.init		= pmalloc_init,
-	.exit		= pmalloc_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= pmalloc_op,
-	.measure_time	= true,
-	.clos		= pmalloc_clo,
-	.nclos		= ARRAY_SIZE(pmalloc_clo),
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-
+static struct benchmark_info pmalloc_info;
 /*
  * Stores information about pfree benchmark.
  */
-static struct benchmark_info pfree_info = {
-	.name		= "pfree",
-	.brief		= "Benchmark for internal pfree() operation",
-	.init		= pfree_init,
-	.exit		= pmalloc_exit, /* same as for pmalloc */
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= pfree_op,
-	.measure_time	= true,
-	.clos		= pmalloc_clo,
-	.nclos		= ARRAY_SIZE(pmalloc_clo),
-	.opts_size	= sizeof(struct prog_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+static struct benchmark_info pfree_info;
 
-REGISTER_BENCHMARK(pmalloc_info);
-REGISTER_BENCHMARK(pfree_info);
+CONSTRUCTOR(obj_pmalloc_costructor)
+void
+obj_pmalloc_costructor(void)
+{
+	pmalloc_clo[0].opt_short = 'r';
+	pmalloc_clo[0].opt_long = "random";
+	pmalloc_clo[0].descr = "Use random size allocations - from min-size"
+		"to data-size";
+	pmalloc_clo[0].off = clo_field_offset(struct prog_args,
+			use_random_size);
+	pmalloc_clo[0].type = CLO_TYPE_FLAG;
+
+	pmalloc_clo[1].opt_short = 'm';
+	pmalloc_clo[1].opt_long = "min-size";
+	pmalloc_clo[1].descr = "Minimum size of allocation for random mode";
+	pmalloc_clo[1].type = CLO_TYPE_UINT;
+	pmalloc_clo[1].off = clo_field_offset(struct prog_args, minsize);
+	pmalloc_clo[1].def = "1";
+	pmalloc_clo[1].type_uint.size = clo_field_size(struct prog_args,
+							minsize);
+	pmalloc_clo[1].type_uint.base = CLO_INT_BASE_DEC;
+	pmalloc_clo[1].type_uint.min = 1;
+	pmalloc_clo[1].type_uint.max = UINT64_MAX;
+
+	pmalloc_clo[2].opt_short = 'S';
+	pmalloc_clo[2].opt_long = "seed";
+	pmalloc_clo[2].descr = "Random mode seed value";
+	pmalloc_clo[2].off = clo_field_offset(struct prog_args, seed);
+	pmalloc_clo[2].def = "1";
+	pmalloc_clo[2].type = CLO_TYPE_UINT;
+	pmalloc_clo[2].type_uint.size = clo_field_size(struct prog_args, seed);
+	pmalloc_clo[2].type_uint.base = CLO_INT_BASE_DEC;
+	pmalloc_clo[2].type_uint.min = 1;
+	pmalloc_clo[2].type_uint.max = UINT_MAX;
+
+	pmalloc_info.name = "pmalloc",
+	pmalloc_info.brief = "Benchmark for internal pmalloc() operation";
+	pmalloc_info.init = pmalloc_init;
+	pmalloc_info.exit = pmalloc_exit;
+	pmalloc_info.multithread = true;
+	pmalloc_info.multiops = true;
+	pmalloc_info.operation = pmalloc_op;
+	pmalloc_info.measure_time = true;
+	pmalloc_info.clos = pmalloc_clo;
+	pmalloc_info.nclos = ARRAY_SIZE(pmalloc_clo);
+	pmalloc_info.opts_size = sizeof(struct prog_args);
+	pmalloc_info.rm_file = true;
+	pmalloc_info.allow_poolset = true;
+	REGISTER_BENCHMARK(pmalloc_info);
+
+	pfree_info.name = "pfree";
+	pfree_info.brief = "Benchmark for internal pfree() operation";
+	pfree_info.init = pfree_init;
+	pfree_info.exit = pmalloc_exit; /* same as for pmalloc */
+	pfree_info.multithread = true;
+	pfree_info.multiops = true;
+	pfree_info.operation = pfree_op;
+	pfree_info.measure_time = true;
+	pfree_info.clos = pmalloc_clo;
+	pfree_info.nclos = ARRAY_SIZE(pmalloc_clo);
+	pfree_info.opts_size = sizeof(struct prog_args);
+	pfree_info.rm_file = true;
+	pfree_info.allow_poolset = true;
+	REGISTER_BENCHMARK(pfree_info);
+};

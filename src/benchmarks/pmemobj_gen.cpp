@@ -42,6 +42,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <file.h>
 
 #include "libpmemobj.h"
 #include "benchmark.h"
@@ -56,12 +57,12 @@
 struct pobj_bench;
 struct pobj_worker;
 
-typedef int (*fn_type_num) (struct pobj_bench *ob, int worker_idx,
-								int op_idx);
+typedef size_t(*fn_type_num) (struct pobj_bench *ob, size_t worker_idx,
+							size_t op_idx);
 
-typedef unsigned (*fn_size) (struct pobj_bench *ob, unsigned idx);
+typedef size_t(*fn_size) (struct pobj_bench *ob, size_t idx);
 
-typedef unsigned (*fn_num) (unsigned idx);
+typedef size_t(*fn_num) (size_t idx);
 
 /*
  * Enumeration used to determine the mode of the assigning type_number
@@ -98,7 +99,7 @@ struct pobj_args {
 	char *type_num;
 	bool range;
 	unsigned min_size;
-	unsigned n_objs;
+	size_t n_objs;
 	bool one_pool;
 	bool one_obj;
 	size_t obj_size;
@@ -156,98 +157,16 @@ struct pobj_worker {
 };
 
 /* Array defining common command line arguments. */
-static struct benchmark_clo pobj_direct_clo[] = {
-	{
-		.opt_short	= 'T',
-		.opt_long	= "type-number",
-		.descr		= "Type number mode - one, per-thread, rand",
-		.def		= "one",
-		.off		= clo_field_offset(struct pobj_args, type_num),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "min-size",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Minimum allocation size",
-		.off		= clo_field_offset(struct pobj_args,
-						min_size),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct pobj_args,
-						min_size),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 0,
-			.max	= UINT_MAX,
-		},
-	},
-	{
-		.opt_short	= 'P',
-		.opt_long	= "one-pool",
-		.descr		= "Create one pool for all threads",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct pobj_args,
-								one_pool),
-	},
-	{
-		.opt_short	= 'O',
-		.opt_long	= "one-object",
-		.descr		= "Use only one object per thread",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct pobj_args,
-								one_obj),
-	},
-};
+static struct benchmark_clo pobj_direct_clo[4];
 
-static struct benchmark_clo pobj_open_clo[] = {
-	{
-		.opt_short	= 'T',
-		.opt_long	= "type-number",
-		.descr		= "Type number mode - one, per-thread, rand",
-		.def		= "one",
-		.off		= clo_field_offset(struct pobj_args, type_num),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "min-size",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Minimum allocation size",
-		.off		= clo_field_offset(struct pobj_args,
-						min_size),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct pobj_args,
-						min_size),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 0,
-			.max	= UINT_MAX,
-		},
-	},
-	{
-		.opt_short	= 'o',
-		.opt_long	= "objects",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Number of objects in each pool",
-		.off		= clo_field_offset(struct pobj_args,
-						n_objs),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct pobj_args,
-						n_objs),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 1,
-			.max	= UINT_MAX,
-		},
-	},
-};
+static struct benchmark_clo pobj_open_clo[3];
 
 /*
  * type_mode_one -- always returns 0, as in the mode TYPE_MODE_ONE
  * all of the persistent objects have the same type_number value.
  */
-static int
-type_mode_one(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
+static size_t
+type_mode_one(struct pobj_bench *bench_priv, size_t worker_idx, size_t op_idx)
 {
 	return 0;
 }
@@ -257,8 +176,9 @@ type_mode_one(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
  * TYPE_MODE_PER_THREAD all persistent object allocated by the same thread
  * have the same type_number value.
  */
-static int
-type_mode_per_thread(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
+static size_t
+type_mode_per_thread(struct pobj_bench *bench_priv, size_t worker_idx,
+								size_t op_idx)
 {
 	return worker_idx;
 }
@@ -267,8 +187,8 @@ type_mode_per_thread(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
  * type_mode_rand -- returns the value from the random_types array assigned
  * for the specific operation in a specific thread.
  */
-static int
-type_mode_rand(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
+static size_t
+type_mode_rand(struct pobj_bench *bench_priv, size_t worker_idx, size_t op_idx)
 {
 	return bench_priv->random_types[op_idx];
 }
@@ -276,8 +196,8 @@ type_mode_rand(struct pobj_bench *bench_priv, int worker_idx, int op_idx)
 /*
  * range_size -- returns size of object allocation from rand_sizes array.
  */
-static unsigned
-range_size(struct pobj_bench *bench_priv, unsigned idx)
+static size_t
+range_size(struct pobj_bench *bench_priv, size_t idx)
 {
 	return bench_priv->rand_sizes[idx];
 }
@@ -285,8 +205,8 @@ range_size(struct pobj_bench *bench_priv, unsigned idx)
 /*
  * static_size -- returns always the same size of object allocation.
  */
-static unsigned
-static_size(struct pobj_bench *bench_priv, unsigned idx)
+static size_t
+static_size(struct pobj_bench *bench_priv, size_t idx)
 {
 	return bench_priv->args_priv->obj_size;
 }
@@ -294,8 +214,8 @@ static_size(struct pobj_bench *bench_priv, unsigned idx)
 /*
  * diff_num -- returns given index
  */
-static unsigned
-diff_num(unsigned idx)
+static size_t
+diff_num(size_t idx)
 {
 	return idx;
 }
@@ -303,8 +223,8 @@ diff_num(unsigned idx)
 /*
  * one_num -- returns always the same index.
  */
-static unsigned
-one_num(unsigned idx)
+static size_t
+one_num(size_t idx)
 {
 	return 0;
 }
@@ -321,8 +241,9 @@ const char *type_mode_names[MAX_TYPE_MODE] = {"one", "per-thread", "rand"};
 static enum type_mode
 parse_type_mode(const char *arg)
 {
-	enum type_mode i = 0;
-	for (; i < MAX_TYPE_MODE && strcmp(arg, type_mode_names[i]) != 0; ++i)
+	enum type_mode i = TYPE_MODE_ONE;
+	for (; i < MAX_TYPE_MODE && strcmp(arg, type_mode_names[i]) != 0;
+		i = (enum type_mode)(i + 1))
 	;
 	return i;
 }
@@ -332,9 +253,9 @@ parse_type_mode(const char *arg)
  * sizes for each object. Used only when range flag set.
  */
 static size_t *
-rand_sizes(unsigned min, unsigned max, unsigned n_ops)
+rand_sizes(size_t min, size_t max, size_t n_ops)
 {
-	size_t *rand_sizes = malloc(n_ops * sizeof(size_t));
+	size_t *rand_sizes = (size_t *)malloc(n_ops * sizeof(size_t));
 	if (rand_sizes == NULL) {
 		perror("malloc");
 		return NULL;
@@ -352,8 +273,8 @@ rand_sizes(unsigned min, unsigned max, unsigned n_ops)
 static int
 random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 {
-	bench_priv->random_types = malloc(bench_priv->args_priv->n_objs *
-							sizeof(size_t));
+	bench_priv->random_types = (size_t *)malloc(
+				bench_priv->args_priv->n_objs * sizeof(size_t));
 	if (bench_priv->random_types == NULL) {
 		perror("malloc");
 		return -1;
@@ -374,14 +295,15 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct pobj_bench *bench_priv = malloc(sizeof(struct pobj_bench));
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+		malloc(sizeof(struct pobj_bench));
 	if (bench_priv == NULL) {
 		perror("malloc");
 		return -1;
 	}
 	assert(args->opts != NULL);
 
-	bench_priv->args_priv = args->opts;
+	bench_priv->args_priv = (struct pobj_args *)args->opts;
 	bench_priv->args_priv->obj_size = args->dsize;
 	bench_priv->args_priv->range = bench_priv->args_priv->min_size > 0 ?
 							true : false;
@@ -440,27 +362,30 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			goto free_random_types;
 	}
 
-	bench_priv->pop = calloc(bench_priv->n_pools, sizeof(PMEMobjpool *));
+	bench_priv->pop = (PMEMobjpool **)calloc(bench_priv->n_pools,
+						sizeof(PMEMobjpool *));
 	if (bench_priv->pop == NULL) {
 		perror("calloc");
 		goto free_random_sizes;
 	}
 
-	bench_priv->sets = calloc(bench_priv->n_pools, sizeof(const char *));
+	bench_priv->sets = (const char **)calloc(bench_priv->n_pools,
+		sizeof(const char *));
 	if (bench_priv->sets == NULL) {
 		perror("calloc");
 		goto free_pop;
 	}
 	if (bench_priv->n_pools > 1) {
 		assert(!args->is_poolset);
-		if (mkdir(args->fname, DIR_MODE) != 0) {
+		if (util_file_mkdir(args->fname, DIR_MODE) != 0) {
 			fprintf(stderr, "cannot create directory\n");
 			goto free_sets;
 		}
 		size_t path_len = (strlen(PART_NAME) + strlen(args->fname))
 							+ MAX_DIGITS + 1;
 		for (i = 0; i < bench_priv->n_pools; i++) {
-			bench_priv->sets[i] = malloc(path_len * sizeof(char));
+			bench_priv->sets[i] = (char *)malloc(path_len *
+				sizeof(char));
 			if (bench_priv->sets[i] == NULL) {
 				perror("malloc");
 				goto free_sets;
@@ -519,7 +444,7 @@ free_bench_priv:
 static int
 pobj_direct_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct pobj_args *pa = args->opts;
+	struct pobj_args *pa = (struct pobj_args *)args->opts;
 	pa->n_objs = pa->one_obj ? 1 : args->n_ops_per_thread;
 	if (pobj_init(bench, args) != 0)
 		return -1;
@@ -533,7 +458,8 @@ static int
 pobj_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	size_t i;
-	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+		pmembench_get_priv(bench);
 	if (bench_priv->n_pools > 1) {
 		for (i = 0; i < bench_priv->n_pools; i++) {
 			pmemobj_close(bench_priv->pop[i]);
@@ -557,16 +483,19 @@ static int
 pobj_init_worker(struct benchmark *bench, struct benchmark_args
 					*args, struct worker_info *worker)
 {
-	int i, idx = worker->index;
-	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
-	struct pobj_worker *pw = calloc(1, sizeof(struct pobj_worker));
+	size_t i, idx = worker->index;
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+			pmembench_get_priv(bench);
+	struct pobj_worker *pw = (struct pobj_worker *)calloc(1,
+			sizeof(struct pobj_worker));
 	if (pw == NULL) {
 		perror("calloc");
 		return -1;
 	}
 
 	worker->priv = pw;
-	pw->oids = calloc(bench_priv->args_priv->n_objs, sizeof(PMEMoid));
+	pw->oids = (PMEMoid *)calloc(bench_priv->args_priv->n_objs,
+			sizeof(PMEMoid));
 	if (pw->oids == NULL) {
 		free(pw);
 		perror("calloc");
@@ -576,7 +505,7 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	PMEMobjpool *pop = bench_priv->pop[bench_priv->pool(idx)];
 	for (i = 0; i < bench_priv->args_priv->n_objs; i++) {
 		size_t size = bench_priv->fn_size(bench_priv, i);
-		unsigned type = bench_priv->fn_type_num(bench_priv, idx, i);
+		size_t type = bench_priv->fn_type_num(bench_priv, idx, i);
 		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL)
 									!= 0) {
 			perror("pmemobj_alloc");
@@ -585,8 +514,8 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	}
 	return 0;
 out:
-	for (i--; i >= 0; i--)
-		pmemobj_free(&pw->oids[i]);
+	for (; i > 0; i--)
+		pmemobj_free(&pw->oids[i - 1]);
 	free(pw->oids);
 	free(pw);
 	return -1;
@@ -598,9 +527,10 @@ out:
 static int
 pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
-	struct pobj_worker *pw = info->worker->priv;
-	unsigned idx = bench_priv->obj(info->index);
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+			pmembench_get_priv(bench);
+	struct pobj_worker *pw = (struct pobj_worker *)info->worker->priv;
+	size_t idx = bench_priv->obj(info->index);
 	if (pmemobj_direct(pw->oids[idx]) == NULL)
 		return -1;
 	return 0;
@@ -612,8 +542,9 @@ pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 static int
 pobj_open_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
-	unsigned idx = bench_priv->pool(info->worker->index);
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+			pmembench_get_priv(bench);
+	size_t idx = bench_priv->pool(info->worker->index);
 	pmemobj_close(bench_priv->pop[idx]);
 	bench_priv->pop[idx] = pmemobj_open(bench_priv->sets[idx], LAYOUT_NAME);
 	if (bench_priv->pop[idx] == NULL)
@@ -628,50 +559,114 @@ static void
 pobj_free_worker(struct benchmark *bench, struct benchmark_args
 					*args, struct worker_info *worker)
 {
-	struct pobj_worker *pw = worker->priv;
-	struct pobj_bench *bench_priv = pmembench_get_priv(bench);
+	struct pobj_worker *pw = (struct pobj_worker *)worker->priv;
+	struct pobj_bench *bench_priv = (struct pobj_bench *)
+			pmembench_get_priv(bench);
 	for (size_t i = 0; i < bench_priv->args_priv->n_objs; i++)
 		pmemobj_free(&pw->oids[i]);
 	free(pw->oids);
 	free(pw);
 }
 
-static struct benchmark_info obj_open = {
-	.name		= "obj_open",
-	.brief		= "pmemobj_open() benchmark",
-	.init		= pobj_init,
-	.exit		= pobj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= pobj_init_worker,
-	.free_worker	= pobj_free_worker,
-	.operation	= pobj_open_op,
-	.measure_time	= true,
-	.clos		= pobj_open_clo,
-	.nclos		= ARRAY_SIZE(pobj_open_clo),
-	.opts_size	= sizeof(struct pobj_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
+static struct benchmark_info obj_open;
+static struct benchmark_info obj_direct;
+
+CONSTRUCTOR(pmemobj_gen_costructor)
+void
+pmemobj_gen_costructor(void)
+{
+	pobj_direct_clo[0].opt_short = 'T';
+	pobj_direct_clo[0].opt_long = "type-number";
+	pobj_direct_clo[0].descr = "Type number mode - one, per-thread, rand";
+	pobj_direct_clo[0].def = "one";
+	pobj_direct_clo[0].off = clo_field_offset(struct pobj_args, type_num);
+	pobj_direct_clo[0].type = CLO_TYPE_STR;
+	pobj_direct_clo[1].opt_short = 'm';
+	pobj_direct_clo[1].opt_long = "min-size";
+	pobj_direct_clo[1].type = CLO_TYPE_UINT;
+	pobj_direct_clo[1].descr = "Minimum allocation size";
+	pobj_direct_clo[1].off = clo_field_offset(struct pobj_args, min_size);
+	pobj_direct_clo[1].def = "0";
+	pobj_direct_clo[1].type_uint.size = clo_field_size(struct pobj_args,
+							min_size);
+	pobj_direct_clo[1].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
+	pobj_direct_clo[1].type_uint.min = 0;
+	pobj_direct_clo[1].type_uint.max = UINT_MAX;
+
+	pobj_direct_clo[2].opt_short = 'P';
+	pobj_direct_clo[2].opt_long = "one-pool";
+	pobj_direct_clo[2].descr = "Create one pool for all threads";
+	pobj_direct_clo[2].type = CLO_TYPE_FLAG;
+	pobj_direct_clo[2].off = clo_field_offset(struct pobj_args, one_pool);
+
+	pobj_direct_clo[3].opt_short = 'O';
+	pobj_direct_clo[3].opt_long = "one-object";
+	pobj_direct_clo[3].descr = "Use only one object per thread";
+	pobj_direct_clo[3].type = CLO_TYPE_FLAG;
+	pobj_direct_clo[3].off = clo_field_offset(struct pobj_args, one_obj);
+
+	pobj_open_clo[0].opt_short = 'T',
+	pobj_open_clo[0].opt_long = "type-number",
+	pobj_open_clo[0].descr = "Type number mode - one, per-thread, rand",
+	pobj_open_clo[0].def = "one",
+	pobj_open_clo[0].off = clo_field_offset(struct pobj_args, type_num),
+	pobj_open_clo[0].type = CLO_TYPE_STR,
+
+	pobj_open_clo[1].opt_short = 'm',
+	pobj_open_clo[1].opt_long = "min-size",
+	pobj_open_clo[1].type = CLO_TYPE_UINT,
+	pobj_open_clo[1].descr = "Minimum allocation size",
+	pobj_open_clo[1].off = clo_field_offset(struct pobj_args, min_size),
+	pobj_open_clo[1].def = "0",
+	pobj_open_clo[1].type_uint.size = clo_field_size(struct pobj_args,
+							min_size),
+	pobj_open_clo[1].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX,
+	pobj_open_clo[1].type_uint.min = 0,
+	pobj_open_clo[1].type_uint.max = UINT_MAX,
+
+	pobj_open_clo[2].opt_short = 'o';
+	pobj_open_clo[2].opt_long = "objects";
+	pobj_open_clo[2].type = CLO_TYPE_UINT;
+	pobj_open_clo[2].descr = "Number of objects in each pool";
+	pobj_open_clo[2].off = clo_field_offset(struct pobj_args, n_objs);
+	pobj_open_clo[2].def = "1";
+	pobj_open_clo[2].type_uint.size = clo_field_size(struct pobj_args,
+							n_objs);
+	pobj_open_clo[2].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
+	pobj_open_clo[2].type_uint.min = 1;
+	pobj_open_clo[2].type_uint.max = UINT_MAX;
+
+	obj_open.name = "obj_open";
+	obj_open.brief = "pmemobj_open() benchmark";
+	obj_open.init = pobj_init;
+	obj_open.exit = pobj_exit;
+	obj_open.multithread = true;
+	obj_open.multiops = true;
+	obj_open.init_worker = pobj_init_worker;
+	obj_open.free_worker = pobj_free_worker;
+	obj_open.operation = pobj_open_op;
+	obj_open.measure_time = true;
+	obj_open.clos = pobj_open_clo;
+	obj_open.nclos = ARRAY_SIZE(pobj_open_clo);
+	obj_open.opts_size = sizeof(struct pobj_args);
+	obj_open.rm_file = true;
+	obj_open.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_open);
+
+	obj_direct.name = "obj_direct";
+	obj_direct.brief = "pmemobj_direct() benchmark";
+	obj_direct.init = pobj_direct_init;
+	obj_direct.exit = pobj_exit;
+	obj_direct.multithread = true;
+	obj_direct.multiops = true;
+	obj_direct.init_worker = pobj_init_worker;
+	obj_direct.free_worker = pobj_free_worker;
+	obj_direct.operation = pobj_direct_op;
+	obj_direct.measure_time = true;
+	obj_direct.clos = pobj_direct_clo;
+	obj_direct.nclos = ARRAY_SIZE(pobj_direct_clo);
+	obj_direct.opts_size = sizeof(struct pobj_args);
+	obj_direct.rm_file = true;
+	obj_direct.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_direct);
 };
-
-REGISTER_BENCHMARK(obj_open);
-
-static struct benchmark_info obj_direct = {
-	.name		= "obj_direct",
-	.brief		= "pmemobj_direct() benchmark",
-	.init		= pobj_direct_init,
-	.exit		= pobj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= pobj_init_worker,
-	.free_worker	= pobj_free_worker,
-	.operation	= pobj_direct_op,
-	.measure_time	= true,
-	.clos		= pobj_direct_clo,
-	.nclos		= ARRAY_SIZE(pobj_direct_clo),
-	.opts_size	= sizeof(struct pobj_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-
-REGISTER_BENCHMARK(obj_direct);

@@ -56,11 +56,11 @@ struct element;
 TOID_DECLARE(struct item, 0);
 TOID_DECLARE(struct list, 1);
 
-typedef unsigned (*fn_type_num) (unsigned worker_idx,
-							unsigned op_idx);
+typedef size_t (*fn_type_num) (size_t worker_idx,
+							size_t op_idx);
 
 typedef struct element (*fn_position) (struct obj_worker *obj_worker,
-							unsigned op_idx);
+							size_t op_idx);
 
 typedef int (*fn_init) (struct worker_info *worker, size_t n_elm,
 							size_t list_len);
@@ -177,84 +177,7 @@ struct obj_worker {
 };
 
 /* obj_list_clo -- array defining common command line arguments. */
-static struct benchmark_clo obj_list_clo[] = {
-	{
-		.opt_short	= 'T',
-		.opt_long	= "type-number",
-		.descr		= "Type number mode - one, per-thread, rand",
-		.def		= "one",
-		.off		= clo_field_offset(struct obj_list_args,
-								type_num),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'P',
-		.opt_long	= "position",
-		.descr		= "Place where operation will be performed -"
-					" head, tail, rand, middle",
-		.def		= "middle",
-		.off		= clo_field_offset(struct obj_list_args,
-								position),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'l',
-		.opt_long	= "list-len",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Initial list len",
-		.off		= clo_field_offset(struct obj_list_args,
-						list_len),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct obj_list_args,
-						list_len),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 1,
-			.max	= ULONG_MAX,
-		},
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "min-size",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Min allocation size",
-		.off		= clo_field_offset(struct obj_list_args,
-							min_size),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct obj_list_args,
-								min_size),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= UINT_MAX,
-		},
-	},
-	{
-		.opt_short	= 's',
-		.opt_long	= "seed",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Seed value",
-		.off		= clo_field_offset(struct obj_list_args, seed),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct obj_list_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= INT_MAX,
-		},
-	},
-	/*
-	 * nclos field in benchmark_info structures is decremented to make
-	 * queue option available only for obj_isert, obj_remove
-	 */
-	{
-		.opt_short	= 'q',
-		.opt_long	= "queue",
-		.descr		= "Use circleq from queue.h instead pmemobj",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct obj_list_args, queue),
-	},
-};
+static struct benchmark_clo obj_list_clo[6];
 
 /*
  * position_mode -- list destination type
@@ -293,7 +216,7 @@ enum type_mode {
  * position_head -- returns head of the persistent list or volatile queue.
  */
 static struct element
-position_head(struct obj_worker *obj_worker, unsigned op_idx)
+position_head(struct obj_worker *obj_worker, size_t op_idx)
 {
 	struct element head = {0};
 	head.before = true;
@@ -308,7 +231,7 @@ position_head(struct obj_worker *obj_worker, unsigned op_idx)
  * position_tail -- returns tail of the persistent list or volatile queue.
  */
 static struct element
-position_tail(struct obj_worker *obj_worker, unsigned op_idx)
+position_tail(struct obj_worker *obj_worker, size_t op_idx)
 {
 	struct element tail = {0};
 	tail.before = false;
@@ -324,7 +247,7 @@ position_tail(struct obj_worker *obj_worker, unsigned op_idx)
  * or volatile queue.
  */
 static struct element
-position_middle(struct obj_worker *obj_worker, unsigned op_idx)
+position_middle(struct obj_worker *obj_worker, size_t op_idx)
 {
 	struct element elm = position_head(obj_worker, op_idx);
 	elm.before = true;
@@ -336,7 +259,7 @@ position_middle(struct obj_worker *obj_worker, unsigned op_idx)
 }
 
 static struct item *
-queue_get_item(struct obj_worker *obj_worker, unsigned idx)
+queue_get_item(struct obj_worker *obj_worker, size_t idx)
 {
 	struct item *item;
 	CIRCLEQ_FOREACH(item, &obj_worker->headq, fieldq) {
@@ -348,7 +271,7 @@ queue_get_item(struct obj_worker *obj_worker, unsigned idx)
 }
 
 static TOID(struct item)
-obj_get_item(struct obj_worker *obj_worker, unsigned idx)
+obj_get_item(struct obj_worker *obj_worker, size_t idx)
 {
 	TOID(struct item) oid;
 	POBJ_LIST_FOREACH(oid, &obj_worker->head, field) {
@@ -364,7 +287,7 @@ obj_get_item(struct obj_worker *obj_worker, unsigned idx)
  * list or volatile queue based on r_positions array.
  */
 static struct element
-position_rand(struct obj_worker *obj_worker, unsigned op_idx)
+position_rand(struct obj_worker *obj_worker, size_t op_idx)
 {
 	struct element elm = {0};
 	elm.before = true;
@@ -382,8 +305,8 @@ position_rand(struct obj_worker *obj_worker, unsigned op_idx)
  * type_mode_one -- always returns 0, as in the mode TYPE_MODE_ONE
  * all of the persistent objects have the same type_number value.
  */
-static unsigned
-type_mode_one(unsigned worker_idx, unsigned op_idx)
+static size_t
+type_mode_one(size_t worker_idx, size_t op_idx)
 {
 	return 0;
 }
@@ -393,8 +316,8 @@ type_mode_one(unsigned worker_idx, unsigned op_idx)
  * as in the TYPE_MODE_PER_THREAD the value of the persistent object
  * type_number is specific to the thread.
  */
-static unsigned
-type_mode_per_thread(unsigned worker_idx, unsigned op_idx)
+static size_t
+type_mode_per_thread(size_t worker_idx, size_t op_idx)
 {
 	return worker_idx;
 }
@@ -403,8 +326,8 @@ type_mode_per_thread(unsigned worker_idx, unsigned op_idx)
  * type_mode_rand -- returns the value from the random_types array assigned
  * for the specific operation in a specific thread.
  */
-static unsigned
-type_mode_rand(unsigned worker_idx, unsigned op_idx)
+static size_t
+type_mode_rand(size_t worker_idx, size_t op_idx)
 {
 	return obj_bench.random_types[op_idx];
 }
@@ -438,8 +361,9 @@ static int
 obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = worker->priv;
-	obj_worker->oids = calloc(n_oids, sizeof(TOID(struct item)));
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	obj_worker->oids = (TOID(struct item) *)calloc(n_oids,
+						sizeof(TOID(struct item)));
 	if (obj_worker->oids == NULL) {
 		perror("calloc");
 		return -1;
@@ -457,8 +381,8 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 						obj_worker->oids[i], field);
 	return 0;
 err_oids:
-	for (int j = i - 1; j >= 0; j--)
-		POBJ_FREE(&obj_worker->oids[j]);
+	for (; i > 0; i--)
+		POBJ_FREE(&obj_worker->oids[i]);
 	free(obj_worker->oids);
 	return -1;
 }
@@ -472,9 +396,10 @@ static int
 queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
 	CIRCLEQ_INIT(&obj_worker->headq);
-	obj_worker->items = malloc(n_items * sizeof(struct item *));
+	obj_worker->items = (struct item **)malloc(n_items *
+						sizeof(struct item *));
 	if (obj_worker->items == NULL) {
 		perror("malloc");
 		return -1;
@@ -482,7 +407,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 
 	for (i = 0; i < n_items; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
-		obj_worker->items[i] = malloc(size);
+		obj_worker->items[i] = (struct item *)malloc(size);
 		if (obj_worker->items[i] == NULL) {
 			perror("malloc");
 			goto err;
@@ -495,8 +420,8 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 
 	return 0;
 err:
-	for (int j = i - 1; j >= 0; j--)
-		free(obj_worker->items[j]);
+	for (; i > 0; i--)
+		free(obj_worker->items[i - 1]);
 	free(obj_worker->items);
 	return -1;
 }
@@ -563,7 +488,7 @@ queue_free_worker_items(struct obj_worker *obj_worker)
 static size_t *
 random_positions()
 {
-	size_t *positions  = calloc(obj_bench.max_len, sizeof(size_t));
+	size_t *positions = (size_t *)calloc(obj_bench.max_len, sizeof(size_t));
 	if (positions == NULL) {
 		perror("calloc");
 		return NULL;
@@ -586,9 +511,9 @@ random_positions()
  * with max value. Used only when range flag set.
  */
 static size_t *
-random_values(size_t min, size_t max, unsigned n_ops, size_t min_range)
+random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 {
-	size_t *randoms = calloc(n_ops, sizeof(size_t));
+	size_t *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
 	if (randoms == NULL) {
 		perror("calloc");
 		return NULL;
@@ -613,7 +538,7 @@ random_values(size_t min, size_t max, unsigned n_ops, size_t min_range)
 static int
 queue_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_INSERT_AFTER(&obj_worker->headq, obj_worker->elm.itemq,
 				obj_worker->items[info->index
 				+ obj_bench.min_len], fieldq);
@@ -627,7 +552,7 @@ queue_insert_op(struct operation_info *info)
 static int
 obj_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_INSERT_AFTER(obj_bench.pop, &obj_worker->head,
 			obj_worker->elm.itemp, obj_worker->oids[info->index +
 			obj_bench.min_len], field);
@@ -641,7 +566,7 @@ obj_insert_op(struct operation_info *info)
 static int
 queue_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_REMOVE(&obj_worker->headq, obj_worker->elm.itemq, fieldq);
 	return 0;
 }
@@ -653,7 +578,7 @@ queue_remove_op(struct operation_info *info)
 static int
 obj_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE(obj_bench.pop, &obj_worker->head,
 					obj_worker->elm.itemp, field);
 	return 0;
@@ -675,10 +600,10 @@ insert_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	PMEMoid tmp;
 	size_t size = obj_bench.alloc_sizes[info->index];
-	unsigned type_num = obj_bench.fn_type_num(info->worker->index,
+	size_t type_num = obj_bench.fn_type_num(info->worker->index,
 								info->index);
 	tmp = pmemobj_list_insert_new(obj_bench.pop,
 			offsetof(struct item, field), &obj_worker->head,
@@ -709,7 +634,7 @@ remove_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE_FREE(obj_bench.pop, &obj_worker->head,
 					obj_worker->elm.itemp, field);
 	return 0;
@@ -721,7 +646,7 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_move_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_MOVE_ELEMENT_BEFORE(obj_bench.pop, &obj_worker->head,
 				&obj_worker->list_move->head,
 				obj_worker->list_move->elm.itemp,
@@ -737,7 +662,7 @@ obj_move_op(struct benchmark *bench, struct operation_info *info)
 static int
 get_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->elm = obj_bench.fn_position(obj_worker, info->index);
 	return 0;
 }
@@ -750,7 +675,7 @@ get_item(struct benchmark *bench, struct operation_info *info)
 static int
 get_move_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = info->worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->list_move->elm =
 		obj_bench.fn_position(obj_worker->list_move, info->index);
 	return get_item(bench, info);
@@ -772,7 +697,7 @@ static void
 free_worker_list(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
 	obj_bench.args->queue ?	queue_free_worker_list(obj_worker) :
 				obj_free_worker_list(obj_worker);
 	free_worker(obj_worker);
@@ -787,8 +712,8 @@ static void
 free_worker_items(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = worker->priv;
-	struct obj_list_args *obj_args = args->opts;
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	struct obj_list_args *obj_args = (struct obj_list_args *)args->opts;
 	obj_args->queue ? queue_free_worker_items(obj_worker) :
 					obj_free_worker_items(obj_worker);
 	free_worker(obj_worker);
@@ -802,7 +727,7 @@ static void
 obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 						struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = worker->priv;
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
 	while (!POBJ_LIST_EMPTY(&obj_worker->list_move->head))
 		POBJ_LIST_REMOVE_FREE(obj_bench.pop,
 				&obj_worker->list_move->head,
@@ -822,7 +747,8 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 {
-	struct obj_worker *obj_worker = calloc(1, sizeof(struct obj_worker));
+	struct obj_worker *obj_worker = (struct obj_worker *)
+					calloc(1, sizeof(struct obj_worker));
 	if (obj_worker == NULL) {
 		perror("calloc");
 		return -1;
@@ -897,8 +823,9 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 						obj_bench.max_len) != 0)
 		return -1;
 
-	struct obj_worker *obj_worker = worker->priv;
-	obj_worker->list_move = calloc(1, sizeof(struct obj_worker));
+	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	obj_worker->list_move = (struct obj_worker *)
+			calloc(1, sizeof(struct obj_worker));
 	if (obj_worker->list_move == NULL) {
 		perror("calloc");
 		goto free;
@@ -923,7 +850,7 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 	return 0;
 free_all:
-	for (int j = i - 1; j >= 0; j--) {
+	for (; i > 0; i--) {
 		POBJ_LIST_REMOVE_FREE(obj_bench.pop,
 				&obj_worker->list_move->head,
 				POBJ_LIST_LAST(&obj_worker->list_move->head,
@@ -950,7 +877,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
-	obj_bench.args = args->opts;
+	obj_bench.args = (struct obj_list_args *)args->opts;
 	obj_bench.min_len = obj_bench.args->list_len + 1;
 	obj_bench.max_len = args->n_ops_per_thread + obj_bench.min_len;
 
@@ -1041,104 +968,173 @@ obj_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_info obj_insert = {
-	.name		= "obj_insert",
-	.brief		= "pmemobj_list_insert() benchmark",
-	.init		= obj_init,
-	.exit		= obj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= obj_insert_init_worker,
-	.free_worker	= free_worker_items,
-	.op_init	= get_item,
-	.operation	= insert_op,
-	.measure_time	= true,
-	.clos		= obj_list_clo,
-	.nclos		= ARRAY_SIZE(obj_list_clo),
-	.opts_size	= sizeof(struct obj_list_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-REGISTER_BENCHMARK(obj_insert);
+static struct benchmark_info obj_insert;
+static struct benchmark_info obj_remove;
+static struct benchmark_info obj_insert_new;
+static struct benchmark_info obj_remove_free;
+static struct benchmark_info obj_move;
 
-static struct benchmark_info obj_remove = {
-	.name		= "obj_remove",
-	.brief		= "pmemobj_list_remove() benchmark without freeing"
-								"element",
-	.init		= obj_init,
-	.exit		= obj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= obj_remove_init_worker,
-	.free_worker	= free_worker_items,
-	.op_init	= get_item,
-	.operation	= remove_op,
-	.measure_time	= true,
-	.clos		= obj_list_clo,
-	.nclos		= ARRAY_SIZE(obj_list_clo),
-	.opts_size	= sizeof(struct obj_list_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-REGISTER_BENCHMARK(obj_remove);
+CONSTRUCTOR(pmem_atomic_list_costructor)
+void
+pmem_atomic_list_costructor(void)
+{
 
-static struct benchmark_info obj_insert_new = {
-	.name		= "obj_insert_new",
-	.brief		= "pmemobj_list_insert_new() benchmark",
-	.init		= obj_init,
-	.exit		= obj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= obj_insert_new_init_worker,
-	.free_worker	= free_worker_list,
-	.op_init	= get_item,
-	.operation	= obj_insert_new_op,
-	.measure_time	= true,
-	.clos		= obj_list_clo,
-	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof(struct obj_list_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-REGISTER_BENCHMARK(obj_insert_new);
+	obj_list_clo[0].opt_short = 'T';
+	obj_list_clo[0].opt_long = "type-number";
+	obj_list_clo[0].descr = "Type number mode - one, per-thread, rand";
+	obj_list_clo[0].def = "one";
+	obj_list_clo[0].off = clo_field_offset(struct obj_list_args,
+		type_num);
+	obj_list_clo[0].type = CLO_TYPE_STR;
 
-static struct benchmark_info obj_remove_free = {
-	.name		= "obj_remove_free",
-	.brief		= "pmemobj_list_remove() benchmark with freeing"
-								"element",
-	.init		= obj_init,
-	.exit		= obj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= obj_remove_init_worker,
-	.free_worker	= free_worker_list,
-	.op_init	= get_item,
-	.operation	= obj_remove_free_op,
-	.measure_time	= true,
-	.clos		= obj_list_clo,
-	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof(struct obj_list_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-REGISTER_BENCHMARK(obj_remove_free);
+	obj_list_clo[1].opt_short = 'P';
+	obj_list_clo[1].opt_long = "position";
+	obj_list_clo[1].descr = "Place where operation will be performed -"
+		" head, tail, rand, middle";
+	obj_list_clo[1].def = "middle";
+	obj_list_clo[1].off = clo_field_offset(struct obj_list_args,
+		position);
+	obj_list_clo[1].type = CLO_TYPE_STR;
 
-static struct benchmark_info obj_move = {
-	.name		= "obj_move",
-	.brief		= "pmemobj_list_move() benchmark",
-	.init		= obj_init,
-	.exit		= obj_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= obj_move_init_worker,
-	.free_worker	= obj_move_free_worker,
-	.op_init	= get_move_item,
-	.operation	= obj_move_op,
-	.measure_time	= true,
-	.clos		= obj_list_clo,
-	.nclos		= ARRAY_SIZE(obj_list_clo) - 1,
-	.opts_size	= sizeof(struct obj_list_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
-REGISTER_BENCHMARK(obj_move);
+	obj_list_clo[2].opt_short = 'l';
+	obj_list_clo[2].opt_long = "list-len";
+	obj_list_clo[2].type = CLO_TYPE_UINT;
+	obj_list_clo[2].descr = "Initial list len";
+	obj_list_clo[2].off = clo_field_offset(struct obj_list_args, list_len);
+	obj_list_clo[2].def = "1";
+	obj_list_clo[2].type_uint.size = clo_field_size(struct obj_list_args,
+		list_len);
+	obj_list_clo[2].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
+	obj_list_clo[2].type_uint.min = 1;
+	obj_list_clo[2].type_uint.max = ULONG_MAX;
+
+	obj_list_clo[3].opt_short = 'm';
+	obj_list_clo[3].opt_long = "min-size";
+	obj_list_clo[3].type = CLO_TYPE_UINT;
+	obj_list_clo[3].descr = "Min allocation size";
+	obj_list_clo[3].off = clo_field_offset(struct obj_list_args, min_size);
+	obj_list_clo[3].def = "0";
+	obj_list_clo[3].type_uint.size = clo_field_size(struct obj_list_args,
+		min_size);
+	obj_list_clo[3].type_uint.base = CLO_INT_BASE_DEC;
+	obj_list_clo[3].type_uint.min = 0;
+	obj_list_clo[3].type_uint.max = UINT_MAX;
+
+	obj_list_clo[4].opt_short = 's';
+	obj_list_clo[4].type_uint.max = INT_MAX;
+	obj_list_clo[4].opt_long = "seed";
+	obj_list_clo[4].type = CLO_TYPE_UINT;
+	obj_list_clo[4].descr = "Seed value";
+	obj_list_clo[4].off = clo_field_offset(struct obj_list_args, seed);
+	obj_list_clo[4].def = "0";
+	obj_list_clo[4].type_uint.size = clo_field_size(struct obj_list_args,
+		seed);
+	obj_list_clo[4].type_uint.base = CLO_INT_BASE_DEC;
+	obj_list_clo[4].type_uint.min = 0;
+
+	/*
+	 * nclos field in benchmark_info structures is decremented to make
+	 * queue option available only for obj_isert, obj_remove
+	 */
+	obj_list_clo[5].opt_short = 'q';
+	obj_list_clo[5].opt_long = "queue";
+	obj_list_clo[5].descr = "Use circleq from queue.h instead pmemobj";
+	obj_list_clo[5].type = CLO_TYPE_FLAG;
+	obj_list_clo[5].off = clo_field_offset(struct obj_list_args, queue);
+
+
+	obj_insert.name = "obj_insert";
+	obj_insert.brief = "pmemobj_list_insert() benchmark";
+	obj_insert.init = obj_init;
+	obj_insert.exit = obj_exit;
+	obj_insert.multithread = true;
+	obj_insert.multiops = true;
+	obj_insert.init_worker = obj_insert_init_worker;
+	obj_insert.free_worker = free_worker_items;
+	obj_insert.op_init = get_item;
+	obj_insert.operation = insert_op;
+	obj_insert.measure_time = true;
+	obj_insert.clos = obj_list_clo;
+	obj_insert.nclos = ARRAY_SIZE(obj_list_clo);
+	obj_insert.opts_size = sizeof(struct obj_list_args);
+	obj_insert.rm_file = true;
+	obj_insert.allow_poolset = true;
+
+	REGISTER_BENCHMARK(obj_insert);
+
+	obj_remove.name = "obj_remove";
+	obj_remove.brief = "pmemobj_list_remove() benchmark without freeing"
+		"element";
+	obj_remove.init = obj_init;
+	obj_remove.exit = obj_exit;
+	obj_remove.multithread = true;
+	obj_remove.multiops = true;
+	obj_remove.init_worker = obj_remove_init_worker;
+	obj_remove.free_worker = free_worker_items;
+	obj_remove.op_init = get_item;
+	obj_remove.operation = remove_op;
+	obj_remove.measure_time = true;
+	obj_remove.clos = obj_list_clo;
+	obj_remove.nclos = ARRAY_SIZE(obj_list_clo);
+	obj_remove.opts_size = sizeof(struct obj_list_args);
+	obj_remove.rm_file = true;
+	obj_remove.allow_poolset = true;
+
+	REGISTER_BENCHMARK(obj_remove);
+
+	obj_insert_new.name = "obj_insert_new";
+	obj_insert_new.brief = "pmemobj_list_insert_new() benchmark";
+	obj_insert_new.init = obj_init;
+	obj_insert_new.exit = obj_exit;
+	obj_insert_new.multithread = true;
+	obj_insert_new.multiops = true;
+	obj_insert_new.init_worker = obj_insert_new_init_worker;
+	obj_insert_new.free_worker = free_worker_list;
+	obj_insert_new.op_init = get_item;
+	obj_insert_new.operation = obj_insert_new_op;
+	obj_insert_new.measure_time = true;
+	obj_insert_new.clos = obj_list_clo;
+	obj_insert_new.nclos = ARRAY_SIZE(obj_list_clo) - 1;
+	obj_insert_new.opts_size = sizeof(struct obj_list_args);
+	obj_insert_new.rm_file = true;
+	obj_insert_new.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_insert_new);
+
+	obj_remove_free.name = "obj_remove_free";
+	obj_remove_free.brief = "pmemobj_list_remove() benchmark with freeing"
+								"element";
+	obj_remove_free.init = obj_init;
+	obj_remove_free.exit = obj_exit;
+	obj_remove_free.multithread = true;
+	obj_remove_free.multiops = true;
+	obj_remove_free.init_worker = obj_remove_init_worker;
+	obj_remove_free.free_worker = free_worker_list;
+	obj_remove_free.op_init = get_item;
+	obj_remove_free.operation = obj_remove_free_op;
+	obj_remove_free.measure_time = true;
+	obj_remove_free.clos = obj_list_clo;
+	obj_remove_free.nclos = ARRAY_SIZE(obj_list_clo) - 1;
+	obj_remove_free.opts_size = sizeof(struct obj_list_args);
+	obj_remove_free.rm_file = true;
+	obj_remove_free.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_remove_free);
+
+
+	obj_move.name = "obj_move";
+	obj_move.brief = "pmemobj_list_move() benchmark";
+	obj_move.init = obj_init;
+	obj_move.exit = obj_exit;
+	obj_move.multithread = true;
+	obj_move.multiops = true;
+	obj_move.init_worker = obj_move_init_worker;
+	obj_move.free_worker = obj_move_free_worker;
+	obj_move.op_init = get_move_item;
+	obj_move.operation = obj_move_op;
+	obj_move.measure_time = true;
+	obj_move.clos = obj_list_clo;
+	obj_move.nclos = ARRAY_SIZE(obj_list_clo) - 1;
+	obj_move.opts_size = sizeof(struct obj_list_args);
+	obj_move.rm_file = true;
+	obj_move.allow_poolset = true;
+	REGISTER_BENCHMARK(obj_move);
+}

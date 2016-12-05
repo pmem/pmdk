@@ -35,7 +35,7 @@
  */
 
 #include "libpmemblk.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 #include <assert.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -44,7 +44,6 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <argp.h>
 #include <errno.h>
 
 struct blk_bench;
@@ -87,59 +86,7 @@ struct blk_worker {
 	unsigned seed;			/* worker seed */
 };
 
-static struct benchmark_clo blk_clo[] = {
-	{
-		.opt_short	= 'i',
-		.opt_long	= "file-io",
-		.descr		= "File I/O mode",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct blk_args, file_io),
-		.def		= "false",
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct blk_args, no_warmup),
-	},
-	{
-		.opt_short	= 'r',
-		.opt_long	= "random",
-		.descr		= "Use random block numbers for write/read",
-		.off		= clo_field_offset(struct blk_args, rand),
-		.type		= CLO_TYPE_FLAG
-	},
-	{
-		.opt_short	= 'S',
-		.opt_long	= "seed",
-		.descr		= "Random mode",
-		.off		= clo_field_offset(struct blk_args, seed),
-		.def		= "1",
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct blk_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= UINT_MAX,
-		}
-	},
-	{
-		.opt_short	= 's',
-		.opt_long	= "file-size",
-		.descr		= "File size in bytes - 0 means minimum",
-		.type		= CLO_TYPE_UINT,
-		.off		= clo_field_offset(struct blk_args,
-						fsize),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct blk_args, fsize),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= ~0,
-		},
-	},
-};
+static struct benchmark_clo blk_clo[5];
 
 /*
  * blk_do_warmup -- perform warm-up by writing to each block
@@ -147,10 +94,10 @@ static struct benchmark_clo blk_clo[] = {
 static int
 blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 {
-	struct blk_args *ba = args->opts;
+	struct blk_args *ba = (struct blk_args *)args->opts;
 	size_t lba;
 	int ret = 0;
-	char *buff = calloc(1, args->dsize);
+	char *buff = (char *)calloc(1, args->dsize);
 	if (!buff) {
 		perror("calloc");
 		return -1;
@@ -160,7 +107,7 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 		if (ba->file_io) {
 			size_t off = lba * args->dsize;
 			if (pwrite(bb->fd, buff, args->dsize, off)
-					!= args->dsize) {
+			    != (ssize_t)args->dsize) {
 				perror("pwrite");
 				ret = -1;
 				goto out;
@@ -202,7 +149,7 @@ fileio_read(struct blk_bench *bb, struct benchmark_args *ba,
 {
 	off_t file_off = off * ba->dsize;
 	if (pread(bb->fd, bworker->buff, ba->dsize, file_off)
-					!= ba->dsize) {
+	    != (ssize_t)ba->dsize) {
 		perror("pread");
 		return -1;
 	}
@@ -231,7 +178,8 @@ fileio_write(struct blk_bench *bb, struct benchmark_args *ba,
 		struct blk_worker *bworker, off_t off)
 {
 	off_t file_off = off * ba->dsize;
-	if (pwrite(bb->fd, bworker->buff, ba->dsize, file_off) != ba->dsize) {
+	if (pwrite(bb->fd, bworker->buff, ba->dsize, file_off) !=
+						(ssize_t)ba->dsize) {
 		perror("pwrite");
 		return -1;
 	}
@@ -244,8 +192,8 @@ fileio_write(struct blk_bench *bb, struct benchmark_args *ba,
 static int
 blk_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct blk_bench *bb = pmembench_get_priv(bench);
-	struct blk_worker *bworker = info->worker->priv;
+	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	struct blk_worker *bworker = (struct blk_worker *)info->worker->priv;
 
 	off_t off = bworker->blocks[info->index];
 	return bb->worker(bb, info->args, bworker, off);
@@ -258,18 +206,20 @@ static int
 blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct blk_worker *bworker = malloc(sizeof(*bworker));
+	struct blk_worker *bworker = (struct blk_worker *)
+					malloc(sizeof(*bworker));
+
 	if (!bworker) {
 		perror("malloc");
 		return -1;
 	}
 
-	struct blk_bench *bb = pmembench_get_priv(bench);
-	struct blk_args *bargs = args->opts;
+	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	struct blk_args *bargs = (struct blk_args *)args->opts;
 
 	bworker->seed = rand_r(&bargs->seed);
 
-	bworker->buff = malloc(args->dsize);
+	bworker->buff = (unsigned char *)malloc(args->dsize);
 	if (!bworker->buff) {
 		perror("malloc");
 		goto err_buff;
@@ -278,7 +228,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	/* fill buffer with some random data */
 	memset(bworker->buff, bworker->seed, args->dsize);
 
-	bworker->blocks = malloc(sizeof(bworker->blocks) *
+	bworker->blocks = (off_t *)malloc(sizeof(bworker->blocks) *
 			args->n_ops_per_thread);
 	if (!bworker->blocks) {
 		perror("malloc");
@@ -313,7 +263,7 @@ static void
 blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct blk_worker *bworker = worker->priv;
+	struct blk_worker *bworker = (struct blk_worker *)worker->priv;
 	free(bworker->blocks);
 	free(bworker->buff);
 	free(bworker);
@@ -325,7 +275,7 @@ blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 blk_init(struct blk_bench *bb, struct benchmark_args *args)
 {
-	struct blk_args *ba = args->opts;
+	struct blk_args *ba = (struct blk_args *)args->opts;
 	assert(ba != NULL);
 
 	if (ba->fsize == 0)
@@ -373,7 +323,11 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	if (ba->file_io) {
 		pmemblk_close(bb->pbp);
 		bb->pbp = NULL;
+#ifndef _WIN32
 		int flags = O_RDWR | O_CREAT | O_SYNC;
+#else
+		int flags = O_RDWR | O_CREAT | O_SYNC | O_BINARY;
+#endif
 		bb->fd = open(args->fname, flags, args->fmode);
 		if (bb->fd < 0) {
 			perror("open");
@@ -407,8 +361,9 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 
 	int ret;
-	struct blk_args *ba = args->opts;
-	struct blk_bench *bb = malloc(sizeof(struct blk_bench));
+	struct blk_args *ba = (struct blk_args *)args->opts;
+	struct blk_bench *bb = (struct blk_bench *)malloc(
+			sizeof(struct blk_bench));
 	if (bb == NULL) {
 		perror("malloc");
 		return -1;
@@ -438,8 +393,9 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 
 	int ret;
-	struct blk_args *ba = args->opts;
-	struct blk_bench *bb = malloc(sizeof(struct blk_bench));
+	struct blk_args *ba = (struct blk_args *)args->opts;
+	struct blk_bench *bb = (struct blk_bench *)
+				malloc(sizeof(struct blk_bench));
 	if (bb == NULL) {
 		perror("malloc");
 		return -1;
@@ -466,8 +422,8 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 blk_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct blk_bench *bb = pmembench_get_priv(bench);
-	struct blk_args *ba = args->opts;
+	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	struct blk_args *ba = (struct blk_args *)args->opts;
 
 	if (ba->file_io) {
 		close(bb->fd);
@@ -487,40 +443,85 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_info blk_read_info = {
-	.name		= "blk_read",
-	.brief		= "Benchmark for blk_read() operation",
-	.init		= blk_read_init,
-	.exit		= blk_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= blk_init_worker,
-	.free_worker	= blk_free_worker,
-	.operation	= blk_operation,
-	.clos		= blk_clo,
-	.nclos		= ARRAY_SIZE(blk_clo),
-	.opts_size	= sizeof(struct blk_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+static struct benchmark_info blk_read_info;
+static struct benchmark_info blk_write_info;
 
-REGISTER_BENCHMARK(blk_read_info);
+CONSTRUCTOR(blk_costructor)
+void
+blk_costructor(void)
+{
+	blk_clo[0].opt_short = 'i';
+	blk_clo[0].opt_long = "file-io";
+	blk_clo[0].descr = "File I/O mode";
+	blk_clo[0].type = CLO_TYPE_FLAG;
+	blk_clo[0].off = clo_field_offset(struct blk_args, file_io);
+	blk_clo[0].def = "false";
 
-static struct benchmark_info blk_write_info = {
-	.name		= "blk_write",
-	.brief		= "Benchmark for blk_write() operation",
-	.init		= blk_write_init,
-	.exit		= blk_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= blk_init_worker,
-	.free_worker	= blk_free_worker,
-	.operation	= blk_operation,
-	.clos		= blk_clo,
-	.nclos		= ARRAY_SIZE(blk_clo),
-	.opts_size	= sizeof(struct blk_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+	blk_clo[1].opt_short = 'w';
+	blk_clo[1].opt_long = "no-warmup";
+	blk_clo[1].descr = "Don't do warmup";
+	blk_clo[1].type = CLO_TYPE_FLAG;
+	blk_clo[1].off = clo_field_offset(struct blk_args, no_warmup);
 
-REGISTER_BENCHMARK(blk_write_info);
+	blk_clo[2].opt_short = 'r';
+	blk_clo[2].opt_long = "random";
+	blk_clo[2].descr = "Use random block numbers for write/read";
+	blk_clo[2].off = clo_field_offset(struct blk_args, rand);
+	blk_clo[2].type = CLO_TYPE_FLAG;
+
+	blk_clo[3].opt_short = 'S';
+	blk_clo[3].opt_long = "seed";
+	blk_clo[3].descr = "Random mode";
+	blk_clo[3].off = clo_field_offset(struct blk_args, seed);
+	blk_clo[3].def = "1";
+	blk_clo[3].type = CLO_TYPE_UINT;
+	blk_clo[3].type_uint.size = clo_field_size(struct blk_args, seed);
+	blk_clo[3].type_uint.base = CLO_INT_BASE_DEC;
+	blk_clo[3].type_uint.min = 1;
+	blk_clo[3].type_uint.max = UINT_MAX;
+
+	blk_clo[4].opt_short = 's';
+	blk_clo[4].opt_long = "file-size";
+	blk_clo[4].descr = "File size in bytes - 0 means minimum";
+	blk_clo[4].type = CLO_TYPE_UINT;
+	blk_clo[4].off = clo_field_offset(struct blk_args, fsize);
+	blk_clo[4].def = "0";
+	blk_clo[4].type_uint.size = clo_field_size(struct blk_args, fsize);
+	blk_clo[4].type_uint.base = CLO_INT_BASE_DEC;
+	blk_clo[4].type_uint.min = 0;
+	blk_clo[4].type_uint.max = ~0;
+
+	blk_read_info.name = "blk_read";
+	blk_read_info.brief = "Benchmark for blk_read() operation";
+	blk_read_info.init = blk_read_init;
+	blk_read_info.exit = blk_exit;
+	blk_read_info.multithread = true;
+	blk_read_info.multiops = true;
+	blk_read_info.init_worker = blk_init_worker;
+	blk_read_info.free_worker = blk_free_worker;
+	blk_read_info.operation = blk_operation;
+	blk_read_info.clos = blk_clo;
+	blk_read_info.nclos = ARRAY_SIZE(blk_clo);
+	blk_read_info.opts_size = sizeof(struct blk_args);
+	blk_read_info.rm_file = true;
+	blk_read_info.allow_poolset = true;
+
+	REGISTER_BENCHMARK(blk_read_info);
+
+	blk_write_info.name = "blk_write";
+	blk_write_info.brief = "Benchmark for blk_write() operation";
+	blk_write_info.init = blk_write_init;
+	blk_write_info.exit = blk_exit;
+	blk_write_info.multithread = true;
+	blk_write_info.multiops = true;
+	blk_write_info.init_worker = blk_init_worker;
+	blk_write_info.free_worker = blk_free_worker;
+	blk_write_info.operation = blk_operation;
+	blk_write_info.clos = blk_clo;
+	blk_write_info.nclos = ARRAY_SIZE(blk_clo);
+	blk_write_info.opts_size = sizeof(struct blk_args);
+	blk_write_info.rm_file = true;
+	blk_write_info.allow_poolset = true;
+
+	REGISTER_BENCHMARK(blk_write_info);
+}

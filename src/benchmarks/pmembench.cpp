@@ -47,21 +47,23 @@
 #include <linux/limits.h>
 #include <dirent.h>
 #include <errno.h>
+#include <inttypes.h>
 
 #include "mmap.h"
 #include "set.h"
-#include "benchmark.h"
-#include "benchmark_worker.h"
-#include "scenario.h"
-#include "clo_vec.h"
-#include "clo.h"
-#include "config_reader.h"
+#include "benchmark.hpp"
+#include "benchmark_worker.hpp"
+#include "scenario.hpp"
+#include "clo_vec.hpp"
+#include "clo.hpp"
+#include "config_reader.hpp"
 #include "util.h"
 #include "file.h"
+#ifndef _WIN32
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
 #include "rpmem_util.h"
-
+#endif
 /*
  * struct pmembench -- main context
  */
@@ -137,148 +139,126 @@ static struct version_s
 
 
 /* benchmarks list initialization */
-static struct bench_list benchmarks = {
-	.initialized = false,
-};
-
-/* list of arguments for pmembench */
-static struct benchmark_clo pmembench_opts[] = {
-	{
-		.opt_short	= 'h',
-		.opt_long	= "help",
-		.descr		= "Print help",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct benchmark_opts,
-							help),
-		.ignore_in_res	= true,
-	},
-	{
-		.opt_short	= 'v',
-		.opt_long	= "version",
-		.descr		= "Print version",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct benchmark_opts,
-						version),
-		.ignore_in_res	= true,
-	},
-};
+static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[] = {
-	{
-		.opt_short	= 'h',
-		.opt_long	= "help",
-		.descr		= "Print help for single benchmark",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct benchmark_args,
-						help),
-		.ignore_in_res	= true,
-	},
-	{
-		.opt_short	= 't',
-		.opt_long	= "threads",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Number of working threads",
-		.off		= clo_field_offset(struct benchmark_args,
-						n_threads),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args,
-						n_threads),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= 32,
-		},
-	},
-	{
-		.opt_short	= 'n',
-		.opt_long	= "ops-per-thread",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Number of operations per thread",
-		.off		= clo_field_offset(struct benchmark_args,
-						n_ops_per_thread),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args,
-						n_ops_per_thread),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 1,
-			.max	= ULLONG_MAX,
-		},
-	},
-	{
-		.opt_short	= 'd',
-		.opt_long	= "data-size",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "IO data size",
-		.off		= clo_field_offset(struct benchmark_args,
-						dsize),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args,
-						dsize),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 1,
-			.max	= ULONG_MAX,
-		},
-	},
-	{
-		.opt_short	= 'f',
-		.opt_long	= "file",
-		.type		= CLO_TYPE_STR,
-		.descr		= "File name",
-		.off		= clo_field_offset(struct benchmark_args,
-						fname),
-		.def		= "/mnt/pmem/testfile",
-		.ignore_in_res	= true,
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "fmode",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "File mode",
-		.off		= clo_field_offset(struct benchmark_args,
-					fmode),
-		.def		= "0666",
-		.ignore_in_res	= true,
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args, fmode),
-			.base	= CLO_INT_BASE_OCT,
-			.min	= 0,
-			.max	= ULONG_MAX,
-		},
-	},
-	{
-		.opt_short	= 's',
-		.opt_long	= "seed",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "PRNG seed",
-		.off		= clo_field_offset(struct benchmark_args, seed),
-		.def		= "0",
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args, seed),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= ~0,
-		},
-	},
-	{
-		.opt_short	= 'r',
-		.opt_long	= "repeats",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Number of repeats of scenario",
-		.off		= clo_field_offset(struct benchmark_args,
-						repeats),
-		.def		= "1",
-		.type_uint	= {
-			.size	= clo_field_size(struct benchmark_args,
-						repeats),
-			.base	= CLO_INT_BASE_DEC|CLO_INT_BASE_HEX,
-			.min	= 1,
-			.max	= ULONG_MAX,
-		},
-	},
-};
+static struct benchmark_clo pmembench_clos[8];
+
+/* list of arguments for pmembench */
+static struct benchmark_clo pmembench_opts[2];
+CONSTRUCTOR(pmembench_costructor)
+void
+pmembench_costructor(void)
+{
+	pmembench_opts[0].opt_short = 'h';
+	pmembench_opts[0].opt_long = "help";
+	pmembench_opts[0].descr = "Print help";
+	pmembench_opts[0].type = CLO_TYPE_FLAG;
+	pmembench_opts[0].off = clo_field_offset(struct benchmark_opts, help);
+	pmembench_opts[0].ignore_in_res = true;
+
+	pmembench_opts[1].opt_short = 'v';
+	pmembench_opts[1].opt_long = "version";
+	pmembench_opts[1].descr = "Print version";
+	pmembench_opts[1].type = CLO_TYPE_FLAG;
+	pmembench_opts[1].off = clo_field_offset(struct benchmark_opts,
+		version);
+	pmembench_opts[1].ignore_in_res = true;
+
+	pmembench_clos[0].opt_short = 'h';
+	pmembench_clos[0].opt_long = "help";
+	pmembench_clos[0].descr = "Print help for single benchmark";
+	pmembench_clos[0].type = CLO_TYPE_FLAG;
+	pmembench_clos[0].off = clo_field_offset(struct benchmark_args,
+		help);
+	pmembench_clos[0].ignore_in_res = true;
+
+	pmembench_clos[1].opt_short = 't';
+	pmembench_clos[1].opt_long = "threads";
+	pmembench_clos[1].type = CLO_TYPE_UINT;
+	pmembench_clos[1].descr = "Number of working threads";
+	pmembench_clos[1].off = clo_field_offset(struct benchmark_args,
+		n_threads);
+	pmembench_clos[1].def = "1";
+	pmembench_clos[1].type_uint.size = clo_field_size(struct benchmark_args,
+		n_threads);
+	pmembench_clos[1].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[1].type_uint.min = 1;
+	pmembench_clos[1].type_uint.max = 32;
+
+	pmembench_clos[2].opt_short = 'n';
+	pmembench_clos[2].opt_long = "ops-per-thread";
+	pmembench_clos[2].type = CLO_TYPE_UINT;
+	pmembench_clos[2].descr = "Number of operations per thread";
+	pmembench_clos[2].off = clo_field_offset(struct benchmark_args,
+		n_ops_per_thread);
+	pmembench_clos[2].def = "1";
+	pmembench_clos[2].type_uint.size = clo_field_size(struct benchmark_args,
+		n_ops_per_thread);
+	pmembench_clos[2].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[2].type_uint.min = 1;
+	pmembench_clos[2].type_uint.max = ULLONG_MAX;
+
+	pmembench_clos[3].opt_short = 'd';
+	pmembench_clos[3].opt_long = "data-size";
+	pmembench_clos[3].type = CLO_TYPE_UINT;
+	pmembench_clos[3].descr = "IO data size";
+	pmembench_clos[3].off = clo_field_offset(struct benchmark_args, dsize);
+	pmembench_clos[3].def = "1";
+
+	pmembench_clos[3].type_uint.size = clo_field_size(struct benchmark_args,
+		dsize);
+	pmembench_clos[3].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
+	pmembench_clos[3].type_uint.min = 1;
+	pmembench_clos[3].type_uint.max = ULONG_MAX;
+
+	pmembench_clos[4].opt_short = 'f';
+	pmembench_clos[4].opt_long = "file";
+	pmembench_clos[4].type = CLO_TYPE_STR;
+	pmembench_clos[4].descr = "File name";
+	pmembench_clos[4].off = clo_field_offset(struct benchmark_args, fname);
+	pmembench_clos[4].def = "/mnt/pmem/testfile";
+	pmembench_clos[4].ignore_in_res = true;
+
+	pmembench_clos[5].opt_short = 'm';
+	pmembench_clos[5].opt_long = "fmode";
+	pmembench_clos[5].type = CLO_TYPE_UINT;
+	pmembench_clos[5].descr = "File mode";
+	pmembench_clos[5].off = clo_field_offset(struct benchmark_args, fmode);
+	pmembench_clos[5].def = "0666";
+	pmembench_clos[5].ignore_in_res = true;
+	pmembench_clos[5].type_uint.size = clo_field_size(struct benchmark_args,
+		fmode);
+	pmembench_clos[5].type_uint.base = CLO_INT_BASE_OCT;
+	pmembench_clos[5].type_uint.min = 0;
+	pmembench_clos[5].type_uint.max = ULONG_MAX;
+
+	pmembench_clos[6].opt_short = 's';
+	pmembench_clos[6].opt_long = "seed";
+	pmembench_clos[6].type = CLO_TYPE_UINT;
+	pmembench_clos[6].descr = "PRNG seed";
+	pmembench_clos[6].off = clo_field_offset(struct benchmark_args, seed);
+	pmembench_clos[6].def = "0";
+	pmembench_clos[6].type_uint.size = clo_field_size(struct benchmark_args,
+		seed);
+	pmembench_clos[6].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[6].type_uint.min = 0;
+	pmembench_clos[6].type_uint.max = ~0;
+
+	pmembench_clos[7].opt_short = 'r';
+	pmembench_clos[7].opt_long = "repeats";
+	pmembench_clos[7].type = CLO_TYPE_UINT;
+	pmembench_clos[7].descr = "Number of repeats of scenario";
+	pmembench_clos[7].off = clo_field_offset(struct benchmark_args,
+		repeats);
+	pmembench_clos[7].def = "1";
+	pmembench_clos[7].type_uint.size = clo_field_size(struct benchmark_args,
+		repeats);
+	pmembench_clos[7].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
+	pmembench_clos[7].type_uint.min = 1;
+	pmembench_clos[7].type_uint.max = ULONG_MAX;
+}
+
 
 /*
  * pmembench_get_priv -- return private structure of benchmark
@@ -304,7 +284,7 @@ pmembench_set_priv(struct benchmark *bench, void *priv)
 int
 pmembench_register(struct benchmark_info *bench_info)
 {
-	struct benchmark *bench = calloc(1, sizeof(*bench));
+	struct benchmark *bench = (struct benchmark *)calloc(1, sizeof(*bench));
 	assert(bench != NULL);
 
 	bench->info = bench_info;
@@ -353,7 +333,7 @@ pmembench_merge_clos(struct benchmark *bench)
 		nclos += bench->info->nclos;
 	}
 
-	struct benchmark_clo *clos = calloc(nclos,
+	struct benchmark_clo *clos = (struct benchmark_clo *)calloc(nclos,
 			sizeof(struct benchmark_clo));
 	assert(clos != NULL);
 
@@ -412,15 +392,15 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 		struct clo_vec *clovec)
 {
 	if (pb->scenario) {
-		printf("%s: %s [%ld]%s%s%s\n",
+		printf("%s: %s [%" PRIu64 "]%s%s%s\n",
 			pb->scenario->name,
 			bench->info->name,
 			clovec->nargs,
 			pb->scenario->group ? " [group: " : "",
-			pb->scenario->group ? : "",
+			pb->scenario->group ? pb->scenario->group : "",
 			pb->scenario->group ? "]" : "");
 	} else {
-		printf("%s [%ld]\n", bench->info->name, clovec->nargs);
+		printf("%s [%" PRIu64 "]\n", bench->info->name, clovec->nargs);
 	}
 	printf("total-avg[sec];"
 		"ops-per-second[1/sec];"
@@ -450,7 +430,8 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 				struct results *stats, struct latency *latency)
 {
 	double opsps = n_threads * n_ops / stats->avg;
-	printf("%f;%f;%f;%f;%f;%f;%ld;%ld;%ld;%f", stats->avg,
+	printf("%f;%f;%f;%f;%f;%f;%" PRIu64 ";%" PRIu64";%" PRIu64 ";%f",
+			stats->avg,
 			opsps,
 			stats->max,
 			stats->min,
@@ -498,7 +479,6 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 		if (ret)
 			return ret;
 	}
-
 	return benchmark_clo_parse_scenario(pb->scenario, bench->clos,
 						bench->nclos, clovec);
 }
@@ -515,7 +495,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i] = benchmark_worker_alloc();
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
-		workers[i]->info.opinfo = calloc(n_ops,
+		workers[i]->info.opinfo = (struct operation_info *)calloc(n_ops,
 				sizeof(struct operation_info));
 		size_t j;
 		for (j = 0; j < n_ops; j++) {
@@ -628,7 +608,7 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 	size_t nresults = repeats * nworkers;
 	size_t i;
 	size_t j;
-	size_t d;
+	double d;
 	double df;
 	for (i = 0; i < repeats; i++) {
 		/* latency */
@@ -640,7 +620,7 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 
 		/* total time */
 		for (j = 0; j < nworkers; j++) {
-			int idx = i * nworkers + j;
+			size_t idx = i * nworkers + j;
 			total->avg += workers_times[idx];
 		}
 	}
@@ -662,7 +642,7 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 		latency->std_dev += d * d;
 
 		for (j = 0; j < nworkers; j++) {
-			int idx = i * nworkers + j;
+			size_t idx = i * nworkers + j;
 			df = workers_times[idx] > total->avg ?
 					workers_times[idx] - total->avg :
 					total->avg - workers_times[idx];
@@ -827,7 +807,7 @@ pmembench_parse_opts(struct pmembench *pb)
 		goto out;
 	}
 
-	opts = clo_vec_get_args(clovec, 0);
+	opts = (struct benchmark_opts *)clo_vec_get_args(clovec, 0);
 	if (opts == NULL) {
 		ret = -1;
 		goto out;
@@ -840,10 +820,10 @@ pmembench_parse_opts(struct pmembench *pb)
 
 out:
 	clo_vec_free(clovec);
-	free(opts);
 	return ret;
 }
-
+/* XXX: no rpmem on windows */
+#ifndef _WIN32
 /*
  * remove_remote -- remove remote pool
  */
@@ -866,16 +846,18 @@ remove_remote(const char *node, const char *pool)
 
 	return 0;
 }
-
+#endif
 /*
  * remove_part_cb -- callback function for removing all pool set part files
  */
 static int
 remove_part_cb(struct part_file *pf, void *arg)
 {
+	/* XXX: no rpmem on windows */
+#ifndef _WIN32
 	if (pf->is_remote)
 		return remove_remote(pf->node_addr, pf->pool_desc);
-
+#endif
 	const char *part_file = pf->path;
 
 	if (access(part_file, F_OK) == 0)
@@ -891,45 +873,51 @@ static int
 pmembench_remove_file(const char *path)
 {
 	int ret = 0;
-	DIR *dir;
-	struct dirent *d;
+	util_stat_t status;
 	char *tmp;
-	dir = opendir(path);
-	if (dir == NULL) {
-		if (access(path, F_OK) == 0) {
-			ret = util_is_poolset_file(path);
-			if (ret == 0) {
-				return util_unlink(path);
-			} else if (ret == 1) {
-				return util_poolset_foreach_part(path,
-						remove_part_cb, NULL);
-			}
+
+	if (access(path, F_OK) != 0)
+		return 0;
+
+	util_stat(path, &status);
+	if (!(status.st_mode & S_IFDIR)) {
+		ret = util_is_poolset_file(path);
+		if (ret == 0) {
+			return util_unlink(path);
+		} else if (ret == 1) {
+			return util_poolset_foreach_part(path,
+				remove_part_cb, NULL);
 		}
+
 		return ret;
 	}
 
-	while ((d = readdir(dir)) != NULL) {
-		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
+	struct dir_handle it;
+	struct file_info info;
+
+	if (util_file_dir_open(&it, path)) {
+		return -1;
+	}
+
+	while (util_file_dir_next(&it, &info)) {
+		if (strcmp(info.filename, ".") == 0 ||
+		    strcmp(info.filename, "..") == 0)
 			continue;
-		tmp = malloc(strlen(path) + strlen(d->d_name) + 2);
-		if (tmp == NULL) {
-			closedir(dir);
+		tmp = (char *)malloc(strlen(path) + strlen(info.filename) + 2);
+		if (tmp == NULL)
 			return -1;
-		}
-		sprintf(tmp, "%s/%s", path, d->d_name);
-		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
-							: util_unlink(tmp);
+		sprintf(tmp, "%s/%s", path, info.filename);
+		ret = info.is_dir ? pmembench_remove_file(tmp)
+			: util_unlink(tmp);
 		free(tmp);
 		if (ret != 0) {
-			closedir(dir);
+			util_file_dir_close(&it);
 			return ret;
 		}
 	}
 
-	if (closedir(dir))
-		return -1;
-
-	return rmdir(path);
+	util_file_dir_close(&it);
+	return util_file_dir_remove(path);
 }
 
 /*
@@ -941,6 +929,10 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
 	char old_wd[PATH_MAX];
 	int ret = 0;
+	struct benchmark_args *args = NULL;
+	struct latency *stats = NULL;
+	double *workers_times = NULL;
+	struct clo_vec *clovec;
 
 	assert(bench->info != NULL);
 	pmembench_merge_clos(bench);
@@ -972,11 +964,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		}
 	}
 
-	struct benchmark_args *args = NULL;
-	struct latency *stats = NULL;
-	double *workers_times = NULL;
-
-	struct clo_vec *clovec = clo_vec_alloc(bench->args_size);
+	clovec = clo_vec_alloc(bench->args_size);
 	assert(clovec != NULL);
 
 	if (pmembench_parse_clo(pb, bench, clovec)) {
@@ -986,7 +974,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		goto out_release_args;
 	}
 
-	args = clo_vec_get_args(clovec, 0);
+	args = (struct benchmark_args *)clo_vec_get_args(clovec, 0);
 	if (args == NULL) {
 		warn("%s: parsing command line arguments failed",
 				bench->info->name);
@@ -1003,7 +991,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
-		args = clo_vec_get_args(clovec, args_i);
+		args = (struct benchmark_args *)
+			clo_vec_get_args(clovec, args_i);
 		if (args == NULL) {
 			warn("%s: parsing command line arguments failed",
 				bench->info->name);
@@ -1031,9 +1020,10 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		size_t n_ops = !bench->info->multiops ? 1 :
 						args->n_ops_per_thread;
 
-		stats = calloc(args->repeats, sizeof(struct latency));
+		stats = (struct latency *)
+			calloc(args->repeats, sizeof(struct latency));
 		assert(stats != NULL);
-		workers_times = calloc(n_threads * args->repeats,
+		workers_times = (double *)calloc(n_threads * args->repeats,
 							sizeof(double));
 		assert(workers_times != NULL);
 
@@ -1058,7 +1048,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			assert(bench->info->operation != NULL);
 
 			struct benchmark_worker **workers;
-			workers = malloc(args->n_threads *
+			workers = (struct benchmark_worker **)
+					malloc(args->n_threads *
 					sizeof(struct benchmark_worker *));
 			assert(workers != NULL);
 
@@ -1181,6 +1172,7 @@ pmembench_run_scenarios(struct pmembench *pb, struct scenarios *ss)
 static int
 pmembench_run_config(struct pmembench *pb, const char *config)
 {
+	struct scenarios *ss = NULL;
 	struct config_reader *cr = config_reader_alloc();
 	assert(cr != NULL);
 
@@ -1189,7 +1181,6 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 	if ((ret = config_reader_read(cr, config)))
 		goto out;
 
-	struct scenarios *ss = NULL;
 	if ((ret = config_reader_get_scenarios(cr, &ss)))
 		goto out;
 
@@ -1250,10 +1241,14 @@ int
 main(int argc, char *argv[])
 {
 	util_init();
+#ifndef _WIN32
 	rpmem_util_cmds_init();
+#endif
 	util_mmap_init();
 	int ret = 0;
-	struct pmembench *pb = calloc(1, sizeof(*pb));
+	int fexists;
+	struct benchmark *bench;
+	struct pmembench *pb = (struct pmembench *)calloc(1, sizeof(*pb));
 	assert(pb != NULL);
 
 	/*
@@ -1274,8 +1269,9 @@ main(int argc, char *argv[])
 		ret = -1;
 		goto out;
 	}
-	int fexists = access(bench_name, R_OK) == 0;
-	struct benchmark *bench = pmembench_get_bench(bench_name);
+
+	fexists = access(bench_name, R_OK) == 0;
+	bench = pmembench_get_bench(bench_name);
 	if (NULL != bench)
 		ret = pmembench_run(pb, bench);
 	else if (fexists)

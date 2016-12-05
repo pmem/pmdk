@@ -38,14 +38,19 @@
 #include <errno.h>
 #include <assert.h>
 #include <sys/queue.h>
+#include <inttypes.h>
 
-#include "benchmark.h"
-#include "scenario.h"
-#include "clo_vec.h"
-#include "clo.h"
+#include "benchmark.hpp"
+#include "scenario.hpp"
+#include "clo_vec.hpp"
+#include "clo.hpp"
 
+#ifndef min
 #define min(a, b)	((a) < (b) ? (a) : (b))
+#endif
+#ifndef max
 #define max(a, b)	((a) > (b) ? (a) : (b))
+#endif
 
 typedef int (*clo_parse_fn)(struct benchmark_clo *clo, const char *arg,
 		struct clo_vec *clovec);
@@ -141,10 +146,10 @@ parse_number_base(const char *arg, void *value, int s, int base)
 	char *end;
 	errno = 0;
 	if (s) {
-		int64_t *v = value;
+		int64_t *v = (int64_t *)value;
 		*v = strtoll(arg, &end, base);
 	} else {
-		uint64_t *v = value;
+		uint64_t *v = (uint64_t *)value;
 		*v = strtoull(arg, &end, base);
 	}
 
@@ -158,7 +163,7 @@ parse_number_base(const char *arg, void *value, int s, int base)
  */
 static int
 parse_number(const char *arg, size_t len, void *value, int s,
-		enum clo_int_base base)
+		int base)
 {
 	if ((base & CLO_INT_BASE_HEX) && is_hex(arg, len)) {
 		if (!parse_number_base(arg, value, s, 16))
@@ -374,13 +379,16 @@ clo_parse_range(struct benchmark_clo *clo, const char *arg,
 		clo_parse_single_fn parse_single, clo_eval_range_fn eval_range,
 		struct clo_vec_vlist *vlist)
 {
-	char *str_first = NULL;
-	char *str_step = NULL;
+	char *str_first = (char *)malloc(strlen(arg) + 1);
+	assert(str_first != NULL);
+	char *str_step = (char *)malloc(strlen(arg) + 1);
+	assert(str_step != NULL);
 	char step_type = '\0';
-	char *str_last = NULL;
+	char *str_last = (char *)malloc(strlen(arg) + 1);
+	assert(str_last != NULL);
 
-	int ret = sscanf(arg, "%m[^:]:%c%m[^:]:%m[^:]", &str_first, &step_type,
-			&str_step, &str_last);
+	int ret = sscanf(arg, "%[^:]:%c%[^:]:%[^:]", str_first, &step_type,
+			str_step, str_last);
 	if (ret == 1) {
 		/* single value */
 		uint64_t value;
@@ -543,19 +551,19 @@ clo_str_int(struct benchmark_clo *clo, void *addr, size_t size)
 
 	switch (clo->type_int.size) {
 		case 1:
-			snprintf(str_buff, STR_BUFF_SIZE, "%d",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId8,
 					*(int8_t *)val);
 			break;
 		case 2:
-			snprintf(str_buff, STR_BUFF_SIZE, "%d",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId16,
 					*(int16_t *)val);
 			break;
 		case 4:
-			snprintf(str_buff, STR_BUFF_SIZE, "%d",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId32,
 					*(int32_t *)val);
 			break;
 		case 8:
-			snprintf(str_buff, STR_BUFF_SIZE, "%ld",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId64,
 					*(int64_t *)val);
 			break;
 		default:
@@ -578,19 +586,19 @@ clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
 
 	switch (clo->type_uint.size) {
 		case 1:
-			snprintf(str_buff, STR_BUFF_SIZE, "%u",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu8,
 					*(uint8_t *)val);
 			break;
 		case 2:
-			snprintf(str_buff, STR_BUFF_SIZE, "%u",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu16,
 					*(uint16_t *)val);
 			break;
 		case 4:
-			snprintf(str_buff, STR_BUFF_SIZE, "%u",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu32,
 					*(uint32_t *)val);
 			break;
 		case 8:
-			snprintf(str_buff, STR_BUFF_SIZE, "%lu",
+			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu64,
 					*(uint64_t *)val);
 			break;
 		default:
@@ -604,20 +612,20 @@ clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
  * clo_parse -- (internal) array with functions for parsing CLOs
  */
 static clo_parse_fn clo_parse[CLO_TYPE_MAX] = {
-	[CLO_TYPE_FLAG] = clo_parse_flag,
-	[CLO_TYPE_STR] = clo_parse_str,
-	[CLO_TYPE_INT] = clo_parse_int,
-	[CLO_TYPE_UINT] = clo_parse_uint,
+	/* [CLO_TYPE_FLAG] = */clo_parse_flag,
+	/* [CLO_TYPE_STR] =  */clo_parse_str,
+	/* [CLO_TYPE_INT] =  */clo_parse_int,
+	/* [CLO_TYPE_UINT] = */clo_parse_uint,
 };
 
 /*
  * clo_str -- (internal) array with functions for converting to string
  */
 static clo_str_fn clo_str[CLO_TYPE_MAX] = {
-	[CLO_TYPE_FLAG] = clo_str_flag,
-	[CLO_TYPE_STR] = clo_str_str,
-	[CLO_TYPE_INT] = clo_str_int,
-	[CLO_TYPE_UINT] = clo_str_uint,
+	/* [CLO_TYPE_FLAG] = */clo_str_flag,
+	/* [CLO_TYPE_STR] =  */clo_str_str,
+	/* [CLO_TYPE_INT] =  */clo_str_int,
+	/* [CLO_TYPE_UINT] = */clo_str_uint,
 };
 
 /*
@@ -672,7 +680,7 @@ clo_get_optstr(struct benchmark_clo *clos, size_t nclo)
 	 */
 	size_t optstrlen = nclo * 2 + 1;
 
-	optstr = calloc(1, optstrlen);
+	optstr = (char *)calloc(1, optstrlen);
 	assert(optstr != NULL);
 
 	ptr = optstr;
@@ -701,7 +709,7 @@ clo_get_long_options(struct benchmark_clo *clos, size_t nclo)
 	size_t i;
 	struct option *options;
 
-	options = calloc(nclo + 1, sizeof(struct option));
+	options = (struct option *)calloc(nclo + 1, sizeof(struct option));
 	assert(options != NULL);
 
 	for (i = 0; i < nclo; i++) {
@@ -778,7 +786,7 @@ clo_set_defaults(struct benchmark_clo *clos, size_t nclo,
  */
 int
 benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
-		size_t nclos, struct clo_vec *clovec)
+		int nclos, struct clo_vec *clovec)
 {
 	char *optstr;
 	struct option *options;
@@ -891,7 +899,7 @@ benchmark_clo_parse_scenario(struct scenario *scenario,
 int
 benchmark_override_clos_in_scenario(struct scenario *scenario,
 				    int argc, char *argv[],
-				    struct benchmark_clo *clos, size_t nclos)
+				    struct benchmark_clo *clos, int nclos)
 {
 	char *optstr;
 	struct option *options;

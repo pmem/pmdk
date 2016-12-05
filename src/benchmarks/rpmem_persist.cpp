@@ -80,38 +80,7 @@ struct rpmem_bench {
 	unsigned nreplicas;	/* number of remote replicas */
 };
 
-static struct benchmark_clo rpmem_clo[] = {
-	{
-		.opt_short	= 'M',
-		.opt_long	= "mem-mode",
-		.descr		= "Memory writing mode - stat, seq, rand",
-		.def		= "seq",
-		.off		= clo_field_offset(struct rpmem_args, mode),
-		.type		= CLO_TYPE_STR,
-	},
-	{
-		.opt_short	= 'D',
-		.opt_long	= "dest-offset",
-		.descr		= "Destination cache line alignment offset",
-		.def		= "0",
-		.off		= clo_field_offset(struct rpmem_args, dest_off),
-		.type		= CLO_TYPE_UINT,
-		.type_uint	= {
-			.size	= clo_field_size(struct rpmem_args, dest_off),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= MAX_OFFSET
-		}
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.def		= false,
-		.type		= CLO_TYPE_FLAG,
-		.off	= clo_field_offset(struct rpmem_args, no_warmup),
-	}
-};
+static struct benchmark_clo rpmem_clo[3];
 
 /*
  * operation_mode -- mode of operation
@@ -471,20 +440,50 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* Stores information about benchmark. */
-static struct benchmark_info rpmem_info = {
-	.name		= "rpmem_persist",
-	.brief		= "Benchmark for rpmem_persist() operation",
-	.init		= rpmem_init,
-	.exit		= rpmem_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= rpmem_op,
-	.measure_time	= true,
-	.clos		= rpmem_clo,
-	.nclos		= ARRAY_SIZE(rpmem_clo),
-	.opts_size	= sizeof(struct rpmem_args),
-	.rm_file	= true,
-	.allow_poolset	= true,
-};
+static struct benchmark_info rpmem_info;
+CONSTRUCTOR(rpmem_persist_costructor)
+void
+pmem_rpmem_persist(void)
+{
 
-REGISTER_BENCHMARK(rpmem_info);
+	rpmem_clo[0].opt_short = 'M';
+	rpmem_clo[0].opt_long = "mem-mode";
+	rpmem_clo[0].descr = "Memory writing mode - stat, seq, rand";
+	rpmem_clo[0].def = "seq";
+	rpmem_clo[0].off = clo_field_offset(struct rpmem_args, mode);
+	rpmem_clo[0].type = CLO_TYPE_STR;
+
+	rpmem_clo[1].opt_short = 'D';
+	rpmem_clo[1].opt_long = "dest-offset";
+	rpmem_clo[1].descr = "Destination cache line alignment offset";
+	rpmem_clo[1].def = "0";
+	rpmem_clo[1].off = clo_field_offset(struct rpmem_args, dest_off);
+	rpmem_clo[1].type = CLO_TYPE_UINT;
+	rpmem_clo[1].type_uint.size = clo_field_size(struct rpmem_args,
+								dest_off);
+	rpmem_clo[1].type_uint.base = CLO_INT_BASE_DEC;
+	rpmem_clo[1].type_uint.min = 0;
+	rpmem_clo[1].type_uint.max = MAX_OFFSET;
+
+	rpmem_clo[2].opt_short = 'w';
+	rpmem_clo[2].opt_long = "no-warmup";
+	rpmem_clo[2].descr = "Don't do warmup";
+	rpmem_clo[2].def = false;
+	rpmem_clo[2].type = CLO_TYPE_FLAG;
+	rpmem_clo[2].off = clo_field_offset(struct rpmem_args, no_warmup);
+
+	rpmem_info.name = "rpmem_persist";
+	rpmem_info.brief = "Benchmark for rpmem_persist() operation";
+	rpmem_info.init = rpmem_init;
+	rpmem_info.exit = rpmem_exit;
+	rpmem_info.multithread = true;
+	rpmem_info.multiops = true;
+	rpmem_info.operation = rpmem_op;
+	rpmem_info.measure_time = true;
+	rpmem_info.clos = rpmem_clo;
+	rpmem_info.nclos = ARRAY_SIZE(rpmem_clo);
+	rpmem_info.opts_size = sizeof(struct rpmem_args);
+	rpmem_info.rm_file = true;
+	rpmem_info.allow_poolset = true;
+	REGISTER_BENCHMARK(rpmem_info);
+};

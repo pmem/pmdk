@@ -39,8 +39,8 @@
 #include <glib.h>
 #include <sys/queue.h>
 
-#include "scenario.h"
-#include "config_reader.h"
+#include "scenario.hpp"
+#include "config_reader.hpp"
 
 #define SECTION_GLOBAL	"global"
 #define KEY_BENCHMARK	"bench"
@@ -60,7 +60,7 @@ struct config_reader
 struct config_reader *
 config_reader_alloc(void)
 {
-	struct config_reader *cr = malloc(sizeof(*cr));
+	struct config_reader *cr = (struct config_reader *)malloc(sizeof(*cr));
 	assert(cr != NULL);
 
 	cr->key_file = g_key_file_new();
@@ -151,6 +151,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			SECTION_GLOBAL) == TRUE;
 	gsize ngkeys;
 	gchar **gkeys = NULL;
+	struct scenarios *s;
 	if (has_global) {
 		gkeys = g_key_file_get_keys(cr->key_file, SECTION_GLOBAL,
 				&ngkeys, NULL);
@@ -161,7 +162,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 		}
 	}
 
-	struct scenarios *s = scenarios_alloc();
+	s = scenarios_alloc();
 	assert(NULL != s);
 	if (!s) {
 		ret = -1;

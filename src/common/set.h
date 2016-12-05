@@ -37,7 +37,9 @@
 
 #ifndef NVML_SET_H
 #define NVML_SET_H 1
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -193,8 +195,8 @@ int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
 int util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
-			size_t minsize, int create, void *pool_addr,
-			size_t pool_size, unsigned *nlanes);
+	size_t minsize, int create, void *pool_addr,
+	size_t pool_size, unsigned *nlanes);
 int util_remote_load(void);
 int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
 int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
@@ -208,5 +210,9 @@ extern int (*Rpmem_close)(RPMEMpool *rpp);
 
 extern int (*Rpmem_remove)(const char *target,
 		const char *pool_set_name, int flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

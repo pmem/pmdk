@@ -35,9 +35,7 @@
  * win_time.c -- Windows emulation of Linux-specific time functions
  */
 
-#define MSEC_IN_SEC 1000
-#define NSEC_IN_MSEC 1000000
-
+#define NSEC_IN_SEC 1000000000ull
 /* number of useconds between 1970-01-01T00:00:00Z and 1601-01-01T00:00:00Z */
 #define DELTA_WIN2UNIX (11644473600000000ull)
 
@@ -51,23 +49,16 @@ clock_gettime(int id, struct timespec *ts)
 	switch (id) {
 	case CLOCK_MONOTONIC:
 		{
-			unsigned long long elapsed_ms;
-			unsigned long ms;
+			LARGE_INTEGER time;
+			LARGE_INTEGER frequency;
 
-			/*
-			 * GetTickCount retrieves the number of milliseconds
-			 * that have elapsed since the system was started.
-			 */
-			elapsed_ms = GetTickCount64();
-			if (elapsed_ms < MSEC_IN_SEC) {
-				ts->tv_sec = elapsed_ms / MSEC_IN_SEC;
-				ts->tv_nsec = (unsigned long)elapsed_ms
-					* NSEC_IN_MSEC;
-			} else {
-				ms = elapsed_ms %  MSEC_IN_SEC;
-				ts->tv_sec = (elapsed_ms - ms) / MSEC_IN_SEC;
-				ts->tv_nsec = ms * NSEC_IN_MSEC;
-			}
+			QueryPerformanceFrequency(&frequency);
+			QueryPerformanceCounter(&time);
+
+			ts->tv_sec = time.QuadPart / frequency.QuadPart;
+			ts->tv_nsec = (long)(
+				(time.QuadPart % frequency.QuadPart) *
+				NSEC_IN_SEC / frequency.QuadPart);
 		}
 		break;
 

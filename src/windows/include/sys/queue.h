@@ -92,6 +92,12 @@ struct name {								\
 #define	LIST_HEAD_INITIALIZER(head)					\
 	{ NULL }
 
+#ifdef __cplusplus
+ #define _CAST_AND_ASSIGN(x, y) x = (__typeof__(x))y;
+#else
+ #define _CAST_AND_ASSIGN(x, y) x = (void *)(y);
+#endif
+
 #define	LIST_ENTRY(type)						\
 struct {								\
 	struct type *le_next;	/* next element */			\
@@ -489,8 +495,8 @@ struct {								\
  * Circular queue functions.
  */
 #define	CIRCLEQ_INIT(head) do {						\
-	(head)->cqh_first = (void *)(head);				\
-	(head)->cqh_last = (void *)(head);				\
+	_CAST_AND_ASSIGN((head)->cqh_first, (head));			\
+	_CAST_AND_ASSIGN((head)->cqh_last, (head));			\
 } while (/*CONSTCOND*/0)
 
 #define	CIRCLEQ_INSERT_AFTER(head, listelm, elm, field) do {		\
@@ -524,7 +530,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	CIRCLEQ_INSERT_TAIL(head, elm, field) do {			\
-	(elm)->field.cqe_next = (void *)(head);				\
+	_CAST_AND_ASSIGN((elm)->field.cqe_next, (head));		\
 	(elm)->field.cqe_prev = (head)->cqh_last;			\
 	if ((head)->cqh_first == (void *)(head))			\
 		(head)->cqh_first = (elm);				\

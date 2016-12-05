@@ -52,8 +52,8 @@
 /*
  * align_addr -- round addr down to given boundary
  */
-static char *
-align_addr(char *addr, uintptr_t align)
+static void *
+align_addr(void *addr, uintptr_t align)
 {
 	return (char *)((uintptr_t)addr & ~(align - 1));
 }
@@ -62,7 +62,7 @@ align_addr(char *addr, uintptr_t align)
  * align_len -- increase len by the amount we gain when we round addr down
  */
 static size_t
-align_len(size_t len, char *addr, uintptr_t align)
+align_len(size_t len, void *addr, uintptr_t align)
 {
 	return len + ((uintptr_t)addr & (align - 1));
 }
@@ -72,7 +72,7 @@ align_len(size_t len, char *addr, uintptr_t align)
  *                then round up to the nearest multiple of 4K
  */
 static size_t
-roundup_len(size_t len, char *addr, uintptr_t align)
+roundup_len(size_t len, void *addr, uintptr_t align)
 {
 	return (align_len(len, addr, align) + align - 1) & ~(align - 1);
 }
@@ -381,10 +381,11 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 
 	uint64_t (*func_mode) (struct pmem_bench *pmb, uint64_t index);
 
-	struct pmem_bench *pmb = malloc(sizeof(struct pmem_bench));
+	struct pmem_bench *pmb = (struct pmem_bench *)
+			malloc(sizeof(struct pmem_bench));
 	assert(pmb != NULL);
 
-	pmb->pargs = args->opts;
+	pmb->pargs = (struct pmem_args *)args->opts;
 	assert(pmb->pargs != NULL);
 
 	int i = parse_op_type(pmb->pargs->operation);
@@ -409,7 +410,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	func_mode = modes[i].func_mode;
 
 	/* populate offsets array */
-	pmb->offsets = malloc(pmb->n_offsets * sizeof(*pmb->offsets));
+	pmb->offsets = (size_t *)malloc(pmb->n_offsets * sizeof(*pmb->offsets));
 	assert(pmb->offsets != NULL);
 
 	for (size_t i = 0; i < pmb->n_offsets; ++i)
@@ -497,7 +498,7 @@ pmem_flush_operation(struct benchmark *bench, struct operation_info *info)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
-	int op_idx = info->index;
+	size_t op_idx = info->index;
 	assert(op_idx < pmb->n_offsets);
 
 	uint64_t chunk_idx = pmb->offsets[op_idx];
@@ -511,47 +512,46 @@ pmem_flush_operation(struct benchmark *bench, struct operation_info *info)
 }
 
 /* structure to define command line arguments */
-static struct benchmark_clo pmem_flush_clo[] = {
-	{
-		.opt_short	= 'o',
-		.opt_long	= "operation",
-		.descr		= "Operation type - persist, msync, ...",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct pmem_args, operation),
-		.def		= "noop"
-	},
-	{
-		.opt_short	= 0,
-		.opt_long	= "mode",
-		.descr		= "mode - stat, seq or rand",
-		.type		= CLO_TYPE_STR,
-		.off		= clo_field_offset(struct pmem_args, mode),
-		.def		= "stat",
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Don't do warmup",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct pmem_args, no_warmup),
-	},
-};
-
+static struct benchmark_clo pmem_flush_clo[3];
 /* Stores information about benchmark. */
-static struct benchmark_info pmem_flush_bench = {
-	.name		= "pmem_flush",
-	.brief		= "Benchmark for pmem_msync() and pmem_persist()",
-	.init		= pmem_flush_init,
-	.exit		= pmem_flush_exit,
-	.multithread	= true,
-	.multiops	= true,
-	.operation	= pmem_flush_operation,
-	.measure_time	= true,
-	.clos		= pmem_flush_clo,
-	.nclos		= ARRAY_SIZE(pmem_flush_clo),
-	.opts_size	= sizeof(struct pmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
+static struct benchmark_info pmem_flush_bench;
+CONSTRUCTOR(pmem_flush_costructor)
+void
+pmem_flush_costructor(void)
+{
+	pmem_flush_clo[0].opt_short = 'o';
+	pmem_flush_clo[0].opt_long = "operation";
+	pmem_flush_clo[0].descr = "Operation type - persist, msync, ...";
+	pmem_flush_clo[0].type = CLO_TYPE_STR;
+	pmem_flush_clo[0].off = clo_field_offset(struct pmem_args, operation);
+	pmem_flush_clo[0].def = "noop";
 
-REGISTER_BENCHMARK(pmem_flush_bench);
+	pmem_flush_clo[1].opt_short = 0;
+	pmem_flush_clo[1].opt_long = "mode";
+	pmem_flush_clo[1].descr = "mode - stat, seq or rand";
+	pmem_flush_clo[1].type = CLO_TYPE_STR;
+	pmem_flush_clo[1].off = clo_field_offset(struct pmem_args, mode);
+	pmem_flush_clo[1].def = "stat";
+
+	pmem_flush_clo[2].opt_short = 'w';
+	pmem_flush_clo[2].opt_long = "no-warmup";
+	pmem_flush_clo[2].descr = "Don't do warmup";
+	pmem_flush_clo[2].type = CLO_TYPE_FLAG;
+	pmem_flush_clo[2].off = clo_field_offset(struct pmem_args, no_warmup);
+
+	pmem_flush_bench.name = "pmem_flush";
+	pmem_flush_bench.brief = "Benchmark for pmem_msync() "
+		"and pmem_persist()";
+	pmem_flush_bench.init = pmem_flush_init;
+	pmem_flush_bench.exit = pmem_flush_exit;
+	pmem_flush_bench.multithread = true;
+	pmem_flush_bench.multiops = true;
+	pmem_flush_bench.operation = pmem_flush_operation;
+	pmem_flush_bench.measure_time = true;
+	pmem_flush_bench.clos = pmem_flush_clo;
+	pmem_flush_bench.nclos = ARRAY_SIZE(pmem_flush_clo);
+	pmem_flush_bench.opts_size = sizeof(struct pmem_args);
+	pmem_flush_bench.rm_file = true;
+	pmem_flush_bench.allow_poolset = false;
+	REGISTER_BENCHMARK(pmem_flush_bench);
+}

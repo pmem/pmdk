@@ -37,7 +37,9 @@
 /*
  * XXX - see mmap_windows.c for details
  */
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #ifndef SYS_MMAN_H
 #define SYS_MMAN_H 1
 
@@ -68,4 +70,7 @@ int msync(void *addr, size_t len, int flags);
 
 int mprotect(void *addr, size_t len, int prot);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* SYS_MMAN_H */

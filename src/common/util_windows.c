@@ -91,3 +91,26 @@ util_compare_file_inodes(const char *path1, const char *path2)
 {
 	return strcmp(path1, path2) != 0;
 }
+
+/*
+ * util_aligned_malloc -- like malloc but page-aligned memory
+ */
+void *
+util_aligned_malloc(size_t alignment, size_t size)
+{
+	void *retval = NULL;
+
+	retval = _aligned_malloc(size, alignment);
+
+	return retval;
+}
+
+
+/*
+ * util_aligned_free -- free allocated memory in util_aligned_free
+ */
+void
+util_aligned_free(void *ptr)
+{
+	_aligned_free(ptr);
+}

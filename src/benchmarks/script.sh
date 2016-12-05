@@ -1,0 +1,13 @@
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_atomic_lists.cfg -f /mnt/mem/test1 | tee teepmembench_atomic_lists2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_blk.cfg -f /mnt/mem/test2 | tee pmembench_blk2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_flush.cfg -f /mnt/mem/test3 | tee pmembench_flush2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_log.cfg -f /mnt/mem/test4 | tee pmembench_log2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_map.cfg -f /mnt/mem/test5 | tee pmembench_map2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_memcpy.cfg -f /mnt/mem/test6 | tee pmembench_memcpy2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_memset.cfg -f /mnt/mem/test7 | tee pmembench_memset2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_obj_gen.cfg -f /mnt/mem/test8 | tee pmembench_obj_gen2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_obj_lanes.cfg -f /mnt/mem/test9 | tee pmembench_obj_lanes2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_obj_locks.cfg -f /mnt/mem/test10 | tee pmembench_obj_locks2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_obj_pmalloc.cfg -f /mnt/mem/test11 | tee pmembench_obj_pmalloc2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_tx.cfg -f /mnt/mem/test12 | tee pmembench_tx2.out
+LD_LIBRARY_PATH=../nondebug/ PMEM_IS_PMEM_FORCE=1 ./pmembench ./pmembench_vmem.cfg -f /mnt/mem/test13 | tee pmembench_tx2.out

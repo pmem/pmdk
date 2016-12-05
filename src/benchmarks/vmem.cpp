@@ -37,7 +37,7 @@
  *
  */
 
-#include "benchmark.h"
+#include "benchmark.hpp"
 #include <libvmem.h>
 #include <assert.h>
 #include <sys/stat.h>
@@ -59,9 +59,8 @@ struct vmem_args
 	bool stdlib_alloc;	/* use stdlib allocator instead of vmem */
 	bool no_warmup;		/* do not perform warmup */
 	bool pool_per_thread;	/* create single pool per thread */
-	int min_size;		/* size of min allocation in range mode */
 	size_t rsize;		/* size of reallocation */
-	int min_rsize;		/* size of min reallocation in range mode */
+	size_t min_rsize;	/* size of min reallocation in range mode */
 
 	/* perform operation on object allocated by other thread */
 	bool mix;
@@ -105,93 +104,7 @@ struct vmem_bench
 	int lib_mode;			/* library mode - vmem or stdlib */
 };
 
-static struct benchmark_clo vmem_clo[] = {
-	{
-		.opt_short	= 'a',
-		.opt_long	= "stdlib-alloc",
-		.descr		= "Use stdlib allocator",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct vmem_args,
-							stdlib_alloc),
-	},
-	{
-		.opt_short	= 'w',
-		.opt_long	= "no-warmup",
-		.descr		= "Do not perform warmup",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct vmem_args, no_warmup)
-	},
-	{
-		.opt_short	= 'p',
-		.opt_long	= "pool-per-thread",
-		.descr		= "Create separate pool per thread",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct vmem_args,
-							pool_per_thread),
-	},
-	{
-		.opt_short	= 'm',
-		.opt_long	= "alloc-min",
-		.type		= CLO_TYPE_INT,
-		.descr		= "Min allocation size",
-		.off		= clo_field_offset(struct vmem_args,
-							min_size),
-		.def		= "-1",
-		.type_int	= {
-			.size	= clo_field_size(struct vmem_args, min_size),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= (-1),
-			.max	= INT_MAX,
-		},
-	},
-	/*
-	 * number of command line arguments is decremented to make below
-	 * options available only for vmem_free and vmem_realloc benchmark
-	 */
-	{
-		.opt_short	= 'T',
-		.opt_long	= "mix-thread",
-		.descr		= "Reallocate object allocated by another"
-								"thread",
-		.type		= CLO_TYPE_FLAG,
-		.off		= clo_field_offset(struct vmem_args, mix),
-	},
-	/*
-	 * number of command line arguments is decremented to make below
-	 * options available only for vmem_realloc benchmark
-	 */
-	{
-		.opt_short	= 'r',
-		.opt_long	= "realloc-size",
-		.type		= CLO_TYPE_UINT,
-		.descr		= "Reallocation size",
-		.off		= clo_field_offset(struct vmem_args, rsize),
-		.def		= "512",
-		.type_uint	= {
-			.size	= clo_field_size(struct vmem_args, rsize),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= 0,
-			.max	= ~0,
-		},
-	},
-	{
-		.opt_short	= 'R',
-		.opt_long	= "realloc-min",
-		.type		= CLO_TYPE_INT,
-		.descr		= "Min reallocation size",
-		.off		= clo_field_offset(struct vmem_args,
-							min_rsize),
-		.def		= "-1",
-		.type_int	= {
-			.size	= clo_field_size(struct vmem_args,
-								min_rsize),
-			.base	= CLO_INT_BASE_DEC,
-			.min	= -1,
-			.max	= INT_MAX,
-		},
-	},
-
-};
+static struct benchmark_clo vmem_clo[7];
 
 /*
  * lib_mode -- enumeration used to determine mode of the benchmark
@@ -305,12 +218,12 @@ static operation realloc_op[2] = {vmem_realloc_op, stdlib_realloc_op};
 static int
 vmem_create_pools(struct vmem_bench *vb, struct benchmark_args *args)
 {
-	int i;
-	struct vmem_args *va = args->opts;
+	unsigned i;
+	struct vmem_args *va = (struct vmem_args *)args->opts;
 	size_t dsize = args->dsize + va->rsize;
 	vb->pool_size = dsize * args->n_ops_per_thread
 			* args->n_threads / vb->npools;
-	vb->pools = calloc(vb->npools, sizeof(VMEM *));
+	vb->pools = (VMEM **)calloc(vb->npools, sizeof(VMEM *));
 	if (vb->pools == NULL) {
 		perror("calloc");
 		return -1;
@@ -367,7 +280,9 @@ static_values(unsigned *alloc_sizes, size_t dsize, unsigned nops)
 static int
 vmem_do_warmup(struct vmem_bench *vb, struct benchmark_args *args)
 {
-	int i, j, ret = 0;
+	unsigned i;
+	uint64_t j;
+	int ret = 0;
 	for (i = 0; i < args->n_threads; i++) {
 		for (j = 0; j < args->n_ops_per_thread; j++) {
 			if (malloc_op[vb->lib_mode](vb, i, j) != 0) {
@@ -389,7 +304,7 @@ vmem_do_warmup(struct vmem_bench *vb, struct benchmark_args *args)
 static int
 malloc_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return malloc_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -399,7 +314,7 @@ malloc_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 free_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return free_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -409,7 +324,7 @@ free_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 realloc_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return realloc_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -419,7 +334,7 @@ realloc_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 vmem_mix_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	unsigned idx = vb->mix_ops[info->index];
 	free_op[vb->lib_mode](vb, info->worker->index, idx);
 	return malloc_op[vb->lib_mode](vb, info->worker->index, idx);
@@ -453,7 +368,9 @@ static int
 vmem_init_worker_alloc_mix(struct vmem_bench *vb, struct benchmark_args *args,
 					struct worker_info *worker)
 {
-	int i = 0, j = 0, idx = 0;
+	unsigned i = 0;
+	uint64_t j = 0;
+	size_t idx = 0;
 	size_t ops_per_thread = args->n_ops_per_thread / args->n_threads;
 	for (i = 0; i < args->n_threads; i++) {
 		for (j = 0; j < ops_per_thread; j++) {
@@ -492,8 +409,8 @@ static int
 vmem_init_worker(struct benchmark *bench, struct benchmark_args *args,
 					struct worker_info *worker)
 {
-	struct vmem_args *va = args->opts;
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_args *va = (struct vmem_args *)args->opts;
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	int ret = va->mix ? vmem_init_worker_alloc_mix(vb, args, worker) :
 				vmem_init_worker_alloc(vb, args, worker);
 	return ret;
@@ -505,9 +422,9 @@ vmem_init_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	int i;
-	struct vmem_bench *vb = pmembench_get_priv(bench);
-	struct vmem_args *va = args->opts;
+	unsigned i;
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	struct vmem_args *va = (struct vmem_args *)args->opts;
 	if (!va->stdlib_alloc) {
 		for (i = 0; i < vb->npools; i++) {
 			vmem_delete(vb->pools[i]);
@@ -533,7 +450,7 @@ static int
 vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 {
 	unsigned i, j;
-	struct vmem_bench *vb = pmembench_get_priv(bench);
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	for (i = 0; i < args->n_threads; i++) {
 		for (j = 0; j < args->n_ops_per_thread; j++) {
 			free_op[vb->lib_mode](vb, i, j);
@@ -552,14 +469,15 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct vmem_bench *vb = calloc(1, sizeof(struct vmem_bench));
+	struct vmem_bench *vb = (struct vmem_bench *)calloc(1,
+							sizeof(struct vmem_bench));
 	if (vb == NULL) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, vb);
 	struct vmem_worker *vw;
-	struct vmem_args *va = args->opts;
+	struct vmem_args *va = (struct vmem_args *)args->opts;
 	vb->alloc_sizes = NULL;
 	vb->lib_mode = va->stdlib_alloc ? STDLIB_MODE : VMEM_MODE;
 
@@ -706,74 +624,145 @@ err:
 	return -1;
 }
 
-static struct benchmark_info vmem_malloc_bench = {
-	.name		= "vmem_malloc",
-	.brief		= "vmem_malloc() benchmark",
-	.init		= vmem_init,
-	.exit		= vmem_exit_free,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= NULL,
-	.free_worker	= NULL,
-	.operation	= malloc_main_op,
-	.clos		= vmem_clo,
-	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
-	.opts_size	= sizeof(struct vmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
-REGISTER_BENCHMARK(vmem_malloc_bench);
+static struct benchmark_info vmem_malloc_bench;
+static struct benchmark_info vmem_mix_bench;
+static struct benchmark_info vmem_free_bench;
+static struct benchmark_info vmem_realloc_bench;
 
-static struct benchmark_info vmem_mix_bench = {
-	.name		= "vmem_mix",
-	.brief		= "vmem_malloc() and vmem_free() bechmark",
-	.init		= vmem_mix_init,
-	.exit		= vmem_exit_free,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= vmem_init_worker,
-	.free_worker	= NULL,
-	.operation	= vmem_mix_op,
-	.clos		= vmem_clo,
-	.nclos		= ARRAY_SIZE(vmem_clo) - 3,
-	.opts_size	= sizeof(struct vmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
-REGISTER_BENCHMARK(vmem_mix_bench);
+CONSTRUCTOR(vmem_persist_costructor)
+void
+vmem_persist_costructor(void)
+{
+	vmem_clo[0].opt_short = 'a';
+	vmem_clo[0].opt_long = "stdlib-alloc";
+	vmem_clo[0].descr = "Use stdlib allocator";
+	vmem_clo[0].type = CLO_TYPE_FLAG;
+	vmem_clo[0].off = clo_field_offset(struct vmem_args, stdlib_alloc);
 
-static struct benchmark_info vmem_free_bench = {
-	.name		= "vmem_free",
-	.brief		= "vmem_free() benchmark",
-	.init		= vmem_init,
-	.exit		= vmem_exit,
-	.multithread    = true,
-	.multiops	= true,
-	.init_worker    = vmem_init_worker,
-	.free_worker    = NULL,
-	.operation	= free_main_op,
-	.clos		= vmem_clo,
-	.nclos		= ARRAY_SIZE(vmem_clo) - 2,
-	.opts_size	= sizeof(struct vmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
-};
-REGISTER_BENCHMARK(vmem_free_bench);
+	vmem_clo[1].opt_short = 'w';
+	vmem_clo[1].opt_long = "no-warmup";
+	vmem_clo[1].descr = "Do not perform warmup";
+	vmem_clo[1].type = CLO_TYPE_FLAG;
+	vmem_clo[1].off = clo_field_offset(struct vmem_args, no_warmup);
 
-static struct benchmark_info vmem_realloc_bench = {
-	.name		= "vmem_realloc",
-	.brief		= "Multithread benchmark vmem - realloc",
-	.init		= vmem_realloc_init,
-	.exit		= vmem_exit_free,
-	.multithread	= true,
-	.multiops	= true,
-	.init_worker	= vmem_init_worker,
-	.free_worker	= NULL,
-	.operation	= realloc_main_op,
-	.clos		= vmem_clo,
-	.nclos		= ARRAY_SIZE(vmem_clo),
-	.opts_size	= sizeof(struct vmem_args),
-	.rm_file	= true,
-	.allow_poolset	= false,
+	vmem_clo[2].opt_short = 'p';
+	vmem_clo[2].opt_long = "pool-per-thread";
+	vmem_clo[2].descr = "Create separate pool per thread";
+	vmem_clo[2].type = CLO_TYPE_FLAG;
+	vmem_clo[2].off = clo_field_offset(struct vmem_args, pool_per_thread);
+
+	vmem_clo[3].opt_short = 'm';
+	vmem_clo[3].opt_long = "alloc-min";
+	vmem_clo[3].type = CLO_TYPE_INT;
+	vmem_clo[3].descr = "Min allocation size";
+	vmem_clo[3].off = clo_field_offset(struct vmem_args, min_size);
+	vmem_clo[3].def = "-1";
+	vmem_clo[3].type_int.size = clo_field_size(struct vmem_args, min_size);
+	vmem_clo[3].type_int.base = CLO_INT_BASE_DEC;
+	vmem_clo[3].type_int.min = (-1);
+	vmem_clo[3].type_int.max = INT_MAX;
+
+	/*
+	 * number of command line arguments is decremented to make below
+	 * options available only for vmem_free and vmem_realloc benchmark
+	 */
+	vmem_clo[4].opt_short = 'T';
+	vmem_clo[4].opt_long = "mix-thread";
+	vmem_clo[4].descr = "Reallocate object allocated by another"
+		"thread";
+	vmem_clo[4].type = CLO_TYPE_FLAG;
+	vmem_clo[4].off = clo_field_offset(struct vmem_args, mix);
+
+	/*
+	 * number of command line arguments is decremented to make below
+	 * options available only for vmem_realloc benchmark
+	 */
+
+	vmem_clo[5].opt_short = 'r';
+	vmem_clo[5].opt_long = "realloc-size";
+	vmem_clo[5].type = CLO_TYPE_UINT;
+	vmem_clo[5].descr = "Reallocation size";
+	vmem_clo[5].off = clo_field_offset(struct vmem_args, rsize);
+	vmem_clo[5].def = "512";
+	vmem_clo[5].type_uint.size = clo_field_size(struct vmem_args,
+								rsize);
+	vmem_clo[5].type_uint.base = CLO_INT_BASE_DEC;
+	vmem_clo[5].type_uint.min = 0;
+	vmem_clo[5].type_uint.max = ~0;
+
+	vmem_clo[6].opt_short = 'R';
+	vmem_clo[6].opt_long = "realloc-min";
+	vmem_clo[6].type = CLO_TYPE_INT;
+	vmem_clo[6].descr = "Min reallocation size";
+	vmem_clo[6].off = clo_field_offset(struct vmem_args, min_rsize);
+	vmem_clo[6].def = "-1";
+	vmem_clo[6].type_int.size = clo_field_size(struct vmem_args,
+		min_rsize);
+	vmem_clo[6].type_int.base = CLO_INT_BASE_DEC;
+	vmem_clo[6].type_int.min = -1;
+	vmem_clo[6].type_int.max = INT_MAX;
+
+	vmem_malloc_bench.name = "vmem_malloc";
+	vmem_malloc_bench.brief = "vmem_malloc() benchmark";
+	vmem_malloc_bench.init = vmem_init;
+	vmem_malloc_bench.exit = vmem_exit_free;
+	vmem_malloc_bench.multithread = true;
+	vmem_malloc_bench.multiops = true;
+	vmem_malloc_bench.init_worker = NULL;
+	vmem_malloc_bench.free_worker = NULL;
+	vmem_malloc_bench.operation = malloc_main_op;
+	vmem_malloc_bench.clos = vmem_clo;
+	vmem_malloc_bench.nclos = ARRAY_SIZE(vmem_clo) - 3;
+	vmem_malloc_bench.opts_size = sizeof(struct vmem_args);
+	vmem_malloc_bench.rm_file = true;
+	vmem_malloc_bench.allow_poolset = false;
+	REGISTER_BENCHMARK(vmem_malloc_bench);
+
+	vmem_mix_bench.name = "vmem_mix";
+	vmem_mix_bench.brief = "vmem_malloc() and vmem_free() bechmark";
+	vmem_mix_bench.init = vmem_mix_init;
+	vmem_mix_bench.exit = vmem_exit_free;
+	vmem_mix_bench.multithread = true;
+	vmem_mix_bench.multiops = true;
+	vmem_mix_bench.init_worker = vmem_init_worker;
+	vmem_mix_bench.free_worker = NULL;
+	vmem_mix_bench.operation = vmem_mix_op;
+	vmem_mix_bench.clos = vmem_clo;
+	vmem_mix_bench.nclos = ARRAY_SIZE(vmem_clo) - 3;
+	vmem_mix_bench.opts_size = sizeof(struct vmem_args);
+	vmem_mix_bench.rm_file = true;
+	vmem_mix_bench.allow_poolset = false;
+	REGISTER_BENCHMARK(vmem_mix_bench);
+
+	vmem_free_bench.name = "vmem_free";
+	vmem_free_bench.brief = "vmem_free() benchmark";
+	vmem_free_bench.init = vmem_init;
+	vmem_free_bench.exit = vmem_exit;
+	vmem_free_bench.multithread = true;
+	vmem_free_bench.multiops = true;
+	vmem_free_bench.init_worker = vmem_init_worker;
+	vmem_free_bench.free_worker = NULL;
+	vmem_free_bench.operation = free_main_op;
+	vmem_free_bench.clos = vmem_clo;
+	vmem_free_bench.nclos = ARRAY_SIZE(vmem_clo) - 2;
+	vmem_free_bench.opts_size = sizeof(struct vmem_args);
+	vmem_free_bench.rm_file = true;
+	vmem_free_bench.allow_poolset = false;
+	REGISTER_BENCHMARK(vmem_free_bench);
+
+	vmem_realloc_bench.name = "vmem_realloc";
+	vmem_realloc_bench.brief = "Multithread benchmark vmem - realloc";
+	vmem_realloc_bench.init = vmem_realloc_init;
+	vmem_realloc_bench.exit = vmem_exit_free;
+	vmem_realloc_bench.multithread = true;
+	vmem_realloc_bench.multiops = true;
+	vmem_realloc_bench.init_worker = vmem_init_worker;
+	vmem_realloc_bench.free_worker = NULL;
+	vmem_realloc_bench.operation = realloc_main_op;
+	vmem_realloc_bench.clos = vmem_clo;
+	vmem_realloc_bench.nclos = ARRAY_SIZE(vmem_clo);
+	vmem_realloc_bench.opts_size = sizeof(struct vmem_args);
+	vmem_realloc_bench.rm_file = true;
+	vmem_realloc_bench.allow_poolset = false;
+	REGISTER_BENCHMARK(vmem_realloc_bench);
 };
-REGISTER_BENCHMARK(vmem_realloc_bench);
