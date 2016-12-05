@@ -156,6 +156,24 @@ read_global_test_configuration() {
 		return
 	fi
 
+	# unset all global settings
+	unset CONF_GLOBAL_TEST_TYPE
+	unset CONF_GLOBAL_FS_TYPE
+	unset CONF_GLOBAL_BUILD_TYPE
+	unset CONF_GLOBAL_RPMEM_PROVIDER
+	unset CONF_GLOBAL_RPMEM_PMETHOD
+	unset CONF_GLOBAL_RPMEM_VALGRIND
+	unset CONF_GLOBAL_TIMEOUT
+
+	# unset all local settings
+	unset CONF_TEST_TYPE
+	unset CONF_FS_TYPE
+	unset CONF_BUILD_TYPE
+	unset CONF_RPMEM_PROVIDER
+	unset CONF_RPMEM_PMETHOD
+	unset CONF_RPMEM_VALGRIND
+	unset CONF_TIMEOUT
+
 	. config.sh
 
 	[ -n "$CONF_GLOBAL_TEST_TYPE" ] && global_req_testtype=$CONF_GLOBAL_TEST_TYPE
