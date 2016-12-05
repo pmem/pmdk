@@ -34,7 +34,7 @@
  */
 
 #include <pthread.h>
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 /*
  *

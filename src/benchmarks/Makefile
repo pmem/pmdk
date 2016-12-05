@@ -59,27 +59,27 @@ endif
 
 all: $(TARGET)
 
-SRC=pmembench.c\
-    benchmark_time.c\
-    benchmark_worker.c\
-    clo.c\
-    clo_vec.c\
-    config_reader.c\
-    scenario.c\
-    log.c\
-    blk.c\
-    vmem.c\
-    pmem_memset.c\
-    pmem_memcpy.c\
-    pmem_flush.c\
-    pmemobj_gen.c\
-    pmemobj_persist.c\
-    obj_pmalloc.c\
-    obj_locks.c\
-    obj_lanes.c\
-    map_bench.c\
-    pmemobj_tx.c\
-    pmemobj_atomic_lists.c\
+SRC=pmembench.cpp\
+    benchmark_time.cpp\
+    benchmark_worker.cpp\
+    clo.cpp\
+    clo_vec.cpp\
+    config_reader.cpp\
+    scenario.cpp\
+    log.cpp\
+    blk.cpp\
+    vmem.cpp\
+    pmem_memset.cpp\
+    pmem_memcpy.cpp\
+    pmem_flush.cpp\
+    pmemobj_gen.cpp\
+    pmemobj_persist.cpp\
+    obj_pmalloc.cpp\
+    obj_locks.cpp\
+    obj_lanes.cpp\
+    map_bench.cpp\
+    pmemobj_tx.cpp\
+    pmemobj_atomic_lists.cpp\
     rpmem_ssh.c\
     rpmem_cmd.c\
     rpmem_common.c\
@@ -101,7 +101,7 @@ CONFIGS=pmembench_log\
 	pmembench_tx\
 	pmembench_atomic_lists
 
-OBJS=$(SRC:.c=.o)
+OBJS=$(SRC:.cpp=.o)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
@@ -119,7 +119,7 @@ LIBS += -lrt
 endif
 
 ifeq ($(BUILD_RPMEM),y)
-SRC += rpmem_persist.c
+SRC += rpmem_persist.cpp
 LIBS += -lrpmem
 CONFIGS += pmembench_rpmem
 else
@@ -127,10 +127,8 @@ $(info NOTE: Skipping librpmem benchmark because libfabric is missing \
 -- see src/librpmem/README for details.)
 endif
 
-CFLAGS  = -std=gnu99
-CFLAGS += -Wall
+CFLAGS = -Wall
 CFLAGS += -Werror
-CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wunused-macros
 CFLAGS += -pthread
@@ -161,7 +159,7 @@ endif
 
 GLIB_TEST_PROG="\#include <glib.h>\nint main(){return 0;}"
 GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
-	$(CC) $(CFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
+	$(CXX) $(CFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
 
 ifeq ($(GLIB_SILENCE), y)
 CFLAGS += -Wno-unknown-attributes
@@ -171,17 +169,20 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 objdir=.
 
-%.o: %.c Makefile
+%.o: %.cpp Makefile
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CC) -MD -c -o $@ $(CFLAGS) $<
+	$(CXX) -MD -c -o $@ $(CFLAGS) $<
 	$(create-deps)
 
 %.htmp: %.h
 	$(call check-cstyle, $<, $@)
 
+%.hpptmp: %.h
+	$(call check-cstyle, $<, $@)
+
 $(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
+	$(CXX) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
 
 $(LIBMAP):
 	$(MAKE) -C $(LIBMAP_DIR) map

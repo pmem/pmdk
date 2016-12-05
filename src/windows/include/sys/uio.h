@@ -36,10 +36,15 @@
 
 #ifndef SYS_UIO_H
 #define SYS_UIO_H 1
+#include <pmemcompat.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct iovec {
-	void  *iov_base;
-	size_t iov_len;
-};
+ssize_t
+writev(int fd, const struct iovec *iov, int iovcnt);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* SYS_UIO_H */

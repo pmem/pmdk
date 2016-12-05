@@ -37,7 +37,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "benchmark_time.h"
+#include "benchmark_time.hpp"
 
 #define NSECPSEC	1000000000
 

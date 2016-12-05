@@ -36,7 +36,7 @@
 #include <err.h>
 #include <assert.h>
 
-#include "benchmark_worker.h"
+#include "benchmark_worker.hpp"
 /*
  * worker_state_wait_for_transition -- wait for transition from and to
  * specified states
@@ -71,7 +71,7 @@ static void *
 thread_func(void *arg)
 {
 	assert(arg != NULL);
-	struct benchmark_worker *worker = arg;
+	struct benchmark_worker *worker = (struct benchmark_worker *)arg;
 
 	pthread_mutex_lock(&worker->lock);
 
@@ -112,7 +112,9 @@ thread_func(void *arg)
 struct benchmark_worker *
 benchmark_worker_alloc(void)
 {
-	struct benchmark_worker *w = calloc(1, sizeof(*w));
+	struct benchmark_worker *w = (struct benchmark_worker *)
+					calloc(1, sizeof(*w));
+
 	if (!w)
 		return NULL;
 

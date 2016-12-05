@@ -39,6 +39,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <endian.h>
+#include <errno.h>
 
 #include "util.h"
 #include "valgrind_internal.h"

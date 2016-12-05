@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{e2b109e4-df13-4e15-a231-6125a1c8de19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pmemobj">
+      <UniqueIdentifier>{eb18140e-4f6a-4d43-8f76-7ce1d000c8c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="benchmark_worker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scenario.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clo_vec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmark_time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmark.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="benchmark_time.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="benchmark_worker.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="blk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clo_vec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="map_bench.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="obj_lanes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="obj_locks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="obj_pmalloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmem_flush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmem_memcpy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmem_memset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmembench.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmemobj_atomic_lists.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmemobj_gen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmemobj_persist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmemobj_tx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="rpmem_persist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scenario.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\list.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\memblock.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\memops.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\obj.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\palloc.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\pmalloc.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\pvector.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\redo.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\sync.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\tx.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\libpmemobj.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\lane.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\heap.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\cuckoo.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\ctree.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemobj\bucket.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="config_reader_win.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
