@@ -19,3 +19,4 @@ dpkg/
 *.db
 *.htmp
 *.hpptmp
+*.aps
