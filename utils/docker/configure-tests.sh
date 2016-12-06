@@ -58,7 +58,7 @@ NODE_ADDR[2]=127.0.0.1
 NODE[3]=127.0.0.1
 NODE_WORKING_DIR[3]=/tmp/node3
 NODE_ADDR[3]=127.0.0.1
-RPMEM_PROVIDERS=sockets
+TEST_PROVIDERS=sockets
 EOF
 
 	mkdir -p ~/.ssh/cm
