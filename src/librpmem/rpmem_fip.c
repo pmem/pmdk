@@ -1290,11 +1290,22 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		return 0;
 	}
 
-	int ret = fip->ops->persist(fip, offset, len, lane);
-	if (ret) {
-		RPMEM_LOG(ERR, "persist operation failed");
-	}
 
+	int ret = 0;
+	while (len > 0) {
+		size_t tmp_len = len < fip->fi->ep_attr->max_msg_size ?
+			len : fip->fi->ep_attr->max_msg_size;
+
+		ret = fip->ops->persist(fip, offset, tmp_len, lane);
+		if (ret) {
+			RPMEM_LOG(ERR, "persist operation failed");
+			goto err;
+		}
+
+		offset += tmp_len;
+		len -= tmp_len;
+	}
+err:
 	return ret;
 }
 
