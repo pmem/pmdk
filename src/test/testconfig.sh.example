@@ -38,6 +38,32 @@ NON_PMEM_FS_DIR=/tmp
 #DEVICE_DAX_PATH=(/dev/dax0.0)
 
 #
+# Overwrite default test type:
+# check (default), short, medium, long, all
+# where: check = short + medium; all = short + medium + long
+#
+#TEST_TYPE=check
+
+#
+# Overwrite available build types:
+# debug, nondebug, static-debug, static-nondebug, all (default)
+#
+#TEST_BUILD=all
+
+#
+# Overwrite available filesystem types:
+# pmem, non-pmem, any, none, all (default)
+#
+#TEST_FS=all
+
+#
+# Overwrite default timeout
+# (floating point number with an optional suffix: 's' for seconds (the default),
+# 'm' for minutes, 'h' for hours or 'd' for days)
+#
+#TEST_TIMEOUT=3m
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
@@ -102,3 +128,15 @@ NON_PMEM_FS_DIR=/tmp
 # support.
 #
 #RPMEM_VALGRIND_ENABLED=y
+
+#
+# Overwrite available providers:
+# verbs, sockets, all (default)
+#
+#TEST_PROVIDERS=all
+
+#
+# Overwrite available persistency methods:
+# GPSPM, APM, all (default)
+#
+#TEST_PMETHODS=all
