@@ -31,7 +31,7 @@
  */
 
 /*
- * common.h -- declarations of common functions
+ * common.rc -- common part of nvml rc files
  */
 
 #include <windows.h>
