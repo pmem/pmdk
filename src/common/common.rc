@@ -31,7 +31,7 @@
  */
 
 /*
- * common.h -- declarations of common functions
+ * common.rc -- declarations of common functions
  */
 
 #include <windows.h>
