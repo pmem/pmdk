@@ -232,6 +232,12 @@ SYNC_FILE=.synced
 ifdef TARGET
 SCP_TARGET=$(TARGET)
 SCP_SRC_DIR=.
+ifneq ($(BUILD_STATIC_DEBUG),n)
+SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
+endif
+ifneq ($(BUILD_STATIC_NONDEBUG),n)
+SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+endif
 endif
 
 MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
@@ -290,7 +296,7 @@ else
 ifeq ($(SCP_SRC_DIR),)
 $(error SCP_SRC_DIR is not set)
 endif
-	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_SRC_DIR)/$(SCP_TARGET).static-debug $(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_TARGET_STATIC_DEBUG) $(SCP_TARGET_STATIC_NONDEBUG)
 endif
 	@touch $(SYNC_FILE)
 endif
