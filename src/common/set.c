@@ -1438,21 +1438,16 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	if (device_dax || ret < POOLSET_HDR_SIG_LEN ||
 	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
+		(void) close(fd);
 
 		if (size < minsize) {
 			ERR("size %zu smaller than %zu", size, minsize);
 			errno = EINVAL;
-			ret = -1;
-			goto err;
+			return -1;
 		}
-
-		(void) close(fd);
-
 		*setp = util_poolset_single(path, size, 0);
-		if (*setp == NULL) {
-			ret = -1;
-			goto err;
-		}
+		if (*setp == NULL)
+			return -1;
 
 		/* do not close the file */
 		return 0;
