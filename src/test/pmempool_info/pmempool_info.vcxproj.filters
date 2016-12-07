@@ -57,9 +57,6 @@
     <None Include="out15.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out16.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out17.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -114,9 +111,12 @@
     <None Include="TEST16w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST17w.PS1">
+    <None Include="README" />
+    <None Include="out16w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST17.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="README" />
   </ItemGroup>
 </Project>

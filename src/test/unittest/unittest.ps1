@@ -364,6 +364,12 @@ function create_poolset {
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
+# function can takes additional parameters:
+# -p <string_parameters> - pass string_parameters as user input
+#						   to prompt that comes from interactive program
+# example:
+# expect_normal_exit -p 'n`nn`nn`ny`ny`ny`ny`n' prog.exe arg0 arg1
+#
 function expect_normal_exit {
     #XXX: add memcheck eq checks for windows once we get one
     # if [ "$RUN_MEMCHECK" ]; then...
@@ -373,11 +379,11 @@ function expect_normal_exit {
 
 	$iterator = 0
     switch ($args[$iterator]) {
-        '-p' { $input = $args[1]
+        -p { $input = $args[1]
                [string]$prompt += -join("echo ", $input, " | ")
                $iterator = 2
-               { return }}
-        'none' { return }
+               break }
+        default { break }
     }
 
     sv -Name command $args[$iterator]
@@ -746,7 +752,13 @@ function get_size {
 }
 
 #
-# set_file_mode - set access mode to files
+# set_file_mode - set access mode to one or multiple files
+# parameters:
+# arg0 - access mode you want to change
+# arg1 - true or false to admit or deny given mode
+#
+# example:
+# set_file_mode IsReadOnly $true file1 file2
 #
 function set_file_mode {
 	$mode = $args[0]

@@ -59,7 +59,7 @@ $POOL_PART2="$DIR\pool.part2"
 
 remove_files $POOLSET $POOL_PART1 $POOL_PART2
 
-create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z
+create_poolset $POOLSET 32M:${POOL_PART1}:z 32M:${POOL_PART2}:z
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
 expect_normal_exit $PMEMWRITE $POOLSET 0:w:PMEMPOOL_DUMP_TEST

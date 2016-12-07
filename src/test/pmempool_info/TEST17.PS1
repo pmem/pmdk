@@ -30,15 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info/TEST17w.PS1 -- test for info command
+# pmempool_info\TEST17w.PS1 -- test for info command
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_info\TEST17w"
-$Env:UNITTEST_NUM = "17w"
+$Env:UNITTEST_NAME = "pmempool_info\TEST17"
+$Env:UNITTEST_NUM = "17"
 
 
 . ..\unittest\unittest.ps1
@@ -50,7 +50,7 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+remove_files $LOG
 
 $POOLSET="$DIR\pool.set"
 $POOL1="$DIR\pool.part1"
@@ -60,9 +60,9 @@ $REPL1="$DIR\pool.rep.part1"
 $REPL2="$DIR\pool.rep.part2"
 $REPS="$REPL1 $REPL2"
 
-rm $POOLSET -Force -ea si
-create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z `
-	R 32M:$DIR\pool.rep.part1:z 32M:$DIR\pool.rep.part2:z
+remove_files $POOLSET
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
+	R 32M:${REPL1}:z 32M:${REPL2}:z
 check_file $POOLSET
 
 remove_files $POOLS $REPS

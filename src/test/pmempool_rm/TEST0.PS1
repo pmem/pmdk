@@ -49,8 +49,7 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
-
-rm $LOG -Force -Recurse -ea si
+remove_files $LOG
 
 # Create pmemlog, pmemblk and pmemobj pools
 expect_normal_exit $PMEMPOOL create log $DIR\pool.log

@@ -37,8 +37,8 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_rm\TEST1w"
-$Env:UNITTEST_NUM = "1w"
+$Env:UNITTEST_NAME = "pmempool_rm\TEST1"
+$Env:UNITTEST_NUM = "1"
 
 
 . ..\unittest\unittest.ps1
@@ -50,8 +50,7 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
-
-rm $LOG -Force -Recurse -ea si
+remove_files $LOG
 
 # Create pmemlog, pmemblk and pmemobj pools
 expect_normal_exit $PMEMPOOL create -m400 log $DIR\pool.log

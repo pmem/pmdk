@@ -49,7 +49,7 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+remove_files $LOG
 
 # Create poolset with replica
 create_poolset $DIR\pool.set 32M:$DIR\pool.part1:x 32M:$DIR\pool.part2:x `
@@ -90,8 +90,9 @@ check_no_files `
 	$DIR\rep.part2
 
 $Host.UI.RawUI.BufferSize = New-Object Management.Automation.Host.Size ($BufferWidth, $BufferHeight)
-Get-Content $LOG | Where-Object {$_ -match 'remove'} > tmp$LOG
-Move-Item -Force tmp$LOG $LOG
+Get-Content $LOG | Where-Object { $_ -match 'remove' } > tmp$LOG
+Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
+remove_files tmp$LOG
 
 check
 

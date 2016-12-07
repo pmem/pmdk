@@ -53,9 +53,9 @@ $LOG="out$Env:UNITTEST_NUM.log"
 $LOG_REP0="rep$Env:UNITTEST_NUM.0.log"
 $LOG_REP1="rep$Env:UNITTEST_NUM.1.log"
 
-rm $LOG_REP0 -Force -ea si
-rm $LOG_REP1 -Force -ea si
-rm $LOG -Force -ea si
+remove_files $LOG_REP0
+remove_files $LOG_REP1
+remove_files $LOG
 
 $POOLSET="$DIR\pool.set"
 $POOL1="$DIR\pool.part1"
@@ -69,12 +69,12 @@ $REPL3="$DIR\pool.rep.part3"
 $REPS="$REPL1 $REPL2 $REPL3"
 
 remove_files $POOLSET
-create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z 32M:$DIR\pool.part3:z
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z
 check_file $POOLSET
 
 remove_files $POOLREP
-create_poolset $POOLREP 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z 32M:$DIR\pool.part3:z `
-			R 32M:$DIR\pool.rep.part1:z 32M:$DIR\pool.rep.part2:z 32M:$DIR\pool.rep.part3:z
+create_poolset $POOLREP 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z `
+			R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
 check_file $POOLREP
 
 remove_files $POOLS
