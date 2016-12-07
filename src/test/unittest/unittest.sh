@@ -389,7 +389,7 @@ function create_holey_file() {
 # 'r' or 'R' on the list of arguments indicate the beginning of the next
 # replica set and 'm' or 'M' the beginning of the next remote replica set.
 # A remote replica requires two parameters: a target node and a pool set
-# descriptor.
+# descriptor. 'd' or 'D' on the list of arguments indicate a DAX device.
 #
 # Each part argument has the following format:
 #   psize:ppath[:cmd[:fsize[:mode]]]
@@ -412,16 +412,21 @@ function create_holey_file() {
 #   node - target node
 #   desc - pool set descriptor
 #
-# example:
+# examples:
 #   The following command define a pool set consisting of two parts: 16MB
-#   and 32MB, and the replica with only one part of 48MB.  The first part file
-#   is not created, the second is zeroed.  The only replica part is non-zeroed.
-#   Also, the last file is read-only and its size does not match the information
-#   from pool set file. The last line describes a remote replica.
+#   and 32MB, a local replica with only one part of 48MB and a remote replica.
+#   The first part file is not created, the second is zeroed.  The only replica
+#   part is non-zeroed. Also, the last file is read-only and its size
+#   does not match the information from pool set file. The last line describes
+#   a remote replica.
 #
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
 #				R 48M:testfile3:n:11M:0400 \
 #				M remote_node:remote_pool.set
+#
+#   The following command define a pool set consisting of one DAX device:
+#
+#	create_poolset ./pool2.set D /dev/dax0.0
 #
 function create_poolset() {
 	psfile=$1
@@ -429,6 +434,14 @@ function create_poolset() {
 	echo "PMEMPOOLSET" > $psfile
 	while [ "$1" ]
 	do
+		if [ "$1" = "D" ] || [ "$1" = "d" ] # DAX device
+		then
+			path_dax=$2
+			shift 2
+			echo "AUTO $path_dax" >> $psfile
+			continue
+		fi
+
 		if [ "$1" = "M" ] || [ "$1" = "m" ] # remote replica
 		then
 			shift 1
