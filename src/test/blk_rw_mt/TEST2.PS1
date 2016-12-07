@@ -52,6 +52,9 @@ require_fs_type pmem non-pmem
 
 setup
 
+# limit number of emitted logs due to excessive log size
+$Env:PMEMBLK_LOG_LEVEL=2
+
 create_holey_file 1G $DIR\testfile1
 # 300 threads, each doing 100000 random I/Os
 expect_normal_exit $Env:EXE_DIR\blk_rw_mt$Env:EXESUFFIX 4096 $DIR/testfile1 789 300 100000
