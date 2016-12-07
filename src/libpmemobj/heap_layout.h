@@ -66,8 +66,8 @@
 					+ ZONE_MAX_SIZE * (zone_id)))
 
 enum chunk_flags {
-	CHUNK_FLAG_ZEROED	=	0x0001,
-	CHUNK_RUN_ACTIVE	=	0x0002
+	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
+	CHUNK_FLAG_NO_HEADER		=	0x0002,
 };
 
 enum chunk_type {
@@ -125,16 +125,19 @@ struct heap_layout {
 	struct zone zone0;	/* first element of zones array */
 };
 
-struct allocation_header {
+#define ALLOC_HDR_FLAGS_MASK (((1ULL) << 48) - 1)
+
+struct allocation_header_legacy {
 	uint8_t unused[8];
 	uint64_t size;
+	uint8_t unused2[32];
+	uint64_t root_size;
+	uint64_t type_num;
 };
 
-struct legacy_object_header {
-	struct allocation_header alloc_hdr;
-	uint8_t unused[32];
+struct allocation_header_compact {
 	uint64_t size;
-	uint64_t type_num;
+	uint64_t extra;
 };
 
 #endif

@@ -41,12 +41,20 @@
 #include "valgrind_internal.h"
 #include "heap_layout.h"
 #include "heap.h"
+#include "alloc_class.h"
 #include "out.h"
 #include "sys_util.h"
 #include "palloc.h"
 
 #define MEMORY_BLOCK_IS_NONE(_m)\
 ((_m).size_idx == 0)
+
+#define MEMORY_BLOCK_EQUALS(lhs, rhs)\
+((lhs).zone_id == (rhs).zone_id && (lhs).chunk_id == (rhs).chunk_id &&\
+(lhs).block_off == (rhs).block_off && (lhs).size_idx == (rhs).size_idx)
+
+#define MEMORY_BLOCK_NONE \
+(struct memory_block){0, 0, 0, 0}
 
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
@@ -63,19 +71,19 @@ static int
 alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t flags,
+	struct alloc_class *c, size_t usize,
 	uint64_t *offset_value)
 {
-	void *user_datap = MEMBLOCK_OPS(AUTO, &m)->get_user_data(&m, heap);
-	size_t user_size = MEMBLOCK_OPS(AUTO, &m)->get_user_size(&m, heap);
+	void *uptr = MEMBLOCK_OPS(AUTO, &m)
+		->get_user_data_with_hdr_type(&m, c->header_type, heap);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(user_datap, user_size);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
 
-	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, user_datap, user_size);
+	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, uptr, usize);
 
 	int ret;
 	if (constructor != NULL &&
-		(ret = constructor(heap->base, user_datap,
-			user_size, arg)) != 0) {
+		(ret = constructor(heap->base, uptr, usize, arg)) != 0) {
 
 		/*
 		 * If canceled, revert the block back to the free state in vg
@@ -83,12 +91,12 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 		 * the user data, the allocation header is made inaccessible
 		 * in a separate call.
 		 */
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout, user_datap);
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout, uptr);
 
 		return ret;
 	}
 
-	MEMBLOCK_OPS(AUTO, &m)->write_header(&m, heap, extra_field, flags);
+	MEMBLOCK_OPS(AUTO, &m)->write_header(&m, heap, extra_field, flags, c->header_type);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -96,7 +104,7 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 	 * will be used to set the offset destination pointer provided by the
 	 * caller.
 	 */
-	*offset_value = HEAP_PTR_TO_OFF(heap, user_datap);
+	*offset_value = HEAP_PTR_TO_OFF(heap, uptr);
 
 	return 0;
 }
@@ -177,8 +185,7 @@ palloc_operation(struct palloc_heap *heap,
 	 * (best-fit, next-fit, ...) varies depending on the bucket container.
 	 */
 	if (size != 0) {
-		size_t sizeh = size + sizeof (struct legacy_object_header);
-		struct allocation_class *c = heap_get_best_class(heap, sizeh);
+		struct alloc_class *c = heap_get_best_class(heap, size);
 		struct bucket *b = heap_get_bucket_by_class(heap, c);
 
 		util_mutex_lock(&b->lock);
@@ -191,7 +198,8 @@ palloc_operation(struct palloc_heap *heap,
 		 * For example, to allocate 500 bytes from a bucket that
 		 * provides 256 byte blocks two memory 'units' are required.
 		 */
-		new_block.size_idx = CALC_SIZE_IDX(c->unit_size, sizeh);
+		new_block.size_idx = CALC_SIZE_IDX(c->unit_size,
+			size + header_type_to_size[c->header_type]);
 
 		errno = heap_get_bestfit_block(heap, b, &new_block);
 		if (errno != 0) {
@@ -200,13 +208,15 @@ palloc_operation(struct palloc_heap *heap,
 			goto out;
 		}
 
-		if (alloc_prep_block(heap, new_block, constructor,
-				arg, extra_field, flags, &offset_value) != 0) {
+		if (alloc_prep_block(heap, new_block, constructor, arg,
+			extra_field, flags,
+			c, size, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
 			 */
-			enum memory_block_type t = memblock_autodetect_type(&new_block, heap->layout);
+			enum memory_block_type t = memblock_autodetect_type(
+				&new_block, heap->layout);
 			if (t == MEMORY_BLOCK_HUGE) {
 				new_block = heap_coalesce_huge(heap, new_block);
 				bucket_insert_block(b, heap, new_block);
@@ -254,7 +264,8 @@ palloc_operation(struct palloc_heap *heap,
 		 * changing a chunk type from free to used.
 		 */
 		MEMBLOCK_OPS(AUTO, &new_block)
-			->prep_hdr(&new_block, heap, MEMBLOCK_ALLOCATED, ctx);
+			->prep_hdr(&new_block, heap,
+				MEMBLOCK_ALLOCATED, c->header_type, ctx);
 	}
 
 	/*
@@ -326,13 +337,17 @@ palloc_operation(struct palloc_heap *heap,
 				existing_block);
 			util_mutex_unlock(&default_bucket->lock);
 		}
+
 		/*
 		 * This method will insert new entries into the operation
 		 * context which will, after processing, update the chunk
 		 * metadata to 'free'.
 		 */
 		MEMBLOCK_OPS(AUTO, &existing_block)
-			->prep_hdr(&existing_block, heap, MEMBLOCK_FREE, ctx);
+			->prep_hdr(&existing_block, heap,
+				MEMBLOCK_FREE,
+				0 /* hdr type doesn't matter for free */,
+				ctx);
 	}
 
 	/*
@@ -410,20 +425,13 @@ palloc_flags(struct palloc_heap *heap, uint64_t off)
  *	argument to the current object offset.
  */
 static int
-pmalloc_search_cb(uint64_t off, void *arg)
+pmalloc_search_cb(const struct memory_block *m, void *arg)
 {
-	uint64_t *prev = arg;
+	struct memory_block *out = arg;
 
-	if (*prev == UINT64_MAX) {
-		*prev = off;
+	*out = *m;
 
-		return 1;
-	}
-
-	if (off == *prev)
-		*prev = UINT64_MAX;
-
-	return 0;
+	return 1;
 }
 
 /*
@@ -432,15 +440,17 @@ pmalloc_search_cb(uint64_t off, void *arg)
 uint64_t
 palloc_first(struct palloc_heap *heap)
 {
-	uint64_t off_search = UINT64_MAX;
-	struct memory_block m = {0, 0, 0, 0};
+	struct memory_block search = MEMORY_BLOCK_NONE;
 
-	heap_foreach_object(heap, pmalloc_search_cb, &off_search, m);
+	heap_foreach_object(heap, pmalloc_search_cb,
+		&search, MEMORY_BLOCK_NONE);
 
-	if (off_search == UINT64_MAX)
+	if (MEMORY_BLOCK_IS_NONE(search))
 		return 0;
 
-	return off_search + sizeof(struct legacy_object_header);
+	void *uptr = MEMBLOCK_OPS(AUTO, &search)->get_user_data(&search, heap);
+
+	return HEAP_PTR_TO_OFF(heap, uptr);
 }
 
 /*
@@ -450,17 +460,17 @@ uint64_t
 palloc_next(struct palloc_heap *heap, uint64_t off)
 {
 	struct memory_block m = memblock_from_offset(heap, off);
+	struct memory_block search = MEMORY_BLOCK_NONE;
 
-	uint64_t off_search = off - sizeof(struct legacy_object_header);
+	heap_foreach_object(heap, pmalloc_search_cb, &search, m);
 
-	heap_foreach_object(heap, pmalloc_search_cb, &off_search, m);
-
-	if (off_search == (off - sizeof(struct legacy_object_header)) ||
-		off_search == 0 ||
-		off_search == UINT64_MAX)
+	if (MEMORY_BLOCK_IS_NONE(search) ||
+		MEMORY_BLOCK_EQUALS(search, m))
 		return 0;
 
-	return off_search + sizeof(struct legacy_object_header);
+	void *uptr = MEMBLOCK_OPS(AUTO, &search)->get_user_data(&search, heap);
+
+	return HEAP_PTR_TO_OFF(heap, uptr);
 }
 
 /*
@@ -530,42 +540,31 @@ palloc_heap_cleanup(struct palloc_heap *heap)
 
 #ifdef USE_VG_MEMCHECK
 
-struct palloc_vg_args {
-	object_callback cb;
-	void *arg;
-	struct palloc_heap *heap;
-};
-
 /*
  * palloc_vg_register_alloc -- (internal) registers allocation header
  * in Valgrind
  */
 static int
-palloc_vg_register_alloc(uint64_t off, void *arg)
+palloc_vg_register_alloc(const struct memory_block *m, void *arg)
 {
-	struct palloc_vg_args *args = arg;
-	struct palloc_heap *heap = args->heap;
-	struct legacy_object_header *hdr = HEAP_OFF_TO_PTR(heap, off);
+	struct palloc_heap *heap = arg;
 
-	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+	MEMBLOCK_OPS(AUTO, m)->reinit_header(m, heap);
 
-	uint64_t user_offset = off + sizeof(struct legacy_object_header);
-	return args->cb(user_offset, args->arg);
+	void *uptr = MEMBLOCK_OPS(AUTO, m)->get_user_data(m, heap);
+	size_t usize = MEMBLOCK_OPS(AUTO, m)->get_user_size(m, heap);
+	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, uptr, usize);
+	VALGRIND_DO_MAKE_MEM_DEFINED(uptr, usize);
+
+	return 0;
 }
 
 /*
  * palloc_heap_vg_open -- notifies Valgrind about heap layout
  */
 void
-palloc_heap_vg_open(struct palloc_heap *heap, object_callback cb,
-	void *arg, int objects)
+palloc_heap_vg_open(struct palloc_heap *heap, int objects)
 {
-	struct palloc_vg_args args = {
-		.cb = cb,
-		.arg = arg,
-		.heap = heap,
-	};
-
-	heap_vg_open(heap, palloc_vg_register_alloc, &args, objects);
+	heap_vg_open(heap, palloc_vg_register_alloc, heap, objects);
 }
 #endif
