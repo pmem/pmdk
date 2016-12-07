@@ -308,14 +308,9 @@ How to build jemalloc for Windows
    (PATH=%PATH%;<path to cygwin\bin>)
 
 5. Generate header files:
-   sh -c "./autogen.sh CC=cl
-		--enable-lazy-lock=no
-		--without-export
-		--with-jemalloc-prefix=je_vmem_
-		--with-private-namespace=je_vmem_
-		--disable-xmalloc
-		--disable-munmap
-		EXTRA_CFLAGS="-DJEMALLOC_LIBVMEM""
+	In VS Command Prompt run:
+	sh ./win_autogen.sh
+
 
 6. Now the project can be opened and built in Visual Studio:
 	src\NVML.sln
