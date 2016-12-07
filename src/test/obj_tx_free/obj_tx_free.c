@@ -58,6 +58,7 @@ enum type_number {
 	TYPE_FREE_OOM,
 	TYPE_FREE_ALLOC,
 	TYPE_FREE_AFTER_ABORT,
+	TYPE_FREE_MANY_TIMES,
 };
 
 TOID_DECLARE(struct object, 0);
@@ -347,6 +348,28 @@ do_tx_free_abort_free(PMEMobjpool *pop)
 	} TX_END
 }
 
+/*
+ * do_tx_free_many_times -- free enough objects to trigger vector array alloc
+ */
+static void
+do_tx_free_many_times(PMEMobjpool *pop)
+{
+#define TX_FREE_COUNT ((1 << 3) + 1)
+
+	PMEMoid oids[TX_FREE_COUNT];
+	for (int i = 0; i < TX_FREE_COUNT; ++i)
+		oids[i] = do_tx_alloc(pop, TYPE_FREE_MANY_TIMES);
+
+	TX_BEGIN(pop) {
+		for (int i = 0; i < TX_FREE_COUNT; ++i)
+			pmemobj_tx_free(oids[i]);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+#undef TX_FREE_COUNT
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -380,6 +403,8 @@ main(int argc, char *argv[])
 	do_tx_free_alloc_abort(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_free_abort_free(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_free_many_times(pop);
 	VALGRIND_WRITE_STATS;
 
 	pmemobj_close(pop);
