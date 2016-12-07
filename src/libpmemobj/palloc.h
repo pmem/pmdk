@@ -53,6 +53,8 @@ struct palloc_heap {
 	void *base;
 };
 
+struct memory_block;
+
 typedef int (*palloc_constr)(void *base, void *ptr,
 		size_t usable_size, void *arg);
 
@@ -80,11 +82,10 @@ int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
 void palloc_heap_cleanup(struct palloc_heap *heap);
 
 /* foreach callback, terminates iteration if return value is non-zero */
-typedef int (*object_callback)(uint64_t off, void *arg);
+typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #ifdef USE_VG_MEMCHECK
-void palloc_heap_vg_open(struct palloc_heap *heap,
-		object_callback cb, void *arg, int objects);
+void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif
 
 #endif

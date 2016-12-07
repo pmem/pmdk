@@ -50,7 +50,7 @@
 #include "valgrind_internal.h"
 
 struct bucket *
-bucket_new(struct block_container *c, struct allocation_class *aclass)
+bucket_new(struct block_container *c, struct alloc_class *aclass)
 {
 	if (c == NULL)
 		return NULL;
