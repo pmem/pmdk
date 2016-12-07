@@ -505,28 +505,28 @@ function require_no_superuser {
 function require_test_type() {
     sv -Name req_test_type 1 -Scope Global
 
-    if ($Env:TEST -eq 'all') {
+    if ($Env:TEST_TYPE -eq 'all') {
         return
     }
 
     for ($i=0;$i -lt $args.count;$i++) {
-        if ($args[$i] -eq $Env:TEST) {
+        if ($args[$i] -eq $Env:TEST_TYPE) {
             return
         }
-        switch ($Env:TEST) {
+        switch ($Env:TEST_TYPE) {
             'check' { # "check" is a synonym of "short + medium"
                 if ($args[$i] -eq 'short' -Or $args[$i] -eq 'medium') {
                     return
                 }
             }
             default {
-                if ($args[$i] -eq $Env:TEST) {
+                if ($args[$i] -eq $Env:TEST_TYPE) {
                     return
                 }
             }
         }
         if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TEST ($* required)"
+            echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TEST_TYPE ($* required)"
         }
         exit 0
     }
@@ -537,12 +537,12 @@ function require_test_type() {
 #
 function require_build_type {
     for ($i=0;$i -lt $args.count;$i++) {
-        if ($args[$i] -eq $Env:BUILD) {
+        if ($args[$i] -eq $Env:TEST_BUILD) {
             return
         }
 
         if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
+            echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:TEST_BUILD ($* required)"
         }
         exit 0
     }
@@ -657,7 +657,7 @@ function pass {
         Write-Host -NoNewline (":" + $tm)
     }
 
-    if ($Env:FS -ne "none") {
+    if ($Env:TEST_FS -ne "none") {
         if (isDir $DIR) {
              rm -Force -Recurse $DIR
         }
@@ -965,7 +965,7 @@ function require_non_pmem {
 function require_fs_type {
     sv -Name req_fs_type 1 -Scope Global
     for ($i=0;$i -lt $args.count;$i++) {
-        if ($args[$i] -eq $Env:FS) {
+        if ($args[$i] -eq $Env:TEST_FS) {
             switch ($REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }
@@ -974,7 +974,7 @@ function require_fs_type {
         }
     }
     if (-Not $Env:UNITTEST_QUIET) {
-        Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+        Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:TEST_FS (not configured)"
     }
     exit 0
 }
@@ -1007,12 +1007,12 @@ function setup {
     }
 
     # fs type "none" must be explicitly enabled
-    if ($Env:FS -eq "none" -and $req_fs_type -ne "1") {
+    if ($Env:TEST_FS -eq "none" -and $req_fs_type -ne "1") {
         exit 0
     }
 
     # fs type "any" must be explicitly enabled
-    if ($Env:FS -eq "any" -and $req_fs_type -ne "1") {
+    if ($Env:TEST_FS -eq "any" -and $req_fs_type -ne "1") {
         exit 0
     }
 
@@ -1027,11 +1027,11 @@ function setup {
         sv -Name MCSTR ""
     }
 
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TEST\$REAL_FS\$Env:BUILD$MCSTR)"
+    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TEST_TYPE\$REAL_FS\$Env:TEST_BUILD$MCSTR)"
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
-    if ( $Env:FS -ne "none") {
+    if ( $Env:TEST_FS -ne "none") {
 
         if (isDir $DIR) {
              rm -Force -Recurse $DIR
@@ -1085,9 +1085,9 @@ function cmp {
 #######################################################
 
 # defaults
-if (-Not $Env:TEST) { $Env:TEST = 'check'}
-if (-Not $Env:FS) { $Env:FS = 'any'}
-if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
+if (-Not $Env:TEST_TYPE) { $Env:TEST_TYPE = 'check'}
+if (-Not $Env:TEST_FS) { $Env:TEST_FS = 'any'}
+if (-Not $Env:TEST_BUILD) { $Env:TEST_BUILD = 'debug'}
 if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
@@ -1117,18 +1117,18 @@ $BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
 #
-if (-Not $Env:TEST_LD_LIBRARY_PATH) {
-    switch -regex ($Env:BUILD) {
-        'debug' { $Env:TEST_LD_LIBRARY_PATH = '..\..\debug' }
-        'nondebug' { $Env:TEST_LD_LIBRARY_PATH = '..\..\nondebug' }
+if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
+    switch -regex ($Env:TEST_BUILD) {
+        'debug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\debug' }
+        'nondebug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\nondebug' }
     }
 }
 
 #
 # When running static binary tests, append the build type to the binary
 #
-#switch -wildcard ($Env:BUILD) {
-#    'static-*' {$Env:EXESUFFIX = '.' + $Env:BUILD}
+#switch -wildcard ($Env:TEST_BUILD) {
+#    'static-*' {$Env:EXESUFFIX = '.' + $Env:TEST_BUILD}
 #}
 
 #
@@ -1160,14 +1160,14 @@ if (-Not $Env:UNITTEST_NAME) {
     exit 1
 }
 
-sv -Name REAL_FS $Env:FS
+sv -Name REAL_FS $Env:TEST_FS
 if ($DIR) {
     # if user passed it in...
     sv -Name "DIR" ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
-    switch ($Env:FS) {
+    switch ($Env:TEST_FS) {
         'pmem' { sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
                  if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                      $Env:PMEM_IS_PMEM_FORCE = "1"
@@ -1192,7 +1192,7 @@ if ($DIR) {
             sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}" }
         default {
             if (-Not $Env:UNITTEST_QUIET) {
-                Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+                Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:TEST_FS (not configured)"
                 exit 0
             }
         }
