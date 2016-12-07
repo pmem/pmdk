@@ -31,6 +31,32 @@ $Env:NON_PMEM_FS_DIR = "\temp"
 #$Env:PMEM_FS_DIR_FORCE_PMEM = "1"
 
 #
+# Overwrite default test type:
+# check (default), short, medium, long, all
+# where: check = short + medium; all = short + medium + long
+#
+#$Env:TEST_TYPE = "check"
+
+#
+# Overwrite available build types:
+# debug, nondebug, static-debug, static-nondebug, all (default)
+#
+#$Env:TEST_BUILD = "all"
+
+#
+# Overwrite available filesystem types:
+# pmem, non-pmem, any, none, all (default)
+#
+#$Env:TEST_FS = "all"
+
+#
+# Overwrite default timeout
+# (floating point number with an optional suffix: 's' for seconds (the default),
+# 'm' for minutes, 'h' for hours or 'd' for days)
+#
+#$Env:TEST_TIMEOUT = "60s"
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh

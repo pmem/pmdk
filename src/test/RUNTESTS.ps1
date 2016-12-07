@@ -143,17 +143,6 @@ function get_build_dir() {
     return $build_dir
 }
 
-
-if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
-    usage "bad build-type: $buildtype"
-}
-if (-Not ("check short medium long all" -match $testtype)) {
-    usage "bad test-type: $testtype"
-}
-if (-Not ("none pmem non-pmem any all" -match $fstype)) {
-    usage "bad fs-type: $fstype"
-}
-
 # XXX :missing some logic here that's in the bash script
 # having to do with force-enable and memcheck, pmemcheck.
 # don't really get whats going on there but we don't support
@@ -323,6 +312,31 @@ RUNTESTS: stopping because no testconfig.ps1 is found.
 
 . .\testconfig.ps1
 
+if ($Env:TEST_BUILD) {
+    $buildtype = $Env:TEST_BUILD
+}
+
+if ($Env:TEST_TYPE) {
+    $testtype = $Env:TEST_TYPE
+}
+
+if ($Env:TEST_FS) {
+    $fstype = $Env:TEST_FS
+}
+
+if ($Env:TEST_TIMEOUT) {
+    $time = $Env:TEST_TIMEOUT
+}
+
+if (-Not ("debug nondebug static-debug static-nondebug all" -match $buildtype)) {
+    usage "bad build-type: $buildtype"
+}
+if (-Not ("check short medium long all" -match $testtype)) {
+    usage "bad test-type: $testtype"
+}
+if (-Not ("none pmem non-pmem any all" -match $fstype)) {
+    usage "bad fs-type: $fstype"
+}
 
 if ($verbose -eq "1") {
     Write-Host -NoNewline "Options:"
