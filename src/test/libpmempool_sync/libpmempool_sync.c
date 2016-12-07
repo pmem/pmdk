@@ -39,16 +39,18 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "unittest.h"
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "libpmempool_sync");
-	if (argc != 3)
-		UT_FATAL("usage: %s poolset_file flags", argv[0]);
+	if (argc != 3) {
+		printf("usage: %s poolset_file flags", argv[0]);
+		exit(1);
+	}
 
 	int ret = pmempool_sync(argv[1], (unsigned)strtoul(argv[2], NULL, 0));
-	DONE("result: %d, errno: %d", ret, errno);
+	printf("result: %d, errno: %d\n", ret, errno);
+	if (ret)
+		exit(1);
 }

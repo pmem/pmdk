@@ -30,16 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_sync/TEST1 -- test for checking replica sync
+# libpmempool_transform/TEST2 -- test for checking pmempool transform;
+#                                check if flags are supported
+#                                pmem/issues#367
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_sync\TEST1"
-$Env:UNITTEST_NUM = "1"
-
+$Env:UNITTEST_NAME = "libpmempool_transform\TEST2"
+$Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -54,53 +55,28 @@ rm $LOG -Force -ea si
 touch $LOG
 
 $LAYOUT = "OBJ_LAYOUT"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET_IN = "$DIR/poolset.in"
+$POOLSET_OUT = "$DIR/poolset.out"
 
-# Create poolset file
-create_poolset $POOLSET `
-    20M:$DIR/testfile1:x `
-    20M:$DIR/testfile2:x `
-    21M:$DIR/testfile3:x `
-    R `
-    40M:$DIR/testfile4:x `
-    20M:$DIR/testfile5:x
+# Create poolset files
+create_poolset $POOLSET_IN `
+	10M:$DIR/part00:x
 
-# CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
-echo @"
-pr 55M
-srcp 0 TestOK111
-srcp 20M TestOK222
-srcp 40M TestOK333
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
-
-# CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
-echo @"
-srpr 0 9
-srpr 20M 9
-srpr 40M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+create_poolset $POOLSET_OUT `
+	10M:$DIR/part00:x `
+	r `
+	10M:$DIR/part10:x
 
 # Create a pool
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 
-# Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG
-
-# Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG
-
-# Delete the second part in the primary replica
-rm $DIR/testfile2 -Force -ea si
-
-# Synchronize replicas
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
-    $POOLSET $FLAGS >> $LOG
-
-# Check if correctly synchronized
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG
+# Try to transform poolset
+expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
+    $POOLSET_IN $POOLSET_OUT 3 >> $LOG
+expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
+    $POOLSET_IN $POOLSET_OUT 16 >> $LOG
+expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
+    $POOLSET_IN $POOLSET_OUT 2048 >> $LOG
 
 check
 pass

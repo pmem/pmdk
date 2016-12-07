@@ -39,17 +39,19 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "unittest.h"
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "libpmempool_transform");
-	if (argc != 4)
-		UT_FATAL("usage: %s poolset_in poolset_out flags", argv[0]);
+	if (argc != 4) {
+		printf("usage: %s poolset_in poolset_out flags", argv[0]);
+		exit(1);
+	}
 
 	int ret = pmempool_transform(argv[1], argv[2],
 			(unsigned)strtoul(argv[3], NULL, 0));
-	DONE("result: %d, errno: %d", ret, errno);
+	printf("result: %d, errno: %d\n", ret, errno);
+	if (ret)
+		exit(1);
 }

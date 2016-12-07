@@ -50,11 +50,8 @@ require_fs_type any
 setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
-$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
-touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
 $POOLSET = "$DIR/pool0.set"
@@ -74,7 +71,6 @@ create_poolset $POOLSET `
     20M:$DIR/testfile5:x
 
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat $LOG >> $LOG_TEMP
 
 # CLI script for writing some data at 0, 20 and 40 MB
 $WRITE_SCRIPT = "$DIR/write_data"
@@ -94,10 +90,10 @@ srpr 40M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG
 
 # Find root offset
 $TMP_FILE = "$DIR/obj_info"
@@ -120,26 +116,23 @@ expect_normal_exit $DDMAP -o "$DIR/testfile2" -s $PART2_OFFSET -d "Wrong5678"
 expect_normal_exit $DDMAP -o "$DIR/testfile3" -s $PART3_OFFSET -d "Wrong9ABC"
 
 # Check if corrupted
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
-    "pool_hdr.checksum_gen()" >> $LOG_TEMP
+    "pool_hdr.checksum_gen()" >> $LOG
 
 # Check if metadata is corrupted
 expect_normal_exit $PMEMPOOL info $DIR/testfile1 | `
-    Select-String -encoding ASCII -Pattern "^UUID" | %{$_.Line} >> $LOG_TEMP
+    Select-String -encoding ASCII -Pattern "^UUID" | %{$_.Line} >> $LOG
 
 # Synchronize replicas
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
-    $POOLSET $FLAGS
-cat $LOG >> $LOG_TEMP
+    $POOLSET $FLAGS >> $LOG
 
 # Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG
 
-mv -Force $LOG_TEMP $LOG
 check
-
 pass
