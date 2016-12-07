@@ -218,10 +218,16 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	int c = mb->const_b;
 	size_t len = mb->pargs->chunk_size;
 
+	int ret = 0;
 	memset(dest, c, len);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		unsigned lane = info->worker->index % mb->nlanes[r];
-		rpmem_persist(mb->rpp[r], offset, len, lane);
+		ret = rpmem_persist(mb->rpp[r], offset, len, lane);
+		if (ret) {
+			fprintf(stderr, "rpmem_persist replica #%u: %s\n",
+					r, rpmem_errormsg());
+			return ret;
+		}
 	}
 
 	return 0;
