@@ -50,5 +50,8 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s poolset_file flags", argv[0]);
 
 	int ret = pmempool_sync(argv[1], (unsigned)strtoul(argv[2], NULL, 0));
+	if (ret)
+		UT_FATAL("result: %d, errno: %d", ret, errno);
+
 	DONE("result: %d, errno: %d", ret, errno);
 }

@@ -1,0 +1,6 @@
+libpmempool_sync/TEST2: START: libpmempool_sync
+ ./libpmempool_sync$(nW) $(nW)poolset 2
+libpmempool_sync/TEST2: START: libpmempool_sync
+ ./libpmempool_sync$(nW) $(nW)poolset 10
+libpmempool_sync/TEST2: START: libpmempool_sync
+ ./libpmempool_sync$(nW) /tmp/test_$(nW)poolset 1024

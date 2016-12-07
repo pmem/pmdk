@@ -1,0 +1,9 @@
+libpmempool_transform/TEST2: START: libpmempool_transform
+ ./libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 3
+libpmempool_transform/TEST2: Done: result: -1, errno: 22
+libpmempool_transform/TEST2: START: libpmempool_transform
+ ./libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 16
+libpmempool_transform/TEST2: Done: result: -1, errno: 22
+libpmempool_transform/TEST2: START: libpmempool_transform
+ ./libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 2048
+libpmempool_transform/TEST2: Done: result: -1, errno: 22
