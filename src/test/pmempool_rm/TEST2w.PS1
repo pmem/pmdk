@@ -49,7 +49,7 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+remove_files $LOG
 
 # Create poolset with replica
 create_poolset $DIR\pool.set 32M:$DIR\pool.part1:x 32M:$DIR\pool.part2:x `
@@ -67,14 +67,9 @@ check_no_files `
 	$DIR\rep.part1 `
 	$DIR\rep.part2
 
-# XXX: it is workaround for prevent line breaks from out stderr
-$BufferWidth = $Host.UI.RawUI.BufferSize.Width
-$BufferHeight = $Host.UI.RawUI.BufferSize.Height
-$Host.UI.RawUI.BufferSize = New-Object Management.Automation.Host.Size (500, 200)
-
 # Try to remove files without force flag
-expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 >> $LOG
-expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 >> $LOG
+expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 $LOG
+expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 $LOG
 
 # Try to remove files with force flag
 expect_normal_exit $PMEMPOOL rm -fv `
@@ -89,9 +84,9 @@ check_no_files `
 	$DIR\rep.part1 `
 	$DIR\rep.part2
 
-$Host.UI.RawUI.BufferSize = New-Object Management.Automation.Host.Size ($BufferWidth, $BufferHeight)
-Get-Content $LOG | Where-Object {$_ -match 'remove'} > tmp$LOG
-Move-Item -Force tmp$LOG $LOG
+Get-Content $LOG | Where-Object { $_ -match 'remove' } > tmp$LOG
+Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
+remove_files tmp$LOG
 
 check
 

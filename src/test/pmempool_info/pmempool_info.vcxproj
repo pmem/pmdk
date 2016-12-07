@@ -24,7 +24,7 @@
     <None Include="out13.log.match" />
     <None Include="out14.log.match" />
     <None Include="out15.log.match" />
-    <None Include="out16.log.match" />
+    <None Include="out16w.log.match" />
     <None Include="out17.log.match" />
     <None Include="out2.log.match" />
     <None Include="out3.log.match" />
@@ -44,7 +44,7 @@
     <None Include="TEST14.PS1" />
     <None Include="TEST15.PS1" />
     <None Include="TEST16w.PS1" />
-    <None Include="TEST17w.PS1" />
+    <None Include="TEST17.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />

@@ -364,6 +364,7 @@ function create_poolset {
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
+
 function expect_normal_exit {
     #XXX: add memcheck eq checks for windows once we get one
     # if [ "$RUN_MEMCHECK" ]; then...
@@ -371,18 +372,9 @@ function expect_normal_exit {
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
-	$iterator = 0
-    switch ($args[$iterator]) {
-        '-p' { $input = $args[1]
-               [string]$prompt += -join("echo ", $input, " | ")
-               $iterator = 2
-               { return }}
-        'none' { return }
-    }
-
-    sv -Name command $args[$iterator]
+    sv -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
-    foreach ($param in $Args[($iterator+1) .. $Args.Count]) {
+    foreach ($param in $Args[1 .. $Args.Count]) {
        if ($param -is [array]) {
             foreach ($param_entry in $param) {
                 [string]$params += -join(" '", $param_entry, "' ")
@@ -392,7 +384,7 @@ function expect_normal_exit {
         }
     }
 
-    Invoke-Expression "$prompt $command $params"
+    Invoke-Expression "$command $params"
 
     check_exit_code
     # XXX: if we implement a memcheck thing... set some env vars here
@@ -746,7 +738,13 @@ function get_size {
 }
 
 #
-# set_file_mode - set access mode to files
+# set_file_mode - set access mode to one or multiple files
+# parameters:
+# arg0 - access mode you want to change
+# arg1 - true or false to admit or deny given mode
+#
+# example:
+# set_file_mode IsReadOnly $true file1 file2
 #
 function set_file_mode {
 	$mode = $args[0]

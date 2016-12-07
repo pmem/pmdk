@@ -62,12 +62,12 @@ $REPL3="$DIR\pool.rep.part3"
 $REPS="$REPL1 $REPL2 $REPL3"
 
 remove_files $POOLSET
-create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z 32M:$DIR\pool.part3:z
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z
 check_file $POOLSET
 
 remove_files $POOLREP
-create_poolset $POOLREP 332M:$DIR\pool.part1:x 32M:$DIR\pool.part2:x 32M:$DIR\pool.part3:x `
-                        R 32M:$DIR\pool.rep.part1:z 32M:$DIR\pool.rep.part2:z 32M:$DIR\pool.rep.part3:z
+create_poolset $POOLREP 32M:${POOL1}:x 32M:${POOL2}:x 32M:${POOL3}:x `
+                        R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
 check_file $POOLREP
 
 # PMEMBLK
@@ -91,7 +91,7 @@ check_signatures PMEMOBJ $POOL1 $POOL2 $POOL3
 # PMEMOBJ with replica
 remove_files $POOLS
 expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLREP
-check_files $POOL1 $POOL2 $POOL3 $DIR\pool.rep.part1 $DIR\pool.rep.part2 $DIR\pool.rep.part1
+check_files $POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3
 check_signatures PMEMOBJ $POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3
 
 remove_files $POOLS $REPS $POOLSET $POOLREP

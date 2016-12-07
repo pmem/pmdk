@@ -51,8 +51,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-
-rm $LOG -Force -Recurse -ea si
+remove_files $LOG
 
 $POOLSET="$DIR\pool.set"
 $POOL_PART1="$DIR\pool.part1"
@@ -60,7 +59,7 @@ $POOL_PART2="$DIR\pool.part2"
 
 remove_files $POOLSET $POOL_PART1 $POOL_PART2
 
-create_poolset $POOLSET 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z
+create_poolset $POOLSET 32M:${POOL_PART1}:z 32M:${POOL_PART2}:z
 
 expect_normal_exit $PMEMPOOL create log $POOLSET
 expect_normal_exit $PMEMWRITE $POOLSET PMEMPOOL_DUMP_TEST
