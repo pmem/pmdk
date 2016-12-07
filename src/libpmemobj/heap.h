@@ -51,22 +51,6 @@
 #define HEAP_PTR_TO_OFF(heap, ptr)\
 	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
 
-#define MAX_ALLOCATION_CLASSES (UINT8_MAX)
-
-#define RUN_UNIT_MAX 64U
-#define RUN_UNIT_MAX_ALLOC 8U
-
-/*
- * Every allocation has to be a multiple of a cacheline because we need to
- * ensure proper alignment of every pmem structure.
- */
-#define ALLOC_BLOCK_SIZE 64
-
-/*
- * Converts size (in bytes) to number of allocation blocks.
- */
-#define SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
-
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
@@ -79,10 +63,10 @@ int heap_check_remote(void *heap_start, uint64_t heap_size,
 int heap_buckets_init(struct palloc_heap *heap);
 
 struct bucket *heap_get_default_bucket(struct palloc_heap *heap);
-struct allocation_class *
+struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
 struct bucket *
-heap_get_bucket_by_class(struct palloc_heap *heap, struct allocation_class *c);
+heap_get_bucket_by_class(struct palloc_heap *heap, struct alloc_class *c);
 
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);

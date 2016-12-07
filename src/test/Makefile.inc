@@ -94,7 +94,8 @@ STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
-OBJS += $(TOP)/src/debug/libpmemobj/bucket.o\
+OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
+	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ctree.o\
 	$(TOP)/src/debug/libpmemobj/container_seglists.o\
 	$(TOP)/src/debug/libpmemobj/ctree.o\
@@ -121,7 +122,8 @@ LIBPMEMCOMMON=y
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
-OBJS += $(TOP)/src/nondebug/libpmemobj/bucket.o\
+OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
+	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ctree.o\
 	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
 	$(TOP)/src/nondebug/libpmemobj/ctree.o\

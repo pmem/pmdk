@@ -163,32 +163,49 @@ enum memblock_state {
 	MAX_MEMBLOCK_STATE,
 };
 
-enum memory_block_type memblock_autodetect_type(struct memory_block *m,
+enum header_type {
+	HEADER_LEGACY,
+	HEADER_COMPACT,
+	NO_HEADER,
+
+	MAX_HEADER_TYPES
+};
+
+extern const size_t header_type_to_size[MAX_HEADER_TYPES];
+extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
+
+enum memory_block_type memblock_autodetect_type(const struct memory_block *m,
 	struct heap_layout *h);
 
 struct memory_block memblock_from_offset(struct palloc_heap *heap,
 	uint64_t off);
 
 struct memory_block_ops {
-	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
-	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
-		enum memblock_state, struct operation_context *ctx);
-	pthread_mutex_t *(*get_lock)(struct memory_block *m,
+	size_t (*block_size)(const struct memory_block *m, struct heap_layout *h);
+	void (*prep_hdr)(const struct memory_block *m, struct palloc_heap *heap,
+		enum memblock_state dest_state, enum header_type hdr_type,
+		struct operation_context *ctx);
+	pthread_mutex_t *(*get_lock)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	enum memblock_state (*get_state)(struct memory_block *m,
+	enum memblock_state (*get_state)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	void *(*get_user_data)(struct memory_block *m,
+	void *(*get_user_data)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	size_t (*get_user_size)(struct memory_block *m,
+	size_t (*get_user_size)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	void *(*get_real_data)(struct memory_block *m,
+	void *(*get_user_data_with_hdr_type)(const struct memory_block *m,
+		enum header_type t, struct palloc_heap *heap);
+	size_t (*get_user_size_with_hdr_type)(const struct memory_block *m,
+		enum header_type t, struct palloc_heap *heap);
+	void *(*get_real_data)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	size_t (*get_real_size)(struct memory_block *m,
+	size_t (*get_real_size)(const struct memory_block *m,
 		struct palloc_heap *heap);
-	void (*write_header)(struct memory_block *m, struct palloc_heap *heap,
-		uint64_t extra_field, uint16_t flags);
-	uint64_t (*get_extra)(struct memory_block *m, struct palloc_heap *heap);
-	uint16_t (*get_flags)(struct memory_block *m, struct palloc_heap *heap);
+	void (*write_header)(const struct memory_block *m, struct palloc_heap *heap,
+		uint64_t extra_field, uint16_t flags, enum header_type t);
+	void (*reinit_header)(const struct memory_block *m, struct palloc_heap *heap);
+	uint64_t (*get_extra)(const struct memory_block *m, struct palloc_heap *heap);
+	uint16_t (*get_flags)(const struct memory_block *m, struct palloc_heap *heap);
 
 	/* only runs can be claimed, functions are invalid for huge blocks */
 	int (*claim)(const struct memory_block *m,

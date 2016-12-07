@@ -214,10 +214,6 @@ void obj_fini(void);
 int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 		size_t length);
 
-#ifdef USE_VG_MEMCHECK
-int obj_vg_register(uint64_t off, void *arg);
-#endif
-
 /*
  * (debug helper macro) logs notice message if used inside a transaction
  */

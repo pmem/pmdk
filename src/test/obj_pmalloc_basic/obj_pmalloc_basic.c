@@ -189,6 +189,7 @@ test_pmalloc_extras(PMEMobjpool *pop)
 
 	UT_ASSERTeq(palloc_extra(&pop->heap, val), PMALLOC_EXTRA);
 	UT_ASSERT((palloc_flags(&pop->heap, val) & PALLOC_FLAG) == PALLOC_FLAG);
+	UT_ASSERT(palloc_usable_size(&pop->heap, val) == 112);
 
 	pfree(pop, &val);
 }
@@ -266,7 +267,7 @@ static void
 test_spec_compliance()
 {
 	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -
-		sizeof(struct legacy_object_header);
+		sizeof(struct allocation_header_legacy);
 
 	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
 	UT_COMPILE_ERROR_ON(offsetof(struct chunk_run, data) <

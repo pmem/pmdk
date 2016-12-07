@@ -52,12 +52,24 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
+const size_t header_type_to_size[MAX_HEADER_TYPES] = {
+	sizeof(struct allocation_header_legacy),
+	sizeof(struct allocation_header_compact),
+	0
+};
+
+const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
+	0,
+	CHUNK_FLAG_COMPACT_HEADER,
+	CHUNK_FLAG_NO_HEADER
+};
+
 /*
  * memblock_autodetect_type -- looks for the corresponding chunk header and
  *	depending on the chunks type returns the right memory block type.
  */
 enum memory_block_type
-memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
+memblock_autodetect_type(const struct memory_block *m, struct heap_layout *h)
 {
 	enum memory_block_type ret;
 
@@ -77,9 +89,203 @@ memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
 	return ret;
 }
 
-#define MEMBLOCK_GET_LEGACY_HEADER(_heap, _off) (struct legacy_object_header *)\
-	((char *)HEAP_OFF_TO_PTR((_heap), (_off)) -\
-		sizeof (struct legacy_object_header))
+static enum header_type
+memblock_header_type(struct palloc_heap *heap, const struct memory_block *m)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+
+	if (hdr->flags & CHUNK_FLAG_COMPACT_HEADER)
+		return HEADER_COMPACT;
+
+	if (hdr->flags & CHUNK_FLAG_NO_HEADER)
+		return NO_HEADER;
+
+	return HEADER_LEGACY;
+}
+
+static size_t
+memblock_header_legacy_get_size(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_legacy *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return hdr->size;
+}
+
+static size_t
+memblock_header_compact_get_size(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_compact *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return hdr->size & ALLOC_HDR_FLAGS_MASK;
+}
+
+static size_t
+memblock_no_header_get_size(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	return MEMBLOCK_OPS(AUTO, m)->block_size(m, heap->layout);
+}
+
+static uint64_t
+memblock_header_legacy_get_extra(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_legacy *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return hdr->type_num;
+}
+
+static uint64_t
+memblock_header_compact_get_extra(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_compact *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return hdr->extra;
+}
+
+static uint64_t
+memblock_no_header_get_extra(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	return 0;
+}
+
+static uint16_t
+memblock_header_legacy_get_flags(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_legacy *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return (uint16_t)(hdr->root_size >> 48ULL);
+}
+
+static uint16_t
+memblock_header_compact_get_flags(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_compact *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	return (uint16_t)(hdr->size >> 48ULL);
+}
+
+static uint16_t
+memblock_no_header_get_flags(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	return 0;
+}
+
+static void
+memblock_header_legacy_write(const struct memory_block *m,
+	struct palloc_heap *heap, size_t size, uint64_t extra, uint16_t flags)
+{
+	struct allocation_header_legacy *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+
+	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
+	hdr->size = size;
+	hdr->type_num = extra;
+	hdr->root_size = ((uint64_t)flags << 48ULL);
+	heap->p_ops.persist(heap->base, hdr, sizeof (*hdr));
+	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
+
+	/* unused fields of the legacy headers are used as a red zone */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr->unused, sizeof(hdr->unused));
+}
+
+static void
+memblock_header_compact_write(const struct memory_block *m,
+	struct palloc_heap *heap, size_t size, uint64_t extra, uint16_t flags)
+{
+	struct allocation_header_compact *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+
+	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
+	hdr->size = size | ((uint64_t)flags << 48ULL);
+	hdr->extra = extra;
+	heap->p_ops.persist(heap->base, hdr, sizeof (*hdr));
+	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
+}
+
+static void
+memblock_no_header_get_write(const struct memory_block *m,
+	struct palloc_heap *heap, size_t size, uint64_t extra, uint16_t flags)
+{
+}
+
+static void
+memblock_header_legacy_reinit(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_legacy *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+
+	/* unused fields of the legacy headers are used as a red zone */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr->unused, sizeof(hdr->unused));
+}
+
+static void
+memblock_header_compact_reinit(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+	struct allocation_header_compact *hdr =
+		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+
+	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+}
+
+static void
+memblock_no_header_get_reinit(const struct memory_block *m,
+	struct palloc_heap *heap)
+{
+}
+
+static struct {
+	size_t (*get_size)(const struct memory_block *m, struct palloc_heap *heap);
+	uint64_t (*get_extra)(const struct memory_block *m, struct palloc_heap *heap);
+	uint16_t (*get_flags)(const struct memory_block *m, struct palloc_heap *heap);
+	void (*write)(const struct memory_block *m, struct palloc_heap *heap,
+		size_t size, uint64_t extra, uint16_t flags);
+	void (*reinit)(const struct memory_block *m, struct palloc_heap *heap);
+} memblock_header_ops[MAX_HEADER_TYPES] = {
+	[HEADER_LEGACY] = {
+		memblock_header_legacy_get_size,
+		memblock_header_legacy_get_extra,
+		memblock_header_legacy_get_flags,
+		memblock_header_legacy_write,
+		memblock_header_legacy_reinit,
+	},
+	[HEADER_COMPACT] = {
+		memblock_header_compact_get_size,
+		memblock_header_compact_get_extra,
+		memblock_header_compact_get_flags,
+		memblock_header_compact_write,
+		memblock_header_compact_reinit,
+	},
+	[NO_HEADER] = {
+		memblock_no_header_get_size,
+		memblock_no_header_get_extra,
+		memblock_no_header_get_flags,
+		memblock_no_header_get_write,
+		memblock_no_header_get_reinit,
+	}
+};
 
 /*
  * memblock_from_offset -- resolves a memory block data from an offset that
@@ -88,12 +294,7 @@ memblock_autodetect_type(struct memory_block *m, struct heap_layout *h)
 struct memory_block
 memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 {
-	struct legacy_object_header *hdr =
-		MEMBLOCK_GET_LEGACY_HEADER(heap, off);
-
 	struct memory_block m = {0, 0, 0, 0};
-
-	off -= sizeof (struct legacy_object_header);
 
 	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
 	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
@@ -103,17 +304,23 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 
 	off -= CHUNKSIZE * m.chunk_id;
 
+	enum header_type t = memblock_header_type(heap, &m);
+
+	off -= header_type_to_size[t];
+
 	uint64_t unit_size = MEMBLOCK_OPS(AUTO, &m)
 		->block_size(&m, heap->layout);
 
-	m.size_idx = CALC_SIZE_IDX(unit_size, hdr->alloc_hdr.size);
-
-	if (off == 0) { /* huge */
-		return m;
+	if (off != 0) { /* run */
+		off -= RUN_METASIZE;
+		m.block_off = (uint16_t)(off / unit_size);
+		off -= m.block_off * unit_size;
 	}
 
-	off -= RUN_METASIZE;
-	m.block_off = (uint16_t)(off / unit_size);
+	m.size_idx = CALC_SIZE_IDX(unit_size,
+		memblock_header_ops[t].get_size(&m, heap));
+
+	ASSERTeq(off, 0);
 
 	return m;
 }
@@ -123,7 +330,7 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
  *	huge memory block size.
  */
 static size_t
-huge_block_size(struct memory_block *m, struct heap_layout *h)
+huge_block_size(const struct memory_block *m, struct heap_layout *h)
 {
 	return CHUNKSIZE;
 }
@@ -133,7 +340,7 @@ huge_block_size(struct memory_block *m, struct heap_layout *h)
  *	information that is attached to the run block metadata.
  */
 static size_t
-run_block_size(struct memory_block *m, struct heap_layout *h)
+run_block_size(const struct memory_block *m, struct heap_layout *h)
 {
 	struct zone *z = ZID_TO_ZONE(h, m->zone_id);
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
@@ -145,7 +352,7 @@ run_block_size(struct memory_block *m, struct heap_layout *h)
  * huge_get_real_data -- returns pointer to the beginning data of a huge block
  */
 static void *
-huge_get_real_data(struct memory_block *m, struct palloc_heap *heap)
+huge_get_real_data(const struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	void *data = &z->chunks[m->chunk_id].data;
@@ -154,20 +361,10 @@ huge_get_real_data(struct memory_block *m, struct palloc_heap *heap)
 }
 
 /*
- * huge_get_user_data -- returns pointer to the data of a huge block
- */
-static void *
-huge_get_user_data(struct memory_block *m, struct palloc_heap *heap)
-{
-	return (char *)huge_get_real_data(m, heap) +
-		sizeof (struct legacy_object_header);
-}
-
-/*
  * run_get_real_data -- returns pointer to the beginning data of a run block
  */
 static void *
-run_get_real_data(struct memory_block *m, struct palloc_heap *heap)
+run_get_real_data(const struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 
@@ -179,28 +376,39 @@ run_get_real_data(struct memory_block *m, struct palloc_heap *heap)
 }
 
 /*
- * run_get_user_data -- returns pointer to the data of a run block
+ * block_get_user_data -- returns pointer to the data of a block
  */
 static void *
-run_get_user_data(struct memory_block *m, struct palloc_heap *heap)
+block_get_user_data_with_hdr_type(const struct memory_block *m,
+	enum header_type t, struct palloc_heap *heap)
 {
-	return (char *)run_get_real_data(m, heap) +
-		sizeof (struct legacy_object_header);
+	return (char *)MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap) +
+		header_type_to_size[t];
+}
+
+/*
+ * block_get_user_data -- returns pointer to the data of a block
+ */
+static void *
+block_get_user_data(const struct memory_block *m, struct palloc_heap *heap)
+{
+	enum header_type t = memblock_header_type(heap, m);
+	return block_get_user_data_with_hdr_type(m, t, heap);
 }
 
 /*
  * chunk_get_chunk_hdr_value -- (internal) get value of a header for redo log
  */
 static uint64_t
-chunk_get_chunk_hdr_value(uint16_t type, uint32_t size_idx)
+chunk_get_chunk_hdr_value(uint16_t type, uint16_t flags, uint32_t size_idx)
 {
 	uint64_t val;
 	COMPILE_ERROR_ON(sizeof(struct chunk_header) != sizeof(uint64_t));
 
 	struct chunk_header hdr;
 	hdr.type = type;
+	hdr.flags = flags;
 	hdr.size_idx = size_idx;
-	hdr.flags = 0;
 	memcpy(&val, &hdr, sizeof(val));
 
 	return val;
@@ -211,8 +419,9 @@ chunk_get_chunk_hdr_value(uint16_t type, uint32_t size_idx)
  *	be set after the operation concludes.
  */
 static void
-huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
-	enum memblock_state op, struct operation_context *ctx)
+huge_prep_operation_hdr(const struct memory_block *m, struct palloc_heap *heap,
+	enum memblock_state op, enum header_type hdr_type,
+	struct operation_context *ctx)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -223,6 +432,7 @@ huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 	 */
 	uint64_t val = chunk_get_chunk_hdr_value(
 		op == MEMBLOCK_ALLOCATED ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
+		header_type_to_flag[hdr_type],
 		m->size_idx);
 
 	operation_add_entry(ctx, hdr, val, OPERATION_SET);
@@ -240,7 +450,7 @@ huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
 	struct chunk_header *footer = hdr + m->size_idx - 1;
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(footer, sizeof(*footer));
 
-	val = chunk_get_chunk_hdr_value(CHUNK_TYPE_FOOTER, m->size_idx);
+	val = chunk_get_chunk_hdr_value(CHUNK_TYPE_FOOTER, 0, m->size_idx);
 
 	/*
 	 * It's only safe to write the footer AFTER the persistent part of
@@ -264,8 +474,9 @@ huge_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
  * is called and before the operation is processed.
  */
 static void
-run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
-	enum memblock_state op, struct operation_context *ctx)
+run_prep_operation_hdr(const struct memory_block *m, struct palloc_heap *heap,
+	enum memblock_state op, enum header_type hdr_type,
+	struct operation_context *ctx)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 
@@ -312,7 +523,7 @@ run_prep_operation_hdr(struct memory_block *m, struct palloc_heap *heap,
  *	protected.
  */
 static pthread_mutex_t *
-huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
+huge_get_lock(const struct memory_block *m, struct palloc_heap *heap)
 {
 	return NULL;
 }
@@ -321,7 +532,7 @@ huge_get_lock(struct memory_block *m, struct palloc_heap *heap)
  * run_get_lock -- gets the runtime mutex from the heap.
  */
 static pthread_mutex_t *
-run_get_lock(struct memory_block *m, struct palloc_heap *heap)
+run_get_lock(const struct memory_block *m, struct palloc_heap *heap)
 {
 	return heap_get_run_lock(heap, m->chunk_id);
 }
@@ -330,7 +541,7 @@ run_get_lock(struct memory_block *m, struct palloc_heap *heap)
  * huge_get_state -- returns whether a huge block is allocated or not
  */
 static enum memblock_state
-huge_get_state(struct memory_block *m, struct palloc_heap *heap)
+huge_get_state(const struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -348,7 +559,7 @@ huge_get_state(struct memory_block *m, struct palloc_heap *heap)
  * huge_get_state -- returns whether a block from a run is allocated or not
  */
 static enum memblock_state
-run_get_state(struct memory_block *m, struct palloc_heap *heap)
+run_get_state(const struct memory_block *m, struct palloc_heap *heap)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -440,61 +651,63 @@ run_is_claimed(const struct memory_block *m, struct palloc_heap *heap)
 }
 
 static size_t
-block_get_real_size(struct memory_block *m, struct palloc_heap *heap)
+block_get_real_size(const struct memory_block *m, struct palloc_heap *heap)
 {
-	return MEMBLOCK_OPS(AUTO, m)->block_size(m, heap->layout) * m->size_idx;
+	enum header_type t = memblock_header_type(heap, m);
+	return memblock_header_ops[t].get_size(m, heap);
 }
 
 static size_t
-block_get_user_size(struct memory_block *m, struct palloc_heap *heap)
+block_get_user_size_with_hdr_type(const struct memory_block *m,
+	enum header_type t, struct palloc_heap *heap)
 {
-	return block_get_real_size(m, heap) -
-		sizeof (struct legacy_object_header);
+	return block_get_real_size(m, heap) - header_type_to_size[t];
+}
+
+static size_t
+block_get_user_size(const struct memory_block *m, struct palloc_heap *heap)
+{
+	enum header_type t = memblock_header_type(heap, m);
+	return block_get_user_size_with_hdr_type(m, t, heap);
 }
 
 static void
-block_write_header(struct memory_block *m, struct palloc_heap *heap,
-	uint64_t extra_field, uint16_t flags)
+block_write_header(const struct memory_block *m, struct palloc_heap *heap,
+	uint64_t extra_field, uint16_t flags, enum header_type t)
 {
-	struct legacy_object_header *h = (struct legacy_object_header *)
-		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+	size_t real_size = MEMBLOCK_OPS(AUTO, m)->block_size(m, heap->layout) *
+		m->size_idx;
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(h, sizeof(*h));
+	memblock_header_ops[t].write(m, heap, real_size, extra_field, flags);
+}
 
-	VALGRIND_ADD_TO_TX(h, sizeof(*h));
-	h->alloc_hdr.size = block_get_user_size(m, heap) +
-		sizeof (struct legacy_object_header);
-	h->type_num = extra_field;
-	h->size = ((uint64_t)flags << 48ULL);
-	heap->p_ops.persist(heap->base, h, sizeof (*h));
-	VALGRIND_REMOVE_FROM_TX(h, sizeof(*h));
-
-	/* unused fields of the legacy headers are used as a red zone */
-	VALGRIND_DO_MAKE_MEM_NOACCESS(h->unused, sizeof(h->unused));
+static void
+block_reinit_header(const struct memory_block *m, struct palloc_heap *heap)
+{
+	enum header_type t = memblock_header_type(heap, m);
+	memblock_header_ops[t].reinit(m, heap);
 }
 
 /*
  * block_get_extra --
  */
 static uint64_t
-block_get_extra(struct memory_block *m, struct palloc_heap *heap)
+block_get_extra(const struct memory_block *m, struct palloc_heap *heap)
 {
-	struct legacy_object_header *h = (struct legacy_object_header *)
-		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+	enum header_type t = memblock_header_type(heap, m);
 
-	return h->type_num;
+	return memblock_header_ops[t].get_extra(m, heap);
 }
 
 /*
  * block_get_flags --
  */
 static uint16_t
-block_get_flags(struct memory_block *m, struct palloc_heap *heap)
+block_get_flags(const struct memory_block *m, struct palloc_heap *heap)
 {
-	struct legacy_object_header *h = (struct legacy_object_header *)
-		MEMBLOCK_OPS(AUTO, m)->get_real_data(m, heap);
+	enum header_type t = memblock_header_type(heap, m);
 
-	return (uint16_t)(h->size >> 48ULL);
+	return memblock_header_ops[t].get_flags(m, heap);
 }
 
 const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
@@ -503,14 +716,17 @@ const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.prep_hdr = huge_prep_operation_hdr,
 		.get_lock = huge_get_lock,
 		.get_state = huge_get_state,
-		.get_user_data = huge_get_user_data,
+		.get_user_data = block_get_user_data,
 		.get_real_data = huge_get_real_data,
+		.get_user_size_with_hdr_type = block_get_user_size_with_hdr_type,
+		.get_user_data_with_hdr_type = block_get_user_data_with_hdr_type,
 		.claim = NULL,
 		.claim_revoke = NULL,
 		.is_claimed = NULL,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
 	},
@@ -519,14 +735,17 @@ const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.prep_hdr = run_prep_operation_hdr,
 		.get_lock = run_get_lock,
 		.get_state = run_get_state,
-		.get_user_data = run_get_user_data,
+		.get_user_data = block_get_user_data,
 		.get_real_data = run_get_real_data,
+		.get_user_size_with_hdr_type = block_get_user_size_with_hdr_type,
+		.get_user_data_with_hdr_type = block_get_user_data_with_hdr_type,
 		.claim = run_claim,
 		.claim_revoke = run_claim_revoke,
 		.is_claimed = run_is_claimed,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
 	}

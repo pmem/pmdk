@@ -48,6 +48,7 @@ SOURCE =\
 	$(COMMON)/uuid.c\
 	$(COMMON)/uuid_linux.c\
 	$(COMMON)/util_linux.c\
+	alloc_class.c\
 	bucket.c\
 	container_ctree.c\
 	container_seglists.c\

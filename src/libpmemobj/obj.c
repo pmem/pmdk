@@ -167,29 +167,6 @@ pmemobj_oid(const void *addr)
  */
 static int Open_cow;
 
-#ifdef USE_VG_MEMCHECK
-/*
- * obj_vg_register -- register object in valgrind
- */
-int
-obj_vg_register(uint64_t off, void *arg)
-{
-	PMEMobjpool *pop = arg;
-
-	uint64_t obj_off = off;
-	void *obj_ptr = OBJ_OFF_TO_PTR(pop, obj_off);
-
-	size_t obj_size = pop->root_size ?
-		pop->root_size :
-		palloc_usable_size(&pop->heap, obj_off);
-
-	VALGRIND_DO_MEMPOOL_ALLOC(pop->heap.layout, obj_ptr, obj_size);
-	VALGRIND_DO_MAKE_MEM_DEFINED(obj_ptr, obj_size);
-
-	return 0;
-}
-#endif
-
 /*
  * obj_init -- initialization of obj
  *
