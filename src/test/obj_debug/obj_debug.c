@@ -142,8 +142,8 @@ test_lists(const char *path)
 static int
 int3_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	struct int3_s *args = arg;
-	struct int3_s *val = ptr;
+	struct int3_s *args = (struct int3_s *)arg;
+	struct int3_s *val = (struct int3_s *)ptr;
 
 	val->i1 = args->i1;
 	val->i2 = args->i2;

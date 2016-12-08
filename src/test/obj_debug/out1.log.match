@@ -1,3 +1,3 @@
-obj_debug/TEST1: START: obj_debug
- ./obj_debug$(nW) $(nW)/testfile1 l
-obj_debug/TEST1: Done
+obj_debug$(nW)TEST1: START: obj_debug
+ $(nW)obj_debug$(nW) $(nW)testfile1 l
+obj_debug$(nW)TEST1: Done
