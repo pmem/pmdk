@@ -46,34 +46,12 @@ setup
 
 . setup.sh
 
-cat > $DIR/pool0.set << EOF
-PMEMPOOLSET
-8M $PART_DIR/pool0.part0
-8M $PART_DIR/pool0.part1
-EOF
-
-cat > $DIR/pool1.set << EOF
-PMEMPOOLSET
-16M $PART_DIR/pool1.part0
-EOF
-
-cat > $DIR/pool2.set << EOF
-PMEMPOOLSET
-16M $PART_DIR/pool2.part0
-EOF
-
-cat > $DIR/pool3.set << EOF
-PMEMPOOLSET
-8M $PART_DIR/pool3.part0
-8M $PART_DIR/pool3.part1
-EOF
-
+create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
+create_poolset $DIR/pool1.set 16M:$PART_DIR/pool1.part0
+create_poolset $DIR/pool2.set 16M:$PART_DIR/pool2.part0
+create_poolset $DIR/pool3.set  8M:$PART_DIR/pool3.part0 8M:$PART_DIR/pool3.part1
 # Pool set file with duplicated part file
-cat > $DIR/pool4.set << EOF
-PMEMPOOLSET
-8M $PART_DIR/pool3.part0
-8M $PART_DIR/pool4.part1
-EOF
+create_poolset $DIR/pool4.set  8M:$PART_DIR/pool3.part0 8M:$PART_DIR/pool4.part1
 
 cp $DIR/pool0.set $DIR/pool0r.set
 
