@@ -75,7 +75,7 @@ create_poolset $DIR/testset8 32K:$DIR/testfile81:x \
 create_poolset $DIR/testset10 32K:$DIR/testfile101:z \
 	32K:$DIR/testfile102:z:32K:0444 # fail - part2 read-only
 create_poolset $DIR/testset11 32K:$DIR/testfile111:z:32K \
-	32K:$DIR/testfile112:z 16K:$DIR/testfile113:z:32K # fail - part3 too small
+	32K:$DIR/testfile112:z 16K:$DIR/testfile113:z:16K # fail - part3 too small
 create_poolset $DIR/testset12 32K:$DIR/testfile121:z:32K \
 	8K:$DIR/testfile122:z:8K # fail - part2 too small
 create_poolset $DIR/testset13 8K:$DIR/testfile131:z:8K \

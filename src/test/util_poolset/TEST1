@@ -69,7 +69,7 @@ create_poolset $DIR/testset9 32K:$DIR/testfile91:z:32K \
 create_poolset $DIR/testset10 32K:$DIR/testfile101:z:32768 \
 	32K:$DIR/testfile102:z:32769 # fail - part2 size doesn't match
 create_poolset $DIR/testset11 32769:$DIR/testfile111:z:32769 \
-	36863:$DIR/testfile112:z:36863 36864:$DIR/testfile113:xz:36864 # pass
+	36863:$DIR/testfile112:z:36863 36864:$DIR/testfile113:z:36864 # pass
 
 
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
