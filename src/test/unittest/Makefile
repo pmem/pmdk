@@ -77,8 +77,12 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 all test: $(TARGET)
 
-$(TARGET): unittest.htmp $(OBJS)
+$(TARGET): $(OBJS)
 	$(AR) rv $@ $(OBJS)
+
+ifneq ($(CSTYLEON),0)
+$(TARGET): unittest.htmp
+endif
 
 objdir=.
 
