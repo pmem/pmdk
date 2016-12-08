@@ -40,6 +40,7 @@
 #include "pool_hdr.h"
 #include "set.h"
 #include "util.h"
+#include "out.h"
 
 #include "rpmem_common.h"
 #include "rpmem_fip_common.h"
@@ -492,7 +493,11 @@ main(int argc, char *argv[])
 	rpmem_fip_probe_get("localhost", NULL);
 	START(argc, argv, "rpmem_basic");
 
+	out_init("rpmem_basic", "TEST_LOG_LEVEL", "TEST_LOG_FILE", 0, 0);
+
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+
+	out_fini();
 
 	DONE(NULL);
 }

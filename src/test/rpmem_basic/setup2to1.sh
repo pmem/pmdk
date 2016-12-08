@@ -38,6 +38,9 @@
 POOLS_DIR=pools
 POOLS_PART=pool_parts
 
+TEST_LOG_FILE=test$UNITTEST_NUM.log
+TEST_LOG_LEVEL=3
+
 #
 # This unit test requires 4 nodes, but nodes #0 and #3 should be the same
 # physical machine - they should have the same NODE[n] addresses but
@@ -54,8 +57,12 @@ for node in 1 2; do
 	require_node_libfabric ${node}             $RPMEM_PROVIDER
 	require_node_libfabric ${REPLICA[${node}]} $RPMEM_PROVIDER
 
+	export_vars_node       ${node}		   TEST_LOG_FILE
+	export_vars_node       ${node}             TEST_LOG_LEVEL
+
 	require_node_log_files ${node}             $PMEM_LOG_FILE
 	require_node_log_files ${node}             $RPMEM_LOG_FILE
+	require_node_log_files ${node}             $TEST_LOG_FILE
 	require_node_log_files ${REPLICA[${node}]} $RPMEMD_LOG_FILE
 
 	REP_ADDR[${node}]=${NODE_ADDR[${REPLICA[${node}]}]}
