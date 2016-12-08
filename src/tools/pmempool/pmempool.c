@@ -285,5 +285,6 @@ main(int argc, char *argv[])
 	rpmem_util_cmds_fini();
 #endif
 
-	return ret;
+	if (ret)
+		exit(EXIT_FAILURE);
 }
