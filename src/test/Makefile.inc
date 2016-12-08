@@ -211,28 +211,29 @@ ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 
+ifneq ($(TARGET),)
+SCP_TARGET=$(TARGET)
+SCP_SRC_DIR=.
 #
 # By default debug and non-debug static versions are built.
-# It can be changed by setting BUILD_STATIC_DEBUG
-# or BUILD_STATIC_NONDEBUG to 'n'.
+# It can be changed by setting BUILD_STATIC_DEBUG, BUILD_STATIC_NONDEBUG
+# or BUILD_STATIC (for both of them) to 'n'.
 #
-ifneq ($(TARGET),)
+ifneq ($(BUILD_STATIC),n)
 ifneq ($(BUILD_STATIC_DEBUG),n)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
+SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
 endif
 ifneq ($(BUILD_STATIC_NONDEBUG),n)
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+endif
 endif
 endif
 
 SCP=../sync-remotes/copy-to-remote-nodes.sh
 TESTCONFIG=../testconfig.sh
 SYNC_FILE=.synced
-
-ifdef TARGET
-SCP_TARGET=$(TARGET)
-SCP_SRC_DIR=.
-endif
 
 MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 
@@ -290,7 +291,7 @@ else
 ifeq ($(SCP_SRC_DIR),)
 $(error SCP_SRC_DIR is not set)
 endif
-	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_SRC_DIR)/$(SCP_TARGET).static-debug $(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_TARGET_STATIC_DEBUG) $(SCP_TARGET_STATIC_NONDEBUG)
 endif
 	@touch $(SYNC_FILE)
 endif
