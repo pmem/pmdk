@@ -33,8 +33,8 @@
  * benchmark_worker.c -- benchmark_worker module definitions
  */
 
-#include <err.h>
 #include <assert.h>
+#include <err.h>
 
 #include "benchmark_worker.hpp"
 /*
@@ -43,8 +43,8 @@
  */
 static void
 worker_state_wait_for_transition(struct benchmark_worker *worker,
-		enum benchmark_worker_state state,
-		enum benchmark_worker_state new_state)
+				 enum benchmark_worker_state state,
+				 enum benchmark_worker_state new_state)
 {
 	while (worker->state == state)
 		pthread_cond_wait(&worker->cond, &worker->lock);
@@ -56,8 +56,8 @@ worker_state_wait_for_transition(struct benchmark_worker *worker,
  */
 static void
 worker_state_transition(struct benchmark_worker *worker,
-		enum benchmark_worker_state old_state,
-		enum benchmark_worker_state new_state)
+			enum benchmark_worker_state old_state,
+			enum benchmark_worker_state new_state)
 {
 	assert(worker->state == old_state);
 	worker->state = new_state;
@@ -75,32 +75,30 @@ thread_func(void *arg)
 
 	pthread_mutex_lock(&worker->lock);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_IDLE, WORKER_STATE_INIT);
+	worker_state_wait_for_transition(worker, WORKER_STATE_IDLE,
+					 WORKER_STATE_INIT);
 
 	if (worker->init)
-		worker->ret_init = worker->init(worker->bench,
-				worker->args, &worker->info);
+		worker->ret_init = worker->init(worker->bench, worker->args,
+						&worker->info);
 
-	worker_state_transition(worker,
-		WORKER_STATE_INIT, WORKER_STATE_INITIALIZED);
+	worker_state_transition(worker, WORKER_STATE_INIT,
+				WORKER_STATE_INITIALIZED);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_INITIALIZED, WORKER_STATE_RUN);
+	worker_state_wait_for_transition(worker, WORKER_STATE_INITIALIZED,
+					 WORKER_STATE_RUN);
 
 	worker->ret = worker->func(worker->bench, &worker->info);
 
-	worker_state_transition(worker,
-		WORKER_STATE_RUN, WORKER_STATE_END);
+	worker_state_transition(worker, WORKER_STATE_RUN, WORKER_STATE_END);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_END, WORKER_STATE_EXIT);
+	worker_state_wait_for_transition(worker, WORKER_STATE_END,
+					 WORKER_STATE_EXIT);
 
 	if (worker->exit)
 		worker->exit(worker->bench, worker->args, &worker->info);
 
-	worker_state_transition(worker,
-		WORKER_STATE_EXIT, WORKER_STATE_DONE);
+	worker_state_transition(worker, WORKER_STATE_EXIT, WORKER_STATE_DONE);
 
 	pthread_mutex_unlock(&worker->lock);
 	return NULL;
@@ -112,8 +110,8 @@ thread_func(void *arg)
 struct benchmark_worker *
 benchmark_worker_alloc(void)
 {
-	struct benchmark_worker *w = (struct benchmark_worker *)
-					calloc(1, sizeof(*w));
+	struct benchmark_worker *w =
+		(struct benchmark_worker *)calloc(1, sizeof(*w));
 
 	if (!w)
 		return NULL;
@@ -158,11 +156,10 @@ benchmark_worker_init(struct benchmark_worker *worker)
 {
 	pthread_mutex_lock(&worker->lock);
 
-	worker_state_transition(worker,
-		WORKER_STATE_IDLE, WORKER_STATE_INIT);
+	worker_state_transition(worker, WORKER_STATE_IDLE, WORKER_STATE_INIT);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_INIT, WORKER_STATE_INITIALIZED);
+	worker_state_wait_for_transition(worker, WORKER_STATE_INIT,
+					 WORKER_STATE_INITIALIZED);
 
 	int ret = worker->ret_init;
 
@@ -179,11 +176,10 @@ benchmark_worker_exit(struct benchmark_worker *worker)
 {
 	pthread_mutex_lock(&worker->lock);
 
-	worker_state_transition(worker,
-		WORKER_STATE_END, WORKER_STATE_EXIT);
+	worker_state_transition(worker, WORKER_STATE_END, WORKER_STATE_EXIT);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_EXIT, WORKER_STATE_DONE);
+	worker_state_wait_for_transition(worker, WORKER_STATE_EXIT,
+					 WORKER_STATE_DONE);
 
 	pthread_mutex_unlock(&worker->lock);
 }
@@ -198,8 +194,8 @@ benchmark_worker_run(struct benchmark_worker *worker)
 
 	pthread_mutex_lock(&worker->lock);
 
-	worker_state_transition(worker,
-		WORKER_STATE_INITIALIZED, WORKER_STATE_RUN);
+	worker_state_transition(worker, WORKER_STATE_INITIALIZED,
+				WORKER_STATE_RUN);
 
 	pthread_mutex_unlock(&worker->lock);
 
@@ -214,8 +210,8 @@ benchmark_worker_join(struct benchmark_worker *worker)
 {
 	pthread_mutex_lock(&worker->lock);
 
-	worker_state_wait_for_transition(worker,
-		WORKER_STATE_RUN, WORKER_STATE_END);
+	worker_state_wait_for_transition(worker, WORKER_STATE_RUN,
+					 WORKER_STATE_END);
 
 	pthread_mutex_unlock(&worker->lock);
 

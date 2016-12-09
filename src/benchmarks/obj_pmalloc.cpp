@@ -35,22 +35,22 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "redo.h"
 #include "memops.h"
 #include "pmalloc.h"
+#include "redo.h"
 #ifdef __cplusplus
 }
 #endif
@@ -70,9 +70,9 @@ extern "C" {
  * prog_args - command line parsed arguments
  */
 struct prog_args {
-	size_t minsize;		/* minimum size for random allocation size */
-	bool use_random_size;	/* if set, use random size allocations */
-	unsigned seed;		/* PRNG seed */
+	size_t minsize;       /* minimum size for random allocation size */
+	bool use_random_size; /* if set, use random size allocations */
+	unsigned seed;	/* PRNG seed */
 };
 
 POBJ_LAYOUT_BEGIN(pmalloc_layout);
@@ -84,18 +84,18 @@ POBJ_LAYOUT_END(pmalloc_layout);
  * my_root - root object
  */
 struct my_root {
-	TOID(uint64_t) offs;	/* vector of the allocated object offsets */
+	TOID(uint64_t) offs; /* vector of the allocated object offsets */
 };
 
 /*
  * obj_bench - variables used in benchmark, passed within functions
  */
 struct obj_bench {
-	PMEMobjpool *pop;		/* persistent pool handle */
-	struct prog_args *pa;		/* prog_args structure */
-	size_t *sizes;			/* sizes for allocations */
-	TOID(struct my_root) root;	/* root object's OID */
-	uint64_t *offs;			/* pointer to the vector of offsets */
+	PMEMobjpool *pop;	  /* persistent pool handle */
+	struct prog_args *pa;      /* prog_args structure */
+	size_t *sizes;		   /* sizes for allocations */
+	TOID(struct my_root) root; /* root object's OID */
+	uint64_t *offs;		   /* pointer to the vector of offsets */
 };
 
 /*
@@ -114,8 +114,8 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob = (struct obj_bench *)
-		malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob =
+		(struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -151,7 +151,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),
-			poolsize, args->fmode);
+				 poolsize, args->fmode);
 	if (ob->pop == NULL) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto free_ob;
@@ -164,7 +164,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	POBJ_ZALLOC(ob->pop, &D_RW(ob->root)->offs, uint64_t,
-			n_ops_total * sizeof(PMEMoid));
+		    n_ops_total * sizeof(PMEMoid));
 	if (TOID_IS_NULL(D_RW(ob->root)->offs)) {
 		fprintf(stderr, "POBJ_ZALLOC off_vect: %s\n",
 			pmemobj_errormsg());
@@ -237,8 +237,8 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
-	uint64_t i = info->index + info->worker->index *
-					info->args->n_ops_per_thread;
+	uint64_t i = info->index +
+		info->worker->index * info->args->n_ops_per_thread;
 
 	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
 	if (ret) {
@@ -282,9 +282,8 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i]);
 		if (ret) {
-			fprintf(stderr, "pmalloc at idx %" PRIu64
-				" ret: %s\n", i,
-				pmemobj_errormsg());
+			fprintf(stderr, "pmalloc at idx %" PRIu64 " ret: %s\n",
+				i, pmemobj_errormsg());
 			/* free the allocated memory */
 			while (i != 0) {
 				pfree(ob->pop, &ob->offs[i - 1]);
@@ -306,8 +305,8 @@ pfree_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
-	uint64_t i = info->index + info->worker->index *
-					info->args->n_ops_per_thread;
+	uint64_t i = info->index +
+		info->worker->index * info->args->n_ops_per_thread;
 
 	pfree(ob->pop, &ob->offs[i]);
 
@@ -331,20 +330,21 @@ obj_pmalloc_costructor(void)
 {
 	pmalloc_clo[0].opt_short = 'r';
 	pmalloc_clo[0].opt_long = "random";
-	pmalloc_clo[0].descr = "Use random size allocations - from min-size"
-		"to data-size";
-	pmalloc_clo[0].off = clo_field_offset(struct prog_args,
-			use_random_size);
+	pmalloc_clo[0].descr = "Use random size allocations - "
+			       "from min-size to data-size";
+	pmalloc_clo[0].off =
+		clo_field_offset(struct prog_args, use_random_size);
 	pmalloc_clo[0].type = CLO_TYPE_FLAG;
 
 	pmalloc_clo[1].opt_short = 'm';
 	pmalloc_clo[1].opt_long = "min-size";
-	pmalloc_clo[1].descr = "Minimum size of allocation for random mode";
+	pmalloc_clo[1].descr = "Minimum size of allocation for "
+			       "random mode";
 	pmalloc_clo[1].type = CLO_TYPE_UINT;
 	pmalloc_clo[1].off = clo_field_offset(struct prog_args, minsize);
 	pmalloc_clo[1].def = "1";
-	pmalloc_clo[1].type_uint.size = clo_field_size(struct prog_args,
-							minsize);
+	pmalloc_clo[1].type_uint.size =
+		clo_field_size(struct prog_args, minsize);
 	pmalloc_clo[1].type_uint.base = CLO_INT_BASE_DEC;
 	pmalloc_clo[1].type_uint.min = 1;
 	pmalloc_clo[1].type_uint.max = UINT64_MAX;
@@ -361,7 +361,8 @@ obj_pmalloc_costructor(void)
 	pmalloc_clo[2].type_uint.max = UINT_MAX;
 
 	pmalloc_info.name = "pmalloc",
-	pmalloc_info.brief = "Benchmark for internal pmalloc() operation";
+	pmalloc_info.brief = "Benchmark for internal pmalloc() "
+			     "operation";
 	pmalloc_info.init = pmalloc_init;
 	pmalloc_info.exit = pmalloc_exit;
 	pmalloc_info.multithread = true;
@@ -376,8 +377,10 @@ obj_pmalloc_costructor(void)
 	REGISTER_BENCHMARK(pmalloc_info);
 
 	pfree_info.name = "pfree";
-	pfree_info.brief = "Benchmark for internal pfree() operation";
+	pfree_info.brief = "Benchmark for internal pfree() "
+			   "operation";
 	pfree_info.init = pfree_init;
+
 	pfree_info.exit = pmalloc_exit; /* same as for pmalloc */
 	pfree_info.multithread = true;
 	pfree_info.multiops = true;

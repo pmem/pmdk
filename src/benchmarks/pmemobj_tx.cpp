@@ -35,15 +35,15 @@
  * pmemobj_tx_add_range() benchmarks.
  */
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 
 #define LAYOUT_NAME "benchmark"
 #define FACTOR 4
@@ -110,31 +110,24 @@ enum nesting_mode {
 /*
  * add_range_mode -- operation type for obj_add_range benchmark
  */
-enum add_range_mode {
-	ADD_RANGE_MODE_ONE_TX,
-	ADD_RANGE_MODE_NESTED_TX
-};
+enum add_range_mode { ADD_RANGE_MODE_ONE_TX, ADD_RANGE_MODE_NESTED_TX };
 
 /*
  * parse_mode -- parsing function type
  */
-enum parse_mode {
-	PARSE_OP_MODE,
-	PARSE_OP_MODE_ADD_RANGE
-};
+enum parse_mode { PARSE_OP_MODE, PARSE_OP_MODE_ADD_RANGE };
 
-typedef size_t(*fn_type_num_t) (struct obj_tx_bench *obj_bench, size_t worker_idx,
-								size_t op_idx);
+typedef size_t (*fn_type_num_t)(struct obj_tx_bench *obj_bench,
+				size_t worker_idx, size_t op_idx);
 
-typedef size_t(*fn_num_t) (size_t idx);
+typedef size_t (*fn_num_t)(size_t idx);
 
-typedef int (*fn_op_t) (struct obj_tx_bench *obj_bench,
-				struct worker_info *worker, size_t idx);
+typedef int (*fn_op_t)(struct obj_tx_bench *obj_bench,
+		       struct worker_info *worker, size_t idx);
 
-typedef struct offset (*fn_off_t) (struct obj_tx_bench *obj_bench,
-								size_t idx);
+typedef struct offset (*fn_off_t)(struct obj_tx_bench *obj_bench, size_t idx);
 
-typedef enum op_mode (*fn_parse_t) (const char *arg);
+typedef enum op_mode (*fn_parse_t)(const char *arg);
 
 /*
  * obj_tx_args -- stores command line parsed arguments.
@@ -183,34 +176,34 @@ struct obj_tx_args {
 	 *		- dram - does not use PMEM
 	 */
 	char *lib;
-	unsigned nested;	/* number of nested transactions */
-	unsigned min_size;	/* minimum allocation size */
-	unsigned min_rsize;	/* minimum reallocation size */
-	unsigned rsize;		/* reallocation size */
-	bool change_type;	/* change type number in reallocation */
-	size_t obj_size;	/* size of each allocated object */
-	size_t n_ops;		/* number of operations */
-	int parse_mode;		/* type of parsing function */
+	unsigned nested;    /* number of nested transactions */
+	unsigned min_size;  /* minimum allocation size */
+	unsigned min_rsize; /* minimum reallocation size */
+	unsigned rsize;     /* reallocation size */
+	bool change_type;   /* change type number in reallocation */
+	size_t obj_size;    /* size of each allocated object */
+	size_t n_ops;       /* number of operations */
+	int parse_mode;     /* type of parsing function */
 };
 
 /*
  * obj_tx_bench -- stores variables used in benchmark, passed within functions.
  */
 static struct obj_tx_bench {
-	PMEMobjpool *pop;	/* handle to persistent pool */
-	struct obj_tx_args *obj_args;	/* pointer to benchmark arguments */
-	size_t *random_types;	/* array to store random type numbers */
-	size_t *sizes;		/* array to store size of each allocation */
-	size_t *resizes;	/* array to store size of each reallocation */
-	size_t n_objs;		/* number of objects to allocate */
-	int type_mode;		/* type number mode */
-	int op_mode;		/* type of operation */
-	int lib_mode;		/* type of operation used in initialization */
-	int lib_op;		/* type of main operation */
-	int lib_op_free;	/* type of main operation */
-	int nesting_mode;	/* type of nesting in main operation */
-	fn_num_t n_oid;		/* returns object's number in array */
-	fn_off_t fn_off;		/* returns offset for proper operation */
+	PMEMobjpool *pop;	     /* handle to persistent pool */
+	struct obj_tx_args *obj_args; /* pointer to benchmark arguments */
+	size_t *random_types;	 /* array to store random type numbers */
+	size_t *sizes;    /* array to store size of each allocation */
+	size_t *resizes;  /* array to store size of each reallocation */
+	size_t n_objs;    /* number of objects to allocate */
+	int type_mode;    /* type number mode */
+	int op_mode;      /* type of operation */
+	int lib_mode;     /* type of operation used in initialization */
+	int lib_op;       /* type of main operation */
+	int lib_op_free;  /* type of main operation */
+	int nesting_mode; /* type of nesting in main operation */
+	fn_num_t n_oid;   /* returns object's number in array */
+	fn_off_t fn_off;  /* returns offset for proper operation */
 
 	/*
 	 * fn_type_num gets proper function assigned, depending on the
@@ -240,7 +233,7 @@ struct item;
  * obj_tx_worker - stores variables used by one thread.
  */
 struct obj_tx_worker {
-	TOID(struct item) *oids;
+	TOID(struct item) * oids;
 	char **items;
 	unsigned tx_level;
 	unsigned max_level;
@@ -249,8 +242,7 @@ struct obj_tx_worker {
 /*
  * offset - stores offset data used in pmemobj_tx_add_range()
  */
-struct offset
-{
+struct offset {
 	uint64_t off;
 	size_t size;
 };
@@ -260,7 +252,7 @@ struct offset
  */
 static int
 alloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	   size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	obj_worker->items[idx] = (char *)malloc(obj_bench->sizes[idx]);
@@ -276,30 +268,28 @@ alloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 alloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	   size_t idx)
 {
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	if (pmemobj_alloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->sizes[idx], type_num, NULL, NULL) != 0) {
+			  obj_bench->sizes[idx], type_num, NULL, NULL) != 0) {
 		perror("pmemobj_alloc");
 		return -1;
 	}
 	return 0;
 }
 
-
 /*
  * alloc_tx -- main operations for obj_tx_alloc benchmark in tx mode
  */
 static int
-alloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+alloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker, size_t idx)
 {
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
-	obj_worker->oids[idx].oid = pmemobj_tx_alloc(obj_bench->sizes[idx],
-								type_num);
+	obj_worker->oids[idx].oid =
+		pmemobj_tx_alloc(obj_bench->sizes[idx], type_num);
 	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
 		perror("pmemobj_tx_alloc");
 		return -1;
@@ -312,7 +302,7 @@ alloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 free_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	  size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	free(obj_worker->items[idx]);
@@ -324,7 +314,7 @@ free_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 free_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	  size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	POBJ_FREE(&obj_worker->oids[idx]);
@@ -335,8 +325,7 @@ free_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  * free_tx -- main operations for obj_tx_free benchmark in tx mode
  */
 static int
-free_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+free_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker, size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	TX_FREE(obj_worker->oids[idx]);
@@ -348,8 +337,7 @@ free_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  * if there is no need to free memory
  */
 static int
-no_free(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+no_free(struct obj_tx_bench *obj_bench, struct worker_info *worker, size_t idx)
 {
 	return 0;
 }
@@ -359,11 +347,11 @@ no_free(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 realloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	     size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	char *tmp = (char *)realloc(obj_worker->items[idx],
-					obj_bench->resizes[idx]);
+				    obj_bench->resizes[idx]);
 	if (tmp == NULL) {
 		perror("realloc");
 		return -1;
@@ -377,14 +365,14 @@ realloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 realloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	     size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	if (obj_bench->obj_args->change_type)
 		type_num++;
 	if (pmemobj_realloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			obj_bench->resizes[idx], type_num) != 0) {
+			    obj_bench->resizes[idx], type_num) != 0) {
 		perror("pmemobj_realloc");
 		return -1;
 	}
@@ -396,15 +384,14 @@ realloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 realloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	   size_t idx)
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	if (obj_bench->obj_args->change_type)
 		type_num++;
-	obj_worker->oids[idx].oid =
-			pmemobj_tx_realloc(obj_worker->oids[idx].oid,
-			obj_bench->sizes[idx], type_num);
+	obj_worker->oids[idx].oid = pmemobj_tx_realloc(
+		obj_worker->oids[idx].oid, obj_bench->sizes[idx], type_num);
 	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
 		perror("pmemobj_tx_realloc");
 		return -1;
@@ -417,24 +404,28 @@ realloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+		    size_t idx)
 {
 	int ret = 0;
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
-	TX_BEGIN(obj_bench->pop) {
+	TX_BEGIN(obj_bench->pop)
+	{
 		if (obj_bench->obj_args->n_ops != obj_worker->tx_level) {
 			size_t n_oid = obj_bench->n_oid(obj_worker->tx_level);
-			struct offset offset = obj_bench->fn_off(obj_bench,
-						obj_worker->tx_level);
+			struct offset offset = obj_bench->fn_off(
+				obj_bench, obj_worker->tx_level);
 			ret = pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
-					offset.off, offset.size);
+						   offset.off, offset.size);
 			obj_worker->tx_level++;
 			ret = add_range_nested_tx(obj_bench, worker, idx);
 		}
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		fprintf(stderr, "transaction failed\n");
 		return -1;
-	} TX_END
+	}
+	TX_END
 	return ret;
 }
 
@@ -443,22 +434,26 @@ add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 add_range_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	     size_t idx)
 {
 	int ret = 0;
 	size_t i = 0;
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
-	TX_BEGIN(obj_bench->pop) {
+	TX_BEGIN(obj_bench->pop)
+	{
 		for (i = 0; i < obj_bench->obj_args->n_ops; i++) {
 			size_t n_oid = obj_bench->n_oid(i);
 			struct offset offset = obj_bench->fn_off(obj_bench, i);
 			ret = pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
-						offset.off, offset.size);
+						   offset.off, offset.size);
 		}
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		fprintf(stderr, "transaction failed\n");
 		return -1;
-	} TX_END
+	}
+	TX_END
 	return ret;
 }
 
@@ -468,13 +463,13 @@ add_range_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 obj_op_sim(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	   size_t idx)
 {
 	int ret = 0;
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	if (obj_worker->max_level == obj_worker->tx_level) {
-		ret = obj_bench->fn_op[obj_bench->lib_op](obj_bench,
-								worker, idx);
+		ret = obj_bench->fn_op[obj_bench->lib_op](obj_bench, worker,
+							  idx);
 	} else {
 		obj_worker->tx_level++;
 		ret = obj_op_sim(obj_bench, worker, idx);
@@ -487,30 +482,34 @@ obj_op_sim(struct obj_tx_bench *obj_bench, struct worker_info *worker,
  */
 static int
 obj_op_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
-								size_t idx)
+	  size_t idx)
 {
 	int ret = 0;
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
-	TX_BEGIN(obj_bench->pop) {
+	TX_BEGIN(obj_bench->pop)
+	{
 		if (obj_worker->max_level == obj_worker->tx_level) {
-			ret = obj_bench->fn_op[obj_bench->lib_op](
-							obj_bench, worker, idx);
+			ret = obj_bench->fn_op[obj_bench->lib_op](obj_bench,
+								  worker, idx);
 			if (obj_bench->op_mode == OP_MODE_ABORT_NESTED)
 				pmemobj_tx_abort(-1);
 		} else {
 			obj_worker->tx_level++;
 			ret = obj_op_tx(obj_bench, worker, idx);
-			if (--obj_worker->tx_level == 0 && obj_bench->op_mode ==
-								OP_MODE_ABORT)
+			if (--obj_worker->tx_level == 0 &&
+			    obj_bench->op_mode == OP_MODE_ABORT)
 				pmemobj_tx_abort(-1);
 		}
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		if (obj_bench->op_mode != OP_MODE_ABORT &&
-				obj_bench->op_mode != OP_MODE_ABORT_NESTED) {
+		    obj_bench->op_mode != OP_MODE_ABORT_NESTED) {
 			fprintf(stderr, "transaction failed\n");
 			return -1;
 		}
-	} TX_END
+	}
+	TX_END
 	return ret;
 }
 
@@ -530,7 +529,7 @@ type_mode_one(struct obj_tx_bench *obj_bench, size_t worker_idx, size_t op_idx)
  */
 static size_t
 type_mode_per_thread(struct obj_tx_bench *obj_bench, size_t worker_idx,
-								size_t op_idx)
+		     size_t op_idx)
 {
 	return worker_idx;
 }
@@ -629,9 +628,8 @@ parse_lib_mode(const char *arg)
 	return LIB_MODE_NONE;
 }
 
-
 static fn_type_num_t type_num_fn[] = {type_mode_one, type_mode_per_thread,
-						type_mode_rand, NULL};
+				      type_mode_rand, NULL};
 
 /*
  * one_num -- returns always the same number.
@@ -709,17 +707,16 @@ rand_values(size_t min, size_t max, size_t n_ops)
 static int
 obj_tx_add_range_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
-	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)
-		info->worker->priv;
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
+	struct obj_tx_worker *obj_worker =
+		(struct obj_tx_worker *)info->worker->priv;
 	if (add_range_op[obj_bench->lib_op](obj_bench, info->worker,
-							info->index) != 0)
+					    info->index) != 0)
 		return -1;
 	obj_worker->tx_level = 0;
 	return 0;
 }
-
 
 /*
  * obj_tx_op -- main operation for obj_tx_alloc(), obj_tx_free() and
@@ -728,12 +725,12 @@ obj_tx_add_range_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_tx_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
-	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)
-		info->worker->priv;
-	int ret = nestings[obj_bench->nesting_mode](obj_bench,
-						info->worker, info->index);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
+	struct obj_tx_worker *obj_worker =
+		(struct obj_tx_worker *)info->worker->priv;
+	int ret = nestings[obj_bench->nesting_mode](obj_bench, info->worker,
+						    info->index);
 	obj_worker->tx_level = 0;
 	return ret;
 }
@@ -744,12 +741,12 @@ obj_tx_op(struct benchmark *bench, struct operation_info *info)
  */
 static int
 obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
-						struct worker_info *worker)
+		   struct worker_info *worker)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
-	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)calloc(1,
-					sizeof(struct obj_tx_worker));
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
+	struct obj_tx_worker *obj_worker =
+		(struct obj_tx_worker *)calloc(1, sizeof(struct obj_tx_worker));
 	if (obj_worker == NULL) {
 		perror("calloc");
 		return -1;
@@ -758,11 +755,11 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	obj_worker->tx_level = 0;
 	obj_worker->max_level = obj_bench->obj_args->nested;
 	if (obj_bench->lib_mode != LIB_MODE_DRAM)
-		obj_worker->oids = (TOID(struct item) *)
-			calloc(obj_bench->n_objs, sizeof(PMEMoid));
+		obj_worker->oids = (TOID(struct item) *)calloc(
+			obj_bench->n_objs, sizeof(PMEMoid));
 	else
-		obj_worker->items = (char **)calloc(obj_bench->n_objs,
-			sizeof(char *));
+		obj_worker->items =
+			(char **)calloc(obj_bench->n_objs, sizeof(char *));
 	if (obj_worker->oids == NULL && obj_worker->items == NULL) {
 		free(obj_worker);
 		perror("calloc");
@@ -777,15 +774,16 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
  * before operation.
  */
 static int
-obj_tx_init_worker_alloc_obj(struct benchmark *bench, struct benchmark_args
-					*args, struct worker_info *worker)
+obj_tx_init_worker_alloc_obj(struct benchmark *bench,
+			     struct benchmark_args *args,
+			     struct worker_info *worker)
 {
 	unsigned i;
 	if (obj_tx_init_worker(bench, args, worker) != 0)
 		return -1;
 
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	for (i = 0; i < obj_bench->n_objs; i++) {
 		if (alloc_op[obj_bench->lib_mode](obj_bench, worker, i) != 0)
@@ -808,10 +806,10 @@ out:
  */
 static void
 obj_tx_exit_worker(struct benchmark *bench, struct benchmark_args *args,
-						struct worker_info *worker)
+		   struct worker_info *worker)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	for (unsigned i = 0; i < obj_bench->n_objs; i++)
 		free_op[obj_bench->lib_op_free](obj_bench, worker, i);
@@ -837,8 +835,8 @@ obj_tx_add_range_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_tx_init(bench, args) != 0)
 		return -1;
 
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 
 	obj_bench->n_oid = diff_num;
 	if (obj_bench->op_mode < OP_MODE_ALL_OBJ) {
@@ -846,8 +844,8 @@ obj_tx_add_range_init(struct benchmark *bench, struct benchmark_args *args)
 		obj_bench->n_objs = 1;
 	}
 	obj_bench->fn_off = off_entire;
-	if (obj_bench->op_mode == OP_MODE_ONE_OBJ_RANGE || obj_bench->op_mode
-					== OP_MODE_ONE_OBJ_NESTED_RANGE) {
+	if (obj_bench->op_mode == OP_MODE_ONE_OBJ_RANGE ||
+	    obj_bench->op_mode == OP_MODE_ONE_OBJ_NESTED_RANGE) {
 		obj_bench->fn_off = off_range;
 		if (args->n_ops_per_thread > args->dsize)
 			args->dsize = args->n_ops_per_thread;
@@ -855,9 +853,9 @@ obj_tx_add_range_init(struct benchmark *bench, struct benchmark_args *args)
 		obj_bench->sizes[0] = args->dsize;
 	}
 	obj_bench->lib_op = (obj_bench->op_mode == OP_MODE_ONE_OBJ ||
-				obj_bench->op_mode == OP_MODE_ALL_OBJ) ?
-				ADD_RANGE_MODE_ONE_TX :
-				ADD_RANGE_MODE_NESTED_TX;
+			     obj_bench->op_mode == OP_MODE_ALL_OBJ)
+		? ADD_RANGE_MODE_ONE_TX
+		: ADD_RANGE_MODE_NESTED_TX;
 	return 0;
 }
 
@@ -870,8 +868,8 @@ obj_tx_free_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_tx_init(bench, args) != 0)
 		return -1;
 
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	obj_bench->fn_op = free_op;
 
 	/*
@@ -883,7 +881,7 @@ obj_tx_free_init(struct benchmark *bench, struct benchmark_args *args)
 	 * in exit operation.
 	 */
 	if (!(obj_bench->lib_op == LIB_MODE_OBJ_TX &&
-					obj_bench->op_mode != OP_MODE_COMMIT))
+	      obj_bench->op_mode != OP_MODE_COMMIT))
 		obj_bench->lib_op_free = LIB_MODE_NONE;
 	return 0;
 }
@@ -897,8 +895,8 @@ obj_tx_alloc_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_tx_init(bench, args) != 0)
 		return -1;
 
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	obj_bench->fn_op = alloc_op;
 
 	/*
@@ -908,7 +906,7 @@ obj_tx_alloc_init(struct benchmark *bench, struct benchmark_args *args)
 	 * allocated so there is no need to free it in exit operation.
 	 */
 	if (obj_bench->lib_op == LIB_MODE_OBJ_TX &&
-					obj_bench->op_mode != OP_MODE_COMMIT)
+	    obj_bench->op_mode != OP_MODE_COMMIT)
 		obj_bench->lib_op_free = LIB_MODE_NONE;
 	return 0;
 }
@@ -922,11 +920,11 @@ obj_tx_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_tx_init(bench, args) != 0)
 		return -1;
 
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-		pmembench_get_priv(bench);
-	obj_bench->resizes = rand_values(obj_bench->obj_args->min_rsize,
-						obj_bench->obj_args->rsize,
-						args->n_ops_per_thread);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
+	obj_bench->resizes =
+		rand_values(obj_bench->obj_args->min_rsize,
+			    obj_bench->obj_args->rsize, args->n_ops_per_thread);
 	if (obj_bench->resizes == NULL) {
 		obj_tx_exit(bench, args);
 		return -1;
@@ -954,30 +952,33 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench.obj_args->n_ops = args->n_ops_per_thread;
 	obj_bench.n_objs = args->n_ops_per_thread;
 
-	obj_bench.lib_op = obj_bench.obj_args->lib != NULL ?
-				parse_lib_mode(obj_bench.obj_args->lib) :
-				LIB_MODE_OBJ_ATOMIC;
+	obj_bench.lib_op = obj_bench.obj_args->lib != NULL
+		? parse_lib_mode(obj_bench.obj_args->lib)
+		: LIB_MODE_OBJ_ATOMIC;
 
 	if (obj_bench.lib_op == LIB_MODE_NONE)
-			return -1;
+		return -1;
 
-	obj_bench.lib_mode = obj_bench.lib_op == LIB_MODE_DRAM ?
-				LIB_MODE_DRAM : LIB_MODE_OBJ_ATOMIC;
+	obj_bench.lib_mode = obj_bench.lib_op == LIB_MODE_DRAM
+		? LIB_MODE_DRAM
+		: LIB_MODE_OBJ_ATOMIC;
 
 	obj_bench.lib_op_free = obj_bench.lib_mode;
 
-	obj_bench.nesting_mode = obj_bench.lib_op == LIB_MODE_OBJ_TX ?
-					NESTING_MODE_TX : NESTING_MODE_SIM;
+	obj_bench.nesting_mode = obj_bench.lib_op == LIB_MODE_OBJ_TX
+		? NESTING_MODE_TX
+		: NESTING_MODE_SIM;
 
 	/*
 	 * Multiplication by FACTOR prevents from out of memory error
 	 * as the actual size of the allocated persistent objects
 	 * is always larger than requested.
 	 */
-	size_t dsize = obj_bench.obj_args->rsize > args->dsize ?
-					obj_bench.obj_args->rsize : args->dsize;
-	size_t psize = args->n_ops_per_thread *
-		(dsize + ALLOC_OVERHEAD) * args->n_threads;
+	size_t dsize = obj_bench.obj_args->rsize > args->dsize
+		? obj_bench.obj_args->rsize
+		: args->dsize;
+	size_t psize = args->n_ops_per_thread * (dsize + ALLOC_OVERHEAD) *
+		args->n_threads;
 
 	if (psize < PMEMOBJ_MIN_POOL)
 		psize = PMEMOBJ_MIN_POOL;
@@ -988,11 +989,11 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	 * to prepare larger pool to prevent out of memory error.
 	 */
 	if (obj_bench.op_mode == OP_MODE_ALL_OBJ ||
-				obj_bench.op_mode == OP_MODE_ALL_OBJ_NESTED)
-		psize +=  psize * FACTOR;
+	    obj_bench.op_mode == OP_MODE_ALL_OBJ_NESTED)
+		psize += psize * FACTOR;
 
 	obj_bench.op_mode = parse_op[obj_bench.obj_args->parse_mode](
-						obj_bench.obj_args->operation);
+		obj_bench.obj_args->operation);
 	if (obj_bench.op_mode == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "operation mode unknown\n");
 		return -1;
@@ -1004,14 +1005,14 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 
 	obj_bench.fn_type_num = type_num_fn[obj_bench.type_mode];
 	if (obj_bench.type_mode == NUM_MODE_RAND) {
-		obj_bench.random_types = rand_values(1, UINT32_MAX,
-				args->n_ops_per_thread);
-			if (obj_bench.random_types == NULL)
-				return -1;
+		obj_bench.random_types =
+			rand_values(1, UINT32_MAX, args->n_ops_per_thread);
+		if (obj_bench.random_types == NULL)
+			return -1;
 	}
 	obj_bench.sizes = rand_values(obj_bench.obj_args->min_size,
-						obj_bench.obj_args->obj_size,
-						args->n_ops_per_thread);
+				      obj_bench.obj_args->obj_size,
+				      args->n_ops_per_thread);
 	if (obj_bench.sizes == NULL)
 		goto free_random_types;
 
@@ -1027,8 +1028,8 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 
 		psize = 0;
 	}
-	obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
-						psize, args->fmode);
+	obj_bench.pop =
+		pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
 	if (obj_bench.pop == NULL) {
 		perror("pmemobj_create");
 		goto free_all;
@@ -1050,8 +1051,8 @@ free_random_types:
 int
 obj_tx_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-			pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	if (obj_bench->lib_mode != LIB_MODE_DRAM)
 		pmemobj_close(obj_bench->pop);
 
@@ -1068,14 +1069,15 @@ obj_tx_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 obj_tx_realloc_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_tx_bench *obj_bench = (struct obj_tx_bench *)
-			pmembench_get_priv(bench);
+	struct obj_tx_bench *obj_bench =
+		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	free(obj_bench->resizes);
 	return obj_tx_exit(bench, args);
 }
 
 /* Array defining common command line arguments. */
 static struct benchmark_clo obj_tx_clo[8];
+
 static struct benchmark_info obj_tx_alloc;
 static struct benchmark_info obj_tx_free;
 static struct benchmark_info obj_tx_realloc;
@@ -1099,15 +1101,14 @@ pmemobj_tx_costructor(void)
 	obj_tx_clo[1].off = clo_field_offset(struct obj_tx_args, operation);
 	obj_tx_clo[1].type = CLO_TYPE_STR;
 
-
 	obj_tx_clo[2].opt_short = 'm';
 	obj_tx_clo[2].opt_long = "min-size";
 	obj_tx_clo[2].type = CLO_TYPE_UINT;
 	obj_tx_clo[2].descr = "Minimum allocation size";
 	obj_tx_clo[2].off = clo_field_offset(struct obj_tx_args, min_size);
 	obj_tx_clo[2].def = "0";
-	obj_tx_clo[2].type_uint.size = clo_field_size(struct obj_tx_args,
-		min_size);
+	obj_tx_clo[2].type_uint.size =
+		clo_field_size(struct obj_tx_args, min_size);
 	obj_tx_clo[2].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	obj_tx_clo[2].type_uint.min = 0;
 	obj_tx_clo[2].type_uint.max = UINT_MAX;
@@ -1129,8 +1130,8 @@ pmemobj_tx_costructor(void)
 	obj_tx_clo[4].descr = "Number of nested transactions";
 	obj_tx_clo[4].off = clo_field_offset(struct obj_tx_args, nested);
 	obj_tx_clo[4].def = "0";
-	obj_tx_clo[4].type_uint.size = clo_field_size(struct obj_tx_args,
-		nested);
+	obj_tx_clo[4].type_uint.size =
+		clo_field_size(struct obj_tx_args, nested);
 	obj_tx_clo[4].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	obj_tx_clo[4].type_uint.min = 0;
 	obj_tx_clo[4].type_uint.max = MAX_OPS;
@@ -1141,8 +1142,8 @@ pmemobj_tx_costructor(void)
 	obj_tx_clo[5].descr = "Minimum reallocation size";
 	obj_tx_clo[5].off = clo_field_offset(struct obj_tx_args, min_rsize);
 	obj_tx_clo[5].def = "0";
-	obj_tx_clo[5].type_uint.size = clo_field_size(struct obj_tx_args,
-		min_rsize);
+	obj_tx_clo[5].type_uint.size =
+		clo_field_size(struct obj_tx_args, min_rsize);
 	obj_tx_clo[5].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	obj_tx_clo[5].type_uint.min = 0;
 	obj_tx_clo[5].type_uint.max = UINT_MAX;
@@ -1153,16 +1154,16 @@ pmemobj_tx_costructor(void)
 	obj_tx_clo[6].descr = "Reallocation size";
 	obj_tx_clo[6].off = clo_field_offset(struct obj_tx_args, rsize);
 	obj_tx_clo[6].def = "1";
-	obj_tx_clo[6].type_uint.size = clo_field_size(struct obj_tx_args,
-		rsize);
+	obj_tx_clo[6].type_uint.size =
+		clo_field_size(struct obj_tx_args, rsize);
 	obj_tx_clo[6].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	obj_tx_clo[6].type_uint.min = 1;
 	obj_tx_clo[6].type_uint.max = ULONG_MAX;
 
 	obj_tx_clo[7].opt_short = 'c';
 	obj_tx_clo[7].opt_long = "changed-type";
-	obj_tx_clo[7].descr = "Use another type number in reallocation"
-		"than in allocation";
+	obj_tx_clo[7].descr = "Use another type number in "
+			      "reallocation than in allocation";
 	obj_tx_clo[7].type = CLO_TYPE_FLAG;
 	obj_tx_clo[7].off = clo_field_offset(struct obj_tx_args, change_type);
 

@@ -35,15 +35,13 @@
 
 #include <stdbool.h>
 
-struct kv
-{
+struct kv {
 	TAILQ_ENTRY(kv) next;
 	char *key;
 	char *value;
 };
 
-struct scenario
-{
+struct scenario {
 	TAILQ_ENTRY(scenario) next;
 	TAILQ_HEAD(scenariohead, kv) head;
 	char *name;
@@ -51,12 +49,11 @@ struct scenario
 	char *group;
 };
 
-struct scenarios
-{
+struct scenarios {
 	TAILQ_HEAD(scenarioshead, scenario) head;
 };
 
-#define FOREACH_SCENARIO(s, ss)	TAILQ_FOREACH((s), &(ss)->head, next)
+#define FOREACH_SCENARIO(s, ss) TAILQ_FOREACH((s), &(ss)->head, next)
 #define FOREACH_KV(kv, s) TAILQ_FOREACH((kv), &(s)->head, next)
 
 struct kv *kv_alloc(const char *key, const char *value);
@@ -74,4 +71,4 @@ struct scenario *scenarios_get_scenario(struct scenarios *ss, const char *name);
 bool contains_scenarios(int argc, char **argv, struct scenarios *ss);
 struct scenario *clone_scenario(struct scenario *src_scenario);
 struct kv *find_kv_in_scenario(const char *key,
-					const struct scenario *scenario);
+			       const struct scenario *scenario);

@@ -38,8 +38,8 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 #ifdef __cplusplus
 extern "C" {
 #include "lane.h"
@@ -58,16 +58,16 @@ extern "C" {
  * prog_args - command line parsed arguments
  */
 struct prog_args {
-	char *lane_section_name;	/* lane section to be held */
+	char *lane_section_name; /* lane section to be held */
 };
 
 /*
  * obj_bench - variables used in benchmark, passed within functions
  */
 struct obj_bench {
-	PMEMobjpool *pop;			/* persistent pool handle */
-	struct prog_args *pa;			/* prog_args structure */
-	enum lane_section_type lane_type;	/* lane section to be held */
+	PMEMobjpool *pop;		  /* persistent pool handle */
+	struct prog_args *pa;		  /* prog_args structure */
+	enum lane_section_type lane_type; /* lane section to be held */
 };
 
 /*
@@ -97,8 +97,8 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
-	struct obj_bench *ob = (struct obj_bench *)
-			malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob =
+		(struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -109,8 +109,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t psize = args->is_poolset ? 0 : PMEMOBJ_MIN_POOL;
 
 	/* create pmemobj pool */
-	ob->pop = pmemobj_create(args->fname,
-			"obj_lanes", psize, args->fmode);
+	ob->pop = pmemobj_create(args->fname, "obj_lanes", psize, args->fmode);
 	if (ob->pop == NULL) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;
@@ -170,14 +169,15 @@ obj_lines_costructor(void)
 	lanes_clo[0].opt_short = 's';
 	lanes_clo[0].opt_long = "lane_section";
 	lanes_clo[0].descr = "The lane section type: allocator,"
-			" list or transaction";
+			     " list or transaction";
 	lanes_clo[0].type = CLO_TYPE_STR;
-	lanes_clo[0].off = clo_field_offset(struct prog_args,
-			lane_section_name);
+	lanes_clo[0].off =
+		clo_field_offset(struct prog_args, lane_section_name);
 	lanes_clo[0].def = "allocator";
 
 	lanes_info.name = "obj_lanes";
-	lanes_info.brief = "Benchmark for internal lanes operation";
+	lanes_info.brief = "Benchmark for internal lanes "
+			   "operation";
 	lanes_info.init = lanes_init;
 	lanes_info.exit = lanes_exit;
 	lanes_info.multithread = true;

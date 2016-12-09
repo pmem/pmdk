@@ -32,16 +32,16 @@
 /*
  * pmem_memcpy.c -- benchmark implementation for pmem_memcpy
  */
-#include <libpmem.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <limits.h>
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <libpmem.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "benchmark.hpp"
 
@@ -51,13 +51,12 @@
 
 struct pmem_bench;
 
-typedef size_t (*offset_fn) (struct pmem_bench *pmb, uint64_t index);
+typedef size_t (*offset_fn)(struct pmem_bench *pmb, uint64_t index);
 
 /*
  * pmem_args -- benchmark specific arguments
  */
-struct pmem_args
-{
+struct pmem_args {
 	/*
 	 * Defines the copy operation direction. Whether it is
 	 * writing from RAM to PMEM (for argument value "write")
@@ -112,8 +111,7 @@ struct pmem_args
 /*
  * pmem_bench -- benchmark context
  */
-struct pmem_bench
-{
+struct pmem_bench {
 	/* random offsets */
 	unsigned *rand_offsets;
 
@@ -161,17 +159,13 @@ struct pmem_bench
 	 * The actual operation performed based on benchmark specific
 	 * arguments.
 	 */
-	int (*func_op) (void *dest, void *source, size_t len);
+	int (*func_op)(void *dest, void *source, size_t len);
 };
 
 /*
  * operation_type -- type of operation relative to persistent memory
  */
-enum operation_type {
-	OP_TYPE_UNKNOWN,
-	OP_TYPE_READ,
-	OP_TYPE_WRITE
-};
+enum operation_type { OP_TYPE_UNKNOWN, OP_TYPE_READ, OP_TYPE_WRITE };
 
 /*
  * operation_mode -- the mode of the copy process
@@ -261,13 +255,16 @@ assign_mode_func(char *option)
 	enum operation_mode op_mode = parse_op_mode(option);
 
 	switch (op_mode) {
-		case OP_MODE_STAT: return mode_stat;
-		case OP_MODE_SEQ: return mode_seq;
-		case OP_MODE_RAND: return mode_rand;
-		default: return NULL;
+		case OP_MODE_STAT:
+			return mode_stat;
+		case OP_MODE_SEQ:
+			return mode_seq;
+		case OP_MODE_RAND:
+			return mode_rand;
+		default:
+			return NULL;
 	}
 }
-
 
 /*
  * libc_memcpy -- copy using libc memcpy() function
@@ -326,7 +323,7 @@ libpmem_memcpy_persist(void *dest, void *source, size_t len)
  */
 static int
 assign_size(struct pmem_bench *pmb, struct benchmark_args *args,
-		enum operation_type *op_type)
+	    enum operation_type *op_type)
 {
 	*op_type = parse_op_type(pmb->pargs->operation);
 
@@ -335,23 +332,21 @@ assign_size(struct pmem_bench *pmb, struct benchmark_args *args,
 			pmb->pargs->operation);
 		return -1;
 	}
-	enum operation_mode op_mode_src =
-			parse_op_mode(pmb->pargs->src_mode);
+	enum operation_mode op_mode_src = parse_op_mode(pmb->pargs->src_mode);
 	if (op_mode_src == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "Invalid source mode argument '%s'",
 			pmb->pargs->src_mode);
 		return -1;
 	}
-	enum operation_mode op_mode_dest =
-			parse_op_mode(pmb->pargs->dest_mode);
+	enum operation_mode op_mode_dest = parse_op_mode(pmb->pargs->dest_mode);
 	if (op_mode_dest == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "Invalid destination mode argument '%s'",
 			pmb->pargs->dest_mode);
 		return -1;
 	}
 
-	size_t large = args->n_ops_per_thread
-				* pmb->pargs->chunk_size * args->n_threads;
+	size_t large = args->n_ops_per_thread * pmb->pargs->chunk_size *
+		args->n_threads;
 	size_t little = pmb->pargs->chunk_size;
 
 	if (*op_type == OP_TYPE_WRITE) {
@@ -387,8 +382,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	int ret = 0;
 
-	struct pmem_bench *pmb = (struct pmem_bench *)
-			malloc(sizeof(struct pmem_bench));
+	struct pmem_bench *pmb =
+		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
 	assert(pmb != NULL);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
@@ -405,8 +400,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 		ret = -1;
 		goto err_free_pmb;
 	}
-	pmb->buf = (unsigned char *)util_aligned_malloc(FLUSH_ALIGN,
-							pmb->bsize);
+	pmb->buf =
+		(unsigned char *)util_aligned_malloc(FLUSH_ALIGN, pmb->bsize);
 	if (pmb->buf == 0) {
 		perror("posix_memalign");
 		ret = -1;
@@ -415,7 +410,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 
 	pmb->n_rand_offsets = args->n_ops_per_thread * args->n_threads;
 	pmb->rand_offsets = (unsigned *)malloc(pmb->n_rand_offsets *
-			sizeof(*pmb->rand_offsets));
+					       sizeof(*pmb->rand_offsets));
 
 	if (pmb->rand_offsets == NULL) {
 		perror("malloc");
@@ -427,9 +422,9 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
 	/* create a pmem file and memory map it */
-	if ((pmb->pmem_addr = (unsigned char *)pmem_map_file(args->fname,
-				pmb->fsize, PMEM_FILE_CREATE|PMEM_FILE_EXCL,
-				args->fmode, NULL, NULL)) == NULL) {
+	if ((pmb->pmem_addr = (unsigned char *)pmem_map_file(
+		     args->fname, pmb->fsize, PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+		     args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_buf;
@@ -446,25 +441,25 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	/* set proper func_src() and func_dest() depending on benchmark args */
 	if ((pmb->func_src = assign_mode_func(pmb->pargs->src_mode)) == NULL) {
 		fprintf(stderr, "wrong src_mode parameter -- '%s'",
-						pmb->pargs->src_mode);
+			pmb->pargs->src_mode);
 		ret = -1;
 		goto err_unmap;
 	}
 
-	if ((pmb->func_dest = assign_mode_func(pmb->pargs->dest_mode))
-								== NULL) {
+	if ((pmb->func_dest = assign_mode_func(pmb->pargs->dest_mode)) ==
+	    NULL) {
 		fprintf(stderr, "wrong dest_mode parameter -- '%s'",
-						pmb->pargs->dest_mode);
+			pmb->pargs->dest_mode);
 		ret = -1;
 		goto err_unmap;
 	}
 
 	if (pmb->pargs->memcpy) {
-		pmb->func_op = pmb->pargs->persist ?
-					libc_memcpy_persist : libc_memcpy;
+		pmb->func_op =
+			pmb->pargs->persist ? libc_memcpy_persist : libc_memcpy;
 	} else {
-		pmb->func_op = pmb->pargs->persist ?
-			libpmem_memcpy_persist : libpmem_memcpy_nodrain;
+		pmb->func_op = pmb->pargs->persist ? libpmem_memcpy_persist
+						   : libpmem_memcpy_nodrain;
 	}
 
 	pmembench_set_priv(bench, pmb);
@@ -493,19 +488,17 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
 	uint64_t src_index =
-		info->args->n_ops_per_thread * info->worker->index
-			+ pmb->func_src(pmb, info->index);
+		info->args->n_ops_per_thread * info->worker->index +
+		pmb->func_src(pmb, info->index);
 
 	uint64_t dest_index =
-		info->args->n_ops_per_thread * info->worker->index
-			+ pmb->func_dest(pmb, info->index);
+		info->args->n_ops_per_thread * info->worker->index +
+		pmb->func_dest(pmb, info->index);
 
-	void *source = pmb->src_addr
-		+ src_index * pmb->pargs->chunk_size
-		+ pmb->pargs->src_off;
-	void *dest =  pmb->dest_addr
-		+ dest_index * pmb->pargs->chunk_size
-		+ pmb->pargs->dest_off;
+	void *source = pmb->src_addr + src_index * pmb->pargs->chunk_size +
+		pmb->pargs->src_off;
+	void *dest = pmb->dest_addr + dest_index * pmb->pargs->chunk_size +
+		pmb->pargs->dest_off;
 	size_t len = pmb->pargs->chunk_size;
 
 	pmb->func_op(dest, source, len);
@@ -516,7 +509,7 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
  * pmem_memcpy_exit -- benchmark cleanup
  */
 static int
-pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args  *args)
+pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 	munmap(pmb->pmem_addr, pmb->fsize);
@@ -544,24 +537,26 @@ pmem_memcpy_costructor(void)
 
 	pmem_memcpy_clo[1].opt_short = 'S';
 	pmem_memcpy_clo[1].opt_long = "src-offset";
-	pmem_memcpy_clo[1].descr = "Source cache line alignment offset";
+	pmem_memcpy_clo[1].descr = "Source cache line alignment"
+				   " offset";
 	pmem_memcpy_clo[1].type = CLO_TYPE_UINT;
 	pmem_memcpy_clo[1].off = clo_field_offset(struct pmem_args, src_off);
 	pmem_memcpy_clo[1].def = "0";
-	pmem_memcpy_clo[1].type_uint.size = clo_field_size(struct pmem_args,
-							src_off);
+	pmem_memcpy_clo[1].type_uint.size =
+		clo_field_size(struct pmem_args, src_off);
 	pmem_memcpy_clo[1].type_uint.base = CLO_INT_BASE_DEC;
 	pmem_memcpy_clo[1].type_uint.min = 0;
 	pmem_memcpy_clo[1].type_uint.max = MAX_OFFSET;
 
 	pmem_memcpy_clo[2].opt_short = 'D';
 	pmem_memcpy_clo[2].opt_long = "dest-offset";
-	pmem_memcpy_clo[2].descr = "Destination cache line alignment offset";
+	pmem_memcpy_clo[2].descr = "Destination cache line "
+				   "alignment offset";
 	pmem_memcpy_clo[2].type = CLO_TYPE_UINT;
 	pmem_memcpy_clo[2].off = clo_field_offset(struct pmem_args, dest_off);
 	pmem_memcpy_clo[2].def = "0";
-	pmem_memcpy_clo[2].type_uint.size = clo_field_size(struct pmem_args,
-							dest_off);
+	pmem_memcpy_clo[2].type_uint.size =
+		clo_field_size(struct pmem_args, dest_off);
 	pmem_memcpy_clo[2].type_uint.base = CLO_INT_BASE_DEC;
 	pmem_memcpy_clo[2].type_uint.min = 0;
 	pmem_memcpy_clo[2].type_uint.max = MAX_OFFSET;
@@ -595,8 +590,10 @@ pmem_memcpy_costructor(void)
 	pmem_memcpy_clo[6].def = "true";
 
 	pmem_memcpy.name = "pmem_memcpy";
-	pmem_memcpy.brief = "Benchmark for pmem_memcpy_persist() and "
-			"pmem_memcpy_nodrain() operations";
+	pmem_memcpy.brief = "Benchmark for"
+			    "pmem_memcpy_persist() and "
+			    "pmem_memcpy_nodrain()"
+			    "operations";
 	pmem_memcpy.init = pmem_memcpy_init;
 	pmem_memcpy.exit = pmem_memcpy_exit;
 	pmem_memcpy.multithread = true;

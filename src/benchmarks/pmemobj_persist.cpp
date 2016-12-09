@@ -35,18 +35,18 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <stddef.h>
-#include <sys/mman.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/file.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 #include "util.h"
 
 /*
@@ -67,23 +67,23 @@
  * prog_args -- benchmark specific command line options
  */
 struct prog_args {
-	size_t minsize;		/* minimum size for random allocation size */
-	bool use_random_size;	/* if set, use random size allocations */
-	bool no_warmup;		/* do not do warmup */
-	unsigned seed;		/* seed for random numbers */
+	size_t minsize;       /* minimum size for random allocation size */
+	bool use_random_size; /* if set, use random size allocations */
+	bool no_warmup;       /* do not do warmup */
+	unsigned seed;	/* seed for random numbers */
 };
 
 /*
  * obj_bench -- benchmark context
  */
 struct obj_bench {
-	PMEMobjpool *pop;		/* persistent pool handle */
-	struct prog_args *pa;		/* prog_args structure */
-	PMEMoid *oids;			/* vector of allocated objects */
-	void **ptrs;			/* pointers to allocated objects */
-	uint64_t nobjs;			/* number of allocated objects */
-	size_t obj_size;		/* size of each allocated objects */
-	int const_b;			/* memset() value */
+	PMEMobjpool *pop;     /* persistent pool handle */
+	struct prog_args *pa; /* prog_args structure */
+	PMEMoid *oids;	/* vector of allocated objects */
+	void **ptrs;	  /* pointers to allocated objects */
+	uint64_t nobjs;       /* number of allocated objects */
+	size_t obj_size;      /* size of each allocated objects */
+	int const_b;	  /* memset() value */
 };
 
 /*
@@ -148,8 +148,8 @@ static int
 obj_persist_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
-	uint64_t idx = info->worker->index * info->args->n_ops_per_thread
-		+ info->index;
+	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
+		info->index;
 
 	assert(idx < ob->nobjs);
 
@@ -177,8 +177,8 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob = (struct obj_bench *)
-			malloc(sizeof(struct obj_bench));
+	struct obj_bench *ob =
+		(struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == NULL) {
 		perror("malloc");
 		return -1;
@@ -212,7 +212,6 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	} else {
 		if (poolsize < PMEMOBJ_MIN_POOL)
 			poolsize = PMEMOBJ_MIN_POOL;
-
 	}
 
 	poolsize = PAGE_ALIGNED_UP_SIZE(poolsize);
@@ -271,12 +270,13 @@ pmemobj_persist_costructor(void)
 	obj_persist_clo[0].opt_short = 'w';
 	obj_persist_clo[0].opt_long = "no-warmup";
 	obj_persist_clo[0].descr = "Don't do warmup";
-	obj_persist_clo[0].def = false;
+	obj_persist_clo[0].def = "false";
 	obj_persist_clo[0].type = CLO_TYPE_FLAG;
 	obj_persist_clo[0].off = clo_field_offset(struct prog_args, no_warmup);
 
 	obj_persist_info.name = "pmemobj_persist";
-	obj_persist_info.brief = "Benchmark for pmemobj_persist() operation";
+	obj_persist_info.brief = "Benchmark for pmemobj_persist() "
+				 "operation";
 	obj_persist_info.init = obj_persist_init;
 	obj_persist_info.exit = obj_persist_exit;
 	obj_persist_info.multithread = true;

@@ -32,20 +32,19 @@
 /*
  * config_reader.c -- config reader module definitions
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/queue.h>
 #include <tchar.h>
 
-#include "scenario.h"
 #include "config_reader.h"
+#include "scenario.h"
 
-#define SECTION_GLOBAL	TEXT("global")
-#define KEY_BENCHMARK	TEXT("bench")
-#define KEY_GROUP	TEXT("group")
-
+#define SECTION_GLOBAL TEXT("global")
+#define KEY_BENCHMARK TEXT("bench")
+#define KEY_GROUP TEXT("group")
 
 /*
  * Maximum section size according to MSDN documentation
@@ -57,8 +56,9 @@
 
 #define KV_LIST_EMPTY(x) (_tcslen(x) == 0)
 #define KV_FIRST(x)
-#define KV_LIST_NEXT(x) ((x) += (_tcslen(x) + 1), x += (_tcslen(x) + 1), \
-		(x) = kv_list_skip_comment(x))
+#define KV_LIST_NEXT(x)                                                        \
+	((x) += (_tcslen(x) + 1), x += (_tcslen(x) + 1),                       \
+	 (x) = kv_list_skip_comment(x))
 
 #define KV_LIST_KEY(x) (x)
 #define KV_LIST_VALUE(x) ((x) + _tcslen(x) + 1)
@@ -90,12 +90,10 @@ kv_list_init(LPTSTR list)
 	return list;
 }
 
-
 /*
  * config_reader -- handle structure
  */
-struct config_reader
-{
+struct config_reader {
 	LPTSTR lpFileName;
 };
 
@@ -180,7 +178,7 @@ is_argument(LPTSTR name)
  */
 int
 config_reader_get_scenarios(struct config_reader *cr,
-		struct scenarios **scenarios)
+			    struct scenarios **scenarios)
 {
 	/*
 	 * Read all groups.
@@ -199,7 +197,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	 */
 	TCHAR global[SIZEOF_SECTION];
 	GetPrivateProfileSection(SECTION_GLOBAL, global, SIZEOF_SECTION,
-		cr->lpFileName);
+				 cr->lpFileName);
 	KV_LIST global_kv = KV_LIST_INIT(global);
 
 	int has_global = !KV_LIST_EMPTY(global_kv);
@@ -214,8 +212,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	}
 
 	LPTSTR global_group = NULL;
-	for (KV_LIST it = global_kv; !KV_LIST_EMPTY(it);
-			KV_LIST_NEXT(it)) {
+	for (KV_LIST it = global_kv; !KV_LIST_EMPTY(it); KV_LIST_NEXT(it)) {
 		if (_tcscmp(KV_LIST_KEY(it), KEY_GROUP) == 0) {
 			global_group = KV_LIST_VALUE(it);
 			break;
@@ -223,7 +220,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	}
 
 	for (LPTSTR group_name = sections; !NULL_LIST_EMPTY(group_name);
-			group_name = NULL_LIST_NEXT(group_name)) {
+	     group_name = NULL_LIST_NEXT(group_name)) {
 		/*
 		 * Check whether a group is a scenario
 		 * or global section.
@@ -238,14 +235,14 @@ config_reader_get_scenarios(struct config_reader *cr,
 		 */
 		TCHAR section[SIZEOF_SECTION];
 		GetPrivateProfileSection(group_name, section, SIZEOF_SECTION,
-			cr->lpFileName);
+					 cr->lpFileName);
 
 		KV_LIST section_kv = KV_LIST_INIT(section);
 		struct scenario *scenario = NULL;
 		LPTSTR name = NULL;
 		LPTSTR group = NULL;
 		for (KV_LIST it = section_kv; !KV_LIST_EMPTY(it);
-				KV_LIST_NEXT(it)) {
+		     KV_LIST_NEXT(it)) {
 			if (_tcscmp(KV_LIST_KEY(it), KEY_BENCHMARK) == 0) {
 				name = KV_LIST_VALUE(it);
 			}
@@ -265,7 +262,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			 * Merge key/values from global section.
 			 */
 			for (KV_LIST it = global_kv; !KV_LIST_EMPTY(it);
-					KV_LIST_NEXT(it)) {
+			     KV_LIST_NEXT(it)) {
 				LPTSTR key = KV_LIST_KEY(it);
 				if (!is_argument(key))
 					continue;
@@ -297,7 +294,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 		}
 
 		for (KV_LIST it = section_kv; !KV_LIST_EMPTY(it);
-				KV_LIST_NEXT(it)) {
+		     KV_LIST_NEXT(it)) {
 			LPTSTR key = KV_LIST_KEY(it);
 			if (!is_argument(key))
 				continue;

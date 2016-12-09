@@ -42,18 +42,18 @@
 #ifndef _WIN32
 extern "C" {
 #include "map.h"
-#include "map_ctree.h"
 #include "map_btree.h"
-#include "map_rtree.h"
-#include "map_rbtree.h"
+#include "map_ctree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_rbtree.h"
+#include "map_rtree.h"
 }
 #endif
 
 /* Values less than 3 is not suitable for current rtree implementation */
-#define FACTOR	3
-#define ALLOC_OVERHEAD	64
+#define FACTOR 3
+#define ALLOC_OVERHEAD 64
 
 TOID_DECLARE_ROOT(struct root);
 
@@ -61,30 +61,28 @@ struct root {
 	TOID(struct map) map;
 };
 
-#define OBJ_TYPE_NUM	1
+#define OBJ_TYPE_NUM 1
 
-#define swap(a, b) do {\
-	__typeof__(a) _tmp = (a);\
-	(a) = (b);\
-	(b) = _tmp;\
-} while (0)
+#define swap(a, b)                                                             \
+	do {                                                                   \
+		__typeof__(a) _tmp = (a);                                      \
+		(a) = (b);                                                     \
+		(b) = _tmp;                                                    \
+	} while (0)
 
 /* Values less than 2048 is not suitable for current rtree implementation */
-#define SIZE_PER_KEY	2048
+#define SIZE_PER_KEY 2048
 
 static const struct {
 	const char *str;
 	const struct map_ops *ops;
 } map_types[] = {
-	{"ctree",		MAP_CTREE},
-	{"btree",		MAP_BTREE},
-	{"rtree",		MAP_RTREE},
-	{"rbtree",		MAP_RBTREE},
-	{"hashmap_tx",		MAP_HASHMAP_TX},
-	{"hashmap_atomic",	MAP_HASHMAP_ATOMIC},
+	{"ctree", MAP_CTREE},		{"btree", MAP_BTREE},
+	{"rtree", MAP_RTREE},		{"rbtree", MAP_RBTREE},
+	{"hashmap_tx", MAP_HASHMAP_TX}, {"hashmap_atomic", MAP_HASHMAP_ATOMIC},
 };
 
-#define MAP_TYPES_NUM	(sizeof(map_types) / sizeof(map_types[0]))
+#define MAP_TYPES_NUM (sizeof(map_types) / sizeof(map_types[0]))
 
 struct map_bench_args {
 	unsigned seed;
@@ -183,15 +181,19 @@ static int
 map_remove_free_op(struct map_bench *map_bench, uint64_t key)
 {
 	volatile int ret = 0;
-	TX_BEGIN(map_bench->pop) {
+	TX_BEGIN(map_bench->pop)
+	{
 		PMEMoid val = map_remove(map_bench->mapc, map_bench->map, key);
 		if (OID_IS_NULL(val))
 			ret = -1;
 		else
 			pmemobj_tx_free(val);
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		ret = -1;
-	} TX_END
+	}
+	TX_END
 
 	return ret;
 }
@@ -213,10 +215,10 @@ map_remove_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_remove_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench = (struct map_bench *)
-			pmembench_get_priv(bench);
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			info->worker->priv;
+	struct map_bench *map_bench =
+		(struct map_bench *)pmembench_get_priv(bench);
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)info->worker->priv;
 
 	uint64_t key = tworker->keys[info->index];
 
@@ -237,13 +239,17 @@ map_insert_alloc_op(struct map_bench *map_bench, uint64_t key)
 {
 	int ret = 0;
 
-	TX_BEGIN(map_bench->pop) {
-		PMEMoid oid = pmemobj_tx_alloc(map_bench->args->dsize,
-				OBJ_TYPE_NUM);
+	TX_BEGIN(map_bench->pop)
+	{
+		PMEMoid oid =
+			pmemobj_tx_alloc(map_bench->args->dsize, OBJ_TYPE_NUM);
 		ret = map_insert(map_bench->mapc, map_bench->map, key, oid);
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		ret = -1;
-	} TX_END
+	}
+	TX_END
 
 	return ret;
 }
@@ -255,7 +261,7 @@ static int
 map_insert_root_op(struct map_bench *map_bench, uint64_t key)
 {
 	return map_insert(map_bench->mapc, map_bench->map, key,
-			map_bench->root_oid);
+			  map_bench->root_oid);
 }
 
 /*
@@ -264,10 +270,10 @@ map_insert_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_insert_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench = (struct map_bench *)
-			pmembench_get_priv(bench);
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			info->worker->priv;
+	struct map_bench *map_bench =
+		(struct map_bench *)pmembench_get_priv(bench);
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)info->worker->priv;
 	uint64_t key = tworker->keys[info->index];
 
 	mutex_lock_nofail(&map_bench->lock);
@@ -307,10 +313,10 @@ map_get_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_get_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench = (struct map_bench *)
-			pmembench_get_priv(bench);
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			info->worker->priv;
+	struct map_bench *map_bench =
+		(struct map_bench *)pmembench_get_priv(bench);
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)info->worker->priv;
 
 	uint64_t key = tworker->keys[info->index];
 
@@ -328,10 +334,10 @@ map_get_op(struct benchmark *bench, struct operation_info *info)
  */
 static int
 map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+		       struct worker_info *worker)
 {
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			calloc(1, sizeof(*tworker));
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)calloc(1, sizeof(*tworker));
 	struct map_bench *tree;
 	struct map_bench_args *targs;
 
@@ -341,8 +347,8 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	tworker->nkeys = args->n_ops_per_thread;
-	tworker->keys = (uint64_t *)malloc(tworker->nkeys *
-		sizeof(*tworker->keys));
+	tworker->keys =
+		(uint64_t *)malloc(tworker->nkeys * sizeof(*tworker->keys));
 
 	if (!tworker->keys) {
 		perror("malloc");
@@ -375,10 +381,10 @@ err_free_worker:
  */
 static void
 map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+		       struct worker_info *worker)
 {
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			worker->priv;
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)worker->priv;
 	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
 
 	if (targs->ext_tx) {
@@ -394,7 +400,7 @@ map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
  */
 static int
 map_insert_init_worker(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+		       struct worker_info *worker)
 {
 	int ret = map_common_init_worker(bench, args, worker);
 	if (ret)
@@ -402,8 +408,8 @@ map_insert_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			worker->priv;
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)worker->priv;
 
 	assert(tworker);
 
@@ -418,15 +424,15 @@ map_insert_init_worker(struct benchmark *bench, struct benchmark_args *args,
  */
 static int
 map_global_rand_keys_init(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+			  struct worker_info *worker)
 {
 
 	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
 	assert(tree);
 	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
-	struct map_bench_worker *tworker = (struct map_bench_worker *)
-			worker->priv;
+	struct map_bench_worker *tworker =
+		(struct map_bench_worker *)worker->priv;
 
 	assert(tworker);
 	assert(tree->init_nkeys);
@@ -449,7 +455,7 @@ map_global_rand_keys_init(struct benchmark *bench, struct benchmark_args *args,
  */
 static int
 map_remove_init_worker(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+		       struct worker_info *worker)
 {
 	int ret = map_common_init_worker(bench, args, worker);
 	if (ret)
@@ -469,7 +475,7 @@ err_common_free_worker:
  */
 static int
 map_bench_get_init_worker(struct benchmark *bench, struct benchmark_args *args,
-		struct worker_info *worker)
+			  struct worker_info *worker)
 {
 	int ret = map_common_init_worker(bench, args, worker);
 	if (ret)
@@ -495,8 +501,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args->opts);
 
 	size_t size_per_key;
-	struct map_bench *map_bench = (struct map_bench *)
-			calloc(1, sizeof(*map_bench));
+	struct map_bench *map_bench =
+		(struct map_bench *)calloc(1, sizeof(*map_bench));
 
 	if (!map_bench) {
 		perror("calloc");
@@ -509,13 +515,13 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	const struct map_ops *ops = parse_map_type(map_bench->margs->type);
 	if (!ops) {
 		fprintf(stderr, "invalid map type value specified -- '%s'\n",
-				map_bench->margs->type);
+			map_bench->margs->type);
 		goto err_free_bench;
 	}
 
 	if (map_bench->margs->ext_tx && args->n_threads > 1) {
 		fprintf(stderr, "external transaction "
-			"requires single thread\n");
+				"requires single thread\n");
 		goto err_free_bench;
 	}
 
@@ -531,8 +537,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->nkeys = args->n_threads * args->n_ops_per_thread;
 	map_bench->init_nkeys = map_bench->nkeys;
-	size_per_key = map_bench->margs->alloc ? SIZE_PER_KEY :
-		SIZE_PER_KEY + map_bench->args->dsize + ALLOC_OVERHEAD;
+	size_per_key = map_bench->margs->alloc ? SIZE_PER_KEY : SIZE_PER_KEY +
+			map_bench->args->dsize + ALLOC_OVERHEAD;
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
@@ -549,7 +555,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",
-			map_bench->pool_size, args->fmode);
+					map_bench->pool_size, args->fmode);
 	if (!map_bench->pop) {
 		fprintf(stderr, "pmemobj_create: %s\n", pmemobj_errormsg());
 		goto err_free_bench;
@@ -616,14 +622,14 @@ map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct map_bench *map_bench = (struct map_bench *)
-				pmembench_get_priv(bench);
+	struct map_bench *map_bench =
+		(struct map_bench *)pmembench_get_priv(bench);
 	assert(map_bench);
 	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
 
-	map_bench->keys = (uint64_t *)
-			malloc(map_bench->nkeys * sizeof(*map_bench->keys));
+	map_bench->keys =
+		(uint64_t *)malloc(map_bench->nkeys * sizeof(*map_bench->keys));
 
 	if (!map_bench->keys) {
 		perror("malloc");
@@ -634,32 +640,36 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 
 	mutex_lock_nofail(&map_bench->lock);
 
-	TX_BEGIN(map_bench->pop) {
+	TX_BEGIN(map_bench->pop)
+	{
 		for (size_t i = 0; i < map_bench->nkeys; i++) {
 			uint64_t key;
 			PMEMoid oid;
 			do {
 				key = get_key(&targs->seed, targs->max_key);
-				oid = map_get(map_bench->mapc,
-						map_bench->map, key);
+				oid = map_get(map_bench->mapc, map_bench->map,
+					      key);
 			} while (!OID_IS_NULL(oid));
 
 			if (targs->alloc)
 				oid = pmemobj_tx_alloc(args->dsize,
-						OBJ_TYPE_NUM);
+						       OBJ_TYPE_NUM);
 			else
 				oid = map_bench->root_oid;
 
-			ret = map_insert(map_bench->mapc,
-					map_bench->map, key, oid);
+			ret = map_insert(map_bench->mapc, map_bench->map, key,
+					 oid);
 			if (ret)
 				break;
 
 			map_bench->keys[i] = key;
 		}
-	} TX_ONABORT {
+	}
+	TX_ONABORT
+	{
 		ret = -1;
-	} TX_END
+	}
+	TX_END
 
 	mutex_unlock_nofail(&map_bench->lock);
 
@@ -739,7 +749,6 @@ map_get_exit(struct benchmark *bench, struct benchmark_args *args)
 	return map_common_exit(bench, args);
 }
 
-
 static struct benchmark_clo map_bench_clos[5];
 
 static struct benchmark_info map_insert_info;
@@ -752,13 +761,13 @@ map_bench_costructor(void)
 {
 	map_bench_clos[0].opt_short = 'T';
 	map_bench_clos[0].opt_long = "type";
-	map_bench_clos[0].descr = "Type of container "
+	map_bench_clos[0].descr =
+		"Type of container "
 		"[ctree|btree|rtree|rbtree|hashmap_tx|hashmap_atomic]";
 
 	map_bench_clos[0].off = clo_field_offset(struct map_bench_args, type);
 	map_bench_clos[0].type = CLO_TYPE_STR;
 	map_bench_clos[0].def = "ctree";
-
 
 	map_bench_clos[1].opt_short = 's';
 	map_bench_clos[1].opt_long = "seed";
@@ -767,7 +776,7 @@ map_bench_costructor(void)
 	map_bench_clos[1].type = CLO_TYPE_UINT;
 	map_bench_clos[1].def = "1";
 	map_bench_clos[1].type_uint.size =
-			clo_field_size(struct map_bench_args, seed);
+		clo_field_size(struct map_bench_args, seed);
 	map_bench_clos[1].type_uint.base = CLO_INT_BASE_DEC;
 	map_bench_clos[1].type_uint.min = 1;
 	map_bench_clos[1].type_uint.max = UINT_MAX;
@@ -776,26 +785,27 @@ map_bench_costructor(void)
 	map_bench_clos[2].opt_long = "max-key";
 	map_bench_clos[2].descr = "maximum key (0 means no limit)";
 	map_bench_clos[2].off =
-			clo_field_offset(struct map_bench_args, max_key);
+		clo_field_offset(struct map_bench_args, max_key);
 	map_bench_clos[2].type = CLO_TYPE_UINT;
 	map_bench_clos[2].def = "0";
 	map_bench_clos[2].type_uint.size =
-			clo_field_size(struct map_bench_args, seed);
+		clo_field_size(struct map_bench_args, seed);
 	map_bench_clos[2].type_uint.base = CLO_INT_BASE_DEC;
 	map_bench_clos[2].type_uint.min = 0;
 	map_bench_clos[2].type_uint.max = UINT64_MAX;
 
 	map_bench_clos[3].opt_short = 'x';
 	map_bench_clos[3].opt_long = "external-tx";
-	map_bench_clos[3].descr = "Use external transaction for all operations"
-		" (works with single thread only)";
-	map_bench_clos[3].off = clo_field_offset(struct map_bench_args,	ext_tx);
+	map_bench_clos[3].descr = "Use external transaction for all "
+				  "operations (works with single "
+				  "thread only)";
+	map_bench_clos[3].off = clo_field_offset(struct map_bench_args, ext_tx);
 	map_bench_clos[3].type = CLO_TYPE_FLAG;
 
 	map_bench_clos[4].opt_short = 'A';
 	map_bench_clos[4].opt_long = "alloc";
 	map_bench_clos[4].descr = "Allocate object of specified size "
-		"when inserting";
+				  "when inserting";
 	map_bench_clos[4].off = clo_field_offset(struct map_bench_args, alloc);
 	map_bench_clos[4].type = CLO_TYPE_FLAG;
 
@@ -833,8 +843,7 @@ map_bench_costructor(void)
 	map_remove_info.allow_poolset = true;
 	REGISTER_BENCHMARK(map_remove_info);
 
-	map_get_info.name = "map_get",
-	map_get_info.brief = "Tree lookup";
+	map_get_info.name = "map_get", map_get_info.brief = "Tree lookup";
 	map_get_info.init = map_bench_get_init;
 	map_get_info.exit = map_get_exit;
 	map_get_info.multithread = true;
