@@ -4,7 +4,8 @@ TestOK222
 TestOK333
 libpmempool_sync$(nW)TEST1: START: libpmempool_sync
  $(nW)libpmempool_sync$(nW) $(nW)pool0.set 0
-libpmempool_sync$(nW)TEST1: Done: result: 0, errno: 0
+result: 0, errno: 0
+libpmempool_sync$(nW)TEST1: Done
 TestOK111
 TestOK222
 TestOK333
