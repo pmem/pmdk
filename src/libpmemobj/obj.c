@@ -1553,7 +1553,7 @@ pmemobj_pool_by_ptr(const void *addr)
 {
 	LOG(3, "addr %p", addr);
 
-	/* fastpath for transactions */
+	/* fast path for transactions */
 	PMEMobjpool *pop = tx_get_pop();
 
 	if ((pop != NULL) && OBJ_PTR_FROM_POOL(pop, addr))

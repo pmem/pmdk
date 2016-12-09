@@ -61,10 +61,10 @@ arch_machine(WORD cpuarch)
 }
 
 /*
- * arch_endianess -- (internal) determine endianess
+ * arch_endianness -- (internal) determine endianness
  */
 static int
-arch_endianess(void)
+arch_endianness(void)
 {
 	short word = (ELFDATA2MSB << 8) + ELFDATA2LSB;
 	return ((char *)&word)[0];
@@ -89,7 +89,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 	 */
 	arch_flags->ei_class = ELFCLASS32;
 #endif
-	arch_flags->ei_data = arch_endianess();
+	arch_flags->ei_data = arch_endianness();
 	arch_flags->alignment_desc = alignment_desc();
 
 	return 0;
