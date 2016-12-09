@@ -44,7 +44,7 @@
 #include <assert.h>
 #include <sys/mman.h>
 
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define PAGE_4K ((uintptr_t)1 << 12)
 #define PAGE_2M ((uintptr_t)1 << 21)
@@ -167,7 +167,7 @@ static struct op_mode modes[] = {
 static int
 parse_op_mode(const char *arg)
 {
-	for (int i = 0; i < MODES; i++) {
+	for (unsigned i = 0; i < MODES; i++) {
 		if (strcmp(arg, modes[i].mode) == 0)
 			return i;
 	}
@@ -361,7 +361,7 @@ static struct op ops[] = {
 static int
 parse_op_type(const char *arg)
 {
-	for (int i = 0; i < NOPS; i++) {
+	for (unsigned i = 0; i < NOPS; i++) {
 		if (strcmp(arg, ops[i].opname) == 0)
 			return i;
 	}

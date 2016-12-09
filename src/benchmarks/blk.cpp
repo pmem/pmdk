@@ -86,8 +86,6 @@ struct blk_worker {
 	unsigned seed;			/* worker seed */
 };
 
-static struct benchmark_clo blk_clo[5];
-
 /*
  * blk_do_warmup -- perform warm-up by writing to each block
  */
@@ -443,6 +441,7 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
+static struct benchmark_clo blk_clo[5];
 static struct benchmark_info blk_read_info;
 static struct benchmark_info blk_write_info;
 

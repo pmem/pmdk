@@ -39,7 +39,7 @@
 #include <pthread.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #include "out.h"
 #include "lane.h"
@@ -658,6 +658,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 
 	int ret = 0;
+	size_t poolsize;
 
 	struct mutex_bench *mb = (struct mutex_bench *)malloc(sizeof(*mb));
 	if (mb == NULL) {
@@ -683,7 +684,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* reserve some space for metadata */
-	size_t poolsize = mb->pa->n_locks * sizeof(lock_t) + PMEMOBJ_MIN_POOL;
+	poolsize = mb->pa->n_locks * sizeof(lock_t) + PMEMOBJ_MIN_POOL;
 
 	if (args->is_poolset) {
 		if (args->fsize < poolsize) {

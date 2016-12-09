@@ -95,9 +95,6 @@ struct log_bench
 	int (*func_op) (struct benchmark *, struct operation_info *);
 };
 
-/* command line options definition */
-static struct benchmark_clo log_clo[6];
-
 /*
  * do_warmup -- do warmup by writing the whole pool area
  */
@@ -585,7 +582,8 @@ log_exit(struct benchmark *bench, struct benchmark_args *args)
 
 	return 0;
 }
-
+/* command line options definition */
+static struct benchmark_clo log_clo[6];
 /* log_append benchmark info */
 static struct benchmark_info log_append_info;
 /* log_read benchmark info */

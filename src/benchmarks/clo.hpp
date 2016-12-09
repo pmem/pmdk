@@ -33,7 +33,7 @@
  * clo.h -- command line options module declarations
  */
 int benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
-		size_t nclo, struct clo_vec *clovec);
+                int nclo, struct clo_vec *clovec);
 int benchmark_clo_parse_scenario(struct scenario *scenario,
 		struct benchmark_clo *clos, size_t nclo,
 		struct clo_vec *clovec);
@@ -44,4 +44,4 @@ int clo_get_scenarios(int argc, char *argv[],
 			struct scenarios *found_scenarios);
 int benchmark_override_clos_in_scenario(struct scenario *scenario,
 				    int argc, char *argv[],
-				    struct benchmark_clo *clos, size_t nclos);
+                                    struct benchmark_clo *clos, int nclos);

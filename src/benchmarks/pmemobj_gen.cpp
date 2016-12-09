@@ -45,7 +45,7 @@
 #include <file.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define LAYOUT_NAME "benchmark"
 #define FACTOR 4
@@ -57,12 +57,12 @@
 struct pobj_bench;
 struct pobj_worker;
 
-typedef size_t(*fn_type_num) (struct pobj_bench *ob, size_t worker_idx,
+typedef size_t(*fn_type_num_t) (struct pobj_bench *ob, size_t worker_idx,
 							size_t op_idx);
 
-typedef size_t(*fn_size) (struct pobj_bench *ob, size_t idx);
+typedef size_t(*fn_size_t) (struct pobj_bench *ob, size_t idx);
 
-typedef size_t(*fn_num) (size_t idx);
+typedef size_t(*fn_num_t) (size_t idx);
 
 /*
  * Enumeration used to determine the mode of the assigning type_number
@@ -143,10 +143,10 @@ struct pobj_bench {
 	size_t *rand_sizes;
 	size_t n_pools;
 	int type_mode;
-	fn_type_num fn_type_num;
-	fn_size fn_size;
-	fn_num pool;
-	fn_num obj;
+	fn_type_num_t fn_type_num;
+	fn_size_t fn_size;
+	fn_num_t pool;
+	fn_num_t obj;
 };
 
 /*
@@ -155,11 +155,6 @@ struct pobj_bench {
 struct pobj_worker {
 	PMEMoid *oids;
 };
-
-/* Array defining common command line arguments. */
-static struct benchmark_clo pobj_direct_clo[4];
-
-static struct benchmark_clo pobj_open_clo[3];
 
 /*
  * type_mode_one -- always returns 0, as in the mode TYPE_MODE_ONE
@@ -229,7 +224,7 @@ one_num(size_t idx)
 	return 0;
 }
 
-static fn_type_num type_mode_func[MAX_TYPE_MODE] = {type_mode_one,
+static fn_type_num_t type_mode_func[MAX_TYPE_MODE] = {type_mode_one,
 				type_mode_per_thread, type_mode_rand};
 
 const char *type_mode_names[MAX_TYPE_MODE] = {"one", "per-thread", "rand"};
@@ -291,7 +286,8 @@ random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 static int
 pobj_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	int i = 0;
+	unsigned i = 0;
+	size_t psize, n_objs;
 	assert(bench != NULL);
 	assert(args != NULL);
 
@@ -322,10 +318,10 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	 * as the actual size of the allocated persistent objects
 	 * is always larger than requested.
 	 */
-	size_t n_objs = bench_priv->args_priv->n_objs;
+	n_objs = bench_priv->args_priv->n_objs;
 	if (bench_priv->n_pools == 1)
 		n_objs *= args->n_threads;
-	size_t psize = n_objs * args->dsize * args->n_threads * FACTOR;
+	psize = n_objs * args->dsize * args->n_threads * FACTOR;
 	if (psize < PMEMOBJ_MIN_POOL)
 		psize = PMEMOBJ_MIN_POOL;
 
@@ -570,6 +566,11 @@ pobj_free_worker(struct benchmark *bench, struct benchmark_args
 
 static struct benchmark_info obj_open;
 static struct benchmark_info obj_direct;
+
+/* Array defining common command line arguments. */
+static struct benchmark_clo pobj_direct_clo[4];
+
+static struct benchmark_clo pobj_open_clo[3];
 
 CONSTRUCTOR(pmemobj_gen_costructor)
 void

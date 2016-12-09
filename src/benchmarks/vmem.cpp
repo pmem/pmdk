@@ -59,8 +59,9 @@ struct vmem_args
 	bool stdlib_alloc;	/* use stdlib allocator instead of vmem */
 	bool no_warmup;		/* do not perform warmup */
 	bool pool_per_thread;	/* create single pool per thread */
-	size_t rsize;		/* size of reallocation */
-	size_t min_rsize;	/* size of min reallocation in range mode */
+	ssize_t min_size;	/* size of min allocation in range mode */
+	ssize_t rsize;		/* size of reallocation */
+	ssize_t min_rsize;	/* size of min reallocation in range mode */
 
 	/* perform operation on object allocated by other thread */
 	bool mix;
@@ -465,7 +466,7 @@ vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 static int
 vmem_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	int i, j;
+	unsigned i, j;
 	assert(bench != NULL);
 	assert(args != NULL);
 
@@ -487,7 +488,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	vb->npools = va->pool_per_thread ? args->n_threads : 1;
 
 	vb->rand_alloc = va->min_size != -1;
-	if (vb->rand_alloc && va->min_size > args->dsize) {
+	if (vb->rand_alloc && (size_t)va->min_size > args->dsize) {
 		fprintf(stderr, "invalid allocation size\n");
 		goto err;
 	}
@@ -500,14 +501,15 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* initializes buffers for operations for every thread */
-	vb->workers = calloc(args->n_threads, sizeof(struct vmem_worker));
+	vb->workers = (struct vmem_worker *)calloc(args->n_threads,
+						   sizeof(struct vmem_worker));
 	if (vb->workers == NULL) {
 		perror("calloc");
 		goto err;
 	}
 	for (i = 0; i < args->n_threads; i++) {
 		vw = &vb->workers[i];
-		vw->objs = calloc(args->n_ops_per_thread,
+		vw->objs = (struct item *)calloc(args->n_ops_per_thread,
 						sizeof(struct item));
 		if (vw->objs == NULL) {
 			perror("calloc");
@@ -519,7 +521,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 			vw->objs[j].pool_num = vw->pool_number;
 	}
 
-	if ((vb->alloc_sizes = malloc(sizeof(unsigned)
+	if ((vb->alloc_sizes = (unsigned *)malloc(sizeof(unsigned)
 			* args->n_ops_per_thread)) == NULL) {
 		perror("malloc");
 		goto err_free_buf;
@@ -565,15 +567,15 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 	if (vmem_init(bench, args) != 0)
 		return -1;
 
-	struct vmem_bench *vb = pmembench_get_priv(bench);
-	struct vmem_args *va = args->opts;
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	struct vmem_args *va = (struct vmem_args *)args->opts;
 	vb->rand_realloc = va->min_rsize != -1;
 
 	if (vb->rand_realloc && va->min_rsize > va->rsize) {
 		fprintf(stderr, "invalid reallocation size\n");
 		goto err;
 	}
-	if ((vb->realloc_sizes = calloc(args->n_ops_per_thread,
+	if ((vb->realloc_sizes = (unsigned *)calloc(args->n_ops_per_thread,
 				sizeof(unsigned))) == NULL) {
 		perror("calloc");
 		goto err;
@@ -600,8 +602,8 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 
 	unsigned i, idx, tmp;
-	struct vmem_bench *vb = pmembench_get_priv(bench);
-	if ((vb->mix_ops = calloc(args->n_ops_per_thread,
+	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	if ((vb->mix_ops = (unsigned *)calloc(args->n_ops_per_thread,
 				sizeof(unsigned))) == NULL) {
 		perror("calloc");
 		goto err;
