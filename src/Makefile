@@ -88,7 +88,6 @@ SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
 # include/lib*.h - skip include/pmemcompat.h
-# [!q] to skip windows/include/sys/queue.h
 HEADERS =\
 	$(foreach f, $(wildcard\
 		include/lib*.h\
@@ -96,7 +95,7 @@ HEADERS =\
 		include/libpmemobj++/*.hpp\
 		include/libpmemobj++/detail/*.hpp\
 		windows/include/*.h\
-		windows/include/*/[!q]*.h\
+		windows/include/*/*.h\
 		), $(f))
 
 ifneq ($(filter 1 2, $(CSTYLEON)),)

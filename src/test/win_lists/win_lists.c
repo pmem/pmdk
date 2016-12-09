@@ -36,7 +36,7 @@
  */
 
 #include "unittest.h"
-#include <sys/queue.h>
+#include <queue.h>
 
 typedef struct TEST_LIST_NODE {
 	LIST_ENTRY(TEST_LIST_NODE) ListEntry;
