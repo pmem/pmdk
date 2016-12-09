@@ -32,8 +32,8 @@
 /*
  * scenario.c -- scenario module definitions
  */
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/queue.h>
 
@@ -126,8 +126,8 @@ scenario_set_group(struct scenario *s, const char *group)
 struct scenarios *
 scenarios_alloc(void)
 {
-	struct scenarios *scenarios = (struct scenarios *)
-			malloc(sizeof(*scenarios));
+	struct scenarios *scenarios =
+		(struct scenarios *)malloc(sizeof(*scenarios));
 	assert(NULL != scenarios);
 
 	TAILQ_INIT(&scenarios->head);
@@ -158,7 +158,8 @@ struct scenario *
 scenarios_get_scenario(struct scenarios *ss, const char *name)
 {
 	struct scenario *scenario;
-	FOREACH_SCENARIO(scenario, ss) {
+	FOREACH_SCENARIO(scenario, ss)
+	{
 		if (strcmp(scenario->name, name) == 0)
 			return scenario;
 	}
@@ -190,13 +191,14 @@ clone_scenario(struct scenario *src_scenario)
 {
 	assert(src_scenario != NULL);
 
-	struct scenario *new_scenario = scenario_alloc(src_scenario->name,
-						src_scenario->benchmark);
+	struct scenario *new_scenario =
+		scenario_alloc(src_scenario->name, src_scenario->benchmark);
 	assert(new_scenario != NULL);
 
 	struct kv *src_kv;
 
-	FOREACH_KV(src_kv, src_scenario) {
+	FOREACH_KV(src_kv, src_scenario)
+	{
 		struct kv *new_kv = kv_alloc(src_kv->key, src_kv->value);
 		assert(new_kv != NULL);
 
@@ -215,7 +217,8 @@ find_kv_in_scenario(const char *key, const struct scenario *scenario)
 {
 	struct kv *kv;
 
-	FOREACH_KV(kv, scenario) {
+	FOREACH_KV(kv, scenario)
+	{
 		if (strcmp(kv->key, key) == 0)
 			return kv;
 	}

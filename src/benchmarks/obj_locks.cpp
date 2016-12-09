@@ -38,27 +38,27 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 
-#include "out.h"
 #include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
 #include "list.h"
-#include "pvector.h"
+#include "memops.h"
 #include "obj.h"
+#include "out.h"
+#include "pmalloc.h"
+#include "pvector.h"
+#include "redo.h"
 #include "sync.h"
 
 struct prog_args {
-	bool use_pthread;	/* use pthread locks instead of PMEM locks */
-	unsigned n_locks;	/* number of mutex/rwlock objects */
-	bool run_id_increment;	/* increment run_id after each lock/unlock */
-	uint64_t runid_initial_value;	/* initial value of run_id */
-	char *lock_mode;	/* "1by1" or "all-lock" */
-	char *lock_type;	/* "mutex", "rwlock" or "ram-mutex" */
-	bool use_rdlock;	/* use read lock, instead of write lock */
+	bool use_pthread;      /* use pthread locks instead of PMEM locks */
+	unsigned n_locks;      /* number of mutex/rwlock objects */
+	bool run_id_increment; /* increment run_id after each lock/unlock */
+	uint64_t runid_initial_value; /* initial value of run_id */
+	char *lock_mode;	      /* "1by1" or "all-lock" */
+	char *lock_type;	      /* "mutex", "rwlock" or "ram-mutex" */
+	bool use_rdlock;	      /* use read lock, instead of write lock */
 };
 
 /*
@@ -89,15 +89,15 @@ POBJ_LAYOUT_END(pmembench_lock_layout);
  * my_root -- root object structure
  */
 struct my_root {
-	TOID(lock_t) locks;	/* an array of locks */
+	TOID(lock_t) locks; /* an array of locks */
 };
 
 /*
  * lock usage
  */
 enum operation_mode {
-	OP_MODE_1BY1,		/* lock and unlock one lock at a time */
-	OP_MODE_ALL_LOCK,	/* grab all locks, then unlock them all */
+	OP_MODE_1BY1,     /* lock and unlock one lock at a time */
+	OP_MODE_ALL_LOCK, /* grab all locks, then unlock them all */
 	OP_MODE_MAX,
 };
 
@@ -105,8 +105,8 @@ enum operation_mode {
  * lock type
  */
 enum benchmark_mode {
-	BENCH_MODE_MUTEX,	/* PMEMmutex vs. pthread_mutex_t */
-	BENCH_MODE_RWLOCK,	/* PMEMrwlock vs. pthread_rwlock_t */
+	BENCH_MODE_MUTEX,	  /* PMEMmutex vs. pthread_mutex_t */
+	BENCH_MODE_RWLOCK,	 /* PMEMrwlock vs. pthread_rwlock_t */
 	BENCH_MODE_VOLATILE_MUTEX, /* PMEMmutex with pthread mutex in RAM */
 	BENCH_MODE_MAX
 };
@@ -123,27 +123,27 @@ struct bench_ops {
  * mutex_bench -- stores variables used in benchmark, passed within functions
  */
 struct mutex_bench {
-	PMEMobjpool *pop;		/* pointer to the persistent pool */
-	TOID(struct my_root) root;	/* OID of the root object */
-	struct prog_args *pa;		/* prog_args structure */
-	enum operation_mode lock_mode;	/* lock usage mode */
-	enum benchmark_mode lock_type;	/* lock type */
-	lock_t *locks;			/* pointer to the array of locks */
+	PMEMobjpool *pop;	      /* pointer to the persistent pool */
+	TOID(struct my_root) root;     /* OID of the root object */
+	struct prog_args *pa;	  /* prog_args structure */
+	enum operation_mode lock_mode; /* lock usage mode */
+	enum benchmark_mode lock_type; /* lock type */
+	lock_t *locks;		       /* pointer to the array of locks */
 	struct bench_ops *ops;
 };
 
-#define GET_VOLATILE_MUTEX(pop, mutexp)\
-(pthread_mutex_t *)get_lock((pop)->run_id,\
-	&(mutexp)->volatile_pmemmutex.runid,\
-	(mutexp)->volatile_pmemmutex.mutexp,\
-	(int (*)(void **lock, void *arg))volatile_mutex_init
+#define GET_VOLATILE_MUTEX(pop, mutexp)                                        \
+	(pthread_mutex_t *)get_lock(                                           \
+		(pop)->run_id, &(mutexp)->volatile_pmemmutex.runid,            \
+		(mutexp)->volatile_pmemmutex.mutexp,                           \
+		(int (*)(void **lock, void *arg))volatile_mutex_init
 
-typedef int(*lock_fun_wrapper)(PMEMobjpool *pop, void *lock);
+typedef int (*lock_fun_wrapper)(PMEMobjpool *pop, void *lock);
 
 /* bench_operation_1by1 -- acquire lock and unlock release locks */
 static void
 bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
-	struct mutex_bench *mb, PMEMobjpool *pop)
+		     struct mutex_bench *mb, PMEMobjpool *pop)
 {
 	for (unsigned i = 0; i < (mb)->pa->n_locks; (i)++) {
 		void *o = (void *)(&(mb)->locks[i]);
@@ -155,7 +155,7 @@ bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 /* bench_operation_all_lock -- acquire all locks and release all locks */
 static void
 bench_operation_all_lock(lock_fun_wrapper flock, lock_fun_wrapper funlock,
-	struct mutex_bench *mb, PMEMobjpool *pop)
+			 struct mutex_bench *mb, PMEMobjpool *pop)
 {
 	for (unsigned i = 0; i < (mb)->pa->n_locks; (i)++) {
 		void *o = (void *)(&(mb)->locks[i]);
@@ -172,21 +172,21 @@ bench_operation_all_lock(lock_fun_wrapper flock, lock_fun_wrapper funlock,
  */
 static void *
 get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
-	int (*init_lock)(void **lock, void *arg))
+	 int (*init_lock)(void **lock, void *arg))
 {
 	uint64_t tmp_runid;
 	while ((tmp_runid = *runid) != pop_runid) {
 		if ((tmp_runid != (pop_runid - 1))) {
-			if (util_bool_compare_and_swap64(runid,
-					tmp_runid, (pop_runid - 1))) {
+			if (util_bool_compare_and_swap64(runid, tmp_runid,
+							 (pop_runid - 1))) {
 				if (init_lock(&lock, NULL)) {
 					__sync_fetch_and_and(runid, 0);
 					return NULL;
 				}
 
 				if (util_bool_compare_and_swap64(
-						runid, (pop_runid - 1),
-						pop_runid) == 0) {
+					    runid, (pop_runid - 1),
+					    pop_runid) == 0) {
 					return NULL;
 				}
 			}
@@ -234,8 +234,8 @@ volatile_mutex_lock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 static int
 volatile_mutex_unlock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
-	pthread_mutex_t *mutex = (pthread_mutex_t *)
-			GET_VOLATILE_MUTEX(pop, mutexp);
+	pthread_mutex_t *mutex =
+		(pthread_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
 	if (mutex == NULL)
 		return EINVAL;
 
@@ -248,8 +248,8 @@ volatile_mutex_unlock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 static int
 volatile_mutex_destroy(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
-	pthread_mutex_t *mutex = (pthread_mutex_t *)
-		GET_VOLATILE_MUTEX(pop, mutexp);
+	pthread_mutex_t *mutex =
+		(pthread_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
 	if (mutex == NULL)
 		return EINVAL;
 
@@ -377,7 +377,7 @@ static int
 init_bench_mutex(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof(lock_t));
+		    mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -389,7 +389,7 @@ init_bench_mutex(struct mutex_bench *mb)
 		/* initialize PMEM mutexes */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 			PMEMmutex_internal *p =
-					(PMEMmutex_internal *)&mb->locks[i];
+				(PMEMmutex_internal *)&mb->locks[i];
 			p->pmemmutex.runid = mb->pa->runid_initial_value;
 			pthread_mutex_init(&p->pmemmutex.mutex, NULL);
 		}
@@ -435,20 +435,24 @@ op_bench_mutex(struct mutex_bench *mb)
 	if (!mb->pa->use_pthread) {
 		if (mb->lock_mode == OP_MODE_1BY1) {
 			bench_operation_1by1(pmemobj_mutex_lock_wrapper,
-				pmemobj_mutex_unlock_wrapper, mb, mb->pop);
+					     pmemobj_mutex_unlock_wrapper, mb,
+					     mb->pop);
 		} else {
 			bench_operation_all_lock(pmemobj_mutex_lock_wrapper,
-				pmemobj_mutex_unlock_wrapper, mb, mb->pop);
+						 pmemobj_mutex_unlock_wrapper,
+						 mb, mb->pop);
 		}
 		if (mb->pa->run_id_increment)
 			mb->pop->run_id += 2; /* must be a multiple of 2 */
 	} else {
 		if (mb->lock_mode == OP_MODE_1BY1) {
 			bench_operation_1by1(pthread_mutex_lock_wrapper,
-				pthread_mutex_unlock_wrapper, mb, NULL);
+					     pthread_mutex_unlock_wrapper, mb,
+					     NULL);
 		} else {
 			bench_operation_all_lock(pthread_mutex_lock_wrapper,
-				pthread_mutex_unlock_wrapper, mb, NULL);
+						 pthread_mutex_unlock_wrapper,
+						 mb, NULL);
 		}
 	}
 
@@ -462,7 +466,7 @@ static int
 init_bench_rwlock(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof(lock_t));
+		    mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -474,7 +478,7 @@ init_bench_rwlock(struct mutex_bench *mb)
 		/* initialize PMEM rwlocks */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 			PMEMrwlock_internal *p =
-					(PMEMrwlock_internal *)&mb->locks[i];
+				(PMEMrwlock_internal *)&mb->locks[i];
 			p->pmemrwlock.runid = mb->pa->runid_initial_value;
 			pthread_rwlock_init(&p->pmemrwlock.rwlock, NULL);
 		}
@@ -519,28 +523,32 @@ op_bench_rwlock(struct mutex_bench *mb)
 {
 	if (!mb->pa->use_pthread) {
 		if (mb->lock_mode == OP_MODE_1BY1) {
-			bench_operation_1by1(!mb->pa->use_rdlock ?
-				pmemobj_rwlock_wrlock_wrapper :
-				pmemobj_rwlock_rdlock_wrapper,
+			bench_operation_1by1(
+				!mb->pa->use_rdlock
+					? pmemobj_rwlock_wrlock_wrapper
+					: pmemobj_rwlock_rdlock_wrapper,
 				pmemobj_rwlock_unlock_wrapper, mb, mb->pop);
 		} else {
-			bench_operation_all_lock(!mb->pa->use_rdlock ?
-				pmemobj_rwlock_wrlock_wrapper :
-				pmemobj_rwlock_rdlock_wrapper,
+			bench_operation_all_lock(
+				!mb->pa->use_rdlock
+					? pmemobj_rwlock_wrlock_wrapper
+					: pmemobj_rwlock_rdlock_wrapper,
 				pmemobj_rwlock_unlock_wrapper, mb, mb->pop);
 		}
 		if (mb->pa->run_id_increment)
 			mb->pop->run_id += 2; /* must be a multiple of 2 */
 	} else {
 		if (mb->lock_mode == OP_MODE_1BY1) {
-			bench_operation_1by1(!mb->pa->use_rdlock ?
-				pthread_rwlock_wrlock_wrapper :
-				pthread_rwlock_rdlock_wrapper,
+			bench_operation_1by1(
+				!mb->pa->use_rdlock
+					? pthread_rwlock_wrlock_wrapper
+					: pthread_rwlock_rdlock_wrapper,
 				pthread_rwlock_unlock_wrapper, mb, NULL);
 		} else {
-			bench_operation_all_lock(!mb->pa->use_rdlock ?
-				pthread_rwlock_wrlock_wrapper :
-				pthread_rwlock_rdlock_wrapper,
+			bench_operation_all_lock(
+				!mb->pa->use_rdlock
+					? pthread_rwlock_wrlock_wrapper
+					: pthread_rwlock_rdlock_wrapper,
 				pthread_rwlock_unlock_wrapper, mb, NULL);
 		}
 	}
@@ -554,7 +562,7 @@ static int
 init_bench_vmutex(struct mutex_bench *mb)
 {
 	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
-			mb->pa->n_locks * sizeof(lock_t));
+		    mb->pa->n_locks * sizeof(lock_t));
 	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
@@ -597,10 +605,12 @@ op_bench_vmutex(struct mutex_bench *mb)
 {
 	if (mb->lock_mode == OP_MODE_1BY1) {
 		bench_operation_1by1(volatile_mutex_lock_wrapper,
-				volatile_mutex_unlock_wrapper, mb, mb->pop);
+				     volatile_mutex_unlock_wrapper, mb,
+				     mb->pop);
 	} else {
 		bench_operation_all_lock(volatile_mutex_lock_wrapper,
-				volatile_mutex_unlock_wrapper, mb, mb->pop);
+					 volatile_mutex_unlock_wrapper, mb,
+					 mb->pop);
 	}
 
 	if (mb->pa->run_id_increment)
@@ -610,10 +620,9 @@ op_bench_vmutex(struct mutex_bench *mb)
 }
 
 struct bench_ops benchmark_ops[BENCH_MODE_MAX] = {
-	{ init_bench_mutex, exit_bench_mutex, op_bench_mutex },
-	{ init_bench_rwlock, exit_bench_rwlock, op_bench_rwlock },
-	{ init_bench_vmutex, exit_bench_vmutex, op_bench_vmutex }
-};
+	{init_bench_mutex, exit_bench_mutex, op_bench_mutex},
+	{init_bench_rwlock, exit_bench_rwlock, op_bench_rwlock},
+	{init_bench_vmutex, exit_bench_vmutex, op_bench_vmutex}};
 
 /*
  * operation_mode -- parses command line "--mode" and returns
@@ -696,8 +705,8 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	mb->pop = pmemobj_create(args->fname,
-			POBJ_LAYOUT_NAME(pmembench_lock_layout),
-			poolsize, args->fmode);
+				 POBJ_LAYOUT_NAME(pmembench_lock_layout),
+				 poolsize, args->fmode);
 
 	if (mb->pop == NULL) {
 		ret = -1;
@@ -733,8 +742,8 @@ locks_exit(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct mutex_bench *mb = (struct mutex_bench *)
-		pmembench_get_priv(bench);
+	struct mutex_bench *mb =
+		(struct mutex_bench *)pmembench_get_priv(bench);
 	assert(mb != NULL);
 
 	mb->ops->bench_exit(mb);
@@ -753,8 +762,8 @@ locks_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 locks_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct mutex_bench *mb = (struct mutex_bench *)
-		pmembench_get_priv(bench);
+	struct mutex_bench *mb =
+		(struct mutex_bench *)pmembench_get_priv(bench);
 	assert(mb != NULL);
 	assert(mb->pop != NULL);
 	assert(!TOID_IS_NULL(mb->root));
@@ -775,8 +784,8 @@ pmem_locks_costructor(void)
 {
 	locks_clo[0].opt_short = 'p';
 	locks_clo[0].opt_long = "use_pthread";
-	locks_clo[0].descr = "Use pthread locks instead of PMEM, does not "
-		"matter for volatile mutex";
+	locks_clo[0].descr = "Use pthread locks instead of PMEM, "
+			     "does not matter for volatile mutex";
 	locks_clo[0].def = "false";
 	locks_clo[0].off = clo_field_offset(struct prog_args, use_pthread);
 	locks_clo[0].type = CLO_TYPE_FLAG;
@@ -784,7 +793,7 @@ pmem_locks_costructor(void)
 	locks_clo[1].opt_short = 'm';
 	locks_clo[1].opt_long = "numlocks";
 	locks_clo[1].descr = "The number of lock objects used "
-		"for benchmark";
+			     "for benchmark";
 	locks_clo[1].def = "1";
 	locks_clo[1].off = clo_field_offset(struct prog_args, n_locks);
 	locks_clo[1].type = CLO_TYPE_UINT;
@@ -802,44 +811,41 @@ pmem_locks_costructor(void)
 
 	locks_clo[3].opt_short = 'r';
 	locks_clo[3].opt_long = "run_id";
-	locks_clo[3].descr = "Increment the run_id of PMEM object pool "
-		"after each operation";
+	locks_clo[3].descr = "Increment the run_id of PMEM object "
+			     "pool after each operation";
 	locks_clo[3].def = "false";
-	locks_clo[3].off = clo_field_offset(struct prog_args,
-		run_id_increment);
+	locks_clo[3].off = clo_field_offset(struct prog_args, run_id_increment);
 	locks_clo[3].type = CLO_TYPE_FLAG;
-
 
 	locks_clo[4].opt_short = 'i';
 	locks_clo[4].opt_long = "run_id_init_val";
-	locks_clo[4].descr = "Use this value for initializing the run_id "
-		"of each PMEMmutex object";
+	locks_clo[4].descr = "Use this value for initializing the "
+			     "run_id of each PMEMmutex object";
 	locks_clo[4].def = "2";
-	locks_clo[4].off = clo_field_offset(struct prog_args,
-		runid_initial_value);
+	locks_clo[4].off =
+		clo_field_offset(struct prog_args, runid_initial_value);
 	locks_clo[4].type = CLO_TYPE_UINT;
 
-	locks_clo[4].type_uint.size = clo_field_size(struct prog_args,
-						runid_initial_value);
+	locks_clo[4].type_uint.size =
+		clo_field_size(struct prog_args, runid_initial_value);
 	locks_clo[4].type_uint.base = CLO_INT_BASE_DEC;
 	locks_clo[4].type_uint.min = 0;
 	locks_clo[4].type_uint.max = UINT64_MAX;
 
 	locks_clo[5].opt_short = 'b';
 	locks_clo[5].opt_long = "bench_type";
-	locks_clo[5].descr = "The Benchmark type: mutex, rwlock or "
-		"volatile-mutex";
+	locks_clo[5].descr = "The Benchmark type: mutex, "
+			     "rwlock or volatile-mutex";
 	locks_clo[5].type = CLO_TYPE_STR;
 	locks_clo[5].off = clo_field_offset(struct prog_args, lock_type);
 	locks_clo[5].def = "mutex";
 
 	locks_clo[6].opt_short = 'R';
 	locks_clo[6].opt_long = "rdlock";
-	locks_clo[6].descr = "Select read over write lock, only valid "
-		"when lock_type is \"rwlock\"";
+	locks_clo[6].descr = "Select read over write lock, only "
+			     "valid when lock_type is \"rwlock\"";
 	locks_clo[6].type = CLO_TYPE_FLAG;
-	locks_clo[6].off = clo_field_offset(struct prog_args,
-		use_rdlock);
+	locks_clo[6].off = clo_field_offset(struct prog_args, use_rdlock);
 
 	locks_info.name = "obj_locks";
 	locks_info.brief = "Benchmark for pmem locks operations";

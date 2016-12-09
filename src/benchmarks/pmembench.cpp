@@ -34,31 +34,31 @@
  * pmembench.c -- main source file for benchmark framework
  */
 
+#include <assert.h>
+#include <dirent.h>
+#include <err.h>
+#include <errno.h>
+#include <float.h>
+#include <getopt.h>
+#include <inttypes.h>
+#include <linux/limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <err.h>
-#include <assert.h>
-#include <getopt.h>
-#include <unistd.h>
-#include <math.h>
-#include <float.h>
 #include <sys/queue.h>
 #include <sys/wait.h>
-#include <linux/limits.h>
-#include <dirent.h>
-#include <errno.h>
-#include <inttypes.h>
+#include <unistd.h>
 
-#include "mmap.h"
-#include "set.h"
 #include "benchmark.hpp"
 #include "benchmark_worker.hpp"
-#include "scenario.hpp"
-#include "clo_vec.hpp"
 #include "clo.hpp"
+#include "clo_vec.hpp"
 #include "config_reader.hpp"
-#include "util.h"
 #include "file.h"
+#include "mmap.h"
+#include "scenario.hpp"
+#include "set.h"
+#include "util.h"
 #ifndef _WIN32
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
@@ -67,8 +67,7 @@
 /*
  * struct pmembench -- main context
  */
-struct pmembench
-{
+struct pmembench {
 	int argc;
 	char **argv;
 	struct scenario *scenario;
@@ -79,8 +78,7 @@ struct pmembench
 /*
  * struct benchmark -- benchmark's context
  */
-struct benchmark
-{
+struct benchmark {
 	LIST_ENTRY(benchmark) next;
 	struct benchmark_info *info;
 	void *priv;
@@ -92,8 +90,7 @@ struct benchmark
 /*
  * struct results -- statistics for total measurements
  */
-struct results
-{
+struct results {
 	double min;
 	double max;
 	double avg;
@@ -104,8 +101,7 @@ struct results
 /*
  * struct latency -- statistics for latency measurements
  */
-struct latency
-{
+struct latency {
 	uint64_t max;
 	uint64_t min;
 	uint64_t avg;
@@ -115,8 +111,7 @@ struct latency
 /*
  * struct bench_list -- list of available benchmarks
  */
-struct bench_list
-{
+struct bench_list {
 	LIST_HEAD(benchmarks_head, benchmark) head;
 	bool initialized;
 };
@@ -124,19 +119,16 @@ struct bench_list
 /*
  * struct benchmark_opts -- arguments for pmembench
  */
-struct benchmark_opts
-{
+struct benchmark_opts {
 	bool help;
 	bool version;
 	const char *file_name;
 };
 
-static struct version_s
-{
+static struct version_s {
 	unsigned major;
 	unsigned minor;
 } version = {1, 0};
-
 
 /* benchmarks list initialization */
 static struct bench_list benchmarks;
@@ -161,27 +153,26 @@ pmembench_costructor(void)
 	pmembench_opts[1].opt_long = "version";
 	pmembench_opts[1].descr = "Print version";
 	pmembench_opts[1].type = CLO_TYPE_FLAG;
-	pmembench_opts[1].off = clo_field_offset(struct benchmark_opts,
-		version);
+	pmembench_opts[1].off =
+		clo_field_offset(struct benchmark_opts, version);
 	pmembench_opts[1].ignore_in_res = true;
 
 	pmembench_clos[0].opt_short = 'h';
 	pmembench_clos[0].opt_long = "help";
 	pmembench_clos[0].descr = "Print help for single benchmark";
 	pmembench_clos[0].type = CLO_TYPE_FLAG;
-	pmembench_clos[0].off = clo_field_offset(struct benchmark_args,
-		help);
+	pmembench_clos[0].off = clo_field_offset(struct benchmark_args, help);
 	pmembench_clos[0].ignore_in_res = true;
 
 	pmembench_clos[1].opt_short = 't';
 	pmembench_clos[1].opt_long = "threads";
 	pmembench_clos[1].type = CLO_TYPE_UINT;
 	pmembench_clos[1].descr = "Number of working threads";
-	pmembench_clos[1].off = clo_field_offset(struct benchmark_args,
-		n_threads);
+	pmembench_clos[1].off =
+		clo_field_offset(struct benchmark_args, n_threads);
 	pmembench_clos[1].def = "1";
-	pmembench_clos[1].type_uint.size = clo_field_size(struct benchmark_args,
-		n_threads);
+	pmembench_clos[1].type_uint.size =
+		clo_field_size(struct benchmark_args, n_threads);
 	pmembench_clos[1].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[1].type_uint.min = 1;
 	pmembench_clos[1].type_uint.max = 32;
@@ -190,11 +181,11 @@ pmembench_costructor(void)
 	pmembench_clos[2].opt_long = "ops-per-thread";
 	pmembench_clos[2].type = CLO_TYPE_UINT;
 	pmembench_clos[2].descr = "Number of operations per thread";
-	pmembench_clos[2].off = clo_field_offset(struct benchmark_args,
-		n_ops_per_thread);
+	pmembench_clos[2].off =
+		clo_field_offset(struct benchmark_args, n_ops_per_thread);
 	pmembench_clos[2].def = "1";
-	pmembench_clos[2].type_uint.size = clo_field_size(struct benchmark_args,
-		n_ops_per_thread);
+	pmembench_clos[2].type_uint.size =
+		clo_field_size(struct benchmark_args, n_ops_per_thread);
 	pmembench_clos[2].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[2].type_uint.min = 1;
 	pmembench_clos[2].type_uint.max = ULLONG_MAX;
@@ -206,8 +197,8 @@ pmembench_costructor(void)
 	pmembench_clos[3].off = clo_field_offset(struct benchmark_args, dsize);
 	pmembench_clos[3].def = "1";
 
-	pmembench_clos[3].type_uint.size = clo_field_size(struct benchmark_args,
-		dsize);
+	pmembench_clos[3].type_uint.size =
+		clo_field_size(struct benchmark_args, dsize);
 	pmembench_clos[3].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pmembench_clos[3].type_uint.min = 1;
 	pmembench_clos[3].type_uint.max = ULONG_MAX;
@@ -227,8 +218,8 @@ pmembench_costructor(void)
 	pmembench_clos[5].off = clo_field_offset(struct benchmark_args, fmode);
 	pmembench_clos[5].def = "0666";
 	pmembench_clos[5].ignore_in_res = true;
-	pmembench_clos[5].type_uint.size = clo_field_size(struct benchmark_args,
-		fmode);
+	pmembench_clos[5].type_uint.size =
+		clo_field_size(struct benchmark_args, fmode);
 	pmembench_clos[5].type_uint.base = CLO_INT_BASE_OCT;
 	pmembench_clos[5].type_uint.min = 0;
 	pmembench_clos[5].type_uint.max = ULONG_MAX;
@@ -239,8 +230,8 @@ pmembench_costructor(void)
 	pmembench_clos[6].descr = "PRNG seed";
 	pmembench_clos[6].off = clo_field_offset(struct benchmark_args, seed);
 	pmembench_clos[6].def = "0";
-	pmembench_clos[6].type_uint.size = clo_field_size(struct benchmark_args,
-		seed);
+	pmembench_clos[6].type_uint.size =
+		clo_field_size(struct benchmark_args, seed);
 	pmembench_clos[6].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[6].type_uint.min = 0;
 	pmembench_clos[6].type_uint.max = ~0;
@@ -249,16 +240,15 @@ pmembench_costructor(void)
 	pmembench_clos[7].opt_long = "repeats";
 	pmembench_clos[7].type = CLO_TYPE_UINT;
 	pmembench_clos[7].descr = "Number of repeats of scenario";
-	pmembench_clos[7].off = clo_field_offset(struct benchmark_args,
-		repeats);
+	pmembench_clos[7].off =
+		clo_field_offset(struct benchmark_args, repeats);
 	pmembench_clos[7].def = "1";
-	pmembench_clos[7].type_uint.size = clo_field_size(struct benchmark_args,
-		repeats);
+	pmembench_clos[7].type_uint.size =
+		clo_field_size(struct benchmark_args, repeats);
 	pmembench_clos[7].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pmembench_clos[7].type_uint.min = 1;
 	pmembench_clos[7].type_uint.max = ULONG_MAX;
 }
-
 
 /*
  * pmembench_get_priv -- return private structure of benchmark
@@ -333,19 +323,18 @@ pmembench_merge_clos(struct benchmark *bench)
 		nclos += bench->info->nclos;
 	}
 
-	struct benchmark_clo *clos = (struct benchmark_clo *)calloc(nclos,
-			sizeof(struct benchmark_clo));
+	struct benchmark_clo *clos = (struct benchmark_clo *)calloc(
+		nclos, sizeof(struct benchmark_clo));
 	assert(clos != NULL);
 
 	memcpy(clos, pmembench_clos, pb_nclos * sizeof(struct benchmark_clo));
 
 	if (bench->info->clos) {
-		memcpy(&clos[pb_nclos], bench->info->clos, bench->info->nclos *
-				sizeof(struct benchmark_clo));
+		memcpy(&clos[pb_nclos], bench->info->clos,
+		       bench->info->nclos * sizeof(struct benchmark_clo));
 
 		for (i = 0; i < bench->info->nclos; i++) {
-			clos[pb_nclos + i].off +=
-				sizeof(struct benchmark_args);
+			clos[pb_nclos + i].off += sizeof(struct benchmark_args);
 		}
 	}
 
@@ -389,29 +378,27 @@ pmembench_run_worker(struct benchmark *bench, struct worker_info *winfo)
  */
 static void
 pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
-		struct clo_vec *clovec)
+		       struct clo_vec *clovec)
 {
 	if (pb->scenario) {
-		printf("%s: %s [%" PRIu64 "]%s%s%s\n",
-			pb->scenario->name,
-			bench->info->name,
-			clovec->nargs,
-			pb->scenario->group ? " [group: " : "",
-			pb->scenario->group ? pb->scenario->group : "",
-			pb->scenario->group ? "]" : "");
+		printf("%s: %s [%" PRIu64 "]%s%s%s\n", pb->scenario->name,
+		       bench->info->name, clovec->nargs,
+		       pb->scenario->group ? " [group: " : "",
+		       pb->scenario->group ? pb->scenario->group : "",
+		       pb->scenario->group ? "]" : "");
 	} else {
 		printf("%s [%" PRIu64 "]\n", bench->info->name, clovec->nargs);
 	}
 	printf("total-avg[sec];"
-		"ops-per-second[1/sec];"
-		"total-max[sec];"
-		"total-min[sec];"
-		"total-median[sec];"
-		"total-std-dev[sec];"
-		"latency-avg[nsec];"
-		"latency-min[nsec];"
-		"latency-max[nsec];"
-		"latency-std-dev[nsec]");
+	       "ops-per-second[1/sec];"
+	       "total-max[sec];"
+	       "total-min[sec];"
+	       "total-median[sec];"
+	       "total-std-dev[sec];"
+	       "latency-avg[nsec];"
+	       "latency-min[nsec];"
+	       "latency-max[nsec];"
+	       "latency-std-dev[nsec]");
 	size_t i;
 	for (i = 0; i < bench->nclos; i++) {
 		if (!bench->clos[i].ignore_in_res) {
@@ -426,28 +413,20 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
  */
 static void
 pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
-				size_t n_threads, size_t n_ops,
-				struct results *stats, struct latency *latency)
+			size_t n_threads, size_t n_ops, struct results *stats,
+			struct latency *latency)
 {
 	double opsps = n_threads * n_ops / stats->avg;
-	printf("%f;%f;%f;%f;%f;%f;%" PRIu64 ";%" PRIu64";%" PRIu64 ";%f",
-			stats->avg,
-			opsps,
-			stats->max,
-			stats->min,
-			stats->med,
-			stats->std_dev,
-			latency->avg,
-			latency->min,
-			latency->max,
-			latency->std_dev);
+	printf("%f;%f;%f;%f;%f;%f;%" PRIu64 ";%" PRIu64 ";%" PRIu64 ";%f",
+	       stats->avg, opsps, stats->max, stats->min, stats->med,
+	       stats->std_dev, latency->avg, latency->min, latency->max,
+	       latency->std_dev);
 
 	size_t i;
 	for (i = 0; i < bench->nclos; i++) {
 		if (!bench->clos[i].ignore_in_res)
-			printf(";%s",
-				benchmark_clo_str(&bench->clos[i], args,
-					bench->args_size));
+			printf(";%s", benchmark_clo_str(&bench->clos[i], args,
+							bench->args_size));
 	}
 	printf("\n");
 }
@@ -457,11 +436,11 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
  */
 static int
 pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
-		struct clo_vec *clovec)
+		    struct clo_vec *clovec)
 {
 	if (!pb->scenario) {
 		return benchmark_clo_parse(pb->argc, pb->argv, bench->clos,
-						bench->nclos, clovec);
+					   bench->nclos, clovec);
 	}
 
 	if (pb->override_clos) {
@@ -470,9 +449,9 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 		 * general clos and are placed at the beginning of the
 		 * clos array.
 		 */
-		int ret = benchmark_override_clos_in_scenario(pb->scenario,
-					pb->argc, pb->argv, bench->clos,
-					ARRAY_SIZE(pmembench_clos));
+		int ret = benchmark_override_clos_in_scenario(
+			pb->scenario, pb->argc, pb->argv, bench->clos,
+			ARRAY_SIZE(pmembench_clos));
 		/* reset for the next benchmark in the config file */
 		optind = 1;
 
@@ -480,7 +459,7 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 			return ret;
 	}
 	return benchmark_clo_parse_scenario(pb->scenario, bench->clos,
-						bench->nclos, clovec);
+					    bench->nclos, clovec);
 }
 
 /*
@@ -488,15 +467,16 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
  */
 static int
 pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
-	size_t n_ops, struct benchmark *bench, struct benchmark_args *args)
+		       size_t n_ops, struct benchmark *bench,
+		       struct benchmark_args *args)
 {
 	size_t i;
 	for (i = 0; i < nworkers; i++) {
 		workers[i] = benchmark_worker_alloc();
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
-		workers[i]->info.opinfo = (struct operation_info *)calloc(n_ops,
-				sizeof(struct operation_info));
+		workers[i]->info.opinfo = (struct operation_info *)calloc(
+			n_ops, sizeof(struct operation_info));
 		size_t j;
 		for (j = 0; j < n_ops; j++) {
 			workers[i]->info.opinfo[j].worker = &workers[i]->info;
@@ -538,7 +518,7 @@ compare_doubles(const void *a1, const void *b1)
  */
 static void
 pmembench_get_results(struct benchmark_worker **workers, size_t nworkers,
-		struct latency *stats, double *workers_times)
+		      struct latency *stats, double *workers_times)
 {
 	memset(stats, 0, sizeof(*stats));
 	stats->min = ~0;
@@ -582,15 +562,14 @@ pmembench_get_results(struct benchmark_worker **workers, size_t nworkers,
 	for (i = 0; i < nworkers; i++) {
 		for (j = 0; j < workers[i]->info.nops; j++) {
 			nsecs = benchmark_time_get_nsecs(
-				&workers[i]->info.opinfo[j].t_diff)
-				- nsecs_dummy;
-			d = nsecs > stats->avg ? nsecs - stats->avg :
-							stats->avg - nsecs;
+					&workers[i]->info.opinfo[j].t_diff) -
+				nsecs_dummy;
+			d = nsecs > stats->avg ? nsecs - stats->avg
+					       : stats->avg - nsecs;
 			stats->std_dev += d * d;
 		}
 	}
 	stats->std_dev = sqrt(stats->std_dev / count);
-
 }
 
 /*
@@ -598,8 +577,8 @@ pmembench_get_results(struct benchmark_worker **workers, size_t nworkers,
  */
 static void
 pmembench_get_total_results(struct latency *stats, double *workers_times,
-				struct results *total, struct latency *latency,
-				size_t repeats, size_t nworkers)
+			    struct results *total, struct latency *latency,
+			    size_t repeats, size_t nworkers)
 {
 	memset(total, 0, sizeof(*total));
 	memset(latency, 0, sizeof(*latency));
@@ -631,21 +610,22 @@ pmembench_get_total_results(struct latency *stats, double *workers_times,
 	total->max = workers_times[nresults - 1];
 	if (nresults % 2 == 0)
 		total->med = (workers_times[nresults / 2] +
-		    workers_times[nresults / 2 - 1]) / 2;
+			      workers_times[nresults / 2 - 1]) /
+			2;
 	else
 		total->med = workers_times[nresults / 2];
 
 	for (i = 0; i < repeats; i++) {
 		d = stats[i].std_dev > latency->avg
-				? stats[i].std_dev - latency->avg
-				: latency->avg - stats[i].std_dev;
+			? stats[i].std_dev - latency->avg
+			: latency->avg - stats[i].std_dev;
 		latency->std_dev += d * d;
 
 		for (j = 0; j < nworkers; j++) {
 			size_t idx = i * nworkers + j;
-			df = workers_times[idx] > total->avg ?
-					workers_times[idx] - total->avg :
-					total->avg - workers_times[idx];
+			df = workers_times[idx] > total->avg
+				? workers_times[idx] - total->avg
+				: total->avg - workers_times[idx];
 			total->std_dev += df * df;
 		}
 	}
@@ -708,7 +688,7 @@ static void
 pmembench_print_usage()
 {
 	printf("Usage: $ pmembench [-h|--help] [-v|--version]"
-			"\t[<benchmark>[<args>]]\n");
+	       "\t[<benchmark>[<args>]]\n");
 	printf("\t\t\t\t\t\t[<config>[<scenario>]]\n");
 	printf("\t\t\t\t\t\t[<config>[<scenario>[<common_args>]]]\n");
 }
@@ -720,7 +700,7 @@ static void
 pmembench_print_version()
 {
 	printf("Benchmark framework - version %d.%d\n", version.major,
-							version.minor);
+	       version.minor);
 }
 
 /*
@@ -742,9 +722,9 @@ pmembench_print_examples()
 	printf("$ pmembench <config_file> <name_of_scenario>\n");
 	printf(" # runs the specified scenario from config file\n");
 	printf("$ pmembench <config_file> <name_of_scenario_1> "
-		"<name_of_scenario_2> <common_args>\n");
+	       "<name_of_scenario_2> <common_args>\n");
 	printf(" # runs the specified scenarios from config file and overwrites"
-		" the given common_args from the config file\n");
+	       " the given common_args from the config file\n");
 }
 
 /*
@@ -762,10 +742,9 @@ pmembench_print_help()
 	printf("\nAvaliable benchmarks:\n");
 	struct benchmark *bench = NULL;
 	LIST_FOREACH(bench, &benchmarks.head, next)
-		printf("\t%-20s\t\t%s\n", bench->info->name,
-						bench->info->brief);
+	printf("\t%-20s\t\t%s\n", bench->info->name, bench->info->brief);
 	printf("\n$ pmembench <benchmark> --help to print detailed information"
-				" about benchmark arguments\n");
+	       " about benchmark arguments\n");
 	pmembench_print_examples();
 }
 
@@ -776,7 +755,8 @@ static struct benchmark *
 pmembench_get_bench(const char *name)
 {
 	struct benchmark *bench;
-	LIST_FOREACH(bench, &benchmarks.head, next) {
+	LIST_FOREACH(bench, &benchmarks.head, next)
+	{
 		if (strcmp(name, bench->info->name) == 0)
 			return bench;
 	}
@@ -801,8 +781,7 @@ pmembench_parse_opts(struct pmembench *pb)
 	clovec = clo_vec_alloc(size);
 	assert(clovec != NULL);
 
-	if (benchmark_clo_parse(argc, argv, pmembench_opts,
-			n_clos, clovec)) {
+	if (benchmark_clo_parse(argc, argv, pmembench_opts, n_clos, clovec)) {
 		ret = -1;
 		goto out;
 	}
@@ -822,41 +801,18 @@ out:
 	clo_vec_free(clovec);
 	return ret;
 }
-/* XXX: no rpmem on windows */
-#ifndef _WIN32
-/*
- * remove_remote -- remove remote pool
- */
-static int
-remove_remote(const char *node, const char *pool)
-{
-	struct rpmem_target_info *info = rpmem_target_parse(node);
-	if (!info)
-		err(1, "parsing target node -- '%s", node);
 
-	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove", pool, NULL);
-	if (!ssh)
-		err(1, "rpmem_ssh_exec: remove -- '%s'", pool);
-
-	if (rpmem_ssh_monitor(ssh, 0))
-		err(1, "rpmem_ssh_monitor");
-
-	rpmem_ssh_close(ssh);
-	rpmem_target_free(info);
-
-	return 0;
-}
-#endif
 /*
  * remove_part_cb -- callback function for removing all pool set part files
  */
 static int
 remove_part_cb(struct part_file *pf, void *arg)
 {
-	/* XXX: no rpmem on windows */
-#ifndef _WIN32
+/* XXX: no rpmem on windows */
+#ifdef RPMEM_AVAILABLE
 	if (pf->is_remote)
-		return remove_remote(pf->node_addr, pf->pool_desc);
+		return rpmem_remove(pf->node_addr, pf->pool_desc,
+				    RPMEM_REMOVE_FORCE);
 #endif
 	const char *part_file = pf->path;
 
@@ -885,8 +841,8 @@ pmembench_remove_file(const char *path)
 		if (ret == 0) {
 			return util_unlink(path);
 		} else if (ret == 1) {
-			return util_poolset_foreach_part(path,
-				remove_part_cb, NULL);
+			return util_poolset_foreach_part(path, remove_part_cb,
+							 NULL);
 		}
 
 		return ret;
@@ -908,7 +864,7 @@ pmembench_remove_file(const char *path)
 			return -1;
 		sprintf(tmp, "%s/%s", path, info.filename);
 		ret = info.is_dir ? pmembench_remove_file(tmp)
-			: util_unlink(tmp);
+				  : util_unlink(tmp);
 		free(tmp);
 		if (ret != 0) {
 			util_file_dir_close(&it);
@@ -969,7 +925,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 	if (pmembench_parse_clo(pb, bench, clovec)) {
 		warn("%s: parsing command line arguments failed",
-				bench->info->name);
+		     bench->info->name);
 		ret = -1;
 		goto out_release_args;
 	}
@@ -977,7 +933,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	args = (struct benchmark_args *)clo_vec_get_args(clovec, 0);
 	if (args == NULL) {
 		warn("%s: parsing command line arguments failed",
-				bench->info->name);
+		     bench->info->name);
 		ret = -1;
 		goto out_release_args;
 	}
@@ -991,21 +947,21 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
-		args = (struct benchmark_args *)
-			clo_vec_get_args(clovec, args_i);
+		args = (struct benchmark_args *)clo_vec_get_args(clovec,
+								 args_i);
 		if (args == NULL) {
 			warn("%s: parsing command line arguments failed",
-				bench->info->name);
+			     bench->info->name);
 			ret = -1;
 			goto out;
 		}
 		args->opts = (void *)((uintptr_t)args +
-				sizeof(struct benchmark_args));
+				      sizeof(struct benchmark_args));
 		args->is_poolset = util_is_poolset_file(args->fname) == 1;
 		if (args->is_poolset) {
 			if (!bench->info->allow_poolset) {
 				fprintf(stderr, "poolset files "
-					"not supported\n");
+						"not supported\n");
 				goto out;
 			}
 			args->fsize = util_poolset_size(args->fname);
@@ -1015,16 +971,16 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			}
 		}
 
-		size_t n_threads = !bench->info->multithread ? 1 :
-						args->n_threads;
-		size_t n_ops = !bench->info->multiops ? 1 :
-						args->n_ops_per_thread;
+		size_t n_threads =
+			!bench->info->multithread ? 1 : args->n_threads;
+		size_t n_ops =
+			!bench->info->multiops ? 1 : args->n_ops_per_thread;
 
-		stats = (struct latency *)
-			calloc(args->repeats, sizeof(struct latency));
+		stats = (struct latency *)calloc(args->repeats,
+						 sizeof(struct latency));
 		assert(stats != NULL);
 		workers_times = (double *)calloc(n_threads * args->repeats,
-							sizeof(double));
+						 sizeof(double));
 		assert(workers_times != NULL);
 
 		for (unsigned i = 0; i < args->repeats; i++) {
@@ -1039,7 +995,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			if (bench->info->init) {
 				if (bench->info->init(bench, args)) {
 					warn("%s: initialization failed",
-						bench->info->name);
+					     bench->info->name);
 					ret = -1;
 					goto out;
 				}
@@ -1048,13 +1004,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			assert(bench->info->operation != NULL);
 
 			struct benchmark_worker **workers;
-			workers = (struct benchmark_worker **)
-					malloc(args->n_threads *
-					sizeof(struct benchmark_worker *));
+			workers = (struct benchmark_worker **)malloc(
+				args->n_threads *
+				sizeof(struct benchmark_worker *));
 			assert(workers != NULL);
 
 			if ((ret = pmembench_init_workers(workers, n_threads,
-						n_ops, bench, args)) != 0) {
+							  n_ops, bench,
+							  args)) != 0) {
 				if (bench->info->exit)
 					bench->info->exit(bench, args);
 				goto out;
@@ -1070,13 +1027,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				if (workers[j]->ret != 0) {
 					ret = workers[j]->ret;
 					fprintf(stderr,
-					"thread number %d failed\n", j);
+						"thread number %d failed\n", j);
 				}
 			}
 			if (ret == 0)
-				pmembench_get_results(workers, n_threads,
-						&stats[i],
-						&workers_times[i * n_threads]);
+				pmembench_get_results(
+					workers, n_threads, &stats[i],
+					&workers_times[i * n_threads]);
 
 			for (j = 0; j < args->n_threads; j++) {
 				benchmark_worker_exit(workers[j]);
@@ -1088,14 +1045,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			free(workers);
 
 			if (bench->info->exit)
-			bench->info->exit(bench, args);
+				bench->info->exit(bench, args);
 		}
 		struct results total;
 		struct latency latency;
 		pmembench_get_total_results(stats, workers_times, &total,
-					&latency, args->repeats, n_threads);
-		pmembench_print_results(bench, args, n_threads, n_ops,
-							&total, &latency);
+					    &latency, args->repeats, n_threads);
+		pmembench_print_results(bench, args, n_threads, n_ops, &total,
+					&latency);
 		free(stats);
 		free(workers_times);
 		stats = NULL;
@@ -1126,9 +1083,7 @@ out_release_clos:
 /*
  * pmembench_free_benchmarks -- release all benchmarks
  */
-static void
-__attribute__((destructor))
-pmembench_free_benchmarks(void)
+static void __attribute__((destructor)) pmembench_free_benchmarks(void)
 {
 	while (!LIST_EMPTY(&benchmarks.head)) {
 		struct benchmark *bench = LIST_FIRST(&benchmarks.head);
@@ -1159,7 +1114,8 @@ static int
 pmembench_run_scenarios(struct pmembench *pb, struct scenarios *ss)
 {
 	struct scenario *scenario;
-	FOREACH_SCENARIO(scenario, ss) {
+	FOREACH_SCENARIO(scenario, ss)
+	{
 		if (pmembench_run_scenario(pb, scenario) != 0)
 			return -1;
 	}
@@ -1203,9 +1159,8 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 			struct scenarios *cmd_ss = scenarios_alloc();
 			assert(cmd_ss != NULL);
 
-			int parsed_scenarios =
-				clo_get_scenarios(tmp_argc, tmp_argv,
-							ss, cmd_ss);
+			int parsed_scenarios = clo_get_scenarios(
+				tmp_argc, tmp_argv, ss, cmd_ss);
 			if (parsed_scenarios < 0)
 				goto out_cmd;
 
@@ -1225,7 +1180,7 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 			pb->argv += parsed_scenarios;
 			ret = pmembench_run_scenarios(pb, cmd_ss);
 
-out_cmd:
+		out_cmd:
 			scenarios_free(cmd_ss);
 		}
 	}
@@ -1241,10 +1196,8 @@ int
 main(int argc, char *argv[])
 {
 	util_init();
-#ifndef _WIN32
-	rpmem_util_cmds_init();
-#endif
 	util_mmap_init();
+
 	int ret = 0;
 	int fexists;
 	struct benchmark *bench;

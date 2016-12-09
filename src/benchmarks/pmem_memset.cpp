@@ -33,14 +33,14 @@
  * pmem_memset.c -- benchmark for pmem_memset function
  */
 
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <libpmem.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <assert.h>
-#include <unistd.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "benchmark.hpp"
 
@@ -49,20 +49,19 @@
 
 struct memset_bench;
 
-typedef int (*operation_fn) (void *dest, int c, size_t len);
+typedef int (*operation_fn)(void *dest, int c, size_t len);
 
 /*
  * memset_args -- benchmark specific command line options
  */
-struct memset_args
-{
-	char *mode;		/* operation mode: stat, seq, rand */
-	bool memset;		/* use libc memset function */
-	bool persist;		/* perform persist operation */
-	bool no_warmup;		/* do not do warmup */
-	size_t chunk_size;	/* elementary chunk size */
-	size_t dest_off;	/* destination address offset */
-	unsigned seed;		/* seed for random numbers */
+struct memset_args {
+	char *mode;	/* operation mode: stat, seq, rand */
+	bool memset;       /* use libc memset function */
+	bool persist;      /* perform persist operation */
+	bool no_warmup;    /* do not do warmup */
+	size_t chunk_size; /* elementary chunk size */
+	size_t dest_off;   /* destination address offset */
+	unsigned seed;     /* seed for random numbers */
 };
 
 /*
@@ -70,12 +69,12 @@ struct memset_args
  */
 struct memset_bench {
 	struct memset_args *pargs; /* benchmark specific arguments */
-	uint64_t *offsets;	/* random/sequential address offsets */
-	size_t n_offsets;		/* number of random elements */
-	int const_b;		/* memset() value */
-	size_t fsize;		/* file size */
-	void *pmem_addr;	/* mapped file address */
-	operation_fn func_op;	/* operation function */
+	uint64_t *offsets;	 /* random/sequential address offsets */
+	size_t n_offsets;	  /* number of random elements */
+	int const_b;		   /* memset() value */
+	size_t fsize;		   /* file size */
+	void *pmem_addr;	   /* mapped file address */
+	operation_fn func_op;      /* operation function */
 };
 
 struct memset_worker {
@@ -86,9 +85,9 @@ struct memset_worker {
  */
 enum operation_mode {
 	OP_MODE_UNKNOWN,
-	OP_MODE_STAT,	/* always use the same chunk */
-	OP_MODE_SEQ,	/* use consecutive chunks */
-	OP_MODE_RAND	/* use random chunks */
+	OP_MODE_STAT, /* always use the same chunk */
+	OP_MODE_SEQ,  /* use consecutive chunks */
+	OP_MODE_RAND  /* use random chunks */
 };
 
 /*
@@ -112,7 +111,7 @@ parse_op_mode(const char *arg)
  */
 static int
 init_offsets(struct benchmark_args *args, struct memset_bench *mb,
-	enum operation_mode op_mode)
+	     enum operation_mode op_mode)
 {
 	uint64_t n_threads = args->n_threads;
 	uint64_t n_ops = args->n_ops_per_thread;
@@ -231,10 +230,10 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 
 	assert(info->index < mb->n_offsets);
 
-	uint64_t idx = info->worker->index * info->args->n_ops_per_thread
-						+ info->index;
-	void *dest = (char *)mb->pmem_addr + mb->offsets[idx]
-						+ mb->pargs->dest_off;
+	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
+		info->index;
+	void *dest =
+		(char *)mb->pmem_addr + mb->offsets[idx] + mb->pargs->dest_off;
 	int c = mb->const_b;
 	size_t len = mb->pargs->chunk_size;
 
@@ -255,8 +254,8 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	int ret = 0;
 	size_t size, large, little;
-	struct memset_bench *mb = (struct memset_bench *)
-		malloc(sizeof(struct memset_bench));
+	struct memset_bench *mb =
+		(struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -290,19 +289,19 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
-				PMEM_FILE_CREATE|PMEM_FILE_EXCL,
-				args->fmode, NULL, NULL)) == NULL) {
+					   PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+					   args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_offsets;
 	}
 
 	if (mb->pargs->memset)
-		mb->func_op = (mb->pargs->persist) ?
-				libc_memset_persist : libc_memset;
+		mb->func_op = (mb->pargs->persist) ? libc_memset_persist
+						   : libc_memset;
 	else
-		mb->func_op = (mb->pargs->persist) ?
-				libpmem_memset_persist : libpmem_memset_nodrain;
+		mb->func_op = (mb->pargs->persist) ? libpmem_memset_persist
+						   : libpmem_memset_nodrain;
 
 	if (!mb->pargs->no_warmup) {
 		do_warmup(mb, args->n_threads * args->n_ops_per_thread);
@@ -343,7 +342,8 @@ pmem_memset_costructor(void)
 {
 	memset_clo[0].opt_short = 'M';
 	memset_clo[0].opt_long = "mem-mode";
-	memset_clo[0].descr = "Memory writing mode - stat, seq, rand";
+	memset_clo[0].descr = "Memory writing mode - "
+			      "stat, seq, rand";
 	memset_clo[0].def = "seq";
 	memset_clo[0].off = clo_field_offset(struct memset_args, mode);
 	memset_clo[0].type = CLO_TYPE_STR;
@@ -364,12 +364,13 @@ pmem_memset_costructor(void)
 
 	memset_clo[3].opt_short = 'D';
 	memset_clo[3].opt_long = "dest-offset";
-	memset_clo[3].descr = "Destination cache line alignment offset";
+	memset_clo[3].descr = "Destination cache line alignment "
+			      "offset";
 	memset_clo[3].def = "0";
 	memset_clo[3].off = clo_field_offset(struct memset_args, dest_off);
 	memset_clo[3].type = CLO_TYPE_UINT;
-	memset_clo[3].type_uint.size = clo_field_size(struct memset_args,
-			dest_off);
+	memset_clo[3].type_uint.size =
+		clo_field_size(struct memset_args, dest_off);
 	memset_clo[3].type_uint.base = CLO_INT_BASE_DEC;
 	memset_clo[3].type_uint.min = 0;
 	memset_clo[3].type_uint.max = MAX_OFFSET;
@@ -377,7 +378,7 @@ pmem_memset_costructor(void)
 	memset_clo[4].opt_short = 'w';
 	memset_clo[4].opt_long = "no-warmup";
 	memset_clo[4].descr = "Don't do warmup";
-	memset_clo[4].def = false;
+	memset_clo[4].def = "false";
 	memset_clo[4].type = CLO_TYPE_FLAG;
 	memset_clo[4].off = clo_field_offset(struct memset_args, no_warmup);
 
@@ -393,8 +394,8 @@ pmem_memset_costructor(void)
 	memset_clo[5].type_uint.max = UINT_MAX;
 
 	memset_info.name = "pmem_memset";
-	memset_info.brief = "Benchmark for pmem_memset_persist() and"
-		" pmem_memset_nodrain() operations";
+	memset_info.brief = "Benchmark for pmem_memset_persist() "
+			    "and pmem_memset_nodrain() operations";
 	memset_info.init = memset_init;
 	memset_info.exit = memset_exit;
 	memset_info.multithread = true;

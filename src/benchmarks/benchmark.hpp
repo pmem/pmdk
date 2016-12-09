@@ -56,18 +56,18 @@
 #ifndef _BENCHMARK_H
 #define _BENCHMARK_H
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <limits.h>
+#include <stdlib.h>
 
 #include <util.h>
 
 #include "benchmark_time.hpp"
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 #define RRAND(max, min) (rand() % ((max) - (min)) + (min))
 
@@ -80,29 +80,27 @@ struct benchmark;
  * arguments which are automatically processed by framework according to
  * clos, nclos and opt_size in benchmark_info structure.
  */
-struct benchmark_args
-{
-	const char *fname;		/* path to test file */
-	size_t fsize;			/* size of test file */
-	bool is_poolset;		/* test file is a poolset */
-	mode_t fmode;			/* test file's permissions */
-	unsigned n_threads;		/* number of working threads */
-	uint64_t n_ops_per_thread;	/* number of operations per thread */
-	size_t dsize;			/* data size */
-	unsigned seed;			/* PRNG seed */
-	unsigned repeats;		/* number of repeats of one scenario */
-	bool help;			/* print help for benchmark */
-	void *opts;			/* benchmark specific arguments */
+struct benchmark_args {
+	const char *fname;	 /* path to test file */
+	size_t fsize;		   /* size of test file */
+	bool is_poolset;	   /* test file is a poolset */
+	mode_t fmode;		   /* test file's permissions */
+	unsigned n_threads;	/* number of working threads */
+	uint64_t n_ops_per_thread; /* number of operations per thread */
+	size_t dsize;		   /* data size */
+	unsigned seed;		   /* PRNG seed */
+	unsigned repeats;	  /* number of repeats of one scenario */
+	bool help;		   /* print help for benchmark */
+	void *opts;		   /* benchmark specific arguments */
 };
 
 /*
  * benchmark_results - Benchmark's execution results.
  */
-struct benchmark_results
-{
-	uint64_t nbytes;		/* number of bytes processed */
-	uint64_t nops;			/* number of operations executed */
-	benchmark_time_t time;		/* total execution time */
+struct benchmark_results {
+	uint64_t nbytes;       /* number of bytes processed */
+	uint64_t nops;	 /* number of operations executed */
+	benchmark_time_t time; /* total execution time */
 };
 
 /*
@@ -113,12 +111,10 @@ struct benchmark_results
 #define CLO_INT_BASE_HEX 0x2
 #define CLO_INT_BASE_OCT 0x4
 
-
 /*
  * Command Line Option type.
  */
-enum clo_type
-{
+enum clo_type {
 	CLO_TYPE_FLAG,
 	CLO_TYPE_STR,
 	CLO_TYPE_INT,
@@ -162,8 +158,7 @@ enum clo_type
  *                opt_var and max_size parameter must be set properly.
  * max_size	: Maximum size of string.
  */
-struct benchmark_clo
-{
+struct benchmark_clo {
 	int opt_short;
 	const char *opt_long;
 	enum clo_type type;
@@ -171,15 +166,13 @@ struct benchmark_clo
 	size_t off;
 	const char *def;
 	bool ignore_in_res;
-	struct
-	{
+	struct {
 		size_t size;
 		int base;
 		int64_t min;
 		int64_t max;
 	} type_int;
-	struct
-	{
+	struct {
 		size_t size;
 		int base;
 		uint64_t min;
@@ -188,29 +181,27 @@ struct benchmark_clo
 	int used;
 };
 
-#define clo_field_offset(s, f)	((size_t)&((s *)0)->f)
-#define clo_field_size(s, f)	(sizeof(((s *)0)->f))
+#define clo_field_offset(s, f) ((size_t) & ((s *)0)->f)
+#define clo_field_size(s, f) (sizeof(((s *)0)->f))
 
 /*
  * worker_info - Worker thread's information structure.
  */
-struct worker_info
-{
-	size_t index;			/* index of worker thread */
-	struct operation_info *opinfo;	/* operation info structure */
-	size_t nops;			/* number of operations */
-	void *priv;			/* worker's private data */
+struct worker_info {
+	size_t index;		       /* index of worker thread */
+	struct operation_info *opinfo; /* operation info structure */
+	size_t nops;		       /* number of operations */
+	void *priv;		       /* worker's private data */
 };
 
 /*
  * operation_info - Information about operation.
  */
-struct operation_info
-{
-	struct worker_info *worker;	/* worker's info */
-	struct benchmark_args *args;	/* benchmark arguments */
-	size_t index;			/* operation's index */
-	benchmark_time_t t_diff;	/* timestamp of start */
+struct operation_info {
+	struct worker_info *worker;  /* worker's info */
+	struct benchmark_args *args; /* benchmark arguments */
+	size_t index;		     /* operation's index */
+	benchmark_time_t t_diff;     /* timestamp of start */
 };
 
 /*
@@ -258,8 +249,7 @@ struct operation_info
  *  +-------------+----------+-------------------------------------+
  *
  */
-struct benchmark_info
-{
+struct benchmark_info {
 	const char *name;
 	const char *brief;
 	struct benchmark_clo *clos;
@@ -270,10 +260,10 @@ struct benchmark_info
 	int (*init)(struct benchmark *bench, struct benchmark_args *args);
 	int (*exit)(struct benchmark *bench, struct benchmark_args *args);
 	int (*init_worker)(struct benchmark *bench, struct benchmark_args *args,
-			struct worker_info *worker);
+			   struct worker_info *worker);
 	void (*free_worker)(struct benchmark *bench,
-			struct benchmark_args *args,
-			struct worker_info *worker);
+			    struct benchmark_args *args,
+			    struct worker_info *worker);
 	int (*operation)(struct benchmark *bench, struct operation_info *info);
 	int (*op_init)(struct benchmark *bench, struct operation_info *info);
 	int (*op_exit)(struct benchmark *bench, struct operation_info *info);
@@ -289,10 +279,10 @@ void pmembench_set_priv(struct benchmark *bench, void *priv);
 struct benchmark_info *pmembench_get_info(struct benchmark *bench);
 int pmembench_register(struct benchmark_info *bench_info);
 
-#define REGISTER_BENCHMARK(bench)					\
-	if (pmembench_register(&bench)) {				\
-		fprintf(stderr, "Unable to register benchmark '%s'\n",	\
-				bench.name);				\
+#define REGISTER_BENCHMARK(bench)                                              \
+	if (pmembench_register(&bench)) {                                      \
+		fprintf(stderr, "Unable to register benchmark '%s'\n",         \
+			bench.name);                                           \
 	}
 
 #endif /* _BENCHMARK_H */

@@ -33,8 +33,8 @@
  * benchmark_worker.h -- benchmark_worker module declarations
  */
 
-#include <pthread.h>
 #include "benchmark.hpp"
+#include <pthread.h>
 
 /*
  *
@@ -71,8 +71,7 @@ enum benchmark_worker_state {
 	MAX_WORKER_STATE,
 };
 
-struct benchmark_worker
-{
+struct benchmark_worker {
 	pthread_t thread;
 	struct benchmark *bench;
 	struct benchmark_args *args;
@@ -81,9 +80,9 @@ struct benchmark_worker
 	int ret_init;
 	int (*func)(struct benchmark *bench, struct worker_info *info);
 	int (*init)(struct benchmark *bench, struct benchmark_args *args,
-			struct worker_info *info);
+		    struct worker_info *info);
 	void (*exit)(struct benchmark *bench, struct benchmark_args *args,
-			struct worker_info *info);
+		     struct worker_info *info);
 	pthread_cond_t cond;
 	pthread_mutex_t lock;
 	enum benchmark_worker_state state;

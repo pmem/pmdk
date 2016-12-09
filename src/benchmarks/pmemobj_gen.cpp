@@ -35,17 +35,17 @@
  */
 
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <file.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#include "libpmemobj.h"
 #include "benchmark.hpp"
+#include "libpmemobj.h"
 
 #define LAYOUT_NAME "benchmark"
 #define FACTOR 4
@@ -57,12 +57,12 @@
 struct pobj_bench;
 struct pobj_worker;
 
-typedef size_t(*fn_type_num_t) (struct pobj_bench *ob, size_t worker_idx,
-							size_t op_idx);
+typedef size_t (*fn_type_num_t)(struct pobj_bench *ob, size_t worker_idx,
+				size_t op_idx);
 
-typedef size_t(*fn_size_t) (struct pobj_bench *ob, size_t idx);
+typedef size_t (*fn_size_t)(struct pobj_bench *ob, size_t idx);
 
-typedef size_t(*fn_num_t) (size_t idx);
+typedef size_t (*fn_num_t)(size_t idx);
 
 /*
  * Enumeration used to determine the mode of the assigning type_number
@@ -173,7 +173,7 @@ type_mode_one(struct pobj_bench *bench_priv, size_t worker_idx, size_t op_idx)
  */
 static size_t
 type_mode_per_thread(struct pobj_bench *bench_priv, size_t worker_idx,
-								size_t op_idx)
+		     size_t op_idx)
 {
 	return worker_idx;
 }
@@ -224,8 +224,8 @@ one_num(size_t idx)
 	return 0;
 }
 
-static fn_type_num_t type_mode_func[MAX_TYPE_MODE] = {type_mode_one,
-				type_mode_per_thread, type_mode_rand};
+static fn_type_num_t type_mode_func[MAX_TYPE_MODE] = {
+	type_mode_one, type_mode_per_thread, type_mode_rand};
 
 const char *type_mode_names[MAX_TYPE_MODE] = {"one", "per-thread", "rand"};
 
@@ -238,8 +238,8 @@ parse_type_mode(const char *arg)
 {
 	enum type_mode i = TYPE_MODE_ONE;
 	for (; i < MAX_TYPE_MODE && strcmp(arg, type_mode_names[i]) != 0;
-		i = (enum type_mode)(i + 1))
-	;
+	     i = (enum type_mode)(i + 1))
+		;
 	return i;
 }
 
@@ -269,7 +269,7 @@ static int
 random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 {
 	bench_priv->random_types = (size_t *)malloc(
-				bench_priv->args_priv->n_objs * sizeof(size_t));
+		bench_priv->args_priv->n_objs * sizeof(size_t));
 	if (bench_priv->random_types == NULL) {
 		perror("malloc");
 		return -1;
@@ -291,8 +291,8 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-		malloc(sizeof(struct pobj_bench));
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)malloc(sizeof(struct pobj_bench));
 	if (bench_priv == NULL) {
 		perror("malloc");
 		return -1;
@@ -301,10 +301,10 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	bench_priv->args_priv = (struct pobj_args *)args->opts;
 	bench_priv->args_priv->obj_size = args->dsize;
-	bench_priv->args_priv->range = bench_priv->args_priv->min_size > 0 ?
-							true : false;
-	bench_priv->n_pools = !bench_priv->args_priv->one_pool ?
-							args->n_threads : 1;
+	bench_priv->args_priv->range =
+		bench_priv->args_priv->min_size > 0 ? true : false;
+	bench_priv->n_pools =
+		!bench_priv->args_priv->one_pool ? args->n_threads : 1;
 	bench_priv->pool = bench_priv->n_pools > 1 ? diff_num : one_num;
 	bench_priv->obj = !bench_priv->args_priv->one_obj ? diff_num : one_num;
 
@@ -327,7 +327,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* assign type_number determining function */
 	bench_priv->type_mode =
-			parse_type_mode(bench_priv->args_priv->type_num);
+		parse_type_mode(bench_priv->args_priv->type_num);
 	switch (bench_priv->type_mode) {
 		case MAX_TYPE_MODE:
 			fprintf(stderr, "unknown type mode");
@@ -342,31 +342,31 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	bench_priv->fn_type_num = type_mode_func[bench_priv->type_mode];
 
 	/* assign size determining function */
-	bench_priv->fn_size = bench_priv->args_priv->range ?
-						range_size : static_size;
+	bench_priv->fn_size =
+		bench_priv->args_priv->range ? range_size : static_size;
 	bench_priv->rand_sizes = NULL;
 	if (bench_priv->args_priv->range) {
 		if (bench_priv->args_priv->min_size > args->dsize) {
 			fprintf(stderr, "Invalid allocation size");
 			goto free_random_types;
 		}
-		bench_priv->rand_sizes = rand_sizes(
-						bench_priv->args_priv->min_size,
-						bench_priv->args_priv->obj_size,
-						bench_priv->args_priv->n_objs);
+		bench_priv->rand_sizes =
+			rand_sizes(bench_priv->args_priv->min_size,
+				   bench_priv->args_priv->obj_size,
+				   bench_priv->args_priv->n_objs);
 		if (bench_priv->rand_sizes == NULL)
 			goto free_random_types;
 	}
 
 	bench_priv->pop = (PMEMobjpool **)calloc(bench_priv->n_pools,
-						sizeof(PMEMobjpool *));
+						 sizeof(PMEMobjpool *));
 	if (bench_priv->pop == NULL) {
 		perror("calloc");
 		goto free_random_sizes;
 	}
 
 	bench_priv->sets = (const char **)calloc(bench_priv->n_pools,
-		sizeof(const char *));
+						 sizeof(const char *));
 	if (bench_priv->sets == NULL) {
 		perror("calloc");
 		goto free_pop;
@@ -377,19 +377,20 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			fprintf(stderr, "cannot create directory\n");
 			goto free_sets;
 		}
-		size_t path_len = (strlen(PART_NAME) + strlen(args->fname))
-							+ MAX_DIGITS + 1;
+		size_t path_len = (strlen(PART_NAME) + strlen(args->fname)) +
+			MAX_DIGITS + 1;
 		for (i = 0; i < bench_priv->n_pools; i++) {
-			bench_priv->sets[i] = (char *)malloc(path_len *
-				sizeof(char));
+			bench_priv->sets[i] =
+				(char *)malloc(path_len * sizeof(char));
 			if (bench_priv->sets[i] == NULL) {
 				perror("malloc");
 				goto free_sets;
 			}
 			snprintf((char *)bench_priv->sets[i], path_len,
-					"%s%s%02x", args->fname, PART_NAME, i);
-			bench_priv->pop[i] = pmemobj_create(bench_priv->sets[i],
-						LAYOUT_NAME, psize, FILE_MODE);
+				 "%s%s%02x", args->fname, PART_NAME, i);
+			bench_priv->pop[i] =
+				pmemobj_create(bench_priv->sets[i], LAYOUT_NAME,
+					       psize, FILE_MODE);
 			if (bench_priv->pop[i] == NULL) {
 				perror(pmemobj_errormsg());
 				goto free_sets;
@@ -399,14 +400,14 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 		if (args->is_poolset) {
 			if (args->fsize < psize) {
 				fprintf(stderr, "insufficient size of "
-					"poolset\n");
+						"poolset\n");
 				goto free_pools;
 			}
 			psize = 0;
 		}
 		bench_priv->sets[0] = (const char *)args->fname;
-		bench_priv->pop[0] = pmemobj_create(bench_priv->sets[0],
-				LAYOUT_NAME, psize, FILE_MODE);
+		bench_priv->pop[0] = pmemobj_create(
+			bench_priv->sets[0], LAYOUT_NAME, psize, FILE_MODE);
 		if (bench_priv->pop[0] == NULL) {
 			perror(pmemobj_errormsg());
 			goto free_pools;
@@ -454,8 +455,8 @@ static int
 pobj_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	size_t i;
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-		pmembench_get_priv(bench);
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)pmembench_get_priv(bench);
 	if (bench_priv->n_pools > 1) {
 		for (i = 0; i < bench_priv->n_pools; i++) {
 			pmemobj_close(bench_priv->pop[i]);
@@ -476,14 +477,14 @@ pobj_exit(struct benchmark *bench, struct benchmark_args *args)
  * pobj_init_worker -- worker initialization
  */
 static int
-pobj_init_worker(struct benchmark *bench, struct benchmark_args
-					*args, struct worker_info *worker)
+pobj_init_worker(struct benchmark *bench, struct benchmark_args *args,
+		 struct worker_info *worker)
 {
 	size_t i, idx = worker->index;
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-			pmembench_get_priv(bench);
-	struct pobj_worker *pw = (struct pobj_worker *)calloc(1,
-			sizeof(struct pobj_worker));
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)pmembench_get_priv(bench);
+	struct pobj_worker *pw =
+		(struct pobj_worker *)calloc(1, sizeof(struct pobj_worker));
 	if (pw == NULL) {
 		perror("calloc");
 		return -1;
@@ -491,7 +492,7 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 
 	worker->priv = pw;
 	pw->oids = (PMEMoid *)calloc(bench_priv->args_priv->n_objs,
-			sizeof(PMEMoid));
+				     sizeof(PMEMoid));
 	if (pw->oids == NULL) {
 		free(pw);
 		perror("calloc");
@@ -502,8 +503,8 @@ pobj_init_worker(struct benchmark *bench, struct benchmark_args
 	for (i = 0; i < bench_priv->args_priv->n_objs; i++) {
 		size_t size = bench_priv->fn_size(bench_priv, i);
 		size_t type = bench_priv->fn_type_num(bench_priv, idx, i);
-		if (pmemobj_alloc(pop,	&pw->oids[i], size, type, NULL, NULL)
-									!= 0) {
+		if (pmemobj_alloc(pop, &pw->oids[i], size, type, NULL, NULL) !=
+		    0) {
 			perror("pmemobj_alloc");
 			goto out;
 		}
@@ -523,8 +524,8 @@ out:
 static int
 pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-			pmembench_get_priv(bench);
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)pmembench_get_priv(bench);
 	struct pobj_worker *pw = (struct pobj_worker *)info->worker->priv;
 	size_t idx = bench_priv->obj(info->index);
 	if (pmemobj_direct(pw->oids[idx]) == NULL)
@@ -538,8 +539,8 @@ pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 static int
 pobj_open_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-			pmembench_get_priv(bench);
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)pmembench_get_priv(bench);
 	size_t idx = bench_priv->pool(info->worker->index);
 	pmemobj_close(bench_priv->pop[idx]);
 	bench_priv->pop[idx] = pmemobj_open(bench_priv->sets[idx], LAYOUT_NAME);
@@ -552,12 +553,12 @@ pobj_open_op(struct benchmark *bench, struct operation_info *info)
  * pobj_free_worker -- worker exit function
  */
 static void
-pobj_free_worker(struct benchmark *bench, struct benchmark_args
-					*args, struct worker_info *worker)
+pobj_free_worker(struct benchmark *bench, struct benchmark_args *args,
+		 struct worker_info *worker)
 {
 	struct pobj_worker *pw = (struct pobj_worker *)worker->priv;
-	struct pobj_bench *bench_priv = (struct pobj_bench *)
-			pmembench_get_priv(bench);
+	struct pobj_bench *bench_priv =
+		(struct pobj_bench *)pmembench_get_priv(bench);
 	for (size_t i = 0; i < bench_priv->args_priv->n_objs; i++)
 		pmemobj_free(&pw->oids[i]);
 	free(pw->oids);
@@ -578,7 +579,8 @@ pmemobj_gen_costructor(void)
 {
 	pobj_direct_clo[0].opt_short = 'T';
 	pobj_direct_clo[0].opt_long = "type-number";
-	pobj_direct_clo[0].descr = "Type number mode - one, per-thread, rand";
+	pobj_direct_clo[0].descr = "Type number mode - one, per-thread, "
+				   "rand";
 	pobj_direct_clo[0].def = "one";
 	pobj_direct_clo[0].off = clo_field_offset(struct pobj_args, type_num);
 	pobj_direct_clo[0].type = CLO_TYPE_STR;
@@ -588,8 +590,8 @@ pmemobj_gen_costructor(void)
 	pobj_direct_clo[1].descr = "Minimum allocation size";
 	pobj_direct_clo[1].off = clo_field_offset(struct pobj_args, min_size);
 	pobj_direct_clo[1].def = "0";
-	pobj_direct_clo[1].type_uint.size = clo_field_size(struct pobj_args,
-							min_size);
+	pobj_direct_clo[1].type_uint.size =
+		clo_field_size(struct pobj_args, min_size);
 	pobj_direct_clo[1].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pobj_direct_clo[1].type_uint.min = 0;
 	pobj_direct_clo[1].type_uint.max = UINT_MAX;
@@ -608,7 +610,8 @@ pmemobj_gen_costructor(void)
 
 	pobj_open_clo[0].opt_short = 'T',
 	pobj_open_clo[0].opt_long = "type-number",
-	pobj_open_clo[0].descr = "Type number mode - one, per-thread, rand",
+	pobj_open_clo[0].descr = "Type number mode - one, "
+				 "per-thread, rand",
 	pobj_open_clo[0].def = "one",
 	pobj_open_clo[0].off = clo_field_offset(struct pobj_args, type_num),
 	pobj_open_clo[0].type = CLO_TYPE_STR,
@@ -619,8 +622,8 @@ pmemobj_gen_costructor(void)
 	pobj_open_clo[1].descr = "Minimum allocation size",
 	pobj_open_clo[1].off = clo_field_offset(struct pobj_args, min_size),
 	pobj_open_clo[1].def = "0",
-	pobj_open_clo[1].type_uint.size = clo_field_size(struct pobj_args,
-							min_size),
+	pobj_open_clo[1].type_uint.size =
+		clo_field_size(struct pobj_args, min_size),
 	pobj_open_clo[1].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX,
 	pobj_open_clo[1].type_uint.min = 0,
 	pobj_open_clo[1].type_uint.max = UINT_MAX,
@@ -631,8 +634,8 @@ pmemobj_gen_costructor(void)
 	pobj_open_clo[2].descr = "Number of objects in each pool";
 	pobj_open_clo[2].off = clo_field_offset(struct pobj_args, n_objs);
 	pobj_open_clo[2].def = "1";
-	pobj_open_clo[2].type_uint.size = clo_field_size(struct pobj_args,
-							n_objs);
+	pobj_open_clo[2].type_uint.size =
+		clo_field_size(struct pobj_args, n_objs);
 	pobj_open_clo[2].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pobj_open_clo[2].type_uint.min = 1;
 	pobj_open_clo[2].type_uint.max = UINT_MAX;

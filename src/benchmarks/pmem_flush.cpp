@@ -33,16 +33,16 @@
 /*
  * pmem_flush.c -- benchmark implementation for pmem_persist and pmem_msync
  */
-#include <libpmem.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <limits.h>
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <libpmem.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "benchmark.hpp"
 
@@ -80,38 +80,35 @@ roundup_len(size_t len, void *addr, uintptr_t align)
 /*
  * pmem_args -- benchmark specific arguments
  */
-struct pmem_args
-{
-	char *operation;	/* msync, dummy_msync, persist, ... */
-	char *mode;		/* stat, seq, rand */
-	bool no_warmup;		/* don't do warmup */
+struct pmem_args {
+	char *operation; /* msync, dummy_msync, persist, ... */
+	char *mode;      /* stat, seq, rand */
+	bool no_warmup;  /* don't do warmup */
 };
 
 /*
  * pmem_bench -- benchmark context
  */
-struct pmem_bench
-{
-	uint64_t *offsets;	/* write offsets */
-	size_t n_offsets;	/* number of elements in offsets array */
-	size_t fsize;		/* The size of the allocated PMEM */
+struct pmem_bench {
+	uint64_t *offsets; /* write offsets */
+	size_t n_offsets;  /* number of elements in offsets array */
+	size_t fsize;      /* The size of the allocated PMEM */
 
-	struct pmem_args *pargs;	/* prog_args structure */
+	struct pmem_args *pargs; /* prog_args structure */
 
-	void *pmem_addr;	/* PMEM base address */
-	size_t pmem_len;	/* length of PMEM mapping */
+	void *pmem_addr; /* PMEM base address */
+	size_t pmem_len; /* length of PMEM mapping */
 
-	void *invalid_addr;	/* invalid pages */
-	void *nondirty_addr;	/* non-dirty pages */
+	void *invalid_addr;  /* invalid pages */
+	void *nondirty_addr; /* non-dirty pages */
 
-	void *pmem_addr_aligned;	/* PMEM pages - 2M aligned */
-	void *invalid_addr_aligned;	/* invalid pages - 2M aligned */
-	void *nondirty_addr_aligned;	/* non-dirty pages - 2M aligned */
+	void *pmem_addr_aligned;     /* PMEM pages - 2M aligned */
+	void *invalid_addr_aligned;  /* invalid pages - 2M aligned */
+	void *nondirty_addr_aligned; /* non-dirty pages - 2M aligned */
 
 	/* the actual benchmark operation */
-	int (*func_op) (struct pmem_bench *pmb, void *addr, size_t len);
+	int (*func_op)(struct pmem_bench *pmb, void *addr, size_t len);
 };
-
 
 /*
  * mode_seq -- if copy mode is sequential, returns index of a chunk.
@@ -149,13 +146,11 @@ mode_rand(struct pmem_bench *pmb, uint64_t index)
  */
 struct op_mode {
 	const char *mode;
-	uint64_t (*func_mode) (struct pmem_bench *pmb, uint64_t index);
+	uint64_t (*func_mode)(struct pmem_bench *pmb, uint64_t index);
 };
 
 static struct op_mode modes[] = {
-	{ "stat", mode_stat },
-	{ "seq", mode_seq },
-	{ "rand", mode_rand },
+	{"stat", mode_stat}, {"seq", mode_seq}, {"rand", mode_rand},
 };
 
 #define MODES (sizeof(modes) / sizeof(modes[0]))
@@ -296,7 +291,7 @@ flush_msync_err(struct pmem_bench *pmb, void *addr, size_t len)
 	void *ptr = align_addr(addr, PAGE_4K);
 	len = align_len(len, addr, PAGE_4K);
 
-	msync(ptr, len, MS_SYNC|MS_ASYNC);
+	msync(ptr, len, MS_SYNC | MS_ASYNC);
 	return 0;
 }
 
@@ -334,22 +329,22 @@ flush_msync_invalid(struct pmem_bench *pmb, void *addr, size_t len)
 
 struct op {
 	const char *opname;
-	int (*func_op) (struct pmem_bench *pmb, void *addr, size_t len);
+	int (*func_op)(struct pmem_bench *pmb, void *addr, size_t len);
 };
 
 static struct op ops[] = {
-	{ "noop", flush_noop },
-	{ "persist", flush_persist },
-	{ "persist_4K", flush_persist_4K },
-	{ "persist_2M", flush_persist_2M },
-	{ "msync", flush_msync },
-	{ "msync_0", flush_msync_0 },
-	{ "msync_err", flush_msync_err },
-	{ "persist_4K_msync_0", flush_persist_4K_msync_0 },
-	{ "persist_2M_msync_0", flush_persist_2M_msync_0 },
-	{ "msync_async", flush_msync_async },
-	{ "msync_nodirty", flush_msync_nodirty },
-	{ "msync_invalid", flush_msync_invalid },
+	{"noop", flush_noop},
+	{"persist", flush_persist},
+	{"persist_4K", flush_persist_4K},
+	{"persist_2M", flush_persist_2M},
+	{"msync", flush_msync},
+	{"msync_0", flush_msync_0},
+	{"msync_err", flush_msync_err},
+	{"persist_4K_msync_0", flush_persist_4K_msync_0},
+	{"persist_2M_msync_0", flush_persist_2M_msync_0},
+	{"msync_async", flush_msync_async},
+	{"msync_nodirty", flush_msync_nodirty},
+	{"msync_invalid", flush_msync_invalid},
 };
 
 #define NOPS (sizeof(ops) / sizeof(ops[0]))
@@ -379,10 +374,10 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 
-	uint64_t (*func_mode) (struct pmem_bench *pmb, uint64_t index);
+	uint64_t (*func_mode)(struct pmem_bench * pmb, uint64_t index);
 
-	struct pmem_bench *pmb = (struct pmem_bench *)
-			malloc(sizeof(struct pmem_bench));
+	struct pmem_bench *pmb =
+		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
 	assert(pmb != NULL);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
@@ -418,24 +413,24 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	pmb->pmem_addr = pmem_map_file(args->fname, pmb->fsize,
-			PMEM_FILE_CREATE|PMEM_FILE_EXCL, args->fmode,
-			&pmb->pmem_len, NULL);
+				       PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+				       args->fmode, &pmb->pmem_len, NULL);
 
 	if (pmb->pmem_addr == NULL) {
 		perror("pmem_map_file");
 		goto err_free_pmb;
 	}
 
-	pmb->nondirty_addr = mmap(NULL, pmb->fsize, PROT_READ|PROT_WRITE,
-			MAP_PRIVATE|MAP_ANON, -1, 0);
+	pmb->nondirty_addr = mmap(NULL, pmb->fsize, PROT_READ | PROT_WRITE,
+				  MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->nondirty_addr == MAP_FAILED) {
 		perror("pmem_map1");
 		goto err_unmap1;
 	}
 
-	pmb->invalid_addr = mmap(NULL, pmb->fsize, PROT_READ|PROT_WRITE,
-			MAP_PRIVATE|MAP_ANON, -1, 0);
+	pmb->invalid_addr = mmap(NULL, pmb->fsize, PROT_READ | PROT_WRITE,
+				 MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->invalid_addr == MAP_FAILED) {
 		perror("pmem_map2");
@@ -444,16 +439,16 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	munmap(pmb->invalid_addr, pmb->fsize);
 
 	pmb->pmem_addr_aligned =
-		(void *)(((uintptr_t)pmb->pmem_addr + PAGE_2M - 1)
-		& ~(PAGE_2M - 1));
+		(void *)(((uintptr_t)pmb->pmem_addr + PAGE_2M - 1) &
+			 ~(PAGE_2M - 1));
 
 	pmb->nondirty_addr_aligned =
-		(void *)(((uintptr_t)pmb->nondirty_addr + PAGE_2M - 1)
-		& ~(PAGE_2M - 1));
+		(void *)(((uintptr_t)pmb->nondirty_addr + PAGE_2M - 1) &
+			 ~(PAGE_2M - 1));
 
 	pmb->invalid_addr_aligned =
-		(void *)(((uintptr_t)pmb->invalid_addr + PAGE_2M - 1)
-		& ~(PAGE_2M - 1));
+		(void *)(((uintptr_t)pmb->invalid_addr + PAGE_2M - 1) &
+			 ~(PAGE_2M - 1));
 
 	pmembench_set_priv(bench, pmb);
 
@@ -502,8 +497,8 @@ pmem_flush_operation(struct benchmark *bench, struct operation_info *info)
 	assert(op_idx < pmb->n_offsets);
 
 	uint64_t chunk_idx = pmb->offsets[op_idx];
-	void *addr = (char *)pmb->pmem_addr_aligned
-					+ chunk_idx * info->args->dsize;
+	void *addr =
+		(char *)pmb->pmem_addr_aligned + chunk_idx * info->args->dsize;
 
 	/* store + flush */
 	*(int *)addr = *(int *)addr + 1;
@@ -521,7 +516,8 @@ pmem_flush_costructor(void)
 {
 	pmem_flush_clo[0].opt_short = 'o';
 	pmem_flush_clo[0].opt_long = "operation";
-	pmem_flush_clo[0].descr = "Operation type - persist, msync, ...";
+	pmem_flush_clo[0].descr = "Operation type - persist,"
+				  " msync, ...";
 	pmem_flush_clo[0].type = CLO_TYPE_STR;
 	pmem_flush_clo[0].off = clo_field_offset(struct pmem_args, operation);
 	pmem_flush_clo[0].def = "noop";
@@ -541,7 +537,7 @@ pmem_flush_costructor(void)
 
 	pmem_flush_bench.name = "pmem_flush";
 	pmem_flush_bench.brief = "Benchmark for pmem_msync() "
-		"and pmem_persist()";
+				 "and pmem_persist()";
 	pmem_flush_bench.init = pmem_flush_init;
 	pmem_flush_bench.exit = pmem_flush_exit;
 	pmem_flush_bench.multithread = true;

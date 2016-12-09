@@ -32,9 +32,9 @@
 /*
  * clo_vec.c -- command line options vector definitions
  */
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "clo_vec.hpp"
 
@@ -57,8 +57,8 @@ clo_vec_alloc(size_t size)
 	clovec->size = size;
 
 	/* add first struct to list */
-	struct clo_vec_args *args = (struct clo_vec_args *)
-					malloc(sizeof(*args));
+	struct clo_vec_args *args =
+		(struct clo_vec_args *)malloc(sizeof(*args));
 
 	assert(args != NULL);
 
@@ -109,7 +109,8 @@ clo_vec_get_args(struct clo_vec *clovec, size_t i)
 		return NULL;
 	size_t c = 0;
 	struct clo_vec_args *args;
-	TAILQ_FOREACH(args, &clovec->args, next) {
+	TAILQ_FOREACH(args, &clovec->args, next)
+	{
 		if (c == i)
 			return args->args;
 		c++;
@@ -124,8 +125,8 @@ clo_vec_get_args(struct clo_vec *clovec, size_t i)
 int
 clo_vec_add_alloc(struct clo_vec *clovec, void *ptr)
 {
-	struct clo_vec_alloc *alloc = (struct clo_vec_alloc *)
-					malloc(sizeof(*alloc));
+	struct clo_vec_alloc *alloc =
+		(struct clo_vec_alloc *)malloc(sizeof(*alloc));
 
 	assert(alloc != NULL);
 
@@ -145,8 +146,8 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 	size_t i;
 
 	for (i = 0; i < nargs; i++) {
-		struct clo_vec_args *args = (struct clo_vec_args *)
-						calloc(1, sizeof(*args));
+		struct clo_vec_args *args =
+			(struct clo_vec_args *)calloc(1, sizeof(*args));
 
 		assert(args != NULL);
 
@@ -170,8 +171,8 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 struct clo_vec_vlist *
 clo_vec_vlist_alloc(void)
 {
-	struct clo_vec_vlist *list = (struct clo_vec_vlist *)
-					malloc(sizeof(*list));
+	struct clo_vec_vlist *list =
+		(struct clo_vec_vlist *)malloc(sizeof(*list));
 
 	assert(list != NULL);
 
@@ -205,8 +206,8 @@ clo_vec_vlist_free(struct clo_vec_vlist *list)
 void
 clo_vec_vlist_add(struct clo_vec_vlist *list, void *ptr, size_t size)
 {
-	struct clo_vec_value *val = (struct clo_vec_value *)
-					malloc(sizeof(*val));
+	struct clo_vec_value *val =
+		(struct clo_vec_value *)malloc(sizeof(*val));
 	assert(val != NULL);
 
 	val->ptr = malloc(size);
@@ -251,7 +252,7 @@ clo_vec_memcpy(struct clo_vec *clovec, size_t off, size_t size, void *ptr)
  */
 int
 clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
-		struct clo_vec_vlist *list)
+		    struct clo_vec_vlist *list)
 {
 	if (off + size > clovec->size)
 		return -1;
@@ -264,7 +265,8 @@ clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
 	size_t value_i = 0;
 	size_t i;
 
-	TAILQ_FOREACH(value, &list->head, next) {
+	TAILQ_FOREACH(value, &list->head, next)
+	{
 		for (i = value_i * len; i < (value_i + 1) * len; i++) {
 			char *args = (char *)clo_vec_get_args(clovec, i);
 			char *dptr = args + off;

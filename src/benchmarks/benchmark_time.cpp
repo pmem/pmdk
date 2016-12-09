@@ -33,13 +33,13 @@
 /*
  * benchmark_time.c -- benchmark_time module definitions
  */
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "benchmark_time.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define NSECPSEC	1000000000
+#define NSECPSEC 1000000000
 
 /*
  * benchmark_time_get -- get timestamp from clock source
@@ -55,10 +55,10 @@ benchmark_time_get(benchmark_time_t *time)
  */
 void
 benchmark_time_diff_dummy(benchmark_time_t *d, benchmark_time_t *t1,
-		benchmark_time_t *t2)
+			  benchmark_time_t *t2)
 {
-	long long nsecs = (t2->tv_sec  - t1->tv_sec) * NSECPSEC +
-		t2->tv_nsec - t1->tv_nsec;
+	long long nsecs = (t2->tv_sec - t1->tv_sec) * NSECPSEC + t2->tv_nsec -
+		t1->tv_nsec;
 	if (nsecs >= 0)
 		benchmark_time_diff(d, t1, t2);
 	else
@@ -70,10 +70,10 @@ benchmark_time_diff_dummy(benchmark_time_t *d, benchmark_time_t *t1,
  */
 void
 benchmark_time_diff(benchmark_time_t *d, benchmark_time_t *t1,
-		benchmark_time_t *t2)
+		    benchmark_time_t *t2)
 {
-	long long nsecs = (t2->tv_sec  - t1->tv_sec) * NSECPSEC +
-		t2->tv_nsec - t1->tv_nsec;
+	long long nsecs = (t2->tv_sec - t1->tv_sec) * NSECPSEC + t2->tv_nsec -
+		t1->tv_nsec;
 	assert(nsecs >= 0);
 	d->tv_sec = nsecs / NSECPSEC;
 	d->tv_nsec = nsecs % NSECPSEC;

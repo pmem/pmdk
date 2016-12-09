@@ -35,32 +35,27 @@
 #include <stdlib.h>
 #include <sys/queue.h>
 
-struct clo_vec_args
-{
+struct clo_vec_args {
 	TAILQ_ENTRY(clo_vec_args) next;
 	void *args;
 };
 
-struct clo_vec_alloc
-{
+struct clo_vec_alloc {
 	TAILQ_ENTRY(clo_vec_alloc) next;
 	void *ptr;
 };
 
-struct clo_vec_value
-{
+struct clo_vec_value {
 	TAILQ_ENTRY(clo_vec_value) next;
 	void *ptr;
 };
 
-struct clo_vec_vlist
-{
+struct clo_vec_vlist {
 	TAILQ_HEAD(valueshead, clo_vec_value) head;
 	size_t nvalues;
 };
 
-struct clo_vec
-{
+struct clo_vec {
 	size_t size;
 	TAILQ_HEAD(argshead, clo_vec_args) args;
 	size_t nargs;
@@ -74,7 +69,7 @@ void *clo_vec_get_args(struct clo_vec *clovec, size_t i);
 int clo_vec_add_alloc(struct clo_vec *clovec, void *ptr);
 int clo_vec_memcpy(struct clo_vec *clovec, size_t off, size_t size, void *ptr);
 int clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
-		struct clo_vec_vlist *list);
+			struct clo_vec_vlist *list);
 struct clo_vec_vlist *clo_vec_vlist_alloc(void);
 void clo_vec_vlist_free(struct clo_vec_vlist *list);
 void clo_vec_vlist_add(struct clo_vec_vlist *list, void *ptr, size_t size);

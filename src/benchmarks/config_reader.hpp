@@ -38,4 +38,4 @@ struct config_reader *config_reader_alloc(void);
 int config_reader_read(struct config_reader *cr, const char *fname);
 void config_reader_free(struct config_reader *cr);
 int config_reader_get_scenarios(struct config_reader *cr,
-		struct scenarios **scenarios);
+				struct scenarios **scenarios);
