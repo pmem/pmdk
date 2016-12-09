@@ -4,7 +4,7 @@ This is src/test/win_lists/README.
 
 This test is Windows specific.
 
-This directory contains a unit test for src\windows\include\sys\queue.h
+This directory contains a unit test for src\common\queue.h
 
 The file sys\queue.h has the Windows implementation of sys\queue.h and
 little more based on what's required by NVML.

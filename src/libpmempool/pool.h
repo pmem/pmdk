@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,10 +36,10 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
-#include <sys/queue.h>
 
 #include "libpmemobj.h"
 
+#include "queue.h"
 #include "set.h"
 #include "log.h"
 #include "blk.h"

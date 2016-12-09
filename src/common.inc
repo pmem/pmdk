@@ -115,8 +115,9 @@ LIB_PREFIX ?= lib
 
 all:
 
+#[!q][!u] to skip common/queue.h
 cstyle-%:
-	$(STYLE_CHECK) $* $(wildcard *.[ch]) $(wildcard *.[ch]pp)
+	$(STYLE_CHECK) $* $(wildcard [!q][!u]*.[ch]) $(wildcard *.[ch]pp)
 
 cstyle: cstyle-check
 

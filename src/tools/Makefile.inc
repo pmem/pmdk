@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@ INSTALL_TARGET ?= y
 
 INCS += -I.
 INCS += -I$(TOP)/src/include
+INCS += -I$(TOP)/src/common
 CFLAGS += -std=gnu99
 CFLAGS += -Wall
 CFLAGS += -Werror

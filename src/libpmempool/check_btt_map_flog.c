@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #include <sys/param.h>
 #include <endian.h>
 
+#include "queue.h"
 #include "out.h"
 #include "btt.h"
 #include "libpmempool.h"

@@ -40,10 +40,10 @@
 #include <string.h>
 #include <sys/file.h>
 #include <sys/mman.h>
-#include <sys/queue.h>
 #include <unistd.h>
 #include <pthread.h>
 
+#include "queue.h"
 #include "file.h"
 #include "mmap.h"
 #include "sys_util.h"
