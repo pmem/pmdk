@@ -30,16 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST0.PS1 -- test for checking replica transform
+# libpmempool_transform/TEST2.PS1 -- test for checking pmempool transform;
+#                                    check if flags are supported
+#                                    pmem/issues#367
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform\TEST0"
-$Env:UNITTEST_NUM = "0"
-
+$Env:UNITTEST_NAME = "libpmempool_transform\TEST2"
+$Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -62,63 +63,27 @@ $POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
-    20M:$DIR\testfile0:x `
-    10M:$DIR\testfile1:x `
-    R `
-    10M:$DIR\testfile2:x `
-    10M:$DIR\testfile3:x `
-    10M:$DIR\testfile4:x `
-    R `
-    10M:$DIR\testfile5:x `
-    20M:$DIR\testfile6:x
+	10M:$DIR\part00:x
 
 create_poolset $POOLSET_OUT `
-    20M:$DIR\testfile0:x `
-    10M:$DIR\testfile1:x `
-    R `
-    10M:$DIR\testfile2:x `
-    10M:$DIR\testfile3:x `
-    10M:$DIR\testfile4:x
-
-
-# CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR\write_data"
-echo @"
-pr 22M
-srcp 0 TestOK111
-srcp 20M TestOK222
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
-
-# CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR\read_data"
-echo @"
-srpr 0 9
-srpr 20M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+	10M:$DIR\part00:x `
+	r `
+	10M:$DIR\part10:x
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
-# Write some data into the pool, hitting two part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
-
-# Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
-
-# Transform poolset
-$FLAGS = "0"
-expect_normal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
+# Try to transform poolset
+$FLAGS = "2"
+expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
 cat $LOG >> $LOG_TEMP
 
-# Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
-
-# Check metadata by pmempool info
-for ($i=0; $i -lt 5; $i++) {
-    dump_pool_info $DIR/testfile$i >> $LOG_TEMP
-}
+$FLAGS = "1024"
+expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
+    $POOLSET_IN $POOLSET_OUT $FLAGS
+cat $LOG >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

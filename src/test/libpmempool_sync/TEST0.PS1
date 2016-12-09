@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_sync/TEST0 -- test for checking replica sync
+# libpmempool_sync/TEST0.PS1 -- test for checking replica sync
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -39,7 +39,6 @@ Param(
     )
 $Env:UNITTEST_NAME = "libpmempool_sync\TEST0"
 $Env:UNITTEST_NUM = "0"
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -141,5 +140,4 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check
-
 pass

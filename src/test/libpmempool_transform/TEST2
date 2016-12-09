@@ -31,10 +31,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_sync/TEST1 -- test for checking replica sync
+# libpmempool_transform/TEST2 -- test for checking replica transform
+#                                check if flags are supported
+#                                pmem/issues#367
 #
-export UNITTEST_NAME=libpmempool_sync/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=libpmempool_transform/TEST2
+export UNITTEST_NUM=2
 
 . ../unittest/unittest.sh
 
@@ -50,59 +52,34 @@ rm -rf $LOG && touch $LOG
 rm -rf $LOG_TEMP && touch $LOG_TEMP
 
 LAYOUT=OBJ_LAYOUT
-POOLSET=$DIR/pool0.set
-POOL_HEADER_OFFSET=4096
-ADDR_MASK=0xFFFFF000
+POOLSET_IN=$DIR/poolset.in
+POOLSET_OUT=$DIR/poolset.out
 
-# Create poolset file
-create_poolset $POOLSET \
-	20M:$DIR/testfile1:x \
-	20M:$DIR/testfile2:x \
-	21M:$DIR/testfile3:x \
-	R \
-	40M:$DIR/testfile4:x \
-	20M:$DIR/testfile5:x
+# Create poolset files
+create_poolset $POOLSET_IN \
+	10M:$DIR/part00:x
 
-# CLI script for writing some data hitting all the parts
-WRITE_SCRIPT=$DIR/write_data
-cat << EOF > $WRITE_SCRIPT
-pr 55M
-srcp 0 TestOK111
-srcp 20M TestOK222
-srcp 40M TestOK333
-EOF
-
-# CLI script for reading 9 characters from all the parts
-READ_SCRIPT=$DIR/read_data
-cat << EOF > $READ_SCRIPT
-srpr 0 9
-srpr 20M 9
-srpr 40M 9
-EOF
+create_poolset $POOLSET_OUT \
+	10M:$DIR/part00:x \
+	r \
+	10M:$DIR/part10:x
 
 # Create a pool
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
-	obj $POOLSET
+	obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
-# Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
-
-# Check if correctly written
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
-
-# Delete the second part in the primary replica
-rm -f $DIR/testfile2
-
-# Synchronize replicas
-FLAGS=0
-expect_normal_exit ./libpmempool_sync$EXESUFFIX $POOLSET $FLAGS
+# Try to transform poolset
+FLAG=2
+expect_abnormal_exit ./libpmempool_transform$EXESUFFIX \
+	$POOLSET_IN $POOLSET_OUT $FLAG
 cat $LOG >> $LOG_TEMP
 
-# Check if correctly synchronized
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+FLAG=1024
+expect_abnormal_exit ./libpmempool_transform$EXESUFFIX \
+	$POOLSET_IN $POOLSET_OUT $FLAG
+cat $LOG >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 check
-
 pass

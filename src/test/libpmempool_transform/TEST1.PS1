@@ -30,8 +30,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_transform/TEST1 -- test for checking pmempool transform;
-#                                pmem/issues#320
+# libpmempool_transform/TEST1.PS1 -- test for checking pmempool transform;
+#                                    pmem/issues#320
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -121,5 +121,4 @@ for ($i=0; $i -lt 7; $i++) {
 
 mv -Force $LOG_TEMP $LOG
 check
-
 pass
