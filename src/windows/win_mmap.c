@@ -276,8 +276,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		 */
 		int ret = munmap(addr, len);
 		if (ret != 0) {
-			/* XXX: need to handle it somehow */
 			ERR("!munmap: addr %p len %zu", addr, len);
+			return MAP_FAILED;
 		}
 	}
 
