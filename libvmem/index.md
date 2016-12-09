@@ -16,6 +16,7 @@ Man pages that contains a list of the interfaces provided:
 
 * Man page for [libvmem current master](../manpages/master/libvmem.3.html)
 * Latest releases:
+   * [libvmem version 1.2](../manpages/v1.2/libvmem.3.html)
    * [libvmem version 1.1](../manpages/v1.1/libvmem.3.html)
    * [libvmem version 1.0](../manpages/v1.0/libvmem.3.html)
 

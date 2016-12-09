@@ -19,6 +19,7 @@ Man pages that contains a list of the interfaces provided:
 
 * Man page for [libvmmalloc current master](../manpages/master/libvmmalloc.3.html)
 * Latest releases:
+   * [libvmmalloc version 1.2](../manpages/v1.2/libvmmalloc.3.html)
    * [libvmmalloc version 1.1](../manpages/v1.1/libvmmalloc.3.html)
    * [libvmmalloc version 1.0](../manpages/v1.0/libvmmalloc.3.html)
 

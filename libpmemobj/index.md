@@ -13,6 +13,7 @@ Man pages that contains a list of the interfaces provided:
 
 * Man page for [libpmemobj current master](../manpages/master/libpmemobj.3.html)
 * Latest releases:
+   * [libpmemobj version 1.2](../manpages/v1.2/libpmemobj.3.html)
    * [libpmemobj version 1.1](../manpages/v1.1/libpmemobj.3.html)
    * [libpmemobj version 1.0](../manpages/v1.0/libpmemobj.3.html)
 

@@ -12,6 +12,7 @@ for *pool set files*. Below you can find a list of available commands.
 See the [pmempool man page](../manpages/master/pmempool.1.html)
 for current master documentation and examples or see older versions:
 
+* Man page for [pmempool version 1.2](../manpages/v1.2/pmempool.1.html)
 * Man page for [pmempool version 1.1](../manpages/v1.1/pmempool.1.html)
 * Man page for [pmempool version 1.0](../manpages/v1.0/pmempool.1.html)
 
@@ -25,6 +26,7 @@ pool files may simplify the user application.
 See the [pmempool create man page](../manpages/master/pmempool-create.1.html)
 for current documentation and examples or see older versions:
 
+* Man page for [pmempool create version 1.2](../manpages/v1.2/pmempool-create.1.html)
 * Man page for [pmempool create version 1.1](../manpages/v1.1/pmempool-create.1.html)
 * Man page for [pmempool create version 1.0](../manpages/v1.0/pmempool-create.1.html)
 
@@ -40,6 +42,7 @@ additional information about the pool.
 See the [pmempool info man page](../manpages/master/pmempool-info.1.html)
 for current master documentation and examples or see older versions:
 
+* Man page for [pmempool info version 1.2](../manpages/v1.2/pmempool-info.1.html)
 * Man page for [pmempool info version 1.1](../manpages/v1.1/pmempool-info.1.html)
 * Man page for [pmempool info version 1.0](../manpages/v1.0/pmempool-info.1.html)
 
@@ -53,6 +56,7 @@ the range of desired data.
 See the [pmempool dump man page](../manpages/master/pmempool-dump.1.html)
 for current master documentation and examples or see older versions:
 
+* Man page for [pmempool dump version 1.2](../manpages/v1.2/pmempool-dump.1.html)
 * Man page for [pmempool dump version 1.1](../manpages/v1.1/pmempool-dump.1.html)
 * Man page for [pmempool dump version 1.0](../manpages/v1.0/pmempool-dump.1.html)
 
@@ -67,6 +71,7 @@ available in the near feature.
 See the [pmempool check man page](../manpages/master/pmempool-check.1.html)
 for current master documentation and examples or see older version:
 
+* Man page for [pmempool check version 1.2](../manpages/v1.2/pmempool-check.1.html)
 * Man page for [pmempool check version 1.1](../manpages/v1.1/pmempool-check.1.html)
 * Man page for [pmempool check version 1.0](../manpages/v1.0/pmempool-check.1.html)
 
@@ -81,6 +86,7 @@ as the standard system **rm** command.
 See the [pmempool rm man page](../manpages/master/pmempool-rm.1.html)
 for current master documentation and examples or see older version:
 
+* Man page for [pmempool rm version 1.2](../manpages/v1.2/pmempool-rm.1.html)
 * Man page for [pmempool rm version 1.1](../manpages/v1.1/pmempool-rm.1.html)
 * Man page for [pmempool rm version 1.0](../manpages/v1.0/pmempool-rm.1.html)
 
@@ -93,6 +99,7 @@ Currently only **pmemobj** pools are supported.
 See the [pmempool convert man page](../manpages/master/pmempool-convert.1.html)
 for current master documentation and examples or see older version:
 
+* Man page for [pmempool convert version 1.2](../manpages/v1.2/pmempool-convert.1.html)
 * Man page for [pmempool convert version 1.1](../manpages/v1.1/pmempool-convert.1.html)
 
 ##### sync
@@ -106,6 +113,8 @@ the healthy replicas.
 See the [pmempool sync man page](../manpages/master/pmempool-sync.1.html)
 for current master documentation and examples.
 
+* Man page for [pmempool sync version 1.2](../manpages/v1.2/pmempool-sync.1.html)
+
 ##### transform
 
 The **pmempool transform** command modifies internal structure of a poolset
@@ -114,3 +123,5 @@ another poolset file.
 
 See the [pmempool transform man page](../manpages/master/pmempool-transform.1.html)
 for current master documentation and examples.
+
+* Man page for [pmempool transform version 1.2](../manpages/v1.2/pmempool-transform.1.html)
