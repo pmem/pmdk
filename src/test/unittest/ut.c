@@ -133,6 +133,7 @@ static int Quiet;		/* set by UNITTEST_QUIET env variable */
 static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
+unsigned long Ut_mmap_align;
 
 /*
  * flags that control output
@@ -483,6 +484,16 @@ ut_start(const char *file, int line, const char *func,
 	if (sc < 0)
 		abort();
 	Ut_pagesize = (unsigned long)sc;
+
+#ifndef _WIN32
+	Ut_mmap_align = Ut_pagesize;
+#else
+	if (Ut_mmap_align == 0) {
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		Ut_mmap_align = si.dwAllocationGranularity;
+	}
+#endif
 
 	errno = saveerrno;
 }
