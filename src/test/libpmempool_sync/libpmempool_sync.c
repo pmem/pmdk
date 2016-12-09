@@ -39,7 +39,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "unittest.h"
 
 int
@@ -50,5 +49,9 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s poolset_file flags", argv[0]);
 
 	int ret = pmempool_sync(argv[1], (unsigned)strtoul(argv[2], NULL, 0));
-	DONE("result: %d, errno: %d", ret, errno);
+	UT_OUT("result: %d, errno: %d", ret, errno);
+	if (ret)
+		UT_FATAL(NULL);
+
+	DONE(NULL);
 }

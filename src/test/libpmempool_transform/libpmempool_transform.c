@@ -39,7 +39,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "unittest.h"
 
 int
@@ -51,5 +50,9 @@ main(int argc, char *argv[])
 
 	int ret = pmempool_transform(argv[1], argv[2],
 			(unsigned)strtoul(argv[3], NULL, 0));
-	DONE("result: %d, errno: %d", ret, errno);
+	UT_OUT("result: %d, errno: %d", ret, errno);
+	if (ret)
+		UT_FATAL(NULL);
+
+	DONE(NULL);
 }
