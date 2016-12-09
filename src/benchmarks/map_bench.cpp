@@ -36,7 +36,11 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "benchmark.h"
+#include "benchmark.hpp"
+
+/* XXX: maps are build as c++ on windows */
+#ifndef _WIN32
+extern "C" {
 #include "map.h"
 #include "map_ctree.h"
 #include "map_btree.h"
@@ -44,6 +48,8 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+}
+#endif
 
 /* Values less than 3 is not suitable for current rtree implementation */
 #define FACTOR	3
@@ -114,8 +120,6 @@ struct map_bench {
 	int (*get)(struct map_bench *, uint64_t);
 };
 
-static struct benchmark_clo map_bench_clos[5];
-
 /*
  * mutex_lock_nofail -- locks mutex and aborts if locking failed
  */
@@ -164,7 +168,7 @@ get_key(unsigned *seed, uint64_t max_key)
 static const struct map_ops *
 parse_map_type(const char *str)
 {
-	for (int i = 0; i < MAP_TYPES_NUM; i++) {
+	for (unsigned i = 0; i < MAP_TYPES_NUM; i++) {
 		if (strcmp(str, map_types[i].str) == 0)
 			return map_types[i].ops;
 	}
@@ -328,6 +332,8 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 {
 	struct map_bench_worker *tworker = (struct map_bench_worker *)
 			calloc(1, sizeof(*tworker));
+	struct map_bench *tree;
+	struct map_bench_args *targs;
 
 	if (!tworker) {
 		perror("calloc");
@@ -343,8 +349,8 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		goto err_free_worker;
 	}
 
-	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
-	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
+	tree = (struct map_bench *)pmembench_get_priv(bench);
+	targs = (struct map_bench_args *)args->opts;
 	if (targs->ext_tx) {
 		int ret = pmemobj_tx_begin(tree->pop, NULL);
 		if (ret) {
@@ -488,6 +494,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args);
 	assert(args->opts);
 
+	size_t size_per_key;
 	struct map_bench *map_bench = (struct map_bench *)
 			calloc(1, sizeof(*map_bench));
 
@@ -524,8 +531,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->nkeys = args->n_threads * args->n_ops_per_thread;
 	map_bench->init_nkeys = map_bench->nkeys;
-	size_t size_per_key = map_bench->margs->alloc ?
-		SIZE_PER_KEY :
+	size_per_key = map_bench->margs->alloc ? SIZE_PER_KEY :
 		SIZE_PER_KEY + map_bench->args->dsize + ALLOC_OVERHEAD;
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
@@ -732,6 +738,9 @@ map_get_exit(struct benchmark *bench, struct benchmark_args *args)
 	map_keys_exit(bench, args);
 	return map_common_exit(bench, args);
 }
+
+
+static struct benchmark_clo map_bench_clos[5];
 
 static struct benchmark_info map_insert_info;
 static struct benchmark_info map_remove_info;

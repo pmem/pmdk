@@ -39,7 +39,7 @@
 #include <unistd.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 #ifdef __cplusplus
 extern "C" {
 #include "lane.h"

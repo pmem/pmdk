@@ -42,7 +42,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define MAX_OFFSET 63
 #define CONST_B 0xFF
@@ -80,8 +80,6 @@ struct memset_bench {
 
 struct memset_worker {
 };
-
-static struct benchmark_clo memset_clo[6];
 
 /*
  * operation_mode -- mode of operation of memset()
@@ -256,7 +254,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args->opts != NULL);
 
 	int ret = 0;
-
+	size_t size, large, little;
 	struct memset_bench *mb = (struct memset_bench *)
 		malloc(sizeof(struct memset_bench));
 	if (!mb) {
@@ -275,9 +273,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_mb;
 	}
 
-	size_t size = MAX_OFFSET + mb->pargs->chunk_size;
-	size_t large = size * args->n_ops_per_thread * args->n_threads;
-	size_t little = size * args->n_threads;
+	size = MAX_OFFSET + mb->pargs->chunk_size;
+	large = size * args->n_ops_per_thread * args->n_threads;
+	little = size * args->n_threads;
 
 	mb->fsize = (op_mode == OP_MODE_STAT) ? little : large;
 
@@ -336,6 +334,7 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
+static struct benchmark_clo memset_clo[6];
 /* Stores information about benchmark. */
 static struct benchmark_info memset_info;
 CONSTRUCTOR(pmem_memset_costructor)

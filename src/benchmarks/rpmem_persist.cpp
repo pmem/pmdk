@@ -48,7 +48,7 @@
 #include "set.h"
 #include "libpmem.h"
 #include "librpmem.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 #include "util.h"
 
 #define MAX_OFFSET 63
@@ -70,7 +70,7 @@ struct rpmem_args {
 struct rpmem_bench {
 	struct rpmem_args *pargs; /* benchmark specific arguments */
 	uint64_t *offsets;	/* random/sequential address offsets */
-	int n_offsets;		/* number of random elements */
+	unsigned n_offsets;	/* number of random elements */
 	int const_b;		/* memset() value */
 	size_t fsize;		/* file size */
 	void *addrp;		/* mapped file address */
@@ -79,8 +79,6 @@ struct rpmem_bench {
 	unsigned *nlanes;	/* number of lanes for each remote replica */
 	unsigned nreplicas;	/* number of remote replicas */
 };
-
-static struct benchmark_clo rpmem_clo[3];
 
 /*
  * operation_mode -- mode of operation
@@ -119,7 +117,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 	uint64_t n_ops = args->n_ops_per_thread;
 
 	mb->n_offsets = n_ops * n_threads;
-	mb->offsets = malloc(mb->n_offsets * sizeof(*mb->offsets));
+	mb->offsets = (uint64_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");
 		return -1;
@@ -243,6 +241,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	struct pool_set *set;
 	struct pool_replica *rep;
 	struct remote_replica *remote;
+	struct pool_set_part *part;
 	unsigned r;
 
 	/* read and validate poolset */
@@ -286,7 +285,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_poolset_free;
 	}
 
-	struct pool_set_part *part = &rep->part[0];
+	part = (struct pool_set_part *)&rep->part[0];
 	if (rpmem_map_file(part->path, mb)) {
 		perror(part->path);
 		goto err_poolset_free;
@@ -294,12 +293,12 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
-	mb->nlanes = malloc(mb->nreplicas * sizeof(unsigned));
+	mb->nlanes = (unsigned *)malloc(mb->nreplicas * sizeof(unsigned));
 	if (mb->nlanes == NULL) {
 		perror("malloc");
 		goto err_unmap_file;
 	}
-	mb->rpp = malloc(mb->nreplicas * sizeof(RPMEMpool *));
+	mb->rpp = (RPMEMpool **)malloc(mb->nreplicas * sizeof(RPMEMpool *));
 	if (mb->rpp == NULL) {
 		perror("malloc");
 		goto err_free_lanes;
@@ -367,14 +366,16 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 	assert(args->opts != NULL);
+	size_t size, large, small;
 
-	struct rpmem_bench *mb = malloc(sizeof(struct rpmem_bench));
+	struct rpmem_bench *mb = (struct rpmem_bench *)malloc(
+					sizeof(struct rpmem_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
 	}
 
-	mb->pargs = args->opts;
+	mb->pargs = (rpmem_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
@@ -384,9 +385,9 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_mb;
 	}
 
-	size_t size = MAX_OFFSET + mb->pargs->chunk_size;
-	size_t large = size * args->n_ops_per_thread * args->n_threads;
-	size_t small = size * args->n_threads;
+	size = MAX_OFFSET + mb->pargs->chunk_size;
+	large = size * args->n_ops_per_thread * args->n_threads;
+	small = size * args->n_threads;
 	mb->fsize = (op_mode == OP_MODE_STAT) ? small : large;
 	mb->fsize = PAGE_ALIGNED_UP_SIZE(mb->fsize);
 
@@ -439,6 +440,7 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
+static struct benchmark_clo rpmem_clo[3];
 /* Stores information about benchmark. */
 static struct benchmark_info rpmem_info;
 CONSTRUCTOR(rpmem_persist_costructor)

@@ -44,7 +44,7 @@
 #include <inttypes.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif

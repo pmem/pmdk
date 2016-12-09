@@ -43,7 +43,7 @@
 #include <assert.h>
 #include <sys/mman.h>
 
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define FLUSH_ALIGN 64
 
@@ -220,9 +220,6 @@ parse_op_mode(const char *arg)
 	else
 		return OP_MODE_UNKNOWN;
 }
-
-/* structure to define command line arguments */
-static struct benchmark_clo pmem_memcpy_clo[7];
 
 /*
  * mode_seq -- if copy mode is sequential mode_seq() returns
@@ -529,8 +526,10 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args  *args)
 	return 0;
 }
 
-/* Stores information about benchmark. */
+/* structure to define command line arguments */
+static struct benchmark_clo pmem_memcpy_clo[7];
 
+/* Stores information about benchmark. */
 static struct benchmark_info pmem_memcpy;
 CONSTRUCTOR(pmem_memcpy_costructor)
 void

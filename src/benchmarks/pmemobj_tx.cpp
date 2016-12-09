@@ -43,7 +43,7 @@
 #include <unistd.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define LAYOUT_NAME "benchmark"
 #define FACTOR 4
@@ -62,18 +62,79 @@ struct obj_tx_worker;
 int obj_tx_init(struct benchmark *bench, struct benchmark_args *args);
 int obj_tx_exit(struct benchmark *bench, struct benchmark_args *args);
 
-typedef size_t(*fn_type_num) (struct obj_tx_bench *obj_bench, size_t worker_idx,
+/*
+ * type_num_mode -- type number mode
+ */
+enum type_num_mode {
+	NUM_MODE_ONE,
+	NUM_MODE_PER_THREAD,
+	NUM_MODE_RAND,
+	NUM_MODE_UNKNOWN
+};
+
+/*
+ * op_mode -- operation type
+ */
+enum op_mode {
+	OP_MODE_COMMIT,
+	OP_MODE_ABORT,
+	OP_MODE_ABORT_NESTED,
+	OP_MODE_ONE_OBJ,
+	OP_MODE_ONE_OBJ_NESTED,
+	OP_MODE_ONE_OBJ_RANGE,
+	OP_MODE_ONE_OBJ_NESTED_RANGE,
+	OP_MODE_ALL_OBJ,
+	OP_MODE_ALL_OBJ_NESTED,
+	OP_MODE_UNKNOWN
+};
+
+/*
+ * lib_mode -- operation type
+ */
+enum lib_mode {
+	LIB_MODE_DRAM,
+	LIB_MODE_OBJ_TX,
+	LIB_MODE_OBJ_ATOMIC,
+	LIB_MODE_NONE,
+};
+
+/*
+ * nesting_mode -- nesting type
+ */
+enum nesting_mode {
+	NESTING_MODE_SIM,
+	NESTING_MODE_TX,
+	NESTING_MODE_UNKNOWN,
+};
+
+/*
+ * add_range_mode -- operation type for obj_add_range benchmark
+ */
+enum add_range_mode {
+	ADD_RANGE_MODE_ONE_TX,
+	ADD_RANGE_MODE_NESTED_TX
+};
+
+/*
+ * parse_mode -- parsing function type
+ */
+enum parse_mode {
+	PARSE_OP_MODE,
+	PARSE_OP_MODE_ADD_RANGE
+};
+
+typedef size_t(*fn_type_num_t) (struct obj_tx_bench *obj_bench, size_t worker_idx,
 								size_t op_idx);
 
-typedef size_t(*fn_num) (size_t idx);
+typedef size_t(*fn_num_t) (size_t idx);
 
-typedef int (*fn_op) (struct obj_tx_bench *obj_bench,
+typedef int (*fn_op_t) (struct obj_tx_bench *obj_bench,
 				struct worker_info *worker, size_t idx);
 
-typedef struct offset (*fn_off) (struct obj_tx_bench *obj_bench,
+typedef struct offset (*fn_off_t) (struct obj_tx_bench *obj_bench,
 								size_t idx);
 
-typedef enum op_mode (*fn_parse) (const char *arg);
+typedef enum op_mode (*fn_parse_t) (const char *arg);
 
 /*
  * obj_tx_args -- stores command line parsed arguments.
@@ -135,7 +196,7 @@ struct obj_tx_args {
 /*
  * obj_tx_bench -- stores variables used in benchmark, passed within functions.
  */
-struct obj_tx_bench {
+static struct obj_tx_bench {
 	PMEMobjpool *pop;	/* handle to persistent pool */
 	struct obj_tx_args *obj_args;	/* pointer to benchmark arguments */
 	size_t *random_types;	/* array to store random type numbers */
@@ -148,8 +209,8 @@ struct obj_tx_bench {
 	int lib_op;		/* type of main operation */
 	int lib_op_free;	/* type of main operation */
 	int nesting_mode;	/* type of nesting in main operation */
-	fn_num n_oid;		/* returns object's number in array */
-	fn_off fn_off;		/* returns offset for proper operation */
+	fn_num_t n_oid;		/* returns object's number in array */
+	fn_off_t fn_off;		/* returns offset for proper operation */
 
 	/*
 	 * fn_type_num gets proper function assigned, depending on the
@@ -158,7 +219,7 @@ struct obj_tx_bench {
 	 *	- type_mode_one,
 	 *	- type_mode_rand.
 	 */
-	fn_type_num fn_type_num;
+	fn_type_num_t fn_type_num;
 
 	/*
 	 * fn_op gets proper array with functions pointer assigned, depending on
@@ -167,7 +228,7 @@ struct obj_tx_bench {
 	 *	-free_op
 	 *	-realloc_op
 	 */
-	fn_op *fn_op;
+	fn_op_t *fn_op;
 } obj_bench;
 
 /*
@@ -192,70 +253,6 @@ struct offset
 {
 	uint64_t off;
 	size_t size;
-};
-
-/* Array defining common command line arguments. */
-static struct benchmark_clo obj_tx_clo[8];
-
-/*
- * type_num_mode -- type number mode
- */
-enum type_num_mode {
-	NUM_MODE_ONE,
-	NUM_MODE_PER_THREAD,
-	NUM_MODE_RAND,
-	NUM_MODE_UNKNOWN
-};
-
-/*
- * op_mode -- operation type
- */
-enum op_mode {
-	OP_MODE_COMMIT,
-	OP_MODE_ABORT,
-	OP_MODE_ABORT_NESTED,
-	OP_MODE_ONE_OBJ,
-	OP_MODE_ONE_OBJ_NESTED,
-	OP_MODE_ONE_OBJ_RANGE,
-	OP_MODE_ONE_OBJ_NESTED_RANGE,
-	OP_MODE_ALL_OBJ,
-	OP_MODE_ALL_OBJ_NESTED,
-	OP_MODE_UNKNOWN
-};
-
-/*
- * lib_mode -- operation type
- */
-enum lib_mode {
-	LIB_MODE_DRAM,
-	LIB_MODE_OBJ_TX,
-	LIB_MODE_OBJ_ATOMIC,
-	LIB_MODE_NONE,
-};
-
-/*
- * nesting_mode -- nesting type
- */
-enum nesting_mode {
-	NESTING_MODE_SIM,
-	NESTING_MODE_TX,
-	NESTING_MODE_UNKNOWN,
-};
-
-/*
- * add_range_mode -- operation type for obj_add_range benchmark
- */
-enum add_range_mode {
-	ADD_RANGE_MODE_ONE_TX,
-	ADD_RANGE_MODE_NESTED_TX
-};
-
-/*
- * parse_mode -- parsing function type
- */
-enum parse_mode {
-	PARSE_OP_MODE,
-	PARSE_OP_MODE_ADD_RANGE
 };
 
 /*
@@ -588,17 +585,17 @@ parse_op_mode(const char *arg)
 		return OP_MODE_UNKNOWN;
 }
 
-static fn_op alloc_op[] = {alloc_dram, alloc_tx, alloc_pmem};
+static fn_op_t alloc_op[] = {alloc_dram, alloc_tx, alloc_pmem};
 
-static fn_op free_op[] = {free_dram, free_tx, free_pmem, no_free};
+static fn_op_t free_op[] = {free_dram, free_tx, free_pmem, no_free};
 
-static fn_op realloc_op[] = {realloc_dram, realloc_tx, realloc_pmem};
+static fn_op_t realloc_op[] = {realloc_dram, realloc_tx, realloc_pmem};
 
-static fn_op add_range_op[] = {add_range_tx, add_range_nested_tx};
+static fn_op_t add_range_op[] = {add_range_tx, add_range_nested_tx};
 
-static fn_parse parse_op[] = {parse_op_mode, parse_op_mode_add_range};
+static fn_parse_t parse_op[] = {parse_op_mode, parse_op_mode_add_range};
 
-static fn_op nestings[] = {obj_op_sim, obj_op_tx};
+static fn_op_t nestings[] = {obj_op_sim, obj_op_tx};
 
 /*
  * parse_type_num_mode -- converts string to type_num_mode enum
@@ -633,7 +630,7 @@ parse_lib_mode(const char *arg)
 }
 
 
-static fn_type_num type_num_fn[] = {type_mode_one, type_mode_per_thread,
+static fn_type_num_t type_num_fn[] = {type_mode_one, type_mode_per_thread,
 						type_mode_rand, NULL};
 
 /*
@@ -783,7 +780,7 @@ static int
 obj_tx_init_worker_alloc_obj(struct benchmark *bench, struct benchmark_args
 					*args, struct worker_info *worker)
 {
-	int i;
+	unsigned i;
 	if (obj_tx_init_worker(bench, args, worker) != 0)
 		return -1;
 
@@ -1077,6 +1074,8 @@ obj_tx_realloc_exit(struct benchmark *bench, struct benchmark_args *args)
 	return obj_tx_exit(bench, args);
 }
 
+/* Array defining common command line arguments. */
+static struct benchmark_clo obj_tx_clo[8];
 static struct benchmark_info obj_tx_alloc;
 static struct benchmark_info obj_tx_free;
 static struct benchmark_info obj_tx_realloc;

@@ -79,11 +79,7 @@ SRC=pmembench.cpp\
     obj_lanes.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
-    pmemobj_atomic_lists.cpp\
-    rpmem_ssh.c\
-    rpmem_cmd.c\
-    rpmem_common.c\
-    rpmem_util.c
+    pmemobj_atomic_lists.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -118,15 +114,6 @@ ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
 
-ifeq ($(BUILD_RPMEM),y)
-SRC += rpmem_persist.cpp
-LIBS += -lrpmem
-CONFIGS += pmembench_rpmem
-else
-$(info NOTE: Skipping librpmem benchmark because libfabric is missing \
--- see src/librpmem/README for details.)
-endif
-
 CFLAGS = -Wall
 CFLAGS += -Werror
 CFLAGS += -Wpointer-arith
@@ -139,6 +126,17 @@ CFLAGS += -I../examples/libpmemobj/map
 CFLAGS += -I../rpmem_common
 CFLAGS += -I../librpmem
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+
+ifeq ($(BUILD_RPMEM),y)
+SRC += rpmem_persist.cpp
+LIBS += -lrpmem
+CONFIGS += pmembench_rpmem
+CFLAGS += -DRPMEM_AVAILABLE
+else
+$(info NOTE: Skipping librpmem benchmark because libfabric is missing \
+-- see src/librpmem/README for details.)
+endif
+
 ifeq ($(GLIB),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
 LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)

@@ -41,10 +41,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/queue.h>
-
+#include <queue.h>
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 
 #define FACTOR 8
 #define LAYOUT_NAME "benchmark"
@@ -56,13 +55,13 @@ struct element;
 TOID_DECLARE(struct item, 0);
 TOID_DECLARE(struct list, 1);
 
-typedef size_t (*fn_type_num) (size_t worker_idx,
+typedef size_t (*fn_type_num_t) (size_t worker_idx,
 							size_t op_idx);
 
-typedef struct element (*fn_position) (struct obj_worker *obj_worker,
+typedef struct element (*fn_position_t) (struct obj_worker *obj_worker,
 							size_t op_idx);
 
-typedef int (*fn_init) (struct worker_info *worker, size_t n_elm,
+typedef int (*fn_init_t) (struct worker_info *worker, size_t n_elm,
 							size_t list_len);
 /*
  * args -- stores command line parsed arguments.
@@ -80,7 +79,7 @@ struct obj_list_args {
 /*
  * obj_bench -- stores variables used in benchmark, passed within functions.
  */
-struct obj_bench {
+static struct obj_bench {
 
 	/* handle to persistent pool */
 	PMEMobjpool *pop;
@@ -114,7 +113,7 @@ struct obj_bench {
 	 *	- type_mode_per_thread,
 	 *	- type_mode_rand.
 	 */
-	fn_type_num fn_type_num;
+	fn_type_num_t fn_type_num;
 
 	/*
 	 * fn_position gets proper function assigned, depending  on the value
@@ -125,7 +124,7 @@ struct obj_bench {
 	 *	- position_middle,
 	 *	- position_rand.
 	 */
-	fn_position fn_position;
+	fn_position_t fn_position;
 
 	/*
 	 * fn_init gets proper function assigned, depending on the file_io
@@ -134,7 +133,7 @@ struct obj_bench {
 	 *	- obj_init_list,
 	 *	- queue_init_list.
 	 */
-	fn_init fn_init;
+	fn_init_t fn_init;
 } obj_bench;
 
 /*
@@ -175,9 +174,6 @@ struct obj_worker {
 	 */
 	struct obj_worker *list_move;
 };
-
-/* obj_list_clo -- array defining common command line arguments. */
-static struct benchmark_clo obj_list_clo[6];
 
 /*
  * position_mode -- list destination type
@@ -332,17 +328,17 @@ type_mode_rand(size_t worker_idx, size_t op_idx)
 	return obj_bench.random_types[op_idx];
 }
 
-char *type_num_names[] = {"one", "per-thread", "rand"};
-char *position_names[] = {"head", "tail", "middle", "rand"};
-static fn_type_num type_num_modes[] = {type_mode_one, type_mode_per_thread,
+const char *type_num_names[] = {"one", "per-thread", "rand"};
+const char *position_names[] = {"head", "tail", "middle", "rand"};
+static fn_type_num_t type_num_modes[] = {type_mode_one, type_mode_per_thread,
 								type_mode_rand};
-static fn_position positions[] = {position_head, position_tail, position_middle,
+static fn_position_t positions[] = {position_head, position_tail, position_middle,
 								position_rand};
 /*
  * parse_args -- parse command line string argument
  */
 static int
-parse_args(char *arg, int max, char **names)
+parse_args(char *arg, int max, const char **names)
 {
 	int i = 0;
 	for (; i < max && strcmp(names[i], arg) != 0; i++)
@@ -967,6 +963,9 @@ obj_exit(struct benchmark *bench, struct benchmark_args *args)
 	free(obj_bench.alloc_sizes);
 	return 0;
 }
+
+/* obj_list_clo -- array defining common command line arguments. */
+static struct benchmark_clo obj_list_clo[6];
 
 static struct benchmark_info obj_insert;
 static struct benchmark_info obj_remove;

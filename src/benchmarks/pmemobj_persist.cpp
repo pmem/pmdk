@@ -46,7 +46,7 @@
 #include <sys/file.h>
 
 #include "libpmemobj.h"
-#include "benchmark.h"
+#include "benchmark.hpp"
 #include "util.h"
 
 /*
@@ -85,8 +85,6 @@ struct obj_bench {
 	size_t obj_size;		/* size of each allocated objects */
 	int const_b;			/* memset() value */
 };
-
-static struct benchmark_clo obj_persist_clo[1];
 
 /*
  * init_objects -- allocate persistent objects and obtain direct pointers
@@ -261,6 +259,8 @@ obj_persist_exit(struct benchmark *bench, struct benchmark_args *args)
 	free(ob);
 	return 0;
 }
+
+static struct benchmark_clo obj_persist_clo[1];
 
 /* Stores information about benchmark. */
 static struct benchmark_info obj_persist_info;
