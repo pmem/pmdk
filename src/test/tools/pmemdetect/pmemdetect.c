@@ -46,7 +46,7 @@
 #define SIZE 4096
 
 /*
- * is_pmem -- checks if given path points to pmem-aware filestem
+ * is_pmem -- checks if given path points to pmem-aware filesystem
  */
 static int
 is_pmem(const char *path)

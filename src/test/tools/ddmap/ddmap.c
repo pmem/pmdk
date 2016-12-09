@@ -97,7 +97,7 @@ static const struct option long_options[] = {
 /*
  * ddmap_print_bytes -- (internal) print array of bytes to stdout;
  *	printable ASCII characters are printed normally,
- *	NUL character is printed as a little circle (the degree symbol),
+ *	NULL character is printed as a little circle (the degree symbol),
  *	non-printable ASCII characters are printed as centered dots
  */
 static void
@@ -105,7 +105,7 @@ ddmap_print_bytes(const char *data, size_t len)
 {
 	for (size_t i = 0; i < len; ++i) {
 		if (data[i] == '\0')
-			/* print the degree symbol for NUL */
+			/* print the degree symbol for NULL */
 			printf("\u00B0");
 		else if (data[i] >= ' ' && data[i] <= '~')
 			/* print printable ASCII character */

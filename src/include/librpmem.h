@@ -33,7 +33,7 @@
 /*
  * librpmem.h -- definitions of librpmem entry points
  *
- * This library provides low-levew support for remote access to persistent
+ * This library provides low-level support for remote access to persistent
  * memory utilizing RDMA-capable RNICs.
  *
  * See librpmem(3) for details.
