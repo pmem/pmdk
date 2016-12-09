@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <sys/queue.h>
+#include <queue.h>
 #include <stdarg.h>
 #include <stdbool.h>
 

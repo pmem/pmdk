@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <string.h>
-#include <sys/queue.h>
+#include <queue.h>
 #include <inttypes.h>
 #include <err.h>
 #include "common.h"

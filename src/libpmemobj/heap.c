@@ -35,7 +35,7 @@
  */
 
 #include <errno.h>
-#include <sys/queue.h>
+#include <queue.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
