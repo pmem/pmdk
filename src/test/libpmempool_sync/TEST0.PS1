@@ -51,9 +51,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+rm $LOG -Force -Recurse -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+rm $LOG_TEMP -Force -Recurse -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
@@ -141,5 +141,4 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check
-
 pass

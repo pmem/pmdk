@@ -57,32 +57,32 @@ rm $LOG_TEMP -Force -Recurse -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
-$POOLSET_IN = "$DIR/poolset.in"
-$POOLSET_OUT = "$DIR/poolset.out"
+$POOLSET_IN = "$DIR\poolset.in"
+$POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
-    20M:$DIR/testfile0:x `
-    10M:$DIR/testfile1:x `
+    20M:$DIR\testfile0:x `
+    10M:$DIR\testfile1:x `
     R `
-    10M:$DIR/testfile2:x `
-    10M:$DIR/testfile3:x `
-    10M:$DIR/testfile4:x `
+    10M:$DIR\testfile2:x `
+    10M:$DIR\testfile3:x `
+    10M:$DIR\testfile4:x `
     R `
-    10M:$DIR/testfile5:x `
-    20M:$DIR/testfile6:x
+    10M:$DIR\testfile5:x `
+    20M:$DIR\testfile6:x
 
 create_poolset $POOLSET_OUT `
-    20M:$DIR/testfile0:x `
-    10M:$DIR/testfile1:x `
+    20M:$DIR\testfile0:x `
+    10M:$DIR\testfile1:x `
     R `
-    10M:$DIR/testfile2:x `
-    10M:$DIR/testfile3:x `
-    10M:$DIR/testfile4:x
+    10M:$DIR\testfile2:x `
+    10M:$DIR\testfile3:x `
+    10M:$DIR\testfile4:x
 
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 22M
 srcp 0 TestOK111
@@ -90,7 +90,7 @@ srcp 20M TestOK222
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 20M 9
@@ -115,6 +115,7 @@ cat $LOG >> $LOG_TEMP
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT >> $LOG_TEMP
 
+
 # Check metadata by pmempool info
 for ($i=0; $i -lt 5; $i++) {
     dump_pool_info $DIR/testfile$i >> $LOG_TEMP
@@ -122,5 +123,4 @@ for ($i=0; $i -lt 5; $i++) {
 
 mv -Force $LOG_TEMP $LOG
 check
-
 pass

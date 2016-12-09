@@ -55,6 +55,27 @@
 #include "uuid.h"
 
 /*
+ * check_flags_sync -- (internal) check if flags are supported for sync
+ */
+static int
+check_flags_sync(unsigned flags)
+{
+	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	return flags > 0;
+}
+
+/*
+ * check_flags_transform -- (internal) check if flags are supported for
+ *                          transform
+ */
+static int
+check_flags_transform(unsigned flags)
+{
+	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	return flags > 0;
+}
+
+/*
  * replica_get_part_data_len -- get data length for given part
  */
 size_t
@@ -1064,6 +1085,13 @@ pmempool_sync(const char *poolset, unsigned flags)
 		goto err;
 	}
 
+	/* check if flags are supported */
+	if (check_flags_sync(flags)) {
+		ERR("unsupported flags");
+		errno = EINVAL;
+		goto err;
+	}
+
 	/* open poolset file */
 	int fd = util_file_open(poolset, NULL, 0, O_RDONLY);
 	if (fd < 0) {
@@ -1128,6 +1156,13 @@ pmempool_transform(const char *poolset_src,
 	/* check if the destination poolset has correct signature */
 	if (util_is_poolset_file(poolset_dst) != 1) {
 		ERR("destination file is not a poolset file");
+		goto err;
+	}
+
+	/* check if flags are supported */
+	if (check_flags_transform(flags)) {
+		ERR("unsupported flags");
+		errno = EINVAL;
 		goto err;
 	}
 
