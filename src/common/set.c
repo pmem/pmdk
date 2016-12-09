@@ -1894,9 +1894,9 @@ err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	if (mapsize < rep->repsize) {
-		ASSERTne(addr, NULL);
-		ASSERTne(addr, MAP_FAILED);
-		munmap(addr, rep->repsize - mapsize);
+		ASSERTne(rep->part[0].addr, NULL);
+		ASSERTne(rep->part[0].addr, MAP_FAILED);
+		munmap(rep->part[0].addr, rep->repsize - mapsize);
 	}
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		util_unmap_hdr(&rep->part[p]);
@@ -2298,9 +2298,9 @@ err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	if (mapsize < rep->repsize) {
-		ASSERTne(addr, NULL);
-		ASSERTne(addr, MAP_FAILED);
-		munmap(addr, rep->repsize - mapsize);
+		ASSERTne(rep->part[0].addr, NULL);
+		ASSERTne(rep->part[0].addr, MAP_FAILED);
+		munmap(rep->part[0].addr, rep->repsize - mapsize);
 	}
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		util_unmap_hdr(&rep->part[p]);
