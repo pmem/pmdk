@@ -174,31 +174,20 @@ do_cond_signal(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	if (t->t_id % 2 != 0) {
+	if (t->t_id == 0) {
 		for (int i = 0; i < NUM_LOCKS; i++) {
 			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-			pmemobj_cond_wait(lock->pop, &lock->cond[i],
+			while (lock->data[i] < (NUM_THREADS - 1))
+				pmemobj_cond_wait(lock->pop, &lock->cond[i],
 								&lock->mtx[i]);
 			lock->data[i]++;
 			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
 		}
 	} else {
 		for (int i = 0; i < NUM_LOCKS; i++) {
-			while (1) {
-				pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-				pmemobj_cond_signal(lock->pop, &lock->cond[i]);
-
-				/*
-				 * If there are all threads with unpaired
-				 * indexes unblocked there is no need to
-				 * send signal
-				 */
-				if (lock->data[i] >= NUM_THREADS / 2)
-					break;
-
-				pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-			}
+			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
 			lock->data[i]++;
+			pmemobj_cond_signal(lock->pop, &lock->cond[i]);
 			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
 		}
 	}
@@ -215,31 +204,22 @@ do_cond_broadcast(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS && t->t_id != 0; i++) {
-		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-		pmemobj_cond_wait(lock->pop, &lock->cond[i],
-							&lock->mtx[i]);
-		lock->data[i]++;
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-	}
-
-
-	for (int i = 0; i < NUM_LOCKS && t->t_id == 0; i++) {
-		while (1) {
+	if (t->t_id < (NUM_THREADS / 2)) {
+		for (int i = 0; i < NUM_LOCKS; i++) {
 			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-			pmemobj_cond_broadcast(lock->pop, &lock->cond[i]);
-
-			/*
-			 * If there are all threads, besides first one,
-			 * unblocked there is no need to send signal
-			 */
-			if (lock->data[i] >= NUM_THREADS - 1)
-				break;
-
+			while (lock->data[i] < NUM_THREADS / 2)
+				pmemobj_cond_wait(lock->pop, &lock->cond[i],
+								&lock->mtx[i]);
+			lock->data[i]++;
 			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
 		}
-		lock->data[i]++;
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
+	} else {
+		for (int i = 0; i < NUM_LOCKS; i++) {
+			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
+			lock->data[i]++;
+			pmemobj_cond_broadcast(lock->pop, &lock->cond[i]);
+			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
+		}
 	}
 
 	return NULL;
