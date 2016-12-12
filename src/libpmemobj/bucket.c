@@ -74,17 +74,16 @@ bucket_new(struct block_container *c, struct alloc_class *aclass)
  * bucket_insert_block -- inserts a block into the bucket
  */
 int
-bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
-	struct memory_block m)
+bucket_insert_block(struct bucket *b, const struct memory_block *m)
 {
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
-		size_t size = MEMBLOCK_OPS(AUTO, &m)->get_real_size(&m, heap);
-		void *data = MEMBLOCK_OPS(AUTO, &m)->get_real_data(&m, heap);
+		size_t size = m->m_ops->get_real_size(m);
+		void *data = m->m_ops->get_real_data(m);
 		VALGRIND_MAKE_MEM_NOACCESS(data, size);
 	}
 #endif
-	return b->c_ops->insert(b->container, heap, m);
+	return b->c_ops->insert(b->container, m);
 }
 
 /*

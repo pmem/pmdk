@@ -45,25 +45,6 @@
 #include "memops.h"
 #include "palloc.h"
 
-struct memory_block {
-	uint32_t chunk_id; /* index of the memory block in its zone */
-	uint32_t zone_id; /* index of this block zone in the heap */
-
-	/*
-	 * Size index of the memory block represented in either multiple of
-	 * CHUNKSIZE in the case of a huge chunk or in multiple of a run
-	 * block size.
-	 */
-	uint32_t size_idx;
-
-	/*
-	 * Used only for run chunks, must be zeroed for huge.
-	 * Number of preceding blocks in the chunk. In other words, the
-	 * position of this memory block in run bitmap.
-	 */
-	uint16_t block_off;
-};
-
 enum memory_block_type {
 	/*
 	 * Huge memory blocks are directly backed by memory chunks. A single
@@ -174,62 +155,65 @@ enum header_type {
 extern const size_t header_type_to_size[MAX_HEADER_TYPES];
 extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
 
-enum memory_block_type memblock_autodetect_type(const struct memory_block *m,
-	struct heap_layout *h);
-
 struct memory_block memblock_from_offset(struct palloc_heap *heap,
 	uint64_t off);
+void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
 
 struct memory_block_ops {
-	size_t (*block_size)(const struct memory_block *m, struct heap_layout *h);
-	void (*prep_hdr)(const struct memory_block *m, struct palloc_heap *heap,
-		enum memblock_state dest_state, enum header_type hdr_type,
-		struct operation_context *ctx);
-	pthread_mutex_t *(*get_lock)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	enum memblock_state (*get_state)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	void *(*get_user_data)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	size_t (*get_user_size)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	void *(*get_user_data_with_hdr_type)(const struct memory_block *m,
-		enum header_type t, struct palloc_heap *heap);
-	size_t (*get_user_size_with_hdr_type)(const struct memory_block *m,
-		enum header_type t, struct palloc_heap *heap);
-	void *(*get_real_data)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	size_t (*get_real_size)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	void (*write_header)(const struct memory_block *m, struct palloc_heap *heap,
-		uint64_t extra_field, uint16_t flags, enum header_type t);
-	void (*reinit_header)(const struct memory_block *m, struct palloc_heap *heap);
-	uint64_t (*get_extra)(const struct memory_block *m, struct palloc_heap *heap);
-	uint16_t (*get_flags)(const struct memory_block *m, struct palloc_heap *heap);
+	size_t (*block_size)(const struct memory_block *m);
+	void (*prep_hdr)(const struct memory_block *m,
+		enum memblock_state dest_state, struct operation_context *ctx);
+	pthread_mutex_t *(*get_lock)(const struct memory_block *m);
+	enum memblock_state (*get_state)(const struct memory_block *m);
+	void *(*get_user_data)(const struct memory_block *m);
+	size_t (*get_user_size)(const struct memory_block *m);
+	void *(*get_real_data)(const struct memory_block *m);
+	size_t (*get_real_size)(const struct memory_block *m);
+	void (*write_header)(const struct memory_block *m,
+		uint64_t extra_field, uint16_t flags);
+	void (*reinit_header)(const struct memory_block *m);
+	uint64_t (*get_extra)(const struct memory_block *m);
+	uint16_t (*get_flags)(const struct memory_block *m);
 
 	/* only runs can be claimed, functions are invalid for huge blocks */
-	int (*claim)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	void (*claim_revoke)(const struct memory_block *m,
-		struct palloc_heap *heap);
-	int (*is_claimed)(const struct memory_block *m,
-		struct palloc_heap *heap);
+	int (*claim)(const struct memory_block *m);
+	void (*claim_revoke)(const struct memory_block *m);
+	int (*is_claimed)(const struct memory_block *m);
 };
 
-extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
+struct memory_block {
+	uint32_t chunk_id; /* index of the memory block in its zone */
+	uint32_t zone_id; /* index of this block zone in the heap */
 
-#define MEMBLOCK_OPS_AUTO(memblock, heap_layout)\
-(&mb_ops[memblock_autodetect_type(memblock, heap_layout)])
+	/*
+	 * Size index of the memory block represented in either multiple of
+	 * CHUNKSIZE in the case of a huge chunk or in multiple of a run
+	 * block size.
+	 */
+	uint32_t size_idx;
 
-#define MEMBLOCK_OPS_HUGE(memblock, heap_layout)\
-(&mb_ops[MEMORY_BLOCK_HUGE])
+	/*
+	 * Used only for run chunks, must be zeroed for huge.
+	 * Number of preceding blocks in the chunk. In other words, the
+	 * position of this memory block in run bitmap.
+	 */
+	uint16_t block_off;
 
-#define MEMBLOCK_OPS_RUN(memblock, heap_layout)\
-(&mb_ops[MEMORY_BLOCK_RUN])
+	/*
+	 * The variables below are associated with the memory block and are
+	 * stored here for convenience. Those fields are filled by either the
+	 * memblock_from_offset or memblock_rebuild_state, and they should not
+	 * be modified manually.
+	 */
 
-#define MEMBLOCK_OPS_ MEMBLOCK_OPS_AUTO
+	enum header_type header_type;
+	enum memory_block_type type;
+	const struct memory_block_ops *m_ops;
+	struct palloc_heap *heap;
+};
 
-#define MEMBLOCK_OPS(type, memblock)\
-MEMBLOCK_OPS_##type(memblock, heap->layout)
+#define MEMORY_BLOCK_NONE \
+(struct memory_block){0, 0, 0, 0,\
+	MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL, NULL}
 
 #endif

@@ -68,19 +68,18 @@ struct block_container_seglists {
  */
 static int
 container_seglists_insert_block(struct block_container *bc,
-	struct palloc_heap *heap, struct memory_block m)
+	const struct memory_block *m)
 {
-	ASSERT(m.chunk_id < MAX_CHUNK);
-	ASSERT(m.zone_id < UINT16_MAX);
-	ASSERTne(m.size_idx, 0);
+	ASSERT(m->chunk_id < MAX_CHUNK);
+	ASSERT(m->zone_id < UINT16_MAX);
+	ASSERTne(m->size_idx, 0);
 
 	struct block_container_seglists *c =
 		(struct block_container_seglists *)bc;
 
-	ASSERT(m.size_idx <= SEGLIST_BLOCK_LISTS);
+	ASSERT(m->size_idx <= SEGLIST_BLOCK_LISTS);
 
-	struct seglist_entry *e = MEMBLOCK_OPS(AUTO, &m)
-		->get_user_data(&m, heap);
+	struct seglist_entry *e = m->m_ops->get_user_data(m);
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
 		VALGRIND_DO_MAKE_MEM_DEFINED(e, sizeof(*e));
@@ -89,14 +88,14 @@ container_seglists_insert_block(struct block_container *bc,
 
 	VALGRIND_ADD_TO_TX(e, sizeof(*e));
 
-	e->m = m;
-	SLIST_INSERT_HEAD(&c->blocks[m.size_idx - 1], e, entry);
+	e->m = *m;
+	SLIST_INSERT_HEAD(&c->blocks[m->size_idx - 1], e, entry);
 
 	VALGRIND_SET_CLEAN(e, sizeof(*e));
 	VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
 
 	/* marks the list as nonempty */
-	c->nonempty_lists |= 1ULL << (m.size_idx - 1);
+	c->nonempty_lists |= 1ULL << (m->size_idx - 1);
 
 	return 0;
 }
@@ -206,12 +205,13 @@ static struct block_container_ops container_seglists_ops = {
  * container_new_seglists -- allocates and initializes a ctree container
  */
 struct block_container *
-container_new_seglists(void)
+container_new_seglists(struct palloc_heap *heap)
 {
 	struct block_container_seglists *bc = Malloc(sizeof(*bc));
 	if (bc == NULL)
 		goto error_container_malloc;
 
+	bc->super.heap = heap;
 	bc->super.c_ops = &container_seglists_ops;
 
 	for (uint32_t i = 0; i < SEGLIST_BLOCK_LISTS; ++i)

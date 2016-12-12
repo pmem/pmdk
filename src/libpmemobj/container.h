@@ -41,15 +41,17 @@
 
 struct block_container {
 	struct block_container_ops *c_ops;
+	struct palloc_heap *heap;
 };
 
 struct block_container_ops {
-	int (*insert)(struct block_container *c, struct palloc_heap *heap,
-		struct memory_block m);
-	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
+	int (*insert)(struct block_container *c, const struct memory_block *m);
+	int (*get_rm_exact)(struct block_container *c,
+		const struct memory_block *m);
 	int (*get_rm_bestfit)(struct block_container *c,
 		struct memory_block *m);
-	int (*get_exact)(struct block_container *c, struct memory_block m);
+	int (*get_exact)(struct block_container *c,
+		const struct memory_block *m);
 	int (*is_empty)(struct block_container *c);
 	void (*rm_all)(struct block_container *c);
 	void (*destroy)(struct block_container *c);

@@ -48,7 +48,7 @@
 ((RUNSIZE / ((_bs))))
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
-((uint32_t)(((_size - 1) / _unit_size) + 1))
+(_size == 0 ? 0 : (uint32_t)(((_size - 1) / _unit_size) + 1))
 
 struct bucket {
 	pthread_mutex_t lock;
@@ -65,8 +65,7 @@ struct bucket {
 struct bucket *bucket_new(struct block_container *c,
 	struct alloc_class *aclass);
 
-int bucket_insert_block(struct bucket *b, struct palloc_heap *heap,
-		struct memory_block m);
+int bucket_insert_block(struct bucket *b, const struct memory_block *m);
 
 void bucket_delete(struct bucket *b);
 

@@ -194,6 +194,34 @@ test_pmalloc_extras(PMEMobjpool *pop)
 	pfree(pop, &val);
 }
 
+#define PMALLOC_ELEMENTS 20
+
+static void
+test_pmalloc_first_next(PMEMobjpool *pop)
+{
+	uint64_t vals[PMALLOC_ELEMENTS];
+	for (int i = 0; i < PMALLOC_ELEMENTS; ++i) {
+		int ret = pmalloc(pop, &vals[i], 10, i, i);
+		UT_ASSERTeq(ret, 0);
+	}
+
+	uint64_t off = palloc_first(&pop->heap);
+	UT_ASSERTne(off, 0);
+	int nvalues = 0;
+	do {
+		UT_ASSERTeq(vals[nvalues], off);
+		UT_ASSERTeq(palloc_extra(&pop->heap, off), nvalues);
+		UT_ASSERTeq(palloc_flags(&pop->heap, off), nvalues);
+		UT_ASSERT(palloc_usable_size(&pop->heap, off) == 112);
+
+		nvalues ++;
+	} while ((off = palloc_next(&pop->heap, off)) != 0);
+	UT_ASSERTeq(nvalues, PMALLOC_ELEMENTS);
+
+	for (int i = 0; i < PMALLOC_ELEMENTS; ++i)
+		pfree(pop, &vals[i]);
+}
+
 static void
 test_mock_pool_allocs()
 {
@@ -240,6 +268,7 @@ test_mock_pool_allocs()
 	UT_ASSERTne(mock_pop->heap.rt, NULL);
 
 	test_pmalloc_extras(mock_pop);
+	test_pmalloc_first_next(mock_pop);
 
 	test_malloc_free_loop(MALLOC_FREE_SIZE);
 

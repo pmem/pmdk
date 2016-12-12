@@ -71,12 +71,9 @@ heap_get_bucket_by_class(struct palloc_heap *heap, struct alloc_class *c);
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
 struct memory_block
-	heap_coalesce_huge(struct palloc_heap *heap, struct memory_block m);
+heap_coalesce_huge(struct palloc_heap *heap, const struct memory_block *m);
 pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
-
-struct memory_block heap_free_block(struct palloc_heap *heap, struct bucket *b,
-	struct memory_block m, struct operation_context *ctx);
 
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);

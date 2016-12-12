@@ -313,13 +313,16 @@ heap_run_insert(struct palloc_heap *heap, struct bucket *b, uint32_t chunk_id,
 
 	uint32_t unit_max = c->run.unit_max;
 	struct memory_block m = {chunk_id, zone_id,
-		unit_max - (block_off % unit_max), block_off};
+		unit_max - (block_off % unit_max), block_off,
+		0, 0, NULL, NULL};
 
 	if (m.size_idx > size_idx)
 		m.size_idx = size_idx;
 
+	memblock_rebuild_state(heap, &m);
+
 	do {
-		bucket_insert_block(b, heap, m);
+		bucket_insert_block(b, &m);
 		ASSERT(m.size_idx <= UINT16_MAX);
 		ASSERT(m.block_off + m.size_idx <= UINT16_MAX);
 		m.block_off = (uint16_t)(m.block_off + (uint16_t)m.size_idx);
@@ -438,10 +441,10 @@ static int
 heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 	struct memory_block *m)
 {
-	if (MEMBLOCK_OPS(RUN, m)->claim(m, heap) != 0)
+	if (m->m_ops->claim(m) != 0)
 		return 0; /* this run already has an owner */
 
-	pthread_mutex_t *lock = MEMBLOCK_OPS(RUN, m)->get_lock(m, heap);
+	pthread_mutex_t *lock = m->m_ops->get_lock(m);
 	util_mutex_lock(lock);
 
 	struct alloc_class *c = alloc_class_get_create_by_unit_size(
@@ -472,21 +475,24 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 		struct operation_context ctx;
 		operation_init(&ctx, heap->base, NULL, NULL);
 		ctx.p_ops = &heap->p_ops;
-		struct memory_block nb = *m;
 
+		struct memory_block nb = MEMORY_BLOCK_NONE;
+		nb.chunk_id = m->chunk_id;
+		nb.zone_id = m->zone_id;
 		nb.block_off = 0;
 		nb.size_idx = 1;
-		heap_chunk_init(heap, hdr, CHUNK_TYPE_FREE, nb.size_idx);
 
-		struct memory_block fm = heap_coalesce_huge(heap, nb);
-		MEMBLOCK_OPS(HUGE, &fm)->prep_hdr(&fm, heap,
-			MEMBLOCK_FREE, defb->aclass->header_type, &ctx);
+		heap_chunk_init(heap, hdr, CHUNK_TYPE_FREE, nb.size_idx);
+		memblock_rebuild_state(heap, &nb);
+
+		nb = heap_coalesce_huge(heap, &nb);
+		nb.m_ops->prep_hdr(&nb, MEMBLOCK_FREE, &ctx);
 
 		operation_process(&ctx);
 
-		bucket_insert_block(defb, heap, fm);
+		bucket_insert_block(defb, &nb);
 
-		*m = fm;
+		*m = nb;
 	} else {
 		recycler_put(heap->rt->recyclers[c->id], m);
 	}
@@ -505,7 +511,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 
 	struct chunk_run *run = NULL;
-	struct memory_block m = {0, zone_id, 0, 0};
 	int rchunks = 0;
 	struct bucket *defb = heap->rt->default_bucket;
 
@@ -515,8 +520,12 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 		if (init)
 			heap_chunk_write_footer(hdr, hdr->size_idx);
 
+		struct memory_block m = MEMORY_BLOCK_NONE;
+		m.zone_id = zone_id;
 		m.chunk_id = i;
 		m.size_idx = hdr->size_idx;
+
+		memblock_rebuild_state(heap, &m);
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
@@ -525,7 +534,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 				break;
 			case CHUNK_TYPE_FREE:
 				if (init)
-					bucket_insert_block(defb, heap, m);
+					bucket_insert_block(defb, &m);
 				break;
 			case CHUNK_TYPE_USED:
 				break;
@@ -572,7 +581,7 @@ heap_reclaim_garbage(struct palloc_heap *heap)
 	struct memory_block m;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
-			MEMBLOCK_OPS(RUN, &m)->claim_revoke(&m, heap);
+			m.m_ops->claim_revoke(&m);
 		}
 	}
 
@@ -599,18 +608,18 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
-		MEMBLOCK_OPS(RUN, &b->active_memory_block)
-			->claim_revoke(&b->active_memory_block, heap);
+		b->active_memory_block.m_ops
+			->claim_revoke(&b->active_memory_block);
 
 		b->is_active = 0;
 	}
 
 	struct heap_rt *h = heap->rt;
-	struct memory_block m = {0, 0, 1, 0};
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.size_idx = 1;
 
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
-		pthread_mutex_t *lock = MEMBLOCK_OPS(RUN, &m)
-			->get_lock(&m, heap);
+		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
 
 		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
@@ -629,6 +638,8 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		ASSERTeq(m.block_off, 0);
 
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
+		memblock_rebuild_state(heap, &m);
+
 		b->active_memory_block = m;
 		b->is_active = 1;
 
@@ -651,13 +662,14 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		 * and should be replaced by a different heuristic once proper
 		 * memory block scoring is implemented.
 		 */
-		struct memory_block tmp = {0, 0, units, 0};
+		struct memory_block tmp = MEMORY_BLOCK_NONE;
+		tmp.size_idx = units;
 		if (b->c_ops->get_rm_bestfit(b->container, &tmp) != 0) {
 			b->c_ops->rm_all(b->container);
-			MEMBLOCK_OPS(RUN, &m)->claim_revoke(&m, heap);
+			m.m_ops->claim_revoke(&m);
 			return ENOMEM;
 		} else {
-			bucket_insert_block(b, heap, tmp);
+			bucket_insert_block(b, &tmp);
 		}
 
 		b->active_memory_block = m;
@@ -687,8 +699,10 @@ heap_resize_chunk(struct palloc_heap *heap,
 	heap_chunk_init(heap, old_hdr, CHUNK_TYPE_FREE, new_size_idx);
 
 	struct bucket *def_bucket = heap->rt->default_bucket;
-	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0};
-	bucket_insert_block(def_bucket, heap, m);
+	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0,
+		0, 0, NULL, NULL};
+	memblock_rebuild_state(heap, &m);
+	bucket_insert_block(def_bucket, &m);
 }
 
 /*
@@ -702,8 +716,10 @@ heap_recycle_block(struct palloc_heap *heap, struct bucket *b,
 		ASSERT(units <= UINT16_MAX);
 		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
-			m->size_idx - units, (uint16_t)(m->block_off + units)};
-		bucket_insert_block(b, heap, r);
+			m->size_idx - units, (uint16_t)(m->block_off + units),
+			0, 0, NULL, NULL};
+		memblock_rebuild_state(heap, &r);
+		bucket_insert_block(b, &r);
 	} else {
 		heap_resize_chunk(heap, m->chunk_id, m->zone_id, units);
 	}
@@ -768,6 +784,7 @@ heap_get_adjacent_free_block(struct palloc_heap *heap,
 
 		out->size_idx = z->chunk_headers[out->chunk_id].size_idx;
 	}
+	memblock_rebuild_state(heap, out);
 
 	return 0;
 }
@@ -776,10 +793,11 @@ heap_get_adjacent_free_block(struct palloc_heap *heap,
  * heap_coalesce -- (internal) merges adjacent memory blocks
  */
 static struct memory_block
-heap_coalesce(struct palloc_heap *heap, struct memory_block *blocks[], int n)
+heap_coalesce(struct palloc_heap *heap,
+	const struct memory_block *blocks[], int n)
 {
 	struct memory_block ret;
-	struct memory_block *b = NULL;
+	const struct memory_block *b = NULL;
 	ret.size_idx = 0;
 	for (int i = 0; i < n; ++i) {
 		if (blocks[i] == NULL)
@@ -793,6 +811,7 @@ heap_coalesce(struct palloc_heap *heap, struct memory_block *blocks[], int n)
 	ret.chunk_id = b->chunk_id;
 	ret.zone_id = b->zone_id;
 	ret.block_off = b->block_off;
+	memblock_rebuild_state(heap, &ret);
 
 	return ret;
 }
@@ -802,21 +821,21 @@ heap_coalesce(struct palloc_heap *heap, struct memory_block *blocks[], int n)
  *	volatile state and returns the resulting block
  */
 struct memory_block
-heap_coalesce_huge(struct palloc_heap *heap, struct memory_block m)
+heap_coalesce_huge(struct palloc_heap *heap, const struct memory_block *m)
 {
-	struct memory_block *blocks[3] = {NULL, &m, NULL};
+	const struct memory_block *blocks[3] = {NULL, m, NULL};
 
 	struct bucket *b = heap_get_default_bucket(heap);
 
-	struct memory_block prev = {0, 0, 0, 0};
-	if (heap_get_adjacent_free_block(heap, &m, &prev, 1) == 0 &&
-		b->c_ops->get_rm_exact(b->container, prev) == 0) {
+	struct memory_block prev = MEMORY_BLOCK_NONE;
+	if (heap_get_adjacent_free_block(heap, m, &prev, 1) == 0 &&
+		b->c_ops->get_rm_exact(b->container, &prev) == 0) {
 		blocks[0] = &prev;
 	}
 
-	struct memory_block next = {0, 0, 0, 0};
-	if (heap_get_adjacent_free_block(heap, &m, &next, 0) == 0 &&
-		b->c_ops->get_rm_exact(b->container, next) == 0) {
+	struct memory_block next = MEMORY_BLOCK_NONE;
+	if (heap_get_adjacent_free_block(heap, m, &next, 0) == 0 &&
+		b->c_ops->get_rm_exact(b->container, &next) == 0) {
 		blocks[2] = &next;
 	}
 
@@ -863,12 +882,13 @@ heap_get_ncaches(void)
  * instances of the specified type
  */
 static int
-heap_create_alloc_class_buckets(struct heap_rt *h, struct alloc_class *c)
+heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
+	struct heap_rt *h = heap->rt;
 	int i;
 	for (i = 0; i < (int)h->ncaches; ++i) {
 		h->caches[i].buckets[c->id] = bucket_new(
-			container_new_seglists(), c);
+			container_new_seglists(heap), c);
 		if (h->caches[i].buckets[c->id] == NULL)
 			goto error_cache_bucket_new;
 	}
@@ -894,12 +914,12 @@ heap_buckets_init(struct palloc_heap *heap)
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = alloc_class_by_id(h->alloc_classes, i);
 		if (c != NULL) {
-			if (heap_create_alloc_class_buckets(h, c) != 0)
+			if (heap_create_alloc_class_buckets(heap, c) != 0)
 				goto error_bucket_create;
 		}
 	}
 
-	h->default_bucket = bucket_new(container_new_ctree(),
+	h->default_bucket = bucket_new(container_new_ctree(heap),
 		alloc_class_by_id(h->alloc_classes, DEFAULT_ALLOC_CLASS_ID));
 
 	if (h->default_bucket == NULL)
@@ -1253,7 +1273,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	struct alloc_class *c =
 		alloc_class_get_create_by_unit_size(
 			heap->rt->alloc_classes,
-			MEMBLOCK_OPS(RUN, m)->block_size(m, heap->layout));
+			m->m_ops->block_size(m));
 
 	if (c == NULL)
 		return -1;
@@ -1275,14 +1295,20 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 
 			if (!BIT_IS_CLR(v, j)) {
 				m->block_off = (uint16_t)(block_off + j);
-				m->size_idx = CALC_SIZE_IDX(c->unit_size,
-					MEMBLOCK_OPS(RUN, m)
-						->get_real_size(m, heap));
+
+				/*
+				 * The size index of this memory block cannot be
+				 * retrieved at this time because the header
+				 * might not be initialized in valgrind yet.
+				 */
+				m->size_idx = 0;
 
 				if (cb(m, arg)
 						!= 0)
 					return 1;
 
+				m->size_idx = CALC_SIZE_IDX(c->unit_size,
+					m->m_ops->get_real_size(m));
 				j = (uint16_t)(j + m->size_idx);
 			} else {
 				++j;
@@ -1303,6 +1329,7 @@ heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 {
 	struct zone *zone = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &zone->chunk_headers[m->chunk_id];
+	memblock_rebuild_state(heap, m);
 
 	switch (hdr->type) {
 		case CHUNK_TYPE_FREE:
@@ -1366,10 +1393,10 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 	struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	enum memory_block_type t = memblock_autodetect_type(m, heap->layout);
 	void *chunk = &z->chunks[m->chunk_id];
+	memblock_rebuild_state(heap, m);
 
-	if (t == MEMORY_BLOCK_RUN) {
+	if (m->type == MEMORY_BLOCK_RUN) {
 		struct chunk_run *run = chunk;
 
 		VALGRIND_DO_MAKE_MEM_NOACCESS(run, sizeof(*run));
@@ -1385,11 +1412,10 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 		m->size_idx = hdr->size_idx;
 		void *addr = chunk;
 
-		size_t size = MEMBLOCK_OPS(HUGE, m)->get_real_size(m, heap);
+		size_t size = m->m_ops->get_real_size(m);
 		VALGRIND_DO_MAKE_MEM_NOACCESS(addr, size);
 
-		if (objects && MEMBLOCK_OPS(HUGE, m)->get_state(m, heap)
-				== MEMBLOCK_ALLOCATED) {
+		if (objects && m->m_ops->get_state(m) == MEMBLOCK_ALLOCATED) {
 			int ret = cb(m, arg);
 			ASSERTeq(ret, 0);
 		}
@@ -1412,7 +1438,7 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 
 	unsigned zones = heap_max_zone(heap->size);
 
-	struct memory_block m = {0, 0, 0, 0};
+	struct memory_block m = MEMORY_BLOCK_NONE;
 	for (unsigned i = 0; i < zones; ++i) {
 		struct zone *z = ZID_TO_ZONE(layout, i);
 		uint32_t chunks;
