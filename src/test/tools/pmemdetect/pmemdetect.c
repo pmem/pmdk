@@ -70,7 +70,7 @@ is_pmem(const char *path)
 }
 
 /*
- * is_dev_Dax -- checks if given path points to device dax
+ * is_dev_dax -- checks if given path points to device dax
  */
 static int
 is_dev_dax(const char *path)
@@ -85,7 +85,7 @@ is_dev_dax(const char *path)
 		return -1;
 	}
 
-	return 0;
+	return 1;
 }
 
 int
