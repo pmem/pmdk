@@ -345,10 +345,10 @@ util_unmap_hdr(struct pool_set_part *part)
 {
 	if (part->hdr != NULL && part->hdrsize != 0) {
 		LOG(4, "munmap: addr %p size %zu", part->hdr, part->hdrsize);
+		VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
 		if (munmap(part->hdr, part->hdrsize) != 0) {
 			ERR("!munmap: %s", part->path);
 		}
-		VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
 		part->hdr = NULL;
 		part->hdrsize = 0;
 	}
@@ -423,11 +423,11 @@ util_unmap_part(struct pool_set_part *part)
 
 	if (part->addr != NULL && part->size != 0) {
 		LOG(4, "munmap: addr %p size %zu", part->addr, part->size);
+		VALGRIND_REMOVE_PMEM_MAPPING(part->addr, part->size);
 		if (munmap(part->addr, part->size) != 0) {
 			ERR("!munmap: %s", part->path);
 		}
 
-		VALGRIND_REMOVE_PMEM_MAPPING(part->addr, part->size);
 		part->addr = NULL;
 		part->size = 0;
 	}
