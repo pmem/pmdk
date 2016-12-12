@@ -39,6 +39,6 @@
 
 #include "container.h"
 
-struct block_container *container_new_ctree(void);
+struct block_container *container_new_ctree(struct palloc_heap *heap);
 
 #endif /* LIBPMEMOBJ_CONTAINER_CTREE_H */

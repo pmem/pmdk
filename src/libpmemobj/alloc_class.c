@@ -391,8 +391,8 @@ alloc_class_collection_new(void)
 		struct alloc_class *c = alloc_class_find_min_frag(ac,
 				i * ALLOC_BLOCK_SIZE);
 		ac->class_map_by_unit_size[i] = c->id;
-		size_t header_offset = header_type_to_size[c->header_type] /
-					ALLOC_BLOCK_SIZE;
+		size_t header_offset = CALC_SIZE_IDX(ALLOC_BLOCK_SIZE,
+			header_type_to_size[c->header_type]);
 		ac->class_map_by_alloc_size[i - header_offset] = c->id;
 	}
 
