@@ -48,10 +48,10 @@
 #include "rpmem_cmd.h"
 #include "rpmem_util.h"
 
-#define ERR_BUFF_SIZE	4095
+#define ERR_BUFF_LEN	4095
 
 /* +1 in order to be sure it is always null-terminated */
-static char error_str[ERR_BUFF_SIZE + 1];
+static char error_str[ERR_BUFF_LEN + 1];
 
 struct rpmem_ssh {
 	struct rpmem_cmd *cmd;
@@ -428,32 +428,37 @@ rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock)
 const char *
 rpmem_ssh_strerror(struct rpmem_ssh *rps)
 {
-	ssize_t ret = read(rps->cmd->fd_err, error_str, ERR_BUFF_SIZE);
-	if (ret < 0)
-		return "reading error string failed";
+	size_t len = 0;
+	ssize_t ret;
+	while ((ret = read(rps->cmd->fd_err, error_str + len,
+			ERR_BUFF_LEN - len))) {
+		if (ret < 0)
+			return "reading error string failed";
 
-	if (ret == 0) {
+		len += (size_t)ret;
+	}
+	error_str[len] = '\0';
+
+	if (len == 0) {
 		if (errno) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-			snprintf(error_str, ERR_BUFF_SIZE,
+			snprintf(error_str, ERR_BUFF_LEN,
 				"%s", buff);
 		} else {
-			snprintf(error_str, ERR_BUFF_SIZE,
+			snprintf(error_str, ERR_BUFF_LEN,
 				"unknown error");
 		}
+	} else {
+		/* get rid of new line and carriage return chars */
+		char *cr = strchr(error_str, '\r');
+		if (cr)
+			*cr = '\0';
 
-		return error_str;
+		char *nl = strchr(error_str, '\n');
+		if (nl)
+			*nl = '\0';
 	}
-
-	/* get rid of new line and carriage return chars */
-	char *cr = strchr(error_str, '\r');
-	if (cr)
-		*cr = '\0';
-
-	char *nl = strchr(error_str, '\n');
-	if (nl)
-		*nl = '\0';
 
 	return error_str;
 }
