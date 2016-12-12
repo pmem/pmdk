@@ -47,14 +47,11 @@
 #include "palloc.h"
 
 #define MEMORY_BLOCK_IS_NONE(_m)\
-((_m).size_idx == 0)
+((_m).heap == NULL)
 
 #define MEMORY_BLOCK_EQUALS(lhs, rhs)\
 ((lhs).zone_id == (rhs).zone_id && (lhs).chunk_id == (rhs).chunk_id &&\
-(lhs).block_off == (rhs).block_off && (lhs).size_idx == (rhs).size_idx)
-
-#define MEMORY_BLOCK_NONE \
-(struct memory_block){0, 0, 0, 0}
+(lhs).block_off == (rhs).block_off)
 
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
@@ -68,14 +65,13 @@
  * of a crash the memory will be back in the free blocks collection.
  */
 static int
-alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
+alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t flags,
-	struct alloc_class *c, size_t usize,
 	uint64_t *offset_value)
 {
-	void *uptr = MEMBLOCK_OPS(AUTO, &m)
-		->get_user_data_with_hdr_type(&m, c->header_type, heap);
+	void *uptr = m->m_ops->get_user_data(m);
+	size_t usize = m->m_ops->get_user_size(m);
 
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
 
@@ -96,7 +92,7 @@ alloc_prep_block(struct palloc_heap *heap, struct memory_block m,
 		return ret;
 	}
 
-	MEMBLOCK_OPS(AUTO, &m)->write_header(&m, heap, extra_field, flags, c->header_type);
+	m->m_ops->write_header(m, extra_field, flags);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -150,9 +146,8 @@ palloc_operation(struct palloc_heap *heap,
 	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx)
 {
-	struct memory_block existing_block = {0, 0, 0, 0};
-	struct memory_block new_block = {0, 0, 0, 0};
-	enum memory_block_type existing_block_type = MAX_MEMORY_BLOCK;
+	struct memory_block existing_block = MEMORY_BLOCK_NONE;
+	struct memory_block new_block = MEMORY_BLOCK_NONE;
 
 	struct bucket *default_bucket = heap_get_default_bucket(heap);
 	int ret = 0;
@@ -208,18 +203,25 @@ palloc_operation(struct palloc_heap *heap,
 			goto out;
 		}
 
-		if (alloc_prep_block(heap, new_block, constructor, arg,
-			extra_field, flags,
-			c, size, &offset_value) != 0) {
+		/*
+		 * The header type is changed in the transient memory block
+		 * representation, but the actual header type as represented by
+		 * the underlying chunk can be different. Only after the
+		 * operation is processed, the transient and persistent
+		 * representations will have matching header types.
+		 */
+		new_block.header_type = c->header_type;
+
+		if (alloc_prep_block(heap, &new_block, constructor, arg,
+			extra_field, flags, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.
 			 */
-			enum memory_block_type t = memblock_autodetect_type(
-				&new_block, heap->layout);
-			if (t == MEMORY_BLOCK_HUGE) {
-				new_block = heap_coalesce_huge(heap, new_block);
-				bucket_insert_block(b, heap, new_block);
+			if (new_block.type == MEMORY_BLOCK_HUGE) {
+				new_block = heap_coalesce_huge(
+					heap, &new_block);
+				bucket_insert_block(b, &new_block);
 			}
 
 			util_mutex_unlock(&b->lock);
@@ -235,8 +237,7 @@ palloc_operation(struct palloc_heap *heap,
 		 * thread might operate on the same 8-byte value of the run
 		 * bitmap and override allocation performed by this thread.
 		 */
-		new_block_lock = MEMBLOCK_OPS(AUTO, &new_block)
-			->get_lock(&new_block, heap);
+		new_block_lock = new_block.m_ops->get_lock(&new_block);
 
 		if (new_block_lock != NULL)
 			util_mutex_lock(new_block_lock);
@@ -248,10 +249,8 @@ palloc_operation(struct palloc_heap *heap,
 		 * means the run will become available to others.
 		 */
 		util_mutex_unlock(&b->lock);
-
 #ifdef DEBUG
-		if (MEMBLOCK_OPS(AUTO, &new_block)
-			->get_state(&new_block, heap) != MEMBLOCK_FREE) {
+		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
 		}
@@ -263,9 +262,7 @@ palloc_operation(struct palloc_heap *heap,
 		 * value - either modification of few bits in a bitmap or
 		 * changing a chunk type from free to used.
 		 */
-		MEMBLOCK_OPS(AUTO, &new_block)
-			->prep_hdr(&new_block, heap,
-				MEMBLOCK_ALLOCATED, c->header_type, ctx);
+		new_block.m_ops->prep_hdr(&new_block, MEMBLOCK_ALLOCATED, ctx);
 	}
 
 	/*
@@ -277,8 +274,8 @@ palloc_operation(struct palloc_heap *heap,
 	if (off != 0) {
 		existing_block = memblock_from_offset(heap, off);
 
-		size_t user_size = MEMBLOCK_OPS(AUTO, &existing_block)
-			->get_user_size(&existing_block, heap);
+		size_t user_size = existing_block.m_ops
+			->get_user_size(&existing_block);
 
 		/* reallocation to exactly the same size, which is a no-op */
 		if (user_size == size)
@@ -289,8 +286,8 @@ palloc_operation(struct palloc_heap *heap,
 		 * successfully, because other threads might operate on the
 		 * same bitmap value.
 		 */
-		existing_block_lock = MEMBLOCK_OPS(AUTO, &existing_block)
-			->get_lock(&existing_block, heap);
+		existing_block_lock = existing_block.m_ops
+			->get_lock(&existing_block);
 
 		/* the locks might be identical in the case of realloc */
 		if (existing_block_lock == new_block_lock)
@@ -299,12 +296,8 @@ palloc_operation(struct palloc_heap *heap,
 		if (existing_block_lock != NULL)
 			util_mutex_lock(existing_block_lock);
 
-		existing_block_type = memblock_autodetect_type(&existing_block,
-			heap->layout);
-
 #ifdef DEBUG
-		if (MEMBLOCK_OPS(AUTO,
-			&existing_block)->get_state(&existing_block, heap) !=
+		if (existing_block.m_ops->get_state(&existing_block) !=
 				MEMBLOCK_ALLOCATED) {
 			ERR("Double free or heap corruption");
 			ASSERT(0);
@@ -328,13 +321,13 @@ palloc_operation(struct palloc_heap *heap,
 		}
 
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
-			(char *)MEMBLOCK_OPS(AUTO, &existing_block)->
-				get_user_data(&existing_block, heap));
+			(char *)existing_block.m_ops
+				->get_user_data(&existing_block));
 
-		if (existing_block_type == MEMORY_BLOCK_HUGE) {
+		if (existing_block.type == MEMORY_BLOCK_HUGE) {
 			util_mutex_lock(&default_bucket->lock);
 			existing_block = heap_coalesce_huge(heap,
-				existing_block);
+				&existing_block);
 			util_mutex_unlock(&default_bucket->lock);
 		}
 
@@ -343,11 +336,8 @@ palloc_operation(struct palloc_heap *heap,
 		 * context which will, after processing, update the chunk
 		 * metadata to 'free'.
 		 */
-		MEMBLOCK_OPS(AUTO, &existing_block)
-			->prep_hdr(&existing_block, heap,
-				MEMBLOCK_FREE,
-				0 /* hdr type doesn't matter for free */,
-				ctx);
+		existing_block.m_ops->prep_hdr(&existing_block,
+			MEMBLOCK_FREE, ctx);
 	}
 
 	/*
@@ -367,10 +357,9 @@ palloc_operation(struct palloc_heap *heap,
 	 * representation.
 	 */
 	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
-		if (existing_block_type == MEMORY_BLOCK_HUGE) {
+		if (existing_block.type == MEMORY_BLOCK_HUGE) {
 			util_mutex_lock(&default_bucket->lock);
-			bucket_insert_block(default_bucket,
-				heap, existing_block);
+			bucket_insert_block(default_bucket, &existing_block);
 			util_mutex_unlock(&default_bucket->lock);
 		}
 	}
@@ -393,7 +382,7 @@ palloc_usable_size(struct palloc_heap *heap, uint64_t off)
 {
 	struct memory_block m = memblock_from_offset(heap, off);
 
-	return MEMBLOCK_OPS(AUTO, &m)->get_user_size(&m, heap);
+	return m.m_ops->get_user_size(&m);
 }
 
 /*
@@ -404,7 +393,7 @@ palloc_extra(struct palloc_heap *heap, uint64_t off)
 {
 	struct memory_block m = memblock_from_offset(heap, off);
 
-	return MEMBLOCK_OPS(AUTO, &m)->get_extra(&m, heap);
+	return m.m_ops->get_extra(&m);
 }
 
 /*
@@ -415,7 +404,7 @@ palloc_flags(struct palloc_heap *heap, uint64_t off)
 {
 	struct memory_block m = memblock_from_offset(heap, off);
 
-	return MEMBLOCK_OPS(AUTO, &m)->get_flags(&m, heap);
+	return m.m_ops->get_flags(&m);
 }
 
 /*
@@ -428,6 +417,9 @@ static int
 pmalloc_search_cb(const struct memory_block *m, void *arg)
 {
 	struct memory_block *out = arg;
+
+	if (MEMORY_BLOCK_EQUALS(*m, *out))
+		return 0; /* skip the same object */
 
 	*out = *m;
 
@@ -448,7 +440,7 @@ palloc_first(struct palloc_heap *heap)
 	if (MEMORY_BLOCK_IS_NONE(search))
 		return 0;
 
-	void *uptr = MEMBLOCK_OPS(AUTO, &search)->get_user_data(&search, heap);
+	void *uptr = search.m_ops->get_user_data(&search);
 
 	return HEAP_PTR_TO_OFF(heap, uptr);
 }
@@ -460,7 +452,7 @@ uint64_t
 palloc_next(struct palloc_heap *heap, uint64_t off)
 {
 	struct memory_block m = memblock_from_offset(heap, off);
-	struct memory_block search = MEMORY_BLOCK_NONE;
+	struct memory_block search = m;
 
 	heap_foreach_object(heap, pmalloc_search_cb, &search, m);
 
@@ -468,7 +460,7 @@ palloc_next(struct palloc_heap *heap, uint64_t off)
 		MEMORY_BLOCK_EQUALS(search, m))
 		return 0;
 
-	void *uptr = MEMBLOCK_OPS(AUTO, &search)->get_user_data(&search, heap);
+	void *uptr = search.m_ops->get_user_data(&search);
 
 	return HEAP_PTR_TO_OFF(heap, uptr);
 }
@@ -539,7 +531,6 @@ palloc_heap_cleanup(struct palloc_heap *heap)
 }
 
 #ifdef USE_VG_MEMCHECK
-
 /*
  * palloc_vg_register_alloc -- (internal) registers allocation header
  * in Valgrind
@@ -549,10 +540,10 @@ palloc_vg_register_alloc(const struct memory_block *m, void *arg)
 {
 	struct palloc_heap *heap = arg;
 
-	MEMBLOCK_OPS(AUTO, m)->reinit_header(m, heap);
+	m->m_ops->reinit_header(m);
 
-	void *uptr = MEMBLOCK_OPS(AUTO, m)->get_user_data(m, heap);
-	size_t usize = MEMBLOCK_OPS(AUTO, m)->get_user_size(m, heap);
+	void *uptr = m->m_ops->get_user_data(m);
+	size_t usize = m->m_ops->get_user_size(m);
 	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, uptr, usize);
 	VALGRIND_DO_MAKE_MEM_DEFINED(uptr, usize);
 

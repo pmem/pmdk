@@ -69,7 +69,7 @@ struct block_container_ctree {
  */
 static int
 container_ctree_insert_block(struct block_container *bc,
-	struct palloc_heap *heap, struct memory_block m)
+	const struct memory_block *m)
 {
 	/*
 	 * Even though the memory block representation of an object uses
@@ -83,14 +83,14 @@ container_ctree_insert_block(struct block_container *bc,
 	 * replace this container instead of making little changes all over
 	 * the heap code.
 	 */
-	ASSERT(m.chunk_id < MAX_CHUNK);
-	ASSERT(m.zone_id < UINT16_MAX);
-	ASSERTne(m.size_idx, 0);
+	ASSERT(m->chunk_id < MAX_CHUNK);
+	ASSERT(m->zone_id < UINT16_MAX);
+	ASSERTne(m->size_idx, 0);
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-				m.size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
+				m->size_idx);
 
 	return ctree_insert_unlocked(c->tree, key, 0);
 }
@@ -115,6 +115,7 @@ container_ctree_get_rm_block_bestfit(struct block_container *bc,
 	m->zone_id = CHUNK_KEY_GET_ZONE_ID(key);
 	m->block_off = CHUNK_KEY_GET_BLOCK_OFF(key);
 	m->size_idx = CHUNK_KEY_GET_SIZE_IDX(key);
+	memblock_rebuild_state(bc->heap, m);
 
 	return 0;
 }
@@ -125,10 +126,10 @@ container_ctree_get_rm_block_bestfit(struct block_container *bc,
  */
 static int
 container_ctree_get_rm_block_exact(struct block_container *bc,
-	struct memory_block m)
+	const struct memory_block *m)
 {
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
+			m->size_idx);
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
@@ -143,10 +144,10 @@ container_ctree_get_rm_block_exact(struct block_container *bc,
  */
 static int
 container_ctree_get_block_exact(struct block_container *bc,
-	struct memory_block m)
+	const struct memory_block *m)
 {
-	uint64_t key = CHUNK_KEY_PACK(m.zone_id, m.chunk_id, m.block_off,
-			m.size_idx);
+	uint64_t key = CHUNK_KEY_PACK(m->zone_id, m->chunk_id, m->block_off,
+			m->size_idx);
 
 	struct block_container_ctree *c = (struct block_container_ctree *)bc;
 
@@ -206,12 +207,13 @@ static struct block_container_ops container_ctree_ops = {
  * container_new_ctree -- allocates and initializes a ctree container
  */
 struct block_container *
-container_new_ctree(void)
+container_new_ctree(struct palloc_heap *heap)
 {
 	struct block_container_ctree *bc = Malloc(sizeof(*bc));
 	if (bc == NULL)
 		goto error_container_malloc;
 
+	bc->super.heap = heap;
 	bc->super.c_ops = &container_ctree_ops;
 	bc->tree = ctree_new();
 	if (bc->tree == NULL)

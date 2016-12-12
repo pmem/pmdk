@@ -140,5 +140,7 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 	m->size_idx = hdr->size_idx;
 
+	memblock_rebuild_state(r->heap, m);
+
 	return 0;
 }
