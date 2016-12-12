@@ -40,6 +40,6 @@
 
 #include "container.h"
 
-struct block_container *container_new_seglists(void);
+struct block_container *container_new_seglists(struct palloc_heap *heap);
 
 #endif /* LIBPMEMOBJ_CONTAINER_SEGLISTS_H */
