@@ -47,4 +47,4 @@ int rpmem_ssh_send(struct rpmem_ssh *rps, const void *buff, size_t len);
 int rpmem_ssh_recv(struct rpmem_ssh *rps, void *buff, size_t len);
 int rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock);
 
-const char *rpmem_ssh_strerror(struct rpmem_ssh *rps);
+const char *rpmem_ssh_strerror(struct rpmem_ssh *rps, int oerrno);
