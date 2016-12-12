@@ -31,7 +31,7 @@
  */
 
 /*
- * pmemobj_atomic_lists.c -- benchmark for pmemobj atomic list API
+ * pmemobj_atomic_lists.cpp -- benchmark for pmemobj atomic list API
  */
 
 #include "benchmark.hpp"
@@ -377,7 +377,7 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 	return 0;
 err_oids:
 	for (; i > 0; i--)
-		POBJ_FREE(&obj_worker->oids[i]);
+		POBJ_FREE(&obj_worker->oids[i - 1]);
 	free(obj_worker->oids);
 	return -1;
 }

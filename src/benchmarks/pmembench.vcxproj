@@ -11,15 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="benchmark.h" />
-    <ClInclude Include="benchmark_time.h" />
-    <ClInclude Include="benchmark_worker.h" />
-    <ClInclude Include="clo.h" />
-    <ClInclude Include="clo_vec.h" />
-    <ClInclude Include="config_reader.h" />
-    <ClInclude Include="scenario.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
     </ProjectReference>
@@ -107,34 +98,43 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="benchmark_time.c" />
-    <ClCompile Include="benchmark_worker.c" />
-    <ClCompile Include="blk.c" />
-    <ClCompile Include="clo.c" />
-    <ClCompile Include="clo_vec.c" />
-    <ClCompile Include="config_reader_win.c" />
-    <ClCompile Include="log.c" />
-    <ClCompile Include="map_bench.c" />
-    <ClCompile Include="obj_lanes.c" />
-    <ClCompile Include="obj_locks.c" />
-    <ClCompile Include="obj_pmalloc.c" />
-    <ClCompile Include="pmembench.c" />
-    <ClCompile Include="pmemobj_atomic_lists.c" />
-    <ClCompile Include="pmemobj_gen.c" />
-    <ClCompile Include="pmemobj_persist.c" />
-    <ClCompile Include="pmemobj_tx.c" />
-    <ClCompile Include="pmem_flush.c" />
-    <ClCompile Include="pmem_memcpy.c" />
-    <ClCompile Include="pmem_memset.c" />
-    <ClCompile Include="rpmem_persist.c">
+    <ClCompile Include="benchmark_time.cpp" />
+    <ClCompile Include="benchmark_worker.cpp" />
+    <ClCompile Include="blk.cpp" />
+    <ClCompile Include="clo.cpp" />
+    <ClCompile Include="clo_vec.cpp" />
+    <ClCompile Include="config_reader_win.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="map_bench.cpp" />
+    <ClCompile Include="obj_lanes.cpp" />
+    <ClCompile Include="obj_locks.cpp" />
+    <ClCompile Include="obj_pmalloc.cpp" />
+    <ClCompile Include="pmembench.cpp" />
+    <ClCompile Include="pmemobj_atomic_lists.cpp" />
+    <ClCompile Include="pmemobj_gen.cpp" />
+    <ClCompile Include="pmemobj_persist.cpp" />
+    <ClCompile Include="pmemobj_tx.cpp" />
+    <ClCompile Include="pmem_flush.cpp" />
+    <ClCompile Include="pmem_memcpy.cpp" />
+    <ClCompile Include="pmem_memset.cpp" />
+    <ClCompile Include="rpmem_persist.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="scenario.c" />
-    <ClCompile Include="vmem.c">
+    <ClCompile Include="scenario.cpp" />
+    <ClCompile Include="vmem.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="benchmark.hpp" />
+    <ClInclude Include="benchmark_time.hpp" />
+    <ClInclude Include="benchmark_worker.hpp" />
+    <ClInclude Include="clo.hpp" />
+    <ClInclude Include="clo_vec.hpp" />
+    <ClInclude Include="config_reader.hpp" />
+    <ClInclude Include="scenario.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CB906E89-1313-4929-AFF7-86FBF1CC301F}</ProjectGuid>

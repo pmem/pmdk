@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * benchmark_time.h -- declarations of benchmark_time module
+ * benchmark_time.hpp -- declarations of benchmark_time module
  */
 #include <time.h>
 

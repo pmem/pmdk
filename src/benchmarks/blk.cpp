@@ -31,7 +31,7 @@
  */
 
 /*
- * blk.c -- pmemblk benchmarks definitions
+ * blk.cpp -- pmemblk benchmarks definitions
  */
 
 #include "benchmark.hpp"
@@ -321,10 +321,10 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	if (ba->file_io) {
 		pmemblk_close(bb->pbp);
 		bb->pbp = NULL;
-#ifndef _WIN32
+
 		int flags = O_RDWR | O_CREAT | O_SYNC;
-#else
-		int flags = O_RDWR | O_CREAT | O_SYNC | O_BINARY;
+#ifdef _WIN32
+		flags |= O_BINARY;
 #endif
 		bb->fd = open(args->fname, flags, args->fmode);
 		if (bb->fd < 0) {

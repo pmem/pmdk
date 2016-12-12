@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * clo_vec.c -- command line options vector definitions
+ * clo_vec.cpp -- command line options vector definitions
  */
 #include <assert.h>
 #include <stdlib.h>

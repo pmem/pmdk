@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * benchmark_worker.c -- benchmark_worker module definitions
+ * benchmark_worker.cpp -- benchmark_worker module definitions
  */
 
 #include <assert.h>

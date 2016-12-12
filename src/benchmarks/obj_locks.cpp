@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_locks.c -- main source file for PMEM locks benchmark
+ * obj_locks.cpp -- main source file for PMEM locks benchmark
  */
 
 #include <assert.h>
@@ -140,7 +140,9 @@ struct mutex_bench {
 
 typedef int (*lock_fun_wrapper)(PMEMobjpool *pop, void *lock);
 
-/* bench_operation_1by1 -- acquire lock and unlock release locks */
+/*
+ * bench_operation_1by1 -- acquire lock and unlock release locks
+ */
 static void
 bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 		     struct mutex_bench *mb, PMEMobjpool *pop)
@@ -152,7 +154,9 @@ bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 	}
 }
 
-/* bench_operation_all_lock -- acquire all locks and release all locks */
+/*
+ *bench_operation_all_lock -- acquire all locks and release all locks
+ */
 static void
 bench_operation_all_lock(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 			 struct mutex_bench *mb, PMEMobjpool *pop)

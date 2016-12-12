@@ -31,7 +31,7 @@
  */
 
 /*
- * rpmem_persist.c -- rpmem persist benchmarks definition
+ * rpmem_persist.cpp -- rpmem persist benchmarks definition
  */
 
 #include <assert.h>
@@ -367,10 +367,12 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 	assert(args->opts != NULL);
-	size_t size, large, small;
-
+	size_t size;
+	size_t large;
+	size_t small;
 	struct rpmem_bench *mb =
 		(struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
+
 	if (!mb) {
 		perror("malloc");
 		return -1;

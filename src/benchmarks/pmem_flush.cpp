@@ -31,7 +31,7 @@
  */
 
 /*
- * pmem_flush.c -- benchmark implementation for pmem_persist and pmem_msync
+ * pmem_flush.cpp -- benchmark implementation for pmem_persist and pmem_msync
  */
 #include <assert.h>
 #include <errno.h>

@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * pmem_memset.c -- benchmark for pmem_memset function
+ * pmem_memset.cpp -- benchmark for pmem_memset function
  */
 
 #include <assert.h>
@@ -75,9 +75,6 @@ struct memset_bench {
 	size_t fsize;		   /* file size */
 	void *pmem_addr;	   /* mapped file address */
 	operation_fn func_op;      /* operation function */
-};
-
-struct memset_worker {
 };
 
 /*
@@ -253,7 +250,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args->opts != NULL);
 
 	int ret = 0;
-	size_t size, large, little;
+	size_t size;
+	size_t large;
+	size_t little;
 	struct memset_bench *mb =
 		(struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {

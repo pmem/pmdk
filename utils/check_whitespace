@@ -100,7 +100,7 @@ sub check_whitespace_with_exc {
 	$_ = $full;
 
 	return 0 if /^[.\/]*src\/jemalloc.*/;
-	return 0 if /^[.\/]*src\/windows\/include\/sys\/queue\.h/;
+	return 0 if /^[.\/]*src\/common\/queue\.h/;
 
 	$_ = basename($full);
 

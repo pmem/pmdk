@@ -30,12 +30,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * scenario.c -- scenario module definitions
+ * scenario.cpp -- scenario module definitions
  */
 #include <assert.h>
+#include <queue.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/queue.h>
 
 #include "scenario.hpp"
 

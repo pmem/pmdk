@@ -31,7 +31,7 @@
  */
 
 /*
- * pmembench.c -- main source file for benchmark framework
+ * pmembench.cpp -- main source file for benchmark framework
  */
 
 #include <assert.h>
@@ -43,9 +43,9 @@
 #include <inttypes.h>
 #include <linux/limits.h>
 #include <math.h>
+#include <queue.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/queue.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -808,7 +808,6 @@ out:
 static int
 remove_part_cb(struct part_file *pf, void *arg)
 {
-/* XXX: no rpmem on windows */
 #ifdef RPMEM_AVAILABLE
 	if (pf->is_remote)
 		return rpmem_remove(pf->node_addr, pf->pool_desc,

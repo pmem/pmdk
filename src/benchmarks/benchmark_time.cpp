@@ -31,7 +31,7 @@
  */
 
 /*
- * benchmark_time.c -- benchmark_time module definitions
+ * benchmark_time.cpp -- benchmark_time module definitions
  */
 #include "benchmark_time.hpp"
 #include <assert.h>

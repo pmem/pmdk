@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * benchmark_worker.h -- benchmark_worker module declarations
+ * benchmark_worker.hpp -- benchmark_worker module declarations
  */
 
 #include "benchmark.hpp"

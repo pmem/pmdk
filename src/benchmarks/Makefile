@@ -114,31 +114,32 @@ ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
 
-CFLAGS = -Wall
-CFLAGS += -Werror
-CFLAGS += -Wpointer-arith
-CFLAGS += -Wunused-macros
-CFLAGS += -pthread
-CFLAGS += -I../include
-CFLAGS += -I../libpmemobj
-CFLAGS += -I../common
-CFLAGS += -I../examples/libpmemobj/map
-CFLAGS += -I../rpmem_common
-CFLAGS += -I../librpmem
-CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+CXXFLAGS = -Wall
+CXXFLAGS += -Werror
+CXXFLAGS += -std=c++11
+CXXFLAGS += -Wpointer-arith
+CXXFLAGS += -Wunused-macros
+CXXFLAGS += -pthread
+CXXFLAGS += -I../include
+CXXFLAGS += -I../libpmemobj
+CXXFLAGS += -I../common
+CXXFLAGS += -I../examples/libpmemobj/map
+CXXFLAGS += -I../rpmem_common
+CXXFLAGS += -I../librpmem
+CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
 ifeq ($(BUILD_RPMEM),y)
 SRC += rpmem_persist.cpp
 LIBS += -lrpmem
 CONFIGS += pmembench_rpmem
-CFLAGS += -DRPMEM_AVAILABLE
+CXXFLAGS += -DRPMEM_AVAILABLE
 else
 $(info NOTE: Skipping librpmem benchmark because libfabric is missing \
 -- see src/librpmem/README for details.)
 endif
 
 ifeq ($(GLIB),y)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
+CXXFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
 LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)
 endif
 
@@ -148,29 +149,29 @@ LIBMAP=$(LIBMAP_DIR)/libmap.a
 OBJS += pmemobj.o
 
 ifeq ($(DEBUG),)
-CFLAGS += -O3
+CXXFLAGS += -O3
 LIBS_PATH=../nondebug
 else
-CFLAGS += -ggdb
+CXXFLAGS += -ggdb
 LIBS_PATH=../debug
 endif
 
 GLIB_TEST_PROG="\#include <glib.h>\nint main(){return 0;}"
 GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
-	$(CXX) $(CFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
+	$(CXX) $(CXXFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
 
 ifeq ($(GLIB_SILENCE), y)
-CFLAGS += -Wno-unknown-attributes
+CXXFLAGS += -Wno-unknown-attributes
 endif
 
-CFLAGS += $(EXTRA_CFLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 objdir=.
 
 %.o: %.cpp Makefile
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CXX) -MD -c -o $@ $(CFLAGS) $<
+	$(CXX) -MD -c -o $@ $(CXXFLAGS) $<
 	$(create-deps)
 
 %.htmp: %.h

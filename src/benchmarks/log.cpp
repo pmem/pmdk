@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * log.c -- pmemlog benchmarks definitions
+ * log.cpp -- pmemlog benchmarks definitions
  */
 
 #include <assert.h>

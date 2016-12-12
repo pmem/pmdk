@@ -31,7 +31,7 @@
  */
 
 /*
- * benchmark.h -- This file contains interface for creating benchmarks to the
+ * benchmark.hpp -- This file contains interface for creating benchmarks to the
  * pmembench framework. The _most_ important data structure is
  * struct benchmark_info which should be properly filled and registered by the
  * benchmark. Some fields should be filled by meta-data and information about
