@@ -912,15 +912,23 @@ pmembench_remove_file(const char *path)
 		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0)
 			continue;
 		tmp = malloc(strlen(path) + strlen(d->d_name) + 2);
-		if (tmp == NULL)
+		if (tmp == NULL) {
+			closedir(dir);
 			return -1;
+		}
 		sprintf(tmp, "%s/%s", path, d->d_name);
 		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
 							: util_unlink(tmp);
 		free(tmp);
-		if (ret != 0)
+		if (ret != 0) {
+			closedir(dir);
 			return ret;
+		}
 	}
+
+	if (closedir(dir))
+		return -1;
+
 	return rmdir(path);
 }
 
