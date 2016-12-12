@@ -30,10 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * clo.h -- command line options module declarations
+ * clo.hpp -- command line options module declarations
  */
 int benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
-			int nclo, struct clo_vec *clovec);
+			ssize_t nclo, struct clo_vec *clovec);
 int benchmark_clo_parse_scenario(struct scenario *scenario,
 				 struct benchmark_clo *clos, size_t nclo,
 				 struct clo_vec *clovec);

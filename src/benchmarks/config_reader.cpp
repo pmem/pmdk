@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * config_reader.c -- config reader module definitions
+ * config_reader.cpp -- config reader module definitions
  */
 #include <assert.h>
 #include <glib.h>

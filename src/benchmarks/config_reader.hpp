@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * config_reader.h -- config reader module declarations
+ * config_reader.hpp -- config reader module declarations
  */
 struct config_reader;
 

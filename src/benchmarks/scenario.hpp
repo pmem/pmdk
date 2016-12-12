@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * scenario.h -- scenario module declaration
+ * scenario.hpp -- scenario module declaration
  */
 
 #include <stdbool.h>

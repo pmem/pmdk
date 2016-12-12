@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * map_bench.c -- benchmarks for: ctree, btree, rtree, rbtree, hashmap_atomic
+ * map_bench.cpp -- benchmarks for: ctree, btree, rtree, rbtree, hashmap_atomic
  * and hashmap_tx from examples.
  */
 #include <assert.h>
@@ -41,6 +41,7 @@
 /* XXX: maps are build as c++ on windows */
 #ifndef _WIN32
 extern "C" {
+#endif
 #include "map.h"
 #include "map_btree.h"
 #include "map_ctree.h"
@@ -48,6 +49,7 @@ extern "C" {
 #include "map_hashmap_tx.h"
 #include "map_rbtree.h"
 #include "map_rtree.h"
+#ifndef _WIN32
 }
 #endif
 

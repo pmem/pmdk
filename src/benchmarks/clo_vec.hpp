@@ -30,10 +30,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * clo_vec.h -- command line options vector declarations
+ * clo_vec.hpp -- command line options vector declarations
  */
+#include <queue.h>
 #include <stdlib.h>
-#include <sys/queue.h>
 
 struct clo_vec_args {
 	TAILQ_ENTRY(clo_vec_args) next;

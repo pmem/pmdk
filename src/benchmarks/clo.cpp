@@ -30,15 +30,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * clo.c -- command line options module definitions
+ * clo.cpp -- command line options module definitions
  */
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
 #include <getopt.h>
 #include <inttypes.h>
+#include <queue.h>
 #include <string.h>
-#include <sys/queue.h>
 
 #include "benchmark.hpp"
 #include "clo.hpp"
@@ -785,7 +785,7 @@ clo_set_defaults(struct benchmark_clo *clos, size_t nclo,
  */
 int
 benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
-		    int nclos, struct clo_vec *clovec)
+		    ssize_t nclos, struct clo_vec *clovec)
 {
 	char *optstr;
 	struct option *options;

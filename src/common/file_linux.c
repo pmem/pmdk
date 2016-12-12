@@ -144,7 +144,7 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 int
 util_file_dir_close(struct dir_handle *handle)
 {
-	return 0; /* nothing to do there */
+	return closedir(handle->dirp);
 }
 
 /*

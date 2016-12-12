@@ -32,9 +32,7 @@
  */
 
 /*
- *
- * vmem.c -- vmem_malloc, vmem_free and vmem_realloc multithread benchmarks
- *
+ * vmem.cpp -- vmem_malloc, vmem_free and vmem_realloc multithread benchmarks
  */
 
 #include "benchmark.hpp"
@@ -100,8 +98,6 @@ struct vmem_bench {
 	bool rand_realloc;	   /* use range mode in reallocation */
 	int lib_mode;		     /* library mode - vmem or stdlib */
 };
-
-static struct benchmark_clo vmem_clo[7];
 
 /*
  * lib_mode -- enumeration used to determine mode of the benchmark
@@ -280,8 +276,8 @@ vmem_do_warmup(struct vmem_bench *vb, struct benchmark_args *args)
 			}
 		}
 
-		for (j--; j >= 0; j--)
-			free_op[vb->lib_mode](vb, i, j);
+		for (; j > 0; j--)
+			free_op[vb->lib_mode](vb, i, j - 1);
 	}
 	return ret;
 }
@@ -380,10 +376,10 @@ out_ops:
 		free_op[vb->lib_mode](vb, worker->index, idx);
 out:
 
-	for (i--; i >= 0; i--) {
-		for (j--; j >= 0; j--) {
-			idx = ops_per_thread * worker->index + j;
-			free_op[vb->lib_mode](vb, i, idx);
+	for (; i > 0; i--) {
+		for (; j > 0; j--) {
+			idx = ops_per_thread * worker->index + j - 1;
+			free_op[vb->lib_mode](vb, i - 1, idx);
 		}
 	}
 	return -1;
@@ -537,8 +533,8 @@ err_free_all:
 err_free_sizes:
 	free(vb->alloc_sizes);
 err_free_buf:
-	for (j = i - 1; j >= 0; j--)
-		free(vb->workers[j].objs);
+	for (j = i; j > 0; j--)
+		free(vb->workers[j - 1].objs);
 err_free_workers:
 	free(vb->workers);
 err:
@@ -618,6 +614,7 @@ static struct benchmark_info vmem_malloc_bench;
 static struct benchmark_info vmem_mix_bench;
 static struct benchmark_info vmem_free_bench;
 static struct benchmark_info vmem_realloc_bench;
+static struct benchmark_clo vmem_clo[7];
 
 CONSTRUCTOR(vmem_persist_costructor)
 void

@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_lanes.c -- lane benchmark definition
+ * obj_lanes.cpp -- lane benchmark definition
  */
 
 #include <assert.h>
@@ -40,13 +40,12 @@
 
 #include "benchmark.hpp"
 #include "libpmemobj.h"
-#ifdef __cplusplus
+
+/* an internal libpmemobj code */
 extern "C" {
 #include "lane.h"
 }
-#else
-#include "lane.h"
-#endif
+
 /*
  * The number of times to repeat the operation, used to get more accurate
  * results, because the operation time was minimal compared to the framework

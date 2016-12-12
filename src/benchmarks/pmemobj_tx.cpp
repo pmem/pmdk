@@ -31,8 +31,8 @@
  */
 
 /*
- * pmemobj_tx.c -- pmemobj_tx_alloc(), pmemobj_tx_free(), pmemobj_tx_realloc(),
- * pmemobj_tx_add_range() benchmarks.
+ * pmemobj_tx.cpp -- pmemobj_tx_alloc(), pmemobj_tx_free(),
+ * pmemobj_tx_realloc(), pmemobj_tx_add_range() benchmarks.
  */
 #include <assert.h>
 #include <errno.h>
@@ -791,8 +791,8 @@ obj_tx_init_worker_alloc_obj(struct benchmark *bench,
 	}
 	return 0;
 out:
-	for (i--; i >= 0; i--)
-		free_op[obj_bench->lib_mode](obj_bench, worker, i);
+	for (; i > 0; i--)
+		free_op[obj_bench->lib_mode](obj_bench, worker, i - 1);
 	if (obj_bench->lib_mode == LIB_MODE_DRAM)
 		free(obj_worker->items);
 	else

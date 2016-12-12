@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_pmalloc.c -- pmalloc benchmarks definition
+ * obj_pmalloc.cpp -- pmalloc benchmarks definition
  */
 
 #include <assert.h>

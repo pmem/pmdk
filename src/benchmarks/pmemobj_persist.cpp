@@ -31,7 +31,7 @@
  */
 
 /*
- * pmemobj_persist.c -- pmemobj persist benchmarks definition
+ * pmemobj_persist.cpp -- pmemobj persist benchmarks definition
  */
 
 #include <assert.h>

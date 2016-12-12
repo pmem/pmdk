@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * pmem_memcpy.c -- benchmark implementation for pmem_memcpy
+ * pmem_memcpy.cpp -- benchmark implementation for pmem_memcpy
  */
 #include <assert.h>
 #include <errno.h>
@@ -402,7 +402,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 	pmb->buf =
 		(unsigned char *)util_aligned_malloc(FLUSH_ALIGN, pmb->bsize);
-	if (pmb->buf == 0) {
+	if (pmb->buf == NULL) {
 		perror("posix_memalign");
 		ret = -1;
 		goto err_free_pmb;
