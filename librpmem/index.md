@@ -21,6 +21,8 @@ available and are recommended for most applications, see:
 Man pages that contains a list of the interfaces provided:
 
 * Man page for [librpmem current master](../manpages/master/librpmem.3.html)
+* Latest releases:
+   * Man page for [librpmem version 1.2](../manpages/v1.2/librpmem.3.html)
 
 #### The rpmemd utility
 

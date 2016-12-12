@@ -16,6 +16,7 @@ Man pages that contains a list of the interfaces provided:
 
 * Man page for [libpmemlog current master](../manpages/master/libpmemlog.3.html)
 * Latest releases:
+   * [libpmemlog version 1.2](../manpages/v1.2/libpmemlog.3.html)
    * [libpmemlog version 1.1](../manpages/v1.1/libpmemlog.3.html)
    * [libpmemlog version 1.0](../manpages/v1.0/libpmemlog.3.html)
 

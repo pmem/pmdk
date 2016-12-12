@@ -12,8 +12,6 @@ scoped and closure transactions, locking primitives and many others.
 The [C++ documentation](master/cpp_html/index.html) contains the description of all
 available classes.
 
-Please be aware that this is still an **experimental API**.
-
 #### Blog entries
 
 The following series of blog articles provides a tutorial introduction

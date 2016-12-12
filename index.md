@@ -86,6 +86,9 @@ The **librpmem** provides low-level support for remote access to
 _persistent memory_ utilizing RDMA-capable RNICs. The library can be
 used to replicate content of local persistent memory regions to
 persistent memory on a remote node over RDMA protocol.
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
@@ -93,7 +96,6 @@ See the [librpmem page](librpmem) for documentation and examples.
 
 The C++ bindings aim at providing an easier to use, less error prone
 implementation of **libpmemobj**. The C++ implementation requires a compiler
-compliant with C++11 and one feature requires C++17. This is still an
-**experimental API** and should not be used in production environments.
+compliant with C++11 and one feature requires C++17.
 
 See the [C++ bindings page](cpp_obj) for documentation and examples.
