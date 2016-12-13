@@ -12,9 +12,12 @@ for *pool set files*. Below you can find a list of available commands.
 See the [pmempool man page](../manpages/master/pmempool.1.html)
 for current master documentation and examples or see older versions:
 
-* Man page for [pmempool version 1.2](../manpages/v1.2/pmempool.1.html)
-* Man page for [pmempool version 1.1](../manpages/v1.1/pmempool.1.html)
-* Man page for [pmempool version 1.0](../manpages/v1.0/pmempool.1.html)
+<ul>
+   {% assign command = 'pmempool' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### create
 
@@ -26,9 +29,12 @@ pool files may simplify the user application.
 See the [pmempool create man page](../manpages/master/pmempool-create.1.html)
 for current documentation and examples or see older versions:
 
-* Man page for [pmempool create version 1.2](../manpages/v1.2/pmempool-create.1.html)
-* Man page for [pmempool create version 1.1](../manpages/v1.1/pmempool-create.1.html)
-* Man page for [pmempool create version 1.0](../manpages/v1.0/pmempool-create.1.html)
+<ul>
+   {% assign command = 'pmempool-create' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### info
 
@@ -42,9 +48,12 @@ additional information about the pool.
 See the [pmempool info man page](../manpages/master/pmempool-info.1.html)
 for current master documentation and examples or see older versions:
 
-* Man page for [pmempool info version 1.2](../manpages/v1.2/pmempool-info.1.html)
-* Man page for [pmempool info version 1.1](../manpages/v1.1/pmempool-info.1.html)
-* Man page for [pmempool info version 1.0](../manpages/v1.0/pmempool-info.1.html)
+<ul>
+   {% assign command = 'pmempool-info' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### dump
 
@@ -56,9 +65,12 @@ the range of desired data.
 See the [pmempool dump man page](../manpages/master/pmempool-dump.1.html)
 for current master documentation and examples or see older versions:
 
-* Man page for [pmempool dump version 1.2](../manpages/v1.2/pmempool-dump.1.html)
-* Man page for [pmempool dump version 1.1](../manpages/v1.1/pmempool-dump.1.html)
-* Man page for [pmempool dump version 1.0](../manpages/v1.0/pmempool-dump.1.html)
+<ul>
+   {% assign command = 'pmempool-dump' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### check
 
@@ -71,9 +83,12 @@ available in the near feature.
 See the [pmempool check man page](../manpages/master/pmempool-check.1.html)
 for current master documentation and examples or see older version:
 
-* Man page for [pmempool check version 1.2](../manpages/v1.2/pmempool-check.1.html)
-* Man page for [pmempool check version 1.1](../manpages/v1.1/pmempool-check.1.html)
-* Man page for [pmempool check version 1.0](../manpages/v1.0/pmempool-check.1.html)
+<ul>
+   {% assign command = 'pmempool-check' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### rm
 
@@ -86,9 +101,12 @@ as the standard system **rm** command.
 See the [pmempool rm man page](../manpages/master/pmempool-rm.1.html)
 for current master documentation and examples or see older version:
 
-* Man page for [pmempool rm version 1.2](../manpages/v1.2/pmempool-rm.1.html)
-* Man page for [pmempool rm version 1.1](../manpages/v1.1/pmempool-rm.1.html)
-* Man page for [pmempool rm version 1.0](../manpages/v1.0/pmempool-rm.1.html)
+<ul>
+   {% assign command = 'pmempool-rm' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### convert
 
@@ -99,8 +117,12 @@ Currently only **pmemobj** pools are supported.
 See the [pmempool convert man page](../manpages/master/pmempool-convert.1.html)
 for current master documentation and examples or see older version:
 
-* Man page for [pmempool convert version 1.2](../manpages/v1.2/pmempool-convert.1.html)
-* Man page for [pmempool convert version 1.1](../manpages/v1.1/pmempool-convert.1.html)
+<ul>
+   {% assign command = 'pmempool-convert' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### sync
 
@@ -111,9 +133,14 @@ the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 
 See the [pmempool sync man page](../manpages/master/pmempool-sync.1.html)
-for current master documentation and examples.
+for current master documentation and examples or see older version:
 
-* Man page for [pmempool sync version 1.2](../manpages/v1.2/pmempool-sync.1.html)
+<ul>
+   {% assign command = 'pmempool-sync' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 ##### transform
 
@@ -122,6 +149,11 @@ defined by one poolset file, according to a structure described in
 another poolset file.
 
 See the [pmempool transform man page](../manpages/master/pmempool-transform.1.html)
-for current master documentation and examples.
+for current master documentation and examples or see older version:
 
-* Man page for [pmempool transform version 1.2](../manpages/v1.2/pmempool-transform.1.html)
+<ul>
+   {% assign command = 'pmempool-transform' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>

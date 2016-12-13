@@ -16,11 +16,16 @@ developers will find higher level libraries like
 
 Man pages that contains a list of the interfaces provided:
 
-* Man page for [libpmem current master](../manpages/master/libpmem.3.html)
-* Latest releases:
-   * [libpmem version 1.2](../manpages/v1.2/libpmem.3.html)
-   * [libpmem version 1.1](../manpages/v1.1/libpmem.3.html)
-   * [libpmem version 1.0](../manpages/v1.0/libpmem.3.html)
+<ul>
+  <li>Man page for <a href="../manpages/master/{{ page.title }}.3.html">{{ page.title }} current master</a></li>
+  <li>Latest releases:
+    <ul>
+      {% for release in site.data.releases %}{% if release.libs contains page.title %}
+      <li><a href="../manpages/v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></li>
+      {% endif %}{% endfor %}
+    </ul>
+  </li>
+</ul>
 
 #### libpmem Examples
 
