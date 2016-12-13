@@ -690,6 +690,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.yml = ..\appveyor.yml
 		..\utils\CHECK_WHITESPACE.PS1 = ..\utils\CHECK_WHITESPACE.PS1
+		..\utils\CREATE-ZIP.PS1 = ..\utils\CREATE-ZIP.PS1
 		..\utils\cstyle = ..\utils\cstyle
 		..\utils\CSTYLE.ps1 = ..\utils\CSTYLE.ps1
 	EndProjectSection
