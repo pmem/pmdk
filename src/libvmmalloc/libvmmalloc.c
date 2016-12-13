@@ -404,27 +404,25 @@ libvmmalloc_create(const char *dir, size_t size)
 /*
  * libvmmalloc_clone - (internal) clone the entire pool
  */
-static void *
+static int
 libvmmalloc_clone(void)
 {
 	LOG(3, NULL);
 
 	Fd_clone = util_tmpfile(Dir, "/vmem.XXXXXX");
 	if (Fd_clone == -1)
-		return NULL;
+		return -1;
 
 	if ((errno = posix_fallocate(Fd_clone, 0, (off_t)Vmp->size)) != 0) {
 		ERR("!posix_fallocate");
-		(void) close(Fd_clone);
-		return NULL;
+		goto err_close;
 	}
 
 	void *addr = mmap(NULL, Vmp->size, PROT_READ|PROT_WRITE,
 			MAP_SHARED, Fd_clone, 0);
 	if (addr == MAP_FAILED) {
 		LOG(1, "!mmap");
-		(void) close(Fd_clone);
-		return NULL;
+		goto err_close;
 	}
 
 	LOG(3, "copy the entire pool file: dst %p src %p size %zu",
@@ -441,9 +439,16 @@ libvmmalloc_clone(void)
 	memcpy(addr, Vmp->addr, Vmp->size);
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
+	if (munmap(addr, Vmp->size)) {
+		ERR("!munmap");
+		goto err_close;
+	}
 	util_range_none(Vmp->addr, sizeof(struct pool_hdr));
+	return 0;
 
-	return addr;
+err_close:
+	(void) close(Fd_clone);
+	return -1;
 }
 
 /*
@@ -480,7 +485,7 @@ libvmmalloc_prefork(void)
 	case 2:
 		LOG(3, "clone the entire pool file");
 
-		if (libvmmalloc_clone() != NULL)
+		if (libvmmalloc_clone() == 0)
 			break;
 
 		if (Forkopt == 2) {
