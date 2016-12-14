@@ -921,6 +921,17 @@ function require_build_type() {
 }
 
 #
+# require_command -- only allow script to continue if specified command exists
+#
+function require_command() {
+	if ! command -pv $1 1>/dev/null
+	then
+		echo "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+#
 # require_pkg -- only allow script to continue if specified package exists
 #
 function require_pkg() {
