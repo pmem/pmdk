@@ -393,7 +393,7 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (targs->ext_tx) {
 		int ret = pmemobj_tx_begin(tree->pop, NULL);
 		if (ret) {
-			pmemobj_tx_end();
+			(void) pmemobj_tx_end();
 			goto err_free_keys;
 		}
 	}
@@ -420,7 +420,7 @@ map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 	struct map_bench_args *targs = args->opts;
 	if (targs->ext_tx) {
 		pmemobj_tx_commit();
-		pmemobj_tx_end();
+		(void) pmemobj_tx_end();
 	}
 	free(tworker->keys);
 	free(tworker);
