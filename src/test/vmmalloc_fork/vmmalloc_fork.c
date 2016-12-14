@@ -42,17 +42,35 @@
 
 #define NBUFS 16
 
+/*
+ * get_rand_size -- returns random size of allocation
+ */
+static size_t
+get_rand_size(void)
+{
+	return sizeof(int) + 64 * (rand() % 100);
+}
+
+/*
+ * do_test -- thread callback
+ *
+ * This function is called in separate thread and the main thread
+ * forks a child processes. Please be aware that any locks held in this
+ * function may potentially cause a deadlock.
+ *
+ * For example using rand() in this function may cause a deadlock because
+ * it grabs an internal lock.
+ */
 static void *
 do_test(void *arg)
 {
 	int **bufs = malloc(NBUFS * sizeof(void *));
 	UT_ASSERTne(bufs, NULL);
 
-	size_t *sizes = malloc(NBUFS * sizeof(size_t));
+	size_t *sizes = (size_t *)arg;
 	UT_ASSERTne(sizes, NULL);
 
 	for (int j = 0; j < NBUFS; j++) {
-		sizes[j] = sizeof(int) + 64 * (rand() % 100);
 		bufs[j] = malloc(sizes[j]);
 		UT_ASSERTne(bufs[j], NULL);
 	}
@@ -62,7 +80,6 @@ do_test(void *arg)
 		free(bufs[j]);
 	}
 
-	free(sizes);
 	free(bufs);
 
 	return NULL;
@@ -104,14 +121,25 @@ main(int argc, char *argv[])
 		for (int j = 0; j < NBUFS; j++) {
 			int idx = i * NBUFS + j;
 
-			sizes[idx] = sizeof(int) + 64 * (rand() % 100);
+			sizes[idx] = get_rand_size();
 			bufs[idx] = malloc(sizes[idx]);
 			UT_ASSERTne(bufs[idx], NULL);
 			UT_ASSERT(malloc_usable_size(bufs[idx]) >= sizes[idx]);
 		}
 
+		size_t **thread_sizes = malloc(sizeof(size_t *) * nthread);
+		UT_ASSERTne(thread_sizes, NULL);
+
 		for (int t = 0; t < nthread; ++t) {
-			PTHREAD_CREATE(&thread[t], NULL, do_test, NULL);
+			thread_sizes[t] = malloc(NBUFS * sizeof(size_t));
+			UT_ASSERTne(thread_sizes[t], NULL);
+			for (int j = 0; j < NBUFS; j++)
+				thread_sizes[t][j] = get_rand_size();
+		}
+
+		for (int t = 0; t < nthread; ++t) {
+			PTHREAD_CREATE(&thread[t], NULL,
+				do_test, thread_sizes[t]);
 		}
 
 		pids1[i] = fork();
@@ -137,7 +165,10 @@ main(int argc, char *argv[])
 			/* parent */
 			for (int t = 0; t < nthread; ++t) {
 				PTHREAD_JOIN(thread[t], NULL);
+				free(thread_sizes[t]);
 			}
+
+			free(thread_sizes);
 		} else {
 			/* child */
 			first_child = i + 1;
