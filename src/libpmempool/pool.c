@@ -349,7 +349,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		}
 		params->size = (size_t)s;
 		addr = mmap(NULL, (uint64_t)params->size, PROT_READ,
-			MAP_PRIVATE, fd, 0);
+			MAP_SHARED, fd, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
 			goto out_close;
