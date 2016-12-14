@@ -167,15 +167,14 @@ struct mutex_bench {
 get_lock((pop)->run_id,\
 	&(mutexp)->volatile_pmemmutex.runid,\
 	(mutexp)->volatile_pmemmutex.mutexp,\
-	(void *)volatile_mutex_init,\
-	sizeof((mutexp)->volatile_pmemmutex.mutexp))
+	(void *)volatile_mutex_init)
 
 /*
  * get_lock -- atomically initialize and return a lock
  */
 static void *
 get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
-	int (*init_lock)(void **lock, void *arg), size_t size)
+	int (*init_lock)(void **lock, void *arg))
 {
 	uint64_t tmp_runid;
 	while ((tmp_runid = *runid) != pop_runid) {
