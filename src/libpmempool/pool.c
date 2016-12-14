@@ -710,7 +710,10 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 		goto out_unmap;
 	}
 
-	pool_btt_lseek(pool, 0, SEEK_SET);
+	if (pool_btt_lseek(pool, 0, SEEK_SET) == -1) {
+		result = -1;
+		goto out_unmap;
+	}
 	ssize_t buf_read = 0;
 	void *dst = daddr;
 	while ((buf_read = pool_btt_read(pool, buf, RW_BUFFERING_SIZE))) {
@@ -805,7 +808,9 @@ pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count)
 	if (pool->params.type != POOL_TYPE_BTT)
 		memset((char *)off, 0, count);
 	else {
-		pool_btt_lseek(pool, (off_t)off, SEEK_SET);
+		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
+			return -1;
+
 		size_t zero_size = min(count, RW_BUFFERING_SIZE);
 		void *buf = malloc(zero_size);
 		if (!buf) {
