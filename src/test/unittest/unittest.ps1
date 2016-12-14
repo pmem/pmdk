@@ -358,8 +358,37 @@ function create_poolset {
 
         echo "$fsize $fpath" | out-file -Append -encoding ASCII $psfile
     } # for args
+}
 
+#
+# check_exit_code -- check if $LASTEXITCODE is equal 0
+#
+function check_exit_code {
+    if ($LASTEXITCODE -ne 0) {
+        sv -Name msg "failed with exit code $LASTEXITCODE"
+        if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
+            if ($Env:UNITTEST_QUIET) {
+                echo "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
+            } else {
+                Write-Error "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log"
+            }
+        } else {
+            Write-Error "${Env:UNITTEST_NAME}: $msg"
+        }
 
+        # XXX: if we implement a memcheck thing...
+        # if [ "$RUN_MEMCHECK" ]; then
+
+        dump_last_n_lines out$Env:UNITTEST_NUM.log
+        dump_last_n_lines $Env:PMEM_LOG_FILE
+        dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
+        dump_last_n_lines $Env:PMEMLOG_LOG_FILE
+        dump_last_n_lines $Env:PMEMBLK_LOG_FILE
+        dump_last_n_lines $Env:VMEM_LOG_FILE
+        dump_last_n_lines $Env:VMMALLOC_LOG_FILE
+
+        fail 1
+    }
 }
 
 #
@@ -385,43 +414,16 @@ function expect_normal_exit {
         }
     }
 
+    # Set $LASTEXITCODE to the value indicating failure. It should be
+    # overwritten with the exit status of the invoked command.
+    # It is to catch the case when the command is not executed (i.e. because
+    # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
+    # status of some other command executed before.
+    $Global:LASTEXITCODE = 1
     Invoke-Expression "$command $params"
 
     check_exit_code
     # XXX: if we implement a memcheck thing... set some env vars here
-}
-
-#
-# check_exit_code -- check if $LASTEXITCODE is equal 0
-#
-function check_exit_code {
- if ($LASTEXITCODE -ne 0) {
-        sv -Name msg "failed with exit code $LASTEXITCODE"
-        if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
-            if ($Env:UNITTEST_QUIET) {
-                echo "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
-            } else {
-                Write-Error "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log"
-            }
-        } else {
-            Write-Error "${Env:UNITTEST_NAME}: $msg"
-        }
-
-        # XXX: if we implement a memcheck thing...
-        # if [ "$RUN_MEMCHECK" ]; then
-
-        dump_last_n_lines out$Env:UNITTEST_NUM.log
-        dump_last_n_lines $Env:PMEM_LOG_FILE
-        dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
-        dump_last_n_lines $Env:PMEMLOG_LOG_FILE
-        dump_last_n_lines $Env:PMEMBLK_LOG_FILE
-        dump_last_n_lines $Env:VMEM_LOG_FILE
-        dump_last_n_lines $Env:VMMALLOC_LOG_FILE
-
-        #XXX:  bash just has a one-liner "false" here, does that
-        # set the exit code?
-        fail $LASTEXITCODE
-    }
 }
 
 #
@@ -443,9 +445,16 @@ function expect_abnormal_exit {
         }
     }
 
+    # Set $LASTEXITCODE to the value indicating success. It should be
+    # overwritten with the exit status of the invoked command.
+    # It is to catch the case when the command is not executed (i.e. because
+    # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
+    # status of some other command executed before.
+    $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
     if ($LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
+        fail 1
     }
 }
 
@@ -716,7 +725,7 @@ function check_no_file {
     sv -Name fname $Args[0]
     if (Test-Path $fname) {
         Write-Error "Not deleted file: $fname"
-        exit 1
+        fail 1
     }
 }
 
