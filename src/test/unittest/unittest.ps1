@@ -414,9 +414,7 @@ function check_exit_code {
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
 
-        #XXX:  bash just has a one-liner "false" here, does that
-        # set the exit code?
-        fail $LASTEXITCODE
+        fail 1
     }
 }
 
@@ -442,6 +440,7 @@ function expect_abnormal_exit {
     Invoke-Expression "$command $params"
     if ($LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
+        fail 1
     }
 }
 
@@ -700,7 +699,7 @@ function check_no_file {
     sv -Name fname $Args[0]
     if (Test-Path $fname) {
         Write-Error "Not deleted file: $fname"
-        exit 1
+        fail 1
     }
 }
 
