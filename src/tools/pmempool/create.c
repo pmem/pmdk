@@ -590,7 +590,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (ret) {
 		outv_err("creating pool file failed\n");
 		if (!pc.fexists)
-			remove(pc.fname);
+			(void) remove(pc.fname);
 	}
 
 	util_options_free(pc.opts);
