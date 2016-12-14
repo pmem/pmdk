@@ -48,6 +48,9 @@ require_fs_type pmem non-pmem
 
 setup
 
+# limit number of emitted logs due to excessive log size
+export PMEMBLK_LOG_LEVEL=2
+
 truncate -s 1G $DIR/testfile1
 # 300 threads, each doing 100000 random I/Os
 expect_normal_exit ./blk_rw_mt$EXESUFFIX 4096 $DIR/testfile1 789 300 100000

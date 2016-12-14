@@ -47,6 +47,9 @@ $Env:UNITTEST_NUM = "1"
 require_test_type long
 setup
 
+# limit number of emitted logs due to excessive log size
+$Env:PMEMOBJ_LOG_LEVEL=2
+
 create_poolset $DIR\testset1 16M:$DIR\testfile1 16M:$DIR\testfile2
 
 expect_normal_exit $Env:EXE_DIR\obj_many_size_allocs$Env:EXESUFFIX $DIR\testset1
