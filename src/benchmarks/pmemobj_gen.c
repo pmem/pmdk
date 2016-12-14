@@ -453,8 +453,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 	if (bench_priv->n_pools > 1) {
 		assert(!args->is_poolset);
-		mkdir(args->fname, DIR_MODE);
-		if (access(args->fname, F_OK) != 0) {
+		if (mkdir(args->fname, DIR_MODE) != 0) {
 			fprintf(stderr, "cannot create directory\n");
 			goto free_sets;
 		}
