@@ -1224,9 +1224,8 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 			 */
 			pb->argc -= parsed_scenarios;
 			pb->argv += parsed_scenarios;
-			if ((ret = pmembench_run_scenarios(pb, cmd_ss)) != 0) {
-				goto out_cmd;
-			}
+			ret = pmembench_run_scenarios(pb, cmd_ss);
+
 out_cmd:
 			scenarios_free(cmd_ss);
 		}
