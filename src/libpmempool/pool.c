@@ -457,7 +457,7 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 err_close_poolset:
 	if (params->type != POOL_TYPE_BTT)
 		util_poolset_close(file->poolset, 0);
-	else
+	else if (file->fd != -1)
 		close(file->fd);
 err_free_fname:
 	free(file->fname);
