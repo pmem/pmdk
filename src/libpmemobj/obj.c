@@ -688,7 +688,7 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* opaque info lives at the beginning of mapped memory pool */
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
+	void *dscp = (void *)((uintptr_t)pop +
 				sizeof(struct pool_hdr));
 
 	/* create the persistent part of pool's descriptor */
@@ -739,7 +739,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 {
 	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) + sizeof(struct pool_hdr));
+	void *dscp = (void *)((uintptr_t)pop + sizeof(struct pool_hdr));
 
 	if (pop->rpp) {
 		/* read remote descriptor */
