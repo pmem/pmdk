@@ -191,7 +191,7 @@ malloc_strtoumax(const char *restrict nptr, char **restrict endptr, int base)
 		p++;
 	}
 	if (neg)
-		ret = -ret;
+		ret = ~ret + 1;
 
 	if (p == ns) {
 		/* No conversion performed. */
