@@ -64,6 +64,9 @@ const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
 	CHUNK_FLAG_NO_HEADER
 };
 
+/*
+ * memblock_header_type -- determines the memory block's header type
+ */
 static enum header_type
 memblock_header_type(const struct memory_block *m)
 {
@@ -79,6 +82,10 @@ memblock_header_type(const struct memory_block *m)
 	return HEADER_LEGACY;
 }
 
+/*
+ * memblock_header_legacy_get_size --
+ *	(internal) returns the size stored in a legacy header
+ */
 static size_t
 memblock_header_legacy_get_size(const struct memory_block *m)
 {
@@ -87,6 +94,10 @@ memblock_header_legacy_get_size(const struct memory_block *m)
 	return hdr->size;
 }
 
+/*
+ * memblock_header_legacy_get_size --
+ * 	(internal) returns the size stored in a compact header
+ */
 static size_t
 memblock_header_compact_get_size(const struct memory_block *m)
 {
@@ -95,12 +106,20 @@ memblock_header_compact_get_size(const struct memory_block *m)
 	return hdr->size & ALLOC_HDR_FLAGS_MASK;
 }
 
+/*
+ * memblock_header_legacy_get_size --
+ *	(internal) determines the sizes of an object without a header
+ */
 static size_t
 memblock_no_header_get_size(const struct memory_block *m)
 {
 	return m->m_ops->block_size(m);
 }
 
+/*
+ * memblock_header_legacy_get_extra --
+ *	(internal) returns the extra filed stored in a legacy header
+ */
 static uint64_t
 memblock_header_legacy_get_extra(const struct memory_block *m)
 {
@@ -109,6 +128,10 @@ memblock_header_legacy_get_extra(const struct memory_block *m)
 	return hdr->type_num;
 }
 
+/*
+ * memblock_header_compact_get_extra --
+ *	(internal) returns the extra filed stored in a compact header
+ */
 static uint64_t
 memblock_header_compact_get_extra(const struct memory_block *m)
 {
@@ -117,12 +140,20 @@ memblock_header_compact_get_extra(const struct memory_block *m)
 	return hdr->extra;
 }
 
+/*
+ * memblock_no_header_get_extra --
+ *	(internal) objects without a header do have an extra field
+ */
 static uint64_t
 memblock_no_header_get_extra(const struct memory_block *m)
 {
 	return 0;
 }
 
+/*
+ * memblock_header_legacy_get_flags --
+ *	(internal) returns the flags stored in a legacy header
+ */
 static uint16_t
 memblock_header_legacy_get_flags(const struct memory_block *m)
 {
@@ -131,6 +162,10 @@ memblock_header_legacy_get_flags(const struct memory_block *m)
 	return (uint16_t)(hdr->root_size >> 48ULL);
 }
 
+/*
+ * memblock_header_compact_get_flags --
+ *	(internal) returns the flags stored in a compact header
+ */
 static uint16_t
 memblock_header_compact_get_flags(const struct memory_block *m)
 {
@@ -139,12 +174,20 @@ memblock_header_compact_get_flags(const struct memory_block *m)
 	return (uint16_t)(hdr->size >> 48ULL);
 }
 
+/*
+ * memblock_no_header_get_flags --
+ *	(internal) objects without a header do support flags
+ */
 static uint16_t
 memblock_no_header_get_flags(const struct memory_block *m)
 {
 	return 0;
 }
 
+/*
+ * memblock_header_legacy_write --
+ *	(internal) writes a legacy header of an object
+ */
 static void
 memblock_header_legacy_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
@@ -157,13 +200,17 @@ memblock_header_legacy_write(const struct memory_block *m,
 	hdr->size = size;
 	hdr->type_num = extra;
 	hdr->root_size = ((uint64_t)flags << 48ULL);
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof (*hdr));
+	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 
 	/* unused fields of the legacy headers are used as a red zone */
 	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr->unused, sizeof(hdr->unused));
 }
 
+/*
+ * memblock_header_compact_write --
+ *	(internal) writes a compact header of an object
+ */
 static void
 memblock_header_compact_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
@@ -175,17 +222,25 @@ memblock_header_compact_write(const struct memory_block *m,
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	hdr->size = size | ((uint64_t)flags << 48ULL);
 	hdr->extra = extra;
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof (*hdr));
+	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 }
 
+/*
+ * memblock_no_header_write --
+ *	(internal) nothing to write
+ */
 static void
-memblock_no_header_get_write(const struct memory_block *m,
+memblock_no_header_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
 {
 	/* noop */
 }
 
+/*
+ * memblock_header_legacy_reinit --
+ *	(internal) reinitializes a legacy header after a heap restart
+ */
 static void
 memblock_header_legacy_reinit(const struct memory_block *m)
 {
@@ -197,6 +252,10 @@ memblock_header_legacy_reinit(const struct memory_block *m)
 	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr->unused, sizeof(hdr->unused));
 }
 
+/*
+ * memblock_header_compact_reinit --
+ *	(internal) reinitializes a compact header after a heap restart
+ */
 static void
 memblock_header_compact_reinit(const struct memory_block *m)
 {
@@ -205,8 +264,12 @@ memblock_header_compact_reinit(const struct memory_block *m)
 	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
 }
 
+/*
+ * memblock_no_header_reinit --
+ *	(internal) nothing to reinitialize
+ */
 static void
-memblock_no_header_get_reinit(const struct memory_block *m)
+memblock_no_header_reinit(const struct memory_block *m)
 {
 	/* noop */
 }
@@ -237,8 +300,8 @@ static struct {
 		memblock_no_header_get_size,
 		memblock_no_header_get_extra,
 		memblock_no_header_get_flags,
-		memblock_no_header_get_write,
-		memblock_no_header_get_reinit,
+		memblock_no_header_write,
+		memblock_no_header_reinit,
 	}
 };
 
@@ -554,6 +617,10 @@ run_is_claimed(const struct memory_block *m)
 	return 0;
 }
 
+/*
+ * block_get_real_size -- returns the size of a memory block that includes all
+ *	of the overhead (headers)
+ */
 static size_t
 block_get_real_size(const struct memory_block *m)
 {
@@ -566,16 +633,23 @@ block_get_real_size(const struct memory_block *m)
 	if (m->size_idx != 0) {
 		return m->m_ops->block_size(m) * m->size_idx;
 	} else {
-		return memblock_header_ops[m->type].get_size(m);
+		return memblock_header_ops[m->header_type].get_size(m);
 	}
 }
 
+/*
+ * block_get_user_size -- returns the size of a memory block without overheads,
+ *	this is the size of a data block that can be used.
+ */
 static size_t
 block_get_user_size(const struct memory_block *m)
 {
 	return block_get_real_size(m) - header_type_to_size[m->header_type];
 }
 
+/*
+ * block_write_header -- writes a header of an allocation
+ */
 static void
 block_write_header(const struct memory_block *m,
 	uint64_t extra_field, uint16_t flags)
@@ -584,28 +658,31 @@ block_write_header(const struct memory_block *m,
 		block_get_real_size(m), extra_field, flags);
 }
 
+/*
+ * block_reinit_header -- reinitializes a block after a heap restart
+ */
 static void
 block_reinit_header(const struct memory_block *m)
 {
-	memblock_header_ops[m->type].reinit(m);
+	memblock_header_ops[m->header_type].reinit(m);
 }
 
 /*
- * block_get_extra --
+ * block_get_extra -- returns the extra field of an allocation
  */
 static uint64_t
 block_get_extra(const struct memory_block *m)
 {
-	return memblock_header_ops[m->type].get_extra(m);
+	return memblock_header_ops[m->header_type].get_extra(m);
 }
 
 /*
- * block_get_flags --
+ * block_get_flags -- returns the flags of an allocation
  */
 static uint16_t
 block_get_flags(const struct memory_block *m)
 {
-	return memblock_header_ops[m->type].get_flags(m);
+	return memblock_header_ops[m->header_type].get_flags(m);
 }
 
 const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
@@ -659,7 +736,7 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
 	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
 
-	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof (struct zone);
+	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
 
 	off -= CHUNKSIZE * m.chunk_id;
@@ -689,7 +766,7 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 
 /*
  * memblock_detect_type -- looks for the corresponding chunk header and
- *	depending on the chunks type returns the right memory block type.
+ *	depending on the chunks type returns the right memory block type
  */
 static enum memory_block_type
 memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
@@ -712,6 +789,13 @@ memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
 	return ret;
 }
 
+/*
+ * memblock_rebuild_state -- fills in the runtime-state related fields of a
+ *	memory block structure
+ *
+ * This function must be called on all memory blocks that were created by hand
+ * (as opposed to retrieved from memblock_from_offset function).
+ */
 void
 memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m)
 {

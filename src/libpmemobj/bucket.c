@@ -49,6 +49,9 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
+/*
+ * bucket_new -- creates a new bucket instance
+ */
 struct bucket *
 bucket_new(struct block_container *c, struct alloc_class *aclass)
 {

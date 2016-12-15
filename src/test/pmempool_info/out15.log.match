@@ -71,9 +71,6 @@ Offset                   : $(*)
 Size                     : 1
 
  Allocation Header:
- Zone id                  : $(*)
- Chunk id                 : $(*)
  Size                     : $(*)
-
- OOB Header:
- Type Number              : $(*)
+ Extra                    : $(*)
+ Flags                    : $(*)

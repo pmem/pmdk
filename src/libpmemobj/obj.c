@@ -677,7 +677,11 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	pop->lanes_offset = OBJ_LANES_OFFSET;
 	pop->nlanes = OBJ_NLANES;
+
 	pop->root_offset = 0;
+	pmemops_persist(p_ops, &pop->root_offset, sizeof(pop->root_offset));
+	pop->root_size = 0;
+	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
 
 	/* zero all lanes */
 	void *lanes_layout = (void *)((uintptr_t)pop + pop->lanes_offset);
@@ -1877,12 +1881,16 @@ constructor_zrealloc_root(void *ctx, void *ptr, size_t usable_size, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
+
 	struct carg_realloc *carg = arg;
 
 	constructor_realloc(pop, ptr, usable_size, arg);
 	int ret = 0;
 	if (carg->constructor)
 		ret = carg->constructor(pop, ptr, carg->arg);
+
+	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
 
 	return ret;
 }
@@ -2169,7 +2177,8 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 
 	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
 
-	if (obj_alloc_root(pop, size, constructor, arg)) {
+	if (size > pop->root_size &&
+		obj_alloc_root(pop, size, constructor, arg)) {
 		pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
 		LOG(2, "obj_realloc_root failed");
 		return OID_NULL;

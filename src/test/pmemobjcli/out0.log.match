@@ -27,7 +27,8 @@ pmemobj_flush($(nW), 96)
 pmemobj_drain
 pmemobj_pool_by_oid($(nW)): uuid = $(nW)
 pmemobj_pool_by_ptr($(nW)): uuid = $(nW)
-pmemobj_memset_persist($(nW), 0, 32): ptr = $(nW)
+pmemobj_memset_persist($(nW), 0, 256): ptr = $(nW)
+pmemobj_memset_persist($(nW), 0, 256): ptr = $(nW)
 pmemobj_list_insert_new(r.0, $(nW), 1, 64, 3): off = $(nW) uuid = $(nW) ptr = $(nW)
 pmemobj_list_insert_new(r.1, $(nW), 1, 64, 3): off = $(nW) uuid = $(nW) ptr = $(nW)
 pmemobj_list_insert($(nW), r.0, $(nW), 1): 0

@@ -171,14 +171,6 @@ struct pmemobjpool {
  */
 #define OBJ_INTERNAL_OBJECT_MASK ((1ULL) << 15)
 
-enum internal_type {
-	TYPE_NONE,
-	TYPE_ALLOCATED,
-
-	MAX_INTERNAL_TYPE
-};
-
-
 /*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
  * 8 bytes with most significant 8 bytes.

@@ -75,6 +75,10 @@ pmemobj_pool_by_oid r
 # root object at position 3
 pmemobj_pool_by_ptr r.3 32
 
+# zero the first 256 bytes of r.0 and r.1
+pmemobj_memset_persist r.0 0 0 256
+pmemobj_memset_persist r.1 0 0 256
+
 # allocate and add elements to both lists
 pmemobj_memset_persist r.0 0 0 32
 pmemobj_list_insert_new r.4 r.0 NULL 1 64 3

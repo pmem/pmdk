@@ -38,7 +38,7 @@ OBJS = obj_realloc.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
-LIBPMEMOBJ=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 

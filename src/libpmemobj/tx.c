@@ -189,15 +189,11 @@ constructor_tx_copy(void *ctx, void *ptr, size_t usable_size, void *arg)
 	ASSERTne(arg, NULL);
 
 	struct tx_alloc_copy_args *args = arg;
+	args->super.flags = args->flags;
+
 	constructor_tx_alloc(pop, ptr, usable_size, &args->super);
 
 	memcpy(ptr, args->ptr, args->copy_size);
-	if ((args->flags & POBJ_FLAG_ZERO) &&
-			usable_size > args->copy_size) {
-		void *zero_ptr = (void *)((uintptr_t)ptr + args->copy_size);
-		size_t zero_size = usable_size - args->copy_size;
-		memset(zero_ptr, 0, zero_size);
-	}
 
 	return 0;
 }
@@ -1467,7 +1463,11 @@ constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	ASSERTne(ptr, NULL);
 
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
+
 	pmemops_memset_persist(p_ops, ptr, 0, sizeof(struct tx_range_cache));
+
+	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
 
 	return 0;
 }

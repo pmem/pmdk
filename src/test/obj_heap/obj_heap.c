@@ -43,6 +43,7 @@
 #include "container_ctree.h"
 #include "container_seglists.h"
 #include "container.h"
+#include "alloc_class.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
@@ -89,6 +90,24 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 }
 
 static void
+test_alloc_class_bitmap_correctness()
+{
+	struct alloc_class_collection *classes = alloc_class_collection_new();
+	UT_ASSERT(classes != NULL);
+	struct alloc_class *c =
+		alloc_class_get_create_by_unit_size(classes, RUNSIZE / 10);
+	UT_ASSERT(c != NULL);
+
+	/* 54 set (not available for allocations), and 10 clear (available) */
+	uint64_t bitmap_lastval =
+	0b1111111111111111111111111111111111111111111111111111110000000000;
+
+	UT_ASSERTeq(c->run.bitmap_lastval, bitmap_lastval);
+
+	alloc_class_collection_delete(classes);
+}
+
+static void
 test_container(struct block_container *bc, struct palloc_heap *heap)
 {
 	UT_ASSERTne(bc, NULL);
@@ -101,18 +120,22 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 	init_run_with_score(heap->layout, 2, 128);
 	init_run_with_score(heap->layout, 3, 128);
 	init_run_with_score(heap->layout, 5, 128);
+	memblock_rebuild_state(heap, &a);
+	memblock_rebuild_state(heap, &b);
+	memblock_rebuild_state(heap, &c);
+	memblock_rebuild_state(heap, &d);
 
 	int ret;
-	ret = bc->c_ops->insert(bc, heap, a);
+	ret = bc->c_ops->insert(bc, &a);
 	UT_ASSERTeq(ret, 0);
 
-	ret = bc->c_ops->insert(bc, heap, b);
+	ret = bc->c_ops->insert(bc, &b);
 	UT_ASSERTeq(ret, 0);
 
-	ret = bc->c_ops->insert(bc, heap, c);
+	ret = bc->c_ops->insert(bc, &c);
 	UT_ASSERTeq(ret, 0);
 
-	ret = bc->c_ops->insert(bc, heap, d);
+	ret = bc->c_ops->insert(bc, &d);
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block invalid_ret = {0, 0, 6, 0};
@@ -142,13 +165,13 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 	ret = bc->c_ops->get_rm_bestfit(bc, &c_ret);
 	UT_ASSERTeq(ret, ENOMEM);
 
-	ret = bc->c_ops->insert(bc, heap, a);
+	ret = bc->c_ops->insert(bc, &a);
 	UT_ASSERTeq(ret, 0);
 
-	ret = bc->c_ops->insert(bc, heap, b);
+	ret = bc->c_ops->insert(bc, &b);
 	UT_ASSERTeq(ret, 0);
 
-	ret = bc->c_ops->insert(bc, heap, c);
+	ret = bc->c_ops->insert(bc, &c);
 	UT_ASSERTeq(ret, 0);
 
 	bc->c_ops->rm_all(bc);
@@ -188,29 +211,33 @@ test_heap()
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
-	test_container((struct block_container *)container_new_ctree(),
+	test_alloc_class_bitmap_correctness();
+
+	test_container((struct block_container *)container_new_ctree(heap),
 		heap);
 
-	test_container((struct block_container *)container_new_seglists(),
+	test_container((struct block_container *)container_new_seglists(heap),
 		heap);
 
-	struct bucket *b_small = heap_get_best_bucket(heap, 1);
-	struct bucket *b_big = heap_get_best_bucket(heap, 2048);
+	struct alloc_class *c_small = heap_get_best_class(heap, 1);
+	struct alloc_class *c_big = heap_get_best_class(heap, 2048);
 
-	UT_ASSERT(b_small->unit_size < b_big->unit_size);
+	UT_ASSERT(c_small->unit_size < c_big->unit_size);
 
-	struct bucket *b_def = heap_get_best_bucket(heap, CHUNKSIZE);
-	UT_ASSERT(b_def->unit_size == CHUNKSIZE);
+	struct alloc_class *c_def = heap_get_best_class(heap, CHUNKSIZE);
+	UT_ASSERT(c_def->unit_size == CHUNKSIZE);
 
 	/* new small buckets should be empty */
-	UT_ASSERT(b_small->type == BUCKET_RUN);
-	UT_ASSERT(b_big->type == BUCKET_RUN);
+	UT_ASSERT(c_def->type == CLASS_HUGE);
+	UT_ASSERT(c_big->type == CLASS_RUN);
 
 	struct memory_block blocks[MAX_BLOCKS] = {
 		{0, 0, 1, 0},
 		{0, 0, 1, 0},
 		{0, 0, 1, 0}
 	};
+
+	struct bucket *b_def = heap_get_bucket_by_class(heap, c_def);
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
@@ -219,14 +246,16 @@ test_heap()
 
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
-	struct bucket *b_run = heap_get_best_bucket(heap, 1024);
+	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
+	struct bucket *b_run = heap_get_bucket_by_class(heap, c_run);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted an another is
 	 * created.
 	 */
 	UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &old_run), ENOMEM);
-	UT_ASSERT(MEMBLOCK_OPS(RUN, &old_run)->is_claimed(&old_run, heap));
+	UT_ASSERT(old_run.m_ops->is_claimed(&old_run));
+
 	do {
 		new_run.chunk_id = 0;
 		new_run.block_off = 0;
@@ -237,7 +266,7 @@ test_heap()
 	} while (old_run.chunk_id == new_run.chunk_id);
 
 	/* the old block should be unclaimed now */
-	UT_ASSERT(!MEMBLOCK_OPS(RUN, &old_run)->is_claimed(&old_run, heap));
+	UT_ASSERT(!old_run.m_ops->is_claimed(&old_run));
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);
@@ -279,7 +308,7 @@ test_recycler()
 	UT_ASSERTne(r, NULL);
 
 	init_run_with_score(pop->heap.layout, 0, 0);
-	init_run_with_score(pop->heap.layout, 0, 64);
+	init_run_with_score(pop->heap.layout, 1, 64);
 
 	struct memory_block mrun = {0, 0, 1, 0};
 	struct memory_block mrun2 = {1, 0, 1, 0};

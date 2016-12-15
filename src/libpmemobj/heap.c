@@ -104,8 +104,8 @@ bucket_group_destroy(struct bucket **buckets)
 
 
 /*
- * heap_get_cache_bucket -- (internal) returns the bucket for given id from
- *	semi-per-thread cache
+ * heap_get_bucket_by_class -- (internal) returns the bucket for given class
+ *	from semi-per-thread cache
  */
 struct bucket *
 heap_get_bucket_by_class(struct palloc_heap *heap, struct alloc_class *c)
@@ -1143,12 +1143,10 @@ heap_verify_chunk_header(struct chunk_header *hdr)
 		return -1;
 	}
 
-#if 0
-	if (hdr->flags & CHUNK_FLAG_COMPACT_HEADER) {
+	if (hdr->flags & ~CHUNK_FLAGS_ALL_VALID) {
 		ERR("heap: invalid chunk flags");
 		return -1;
 	}
-#endif
 
 	return 0;
 }
@@ -1266,15 +1264,10 @@ heap_check_remote(void *heap_start, uint64_t heap_size, struct remote_ops *ops)
 /*
  * heap_run_foreach_object -- (internal) iterates through objects in a run
  */
-static int
+int
 heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-		void *arg, struct memory_block *m)
+		void *arg, struct memory_block *m, struct alloc_class *c)
 {
-	struct alloc_class *c =
-		alloc_class_get_create_by_unit_size(
-			heap->rt->alloc_classes,
-			m->m_ops->block_size(m));
-
 	if (c == NULL)
 		return -1;
 
@@ -1338,7 +1331,10 @@ heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 			m->size_idx = hdr->size_idx;
 			return cb(m, arg);
 		case CHUNK_TYPE_RUN:
-			return heap_run_foreach_object(heap, cb, arg, m);
+			return heap_run_foreach_object(heap, cb, arg, m,
+				alloc_class_get_create_by_unit_size(
+					heap->rt->alloc_classes,
+					m->m_ops->block_size(m)));
 		default:
 			ASSERT(0);
 	}
@@ -1362,6 +1358,10 @@ heap_zone_foreach_object(struct palloc_heap *heap, object_callback cb,
 			return 1;
 
 		m->chunk_id += zone->chunk_headers[m->chunk_id].size_idx;
+
+		/* reset the starting position of memblock */
+		m->block_off = 0;
+		m->size_idx = 0;
 	}
 
 	return 0;
@@ -1376,12 +1376,14 @@ heap_foreach_object(struct palloc_heap *heap, object_callback cb, void *arg,
 {
 	struct heap_layout *layout = heap->layout;
 
-	for (; m.zone_id < heap_max_zone(layout->header.size); ++m.zone_id)
+	for (; m.zone_id < heap_max_zone(layout->header.size); ++m.zone_id) {
 		if (heap_zone_foreach_object(heap, cb, arg, &m) != 0)
 			break;
+
+		m.chunk_id = 0;
+	}
 }
 
-#define USE_VG_MEMCHECK
 #ifdef USE_VG_MEMCHECK
 
 /*
@@ -1404,7 +1406,10 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 			sizeof(*run) - sizeof(run->data));
 
 		if (objects) {
-			int ret = heap_run_foreach_object(heap, cb, arg, m);
+			int ret = heap_run_foreach_object(heap, cb, arg, m,
+				alloc_class_get_create_by_unit_size(
+					heap->rt->alloc_classes,
+					m->m_ops->block_size(m)));
 			ASSERTeq(ret, 0);
 		}
 	} else {

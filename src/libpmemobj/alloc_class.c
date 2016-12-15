@@ -104,6 +104,10 @@ static struct {
 struct alloc_class_collection {
 	struct alloc_class *aclasses[MAX_ALLOCATION_CLASSES];
 
+	/*
+	 * The last size (in bytes) that is handled by runs, everything bigger
+	 * uses the default class.
+	 */
 	size_t last_run_max_size;
 
 	/* maps allocation classes to allocation sizes, excluding the header! */
@@ -365,8 +369,9 @@ alloc_class_collection_new(void)
 	for (largest_aclass_slot = MAX_ALLOCATION_CLASSES - 1;
 			largest_aclass_slot > 0 &&
 			ac->aclasses[largest_aclass_slot] == NULL;
-			--largest_aclass_slot)
-			{} /* intentional noop */
+			--largest_aclass_slot) {
+		/* intentional noop */
+	}
 
 	struct alloc_class *c = ac->aclasses[largest_aclass_slot];
 
@@ -387,7 +392,7 @@ alloc_class_collection_new(void)
 	 * internal fragmentation for that size is chosen.
 	 */
 	for (size_t i = FIRST_GENERATED_CLASS_SIZE;
-		i < ac->last_run_max_size / ALLOC_BLOCK_SIZE; ++i) {
+		i <= ac->last_run_max_size / ALLOC_BLOCK_SIZE; ++i) {
 		struct alloc_class *c = alloc_class_find_min_frag(ac,
 				i * ALLOC_BLOCK_SIZE);
 		ac->class_map_by_unit_size[i] = c->id;
@@ -455,7 +460,7 @@ alloc_class_get_create_by_unit_size(struct alloc_class_collection *ac,
 		];
 
 	if (c == NULL || c->unit_size != size)
-		c = alloc_class_new(ac, CLASS_RUN, MIN_RUN_SIZE,
+		c = alloc_class_new(ac, CLASS_RUN, size,
 			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 
 	return c;
@@ -468,7 +473,7 @@ alloc_class_get_create_by_unit_size(struct alloc_class_collection *ac,
 struct alloc_class *
 alloc_class_by_alloc_size(struct alloc_class_collection *ac, size_t size)
 {
-	if (size <= ac->last_run_max_size) {
+	if (size < ac->last_run_max_size) {
 		return ac->aclasses[
 				ac->class_map_by_alloc_size[
 					SIZE_TO_CLASS_MAP_INDEX(size)]
