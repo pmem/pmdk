@@ -40,7 +40,11 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+# XXX temporary hack
+require_build_type debug nondebug
+
 require_test_type medium
+require_fs_type any
 
 setup
 

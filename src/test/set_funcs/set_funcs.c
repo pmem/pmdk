@@ -41,8 +41,9 @@
 #define OBJ 0
 #define BLK 1
 #define LOG 2
+#define CTO 3
+#define VMEM_ 4
 
-#define VMEM_ 3
 #define VMEM_POOLS 4
 
 
@@ -51,7 +52,7 @@ static struct counters {
 	int frees;
 	int reallocs;
 	int strdups;
-} cnt[4];
+} cnt[5];
 
 
 static void *
@@ -221,6 +222,35 @@ _vmem_strdup(const char *s)
 	return test_strdup(s);
 }
 
+static void *
+cto_malloc(size_t size)
+{
+	cnt[CTO].mallocs++;
+	return test_malloc(size);
+}
+
+static void
+cto_free(void *ptr)
+{
+	if (ptr)
+		cnt[CTO].frees++;
+	test_free(ptr);
+}
+
+static void *
+cto_realloc(void *ptr, size_t size)
+{
+	cnt[CTO].reallocs++;
+	return test_realloc(ptr, size);
+}
+
+static char *
+cto_strdup(const char *s)
+{
+	cnt[CTO].strdups++;
+	return test_strdup(s);
+}
+
 /*
  * There are a few allocations made at first call to pmemobj_open() or
  * pmemobj_create().  They are related to some global structures
@@ -241,8 +271,8 @@ test_obj(const char *path)
 {
 	memset(cnt, 0, sizeof(cnt));
 
-	PMEMobjpool *pop =
-			pmemobj_create(path, NULL, PMEMOBJ_MIN_POOL, 0600);
+	PMEMobjpool *pop;
+	pop = pmemobj_create(path, NULL, PMEMOBJ_MIN_POOL, 0600);
 
 	PMEMoid oid;
 
@@ -264,12 +294,14 @@ test_obj(const char *path)
 	if (cnt[OBJ].mallocs == 0 || cnt[OBJ].frees == 0)
 		UT_FATAL("OBJ mallocs: %d, frees: %d", cnt[OBJ].mallocs,
 				cnt[OBJ].frees);
-	for (int i = 0; i < 4; ++i) {
+
+	for (int i = 0; i < 5; ++i) {
 		if (i == OBJ)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("OBJ allocation used %d functions", i);
 	}
+
 	if (cnt[OBJ].mallocs + cnt[OBJ].strdups !=
 					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
@@ -286,7 +318,6 @@ test_blk(const char *path)
 
 	pmemblk_close(blk);
 
-
 	UT_OUT("blk_mallocs: %d", cnt[BLK].mallocs);
 	UT_OUT("blk_frees: %d", cnt[BLK].frees);
 	UT_OUT("blk_reallocs: %d", cnt[BLK].reallocs);
@@ -295,12 +326,14 @@ test_blk(const char *path)
 	if (cnt[BLK].mallocs == 0 || cnt[BLK].frees == 0)
 		UT_FATAL("BLK mallocs: %d, frees: %d", cnt[BLK].mallocs,
 				cnt[BLK].frees);
-	for (int i = 0; i < 4; ++i) {
+
+	for (int i = 0; i < 5; ++i) {
 		if (i == BLK)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("BLK allocation used %d functions", i);
 	}
+
 	if (cnt[BLK].mallocs + cnt[BLK].strdups != cnt[BLK].frees)
 		UT_FATAL("BLK memory leak");
 
@@ -324,14 +357,72 @@ test_log(const char *path)
 	if (cnt[LOG].mallocs == 0 || cnt[LOG].frees == 0)
 		UT_FATAL("LOG mallocs: %d, frees: %d", cnt[LOG].mallocs,
 				cnt[LOG].frees);
-	for (int i = 0; i < 4; ++i) {
+
+	for (int i = 0; i < 5; ++i) {
 		if (i == LOG)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("LOG allocation used %d functions", i);
 	}
+
 	if (cnt[LOG].mallocs + cnt[LOG].strdups != cnt[LOG].frees)
 		UT_FATAL("LOG memory leak");
+
+	UNLINK(path);
+}
+
+/*
+ * There are a few allocations made at first call to pmemcto_malloc(),
+ * pmemcto_realloc(), etc.
+ * They are related to some global jemalloc structures in TSD, holding
+ * a list of all open pools.  These allocation are not released on
+ * pmemcto_close(), but in the library destructor.  So, we need to take them
+ * into account when detecting memory leaks.
+ * Same applies to errormsg buffer, which is allocated on the first error
+ * and released in library dtor.
+ *
+ *   tcache_tsd  -     2 * Zalloc
+ *   areanas_tsd     - 2 * Zalloc
+ */
+#define CTO_EXTRA_NALLOC 4
+
+static void
+test_cto(const char *path)
+{
+	memset(cnt, 0, sizeof(cnt));
+
+	PMEMctopool *pcp;
+	pcp = pmemcto_create(path, "test", PMEMCTO_MIN_POOL, 0600);
+
+	void *ptr = pmemcto_malloc(pcp, 10);
+	UT_ASSERTne(ptr, NULL);
+
+	ptr = pmemcto_realloc(pcp, ptr, 100);
+	UT_ASSERTne(ptr, NULL);
+
+	pmemcto_free(pcp, ptr);
+
+	pmemcto_close(pcp);
+
+	UT_OUT("cto_mallocs: %d", cnt[CTO].mallocs);
+	UT_OUT("cto_frees: %d", cnt[CTO].frees);
+	UT_OUT("cto_reallocs: %d", cnt[CTO].reallocs);
+	UT_OUT("cto_strdups: %d", cnt[CTO].strdups);
+
+	if (cnt[CTO].mallocs == 0 || cnt[CTO].frees == 0)
+		UT_FATAL("CTO mallocs: %d, frees: %d", cnt[CTO].mallocs,
+				cnt[CTO].frees);
+
+	for (int i = 0; i < 5; ++i) {
+		if (i == CTO)
+			continue;
+		if (cnt[i].mallocs || cnt[i].frees)
+			UT_FATAL("CTO allocation used %d functions", i);
+	}
+
+	if (cnt[CTO].mallocs + cnt[CTO].strdups !=
+					cnt[CTO].frees + CTO_EXTRA_NALLOC)
+		UT_FATAL("CTO memory leak");
 
 	UNLINK(path);
 }
@@ -361,12 +452,14 @@ test_vmem(const char *dir)
 	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
 		UT_FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
 				cnt[VMEM_].frees);
-	for (int i = 0; i < 4; ++i) {
+
+	for (int i = 0; i < 5; ++i) {
 		if (i == VMEM_)
 			continue;
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("VMEM allocation used %d functions", i);
 	}
+
 	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
 		UT_FATAL("VMEM memory leak");
 }
@@ -382,12 +475,14 @@ main(int argc, char *argv[])
 	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
 	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
 	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
+	pmemcto_set_funcs(cto_malloc, cto_free, cto_realloc, cto_strdup, NULL);
 	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
 			NULL);
 
 	test_obj(argv[1]);
 	test_blk(argv[1]);
 	test_log(argv[1]);
+	test_cto(argv[1]);
 	test_vmem(argv[2]);
 
 	DONE(NULL);

@@ -186,7 +186,8 @@ vmem_createU(const char *dir, size_t size)
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 			size - Header_size,
-			/* zeroed if */ !is_dev_dax) == NULL) {
+			/* zeroed if */ !is_dev_dax,
+			/* empty */ 1) == NULL) {
 		ERR("pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;
@@ -271,7 +272,8 @@ vmem_create_in_region(void *addr, size_t size)
 
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
-				size - Header_size, 0) == NULL) {
+				size - Header_size, 0,
+				/* empty */ 1) == NULL) {
 		ERR("pool creation failed");
 		return NULL;
 	}
