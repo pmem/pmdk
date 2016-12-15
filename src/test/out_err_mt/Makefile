@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,11 +36,16 @@
 TARGET = out_err_mt
 OBJS = out_err_mt.o
 
+# XXX temporary hack
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMLOG=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y
+LIBPMEMCTO=y
 LIBPMEMPOOL=y
 LIBVMEM=y
 

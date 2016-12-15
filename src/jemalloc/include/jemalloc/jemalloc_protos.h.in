@@ -9,7 +9,7 @@ extern JEMALLOC_EXPORT void		(*@je_@malloc_message)(void *cbopaque,
 
 typedef struct pool_s pool_t;
 
-JEMALLOC_EXPORT pool_t	*@je_@pool_create(void *addr, size_t size, int zeroed);
+JEMALLOC_EXPORT pool_t	*@je_@pool_create(void *addr, size_t size, int zeroed, int empty);
 JEMALLOC_EXPORT int	@je_@pool_delete(pool_t *pool);
 JEMALLOC_EXPORT size_t	@je_@pool_extend(pool_t *pool, void *addr,
 					    size_t size, int zeroed);

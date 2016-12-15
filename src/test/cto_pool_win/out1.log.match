@@ -1,0 +1,4 @@
+cto_pool_win$(nW)TEST1: START: cto_pool_win$(nW)
+ $(nW)cto_pool_win$(nW) c $(nW)testfile test$(nW) 0 0600
+$(nW)testfile: file size 20971520 mode 0600
+cto_pool_win$(nW)TEST1: DONE

@@ -43,6 +43,7 @@ TEST_DEPS = \
 	tools
 
 BLK_TESTS = \
+	blk_include\
 	blk_nblock\
 	blk_non_zero\
 	blk_pool\
@@ -50,8 +51,10 @@ BLK_TESTS = \
 	blk_recovery\
 	blk_rw\
 	blk_rw_mt
+
 LOG_TESTS = \
 	log_basic\
+	log_include\
 	log_pool\
 	log_pool_lock\
 	log_recovery\
@@ -207,6 +210,7 @@ OTHER_TESTS = \
 PMEM_TESTS = \
 	pmem_is_pmem\
 	pmem_is_pmem_linux\
+	pmem_include\
 	pmem_map_file\
 	pmem_memcpy\
 	pmem_memmove\
@@ -296,6 +300,7 @@ CPP_EXAMPLE_TESTS = \
 LIBPMEMPOOL_DEPS = libpmempool_api
 
 LIBPMEMPOOL_TESTS = \
+	libpmempool_include\
 	libpmempool_backup\
 	libpmempool_bttdev\
 	libpmempool_map_flog\
@@ -306,6 +311,16 @@ LIBPMEMPOOL_MOD_DEPS = \
 LIBPMEMPOOL_MOD_TESTS = \
 	libpmempool_transform
 
+CTO_TESTS = \
+	cto_aligned_alloc\
+	cto_basic\
+	cto_check_allocations\
+	cto_include\
+	cto_multiple_pools\
+	cto_pool\
+	cto_realloc_inplace\
+	cto_stats\
+	cto_valgrind
 
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
@@ -319,7 +334,8 @@ LOCAL_TESTS = \
 	$(VMMALLOC_TESTS)\
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
-	$(LIBPMEMPOOL_MOD_TESTS)
+	$(LIBPMEMPOOL_MOD_TESTS)\
+	$(CTO_TESTS)
 
 REMOTE_TESTS = \
 	remote_basic\

@@ -41,13 +41,13 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
-
+require_build_type debug nondebug
 require_fs_type any
 
 setup
 
 expect_normal_exit ./out_err_mt$EXESUFFIX \
-	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR
+	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR/testfile4 $DIR
 
 check
 

@@ -45,12 +45,10 @@ Param(
 $Env:UNITTEST_NAME = "traces_pmem/TEST0"
 $Env:UNITTEST_NUM = "0"
 
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type none
 require_build_type debug static-debug
 
@@ -64,6 +62,8 @@ $Env:PMEMLOG_LOG_LEVEL = 4
 $Env:PMEMLOG_LOG_FILE = ".\trace_pmemlog$Env:UNITTEST_NUM.log"
 $Env:PMEMOBJ_LOG_LEVEL = 4
 $Env:PMEMOBJ_LOG_FILE = ".\trace_pmemobj$Env:UNITTEST_NUM.log"
+$Env:PMEMCTO_LOG_LEVEL = 4
+$Env:PMEMCTO_LOG_FILE = ".\trace_pmemcto$Env:UNITTEST_NUM.log"
 
 expect_normal_exit $Env:EXE_DIR\traces_pmem$Env:EXESUFFIX
 
