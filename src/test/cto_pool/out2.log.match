@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST2: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) c $(nW)testfile test$(nW) 0 0640
+$(nW)testfile: pmemcto_create: No such file or directory
+cto_pool$(nW)TEST2: DONE

@@ -41,10 +41,12 @@ export UNITTEST_NUM=1
 . ../unittest/unittest.sh
 
 require_test_type medium
-
+require_build_type debug nondebug
 require_fs_type any
+
 require_valgrind_dev_version 3.7
 configure_valgrind drd force-enable
+
 setup
 
 unset PMEM_LOG_LEVEL
@@ -53,6 +55,7 @@ unset PMEMBLK_LOG_LEVEL
 unset PMEMOBJ_LOG_LEVEL
 unset VMEM_LOG_LEVEL
 unset PMEMPOOL_LOG_LEVEL
+unset PMEMCTO_LOG_LEVEL
 
 unset PMEM_LOG_FILE
 unset PMEMLOG_LOG_FILE
@@ -60,9 +63,10 @@ unset PMEMBLK_LOG_FILE
 unset PMEMOBJ_LOG_FILE
 unset VMEM_LOG_FILE
 unset PMEMPOOL_LOG_FILE
+unset PMEMCTO_LOG_FILE
 
 expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1\
-		 $DIR/testfile2 $DIR/testfile3 $DIR
+		$DIR/testfile2 $DIR/testfile3 $DIR/testfile4 $DIR
 
 check
 

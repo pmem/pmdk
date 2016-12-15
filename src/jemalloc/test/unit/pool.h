@@ -17,10 +17,10 @@ static int custom_allocs;
 TEST_BEGIN(test_pool_create_errors) {
 	pool_t *pool;
 	memset(mem_pool, 1, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, 0, 0);
+	pool = pool_create(mem_pool, 0, 0, 1);
 	assert_ptr_null(pool, "pool_create() should return NULL for size 0");
 
-	pool = pool_create(NULL, TEST_POOL_SIZE, 0);
+	pool = pool_create(NULL, TEST_POOL_SIZE, 0, 1);
 	assert_ptr_null(pool, "pool_create() should return NULL for input addr NULL");
 }
 TEST_END
@@ -29,7 +29,7 @@ TEST_BEGIN(test_pool_create) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 	assert_ptr_eq(pool, mem_pool, "pool_create() should return addr with valid input");
 	pool_delete(pool);
 
@@ -41,7 +41,7 @@ TEST_BEGIN(test_pool_malloc) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	int *test = pool_malloc(pool, sizeof(int));
 	assert_ptr_not_null(test, "pool_malloc should return valid ptr");
@@ -69,7 +69,7 @@ TEST_BEGIN(test_pool_free) {
 	void *arr[allocs];
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	for (i = 0; i < TEST_MALLOC_FREE_LOOPS; ++i) {
 		for (j = 0; j < allocs; ++j) {
@@ -102,7 +102,7 @@ TEST_BEGIN(test_pool_calloc) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 1, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0, 1);
 
 	int *test = pool_calloc(pool, 1, sizeof(int));
 	assert_ptr_not_null(test, "pool_calloc should return valid ptr");
@@ -121,7 +121,7 @@ TEST_BEGIN(test_pool_realloc) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	int *test = pool_ralloc(pool, NULL, sizeof(int));
 	assert_ptr_not_null(test, "pool_ralloc with NULL addr should return valid ptr");
@@ -145,7 +145,7 @@ TEST_BEGIN(test_pool_aligned_alloc) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	int *test = pool_aligned_alloc(pool, 1024, 1024);
 	assert_ptr_not_null(test, "pool_aligned_alloc should return valid ptr");
@@ -174,7 +174,7 @@ TEST_BEGIN(test_pool_reuse_pool) {
 
 	/* create and destroy pool multiple times */
 	for (; pool_num<100; ++pool_num) {
-		pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+		pool = pool_create(mem_pool, TEST_POOL_SIZE, 0, 1);
 		assert_ptr_not_null(pool, "Can not create pool!!!");
 		if (pool == NULL) {
 			break;
@@ -221,7 +221,7 @@ TEST_BEGIN(test_pool_check_memory) {
 
 	for (object_size = 8; object_size <= TEST_BUFFOR_CMP_SIZE ; object_size *= 2) {
 		custom_allocs = 0;
-		pool = pool_create(mem_pool, pool_size, 0);
+		pool = pool_create(mem_pool, pool_size, 0, 1);
 		assert_ptr_not_null(pool, "Can not create pool!!!");
 		size_allocated = 0;
 		memset(allocs, 0, TEST_ALLOCS_SIZE * sizeof(void *));
@@ -271,7 +271,7 @@ TEST_BEGIN(test_pool_use_all_memory) {
 	size_t pool_size = POOL_MINIMAL_SIZE;
 	assert_lu_lt(POOL_MINIMAL_SIZE, TEST_POOL_SIZE, "Too small pool size");
 	custom_allocs = 0;
-	pool = pool_create(mem_pool, pool_size, 0);
+	pool = pool_create(mem_pool, pool_size, 0, 1);
 	assert_ptr_not_null(pool, "Can not create pool!!!");
 
 	void *prev = NULL;
@@ -315,7 +315,7 @@ TEST_BEGIN(test_pool_extend_errors) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	memset(mem_extend_ok, 0, TEST_TOO_SMALL_POOL_SIZE);
 	size_t usable_size = pool_extend(pool, mem_extend_ok, TEST_TOO_SMALL_POOL_SIZE, 0);
@@ -333,7 +333,7 @@ TEST_BEGIN(test_pool_extend) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	memset(mem_extend_ok, 0, TEST_POOL_SIZE);
 	size_t usable_size = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 0);
@@ -351,7 +351,7 @@ TEST_BEGIN(test_pool_extend_after_out_of_memory) {
 	pool_t *pool;
 	custom_allocs = 0;
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 
 	/* use the all memory from pool and from base allocator */
 	while (pool_malloc(pool, sizeof (void *)));
@@ -383,13 +383,13 @@ TEST_BEGIN(test_pool_check_extend) {
 	pool_t *pool;
 	custom_allocs = 0;
 
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0, 1);
 	pool_malloc(pool, 100);
 	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 	pool_delete(pool);
 	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
 
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0, 1);
 	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
 	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space");
@@ -409,7 +409,7 @@ TEST_BEGIN(test_pool_check_memory_out_of_range) {
 	pool_t *pool;
 	custom_allocs = 0;
 
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 0, 1);
 	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 
 	void *usable_addr = (void *)CHUNK_CEILING((uintptr_t)mem_extend_ok);
@@ -438,13 +438,13 @@ TEST_BEGIN(test_pool_check_memory_overlap) {
 	custom_allocs = 0;
 
 	memset(mem_pool, 0, TEST_POOL_SIZE);
-	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1);
+	pool = pool_create(mem_pool, TEST_POOL_SIZE, 1, 1);
 	size_t size_extend = pool_extend(pool, mem_extend_ok, TEST_POOL_SIZE, 1);
 	assert_zu_ne(size_extend, 0, "pool_extend() should add some free space");
 	assert_d_eq(je_pool_check(pool), 1, "je_pool_check() return error");
 
 	/* create another pool in the same memory region */
-	pool2 = pool_create(mem_extend_ok, TEST_POOL_SIZE, 0);
+	pool2 = pool_create(mem_extend_ok, TEST_POOL_SIZE, 0, 1);
 	assert_d_ne(je_pool_check(pool), 1, "je_pool_check() not return error");
 	assert_d_ne(je_pool_check(pool2), 1, "je_pool_check() not return error");
 	pool_delete(pool2);
