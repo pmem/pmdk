@@ -430,7 +430,8 @@ libvmmalloc_create(const char *dir, size_t size)
 
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
-			size - Header_size, 1) == NULL) {
+			size - Header_size, 1 /* zeroed */,
+			1 /* empty */) == NULL) {
 		LOG(1, "vmem pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;

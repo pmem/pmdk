@@ -36,7 +36,6 @@
 
 include ../src/common.inc
 
-
 MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
 		libvmmalloc/libvmmalloc.7.md
@@ -51,7 +50,9 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
-		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md
+		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md \
+		libpmemcto.3.md
+
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \

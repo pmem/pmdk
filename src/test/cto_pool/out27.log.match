@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST27: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) o $(nW)testfile NULL
+$(nW)testfile: pmemcto_open: Success
+cto_pool$(nW)TEST27: DONE
