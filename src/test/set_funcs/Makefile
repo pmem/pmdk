@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,10 +36,15 @@
 TARGET = set_funcs
 OBJS = set_funcs.o
 
+# XXX temporary hack
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEM=y
 LIBPMEMOBJ=y
 LIBPMEMBLK=y
 LIBPMEMLOG=y
+LIBPMEMCTO=y
 LIBVMEM=y
 
 include ../Makefile.inc
