@@ -54,7 +54,8 @@
 #define SIZEOF_ZONE_METADATA_V3 (SIZEOF_ZONE_HEADER_V3 +\
 	SIZEOF_CHUNK_HEADER_V3 * MAX_CHUNK_V3)
 #define SIZEOF_HEAP_HDR_V3 (1024)
-#define SIZEOF_ALLOCATION_HEADER_V3 (16)
+#define SIZEOF_LEGACY_ALLOCATION_HEADER_V3 (64)
+#define SIZEOF_COMPACT_ALLOCATION_HEADER_V3 (16)
 #define SIZEOF_LOCK_V3 (64)
 #define SIZEOF_PMEMOID_V3 (16)
 #define SIZEOF_LIST_ENTRY_V3 (SIZEOF_PMEMOID_V3 * 2)
@@ -135,13 +136,22 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(sizeof(struct heap_header) !=
 		SIZEOF_HEAP_HDR_V3);
 
-	ASSERT_ALIGNED_BEGIN(struct allocation_header);
-	ASSERT_ALIGNED_FIELD(struct allocation_header, zone_id);
-	ASSERT_ALIGNED_FIELD(struct allocation_header, chunk_id);
-	ASSERT_ALIGNED_FIELD(struct allocation_header, size);
-	ASSERT_ALIGNED_CHECK(struct allocation_header);
-	UT_COMPILE_ERROR_ON(sizeof(struct allocation_header) !=
-		SIZEOF_ALLOCATION_HEADER_V3);
+	ASSERT_ALIGNED_BEGIN(struct allocation_header_legacy);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_legacy, unused);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_legacy, size);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_legacy, unused2);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_legacy, root_size);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_legacy, type_num);
+	ASSERT_ALIGNED_CHECK(struct allocation_header_legacy);
+	UT_COMPILE_ERROR_ON(sizeof(struct allocation_header_legacy) !=
+		SIZEOF_LEGACY_ALLOCATION_HEADER_V3);
+
+	ASSERT_ALIGNED_BEGIN(struct allocation_header_compact);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_compact, size);
+	ASSERT_ALIGNED_FIELD(struct allocation_header_compact, extra);
+	ASSERT_ALIGNED_CHECK(struct allocation_header_compact);
+	UT_COMPILE_ERROR_ON(sizeof(struct allocation_header_compact) !=
+		SIZEOF_COMPACT_ALLOCATION_HEADER_V3);
 
 	ASSERT_ALIGNED_BEGIN(struct redo_log);
 	ASSERT_ALIGNED_FIELD(struct redo_log, offset);
