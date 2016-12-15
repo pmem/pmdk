@@ -1,4 +1,61 @@
 
+Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2
+	This NVML release causes a "flag day" for libpmemobj.
+	The pmemobj pools built under NVML 1.1 are incompatible with pools built
+	under NVML 1.2 and later.  This is because an issue was discovered with
+	the alignment of locks (#358) and, although rare, the issue potentially
+	impacts program correctness, making the fix mandatory.
+	The major version number of the pmemobj pool layout and the version
+	of the libpmemobj API is changed to prevent the use of the potentially
+	incorrect layout.
+
+	Other key changes introduced in this release:
+	- Add Device DAX support, providing that "optimized flush" mechanism
+	  defined in SNIA NVM Programming Model can safely be used, even
+	  if PMEM-aware file system supporting that model is not available,
+	  or if the user does not want to use the file system for some reason.
+	- Add a package for libpmemobj C++ bindings.
+	  C++ API is no longer considered experimental.
+	  Web-based documentation for C++ API is available on http://pmem.io.
+	- Add "sync" and "transform" commands to pmempool utility.
+	  The "sync" command allows to recover missing or corrupted part(s)
+	  of a pool set from a healthy replica, while the "transform" command
+	  is a convenient way for modifying the structure of an existing
+	  pool set, i.e. by adding or removing replicas.
+	- Add experimental support for remote access to persistent memory and
+	  basic remote data replication over RDMA (librpmem).  Experimental
+	  support for remote replicas is also provided by libpmemobj library.
+
+	New features:
+	- common: add Device DAX support (#197)
+	- obj: add C++ bindings package (libpmemobj++-devel)
+	- obj: add TOID_OFFSETOF macro
+	- pmempool: add "sync" and "transform" commands (#172, #196)
+
+	Bug fixes:
+	- obj: force alignment of pmem lock structures (#358)
+	- blk: cast translation entry to uint64_t when calculating data offset
+	- obj: fix Valgrind instrumentation of chunk headers and cancelled
+	  allocations
+	- obj: set error message when user called pmemobj_tx_abort()
+	- obj: fix status returned by pmemobj_list_insert() (#226)
+	- obj: defer allocation of global structures
+
+	Optimizations:
+	- obj: fast path for pmemobj_pool_by_ptr() when inside a transaction
+	- obj: simplify and optimize allocation class generation
+
+	Experimental features:
+	- rpmem: add support for remote access to persistent memory and basic
+	  remote data replication over RDMA
+	- libpmempool: add pmempool_sync() and pmempool_transform() (#196)
+	- obj: introduce pmemobj_oid()
+	- obj: add pmemobj_tx_xalloc()/pmemobj_tx_xadd_range() APIs and
+	  the corresponding macros
+	- obj: add transaction stage transition callbacks
+
 Thu Jun 23 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.1
