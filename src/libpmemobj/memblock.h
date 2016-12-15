@@ -45,6 +45,17 @@
 #include "memops.h"
 #include "palloc.h"
 
+#define MEMORY_BLOCK_NONE \
+(struct memory_block)\
+{0, 0, 0, 0, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL, NULL}
+
+#define MEMORY_BLOCK_IS_NONE(_m)\
+((_m).heap == NULL)
+
+#define MEMORY_BLOCK_EQUALS(lhs, rhs)\
+((lhs).zone_id == (rhs).zone_id && (lhs).chunk_id == (rhs).chunk_id &&\
+(lhs).block_off == (rhs).block_off && (lhs).heap == (rhs).heap)
+
 enum memory_block_type {
 	/*
 	 * Huge memory blocks are directly backed by memory chunks. A single
@@ -211,9 +222,5 @@ struct memory_block {
 	const struct memory_block_ops *m_ops;
 	struct palloc_heap *heap;
 };
-
-#define MEMORY_BLOCK_NONE \
-(struct memory_block){0, 0, 0, 0,\
-	MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL, NULL}
 
 #endif
