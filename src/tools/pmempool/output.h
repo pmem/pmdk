@@ -68,7 +68,6 @@ const char *out_get_chunk_type_str(enum chunk_type type);
 const char *out_get_chunk_flags(uint16_t flags);
 const char *out_get_zone_magic_str(uint32_t magic);
 const char *out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo);
-const char *out_get_internal_type_str(enum internal_type type);
 const char *out_get_ei_class_str(uint8_t ei_class);
 const char *out_get_ei_data_str(uint8_t ei_class);
 const char *out_get_e_machine_str(uint16_t e_machine);

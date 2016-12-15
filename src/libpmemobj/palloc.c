@@ -46,13 +46,6 @@
 #include "sys_util.h"
 #include "palloc.h"
 
-#define MEMORY_BLOCK_IS_NONE(_m)\
-((_m).heap == NULL)
-
-#define MEMORY_BLOCK_EQUALS(lhs, rhs)\
-((lhs).zone_id == (rhs).zone_id && (lhs).chunk_id == (rhs).chunk_id &&\
-(lhs).block_off == (rhs).block_off)
-
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
  *
@@ -73,8 +66,6 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	void *uptr = m->m_ops->get_user_data(m);
 	size_t usize = m->m_ops->get_user_size(m);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
-
 	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, uptr, usize);
 
 	int ret;
@@ -83,9 +74,7 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 
 		/*
 		 * If canceled, revert the block back to the free state in vg
-		 * machinery. Because the free operation is only performed on
-		 * the user data, the allocation header is made inaccessible
-		 * in a separate call.
+		 * machinery.
 		 */
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout, uptr);
 
@@ -386,7 +375,7 @@ palloc_usable_size(struct palloc_heap *heap, uint64_t off)
 }
 
 /*
- * palloc_extra --
+ * palloc_extra -- returns allocation extra field
  */
 uint64_t
 palloc_extra(struct palloc_heap *heap, uint64_t off)
@@ -397,7 +386,7 @@ palloc_extra(struct palloc_heap *heap, uint64_t off)
 }
 
 /*
- * palloc_flags --
+ * palloc_flags -- returns allocation flags
  */
 uint16_t
 palloc_flags(struct palloc_heap *heap, uint64_t off)
@@ -408,10 +397,7 @@ palloc_flags(struct palloc_heap *heap, uint64_t off)
 }
 
 /*
- * pmalloc_search_cb -- (internal) foreach callback. If the argument is equal
- *	to the current object offset then sets the argument to UINT64_MAX.
- *	If the argument is UINT64_MAX it breaks the iteration and sets the
- *	argument to the current object offset.
+ * pmalloc_search_cb -- (internal) foreach callback.
  */
 static int
 pmalloc_search_cb(const struct memory_block *m, void *arg)

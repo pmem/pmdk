@@ -70,6 +70,8 @@ enum chunk_flags {
 	CHUNK_FLAG_NO_HEADER		=	0x0002,
 };
 
+#define CHUNK_FLAGS_ALL_VALID (CHUNK_FLAG_COMPACT_HEADER | CHUNK_FLAG_NO_HEADER)
+
 enum chunk_type {
 	CHUNK_TYPE_UNKNOWN,
 	CHUNK_TYPE_FOOTER, /* not actual chunk type */

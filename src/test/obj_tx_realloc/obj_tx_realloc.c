@@ -89,6 +89,8 @@ do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
 		if (!TOID_IS_NULL(obj)) {
 			D_RW(obj)->value = value;
 		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
 	} TX_END
 
 	return obj.oid;

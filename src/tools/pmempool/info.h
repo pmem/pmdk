@@ -34,6 +34,7 @@
  * info.h -- pmempool info command header file
  */
 
+#define NALLOC_CLASSES (UINT8_MAX + 1)
 
 /*
  * Verbose levels used in application:
@@ -55,12 +56,6 @@
 #define VERBOSE_SILENT	0
 #define VERBOSE_DEFAULT	1
 #define VERBOSE_MAX	2
-
-/*
- * The MAX_CLASS_STATS variable defines how many allocation classes can be
- * handled - it's equal to the maximum number of buckets.
- */
-#define MAX_CLASS_STATS (MAX_BUCKETS + 1)
 
 /*
  * pmempool_info_args -- structure for storing command line arguments
@@ -130,7 +125,7 @@ struct pmem_obj_zone_stats {
 	uint64_t n_chunks_type[MAX_CHUNK_TYPE];
 	uint64_t size_chunks;
 	uint64_t size_chunks_type[MAX_CHUNK_TYPE];
-	struct pmem_obj_class_stats class_stats[MAX_CLASS_STATS];
+	struct pmem_obj_class_stats class_stats[NALLOC_CLASSES];
 };
 
 struct pmem_obj_type_stats {
@@ -165,6 +160,8 @@ struct pmem_info {
 	} blk;
 	struct {
 		struct pmemobjpool *pop;
+		struct palloc_heap *heap;
+		struct alloc_class_collection *alloc_classes;
 		size_t size;
 		struct pmem_obj_stats stats;
 		uint64_t uuid_lo;
