@@ -1,0 +1,9 @@
+includedir=${prefix}/include
+
+Name: libpmemctowq
+Description: libpmemcto library from NVML project
+Version: ${version}
+URL: http://pmem.io/nvml
+Requires.private: libpmem
+Libs: -L${libdir} -lpmemcto
+Cflags: -I${includedir}
