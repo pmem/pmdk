@@ -918,9 +918,15 @@ pmembench_remove_file(const char *path)
 		ret = (d->d_type == DT_DIR) ? pmembench_remove_file(tmp)
 							: util_unlink(tmp);
 		free(tmp);
-		if (ret != 0)
+		if (ret != 0) {
+			closedir(dir);
 			return ret;
+		}
 	}
+
+	if (closedir(dir))
+		return -1;
+
 	return rmdir(path);
 }
 

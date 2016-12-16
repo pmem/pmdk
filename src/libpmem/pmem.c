@@ -696,9 +696,8 @@ pmem_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-	int ret = util_unmap(addr, len);
-
 	VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
+	int ret = util_unmap(addr, len);
 
 	return ret;
 }

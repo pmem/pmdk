@@ -144,14 +144,14 @@ util_map_hint(size_t len, size_t req_align)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
 
-	char *addr;
+	char *hint_addr = MAP_FAILED;
 
 	/* choose the desired alignment based on the requested length */
 	size_t align = util_map_hint_align(len, req_align);
 
 	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
-		addr = util_map_hint_unused((void *)Mmap_hint, len, align);
+		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align);
 	} else {
 		/*
 		 * Create dummy mapping to find an unused region of given size.
@@ -160,15 +160,15 @@ util_map_hint(size_t len, size_t req_align)
 		 * zero cost for overcommit accounting.  Note: MAP_NORESERVE
 		 * flag is ignored if overcommit is disabled (mode 2).
 		 */
-		addr = mmap(NULL, len + align, PROT_READ,
+		char *addr = mmap(NULL, len + align, PROT_READ,
 					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 		if (addr != MAP_FAILED) {
 			LOG(4, "system choice %p", addr);
+			hint_addr = (char *)roundup((uintptr_t)addr, align);
 			munmap(addr, len + align);
-			addr = (char *)roundup((uintptr_t)addr, align);
 		}
 	}
-	LOG(4, "hint %p", addr);
+	LOG(4, "hint %p", hint_addr);
 
-	return addr;
+	return hint_addr;
 }

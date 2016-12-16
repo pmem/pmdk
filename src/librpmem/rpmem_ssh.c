@@ -428,32 +428,35 @@ rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock)
 const char *
 rpmem_ssh_strerror(struct rpmem_ssh *rps)
 {
-	ssize_t ret = read(rps->cmd->fd_err, error_str, ERR_BUFF_SIZE);
-	if (ret < 0)
-		return "reading error string failed";
+	size_t len = 0;
+	ssize_t ret;
+	while ((ret = read(rps->cmd->fd_err, error_str + len,
+			ERR_BUFF_SIZE - len))) {
+		if (ret < 0)
+			return "reading error string failed";
 
-	if (ret == 0) {
-		if (errno) {
-			char buff[UTIL_MAX_ERR_MSG];
-			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-			snprintf(error_str, ERR_BUFF_SIZE,
-				"%s", buff);
-		} else {
-			snprintf(error_str, ERR_BUFF_SIZE,
-				"unknown error");
-		}
-
-		return error_str;
+		len += (size_t)ret;
 	}
+	error_str[len] = '\0';
 
-	/* get rid of new line and carriage return chars */
-	char *cr = strchr(error_str, '\r');
-	if (cr)
-		*cr = '\0';
+	if (errno) {
+		char buff[UTIL_MAX_ERR_MSG];
+		util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
+		snprintf(error_str, ERR_BUFF_SIZE,
+			"%s", buff);
+	} else if (len == 0) {
+		snprintf(error_str, ERR_BUFF_SIZE,
+			"unknown error");
+	} else {
+		/* get rid of new line and carriage return chars */
+		char *cr = strchr(error_str, '\r');
+		if (cr)
+			*cr = '\0';
 
-	char *nl = strchr(error_str, '\n');
-	if (nl)
-		*nl = '\0';
+		char *nl = strchr(error_str, '\n');
+		if (nl)
+			*nl = '\0';
+	}
 
 	return error_str;
 }
