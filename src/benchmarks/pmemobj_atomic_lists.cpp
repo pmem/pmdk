@@ -36,10 +36,10 @@
 
 #include "benchmark.hpp"
 #include "libpmemobj.h"
+#include "queue.h"
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

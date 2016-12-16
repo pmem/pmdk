@@ -38,7 +38,7 @@
 #ifndef WIN_MMAP_H
 #define WIN_MMAP_H 1
 
-#include <queue.h>
+#include "queue.h"
 
 #define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
 #define rounddown(x, y)	(((x) / (y)) * (y))

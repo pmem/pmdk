@@ -42,19 +42,24 @@ $checkdir = $rootdir
 # XXX - *.cpp/*.hpp files not supported yet
 $include = @( "*.c", "*.h" )
 
-# exclude external files not following NVML coding style
-$exclude = @( "queue.h", "getopt.h", "getopt.c", "pmemcompat.h")
-
 If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
-	Get-ChildItem -Path $checkdir -Recurse -Include $include -Exclude $exclude | `
-			? { $_.FullName -notlike "*jemalloc*" } | `
-	% {
+	Get-ChildItem -Path $checkdir -Recurse -Include $include | `
+    ? { $_.FullName -notlike "*jemalloc*" } | `
+    foreach {
+        $IGNORE = $_.DirectoryName + "\.cstyleignore"
+        if(Test-Path $IGNORE) {
+            if((sls $_.Name $IGNORE)) {
+                return
+            }
+        }
+        $_
+    } | % {
 		echo $_.FullName
 		& perl $cstyle $_.FullName
 		if ($LASTEXITCODE -ne 0) {
-			Exit $LASTEXITCODE
-		}
-	}
+            Exit $LASTEXITCODE
+        }
+    }
 } else {
 	echo "Cannot execute cstyle - perl is missing"
 }

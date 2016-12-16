@@ -191,8 +191,8 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 		unsigned lane = info->worker->index % mb->nlanes[r];
 		ret = rpmem_persist(mb->rpp[r], offset, len, lane);
 		if (ret) {
-			fprintf(stderr, "rpmem_persist replica #%u: %s\n",
-					r, rpmem_errormsg());
+			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
+				rpmem_errormsg());
 			return ret;
 		}
 	}

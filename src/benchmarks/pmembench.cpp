@@ -43,7 +43,6 @@
 #include <inttypes.h>
 #include <linux/limits.h>
 #include <math.h>
-#include <queue.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -56,6 +55,7 @@
 #include "config_reader.hpp"
 #include "file.h"
 #include "mmap.h"
+#include "queue.h"
 #include "scenario.hpp"
 #include "set.h"
 #include "util.h"

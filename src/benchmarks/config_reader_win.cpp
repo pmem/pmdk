@@ -33,13 +33,13 @@
  * config_reader.cpp -- config reader module definitions
  */
 #include <assert.h>
-#include <queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
 
 #include "config_reader.hpp"
+#include "queue.h"
 #include "scenario.hpp"
 
 #define SECTION_GLOBAL TEXT("global")

@@ -33,10 +33,10 @@
  * scenario.cpp -- scenario module definitions
  */
 #include <assert.h>
-#include <queue.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "queue.h"
 #include "scenario.hpp"
 
 /*

@@ -182,6 +182,7 @@ int mkstemp(char *temp);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
 int rand_r(unsigned *seedp);
+
 /* fcntl.h */
 int posix_fallocate(int fd, off_t offset, off_t size);
 

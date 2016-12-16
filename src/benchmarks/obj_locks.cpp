@@ -136,7 +136,7 @@ struct mutex_bench {
 	(pthread_mutex_t *)get_lock(                                           \
 		(pop)->run_id, &(mutexp)->volatile_pmemmutex.runid,            \
 		(mutexp)->volatile_pmemmutex.mutexp,                           \
-		(int (*)(void **lock, void *arg))volatile_mutex_init
+		(int (*)(void **lock, void *arg))volatile_mutex_init)
 
 typedef int (*lock_fun_wrapper)(PMEMobjpool *pop, void *lock);
 
