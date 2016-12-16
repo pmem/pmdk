@@ -32,44 +32,46 @@
 #
 
 #
-# src/test/rpmem_basic/TEST5 -- unit test for rpmemd --remove
+# src/test/rpmem_basic/setup2to1.sh -- common part for TEST[7-] scripts
 #
-export UNITTEST_NAME=rpmem_basic/TEST5
-export UNITTEST_NUM=5
 
-# standard unit test setup
-. ../unittest/unittest.sh
+POOLS_DIR=pools
+POOLS_PART=pool_parts
 
-require_test_type medium
+TEST_LOG_FILE=test$UNITTEST_NUM.log
+TEST_LOG_LEVEL=3
 
-require_fs_type any
-require_build_type nondebug debug
+#
+# This unit test requires 4 nodes, but nodes #0 and #3 should be the same
+# physical machine - they should have the same NODE[n] addresses but
+# different NODE_ADDR[n] addresses in order to test "2-to-1" configuration.
+# Node #1 is being replicated to the node #0 and node #2 is being replicated
+# to the node #3.
+#
+require_nodes 4
 
-setup
+REPLICA[1]=0
+REPLICA[2]=3
 
-. setup.sh
+for node in 1 2; do
+	require_node_libfabric ${node}             $RPMEM_PROVIDER
+	require_node_libfabric ${REPLICA[${node}]} $RPMEM_PROVIDER
 
-create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
+	export_vars_node       ${node}		   TEST_LOG_FILE
+	export_vars_node       ${node}             TEST_LOG_LEVEL
 
-expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
-expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+	require_node_log_files ${node}             $PMEM_LOG_FILE
+	require_node_log_files ${node}             $RPMEM_LOG_FILE
+	require_node_log_files ${node}             $TEST_LOG_FILE
+	require_node_log_files ${REPLICA[${node}]} $RPMEMD_LOG_FILE
 
-expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
+	REP_ADDR[${node}]=${NODE_ADDR[${REPLICA[${node}]}]}
 
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
+	PART_DIR[${node}]=${NODE_TEST_DIR[${REPLICA[${node}]}]}/$POOLS_PART
+	RPMEM_POOLSET_DIR=${NODE_TEST_DIR[${REPLICA[${node}]}]}/$POOLS_DIR
 
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M\
-	test_close 0
+	init_rpmem_on_node ${node} ${REPLICA[${node}]}
 
-expect_normal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M
-
-check
-
-pass
+	PID_FILE[${node}]="pidfile${UNITTEST_NUM}-${node}.pid"
+	clean_remote_node ${node} ${PID_FILE[${node}]}
+done
