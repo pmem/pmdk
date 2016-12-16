@@ -1,0 +1,3 @@
+$(nW)pmempool$(nW) : cannot remove '$(*)pool.obj'
+$(nW)pmempool$(nW) : cannot remove file '$(*)pool.part1'
+removed '$(*)pool.set'

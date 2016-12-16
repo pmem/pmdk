@@ -45,12 +45,12 @@
     <None Include="TEST4.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST5w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST6w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
     <None Include="README" />
+    <None Include="TEST5.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST6.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

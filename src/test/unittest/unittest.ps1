@@ -188,11 +188,13 @@ function create_file {
 function create_holey_file {
 
     [int64]$size = (convert_to_bytes $args[0])
+    # it causes CreateFile with CREATE_ALWAYS flag
+    $mode = "-f"
     for ($i=1;$i -lt $args.count;$i++) {
         # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
-        & $SPARSEFILE $fname $size
+        & $SPARSEFILE $mode $fname $size
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Error $LASTEXITCODE with sparsefile create"
             exit $LASTEXITCODE
@@ -363,6 +365,7 @@ function create_poolset {
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
+
 function expect_normal_exit {
     #XXX: add memcheck eq checks for windows once we get one
     # if [ "$RUN_MEMCHECK" ]; then...
@@ -676,6 +679,18 @@ function fail {
 }
 
 #
+# remove_files - removes list of files included in variable
+#
+function remove_files {
+    for ($i=0;$i -lt $args.count;$i++) {
+        $arr = $args[$i] -split ' '
+        ForEach ($file In $arr) {
+            Remove-Item $file -Force -ea si
+        }
+    }
+}
+
+#
 # check_file -- check if file exists and print error message if not
 #
 function check_file {
@@ -721,6 +736,23 @@ function get_size {
     if (Test-Path $args[0]) {
         return (Get-Item $args[0]).length
     }
+}
+
+#
+# set_file_mode - set access mode to one or multiple files
+# parameters:
+# arg0 - access mode you want to change
+# arg1 - true or false to admit or deny given mode
+#
+# example:
+# set_file_mode IsReadOnly $true file1 file2
+#
+function set_file_mode {
+	$mode = $args[0]
+	$flag = $args[1]
+	for ($i=2;$i -lt $args.count;$i++) {
+		Set-ItemProperty $args[$i] -name $mode -value $flag
+	}
 }
 
 #
@@ -794,8 +826,8 @@ function check_signature {
 # check_signatures -- check if multiple files contain specified signature
 #
 function check_signatures {
-    for ($i=0;$i -lt $args.count;$i+=2) {
-        check_signature $args[$i] $args[$i+1]
+    for ($i=1;$i -lt $args.count;$i+=1) {
+        check_signature $args[0] $args[$i]
     }
 }
 

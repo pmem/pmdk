@@ -30,15 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_rm/TEST2.PS1 -- test for pmempool rm
+# pmempool_dump/TEST5.PS1 -- test for dump command
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_rm\TEST2w"
-$Env:UNITTEST_NUM = "2w"
+$Env:UNITTEST_NAME = "pmempool_dump\TEST5"
+$Env:UNITTEST_NUM = "5"
+
 
 . ..\unittest\unittest.ps1
 
@@ -48,45 +49,21 @@ require_fs_type any
 
 setup
 
+$POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 remove_files $LOG
 
-# Create poolset with replica
-create_poolset $DIR\pool.set 32M:$DIR\pool.part1:x 32M:$DIR\pool.part2:x `
-	R 32M:$DIR\rep.part1 32M:$DIR\rep.part2
+$POOLSET="$DIR\pool.set"
+$POOL_PART1="$DIR\pool.part1"
+$POOL_PART2="$DIR\pool.part2"
 
-# Check if pool set file exists
-check_files `
-	$DIR\pool.set
+remove_files $POOLSET $POOL_PART1 $POOL_PART2
 
-# Check if all pools don't exist
-check_no_files `
-	$DIR\pool.obj `
-	$DIR\pool.part1 `
-	$DIR\pool.part2 `
-	$DIR\rep.part1 `
-	$DIR\rep.part2
+create_poolset $POOLSET 32M:${POOL_PART1}:z 32M:${POOL_PART2}:z
 
-# Try to remove files without force flag
-expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 $LOG
-expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 $LOG
-
-# Try to remove files with force flag
-expect_normal_exit $PMEMPOOL rm -fv `
-	$DIR\pool.obj `
-	$DIR\pool.set >> $LOG 2>&1
-
-check_no_files `
-	$DIR\pool.set `
-	$DIR\pool.obj `
-	$DIR\pool.part1 `
-	$DIR\pool.part2 `
-	$DIR\rep.part1 `
-	$DIR\rep.part2
-
-Get-Content $LOG | Where-Object { $_ -match 'remove' } > tmp$LOG
-Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
-remove_files tmp$LOG
+expect_normal_exit $PMEMPOOL create log $POOLSET
+expect_normal_exit $PMEMWRITE $POOLSET PMEMPOOL_DUMP_TEST
+expect_normal_exit $PMEMPOOL dump $POOLSET >> $LOG
 
 check
 

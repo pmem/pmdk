@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_dump/TEST6 -- test for dump command
+# pmempool_rm/TEST1w.PS1 -- test for pmempool rm
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_dump\TEST6w"
-$Env:UNITTEST_NUM = "6w"
+$Env:UNITTEST_NAME = "pmempool_rm\TEST1"
+$Env:UNITTEST_NUM = "1"
 
 
 . ..\unittest\unittest.ps1
@@ -50,23 +50,85 @@ require_fs_type any
 setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
+remove_files $LOG
 
-rm $LOG -Force -Recurse -ea si
+# Create pmemlog, pmemblk and pmemobj pools
+expect_normal_exit $PMEMPOOL create -m400 log $DIR\pool.log
+expect_normal_exit $PMEMPOOL create -m400 blk 512 $DIR\pool.blk
+expect_normal_exit $PMEMPOOL create -m400 obj $DIR\pool.obj
 
-#XXX: port poolsets tests
-#
-#POOLSET=$DIR/pool.set
-#POOL_PART1=$DIR/pool.part1
-#POOL_PART2=$DIR/pool.part2
-#
-#rm -f $POOLSET $POOL_PART1 $POOL_PART2
-#
-#create_poolset $POOLSET 32M:$POOL_PART1:z 32M:$POOL_PART2:z
-#
-#expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
-#expect_normal_exit $PMEMWRITE $POOLSET 0:w:PMEMPOOL_DUMP_TEST
-#expect_normal_exit $PMEMPOOL dump -r 0 $POOLSET >> $LOG
-#
-#check
+# Create poolset with replica
+create_poolset $DIR\pool.set 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z `
+	R 32M:$DIR\rep.part1:z 32M:$DIR\rep.part2:z
+
+# Create pmemobj pools from the poolset
+expect_normal_exit $PMEMPOOL create -m400 obj $DIR\pool.set
+
+set_file_mode IsReadOnly $true $DIR\pool.set $DIR\pool.part1 $DIR\pool.part2 $DIR\rep.part1 $DIR\rep.part2
+
+# Check if all pools and poolset exist
+check_files `
+	$DIR\pool.log `
+	$DIR\pool.blk `
+	$DIR\pool.obj `
+	$DIR\pool.set `
+	$DIR\pool.part1 `
+	$DIR\pool.part2 `
+	$DIR\rep.part1 `
+	$DIR\rep.part2
+
+@"
+n
+n
+n
+y
+y
+y
+y
+"@ | &$PMEMPOOL rm -sv `
+$DIR\pool.log $DIR\pool.blk $DIR\pool.obj $DIR\pool.set >> $LOG
+check_exit_code
+
+check_files `
+	$DIR\pool.log `
+	$DIR\pool.blk `
+	$DIR\pool.obj `
+	$DIR\pool.set `
+
+check_no_files `
+	$DIR\pool.part1 `
+	$DIR\pool.part2 `
+	$DIR\rep.part1 `
+	$DIR\rep.part2
+
+expect_normal_exit $PMEMPOOL create -m400 obj $DIR\pool.set
+
+check_files `
+	$DIR\pool.log `
+	$DIR\pool.blk `
+	$DIR\pool.obj `
+	$DIR\pool.set `
+	$DIR\pool.part1 `
+	$DIR\pool.part2 `
+	$DIR\rep.part1 `
+	$DIR\rep.part2
+
+expect_normal_exit $PMEMPOOL rm -fv `
+	$DIR\pool.log `
+	$DIR\pool.blk `
+	$DIR\pool.obj `
+	$DIR\pool.set >> $LOG
+
+check_no_files `
+	$DIR\pool.log `
+	$DIR\pool.blk `
+	$DIR\pool.obj `
+	$DIR\pool.set `
+	$DIR\pool.part1 `
+	$DIR\pool.part2 `
+	$DIR\rep.part1 `
+	$DIR\rep.part2
+
+check
 
 pass
