@@ -655,7 +655,7 @@ function expect_normal_exit() {
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*\.log"); do
+			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
 			dump_last_n_lines out$UNITTEST_NUM.log
@@ -1477,18 +1477,12 @@ function require_nodes() {
 		fi
 	done
 
+	# remove all log files of the current unit test from the required nodes
 	for N in $NODES_SEQ; do
-		# remove all log files from the node N
-		rm -f $(find . -name "node_${N}_*$UNITTEST_NUM.log")
-
-		export_vars_node $N $REMOTE_VARS
-	done
-
-	# remove all log files from required nodes
-	for N in $NODES_SEQ; do
-		for f in $(get_files "node_${N}.*\.log"); do
+		for f in $(get_files "node_${N}.*${UNITTEST_NUM}\.log"); do
 			rm -f $f
 		done
+		export_vars_node $N $REMOTE_VARS
 	done
 
 	# register function to clean all remote nodes in case of an error or SIGINT
