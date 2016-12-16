@@ -892,10 +892,9 @@ static int
 rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane)
 {
-	int ret;
 	struct rpmem_fip_plane_gpspm *lanep = &fip->lanes.gpspm[lane];
 
-	ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
+	int ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
 	if (unlikely(ret)) {
 		ERR("waiting for SEND buffer failed");
 		return ret;
@@ -1280,8 +1279,15 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 {
 	RPMEM_ASSERT(lane < fip->nlanes);
 	if (unlikely(lane >= fip->nlanes)) {
-		errno = EINVAL;
-		return -1;
+		return EINVAL; /* it will be passed to errno */
+	}
+
+	if (unlikely(offset + len > fip->size)) {
+		return EINVAL; /* it will be passed to errno */
+	}
+
+	if (unlikely(len == 0)) {
+		return 0;
 	}
 
 	int ret = fip->ops->persist(fip, offset, len, lane);
