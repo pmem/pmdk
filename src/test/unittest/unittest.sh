@@ -652,7 +652,7 @@ function expect_normal_exit() {
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*\.log"); do
+			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
 			dump_last_n_lines out$UNITTEST_NUM.log
