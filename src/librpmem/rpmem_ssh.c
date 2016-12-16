@@ -48,10 +48,10 @@
 #include "rpmem_cmd.h"
 #include "rpmem_util.h"
 
-#define ERR_BUFF_SIZE	4095
+#define ERR_BUFF_LEN	4095
 
 /* +1 in order to be sure it is always null-terminated */
-static char error_str[ERR_BUFF_SIZE + 1];
+static char error_str[ERR_BUFF_LEN + 1];
 
 struct rpmem_ssh {
 	struct rpmem_cmd *cmd;
@@ -303,7 +303,7 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 	int ret = rpmem_ssh_recv(ssh, &status, sizeof(status));
 	if (ret) {
 		if (ret == 1 || errno == ECONNRESET)
-			ERR("%s", rpmem_ssh_strerror(ssh));
+			ERR("%s", rpmem_ssh_strerror(ssh, errno));
 		else
 			ERR("!%s", info->node);
 		goto err_recv_status;
@@ -426,34 +426,39 @@ rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock)
  * rpmem_ssh_strerror -- read error using stderr channel
  */
 const char *
-rpmem_ssh_strerror(struct rpmem_ssh *rps)
+rpmem_ssh_strerror(struct rpmem_ssh *rps, int oerrno)
 {
-	ssize_t ret = read(rps->cmd->fd_err, error_str, ERR_BUFF_SIZE);
-	if (ret < 0)
-		return "reading error string failed";
+	size_t len = 0;
+	ssize_t ret;
+	while ((ret = read(rps->cmd->fd_err, error_str + len,
+			ERR_BUFF_LEN - len))) {
+		if (ret < 0)
+			return "reading error string failed";
 
-	if (ret == 0) {
-		if (errno) {
+		len += (size_t)ret;
+	}
+	error_str[len] = '\0';
+
+	if (len == 0) {
+		if (oerrno) {
 			char buff[UTIL_MAX_ERR_MSG];
-			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-			snprintf(error_str, ERR_BUFF_SIZE,
+			util_strerror(oerrno, buff, UTIL_MAX_ERR_MSG);
+			snprintf(error_str, ERR_BUFF_LEN,
 				"%s", buff);
 		} else {
-			snprintf(error_str, ERR_BUFF_SIZE,
+			snprintf(error_str, ERR_BUFF_LEN,
 				"unknown error");
 		}
+	} else {
+		/* get rid of new line and carriage return chars */
+		char *cr = strchr(error_str, '\r');
+		if (cr)
+			*cr = '\0';
 
-		return error_str;
+		char *nl = strchr(error_str, '\n');
+		if (nl)
+			*nl = '\0';
 	}
-
-	/* get rid of new line and carriage return chars */
-	char *cr = strchr(error_str, '\r');
-	if (cr)
-		*cr = '\0';
-
-	char *nl = strchr(error_str, '\n');
-	if (nl)
-		*nl = '\0';
 
 	return error_str;
 }
