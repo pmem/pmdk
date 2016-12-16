@@ -206,6 +206,7 @@ RPMEM_TESTS =\
 	rpmemd_db\
 	rpmem_fip\
 	rpmem_basic\
+	rpmem_timestamps\
 	rpmem_addr
 
 VMEM_TESTS = \
