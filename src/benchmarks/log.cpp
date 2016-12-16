@@ -484,6 +484,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (lb->args->rand && lb->args->min_size == lb->args->el_size)
 		lb->args->rand = false;
 
+	/* align pool size to ensure that we have enough usable space */
 	lb->psize =
 		MMAP_ALIGN_UP(POOL_HDR_SIZE +
 			      args->n_ops_per_thread * args->n_threads *

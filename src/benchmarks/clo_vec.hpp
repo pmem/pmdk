@@ -32,7 +32,7 @@
 /*
  * clo_vec.hpp -- command line options vector declarations
  */
-#include <queue.h>
+#include "queue.h"
 #include <stdlib.h>
 
 struct clo_vec_args {

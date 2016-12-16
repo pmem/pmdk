@@ -38,7 +38,7 @@
 
 #include "benchmark.hpp"
 
-/* XXX: maps are build as c++ on windows */
+/* XXX: maps are build as C++ on windows and as C on linux */
 #ifndef _WIN32
 extern "C" {
 #endif
@@ -362,7 +362,7 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (targs->ext_tx) {
 		int ret = pmemobj_tx_begin(tree->pop, NULL);
 		if (ret) {
-			(void) pmemobj_tx_end();
+			(void)pmemobj_tx_end();
 			goto err_free_keys;
 		}
 	}
@@ -391,7 +391,7 @@ map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	if (targs->ext_tx) {
 		pmemobj_tx_commit();
-		(void) pmemobj_tx_end();
+		(void)pmemobj_tx_end();
 	}
 	free(tworker->keys);
 	free(tworker);
@@ -845,7 +845,8 @@ map_bench_costructor(void)
 	map_remove_info.allow_poolset = true;
 	REGISTER_BENCHMARK(map_remove_info);
 
-	map_get_info.name = "map_get", map_get_info.brief = "Tree lookup";
+	map_get_info.name = "map_get";
+	map_get_info.brief = "Tree lookup";
 	map_get_info.init = map_bench_get_init;
 	map_get_info.exit = map_get_exit;
 	map_get_info.multithread = true;

@@ -35,12 +35,12 @@
  */
 
 #include <errno.h>
-#include <queue.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
 #include <float.h>
 
+#include "queue.h"
 #include "heap.h"
 #include "out.h"
 #include "util.h"

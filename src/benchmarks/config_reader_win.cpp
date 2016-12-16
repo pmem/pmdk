@@ -30,16 +30,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * config_reader.cpp -- config reader module definitions
+ * config_reader_win.cpp -- config reader module definitions
  */
 #include <assert.h>
-#include <queue.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
 
 #include "config_reader.hpp"
+#include "queue.h"
 #include "scenario.hpp"
 
 #define SECTION_GLOBAL TEXT("global")
@@ -49,7 +49,7 @@
 /*
  * Maximum section size according to MSDN documentation
  */
-#define SIZEOF_SECTION (32767)
+#define SIZEOF_SECTION 32767
 
 #define NULL_LIST_EMPTY(x) (_tcslen(x) == 0)
 #define NULL_LIST_NEXT(x) ((x) += (_tcslen(x) + 1))

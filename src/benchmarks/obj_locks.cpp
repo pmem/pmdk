@@ -136,7 +136,7 @@ struct mutex_bench {
 	(pthread_mutex_t *)get_lock(                                           \
 		(pop)->run_id, &(mutexp)->volatile_pmemmutex.runid,            \
 		(mutexp)->volatile_pmemmutex.mutexp,                           \
-		(int (*)(void **lock, void *arg))volatile_mutex_init
+		(int (*)(void **lock, void *arg))volatile_mutex_init)
 
 typedef int (*lock_fun_wrapper)(PMEMobjpool *pop, void *lock);
 
@@ -155,7 +155,7 @@ bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 }
 
 /*
- *bench_operation_all_lock -- acquire all locks and release all locks
+ * bench_operation_all_lock -- acquire all locks and release all locks
  */
 static void
 bench_operation_all_lock(lock_fun_wrapper flock, lock_fun_wrapper funlock,

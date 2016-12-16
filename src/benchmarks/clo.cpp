@@ -37,12 +37,12 @@
 #include <errno.h>
 #include <getopt.h>
 #include <inttypes.h>
-#include <queue.h>
 #include <string.h>
 
 #include "benchmark.hpp"
 #include "clo.hpp"
 #include "clo_vec.hpp"
+#include "queue.h"
 #include "scenario.hpp"
 
 #ifndef min

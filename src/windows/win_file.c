@@ -165,17 +165,16 @@ flock(int fd, int operation)
 }
 
 /*
- * writev - windows version of writev function
+ * writev -- windows version of writev function
  *
  * XXX: _write and other similar functions are 32 bit on windows
- *	if size of data is bigger then 2^32 this function
- *	will be not atomic
+ *	if size of data is bigger then 2^32, this function
+ *	will be not atomic.
  */
 ssize_t
 writev(int fd, const struct iovec *iov, int iovcnt)
 {
 	size_t size = 0;
-	unsigned ret = 0;
 
 	/* XXX: _write is 32 bit on windows */
 	for (int i = 0; i < iovcnt; i++)
@@ -184,19 +183,25 @@ writev(int fd, const struct iovec *iov, int iovcnt)
 	void *buf = malloc(size);
 	if (buf == NULL)
 		return ENOMEM;
+
+	char *it_buf = buf;
 	for (int i = 0; i < iovcnt; i++) {
-		memcpy(buf, iov[i].iov_base, iov[i].iov_len);
+		memcpy(it_buf, iov[i].iov_base, iov[i].iov_len);
+		it_buf += iov[i].iov_len;
 	}
-	size_t writed = 0;
+
+	ssize_t written = 0;
 	while (size > 0) {
-		ret = _write(fd, buf, size >= MAXUINT ?
-				MAXUINT: (unsigned) size);
-		if (ret == -1)
+		int ret = _write(fd, buf, size >= MAXUINT ?
+				MAXUINT : (unsigned) size);
+		if (ret == -1) {
+			written = -1;
 			break;
-		writed += ret;
+		}
+		written += ret;
 		size -= ret;
 	}
 
 	free(buf);
-	return writed;
+	return written;
 }

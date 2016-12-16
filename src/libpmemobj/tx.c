@@ -35,8 +35,8 @@
  */
 
 #include <inttypes.h>
-#include <queue.h>
 
+#include "queue.h"
 #include "ctree.h"
 #include "obj.h"
 #include "out.h"

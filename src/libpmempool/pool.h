@@ -36,10 +36,10 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
-#include <queue.h>
 
 #include "libpmemobj.h"
 
+#include "queue.h"
 #include "set.h"
 #include "log.h"
 #include "blk.h"

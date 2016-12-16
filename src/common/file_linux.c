@@ -104,12 +104,12 @@ util_is_absolute_path(const char *path)
 }
 
 /*
- * util_create_dir -- creates new dir
+ * util_create_mkdir -- creates new dir
  */
 int
 util_file_mkdir(const char *path, mode_t mode)
 {
-	LOG(3, "path: %s mode: %d", path, mode);
+	LOG(3, "path: %s mode: %o", path, mode);
 	return mkdir(path, mode);
 }
 
@@ -119,16 +119,18 @@ util_file_mkdir(const char *path, mode_t mode)
 int
 util_file_dir_open(struct dir_handle *handle, const char *path)
 {
+	LOG(3, "handle: %p path: %s", handle, path);
 	handle->dirp = opendir(path);
 	return handle->dirp == NULL;
 }
 
 /*
- * util_file_dir_next - read next file in directory
+ * util_file_dir_next -- read next file in directory
  */
 int
 util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 {
+	LOG(3, "handle: %p info: %p", handle, info);
 	struct dirent *d = readdir(handle->dirp);
 	if (d == NULL)
 		return 0; /* break */
@@ -144,14 +146,16 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 int
 util_file_dir_close(struct dir_handle *handle)
 {
+	LOG(3, "path: %p", handle);
 	return closedir(handle->dirp);
 }
 
 /*
- * util_file_dir_close -- remove directory
+ * util_file_dir_remove -- remove directory
  */
 int
 util_file_dir_remove(const char *path)
 {
+	LOG(3, "path: %s", path);
 	return rmdir(path);
 }
