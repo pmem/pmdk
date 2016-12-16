@@ -63,7 +63,7 @@ typedef void *(*fn_lock)(void *arg);
 struct thread_args threads[NUM_THREADS];
 
 /*
- * do_mutex_lock -- lock and unlock the mutexe
+ * do_mutex_lock -- lock and unlock the mutex
  */
 static void *
 do_mutex_lock(void *arg)
@@ -112,28 +112,17 @@ do_cond_signal(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	if (t->t_id % 2 != 0) {
+	if (t->t_id == 0) {
 		pmemobj_mutex_lock(lock->pop, &lock->mtx);
-		pmemobj_cond_wait(lock->pop, &lock->cond,
+		while (lock->data < (NUM_THREADS - 1))
+			pmemobj_cond_wait(lock->pop, &lock->cond,
 							&lock->mtx);
 		lock->data++;
 		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	} else {
-		while (1) {
-			pmemobj_mutex_lock(lock->pop, &lock->mtx);
-			pmemobj_cond_signal(lock->pop, &lock->cond);
-
-			/*
-			 * If there are all threads with unpaired
-			 * indexes unblocked there is no need to
-			 * send signal
-			 */
-			if (lock->data >= NUM_THREADS / 2)
-				break;
-
-			pmemobj_mutex_unlock(lock->pop, &lock->mtx);
-		}
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
 		lock->data++;
+		pmemobj_cond_signal(lock->pop, &lock->cond);
 		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
 
@@ -149,28 +138,19 @@ do_cond_broadcast(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	pmemobj_mutex_lock(lock->pop, &lock->mtx);
-	pmemobj_cond_wait(lock->pop, &lock->cond,
-						&lock->mtx);
-	lock->data++;
-	pmemobj_mutex_unlock(lock->pop, &lock->mtx);
-
-
-	while (1) {
+	if (t->t_id < (NUM_THREADS / 2)) {
 		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		while (lock->data < (NUM_THREADS / 2))
+			pmemobj_cond_wait(lock->pop, &lock->cond,
+							&lock->mtx);
+		lock->data++;
+		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
+	} else {
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		lock->data++;
 		pmemobj_cond_broadcast(lock->pop, &lock->cond);
-
-		/*
-		 * If there are all threads, besides first one,
-		 * unblocked there is no need to send signal
-		 */
-		if (lock->data >= NUM_THREADS - 1)
-			break;
-
 		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
-	lock->data++;
-	pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 
 	return NULL;
 }
