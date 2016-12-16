@@ -77,6 +77,9 @@
 #define RPMEM_RAW_BUFF_SIZE 4096
 #define RPMEM_RAW_SIZE 8
 
+/* number of the lane used for read operation */
+#define RPMEM_READ_LANE ((unsigned)-1)
+
 typedef int (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
 		size_t len, unsigned lane);
 
@@ -354,7 +357,7 @@ rpmem_fip_init_lanes_common(struct rpmem_fip *fip)
 	int ret;
 
 	/* initialize lane for read operation */
-	ret = rpmem_fip_lane_init(&fip->rd_lane.lane);
+	ret = rpmem_fip_lane_init(&fip->rd_lane.lane, RPMEM_READ_LANE);
 	if (ret)
 		goto err_lane_init;
 
@@ -547,7 +550,7 @@ rpmem_fip_init_lanes_apm(struct rpmem_fip *fip)
 	 */
 	unsigned i;
 	for (i = 0; i < fip->nlanes; i++) {
-		ret = rpmem_fip_lane_init(&fip->lanes.apm[i].lane);
+		ret = rpmem_fip_lane_init(&fip->lanes.apm[i].lane, i);
 		if (ret)
 			goto err_lane_init;
 
@@ -631,7 +634,8 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	uint64_t raddr = fip->raddr + offset;
 
 	/* WRITE for requested memory region */
-	ret = rpmem_fip_writemsg(fip->ep, &lanep->write, laddr, len, raddr);
+	ret = rpmem_fip_writemsg(fip->ep, &lanep->write, laddr,
+					len, raddr, lane);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "RMA write");
 		return ret;
@@ -639,14 +643,14 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 
 	/* READ to read-after-write buffer */
 	ret = rpmem_fip_readmsg(fip->ep, &lanep->read, fip->raw_buff,
-			RPMEM_RAW_SIZE, raddr);
+			RPMEM_RAW_SIZE, raddr, lane);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "RMA read");
 		return ret;
 	}
 
 	/* wait for READ completion */
-	ret = rpmem_fip_lane_wait(&lanep->lane, FI_READ);
+	ret = rpmem_fip_lane_wait(&lanep->lane, FI_READ, lane);
 	if (unlikely(ret)) {
 		ERR("waiting for READ completion failed");
 		return ret;
@@ -660,9 +664,9 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
  */
 static inline int
 rpmem_fip_gpspm_post_resp(struct rpmem_fip *fip,
-	struct rpmem_fip_msg *resp)
+	struct rpmem_fip_msg *resp, unsigned lane)
 {
-	int ret = rpmem_fip_recvmsg(fip->ep, resp);
+	int ret = rpmem_fip_recvmsg(fip->ep, resp, lane);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "posting GPSPM recv buffer");
 		return ret;
@@ -680,7 +684,7 @@ rpmem_fip_post_lanes_gpspm(struct rpmem_fip *fip)
 {
 	int ret = 0;
 	for (unsigned i = 0; i < fip->nlanes; i++) {
-		ret = rpmem_fip_gpspm_post_resp(fip, &fip->recv[i]);
+		ret = rpmem_fip_gpspm_post_resp(fip, &fip->recv[i], i);
 		if (ret)
 			break;
 	}
@@ -781,7 +785,7 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 	 */
 	unsigned i;
 	for (i = 0; i < fip->nlanes; i++) {
-		ret = rpmem_fip_lane_init(&fip->lanes.gpspm[i].lane);
+		ret = rpmem_fip_lane_init(&fip->lanes.gpspm[i].lane, i);
 		if (ret)
 			goto err_lane_init;
 
@@ -868,7 +872,8 @@ rpmem_fip_process_gpspm(struct rpmem_fip *fip, void *context, uint64_t flags)
 			&fip->lanes.gpspm[msg_resp->lane].lane;
 
 		/* post RECV buffer immediately */
-		int ret = rpmem_fip_gpspm_post_resp(fip, resp);
+		int ret = rpmem_fip_gpspm_post_resp(fip, resp,
+						(unsigned)msg_resp->lane);
 		if (unlikely(ret))
 			RPMEM_FI_ERR((int)ret, "MSG send");
 
@@ -895,7 +900,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	int ret;
 	struct rpmem_fip_plane_gpspm *lanep = &fip->lanes.gpspm[lane];
 
-	ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
+	ret = rpmem_fip_lane_wait(&lanep->lane, FI_SEND, lane);
 	if (unlikely(ret)) {
 		ERR("waiting for SEND buffer failed");
 		return ret;
@@ -911,7 +916,8 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	struct rpmem_fip_plane_gpspm *gpspm = (void *)lanep;
 
 	/* WRITE for requested memory region */
-	ret = rpmem_fip_writemsg(fip->ep, &gpspm->write, laddr, len, raddr);
+	ret = rpmem_fip_writemsg(fip->ep, &gpspm->write, laddr,
+					len, raddr, lane);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR((int)ret, "RMA write");
 		return ret;
@@ -923,14 +929,14 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	msg->addr = raddr;
 	msg->size = len;
 
-	ret = rpmem_fip_sendmsg(fip->ep, &gpspm->send);
+	ret = rpmem_fip_sendmsg(fip->ep, &gpspm->send, lane);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "MSG send");
 		return ret;
 	}
 
 	/* wait for persist operation completion */
-	ret = rpmem_fip_lane_wait(&lanep->lane, FI_RECV);
+	ret = rpmem_fip_lane_wait(&lanep->lane, FI_RECV, lane);
 	if (unlikely(ret)) {
 		ERR("waiting for RECV completion failed");
 		return ret;
@@ -1312,10 +1318,11 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 		uint64_t raddr = fip->raddr + rd_off;
 
 		ret = rpmem_fip_readmsg(fip->ep, &fip->rd_lane.read,
-				fip->rd_buff, rd_len, raddr);
+				fip->rd_buff, rd_len, raddr, RPMEM_READ_LANE);
 		VALGRIND_DO_MAKE_MEM_DEFINED(fip->rd_buff, rd_len);
 
-		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);
+		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane,
+						FI_READ, RPMEM_READ_LANE);
 		if (ret) {
 			ERR("error when processing read request");
 			errno = ret;

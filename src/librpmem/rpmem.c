@@ -50,6 +50,7 @@
 #include "rpmem_fip.h"
 #include "rpmem_fip_common.h"
 #include "rpmem_ssh.h"
+#include "rpmem_timer.h"
 
 #define RPMEM_REMOVE_FLAGS_ALL (\
 	RPMEM_REMOVE_FORCE |	\
@@ -594,6 +595,16 @@ rpmem_close(RPMEMpool *rpp)
 int
 rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 {
+	/*
+	 * Mark the beginning of the 'persist' operation. It is important,
+	 * because the 'fi_recvmsg' operation can occur outside of the 'persist'
+	 * operation in case of the GPSPM mode but we want to count only these
+	 * operations which occur during the 'persist' operation.
+	 */
+	RPMEM_TIME_MARK(RPMEM_TIMER_PERSIST_START, lane);
+
+	RPMEM_TIME_START(RPMEM_TIMER_PERSIST);
+
 	if (unlikely(rpp->error)) {
 		errno = rpp->error;
 		return -1;
@@ -607,6 +618,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 		return -1;
 	}
 
+	RPMEM_TIME_STOP(RPMEM_TIMER_PERSIST, lane);
 	return 0;
 }
 

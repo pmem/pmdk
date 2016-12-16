@@ -1,0 +1,3 @@
+rpmem_timestamps/TEST0: START: rpmem_timestamps
+ ./rpmem_timestamps$(nW)
+rpmem_timestamps/TEST0: Done
