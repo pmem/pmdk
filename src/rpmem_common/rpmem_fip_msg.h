@@ -101,7 +101,7 @@ rpmem_fip_msg_init(struct rpmem_fip_msg *msg, void *desc, fi_addr_t addr,
  */
 static inline int
 rpmem_fip_writemsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
-	const void *buff, size_t len, uint64_t addr)
+	const void *buff, size_t len, uint64_t addr, unsigned lane)
 {
 	rma->rma_iov.addr = addr;
 	rma->rma_iov.len = len;
@@ -115,7 +115,7 @@ rpmem_fip_writemsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
  */
 static inline int
 rpmem_fip_readmsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
-	void *buff, size_t len, uint64_t addr)
+	void *buff, size_t len, uint64_t addr, unsigned lane)
 {
 	rma->rma_iov.addr = addr;
 	rma->rma_iov.len = len;
@@ -128,7 +128,7 @@ rpmem_fip_readmsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
  * rpmem_fip_sendmsg -- wrapper for fi_sendmsg
  */
 static inline int
-rpmem_fip_sendmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg)
+rpmem_fip_sendmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg, unsigned lane)
 {
 	return (int)fi_sendmsg(ep, &msg->msg, msg->flags);
 }
@@ -137,7 +137,7 @@ rpmem_fip_sendmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg)
  * rpmem_fip_recvmsg -- wrapper for fi_recvmsg
  */
 static inline int
-rpmem_fip_recvmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg)
+rpmem_fip_recvmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg, unsigned lane)
 {
 	return (int)fi_recvmsg(ep, &msg->msg, msg->flags);
 }

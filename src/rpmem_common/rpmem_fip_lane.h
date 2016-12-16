@@ -48,6 +48,7 @@
  * separate bit.
  */
 struct rpmem_fip_lane {
+	unsigned num;
 	volatile int ret;
 	volatile uint64_t sync;
 };
@@ -56,8 +57,9 @@ struct rpmem_fip_lane {
  * rpmem_fip_lane_init -- initialize basic lane structure
  */
 static inline int
-rpmem_fip_lane_init(struct rpmem_fip_lane *lanep)
+rpmem_fip_lane_init(struct rpmem_fip_lane *lanep, unsigned lane)
 {
+	lanep->num = lane;
 	lanep->ret = 0;
 	lanep->sync = 0;
 
@@ -96,7 +98,7 @@ rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t sig)
  * rpmem_fip_lane_wait -- wait for specified event(s)
  */
 static inline int
-rpmem_fip_lane_wait(struct rpmem_fip_lane *lanep, uint64_t sig)
+rpmem_fip_lane_wait(struct rpmem_fip_lane *lanep, uint64_t sig, unsigned lane)
 {
 	while (lanep->sync & sig)
 		sched_yield();

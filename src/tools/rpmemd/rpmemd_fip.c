@@ -65,6 +65,8 @@
 #define FATAL RPMEMD_FATAL
 #include "sys_util.h"
 
+#define ANY_LANE 0 /* lane number does not matter */
+
 #define RPMEMD_FI_ERR(e, fmt, args...)\
 	RPMEMD_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))
 
@@ -516,7 +518,7 @@ static inline int
 rpmemd_fip_gpspm_post_msg(struct rpmemd_fip *fip,
 	struct rpmem_fip_msg *msg)
 {
-	int ret = rpmem_fip_recvmsg(fip->ep, msg);
+	int ret = rpmem_fip_recvmsg(fip->ep, msg, ANY_LANE);
 	if (ret) {
 		RPMEMD_FI_ERR(ret, "posting GPSPM recv buffer");
 		return ret;
@@ -532,7 +534,7 @@ static inline int
 rpmemd_fip_gpspm_post_resp(struct rpmemd_fip *fip,
 	struct rpmem_fip_msg *resp)
 {
-	int ret = rpmem_fip_sendmsg(fip->ep, resp);
+	int ret = rpmem_fip_sendmsg(fip->ep, resp, ANY_LANE);
 	if (ret) {
 		RPMEMD_FI_ERR(ret, "posting GPSPM send buffer");
 		return ret;
@@ -622,7 +624,7 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 		struct rpmemd_fip_lane *lanep = &fip->lanes[i];
 
 		/* initialize basic lane structure */
-		ret = rpmem_fip_lane_init(&lanep->lane);
+		ret = rpmem_fip_lane_init(&lanep->lane, i);
 		if (ret) {
 			RPMEMD_LOG(ERR, "!initializing lane");
 			goto err_lane_init;
@@ -731,7 +733,7 @@ rpmemd_fip_worker(void *arg, void *data)
 	int ret = 0;
 
 	/* wait until last SEND message has been processed */
-	rpmem_fip_lane_wait(&lanep->lane, FI_SEND);
+	rpmem_fip_lane_wait(&lanep->lane, FI_SEND, ANY_LANE);
 
 	/*
 	 * Get persist message and persist message response from appropriate
