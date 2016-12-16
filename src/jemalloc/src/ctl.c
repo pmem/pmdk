@@ -711,7 +711,7 @@ ctl_refresh_pool(pool_t *pool)
 static void
 ctl_refresh(void)
 {
-	for (int i = 0; i < npools; ++i) {
+	for (size_t i = 0; i < npools; ++i) {
 		if (pools[i] != NULL) {
 			ctl_refresh_pool(pools[i]);
 		}
@@ -769,7 +769,7 @@ ctl_init(void)
 {
 	bool ret;
 	malloc_mutex_lock(&ctl_mtx);
-	for (int i = 0; i < npools; ++i) {
+	for (size_t i = 0; i < npools; ++i) {
 		if (pools[i] != NULL && pools[i]->ctl_initialized == false) {
 			if (ctl_init_pool(pools[i])) {
 				ret = true;
@@ -1247,7 +1247,7 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 	unsigned newind, oldind;
-	unsigned pool_ind = mib[1];
+	size_t pool_ind = mib[1];
 	pool_t *pool;
 	arena_t dummy;
 
@@ -1261,7 +1261,7 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	if (tcache_tsd->npools <= pool_ind) {
 		assert(pool_ind < POOLS_MAX);
 
-		size_t npools = 1 << (32 - __builtin_clz(pool_ind + 1));
+		size_t npools = 1ULL << (32 - __builtin_clz(pool_ind + 1));
 		if (npools < POOLS_MIN)
 			npools = POOLS_MIN;
 
@@ -1452,8 +1452,8 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	int ret, i;
 	bool match, err;
 	const char *dss;
-	unsigned pool_ind = mib[1];
-	unsigned arena_ind = mib[3];
+	size_t pool_ind = mib[1];
+	size_t arena_ind = mib[3];
 	dss_prec_t dss_prec_old = dss_prec_limit;
 	dss_prec_t dss_prec = dss_prec_limit;
 	pool_t *pool;
@@ -1506,8 +1506,8 @@ arena_i_chunk_alloc_ctl(const size_t *mib, size_t miblen, void *oldp,
     size_t *oldlenp, void *newp, size_t newlen)
 {
 	int ret;
-	unsigned pool_ind = mib[1];
-	unsigned arena_ind = mib[3];
+	size_t pool_ind = mib[1];
+	size_t arena_ind = mib[3];
 	arena_t *arena;
 	pool_t *pool;
 
@@ -1542,8 +1542,8 @@ arena_i_chunk_dalloc_ctl(const size_t *mib, size_t miblen, void *oldp,
     size_t *oldlenp, void *newp, size_t newlen)
 {
 	int ret;
-	unsigned pool_ind = mib[1];
-	unsigned arena_ind = mib[3];
+	size_t pool_ind = mib[1];
+	size_t arena_ind = mib[3];
 	arena_t *arena;
 	pool_t *pool;
 

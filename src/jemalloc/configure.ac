@@ -160,13 +160,18 @@ if test "x${je_cv_msvc}" = "xyes" -a "x${ac_cv_header_inttypes_h}" = "xno"; then
   CPPFLAGS="$CPPFLAGS -I${srcdir}/include/msvc_compat/C99"
 fi
 
-AC_CHECK_SIZEOF([void *])
-if test "x${ac_cv_sizeof_void_p}" = "x8" ; then
-  LG_SIZEOF_PTR=3
-elif test "x${ac_cv_sizeof_void_p}" = "x4" ; then
-  LG_SIZEOF_PTR=2
+if test "x${je_cv_msvc}" = "xyes" ; then
+  LG_SIZEOF_PTR=LG_SIZEOF_PTR_WIN
+  AC_MSG_RESULT([Using a predefined value for sizeof(void *): 4 for 32-bit, 8 for 64-bit])
 else
-  AC_MSG_ERROR([Unsupported pointer size: ${ac_cv_sizeof_void_p}])
+  AC_CHECK_SIZEOF([void *])
+  if test "x${ac_cv_sizeof_void_p}" = "x8" ; then
+    LG_SIZEOF_PTR=3
+  elif test "x${ac_cv_sizeof_void_p}" = "x4" ; then
+    LG_SIZEOF_PTR=2
+  else
+    AC_MSG_ERROR([Unsupported pointer size: ${ac_cv_sizeof_void_p}])
+  fi
 fi
 AC_DEFINE_UNQUOTED([LG_SIZEOF_PTR], [$LG_SIZEOF_PTR])
 
@@ -325,9 +330,10 @@ case "${host}" in
 	fi
 	abi="xcoff"
 	;;
-  *-*-mingw*)
+  *-*-mingw* | *-*-cygwin*)
 	abi="pecoff"
 	force_tls="0"
+	force_lazy_lock="0"
 	RPATH=""
 	so="dll"
 	if test "x$je_cv_msvc" = "xyes" ; then
@@ -1107,6 +1113,8 @@ if test "x$enable_lazy_lock" = "x1" ; then
       ])
   fi
   AC_DEFINE([JEMALLOC_LAZY_LOCK], [ ])
+else
+  enable_lazy_lock="0"
 fi
 AC_SUBST([enable_lazy_lock])
 

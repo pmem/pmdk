@@ -1,8 +1,8 @@
 #define	JEMALLOC_POOL_C_
 #include "jemalloc/internal/jemalloc_internal.h"
 
-malloc_mutex_t	pool_base_lock = MALLOC_MUTEX_INITIALIZER;
-malloc_mutex_t	pools_lock = MALLOC_MUTEX_INITIALIZER;
+malloc_mutex_t	pool_base_lock;
+malloc_mutex_t	pools_lock;
 
 /* Initialize pool and create its base arena. */
 bool pool_new(pool_t *pool, unsigned pool_id)
@@ -60,7 +60,7 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 /* Release the arenas associated with a pool. */
 void pool_destroy(pool_t *pool)
 {
-	int i, j;
+	size_t i, j;
 	for (i = 0; i < pool->narenas_total; ++i) {
 		if (pool->arenas[i] != NULL) {
 			arena_t *arena = pool->arenas[i];

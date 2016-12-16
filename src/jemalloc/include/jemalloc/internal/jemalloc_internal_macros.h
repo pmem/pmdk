@@ -27,9 +27,6 @@
 #  endif
 #  define JEMALLOC_INLINE static inline
 #  define JEMALLOC_INLINE_C static inline
-#  ifdef _MSC_VER
-#    define inline _inline
-#  endif
 #endif
 
 #ifdef JEMALLOC_CC_SILENCE

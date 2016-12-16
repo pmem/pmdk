@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 		sigemptyset(&v.sa_mask);
 		v.sa_flags = 0;
 		v.sa_handler = signal_handler;
-		if (sigaction(SIGSEGV, &v, NULL) < 0)
+		if (SIGACTION(SIGSEGV, &v, NULL) != 0)
 			UT_FATAL("!sigaction");
 
 		/* try to dereference the opaque handle */

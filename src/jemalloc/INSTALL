@@ -1,3 +1,6 @@
+How to build jemalloc for Linux
+================================================================================
+
 Building and installing jemalloc can be as simple as typing the following while
 in the root directory of the source tree:
 
@@ -283,6 +286,34 @@ directory, issue configuration and build commands:
     cd obj
     ../configure --enable-autogen
     make
+
+
+How to build jemalloc for Windows
+================================================================================
+
+1. Install Cygwin with at least the following packages:
+   * autoconf
+   * autogen
+   * gawk
+   * grep
+   * sed
+   * xsltproc
+
+2. Install Visual Studio 2015 with Visual C++
+
+3. Open "VS2015 x86 Native Tools Command Prompt"
+   (note: x86/x64 doesn't matter at this point)
+
+4. Add cygwin\bin to the PATH environment variable
+   (PATH=%PATH%;<path to cygwin\bin>)
+
+5. Generate header files:
+	In VS Command Prompt run:
+	sh ./win_autogen.sh
+
+
+6. Now the project can be opened and built in Visual Studio:
+	src\NVML.sln
 
 === Documentation ==============================================================
 

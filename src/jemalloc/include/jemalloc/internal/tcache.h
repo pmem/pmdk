@@ -150,8 +150,10 @@ void	tcache_dalloc_large(tcache_t *tcache, void *ptr, size_t size);
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_TCACHE_C_))
 /* Map of thread-specific caches. */
+
+
 malloc_tsd_externs(tcache, tsd_tcache_t)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tsd_tcache_t, NULL,
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tsd_tcache_t, { 0 },
     tcache_thread_cleanup)
 /* Per thread flag that allows thread caches to be disabled. */
 malloc_tsd_externs(tcache_enabled, tcache_enabled_t)

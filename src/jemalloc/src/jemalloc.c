@@ -78,12 +78,15 @@ _init_init_lock(void)
 {
 
 	malloc_mutex_init(&init_lock);
+	malloc_mutex_init(&pools_lock);
+	malloc_mutex_init(&pool_base_lock);
 }
 
 #ifdef _MSC_VER
-#  pragma section(".CRT$XCU", read)
+# pragma comment(linker, "/include:__init_init_lock")
+# pragma section(".CRT$XCU", read)
 JEMALLOC_SECTION(".CRT$XCU") JEMALLOC_ATTR(used)
-static const void (WINAPI *init_init_lock)(void) = _init_init_lock;
+const void (WINAPI *__init_init_lock)(void) = _init_init_lock;
 #endif
 
 #else
@@ -299,7 +302,7 @@ arenas_tsd_extend(tsd_pool_t *tsd, unsigned len)
 	assert(len < POOLS_MAX);
 
 	/* round up the new length to the nearest power of 2... */
-	size_t npools = 1 << (32 - __builtin_clz(len + 1));
+	size_t npools = 1ULL << (32 - __builtin_clz(len + 1));
 
 	/* ... but not less than */
 	if (npools < POOLS_MIN)
@@ -382,7 +385,6 @@ malloc_init(void)
 static bool
 malloc_init_base_pool(void)
 {
-
 	malloc_mutex_lock(&pool_base_lock);
 
 	if (base_pool_initialized) {
@@ -522,7 +524,7 @@ static void
 malloc_conf_init(void)
 {
 	unsigned i;
-	char buf[PATH_MAX + 1];
+	char buf[JE_PATH_MAX + 1];
 	const char *opts, *k, *v;
 	size_t klen, vlen;
 
@@ -840,9 +842,10 @@ malloc_init_hard(void)
 	}
 
 	pools_shared_data_initialized = false;
-
-	je_base_malloc = base_malloc_default;
-	je_base_free = base_free_default;
+	if (je_base_malloc == NULL && je_base_free == NULL) {
+		je_base_malloc = base_malloc_default;
+		je_base_free = base_free_default;
+	}
 
 	if (chunk_global_boot()) {
 		malloc_mutex_unlock(&init_lock);
@@ -1563,13 +1566,13 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	pool->memory_range_list = base_alloc(pool, sizeof (*pool->memory_range_list));
 
 	/* pointer to the address of chunks, align the address to chunksize */
-	void *usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+	char *usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 
 	/* reduce end of base allocator up to chunks start */
 	pool->base_past_addr = usable_addr;
 
 	/* usable chunks space, must be multiple of chunksize */
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size = (size - (uintptr_t)(usable_addr - (char *)addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
@@ -1881,7 +1884,7 @@ je_pool_check(pool_t *pool)
 size_t
 je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 {
-	void *usable_addr = addr;
+	char *usable_addr = addr;
 	size_t nodes_number = size/chunksize;
 	if (size < POOL_MINIMAL_SIZE)
 		return 0;
@@ -1911,14 +1914,14 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 		assert(node != NULL);
 
 		/* pointer to the address of chunks, align the address to chunksize */
-		usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+		usable_addr = (void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 		/* reduce end of base allocator up to chunks */
 		pool->base_past_addr = usable_addr;
 	}
 
 	usable_addr = (void *)CHUNK_CEILING((uintptr_t)usable_addr);
 
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size = (size - (uintptr_t)(usable_addr - (char *)addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);

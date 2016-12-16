@@ -471,7 +471,7 @@ arena_t	*choose_arena(arena_t *arena);
  * for allocations.
  */
 malloc_tsd_externs(arenas, tsd_pool_t)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, NULL,
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, {0},
     arenas_cleanup)
 
 
@@ -587,7 +587,7 @@ narenas_total_get(pool_t *pool)
 	return (narenas);
 }
 
-/* 
+/*
  * Choose an arena based on a per-thread value.
  * Arena pointer must be either a valid arena pointer or a dummy arena with
  * pool field filled.
@@ -611,7 +611,7 @@ choose_arena(arena_t *arena)
 		return (NULL);
 	}
 
-	if ( (tsd->seqno[pool->pool_id] != pool->seqno) || 
+	if ( (tsd->seqno[pool->pool_id] != pool->seqno) ||
 		(ret = tsd->arenas[pool->pool_id]) == NULL) {
 		ret = choose_arena_hard(pool);
 		assert(ret != NULL);
@@ -670,10 +670,38 @@ void	*pool_iralloc(pool_t *pool, void *ptr, size_t size, size_t extra,
     size_t alignment, bool zero);
 bool	ixalloc(void *ptr, size_t size, size_t extra, size_t alignment,
     bool zero);
+int		msc_clz(unsigned int val);
 malloc_tsd_protos(JEMALLOC_ATTR(unused), thread_allocated, thread_allocated_t)
 #endif
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_C_))
+
+# ifdef _MSC_VER
+JEMALLOC_ALWAYS_INLINE int
+msc_clz(unsigned int val)
+{
+	unsigned int res = 0;
+
+# if LG_SIZEOF_INT == 2
+	if (_BitScanReverse(&res, val)) {
+		return 31 - res;
+	}
+	else {
+		return 32;
+	}
+# elif LG_SIZEOF_INT == 3
+	if (_BitScanReverse64(&res, val)) {
+		return 63 - res;
+	}
+	else {
+		return 64;
+	}
+# else
+#	error "Unsupported clz function for that size of int"
+# endif
+}
+#endif
+
 JEMALLOC_ALWAYS_INLINE void *
 imalloct(size_t size, bool try_tcache, arena_t *arena)
 {
@@ -818,7 +846,7 @@ pool_isalloc(pool_t *pool, const void *ptr, bool demote)
 JEMALLOC_ALWAYS_INLINE size_t
 ivsalloc(const void *ptr, bool demote)
 {
-	int i;
+	size_t i;
 
 	malloc_mutex_lock(&pools_lock);
 
@@ -1061,5 +1089,9 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, thread_allocated, thread_allocated_t,
 #include "jemalloc/internal/prof.h"
 
 #undef JEMALLOC_H_INLINES
+
+#ifdef _WIN32
+	#define __builtin_clz(x) msc_clz(x)
+#endif
 /******************************************************************************/
 #endif /* JEMALLOC_INTERNAL_H */

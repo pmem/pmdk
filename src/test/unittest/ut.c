@@ -133,6 +133,7 @@ static int Quiet;		/* set by UNITTEST_QUIET env variable */
 static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
+unsigned long long Ut_mmap_align;
 
 /*
  * flags that control output
@@ -424,11 +425,22 @@ ut_start(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
+	long long sc = sysconf(_SC_PAGESIZE);
+	if (sc < 0)
+		abort();
+	Ut_pagesize = (unsigned long)sc;
+
 #ifdef _WIN32
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	Ut_mmap_align = si.dwAllocationGranularity;
+
 	if (getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
 		/* disable windows error message boxes */
 		ut_suppress_errmsg();
 	}
+#else
+	Ut_mmap_align = Ut_pagesize;
 #endif
 	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
@@ -478,11 +490,6 @@ ut_start(const char *file, int line, const char *func,
 	va_end(ap);
 
 	record_open_files();
-
-	long long sc = sysconf(_SC_PAGESIZE);
-	if (sc < 0)
-		abort();
-	Ut_pagesize = (unsigned long)sc;
 
 	errno = saveerrno;
 }

@@ -42,6 +42,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 #include "libvmem.h"
 
@@ -55,7 +56,7 @@
  * private to this file...
  */
 static size_t Header_size;
-
+static pthread_mutex_t Vmem_init_lock;
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
  *
@@ -88,12 +89,14 @@ void
 vmem_init(void)
 {
 	static bool initialized = false;
-	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+	int (*je_vmem_navsnprintf)
+		(char *, size_t, const char *, va_list) = NULL;
 
 	if (initialized)
 		return;
 
-	util_mutex_lock(&lock);
+	util_mutex_lock(&Vmem_init_lock);
 
 	if (!initialized) {
 		common_init(VMEM_LOG_PREFIX, VMEM_LOG_LEVEL_VAR,
@@ -109,7 +112,7 @@ vmem_init(void)
 		initialized = true;
 	}
 
-	util_mutex_unlock(&lock);
+	util_mutex_unlock(&Vmem_init_lock);
 }
 
 /*
@@ -121,6 +124,7 @@ ATTR_CONSTRUCTOR
 void
 vmem_construct(void)
 {
+	pthread_mutex_init(&Vmem_init_lock, NULL);
 	vmem_init();
 }
 
@@ -134,6 +138,7 @@ void
 vmem_fini(void)
 {
 	LOG(3, NULL);
+	pthread_mutex_destroy(&Vmem_init_lock);
 	common_fini();
 }
 
@@ -144,8 +149,8 @@ VMEM *
 vmem_create(const char *dir, size_t size)
 {
 	vmem_init();
-	LOG(3, "dir \"%s\" size %zu", dir, size);
 
+	LOG(3, "dir \"%s\" size %zu", dir, size);
 	if (size < VMEM_MIN_POOL) {
 		ERR("size %zu smaller than %zu", size, VMEM_MIN_POOL);
 		errno = EINVAL;
@@ -156,7 +161,6 @@ vmem_create(const char *dir, size_t size)
 
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
-
 	void *addr;
 	if (dax) {
 		if ((addr = util_file_map_whole(dir)) == NULL)
@@ -193,6 +197,7 @@ vmem_create(const char *dir, size_t size)
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
+
 }
 
 /*
@@ -253,7 +258,7 @@ vmem_delete(VMEM *vmp)
 
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
-		ERR("invalid pool handle: %p", vmp);
+		ERR("invalid pool handle: 0x%" PRIx64, (uintptr_t)vmp);
 		errno = EINVAL;
 		return;
 	}
@@ -377,3 +382,11 @@ vmem_malloc_usable_size(VMEM *vmp, void *ptr)
 	return je_vmem_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
 }
+
+#ifdef _MSC_VER
+/*
+ * libvmem constructor/destructor functions
+ */
+MSVC_CONSTR(vmem_construct)
+MSVC_DESTR(vmem_fini)
+#endif
