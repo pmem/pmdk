@@ -279,7 +279,7 @@ ckh_grow(ckh_t *ckh)
 		ttab = ckh->tab;
 		ckh->tab = tab;
 		tab = ttab;
-		ckh->lg_curbuckets = lg_curcells - LG_CKH_BUCKET_CELLS;
+		ckh->lg_curbuckets = (unsigned)(lg_curcells - LG_CKH_BUCKET_CELLS);
 
 		if (ckh_rebuild(ckh, tab) == false) {
 			idalloc(tab);
@@ -325,7 +325,7 @@ ckh_shrink(ckh_t *ckh)
 	ttab = ckh->tab;
 	ckh->tab = tab;
 	tab = ttab;
-	ckh->lg_curbuckets = lg_curcells - LG_CKH_BUCKET_CELLS;
+	ckh->lg_curbuckets = (unsigned)(lg_curcells - LG_CKH_BUCKET_CELLS);
 
 	if (ckh_rebuild(ckh, tab) == false) {
 		idalloc(tab);

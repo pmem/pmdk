@@ -427,8 +427,8 @@ chunk_boot(pool_t *pool)
 	extent_tree_szad_new(&pool->chunks_szad_dss);
 	extent_tree_ad_new(&pool->chunks_ad_dss);
 	if (config_ivsalloc) {
-		pool->chunks_rtree = rtree_new((ZU(1) << (LG_SIZEOF_PTR+3)) -
-		    opt_lg_chunk, base_alloc, NULL, pool);
+		pool->chunks_rtree = rtree_new((unsigned)((ZU(1) << (LG_SIZEOF_PTR+3)) -
+		    opt_lg_chunk), base_alloc, NULL, pool);
 		if (pool->chunks_rtree == NULL)
 			return (true);
 	}

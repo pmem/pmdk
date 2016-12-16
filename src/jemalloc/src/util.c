@@ -52,7 +52,7 @@ wrtmessage(void *cbopaque, const char *s)
 	 */
 	UNUSED int result = syscall(SYS_write, STDERR_FILENO, s, strlen(s));
 #else
-	UNUSED int result = write(STDERR_FILENO, s, strlen(s));
+	UNUSED int result = write(STDERR_FILENO, s, (unsigned)strlen(s));
 #endif
 }
 
@@ -82,7 +82,7 @@ buferror(int err, char *buf, size_t buflen)
 
 #ifdef _WIN32
 	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0,
-	    (LPSTR)buf, buflen, NULL);
+	    (LPSTR)buf, (DWORD)buflen, NULL);
 	return (0);
 #elif defined(_GNU_SOURCE)
 	char *b = strerror_r(err, buf, buflen);
@@ -577,7 +577,7 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 		str[i] = '\0';
 	else
 		str[size - 1] = '\0';
-	ret = i;
+	ret = (int)i;
 
 #undef APPEND_C
 #undef APPEND_S

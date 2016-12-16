@@ -295,7 +295,7 @@ static inline void *
 arena_run_reg_alloc(arena_run_t *run, arena_bin_info_t *bin_info)
 {
 	void *ret;
-	unsigned regind;
+	size_t regind;
 	bitmap_t *bitmap = (bitmap_t *)((uintptr_t)run +
 	    (uintptr_t)bin_info->bitmap_offset);
 
@@ -2489,7 +2489,7 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 	 * be twice as large in order to maintain alignment.
 	 */
 	if (config_fill && opt_redzone) {
-		size_t align_min = ZU(1) << (jemalloc_ffs(bin_info->reg_size) - 1);
+		size_t align_min = ZU(1) << (jemalloc_ffs((int)bin_info->reg_size) - 1);
 		if (align_min <= REDZONE_MINSIZE) {
 			bin_info->redzone_size = REDZONE_MINSIZE;
 			pad_size = 0;
@@ -2515,9 +2515,9 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 	 * header's mask length and the number of regions.
 	 */
 	try_run_size = min_run_size;
-	try_nregs = ((try_run_size - sizeof(arena_run_t)) /
+	try_nregs = (uint32_t)(((try_run_size - sizeof(arena_run_t)) /
 	    bin_info->reg_interval)
-	    + 1; /* Counter-act try_nregs-- in loop. */
+	    + 1); /* Counter-act try_nregs-- in loop. */
 	if (try_nregs > RUN_MAXREGS) {
 		try_nregs = RUN_MAXREGS
 		    + 1; /* Counter-act try_nregs-- in loop. */
@@ -2529,9 +2529,9 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 		try_hdr_size = LONG_CEILING(try_hdr_size);
 		try_bitmap_offset = try_hdr_size;
 		/* Add space for bitmap. */
-		try_hdr_size += bitmap_size(try_nregs);
-		try_redzone0_offset = try_run_size - (try_nregs *
-		    bin_info->reg_interval) - pad_size;
+		try_hdr_size += (uint32_t)bitmap_size(try_nregs);
+		try_redzone0_offset = (uint32_t)(try_run_size - (try_nregs *
+		    bin_info->reg_interval) - pad_size);
 	} while (try_hdr_size > try_redzone0_offset);
 
 	/* run_size expansion loop. */
@@ -2547,9 +2547,9 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 
 		/* Try more aggressive settings. */
 		try_run_size += PAGE;
-		try_nregs = ((try_run_size - sizeof(arena_run_t) - pad_size) /
+		try_nregs = (uint32_t)(((try_run_size - sizeof(arena_run_t) - pad_size) /
 		    bin_info->reg_interval)
-		    + 1; /* Counter-act try_nregs-- in loop. */
+		    + 1); /* Counter-act try_nregs-- in loop. */
 		if (try_nregs > RUN_MAXREGS) {
 			try_nregs = RUN_MAXREGS
 			    + 1; /* Counter-act try_nregs-- in loop. */
@@ -2561,9 +2561,9 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 			try_hdr_size = LONG_CEILING(try_hdr_size);
 			try_bitmap_offset = try_hdr_size;
 			/* Add space for bitmap. */
-			try_hdr_size += bitmap_size(try_nregs);
-			try_redzone0_offset = try_run_size - (try_nregs *
-			    bin_info->reg_interval) - pad_size;
+			try_hdr_size += (uint32_t)bitmap_size(try_nregs);
+			try_redzone0_offset = (uint32_t)(try_run_size - (try_nregs *
+			    bin_info->reg_interval) - pad_size);
 		} while (try_hdr_size > try_redzone0_offset);
 	} while (try_run_size <= arena_maxclass
 	    && RUN_MAX_OVRHD * (bin_info->reg_interval << 3) >
@@ -2577,7 +2577,7 @@ bin_info_run_size_calc(arena_bin_info_t *bin_info, size_t min_run_size)
 	bin_info->run_size = good_run_size;
 	bin_info->nregs = good_nregs;
 	bin_info->bitmap_offset = good_bitmap_offset;
-	bin_info->reg0_offset = good_redzone0_offset + bin_info->redzone_size;
+	bin_info->reg0_offset = good_redzone0_offset + (uint32_t)bin_info->redzone_size;
 
 	assert(bin_info->reg0_offset - bin_info->redzone_size + (bin_info->nregs
 	    * bin_info->reg_interval) + pad_size == bin_info->run_size);

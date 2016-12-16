@@ -1513,7 +1513,7 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	}
 
 	if (pool_id == npools && npools < POOLS_MAX) {
-		size_t npools_new = npools * 2;
+		unsigned npools_new = npools * 2;
 		pool_t **pools_new = base_alloc(&base_pool,
 					npools_new * sizeof (pool_t *));
 		if (pools_new == NULL) {
