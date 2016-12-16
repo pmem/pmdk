@@ -15,6 +15,8 @@ open $(nW)/testfile102: Permission denied
 size 16384 smaller than 32768
 size 8192 smaller than 32768
 size 8192 smaller than 32768
+file size does not match config: $(nW)/testfile142, 32768 != 65536
+file size does not match config: $(nW)/testfile152, 32769 != 32768
 Non-empty file detected
 Non-empty file detected
 open $(nW)/testset23: Permission denied

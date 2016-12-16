@@ -458,7 +458,7 @@ function create_poolset() {
 		fsize=${fparms[0]}
 		fpath=${fparms[1]}
 		cmd=${fparms[2]}
-		asize=${fparams[3]}
+		asize=${fparms[3]}
 		mode=${fparms[4]}
 
 		if [ ! $asize ]; then
