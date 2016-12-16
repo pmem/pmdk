@@ -826,7 +826,7 @@ function require_dev_dax_node() {
 			exit 0
 		fi
 		local device_dax_path=${NODE_DEVICE_DAX_PATH[$node]}
-		local cmd="run_command ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -d"
+		local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -d"
 	else
 		local prefix="$UNITTEST_NAME: SKIP"
 		if [ ${#DEVICE_DAX_PATH[@]} -lt $min ]; then
