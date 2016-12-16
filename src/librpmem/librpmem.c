@@ -65,6 +65,10 @@ librpmem_init(void)
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	rpmem_util_cmds_init();
+
+#ifdef RPMEM_TIMESTAMPS
+	rpmem_timer_init();
+#endif
 #ifdef HAS_IBVERBS
 	Rpmem_fork_fail = ibv_fork_init();
 	if (Rpmem_fork_fail)
@@ -83,6 +87,10 @@ void
 librpmem_fini(void)
 {
 	LOG(3, NULL);
+
+#ifdef RPMEM_TIMESTAMPS
+	rpmem_timer_fini();
+#endif
 	rpmem_util_cmds_fini();
 	out_fini();
 }

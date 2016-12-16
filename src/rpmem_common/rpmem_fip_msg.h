@@ -35,6 +35,7 @@
  */
 
 #include <rdma/fi_rma.h>
+#include "rpmem_timer.h"
 
 /*
  * rpmem_fip_rma -- helper struct for RMA operation
@@ -107,7 +108,12 @@ rpmem_fip_writemsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
 	rma->rma_iov.len = len;
 	rma->msg_iov.iov_base = (void *)buff;
 	rma->msg_iov.iov_len = len;
-	return (int)fi_writemsg(ep, &rma->msg, rma->flags);
+
+	RPMEM_TIME_START(RPMEM_TIMER_FI_WRITEMSG);
+	int ret = (int)fi_writemsg(ep, &rma->msg, rma->flags);
+	RPMEM_TIME_STOP(RPMEM_TIMER_FI_WRITEMSG, lane);
+
+	return ret;
 }
 
 /*
@@ -121,7 +127,12 @@ rpmem_fip_readmsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
 	rma->rma_iov.len = len;
 	rma->msg_iov.iov_base = buff;
 	rma->msg_iov.iov_len = len;
-	return (int)fi_readmsg(ep, &rma->msg, rma->flags);
+
+	RPMEM_TIME_START(RPMEM_TIMER_FI_READMSG);
+	int ret = (int)fi_readmsg(ep, &rma->msg, rma->flags);
+	RPMEM_TIME_STOP(RPMEM_TIMER_FI_READMSG, lane);
+
+	return ret;
 }
 
 /*
@@ -130,7 +141,11 @@ rpmem_fip_readmsg(struct fid_ep *ep, struct rpmem_fip_rma *rma,
 static inline int
 rpmem_fip_sendmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg, unsigned lane)
 {
-	return (int)fi_sendmsg(ep, &msg->msg, msg->flags);
+	RPMEM_TIME_START(RPMEM_TIMER_FI_SENDMSG);
+	int ret = (int)fi_sendmsg(ep, &msg->msg, msg->flags);
+	RPMEM_TIME_STOP(RPMEM_TIMER_FI_SENDMSG, lane);
+
+	return ret;
 }
 
 /*
@@ -139,7 +154,11 @@ rpmem_fip_sendmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg, unsigned lane)
 static inline int
 rpmem_fip_recvmsg(struct fid_ep *ep, struct rpmem_fip_msg *msg, unsigned lane)
 {
-	return (int)fi_recvmsg(ep, &msg->msg, msg->flags);
+	RPMEM_TIME_START(RPMEM_TIMER_FI_RECVMSG);
+	int ret = (int)fi_recvmsg(ep, &msg->msg, msg->flags);
+	RPMEM_TIME_STOP(RPMEM_TIMER_FI_RECVMSG, lane);
+
+	return ret;
 }
 
 /*

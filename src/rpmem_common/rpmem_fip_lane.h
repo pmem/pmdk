@@ -100,8 +100,10 @@ rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t sig)
 static inline int
 rpmem_fip_lane_wait(struct rpmem_fip_lane *lanep, uint64_t sig, unsigned lane)
 {
+	RPMEM_TIME_START(RPMEM_TIMER_WAIT_EVENT);
 	while (lanep->sync & sig)
 		sched_yield();
+	RPMEM_TIME_STOP(RPMEM_TIMER_WAIT_EVENT, lane);
 
 	return lanep->ret;
 }
