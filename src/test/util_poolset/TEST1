@@ -89,7 +89,7 @@ check_files $DIR/testfile11\
 	$DIR/testfile81 $DIR/testfile82\
 	$DIR/testfile91 $DIR/testfile92\
 	$DIR/testfile101 $DIR/testfile102\
-	$DIR/testfile111 $DIR/testfile112
+	$DIR/testfile111 $DIR/testfile112 $DIR/testfile113
 
 check_no_files $DIR/testfile21 $DIR/testfile22\
 	$DIR/testfile31 $DIR/testfile32\

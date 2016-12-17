@@ -56,7 +56,7 @@ size_t Is_pmem_len = 0;
  * poolset_info -- (internal) dumps poolset info and checks its integrity
  *
  * Performs the following checks:
- * - part_size[i] == rounddown(file_size - pool_hdr_size, Pagesize)
+ * - part_size[i] == rounddown(file_size - pool_hdr_size, Mmap_align)
  * - replica_size == sum(part_size)
  * - pool_size == min(replica_size)
  */
@@ -74,25 +74,26 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 
 	size_t poolsize = SIZE_MAX;
 
-	for (int r = 0; r < set->nreplicas; r++) {
+	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		size_t repsize = 0;
 
 		UT_OUT("  replica[%d]: nparts %d repsize %zu is_pmem %d",
 			r, rep->nparts, rep->repsize, rep->is_pmem);
 
-		for (int i = 0; i < rep->nparts; i++) {
+		for (unsigned i = 0; i < rep->nparts; i++) {
 			struct pool_set_part *part = &rep->part[i];
 			UT_OUT("    part[%d] path %s filesize %zu size %zu",
 				i, part->path, part->filesize, part->size);
-			size_t partsize = (part->filesize & ~(Ut_pagesize - 1));
+			size_t partsize =
+				(part->filesize & ~(Ut_mmap_align - 1));
 			repsize += partsize;
 			if (i > 0)
 				UT_ASSERTeq(part->size,
-					partsize - POOL_HDR_SIZE);
+					partsize - Ut_mmap_align);
 		}
 
-		repsize -= (rep->nparts - 1) * POOL_HDR_SIZE;
+		repsize -= (rep->nparts - 1) * Ut_mmap_align;
 		UT_ASSERTeq(rep->repsize, repsize);
 		UT_ASSERTeq(rep->part[0].size, repsize);
 
@@ -168,7 +169,13 @@ main(int argc, char *argv[])
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {
+				/*
+				 * XXX: On Windows pool files are created with
+				 * R/W permissions, so no need for chmod().
+				 */
+#ifndef _WIN32
 				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
+#endif
 				poolset_info(fname, set, 0);
 				util_poolset_close(set, 0); /* do not delete */
 			}

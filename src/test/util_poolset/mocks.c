@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,35 +31,57 @@
  */
 
 /*
- * mocks_windows.c -- mocked libpmem ctor/dtor functions
- *
- * On Windows libpmem is statically linked to util_poolset test, but we
- * don't want its ctor to initialize 'out' module.
+ * mocks.c -- mocked functions used in util_poolset.c
  */
 
-#include "pmem.h"
-#include "util.h"
+#include "unittest.h"
 
-/*
- * libpmem_init -- load-time initialization for libpmem
- *
- * Called automatically by the run-time loader.
- */
-ATTR_CONSTRUCTOR
-void
-libpmem_init(void)
-{
-	pmem_init();
-}
+extern const char *Open_path;
+extern off_t Fallocate_len;
+extern size_t Is_pmem_len;
 
 /*
- * libpmem_fini -- libpmem cleanup routine
- *
- * Called automatically when the process terminates.
+ * open -- open mock
  */
-ATTR_DESTRUCTOR
-void
-libpmem_fini(void)
-{
-	/* nothing to do */
+FUNC_MOCK(open, int, const char *path, int flags, ...)
+FUNC_MOCK_RUN_DEFAULT {
+	if (strcmp(Open_path, path) == 0) {
+		UT_OUT("mocked open: %s", path);
+		errno = EACCES;
+		return -1;
+	}
+
+	va_list ap;
+	va_start(ap, flags);
+	int mode = va_arg(ap, int);
+	va_end(ap);
+
+	return _FUNC_REAL(open)(path, flags, mode);
 }
+FUNC_MOCK_END
+
+/*
+ * posix_fallocate -- posix_fallocate mock
+ */
+FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	if (Fallocate_len == len) {
+		UT_OUT("mocked fallocate: %ju", len);
+		return ENOSPC;
+	}
+	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+}
+FUNC_MOCK_END
+
+/*
+ * pmem_is_pmem -- pmem_is_pmem mock
+ */
+FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	if (Is_pmem_len == len) {
+		UT_OUT("mocked pmem_is_pmem: %zu", len);
+		return 1;
+	}
+	return _FUNC_REAL(pmem_is_pmem)(addr, len);
+}
+FUNC_MOCK_END

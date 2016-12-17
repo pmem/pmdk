@@ -31,35 +31,26 @@
  */
 
 /*
- * mocks_windows.c -- mocked libpmem ctor/dtor functions
+ * mocks_windows.h -- redefinitions of libc functions used in util_poolset
  *
- * On Windows libpmem is statically linked to util_poolset test, but we
- * don't want its ctor to initialize 'out' module.
+ * This file is Windows-specific.
+ *
+ * This file should be included (i.e. using Forced Include) by libpmem
+ * files, when compiled for the purpose of util_poolset test.
+ * It would replace default implementation with mocked functions defined
+ * in util_poolset.c.
+ *
+ * These defines could be also passed as preprocessor definitions.
  */
 
-#include "pmem.h"
-#include "util.h"
+#ifndef WRAP_REAL_OPEN
+#define open __wrap_open
+#endif
 
-/*
- * libpmem_init -- load-time initialization for libpmem
- *
- * Called automatically by the run-time loader.
- */
-ATTR_CONSTRUCTOR
-void
-libpmem_init(void)
-{
-	pmem_init();
-}
+#ifndef WRAP_REAL_FALLOCATE
+#define posix_fallocate __wrap_posix_fallocate
+#endif
 
-/*
- * libpmem_fini -- libpmem cleanup routine
- *
- * Called automatically when the process terminates.
- */
-ATTR_DESTRUCTOR
-void
-libpmem_fini(void)
-{
-	/* nothing to do */
-}
+#ifndef WRAP_REAL_PMEM
+#define pmem_is_pmem __wrap_pmem_is_pmem
+#endif
