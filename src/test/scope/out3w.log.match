@@ -1,0 +1,16 @@
+scope\TEST3:
+$(*)\libpmemblk.dll:
+DllMain
+pmemblk_bsize
+pmemblk_check
+pmemblk_check_version
+pmemblk_close
+pmemblk_create
+pmemblk_errormsg
+pmemblk_nblock
+pmemblk_open
+pmemblk_read
+pmemblk_set_error
+pmemblk_set_funcs
+pmemblk_set_zero
+pmemblk_write
