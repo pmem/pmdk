@@ -267,14 +267,18 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if ((flags & MAP_FIXED) != 0) {
 		/*
-		 * free any reservations that the caller might have, also we
+		 * Free any reservations that the caller might have, also we
 		 * have to unmap any existing mappings in this region as per
 		 * mmap's manual.
 		 * XXX - Ideally we should unmap only if the prot and flags
 		 * are similar, we are deferring it as we don't rely on it
 		 * yet.
 		 */
-		munmap(addr, len);
+		int ret = munmap(addr, len);
+		if (ret != 0) {
+			ERR("!munmap: addr %p len %zu", addr, len);
+			return MAP_FAILED;
+		}
 	}
 
 	/* XXX - MAP_NORESERVE */
@@ -360,6 +364,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 			addr = reserved_addr;
 			len = (size_t)filesize.QuadPart - offset;
+			len = roundup(len, Mmap_align);
 			if (mfree_reservation(reserved_addr, len) != 0) {
 				ASSERT(FALSE);
 				ERR("cannot free reserved region");
@@ -680,12 +685,12 @@ munmap(void *addr, size_t len)
 		next = SORTEDQ_NEXT(mt, ListEntry);
 
 		if (mt->BaseAddress >= end) {
-			LOG(3, "ignoring all mapped ranges beyond given range");
+			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
 
 		if (mt->EndAddress <= begin) {
-			LOG(3, "skipping a mapped range before given range");
+			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 
@@ -778,11 +783,11 @@ msync(void *addr, size_t len, int flags)
 	PFILE_MAPPING_TRACKER mt;
 	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
 		if (mt->BaseAddress >= end) {
-			LOG(3, "ignoring all mapped ranges beyond given range");
+			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
 		if (mt->EndAddress <= begin) {
-			LOG(3, "skipping a mapped range before given range");
+			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 
@@ -879,11 +884,11 @@ mprotect(void *addr, size_t len, int prot)
 	PFILE_MAPPING_TRACKER mt;
 	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
 		if (mt->BaseAddress >= end) {
-			LOG(3, "ignoring all mapped ranges beyond given range");
+			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
 		if (mt->EndAddress <= begin) {
-			LOG(3, "skipping a mapped range before given range");
+			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 

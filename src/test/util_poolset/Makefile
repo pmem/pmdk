@@ -34,7 +34,7 @@
 # src/test/util_poolset/Makefile -- build util_poolset unit test
 #
 TARGET = util_poolset
-OBJS = util_poolset.o mocks_linux.o
+OBJS = util_poolset.o mocks.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
@@ -42,4 +42,4 @@ LIBPMEM=y
 USE_PMEMSPOIL=y
 
 include ../Makefile.inc
-LDFLAGS += $(call extract_funcs, mocks_linux.c)
+LDFLAGS += $(call extract_funcs, mocks.c)

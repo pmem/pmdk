@@ -186,7 +186,6 @@ function create_file {
 # Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_holey_file {
-
     [int64]$size = (convert_to_bytes $args[0])
     # it causes CreateFile with CREATE_ALWAYS flag
     $mode = "-f"
@@ -335,9 +334,7 @@ function create_poolset {
         $asize = $fparms[3]
         $mode = $fparms[4]
 
-        if ($asize) {
-            $asize = $asize -replace ".{1}$"
-        } else {
+        if (-not $asize) {
             $asize = $fsize
         }
 
@@ -351,6 +348,7 @@ function create_poolset {
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4K $fpath }
         }
+
         # XXX: didn't convert chmod
         # if [ $mode ]; then
         #     chmod $mode $fpath
@@ -703,8 +701,9 @@ function remove_files {
 # check_file -- check if file exists and print error message if not
 #
 function check_file {
-    if (-Not (Test-Path $Args[0])) {
-        Write-Error "Missing File: " $Args[0]
+    sv -Name fname $Args[0]
+    if (-Not (Test-Path $fname)) {
+        Write-Error "Missing File: $fname"
         fail 1
     }
 }
@@ -804,7 +803,7 @@ function check_mode {
             return
         }
     }
-    if($read_only -eq $false) {
+    if ($read_only -eq $false) {
         Write-Error "error: wrong file mode"
         fail 1
     } else {
