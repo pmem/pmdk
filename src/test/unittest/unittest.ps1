@@ -142,14 +142,23 @@ function truncate {
         [Parameter(Mandatory = $true)][string]$fname
     )
 
-    [int64]$size_in_bytes = (convert_to_bytes $size)
-
     if (-Not (Test-Path $fname)) {
-        & $SPARSEFILE $fname $size_in_bytes
+        create_holey_file $size $fname
     } else {
+        [int64]$size_in_bytes = (convert_to_bytes $size)
         $file = new-object System.IO.FileStream $fname, Open, ReadWrite
+        $old_size = $file.Length
+
         $file.SetLength($size_in_bytes)
-        $file.Close()
+
+        if($NO_SPARSE -eq $true -and $size_in_bytes -gt $old_size) {
+            $size = $size_in_bytes - $old_size
+            $stream = new-object system.IO.StreamWriter($file, [System.Text.Encoding]::Ascii)
+            1..$size | %{ $stream.Write("0") }
+            $stream.close() # this close $file too
+        } else {
+            $file.close()
+        }
     }
 }
 
@@ -186,7 +195,10 @@ function create_file {
 # Input unit size is in bytes with optional suffixes like k, KB, M, etc.
 #
 function create_holey_file {
-
+     if($NO_SPARSE -eq $true) {
+        create_file @args
+        return
+     }
     [int64]$size = (convert_to_bytes $args[0])
     # it causes CreateFile with CREATE_ALWAYS flag
     $mode = "-f"
@@ -1091,6 +1103,13 @@ if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
 if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
+
+if (-Not $Env:NO_SPARSE) {
+    $NO_SPARSE = $false
+} else {
+    $NO_SPARSE = $Env:NO_SPARSE
+}
+
 $Env:EXESUFFIX = ".exe"
 
 if ($Env:EXE_DIR -eq $null) {
@@ -1173,6 +1192,9 @@ if ($DIR) {
         'pmem' { sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
                  if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                      $Env:PMEM_IS_PMEM_FORCE = "1"
+                 } else {
+                    # DAX on windows does not support sparsefiles
+                    $NO_SPARSE = $true
                  }
                }
         'non-pmem' { sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail) }
