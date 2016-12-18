@@ -149,23 +149,34 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 {
 	struct blk_args *ba = args->opts;
 	size_t lba;
-	char buff[args->dsize];
+	int ret = 0;
+	char *buff = calloc(1, args->dsize);
+	if (!buff) {
+		perror("calloc");
+		return -1;
+	}
+
 	for (lba = 0; lba < bb->nblocks; ++lba) {
 		if (ba->file_io) {
 			size_t off = lba * args->dsize;
 			if (pwrite(bb->fd, buff, args->dsize, off)
 					!= args->dsize) {
 				perror("pwrite");
-				return -1;
+				ret = -1;
+				goto out;
 			}
 		} else {
 			if (pmemblk_write(bb->pbp, buff, lba) < 0) {
 				perror("pmemblk_write");
-				return -1;
+				ret = -1;
+				goto out;
 			}
 		}
 	}
-	return 0;
+
+out:
+	free(buff);
+	return ret;
 }
 
 /*
