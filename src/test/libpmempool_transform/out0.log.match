@@ -3,7 +3,8 @@ TestOK111
 TestOK222
 libpmempool_transform$(nW)TEST0: START: libpmempool_transform
  $(nW)libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 0
-libpmempool_transform$(nW)TEST0: Done: result: 0, errno: 0
+result: 0, errno: 0
+libpmempool_transform$(nW)TEST0: Done
 TestOK111
 TestOK222
 Part file:

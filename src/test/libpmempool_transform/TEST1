@@ -104,7 +104,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 # Transform poolset
 FLAGS=0
 expect_normal_exit ./libpmempool_transform$EXESUFFIX \
-	$POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
+	$POOLSET_IN $POOLSET_OUT $FLAGS
 cat $LOG >> $LOG_TEMP
 
 # Check if correctly copied
