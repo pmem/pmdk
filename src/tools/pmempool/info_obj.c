@@ -888,8 +888,7 @@ info_obj_descriptor(struct pmem_info *pip)
 			pop->layout : "(null)";
 
 	/* address for checksum */
-	void *dscp = (void *)((uintptr_t)(&pop->hdr) +
-			sizeof(struct pool_hdr));
+	void *dscp = (void *)((uintptr_t)(pop) + sizeof(struct pool_hdr));
 
 	outv_field(v, "Layout", layout);
 	outv_field(v, "Lanes offset", "0x%lx", pop->lanes_offset);
