@@ -56,6 +56,7 @@ TOOLS=../tools
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
+[ "$CHECK_IF_ZEROED" ] || CHECK_IF_ZEROED=$TOOLS/check/check_if_zeroed
 
 # force globs to fail if they don't match
 shopt -s failglob

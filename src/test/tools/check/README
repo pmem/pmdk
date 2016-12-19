@@ -1,0 +1,12 @@
+Non-Volatile Memory Library
+
+This is src/test/tools/check/README.
+
+This directory contains a simple tool for checking if a part of a regular file
+or device dax is zeroed.
+
+It's used as a helper program by some unit tests.
+
+Usage:
+	$ check_if_zeroed <file> <length> [offset]
+
