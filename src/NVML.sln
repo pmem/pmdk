@@ -423,6 +423,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool", "test\blk_pool\b
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{95FAF291-03D1-42FC-9C10-424D551D475D}"
+	ProjectSection(SolutionItems) = preProject
+		common\common.rc = common\common.rc
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_movnt", "test\pmem_movnt\pmem_movnt.vcxproj", "{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}"
 EndProject
