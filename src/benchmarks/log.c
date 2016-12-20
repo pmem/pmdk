@@ -170,9 +170,9 @@ do_warmup(struct log_bench *lb, size_t nops)
 {
 	int ret = 0;
 	size_t bsize = lb->args->vec_size * lb->args->el_size;
-	char *buf = malloc(bsize);
+	char *buf = calloc(1, bsize);
 	if (!buf) {
-		perror("malloc");
+		perror("calloc");
 		return -1;
 	}
 
