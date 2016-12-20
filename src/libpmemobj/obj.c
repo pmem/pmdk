@@ -993,7 +993,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			/* mark unused part of the pool as not accessible */
 			void *end = palloc_heap_end(&pop->heap);
 			VALGRIND_DO_MAKE_MEM_NOACCESS(end,
-					(void *)pop + pop->size - end);
+					(char *)pop + pop->size - (char *)end);
 		}
 #endif
 

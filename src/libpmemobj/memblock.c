@@ -96,7 +96,7 @@ memblock_header_legacy_get_size(const struct memory_block *m)
 
 /*
  * memblock_header_legacy_get_size --
- * 	(internal) returns the size stored in a compact header
+ *	(internal) returns the size stored in a compact header
  */
 static size_t
 memblock_header_compact_get_size(const struct memory_block *m)
