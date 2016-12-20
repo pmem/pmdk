@@ -71,6 +71,31 @@ test_memcheck_bug()
 }
 
 static void
+test_memcheck_bug2()
+{
+#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
+	volatile char tmp[1000];
+
+	VALGRIND_CREATE_MEMPOOL(tmp, 0, 0);
+
+	VALGRIND_MEMPOOL_ALLOC(tmp, tmp + 128, 128);
+	VALGRIND_MEMPOOL_FREE(tmp, tmp + 128);
+
+	VALGRIND_MEMPOOL_ALLOC(tmp, tmp + 256, 128);
+	VALGRIND_MEMPOOL_FREE(tmp, tmp + 256);
+
+	/*
+	 * This should produce warning:
+	 * Address ... is 0 bytes inside a block of size 128 bytes free'd.
+	 * instead, it produces a warning:
+	 * Address ... is 0 bytes after a block of size 128 free'd
+	 */
+	int *data = (int *)(tmp + 256);
+	*data = 0x66;
+#endif
+}
+
+static void
 test_everything(const char *path)
 {
 	PMEMobjpool *pop = NULL;
@@ -167,6 +192,8 @@ main(int argc, char *argv[])
 		test_everything(argv[2]);
 	} else
 		usage(argv[0]);
+
+	test_memcheck_bug2();
 
 	DONE(NULL);
 }
