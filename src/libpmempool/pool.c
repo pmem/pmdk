@@ -712,7 +712,7 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 
 	if (pool_btt_lseek(pool, 0, SEEK_SET) == -1) {
 		result = -1;
-		goto out_unmap;
+		goto out_free;
 	}
 	ssize_t buf_read = 0;
 	void *dst = daddr;
@@ -724,12 +724,12 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 		dst  = (void *)((ssize_t)dst + buf_read);
 	}
 
+out_free:
 	free(buf);
 out_unmap:
 	munmap(daddr, file->size);
 out_close:
-	if (dfd >= 0)
-		close(dfd);
+	(void) close(dfd);
 	return result;
 }
 
