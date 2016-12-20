@@ -65,11 +65,11 @@ $(OPT)==$(N)==  Address 0x$(X) is in a rw- mapped file $(nW) segment
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
+==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 $(OPT)==$(N)==  Block was alloc'd at
@@ -88,11 +88,11 @@ $(OPT)==$(N)==    by 0x$(X): pmemops_persist $(*)
 $(OPT)==$(N)==    by 0x$(X): pmemobj_persist $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is 0 bytes inside a block of size $(N) free'd
+==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 $(OPT)==$(N)==  Block was alloc'd at
@@ -146,6 +146,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
+==$(N)== Invalid write of size $(N)
+==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
+==$(N)==    by 0x$(X): main $(*)
+==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
+==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
+==$(N)==    by 0x$(X): main $(*)
+==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
 ==$(N)==     in use at exit: 0 bytes in 0 blocks
@@ -155,4 +162,4 @@ $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== Use --track-origins=yes to see where uninitialised values come from
-==$(N)== ERROR SUMMARY: 9 errors from 9 contexts (suppressed: $(N) from $(N))
+==$(N)== ERROR SUMMARY: 10 errors from 10 contexts (suppressed: $(N) from $(N))
