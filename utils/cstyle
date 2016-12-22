@@ -120,7 +120,7 @@ if ($doxygen_comments) {
 
 # Note, following must be in single quotes so that \s and \w work right.
 my $typename = '(int|char|short|long|unsigned|float|double' .
-    '|\w+_t|struct\s+\w+|union\s+\w+|FILE)';
+    '|\w+_t|struct\s+\w+|union\s+\w+|FILE|BOOL)';
 
 # mapping of old types to POSIX compatible types
 my %old2posix = (
@@ -605,6 +605,7 @@ line: while (<$filehandle>) {
 		# or "typedef void (func_t)();"
 		s/\w\s\(+\*/XXX(*/g;
 		s/\b($typename|void)\s+\(+/XXX(/og;
+		s/\btypedef\s($typename|void)\s+\(+/XXX(/og;
 		if (/\w\s\(/) {
 			err("extra space between function name and left paren");
 		}
