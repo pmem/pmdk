@@ -72,12 +72,8 @@ create_poolset $DIR/testset9 256K:$DIR/testfile91:z:256K `
     512K:$DIR/testfile92:z:256K # fail - part2 size doesn't match
 create_poolset $DIR/testset10 256K:$DIR/testfile101:z:262144B `
     256K:$DIR/testfile102:z:262145B # fail - part2 size doesn't match
-
-# XXX: problem with mapping files with length non-aligned to 64K
-#create_poolset $DIR/testset11 262145B:$DIR/testfile111:z:262145B `
-#    266239B:$DIR/testfile112:z:266239B 266240B:$DIR/testfile113:z:266240B # pass
-create_poolset $DIR/testset11 256K:$DIR/testfile111:z:256K `
-    256K:$DIR/testfile112:z:256K 266240B:$DIR/testfile113:z:266240B # pass
+create_poolset $DIR/testset11 262145B:$DIR/testfile111:z:262145B `
+    327679B:$DIR/testfile112:z:327679B 327680B:$DIR/testfile113:z:327680B # pass
 
 
 expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
