@@ -91,11 +91,7 @@ create_poolset $DIR/testset16 262143B:$DIR/testfile161:z:262143B `
     256K:$DIR/testfile162:z:256K # fail - part1 too small
 create_poolset $DIR/testset17 262145B:$DIR/testfile171:z `
     266239B:$DIR/testfile172:z 266240B:$DIR/testfile173:z # pass
-
-# XXX: problem with mapping files with length non-aligned to 64K
-#create_poolset $DIR/testset18 259K:$DIR/subdir1/testfile181:z `
-#    257K:$DIR/subdir2/testfile182:z # pass
-create_poolset $DIR/testset18 320K:$DIR/subdir1/testfile181:z `
+create_poolset $DIR/testset18 259K:$DIR/subdir1/testfile181:z `
     257K:$DIR/subdir2/testfile182:z # pass
 
 # mixed (some files exist, some don't)
