@@ -62,6 +62,9 @@
 #include "out.h"
 #include "win_mmap.h"
 
+/* uncomment for more debug information on mmap trackers */
+/* #define MMAP_DEBUG_INFO */
+
 NTSTATUS
 NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
 	_Inout_ PSIZE_T RegionSize, _In_ ULONG FreeType);
@@ -131,6 +134,110 @@ mmap_file_mapping_comparer(PFILE_MAPPING_TRACKER a, PFILE_MAPPING_TRACKER b)
 	return ((LONG_PTR)a->BaseAddress - (LONG_PTR)b->BaseAddress);
 }
 
+#ifdef MMAP_DEBUG_INFO
+/*
+ * mmap_info -- (internal) dump info about all the maping trackers
+ */
+static void
+mmap_info(void)
+{
+	LOG(4, NULL);
+
+	WaitForSingleObject(FileMappingQMutex, INFINITE);
+
+	PFILE_MAPPING_TRACKER mt;
+	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
+		mt != (void *)&FileMappingQHead;
+		mt = SORTEDQ_NEXT(mt, ListEntry)) {
+
+		LOG(4, "FH %08x FMH %08x AD %p-%p (%zu) "
+			"OF %08x FL %zu AC %d F %d",
+			mt->FileHandle,
+			mt->FileMappingHandle,
+			mt->BaseAddress,
+			mt->EndAddress,
+			(char *)mt->EndAddress - (char *)mt->BaseAddress,
+			mt->Offset,
+			mt->FileLen,
+			mt->Access,
+			mt->Flags);
+	}
+
+	ReleaseMutex(FileMappingQMutex);
+}
+#endif
+
+/*
+ * mmap_reserve -- (internal) reserve virtual address range
+ */
+static void *
+mmap_reserve(void *addr, size_t len)
+{
+	LOG(4, "addr %p len %zu", addr, len);
+
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq(len % Mmap_align, 0);
+
+	void *reserved_addr = VirtualAlloc(addr, len,
+				MEM_RESERVE, PAGE_NOACCESS);
+	if (reserved_addr == NULL) {
+		ERR("cannot find a contiguous region - "
+			"addr: %p, len: %lx, gle: 0x%08x",
+			addr, len, GetLastError());
+		errno = ENOMEM;
+		return MAP_FAILED;
+	}
+
+	return reserved_addr;
+}
+
+/*
+ * mmap_unreserve -- (internal) frees the range that's previously reserved
+ */
+static int
+mmap_unreserve(void *addr, size_t len)
+{
+	LOG(4, "addr %p len %zu", addr, len);
+
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq(len % Mmap_align, 0);
+
+	size_t bytes_returned;
+	MEMORY_BASIC_INFORMATION basic_info;
+
+	bytes_returned = VirtualQuery(addr, &basic_info, sizeof(basic_info));
+
+	if (bytes_returned != sizeof(basic_info)) {
+		ERR("cannot query the virtual address properties of the range "
+			"- addr: %p, len: %d", addr, len);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (basic_info.State == MEM_RESERVE) {
+		DWORD nt_status;
+		void *release_addr = addr;
+		size_t release_size = len;
+		nt_status = NtFreeVirtualMemory(GetCurrentProcess(),
+			&release_addr, &release_size, MEM_RELEASE);
+		if (nt_status != 0) {
+			ERR("cannot release the reserved virtual space - "
+				"addr: %p, len: %d, nt_status: 0x%08x",
+				addr, len, nt_status);
+			errno = EINVAL;
+			return -1;
+		}
+		ASSERTeq(release_addr, addr);
+		ASSERTeq(release_size, len);
+		LOG(4, "freed reservation - addr: %p, size: %d", release_addr,
+			release_size);
+	} else {
+		LOG(4, "range not reserved - addr: %p, size: %d", addr, len);
+	}
+
+	return 0;
+}
+
 /*
  * mmap_init -- (internal) load-time initialization of file mapping tracker
  *
@@ -195,6 +302,11 @@ mmap_fini(void)
 		if (mt->BaseAddress != NULL)
 			UnmapViewOfFile(mt->BaseAddress);
 
+		size_t release_size =
+			(char *)mt->EndAddress - (char *)mt->BaseAddress;
+		void *release_addr = (char *)mt->BaseAddress + release_size;
+		mmap_unreserve(release_addr, release_size);
+
 		if (mt->FileMappingHandle != NULL)
 			CloseHandle(mt->FileMappingHandle);
 
@@ -212,51 +324,6 @@ mmap_fini(void)
 #define PROT_ALL (PROT_READ|PROT_WRITE|PROT_EXEC)
 
 /*
- * mfree_reservation -- (internal) frees the range that's previously reserved
- */
-static int
-mfree_reservation(void *addr, size_t len)
-{
-	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
-	ASSERTeq(len % Mmap_align, 0);
-
-	size_t bytes_returned;
-	MEMORY_BASIC_INFORMATION basic_info;
-
-	bytes_returned = VirtualQuery(addr, &basic_info, sizeof(basic_info));
-
-	if (bytes_returned != sizeof(basic_info)) {
-		ERR("cannot query the virtual address properties of the range "
-			"- addr: %p, len: %d", addr, len);
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (basic_info.State == MEM_RESERVE) {
-		DWORD nt_status;
-		void *release_addr = addr;
-		size_t release_size = len;
-		nt_status = NtFreeVirtualMemory(GetCurrentProcess(),
-			&release_addr, &release_size, MEM_RELEASE);
-		if (nt_status != 0) {
-			ERR("cannot release the reserved virtual space - "
-				"addr: %p, len: %d, nt_status: 0x%08x",
-				addr, len, nt_status);
-			errno = EINVAL;
-			return -1;
-		}
-		ASSERTeq(release_addr, addr);
-		ASSERTeq(release_size, len);
-		LOG(4, "freed reservation - addr: %p, size: %d", release_addr,
-			release_size);
-	} else {
-		LOG(4, "range not reserved - addr: %p, size: %d", addr, len);
-	}
-
-	return 0;
-}
-
-/*
  * mmap -- map file into memory
  *
  * XXX - If read-only mapping was created initially, it is not possible
@@ -268,6 +335,9 @@ mfree_reservation(void *addr, size_t len)
 void *
 mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
+	LOG(4, "addr %p len %zu prot %d flags %d fd %d offset %ju",
+		addr, len, prot, flags, fd, offset);
+
 	if (len == 0) {
 		ERR("invalid length: %zu", len);
 		errno = EINVAL;
@@ -332,6 +402,12 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		}
 	}
 
+	if ((offset % Mmap_align) != 0) {
+		ERR("offset is not well-aligned: %ju", offset);
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
 	if ((flags & MAP_FIXED) != 0) {
 		/*
 		 * Free any reservations that the caller might have, also we
@@ -350,16 +426,21 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	/* XXX - MAP_NORESERVE */
 
+	size_t len_align = roundup(len, Mmap_align);
+	size_t filelen;
+	size_t filelen_align;
 	HANDLE fh;
 	if (flags & MAP_ANON) {
 		/*
-		 * in our implementation we are choosing to ignore fd when
+		 * In our implementation we are choosing to ignore fd when
 		 * MAP_ANON is set, instead of failing.
 		 */
 		fh = INVALID_HANDLE_VALUE;
 
 		/* ignore/override offset */
 		offset = 0;
+		filelen = len;
+		filelen_align = len_align;
 	} else {
 		LARGE_INTEGER filesize;
 
@@ -394,34 +475,31 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			return MAP_FAILED;
 		}
 
-		if (offset > (off_t)filesize.QuadPart) {
+		if (offset >= (off_t)filesize.QuadPart) {
 			errno = EINVAL;
 			ERR("offset is beyond the file size");
 			return MAP_FAILED;
 		}
 
+		/* calculate length of the mapped portion of the file */
+		filelen = filesize.QuadPart - offset;
+		if (filelen > len)
+			filelen = len;
+		filelen_align = roundup(filelen, Mmap_align);
+
 		if ((offset + len) > (size_t)filesize.QuadPart) {
 			/*
-			 * reserve virtual address for the rest of range we need
+			 * Reserve virtual address for the rest of range we need
 			 * to map, and free a portion in the beginning for this
-			 * allocation
+			 * allocation.
 			 */
-			void *reserved_addr = VirtualAlloc(addr, len,
-						MEM_RESERVE, PAGE_NOACCESS);
-			if (reserved_addr == NULL) {
-				ERR("cannot find a contiguous region - "
-					"addr: %p, len: %lx, gle: 0x%08x",
-					addr, len, GetLastError());
-				errno = ENOMEM;
-				return MAP_FAILED;
-			}
-
+			void *reserved_addr = mmap_reserve(addr, len_align);
 			if (addr != NULL && addr != reserved_addr &&
-				(flags & MAP_FIXED) != 0) {
+					(flags & MAP_FIXED) != 0) {
 				ERR("cannot find a contiguous region - "
 					"addr: %p, len: %lx, gle: 0x%08x",
 					addr, len, GetLastError());
-				if (mfree_reservation(reserved_addr, 0) != 0) {
+				if (mmap_unreserve(reserved_addr, 0) != 0) {
 					ASSERT(FALSE);
 					ERR("cannot free reserved region");
 				}
@@ -430,9 +508,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			}
 
 			addr = reserved_addr;
-			len = (size_t)filesize.QuadPart - offset;
-			len = roundup(len, Mmap_align);
-			if (mfree_reservation(reserved_addr, len) != 0) {
+			if (mmap_unreserve(reserved_addr, filelen_align) != 0) {
 				ASSERT(FALSE);
 				ERR("cannot free reserved region");
 				return MAP_FAILED;
@@ -443,8 +519,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	HANDLE fmh = CreateFileMapping(fh,
 			NULL, /* security attributes */
 			protect,
-			(DWORD) ((len + offset) >> 32),
-			(DWORD) ((len + offset) & 0xFFFFFFFF),
+			(DWORD) ((filelen + offset) >> 32),
+			(DWORD) ((filelen + offset) & 0xFFFFFFFF),
 			NULL);
 
 	if (fmh == NULL) {
@@ -461,7 +537,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			access,
 			(DWORD) (offset >> 32),
 			(DWORD) (offset & 0xFFFFFFFF),
-			len,
+			filelen,
 			addr); /* hint address */
 
 	if (base == NULL) {
@@ -477,7 +553,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 				access,
 				(DWORD) (offset >> 32),
 				(DWORD) (offset & 0xFFFFFFFF),
-				len,
+				filelen,
 				NULL); /* no hint address */
 	}
 
@@ -506,9 +582,10 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	mt->FileHandle = fh;
 	mt->FileMappingHandle = fmh;
 	mt->BaseAddress = base;
-	mt->EndAddress = (void *)((char *)base + roundup(len, Mmap_align));
+	mt->EndAddress = (void *)((char *)base + len_align);
 	mt->Access = access;
 	mt->Offset = offset;
+	mt->FileLen = filelen_align;
 
 	/*
 	 * XXX: Use the QueryVirtualMemoryInformation when available in the new
@@ -516,8 +593,10 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 	 * Flags.
 	 */
 	DWORD filesystemFlags;
-	if (GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
-			&filesystemFlags, NULL, 0)) {
+	if (fh == INVALID_HANDLE_VALUE) {
+		LOG(4, "anonymous mapping - not DAX mapped - handle: %p", fh);
+	} else if (GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
+				&filesystemFlags, NULL, 0)) {
 		if (filesystemFlags & FILE_DAX_VOLUME) {
 			mt->Flags |= FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED;
 		} else {
@@ -539,6 +618,10 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	UnlockFileMappingQ();
 
+#ifdef MMAP_DEBUG_INFO
+	mmap_info();
+#endif
+
 	return base;
 }
 
@@ -551,6 +634,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 static int
 mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 {
+	LOG(4, "begin %p end %p", begin, end);
+
 	ASSERTeq((uintptr_t)begin % Mmap_align, 0);
 	ASSERTeq((uintptr_t)end % Mmap_align, 0);
 
@@ -594,6 +679,9 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		mtb->EndAddress = begin;
 		mtb->Access = mt->Access;
 		mtb->Offset = mt->Offset;
+
+		size_t len = (char *)begin - (char *)mt->BaseAddress;
+		mtb->FileLen = len >= mt->FileLen ? mt->FileLen : len;
 	}
 
 	if (end < mt->EndAddress) {
@@ -639,11 +727,20 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		mte->Access = mt->Access;
 		mte->Offset = mt->Offset +
 			((char *)mte->BaseAddress - (char *)mt->BaseAddress);
+
+		size_t len = (char *)end - (char *)mt->BaseAddress;
+		mte->FileLen = len >= mt->FileLen ? 0 : mt->FileLen - len;
 	}
 
-	if (UnmapViewOfFile(mt->BaseAddress) == FALSE) {
+	if (mt->FileLen > 0 && UnmapViewOfFile(mt->BaseAddress) == FALSE) {
 		ERR("UnmapViewOfFile, gle: 0x%08x", GetLastError());
 		goto err;
+	}
+
+	size_t len = (char *)mt->EndAddress - (char *)mt->BaseAddress;
+	if (len > mt->FileLen) {
+		void *addr = (char *)mt->BaseAddress + mt->FileLen;
+		mmap_unreserve(addr, len - mt->FileLen);
 	}
 
 	if (!mtb && !mte) {
@@ -659,16 +756,31 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	free(mt);
 
 	if (mtb) {
-		void *base = MapViewOfFileEx(mtb->FileMappingHandle,
-			mtb->Access,
-			(DWORD) (mtb->Offset >> 32),
-			(DWORD) (mtb->Offset & 0xFFFFFFFF),
-			(char *)mtb->EndAddress - (char *)mtb->BaseAddress,
-			mtb->BaseAddress); /* hint address */
+		size_t len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		if (len > mtb->FileLen) {
+			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
+			void *raddr = mmap_reserve(addr, len - mtb->FileLen);
+			if (raddr == MAP_FAILED) {
+				ERR("cannot find a contiguous region - "
+					"addr: %p, len: %lx, gle: 0x%08x",
+					addr, len, GetLastError());
+				goto err;
+			}
+		}
 
-		if (base == NULL) {
-			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
-			goto err;
+		if (mtb->FileLen > 0) {
+			void *base = MapViewOfFileEx(mtb->FileMappingHandle,
+				mtb->Access,
+				(DWORD) (mtb->Offset >> 32),
+				(DWORD) (mtb->Offset & 0xFFFFFFFF),
+				mtb->FileLen,
+				mtb->BaseAddress); /* hint address */
+
+			if (base == NULL) {
+				ERR("MapViewOfFileEx, gle: 0x%08x",
+						GetLastError());
+				goto err;
+			}
 		}
 
 		SORTEDQ_INSERT(&FileMappingQHead, mtb, ListEntry,
@@ -676,16 +788,31 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	}
 
 	if (mte) {
-		void *base = MapViewOfFileEx(mte->FileMappingHandle,
-			mte->Access,
-			(DWORD) (mte->Offset >> 32),
-			(DWORD) (mte->Offset & 0xFFFFFFFF),
-			(char *)mte->EndAddress - (char *)mte->BaseAddress,
-			mte->BaseAddress); /* hint address */
+		size_t len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		if (len > mte->FileLen) {
+			void *addr = (char *)mte->BaseAddress + mte->FileLen;
+			void *raddr = mmap_reserve(addr, len - mte->FileLen);
+			if (raddr == MAP_FAILED) {
+				ERR("cannot find a contiguous region - "
+					"addr: %p, len: %lx, gle: 0x%08x",
+					addr, len, GetLastError());
+				goto err;
+			}
+		}
 
-		if (base == NULL) {
-			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
-			goto err_mte;
+		if (mte->FileLen > 0) {
+			void *base = MapViewOfFileEx(mte->FileMappingHandle,
+				mte->Access,
+				(DWORD) (mte->Offset >> 32),
+				(DWORD) (mte->Offset & 0xFFFFFFFF),
+				mte->FileLen,
+				mte->BaseAddress); /* hint address */
+
+			if (base == NULL) {
+				ERR("MapViewOfFileEx, gle: 0x%08x",
+						GetLastError());
+				goto err_mte;
+			}
 		}
 
 		SORTEDQ_INSERT(&FileMappingQHead, mte, ListEntry,
@@ -700,6 +827,12 @@ err:
 		ASSERTeq(mtb->FileHandle, fh);
 		CloseHandle(mtb->FileMappingHandle);
 		CloseHandle(mtb->FileHandle);
+
+		size_t len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		if (len > mtb->FileLen) {
+			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
+			mmap_unreserve(addr, len - mtb->FileLen);
+		}
 	}
 
 err_mte:
@@ -708,6 +841,12 @@ err_mte:
 			CloseHandle(mte->FileMappingHandle);
 		if (mte->FileHandle)
 			CloseHandle(mte->FileHandle);
+
+		size_t len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		if (len > mte->FileLen) {
+			void *addr = (char *)mte->BaseAddress + mte->FileLen;
+			mmap_unreserve(addr, len - mte->FileLen);
+		}
 	}
 
 	free(mtb);
@@ -721,6 +860,8 @@ err_mte:
 int
 munmap(void *addr, size_t len)
 {
+	LOG(4, "addr %p len %zu", addr, len);
+
 	if (((uintptr_t)addr % Mmap_align) != 0) {
 		ERR("address is not well-aligned: %p", addr);
 		errno = EINVAL;
@@ -756,7 +897,7 @@ munmap(void *addr, size_t len)
 		mt = next) {
 
 		/*
-		 * pick the next entry before we split there by delete the
+		 * Pick the next entry before we split there by delete the
 		 * this one (NOTE: mmap_spilt could delete this entry).
 		 */
 		next = SORTEDQ_NEXT(mt, ListEntry);
@@ -784,18 +925,23 @@ munmap(void *addr, size_t len)
 			goto err;
 		}
 
-		len -= len2;
+		if (len > len2) {
+			len -= len2;
+		} else {
+			len = 0;
+			break;
+		}
 	}
 
 	/*
-	 * if we didn't find any mapped regions in our list attempt to free
+	 * If we didn't find any mapped regions in our list attempt to free
 	 * as if the entire range is reserved.
 	 *
-	 * XXX: we don't handle a range having few mapped regions and few
-	 * reserved regions
+	 * XXX: We don't handle a range having few mapped regions and few
+	 * reserved regions.
 	 */
 	if (len > 0)
-		mfree_reservation(addr, roundup(len, Mmap_align));
+		mmap_unreserve(addr, roundup(len, Mmap_align));
 
 	retval = 0;
 
@@ -804,6 +950,10 @@ err:
 
 	if (retval == -1)
 		errno = EINVAL;
+
+#ifdef MMAP_DEBUG_INFO
+	mmap_info();
+#endif
 
 	return retval;
 }
@@ -816,6 +966,8 @@ err:
 int
 msync(void *addr, size_t len, int flags)
 {
+	LOG(4, "addr %p len %zu flags %d", addr, len, flags);
+
 	if ((flags & ~MS_ALL) != 0) {
 		ERR("invalid flags: 0x%08x", flags);
 		errno = EINVAL;
@@ -880,7 +1032,7 @@ msync(void *addr, size_t len, int flags)
 		size_t len2 = (char *)end2 - (char *)begin2;
 
 		/* do nothing for anonymous mappings */
-		if (mt->FileHandle != (HANDLE)-1) {
+		if (mt->FileHandle != INVALID_HANDLE_VALUE) {
 			if (FlushViewOfFile(begin2, len2) == FALSE) {
 				ERR("FlushViewOfFile, gle: 0x%08x",
 					GetLastError());
@@ -896,7 +1048,12 @@ msync(void *addr, size_t len, int flags)
 			}
 		}
 
-		len -= len2;
+		if (len > len2) {
+			len -= len2;
+		} else {
+			len = 0;
+			break;
+		}
 	}
 
 	if (len > 0) {
@@ -925,6 +1082,8 @@ err:
 int
 mprotect(void *addr, size_t len, int prot)
 {
+	LOG(4, "addr %p len %zu prot %d", addr, len, prot);
+
 	if (((uintptr_t)addr % Pagesize) != 0) {
 		ERR("address is not page-aligned: %p", addr);
 		errno = EINVAL;
@@ -1020,7 +1179,12 @@ mprotect(void *addr, size_t len, int prot)
 			goto err;
 		}
 
-		len -= len2;
+		if (len > len2) {
+			len -= len2;
+		} else {
+			len = 0;
+			break;
+		}
 	}
 
 	if (len > 0) {
