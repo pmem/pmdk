@@ -40,18 +40,17 @@
 #include "libpmemobj.h"
 
 #define LAYOUT_NAME "obj_locks"
-#define NUM_LOCKS 5
-#define NUM_THREADS 15
-#define MAX_FUNC 8
+#define NUM_THREADS 16
+#define MAX_FUNC 5
 
 TOID_DECLARE(struct locks, 0);
 
 struct locks {
 	PMEMobjpool *pop;
-	PMEMmutex mtx[NUM_LOCKS];
-	PMEMrwlock rwlk[NUM_LOCKS];
-	PMEMcond cond[NUM_LOCKS];
-	int data[NUM_LOCKS];
+	PMEMmutex mtx;
+	PMEMrwlock rwlk;
+	PMEMcond cond;
+	int data;
 };
 
 struct thread_args {
@@ -64,104 +63,43 @@ typedef void *(*fn_lock)(void *arg);
 struct thread_args threads[NUM_THREADS];
 
 /*
- * do_mutex_lock_one -- lock and unlock all mutexes sequentially
+ * do_mutex_lock -- lock and unlock the mutex
  */
 static void *
-do_mutex_lock_one(void *arg)
+do_mutex_lock(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-		lock->data[i]++;
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-	}
+	pmemobj_mutex_lock(lock->pop, &lock->mtx);
+	lock->data++;
+	pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	return NULL;
 }
 
 /*
- * do_mutex_lock_all -- lock and unlock all mutexes at one time
+ * do_rwlock_wrlock -- lock and unlock the write rwlock
  */
 static void *
-do_mutex_lock_all(void *arg)
+do_rwlock_wrlock(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-		lock->data[i]++;
-	}
-
-	for (int i = 0; i < NUM_LOCKS; i++)
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-
+	pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk);
+	lock->data++;
+	pmemobj_rwlock_unlock(lock->pop, &lock->rwlk);
 	return NULL;
 }
 
 /*
- * do_rwlock_wrlock_one -- lock and unlock all write rwlocks sequentially
+ * do_rwlock_rdlock -- lock and unlock the read rwlock
  */
 static void *
-do_rwlock_wrlock_one(void *arg)
+do_rwlock_rdlock(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk[i]);
-		lock->data[i]++;
-		pmemobj_rwlock_unlock(lock->pop, &lock->rwlk[i]);
-	}
-	return NULL;
-}
-
-/*
- * do_rwlock_wrlock_all -- lock and unlock all write rwlocks at one time
- */
-static void *
-do_rwlock_wrlock_all(void *arg)
-{
-	struct thread_args *t = (struct thread_args *)arg;
-	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk[i]);
-		lock->data[i]++;
-	}
-
-	for (int i = 0; i < NUM_LOCKS; i++)
-		pmemobj_rwlock_unlock(lock->pop, &lock->rwlk[i]);
-
-	return NULL;
-}
-
-/*
- * do_rwlock_rdlock_one -- lock and unlock all read rwlocks sequentially
- */
-static void *
-do_rwlock_rdlock_one(void *arg)
-{
-	struct thread_args *t = (struct thread_args *)arg;
-	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_rwlock_rdlock(lock->pop, &lock->rwlk[i]);
-		pmemobj_rwlock_unlock(lock->pop, &lock->rwlk[i]);
-	}
-	return NULL;
-}
-
-/*
- * do_rwlock_rdlock_all -- lock and unlock all read rwlocks at one time
- */
-static void *
-do_rwlock_rdlock_all(void *arg)
-{
-	struct thread_args *t = (struct thread_args *)arg;
-	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS; i++)
-		pmemobj_rwlock_rdlock(lock->pop, &lock->rwlk[i]);
-
-	for (int i = 0; i < NUM_LOCKS; i++)
-		pmemobj_rwlock_unlock(lock->pop, &lock->rwlk[i]);
-
+	pmemobj_rwlock_rdlock(lock->pop, &lock->rwlk);
+	pmemobj_rwlock_unlock(lock->pop, &lock->rwlk);
 	return NULL;
 }
 
@@ -174,33 +112,18 @@ do_cond_signal(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	if (t->t_id % 2 != 0) {
-		for (int i = 0; i < NUM_LOCKS; i++) {
-			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-			pmemobj_cond_wait(lock->pop, &lock->cond[i],
-								&lock->mtx[i]);
-			lock->data[i]++;
-			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-		}
+	if (t->t_id == 0) {
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		while (lock->data < (NUM_THREADS - 1))
+			pmemobj_cond_wait(lock->pop, &lock->cond,
+							&lock->mtx);
+		lock->data++;
+		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	} else {
-		for (int i = 0; i < NUM_LOCKS; i++) {
-			while (1) {
-				pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-				pmemobj_cond_signal(lock->pop, &lock->cond[i]);
-
-				/*
-				 * If there are all threads with unpaired
-				 * indexes unblocked there is no need to
-				 * send signal
-				 */
-				if (lock->data[i] >= NUM_THREADS / 2)
-					break;
-
-				pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-			}
-			lock->data[i]++;
-			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-		}
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		lock->data++;
+		pmemobj_cond_signal(lock->pop, &lock->cond);
+		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
 
 	return NULL;
@@ -215,40 +138,26 @@ do_cond_broadcast(void *arg)
 {
 	struct thread_args *t = (struct thread_args *)arg;
 	struct locks *lock = D_RW(t->lock);
-	for (int i = 0; i < NUM_LOCKS && t->t_id != 0; i++) {
-		pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-		pmemobj_cond_wait(lock->pop, &lock->cond[i],
-							&lock->mtx[i]);
-		lock->data[i]++;
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-	}
-
-
-	for (int i = 0; i < NUM_LOCKS && t->t_id == 0; i++) {
-		while (1) {
-			pmemobj_mutex_lock(lock->pop, &lock->mtx[i]);
-			pmemobj_cond_broadcast(lock->pop, &lock->cond[i]);
-
-			/*
-			 * If there are all threads, besides first one,
-			 * unblocked there is no need to send signal
-			 */
-			if (lock->data[i] >= NUM_THREADS - 1)
-				break;
-
-			pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
-		}
-		lock->data[i]++;
-		pmemobj_mutex_unlock(lock->pop, &lock->mtx[i]);
+	if (t->t_id < (NUM_THREADS / 2)) {
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		while (lock->data < (NUM_THREADS / 2))
+			pmemobj_cond_wait(lock->pop, &lock->cond,
+							&lock->mtx);
+		lock->data++;
+		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
+	} else {
+		pmemobj_mutex_lock(lock->pop, &lock->mtx);
+		lock->data++;
+		pmemobj_cond_broadcast(lock->pop, &lock->cond);
+		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
 
 	return NULL;
 }
 
-fn_lock do_lock[MAX_FUNC] = {do_mutex_lock_one, do_mutex_lock_all,
-				do_rwlock_wrlock_one, do_rwlock_wrlock_all,
-				do_rwlock_rdlock_one, do_rwlock_rdlock_all,
-				do_cond_signal, do_cond_broadcast};
+fn_lock do_lock[MAX_FUNC] = {do_mutex_lock, do_rwlock_wrlock,
+				do_rwlock_rdlock, do_cond_signal,
+				do_cond_broadcast};
 
 /*
  * do_lock_init -- initialize all types of locks
@@ -256,11 +165,9 @@ fn_lock do_lock[MAX_FUNC] = {do_mutex_lock_one, do_mutex_lock_all,
 static void
 do_lock_init(struct locks *lock)
 {
-	for (int i = 0; i < NUM_LOCKS; i++) {
-		pmemobj_mutex_zero(lock->pop, &lock->mtx[i]);
-		pmemobj_rwlock_zero(lock->pop, &lock->rwlk[i]);
-		pmemobj_cond_zero(lock->pop, &lock->cond[i]);
-	}
+	pmemobj_mutex_zero(lock->pop, &lock->mtx);
+	pmemobj_rwlock_zero(lock->pop, &lock->rwlk);
+	pmemobj_cond_zero(lock->pop, &lock->cond);
 }
 
 /*
@@ -269,7 +176,7 @@ do_lock_init(struct locks *lock)
 static void
 do_lock_mt(TOID(struct locks) lock, unsigned f_num)
 {
-	memset(D_RW(lock)->data, 0, sizeof(int) * NUM_LOCKS);
+	D_RW(lock)->data = 0;
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		threads[i].lock = lock;
 		threads[i].t_id = i;
@@ -284,9 +191,8 @@ do_lock_mt(TOID(struct locks) lock, unsigned f_num)
 	 * should be every element in data array incremented exactly one time
 	 * by every thread.
 	 */
-	for (int i = 0; i < NUM_LOCKS; i++)
-		UT_ASSERT((D_RO(lock)->data[i] == NUM_THREADS) ||
-						(D_RO(lock)->data[i] == 0));
+	UT_ASSERT((D_RO(lock)->data == NUM_THREADS) ||
+					(D_RO(lock)->data == 0));
 }
 
 int
