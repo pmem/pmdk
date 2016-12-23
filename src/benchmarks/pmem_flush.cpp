@@ -425,7 +425,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 				  MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->nondirty_addr == MAP_FAILED) {
-		perror("pmem_map1");
+		perror("mmap(1)");
 		goto err_unmap1;
 	}
 
@@ -433,7 +433,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 				 MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->invalid_addr == MAP_FAILED) {
-		perror("pmem_map2");
+		perror("mmap(2)");
 		goto err_unmap2;
 	}
 	munmap(pmb->invalid_addr, pmb->fsize);

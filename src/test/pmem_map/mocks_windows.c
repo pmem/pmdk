@@ -31,7 +31,8 @@
  */
 
 /*
- * mocks_windows.c -- mocked functions used in pmem_map.c (Windows-specific)
+ * mocks_windows.c -- mocked functions used in pmem_map_file.c
+ *                    (Windows-specific)
  */
 
 #include "unittest.h"

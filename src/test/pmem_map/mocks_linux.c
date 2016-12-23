@@ -31,7 +31,7 @@
  */
 
 /*
- * mocks_linux.c -- mocked functions used in pmem_map.c (Linux-specific)
+ * mocks_linux.c -- mocked functions used in pmem_map_file.c (Linux-specific)
  */
 
 #define _GNU_SOURCE

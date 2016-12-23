@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/pmem_map/TEST0 -- unit test for pmem_map
+# src/test/pmem_map_file/TEST0 -- unit test for pmem_map_file
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_map\TEST0"
+$Env:UNITTEST_NAME = "pmem_map_file\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -60,7 +60,7 @@ create_holey_file 2G $DIR/testfile1
 
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 
-expect_normal_exit $Env:EXE_DIR/pmem_map$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR/pmem_map_file$Env:EXESUFFIX `
     $DIR/testfile1 0 - 0 1 1 `
     $DIR/testfile1 -1 - 0 1 1 `
     $DIR/testfile1 0 - 0 0 0 `

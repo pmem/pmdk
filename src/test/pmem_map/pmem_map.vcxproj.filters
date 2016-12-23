@@ -51,7 +51,7 @@
     <ClCompile Include="..\..\common\uuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pmem_map.c">
+    <ClCompile Include="pmem_map_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\windows\win_file.c">

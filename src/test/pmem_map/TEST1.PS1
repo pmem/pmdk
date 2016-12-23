@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/pmem_map/TEST1 -- unit test for pmem_map
+# src/test/pmem_map_file/TEST1 -- unit test for pmem_map_file
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_map\TEST1"
+$Env:UNITTEST_NAME = "pmem_map_file\TEST1"
 $Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
@@ -59,7 +59,7 @@ setup
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 
 # pass the file of zero length
-expect_normal_exit $Env:EXE_DIR/pmem_map$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR/pmem_map_file$Env:EXESUFFIX `
     $DIR/testfile1 0 - 0666 1 1 `
     $DIR/testfile2 0 C 0666 0 0 `
     $DIR/testfile3 4096 C 0666 1 1 `

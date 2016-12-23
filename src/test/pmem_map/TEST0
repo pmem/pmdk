@@ -32,9 +32,9 @@
 #
 
 #
-# src/test/pmem_map/TEST0 -- unit test for pmem_map
+# src/test/pmem_map_file/TEST0 -- unit test for pmem_map_file
 #
-export UNITTEST_NAME=pmem_map/TEST0
+export UNITTEST_NAME=pmem_map_file/TEST0
 export UNITTEST_NUM=0
 
 # standard unit test setup
@@ -55,7 +55,7 @@ truncate -s 2G $DIR/testfile1
 
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 
-expect_normal_exit ./pmem_map$EXESUFFIX \
+expect_normal_exit ./pmem_map_file$EXESUFFIX \
     $DIR/testfile1 0 - 0 1 1 \
     $DIR/testfile1 -1 - 0 1 1 \
     $DIR/testfile1 0 - 0 0 0 \

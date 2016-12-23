@@ -32,9 +32,9 @@
 #
 
 #
-# src/test/pmem_map/TEST1 -- unit test for pmem_map
+# src/test/pmem_map_file/TEST1 -- unit test for pmem_map_file
 #
-export UNITTEST_NAME=pmem_map/TEST1
+export UNITTEST_NAME=pmem_map_file/TEST1
 export UNITTEST_NUM=1
 
 # standard unit test setup
@@ -54,7 +54,7 @@ export ASAN_OPTIONS=handle_segv=0
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 
 # pass the file of zero length
-expect_normal_exit ./pmem_map$EXESUFFIX \
+expect_normal_exit ./pmem_map_file$EXESUFFIX \
     $DIR/testfile1 0 - 0666 1 1 \
     $DIR/testfile2 0 C 0666 0 0 \
     $DIR/testfile3 4096 C 0666 1 1 \
