@@ -165,15 +165,6 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
 
-TEST_TYPE = check
-TEST_BUILD = all
-TEST_FS = all
-TEST_TIME = 3m
-MEMCHECK = auto
-PMEMCHECK = auto
-HELGRIND = auto
-DRD = auto
-
 #
 # This is a helper function to be combined with usage of macros available
 # in the unittest framework. It scans the code for functions that should be
@@ -302,10 +293,10 @@ TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V)
 
 $(TSTCHECKS): all sync-test
-	@cd .. && ./RUNTESTS ${TST} $(test_build) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD) -s $@
+	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@
 
 check: all sync-test
-	@cd .. && ./RUNTESTS ${TST} $(test_build) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) -p $(PMEMCHECK) -e $(HELGRIND) -d $(DRD)
+	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS)
 
 pcheck: export NOTTY=1
 

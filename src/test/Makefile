@@ -326,17 +326,6 @@ format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
 
-TEST_TYPE = check
-TEST_BUILD = all
-TEST_FS = all
-TEST_TIME = 3m
-MEMCHECK = auto
-CHECK_POOL =
-
-ifeq ($(CHECK_POOL),y)
-CHECK_POOL_OPT="-c"
-endif
-
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 
@@ -375,11 +364,11 @@ memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
 check: test
-	@./RUNTESTS $(test_build) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(TESTS)
+	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
 	@echo "No failures."
 
 check-remote-quiet: test
-	@./RUNTESTS $(test_build) -t $(TEST_TYPE) -f $(TEST_FS) -o $(TEST_TIME) -m $(MEMCHECK) $(CHECK_POOL_OPT) $(REMOTE_TESTS)
+	@./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS)
 
 check-remote: check-remote-quiet
 	@echo "No failures."
