@@ -223,6 +223,7 @@ test_mmap_len(int fd)
 			MAP_PRIVATE, fd, 0);
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, FILE_SIZE, PROT_READ|PROT_WRITE, CHECK_PRIV, 0);
+	UT_ASSERTeq(munmap(ptr + FILE_SIZE, MMAP_SIZE), 0);
 
 	/* offset == 0 */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
@@ -257,6 +258,7 @@ test_mmap_len(int fd)
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, FILE_SIZE - MMAP_SIZE, PROT_READ|PROT_WRITE,
 			CHECK_PRIV, MMAP_SIZE);
+	UT_ASSERTeq(munmap(ptr + FILE_SIZE - MMAP_SIZE, MMAP_SIZE), 0);
 
 	/* offset beyond file_size */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_SHARED, fd,
@@ -818,6 +820,7 @@ test_mprotect(int fd, int fd_ro)
 	errno = 0;
 	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
 	UT_ASSERTeq(errno, EACCES);
+	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
 }
 
 /*

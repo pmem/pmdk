@@ -67,6 +67,7 @@ typedef struct FILE_MAPPING_TRACKER {
 	void *EndAddress;
 	DWORD Access;
 	off_t Offset;
+	size_t FileLen;
 	FILE_MAPPING_TRACKER_FLAGS Flags;
 } FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 

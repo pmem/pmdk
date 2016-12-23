@@ -64,18 +64,6 @@ Param(
     $help= $false
     )
 
-# -v is a built in PS thing
-if ($VerbosePreference -ne 'SilentlyContinue') {
-    $verbose = 1
-} else {
-    $verbose = 0
-}
-
-if ($help) {
-    usage
-    exit 0
-}
-
 #
 # usage -- print usage message and exit
 #
@@ -120,6 +108,18 @@ function usage {
                 obey test's explicit drd disable)
         -c      check pool files with pmempool check utility"
     exit 1
+}
+
+# -v is a built in PS thing
+if ($VerbosePreference -ne 'SilentlyContinue') {
+    $verbose = 1
+} else {
+    $verbose = 0
+}
+
+if ($help) {
+    usage
+    exit 0
 }
 
 #

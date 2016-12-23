@@ -26,10 +26,10 @@ $(nW)testset12: util_pool_create: Invalid argument
 $(nW)testset13: util_pool_create: Invalid argument
 $(nW)testset14: util_pool_create: Invalid argument
 $(nW)testset15: util_pool_create: Invalid argument
-$(nW)testset18: created: nreps 1 poolsize 524288 zeroed 0
-  replica[0]: nparts 2 repsize 524288 is_pmem 0
-    part[0] path $(nW)subdir1/testfile181 filesize 327680 size 524288
-    part[1] path $(nW)subdir2/testfile182 filesize 263168 size 196608
+$(nW)testset18: created: nreps 1 poolsize 458752 zeroed 0
+  replica[0]: nparts 2 repsize 458752 is_pmem 0
+    part[0] path $(nW)subdir1$(nW)testfile181 filesize 265216 size 458752
+    part[1] path $(nW)subdir2$(nW)testfile182 filesize 263168 size 196608
 $(nW)testset20: util_pool_create: File exists
 $(nW)testset21: util_pool_create: File exists
 $(nW)testset22: created: nreps 1 poolsize 458752 zeroed 0
