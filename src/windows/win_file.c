@@ -51,10 +51,12 @@
  */
 
 #include <windows.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <Shlwapi.h>
 #include <stdio.h>
+#include <pmemcompat.h>
 
 /*
  * mkstemp -- generate a unique temporary filename from template
@@ -160,4 +162,46 @@ flock(int fd, int operation)
 		errno = EWOULDBLOCK; /* for consistency with flock() */
 
 	return res;
+}
+
+/*
+ * writev -- windows version of writev function
+ *
+ * XXX: _write and other similar functions are 32 bit on windows
+ *	if size of data is bigger then 2^32, this function
+ *	will be not atomic.
+ */
+ssize_t
+writev(int fd, const struct iovec *iov, int iovcnt)
+{
+	size_t size = 0;
+
+	/* XXX: _write is 32 bit on windows */
+	for (int i = 0; i < iovcnt; i++)
+		size += iov[i].iov_len;
+
+	void *buf = malloc(size);
+	if (buf == NULL)
+		return ENOMEM;
+
+	char *it_buf = buf;
+	for (int i = 0; i < iovcnt; i++) {
+		memcpy(it_buf, iov[i].iov_base, iov[i].iov_len);
+		it_buf += iov[i].iov_len;
+	}
+
+	ssize_t written = 0;
+	while (size > 0) {
+		int ret = _write(fd, buf, size >= MAXUINT ?
+				MAXUINT : (unsigned) size);
+		if (ret == -1) {
+			written = -1;
+			break;
+		}
+		written += ret;
+		size -= ret;
+	}
+
+	free(buf);
+	return written;
 }

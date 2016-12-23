@@ -101,6 +101,14 @@ function run_clang_format() {
 }
 
 for ((i=1; i<$#; i++)) {
+
+	IGNORE="$(dirname ${ARGS[$i]})/.cstyleignore"
+	if [ -e $IGNORE ]; then
+		if grep -q ${ARGS[$i]} $IGNORE ; then
+			echo "SKIP ${ARGS[$i]}"
+			continue
+		fi
+	fi
 	case ${ARGS[$i]} in
 		*.[ch]pp)
 			CLANG_ARGS+="${ARGS[$i]} "

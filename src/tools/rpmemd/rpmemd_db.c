@@ -38,11 +38,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/queue.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/file.h>
 
+#include "queue.h"
 #include "set.h"
 #include "out.h"
 #include "file.h"

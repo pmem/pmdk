@@ -59,31 +59,27 @@ endif
 
 all: $(TARGET)
 
-SRC=pmembench.c\
-    benchmark_time.c\
-    benchmark_worker.c\
-    clo.c\
-    clo_vec.c\
-    config_reader.c\
-    scenario.c\
-    log.c\
-    blk.c\
-    vmem.c\
-    pmem_memset.c\
-    pmem_memcpy.c\
-    pmem_flush.c\
-    pmemobj_gen.c\
-    pmemobj_persist.c\
-    obj_pmalloc.c\
-    obj_locks.c\
-    obj_lanes.c\
-    map_bench.c\
-    pmemobj_tx.c\
-    pmemobj_atomic_lists.c\
-    rpmem_ssh.c\
-    rpmem_cmd.c\
-    rpmem_common.c\
-    rpmem_util.c
+SRC=pmembench.cpp\
+    benchmark_time.cpp\
+    benchmark_worker.cpp\
+    clo.cpp\
+    clo_vec.cpp\
+    config_reader.cpp\
+    scenario.cpp\
+    log.cpp\
+    blk.cpp\
+    vmem.cpp\
+    pmem_memset.cpp\
+    pmem_memcpy.cpp\
+    pmem_flush.cpp\
+    pmemobj_gen.cpp\
+    pmemobj_persist.cpp\
+    obj_pmalloc.cpp\
+    obj_locks.cpp\
+    obj_lanes.cpp\
+    map_bench.cpp\
+    pmemobj_tx.cpp\
+    pmemobj_atomic_lists.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -101,7 +97,7 @@ CONFIGS=pmembench_log\
 	pmembench_tx\
 	pmembench_atomic_lists
 
-OBJS=$(SRC:.c=.o)
+OBJS=$(SRC:.cpp=.o)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
@@ -118,31 +114,32 @@ ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
 
+CXXFLAGS = -Wall
+CXXFLAGS += -Werror
+CXXFLAGS += -std=c++11
+CXXFLAGS += -Wpointer-arith
+CXXFLAGS += -Wunused-macros
+CXXFLAGS += -pthread
+CXXFLAGS += -I../include
+CXXFLAGS += -I../libpmemobj
+CXXFLAGS += -I../common
+CXXFLAGS += -I../examples/libpmemobj/map
+CXXFLAGS += -I../rpmem_common
+CXXFLAGS += -I../librpmem
+CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+
 ifeq ($(BUILD_RPMEM),y)
-SRC += rpmem_persist.c
+SRC += rpmem_persist.cpp
 LIBS += -lrpmem
 CONFIGS += pmembench_rpmem
+CXXFLAGS += -DRPMEM_AVAILABLE
 else
 $(info NOTE: Skipping librpmem benchmark because libfabric is missing \
 -- see src/librpmem/README for details.)
 endif
 
-CFLAGS  = -std=gnu99
-CFLAGS += -Wall
-CFLAGS += -Werror
-CFLAGS += -Wmissing-prototypes
-CFLAGS += -Wpointer-arith
-CFLAGS += -Wunused-macros
-CFLAGS += -pthread
-CFLAGS += -I../include
-CFLAGS += -I../libpmemobj
-CFLAGS += -I../common
-CFLAGS += -I../examples/libpmemobj/map
-CFLAGS += -I../rpmem_common
-CFLAGS += -I../librpmem
-CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 ifeq ($(GLIB),y)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
+CXXFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
 LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)
 endif
 
@@ -152,36 +149,39 @@ LIBMAP=$(LIBMAP_DIR)/libmap.a
 OBJS += pmemobj.o
 
 ifeq ($(DEBUG),)
-CFLAGS += -O3
+CXXFLAGS += -O3
 LIBS_PATH=../nondebug
 else
-CFLAGS += -ggdb
+CXXFLAGS += -ggdb
 LIBS_PATH=../debug
 endif
 
 GLIB_TEST_PROG="\#include <glib.h>\nint main(){return 0;}"
 GLIB_SILENCE := $(shell printf $(GLIB_TEST_PROG) |\
-	$(CC) $(CFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
+	$(CXX) $(CXXFLAGS) -x c -o /dev/null - 2>/dev/null && echo n || echo y)
 
 ifeq ($(GLIB_SILENCE), y)
-CFLAGS += -Wno-unknown-attributes
+CXXFLAGS += -Wno-unknown-attributes
 endif
 
-CFLAGS += $(EXTRA_CFLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 objdir=.
 
-%.o: %.c Makefile
+%.o: %.cpp Makefile
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CC) -MD -c -o $@ $(CFLAGS) $<
+	$(CXX) -MD -c -o $@ $(CXXFLAGS) $<
 	$(create-deps)
 
 %.htmp: %.h
 	$(call check-cstyle, $<, $@)
 
+%.hpptmp: %.h
+	$(call check-cstyle, $<, $@)
+
 $(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
+	$(CXX) -o $@ $(LDFLAGS) $(OBJS) $(LIBMAP) $(LIBS)
 
 $(LIBMAP):
 	$(MAKE) -C $(LIBMAP_DIR) map

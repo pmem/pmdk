@@ -88,3 +88,25 @@ util_compare_file_inodes(const char *path1, const char *path2)
 
 	return sb1.st_dev != sb2.st_dev || sb1.st_ino != sb2.st_ino;
 }
+
+/*
+ * util_aligned_malloc -- allocate aligned memory
+ */
+void *
+util_aligned_malloc(size_t alignment, size_t size)
+{
+	void *retval = NULL;
+
+	errno = posix_memalign(&retval, alignment, size);
+
+	return retval;
+}
+
+/*
+ * util_aligned_free -- free allocated memory in util_aligned_malloc
+ */
+void
+util_aligned_free(void *ptr)
+{
+	free(ptr);
+}

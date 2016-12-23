@@ -39,7 +39,7 @@
 
 #include "unittest.h"
 #include "pmem.h"
-#include "sys\queue.h"
+#include "queue.h"
 #include "win_mmap.h"
 
 #define NTHREAD 16

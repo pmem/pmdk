@@ -38,14 +38,15 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <string.h>
-#include <sys/queue.h>
 #include <inttypes.h>
 #include <err.h>
+
 #include "common.h"
 #include "output.h"
 #include <libpmemlog.h>
 #include <libpmemblk.h>
 #include "mmap.h"
+#include "queue.h"
 
 /*
  * pmemwrite -- context and arguments

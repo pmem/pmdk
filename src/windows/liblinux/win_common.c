@@ -76,3 +76,28 @@ unsetenv(const char *name)
 
 	return 0;
 }
+
+/*
+ * rand_r -- rand_r for windows
+ *
+ * XXX: RAND_MAX is equal 0x7fff on Windows, so to get 32 bit random number
+ *	we need to merge two numbers returned by rand_s().
+ *	It is not to the best solution as subsequences returned by rand_s are
+ *	not guaranteed to be independent.
+ *
+ * XXX: Windows doesn't implement deterministic thread-safe pseudorandom
+ *	generator (generator which can be initialized by seed ).
+ *	We have to chose between a deterministic nonthread-safe generator
+ *	(rand(), srand()) or a non-deterministic thread-safe generator(rand_s())
+ *	as thread-safety is more important, a seed parameter is ignored in this
+ *	implementation.
+ */
+int
+rand_r(unsigned *seedp)
+{
+	UNREFERENCED_PARAMETER(seedp);
+	unsigned part1, part2;
+	rand_s(&part1);
+	rand_s(&part2);
+	return part1 << 16 | part2;
+}

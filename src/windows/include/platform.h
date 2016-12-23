@@ -44,7 +44,9 @@
 
 #pragma warning(disable : 4996)
 
-#define _CRT_RAND_S
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Prevent NVML compilation for 32-bit platforms */
 #if defined(_WIN32) && !defined(_WIN64)
@@ -58,6 +60,7 @@
 typedef long long off_t;	/* use 64-bit off_t */
 typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #define _OFF_T_DEFINED
+#define _CRT_RAND_S		/* rand_s() */
 
 #include <windows.h>
 #include <stdint.h>
@@ -69,6 +72,7 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #include <malloc.h>
 #include <signal.h>
 #include <intrin.h>
+#include <direct.h>
 
 /* use uuid_t definition from util.h */
 #ifdef uuid_t
@@ -163,6 +167,8 @@ __sync_synchronize()
 #define S_IRGRP S_IRUSR
 #define S_IWGRP S_IWUSR
 
+#define O_SYNC 0
+
 typedef int mode_t;
 
 #define fchmod(fd, mode) 0	/* XXX - dummy */
@@ -175,6 +181,7 @@ typedef long long ssize_t;
 int mkstemp(char *temp);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
+int rand_r(unsigned *seedp);
 
 /* fcntl.h */
 int posix_fallocate(int fd, off_t offset, off_t size);
@@ -269,22 +276,14 @@ void func(void); \
 __pragma(comment(linker, "/include:_" #func)) \
 __pragma(section(".CRT$XCU", read)) \
 __declspec(allocate(".CRT$XCU")) \
-const void (WINAPI *_##func)(void) = func;
+const void (WINAPI *_##func)(void) = (const void (WINAPI *)(void))func;
 
 #define MSVC_DESTR(func) \
 void func(void); \
 static void _##func##_reg(void) { atexit(func); }; \
 MSVC_CONSTR(_##func##_reg)
 
-/*
- * If multi-threaded version of CRT is used (which should be the
- * case always now-a-days), we can define the thread safe version
- * of few CRT functions to be their regular versions, if an explicit
- * thread safe version is not available in windows.
- */
-
-#ifdef _MT
-#define rand_r rand_s
-#endif /* _MT */
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* PLATFORM_H */
