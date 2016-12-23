@@ -176,6 +176,10 @@
 #include <unistd.h>
 #include <limits.h>
 
+#ifdef _WIN32
+#include <memoryapi.h>
+#endif
+
 #include "libpmem.h"
 
 #include "pmem.h"
@@ -1228,6 +1232,12 @@ pmem_init(void)
 	}
 
 	pmem_log_cpuinfo();
+
+#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+	Func_qvmi = (PQVM)GetProcAddress(
+			GetModuleHandle(TEXT("KernelBase.dll")),
+			"QueryVirtualMemoryInformation");
+#endif
 }
 
 

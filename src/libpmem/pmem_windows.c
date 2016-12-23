@@ -40,6 +40,10 @@
 #include "out.h"
 #include "win_mmap.h"
 
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+PQVM Func_qvmi = NULL;
+#endif
+
 /*
  * is_direct_mapped -- (internal) for each page in the given region
  * checks with MM, if it's direct mapped.
@@ -52,6 +56,9 @@ is_direct_mapped(const void *begin, const void *end)
 	WIN32_MEMORY_REGION_INFORMATION region_info;
 	SIZE_T bytes_returned;
 
+	if (Func_qvmi == NULL)
+		return 0;
+
 	const void *begin_aligned = (const void *)rounddown((intptr_t)begin,
 					Pagesize);
 	const void *end_aligned = (const void *)roundup((intptr_t)end,
@@ -60,8 +67,7 @@ is_direct_mapped(const void *begin, const void *end)
 	for (const void *page = begin;
 		page < end;
 		page = (const void *)((char *)page + Pagesize)) {
-
-		if (QueryVirtualMemoryInformation(GetCurrentProcess(), page,
+		if (Func_qvmi(GetCurrentProcess(), page,
 			MemoryRegionInfo, &region_info, sizeof(region_info),
 			&bytes_returned))
 			retval = region_info.DirectMapped;
