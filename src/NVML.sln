@@ -32,6 +32,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap_interrupt", "test\obj_heap_interrupt\obj_heap_interrupt.vcxproj", "{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvmem", "libvmem\libvmem.vcxproj", "{08762559-E9DF-475B-BA99-49F4B5A1D80B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_parse_size", "test\util_parse_size\util_parse_size.vcxproj", "{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}"
 EndProject

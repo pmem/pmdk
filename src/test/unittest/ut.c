@@ -436,17 +436,199 @@ check_open_files()
 	open_file_free(Fd_lut);
 }
 
-#else
+#else /* _WIN32 */
 
+#include <winternl.h>
+
+#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
+
+#define ObjectBasicInformation 0
+#define ObjectNameInformation 1
+#define ObjectTypeInformation 2
+#define SystemHandleInformation 16
+
+typedef struct _SYSTEM_HANDLE {
+	ULONG ProcessId;
+	BYTE ObjectTypeNumber;
+	BYTE Flags;
+	USHORT Handle;
+	PVOID Object;
+	ACCESS_MASK GrantedAccess;
+} SYSTEM_HANDLE, *PSYSTEM_HANDLE;
+
+typedef struct _SYSTEM_HANDLE_INFORMATION {
+	ULONG HandleCount;
+	SYSTEM_HANDLE Handles[1];
+} SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
+
+typedef enum _POOL_TYPE {
+	NonPagedPool,
+	PagedPool,
+	NonPagedPoolMustSucceed,
+	DontUseThisType,
+	NonPagedPoolCacheAligned,
+	PagedPoolCacheAligned,
+	NonPagedPoolCacheAlignedMustS
+} POOL_TYPE, *PPOOL_TYPE;
+
+typedef struct _OBJECT_TYPE_INFORMATION {
+	UNICODE_STRING Name;
+	ULONG TotalNumberOfObjects;
+	ULONG TotalNumberOfHandles;
+	ULONG TotalPagedPoolUsage;
+	ULONG TotalNonPagedPoolUsage;
+	ULONG TotalNamePoolUsage;
+	ULONG TotalHandleTableUsage;
+	ULONG HighWaterNumberOfObjects;
+	ULONG HighWaterNumberOfHandles;
+	ULONG HighWaterPagedPoolUsage;
+	ULONG HighWaterNonPagedPoolUsage;
+	ULONG HighWaterNamePoolUsage;
+	ULONG HighWaterHandleTableUsage;
+	ULONG InvalidAttributes;
+	GENERIC_MAPPING GenericMapping;
+	ULONG ValidAccess;
+	BOOLEAN SecurityRequired;
+	BOOLEAN MaintainHandleCount;
+	USHORT MaintainTypeList;
+	POOL_TYPE PoolType;
+	ULONG PagedPoolUsage;
+	ULONG NonPagedPoolUsage;
+} OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
+/*
+ * enum_handles -- (internal) record or check a list of open handles
+ */
+static void
+enum_handles(int op)
+{
+	ULONG hi_size = 0x200000; /* default size */
+	ULONG req_size = 0;
+
+	PSYSTEM_HANDLE_INFORMATION hndl_info =
+		(PSYSTEM_HANDLE_INFORMATION)MALLOC(hi_size);
+
+	/* if it fails with the default info size, realloc and try again */
+	NTSTATUS status;
+	while ((status = NtQuerySystemInformation(SystemHandleInformation,
+			hndl_info, hi_size, &req_size)
+				== STATUS_INFO_LENGTH_MISMATCH)) {
+		hi_size = req_size + 4096;
+		hndl_info = (PSYSTEM_HANDLE_INFORMATION)REALLOC(hndl_info,
+				hi_size);
+	}
+	UT_ASSERT(status >= 0);
+
+	DWORD pid = GetProcessId(GetCurrentProcess());
+
+	DWORD ti_size = 4096; /* initial size */
+	POBJECT_TYPE_INFORMATION type_info =
+		(POBJECT_TYPE_INFORMATION)MALLOC(ti_size);
+
+	DWORD ni_size = 4096; /* initial size */
+	PVOID name_info = MALLOC(ni_size);
+
+	for (ULONG i = 0; i < hndl_info->HandleCount; i++) {
+		SYSTEM_HANDLE handle = hndl_info->Handles[i];
+		UNICODE_STRING wname;
+		char name[MAX_PATH];
+
+		/* ignore handles not owned by current process */
+		if (handle.ProcessId != pid)
+			continue;
+
+		/* query the object type */
+		status = NtQueryObject((HANDLE)handle.Handle,
+			ObjectTypeInformation, type_info, ti_size, NULL);
+		UT_ASSERT(status >= 0);
+
+		/* register/verify only handles of selected types */
+		switch (type_info->MaintainTypeList) {
+			case 0x03: /* Directory */
+			case 0x0d: /* Mutant */
+			case 0x0f: /* Semaphore */
+			case 0x1e: /* File */
+			case 0x23: /* Section (memory mapping) */
+				;
+			default:
+				continue;
+		}
+
+		/*
+		 * Skip handles with access 0x0012019f.  NtQueryObject() may
+		 * hang on querying the handles pointing to named pipes.
+		 */
+		if (handle.GrantedAccess == 0x0012019f)
+			continue;
+
+		wname.Length = 0;
+		wname.Buffer = NULL;
+		if (NtQueryObject((HANDLE)handle.Handle, ObjectNameInformation,
+				name_info, ni_size, &req_size) < 0) {
+			/* reallocate buffer to required size and try again */
+			if (req_size > ni_size)
+				ni_size = req_size;
+			name_info = REALLOC(name_info, ni_size);
+			if (NtQueryObject((HANDLE)handle.Handle,
+					ObjectNameInformation,
+					name_info, ni_size, NULL) >= 0) {
+				wname = *(PUNICODE_STRING)name_info;
+			}
+		} else {
+			wname = *(PUNICODE_STRING)name_info;
+		}
+
+		snprintf(name, MAX_PATH, "%.*S: %.*S",
+			type_info->Name.Length / 2, type_info->Name.Buffer,
+			wname.Length / 2, wname.Buffer);
+
+		if (op == 0)
+			Fd_lut = open_file_add(Fd_lut, handle.Handle, name);
+		else
+			open_file_remove(Fd_lut, handle.Handle, name);
+	}
+
+	FREE(type_info);
+	FREE(name_info);
+	FREE(hndl_info);
+}
+
+/*
+ * record_open_files -- record a number of open handles (used at START() time)
+ *
+ * On Windows, it records not only file handles, but some other handle types
+ * as well.
+ * XXX: We can't register all the handles, as spawning new process in the test
+ * may result in opening new handles of some types (i.e. registry keys).
+ */
 static void
 record_open_files()
-{}
+{
+	/*
+	 * XXX: Dummy call to CoCreateGuid() to ignore files/handles open
+	 * by this function.  They won't be closed until process termination.
+	 */
+	GUID uuid;
+	HRESULT res = CoCreateGuid(&uuid);
 
+	enum_handles(0);
+}
+
+/*
+ * check_open_files -- verify open handles match recorded open handles
+ */
 static void
 check_open_files()
-{}
+{
+	enum_handles(1);
 
-#endif
+	open_file_walk(Fd_lut);
+	if (Fd_errcount)
+		UT_FATAL("open file list changed between START() and DONE()");
+	open_file_free(Fd_lut);
+}
+
+#endif /* _WIN32 */
 
 /*
  * ut_start -- initialize unit test framework, indicate test started
