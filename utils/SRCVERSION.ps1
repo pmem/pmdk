@@ -39,6 +39,7 @@
 # +--------------------+-----+-----+-----+--------+------+-------+----------+
 # |1.2-0-12345678      |    1|    2|    0|    1000| false|  false|     false|
 # |1.2-32-123345678    |    1|    2|   32|    1000| false|   true|     false|
+# |1.2-XXX-0-12345678  |    1|    2|    0|       0| false|  false|      true|
 # |1.2-rc2-0-12345678  |    1|    2|    0|       2| false|  false|      true|
 # |1.2-rc3-32-12345678 |    1|    2|   32|       3| false|   true|      true|
 # |1.2+b3-0-12345678   |    1|    2|    0|    1003|  true|  false|     false|
@@ -75,7 +76,12 @@ if ($git -eq $null) {
         # <MAJOR>.<MINOR>-RC<REVISION>-<BUILDNUMBER>-<HASH>
         $MAJOR = $ver_array[0].split(".")[0]
         $MINOR = $ver_array[0].split(".")[1]
-        $REVISION = $ver_array[1].Substring("rc".Length)
+        if($ver_array[1].StartsWith("rc")) {
+            $REVISION = $ver_array[1].Substring("rc".Length)
+        } else {
+            $REVISION = 0
+        }
+
         $BUILD = $ver_array[2]
         $PRERELEASE = $true
     } elseif($ver_array.length -eq 3) {
