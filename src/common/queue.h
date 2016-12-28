@@ -82,6 +82,22 @@
  */
 
 /*
+ * XXX This is a workaround for a bug in the llvm's static analyzer. For more
+ * info see https://github.com/pmem/issues/issues/309.
+ */
+#ifdef __clang_analyzer__
+
+static void custom_assert(void)
+{
+	abort();
+}
+
+#define ANALYZER_ASSERT(x) (__builtin_expect(!(x), 0) ? (void)0 : custom_assert())
+#else
+#define ANALYZER_ASSERT(x) do {} while (0)
+#endif
+
+/*
  * List definitions.
  */
 #define	LIST_HEAD(name, type)						\
@@ -134,6 +150,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	LIST_REMOVE(elm, field) do {					\
+	ANALYZER_ASSERT(elm != NULL);					\
 	if ((elm)->field.le_next != NULL)				\
 		(elm)->field.le_next->field.le_prev = 			\
 		    (elm)->field.le_prev;				\
@@ -433,6 +450,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	TAILQ_REMOVE(head, elm, field) do {				\
+	ANALYZER_ASSERT(elm != NULL);					\
 	if (((elm)->field.tqe_next) != NULL)				\
 		(elm)->field.tqe_next->field.tqe_prev = 		\
 		    (elm)->field.tqe_prev;				\
