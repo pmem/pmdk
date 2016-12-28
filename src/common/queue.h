@@ -81,6 +81,16 @@
  * For details on the use of these macros, see the queue(3) manual page.
  */
 
+#ifdef __clang_analyzer__
+static void custom_assert(int) __attribute__((analyzer_noreturn))
+{
+}
+
+#define CLANG_ASSERT(x) custom_assert(x)
+#else
+#define CLANG_ASSERT(x) do {} while (0)
+#endif
+
 /*
  * List definitions.
  */
@@ -433,6 +443,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	TAILQ_REMOVE(head, elm, field) do {				\
+	CLANG_ASSERT(elm);						\
 	if (((elm)->field.tqe_next) != NULL)				\
 		(elm)->field.tqe_next->field.tqe_prev = 		\
 		    (elm)->field.tqe_prev;				\
