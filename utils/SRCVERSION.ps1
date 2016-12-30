@@ -52,14 +52,17 @@ $file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
 $git = Get-Command -Name git -ErrorAction SilentlyContinue
 
 if (Test-Path $file_path) {
-    $old_src_version = Get-Content $file_path | Where-Object { $_ -like '#define SRCVERSION*' }
+    $old_src_version = Get-Content $file_path | `
+        Where-Object { $_ -like '#define SRCVERSION*' }
 } else {
     $old_src_version = ""
 }
- $PRERELEASE = $false
- $BUGFIX = $false
- $PRIVATE = $true
- $CUSTOM = $false
+
+$PRERELEASE = $false
+$BUGFIX = $false
+$PRIVATE = $true
+$CUSTOM = $false
+
 if ($git -eq $null) {
     $MAJOR = 0
     $MINOR = 0
@@ -71,42 +74,40 @@ if ($git -eq $null) {
 } else {
     $version = $(git describe)
     $no_git = $false
-    $ver_array = $(git describe --long).split("-")
-    if($ver_array.length -eq 4) {
-        # <MAJOR>.<MINOR>-RC<REVISION>-<BUILDNUMBER>-<HASH>
-        $MAJOR = $ver_array[0].split(".")[0]
-        $MINOR = $ver_array[0].split(".")[1]
-        if($ver_array[1].StartsWith("rc")) {
+    $ver_array = $(git describe --long).split("-+")
+
+    $MAJOR = $ver_array[0].split(".")[0]
+    $MINOR = $ver_array[0].split(".")[1]
+    $BUILD = $ver_array[$ver_array.length - 2]
+
+    if ($ver_array.length -eq 4) {
+        # <MAJOR>.<MINOR>-<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
+        # <MAJOR>.<MINOR>+<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
+
+        if ($ver_array[1].StartsWith("rc")) {
+            # <MAJOR>.<MINOR>-rc<REVISION>-<BUILDNUMBER>-<HASH>
             $REVISION = $ver_array[1].Substring("rc".Length)
-        } else {
-            $REVISION = 0
-        }
-
-        $BUILD = $ver_array[2]
-        $PRERELEASE = $true
-    } elseif($ver_array.length -eq 3) {
-
-        if($ver_array[0].split("+").Length -gt 1) {
+            $PRERELEASE = $true
+        } elseif ($ver_array[1].StartsWith("b")) {
             # <MAJOR>.<MINOR>+b<REVISION>-<BUILDNUMBER>-<HASH>
-            $MAJOR = $ver_array[0].split("+")[0].split(".")[0]
-            $MINOR = $ver_array[0].split("+")[0].split(".")[1]
-            $REVISION = 1000 + $ver_array[0].split("+")[1].Substring("b".Length)
-            $BUILD = $ver_array[1]
+            $REVISION = 1000 + $ver_array[1].Substring("b".Length)
             $BUGFIX = $true
         } else {
-            # <MAJOR>.<MINOR>-<BUILDNUMBER>-<HASH>
-            $MAJOR = $ver_array[0].split(".")[0]
-            $MINOR = $ver_array[0].split(".")[1]
-            $REVISION = 1000
-            $BUILD = $ver_array[1]
+            # <MAJOR>.<MINOR>-<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
+            $REVISION = 0
+            $PRERELEASE = $true
         }
+    } else {
+        # <MAJOR>.<MINOR>-<BUILDNUMBER>-<HASH>
+        $REVISION = 1000
     }
 
-    if($BUILD -eq 0 ) {
+    if ($BUILD -eq 0) {
         # it is not a (pre)release build
-       $PRIVATE = $false
+        $PRIVATE = $false
     }
 }
+
 $src_version = "#define SRCVERSION `"$version`""
 
 if ($old_src_version -eq $src_version) {
@@ -123,21 +124,18 @@ echo "#define MINOR $MINOR" >> $file_path
 echo "#define REVISION $REVISION" >> $file_path
 echo "#define BUILD $BUILD" >> $file_path
 
-if($PRERELEASE) {
+if ($PRERELEASE) {
     echo "#define PRERELEASE 1"  >> $file_path
 }
-if($BUGFIX) {
+if ($BUGFIX) {
     echo "#define BUGFIX 1"  >> $file_path
 }
-if($PRIVATE) {
+if ($PRIVATE) {
     echo "#define PRIVATE 1"  >> $file_path
 }
-if($CUSTOM) {
+if ($CUSTOM) {
     echo "#define CUSTOM 1"  >> $file_path
     echo $version_custom_msg  >> $file_path
 }
 
 echo "#endif" >> $file_path
-
-
-
