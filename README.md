@@ -31,15 +31,20 @@ These libraries and utilities are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,
 and tutorials.
 
-**Currently, these libraries only work on 64-bit Linux.**
+**Currently, these libraries only work on 64-bit Linux and Windows (\*).**
 
->**NOTE: Porting NVML to 64-bit Windows is in progress.**
+>(\*) **NOTE: Porting NVML to Windows is still in progress.**
 >
 >The source tree contains MS Visual Studio solution and project files,
-allowing to compile _libpmem_, _libpmemlog_, _libpmemblk_ and _libpmemobj_,
-and most of the corresponding unit tests for 64-bit Windows.
-Current progress of this work is tracked on
+allowing to compile _libpmem_, _libpmemlog_, _libpmemblk_, _libpmemobj_,
+_libpmempool_ and _libvmem_ libraries for Windows, with all the corresponding
+unit tests and selected examples.  The _pmempool_ utility and NVML
+benchmarks are also ported.  Current progress of this work is tracked on
 [NVML for Windows Trello Board](https://trello.com/b/IMPSJ4Iu/nvml-for-windows).
+See also description of the first [NVML for Windows Technical Preview release]
+(https://github.com/pmem/nvml/releases/1.2+wtp1)
+for the list of known issues and limitations in the current version
+of Windows support in NVML.
 
 ### Pre-Built Packages ###
 

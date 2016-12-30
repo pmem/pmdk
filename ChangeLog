@@ -1,4 +1,49 @@
 
+Fri Dec 30 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2 - Windows Technical Preview #1
+	This is the first Technical Preview release of NVML for Windows.
+	It is based on NVML 1.2 version, but not all the 1.2 features
+	are ported to Windows. In particular, Device DAX and remote access
+	to persistent memory (librpmem) are not supported by design.
+
+	NOTE: This release has not gone through the full validation cycle,
+	but only through some basic tests on Travis and AppVeyor.
+	Thus, it cannot be assumed "Production quality" and should not
+	be used in production environments.
+
+	Besides several minor improvements and bug fixes, all the other
+	changes since NVML 1.2 release were related to Windows support:
+	- win: port libvmem (and jemalloc)
+	- win: benchmarks Windows port
+	- win: fix mapping files of unaligned length
+	- win: clean up possible race condition in mmap_init()
+	- win: enable QueryVirtualMemoryInformation() in pmem_is_pmem()
+	- test: check open handles at START/DONE
+	- test: port all the remaining unit tests
+	  (scope, pmem_map, obj_debug, util_poolset, pmempool_*)
+	- win: add resource files for versioning
+
+	Known issues and limitations of Windows version of NVML:
+	- Unicode support is missing.  The UTF/USC-encoded file paths
+	  or pool set files may not be handled correctly.
+	- The libvmmalloc library is not ported yet.
+	- The on-media format of pmem pools is not portable at the moment.
+	  The pmem pools created using Windows version of NVM libraries
+	  cannot be open on Linux and vice versa.
+	- Despite the fact the current version of NVML would work
+	  with any recent version of Windows OS, to take full
+	  advantage of PMEM and NVML features and to benefit from
+	  the PMEM performance, the recommended platforms needs be
+	  equipped with the real NVDIMMs hardware and should support
+	  the native, Microsoft's implementation of DAX-enabled file
+	  system (i.e. Windows Server 2016 or later).
+	  In case of using NVML with older versions of Windows or with
+	  the custom implementation of PMEM/DAX drivers, the performance
+	  might not be satisfactory.  Please, contact the provider
+	  of PMEM/DAX drivers for your platform to get the customized
+	  version of NVML in such case.
+
 Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2
