@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,7 +65,7 @@ New-Item -ItemType directory -Path ( $zipdir + "\bin\") -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null
 
 $libs = @("libpmem", "libpmemblk", "libpmemlog", "libpmemobj", "libpmempool",
-    "libvmem", "jemalloc")
+    "libvmem")
 $apps = @("pmempool")
 
 foreach ($lib in $libs) {
@@ -80,6 +80,7 @@ foreach ($app in $apps) {
 }
 
 Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
+Remove-Item -Force ($zipdir + "include\.cstyleignore")
 Remove-Item -Force ($zipdir + "include\README")
 Remove-Item -Force ($zipdir + "include\librpmem.h")
 Remove-Item -Force ($zipdir + "include\libvmmalloc.h")
