@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 /*
  * benchmark_time.hpp -- declarations of benchmark_time module
  */
-#include <time.h>
+#include <ctime>
 
 typedef struct timespec benchmark_time_t;
 
