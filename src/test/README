@@ -259,4 +259,4 @@ pattern for creating new unit tests is to follow steps like these:
 
 When a "check" type test is run (the default), each test should try to limit
 the real execution time to a couple minutes or less.  "short" and "long"
-versions of the tests are encourages, especially for stress testing.
+versions of the tests are encouraged, especially for stress testing.
