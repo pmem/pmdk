@@ -812,7 +812,7 @@ ctl_lookup(const char *name, ctl_node_t const **nodesp, size_t *mibp,
 			/* Children are named. */
 			for (j = 0; j < node->nchildren; j++) {
 				const ctl_named_node_t *child =
-				    ctl_named_children(node, j);
+				    ctl_named_children(node, (int)j);
 				if (strlen(child->name) == elen &&
 				    strncmp(elm, child->name, elen) == 0) {
 					node = child;
@@ -953,7 +953,7 @@ ctl_bymib(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 				ret = ENOENT;
 				goto label_return;
 			}
-			node = ctl_named_children(node, mib[i]);
+			node = ctl_named_children(node, (int)mib[i]);
 		} else {
 			const ctl_indexed_node_t *inode;
 
@@ -1261,7 +1261,7 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	if (tcache_tsd->npools <= pool_ind) {
 		assert(pool_ind < POOLS_MAX);
 
-		size_t npools = 1ULL << (32 - __builtin_clz(pool_ind + 1));
+		size_t npools = 1ULL << (32 - __builtin_clz((unsigned)pool_ind + 1));
 		if (npools < POOLS_MIN)
 			npools = POOLS_MIN;
 
@@ -1437,7 +1437,7 @@ arena_i_purge_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	READONLY();
 	WRITEONLY();
 	malloc_mutex_lock(&ctl_mtx);
-	arena_purge(pools[mib[1]], mib[3]);
+	arena_purge(pools[mib[1]], (unsigned)mib[3]);
 	malloc_mutex_unlock(&ctl_mtx);
 
 	ret = 0;
@@ -1619,7 +1619,8 @@ arenas_initialized_ctl(const size_t *mib, size_t miblen, void *oldp,
     size_t *oldlenp, void *newp, size_t newlen)
 {
 	int ret;
-	unsigned nread, i;
+	size_t nread;
+	unsigned i;
 	pool_t *pool;
 
 	malloc_mutex_lock(&ctl_mtx);
@@ -1646,7 +1647,7 @@ CTL_RO_NL_GEN(arenas_quantum, QUANTUM, size_t)
 CTL_RO_NL_GEN(arenas_page, PAGE, size_t)
 CTL_RO_NL_CGEN(config_tcache, arenas_tcache_max, tcache_maxclass, size_t)
 CTL_RO_NL_GEN(arenas_nbins, NBINS, unsigned)
-CTL_RO_NL_CGEN(config_tcache, arenas_nhbins, nhbins, unsigned)
+CTL_RO_NL_CGEN(config_tcache, arenas_nhbins, (unsigned)nhbins, unsigned)
 CTL_RO_NL_GEN(arenas_bin_i_size, arena_bin_info[mib[4]].reg_size, size_t)
 CTL_RO_NL_GEN(arenas_bin_i_nregs, arena_bin_info[mib[4]].nregs, uint32_t)
 CTL_RO_NL_GEN(arenas_bin_i_run_size, arena_bin_info[mib[4]].run_size, size_t)
@@ -1676,7 +1677,7 @@ arenas_extend_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret;
 	unsigned narenas;
-	unsigned pool_ind = mib[1];
+	size_t pool_ind = mib[1];
 	pool_t *pool;
 
 	if (pool_ind >= npools)

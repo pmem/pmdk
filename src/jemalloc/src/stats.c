@@ -3,7 +3,7 @@
 
 #define	CTL_GET(n, v, t) do {						\
 	size_t sz = sizeof(t);						\
-	xmallctl(n, v, &sz, NULL, 0);					\
+	xmallctl(n, (void *)v, &sz, NULL, 0);					\
 } while (0)
 
 #define	CTL_P_GET_ARRAY(n, v, t, c) do {				\
@@ -26,7 +26,7 @@
 	xmallctlnametomib(buf, mib, &miblen);				\
 	mib[1] = p;							\
 	mib[4] = i;							\
-	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\
+	xmallctlbymib(mib, miblen, (void *)v, &sz, NULL, 0);			\
 } while (0)
 
 #define	CTL_PJ_GET(n, v, t) do {					\
@@ -392,7 +392,7 @@ stats_print(pool_t *pool, void (*write_cb)(void *, const char *), void *cbopaque
 			    "  opt."#n": %zd\n", ssv);			\
 		}
 #define	OPT_WRITE_CHAR_P(n)						\
-		if ((err = je_mallctl("opt."#n, &cpv, &cpsz, NULL, 0))	\
+		if ((err = je_mallctl("opt."#n, (void *)&cpv, &cpsz, NULL, 0))	\
 		    == 0) {						\
 			malloc_cprintf(write_cb, cbopaque,		\
 			    "  opt."#n": \"%s\"\n", cpv);		\

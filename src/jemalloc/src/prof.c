@@ -729,7 +729,7 @@ prof_dump_flush(bool propagate_err)
 
 	cassert(config_prof);
 
-	err = write(prof_dump_fd, prof_dump_buf, prof_dump_buf_end);
+	err = write(prof_dump_fd, prof_dump_buf, (unsigned)prof_dump_buf_end);
 	if (err == -1) {
 		if (propagate_err == false) {
 			malloc_write("<jemalloc>: write() failed during heap "
@@ -760,7 +760,7 @@ prof_dump_close(bool propagate_err)
 static bool
 prof_dump_write(bool propagate_err, const char *s)
 {
-	unsigned i, slen, n;
+	size_t i, slen, n;
 
 	cassert(config_prof);
 
@@ -1003,7 +1003,7 @@ prof_dump_maps(bool propagate_err)
 				}
 			}
 			nread = read(mfd, &prof_dump_buf[prof_dump_buf_end],
-			    PROF_DUMP_BUFSIZE - prof_dump_buf_end);
+			    PROF_DUMP_BUFSIZE - (unsigned)prof_dump_buf_end);
 		} while (nread > 0);
 	} else {
 		ret = true;

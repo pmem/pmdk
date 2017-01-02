@@ -32,14 +32,14 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 	pool->ctl_stats_allocated = 0;
 	pool->ctl_stats_mapped = 0;
 
-	pool->narenas_auto = opt_narenas;
+	pool->narenas_auto = (unsigned)opt_narenas;
 	/*
 	 * Make sure that the arenas array can be allocated.  In practice, this
 	 * limit is enough to allow the allocator to function, but the ctl
 	 * machinery will fail to allocate memory at far lower limits.
 	 */
 	if (pool->narenas_auto > chunksize / sizeof(arena_t *)) {
-		pool->narenas_auto = chunksize / sizeof(arena_t *);
+		pool->narenas_auto = (unsigned)(chunksize / sizeof(arena_t *));
 		malloc_printf("<jemalloc>: Reducing narenas to limit (%d)\n",
 		   pool->narenas_auto);
 	}
