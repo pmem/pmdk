@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
  * scenario.hpp -- scenario module declaration
  */
 
-#include <stdbool.h>
+#include <cstdbool>
 
 struct kv {
 	TAILQ_ENTRY(kv) next;

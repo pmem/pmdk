@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,17 +34,17 @@
  * pmembench.cpp -- main source file for benchmark framework
  */
 
-#include <assert.h>
+#include <cassert>
+#include <cerrno>
+#include <cfloat>
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #include <dirent.h>
 #include <err.h>
-#include <errno.h>
-#include <float.h>
 #include <getopt.h>
-#include <inttypes.h>
 #include <linux/limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 

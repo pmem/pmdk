@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,11 +56,11 @@
 #ifndef _BENCHMARK_H
 #define _BENCHMARK_H
 
-#include <limits.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <climits>
+#include <cstdbool>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
 #include <util.h>
 

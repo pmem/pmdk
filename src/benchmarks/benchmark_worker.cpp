@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
  * benchmark_worker.cpp -- benchmark_worker module definitions
  */
 
-#include <assert.h>
+#include <cassert>
 #include <err.h>
 
 #include "benchmark_worker.hpp"

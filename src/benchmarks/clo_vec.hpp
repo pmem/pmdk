@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
  * clo_vec.hpp -- command line options vector declarations
  */
 #include "queue.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 struct clo_vec_args {
 	TAILQ_ENTRY(clo_vec_args) next;
