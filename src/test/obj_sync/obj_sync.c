@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -313,7 +313,7 @@ cleanup(char test_type)
 			pthread_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->pmemmutex.mutex);
 			pthread_mutex_destroy(&((PMEMmutex_internal *)
-				&(Test_obj->mutex))->pmemmutex.mutex);
+				&(Test_obj->mutex_locked))->pmemmutex.mutex);
 			break;
 		default:
 			FATAL_USAGE();
