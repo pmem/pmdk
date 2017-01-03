@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -113,7 +113,7 @@ check_files `
 	$DIR\rep.part1 `
 	$DIR\rep.part2
 
-expect_normal_exit $PMEMPOOL rm -fv `
+expect_normal_exit $PMEMPOOL rm -flv `
 	$DIR\pool.log `
 	$DIR\pool.blk `
 	$DIR\pool.obj `
