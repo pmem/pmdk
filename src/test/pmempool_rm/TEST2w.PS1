@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 $
 expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 $LOG
 
 # Try to remove files with force flag
-expect_normal_exit $PMEMPOOL rm -fv `
+expect_normal_exit $PMEMPOOL rm -flv `
 	$DIR\pool.obj `
 	$DIR\pool.set >> $LOG 2>&1
 
