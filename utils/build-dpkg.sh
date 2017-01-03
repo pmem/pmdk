@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,6 +52,12 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$7
+PREFIX=usr
+LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
+INC_DIR=$PREFIX/include
+MAN1_DIR=$PREFIX/share/man/man1
+MAN3_DIR=$PREFIX/share/man/man3
+DOC_DIR=$PREFIX/share/doc
 
 function convert_changelog() {
 	while read line
@@ -75,7 +81,7 @@ function convert_changelog() {
 
 function rpmem_install_triggers_overrides() {
 cat << EOF > debian/librpmem.install
-usr/lib/librpmem.so.*
+$LIB_DIR/librpmem.so.*
 EOF
 
 cat << EOF > debian/librpmem.lintian-overrides
@@ -85,13 +91,13 @@ librpmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/librpmem-dev.install
-usr/lib/nvml_debug/librpmem.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/librpmem.so	usr/lib/nvml_dbg/
-usr/lib/nvml_debug/librpmem.so.* usr/lib/nvml_dbg/
-usr/lib/librpmem.so
-usr/lib/pkgconfig/librpmem.pc
-usr/include/librpmem.h
-usr/share/man/man3/librpmem.3.gz
+$LIB_DIR/nvml_debug/librpmem.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/librpmem.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/librpmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/librpmem.so
+$LIB_DIR/pkgconfig/librpmem.pc
+$INC_DIR/librpmem.h
+$MAN3_DIR/librpmem.3.gz
 EOF
 
 cat << EOF > debian/librpmem-dev.triggers
@@ -106,12 +112,12 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/rpmemd.install
 usr/bin/rpmemd
-usr/share/man/man1/rpmemd.1.gz
+$MAN1_DIR/rpmemd.1.gz
 EOF
 
 cat << EOF > debian/rpmemd.triggers
@@ -334,7 +340,7 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/usr sysconfdir=/etc
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR sysconfdir=/etc
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/
@@ -357,7 +363,7 @@ cat << EOF > debian/source/format
 EOF
 
 cat << EOF > debian/libpmem.install
-usr/lib/libpmem.so.*
+$LIB_DIR/libpmem.so.*
 usr/share/nvml/nvml.magic
 EOF
 
@@ -371,13 +377,13 @@ libpmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmem-dev.install
-usr/lib/nvml_debug/libpmem.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmem.so	usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmem.so.* usr/lib/nvml_dbg/
-usr/lib/libpmem.so
-usr/lib/pkgconfig/libpmem.pc
-usr/include/libpmem.h
-usr/share/man/man3/libpmem.3.gz
+$LIB_DIR/nvml_debug/libpmem.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmem.so	$LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libpmem.so
+$LIB_DIR/pkgconfig/libpmem.pc
+$INC_DIR/libpmem.h
+$MAN3_DIR/libpmem.3.gz
 EOF
 
 cat << EOF > debian/libpmem-dev.triggers
@@ -392,11 +398,11 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libpmemblk.install
-usr/lib/libpmemblk.so.*
+$LIB_DIR/libpmemblk.so.*
 EOF
 
 cat << EOF > debian/libpmemblk.lintian-overrides
@@ -406,13 +412,13 @@ libpmemblk: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemblk-dev.install
-usr/lib/nvml_debug/libpmemblk.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemblk.so usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemblk.so.* usr/lib/nvml_dbg/
-usr/lib/libpmemblk.so
-usr/lib/pkgconfig/libpmemblk.pc
-usr/include/libpmemblk.h
-usr/share/man/man3/libpmemblk.3.gz
+$LIB_DIR/nvml_debug/libpmemblk.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemblk.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemblk.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libpmemblk.so
+$LIB_DIR/pkgconfig/libpmemblk.pc
+$INC_DIR/libpmemblk.h
+$MAN3_DIR/libpmemblk.3.gz
 EOF
 
 cat << EOF > debian/libpmemblk-dev.triggers
@@ -427,11 +433,11 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libpmemlog.install
-usr/lib/libpmemlog.so.*
+$LIB_DIR/libpmemlog.so.*
 EOF
 
 cat << EOF > debian/libpmemlog.lintian-overrides
@@ -441,13 +447,13 @@ libpmemlog: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemlog-dev.install
-usr/lib/nvml_debug/libpmemlog.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemlog.so usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemlog.so.* usr/lib/nvml_dbg/
-usr/lib/libpmemlog.so
-usr/lib/pkgconfig/libpmemlog.pc
-usr/include/libpmemlog.h
-usr/share/man/man3/libpmemlog.3.gz
+$LIB_DIR/nvml_debug/libpmemlog.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemlog.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemlog.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libpmemlog.so
+$LIB_DIR/pkgconfig/libpmemlog.pc
+$INC_DIR/libpmemlog.h
+$MAN3_DIR/libpmemlog.3.gz
 EOF
 
 cat << EOF > debian/libpmemlog-dev.triggers
@@ -462,11 +468,11 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libpmemobj.install
-usr/lib/libpmemobj.so.*
+$LIB_DIR/libpmemobj.so.*
 EOF
 
 cat << EOF > debian/libpmemobj.lintian-overrides
@@ -476,14 +482,14 @@ libpmemobj: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemobj-dev.install
-usr/lib/nvml_debug/libpmemobj.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemobj.so usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmemobj.so.* usr/lib/nvml_dbg/
-usr/lib/libpmemobj.so
-usr/lib/pkgconfig/libpmemobj.pc
-usr/include/libpmemobj.h
-usr/include/libpmemobj/*.h
-usr/share/man/man3/libpmemobj.3.gz
+$LIB_DIR/nvml_debug/libpmemobj.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemobj.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmemobj.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libpmemobj.so
+$LIB_DIR/pkgconfig/libpmemobj.pc
+$INC_DIR/libpmemobj.h
+$INC_DIR/libpmemobj/*.h
+$MAN3_DIR/libpmemobj.3.gz
 EOF
 
 cat << EOF > debian/libpmemobj-dev.triggers
@@ -498,11 +504,11 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libpmempool.install
-usr/lib/libpmempool.so.*
+$LIB_DIR/libpmempool.so.*
 EOF
 
 cat << EOF > debian/libpmempool.lintian-overrides
@@ -512,13 +518,13 @@ libpmempool: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmempool-dev.install
-usr/lib/nvml_debug/libpmempool.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmempool.so usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libpmempool.so.* usr/lib/nvml_dbg/
-usr/lib/libpmempool.so
-usr/lib/pkgconfig/libpmempool.pc
-usr/include/libpmempool.h
-usr/share/man/man3/libpmempool.3.gz
+$LIB_DIR/nvml_debug/libpmempool.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmempool.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libpmempool.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libpmempool.so
+$LIB_DIR/pkgconfig/libpmempool.pc
+$INC_DIR/libpmempool.h
+$MAN3_DIR/libpmempool.3.gz
 EOF
 
 cat << EOF > debian/libpmempool-dev.triggers
@@ -533,11 +539,11 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libvmem.install
-usr/lib/libvmem.so.*
+$LIB_DIR/libvmem.so.*
 EOF
 
 cat << EOF > debian/libvmem.lintian-overrides
@@ -547,13 +553,13 @@ libvmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmem-dev.install
-usr/lib/nvml_debug/libvmem.a usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmem.so	usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmem.so.* usr/lib/nvml_dbg/
-usr/lib/libvmem.so
-usr/lib/pkgconfig/libvmem.pc
-usr/include/libvmem.h
-usr/share/man/man3/libvmem.3.gz
+$LIB_DIR/nvml_debug/libvmem.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libvmem.so	$LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libvmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libvmem.so
+$LIB_DIR/pkgconfig/libvmem.pc
+$INC_DIR/libvmem.h
+$MAN3_DIR/libvmem.3.gz
 EOF
 
 cat << EOF > debian/libvmem-dev.lintian-overrides
@@ -564,7 +570,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libvmem-dev.triggers
@@ -572,7 +578,7 @@ interest man-db
 EOF
 
 cat << EOF > debian/libvmmalloc.install
-usr/lib/libvmmalloc.so.*
+$LIB_DIR/libvmmalloc.so.*
 EOF
 
 cat << EOF > debian/libvmmalloc.lintian-overrides
@@ -582,13 +588,13 @@ libvmmalloc: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.install
-usr/lib/nvml_debug/libvmmalloc.a   usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmmalloc.so   usr/lib/nvml_dbg/
-usr/lib/nvml_debug/libvmmalloc.so.* usr/lib/nvml_dbg/
-usr/lib/libvmmalloc.so
-usr/lib/pkgconfig/libvmmalloc.pc
-usr/include/libvmmalloc.h
-usr/share/man/man3/libvmmalloc.3.gz
+$LIB_DIR/nvml_debug/libvmmalloc.a   $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libvmmalloc.so   $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/libvmmalloc.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/libvmmalloc.so
+$LIB_DIR/pkgconfig/libvmmalloc.pc
+$INC_DIR/libvmmalloc.h
+$MAN3_DIR/libvmmalloc.3.gz
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.lintian-overrides
@@ -599,7 +605,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions usr/lib/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.triggers
@@ -613,15 +619,15 @@ EOF
 
 cat << EOF > debian/$PACKAGE_NAME-tools.install
 usr/bin/pmempool
-usr/share/man/man1/pmempool.1.gz
-usr/share/man/man1/pmempool-create.1.gz
-usr/share/man/man1/pmempool-info.1.gz
-usr/share/man/man1/pmempool-dump.1.gz
-usr/share/man/man1/pmempool-check.1.gz
-usr/share/man/man1/pmempool-rm.1.gz
-usr/share/man/man1/pmempool-convert.1.gz
-usr/share/man/man1/pmempool-sync.1.gz
-usr/share/man/man1/pmempool-transform.1.gz
+$MAN1_DIR/pmempool.1.gz
+$MAN1_DIR/pmempool-create.1.gz
+$MAN1_DIR/pmempool-info.1.gz
+$MAN1_DIR/pmempool-dump.1.gz
+$MAN1_DIR/pmempool-check.1.gz
+$MAN1_DIR/pmempool-rm.1.gz
+$MAN1_DIR/pmempool-convert.1.gz
+$MAN1_DIR/pmempool-sync.1.gz
+$MAN1_DIR/pmempool-transform.1.gz
 etc/bash_completion.d/pmempool.sh
 EOF
 
@@ -635,9 +641,9 @@ new-package-should-close-itp-bug
 EOF
 
 cat << EOF > debian/${OBJ_CPP_NAME}.install
-usr/include/libpmemobj++/*.hpp
-usr/include/libpmemobj++/detail/*.hpp
-usr/share/doc/${OBJ_CPP_DOC_DIR}/*
+$INC_DIR/libpmemobj++/*.hpp
+$INC_DIR/libpmemobj++/detail/*.hpp
+$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
 EOF
 
 cat << EOF > debian/${OBJ_CPP_NAME}.triggers
@@ -661,8 +667,8 @@ Abstract: This is the HTML docs for the C++ bindings for NVML's libpmemobj.
 Section: Programming
 
 Format: HTML
-Index: /usr/share/doc/${OBJ_CPP_DOC_DIR}/index.html
-Files: /usr/share/doc/${OBJ_CPP_DOC_DIR}/*
+Index: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/index.html
+Files: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
 EOF
 
 # Experimental features
