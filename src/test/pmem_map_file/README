@@ -1,10 +1,10 @@
 Non-Volatile Memory Library
 
-This is src/test/pmem_map/README.
+This is src/test/pmem_map_file/README.
 
-This directory contains a unit test for pmem_map().
+This directory contains a unit test for pmem_map_file().
 
-The program in pmem_map.c takes a path, file length, flags, mode,
+The program in pmem_map_file.c takes a path, file length, flags, mode,
 use_mapped_len and use_is_pmem flags.
 
 The accepted flags in 'flags' string are:
@@ -18,17 +18,17 @@ The accepted flags in 'flags' string are:
 'mode' - an an octal number that specifies the file mode
 
 Example:
-$ pmem_map /mnt/pmem/testfile 4096 CTS 0644 1 1 ...
+$ pmem_map_file /mnt/pmem/testfile 4096 CTS 0644 1 1 ...
 
 If the file is successfully mapped to memory, and it is not a temporary file,
 then initially the first 4k of the file is populated with some pattern
 using write(). The file content is verified after successful mapping
-with pmem_map(). Then, the program overwrites the first 4k of the
+with pmem_map_file(). Then, the program overwrites the first 4k of the
 mapped memory region with another pattern, unmaps the file, and
 verifies its content once again.  Since this test unmaps the file
 with pmem_unmap(), it also tests that function by trying to access
 the address after it was unmapped and verifying it can't.
 
 Finally, the program re-opens the file with read-only access then
-tries to map the file and prints an error message if pmem_map()
+tries to map the file and prints an error message if pmem_map_file()
 fails (which it should).

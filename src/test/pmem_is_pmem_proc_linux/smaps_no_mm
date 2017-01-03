@@ -1,4 +1,4 @@
-00400000-00406000 r-xp 00000000 08:01 2366593                            /some/path/src/test/pmem_map/pmem_map
+00400000-00406000 r-xp 00000000 08:01 2366593                            /some/path/src/test/pmem_map_file/pmem_map_file
 Size:                 24 kB
 Rss:                  20 kB
 Pss:                  20 kB
@@ -13,7 +13,7 @@ Swap:                  0 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
 Locked:                0 kB
-00605000-00606000 rw-p 00005000 08:01 2366593                            /some/path/src/test/pmem_map/pmem_map
+00605000-00606000 rw-p 00005000 08:01 2366593                            /some/path/src/test/pmem_map_file/pmem_map_file
 Size:                  4 kB
 Rss:                   4 kB
 Pss:                   4 kB
@@ -43,7 +43,7 @@ Swap:                  0 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
 Locked:                0 kB
-7fff77423000-7fff77424000 ---s 00000000 08:01 2366604                    /some/path/src/test/pmem_map/testfile1
+7fff77423000-7fff77424000 ---s 00000000 08:01 2366604                    /some/path/src/test/pmem_map_file/testfile1
 Size:                  4 kB
 Rss:                   4 kB
 Pss:                   4 kB
@@ -59,7 +59,7 @@ KernelPageSize:        4 kB
 MMUPageSize:           4 kB
 Locked:                0 kB
 VmFlags: rd ex mr mw me dw sd 
-7fff77424000-7ffff7423000 r--s 00001000 08:01 2366604                    /some/path/src/test/pmem_map/testfile1
+7fff77424000-7ffff7423000 r--s 00001000 08:01 2366604                    /some/path/src/test/pmem_map_file/testfile1
 Size:            2097148 kB
 Rss:                   4 kB
 Pss:                   4 kB

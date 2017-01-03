@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2014-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,19 +31,34 @@
  */
 
 /*
- * mocks_windows.h -- redefinitions of libc functions
- *
- * This file is Windows-specific.
- *
- * This file should be included (i.e. using Forced Include) by libpmem
- * files, when compiled for the purpose of pmem_map test.
- * It would replace default implementation with mocked functions defined
- * in pmem_map.c.
- *
- * These defines could be also passed as preprocessor definitions.
+ * mocks_windows.c -- mocked functions used in pmem_map_file.c
+ *                    (Windows-specific)
  */
 
-#ifndef WRAP_REAL
-#define posix_fallocate __wrap_posix_fallocate
-#define ftruncate __wrap_ftruncate
-#endif
+#include "unittest.h"
+
+#define MAX_LEN (4 * 1024 * 1024)
+
+/*
+ * posix_fallocate -- interpose on libc posix_fallocate()
+ */
+FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
+	if (len > MAX_LEN) {
+		errno = ENOSPC;
+		return -1;
+	}
+	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+}
+FUNC_MOCK_END
+
+/*
+ * ftruncate -- interpose on libc ftruncate()
+ */
+FUNC_MOCK(ftruncate, int, int fd, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_OUT("ftruncate: len %ju", len);
+	return _FUNC_REAL(ftruncate)(fd, len);
+}
+FUNC_MOCK_END

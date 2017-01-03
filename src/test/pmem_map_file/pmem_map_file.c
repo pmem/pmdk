@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_map.c -- unit test for mapping persistent memory for raw access
+ * pmem_map_file.c -- unit test for mapping persistent memory for raw access
  *
- * usage: pmem_map file
+ * usage: pmem_map_file file
  */
 
 #define _GNU_SOURCE
@@ -146,7 +146,7 @@ do_check(int fd, void *addr, size_t mlen)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_map");
+	START(argc, argv, "pmem_map_file");
 
 	int fd;
 	void *addr;

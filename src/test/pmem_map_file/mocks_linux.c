@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2016, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,33 +31,47 @@
  */
 
 /*
- * mocks_windows.c -- mocked functions used in pmem_map.c (Windows-specific)
+ * mocks_linux.c -- mocked functions used in pmem_map_file.c (Linux-specific)
  */
 
+#define _GNU_SOURCE
 #include "unittest.h"
+#include <dlfcn.h>
 
 #define MAX_LEN (4 * 1024 * 1024)
 
 /*
  * posix_fallocate -- interpose on libc posix_fallocate()
  */
-FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
-FUNC_MOCK_RUN_DEFAULT {
+int
+posix_fallocate(int fd, off_t offset, off_t len)
+{
 	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
+
+	static int (*posix_fallocate_ptr)(int fd, off_t offset, off_t len);
+
+	if (posix_fallocate_ptr == NULL)
+		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
+
 	if (len > MAX_LEN) {
 		errno = ENOSPC;
 		return -1;
 	}
-	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+	return (*posix_fallocate_ptr)(fd, offset, len);
 }
-FUNC_MOCK_END
 
 /*
  * ftruncate -- interpose on libc ftruncate()
  */
-FUNC_MOCK(ftruncate, int, int fd, off_t len)
-FUNC_MOCK_RUN_DEFAULT {
+int
+ftruncate(int fd, off_t len)
+{
 	UT_OUT("ftruncate: len %ju", len);
-	return _FUNC_REAL(ftruncate)(fd, len);
+
+	static int (*ftruncate_ptr)(int fd, off_t len);
+
+	if (ftruncate_ptr == NULL)
+		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");
+
+	return (*ftruncate_ptr)(fd, len);
 }
-FUNC_MOCK_END

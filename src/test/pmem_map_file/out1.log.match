@@ -1,5 +1,5 @@
-pmem_map$(nW)TEST1: START: pmem_map
- $(nW)pmem_map$(nW) $(nW)testfile1 0 - 0666 1 1 $(nW)testfile2 0 C 0666 0 0 $(nW)testfile3 4096 C 0666 1 1 $(nW)testfile4 0 E 0666 1 1 $(nW)testfile5 4096 E 0666 1 1 $(nW)testfile6 4096 CE 0666 1 1 $(nW)testfile7 4096 CES 0666 1 1 $(nW)testfile8 4096 CS 0666 1 1 $(nW)testfile9 -1 C 0666 1 1 $(nW)testfile10 4096 X 0666 1 1 $(nW)testfile11 4096 CX 0666 1 1 $(nW)testfile12 0x1FFFFFFFFFFFFFFF CE 0666 1 1 $(nW) 0 T 0666 1 1 $(nW) 4096 T 0666 1 1 $(nW) 4096 TC 0666 1 1 $(nW) 4096 TE 0666 1 1 $(nW) 4096 TS 0666 1 1 $(nW) 4096 TSE 0666 1 1 $(nW) 4096 TCE 0666 1 1 $(nW) 4096 TSEC 0666 1 1 $(nW)nonexistingdir 4096 T 0666 1 1
+pmem_map_file$(nW)TEST1: START: pmem_map_file
+ $(nW)pmem_map_file$(nW) $(nW)testfile1 0 - 0666 1 1 $(nW)testfile2 0 C 0666 0 0 $(nW)testfile3 4096 C 0666 1 1 $(nW)testfile4 0 E 0666 1 1 $(nW)testfile5 4096 E 0666 1 1 $(nW)testfile6 4096 CE 0666 1 1 $(nW)testfile7 4096 CES 0666 1 1 $(nW)testfile8 4096 CS 0666 1 1 $(nW)testfile9 -1 C 0666 1 1 $(nW)testfile10 4096 X 0666 1 1 $(nW)testfile11 4096 CX 0666 1 1 $(nW)testfile12 0x1FFFFFFFFFFFFFFF CE 0666 1 1 $(nW) 0 T 0666 1 1 $(nW) 4096 T 0666 1 1 $(nW) 4096 TC 0666 1 1 $(nW) 4096 TE 0666 1 1 $(nW) 4096 TS 0666 1 1 $(nW) 4096 TSE 0666 1 1 $(nW) 4096 TCE 0666 1 1 $(nW) 4096 TSEC 0666 1 1 $(nW)nonexistingdir 4096 T 0666 1 1
 $(nW)testfile1 0 - 666 1 1
 pmem_map_file: No such file or directory
 $(nW)testfile2 0 C 666 0 0
@@ -54,4 +54,4 @@ ftruncate: len 4096
 mapped_len 4096
 /$(nW)/nonexistingdir 4096 T 666 1 1
 pmem_map_file: Invalid argument
-pmem_map$(nW)TEST1: Done
+pmem_map_file$(nW)TEST1: Done
