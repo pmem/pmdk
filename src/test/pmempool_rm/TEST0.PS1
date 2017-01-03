@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -100,13 +100,15 @@ expect_normal_exit $PMEMPOOL create obj $DIR\pool.set
 # Remove all pool files and poolset
 expect_normal_exit $PMEMPOOL rm -v $DIR\pool.set >> $LOG
 
-# Check if all pool files and poolset don't exist
+# Check if all pool files don't exist
 check_no_files `
 	$DIR\pool.part1 `
 	$DIR\pool.part2 `
 	$DIR\rep.part1 `
-	$DIR\rep.part2 `
-	$DIR\pool.set
+	$DIR\rep.part2
+
+# Check if poolset file exists
+check_file $DIR\pool.set
 
 check
 
