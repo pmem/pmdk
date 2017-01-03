@@ -55,13 +55,15 @@ $ pmempool rm [<options>] <file>..
 
 # DESCRIPTION #
 
-The **pmempool** invoked with *rm* command removes (unlinks) all files specified
-in command line arguments. If the specified file is a poolset file all parts will
-be removed. All files are removed using the **unlink**(3) call. Without
-specifying the **-i|--interactive** option, the *rm* command prompts only before
-removing *write-protected* files. If specified file does not exist the *rm* command
-terminates with error code. The **-f|--force** command ignores non-existing files
-and never prompts before removing a file.
+The **pmempool rm** command removes each specified file. If the specified file
+is a poolset file, all pool files (single-file pool or part files) and remote
+replicas are removed. By default the **pmempool rm** does not remove poolset
+files. All local and remote pool files are removed using **unlink**(3) call.
+If specified file does not exist, the remote pool is broken or not accessible,
+the **pmempool rm** command terminates with error code. By default it prompts
+before removing *write-protected* local files.
+See **REMOTE REPLICATION** section for more details about support for remote
+pools.
 See **EXAMPLES** section for example usage of the *rm* command.
 
 ##### Available options: #####
@@ -76,7 +78,19 @@ Be verbose and print all removing files.
 
 `-s, --only-pools`
 
-Remove only pool files and do not remove poolset files.
+Remove only pool files and do not remove poolset files (default behaviour).
+
+`-a, --all`
+
+Remove all poolset files - local and remote.
+
+`-l, --local`
+
+Remove local poolset files.
+
+`-r, --remote`
+
+Remove local poolset files.
 
 `-f, --force`
 
@@ -84,8 +98,14 @@ Remove all specified files, ignore not existing files, never prompt.
 
 `-i, --interactive`
 
-Prompt before removing every single file.
+Prompt before removing every single file or remote pool.
 
+# REMOTE REPLICATION #
+
+The remote pool is removed using **rpmem_remove**() function if **librpmem**(3)
+library is available. If a poolset file contains remote replication but
+**librpmem**(3) is not available, the **pmempool rm** command terminates with
+error code, unless the **-f, --force** option is specified.
 
 # EXAMPLE #
 
@@ -93,16 +113,23 @@ Prompt before removing every single file.
 $ pmempool rm pool.obj pool.blk
 ```
 
-Remove specified pool files
+Remove specified pool files.
 
 ```
-$ pmempool rm -s pool.set
+$ pmempool rm pool.set
 ```
 
 Remove all pool files from the "pool.set", do not remove *pool.set* itself.
 
+```
+$ pmempool rm -a pool.set
+```
+
+Remove all pool files from the "pool.set", remove the local poolset file and all
+remote poolset files.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
+**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3),
+**librpmem**(3)
 and **<http://pmem.io>**
