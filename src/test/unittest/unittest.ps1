@@ -1272,3 +1272,14 @@ if (-Not($UT_DUMP_LINES)) {
 }
 
 $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
+
+#
+# enable_log_append -- turn on appending to the log files rather than truncating them
+# It also removes all log files created by tests: out*.log, err*.log and trace*.log
+#
+function enable_log_append() {
+	rm -Force -ErrorAction SilentlyContinue "out${Env:UNITTEST_NUM}.log"
+	rm -Force -ErrorAction SilentlyContinue "err${Env:UNITTEST_NUM}.log"
+	rm -Force -ErrorAction SilentlyContinue "trace${Env:UNITTEST_NUM}.log"
+	$Env:UNITTEST_LOG_APPEND=1
+}
