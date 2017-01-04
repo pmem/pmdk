@@ -53,6 +53,10 @@ RUN ./install-valgrind.sh
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
 
+# Install libcxx
+COPY install-libcxx.sh install-libcxx.sh
+RUN ./install-libcxx.sh
+
 # Add user
 ENV USER nvmluser
 ENV USERPASS nvmlpass
