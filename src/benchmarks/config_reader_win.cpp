@@ -119,19 +119,19 @@ config_reader_alloc(void)
  * config_reader_read -- read config file
  */
 int
-config_reader_read(struct config_reader *cr, LPCTSTR fname)
+config_reader_read(struct config_reader *cr, const char *fname)
 {
 	DWORD len = 0;
 	LPTSTR buf = TEXT(" ");
 	/* get the length of the full pathname incl. terminating null char */
-	len = GetFullPathName(fname, 0, buf, NULL);
+	len = GetFullPathName((LPTSTR)fname, 0, buf, NULL);
 	if (len == 0) {
 		/* the function failed */
 		return -1;
 	} else {
 		/* allocate a buffer large enough to store the pathname */
 		LPTSTR buffer = (LPTSTR)malloc(len * sizeof(TCHAR));
-		DWORD ret = GetFullPathName(fname, len, buffer, NULL);
+		DWORD ret = GetFullPathName((LPTSTR)fname, len, buffer, NULL);
 
 		if (_taccess(buffer, 0) != 0) {
 			printf("%s", strerror(errno));
@@ -257,9 +257,9 @@ config_reader_get_scenarios(struct config_reader *cr,
 			}
 		}
 		if (name == NULL) {
-			scenario = scenario_alloc(group_name, group_name);
+			scenario = scenario_alloc((const char*)group_name, (const char*)group_name);
 		} else {
-			scenario = scenario_alloc(group_name, name);
+			scenario = scenario_alloc((const char*)group_name, (const char*)name);
 		}
 		assert(scenario != NULL);
 
@@ -280,7 +280,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 					goto err_scenarios;
 				}
 
-				struct kv *kv = kv_alloc(key, value);
+				struct kv *kv = kv_alloc((const char*)key, (const char*)value);
 				assert(NULL != kv);
 
 				if (!kv) {
@@ -294,9 +294,9 @@ config_reader_get_scenarios(struct config_reader *cr,
 
 		/* check for group name */
 		if (group) {
-			scenario_set_group(scenario, group);
+			scenario_set_group(scenario, (const char*)group);
 		} else if (global_group) {
-			scenario_set_group(scenario, global_group);
+			scenario_set_group(scenario, (const char*)global_group);
 		}
 
 		for (KV_LIST it = section_kv; !KV_LIST_EMPTY(it);
@@ -312,7 +312,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 				goto err_scenarios;
 			}
 
-			struct kv *kv = kv_alloc(key, value);
+			struct kv *kv = kv_alloc((const char*)key, (const char*)value);
 			assert(NULL != kv);
 
 			if (!kv) {
