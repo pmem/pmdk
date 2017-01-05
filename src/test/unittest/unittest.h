@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -198,16 +198,24 @@ void ut_err(const char *file, int line, const char *func,
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define UT_ASSERTeq_rt(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+#define UT_ASSERTeq_rt(lhs, rhs) do {\
+	unsigned long long _lhs = (unsigned long long)(lhs);\
+	unsigned long long _rhs = (unsigned long long)(rhs);\
+	if (_lhs != _rhs)\
+		ut_fatal(__FILE__, __LINE__, __func__,\
+			"assertion failure: %s (0x%llx) == %s (0x%llx)",\
+			#lhs, _lhs, #rhs, _rhs);\
+	} while (0)
 
 /* assert two integer values are not equal at runtime */
-#define UT_ASSERTne_rt(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+#define UT_ASSERTne_rt(lhs, rhs) do {\
+	unsigned long long _lhs = (unsigned long long)(lhs);\
+	unsigned long long _rhs = (unsigned long long)(rhs);\
+	if (_lhs == _rhs)\
+		ut_fatal(__FILE__, __LINE__, __func__,\
+			"assertion failure: %s (0x%llx) != %s (0x%llx)",\
+			#lhs, _lhs, #rhs, _rhs);\
+	} while (0)
 
 #ifndef _MSC_VER
 #define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
