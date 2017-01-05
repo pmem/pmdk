@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -116,7 +116,8 @@ endif
 
 CXXFLAGS = -Wall
 CXXFLAGS += -Werror
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++0x
+CXXFLAGS += -Wno-invalid-offsetof
 CXXFLAGS += -Wpointer-arith
 CXXFLAGS += -Wunused-macros
 CXXFLAGS += -pthread
