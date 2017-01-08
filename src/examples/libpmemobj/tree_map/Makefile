@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 # examples/libpmemobj/tree_map/Makefile -- build the tree map example
 #
 LIBRARIES = ctree_map btree_map rtree_map rbtree_map
-
-LIBS = -lpmemobj -pthread
 
 include ../../Makefile.inc
 
