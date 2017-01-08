@@ -76,5 +76,4 @@ Size                     : 1
  Size                     : $(*)
 
  OOB Header:
- Undo offset              : $(*)
  Type Number              : $(*)

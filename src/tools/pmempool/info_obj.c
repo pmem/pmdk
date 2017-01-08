@@ -338,7 +338,6 @@ info_obj_oob_hdr(struct pmem_info *pip, int v, struct oob_header *oob)
 	outv_title(v, "OOB Header");
 	outv_hexdump(v && pip->args.vhdrdump, oob, sizeof(*oob),
 		PTR_TO_OFF(pip->obj.pop, oob), 1);
-	outv_field(v, "Undo offset", "%llx", oob->undo_entry_offset);
 	outv_field(v, "Type Number", "0x%016lx", oob->type_num);
 
 }

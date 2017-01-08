@@ -44,20 +44,6 @@
 #include "tx.h"
 #include "valgrind_internal.h"
 
-/*
- * A special value that is used to mark previously used, but now invalid, undo
- * log entries - those that are meant to be skipped during processing.
- */
-#define TX_SKIP_ENTRY_VALUE UINT64_MAX
-
-/* Safely modify a single variable during a transaction */
-#define SET_TX_VAR(_pop, _var, _nval)\
-do {\
-	VALGRIND_ADD_TO_TX(&(_var), sizeof(_var));\
-	(_var) = (_nval);\
-	VALGRIND_REMOVE_FROM_TX(&(_var), sizeof(_var));\
-} while (0)
-
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
@@ -186,13 +172,8 @@ constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 	/* temporarily add the OOB header */
 	VALGRIND_ADD_TO_TX(oobh, OBJ_OOB_SIZE);
 
-	/*
-	 * no need to flush and persist because this
-	 * will be done in pre-commit phase
-	 */
 	oobh->type_num = args->type_num;
 	oobh->size = 0;
-	oobh->undo_entry_offset = args->entry_offset;
 	memset(oobh->unused, 0, sizeof(oobh->unused));
 
 	VALGRIND_REMOVE_FROM_TX(oobh, OBJ_OOB_SIZE);
@@ -354,11 +335,6 @@ tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo,
 	uint64_t val;
 
 	while ((val = pvector_last(undo)) != 0) {
-		if (val == TX_SKIP_ENTRY_VALUE) {
-			pvector_pop_back(undo, tx_clear_vec_entry);
-			continue;
-		}
-
 		tx_clear_undo_log_vg(pop, val, flags);
 
 		if (flags & TX_CLR_FLAG_FREE) {
@@ -587,32 +563,6 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 }
 
 /*
- * tx_pre_commit_alloc -- (internal) do pre-commit operations for
- * allocated objects
- */
-static void
-tx_pre_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
-{
-	LOG(3, NULL);
-
-	struct pvector_context *ctx = tx_rt->ctx[UNDO_ALLOC];
-
-	uint64_t offset;
-	for (offset = pvector_first(ctx); offset != 0;
-			offset = pvector_next(ctx)) {
-
-		if (offset == TX_SKIP_ENTRY_VALUE)
-			continue;
-
-		struct oob_header *oobh = OOB_HEADER_FROM_OFF(pop, offset);
-		SET_TX_VAR(pop, oobh->undo_entry_offset, 0);
-
-		size_t size = sizeof(*oobh) - sizeof(oobh->unused);
-		pmemops_flush(&pop->p_ops, &oobh->undo_entry_offset, size);
-	}
-}
-
-/*
  * tx_post_commit_alloc -- (internal) do post commit operations for
  * allocated objects
  */
@@ -724,8 +674,6 @@ tx_pre_commit(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 
 	ASSERTne(tx.section->runtime, NULL);
 
-	tx_pre_commit_alloc(pop, &lane->undo);
-
 	/* Flush all regions and destroy the whole tree. */
 	ctree_delete_cb(lane->ranges, tx_flush_range, pop);
 	lane->ranges = NULL;
@@ -808,9 +756,6 @@ tx_abort_register_valgrind(PMEMobjpool *pop, struct pvector_context *ctx)
 {
 	uint64_t off;
 	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
-		if (off == TX_SKIP_ENTRY_VALUE)
-			continue;
-
 		/*
 		 * Can't use pmemobj_direct and pmemobj_alloc_usable_size
 		 * because pool has not been registered yet.
@@ -1830,15 +1775,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 		.flags = 0,
 	};
 
-	/*
-	 * If internal type is in undo log it means
-	 * the object was allocated within this transaction
-	 * and there is no need to create a snapshot.
-	 */
-	if (!OBJ_OID_IS_IN_UNDO_LOG(lane->pop, oid))
-		return pmemobj_tx_add_common(&args);
-
-	return 0;
+	return pmemobj_tx_add_common(&args);
 }
 
 /*
@@ -1873,15 +1810,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 		.flags = flags,
 	};
 
-	/*
-	 * If internal type is in undo log it means
-	 * the object was allocated within this transaction
-	 * and there is no need to create a snapshot.
-	 */
-	if (!OBJ_OID_IS_IN_UNDO_LOG(lane->pop, oid))
-		return pmemobj_tx_add_common(&args);
-
-	return 0;
+	return pmemobj_tx_add_common(&args);
 }
 
 /*
@@ -2034,49 +1963,13 @@ pmemobj_tx_free(PMEMoid oid)
 	}
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
-	if (!OBJ_OID_IS_IN_UNDO_LOG(pop, oid)) {
-		/* the object is in object store */
-		uint64_t *entry = pvector_push_back(lane->undo.ctx[UNDO_FREE]);
-		if (entry == NULL) {
-			ERR("free undo log too large");
-			return obj_tx_abort_err(ENOMEM);
-		}
-		*entry = oid.off;
-		pmemops_persist(&pop->p_ops, entry, sizeof(*entry));
-	} else {
-
-		struct oob_header *oobh = OOB_HEADER_FROM_OID(pop, oid);
-#ifdef USE_VG_PMEMCHECK
-		if (On_valgrind) {
-			size_t size = palloc_usable_size(&pop->heap, oid.off);
-			VALGRIND_SET_CLEAN(oobh, size);
-			VALGRIND_REMOVE_FROM_TX(oobh, size);
-		}
-#endif
-
-		if (ctree_remove_unlocked(lane->ranges, oid.off, 1) != oid.off)
-			FATAL("TX undo state mismatch");
-
-		struct redo_log *redo = pmalloc_redo_hold(pop);
-
-		struct operation_context ctx;
-		operation_init(&ctx, pop, pop->redo, redo);
-
-		/*
-		 * The object has been allocated within the same transaction.
-		 * To avoid having to shuffle the undo vector around, we mark
-		 * the removed entry with a special value which is skipped
-		 * during processing.
-		 */
-		uint64_t *entry_offset = (uint64_t *)oobh->undo_entry_offset;
-		operation_add_entry(&ctx, entry_offset, TX_SKIP_ENTRY_VALUE,
-				OPERATION_SET);
-
-		pmalloc_operation(&pop->heap, *entry_offset,
-			entry_offset, 0, NULL, NULL, &ctx);
-
-		pmalloc_redo_release(pop);
+	uint64_t *entry = pvector_push_back(lane->undo.ctx[UNDO_FREE]);
+	if (entry == NULL) {
+		ERR("free undo log too large");
+		return obj_tx_abort_err(ENOMEM);
 	}
+	*entry = oid.off;
+	pmemops_persist(&pop->p_ops, entry, sizeof(*entry));
 
 	return 0;
 }
