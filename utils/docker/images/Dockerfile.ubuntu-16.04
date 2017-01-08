@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,6 +52,10 @@ RUN ./install-valgrind.sh
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
+
+# Install libcxx
+COPY install-libcxx.sh install-libcxx.sh
+RUN ./install-libcxx.sh
 
 # Add user
 ENV USER nvmluser

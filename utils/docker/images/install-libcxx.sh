@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,44 +31,34 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Dockerfile - a 'recipe' for Docker to build an image of fedora-based
-#              environment for building the NVML project.
+# install-libcxx.sh - installs a customized version of libcxx
 #
 
-# Pull base image
-FROM fedora:23
-MAINTAINER wojciech.uss@intel.com
+llvm_url=https://github.com/llvm-mirror/llvm.git
+libcxxabi_url=https://github.com/llvm-mirror/libcxxabi.git
+libcxx_url=https://github.com/pmem/libcxx.git
+install_path=$HOME/install
+top=$(pwd)
 
-# Install basic tools
-RUN dnf install -y git gcc clang openssh-server autoconf automake make \
-	wget tar lbzip2 passwd sudo pkgconfig findutils man libunwind-devel \
-	file rpm-build rpm-build-libs which fuse fuse-devel ncurses-devel \
-	libuv-devel glib2-devel libtool pandoc doxygen
+export CC=clang
+export CXX=clang++
 
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
- 
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
-
-# Install libcxx
-COPY install-libcxx.sh install-libcxx.sh
-RUN ./install-libcxx.sh
-
-# Add user
-ENV USER nvmluser
-ENV USERPASS nvmlpass
-RUN useradd -m $USER
-RUN echo $USERPASS | passwd $USER --stdin
-RUN gpasswd wheel -a $USER
-USER $USER
-
-# Set required environment variables
-ENV OS fedora
-ENV OS_VER 23
-ENV START_SSH_COMMAND /usr/sbin/sshd
-ENV PACKAGE_MANAGER rpm
-ENV NOTTY 1
-
+git clone $llvm_url
+cd llvm
+git checkout origin/release_39
+cd projects
+git clone $libcxxabi_url
+git clone $libcxx_url
+cd libcxxabi
+git checkout origin/release_39
+cd $top
+mkdir -p build/abi
+mkdir -p build/lib
+cd build/abi
+cmake -DLLVM_PATH=$top/llvm -DCMAKE_INSTALL_PREFIX=$install_path $top/llvm/projects/libcxxabi/
+make install
+cd $top/build/lib
+cmake -DLLVM_PATH=$top/llvm -DLIBCXX_CXX_ABI=libcxxabi -DLIBCXX_CXX_ABI_INCLUDE_PATHS=$top/llvm/projects/libcxxabi/include -DCMAKE_INSTALL_PREFIX=$install_path -DLIBCXX_CXX_ABI_LIBRARY_PATH=$install_path/lib $top/llvm/projects/libcxx
+make install
+cd $top
+rm -rf llvm build
