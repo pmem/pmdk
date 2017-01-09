@@ -834,7 +834,9 @@ pmembench_remove_file(const char *path)
 	if (access(path, F_OK) != 0)
 		return 0;
 
-	util_stat(path, &status);
+	if (util_stat(path, &status) != 0)
+		return 0;
+
 	if (!(status.st_mode & S_IFDIR)) {
 		ret = util_is_poolset_file(path);
 		if (ret == 0) {

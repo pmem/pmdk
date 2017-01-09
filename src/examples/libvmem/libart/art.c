@@ -1,7 +1,7 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * Copyright 2012, Armon Dadgar. All rights reserved.
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -207,9 +207,8 @@ find_child(art_node *n, unsigned char c)
 		}
 		break;
 
-	{
-	__m128i cmp;
-	case NODE16:
+	case NODE16: {
+		__m128i cmp;
 		p.p2 = (art_node16 *)n;
 
 		// Compare the key to all 16 stored keys

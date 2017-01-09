@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -2209,6 +2209,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 	do {
 		retry_for_contiguous_addr = 0;
+
 		/* determine a hint address for mmap() */
 		addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
@@ -2220,7 +2221,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 		/* map the first part and reserve space for remaining parts */
 		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
-			flags, 0) != 0) {
+				flags, 0) != 0) {
 			LOG(2, "pool mapping failed - replica #%u part #0",
 				repidx);
 			return -1;
@@ -2264,9 +2265,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 					util_unmap_parts(rep, 0, p - 1);
 
 					/* release rest of the VA reserved */
-					ASSERTne(addr, NULL);
-					ASSERTne(addr, MAP_FAILED);
-					munmap(addr, rep->repsize - mapsize);
+					munmap(rep->part[0].addr, rep->repsize);
 					break;
 				}
 				LOG(2, "usable space mapping failed - part #%d",

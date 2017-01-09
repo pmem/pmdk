@@ -423,7 +423,7 @@ add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	TX_ONABORT
 	{
 		fprintf(stderr, "transaction failed\n");
-		return -1;
+		ret = -1;
 	}
 	TX_END
 	return ret;
@@ -451,7 +451,7 @@ add_range_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	TX_ONABORT
 	{
 		fprintf(stderr, "transaction failed\n");
-		return -1;
+		ret = -1;
 	}
 	TX_END
 	return ret;
