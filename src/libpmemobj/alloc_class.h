@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,8 +62,7 @@ struct alloc_class {
 	enum alloc_class_type type;
 
 	union {
-		struct {
-		} huge;
+		/* struct { ... } huge; */
 		struct {
 			/*
 			 * Last value of a bitmap representing completely free

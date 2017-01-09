@@ -685,7 +685,7 @@ block_get_flags(const struct memory_block *m)
 	return memblock_header_ops[m->header_type].get_flags(m);
 }
 
-const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
+static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
 		.prep_hdr = huge_prep_operation_hdr,
@@ -721,7 +721,6 @@ const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_flags = block_get_flags,
 	}
 };
-
 
 /*
  * memblock_from_offset -- resolves a memory block data from an offset that
