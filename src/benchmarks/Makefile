@@ -178,7 +178,7 @@ objdir=.
 %.htmp: %.h
 	$(call check-cstyle, $<, $@)
 
-%.hpptmp: %.h
+%.hpptmp: %.hpp
 	$(call check-cstyle, $<, $@)
 
 $(BENCHMARK): $(TMP_HEADERS) $(OBJS) $(LIBMAP)
