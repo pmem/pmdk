@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -166,10 +166,6 @@ enum header_type {
 extern const size_t header_type_to_size[MAX_HEADER_TYPES];
 extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
 
-struct memory_block memblock_from_offset(struct palloc_heap *heap,
-	uint64_t off);
-void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
-
 struct memory_block_ops {
 	size_t (*block_size)(const struct memory_block *m);
 	void (*prep_hdr)(const struct memory_block *m,
@@ -222,5 +218,9 @@ struct memory_block {
 	const struct memory_block_ops *m_ops;
 	struct palloc_heap *heap;
 };
+
+struct memory_block memblock_from_offset(struct palloc_heap *heap,
+	uint64_t off);
+void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
 
 #endif

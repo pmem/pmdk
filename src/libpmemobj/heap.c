@@ -595,16 +595,24 @@ heap_reclaim_garbage(struct palloc_heap *heap)
 }
 
 /*
- * heap_ensure_bucket_filled -- (internal) refills the bucket if needed
+ * heap_ensure_huge_bucket_filled --
+ *	(internal) refills the default bucket if needed
  */
 static int
-heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
+heap_ensure_huge_bucket_filled(struct palloc_heap *heap)
+{
+	return (heap_reclaim_garbage(heap) == 0 ||
+		heap_populate_buckets(heap) == 0) ? 0 : ENOMEM;
+}
+
+/*
+ * heap_ensure_run_bucket_filled -- (internal) refills the bucket if needed
+ */
+static int
+heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	uint32_t units)
 {
-	if (b->aclass->type == CLASS_HUGE) {
-		return (heap_reclaim_garbage(heap) == 0 ||
-			heap_populate_buckets(heap) == 0) ? 0 : ENOMEM;
-	}
+	ASSERTeq(b->aclass->type, CLASS_RUN);
 
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
@@ -632,9 +640,9 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	}
 
 	/* cannot reuse an existing run, create a new one */
-	struct bucket *def_bucket = heap_get_default_bucket(heap);
-	util_mutex_lock(&def_bucket->lock);
-	if (heap_get_bestfit_block(heap, def_bucket, &m) == 0) {
+	struct bucket *defb = heap_get_default_bucket(heap);
+	util_mutex_lock(&defb->lock);
+	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 		ASSERTeq(m.block_off, 0);
 
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
@@ -643,11 +651,10 @@ heap_ensure_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		b->active_memory_block = m;
 		b->is_active = 1;
 
-		util_mutex_unlock(&def_bucket->lock);
-
+		util_mutex_unlock(&defb->lock);
 		return 0;
 	}
-	util_mutex_unlock(&def_bucket->lock);
+	util_mutex_unlock(&defb->lock);
 
 	/*
 	 * Try the recycler again, the previous call to the bestfit_block for
@@ -738,8 +745,13 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	uint32_t units = m->size_idx;
 
 	while (b->c_ops->get_rm_bestfit(b->container, m) != 0) {
-		if (heap_ensure_bucket_filled(heap, b, units) != 0)
-			return ENOMEM;
+		if (b->aclass->type == CLASS_HUGE) {
+			if (heap_ensure_huge_bucket_filled(heap) != 0)
+				return ENOMEM;
+		} else {
+			if (heap_ensure_run_bucket_filled(heap, b, units) != 0)
+				return ENOMEM;
+		}
 	}
 
 	ASSERT(m->size_idx >= units);
@@ -1283,7 +1295,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
 
 		for (uint16_t j = block_start; j < BITS_PER_VALUE; ) {
-			if (block_off + j >= c->run.bitmap_nallocs)
+			if (block_off + j >= (uint16_t)c->run.bitmap_nallocs)
 				break;
 
 			if (!BIT_IS_CLR(v, j)) {

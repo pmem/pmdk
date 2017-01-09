@@ -315,10 +315,10 @@ palloc_operation(struct palloc_heap *heap,
 				->get_user_data(&existing_block));
 
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
+			/* this mutex is unlocked after processing */
 			util_mutex_lock(&default_bucket->lock);
 			existing_block = heap_coalesce_huge(heap,
 				&existing_block);
-			util_mutex_unlock(&default_bucket->lock);
 		}
 
 		/*
@@ -348,8 +348,8 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
-			util_mutex_lock(&default_bucket->lock);
 			bucket_insert_block(default_bucket, &existing_block);
+			/* locked before coalescing */
 			util_mutex_unlock(&default_bucket->lock);
 		}
 	}
