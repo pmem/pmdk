@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1283,7 +1283,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
 
 		for (uint16_t j = block_start; j < BITS_PER_VALUE; ) {
-			if (block_off + j >= c->run.bitmap_nallocs)
+			if (block_off + j >= (uint16_t)c->run.bitmap_nallocs)
 				break;
 
 			if (!BIT_IS_CLR(v, j)) {
