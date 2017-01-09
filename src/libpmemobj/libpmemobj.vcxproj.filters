@@ -61,6 +61,9 @@
     <ClCompile Include="container_seglists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alloc_class.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -199,6 +202,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="container_seglists.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alloc_class.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

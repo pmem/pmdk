@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,10 +38,16 @@
 
 #include "unittest.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "heap.h"
 #include "alloc_class.h"
 #include "obj.h"
 #include "util.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define MAX_ALLOC_MUL	8
 #define MAX_ALLOC_CLASS	5
