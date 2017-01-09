@@ -1,6 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -306,6 +306,7 @@ examine_PMEMoid(char *appname, struct examine_ctx *ctx, off_t off)
 	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
 	if (p != MAP_FAILED) {
 		dump_PMEMoid("PMEMoid", p);
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_PMEMoid mmap failed");
 		errors++;
@@ -332,6 +333,7 @@ examine_art_tree_root(char *appname, struct examine_ctx *ctx, off_t off)
 		printf("    size %d\n", tree_root->size);
 		dump_PMEMoid("    art_node_u", (PMEMoid *)&(tree_root->root));
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_tree_root mmap failed");
 		errors++;
@@ -383,6 +385,7 @@ examine_art_node_u(char *appname, struct examine_ctx *ctx, off_t off)
 			break;
 		}
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node_u mmap failed");
 		errors++;
@@ -419,6 +422,7 @@ examine_art_node4(char *appname, struct examine_ctx *ctx, off_t off)
 		}
 		printf("\n]");
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node4 mmap failed");
 		errors++;
@@ -455,6 +459,7 @@ examine_art_node16(char *appname, struct examine_ctx *ctx, off_t off)
 		}
 		printf("\n]");
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node16 mmap failed");
 		errors++;
@@ -491,6 +496,7 @@ examine_art_node48(char *appname, struct examine_ctx *ctx, off_t off)
 		}
 		printf("\n]");
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node48 mmap failed");
 		errors++;
@@ -523,6 +529,7 @@ examine_art_node256(char *appname, struct examine_ctx *ctx, off_t off)
 		}
 		printf("\n]");
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node256 mmap failed");
 		errors++;
@@ -556,6 +563,7 @@ examine_art_node(char *appname, struct examine_ctx *ctx, off_t off)
 		}
 		printf("\n]");
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_node mmap failed");
 		errors++;
@@ -601,6 +609,7 @@ examine_art_leaf(char *appname, struct examine_ctx *ctx, off_t off)
 		dump_PMEMoid("       var_string key oid  ", &(al->key.oid));
 		dump_PMEMoid("       var_string value oid", &(al->value.oid));
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_art_leaf mmap failed");
 		errors++;
@@ -626,6 +635,7 @@ examine_var_string(char *appname, struct examine_ctx *ctx, off_t off)
 		printf("at offset 0x%lx, var_string {\n", off);
 		printf("    len %ld s [%s]", vs->len, vs->s);
 		printf("\n};\n");
+		munmap(p, off + obj_len);
 	} else {
 		perror("examine_var_string mmap failed");
 		errors++;

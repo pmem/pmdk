@@ -413,8 +413,10 @@ clo_parse_range(struct benchmark_clo *clo, const char *arg,
 		char *end;
 		errno = 0;
 		step = strtoull(str_step, &end, 10);
-		if (errno || !end || *end != '\0')
-			return -1;
+		if (errno || !end || *end != '\0') {
+			ret = -1;
+			goto out;
+		}
 
 		if (parse_single(clo, str_last, &last)) {
 			ret = -1;

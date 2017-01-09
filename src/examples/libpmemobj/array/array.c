@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -113,7 +113,7 @@ find_array(const char *name)
 {
 	TOID(struct array_info) info;
 	POBJ_FOREACH_TYPE(pop, info) {
-		if (strcmp(D_RO(info)->name, name) == 0)
+		if (strncmp(D_RO(info)->name, name, MAX_BUFFLEN) == 0)
 			return info;
 	}
 	return TOID_NULL(struct array_info);
@@ -470,7 +470,8 @@ do_alloc(int argc, char *argv[])
 		POBJ_FREE(&array_info);
 	POBJ_ZNEW(pop, &array_info, struct array_info);
 	struct array_info *info = D_RW(array_info);
-	memcpy(info->name, argv[0], strlen(argv[0]));
+	strncpy(info->name, argv[0], MAX_BUFFLEN);
+	info->name[MAX_BUFFLEN - 1] = '\0';
 	info->size = size;
 	info->type = type;
 	info->array = alloc_array[type](size);
