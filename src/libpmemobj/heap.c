@@ -350,6 +350,7 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 	uint32_t inserted_blocks = 0;
 
 	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
+		ASSERT(i < MAX_BITMAP_VALUES);
 		uint64_t v = run->bitmap[i];
 		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
@@ -1258,19 +1259,28 @@ heap_check_remote(void *heap_start, uint64_t heap_size, struct remote_ops *ops)
 	if (heap_verify_header(&header))
 		return -1;
 
+	struct zone *zone_buff = (struct zone *)Malloc(sizeof(struct zone));
+	if (zone_buff == NULL) {
+		ERR("heap: zone_buff malloc error");
+		return -1;
+	}
 	for (unsigned i = 0; i < heap_max_zone(header.size); ++i) {
-		struct zone zone_buff;
-		if (ops->read(ops->ctx, ops->base, &zone_buff,
+		if (ops->read(ops->ctx, ops->base, zone_buff,
 				ZID_TO_ZONE(layout, i), sizeof(struct zone))) {
 			ERR("heap: obj_read_remote error");
-			return -1;
+			goto out;
 		}
 
-		if (heap_verify_zone(&zone_buff))
-			return -1;
+		if (heap_verify_zone(zone_buff)) {
+			goto out;
+		}
 	}
-
+	Free(zone_buff);
 	return 0;
+
+out:
+	Free(zone_buff);
+	return -1;
 }
 
 /*
