@@ -101,7 +101,9 @@ pmemobj_direct(PMEMoid oid)
 
 	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
 	if (pcache == NULL) {
-		pcache = malloc(sizeof(struct _pobj_pcache));
+		pcache = Malloc(sizeof(struct _pobj_pcache));
+		if (pcache == NULL)
+			FATAL("!pcache malloc");
 		int ret = pthread_setspecific(Cached_pool_key, pcache);
 		if (ret)
 			FATAL("!pthread_setspecific");
