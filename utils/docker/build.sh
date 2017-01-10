@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,9 +35,24 @@
 #            prepared for building NVML project.
 #
 
+if [[ "$TRAVIS_BRANCH" != "coverity_scan" && "$COVERITY" -eq 1 ]]; then
+	echo "INFO: Skip Coverity scan build if not on 'coverity_scan' branch"
+	exit 0
+fi
+
+if [[ "$TRAVIS_BRANCH" == "coverity_scan" && "$COVERITY" -ne 1 ]]; then
+	echo "INFO: Skip regular builds on 'coverity_scan' branch"
+	exit 0
+fi
+
+if [[ "$TRAVIS_BRANCH" == "coverity_scan" && "$COVERITY" -eq 1 ]]; then
+	./run-coverity.sh
+	exit $?
+fi
+
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set properly " \
-             "(eg. OS=ubuntu, OS_VER=16.04)."
+		"(eg. OS=ubuntu, OS_VER=16.04)."
 	exit 1
 fi
 
@@ -84,4 +99,3 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-w $SCRIPTSDIR \
 	$imageName $command
-
