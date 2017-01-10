@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,9 +35,24 @@
 #            prepared for building NVML project.
 #
 
+if [[ "$TRAVIS_BRANCH" != "coverity_scan" && "$COVERITY" -eq 1 ]]; then
+	echo "INFO: Skip Coverity scan build if not on 'coverity_scan' branch"
+	exit 0
+fi
+
+if [[ "$TRAVIS_BRANCH" == "coverity_scan" && "$COVERITY" -ne 1 ]]; then
+	echo "INFO: Skip regular builds on 'coverity_scan' branch"
+	exit 0
+fi
+
+if [[ "$TRAVIS_BRANCH" == "coverity_scan" && "$COVERITY" -eq 1 ]]; then
+	./run-coverity.sh
+	exit $?
+fi
+
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set properly " \
-             "(eg. OS=ubuntu, OS_VER=16.04)."
+		"(eg. OS=ubuntu, OS_VER=16.04)."
 	exit 1
 fi
 
@@ -50,7 +65,6 @@ fi
 imageName=nvml/${OS}:${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
-if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 
@@ -67,8 +81,8 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
-	--env CC=$CC \
-	--env CXX=$CXX \
+	--env CC=$NVML_CC \
+	--env CXX=$NVML_CXX \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env WORKDIR=$WORKDIR \
@@ -84,4 +98,3 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-w $SCRIPTSDIR \
 	$imageName $command
-

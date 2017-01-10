@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,6 +46,16 @@
 # If the Docker image does not have to be rebuilt, it will be pulled from
 # the Docker Hub.
 #
+
+if [[ "$TRAVIS_BRANCH" != "coverity_scan" && "$COVERITY" -eq 1 ]]; then
+	echo "INFO: Skip Coverity scan build if not on 'coverity_scan' branch"
+	exit 0
+fi
+
+if [[ "$TRAVIS_BRANCH" == "coverity_scan" ]]; then
+	echo "INFO: Skip Docker image preparation for Coverity scan build"
+	exit 0
+fi
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set properly " \
