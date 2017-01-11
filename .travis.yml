@@ -1,39 +1,26 @@
-language: c
 
-addons:
-  coverity_scan:
-    project:
-      name: $TRAVIS_REPO_SLUG
-      description: "NVM Library"
-    build_command: "make -j all"
-    branch_pattern: coverity_scan
+language: c
 
 env:
   matrix:
-    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=gcc OS=ubuntu OS_VER=16.04
-    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=clang OS=ubuntu OS_VER=16.04
-    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 CC=clang OS=fedora OS_VER=23
-    - MAKE_PKG=1 CC=gcc OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
-    - MAKE_PKG=1 CC=clang OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
-    - MAKE_PKG=1 CC=gcc OS=fedora OS_VER=23 EXPERIMENTAL=y
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ OS=ubuntu OS_VER=16.04
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ OS=fedora OS_VER=23
+    - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
+    - MAKE_PKG=1 NVML_CC=clang NVML_CXX=clang++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
+    - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=fedora OS_VER=23 EXPERIMENTAL=y
     - COVERITY=1
 
 before_install:
-  - test "$TRAVIS_BRANCH" != "coverity_scan" -o "$COVERITY" == "1" || exit 0
-  - test "$TRAVIS_BRANCH" == "coverity_scan" -o "$COVERITY" != "1" || exit 0
-  - if [[ "$TRAVIS_BRANCH" == "coverity_scan" ]]; then
-      echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-;
-    else
-      export HOST_WORKDIR=`pwd` &&
-      cd utils/docker &&
-      ./prepare-environment.sh &&
-      ./pull-or-rebuild-image.sh;
-    fi
+  - export HOST_WORKDIR=`pwd`
+  - cd utils/docker
+  - ./prepare-environment.sh
+  - ./pull-or-rebuild-image.sh
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
   - rm -f push_image_to_repo_flag
 
 script:
-  - test "$TRAVIS_BRANCH" == "coverity_scan" -o "$COVERITY" == "1" || ./build.sh
+  - ./build.sh
 
 after_success:
   - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS:$OS_VER; fi
