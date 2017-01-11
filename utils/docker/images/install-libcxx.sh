@@ -37,24 +37,25 @@
 llvm_url=https://github.com/llvm-mirror/llvm.git
 libcxxabi_url=https://github.com/llvm-mirror/libcxxabi.git
 libcxx_url=https://github.com/pmem/libcxx.git
-install_path=$HOME/install
-top=$(pwd)
+top=/tmp
+install_path=/usr/local/libcxx
 
 export CC=clang
 export CXX=clang++
 
+cd $top
 git clone $llvm_url
-cd llvm
+cd $top/llvm
 git checkout origin/release_39
-cd projects
+cd $top/llvm/projects
 git clone $libcxxabi_url
 git clone $libcxx_url
-cd libcxxabi
+cd $top/llvm/projects/libcxxabi
 git checkout origin/release_39
 cd $top
 mkdir -p build/abi
 mkdir -p build/lib
-cd build/abi
+cd $top/build/abi
 cmake -DLLVM_PATH=$top/llvm -DCMAKE_INSTALL_PREFIX=$install_path $top/llvm/projects/libcxxabi/
 make install
 cd $top/build/lib
