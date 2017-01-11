@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,7 +60,7 @@ out_err_vargs(const char *fmt, va_list ap)
 
 	vfprintf(stderr, fmt, ap);
 	if (lasterr) {
-		size_t size = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+		size_t size = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
 				NULL, lasterr,
 				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 				errmsg, MAXPRINT, NULL);
