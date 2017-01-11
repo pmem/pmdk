@@ -1708,7 +1708,7 @@ reclaimed.
 If \f[I]oidp\f[] points to memory location from the \f[B]pmemobj\f[]
 heap the \f[I]oidp\f[] is changed atomically.
 If \f[B]pmemobj_zrealloc\f[]() is unable to satisfy the allocation
-request, \f[B]OID_NULL\f[] is returned and \f[I]errno\f[] is set
+request, a non\-zero value is returned and \f[I]errno\f[] is set
 appropriately.
 .IP
 .nf
@@ -1734,7 +1734,7 @@ Memory for the new string is obtained with \f[B]pmemobj_alloc\f[](), on
 the given memory pool, and can be freed with \f[B]pmemobj_free\f[]() on
 the same memory pool.
 If \f[B]pmemobj_strdup\f[]() is unable to satisfy the allocation
-request, \f[B]OID_NULL\f[] is returned and \f[I]errno\f[] is set
+request, a non\-zero value is returned and \f[I]errno\f[] is set
 appropriately.
 .IP
 .nf
