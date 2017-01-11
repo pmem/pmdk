@@ -1175,7 +1175,7 @@ undefined. If it points to **OID_NULL**, then the call is equivalent to *pmemobj
 point to **OID_NULL**, then the call is equivalent to *pmemobj_free(pop, oid)*. Unless *oidp* points to **OID_NULL**, it must have been returned by an earlier call
 to **pmemobj_alloc**(), **pmemobj_zalloc**(), **pmemobj_realloc**(), or **pmemobj_zrealloc**(). Note that the object handle value may change in result of
 reallocation. If the object was moved, a memory space represented by *oidp* is reclaimed. If *oidp* points to memory location from the **pmemobj** heap the
-*oidp* is changed atomically. If **pmemobj_zrealloc**() is unable to satisfy the allocation request, **OID_NULL** is returned and *errno* is set appropriately.
+*oidp* is changed atomically. If **pmemobj_zrealloc**() is unable to satisfy the allocation request, a non-zero value is returned and *errno* is set appropriately.
 
 ```c
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s, uint64_t type_num);
@@ -1186,7 +1186,7 @@ It stores a handle to a new object in *oidp* which is a duplicate of the string 
 accessed only by iterating objects in the object container associated with given *type_num*, as described in **OBJECT CONTAINERS** section. If the *oidp*
 points to memory location from the **pmemobj** heap the *oidp* is changed atomically. The allocated string object is also added to the internal container
 associated with given *type_num*. Memory for the new string is obtained with **pmemobj_alloc**(), on the given memory pool, and can be freed with
-**pmemobj_free**() on the same memory pool. If **pmemobj_strdup**() is unable to satisfy the allocation request, **OID_NULL** is returned and *errno* is set
+**pmemobj_free**() on the same memory pool. If **pmemobj_strdup**() is unable to satisfy the allocation request, a non-zero value is returned and *errno* is set
 appropriately.
 
 ```c
