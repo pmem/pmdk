@@ -1,6 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -400,13 +400,41 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 	return p + off_in_page;
 }
 
+static void
+release_node(struct search_ctx *ctx, void *p, int node_type, uint64_t off)
+{
+	size_t obj_len;
+	uint64_t off_in_page, off_pages;
+	int pagesize;
+
+	if (!VALID_NODE_TYPE(node_type)) {
+		return;
+	}
+
+	pagesize = ctx->pmem_ctx->sys_pagesize;
+
+	obj_len = art_node_sizes[node_type];
+	off_pages = (off / pagesize) * pagesize;
+	off_in_page = off - off_pages;
+
+	if (node_type == VAR_STRING) {
+		var_string *vp = (var_string *)p;
+		obj_len = vp->len + sizeof(size_t);
+	}
+
+	munmap(p - off_in_page, off_in_page + obj_len);
+}
+
 static char *
 search_key(char *appname, struct search_ctx *ctx)
 {
 	int errors = 0;
 	void *p;		/* something */
+	off_t p_off;
 	art_node_u *p_au;	/* art_node_u */
+	off_t p_au_off;
 	void *p_an;		/* specific art node from art_node_u */
+	off_t p_an_off;
 	art_node *an;		/* art node */
 	var_string *n_value;
 	char *value;
@@ -417,25 +445,26 @@ search_key(char *appname, struct search_ctx *ctx)
 
 	key_len = strlen((char *)(ctx->search_key));
 	value = NULL;
-	p = get_node(ctx, ART_TREE_ROOT, ctx->pmem_ctx->art_tree_root_offset);
+
+	p_off = ctx->pmem_ctx->art_tree_root_offset;
+	p = get_node(ctx, ART_TREE_ROOT, p_off);
 	if (p != MAP_FAILED) {
-		dump_art_tree_root("art_tree_root",
-		    ctx->pmem_ctx->art_tree_root_offset, p);
+		dump_art_tree_root("art_tree_root", p_off, p);
 	} else {
 		perror("search_key mmap failed");
 		errors++;
 	}
 	if (!errors) {
-		p_au = (art_node_u *)get_node(ctx, ART_NODE_U,
-			    ((art_tree_root *)p)->root.oid.off);
+		p_au_off = ((art_tree_root *)p)->root.oid.off;
+		p_au = (art_node_u *)get_node(ctx, ART_NODE_U, p_au_off);
 		if (p_au == NULL)
 			errors++;
 	}
 
 	if (!errors) {
 		while (p_au) {
-			p_an = get_node(ctx, p_au->art_node_type,
-				    get_offset_an(p_au));
+			p_an_off = get_offset_an(p_au);
+			p_an = get_node(ctx, p_au->art_node_type, p_an_off);
 			assert(p_an != NULL);
 			if (p_au->art_node_type == ART_LEAF) {
 				if (!leaf_matches(ctx, (art_leaf *)p_an,
@@ -458,14 +487,20 @@ search_key(char *appname, struct search_ctx *ctx)
 			}
 			child_off = find_child(an, p_au->art_node_type,
 				    ctx->search_key[depth]);
+
+			release_node(ctx, p_au, ART_NODE_U, p_au_off);
+
 			if (child_off != 0) {
-				p_au = get_node(ctx, ART_NODE_U, child_off);
+				p_au_off = child_off;
+				p_au = get_node(ctx, ART_NODE_U, p_au_off);
 			} else {
 				p_au = NULL;
 			}
 			depth++;
 		}
 	}
+
+	release_node(ctx, p, ART_TREE_ROOT, p_off);
 
 	if (errors) {
 		return NULL;
@@ -478,7 +513,7 @@ static void
 dump_art_tree_root(char *prefix, uint64_t off, void *p)
 {
 	art_tree_root *tree_root;
-	tree_root = (art_tree_root *)((unsigned char *)p);
+	tree_root = (art_tree_root *)p;
 	printf("at offset 0x%lx, art_tree_root {\n", off);
 	printf("    size %d\n", tree_root->size);
 	dump_PMEMoid("    art_node_u", (PMEMoid *)&(tree_root->root));
