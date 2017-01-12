@@ -43,7 +43,7 @@ echo -n | openssl s_client -connect scan.coverity.com:443 | \
 export CC=gcc
 
 export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
-export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
+export COVERITY_SCAN_BRANCH_PATTERN="master"
 export COVERITY_SCAN_BUILD_COMMAND="make -j all"
 
 cd $TRAVIS_BUILD_DIR
