@@ -114,7 +114,7 @@ lane_need_recovery_tx(struct pmem_info *pip,
 
 	if (off != 0) {
 		struct tx_range_cache *cache = OFF_TO_PTR(pip->obj.pop, off);
-		struct tx_range *range = (struct tx_range *)&cache->range[0];
+		struct tx_range *range = (struct tx_range *)cache;
 
 		set_cache = (range->offset && range->size);
 	}
@@ -380,8 +380,11 @@ set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
 	info_obj_object_hdr(pip, v, vid, m, i);
 
 	int title = 0;
-	for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
-		struct tx_range *range = (struct tx_range *)&cache->range[i];
+	uint64_t cache_size = m->m_ops->get_user_size(m);
+	struct tx_range *range;
+
+	for (uint64_t cache_offset = 0; cache_offset < cache_size; ) {
+		range = (struct tx_range *)((char *)cache + cache_offset);
 		if (range->offset == 0 || range->size == 0)
 			break;
 
@@ -392,7 +395,11 @@ set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
 		}
 		outv(v, "%010u: Offset: 0x%016lx Size: %s\n", i, range->offset,
 			out_get_size_str(range->size, pip->args.human));
+
+		cache_offset += TX_RANGE_ALIGN_SIZE(range->size) +
+			sizeof(struct tx_range);
 	}
+
 	if (title)
 		outv_indent(v, -1);
 }

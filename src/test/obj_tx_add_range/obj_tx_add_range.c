@@ -46,7 +46,7 @@
 #define OBJ_SIZE	1024
 #define OVERLAP_SIZE	100
 #define ROOT_TAB_SIZE\
-	(((MAX_CACHED_RANGE_SIZE + 16) * MAX_CACHED_RANGES) / sizeof(int))
+	(TX_RANGE_CACHE_SIZE / sizeof(int))
 
 #define REOPEN_COUNT	10
 
@@ -605,7 +605,7 @@ main(int argc, char *argv[])
 	int do_reopen = atoi(argv[2]);
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL * 2,
 	    S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 

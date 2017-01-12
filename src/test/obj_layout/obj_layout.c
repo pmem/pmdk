@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,7 +64,6 @@
 #define SIZEOF_LANE_V3 (3 * SIZEOF_LANE_SECTION_V3)
 #define SIZEOF_PVECTOR_V3 (224)
 #define SIZEOF_TX_RANGE_META_V3 (16)
-#define SIZEOF_TX_RANGE_CACHE_V3 (8112)
 #define SIZEOF_REDO_LOG_V3 (16)
 #define SIZEOF_LANE_LIST_LAYOUT_V3 (1024 - 8)
 #define SIZEOF_LANE_ALLOC_LAYOUT_V3 (10 * SIZEOF_REDO_LOG_V3)
@@ -248,12 +247,6 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct tx_range);
 	UT_COMPILE_ERROR_ON(sizeof(struct tx_range) !=
 		SIZEOF_TX_RANGE_META_V3);
-
-	ASSERT_ALIGNED_BEGIN(struct tx_range_cache);
-	ASSERT_ALIGNED_FIELD(struct tx_range_cache, range);
-	ASSERT_ALIGNED_CHECK(struct tx_range_cache);
-	UT_COMPILE_ERROR_ON(sizeof(struct tx_range_cache) !=
-		SIZEOF_TX_RANGE_CACHE_V3);
 
 	DONE(NULL);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,13 +40,11 @@
 #include <stdint.h>
 #include "pvector.h"
 
-/*
- * To make sure that the range cache does not needlessly waste memory in the
- * allocator, the values set here must very closely match allocation class
- * sizes. A good value to aim for is multiples of 1024 bytes.
- */
-#define MAX_CACHED_RANGE_SIZE 32
-#define MAX_CACHED_RANGES 169
+#define TX_RANGE_CACHE_SIZE (1 << 21)
+#define TX_RANGE_CACHE_THRESHOLD (1 << 18)
+
+#define TX_RANGE_SIZE_MASK (8ULL - 1)
+#define TX_RANGE_ALIGN_SIZE(s) ((s + TX_RANGE_SIZE_MASK) & ~TX_RANGE_SIZE_MASK)
 
 enum tx_state {
 	TX_STATE_NONE = 0,
@@ -59,13 +57,7 @@ struct tx_range {
 	uint8_t data[];
 };
 
-struct tx_range_cache {
-	struct { /* compatible with struct tx_range */
-		uint64_t offset;
-		uint64_t size;
-		uint8_t data[MAX_CACHED_RANGE_SIZE];
-	} range[MAX_CACHED_RANGES];
-};
+struct tx_range_cache;
 
 enum undo_types {
 	UNDO_ALLOC,

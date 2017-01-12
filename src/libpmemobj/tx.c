@@ -81,7 +81,7 @@ struct tx_undo_runtime {
 struct lane_tx_runtime {
 	PMEMobjpool *pop;
 	struct ctree *ranges;
-	unsigned cache_slot;
+	uint64_t cache_offset;
 	struct tx_undo_runtime undo;
 	SLIST_HEAD(txd, tx_data) tx_entries;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
@@ -483,16 +483,21 @@ tx_foreach_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 	}
 
 	struct tx_range_cache *cache;
+	uint64_t cache_size;
 	ctx = tx_rt->ctx[UNDO_SET_CACHE];
 	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
 		cache = OBJ_OFF_TO_PTR(pop, off);
+		cache_size = palloc_usable_size(&pop->heap, off);
 
-		for (int i = 0; i < MAX_CACHED_RANGES; ++i) {
-			range = (struct tx_range *)&cache->range[i];
+		for (uint64_t cache_offset = 0; cache_offset < cache_size; ) {
+			range = (struct tx_range *)
+				((char *)cache + cache_offset);
 			if (range->offset == 0 || range->size == 0)
 				break;
 
 			cb(pop, range);
+			cache_offset += TX_RANGE_ALIGN_SIZE(range->size) +
+				sizeof(struct tx_range);
 		}
 	}
 }
@@ -607,10 +612,10 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 
 		size_t sz;
 		if (zero_all) {
-			sz = sizeof(*cache);
+			sz = palloc_usable_size(&pop->heap, first_cache);
 		} else {
 			struct lane_tx_runtime *r = tx.section->runtime;
-			sz = sizeof(cache->range[0]) * r->cache_slot;
+			sz = r->cache_offset;
 		}
 
 		VALGRIND_ADD_TO_TX(cache, sz);
@@ -618,8 +623,11 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		VALGRIND_REMOVE_FROM_TX(cache, sz);
 
 #ifdef DEBUG
-		if (!zero_all) /* for recovery we know we zeroed everything */
-			ASSERTeq(util_is_zeroed(cache, sizeof(*cache)), 1);
+		if (!zero_all) { /* for recovery we know we zeroed everything */
+			uint64_t usable_size = palloc_usable_size(&pop->heap,
+				first_cache);
+			ASSERTeq(util_is_zeroed(cache, usable_size), 1);
+		}
 #endif
 	}
 
@@ -1087,7 +1095,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		SLIST_INIT(&lane->tx_entries);
 		SLIST_INIT(&lane->tx_locks);
 		lane->ranges = ctree_new();
-		lane->cache_slot = 0;
+		lane->cache_offset = 0;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx.section->layout;
@@ -1354,7 +1362,7 @@ pmemobj_tx_end()
 			(struct lane_tx_layout *)tx.section->layout;
 
 		/* cleanup cache */
-		lane->cache_slot = 0;
+		lane->cache_offset = 0;
 
 		/* the transaction state and undo log should be clear */
 		ASSERTeq(layout->state, TX_STATE_NONE);
@@ -1465,7 +1473,7 @@ constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	pmemops_memset_persist(p_ops, ptr, 0, sizeof(struct tx_range_cache));
+	pmemops_memset_persist(p_ops, ptr, 0, usable_size);
 
 	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
 
@@ -1476,17 +1484,23 @@ constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
  * pmemobj_tx_get_range_cache -- (internal) returns first available cache
  */
 static struct tx_range_cache *
-pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct pvector_context *undo)
+pmemobj_tx_get_range_cache(PMEMobjpool *pop,
+	struct pvector_context *undo, uint64_t *remaining_space)
 {
 	uint64_t last_cache = pvector_last(undo);
+	uint64_t cache_size;
 
 	struct tx_range_cache *cache = NULL;
 	/* get the last element from the caches list */
-	if (last_cache != 0)
+	if (last_cache != 0) {
 		cache = OBJ_OFF_TO_PTR(pop, last_cache);
+		cache_size = palloc_usable_size(&pop->heap, last_cache);
+	}
+
+	struct lane_tx_runtime *runtime = tx.section->runtime;
 
 	/* verify if the cache exists and has at least one free slot */
-	if (cache == NULL || cache->range[MAX_CACHED_RANGES - 1].offset != 0) {
+	if (cache == NULL || runtime->cache_offset == cache_size) {
 		/* no existing cache, allocate a new one */
 		uint64_t *entry = pvector_push_back(undo);
 		if (entry == NULL) {
@@ -1494,7 +1508,7 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct pvector_context *undo)
 			return NULL;
 		}
 		int err = pmalloc_construct(pop, entry,
-			sizeof(struct tx_range_cache),
+			TX_RANGE_CACHE_SIZE,
 			constructor_tx_range_cache, NULL,
 			0, OBJ_INTERNAL_OBJECT_MASK);
 
@@ -1504,11 +1518,13 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct pvector_context *undo)
 		}
 
 		cache = OBJ_OFF_TO_PTR(pop, *entry);
+		cache_size = palloc_usable_size(&pop->heap, *entry);
 
 		/* since the cache is new, we start the count from 0 */
-		struct lane_tx_runtime *runtime = tx.section->runtime;
-		runtime->cache_slot = 0;
+		runtime->cache_offset = 0;
 	}
+
+	*remaining_space = cache_size - runtime->cache_offset;
 
 	return cache;
 }
@@ -1525,35 +1541,53 @@ pmemobj_tx_add_small(struct tx_add_range_args *args)
 	struct pvector_context *undo = runtime->undo.ctx[UNDO_SET_CACHE];
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	struct tx_range_cache *cache = pmemobj_tx_get_range_cache(pop, undo);
+	uint64_t remaining_space;
+	struct tx_range_cache *cache = pmemobj_tx_get_range_cache(pop,
+		undo, &remaining_space);
 	if (cache == NULL) {
 		ERR("Failed to create range cache");
 		return 1;
 	}
 
-	unsigned n = runtime->cache_slot++; /* first free cache slot */
-
-	ASSERT(n != MAX_CACHED_RANGES);
-
 	/* those structures are binary compatible */
-	struct tx_range *range = (struct tx_range *)&cache->range[n];
-	VALGRIND_ADD_TO_TX(range,
-		sizeof(struct tx_range) + MAX_CACHED_RANGE_SIZE);
+	struct tx_range *range =
+		(struct tx_range *)((char *)cache + runtime->cache_offset);
+
+	uint64_t data_offset = args->offset;
+	uint64_t data_size = args->size;
+	uint64_t range_size = TX_RANGE_ALIGN_SIZE(args->size) +
+		sizeof(struct tx_range);
+
+	if (remaining_space < range_size) {
+		range_size = remaining_space;
+		data_size = remaining_space - sizeof(struct tx_range);
+
+		args->offset += range_size;
+		args->size -= range_size;
+	} else {
+		args->size = 0;
+	}
+
+	runtime->cache_offset += range_size;
+
+	VALGRIND_ADD_TO_TX(range, range_size);
 
 	/* this isn't transactional so we have to keep the order */
-	void *src = OBJ_OFF_TO_PTR(pop, args->offset);
-	VALGRIND_ADD_TO_TX(src, args->size);
+	void *src = OBJ_OFF_TO_PTR(pop, data_offset);
+	VALGRIND_ADD_TO_TX(src, data_size);
 
-	pmemops_memcpy_persist(p_ops, range->data, src, args->size);
+	pmemops_memcpy_persist(p_ops, range->data, src, data_size);
 
 	/* the range is only valid if both size and offset are != 0 */
-	range->size = args->size;
-	range->offset = args->offset;
-	pmemops_persist(p_ops, range,
-		sizeof(range->offset) + sizeof(range->size));
+	range->size = data_size;
+	range->offset = data_offset;
+	pmemops_persist(p_ops, range, sizeof(struct tx_range));
 
-	VALGRIND_REMOVE_FROM_TX(range,
-		sizeof(struct tx_range) + MAX_CACHED_RANGE_SIZE);
+	VALGRIND_REMOVE_FROM_TX(range, range_size);
+
+	if (args->size != 0) {
+		pmemobj_tx_add_small(args);
+	}
 
 	return 0;
 }
@@ -1622,17 +1656,6 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 			nargs.size = apoint - nargs.offset;
 		}
 
-		/*
-		 * Depending on the size of the block, either allocate an
-		 * entire new object or use cache.
-		 */
-		ret = nargs.size > MAX_CACHED_RANGE_SIZE ?
-			pmemobj_tx_add_large(&nargs) :
-			pmemobj_tx_add_small(&nargs);
-
-		if (ret != 0)
-			break;
-
 		ret = ctree_insert_unlocked(runtime->ranges, nargs.offset,
 				nargs.size | range_flags);
 		if (ret != 0) {
@@ -1641,6 +1664,17 @@ pmemobj_tx_add_common(struct tx_add_range_args *args)
 
 			break;
 		}
+
+		/*
+		 * Depending on the size of the block, either allocate an
+		 * entire new object or use cache.
+		 */
+		ret = nargs.size > TX_RANGE_CACHE_THRESHOLD ?
+			pmemobj_tx_add_large(&nargs) :
+			pmemobj_tx_add_small(&nargs);
+
+		if (ret != 0)
+			break;
 	}
 
 	if (ret != 0) {
