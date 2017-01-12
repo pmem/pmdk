@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -113,8 +113,7 @@ dump_pool_info $POOLSET_OUT >> $LOG_TEMP
 dump_pool_info $DIR/part00 >> $LOG_TEMP
 
 # Check if dax device's header is cleaned
-expect_normal_exit $DDMAP$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -l $HDR_LEN >> \
-	$LOG_TEMP
+expect_normal_exit $CMPMAP$EXESUFFIX -z -l $HDR_LEN ${DEVICE_DAX_PATH[0]}
 
 mv $LOG_TEMP $LOG
 check
