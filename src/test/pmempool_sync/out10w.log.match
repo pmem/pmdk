@@ -33,7 +33,7 @@ PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
-Heap offset              : 0x302000
-Heap size                : 38723584
-Checksum                 : 0x68e02e0ab122fbf0 [OK]
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : $(nW) [OK]
 Root offset              : 0x0
