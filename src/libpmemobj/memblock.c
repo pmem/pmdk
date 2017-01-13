@@ -159,7 +159,7 @@ memblock_header_legacy_get_flags(const struct memory_block *m)
 {
 	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
 
-	return (uint16_t)(hdr->root_size >> 48ULL);
+	return (uint16_t)(hdr->root_size >> ALLOC_HDR_SIZE_SHIFT);
 }
 
 /*
@@ -171,12 +171,12 @@ memblock_header_compact_get_flags(const struct memory_block *m)
 {
 	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
 
-	return (uint16_t)(hdr->size >> 48ULL);
+	return (uint16_t)(hdr->size >> ALLOC_HDR_SIZE_SHIFT);
 }
 
 /*
  * memblock_no_header_get_flags --
- *	(internal) objects without a header do support flags
+ *	(internal) objects without a header do not support flags
  */
 static uint16_t
 memblock_no_header_get_flags(const struct memory_block *m)
@@ -199,7 +199,7 @@ memblock_header_legacy_write(const struct memory_block *m,
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	hdr->size = size;
 	hdr->type_num = extra;
-	hdr->root_size = ((uint64_t)flags << 48ULL);
+	hdr->root_size = ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
 	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 
@@ -220,7 +220,7 @@ memblock_header_compact_write(const struct memory_block *m,
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
 
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
-	hdr->size = size | ((uint64_t)flags << 48ULL);
+	hdr->size = size | ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
 	hdr->extra = extra;
 	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));

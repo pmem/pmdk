@@ -44,7 +44,7 @@ export UNITTEST_NUM=4
 require_test_type medium
 
 require_fs_type pmem non-pmem
-#configure_valgrind pmemcheck force-enable ../obj_list/obj_list
+configure_valgrind pmemcheck force-enable ../obj_list/obj_list
 export VALGRIND_OPTS="--mult-stores=yes"
 setup
 

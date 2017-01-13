@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,7 +73,7 @@ container_ctree_insert_block(struct block_container *bc,
 {
 	/*
 	 * Even though the memory block representation of an object uses
-	 * relatively large types in practise the entire memory block structure
+	 * relatively large types in practice the entire memory block structure
 	 * needs to fit in a single 64 bit value - the type of the key in the
 	 * container tree.
 	 * Given those limitations a reasonable idea might be to make the

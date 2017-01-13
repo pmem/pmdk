@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,8 +33,9 @@
 /*
  * container_seglists.c -- implementation of segregated lists block container
  *
- * This container is constructed from N instrusive lists and a single 8 byte
- * bitmap that stores the information whether a given list is empty or not.
+ * This container is constructed from N (up to 64) instrusive lists and a
+ * single 8 byte bitmap that stores the information whether a given list is
+ * empty or not.
  */
 
 #include "container_seglists.h"
@@ -209,7 +210,7 @@ container_new_seglists(struct palloc_heap *heap)
 	bc->super.heap = heap;
 	bc->super.c_ops = &container_seglists_ops;
 
-	for (uint32_t i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
+	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
 		SLIST_INIT(&bc->blocks[i]);
 	bc->nonempty_lists = 0;
 
