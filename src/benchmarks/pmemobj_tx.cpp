@@ -484,7 +484,7 @@ static int
 obj_op_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	  size_t idx)
 {
-	int ret = 0;
+	volatile int ret = 0;
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	TX_BEGIN(obj_bench->pop)
 	{
@@ -506,7 +506,7 @@ obj_op_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 		if (obj_bench->op_mode != OP_MODE_ABORT &&
 		    obj_bench->op_mode != OP_MODE_ABORT_NESTED) {
 			fprintf(stderr, "transaction failed\n");
-			return -1;
+			ret = -1;
 		}
 	}
 	TX_END
