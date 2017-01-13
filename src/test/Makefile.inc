@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -231,6 +231,30 @@ MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 ifneq ($(HEADERS),)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+endif
+endif
+
+ifeq ($(USE_LLVM_LIBCPP),1)
+
+$(call check_defined, LIBCPP_LIBDIR LIBCPP_INCDIR, when using USE_LLVM_LIBCPP)
+
+ifeq ($(COMPILE_LANG), cpp)
+CXXFLAGS += -stdlib=libc++
+INCS += -I$(LIBCPP_INCDIR)
+LIBS += -L$(LIBCPP_LIBDIR) -lc++ -lc++abi
+LDFLAGS += -stdlib=libc++ -Wl,-rpath,$(LIBCPP_LIBDIR)
+endif
+endif
+
+ifeq ($(USE_CUSTOM_GCC),1)
+
+$(call check_defined, GCC_LIBDIR GCC_INCDIR,\
+		when using USE_CUSTOM_GCC)
+
+ifeq ($(COMPILE_LANG), cpp)
+INCS += -I$(GCC_INCDIR)
+LIBS += -L$(GCC_LIBDIR)
+LDFLAGS += -Wl,-rpath,$(GCC_LIBDIR)
 endif
 endif
 

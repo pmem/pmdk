@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,6 +84,16 @@ public:
 class transaction_alloc_error : public transaction_error {
 public:
 	using transaction_error::transaction_error;
+};
+
+/**
+ * Custom transaction error class.
+ *
+ * Thrown when there is a transactional free error.
+ */
+class transaction_free_error : public transaction_alloc_error {
+public:
+	using transaction_alloc_error::transaction_alloc_error;
 };
 
 /**

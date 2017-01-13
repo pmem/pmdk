@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,20 +39,50 @@
 #define PMEMOBJ_PERSISTENT_PTR_HPP
 
 #include <cassert>
+#include <limits>
 #include <memory>
 #include <ostream>
 
 #include "libpmemobj++/detail/common.hpp"
+#include "libpmemobj++/detail/persistent_ptr_base.hpp"
 #include "libpmemobj++/detail/specialization.hpp"
 #include "libpmemobj++/pool.hpp"
+#include "libpmemobj.h"
 
 namespace nvml
 {
 
 namespace obj
 {
+
 template <typename T>
 class pool;
+
+template <typename T>
+class persistent_ptr;
+
+/*
+ * persistent_ptr void specialization.
+ */
+template <>
+class persistent_ptr<void> : public detail::persistent_ptr_base<void> {
+public:
+	persistent_ptr() = default;
+	using detail::persistent_ptr_base<void>::persistent_ptr_base;
+	using detail::persistent_ptr_base<void>::operator=;
+};
+
+/*
+ * persistent_ptr const void specialization.
+ */
+template <>
+class persistent_ptr<const void>
+	: public detail::persistent_ptr_base<const void> {
+public:
+	persistent_ptr() = default;
+	using detail::persistent_ptr_base<const void>::persistent_ptr_base;
+	using detail::persistent_ptr_base<const void>::operator=;
+};
 
 /**
  * Persistent pointer class.
@@ -69,137 +99,33 @@ class pool;
  * @snippet doc_snippets/persistent.cpp persistent_ptr_example
  */
 template <typename T>
-class persistent_ptr {
-	template <typename Y>
-	friend class persistent_ptr;
-
-	typedef persistent_ptr<T> this_type;
-
+class persistent_ptr : public detail::persistent_ptr_base<T> {
 public:
-	/**
-	 * Type of an actual object with all qualifier removed,
-	 * used for easy underlying type access
-	 */
-	typedef typename nvml::detail::sp_element<T>::type element_type;
+	persistent_ptr() = default;
+	using detail::persistent_ptr_base<T>::persistent_ptr_base;
 
 	/**
-	 * Default constructor, zeroes the PMEMoid.
+	 * Explicit void specialization of the converting costructor.
 	 */
-	persistent_ptr() : oid(OID_NULL)
+	explicit persistent_ptr(persistent_ptr<void> const &rhs) noexcept
+		: detail::persistent_ptr_base<T>(rhs.raw())
 	{
-		verify_type();
-	}
-
-	/*
-	 * Curly braces initialization is not used because the
-	 * PMEMoid is a plain C (POD) type and we can't add a default
-	 * constructor in there.
-	 */
-
-	/**
-	 *  Default null constructor, zeroes the PMEMoid.
-	 */
-	persistent_ptr(std::nullptr_t) noexcept : oid(OID_NULL)
-	{
-		verify_type();
 	}
 
 	/**
-	 * PMEMoid constructor.
-	 *
-	 * Provided for easy interoperability between C++ and C API's.
-	 *
-	 * @param oid C-style persistent pointer
+	 * Explicit const void specialization of the converting costructor.
 	 */
-	persistent_ptr(PMEMoid oid) noexcept : oid(oid)
+	explicit persistent_ptr(persistent_ptr<const void> const &rhs) noexcept
+		: detail::persistent_ptr_base<T>(rhs.raw())
 	{
-		verify_type();
 	}
 
 	/**
-	 * Copy constructor from a different persistent_ptr<>.
-	 *
-	 * Available only for convertible types.
-	 *
+	 * Peristent pointer to void conversion operator.
 	 */
-	template <typename Y,
-		  typename = typename std::enable_if<
-			  std::is_convertible<Y *, T *>::value>::type>
-	persistent_ptr(const persistent_ptr<Y> &r) noexcept : oid(r.oid)
+	operator persistent_ptr<void>() const noexcept
 	{
-		verify_type();
-	}
-
-	/*
-	 * Copy constructor.
-	 *
-	 * @param r Persistent pointer to the same type.
-	 */
-	persistent_ptr(const persistent_ptr &r) noexcept : oid(r.oid)
-	{
-		verify_type();
-	}
-
-	/**
-	 * Defaulted move constructor.
-	 */
-	persistent_ptr(persistent_ptr &&r) noexcept : oid(std::move(r.oid))
-	{
-		verify_type();
-	}
-
-	/**
-	 * Defaulted move assignment operator.
-	 */
-	persistent_ptr &
-	operator=(persistent_ptr &&r)
-	{
-		detail::conditional_add_to_tx(this);
-		this->oid = std::move(r.oid);
-
-		return *this;
-	}
-
-	/**
-	 * Assignment operator.
-	 *
-	 * Persistent pointer assignment within a transaction
-	 * automatically registers this operation so that a rollback
-	 * is possible.
-	 *
-	 * @throw nvml::transaction_error when adding the object to the
-	 *	transaction failed.
-	 */
-	persistent_ptr &
-	operator=(const persistent_ptr &r)
-	{
-		detail::conditional_add_to_tx(this);
-		this_type(r).swap(*this);
-
-		return *this;
-	}
-
-	/**
-	 * Converting assignment operator from a different
-	 * persistent_ptr<>.
-	 *
-	 * Available only for convertible types.
-	 * Just like regular assignment, also automatically registers
-	 * itself in a transaction.
-	 *
-	 * @throw nvml::transaction_error when adding the object to the
-	 *	transaction failed.
-	 */
-	template <typename Y,
-		  typename = typename std::enable_if<
-			  std::is_convertible<Y *, T *>::value>::type>
-	persistent_ptr &
-	operator=(const persistent_ptr<Y> &r)
-	{
-		detail::conditional_add_to_tx(this);
-		this_type(r).swap(*this);
-
-		return *this;
+		return this->get();
 	}
 
 	/**
@@ -208,7 +134,7 @@ public:
 	typename nvml::detail::sp_dereference<T>::type operator*() const
 		noexcept
 	{
-		return *get();
+		return *this->get();
 	}
 
 	/**
@@ -217,7 +143,7 @@ public:
 	typename nvml::detail::sp_member_access<T>::type operator->() const
 		noexcept
 	{
-		return get();
+		return this->get();
 	}
 
 	/**
@@ -225,6 +151,7 @@ public:
 	 *
 	 * Contains run-time bounds checking for static arrays.
 	 */
+	template <typename = typename std::enable_if<!std::is_void<T>::value>>
 	typename nvml::detail::sp_array_access<T>::type
 	operator[](std::ptrdiff_t i) const noexcept
 	{
@@ -232,63 +159,7 @@ public:
 				  nvml::detail::sp_extent<T>::value == 0) &&
 		       "persistent array index out of bounds");
 
-		return get()[i];
-	}
-
-	/**
-	 * Get a direct pointer.
-	 *
-	 * Performs a calculations on the underlying C-style pointer.
-	 *
-	 * @return a direct pointer to the object.
-	 */
-	element_type *
-	get() const noexcept
-	{
-		return (element_type *)pmemobj_direct(this->oid);
-	}
-
-	/**
-	 * Swaps two persistent_ptr objects of the same type.
-	 */
-	void
-	swap(persistent_ptr &other) noexcept
-	{
-		std::swap(this->oid, other.oid);
-	}
-
-	/*
-	 * Bool conversion operator.
-	 */
-	explicit operator bool() const noexcept
-	{
-		return get() != nullptr;
-	}
-
-	/**
-	 * Get PMEMoid encapsulated by this object.
-	 *
-	 * For C API compatibility.
-	 *
-	 * @return const reference to the PMEMoid
-	 */
-	const PMEMoid &
-	raw() const noexcept
-	{
-		return this->oid;
-	}
-
-	/**
-	 * Get pointer to PMEMoid encapsulated by this object.
-	 *
-	 * For C API compatibility.
-	 *
-	 * @return pointer to the PMEMoid
-	 */
-	PMEMoid *
-	raw_ptr() noexcept
-	{
-		return &(this->oid);
+		return this->get()[i];
 	}
 
 	/**
@@ -417,22 +288,77 @@ public:
 		pmemobj_flush(pop, this->get(), sizeof(T));
 	}
 
-private:
-	/* The underlying PMEMoid of the held object. */
-	PMEMoid oid;
+	/*
+	 * Pointer traits related.
+	 */
+
+	/**
+	 * Create a persistent pointer from a given reference.
+	 *
+	 * This can create a persistent_ptr to a volatile object, use with
+	 * extreme caution.
+	 *
+	 * @param ref reference to an object.
+	 */
+	static persistent_ptr<T>
+	pointer_to(T &ref)
+	{
+		/*
+		 * XXX do we really want this to happen automatically for the
+		 * whole object??
+		 *		auto oid = pmemobj_oid_from_ptr(&ref);
+		 *		if (!OID_IS_NULL(oid) &&
+		 *		    (pmemobj_tx_stage() == TX_STAGE_WORK)) {
+		 *			pmemobj_tx_add_range(oid, sizeof(T));
+		 *		}
+		 */
+		return persistent_ptr<T>(std::addressof(ref), 0);
+	}
+
+	/**
+	 * Rebind to a different type of pointer.
+	 */
+	template <class U>
+	using rebind = nvml::obj::persistent_ptr<U>;
+
+	/**
+	 * The persistency type to be used with this pointer.
+	 */
+	using persistency_type = p<T>;
+
+	/**
+	 * The used bool_type.
+	 */
+	using bool_type = bool;
 
 	/*
-	 * C++ persistent memory support has following type limitations:
-	 * en.cppreference.com/w/cpp/types/is_polymorphic
-	 * en.cppreference.com/w/cpp/types/is_default_constructible
-	 * en.cppreference.com/w/cpp/types/is_destructible
+	 * Random access iterator requirements (members)
 	 */
-	void
-	verify_type()
-	{
-		static_assert(!std::is_polymorphic<element_type>::value,
-			      "Polymorphic types are not supported");
-	}
+
+	/**
+	 * The persistent_ptr iterator category.
+	 */
+	using iterator_category = std::random_access_iterator_tag;
+
+	/**
+	 * The persistent_ptr difference type.
+	 */
+	using difference_type = std::ptrdiff_t;
+
+	/**
+	 * The type of the value pointed to by the persistent_ptr.
+	 */
+	using value_type = T;
+
+	/**
+	 * The reference type of the value pointed to by the persistent_ptr.
+	 */
+	using reference = T &;
+
+	/**
+	 * The pointer type.
+	 */
+	using pointer = persistent_ptr<T>;
 };
 
 /**
@@ -455,7 +381,7 @@ swap(persistent_ptr<T> &a, persistent_ptr<T> &b) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator==(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator==(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	return OID_EQUALS(lhs.raw(), rhs.raw());
 }
@@ -465,7 +391,7 @@ operator==(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator!=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator!=(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	return !(lhs == rhs);
 }
@@ -475,7 +401,7 @@ operator!=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T>
 inline bool
-operator==(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator==(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return lhs.get() == nullptr;
 }
@@ -485,7 +411,7 @@ operator==(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator==(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
+operator==(std::nullptr_t, persistent_ptr<T> const &lhs) noexcept
 {
 	return lhs.get() == nullptr;
 }
@@ -495,7 +421,7 @@ operator==(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
  */
 template <typename T>
 inline bool
-operator!=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator!=(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return lhs.get() != nullptr;
 }
@@ -505,7 +431,7 @@ operator!=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator!=(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
+operator!=(std::nullptr_t, persistent_ptr<T> const &lhs) noexcept
 {
 	return lhs.get() != nullptr;
 }
@@ -519,7 +445,7 @@ operator!=(std::nullptr_t, const persistent_ptr<T> &lhs) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator<(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator<(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	if (lhs.raw().pool_uuid_lo == rhs.raw().pool_uuid_lo)
 		return lhs.raw().off < rhs.raw().off;
@@ -534,7 +460,7 @@ operator<(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator<=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator<=(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	return !(rhs < lhs);
 }
@@ -546,7 +472,7 @@ operator<=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator>(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator>(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	return (rhs < lhs);
 }
@@ -558,7 +484,7 @@ operator>(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T, typename Y>
 inline bool
-operator>=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
+operator>=(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs) noexcept
 {
 	return !(lhs < rhs);
 }
@@ -570,7 +496,7 @@ operator>=(const persistent_ptr<T> &lhs, const persistent_ptr<Y> &rhs) noexcept
  */
 template <typename T>
 inline bool
-operator<(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator<(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return std::less<typename persistent_ptr<T>::element_type *>()(
 		lhs.get(), nullptr);
@@ -581,7 +507,7 @@ operator<(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator<(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
+operator<(std::nullptr_t, persistent_ptr<T> const &rhs) noexcept
 {
 	return std::less<typename persistent_ptr<T>::element_type *>()(
 		nullptr, rhs.get());
@@ -592,7 +518,7 @@ operator<(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
  */
 template <typename T>
 inline bool
-operator<=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator<=(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return !(nullptr < lhs);
 }
@@ -602,7 +528,7 @@ operator<=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator<=(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
+operator<=(std::nullptr_t, persistent_ptr<T> const &rhs) noexcept
 {
 	return !(rhs < nullptr);
 }
@@ -612,7 +538,7 @@ operator<=(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
  */
 template <typename T>
 inline bool
-operator>(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator>(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return nullptr < lhs;
 }
@@ -622,7 +548,7 @@ operator>(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator>(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
+operator>(std::nullptr_t, persistent_ptr<T> const &rhs) noexcept
 {
 	return rhs < nullptr;
 }
@@ -632,7 +558,7 @@ operator>(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
  */
 template <typename T>
 inline bool
-operator>=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
+operator>=(persistent_ptr<T> const &lhs, std::nullptr_t) noexcept
 {
 	return !(lhs < nullptr);
 }
@@ -642,7 +568,7 @@ operator>=(const persistent_ptr<T> &lhs, std::nullptr_t) noexcept
  */
 template <typename T>
 inline bool
-operator>=(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
+operator>=(std::nullptr_t, persistent_ptr<T> const &rhs) noexcept
 {
 	return !(nullptr < rhs);
 }
@@ -652,7 +578,7 @@ operator>=(std::nullptr_t, const persistent_ptr<T> &rhs) noexcept
  */
 template <typename T>
 inline persistent_ptr<T>
-operator+(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
+operator+(persistent_ptr<T> const &lhs, std::ptrdiff_t s)
 {
 	PMEMoid noid;
 	noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;
@@ -665,7 +591,7 @@ operator+(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
  */
 template <typename T>
 inline persistent_ptr<T>
-operator-(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
+operator-(persistent_ptr<T> const &lhs, std::ptrdiff_t s)
 {
 	PMEMoid noid;
 	noid.pool_uuid_lo = lhs.raw().pool_uuid_lo;
@@ -680,9 +606,12 @@ operator-(const persistent_ptr<T> &lhs, std::ptrdiff_t s)
  * objects. Calculating the difference of pointers from objects of
  * different pools is not allowed.
  */
-template <typename T>
+template <typename T, typename Y,
+	  typename = typename std::enable_if<
+		  std::is_same<typename std::remove_cv<T>::type,
+			       typename std::remove_cv<Y>::type>::value>>
 inline ptrdiff_t
-operator-(const persistent_ptr<T> &lhs, const persistent_ptr<T> &rhs)
+operator-(persistent_ptr<T> const &lhs, persistent_ptr<Y> const &rhs)
 {
 	assert(lhs.raw().pool_uuid_lo == rhs.raw().pool_uuid_lo);
 	ptrdiff_t d = lhs.raw().off - rhs.raw().off;
@@ -695,7 +624,7 @@ operator-(const persistent_ptr<T> &lhs, const persistent_ptr<T> &rhs)
  */
 template <typename T>
 std::ostream &
-operator<<(std::ostream &os, const persistent_ptr<T> &pptr)
+operator<<(std::ostream &os, persistent_ptr<T> const &pptr)
 {
 	PMEMoid raw_oid = pptr.raw();
 	os << std::hex << "0x" << raw_oid.pool_uuid_lo << ", 0x" << raw_oid.off
