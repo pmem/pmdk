@@ -180,16 +180,19 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 #define PMALLOC_EXTRA 20
 #define PALLOC_FLAG (1 << 15)
 
+#define FIRST_SIZE 1
+#define FIRST_USIZE 112
+
 static void
 test_pmalloc_extras(PMEMobjpool *pop)
 {
 	uint64_t val;
-	int ret = pmalloc(pop, &val, 10, PMALLOC_EXTRA, PALLOC_FLAG);
+	int ret = pmalloc(pop, &val, FIRST_SIZE, PMALLOC_EXTRA, PALLOC_FLAG);
 	UT_ASSERTeq(ret, 0);
 
 	UT_ASSERTeq(palloc_extra(&pop->heap, val), PMALLOC_EXTRA);
 	UT_ASSERT((palloc_flags(&pop->heap, val) & PALLOC_FLAG) == PALLOC_FLAG);
-	UT_ASSERT(palloc_usable_size(&pop->heap, val) == 112);
+	UT_ASSERT(palloc_usable_size(&pop->heap, val) == FIRST_USIZE);
 
 	pfree(pop, &val);
 }
@@ -201,7 +204,7 @@ test_pmalloc_first_next(PMEMobjpool *pop)
 {
 	uint64_t vals[PMALLOC_ELEMENTS];
 	for (int i = 0; i < PMALLOC_ELEMENTS; ++i) {
-		int ret = pmalloc(pop, &vals[i], 10, i, i);
+		int ret = pmalloc(pop, &vals[i], FIRST_SIZE, i, i);
 		UT_ASSERTeq(ret, 0);
 	}
 
@@ -212,7 +215,7 @@ test_pmalloc_first_next(PMEMobjpool *pop)
 		UT_ASSERTeq(vals[nvalues], off);
 		UT_ASSERTeq(palloc_extra(&pop->heap, off), nvalues);
 		UT_ASSERTeq(palloc_flags(&pop->heap, off), nvalues);
-		UT_ASSERT(palloc_usable_size(&pop->heap, off) == 112);
+		UT_ASSERT(palloc_usable_size(&pop->heap, off) == FIRST_USIZE);
 
 		nvalues ++;
 	} while ((off = palloc_next(&pop->heap, off)) != 0);

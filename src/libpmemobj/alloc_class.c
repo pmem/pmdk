@@ -399,6 +399,8 @@ alloc_class_collection_new(void)
 		size_t header_offset = CALC_SIZE_IDX(ALLOC_BLOCK_SIZE,
 			header_type_to_size[c->header_type]);
 		ac->class_map_by_alloc_size[i - header_offset] = c->id;
+		/* this is here to make sure the last entry is filled */
+		ac->class_map_by_alloc_size[i] = c->id;
 	}
 
 #ifndef DEBUG

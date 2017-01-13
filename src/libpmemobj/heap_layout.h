@@ -127,7 +127,8 @@ struct heap_layout {
 	struct zone zone0;	/* first element of zones array */
 };
 
-#define ALLOC_HDR_FLAGS_MASK (((1ULL) << 48) - 1)
+#define ALLOC_HDR_SIZE_SHIFT (48ULL)
+#define ALLOC_HDR_FLAGS_MASK (((1ULL) << ALLOC_HDR_SIZE_SHIFT) - 1)
 
 struct allocation_header_legacy {
 	uint8_t unused[8];

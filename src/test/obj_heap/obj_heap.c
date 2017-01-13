@@ -81,7 +81,7 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 
 	run->block_size = 1024;
 	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
-	UT_ASSERT(score % 64 == 0);
+	UT_ASSERTeq(score % 64, 0);
 	score /= 64;
 
 	for (; score > 0; --score) {
@@ -96,7 +96,7 @@ test_alloc_class_bitmap_correctness()
 	UT_ASSERT(classes != NULL);
 	struct alloc_class *c =
 		alloc_class_get_create_by_unit_size(classes, RUNSIZE / 10);
-	UT_ASSERT(c != NULL);
+	UT_ASSERTne(c, NULL);
 
 	/* 54 set (not available for allocations), and 10 clear (available) */
 	uint64_t bitmap_lastval =

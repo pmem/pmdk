@@ -162,7 +162,7 @@ palloc_operation(struct palloc_heap *heap,
 	 *
 	 * To provide optimal scaling for multi-threaded applications and reduce
 	 * fragmentation the appropriate bucket is chosen depending on the
-	 * current thread context and to which allocation class the requested*
+	 * current thread context and to which allocation class the requested
 	 * size falls into.
 	 *
 	 * Once the bucket is selected, just enough memory is reserved for the

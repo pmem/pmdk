@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,6 +43,5 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 TOOLS_COMMON=y
 LIBPMEMBLK_PRIV=btt_info_convert2h
-CFLAGS+=-g -O0
 
 include $(TOP)/src/tools/Makefile.inc
