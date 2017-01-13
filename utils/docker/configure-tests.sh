@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@ cat << EOF > $WORKDIR/src/test/testconfig.sh
 NON_PMEM_FS_DIR=/tmp
 PMEM_FS_DIR=/tmp
 PMEM_FS_DIR_FORCE_PMEM=1
+TEST_BUILD="debug nondebug"
 EOF
 
 # Configure remote tests
