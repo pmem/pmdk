@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -70,13 +70,13 @@ TEST_FILE_REMOTE="testfile_remote"
 NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1) $(get_node_dir 2))
 
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[0]}/$TEST_FILE_LOCAL:x \
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[0]}/$TEST_FILE_LOCAL:x \
 	m ${NODE_ADDR[1]}:${TEST_SET_REMOTE}1 \
 	m ${NODE_ADDR[2]}:${TEST_SET_REMOTE}2
-create_poolset $DIR/${TEST_SET_REMOTE}2 9M:${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2:x
+create_poolset $DIR/${TEST_SET_REMOTE}2 17M:${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2:x
 create_poolset $DIR/${TEST_SET_REMOTE}1 \
-        10M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1:x \
-        r 12M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1_replica:x
+        18M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1:x \
+        r 20M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1_replica:x
 
 copy_files_to_node 0 . $DIR/$TEST_SET_LOCAL
 copy_files_to_node 1 . $DIR/${TEST_SET_REMOTE}1

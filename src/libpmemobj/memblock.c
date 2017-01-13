@@ -715,6 +715,7 @@ memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
 
 	switch (ZID_TO_ZONE(h, m->zone_id)->chunk_headers[m->chunk_id].type) {
 		case CHUNK_TYPE_RUN:
+		case CHUNK_TYPE_RUN_DATA:
 			ret = MEMORY_BLOCK_RUN;
 			break;
 		case CHUNK_TYPE_FREE:
@@ -744,6 +745,11 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 
 	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
+
+	struct chunk_header *hdr = &ZID_TO_ZONE(heap->layout, m.zone_id)
+						->chunk_headers[m.chunk_id];
+	if (hdr->type == CHUNK_TYPE_RUN_DATA)
+		m.chunk_id -= hdr->size_idx;
 
 	off -= CHUNKSIZE * m.chunk_id;
 
