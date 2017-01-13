@@ -51,7 +51,7 @@
 /*
  * The last size that is handled by runs.
  */
-#define MAX_RUN_SIZE (CHUNKSIZE / 2)
+#define MAX_RUN_SIZE (CHUNKSIZE * 10)
 
 /*
  * Maximum number of bytes the allocation class generation algorithm can decide
@@ -66,7 +66,7 @@
  * fragmentation. For each category the internal fragmentation can be calculated
  * as: step/size. So for step == 1 the acceptable fragmentation is 0% and so on.
  */
-#define MAX_ALLOC_CATEGORIES 5
+#define MAX_ALLOC_CATEGORIES 6
 
 /*
  * The first size (in alloc blocks) which is actually used in the allocation
@@ -84,7 +84,9 @@ static struct {
 
 	{16, 1},
 	{64, 2},
-	{256, 4}
+	{256, 4},
+	{512, 8},
+	{1024, 128},
 };
 
 #define RUN_UNIT_MAX 64U
@@ -100,6 +102,22 @@ static struct {
  * Converts size (in bytes) to number of allocation blocks.
  */
 #define SIZE_TO_CLASS_MAP_INDEX(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
+
+/*
+ * Calculates the size in bytes of a single run instance
+ */
+#define RUN_SIZE_BYTES(size_idx)\
+(RUNSIZE + ((size_idx - 1) * CHUNKSIZE))
+
+/*
+ * Target number of allocations per run instance.
+ */
+#define RUN_MIN_NALLOCS 500
+
+/*
+ * Hard limit of chunks per single run.
+ */
+#define RUN_SIZE_IDX_CAP (8)
 
 struct alloc_class_collection {
 	struct alloc_class *aclasses[MAX_ALLOCATION_CLASSES];
@@ -148,7 +166,9 @@ alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 static struct alloc_class *
 alloc_class_new(struct alloc_class_collection *ac,
 	enum alloc_class_type type,
-	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc)
+	size_t unit_size,
+	unsigned unit_max, unsigned unit_max_alloc,
+	uint32_t size_idx)
 {
 	struct alloc_class *c = Malloc(sizeof(*c));
 	if (c == NULL)
@@ -166,6 +186,8 @@ alloc_class_new(struct alloc_class_collection *ac,
 		case CLASS_RUN:
 			c->run.unit_max = unit_max;
 			c->run.unit_max_alloc = unit_max_alloc;
+			c->run.size_idx = size_idx;
+
 			/*
 			 * Here the bitmap definition is calculated based on the
 			 * size of the available memory and the size of
@@ -174,9 +196,8 @@ alloc_class_new(struct alloc_class_collection *ac,
 			 * that block, and in other words, the amount of bits
 			 * in the bitmap.
 			 */
-			ASSERT(RUN_NALLOCS(unit_size) <= UINT32_MAX);
-			c->run.bitmap_nallocs =
-				(unsigned)(RUN_NALLOCS(unit_size));
+			c->run.bitmap_nallocs = (uint32_t)
+				(RUN_SIZE_BYTES(c->run.size_idx) / unit_size);
 
 			/*
 			 * The two other numbers that define our bitmap is the
@@ -237,11 +258,20 @@ static struct alloc_class *
 alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 {
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
+	uint64_t required_size_bytes = (uint32_t)n * RUN_MIN_NALLOCS;
+	uint32_t required_size_idx = 1;
+	if (required_size_bytes > RUNSIZE) {
+		required_size_bytes -= RUNSIZE;
+		required_size_idx +=
+			CALC_SIZE_IDX(CHUNKSIZE, required_size_bytes);
+		if (required_size_idx > RUN_SIZE_IDX_CAP)
+			required_size_idx = RUN_SIZE_IDX_CAP;
+	}
 
 	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
 		struct alloc_class *c = ac->aclasses[i];
 
-		if (c == NULL)
+		if (c == NULL || c->run.size_idx < required_size_idx)
 			continue;
 
 		if (n % c->unit_size == 0 &&
@@ -254,7 +284,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 * run data size must be divisible by the allocation class unit size
 	 * with the smallest possible remainder, preferably 0.
 	 */
-	while ((RUNSIZE % n) > MAX_RUN_WASTED_BYTES) {
+	size_t runsize_bytes = RUN_SIZE_BYTES(required_size_idx);
+	while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES) {
 		n += ALLOC_BLOCK_SIZE;
 	}
 
@@ -272,7 +303,7 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	}
 
 	return alloc_class_new(ac, CLASS_RUN, n,
-		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, required_size_idx);
 }
 
 /*
@@ -332,12 +363,12 @@ alloc_class_collection_new(void)
 
 	ac->last_run_max_size = MAX_RUN_SIZE;
 
-	if (alloc_class_new(ac, CLASS_HUGE, CHUNKSIZE, 0, 0) == NULL)
+	if (alloc_class_new(ac, CLASS_HUGE, CHUNKSIZE, 0, 0, 1) == NULL)
 		goto error_alloc_class_create;
 
 	struct alloc_class *predefined_class =
 		alloc_class_new(ac, CLASS_RUN, MIN_RUN_SIZE,
-			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, 1);
 	if (predefined_class == NULL)
 		goto error_alloc_class_create;
 
@@ -465,7 +496,7 @@ alloc_class_get_create_by_unit_size(struct alloc_class_collection *ac,
 
 	if (c == NULL || c->unit_size != size)
 		c = alloc_class_new(ac, CLASS_RUN, size,
-			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
+			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, 1);
 
 	return c;
 }

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -66,9 +66,9 @@ NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 
 # XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
         m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
-create_poolset $DIR/$TEST_SET_REMOTE 9M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
 
 copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
 copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
@@ -77,8 +77,8 @@ rm_files_from_node 0 $TEST_FILE_REMOTE
 rm_files_from_node 1 $TEST_FILE_LOCAL
 
 # create remote holey pool files
-create_holey_file_on_node 1 8M ${NODE_DIRS[1]}/$TEST_FILE_LOCAL
-create_holey_file_on_node 0 9M ${NODE_DIRS[0]}/$TEST_FILE_REMOTE
+create_holey_file_on_node 1 16M ${NODE_DIRS[1]}/$TEST_FILE_LOCAL
+create_holey_file_on_node 0 17M ${NODE_DIRS[0]}/$TEST_FILE_REMOTE
 
 # execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
