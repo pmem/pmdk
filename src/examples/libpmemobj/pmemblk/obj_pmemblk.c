@@ -59,7 +59,7 @@
 #include "libpmemblk.h"
 
 #define USABLE_SIZE (9.0 / 10)
-#define POOL_SIZE ((size_t)(1024 * 1024 * 50))
+#define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 #define MAX_POOL_SIZE ((size_t)1024 * 1024 * 1024 * 16)
 #define MAX_THREADS 256
 #define BSIZE_MAX ((size_t)(1024 * 1024 * 10))
