@@ -1,6 +1,16 @@
 var searchData=
 [
-  ['delete_5fpersistent',['delete_persistent',['../make__persistent_8hpp.html#a13388e739f3fe00a9c906d8f01d0d6c1',1,'nvml::obj::delete_persistent(typename detail::pp_if_not_array&lt; T &gt;::type ptr)'],['../make__persistent__array_8hpp.html#a6af17d54b190da0a129735c895d1b7a0',1,'nvml::obj::delete_persistent(typename detail::pp_if_array&lt; T &gt;::type ptr, std::size_t N)'],['../make__persistent__array_8hpp.html#a22579298bcf8e2a4708270c396f15ecd',1,'nvml::obj::delete_persistent(typename detail::pp_if_size_array&lt; T &gt;::type ptr)']]],
-  ['delete_5fpersistent_5fatomic',['delete_persistent_atomic',['../make__persistent__array__atomic_8hpp.html#a8e9137d6e143ea796022b621ebb1b236',1,'nvml::obj::delete_persistent_atomic(typename detail::pp_if_array&lt; T &gt;::type &amp;ptr, std::size_t N)'],['../make__persistent__array__atomic_8hpp.html#a94ba4aad4c2411eedb4d2107550f4900',1,'nvml::obj::delete_persistent_atomic(typename detail::pp_if_size_array&lt; T &gt;::type &amp;ptr)'],['../make__persistent__atomic_8hpp.html#ab4829c17b4db1755e79a2fa928879c54',1,'nvml::obj::delete_persistent_atomic(typename detail::pp_if_not_array&lt; T &gt;::type &amp;ptr) noexcept']]],
-  ['drain',['drain',['../classnvml_1_1obj_1_1pool__base.html#a43b185c655a2f636d3f105b5c051d583',1,'nvml::obj::pool_base']]]
+  ['check',['check',['../classnvml_1_1obj_1_1pool__base.html#ab2a882cf19c7048289e43ec6c77c5a56',1,'nvml::obj::pool_base::check()'],['../classnvml_1_1obj_1_1pool.html#a0d6e32301388552bbdc2c297b7c48598',1,'nvml::obj::pool::check()']]],
+  ['check_5fpersistent_5fptr_5farray_2ehpp',['check_persistent_ptr_array.hpp',['../check__persistent__ptr__array_8hpp.html',1,'']]],
+  ['close',['close',['../classnvml_1_1obj_1_1pool__base.html#a228e4679648b2c753e41ae3cf3256909',1,'nvml::obj::pool_base']]],
+  ['commit',['commit',['../classnvml_1_1obj_1_1transaction.html#a8f036c0fa7bc23f927202943c13952a6',1,'nvml::obj::transaction']]],
+  ['common_2ehpp',['common.hpp',['../common_8hpp.html',1,'']]],
+  ['condition_5fvariable',['condition_variable',['../classnvml_1_1obj_1_1condition__variable.html#a21176d22b3e771cc2db739f65f2c3121',1,'nvml::obj::condition_variable::condition_variable() noexcept=default'],['../classnvml_1_1obj_1_1condition__variable.html#a650ab1e3b2c26fdfbe520c5a6bb0b34f',1,'nvml::obj::condition_variable::condition_variable(const condition_variable &amp;)=delete']]],
+  ['condition_5fvariable',['condition_variable',['../classnvml_1_1obj_1_1condition__variable.html',1,'nvml::obj']]],
+  ['condition_5fvariable_2ehpp',['condition_variable.hpp',['../condition__variable_8hpp.html',1,'']]],
+  ['construct',['construct',['../classnvml_1_1obj_1_1object__traits.html#a8177474402628c4c3bcb32aab6b3c561',1,'nvml::obj::object_traits::construct(pointer p, const_reference t)'],['../classnvml_1_1obj_1_1object__traits.html#abd7213108355f250736b90f39efb5638',1,'nvml::obj::object_traits::construct(pointer p, Args &amp;&amp;...args)']]],
+  ['conversions_2ehpp',['conversions.hpp',['../conversions_8hpp.html',1,'']]],
+  ['count',['count',['../classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html#aa26c6d46aceac3527f0abf4a18814256',1,'nvml::obj::transaction::automatic::uncaught_exception_counter']]],
+  ['create',['create',['../classnvml_1_1obj_1_1pool__base.html#acf5f99143644c56492b8e8f95a20e64b',1,'nvml::obj::pool_base::create()'],['../classnvml_1_1obj_1_1pool.html#a106e32988ee2e780632db1ca20778ad2',1,'nvml::obj::pool::create()']]],
+  ['c_2b_2b_20bindings_20for_20libpmemobj',['C++ Bindings For libpmemobj',['../index.html',1,'']]]
 ];

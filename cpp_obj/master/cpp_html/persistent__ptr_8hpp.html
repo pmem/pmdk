@@ -96,21 +96,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Persistent smart pointer.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;cassert&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;ostream&gt;</code><br />
 <code>#include &quot;<a class="el" href="common_8hpp_source.html">libpmemobj++/detail/common.hpp</a>&quot;</code><br />
+<code>#include &quot;libpmemobj++/detail/persistent_ptr_base.hpp&quot;</code><br />
 <code>#include &quot;<a class="el" href="specialization_8hpp_source.html">libpmemobj++/detail/specialization.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pool_8hpp_source.html">libpmemobj++/pool.hpp</a>&quot;</code><br />
+<code>#include &quot;libpmemobj.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for persistent_ptr.hpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="persistent__ptr_8hpp__incl.png" border="0" usemap="#nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hpp" alt=""/></div>
 <map name="nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hpp" id="nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hpp">
-<area shape="rect" id="node5" href="common_8hpp.html" title="Commonly used functionality. " alt="" coords="610,244,769,285"/>
-<area shape="rect" id="node11" href="specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="259,244,418,285"/>
-<area shape="rect" id="node12" href="pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="384,95,563,121"/>
-<area shape="rect" id="node6" href="pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="761,333,919,375"/>
-<area shape="rect" id="node15" href="p_8hpp.html" title="Resides on pmem property template. " alt="" coords="610,169,769,196"/>
+<area shape="rect" id="node6" href="common_8hpp.html" title="Commonly used functionality. " alt="" coords="367,259,526,300"/>
+<area shape="rect" id="node12" href="persistent__ptr__base_8hpp_source.html" title="libpmemobj++/detail\l/persistent_ptr_base.hpp" alt="" coords="381,95,563,136"/>
+<area shape="rect" id="node14" href="specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="647,259,806,300"/>
+<area shape="rect" id="node16" href="pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="960,102,1139,129"/>
+<area shape="rect" id="node7" href="pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="990,348,1149,389"/>
+<area shape="rect" id="node19" href="p_8hpp.html" title="Resides on pmem property template. " alt="" coords="873,184,1031,211"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -118,12 +122,13 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="persistent__ptr_8hpp__dep__incl.png" border="0" usemap="#nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hppdep" alt=""/></div>
 <map name="nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hppdep" id="nvml_2src_2include_2libpmemobj_09_09_2persistent__ptr_8hppdep">
-<area shape="rect" id="node2" href="check__persistent__ptr__array_8hpp.html" title="Compile time type check for make_persistent. " alt="" coords="361,95,565,151"/>
-<area shape="rect" id="node7" href="utils_8hpp.html" title="Libpmemobj C++ utils. " alt="" coords="589,102,793,143"/>
-<area shape="rect" id="node3" href="make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. " alt="" coords="5,206,209,247"/>
-<area shape="rect" id="node4" href="make__persistent__array_8hpp.html" title="Persistent_ptr allocation functions for arrays. " alt="" coords="234,206,455,247"/>
-<area shape="rect" id="node5" href="make__persistent__array__atomic_8hpp.html" title="Atomic persistent_ptr allocation functions for arrays. " alt="" coords="480,199,684,255"/>
-<area shape="rect" id="node6" href="make__persistent__atomic_8hpp.html" title="Persistent_ptr atomic allocation functions for objects. " alt="" coords="709,206,943,247"/>
+<area shape="rect" id="node2" href="allocator_8hpp.html" title="Persistent memory aware allocator. " alt="" coords="133,102,337,143"/>
+<area shape="rect" id="node3" href="check__persistent__ptr__array_8hpp.html" title="Compile time type check for make_persistent. " alt="" coords="361,95,565,151"/>
+<area shape="rect" id="node8" href="utils_8hpp.html" title="Libpmemobj C++ utils. " alt="" coords="589,102,793,143"/>
+<area shape="rect" id="node4" href="make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. " alt="" coords="5,206,209,247"/>
+<area shape="rect" id="node5" href="make__persistent__array_8hpp.html" title="Persistent_ptr allocation functions for arrays. " alt="" coords="234,206,455,247"/>
+<area shape="rect" id="node6" href="make__persistent__array__atomic_8hpp.html" title="Atomic persistent_ptr allocation functions for arrays. " alt="" coords="480,199,684,255"/>
+<area shape="rect" id="node7" href="make__persistent__atomic_8hpp.html" title="Persistent_ptr atomic allocation functions for objects. " alt="" coords="709,206,943,247"/>
 </map>
 </div>
 </div>
@@ -137,6 +142,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">nvml::obj::persistent_ptr&lt; T &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Persistent pointer class.  <a href="classnvml_1_1obj_1_1persistent__ptr.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">nvml::obj::persistent_ptr&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Persistent pointer class.  <a href="classnvml_1_1obj_1_1persistent__ptr.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -144,119 +152,119 @@ Functions</h2></td></tr>
 <tr class="memitem:aeff9076f9f19fb718e4f3e20b1eecac2"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#aeff9076f9f19fb718e4f3e20b1eecac2">nvml::obj::swap</a> (persistent_ptr&lt; T &gt; &amp;a, persistent_ptr&lt; T &gt; &amp;b) noexcept</td></tr>
 <tr class="memdesc:aeff9076f9f19fb718e4f3e20b1eecac2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swaps two <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> objects of the same type.  <a href="persistent__ptr_8hpp.html#aeff9076f9f19fb718e4f3e20b1eecac2">More...</a><br /></td></tr>
 <tr class="separator:aeff9076f9f19fb718e4f3e20b1eecac2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a226e387f261119c50bcb1db2615e70f3"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:a226e387f261119c50bcb1db2615e70f3"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a226e387f261119c50bcb1db2615e70f3">nvml::obj::operator==</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a226e387f261119c50bcb1db2615e70f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator.  <a href="persistent__ptr_8hpp.html#a226e387f261119c50bcb1db2615e70f3">More...</a><br /></td></tr>
-<tr class="separator:a226e387f261119c50bcb1db2615e70f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a759ed0ca082a22b4076970f1577835c3"><td class="memTemplParams" colspan="2"><a class="anchor" id="a759ed0ca082a22b4076970f1577835c3"></a>
+<tr class="memitem:a1ef448c7551d0c7a84d422d54a0f936f"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
+<tr class="memitem:a1ef448c7551d0c7a84d422d54a0f936f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a1ef448c7551d0c7a84d422d54a0f936f">nvml::obj::operator==</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a1ef448c7551d0c7a84d422d54a0f936f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator.  <a href="persistent__ptr_8hpp.html#a1ef448c7551d0c7a84d422d54a0f936f">More...</a><br /></td></tr>
+<tr class="separator:a1ef448c7551d0c7a84d422d54a0f936f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3fe7f766a789004ac1e40750d15d870"><td class="memTemplParams" colspan="2"><a class="anchor" id="ae3fe7f766a789004ac1e40750d15d870"></a>
 template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:a759ed0ca082a22b4076970f1577835c3"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a759ed0ca082a22b4076970f1577835c3">nvml::obj::operator!=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a759ed0ca082a22b4076970f1577835c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator. <br /></td></tr>
-<tr class="separator:a759ed0ca082a22b4076970f1577835c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac0c27ae54c4a5a55bae1354117070e53"><td class="memTemplParams" colspan="2"><a class="anchor" id="ac0c27ae54c4a5a55bae1354117070e53"></a>
+<tr class="memitem:ae3fe7f766a789004ac1e40750d15d870"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ae3fe7f766a789004ac1e40750d15d870">nvml::obj::operator!=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:ae3fe7f766a789004ac1e40750d15d870"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator. <br /></td></tr>
+<tr class="separator:ae3fe7f766a789004ac1e40750d15d870"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a030c5201f11541a26e0380879f835083"><td class="memTemplParams" colspan="2"><a class="anchor" id="a030c5201f11541a26e0380879f835083"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ac0c27ae54c4a5a55bae1354117070e53"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ac0c27ae54c4a5a55bae1354117070e53">nvml::obj::operator==</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:ac0c27ae54c4a5a55bae1354117070e53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator with nullptr. <br /></td></tr>
-<tr class="separator:ac0c27ae54c4a5a55bae1354117070e53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d99179449b02756ab5c20a6b521a2f1"><td class="memTemplParams" colspan="2"><a class="anchor" id="a3d99179449b02756ab5c20a6b521a2f1"></a>
+<tr class="memitem:a030c5201f11541a26e0380879f835083"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a030c5201f11541a26e0380879f835083">nvml::obj::operator==</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:a030c5201f11541a26e0380879f835083"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator with nullptr. <br /></td></tr>
+<tr class="separator:a030c5201f11541a26e0380879f835083"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae40eae6cdebedc953c991522ecb49163"><td class="memTemplParams" colspan="2"><a class="anchor" id="ae40eae6cdebedc953c991522ecb49163"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a3d99179449b02756ab5c20a6b521a2f1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a3d99179449b02756ab5c20a6b521a2f1">nvml::obj::operator==</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;lhs) noexcept</td></tr>
-<tr class="memdesc:a3d99179449b02756ab5c20a6b521a2f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator with nullptr. <br /></td></tr>
-<tr class="separator:a3d99179449b02756ab5c20a6b521a2f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad55298cb4f40cd323f3d8ddeb26bc443"><td class="memTemplParams" colspan="2"><a class="anchor" id="ad55298cb4f40cd323f3d8ddeb26bc443"></a>
+<tr class="memitem:ae40eae6cdebedc953c991522ecb49163"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ae40eae6cdebedc953c991522ecb49163">nvml::obj::operator==</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;lhs) noexcept</td></tr>
+<tr class="memdesc:ae40eae6cdebedc953c991522ecb49163"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator with nullptr. <br /></td></tr>
+<tr class="separator:ae40eae6cdebedc953c991522ecb49163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a829632f8fba1c5fca815a08215e41e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a6a829632f8fba1c5fca815a08215e41e"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ad55298cb4f40cd323f3d8ddeb26bc443"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ad55298cb4f40cd323f3d8ddeb26bc443">nvml::obj::operator!=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:ad55298cb4f40cd323f3d8ddeb26bc443"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator with nullptr. <br /></td></tr>
-<tr class="separator:ad55298cb4f40cd323f3d8ddeb26bc443"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b191ba5ef34fdc6c56b8f8a1f7d15ad"><td class="memTemplParams" colspan="2"><a class="anchor" id="a3b191ba5ef34fdc6c56b8f8a1f7d15ad"></a>
+<tr class="memitem:a6a829632f8fba1c5fca815a08215e41e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a6a829632f8fba1c5fca815a08215e41e">nvml::obj::operator!=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:a6a829632f8fba1c5fca815a08215e41e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator with nullptr. <br /></td></tr>
+<tr class="separator:a6a829632f8fba1c5fca815a08215e41e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c498a69ee690f599d6f9d9ccbf5497a"><td class="memTemplParams" colspan="2"><a class="anchor" id="a1c498a69ee690f599d6f9d9ccbf5497a"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a3b191ba5ef34fdc6c56b8f8a1f7d15ad"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a3b191ba5ef34fdc6c56b8f8a1f7d15ad">nvml::obj::operator!=</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;lhs) noexcept</td></tr>
-<tr class="memdesc:a3b191ba5ef34fdc6c56b8f8a1f7d15ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator with nullptr. <br /></td></tr>
-<tr class="separator:a3b191ba5ef34fdc6c56b8f8a1f7d15ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70382f1b8dcffa3e752078258111a1e0"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:a70382f1b8dcffa3e752078258111a1e0"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a70382f1b8dcffa3e752078258111a1e0">nvml::obj::operator&lt;</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a70382f1b8dcffa3e752078258111a1e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Less than operator.  <a href="persistent__ptr_8hpp.html#a70382f1b8dcffa3e752078258111a1e0">More...</a><br /></td></tr>
-<tr class="separator:a70382f1b8dcffa3e752078258111a1e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24df939796da682a502fa3c2eb2b00e1"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:a24df939796da682a502fa3c2eb2b00e1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a24df939796da682a502fa3c2eb2b00e1">nvml::obj::operator&lt;=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a24df939796da682a502fa3c2eb2b00e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Less or equal than operator.  <a href="persistent__ptr_8hpp.html#a24df939796da682a502fa3c2eb2b00e1">More...</a><br /></td></tr>
-<tr class="separator:a24df939796da682a502fa3c2eb2b00e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8413299b4d92c525402f41fd189948e"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:ae8413299b4d92c525402f41fd189948e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ae8413299b4d92c525402f41fd189948e">nvml::obj::operator&gt;</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:ae8413299b4d92c525402f41fd189948e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Greater than operator.  <a href="persistent__ptr_8hpp.html#ae8413299b4d92c525402f41fd189948e">More...</a><br /></td></tr>
-<tr class="separator:ae8413299b4d92c525402f41fd189948e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9b0b2a4b5788fdd15ba920db602da436"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
-<tr class="memitem:a9b0b2a4b5788fdd15ba920db602da436"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a9b0b2a4b5788fdd15ba920db602da436">nvml::obj::operator&gt;=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; Y &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a9b0b2a4b5788fdd15ba920db602da436"><td class="mdescLeft">&#160;</td><td class="mdescRight">Greater or equal than operator.  <a href="persistent__ptr_8hpp.html#a9b0b2a4b5788fdd15ba920db602da436">More...</a><br /></td></tr>
-<tr class="separator:a9b0b2a4b5788fdd15ba920db602da436"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a677777ba557451cfca9bf71eb7d44a9e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a677777ba557451cfca9bf71eb7d44a9e"></a>
+<tr class="memitem:a1c498a69ee690f599d6f9d9ccbf5497a"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a1c498a69ee690f599d6f9d9ccbf5497a">nvml::obj::operator!=</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;lhs) noexcept</td></tr>
+<tr class="memdesc:a1c498a69ee690f599d6f9d9ccbf5497a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator with nullptr. <br /></td></tr>
+<tr class="separator:a1c498a69ee690f599d6f9d9ccbf5497a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd37ecb967dc196e32ff6c766fbfb1a1"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
+<tr class="memitem:abd37ecb967dc196e32ff6c766fbfb1a1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#abd37ecb967dc196e32ff6c766fbfb1a1">nvml::obj::operator&lt;</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:abd37ecb967dc196e32ff6c766fbfb1a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Less than operator.  <a href="persistent__ptr_8hpp.html#abd37ecb967dc196e32ff6c766fbfb1a1">More...</a><br /></td></tr>
+<tr class="separator:abd37ecb967dc196e32ff6c766fbfb1a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28fed39e24222811825d5abda9a8269c"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
+<tr class="memitem:a28fed39e24222811825d5abda9a8269c"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a28fed39e24222811825d5abda9a8269c">nvml::obj::operator&lt;=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a28fed39e24222811825d5abda9a8269c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Less or equal than operator.  <a href="persistent__ptr_8hpp.html#a28fed39e24222811825d5abda9a8269c">More...</a><br /></td></tr>
+<tr class="separator:a28fed39e24222811825d5abda9a8269c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a39fa71bd63a9a3cfc8bfd6c46bb2c2"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
+<tr class="memitem:a2a39fa71bd63a9a3cfc8bfd6c46bb2c2"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a2a39fa71bd63a9a3cfc8bfd6c46bb2c2">nvml::obj::operator&gt;</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a2a39fa71bd63a9a3cfc8bfd6c46bb2c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Greater than operator.  <a href="persistent__ptr_8hpp.html#a2a39fa71bd63a9a3cfc8bfd6c46bb2c2">More...</a><br /></td></tr>
+<tr class="separator:a2a39fa71bd63a9a3cfc8bfd6c46bb2c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b601d7fa2c1e7ca42c6c26cb463bd34"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y &gt; </td></tr>
+<tr class="memitem:a6b601d7fa2c1e7ca42c6c26cb463bd34"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a6b601d7fa2c1e7ca42c6c26cb463bd34">nvml::obj::operator&gt;=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a6b601d7fa2c1e7ca42c6c26cb463bd34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Greater or equal than operator.  <a href="persistent__ptr_8hpp.html#a6b601d7fa2c1e7ca42c6c26cb463bd34">More...</a><br /></td></tr>
+<tr class="separator:a6b601d7fa2c1e7ca42c6c26cb463bd34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0e0a6da3757e9d49ad801f7bdbadc19"><td class="memTemplParams" colspan="2"><a class="anchor" id="aa0e0a6da3757e9d49ad801f7bdbadc19"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a677777ba557451cfca9bf71eb7d44a9e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a677777ba557451cfca9bf71eb7d44a9e">nvml::obj::operator&lt;</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:a677777ba557451cfca9bf71eb7d44a9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:a677777ba557451cfca9bf71eb7d44a9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5665d87f8c32e4da427af9d3b0c8c883"><td class="memTemplParams" colspan="2"><a class="anchor" id="a5665d87f8c32e4da427af9d3b0c8c883"></a>
+<tr class="memitem:aa0e0a6da3757e9d49ad801f7bdbadc19"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#aa0e0a6da3757e9d49ad801f7bdbadc19">nvml::obj::operator&lt;</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:aa0e0a6da3757e9d49ad801f7bdbadc19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:aa0e0a6da3757e9d49ad801f7bdbadc19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cb70b1f66a19a54306ddf51453f6f22"><td class="memTemplParams" colspan="2"><a class="anchor" id="a9cb70b1f66a19a54306ddf51453f6f22"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a5665d87f8c32e4da427af9d3b0c8c883"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a5665d87f8c32e4da427af9d3b0c8c883">nvml::obj::operator&lt;</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a5665d87f8c32e4da427af9d3b0c8c883"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:a5665d87f8c32e4da427af9d3b0c8c883"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada1ee4b046b8c1424d6fde07358f8be6"><td class="memTemplParams" colspan="2"><a class="anchor" id="ada1ee4b046b8c1424d6fde07358f8be6"></a>
+<tr class="memitem:a9cb70b1f66a19a54306ddf51453f6f22"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a9cb70b1f66a19a54306ddf51453f6f22">nvml::obj::operator&lt;</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a9cb70b1f66a19a54306ddf51453f6f22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:a9cb70b1f66a19a54306ddf51453f6f22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0538216950e2f7f27ba492ff7d1ae991"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0538216950e2f7f27ba492ff7d1ae991"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ada1ee4b046b8c1424d6fde07358f8be6"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ada1ee4b046b8c1424d6fde07358f8be6">nvml::obj::operator&lt;=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:ada1ee4b046b8c1424d6fde07358f8be6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:ada1ee4b046b8c1424d6fde07358f8be6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57da764898a5ae3623d4c7a3a745ec80"><td class="memTemplParams" colspan="2"><a class="anchor" id="a57da764898a5ae3623d4c7a3a745ec80"></a>
+<tr class="memitem:a0538216950e2f7f27ba492ff7d1ae991"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a0538216950e2f7f27ba492ff7d1ae991">nvml::obj::operator&lt;=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:a0538216950e2f7f27ba492ff7d1ae991"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:a0538216950e2f7f27ba492ff7d1ae991"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5388a703e47a0c2f8683846d62e8b352"><td class="memTemplParams" colspan="2"><a class="anchor" id="a5388a703e47a0c2f8683846d62e8b352"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a57da764898a5ae3623d4c7a3a745ec80"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a57da764898a5ae3623d4c7a3a745ec80">nvml::obj::operator&lt;=</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a57da764898a5ae3623d4c7a3a745ec80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:a57da764898a5ae3623d4c7a3a745ec80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1476fe7bfaf1c91760441f436792a2d"><td class="memTemplParams" colspan="2"><a class="anchor" id="ac1476fe7bfaf1c91760441f436792a2d"></a>
+<tr class="memitem:a5388a703e47a0c2f8683846d62e8b352"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a5388a703e47a0c2f8683846d62e8b352">nvml::obj::operator&lt;=</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a5388a703e47a0c2f8683846d62e8b352"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:a5388a703e47a0c2f8683846d62e8b352"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca0c2ecdd971a4ce72efb86789327595"><td class="memTemplParams" colspan="2"><a class="anchor" id="aca0c2ecdd971a4ce72efb86789327595"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:ac1476fe7bfaf1c91760441f436792a2d"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#ac1476fe7bfaf1c91760441f436792a2d">nvml::obj::operator&gt;</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:ac1476fe7bfaf1c91760441f436792a2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:ac1476fe7bfaf1c91760441f436792a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09f479aff3c825796b188960a5db1f7d"><td class="memTemplParams" colspan="2"><a class="anchor" id="a09f479aff3c825796b188960a5db1f7d"></a>
+<tr class="memitem:aca0c2ecdd971a4ce72efb86789327595"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#aca0c2ecdd971a4ce72efb86789327595">nvml::obj::operator&gt;</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:aca0c2ecdd971a4ce72efb86789327595"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:aca0c2ecdd971a4ce72efb86789327595"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5e3da4650faa76f511b164a570d8291"><td class="memTemplParams" colspan="2"><a class="anchor" id="af5e3da4650faa76f511b164a570d8291"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a09f479aff3c825796b188960a5db1f7d"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a09f479aff3c825796b188960a5db1f7d">nvml::obj::operator&gt;</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a09f479aff3c825796b188960a5db1f7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:a09f479aff3c825796b188960a5db1f7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acfea89c722a9b4facd2ea55abe865587"><td class="memTemplParams" colspan="2"><a class="anchor" id="acfea89c722a9b4facd2ea55abe865587"></a>
+<tr class="memitem:af5e3da4650faa76f511b164a570d8291"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#af5e3da4650faa76f511b164a570d8291">nvml::obj::operator&gt;</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:af5e3da4650faa76f511b164a570d8291"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:af5e3da4650faa76f511b164a570d8291"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30d8465d6fb8e485472813194eb289d6"><td class="memTemplParams" colspan="2"><a class="anchor" id="a30d8465d6fb8e485472813194eb289d6"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:acfea89c722a9b4facd2ea55abe865587"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#acfea89c722a9b4facd2ea55abe865587">nvml::obj::operator&gt;=</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::nullptr_t) noexcept</td></tr>
-<tr class="memdesc:acfea89c722a9b4facd2ea55abe865587"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:acfea89c722a9b4facd2ea55abe865587"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d866b9181b79f1711386abdecd7149e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a5d866b9181b79f1711386abdecd7149e"></a>
+<tr class="memitem:a30d8465d6fb8e485472813194eb289d6"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a30d8465d6fb8e485472813194eb289d6">nvml::obj::operator&gt;=</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::nullptr_t) noexcept</td></tr>
+<tr class="memdesc:a30d8465d6fb8e485472813194eb289d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:a30d8465d6fb8e485472813194eb289d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a632575e503289df0a592ae2ed01c12e3"><td class="memTemplParams" colspan="2"><a class="anchor" id="a632575e503289df0a592ae2ed01c12e3"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a5d866b9181b79f1711386abdecd7149e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a5d866b9181b79f1711386abdecd7149e">nvml::obj::operator&gt;=</a> (std::nullptr_t, const persistent_ptr&lt; T &gt; &amp;rhs) noexcept</td></tr>
-<tr class="memdesc:a5d866b9181b79f1711386abdecd7149e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
-<tr class="separator:a5d866b9181b79f1711386abdecd7149e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1bb895039b446c0bbf666b6815470626"><td class="memTemplParams" colspan="2"><a class="anchor" id="a1bb895039b446c0bbf666b6815470626"></a>
+<tr class="memitem:a632575e503289df0a592ae2ed01c12e3"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a632575e503289df0a592ae2ed01c12e3">nvml::obj::operator&gt;=</a> (std::nullptr_t, persistent_ptr&lt; T &gt; const &amp;rhs) noexcept</td></tr>
+<tr class="memdesc:a632575e503289df0a592ae2ed01c12e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare a <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html" title="Persistent pointer class. ">persistent_ptr</a> with a null pointer. <br /></td></tr>
+<tr class="separator:a632575e503289df0a592ae2ed01c12e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbe1c7873bca08739b9940272e0d6895"><td class="memTemplParams" colspan="2"><a class="anchor" id="adbe1c7873bca08739b9940272e0d6895"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a1bb895039b446c0bbf666b6815470626"><td class="memTemplItemLeft" align="right" valign="top">persistent_ptr&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a1bb895039b446c0bbf666b6815470626">nvml::obj::operator+</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::ptrdiff_t s)</td></tr>
-<tr class="memdesc:a1bb895039b446c0bbf666b6815470626"><td class="mdescLeft">&#160;</td><td class="mdescRight">Addition operator for persistent pointers. <br /></td></tr>
-<tr class="separator:a1bb895039b446c0bbf666b6815470626"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0607d7b9ff9364d03797b4e94e926d8e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0607d7b9ff9364d03797b4e94e926d8e"></a>
+<tr class="memitem:adbe1c7873bca08739b9940272e0d6895"><td class="memTemplItemLeft" align="right" valign="top">persistent_ptr&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#adbe1c7873bca08739b9940272e0d6895">nvml::obj::operator+</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::ptrdiff_t s)</td></tr>
+<tr class="memdesc:adbe1c7873bca08739b9940272e0d6895"><td class="mdescLeft">&#160;</td><td class="mdescRight">Addition operator for persistent pointers. <br /></td></tr>
+<tr class="separator:adbe1c7873bca08739b9940272e0d6895"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d9a5f6fae9b1c5b32d5a1d459c70a27"><td class="memTemplParams" colspan="2"><a class="anchor" id="a0d9a5f6fae9b1c5b32d5a1d459c70a27"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a0607d7b9ff9364d03797b4e94e926d8e"><td class="memTemplItemLeft" align="right" valign="top">persistent_ptr&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a0607d7b9ff9364d03797b4e94e926d8e">nvml::obj::operator-</a> (const persistent_ptr&lt; T &gt; &amp;lhs, std::ptrdiff_t s)</td></tr>
-<tr class="memdesc:a0607d7b9ff9364d03797b4e94e926d8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtraction operator for persistent pointers. <br /></td></tr>
-<tr class="separator:a0607d7b9ff9364d03797b4e94e926d8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24557a2529209bbcea94132c3a05892f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a24557a2529209bbcea94132c3a05892f"><td class="memTemplItemLeft" align="right" valign="top">ptrdiff_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a24557a2529209bbcea94132c3a05892f">nvml::obj::operator-</a> (const persistent_ptr&lt; T &gt; &amp;lhs, const persistent_ptr&lt; T &gt; &amp;rhs)</td></tr>
-<tr class="memdesc:a24557a2529209bbcea94132c3a05892f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtraction operator for persistent pointers of identical type.  <a href="persistent__ptr_8hpp.html#a24557a2529209bbcea94132c3a05892f">More...</a><br /></td></tr>
-<tr class="separator:a24557a2529209bbcea94132c3a05892f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7174ee38068ad99f6fcece34a6f62c19"><td class="memTemplParams" colspan="2"><a class="anchor" id="a7174ee38068ad99f6fcece34a6f62c19"></a>
+<tr class="memitem:a0d9a5f6fae9b1c5b32d5a1d459c70a27"><td class="memTemplItemLeft" align="right" valign="top">persistent_ptr&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a0d9a5f6fae9b1c5b32d5a1d459c70a27">nvml::obj::operator-</a> (persistent_ptr&lt; T &gt; const &amp;lhs, std::ptrdiff_t s)</td></tr>
+<tr class="memdesc:a0d9a5f6fae9b1c5b32d5a1d459c70a27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtraction operator for persistent pointers. <br /></td></tr>
+<tr class="separator:a0d9a5f6fae9b1c5b32d5a1d459c70a27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c71ac441fa968433c8dfd72980e408f"><td class="memTemplParams" colspan="2">template&lt;typename T , typename Y , typename  = typename std::enable_if&lt;		  std::is_same&lt;typename std::remove_cv&lt;T&gt;::type,			       typename std::remove_cv&lt;Y&gt;::type&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:a5c71ac441fa968433c8dfd72980e408f"><td class="memTemplItemLeft" align="right" valign="top">ptrdiff_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a5c71ac441fa968433c8dfd72980e408f">nvml::obj::operator-</a> (persistent_ptr&lt; T &gt; const &amp;lhs, persistent_ptr&lt; Y &gt; const &amp;rhs)</td></tr>
+<tr class="memdesc:a5c71ac441fa968433c8dfd72980e408f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subtraction operator for persistent pointers of identical type.  <a href="persistent__ptr_8hpp.html#a5c71ac441fa968433c8dfd72980e408f">More...</a><br /></td></tr>
+<tr class="separator:a5c71ac441fa968433c8dfd72980e408f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75d39096891aa5ec1f97ef056b0a083e"><td class="memTemplParams" colspan="2"><a class="anchor" id="a75d39096891aa5ec1f97ef056b0a083e"></a>
 template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a7174ee38068ad99f6fcece34a6f62c19"><td class="memTemplItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a7174ee38068ad99f6fcece34a6f62c19">nvml::obj::operator&lt;&lt;</a> (std::ostream &amp;os, const persistent_ptr&lt; T &gt; &amp;pptr)</td></tr>
-<tr class="memdesc:a7174ee38068ad99f6fcece34a6f62c19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ostream operator for the persistent pointer. <br /></td></tr>
-<tr class="separator:a7174ee38068ad99f6fcece34a6f62c19"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75d39096891aa5ec1f97ef056b0a083e"><td class="memTemplItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="persistent__ptr_8hpp.html#a75d39096891aa5ec1f97ef056b0a083e">nvml::obj::operator&lt;&lt;</a> (std::ostream &amp;os, persistent_ptr&lt; T &gt; const &amp;pptr)</td></tr>
+<tr class="memdesc:a75d39096891aa5ec1f97ef056b0a083e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ostream operator for the persistent pointer. <br /></td></tr>
+<tr class="separator:a75d39096891aa5ec1f97ef056b0a083e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Persistent smart pointer. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="file_a24557a2529209bbcea94132c3a05892f"></a>
+<a class="anchor" id="file_a5c71ac441fa968433c8dfd72980e408f"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename T &gt; </div>
+template&lt;typename T , typename Y , typename  = typename std::enable_if&lt;		  std::is_same&lt;typename std::remove_cv&lt;T&gt;::type,			       typename std::remove_cv&lt;Y&gt;::type&gt;::value&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -264,13 +272,13 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">ptrdiff_t nvml::obj::operator- </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>
@@ -291,7 +299,7 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="file_a70382f1b8dcffa3e752078258111a1e0"></a>
+<a class="anchor" id="file_abd37ecb967dc196e32ff6c766fbfb1a1"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -303,13 +311,13 @@ template&lt;typename T , typename Y &gt; </div>
         <tr>
           <td class="memname">bool nvml::obj::operator&lt; </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>
@@ -330,7 +338,7 @@ template&lt;typename T , typename Y &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="file_a24df939796da682a502fa3c2eb2b00e1"></a>
+<a class="anchor" id="file_a28fed39e24222811825d5abda9a8269c"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -342,13 +350,13 @@ template&lt;typename T , typename Y &gt; </div>
         <tr>
           <td class="memname">bool nvml::obj::operator&lt;= </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>
@@ -369,7 +377,7 @@ template&lt;typename T , typename Y &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="file_a226e387f261119c50bcb1db2615e70f3"></a>
+<a class="anchor" id="file_a1ef448c7551d0c7a84d422d54a0f936f"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -381,13 +389,13 @@ template&lt;typename T , typename Y &gt; </div>
         <tr>
           <td class="memname">bool nvml::obj::operator== </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>
@@ -408,7 +416,7 @@ template&lt;typename T , typename Y &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="file_ae8413299b4d92c525402f41fd189948e"></a>
+<a class="anchor" id="file_a2a39fa71bd63a9a3cfc8bfd6c46bb2c2"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -420,13 +428,13 @@ template&lt;typename T , typename Y &gt; </div>
         <tr>
           <td class="memname">bool nvml::obj::operator&gt; </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>
@@ -447,7 +455,7 @@ template&lt;typename T , typename Y &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="file_a9b0b2a4b5788fdd15ba920db602da436"></a>
+<a class="anchor" id="file_a6b601d7fa2c1e7ca42c6c26cb463bd34"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -459,13 +467,13 @@ template&lt;typename T , typename Y &gt; </div>
         <tr>
           <td class="memname">bool nvml::obj::operator&gt;= </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; T &gt; const &amp;&#160;</td>
           <td class="paramname"><em>lhs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">persistent_ptr</a>&lt; Y &gt; const &amp;&#160;</td>
           <td class="paramname"><em>rhs</em>&#160;</td>
         </tr>
         <tr>

@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['uncaught_5fexception_5fcounter',['uncaught_exception_counter',['../classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html',1,'nvml::obj::transaction::automatic']]]
+  ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html',1,'nvml::obj']]],
+  ['standard_5falloc_5fpolicy',['standard_alloc_policy',['../classnvml_1_1obj_1_1standard__alloc__policy.html',1,'nvml::obj']]],
+  ['standard_5falloc_5fpolicy_3c_20void_20_3e',['standard_alloc_policy&lt; void &gt;',['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html',1,'nvml::obj']]]
 ];
