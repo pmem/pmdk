@@ -539,8 +539,9 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->nkeys = args->n_threads * args->n_ops_per_thread;
 	map_bench->init_nkeys = map_bench->nkeys;
-	size_per_key = map_bench->margs->alloc ? SIZE_PER_KEY : SIZE_PER_KEY +
-			map_bench->args->dsize + ALLOC_OVERHEAD;
+	size_per_key = map_bench->margs->alloc
+		? SIZE_PER_KEY + map_bench->args->dsize + ALLOC_OVERHEAD
+		: SIZE_PER_KEY;
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
