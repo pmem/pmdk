@@ -1,17 +1,11 @@
 var searchData=
 [
-  ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html',1,'nvml::obj']]],
-  ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html#a04fc861e28e667eeff0eb8cecb0befba',1,'nvml::obj::timed_mutex::timed_mutex() noexcept=default'],['../classnvml_1_1obj_1_1timed__mutex.html#ab7bf974caa19bddcaaf83aa682ae47bc',1,'nvml::obj::timed_mutex::timed_mutex(const timed_mutex &amp;)=delete']]],
-  ['timed_5fmutex_2ehpp',['timed_mutex.hpp',['../timed__mutex_8hpp.html',1,'']]],
-  ['timedlock_5fimpl',['timedlock_impl',['../classnvml_1_1obj_1_1timed__mutex.html#ae1e2cd29138ff443e831c7dfc99d6485',1,'nvml::obj::timed_mutex']]],
-  ['timepoint_5fto_5ftimespec',['timepoint_to_timespec',['../conversions_8hpp.html#aa189ed6a09dc2a8b539599c59729b2cf',1,'nvml::detail']]],
-  ['transaction',['transaction',['../classnvml_1_1obj_1_1transaction.html',1,'nvml::obj']]],
-  ['transaction_2ehpp',['transaction.hpp',['../transaction_8hpp.html',1,'']]],
-  ['transaction_5falloc_5ferror',['transaction_alloc_error',['../classnvml_1_1transaction__alloc__error.html',1,'nvml']]],
-  ['transaction_5ferror',['transaction_error',['../classnvml_1_1transaction__error.html',1,'nvml']]],
-  ['transaction_5fscope_5ferror',['transaction_scope_error',['../classnvml_1_1transaction__scope__error.html',1,'nvml']]],
-  ['try_5flock',['try_lock',['../classnvml_1_1obj_1_1mutex.html#af9b67e5aa997e1bd78966b1bda536ddc',1,'nvml::obj::mutex::try_lock()'],['../classnvml_1_1obj_1_1shared__mutex.html#a58c0ff8220185a381c61f8955bdb688c',1,'nvml::obj::shared_mutex::try_lock()'],['../classnvml_1_1obj_1_1timed__mutex.html#a56cda52cea035f3868549d14ef0da276',1,'nvml::obj::timed_mutex::try_lock()']]],
-  ['try_5flock_5ffor',['try_lock_for',['../classnvml_1_1obj_1_1timed__mutex.html#a68d4f623bf0f4ab6052972bf2d315563',1,'nvml::obj::timed_mutex']]],
-  ['try_5flock_5fshared',['try_lock_shared',['../classnvml_1_1obj_1_1shared__mutex.html#a9a52629ecfc893dc24d8f7754b54ba63',1,'nvml::obj::shared_mutex']]],
-  ['try_5flock_5funtil',['try_lock_until',['../classnvml_1_1obj_1_1timed__mutex.html#a40639d1926cb858425838832ebd2d364',1,'nvml::obj::timed_mutex']]]
+  ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html',1,'nvml::obj']]],
+  ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html#a343ec83e072d49cd5ec27063481cf554',1,'nvml::obj::shared_mutex::shared_mutex() noexcept=default'],['../classnvml_1_1obj_1_1shared__mutex.html#af34d84d27c1f6f96edc9b4f00398bd97',1,'nvml::obj::shared_mutex::shared_mutex(const shared_mutex &amp;)=delete']]],
+  ['shared_5fmutex_2ehpp',['shared_mutex.hpp',['../shared__mutex_8hpp.html',1,'']]],
+  ['specialization_2ehpp',['specialization.hpp',['../specialization_8hpp.html',1,'']]],
+  ['standard_5falloc_5fpolicy',['standard_alloc_policy',['../classnvml_1_1obj_1_1standard__alloc__policy.html',1,'nvml::obj']]],
+  ['standard_5falloc_5fpolicy',['standard_alloc_policy',['../classnvml_1_1obj_1_1standard__alloc__policy.html#af9739f8caf21ad85030870f402f6c195',1,'nvml::obj::standard_alloc_policy::standard_alloc_policy()=default'],['../classnvml_1_1obj_1_1standard__alloc__policy.html#a377d58e48f47fa12216bef64315d2f1d',1,'nvml::obj::standard_alloc_policy::standard_alloc_policy(standard_alloc_policy const &amp;)'],['../classnvml_1_1obj_1_1standard__alloc__policy.html#aa4793065d41fd62debc7324fccdc8f16',1,'nvml::obj::standard_alloc_policy::standard_alloc_policy(standard_alloc_policy&lt; U &gt; const &amp;)'],['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html#a9cce1b1679c7656cf3ac501a6c1dfdfd',1,'nvml::obj::standard_alloc_policy&lt; void &gt;::standard_alloc_policy()=default'],['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html#aec04166f8e7df5363265b08d0118f696',1,'nvml::obj::standard_alloc_policy&lt; void &gt;::standard_alloc_policy(standard_alloc_policy const &amp;)'],['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html#aea53d227251825dc8e7e3eea35cd73fc',1,'nvml::obj::standard_alloc_policy&lt; void &gt;::standard_alloc_policy(standard_alloc_policy&lt; U &gt; const &amp;)']]],
+  ['standard_5falloc_5fpolicy_3c_20void_20_3e',['standard_alloc_policy&lt; void &gt;',['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html',1,'nvml::obj']]],
+  ['swap',['swap',['../classnvml_1_1detail_1_1persistent__ptr__base.html#a0e9ab3673700ae065af7d0780e99d8c4',1,'nvml::detail::persistent_ptr_base::swap()'],['../classnvml_1_1obj_1_1p.html#adfd2909bbbe7d3694eefb22d8a009ef3',1,'nvml::obj::p::swap()'],['../p_8hpp.html#a583b96064e11bcb8cb50f3f6718d7862',1,'nvml::obj::swap(p&lt; T &gt; &amp;a, p&lt; T &gt; &amp;b) noexcept'],['../persistent__ptr_8hpp.html#aeff9076f9f19fb718e4f3e20b1eecac2',1,'nvml::obj::swap(persistent_ptr&lt; T &gt; &amp;a, persistent_ptr&lt; T &gt; &amp;b) noexcept']]]
 ];
