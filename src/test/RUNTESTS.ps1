@@ -249,7 +249,7 @@ function runtest {
             # for each TEST script found...
             Foreach ($runscript in $runscripts.split(" ")) {
                 if ($verbose) {
-                    Write-Host -NoNewline "RUNTESTS: Test: $testName/$runscript "
+                    Write-Host "RUNTESTS: Test: $testName/$runscript "
                 }
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
@@ -269,9 +269,10 @@ function runtest {
                     $stopwatch = [diagnostics.stopwatch]::StartNew()
                     while (($stopwatch.elapsed -lt $timeout) -And `
                         ($p.HasExited -eq $false)) {
-                        sleep 1
+                        # wait for test exit or timeout
                     }
 
+                    # print test's console output
                     Write-Host -NoNewline $outTask.Result;
                     Write-Host -NoNewline $errTask.Result;
 
@@ -282,6 +283,7 @@ function runtest {
                     }
                 } Else {
                     $p.WaitForExit()
+                    # print test's console output
                     Write-Host -NoNewline $outTask.Result;
                     Write-Host -NoNewline $errTask.Result;
                 }
