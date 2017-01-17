@@ -234,9 +234,9 @@ function runtest {
             $Env:CHECK_TYPE = $checktype
             $Env:CHECK_POOL = $check_pool
             $Env:VERBOSE = $verbose
-            $Env:TEST_TYPE = $testtype
-            $Env:TEST_FS = $fs
-            $Env:TEST_BUILD = $build
+            $Env:TYPE = $testtype
+            $Env:FS = $fs
+            $Env:BUILD = $build
             $Env:EXE_DIR = get_build_dir $build
 
             $pinfo = New-Object System.Diagnostics.ProcessStartInfo
