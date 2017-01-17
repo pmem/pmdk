@@ -244,6 +244,7 @@ function runtest {
             $pinfo.RedirectStandardError = $true
             $pinfo.RedirectStandardOutput = $true
             $pinfo.UseShellExecute = $false
+            $pinfo.CreateNoWindow = $true
 
             # for each TEST script found...
             Foreach ($runscript in $runscripts.split(" ")) {
@@ -259,17 +260,21 @@ function runtest {
                 $p = New-Object System.Diagnostics.Process
                 $p.StartInfo = $pinfo
                 $p.Start() | Out-Null
+                $outTask = $p.StandardOutput.ReadToEndAsync()
+                $errTask = $p.StandardError.ReadToEndAsync()
+
                 If ($use_timeout -And $testtype -eq "check") {
                     # execute with timeout
                     $timeout = new-timespan -Seconds $time
                     $stopwatch = [diagnostics.stopwatch]::StartNew()
                     while (($stopwatch.elapsed -lt $timeout) -And `
                         ($p.HasExited -eq $false)) {
-                        # output streams have limited size, we need to read it
-                        # during an application runtime to prevent application hang.
-                        Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
-                        Write-Host -NoNewline $p.StandardError.ReadToEnd();
+                        sleep 1
                     }
+
+                    Write-Host -NoNewline $outTask.Result;
+                    Write-Host -NoNewline $errTask.Result;
+
                     if ($stopwatch.elapsed -ge $timeout) {
                         $p | Stop-Process -Force
                         Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
@@ -277,11 +282,10 @@ function runtest {
                     }
                 } Else {
                     $p.WaitForExit()
+                    Write-Host -NoNewline $outTask.Result;
+                    Write-Host -NoNewline $errTask.Result;
                 }
 
-                # print any remaining output
-                Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
-                Write-Host -NoNewline $p.StandardError.ReadToEnd();
                 if ($p.ExitCode -ne 0) {
                     Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
                     cd ..
