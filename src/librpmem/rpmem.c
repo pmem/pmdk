@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -567,7 +567,7 @@ rpmem_close(RPMEMpool *rpp)
 {
 	RPMEM_LOG(INFO, "closing out-of-band connection");
 
-	rpp->closing = 1;
+	__sync_fetch_and_or(&rpp->closing, 1);
 
 	rpmem_fip_process_stop(rpp->fip);
 

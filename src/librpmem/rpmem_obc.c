@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -140,7 +140,7 @@ rpmem_obc_close_conn(struct rpmem_obc *rpc)
 {
 	rpmem_ssh_close(rpc->ssh);
 
-	rpc->ssh = NULL;
+	(void) __sync_fetch_and_and(&rpc->ssh, 0);
 }
 
 /*
