@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/util_poolset/TEST0 -- unit test for util_pool_create()
+# src/test/util_poolset/TEST0w -- unit test for util_pool_create()
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST0"
+$Env:UNITTEST_NAME = "util_poolset\TEST0w"
 $Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup
@@ -110,7 +110,6 @@ create_poolset $DIR/testset25 256K:$DIR/testfile251:z 256K:$DIR/testfile252:x `
     r 64K:$DIR/testfile253:z # fail - replica too small
 create_poolset $DIR/testset26 256K:$DIR/testfile261:z 512K:$DIR/testfile262:z `
     r 320K:$DIR/testfile263 r 768K:$DIR/testfile264 # pass - pmem/non-pmem
-
 
 $_1GB = 1024*1024*1024
 $_768KB = 768 * 1024
