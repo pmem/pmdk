@@ -100,10 +100,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\pthread_windows.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="obj_sync.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
