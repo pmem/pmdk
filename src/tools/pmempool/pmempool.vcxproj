@@ -47,9 +47,6 @@
     <ClCompile Include="transform.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\out.h" />
-    <ClInclude Include="..\..\common\sys_util.h" />
-    <ClInclude Include="..\..\common\util.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="convert.h" />

@@ -40,8 +40,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\common\out.h" />
-    <ClInclude Include="..\..\..\common\util.h" />
     <ClInclude Include="..\..\..\tools\pmempool\common.h" />
     <ClInclude Include="..\..\..\tools\pmempool\output.h" />
   </ItemGroup>
