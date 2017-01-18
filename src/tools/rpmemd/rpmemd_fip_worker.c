@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -162,7 +162,7 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 
 	util_mutex_lock(&worker->lock);
 
-	*worker->stop = 1;
+	__sync_fetch_and_or(worker->stop, 1);
 
 	errno = pthread_cond_signal(&worker->cond);
 	if (errno) {
