@@ -13,6 +13,18 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
+    <ClCompile Include="..\common\file.c" />
+    <ClCompile Include="..\common\file_windows.c" />
+    <ClCompile Include="..\common\mmap.c" />
+    <ClCompile Include="..\common\mmap_windows.c" />
+    <ClCompile Include="..\common\out.c" />
+    <ClCompile Include="..\common\pool_hdr.c" />
+    <ClCompile Include="..\common\pool_hdr_windows.c" />
+    <ClCompile Include="..\common\pthread_windows.c" />
+    <ClCompile Include="..\common\set.c" />
+    <ClCompile Include="..\common\util.c" />
+    <ClCompile Include="..\common\util_windows.c" />
+    <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c" />
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="cpu.c" />
@@ -24,7 +36,13 @@
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
     <ClInclude Include="..\..\src\include\libpmem.h" />
     <ClInclude Include="..\..\src\libpmem\pmem.h" />
+    <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\pool_hdr.h" />
+    <ClInclude Include="..\common\set.h" />
+    <ClInclude Include="..\common\sys_util.h" />
+    <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="cpu.h" />
   </ItemGroup>
@@ -32,9 +50,6 @@
     <None Include="libpmem.def" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\windows\liblinux\liblinux.vcxproj">
       <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
     </ProjectReference>
