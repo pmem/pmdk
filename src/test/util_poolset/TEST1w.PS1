@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/util_poolset/TEST1 -- unit test for util_pool_open()
+# src/test/util_poolset/TEST1w -- unit test for util_pool_open()
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST1"
+$Env:UNITTEST_NAME = "util_poolset\TEST1w"
 $Env:UNITTEST_NUM = "1w"
 
 # standard unit test setup
