@@ -201,6 +201,7 @@ public:
 	 */
 	using value_type = T;
 	using pointer = persistent_ptr<value_type>;
+	using const_void_pointer = persistent_ptr<const void>;
 	using size_type = std::size_t;
 	using bool_type = bool;
 
@@ -248,8 +249,7 @@ public:
 	 * @throw transaction_scope_error if called outside of a transaction.
 	 */
 	pointer
-	allocate(size_type cnt,
-		 typename std::allocator<void>::const_pointer = 0)
+	allocate(size_type cnt, const_void_pointer = 0)
 	{
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
 			throw transaction_scope_error(
@@ -352,8 +352,7 @@ public:
 	 * @throw transaction_scope_error if called outside of a transaction.
 	 */
 	pointer
-	allocate(size_type cnt,
-		 typename std::allocator<void>::const_pointer = 0)
+	allocate(size_type cnt, const_pointer = 0)
 	{
 		if (pmemobj_tx_stage() != TX_STAGE_WORK)
 			throw transaction_scope_error(
