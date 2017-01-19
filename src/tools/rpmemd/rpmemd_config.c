@@ -444,9 +444,6 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 	while ((opt = getopt_long(argc, argv, optstr, options,
 		&option_index)) != -1) {
 
-		if (opt == -1)
-			break;
-
 		switch (opt) {
 		case 'c':
 			(*config_file) = optarg;
