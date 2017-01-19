@@ -95,13 +95,9 @@ displayed instead. For details please read the **DEPENDENCIES** section
 in appropriate README file.
 
 
-See the **before_install:** rules in the
-[.travis.yml](https://github.com/pmem/nvml/blob/master/.travis.yml)
-file at the top level of the repository to get an idea what packages
-were required to build on the _Travis-CI_ systems.  Currently our Travis
-systems are running Ubuntu 16.04 and Fedora 23 so there may be some
-differences between what is specified in travis.yml and what is needed
-for your OS distribution and version.
+See our [Dockerfiles](https://github.com/pmem/nvml/blob/master/utils/docker/images/)
+to get an idea what packages are required to build on the _Travis-CI_
+system.
 
 
 #### Building NVML on Linux ####
