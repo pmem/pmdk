@@ -4,9 +4,6 @@
     <None Include="TEST0w.PS1">
       <Filter>Tests Files</Filter>
     </None>
-    <None Include="err0w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0w.log.match">
       <Filter>Match Files</Filter>
     </None>
