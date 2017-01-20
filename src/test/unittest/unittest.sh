@@ -56,6 +56,7 @@ TOOLS=../tools
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
+[ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 
 # force globs to fail if they don't match
 shopt -s failglob
