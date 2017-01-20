@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -252,6 +252,17 @@ public:
 	}
 
 	/**
+	 * Swaps two persistent_ptr objects of the same type.
+	 *
+	 * @param[in,out] other the other persistent_ptr to swap.
+	 */
+	void
+	swap(persistent_ptr_base &other) noexcept
+	{
+		std::swap(this->oid, other.oid);
+	}
+
+	/**
 	 * Get a direct pointer.
 	 *
 	 * Performs a calculations on the underlying C-style pointer.
@@ -318,15 +329,6 @@ protected:
 	{
 		static_assert(!std::is_polymorphic<element_type>::value,
 			      "Polymorphic types are not supported");
-	}
-
-	/**
-	 * Swaps two persistent_ptr objects of the same type.
-	 */
-	void
-	swap(persistent_ptr_base &other) noexcept
-	{
-		std::swap(this->oid, other.oid);
 	}
 
 	/**
