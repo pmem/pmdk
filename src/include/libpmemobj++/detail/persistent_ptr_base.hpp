@@ -208,7 +208,6 @@ public:
 	persistent_ptr_base &
 	operator=(persistent_ptr_base const &r)
 	{
-		detail::conditional_add_to_tx(this);
 		this_type(r).swap(*this);
 
 		return *this;
@@ -245,7 +244,6 @@ public:
 	persistent_ptr_base &
 	operator=(persistent_ptr_base<Y> const &r)
 	{
-		detail::conditional_add_to_tx(this);
 		this_type(r).swap(*this);
 
 		return *this;
@@ -257,8 +255,10 @@ public:
 	 * @param[in,out] other the other persistent_ptr to swap.
 	 */
 	void
-	swap(persistent_ptr_base &other) noexcept
+	swap(persistent_ptr_base &other)
 	{
+		detail::conditional_add_to_tx(this);
+		detail::conditional_add_to_tx(&other);
 		std::swap(this->oid, other.oid);
 	}
 

@@ -369,7 +369,7 @@ public:
  */
 template <class T>
 inline void
-swap(persistent_ptr<T> &a, persistent_ptr<T> &b) noexcept
+swap(persistent_ptr<T> &a, persistent_ptr<T> &b)
 {
 	a.swap(b);
 }
