@@ -62,6 +62,10 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 	exit 1
 fi
 
+if [[ -z "$TEST_BUILD" ]]; then
+	TEST_BUILD=all
+fi
+
 imageName=nvml/${OS}:${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
@@ -89,6 +93,7 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env LIBCPP_LIBDIR=$LIBCPP_LIBDIR \
 	--env LIBCPP_INCDIR=$LIBCPP_INCDIR \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
+	--env TEST_BUILD=$TEST_BUILD \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
