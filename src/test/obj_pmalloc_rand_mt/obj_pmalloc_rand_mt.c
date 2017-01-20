@@ -114,11 +114,11 @@ main(int argc, char *argv[])
 	pthread_t *threads = MALLOC(sizeof(pthread_t) * nthreads);
 
 	for (int i = 0; i < nthreads; ++i) {
-		pthread_create(&threads[i], NULL, test_worker, pop);
+		PTHREAD_CREATE(&threads[i], NULL, test_worker, pop);
 	}
 
 	for (int i = 0; i < nthreads; ++i) {
-		pthread_join(threads[i], NULL);
+		PTHREAD_JOIN(threads[i], NULL);
 	}
 
 	FREE(threads);
