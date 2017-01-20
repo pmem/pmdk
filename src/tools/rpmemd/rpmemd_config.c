@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -443,9 +443,6 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 
 	while ((opt = getopt_long(argc, argv, optstr, options,
 		&option_index)) != -1) {
-
-		if (opt == -1)
-			break;
 
 		switch (opt) {
 		case 'c':
