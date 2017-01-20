@@ -127,14 +127,14 @@ template&lt;typename U , typename  = typename std::enable_if&lt;			  std::is_con
 <tr class="memitem:aa4793065d41fd62debc7324fccdc8f16"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#aa4793065d41fd62debc7324fccdc8f16">standard_alloc_policy</a> (<a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html">standard_alloc_policy</a>&lt; U &gt; const &amp;)</td></tr>
 <tr class="memdesc:aa4793065d41fd62debc7324fccdc8f16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type converting constructor. <br /></td></tr>
 <tr class="separator:aa4793065d41fd62debc7324fccdc8f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6b8354a8bd3a8b94e062466bb6f254e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#ac6b8354a8bd3a8b94e062466bb6f254e">allocate</a> (size_type cnt, typename std::allocator&lt; void &gt;::const_pointer=0)</td></tr>
-<tr class="memdesc:ac6b8354a8bd3a8b94e062466bb6f254e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate storage for cnt objects of type T.  <a href="#ac6b8354a8bd3a8b94e062466bb6f254e">More...</a><br /></td></tr>
-<tr class="separator:ac6b8354a8bd3a8b94e062466bb6f254e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23a48c33786f9adc1254c93c6cac589a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#a23a48c33786f9adc1254c93c6cac589a">allocate</a> (size_type cnt, const_void_pointer=0)</td></tr>
+<tr class="memdesc:a23a48c33786f9adc1254c93c6cac589a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate storage for cnt objects of type T.  <a href="#a23a48c33786f9adc1254c93c6cac589a">More...</a><br /></td></tr>
+<tr class="separator:a23a48c33786f9adc1254c93c6cac589a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0697da757d53bca134376017fd2c6975"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#a0697da757d53bca134376017fd2c6975">deallocate</a> (<a class="el" href="classnvml_1_1obj_1_1persistent__ptr.html">pointer</a> <a class="el" href="classnvml_1_1obj_1_1p.html">p</a>, size_type=0)</td></tr>
 <tr class="memdesc:a0697da757d53bca134376017fd2c6975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deallocates storage pointed to p, which must be a value returned by a previous call to allocate that has not been invalidated by an intervening call to deallocate.  <a href="#a0697da757d53bca134376017fd2c6975">More...</a><br /></td></tr>
 <tr class="separator:a0697da757d53bca134376017fd2c6975"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5e6f3f7e37e7f9ebb859780bbc96b22"><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#ad5e6f3f7e37e7f9ebb859780bbc96b22">max_size</a> () const </td></tr>
-<tr class="memdesc:ad5e6f3f7e37e7f9ebb859780bbc96b22"><td class="mdescLeft">&#160;</td><td class="mdescRight">The largest value that can meaningfully be passed to <a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#ac6b8354a8bd3a8b94e062466bb6f254e" title="Allocate storage for cnt objects of type T. ">allocate()</a>.  <a href="#ad5e6f3f7e37e7f9ebb859780bbc96b22">More...</a><br /></td></tr>
+<tr class="memdesc:ad5e6f3f7e37e7f9ebb859780bbc96b22"><td class="mdescLeft">&#160;</td><td class="mdescRight">The largest value that can meaningfully be passed to <a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#a23a48c33786f9adc1254c93c6cac589a" title="Allocate storage for cnt objects of type T. ">allocate()</a>.  <a href="#ad5e6f3f7e37e7f9ebb859780bbc96b22">More...</a><br /></td></tr>
 <tr class="separator:ad5e6f3f7e37e7f9ebb859780bbc96b22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -144,7 +144,7 @@ class nvml::obj::standard_alloc_policy&lt; T &gt;</h3>
 <p>The allocation policy template for a given type. </p>
 <p>Can be specialized for a given type. Designed to be used with C++ allocators. Can be specialized if necessary. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="ac6b8354a8bd3a8b94e062466bb6f254e"></a>
+<a class="anchor" id="a23a48c33786f9adc1254c93c6cac589a"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -162,7 +162,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">typename std::allocator&lt; void &gt;::const_pointer&#160;</td>
+          <td class="paramtype">const_void_pointer&#160;</td>
           <td class="paramname"> = <code>0</code>&#160;</td>
         </tr>
         <tr>
@@ -262,7 +262,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>The largest value that can meaningfully be passed to <a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#ac6b8354a8bd3a8b94e062466bb6f254e" title="Allocate storage for cnt objects of type T. ">allocate()</a>. </p>
+<p>The largest value that can meaningfully be passed to <a class="el" href="classnvml_1_1obj_1_1standard__alloc__policy.html#a23a48c33786f9adc1254c93c6cac589a" title="Allocate storage for cnt objects of type T. ">allocate()</a>. </p>
 <dl class="section return"><dt>Returns</dt><dd>largest value that can be passed to allocate. </dd></dl>
 
 </div>
