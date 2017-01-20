@@ -329,6 +329,44 @@ stream_test(nvobj::pool_base &pop)
 
 	cleanup_foobar(pop);
 }
+
+/*
+ * swap_test -- (internal) perform basic swap tests on p<>
+ */
+void
+swap_test(nvobj::pool_base &pop)
+{
+	struct _bar {
+		nvobj::p<int> value;
+	};
+
+	nvobj::persistent_ptr<_bar> swap_one;
+	nvobj::persistent_ptr<_bar> swap_two;
+	try {
+		nvobj::transaction::exec_tx(pop, [&] {
+			swap_one = pmemobj_tx_alloc(sizeof(_bar), 0);
+			swap_two = pmemobj_tx_alloc(sizeof(_bar), 0);
+		});
+
+		nvobj::transaction::exec_tx(pop, [&] {
+			swap_one->value = 1;
+			swap_two->value = 2;
+
+			swap(swap_one->value, swap_two->value);
+			UT_ASSERTeq(swap_one->value, 2);
+			UT_ASSERTeq(swap_two->value, 1);
+
+			swap(swap_two->value, swap_one->value);
+			UT_ASSERTeq(swap_one->value, 1);
+			UT_ASSERTeq(swap_two->value, 2);
+
+			pmemobj_tx_free(swap_one.raw());
+			pmemobj_tx_free(swap_two.raw());
+		});
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+}
 }
 
 int
@@ -353,6 +391,7 @@ main(int argc, char *argv[])
 	arithmetic_test(pop);
 	bitwise_test(pop);
 	stream_test(pop);
+	swap_test(pop);
 
 	pop.close();
 

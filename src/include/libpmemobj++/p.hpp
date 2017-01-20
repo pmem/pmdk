@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,8 +94,6 @@ public:
 	p &
 	operator=(const p &rhs)
 	{
-		detail::conditional_add_to_tx(this);
-
 		this_type(rhs).swap(*this);
 
 		return *this;
@@ -116,8 +114,6 @@ public:
 	p &
 	operator=(const p<Y> &rhs)
 	{
-		detail::conditional_add_to_tx(this);
-
 		this_type(rhs).swap(*this);
 
 		return *this;
@@ -164,10 +160,15 @@ public:
 
 	/**
 	 * Swaps two p objects of the same type.
+	 *
+	 * @throw nvml::transaction_error when adding the object to the
+	 *	transaction failed.
 	 */
 	void
-	swap(p &other) noexcept
+	swap(p &other)
 	{
+		detail::conditional_add_to_tx(this);
+		detail::conditional_add_to_tx(&other);
 		std::swap(this->val, other.val);
 	}
 
@@ -183,7 +184,7 @@ private:
  */
 template <class T>
 inline void
-swap(p<T> &a, p<T> &b) noexcept
+swap(p<T> &a, p<T> &b)
 {
 	a.swap(b);
 }
