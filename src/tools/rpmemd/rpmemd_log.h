@@ -51,6 +51,10 @@
 #define RPMEMD_DBG(fmt, arg...) do {} while (0)
 #endif
 
+#define RPMEMD_ERR(fmt, arg...) do {\
+	RPMEMD_LOG(ERR, fmt, ## arg);\
+} while (0)
+
 #define RPMEMD_FATAL(fmt, arg...) do {\
 	RPMEMD_LOG(ERR, fmt, ## arg);\
 	abort();\

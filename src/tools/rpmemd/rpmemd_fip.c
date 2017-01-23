@@ -54,7 +54,6 @@
 #include "rpmem_proto.h"
 #include "rpmem_fip_msg.h"
 #include "rpmem_fip_common.h"
-#include "rpmem_fip_lane.h"
 #include "rpmemd_fip_worker.h"
 #include "rpmemd_fip.h"
 #include "rpmemd_log.h"
@@ -63,7 +62,10 @@
 #include "valgrind_internal.h"
 
 #define FATAL RPMEMD_FATAL
+#define ERR RPMEMD_ERR
 #include "sys_util.h"
+
+#include "rpmem_fip_lane.h"
 
 #define RPMEMD_FI_ERR(e, fmt, args...)\
 	RPMEMD_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))
