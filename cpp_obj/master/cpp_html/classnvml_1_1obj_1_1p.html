@@ -127,10 +127,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8ef4f18fa634a870293765f8939df635"><td class="memItemLeft" align="right" valign="top">const T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1p.html#a8ef4f18fa634a870293765f8939df635">get_ro</a> () const noexcept</td></tr>
 <tr class="memdesc:a8ef4f18fa634a870293765f8939df635"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves read-only const reference of the object.  <a href="#a8ef4f18fa634a870293765f8939df635">More...</a><br /></td></tr>
 <tr class="separator:a8ef4f18fa634a870293765f8939df635"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adfd2909bbbe7d3694eefb22d8a009ef3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adfd2909bbbe7d3694eefb22d8a009ef3"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1p.html#adfd2909bbbe7d3694eefb22d8a009ef3">swap</a> (<a class="el" href="classnvml_1_1obj_1_1p.html">p</a> &amp;other) noexcept</td></tr>
-<tr class="memdesc:adfd2909bbbe7d3694eefb22d8a009ef3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swaps two p objects of the same type. <br /></td></tr>
-<tr class="separator:adfd2909bbbe7d3694eefb22d8a009ef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac51f83b4231ac78faf3f49df29c544e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1p.html#ac51f83b4231ac78faf3f49df29c544e3">swap</a> (<a class="el" href="classnvml_1_1obj_1_1p.html">p</a> &amp;other)</td></tr>
+<tr class="memdesc:ac51f83b4231ac78faf3f49df29c544e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Swaps two p objects of the same type.  <a href="#ac51f83b4231ac78faf3f49df29c544e3">More...</a><br /></td></tr>
+<tr class="separator:ac51f83b4231ac78faf3f49df29c544e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
@@ -301,6 +300,40 @@ template&lt;typename Y , typename  = typename std::enable_if&lt;				      std::i
 
 <p>Converting assignment operator from a different p&lt;&gt;. </p>
 <p>Available only for convertible types. Just like regular assignment, also automatically registers itself in a transaction.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classnvml_1_1transaction__error.html" title="Custom transaction error class. ">nvml::transaction_error</a></td><td>when adding the object to the transaction failed. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ac51f83b4231ac78faf3f49df29c544e3"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classnvml_1_1obj_1_1p.html">nvml::obj::p</a>&lt; T &gt;::swap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classnvml_1_1obj_1_1p.html">p</a>&lt; T &gt; &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Swaps two p objects of the same type. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="classnvml_1_1transaction__error.html" title="Custom transaction error class. ">nvml::transaction_error</a></td><td>when adding the object to the transaction failed. </td></tr>
