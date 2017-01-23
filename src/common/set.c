@@ -1514,22 +1514,22 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	memcpy(hdrp->uuid, PART(rep, partidx).uuid, POOL_HDR_UUID_LEN);
 
 	/* link parts */
-	memcpy(hdrp->prev_part_uuid, PART(rep, partidx - 1).uuid,
+	memcpy(hdrp->prev_part_uuid, PARTP(rep, partidx).uuid,
 							POOL_HDR_UUID_LEN);
-	memcpy(hdrp->next_part_uuid, PART(rep, partidx + 1).uuid,
+	memcpy(hdrp->next_part_uuid, PARTN(rep, partidx).uuid,
 							POOL_HDR_UUID_LEN);
 
 	/* link replicas */
 	if (prev_repl_uuid) {
 		memcpy(hdrp->prev_repl_uuid, prev_repl_uuid, POOL_HDR_UUID_LEN);
 	} else {
-		memcpy(hdrp->prev_repl_uuid, PART(REP(set, repidx - 1), 0).uuid,
+		memcpy(hdrp->prev_repl_uuid, PART(REPP(set, repidx), 0).uuid,
 			POOL_HDR_UUID_LEN);
 	}
 	if (next_repl_uuid) {
 		memcpy(hdrp->next_repl_uuid, next_repl_uuid, POOL_HDR_UUID_LEN);
 	} else {
-		memcpy(hdrp->next_repl_uuid, PART(REP(set, repidx + 1), 0).uuid,
+		memcpy(hdrp->next_repl_uuid, PART(REPN(set, repidx), 0).uuid,
 			POOL_HDR_UUID_LEN);
 	}
 
@@ -1616,9 +1616,9 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	/* check pool set linkage */
-	if (memcmp(HDR(rep, partidx - 1)->uuid, hdr.prev_part_uuid,
+	if (memcmp(HDRP(rep, partidx)->uuid, hdr.prev_part_uuid,
 						POOL_HDR_UUID_LEN) ||
-	    memcmp(HDR(rep, partidx + 1)->uuid, hdr.next_part_uuid,
+	    memcmp(HDRN(rep, partidx)->uuid, hdr.next_part_uuid,
 						POOL_HDR_UUID_LEN)) {
 		ERR("wrong part UUID");
 		errno = EINVAL;
@@ -1739,9 +1739,9 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 	}
 
 	/* check pool set linkage */
-	if (memcmp(HDR(rep, partidx - 1)->uuid, hdrp->prev_part_uuid,
+	if (memcmp(HDRP(rep, partidx)->uuid, hdrp->prev_part_uuid,
 							POOL_HDR_UUID_LEN) ||
-	    memcmp(HDR(rep, partidx + 1)->uuid, hdrp->next_part_uuid,
+	    memcmp(HDRN(rep, partidx)->uuid, hdrp->next_part_uuid,
 							POOL_HDR_UUID_LEN)) {
 		ERR("wrong part UUID in part %d", partidx);
 		errno = EINVAL;
@@ -2402,10 +2402,10 @@ util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
 			set->rdonly |= rep->part[p].rdonly;
 		}
 
-		if (memcmp(HDR(REP(set, r - 1), 0)->uuid,
+		if (memcmp(HDR(REPP(set, r), 0)->uuid,
 					HDR(REP(set, r), 0)->prev_repl_uuid,
 					POOL_HDR_UUID_LEN) ||
-		    memcmp(HDR(REP(set, r + 1), 0)->uuid,
+		    memcmp(HDR(REPN(set, r), 0)->uuid,
 					HDR(REP(set, r), 0)->next_repl_uuid,
 					POOL_HDR_UUID_LEN)) {
 			ERR("wrong replica UUID");
