@@ -125,14 +125,29 @@ struct pool_attr {
 	const unsigned char *user_flags;	/* user flags */
 };
 
+/* get (r)th replica */
 #define REP(set, r)\
 	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
+/* get (r + 1)th replica */
+#define REPN(set, r)\
+	((set)->replica[((set)->nreplicas + (r) + 1) % (set)->nreplicas])
+/* get (r - 1)th replica */
+#define REPP(set, r)\
+	((set)->replica[((set)->nreplicas + (r) - 1) % (set)->nreplicas])
 
 #define PART(rep, p)\
 	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
+#define PARTN(rep, p)\
+	((rep)->part[((rep)->nparts + (p) + 1) % (rep)->nparts])
+#define PARTP(rep, p)\
+	((rep)->part[((rep)->nparts + (p) - 1) % (rep)->nparts])
 
 #define HDR(rep, p)\
 	((struct pool_hdr *)(PART(rep, p).hdr))
+#define HDRN(rep, p)\
+	((struct pool_hdr *)(PARTN(rep, p).hdr))
+#define HDRP(rep, p)\
+	((struct pool_hdr *)(PARTP(rep, p).hdr))
 
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);

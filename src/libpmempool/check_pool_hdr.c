@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -937,16 +937,16 @@ init_location_data(PMEMpoolcheck *ppc, union location *loc)
 	loc->single_part = poolset->replica[loc->replica]->nparts == 1;
 
 	struct pool_replica *rep = REP(poolset, loc->replica);
-	struct pool_replica *next_rep = REP(poolset, loc->replica + 1);
-	struct pool_replica *prev_rep = REP(poolset, loc->replica - 1);
+	struct pool_replica *next_rep = REPN(poolset, loc->replica);
+	struct pool_replica *prev_rep = REPP(poolset, loc->replica);
 
 	loc->hdrp = HDR(rep, loc->part);
 	memcpy(&loc->hdr, loc->hdrp, sizeof(loc->hdr));
 	util_convert2h_hdr_nocheck(&loc->hdr);
 	loc->hdr_valid = pool_hdr_valid(loc->hdrp);
 
-	loc->next_part_hdrp = HDR(rep, loc->part + 1);
-	loc->prev_part_hdrp = HDR(rep, loc->part - 1);
+	loc->next_part_hdrp = HDRN(rep, loc->part);
+	loc->prev_part_hdrp = HDRP(rep, loc->part);
 	loc->next_repl_hdrp = HDR(next_rep, 0);
 	loc->prev_repl_hdrp = HDR(prev_rep, 0);
 
