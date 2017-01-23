@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,10 @@
 #else
 #define RPMEMD_DBG(fmt, arg...) do {} while (0)
 #endif
+
+#define RPMEMD_ERR(fmt, arg...) do {\
+	RPMEMD_LOG(ERR, fmt, ## arg);\
+} while (0)
 
 #define RPMEMD_FATAL(fmt, arg...) do {\
 	RPMEMD_LOG(ERR, fmt, ## arg);\
