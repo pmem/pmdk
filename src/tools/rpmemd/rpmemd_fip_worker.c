@@ -40,6 +40,7 @@
 #include "rpmemd_fip_ring.h"
 #include "rpmemd_fip_worker.h"
 #define FATAL RPMEMD_FATAL
+#define ERR RPMEMD_ERR
 #include "sys_util.h"
 
 /*

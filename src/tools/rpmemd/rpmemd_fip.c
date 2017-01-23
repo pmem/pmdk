@@ -50,6 +50,12 @@
 #include <rdma/fi_cm.h>
 #include <rdma/fi_errno.h>
 
+#include "rpmemd_log.h"
+
+/* change logging functions to ones specific to rpmemd */
+#define FATAL RPMEMD_FATAL
+#define ERR RPMEMD_ERR
+
 #include "rpmem_common.h"
 #include "rpmem_proto.h"
 #include "rpmem_fip_msg.h"
@@ -57,13 +63,9 @@
 #include "rpmem_fip_lane.h"
 #include "rpmemd_fip_worker.h"
 #include "rpmemd_fip.h"
-#include "rpmemd_log.h"
 
 #include "util.h"
 #include "valgrind_internal.h"
-
-#define FATAL RPMEMD_FATAL
-#include "sys_util.h"
 
 #define RPMEMD_FI_ERR(e, fmt, args...)\
 	RPMEMD_LOG(ERR, fmt ": %s", ## args, fi_strerror((e)))

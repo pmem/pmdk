@@ -92,6 +92,8 @@ typedef struct {
 	CONDITION_VARIABLE cond;
 } pthread_cond_t;
 
+typedef long pthread_spinlock_t;
+
 typedef int pthread_mutexattr_t;
 typedef int pthread_rwlockattr_t;
 typedef int pthread_condattr_t;
@@ -112,6 +114,13 @@ enum
 	PTHREAD_RWLOCK_PREFER_WRITER = 1,
 	PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE = 2,
 	PTHREAD_RWLOCK_DEFAULT = PTHREAD_RWLOCK_PREFER_READER
+};
+
+/* Process shared or private flag.  */
+enum
+{
+	PTHREAD_PROCESS_PRIVATE,
+	PTHREAD_PROCESS_SHARED
 };
 
 int pthread_mutexattr_init(pthread_mutexattr_t *attr);
@@ -154,6 +163,11 @@ int pthread_cond_timedwait(pthread_cond_t *__restrict cond,
 	pthread_mutex_t *__restrict mutex, const struct timespec *abstime);
 int pthread_cond_wait(pthread_cond_t *__restrict cond,
 	pthread_mutex_t *__restrict mutex);
+
+int pthread_spin_init(pthread_spinlock_t *lock, int pshared);
+int pthread_spin_destroy(pthread_spinlock_t *lock);
+int pthread_spin_lock(pthread_spinlock_t *lock);
+int pthread_spin_unlock(pthread_spinlock_t *lock);
 
 /* threading */
 
