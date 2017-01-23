@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -111,9 +111,11 @@ else
 objdir = ../$(OBJDIR)/$(DIRNAME)
 endif
 
-LIB_OUTDIR = $(objdir)/..
+LIB_OUTDIR ?= $(objdir)/..
 
+ifneq ($(LIB_OUTDIR),)
 LDFLAGS += -L$(LIB_OUTDIR)
+endif
 
 ifneq ($(SOURCE),)
 _OBJS = $(SOURCE:.c=.o)
