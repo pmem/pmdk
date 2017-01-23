@@ -448,6 +448,7 @@ search_key(char *appname, struct search_ctx *ctx)
 
 	p_off = ctx->pmem_ctx->art_tree_root_offset;
 	p = get_node(ctx, ART_TREE_ROOT, p_off);
+	assert(p != NULL);
 	if (p != MAP_FAILED) {
 		dump_art_tree_root("art_tree_root", p_off, p);
 	} else {
