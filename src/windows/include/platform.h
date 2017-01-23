@@ -184,7 +184,7 @@ int unsetenv(const char *name);
 int rand_r(unsigned *seedp);
 
 /* fcntl.h */
-int posix_fallocate(int fd, off_t offset, off_t size);
+int posix_fallocate(int fd, off_t offset, off_t len);
 
 /* string.h */
 #define strtok_r strtok_s
