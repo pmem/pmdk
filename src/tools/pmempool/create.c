@@ -520,13 +520,16 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 					pc.inherit_params.blk.bsize;
 			break;
 		case PMEM_POOL_TYPE_OBJ:
-			if (!pc.layout)
+			if (!pc.layout) {
 				memcpy(pc.params.obj.layout,
 					pc.inherit_params.obj.layout,
 					sizeof(pc.params.obj.layout));
-			else
+			} else {
+				size_t len = sizeof(pc.params.obj.layout);
 				strncpy(pc.params.obj.layout, pc.layout,
-					sizeof(pc.params.obj.layout));
+						len - 1);
+				pc.params.obj.layout[len - 1] = '\0';
+			}
 			break;
 		default:
 			break;
