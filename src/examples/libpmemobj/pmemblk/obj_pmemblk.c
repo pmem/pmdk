@@ -285,6 +285,10 @@ main(int argc, char *argv[])
 
 	unsigned long bsize = strtoul(argv[3], NULL, 10);
 	assert(bsize <= BSIZE_MAX);
+	if (bsize == 0) {
+		perror("blk_size cannot be 0");
+		return 1;
+	}
 
 	PMEMblkpool *pbp;
 	if (strncmp(argv[1], "c", 1) == 0) {
