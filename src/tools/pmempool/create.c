@@ -46,6 +46,7 @@
 #include <libgen.h>
 #include <err.h>
 #include "common.h"
+#include "file.h"
 #include "create.h"
 
 #include "set.h"
@@ -593,7 +594,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 	if (ret) {
 		outv_err("creating pool file failed\n");
 		if (!pc.fexists)
-			(void) remove(pc.fname);
+			util_unlink(pc.fname);
 	}
 
 	util_options_free(pc.opts);
