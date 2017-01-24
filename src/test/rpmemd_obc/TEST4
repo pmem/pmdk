@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,44 +32,25 @@
 #
 
 #
-# src/test/rpmem_basic/TEST5 -- unit test for rpmemd --remove
+# src/test/rpmemd_obc/TEST4 -- unit test for rpmemd_obc_process
 #
-export UNITTEST_NAME=rpmem_basic/TEST5
-export UNITTEST_NUM=5
+
+export UNITTEST_NAME=rpmemd_obc/TEST4
+export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
 
-require_fs_type any
+require_fs_type none
 require_build_type nondebug debug
 
 setup
 
 . setup.sh
 
-create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
-
-expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
-expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
-
-expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
-	test_close 0
-
-expect_normal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init
-
-check
+expect_normal_exit run_on_node 1 ./rpmemd_obc$EXESUFFIX\
+	client_set_attr ${NODE_ADDR[0]}
 
 pass

@@ -636,6 +636,27 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length)
 }
 
 /*
+ * rpmem_set_attr -- overwrite pool attributes on the remote node
+ *
+ * rpp           -- remote pool handle
+ * attr          -- new pool attributes for the pool on remote node
+ */
+int
+rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr)
+{
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	int ret = rpmem_obc_set_attr(rpp->obc, attr);
+	if (ret) {
+		RPMEM_LOG(ERR, "!set attributes request failed");
+	}
+	return ret;
+}
+
+/*
  * rpmem_remove -- remove pool from remote node
  *
  * target        -- target node in format [<user>@]<target_name>[:<port>]

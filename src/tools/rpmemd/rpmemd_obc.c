@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,6 +82,7 @@ rpmemd_obc_check_msg_hdr(struct rpmem_msg_hdr *hdrp)
 	case RPMEM_MSG_TYPE_OPEN:
 	case RPMEM_MSG_TYPE_CREATE:
 	case RPMEM_MSG_TYPE_CLOSE:
+	case RPMEM_MSG_TYPE_SET_ATTR:
 		/* all messages from obc to server are fine */
 		break;
 	default:
@@ -214,12 +215,28 @@ rpmemd_obc_ntoh_check_msg_close(struct rpmem_msg_hdr *hdrp)
 	return 0;
 }
 
+/*
+ * rpmemd_obc_ntoh_check_msg_set_attr -- convert and check set attributes
+ * request message
+ */
+static int
+rpmemd_obc_ntoh_check_msg_set_attr(struct rpmem_msg_hdr *hdrp)
+{
+	struct rpmem_msg_set_attr *msg = (struct rpmem_msg_set_attr *)hdrp;
+
+	rpmem_ntoh_msg_set_attr(msg);
+
+	/* nothing to do */
+	return 0;
+}
+
 typedef int (*rpmemd_obc_ntoh_check_msg_fn)(struct rpmem_msg_hdr *hdrp);
 
 static rpmemd_obc_ntoh_check_msg_fn rpmemd_obc_ntoh_check_msg[] = {
-	[RPMEM_MSG_TYPE_CREATE]	= rpmemd_obc_ntoh_check_msg_create,
-	[RPMEM_MSG_TYPE_OPEN]	= rpmemd_obc_ntoh_check_msg_open,
-	[RPMEM_MSG_TYPE_CLOSE]	= rpmemd_obc_ntoh_check_msg_close,
+	[RPMEM_MSG_TYPE_CREATE]		= rpmemd_obc_ntoh_check_msg_create,
+	[RPMEM_MSG_TYPE_OPEN]		= rpmemd_obc_ntoh_check_msg_open,
+	[RPMEM_MSG_TYPE_CLOSE]		= rpmemd_obc_ntoh_check_msg_close,
+	[RPMEM_MSG_TYPE_SET_ATTR]	= rpmemd_obc_ntoh_check_msg_set_attr,
 };
 
 /*
@@ -271,14 +288,28 @@ rpmemd_obc_process_close(struct rpmemd_obc *obc,
 	return req_cb->close(obc, arg);
 }
 
+/*
+ * rpmemd_obc_process_set_attr -- process set attributes request
+ */
+static int
+rpmemd_obc_process_set_attr(struct rpmemd_obc *obc,
+	struct rpmemd_obc_requests *req_cb, void *arg,
+	struct rpmem_msg_hdr *hdrp)
+{
+	struct rpmem_msg_set_attr *msg = (struct rpmem_msg_set_attr *)hdrp;
+
+	return req_cb->set_attr(obc, arg, &msg->pool_attr);
+}
+
 typedef int (*rpmemd_obc_process_fn)(struct rpmemd_obc *obc,
 		struct rpmemd_obc_requests *req_cb, void *arg,
 		struct rpmem_msg_hdr *hdrp);
 
 static rpmemd_obc_process_fn rpmemd_obc_process_cb[] = {
-	[RPMEM_MSG_TYPE_CREATE]	= rpmemd_obc_process_create,
-	[RPMEM_MSG_TYPE_OPEN]	= rpmemd_obc_process_open,
-	[RPMEM_MSG_TYPE_CLOSE]	= rpmemd_obc_process_close,
+	[RPMEM_MSG_TYPE_CREATE]		= rpmemd_obc_process_create,
+	[RPMEM_MSG_TYPE_OPEN]		= rpmemd_obc_process_open,
+	[RPMEM_MSG_TYPE_CLOSE]		= rpmemd_obc_process_close,
+	[RPMEM_MSG_TYPE_SET_ATTR]	= rpmemd_obc_process_set_attr,
 };
 
 /*
@@ -420,6 +451,7 @@ rpmemd_obc_process(struct rpmemd_obc *obc,
 	RPMEMD_ASSERT(req_cb->create != NULL);
 	RPMEMD_ASSERT(req_cb->open != NULL);
 	RPMEMD_ASSERT(req_cb->close != NULL);
+	RPMEMD_ASSERT(req_cb->set_attr != NULL);
 
 	struct rpmem_msg_hdr *hdrp = NULL;
 	int ret;
@@ -509,6 +541,25 @@ rpmemd_obc_close_resp(struct rpmemd_obc *obc,
 	};
 
 	rpmem_hton_msg_close_resp(&resp);
+
+	return rpmemd_obc_send(obc, &resp, sizeof(resp));
+}
+
+/*
+ * rpmemd_obc_set_attr_resp -- send set attributes request response message
+ */
+int
+rpmemd_obc_set_attr_resp(struct rpmemd_obc *obc, int status)
+{
+	struct rpmem_msg_set_attr_resp resp = {
+		.hdr = {
+			.type	= RPMEM_MSG_TYPE_SET_ATTR_RESP,
+			.size	= sizeof(struct rpmem_msg_set_attr_resp),
+			.status	= (uint32_t)status,
+		},
+	};
+
+	rpmem_hton_msg_set_attr_resp(&resp);
 
 	return rpmemd_obc_send(obc, &resp, sizeof(resp));
 }

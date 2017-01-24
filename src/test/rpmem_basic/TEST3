@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool $POOLS_DIR/pool0.set 1234
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
 	test_persist 0 4321 1 1\
 	test_close 0
 

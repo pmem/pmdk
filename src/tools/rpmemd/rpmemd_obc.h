@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,8 @@ struct rpmemd_obc_requests {
 	int (*open)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_req_attr *req);
 	int (*close)(struct rpmemd_obc *obc, void *arg);
+	int (*set_attr)(struct rpmemd_obc *obc, void *arg,
+			const struct rpmem_pool_attr *pool_attr);
 };
 
 struct rpmemd_obc *rpmemd_obc_init(int fd_in, int fd_out);
@@ -61,5 +63,6 @@ int rpmemd_obc_create_resp(struct rpmemd_obc *obc,
 int rpmemd_obc_open_resp(struct rpmemd_obc *obc,
 		int status, const struct rpmem_resp_attr *res,
 		const struct rpmem_pool_attr *pool_attr);
+int rpmemd_obc_set_attr_resp(struct rpmemd_obc *obc, int status);
 int rpmemd_obc_close_resp(struct rpmemd_obc *obc,
 		int status);

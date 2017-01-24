@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,6 +53,18 @@
 
 #define FAILED_FUNC_PARAM(func_name, param) \
 		UT_ERR("!%s(): %s(%s) failed", __func__, func_name, param);
+
+#define NPOOLS_DUAL	2
+
+#define POOL_ATTR_CREATE	0
+#define POOL_ATTR_OPEN		1
+#define POOL_ATTR_SET_ATTR	2
+
+#define POOL_STATE_INITIAL	0
+#define POOL_STATE_CREATED	1
+#define POOL_STATE_OPENED	2
+#define POOL_STATE_CLOSED	POOL_STATE_CREATED
+#define POOL_STATE_REMOVED	POOL_STATE_INITIAL
 
 /*
  * fill_rand -- fill a buffer with random values
@@ -365,6 +377,180 @@ fini:
 	return ret;
 }
 
+/*
+ * test_set_attr -- test rpmemd_db_pool_set_attr()
+ */
+static int
+test_set_attr(const char *root_dir, const char *pool_desc)
+{
+	struct rpmem_pool_attr attr[3];
+	struct rpmemd_db_pool *prp;
+	struct rpmemd_db *db;
+	int ret = -1;
+
+	fill_rand(&attr[POOL_ATTR_CREATE], sizeof(attr[POOL_ATTR_CREATE]));
+	fill_rand(&attr[POOL_ATTR_SET_ATTR], sizeof(attr[POOL_ATTR_SET_ATTR]));
+	attr[POOL_ATTR_CREATE].major = 1;
+	attr[POOL_ATTR_SET_ATTR].major = 1;
+
+	db = rpmemd_db_init(root_dir, POOL_MODE);
+	if (db == NULL) {
+		FAILED_FUNC("rpmemd_db_init");
+		return -1;
+	}
+
+	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr[POOL_ATTR_CREATE]);
+	if (prp == NULL) {
+		FAILED_FUNC("rpmemd_db_pool_create");
+		goto err_create;
+	}
+	rpmemd_db_pool_close(db, prp);
+
+	prp = rpmemd_db_pool_open(db, pool_desc, 0, &attr[POOL_ATTR_OPEN]);
+	if (prp == NULL) {
+		FAILED_FUNC("rpmemd_db_pool_open");
+		goto err_open;
+	}
+	compare_attr(&attr[POOL_ATTR_CREATE], &attr[POOL_ATTR_OPEN]);
+
+	ret = rpmemd_db_pool_set_attr(prp, &attr[POOL_ATTR_SET_ATTR]);
+	if (ret) {
+		FAILED_FUNC("rpmemd_db_pool_set_attr");
+		goto err_set_attr;
+	}
+
+	rpmemd_db_pool_close(db, prp);
+
+	prp = rpmemd_db_pool_open(db, pool_desc, 0, &attr[POOL_ATTR_OPEN]);
+	if (prp == NULL) {
+		FAILED_FUNC("rpmemd_db_pool_open");
+		goto err_open;
+	}
+	compare_attr(&attr[POOL_ATTR_SET_ATTR], &attr[POOL_ATTR_OPEN]);
+
+	rpmemd_db_pool_close(db, prp);
+
+	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 0);
+	if (ret) {
+		FAILED_FUNC("rpmemd_db_pool_remove");
+	}
+	goto fini;
+
+err_set_attr:
+	rpmemd_db_pool_close(db, prp);
+err_open:
+	rpmemd_db_pool_remove(db, pool_desc, 0, 0);
+err_create:
+fini:
+	rpmemd_db_fini(db);
+	return ret;
+}
+
+/*
+ * test_set_attr_dual -- dual test for rpmemd_db_pool_set_attr()
+ */
+static int
+test_set_attr_dual(const char *root_dir, const char *pool_desc_1,
+		const char *pool_desc_2)
+{
+	struct rpmem_pool_attr attr[NPOOLS_DUAL][3];
+	struct rpmemd_db_pool *prp[NPOOLS_DUAL];
+	const char *pool_desc[NPOOLS_DUAL] = {pool_desc_1, pool_desc_2};
+	unsigned pool_state[NPOOLS_DUAL] = {POOL_STATE_INITIAL};
+	struct rpmemd_db *db;
+	int ret = -1;
+
+	/* initialize rpmem database */
+	db = rpmemd_db_init(root_dir, POOL_MODE);
+	if (db == NULL) {
+		FAILED_FUNC("rpmemd_db_init");
+		return -1;
+	}
+
+	for (unsigned p = 0; p < NPOOLS_DUAL; ++p) {
+		/*
+		 * generate random pool attributes for create and set
+		 * attributes operations
+		 */
+		fill_rand(&attr[p][POOL_ATTR_CREATE],
+			sizeof(attr[p][POOL_ATTR_CREATE]));
+		fill_rand(&attr[p][POOL_ATTR_SET_ATTR],
+			sizeof(attr[p][POOL_ATTR_SET_ATTR]));
+
+		attr[p][POOL_ATTR_CREATE].major = 1;
+		attr[p][POOL_ATTR_SET_ATTR].major = 1;
+
+		/* create pool */
+		prp[p] = rpmemd_db_pool_create(db, pool_desc[p], 0,
+			&attr[p][POOL_ATTR_CREATE]);
+		if (prp[p] == NULL) {
+			FAILED_FUNC_PARAM("rpmemd_db_pool_create",
+				pool_desc[p]);
+			goto err;
+		}
+		rpmemd_db_pool_close(db, prp[p]);
+		pool_state[p] = POOL_STATE_CREATED;
+	}
+
+	/* open pools and check pool attributes */
+	for (unsigned p = 0; p < NPOOLS_DUAL; ++p) {
+		prp[p] = rpmemd_db_pool_open(db, pool_desc[p], 0,
+			&attr[p][POOL_ATTR_OPEN]);
+		if (prp[p] == NULL) {
+			FAILED_FUNC_PARAM("rpmemd_db_pool_open", pool_desc[p]);
+			goto err;
+		}
+		pool_state[p] = POOL_STATE_OPENED;
+		compare_attr(&attr[p][POOL_ATTR_CREATE],
+			&attr[p][POOL_ATTR_OPEN]);
+	}
+
+	/* set attributes and close pools */
+	for (unsigned p = 0; p < NPOOLS_DUAL; ++p) {
+		ret = rpmemd_db_pool_set_attr(prp[p],
+			&attr[p][POOL_ATTR_SET_ATTR]);
+		if (ret) {
+			FAILED_FUNC_PARAM("rpmemd_db_pool_set_attr",
+				pool_desc[p]);
+			goto err;
+		}
+		rpmemd_db_pool_close(db, prp[p]);
+		pool_state[p] = POOL_STATE_CLOSED;
+	}
+
+	/* open pools and check attributes */
+	for (unsigned p = 0; p < NPOOLS_DUAL; ++p) {
+		prp[p] = rpmemd_db_pool_open(db, pool_desc[p], 0,
+			&attr[p][POOL_ATTR_OPEN]);
+		if (prp[p] == NULL) {
+			FAILED_FUNC_PARAM("rpmemd_db_pool_open", pool_desc[p]);
+			goto err;
+		}
+		pool_state[p] = POOL_STATE_OPENED;
+		compare_attr(&attr[p][POOL_ATTR_SET_ATTR],
+			&attr[p][POOL_ATTR_OPEN]);
+	}
+
+err:
+	for (unsigned p = 0; p < NPOOLS_DUAL; ++p) {
+		if (pool_state[p] == POOL_STATE_OPENED) {
+			rpmemd_db_pool_close(db, prp[p]);
+			pool_state[p] = POOL_STATE_CLOSED;
+		}
+		if (pool_state[p] == POOL_STATE_CREATED) {
+			ret = rpmemd_db_pool_remove(db, pool_desc[p], 0, 0);
+			if (ret) {
+				FAILED_FUNC_PARAM("rpmemd_db_pool_remove",
+					pool_desc[p]);
+			}
+			pool_state[p] = POOL_STATE_REMOVED;
+		}
+	}
+
+	rpmemd_db_fini(db);
+	return ret;
+}
+
 static int
 exists_cb(struct part_file *pf, void *arg)
 {
@@ -468,6 +654,8 @@ main(int argc, char *argv[])
 	test_create_dual(root_dir, pool_desc[0], pool_desc[1]);
 	test_open(root_dir, pool_desc[0]);
 	test_open_dual(root_dir, pool_desc[0], pool_desc[1]);
+	test_set_attr(root_dir, pool_desc[0]);
+	test_set_attr_dual(root_dir, pool_desc[0], pool_desc[1]);
 	test_remove(root_dir, pool_desc[0]);
 
 	rpmemd_log_close();

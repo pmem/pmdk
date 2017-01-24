@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -73,23 +73,23 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool3.set ${NODE_ADDR[0]} mem 8M test_close 0
 
 # Open pool from non-existing pool set file
-ARGS="$ARGS test_open 0 poolX.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_open 0 poolX.set ${NODE_ADDR[0]} pool 8M init"
 # Open pool from pool set file which can't be read
-ARGS="$ARGS test_open 0 pool0r.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_open 0 pool0r.set ${NODE_ADDR[0]} pool 8M init"
 # Open too big pool
-ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 32M"
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 32M init"
 # Open pool and close it - local pool from file
-ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init test_close 0"
 # Open pool and close it - local pool from memory
-ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0"
+ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} mem 8M init test_close 0"
 # Open pool from pool set with subdirectory
-ARGS="$ARGS test_open 0 subdir/pool2.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_open 0 subdir/pool2.set ${NODE_ADDR[0]} pool 8M init test_close 0"
 # Open pool but don't close it immediately
-ARGS="$ARGS test_open 0 pool3.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_open 0 pool3.set ${NODE_ADDR[0]} pool 8M init"
 # Open already opened and not closed pool
-ARGS="$ARGS test_open 1 pool3.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_open 1 pool3.set ${NODE_ADDR[0]} pool 8M init"
 # Open pool from pool set which has duplicated part file
-ARGS="$ARGS test_open 2 pool4.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_open 2 pool4.set ${NODE_ADDR[0]} pool 8M init"
 # Close previously created pool
 ARGS="$ARGS test_close 0"
 

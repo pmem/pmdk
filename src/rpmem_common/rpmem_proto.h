@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,9 @@ enum rpmem_msg_type {
 	RPMEM_MSG_TYPE_OPEN_RESP	= 4, /* open request response */
 	RPMEM_MSG_TYPE_CLOSE		= 5, /* close request */
 	RPMEM_MSG_TYPE_CLOSE_RESP	= 6, /* close request response */
-
+	RPMEM_MSG_TYPE_SET_ATTR		= 7, /* set attributes request */
+	/* set attributes request response */
+	RPMEM_MSG_TYPE_SET_ATTR_RESP	= 8,
 	MAX_RPMEM_MSG_TYPE,
 };
 
@@ -204,6 +206,27 @@ struct rpmem_msg_persist {
 struct rpmem_msg_persist_resp {
 	uint64_t lane;	/* lane identifier */
 };
+
+/*
+ * rpmem_msg_set_attr -- set attributes request message
+ *
+ * The type of message must be set to RPMEM_MSG_TYPE_SET_ATTR.
+ * The size of message must be set to sizeof(struct rpmem_msg_set_attr)
+ */
+struct rpmem_msg_set_attr {
+	struct rpmem_msg_hdr hdr;	/* message header */
+	struct rpmem_pool_attr pool_attr;	/* pool attributes */
+} PACKED;
+
+/*
+ * rpmem_msg_set_attr_resp -- set attributes request response message
+ *
+ * The type of message must be set to RPMEM_MSG_TYPE_SET_ATTR_RESP.
+ * The size of message must be set to sizeof(struct rpmem_msg_set_attr_resp).
+ */
+struct rpmem_msg_set_attr_resp {
+	struct rpmem_msg_hdr_resp hdr;	/* message header */
+} PACKED;
 
 /*
  * rpmem_ntoh_msg_ibc_attr -- convert rpmem_msg_ibc attr to host byte order
@@ -365,6 +388,45 @@ static inline void
 rpmem_hton_msg_open_resp(struct rpmem_msg_open_resp *msg)
 {
 	rpmem_ntoh_msg_open_resp(msg);
+}
+
+/*
+ * rpmem_ntoh_msg_set_attr -- convert rpmem_msg_set_attr to host byte order
+ */
+static inline void
+rpmem_ntoh_msg_set_attr(struct rpmem_msg_set_attr *msg)
+{
+	rpmem_ntoh_msg_hdr(&msg->hdr);
+	rpmem_ntoh_pool_attr(&msg->pool_attr);
+}
+
+/*
+ * rpmem_hton_msg_set_attr -- convert rpmem_msg_set_attr to network byte order
+ */
+static inline void
+rpmem_hton_msg_set_attr(struct rpmem_msg_set_attr *msg)
+{
+	rpmem_ntoh_msg_set_attr(msg);
+}
+
+/*
+ * rpmem_ntoh_msg_set_attr_resp -- convert rpmem_msg_set_attr_resp to host byte
+ * order
+ */
+static inline void
+rpmem_ntoh_msg_set_attr_resp(struct rpmem_msg_set_attr_resp *msg)
+{
+	rpmem_ntoh_msg_hdr_resp(&msg->hdr);
+}
+
+/*
+ * rpmem_hton_msg_set_attr_resp -- convert rpmem_msg_set_attr_resp to network
+ *	byte order
+ */
+static inline void
+rpmem_hton_msg_set_attr_resp(struct rpmem_msg_set_attr_resp *msg)
+{
+	rpmem_hton_msg_hdr_resp(&msg->hdr);
 }
 
 /*

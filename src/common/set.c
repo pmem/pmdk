@@ -1157,6 +1157,47 @@ util_part_fdclose(struct pool_set_part *part)
 }
 
 /*
+ * util_part_set_attr -- (internal) overwrite existing part attributes
+ *
+ * uuid, next_part_uuid and prev_part_uuid are optional.
+ */
+static void
+util_part_set_attr(struct pool_hdr *hdrp, const char *sig,
+	const uint32_t major, const uint32_t compat, const uint32_t incompat,
+	const uint32_t ro_compat, const unsigned char *poolset_uuid,
+	const unsigned char *uuid, const unsigned char *next_part_uuid,
+	const unsigned char *prev_part_uuid,
+	const unsigned char *next_repl_uuid,
+	const unsigned char *prev_repl_uuid,
+	const unsigned char *arch_flags)
+{
+	LOG(3, "hdrp %p sig %.8s major %u compat %#x incompat %#x "
+		"ro_comapt %#x poolset_uuid %p uuid %p next_part_uuid %p"
+		"prev_part_uuid %p next_repl_uuid %p prev_repl_uuid %p "
+		"arch_flags %p", hdrp, sig, major, compat, incompat, ro_compat,
+		poolset_uuid, uuid, next_part_uuid, prev_part_uuid,
+		next_repl_uuid, prev_repl_uuid, arch_flags);
+
+	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
+	hdrp->major = major;
+	hdrp->compat_features = compat;
+	hdrp->incompat_features = incompat;
+	hdrp->ro_compat_features = ro_compat;
+	memcpy(hdrp->poolset_uuid, poolset_uuid, POOL_HDR_UUID_LEN);
+	if (uuid)
+		memcpy(hdrp->uuid, uuid, POOL_HDR_UUID_LEN);
+	if (next_part_uuid)
+		memcpy(hdrp->next_part_uuid, next_part_uuid,
+			POOL_HDR_UUID_LEN);
+	if (prev_part_uuid)
+		memcpy(hdrp->prev_part_uuid, prev_part_uuid,
+			POOL_HDR_UUID_LEN);
+	memcpy(hdrp->next_repl_uuid, next_repl_uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->prev_repl_uuid, prev_repl_uuid, POOL_HDR_UUID_LEN);
+	memcpy(&hdrp->arch_flags, arch_flags, sizeof(struct arch_flags));
+}
+
+/*
  * util_remote_create_attr -- (internal) create attributes for remote replica
  */
 static void
@@ -1189,20 +1230,19 @@ util_remote_store_attr(const struct rpmem_pool_attr *rpmem_attr,
 {
 	LOG(4, "rpmem_attr %p hdrp %p", rpmem_attr, hdrp);
 
-	memcpy(hdrp->signature, rpmem_attr->signature, POOL_HDR_SIG_LEN);
-	hdrp->major = rpmem_attr->major;
-	hdrp->compat_features = rpmem_attr->compat_features;
-	hdrp->incompat_features = rpmem_attr->incompat_features;
-	hdrp->ro_compat_features = rpmem_attr->ro_compat_features;
-	memcpy(hdrp->poolset_uuid, rpmem_attr->poolset_uuid,
-						POOL_HDR_UUID_LEN);
-	memcpy(hdrp->uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
-	memcpy(hdrp->prev_part_uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
-	memcpy(hdrp->next_part_uuid, rpmem_attr->uuid, POOL_HDR_UUID_LEN);
-	memcpy(hdrp->next_repl_uuid, rpmem_attr->next_uuid, POOL_HDR_UUID_LEN);
-	memcpy(hdrp->prev_repl_uuid, rpmem_attr->prev_uuid, POOL_HDR_UUID_LEN);
-	memcpy(&hdrp->arch_flags, rpmem_attr->user_flags,
-						sizeof(struct arch_flags));
+	util_part_set_attr(hdrp,
+		rpmem_attr->signature,
+		rpmem_attr->major,
+		rpmem_attr->compat_features,
+		rpmem_attr->incompat_features,
+		rpmem_attr->ro_compat_features,
+		rpmem_attr->poolset_uuid,
+		rpmem_attr->uuid,
+		rpmem_attr->uuid,
+		rpmem_attr->uuid,
+		rpmem_attr->next_uuid,
+		rpmem_attr->prev_uuid,
+		rpmem_attr->user_flags);
 }
 
 /*
@@ -2356,6 +2396,64 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 		return util_replica_open_local(set, repidx, flags);
 	else
 		return util_replica_open_remote(set, repidx, flags);
+}
+
+/*
+ * util_replica_set_attr -- overwrite existing replica attributes
+ */
+int
+util_replica_set_attr(struct pool_replica *rep, const char *sig,
+	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	const unsigned char *poolset_uuid, const unsigned char *uuid,
+	const unsigned char *next_repl_uuid,
+	const unsigned char *prev_repl_uuid,
+	const unsigned char *arch_flags)
+{
+	int flags = MAP_SHARED;
+
+	/* map all headers - don't care about the address */
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
+			LOG(2, "header mapping failed - part #%d", p);
+			goto err;
+		}
+	}
+
+	const unsigned char *part_uuid;
+	const unsigned char *next_part_uuid;
+	const unsigned char *prev_part_uuid;
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		struct pool_hdr *hdrp = HDR(rep, p);
+		ASSERTne(hdrp, NULL);
+		util_convert2h_hdr_nocheck(hdrp);
+
+		part_uuid = (hdrp == HDR(rep, 0)) ? uuid : NULL;
+		next_part_uuid = (hdrp == HDRP(rep, 0)) ? uuid : NULL;
+		prev_part_uuid = (hdrp == HDRN(rep, 0)) ? uuid : NULL;
+
+		util_part_set_attr(hdrp, sig, major, compat, incompat,
+			ro_compat, poolset_uuid, part_uuid,
+			next_part_uuid, prev_part_uuid, next_repl_uuid,
+			prev_repl_uuid, arch_flags);
+
+		util_convert2le_hdr(hdrp);
+
+		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+
+		/* store pool's header */
+		PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+	}
+
+	/* unmap all headers */
+	for (unsigned p = 0; p < rep->nparts; p++)
+		util_unmap_hdr(&rep->part[p]);
+
+	return 0;
+err:
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		util_unmap_hdr(&rep->part[p]);
+	}
+	return -1;
 }
 
 /*

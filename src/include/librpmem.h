@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,6 +76,8 @@ RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		struct rpmem_pool_attr *open_attr);
 
+int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
+
 int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
@@ -94,7 +96,7 @@ int rpmem_remove(const char *target, const char *pool_set, int flags);
  * at compile-time by passing these defines to rpmem_check_version().
  */
 #define RPMEM_MAJOR_VERSION 1
-#define RPMEM_MINOR_VERSION 0
+#define RPMEM_MINOR_VERSION 1
 const char *rpmem_check_version(unsigned major_required,
 		unsigned minor_required);
 
