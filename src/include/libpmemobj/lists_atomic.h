@@ -64,11 +64,11 @@ struct name {\
 #define POBJ_LIST_LAST(head, field) (\
 TOID_IS_NULL((head)->pe_first) ?\
 (head)->pe_first :\
-D_RO((head)->pe_first)->field.pe_prev)
+AD_RO((head)->pe_first)->field.pe_prev)
 
 #define POBJ_LIST_EMPTY(head)	(TOID_IS_NULL((head)->pe_first))
-#define POBJ_LIST_NEXT(elm, field)	(D_RO(elm)->field.pe_next)
-#define POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
+#define POBJ_LIST_NEXT(elm, field)	(AD_RO(elm)->field.pe_next)
+#define POBJ_LIST_PREV(elm, field)	(AD_RO(elm)->field.pe_prev)
 #define POBJ_LIST_DEST_HEAD	1
 #define POBJ_LIST_DEST_TAIL	0
 

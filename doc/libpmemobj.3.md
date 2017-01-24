@@ -152,6 +152,8 @@ DIRECT_RW(TOID oid)
 DIRECT_RO(TOID oid)
 D_RW(TOID oid)
 D_RO(TOID oid)
+AD_RW(TOID oid)
+AD_RO(TOID oid)
 ```
 
 ##### Layout declaration: #####
@@ -887,18 +889,22 @@ The **TOID_OFFSETOF**() macro returns the offset of the *FIELD* member from the 
 ```c
 DIRECT_RW(TOID oid)
 D_RW(TOID oid)
+AD_RW(TOID oid)
 ```
 
 The **DIRECT_RW**() macro and its shortened form **D_RW**() return a typed write pointer (*TYPE\**) to an object represented by *oid*. If *oid* holds
-**OID_NULL** value, the macro evaluates to NULL.
+**OID_NULL** value, the macro evaluates to NULL. **AD_RW**() returns the same value as **D_RW**, but adds an assert that checks pointer is not NULL.
+This assert can be replaced with user code by defining POBJ_CHECK macro before including libpmemobj.h.
 
 ```c
 DIRECT_RO(TOID oid)
 D_RO(TOID oid)
+AD_RO(TOID oid)
 ```
 
 The **DIRECT_RO**() macro and its shortened form **D_RO**() return a typed read-only (const) pointer (*TYPE\**) to an object represented by *oid*. If *oid*
-holds **OID_NULL** value, the macro evaluates to NULL.
+holds **OID_NULL** value, the macro evaluates to NULL. **AD_RO**() returns the same value as **D_RO**, but adds an assert that checks pointer is not NULL.
+This assert can be replaced with user code by defining POBJ_CHECK macro before including libpmemobj.h.
 
 
 # LAYOUT DECLARATION #

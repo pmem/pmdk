@@ -39,6 +39,10 @@
 
 #include <libpmemobj/base.h>
 
+#ifndef POBJ_CHECK
+#include <assert.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -210,6 +214,22 @@ TOID_DECLARE_ROOT(t);
 
 #define D_RW	DIRECT_RW
 #define D_RO	DIRECT_RO
+
+#ifndef POBJ_CHECK
+#define POBJ_CHECK(ptr) assert(ptr != NULL)
+#endif
+
+static inline const void *
+_pobj_check(const void *ptr)
+{
+	POBJ_CHECK(ptr);
+	return ptr;
+}
+
+#if !defined(_MSC_VER) || defined(__cplusplus)
+#define AD_RW(x) ((__typeof__(D_RW(x))) _pobj_check(D_RW(x)))
+#define AD_RO(x) ((__typeof__(D_RO(x))) _pobj_check(D_RO(x)))
+#endif
 
 #ifdef __cplusplus
 }
