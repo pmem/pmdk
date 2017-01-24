@@ -198,7 +198,7 @@ pmemobj_tx_free((o).oid)
 
 #define TX_SET(o, field, value) (\
 	TX_ADD_FIELD(o, field),\
-	D_RW(o)->field = value)
+	AD_RW(o)->field = value)
 
 #define TX_SET_DIRECT(p, field, value) (\
 	TX_ADD_FIELD_DIRECT(p, field),\

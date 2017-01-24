@@ -33,6 +33,11 @@
 /*
  * obj_toid.c -- unit test for TOID_VALID, DIRECT_RO, DIRECT_RW macros
  */
+
+static void
+my_check(const void *ptr);
+
+#define POBJ_CHECK my_check
 #include <sys/param.h>
 #include "unittest.h"
 
@@ -43,6 +48,12 @@ TOID_DECLARE(struct obj, 0);
 struct obj {
 	int id;
 };
+
+static void
+my_check(const void *ptr)
+{
+	UT_OUT("ptr %p", ptr);
+}
 
 /*
  * do_toid_valid -- validates if type number is equal to object's metadata
@@ -87,6 +98,22 @@ do_direct_simple(PMEMobjpool *pop)
 	POBJ_FREE(&obj);
 }
 
+/*
+ * do_ad_rw_ro -- tests AD_RW/AD_RO macros
+ */
+static void
+do_ad_rw_ro(PMEMobjpool *pop)
+{
+	TOID(struct obj) obj;
+	POBJ_NEW(pop, &obj, struct obj, NULL, NULL);
+	AD_RW(obj)->id = TEST_NUM;
+	UT_ASSERTeq(AD_RO(obj)->id, TEST_NUM);
+	POBJ_FREE(&obj);
+
+	UT_ASSERTeq(AD_RW(obj), NULL);
+	UT_ASSERTeq(AD_RO(obj), NULL);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -103,6 +130,7 @@ main(int argc, char *argv[])
 	do_toid_valid(pop);
 	do_toid_no_valid(pop);
 	do_direct_simple(pop);
+	do_ad_rw_ro(pop);
 
 	pmemobj_close(pop);
 
