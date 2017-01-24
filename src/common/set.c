@@ -2679,9 +2679,13 @@ util_is_poolset_file(const char *path)
 
 	int ret = 0;
 	char signature[POOLSET_HDR_SIG_LEN];
-	if (read(fd, signature, sizeof(signature)) != sizeof(signature)) {
+	ssize_t sret = read(fd, signature, sizeof(signature));
+	if (sret < 0) {
 		ERR("!read");
 		ret = -1;
+		goto out;
+	} else if (sret != sizeof(signature)) {
+		ret = 0;
 		goto out;
 	}
 
