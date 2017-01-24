@@ -145,12 +145,14 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	jmp_buf env;
 	if (setjmp(env)) {
 		/* end the transaction */
-		pmemobj_tx_end();
+		(void) pmemobj_tx_end();
 		return 1;
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
+	if (pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock,
+			TX_PARAM_NONE))
+		return -1;
 
 	/* allocate the new node to be inserted */
 	PMEMoid log = pmemobj_tx_alloc(count + sizeof(struct log_hdr),
@@ -176,7 +178,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	bp->bytes_written += count;
 
 	pmemobj_tx_commit();
-	pmemobj_tx_end();
+	(void) pmemobj_tx_end();
 	return 0;
 }
 
@@ -199,7 +201,9 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
+	if (pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock,
+			TX_PARAM_NONE))
+		return -1;
 
 	/* add the base object to the undo log - once for the transaction */
 	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
@@ -233,7 +237,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	}
 
 	pmemobj_tx_commit();
-	pmemobj_tx_end();
+	(void) pmemobj_tx_end();
 	return 0;
 }
 
@@ -276,7 +280,9 @@ pmemlog_rewind(PMEMlogpool *plp)
 	}
 
 	/* begin a transaction, also acquiring the write lock for the log */
-	pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock, TX_PARAM_NONE);
+	if (pmemobj_tx_begin(pop, env, TX_PARAM_RWLOCK, &bp->rwlock,
+			TX_PARAM_NONE))
+		return;
 	/* add the root object to the undo log */
 	pmemobj_tx_add_range(baseoid, 0, sizeof(struct base));
 
@@ -293,7 +299,7 @@ pmemlog_rewind(PMEMlogpool *plp)
 	bp->bytes_written = 0;
 
 	pmemobj_tx_commit();
-	pmemobj_tx_end();
+	(void) pmemobj_tx_end();
 }
 
 /*
