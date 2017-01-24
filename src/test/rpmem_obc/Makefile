@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@ OBJS = rpmem_obc_test.o\
        rpmem_obc_test_misc.o\
        rpmem_obc_test_create.o\
        rpmem_obc_test_open.o\
+       rpmem_obc_test_set_attr.o\
        rpmem_obc_test_close.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmem_ssh.o rpmem_cmd.o

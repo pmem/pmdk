@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +69,28 @@
 	.next_uuid = NEXT_UUID,\
 	.prev_uuid = PREV_UUID,\
 	.user_flags = USER_FLAGS,\
+}
+#define SIGNATURE_ALT		"<ALT>"
+#define MAJOR_ALT		5
+#define COMPAT_F_ALT		6
+#define INCOMPAT_F_ALT		7
+#define ROCOMPAT_F_ALT		8
+#define POOLSET_UUID_ALT	"UUID_POOLSET_ALT"
+#define UUID_ALT		"ALT_UUIDCDEFFEDC"
+#define NEXT_UUID_ALT		"456UUID_NEXT_ALT"
+#define PREV_UUID_ALT		"UUID012_ALT_PREV"
+#define USER_FLAGS_ALT		"012345USER_FLAGS"
+#define POOL_ATTR_ALT {\
+	.signature = SIGNATURE_ALT,\
+	.major = MAJOR_ALT,\
+	.compat_features = COMPAT_F_ALT,\
+	.incompat_features = INCOMPAT_F_ALT,\
+	.ro_compat_features = ROCOMPAT_F_ALT,\
+	.poolset_uuid = POOLSET_UUID_ALT,\
+	.uuid = UUID_ALT,\
+	.next_uuid = NEXT_UUID_ALT,\
+	.prev_uuid = PREV_UUID_ALT,\
+	.user_flags = USER_FLAGS_ALT,\
 }
 #define POOL_SIZE	0x0001234567abcdef
 #define NLANES		0x123
@@ -145,6 +167,14 @@ static const struct rpmem_msg_close CLOSE_MSG = {
 	},
 };
 
+static const struct rpmem_msg_set_attr SET_ATTR_MSG = {
+	.hdr = {
+		.type = RPMEM_MSG_TYPE_SET_ATTR,
+		.size = sizeof(struct rpmem_msg_set_attr),
+	},
+	.pool_attr = POOL_ATTR_ALT,
+};
+
 TEST_CASE_DECLARE(server_accept_sim);
 TEST_CASE_DECLARE(server_accept_sim_fork);
 TEST_CASE_DECLARE(client_accept_sim);
@@ -165,3 +195,5 @@ TEST_CASE_DECLARE(server_open);
 TEST_CASE_DECLARE(client_close);
 TEST_CASE_DECLARE(server_close);
 TEST_CASE_DECLARE(client_open);
+
+TEST_CASE_DECLARE(client_set_attr);

@@ -6,7 +6,7 @@ header: NVM Library
 date: rpmem API version 1.0.2
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -73,6 +73,7 @@ RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 	void *pool_addr, size_t pool_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr);
+int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
@@ -167,6 +168,15 @@ returns an opaque handle to the remote pool which shall be used in
 subsequent API calls. If any error prevents the **librpmem** from opening the
 remote pool, the **rpmem_open**() returns NULL and sets *errno*
 appropriately.
+
+```c
+int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
+```
+
+The **rpmem_set_attr**() function overwrites pool's attributes.
+The *attr* structure contains the attributes used for overwriting the remote
+pool attributes. If *attr* is NULL, a zeroed structure with attributes will
+be used. New attributes are stored in pool's meta-data.
 
 ```c
 int rpmem_close(RPMEMpool *rpp);

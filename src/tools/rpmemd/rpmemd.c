@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -622,10 +622,50 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 	return ret;
 }
 
+/*
+ * rpmemd_req_set_attr -- handle set attributes request
+ */
+static int
+rpmemd_req_set_attr(struct rpmemd_obc *obc, void *arg,
+	const struct rpmem_pool_attr *pool_attr)
+{
+	RPMEMD_ASSERT(arg != NULL);
+	RPMEMD_LOG(NOTICE, "set attributes request");
+	struct rpmemd *rpmemd = (struct rpmemd *)arg;
+	RPMEMD_ASSERT(rpmemd->pool != NULL);
+
+	int ret;
+	int status = 0;
+	int err_send = 1;
+
+	ret = rpmemd_db_pool_set_attr(rpmemd->pool, pool_attr);
+	if (ret) {
+		ret = -1;
+		status = rpmemd_db_get_status(errno);
+		goto err_set_attr;
+	}
+
+	RPMEMD_LOG(NOTICE, "new pool attributes:");
+	rpmemd_print_pool_attr(pool_attr);
+
+	ret = rpmemd_obc_set_attr_resp(rpmemd->obc, status);
+	if (ret)
+		goto err_set_attr_resp;
+
+	return ret;
+err_set_attr_resp:
+	err_send = 0;
+err_set_attr:
+	if (err_send)
+		ret = rpmemd_obc_set_attr_resp(rpmemd->obc, status);
+	return ret;
+}
+
 static struct rpmemd_obc_requests rpmemd_req = {
-	.create	= rpmemd_req_create,
-	.open	= rpmemd_req_open,
-	.close	= rpmemd_req_close,
+	.create		= rpmemd_req_create,
+	.open		= rpmemd_req_open,
+	.close		= rpmemd_req_close,
+	.set_attr	= rpmemd_req_set_attr,
 };
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,7 +110,7 @@ int
 server_close_eproto(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: %s 0-%d", tc->name, CLOSE_EPROTO_COUNT);
+		UT_FATAL("usage: %s 0-%d", tc->name, CLOSE_EPROTO_COUNT - 1);
 
 	int i = atoi(argv[0]);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,6 +75,29 @@
 	.user_flags = USER_FLAGS,\
 }
 
+#define SIGNATURE_ALT		"<ALT>"
+#define MAJOR_ALT		5
+#define COMPAT_F_ALT		6
+#define INCOMPAT_F_ALT		7
+#define ROCOMPAT_F_ALT		8
+#define POOLSET_UUID_ALT	"UUID_POOLSET_ALT"
+#define UUID_ALT		"ALT_UUIDCDEFFEDC"
+#define NEXT_UUID_ALT		"456UUID_NEXT_ALT"
+#define PREV_UUID_ALT		"UUID012_ALT_PREV"
+#define USER_FLAGS_ALT		"012345USER_FLAGS"
+#define POOL_ATTR_ALT {\
+	.signature = SIGNATURE_ALT,\
+	.major = MAJOR_ALT,\
+	.compat_features = COMPAT_F_ALT,\
+	.incompat_features = INCOMPAT_F_ALT,\
+	.ro_compat_features = ROCOMPAT_F_ALT,\
+	.poolset_uuid = POOLSET_UUID_ALT,\
+	.uuid = UUID_ALT,\
+	.next_uuid = NEXT_UUID_ALT,\
+	.prev_uuid = PREV_UUID_ALT,\
+	.user_flags = USER_FLAGS_ALT,\
+}
+
 static const struct rpmem_pool_attr POOL_ATTR = POOL_ATTR_INIT;
 
 struct server {
@@ -124,3 +147,9 @@ TEST_CASE_DECLARE(server_close);
 TEST_CASE_DECLARE(server_close_econnreset);
 TEST_CASE_DECLARE(server_close_eproto);
 TEST_CASE_DECLARE(server_close_error);
+
+TEST_CASE_DECLARE(client_set_attr);
+TEST_CASE_DECLARE(server_set_attr);
+TEST_CASE_DECLARE(server_set_attr_econnreset);
+TEST_CASE_DECLARE(server_set_attr_eproto);
+TEST_CASE_DECLARE(server_set_attr_error);

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -64,5 +64,8 @@ expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
 
 expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
 	client_open ${NODE_ADDR[0]}
+
+expect_normal_exit run_on_node 1 ./rpmem_obc_int$EXESUFFIX\
+	client_set_attr ${NODE_ADDR[0]}
 
 pass

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -90,9 +90,32 @@
 	.prev_uuid = PREV_UUID,\
 	.user_flags = USER_FLAGS,\
 }
+#define SIGNATURE_ALT		"<ALT>"
+#define MAJOR_ALT		5
+#define COMPAT_F_ALT		6
+#define INCOMPAT_F_ALT		7
+#define ROCOMPAT_F_ALT		8
+#define POOLSET_UUID_ALT	"UUID_POOLSET_ALT"
+#define UUID_ALT		"ALT_UUIDCDEFFEDC"
+#define NEXT_UUID_ALT		"456UUID_NEXT_ALT"
+#define PREV_UUID_ALT		"UUID012_ALT_PREV"
+#define USER_FLAGS_ALT		"012345USER_FLAGS"
+#define POOL_ATTR_ALT {\
+	.signature = SIGNATURE_ALT,\
+	.major = MAJOR_ALT,\
+	.compat_features = COMPAT_F_ALT,\
+	.incompat_features = INCOMPAT_F_ALT,\
+	.ro_compat_features = ROCOMPAT_F_ALT,\
+	.poolset_uuid = POOLSET_UUID_ALT,\
+	.uuid = UUID_ALT,\
+	.next_uuid = NEXT_UUID_ALT,\
+	.prev_uuid = PREV_UUID_ALT,\
+	.user_flags = USER_FLAGS_ALT,\
+}
 
 TEST_CASE_DECLARE(client_create);
 TEST_CASE_DECLARE(client_open);
+TEST_CASE_DECLARE(client_set_attr);
 TEST_CASE_DECLARE(server);
 
 /*
@@ -209,6 +232,54 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * client_set_attr -- perform set attributes request
+ */
+int
+client_set_attr(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: %s <addr>[:<port>]", tc->name);
+
+	char *target = argv[0];
+
+	int ret;
+	struct rpmem_obc *rpc;
+	struct rpmem_target_info *info;
+	const struct rpmem_pool_attr pool_attr = POOL_ATTR_ALT;
+
+
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
+	rpc = rpmem_obc_init();
+	UT_ASSERTne(rpc, NULL);
+
+	ret = rpmem_obc_connect(rpc, info);
+	UT_ASSERTeq(ret, 0);
+
+	rpmem_target_free(info);
+
+	ret = rpmem_obc_monitor(rpc, 1);
+	UT_ASSERTeq(ret, 1);
+
+	ret = rpmem_obc_set_attr(rpc, &pool_attr);
+	UT_ASSERTeq(ret, 0);
+
+	ret = rpmem_obc_monitor(rpc, 1);
+	UT_ASSERTeq(ret, 1);
+
+	ret = rpmem_obc_close(rpc);
+	UT_ASSERTeq(ret, 0);
+
+	ret = rpmem_obc_disconnect(rpc);
+	UT_ASSERTeq(ret, 0);
+
+	rpmem_obc_fini(rpc);
+
+	return 1;
+}
+
+/*
  * req_arg -- request callbacks argument
  */
 struct req_arg {
@@ -260,6 +331,20 @@ req_open(struct rpmemd_obc *obc, void *arg,
 }
 
 /*
+ * req_set_attr -- process set attributes request
+ */
+static int
+req_set_attr(struct rpmemd_obc *obc, void *arg,
+	const struct rpmem_pool_attr *pool_attr)
+{
+	struct rpmem_pool_attr ex_pool_attr = POOL_ATTR_ALT;
+	UT_ASSERTne(arg, NULL);
+	UT_ASSERTeq(memcmp(&ex_pool_attr, pool_attr, sizeof(ex_pool_attr)), 0);
+
+	return rpmemd_obc_set_attr_resp(obc, 0);
+}
+
+/*
  * req_close -- process close request
  */
 static int
@@ -280,6 +365,7 @@ struct rpmemd_obc_requests REQ = {
 	.create = req_create,
 	.open = req_open,
 	.close = req_close,
+	.set_attr = req_set_attr,
 };
 
 /*
@@ -329,6 +415,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(server),
 	TEST_CASE(client_create),
 	TEST_CASE(client_open),
+	TEST_CASE(client_set_attr),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

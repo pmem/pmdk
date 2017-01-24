@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,6 +72,45 @@
 	.user_flags = USER_FLAGS,\
 }
 
+#define SIGNATURE_ALT		"<ALT>"
+#define MAJOR_ALT		5
+#define COMPAT_F_ALT		6
+#define INCOMPAT_F_ALT		7
+#define ROCOMPAT_F_ALT		8
+#define POOLSET_UUID_ALT	"UUID_POOLSET_ALT"
+#define UUID_ALT		"ALT_UUIDCDEFFEDC"
+#define NEXT_UUID_ALT		"456UUID_NEXT_ALT"
+#define PREV_UUID_ALT		"UUID012_ALT_PREV"
+/*
+ * Use default terminal command for terminating
+ * session in order to make sure this is not interpreted by terminal.
+ */
+#define USER_FLAGS_ALT	"\0\0\0\n~._ALT_FLAGS"
+#define POOL_ATTR_ALT {\
+	.signature = SIGNATURE_ALT,\
+	.major = MAJOR_ALT,\
+	.compat_features = COMPAT_F_ALT,\
+	.incompat_features = INCOMPAT_F_ALT,\
+	.ro_compat_features = ROCOMPAT_F_ALT,\
+	.poolset_uuid = POOLSET_UUID_ALT,\
+	.uuid = UUID_ALT,\
+	.next_uuid = NEXT_UUID_ALT,\
+	.prev_uuid = PREV_UUID_ALT,\
+	.user_flags = USER_FLAGS_ALT,\
+}
+
+const struct rpmem_pool_attr POOL_ATTRS[] = {
+	POOL_ATTR_INIT,
+	POOL_ATTR_ALT
+};
+
+const char *POOL_ATTR_NAMES[] = {
+	"init",
+	"alt"
+};
+
+#define POOL_ATTR_INIT_INDEX	0
+
 #define NLANES	1024
 
 struct pool_entry {
@@ -135,26 +174,46 @@ free_pool(struct pool_entry *pool)
 }
 
 /*
+ * str_2_pool_attr_index -- convert string to the index of pool attributes
+ */
+static int
+str_2_pool_attr_index(const char *str)
+{
+	COMPILE_ERROR_ON((sizeof(POOL_ATTR_NAMES) / sizeof(POOL_ATTR_NAMES[0]))
+		!= (sizeof(POOL_ATTRS) / sizeof(POOL_ATTRS[0])));
+
+	const unsigned num_of_names = sizeof(POOL_ATTR_NAMES) /
+		sizeof(POOL_ATTR_NAMES[0]);
+	for (int i = 0; i < num_of_names; ++i) {
+		if (strcmp(str, POOL_ATTR_NAMES[i]) == 0) {
+			return i;
+		}
+	}
+
+	UT_FATAL("unrecognized name of pool attributes set: %s", str);
+}
+
+/*
  * check_pool_attr -- check pool attributes
  */
 static void
-check_pool_attr(struct rpmem_pool_attr *pool_attr)
+cmp_pool_attr(const struct rpmem_pool_attr *attr1,
+	const struct rpmem_pool_attr *attr2)
 {
-	struct rpmem_pool_attr attr = POOL_ATTR_INIT;
-	UT_ASSERTeq(memcmp(pool_attr->signature, attr.signature,
-				sizeof(pool_attr->signature)), 0);
-	UT_ASSERTeq(pool_attr->major, attr.major);
-	UT_ASSERTeq(pool_attr->compat_features, attr.compat_features);
-	UT_ASSERTeq(pool_attr->ro_compat_features, attr.ro_compat_features);
-	UT_ASSERTeq(pool_attr->incompat_features, attr.incompat_features);
-	UT_ASSERTeq(memcmp(pool_attr->uuid, attr.uuid,
-				sizeof(pool_attr->uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->poolset_uuid, attr.poolset_uuid,
-				sizeof(pool_attr->poolset_uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->prev_uuid, attr.prev_uuid,
-				sizeof(pool_attr->prev_uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->next_uuid, attr.next_uuid,
-				sizeof(pool_attr->next_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->signature, attr2->signature,
+				sizeof(attr1->signature)), 0);
+	UT_ASSERTeq(attr1->major, attr2->major);
+	UT_ASSERTeq(attr1->compat_features, attr2->compat_features);
+	UT_ASSERTeq(attr1->ro_compat_features, attr2->ro_compat_features);
+	UT_ASSERTeq(attr1->incompat_features, attr2->incompat_features);
+	UT_ASSERTeq(memcmp(attr1->uuid, attr2->uuid,
+				sizeof(attr1->uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->poolset_uuid, attr2->poolset_uuid,
+				sizeof(attr1->poolset_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->prev_uuid, attr2->prev_uuid,
+				sizeof(attr1->prev_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->next_uuid, attr2->next_uuid,
+				sizeof(attr1->next_uuid)), 0);
 }
 
 /*
@@ -181,7 +240,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 
 	init_pool(pool, pool_path, size_str);
 
-	struct rpmem_pool_attr pool_attr = POOL_ATTR_INIT;
+	struct rpmem_pool_attr pool_attr = POOL_ATTRS[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
 			pool->size, &nlanes, &pool_attr);
 
@@ -202,20 +261,22 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 static int
 test_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 5)
+	if (argc < 6)
 		UT_FATAL("usage: test_open <id> <pool set> "
-				"<target> <pool>");
+				"<target> <pool> <pool attr name>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
 	const char *target = argv[2];
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
+	const char *pool_attr_name = argv[5];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
 
 	unsigned nlanes = NLANES;
 
@@ -226,7 +287,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 			pool->size, &nlanes, &pool_attr);
 
 	if (pool->rpp) {
-		check_pool_attr(&pool_attr);
+		cmp_pool_attr(&pool_attr, &POOL_ATTRS[pool_attr_id]);
 		UT_ASSERTne(nlanes, 0);
 
 		UT_OUT("%s: opened", pool_set);
@@ -235,7 +296,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 5;
+	return 6;
 }
 
 /*
@@ -407,6 +468,32 @@ test_remove(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_set_attr -- test case for set attributes operation
+ */
+static int
+test_set_attr(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_set_attr <id> <pool attr name>");
+
+	const char *id_str = argv[0];
+	const char *pool_attr_name = argv[1];
+
+	int id = atoi(id_str);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	struct pool_entry *pool = &pools[id];
+	UT_ASSERTne(pool->rpp, NULL);
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+
+	int ret = rpmem_set_attr(pool->rpp, &POOL_ATTRS[pool_attr_id]);
+	UT_ASSERTeq(ret, 0);
+
+	UT_OUT("set attributes succeeded (%s)", pool_attr_name);
+
+	return 2;
+}
+
+/*
  * check_pool -- check if remote pool contains specified random sequence
  */
 static int
@@ -476,6 +563,7 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 static struct test_case test_cases[] = {
 	TEST_CASE(test_create),
 	TEST_CASE(test_open),
+	TEST_CASE(test_set_attr),
 	TEST_CASE(test_close),
 	TEST_CASE(test_persist),
 	TEST_CASE(test_read),

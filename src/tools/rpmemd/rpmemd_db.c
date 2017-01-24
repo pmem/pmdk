@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -310,6 +310,30 @@ rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp)
 	free(prp);
 
 	util_mutex_unlock(&db->lock);
+}
+
+/*
+ * rpmemd_db_pool_set_attr -- overwrite pool attributes
+ */
+int
+rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
+	const struct rpmem_pool_attr *attr)
+{
+	RPMEMD_ASSERT(prp != NULL);
+	RPMEMD_ASSERT(prp->set != NULL);
+	RPMEMD_ASSERT(prp->set->nreplicas == 1);
+
+	return util_replica_set_attr(prp->set->replica[0],
+		attr->signature,
+		attr->major,
+		attr->compat_features,
+		attr->incompat_features,
+		attr->ro_compat_features,
+		attr->poolset_uuid,
+		attr->uuid,
+		attr->next_uuid,
+		attr->prev_uuid,
+		attr->user_flags);
 }
 
 /*

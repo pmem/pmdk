@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,6 +64,12 @@ static struct test_case test_cases[] = {
 
 	TEST_CASE(client_monitor),
 	TEST_CASE(server_monitor),
+
+	TEST_CASE(client_set_attr),
+	TEST_CASE(server_set_attr),
+	TEST_CASE(server_set_attr_econnreset),
+	TEST_CASE(server_set_attr_eproto),
+	TEST_CASE(server_set_attr_error),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

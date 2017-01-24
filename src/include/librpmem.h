@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,6 +75,8 @@ RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		struct rpmem_pool_attr *open_attr);
+
+int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
 int rpmem_close(RPMEMpool *rpp);
 
