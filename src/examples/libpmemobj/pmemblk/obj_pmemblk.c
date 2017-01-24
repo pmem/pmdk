@@ -319,7 +319,7 @@ main(int argc, char *argv[])
 				assert(data != NULL);
 				unsigned long block = strtoul(block_str,
 							NULL, 10);
-				pmemblk_write(pbp, data, block);
+				(void) pmemblk_write(pbp, data, block);
 				break;
 			}
 			case 'r': {
@@ -329,8 +329,8 @@ main(int argc, char *argv[])
 				const char *block_str = strtok(argv[i] + 2,
 							":");
 				assert(block_str != NULL);
-				pmemblk_read(pbp, buf, strtoul(block_str, NULL,
-							10));
+				(void) pmemblk_read(pbp, buf, strtoul(block_str,
+						NULL, 10));
 				buf[bsize] = '\0';
 				printf("%s\n", buf);
 				free(buf);
