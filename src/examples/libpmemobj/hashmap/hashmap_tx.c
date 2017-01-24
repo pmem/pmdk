@@ -252,6 +252,8 @@ hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint64_t key)
 	if (TOID_IS_NULL(var))
 		return OID_NULL;
 
+	int aborted = 0;
+
 	TX_BEGIN(pop) {
 		if (TOID_IS_NULL(prev))
 			TX_ADD_FIELD(D_RO(hashmap)->buckets, bucket[h]);
@@ -268,8 +270,11 @@ hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint64_t key)
 	} TX_ONABORT {
 		fprintf(stderr, "transaction aborted: %s\n",
 			pmemobj_errormsg());
-		return OID_NULL;
+		aborted = 1;
 	} TX_END
+
+	if (aborted)
+		return OID_NULL;
 
 	if (D_RO(hashmap)->count < D_RO(buckets)->nbuckets)
 		hm_tx_rebuild(pop, hashmap, D_RO(buckets)->nbuckets / 2);
