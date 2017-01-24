@@ -380,14 +380,14 @@ volatile_mutex_unlock_wrapper(PMEMobjpool *pop, void *lock)
 static int
 init_bench_mutex(struct mutex_bench *mb)
 {
-	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
+	POBJ_ZALLOC(mb->pop, &AD_RW(mb->root)->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
-	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
+	if (TOID_IS_NULL(AD_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	mb->locks = AD_RW(AD_RW(mb->root)->locks);
 
 	if (!mb->pa->use_pthread) {
 		/* initialize PMEM mutexes */
@@ -469,14 +469,14 @@ op_bench_mutex(struct mutex_bench *mb)
 static int
 init_bench_rwlock(struct mutex_bench *mb)
 {
-	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
+	POBJ_ZALLOC(mb->pop, &AD_RW(mb->root)->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
-	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
+	if (TOID_IS_NULL(AD_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	mb->locks = AD_RW(AD_RW(mb->root)->locks);
 
 	if (!mb->pa->use_pthread) {
 		/* initialize PMEM rwlocks */
@@ -565,14 +565,14 @@ op_bench_rwlock(struct mutex_bench *mb)
 static int
 init_bench_vmutex(struct mutex_bench *mb)
 {
-	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
+	POBJ_ZALLOC(mb->pop, &AD_RW(mb->root)->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
-	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
+	if (TOID_IS_NULL(AD_RO(mb->root)->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	mb->locks = AD_RW(AD_RW(mb->root)->locks);
 
 	/* initialize PMEM volatile mutexes */
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {

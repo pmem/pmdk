@@ -163,15 +163,15 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		goto free_pop;
 	}
 
-	POBJ_ZALLOC(ob->pop, &D_RW(ob->root)->offs, uint64_t,
+	POBJ_ZALLOC(ob->pop, &AD_RW(ob->root)->offs, uint64_t,
 		    n_ops_total * sizeof(PMEMoid));
-	if (TOID_IS_NULL(D_RW(ob->root)->offs)) {
+	if (TOID_IS_NULL(AD_RW(ob->root)->offs)) {
 		fprintf(stderr, "POBJ_ZALLOC off_vect: %s\n",
 			pmemobj_errormsg());
 		goto free_pop;
 	}
 
-	ob->offs = D_RW(D_RW(ob->root)->offs);
+	ob->offs = AD_RW(AD_RW(ob->root)->offs);
 
 	ob->sizes = (size_t *)malloc(n_ops_total * sizeof(size_t));
 	if (ob->sizes == NULL) {
