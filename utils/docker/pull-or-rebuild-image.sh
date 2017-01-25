@@ -47,12 +47,15 @@
 # the Docker Hub.
 #
 
-if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$COVERITY" -eq 1 ]]; then
-	echo "INFO: Skip Coverity scan job if build is not triggered by 'cron'"
+if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
+	&& "$COVERITY" -eq 1 ]]; then
+	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
+		"'cron' nor by a push to 'coverity_scan' branch"
 	exit 0
 fi
 
-if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
+if [[ "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" ]]
+then
 	echo "INFO: Skip Docker image preparation for Coverity scan job"
 	exit 0
 fi
