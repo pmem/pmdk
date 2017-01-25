@@ -236,6 +236,7 @@ test_mock_pool_allocs()
 	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);
 
 	lane_cleanup(mock_pop);
+	redo_log_config_delete(mock_pop->redo);
 	heap_cleanup(&mock_pop->heap);
 
 	MUNMAP_ANON_ALIGNED(addr, MOCK_POOL_SIZE);
