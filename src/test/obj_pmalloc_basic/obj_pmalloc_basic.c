@@ -180,8 +180,8 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 #define PMALLOC_EXTRA 20
 #define PALLOC_FLAG (1 << 15)
 
-#define FIRST_SIZE 1
-#define FIRST_USIZE 112
+#define FIRST_SIZE 1 /* use the first allocation class */
+#define FIRST_USIZE 112 /* the usable size is 128 - 16 */
 
 static void
 test_pmalloc_extras(PMEMobjpool *pop)

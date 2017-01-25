@@ -392,13 +392,13 @@ ctree_remove_max_unlocked(struct ctree *t, uint64_t *key, uint64_t *value)
 		dst = &a->slots[1];
 	}
 
-	struct node_leaf *l = *dst;
-	if (l == NULL) {
+	struct node_leaf *leaf = *dst;
+	if (leaf == NULL) {
 		return -1;
 	}
 
-	*key =  l->key;
-	*value = l->value;
+	*key =  leaf->key;
+	*value = leaf->value;
 	ctree_remove_leaf(t, dst, p);
 
 	return 0;
@@ -426,7 +426,7 @@ ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq)
 	void **dst = &t->root; /* node to remove ref */
 	struct node *a = NULL; /* internal node */
 
-	struct node_leaf *l = NULL;
+	struct node_leaf *leaf = NULL;
 	uint64_t k = 0;
 
 	if (t->root == NULL)
@@ -439,12 +439,12 @@ ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq)
 		dst = &a->slots[BIT_IS_SET(key, a->diff)];
 	}
 
-	l = *dst;
-	k = l->key;
+	leaf = *dst;
+	k = leaf->key;
 
-	if (l->key == key) {
+	if (leaf->key == key) {
 		goto remove;
-	} else if (eq && l->key != key) {
+	} else if (eq && leaf->key != key) {
 		k = 0;
 		goto out;
 	}
@@ -489,8 +489,8 @@ ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq)
 		dst = &a->slots[0];
 	}
 
-	l = *dst;
-	k = l->key;
+	leaf = *dst;
+	k = leaf->key;
 
 	ASSERT(k > key);
 
