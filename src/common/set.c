@@ -1020,8 +1020,10 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 				/* add a new pool's part to the list */
 				int ret = util_parse_add_part(set,
 					ppath, psize);
-				if (ret != 0)
+				if (ret != 0) {
+					Free(ppath);
 					goto err;
+				}
 				nparts++;
 			}
 		}
