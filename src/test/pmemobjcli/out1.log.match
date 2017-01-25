@@ -4,7 +4,7 @@ pmemobj_zalloc(r.1, 256, 2): 0
 pmemobj_tx_begin(jmp): 0
 pmemobj_tx_strdup(0, 5): off = $(nW) uuid = $(nW)
 pmemobj_tx_add_range_direct($(nW), 64, 128): 0
-pmemobj_tx_add_range(r.1, 1000, 1000): 0
+pmemobj_tx_add_range(r.1, 16, 16): 0
 pmemobj_tx_zalloc(8192, 3): off = $(nW) uuid = $(nW)
 pmemobj_tx_zrealloc($(nW), 2048, 3): off = $(nW) uuid = $(nW)
 pmemobj_tx_free($(nW)): off = $(nW) uuid = $(nW)
