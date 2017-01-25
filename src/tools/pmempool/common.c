@@ -226,83 +226,24 @@ util_range_limit(struct range *rangep, struct range limit)
 }
 
 /*
- * util_parse_range_from_to -- parse range string as interval
- */
-static int
-util_parse_range_from_to(char *str, struct range *rangep, struct range entire)
-{
-	char *str1;
-	char sep;
-	char *str2;
-
-	int ret = 0;
-
-	str1 = malloc(strlen(str) + 1);
-	if (str1 == NULL) {
-		ret = -1;
-		goto end;
-	}
-	str2 = malloc(strlen(str) + 1);
-	if (str2 == NULL) {
-		goto nomem;
-	}
-	if (sscanf(str, "%[^-]%c%[^-]", str1, &sep, str2) == 3 &&
-			sep == '-' &&
-			strlen(str) == (strlen(str1) + 1 + strlen(str2))) {
-		if (util_parse_size(str1, &rangep->first) != 0)
-			ret = -1;
-		else if (util_parse_size(str2, &rangep->last) != 0)
-			ret = -1;
-
-		if (rangep->first > rangep->last) {
-			uint64_t tmp = rangep->first;
-			rangep->first = rangep->last;
-			rangep->last = tmp;
-		}
-
-		util_range_limit(rangep, entire);
-	} else {
-		ret = -1;
-	}
-
-
-	free(str2);
-nomem:
-	free(str1);
-end:
-	return ret;
-}
-
-/*
  * util_parse_range_from -- parse range string as interval from specified number
  */
 static int
 util_parse_range_from(char *str, struct range *rangep, struct range entire)
 {
-	char sep;
-	int ret = 0;
-
-	char *str1 = malloc(strlen(str) + 1);
-	if (str1 == NULL)
+	size_t str_len = strlen(str);
+	if (str[str_len - 1] != '-')
 		return -1;
 
-	if (sscanf(str, "%[^-]%c", str1, &sep) == 2 &&
-			sep == '-' &&
-			strlen(str) == (strlen(str1) + 1)) {
-		if (util_parse_size(str1, &rangep->first) == 0) {
-			rangep->last = entire.last;
-			util_range_limit(rangep, entire);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = -1;
-	}
+	str[str_len - 1] = '\0';
 
-	if (str1)
-		free(str1);
+	if (util_parse_size(str, &rangep->first))
+		return -1;
 
-	return ret;
+	rangep->last = entire.last;
+	util_range_limit(rangep, entire);
+
+	return 0;
 }
 
 /*
@@ -311,28 +252,17 @@ util_parse_range_from(char *str, struct range *rangep, struct range entire)
 static int
 util_parse_range_to(char *str, struct range *rangep, struct range entire)
 {
-	char sep;
-	int ret = 0;
 
-	char *str1 = malloc(strlen(str) + 1);
-	if (str1 == NULL)
+	if (str[0] != '-' || str[1] == '\0')
 		return -1;
 
-	if (sscanf(str, "%c%[^-]", &sep, str1) == 2 &&
-			sep == '-' &&
-			strlen(str) == (1 + strlen(str1))) {
-		if (util_parse_size(str1, &rangep->last) == 0) {
-			rangep->first = entire.first;
-			util_range_limit(rangep, entire);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = -1;
-	}
+	if (util_parse_size(str + 1, &rangep->last))
+		return -1;
 
-	free(str1);
-	return ret;
+	rangep->first = entire.first;
+	util_range_limit(rangep, entire);
+
+	return 0;
 }
 
 /*
@@ -357,15 +287,36 @@ util_parse_range_number(char *str, struct range *rangep, struct range entire)
 static int
 util_parse_range(char *str, struct range *rangep, struct range entire)
 {
-	if (util_parse_range_from_to(str, rangep, entire) == 0)
-		return 0;
-	if (util_parse_range_from(str, rangep, entire) == 0)
-		return 0;
-	if (util_parse_range_to(str, rangep, entire) == 0)
-		return 0;
-	if (util_parse_range_number(str, rangep, entire) == 0)
-		return 0;
-	return -1;
+	char *dash = strchr(str, '-');
+	if (!dash)
+		return util_parse_range_number(str, rangep, entire);
+
+	/* '-' at the beginning */
+	if (dash == str)
+		return util_parse_range_to(str, rangep, entire);
+
+	/* '-' at the end */
+	if (dash[1] == '\0')
+		return util_parse_range_from(str, rangep, entire);
+
+	*dash = '\0';
+	dash++;
+
+	if (util_parse_size(str, &rangep->first))
+		return -1;
+
+	if (util_parse_size(dash, &rangep->last))
+		return -1;
+
+	if (rangep->first > rangep->last) {
+		uint64_t tmp = rangep->first;
+		rangep->first = rangep->last;
+		rangep->last = tmp;
+	}
+
+	util_range_limit(rangep, entire);
+
+	return 0;
 }
 
 /*
