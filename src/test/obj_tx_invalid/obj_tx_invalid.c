@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -394,6 +394,7 @@ main(int argc, char *argv[])
 			pmemobj_tx_abort(ENOMEM);
 		} TX_ONABORT {
 			pmemobj_tx_end();
+			pmemobj_close(pop);
 			exit(0);
 		} TX_END
 	} else if (strcmp(argv[2], "end-in-commit") == 0) {
@@ -401,6 +402,7 @@ main(int argc, char *argv[])
 		TX_BEGIN(pop) {
 		} TX_ONCOMMIT {
 			pmemobj_tx_end();
+			pmemobj_close(pop);
 			exit(0);
 		} TX_END
 	} else if (strcmp(argv[2], "end-in-finally") == 0) {
@@ -408,6 +410,7 @@ main(int argc, char *argv[])
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
 			pmemobj_tx_end();
+			pmemobj_close(pop);
 			exit(0);
 		} TX_END
 	} else if (strcmp(argv[2], "end-after-tx") == 0) {
@@ -441,6 +444,8 @@ main(int argc, char *argv[])
 		TX_BEGIN(pop) {
 		} TX_FINALLY {
 			pmemobj_tx_process();
+			pmemobj_tx_end();
+			pmemobj_close(pop);
 			exit(0);
 		} TX_END
 	} else if (strcmp(argv[2], "process-after-tx") == 0) {
