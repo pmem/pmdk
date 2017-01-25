@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,7 +61,6 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_cond_wait;
 		pmemobj_pool_by_oid;
 		pmemobj_pool_by_ptr;
-		pmemobj_direct;
 		pmemobj_oid;
 		pmemobj_alloc;
 		pmemobj_zalloc;
