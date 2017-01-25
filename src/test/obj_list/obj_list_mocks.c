@@ -199,6 +199,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
+		redo_log_config_delete(Pop->redo);
 		UT_ASSERTeq(pmem_unmap(Pop, Pop->size), 0);
 		Pop = NULL;
 	}
