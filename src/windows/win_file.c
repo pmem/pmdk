@@ -96,19 +96,51 @@ mkstemp(char *temp)
  * posix_fallocate -- allocate file space
  */
 int
-posix_fallocate(int fd, off_t offset, off_t size)
+posix_fallocate(int fd, off_t offset, off_t len)
 {
-	if (offset > 0)
-		size += offset;
+	/*
+	 * From POSIX:
+	 * "EINVAL -- The len argument was zero or the offset argument was
+	 * less than zero."
+	 *
+	 * From Linux man-page:
+	 * "EINVAL -- offset was less than 0, or len was less than or
+	 * equal to 0"
+	 */
+	if (offset < 0 || len <= 0)
+		return EINVAL;
 
-	off_t len = _filelengthi64(fd);
-	if (len < 0)
-		return -1;
+	/*
+	 * From POSIX:
+	 * "EFBIG -- The value of offset+len is greater than the maximum
+	 * file size."
+	 *
+	 * Overflow can't be checked for by _chsize_s, since it only gets
+	 * the sum.
+	 */
+	if (offset + len < offset)
+		return EFBIG;
 
-	if (size < len)
+	/*
+	 * posix_fallocate should not clobber errno, but
+	 * _filelengthi64 might set errno.
+	 */
+	int orig_errno = errno;
+
+	__int64 current_size = _filelengthi64(fd);
+
+	int file_length_errno = errno;
+	errno = orig_errno;
+
+	if (current_size < 0)
+		return file_length_errno;
+
+	__int64 requested_size = offset + len;
+
+	if (requested_size <= current_size)
 		return 0;
 
-	return _chsize_s(fd, size);
+	return _chsize_s(fd, requested_size);
 }
 
 /*
