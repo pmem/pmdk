@@ -19,7 +19,7 @@ pmemobj_tx_strdup r.4 0 5
 
 # add snaphots
 pmemobj_tx_add_range_direct r.0 64 128
-pmemobj_tx_add_range r.1 1000 1000
+pmemobj_tx_add_range r.1 16 16
 
 # allocate object transactionally
 pmemobj_tx_zalloc r.3 8192 3
