@@ -258,7 +258,7 @@ vmem_delete(VMEM *vmp)
 
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
-		ERR("invalid pool handle: 0x%" PRIx64, (uintptr_t)vmp);
+		ERR("invalid pool handle: 0x%" PRIxPTR, (uintptr_t)vmp);
 		errno = EINVAL;
 		return;
 	}
