@@ -367,9 +367,7 @@ tx_abort_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
 	LOG(3, NULL);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE],
-		TX_CLR_FLAG_VG_CLEAN |
-		TX_CLR_FLAG_VG_TX_REMOVE);
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0);
 }
 
 struct tx_range_data {
