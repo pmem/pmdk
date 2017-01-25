@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -683,7 +683,6 @@ rpmem_remove(const char *target, const char *pool_set, int flags)
 	ret = rpmem_ssh_monitor(ssh, 0);
 	if (ret) {
 		ERR("!waiting for remote command failed");
-		ret = -1;
 		goto err_ssh_monitor;
 	}
 
