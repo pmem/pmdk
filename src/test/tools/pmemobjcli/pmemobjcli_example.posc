@@ -27,10 +27,9 @@ pmemobj_zalloc r.1 2 256
 pmemobj_zalloc r.2 3 128
 pmemobj_zalloc r.3 3 128
 
-# reallocate two zeroed objects in root object
-# at positions 0 and 1
+# reallocate two objects
 pmemobj_realloc r.0 3 2
-pmemobj_zrealloc r.1 4 8192
+pmemobj_zrealloc r.0 4 8192
 
 # duplicate 0 pattern in root object
 # at positions 4
@@ -61,10 +60,10 @@ pmemobj_memset_persist r.3 0 0 128
 pmemobj_memcpy_persist r.3 0 r.2 0 128
 
 # perform pmemobj_persist on root object at position 3
-pmemobj_persist r.3 32 128
+pmemobj_persist r.3 32 96
 
 # perform pmemobj_flush on root object at position 2
-pmemobj_flush r.2 32 128
+pmemobj_flush r.2 32 96
 
 # perform pmemobj_drain on given pool
 pmemobj_drain
@@ -77,6 +76,7 @@ pmemobj_pool_by_oid r
 pmemobj_pool_by_ptr r.3 32
 
 # allocate and add elements to both lists
+pmemobj_memset_persist r.0 0 0 32
 pmemobj_list_insert_new r.4 r.0 NULL 1 64 3
 pmemobj_list_insert_new r.5 r.1 NULL 1 64 3
 
