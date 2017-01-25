@@ -209,5 +209,7 @@ main(int argc, char *argv[])
 		list_insert(pop, &D_RW(r)->lists[id], type, val);
 	}
 
+	pmemobj_close(pop);
+
 	return 0;
 }
