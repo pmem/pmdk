@@ -1020,23 +1020,28 @@ iralloct(void *ptr, size_t size, size_t extra, size_t alignment, bool zero,
 			return (ret);
 
 		if (oldsize > chunksize) {
+			size_t old_usize JEMALLOC_CC_SILENCE_INIT(0);
+			size_t old_rzsize JEMALLOC_CC_SILENCE_INIT(0);
+			if (config_valgrind && in_valgrind) {
+				old_usize = isalloc(ptr, config_prof);
+				old_rzsize = config_prof ?
+					p2rz(ptr) : u2rz(old_usize);
+			}
 			ret = huge_ralloc(arena, ptr, oldsize, chunksize, 0,
 			    alignment, zero, try_tcache_dalloc);
 
-			if (ret != NULL) {
-				void *ret2;
+			JEMALLOC_VALGRIND_REALLOC(true, ret, s2u(chunksize),
+				true, ptr, old_usize, old_rzsize, true, false);
 
+			if (ret != NULL) {
 				/* Now, it should succeed... */
-				ret2 = arena_ralloc(arena, ret, chunksize, size,
+				return arena_ralloc(arena, ret, chunksize, size,
 				    extra, alignment, zero, try_tcache_alloc,
 				    try_tcache_dalloc);
-
-				if (ret2 != NULL)
-					ret = ret2;
 			}
 		}
 
-		return (ret != NULL) ? (ret) : (ptr);
+		return NULL;
 	} else {
 		return (huge_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_dalloc));
