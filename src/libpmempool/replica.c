@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -554,7 +554,7 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 			continue;
 
 		struct pool_hdr *hdrp = HDR(rep, p);
-		struct pool_hdr *next_hdrp = HDR(rep, p + 1);
+		struct pool_hdr *next_hdrp = HDRN(rep, p);
 		int next_is_broken = replica_is_part_broken(repn, p + 1,
 				set_hs);
 
@@ -732,9 +732,9 @@ check_uuids_between_replicas(struct pool_set *set,
 			continue;
 
 		struct pool_replica *rep = REP(set, r);
-		struct pool_replica *rep_n = REP(set, r + 1);
+		struct pool_replica *rep_n = REPN(set, r);
 		struct replica_health_status *rep_hs = REP(set_hs, r);
-		struct replica_health_status *rep_n_hs = REP(set_hs, r + 1);
+		struct replica_health_status *rep_n_hs = REPN(set_hs, r);
 
 		/* check adjacent replica uuids for yet unbroken parts */
 		unsigned p = replica_find_unbroken_part(r, set_hs);

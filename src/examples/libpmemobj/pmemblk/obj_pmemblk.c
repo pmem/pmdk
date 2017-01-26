@@ -285,6 +285,10 @@ main(int argc, char *argv[])
 
 	unsigned long bsize = strtoul(argv[3], NULL, 10);
 	assert(bsize <= BSIZE_MAX);
+	if (bsize == 0) {
+		perror("blk_size cannot be 0");
+		return 1;
+	}
 
 	PMEMblkpool *pbp;
 	if (strncmp(argv[1], "c", 1) == 0) {
@@ -315,7 +319,8 @@ main(int argc, char *argv[])
 				assert(data != NULL);
 				unsigned long block = strtoul(block_str,
 							NULL, 10);
-				pmemblk_write(pbp, data, block);
+				if (pmemblk_write(pbp, data, block))
+					perror("pmemblk_write failed");
 				break;
 			}
 			case 'r': {
@@ -325,8 +330,9 @@ main(int argc, char *argv[])
 				const char *block_str = strtok(argv[i] + 2,
 							":");
 				assert(block_str != NULL);
-				pmemblk_read(pbp, buf, strtoul(block_str, NULL,
-							10));
+				if (pmemblk_read(pbp, buf, strtoul(block_str,
+						NULL, 10)))
+					perror("pmemblk_read failed");
 				buf[bsize] = '\0';
 				printf("%s\n", buf);
 				free(buf);
@@ -337,8 +343,9 @@ main(int argc, char *argv[])
 				const char *block_str = strtok(argv[i] + 2,
 							":");
 				assert(block_str != NULL);
-				pmemblk_set_zero(pbp, strtoul(block_str, NULL,
-							10));
+				if (pmemblk_set_zero(pbp, strtoul(block_str,
+						NULL, 10)))
+					perror("pmemblk_set_zero failed");
 				break;
 			}
 			case 'n': {
