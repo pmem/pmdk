@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -310,7 +310,7 @@ rpmem_fip_print_info(struct fi_info *fi)
 
 	RPMEMC_LOG(INFO, "libfabric interface info:");
 
-	char *nl = buff;
+	char *nl;
 	char *last = buff;
 	while (last != NULL) {
 		nl = strchr(last, '\n');

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -229,8 +229,6 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 			"%s%s%s", prefix, errorstr, suffix);
 	if (ret < 0)
 		RPMEMD_FATAL("snprintf failed");
-
-	cnt += (size_t)ret;
 
 	if (rpmemd_use_syslog) {
 		int prio = rpmemd_level2prio[level];

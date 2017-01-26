@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -166,7 +166,6 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 	errno = pthread_cond_signal(&worker->cond);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!sending signal to worker");
-		ret = -1;
 	}
 
 	util_mutex_unlock(&worker->lock);
