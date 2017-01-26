@@ -20,3 +20,4 @@ dpkg/
 *.htmp
 *.hpptmp
 *.aps
+tags
