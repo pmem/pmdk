@@ -878,6 +878,23 @@ pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 }
 
 /*
+ * pmemobj_cleanup_remote -- (internal) clean up the remote pools data
+ */
+static void
+pmemobj_cleanup_remote(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	for (; pop != NULL; pop = pop->replica) {
+		if (pop->rpp != NULL) {
+			Free(pop->node_addr);
+			Free(pop->pool_desc);
+			pop->rpp = NULL;
+		}
+	}
+}
+
+/*
  * redo_log_check_offset -- (internal) check if offset is valid
  */
 static int
@@ -950,6 +967,20 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 }
 
 /*
+ * pmemobj_replica_fini -- (internal) deinitialize replica
+ */
+static void
+pmemobj_replica_fini(struct pool_replica *repset)
+{
+	PMEMobjpool *rep = repset->part[0].addr;
+
+	if (repset->remote)
+		pmemobj_cleanup_remote(rep);
+
+	redo_log_config_delete(rep->redo);
+}
+
+/*
  * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
@@ -1011,23 +1042,6 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	RANGE_NONE(pop->addr, sizeof(struct pool_hdr), pop->is_dax);
 
 	return 0;
-}
-
-/*
- * pmemobj_cleanup_remote -- (internal) clean up the remote pools data
- */
-static void
-pmemobj_cleanup_remote(PMEMobjpool *pop)
-{
-	LOG(3, "pop %p", pop);
-
-	for (; pop != NULL; pop = pop->replica) {
-		if (pop->rpp != NULL) {
-			Free(pop->node_addr);
-			Free(pop->pool_desc);
-			pop->rpp = NULL;
-		}
-	}
 }
 
 /*
@@ -1243,49 +1257,55 @@ pmemobj_check_basic(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_open_common -- open a transactional memory pool (set)
- *
- * This routine does all the work, but takes a cow flag so internal
- * calls can map a read-only pool if required.
+ * pmemobj_pool_close -- (internal) close the pool set
  */
-static PMEMobjpool *
-pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
+static void
+pmemobj_pool_close(struct pool_set *set)
 {
-	LOG(3, "path %s layout %s cow %d", path, layout, cow);
+	int oerrno = errno;
+	util_poolset_close(set, 0);
+	errno = oerrno;
+}
 
-	PMEMobjpool *pop = NULL;
-	struct pool_set *set;
+/*
+ * pmemobj_pool_open -- (internal) open the given pool
+ */
+static int
+pmemobj_pool_open(struct pool_set **set, const char *path, int cow,
+	unsigned *nlanes)
+{
 
-	/*
-	 * A number of lanes available at runtime equals the lowest value
-	 * from all reported by remote replicas hosts. In the single host mode
-	 * the runtime number of lanes is equal to the total number of lanes
-	 * available in the pool.
-	 */
-	unsigned runtime_nlanes = OBJ_NLANES;
-
-	if (util_pool_open(&set, path, cow, PMEMOBJ_MIN_POOL,
+	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_POOL,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
-			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes) != 0) {
+			OBJ_FORMAT_RO_COMPAT, nlanes) != 0) {
 		LOG(2, "cannot open pool or pool set");
-		return NULL;
+		return -1;
 	}
 
-	ASSERT(set->nreplicas > 0);
+	ASSERT((*set)->nreplicas > 0);
 
 	/* read-only mode is not supported in libpmemobj */
-	if (set->rdonly) {
+	if ((*set)->rdonly) {
 		ERR("read-only mode is not supported");
 		errno = EINVAL;
-		goto err;
+		goto err_rdonly;
 	}
 
-	/* pop is master replica from now on */
-	pop = set->replica[0]->part[0].addr;
-	set->poolsize = pop->heap_offset + pop->heap_size;
+	return 0;
+err_rdonly:
+	pmemobj_pool_close(*set);
+	return -1;
+}
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
+/*
+ * pmemobj_replicas_init -- (internal) initialize all replicas
+ */
+static int
+pmemobj_replicas_init(struct pool_set *set)
+{
+	unsigned r;
+	for (r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 
@@ -1306,15 +1326,106 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 			goto err;
 		}
 
-		/* check descriptor */
-		if (pmemobj_descr_check(rep, layout, set->poolsize) != 0) {
-			LOG(2, "descriptor check of replica #%u failed", r);
-			goto err;
-		}
-
 		/* link replicas */
 		if (r < set->nreplicas - 1)
 			rep->replica = set->replica[r + 1]->part[0].addr;
+	}
+
+	return 0;
+err:
+	for (unsigned p = 0; p < r; p++)
+		pmemobj_replica_fini(set->replica[p]);
+
+	return -1;
+}
+
+/*
+ * pmemobj_replicas_fini -- (internal) deinitialize all replicas
+ */
+static void
+pmemobj_replicas_fini(struct pool_set *set)
+{
+	int oerrno = errno;
+	for (unsigned r = 0; r < set->nreplicas; r++)
+		pmemobj_replica_fini(set->replica[r]);
+	errno = oerrno;
+}
+
+/*
+ * pmemobj_replicas_check_basic -- (internal) perform basic consistency check
+ * for all replicas
+ */
+static int
+pmemobj_replicas_check_basic(PMEMobjpool *pop)
+{
+	PMEMobjpool *rep;
+	for (unsigned r = 0; r < pop->set->nreplicas; r++) {
+		rep = pop->set->replica[r]->part[0].addr;
+		if (pmemobj_check_basic(rep) == 0) {
+			ERR("inconsistent replica #%u", r);
+			return -1;
+		}
+	}
+
+	/* copy lanes */
+	void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
+	size_t len = pop->nlanes * sizeof(struct lane_layout);
+
+	for (unsigned r = 1; r < pop->set->nreplicas; r++) {
+		rep = pop->set->replica[r]->part[0].addr;
+		void *dst = (void *)((uintptr_t)rep +
+					pop->lanes_offset);
+		if (rep->rpp == NULL) {
+			rep->memcpy_persist_local(dst, src, len);
+		} else {
+			if (rep->persist_remote(rep, dst, len,
+					RLANE_DEFAULT) == NULL)
+				obj_handle_remote_persist_error(pop);
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * pmemobj_open_common -- open a transactional memory pool (set)
+ *
+ * This routine does all the work, but takes a cow flag so internal
+ * calls can map a read-only pool if required.
+ */
+static PMEMobjpool *
+pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
+{
+	LOG(3, "path %s layout %s cow %d", path, layout, cow);
+
+	PMEMobjpool *pop = NULL;
+	struct pool_set *set;
+
+	/*
+	 * A number of lanes available at runtime equals the lowest value
+	 * from all reported by remote replicas hosts. In the single host mode
+	 * the runtime number of lanes is equal to the total number of lanes
+	 * available in the pool.
+	 */
+	unsigned runtime_nlanes = OBJ_NLANES;
+	if (pmemobj_pool_open(&set, path, cow, &runtime_nlanes))
+		return NULL;
+
+	/* pop is master replica from now on */
+	pop = set->replica[0]->part[0].addr;
+	set->poolsize = pop->heap_offset + pop->heap_size;
+
+	if (pmemobj_replicas_init(set))
+		goto replicas_init;
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *repset = set->replica[r];
+		PMEMobjpool *rep = repset->part[0].addr;
+		/* check descriptor */
+		if (pmemobj_descr_check(rep, layout, set->poolsize) != 0) {
+			LOG(2, "descriptor check of replica #%u failed", r);
+			goto err_descr_check;
+		}
 	}
 
 	pop->set = set;
@@ -1322,42 +1433,13 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	if (boot) {
 		/* check consistency of 'master' replica */
 		if (pmemobj_check_basic(pop) == 0) {
-			goto err;
+			goto err_check_basic;
 		}
 	}
 
-	/*
-	 * If there is more than one replica, check if all of them are
-	 * consistent (recoverable).
-	 * On success, choose any replica and copy entire lanes (redo logs)
-	 * to all the other replicas to synchronize them.
-	 */
 	if (set->nreplicas > 1) {
-		PMEMobjpool *rep;
-		for (unsigned r = 0; r < set->nreplicas; r++) {
-			rep = set->replica[r]->part[0].addr;
-			if (pmemobj_check_basic(rep) == 0) {
-				ERR("inconsistent replica #%u", r);
-				goto err;
-			}
-		}
-
-		/* copy lanes */
-		void *src = (void *)((uintptr_t)pop + pop->lanes_offset);
-		size_t len = pop->nlanes * sizeof(struct lane_layout);
-
-		for (unsigned r = 1; r < set->nreplicas; r++) {
-			rep = set->replica[r]->part[0].addr;
-			void *dst = (void *)((uintptr_t)rep +
-						pop->lanes_offset);
-			if (rep->rpp == NULL) {
-				rep->memcpy_persist_local(dst, src, len);
-			} else {
-				if (rep->persist_remote(rep, dst, len,
-						RLANE_DEFAULT) == NULL)
-					obj_handle_remote_persist_error(pop);
-			}
-		}
+		if (pmemobj_replicas_check_basic(pop))
+			goto err_replicas_check_basic;
 	}
 
 	/*
@@ -1372,7 +1454,7 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (pmemobj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
-		goto err;
+		goto err_runtime_init;
 	}
 
 #ifdef USE_VG_MEMCHECK
@@ -1385,14 +1467,13 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	LOG(3, "pop %p", pop);
 
 	return pop;
-
-err:
-	LOG(4, "error clean up");
-	int oerrno = errno;
-	if (set->remote)
-		pmemobj_cleanup_remote(pop);
-	util_poolset_close(set, 0);
-	errno = oerrno;
+err_runtime_init:
+err_replicas_check_basic:
+err_check_basic:
+err_descr_check:
+	pmemobj_replicas_fini(set);
+replicas_init:
+	pmemobj_pool_close(set);
 	return NULL;
 }
 
