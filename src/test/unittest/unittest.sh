@@ -2155,7 +2155,7 @@ function init_rpmem_on_node() {
 
 #
 # init_valgrind_on_node -- prepare valgrind on nodes
-#    usage: init_valgrind_on_node <check type> <node list>
+#    usage: init_valgrind_on_node <node list>
 #
 function init_valgrind_on_node() {
 	# When librpmem is preloaded libfabric does not close all opened files
@@ -2163,8 +2163,6 @@ function init_valgrind_on_node() {
 	local UNITTEST_DO_NOT_CHECK_OPEN_FILES=1
 	local LD_PRELOAD=../$BUILD/librpmem.so
 	CHECK_NODES=""
-	CHECK_TYPE=$1
-	shift
 
 	for node in "$@"
 	do
