@@ -41,6 +41,7 @@
 #include "unittest.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <signal.h>
 
@@ -102,12 +103,21 @@ ut_dump_backtrace(void)
 		Dl_info dlinfo;
 		const char *fname = "?";
 
+		uintptr_t in_object_offset = 0;
+
 		if (dladdr(ptr, &dlinfo) && dlinfo.dli_fname &&
-				*dlinfo.dli_fname)
+				*dlinfo.dli_fname) {
 			fname = dlinfo.dli_fname;
 
-		UT_ERR("%u: %s (%s%s+0x%lx) [%p]", i++, fname, procname,
-				ret == -UNW_ENOMEM ? "..." : "", off, ptr);
+			uintptr_t base = (uintptr_t)dlinfo.dli_fbase;
+			if ((uintptr_t)ptr >= base)
+				in_object_offset = (uintptr_t)ptr - base;
+		}
+
+		UT_ERR("%u: %s (%s%s+0x%lx) [%p] [0x%" PRIxPTR "]",
+			i++, fname, procname,
+			ret == -UNW_ENOMEM ? "..." : "", off, ptr,
+			in_object_offset);
 
 		ret = unw_step(&cursor);
 		if (ret < 0)
