@@ -244,7 +244,7 @@ static int
 flush_msync_0(struct pmem_bench *pmb, void *addr, size_t len)
 {
 	void *ptr = align_addr(addr, PAGE_4K);
-	len = align_len(len, addr, PAGE_4K);
+	(void)len;
 
 	msync(ptr, 0, MS_SYNC);
 	return 0;
