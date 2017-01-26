@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1328,7 +1328,7 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 		size_t rd_off = off + rd;
 		uint64_t raddr = fip->raddr + rd_off;
 
-		ret = rpmem_fip_readmsg(fip->ep, &fip->rd_lane.read,
+		rpmem_fip_readmsg(fip->ep, &fip->rd_lane.read,
 				fip->rd_buff, rd_len, raddr);
 		VALGRIND_DO_MAKE_MEM_DEFINED(fip->rd_buff, rd_len);
 
