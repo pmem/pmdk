@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -614,7 +614,8 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 	}
 
 	int remove = rpmemd->created && status;
-	ret = rpmemd_close_pool(rpmemd, remove);
+	if (rpmemd_close_pool(rpmemd, remove))
+		RPMEMD_LOG(ERR, "closing pool failed");
 
 	RPMEMD_LOG(NOTICE, "close request response (status = %u)", status);
 	ret = rpmemd_obc_close_resp(rpmemd->obc, status);
