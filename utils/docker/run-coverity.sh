@@ -34,13 +34,16 @@
 # run-coverity.sh - runs the Coverity scan build
 #
 
+# Prepare build environment
+./prepare-for-build.sh
+
 # Download Coverity certificate
 echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
 	sudo tee -a /etc/ssl/certs/ca-;
 
-# XXX: add support for clang
-export CC=gcc
+# Build librpmem even if libfabric is not compiled with ibverbs
+export RPMEM_DISABLE_LIBIBVERBS=y
 
 export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
 [[ "$TRAVIS_EVENT_TYPE" == "cron" ]] \
@@ -48,7 +51,7 @@ export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
 	|| export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
 export COVERITY_SCAN_BUILD_COMMAND="make -j all"
 
-cd $TRAVIS_BUILD_DIR
+cd $WORKDIR
 
 # Run the Coverity scan
 curl -s https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh | bash

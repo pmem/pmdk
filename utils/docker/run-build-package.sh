@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 #                        the environment and starts a build of NVML project.
 #
 
-# Get and prepare nvml source
+# Prepare build enviromnent
 ./prepare-for-build.sh
 
 # Build librpmem even if libfabric is not compiled with ibverbs

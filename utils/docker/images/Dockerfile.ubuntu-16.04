@@ -43,7 +43,7 @@ RUN apt-get update
 RUN apt-get install -y software-properties-common libunwind8-dev autoconf \
 	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
-	libtool pandoc doxygen graphviz clang-format-3.8 cmake
+	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh

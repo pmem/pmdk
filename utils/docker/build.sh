@@ -49,12 +49,6 @@ if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
 	exit 0
 fi
 
-if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
-	&& "$COVERITY" -eq 1 ]]; then
-	./run-coverity.sh
-	exit $?
-fi
-
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set properly " \
 		"(eg. OS=ubuntu, OS_VER=16.04)."
@@ -76,6 +70,11 @@ containerName=nvml-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
+
+if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
+	&& "$COVERITY" -eq 1 ]]; then
+	command="./run-coverity.sh"
+fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
@@ -109,6 +108,8 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
+	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
+	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \
