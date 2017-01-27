@@ -2510,6 +2510,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
+		util_poolset_free(*setp);
 		return -1;
 	}
 
