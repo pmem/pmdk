@@ -45,7 +45,7 @@ usage()
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [ -s test-file ]
 	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
-	    [ -q provider ] [ -r persistency-method ]
+	    [ -q provider ] [ -r persistency-method ] [ -g encoding ] [ -x suffix]
 	    [tests...]
 -h			print this help message
 -n			dry run
@@ -84,6 +84,11 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			provider: verbs, sockets, all (default)
 -r persistency-method	run tests only with specified persistency method
 			persistency-method: GPSPM, APM, all (default)
+-g encoding run tests with e specified encoding appending the suffix from -x
+			to the DIR path.
+			default: ascii
+-x suffix	append the given suffix to the DIR path used in tests.
+			default: "" (empty string)
 EOF
 	exit 1
 }
@@ -143,8 +148,54 @@ load_default_global_test_configuration() {
 	global_req_pmethod=none
 	global_req_rpmem_valgrind=n
 	global_req_timeout='3m'
+	global_req_encoding="$encoding"
+	printf -v "global_req_${global_req_encoding,,}_suffix" "$enc_suffix"
 
 	return 0
+}
+
+# switch_hyphen -- substitute hyphen for underscores
+switch_hyphen() {
+	echo ${1//-/_}
+}
+
+#
+# declare_encoding_suffixes -- dynamically declare
+#	global_req_<encoding_name>_suffix variables with values from
+#	CONF_GLOBAL_<ENCODING_NAME>_SUFFIX. All hyphens are converted to
+#	underscores.
+declare_encoding_suffixes() {
+	for enc in $1
+	do
+		enc=$(switch_hyphen $enc)
+		local encoding_suffix="CONF_GLOBAL_${enc^^}_SUFFIX"
+		printf -v "global_req_${enc,,}_suffix" "${!encoding_suffix}"
+	done
+}
+
+#
+# get_encodings -- Retrieve a list of configured encodings. Setting -g overrides
+#	encodings retrieved from the config file.
+#
+get_encodings() {
+	if [ $enc_set -eq 1 ]; then
+		echo "$encoding"
+	else
+		echo $global_req_encoding
+	fi
+}
+
+#
+# get_encoding_suffix -- Get the suffix for the provided encoding. Setting -x
+#	overrides suffixes provided in the config file.
+
+get_encoding_suffix() {
+	if [ $suffix_set -eq 1 ]; then
+		echo "$enc_suffix"
+	else
+		local encoding_suffix="global_req_${1}_suffix"
+		echo ${!encoding_suffix}
+	fi
 }
 
 #
@@ -164,6 +215,7 @@ read_global_test_configuration() {
 	unset CONF_GLOBAL_RPMEM_PMETHOD
 	unset CONF_GLOBAL_RPMEM_VALGRIND
 	unset CONF_GLOBAL_TIMEOUT
+	unset CONF_GLOBAL_ENCODING
 
 	# unset all local settings
 	unset CONF_TEST_TYPE
@@ -173,6 +225,7 @@ read_global_test_configuration() {
 	unset CONF_RPMEM_PMETHOD
 	unset CONF_RPMEM_VALGRIND
 	unset CONF_TIMEOUT
+	unset CONF_ENCODING
 
 	. config.sh
 
@@ -183,6 +236,10 @@ read_global_test_configuration() {
 	[ -n "$CONF_GLOBAL_RPMEM_PMETHOD" ] && global_req_pmethod=$CONF_GLOBAL_RPMEM_PMETHOD
 	[ -n "$CONF_GLOBAL_RPMEM_VALGRIND" ] && global_req_rpmem_valgrind=$CONF_GLOBAL_RPMEM_VALGRIND
 	[ -n "$CONF_GLOBAL_TIMEOUT" ] && global_req_timeout=$CONF_GLOBAL_TIMEOUT
+	[ -n "$CONF_GLOBAL_ENCODING" ] && global_req_encoding=$CONF_GLOBAL_ENCODING
+	
+	# dynamically declare global_req_##<encoding_name>_suffix variables
+	declare_encoding_suffixes "$global_req_encoding"
 
 	return 0
 }
@@ -301,21 +358,27 @@ runtest() {
 				continue
 			}
 
+
 			# for each build-type being tested...
 			for build in $builds
 			do
-				export RUNTEST_DIR="$1"
-				export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build"
-				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
-					$special_params"
-				export RUNTEST_SCRIPT="$runscript"
-				export RUNTEST_TIMEOUT="$req_timeout"
+				# for each encoding
+				for enc in $(get_encodings)
+				do
+					export RUNTEST_DIR=$1
+					export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build \
+						SUFFIX=$(get_encoding_suffix $enc) ENCODING=$enc"
+					export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
+						$special_params"
+					export RUNTEST_SCRIPT="$runscript"
+					export RUNTEST_TIMEOUT="$req_timeout"
 
-				if [ -n "$provs" -a -n "$pmeths" ]; then
-					runtest_remote "$provs" "$pmeths"
-				else
-					runtest_local
-				fi
+					if [ -n "$provs" -a -n "$pmeths" ]; then
+						runtest_remote "$provs" "$pmeths"
+					else
+						runtest_local
+					fi
+				done
 			done
 		done
 	done
@@ -350,6 +413,10 @@ use_timeout="ok"
 testfile=all
 check_pool=0
 checktype="none"
+encoding="ascii"
+enc_suffix=""
+enc_set=0
+suffix_set=0
 
 #
 # some of defaults can be overwritten with environment variables
@@ -365,7 +432,7 @@ checktype="none"
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s:m:e:p:d:cq:r: $*`
+args=`getopt nvb:t:f:o:s:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -533,6 +600,16 @@ do
 			;;
 		esac
 		;;
+	-g)
+		encoding="$2"
+		enc_set=1
+		shift 2
+		;;
+	-x)
+		enc_suffix="$2"
+		suffix_set=1
+		shift 2
+		;;
 	--)
 		shift
 		break
@@ -562,6 +639,7 @@ done
 	echo "    check-pool: $check_pool_str"
 	echo "    provider: $provider"
 	echo "    persistency-method: $pmethod"
+	echo "    encoding, suffix: $encoding, $enc_suffix"
 	echo Tests: $*
 }
 

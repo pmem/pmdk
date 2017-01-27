@@ -43,6 +43,8 @@ export LC_ALL="C"
 [ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
+[ "$SUFFIX" ] || export SUFFIX=""
+[ "$ENCODING" ] || export ENCODING=ascii
 
 
 TOOLS=../tools
@@ -145,28 +147,28 @@ fi
 
 REAL_FS=$FS
 if [ "$DIR" ]; then
-	DIR=$DIR/$curtestdir$UNITTEST_NUM
+	DIR=$DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 else
 	case "$FS"
 	in
 	pmem)
-		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
 		;;
 	non-pmem)
-		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	any)
 		if [ "$PMEM_FS_DIR" != "" ]; then
-			DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=pmem
 			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 				export PMEM_IS_PMEM_FORCE=1
 			fi
 		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
-			DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=non-pmem
 		else
 			echo "$UNITTEST_NAME: fs-type=any and both env vars are empty" >&2
@@ -174,7 +176,7 @@ else
 		fi
 		;;
 	none)
-		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
+		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	*)
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
@@ -1790,8 +1792,9 @@ function setup() {
 
 	[ -n "$RPMEM_PROVIDER" ] && PROV="/$RPMEM_PROVIDER"
 	[ -n "$RPMEM_PM" ] && PM="/$RPMEM_PM"
+	[ "$ENCODING" != "ascii" ] && ENC="/$ENCODING"
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
+	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM$ENC)"
 
 	for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 		rm -f $f
