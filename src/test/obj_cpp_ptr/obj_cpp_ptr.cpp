@@ -53,7 +53,8 @@ namespace
 {
 
 /*
- * test_null_ptr -- verifies if the pointer correctly behaves like a NULL-value
+ * test_null_ptr -- verifies if the pointer correctly behaves like a
+ * nullptr-value
  */
 void
 test_null_ptr(nvobj::persistent_ptr<int> &f)
@@ -61,7 +62,7 @@ test_null_ptr(nvobj::persistent_ptr<int> &f)
 	UT_ASSERT(OID_IS_NULL(f.raw()));
 	UT_ASSERT((bool)f == false);
 	UT_ASSERT(!f);
-	UT_ASSERTeq(f.get(), NULL);
+	UT_ASSERTeq(f.get(), nullptr);
 	UT_ASSERT(f == nullptr);
 }
 
@@ -77,7 +78,7 @@ get_temp()
 }
 
 /*
- * test_ptr_operators_null -- verifies various operations on NULL pointers
+ * test_ptr_operators_null -- verifies various operations on nullptr pointers
  */
 void
 test_ptr_operators_null()
@@ -139,7 +140,7 @@ test_ptr_atomic(nvobj::pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTne(pfoo.get(), NULL);
+	UT_ASSERTne(pfoo.get(), nullptr);
 
 	(*pfoo).bar = TEST_INT;
 	pop.persist(pfoo);
@@ -156,7 +157,7 @@ test_ptr_atomic(nvobj::pool<root> &pop)
 		UT_ASSERT(0);
 	}
 
-	UT_ASSERTeq(pfoo.get(), NULL);
+	UT_ASSERTeq(pfoo.get(), nullptr);
 }
 
 /*
@@ -341,5 +342,5 @@ main(int argc, char *argv[])
 
 	pop.close();
 
-	DONE(NULL);
+	DONE(nullptr);
 }

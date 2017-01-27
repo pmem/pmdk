@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,7 +64,7 @@ prepare_array(nvobj::pool_base &pop)
 
 	nvobj::persistent_ptr<T> parr_vsize;
 	ret = pmemobj_alloc(pop.get_handle(), parr_vsize.raw_ptr(),
-			    sizeof(T) * TEST_ARR_SIZE, 0, NULL, NULL);
+			    sizeof(T) * TEST_ARR_SIZE, 0, nullptr, nullptr);
 
 	UT_ASSERTeq(ret, 0);
 
@@ -231,5 +231,5 @@ main(int argc, char *argv[])
 
 	pop.close();
 
-	DONE(NULL);
+	DONE(nullptr);
 }
