@@ -46,6 +46,7 @@ $Env:UNITTEST_NUM = "2w"
 
 require_test_type medium
 require_fs_type non-pmem
+require_build_type debug
 
 setup
 
