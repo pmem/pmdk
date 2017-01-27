@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -173,9 +173,9 @@ main(int argc, char *argv[])
 
 	switch (argv[1][0]) {
 		case 'c':
-			poolsize = strtoul(argv[4], NULL, 0) *
+			poolsize = strtoul(argv[4], nullptr, 0) *
 				MB; /* in megabytes */
-			mode = strtoul(argv[5], NULL, 8);
+			mode = strtoul(argv[5], nullptr, 8);
 
 			pool_create(argv[2], layout, poolsize, mode);
 			break;
@@ -183,9 +183,9 @@ main(int argc, char *argv[])
 			pool_open(argv[2], layout);
 			break;
 		case 'd':
-			poolsize = strtoul(argv[4], NULL, 0) *
+			poolsize = strtoul(argv[4], nullptr, 0) *
 				MB; /* in megabytes */
-			mode = strtoul(argv[5], NULL, 8);
+			mode = strtoul(argv[5], nullptr, 8);
 
 			double_close(argv[2], layout, poolsize, mode);
 			break;
@@ -196,5 +196,5 @@ main(int argc, char *argv[])
 			UT_FATAL("unknown operation");
 	}
 
-	DONE(NULL);
+	DONE(nullptr);
 }

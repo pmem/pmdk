@@ -183,5 +183,5 @@ main(int argc, char *argv[])
 
 	pop.close();
 
-	DONE(NULL);
+	DONE(nullptr);
 }

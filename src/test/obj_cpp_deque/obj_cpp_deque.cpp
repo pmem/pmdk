@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_cpp_deque");
 
-	if (argc != 3 || strchr("co", argv[1][0]) == NULL)
+	if (argc != 3 || strchr("co", argv[1][0]) == nullptr)
 		UT_FATAL("usage: %s <c,o> file-name", argv[0]);
 
 	const char *path = argv[2];
@@ -126,5 +126,5 @@ main(int argc, char *argv[])
 
 	pop.close();
 
-	DONE(NULL);
+	DONE(nullptr);
 }
