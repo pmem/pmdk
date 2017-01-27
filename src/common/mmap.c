@@ -83,13 +83,12 @@ util_mmap_init(void)
  *
  * This is just a convenience function that calls mmap() with the
  * appropriate arguments and includes our trace points.
- *
- * If cow is set, the file is mapped copy-on-write.
  */
 void *
-util_map(int fd, size_t len, int cow, size_t req_align)
+util_map(int fd, size_t len, int flags, int rdonly, size_t req_align)
 {
-	LOG(3, "fd %d len %zu cow %d req_align %zu", fd, len, cow, req_align);
+	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu", fd, len, flags,
+			rdonly, req_align);
 
 	void *base;
 	void *addr = util_map_hint(len, req_align);
@@ -98,9 +97,8 @@ util_map(int fd, size_t len, int cow, size_t req_align)
 		return NULL;
 	}
 
-	if ((base = mmap(addr, len, PROT_READ|PROT_WRITE,
-			(cow) ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED,
-					fd, 0)) == MAP_FAILED) {
+	if ((base = mmap(addr, len, rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
+			flags, fd, 0)) == MAP_FAILED) {
 		ERR("!mmap %zu bytes", len);
 		return NULL;
 	}
@@ -156,7 +154,7 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 	}
 
 	void *base;
-	if ((base = util_map(fd, size, 0, req_align)) == NULL) {
+	if ((base = util_map(fd, size, MAP_SHARED, 0, req_align)) == NULL) {
 		LOG(2, "cannot mmap temporary file");
 		goto err;
 	}

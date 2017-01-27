@@ -368,7 +368,7 @@ libvmmalloc_create(const char *dir, size_t size)
 	}
 
 	void *addr;
-	if ((addr = util_map(Fd, size, 0, 4 << 20)) == NULL) {
+	if ((addr = util_map(Fd, size, MAP_SHARED, 0, 4 << 20)) == NULL) {
 		(void) close(Fd);
 		return NULL;
 	}
