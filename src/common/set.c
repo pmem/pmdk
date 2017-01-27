@@ -309,9 +309,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 		 * part of the device. This means that currently only one device
 		 * is allowed to be a part of a poolset.
 		 */
-		hdrp = mmap(NULL, part->filesize,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, 0);
+		hdrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -375,11 +373,9 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	if (part->is_dax) {
 		/*
 		 * DAX device can only be in a poolset in which it's the only
-		 * part. This means we can map the whole device.
+		 * part and we do not need to utilize a hint address.
 		 */
-		addrp = mmap(NULL, part->filesize,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, 0);
+		addrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
 		if (addrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;

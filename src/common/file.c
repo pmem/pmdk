@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sys/file.h>
+#include <sys/mman.h>
 
 #ifndef _WIN32
 #include <sys/sysmacros.h>
@@ -183,7 +184,7 @@ util_file_map_whole(const char *path)
 	if (size < 0)
 		goto out;
 
-	addr = util_map(fd, (size_t)size, 0, 0);
+	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
 	if (addr == NULL)
 		goto out;
 
@@ -214,7 +215,7 @@ util_file_zero_whole(const char *path)
 		goto out;
 	}
 
-	void *addr = util_map(fd, (size_t)size, 0, 0);
+	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
 	if (addr == NULL) {
 		ret = -1;
 		goto out;

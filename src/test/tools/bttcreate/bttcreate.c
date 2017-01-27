@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "set.h"
 #include "pool_hdr.h"
@@ -306,7 +307,7 @@ main(int argc, char *argv[])
 	}
 
 	/* map created file */
-	void *base = util_map(fd, opts.poolsize, 0, 0);
+	void *base = util_map(fd, opts.poolsize, MAP_SHARED, 0, 0);
 	if (!base) {
 		perror("util_map");
 		res = file_error(fd, opts.fpath);

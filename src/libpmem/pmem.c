@@ -665,7 +665,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	}
 
 	void *addr;
-	if ((addr = util_map(fd, len, 0, 0)) == NULL)
+	if ((addr = util_map(fd, len, MAP_SHARED, 0, 0)) == NULL)
 		goto err;    /* util_map() set errno, called LOG */
 
 	if (mapped_lenp != NULL)
