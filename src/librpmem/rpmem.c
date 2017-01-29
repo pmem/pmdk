@@ -683,7 +683,6 @@ rpmem_remove(const char *target, const char *pool_set, int flags)
 	ret = rpmem_ssh_monitor(ssh, 0);
 	if (ret) {
 		ERR("!waiting for remote command failed");
-		ret = -1;
 		goto err_ssh_monitor;
 	}
 
