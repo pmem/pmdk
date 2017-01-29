@@ -414,7 +414,7 @@ add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 			size_t n_oid = obj_bench->n_oid(obj_worker->tx_level);
 			struct offset offset = obj_bench->fn_off(
 				obj_bench, obj_worker->tx_level);
-			ret = pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
+			pmemobj_tx_add_range(obj_worker->oids[n_oid].oid,
 						   offset.off, offset.size);
 			obj_worker->tx_level++;
 			ret = add_range_nested_tx(obj_bench, worker, idx);
