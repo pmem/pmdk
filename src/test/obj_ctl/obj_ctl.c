@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -616,7 +616,7 @@ test_ctl_arg_parsers()
 	ll_int = -1;
 	ret = ctl_arg_integer(input, &ll_int, sizeof(ll_int));
 	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(ll_int, -2147483649);
+	UT_ASSERTeq(ll_int, -2147483649LL);
 
 	input = "";
 	char string[1000] = {0};
