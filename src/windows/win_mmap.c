@@ -246,8 +246,6 @@ mmap_unreserve(void *addr, size_t len)
 static void
 mmap_init(void)
 {
-	if (FileMappingQMutex != INVALID_HANDLE_VALUE)
-		FATAL("multiple calls to mmap_init()");
 
 	HANDLE Mutex = CreateMutex(NULL, TRUE, NULL);
 	if (Mutex == INVALID_HANDLE_VALUE)
