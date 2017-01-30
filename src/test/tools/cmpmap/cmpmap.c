@@ -44,6 +44,7 @@
 #include <unistd.h>
 #include "file.h"
 #include "fcntl.h"
+#include "mmap.h"
 
 #define CMPMAP_ZERO (1<<0)
 
@@ -221,10 +222,12 @@ do_cmpmap()
 		assert(0);
 	}
 
+	/* initialize utils */
+	util_init();
+
 	/* map the first file */
 	void *addr1;
-	if ((addr1 = mmap(NULL, size1, PROT_READ, MAP_SHARED, fd1,
-			0)) == MAP_FAILED) {
+	if ((addr1 = util_map(fd1, size1, MAP_SHARED, 1, 0)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, offset 0,"
 				" errno %d\n", File1, size1, errno);
 		ret = EXIT_FAILURE;
@@ -233,8 +236,7 @@ do_cmpmap()
 
 	/* map the second file, or do anonymous mapping to get zeroed bytes */
 	void *addr2;
-	if ((addr2 = mmap(NULL, size2, PROT_READ, flag, fd2, 0)) ==
-			MAP_FAILED) {
+	if ((addr2 = util_map(fd2, size2, flag, 1, 0)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, errno %d\n",
 			File2 ? File2 : "(anonymous)", size2, errno);
 		ret = EXIT_FAILURE;

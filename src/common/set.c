@@ -309,9 +309,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 		 * part of the device. This means that currently only one device
 		 * is allowed to be a part of a poolset.
 		 */
-		hdrp = mmap(NULL, part->filesize,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, 0);
+		hdrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
 		if (hdrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -375,11 +373,9 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	if (part->is_dax) {
 		/*
 		 * DAX device can only be in a poolset in which it's the only
-		 * part. This means we can map the whole device.
+		 * part and we do not need to utilize a hint address.
 		 */
-		addrp = mmap(NULL, part->filesize,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, 0);
+		addrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
 		if (addrp == MAP_FAILED) {
 			ERR("!mmap: %s", part->path);
 			return -1;
@@ -2512,6 +2508,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
+		util_poolset_free(*setp);
 		return -1;
 	}
 
@@ -2523,6 +2520,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 		ERR("the pool set requires a remote replica, "
 			"but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
+		util_poolset_free(*setp);
 		return -1;
 	}
 
