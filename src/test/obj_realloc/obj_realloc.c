@@ -162,7 +162,13 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
-	UT_ASSERT(pmemobj_alloc_usable_size(D_RO(root)->obj.oid) >= size_to);
+	size_t usable_size_to =
+			pmemobj_alloc_usable_size(D_RO(root)->obj.oid);
+
+	UT_ASSERT(usable_size_to >= size_to);
+	if (size_to < size_from) {
+		UT_ASSERT(usable_size_to <= usable_size_from);
+	}
 
 	if (zrealloc) {
 		UT_ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj), size_to));

@@ -43,6 +43,7 @@
 #include "mmap.h"
 #include "obj.h"
 
+#include "heap_layout.h"
 #include "pmemops.h"
 #include "set.h"
 #include "sync.h"
@@ -671,17 +672,8 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		strncpy(pop->layout, layout, PMEMOBJ_MAX_LAYOUT - 1);
 	struct pmem_ops *p_ops = &pop->p_ops;
 
-	/* initialize run_id, it will be incremented later */
-	pop->run_id = 0;
-	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
-
 	pop->lanes_offset = OBJ_LANES_OFFSET;
 	pop->nlanes = OBJ_NLANES;
-
-	pop->root_offset = 0;
-	pmemops_persist(p_ops, &pop->root_offset, sizeof(pop->root_offset));
-	pop->root_size = 0;
-	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
 
 	/* zero all lanes */
 	void *lanes_layout = (void *)((uintptr_t)pop + pop->lanes_offset);
@@ -705,6 +697,15 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	/* store the persistent part of pool's descriptor (2kB) */
 	pmemops_persist(p_ops, dscp, OBJ_DSC_P_SIZE);
+
+	/* initialize run_id, it will be incremented later */
+	pop->run_id = 0;
+	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
+
+	pop->root_offset = 0;
+	pmemops_persist(p_ops, &pop->root_offset, sizeof(pop->root_offset));
+	pop->root_size = 0;
+	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
 
 	return 0;
 }
@@ -959,6 +960,27 @@ pmemobj_replica_fini(struct pool_replica *repset)
 }
 
 /*
+ * pmemobj_root_restore_size -- restore the value of 'root_size' field based on
+ *	the old version of the allocation header.
+ *
+ * This is needed for backward compatibility with the old version of the layout
+ * where the root size was stored inside of the object itself.
+ */
+static void
+pmemobj_root_restore_size(PMEMobjpool *pop)
+{
+	if (pop->root_offset != 0 && pop->root_size == 0) {
+		uint64_t off = pop->root_offset;
+		off -= sizeof(struct allocation_header_legacy);
+		struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
+		pop->root_size = hdr->root_size;
+
+		struct pmem_ops *p_ops = &pop->p_ops;
+		pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
+	}
+}
+
+/*
  * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
@@ -972,6 +994,8 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	if (pop->run_id == 0)
 		pop->run_id += 2;
 	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
+
+	pmemobj_root_restore_size(pop);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This

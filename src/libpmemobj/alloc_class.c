@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -131,8 +131,7 @@ static int
 alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot)
 {
-	int n;
-	for (n = 0; n < MAX_ALLOCATION_CLASSES; ++n) {
+	for (int n = 0; n < MAX_ALLOCATION_CLASSES; ++n) {
 		if (util_bool_compare_and_swap64(&ac->aclasses[n],
 				NULL, ACLASS_RESERVED)) {
 			*slot = (uint8_t)n;
@@ -339,6 +338,7 @@ alloc_class_collection_new(void)
 			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC);
 	if (predefined_class == NULL)
 		goto error_alloc_class_create;
+
 	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE; ++i) {
 		ac->class_map_by_unit_size[i] = predefined_class->id;
 		ac->class_map_by_alloc_size[i] = predefined_class->id;

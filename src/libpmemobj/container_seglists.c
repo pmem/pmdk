@@ -33,7 +33,7 @@
 /*
  * container_seglists.c -- implementation of segregated lists block container
  *
- * This container is constructed from N (up to 64) instrusive lists and a
+ * This container is constructed from N (up to 64) intrusive lists and a
  * single 8 byte bitmap that stores the information whether a given list is
  * empty or not.
  */
