@@ -1330,6 +1330,12 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len, size_t off)
 
 		ret = rpmem_fip_readmsg(fip->ep, &fip->rd_lane.read,
 				fip->rd_buff, rd_len, raddr);
+		if (ret) {
+			RPMEM_FI_ERR(ret, "RMA read");
+			errno = ret;
+			return -1;
+		}
+
 		VALGRIND_DO_MAKE_MEM_DEFINED(fip->rd_buff, rd_len);
 
 		ret = rpmem_fip_lane_wait(&fip->rd_lane.lane, FI_READ);

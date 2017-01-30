@@ -166,8 +166,7 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 
 	errno = pthread_cond_signal(&worker->cond);
 	if (errno) {
-		RPMEMD_LOG(ERR, "!sending signal to worker");
-		ret = -1;
+		RPMEMD_FATAL("!sending signal to worker");
 	}
 
 	util_mutex_unlock(&worker->lock);
