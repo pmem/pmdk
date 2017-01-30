@@ -47,25 +47,14 @@
 #include "memops.h"
 #include "palloc.h"
 
-#define MAX_BUCKETS (UINT8_MAX)
-#define RUN_UNIT_MAX 64U
-#define RUN_UNIT_MAX_ALLOC 8U
-
-/*
- * Every allocation has to be a multiple of a cacheline because we need to
- * ensure proper alignment of every pmem structure.
- */
-#define ALLOC_BLOCK_SIZE 64
-
-/*
- * Converts size (in bytes) to number of allocation blocks.
- */
-#define SIZE_TO_ALLOC_BLOCKS(_s) (1 + (((_s) - 1) / ALLOC_BLOCK_SIZE))
+#define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
+#define HEAP_PTR_TO_OFF(heap, ptr)\
+	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
 
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		void *base, struct pmem_ops *p_ops);
+		uint64_t run_id, void *base, struct pmem_ops *p_ops);
 int heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
 void heap_cleanup(struct palloc_heap *heap);
 int heap_check(void *heap_start, uint64_t heap_size);
@@ -73,32 +62,22 @@ int heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
 int heap_buckets_init(struct palloc_heap *heap);
 
-struct bucket *heap_get_best_bucket(struct palloc_heap *heap, size_t size);
-struct bucket *heap_get_chunk_bucket(struct palloc_heap *heap,
-		uint32_t chunk_id, uint32_t zone_id);
-struct bucket *heap_get_auxiliary_bucket(struct palloc_heap *heap,
-		size_t size);
-void heap_drain_to_auxiliary(struct palloc_heap *heap, struct bucket *auxb,
-	uint32_t size_idx);
-void *heap_get_block_data(struct palloc_heap *heap, struct memory_block m);
-
-int heap_get_adjacent_free_block(struct palloc_heap *heap, struct bucket *b,
-	struct memory_block *m, struct memory_block cnt, int prev);
-void heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx);
+struct bucket *heap_get_default_bucket(struct palloc_heap *heap);
+struct alloc_class *
+heap_get_best_class(struct palloc_heap *heap, size_t size);
+struct bucket *
+heap_get_bucket_by_class(struct palloc_heap *heap, struct alloc_class *c);
 
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
-int heap_get_exact_block(struct palloc_heap *heap, struct bucket *b,
-	struct memory_block *m, uint32_t new_size_idx);
-void heap_degrade_run_if_empty(struct palloc_heap *heap, struct bucket *b,
-		struct memory_block m);
-
+struct memory_block
+heap_coalesce_huge(struct palloc_heap *heap, const struct memory_block *m);
 pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 
-struct memory_block heap_free_block(struct palloc_heap *heap, struct bucket *b,
-	struct memory_block m, struct operation_context *ctx);
-
+int
+heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
+	void *arg, struct memory_block *m, struct alloc_class *c);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 

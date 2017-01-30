@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,29 +39,22 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "heap_layout.h"
 #include "memops.h"
 #include "palloc.h"
 
-struct memory_block {
-	uint32_t chunk_id; /* index of the memory block in its zone */
-	uint32_t zone_id; /* index of this block zone in the heap */
+#define MEMORY_BLOCK_NONE \
+(struct memory_block)\
+{0, 0, 0, 0, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL, NULL}
 
-	/*
-	 * Size index of the memory block represented in either multiple of
-	 * CHUNKSIZE in the case of a huge chunk or in multiple of a run
-	 * block size.
-	 */
-	uint32_t size_idx;
+#define MEMORY_BLOCK_IS_NONE(_m)\
+((_m).heap == NULL)
 
-	/*
-	 * Used only for run chunks, must be zeroed for huge.
-	 * Number of preceding blocks in the chunk. In other words, the
-	 * position of this memory block in run bitmap.
-	 */
-	uint16_t block_off;
-};
+#define MEMORY_BLOCK_EQUALS(lhs, rhs)\
+((lhs).zone_id == (rhs).zone_id && (lhs).chunk_id == (rhs).chunk_id &&\
+(lhs).block_off == (rhs).block_off && (lhs).heap == (rhs).heap)
 
 enum memory_block_type {
 	/*
@@ -162,34 +155,72 @@ enum memblock_state {
 	MAX_MEMBLOCK_STATE,
 };
 
-enum memory_block_type memblock_autodetect_type(struct memory_block *m,
-	struct heap_layout *h);
+enum header_type {
+	HEADER_LEGACY,
+	HEADER_COMPACT,
+	NO_HEADER,
 
-struct memory_block_ops {
-	size_t (*block_size)(struct memory_block *m, struct heap_layout *h);
-	uint16_t (*block_offset)(struct memory_block *m,
-			struct palloc_heap *heap, void *ptr);
-	void (*prep_hdr)(struct memory_block *m, struct palloc_heap *heap,
-		enum memblock_state, struct operation_context *ctx);
-	void *(*get_lock)(struct memory_block *m, struct palloc_heap *heap);
-	enum memblock_state (*get_state)(struct memory_block *m,
-		struct palloc_heap *heap);
+	MAX_HEADER_TYPES
 };
 
-extern const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK];
+extern const size_t header_type_to_size[MAX_HEADER_TYPES];
+extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
 
-#define MEMBLOCK_OPS_AUTO(memblock, heap_layout)\
-(&mb_ops[memblock_autodetect_type(memblock, heap_layout)])
+struct memory_block_ops {
+	size_t (*block_size)(const struct memory_block *m);
+	void (*prep_hdr)(const struct memory_block *m,
+		enum memblock_state dest_state, struct operation_context *ctx);
+	pthread_mutex_t *(*get_lock)(const struct memory_block *m);
+	enum memblock_state (*get_state)(const struct memory_block *m);
+	void *(*get_user_data)(const struct memory_block *m);
+	size_t (*get_user_size)(const struct memory_block *m);
+	void *(*get_real_data)(const struct memory_block *m);
+	size_t (*get_real_size)(const struct memory_block *m);
+	void (*write_header)(const struct memory_block *m,
+		uint64_t extra_field, uint16_t flags);
+	void (*reinit_header)(const struct memory_block *m);
+	uint64_t (*get_extra)(const struct memory_block *m);
+	uint16_t (*get_flags)(const struct memory_block *m);
 
-#define MEMBLOCK_OPS_HUGE(memblock, heap_layout)\
-(&mb_ops[MEMORY_BLOCK_HUGE])
+	/* only runs can be claimed, functions are invalid for huge blocks */
+	int (*claim)(const struct memory_block *m);
+	void (*claim_revoke)(const struct memory_block *m);
+	int (*is_claimed)(const struct memory_block *m);
+};
 
-#define MEMBLOCK_OPS_RUN(memblock, heap_layout)\
-(&mb_ops[MEMORY_BLOCK_RUN])
+struct memory_block {
+	uint32_t chunk_id; /* index of the memory block in its zone */
+	uint32_t zone_id; /* index of this block zone in the heap */
 
-#define MEMBLOCK_OPS_ MEMBLOCK_OPS_AUTO
+	/*
+	 * Size index of the memory block represented in either multiple of
+	 * CHUNKSIZE in the case of a huge chunk or in multiple of a run
+	 * block size.
+	 */
+	uint32_t size_idx;
 
-#define MEMBLOCK_OPS(type, memblock)\
-MEMBLOCK_OPS_##type(memblock, heap->layout)
+	/*
+	 * Used only for run chunks, must be zeroed for huge.
+	 * Number of preceding blocks in the chunk. In other words, the
+	 * position of this memory block in run bitmap.
+	 */
+	uint16_t block_off;
+
+	/*
+	 * The variables below are associated with the memory block and are
+	 * stored here for convenience. Those fields are filled by either the
+	 * memblock_from_offset or memblock_rebuild_state, and they should not
+	 * be modified manually.
+	 */
+
+	enum header_type header_type;
+	enum memory_block_type type;
+	const struct memory_block_ops *m_ops;
+	struct palloc_heap *heap;
+};
+
+struct memory_block memblock_from_offset(struct palloc_heap *heap,
+	uint64_t off);
+void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
 
 #endif

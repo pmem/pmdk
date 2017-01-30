@@ -58,6 +58,10 @@ struct item {
 	POBJ_LIST_ENTRY(struct item) next;
 };
 
+struct oob_header {
+	char data[48];
+};
+
 struct oob_item {
 	struct oob_header oob;
 	struct item item;

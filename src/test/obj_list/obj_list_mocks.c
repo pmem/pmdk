@@ -238,7 +238,7 @@ FUNC_MOCK(pmemobj_alloc, int, PMEMobjpool *pop, PMEMoid *oidp,
 	FUNC_MOCK_RUN_DEFAULT {
 		PMEMoid oid = {0, 0};
 		oid.pool_uuid_lo = 0;
-		pmalloc(NULL, &oid.off, size);
+		pmalloc(NULL, &oid.off, size, 0, 0);
 		if (oidp) {
 			*oidp = oid;
 			pmemops_persist(&Pop->p_ops, oidp, sizeof(*oidp));

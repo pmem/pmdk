@@ -43,8 +43,10 @@
 #define OPS_PER_THREAD 1000
 #define ALLOC_SIZE 100
 #define REALLOC_SIZE (ALLOC_SIZE * 3)
-#define FRAGMENTATION 3
 #define MIX_RERUNS 2
+
+#define CHUNKSIZE (1 << 18)
+#define CHUNKS_PER_THREAD 3
 
 struct root {
 	uint64_t offs[THREADS][OPS_PER_THREAD];
@@ -62,7 +64,7 @@ alloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
+		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -75,7 +77,7 @@ realloc_worker(void *arg)
 	struct worker_args *a = arg;
 
 	for (int i = 0; i < OPS_PER_THREAD; ++i) {
-		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE);
+		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -106,7 +108,8 @@ mix_worker(void *arg)
 	 */
 	for (int i = 0; i < MIX_RERUNS; ++i) {
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
-			pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE);
+			pmalloc(a->pop, &a->r->offs[a->idx][i],
+				ALLOC_SIZE, 0, 0);
 			UT_ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
@@ -176,8 +179,7 @@ main(int argc, char *argv[])
 
 	if (access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
-		PMEMOBJ_MIN_POOL +
-		(THREADS * OPS_PER_THREAD * ALLOC_SIZE * FRAGMENTATION),
+		(PMEMOBJ_MIN_POOL) + (THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);
 	} else {
 		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {

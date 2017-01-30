@@ -649,7 +649,12 @@ out_get_chunk_type_str(unsigned type)
 const char *
 out_get_chunk_flags(uint16_t flags)
 {
-	return flags & CHUNK_FLAG_ZEROED ? "zeroed" : "";
+	if (flags & CHUNK_FLAG_COMPACT_HEADER)
+		return "compact header";
+	else if (flags & CHUNK_FLAG_NO_HEADER)
+		return "no header";
+
+	return "";
 }
 
 /*
@@ -704,22 +709,6 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		free(correct);
 
 	return str_buff;
-}
-
-/*
- * out_get_internal_type_str -- get internal type string
- */
-const char *
-out_get_internal_type_str(enum internal_type type)
-{
-	switch (type) {
-	case TYPE_NONE:
-		return "none";
-	case TYPE_ALLOCATED:
-		return "allocated";
-	default:
-		return "unknonw";
-	}
 }
 
 /*

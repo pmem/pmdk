@@ -1,14 +1,14 @@
 obj_rpmem_basic_integration/TEST7: START: obj_basic_integration
  ./obj_basic_integration$(nW) testset_local
-alloc: 128, size: 128
-realloc: 128 => 655360, size: 786368
-realloc: 655360 => 1, size: 64
+alloc: 128, size: $(N)
+realloc: 128 => 655360, size: $(N)
+realloc: 655360 => 1, size: $(N)
 free
-realloc: 0 => 777, size: 832
-realloc: 777 => 1, size: 64
+realloc: 0 => 777, size: $(N)
+realloc: 777 => 1, size: $(N)
 free
-realloc: 0 => 1, size: 64
-realloc: 1 => 1, size: 64
+realloc: 0 => 1, size: $(N)
+realloc: 1 => 1, size: $(N)
 free
 POBJ_LIST_FOREACH: dummy_node 0
 POBJ_LIST_FOREACH: dummy_node 5

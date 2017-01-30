@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ $Env:UNITTEST_NUM = "1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_test_type medium
+require_test_type long
 
 require_fs_type non-pmem
 
@@ -56,7 +56,7 @@ require_fs_type non-pmem
 
 setup
 
-expect_normal_exit $PMEMPOOL create obj --layout realloc --size=64M $DIR\testfile1
+expect_normal_exit $PMEMPOOL create obj --layout realloc --size=128M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\obj_realloc$Env:EXESUFFIX $DIR\testfile1 0
 

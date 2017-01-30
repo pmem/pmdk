@@ -165,6 +165,35 @@ test_ctree_remove()
 	ctree_delete(t);
 }
 
+static void
+test_ctree_remove_max()
+{
+	struct ctree *t = ctree_new();
+	UT_ASSERT(t != NULL);
+
+	ctree_insert(t, TEST_VAL_A, TEST_VAL_A);
+	ctree_insert(t, TEST_VAL_B, TEST_VAL_B);
+	ctree_insert(t, TEST_VAL_C, TEST_VAL_C);
+
+	uint64_t key;
+	uint64_t value;
+	UT_ASSERTeq(ctree_remove_max_unlocked(t, &key, &value), 0);
+	UT_ASSERTeq(key, TEST_VAL_C);
+	UT_ASSERTeq(key, TEST_VAL_C);
+
+	UT_ASSERTeq(ctree_remove_max_unlocked(t, &key, &value), 0);
+	UT_ASSERTeq(key, TEST_VAL_B);
+	UT_ASSERTeq(key, TEST_VAL_B);
+
+	UT_ASSERTeq(ctree_remove_max_unlocked(t, &key, &value), 0);
+	UT_ASSERTeq(key, TEST_VAL_A);
+	UT_ASSERTeq(key, TEST_VAL_A);
+
+	UT_ASSERTeq(ctree_remove_max_unlocked(t, &key, &value), -1);
+
+	ctree_delete(t);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -176,6 +205,7 @@ main(int argc, char *argv[])
 	test_ctree_insert();
 	test_ctree_find();
 	test_ctree_remove();
+	test_ctree_remove_max();
 
 	DONE(NULL);
 }

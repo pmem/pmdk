@@ -66,9 +66,11 @@
 					+ ZONE_MAX_SIZE * (zone_id)))
 
 enum chunk_flags {
-	CHUNK_FLAG_ZEROED	=	0x0001,
-	CHUNK_RUN_ACTIVE	=	0x0002
+	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
+	CHUNK_FLAG_NO_HEADER		=	0x0002,
 };
+
+#define CHUNK_FLAGS_ALL_VALID (CHUNK_FLAG_COMPACT_HEADER | CHUNK_FLAG_NO_HEADER)
 
 enum chunk_type {
 	CHUNK_TYPE_UNKNOWN,
@@ -86,7 +88,7 @@ struct chunk {
 
 struct chunk_run {
 	uint64_t block_size;
-	uint64_t bucket_vptr; /* runtime information */
+	uint64_t incarnation_claim; /* run_id of the last claimant */
 	uint64_t bitmap[MAX_BITMAP_VALUES];
 	uint8_t data[RUNSIZE];
 };
@@ -125,10 +127,20 @@ struct heap_layout {
 	struct zone zone0;	/* first element of zones array */
 };
 
-struct allocation_header {
-	uint32_t zone_id;
-	uint32_t chunk_id;
+#define ALLOC_HDR_SIZE_SHIFT (48ULL)
+#define ALLOC_HDR_FLAGS_MASK (((1ULL) << ALLOC_HDR_SIZE_SHIFT) - 1)
+
+struct allocation_header_legacy {
+	uint8_t unused[8];
 	uint64_t size;
+	uint8_t unused2[32];
+	uint64_t root_size;
+	uint64_t type_num;
+};
+
+struct allocation_header_compact {
+	uint64_t size;
+	uint64_t extra;
 };
 
 #endif

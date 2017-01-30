@@ -34,130 +34,96 @@
  * obj_bucket.c -- unit test for bucket
  */
 #include "bucket.h"
+#include "container_ctree.h"
 #include "util.h"
 #include "unittest.h"
-
-#define TEST_UNIT_SIZE 128
-#define TEST_MAX_UNIT 1
-
-#define TEST_SIZE 5
-#define TEST_SIZE_UNITS 1
-
-#define MOCK_CRIT	((void *)0xABC)
 
 #define TEST_CHUNK_ID	10
 #define TEST_ZONE_ID	20
 #define TEST_SIZE_IDX	30
 #define TEST_BLOCK_OFF	40
 
+struct container_test {
+	struct block_container super;
+};
 
-static int Rcounter_malloc;
+const struct memory_block *inserted_memblock;
 
-static void *
-__wrap_malloc(size_t size)
+static int
+container_test_insert(struct block_container *c,
+	const struct memory_block *m)
 {
-	switch (__sync_fetch_and_add(&Rcounter_malloc, 1)) {
-		default:
-			return malloc(size);
-		case 0: /* b malloc */
-			return NULL;
-	}
+	inserted_memblock = m;
+	return 0;
 }
 
-FUNC_MOCK(ctree_new, struct ctree *, void)
-	FUNC_MOCK_RUN_RET_DEFAULT(MOCK_CRIT)
-	FUNC_MOCK_RUN(0) {
-		return NULL;
-	}
-FUNC_MOCK_END
+static int
+container_test_get_rm_bestfit(struct block_container *c,
+	struct memory_block *m)
+{
+	if (inserted_memblock == NULL)
+		return ENOMEM;
 
-FUNC_MOCK_RET_ALWAYS(ctree_delete, void *, NULL, struct ctree *t);
+	*m = *inserted_memblock;
+	inserted_memblock = NULL;
+	return 0;
+}
 
-static uint64_t inserted_key;
+static int
+container_test_get_rm_exact(struct block_container *c,
+	const struct memory_block *m)
+{
+	if (inserted_memblock == NULL)
+		return ENOMEM;
 
-FUNC_MOCK(ctree_insert, int, struct ctree *c, uint64_t key)
-	FUNC_MOCK_RUN_DEFAULT {
-		inserted_key = key;
+	if (inserted_memblock->chunk_id == m->chunk_id) {
+		inserted_memblock = NULL;
 		return 0;
 	}
-FUNC_MOCK_END
 
-FUNC_MOCK(ctree_remove, uint64_t, struct ctree *c, uint64_t key, int eq)
-	FUNC_MOCK_RUN_DEFAULT {
-		return inserted_key;
-	}
-	FUNC_MOCK_RUN(0) {
-		return 0;
-	}
-FUNC_MOCK_END
-
-static void
-test_new_delete_bucket()
-{
-	struct bucket_huge *b = NULL;
-
-	/* b malloc fail */
-	b = bucket_huge_new(1, CONTAINER_CTREE, 1);
-	UT_ASSERT(b == NULL);
-
-	/* b->ctree fail */
-	b = bucket_huge_new(2, CONTAINER_CTREE, 1);
-	UT_ASSERT(b == NULL);
-
-	/* all ok */
-	b = bucket_huge_new(4, CONTAINER_CTREE, 1);
-	UT_ASSERT(b != NULL);
-
-	bucket_delete(&b->super);
+	return ENOMEM;
 }
 
 static void
-test_bucket_bitmap_correctness()
+container_test_destroy(struct block_container *c)
 {
-	struct bucket_run *b = bucket_run_new(1, CONTAINER_CTREE,
-		(RUNSIZE / 10), TEST_MAX_UNIT, TEST_MAX_UNIT);
-	UT_ASSERT(b != NULL);
-
-	/* 54 set (not available for allocations), and 10 clear (available) */
-	uint64_t bitmap_lastval =
-	0b1111111111111111111111111111111111111111111111111111110000000000;
-
-	struct bucket_run *r = (struct bucket_run *)b;
-	UT_ASSERTeq(r->bitmap_lastval, bitmap_lastval);
-
-	bucket_delete(&b->super);
+	FREE(c);
 }
 
-static void
-test_bucket()
+static struct block_container_ops container_test_ops = {
+	.insert = container_test_insert,
+	.get_rm_exact = container_test_get_rm_exact,
+	.get_rm_bestfit = container_test_get_rm_bestfit,
+	.get_exact = NULL,
+	.is_empty = NULL,
+	.rm_all = NULL,
+	.destroy = container_test_destroy,
+};
+
+static struct block_container *
+container_new_test()
 {
-	struct bucket_huge *b = bucket_huge_new(1, CONTAINER_CTREE,
-		TEST_UNIT_SIZE);
-	UT_ASSERT(b != NULL);
-
-	UT_ASSERT(b->super.unit_size == TEST_UNIT_SIZE);
-	UT_ASSERT(b->super.type == BUCKET_HUGE);
-	UT_ASSERT(b->super.calc_units(&b->super, TEST_SIZE) == TEST_SIZE_UNITS);
-
-	bucket_delete(&b->super);
+	struct container_test *c = MALLOC(sizeof(struct container_test));
+	c->super.c_ops = &container_test_ops;
+	return &c->super;
 }
 
 static void
 test_bucket_insert_get()
 {
-	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
+	struct bucket *b = bucket_new(container_new_test(), NULL);
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
 	/* get from empty */
-	UT_ASSERT(CNT_OP(b, get_rm_bestfit, &m) != 0);
 
-	UT_ASSERT(CNT_OP(b, insert, NULL, m) == 0);
+	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) != 0);
 
-	UT_ASSERT(CNT_OP(b, get_rm_bestfit, &m) == 0);
+	UT_ASSERT(bucket_insert_block(b, &m) == 0);
+
+	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) == 0);
 
 	UT_ASSERT(m.chunk_id == TEST_CHUNK_ID);
 	UT_ASSERT(m.zone_id == TEST_ZONE_ID);
@@ -170,16 +136,15 @@ test_bucket_insert_get()
 static void
 test_bucket_remove()
 {
-	struct bucket *b = &(bucket_run_new(1, CONTAINER_CTREE,
-		TEST_UNIT_SIZE, TEST_MAX_UNIT, TEST_MAX_UNIT))->super;
+	struct bucket *b = bucket_new(container_new_test(), NULL);
 	UT_ASSERT(b != NULL);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 
-	UT_ASSERT(CNT_OP(b, insert, NULL, m) == 0);
+	UT_ASSERT(bucket_insert_block(b, &m) == 0);
 
-	UT_ASSERT(CNT_OP(b, get_rm_exact, m) == 0);
+	UT_ASSERT(b->c_ops->get_rm_exact(b->container, &m) == 0);
 
 	bucket_delete(b);
 }
@@ -189,13 +154,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_bucket");
 
-	Malloc = __wrap_malloc;
-
-	test_new_delete_bucket();
-	test_bucket();
 	test_bucket_insert_get();
 	test_bucket_remove();
-	test_bucket_bitmap_correctness();
 
 	DONE(NULL);
 }

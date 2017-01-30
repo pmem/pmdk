@@ -41,109 +41,31 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "container.h"
 #include "memblock.h"
 
 #define RUN_NALLOCS(_bs)\
 ((RUNSIZE / ((_bs))))
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
-((uint32_t)(((_size - 1) / _unit_size) + 1))
-
-enum block_container_type {
-	CONTAINER_UNKNOWN,
-	CONTAINER_CTREE,
-
-	MAX_CONTAINER_TYPE
-};
-
-struct block_container {
-	enum block_container_type type;
-	size_t unit_size; /* required only for valgrind... */
-};
-
-struct block_container_ops {
-	int (*insert)(struct block_container *c, struct palloc_heap *heap,
-		struct memory_block m);
-	int (*get_rm_exact)(struct block_container *c, struct memory_block m);
-	int (*get_rm_bestfit)(struct block_container *c,
-		struct memory_block *m);
-	int (*get_exact)(struct block_container *c, struct memory_block m);
-	int (*is_empty)(struct block_container *c);
-};
-
-#define CNT_OP(_b, _op, ...)\
-(_b)->c_ops->_op((_b)->container, ##__VA_ARGS__)
-
-enum bucket_type {
-	BUCKET_UNKNOWN,
-	BUCKET_HUGE,
-	BUCKET_RUN,
-
-	MAX_BUCKET_TYPE
-};
+(_size == 0 ? 0 : (uint32_t)(((_size - 1) / _unit_size) + 1))
 
 struct bucket {
-	enum bucket_type type;
-
-	/*
-	 * Identifier of this bucket in the heap's bucket map.
-	 */
-	uint8_t id;
-
-	/*
-	 * Size of a single memory block in bytes.
-	 */
-	size_t unit_size;
-
-	uint32_t (*calc_units)(struct bucket *b, size_t size);
-
 	pthread_mutex_t lock;
+
+	struct alloc_class *aclass;
 
 	struct block_container *container;
 	struct block_container_ops *c_ops;
+
+	struct memory_block active_memory_block;
+	int is_active;
 };
 
-struct bucket_huge {
-	struct bucket super;
-};
+struct bucket *bucket_new(struct block_container *c,
+	struct alloc_class *aclass);
 
-struct bucket_run {
-	struct bucket super;
-
-	/*
-	 * Last value of a bitmap representing completely free run from this
-	 * bucket.
-	 */
-	uint64_t bitmap_lastval;
-
-	/*
-	 * Number of 8 byte values this run bitmap is composed of.
-	 */
-	unsigned bitmap_nval;
-
-	/*
-	 * Number of allocations that can be performed from a single run.
-	 */
-	unsigned bitmap_nallocs;
-
-	/*
-	 * Maximum multiplication factor of unit_size for memory blocks.
-	 */
-	unsigned unit_max;
-
-	/*
-	 * Maximum multiplication factor of unit_size for allocations.
-	 * If a memory block is larger than the allowed size it is split and the
-	 * remainder is returned back to the bucket.
-	 */
-	unsigned unit_max_alloc;
-};
-
-struct bucket_huge *bucket_huge_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size);
-
-struct bucket_run *bucket_run_new(uint8_t id, enum block_container_type ctype,
-	size_t unit_size, unsigned unit_max, unsigned unit_max_alloc);
+int bucket_insert_block(struct bucket *b, const struct memory_block *m);
 
 void bucket_delete(struct bucket *b);
 

@@ -119,9 +119,6 @@ Lane:
 
    Object                   : 0
    Offset                   : $(*)
-
-    OOB Header:
-    Type Number              : $(*)
   Undo Log - free          : 0 elements
   Undo Log - set           : 0 elements
   Undo Log - set cache     : 0 elements
@@ -266,14 +263,8 @@ Lane:
 
    Object                   : 0
    Offset                   : $(*)
-
-    OOB Header:
-    Type Number              : 0x0000000000000001
   Undo Log - set           : 0 elements
   Undo Log - set cache     : 1 element
 
    Object                   : 0
    Offset                   : $(*)
-
-    OOB Header:
-    Type Number              : 0x0000000000000000

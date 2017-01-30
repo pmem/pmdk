@@ -78,6 +78,7 @@ pmalloc_redo_release(PMEMobjpool *pop)
 int
 pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	size_t size, palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx)
 {
 #ifdef USE_VG_MEMCHECK
@@ -87,24 +88,9 @@ pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 #endif
 
 	int ret = palloc_operation(heap, off, dest_off, size, constructor, arg,
-			ctx);
+			extra_field, flags, ctx);
 	if (ret)
 		return ret;
-
-#ifdef USE_VG_MEMCHECK
-	if (size && On_valgrind) {
-		struct oob_header *pobj =
-			OOB_HEADER_FROM_PTR((char *)heap->base + *dest_off);
-
-		/*
-		 * The first few bytes of the oobh are unused and double as
-		 * an object guard which will cause valgrind to issue an error
-		 * whenever the unused memory is accessed.
-		 */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(pobj->unused,
-				sizeof(pobj->unused));
-	}
-#endif
 
 	return 0;
 }
@@ -117,14 +103,16 @@ pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
-pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
+pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
+	uint64_t extra_field, uint16_t flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 
 	struct operation_context ctx;
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL, &ctx);
+	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL,
+		extra_field, flags, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -141,7 +129,8 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg)
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 	struct operation_context ctx;
@@ -149,7 +138,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, 0, off, size, constructor, arg,
-			&ctx);
+			extra_field, flags, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -164,14 +153,16 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
-prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
+prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
+	uint64_t extra_field, uint16_t flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 	struct operation_context ctx;
 
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, 0, &ctx);
+	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, 0,
+		extra_field, flags, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -188,7 +179,8 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size)
  */
 int
 prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg)
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 	struct operation_context ctx;
@@ -196,7 +188,7 @@ prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, *off, off, size, constructor,
-			arg, &ctx);
+			arg, extra_field, flags, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -218,7 +210,8 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL, &ctx);
+	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
+		0, 0, &ctx);
 	ASSERTeq(ret, 0);
 
 	pmalloc_redo_release(pop);
@@ -279,16 +272,13 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 static int
 pmalloc_boot(PMEMobjpool *pop)
 {
-	COMPILE_ERROR_ON(PALLOC_DATA_OFF != OBJ_OOB_SIZE);
-	COMPILE_ERROR_ON(ALLOC_BLOCK_SIZE != _POBJ_CL_SIZE);
-
 	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
-			pop->heap_size, pop, &pop->p_ops);
+			pop->heap_size, pop->run_id, pop, &pop->p_ops);
 	if (ret)
 		return ret;
 
 #ifdef USE_VG_MEMCHECK
-	palloc_heap_vg_open(&pop->heap, obj_vg_register, pop, pop->vg_boot);
+	palloc_heap_vg_open(&pop->heap, pop->vg_boot);
 #endif
 
 	ret = palloc_buckets_init(&pop->heap);

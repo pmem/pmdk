@@ -20,7 +20,7 @@ REPLICA
 15M $(nW)part11
 20M $(nW)part12
 
-pr(26214400): off = 0x382440 uuid = $(nW)
+pr(26214400): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
 TestOK111
@@ -64,14 +64,14 @@ PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT
 Lanes offset             : 0x2000
 Number of lanes          : 1024
-Heap offset              : 0x302000
-Heap size                : 28237824
+Heap offset              : $(nW)
+Heap size                : $(nW)
 Checksum                 : $(nW) [OK]
-Root offset              : 0x382440
+Root offset              : $(nW)
 Part file:
 path                     : $(nW)part00
 type                     : regular file
-size                     : 20971520
+size                     : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]

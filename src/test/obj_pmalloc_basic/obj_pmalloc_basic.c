@@ -127,7 +127,7 @@ test_oom_allocs(size_t size)
 
 	size_t count = 0;
 	for (;;) {
-		if (pmalloc(mock_pop, &addr->ptr, size)) {
+		if (pmalloc(mock_pop, &addr->ptr, size, 0, 0)) {
 			break;
 		}
 		UT_ASSERT(addr->ptr != 0);
@@ -148,7 +148,7 @@ test_malloc_free_loop(size_t size)
 {
 	int err;
 	for (int i = 0; i < MAX_MALLOC_FREE_LOOP; ++i) {
-		err = pmalloc(mock_pop, &addr->ptr, size);
+		err = pmalloc(mock_pop, &addr->ptr, size, 0, 0);
 		UT_ASSERTeq(err, 0);
 		pfree(mock_pop, &addr->ptr);
 	}
@@ -159,10 +159,10 @@ test_realloc(size_t org, size_t dest)
 {
 	int err;
 	struct palloc_heap *heap = &mock_pop->heap;
-	err = pmalloc(mock_pop, &addr->ptr, org);
+	err = pmalloc(mock_pop, &addr->ptr, org, 0, 0);
 	UT_ASSERTeq(err, 0);
 	UT_ASSERT(palloc_usable_size(heap, addr->ptr) >= org);
-	err = prealloc(mock_pop, &addr->ptr, dest);
+	err = prealloc(mock_pop, &addr->ptr, dest, 0, 0);
 	UT_ASSERTeq(err, 0);
 	UT_ASSERT(palloc_usable_size(heap, addr->ptr) >= dest);
 	pfree(mock_pop, &addr->ptr);
@@ -173,6 +173,56 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 {
 	PMEMobjpool *pop = ctx;
 	return OBJ_OFF_IS_VALID(pop, offset);
+}
+
+#define MOCK_RUN_ID 5
+
+#define PMALLOC_EXTRA 20
+#define PALLOC_FLAG (1 << 15)
+
+#define FIRST_SIZE 1 /* use the first allocation class */
+#define FIRST_USIZE 112 /* the usable size is 128 - 16 */
+
+static void
+test_pmalloc_extras(PMEMobjpool *pop)
+{
+	uint64_t val;
+	int ret = pmalloc(pop, &val, FIRST_SIZE, PMALLOC_EXTRA, PALLOC_FLAG);
+	UT_ASSERTeq(ret, 0);
+
+	UT_ASSERTeq(palloc_extra(&pop->heap, val), PMALLOC_EXTRA);
+	UT_ASSERT((palloc_flags(&pop->heap, val) & PALLOC_FLAG) == PALLOC_FLAG);
+	UT_ASSERT(palloc_usable_size(&pop->heap, val) == FIRST_USIZE);
+
+	pfree(pop, &val);
+}
+
+#define PMALLOC_ELEMENTS 20
+
+static void
+test_pmalloc_first_next(PMEMobjpool *pop)
+{
+	uint64_t vals[PMALLOC_ELEMENTS];
+	for (int i = 0; i < PMALLOC_ELEMENTS; ++i) {
+		int ret = pmalloc(pop, &vals[i], FIRST_SIZE, i, i);
+		UT_ASSERTeq(ret, 0);
+	}
+
+	uint64_t off = palloc_first(&pop->heap);
+	UT_ASSERTne(off, 0);
+	int nvalues = 0;
+	do {
+		UT_ASSERTeq(vals[nvalues], off);
+		UT_ASSERTeq(palloc_extra(&pop->heap, off), nvalues);
+		UT_ASSERTeq(palloc_flags(&pop->heap, off), nvalues);
+		UT_ASSERT(palloc_usable_size(&pop->heap, off) == FIRST_USIZE);
+
+		nvalues ++;
+	} while ((off = palloc_next(&pop->heap, off)) != 0);
+	UT_ASSERTeq(nvalues, PMALLOC_ELEMENTS);
+
+	for (int i = 0; i < PMALLOC_ELEMENTS; ++i)
+		pfree(pop, &vals[i]);
 }
 
 static void
@@ -210,7 +260,7 @@ test_mock_pool_allocs()
 	uint64_t heap_size = mock_pop->heap_size;
 
 	heap_init(heap_start, heap_size, &mock_pop->p_ops);
-	heap_boot(&mock_pop->heap, heap_start, heap_size, mock_pop,
+	heap_boot(&mock_pop->heap, heap_start, heap_size, MOCK_RUN_ID, mock_pop,
 			&mock_pop->p_ops);
 	heap_buckets_init(&mock_pop->heap);
 
@@ -219,6 +269,9 @@ test_mock_pool_allocs()
 	lane_boot(mock_pop);
 
 	UT_ASSERTne(mock_pop->heap.rt, NULL);
+
+	test_pmalloc_extras(mock_pop);
+	test_pmalloc_first_next(mock_pop);
 
 	test_malloc_free_loop(MALLOC_FREE_SIZE);
 
@@ -246,8 +299,7 @@ static void
 test_spec_compliance()
 {
 	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -
-		sizeof(struct allocation_header) -
-		sizeof(struct oob_header);
+		sizeof(struct allocation_header_legacy);
 
 	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
 	UT_COMPILE_ERROR_ON(offsetof(struct chunk_run, data) <

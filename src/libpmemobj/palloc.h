@@ -43,33 +43,34 @@
 #include "memops.h"
 #include "redo.h"
 
-/*
- * Number of bytes between end of allocation header and beginning of user data.
- */
-#define PALLOC_DATA_OFF 48
-
 struct palloc_heap {
 	struct pmem_ops p_ops;
 	struct heap_layout *layout;
 	struct heap_rt *rt;
 	uint64_t size;
+	uint64_t run_id;
 
 	void *base;
 };
+
+struct memory_block;
 
 typedef int (*palloc_constr)(void *base, void *ptr,
 		size_t usable_size, void *arg);
 
 int palloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	size_t size, palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx);
 
 uint64_t palloc_first(struct palloc_heap *heap);
 uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 
 size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
+uint64_t palloc_extra(struct palloc_heap *heap, uint64_t off);
+uint16_t palloc_flags(struct palloc_heap *heap, uint64_t off);
 
-int palloc_boot(struct palloc_heap *heap, void *heap_start,
+int palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t run_id,
 		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
 int palloc_buckets_init(struct palloc_heap *heap);
 
@@ -81,11 +82,10 @@ int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
 void palloc_heap_cleanup(struct palloc_heap *heap);
 
 /* foreach callback, terminates iteration if return value is non-zero */
-typedef int (*object_callback)(uint64_t off, void *arg);
+typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #ifdef USE_VG_MEMCHECK
-void palloc_heap_vg_open(struct palloc_heap *heap,
-		object_callback cb, void *arg, int objects);
+void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif
 
 #endif
