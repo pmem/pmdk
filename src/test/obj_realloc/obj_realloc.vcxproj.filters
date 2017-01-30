@@ -75,6 +75,12 @@
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\ctl.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\ctl_global.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
     <ClCompile Include="obj_realloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
