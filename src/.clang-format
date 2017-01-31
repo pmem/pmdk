@@ -30,3 +30,6 @@ AlwaysBreakTemplateDeclarations: true
 AccessModifierOffset: -8
 AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
+
+# Uncomment after switching to clang-format >= 3.9
+#BreakStringLiterals: false
