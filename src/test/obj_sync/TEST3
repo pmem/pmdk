@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ require_valgrind_dev_3_10
 configure_valgrind drd force-enable
 setup
 
-expect_normal_exit ./obj_sync$EXESUFFIX r 10 50
+expect_normal_exit ./obj_sync$EXESUFFIX r 10 5
 
 check
 
