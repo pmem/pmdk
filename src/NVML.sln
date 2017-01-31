@@ -244,6 +244,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_simple", "examples\libpmemobj\pmemlog\obj_pmemlog_simple.vcxproj", "{5DB2E259-0D19-4A89-B8EC-B2912F39924D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm", "test\libpmempool_rm\libpmempool_rm.vcxproj", "{5F2B687A-1B42-439C-AEEC-135DD22FB851}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_is_pmem_proc_windows", "test\pmem_is_pmem_proc_windows\pmem_is_pmem_proc_windows.vcxproj", "{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}"
 EndProject
