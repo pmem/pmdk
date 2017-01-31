@@ -1030,6 +1030,11 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
+	if ((pop->ctl = ctl_new()) == NULL) {
+		ERR("!ctl_new");
+		return -1;
+	}
+
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
@@ -1625,6 +1630,8 @@ static void
 obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
+
+	ctl_delete(pop->ctl);
 
 	palloc_heap_cleanup(&pop->heap);
 

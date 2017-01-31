@@ -112,6 +112,9 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
  */
 size_t pmemobj_root_size(PMEMobjpool *pop);
 
+int pmemobj_ctl(PMEMobjpool *pop, const char *name,
+	void *read_arg, void *write_arg);
+
 #ifdef __cplusplus
 }
 #endif
