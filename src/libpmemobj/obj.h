@@ -44,6 +44,7 @@
 #include "pool_hdr.h"
 #include "pmalloc.h"
 #include "redo.h"
+#include "ctl.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -131,6 +132,8 @@ struct pmemobjpool {
 	uint64_t uuid_lo;
 	int is_dev_dax;		/* true if mapped on device dax */
 
+	struct ctl *ctl;
+
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
 	struct redo_ctx *redo;
@@ -161,7 +164,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1580];
+	char unused2[1572];
 };
 
 /*
