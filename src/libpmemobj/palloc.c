@@ -139,7 +139,8 @@ palloc_operation(struct palloc_heap *heap,
 	struct memory_block existing_block = MEMORY_BLOCK_NONE;
 	struct memory_block new_block = MEMORY_BLOCK_NONE;
 
-	struct bucket *default_bucket = heap_get_default_bucket(heap);
+	pthread_mutex_t *existing_bucket_lock = NULL;
+	pthread_mutex_t *new_bucket_lock = NULL;
 	int ret = 0;
 
 	/*
@@ -173,7 +174,8 @@ palloc_operation(struct palloc_heap *heap,
 		struct alloc_class *c = heap_get_best_class(heap, size);
 		struct bucket *b = heap_get_bucket_by_class(heap, c);
 
-		util_mutex_lock(&b->lock);
+		existing_bucket_lock = &b->lock;
+		util_mutex_lock(existing_bucket_lock);
 
 		/*
 		 * The caller provided size in bytes, but buckets operate in
@@ -188,7 +190,6 @@ palloc_operation(struct palloc_heap *heap,
 
 		errno = heap_get_bestfit_block(heap, b, &new_block);
 		if (errno != 0) {
-			util_mutex_unlock(&b->lock);
 			ret = -1;
 			goto out;
 		}
@@ -214,7 +215,6 @@ palloc_operation(struct palloc_heap *heap,
 				bucket_insert_block(b, &new_block);
 			}
 
-			util_mutex_unlock(&b->lock);
 			errno = ECANCELED;
 			ret = -1;
 			goto out;
@@ -229,16 +229,15 @@ palloc_operation(struct palloc_heap *heap,
 		 */
 		new_block_lock = new_block.m_ops->get_lock(&new_block);
 
-		if (new_block_lock != NULL)
-			util_mutex_lock(new_block_lock);
-
 		/*
 		 * This lock can only be dropped after the run lock is acquired.
 		 * The reason for this is that the bucket can revoke the claim
 		 * on the run during the heap_get_bestfit_block method which
 		 * means the run will become available to others.
 		 */
-		util_mutex_unlock(&b->lock);
+		if (new_block_lock != NULL)
+			util_mutex_lock(new_block_lock);
+
 #ifdef DEBUG
 		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
 			ERR("Double free or heap corruption");
@@ -271,6 +270,35 @@ palloc_operation(struct palloc_heap *heap,
 		if (user_size == size)
 			goto out;
 
+		/* not in-place realloc */
+		if (!MEMORY_BLOCK_IS_NONE(new_block)) {
+			size_t old_size = user_size;
+			size_t to_cpy = old_size > size ? size : old_size;
+			VALGRIND_ADD_TO_TX(
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				to_cpy);
+			pmemops_memcpy_persist(&heap->p_ops,
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				HEAP_OFF_TO_PTR(heap, off),
+				to_cpy);
+			VALGRIND_REMOVE_FROM_TX(
+				HEAP_OFF_TO_PTR(heap, offset_value),
+				to_cpy);
+		}
+
+		struct memory_block coalesced_block = existing_block;
+		if (existing_block.type == MEMORY_BLOCK_HUGE) {
+			/* this mutex is unlocked after processing */
+			struct bucket *b = heap_get_default_bucket(heap);
+			if (existing_bucket_lock != &b->lock) {
+				new_bucket_lock = &b->lock;
+				util_mutex_lock(new_bucket_lock);
+			}
+
+			coalesced_block = heap_coalesce_huge(heap,
+				&existing_block);
+		}
+
 		/*
 		 * This lock must be held until the operation is processed
 		 * successfully, because other threads might operate on the
@@ -294,38 +322,16 @@ palloc_operation(struct palloc_heap *heap,
 		}
 #endif /* DEBUG */
 
-		/* not in-place realloc */
-		if (!MEMORY_BLOCK_IS_NONE(new_block)) {
-			size_t old_size = user_size;
-			size_t to_cpy = old_size > size ? size : old_size;
-			VALGRIND_ADD_TO_TX(
-				HEAP_OFF_TO_PTR(heap, offset_value),
-				to_cpy);
-			pmemops_memcpy_persist(&heap->p_ops,
-				HEAP_OFF_TO_PTR(heap, offset_value),
-				HEAP_OFF_TO_PTR(heap, off),
-				to_cpy);
-			VALGRIND_REMOVE_FROM_TX(
-				HEAP_OFF_TO_PTR(heap, offset_value),
-				to_cpy);
-		}
-
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
 			(char *)existing_block.m_ops
 				->get_user_data(&existing_block));
-
-		if (existing_block.type == MEMORY_BLOCK_HUGE) {
-			/* this mutex is unlocked after processing */
-			util_mutex_lock(&default_bucket->lock);
-			existing_block = heap_coalesce_huge(heap,
-				&existing_block);
-		}
 
 		/*
 		 * This method will insert new entries into the operation
 		 * context which will, after processing, update the chunk
 		 * metadata to 'free'.
 		 */
+		existing_block = coalesced_block;
 		existing_block.m_ops->prep_hdr(&existing_block,
 			MEMBLOCK_FREE, ctx);
 	}
@@ -346,17 +352,20 @@ palloc_operation(struct palloc_heap *heap,
 	 * but in some cases it might not be in-sync with the its transient
 	 * representation.
 	 */
-	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
-		if (existing_block.type == MEMORY_BLOCK_HUGE) {
-			bucket_insert_block(default_bucket, &existing_block);
-			/* locked before coalescing */
-			util_mutex_unlock(&default_bucket->lock);
-		}
+	if (existing_block.type == MEMORY_BLOCK_HUGE) {
+		bucket_insert_block(heap_get_default_bucket(heap),
+			&existing_block);
 	}
 
 out:
+	if (existing_bucket_lock != NULL)
+		util_mutex_unlock(existing_bucket_lock);
+
 	if (existing_block_lock != NULL)
 		util_mutex_unlock(existing_block_lock);
+
+	if (new_bucket_lock != NULL)
+		util_mutex_unlock(new_bucket_lock);
 
 	if (new_block_lock != NULL)
 		util_mutex_unlock(new_block_lock);
