@@ -1460,6 +1460,7 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		struct zone *z = ZID_TO_ZONE(layout, i);
 		uint32_t chunks;
 		m.zone_id = i;
+		m.chunk_id = 0;
 
 		VALGRIND_DO_MAKE_MEM_DEFINED(&z->header, sizeof(z->header));
 
@@ -1475,6 +1476,8 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 			VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
 
 			heap_vg_open_chunk(heap, cb, arg, objects, &m);
+			m.block_off = 0;
+			m.size_idx = 0;
 
 			ASSERT(hdr->size_idx > 0);
 
