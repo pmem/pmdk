@@ -458,13 +458,13 @@ util_unlink(const char *path)
 int
 util_unlink_flock(const char *path)
 {
-	int fd = util_file_open(path, NULL, 0, O_RDWR);
-	if (fd < 0)
+	int fd = util_file_open(path, NULL, 0, O_RDONLY);
+	if (fd < 0) {
+		printf("file open failed\n");
 		return fd;
-
-	int ret = util_unlink(path);
+	}
 
 	(void) close(fd);
 
-	return ret;
+	return util_unlink(path);
 }
