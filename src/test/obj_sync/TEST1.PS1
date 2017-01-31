@@ -58,7 +58,7 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_sync$Env:EXESUFFIX m 10 50
+expect_normal_exit $Env:EXE_DIR\obj_sync$Env:EXESUFFIX m 10 5
 
 check
 

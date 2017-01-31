@@ -47,6 +47,8 @@
 #define LOCKED_MUTEX 1
 #define NANO_PER_ONE 1000000000LL
 #define TIMEOUT (NANO_PER_ONE / 1000LL)
+#define WORKER_RUNS 10
+#define MAX_OPENS 5
 
 #define FATAL_USAGE() UT_FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
 
@@ -114,13 +116,16 @@ mock_open_pool(PMEMobjpool *pop)
 static void *
 mutex_write_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		UT_ERR("pmemobj_mutex_lock");
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
+			UT_ERR("pmemobj_mutex_lock");
+			return NULL;
+		}
+
+		memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
+		if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
+			UT_ERR("pmemobj_mutex_unlock");
 	}
-	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		UT_ERR("pmemobj_mutex_unlock");
 
 	return NULL;
 }
@@ -131,15 +136,19 @@ mutex_write_worker(void *arg)
 static void *
 mutex_check_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
-		UT_ERR("pmemobj_mutex_lock");
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex)) {
+			UT_ERR("pmemobj_mutex_lock");
+			return NULL;
+		}
+		uint8_t val = Test_obj->data[0];
+		for (int i = 1; i < DATA_SIZE; i++)
+			UT_ASSERTeq(Test_obj->data[i], val);
+
+		memset(Test_obj->data, 0, DATA_SIZE);
+		if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
+			UT_ERR("pmemobj_mutex_unlock");
 	}
-	uint8_t val = Test_obj->data[0];
-	for (int i = 1; i < DATA_SIZE; i++)
-		UT_ASSERTeq(Test_obj->data[i], val);
-	if (pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex))
-		UT_ERR("pmemobj_mutex_unlock");
 
 	return NULL;
 }
@@ -150,14 +159,16 @@ mutex_check_worker(void *arg)
 static void *
 cond_write_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
+			return NULL;
 
-	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
-	Test_obj->check_data = 1;
-	if (pmemobj_cond_signal(&Mock_pop, &Test_obj->cond))
-		UT_ERR("pmemobj_cond_signal");
-	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
+		memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
+		Test_obj->check_data = 1;
+		if (pmemobj_cond_signal(&Mock_pop, &Test_obj->cond))
+			UT_ERR("pmemobj_cond_signal");
+		pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
+	}
 
 	return NULL;
 }
@@ -168,18 +179,22 @@ cond_write_worker(void *arg)
 static void *
 cond_check_worker(void *arg)
 {
-	if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_mutex_lock(&Mock_pop, &Test_obj->mutex))
+			return NULL;
 
-	while (Test_obj->check_data != 1) {
-		if (pmemobj_cond_wait(&Mock_pop, &Test_obj->cond,
-					&Test_obj->mutex))
-			UT_ERR("pmemobj_cond_wait");
+		while (Test_obj->check_data != 1) {
+			if (pmemobj_cond_wait(&Mock_pop, &Test_obj->cond,
+						&Test_obj->mutex))
+				UT_ERR("pmemobj_cond_wait");
+		}
+		uint8_t val = Test_obj->data[0];
+		for (int i = 1; i < DATA_SIZE; i++)
+			UT_ASSERTeq(Test_obj->data[i], val);
+
+		memset(Test_obj->data, 0, DATA_SIZE);
+		pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 	}
-	uint8_t val = Test_obj->data[0];
-	for (int i = 1; i < DATA_SIZE; i++)
-		UT_ASSERTeq(Test_obj->data[i], val);
-	pmemobj_mutex_unlock(&Mock_pop, &Test_obj->mutex);
 
 	return NULL;
 }
@@ -190,13 +205,16 @@ cond_check_worker(void *arg)
 static void *
 rwlock_write_worker(void *arg)
 {
-	if (pmemobj_rwlock_wrlock(&Mock_pop, &Test_obj->rwlock)) {
-		UT_ERR("pmemobj_rwlock_wrlock");
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_rwlock_wrlock(&Mock_pop, &Test_obj->rwlock)) {
+			UT_ERR("pmemobj_rwlock_wrlock");
+			return NULL;
+		}
+
+		memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
+		if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
+			UT_ERR("pmemobj_rwlock_unlock");
 	}
-	memset(Test_obj->data, (int)(uintptr_t)arg, DATA_SIZE);
-	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
-		UT_ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
 }
@@ -207,15 +225,18 @@ rwlock_write_worker(void *arg)
 static void *
 rwlock_check_worker(void *arg)
 {
-	if (pmemobj_rwlock_rdlock(&Mock_pop, &Test_obj->rwlock)) {
-		UT_ERR("pmemobj_rwlock_rdlock");
-		return NULL;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
+		if (pmemobj_rwlock_rdlock(&Mock_pop, &Test_obj->rwlock)) {
+			UT_ERR("pmemobj_rwlock_rdlock");
+			return NULL;
+		}
+		uint8_t val = Test_obj->data[0];
+		for (int i = 1; i < DATA_SIZE; i++)
+			UT_ASSERTeq(Test_obj->data[i], val);
+
+		if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
+			UT_ERR("pmemobj_rwlock_unlock");
 	}
-	uint8_t val = Test_obj->data[0];
-	for (int i = 1; i < DATA_SIZE; i++)
-		UT_ASSERTeq(Test_obj->data[i], val);
-	if (pmemobj_rwlock_unlock(&Mock_pop, &Test_obj->rwlock))
-		UT_ERR("pmemobj_rwlock_unlock");
 
 	return NULL;
 }
@@ -235,54 +256,57 @@ timed_write_worker(void *arg)
 static void *
 timed_check_worker(void *arg)
 {
-	int mutex_id = (int)(uintptr_t)arg % 2;
-	PMEMmutex *mtx = mutex_id == LOCKED_MUTEX ?
-			&Test_obj->mutex_locked : &Test_obj->mutex;
+	for (unsigned run = 0; run < WORKER_RUNS; run++) {
 
-	struct timespec t1, t2, t_diff, abs_time;
-	clock_gettime(CLOCK_REALTIME, &t1);
-	abs_time = t1;
-	abs_time.tv_nsec += TIMEOUT;
-	if (abs_time.tv_nsec > NANO_PER_ONE) {
-		abs_time.tv_sec += abs_time.tv_nsec / NANO_PER_ONE;
-		abs_time.tv_nsec %= NANO_PER_ONE;
-	}
+		int mutex_id = (int)(uintptr_t)arg % 2;
+		PMEMmutex *mtx = mutex_id == LOCKED_MUTEX ?
+				&Test_obj->mutex_locked : &Test_obj->mutex;
 
-	int ret = pmemobj_mutex_timedlock(&Mock_pop, mtx, &abs_time);
-
-	clock_gettime(CLOCK_REALTIME, &t2);
-
-	if (mutex_id == LOCKED_MUTEX) {
-		UT_ASSERTeq(ret, ETIMEDOUT);
-		t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
-		t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
-
-		if (t_diff.tv_nsec < 0) {
-			--t_diff.tv_sec;
-			t_diff.tv_nsec += NANO_PER_ONE;
+		struct timespec t1, t2, t_diff, abs_time;
+		clock_gettime(CLOCK_REALTIME, &t1);
+		abs_time = t1;
+		abs_time.tv_nsec += TIMEOUT;
+		if (abs_time.tv_nsec > NANO_PER_ONE) {
+			abs_time.tv_sec += abs_time.tv_nsec / NANO_PER_ONE;
+			abs_time.tv_nsec %= NANO_PER_ONE;
 		}
-		UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
-				t_diff.tv_nsec >= TIMEOUT);
 
-		return NULL;
-	}
+		int ret = pmemobj_mutex_timedlock(&Mock_pop, mtx, &abs_time);
 
-	if (ret == 0) {
-		UT_ASSERTne(mutex_id, LOCKED_MUTEX);
-		pmemobj_mutex_unlock(&Mock_pop, mtx);
-	} else if (ret == ETIMEDOUT) {
-		t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
-		t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+		clock_gettime(CLOCK_REALTIME, &t2);
 
-		if (t_diff.tv_nsec < 0) {
-			--t_diff.tv_sec;
-			t_diff.tv_nsec += NANO_PER_ONE;
+		if (mutex_id == LOCKED_MUTEX) {
+			UT_ASSERTeq(ret, ETIMEDOUT);
+			t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
+			t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+
+			if (t_diff.tv_nsec < 0) {
+				--t_diff.tv_sec;
+				t_diff.tv_nsec += NANO_PER_ONE;
+			}
+			UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
+					t_diff.tv_nsec >= TIMEOUT);
+
+			return NULL;
 		}
-		UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
-				t_diff.tv_nsec >= TIMEOUT);
-	} else {
-		errno = ret;
-		UT_ERR("!pmemobj_mutex_timedlock");
+
+		if (ret == 0) {
+			UT_ASSERTne(mutex_id, LOCKED_MUTEX);
+			pmemobj_mutex_unlock(&Mock_pop, mtx);
+		} else if (ret == ETIMEDOUT) {
+			t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
+			t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+
+			if (t_diff.tv_nsec < 0) {
+				--t_diff.tv_sec;
+				t_diff.tv_nsec += NANO_PER_ONE;
+			}
+			UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
+					t_diff.tv_nsec >= TIMEOUT);
+		} else {
+			errno = ret;
+			UT_ERR("!pmemobj_mutex_timedlock");
+		}
 	}
 
 	return NULL;
@@ -366,7 +390,9 @@ main(int argc, char *argv[])
 	if (num_threads > MAX_THREAD_NUM)
 		UT_FATAL("Do not use more than %d threads.\n", MAX_THREAD_NUM);
 
-	unsigned long runs = strtoul(argv[3], NULL, 10);
+	unsigned long opens = strtoul(argv[3], NULL, 10);
+	if (opens > MAX_OPENS)
+		UT_FATAL("Do not use more than %d runs.\n", MAX_OPENS);
 
 	pthread_t *write_threads
 		= (pthread_t *)MALLOC(num_threads * sizeof(pthread_t));
@@ -386,7 +412,7 @@ main(int argc, char *argv[])
 	Test_obj->check_data = 0;
 	memset(&Test_obj->data, 0, DATA_SIZE);
 
-	for (unsigned run = 0; run < runs; run++) {
+	for (unsigned long run = 0; run < opens; run++) {
 		if (test_type == 't') {
 			pmemobj_mutex_lock(&Mock_pop,
 					&Test_obj->mutex_locked);
