@@ -353,7 +353,8 @@ palloc_operation(struct palloc_heap *heap,
 	 * representation.
 	 */
 	if (existing_block.type == MEMORY_BLOCK_HUGE) {
-		bucket_insert_block(heap_get_default_bucket(heap), &existing_block);
+		bucket_insert_block(heap_get_default_bucket(heap),
+			&existing_block);
 	}
 
 out:
