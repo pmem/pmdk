@@ -328,7 +328,21 @@ line: while (<$filehandle>) {
 		1 while $eline =~
 		    s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e;
 		if (length($eline) > 80) {
-			err("line > 80 characters");
+			# allow long line if it is user visible string
+			# find if line start from " and ends
+			# with " + 2 optional characters
+			# (these characters can be i.e. '");' '" \' or '",' etc...)
+			if($eline =~ /^ *".*"[^"]{0,2}$/) {
+				# check if entire line is one string literal
+				$eline =~ s/^ *"//;
+				$eline =~ s/"[^"]{0,2}$//;
+
+				if($eline =~ /[^\\]"|[^\\](\\\\)+"/) {
+					err("line > 80 characters");
+				}
+			} else {
+				err("line > 80 characters");
+			}
 		}
 	}
 
