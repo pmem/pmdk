@@ -96,7 +96,8 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 		return 0;
 	}
 
-	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE, "destination of the backup already exists.|Do you want to overwrite it?");
+	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE,
+		"destination of the backup already exists.|Do you want to overwrite it?");
 
 	return check_questions_sequence_validate(ppc);
 }
@@ -209,7 +210,8 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 
 		if ((size_t)util_file_get_size(drep->part[p].path) !=
 				srep->part[p].filesize) {
-			CHECK_INFO(ppc, "destination of the backup part does not match size of the source part file: %s",
+			CHECK_INFO(ppc,
+				"destination of the backup part does not match size of the source part file: %s",
 				drep->part[p].path);
 			goto err_poolset;
 		}

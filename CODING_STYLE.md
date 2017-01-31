@@ -26,6 +26,7 @@ Simply run `make cstyle` or `CSTYLE.ps1` to verify if your code is well-formatte
 Here is the list of the most important rules:
 - The limit of line length is 80 characters.
 - Indent the code with TABs, not spaces. Tab width is 8 characters.
+- Do not break user-visible strings (even when they are longer than 80 characters)
 - Put each variable declaration in a separate line.
 - Do not use C++ comments (`//`).
 - Spaces around operators are mandatory.
