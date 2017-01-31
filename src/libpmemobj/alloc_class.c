@@ -286,6 +286,8 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 	struct alloc_class *best_c = NULL;
 	float best_frag = FLT_MAX;
 
+	ASSERTne(n, 0);
+
 	/*
 	 * Start from the largest buckets in order to minimize unit size of
 	 * allocated memory blocks.
@@ -403,7 +405,7 @@ alloc_class_collection_new(void)
 		ac->class_map_by_alloc_size[i] = c->id;
 	}
 
-#ifndef DEBUG
+#ifdef DEBUG
 	/*
 	 * Verify that each bucket's unit size points back to the bucket by the
 	 * bucket map. This must be true for the default allocation classes,
@@ -411,9 +413,9 @@ alloc_class_collection_new(void)
 	 */
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
-		ASSERTeq(i, c->id);
 
 		if (c != NULL) {
+			ASSERTeq(i, c->id);
 			uint8_t class_id = ac->class_map_by_unit_size[
 				SIZE_TO_CLASS_MAP_INDEX(c->unit_size)];
 

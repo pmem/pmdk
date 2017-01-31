@@ -444,15 +444,15 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 	if (m->m_ops->claim(m) != 0)
 		return 0; /* this run already has an owner */
 
-	pthread_mutex_t *lock = m->m_ops->get_lock(m);
-	util_mutex_lock(lock);
-
 	struct alloc_class *c = alloc_class_get_create_by_unit_size(
 		heap->rt->alloc_classes, run->block_size);
 	if (c == NULL)
 		return 0;
 
 	ASSERTeq(c->type, CLASS_RUN);
+
+	pthread_mutex_t *lock = m->m_ops->get_lock(m);
+	util_mutex_lock(lock);
 
 	unsigned i;
 	unsigned nval = c->run.bitmap_nval;
@@ -942,7 +942,6 @@ heap_buckets_init(struct palloc_heap *heap)
 	return 0;
 
 error_bucket_create:
-	bucket_delete(h->default_bucket);
 	for (unsigned i = 0; i < h->ncaches; ++i)
 		bucket_group_destroy(h->caches[i].buckets);
 
