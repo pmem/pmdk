@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -104,7 +104,7 @@ sub check_whitespace_with_exc {
 
 	$_ = basename($full);
 
-	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13]|sh|map|cpp|hpp|inc|PS1|ps1|md))$/;
+	return 0 unless /^(README.*|LICENSE.*|Makefile.*|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13s]|sh|map|cpp|hpp|inc|PS1|ps1|md))$/;
 	return 0 if -z;
 
 	check_whitespace($full, $_);
