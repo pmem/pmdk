@@ -642,7 +642,10 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	/* cannot reuse an existing run, create a new one */
 	struct bucket *defb = heap_get_default_bucket(heap);
 	util_mutex_lock(&defb->lock);
-	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
+	int bestfit_result = heap_get_bestfit_block(heap, defb, &m);
+	util_mutex_unlock(&defb->lock);
+
+	if (bestfit_result == 0) {
 		ASSERTeq(m.block_off, 0);
 
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
@@ -651,10 +654,8 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		b->active_memory_block = m;
 		b->is_active = 1;
 
-		util_mutex_unlock(&defb->lock);
 		return 0;
 	}
-	util_mutex_unlock(&defb->lock);
 
 	/*
 	 * Try the recycler again, the previous call to the bestfit_block for
