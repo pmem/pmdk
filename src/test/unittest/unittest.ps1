@@ -651,17 +651,17 @@ function check {
 #
 function pass {
     if ($Env:TM -eq 1) {
-        sv -Name tm (Get-Date -Format G)
-        $tm = "\t\t\t[$tm]"
+        $end_time = $script:tm.Elapsed.ToString('hh\:mm\:ss\.fff') -Replace "^(00:){1,2}",""
+        $script:tm.reset()
     } else {
-        sv -Name tm ""
+        sv -Name end_time $null
     }
 
     sv -Name msg "PASS"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewline -foregroundcolor green $msg
-    if ($tm) {
-        Write-Host -NoNewline (":" + $tm)
+    if ($end_time) {
+        Write-Host -NoNewline ("`t`t`t" + "[" + $end_time + " s]")
     }
 
     if ($Env:FS -ne "none") {
@@ -1047,7 +1047,9 @@ function setup {
         mkdir $DIR > $null
     }
 
-    if ($TM -eq "1" ) { sv -Name start_time (epoch) }
+    if ($Env:TM -eq "1" ) {
+        $script:tm = [system.diagnostics.stopwatch]::startNew()
+    }
 }
 
 function dump_last_n_lines {
