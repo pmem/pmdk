@@ -40,11 +40,11 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type any
+require_fs_type pmem
 require_test_type medium
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_rand_mt$EXESUFFIX $DIR/testfile 8 1000 260000 10000
+	./obj_pmalloc_rand_mt$EXESUFFIX $DIR/testfile 8 1000 260000
 
 pass
