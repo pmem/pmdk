@@ -49,7 +49,7 @@ test_worker(void *arg)
 	PMEMobjpool *pop = arg;
 
 	unsigned seed = time(NULL);
-	PMEMoid *objects = MALLOC(sizeof(PMEMoid) * nobjects);
+	PMEMoid *objects = ZALLOC(sizeof(PMEMoid) * nobjects);
 	int fill = 0;
 
 	int ret;
