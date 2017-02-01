@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,8 +36,6 @@
 #
 export UNITTEST_NAME=obj_pmalloc_mt/TEST0
 export UNITTEST_NUM=0
-
-export VALGRIND_OPTS="--suppressions=helgrind_adjacent_block.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh
