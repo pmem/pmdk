@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@
 #define STR_MODE_PATTERN	"check-pattern"
 #define STR_MODE_LICENSE	"check-license"
 
-#define ERROR(fmt, args...)	fprintf(stderr, "error: " fmt "\n", ## args)
+#define ERROR(fmt, ...)	fprintf(stderr, "error: " fmt "\n", __VA_ARGS__)
 
 /*
  * help_str -- string for the help message
