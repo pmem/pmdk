@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,32 +45,47 @@
 #include "rpmem_common.h"
 #include "rpmem_fip_common.h"
 
-#define SIGNATURE	"<RPMEM>"
-#define MAJOR		1
-#define COMPAT_F	2
-#define INCOMPAT_F	3
-#define ROCOMPAT_F	4
-#define POOLSET_UUID	"POOLSET_UUID0123"
-#define UUID		"UUID0123456789AB"
-#define NEXT_UUID	"NEXT_UUID0123456"
-#define PREV_UUID	"PREV_UUID0123456"
 /*
- * Use default terminal command for terminating
- * session in order to make sure this is not interpreted by terminal.
+ * Use default terminal command for terminating session in user flags field
+ * in order to make sure this is not interpreted by terminal.
  */
-#define USER_FLAGS	"USER_FLAGS\0\0\0\n~."
 #define POOL_ATTR_INIT {\
-	.signature = SIGNATURE,\
-	.major = MAJOR,\
-	.compat_features = COMPAT_F,\
-	.incompat_features = INCOMPAT_F,\
-	.ro_compat_features = ROCOMPAT_F,\
-	.poolset_uuid = POOLSET_UUID,\
-	.uuid = UUID,\
-	.next_uuid = NEXT_UUID,\
-	.prev_uuid = PREV_UUID,\
-	.user_flags = USER_FLAGS,\
+	.signature		= "<RPMEM>",\
+	.major			= 1,\
+	.compat_features	= 2,\
+	.incompat_features	= 3,\
+	.ro_compat_features	= 4,\
+	.poolset_uuid		= "POOLSET_UUID0123",\
+	.uuid			= "UUID0123456789AB",\
+	.next_uuid		= "NEXT_UUID0123456",\
+	.prev_uuid		= "PREV_UUID0123456",\
+	.user_flags		= "USER_FLAGS\0\0\0\n~.",\
 }
+
+#define POOL_ATTR_ALT {\
+	.signature		= "<ALT>",\
+	.major			= 5,\
+	.compat_features	= 6,\
+	.incompat_features	= 7,\
+	.ro_compat_features	= 8,\
+	.poolset_uuid		= "UUID_POOLSET_ALT",\
+	.uuid			= "ALT_UUIDCDEFFEDC",\
+	.next_uuid		= "456UUID_NEXT_ALT",\
+	.prev_uuid		= "UUID012_ALT_PREV",\
+	.user_flags		= "\0\0\0\n~._ALT_FLAGS",\
+}
+
+const struct rpmem_pool_attr pool_attrs[] = {
+	POOL_ATTR_INIT,
+	POOL_ATTR_ALT
+};
+
+const char *pool_attr_names[] = {
+	"init",
+	"alt"
+};
+
+#define POOL_ATTR_INIT_INDEX	0
 
 #define NLANES	1024
 
@@ -135,26 +150,46 @@ free_pool(struct pool_entry *pool)
 }
 
 /*
- * check_pool_attr -- check pool attributes
+ * str_2_pool_attr_index -- convert string to the index of pool attributes
+ */
+static int
+str_2_pool_attr_index(const char *str)
+{
+	COMPILE_ERROR_ON((sizeof(pool_attr_names) / sizeof(pool_attr_names[0]))
+		!= (sizeof(pool_attrs) / sizeof(pool_attrs[0])));
+
+	const unsigned num_of_names = sizeof(pool_attr_names) /
+		sizeof(pool_attr_names[0]);
+	for (int i = 0; i < num_of_names; ++i) {
+		if (strcmp(str, pool_attr_names[i]) == 0) {
+			return i;
+		}
+	}
+
+	UT_FATAL("unrecognized name of pool attributes set: %s", str);
+}
+
+/*
+ * cmp_pool_attr -- check pool attributes
  */
 static void
-check_pool_attr(struct rpmem_pool_attr *pool_attr)
+cmp_pool_attr(const struct rpmem_pool_attr *attr1,
+	const struct rpmem_pool_attr *attr2)
 {
-	struct rpmem_pool_attr attr = POOL_ATTR_INIT;
-	UT_ASSERTeq(memcmp(pool_attr->signature, attr.signature,
-				sizeof(pool_attr->signature)), 0);
-	UT_ASSERTeq(pool_attr->major, attr.major);
-	UT_ASSERTeq(pool_attr->compat_features, attr.compat_features);
-	UT_ASSERTeq(pool_attr->ro_compat_features, attr.ro_compat_features);
-	UT_ASSERTeq(pool_attr->incompat_features, attr.incompat_features);
-	UT_ASSERTeq(memcmp(pool_attr->uuid, attr.uuid,
-				sizeof(pool_attr->uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->poolset_uuid, attr.poolset_uuid,
-				sizeof(pool_attr->poolset_uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->prev_uuid, attr.prev_uuid,
-				sizeof(pool_attr->prev_uuid)), 0);
-	UT_ASSERTeq(memcmp(pool_attr->next_uuid, attr.next_uuid,
-				sizeof(pool_attr->next_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->signature, attr2->signature,
+				sizeof(attr1->signature)), 0);
+	UT_ASSERTeq(attr1->major, attr2->major);
+	UT_ASSERTeq(attr1->compat_features, attr2->compat_features);
+	UT_ASSERTeq(attr1->ro_compat_features, attr2->ro_compat_features);
+	UT_ASSERTeq(attr1->incompat_features, attr2->incompat_features);
+	UT_ASSERTeq(memcmp(attr1->uuid, attr2->uuid,
+				sizeof(attr1->uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->poolset_uuid, attr2->poolset_uuid,
+				sizeof(attr1->poolset_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->prev_uuid, attr2->prev_uuid,
+				sizeof(attr1->prev_uuid)), 0);
+	UT_ASSERTeq(memcmp(attr1->next_uuid, attr2->next_uuid,
+				sizeof(attr1->next_uuid)), 0);
 }
 
 /*
@@ -181,7 +216,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 
 	init_pool(pool, pool_path, size_str);
 
-	struct rpmem_pool_attr pool_attr = POOL_ATTR_INIT;
+	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
 			pool->size, &nlanes, &pool_attr);
 
@@ -202,20 +237,22 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 static int
 test_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 5)
+	if (argc < 6)
 		UT_FATAL("usage: test_open <id> <pool set> "
-				"<target> <pool>");
+				"<target> <pool> <pool attr name>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
 	const char *target = argv[2];
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
+	const char *pool_attr_name = argv[5];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
 
 	unsigned nlanes = NLANES;
 
@@ -226,7 +263,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 			pool->size, &nlanes, &pool_attr);
 
 	if (pool->rpp) {
-		check_pool_attr(&pool_attr);
+		cmp_pool_attr(&pool_attr, &pool_attrs[pool_attr_id]);
 		UT_ASSERTne(nlanes, 0);
 
 		UT_OUT("%s: opened", pool_set);
@@ -235,7 +272,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 5;
+	return 6;
 }
 
 /*
@@ -407,6 +444,32 @@ test_remove(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_set_attr -- test case for set attributes operation
+ */
+static int
+test_set_attr(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_set_attr <id> <pool attr name>");
+
+	const char *id_str = argv[0];
+	const char *pool_attr_name = argv[1];
+
+	int id = atoi(id_str);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	struct pool_entry *pool = &pools[id];
+	UT_ASSERTne(pool->rpp, NULL);
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+
+	int ret = rpmem_set_attr(pool->rpp, &pool_attrs[pool_attr_id]);
+	UT_ASSERTeq(ret, 0);
+
+	UT_OUT("set attributes succeeded (%s)", pool_attr_name);
+
+	return 2;
+}
+
+/*
  * check_pool -- check if remote pool contains specified random sequence
  */
 static int
@@ -476,6 +539,7 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 static struct test_case test_cases[] = {
 	TEST_CASE(test_create),
 	TEST_CASE(test_open),
+	TEST_CASE(test_set_attr),
 	TEST_CASE(test_close),
 	TEST_CASE(test_persist),
 	TEST_CASE(test_read),

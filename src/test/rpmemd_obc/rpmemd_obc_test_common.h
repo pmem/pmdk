@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,27 +48,29 @@
 #define RKEY		0x0123456789abcdef
 #define RADDR		0xfedcba9876543210
 #define PERSIST_METHOD	RPMEM_PM_APM
-#define SIGNATURE	"<RPMEM>"
-#define MAJOR		1
-#define COMPAT_F	2
-#define INCOMPAT_F	3
-#define ROCOMPAT_F	4
-#define POOLSET_UUID	"POOLSET_UUID0123"
-#define UUID		"UUID0123456789AB"
-#define NEXT_UUID	"NEXT_UUID0123456"
-#define PREV_UUID	"PREV_UUID0123456"
-#define USER_FLAGS	"USER_FLAGS012345"
 #define POOL_ATTR_INIT {\
-	.signature = SIGNATURE,\
-	.major = MAJOR,\
-	.compat_features = COMPAT_F,\
-	.incompat_features = INCOMPAT_F,\
-	.ro_compat_features = ROCOMPAT_F,\
-	.poolset_uuid = POOLSET_UUID,\
-	.uuid = UUID,\
-	.next_uuid = NEXT_UUID,\
-	.prev_uuid = PREV_UUID,\
-	.user_flags = USER_FLAGS,\
+	.signature		= "<RPMEM>",\
+	.major			= 1,\
+	.compat_features	= 2,\
+	.incompat_features	= 3,\
+	.ro_compat_features	= 4,\
+	.poolset_uuid		= "POOLSET_UUID0123",\
+	.uuid			= "UUID0123456789AB",\
+	.next_uuid		= "NEXT_UUID0123456",\
+	.prev_uuid		= "PREV_UUID0123456",\
+	.user_flags		= "USER_FLAGS012345",\
+}
+#define POOL_ATTR_ALT {\
+	.signature		= "<ALT>",\
+	.major			= 5,\
+	.compat_features	= 6,\
+	.incompat_features	= 7,\
+	.ro_compat_features	= 8,\
+	.poolset_uuid		= "UUID_POOLSET_ALT",\
+	.uuid			= "ALT_UUIDCDEFFEDC",\
+	.next_uuid		= "456UUID_NEXT_ALT",\
+	.prev_uuid		= "UUID012_ALT_PREV",\
+	.user_flags		= "012345USER_FLAGS",\
 }
 #define POOL_SIZE	0x0001234567abcdef
 #define NLANES		0x123
@@ -145,6 +147,14 @@ static const struct rpmem_msg_close CLOSE_MSG = {
 	},
 };
 
+static const struct rpmem_msg_set_attr SET_ATTR_MSG = {
+	.hdr = {
+		.type = RPMEM_MSG_TYPE_SET_ATTR,
+		.size = sizeof(struct rpmem_msg_set_attr),
+	},
+	.pool_attr = POOL_ATTR_ALT,
+};
+
 TEST_CASE_DECLARE(server_accept_sim);
 TEST_CASE_DECLARE(server_accept_sim_fork);
 TEST_CASE_DECLARE(client_accept_sim);
@@ -165,3 +175,5 @@ TEST_CASE_DECLARE(server_open);
 TEST_CASE_DECLARE(client_close);
 TEST_CASE_DECLARE(server_close);
 TEST_CASE_DECLARE(client_open);
+
+TEST_CASE_DECLARE(client_set_attr);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -221,12 +221,41 @@ req_cb_close(struct rpmemd_obc *obc, void *arg)
 }
 
 /*
+ * req_cb_set_attr -- callback for set attributes request operation
+ *
+ * This function behaves according to arguments specified via
+ * struct req_cb_arg.
+ */
+static int
+req_cb_set_attr(struct rpmemd_obc *obc, void *arg,
+	const struct rpmem_pool_attr *pool_attr)
+{
+	UT_ASSERTne(arg, NULL);
+
+	struct req_cb_arg *args = arg;
+
+	args->types |= (1 << RPMEM_MSG_TYPE_SET_ATTR);
+
+	int ret = args->ret;
+
+	if (args->resp)
+		ret = rpmemd_obc_set_attr_resp(obc, args->status);
+
+	if (args->force_ret)
+		ret = args->ret;
+
+	return ret;
+}
+
+
+/*
  * REQ_CB -- request callbacks
  */
 struct rpmemd_obc_requests REQ_CB = {
 	.create = req_cb_create,
 	.open = req_cb_open,
 	.close = req_cb_close,
+	.set_attr = req_cb_set_attr,
 };
 
 /*
