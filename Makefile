@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -114,7 +114,10 @@ format:
 
 check-license:
 	$(MAKE) -C utils $@
-	@utils/check_license/check-headers.sh
+	@utils/check_license/check-headers.sh \
+		$(TOP) \
+		utils/check_license/check-license \
+		LICENSE
 	@echo Done.
 
 source:
