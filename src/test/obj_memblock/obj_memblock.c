@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 #include "unittest.h"
 #include "heap.h"
 
-#define NCHUNKS 3
+#define NCHUNKS 10
 
 static PMEMobjpool *pop;
 
@@ -127,8 +127,8 @@ test_block_size()
 static void
 test_prep_hdr()
 {
-	struct memory_block mhuge_used = { .chunk_id = 0, 0, 0, 0 };
-	struct memory_block mhuge_free = { .chunk_id = 1, 0, 0, 0 };
+	struct memory_block mhuge_used = { .chunk_id = 0, 0, .size_idx = 1, 0 };
+	struct memory_block mhuge_free = { .chunk_id = 1, 0, .size_idx = 1, 0 };
 	struct memory_block mrun_used = { .chunk_id = 2, 0,
 		.size_idx = 4, .block_off = 0 };
 	struct memory_block mrun_free = { .chunk_id = 2, 0,

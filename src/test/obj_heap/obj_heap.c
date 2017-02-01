@@ -362,6 +362,8 @@ test_recycler()
 	UT_ASSERTeq(mrun3.chunk_id, mrun3_ret.chunk_id);
 	UT_ASSERTeq(mrun4.chunk_id, mrun4_ret.chunk_id);
 
+	recycler_delete(r);
+
 	heap_cleanup(heap);
 	UT_ASSERT(heap->rt == NULL);
 
