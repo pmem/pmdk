@@ -44,7 +44,7 @@ date: pmem Tools version 1.2.0
 
 # NAME #
 
-**pmempool-rm** -- Remove (unlink) poolset files
+**pmempool-rm** -- Remove (unlink) pool set files
 
 
 # SYNOPSIS #
@@ -56,7 +56,7 @@ $ pmempool rm [<options>] <file>..
 # DESCRIPTION #
 
 The **pmempool** invoked with *rm* command removes (unlinks) all files specified
-in command line arguments. If the specified file is a poolset file all parts will
+in command line arguments. If the specified file is a pool set file all parts will
 be removed. All files are removed using the **unlink**(3) call. Without
 specifying the **-i|--interactive** option, the *rm* command prompts only before
 removing *write-protected* files. If specified file does not exist the *rm* command
@@ -76,7 +76,7 @@ Be verbose and print all removing files.
 
 `-s, --only-pools`
 
-Remove only pool files and do not remove poolset files.
+Remove only pool files and do not remove pool set files.
 
 `-f, --force`
 
