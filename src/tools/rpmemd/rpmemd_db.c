@@ -306,7 +306,7 @@ rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp)
 
 	util_mutex_lock(&db->lock);
 
-	util_poolset_close(prp->set, 0);
+	util_poolset_close(prp->set, DO_NOT_DELETE_PARTS);
 	free(prp);
 
 	util_mutex_unlock(&db->lock);
@@ -410,7 +410,7 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
 			}
 		}
 
-		util_poolset_close(set, 0);
+		util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 	}
 
