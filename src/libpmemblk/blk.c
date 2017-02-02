@@ -462,7 +462,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	util_poolset_close(set, 1);
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return NULL;
 }
@@ -533,7 +533,7 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 	return NULL;
 }
@@ -569,7 +569,7 @@ pmemblk_close(PMEMblkpool *pbp)
 	pthread_mutex_destroy(&pbp->write_lock);
 #endif
 
-	util_poolset_close(pbp->set, 0);
+	util_poolset_close(pbp->set, DO_NOT_DELETE_PARTS);
 }
 
 /*
