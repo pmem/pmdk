@@ -133,7 +133,7 @@ The allowed options are:
 
 + `log-file = <path>` - log file location
 
-+ `poolset-dir = <path>` - poolset files directory
++ `poolset-dir = <path>` - pool set files directory
 
 + `persist-apm = {yes|no}` - enable **The Appliance Persistency Method**. This
   option must be set only if the target platform has non-allocating writes IO
