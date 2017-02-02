@@ -513,8 +513,8 @@ line: while (<$filehandle>) {
 	# ".*?" is a non-greedy match, so that we don't get confused by
 	# multiple comments on the same line.
 	#
-	s/\/\*.*?\*\///g;
-	s/\/\/.*$//;		# C++ comments
+	s/\/\*.*?\*\//\x01/g;
+	s/\/\/.*$/\x01/;		# C++ comments
 
 	# delete any trailing whitespace; we have already checked for that.
 	s/\s*$//;
@@ -614,12 +614,12 @@ line: while (<$filehandle>) {
 	# try to detect "int foo(x)", but not "extern int foo(x);"
 	# XXX - this still trips over too many legitimate things,
 	# like "int foo(x,\n\ty);"
-#		if (/^(\w+(\s|\*)+)+\w+\(/ && !/\)[;,](\s|)*$/ &&
+#		if (/^(\w+(\s|\*)+)+\w+\(/ && !/\)[;,](\s|\x01)*$/ &&
 #		    !/^(extern|static)\b/) {
 #			err("return type of function not on separate line");
 #		}
 	# this is a close approximation
-	if (/^(\w+(\s|\*)+)+\w+\(.*\)(\s|)*$/ &&
+	if (/^(\w+(\s|\*)+)+\w+\(.*\)(\s|\x01)*$/ &&
 	    !/^(extern|static)\b/) {
 		err("return type of function not on separate line");
 	}
@@ -729,7 +729,7 @@ line: while (<$filehandle>) {
 	if ($heuristic) {
 		# cannot check this everywhere due to "struct {\n...\n} foo;"
 		if ($in_function && !$in_declaration &&
-		    /}./ && !/}\s+=/ && !/{.*}[;,]$/ && !/}(\s|)*$/ &&
+		    /}./ && !/}\s+=/ && !/{.*}[;,]$/ && !/}(\s|\x01)*$/ &&
 		    !/} (else|while)/ && !/}}/) {
 			err("possible bad text following right brace");
 		}
@@ -814,7 +814,7 @@ process_indent($)
 	require strict;
 	local $_ = $_[0];			# preserve the global $_
 
-	s///g;	# No comments
+	s/\x01//g;	# No comments
 	s/\s+$//;	# Strip trailing whitespace
 
 	return			if (/^$/);	# skip empty lines
