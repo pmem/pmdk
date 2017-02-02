@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -384,10 +384,15 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		memcpy(&pbp, addr, sizeof(pbp));
 		params->blk.bsize = le32toh(pbp.bsize);
 	} else if (params->type == POOL_TYPE_OBJ) {
-		struct pmemobjpool pop;
-		memcpy(&pop, addr, sizeof(pop));
-		memcpy(params->obj.layout, pop.layout,
+		struct pmemobjpool *pop = (struct pmemobjpool *)
+			malloc(sizeof(struct pmemobjpool));
+		if (pop == NULL)
+			FATAL("!pmemobjpool malloc");
+		memcpy(pop, addr, sizeof(struct pmemobjpool));
+		memcpy(params->obj.layout, pop->layout,
 			PMEMOBJ_MAX_LAYOUT);
+
+		free(pop);
 	}
 
 out_unmap:
