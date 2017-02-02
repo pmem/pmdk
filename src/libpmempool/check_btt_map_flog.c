@@ -97,6 +97,7 @@ map_read(PMEMpoolcheck *ppc, struct arena *arenap)
 	uint64_t mapoff = arenap->offset + arenap->btt_info.mapoff;
 	arenap->mapsize = btt_map_size(arenap->btt_info.external_nlba);
 
+	ASSERT(arenap->mapsize != 0);
 	arenap->map = malloc(arenap->mapsize);
 	if (!arenap->map) {
 		ERR("!malloc");
@@ -108,8 +109,9 @@ map_read(PMEMpoolcheck *ppc, struct arena *arenap)
 	}
 
 	uint32_t i;
-	for (i = 0; i < arenap->btt_info.external_nlba; i++)
+	for (i = 0; i < arenap->btt_info.external_nlba; i++) {
 		arenap->map[i] = le32toh(arenap->map[i]);
+	}
 
 	return 0;
 
