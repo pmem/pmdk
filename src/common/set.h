@@ -62,6 +62,12 @@ extern "C" {
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
 
+enum del_parts_mode {
+	DO_NOT_DELETE_PARTS,	/* do not delete part files */
+	DELETE_CREATED_PARTS,	/* delete only newly created parts files */
+	DELETE_ALL_PARTS	/* force delete all parts files */
+};
+
 struct pool_set_part {
 	/* populated by a pool set file parser */
 	const char *path;
@@ -125,22 +131,36 @@ struct pool_attr {
 	const unsigned char *user_flags;	/* user flags */
 };
 
+/* get index of the (r)th replica */
+#define REPidx(set, r) (((set)->nreplicas + (r)) % (set)->nreplicas)
+/* get index of the (r + 1)th replica */
+#define REPNidx(set, r) (((set)->nreplicas + (r) + 1) % (set)->nreplicas)
+/* get index of the (r - 1)th replica */
+#define REPPidx(set, r) (((set)->nreplicas + (r) - 1) % (set)->nreplicas)
+
+/* get intex of the (r)th part */
+#define PARTidx(rep, p) (((rep)->nparts + (p)) % (rep)->nparts)
+/* get intex of the (r + 1)th part */
+#define PARTNidx(rep, p) (((rep)->nparts + (p) + 1) % (rep)->nparts)
+/* get intex of the (r - 1)th part */
+#define PARTPidx(rep, p) (((rep)->nparts + (p) - 1) % (rep)->nparts)
+
 /* get (r)th replica */
 #define REP(set, r)\
-	((set)->replica[((set)->nreplicas + (r)) % (set)->nreplicas])
+	((set)->replica[REPidx(set, r)])
 /* get (r + 1)th replica */
 #define REPN(set, r)\
-	((set)->replica[((set)->nreplicas + (r) + 1) % (set)->nreplicas])
+	((set)->replica[REPNidx(set, r)])
 /* get (r - 1)th replica */
 #define REPP(set, r)\
-	((set)->replica[((set)->nreplicas + (r) - 1) % (set)->nreplicas])
+	((set)->replica[REPPidx(set, r)])
 
 #define PART(rep, p)\
-	((rep)->part[((rep)->nparts + (p)) % (rep)->nparts])
+	((rep)->part[PARTidx(rep, p)])
 #define PARTN(rep, p)\
-	((rep)->part[((rep)->nparts + (p) + 1) % (rep)->nparts])
+	((rep)->part[PARTNidx(rep, p)])
 #define PARTP(rep, p)\
-	((rep)->part[((rep)->nparts + (p) - 1) % (rep)->nparts])
+	((rep)->part[PARTPidx(rep, p)])
 
 #define HDR(rep, p)\
 	((struct pool_hdr *)(PART(rep, p).hdr))
@@ -154,7 +174,7 @@ int util_poolset_read(struct pool_set **setp, const char *path);
 int util_poolset_create_set(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize);
 int util_poolset_open(struct pool_set *set);
-void util_poolset_close(struct pool_set *set, int del);
+void util_poolset_close(struct pool_set *set, enum del_parts_mode del);
 void util_poolset_free(struct pool_set *set);
 int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
@@ -210,6 +230,7 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 void util_remote_init(void);
 void util_remote_fini(void);
 
+int util_update_remote_header(struct pool_set *set, unsigned repn);
 void util_remote_init_lock(void);
 void util_remote_destroy_lock(void);
 int util_pool_close_remote(RPMEMpool *rpp);
@@ -222,6 +243,10 @@ int util_remote_load(void);
 int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
 int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	size_t minsize, int create, unsigned *nlanes);
+int util_replica_close_local(struct pool_replica *rep, unsigned repn,
+		enum del_parts_mode del);
+int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
+		enum del_parts_mode del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
@@ -231,6 +256,10 @@ extern int (*Rpmem_close)(RPMEMpool *rpp);
 
 extern int (*Rpmem_remove)(const char *target,
 		const char *pool_set_name, int flags);
+
+extern int (*Rpmem_set_attr)(RPMEMpool *rpp,
+		const struct rpmem_pool_attr *attr);
+
 
 #ifdef __cplusplus
 }
