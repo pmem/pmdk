@@ -906,9 +906,11 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 	unsigned nfiles = pool_set_files_count(ppc->pool->set_file);
 	if (ppc->result != CHECK_RESULT_PROCESS_ANSWERS) {
 		if (nfiles > 1) {
-			snprintf(loc->prefix, PREFIX_MAX_SIZE,
+			int ret = snprintf(loc->prefix, PREFIX_MAX_SIZE,
 				"replica %u part %u: ",
 				loc->replica, loc->part);
+			if (ret < 0 || ret >= PREFIX_MAX_SIZE)
+				FATAL("!snprintf");
 		} else
 			loc->prefix[0] = '\0';
 		loc->step = 0;

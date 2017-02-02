@@ -359,8 +359,12 @@ check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
 			p > 0) {
 		char buff[UTIL_MAX_ERR_MSG];
 		util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-		snprintf(st->msg + p, MAX_MSG_STR_SIZE - (size_t)p,
+		int ret = snprintf(st->msg + p, MAX_MSG_STR_SIZE - (size_t)p,
 			": %s", buff);
+		if (ret < 0 || ret >= (int)(MAX_MSG_STR_SIZE - (size_t)p)) {
+			ERR("!snprintf");
+			return -1;
+		}
 	}
 
 	st->status.type = type;
@@ -621,9 +625,13 @@ check_get_time_str(time_t time)
 
 	if (tm)
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
-	else
-		snprintf(str_buff, STR_MAX, "unknown");
-
+	else {
+		int ret = snprintf(str_buff, STR_MAX, "unknown");
+		if (ret < 0) {
+			ERR("failed to get time str");
+			return "";
+		}
+	}
 	return str_buff;
 }
 
