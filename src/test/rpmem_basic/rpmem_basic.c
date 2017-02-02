@@ -499,7 +499,7 @@ check_pool(const struct test_case *tc, int argc, char *argv[])
 		UT_ASSERTeq(data[POOL_HDR_SIZE + i], r);
 	}
 
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 	return 3;
 }
@@ -528,7 +528,7 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 	for (size_t i = POOL_HDR_SIZE; i < set->poolsize; i++)
 		data[i] = rand();
 
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 	return 2;
 }

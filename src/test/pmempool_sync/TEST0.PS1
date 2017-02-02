@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -123,11 +123,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
-    "pool_hdr.checksum_gen()" >> $LOG_TEMP
-
-# Check if metadata is corrupted
-expect_normal_exit $PMEMPOOL info $DIR/testfile1 | `
-    Select-String -encoding ASCII -Pattern "^UUID" | %{$_.Line} >> $LOG_TEMP
+    >> $LOG_TEMP
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP

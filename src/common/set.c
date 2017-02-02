@@ -85,31 +85,7 @@ int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
 static int Remote_replication_available;
 static pthread_mutex_t Remote_lock;
-static int Remote_usage_counter;
-
-/*
- * util_remote_init -- initialize remote replication
- */
-void
-util_remote_init()
-{
-	LOG(3, NULL);
-
-	util_mutex_init(&Remote_lock, NULL);
-	Remote_replication_available = 1;
-}
-
-/*
- * util_remote_fini -- finalize remote replication
- */
-void
-util_remote_fini()
-{
-	LOG(3, NULL);
-
-	Remote_replication_available = 0;
-	util_mutex_destroy(&Remote_lock);
-}
+static int Remote_is_loaded;
 
 /*
  * util_dl_check_error -- check libdl error
@@ -161,17 +137,12 @@ util_remote_unload()
 
 	util_mutex_lock(&Remote_lock);
 
-	if (Remote_usage_counter == 0)
+	if (!Remote_is_loaded)
 		goto end_unlock;
 
-	if (Remote_usage_counter > 1)
-		goto end_dec;
-
-	/* Remote_usage_counter == 1 */
 	util_remote_unload_core();
+	Remote_is_loaded = 0;
 
-end_dec:
-	Remote_usage_counter--;
 end_unlock:
 	util_mutex_unlock(&Remote_lock);
 }
@@ -198,7 +169,7 @@ util_remote_load(void)
 
 	util_mutex_lock(&Remote_lock);
 
-	if (Remote_usage_counter > 0)
+	if (Remote_is_loaded)
 		goto end;
 
 	Rpmem_handle_remote = util_dlopen(LIBRARY_REMOTE);
@@ -251,16 +222,43 @@ util_remote_load(void)
 		goto err;
 	}
 
+	Remote_is_loaded = 1;
+
 end:
-	Remote_usage_counter++;
 	util_mutex_unlock(&Remote_lock);
 	return 0;
 
 err:
 	LOG(4, "error clean up");
 	util_remote_unload_core();
+	Remote_is_loaded = 0;
 	util_mutex_unlock(&Remote_lock);
 	return -1;
+}
+
+/*
+ * util_remote_init -- initialize remote replication
+ */
+void
+util_remote_init()
+{
+	LOG(3, NULL);
+
+	util_mutex_init(&Remote_lock, NULL);
+	Remote_replication_available = 1;
+}
+
+/*
+ * util_remote_fini -- finalize remote replication
+ */
+void
+util_remote_fini()
+{
+	LOG(3, NULL);
+
+	util_remote_unload();
+	Remote_replication_available = 0;
+	util_mutex_destroy(&Remote_lock);
 }
 
 /* reserve space for size, path and some whitespace and/or comment */
@@ -500,51 +498,68 @@ util_poolset_open(struct pool_set *set)
 }
 
 /*
- * util_replica_close_local -- (internal) close local replica
+ * util_replica_close_local -- close local replica, optionally delete the
+ *                             replica's parts
  */
-static void
-util_replica_close_local(struct pool_replica *rep, int del)
+int
+util_replica_close_local(struct pool_replica *rep, unsigned repn,
+		del_parts_mode del)
 {
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		if (rep->part[p].fd != -1)
 			(void) close(rep->part[p].fd);
-		if (del && rep->part[p].created) {
+
+		if ((del == DELETE_CREATED_PARTS && rep->part[p].created) ||
+				del == DELETE_ALL_PARTS) {
 			LOG(4, "unlink %s", rep->part[p].path);
-			unlink(rep->part[p].path);
+			int olderrno = errno;
+			if (util_unlink(rep->part[p].path) && errno != ENOENT) {
+				ERR("!unlink %s failed (part %u, replica %u)",
+						rep->part[p].path, p, repn);
+				return -1;
+			}
+			errno = olderrno;
 		}
 	}
+	return 0;
 }
 
 /*
- * util_replica_close_remote -- (internal) close remote replica
+ * util_replica_close_remote -- close remote replica, optionally delete the
+ *                              replica
  */
-static void
-util_replica_close_remote(struct pool_replica *rep, unsigned r, int del)
+int
+util_replica_close_remote(struct pool_replica *rep, unsigned repn,
+		del_parts_mode del)
 {
-	if (!rep->remote || !rep->remote->rpp)
-		return;
+	if (!rep->remote)
+		return 0;
 
-	LOG(4, "closing remote replica #%u", r);
-	Rpmem_close(rep->remote->rpp);
-	rep->remote->rpp = NULL;
+	if (rep->remote->rpp) {
+		LOG(4, "closing remote replica #%u", repn);
+		Rpmem_close(rep->remote->rpp);
+		rep->remote->rpp = NULL;
+	}
 
-	if (del) {
-		LOG(4, "removing remote replica #%u", r);
+	if ((del == DELETE_CREATED_PARTS && rep->part[0].created) ||
+			del == DELETE_ALL_PARTS) {
+		LOG(4, "removing remote replica #%u", repn);
 		int ret = Rpmem_remove(rep->remote->node_addr,
 			rep->remote->pool_desc, 0);
 		if (ret) {
-			LOG(1, "!removing remote replica #%u failed", r);
+			LOG(1, "!removing remote replica #%u failed", repn);
+			return -1;
 		}
 	}
+	return 0;
 }
 
 /*
- * util_poolset_close -- unmap and close all the parts of the pool set
- *
- * Optionally, it also unlinks the newly created pool set files.
+ * util_poolset_close -- unmap and close all the parts of the pool set,
+ *                       optionally delete parts
  */
 void
-util_poolset_close(struct pool_set *set, int del)
+util_poolset_close(struct pool_set *set, del_parts_mode del)
 {
 	LOG(3, "set %p del %d", set, del);
 
@@ -555,13 +570,12 @@ util_poolset_close(struct pool_set *set, int del)
 
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote)
-			util_replica_close_local(rep, del);
+			(void) util_replica_close_local(rep, r, del);
 		else
-			util_replica_close_remote(rep, r, del);
+			(void) util_replica_close_remote(rep, r, del);
 	}
 
 	util_poolset_free(set);
-	util_remote_unload();
 
 	errno = oerrno;
 }
@@ -577,9 +591,14 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 
+		/* skip remote replicas */
+		if (rep->remote != NULL)
+			continue;
+
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
 
+			/* skip not created parts */
 			if (!part->created)
 				continue;
 
@@ -1154,6 +1173,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 void
 util_part_fdclose(struct pool_set_part *part)
 {
+	LOG(3, "part %p", part);
 	if (part->fd != -1) {
 		(void) close(part->fd);
 		part->fd = -1;
@@ -1250,6 +1270,34 @@ util_remote_store_attr(const struct rpmem_pool_attr *rpmem_attr,
 }
 
 /*
+ * util_update_remote_header --  update attributes of a remote replica;
+ *                               the remote replica must be open
+ */
+int
+util_update_remote_header(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	ASSERTne(REP(set, repn)->remote, NULL);
+	ASSERTne(REP(set, repn)->remote->rpp, NULL);
+
+	struct pool_replica *rep = REP(set, repn);
+	struct pool_hdr *hdr = HDR(rep, 0);
+
+	/* get attributes from the local pool header */
+	struct rpmem_pool_attr attributes;
+	util_remote_create_attr(hdr, &attributes);
+
+	/* push the attributes to the remote replica */
+	RPMEMpool *rpp = rep->remote->rpp;
+	int ret = Rpmem_set_attr(rpp, &attributes);
+	if (ret) {
+		ERR("!Rpmem_set_attr");
+		return -1;
+	}
+	return 0;
+}
+
+/*
  * util_pool_close_remote -- close a remote replica
  */
 int
@@ -1295,6 +1343,7 @@ util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
 			ERR("creating remote replica #%u failed", repidx);
 			return -1;
 		}
+		rep->part[0].created = 1;
 	} else { /* open */
 		struct rpmem_pool_attr rpmem_attr_open;
 
@@ -2145,7 +2194,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		ret = util_uuid_generate(set->uuid);
 		if (ret < 0) {
 			LOG(2, "cannot generate pool set UUID");
-			goto err_remote;
+			return -1;
 		}
 	}
 
@@ -2156,7 +2205,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			ret = util_uuid_generate(rep->part[i].uuid);
 			if (ret < 0) {
 				LOG(2, "cannot generate pool set part UUID");
-				goto err_remote;
+				return -1;
 			}
 		}
 	}
@@ -2192,7 +2241,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	}
 
 	if (set->remote) {
-		ret = util_poolset_files_remote(set, minsize, nlanes, 1);
+		ret = util_poolset_files_remote(set, minsize, nlanes,
+				1 /* create */);
 		if (ret != 0)
 			goto err_create;
 	}
@@ -2206,12 +2256,7 @@ err_create:
 	errno = oerrno;
 err_poolset:
 	oerrno = errno;
-	util_poolset_close(set, 1);
-	errno = oerrno;
-	return -1;
-err_remote:
-	oerrno = errno;
-	util_remote_unload();
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return -1;
 }
@@ -2580,7 +2625,7 @@ err_replica:
 	errno = oerrno;
 err_poolset:
 	oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 	return -1;
 }
@@ -2663,7 +2708,7 @@ err_replica:
 	errno = oerrno;
 err_poolset:
 	oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 	return -1;
 }
@@ -2760,7 +2805,7 @@ err_replica:
 	errno = oerrno;
 err_poolset:
 	oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 	return -1;
 }
