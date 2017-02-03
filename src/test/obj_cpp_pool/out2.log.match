@@ -3,4 +3,4 @@ obj_cpp_pool$(nW)TEST2: START: obj_cpp_pool
 $(nW)testfile: pool::create: Success
 $(nW)testfile: pool.close: Success
 $(nW)testfile: pool.close: Pool already closed
-obj_cpp_pool$(nW)TEST2: Done
+obj_cpp_pool$(nW)TEST2: DONE

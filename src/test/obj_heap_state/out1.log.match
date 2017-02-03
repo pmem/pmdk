@@ -100,4 +100,4 @@ obj_heap_state$(nW)TEST1: START: obj_heap_state
 97 4192080
 98 4192208
 99 4192336
-obj_heap_state$(nW)TEST1: Done
+obj_heap_state$(nW)TEST1: DONE

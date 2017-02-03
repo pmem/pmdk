@@ -10,4 +10,4 @@ redirecting /proc/self/maps to maps_all
 len 17179869184: 0x102c0000000 0x$(X)
 redirecting /proc/self/maps to maps_all
 len 274877906944: 0x10800000000 0x$(X)
-util_map_proc/TEST0: Done
+util_map_proc/TEST0: DONE

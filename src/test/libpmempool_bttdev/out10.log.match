@@ -3,4 +3,4 @@ libpmempool_bttdev/TEST10: START: libpmempool_test
 checking BTT Info headers
 can not find any valid BTT Info
 status = not consistent
-libpmempool_bttdev/TEST10: Done
+libpmempool_bttdev/TEST10: DONE

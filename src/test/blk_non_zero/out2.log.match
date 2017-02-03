@@ -10,4 +10,4 @@ read      lba 1: {2}
 read      lba 0: {1}
 write     lba 0: {2}
 read      lba 0: {2}
-blk_non_zero$(nW)TEST2: Done
+blk_non_zero$(nW)TEST2: DONE

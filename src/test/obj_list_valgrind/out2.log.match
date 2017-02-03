@@ -31,4 +31,4 @@ list reverse:
 id = 1
 id = 4
 id = 2
-obj_list_valgrind$(nW)TEST2: Done
+obj_list_valgrind$(nW)TEST2: DONE

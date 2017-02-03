@@ -8,4 +8,4 @@ read      lba 32313: Invalid argument
 set_zero  lba 0
 set_zero  lba 1
 read      lba 0: {0}
-blk_rw$(nW)TEST0: Done
+blk_rw$(nW)TEST0: DONE

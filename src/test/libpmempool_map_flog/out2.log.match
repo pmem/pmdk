@@ -32,7 +32,7 @@ arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
 status = repaired
-libpmempool_map_flog$(nW)TEST2: Done
+libpmempool_map_flog$(nW)TEST2: DONE
 Error: bttdevice.arena.btt_map(0)=0x40000000
 Error: bttdevice.arena.btt_map(1)=0x40000001
 Error: bttdevice.arena.btt_map(2)=0x40000002
@@ -67,7 +67,7 @@ arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
 status = repaired
-libpmempool_map_flog$(nW)TEST2: Done
+libpmempool_map_flog$(nW)TEST2: DONE
 Initial: bttdevice.arena.btt_map(0)=0x00000000
 Initial: bttdevice.arena.btt_map(1)=0x00000001
 Initial: bttdevice.arena.btt_map(2)=0x00000002
@@ -102,7 +102,7 @@ arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
 status = repaired
-libpmempool_map_flog$(nW)TEST2: Done
+libpmempool_map_flog$(nW)TEST2: DONE
 Normal: bttdevice.arena.btt_map(0)=0xC0000000
 Normal: bttdevice.arena.btt_map(1)=0xC0000001
 Normal: bttdevice.arena.btt_map(2)=0xC0000002
@@ -137,4 +137,4 @@ arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
 arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
 arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
 status = repaired
-libpmempool_map_flog$(nW)TEST2: Done
+libpmempool_map_flog$(nW)TEST2: DONE

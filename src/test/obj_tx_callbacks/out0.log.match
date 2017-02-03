@@ -63,4 +63,4 @@ cb stage: TX_STAGE_FINALLY
 cb stage: TX_STAGE_NONE
 end of tx 7
 
-obj_tx_callbacks$(nW)TEST0: Done
+obj_tx_callbacks$(nW)TEST0: DONE

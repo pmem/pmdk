@@ -17,4 +17,4 @@ $(*)pool.set4: $(*)testfile22
 $(*)pool.set4: $(*)testfile31
 $(*)pool.set4: $(*)testfile32
 util_poolset_foreach_part($(*)pool.set4): 0
-util_poolset_foreach$(nW)TEST0: Done
+util_poolset_foreach$(nW)TEST0: DONE

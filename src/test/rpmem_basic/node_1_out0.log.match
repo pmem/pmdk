@@ -10,4 +10,4 @@ subdir/pool2.set: created
 pool3.set: created
 pool3.set: Device or resource busy
 pool4.set: Device or resource busy
-rpmem_basic/TEST0: Done
+rpmem_basic/TEST0: DONE

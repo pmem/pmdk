@@ -13,4 +13,4 @@ append   str[4] 5th append string
 append   str[5] 6th append string
 
 signal: Segmentation fault
-log_walker$(nW)TEST0: Done
+log_walker$(nW)TEST0: DONE

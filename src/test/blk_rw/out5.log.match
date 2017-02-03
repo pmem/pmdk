@@ -25,4 +25,4 @@ read      lba 100: Input/output error
 read      lba 200: {7}
 read      lba 300: Input/output error
 read      lba 400: {8}
-blk_rw$(nW)TEST5: Done
+blk_rw$(nW)TEST5: DONE

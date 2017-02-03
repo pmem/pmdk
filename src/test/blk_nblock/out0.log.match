@@ -38,4 +38,4 @@ $(nW)testfile7.528: block size 528 usable blocks: 21439
 $(nW)testfile7.4096: block size 4096 usable blocks: 3829
 $(nW)testfile7.4160: block size 4160 usable blocks: 3588
 $(nW)testfile7.4224: block size 4224 usable blocks: 3588
-blk_nblock$(nW)TEST0: Done
+blk_nblock$(nW)TEST0: DONE

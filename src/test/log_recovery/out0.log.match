@@ -25,4 +25,4 @@ tell 108
 6th append string
 
 walk all at once
-log_recovery$(nW)TEST0: Done
+log_recovery$(nW)TEST0: DONE

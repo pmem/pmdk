@@ -23,7 +23,7 @@ arena 0: storing 0x40000003 at 3 BTT Map entry
 arena 0: storing 0x40000006 at 6 BTT Map entry
 arena 0: storing 0x40000002 at 2 BTT Map entry
 status = repaired
-libpmempool_map_flog$(nW)TEST1: Done
+libpmempool_map_flog$(nW)TEST1: DONE
 Error: bttdevice.arena.btt_map(0)=0x40000000
 Error: bttdevice.arena.btt_map(1)=0x40000001
 Error: bttdevice.arena.btt_map(2)=0x40000002
@@ -49,7 +49,7 @@ arena 0: storing 0x40000003 at 3 BTT Map entry
 arena 0: storing 0x40000006 at 6 BTT Map entry
 arena 0: storing 0x40000002 at 2 BTT Map entry
 status = repaired
-libpmempool_map_flog$(nW)TEST1: Done
+libpmempool_map_flog$(nW)TEST1: DONE
 Initial: bttdevice.arena.btt_map(0)=0x00000000
 Initial: bttdevice.arena.btt_map(1)=0x00000001
 Initial: bttdevice.arena.btt_map(2)=0x00000002
@@ -65,7 +65,7 @@ arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_map_flog$(nW)TEST1: Done
+libpmempool_map_flog$(nW)TEST1: DONE
 Normal: bttdevice.arena.btt_map(0)=0xC0000000
 Normal: bttdevice.arena.btt_map(1)=0xC0000001
 Normal: bttdevice.arena.btt_map(2)=0xC0000002
@@ -91,4 +91,4 @@ arena 0: storing 0x40000003 at 3 BTT Map entry
 arena 0: storing 0x40000006 at 6 BTT Map entry
 arena 0: storing 0x40000002 at 2 BTT Map entry
 status = repaired
-libpmempool_map_flog$(nW)TEST1: Done
+libpmempool_map_flog$(nW)TEST1: DONE

@@ -10,4 +10,4 @@ redirecting /proc/self/maps to maps_align
 len 17893376: (nil) 0x$(X)
 redirecting /proc/self/maps to maps_align
 len 17895424: (nil) 0x$(X)
-util_map_proc/TEST2: Done
+util_map_proc/TEST2: DONE

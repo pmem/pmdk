@@ -17,4 +17,4 @@ tell 171
 9th appendv string
 
 walk all at once
-log_recovery$(nW)TEST1: Done
+log_recovery$(nW)TEST1: DONE

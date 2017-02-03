@@ -5,4 +5,4 @@ arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
-libpmempool_bttdev/TEST0: Done
+libpmempool_bttdev/TEST0: DONE

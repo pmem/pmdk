@@ -28,4 +28,4 @@ CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)number: @@1234567
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)error@@: @@Invalid argument@@
 
-traces_custom_function$(nW)TEST1: Done
+traces_custom_function$(nW)TEST1: DONE

@@ -30,4 +30,4 @@ POBJ_LIST_PREV: dummy_node 7
 POBJ_LIST_PREV: dummy_node 5
 nested transaction for different pool
 explicit transaction abort: Operation canceled
-obj_rpmem_basic_integration/TEST5: Done
+obj_rpmem_basic_integration/TEST5: DONE

@@ -11,4 +11,4 @@ set_zero  lba 1
 read      lba 0: {0}
 set_error lba 3
 read      lba 4: {0}
-blk_non_zero$(nW)TEST0: Done
+blk_non_zero$(nW)TEST0: DONE

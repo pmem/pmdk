@@ -5,4 +5,4 @@ write     lba 5: {1}
 write-protecting map, length 2097152
 signal: Segmentation fault
 $(nW)testfile1: consistent
-blk_recovery$(nW)TEST0: Done
+blk_recovery$(nW)TEST0: DONE

@@ -30,4 +30,4 @@ PMEMOBJ: libpmemobj major version mismatch (need 10001, found $(N))
 PMEMLOG: pmemlog_append: No space left on device
 PMEMBLK: lba out of range (nlba $(N))
 PMEMPOOL: provided args_size is not supported
-out_err_mt$(nW)TEST2: Done
+out_err_mt$(nW)TEST2: DONE

@@ -21,4 +21,4 @@ $(*)pool.set4: $(*)testfile31
 $(*)pool.set4: $(*)testfile32
 $(*)pool.set4: remote_node4 remote_pool.set4
 util_poolset_foreach_part($(*)pool.set4): 0
-util_poolset_foreach$(nW)TEST1: Done
+util_poolset_foreach$(nW)TEST1: DONE

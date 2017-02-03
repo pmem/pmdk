@@ -7,4 +7,4 @@ arena 1: regenerating BTT Info header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 arena 1: BTT Info header checksum incorrect
 status = cannot repair
-libpmempool_bttdev/TEST11: Done
+libpmempool_bttdev/TEST11: DONE

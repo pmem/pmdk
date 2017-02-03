@@ -27,4 +27,4 @@ nonOption
 nonOption2
 nonOption3
 nonOption4
-win_getopt$(nW)TEST0: Done
+win_getopt$(nW)TEST0: DONE

@@ -21,4 +21,4 @@ not connected: 127.0.0.1:123port: invalid port number -- '123port'
 not connected: 127.0.0.0.1: $(*)
 not connected: 999.0.0.1: $(*)
 not connected: 999.0.0.1:123: $(*)
-rpmem_obc/TEST1: Done
+rpmem_obc/TEST1: DONE

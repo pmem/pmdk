@@ -10,4 +10,4 @@ redirecting /proc/self/maps to maps_none
 len 17179869184: (nil) 0x$(X)
 redirecting /proc/self/maps to maps_none
 len 274877906944: (nil) 0x$(X)
-util_map_proc/TEST1: Done
+util_map_proc/TEST1: DONE

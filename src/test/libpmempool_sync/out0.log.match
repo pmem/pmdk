@@ -9,7 +9,7 @@ UUID                     : 30303030-3030-3030-3030-303030303030
 libpmempool_sync$(nW)TEST0: START: libpmempool_sync
  $(nW)libpmempool_sync$(nW) $(nW)pool0.set 0
 result: 0, errno: 0
-libpmempool_sync$(nW)TEST0: Done
+libpmempool_sync$(nW)TEST0: DONE
 TestOK111
 TestOK222
 TestOK333

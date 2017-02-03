@@ -15,4 +15,4 @@ $(nW)/testset9: util_pool_open: Invalid argument
 $(nW)/testset10: util_pool_open: Invalid argument
 $(nW)/testset11: util_pool_open: Invalid argument
 $(nW)/testset12: util_pool_open: Invalid argument
-util_poolset/TEST2: Done
+util_poolset/TEST2: DONE

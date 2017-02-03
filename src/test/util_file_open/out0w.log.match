@@ -5,4 +5,4 @@ NUL: util_file_open: $(*)
 $(nW)testfile0: util_file_open: No such file or directory
 $(nW)testfile1: util_file_open: Invalid argument
 $(nW)testfile2: open, len 32768
-util_file_open$(nW)TEST0w: Done
+util_file_open$(nW)TEST0w: DONE

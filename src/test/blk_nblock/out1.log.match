@@ -19,4 +19,4 @@ $(nW)testfile2.536870912: pmemblk_create: Invalid argument
 $(nW)testfile2.1073741824: pmemblk_create: Invalid argument
 $(nW)testfile2.2147483648: pmemblk_create: Invalid argument
 $(nW)testfile2.-1: pmemblk_create: Invalid argument
-blk_nblock$(nW)TEST1: Done
+blk_nblock$(nW)TEST1: DONE

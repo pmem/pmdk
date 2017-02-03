@@ -728,7 +728,7 @@ ut_done(const char *file, int line, const char *func,
 		check_open_files();
 
 	prefix(file, line, func, 0);
-	vout(OF_NAME, "Done", fmt, ap);
+	vout(OF_NAME, "DONE", fmt, ap);
 
 	va_end(ap);
 

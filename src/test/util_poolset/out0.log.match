@@ -57,4 +57,4 @@ $(nW)/testset26: created: nreps 3 poolsize 40960 zeroed 0
     part[0] path $(nW)/testfile263 filesize 40960 size 40960
   replica[2]: nparts 1 repsize 98304 is_pmem 1
     part[0] path $(nW)/testfile264 filesize 98304 size 98304
-util_poolset/TEST0: Done
+util_poolset/TEST0: DONE

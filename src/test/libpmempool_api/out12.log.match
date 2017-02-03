@@ -17,7 +17,7 @@ arena 0: number of invalid BTT Flog entries: 1
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 BTT Map and / or BTT Flog contain invalid entries
 status = cannot repair
-libpmempool_api/TEST12: Done
+libpmempool_api/TEST12: DONE
 libpmempool_api/TEST12: START: libpmempool_test
  ./libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
@@ -31,4 +31,4 @@ arena 0: number of invalid BTT Flog entries: 1
 Do you want to repair invalid BTT Flog entries?
 arena 0: repairing BTT Flog at 0 with free block entry 0x40009d82
 status = repaired
-libpmempool_api/TEST12: Done
+libpmempool_api/TEST12: DONE

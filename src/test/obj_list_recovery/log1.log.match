@@ -8,7 +8,7 @@ id = 0
 list reverse:
 id = 0
 id = 1
-obj_list_recovery$(nW)TEST1: Done
+obj_list_recovery$(nW)TEST1: DONE
 obj_list_recovery$(nW)TEST1: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
 list:
@@ -21,10 +21,10 @@ list:
 id = 0
 list reverse:
 id = 0
-obj_list_recovery$(nW)TEST1: Done
+obj_list_recovery$(nW)TEST1: DONE
 obj_list_recovery$(nW)TEST1: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile F:before_finish r:0
-obj_list_recovery$(nW)TEST1: Done
+obj_list_recovery$(nW)TEST1: DONE
 obj_list_recovery$(nW)TEST1: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
 list:
@@ -35,4 +35,4 @@ list:
 id = 0
 list reverse:
 id = 0
-obj_list_recovery$(nW)TEST1: Done
+obj_list_recovery$(nW)TEST1: DONE

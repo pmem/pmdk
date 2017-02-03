@@ -34,4 +34,4 @@ list reverse:
 id = 0
 list:
 list reverse:
-obj_list_remove$(nW)TEST0: Done
+obj_list_remove$(nW)TEST0: DONE

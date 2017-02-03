@@ -1579,4 +1579,4 @@ $(nW)file5:8152 0xd0bc479bbb9427f1
 $(nW)file5:8160 0x5700267143f12756
 $(nW)file5:8168 0xbba39237fce953d9
 $(nW)file5:8176 0x1af59e6d6d05f49d
-checksum$(nW)TEST0: Done
+checksum$(nW)TEST0: DONE

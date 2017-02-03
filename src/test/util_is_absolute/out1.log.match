@@ -7,4 +7,4 @@ util_is_absolute\TEST1: START: util_is_absolute
 "/foo/bar" - 0
 "e:" - 1
 "E:\" - 1
-util_is_absolute\TEST1: Done
+util_is_absolute\TEST1: DONE

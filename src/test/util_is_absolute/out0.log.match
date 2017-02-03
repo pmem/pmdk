@@ -4,4 +4,4 @@ util_is_absolute/TEST0: START: util_is_absolute
 "foo/bar" - 0
 "/" - 1
 "./foo/bar" - 0
-util_is_absolute/TEST0: Done
+util_is_absolute/TEST0: DONE

@@ -26,4 +26,4 @@ pmem_map_file: Invalid argument
 $(nW)testfile1 0 - 644 1 1
 mapped_len 2147483648
 unmap successful
-pmem_map_file$(nW)TEST0: Done
+pmem_map_file$(nW)TEST0: DONE

@@ -26,4 +26,4 @@ CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) main]$(W)Log level INFO
 
 CUSTOM_PRINT: <trace_func>: <4> [$(nW):$(N) main]$(W)Log level DEBUG
 
-traces_custom_function$(nW)TEST0: Done
+traces_custom_function$(nW)TEST0: DONE

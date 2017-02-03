@@ -9,4 +9,4 @@ $(nW)/testlink4: util_file_create: File exists
 $(nW)/testfile1: util_file_create: File exists
 $(nW)/testfile2: util_file_create: Invalid argument
 $(nW)/testfile3: created
-util_file_create/TEST0: Done
+util_file_create/TEST0: DONE

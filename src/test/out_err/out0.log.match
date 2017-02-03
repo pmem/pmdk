@@ -5,4 +5,4 @@ ERR #2: Success
 ERR #3: Invalid argument
 ERR1: Bad file descriptor:1234
 ERR2: Bad file descriptor:1234
-out_err$(nW)TEST0: Done
+out_err$(nW)TEST0: DONE

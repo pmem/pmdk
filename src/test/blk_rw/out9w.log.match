@@ -5,4 +5,4 @@ write     lba -1: Invalid argument
 read      lba -1: Invalid argument
 set_zero  lba -1: Invalid argument
 set_error lba -1: Invalid argument
-blk_rw$(nW)TEST9w: Done
+blk_rw$(nW)TEST9w: DONE

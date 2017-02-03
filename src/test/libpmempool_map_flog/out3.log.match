@@ -44,7 +44,7 @@ arena 0: storing 0x40000007 at 7 BTT Map entry
 arena 0: storing 0x40000006 at 6 BTT Map entry
 arena 0: storing 0x40000005 at 5 BTT Map entry
 status = repaired
-libpmempool_map_flog$(nW)TEST3: Done
+libpmempool_map_flog$(nW)TEST3: DONE
 0000000002: 0x00000002 state: error
 0000000003: 0x00000003 state: error
 0000000005: 0x00000005 state: error

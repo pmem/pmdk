@@ -4,4 +4,4 @@ util_poolset_size($(*)pool.set1): 32768
 util_poolset_size($(*)pool.set2): 33583104
 util_poolset_size($(*)pool.set3): 67104768
 util_poolset_size($(*)pool.set4): 67104768
-util_poolset_size$(nW)TEST0: Done
+util_poolset_size$(nW)TEST0: DONE

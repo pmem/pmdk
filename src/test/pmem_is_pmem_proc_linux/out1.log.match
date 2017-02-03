@@ -6,4 +6,4 @@ redirecting /proc/self/smaps to smaps_mm_first
 addr 0x7fff77423000, len 8192: 0
 redirecting /proc/self/smaps to smaps_mm_first
 addr 0x7fff77423000, len 4096: 1
-pmem_is_pmem_proc_linux/TEST1: Done
+pmem_is_pmem_proc_linux/TEST1: DONE
