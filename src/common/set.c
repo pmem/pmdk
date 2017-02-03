@@ -634,7 +634,10 @@ parser_read_line(char *line, size_t *size, char **path)
 	int ret;
 	char *size_str;
 	char *path_str;
-	char *saveptr;
+	/*
+	 * must be NULL initilized on Windows
+	 */
+	char *saveptr = NULL;
 
 	size_str = strtok_r(line, " \t", &saveptr);
 	path_str = strtok_r(NULL, " \t", &saveptr);
@@ -698,7 +701,7 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 {
 	char *addr_str;
 	char *desc_str;
-	char *saveptr;
+	char *saveptr = NULL;
 
 	addr_str = strtok_r(line, " \t", &saveptr);
 	desc_str = strtok_r(NULL, " \t", &saveptr);

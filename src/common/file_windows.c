@@ -68,7 +68,11 @@ util_tmpfile(const char *dir, const char *templ)
 	int oerrno;
 	int fd = -1;
 
-	char *fullname = alloca(strlen(dir) + strlen(templ) + 1);
+	char *fullname = Malloc(strlen(dir) + strlen(templ) + 1);
+	if (!fullname) {
+		ERR("!malloc fullname");
+		goto err;
+	}
 
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, templ);
@@ -93,9 +97,11 @@ util_tmpfile(const char *dir, const char *templ)
 	 * the filesystem.
 	 */
 
+	Free(fullname);
 	return fd;
 
 err:
+	Free(fullname);
 	oerrno = errno;
 	if (fd != -1)
 		(void) close(fd);

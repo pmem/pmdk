@@ -208,23 +208,37 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 	if ((log_file = getenv(log_file_var)) != NULL && log_file[0] != '\0') {
 		size_t cc = strlen(log_file);
+		ASSERT(cc > 0);
 
 		/* reserve more than enough space for a PID + '\0' */
-		char *log_file_pid = alloca(cc + 30);
+		char *log_file_pid = malloc(cc + 30);
+		if (!log_file_pid) {
+			ERR("!malloc");
+			abort();
+		}
 
 		if (cc > 0 && log_file[cc - 1] == '-') {
-			snprintf(log_file_pid, cc + 30, "%s%d",
+			ASSERT(log_file_pid != NULL);
+			int ret = snprintf(log_file_pid, cc + 30, "%s%d",
 				log_file, getpid());
+			if (ret < 0) {
+				ERR("!snprintf");
+				free(log_file_pid);
+				abort();
+			}
 			log_file = log_file_pid;
 		}
+
 		if ((Out_fp = fopen(log_file, "w")) == NULL) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
-					log_prefix, log_file_var,
-					log_file, buff);
+				log_prefix, log_file_var,
+				log_file, buff);
+			free(log_file_pid);
 			abort();
 		}
+		free(log_file_pid);
 	}
 #endif	/* DEBUG */
 

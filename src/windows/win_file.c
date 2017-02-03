@@ -82,8 +82,8 @@ mkstemp(char *temp)
 	 */
 	rand_s(&rnd);
 	int ret = _snprintf(npath + strlen(npath), MAX_PATH, "%d", (long)rnd);
-	if (ret < 0 || ret > MAX_PATH) {
-		SetLastError(EINVAL);
+	if (ret < 0) {
+		errno = EINVAL;
 		return -1;
 	}
 	/*
