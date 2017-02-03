@@ -234,7 +234,7 @@ static void
 memblock_no_header_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
 {
-	/* noop */
+	/* NOP */
 }
 
 /*
@@ -271,7 +271,7 @@ memblock_header_compact_reinit(const struct memory_block *m)
 static void
 memblock_no_header_reinit(const struct memory_block *m)
 {
-	/* noop */
+	/* NOP */
 }
 
 static struct {

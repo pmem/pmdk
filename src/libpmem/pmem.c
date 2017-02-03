@@ -345,7 +345,7 @@ flush_clflushopt(const void *addr, size_t len)
 static void
 flush_empty(const void *addr, size_t len)
 {
-	/* nop */
+	/* NOP */
 }
 
 /*

@@ -372,7 +372,7 @@ alloc_class_collection_new(void)
 			largest_aclass_slot > 0 &&
 			ac->aclasses[largest_aclass_slot] == NULL;
 			--largest_aclass_slot) {
-		/* intentional noop */
+		/* intentional NOP */
 	}
 
 	struct alloc_class *c = ac->aclasses[largest_aclass_slot];

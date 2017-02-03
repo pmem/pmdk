@@ -86,9 +86,9 @@ test_memcheck_bug2()
 
 	/*
 	 * This should produce warning:
-	 * Address ... is 0 bytes inside a block of size 128 bytes free'd.
+	 * Address ... is 0 bytes inside a block of size 128 bytes freed.
 	 * instead, it produces a warning:
-	 * Address ... is 0 bytes after a block of size 128 free'd
+	 * Address ... is 0 bytes after a block of size 128 freed
 	 */
 	int *data = (int *)(tmp + 256);
 	*data = 0x66;

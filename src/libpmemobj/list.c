@@ -1095,7 +1095,7 @@ lane_list_construct_rt(PMEMobjpool *pop)
 static void
 lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
 {
-	/* nop */
+	/* NOP */
 }
 
 /*
@@ -1104,7 +1104,7 @@ lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
 static int
 lane_list_boot(PMEMobjpool *pop)
 {
-	/* nop */
+	/* NOP */
 	return 0;
 }
 

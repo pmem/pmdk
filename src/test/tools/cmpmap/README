@@ -3,7 +3,7 @@ Non-Volatile Memory Library
 This is src/test/tools/cmpmap/README.
 
 This directory contains a tool for comparing files byte by byte using mmap.
-It lets you compare regular files as well as device DAXes.
+It lets you compare regular files as well as DAX devices.
 
 Currently only checking if part of a file is zeroed is implemented.
 

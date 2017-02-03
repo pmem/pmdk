@@ -2020,7 +2020,7 @@ lane_transaction_check(PMEMobjpool *pop, void *data, unsigned length)
 static int
 lane_transaction_boot(PMEMobjpool *pop)
 {
-	/* nop */
+	/* NOP */
 	return 0;
 }
 
