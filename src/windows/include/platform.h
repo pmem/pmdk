@@ -86,6 +86,10 @@ typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
 #ifdef _DEBUG
 #define DEBUG
 #endif
+#ifdef alloca
+#undef alloca
+#define alloca _malloca
+#endif
 
 /*
  * The inline keyword is available only in VC++.

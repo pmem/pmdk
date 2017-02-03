@@ -737,10 +737,10 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		goto err;
 	}
 
-	size_t len = (char *)mt->EndAddress - (char *)mt->BaseAddress;
-	if (len > mt->FileLen) {
+	size_t len_mt = (char *)mt->EndAddress - (char *)mt->BaseAddress;
+	if (len_mt > mt->FileLen) {
 		void *addr = (char *)mt->BaseAddress + mt->FileLen;
-		mmap_unreserve(addr, len - mt->FileLen);
+		mmap_unreserve(addr, len_mt - mt->FileLen);
 	}
 
 	if (!mtb && !mte) {

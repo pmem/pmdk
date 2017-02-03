@@ -152,7 +152,7 @@ pthread_mutex_destroy(pthread_mutex_t *__restrict mutex)
 	DeleteCriticalSection(&mutex->lock);
 	return 0;
 }
-
+_Use_decl_annotations_
 int
 pthread_mutex_lock(pthread_mutex_t *__restrict mutex)
 {
@@ -167,7 +167,7 @@ pthread_mutex_lock(pthread_mutex_t *__restrict mutex)
 
 	return 0;
 }
-
+_Use_decl_annotations_
 int
 pthread_mutex_trylock(pthread_mutex_t *__restrict mutex)
 {
@@ -247,7 +247,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *__restrict rwlock)
 		return 0;
 	}
 }
-
+_Use_decl_annotations_
 int
 pthread_rwlock_trywrlock(pthread_rwlock_t *__restrict rwlock)
 {
@@ -273,6 +273,7 @@ pthread_rwlock_timedwrlock(pthread_rwlock_t *__restrict rwlock,
 	TIMED_LOCK((pthread_rwlock_trywrlock(rwlock) == 0), abstime);
 }
 
+_Use_decl_annotations_
 int
 pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock)
 {
