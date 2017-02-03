@@ -133,7 +133,9 @@ int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type);
 int pthread_mutex_init(pthread_mutex_t *__restrict mutex,
 	const pthread_mutexattr_t *__restrict attr);
 int pthread_mutex_destroy(pthread_mutex_t *__restrict mutex);
+_When_(return == 0, _Acquires_lock_(mutex->lock))
 int pthread_mutex_lock(pthread_mutex_t *__restrict mutex);
+_When_(return == 0, _Acquires_lock_(mutex->lock))
 int pthread_mutex_trylock(pthread_mutex_t *__restrict mutex);
 int pthread_mutex_unlock(pthread_mutex_t *__restrict mutex);
 
@@ -147,7 +149,10 @@ int pthread_rwlock_destroy(pthread_rwlock_t *__restrict rwlock);
 int pthread_rwlock_rdlock(pthread_rwlock_t *__restrict rwlock);
 int pthread_rwlock_wrlock(pthread_rwlock_t *__restrict rwlock);
 int pthread_rwlock_tryrdlock(pthread_rwlock_t *__restrict rwlock);
+_When_(return == 0, _Acquires_exclusive_lock_(rwlock->lock))
 int pthread_rwlock_trywrlock(pthread_rwlock_t *__restrict rwlock);
+_When_(rwlock->is_write != 0, _Requires_exclusive_lock_held_(rwlock->lock))
+_When_(rwlock->is_write == 0, _Requires_shared_lock_held_(rwlock->lock))
 int pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock);
 int pthread_rwlock_timedrdlock(pthread_rwlock_t *__restrict rwlock,
 	const struct timespec *abstime);

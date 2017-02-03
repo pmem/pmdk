@@ -68,10 +68,13 @@ util_tmpfile(const char *dir, const char *templ)
 	int oerrno;
 	int fd = -1;
 
-	char *fullname = alloca(strlen(dir) + strlen(templ) + 1);
+	char fullname[MAX_PATH];
 
-	(void) strcpy(fullname, dir);
-	(void) strcat(fullname, templ);
+	int ret = _snprintf(fullname, MAX_PATH, "%s%s", dir, templ);
+	if (ret < 0 || ret >= MAX_PATH) {
+		ERR("!snprintf");
+		goto err;
+	}
 
 	/*
 	 * XXX - block signals and modify file creation mask for the time
