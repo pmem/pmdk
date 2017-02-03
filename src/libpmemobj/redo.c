@@ -34,6 +34,8 @@
  * redo.c -- redo log implementation
  */
 
+#include <inttypes.h>
+
 #include "redo.h"
 #include "out.h"
 #include "util.h"
@@ -116,7 +118,7 @@ void
 redo_log_store(const struct redo_ctx *ctx, struct redo_log *redo, size_t index,
 		uint64_t offset, uint64_t value)
 {
-	LOG(15, "redo %p index %zu offset %ju value %ju",
+	LOG(15, "redo %p index %zu offset %" PRIu64 " value %" PRIu64,
 			redo, index, offset, value);
 
 	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
@@ -133,7 +135,7 @@ void
 redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
 		size_t index, uint64_t offset, uint64_t value)
 {
-	LOG(15, "redo %p index %zu offset %ju value %ju",
+	LOG(15, "redo %p index %zu offset %" PRIu64 " value %" PRIu64,
 			redo, index, offset, value);
 
 	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
@@ -251,7 +253,7 @@ redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
 
 		while ((redo->offset & REDO_FINISH_FLAG) == 0) {
 			if (!ctx->check_offset(cctx, redo->offset)) {
-				LOG(15, "redo %p invalid offset %ju",
+				LOG(15, "redo %p invalid offset %" PRIu64,
 						redo, redo->offset);
 				return -1;
 			}
@@ -260,7 +262,8 @@ redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
 
 		uint64_t offset = redo->offset & REDO_FLAG_MASK;
 		if (!ctx->check_offset(cctx, offset)) {
-			LOG(15, "redo %p invalid offset %ju", redo, offset);
+			LOG(15, "redo %p invalid offset %" PRIu64,
+			    redo, offset);
 			return -1;
 		}
 	}
