@@ -287,7 +287,9 @@ static const bool config_ivsalloc =
 #if __STDC_VERSION__ < 199901L
 #  ifdef _MSC_VER
 #    include <malloc.h>
+#ifndef alloca
 #    define alloca _alloca
+#endif
 #  else
 #    ifdef JEMALLOC_HAS_ALLOCA_H
 #      include <alloca.h>

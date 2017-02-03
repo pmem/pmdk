@@ -447,7 +447,10 @@ util_unlink(const char *path)
  * On Windows we can not unlink Read-Only files
  */
 #ifdef _WIN32
-		_chmod(path, _S_IREAD | _S_IWRITE);
+		if (_chmod(path, _S_IREAD | _S_IWRITE) == -1) {
+			ERR("!_chmod");
+			return -1;
+		}
 #endif
 		return unlink(path);
 	}
