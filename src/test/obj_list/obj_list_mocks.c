@@ -42,7 +42,7 @@
 static void
 pmem_drain_nop(void)
 {
-	/* nop */
+	/* NOP */
 }
 
 /*

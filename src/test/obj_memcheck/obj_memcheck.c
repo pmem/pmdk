@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -86,9 +86,9 @@ test_memcheck_bug2()
 
 	/*
 	 * This should produce warning:
-	 * Address ... is 0 bytes inside a block of size 128 bytes free'd.
+	 * Address ... is 0 bytes inside a block of size 128 bytes freed.
 	 * instead, it produces a warning:
-	 * Address ... is 0 bytes after a block of size 128 free'd
+	 * Address ... is 0 bytes after a block of size 128 freed
 	 */
 	int *data = (int *)(tmp + 256);
 	*data = 0x66;
