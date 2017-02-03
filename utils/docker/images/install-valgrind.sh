@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 # install-valgrind.sh - installs valgrind for persistent memory
 #
 
-git clone --recursive https://github.com/pmem/valgrind.git
+git clone --recursive --depth 1 https://github.com/pmem/valgrind.git
 cd valgrind
 ./autogen.sh
 ./configure
