@@ -39,19 +39,18 @@ libcxxabi_url=https://github.com/llvm-mirror/libcxxabi.git
 libcxx_url=https://github.com/pmem/libcxx.git
 top=/tmp
 install_path=/usr/local/libcxx
+release=release_39
+release_pmem=release_39_pmem
 
 export CC=clang
 export CXX=clang++
 
 cd $top
-git clone $llvm_url
+git clone -b $release --depth 1 $llvm_url
 cd $top/llvm
-git checkout origin/release_39
 cd $top/llvm/projects
-git clone $libcxxabi_url
-git clone $libcxx_url
-cd $top/llvm/projects/libcxxabi
-git checkout origin/release_39
+git clone -b $release --depth 1 $libcxxabi_url
+git clone -b $release_pmem --depth 1 $libcxx_url
 cd $top
 mkdir -p build/abi
 mkdir -p build/lib
