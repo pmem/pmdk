@@ -81,8 +81,11 @@ mkstemp(char *temp)
 	 * multiples files by system.
 	 */
 	rand_s(&rnd);
-	_snprintf(npath + strlen(npath), MAX_PATH, "%d", rnd);
-
+	int ret = _snprintf(npath + strlen(npath), MAX_PATH, "%d", (long)rnd);
+	if (ret < 0 || ret > MAX_PATH) {
+		SetLastError(EINVAL);
+		return -1;
+	}
 	/*
 	 * Use O_TEMPORARY flag to make sure the file is deleted when
 	 * the last file descriptor is closed.  Also, it prevents opening
