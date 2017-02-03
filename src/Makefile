@@ -147,7 +147,7 @@ $(RELEASE_TARGETS):
 jemalloc-check: jemalloc-test
 
 test: all jemalloc-test
-	$(MAKE) -C test all
+	$(MAKE) -C test test
 
 check pcheck: test jemalloc-check
 	$(MAKE) -C test $@
