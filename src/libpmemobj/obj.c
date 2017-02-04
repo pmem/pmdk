@@ -33,6 +33,7 @@
 /*
  * obj.c -- transactional object store implementation
  */
+#include <inttypes.h>
 #include <limits.h>
 
 #include "valgrind_internal.h"
@@ -758,7 +759,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	}
 
 	if (pop->heap_offset + pop->heap_size != poolsize) {
-		ERR("heap size does not match pool size: %zu != %zu",
+		ERR("heap size does not match pool size: %" PRIu64 " != %zu",
 			pop->heap_offset + pop->heap_size, poolsize);
 		errno = EINVAL;
 		return -1;
@@ -766,7 +767,7 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	if (pop->heap_offset % Pagesize ||
 	    pop->heap_size % Pagesize) {
-		ERR("unaligned heap: off %ju, size %zu",
+		ERR("unaligned heap: off %" PRIu64 ", size %" PRIu64,
 			pop->heap_offset, pop->heap_size);
 		errno = EINVAL;
 		return -1;
@@ -1161,7 +1162,7 @@ pmemobj_check_basic_local(PMEMobjpool *pop)
 	int consistent = 1;
 
 	if (pop->run_id % 2) {
-		ERR("invalid run_id %ju", pop->run_id);
+		ERR("invalid run_id %" PRIu64, pop->run_id);
 		consistent = 0;
 	}
 
@@ -1226,7 +1227,7 @@ pmemobj_check_basic_remote(PMEMobjpool *pop)
 	}
 
 	if (pop->run_id % 2) {
-		ERR("invalid run_id %ju", pop->run_id);
+		ERR("invalid run_id %" PRIu64, pop->run_id);
 		consistent = 0;
 	}
 
@@ -1619,7 +1620,7 @@ pmemobj_check(const char *path, const char *layout)
 PMEMobjpool *
 pmemobj_pool_by_oid(PMEMoid oid)
 {
-	LOG(3, "oid.off 0x%016jx", oid.off);
+	LOG(3, "oid.off 0x%016" PRIx64, oid.off);
 
 	/* XXX this is a temporary fix, to be fixed properly later */
 	if (pools_ht == NULL)
@@ -1928,7 +1929,7 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 {
 	ASSERTne(oidp, NULL);
 
-	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %lu",
+	LOG(3, "pop %p oid.off 0x%016" PRIx64 " size %zu type_num %" PRIu64,
 		pop, oidp->off, size, type_num);
 
 	/* log notice message if used inside a transaction */
@@ -1947,7 +1948,7 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 {
 	ASSERTne(oidp, NULL);
 
-	LOG(3, "pop %p oid.off 0x%016jx size %zu type_num %lu",
+	LOG(3, "pop %p oid.off 0x%016" PRIx64 " size %zu type_num %" PRIu64,
 		pop, oidp->off, size, type_num);
 
 	/* log notice message if used inside a transaction */
@@ -1989,7 +1990,8 @@ int
 pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 		uint64_t type_num)
 {
-	LOG(3, "pop %p oidp %p string %s type_num %lu", pop, oidp, s, type_num);
+	LOG(3, "pop %p oidp %p string %s type_num %" PRIu64,
+	    pop, oidp, s, type_num);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -2015,7 +2017,7 @@ pmemobj_free(PMEMoid *oidp)
 {
 	ASSERTne(oidp, NULL);
 
-	LOG(3, "oid.off 0x%016jx", oidp->off);
+	LOG(3, "oid.off 0x%016" PRIx64, oidp->off);
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -2037,7 +2039,7 @@ pmemobj_free(PMEMoid *oidp)
 size_t
 pmemobj_alloc_usable_size(PMEMoid oid)
 {
-	LOG(3, "oid.off 0x%016jx", oid.off);
+	LOG(3, "oid.off 0x%016" PRIx64, oid.off);
 
 	if (oid.off == 0)
 		return 0;
@@ -2112,7 +2114,7 @@ pmemobj_drain(PMEMobjpool *pop)
 uint64_t
 pmemobj_type_num(PMEMoid oid)
 {
-	LOG(3, "oid.off 0x%016jx", oid.off);
+	LOG(3, "oid.off 0x%016" PRIx64, oid.off);
 
 	ASSERT(!OID_IS_NULL(oid));
 
@@ -2255,7 +2257,7 @@ pmemobj_first(PMEMobjpool *pop)
 PMEMoid
 pmemobj_next(PMEMoid oid)
 {
-	LOG(3, "oid.off 0x%016jx", oid.off);
+	LOG(3, "oid.off 0x%016" PRIx64, oid.off);
 
 	if (oid.off == 0)
 		return OID_NULL;
@@ -2286,8 +2288,8 @@ int
 pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 		    PMEMoid dest, int before, PMEMoid oid)
 {
-	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
-	    " oid.off 0x%016jx",
+	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016" PRIx64
+	    " before %d oid.off 0x%016" PRIx64,
 	    pop, pe_offset, head, dest.off, before, oid.off);
 
 	/* log notice message if used inside a transaction */
@@ -2313,8 +2315,8 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 			uint64_t type_num,
 			pmemobj_constr constructor, void *arg)
 {
-	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016jx before %d"
-	    " size %zu type_num %lu",
+	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016" PRIx64
+	    " before %d size %zu type_num %" PRIu64,
 	    pop, pe_offset, head, dest.off, before, size, type_num);
 
 	/* log notice message if used inside a transaction */
@@ -2354,7 +2356,7 @@ int
 pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 		    PMEMoid oid, int free)
 {
-	LOG(3, "pop %p pe_offset %zu head %p oid.off 0x%016jx free %d",
+	LOG(3, "pop %p pe_offset %zu head %p oid.off 0x%016" PRIx64 " free %d",
 	    pop, pe_offset, head, oid.off, free);
 
 	/* log notice message if used inside a transaction */
@@ -2383,8 +2385,8 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 			PMEMoid dest, int before, PMEMoid oid)
 {
 	LOG(3, "pop %p pe_old_offset %zu pe_new_offset %zu"
-	    " head_old %p head_new %p dest.off 0x%016jx"
-	    " before %d oid.off 0x%016jx",
+	    " head_old %p head_new %p dest.off 0x%016" PRIx64
+	    " before %d oid.off 0x%016" PRIx64 "",
 	    pop, pe_old_offset, pe_new_offset,
 	    head_old, head_new, dest.off, before, oid.off);
 

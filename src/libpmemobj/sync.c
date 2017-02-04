@@ -34,6 +34,8 @@
  * sync.c -- persistent memory resident synchronization primitives
  */
 
+#include <inttypes.h>
+
 #include "obj.h"
 #include "out.h"
 #include "util.h"
@@ -70,8 +72,8 @@ static void *
 _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	int (*init_lock)(void *lock, void *arg), size_t size)
 {
-	LOG(15, "pop_runid %ju runid %ju lock %p init_lock %p", pop_runid,
-		*runid, lock, init_lock);
+	LOG(15, "pop_runid %" PRIu64 " runid %" PRIu64 " lock %p init_lock %p",
+		pop_runid, *runid, lock, init_lock);
 
 	ASSERTeq((uintptr_t)runid % util_alignof(uint64_t), 0);
 

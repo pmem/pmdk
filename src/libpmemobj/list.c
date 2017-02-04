@@ -33,6 +33,8 @@
 /*
  * list.c -- implementation of persistent atomic lists module
  */
+#include <inttypes.h>
+
 #include "list.h"
 #include "obj.h"
 #include "out.h"
@@ -1071,7 +1073,7 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 
 	if (section->obj_offset &&
 	    !OBJ_OFF_FROM_HEAP(pop, section->obj_offset)) {
-		ERR("list lane: invalid offset 0x%jx",
+		ERR("list lane: invalid offset 0x%" PRIx64,
 				section->obj_offset);
 
 		return -1;
