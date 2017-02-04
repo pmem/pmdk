@@ -42,4 +42,4 @@ PMEMLOG: pmemlog_append: No space left on device
 PMEMBLK: lba out of range (nlba 32202)
 VMEM: size 1 smaller than 14680064
 PMEMPOOL: provided args_size is not supported
-out_err_mt/TEST2: Done
+out_err_mt/TEST2: DONE

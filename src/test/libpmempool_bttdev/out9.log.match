@@ -7,7 +7,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 libpmempool_bttdev/TEST9: START: libpmempool_test
@@ -18,7 +18,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -30,7 +30,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -43,7 +43,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -57,7 +57,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -72,7 +72,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -88,7 +88,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -105,7 +105,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -123,7 +123,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -142,7 +142,7 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 /$(nW)/test_libpmempool_bttdev9/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
@@ -162,4 +162,4 @@ arena 0: restoring BTT Info header from backup
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST9: Done
+libpmempool_bttdev/TEST9: DONE

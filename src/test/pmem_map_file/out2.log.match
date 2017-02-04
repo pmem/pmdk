@@ -12,4 +12,4 @@ $(nW) 0 DC 666 1 1
 mapped_len $(N)
 $(nW) 2097152 DC 666 1 1
 pmem_map_file: Invalid argument
-pmem_map_file$(nW)TEST2: Done
+pmem_map_file$(nW)TEST2: DONE

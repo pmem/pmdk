@@ -17,4 +17,4 @@ e:1:0x70000000:0:0x77777777
 e:2:0x60000000:0:0x66666666
 e:3:0x50000000:0:0x55555555
 n:0
-obj_redo_log$(nW)TEST0: Done
+obj_redo_log$(nW)TEST0: DONE

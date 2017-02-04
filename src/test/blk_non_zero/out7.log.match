@@ -26,4 +26,4 @@ read      lba 100: Input/output error
 read      lba 200: {7}
 read      lba 300: Input/output error
 read      lba 400: {8}
-blk_non_zero$(nW)TEST7: Done
+blk_non_zero$(nW)TEST7: DONE

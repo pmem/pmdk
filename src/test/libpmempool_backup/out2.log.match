@@ -3,16 +3,16 @@ libpmempool_backup$(nW)TEST2: START: libpmempool_test
 invalid poolset backup file: $(nW)pool.set_backup: Invalid argument
 unable to backup poolset: Invalid argument
 status = fatal
-libpmempool_backup$(nW)TEST2: Done
+libpmempool_backup$(nW)TEST2: DONE
 libpmempool_backup$(nW)TEST2: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
 invalid poolset backup file: $(nW)pool.set_backup: Invalid argument
 unable to backup poolset: Invalid argument
 status = fatal
-libpmempool_backup$(nW)TEST2: Done
+libpmempool_backup$(nW)TEST2: DONE
 libpmempool_backup$(nW)TEST2: START: libpmempool_test
  $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
 invalid poolset backup file: $(nW)pool.set_backup: Invalid argument
 unable to backup poolset: Invalid argument
 status = fatal
-libpmempool_backup$(nW)TEST2: Done
+libpmempool_backup$(nW)TEST2: DONE

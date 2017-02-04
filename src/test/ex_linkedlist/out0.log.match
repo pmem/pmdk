@@ -386,4 +386,4 @@ after remove_free2 start
 after remove_free2 end
 Outcome for tail queue is correct!
 Outcome for singly linked list is correct!
-ex_linkedlist$(nW)TEST0: Done
+ex_linkedlist$(nW)TEST0: DONE

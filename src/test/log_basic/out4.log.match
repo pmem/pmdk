@@ -78,4 +78,4 @@ tell 0
 
 walk all at once
 walk by 16
-log_basic$(nW)TEST4: Done
+log_basic$(nW)TEST4: DONE

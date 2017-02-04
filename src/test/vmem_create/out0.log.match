@@ -1,4 +1,4 @@
 vmem_create$(nW)TEST0: START: vmem_create
  $(nW)vmem_create$(nW) $(nW)
 signal: Segmentation fault
-vmem_create$(nW)TEST0: Done
+vmem_create$(nW)TEST0: DONE

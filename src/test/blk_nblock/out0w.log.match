@@ -7,4 +7,4 @@ $(nW)testfile2.520: block size 520 usable blocks: 2781410
 $(nW)testfile2.528: block size 528 usable blocks: 2781410
 $(nW)testfile2.4096: block size 4096 usable blocks: 523511
 $(nW)testfile2.4160: block size 4160 usable blocks: 492729
-blk_nblock$(nW)TEST0w: Done
+blk_nblock$(nW)TEST0w: DONE

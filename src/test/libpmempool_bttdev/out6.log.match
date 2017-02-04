@@ -24,4 +24,4 @@ arena 1: checking BTT Map and Flog
 arena 2: checking BTT Map and Flog
 arena 3: checking BTT Map and Flog
 status = repaired
-libpmempool_bttdev/TEST6: Done
+libpmempool_bttdev/TEST6: DONE

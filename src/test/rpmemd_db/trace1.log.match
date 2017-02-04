@@ -4,4 +4,4 @@
 {rpmemd_db_test.c:$(N) test_create_dual} rpmemd_db/TEST1: test_create_dual(): rpmemd_db_pool_create(pool1.set) failed: Resource temporarily unavailable
 {rpmemd_db_test.c:$(N) test_open_dual} rpmemd_db/TEST1: test_open_dual(): rpmemd_db_pool_create(pool1.set) failed: File exists
 {rpmemd_db_test.c:$(N) test_set_attr_dual} rpmemd_db/TEST1: test_set_attr_dual(): rpmemd_db_pool_create(pool1.set) failed: File exists
-{rpmemd_db_test.c:$(N) main} rpmemd_db/TEST1: Done
+{rpmemd_db_test.c:$(N) main} rpmemd_db/TEST1: DONE

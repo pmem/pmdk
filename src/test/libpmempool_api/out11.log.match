@@ -6,7 +6,7 @@ arena 0: regenerating BTT Info header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 arena 0: BTT Info header checksum incorrect
 status = cannot repair
-libpmempool_api/TEST11: Done
+libpmempool_api/TEST11: DONE
 libpmempool_api/TEST11: START: libpmempool_test
  ./libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
 checking BTT Info headers
@@ -20,4 +20,4 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 arena 1: checking BTT Map and Flog
 status = repaired
-libpmempool_api/TEST11: Done
+libpmempool_api/TEST11: DONE

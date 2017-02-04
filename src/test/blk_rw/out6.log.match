@@ -20,4 +20,4 @@ write     lba 6: {3}
 set_zero  lba 6
 set_error lba 6
 read      lba 6: Input/output error
-blk_rw$(nW)TEST6: Done
+blk_rw$(nW)TEST6: DONE

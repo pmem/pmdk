@@ -15,4 +15,4 @@ persist	;msync	;flush	;drain	;task
 4	;0	;1	;0	;pfree
 2	;0	;0	;0	;pmalloc_stack
 1	;0	;0	;0	;pfree_stack
-obj_persist_count$(nW)TEST1: Done
+obj_persist_count$(nW)TEST1: DONE

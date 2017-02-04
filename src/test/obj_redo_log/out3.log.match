@@ -42,4 +42,4 @@ e:1:0x00003108:0:0xbbbbbbbb
 e:2:0x00003110:0:0xcccccccc
 e:3:0x00000000:0:0xdddddddd
 C:0
-obj_redo_log$(nW)TEST3: Done
+obj_redo_log$(nW)TEST3: DONE

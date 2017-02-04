@@ -100,4 +100,4 @@ obj_rpmem_heap_state/TEST2: START: obj_heap_state
 97 4192080
 98 4192208
 99 4192336
-obj_rpmem_heap_state/TEST2: Done
+obj_rpmem_heap_state/TEST2: DONE

@@ -23,4 +23,4 @@ alignment 16
 alignment 8
 alignment 4
 alignment 2
-vmmalloc_memalign/TEST0: Done
+vmmalloc_memalign/TEST0: DONE

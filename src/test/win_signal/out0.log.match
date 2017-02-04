@@ -66,4 +66,4 @@ win_signal$(nW)TEST0: START: win_signal
 63; Real-time signal
 64; Real-time signal
 65; Unknown signal
-win_signal$(nW)TEST0: Done
+win_signal$(nW)TEST0: DONE

@@ -3,7 +3,7 @@ obj_list_recovery$(nW)TEST0: START: obj_list
 pmalloc(id = 0)
 pmalloc(id = 1)
 pmalloc(id = 2)
-obj_list_recovery$(nW)TEST0: Done
+obj_list_recovery$(nW)TEST0: DONE
 obj_list_recovery$(nW)TEST0: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
 list:
@@ -20,11 +20,11 @@ list reverse:
 id = 0
 id = 1
 id = 2
-obj_list_recovery$(nW)TEST0: Done
+obj_list_recovery$(nW)TEST0: DONE
 obj_list_recovery$(nW)TEST0: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile F:before_finish i:1:0
 pmalloc(id = 3)
-obj_list_recovery$(nW)TEST0: Done
+obj_list_recovery$(nW)TEST0: DONE
 obj_list_recovery$(nW)TEST0: START: obj_list
  $(nW)obj_list$(nW) $(nW)testfile P:2 R:2 V P:2 R:2
 list:
@@ -43,4 +43,4 @@ list reverse:
 id = 0
 id = 1
 id = 2
-obj_list_recovery$(nW)TEST0: Done
+obj_list_recovery$(nW)TEST0: DONE

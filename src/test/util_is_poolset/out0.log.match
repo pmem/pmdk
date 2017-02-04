@@ -6,4 +6,4 @@ util_is_poolset($(*)too_short.set): -1
 util_is_poolset($(*)pool.obj): 0
 util_is_poolset($(*)empty.set): -1
 util_is_poolset($(*)not_exist.set): -1
-util_is_poolset$(nW)TEST0: Done
+util_is_poolset$(nW)TEST0: DONE

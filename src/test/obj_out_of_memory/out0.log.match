@@ -4,4 +4,4 @@ size: 1024 allocs: 3621
 size: 1024 allocs: 10437
 size: 1024 allocs: 3621
 size: 1024 allocs: 10437
-obj_out_of_memory$(nW)TEST0: Done
+obj_out_of_memory$(nW)TEST0: DONE

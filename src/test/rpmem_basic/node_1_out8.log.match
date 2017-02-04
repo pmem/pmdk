@@ -20,4 +20,4 @@ pool3.set: opened
 pool3.set: Device or resource busy
 pool4.set: Device or resource busy
 pool5.set: opened
-rpmem_basic/TEST8: Done
+rpmem_basic/TEST8: DONE

@@ -19,4 +19,4 @@ data = 200
 data = 200
 data = 200
 data = 200
-obj_tx_locks_abort$(nW)TEST0: Done
+obj_tx_locks_abort$(nW)TEST0: DONE

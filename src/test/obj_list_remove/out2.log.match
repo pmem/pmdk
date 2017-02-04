@@ -17,4 +17,4 @@ id = 0
 list reverse:
 id = 0
 id = 2
-obj_list_remove$(nW)TEST2: Done
+obj_list_remove$(nW)TEST2: DONE

@@ -5,4 +5,4 @@ pool header correct
 checking pmemlog header
 pmemlog header correct
 status = consistent
-libpmempool_api$(nW)TEST1: Done
+libpmempool_api$(nW)TEST1: DONE

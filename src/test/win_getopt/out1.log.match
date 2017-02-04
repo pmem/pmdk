@@ -3,4 +3,4 @@ win_getopt/TEST1: START: win_getopt
 unknown argument
 unknown argument
 unknown argument
-win_getopt$(nW)TEST1: Done
+win_getopt$(nW)TEST1: DONE

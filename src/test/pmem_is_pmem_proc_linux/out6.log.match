@@ -8,4 +8,4 @@ redirecting /proc/self/smaps to smaps_mm_both
 addr 0x7fff77423000, len 2147483648: 1
 redirecting /proc/self/smaps to smaps_mm_second_missing
 addr 0x7fff77423000, len 4096: 1
-pmem_is_pmem_proc_linux/TEST6: Done
+pmem_is_pmem_proc_linux/TEST6: DONE

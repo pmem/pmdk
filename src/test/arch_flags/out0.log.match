@@ -15,4 +15,4 @@ get  : 0
 check: -1
 get  : 0
 check: -1
-arch_flags/TEST0: Done
+arch_flags/TEST0: DONE

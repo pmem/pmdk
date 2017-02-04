@@ -14,4 +14,4 @@ $(nW)/testset8: util_pool_open: Permission denied
 $(nW)/testset9: util_pool_open: Invalid argument
 $(nW)/testset10: util_pool_open: Invalid argument
 $(nW)/testset11: util_pool_open: Invalid argument
-util_poolset/TEST1: Done
+util_poolset/TEST1: DONE

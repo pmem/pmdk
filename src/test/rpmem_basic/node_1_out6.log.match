@@ -3,4 +3,4 @@ rpmem_basic/TEST6: START: rpmem_basic$(nW)
 pool0.set: created
 pool0.set: created
 pool0.set: created
-rpmem_basic/TEST6: Done
+rpmem_basic/TEST6: DONE

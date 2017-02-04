@@ -43,4 +43,4 @@ s:2:0x00001030:0x88888888
 s:3:0x00001040:0x99999999
 f:4:0x00000050:0xaaaaaaaa
 C:-1
-obj_redo_log$(nW)TEST2: Done
+obj_redo_log$(nW)TEST2: DONE
