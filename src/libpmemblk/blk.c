@@ -34,6 +34,7 @@
  * blk.c -- block memory pool entry points for libpmem
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -92,11 +93,11 @@ nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -118,11 +119,11 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -173,13 +174,13 @@ nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(12, "pbp %p lane %u len %zu off %ju", pbp, lane, len, off);
+	LOG(12, "pbp %p lane %u len %zu off %" PRIu64, pbp, lane, len, off);
 
 	ASSERT(((ssize_t)len) >= 0);
 
 	if (off + len >= pbp->datasize) {
 		ERR("offset + len (%zu) past end of data area (%zu)",
-				off + len, pbp->datasize - 1);
+				(size_t)off + len, pbp->datasize - 1);
 		errno = EINVAL;
 		return -1;
 	}
@@ -230,11 +231,11 @@ nszero(void *ns, unsigned lane, size_t count, uint64_t off)
 {
 	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %ju", pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-				off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
