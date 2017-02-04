@@ -34,7 +34,7 @@
 .SH NAME
 .PP
 \f[B]pmempool\-sync\f[] \-\- Synchronize replicas or their parts within
-a poolset.
+a pool set.
 .SH SYNOPSIS
 .IP
 .nf
@@ -43,13 +43,13 @@ pmempool\ sync\ [options]\ <poolset_file>
 \f[]
 .fi
 .PP
-NOTE: Only the poolset file used to create the pool should be used for
+NOTE: Only the pool set file used to create the pool should be used for
 syncing the pool.
 .SH DESCRIPTION
 .PP
 The \f[B]pmempool sync\f[] command synchronizes data between replicas
-within a poolset.
-It checks if metadata of all replicas in a poolset are consistent, i.e.
+within a pool set.
+It checks if metadata of all replicas in a pool set are consistent, i.e.
 all parts are healthy, and if any of them is not, the corrupted or
 missing parts are recreated and filled with data from one of the healthy
 replicas.

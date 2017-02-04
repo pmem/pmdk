@@ -52,7 +52,7 @@ struct\ pmempool_check_status\ *pmempool_check(PMEMpoolcheck\ *ppc);
 enum\ pmempool_check_result\ pmempool_check_end(PMEMpoolcheck\ *ppc);
 \f[]
 .fi
-.SS Poolset synchronization and transformation:
+.SS Pool set synchronization and transformation:
 .IP
 .nf
 \f[C]
@@ -61,6 +61,13 @@ int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);\ (EXPERIMENTAL
 int\ pmempool_transform(const\ char\ *poolset_file_src,
 \ \ \ \ const\ char\ *poolset_file_dst,
 \ \ \ \ unsigned\ flags);\ (EXPERIMENTAL)
+\f[]
+.fi
+.SS Pool set management functions:
+.IP
+.nf
+\f[C]
+int\ pmempool_rm(const\ char\ *path,\ int\ flags);
 \f[]
 .fi
 .SS Library API versioning:
@@ -182,17 +189,18 @@ It is valid only in case \f[I]path\f[] is a single file \f[I]pool\f[].
 It indicates a \f[I]backup_path\f[] file will be created and backup will
 be performed.
 .IP \[bu] 2
-an existing \f[I]poolset\f[] file of the same structure (the same number
-of parts with exactly the same size) as the source \f[I]poolset\f[].
-It is valid only in case \f[I]path\f[] is a \f[I]poolset\f[].
+an existing \f[I]pool set\f[] file of the same structure (the same
+number of parts with exactly the same size) as the source \f[I]pool
+set\f[].
+It is valid only in case \f[I]path\f[] is a \f[I]pool set\f[].
 It indicates backup will be performed in a form described by the
-\f[I]backup_path\f[] \f[I]poolset\f[].
+\f[I]backup_path\f[] \f[I]pool set\f[].
 .PP
-Backup is supported only if the source \f[I]poolset\f[] has no defined
+Backup is supported only if the source \f[I]pool set\f[] has no defined
 replicas.
 .PP
-Poolsets with remote replicas are not supported neither as \f[I]path\f[]
-nor as \f[I]backup_path\f[].
+Pool sets with remote replicas are not supported neither as
+\f[I]path\f[] nor as \f[I]backup_path\f[].
 .PP
 This is an example of a \f[I]check context\f[] initialization:
 .IP
@@ -306,8 +314,8 @@ issues which can not be repaired
 .IP \[bu] 2
 \f[B]PMEMPOOL_CHECK_RESULT_ERROR\f[] \- the \f[I]pool\f[] has errors or
 the check encountered issue
-.SH POOLSET SYNCHRONIZATION AND TRANSFORMATION
-.SS POOLSET SYNC
+.SH POOL SET SYNCHRONIZATION AND TRANSFORMATION
+.SS POOL SET SYNC
 .IP
 .nf
 \f[C]
@@ -316,16 +324,16 @@ int\ pmempool_sync(const\ char\ *poolset_file,\ unsigned\ flags);\ (EXPERIMENTAL
 .fi
 .PP
 The \f[B]pmempool_sync\f[]() function synchronizes data between replicas
-within a poolset.
+within a pool set.
 .PP
 \f[B]pmempool_sync\f[]() accepts two arguments:
 .IP \[bu] 2
-\f[I]poolset_file\f[] \- a path to a poolset file,
+\f[I]poolset_file\f[] \- a path to a pool set file,
 .IP \[bu] 2
 \f[I]flags\f[] \- a combination of flags (ORed) which modify the way of
 synchronization.
 .PP
-NOTE: Only the poolset file used to create the pool should be used for
+NOTE: Only the pool set file used to create the pool should be used for
 syncing the pool.
 .PP
 The following flags are available:
@@ -334,7 +342,7 @@ The following flags are available:
 viability of synchronization.
 .PP
 \f[B]pmempool_sync\f[]() function checks if metadata of all replicas in
-a poolset are consistent, i.e.
+a pool set are consistent, i.e.
 all parts are healthy, and if any of them is not, the corrupted or
 missing parts are recreated and filled with data from one of the healthy
 replicas.
@@ -346,7 +354,7 @@ proper errno set accordingly.
 NOTE: The \f[B]pmempool_sync\f[]() API is experimental and it may change
 in future versions of the library.
 .RE
-.SS POOLSET TRANSFORM
+.SS POOL SET TRANSFORM
 .IP
 .nf
 \f[C]
@@ -357,7 +365,7 @@ int\ pmempool_transform(const\ char\ *poolset_file_src,
 .fi
 .PP
 The \f[B]pmempool_transform\f[]() function modifies internal structure
-of a poolset.
+of a pool set.
 It supports the following operations:
 .IP \[bu] 2
 adding one or more replicas,
@@ -371,11 +379,11 @@ Currently these operations are allowed only for \f[B]pmemobj\f[] pools
 .PP
 \f[B]pmempool_transform\f[]() accepts three arguments:
 .IP \[bu] 2
-\f[I]poolset_file_src\f[] \- a path to a poolset file which defines the
-source poolset to be changed,
+\f[I]poolset_file_src\f[] \- a path to a pool set file which defines the
+source pool set to be changed,
 .IP \[bu] 2
-\f[I]poolset_file_dst\f[] \- a path to a poolset file which defines the
-target structure of the poolset,
+\f[I]poolset_file_dst\f[] \- a path to a pool set file which defines the
+target structure of the pool set,
 .IP \[bu] 2
 \f[I]flags\f[] \- a combination of flags (ORed) which modify the way of
 synchronization.
@@ -385,7 +393,7 @@ The following flags are available:
 \f[B]PMEMPOOL_DRY_RUN\f[] \- do not apply changes, only check for
 viability of synchronization.
 .PP
-When adding or deleting replicas, the two poolset files can differ only
+When adding or deleting replicas, the two pool set files can differ only
 in the definitions of replicas which are to be added or deleted.
 One cannot add and remove replicas in the same step.
 Only one of these operations can be performed at a time.
@@ -405,6 +413,34 @@ proper errno set accordingly.
 NOTE: The \f[B]pmempool_transform\f[]() API is experimental and it may
 change in future versions of the library.
 .RE
+.SH POOL SET MANAGEMENT FUNCTIONS:
+.SS Removing pool
+.IP
+.nf
+\f[C]
+int\ pmempool_rm(const\ char\ *path,\ int\ flags);
+\f[]
+.fi
+.PP
+The \f[B]pmempool_rm\f[]() function removes pool pointed by
+\f[I]path\f[].
+The \f[I]path\f[] can point to either a regular file, device dax or pool
+set file.
+In case of pool set file the \f[B]pmempool_rm\f[]() will remove all part
+files from local replicas using \f[B]unlink\f[](3) and all remote
+replicas using \f[B]rpmem_remove\f[]() function (see
+\f[B]librpmem\f[](3)), before removing the pool set file itself.
+.PP
+The \f[I]flags\f[] argument determines the behavior of
+\f[B]pmempool_rm\f[]() function.
+It is either 0 or the bitwise OR of one or more of the following flags:
+.IP \[bu] 2
+\f[B]PMEMPOOL_RM_FORCE\f[] Ignore all errors when removing part files
+from local replicas or remote replica.
+.IP \[bu] 2
+\f[B]PMEMPOOL_RM_POOLSET_LOCAL\f[] Remove also local pool set file.
+.IP \[bu] 2
+\f[B]PMEMPOOL_RM_POOLSET_REMOTE\f[] Remove also remote pool set file.
 .SH LIBRARY API VERSIONING
 .PP
 This section describes how the library API is versioned, allowing

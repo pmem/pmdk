@@ -33,8 +33,8 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .SH NAME
 .PP
-\f[B]pmempool\-transform\f[] \-\- Modify internal structure of a
-poolset.
+\f[B]pmempool\-transform\f[] \-\- Modify internal structure of a pool
+set.
 .SH SYNOPSIS
 .IP
 .nf
@@ -45,28 +45,28 @@ pmempool\ transform\ [options]\ <poolset_file_src>\ <poolset_file_dst>
 .SH DESCRIPTION
 .PP
 The \f[B]pmempool transform\f[] command modifies internal structure of a
-poolset defined by the \f[C]poolset_file_src\f[] file, according to a
+pool set defined by the \f[C]poolset_file_src\f[] file, according to a
 structure described in the \f[C]poolset_file_dst\f[] file.
 .PP
 The following operations are supported:
 .IP \[bu] 2
 adding replicas \- one or more new replicas can be added and
-synchronized with other replicas in the poolset,
+synchronized with other replicas in the pool set,
 .IP \[bu] 2
-removing replicas \- one or more replicas can be removed from the
-poolset,
+removing replicas \- one or more replicas can be removed from the pool
+set,
 .IP \[bu] 2
 reordering of replicas \- the order of existing replicas can be changed.
 .PP
 Currently these operations are allowed only for \f[B]pmemobj\f[] pools
 (see \f[B]libpmemobj\f[](3)).
 .PP
-The \f[I]poolset_file_src\f[] argument provides the source poolset to be
-changed.
+The \f[I]poolset_file_src\f[] argument provides the source pool set to
+be changed.
 .PP
-The \f[I]poolset_file_dst\f[] argument points to the target poolset.
+The \f[I]poolset_file_dst\f[] argument points to the target pool set.
 .PP
-When adding or deleting replicas, the two poolset files can differ only
+When adding or deleting replicas, the two pool set files can differ only
 in the definitions of replicas which are to be added or deleted.
 One cannot add and remove replicas in the same step.
 Only one of these operations can be performed at a time.
@@ -133,7 +133,7 @@ Then, the command
 .PP
 \f[C]pmempool\ transform\ /path/poolset_file_src\ /path/poolset_file_dst\f[]
 .PP
-adds a replica to the poolset.
+adds a replica to the pool set.
 All other replicas remain unchanged and the size of the pool remains
 60M.
 .SS Example 2.
@@ -166,7 +166,7 @@ Then
 .PP
 \f[C]pmempool_transform\ /path/poolset_file_src\ /path/poolset_file_dst\f[]
 .PP
-deletes the second replica from the poolset.
+deletes the second replica from the pool set.
 The first replica remains unchanged and the size of the pool is still
 60M.
 .SH SEE ALSO
