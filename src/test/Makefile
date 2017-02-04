@@ -278,7 +278,8 @@ LIBPMEMPOOL_DEPS = libpmempool_api
 LIBPMEMPOOL_TESTS = \
 	libpmempool_backup\
 	libpmempool_bttdev\
-	libpmempool_map_flog
+	libpmempool_map_flog\
+	libpmempool_rm
 
 LIBPMEMPOOL_MOD_DEPS = \
 	libpmempool_sync

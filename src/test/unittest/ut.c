@@ -675,20 +675,24 @@ ut_start(const char *file, int line, const char *func,
 	if ((logsuffix = getenv("UNITTEST_NUM")) == NULL)
 		logsuffix = "";
 
+	const char *fmode = "w";
+	if (getenv("UNITTEST_LOG_APPEND") != NULL)
+		fmode = "a";
+
 	snprintf(logname, MAXLOGNAME, "out%s.log", logsuffix);
-	if ((Outfp = fopen(logname, "w")) == NULL) {
+	if ((Outfp = fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}
 
 	snprintf(logname, MAXLOGNAME, "err%s.log", logsuffix);
-	if ((Errfp = fopen(logname, "w")) == NULL) {
+	if ((Errfp = fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}
 
 	snprintf(logname, MAXLOGNAME, "trace%s.log", logsuffix);
-	if ((Tracefp = fopen(logname, "w")) == NULL) {
+	if ((Tracefp = fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}

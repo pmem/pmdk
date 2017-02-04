@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ setup
 
 create_poolset $DIR/testset1 AUTO:$DEVICE_DAX_PATH
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $DIR/testset1
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -af $DIR/testset1
 
 check_no_files $DIR/testset1
 

@@ -2284,3 +2284,14 @@ function copy_test_to_remote_nodes() {
 
 	return 0
 }
+
+#
+# enable_log_append -- turn on appending to the log files rather than truncating them
+# It also removes all log files created by tests: out*.log, err*.log and trace*.log
+#
+function enable_log_append() {
+	rm -f out$UNITTEST_NUM.log
+	rm -f err$UNITTEST_NUM.log
+	rm -f trace$UNITTEST_NUM.log
+	export UNITTEST_LOG_APPEND=1
+}

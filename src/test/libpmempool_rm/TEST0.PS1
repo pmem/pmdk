@@ -1,4 +1,5 @@
-# Copyright 2016, Intel Corporation
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,71 +28,45 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# src/libpmempool/Makefile -- Makefile for libpmempool
 #
+# libpmempool_rm/TEST0 -- test pmempool_rm with single-file pools
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "libpmempool_rm/TEST0"
+$Env:UNITTEST_NUM = "0"
 
-LIBRARY_NAME = pmempool
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
 
-INCS += -I$(TOP)/src/libpmemlog
-INCS += -I$(TOP)/src/libpmemblk
-INCS += -I$(TOP)/src/libpmemobj
-INCS += -I$(TOP)/src/rpmem_common
-INCS += -I$(TOP)/src/librpmem
+. ..\unittest\unittest.ps1
 
-vpath %.c ../librpmem
+require_test_type medium
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/pool_hdr_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
-	$(COMMON)/util_linux.c\
-	libpmempool.c\
-	check.c\
-	check_backup.c\
-	check_btt_info.c\
-	check_btt_map_flog.c\
-	check_log_blk.c\
-	check_pool_hdr.c\
-	check_util.c\
-	check_write.c\
-	pool.c\
-	replica.c\
-	$(RPMEM_COMMON)/rpmem_common.c\
-	rpmem_ssh.c\
-	rpmem_cmd.c\
-	rpmem_util.c\
-	sync.c\
-	transform.c\
-	rm.c
+require_fs_type any
 
-LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
-	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
-	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
+setup
 
-LIBPMEMLOG_PRIV_FUNCS=pmemlog_convert2h pmemlog_convert2le
+enable_log_append
 
-include ../Makefile.inc
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $DIR/pool.blk
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR/pool.log
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
+check_files $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
 
-LIBS += -lpmem -ldl
-CFLAGS += -DUSE_LIBDL
-CFLAGS += -DUSE_RPMEM
+# this should remove all the pool files
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
 
-pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \
-	$< $@
+# check if all pool files are removed
+check_no_files $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
 
-pmemlog_priv_funcs.o: $(PMEMLOG_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV_FUNCS)) \
-	$< $@
+# this should report errors for all files
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+# this should ignore all errors
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm$Env:EXESUFFIX -f $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+
+check
+
+pass

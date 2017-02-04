@@ -98,7 +98,7 @@ Creates a pool of specified type with additional properties specific for this ty
 Dumps usable data from pool in hexadecimal or binary format.
 
 + **pmempool-rm**(1)
-Removes pool file or all pool files listed in poolset configuration file.
+Removes pool file or all pool files listed in pool set configuration file.
 
 + **pmempool-convert**(1) -
 Updates the pool to the latest available layout version.

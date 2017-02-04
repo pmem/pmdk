@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -64,8 +64,9 @@ check_no_files\
 # Try to remove files without force flag
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX rm -v $DIR/pool.obj >> $LOG 2>&1
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX rm -sv $DIR/pool.set >> $LOG 2>&1
+
 # Try to remove files with force flag
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm -fv\
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -lfv\
 	$DIR/pool.obj\
 	$DIR/pool.set >> $LOG 2>&1
 
