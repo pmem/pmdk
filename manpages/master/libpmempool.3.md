@@ -39,7 +39,8 @@ date: pmempool API version 1.1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [POOL CHECKING FUNCTIONS](#pool-checking-functions)<br />
-[POOLSET SYNCHRONIZATION AND TRANSFORMATION](#poolset-synchronization-and-transformation-1)<br />
+[POOL SET SYNCHRONIZATION AND TRANSFORMATION](#pool-set-synchronization-and-transformation-1)<br />
+[POOL SET MANAGEMENT FUNCTIONS](#pool-set-management-functions)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [EXAMPLE](#example)<br />
@@ -68,7 +69,7 @@ struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
-##### Poolset synchronization and transformation: #####
+##### Pool set synchronization and transformation: #####
 
 ```c
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
@@ -76,6 +77,12 @@ int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
 	unsigned flags); (EXPERIMENTAL)
+```
+
+##### Pool set management functions: #####
+
+```c
+int pmempool_rm(const char *path, int flags);
 ```
 
 ##### Library API versioning: #####
@@ -183,14 +190,14 @@ Pool type detection fail ends check.
 *pool*. It indicates a *backup_path* file will be created and backup will be
 performed.
 
-+ an existing *poolset* file of the same structure (the same number of parts
-with exactly the same size) as the source *poolset*. It is valid only in case
-*path* is a *poolset*. It indicates backup will be performed in a form
-described by the *backup_path* *poolset*.
++ an existing *pool set* file of the same structure (the same number of parts
+with exactly the same size) as the source *pool set*. It is valid only in case
+*path* is a *pool set*. It indicates backup will be performed in a form
+described by the *backup_path* *pool set*.
 
-Backup is supported only if the source *poolset* has no defined replicas.
+Backup is supported only if the source *pool set* has no defined replicas.
 
-Poolsets with remote replicas are not supported neither as *path* nor as
+Pool sets with remote replicas are not supported neither as *path* nor as
 *backup_path*.
 
 This is an example of a *check context* initialization:
@@ -281,25 +288,25 @@ return one of the following values:
   encountered issue
 
 
-# POOLSET SYNCHRONIZATION AND TRANSFORMATION #
+# POOL SET SYNCHRONIZATION AND TRANSFORMATION #
 
-### POOLSET SYNC ###
+### POOL SET SYNC ###
 
 ```c
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 ```
 
 The **pmempool_sync**() function synchronizes data between replicas within
-a poolset.
+a pool set.
 
 **pmempool_sync**() accepts two arguments:
 
-* *poolset_file* - a path to a poolset file,
+* *poolset_file* - a path to a pool set file,
 
 * *flags* - a combination of flags (ORed) which modify the way of
 synchronization.
 
-NOTE: Only the poolset file used to create the pool should be used
+NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
 
 The following flags are available:
@@ -307,7 +314,7 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-**pmempool_sync**() function checks if metadata of all replicas in a poolset
+**pmempool_sync**() function checks if metadata of all replicas in a pool set
 are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
@@ -318,7 +325,7 @@ with proper errno set accordingly.
 >NOTE: The **pmempool_sync**() API is experimental and it may change in future
 versions of the library.
 
-### POOLSET TRANSFORM ###
+### POOL SET TRANSFORM ###
 
 ```c
 int pmempool_transform(const char *poolset_file_src,
@@ -326,7 +333,7 @@ int pmempool_transform(const char *poolset_file_src,
 	unsigned flags); (EXPERIMENTAL)
 ```
 
-The **pmempool_transform**() function modifies internal structure of a poolset.
+The **pmempool_transform**() function modifies internal structure of a pool set.
 It supports the following operations:
 
 * adding one or more replicas,
@@ -341,11 +348,11 @@ Currently these operations are allowed only for **pmemobj** pools (see
 
 **pmempool_transform**() accepts three arguments:
 
-* *poolset_file_src* - a path to a poolset file which defines the source
-poolset to be changed,
+* *poolset_file_src* - a path to a pool set file which defines the source
+pool set to be changed,
 
-* *poolset_file_dst* - a path to a poolset file which defines the target
-structure of the poolset,
+* *poolset_file_dst* - a path to a pool set file which defines the target
+structure of the pool set,
 
 * *flags* - a combination of flags (ORed) which modify the way of
 synchronization.
@@ -355,7 +362,7 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-When adding or deleting replicas, the two poolset files can differ only in the
+When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
 at a time. Reordering replicas can be combined with any of them.
@@ -370,6 +377,33 @@ with proper errno set accordingly.
 
 >NOTE: The **pmempool_transform**() API is experimental and it may change in future
 versions of the library.
+
+# POOL SET MANAGEMENT FUNCTIONS: #
+
+### Removing pool ###
+
+```c
+int pmempool_rm(const char *path, int flags);
+```
+
+The **pmempool_rm**() function removes pool pointed by *path*. The *path* can
+point to either a regular file, device dax or pool set file. In case of pool
+set file the **pmempool_rm**() will remove all part files from local replicas
+using **unlink**(3) and all remote replicas using **rpmem_remove**()
+function (see **librpmem**(3)), before removing the pool set file itself.
+
+The *flags* argument determines the behavior of **pmempool_rm**() function.
+It is either 0 or the bitwise OR of one or more of the following flags:
+
++ **PMEMPOOL_RM_FORCE**
+Ignore all errors when removing part files from local replicas or remote
+replica.
+
++ **PMEMPOOL_RM_POOLSET_LOCAL**
+Remove also local pool set file.
+
++ **PMEMPOOL_RM_POOLSET_REMOTE**
+Remove also remote pool set file.
 
 # LIBRARY API VERSIONING #
 

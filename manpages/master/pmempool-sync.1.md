@@ -43,7 +43,7 @@ date: pmem Tools version 1.2.0
 
 # NAME #
 
-**pmempool-sync** -- Synchronize replicas or their parts within a poolset.
+**pmempool-sync** -- Synchronize replicas or their parts within a pool set.
 
 # SYNOPSIS #
 
@@ -51,13 +51,13 @@ date: pmem Tools version 1.2.0
 pmempool sync [options] <poolset_file>
 ```
 
-NOTE: Only the poolset file used to create the pool should be used
+NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
 
 # DESCRIPTION #
 
 The **pmempool sync** command synchronizes data between replicas within
-a poolset. It checks if metadata of all replicas in a poolset
+a pool set. It checks if metadata of all replicas in a pool set
 are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
