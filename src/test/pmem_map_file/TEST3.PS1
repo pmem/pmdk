@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +29,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync_remote/config.sh -- test configuration
+# src/test/pmem_map_file/TEST3 -- unit test for pmem_map_file with unicode
 #
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmem_map_file\TEST3"
+$Env:UNITTEST_NUM = "3"
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
+require_fs_type any
 
-CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+# XXX: no valgrind for Windows
+#configure_valgrind memcheck force-disable
+
+setup
+
+# XXX: no AddressSanitizer on Windows
+# this test invokes sigsegvs by design
+# export ASAN_OPTIONS=handle_segv=0
+
+create_holey_file 2G $DIR/⿆⾨ㆦ
+
+# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+
+expect_normal_exit $Env:EXE_DIR/pmem_map_file$Env:EXESUFFIX `
+    $DIR/⿆⾨ㆦ 0 - 0 1 1 `
+    $DIR/⿆⾨ㆦ -1 - 0 1 1 `
+    $DIR/⿆⾨ㆦ 0 - 0 0 0 `
+    $DIR/⿆⾨ㆦ 0 X 0 0 0 `
+    $DIR/⿆⾨ㆦ 0 - 0644 1 1 `
+    $DIR/⿆⾨ㆦ 1024 - 0 1 1 `
+    $DIR/⿆⾨ㆦ 0 C 0 1 1 `
+    $DIR/⿆⾨ㆦ 0 E 0 1 1 `
+    $DIR/⿆⾨ㆦ 4096 T 0644 1 1 `
+    $DIR/⿆⾨ㆦ 4096 E 0644 1 1 `
+    $DIR/⿆⾨ㆦ 0 - 0644 1 1
+
+check_files $DIR/⿆⾨ㆦ
+
+check
+
+pass

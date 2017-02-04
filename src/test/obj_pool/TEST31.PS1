@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync_remote/config.sh -- test configuration
+# src/test/obj_pool/TEST31 -- unit test for pmemobj_open with unicode
 #
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+$Env:UNITTEST_NAME = "obj_pool\TEST31"
+$Env:UNITTEST_NUM = "31"
 
-CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+
+# standard unit test setup
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+
+$Env:POOLSET="testsetㅓㅹ"
+$Env:LAYOUT="⮓ⱙ"
+
+setup
+
+#
+# TEST30 existing file, file size >= min required size, layout matches
+#
+
+create_poolset $DIR\$Env:POOLSET 8M:$DIR\tesⰄfile:z 8M:$DIR\testfile⮸:z `
+	r 24M:$DIR\testfileⰊ:z r 8M:$DIR\testfile⮌:z 8M:$DIR\testfile⭙:z
+
+expect_normal_exit $Env:PMEMPOOL$Env:EXESUFFIX create --layout=$Env:LAYOUT obj `
+	$DIR/$Env:POOLSET
+
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
+	o $DIR/$Env:POOLSET $Env:LAYOUT
+
+check
+
+pass

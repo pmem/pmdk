@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -71,6 +71,9 @@
 use strict;
 use Getopt::Std;
 select STDERR;
+use v5.16;
+# Files opened without an encoding argument will be in UTF-8
+use open qw(:std :utf8);
 
 my $Me = $0;
 $Me =~ s,.*/,,;
@@ -161,12 +164,12 @@ sub match {
 		s/([*+?|{}.\\^\$\[()])/\\$1/g;
 		s/\\\$\\\(FP\\\)/[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?/g;
 		s/\\\$\\\(N\\\)/\\d+/g;
-		s/\\\$\\\(\\\*\\\)/.*/g;
+		s/\\\$\\\(\\\*\\\)/\\p{Print}*/g;
 		s/\\\$\\\(S\\\)/\\P{IsC}+/g;
-		s/\\\$\\\(X\\\)/\\p{IsXDigit}+/g;
-		s/\\\$\\\(XX\\\)/0x\\p{IsXDigit}+/g;
-		s/\\\$\\\(W\\\)/\\s*[^\n]/g;
-		s/\\\$\\\(nW\\\)/\\S*/g;
+		s/\\\$\\\(X\\\)/\\p{XPosixXDigit}+/g;
+		s/\\\$\\\(XX\\\)/0x\\p{XPosixXDigit}+/g;
+		s/\\\$\\\(W\\\)/\\p{Blank}*/g;
+		s/\\\$\\\(nW\\\)/\\p{Graph}*/g;
 		s/\\\$\\\(DD\\\)/\\d+\\+\\d+ records in\n\\d+\\+\\d+ records out\n\\d+ bytes \\\(\\d+ .B\\\) copied, [.0-9e-]+[^,]*, [.0-9]+ .B.s/g;
 		if (s/\\\$\\\(OPT\\\)//) {
 			$opt = 1;

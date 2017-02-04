@@ -1,0 +1,4 @@
+blk_pool$(nW)TEST32: START: blk_pool
+ $(nW)blk_pool o $(nW)testsetㅓㅹ 300
+$(nW)testsetㅓㅹ: pmemblk_open: Operation not supported
+blk_pool$(nW)TEST32: Done

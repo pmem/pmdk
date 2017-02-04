@@ -1,6 +1,4 @@
-#!/bin/bash -e
-#
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +28,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# src\test\vmem_create\TEST1.PS1 -- unit test for vmem_create with unicode
 #
-# pmempool_sync_remote/config.sh -- test configuration
-#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "vmem_create\TEST1"
+$Env:UNITTEST_NUM = "1"
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
+require_fs_type any
 
-CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+setup
+
+# this test invokes sigsegvs by design
+# XXX - AddressSanitizer detector not supported on Windows
+#$Env:ASAN_OPTIONS="handle_segv=0"
+mkdir $DIR/⿆⾨ㆦ
+
+expect_normal_exit $Env:EXE_DIR\vmem_create$Env:EXESUFFIX $DIR/⿆⾨ㆦ
+
+check
+
+pass

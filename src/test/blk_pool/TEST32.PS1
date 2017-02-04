@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,42 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync_remote/config.sh -- test configuration
+# src/test/blk_pool/TEST32 -- unit test for pmemblk_open with unicode
 #
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+$Env:UNITTEST_NAME = "blk_pool\TEST32"
+$Env:UNITTEST_NUM = "32"
 
-CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+
+# standard unit test setup
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+
+$Env:POOLSET="testsetㅓㅹ"
+
+setup
+
+#
+# TEST30 existing file, file size >= min required size, layout matches
+#
+
+expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/tesⰄfile 300 20 0640
+
+cp $DIR/tesⰄfile $DIR/testfile⮸
+
+create_poolset $DIR\$Env:POOLSET 20M:$DIR\tesⰄfile R 20M:$DIR\testfile⮸
+
+expect_normal_exit ./blk_pool$Env:EXESUFFIX o $DIR/$Env:POOLSET 300
+
+check
+
+pass
