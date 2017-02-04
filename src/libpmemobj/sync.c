@@ -77,6 +77,13 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 
 	ASSERTeq((uintptr_t)runid % util_alignof(uint64_t), 0);
 
+	COMPILE_ERROR_ON(sizeof(PMEMmutex)
+		!= sizeof(PMEMmutex_internal));
+	COMPILE_ERROR_ON(sizeof(PMEMrwlock)
+		!= sizeof(PMEMrwlock_internal));
+	COMPILE_ERROR_ON(sizeof(PMEMcond)
+		!= sizeof(PMEMcond_internal));
+
 	COMPILE_ERROR_ON(util_alignof(PMEMmutex)
 		!= util_alignof(pthread_mutex_t));
 	COMPILE_ERROR_ON(util_alignof(PMEMrwlock)
