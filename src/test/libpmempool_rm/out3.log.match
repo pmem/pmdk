@@ -3,10 +3,10 @@ libpmempool_rm/TEST3: START: libpmempool_rm
 $(nW): removing file failed: Is a directory
 $(nW): removing file failed: Is a directory
 $(nW): removing file failed: Is a directory
-libpmempool_rm/TEST3: Done
+libpmempool_rm/TEST3: DONE
 libpmempool_rm/TEST3: START: libpmempool_rm
  $(nW)libpmempool_rm$(nW) -f $(*)
 $(nW): removing file failed: Is a directory
 $(nW): removing file failed: Is a directory
 $(nW): removing file failed: Is a directory
-libpmempool_rm/TEST3: Done
+libpmempool_rm/TEST3: DONE
