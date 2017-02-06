@@ -1,0 +1,4 @@
+obj_cpp_pool_win$(nW)TEST0: START: obj_cpp_pool_win
+ $(nW)obj_cpp_pool_win$(nW) c $(nW)ㅹestㆅile test$(nW) 20 0600
+$(nW)ㅹestㆅile: file size 20971520 mode 0600
+obj_cpp_pool_win$(nW)TEST0: DONE

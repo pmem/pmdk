@@ -1,0 +1,4 @@
+obj_cpp_pool_win$(nW)TEST1: START: obj_cpp_pool_win
+ $(nW)obj_cpp_pool_win$(nW) o $(nW)ㅹestㆅile test$(nW)
+$(nW)ㅹestㆅile: pool::open: Success
+obj_cpp_pool_win$(nW)TEST1: DONE
