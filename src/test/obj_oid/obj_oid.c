@@ -91,7 +91,9 @@ main(int argc, char *argv[])
 
 	char path[MAX_PATH_LEN];
 	for (int i = 0; i < npools; ++i) {
-		snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
+		int ret = snprintf(path, MAX_PATH_LEN, "%s/testfile%d", dir, i);
+		if (ret < 0 || ret >= MAX_PATH_LEN)
+			UT_FATAL("!snprintf");
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 				S_IWUSR | S_IRUSR);
 

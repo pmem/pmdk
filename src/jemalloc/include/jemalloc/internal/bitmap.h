@@ -107,7 +107,8 @@ bitmap_set(bitmap_t *bitmap, const bitmap_info_t *binfo, size_t bit)
 		for (i = 1; i < binfo->nlevels; i++) {
 			bit = goff;
 			goff = bit >> LG_BITMAP_GROUP_NBITS;
-			gp = &bitmap[binfo->levels[i].group_offset + goff];
+			if (bitmap != NULL)
+				gp = &bitmap[binfo->levels[i].group_offset + goff];
 			g = *gp;
 			assert(g & (1LU << (bit & BITMAP_GROUP_NBITS_MASK)));
 			g ^= 1LU << (bit & BITMAP_GROUP_NBITS_MASK);

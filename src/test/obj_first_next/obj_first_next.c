@@ -305,7 +305,8 @@ main(int argc, char *argv[])
 		int list_num;
 		int id;
 		char type;
-		sscanf(argv[i], "%c:%d:%d", &type, &list_num, &id);
+		if (sscanf(argv[i], "%c:%d:%d", &type, &list_num, &id) == EOF)
+			UT_FATAL("!sscanf");
 		switch (type) {
 		case 'P':
 			do_print[list_num]();
