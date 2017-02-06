@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,7 +60,7 @@ struct check_status;
  *
  * Its size is equal to the size of the biggest state structure it must store.
  */
-#define CHECK_INSTEP_LOCATION_NUM 529
+#define CHECK_INSTEP_LOCATION_NUM 553
 
 struct check_step_data {
 	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
