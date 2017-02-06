@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -171,6 +171,74 @@ public:
 	{
 		return pmemobj_check(path.c_str(), layout.c_str());
 	}
+
+#ifdef _WIN32
+	/**
+	 * Opens an existing object store memory pool. Wide string variant.
+	 *
+	 * @param path System path to the file containing the memory
+	 *	pool or a pool set.
+	 * @param layout Unique identifier of the pool as specified at
+	 *	pool creation time.
+	 *
+	 * @return handle to the opened pool.
+	 *
+	 * @throw nvml::pool_error when an error during opening occurs.
+	 */
+	static pool_base
+	open(const std::wstring &path, const std::wstring &layout)
+	{
+		pmemobjpool *pop = pmemobj_openW(path.c_str(), layout.c_str());
+		if (pop == nullptr)
+			throw pool_error("Failed opening pool");
+
+		return pool_base(pop);
+	}
+
+	/**
+	 * Creates a new transactional object store pool. Wide string variant.
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw nvml::pool_error when an error during creation occurs.
+	 */
+	static pool_base
+	create(const std::wstring &path, const std::wstring &layout,
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
+	{
+		pmemobjpool *pop = pmemobj_createW(path.c_str(), layout.c_str(),
+						   size, mode);
+		if (pop == nullptr)
+			throw pool_error("Failed creating pool");
+
+		return pool_base(pop);
+	}
+
+	/**
+	 * Checks if a given pool is consistent. Wide string variant.
+	 *
+	 * @param path System path to the file containing the memory
+	 *	pool or a pool set.
+	 * @param layout Unique identifier of the pool as specified at
+	 *	pool creation time.
+	 *
+	 * @return -1 on error, 1 if file is consistent, 0 otherwise.
+	 */
+	static int
+	check(const std::wstring &path, const std::wstring &layout) noexcept
+	{
+		return pmemobj_checkW(path.c_str(), layout.c_str());
+	}
+#endif
 
 	/**
 	 * Closes the pool.
@@ -452,6 +520,65 @@ public:
 	{
 		return pool_base::check(path, layout);
 	}
+
+#ifdef _WIN32
+	/**
+	 * Opens an existing object store memory pool. Wide string variant.
+	 *
+	 * @param path System path to the file containing the memory
+	 *	pool or a pool set.
+	 * @param layout Unique identifier of the pool as specified at
+	 *	pool creation time.
+	 *
+	 * @return handle to the opened pool.
+	 *
+	 * @throw nvml::pool_error when an error during opening occurs.
+	 */
+	static pool<T>
+	open(const std::wstring &path, const std::wstring &layout)
+	{
+		return pool<T>(pool_base::open(path, layout));
+	}
+
+	/**
+	 * Creates a new transactional object store pool. Wide string variant.
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw nvml::pool_error when an error during creation occurs.
+	 */
+	static pool<T>
+	create(const std::wstring &path, const std::wstring &layout,
+	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
+	{
+		return pool<T>(pool_base::create(path, layout, size, mode));
+	}
+
+	/**
+	 * Checks if a given pool is consistent. Wide string variant.
+	 *
+	 * @param path System path to the file containing the memory
+	 *	pool or a pool set.
+	 * @param layout Unique identifier of the pool as specified at
+	 *	pool creation time.
+	 *
+	 * @return -1 on error, 1 if file is consistent, 0 otherwise.
+	 */
+	static int
+	check(const std::wstring &path, const std::wstring &layout)
+	{
+		return pool_base::check(path, layout);
+	}
+#endif
 };
 
 } /* namespace obj */

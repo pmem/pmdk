@@ -1,0 +1,6 @@
+obj_cpp_pool_win$(nW)TEST2: START: obj_cpp_pool_win
+ $(nW)obj_cpp_pool_win$(nW) d $(nW)tesⰄfile test 20 0600
+$(nW)tesⰄfile: pool::create: Success
+$(nW)tesⰄfile: pool.close: Success
+$(nW)tesⰄfile: pool.close: Pool already closed
+obj_cpp_pool_win$(nW)TEST2: DONE
