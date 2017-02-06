@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 #
 # match -- compare an output file with expected results
 #
-# usage: match [-adqv] [match-file]...
+# usage: match [-adoqv] [match-file]...
 #
 # this script compares the output from a test run, stored in a file, with
 # the expected output.  comparison is done line-by-line until either all
@@ -61,6 +61,8 @@
 #	-a	find all files of the form "X.match" in the current
 #		directory and match them again the corresponding file "X".
 #
+#	-o	custom output filename - only one match file can be given
+#
 #	-d	debug -- show lots of debug output
 #
 #	-q	don't print any output on mismatch (just exit with result code)
@@ -75,7 +77,7 @@ select STDERR;
 my $Me = $0;
 $Me =~ s,.*/,,;
 
-our ($opt_a, $opt_d, $opt_q, $opt_v);
+our ($opt_a, $opt_d, $opt_q, $opt_v, $opt_o);
 
 $SIG{HUP} = $SIG{INT} = $SIG{TERM} = $SIG{__DIE__} = sub {
 	die @_ if $^S;
@@ -88,10 +90,11 @@ sub usage {
 
 	warn "$Me: $msg\n" if $msg;
 	warn "Usage: $Me [-adqv] [match-file]...\n";
+	warn "   or: $Me [-dqv] -o output-file match-file...\n";
 	exit 1;
 }
 
-getopts('adqv') or usage;
+getopts('adoqv') or usage;
 
 my %match2file;
 
@@ -112,6 +115,10 @@ if ($opt_a) {
 		close(F);
 		$match2file{$mfile} = $ofile;
 	}
+} elsif ($opt_o) {
+	usage("-o argument requires two paths") if $#ARGV != 1;
+
+	$match2file{$ARGV[1]} = $ARGV[0];
 } else {
 	usage("no match-file arguments found") if $#ARGV == -1;
 
