@@ -83,6 +83,9 @@ void pmemlog_close(PMEMlogpool *plp);
 int pmemlog_check(const char *path);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
+#ifdef _WIN32
+_When_(return != -1, _Requires_lock_held_(plp->rwlockp))
+#endif
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
 long long pmemlog_tell(PMEMlogpool *plp);
 void pmemlog_rewind(PMEMlogpool *plp);
