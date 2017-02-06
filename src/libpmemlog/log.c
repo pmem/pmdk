@@ -448,6 +448,9 @@ end:
 /*
  * pmemlog_appendv -- add gathered data to a log memory pool
  */
+#ifdef _WIN32
+_Use_decl_annotations_
+#endif
 int
 pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
