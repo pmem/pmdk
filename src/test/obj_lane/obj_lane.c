@@ -123,85 +123,84 @@ SECTION_PARM(LANE_SECTION_TRANSACTION, &noop_ops);
 static void
 test_lane_boot_cleanup_ok()
 {
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = MAX_MOCK_LANES
-		}
-	};
-	base_ptr = &pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = MAX_MOCK_LANES;
 
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	base_ptr = &pop->p;
+
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
 	lane_info_boot();
-	UT_ASSERTeq(lane_boot(&pop.p), 0);
+	UT_ASSERTeq(lane_boot(&pop->p), 0);
 
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
 		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
 			struct lane_section *section =
-				&pop.p.lanes_desc.lane[i].sections[j];
-			UT_ASSERTeq(section->layout, &pop.l[i].sections[j]);
+				&pop->p.lanes_desc.lane[i].sections[j];
+			UT_ASSERTeq(section->layout, &pop->l[i].sections[j]);
 			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
 		}
 	}
 
-	lane_cleanup(&pop.p);
+	lane_cleanup(&pop->p);
 
-	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
-	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);
+
+	FREE(pop);
 }
 
 static void
 test_lane_boot_fail()
 {
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = MAX_MOCK_LANES
-		}
-	};
-	base_ptr = &pop.p;
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = MAX_MOCK_LANES;
+
+	base_ptr = &pop->p;
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
 	construct_fail = 1;
 
-	UT_ASSERTne(lane_boot(&pop.p), 0);
+	UT_ASSERTne(lane_boot(&pop->p), 0);
 
 	construct_fail = 0;
 
-	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
-	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);
+
+	FREE(pop);
 }
 
 static void
 test_lane_recovery_check_ok()
 {
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = MAX_MOCK_LANES
-		}
-	};
-	base_ptr = &pop.p;
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = MAX_MOCK_LANES;
 
-	UT_ASSERTeq(lane_recover_and_section_boot(&pop.p), 0);
-	UT_ASSERTeq(lane_check(&pop.p), 0);
+	base_ptr = &pop->p;
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
+
+	UT_ASSERTeq(lane_recover_and_section_boot(&pop->p), 0);
+	UT_ASSERTeq(lane_check(&pop->p), 0);
+
+	FREE(pop);
 }
 
 static void
 test_lane_recovery_check_fail()
 {
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = MAX_MOCK_LANES
-		}
-	};
-	base_ptr = &pop.p;
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = MAX_MOCK_LANES;
+
+	base_ptr = &pop->p;
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
 	recovery_check_fail = 1;
 
-	UT_ASSERTne(lane_recover_and_section_boot(&pop.p), 0);
+	UT_ASSERTne(lane_recover_and_section_boot(&pop->p), 0);
+	UT_ASSERTne(lane_check(&pop->p), 0);
 
-	UT_ASSERTne(lane_check(&pop.p), 0);
+	FREE(pop);
 }
 
 ut_jmp_buf_t Jmp;
@@ -226,28 +225,24 @@ test_lane_hold_release()
 		}
 	};
 
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = 1,
-			.lanes_desc = {
-					.runtime_nlanes = 1,
-					.lane = &mock_lane,
-					.next_lane_idx = 0
-			}
-		}
-	};
-	pop.p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof(uint64_t));
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
-	base_ptr = &pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = 1;
+	pop->p.lanes_desc.runtime_nlanes = 1,
+	pop->p.lanes_desc.lane = &mock_lane;
+	pop->p.lanes_desc.next_lane_idx = 0;
+
+	pop->p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof(uint64_t));
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
+	base_ptr = &pop->p;
 
 	struct lane_section *sec;
-	lane_hold(&pop.p, &sec, LANE_SECTION_ALLOCATOR);
+	lane_hold(&pop->p, &sec, LANE_SECTION_ALLOCATOR);
 	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME);
-	lane_hold(&pop.p, &sec, LANE_SECTION_LIST);
+	lane_hold(&pop->p, &sec, LANE_SECTION_LIST);
 	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
 
-	lane_release(&pop.p);
-	lane_release(&pop.p);
+	lane_release(&pop->p);
+	lane_release(&pop->p);
 	struct sigaction v, old;
 	sigemptyset(&v.sa_mask);
 	v.sa_flags = 0;
@@ -256,13 +251,14 @@ test_lane_hold_release()
 	SIGACTION(SIGABRT, &v, &old);
 
 	if (!ut_sigsetjmp(Jmp)) {
-		lane_release(&pop.p); /* only two sections were held */
+		lane_release(&pop->p); /* only two sections were held */
 		UT_ERR("we should not get here");
 	}
 
 	SIGACTION(SIGABRT, &old, NULL);
 
-	FREE(pop.p.lanes_desc.lane_locks);
+	FREE(pop->p.lanes_desc.lane_locks);
+	FREE(pop);
 }
 
 static void
@@ -336,23 +332,21 @@ test_lane_info_destroy_in_separate_thread(void)
 static void
 test_lane_cleanup_in_separate_thread(void)
 {
-	struct mock_pop pop = {
-		.p = {
-			.nlanes = MAX_MOCK_LANES
-		}
-	};
-	base_ptr = &pop.p;
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.nlanes = MAX_MOCK_LANES;
 
-	pop.p.lanes_offset = (uint64_t)&pop.l - (uint64_t)&pop.p;
+	base_ptr = &pop->p;
+
+	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
 	lane_info_boot();
-	UT_ASSERTeq(lane_boot(&pop.p), 0);
+	UT_ASSERTeq(lane_boot(&pop->p), 0);
 
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
 		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
 			struct lane_section *section =
-				&pop.p.lanes_desc.lane[i].sections[j];
-			UT_ASSERTeq(section->layout, &pop.l[i].sections[j]);
+				&pop->p.lanes_desc.lane[i].sections[j];
+			UT_ASSERTeq(section->layout, &pop->l[i].sections[j]);
 			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
 		}
 	}
@@ -364,8 +358,10 @@ test_lane_cleanup_in_separate_thread(void)
 	pthread_create(&thread, NULL, test_separate_thread, &data);
 	pthread_join(thread, NULL);
 
-	UT_ASSERTeq(pop.p.lanes_desc.lane, NULL);
-	UT_ASSERTeq(pop.p.lanes_desc.lane_locks, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
+	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);
+
+	FREE(pop);
 }
 
 static void

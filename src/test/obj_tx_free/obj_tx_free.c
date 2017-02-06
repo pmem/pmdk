@@ -89,7 +89,7 @@ do_tx_alloc(PMEMobjpool *pop, int type_num)
 static void
 do_tx_free_wrong_uuid(PMEMobjpool *pop)
 {
-	int ret;
+	volatile int ret = 0;
 	PMEMoid oid = do_tx_alloc(pop, TYPE_FREE_WRONG_UUID);
 	oid.pool_uuid_lo = ~oid.pool_uuid_lo;
 
@@ -113,7 +113,7 @@ do_tx_free_wrong_uuid(PMEMobjpool *pop)
 static void
 do_tx_free_null_oid(PMEMobjpool *pop)
 {
-	int ret;
+	volatile int ret = 0;
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_free(OID_NULL);
