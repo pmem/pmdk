@@ -143,14 +143,19 @@ pmemwrite_blk(struct pmemwrite *pwp)
 		char flag;
 		/* <blockno>:w:<string> - write string to <blockno> */
 		if (sscanf(pwp->args[i], "%" SCNi64 ":w:%[^:]",
-					&blockno, buff) == 2) {
+			&blockno, buff) == 2) {
 			memset(blk, 0, blksize);
 			size_t bufflen = strlen(buff);
+			if (bufflen == 0 || bufflen >= buffsize) {
+				free(buff);
+				goto end;
+			}
 			if (bufflen > blksize) {
 				outv_err("String is longer than block size. "
 					"Truncating.\n");
 				bufflen = blksize;
 			}
+
 			memcpy(blk, buff, bufflen);
 			ret = pmemblk_write(pbp, blk, blockno);
 			free(buff);

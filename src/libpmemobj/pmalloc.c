@@ -232,7 +232,7 @@ pmalloc_construct_rt(PMEMobjpool *pop)
 static void
 pmalloc_destroy_rt(PMEMobjpool *pop, void *rt)
 {
-	/* nop */
+	/* NOP */
 }
 
 /*
