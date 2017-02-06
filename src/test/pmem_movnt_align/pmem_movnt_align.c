@@ -94,6 +94,8 @@ static void
 check_memset(void *dest, size_t len)
 {
 	char *buff = malloc(sizeof(char) * len);
+	if (buff == NULL)
+		UT_FATAL("!malloc");
 	memset(buff, 1, len);
 
 	pmem_memset_persist(dest, 1, len);

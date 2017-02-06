@@ -120,6 +120,8 @@ test_block_size()
 	memblock_rebuild_state(&pop->heap, &mhuge);
 	memblock_rebuild_state(&pop->heap, &mrun);
 
+	UT_ASSERTne(mhuge.m_ops, NULL);
+	UT_ASSERTne(mrun.m_ops, NULL);
 	UT_ASSERTeq(mhuge.m_ops->block_size(&mhuge), CHUNKSIZE);
 	UT_ASSERTeq(mrun.m_ops->block_size(&mrun), 1234);
 }
@@ -163,6 +165,7 @@ test_prep_hdr()
 	memblock_rebuild_state(heap, &mrun_large_used);
 	memblock_rebuild_state(heap, &mrun_large_free);
 
+	UT_ASSERTne(mhuge_used.m_ops, NULL);
 	mhuge_used.m_ops->prep_hdr(&mhuge_used, MEMBLOCK_FREE, NULL);
 	UT_ASSERTeq(layout->zone0.chunk_headers[0].type, CHUNK_TYPE_FREE);
 

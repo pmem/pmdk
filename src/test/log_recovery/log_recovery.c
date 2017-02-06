@@ -153,9 +153,11 @@ printit(const void *buf, size_t len, void *arg)
 {
 	char *str = alloca(len + 1);
 
-	strncpy(str, buf, len);
-	str[len] = '\0';
-	UT_OUT("%s", str);
+	if (str) {
+		strncpy(str, buf, len);
+		str[len] = '\0';
+		UT_OUT("%s", str);
+	}
 
 	return 0;
 }
