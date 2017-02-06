@@ -248,7 +248,7 @@ mmap_init(void)
 {
 
 	HANDLE Mutex = CreateMutex(NULL, TRUE, NULL);
-	if (Mutex == INVALID_HANDLE_VALUE)
+	if (Mutex == INVALID_HANDLE_VALUE || Mutex == NULL)
 		FATAL("CreateMutex failed");
 
 #ifdef C_ASSERT

@@ -40,11 +40,6 @@
 
 #include "unittest.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <signal.h>
-
 #ifdef USE_LIBUNWIND
 
 #define UNW_LOCAL_ONLY
@@ -174,7 +169,7 @@ ut_dump_backtrace(void)
 	SymInitialize(proc_hndl, NULL, TRUE);
 
 	nptrs = CaptureStackBackTrace(0, SIZE, buffer, NULL);
-	symbol = calloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR), 1);
+	symbol = CALLOC(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR), 1);
 	symbol->MaxNameLen = MAX_SYM_NAME - 1;
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
@@ -187,7 +182,7 @@ ut_dump_backtrace(void)
 		}
 	}
 
-	free(symbol);
+	FREE(symbol);
 }
 
 #endif /* _WIN32 */
