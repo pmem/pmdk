@@ -357,8 +357,6 @@ SYNC_EXT=synced
 
 all test cstyle format: $(TESTS_BUILD)
 
-test: sync-remotes
-
 clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
@@ -393,8 +391,10 @@ check: test
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
 	@echo "No failures."
 
-check-remote-quiet: test
+check-remote-quiet: sync-remotes
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS)
+
+sync-remotes: test
 
 check-remote: check-remote-quiet
 	@echo "No failures."
