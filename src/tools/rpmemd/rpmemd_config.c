@@ -381,7 +381,7 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 	struct rpmemd_special_chars_pos pos;
 
 	do {
-		memset(&pos, INT32_MAX, sizeof(pos));
+		memset(&pos, 0xff, sizeof(pos));
 		if (get_config_line(file, &line, &line_max,
 			&line_max_increased, &pos) != 0)
 			goto error;
