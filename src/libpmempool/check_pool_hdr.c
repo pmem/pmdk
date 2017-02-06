@@ -88,6 +88,10 @@ union location {
 
 		uuid_t *valid_puuid;
 		uuid_t *valid_uuid;
+
+		struct pool_hdr *valid_part_hdrp;
+		int valid_part_done;
+		unsigned valid_part_replica;
 	};
 	/* global check step data */
 	struct check_step_data step_data;
@@ -100,6 +104,7 @@ enum question {
 	Q_DEFAULT_INCOMPAT_FEATURES,
 	Q_DEFAULT_RO_COMPAT_FEATURES,
 	Q_ZERO_UNUSED_AREA,
+	Q_ARCH_FLAGS,
 	Q_CRTIME,
 	Q_CHECKSUM,
 	Q_POOLSET_UUID_SET,
@@ -335,10 +340,10 @@ pool_hdr_quick_check(PMEMpoolcheck *ppc, union location *loc)
 }
 
 /*
- * pool_hdr_crtime -- (internal) validate creation time
+ * pool_hdr_advanced -- (internal) validate fields requiring advanced fixing
  */
 static int
-pool_hdr_crtime(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_advanced(PMEMpoolcheck *ppc, union location *loc)
 {
 	LOG(3, NULL);
 
@@ -359,14 +364,33 @@ pool_hdr_crtime(PMEMpoolcheck *ppc, union location *loc)
 			check_get_time_str(ppc->pool->set_file->mtime));
 	}
 
+	if (loc->valid_part_hdrp &&
+			memcmp(&loc->valid_part_hdrp->arch_flags,
+				&loc->hdr.arch_flags,
+				sizeof(struct arch_flags)) != 0) {
+		const char *error = "%spool_hdr.arch_flags is not valid";
+		if (CHECK_IS_NOT(ppc, REPAIR)) {
+			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+			return CHECK_ERR(ppc, error, loc->prefix);
+		} else if (CHECK_IS_NOT(ppc, ADVANCED)) {
+			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+			CHECK_INFO(ppc, "%s" REQUIRE_ADVANCED, loc->prefix);
+			return CHECK_ERR(ppc, error, loc->prefix);
+		}
+
+		CHECK_ASK(ppc, Q_ARCH_FLAGS,
+			"%spool_hdr.arch_flags is not valid.|Do you want to "
+			"copy it from a valid part?", loc->prefix);
+	}
+
 	return check_questions_sequence_validate(ppc);
 }
 
 /*
- * pool_hdr_crtime_fix -- (internal) fix creation time
+ * pool_hdr_advanced_fix -- (internal) perform advanced fixes
  */
 static int
-pool_hdr_crtime_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+pool_hdr_advanced_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 	uint32_t question, void *context)
 {
 	LOG(3, NULL);
@@ -380,6 +404,14 @@ pool_hdr_crtime_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 			check_get_time_str(ppc->pool->set_file->mtime));
 		util_convert2h_hdr_nocheck(&loc->hdr);
 		loc->hdr.crtime = (uint64_t)ppc->pool->set_file->mtime;
+		util_convert2le_hdr(&loc->hdr);
+		break;
+	case Q_ARCH_FLAGS:
+		CHECK_INFO(ppc, "%ssetting pool_hdr.arch_flags to 0x%x",
+			loc->prefix, loc->valid_part_hdrp->arch_flags);
+		util_convert2h_hdr_nocheck(&loc->hdr);
+		memcpy(&loc->hdr.arch_flags, &loc->valid_part_hdrp->arch_flags,
+			sizeof(struct arch_flags));
 		util_convert2le_hdr(&loc->hdr);
 		break;
 	default:
@@ -838,10 +870,10 @@ static const struct step steps_initial[] = {
 		.check	= pool_hdr_quick_check,
 	},
 	{
-		.check	= pool_hdr_crtime,
+		.check	= pool_hdr_advanced,
 	},
 	{
-		.fix	= pool_hdr_crtime_fix,
+		.fix	= pool_hdr_advanced_fix,
 	},
 	{
 		.check	= NULL,
@@ -954,6 +986,17 @@ init_location_data(PMEMpoolcheck *ppc, union location *loc)
 	loc->prev_part_hdr_valid = pool_hdr_valid(loc->prev_part_hdrp);
 	loc->next_repl_hdr_valid = pool_hdr_valid(loc->next_repl_hdrp);
 	loc->prev_repl_hdr_valid = pool_hdr_valid(loc->prev_repl_hdrp);
+
+	if (!loc->valid_part_done || loc->valid_part_replica != loc->replica) {
+		loc->valid_part_hdrp = NULL;
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (pool_hdr_valid(HDR(rep, p))) {
+				loc->valid_part_hdrp = HDR(rep, p);
+				break;
+			}
+		}
+		loc->valid_part_done = true;
+	}
 }
 
 /*
