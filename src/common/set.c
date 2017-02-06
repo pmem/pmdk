@@ -81,6 +81,7 @@ int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 			unsigned lane);
 int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
 int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
+int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
 static int Remote_replication_available;
 static pthread_mutex_t Remote_lock;
@@ -144,6 +145,7 @@ util_remote_unload_core()
 	Rpmem_persist = NULL;
 	Rpmem_read = NULL;
 	Rpmem_remove = NULL;
+	Rpmem_set_attr = NULL;
 }
 
 /*
@@ -240,6 +242,12 @@ util_remote_load(void)
 	Rpmem_remove = util_dlsym(Rpmem_handle_remote, "rpmem_remove");
 	if (util_dl_check_error(Rpmem_remove, "dlsym")) {
 		ERR("symbol 'rpmem_remove' not found");
+		goto err;
+	}
+
+	Rpmem_set_attr = util_dlsym(Rpmem_handle_remote, "rpmem_set_attr");
+	if (util_dl_check_error(Rpmem_set_attr, "dlsym")) {
+		ERR("symbol 'rpmem_set_attr' not found");
 		goto err;
 	}
 
