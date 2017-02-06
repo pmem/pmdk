@@ -93,14 +93,14 @@ check_memcpy(void *dest, void *src, size_t len)
 static void
 check_memset(void *dest, size_t len)
 {
-	char *buff = malloc(sizeof(char) * len);
+	char *buff = MALLOC(sizeof(char) * len);
 	memset(buff, 1, len);
 
 	pmem_memset_persist(dest, 1, len);
 
 	if (memcmp(dest, buff, len))
 		UT_FATAL("memset failed");
-	free(buff);
+	FREE(buff);
 }
 
 int

@@ -108,9 +108,8 @@ map_read(PMEMpoolcheck *ppc, struct arena *arenap)
 	}
 
 	uint32_t i;
-	for (i = 0; i < arenap->btt_info.external_nlba; i++) {
+	for (i = 0; i < arenap->btt_info.external_nlba; i++)
 		arenap->map[i] = le32toh(arenap->map[i]);
-	}
 
 	return 0;
 
