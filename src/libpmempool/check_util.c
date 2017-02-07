@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,7 +81,7 @@ TAILQ_HEAD(check_status_head, check_status);
 /* check control context */
 struct check_data {
 	unsigned step;
-	struct check_step_data step_data;
+	location step_data;
 
 	struct check_status *error;
 	struct check_status_head infos;
@@ -105,7 +105,7 @@ check_data_alloc(void)
 		return NULL;
 	}
 
-	memset(&data->step_data, 0, sizeof(struct check_step_data));
+	memset(&data->step_data, 0, sizeof(location));
 	data->check_status_cache = NULL;
 	data->error = NULL;
 	data->step = 0;
@@ -175,13 +175,13 @@ check_step_inc(struct check_data *data)
 		return;
 
 	++data->step;
-	memset(&data->step_data, 0, sizeof(struct check_step_data));
+	memset(&data->step_data, 0, sizeof(location));
 }
 
 /*
  * check_get_step_data -- return pointer to check step data
  */
-struct check_step_data *
+location *
 check_get_step_data(struct check_data *data)
 {
 	return &data->step_data;
@@ -553,9 +553,8 @@ check_status_get_util(struct check_status *status)
  * check_answer_loop -- loop through all available answers and process them
  */
 int
-check_answer_loop(PMEMpoolcheck *ppc, struct check_step_data *data, void *ctx,
-	int (*callback)(PMEMpoolcheck *, struct check_step_data *, uint32_t,
-	void *ctx))
+check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx,
+	int (*callback)(PMEMpoolcheck *, location *, uint32_t, void *ctx))
 {
 	struct check_status *answer;
 

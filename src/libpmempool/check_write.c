@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,16 +44,6 @@
 #include "pool.h"
 #include "check_util.h"
 
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		unsigned step;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
-
 enum questions {
 	Q_REPAIR_MAP,
 	Q_REPAIR_FLOG,
@@ -63,7 +53,7 @@ enum questions {
  * log_write -- (internal) write all structures for log pool
  */
 static int
-log_write(PMEMpoolcheck *ppc, union location *loc)
+log_write(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -145,7 +135,7 @@ blk_write_map(PMEMpoolcheck *ppc, struct arena *arenap)
  * blk_write -- (internal) write all structures for blk pool
  */
 static int
-blk_write(PMEMpoolcheck *ppc, union location *loc)
+blk_write(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -169,7 +159,7 @@ blk_write(PMEMpoolcheck *ppc, union location *loc)
  * btt_data_write -- (internal) write BTT data
  */
 static int
-btt_data_write(PMEMpoolcheck *ppc, union location *loc)
+btt_data_write(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -220,7 +210,7 @@ error:
 }
 
 struct step {
-	int (*func)(PMEMpoolcheck *, union location *loc);
+	int (*func)(PMEMpoolcheck *, location *loc);
 	enum pool_type type;
 };
 
@@ -246,7 +236,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static inline int
-step_exe(PMEMpoolcheck *ppc, union location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	ASSERT(loc->step < ARRAY_SIZE(steps));
 
@@ -265,9 +255,6 @@ step_exe(PMEMpoolcheck *ppc, union location *loc)
 void
 check_write(PMEMpoolcheck *ppc)
 {
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
-
 	/*
 	 * XXX: Disabling individual checks based on type should be done in the
 	 *	step structure. This however requires refactor of the step
@@ -276,7 +263,7 @@ check_write(PMEMpoolcheck *ppc)
 	if (CHECK_IS_NOT(ppc, REPAIR))
 		return;
 
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = (location *)check_get_step_data(ppc->data);
 
 	/* do all steps */
 	while (loc->step != CHECK_STEP_COMPLETE &&
