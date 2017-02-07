@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,39 @@
  */
 
 /*
- * mocks.c -- mocked functions used in util_poolset.c
+ * os.h -- os abstaction layer
  */
 
-#include "unittest.h"
-#include "mocks.h"
+#ifndef NVML_OS_H
+#define NVML_OS_H 1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*
- * open -- open mock
- */
-FUNC_MOCK(open, int, const char *path, int flags, ...)
-FUNC_MOCK_RUN_DEFAULT {
-	if (strcmp(Open_path, path) == 0) {
-		UT_OUT("mocked open: %s", path);
-		errno = EACCES;
-		return -1;
-	}
+#include <sys/stat.h>
+#include <stdio.h>
 
-	va_list ap;
-	va_start(ap, flags);
-	int mode = va_arg(ap, int);
-	va_end(ap);
+#ifndef _WIN32
+typedef struct stat os_stat_t;
+#define os_fstat	fstat
+#define os_lseek	lseek
+#else
+typedef struct _stat64 os_stat_t;
+#define os_fstat	_fstat64
+#define os_lseek	_lseeki64
+#endif
 
-	return _FUNC_REAL(open)(path, flags, mode);
+#define os_close close
+
+int os_open(const char *pathname, int flags, ...);
+int os_stat(const char *pathname, os_stat_t *buf);
+int os_unlink(const char *pathname);
+int os_access(const char *pathname, int mode);
+FILE *os_fopen(const char *pathname, const char *mode);
+FILE *os_fdopen(int fd, const char *mode);
+int os_chmod(const char *pathname, mode_t mode);
+int os_mkstemp(char *temp);
+#ifdef __cplusplus
 }
-FUNC_MOCK_END
-
-/*
- * posix_fallocate -- posix_fallocate mock
- */
-FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Fallocate_len == len) {
-		UT_OUT("mocked fallocate: %ju", len);
-		return ENOSPC;
-	}
-	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
-}
-FUNC_MOCK_END
-
-/*
- * pmem_is_pmem -- pmem_is_pmem mock
- */
-FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Is_pmem_len == len) {
-		UT_OUT("mocked pmem_is_pmem: %zu", len);
-		return 1;
-	}
-	return _FUNC_REAL(pmem_is_pmem)(addr, len);
-}
-FUNC_MOCK_END
+#endif
+#endif /* os.h */

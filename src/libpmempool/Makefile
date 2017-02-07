@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,6 +51,7 @@ SOURCE =\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/pool_hdr_linux.c\
+	$(COMMON)/os_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\

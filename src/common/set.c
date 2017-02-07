@@ -59,6 +59,7 @@
 #include "librpmem.h"
 #include "set.h"
 #include "file.h"
+#include "os.h"
 #include "mmap.h"
 #include "util.h"
 #include "out.h"
@@ -510,7 +511,7 @@ util_replica_close_local(struct pool_replica *rep, unsigned repn,
 {
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		if (rep->part[p].fd != -1)
-			(void) close(rep->part[p].fd);
+			(void) os_close(rep->part[p].fd);
 
 		if ((del == DELETE_CREATED_PARTS && rep->part[p].created) ||
 				del == DELETE_ALL_PARTS) {
@@ -608,8 +609,8 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			if (!part->created)
 				continue;
 
-			util_stat_t stbuf;
-			if (util_fstat(part->fd, &stbuf) != 0) {
+			os_stat_t stbuf;
+			if (os_fstat(part->fd, &stbuf) != 0) {
 				ERR("!fstat");
 				return -1;
 			}
@@ -621,7 +622,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 					stbuf.st_mode & ~(unsigned)S_IFMT);
 			}
 
-			if (chmod(part->path, mode)) {
+			if (os_chmod(part->path, mode)) {
 				ERR("!chmod %u/%u/%s", r, p, part->path);
 				return -1;
 			}
@@ -930,7 +931,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	size_t psize;
 	FILE *fs;
 
-	if (util_lseek(fd, 0, SEEK_SET) != 0) {
+	if (os_lseek(fd, 0, SEEK_SET) != 0) {
 		ERR("!lseek %d", fd);
 		return -1;
 	}
@@ -942,9 +943,9 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	}
 
 	/* associate a stream with the file descriptor */
-	if ((fs = fdopen(fd, "r")) == NULL) {
+	if ((fs = os_fdopen(fd, "r")) == NULL) {
 		ERR("!fdopen %d", fd);
-		close(fd);
+		os_close(fd);
 		return -1;
 	}
 
@@ -1140,7 +1141,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
 	/* check if file exists */
-	if (access(part->path, F_OK) == 0)
+	if (os_access(part->path, F_OK) == 0)
 		create = 0;
 
 	part->created = 0;
@@ -1181,7 +1182,7 @@ util_part_fdclose(struct pool_set_part *part)
 {
 	LOG(3, "part %p", part);
 	if (part->fd != -1) {
-		(void) close(part->fd);
+		(void) os_close(part->fd);
 		part->fd = -1;
 	}
 }
@@ -1474,13 +1475,13 @@ util_poolset_read(struct pool_set **setp, const char *path)
 	int ret = 0;
 	int fd;
 
-	if ((fd = open(path, O_RDONLY)) < 0)
+	if ((fd = os_open(path, O_RDONLY)) < 0)
 		return -1;
 
 	ret = util_poolset_parse(setp, path, fd);
 
 	oerrno = errno;
-	(void) close(fd);
+	(void) os_close(fd);
 	errno = oerrno;
 	return ret;
 }
@@ -1538,7 +1539,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	if (is_dev_dax || ret < POOLSET_HDR_SIG_LEN ||
 	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
-		(void) close(fd);
+		(void) os_close(fd);
 
 		if (size < minsize) {
 			ERR("size %zu smaller than %zu", size, minsize);
@@ -1571,7 +1572,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 
 err:
 	oerrno = errno;
-	(void) close(fd);
+	(void) os_close(fd);
 	errno = oerrno;
 	return ret;
 }
@@ -2154,7 +2155,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	int oerrno;
 
 	/* check if file exists */
-	if (poolsize > 0 && access(path, F_OK) == 0) {
+	if (poolsize > 0 && os_access(path, F_OK) == 0) {
 		ERR("file %s already exists", path);
 		errno = EEXIST;
 		return -1;
@@ -2870,7 +2871,7 @@ util_is_poolset_file(const char *path)
 	if (memcmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0)
 		ret = 1;
 out:
-	close(fd);
+	os_close(fd);
 	return ret;
 }
 
@@ -2888,7 +2889,7 @@ int
 util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg)
 {
-	int fd = open(path, O_RDONLY);
+	int fd = os_open(path, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
@@ -2927,7 +2928,7 @@ out:
 	ASSERTne(ret, -1);
 	util_poolset_free(set);
 err_close:
-	close(fd);
+	os_close(fd);
 	return ret;
 }
 
@@ -2937,7 +2938,7 @@ err_close:
 size_t
 util_poolset_size(const char *path)
 {
-	int fd = open(path, O_RDONLY);
+	int fd = os_open(path, O_RDONLY);
 	if (fd < 0)
 		return 0;
 
@@ -2950,7 +2951,7 @@ util_poolset_size(const char *path)
 
 	util_poolset_free(set);
 err_close:
-	close(fd);
+	os_close(fd);
 	return size;
 }
 

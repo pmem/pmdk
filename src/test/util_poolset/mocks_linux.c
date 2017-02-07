@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * mocks_linux.c -- mocked functions used in util_poolset.c
+ * mocks.c -- mocked functions used in util_poolset.c
  */
 
 #include "unittest.h"
@@ -43,13 +43,19 @@ extern size_t Is_pmem_len;
 /*
  * open -- open mock
  */
-FUNC_MOCK(open, int, const char *path, int flags, int mode)
+FUNC_MOCK(open, int, const char *path, int flags, ...)
 FUNC_MOCK_RUN_DEFAULT {
 	if (strcmp(Open_path, path) == 0) {
 		UT_OUT("mocked open: %s", path);
 		errno = EACCES;
 		return -1;
 	}
+
+	va_list ap;
+	va_start(ap, flags);
+	int mode = va_arg(ap, int);
+	va_end(ap);
+
 	return _FUNC_REAL(open)(path, flags, mode);
 }
 FUNC_MOCK_END
@@ -70,7 +76,7 @@ FUNC_MOCK_END
 /*
  * pmem_is_pmem -- pmem_is_pmem mock
  */
-FUNC_MOCK(pmem_is_pmem, int, void *addr, size_t len)
+FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Is_pmem_len == len) {
 		UT_OUT("mocked pmem_is_pmem: %zu", len);

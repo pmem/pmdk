@@ -47,6 +47,7 @@
 #include "queue.h"
 #include "mmap.h"
 #include "sys_util.h"
+#include "os.h"
 
 int Mmap_no_random;
 void *Mmap_hint;
@@ -207,13 +208,13 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 		goto err;
 	}
 
-	(void) close(fd);
+	(void) os_close(fd);
 	return base;
 
 err:
 	oerrno = errno;
 	if (fd != -1)
-		(void) close(fd);
+		(void) os_close(fd);
 	errno = oerrno;
 	return NULL;
 }

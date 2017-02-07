@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include "os.h"
 #include "out.h"
 
 /* pass through for Linux */
@@ -66,7 +67,7 @@ int
 util_compare_file_inodes(const char *path1, const char *path2)
 {
 	struct stat sb1, sb2;
-	if (stat(path1, &sb1)) {
+	if (os_stat(path1, &sb1)) {
 		if (errno != ENOENT) {
 			ERR("!stat failed for %s", path1);
 			return -1;
@@ -76,7 +77,7 @@ util_compare_file_inodes(const char *path1, const char *path2)
 		return strcmp(path1, path2) != 0;
 	}
 
-	if (stat(path2, &sb2)) {
+	if (os_stat(path2, &sb2)) {
 		if (errno != ENOENT) {
 			ERR("!stat failed for %s", path2);
 			return -1;
