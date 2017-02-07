@@ -72,7 +72,7 @@
  * help_str -- string for the help message
  */
 static const char *help_str =
-"Usage: %s <mode> <file_1> <file_2>\n"
+"Usage: %s <mode> <file_1> <file_2> [filename]\n"
 "\n"
 "Modes:\n"
 "   create <file_license> <file_pattern>\n"
@@ -319,7 +319,7 @@ print_diff(char *license, char *pattern, size_t len)
  *                  of the copyright line
  */
 static int
-verify_license(const char *path_to_check, char *pattern)
+verify_license(const char *path_to_check, char *pattern, const char *filename)
 {
 	char buffer[LICENSE_MAX_LEN];
 	char *license, *copyright;
@@ -329,6 +329,7 @@ verify_license(const char *path_to_check, char *pattern)
 	int min_year_first = YEAR_INIT_MIN;
 	int max_year_last = YEAR_INIT_MAX;
 	char *err_str = NULL;
+	const char *name_to_print = filename ? filename : path_to_check;
 
 	if ((file_to_check = open(path_to_check, O_RDONLY)) == -1) {
 		ERROR("open(): %s: %s", strerror(errno), path_to_check);
@@ -340,7 +341,7 @@ verify_license(const char *path_to_check, char *pattern)
 	close(file_to_check);
 
 	if (ret == -1) {
-		ERROR("read(): %s: %s", strerror(errno), path_to_check);
+		ERROR("read(): %s: %s", strerror(errno), name_to_print);
 		return -1;
 	}
 
@@ -416,7 +417,7 @@ verify_license(const char *path_to_check, char *pattern)
 
 	/* now check the license */
 	if (memcmp(license, pattern, strlen(pattern)) != 0) {
-		ERROR2("%s:1: error: incorrect license", path_to_check);
+		ERROR2("%s:1: error: incorrect license", name_to_print);
 		print_diff(license, pattern, strlen(pattern));
 		return -1;
 	}
@@ -459,38 +460,43 @@ mode_check_pattern(const char *path_license, const char *path_to_check)
 	if (create_pattern(path_license, pattern) == -1)
 		return -1;
 
-	return verify_license(path_to_check, pattern);
+	return verify_license(path_to_check, pattern, NULL);
 }
 
 /*
  * mode_check_license -- 'check_license' mode function
  */
 static int
-mode_check_license(const char *path_pattern, const char *path_to_check)
+mode_check_license(const char *path_pattern, const char *path_to_check,
+		const char *filename)
 {
 	char pattern[LICENSE_MAX_LEN];
 
 	if (read_pattern(path_pattern, pattern) == -1)
 		return -1;
 
-	return verify_license(path_to_check, pattern);
+	return verify_license(path_to_check, pattern, filename);
 }
 
 int
 main(int argc, char *argv[])
 {
-	if (argc != 4) {
-		printf(help_str, argv[0]);
-		return -1;
-	}
-
 	if (strcmp(argv[1], STR_MODE_CREATE) == 0) {
+		if (argc != 4)
+			goto invalid_args;
+
 		return mode_create_pattern_file(argv[2], argv[3]);
 
 	} else if (strcmp(argv[1], STR_MODE_PATTERN) == 0) {
-		return mode_check_license(argv[2], argv[3]);
+		if (argc != 5)
+			goto invalid_args;
+
+		return mode_check_license(argv[2], argv[3], argv[4]);
 
 	} else if (strcmp(argv[1], STR_MODE_LICENSE) == 0) {
+		if (argc != 4)
+			goto invalid_args;
+
 		return mode_check_pattern(argv[2], argv[3]);
 
 	} else {
