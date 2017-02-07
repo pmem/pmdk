@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +31,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync_remote/config.sh -- test configuration
+# libpmempool_api/config.sh -- test configuration
 #
-
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
-
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
 
 CONF_GLOBAL_ENCODING="ascii unicode"
 CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"

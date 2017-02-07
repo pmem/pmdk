@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync_remote/config.sh -- test configuration
+# src/test/obj_pool/TEST15 -- unit test for pmemobj_create with unicode
 #
+export UNITTEST_NAME=obj_pool/TEST15
+export UNITTEST_NUM=15
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
 
-CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+setup
+umask 0
+
+#
+# TEST0 non-existing file, poolsize > 0
+#
+expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/ㅹestㆅile "⿆⾨ㆦt" 20 0600
+
+check_files $DIR/ㅹestㆅile
+
+check
+
+pass
