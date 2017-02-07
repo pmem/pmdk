@@ -412,7 +412,7 @@ verify_license(const char *path_to_check, char *pattern)
 	if (err_str)
 		/* found an error in the copyright notice */
 		ERROR2("%s:1: error: incorrect copyright notice: %s",
-			path_to_check, err_str);
+			name_to_print, err_str);
 
 	/* now check the license */
 	if (memcmp(license, pattern, strlen(pattern)) != 0) {
@@ -495,7 +495,9 @@ main(int argc, char *argv[])
 
 	} else {
 		ERROR("wrong mode: %s\n", argv[1]);
-		printf(help_str, argv[0]);
-		return -1;
 	}
+
+invalid_args:
+	printf(help_str, argv[0]);
+	return -1;
 }
