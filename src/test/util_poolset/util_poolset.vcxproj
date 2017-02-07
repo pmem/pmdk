@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -121,8 +121,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\windows\win_mmap.c" />
-    <ClCompile Include="mocks_windows.c" />
-    <ClCompile Include="mocks.c">
+    <ClCompile Include="mocks_windows.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_OPEN;WRAP_REAL_PMEM;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_OPEN;WRAP_REAL_PMEM;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
     </ClCompile>

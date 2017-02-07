@@ -37,6 +37,7 @@
 
 #include "libpmempool.h"
 #include "out.h"
+#include "os.h"
 #include "util.h"
 #include "set.h"
 #include "file.h"
@@ -68,8 +69,8 @@ rm_local(const char *path, int flags, int is_part_file)
 	}
 
 	int oerrno = errno;
-	util_stat_t buff;
-	ret = util_stat(path, &buff);
+	os_stat_t buff;
+	ret = os_stat(path, &buff);
 	if (!ret) {
 		if (S_ISDIR(buff.st_mode)) {
 			errno = EISDIR;
@@ -154,8 +155,8 @@ pmempool_rm(const char *path, int flags)
 
 	int is_poolset = util_is_poolset_file(path);
 	if (is_poolset < 0) {
-		util_stat_t buff;
-		ret = util_stat(path, &buff);
+		os_stat_t buff;
+		ret = os_stat(path, &buff);
 		if (!ret) {
 			if (S_ISDIR(buff.st_mode)) {
 				errno = EISDIR;

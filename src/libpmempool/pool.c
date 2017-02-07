@@ -58,6 +58,7 @@
 #include "obj.h"
 #include "btt.h"
 #include "file.h"
+#include "os.h"
 #include "set.h"
 #include "check_util.h"
 
@@ -71,7 +72,7 @@ static inline off_t
 pool_btt_lseek(struct pool_data *pool, off_t offset, int whence)
 {
 	off_t result;
-	if ((result = util_lseek(pool->set_file->fd, offset, whence)) == -1)
+	if ((result = os_lseek(pool->set_file->fd, offset, whence)) == -1)
 		ERR("!lseek");
 
 	return result;
@@ -278,8 +279,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 	int ret = 0;
 
-	util_stat_t stat_buf;
-	ret = util_fstat(fd, &stat_buf);
+	os_stat_t stat_buf;
+	ret = os_fstat(fd, &stat_buf);
 	if (ret)
 		goto out_close;
 
@@ -444,8 +445,8 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 		file->size = params->size;
 	}
 
-	util_stat_t buf;
-	if (util_stat(path, &buf)) {
+	os_stat_t buf;
+	if (os_stat(path, &buf)) {
 		ERR("%s", path);
 		goto err_close_poolset;
 	}
@@ -474,7 +475,7 @@ pool_set_parse(struct pool_set **setp, const char *path)
 {
 	LOG(3, "setp %p path %s", setp, path);
 
-	int fd = open(path, O_RDONLY);
+	int fd = os_open(path, O_RDONLY);
 	int ret = 0;
 
 	if (fd < 0)
@@ -661,7 +662,7 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 {
 	struct pool_set_file *file = pool->set_file;
 	int dfd;
-	if (!access(dst_path, F_OK)) {
+	if (!os_access(dst_path, F_OK)) {
 		if (!overwrite) {
 			errno = EEXIST;
 			return -1;
@@ -679,8 +680,8 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 		return -1;
 
 	int result = 0;
-	util_stat_t stat_buf;
-	if (util_stat(file->fname, &stat_buf)) {
+	os_stat_t stat_buf;
+	if (os_stat(file->fname, &stat_buf)) {
 		result = -1;
 		goto out_close;
 	}
@@ -744,9 +745,9 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 
 	int result = 0;
 
-	util_stat_t stat_buf;
-	if (util_stat(spart->path, &stat_buf)) {
-		ERR("!util_stat");
+	os_stat_t stat_buf;
+	if (os_stat(spart->path, &stat_buf)) {
+		ERR("!os_stat");
 		return -1;
 	}
 
@@ -759,7 +760,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 	int is_pmem;
 	void *daddr;
 
-	if (!access(dpart->path, F_OK)) {
+	if (!os_access(dpart->path, F_OK)) {
 		if (!overwrite) {
 			errno = EEXIST;
 			result = -1;

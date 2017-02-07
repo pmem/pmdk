@@ -45,6 +45,7 @@
 #include "libpmem.h"
 #include "replica.h"
 #include "out.h"
+#include "os.h"
 #include "util.h"
 
 #ifdef USE_RPMEM
@@ -403,8 +404,8 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 
 	/* get permissions of the first part of the source replica */
 	mode_t src_mode;
-	struct stat sb;
-	if (stat(PART(REP(set, src_repn), 0).path, &sb) != 0) {
+	os_stat_t sb;
+	if (os_stat(PART(REP(set, src_repn), 0).path, &sb) != 0) {
 		ERR("cannot check file permissions of %s (replica %u, part %u)",
 				PART(REP(set, src_repn), 0).path, src_repn, 0);
 		src_mode = def_mode;
@@ -430,7 +431,7 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 					p, r);
 
 			/* set rights to those of existing part files */
-			if (chmod(PART(REP(set, r), p).path, src_mode)) {
+			if (os_chmod(PART(REP(set, r), p).path, src_mode)) {
 				ERR("cannot set permission rights for created"
 					" parts: replica %u, part %u", r, p);
 				errno = EPERM;

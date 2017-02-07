@@ -48,6 +48,7 @@
 
 #include "obj.h"
 #include "file.h"
+#include "os.h"
 #include "out.h"
 #include "pool_hdr.h"
 #include "set.h"
@@ -411,7 +412,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		}
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
+			if (os_access(rep->part[p].path, R_OK|W_OK) != 0) {
 				LOG(1, "part file %s is not accessible",
 						rep->part[p].path);
 				errno = 0;
@@ -987,8 +988,8 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	char *path = Strdup(PART(REP(set, repn), partn).path);
 	const char *dir = dirname(path);
-	util_stat_t sb;
-	if (util_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+	os_stat_t sb;
+	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
 		ERR("a directory %s for part %u in replica %u"
 			" does not exist or is not accessible",
 			path, partn, repn);

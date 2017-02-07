@@ -84,17 +84,9 @@ int util_unlink_flock(const char *path);
 int util_file_mkdir(const char *path, mode_t mode);
 
 #ifndef _WIN32
-typedef struct stat util_stat_t;
-#define util_fstat	fstat
-#define util_stat	stat
-#define util_lseek	lseek
 #define util_read	read
 #define util_write	write
 #else
-typedef struct _stat64 util_stat_t;
-#define util_fstat	_fstat64
-#define util_stat	_stat64
-#define util_lseek	_lseeki64
 /* XXX - consider adding an assertion on (count <= UINT_MAX) */
 #define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
 #define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))

@@ -49,6 +49,7 @@
 #endif
 
 #include "file.h"
+#include "os.h"
 #include "out.h"
 #include "mmap.h"
 
@@ -62,16 +63,16 @@
 static ssize_t
 device_dax_size(const char *path)
 {
-	util_stat_t st;
+	os_stat_t st;
 	int olderrno;
 
-	if (util_stat(path, &st) < 0)
+	if (os_stat(path, &st) < 0)
 		return -1;
 
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/size",
 		major(st.st_rdev), minor(st.st_rdev));
-	int fd = open(spath, O_RDONLY);
+	int fd = os_open(spath, O_RDONLY);
 	if (fd < 0)
 		return -1;
 
@@ -116,14 +117,14 @@ util_file_is_device_dax(const char *path)
 #ifdef _WIN32
 	return 0;
 #else
-	util_stat_t st;
+	os_stat_t st;
 	int olderrno = errno;
 	int ret = 0;
 
 	if (path == NULL)
 		goto out;
 
-	if (util_stat(path, &st) < 0)
+	if (os_stat(path, &st) < 0)
 		goto out;
 
 	if (!S_ISCHR(st.st_mode))
@@ -158,8 +159,8 @@ util_file_get_size(const char *path)
 	}
 #endif
 
-	util_stat_t stbuf;
-	if (util_stat(path, &stbuf) < 0) {
+	os_stat_t stbuf;
+	if (os_stat(path, &stbuf) < 0) {
 		ERR("!fstat %s", path);
 		return -1;
 	}
@@ -177,7 +178,7 @@ util_file_map_whole(const char *path)
 	int olderrno;
 	void *addr = NULL;
 
-	if ((fd = open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0)
 		return NULL;
 
 	ssize_t size = util_file_get_size(path);
@@ -206,7 +207,7 @@ util_file_zero_whole(const char *path)
 	int olderrno;
 	int ret = 0;
 
-	if ((fd = open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0)
 		return -1;
 
 	ssize_t size = util_file_get_size(path);
@@ -347,7 +348,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	 * Create file without any permission. It will be granted once
 	 * initialization completes.
 	 */
-	if ((fd = open(path, flags, mode)) < 0) {
+	if ((fd = os_open(path, flags, mode)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
@@ -391,7 +392,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 	flags |= O_BINARY;
 #endif
 
-	if ((fd = open(path, flags)) < 0) {
+	if ((fd = os_open(path, flags)) < 0) {
 		ERR("!open %s", path);
 		return -1;
 	}
@@ -447,9 +448,9 @@ util_unlink(const char *path)
  * On Windows we can not unlink Read-Only files
  */
 #ifdef _WIN32
-		_chmod(path, _S_IREAD | _S_IWRITE);
+		os_chmod(path, _S_IREAD | _S_IWRITE);
 #endif
-		return unlink(path);
+		return os_unlink(path);
 	}
 }
 
