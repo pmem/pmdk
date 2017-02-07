@@ -47,7 +47,7 @@
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
  * builds.
  */
-#if !defined(DEBUG) && defined(__clang_analyzer__)
+#if !defined(DEBUG) && (defined(__clang_analyzer__) || defined(__COVERITY__))
 #define OUT_FATAL_DISCARD_NORETURN __attribute__((noreturn))
 #else
 #define OUT_FATAL_DISCARD_NORETURN
