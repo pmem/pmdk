@@ -1,4 +1,4 @@
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.flags=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -8,7 +8,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.unused=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -18,7 +18,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.major=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -28,7 +28,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.sig=ERROR
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.sig=ERROR
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -38,7 +38,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.nextoff=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.nextoff=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -48,7 +48,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.infosize=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.infosize=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -58,7 +58,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.infooff=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.infooff=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -68,7 +68,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.dataoff=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.dataoff=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -78,7 +78,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.nfree=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.nfree=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -88,7 +88,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.mapoff=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.mapoff=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -98,7 +98,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.uuid=01-02
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.uuid=01-02
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -108,7 +108,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.parent_uuid=03-04
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.parent_uuid=03-04
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -118,7 +118,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.flogoff=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.flogoff=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
@@ -128,7 +128,7 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = repaired
 libpmempool_bttdev/TEST8: DONE
-/$(nW)/test_libpmempool_bttdev8/file.pool: spoil: bttdevice.arena(0).btt_info.minor=7
+/$(nW)/test_libpmempool_bttdev8$(nW)/file.pool: spoil: bttdevice.arena(0).btt_info.minor=7
 libpmempool_bttdev/TEST8: START: libpmempool_test
  ../libpmempool_api/libpmempool_test$(nW) $(nW) -r 1 -t btt
 checking BTT Info headers
