@@ -48,54 +48,9 @@
 #include "set.h"
 #include "check_util.h"
 
-#define PREFIX_MAX_SIZE		30
 #define NO_COMMON_POOLSET_UUID	"%sno common pool_hdr.poolset_uuid"
 #define INVALID_UUID		"%sinvalid pool_hdr.uuid"
 #define INVALID_CHECKSUM	"%sinvalid pool_hdr.checksum"
-
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		unsigned replica;
-		unsigned part;
-		unsigned step;
-		char prefix[PREFIX_MAX_SIZE];
-
-		/*
-		 * If pool header has been modified this field indicates that
-		 * the pool parameters structure requires refresh.
-		 */
-		int header_modified;
-
-		int single_repl;
-		int single_part;
-
-		struct pool_hdr *hdrp;
-		/* copy of the pool header in host byte order */
-		struct pool_hdr hdr;
-		int hdr_valid;
-
-		struct pool_hdr *next_part_hdrp;
-		struct pool_hdr *prev_part_hdrp;
-		struct pool_hdr *next_repl_hdrp;
-		struct pool_hdr *prev_repl_hdrp;
-
-		int next_part_hdr_valid;
-		int prev_part_hdr_valid;
-		int next_repl_hdr_valid;
-		int prev_repl_hdr_valid;
-
-		uuid_t *valid_puuid;
-		uuid_t *valid_uuid;
-
-		struct pool_hdr *valid_part_hdrp;
-		int valid_part_done;
-		unsigned valid_part_replica;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
 
 enum question {
 	Q_DEFAULT_SIGNATURE,
@@ -162,7 +117,7 @@ pool_supported(enum pool_type type)
  *	parameters
  */
 static int
-pool_hdr_preliminary_check(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_preliminary_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -223,7 +178,7 @@ pool_hdr_preliminary_check(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_default_check -- (internal) check some default values in pool header
  */
 static int
-pool_hdr_default_check(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_default_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -278,14 +233,14 @@ pool_hdr_default_check(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_default_fix -- (internal) fix some default values in pool header
  */
 static int
-pool_hdr_default_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
+	ASSERTne(loc, NULL);
 	struct pool_hdr def_hdr;
 	pool_hdr_default(ppc->pool->params.type, &def_hdr);
-	union location *loc = (union location *)location;
 
 	switch (question) {
 	case Q_DEFAULT_SIGNATURE:
@@ -330,7 +285,7 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * pool_hdr_quick_check -- (internal) end check if pool header is valid
  */
 static int
-pool_hdr_quick_check(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_quick_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 	if (pool_hdr_valid(loc->hdrp))
@@ -343,7 +298,7 @@ pool_hdr_quick_check(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_nondefault -- (internal) validate custom value fields
  */
 static int
-pool_hdr_nondefault(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_nondefault(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -386,12 +341,12 @@ pool_hdr_nondefault(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_nondefault_fix -- (internal) fix custom value fields
  */
 static int
-pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	switch (question) {
 	case Q_CRTIME:
@@ -421,7 +376,7 @@ pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * pool_hdr_poolset_uuid -- (internal) check poolset_uuid field
  */
 static int
-pool_hdr_poolset_uuid_find(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_poolset_uuid_find(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -543,12 +498,12 @@ exit_question:
  * pool_hdr_poolset_uuid_fix -- (internal) fix poolset_uuid field
  */
 static int
-pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	switch (question) {
 	case Q_POOLSET_UUID_SET:
@@ -586,7 +541,7 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * pool_hdr_uuid_find -- (internal) check UUID value
  */
 static int
-pool_hdr_uuid_find(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_uuid_find(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -671,12 +626,12 @@ pool_hdr_uuid_find(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_uuid_fix -- (internal) fix UUID value
  */
 static int
-pool_hdr_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	switch (question) {
 	case Q_UUID_SET:
@@ -704,7 +659,7 @@ pool_hdr_uuid_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * pool_hdr_uuid_links -- (internal) check UUID links values
  */
 static int
-pool_hdr_uuid_links(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_uuid_links(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -756,12 +711,12 @@ pool_hdr_uuid_links(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_uuid_links_fix -- (internal) fix UUID links values
  */
 static int
-pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	switch (question) {
 	case Q_NEXT_PART_UUID_SET:
@@ -803,7 +758,7 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * pool_hdr_checksum -- (internal) validate checksum
  */
 static int
-pool_hdr_checksum(PMEMpoolcheck *ppc, union location *loc)
+pool_hdr_checksum(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -828,12 +783,12 @@ pool_hdr_checksum(PMEMpoolcheck *ppc, union location *loc)
  * pool_hdr_checksum_fix -- (internal) fix checksum
  */
 static int
-pool_hdr_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *context)
+pool_hdr_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	switch (question) {
 	case Q_CHECKSUM:
@@ -850,8 +805,8 @@ pool_hdr_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 struct step {
-	int (*check)(PMEMpoolcheck *, union location *);
-	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
+	int (*check)(PMEMpoolcheck *, location *);
+	int (*fix)(PMEMpoolcheck *, location *, uint32_t, void *);
 };
 
 static const struct step steps_initial[] = {
@@ -912,7 +867,7 @@ static const struct step steps_uuids[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static int
-step_exe(PMEMpoolcheck *ppc, const struct step *steps, union location *loc,
+step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
 	struct pool_replica *rep, unsigned nreplicas)
 {
 	const struct step *step = &steps[loc->step++];
@@ -923,7 +878,7 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, union location *loc,
 	if (!check_has_answer(ppc->data))
 		return 0;
 
-	if (check_answer_loop(ppc, &loc->step_data, NULL, step->fix))
+	if (check_answer_loop(ppc, loc, NULL, step->fix))
 		return -1;
 
 	util_convert2le_hdr(&loc->hdr);
@@ -932,7 +887,7 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, union location *loc,
 	PERSIST_GENERIC_AUTO(loc->hdrp, sizeof(*loc->hdrp));
 
 	util_convert2h_hdr_nocheck(&loc->hdr);
-	loc->header_modified = 1;
+	loc->pool_hdr_modified = 1;
 
 	/* execute check after fix if available */
 	if (step->check)
@@ -945,7 +900,7 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, union location *loc,
  * init_location_data -- (internal) prepare location information
  */
 static void
-init_location_data(PMEMpoolcheck *ppc, union location *loc)
+init_location_data(PMEMpoolcheck *ppc, location *loc)
 {
 	/* prepare prefix for messages */
 	unsigned nfiles = pool_set_files_count(ppc->pool->set_file);
@@ -1003,10 +958,7 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
-
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = check_get_step_data(ppc->data);
 	unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
 	struct pool_set *poolset = ppc->pool->set_file->poolset;
 
@@ -1030,7 +982,7 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 	memcpy(&ppc->pool->hdr.pool, poolset->replica[0]->part[0].hdr,
 		sizeof(struct pool_hdr));
 
-	if (loc->header_modified) {
+	if (loc->pool_hdr_modified) {
 		struct pool_hdr hdr;
 		memcpy(&hdr, &ppc->pool->hdr.pool, sizeof(struct pool_hdr));
 		util_convert2h_hdr_nocheck(&hdr);
@@ -1046,10 +998,7 @@ check_pool_hdr_uuids(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
-
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = check_get_step_data(ppc->data);
 	unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
 	struct pool_set *poolset = ppc->pool->set_file->poolset;
 
@@ -1073,7 +1022,7 @@ check_pool_hdr_uuids(PMEMpoolcheck *ppc)
 	memcpy(&ppc->pool->hdr.pool, poolset->replica[0]->part[0].hdr,
 		sizeof(struct pool_hdr));
 
-	if (loc->header_modified) {
+	if (loc->pool_hdr_modified) {
 		struct pool_hdr hdr;
 		memcpy(&hdr, &ppc->pool->hdr.pool, sizeof(struct pool_hdr));
 		util_convert2h_hdr_nocheck(&hdr);
