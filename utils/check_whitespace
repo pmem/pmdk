@@ -39,6 +39,8 @@ use warnings;
 
 use File::Basename;
 use File::Find;
+use Encode;
+use v5.16;
 
 my $Me = $0;
 $Me =~ s,.*/,,;
@@ -62,20 +64,47 @@ sub err {
 }
 
 #
+# decode_file_as_string -- slurp an entire file into memory and decode
+#
+sub decode_file_as_string {
+	my ($full, $file) = @_;
+	my $fh;
+	open($fh, '<', $full) or die "$full $!\n";
+
+	local $/;
+	$_ = <$fh>;
+	close $fh;
+
+	# check known encodings or die
+	my $decoded;
+	my @encodings = ("UTF-8", "UTF-16", "UTF-16LE", "UTF-16BE");
+
+	foreach my $enc (@encodings) {
+		eval { $decoded = decode( $enc, $_, Encode::FB_CROAK ) };
+
+		if (!$@) {
+			$decoded =~ s/\R/\n/g;
+			return $decoded;
+		}
+	}
+
+	die "$Me: ERROR: Unknown file encoding";
+}
+
+#
 # check_whitespace -- run the checks on the given file
 #
 sub check_whitespace {
 	my ($full, $file) = @_;
-	my $fh;
-
-	open($fh, '<', $full) or die "$full $!\n";
 
 	my $line = 0;
 	my $eol;
 	my $nf = 0;
-	while (<$fh>) {
+	my $fstr = decode_file_as_string($full, $file);
+
+	for (split /^/, $fstr) {
 		$line++;
-		$eol = /\n/s;
+		$eol = /[\n]/s;
 		if (/^\.nf$/) {
 			err("$full:$line: ERROR: nested .nf") if $nf;
 			$nf = 1;
@@ -87,8 +116,6 @@ sub check_whitespace {
 			err("$full:$line: ERROR: spaces before tabs") if / \t/;
 		}
 	}
-
-	close($fh);
 
 	err("$full: $line: .nf without .fi") if $nf;
 	err("$full: noeol") unless $eol;
