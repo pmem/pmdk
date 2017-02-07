@@ -492,6 +492,8 @@ test_add_direct_macros(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 }
 
+#define MAX_CACHED_RANGES 100
+
 /*
  * test_tx_corruption_bug -- test whether tx_adds for small objects from one
  * transaction does NOT leak to the next transaction

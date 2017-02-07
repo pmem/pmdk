@@ -210,16 +210,14 @@ Lane:
   State                    : none
   Undo Log - alloc         : 0 elements
   Undo Log - free          : 0 elements
-  Undo Log - set           : 1 element
+  Undo Log - set           : 0 elements
+  Undo Log - set cache     : 1 element
 
    Object                   : 0
    Offset                   : $(*)
 
-   Tx range:
-    Offset                   : $(*)
-    Size                     : 1024
-
-  Undo Log - set cache     : 0 elements
+   Tx range cache:
+    0000000000: Offset: $(*) Size: 1024
 
 Part file:
 path                     : $(nW)file.pool
