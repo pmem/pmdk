@@ -68,6 +68,7 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 
 	VALGRIND_DO_MEMPOOL_ALLOC(heap->layout, uptr, usize);
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
+	VALGRIND_ANNOTATE_NEW_MEMORY(uptr, usize);
 
 	int ret;
 	if (constructor != NULL &&

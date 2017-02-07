@@ -57,10 +57,13 @@ extern unsigned _On_valgrind;
 #define On_valgrind (0)
 #endif
 
-#ifdef USE_VG_HELGRIND
+#if defined(USE_VG_HELGRIND)
 #include <valgrind/helgrind.h>
+#elif defined(USE_VG_DRD)
 #include <valgrind/drd.h>
+#endif
 
+#if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
 #define VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
 	if (On_valgrind) \
 		ANNOTATE_HAPPENS_BEFORE((obj));\
@@ -71,11 +74,21 @@ extern unsigned _On_valgrind;
 		ANNOTATE_HAPPENS_AFTER((obj));\
 } while (0)
 
+#define VALGRIND_ANNOTATE_NEW_MEMORY(addr, size) do {\
+	if (On_valgrind) \
+		ANNOTATE_NEW_MEMORY((addr), (size));\
+} while (0)
+
 #else
 
 #define VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do { (void)(obj); } while (0)
 
 #define VALGRIND_ANNOTATE_HAPPENS_AFTER(obj) do { (void)(obj); } while (0)
+
+#define VALGRIND_ANNOTATE_NEW_MEMORY(addr, size) do {\
+	(void) (addr);\
+	(void) (size);\
+} while (0)
 
 #endif
 

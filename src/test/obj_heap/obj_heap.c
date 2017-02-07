@@ -254,7 +254,7 @@ test_heap()
 	 * created.
 	 */
 	UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &old_run), ENOMEM);
-	UT_ASSERT(old_run.m_ops->is_claimed(&old_run));
+	UT_ASSERTeq(old_run.m_ops->claim(&old_run), -1);
 
 	do {
 		new_run.chunk_id = 0;
@@ -266,7 +266,7 @@ test_heap()
 	} while (old_run.chunk_id == new_run.chunk_id);
 
 	/* the old block should be unclaimed now */
-	UT_ASSERT(!old_run.m_ops->is_claimed(&old_run));
+	UT_ASSERTeq(old_run.m_ops->claim(&old_run), 0);
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);

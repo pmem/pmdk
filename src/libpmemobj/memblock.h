@@ -185,7 +185,6 @@ struct memory_block_ops {
 	/* only runs can be claimed, functions are invalid for huge blocks */
 	int (*claim)(const struct memory_block *m);
 	void (*claim_revoke)(const struct memory_block *m);
-	int (*is_claimed)(const struct memory_block *m);
 };
 
 struct memory_block {
