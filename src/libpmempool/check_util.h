@@ -55,15 +55,89 @@ struct arena;
 /* queue of check statuses */
 struct check_status;
 
-/*
- * container storing check step state
- *
- * Its size is equal to the size of the biggest state structure it must store.
- */
-#define CHECK_INSTEP_LOCATION_NUM 529
+/* state structures of each check step */
+struct check_backup_location {
+	unsigned step;
 
+	int rdonly;
+	struct pool_set *set;
+};
+struct check_btt_info_location {
+	struct arena *arena;
+	uint64_t offset;
+	struct {
+		int btti_header;
+		int btti_backup;
+	} valid;
+	struct {
+		struct btt_info btti;
+		uint64_t btti_offset;
+	} pool_valid;
+	unsigned step;
+};
+#define PREFIX_MAX_SIZE		30
+struct check_pool_hdr_location {
+	unsigned replica;
+	unsigned part;
+	unsigned step;
+	char prefix[PREFIX_MAX_SIZE];
+
+	/*
+	 * If pool header has been modified this field indicates that
+	 * the pool parameters structure requires refresh.
+	 */
+	int header_modified;
+
+	int single_repl;
+	int single_part;
+
+	struct pool_hdr *hdrp;
+	/* copy of the pool header in host byte order */
+	struct pool_hdr hdr;
+	int hdr_valid;
+
+	struct pool_hdr *next_part_hdrp;
+	struct pool_hdr *prev_part_hdrp;
+	struct pool_hdr *next_repl_hdrp;
+	struct pool_hdr *prev_repl_hdrp;
+
+	int next_part_hdr_valid;
+	int prev_part_hdr_valid;
+	int next_repl_hdr_valid;
+	int prev_repl_hdr_valid;
+
+	uuid_t *valid_puuid;
+	uuid_t *valid_uuid;
+
+	struct pool_hdr *valid_part_hdrp;
+	int valid_part_done;
+	unsigned valid_part_replica;
+};
+struct check_btt_map_flog_location {
+	struct arena *arenap;
+	uint32_t narena;
+	uint8_t *bitmap;
+	uint8_t *dup_bitmap;
+	uint8_t *fbitmap;
+	struct list *list_inval;
+	struct list *list_flog_inval;
+	struct list *list_unmap;
+
+	unsigned step;
+};
+struct check_basic_location {
+	unsigned step;
+};
+
+/* container storing state of all check steps */
 struct check_step_data {
-	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
+	union {
+		struct check_backup_location a;
+		struct check_btt_info_location b;
+		struct check_pool_hdr_location c;
+		struct check_btt_map_flog_location d;
+		struct check_basic_location e;
+	};
 };
 
 /* check steps */

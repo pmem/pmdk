@@ -45,18 +45,7 @@
 #include "pool.h"
 #include "check_util.h"
 
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		unsigned step;
-
-		int rdonly;
-		struct pool_set *set;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
+typedef struct check_backup_location location;
 
 enum question {
 	Q_OVERWRITE_EXISTING_FILE,
@@ -67,7 +56,7 @@ enum question {
  * location_release -- (internal) release poolset structure
  */
 static void
-location_release(union location *loc)
+location_release(location *loc)
 {
 	if (loc->set) {
 		util_poolset_free(loc->set);
@@ -79,7 +68,7 @@ location_release(union location *loc)
  * backup_nonpoolset_requirements -- (internal) check backup requirements
  */
 static int
-backup_nonpoolset_requirements(PMEMpoolcheck *ppc, union location *loc)
+backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, "backup_path %s", ppc->backup_path);
 
@@ -111,12 +100,12 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, union location *loc)
  * backup_nonpoolset_overwrite -- (internal) overwrite pool
  */
 static int
-backup_nonpoolset_overwrite(PMEMpoolcheck *ppc,
-	struct check_step_data *location, uint32_t question, void *context)
+backup_nonpoolset_overwrite(PMEMpoolcheck *ppc, struct check_step_data *data,
+	uint32_t question, void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_OVERWRITE_EXISTING_FILE:
@@ -140,7 +129,7 @@ backup_nonpoolset_overwrite(PMEMpoolcheck *ppc,
  * backup_nonpoolset_create -- (internal) create backup
  */
 static int
-backup_nonpoolset_create(PMEMpoolcheck *ppc, union location *loc)
+backup_nonpoolset_create(PMEMpoolcheck *ppc, location *loc)
 {
 	CHECK_INFO(ppc, "creating backup file: %s", ppc->backup_path);
 
@@ -159,7 +148,7 @@ backup_nonpoolset_create(PMEMpoolcheck *ppc, union location *loc)
  * backup_poolset_requirements -- (internal) check backup requirements
  */
 static int
-backup_poolset_requirements(PMEMpoolcheck *ppc, union location *loc)
+backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, "backup_path %s", ppc->backup_path);
 
@@ -240,7 +229,7 @@ err:
  * backup_poolset -- (internal) backup the poolset
  */
 static int
-backup_poolset(PMEMpoolcheck *ppc, union location *loc, int overwrite)
+backup_poolset(PMEMpoolcheck *ppc, location *loc, int overwrite)
 {
 	struct pool_replica *srep = ppc->pool->set_file->poolset->replica[0];
 	struct pool_replica *drep = loc->set->replica[0];
@@ -265,12 +254,12 @@ backup_poolset(PMEMpoolcheck *ppc, union location *loc, int overwrite)
  * backup_poolset_overwrite -- (internal) backup poolset with overwrite
  */
 static int
-backup_poolset_overwrite(PMEMpoolcheck *ppc, struct check_step_data *location,
+backup_poolset_overwrite(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *context)
 {
 	LOG(3, NULL);
 
-	union location *loc = (union location *)location;
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_OVERWRITE_EXISTING_PARTS:
@@ -294,7 +283,7 @@ backup_poolset_overwrite(PMEMpoolcheck *ppc, struct check_step_data *location,
  * backup_poolset_create -- (internal) backup poolset
  */
 static int
-backup_poolset_create(PMEMpoolcheck *ppc, union location *loc)
+backup_poolset_create(PMEMpoolcheck *ppc, location *loc)
 {
 	if (backup_poolset(ppc, loc, 0)) {
 		location_release(loc);
@@ -308,7 +297,7 @@ backup_poolset_create(PMEMpoolcheck *ppc, union location *loc)
 }
 
 struct step {
-	int (*check)(PMEMpoolcheck *, union location *);
+	int (*check)(PMEMpoolcheck *, location *);
 	int (*fix)(PMEMpoolcheck *, struct check_step_data *,
 		uint32_t, void *);
 	int poolset;
@@ -349,7 +338,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static int
-step_exe(PMEMpoolcheck *ppc, union location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	ASSERT(loc->step < ARRAY_SIZE(steps));
 
@@ -364,7 +353,8 @@ step_exe(PMEMpoolcheck *ppc, union location *loc)
 	if (!check_has_answer(ppc->data))
 		return 0;
 
-	if (check_answer_loop(ppc, &loc->step_data, NULL, step->fix))
+	if (check_answer_loop(
+			ppc, (struct check_step_data *)loc, NULL, step->fix))
 		return -1;
 
 	ppc->result = CHECK_RESULT_CONSISTENT;
@@ -380,8 +370,7 @@ check_backup(PMEMpoolcheck *ppc)
 {
 	LOG(3, "backup_path %s", ppc->backup_path);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
+	COMPILE_ERROR_ON(sizeof(location) > sizeof(struct check_step_data));
 
 	if (CHECK_WITHOUT_FIXING(ppc))
 		return;
@@ -389,7 +378,7 @@ check_backup(PMEMpoolcheck *ppc)
 	if (ppc->backup_path == NULL)
 		return;
 
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = (location *)check_get_step_data(ppc->data);
 	loc->rdonly = CHECK_WITHOUT_FIXING(ppc);
 
 	/* do all checks */

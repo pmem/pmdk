@@ -45,15 +45,7 @@
 #include "pool.h"
 #include "check_util.h"
 
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		unsigned step;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
+typedef struct check_basic_location location;
 
 enum question {
 	Q_LOG_START_OFFSET,
@@ -94,7 +86,7 @@ log_read(PMEMpoolcheck *ppc)
  * log_hdr_check -- (internal) check pmemlog header
  */
 static int
-log_hdr_check(PMEMpoolcheck *ppc, union location *loc)
+log_hdr_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -154,7 +146,7 @@ error:
  * log_hdr_fix -- (internal) fix pmemlog header
  */
 static int
-log_hdr_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+log_hdr_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
@@ -270,7 +262,7 @@ blk_bsize_valid(uint32_t bsize, uint64_t fsize)
  * blk_hdr_check -- (internal) check pmemblk header
  */
 static int
-blk_hdr_check(PMEMpoolcheck *ppc, union location *loc)
+blk_hdr_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -315,7 +307,7 @@ blk_hdr_check(PMEMpoolcheck *ppc, union location *loc)
  * blk_hdr_fix -- (internal) fix pmemblk header
  */
 static int
-blk_hdr_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+blk_hdr_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
@@ -342,7 +334,7 @@ blk_hdr_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 struct step {
-	int (*check)(PMEMpoolcheck *, union location *);
+	int (*check)(PMEMpoolcheck *, location *);
 	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
 	enum pool_type type;
 };
@@ -374,7 +366,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static inline int
-step_exe(PMEMpoolcheck *ppc, union location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	ASSERT(loc->step < ARRAY_SIZE(steps));
 
@@ -398,7 +390,8 @@ step_exe(PMEMpoolcheck *ppc, union location *loc)
 		}
 	}
 
-	return check_answer_loop(ppc, &loc->step_data, NULL, step->fix);
+	return check_answer_loop(
+		ppc, (struct check_step_data *)loc, NULL, step->fix);
 }
 
 /*
@@ -409,10 +402,9 @@ check_log_blk(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
+	COMPILE_ERROR_ON(sizeof(location) > sizeof(struct check_step_data));
 
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = (location *)check_get_step_data(ppc->data);
 
 	/* do all checks */
 	while (CHECK_NOT_COMPLETE(loc, steps)) {

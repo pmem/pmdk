@@ -45,25 +45,7 @@
 #include "pool.h"
 #include "check_util.h"
 
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		struct arena *arena;
-		uint64_t offset;
-		struct {
-			int btti_header;
-			int btti_backup;
-		} valid;
-		struct {
-			struct btt_info btti;
-			uint64_t btti_offset;
-		} pool_valid;
-		unsigned step;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
+typedef struct check_btt_info_location location;
 
 enum question {
 	Q_RESTORE_FROM_BACKUP,
@@ -76,7 +58,7 @@ enum question {
  * location_release -- (internal) release check_btt_info_loc allocations
  */
 static void
-location_release(union location *loc)
+location_release(location *loc)
 {
 	free(loc->arena);
 	loc->arena = NULL;
@@ -86,7 +68,7 @@ location_release(union location *loc)
  * btt_info_checksum -- (internal) check BTT Info checksum
  */
 static int
-btt_info_checksum(PMEMpoolcheck *ppc, union location *loc)
+btt_info_checksum(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -147,7 +129,7 @@ error_cleanup:
  * btt_info_backup -- (internal) check BTT Info backup
  */
 static int
-btt_info_backup(PMEMpoolcheck *ppc, union location *loc)
+btt_info_backup(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -190,14 +172,14 @@ error:
  * btt_info_from_backup_fix -- (internal) fix BTT Info using its backup
  */
 static int
-btt_info_from_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+btt_info_from_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
-	ASSERTne(location, NULL);
-	union location *loc = (union location *)location;
+	ASSERTne(data, NULL);
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_RESTORE_FROM_BACKUP:
@@ -220,7 +202,7 @@ btt_info_from_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * btt_info_gen -- (internal) ask whether try to regenerate BTT Info
  */
 static int
-btt_info_gen(PMEMpoolcheck *ppc, union location *loc)
+btt_info_gen(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -246,14 +228,14 @@ btt_info_gen(PMEMpoolcheck *ppc, union location *loc)
  * btt_info_gen_fix -- (internal) fix by regenerating BTT Info
  */
 static int
-btt_info_gen_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+btt_info_gen_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
-	ASSERTne(location, NULL);
-	union location *loc = (union location *)location;
+	ASSERTne(data, NULL);
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_REGENERATE:
@@ -313,7 +295,7 @@ btt_info_gen_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * btt_info_checksum_retry -- (internal) check BTT Info checksum
  */
 static int
-btt_info_checksum_retry(PMEMpoolcheck *ppc, union location *loc)
+btt_info_checksum_retry(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -354,14 +336,14 @@ error_cleanup:
  * btt_info_checksum_fix -- (internal) fix by regenerating BTT Info checksum
  */
 static int
-btt_info_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+btt_info_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
-	ASSERTne(location, NULL);
-	union location *loc = (union location *)location;
+	ASSERTne(data, NULL);
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_REGENERATE_CHECKSUM:
@@ -381,7 +363,7 @@ btt_info_checksum_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
  * btt_info_backup_checksum -- (internal) check BTT Info backup checksum
  */
 static int
-btt_info_backup_checksum(PMEMpoolcheck *ppc, union location *loc)
+btt_info_backup_checksum(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -415,14 +397,14 @@ error_cleanup:
  * btt_info_backup_fix -- (internal) prepare restore BTT Info backup from header
  */
 static int
-btt_info_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
+btt_info_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *data,
 	uint32_t question, void *ctx)
 {
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
-	ASSERTne(location, NULL);
-	union location *loc = (union location *)location;
+	ASSERTne(data, NULL);
+	location *loc = (location *)data;
 
 	switch (question) {
 	case Q_RESTORE_FROM_HEADER:
@@ -440,7 +422,7 @@ btt_info_backup_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 struct step {
-	int (*check)(PMEMpoolcheck *, union location *);
+	int (*check)(PMEMpoolcheck *, location *);
 	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
 };
 
@@ -482,7 +464,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static inline int
-step_exe(PMEMpoolcheck *ppc, union location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	ASSERT(loc->step < ARRAY_SIZE(steps));
 
@@ -491,7 +473,8 @@ step_exe(PMEMpoolcheck *ppc, union location *loc)
 	if (!step->fix)
 		return step->check(ppc, loc);
 
-	if (!check_answer_loop(ppc, &loc->step_data, NULL, step->fix))
+	if (!check_answer_loop(
+			ppc, (struct check_step_data *)loc, NULL, step->fix))
 		return 0;
 
 	if (check_has_error(ppc->data))
@@ -508,10 +491,9 @@ check_btt_info(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
+	COMPILE_ERROR_ON(sizeof(location) > sizeof(struct check_step_data));
 
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = (location *)check_get_step_data(ppc->data);
 	uint64_t nextoff = 0;
 
 	/* initialize check */
