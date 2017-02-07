@@ -266,7 +266,7 @@ timed_check_worker(void *arg)
 		clock_gettime(CLOCK_REALTIME, &t1);
 		abs_time = t1;
 		abs_time.tv_nsec += TIMEOUT;
-		if (abs_time.tv_nsec > NANO_PER_ONE) {
+		if (abs_time.tv_nsec >= NANO_PER_ONE) {
 			abs_time.tv_sec += abs_time.tv_nsec / NANO_PER_ONE;
 			abs_time.tv_nsec %= NANO_PER_ONE;
 		}
