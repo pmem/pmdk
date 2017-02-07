@@ -616,16 +616,19 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
+		pthread_mutex_t *lock = b->active_memory_block.m_ops
+				->get_lock(&b->active_memory_block);
+
+		util_mutex_lock(lock);
 		b->active_memory_block.m_ops
 			->claim_revoke(&b->active_memory_block);
+		util_mutex_unlock(lock);
 
 		b->is_active = 0;
 	}
 
 	struct heap_rt *h = heap->rt;
 	struct memory_block m = MEMORY_BLOCK_NONE;
-	m.size_idx = 1;
-
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
 		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
 
@@ -639,13 +642,12 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		return 0;
 	}
 
+	m = MEMORY_BLOCK_NONE;
+	m.size_idx = 1;
 	/* cannot reuse an existing run, create a new one */
 	struct bucket *defb = heap_get_default_bucket(heap);
 	util_mutex_lock(&defb->lock);
-	int bestfit_result = heap_get_bestfit_block(heap, defb, &m);
-	util_mutex_unlock(&defb->lock);
-
-	if (bestfit_result == 0) {
+	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 		ASSERTeq(m.block_off, 0);
 
 		heap_create_run(heap, b, m.chunk_id, m.zone_id);
@@ -654,14 +656,19 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		b->active_memory_block = m;
 		b->is_active = 1;
 
+		util_mutex_unlock(&defb->lock);
 		return 0;
 	}
+	util_mutex_unlock(&defb->lock);
 
+	m = MEMORY_BLOCK_NONE;
 	/*
 	 * Try the recycler again, the previous call to the bestfit_block for
 	 * huge chunks might have reclaimed some unused runs.
 	 */
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
+		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
+		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
 
 		/*
@@ -675,10 +682,12 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		if (b->c_ops->get_rm_bestfit(b->container, &tmp) != 0) {
 			b->c_ops->rm_all(b->container);
 			m.m_ops->claim_revoke(&m);
+			util_mutex_unlock(lock);
 			return ENOMEM;
 		} else {
 			bucket_insert_block(b, &tmp);
 		}
+		util_mutex_unlock(lock);
 
 		b->active_memory_block = m;
 		b->is_active = 1;

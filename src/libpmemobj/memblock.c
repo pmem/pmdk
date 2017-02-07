@@ -50,6 +50,7 @@
 #include "heap.h"
 #include "memblock.h"
 #include "out.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 const size_t header_type_to_size[MAX_HEADER_TYPES] = {
@@ -559,19 +560,18 @@ run_claim(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t claimant = r->incarnation_claim;
-	if (claimant == m->heap->run_id)
-		return -1; /* already claimed */
 
-	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
-	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		claimant, m->heap->run_id) ? 0 : -1;
-	VALGRIND_SET_CLEAN(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
+	if (r->incarnation_claim == m->heap->run_id)
+		return -1;
 
-	return ret;
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(uint64_t));
+
+	r->incarnation_claim = m->heap->run_id;
+
+	VALGRIND_SET_CLEAN(&r->incarnation_claim, sizeof(uint64_t));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim, sizeof(uint64_t));
+
+	return 0;
 }
 
 /*
@@ -582,39 +582,14 @@ run_claim_revoke(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(uint64_t));
+
 	ASSERTeq(r->incarnation_claim, m->heap->run_id);
+	r->incarnation_claim = 0;
 
-	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
-
-	/*
-	 * This assignment is done by CAS to satisfy helgrind,drd and
-	 * thread sanitizer. Those tools treat CAS instructions in a special way
-	 * so it doesn't race with regular reads.
-	 */
-	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		m->heap->run_id, 0);
-	ASSERTeq(ret, 1 /* true */);
-
-	VALGRIND_SET_CLEAN(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-}
-
-/*
- * run_is_claimed -- checks whether the run already has an owner in the current
- *	incarnation of the heap.
- */
-static int
-run_is_claimed(const struct memory_block *m)
-{
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t claimant = r->incarnation_claim;
-	if (claimant == m->heap->run_id)
-		return 1;
-
-	return 0;
+	VALGRIND_SET_CLEAN(&r->incarnation_claim, sizeof(uint64_t));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim, sizeof(uint64_t));
 }
 
 /*
@@ -712,7 +687,6 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_data = run_get_real_data,
 		.claim = run_claim,
 		.claim_revoke = run_claim_revoke,
-		.is_claimed = run_is_claimed,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
