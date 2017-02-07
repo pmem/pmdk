@@ -175,6 +175,13 @@ palloc_operation(struct palloc_heap *heap,
 		struct bucket *b = heap_get_bucket_by_class(heap, c);
 
 		existing_bucket_lock = &b->lock;
+
+		/*
+		 * This lock can only be dropped after the run lock is acquired.
+		 * The reason for this is that the bucket can revoke the claim
+		 * on the run during the heap_get_bestfit_block method which
+		 * means the run will become available to others.
+		 */
 		util_mutex_lock(existing_bucket_lock);
 
 		/*
@@ -228,13 +235,6 @@ palloc_operation(struct palloc_heap *heap,
 		 * bitmap and override allocation performed by this thread.
 		 */
 		new_block_lock = new_block.m_ops->get_lock(&new_block);
-
-		/*
-		 * This lock can only be dropped after the run lock is acquired.
-		 * The reason for this is that the bucket can revoke the claim
-		 * on the run during the heap_get_bestfit_block method which
-		 * means the run will become available to others.
-		 */
 		if (new_block_lock != NULL)
 			util_mutex_lock(new_block_lock);
 
@@ -288,7 +288,6 @@ palloc_operation(struct palloc_heap *heap,
 
 		struct memory_block coalesced_block = existing_block;
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
-			/* this mutex is unlocked after processing */
 			struct bucket *b = heap_get_default_bucket(heap);
 			if (existing_bucket_lock != &b->lock) {
 				new_bucket_lock = &b->lock;
