@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,16 +55,71 @@ struct arena;
 /* queue of check statuses */
 struct check_status;
 
-/*
- * container storing check step state
- *
- * Its size is equal to the size of the biggest state structure it must store.
- */
-#define CHECK_INSTEP_LOCATION_NUM 529
-
+/* container storing state of all check steps */
+#define PREFIX_MAX_SIZE 30
 struct check_step_data {
-	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
+	unsigned step;
+
+	unsigned replica;
+	unsigned part;
+
+	int single_repl;
+	int single_part;
+
+	struct pool_set *set;
+
+	struct pool_hdr *hdrp;
+	/* copy of the pool header in host byte order */
+	struct pool_hdr hdr;
+	int hdr_valid;
+	/*
+	 * If pool header has been modified this field indicates that
+	 * the pool parameters structure requires refresh.
+	 */
+	int pool_hdr_modified;
+
+	struct pool_hdr *next_part_hdrp;
+	struct pool_hdr *prev_part_hdrp;
+	struct pool_hdr *next_repl_hdrp;
+	struct pool_hdr *prev_repl_hdrp;
+
+	int next_part_hdr_valid;
+	int prev_part_hdr_valid;
+	int next_repl_hdr_valid;
+	int prev_repl_hdr_valid;
+
+	uuid_t *valid_uuid;
+
+	/* valid part pool header */
+	struct pool_hdr *valid_part_hdrp;
+	int valid_part_done;
+	unsigned valid_part_replica;
+
+	char prefix[PREFIX_MAX_SIZE];
+
+	struct arena *arenap;
+	uint64_t offset;
+	uint32_t narena;
+
+	uint8_t *bitmap;
+	uint8_t *dup_bitmap;
+	uint8_t *fbitmap;
+
+	struct list *list_inval;
+	struct list *list_flog_inval;
+	struct list *list_unmap;
+
+	struct {
+		int btti_header;
+		int btti_backup;
+	} valid;
+
+	struct {
+		struct btt_info btti;
+		uint64_t btti_offset;
+	} pool_valid;
 };
+typedef struct check_step_data location;
 
 /* check steps */
 void check_backup(PMEMpoolcheck *ppc);
