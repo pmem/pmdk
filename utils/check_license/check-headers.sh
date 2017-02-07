@@ -145,7 +145,7 @@ for file in $FILES ; do
 	ENCODING=`file -b --mime-encoding $file`
 	iconv -f $ENCODING -t "UTF-8" -o $TEMPFILE $file
 
-	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE`
+	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE $file`
 	if [ $? -ne 0 ]; then
 		echo -n $YEARS
 		RV=1
