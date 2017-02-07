@@ -177,8 +177,6 @@ typedef int mode_t;
 /* unistd.h */
 typedef long long ssize_t;
 
-/* stdlib.h */
-int mkstemp(char *temp);
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
 int rand_r(unsigned *seedp);

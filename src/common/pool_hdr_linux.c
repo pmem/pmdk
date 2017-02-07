@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
 #include <unistd.h>
 
 #include "out.h"
+#include "os.h"
 #include "pool_hdr.h"
 
 /*
@@ -55,7 +56,7 @@ util_get_arch_flags(struct arch_flags *arch_flags)
 
 	memset(arch_flags, 0, sizeof(*arch_flags));
 
-	if ((fd = open(path, O_RDONLY)) < 0) {
+	if ((fd = os_open(path, O_RDONLY)) < 0) {
 		ERR("!open %s", path);
 		ret = -1;
 		goto out;

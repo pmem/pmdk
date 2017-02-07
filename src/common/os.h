@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,26 +31,38 @@
  */
 
 /*
- * mocks_windows.h -- redefinitions of libc functions used in util_poolset
- *
- * This file is Windows-specific.
- *
- * This file should be included (i.e. using Forced Include) by libpmem
- * files, when compiled for the purpose of util_poolset test.
- * It would replace default implementation with mocked functions defined
- * in util_poolset.c.
- *
- * These defines could be also passed as preprocessor definitions.
+ * os.h -- os abstaction layer
  */
 
-#ifndef WRAP_REAL_OPEN
-#define os_open __wrap_os_open
+#ifndef NVML_OS_H
+#define NVML_OS_H 1
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#ifndef WRAP_REAL_FALLOCATE
-#define posix_fallocate __wrap_posix_fallocate
+#include <sys/stat.h>
+#include <stdio.h>
+
+#ifndef _WIN32
+typedef struct stat os_stat_t;
+#define os_fstat	fstat
+#define os_lseek	lseek
+#else
+typedef struct _stat64 os_stat_t;
+#define os_fstat	_fstat64
+#define os_lseek	_lseeki64
 #endif
 
-#ifndef WRAP_REAL_PMEM
-#define pmem_is_pmem __wrap_pmem_is_pmem
+
+int os_open(const char *pathname, int flags, ...);
+int os_stat(const char *pathname, os_stat_t *buf);
+int os_unlink(const char *pathname);
+int os_access(const char *pathname, int mode);
+FILE *os_fopen(const char *pathname, const char *mode);
+FILE *os_fdopen(int fd, const char *mode);
+int os_chmod(const char *pathname, mode_t mode);
+int os_mkstemp(char *temp);
+#ifdef __cplusplus
+}
 #endif
+#endif /* os.h */

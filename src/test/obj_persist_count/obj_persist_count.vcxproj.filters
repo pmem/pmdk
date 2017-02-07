@@ -117,6 +117,9 @@
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\os_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="out0.log.match">

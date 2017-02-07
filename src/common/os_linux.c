@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,95 @@
  */
 
 /*
- * mocks.c -- mocked functions used in util_poolset.c
+ * os_linux.c -- Linux abstraction layer
  */
 
-#include "unittest.h"
-#include "mocks.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <unistd.h>
+
+#include "util.h"
+#include "os.h"
 
 /*
- * open -- open mock
+ * os_open -- open abstraction layer
  */
-FUNC_MOCK(open, int, const char *path, int flags, ...)
-FUNC_MOCK_RUN_DEFAULT {
-	if (strcmp(Open_path, path) == 0) {
-		UT_OUT("mocked open: %s", path);
-		errno = EACCES;
-		return -1;
+int
+os_open(const char *pathname, int flags, ...)
+{
+	if (flags & O_CREAT) {
+		va_list arg;
+		va_start(arg, flags);
+		mode_t mode = va_arg(arg, mode_t);
+		va_end(arg);
+		return open(pathname, flags, mode);
+	} else {
+		return open(pathname, flags);
 	}
-
-	va_list ap;
-	va_start(ap, flags);
-	int mode = va_arg(ap, int);
-	va_end(ap);
-
-	return _FUNC_REAL(open)(path, flags, mode);
 }
-FUNC_MOCK_END
 
 /*
- * posix_fallocate -- posix_fallocate mock
+ * os_stat -- stat abstraction layer
  */
-FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Fallocate_len == len) {
-		UT_OUT("mocked fallocate: %ju", len);
-		return ENOSPC;
-	}
-	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+int
+os_stat(const char *pathname, os_stat_t *buf)
+{
+	return stat(pathname, buf);
 }
-FUNC_MOCK_END
 
 /*
- * pmem_is_pmem -- pmem_is_pmem mock
+ * os_unlink -- unlink abstraction layer
  */
-FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Is_pmem_len == len) {
-		UT_OUT("mocked pmem_is_pmem: %zu", len);
-		return 1;
-	}
-	return _FUNC_REAL(pmem_is_pmem)(addr, len);
+int
+os_unlink(const char *pathname)
+{
+	return unlink(pathname);
 }
-FUNC_MOCK_END
+
+/*
+ * os_access -- access abstraction layer
+ */
+int
+os_access(const char *pathname, int mode)
+{
+	return access(pathname, mode);
+}
+
+/*
+ * os_fopen -- fopen abstraction layer
+ */
+FILE *
+os_fopen(const char *pathname, const char *mode)
+{
+	return fopen(pathname, mode);
+}
+
+/*
+ * os_fdopen -- fdopen abstraction layer
+ */
+FILE *
+os_fdopen(int fd, const char *mode)
+{
+	return fdopen(fd, mode);
+}
+
+/*
+ * os_chmod -- chmod abstraction layer
+ */
+int
+os_chmod(const char *pathname, mode_t mode)
+{
+	return chmod(pathname, mode);
+}
+
+/*
+ * os_mkstemp -- mkstemp abstraction layer
+ */
+int
+os_mkstemp(char *temp)
+{
+	return mkstemp(temp);
+}
