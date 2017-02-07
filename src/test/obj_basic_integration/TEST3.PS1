@@ -50,7 +50,7 @@ require_fs_type any
 
 setup
 
-create_poolset $DIR\testset1 8M:$DIR\testfile1:x r 8M:$DIR\testfile2:x
+create_poolset $DIR\testset1 16M:$DIR\testfile1:x r 16M:$DIR\testfile2:x
 
 expect_normal_exit $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX `
     $DIR\testset1 `

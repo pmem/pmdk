@@ -637,6 +637,8 @@ out_get_chunk_type_str(unsigned type)
 		return "used";
 	case CHUNK_TYPE_RUN:
 		return "run";
+	case CHUNK_TYPE_RUN_DATA:
+		return "run data";
 	case CHUNK_TYPE_UNKNOWN:
 	default:
 		return "unknown";

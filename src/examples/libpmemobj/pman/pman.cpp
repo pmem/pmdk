@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1215,7 +1215,8 @@ main(int argc, char *argv[])
 	if (pool<examples::state>::check(name, LAYOUT_NAME) == 1)
 		pop = pool<examples::state>::open(name, LAYOUT_NAME);
 	else
-		pop = pool<examples::state>::create(name, LAYOUT_NAME);
+		pop = pool<examples::state>::create(name, LAYOUT_NAME,
+						    PMEMOBJ_MIN_POOL * 2);
 
 	initscr();
 	start_color();
