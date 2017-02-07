@@ -1,0 +1,4 @@
+log_pool$(nW)TEST30: START: log_pool
+ $(nW)log_pool$(nW) o $(nW)testsetㅓㅹ
+$(nW)testsetㅓㅹ: pmemlog_open: Operation not supported
+log_pool$(nW)TEST30: DONE
