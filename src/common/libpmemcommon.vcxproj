@@ -15,6 +15,7 @@
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
+    <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="pool_hdr_windows.c" />
@@ -29,6 +30,7 @@
     <ClInclude Include="dlsym.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="mmap.h" />
+    <ClInclude Include="os.h" />
     <ClInclude Include="out.h" />
     <ClInclude Include="pmemcommon.h" />
     <ClInclude Include="pool_hdr.h" />
@@ -49,13 +51,13 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
