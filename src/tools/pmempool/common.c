@@ -60,6 +60,7 @@
 #include "libpmemobj.h"
 #include "btt.h"
 #include "file.h"
+#include "os.h"
 #include "set.h"
 #include "out.h"
 #include "mmap.h"
@@ -504,10 +505,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	/* parse poolset file */
 	if (util_poolset_parse(&set, fname, fd)) {
 		outv_err("parsing poolset file failed\n");
-		close(fd);
+		os_close(fd);
 		return -1;
 	}
-	close(fd);
+	os_close(fd);
 
 	/* read the pool header from first pool set file */
 	const char *part0_path = PART(REP(set, 0), 0).path;
@@ -575,9 +576,9 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		return -1;
 
 	/* get file size and mode */
-	util_stat_t stat_buf;
-	if (util_fstat(fd, &stat_buf)) {
-		close(fd);
+	os_stat_t stat_buf;
+	if (os_fstat(fd, &stat_buf)) {
+		os_close(fd);
 		return -1;
 	}
 
@@ -591,7 +592,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	struct pool_set *set = NULL;
 	if (paramsp->is_poolset) {
 		/* close the file */
-		close(fd);
+		os_close(fd);
 		fd = -1;
 
 		if (check) {
@@ -684,7 +685,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 
 out_close:
 	if (fd >= 0)
-		(void) close(fd);
+		(void) os_close(fd);
 	return ret;
 }
 
@@ -1198,8 +1199,8 @@ pool_set_file_open(const char *fname,
 	if (!file->fname)
 		goto err;
 
-	util_stat_t buf;
-	if (util_stat(fname, &buf)) {
+	os_stat_t buf;
+	if (os_stat(fname, &buf)) {
 		warn("%s", fname);
 		goto err_free_fname;
 	}
@@ -1217,10 +1218,10 @@ pool_set_file_open(const char *fname,
 			goto err_free_fname;
 		}
 
-		off_t seek_size = util_lseek(fd, 0, SEEK_END);
+		off_t seek_size = os_lseek(fd, 0, SEEK_END);
 		if (seek_size == -1) {
 			outv_err("lseek SEEK_END failed\n");
-			close(fd);
+			os_close(fd);
 			goto err_free_fname;
 		}
 
@@ -1249,7 +1250,7 @@ pool_set_file_open(const char *fname,
 
 		/* get modification time from the first part of first replica */
 		const char *path = file->poolset->replica[0]->part[0].path;
-		if (util_stat(path, &buf)) {
+		if (os_stat(path, &buf)) {
 			warn("%s", path);
 			goto err_close_poolset;
 		}
@@ -1278,7 +1279,7 @@ pool_set_file_close(struct pool_set_file *file)
 			util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 		else if (file->addr) {
 			munmap(file->addr, file->size);
-			close(file->fd);
+			os_close(file->fd);
 		}
 	}
 	free(file->fname);

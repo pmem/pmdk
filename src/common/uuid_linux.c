@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <stdint.h>
 
 #include "uuid.h"
+#include "os.h"
 #include "out.h"
 
 /*
@@ -53,7 +54,7 @@ util_uuid_generate(uuid_t uuid)
 {
 	char uu[POOL_HDR_UUID_STR_LEN];
 
-	int fd = open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
+	int fd = os_open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
 	if (fd < 0) {
 		/* Fatal error */
 		LOG(2, "!open(uuid)");
@@ -63,10 +64,10 @@ util_uuid_generate(uuid_t uuid)
 	if (num < POOL_HDR_UUID_STR_LEN) {
 		/* Fatal error */
 		LOG(2, "!read(uuid)");
-		close(fd);
+		os_close(fd);
 		return -1;
 	}
-	close(fd);
+	os_close(fd);
 
 	uu[POOL_HDR_UUID_STR_LEN - 1] = '\0';
 	int ret = util_uuid_from_string(uu, (struct uuid *)uuid);

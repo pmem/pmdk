@@ -55,6 +55,7 @@
 #include "config_reader.hpp"
 #include "file.h"
 #include "mmap.h"
+#include "os.h"
 #include "queue.h"
 #include "scenario.hpp"
 #include "set.h"
@@ -828,13 +829,13 @@ static int
 pmembench_remove_file(const char *path)
 {
 	int ret = 0;
-	util_stat_t status;
+	os_stat_t status;
 	char *tmp;
 
 	if (access(path, F_OK) != 0)
 		return 0;
 
-	if (util_stat(path, &status) != 0)
+	if (os_stat(path, &status) != 0)
 		return 0;
 
 	if (!(status.st_mode & S_IFDIR)) {

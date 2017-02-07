@@ -48,6 +48,7 @@
 
 #include "obj.h"
 #include "file.h"
+#include "os.h"
 #include "out.h"
 #include "pool_hdr.h"
 #include "set.h"
@@ -122,7 +123,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	struct pool_set_part *part = &PART(REP(set, repn), partn);
 	if (part->fd != -1) {
-		close(part->fd);
+		os_close(part->fd);
 		part->fd = -1;
 	}
 
@@ -411,7 +412,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		}
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
+			if (os_access(rep->part[p].path, R_OK|W_OK) != 0) {
 				LOG(1, "part file %s is not accessible",
 						rep->part[p].path);
 				errno = 0;
@@ -987,8 +988,8 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	char *path = Strdup(PART(REP(set, repn), partn).path);
 	const char *dir = dirname(path);
-	util_stat_t sb;
-	if (util_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+	os_stat_t sb;
+	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
 		ERR("a directory %s for part %u in replica %u"
 			" does not exist or is not accessible",
 			path, partn, repn);
@@ -1119,14 +1120,14 @@ pmempool_sync(const char *poolset, unsigned flags)
 	}
 
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
-	close(fd);
+	os_close(fd);
 	return 0;
 
 err_close_all:
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 err_close_file:
-	close(fd);
+	os_close(fd);
 
 err:
 	if (errno == 0)
@@ -1177,10 +1178,10 @@ pmempool_transform(const char *poolset_src,
 	struct pool_set *set_in = NULL;
 	if (util_poolset_parse(&set_in, poolset_src, fd_in)) {
 		ERR("parsing source poolset failed");
-		close(fd_in);
+		os_close(fd_in);
 		goto err;
 	}
-	close(fd_in);
+	os_close(fd_in);
 
 	/* open the destination poolset file */
 	int fd_out = util_file_open(poolset_dst, NULL, 0, O_RDONLY);
@@ -1195,10 +1196,10 @@ pmempool_transform(const char *poolset_src,
 	struct pool_set *set_out = NULL;
 	if (util_poolset_parse(&set_out, poolset_dst, fd_out)) {
 		ERR("parsing destination poolset failed");
-		close(fd_out);
+		os_close(fd_out);
 		goto err_free_poolin;
 	}
-	close(fd_out);
+	os_close(fd_out);
 
 	/* check if the source poolset is of a correct type */
 	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {

@@ -65,6 +65,14 @@ extern unsigned long long Mmap_align;
 
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
 
+#ifdef _WIN32
+#define UNICODE_FUNCTION(A) A##U
+#define UNICODE_STRUCT(A) A##U
+#else
+#define UNICODE_FUNCTION(A) A
+#define UNICODE_STRUCT(A) A
+#endif
+
 /*
  * overridable names for malloc & friends used by this library
  */
@@ -88,6 +96,13 @@ char *util_realpath(const char *path);
 int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
+
+#ifdef _WIN32
+char *util_toUTF8(const wchar_t *wstr);
+wchar_t *util_toUTF16(const char *wstr);
+int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
+int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
+#endif
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);

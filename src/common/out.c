@@ -46,6 +46,7 @@
 #include <pthread.h>
 
 #include "out.h"
+#include "os.h"
 #include "valgrind_internal.h"
 #include "util.h"
 
@@ -113,6 +114,24 @@ Last_errormsg_get(void)
 	}
 	return errormsg;
 }
+
+#ifdef _WIN32
+static inline wchar_t *
+Last_errormsgw_get()
+{
+	Last_errormsg_key_alloc();
+
+	wchar_t *errormsg = pthread_getspecific(Last_errormsgw_key);
+	if (errormsg == NULL) {
+		errormsg = Malloc(MAXPRINTW);
+		int ret = pthread_setspecific(Last_errormsgw_key, errormsg);
+		if (ret)
+			FATAL("!pthread_setspecific");
+	}
+	return errormsg;
+}
+#endif
+
 #else
 
 /*
@@ -221,7 +240,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			log_file = log_file_pid;
 		}
 
-		if ((Out_fp = fopen(log_file, "w")) == NULL) {
+		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
@@ -559,6 +578,22 @@ out_err(const char *file, int line, const char *func,
 
 	va_end(ap);
 }
+
+#ifdef _WIN32
+/*
+ * out_get_errormsgW -- get the last error message in wchar_t
+ */
+const wchar_t *
+out_get_errormsgW(void)
+{
+	const char *utf8 = Last_errormsg_get();
+	wchar_t *utf16 = Last_errormsgw_get();
+	if (util_toUTF16_buff(utf8, utf16, MAXPRINTW) != 0)
+		FATAL("!Failed to convert string");
+
+	return (const wchar_t *)utf16;
+}
+#endif
 
 /*
  * out_get_errormsg -- get the last error message

@@ -181,11 +181,11 @@
 #endif
 
 #include "libpmem.h"
-
 #include "pmem.h"
 #include "cpu.h"
 #include "out.h"
 #include "util.h"
+#include "os.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
@@ -619,7 +619,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	if (flags & PMEM_FILE_TMPFILE)
 		open_flags |= O_TMPFILE;
 
-	if ((fd = open(path, open_flags, mode)) < 0) {
+	if ((fd = os_open(path, open_flags, mode)) < 0) {
 		ERR("!open %s", path);
 		return NULL;
 	}
@@ -631,7 +631,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			return NULL;
 		}
 	} else {
-		if ((fd = open(path, open_flags, mode)) < 0) {
+		if ((fd = os_open(path, open_flags, mode)) < 0) {
 			ERR("!open %s", path);
 			return NULL;
 		}
@@ -686,18 +686,35 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
 	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
 
-	(void) close(fd);
+	(void) os_close(fd);
 
 	return addr;
 
 err:
 	oerrno = errno;
-	(void) close(fd);
+	(void) os_close(fd);
 	if (delete_on_err)
-		(void) unlink(path);
+		(void) os_unlink(path);
 	errno = oerrno;
 	return NULL;
 }
+#ifdef _WIN32
+/*
+ * pmem_map_fileW -- create or open the file and map it to memory
+ */
+void *
+pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+		size_t *mapped_lenp, int *is_pmemp) {
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return NULL;
+	void *ret = pmem_map_fileU(_path, len, flags, mode, mapped_lenp,
+					is_pmemp);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 /*
  * pmem_unmap -- unmap the specified region

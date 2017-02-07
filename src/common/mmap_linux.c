@@ -39,6 +39,7 @@
 #include <sys/param.h>
 #include "mmap.h"
 #include "out.h"
+#include "os.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
@@ -64,7 +65,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	ASSERT(align > 0);
 
 	FILE *fp;
-	if ((fp = fopen("/proc/self/maps", "r")) == NULL) {
+	if ((fp = os_fopen("/proc/self/maps", "r")) == NULL) {
 		ERR("!/proc/self/maps");
 		return MAP_FAILED;
 	}
