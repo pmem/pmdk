@@ -1,4 +1,4 @@
-nblocks: 184320
+nblocks: $(N)
 write: 0:Hello
 write: 13:World!
 write: 20:foo
