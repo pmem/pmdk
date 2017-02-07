@@ -57,40 +57,7 @@
 #include <Shlwapi.h>
 #include <stdio.h>
 #include <pmemcompat.h>
-
-/*
- * mkstemp -- generate a unique temporary filename from template
- */
-int
-mkstemp(char *temp)
-{
-	unsigned rnd;
-	char *path = _mktemp(temp);
-
-	if (path == NULL)
-		return -1;
-
-	char npath[MAX_PATH];
-	strcpy(npath, path);
-
-	/*
-	 * Use rand_s to generate more unique tmp file name than _mktemp do.
-	 * In case with multiple threads and multiple files even after close()
-	 * file name conflicts occurred.
-	 * It resolved issue with synchronous removing
-	 * multiples files by system.
-	 */
-	rand_s(&rnd);
-	_snprintf(npath + strlen(npath), MAX_PATH, "%d", rnd);
-
-	/*
-	 * Use O_TEMPORARY flag to make sure the file is deleted when
-	 * the last file descriptor is closed.  Also, it prevents opening
-	 * this file from another process.
-	 */
-	return open(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
-		S_IWRITE | S_IREAD);
-}
+#include <util.h>
 
 /*
  * posix_fallocate -- allocate file space
