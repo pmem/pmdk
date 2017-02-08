@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,46 +30,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/pmem_map_file/TEST3 -- unit test for pmem_map_file with unicode
+# pmem_map_file/config.sh -- test configuration
 #
-export UNITTEST_NAME=pmem_map_file/TEST3
-export UNITTEST_NUM=3
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
-
-configure_valgrind memcheck force-disable
-
-setup
-
-# this test invokes sigsegvs by design
-export ASAN_OPTIONS=handle_segv=0
-
-truncate -s 2G $DIR/⿆⾨ㆦ
-
-# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
-
-expect_normal_exit ./pmem_map_file$EXESUFFIX \
-    $DIR/⿆⾨ㆦ 0 - 0 1 1 \
-    $DIR/⿆⾨ㆦ -1 - 0 1 1 \
-    $DIR/⿆⾨ㆦ 0 - 0 0 0 \
-    $DIR/⿆⾨ㆦ 0 X 0 0 0 \
-    $DIR/⿆⾨ㆦ 0 - 0644 1 1 \
-    $DIR/⿆⾨ㆦ 1024 - 0 1 1 \
-    $DIR/⿆⾨ㆦ 0 C 0 1 1 \
-    $DIR/⿆⾨ㆦ 0 E 0 1 1 \
-    $DIR/⿆⾨ㆦ 4096 T 0644 1 1 \
-    $DIR/⿆⾨ㆦ 4096 E 0644 1 1 \
-    $DIR/⿆⾨ㆦ 0 - 0644 1 1
-
-check_files $DIR/⿆⾨ㆦ
-
-check
-
-pass
+CONF_GLOBAL_ENCODING="ascii unicode"
+CONF_GLOBAL_UNICODE_SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

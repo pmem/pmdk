@@ -1,5 +1,5 @@
-#
-# Copyright 2014-2017, Intel Corporation
+﻿#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,27 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmem.map -- linker map file for libpmem
+# pmem_map_file/config.PS1 -- test configuration
 #
-LIBPMEM_1.0 {
-	global:
-		pmem_map_file;
-		pmem_map_fileA;
-		pmem_unmap;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_flush;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_errormsg;
-		pmem_memmove_persist;
-		pmem_memcpy_persist;
-		pmem_memset_persist;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-	local:
-		*;
-};
+
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
+
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
+
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
