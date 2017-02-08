@@ -556,6 +556,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_linkedlist", "test\ex_li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\pmemspoil\pmemspoil.vcxproj", "{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_win", "test\obj_pool_win\obj_pool_win.vcxproj", "{B775480C-5B32-4F64-B026-47367280EC56}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_recovery", "test\obj_list_recovery\obj_list_recovery.vcxproj", "{B887EA26-846C-4D6A-B0E4-432487506BC7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_first_next", "test\obj_first_next\obj_first_next.vcxproj", "{BABC6427-E533-4DCF-91E3-B5B2ED253F46}"
@@ -1434,6 +1436,10 @@ Global
 		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Debug|x64.Build.0 = Debug|x64
 		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Release|x64.ActiveCfg = Release|x64
 		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Release|x64.Build.0 = Release|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Debug|x64.ActiveCfg = Debug|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Debug|x64.Build.0 = Debug|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Release|x64.ActiveCfg = Release|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Release|x64.Build.0 = Release|x64
 		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Debug|x64.ActiveCfg = Debug|x64
 		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Debug|x64.Build.0 = Debug|x64
 		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Release|x64.ActiveCfg = Release|x64

@@ -56,7 +56,7 @@ setup
 # TEST27 existing file, file size >= min required size, layout is NULL
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 20 0640
+    c $DIR\testfile test$Env:SUFFIX 20 0640
 
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
     o $DIR\testfile NULL
