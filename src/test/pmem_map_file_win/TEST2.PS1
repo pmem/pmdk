@@ -29,28 +29,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmem.map -- linker map file for libpmem
+# src/test/pmem_map_file_win/TEST2 -- unit test for pmem_map_file_win
 #
-LIBPMEM_1.0 {
-	global:
-		pmem_map_file;
-		pmem_map_fileA;
-		pmem_unmap;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_flush;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_errormsg;
-		pmem_memmove_persist;
-		pmem_memcpy_persist;
-		pmem_memset_persist;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-	local:
-		*;
-};
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmem_map_file_win\TEST2"
+$Env:UNITTEST_NUM = "2"
+
+# standard unit test setup
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+require_dax_devices 1
+require_fs_type any
+
+# XXX: we don't have valgrind in Windows yet
+# configure_valgrind memcheck force-disable
+
+setup
+
+# XXX: no AddressSanitizer on Windows
+# this test invokes sigsegvs by design
+# export ASAN_OPTIONS=handle_segv=0
+
+# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+
+# pass the file of zero length
+expect_normal_exit $Env:EXE_DIR/pmem_map_file_win$Env:EXESUFFIX `
+    $DEVICE_DAX_PATH 0 D 0666 1 1 `
+    $DEVICE_DAX_PATH 0 DSC 0666 1 1 `
+    $DEVICE_DAX_PATH 0 DT 0666 1 1 `
+    $DEVICE_DAX_PATH 0 DCE 0666 1 1 `
+    $DEVICE_DAX_PATH 0 DC 0666 1 1 `
+    $DEVICE_DAX_PATH 2097152 DC 0666 1 1  # len != 0
+
+check
+
+pass
