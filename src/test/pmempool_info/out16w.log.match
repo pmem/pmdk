@@ -135,17 +135,17 @@ Checksum                 : $(*) [OK]
 Root offset              : $(*)
 DIFF
 
-InputObject                                                     SideIndicator
------------                                                     -------------
-UUID                     : $(*) =>           
-Previous part UUID       : $(*) =>           
-Next part UUID           : $(*) =>           
-Previous replica UUID    : $(*) =>           
-Next replica UUID        : $(*) =>           
-UUID                     : $(*) <=           
-Previous part UUID       : $(*) <=           
-Next part UUID           : $(*) <=           
-Previous replica UUID    : $(*) <=           
-Next replica UUID        : $(*) <=           
+$(*)
+$(*)
+UUID                     : $(*) =>$(W)
+Previous part UUID       : $(*) =>$(W)
+Next part UUID           : $(*) =>$(W)
+Previous replica UUID    : $(*) =>$(W)
+Next replica UUID        : $(*) =>$(W)
+UUID                     : $(*) <=$(W)
+Previous part UUID       : $(*) <=$(W)
+Next part UUID           : $(*) <=$(W)
+Previous replica UUID    : $(*) <=$(W)
+Next replica UUID        : $(*) <=$(W)
 
 
