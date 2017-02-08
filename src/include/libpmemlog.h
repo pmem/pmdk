@@ -77,10 +77,31 @@ const char *pmemlog_check_version(
  */
 #define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
+#ifdef _WIN32
+#ifdef UNICODE
+#define pmemlog_open pmemlog_openW
+#define pmemlog_create pmemlog_createW
+#define pmemlog_check pmemlog_checkW
+#else
+#define pmemlog_open pmemlog_openU
+#define pmemlog_create pmemlog_createU
+#define pmemlog_check pmemlog_checkU
+#endif
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+int pmemlog_checkU(const char *path);
+
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+int pmemlog_checkW(const wchar_t *path);
+#else
 PMEMlogpool *pmemlog_open(const char *path);
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
-void pmemlog_close(PMEMlogpool *plp);
 int pmemlog_check(const char *path);
+#endif
+
+
+void pmemlog_close(PMEMlogpool *plp);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
