@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,10 +51,12 @@ LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_temp.log
 rm -rf $OUT $LOG $LOG_TEMP
 
-CONFIG=in${UNITTEST_NUM}.conf
+EMPTY_CONFIG=in${UNITTEST_NUM}.conf
 INVALID_CONFIG=$DIR/invalid.conf
 
-expect_normal_exit $RPMEMD 1>> $OUT 2>&1
+# use empty config to prevent loading config file from default location
+# which may have nondefault configuration
+expect_normal_exit $RPMEMD -c $EMPTY_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
 expect_normal_exit $RPMEMD -V 1>> $OUT 2>&1
@@ -69,10 +71,10 @@ cat $LOG >> $LOG_TEMP
 expect_normal_exit $RPMEMD --help 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
-expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -c $EMPTY_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
-expect_normal_exit $RPMEMD --config $CONFIG 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --config $EMPTY_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
 expect_abnormal_exit $RPMEMD -c $INVALID_CONFIG 1>> $OUT 2>&1
