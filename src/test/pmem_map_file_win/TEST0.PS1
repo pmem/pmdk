@@ -29,28 +29,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmem.map -- linker map file for libpmem
+# src/test/pmem_map_file_win/TEST0 -- unit test for pmem_map_file_win
 #
-LIBPMEM_1.0 {
-	global:
-		pmem_map_file;
-		pmem_map_fileA;
-		pmem_unmap;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_flush;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_errormsg;
-		pmem_memmove_persist;
-		pmem_memcpy_persist;
-		pmem_memset_persist;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-	local:
-		*;
-};
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmem_map_file_win\TEST0"
+$Env:UNITTEST_NUM = "0"
+
+# standard unit test setup
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+require_fs_type any
+
+# XXX: no valgrind for Windows
+#configure_valgrind memcheck force-disable
+
+setup
+
+# XXX: no AddressSanitizer on Windows
+# this test invokes sigsegvs by design
+# export ASAN_OPTIONS=handle_segv=0
+
+create_holey_file 2G $DIR/testfile1
+
+# <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
+
+expect_normal_exit $Env:EXE_DIR/pmem_map_file_win$Env:EXESUFFIX `
+    $DIR/testfile1 0 - 0 1 1 `
+    $DIR/testfile1 -1 - 0 1 1 `
+    $DIR/testfile1 0 - 0 0 0 `
+    $DIR/testfile1 0 X 0 0 0 `
+    $DIR/testfile1 0 - 0644 1 1 `
+    $DIR/testfile1 1024 - 0 1 1 `
+    $DIR/testfile1 0 C 0 1 1 `
+    $DIR/testfile1 0 E 0 1 1 `
+    $DIR/testfile1 4096 T 0644 1 1 `
+    $DIR/testfile1 4096 E 0644 1 1 `
+    $DIR/testfile1 0 - 0644 1 1
+
+check_files $DIR/testfile1
+
+check
+
+pass

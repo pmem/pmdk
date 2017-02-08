@@ -60,7 +60,8 @@ LIBRARY libpmem
 VERSION 1.0
 
 EXPORTS
-	pmem_map_file
+	pmem_map_fileU
+	pmem_map_fileW
 	pmem_unmap
 	pmem_is_pmem
 	pmem_persist

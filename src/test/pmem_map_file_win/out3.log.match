@@ -1,0 +1,29 @@
+pmem_map_file_win$(nW)TEST3: START: pmem_map_file_win
+ $(nW)pmem_map_file_win$(nW) $(nW)⿆⾨ㆦ 0 - 0 1 1 $(nW)⿆⾨ㆦ -1 - 0 1 1 $(nW)⿆⾨ㆦ 0 - 0 0 0 $(nW)⿆⾨ㆦ 0 X 0 0 0 $(nW)⿆⾨ㆦ 0 - 0644 1 1 $(nW)⿆⾨ㆦ 1024 - 0 1 1 $(nW)⿆⾨ㆦ 0 C 0 1 1 $(nW)⿆⾨ㆦ 0 E 0 1 1 $(nW)⿆⾨ㆦ 4096 T 0644 1 1 $(nW)⿆⾨ㆦ 4096 E 0644 1 1 $(nW)⿆⾨ㆦ 0 - 0644 1 1
+$(nW)⿆⾨ㆦ 0 - 0 1 1
+mapped_len 2147483648
+unmap successful
+$(nW)⿆⾨ㆦ -1 - 0 1 1
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 0 - 0 0 0
+unmap successful
+$(nW)⿆⾨ㆦ 0 X 0 0 0
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 0 - 644 1 1
+mapped_len 2147483648
+unmap successful
+$(nW)⿆⾨ㆦ 1024 - 0 1 1
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 0 C 0 1 1
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 0 E 0 1 1
+mapped_len 2147483648
+unmap successful
+$(nW)⿆⾨ㆦ 4096 T 644 1 1
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 4096 E 644 1 1
+pmem_map_file: Invalid argument
+$(nW)⿆⾨ㆦ 0 - 644 1 1
+mapped_len 2147483648
+unmap successful
+pmem_map_file_win$(nW)TEST3: DONE

@@ -31,28 +31,34 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * mocks_windows.c -- mocked functions used in pmem_map_file.c
+ *                    (Windows-specific)
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#include "unittest.h"
 
-extern unsigned long long Pagesize;
+#define MAX_LEN (4 * 1024 * 1024)
 
-void pmem_init(void);
+/*
+ * posix_fallocate -- interpose on libc posix_fallocate()
+ */
+FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
+	if (len > MAX_LEN) {
+		errno = ENOSPC;
+		return -1;
+	}
+	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+}
+FUNC_MOCK_END
 
-int is_pmem_proc(const void *addr, size_t len);
-
-void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
-		size_t *mapped_lenp, int *is_pmemp);
-
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-typedef BOOL (WINAPI *PQVM)(
-		HANDLE, const void *,
-		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
-		SIZE_T, PSIZE_T);
-
-extern PQVM Func_qvmi;
-#endif
+/*
+ * ftruncate -- interpose on libc ftruncate()
+ */
+FUNC_MOCK(ftruncate, int, int fd, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_OUT("ftruncate: len %ju", len);
+	return _FUNC_REAL(ftruncate)(fd, len);
+}
+FUNC_MOCK_END

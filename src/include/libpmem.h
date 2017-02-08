@@ -61,8 +61,22 @@ extern "C" {
 #define PMEM_FILE_SPARSE	(1 << 2)
 #define PMEM_FILE_TMPFILE	(1 << 3)
 
+#ifdef _WIN32
+#ifdef UNICODE
+#define pmem_map_file pmem_map_fileW
+#else
+#define pmem_map_file pmem_map_fileU
+#endif
+void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+
+void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+#else
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
+#endif
+
 int pmem_unmap(void *addr, size_t len);
 int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
