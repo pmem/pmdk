@@ -11,7 +11,8 @@ pmem_errormsg
 pmem_flush
 pmem_has_hw_drain
 pmem_is_pmem
-pmem_map_file
+pmem_map_fileU
+pmem_map_fileW
 pmem_memcpy_nodrain
 pmem_memcpy_persist
 pmem_memmove_nodrain
