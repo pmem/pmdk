@@ -165,7 +165,7 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
  * pmemlog_create -- create a log memory pool
  */
 PMEMlogpool *
-pmemlog_create(const char *path, size_t poolsize, mode_t mode)
+UNICODE_FUNCTION(pmemlog_create)(const char *path, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
 
@@ -225,6 +225,24 @@ err:
 	errno = oerrno;
 	return NULL;
 }
+
+#ifdef _WIN32
+/*
+ * pmemlog_createW -- create a log memory pool
+ */
+PMEMlogpool *
+pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return NULL;
+
+	PMEMlogpool *ret = pmemlog_createU(_path, poolsize, mode);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 /*
  * log_open_common -- (internal) open a log memory pool
@@ -300,12 +318,30 @@ err:
  * pmemlog_open -- open an existing log memory pool
  */
 PMEMlogpool *
-pmemlog_open(const char *path)
+UNICODE_FUNCTION(pmemlog_open)(const char *path)
 {
 	LOG(3, "path %s", path);
 
 	return log_open_common(path, 0);
 }
+
+#ifdef _WIN32
+/*
+ * pmemlog_openW -- create a log memory pool
+ */
+PMEMlogpool *
+pmemlog_openW(const wchar_t *path)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return NULL;
+
+	PMEMlogpool *ret = pmemlog_openU(_path);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 /*
  * pmemlog_close -- close a log memory pool
@@ -651,7 +687,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
  * cannot happen due to other errors.
  */
 int
-pmemlog_check(const char *path)
+UNICODE_FUNCTION(pmemlog_check)(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
@@ -698,6 +734,24 @@ pmemlog_check(const char *path)
 
 	return consistent;
 }
+
+#ifdef _WIN32
+/*
+ * pmemlog_checkW -- create a log memory pool
+ */
+int
+pmemlog_checkW(const wchar_t *path)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return -1;
+
+	int ret = pmemlog_checkU(_path);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 /*
  * log_convert2h -- convert pmemlog structure to host byte order

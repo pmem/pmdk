@@ -1,5 +1,4 @@
-#!/bin/bash -e
-#
+﻿#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,30 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/log_pool/TEST30 -- unit test for log poolsets with unicode
+# blk_pool/config.PS1 -- test configuration
 #
-export UNITTEST_NAME=log_pool/TEST30
-export UNITTEST_NUM=30
 
-# standard unit test setup
-. ../unittest/unittest.sh
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
-require_test_type medium
-require_fs_type non-pmem
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-setup
-umask 0
-
-expect_normal_exit ./log_pool$EXESUFFIX c $DIR/testfile⮸ 20 0640
-
-cp $DIR/testfile⮸ $DIR/testfileⰊ
-
-create_poolset $DIR/testsetㅓㅹ 20M:$DIR/testfile⮸ R 20M:$DIR/testfileⰊ
-
-expect_normal_exit ./log_pool$EXESUFFIX o $DIR/testsetㅓㅹ
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
