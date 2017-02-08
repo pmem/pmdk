@@ -62,7 +62,7 @@ create_holey_file 20M $DIR\testfile
 #        (no write permissions)
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 20 0640
+    c $DIR\testfile test$Env:SUFFIX 20 0640
 
 check_files $DIR\testfile
 

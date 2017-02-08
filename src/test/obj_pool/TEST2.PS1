@@ -58,7 +58,7 @@ setup
 # TEST2 non-existing file, poolsize == 0
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 0 0640
+    c $DIR\testfile test$Env:SUFFIX 0 0640
 
 check_no_files $DIR\testfile
 
