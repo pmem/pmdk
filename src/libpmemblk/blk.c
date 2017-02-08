@@ -54,10 +54,10 @@
 #include "out.h"
 #include "btt.h"
 #include "blk.h"
+#include "util.h"
 #include "sys_util.h"
 #include "util_pmem.h"
 #include "valgrind_internal.h"
-
 /*
  * lane_enter -- (internal) acquire a unique lane number
  */
@@ -395,8 +395,8 @@ err:
  * pmemblk_create -- create a block memory pool
  */
 PMEMblkpool *
-pmemblk_create(const char *path, size_t bsize, size_t poolsize,
-		mode_t mode)
+UNICODE_FUNCTION(pmemblk_create)(const char *path, size_t bsize,
+		size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s bsize %zu poolsize %zu mode %o",
 			path, bsize, poolsize, mode);
@@ -471,6 +471,24 @@ err:
 	return NULL;
 }
 
+#ifdef _WIN32
+/*
+ * pmemblk_create -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
+	mode_t mode)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_createU(_path, bsize, poolsize, mode);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 /*
  * blk_open_common -- (internal) open a block memory pool
@@ -549,12 +567,31 @@ err:
  * pmemblk_open -- open a block memory pool
  */
 PMEMblkpool *
-pmemblk_open(const char *path, size_t bsize)
+UNICODE_FUNCTION(pmemblk_open)(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
 	return blk_open_common(path, bsize, 0);
 }
+
+#ifdef _WIN32
+/*
+ * pmemblk_create -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_openW(const wchar_t *path, size_t bsize)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_openU(_path, bsize);
+
+	free(_path);
+	return ret;
+}
+#endif
+
 
 /*
  * pmemblk_close -- close a block memory pool
@@ -723,7 +760,7 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
  * pmemblk_check -- block memory pool consistency check
  */
 int
-pmemblk_check(const char *path, size_t bsize)
+UNICODE_FUNCTION(pmemblk_check)(const char *path, size_t bsize)
 {
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
@@ -739,6 +776,24 @@ pmemblk_check(const char *path, size_t bsize)
 
 	return retval;
 }
+
+#ifdef _WIN32
+/*
+ * pmemblk_createW -- create a block memory pool
+ */
+int
+pmemblk_checkW(const wchar_t *path, size_t bsize)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL)
+		return -1;
+
+	int ret = pmemblk_checkU(_path, bsize);
+
+	free(_path);
+	return ret;
+}
+#endif
 
 
 #ifdef _MSC_VER
