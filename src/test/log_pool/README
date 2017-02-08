@@ -40,7 +40,6 @@ TEST11 (pass)	non-existing file, poolsize >= min required size
 		(pool set)
 TEST12 (fail)	non-existing file, poolsize >= min required size
 		(pool set with replica section)
-
 - pmemlog_open:
 
 TEST20 (fail)	non-existing file
@@ -58,7 +57,6 @@ TEST27 (pass)	existing file, file length >= min required size
 		(pool set)
 TEST28 (fail)	existing file, file length >= min required size
 		(pool set with replica section)
-
 
 - each case outputs:
 	- error, if error happened
