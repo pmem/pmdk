@@ -49,6 +49,9 @@
     <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\os_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmemlog.h">
