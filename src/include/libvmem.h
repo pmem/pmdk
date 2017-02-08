@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,7 +55,18 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 
 #define VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 
+#ifdef _WIN32
+#ifdef UNICODE
+#define vmem_create vmem_createW
+#else
+#define vmem_create vmem_createU
+#endif
+VMEM *vmem_createW(const wchar_t *dir, size_t size);
+VMEM *vmem_createU(const char *dir, size_t size);
+#else
 VMEM *vmem_create(const char *dir, size_t size);
+#endif
+
 VMEM *vmem_create_in_region(void *addr, size_t size);
 void vmem_delete(VMEM *vmp);
 int vmem_check(VMEM *vmp);

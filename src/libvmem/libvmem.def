@@ -37,7 +37,8 @@ LIBRARY libvmem
 VERSION 1.0
 
 EXPORTS
-	vmem_create
+	vmem_createU
+	vmem_createW
 	vmem_create_in_region
 	vmem_delete
 	vmem_check

@@ -1,5 +1,4 @@
-#!/bin/bash -e
-#
+﻿#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,28 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/vmem_create/TEST1 -- unit test for vmem_create with unicode
+# pmempool_create/config.PS1 -- test configuration
 #
-export UNITTEST_NAME=vmem_create/TEST1
-export UNITTEST_NUM=1
 
-# standard unit test setup
-. ../unittest/unittest.sh
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
-require_test_type medium
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-require_fs_type any
-
-setup
-
-# this test invokes sigsegvs by design
-export ASAN_OPTIONS=handle_segv=0
-mkdir $DIR/⿆⾨ㆦ
-
-expect_normal_exit ./vmem_create$EXESUFFIX $DIR/⿆⾨ㆦ
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

@@ -56,7 +56,7 @@ malloc_null(size_t size)
 {
 	++custom_alloc_calls;
 #ifdef _WIN32
-	/* for UTF-16 conversion */
+	/* for UTF-16 conversion first malloc call has to be successful */
 	if (custom_alloc_calls < 2) {
 		custom_allocs++;
 		return malloc(size);

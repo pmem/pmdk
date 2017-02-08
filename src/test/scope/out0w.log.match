@@ -5,8 +5,9 @@ vmem_aligned_alloc
 vmem_calloc
 vmem_check
 vmem_check_version
-vmem_create
 vmem_create_in_region
+vmem_createU
+vmem_createW
 vmem_delete
 vmem_errormsg
 vmem_free
