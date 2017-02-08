@@ -15,6 +15,7 @@
     <ClInclude Include="..\common\mmap.h" />
     <ClInclude Include="..\common\out.h" />
     <ClInclude Include="..\common\util.h" />
+    <ClInclude Include="..\include\libvmem.h" />
     <ClInclude Include="..\windows\include\pthread.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="..\windows\jemalloc_gen\include\jemalloc\jemalloc.h" />
