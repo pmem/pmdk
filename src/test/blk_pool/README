@@ -47,7 +47,6 @@ TEST15 (pass)	non-existing file, poolsize >= min required size, bsize < min blk 
 		pool set
 TEST16 (fail)	non-existing file, poolsize >= min required size, bsize < min blk size
 		pool set with replica section
-
 - pmemblk_open:
 
 TEST20 (fail)	non-existing file, bsize == 0
