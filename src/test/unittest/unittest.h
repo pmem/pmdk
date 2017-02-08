@@ -139,6 +139,14 @@ static inline int ut_util_stat(const char *path,
 	st_bufp->st_mode &= 0600;
 	return retVal;
 }
+
+static inline int ut_util_statW(const wchar_t *path,
+	ut_util_stat_t *st_bufp) {
+	int retVal = _wstat64(path, st_bufp);
+	/* clear unused bits to avoid confusion */
+	st_bufp->st_mode &= 0600;
+	return retVal;
+}
 #define ut_util_lseek _lseeki64
 #endif
 
@@ -148,6 +156,11 @@ static inline int ut_util_stat(const char *path,
 void ut_start(const char *file, int line, const char *func,
 	int argc, char * const argv[], const char *fmt, ...)
 	__attribute__((format(printf, 6, 7)));
+
+void ut_startW(const char *file, int line, const char *func,
+	int argc, wchar_t * const argv[], const char *fmt, ...)
+	__attribute__((format(printf, 6, 7)));
+
 void ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)))
@@ -166,6 +179,10 @@ void ut_err(const char *file, int line, const char *func,
 /* indicate the start of the test */
 #define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+
+/* indicate the start of the test */
+#define WSTART(argc, argv, ...)\
+    ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
 #define DONE(...)\
@@ -348,6 +365,9 @@ int ut_munmap_anon_aligned(const char *file, int line, const char *func,
 int ut_open(const char *file, int line, const char *func, const char *path,
     int flags, ...);
 
+int ut_wopen(const char *file, int line, const char *func, const wchar_t *path,
+	int flags, ...);
+
 int ut_close(const char *file, int line, const char *func, int fd);
 
 int ut_unlink(const char *file, int line, const char *func, const char *path);
@@ -377,6 +397,9 @@ int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
 
 int ut_stat(const char *file, int line, const char *func, const char *path,
     ut_util_stat_t *st_bufp);
+
+int ut_statW(const char *file, int line, const char *func, const wchar_t *path,
+	ut_util_stat_t *st_bufp);
 
 int ut_fstat(const char *file, int line, const char *func, int fd,
     ut_util_stat_t *st_bufp);
@@ -445,6 +468,10 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
 
+/* a _wopen() that can't return < 0 */
+#define WOPEN(path, ...)\
+    ut_wopen(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
+
 /* a close() that can't return -1 */
 #define CLOSE(fd)\
     ut_close(__FILE__, __LINE__, __func__, fd)
@@ -509,6 +536,9 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
+
+#define STATW(path, st_bufp)\
+    ut_statW(__FILE__, __LINE__, __func__, path, st_bufp)
 
 #ifndef _WIN32
 #define SYMLINK(oldpath, newpath)\
@@ -694,6 +724,8 @@ void ut_sighandler(int);
 void ut_register_sighandlers(void);
 
 uint16_t ut_checksum(uint8_t *addr, size_t len);
+char *ut_toUTF8(const wchar_t *wstr);
+wchar_t *ut_toUTF16(const char *wstr);
 
 struct test_case {
 	const char *name;
