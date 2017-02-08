@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,28 +31,19 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * mocks_windows.h -- redefinitions of libc functions
+ *
+ * This file is Windows-specific.
+ *
+ * This file should be included (i.e. using Forced Include) by libpmem
+ * files, when compiled for the purpose of pmem_map_file test.
+ * It would replace default implementation with mocked functions defined
+ * in pmem_map_file.c.
+ *
+ * These defines could be also passed as preprocessor definitions.
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
-
-extern unsigned long long Pagesize;
-
-void pmem_init(void);
-
-int is_pmem_proc(const void *addr, size_t len);
-
-void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
-		size_t *mapped_lenp, int *is_pmemp);
-
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-typedef BOOL (WINAPI *PQVM)(
-		HANDLE, const void *,
-		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
-		SIZE_T, PSIZE_T);
-
-extern PQVM Func_qvmi;
+#ifndef WRAP_REAL
+#define posix_fallocate __wrap_posix_fallocate
+#define ftruncate __wrap_ftruncate
 #endif
