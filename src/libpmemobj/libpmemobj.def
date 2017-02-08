@@ -40,10 +40,13 @@ EXPORTS
 	pmemobj_check_version
 	pmemobj_set_funcs
 	pmemobj_errormsg
-	pmemobj_create
-	pmemobj_open
+	pmemobj_createU
+	pmemobj_openU
+	pmemobj_createW
+	pmemobj_openW
 	pmemobj_close
-	pmemobj_check
+	pmemobj_checkU
+	pmemobj_checkW
 	pmemobj_mutex_zero
 	pmemobj_mutex_lock
 	pmemobj_mutex_trylock

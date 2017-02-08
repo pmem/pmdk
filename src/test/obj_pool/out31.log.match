@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST31: START: obj_pool
- $(nW)obj_pool$(nW) o $(nW)testsetㅓㅹ ⮓ⱙ
-$(nW)testsetㅓㅹ: pmemobj_open: Success
-obj_pool$(nW)TEST31: DONE
