@@ -58,7 +58,7 @@ create_nonzeroed_file 8M 8K $DIR\testfile
 #       (file contains garbage, except for header)
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 0 0600
+    c $DIR\testfile test$Env:SUFFIX 0 0600
 
 check_files $DIR\testfile
 

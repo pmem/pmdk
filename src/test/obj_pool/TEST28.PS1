@@ -56,10 +56,10 @@ setup
 #        layout matches the value from pool header
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 20 0640
+    c $DIR\testfile test$Env:SUFFIX 20 0640
 
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    o $DIR\testfile "test"
+    o $DIR\testfile test$Env:SUFFIX
 
 check
 
