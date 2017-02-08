@@ -51,12 +51,32 @@ extern "C" {
 /*
  * Pool management.
  */
+#ifdef _WIN32
+#ifdef UNICODE
+#define pmemobj_open pmemobj_openW
+#define pmemobj_create pmemobj_createW
+#define pmemobj_check pmemblk_checkW
+#else
+#define pmemobj_open pmemobj_openU
+#define pmemobj_create pmemobj_createU
+#define pmemobj_check pmemobj_checkU
+#endif
+PMEMobjpool *pmemobj_openW(const wchar_t *path, const wchar_t *layout);
+PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
+	size_t poolsize, mode_t mode);
+int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
+
+PMEMobjpool *pmemobj_openU(const char *path, const char *layout);
+PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
+	size_t poolsize, mode_t mode);
+int pmemobj_checkU(const char *path, const char *layout);
+#else
 PMEMobjpool *pmemobj_open(const char *path, const char *layout);
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
-void pmemobj_close(PMEMobjpool *pop);
 int pmemobj_check(const char *path, const char *layout);
-
+#endif
+void pmemobj_close(PMEMobjpool *pop);
 /*
  * If called for the first time on a newly created pool, the root object
  * of given size is allocated.  Otherwise, it returns the existing root object.

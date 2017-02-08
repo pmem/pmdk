@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,7 +83,7 @@ extern "C" {
 #ifndef WRAP_REAL_PMEMOBJ
 #define pmemobj_alloc __wrap_pmemobj_alloc
 #define pmemobj_alloc_usable_size __wrap_pmemobj_alloc_usable_size
-#define pmemobj_open __wrap_pmemobj_open
+#define pmemobj_openU __wrap_pmemobj_open
 #define pmemobj_close __wrap_pmemobj_close
 #define pmemobj_direct __wrap_pmemobj_direct
 #define pmemobj_pool_by_oid __wrap_pmemobj_pool_by_oid

@@ -52,7 +52,7 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-   <ClCompile Include="..\common\file.c">
+    <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\file_windows.c">
@@ -101,6 +101,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="alloc_class.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

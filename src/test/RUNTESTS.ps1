@@ -53,7 +53,7 @@ Param(
     [alias("d")]
     $dreceivetype = "auto",
     [alias("o")]
-    $time = "60s",
+    $time = "180s",
     [alias("s")]
     $testfile = "all",
     [alias("i")]
@@ -342,6 +342,7 @@ function runtest {
                     if ($p.ExitCode -ne 0) {
                         Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
+                        exit $p.ExitCode
                     }
                 } # encodings
             } # for builds

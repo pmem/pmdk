@@ -57,7 +57,7 @@ setup
 #       path is invalid (directory not exist)
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c \nul\testfile "test" 20 0640
+    c \nul\testfile test$Env:SUFFIX 20 0640
 
 check_no_files $DIR\testfile
 

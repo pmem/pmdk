@@ -1,5 +1,4 @@
-#!/bin/bash -e
-#
+﻿#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,32 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_pool/TEST31 -- unit test for obj poolsets with unicode
+# blk_pool/config.PS1 -- test configuration
 #
-export UNITTEST_NAME=obj_pool/TEST31
-export UNITTEST_NUM=31
 
-# standard unit test setup
-. ../unittest/unittest.sh
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
-require_test_type medium
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-require_fs_type non-pmem
-
-POOLSET=testsetㅓㅹ
-LAYOUT=⮓ⱙ
-
-setup
-
-create_poolset $DIR/$POOLSET 8M:$DIR/tesⰄfile:z 8M:$DIR/testfile⮸:z \
-	r 24M:$DIR/testfileⰊ:z r 8M:$DIR/testfile⮌:z 8M:$DIR/testfile⭙:z
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $DIR/$POOLSET
-
-expect_normal_exit ./obj_pool$EXESUFFIX o $DIR/$POOLSET $LAYOUT
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
