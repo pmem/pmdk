@@ -55,6 +55,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 -t test-type		run only specified test type
 			test-type: check (default), short, medium, long, all
 			where: check = short + medium; all = short + medium + long
+-k skip-dir		skip a specific test directory
 -f fs-type		run tests only on specified file systems
 			fs-type: pmem, non-pmem, any, none, all (default)
 -o timeout		set timeout for test execution
@@ -365,7 +366,7 @@ checktype="none"
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s:m:e:p:d:cq:r: $*`
+args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -373,6 +374,10 @@ do
 	receivetype=auto
 	case "$arg"
 	in
+	-k)
+		skip_dir="$2"
+		shift 2
+		;;
 	-n)
 		dryrun=1
 		shift
@@ -590,6 +595,9 @@ else
 	# no arguments means run them all
 	for testdir in */TEST0
 	do
+		if [[ if "$test_dir" =~ "$skipdir" ]]; then
+				continue
+		fi
 		runtest `dirname $testdir`
 	done
 fi
