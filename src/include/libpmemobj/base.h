@@ -127,8 +127,6 @@ void *pmemobj_direct(PMEMoid oid);
  */
 PMEMoid pmemobj_oid(const void *addr);
 
-const char *pmemobj_errormsg(void);
-
 /*
  * Returns the number of usable bytes in the object. May be greater than
  * the requested size of the object because of internal alignment.
@@ -210,6 +208,19 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
  * (debug helper function) logs notice message if used inside a transaction
  */
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
+
+#ifdef _WIN32
+#ifdef UNICODE
+#define pmemobj_errormsg pmemobj_errormsgW
+#else
+#define pmemobj_errormsg pmemobj_errormsgU
+#endif
+const wchar_t *pmemobj_errormsgW(void);
+
+const char *pmemobj_errormsgU(void);
+#else
+const char *pmemobj_errormsg(void);
+#endif
 
 
 #ifdef __cplusplus

@@ -216,3 +216,25 @@ err:
 	errno = EINVAL;
 	return -1;
 }
+
+/*
+ * util_toUTF16 -- XXX user responsible for supplying a large enough out buffer.
+ */
+int
+util_toUTF16_inplace(const utf8_t *in, utf16_t *out, size_t out_size)
+{
+	if (out == NULL)
+		goto err;
+
+	int size = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
+	if (size == 0 || out_size < size)
+		goto err;
+
+	if (MultiByteToWideChar(CP_UTF8, 0, in, -1, out, size) == 0)
+		goto err;
+
+	return 0;
+err:
+	errno = EINVAL;
+	return -1;
+}

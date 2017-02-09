@@ -17,7 +17,8 @@ pmemobj_createU
 pmemobj_createW
 pmemobj_direct
 pmemobj_drain
-pmemobj_errormsg
+pmemobj_errormsgU
+pmemobj_errormsgW
 pmemobj_first
 pmemobj_flush
 pmemobj_free

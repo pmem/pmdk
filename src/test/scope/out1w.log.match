@@ -7,7 +7,8 @@ msync
 munmap
 pmem_check_version
 pmem_drain
-pmem_errormsg
+pmem_errormsgU
+pmem_errormsgW
 pmem_flush
 pmem_has_hw_drain
 pmem_is_pmem

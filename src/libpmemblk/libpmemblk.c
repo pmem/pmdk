@@ -109,11 +109,22 @@ pmemblk_set_funcs(
 	util_set_alloc_funcs(malloc_func, free_func, realloc_func, strdup_func);
 }
 
+#ifdef _WIN32
+/*
+ * pmemblk_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+pmemblk_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif
+
 /*
  * pmemblk_errormsg -- return last error message
  */
 const char *
-pmemblk_errormsg(void)
+UNICODE_FUNCTION(pmemblk_errormsg)(void)
 {
 	return out_get_errormsg();
 }

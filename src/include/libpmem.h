@@ -64,17 +64,24 @@ extern "C" {
 #ifdef _WIN32
 #ifdef UNICODE
 #define pmem_map_file pmem_map_fileW
+#define pmem_errormsg pmem_errormsgW
 #else
 #define pmem_map_file pmem_map_fileU
+#define pmem_errormsg pmem_errormsgU
 #endif
 void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
 
 void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
+
+const wchar_t *pmem_errormsgW(void);
+
+const char *pmem_errormsgU(void);
 #else
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
-	size_t *mapped_lenp, int *is_pmemp);
+		size_t *mapped_lenp, int *is_pmemp);
+const char *pmem_errormsg(void);
 #endif
 
 int pmem_unmap(void *addr, size_t len);
@@ -102,8 +109,6 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 const char *pmem_check_version(
 		unsigned major_required,
 		unsigned minor_required);
-
-const char *pmem_errormsg(void);
 
 #ifdef __cplusplus
 }
