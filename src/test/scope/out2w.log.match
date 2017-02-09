@@ -9,7 +9,8 @@ pmemlog_checkW
 pmemlog_close
 pmemlog_createU
 pmemlog_createW
-pmemlog_errormsg
+pmemlog_errormsgU
+pmemlog_errormsgW
 pmemlog_nbyte
 pmemlog_openU
 pmemlog_openW

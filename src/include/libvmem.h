@@ -124,7 +124,18 @@ void vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s));
 
+#ifdef _WIN32
+#ifdef UNICODE
+#define vmem_errormsg vmem_errormsgW
+#else
+#define vmem_errormsg vmem_errormsgU
+#endif
+const wchar_t *vmem_errormsgW(void);
+
+const char *vmem_errormsgU(void);
+#else
 const char *vmem_errormsg(void);
+#endif
 
 #ifdef __cplusplus
 }
