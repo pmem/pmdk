@@ -39,7 +39,8 @@ VERSION 1.0
 EXPORTS
 	pmemlog_check_version
 	pmemlog_set_funcs
-	pmemlog_errormsg
+	pmemlog_errormsgU
+	pmemlog_errormsgW
 	pmemlog_createU
 	pmemlog_createW
 	pmemlog_openU

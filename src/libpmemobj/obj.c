@@ -1173,15 +1173,15 @@ pmemobj_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	if (layout != NULL) {
 		_layout = util_toUTF8(layout);
 		if (_layout == NULL) {
-			free(_path);
+			Free(_path);
 			return NULL;
 		}
 	}
 	PMEMobjpool *ret = pmemobj_createU(_path, _layout, poolsize, mode);
 
-	free(_path);
-	if (layout != NULL)
-		free(_layout);
+	Free(_path);
+	Free(_layout);
+
 	return ret;
 }
 #endif
@@ -1544,15 +1544,14 @@ pmemobj_openW(const wchar_t *path, const wchar_t *layout)
 	if (layout != NULL) {
 		_layout = util_toUTF8(layout);
 		if (_layout == NULL) {
-			free(_path);
+			Free(_path);
 			return NULL;
 		}
 	}
 
 	PMEMobjpool *ret = pmemobj_open(_path, _layout);
-	free(_path);
-	if (layout != NULL)
-		free(_layout);
+	Free(_path);
+	Free(_layout);
 	return ret;
 }
 #endif
@@ -1695,16 +1694,16 @@ pmemobj_checkW(const wchar_t *path, const wchar_t *layout)
 	if (layout != NULL) {
 		_layout = util_toUTF8(layout);
 		if (_layout == NULL) {
-			free(_path);
+			Free(_path);
 			return -1;
 		}
 	}
 
 	int ret = pmemobj_checkU(_path, _layout);
 
-	free(_path);
-	if (layout != NULL)
-		free(_layout);
+	Free(_path);
+	Free(_layout);
+
 	return ret;
 }
 #endif

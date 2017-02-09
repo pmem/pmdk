@@ -35,6 +35,7 @@
  */
 #include "util.h"
 #include "os.h"
+#include <errno.h>
 
 /* UTF-8 bom (EF BB BF) */
 #define UTF8_BOM "\xEF\xBB\xBF"
@@ -46,10 +47,10 @@ int
 os_open(const char *pathname, int flags, ...)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	int ret = 0;
-	if (path == NULL) {
+	if (path == NULL)
 		return -1;
-	}
+
+	int ret;
 	/* there is no O_TMPFILE on windows */
 	if (flags & O_CREAT) {
 		va_list arg;
@@ -65,7 +66,8 @@ os_open(const char *pathname, int flags, ...)
 	int orig_errno = errno;
 	if (ret != -1) {
 		char bom[3];
-		if (_read(ret, bom, 3) != 3 || memcmp(bom, UTF8_BOM, 3) != 0) {
+		if (_read(ret, bom, sizeof(bom)) != 3 ||
+				memcmp(bom, UTF8_BOM, 3) != 0) {
 			/* UTF-8 bom not found - reset file to the beginning */
 			lseek(ret, 0, SEEK_SET);
 		}
@@ -81,9 +83,8 @@ int
 os_stat(const char *pathname, os_stat_t *buf)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	if (path == NULL) {
+	if (path == NULL)
 		return -1;
-	}
 
 	int ret = _wstat64(path, buf);
 
@@ -98,9 +99,8 @@ int
 os_unlink(const char *pathname)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	if (path == NULL) {
+	if (path == NULL)
 		return -1;
-	}
 
 	int ret = _wunlink(path);
 	Free(path);
@@ -114,9 +114,8 @@ int
 os_access(const char *pathname, int mode)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	if (path == NULL) {
+	if (path == NULL)
 		return -1;
-	}
 
 	int ret = _waccess(path, mode);
 	Free(path);
@@ -126,34 +125,38 @@ os_access(const char *pathname, int mode)
 /*
  * os_skipBOM -- (internal) Skip BOM in file stream
  */
-void
+static void
 os_skipBOM(FILE *file)
 {
 	if (file == NULL)
 		return;
+
 	/* BOM skipping should not modify errno */
 	int orig_errno = errno;
-	/* UTF-8 BOM + \0 */
-	char bom[4];
-	fgets(bom, 4, file);
+	/* UTF-8 BOM */
+	uint8_t bom[3];
+	size_t read_num = fread(bom, sizeof(bom[0]), sizeof(bom), file);
+	if (read_num != ARRAY_SIZE(bom))
+		goto out;
 
-	if (strcmp(bom, UTF8_BOM) != 0) {
+	if (memcmp(bom, UTF8_BOM, ARRAY_SIZE(bom)) != 0) {
 		/* UTF-8 bom not found - reset file to the beginning */
 		fseek(file, 0, SEEK_SET);
 	}
+
+out:
 	errno = orig_errno;
 }
 
 /*
- * os_fdopen -- fdopen abstraction layer
+ * os_fopen -- fopen abstraction layer
  */
 FILE *
 os_fopen(const char *pathname, const char *mode)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	if (path == NULL) {
+	if (path == NULL)
 		return NULL;
-	}
 
 	wchar_t *wmode = util_toUTF16(mode);
 	if (path == NULL) {
@@ -171,7 +174,7 @@ os_fopen(const char *pathname, const char *mode)
 }
 
 /*
- * os_chmod -- chmod abstraction layer
+ * os_fdopen -- fdopen abstraction layer
  */
 FILE *
 os_fdopen(int fd, const char *mode)
@@ -188,9 +191,8 @@ int
 os_chmod(const char *pathname, mode_t mode)
 {
 	wchar_t *path = util_toUTF16(pathname);
-	if (path == NULL) {
+	if (path == NULL)
 		return -1;
-	}
 
 	int ret = _wchmod(path, mode);
 	Free(path);
@@ -207,8 +209,8 @@ os_mkstemp(char *temp)
 	wchar_t *_temp = util_toUTF16(temp);
 	if (_temp == NULL)
 		return -1;
-	wchar_t *path = _wmktemp(_temp);
 
+	wchar_t *path = _wmktemp(_temp);
 	if (path == NULL) {
 		Free(_temp);
 		return -1;
@@ -226,7 +228,9 @@ os_mkstemp(char *temp)
 	 * multiples files by system.
 	 */
 	rand_s(&rnd);
-	_snwprintf(npath + wcslen(npath), MAX_PATH, L"%d", rnd);
+	int cnt = _snwprintf(npath + wcslen(npath), MAX_PATH, L"%d", rnd);
+	if (cnt < 0)
+		return cnt;
 
 	/*
 	 * Use O_TEMPORARY flag to make sure the file is deleted when

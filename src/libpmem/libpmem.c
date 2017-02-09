@@ -95,11 +95,22 @@ pmem_check_version(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
+#ifdef _WIN32
+/*
+ * pmem_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+pmem_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif
+
 /*
  * pmem_errormsg -- return last error message
  */
 const char *
-pmem_errormsg(void)
+UNICODE_FUNCTION(pmem_errormsg)(void)
 {
 	return out_get_errormsg();
 }

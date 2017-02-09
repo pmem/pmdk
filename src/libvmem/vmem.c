@@ -255,6 +255,7 @@ vmem_create_in_region(void *addr, size_t size)
 		return NULL;
 	}
 
+#ifndef _WIN32
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -262,6 +263,7 @@ vmem_create_in_region(void *addr, size_t size)
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof(struct pool_hdr));
+#endif
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -281,8 +283,9 @@ vmem_delete(VMEM *vmp)
 		errno = EINVAL;
 		return;
 	}
-
+#ifndef _WIN32
 	util_range_rw(vmp->addr, sizeof(struct pool_hdr));
+#endif
 
 	if (vmp->caller_mapped == 0)
 		util_unmap(vmp->addr, vmp->size);

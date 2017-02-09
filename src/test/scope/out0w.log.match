@@ -9,7 +9,8 @@ vmem_create_in_region
 vmem_createU
 vmem_createW
 vmem_delete
-vmem_errormsg
+vmem_errormsgU
+vmem_errormsgW
 vmem_free
 vmem_malloc
 vmem_malloc_usable_size

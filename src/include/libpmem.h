@@ -64,20 +64,22 @@ extern "C" {
 #ifdef _WIN32
 #ifdef UNICODE
 #define pmem_map_file pmem_map_fileW
+#define pmem_errormsg pmem_errormsgW
 #else
 #define pmem_map_file pmem_map_fileU
+#define pmem_errormsg pmem_errormsgU
 #endif
 #endif
 
 #ifndef _WIN32
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
-        size_t *mapped_lenp, int *is_pmemp);
+	size_t *mapped_lenp, int *is_pmemp);
 #else
 void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
-        size_t *mapped_lenp, int *is_pmemp);
+	size_t *mapped_lenp, int *is_pmemp);
 
 void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
-        size_t *mapped_lenp, int *is_pmemp);
+	size_t *mapped_lenp, int *is_pmemp);
 #endif
 
 int pmem_unmap(void *addr, size_t len);
@@ -103,8 +105,8 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 #define PMEM_MAJOR_VERSION 1
 #define PMEM_MINOR_VERSION 0
 const char *pmem_check_version(
-                unsigned major_required,
-                unsigned minor_required);
+		unsigned major_required,
+		unsigned minor_required);
 
 #ifndef _WIN32
 const char *pmem_errormsg(void);
@@ -112,8 +114,6 @@ const char *pmem_errormsg(void);
 const wchar_t *pmem_errormsgW(void);
 const char *pmem_errormsgU(void);
 #endif
-
-const char *pmem_errormsg(void);
 
 #ifdef __cplusplus
 }

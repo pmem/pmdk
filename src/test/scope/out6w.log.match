@@ -5,7 +5,8 @@ pmempool_check
 pmempool_check_end
 pmempool_check_init
 pmempool_check_version
-pmempool_errormsg
+pmempool_errormsgU
+pmempool_errormsgW
 pmempool_rm
 pmempool_sync
 pmempool_transform

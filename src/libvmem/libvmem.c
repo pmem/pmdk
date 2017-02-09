@@ -92,7 +92,18 @@ vmem_set_funcs(
  * vmem_errormsg -- return last error message
  */
 const char *
-vmem_errormsg(void)
+UNICODE_FUNCTION(vmem_errormsg)(void)
 {
 	return out_get_errormsg();
 }
+
+#ifdef _WIN32
+/*
+ * vmem_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+vmem_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif

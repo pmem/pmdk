@@ -39,7 +39,8 @@ VERSION 1.0
 EXPORTS
 	pmemblk_check_version
 	pmemblk_set_funcs
-	pmemblk_errormsg
+	pmemblk_errormsgU
+	pmemblk_errormsgW
 	pmemblk_createU
 	pmemblk_createW
 	pmemblk_openU

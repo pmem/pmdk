@@ -39,7 +39,8 @@ VERSION 1.0
 EXPORTS
 	pmemobj_check_version
 	pmemobj_set_funcs
-	pmemobj_errormsg
+	pmemobj_errormsgU
+	pmemobj_errormsgW
 	pmemobj_createU
 	pmemobj_createW
 	pmemobj_openU
