@@ -76,7 +76,8 @@ EXPORTS
 	pmem_memcpy_nodrain
 	pmem_memset_nodrain
 	pmem_check_version
-	pmem_errormsg
+	pmem_errormsgU
+	pmem_errormsgW
 
 	mmap
 	munmap

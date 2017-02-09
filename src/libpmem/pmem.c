@@ -708,6 +708,7 @@ pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 	char *_path = util_toUTF8(path);
 	if (_path == NULL)
 		return NULL;
+
 	void *ret = pmem_map_fileU(_path, len, flags, mode, mapped_lenp,
 					is_pmemp);
 

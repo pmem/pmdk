@@ -72,6 +72,7 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 		else if (result == 0)
 			UT_OUT("%s: pmemobj_check: not consistent", _path);
 	}
+	free(_path);
 }
 
 static void
@@ -85,6 +86,7 @@ pool_open(const wchar_t *path, const wchar_t *layout)
 		UT_OUT("%s: pmemobj_open: Success", _path);
 		pmemobj_close(pop);
 	}
+	free(_path);
 }
 
 int
