@@ -57,7 +57,12 @@ main(int argc, char *argv[])
 	}
 
 	char buf[MAX_BUF_LEN];
-	if (scanf("%9s", buf) == EOF) {
+	int num = scanf("%9s", buf);
+	/*
+	 * added zero-terminator to prevent C6054
+	 */
+	buf[MAX_BUF_LEN - 1] = '\0';
+	if (num == EOF) {
 		fprintf(stderr, "EOF\n");
 		return 1;
 	}
