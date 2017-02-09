@@ -146,7 +146,7 @@ pmemwrite_blk(struct pmemwrite *pwp)
 			&blockno, buff) == 2) {
 			memset(blk, 0, blksize);
 			size_t bufflen = strlen(buff);
-			if (bufflen == 0 || bufflen >= buffsize) {
+			if (bufflen == 0) {
 				free(buff);
 				goto end;
 			}
