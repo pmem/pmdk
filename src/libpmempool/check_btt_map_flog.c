@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,25 +44,6 @@
 #include "pmempool.h"
 #include "pool.h"
 #include "check_util.h"
-
-/* assure size match between global and internal check step data */
-union location {
-	/* internal check step data */
-	struct {
-		struct arena *arenap;
-		uint32_t narena;
-		uint8_t *bitmap;
-		uint8_t *dup_bitmap;
-		uint8_t *fbitmap;
-		struct list *list_inval;
-		struct list *list_flog_inval;
-		struct list *list_unmap;
-
-		unsigned step;
-	};
-	/* global check step data */
-	struct check_step_data step_data;
-};
 
 enum questions {
 	Q_REPAIR_MAP,
@@ -223,7 +204,7 @@ list_free(struct list *list)
  * cleanup -- (internal) prepare resources for map and flog check
  */
 static int
-cleanup(PMEMpoolcheck *ppc, union location *loc)
+cleanup(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -247,7 +228,7 @@ cleanup(PMEMpoolcheck *ppc, union location *loc)
  * init -- (internal) initialize map and flog check
  */
 static int
-init(PMEMpoolcheck *ppc, union location *loc)
+init(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -345,7 +326,7 @@ map_get_postmap_lba(struct arena *arenap, uint32_t i)
  * map_entry_check -- (internal) check single map entry
  */
 static int
-map_entry_check(PMEMpoolcheck *ppc, union location *loc, uint32_t i)
+map_entry_check(PMEMpoolcheck *ppc, location *loc, uint32_t i)
 {
 	struct arena *arenap = loc->arenap;
 	uint32_t lba = map_get_postmap_lba(arenap, i);
@@ -374,7 +355,7 @@ map_entry_check(PMEMpoolcheck *ppc, union location *loc, uint32_t i)
  * flog_entry_check -- (internal) check single flog entry
  */
 static int
-flog_entry_check(PMEMpoolcheck *ppc, union location *loc, uint32_t i,
+flog_entry_check(PMEMpoolcheck *ppc, location *loc, uint32_t i,
 	uint8_t **ptr)
 {
 	struct arena *arenap = loc->arenap;
@@ -475,7 +456,7 @@ next:
  * arena_map_flog_check -- (internal) check map and flog
  */
 static int
-arena_map_flog_check(PMEMpoolcheck *ppc, union location *loc)
+arena_map_flog_check(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, NULL);
 
@@ -567,14 +548,13 @@ cleanup:
  * arena_map_flog_fix -- (internal) fix map and flog
  */
 static int
-arena_map_flog_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
-	uint32_t question, void *ctx)
+arena_map_flog_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+	void *ctx)
 {
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
-	ASSERTne(location, NULL);
-	union location *loc = (union location *)location;
+	ASSERTne(loc, NULL);
 
 	struct arena *arenap = loc->arenap;
 	uint32_t inval;
@@ -646,8 +626,8 @@ arena_map_flog_fix(PMEMpoolcheck *ppc, struct check_step_data *location,
 }
 
 struct step {
-	int (*check)(PMEMpoolcheck *, union location *);
-	int (*fix)(PMEMpoolcheck *, struct check_step_data *, uint32_t, void *);
+	int (*check)(PMEMpoolcheck *, location *);
+	int (*fix)(PMEMpoolcheck *, location *, uint32_t, void *);
 };
 
 static const struct step steps[] = {
@@ -673,7 +653,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static inline int
-step_exe(PMEMpoolcheck *ppc, union location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	ASSERT(loc->step < ARRAY_SIZE(steps));
 
@@ -682,7 +662,7 @@ step_exe(PMEMpoolcheck *ppc, union location *loc)
 	if (!step->fix)
 		return step->check(ppc, loc);
 
-	if (!check_answer_loop(ppc, &loc->step_data, NULL, step->fix))
+	if (!check_answer_loop(ppc, loc, NULL, step->fix))
 		return 0;
 
 	cleanup(ppc, loc);
@@ -697,10 +677,7 @@ check_btt_map_flog(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	COMPILE_ERROR_ON(sizeof(union location) !=
-		sizeof(struct check_step_data));
-
-	union location *loc = (union location *)check_get_step_data(ppc->data);
+	location *loc = check_get_step_data(ppc->data);
 
 	if (ppc->pool->blk_no_layout)
 		return;

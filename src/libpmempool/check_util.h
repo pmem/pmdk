@@ -55,16 +55,73 @@ struct arena;
 /* queue of check statuses */
 struct check_status;
 
-/*
- * container storing check step state
- *
- * Its size is equal to the size of the biggest state structure it must store.
- */
-#define CHECK_INSTEP_LOCATION_NUM 553
+/* container storing state of all check steps */
+#define PREFIX_MAX_SIZE 30
+typedef struct {
+	unsigned step;
 
-struct check_step_data {
-	uint64_t location[CHECK_INSTEP_LOCATION_NUM];
-};
+	unsigned replica;
+	unsigned part;
+
+	int single_repl;
+	int single_part;
+
+	struct pool_set *set;
+
+	struct pool_hdr *hdrp;
+	/* copy of the pool header in host byte order */
+	struct pool_hdr hdr;
+	int hdr_valid;
+	/*
+	 * If pool header has been modified this field indicates that
+	 * the pool parameters structure requires refresh.
+	 */
+	int pool_hdr_modified;
+
+	struct pool_hdr *next_part_hdrp;
+	struct pool_hdr *prev_part_hdrp;
+	struct pool_hdr *next_repl_hdrp;
+	struct pool_hdr *prev_repl_hdrp;
+
+	int next_part_hdr_valid;
+	int prev_part_hdr_valid;
+	int next_repl_hdr_valid;
+	int prev_repl_hdr_valid;
+
+	/* valid poolset uuid */
+	uuid_t *valid_puuid;
+	/* valid part uuid */
+	uuid_t *valid_uuid;
+
+	/* valid part pool header */
+	struct pool_hdr *valid_part_hdrp;
+	int valid_part_done;
+	unsigned valid_part_replica;
+
+	char prefix[PREFIX_MAX_SIZE];
+
+	struct arena *arenap;
+	uint64_t offset;
+	uint32_t narena;
+
+	uint8_t *bitmap;
+	uint8_t *dup_bitmap;
+	uint8_t *fbitmap;
+
+	struct list *list_inval;
+	struct list *list_flog_inval;
+	struct list *list_unmap;
+
+	struct {
+		int btti_header;
+		int btti_backup;
+	} valid;
+
+	struct {
+		struct btt_info btti;
+		uint64_t btti_offset;
+	} pool_valid;
+} location;
 
 /* check steps */
 void check_backup(PMEMpoolcheck *ppc);
@@ -80,7 +137,7 @@ void check_data_free(struct check_data *data);
 
 uint32_t check_step_get(struct check_data *data);
 void check_step_inc(struct check_data *data);
-struct check_step_data *check_get_step_data(struct check_data *data);
+location *check_get_step_data(struct check_data *data);
 
 void check_end(struct check_data *data);
 int check_is_end_util(struct check_data *data);
@@ -119,9 +176,8 @@ int check_status_is(struct check_status *status,
 		((steps)[(loc)->step].check != NULL ||\
 		(steps)[(loc)->step].fix != NULL))
 
-int check_answer_loop(PMEMpoolcheck *ppc, struct check_step_data *data,
-	void *ctx, int (*callback)(PMEMpoolcheck *, struct check_step_data *,
-	uint32_t, void *ctx));
+int check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx,
+	int (*callback)(PMEMpoolcheck *, location *, uint32_t, void *ctx));
 int check_questions_sequence_validate(PMEMpoolcheck *ppc);
 
 const char *check_get_time_str(time_t time);
