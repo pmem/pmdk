@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
 	struct my_root *rootp = pmemobj_direct(root);
 
-	char buf[MAX_BUF_LEN];
+	char buf[MAX_BUF_LEN] = {0};
 	if (scanf("%9s", buf) == EOF) {
 		fprintf(stderr, "EOF\n");
 		return 1;

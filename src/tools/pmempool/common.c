@@ -670,13 +670,22 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	paramsp->is_checksum_ok = pmem_pool_checksum(addr);
 
 	if (paramsp->type == PMEM_POOL_TYPE_BLK) {
-		struct pmemblk pbp;
-		memcpy(&pbp, addr, sizeof(pbp));
-		paramsp->blk.bsize = le32toh(pbp.bsize);
+		struct pmemblk *pbp = (struct pmemblk *)
+			malloc(sizeof(struct pmemblk));
+		if (pbp == NULL)
+			FATAL("!pmemblk malloc");
+		memcpy(pbp, addr, sizeof(struct pmemblk));
+		paramsp->blk.bsize = le32toh(pbp->bsize);
 	} else if (paramsp->type == PMEM_POOL_TYPE_OBJ) {
-		struct pmemobjpool pop;
-		memcpy(&pop, addr, sizeof(pop));
-		memcpy(paramsp->obj.layout, pop.layout, PMEMOBJ_MAX_LAYOUT);
+		struct pmemobjpool *pop = (struct pmemobjpool *)
+			malloc(sizeof(struct pmemobjpool));
+		if (pop == NULL)
+			FATAL("!pmemobjpool malloc");
+		memcpy(pop, addr, sizeof(struct pmemobjpool));
+		memcpy(paramsp->obj.layout, pop->layout, PMEMOBJ_MAX_LAYOUT);
+
+		free(pop);
+		free(pbp);
 	}
 
 	if (paramsp->is_poolset)
