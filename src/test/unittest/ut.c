@@ -631,7 +631,7 @@ check_open_files()
 #endif /* _WIN32 */
 
 /*
- * ut_start_common -- (internal)initialize unit test framework,
+ * ut_start_common -- (internal) initialize unit test framework,
  *		indicate test started
  */
 static void

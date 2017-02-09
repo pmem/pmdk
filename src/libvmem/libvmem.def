@@ -52,6 +52,7 @@ EXPORTS
 	vmem_malloc_usable_size
 	vmem_check_version
 	vmem_set_funcs
-	vmem_errormsg
+	vmem_errormsgU
+	vmem_errormsgW
 
 	DllMain
