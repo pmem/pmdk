@@ -325,7 +325,7 @@ main(int argc, char *argv[])
 			}
 			case 'r': {
 				printf("read: %s\n", argv[i] + 2);
-				char *buf = (char *)malloc(bsize + 1);
+				char *buf = (char *)malloc(bsize);
 				assert(buf != NULL);
 				const char *block_str = strtok(argv[i] + 2,
 							":");
@@ -333,7 +333,7 @@ main(int argc, char *argv[])
 				if (pmemblk_read(pbp, buf, strtoul(block_str,
 						NULL, 10)))
 					perror("pmemblk_read failed");
-				buf[bsize] = '\0';
+				buf[bsize - 1] = '\0';
 				printf("%s\n", buf);
 				free(buf);
 				break;
