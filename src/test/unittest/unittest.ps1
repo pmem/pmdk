@@ -680,7 +680,6 @@ function fail {
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewLine -foregroundcolor red $msg
     Write-Host -NoNewline (" with errorcode " + $args[0])
-    Write-Host -NoNewline (":" + $tm)
     Write-Host ""
     exit $args[0]
 }
