@@ -60,6 +60,8 @@ Param(
     $testdir = "all",
     [alias("c")]
     $check_pool = "0",
+    [alias("k")]
+    $skip_dir = "",
     [alias("h")][switch]
     $help= $false
     )
@@ -72,7 +74,8 @@ function usage {
         Write-Host "Error: $args"
     }
     Write-Host "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-                [ -o timeout ] [ -s test-file ] [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
+                [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
+                [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
         -h      print this help message
         -n      dry run
         -v      be verbose
@@ -82,6 +85,7 @@ function usage {
         -t test-type    run only specified test type
                 test-type: check (default), short, medium, long, all
                 where: check = short + medium; all = short + medium + long
+        -k skip-dir skip a specific test directories (for >1 dir enclose in "" and separate with spaces)
         -f fs-type  run tests only on specified file systems
                 fs-type: pmem, non-pmem, any, none, all (default)
         -o timeout  set timeout for test execution
@@ -191,7 +195,10 @@ function runtest {
     if ($builds -eq "all") {
         $builds = "debug nondebug"
     }
-
+    if ($skip_dir.split() -contains $testName) {
+        Write-Host "RUNTESTS: Skipping: $testName"
+        return
+    }
     cd $testName
     if ($testfile -eq "all") {
         sv -Name dirCheck ".\TEST*.ps1"

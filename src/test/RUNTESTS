@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [ -s test-file ]
+	    [ -o timeout ] [ -s test-file ] [-k skip-dir ]
 	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
 	    [ -q provider ] [ -r persistency-method ]
 	    [tests...]
@@ -55,6 +55,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 -t test-type		run only specified test type
 			test-type: check (default), short, medium, long, all
 			where: check = short + medium; all = short + medium + long
+-k skip-dir		skip a specific test directory
 -f fs-type		run tests only on specified file systems
 			fs-type: pmem, non-pmem, any, none, all (default)
 -o timeout		set timeout for test execution
@@ -350,6 +351,7 @@ use_timeout="ok"
 testfile=all
 check_pool=0
 checktype="none"
+skip_dir=""
 
 #
 # some of defaults can be overwritten with environment variables
@@ -365,7 +367,7 @@ checktype="none"
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f:o:s:m:e:p:d:cq:r: $*`
+args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -373,6 +375,10 @@ do
 	receivetype=auto
 	case "$arg"
 	in
+	-k)
+		skip_dir="$skip_dir $2"
+		shift 2
+		;;
 	-n)
 		dryrun=1
 		shift
@@ -562,6 +568,7 @@ done
 	echo "    check-pool: $check_pool_str"
 	echo "    provider: $provider"
 	echo "    persistency-method: $pmethod"
+	echo "    skip-dir: $skip_dir"
 	echo Tests: $*
 }
 
@@ -588,9 +595,14 @@ if [ "$1" ]; then
 	done
 else
 	# no arguments means run them all
-	for testdir in */TEST0
+	for testfile0 in */TEST0
 	do
-		runtest `dirname $testdir`
+		testdir=`dirname $testfile0`
+		if [[ "$skip_dir" =~ "$testdir" ]]; then
+			echo "RUNTESTS: Skipping: $testdir"
+			continue
+		fi
+		runtest $testdir
 	done
 fi
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
