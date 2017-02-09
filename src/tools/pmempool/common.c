@@ -674,18 +674,21 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 			malloc(sizeof(struct pmemblk));
 		if (pbp == NULL)
 			FATAL("!pmemblk malloc");
+
 		memcpy(pbp, addr, sizeof(struct pmemblk));
 		paramsp->blk.bsize = le32toh(pbp->bsize);
+
+		free(pbp);
 	} else if (paramsp->type == PMEM_POOL_TYPE_OBJ) {
 		struct pmemobjpool *pop = (struct pmemobjpool *)
 			malloc(sizeof(struct pmemobjpool));
 		if (pop == NULL)
 			FATAL("!pmemobjpool malloc");
+
 		memcpy(pop, addr, sizeof(struct pmemobjpool));
 		memcpy(paramsp->obj.layout, pop->layout, PMEMOBJ_MAX_LAYOUT);
 
 		free(pop);
-		free(pbp);
 	}
 
 	if (paramsp->is_poolset)
@@ -924,11 +927,14 @@ util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
 {
 	size_t n = 0;
 	struct option_requirement *ret = NULL;
+	struct option_requirement *tmp = NULL;
 	const struct option_requirement *req = &opts->req[0];
 	while (req->opt) {
 		if (req->opt == opt && (req->type & type)) {
 			n++;
-			ret = realloc(ret, n * sizeof(*ret));
+			tmp = realloc(ret, n * sizeof(*ret));
+			if (tmp)
+				ret = tmp;
 			if (!ret)
 				err(1, "Cannot allocate memory for"
 					" option requirements");
@@ -938,7 +944,9 @@ util_opt_get_req(const struct options *opts, int opt, pmem_pool_type_t type)
 	}
 
 	if (ret) {
-		ret = realloc(ret, (n + 1) * sizeof(*ret));
+		tmp = realloc(ret, (n + 1) * sizeof(*ret));
+		if (tmp)
+			ret = tmp;
 		if (!ret)
 			err(1, "Cannot allocate memory for"
 				" option requirements");
