@@ -1143,7 +1143,7 @@ err:
 	int oerrno = errno;
 	if (set->remote)
 		pmemobj_cleanup_remote(pop);
-	util_poolset_close(set, 1);
+	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return NULL;
 }
@@ -1266,7 +1266,7 @@ static void
 pmemobj_pool_close(struct pool_set *set)
 {
 	int oerrno = errno;
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 }
 
@@ -1531,7 +1531,7 @@ obj_pool_cleanup(PMEMobjpool *pop)
 
 	/* unmap all the replicas */
 	obj_replicas_cleanup(pop->set);
-	util_poolset_close(pop->set, 0);
+	util_poolset_close(pop->set, DO_NOT_DELETE_PARTS);
 }
 
 /*
@@ -1605,7 +1605,7 @@ pmemobj_check(const char *path, const char *layout)
 	} else {
 		/* unmap all the replicas */
 		obj_replicas_cleanup(pop->set);
-		util_poolset_close(pop->set, 0);
+		util_poolset_close(pop->set, DO_NOT_DELETE_PARTS);
 	}
 
 	if (consistent)
