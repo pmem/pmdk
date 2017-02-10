@@ -305,7 +305,8 @@ REMOTE_TESTS = \
 	remote_obj_basic\
 	$(OBJ_REMOTE_TESTS)\
 	$(RPMEM_TESTS)\
-	pmempool_sync_remote
+	pmempool_sync_remote\
+	pmempool_transform_remote
 
 ifeq ($(filter n,$(call check_cxx_flags, -std=c++11) $(call check_clang_template_bug)),)
 LOCAL_TESTS += $(OBJ_CPP_TESTS)

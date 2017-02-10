@@ -680,7 +680,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	}
 
 	if (paramsp->is_poolset)
-		util_poolset_close(set, 0);
+		util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 out_close:
 	if (fd >= 0)
@@ -1256,7 +1256,7 @@ pool_set_file_open(const char *fname,
 	return file;
 
 err_close_poolset:
-	util_poolset_close(file->poolset, 0);
+	util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 err_free_fname:
 	free(file->fname);
 err:
@@ -1272,7 +1272,7 @@ pool_set_file_close(struct pool_set_file *file)
 {
 	if (!file->fileio) {
 		if (file->poolset)
-			util_poolset_close(file->poolset, 0);
+			util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 		else if (file->addr) {
 			munmap(file->addr, file->size);
 			close(file->fd);
