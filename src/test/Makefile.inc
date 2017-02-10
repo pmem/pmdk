@@ -324,17 +324,17 @@ sync-test: all $(SYNC_FILE) $(TESTCONFIG)
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V)
 
-$(TSTCHECKS): all sync-test
+$(TSTCHECKS): sync-test
 	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@
 
-check: all sync-test
+check: sync-test
 	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS)
 
 pcheck: export NOTTY=1
 
 pcheck: $(TSTCHECKS)
 
-test: all sync-test
+test: all
 
 TOOLS=../tools
 
