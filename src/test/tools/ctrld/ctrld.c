@@ -418,7 +418,7 @@ has_port_inode(unsigned short port, struct inodes *inodes)
 	}
 
 	while (1) {
-		char *s = fgets(buff, 4096, fh);
+		s = fgets(buff, 4096, fh);
 		if (!s)
 			break;
 

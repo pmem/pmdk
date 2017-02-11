@@ -107,7 +107,7 @@ test_list(void)
 
 	/* Remove all of them */
 	while (!LIST_EMPTY(&head)) {
-		PTEST_LIST_NODE pNode = (PTEST_LIST_NODE)LIST_FIRST(&head);
+		pNode = (PTEST_LIST_NODE)LIST_FIRST(&head);
 		LIST_REMOVE(pNode, ListEntry);
 		free(pNode);
 	}
