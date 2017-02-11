@@ -626,7 +626,7 @@ out_get_tx_state_str(uint64_t state)
  * out_get_chunk_type_str -- get chunk type string
  */
 const char *
-out_get_chunk_type_str(unsigned type)
+out_get_chunk_type_str(enum chunk_type type)
 {
 	switch (type) {
 	case CHUNK_TYPE_FOOTER:
