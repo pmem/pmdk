@@ -50,7 +50,7 @@
 /*
  * printit -- log processing callback for use with pmemlog_walk()
  */
-int
+static int
 printit(const void *buf, size_t len, void *arg)
 {
 	fwrite(buf, len, 1, stdout);

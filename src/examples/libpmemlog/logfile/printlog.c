@@ -53,7 +53,7 @@
 /*
  * printlog -- callback function called when walking the log
  */
-int
+static int
 printlog(const void *buf, size_t len, void *arg)
 {
 	/* first byte after log contents */

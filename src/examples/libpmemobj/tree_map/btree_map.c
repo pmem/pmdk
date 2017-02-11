@@ -63,7 +63,9 @@ struct btree_map {
 /*
  * set_empty_item -- (internal) sets null to the item
  */
-void set_empty_item(struct tree_map_node_item *item) {
+static void
+set_empty_item(struct tree_map_node_item *item)
+{
 	item->key = 0;
 	item->value = OID_NULL;
 }

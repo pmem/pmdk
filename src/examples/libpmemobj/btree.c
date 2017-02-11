@@ -66,7 +66,7 @@ struct btree_node_arg {
 /*
  * btree_node_construct -- constructor of btree node
  */
-int
+static int
 btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct btree_node *node = (struct btree_node *)ptr;
@@ -85,7 +85,7 @@ btree_node_construct(PMEMobjpool *pop, void *ptr, void *arg)
 /*
  * btree_insert -- inserts new element into the tree
  */
-void
+static void
 btree_insert(PMEMobjpool *pop, int64_t key, const char *value)
 {
 	TOID(struct btree) btree = POBJ_ROOT(pop, struct btree);
@@ -107,7 +107,7 @@ btree_insert(PMEMobjpool *pop, int64_t key, const char *value)
 /*
  * btree_find -- searches for key in the tree
  */
-const char *
+static const char *
 btree_find(PMEMobjpool *pop, int64_t key)
 {
 	TOID(struct btree) btree = POBJ_ROOT(pop, struct btree);
@@ -126,7 +126,7 @@ btree_find(PMEMobjpool *pop, int64_t key)
 /*
  * btree_node_print -- prints content of the btree node
  */
-void
+static void
 btree_node_print(const TOID(struct btree_node) node)
 {
 	printf("%" PRIu64 " %s\n", D_RO(node)->key, D_RO(node)->value);
@@ -135,7 +135,7 @@ btree_node_print(const TOID(struct btree_node) node)
 /*
  * btree_foreach -- invoke callback for every node
  */
-void
+static void
 btree_foreach(PMEMobjpool *pop, const TOID(struct btree_node) node,
 	void(*cb)(const TOID(struct btree_node) node))
 {
@@ -152,7 +152,7 @@ btree_foreach(PMEMobjpool *pop, const TOID(struct btree_node) node,
 /*
  * btree_print -- initiates foreach node print
  */
-void
+static void
 btree_print(PMEMobjpool *pop)
 {
 	TOID(struct btree) btree = POBJ_ROOT(pop, struct btree);

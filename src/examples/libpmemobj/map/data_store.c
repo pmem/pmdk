@@ -70,7 +70,7 @@ struct store_root {
 /*
  * new_store_item -- transactionally creates and initializes new item
  */
-TOID(struct store_item)
+static TOID(struct store_item)
 new_store_item()
 {
 	TOID(struct store_item) item = TX_NEW(struct store_item);
@@ -82,7 +82,7 @@ new_store_item()
 /*
  * get_keys -- inserts the keys of the items by key order (sorted, descending)
  */
-int
+static int
 get_keys(uint64_t key, PMEMoid value, void *arg)
 {
 	keys[nkeys++] = key;
@@ -93,7 +93,7 @@ get_keys(uint64_t key, PMEMoid value, void *arg)
 /*
  * dec_keys -- decrements the keys count for every item
  */
-int
+static int
 dec_keys(uint64_t key, PMEMoid value, void *arg)
 {
 	nkeys--;
