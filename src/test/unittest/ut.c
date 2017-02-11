@@ -705,7 +705,6 @@ ut_start(const char *file, int line, const char *func,
 	prefix(file, line, func, 0);
 	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
 
-	out(OF_NONL, 0, "     args:");
 	for (int i = 0; i < argc; i++)
 		out(OF_NONL, " %s", argv[i]);
 	out(0, NULL);
