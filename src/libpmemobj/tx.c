@@ -769,7 +769,6 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 
 		tx_rt = &new_rt;
 	} else {
-		struct lane_tx_runtime *lane = tx.section->runtime;
 		tx_rt = &lane->undo;
 	}
 
