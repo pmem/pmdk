@@ -100,7 +100,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 				LOG(4, "nearest aligned addr %p", raddr);
 			}
 
-			if (raddr == 0) {
+			if (raddr == NULL) {
 				LOG(4, "end of address space reached");
 				break;
 			}

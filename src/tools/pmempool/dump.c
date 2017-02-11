@@ -83,12 +83,12 @@ static const struct pmempool_dump pmempool_dump_default = {
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"output",	required_argument,	0,	'o' | OPT_ALL},
-	{"binary",	no_argument,		0,	'b' | OPT_ALL},
-	{"range",	required_argument,	0,	'r' | OPT_ALL},
-	{"chunk",	required_argument,	0,	'c' | OPT_LOG},
-	{"help",	no_argument,		0,	'h' | OPT_ALL},
-	{0,		0,			0,	 0 },
+	{"output",	required_argument,	NULL,	'o' | OPT_ALL},
+	{"binary",	no_argument,		NULL,	'b' | OPT_ALL},
+	{"range",	required_argument,	NULL,	'r' | OPT_ALL},
+	{"chunk",	required_argument,	NULL,	'c' | OPT_LOG},
+	{"help",	no_argument,		NULL,	'h' | OPT_ALL},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*

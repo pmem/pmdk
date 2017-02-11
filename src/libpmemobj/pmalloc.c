@@ -161,7 +161,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, 0,
+	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, NULL,
 		extra_field, flags, &ctx);
 
 	pmalloc_redo_release(pop);
