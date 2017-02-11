@@ -53,22 +53,12 @@ UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
 /*
  * Open_ret -- fake return value in open syscall
  */
-int Open_ret;
+static int Open_ret;
 
 /*
  * Open_path -- fake path in open syscall
  */
-char *Open_path;
-
-/*
- * Open_fake_ret -- do fake return value in open syscall
- */
-int Open_fake_ret;
-
-/*
- * Open_fake_path -- do fake path in open syscall
- */
-int Open_fake_path;
+static char *Open_path;
 
 /*
  * open -- open syscall mock

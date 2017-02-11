@@ -43,7 +43,7 @@
 
 #define PREFIX	"prefix"
 
-FILE *syslog_fh;
+static FILE *syslog_fh;
 
 /*
  * openlog -- mock for openlog function which logs its usage

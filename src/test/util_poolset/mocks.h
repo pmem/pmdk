@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,53 +30,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * vmem_create.c -- unit test for vmem_create
- *
- * usage: vmem_create directory
- */
+#ifndef MOCKS_H
+#define MOCKS_H
 
-#include "unittest.h"
+extern const char *Open_path;
+extern off_t Fallocate_len;
+extern size_t Is_pmem_len;
 
-static VMEM *Vmp;
-
-/*
- * signal_handler -- called on SIGSEGV
- */
-static void
-signal_handler(int sig)
-{
-	UT_OUT("signal: %s", strsignal(sig));
-
-	vmem_delete(Vmp);
-
-	DONE(NULL);
-}
-
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "vmem_create");
-
-	if (argc < 2 || argc > 3)
-		UT_FATAL("usage: %s directory", argv[0]);
-
-	Vmp = vmem_create(argv[1], VMEM_MIN_POOL);
-
-	if (Vmp == NULL)
-		UT_OUT("!vmem_create");
-	else {
-		struct sigaction v;
-		sigemptyset(&v.sa_mask);
-		v.sa_flags = 0;
-		v.sa_handler = signal_handler;
-		if (SIGACTION(SIGSEGV, &v, NULL) != 0)
-			UT_FATAL("!sigaction");
-
-		/* try to dereference the opaque handle */
-		char x = *(char *)Vmp;
-		UT_OUT("x = %c", x);
-	}
-
-	UT_FATAL("no signal received");
-}
+#endif

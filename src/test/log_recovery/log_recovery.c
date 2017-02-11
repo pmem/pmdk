@@ -170,7 +170,7 @@ do_walk(PMEMlogpool *plp)
 	UT_OUT("walk all at once");
 }
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV

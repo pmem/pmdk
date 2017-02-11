@@ -214,7 +214,7 @@ do_tx_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 }
 
 typedef void (*fn_op)(PMEMobjpool *pop, TOID(struct test_obj) *obj);
-fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
+static fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
 			do_tx_macro_commit_nested, do_tx_macro_abort_nested,
 			do_tx_commit, do_tx_commit_nested, do_tx_abort,
 			do_tx_abort_nested};

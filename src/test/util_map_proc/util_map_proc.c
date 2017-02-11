@@ -47,7 +47,7 @@
 #define GIGABYTE ((uintptr_t)1 << 30)
 #define TERABYTE ((uintptr_t)1 << 40)
 
-char *Sfile;
+static char *Sfile;
 
 /*
  * fopen -- interpose on libc fopen()

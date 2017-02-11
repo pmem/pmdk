@@ -43,12 +43,12 @@
 
 #define MAX_REGIONS 8
 #define MAX_FILES 8
-char *Sfile[MAX_FILES];
-int Nfiles;
-int Nregions;
-int Curfile;
+static char *Sfile[MAX_FILES];
+static int Nfiles;
+static int Nregions;
+static int Curfile;
 
-struct region {
+static struct region {
 	uintptr_t addr;
 	size_t len;
 } Mincore[MAX_REGIONS];

@@ -41,7 +41,7 @@
 
 #include "unittest.h"
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV

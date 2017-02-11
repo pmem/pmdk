@@ -60,7 +60,7 @@ struct thread_args {
 };
 
 typedef void *(*fn_lock)(void *arg);
-struct thread_args threads[NUM_THREADS];
+static struct thread_args threads[NUM_THREADS];
 
 /*
  * do_mutex_lock -- lock and unlock the mutex
@@ -155,7 +155,7 @@ do_cond_broadcast(void *arg)
 	return NULL;
 }
 
-fn_lock do_lock[MAX_FUNC] = {do_mutex_lock, do_rwlock_wrlock,
+static fn_lock do_lock[MAX_FUNC] = {do_mutex_lock, do_rwlock_wrlock,
 				do_rwlock_rdlock, do_cond_signal,
 				do_cond_broadcast};
 

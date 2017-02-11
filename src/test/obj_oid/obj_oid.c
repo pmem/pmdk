@@ -40,11 +40,11 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-pthread_mutex_t lock;
-pthread_cond_t cond;
-int flag = 1;
+static pthread_mutex_t lock;
+static pthread_cond_t cond;
+static int flag = 1;
 
-PMEMoid thread_oid;
+static PMEMoid thread_oid;
 
 /*
  * test_worker -- (internal) test worker thread

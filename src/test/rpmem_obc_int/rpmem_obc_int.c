@@ -341,7 +341,7 @@ req_close(struct rpmemd_obc *obc, void *arg)
 /*
  * REQ -- server request callbacks
  */
-struct rpmemd_obc_requests REQ = {
+static struct rpmemd_obc_requests REQ = {
 	.create = req_create,
 	.open = req_open,
 	.close = req_close,

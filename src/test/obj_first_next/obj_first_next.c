@@ -51,7 +51,7 @@ struct type_sec {
 	int id;
 };
 
-PMEMobjpool *pop;
+static PMEMobjpool *pop;
 typedef void (*fn_op)(int id);
 typedef void (*fn_void)();
 
@@ -114,7 +114,7 @@ do_print_type_sec()
 	}
 }
 
-fn_void do_print[] = {do_print_type, do_print_type_sec};
+static fn_void do_print[] = {do_print_type, do_print_type_sec};
 
 /*
  * type_constructor -- constructor which sets the item's id to
@@ -170,7 +170,7 @@ do_alloc_type_sec(int id)
 		UT_FATAL("POBJ_NEW");
 }
 
-fn_op do_alloc[] = {do_alloc_type, do_alloc_type_sec};
+static fn_op do_alloc[] = {do_alloc_type, do_alloc_type_sec};
 
 /*
  * do_free_type -- remove and free element from type collection
@@ -200,7 +200,7 @@ do_free_type_sec(int n)
 	POBJ_FREE(&item);
 }
 
-fn_op do_free[] = {do_free_type, do_free_type_sec};
+static fn_op do_free[] = {do_free_type, do_free_type_sec};
 
 /*
  * do_first_type -- prints id of first object in type collection
@@ -222,7 +222,7 @@ do_first_type_sec()
 	UT_OUT("first id = %d", D_RO(first)->id);
 }
 
-fn_void do_first[] = {do_first_type, do_first_type_sec};
+static fn_void do_first[] = {do_first_type, do_first_type_sec};
 
 /*
  * do_next_type -- finds next element from type collection
@@ -254,7 +254,7 @@ do_next_type_sec(int n)
 	UT_OUT("next id = %d", D_RO(item)->id);
 }
 
-fn_op do_next[] = {do_next_type, do_next_type_sec};
+static fn_op do_next[] = {do_next_type, do_next_type_sec};
 
 /*
  * do_cleanup -- de-initialization function
