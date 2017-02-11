@@ -93,8 +93,8 @@ char *art_node_names[art_node_types] = {
  * long_options -- command line arguments
  */
 static const struct option long_options[] = {
-	{"help",	no_argument,	0,	'h'},
-	{0,		0,		0,	 0 },
+	{"help",	no_argument,	NULL,	'h'},
+	{NULL,		0,		NULL,	 0 },
 };
 
 /*

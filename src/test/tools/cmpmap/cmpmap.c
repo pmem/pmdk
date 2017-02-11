@@ -75,11 +75,11 @@ print_usage(void)
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"length",	required_argument,	0,	'l'},
-	{"offset",	required_argument,	0,	'o'},
-	{"zero",	no_argument,		0,	'z'},
-	{"help",	no_argument,		0,	'h'},
-	{0,		0,			0,	 0 },
+	{"length",	required_argument,	NULL,	'l'},
+	{"offset",	required_argument,	NULL,	'o'},
+	{"zero",	no_argument,		NULL,	'z'},
+	{"help",	no_argument,		NULL,	'h'},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*

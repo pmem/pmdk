@@ -109,8 +109,8 @@ static const char *arttree_search_help_str =
 ;
 
 static const struct option long_options[] = {
-	{"hexdump",	no_argument,	0,	'x'},
-	{0,		0,		0,	 0 },
+	{"hexdump",	no_argument,	NULL,	'x'},
+	{NULL,		0,		NULL,	 0 },
 };
 
 static struct search s_funcs[] = {

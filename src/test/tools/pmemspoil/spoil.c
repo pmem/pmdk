@@ -295,10 +295,10 @@ static const char *help_str =
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"verbose",	no_argument,		0,	'v'},
-	{"help",	no_argument,		0,	'?'},
-	{"replica",	required_argument,	0,	'r'},
-	{0,		0,			0,	 0 },
+	{"verbose",	no_argument,		NULL,	'v'},
+	{"help",	no_argument,		NULL,	'?'},
+	{"replica",	required_argument,	NULL,	'r'},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*

@@ -85,13 +85,13 @@ print_usage(void)
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"input-file",	required_argument,	0,	'i'},
-	{"output-file",	required_argument,	0,	'o'},
-	{"string",	required_argument,	0,	'd'},
-	{"offset",	required_argument,	0,	's'},
-	{"length",	required_argument,	0,	'l'},
-	{"help",	no_argument,		0,	'h'},
-	{0,		0,			0,	 0 },
+	{"input-file",	required_argument,	NULL,	'i'},
+	{"output-file",	required_argument,	NULL,	'o'},
+	{"string",	required_argument,	NULL,	'd'},
+	{"offset",	required_argument,	NULL,	's'},
+	{"length",	required_argument,	NULL,	'l'},
+	{"help",	no_argument,		NULL,	'h'},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*

@@ -600,7 +600,7 @@ pool_hdr_uuid_find(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->valid_uuid && common_uuid)
 		loc->valid_uuid = common_uuid;
 
-	if (loc->valid_uuid != 0) {
+	if (loc->valid_uuid != NULL) {
 		if (uuidcmp(*loc->valid_uuid, loc->hdr.uuid) != 0) {
 			CHECK_ASK(ppc, Q_UUID_SET, INVALID_UUID ".|Do you want "
 				"to set it to %s from a valid part file?",

@@ -213,7 +213,7 @@ main(int argc, char *argv[])
 #endif
 
 	PMEMpoolcheck *ppc;
-	struct pmempool_check_args args = {0, };
+	struct pmempool_check_args args = {NULL, };
 	ppc = pmempool_check_init(&args, sizeof(args) / 2);
 	UT_ASSERTeq(ppc, NULL);
 	print_errors("pmempool_check_init");

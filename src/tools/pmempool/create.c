@@ -125,15 +125,15 @@ static const char *help_str =
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"size",	required_argument,	0,	's' | OPT_ALL},
-	{"verbose",	no_argument,		0,	'v' | OPT_ALL},
-	{"help",	no_argument,		0,	'h' | OPT_ALL},
-	{"max-size",	no_argument,		0,	'M' | OPT_ALL},
-	{"inherit",	required_argument,	0,	'i' | OPT_ALL},
-	{"mode",	required_argument,	0,	'm' | OPT_ALL},
-	{"write-layout", no_argument,		0,	'w' | OPT_BLK},
-	{"layout",	required_argument,	0,	'l' | OPT_OBJ},
-	{0,		0,			0,	 0 },
+	{"size",	required_argument,	NULL,	's' | OPT_ALL},
+	{"verbose",	no_argument,		NULL,	'v' | OPT_ALL},
+	{"help",	no_argument,		NULL,	'h' | OPT_ALL},
+	{"max-size",	no_argument,		NULL,	'M' | OPT_ALL},
+	{"inherit",	required_argument,	NULL,	'i' | OPT_ALL},
+	{"mode",	required_argument,	NULL,	'm' | OPT_ALL},
+	{"write-layout", no_argument,		NULL,	'w' | OPT_BLK},
+	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*

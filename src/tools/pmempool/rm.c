@@ -93,15 +93,15 @@ static const char *help_str =
 static const char *optstr = "hvsfialr";
 /* long options */
 static const struct option long_options[] = {
-	{"help",	no_argument,		0, 'h'},
-	{"verbose",	no_argument,		0, 'v'},
-	{"only-pools",	no_argument,		0, 's'},
-	{"all",		no_argument,		0, 'a'},
-	{"local",	no_argument,		0, 'l'},
-	{"remote",	no_argument,		0, 'r'},
-	{"force",	no_argument,		0, 'f'},
-	{"interactive",	no_argument,		0, 'i'},
-	{NULL,		0,			0,  0 },
+	{"help",	no_argument,		NULL, 'h'},
+	{"verbose",	no_argument,		NULL, 'v'},
+	{"only-pools",	no_argument,		NULL, 's'},
+	{"all",		no_argument,		NULL, 'a'},
+	{"local",	no_argument,		NULL, 'l'},
+	{"remote",	no_argument,		NULL, 'r'},
+	{"force",	no_argument,		NULL, 'f'},
+	{"interactive",	no_argument,		NULL, 'i'},
+	{NULL,		0,			NULL,  0 },
 };
 
 /*

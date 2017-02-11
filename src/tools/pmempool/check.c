@@ -105,15 +105,15 @@ static const char *help_str =
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"repair",	no_argument,		0,	'r'},
-	{"yes",		no_argument,		0,	'y'},
-	{"no-exec",	no_argument,		0,	'N'},
-	{"backup",	required_argument,	0,	'b'},
-	{"advanced",	no_argument,		0,	'a'},
-	{"quiet",	no_argument,		0,	'q'},
-	{"verbose",	no_argument,		0,	'v'},
-	{"help",	no_argument,		0,	'h'},
-	{0,		0,			0,	 0 },
+	{"repair",	no_argument,		NULL,	'r'},
+	{"yes",		no_argument,		NULL,	'y'},
+	{"no-exec",	no_argument,		NULL,	'N'},
+	{"backup",	required_argument,	NULL,	'b'},
+	{"advanced",	no_argument,		NULL,	'a'},
+	{"quiet",	no_argument,		NULL,	'q'},
+	{"verbose",	no_argument,		NULL,	'v'},
+	{"help",	no_argument,		NULL,	'h'},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*
