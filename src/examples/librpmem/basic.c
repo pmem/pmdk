@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "rpmem_close: %s\n",
 					rpmem_errormsg());
 	} else if (strcmp(op, "remove") == 0) {
-		int ret = rpmem_remove(target, pool_set, 0);
+		ret = rpmem_remove(target, pool_set, 0);
 		if (ret)
 			fprintf(stderr, "removing pool failed: %s\n",
 					rpmem_errormsg());
