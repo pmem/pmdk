@@ -106,7 +106,7 @@ mix_worker(void *arg)
 	 * The mix scenario is ran twice to increase the chances of run
 	 * contention.
 	 */
-	for (int i = 0; i < MIX_RERUNS; ++i) {
+	for (int j = 0; j < MIX_RERUNS; ++j) {
 		for (int i = 0; i < OPS_PER_THREAD; ++i) {
 			pmalloc(a->pop, &a->r->offs[a->idx][i],
 				ALLOC_SIZE, 0, 0);
