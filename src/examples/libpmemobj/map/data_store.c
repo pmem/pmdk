@@ -71,7 +71,7 @@ struct store_root {
  * new_store_item -- transactionally creates and initializes new item
  */
 static TOID(struct store_item)
-new_store_item()
+new_store_item(void)
 {
 	TOID(struct store_item) item = TX_NEW(struct store_item);
 	D_RW(item)->item_data = rand();

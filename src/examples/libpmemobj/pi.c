@@ -120,7 +120,7 @@ calc_pi(LPVOID arg)
  * calc_pi_mt -- calculate all the pending to-do tasks
  */
 static void
-calc_pi_mt()
+calc_pi_mt(void)
 {
 	TOID(struct pi) pi = POBJ_ROOT(pop, struct pi);
 

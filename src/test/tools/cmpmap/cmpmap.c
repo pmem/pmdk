@@ -143,7 +143,7 @@ parse_args(int argc, char *argv[])
  * validate_args -- (internal) validate arguments
  */
 static int
-validate_args()
+validate_args(void)
 {
 	if (File1 == NULL) {
 		fprintf(stderr, "no file provided");
@@ -159,7 +159,7 @@ validate_args()
  * do_cmpmap -- (internal) perform cmpmap
  */
 static int
-do_cmpmap()
+do_cmpmap(void)
 {
 	int ret = EXIT_SUCCESS;
 	int fd1;

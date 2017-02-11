@@ -76,7 +76,7 @@ get_list_count(struct TestList *head)
  * script comparison. Only testing the macros we use.
  */
 static void
-test_list()
+test_list(void)
 {
 	PTEST_LIST_NODE pNode = NULL;
 	struct TestList head = LIST_HEAD_INITIALIZER(head);
@@ -138,7 +138,7 @@ struct TEST_DATA_SORTEDQ {
  * queue is sorted for different input sequences.
  */
 void
-test_sortedq()
+test_sortedq(void)
 {
 	PTEST_SORTEDQ_NODE node = NULL;
 	struct TEST_SORTEDQ head = SORTEDQ_HEAD_INITIALIZER(head);
