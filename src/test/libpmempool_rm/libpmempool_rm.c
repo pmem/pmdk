@@ -44,7 +44,7 @@
 
 #define FATAL_USAGE(n) UT_FATAL("usage: %s [-f -l -r] path..", (n))
 
-PMEMobjpool *Pop;
+static PMEMobjpool *Pop;
 
 int
 main(int argc, char *argv[])

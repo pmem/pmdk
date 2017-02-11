@@ -108,7 +108,7 @@ lane_noop_boot(PMEMobjpool *pop)
 	return 0;
 }
 
-struct section_operations noop_ops = {
+static struct section_operations noop_ops = {
 	.construct_rt = lane_noop_construct_rt,
 	.destroy_rt = lane_noop_destroy_rt,
 	.recover = lane_noop_recovery,
@@ -204,7 +204,7 @@ test_lane_recovery_check_fail()
 	UT_ASSERTne(lane_check(&pop.p), 0);
 }
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 static void
 signal_handler(int sig)

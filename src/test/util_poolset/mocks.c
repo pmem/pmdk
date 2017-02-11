@@ -35,10 +35,7 @@
  */
 
 #include "unittest.h"
-
-extern const char *Open_path;
-extern off_t Fallocate_len;
-extern size_t Is_pmem_len;
+#include "mocks.h"
 
 /*
  * open -- open mock

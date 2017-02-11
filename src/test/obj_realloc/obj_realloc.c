@@ -67,7 +67,7 @@ struct root {
 	char data[CHUNKSIZE - sizeof(TOID(struct object))];
 };
 
-struct alloc_class_collection *alloc_classes;
+static struct alloc_class_collection *alloc_classes;
 
 /*
  * test_alloc -- test allocation using realloc

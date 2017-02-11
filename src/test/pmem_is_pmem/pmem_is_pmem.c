@@ -41,8 +41,8 @@
 
 #define NTHREAD 16
 
-void *Addr;
-size_t Size;
+static void *Addr;
+static size_t Size;
 
 /*
  * worker -- the work each thread performs
