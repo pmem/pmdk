@@ -161,7 +161,7 @@ create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 }
 
 static void
-draw_border()
+draw_border(void)
 {
 	for (int x = 0; x <= GAME_WIDTH; ++x) {
 		mvaddch(0, x, ACS_HLINE);
@@ -196,7 +196,7 @@ draw_bullet(const TOID(struct bullet) b)
 }
 
 static void
-draw_score()
+draw_score(void)
 {
 	mvprintw(1, 1, "Score: %u | %u\n", gstate->score, gstate->high_score);
 }
@@ -238,7 +238,7 @@ update_score(int m)
  * process_aliens -- process spawn and movement of the aliens
  */
 static void
-process_aliens()
+process_aliens(void)
 {
 	/* alien spawn timer */
 	if (timer_tick(&gstate->timer)) {
@@ -288,7 +288,7 @@ process_collision(const TOID(struct bullet) b)
  * process_bullets -- process bullets movement and collision
  */
 static void
-process_bullets()
+process_bullets(void)
 {
 	TOID(struct bullet) iter, next;
 

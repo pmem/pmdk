@@ -92,7 +92,7 @@ get_item_type_sec(int n)
  * do_print_type -- print list elements from type collection
  */
 static void
-do_print_type()
+do_print_type(void)
 {
 	TOID(struct type) item;
 	UT_OUT("type:");
@@ -105,7 +105,7 @@ do_print_type()
  * do_print_type_sec -- print list elements from type_sec collection
  */
 static void
-do_print_type_sec()
+do_print_type_sec(void)
 {
 	TOID(struct type_sec) item;
 	UT_OUT("type_sec:");
@@ -206,7 +206,7 @@ static fn_op do_free[] = {do_free_type, do_free_type_sec};
  * do_first_type -- prints id of first object in type collection
  */
 static void
-do_first_type()
+do_first_type(void)
 {
 	TOID(struct type) first = POBJ_FIRST(pop, struct type);
 	UT_OUT("first id = %d", D_RO(first)->id);
@@ -216,7 +216,7 @@ do_first_type()
  * do_first_type_sec -- prints id of first object in type_sec collection
  */
 static void
-do_first_type_sec()
+do_first_type_sec(void)
 {
 	TOID(struct type_sec) first = POBJ_FIRST(pop, struct type_sec);
 	UT_OUT("first id = %d", D_RO(first)->id);
@@ -260,7 +260,7 @@ static fn_op do_next[] = {do_next_type, do_next_type_sec};
  * do_cleanup -- de-initialization function
  */
 static void
-do_cleanup()
+do_cleanup(void)
 {
 	PMEMoid oid, oid_tmp;
 	POBJ_FOREACH_SAFE(pop, oid, oid_tmp)

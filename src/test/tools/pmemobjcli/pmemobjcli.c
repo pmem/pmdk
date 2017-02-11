@@ -359,7 +359,7 @@ pocli_args_list_elm(struct pocli_ctx *ctx, struct pocli_args *args,
  * parse_stage -- return proper string variable referring to transaction state
  */
 static const char *
-parse_stage()
+parse_stage(void)
 {
 	int st = pmemobj_tx_stage();
 	const char *stage = "";
