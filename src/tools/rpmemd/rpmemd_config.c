@@ -78,19 +78,19 @@ static const char *optstr = "c:hVr:fs";
  * options -- cl and config file options
  */
 static const struct option options[] = {
-{"config",		required_argument,	0, 'c'},
-{"help",		no_argument,		0, 'h'},
-{"version",		no_argument,		0, 'V'},
-{"log-file",		required_argument,	0, RPD_OPT_LOG_FILE},
-{"poolset-dir",		required_argument,	0, RPD_OPT_POOLSET_DIR},
-{"persist-apm",		no_argument,		0, RPD_OPT_PERSIST_APM},
-{"persist-general",	no_argument,		0, RPD_OPT_PERSIST_GENERAL},
-{"use-syslog",		no_argument,		0, RPD_OPT_USE_SYSLOG},
-{"log-level",		required_argument,	0, RPD_OPT_LOG_LEVEL},
-{"remove",		required_argument,	0, 'r'},
-{"force",		no_argument,		0, 'f'},
-{"pool-set",		no_argument,		0, 's'},
-{0,			0,			0,  0},
+{"config",		required_argument,	NULL, 'c'},
+{"help",		no_argument,		NULL, 'h'},
+{"version",		no_argument,		NULL, 'V'},
+{"log-file",		required_argument,	NULL, RPD_OPT_LOG_FILE},
+{"poolset-dir",		required_argument,	NULL, RPD_OPT_POOLSET_DIR},
+{"persist-apm",		no_argument,		NULL, RPD_OPT_PERSIST_APM},
+{"persist-general",	no_argument,		NULL, RPD_OPT_PERSIST_GENERAL},
+{"use-syslog",		no_argument,		NULL, RPD_OPT_USE_SYSLOG},
+{"log-level",		required_argument,	NULL, RPD_OPT_LOG_LEVEL},
+{"remove",		required_argument,	NULL, 'r'},
+{"force",		no_argument,		NULL, 'f'},
+{"pool-set",		no_argument,		NULL, 's'},
+{NULL,			0,			NULL,  0},
 };
 
 #define VALUE_INDENT	"                                        "

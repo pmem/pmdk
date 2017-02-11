@@ -72,7 +72,8 @@ main(int argc, char *argv[])
 	FSTAT(fd, &stbuf);
 
 	Size = stbuf.st_size;
-	Addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	Addr = MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd,
+		0);
 
 	CLOSE(fd);
 

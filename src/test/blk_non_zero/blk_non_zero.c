@@ -95,7 +95,7 @@ is_zeroed(const char *path)
 
 	FSTAT(fd, &stbuf);
 
-	void *addr = MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,
+	void *addr = MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
 			MAP_SHARED, fd, 0);
 
 	struct pmemblk *header = addr;
