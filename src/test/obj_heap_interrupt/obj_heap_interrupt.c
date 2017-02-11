@@ -78,7 +78,7 @@ noop_verify(PMEMobjpool *pop)
 
 typedef void (*scenario_func)(PMEMobjpool *pop);
 
-struct {
+static struct {
 	scenario_func create;
 	scenario_func verify;
 } scenarios[] = {

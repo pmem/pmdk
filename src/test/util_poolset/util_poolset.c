@@ -40,6 +40,7 @@
 #include "pmemcommon.h"
 #include "set.h"
 #include <errno.h>
+#include "mocks.h"
 
 #define LOG_PREFIX "ut"
 #define LOG_LEVEL_VAR "TEST_LOG_LEVEL"

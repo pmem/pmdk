@@ -46,7 +46,7 @@
 
 #include "blk.h"
 
-size_t Bsize;
+static size_t Bsize;
 
 /*
  * construct -- build a buffer for writing

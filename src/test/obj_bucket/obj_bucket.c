@@ -47,7 +47,7 @@ struct container_test {
 	struct block_container super;
 };
 
-const struct memory_block *inserted_memblock;
+static const struct memory_block *inserted_memblock;
 
 static int
 container_test_insert(struct block_container *c,

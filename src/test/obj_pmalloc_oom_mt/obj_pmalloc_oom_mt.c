@@ -42,8 +42,8 @@
 #define TEST_ALLOC_SIZE (32 * 1024)
 #define LAYOUT_NAME "oom_mt"
 
-int allocated;
-PMEMobjpool *pop;
+static int allocated;
+static PMEMobjpool *pop;
 
 static void *
 oom_worker(void *arg)

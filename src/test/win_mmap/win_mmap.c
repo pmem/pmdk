@@ -62,7 +62,7 @@
 #define CHECK_RO	1
 #define CHECK_PRIV	2
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV

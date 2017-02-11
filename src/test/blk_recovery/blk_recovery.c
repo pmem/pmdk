@@ -46,7 +46,7 @@
 #include "btt_layout.h"
 #include "endian.h"
 
-size_t Bsize;
+static size_t Bsize;
 
 /*
  * construct -- build a buffer for writing
@@ -84,7 +84,7 @@ ident(unsigned char *buf)
 	return descr;
 }
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV

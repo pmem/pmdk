@@ -42,7 +42,7 @@
 
 #define CHECK_BYTES 4096	/* bytes to compare before/after map call */
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
