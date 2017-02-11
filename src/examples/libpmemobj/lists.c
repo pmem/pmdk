@@ -85,7 +85,7 @@ struct list_constr_args {
 /*
  * list_print -- prints the chosen list content to standard output
  */
-void
+static void
 list_print(PMEMobjpool *pop, struct listbase *base, enum list_type type)
 {
 	switch (type) {
@@ -109,7 +109,7 @@ list_print(PMEMobjpool *pop, struct listbase *base, enum list_type type)
 /*
  * list_element_constr -- constructor of the list element
  */
-int
+static int
 list_element_constr(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct list_constr_args *args = (struct list_constr_args *)arg;
@@ -135,7 +135,7 @@ list_element_constr(PMEMobjpool *pop, void *ptr, void *arg)
 /*
  * list_insert -- inserts a new element into the chosen list
  */
-void
+static void
 list_insert(PMEMobjpool *pop, struct listbase *base,
 	enum list_type type, int value)
 {
