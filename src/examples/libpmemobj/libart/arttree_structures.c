@@ -144,7 +144,7 @@ extern void arttree_search_help();
 void outv_err(const char *fmt, ...);
 void outv_err_vargs(const char *fmt, va_list ap);
 
-struct command commands[] = {
+static struct command commands[] = {
 	{
 		.name = "art_structures",
 		.brief = "print information about ART structures",
@@ -190,7 +190,7 @@ struct command commands[] = {
 	},
 };
 
-struct pmem_context ctx;
+static struct pmem_context ctx;
 
 /*
  * outv_err -- print error message

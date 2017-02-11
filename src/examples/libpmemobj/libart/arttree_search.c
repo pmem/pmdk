@@ -102,7 +102,7 @@ void arttree_search_help(char *appname);
 int arttree_search_func(char *appname, struct pmem_context *ctx,
 		int ac, char *av[]);
 
-const char *arttree_search_help_str =
+static const char *arttree_search_help_str =
 "Search for key in ART tree\n"
 "Arguments: <key>\n"
 "   <key> key\n"
@@ -113,7 +113,7 @@ static const struct option long_options[] = {
 	{0,		0,		0,	 0 },
 };
 
-struct search s_funcs[] = {
+static struct search s_funcs[] = {
 	{
 		.name = "key",
 		.brief = "search for key",

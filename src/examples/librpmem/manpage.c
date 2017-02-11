@@ -40,7 +40,7 @@
 
 #define POOL_SIZE	(32 * 1024 * 1024)
 #define NLANES		4
-unsigned char pool[POOL_SIZE];
+static unsigned char pool[POOL_SIZE];
 
 int
 main(int argc, char *argv[])
