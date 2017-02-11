@@ -41,7 +41,7 @@
  * test_setunsetenv - test the setenv and unsetenv APIs
  */
 static void
-test_setunsetenv()
+test_setunsetenv(void)
 {
 	unsetenv("TEST_SETUNSETENV_ONE");
 

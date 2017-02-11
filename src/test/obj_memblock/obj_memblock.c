@@ -74,7 +74,7 @@ FUNC_MOCK(operation_add_entry, void, struct operation_context *ctx, void *ptr,
 FUNC_MOCK_END
 
 static void
-test_detect()
+test_detect(void)
 {
 	struct memory_block mhuge_used = { .chunk_id = 0, 0, 0, 0 };
 	struct memory_block mhuge_free = { .chunk_id = 1, 0, 0, 0 };
@@ -100,7 +100,7 @@ test_detect()
 }
 
 static void
-test_block_size()
+test_block_size(void)
 {
 	struct memory_block mhuge = { .chunk_id = 0, 0, 0, 0 };
 	struct memory_block mrun = { .chunk_id = 1, 0, 0, 0 };
@@ -125,7 +125,7 @@ test_block_size()
 }
 
 static void
-test_prep_hdr()
+test_prep_hdr(void)
 {
 	struct memory_block mhuge_used = { .chunk_id = 0, 0, .size_idx = 1, 0 };
 	struct memory_block mhuge_free = { .chunk_id = 1, 0, .size_idx = 1, 0 };

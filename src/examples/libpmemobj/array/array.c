@@ -79,7 +79,7 @@ struct array_info {
  * print_usage -- print general usage
  */
 static void
-print_usage()
+print_usage(void)
 {
 	printf("usage: ./array <file-name> "
 		"<alloc|realloc|free|print>"

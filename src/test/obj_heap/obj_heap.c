@@ -90,7 +90,7 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 }
 
 static void
-test_alloc_class_bitmap_correctness()
+test_alloc_class_bitmap_correctness(void)
 {
 	struct alloc_class_collection *classes = alloc_class_collection_new();
 	UT_ASSERT(classes != NULL);
@@ -185,7 +185,7 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 }
 
 static void
-test_heap()
+test_heap(void)
 {
 	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
 		Ut_mmap_align);
@@ -276,7 +276,7 @@ test_heap()
 }
 
 static void
-test_recycler()
+test_recycler(void)
 {
 	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
 		Ut_mmap_align);

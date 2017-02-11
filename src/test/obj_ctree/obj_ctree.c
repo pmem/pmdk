@@ -66,7 +66,7 @@ __wrap_malloc(size_t size)
 }
 
 static void
-test_ctree_new_delete_empty()
+test_ctree_new_delete_empty(void)
 {
 	struct ctree *t = NULL;
 
@@ -84,7 +84,7 @@ test_ctree_new_delete_empty()
 }
 
 static void
-test_ctree_insert()
+test_ctree_insert(void)
 {
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
@@ -114,7 +114,7 @@ test_ctree_insert()
 }
 
 static void
-test_ctree_find()
+test_ctree_find(void)
 {
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
@@ -139,7 +139,7 @@ test_ctree_find()
 }
 
 static void
-test_ctree_remove()
+test_ctree_remove(void)
 {
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);
@@ -166,7 +166,7 @@ test_ctree_remove()
 }
 
 static void
-test_ctree_remove_max()
+test_ctree_remove_max(void)
 {
 	struct ctree *t = ctree_new();
 	UT_ASSERT(t != NULL);

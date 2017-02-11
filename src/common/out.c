@@ -90,7 +90,7 @@ Last_errormsg_key_alloc(void)
 }
 
 static inline void
-Last_errormsg_fini()
+Last_errormsg_fini(void)
 {
 	void *p = pthread_getspecific(Last_errormsg_key);
 	if (p) {
@@ -100,7 +100,7 @@ Last_errormsg_fini()
 }
 
 static inline const char *
-Last_errormsg_get()
+Last_errormsg_get(void)
 {
 	Last_errormsg_key_alloc();
 
@@ -129,17 +129,17 @@ Last_errormsg_get()
 static __thread char Last_errormsg[MAXPRINT];
 
 static inline void
-Last_errormsg_key_alloc()
+Last_errormsg_key_alloc(void)
 {
 }
 
 static inline void
-Last_errormsg_fini()
+Last_errormsg_fini(void)
 {
 }
 
 static inline const char *
-Last_errormsg_get()
+Last_errormsg_get(void)
 {
 	return Last_errormsg;
 }
@@ -279,7 +279,7 @@ out_init(const char *log_prefix, const char *log_level_var,
  * This is called to close log file before process stop.
  */
 void
-out_fini()
+out_fini(void)
 {
 	if (Out_fp != NULL && Out_fp != stderr) {
 		fclose(Out_fp);

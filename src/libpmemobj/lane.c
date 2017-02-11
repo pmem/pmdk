@@ -63,7 +63,7 @@ struct section_operations *Section_ops[MAX_LANE_SECTION];
  * lane_info_destroy -- destroy lane info hash table
  */
 inline void
-lane_info_destroy()
+lane_info_destroy(void)
 {
 	if (unlikely(Lane_info_ht == NULL))
 		return;
@@ -95,7 +95,7 @@ lane_info_ht_destroy(void *ht)
  * lane_info_create -- (internal) constructor for thread shared data
  */
 static inline void
-lane_info_create()
+lane_info_create(void)
 {
 	Lane_info_ht = cuckoo_new();
 	if (Lane_info_ht == NULL)
@@ -106,7 +106,7 @@ lane_info_create()
  * lane_info_boot -- initialize lane info hash table and lane info key
  */
 void
-lane_info_boot()
+lane_info_boot(void)
 {
 	int result = pthread_key_create(&Lane_info_key, lane_info_ht_destroy);
 	if (result != 0) {
@@ -120,7 +120,7 @@ lane_info_boot()
  *	data
  */
 static inline void
-lane_info_ht_boot()
+lane_info_ht_boot(void)
 {
 	lane_info_create();
 	int result = pthread_setspecific(Lane_info_key, Lane_info_ht);

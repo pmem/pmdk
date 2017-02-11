@@ -226,7 +226,7 @@ test_pmalloc_first_next(PMEMobjpool *pop)
 }
 
 static void
-test_mock_pool_allocs()
+test_mock_pool_allocs(void)
 {
 	addr = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_mmap_align);
 	mock_pop = &addr->p;
@@ -296,7 +296,7 @@ test_mock_pool_allocs()
 }
 
 static void
-test_spec_compliance()
+test_spec_compliance(void)
 {
 	uint64_t max_alloc = MAX_MEMORY_BLOCK_SIZE -
 		sizeof(struct allocation_header_legacy);

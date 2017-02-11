@@ -90,7 +90,7 @@ static int Remote_usage_counter;
  * util_remote_init -- initialize remote replication
  */
 void
-util_remote_init()
+util_remote_init(void)
 {
 	LOG(3, NULL);
 
@@ -102,7 +102,7 @@ util_remote_init()
  * util_remote_fini -- finalize remote replication
  */
 void
-util_remote_fini()
+util_remote_fini(void)
 {
 	LOG(3, NULL);
 
@@ -132,7 +132,7 @@ util_dl_check_error(void *handle, const char *func)
  * util_remote_unload_core -- (internal) unload remote library (core function)
  */
 static void
-util_remote_unload_core()
+util_remote_unload_core(void)
 {
 	if (Rpmem_handle_remote != NULL) {
 		util_dlclose(Rpmem_handle_remote);
@@ -150,7 +150,7 @@ util_remote_unload_core()
  * util_remote_unload -- unload remote library
  */
 void
-util_remote_unload()
+util_remote_unload(void)
 {
 	LOG(3, NULL);
 

@@ -56,7 +56,7 @@ struct root {
 };
 
 static void
-test_memcheck_bug()
+test_memcheck_bug(void)
 {
 #if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
 	volatile char tmp[100];
@@ -71,7 +71,7 @@ test_memcheck_bug()
 }
 
 static void
-test_memcheck_bug2()
+test_memcheck_bug2(void)
 {
 #if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
 	volatile char tmp[1000];

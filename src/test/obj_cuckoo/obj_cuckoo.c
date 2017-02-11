@@ -60,7 +60,7 @@ __wrap_malloc(size_t size)
 }
 
 static void
-test_cuckoo_new_delete()
+test_cuckoo_new_delete(void)
 {
 	struct cuckoo *c = NULL;
 
@@ -80,7 +80,7 @@ test_cuckoo_new_delete()
 }
 
 static void
-test_insert_get_remove()
+test_insert_get_remove(void)
 {
 	struct cuckoo *c = cuckoo_new();
 	UT_ASSERT(c != NULL);
@@ -125,7 +125,7 @@ rand64(void)
  *	is optimized for lookup speed, but it should be reasonable.
  */
 static void
-test_load_factor()
+test_load_factor(void)
 {
 	struct cuckoo *c = cuckoo_new();
 	UT_ASSERT(c != NULL);
