@@ -325,7 +325,7 @@ static uv_buf_t msg_buf = {0};
 /*
  * get_read_buf_cb -- returns buffer for incoming client message
  */
-void
+static void
 get_read_buf_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf)
 {
 	buf->base = msg_buf.base;

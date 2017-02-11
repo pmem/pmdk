@@ -138,7 +138,9 @@ static int leaf_matches(TOID(art_leaf) n, const unsigned char *key,
 TOID(art_leaf) art_minimum(TOID(struct art_tree_root) t);
 TOID(art_leaf) art_maximum(TOID(struct art_tree_root) t);
 
+#if 0
 static void destroy_node(TOID(art_node_u) n_u);
+#endif
 int art_iter(PMEMobjpool *pop, art_callback cb, void *data);
 
 static void PMEMOIDcopy(PMEMoid *dest, const PMEMoid *src, const int n);
@@ -241,6 +243,7 @@ art_tree_init(PMEMobjpool *pop, int *newpool)
 	return errors;
 }
 
+#if 0
 // Recursively destroys the tree
 static void
 destroy_node(TOID(art_node_u) n_u)
@@ -305,12 +308,13 @@ destroy_node(TOID(art_node_u) n_u)
  * Destroys an ART tree
  * @return 0 on success.
  */
-int
+static int
 art_tree_destroy(TOID(struct art_tree_root) t)
 {
 	destroy_node(D_RO(t)->root);
 	return 0;
 }
+#endif
 
 static TOID(art_node_u)*
 find_child(TOID(art_node_u) n, unsigned char c)
