@@ -120,6 +120,9 @@ check-license:
 		LICENSE
 	@echo Done.
 
+sparse:
+	$(MAKE) -C src sparse
+
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
 	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))

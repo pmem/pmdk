@@ -49,8 +49,9 @@ format : TARGET = format
 install: TARGET = install
 uninstall: TARGET = uninstall
 sync-remotes: TARGET = sync-remotes
+sparse: TARGET = sparse
 
-all clean clobber cstyle install uninstall check format test: $(TARGETS)
+all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
 
 $(TESTCONFIG):
 

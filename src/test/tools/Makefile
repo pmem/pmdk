@@ -63,8 +63,9 @@ clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
 format  : TARGET = format
 sync-remotes : TARGET = sync-remotes
+sparse  : TARGET = sparse
 
-all test cstyle clean clobber format: $(DIRS)
+all test cstyle clean clobber format sparse: $(DIRS)
 
 $(TESTCONFIG):
 

@@ -241,6 +241,9 @@ $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
 	$(create-deps)
 
+sparse:
+	$(if $(SOURCE), $(sparse-c))
+
 $(objdir)/%.htmp: %.h
 	$(call check-cstyle, $<, $@)
 
