@@ -329,7 +329,7 @@ endif
 ifneq (,$(filter 1, $(USE_CUSTOM_GCC) $(USE_LLVM_LIBCPP)))
 LOCAL_TESTS += $(OBJ_CPP_CONTAINER_TESTS)
 else
-$(info NOTE: Skipping C++ container tests becasue a custom version of the standard library is not used)
+$(info NOTE: Skipping C++ container tests because a custom version of the standard library is not used)
 endif
 
 TESTS = \
