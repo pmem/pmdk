@@ -50,6 +50,7 @@ CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
 CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
 CSTYLE_TARGETS = $(ALL_TARGETS) test rpmem_common
 INSTALL_TARGETS = $(TARGETS)
+SPARSE_TARGETS = $(ALL_TARGETS) test rpmem_common
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
@@ -117,6 +118,7 @@ cstyle: $(CSTYLE_TARGETS:=-cstyle)
 format: $(CSTYLE_TARGETS:=-format)
 examples benchmarks: $(TARGETS)
 benchmarks: examples
+sparse: $(SPARSE_TARGETS:=-sparse)
 
 custom_build = $(DEBUG)$(OBJDIR)
 
@@ -134,6 +136,7 @@ $(eval $(call sub-target,$(CLEAN_NO_JE_TARGETS),clean,y))
 $(eval $(call sub-target,$(CLOBBER_NO_JE_TARGETS),clobber,y))
 $(eval $(call sub-target,$(CSTYLE_TARGETS),cstyle,n))
 $(eval $(call sub-target,$(CSTYLE_TARGETS),format,n))
+$(eval $(call sub-target,$(SPARSE_TARGETS),sparse,n))
 
 $(DEBUG_RELEASE_TARGETS):
 	$(MAKE) -C $@

@@ -54,3 +54,8 @@ clean:
 	$(RM) $(TMP_HEADERS)
 
 clobber: clean
+
+sparse:
+ifeq ($(BUILD_RPMEM),y)
+	$(sparse-c)
+endif

@@ -104,6 +104,9 @@ clobber: clean
 
 test check pcheck: all
 
+sparse:
+	$(sparse-c)
+
 .PHONY: all test check clean clobber cstyle format pcheck
 
 -include .deps/*.P

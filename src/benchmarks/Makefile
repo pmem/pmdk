@@ -201,6 +201,8 @@ $(CONFIGS):
 
 run: $(BENCHMARK) $(CONFIGS)
 
+sparse:
+
 .PHONY: all clean clobber run $(CONFIGS)
 
 PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release

@@ -371,6 +371,9 @@ $(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
 
 all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
 
+sparse:
+	$(if $(TARGET), $(sparse-c))
+
 .PHONY: all check clean clobber pcheck test sync-test $(TSTCHECKS)
 
 -include .deps/*.P
