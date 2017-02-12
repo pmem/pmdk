@@ -204,3 +204,5 @@ endif
 else
 export BUILD_RPMEM := n
 endif
+
+sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)

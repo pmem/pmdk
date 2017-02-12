@@ -278,6 +278,9 @@ ifeq ($(SCP_TO_REMOTE_NODES), y)
 	@touch $(SYNC_FILE)
 endif
 
+sparse:
+	$(if $(TARGET), $(sparse-c))
+
 .PHONY: all clean clobber install uninstall test check pcheck
 
 -include .deps/*.P
