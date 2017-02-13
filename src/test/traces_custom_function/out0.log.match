@@ -26,4 +26,6 @@ CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) main]$(W)Log level INFO
 
 CUSTOM_PRINT: <trace_func>: <4> [$(nW):$(N) main]$(W)Log level DEBUG
 
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_fini] 
+
 traces_custom_function$(nW)TEST0: DONE

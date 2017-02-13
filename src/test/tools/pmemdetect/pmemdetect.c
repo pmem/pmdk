@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -129,6 +129,8 @@ main(int argc, char *argv[])
 		ret = 2;
 		break;
 	}
+
+	util_mmap_fini();
 
 	return ret;
 }

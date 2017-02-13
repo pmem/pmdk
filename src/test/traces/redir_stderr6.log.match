@@ -11,3 +11,4 @@ $(*)
 <trace>: <2> [traces.c:$(*) main]$(W)Log level WARNING
 <trace>: <3> [traces.c:$(*) main]$(W)Log level INFO
 <trace>: <4> [traces.c:$(*) main]$(W)Log level DEBUG
+$(*)
