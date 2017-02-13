@@ -3,10 +3,10 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmem(3)
 header: NVM Library
-date: pmem API version 1.0.3
+date: pmem API version 1.0.4
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -164,6 +164,13 @@ appropriate for flushing changes to persistence. Calling
 **pmem_is_pmem**() each time changes are flushed to persistence will
 not perform well.
 
+>NOTE:
+On Linux, **pmem_is_pmem**() returns true only if the entire range
+is mapped directly from Device DAX (/dev/daxX.Y) without an intervening
+file system.  In the future, as file systems become available that support
+flushing with **pmem_persist**(), **pmem_is_pmem**() will return true
+as appropriate.
+
 >WARNING:
 Using **pmem_persist**() on a range where **pmem_is_pmem**()
 returns false may not do anything useful -- use **msync**(2) instead.
@@ -220,6 +227,12 @@ else
 
 The return value of **pmem_msync**() is the return value of
 **msync**(), which can return -1 and set *errno* to indicate an error.
+
+>WARNING:
+On Linux, **pmem_msync**() and **msync**(2) have no effect on memory ranges
+mapped from Device DAX.  In case of memory ranges where **pmem_is_pmem**()
+returns true use **pmem_persist**() to force the changes to be stored durably
+in persistent memory.
 
 ```c
 void *pmem_map_file(const char *path, size_t len, int flags,

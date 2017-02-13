@@ -1,3 +1,5 @@
+#!/bin/bash -e
+#
 # Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,27 +29,37 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem/Makefile -- Makefile for libpmem
 #
 
-LIBRARY_NAME = pmem
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	libpmem.c\
-	cpu.c\
-	pmem.c\
-	pmem_linux.c
+#
+# src/test/pmem_is_pmem_linux/TEST2 -- unit test for pmem_is_pmem /proc parsing
+#
+export UNITTEST_NAME=pmem_is_pmem_linux/TEST2
+export UNITTEST_NUM=2
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBS += -pthread
+require_test_type medium
+require_fs_type none
+
+setup
+
+# 7fff77424000 2147479552
+#	exactly matches smaps second mm entry, should produce: 1
+# 7fff77428000 10240
+#	subset of smaps second mm entry, should produce: 1
+# 7fff77424000 2147479553
+#	extends past smaps second mm entry, should produce: 0
+# 7fff77423000 8192
+#	start at smaps first mm entry, extends into second: should produce: 0
+expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
+	a 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147479552\
+	t 0x7fff77428000 10240\
+	t 0x7fff77424000 2147479553\
+	t 0x7fff77423000 8192
+
+check
+
+pass

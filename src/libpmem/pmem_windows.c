@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,8 +148,7 @@ is_pmem_proc(const void *addr, size_t len)
 	 * If we still have a range to verify, check with MM if the entire
 	 * region is direct mapped.
 	 */
-	if (begin < end &&
-		!is_direct_mapped(begin, end)) {
+	if (begin < end && !is_direct_mapped(begin, end)) {
 		LOG(4, "untracked end range [%p, %p) is not direct mapped",
 			begin, end);
 		retval = 0;
