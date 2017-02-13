@@ -105,6 +105,7 @@ OBJ_TESTS = \
 	obj_recovery\
 	obj_recreate\
 	obj_redo_log\
+	obj_ringbuf\
 	obj_strdup\
 	obj_toid\
 	obj_tx_alloc\
