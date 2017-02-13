@@ -11,3 +11,4 @@ $(*)Log level ERROR
 $(*)Log level WARNING
 $(*)Log level INFO
 $(*)Log level DEBUG
+$(*)

@@ -75,6 +75,10 @@ unsigned long long Mmap_align;
 /* page size */
 unsigned long long Pagesize;
 
+/*
+ * XXX Unify the Linux and Windows code and replace this structure with
+ * the map tracking list defined in mmap.h.
+ */
 HANDLE FileMappingQMutex = INVALID_HANDLE_VALUE;
 struct FMLHead FileMappingQHead =
 	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
@@ -136,7 +140,7 @@ mmap_file_mapping_comparer(PFILE_MAPPING_TRACKER a, PFILE_MAPPING_TRACKER b)
 
 #ifdef MMAP_DEBUG_INFO
 /*
- * mmap_info -- (internal) dump info about all the maping trackers
+ * mmap_info -- (internal) dump info about all the mapping trackers
  */
 static void
 mmap_info(void)

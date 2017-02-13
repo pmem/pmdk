@@ -1,4 +1,5 @@
-# Copyright 2014-2017, Intel Corporation
+#
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,27 +28,31 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem/Makefile -- Makefile for libpmem
 #
 
-LIBRARY_NAME = pmem
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	libpmem.c\
-	cpu.c\
-	pmem.c\
-	pmem_linux.c
+#
+# src/test/pmem_is_pmem_linux/Makefile -- build pmem_is_pmem_linux unit test
+#
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
+
+TARGET = pmem_is_pmem_linux
+OBJS = pmem_is_pmem_linux.o\
+	mmap.o\
+	mmap_linux.o\
+	util.o\
+	util_linux.o\
+	file.o\
+	file_linux.o\
+	out.o\
+	libpmem.o\
+	pmem.o\
+	pmem_linux.o\
+	cpu.o
 
 include ../Makefile.inc
 
-LIBS += -pthread
+CFLAGS += -DSRCVERSION=""
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem

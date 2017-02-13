@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -103,5 +103,6 @@ main(int argc, char *argv[])
 		UT_OUT("len %zu: %p %p", len, h1, h2);
 	}
 
+	util_mmap_fini();
 	DONE(NULL);
 }
