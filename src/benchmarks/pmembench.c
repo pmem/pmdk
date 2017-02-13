@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1256,7 +1256,6 @@ main(int argc, char *argv[])
 	if (argc < 2) {
 		pmembench_print_usage();
 		exit(EXIT_FAILURE);
-		return -1;
 	}
 
 	pb->argc = --argc;
@@ -1280,5 +1279,7 @@ main(int argc, char *argv[])
 
 out:
 	free(pb);
+
+	util_mmap_fini();
 	return ret;
 }
