@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,11 +33,26 @@
 #
 # src/test/pmem_is_pmem_proc_linux/Makefile -- build pmem_is_pmem_proc_linux unit test
 #
-TARGET = pmem_is_pmem_proc_linux
-OBJS = pmem_is_pmem_proc_linux.o
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
 
-LIBPMEM=y
+TARGET = pmem_is_pmem_proc_linux
+OBJS = pmem_is_pmem_proc_linux.o\
+	mmap.o\
+	mmap_linux.o\
+	util.o\
+	util_linux.o\
+	file.o\
+	file_linux.o\
+	out.o\
+	libpmem.o\
+	pmem.o\
+	pmem_linux.o\
+	cpu.o
 
 include ../Makefile.inc
 
-LIBS += -ldl
+CFLAGS += -DSRCVERSION=""
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem

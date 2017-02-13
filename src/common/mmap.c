@@ -41,12 +41,18 @@
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "file.h"
+#include "queue.h"
 #include "mmap.h"
+#include "sys_util.h"
 
 int Mmap_no_random;
 void *Mmap_hint;
+
+pthread_rwlock_t Mmap_list_lock;
+struct map_list_head Mmap_list = SORTEDQ_HEAD_INITIALIZER(Mmap_list);
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -57,6 +63,8 @@ void
 util_mmap_init(void)
 {
 	LOG(3, NULL);
+
+	pthread_rwlock_init(&Mmap_list_lock, NULL);
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
@@ -76,6 +84,19 @@ util_mmap_init(void)
 			LOG(3, "PMEM_MMAP_HINT set to %p", Mmap_hint);
 		}
 	}
+}
+
+/*
+ * util_mmap_fini -- clean up the mmap utils
+ *
+ * This is called before process stop.
+ */
+void
+util_mmap_fini(void)
+{
+	LOG(3, NULL);
+
+	pthread_rwlock_destroy(&Mmap_list_lock);
 }
 
 /*
@@ -255,4 +276,188 @@ util_range_none(void *addr, size_t len)
 		ERR("!mprotect: PROT_NONE");
 
 	return retval;
+}
+
+/*
+ * util_range_comparer -- (internal) compares the two mapping trackers
+ */
+static intptr_t
+util_range_comparer(map_tracker *a, map_tracker *b)
+{
+	return ((intptr_t)a->base_addr - (intptr_t)b->base_addr);
+}
+
+/*
+ * util_range_find -- find the map tracker for given address range
+ *
+ * Returns the first entry at least partially overlapping given range.
+ * It's up to the caller to check whether the entry exactly matches the range,
+ * or if the range spans multiple entries.
+ */
+map_tracker *
+util_range_find(const void *addr, size_t len)
+{
+	LOG(10, "addr %p", addr);
+
+	void *end = (char *)addr + len;
+
+	map_tracker *mt;
+	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+		if (addr < mt->end_addr && end > mt->base_addr)
+			return mt;
+
+		/* break if there is no chance to find matching entry */
+		if (addr < mt->base_addr)
+			break;
+	}
+
+	return NULL;
+}
+
+/*
+ * util_range_track -- register a memory range on a map tracking list
+ */
+int
+util_range_track(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	int ret = 0;
+
+	if (pthread_rwlock_wrlock(&Mmap_list_lock)) {
+		errno = EBUSY;
+		ERR("!cannot lock map tracking list");
+		return -1;
+	}
+
+	/* check if not tracked already */
+	map_tracker *mt = util_range_find(addr, len);
+	ASSERTeq(mt, NULL);
+
+	mt = Malloc(sizeof(map_tracker));
+	if (mt == NULL) {
+		ERR("!Malloc");
+		ret = -1;
+		goto err;
+	}
+
+	mt->base_addr = addr;
+	mt->end_addr = (void *)((char *)addr + len);
+	mt->flags = MTF_DIRECT_MAPPED;
+
+	SORTEDQ_INSERT(&Mmap_list, mt, entry, map_tracker, util_range_comparer);
+
+err:
+	util_rwlock_unlock(&Mmap_list_lock);
+	return ret;
+}
+
+/*
+ * util_range_split -- (internal) remove or split a map tracking entry
+ */
+static int
+util_range_split(map_tracker *mt, const void *addr, const void *end)
+{
+	LOG(3, "begin %p end %p", addr, end);
+
+	ASSERTne(mt, NULL);
+	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
+	ASSERTeq((uintptr_t)end % Mmap_align, 0);
+
+	map_tracker *mtb = NULL;
+	map_tracker *mte = NULL;
+
+	/*
+	 * 1)    b    e           b     e
+	 *    xxxxxxxxxxxxx => xxx.......xxxx  -  mtb+mte
+	 * 2)       b     e           b     e
+	 *    xxxxxxxxxxxxx => xxxxxxx.......  -  mtb
+	 * 3) b     e          b      e
+	 *    xxxxxxxxxxxxx => ........xxxxxx  -  mte
+	 * 4) b           e    b            e
+	 *    xxxxxxxxxxxxx => ..............  -  <none>
+	 */
+
+	if (addr > mt->base_addr) {
+		/* case #1/2 */
+		/* new mapping at the beginning */
+		mtb = Malloc(sizeof(map_tracker));
+		if (mtb == NULL) {
+			ERR("!Malloc");
+			goto err;
+		}
+
+		mtb->flags = mt->flags;
+		mtb->base_addr = mt->base_addr;
+		mtb->end_addr = addr;
+	}
+
+	if (end < mt->end_addr) {
+		/* case #1/3 */
+		/* new mapping at the end */
+		mte = Malloc(sizeof(map_tracker));
+		if (mte == NULL) {
+			ERR("!Malloc");
+			goto err;
+		}
+
+		mte->flags = mt->flags;
+		mte->base_addr = end;
+		mte->end_addr = mt->end_addr;
+	}
+
+	SORTEDQ_REMOVE(&Mmap_list, mt, entry);
+
+	if (mtb) {
+		SORTEDQ_INSERT(&Mmap_list, mtb, entry,
+				map_tracker, util_range_comparer);
+	}
+
+	if (mte) {
+		SORTEDQ_INSERT(&Mmap_list, mte, entry,
+				map_tracker, util_range_comparer);
+	}
+
+	/* free entry for the original mapping */
+	Free(mt);
+	return 0;
+
+err:
+	Free(mtb);
+	Free(mte);
+	return -1;
+}
+
+/*
+ * util_range_untrack -- remove a memory range from map tracking list
+ *
+ * Remove the region between [begin,end].  If it's in a middle of the existing
+ * mapping, it results in two new map trackers.
+ */
+int
+util_range_untrack(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	int ret = 0;
+
+	if (pthread_rwlock_wrlock(&Mmap_list_lock)) {
+		errno = EBUSY;
+		ERR("!cannot lock map tracking list");
+		return -1;
+	}
+
+	void *end = (char *)addr + len;
+
+	/* XXX optimize the loop */
+	map_tracker *mt;
+	while ((mt = util_range_find(addr, len)) != NULL) {
+		if (util_range_split(mt, addr, end) != 0) {
+			ret = -1;
+			break;
+		}
+	}
+
+	util_rwlock_unlock(&Mmap_list_lock);
+	return ret;
 }

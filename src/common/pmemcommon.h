@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,6 +55,7 @@ common_init(const char *log_prefix, const char *log_level_var,
 static inline void
 common_fini()
 {
+	util_mmap_fini();
 	out_fini();
 }
 #endif

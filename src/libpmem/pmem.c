@@ -175,6 +175,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
+#include <pthread.h>
 
 #ifdef _WIN32
 #include <memoryapi.h>
@@ -681,6 +682,13 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 
 	(void) close(fd);
 
+#ifndef _WIN32
+	/* XXX only Device DAX regions (PMEM) are tracked so far */
+	if (dax && util_range_track(addr, len) != 0) {
+		LOG(2, "can't track mapped region");
+	}
+#endif
+
 	return addr;
 
 err:
@@ -700,6 +708,9 @@ pmem_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
+#ifndef _WIN32
+	util_range_untrack(addr, len);
+#endif
 	VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
 	return util_unmap(addr, len);
 }

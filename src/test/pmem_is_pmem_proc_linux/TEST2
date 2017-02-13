@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,7 +41,6 @@ export UNITTEST_NUM=2
 . ../unittest/unittest.sh
 
 require_test_type medium
-
 require_fs_type none
 
 setup
@@ -55,12 +54,11 @@ setup
 # 7fff77423000 8192
 #	start at smaps first mm entry, extends into second: should produce: 0
 expect_normal_exit ./pmem_is_pmem_proc_linux$EXESUFFIX\
-	1 smaps_mm_second\
-	1 7fff77423000 2147483648\
-	7fff77424000 2147479552\
-	7fff77428000 10240\
-	7fff77424000 2147479553\
-	7fff77423000 8192
+	a 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147479552\
+	t 0x7fff77428000 10240\
+	t 0x7fff77424000 2147479553\
+	t 0x7fff77423000 8192
 
 check
 

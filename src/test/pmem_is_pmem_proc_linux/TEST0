@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/pmem_is_pmem_proc_linux/TEST0 -- unit test for pmem_is_pmem /proc parsing
+# src/test/pmem_is_pmem_proc_linux/TEST0 -- unit test for pmem_is_pmem
 #
 export UNITTEST_NAME=pmem_is_pmem_proc_linux/TEST0
 export UNITTEST_NUM=0
@@ -41,12 +41,9 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
-
 require_fs_type none
 
 setup
-
-
 
 
 # 7fff77424000 2147479552
@@ -60,13 +57,13 @@ setup
 # 7fff77423000 2147483648
 #	exactly matches sum of both mm entries: should produce 1
 expect_normal_exit ./pmem_is_pmem_proc_linux$EXESUFFIX\
-	1 smaps_mm_both\
-	1 7fff77423000 2147483648\
-	7fff77424000 2147479552\
-	7fff77424000 2147479553\
-	7fff77424000 8192\
-	7fff77423000 8192\
-	7fff77423000 2147483648
+	a 0x7fff77423000 2147479552\
+	a 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147479553\
+	t 0x7fff77424000 8192\
+	t 0x7fff77423000 8192\
+	t 0x7fff77423000 2147483648
 
 check
 

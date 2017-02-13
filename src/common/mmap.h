@@ -45,8 +45,10 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "out.h"
+#include "queue.h"
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
@@ -77,6 +79,7 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 
 
 void util_mmap_init(void);
+void util_mmap_fini(void);
 
 int util_range_ro(void *addr, size_t len);
 int util_range_rw(void *addr, size_t len);
@@ -106,6 +109,39 @@ util_map_hint_align(size_t len, size_t req_align)
 		align = 2 * MEGABYTE;
 	return align;
 }
+
+typedef enum map_tracker_flags {
+	MTF_DIRECT_MAPPED = 0x0001,
+
+	/* this should hold the value of all flags ORed for debug purpose */
+	MTF_MASK = MTF_DIRECT_MAPPED
+} map_tracker_flags;
+
+/*
+ * this structure tracks the file mappings outstanding per file handle
+ */
+typedef struct map_tracker {
+	SORTEDQ_ENTRY(map_tracker) entry;
+	const void *base_addr;
+	const void *end_addr;
+	map_tracker_flags flags;
+
+#ifdef _WIN32
+	/* Windows-specific data */
+	HANDLE FileHandle;
+	HANDLE FileMappingHandle;
+	DWORD Access;
+	off_t Offset;
+	size_t FileLen;
+#endif
+} map_tracker;
+
+extern pthread_rwlock_t Mmap_list_lock;
+extern SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list;
+
+int util_range_track(const void *addr, size_t len);
+int util_range_untrack(const void *addr, size_t len);
+map_tracker *util_range_find(const void *addr, size_t len);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,116 +31,56 @@
  */
 
 /*
- * pmem_is_pmem_proc_linux.c -- unit test for pmem_is_pmem() /proc parsing
+ * pmem_is_pmem_proc_linux.c -- Linux specific unit test for is_pmem_proc()
  *
- * usage: pmem_is_pmem_proc_linux file addr len [addr len]...
+ * usage: pmem_is_pmem_proc_linux op addr len [op addr len ...]
+ * where op can be: 'a' (add), 'r' (remove), 't' (test)
  */
 
-#define _GNU_SOURCE
+#include <stdlib.h>
+
 #include "unittest.h"
-
-#include <dlfcn.h>
-
-#define MAX_REGIONS 8
-#define MAX_FILES 8
-char *Sfile[MAX_FILES];
-int Nfiles;
-int Nregions;
-int Curfile;
-
-struct region {
-	uintptr_t addr;
-	size_t len;
-} Mincore[MAX_REGIONS];
-
-/*
- * fopen -- interpose on libc fopen()
- *
- * This catches opens to /proc/self/smaps and sends them to the fake smaps
- * file being tested.
- */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, "/proc/self/smaps") == 0) {
-		UT_ASSERT(Curfile < Nfiles);
-		char *sfile = Sfile[Curfile];
-		Curfile = Curfile + 1;
-
-		UT_OUT("redirecting /proc/self/smaps to %s", sfile);
-		path = sfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
-
-#define IN_RANGE(a, l, A, L)\
-	((uintptr_t)(a) >= (uintptr_t)(A) &&\
-	(uintptr_t)(a) <= ((uintptr_t)(A) + (L)) &&\
-	((uintptr_t)(a) + l) >= (uintptr_t)(A) &&\
-	((uintptr_t)(a) + l) <= ((uintptr_t)(A) + (L)))
-
-/*
- * mincore -- interpose on libc mincore(2)
- *
- * Return 0 only for specified regions, otherwise return -1 with
- * errno = ENOMEM.
- */
-int
-mincore(void *addr, size_t length, unsigned char *vec)
-{
-	for (int i = 0; i < Nregions; i++) {
-		if (IN_RANGE(addr, length, Mincore[i].addr, Mincore[i].len))
-			return 0;
-	}
-
-	errno = ENOMEM;
-	return -1;
-}
-
+#include "mmap.h"
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem_is_pmem_proc_linux");
 
-	if (argc < 5)
-		UT_FATAL("usage: %s nfiles file.. nregions "
-			"(addr len)... (addr len)...", argv[0]);
+	if (argc < 3)
+		UT_FATAL("usage: %s op addr len [op addr len ...]",
+				argv[0]);
 
-	Nfiles = atoi(argv[1]);
-	UT_ASSERT(Nfiles < MAX_FILES);
+	/* insert memory regions to the list */
+	int i;
+	for (i = 1; i < argc; i += 3) {
+		UT_ASSERT(i + 2 < argc);
 
-	for (int i = 0; i < Nfiles; i++) {
-		Sfile[i] = argv[2 + i];
-	}
+		errno = 0;
+		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
+		UT_ASSERTeq(errno, 0);
 
-	Nregions = atoi(argv[2 + Nfiles]);
-	UT_ASSERT(Nregions < MAX_REGIONS);
-	for (int i = 0; i < Nregions; i += 2) {
-		char *str_addr = argv[3 + Nfiles + i + 0];
-		char *str_len  = argv[3 + Nfiles + i + 1];
+		size_t len = strtoull(argv[i + 2], NULL, 0);
+		UT_ASSERTeq(errno, 0);
 
-		Mincore[i].addr = (uintptr_t)strtoull(str_addr, NULL, 16);
-		Mincore[i].len = (size_t)strtoull(str_len, NULL, 10);
-	}
+		int ret;
 
-	for (int arg = 2 + Nfiles + 1 + 2 * Nregions; arg < argc; arg += 2) {
-		void *addr;
-		size_t len;
-
-		addr = (void *)strtoull(argv[arg], NULL, 16);
-		len = (size_t)strtoull(argv[arg + 1], NULL, 10);
-
-		Curfile = 0;
-
-		UT_OUT("addr %p, len %zu: %d", addr, len,
-				pmem_is_pmem(addr, len));
+		switch (argv[i][0]) {
+		case 'a':
+			ret = util_range_track(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 'r':
+			ret = util_range_untrack(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 't':
+			UT_OUT("addr %p len %zu is_pmem %d",
+					addr, len, pmem_is_pmem(addr, len));
+			break;
+		default:
+			FATAL("invalid op");
+		}
 	}
 
 	DONE(NULL);
