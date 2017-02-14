@@ -36,7 +36,7 @@
 SELF=$0
 
 function usage() {
-	echo "Usage: $SELF path_source_root path_check_license_bin path_license [-h|-v|-a]"
+	echo "Usage: $SELF <source_root_path> <check_license_bin_path> <license_path> [-h|-v|-a]"
 	echo "   -h, --help      this help message"
 	echo "   -v, --verbose   verbose mode"
 	echo "   -a, --all       check all files (only modified files are checked by default)"
@@ -116,7 +116,8 @@ else
 	echo
 	echo "Warning: will check copyright headers of modified files only,"
 	echo "         in order to check all files issue the following command:"
-	echo "         $ $SELF srcroot checklicensebin license -a"
+	echo "         $ $SELF <source_root_path> <check_license_bin_path> <license_path> -a"
+	echo "         (e.g.: $ $SELF $SOURCE_ROOT $CHECK_LICENSE $LICENSE -a)"
 	echo
 	echo "Checking copyright headers of modified files only..."
 	GIT_COMMAND="diff --name-only $MERGE_BASE $CURRENT_COMMIT $SOURCE_ROOT"
@@ -148,9 +149,14 @@ for file in $FILES ; do
 	else
 		HEADER_FIRST=`echo $YEARS | cut -d"-" -f1`
 		HEADER_LAST=` echo $YEARS | cut -d"-" -f2`
-		git log --no-merges --format="%ai %H" -- $file | sort > $TMP
+		git log --no-merges --format="%ai %H %aE" -- $file | sort > $TMP
 		FIRST=`cat $TMP | head -n1`
 		LAST=` cat $TMP | tail -n1`
+
+		# skip checking dates for non-Intel commits
+		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2`
+		[ "AUTHOR_LAST" != "intel.com" ] && continue
+
 		COMMIT_FIRST=`echo $FIRST | cut -d"-" -f1`
 		COMMIT_LAST=` echo $LAST  | cut -d"-" -f1`
 		SKIP=0
