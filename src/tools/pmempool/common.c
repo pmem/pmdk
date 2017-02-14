@@ -1318,6 +1318,7 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 			return -1;
 	} else {
 		memcpy((char *)file->addr + off, buff, nbytes);
+		pmem_persist_generic_auto((char *)file->addr + off, nbytes);
 	}
 	return 0;
 }
