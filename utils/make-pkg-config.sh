@@ -69,7 +69,7 @@ Name: libpmemobj
 Description: libpmemobj library from NVML project
 Version: \${version}
 URL: http://pmem.io/nvml
-Requires: libpmem
+Requires.private: libpmem
 Libs: -L\${libdir} -lpmemobj
 Libs.private: -ldl
 Cflags: -I\${includedir}
@@ -85,7 +85,7 @@ Name: libpmempool
 Description: libpmempool library from NVML project
 Version: \${version}
 URL: http://pmem.io/nvml
-Requires: libpmem
+Requires.private: libpmem
 Libs: -L\${libdir} -lpmempool
 Libs.private: -ldl
 Cflags: -I\${includedir}
@@ -101,7 +101,7 @@ Name: libpmemblk
 Description: libpmemblk library from NVML project
 Version: \${version}
 URL: http://pmem.io/nvml
-Requires: libpmem
+Requires.private: libpmem
 Libs: -L\${libdir} -lpmemblk
 Cflags: -I\${includedir}
 EOF
@@ -116,7 +116,7 @@ Name: libpmemlog
 Description: libpmemlog library from NVML project
 Version: \${version}
 URL: http://pmem.io/nvml
-Requires: libpmem
+Requires.private: libpmem
 Libs: -L\${libdir} -lpmemlog
 Cflags: -I\${includedir}
 EOF
