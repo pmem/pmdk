@@ -44,6 +44,7 @@
 #include "pool_hdr.h"
 #include "pmalloc.h"
 #include "redo.h"
+#include "ringbuf.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -130,6 +131,7 @@ struct pmemobjpool {
 	struct lane_descriptor lanes_desc;
 	uint64_t uuid_lo;
 	int is_dax;		/* true if mapped on device dax */
+	struct ringbuf *tx_postcommit_tasks;
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
@@ -161,7 +163,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1580];
+	char unused2[1572];
 };
 
 /*

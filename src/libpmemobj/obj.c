@@ -1024,6 +1024,11 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		obj_pool_init();
 
+		if ((pop->tx_postcommit_tasks = ringbuf_new(0)) == NULL) {
+			ERR("!ringbuf_new");
+			return -1;
+		}
+
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
 			return -1;
@@ -1551,6 +1556,8 @@ pmemobj_close(PMEMobjpool *pop)
 	if (ctree_remove(pools_tree, (uint64_t)pop, 1) != (uint64_t)pop) {
 		ERR("ctree_remove");
 	}
+
+	ringbuf_delete(pop->tx_postcommit_tasks);
 
 #ifndef _WIN32
 
