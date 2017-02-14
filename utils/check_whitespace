@@ -57,7 +57,7 @@ my $Errcount = 0;
 # err -- emit error, keep total error count
 #
 sub err {
-	warn "$Me: ERROR: ", @_, "\n";
+	warn @_, "\n";
 	$Errcount++;
 }
 
@@ -77,14 +77,14 @@ sub check_whitespace {
 		$line++;
 		$eol = /\n/s;
 		if (/^\.nf$/) {
-			err("$full: $line: nested .nf") if $nf;
+			err("$full:$line: ERROR: nested .nf") if $nf;
 			$nf = 1;
 		} elsif (/^\.fi$/) {
 			$nf = 0;
 		} elsif ($nf == 0) {
 			chomp;
-			err("$full: $line: trailing whitespace") if /\s$/;
-			err("$full: $line: spaces before tabs") if / \t/;
+			err("$full:$line: ERROR: trailing whitespace") if /\s$/;
+			err("$full:$line: ERROR: spaces before tabs") if / \t/;
 		}
 	}
 

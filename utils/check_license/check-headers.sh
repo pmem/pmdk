@@ -124,8 +124,10 @@ else
 fi
 
 FILES=$(git $GIT_COMMAND | \
-	grep -v -E -e 'src/jemalloc/' -e 'src/windows/jemalloc_gen/' -e '/queue.h$' -e '/ListEntry.h$' \
-		   -e '/getopt.h$' -e '/getopt.c$' | \
+	grep -v -E -e 'src/jemalloc/' -e 'src/windows/jemalloc_gen/' \
+		   -e '/queue.h$' -e '/ListEntry.h$' \
+		   -e '/getopt.h$' -e '/getopt.c$' \
+		   -e 'gtest/gtest.h' -e 'gtest/gtest-all.cc' | \
 	grep    -E -e '*\.[chs]$' -e '*\.[ch]pp$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
@@ -182,7 +184,7 @@ for file in $FILES ; do
 				else
 					NEW=$COMMIT_FIRST-$COMMIT_LAST
 				fi
-				echo "error: wrong copyright date in file: $file (is: $YEARS, should be: $NEW)" >&2
+				echo "$file:1: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
 				RV=1
 			fi
 		else
