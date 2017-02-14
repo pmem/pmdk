@@ -148,6 +148,9 @@ unsigned lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 
+unsigned lane_detach(PMEMobjpool *pop);
+void lane_release_detached(PMEMobjpool *pop, unsigned lane);
+
 #ifndef _MSC_VER
 
 #define SECTION_PARM(n, ops)\

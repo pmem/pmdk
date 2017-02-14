@@ -92,6 +92,7 @@ struct tx_undo_runtime {
 #define RANGE_FLAG_NO_FLUSH (0x1ULL << RANGE_FLAGS_MIN_BIT)
 
 struct lane_tx_runtime {
+	unsigned lane_idx;
 	PMEMobjpool *pop;
 	struct ctree *ranges;
 	uint64_t cache_offset;
@@ -1144,7 +1145,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	} else if (tx->stage == TX_STAGE_NONE) {
 		VALGRIND_START_TX;
 
-		lane_hold(pop, &tx->section, LANE_SECTION_TRANSACTION);
+		unsigned idx = lane_hold(pop, &tx->section,
+			LANE_SECTION_TRANSACTION);
 
 		lane = tx->section->runtime;
 		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
@@ -1153,6 +1155,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		SLIST_INIT(&lane->tx_locks);
 		lane->ranges = ctree_new();
 		lane->cache_offset = 0;
+		lane->lane_idx = idx;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
@@ -1341,6 +1344,37 @@ pmemobj_tx_errno(void)
 }
 
 /*
+ * tx_postcommit_cleanup -- performs all the necessery cleanup on a lane after
+ *	successful commit
+ */
+static void
+tx_postcommit_cleanup(struct lane_section *section)
+{
+	struct lane_tx_runtime *runtime =
+			(struct lane_tx_runtime *)section->runtime;
+	struct lane_tx_layout *layout =
+		(struct lane_tx_layout *)section->layout;
+	PMEMobjpool *pop = runtime->pop;
+
+	/* post commit phase */
+	tx_post_commit(pop, NULL, layout, 0 /* not recovery */);
+
+	/* clear transaction state */
+	tx_set_state(pop, layout, TX_STATE_NONE);
+
+	/* cleanup cache */
+	runtime->cache_offset = 0;
+
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_ALLOC]), 0);
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_SET]), 0);
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]), 0);
+	ASSERT(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 0 ||
+		pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 1);
+
+	lane_release_detached(pop, runtime->lane_idx);
+}
+
+/*
  * pmemobj_tx_commit -- commits current transaction
  */
 void
@@ -1375,12 +1409,6 @@ pmemobj_tx_commit(void)
 
 		/* set transaction state as committed */
 		tx_set_state(pop, layout, TX_STATE_COMMITTED);
-
-		/* post commit phase */
-		tx_post_commit(pop, tx, layout, 0 /* not recovery */);
-
-		/* clear transaction state */
-		tx_set_state(pop, layout, TX_STATE_NONE);
 	}
 
 	tx->stage = TX_STAGE_ONCOMMIT;
@@ -1420,28 +1448,18 @@ pmemobj_tx_end(void)
 	VALGRIND_END_TX;
 
 	if (SLIST_EMPTY(&lane->tx_entries)) {
-		/* this is the outermost transaction */
-		struct lane_tx_layout *layout =
-			(struct lane_tx_layout *)tx->section->layout;
-
-		/* cleanup cache */
-		lane->cache_offset = 0;
-
-		/* the transaction state and undo log should be clear */
-		ASSERTeq(layout->state, TX_STATE_NONE);
-		if (layout->state != TX_STATE_NONE)
-			LOG(2, "invalid transaction state");
-
-		ASSERTeq(pvector_nvalues(lane->undo.ctx[UNDO_ALLOC]), 0);
-		ASSERTeq(pvector_nvalues(lane->undo.ctx[UNDO_SET]), 0);
-		ASSERTeq(pvector_nvalues(lane->undo.ctx[UNDO_FREE]), 0);
-		ASSERT(pvector_nvalues(lane->undo.ctx[UNDO_FREE]) == 0 ||
-			pvector_nvalues(lane->undo.ctx[UNDO_FREE]) == 1);
-
 		tx->stage = TX_STAGE_NONE;
-		release_and_free_tx_locks(lane);
 		PMEMobjpool *pop = lane->pop;
-		lane_release(pop);
+		release_and_free_tx_locks(lane);
+
+		lane_detach(pop);
+
+		if (ringbuf_full(pop->tx_postcommit_tasks)) {
+			tx_postcommit_cleanup(tx->section);
+		} else {
+			ringbuf_enqueue(pop->tx_postcommit_tasks, tx->section);
+		}
+
 		tx->section = NULL;
 
 		if (tx->stage_callback) {
