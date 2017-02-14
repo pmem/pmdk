@@ -45,6 +45,7 @@
 #include "pmalloc.h"
 #include "redo.h"
 #include "ctl.h"
+#include "ringbuf.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -131,6 +132,7 @@ struct pmemobjpool {
 	int is_dev_dax;		/* true if mapped on device dax */
 
 	struct ctl *ctl;
+	struct ringbuf *tx_postcommit_tasks;
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
