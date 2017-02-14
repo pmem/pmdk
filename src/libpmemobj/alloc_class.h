@@ -42,7 +42,7 @@
 #include "memblock.h"
 
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
-#define DEFAULT_ALLOC_CLASS_ID (UINT8_MAX)
+#define DEFAULT_ALLOC_CLASS_ID (UINT8_MAX - 1)
 
 struct alloc_class_collection;
 
