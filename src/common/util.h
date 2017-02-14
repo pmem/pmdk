@@ -49,6 +49,8 @@ extern "C" {
 
 #include <sys/param.h>
 
+#include "libpmem.h"
+
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
@@ -229,21 +231,23 @@ static
 #define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
 #endif /* __GNUC__ */
 
-#define PERSIST_GENERIC(is_pmem, addr, len) do {\
-	void *raddr = addr; size_t rlen = len;\
-	if (is_pmem) \
-		pmem_persist(raddr, rlen);\
-	else\
-		pmem_msync(raddr, rlen);\
-} while (0)
+static inline void
+pmem_persist_generic(int is_pmem, const void *addr, size_t len)
+{
+	if (is_pmem)
+		pmem_persist(addr, len);
+	else
+		pmem_msync(addr, len);
+}
 
-#define PERSIST_GENERIC_AUTO(addr, len) do {\
-	void *raddr = addr; size_t rlen = len;\
-	if (pmem_is_pmem(raddr, rlen)) \
-		pmem_persist(raddr, rlen);\
-	else\
-		pmem_msync(raddr, rlen);\
-} while (0)
+static inline void
+pmem_persist_generic_auto(const void *addr, size_t len)
+{
+	if (pmem_is_pmem(addr, len))
+		pmem_persist(addr, len);
+	else
+		pmem_msync(addr, len);
+}
 
 #ifdef __cplusplus
 }

@@ -1652,7 +1652,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+	pmem_persist_generic_auto(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -2500,7 +2500,7 @@ util_replica_set_attr(struct pool_replica *rep, const char *sig,
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
-		PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+		pmem_persist_generic_auto(hdrp, sizeof(*hdrp));
 	}
 
 	/* unmap all headers */

@@ -273,10 +273,11 @@ pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 
 	/* create the required metadata */
 	pbp->bsize = htole32(bsize);
-	PERSIST_GENERIC(pbp->is_pmem, &pbp->bsize, sizeof(bsize));
+	pmem_persist_generic(pbp->is_pmem, &pbp->bsize, sizeof(bsize));
 
 	pbp->is_zeroed = zeroed;
-	PERSIST_GENERIC(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed));
+	pmem_persist_generic(pbp->is_pmem, &pbp->is_zeroed,
+			sizeof(pbp->is_zeroed));
 
 	return 0;
 }

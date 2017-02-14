@@ -72,7 +72,8 @@ pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
 	plp->write_offset = plp->start_offset;
 
 	/* store non-volatile part of pool's descriptor */
-	PERSIST_GENERIC(plp->is_pmem, &plp->start_offset, 3 * sizeof(uint64_t));
+	pmem_persist_generic(plp->is_pmem, &plp->start_offset,
+			3 * sizeof(uint64_t));
 
 	return 0;
 }
