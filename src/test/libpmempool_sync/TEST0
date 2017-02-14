@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -124,10 +124,6 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=0000000000000000\
-	"pool_hdr.checksum_gen\(\)" >> $LOG_TEMP
-
-# Check if metadata is corrupted
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $DIR/testfile1 | grep -e "^UUID"\
 	>> $LOG_TEMP
 
 # Synchronize replicas
@@ -135,7 +131,7 @@ FLAGS=0
 expect_normal_exit ./libpmempool_sync$EXESUFFIX $POOLSET $FLAGS
 cat $LOG >> $LOG_TEMP
 
-# Check if correctly copied
+# Check if correctly copied - only the first part should be fixed
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -394,7 +394,7 @@ out_unmap:
 	if (params->is_poolset) {
 		ASSERTeq(fd, -1);
 		ASSERTne(addr, NULL);
-		util_poolset_close(set, 0);
+		util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	} else if (!is_btt) {
 		ASSERTne(fd, -1);
 		ASSERTne(addr, NULL);
@@ -456,7 +456,7 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 
 err_close_poolset:
 	if (params->type != POOL_TYPE_BTT)
-		util_poolset_close(file->poolset, 0);
+		util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 	else if (file->fd != -1)
 		close(file->fd);
 err_free_fname:
@@ -559,7 +559,7 @@ pool_set_file_close(struct pool_set_file *file)
 	LOG(3, NULL);
 
 	if (file->poolset)
-		util_poolset_close(file->poolset, 0);
+		util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 	else if (file->addr) {
 		munmap(file->addr, file->size);
 		close(file->fd);

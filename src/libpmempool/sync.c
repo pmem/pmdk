@@ -191,29 +191,16 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			continue;
 		}
 
-		if (!replica_is_part_broken(repn, p + 1, set_hs)) {
-			/* try to get part uuid from the next part */
-			hdrp = HDRN(rep, p);
-			memcpy(rep->part[p].uuid, hdrp->prev_part_uuid,
-					POOL_HDR_UUID_LEN);
-		} else if (!replica_is_part_broken(repn, p - 1, set_hs)) {
+		if (!replica_is_part_broken(repn, p - 1, set_hs)) {
 			/* try to get part uuid from the previous part */
 			hdrp = HDRP(rep, p);
 			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
 					POOL_HDR_UUID_LEN);
-		} else if (p == 0 &&
-			!replica_is_part_broken(repn + 1, 0, set_hs)) {
-			/* try to get part uuid from the next replica */
-			hdrp = HDR(REPN(set, repn), 0);
-			if (is_uuid_already_used(hdrp->prev_repl_uuid, set,
-					repn)) {
-				ERR("repeated uuid - some replicas were created"
-					" with a different poolset file");
-				errno = EINVAL;
-				return -1;
-			}
-			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
-						POOL_HDR_UUID_LEN);
+		} else if (!replica_is_part_broken(repn, p + 1, set_hs)) {
+			/* try to get part uuid from the next part */
+			hdrp = HDRN(rep, p);
+			memcpy(rep->part[p].uuid, hdrp->prev_part_uuid,
+					POOL_HDR_UUID_LEN);
 		} else if (p == 0 &&
 			!replica_is_part_broken(repn - 1, 0, set_hs)) {
 			/* try to get part uuid from the previous replica */
@@ -226,6 +213,19 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 				return -1;
 			}
 			memcpy(rep->part[p].uuid, hdrp->next_repl_uuid,
+						POOL_HDR_UUID_LEN);
+		} else if (p == 0 &&
+			!replica_is_part_broken(repn + 1, 0, set_hs)) {
+			/* try to get part uuid from the next replica */
+			hdrp = HDR(REPN(set, repn), 0);
+			if (is_uuid_already_used(hdrp->prev_repl_uuid, set,
+					repn)) {
+				ERR("repeated uuid - some replicas were created"
+					" with a different poolset file");
+				errno = EINVAL;
+				return -1;
+			}
+			memcpy(rep->part[p].uuid, hdrp->prev_repl_uuid,
 						POOL_HDR_UUID_LEN);
 		} else {
 			/* generate new uuid for this part */
@@ -564,6 +564,30 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 }
 
 /*
+ * update_remote_headers -- (internal) update headers of existing remote
+ *                          replicas
+ */
+static int
+update_remote_headers(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+	for (unsigned r = 0; r < set->nreplicas; ++ r) {
+		/* skip local or just created replicas */
+		if (REP(set, r)->remote == NULL ||
+				PART(REP(set, r), 0).created == 1)
+			continue;
+
+		if (util_update_remote_header(set, r)) {
+			LOG(1, "updating header of a remote replica no. %u"
+					" failed", r);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+
+/*
  * update_uuids -- (internal) set all uuids that might have changed or be unset
  *                 after recreating parts
  */
@@ -578,6 +602,10 @@ update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 		update_replicas_linkage(set, r);
 		update_poolset_uuids(set, r, set_hs);
 	}
+
+	if (update_remote_headers(set))
+		return -1;
+
 	return 0;
 }
 
@@ -685,55 +713,67 @@ create_remote_replicas(struct pool_set *set,
  * sync_replica -- synchronize data across replicas within a poolset
  */
 int
-replica_sync(struct pool_set *set, unsigned flags)
+replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
+		unsigned flags)
 {
 	LOG(3, "set %p, flags %u", set, flags);
-	/* validate user arguments, if not called from transform */
-	if (!(flags & IS_TRANSFORMED) && validate_args(set))
-		return -1;
-
-	/* examine poolset's health */
+	int ret = 0;
 	struct poolset_health_status *set_hs = NULL;
-	if (replica_check_poolset_health(set, &set_hs, flags)) {
-		ERR("poolset health check failed");
-		return -1;
-	}
 
-	/* check if poolset is broken; if not, nothing to do */
-	if (replica_is_poolset_healthy(set_hs)) {
-		LOG(1, "Poolset is healthy");
-		goto OK_close;
+	/* check if we already know the poolset health status */
+	if (s_hs == NULL) {
+		/* validate poolset before checking its health */
+		if (validate_args(set))
+			return -1;
+
+		/* examine poolset's health */
+		if (replica_check_poolset_health(set, &set_hs, flags)) {
+			ERR("poolset health check failed");
+			return -1;
+		}
+
+		/* check if poolset is broken; if not, nothing to do */
+		if (replica_is_poolset_healthy(set_hs)) {
+			LOG(1, "Poolset is healthy");
+			goto out;
+		}
+	} else {
+		set_hs = s_hs;
 	}
 
 	/* find one good replica; it will be the source of data */
 	unsigned healthy_replica = replica_find_healthy_replica(set_hs);
 	if (healthy_replica == UNDEF_REPLICA) {
 		ERR("no healthy replica found");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* in dry-run mode we can stop here */
 	if (is_dry_run(flags)) {
 		LOG(1, "Sync in dry-run mode finished successfully");
-		goto OK_close;
+		goto out;
 	}
 
 	/* recreate broken parts */
 	if (recreate_broken_parts(set, set_hs, flags)) {
 		ERR("recreating broken parts failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* open all part files */
 	if (replica_open_poolset_part_files(set)) {
 		ERR("opening poolset part files failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* map all replicas */
 	if (util_poolset_open(set)) {
 		ERR("opening poolset failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* this is required for opening remote pools */
@@ -742,13 +782,15 @@ replica_sync(struct pool_set *set, unsigned flags)
 	/* open all remote replicas */
 	if (open_remote_replicas(set, set_hs)) {
 		ERR("opening remote replicas failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* update uuid fields in the set structure with part headers */
 	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
 		ERR("gathering uuids failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* create headers for broken parts */
@@ -756,40 +798,44 @@ replica_sync(struct pool_set *set, unsigned flags)
 		if (create_headers_for_broken_parts(set, healthy_replica,
 				set_hs)) {
 			ERR("creating headers for broken parts failed");
-			goto err;
+			ret = -1;
+			goto out;
 		}
 	}
 
 	if (is_dry_run(flags))
-		goto OK_close;
-
-	/* update uuids of replicas and parts */
-	update_uuids(set, set_hs);
+		goto out;
 
 	/* create all remote replicas */
 	if (create_remote_replicas(set, set_hs)) {
 		ERR("creating remote replicas failed");
-		goto err;
+		ret = -1;
+		goto out;
 	}
 
 	/* check and copy data if possible */
 	if (copy_data_to_broken_parts(set, healthy_replica,
 			flags, set_hs)) {
 		ERR("copying data to broken parts failed");
-		goto err;
+		ret = -1;
+		goto out;
+	}
+
+	/* update uuids of replicas and parts */
+	if (update_uuids(set, set_hs)) {
+		ERR("updating uuids failed");
+		ret = -1;
+		goto out;
 	}
 
 	/* grant permissions to all created parts */
 	if (grant_created_parts_perm(set, healthy_replica, set_hs)) {
 		ERR("granting permissions to created parts failed");
-		goto err;
+		ret = -1;
 	}
 
-OK_close:
-	replica_free_poolset_health_status(set_hs);
-	return 0;
-
-err:
-	replica_free_poolset_health_status(set_hs);
-	return -1;
+out:
+	if (s_hs == NULL)
+		replica_free_poolset_health_status(set_hs);
+	return ret;
 }

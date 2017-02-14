@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -129,6 +129,7 @@ int replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
 int replica_open_poolset_part_files(struct pool_set *set);
 
-int replica_sync(struct pool_set *set_in, unsigned flags);
+int replica_sync(struct pool_set *set_in, struct poolset_health_status *set_hs,
+		unsigned flags);
 int replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		unsigned flags);

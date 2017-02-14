@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,18 +42,19 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <dirent.h>
+#include <assert.h>
 
 #include "replica.h"
 #include "out.h"
 #include "obj.h"
 #include "file.h"
 
-
 /*
  * poolset_compare_status - a helping structure for gathering corresponding
  *                          replica numbers when comparing poolsets
  */
-struct poolset_compare_status {
+struct poolset_compare_status
+{
 	unsigned nreplicas;
 	unsigned flags;
 	unsigned replica[];
@@ -61,7 +62,7 @@ struct poolset_compare_status {
 
 /*
  * check_if_part_used_once -- (internal) check if the part is used only once in
- *                            the poolset
+ *                            the rest of the poolset
  */
 static int
 check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
@@ -82,6 +83,10 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 	int ret = 0;
 	for (unsigned r = repn; r < set->nreplicas; ++r) {
 		struct pool_replica *repr = set->replica[r];
+		/* skip remote replicas */
+		if (repr->remote != NULL)
+			continue;
+
 		/* avoid superfluous comparisons */
 		unsigned i = (r == repn) ? partn + 1 : 0;
 		for (unsigned p = i; p < repr->nparts; ++p) {
@@ -94,8 +99,9 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 					goto out;
 				}
 				LOG(1, "cannot get absolute path for %s,"
-					" replica %u, part %u",
-					PART(rep, partn).path, repn, partn);
+						" replica %u, part %u",
+						PART(rep, partn).path, repn,
+						partn);
 				pathp = strdup(PART(repr, p).path);
 				errno = 0;
 			}
@@ -124,8 +130,35 @@ out:
 }
 
 /*
- * check_paths - (internal) check if directories for part files exist
- *               and if paths for part files do not repeat in the poolset
+ * check_if_remote_replica_used_once -- (internal) check if remote replica is
+ *                                      used only once in the rest of the
+ *                                      poolset
+ */
+static int
+check_if_remote_replica_used_once(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	struct remote_replica *rep = REP(set, repn)->remote;
+	ASSERTne(rep, NULL);
+	for (unsigned r = repn + 1; r < set->nreplicas; ++r) {
+		/* skip local replicas */
+		if (REP(set, r)->remote == NULL)
+			continue;
+
+		struct remote_replica *repr = REP(set, r)->remote;
+		/* XXX: add comparing resolved addresses of the nodes */
+		if (strcmp(rep->node_addr, repr->node_addr) == 0 &&
+				strcmp(rep->pool_desc, repr->pool_desc) == 0) {
+			ERR("remote replica %u is used multiple times", repn);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
+ * check_paths -- (internal) check if directories for part files exist
+ *                and if paths for part files do not repeat in the poolset
  */
 static int
 check_paths(struct pool_set *set)
@@ -133,12 +166,17 @@ check_paths(struct pool_set *set)
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (replica_check_local_part_dir(set, r, p))
+		if (rep->remote != NULL) {
+			if (check_if_remote_replica_used_once(set, r))
 				return -1;
+		} else {
+			for (unsigned p = 0; p < rep->nparts; ++p) {
+				if (replica_check_local_part_dir(set, r, p))
+					return -1;
 
-			if (check_if_part_used_once(set, r, p))
-				return -1;
+				if (check_if_part_used_once(set, r, p))
+					return -1;
+			}
 		}
 	}
 	return 0;
@@ -197,7 +235,7 @@ create_poolset_compare_status(struct pool_set *set,
 	LOG(3, "set %p, set_sp %p", set, set_sp);
 	struct poolset_compare_status *set_s;
 	set_s = Zalloc(sizeof(struct poolset_compare_status)
-			+ set->nreplicas * sizeof(unsigned));
+				+ set->nreplicas * sizeof(unsigned));
 	if (set_s == NULL) {
 		ERR("!Zalloc for poolset status");
 		return -1;
@@ -223,23 +261,31 @@ compare_parts(struct pool_set_part *p1, struct pool_set_part *p2)
 }
 
 /*
- * compare_replicas -- (internal) check if two replicas can be considered
- *                     the same
+ * compare_replicas -- (internal) check if two replicas are different
  */
 static int
 compare_replicas(struct pool_replica *r1, struct pool_replica *r2)
 {
 	LOG(3, "r1 %p, r2 %p", r1, r2);
-	int result = 0;
 	LOG(4, "r1->nparts: %u, r2->nparts: %u", r1->nparts, r2->nparts);
-	if ((result = (r1->nparts != r2->nparts)))
-		return result;
+	/* both replicas are local */
+	if (r1->remote == NULL && r2->remote == NULL) {
+		if (r1->nparts != r2->nparts)
+			return 1;
 
-	for (unsigned p = 0; p < r1->nparts; ++p)
-		if ((result = compare_parts(&r1->part[p], &r2->part[p])))
-			return result;
-
-	return result;
+		for (unsigned p = 0; p < r1->nparts; ++p) {
+			if (compare_parts(&r1->part[p], &r2->part[p]))
+				return 1;
+		}
+		return 0;
+	}
+	/* both replicas are remote */
+	if (r1->remote != NULL && r2->remote != NULL) {
+		return strcmp(r1->remote->node_addr, r2->remote->node_addr) ||
+			strcmp(r1->remote->pool_desc, r2->remote->pool_desc);
+	}
+	/* a remote and a local replicas */
+	return 1;
 }
 
 /*
@@ -250,7 +296,8 @@ compare_replicas(struct pool_replica *r1, struct pool_replica *r2)
  *                                  structure
  */
 static int
-check_compare_poolsets_status(struct pool_set *set_in, struct pool_set *set_out,
+check_compare_poolsets_status(struct pool_set *set_in,
+		struct pool_set *set_out,
 		struct poolset_compare_status *set_in_s,
 		struct poolset_compare_status *set_out_s)
 {
@@ -266,10 +313,12 @@ check_compare_poolsets_status(struct pool_set *set_in, struct pool_set *set_out,
 				continue;
 
 			if (set_in_s->replica[ri] != UNDEF_REPLICA ||
-				set_out_s->replica[ro] != UNDEF_REPLICA) {
-			/* i.e. if there are more than one counterparts */
+					set_out_s->replica[ro]
+						!= UNDEF_REPLICA) {
+				/* there are more than one counterparts */
 				ERR("there are more then one corresponding"
-						" replicas");
+						" replicas; cannot transform");
+				errno = EINVAL;
 				return -1;
 			}
 
@@ -296,49 +345,55 @@ compare_poolsets(struct pool_set *set_in, struct pool_set *set_out,
 		return -1;
 
 	if (create_poolset_compare_status(set_out, set_out_s))
-		goto err1;
+		goto err_free_in;
 
 	if (check_compare_poolsets_status(set_in, set_out, *set_in_s,
 			*set_out_s))
-		goto err2;
+		goto err_free_out;
 
 	return 0;
 
-err2:
+err_free_out:
 	Free(*set_out_s);
-
-err1:
+err_free_in:
 	Free(*set_in_s);
 	return -1;
 }
 
 /*
- * has_counterpart -- (internal) check if replica has a counterpart
- *                    set in the helping status structure
+ * replica_counterpart -- (internal) returns index of a counterpart replica
  */
-static int
-has_counterpart(unsigned repn, struct poolset_compare_status *set_s)
+static unsigned
+replica_counterpart(unsigned repn,
+		struct poolset_compare_status *set_s)
 {
-	return set_s->replica[repn] != UNDEF_REPLICA;
+	return set_s->replica[repn];
 }
 
 /*
  * are_poolsets_transformable -- (internal) check if poolsets can be transformed
- *                               one into the other
+ *                               one into the other; also gather info about
+ *                               replicas's health
  */
 static int
 are_poolsets_transformable(struct poolset_compare_status *set_in_s,
-		struct poolset_compare_status *set_out_s)
+		struct poolset_compare_status *set_out_s,
+		struct poolset_health_status *set_in_hs,
+		struct poolset_health_status *set_out_hs)
 {
 	LOG(3, "set_in_s %p, set_out_s %p", set_in_s, set_out_s);
 	int has_replica_to_keep = 0;
 	int is_removing_replicas = 0;
+	int is_adding_replicas = 0;
 	/* check if there are replicas to be removed */
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
-		if (has_counterpart(r, set_in_s)) {
+		unsigned c = replica_counterpart(r, set_in_s);
+		if (c != UNDEF_REPLICA) {
 			LOG(2, "replica %u has a counterpart %u", r,
 					set_in_s->replica[r]);
 			has_replica_to_keep = 1;
+			REP(set_out_hs, c)->pool_size =
+					REP(set_in_hs, r)->pool_size;
 		} else {
 			LOG(2, "replica %u has no counterpart", r);
 			is_removing_replicas = 1;
@@ -351,7 +406,7 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 
 	/* check if there are replicas to be added */
 	for (unsigned r = 0; r < set_out_s->nreplicas; ++r) {
-		if (!has_counterpart(r, set_out_s)) {
+		if (replica_counterpart(r, set_out_s) == UNDEF_REPLICA) {
 			LOG(2, "Replica %u from output set has no counterpart",
 					r);
 			if (is_removing_replicas)
@@ -360,25 +415,18 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 				 * is not allowed
 				 */
 				return 0;
+
+			REP(set_out_hs, r)->flags |= IS_BROKEN;
+			is_adding_replicas = 1;
 		}
 	}
-	return 1;
-}
 
-/*
- * delete_replica_local -- (internal) delete all part files from a given
- *                         replica
- */
-static int
-delete_replica_local(struct pool_set *set, unsigned repn)
-{
-	LOG(3, "set %p, repn %u", set, repn);
-	struct pool_replica *rep = set->replica[repn];
-	for (unsigned p = 0; p < rep->nparts; ++p) {
-		if (replica_remove_part(set, repn, p))
-			return -1;
+	/* check if there is anything to do */
+	if (!is_removing_replicas && !is_adding_replicas) {
+		LOG(2, "both poolsets are equal");
+		return 0;
 	}
-	return 0;
+	return 1;
 }
 
 /*
@@ -390,10 +438,17 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 {
 	LOG(3, "set %p, set_s %p", set, set_s);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (!has_counterpart(r, set_s)) {
-			util_replica_close(set, r);
-			if (delete_replica_local(set, r))
-				return -1;
+		struct pool_replica *rep = REP(set, r);
+		if (replica_counterpart(r, set_s) == UNDEF_REPLICA) {
+			if (!rep->remote) {
+				if (util_replica_close_local(rep, r,
+						DELETE_ALL_PARTS))
+					return -1;
+			} else {
+				if (util_replica_close_remote(rep, r,
+						DELETE_ALL_PARTS))
+					return -1;
+			}
 		}
 	}
 	return 0;
@@ -408,36 +463,63 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 {
 	LOG(3, "set_in %p, set_out %p", set_in, set_out);
 
+	int ret = 0;
 	/* validate user arguments */
 	if (validate_args(set_in, set_out))
 		return -1;
 
-	/* examine poolset's health */
-	struct poolset_compare_status *set_in_s = NULL;
-	struct poolset_compare_status *set_out_s = NULL;
-	if (compare_poolsets(set_in, set_out, &set_in_s, &set_out_s))
+	/* check if the source poolset is healthy */
+	struct poolset_health_status *set_in_hs = NULL;
+	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
+		ERR("source poolset health check failed");
 		return -1;
-
-	if (!are_poolsets_transformable(set_in_s, set_out_s)) {
-		ERR("poolsets are not transformable");
-		goto err;
 	}
 
-	if (!is_dry_run(flags))
-		if (delete_replicas(set_in, set_in_s))
-			goto err;
+	if (!replica_is_poolset_healthy(set_in_hs)) {
+		ERR("source poolset is broken");
+		ret = -1;
+		goto err_free_hs_in;
+	}
+
+	struct poolset_health_status *set_out_hs = NULL;
+	if (replica_create_poolset_health_status(set_out, &set_out_hs)) {
+		ERR("creating poolset health status failed");
+		ret = -1;
+		goto err_free_hs_in;
+	}
+
+	/* check if the poolsets are transformable */
+	struct poolset_compare_status *set_in_cs = NULL;
+	struct poolset_compare_status *set_out_cs = NULL;
+	if (compare_poolsets(set_in, set_out, &set_in_cs, &set_out_cs)) {
+		ERR("comparing poolsets failed");
+		ret = -1;
+		goto err_free_hs_out;
+	}
+
+	if (!are_poolsets_transformable(set_in_cs, set_out_cs, set_in_hs,
+			set_out_hs)) {
+		ERR("poolsets are not transformable");
+		ret = -1;
+		goto err_free_cs;
+	}
 
 	/* signal that sync is called by transform */
 	flags |= IS_TRANSFORMED;
-	if (replica_sync(set_out, flags))
-		goto err;
+	if (replica_sync(set_out, set_out_hs, flags)) {
+		ret = -1;
+		goto err_free_cs;
+	}
 
-	Free(set_in_s);
-	Free(set_out_s);
-	return 0;
+	if (!is_dry_run(flags) && delete_replicas(set_in, set_in_cs))
+		ret = -1;
 
-err:
-	Free(set_in_s);
-	Free(set_out_s);
-	return -1;
+err_free_cs:
+	Free(set_in_cs);
+	Free(set_out_cs);
+err_free_hs_out:
+	replica_free_poolset_health_status(set_out_hs);
+err_free_hs_in:
+	replica_free_poolset_health_status(set_in_hs);
+	return ret;
 }

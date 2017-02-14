@@ -284,22 +284,6 @@ replica_is_poolset_transformed(unsigned flags)
 	return flags & IS_TRANSFORMED;
 }
 
-
-/*
- * find_consistent_replica -- (internal) find a replica number, which is not
- *                            marked as inconsistent in the helping structure
- */
-static unsigned
-find_consistent_replica(struct poolset_health_status *set_hs)
-{
-	LOG(3, "set_hs %p", set_hs);
-	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (replica_is_replica_consistent(r, set_hs))
-			return r;
-	}
-	return UNDEF_REPLICA;
-}
-
 /*
  * replica_find_unbroken_part -- find a part number in a given
  * replica, which is not marked as broken in the helping structure
@@ -521,12 +505,17 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 			/* check part's checksum */
 			LOG(4, "checking checksum for part %u, replica %u",
 					p, r);
-			struct pool_hdr *hdrp = HDR(rep, p);
-			if (!util_checksum(hdrp, sizeof(*hdrp),
-					&hdrp->checksum, 0)) {;
+			struct pool_hdr *hdr;
+			if (rep->remote) {
+				hdr = rep->part[p].remote_hdr;
+			} else {
+				hdr = HDR(rep, p);
+			}
+			if (!util_checksum(hdr, sizeof(*hdr),
+					&hdr->checksum, 0)) {;
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p] |= IS_BROKEN;
-			} else if (util_is_zeroed(hdrp, sizeof(*hdrp))) {
+			} else if (util_is_zeroed(hdr, sizeof(*hdr))) {
 					rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
@@ -538,36 +527,37 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
  * check_uuids_between_parts -- (internal) check if uuids between adjacent
  *                              parts are consistent for a given replica
  */
-static void
+static int
 check_uuids_between_parts(struct pool_set *set, unsigned repn,
 		struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
-	struct replica_health_status *rep_hs = REP(set_hs, repn);
 
-	/* check parts linkage */
-	LOG(4, "checking parts linkage in replica %u", repn);
+	/* check poolset_uuid consistency between replica's parts */
+	LOG(4, "checking consistency of poolset uuid in replica %u", repn);
+	uuid_t poolset_uuid;
+	int uuid_stored = 0;
+	unsigned part_stored = UNDEF_PART;
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
 
-		struct pool_hdr *hdrp = HDR(rep, p);
-		struct pool_hdr *next_hdrp = HDRN(rep, p);
-		int next_is_broken = replica_is_part_broken(repn, p + 1,
-				set_hs);
+		if (!uuid_stored) {
+			memcpy(poolset_uuid, HDR(rep, p)->poolset_uuid,
+					POOL_HDR_UUID_LEN);
+			uuid_stored = 1;
+			part_stored = p;
+			continue;
+		}
 
-		if (!next_is_broken) {
-			int next_decoupled =
-				uuidcmp(next_hdrp->prev_part_uuid,
-					hdrp->uuid) ||
-				uuidcmp(hdrp->next_part_uuid, next_hdrp->uuid);
-			if (next_decoupled) {
-				rep_hs->flags |= IS_INCONSISTENT;
-				/* skip further checking */
-				return;
-			}
+		if (uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
+			ERR("different poolset uuids in parts from the same"
+				" replica (repn %u, parts %u and %u); cannot"
+				" synchronize", repn, part_stored, p);
+			errno = EINVAL;
+			return -1;
 		}
 	}
 
@@ -592,35 +582,42 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 				hdrp->next_repl_uuid);
 
 		if (prev_differ || next_differ) {
-			ERR("different adjacent replica UUID between parts");
-			rep_hs->flags |= IS_INCONSISTENT;
-			/* skip further checking */
-			return;
+			ERR("different adjacent replica UUID between parts"
+				" (repn %u, parts %u and %u);"
+				" cannot synchronize", repn, unbroken_p, p);
+			errno = EINVAL;
+			return -1;
 		}
 	}
 
-	/* check poolset_uuid consistency between replica's parts */
-	LOG(4, "checking consistency of poolset uuid in replica %u", repn);
-	uuid_t poolset_uuid;
-	int uuid_stored = 0;
+	/* check parts linkage */
+	LOG(4, "checking parts linkage in replica %u", repn);
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
 
-		if (!uuid_stored) {
-			memcpy(poolset_uuid, HDR(rep, p)->poolset_uuid,
-					POOL_HDR_UUID_LEN);
-			uuid_stored = 1;
-			continue;
-		}
+		struct pool_hdr *hdrp = HDR(rep, p);
+		struct pool_hdr *next_hdrp = HDRN(rep, p);
+		int next_is_broken = replica_is_part_broken(repn, p + 1,
+				set_hs);
 
-		if (uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
-			rep_hs->flags |= IS_INCONSISTENT;
-			/* skip further checking */
-			return;
+		if (!next_is_broken) {
+			int next_decoupled =
+				uuidcmp(next_hdrp->prev_part_uuid,
+					hdrp->uuid) ||
+				uuidcmp(hdrp->next_part_uuid, next_hdrp->uuid);
+			if (next_decoupled) {
+				ERR("two consecutive unbroken parts are not"
+					" linked to each other (repn %u, parts"
+					" %u and %u); cannot synchronize",
+					repn, p, p + 1);
+				errno = EINVAL;
+				return -1;
+			}
 		}
 	}
+	return 0;
 }
 
 /*
@@ -633,12 +630,9 @@ check_replicas_consistency(struct pool_set *set,
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		check_uuids_between_parts(set, r, set_hs);
+		if (check_uuids_between_parts(set, r, set_hs))
+			return -1;
 	}
-
-	if (find_consistent_replica(set_hs) == UNDEF_REPLICA)
-		return -1;
-
 	return 0;
 }
 
@@ -660,22 +654,12 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
 
-		if (!uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
+		if (uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
 			/*
 			 * two internally consistent replicas have
 			 * different poolset_uuid
 			 */
-			if (replica_is_replica_broken(repn, set_hs)) {
-				/* mark broken replica as inconsistent */
-				REP(set_hs, repn)->flags |= IS_INCONSISTENT;
-			} else {
-				/*
-				 * two consistent unbroken replicas
-				 * - cannot synchronize
-				 */
-				ERR("inconsistent poolset_uuid values");
-				return -1;
-			}
+			return -1;
 		} else {
 			/*
 			 * it is sufficient to check only one part
@@ -711,9 +695,40 @@ check_poolset_uuids(struct pool_set *set,
 		if (!replica_is_replica_consistent(r, set_hs) || r == r_h)
 			continue;
 
-		check_replica_poolset_uuids(set, r, poolset_uuid, set_hs);
+		if (check_replica_poolset_uuids(set, r, poolset_uuid, set_hs)) {
+			ERR("inconsistent poolset uuids between replicas %u and"
+				" %u; cannot synchronize", r_h, r);
+			return -1;
+		}
 	}
 	return 0;
+}
+
+/*
+ * get_replica_uuid -- (internal) get replica uuid
+ */
+static int
+get_replica_uuid(struct pool_replica *rep, unsigned repn,
+		struct poolset_health_status *set_hs, uuid_t **uuidpp)
+{
+	unsigned nparts;
+	if (!replica_is_part_broken(repn, 0, set_hs)) {
+		/* the first part is not broken */
+		*uuidpp = &HDR(rep, 0)->uuid;
+		return 0;
+	} else if (!replica_is_part_broken(repn, 1, set_hs)) {
+		/* the second part is not broken */
+		*uuidpp = &HDR(rep, 1)->prev_part_uuid;
+		return 0;
+	} else if ((nparts = REP(set_hs, repn)->nparts) > 1 &&
+			!replica_is_part_broken(repn, nparts - 1, set_hs)) {
+		/* the last part is not broken */
+		*uuidpp = &HDR(rep, nparts - 1)->next_part_uuid;
+		return 0;
+	} else {
+		/* cannot get replica uuid */
+		return -1;
+	}
 }
 
 /*
@@ -733,52 +748,39 @@ check_uuids_between_replicas(struct pool_set *set,
 
 		struct pool_replica *rep = REP(set, r);
 		struct pool_replica *rep_n = REPN(set, r);
-		struct replica_health_status *rep_hs = REP(set_hs, r);
-		struct replica_health_status *rep_n_hs = REPN(set_hs, r);
 
-		/* check adjacent replica uuids for yet unbroken parts */
+		/* get uuids for the two adjacent replicas */
+		uuid_t *rep_uuidp;
+		uuid_t *rep_n_uuidp;
+
+		if (get_replica_uuid(rep, r, set_hs, &rep_uuidp)) {
+			LOG(2, "cannot get replica uuid, replica %u", r);
+			continue;
+		}
+
+		unsigned r_n = REPNidx(set_hs, r);
+		if (get_replica_uuid(rep_n, r_n, set_hs, &rep_n_uuidp)) {
+			LOG(2, "cannot get replica uuid, replica %u", r_n);
+			continue;
+		}
+
+		/* check if we can compare uuids between the replicas */
 		unsigned p = replica_find_unbroken_part(r, set_hs);
-		unsigned p_n = replica_find_unbroken_part(r + 1, set_hs);
+		unsigned p_n = replica_find_unbroken_part(r_n, set_hs);
 
-		/* if the first part is broken, cannot compare replica uuids */
-		if (p > 0) {
-			rep_hs->flags |= IS_BROKEN;
+		if (p == UNDEF_PART || p_n == UNDEF_PART) {
+			LOG(2, "cannot compare uuids between replicas %u and"
+					" %u", r, r_n);
 			continue;
 		}
 
-		/* if the first part is broken, cannot compare replica uuids */
-		if (p_n > 0) {
-			rep_n_hs->flags |= IS_BROKEN;
-			continue;
-		}
-
-		/* check if replica uuids are consistent between replicas */
-		if (uuidcmp(HDR(rep_n, p_n)->prev_repl_uuid,
-				HDR(rep, p)->uuid) || uuidcmp(
-				HDR(rep, p)->next_repl_uuid,
-				HDR(rep_n, p_n)->uuid)) {
-
-			if (set->nreplicas == 1) {
-				rep_hs->flags |= IS_INCONSISTENT;
-			} else {
-				if (replica_is_replica_broken(r, set_hs)) {
-					rep_hs->flags |= IS_BROKEN;
-					continue;
-				}
-
-				if (replica_is_replica_broken(r + 1, set_hs)) {
-					rep_n_hs->flags |= IS_BROKEN;
-					continue;
-				}
-
-				/*
-				 * two unbroken and internally consistent
-				 * adjacent replicas have different adjacent
-				 * replica uuids - mark one as inconsistent
-				 */
-				rep_n_hs->flags |= IS_INCONSISTENT;
-				continue;
-			}
+		/* check if replica uuids are consistent between the replicas */
+		if (uuidcmp(*rep_uuidp, HDR(rep_n, p_n)->prev_repl_uuid) ||
+				uuidcmp(*rep_n_uuidp,
+						HDR(rep, p)->next_repl_uuid)) {
+			ERR("inconsistent replica uuids between replicas %u and"
+				" %u", r, r_n);
+			return -1;
 		}
 	}
 	return 0;
@@ -884,8 +886,7 @@ replica_check_poolset_health(struct pool_set *set,
 	}
 
 	/* check if healthy replicas make up another poolset */
-	if ((flags & IS_TRANSFORMED) == 0 &&
-			check_replica_cycles(set, set_hs)) {
+	if (check_replica_cycles(set, set_hs)) {
 		LOG(1, "replica cycles check failed");
 		goto err;
 	}
@@ -1105,25 +1106,24 @@ pmempool_sync(const char *poolset, unsigned flags)
 		ERR("parsing input poolset failed");
 		goto err_close_file;
 	}
-	if (set->remote) {
-		if (util_remote_load()) {
-			ERR("remote replication not available");
-			goto err_close_file;
-		}
+
+	if (set->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_close_file;
 	}
 
 	/* sync all replicas */
-	if (replica_sync(set, flags)) {
+	if (replica_sync(set, NULL, flags)) {
 		LOG(1, "synchronization failed");
 		goto err_close_all;
 	}
 
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 	close(fd);
 	return 0;
 
 err_close_all:
-	util_poolset_close(set, 0);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 err_close_file:
 	close(fd);
@@ -1189,7 +1189,7 @@ pmempool_transform(const char *poolset_src,
 		goto err;
 	}
 
-	int del = 0;
+	enum del_parts_mode del = DO_NOT_DELETE_PARTS;
 
 	/* parse the destination poolset file */
 	struct pool_set *set_out = NULL;
@@ -1206,22 +1206,17 @@ pmempool_transform(const char *poolset_src,
 		goto err_free_poolout;
 	}
 
-	/* check if the source poolset is healthy */
-	struct poolset_health_status *set_in_hs = NULL;
-	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
-		ERR("source poolset health check failed");
+	/* load remote library if needed */
+	if (set_in->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		goto err_free_poolout;
+	}
+	if (set_out->remote && util_remote_load()) {
+		ERR("remote replication not available");
 		goto err_free_poolout;
 	}
 
-	if (!replica_is_poolset_healthy(set_in_hs)) {
-		ERR("source poolset is broken");
-		replica_free_poolset_health_status(set_in_hs);
-		goto err_free_poolout;
-	}
-
-	replica_free_poolset_health_status(set_in_hs);
-
-	del = !is_dry_run(flags);
+	del = is_dry_run(flags) ? DO_NOT_DELETE_PARTS : DELETE_CREATED_PARTS;
 
 	/* transform poolset */
 	if (replica_transform(set_in, set_out, flags)) {
@@ -1229,15 +1224,15 @@ pmempool_transform(const char *poolset_src,
 		goto err_free_poolout;
 	}
 
-	util_poolset_close(set_in, 0);
-	util_poolset_close(set_out, 0);
+	util_poolset_close(set_in, DO_NOT_DELETE_PARTS);
+	util_poolset_close(set_out, DO_NOT_DELETE_PARTS);
 	return 0;
 
 err_free_poolout:
 	util_poolset_close(set_out, del);
 
 err_free_poolin:
-	util_poolset_close(set_in, 0);
+	util_poolset_close(set_in, DO_NOT_DELETE_PARTS);
 
 err:
 	if (errno == 0)

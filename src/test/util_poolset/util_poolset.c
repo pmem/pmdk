@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
 #endif
 				poolset_info(fname, set, 0);
-				util_poolset_close(set, 0); /* do not delete */
+				util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			}
 			break;
 		case 'o':
@@ -187,7 +187,7 @@ main(int argc, char *argv[])
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
 				poolset_info(fname, set, 1);
-				util_poolset_close(set, 0); /* do not delete */
+				util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			}
 			break;
 		}
