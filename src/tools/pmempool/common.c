@@ -1381,8 +1381,8 @@ pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
 		struct pool_replica *rep = file->poolset->replica[r];
 		void *dst = (char *)rep->part[0].addr + offset;
 		memcpy(dst, addr, len);
-		PERSIST_GENERIC(rep->is_pmem, dst, len);
+		pmem_persist_generic(rep->is_pmem, dst, len);
 	}
 	struct pool_replica *rep = file->poolset->replica[0];
-	PERSIST_GENERIC(rep->is_pmem, (void *)addr, len);
+	pmem_persist_generic(rep->is_pmem, (void *)addr, len);
 }
