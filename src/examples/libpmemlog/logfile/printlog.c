@@ -65,7 +65,7 @@ printlog(const void *buf, size_t len, void *arg)
 		buf = (char *)buf + sizeof(struct logentry);
 
 		/* print the header */
-		printf("Entry from pid: %ld\n", (long)headerp->pid);
+		printf("Entry from pid: %d\n", headerp->pid);
 		printf("       Created: %s", ctime(&headerp->timestamp));
 		printf("      Contents:\n");
 
