@@ -602,22 +602,6 @@ run_claim_revoke(const struct memory_block *m)
 }
 
 /*
- * run_is_claimed -- checks whether the run already has an owner in the current
- *	incarnation of the heap.
- */
-static int
-run_is_claimed(const struct memory_block *m)
-{
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t claimant = r->incarnation_claim;
-	if (claimant == m->heap->run_id)
-		return 1;
-
-	return 0;
-}
-
-/*
  * block_get_real_size -- returns the size of a memory block that includes all
  *	of the overhead (headers)
  */
@@ -695,7 +679,6 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_data = huge_get_real_data,
 		.claim = NULL,
 		.claim_revoke = NULL,
-		.is_claimed = NULL,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
@@ -712,7 +695,6 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_data = run_get_real_data,
 		.claim = run_claim,
 		.claim_revoke = run_claim_revoke,
-		.is_claimed = run_is_claimed,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
