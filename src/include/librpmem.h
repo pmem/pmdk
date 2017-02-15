@@ -82,7 +82,8 @@ int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane);
 
 #define RPMEM_REMOVE_FORCE 0x1
 #define RPMEM_REMOVE_POOL_SET 0x2

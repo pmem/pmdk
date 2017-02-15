@@ -365,7 +365,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			} else if (rep_h->remote) {
 				int ret = Rpmem_read(rep_h->remote->rpp,
 						dst_addr,
-						off - POOL_HDR_SIZE, len);
+						off - POOL_HDR_SIZE, len, 0);
 				if (ret) {
 					LOG(1, "Reading data from remote node "
 						"failed -- '%s' on '%s'",
