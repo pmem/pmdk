@@ -37,5 +37,6 @@ TARGET = pmem_memcpy
 OBJS = pmem_memcpy.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
