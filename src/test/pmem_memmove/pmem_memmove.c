@@ -39,6 +39,7 @@
  */
 
 #include "unittest.h"
+#include "util.h"
 
 /*
  * swap_mappings - given to mmapped regions swap them.
@@ -92,7 +93,9 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	memset(buf, 0, bytes);
 	memset(src1, 0, bytes);
 	memset(src, 0x5A, bytes / 4);
+	pmem_persist_generic_auto(src, bytes / 4);
 	memset(src + bytes / 4, 0x54, bytes / 4);
+	pmem_persist_generic_auto(src + bytes / 4, bytes / 4);
 
 	/* dest == src */
 	old = *(char *)(dest + dest_off);

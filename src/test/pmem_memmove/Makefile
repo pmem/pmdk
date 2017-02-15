@@ -37,5 +37,6 @@ TARGET = pmem_memmove
 OBJS = pmem_memmove.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
