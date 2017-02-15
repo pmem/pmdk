@@ -335,7 +335,7 @@ replica_check_store_size(struct pool_set *set,
 		memcpy(&pop.hdr, rep->part[0].hdr, sizeof(pop.hdr));
 		void *descr = (void *)((uintptr_t)&pop + POOL_HDR_SIZE);
 		if (Rpmem_read(rep->remote->rpp, descr, 0,
-				sizeof(pop) - POOL_HDR_SIZE)) {
+			sizeof(pop) - POOL_HDR_SIZE, 0)) {
 			return -1;
 		}
 	} else {

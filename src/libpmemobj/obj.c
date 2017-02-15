@@ -1341,7 +1341,7 @@ obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 	ASSERT((uintptr_t)addr >= base);
 
 	uintptr_t offset = (uintptr_t)addr - base;
-	if (Rpmem_read(ctx, dest, offset, length)) {
+	if (Rpmem_read(ctx, dest, offset, length, RLANE_DEFAULT)) {
 		ERR("!rpmem_read");
 		return -1;
 	}

@@ -87,7 +87,7 @@ const char *pool_attr_names[] = {
 
 #define POOL_ATTR_INIT_INDEX	0
 
-#define NLANES	1024
+#define NLANES	32
 
 struct pool_entry {
 	RPMEMpool *rpp;
@@ -415,7 +415,7 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool + POOL_HDR_SIZE);
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
-	ret = rpmem_read(pool->rpp, buff, 0, buff_size);
+	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
 	UT_ASSERTeq(ret, 0);
 
 	for (size_t i = 0; i < buff_size; i++) {

@@ -77,7 +77,7 @@ int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length, unsigned lane);
 int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 ```
 
@@ -214,9 +214,11 @@ int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
 ```
 
 The **rpmem_read**() function reads *length* bytes of data from remote pool
-at *offset* and copies it to the buffer *buff*. The function returns 0
-if the data was read entirely, otherwise non-zero value is returned and
-*errno* set appropriately.
+at *offset* and copies it to the buffer *buff*. The operation is performed on
+a given lane. The lane must be less than the value returned by **rpmem_open**()
+or **rpmem_create**() through the *nlanes* argument (so it can take a value
+from 0 to *nlanes* - 1). The function returns 0 if the data was read entirely,
+otherwise non-zero value is returned and *errno* set appropriately.
 The *rpp* must point to a remote pool opened or created previously by
 **rpmem_open**() or **rpmem_create**() functions respectively.
 

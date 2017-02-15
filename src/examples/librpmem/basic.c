@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@
 #include <librpmem.h>
 
 #define POOL_SIZE	(32 * 1024 * 1024)
-#define NLANES		4
+#define NLANES		64
 #define SET_POOLSET_UUID 1
 #define SET_UUID 2
 #define SET_NEXT 3

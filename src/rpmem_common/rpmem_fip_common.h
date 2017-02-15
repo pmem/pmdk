@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@
 #include <rdma/fi_cm.h>
 #include <rdma/fi_rma.h>
 
-#define RPMEM_FIVERSION FI_VERSION(1, 1)
+#define RPMEM_FIVERSION FI_VERSION(1, 4)
 #define RPMEM_FIP_CQ_WAIT_MS	100
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -85,13 +85,19 @@ int rpmem_fip_probe_get(const char *target, struct rpmem_fip_probe *probe);
 
 struct fi_info *rpmem_fip_get_hints(enum rpmem_provider provider);
 
-int rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
+int rpmem_fip_read_eq_check(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	uint32_t exp_event, fid_t exp_fid, int timeout);
 
-size_t rpmem_fip_cq_size(size_t nlanes, enum rpmem_persist_method pm,
+int rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
+		uint32_t *event, int timeout);
+
+size_t rpmem_fip_cq_size(enum rpmem_persist_method pm,
+	enum rpmem_fip_node node);
+size_t rpmem_fip_tx_size(enum rpmem_persist_method pm,
+	enum rpmem_fip_node node);
+size_t rpmem_fip_rx_size(enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);
 
-size_t rpmem_fip_max_nlanes(struct fi_info *fi, enum rpmem_persist_method pm,
-	enum rpmem_fip_node node);
+size_t rpmem_fip_max_nlanes(struct fi_info *fi);
 
 void rpmem_fip_print_info(struct fi_info *fi);

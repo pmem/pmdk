@@ -519,9 +519,6 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	ret = rpmem_fip_process_start(fip);
-	UT_ASSERTeq(ret, 0);
-
 	struct persist_arg arg = {
 		.fip = fip,
 		.lane = 0,
@@ -529,10 +526,7 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 
 	client_persist_thread(&arg);
 
-	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_fip_process_stop(fip);
+	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	client_close_begin(client);
@@ -606,9 +600,6 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	ret = rpmem_fip_process_start(fip);
-	UT_ASSERTeq(ret, 0);
-
 	pthread_t *persist_thread = MALLOC(resp.nlanes * sizeof(pthread_t));
 	struct persist_arg *args = MALLOC(resp.nlanes *
 			sizeof(struct persist_arg));
@@ -623,10 +614,7 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	for (unsigned i = 0; i < nlanes; i++)
 		PTHREAD_JOIN(persist_thread[i], NULL);
 
-	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_fip_process_stop(fip);
+	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	client_close_begin(client);
@@ -703,13 +691,7 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	ret = rpmem_fip_process_start(fip);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_fip_read(fip, lpool, POOL_SIZE, 0);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmem_fip_process_stop(fip);
+	ret = rpmem_fip_read(fip, lpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	client_close_begin(client);

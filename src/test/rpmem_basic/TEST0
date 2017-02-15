@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -86,6 +86,7 @@ ARGS="$ARGS test_create 2 pool4.set ${NODE_ADDR[0]} mem 8M"
 # Close previously created pool
 ARGS="$ARGS test_close 0"
 
+#expect_normal_exit run_on_node 1 gdbserver localhost:1234 ./rpmem_basic$EXESUFFIX $ARGS
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 
 check
