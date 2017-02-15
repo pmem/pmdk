@@ -37,6 +37,7 @@
  */
 
 #include "unittest.h"
+#include "util.h"
 
 int
 main(int argc, char *argv[])
@@ -64,6 +65,7 @@ main(int argc, char *argv[])
 	char *buf = MALLOC(bytes);
 
 	memset(dest, 0, bytes);
+	pmem_persist_generic_auto(dest, bytes);
 	dest1 = MALLOC(bytes);
 	memset(dest1, 0, bytes);
 
