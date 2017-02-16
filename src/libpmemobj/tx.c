@@ -51,9 +51,12 @@ struct tx_data {
 };
 
 struct tx {
+	PMEMobjpool *pop;
 	enum pobj_tx_stage stage;
 	int last_errnum;
 	struct lane_section *section;
+	SLIST_HEAD(txl, tx_lock_data) tx_locks;
+	SLIST_HEAD(txd, tx_data) tx_entries;
 
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
@@ -93,12 +96,9 @@ struct tx_undo_runtime {
 
 struct lane_tx_runtime {
 	unsigned lane_idx;
-	PMEMobjpool *pop;
 	struct ctree *ranges;
 	uint64_t cache_offset;
 	struct tx_undo_runtime undo;
-	SLIST_HEAD(txd, tx_data) tx_entries;
-	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 };
 
 struct tx_alloc_args {
@@ -484,7 +484,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct tx_range *range)
 	struct tx_lock_data *txl;
 
 	/* check if there are any locks within given memory range */
-	SLIST_FOREACH(txl, &(runtime->tx_locks), tx_lock) {
+	SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
 		void *lock_begin = txl->lock.mutex;
 		/* all PMEM locks have the same size */
 		void *lock_end = (char *)lock_begin + _POBJ_CL_SIZE;
@@ -854,28 +854,21 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 PMEMobjpool *
 tx_get_pop(void)
 {
-	struct tx *tx = get_tx();
-	if (tx->stage == TX_STAGE_NONE)
-		return NULL;
-
-	struct lane_tx_runtime *lane =
-			(struct lane_tx_runtime *)tx->section->runtime;
-
-	return lane->pop;
+	return get_tx()->pop;
 }
 
 /*
  * add_to_tx_and_lock -- (internal) add lock to the transaction and acquire it
  */
 static int
-add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
-	void *lock)
+add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 {
 	LOG(15, NULL);
+
 	int retval = 0;
 	struct tx_lock_data *txl;
 	/* check if the lock is already on the list */
-	SLIST_FOREACH(txl, &(lane->tx_locks), tx_lock) {
+	SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
 		if (memcmp(&txl->lock, &lock, sizeof(lock)) == 0)
 			return 0;
 	}
@@ -888,7 +881,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
 	switch (txl->lock_type) {
 		case TX_PARAM_MUTEX:
 			txl->lock.mutex = lock;
-			retval = pmemobj_mutex_lock(lane->pop,
+			retval = pmemobj_mutex_lock(tx->pop,
 				txl->lock.mutex);
 			if (retval) {
 				errno = retval;
@@ -897,7 +890,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
 			break;
 		case TX_PARAM_RWLOCK:
 			txl->lock.rwlock = lock;
-			retval = pmemobj_rwlock_wrlock(lane->pop,
+			retval = pmemobj_rwlock_wrlock(tx->pop,
 				txl->lock.rwlock);
 			if (retval) {
 				errno = retval;
@@ -910,7 +903,7 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
 			break;
 	}
 
-	SLIST_INSERT_HEAD(&lane->tx_locks, txl, tx_lock);
+	SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
 
 	return retval;
 }
@@ -920,20 +913,20 @@ add_to_tx_and_lock(struct lane_tx_runtime *lane, enum pobj_tx_param type,
  *				transaction
  */
 static void
-release_and_free_tx_locks(struct lane_tx_runtime *lane)
+release_and_free_tx_locks(struct tx *tx)
 {
 	LOG(15, NULL);
 
-	while (!SLIST_EMPTY(&lane->tx_locks)) {
-		struct tx_lock_data *tx_lock = SLIST_FIRST(&lane->tx_locks);
-		SLIST_REMOVE_HEAD(&lane->tx_locks, tx_lock);
+	while (!SLIST_EMPTY(&tx->tx_locks)) {
+		struct tx_lock_data *tx_lock = SLIST_FIRST(&tx->tx_locks);
+		SLIST_REMOVE_HEAD(&tx->tx_locks, tx_lock);
 		switch (tx_lock->lock_type) {
 			case TX_PARAM_MUTEX:
-				pmemobj_mutex_unlock(lane->pop,
+				pmemobj_mutex_unlock(tx->pop,
 					tx_lock->lock.mutex);
 				break;
 			case TX_PARAM_RWLOCK:
-				pmemobj_rwlock_unlock(lane->pop,
+				pmemobj_rwlock_unlock(tx->pop,
 					tx_lock->lock.rwlock);
 				break;
 			default:
@@ -976,7 +969,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 
 	/* allocate object to undo log */
 	PMEMoid retoid = OID_NULL;
-	PMEMobjpool *pop = lane->pop;
+	PMEMobjpool *pop = tx->pop;
 
 	pmalloc_construct(pop, entry_offset, size, constructor, &args,
 		type_num, 0);
@@ -1042,7 +1035,7 @@ tx_alloc_copy_common(struct tx *tx, size_t size, type_num_t type_num,
 
 	/* allocate object to undo log */
 	PMEMoid retoid;
-	PMEMobjpool *pop = lane->pop;
+	PMEMobjpool *pop = tx->pop;
 	int ret = pmalloc_construct(pop, entry_offset, size,
 			constructor, &args, type_num, 0);
 
@@ -1089,7 +1082,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 		return tx_alloc_common(tx, size, (type_num_t)type_num,
 				constructor_alloc, flags);
 
-	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
 	/* if size is 0 just free */
 	if (size == 0) {
@@ -1102,8 +1095,8 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 	}
 
 	/* oid is not NULL and size is not 0 so do realloc by alloc and free */
-	void *ptr = OBJ_OFF_TO_PTR(lane->pop, oid.off);
-	size_t old_size = palloc_usable_size(&lane->pop->heap, oid.off);
+	void *ptr = OBJ_OFF_TO_PTR(tx->pop, oid.off);
+	size_t old_size = palloc_usable_size(&tx->pop->heap, oid.off);
 
 	size_t copy_size = old_size < size ? old_size : size;
 
@@ -1135,8 +1128,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 	struct lane_tx_runtime *lane = NULL;
 	if (tx->stage == TX_STAGE_WORK) {
-		lane = tx->section->runtime;
-		if (lane->pop != pop) {
+		ASSERTne(tx->section, NULL);
+		if (tx->pop != pop) {
 			ERR("nested transaction for different pool");
 			return obj_tx_abort_err(EINVAL);
 		}
@@ -1151,8 +1144,9 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane = tx->section->runtime;
 		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
 
-		SLIST_INIT(&lane->tx_entries);
-		SLIST_INIT(&lane->tx_locks);
+		SLIST_INIT(&tx->tx_entries);
+		SLIST_INIT(&tx->tx_locks);
+
 		lane->ranges = ctree_new();
 		lane->cache_offset = 0;
 		lane->lane_idx = idx;
@@ -1166,7 +1160,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 			return err;
 		}
 
-		lane->pop = pop;
+		tx->pop = pop;
 	} else {
 		FATAL("Invalid stage %d to begin new transaction", tx->stage);
 	}
@@ -1184,7 +1178,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	else
 		memset(txd->env, 0, sizeof(jmp_buf));
 
-	SLIST_INSERT_HEAD(&lane->tx_entries, txd, tx_entry);
+	SLIST_INSERT_HEAD(&tx->tx_entries, txd, tx_entry);
 
 	tx->stage = TX_STAGE_WORK;
 
@@ -1212,8 +1206,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 			tx->stage_callback = cb;
 			tx->stage_callback_arg = arg;
 		} else {
-			err = add_to_tx_and_lock(lane, param_type,
-					va_arg(argp, void *));
+			err = add_to_tx_and_lock(tx, param_type,
+				va_arg(argp, void *));
 			if (err) {
 				va_end(argp);
 				goto err_abort;
@@ -1240,13 +1234,10 @@ int
 pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 {
 	struct tx *tx = get_tx();
-
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane = tx->section->runtime;
-
-	return add_to_tx_and_lock(lane, type, lockp);
+	return add_to_tx_and_lock(tx, type, lockp);
 }
 
 /*
@@ -1258,13 +1249,11 @@ obj_tx_callback(struct tx *tx)
 	if (!tx->stage_callback)
 		return;
 
-	struct lane_tx_runtime *lane = tx->section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
 
 	/* is this the outermost transaction? */
 	if (SLIST_NEXT(txd, tx_entry) == NULL)
-		tx->stage_callback(lane->pop, tx->stage,
-				tx->stage_callback_arg);
+		tx->stage_callback(tx->pop, tx->stage, tx->stage_callback_arg);
 }
 
 /*
@@ -1297,7 +1286,7 @@ obj_tx_abort(int errnum, int user)
 
 	tx->stage = TX_STAGE_ONABORT;
 	struct lane_tx_runtime *lane = tx->section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
 
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
@@ -1306,7 +1295,9 @@ obj_tx_abort(int errnum, int user)
 				(struct lane_tx_layout *)tx->section->layout;
 
 		/* process the undo log */
-		tx_abort(lane->pop, lane, layout, 0 /* abort */);
+		tx_abort(tx->pop, lane, layout, 0 /* abort */);
+		lane_release(tx->pop);
+		tx->section = NULL;
 	}
 
 	tx->last_errnum = errnum;
@@ -1348,13 +1339,13 @@ pmemobj_tx_errno(void)
  *	successful commit
  */
 static void
-tx_postcommit_cleanup(struct lane_section *section)
+tx_postcommit_cleanup(PMEMobjpool *pop,
+	struct lane_section *section, int detached)
 {
 	struct lane_tx_runtime *runtime =
 			(struct lane_tx_runtime *)section->runtime;
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)section->layout;
-	PMEMobjpool *pop = runtime->pop;
 
 	/* post commit phase */
 	tx_post_commit(pop, NULL, layout, 0 /* not recovery */);
@@ -1362,8 +1353,8 @@ tx_postcommit_cleanup(struct lane_section *section)
 	/* clear transaction state */
 	tx_set_state(pop, layout, TX_STATE_NONE);
 
-	/* cleanup cache */
 	runtime->cache_offset = 0;
+	/* cleanup cache */
 
 	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_ALLOC]), 0);
 	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_SET]), 0);
@@ -1371,7 +1362,9 @@ tx_postcommit_cleanup(struct lane_section *section)
 	ASSERT(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 0 ||
 		pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 1);
 
-	lane_release_detached(pop, runtime->lane_idx);
+	if (detached) {
+		lane_release_detached(pop, runtime->lane_idx);
+	}
 }
 
 /*
@@ -1393,14 +1386,14 @@ pmemobj_tx_commit(void)
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
+	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
 
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
-		PMEMobjpool *pop = lane->pop;
+		PMEMobjpool *pop = tx->pop;
 
 		/* pre-commit phase */
 		tx_pre_commit(pop, tx, lane);
@@ -1409,6 +1402,15 @@ pmemobj_tx_commit(void)
 
 		/* set transaction state as committed */
 		tx_set_state(pop, layout, TX_STATE_COMMITTED);
+
+		if (ringbuf_full(pop->tx_postcommit_tasks)) {
+			tx_postcommit_cleanup(pop, tx->section, 0);
+			lane_release(pop);
+			tx->section = NULL;
+		} else {
+			lane_detach(pop);
+			ringbuf_enqueue(pop->tx_postcommit_tasks, tx->section);
+		}
 	}
 
 	tx->stage = TX_STAGE_ONCOMMIT;
@@ -1439,28 +1441,19 @@ pmemobj_tx_end(void)
 		obj_tx_callback(tx);
 	}
 
-	struct lane_tx_runtime *lane = tx->section->runtime;
-	struct tx_data *txd = SLIST_FIRST(&lane->tx_entries);
-	SLIST_REMOVE_HEAD(&lane->tx_entries, tx_entry);
+	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
+	SLIST_REMOVE_HEAD(&tx->tx_entries, tx_entry);
 
 	Free(txd);
 
 	VALGRIND_END_TX;
 
-	if (SLIST_EMPTY(&lane->tx_entries)) {
+	if (SLIST_EMPTY(&tx->tx_entries)) {
+		ASSERTeq(tx->section, NULL);
+
+		tx->pop = NULL;
 		tx->stage = TX_STAGE_NONE;
-		PMEMobjpool *pop = lane->pop;
-		release_and_free_tx_locks(lane);
-
-		lane_detach(pop);
-
-		if (ringbuf_full(pop->tx_postcommit_tasks)) {
-			tx_postcommit_cleanup(tx->section);
-		} else {
-			ringbuf_enqueue(pop->tx_postcommit_tasks, tx->section);
-		}
-
-		tx->section = NULL;
+		release_and_free_tx_locks(tx);
 
 		if (tx->stage_callback) {
 			pmemobj_tx_callback cb = tx->stage_callback;
@@ -1469,7 +1462,7 @@ pmemobj_tx_end(void)
 			tx->stage_callback = NULL;
 			tx->stage_callback_arg = NULL;
 
-			cb(pop, TX_STAGE_NONE, arg);
+			cb(tx->pop, TX_STAGE_NONE, arg);
 		}
 	} else {
 		/* resume the next transaction */
@@ -1753,7 +1746,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
 		 */
-		ret = nargs.size > runtime->pop->tx_params->cache_threshold ?
+		ret = nargs.size > tx->pop->tx_params->cache_threshold ?
 			pmemobj_tx_add_large(tx, &nargs) :
 			pmemobj_tx_add_small(tx, &nargs);
 
@@ -1782,18 +1775,17 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
+	PMEMobjpool *pop = tx->pop;
 
-	if ((char *)ptr < (char *)lane->pop ||
-			(char *)ptr >= (char *)lane->pop + lane->pop->size) {
+	if ((char *)ptr < (char *)pop ||
+			(char *)ptr >= (char *)pop + pop->size) {
 		ERR("object outside of pool");
 		return obj_tx_abort_err(EINVAL);
 	}
 
 	struct tx_add_range_args args = {
-		.pop = lane->pop,
-		.offset = (uint64_t)((char *)ptr - (char *)lane->pop),
+		.pop = pop,
+		.offset = (uint64_t)((char *)ptr - (char *)pop),
 		.size = size,
 		.flags = 0,
 	};
@@ -1814,10 +1806,7 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	if (!OBJ_PTR_FROM_POOL(lane->pop, ptr)) {
+	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
 		ERR("object outside of pool");
 		return obj_tx_abort_err(EINVAL);
 	}
@@ -1828,8 +1817,8 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	}
 
 	struct tx_add_range_args args = {
-		.pop = lane->pop,
-		.offset = (uint64_t)((char *)ptr - (char *)lane->pop),
+		.pop = tx->pop,
+		.offset = (uint64_t)((char *)ptr - (char *)tx->pop),
 		.size = size,
 		.flags = flags,
 	};
@@ -1849,17 +1838,14 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
+	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
 		return obj_tx_abort_err(EINVAL);
 	}
-	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
 	struct tx_add_range_args args = {
-		.pop = lane->pop,
+		.pop = tx->pop,
 		.offset = oid.off + hoff,
 		.size = size,
 		.flags = 0,
@@ -1880,14 +1866,11 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	if (oid.pool_uuid_lo != lane->pop->uuid_lo) {
+	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
 		return obj_tx_abort_err(EINVAL);
 	}
-	ASSERT(OBJ_OID_IS_VALID(lane->pop, oid));
+	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64, flags & ~POBJ_XADD_VALID_FLAGS);
@@ -1895,7 +1878,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	}
 
 	struct tx_add_range_args args = {
-		.pop = lane->pop,
+		.pop = tx->pop,
 		.offset = oid.off + hoff,
 		.size = size,
 		.flags = flags,
@@ -2084,7 +2067,7 @@ pmemobj_tx_free(PMEMoid oid)
 
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
-	PMEMobjpool *pop = lane->pop;
+	PMEMobjpool *pop = tx->pop;
 
 	if (pop->uuid_lo != oid.pool_uuid_lo) {
 		ERR("invalid pool uuid");
