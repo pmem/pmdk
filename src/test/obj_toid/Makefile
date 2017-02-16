@@ -38,6 +38,8 @@ OBJS = obj_toid.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
+INCS += -I../../libpmemobj/
