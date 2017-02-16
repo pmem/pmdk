@@ -163,7 +163,7 @@ strstr2(const char *str, const char *sub1, const char *sub2,
  * format_license -- remove comments and redundant whitespaces from the license
  */
 static void
-format_license(char *license, int *length)
+format_license(char *license, int length)
 {
 	char comment_str[COMMENT_STR_LEN];
 	char *comment = license;
@@ -198,7 +198,7 @@ format_license(char *license, int *length)
 
 	/* replace multiple spaces with one space */
 	was_space = 0;
-	for (r = w = 0; r < *length; r++) {
+	for (r = w = 0; r < length; r++) {
 		if (!isspace(license[r])) {
 			if (was_space) {
 				license[w++] = ' ';
@@ -213,7 +213,6 @@ format_license(char *license, int *length)
 		}
 	}
 	license[w] = '\0';
-	*length = w;
 }
 
 /*
@@ -222,8 +221,7 @@ format_license(char *license, int *length)
 static int
 analyze_license(const char *path_to_check,
 		char *buffer,
-		char **license,
-		int *length)
+		char **license)
 {
 	char *_license;
 	int _length;
@@ -246,10 +244,9 @@ analyze_license(const char *path_to_check,
 	_length = end_str - beg_str + strlen(LICENSE_END);
 	_license[_length] = '\0';
 
-	format_license(_license, &_length);
+	format_license(_license, _length);
 
 	*license = _license;
-	*length = _length;
 
 	return 0;
 }
@@ -262,7 +259,7 @@ create_pattern(const char *path_license, char *pattern)
 {
 	char buffer[LICENSE_MAX_LEN];
 	char *license;
-	int length, ret;
+	int ret;
 	int file_license;
 
 	if ((file_license = open(path_license, O_RDONLY)) == -1) {
@@ -279,7 +276,7 @@ create_pattern(const char *path_license, char *pattern)
 		return -1;
 	}
 
-	if (analyze_license(path_license, buffer, &license, &length) == -1)
+	if (analyze_license(path_license, buffer, &license) == -1)
 		return -1;
 
 	memset(pattern, 0, LICENSE_MAX_LEN);
@@ -319,7 +316,7 @@ verify_license(const char *path_to_check, char *pattern)
 {
 	char buffer[LICENSE_MAX_LEN];
 	char *license, *copyright;
-	int file_to_check, length, ret;
+	int file_to_check, ret;
 	int year_first, year_last;
 	int min_year_first = YEAR_INIT_MIN;
 	int max_year_last = YEAR_INIT_MAX;
@@ -339,7 +336,7 @@ verify_license(const char *path_to_check, char *pattern)
 		return -1;
 	}
 
-	if (analyze_license(path_to_check, buffer, &license, &length) == -1)
+	if (analyze_license(path_to_check, buffer, &license) == -1)
 		return -1;
 
 	/* check the copyright notice */
