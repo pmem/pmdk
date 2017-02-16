@@ -1,0 +1,13 @@
+==$(N)== pmemcheck-$(*)
+==$(N)== Copyright $(*)
+==$(N)== Using $(*)
+==$(N)== Command: $(*)
+==$(N)== Parent PID: $(*)
+==$(N)== 
+==$(N)== 
+==$(N)== Number of stores not made persistent: 1
+==$(N)== Stores not made persistent properly:
+==$(N)== [0]    at 0x$(X): main (obj_constructor.c:$(N))
+==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
+==$(N)== Total memory not made persistent: 4
+==$(N)== ERROR SUMMARY: 1 errors
