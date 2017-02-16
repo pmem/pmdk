@@ -35,6 +35,9 @@
  */
 #include <sys/param.h>
 #include "unittest.h"
+#include "util.h"
+#include "libpmemobj/base.h"
+#include "obj.h"
 
 #define LAYOUT_NAME "toid"
 #define TEST_NUM 5
@@ -83,6 +86,8 @@ do_direct_simple(PMEMobjpool *pop)
 	TOID(struct obj) obj;
 	POBJ_NEW(pop, &obj, struct obj, NULL, NULL);
 	DIRECT_RW(obj)->id = TEST_NUM;
+	pmem_persist_generic(pop->is_pmem, &DIRECT_RW(obj)->id,
+			sizeof(DIRECT_RW(obj)->id));
 	UT_ASSERTeq(DIRECT_RO(obj)->id, TEST_NUM);
 	POBJ_FREE(&obj);
 }

@@ -641,9 +641,13 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	if (off + nbytes > pool->set_file->size)
 		return -1;
 
-	if (pool->params.type != POOL_TYPE_BTT)
+	if (pool->params.type != POOL_TYPE_BTT) {
 		memcpy((char *)pool->set_file->addr + off, buff, nbytes);
-	else {
+		pmem_persist_generic_auto((char *)pool->set_file->addr + off,
+				nbytes);
+	}
+	else
+	{
 		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
 			return -1;
 		if ((size_t)pool_btt_write(pool, buff, nbytes) != nbytes)
