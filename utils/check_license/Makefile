@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,6 +31,26 @@
 #
 
 include ../../src/common.inc
+
+CFLAGS += -std=gnu99
+CFLAGS += -Wall
+CFLAGS += -Werror
+CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wpointer-arith
+CFLAGS += -Wunused-macros
+CFLAGS += -Wmissing-field-initializers
+CFLAGS += -Wsign-conversion
+CFLAGS += -Wsign-compare
+ifeq ($(call check_Wconversion), y)
+CFLAGS += -Wconversion
+endif
+CFLAGS += -fno-common
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
 
 TARGET=check-license
 
