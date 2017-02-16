@@ -31,31 +31,57 @@
  */
 
 /*
- * pmemcommon.h -- definitions for "common" module
+ * pmem_is_pmem_linux.c -- Linux specific unit test for is_pmem_proc()
+ *
+ * usage: pmem_is_pmem_linux op addr len [op addr len ...]
+ * where op can be: 'a' (add), 'r' (remove), 't' (test)
  */
 
-#ifndef PMEMCOMMON_H
-#define PMEMCOMMON_H 1
+#include <stdlib.h>
 
-#include "util.h"
-#include "out.h"
+#include "unittest.h"
 #include "mmap.h"
 
-static inline void
-common_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version)
+int
+main(int argc, char *argv[])
 {
-	util_init();
-	out_init(log_prefix, log_level_var, log_file_var, major_version,
-		minor_version);
-	util_mmap_init();
-}
+	START(argc, argv, "pmem_is_pmem_linux");
 
-static inline void
-common_fini()
-{
-	util_mmap_fini();
-	out_fini();
+	if (argc < 3)
+		UT_FATAL("usage: %s op addr len [op addr len ...]",
+				argv[0]);
+
+	/* insert memory regions to the list */
+	int i;
+	for (i = 1; i < argc; i += 3) {
+		UT_ASSERT(i + 2 < argc);
+
+		errno = 0;
+		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
+		UT_ASSERTeq(errno, 0);
+
+		size_t len = strtoull(argv[i + 2], NULL, 0);
+		UT_ASSERTeq(errno, 0);
+
+		int ret;
+
+		switch (argv[i][0]) {
+		case 'a':
+			ret = util_range_register(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 'r':
+			ret = util_range_unregister(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 't':
+			UT_OUT("addr %p len %zu is_pmem %d",
+					addr, len, pmem_is_pmem(addr, len));
+			break;
+		default:
+			FATAL("invalid op");
+		}
+	}
+
+	DONE(NULL);
 }
-#endif

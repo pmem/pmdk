@@ -248,7 +248,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm", "test\libp
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_is_pmem_proc_windows", "test\pmem_is_pmem_proc_windows\pmem_is_pmem_proc_windows.vcxproj", "{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_is_pmem_windows", "test\pmem_is_pmem_windows\pmem_is_pmem_windows.vcxproj", "{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog", "examples\libpmemobj\pmemlog\obj_pmemlog.vcxproj", "{60206D22-E132-4695-8486-10BECA32C5CC}"
 EndProject

@@ -1,4 +1,6 @@
+#
 # Copyright 2014-2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,27 +29,32 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem/Makefile -- Makefile for libpmem
 #
 
-LIBRARY_NAME = pmem
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	libpmem.c\
-	cpu.c\
-	pmem.c\
-	pmem_linux.c
+#
+# src\test\pmem_is_pmem_windows\TEST0 -- unit test for pmem_is_pmem
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "pmem_is_pmem_windows\TEST0"
+$ENV:UNITTEST_NUM = "0"
 
-include ../Makefile.inc
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-LIBS += -pthread
+require_fs_type non-pmem
+require_test_type medium
+
+setup
+
+create_holey_file 4M $DIR\testfile1
+
+expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_windows$Env:EXESUFFIX `
+	$DIR\testfile1 nothing
+
+check
+
+pass

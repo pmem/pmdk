@@ -1199,12 +1199,6 @@ main(int argc, char *argv[])
 	util_init();
 	util_mmap_init();
 
-	int ret = 0;
-	int fexists;
-	struct benchmark *bench;
-	struct pmembench *pb = (struct pmembench *)calloc(1, sizeof(*pb));
-	assert(pb != NULL);
-
 	/*
 	 * Parse common command line arguments and
 	 * benchmark's specific ones.
@@ -1212,8 +1206,13 @@ main(int argc, char *argv[])
 	if (argc < 2) {
 		pmembench_print_usage();
 		exit(EXIT_FAILURE);
-		return -1;
 	}
+
+	int ret = 0;
+	int fexists;
+	struct benchmark *bench;
+	struct pmembench *pb = (struct pmembench *)calloc(1, sizeof(*pb));
+	assert(pb != NULL);
 
 	pb->argc = --argc;
 	pb->argv = ++argv;
@@ -1237,5 +1236,7 @@ main(int argc, char *argv[])
 
 out:
 	free(pb);
+
+	util_mmap_fini();
 	return ret;
 }
