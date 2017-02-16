@@ -155,7 +155,7 @@ for file in $FILES ; do
 
 		# skip checking dates for non-Intel commits
 		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2`
-		[ "AUTHOR_LAST" != "intel.com" ] && continue
+		[ "$AUTHOR_LAST" != "intel.com" ] && continue
 
 		COMMIT_FIRST=`echo $FIRST | cut -d"-" -f1`
 		COMMIT_LAST=` echo $LAST  | cut -d"-" -f1`
