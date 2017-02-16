@@ -150,6 +150,10 @@ for file in $FILES ; do
 		HEADER_FIRST=`echo $YEARS | cut -d"-" -f1`
 		HEADER_LAST=` echo $YEARS | cut -d"-" -f2`
 		git log --no-merges --format="%ai %H %aE" -- $file | sort > $TMP
+
+		# skip checking dates for new files
+		[ $(cat $TMP | wc -l) -eq 1 ] && continue
+
 		FIRST=`cat $TMP | head -n1`
 		LAST=` cat $TMP | tail -n1`
 
