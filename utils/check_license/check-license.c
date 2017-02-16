@@ -498,6 +498,4 @@ main(int argc, char *argv[])
 		printf(help_str, argv[0]);
 		return -1;
 	}
-
-	return 0;
 }
