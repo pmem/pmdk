@@ -189,6 +189,7 @@ main(int argc, char *argv[])
 
 	/* this should generate a valgrind memcheck warning */
 	Canceled_ptr->bar = 5;
+	pmemobj_persist(pop, &Canceled_ptr->bar, sizeof(Canceled_ptr->bar));
 
 	pmemobj_close(pop);
 
