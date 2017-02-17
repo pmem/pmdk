@@ -121,6 +121,7 @@ main(int argc, char *argv[])
 		val = pvector_push_back(ctx);
 		UT_ASSERTne(val, NULL);
 		*val = i;
+		pmemobj_persist(pop, val, sizeof(*val));
 	}
 
 	n = 0;
