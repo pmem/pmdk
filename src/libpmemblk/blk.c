@@ -55,6 +55,7 @@
 #include "btt.h"
 #include "blk.h"
 #include "sys_util.h"
+#include "util_pmem.h"
 #include "valgrind_internal.h"
 
 /*
@@ -273,10 +274,10 @@ pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 
 	/* create the required metadata */
 	pbp->bsize = htole32(bsize);
-	PERSIST_GENERIC(pbp->is_pmem, &pbp->bsize, sizeof(bsize));
+	util_persist(pbp->is_pmem, &pbp->bsize, sizeof(bsize));
 
 	pbp->is_zeroed = zeroed;
-	PERSIST_GENERIC(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed));
+	util_persist(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed));
 
 	return 0;
 }
