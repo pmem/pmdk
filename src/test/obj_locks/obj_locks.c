@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,9 @@ do_mutex_lock(void *arg)
 	pmemobj_mutex_lock(lock->pop, &lock->mtx);
 	lock->data++;
 	pmemobj_mutex_unlock(lock->pop, &lock->mtx);
+
+	pmemobj_persist(lock->pop, &lock->data, sizeof(lock->data));
+
 	return NULL;
 }
 
@@ -87,6 +90,9 @@ do_rwlock_wrlock(void *arg)
 	pmemobj_rwlock_wrlock(lock->pop, &lock->rwlk);
 	lock->data++;
 	pmemobj_rwlock_unlock(lock->pop, &lock->rwlk);
+
+	pmemobj_persist(lock->pop, &lock->data, sizeof(lock->data));
+
 	return NULL;
 }
 
@@ -125,6 +131,7 @@ do_cond_signal(void *arg)
 		pmemobj_cond_signal(lock->pop, &lock->cond);
 		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
+	pmemobj_persist(lock->pop, &lock->data, sizeof(lock->data));
 
 	return NULL;
 }
@@ -151,6 +158,7 @@ do_cond_broadcast(void *arg)
 		pmemobj_cond_broadcast(lock->pop, &lock->cond);
 		pmemobj_mutex_unlock(lock->pop, &lock->mtx);
 	}
+	pmemobj_persist(lock->pop, &lock->data, sizeof(lock->data));
 
 	return NULL;
 }
