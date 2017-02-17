@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,9 @@ export UNITTEST_NUM=2
 . ../unittest/unittest.sh
 
 require_test_type medium
+
+# the test delibretly fails at various stages of redo logging
+configure_valgrind pmemcheck force-disable
 
 setup
 
