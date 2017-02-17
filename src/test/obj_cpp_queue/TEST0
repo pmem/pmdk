@@ -39,6 +39,7 @@ export UNITTEST_NUM=0
 
 require_test_type medium
 require_cxx11
+require_binary obj_cpp_queue$EXESUFFIX
 
 setup
 
