@@ -65,6 +65,7 @@
 #include "dlsym.h"
 #include "valgrind_internal.h"
 #include "sys_util.h"
+#include "util_pmem.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -1652,7 +1653,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+	util_persist_auto(hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -2500,7 +2501,7 @@ util_replica_set_attr(struct pool_replica *rep, const char *sig,
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
-		PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+		util_persist_auto(hdrp, sizeof(*hdrp));
 	}
 
 	/* unmap all headers */
