@@ -34,6 +34,12 @@
  * obj_recovery.c -- unit test for pool recovery
  */
 #include "unittest.h"
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VALGRIND)
+#include <valgrind/pmemcheck.h>
+#define VALGRIND_PMEMCHECK_END_TX VALGRIND_PMC_END_TX
+#else
+#define VALGRIND_PMEMCHECK_END_TX
+#endif
 
 POBJ_LAYOUT_BEGIN(recovery);
 POBJ_LAYOUT_ROOT(recovery, struct root);
@@ -115,6 +121,23 @@ main(int argc, char *argv[])
 				TX_ADD_FIELD(D_RW(root)->foo, bar);
 
 				D_RW(D_RW(root)->foo)->bar = BAR_VALUE * 2;
+
+				/*
+				 * Even though flushes are not required inside
+				 * of a transaction, this is done here to
+				 * suppress irrelevant pmemcheck issues, because
+				 * we exit the program before the data is
+				 * flushed, while preserving any real ones.
+				 */
+				pmemobj_persist(pop,
+					&D_RW(D_RW(root)->foo)->bar,
+					sizeof(int));
+				/*
+				 * We also need to cleanup the transaction state
+				 * of pmemcheck.
+				 */
+				VALGRIND_PMEMCHECK_END_TX;
+
 				exit(0); /* simulate a crash */
 			} TX_END
 		} else {
@@ -126,6 +149,11 @@ main(int argc, char *argv[])
 				TOID(struct foo) f = TX_NEW(struct foo);
 				TX_SET(root, foo, f);
 				D_RW(f)->bar = BAR_VALUE;
+				pmemobj_persist(pop,
+					&D_RW(f)->bar,
+					sizeof(PMEMoid));
+				VALGRIND_PMEMCHECK_END_TX;
+
 				exit(0); /* simulate a crash */
 			} TX_END
 
@@ -146,6 +174,11 @@ main(int argc, char *argv[])
 				TX_ADD(root);
 				TX_FREE(D_RW(root)->foo);
 				D_RW(root)->foo = TOID_NULL(struct foo);
+				pmemobj_persist(pop,
+					&D_RW(root)->foo,
+					sizeof(PMEMoid));
+				VALGRIND_PMEMCHECK_END_TX;
+
 				exit(0); /* simulate a crash */
 			} TX_END
 
