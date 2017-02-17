@@ -58,7 +58,7 @@ require_fs_type any
 require_build_type debug nondebug
 
 # XXX: we don't have valgrind in Windows yet
-# require_valgrind_dev_3_10
+# require_valgrind_dev_version 3.10
 # configure_valgrind drd force-enable
 
 setup

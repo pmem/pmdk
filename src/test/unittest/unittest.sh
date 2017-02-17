@@ -1118,22 +1118,6 @@ function set_valgrind_exe_name() {
 }
 
 #
-# require_valgrind_dev_3_7 -- continue script execution only if
-#	version 3.7 (or later) of valgrind-devel package is installed
-#
-function require_valgrind_dev_3_7() {
-	require_valgrind
-	echo "
-        #include <valgrind/valgrind.h>
-        #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
-        VALGRIND_VERSION_3_7_OR_LATER
-        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
-		grep -q "VALGRIND_VERSION_3_7_OR_LATER" && return
-	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.7 or later) required"
-	exit 0
-}
-
-#
 # valgrind_version -- returns Valgrind version
 #
 function valgrind_version() {
@@ -1142,40 +1126,37 @@ function valgrind_version() {
 }
 
 #
-# require_valgrind_dev_3_8 -- continue script execution only if
-#	version 3.8 (or later) of valgrind-devel package is installed
+# require_valgrind_dev_version -- continue script execution only if
+#	certain version (or later) of valgrind-devel package is installed
 #
-function require_valgrind_dev_3_8() {
+function require_valgrind_dev_version() {
 	require_valgrind
-	echo "
-        #include <valgrind/valgrind.h>
-        #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
-        #if (__VALGRIND_MAJOR__ > 3) || \
-             ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 8))
-        VALGRIND_VERSION_3_8_OR_LATER
-        #endif
-        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
-		grep -q "VALGRIND_VERSION_3_8_OR_LATER" && return
-	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.8 or later) required"
-	exit 0
-}
+	local version=(${1//./ })
+	local major=${version[0]}
+	local minor=${version[1]}
+	local define="VALGRIND_VERSION_${major}_${minor}_OR_LATER"
 
-#
-# require_valgrind_dev_3_10 -- continue script execution only if
-#	version 3.10 (or later) of valgrind-devel package is installed
-#
-function require_valgrind_dev_3_10() {
-	require_valgrind
-	echo "
+	case "$define" in
+		VALGRIND_VERSION_3_7_OR_LATER)
+			local code=" \
+        #include <valgrind/valgrind.h>
+        #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
+        $define
+        #endif"
+			;;
+		*)
+			local code=" \
         #include <valgrind/valgrind.h>
         #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
-        #if (__VALGRIND_MAJOR__ > 3) || \
-             ((__VALGRIND_MAJOR__ == 3) && (__VALGRIND_MINOR__ >= 10))
-        VALGRIND_VERSION_3_10_OR_LATER
+        #if (__VALGRIND_MAJOR__ > $major) || \
+             ((__VALGRIND_MAJOR__ == $major) && (__VALGRIND_MINOR__ >= $minor))
+        $define
         #endif
-        #endif" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | \
-		grep -q "VALGRIND_VERSION_3_10_OR_LATER" && return
-	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver 3.10 or later) required"
+        #endif"
+			;;
+	esac
+	echo "$code" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | grep -q $define && return
+	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver $major.$minor or later) required"
 	exit 0
 }
 

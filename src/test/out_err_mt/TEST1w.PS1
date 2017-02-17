@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ require_test_type medium
 require_fs_type any
 
 # XXX: we don't have valgrind in Windows yet
-# require_valgrind_dev_3_7
+# require_valgrind_dev_version 3.7
 # configure_valgrind drd force-enable
 
 setup
