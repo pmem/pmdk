@@ -43,7 +43,7 @@
 #define ALLOCS 100
 #define ALLOC_SIZE 50
 
-char buf[ALLOC_SIZE];
+static char buf[ALLOC_SIZE];
 
 static int
 test_constructor(PMEMobjpool *pop, void *addr, void *args)

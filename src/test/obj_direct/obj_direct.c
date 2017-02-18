@@ -39,13 +39,13 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-pthread_mutex_t lock1;
-pthread_mutex_t lock2;
-pthread_cond_t sync_cond1;
-pthread_cond_t sync_cond2;
-int cond1;
-int cond2;
-PMEMoid thread_oid;
+static pthread_mutex_t lock1;
+static pthread_mutex_t lock2;
+static pthread_cond_t sync_cond1;
+static pthread_cond_t sync_cond2;
+static int cond1;
+static int cond2;
+static PMEMoid thread_oid;
 
 static void *
 test_worker(void *arg)

@@ -75,11 +75,11 @@ print_usage(void)
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"length",	required_argument,	0,	'l'},
-	{"offset",	required_argument,	0,	'o'},
-	{"zero",	no_argument,		0,	'z'},
-	{"help",	no_argument,		0,	'h'},
-	{0,		0,			0,	 0 },
+	{"length",	required_argument,	NULL,	'l'},
+	{"offset",	required_argument,	NULL,	'o'},
+	{"zero",	no_argument,		NULL,	'z'},
+	{"help",	no_argument,		NULL,	'h'},
+	{NULL,		0,			NULL,	 0 },
 };
 
 /*
@@ -143,7 +143,7 @@ parse_args(int argc, char *argv[])
  * validate_args -- (internal) validate arguments
  */
 static int
-validate_args()
+validate_args(void)
 {
 	if (File1 == NULL) {
 		fprintf(stderr, "no file provided");
@@ -159,7 +159,7 @@ validate_args()
  * do_cmpmap -- (internal) perform cmpmap
  */
 static int
-do_cmpmap()
+do_cmpmap(void)
 {
 	int ret = EXIT_SUCCESS;
 	int fd1;

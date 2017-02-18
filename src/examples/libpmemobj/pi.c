@@ -77,7 +77,7 @@ struct pi {
 /*
  * pi_task_construct -- task constructor
  */
-int
+static int
 pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct pi_task *t = (struct pi_task *)ptr;
@@ -92,10 +92,10 @@ pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
  * calc_pi -- worker for pi calculation
  */
 #ifndef _WIN32
-void *
+static void *
 calc_pi(void *arg)
 #else
-DWORD WINAPI
+static DWORD WINAPI
 calc_pi(LPVOID arg)
 #endif
 {
@@ -119,8 +119,8 @@ calc_pi(LPVOID arg)
 /*
  * calc_pi_mt -- calculate all the pending to-do tasks
  */
-void
-calc_pi_mt()
+static void
+calc_pi_mt(void)
 {
 	TOID(struct pi) pi = POBJ_ROOT(pop, struct pi);
 
@@ -171,7 +171,7 @@ calc_pi_mt()
 /*
  * prep_todo_list -- create tasks to be done
  */
-int
+static int
 prep_todo_list(int threads, int ops)
 {
 	TOID(struct pi) pi = POBJ_ROOT(pop, struct pi);

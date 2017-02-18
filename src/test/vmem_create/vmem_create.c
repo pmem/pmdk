@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-VMEM *Vmp;
+static VMEM *Vmp;
 
 /*
  * signal_handler -- called on SIGSEGV

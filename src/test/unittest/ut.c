@@ -62,13 +62,13 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
 }
-void ut_suppress_errmsg() {}
-void ut_unsuppress_errmsg() {}
+void ut_suppress_errmsg(void) {}
+void ut_unsuppress_errmsg(void) {}
 #else
 #pragma comment(lib, "rpcrt4.lib")
 
 void
-ut_suppress_errmsg()
+ut_suppress_errmsg(void)
 {
 	ErrMode = GetErrorMode();
 	SetErrorMode(ErrMode | SEM_NOGPFAULTERRORBOX |
@@ -79,7 +79,7 @@ ut_suppress_errmsg()
 }
 
 void
-ut_unsuppress_errmsg()
+ut_unsuppress_errmsg(void)
 {
 	if (Suppressed) {
 		SetErrorMode(ErrMode);
@@ -374,7 +374,7 @@ open_file_free(struct fd_lut *root)
  * record_open_files -- make a list of open files (used at START() time)
  */
 static void
-record_open_files()
+record_open_files(void)
 {
 	int dirfd;
 	DIR *dirp = NULL;
@@ -405,7 +405,7 @@ record_open_files()
  * check_open_files -- verify open files match recorded open files
  */
 static void
-check_open_files()
+check_open_files(void)
 {
 	int dirfd;
 	DIR *dirp = NULL;
@@ -705,7 +705,6 @@ ut_start(const char *file, int line, const char *func,
 	prefix(file, line, func, 0);
 	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
 
-	out(OF_NONL, 0, "     args:");
 	for (int i = 0; i < argc; i++)
 		out(OF_NONL, " %s", argv[i]);
 	out(0, NULL);

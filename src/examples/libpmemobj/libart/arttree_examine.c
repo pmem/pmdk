@@ -116,7 +116,7 @@ void arttree_examine_help(char *appname);
 int arttree_examine_func(char *appname,
 		struct pmem_context *ctx, int ac, char *av[]);
 
-const char *arttree_examine_help_str =
+static const char *arttree_examine_help_str =
 "Examine data structures (objects) of ART tree\n"
 "Arguments: <offset> <type>\n"
 "   <offset> offset of object in pmem file\n"
@@ -125,11 +125,11 @@ const char *arttree_examine_help_str =
 ;
 
 static const struct option long_options[] = {
-	{"hexdump",	no_argument,	0,	'x'},
-	{0,		0,		0,	 0 },
+	{"hexdump",	no_argument,	NULL,	'x'},
+	{NULL,		0,		NULL,	 0 },
 };
 
-struct examine ex_funcs[] = {
+static struct examine ex_funcs[] = {
 	{
 		.name = "PMEMobj",
 		.brief = "examine PMEMoid structure",

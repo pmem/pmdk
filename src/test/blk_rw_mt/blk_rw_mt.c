@@ -40,12 +40,12 @@
 
 #include "unittest.h"
 
-size_t Bsize;
-size_t Nblock = 100;	/* all I/O below this LBA (increases collisions) */
-unsigned Seed;
-unsigned Nthread;
-unsigned Nops;
-PMEMblkpool *Handle;
+static size_t Bsize;
+static size_t Nblock = 100; /* all I/O below this LBA (increases collisions) */
+static unsigned Seed;
+static unsigned Nthread;
+static unsigned Nops;
+static PMEMblkpool *Handle;
 
 /*
  * construct -- build a buffer for writing

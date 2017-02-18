@@ -53,7 +53,7 @@ common_init(const char *log_prefix, const char *log_level_var,
 }
 
 static inline void
-common_fini()
+common_fini(void)
 {
 	util_mmap_fini();
 	out_fini();

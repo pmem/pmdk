@@ -352,11 +352,12 @@ cstyle  : TARGET = cstyle
 format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
+sparse  : TARGET = sparse
 
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 
-all test cstyle format: $(TESTS_BUILD)
+all test cstyle format sparse: $(TESTS_BUILD)
 
 clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)

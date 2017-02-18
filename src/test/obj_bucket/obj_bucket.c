@@ -47,7 +47,7 @@ struct container_test {
 	struct block_container super;
 };
 
-const struct memory_block *inserted_memblock;
+static const struct memory_block *inserted_memblock;
 
 static int
 container_test_insert(struct block_container *c,
@@ -101,7 +101,7 @@ static struct block_container_ops container_test_ops = {
 };
 
 static struct block_container *
-container_new_test()
+container_new_test(void)
 {
 	struct container_test *c = MALLOC(sizeof(struct container_test));
 	c->super.c_ops = &container_test_ops;
@@ -109,7 +109,7 @@ container_new_test()
 }
 
 static void
-test_bucket_insert_get()
+test_bucket_insert_get(void)
 {
 	struct bucket *b = bucket_new(container_new_test(), NULL);
 	UT_ASSERT(b != NULL);
@@ -134,7 +134,7 @@ test_bucket_insert_get()
 }
 
 static void
-test_bucket_remove()
+test_bucket_remove(void)
 {
 	struct bucket *b = bucket_new(container_new_test(), NULL);
 	UT_ASSERT(b != NULL);

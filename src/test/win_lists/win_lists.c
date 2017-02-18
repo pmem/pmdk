@@ -45,7 +45,7 @@ typedef struct TEST_LIST_NODE {
 
 LIST_HEAD(TestList, TEST_LIST_NODE);
 
-void
+static void
 dump_list(struct TestList *head)
 {
 	PTEST_LIST_NODE pNode = NULL;
@@ -57,7 +57,7 @@ dump_list(struct TestList *head)
 	}
 }
 
-int
+static int
 get_list_count(struct TestList *head)
 {
 	PTEST_LIST_NODE pNode = NULL;
@@ -75,8 +75,8 @@ get_list_count(struct TestList *head)
  * test_list - Do some basic list manipulations and output to log for
  * script comparison. Only testing the macros we use.
  */
-void
-test_list()
+static void
+test_list(void)
 {
 	PTEST_LIST_NODE pNode = NULL;
 	struct TestList head = LIST_HEAD_INITIALIZER(head);
@@ -107,7 +107,7 @@ test_list()
 
 	/* Remove all of them */
 	while (!LIST_EMPTY(&head)) {
-		PTEST_LIST_NODE pNode = (PTEST_LIST_NODE)LIST_FIRST(&head);
+		pNode = (PTEST_LIST_NODE)LIST_FIRST(&head);
 		LIST_REMOVE(pNode, ListEntry);
 		free(pNode);
 	}
@@ -122,7 +122,7 @@ typedef struct TEST_SORTEDQ_NODE {
 
 SORTEDQ_HEAD(TEST_SORTEDQ, TEST_SORTEDQ_NODE);
 
-int
+static int
 sortedq_node_comparer(TEST_SORTEDQ_NODE *a, TEST_SORTEDQ_NODE *b)
 {
 	return a->dummy - b->dummy;
@@ -138,7 +138,7 @@ struct TEST_DATA_SORTEDQ {
  * queue is sorted for different input sequences.
  */
 void
-test_sortedq()
+test_sortedq(void)
 {
 	PTEST_SORTEDQ_NODE node = NULL;
 	struct TEST_SORTEDQ head = SORTEDQ_HEAD_INITIALIZER(head);

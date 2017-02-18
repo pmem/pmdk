@@ -57,7 +57,7 @@ struct tqnode {
 };
 
 static void
-print_help()
+print_help(void)
 {
 	printf("usage: fifo <pool> <option> [<type>]\n");
 	printf("\tAvailable options:\n");

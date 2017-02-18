@@ -82,7 +82,7 @@ tx_strdup_macro(TOID(char) *str, const char *s, unsigned type_num)
 	TOID_ASSIGN(*str, TX_STRDUP(s, type_num));
 }
 
-fn_tx_strdup do_tx_strdup[MAX_FUNC] = {tx_strdup, tx_strdup_macro};
+static fn_tx_strdup do_tx_strdup[MAX_FUNC] = {tx_strdup, tx_strdup_macro};
 
 /*
  * do_tx_strdup_commit -- duplicate a string and commit the transaction

@@ -108,7 +108,7 @@ lane_noop_boot(PMEMobjpool *pop)
 	return 0;
 }
 
-struct section_operations noop_ops = {
+static struct section_operations noop_ops = {
 	.construct_rt = lane_noop_construct_rt,
 	.destroy_rt = lane_noop_destroy_rt,
 	.recover = lane_noop_recovery,
@@ -121,7 +121,7 @@ SECTION_PARM(LANE_SECTION_LIST, &noop_ops);
 SECTION_PARM(LANE_SECTION_TRANSACTION, &noop_ops);
 
 static void
-test_lane_boot_cleanup_ok()
+test_lane_boot_cleanup_ok(void)
 {
 	struct mock_pop pop = {
 		.p = {
@@ -151,7 +151,7 @@ test_lane_boot_cleanup_ok()
 }
 
 static void
-test_lane_boot_fail()
+test_lane_boot_fail(void)
 {
 	struct mock_pop pop = {
 		.p = {
@@ -172,7 +172,7 @@ test_lane_boot_fail()
 }
 
 static void
-test_lane_recovery_check_ok()
+test_lane_recovery_check_ok(void)
 {
 	struct mock_pop pop = {
 		.p = {
@@ -187,7 +187,7 @@ test_lane_recovery_check_ok()
 }
 
 static void
-test_lane_recovery_check_fail()
+test_lane_recovery_check_fail(void)
 {
 	struct mock_pop pop = {
 		.p = {
@@ -204,7 +204,7 @@ test_lane_recovery_check_fail()
 	UT_ASSERTne(lane_check(&pop.p), 0);
 }
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 static void
 signal_handler(int sig)
@@ -213,7 +213,7 @@ signal_handler(int sig)
 }
 
 static void
-test_lane_hold_release()
+test_lane_hold_release(void)
 {
 	struct lane mock_lane = {
 		.sections = {

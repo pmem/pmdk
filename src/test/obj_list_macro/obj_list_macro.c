@@ -53,8 +53,8 @@ struct list {
 };
 
 /* global lists */
-TOID(struct list) List;
-TOID(struct list) List_sec;
+static TOID(struct list) List;
+static TOID(struct list) List_sec;
 #define LAYOUT_NAME "list_macros"
 
 /* usage macros */

@@ -211,7 +211,7 @@ ut_sighandler(int sig)
  * ut_register_sighandlers -- register signal handlers for various fatal signals
  */
 void
-ut_register_sighandlers()
+ut_register_sighandlers(void)
 {
 	signal(SIGSEGV, ut_sighandler);
 	signal(SIGABRT, ut_sighandler);

@@ -114,7 +114,7 @@ static struct game_state *gstate;
 /*
  * create_alien -- constructor for aliens, spawn at random position
  */
-int
+static int
 create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct alien *a = ptr;
@@ -130,7 +130,7 @@ create_alien(PMEMobjpool *pop, void *ptr, void *arg)
 /*
  * create_player -- constructor for the player, spawn in the middle of the map
  */
-int
+static int
 create_player(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct player *p = ptr;
@@ -145,7 +145,7 @@ create_player(PMEMobjpool *pop, void *ptr, void *arg)
 /*
  * create_bullet -- constructor for bullets, spawn at the position of the player
  */
-int
+static int
 create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 {
 	struct bullet *b = ptr;
@@ -160,8 +160,8 @@ create_bullet(PMEMobjpool *pop, void *ptr, void *arg)
 	return 0;
 }
 
-void
-draw_border()
+static void
+draw_border(void)
 {
 	for (int x = 0; x <= GAME_WIDTH; ++x) {
 		mvaddch(0, x, ACS_HLINE);
@@ -177,26 +177,26 @@ draw_border()
 	mvaddch(GAME_HEIGHT, GAME_WIDTH, ACS_LRCORNER);
 }
 
-void
+static void
 draw_alien(const TOID(struct alien) a)
 {
 	mvaddch(D_RO(a)->y, D_RO(a)->x, ACS_DIAMOND|COLOR_PAIR(C_ALIEN));
 }
 
-void
+static void
 draw_player(const TOID(struct player) p)
 {
 	mvaddch(PLAYER_Y, D_RO(p)->x, ACS_DIAMOND|COLOR_PAIR(C_PLAYER));
 }
 
-void
+static void
 draw_bullet(const TOID(struct bullet) b)
 {
 	mvaddch(D_RO(b)->y, D_RO(b)->x, ACS_BULLET|COLOR_PAIR(C_BULLET));
 }
 
-void
-draw_score()
+static void
+draw_score(void)
 {
 	mvprintw(1, 1, "Score: %u | %u\n", gstate->score, gstate->high_score);
 }
@@ -204,7 +204,7 @@ draw_score()
 /*
  * timer_tick -- very simple persistent timer
  */
-int
+static int
 timer_tick(uint32_t *timer)
 {
 	int ret = *timer == 0 || ((*timer)--) == 0;
@@ -215,7 +215,7 @@ timer_tick(uint32_t *timer)
 /*
  * update_score -- change player score and global high score
  */
-void
+static void
 update_score(int m)
 {
 	if (m < 0 && gstate->score == 0)
@@ -237,8 +237,8 @@ update_score(int m)
 /*
  * process_aliens -- process spawn and movement of the aliens
  */
-void
-process_aliens()
+static void
+process_aliens(void)
 {
 	/* alien spawn timer */
 	if (timer_tick(&gstate->timer)) {
@@ -268,7 +268,7 @@ process_aliens()
 /*
  * process_collision -- search for any aliens on the position of the bullet
  */
-int
+static int
 process_collision(const TOID(struct bullet) b)
 {
 	TOID(struct alien) iter;
@@ -287,8 +287,8 @@ process_collision(const TOID(struct bullet) b)
 /*
  * process_bullets -- process bullets movement and collision
  */
-void
-process_bullets()
+static void
+process_bullets(void)
 {
 	TOID(struct bullet) iter, next;
 
@@ -309,7 +309,7 @@ process_bullets()
 /*
  * process_player -- handle player actions
  */
-void
+static void
 process_player(int input)
 {
 	TOID(struct player) plr = POBJ_FIRST(pop, struct player);
@@ -356,7 +356,7 @@ process_player(int input)
 /*
  * game_loop -- process drawing and logic of the game
  */
-void
+static void
 game_loop(int input)
 {
 	erase();

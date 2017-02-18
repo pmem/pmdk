@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 		FSTAT(fd, &stbuf);
 
 		void *addr =
-			MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,
+			MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
 					MAP_PRIVATE, fd, 0);
 
 		close(fd);

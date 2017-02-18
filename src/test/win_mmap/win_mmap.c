@@ -62,7 +62,7 @@
 #define CHECK_RO	1
 #define CHECK_PRIV	2
 
-ut_jmp_buf_t Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
@@ -474,7 +474,7 @@ test_mmap_prot(int fd, int fd_ro)
  * test_mmap_prot_anon -- test R/W protection on anonymous mappings
  */
 static void
-test_mmap_prot_anon()
+test_mmap_prot_anon(void)
 {
 	char *ptr1;
 
@@ -827,7 +827,7 @@ test_mprotect(int fd, int fd_ro)
  * test_mprotect_anon -- test memory protection on anonymous mappings
  */
 static void
-test_mprotect_anon()
+test_mprotect_anon(void)
 {
 	char *ptr1;
 	char *ptr2;

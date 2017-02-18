@@ -769,7 +769,6 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 
 		tx_rt = &new_rt;
 	} else {
-		struct lane_tx_runtime *lane = tx.section->runtime;
 		tx_rt = &lane->undo;
 	}
 
@@ -1191,7 +1190,7 @@ pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
  * obj_tx_callback -- (internal) executes callback associated with current stage
  */
 static void
-obj_tx_callback()
+obj_tx_callback(void)
 {
 	if (!tx.stage_callback)
 		return;
@@ -1208,7 +1207,7 @@ obj_tx_callback()
  * pmemobj_tx_stage -- returns current transaction stage
  */
 enum pobj_tx_stage
-pmemobj_tx_stage()
+pmemobj_tx_stage(void)
 {
 	LOG(3, NULL);
 
@@ -1283,7 +1282,7 @@ pmemobj_tx_errno(void)
  * pmemobj_tx_commit -- commits current transaction
  */
 void
-pmemobj_tx_commit()
+pmemobj_tx_commit(void)
 {
 	LOG(3, NULL);
 
@@ -1331,7 +1330,7 @@ pmemobj_tx_commit()
  * pmemobj_tx_end -- ends current transaction
  */
 int
-pmemobj_tx_end()
+pmemobj_tx_end(void)
 {
 	LOG(3, NULL);
 
@@ -1406,7 +1405,7 @@ pmemobj_tx_end()
  * pmemobj_tx_process -- processes current transaction stage
  */
 void
-pmemobj_tx_process()
+pmemobj_tx_process(void)
 {
 	LOG(3, NULL);
 

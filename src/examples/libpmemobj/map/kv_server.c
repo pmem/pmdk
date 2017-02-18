@@ -75,8 +75,8 @@ static struct map_ctx *mapc;
 static PMEMobjpool *pop;
 static TOID(struct map) map;
 
-uv_tcp_t server;
-uv_loop_t *loop;
+static uv_tcp_t server;
+static uv_loop_t *loop;
 
 typedef int (*msg_handler)(uv_stream_t *client, const char *msg, size_t len);
 
@@ -251,7 +251,7 @@ cmsg_kill_handler(uv_stream_t *client, const char *msg, size_t len)
 }
 
 /* kv protocol implementation */
-msg_handler protocol_impl[MAX_CMSG] = {
+static msg_handler protocol_impl[MAX_CMSG] = {
 	cmsg_insert_handler,
 	cmsg_remove_handler,
 	cmsg_get_handler,
@@ -325,7 +325,7 @@ static uv_buf_t msg_buf = {0};
 /*
  * get_read_buf_cb -- returns buffer for incoming client message
  */
-void
+static void
 get_read_buf_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf)
 {
 	buf->base = msg_buf.base;

@@ -45,10 +45,10 @@
 #define MALLOC_HOOK_VOLATILE /* */
 #endif
 
-void *(*old_malloc_hook) (size_t, const void *);
-void *(*old_realloc_hook) (void *, size_t, const void *);
-void *(*old_memalign_hook) (size_t, size_t, const void *);
-void (*old_free_hook) (void *, const void *);
+static void *(*old_malloc_hook) (size_t, const void *);
+static void *(*old_realloc_hook) (void *, size_t, const void *);
+static void *(*old_memalign_hook) (size_t, size_t, const void *);
+static void (*old_free_hook) (void *, const void *);
 
 static int malloc_cnt = 0;
 static int realloc_cnt = 0;
