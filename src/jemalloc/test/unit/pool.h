@@ -224,7 +224,7 @@ TEST_BEGIN(test_pool_check_memory) {
 		pool = pool_create(mem_pool, pool_size, 0);
 		assert_ptr_not_null(pool, "Can not create pool!!!");
 		size_allocated = 0;
-		memset(allocs, 0, TEST_ALLOCS_SIZE);
+		memset(allocs, 0, TEST_ALLOCS_SIZE * sizeof(void *));
 
 		for (i = 0; i < TEST_ALLOCS_SIZE;++i) {
 			allocs[i] = pool_malloc(pool, object_size);

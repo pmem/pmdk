@@ -40,6 +40,7 @@
 #include <libpmemobj++/persistent_ptr.hpp>
 #include <libpmemobj++/pool.hpp>
 
+#include <functional>
 #include <mutex>
 #include <thread>
 #include <vector>
