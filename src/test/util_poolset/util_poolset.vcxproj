@@ -139,6 +139,7 @@
     <None Include="TEST0w.PS1" />
     <None Include="TEST1w.PS1" />
     <None Include="TEST2w.PS1" />
+    <None Include="TEST3w.PS1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

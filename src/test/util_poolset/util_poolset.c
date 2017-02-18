@@ -149,8 +149,8 @@ main(int argc, char *argv[])
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
-	if (argc < 5)
-		UT_FATAL("usage: %s cmd minlen hdrsize [mockopts] setfile ...",
+	if (argc < 4)
+		UT_FATAL("usage: %s cmd minlen [mockopts] setfile ...",
 			argv[0]);
 
 	char *fname;
