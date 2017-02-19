@@ -186,7 +186,7 @@ for file in $FILES ; do
 				else
 					NEW=$COMMIT_FIRST-$COMMIT_LAST
 				fi
-				echo "error: wrong copyright date in file: $file (is: $YEARS, should be: $NEW)" >&2
+				echo "$file:1: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
 				RV=1
 			fi
 		else

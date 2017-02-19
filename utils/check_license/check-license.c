@@ -63,6 +63,7 @@
 #define STR_MODE_LICENSE	"check-license"
 
 #define ERROR(fmt, ...)	fprintf(stderr, "error: " fmt "\n", __VA_ARGS__)
+#define ERROR2(fmt, ...)	fprintf(stderr, fmt "\n", __VA_ARGS__)
 
 /*
  * help_str -- string for the help message
@@ -231,11 +232,11 @@ analyze_license(const char *path_to_check,
 	if (strstr2(buffer, LICENSE_BEG, LICENSE_END,
 				&beg_str, &end_str)) {
 		if (!beg_str)
-			ERROR("incorrect license in the file: %s"
+			ERROR2("%s:1: error: incorrect license"
 				" (license should start with the string '%s')",
 				path_to_check, LICENSE_BEG);
 		else
-			ERROR("incorrect license in the file: %s"
+			ERROR2("%s:1: error: incorrect license"
 				" (license should end with the string '%s')",
 				path_to_check, LICENSE_END);
 		return -1;
@@ -405,12 +406,12 @@ verify_license(const char *path_to_check, char *pattern)
 
 	if (err_str)
 		/* found an error in the copyright notice */
-		ERROR("incorrect copyright notice in the file: %s (%s)",
+		ERROR2("%s:1: error: incorrect copyright notice: %s",
 			path_to_check, err_str);
 
 	/* now check the license */
 	if (memcmp(license, pattern, strlen(pattern)) != 0) {
-		ERROR("incorrect license in the file: %s", path_to_check);
+		ERROR2("%s:1: error: incorrect license", path_to_check);
 		print_diff(license, pattern, strlen(pattern));
 		return -1;
 	}
