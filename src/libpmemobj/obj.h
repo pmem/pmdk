@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -142,7 +142,7 @@ struct pmemobjpool {
 	struct palloc_heap heap;
 	struct lane_descriptor lanes_desc;
 	uint64_t uuid_lo;
-	int is_dax;		/* true if mapped on device dax */
+	int is_dev_dax;		/* true if mapped on device dax */
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */

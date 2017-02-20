@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -89,7 +89,7 @@ signal_handler(int sig)
 #define PMEM_FILE_ALL_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
-static int device_dax = 0;
+static int is_dev_dax = 0;
 
 /*
  * parse_flags -- parse 'flags' string
@@ -121,7 +121,7 @@ parse_flags(const char *flags_str)
 			ret |= (PMEM_FILE_ALL_FLAGS + 1);
 			break;
 		case 'D':
-			device_dax = 1;
+			is_dev_dax = 1;
 			break;
 		default:
 			UT_FATAL("unknown flags: %c", *flags_str);
@@ -234,7 +234,7 @@ main(int argc, char *argv[])
 		}
 
 		if (addr) {
-			if ((flags & PMEM_FILE_TMPFILE) == 0 && !device_dax) {
+			if ((flags & PMEM_FILE_TMPFILE) == 0 && !is_dev_dax) {
 				fd = OPEN(argv[i], O_RDWR);
 
 				if (!use_mlen) {

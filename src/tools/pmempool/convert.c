@@ -229,8 +229,8 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 					hdr->major = htole32(target_m);
 					util_checksum(hdr, sizeof(*hdr),
 						&hdr->checksum, 1);
-					PERSIST_GENERIC_AUTO(part->is_dax, hdr,
-						sizeof(struct pool_hdr));
+					PERSIST_GENERIC_AUTO(part->is_dev_dax,
+						hdr, sizeof(struct pool_hdr));
 				}
 			}
 		}
@@ -239,7 +239,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	if (i != m) /* at least one step has been performed */
 		printf("The pool has been converted to version %d\n.", i);
 
-	PERSIST_GENERIC_AUTO(psf->poolset->replica[0]->part[0].is_dax,
+	PERSIST_GENERIC_AUTO(psf->poolset->replica[0]->part[0].is_dev_dax,
 		pop, psf->size);
 
 out:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ struct pool_set_part {
 	int fd;
 	int flags;		/* stores flags used when opening the file */
 				/* valid only if fd >= 0 */
-	int is_dax;		/* indicates if the part is on device dax */
+	int is_dev_dax;		/* indicates if the part is on device dax */
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */

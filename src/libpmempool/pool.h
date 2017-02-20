@@ -63,7 +63,7 @@ struct pool_params {
 	mode_t mode;
 	int is_poolset;
 	int is_part;
-	int is_device_dax;
+	int is_dev_dax;
 	union {
 		struct {
 			uint64_t bsize;
