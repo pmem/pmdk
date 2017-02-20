@@ -1,4 +1,19 @@
 
+Mon Feb 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2.1
+	This NVML release changes the behavior of pmem_is_pmem() on Linux.
+	The pmem_is_pmem() function will now return true only if the entire
+	range is mapped directly from Device DAX (/dev/daxX.Y) without an
+	intervening file system, and only if the corresponding file mapping
+	was created with pmem_map_file().  See libpmem(3) for details.
+
+	Bug fixes:
+	- jemalloc: fix test compilation on Fedora 26 (rawhide)
+	- test: fix cpp test compilation on Fedora 26 (rawhide)
+	- common: use same queue.h on linux and windows
+	- common: queue.h clang static analyzer fix
+
 Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2
