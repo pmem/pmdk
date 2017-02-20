@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "out.h"
 
@@ -74,6 +75,7 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 
 
 void util_mmap_init(void);
+void util_mmap_fini(void);
 
 int util_range_ro(void *addr, size_t len);
 int util_range_rw(void *addr, size_t len);
@@ -103,5 +105,9 @@ util_map_hint_align(size_t len, size_t req_align)
 		align = 2 * MEGABYTE;
 	return align;
 }
+
+int util_range_register(const void *addr, size_t len);
+int util_range_unregister(const void *addr, size_t len);
+int util_range_is_pmem(const void *addr, size_t len);
 
 #endif

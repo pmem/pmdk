@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -176,7 +176,7 @@ OTHER_TESTS = \
 
 PMEM_TESTS = \
 	pmem_is_pmem\
-	pmem_is_pmem_proc_linux\
+	pmem_is_pmem_linux\
 	pmem_map\
 	pmem_memcpy\
 	pmem_memmove\

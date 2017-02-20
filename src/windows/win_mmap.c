@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  * Copyright (c) 2015-2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,12 @@ unsigned long long Mmap_align;
 /* page size */
 unsigned long long Pagesize;
 
-HANDLE FileMappingQMutex = NULL;
+/*
+ * XXX Unify the Linux and Windows code and replace this structure with
+ * the map tracking list defined in mmap.c.
+ */
+HANDLE FileMappingQMutex = INVALID_HANDLE_VALUE;
+
 struct FMLHead FileMappingQHead =
 	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
 

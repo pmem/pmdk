@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
  */
 
 #include "unittest.h"
-#include <sys/queue.h>
+#include "queue.h"
 
 typedef struct TEST_LIST_NODE {
 	LIST_ENTRY(TEST_LIST_NODE) ListEntry;

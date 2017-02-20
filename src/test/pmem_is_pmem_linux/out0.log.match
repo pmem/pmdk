@@ -1,0 +1,8 @@
+pmem_is_pmem_linux/TEST0: START: pmem_is_pmem_linux
+ ./pmem_is_pmem_linux$(nW) a 0x7fff77423000 2147479552 a 0x7fff77424000 2147479552 t 0x7fff77424000 2147479552 t 0x7fff77424000 2147479553 t 0x7fff77424000 8192 t 0x7fff77423000 8192 t 0x7fff77423000 2147483648
+addr 0x7fff77424000 len 2147479552 is_pmem 1
+addr 0x7fff77424000 len 2147479553 is_pmem 0
+addr 0x7fff77424000 len 8192 is_pmem 1
+addr 0x7fff77423000 len 8192 is_pmem 1
+addr 0x7fff77423000 len 2147483648 is_pmem 1
+pmem_is_pmem_linux/TEST0: Done

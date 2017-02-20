@@ -28,4 +28,6 @@ CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)number: @@1234567
 
 CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)error@@: @@Invalid argument@@
 
+CUSTOM_PRINT: <@@trace_func>: <@@3> [@@$(nW):@@$(N) @@util_mmap_fini] @@@@@@
+
 traces_custom_function$(nW)TEST1: Done
