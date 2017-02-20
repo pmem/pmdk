@@ -1,6 +1,7 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * Copyright 2012, Armon Dadgar. All rights reserved.
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -170,7 +171,7 @@ int art_tree_destroy(VMEM *vmp, art_tree *t);
 #ifdef BROKEN_GCC_C99_INLINE
 #define art_size(t) ((t)->size)
 #else
-inline uint64_t art_size(art_tree *t) {
+static inline uint64_t art_size(art_tree *t) {
 	return t->size;
 }
 #endif
