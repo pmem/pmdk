@@ -63,19 +63,19 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
  */
 #ifdef DEBUG
 
-#define RANGE(addr, len, is_dax, type) do {\
-	if (!is_dax) ASSERT(util_range_##type(addr, len) >= 0);\
+#define RANGE(addr, len, is_dev_dax, type) do {\
+	if (!is_dev_dax) ASSERT(util_range_##type(addr, len) >= 0);\
 } while (0)
 
 #else
 
-#define RANGE(addr, len, is_dax, type) do {} while (0)
+#define RANGE(addr, len, is_dev_dax, type) do {} while (0)
 
 #endif
 
-#define RANGE_RO(addr, len, is_dax) RANGE(addr, len, is_dax, ro)
-#define RANGE_RW(addr, len, is_dax) RANGE(addr, len, is_dax, rw)
-#define RANGE_NONE(addr, len, is_dax) RANGE(addr, len, is_dax, none)
+#define RANGE_RO(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, ro)
+#define RANGE_RW(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, rw)
+#define RANGE_NONE(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, none)
 
 
 void util_mmap_init(void);

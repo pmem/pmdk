@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@ struct pool_params {
 	mode_t mode;
 	int is_poolset;
 	int is_part;
-	int is_device_dax;
+	int is_dev_dax;
 	union {
 		struct {
 			uint64_t bsize;
