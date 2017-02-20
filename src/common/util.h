@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -214,9 +214,9 @@ char *util_concat_str(const char *s1, const char *s2);
 		pmem_msync(raddr, rlen);\
 } while (0)
 
-#define PERSIST_GENERIC_AUTO(addr, len) do {\
+#define PERSIST_GENERIC_AUTO(is_dax, addr, len) do {\
 	void *raddr = addr; size_t rlen = len;\
-	if (pmem_is_pmem(raddr, rlen)) \
+	if (is_dax || pmem_is_pmem(raddr, rlen))\
 		pmem_persist(raddr, rlen);\
 	else\
 		pmem_msync(raddr, rlen);\

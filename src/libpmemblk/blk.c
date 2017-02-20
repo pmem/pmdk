@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -437,6 +437,7 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->set = set;
 	pbp->is_pmem = rep->is_pmem;
 	pbp->is_dax = rep->part[0].is_dax;
+	ASSERT(!pbp->is_dax || pbp->is_pmem); /* is_dax implies is_pmem */
 
 	/* create pool descriptor */
 	if (pmemblk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
@@ -505,6 +506,7 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	pbp->set = set;
 	pbp->is_pmem = rep->is_pmem;
 	pbp->is_dax = rep->part[0].is_dax;
+	ASSERT(!pbp->is_dax || pbp->is_pmem); /* is_dax implies is_pmem */
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
