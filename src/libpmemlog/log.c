@@ -193,6 +193,7 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	plp->set = set;
 	plp->is_pmem = rep->is_pmem;
 	plp->is_dax = rep->part[0].is_dax;
+	ASSERT(!plp->is_dax || plp->is_pmem); /* is_dax implies is_pmem */
 
 	/* create pool descriptor */
 	if (pmemlog_descr_create(plp, rep->repsize) != 0) {
@@ -257,6 +258,7 @@ pmemlog_open_common(const char *path, int cow)
 	plp->set = set;
 	plp->is_pmem = rep->is_pmem;
 	plp->is_dax = rep->part[0].is_dax;
+	ASSERT(!plp->is_dax || plp->is_pmem); /* is_dax implies is_pmem */
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;

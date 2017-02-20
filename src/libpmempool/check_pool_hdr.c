@@ -884,7 +884,8 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
 	util_convert2le_hdr(&loc->hdr);
 	memcpy(loc->hdrp, &loc->hdr, sizeof(loc->hdr));
 	loc->hdr_valid = pool_hdr_valid(loc->hdrp);
-	PERSIST_GENERIC_AUTO(loc->hdrp, sizeof(*loc->hdrp));
+	PERSIST_GENERIC_AUTO(rep->part[0].is_dax, loc->hdrp,
+		sizeof(*loc->hdrp));
 
 	util_convert2h_hdr_nocheck(&loc->hdr);
 	loc->pool_hdr_modified = 1;

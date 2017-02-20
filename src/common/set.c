@@ -1652,7 +1652,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(rep->part[partidx].is_dax, hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -1981,7 +1981,12 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		}
 	} while (retry_for_contiguous_addr);
 
-	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+	/*
+	 * If replica is on Device DAX, it may be assumed PMEM.
+	 * It's enough to check the first part only.
+	 */
+	rep->is_pmem = rep->part[0].is_dax ||
+		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
 	ASSERTeq(mapsize, rep->repsize);
 
@@ -2383,7 +2388,12 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		}
 	} while (retry_for_contiguous_addr);
 
-	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+	/*
+	 * If replica is on Device DAX, it may be assumed PMEM.
+	 * It's enough to check the first part only.
+	 */
+	rep->is_pmem = rep->part[0].is_dax ||
+		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
 	ASSERTeq(mapsize, rep->repsize);
 
@@ -2500,7 +2510,7 @@ util_replica_set_attr(struct pool_replica *rep, const char *sig,
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 		/* store pool's header */
-		PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+		PERSIST_GENERIC_AUTO(rep->part[p].is_dax, hdrp, sizeof(*hdrp));
 	}
 
 	/* unmap all headers */

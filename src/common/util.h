@@ -240,9 +240,9 @@ static
 		pmem_msync(raddr, rlen);\
 } while (0)
 
-#define PERSIST_GENERIC_AUTO(addr, len) do {\
+#define PERSIST_GENERIC_AUTO(is_dax, addr, len) do {\
 	void *raddr = addr; size_t rlen = len;\
-	if (pmem_is_pmem(raddr, rlen)) \
+	if (is_dax || pmem_is_pmem(raddr, rlen))\
 		pmem_persist(raddr, rlen);\
 	else\
 		pmem_msync(raddr, rlen);\
