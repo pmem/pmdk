@@ -409,7 +409,6 @@ heap_create_run(struct palloc_heap *heap, struct bucket *b,
 	ASSERT(hdr->size_idx == 1);
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
 
-	VALGRIND_ANNOTATE_NEW_MEMORY(run, sizeof(*run));
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 	heap_run_init(heap, b, hdr, run);
 	heap_process_run_metadata(heap, b, run, chunk_id, zone_id);
