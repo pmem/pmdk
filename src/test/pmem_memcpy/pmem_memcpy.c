@@ -38,6 +38,8 @@
  */
 
 #include "unittest.h"
+#include "util_pmem.h"
+#include "file.h"
 
 /*
  * swap_mappings - given to mmapped regions swap them.
@@ -87,9 +89,13 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 	memset(buf, 0, bytes);
 	memset(dest, 0, bytes);
 	memset(src, 0, bytes);
+	util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
 
 	memset(src, 0x5A, bytes / 4);
+	util_persist_auto(util_fd_is_device_dax(fd), src, bytes / 4);
 	memset(src + bytes / 4, 0x46, bytes / 4);
+	util_persist_auto(util_fd_is_device_dax(fd), src + bytes / 4,
+			bytes / 4);
 
 	/* dest == src */
 	ret = pmem_memcpy_persist(dest + dest_off, dest + dest_off, bytes / 2);
@@ -159,6 +165,7 @@ main(int argc, char *argv[])
 	}
 
 	memset(dest, 0, (2 * bytes));
+	util_persist_auto(util_fd_is_device_dax(fd), dest, 2 * bytes);
 	memset(src, 0, (2 * bytes));
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);

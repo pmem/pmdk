@@ -37,6 +37,8 @@
  */
 
 #include "unittest.h"
+#include "util_pmem.h"
+#include "file.h"
 
 int
 main(int argc, char *argv[])
@@ -64,6 +66,7 @@ main(int argc, char *argv[])
 	char *buf = MALLOC(bytes);
 
 	memset(dest, 0, bytes);
+	util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
 	dest1 = MALLOC(bytes);
 	memset(dest1, 0, bytes);
 
