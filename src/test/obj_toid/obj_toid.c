@@ -82,8 +82,9 @@ do_direct_simple(PMEMobjpool *pop)
 {
 	TOID(struct obj) obj;
 	POBJ_NEW(pop, &obj, struct obj, NULL, NULL);
-	DIRECT_RW(obj)->id = TEST_NUM;
-	UT_ASSERTeq(DIRECT_RO(obj)->id, TEST_NUM);
+	D_RW(obj)->id = TEST_NUM;
+	pmemobj_persist(pop, &D_RW(obj)->id, sizeof(D_RW(obj)->id));
+	UT_ASSERTeq(D_RO(obj)->id, TEST_NUM);
 	POBJ_FREE(&obj);
 }
 
