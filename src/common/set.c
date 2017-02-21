@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -303,7 +303,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
 	void *hdrp;
-	if (part->is_dax) {
+	if (part->is_dev_dax) {
 		/*
 		 * Workaround for dax device not allowing an mmap only of a
 		 * part of the device. This means that currently only one device
@@ -372,7 +372,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERT(((off_t)offset) >= 0);
 
 	void *addrp;
-	if (part->is_dax) {
+	if (part->is_dev_dax) {
 		/*
 		 * DAX device can only be in a poolset in which it's the only
 		 * part. This means we can map the whole device.
@@ -745,8 +745,8 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	struct pool_replica *rep = set->replica[set->nreplicas - 1];
 	ASSERTne(rep, NULL);
 
-	int is_dax = util_file_is_device_dax(path);
-	if (rep->nparts != 0 && (is_dax || rep->part[0].is_dax)) {
+	int is_dev_dax = util_file_is_device_dax(path);
+	if (rep->nparts != 0 && (is_dev_dax || rep->part[0].is_dev_dax)) {
 		ERR("device dax must be the only part in the poolset");
 		return -1;
 	}
@@ -765,7 +765,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
-	rep->part[p].is_dax = is_dax;
+	rep->part[p].is_dev_dax = is_dev_dax;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
@@ -1079,7 +1079,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
-	rep->part[0].is_dax = util_file_is_device_dax(path);
+	rep->part[0].is_dev_dax = util_file_is_device_dax(path);
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -1313,7 +1313,7 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	 * alignment (default is 2MB). This workaround madvises the entire
 	 * memory region before registering it by ibv_reg_mr(3).
 	 */
-	if (set->replica[0]->part[0].is_dax) {
+	if (set->replica[0]->part[0].is_dev_dax) {
 		int ret = madvise(set->replica[0]->part[0].addr,
 				set->replica[0]->part[0].filesize,
 				MADV_DONTFORK);
@@ -1403,10 +1403,10 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	int fd;
 	size_t size = 0;
 
-	int device_dax = util_file_is_device_dax(path);
+	int is_dev_dax = util_file_is_device_dax(path);
 
 	if (poolsize != 0) {
-		if (device_dax) {
+		if (is_dev_dax) {
 			ERR("size must be zero for device dax");
 			return -1;
 		}
@@ -1422,7 +1422,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
-	if (!device_dax) {
+	if (!is_dev_dax) {
 		/*
 		 * read returns ssize_t, but we know it will return value
 		 * between -1 and POOLSET_HDR_SIG_LEN (11), so we can safely
@@ -1435,7 +1435,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		}
 	}
 
-	if (device_dax || ret < POOLSET_HDR_SIG_LEN ||
+	if (is_dev_dax || ret < POOLSET_HDR_SIG_LEN ||
 	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
 
@@ -1558,7 +1558,8 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
-	PERSIST_GENERIC_AUTO(hdrp, sizeof(*hdrp));
+	PERSIST_GENERIC_AUTO(rep->part[partidx].is_dev_dax,
+			hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -1887,7 +1888,12 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		}
 	} while (retry_for_contiguous_addr);
 
-	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+	/*
+	 * If replica is on Device DAX, it may be assumed PMEM.
+	 * It's enough to check the first part only.
+	 */
+	rep->is_pmem = rep->part[0].is_dev_dax ||
+		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
 	ASSERTeq(mapsize, rep->repsize);
 
@@ -2288,7 +2294,12 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		}
 	} while (retry_for_contiguous_addr);
 
-	rep->is_pmem = pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+	/*
+	 * If replica is on Device DAX, it may be assumed PMEM.
+	 * It's enough to check the first part only.
+	 */
+	rep->is_pmem = rep->part[0].is_dev_dax ||
+		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
 
 	ASSERTeq(mapsize, rep->repsize);
 
@@ -2433,7 +2444,7 @@ util_pool_open_nocheck(struct pool_set *set, int rdonly)
 {
 	LOG(3, "set %p rdonly %i", set, rdonly);
 
-	if (rdonly && set->replica[0]->part[0].is_dax) {
+	if (rdonly && set->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;
@@ -2513,7 +2524,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 		return -1;
 	}
 
-	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
+	if (rdonly && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;
@@ -2600,7 +2611,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 		return -1;
 	}
 
-	if (rdonly && (*setp)->replica[0]->part[0].is_dax) {
+	if (rdonly && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -152,13 +152,13 @@ vmem_create(const char *dir, size_t size)
 		return NULL;
 	}
 
-	int dax = util_file_is_device_dax(dir);
+	int is_dev_dax = util_file_is_device_dax(dir);
 
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
 
 	void *addr;
-	if (dax) {
+	if (is_dev_dax) {
 		if ((addr = util_file_map_whole(dir)) == NULL)
 			return NULL;
 	} else {
@@ -176,7 +176,8 @@ vmem_create(const char *dir, size_t size)
 
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
-			size - Header_size, /* zeroed if */ !dax) == NULL) {
+			size - Header_size,
+			/* zeroed if */ !is_dev_dax) == NULL) {
 		ERR("pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
 		return NULL;
@@ -188,7 +189,7 @@ vmem_create(const char *dir, size_t size)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	if (!dax)
+	if (!is_dev_dax)
 		util_range_none(addr, sizeof(struct pool_hdr));
 
 	LOG(3, "vmp %p", vmp);

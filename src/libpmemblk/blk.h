@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,7 +71,7 @@ struct pmemblk {
 	unsigned nlane;			/* number of lanes */
 	unsigned next_lane;		/* used to rotate through lanes */
 	pthread_mutex_t *locks;		/* one per lane */
-	int is_dax;			/* true if mapped on device dax */
+	int is_dev_dax;			/* true if mapped on device dax */
 
 	struct pool_set *set;		/* pool set info */
 

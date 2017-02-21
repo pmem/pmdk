@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -135,7 +135,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 #endif
 
 	/* unprotect the memory (debug version only) */
-	RANGE_RW(dest, count, pbp->is_dax);
+	RANGE_RW(dest, count, pbp->is_dev_dax);
 
 	if (pbp->is_pmem)
 		pmem_memcpy_nodrain(dest, buf, count);
@@ -143,7 +143,7 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 		memcpy(dest, buf, count);
 
 	/* protect the memory again (debug version only) */
-	RANGE_RO(dest, count, pbp->is_dax);
+	RANGE_RO(dest, count, pbp->is_dev_dax);
 
 #ifdef DEBUG
 	/* release debug write lock */
@@ -242,12 +242,12 @@ nszero(void *ns, unsigned lane, size_t count, uint64_t off)
 	void *dest = (char *)pbp->data + off;
 
 	/* unprotect the memory (debug version only) */
-	RANGE_RW(dest, count, pbp->is_dax);
+	RANGE_RW(dest, count, pbp->is_dev_dax);
 
 	pmem_memset_persist(dest, 0, count);
 
 	/* protect the memory again (debug version only) */
-	RANGE_RO(dest, count, pbp->is_dax);
+	RANGE_RO(dest, count, pbp->is_dev_dax);
 
 	return 0;
 }
@@ -373,10 +373,10 @@ pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	RANGE_NONE(pbp->addr, sizeof(struct pool_hdr), pbp->is_dax);
+	RANGE_NONE(pbp->addr, sizeof(struct pool_hdr), pbp->is_dev_dax);
 
 	/* the data area should be kept read-only for debug version */
-	RANGE_RO(pbp->data, pbp->datasize, pbp->is_dax);
+	RANGE_RO(pbp->data, pbp->datasize, pbp->is_dev_dax);
 
 	return 0;
 
@@ -436,7 +436,10 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	pbp->size = rep->repsize;
 	pbp->set = set;
 	pbp->is_pmem = rep->is_pmem;
-	pbp->is_dax = rep->part[0].is_dax;
+	pbp->is_dev_dax = rep->part[0].is_dev_dax;
+
+	/* is_dev_dax implies is_pmem */
+	ASSERT(!pbp->is_dev_dax || pbp->is_pmem);
 
 	/* create pool descriptor */
 	if (pmemblk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
@@ -504,7 +507,10 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	pbp->size = rep->repsize;
 	pbp->set = set;
 	pbp->is_pmem = rep->is_pmem;
-	pbp->is_dax = rep->part[0].is_dax;
+	pbp->is_dev_dax = rep->part[0].is_dev_dax;
+
+	/* is_dev_dax implies is_pmem */
+	ASSERT(!pbp->is_dev_dax || pbp->is_pmem);
 
 	if (set->nreplicas > 1) {
 		errno = ENOTSUP;
