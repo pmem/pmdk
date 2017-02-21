@@ -108,10 +108,11 @@ out:
 #endif
 
 /*
- * util_file_is_device_dax -- checks whether the path points to a device dax
+ * util_fd_is_device_dax -- check whether the file descriptor is associated
+ *                          with a device dax
  */
 int
-util_file_is_device_dax(const char *path)
+util_fd_is_device_dax(int fd)
 {
 #ifdef _WIN32
 	return 0;
@@ -120,10 +121,10 @@ util_file_is_device_dax(const char *path)
 	int olderrno = errno;
 	int ret = 0;
 
-	if (path == NULL)
+	if (fd < 0)
 		goto out;
 
-	if (util_stat(path, &st) < 0)
+	if (util_fstat(fd, &st) < 0)
 		goto out;
 
 	if (!S_ISCHR(st.st_mode))
@@ -139,6 +140,36 @@ util_file_is_device_dax(const char *path)
 		goto out;
 
 	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
+
+out:
+	errno = olderrno;
+	return ret;
+#endif
+
+}
+
+/*
+ * util_file_is_device_dax -- checks whether the path points to a device dax
+ */
+int
+util_file_is_device_dax(const char *path)
+{
+#ifdef _WIN32
+	return 0;
+#else
+	int olderrno = errno;
+	int ret = 0;
+
+	if (path == NULL)
+		goto out;
+
+	int fd = open(path, O_RDONLY);
+
+	if (fd < 0)
+		goto out;
+
+	ret = util_fd_is_device_dax(fd);
+	(void) close(fd);
 
 out:
 	errno = olderrno;

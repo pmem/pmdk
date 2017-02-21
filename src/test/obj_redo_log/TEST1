@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,8 +41,13 @@ export UNITTEST_NUM=1
 . ../unittest/unittest.sh
 
 require_test_type medium
-
 require_build_type debug
+
+# This test stores some redo log entries after storing the finish flag.
+# All redo log entries are flushed to persistence when the finish flag is
+# stored. Pmemcheck would complain about stores not made persistent so we
+# disable pmemcheck.
+configure_valgrind pmemcheck force-disable
 
 setup
 
