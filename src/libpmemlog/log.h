@@ -66,7 +66,7 @@ struct pmemlog {
 	int is_pmem;			/* true if pool is PMEM */
 	int rdonly;			/* true if pool is opened read-only */
 	pthread_rwlock_t *rwlockp;	/* pointer to RW lock */
-	int is_dax;			/* true if mapped on device dax */
+	int is_dev_dax;			/* true if mapped on device dax */
 
 	struct pool_set *set;		/* pool set info */
 };

@@ -330,7 +330,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			ERR("!mprotect");
 			goto out_unmap;
 		}
-		params->is_device_dax = set->replica[0]->part[0].is_dax;
+		params->is_dev_dax = set->replica[0]->part[0].is_dev_dax;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
 #ifndef _WIN32
@@ -354,7 +354,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			ret = -1;
 			goto out_close;
 		}
-		params->is_device_dax = util_file_is_device_dax(ppc->path);
+		params->is_dev_dax = util_file_is_device_dax(ppc->path);
 	}
 
 	/* stop processing for BTT device */
@@ -517,7 +517,7 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 	int rdonly = CHECK_IS_NOT(ppc, REPAIR);
 	int prv = CHECK_IS(ppc, DRY_RUN);
 
-	if (prv && pool->params.is_device_dax) {
+	if (prv && pool->params.is_dev_dax) {
 		errno = ENOTSUP;
 		ERR("!cannot perform a dry run on dax device");
 		goto error;
@@ -788,7 +788,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 		pmem_memcpy_persist(daddr, saddr, smapped);
 	} else {
 		memcpy(daddr, saddr, smapped);
-		PERSIST_GENERIC(dpart->is_dax, daddr, smapped);
+		PERSIST_GENERIC(dpart->is_dev_dax, daddr, smapped);
 	}
 
 	pmem_unmap(daddr, dmapped);

@@ -566,8 +566,8 @@ pmempool_info_part(struct pmem_info *pip, unsigned repn, unsigned partn, int v)
 	outv_field(v, "path", "%s", path);
 
 	/* get type of the part file */
-	int is_dax = util_file_is_device_dax(path);
-	const char *type_str = is_dax ? "device dax" : "regular file";
+	int is_dev_dax = util_file_is_device_dax(path);
+	const char *type_str = is_dev_dax ? "device dax" : "regular file";
 	outv_field(v, "type", "%s", type_str);
 
 	/* get size of the part file */
