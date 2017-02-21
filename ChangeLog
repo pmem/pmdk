@@ -1,5 +1,5 @@
 
-Mon Feb 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Tue Feb 21 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2.1
 	This NVML release changes the behavior of pmem_is_pmem() on Linux.
@@ -13,6 +13,8 @@ Mon Feb 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- test: fix cpp test compilation on Fedora 26 (rawhide)
 	- common: use same queue.h on linux and windows
 	- common: queue.h clang static analyzer fix
+	- common: fix path handling in build-dpkg.sh
+	- test: fix match files in pmempool_transform/TEST8
 
 Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
