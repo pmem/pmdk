@@ -92,6 +92,7 @@ struct obj_bench {
 static int
 init_objects(struct obj_bench *ob)
 {
+	assert(ob->nobjs != 0);
 	ob->oids = (PMEMoid *)malloc(ob->nobjs * sizeof(*ob->oids));
 	if (!ob->oids) {
 		perror("malloc");

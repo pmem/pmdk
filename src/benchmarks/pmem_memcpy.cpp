@@ -409,6 +409,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	pmb->n_rand_offsets = args->n_ops_per_thread * args->n_threads;
+	assert(pmb->n_rand_offsets != 0);
 	pmb->rand_offsets = (unsigned *)malloc(pmb->n_rand_offsets *
 					       sizeof(*pmb->rand_offsets));
 

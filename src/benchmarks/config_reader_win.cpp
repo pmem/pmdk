@@ -191,24 +191,31 @@ config_reader_get_scenarios(struct config_reader *cr,
 	 * The config file must have at least one group, otherwise
 	 * it is considered as invalid.
 	 */
+	int ret = 0;
 
-	TCHAR sections[SIZEOF_SECTION];
+	TCHAR *sections = (TCHAR *)malloc(sizeof(TCHAR) * SIZEOF_SECTION);
+	if (!sections)
+		return -1;
+
 	GetPrivateProfileSectionNames(sections, SIZEOF_SECTION, cr->lpFileName);
 
-	if (NULL_LIST_EMPTY(sections))
-		return -1;
+	if (NULL_LIST_EMPTY(sections)) {
+		ret = -1;
+		goto err_sections;
+	}
 
 	/*
 	 * Check if global section is present and read it.
 	 */
-	TCHAR global[SIZEOF_SECTION];
+	TCHAR *global = (TCHAR *)malloc(sizeof(TCHAR) * SIZEOF_SECTION);
+	if (!global)
+		return -1;
+
 	GetPrivateProfileSection(SECTION_GLOBAL, global, SIZEOF_SECTION,
 				 cr->lpFileName);
 	KV_LIST global_kv = KV_LIST_INIT(global);
 
 	int has_global = !KV_LIST_EMPTY(global_kv);
-
-	int ret = 0;
 
 	struct scenarios *s = scenarios_alloc();
 	assert(NULL != s);
@@ -224,7 +231,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			break;
 		}
 	}
-
+	TCHAR *section;
 	for (LPTSTR group_name = sections; !NULL_LIST_EMPTY(group_name);
 	     group_name = NULL_LIST_NEXT(group_name)) {
 		/*
@@ -239,7 +246,9 @@ config_reader_get_scenarios(struct config_reader *cr,
 		 * If not present the benchmark name is the same as the
 		 * name of the section.
 		 */
-		TCHAR section[SIZEOF_SECTION];
+		section = (TCHAR *)malloc(sizeof(TCHAR) * SIZEOF_SECTION);
+		if (!section)
+			ret = -1;
 		GetPrivateProfileSection(group_name, section, SIZEOF_SECTION,
 					 cr->lpFileName);
 
@@ -328,11 +337,25 @@ config_reader_get_scenarios(struct config_reader *cr,
 			TAILQ_INSERT_TAIL(&scenario->head, kv, next);
 		}
 		TAILQ_INSERT_TAIL(&s->head, scenario, next);
+
+		free(section);
 	}
 	*scenarios = s;
+
+	free(global);
+	free(sections);
 	return 0;
+
+err_sections:
+	free(sections);
+	return ret;
 err_scenarios:
+	free(section);
+	free(sections);
+	free(global);
 	scenarios_free(s);
 err_gkeys:
+	free(sections);
+	free(global);
 	return ret;
 }
