@@ -550,26 +550,29 @@ clo_str_int(struct benchmark_clo *clo, void *addr, size_t size)
 
 	void *val = (char *)addr + clo->off;
 
+	int ret = 0;
 	switch (clo->type_int.size) {
 		case 1:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId8,
-				 *(int8_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRId8,
+				       *(int8_t *)val);
 			break;
 		case 2:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId16,
-				 *(int16_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRId16,
+				       *(int16_t *)val);
 			break;
 		case 4:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId32,
-				 *(int32_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRId32,
+				       *(int32_t *)val);
 			break;
 		case 8:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRId64,
-				 *(int64_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRId64,
+				       *(int64_t *)val);
 			break;
 		default:
 			return NULL;
 	}
+	if (ret < 0)
+		return NULL;
 
 	return str_buff;
 }
@@ -585,26 +588,29 @@ clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
 
 	void *val = (char *)addr + clo->off;
 
+	int ret = 0;
 	switch (clo->type_uint.size) {
 		case 1:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu8,
-				 *(uint8_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu8,
+				       *(uint8_t *)val);
 			break;
 		case 2:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu16,
-				 *(uint16_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu16,
+				       *(uint16_t *)val);
 			break;
 		case 4:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu32,
-				 *(uint32_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu32,
+				       *(uint32_t *)val);
 			break;
 		case 8:
-			snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu64,
-				 *(uint64_t *)val);
+			ret = snprintf(str_buff, STR_BUFF_SIZE, "%" PRIu64,
+				       *(uint64_t *)val);
 			break;
 		default:
 			return NULL;
 	}
+	if (ret < 0)
+		return NULL;
 
 	return str_buff;
 }

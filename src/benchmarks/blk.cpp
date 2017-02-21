@@ -226,6 +226,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	/* fill buffer with some random data */
 	memset(bworker->buff, bworker->seed, args->dsize);
 
+	assert(args->n_ops_per_thread != 0);
 	bworker->blocks = (off_t *)malloc(sizeof(*bworker->blocks) *
 					  args->n_ops_per_thread);
 	if (!bworker->blocks) {
