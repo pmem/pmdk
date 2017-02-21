@@ -114,6 +114,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 	uint64_t n_ops = args->n_ops_per_thread;
 
 	mb->n_offsets = n_ops * n_threads;
+	assert(mb->n_offsets != 0);
 	mb->offsets = (uint64_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");

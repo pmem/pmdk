@@ -631,6 +631,7 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
 
+	assert(map_bench->nkeys != 0);
 	map_bench->keys =
 		(uint64_t *)malloc(map_bench->nkeys * sizeof(*map_bench->keys));
 
