@@ -40,4 +40,5 @@ cd valgrind
 ./configure
 make
 make install
+cd ..
 rm -rf valgrind

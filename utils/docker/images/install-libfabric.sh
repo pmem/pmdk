@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,6 @@ cd $libfabric_dir \
 	&& ./configure --prefix=/usr --enable-sockets \
 	&& make -j2 \
 	&& make install
+cd ..
 rm -f ${libfabric_tarball}
 rm -rf ${libfabric_dir}
-
