@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/file.h>
+#include <sys/mman.h>
 
 #include "queue.h"
 #include "set.h"
@@ -214,6 +215,28 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 				db->mode);
 	}
 
+#ifndef _WIN32
+	/*
+	 * This is a workaround for an issue with using device dax with
+	 * libibverbs. The problem is that we use ibv_fork_init(3) which
+	 * makes all registered memory being madvised with MADV_DONTFORK
+	 * flag. In libpmemobj the remote replication is performed without
+	 * pool header (first 4k). In such case the address passed to
+	 * madvise(2) is aligned to 4k, but device dax can require different
+	 * alignment (default is 2MB). This workaround madvises the entire
+	 * memory region before registering it by ibv_reg_mr(3).
+	 */
+	if (set->replica[0]->part[0].is_dev_dax) {
+		int ret = madvise(set->replica[0]->part[0].addr,
+				set->replica[0]->part[0].filesize,
+				MADV_DONTFORK);
+		if (ret) {
+			ERR("!madvise");
+			goto err_madvise;
+		}
+	}
+#endif
+
 	/* mark as opened */
 	prp->pool_addr = set->replica[0]->part[0].addr;
 	prp->pool_size = set->poolsize;
@@ -224,6 +247,10 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 
 	return prp;
 
+#ifndef _WIN32
+err_madvise:
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+#endif
 err_free_path:
 	free(path);
 err_free_prp:
@@ -277,6 +304,28 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_path;
 	}
 
+#ifndef _WIN32
+	/*
+	 * This is a workaround for an issue with using device dax with
+	 * libibverbs. The problem is that we use ibv_fork_init(3) which
+	 * makes all registered memory being madvised with MADV_DONTFORK
+	 * flag. In libpmemobj the remote replication is performed without
+	 * pool header (first 4k). In such case the address passed to
+	 * madvise(2) is aligned to 4k, but device dax can require different
+	 * alignment (default is 2MB). This workaround madvises the entire
+	 * memory region before registering it by ibv_reg_mr(3).
+	 */
+	if (set->replica[0]->part[0].is_dev_dax) {
+		int ret = madvise(set->replica[0]->part[0].addr,
+				set->replica[0]->part[0].filesize,
+				MADV_DONTFORK);
+		if (ret) {
+			ERR("!madvise");
+			goto err_madvise;
+		}
+	}
+#endif
+
 	/* mark as opened */
 	prp->pool_addr = set->replica[0]->part[0].addr;
 	prp->pool_size = set->poolsize;
@@ -287,6 +336,10 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 
 	return prp;
 
+#ifndef _WIN32
+err_madvise:
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+#endif
 err_free_path:
 	free(path);
 err_free_prp:
