@@ -149,34 +149,28 @@ for file in $FILES ; do
 	else
 		HEADER_FIRST=`echo $YEARS | cut -d"-" -f1`
 		HEADER_LAST=` echo $YEARS | cut -d"-" -f2`
-		git log --no-merges --format="%ai %H %aE" -- $file | sort > $TMP
+
+		if [ $SHALLOW_CLONE -eq 0 ]; then
+			git log --no-merges --format="%ai %aE" -- $file | sort > $TMP
+		else
+			# grep out the grafted commits (commits with no parents)
+			git log --no-merges --format="%ai %aE qwe%prty" -- $file | grep -v "qwerty" | sort > $TMP
+		fi
 
 		# skip checking dates for new files
-		[ $(cat $TMP | wc -l) -eq 1 ] && continue
+		[ $(cat $TMP | wc -l) -le 1 ] && continue
 
 		FIRST=`cat $TMP | head -n1`
 		LAST=` cat $TMP | tail -n1`
 
 		# skip checking dates for non-Intel commits
-		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2`
+		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2 | cut -d" " -f1`
 		[ "$AUTHOR_LAST" != "intel.com" ] && continue
 
 		COMMIT_FIRST=`echo $FIRST | cut -d"-" -f1`
 		COMMIT_LAST=` echo $LAST  | cut -d"-" -f1`
-		SKIP=0
-		if [ $SHALLOW_CLONE -eq 1 ]; then
-			HASH_FIRST=`echo $FIRST | cut -d" " -f4`
-			HASH_LAST=` echo $LAST  | cut -d" " -f4`
-			if [ "$HASH_FIRST" == "$HASH_LAST" ]; then
-				CHANGED=`git diff --name-only $HASH_FIRST -- $file`
-				if [ "$CHANGED" == "" ]; then
-					SKIP=1
-					[ $VERBOSE -eq 1 ] && echo "info: checking dates in file '$file' skipped (no history)"
-				fi
-			fi
-		fi
 		if [ "$COMMIT_FIRST" != "" -a "$COMMIT_LAST" != "" ]; then
-			if [ $SKIP -eq 0 -a $HEADER_LAST -lt $COMMIT_LAST ]; then
+			if [ $HEADER_LAST -lt $COMMIT_LAST ]; then
 				if [ $HEADER_FIRST -lt $COMMIT_FIRST ]; then
 					COMMIT_FIRST=$HEADER_FIRST
 				fi
