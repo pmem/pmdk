@@ -45,6 +45,6 @@ cd $libfabric_dir \
 	&& ./configure --prefix=/usr --enable-sockets \
 	&& make -j2 \
 	&& make install
+cd ..
 rm -f ${libfabric_tarball}
 rm -rf ${libfabric_dir}
-
