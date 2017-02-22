@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,9 @@ export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
+
+# this test verifies the correctness of the tx management functions only
+configure_valgrind pmemcheck force-disable
 
 require_test_type medium
 

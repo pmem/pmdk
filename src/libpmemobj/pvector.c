@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -273,8 +273,8 @@ pvector_pop_back(struct pvector_context *ctx, entry_op_callback cb)
 	if (s.pos == 0 && s.idx != 0 /* the array 0 is embedded */) {
 #ifdef USE_VG_PMEMCHECK
 		if (On_valgrind) {
-			size_t usable_size = sizeof(uint64_t) *
-				(1ULL << (s.idx + PVECTOR_INIT_SHIFT));
+			size_t usable_size = palloc_usable_size(&ctx->pop->heap,
+				ctx->vec->arrays[s.idx]);
 			VALGRIND_REMOVE_FROM_TX(arrp, usable_size);
 		}
 #endif
