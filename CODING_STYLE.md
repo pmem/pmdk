@@ -94,3 +94,44 @@ log level for most frequently called routines.
 and [that](https://github.com/pmem/nvml/blob/master/src/test/unittest/README)
 document to get familiar with
 our test framework and the guidelines on how to write and run unit tests.
+
+### Commit messages
+All commit lines (entered when you run `git commit`) must follow the common
+conventions for git commit messages:
+- The first line is a short summary, no longer than **50 characters,** starting
+  with an area name and then a colon.  There should be no period after
+  the short summary.
+- Valid area names are: **pmem, obj, blk, log, vmem, jemalloc,
+  cpp** (for C++ bindings), **test, doc, pool** (for *libpmempool* and
+  *pmempool*), rpmem (for *librpmem* and *rpmemd*), **benchmark, examples**
+  and **common** (for everything else).
+- It is acceptable for the short summary to be the only thing in the commit
+  message if it is a trivial change.  Otherwise, the second line must be
+  a blank line.
+- Starting at the third line, additional information is given in complete
+  English sentences and, optionally, bulleted points.  This content must not
+  extend beyond **column 72.**
+- The English sentences should be written in the imperative, so you say
+  "Fix bug X" instead of "Fixed bug X" or "Fixes bug X".
+- Bullet points should use hanging indents when they take up more than
+  one line (see example below).
+- There can be any number of paragraphs, separated by a blank line, as many
+  as it takes to describe the change.
+- Any references to GitHub issues are at the end of the commit message.
+
+For example, here is a properly-formatted commit message:
+```
+doc: fix code formatting in man pages
+
+This section contains paragraph style text with complete English
+sentences.  There can be as many paragraphs as necessary.
+
+- Bullet points are typically sentence fragments
+
+- The first word of the bullet point is usually capitalized and
+  if the point is long, it is continued with a hanging indent
+
+- The sentence fragments don't typically end with a period
+
+Ref: pmem/issues#1
+```
