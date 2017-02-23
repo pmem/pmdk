@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 
 	/* 4MB => 16B */
 	int *test2r = vmem_realloc(vmp, test2, 16);
-	UT_ASSERTeq(test2r, NULL);
+	UT_ASSERTeq(test2r, test2);
 
 	/* ... but the usable size is still 4MB. */
 	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test2), 4 * 1024 * 1024);

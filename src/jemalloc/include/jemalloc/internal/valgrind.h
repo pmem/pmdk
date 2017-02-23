@@ -38,9 +38,10 @@
     ptr_maybe_null, old_ptr, old_usize, old_rzsize, old_ptr_maybe_null,	\
     zero) do {								\
 	if (in_valgrind) {						\
+		size_t rzsize = (ptr != NULL) ? p2rz(ptr) : 0;		\
 		if (!maybe_moved || ptr == old_ptr) {			\
 			VALGRIND_RESIZEINPLACE_BLOCK(ptr, old_usize,	\
-			    usize, p2rz(ptr));				\
+			    usize, rzsize);				\
 			if (zero && old_usize < usize) {		\
 				valgrind_make_mem_defined(		\
 				    (void *)((uintptr_t)ptr +		\
@@ -56,7 +57,7 @@
 				    ?  old_usize : usize;		\
 				size_t tail_size = usize - copy_size;	\
 				VALGRIND_MALLOCLIKE_BLOCK(ptr, usize,	\
-				    p2rz(ptr), false);			\
+				    rzsize, false);			\
 				if (copy_size > 0) {			\
 					valgrind_make_mem_defined(ptr,	\
 					copy_size);			\
