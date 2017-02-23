@@ -2219,6 +2219,8 @@ the entry point resides in a global namespace (i.e. shared for all the pools).
 The functions themselves are thread-safe and most of the entry points are too.
 If there are special conditions in which an entry point has to be called, they
 are explicitly stated in its description.
+The functions propagate the return value of the entry point. If either the name
+or the provided arguments are invalid, -1 is returned.
 
 Entry points are leafs of a tree-like structure. Each one can read from the
 internal state, write to the internal state or do both.
@@ -2242,6 +2244,8 @@ prefault.at_create | rw | global | int | int
 If set, every single page of the pool will be touched and written to, in order
 to trigger page allocation. This can be used to minimize performance impact of
 pagefaults. Affects only the **pmemobj_create()** function.
+
+Always returns 0.
 
 prefault.at_open | rw | global | int | int
 As above, but affects **pmemobj_open()** function.

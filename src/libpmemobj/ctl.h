@@ -34,8 +34,8 @@
  * ctl.h -- internal declaration of statistics and control related structures
  */
 
-#ifndef LIBPMEMOBJ_CTL_H
-#define LIBPMEMOBJ_CTL_H 1
+#ifndef LIBPMEMOBJ_CTL_INTERNAL_H
+#define LIBPMEMOBJ_CTL_INTERNAL_H 1
 
 #include "libpmemobj.h"
 #include "queue.h"
