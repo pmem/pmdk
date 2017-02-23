@@ -59,6 +59,15 @@ int _pobj_cache_invalidate;
 
 __thread struct _pobj_pcache _pobj_cached_pool;
 
+/*
+ * pmemobj_direct -- returns the direct pointer of an object
+ */
+void *
+pmemobj_direct(PMEMoid oid)
+{
+	return pmemobj_direct_inline(oid);
+}
+
 #else /* _WIN32 */
 
 /*

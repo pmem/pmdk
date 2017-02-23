@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="obj_direct.c" />
+    <ClCompile Include="obj_direct_inline.c" />
+    <ClCompile Include="obj_direct_non_inline.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
@@ -29,6 +31,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="obj_direct.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{10469175-EEF7-44A0-9961-AC4E45EFD800}</ProjectGuid>
