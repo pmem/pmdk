@@ -102,7 +102,7 @@ extern __thread struct _pobj_pcache {
  * Returns the direct pointer of an object.
  */
 static inline void *
-pmemobj_direct(PMEMoid oid)
+pmemobj_direct_inline(PMEMoid oid)
 {
 	if (oid.off == 0 || oid.pool_uuid_lo == 0)
 		return NULL;
@@ -122,16 +122,17 @@ pmemobj_direct(PMEMoid oid)
 	return (void *)((uintptr_t)_pobj_cached_pool.pop + oid.off);
 }
 
-#else /* _WIN32 */
-
-/* XXX - this is temporary (see obj.c for details) */
+#endif /* _WIN32 */
 
 /*
  * Returns the direct pointer of an object.
  */
+#if defined(_WIN32) || defined(_PMEMOBJ_INTRNL) ||\
+	defined(PMEMOBJ_DIRECT_NON_INLINE)
 void *pmemobj_direct(PMEMoid oid);
-
-#endif /* _WIN32 */
+#else
+#define pmemobj_direct pmemobj_direct_inline
+#endif
 
 /*
  * Returns the OID of the object pointed to by addr.
@@ -197,7 +198,7 @@ void pmemobj_drain(PMEMobjpool *pop);
  * used at compile-time by passing these defines to pmemobj_check_version().
  */
 #define PMEMOBJ_MAJOR_VERSION 2
-#define PMEMOBJ_MINOR_VERSION 0
+#define PMEMOBJ_MINOR_VERSION 1
 
 #ifndef _WIN32
 const char *pmemobj_check_version(unsigned major_required,
