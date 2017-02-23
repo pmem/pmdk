@@ -748,7 +748,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 	int result = 0;
 
 	util_stat_t stat_buf;
-	if (util_stat(spart->path, &stat_buf)) {
+	if (util_fstat(spart->fd, &stat_buf)) {
 		ERR("!util_stat");
 		return -1;
 	}
