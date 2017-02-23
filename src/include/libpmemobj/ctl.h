@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,11 +31,11 @@
  */
 
 /*
- * libpmemobj/pool_base.h -- definitions of libpmemobj pool entry points
+ * libpmemobj/ctl.h -- definitions of pmemobj_ctl related entry points
  */
 
-#ifndef LIBPMEMOBJ_POOL_BASE_H
-#define LIBPMEMOBJ_POOL_BASE_H 1
+#ifndef LIBPMEMOBJ_CTL_H
+#define LIBPMEMOBJ_CTL_H 1
 
 #include <stddef.h>
 #include <sys/types.h>
@@ -46,42 +46,10 @@
 extern "C" {
 #endif
 
-#define PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
-
-/*
- * Pool management.
- */
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
-PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-void pmemobj_close(PMEMobjpool *pop);
-int pmemobj_check(const char *path, const char *layout);
-
-/*
- * If called for the first time on a newly created pool, the root object
- * of given size is allocated.  Otherwise, it returns the existing root object.
- * In such case, the size must be not less than the actual root object size
- * stored in the pool.  If it's larger, the root object is automatically
- * resized.
- *
- * This function is thread-safe.
- */
-PMEMoid pmemobj_root(PMEMobjpool *pop, size_t size);
-
-/*
- * Same as above, but calls the constructor function when the object is first
- * created and on all subsequent reallocations.
- */
-PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
-	pmemobj_constr constructor, void *arg);
-
-/*
- * Returns the size in bytes of the root object. Always equal to the requested
- * size.
- */
-size_t pmemobj_root_size(PMEMobjpool *pop);
+int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
 
 #ifdef __cplusplus
 }
 #endif
-#endif	/* libpmemobj/pool_base.h */
+#endif	/* libpmemobj/ctl.h */

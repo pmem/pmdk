@@ -237,7 +237,6 @@
     <ClInclude Include="tx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="recycler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -251,12 +250,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="alloc_class.h">
-=======
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ctl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ctl_global.h">
->>>>>>> e0534cc... obj: add ctl to win project
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
