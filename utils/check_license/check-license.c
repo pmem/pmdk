@@ -35,6 +35,9 @@
  * check-license.c -- check the license in the file
  */
 
+#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,7 +102,8 @@ static const char *help_str =
 static int
 read_pattern(const char *path_pattern, char *pattern)
 {
-	int file_pattern, ret;
+	int file_pattern;
+	ssize_t ret;
 
 	if ((file_pattern = open(path_pattern, O_RDONLY)) == -1) {
 		ERROR("open(): %s: %s", strerror(errno), path_pattern);
@@ -126,7 +130,8 @@ read_pattern(const char *path_pattern, char *pattern)
 static int
 write_pattern(const char *path_pattern, char *pattern)
 {
-	int file_pattern, ret;
+	int file_pattern;
+	ssize_t ret;
 
 	if ((file_pattern = open(path_pattern, O_WRONLY | O_CREAT | O_EXCL,
 					S_IRUSR | S_IRGRP | S_IROTH)) == -1) {
@@ -163,12 +168,13 @@ strstr2(const char *str, const char *sub1, const char *sub2,
  * format_license -- remove comments and redundant whitespaces from the license
  */
 static void
-format_license(char *license, int *length)
+format_license(char *license, size_t length)
 {
 	char comment_str[COMMENT_STR_LEN];
 	char *comment = license;
-	int comment_len, was_space;
-	int w, r;
+	size_t comment_len;
+	int was_space;
+	size_t w, r;
 
 	/* detect a comment string */
 	while (*comment != '\n')
@@ -198,7 +204,7 @@ format_license(char *license, int *length)
 
 	/* replace multiple spaces with one space */
 	was_space = 0;
-	for (r = w = 0; r < *length; r++) {
+	for (r = w = 0; r < length; r++) {
 		if (!isspace(license[r])) {
 			if (was_space) {
 				license[w++] = ' ';
@@ -213,7 +219,6 @@ format_license(char *license, int *length)
 		}
 	}
 	license[w] = '\0';
-	*length = w;
 }
 
 /*
@@ -222,11 +227,10 @@ format_license(char *license, int *length)
 static int
 analyze_license(const char *path_to_check,
 		char *buffer,
-		char **license,
-		int *length)
+		char **license)
 {
 	char *_license;
-	int _length;
+	size_t _length;
 	char *beg_str, *end_str;
 
 	if (strstr2(buffer, LICENSE_BEG, LICENSE_END,
@@ -243,13 +247,13 @@ analyze_license(const char *path_to_check,
 	}
 
 	_license = beg_str;
-	_length = end_str - beg_str + strlen(LICENSE_END);
+	assert((uintptr_t)end_str > (uintptr_t)beg_str);
+	_length = (size_t)(end_str - beg_str) + strlen(LICENSE_END);
 	_license[_length] = '\0';
 
-	format_license(_license, &_length);
+	format_license(_license, _length);
 
 	*license = _license;
-	*length = _length;
 
 	return 0;
 }
@@ -262,7 +266,7 @@ create_pattern(const char *path_license, char *pattern)
 {
 	char buffer[LICENSE_MAX_LEN];
 	char *license;
-	int length, ret;
+	ssize_t ret;
 	int file_license;
 
 	if ((file_license = open(path_license, O_RDONLY)) == -1) {
@@ -279,7 +283,7 @@ create_pattern(const char *path_license, char *pattern)
 		return -1;
 	}
 
-	if (analyze_license(path_license, buffer, &license, &length) == -1)
+	if (analyze_license(path_license, buffer, &license) == -1)
 		return -1;
 
 	memset(pattern, 0, LICENSE_MAX_LEN);
@@ -292,9 +296,9 @@ create_pattern(const char *path_license, char *pattern)
  * print_diff -- print the first difference between 'license' and 'pattern'
  */
 static void
-print_diff(char *license, char *pattern, int len)
+print_diff(char *license, char *pattern, size_t len)
 {
-	int i = 0;
+	size_t i = 0;
 
 	while (i < len && license[i] == pattern[i])
 		i++;
@@ -319,7 +323,8 @@ verify_license(const char *path_to_check, char *pattern)
 {
 	char buffer[LICENSE_MAX_LEN];
 	char *license, *copyright;
-	int file_to_check, length, ret;
+	int file_to_check;
+	ssize_t ret;
 	int year_first, year_last;
 	int min_year_first = YEAR_INIT_MIN;
 	int max_year_last = YEAR_INIT_MAX;
@@ -339,7 +344,7 @@ verify_license(const char *path_to_check, char *pattern)
 		return -1;
 	}
 
-	if (analyze_license(path_to_check, buffer, &license, &length) == -1)
+	if (analyze_license(path_to_check, buffer, &license) == -1)
 		return -1;
 
 	/* check the copyright notice */
@@ -493,6 +498,4 @@ main(int argc, char *argv[])
 		printf(help_str, argv[0]);
 		return -1;
 	}
-
-	return 0;
 }

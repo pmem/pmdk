@@ -1,3 +1,4 @@
+#!/bin/sh -e
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -30,38 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-include ../../src/common.inc
+# file-exceptions.sh - filter out files not checked for copyright and license
 
-CFLAGS += -std=gnu99
-CFLAGS += -Wall
-CFLAGS += -Werror
-CFLAGS += -Wmissing-prototypes
-CFLAGS += -Wpointer-arith
-CFLAGS += -Wunused-macros
-CFLAGS += -Wmissing-field-initializers
-CFLAGS += -Wsign-conversion
-CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
-CFLAGS += -Wconversion
-endif
-CFLAGS += -fno-common
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
-CFLAGS += -Wunreachable-code-return
-endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
-CFLAGS += -Wmissing-variable-declarations
-endif
-
-TARGET=check-license
-
-all: $(TARGET)
-
-$(TARGET): $(TARGET).o
-
-clean:
-	$(RM) -f *.o
-
-clobber: clean
-	$(RM) -f $(TARGET)
-
-.PHONY: all clean clobber
+grep -v -E -e 'src/jemalloc/' -e 'src/windows/jemalloc_gen/' -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$'
