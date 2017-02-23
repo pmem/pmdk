@@ -58,9 +58,8 @@ AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|jemall
 # Check for changes in the generated docs directory
 for commit in $commits; do
 	subject=$(git log --format="%s" -n 1 $commit)
-	body=$(git log --format="%b" -n 1 $commit)
 	subject_len=$(echo $subject | wc -m)
-	body_len=$(echo $body | wc -L)
+	body_len=$(git log --format="%b" -n 1 $commit | wc -L)
 	prefix=$(echo $subject | sed -e "s/^\($AREAS\)\:.*/\1/")
 
 	if [[ $subject =~ ^Merge.* ]]; then
