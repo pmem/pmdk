@@ -84,16 +84,10 @@ main(int argc, char *argv[])
 
 	/* 4MB => 16B */
 	int *test2r = vmem_realloc(vmp, test2, 16);
-	/*
-	 * There is no space left in the pool, so shrinking from huge to small
-	 * size would normally fail (no space to allocate new arena chunk).
-	 * However, we can return the pointer to the original allocation (not
-	 * resized), which is still better than NULL...
-	 */
-	UT_ASSERTeq(test2r, test2);
+	UT_ASSERTeq(test2r, NULL);
 
 	/* ... but the usable size is still 4MB. */
-	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test2r), 4 * 1024 * 1024);
+	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test2), 4 * 1024 * 1024);
 
 	/* 8MB => 16B */
 	test1r = vmem_realloc(vmp, test1, 16);
@@ -108,7 +102,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test1r), 16);
 
 	/* ... and leaves some memory for new allocations. */
-	int *test3 = vmem_malloc(vmp, 4 * 1024 * 1024);
+	int *test3 = vmem_malloc(vmp, 3 * 1024 * 1024);
 	UT_ASSERTne(test3, NULL);
 
 	vmem_free(vmp, test1r);
