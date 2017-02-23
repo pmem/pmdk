@@ -139,6 +139,13 @@ Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
  NVM Library for Remote Persistent Memory support
 
+Package: librpmem-dev
+Section: libdevel
+Architecture: any
+Depends: librpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for librpmem
+ Development files for librpmem library.
+
 Package: rpmemd
 Section: misc
 Architecture: any
@@ -263,7 +270,7 @@ Section: libdevel
 Architecture: any
 Depends: libpmemobj (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemobj
- Development files for libpmemobj-dev library.
+ Development files for libpmemobj library.
 
 Package: libpmempool
 Architecture: any
