@@ -23,7 +23,8 @@ Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
-Layout                   : pmempool
+$(OPT)Layout                   : pmempool
+$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(*)
 Number of lanes          : $(*)
 Heap offset              : $(*)
@@ -148,7 +149,8 @@ Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
-Layout                   : pmempool
+$(OPT)Layout                   : pmempool
+$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(*)
 Number of lanes          : $(*)
 Heap offset              : $(*)
@@ -196,7 +198,8 @@ Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
-Layout                   : pmempool
+$(OPT)Layout                   : pmempool
+$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(*)
 Number of lanes          : $(*)
 Heap offset              : $(*)
@@ -244,7 +247,8 @@ Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
-Layout                   : pmempool
+$(OPT)Layout                   : pmempool
+$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(*)
 Number of lanes          : $(*)
 Heap offset              : $(*)
