@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
 $POOLSET = "$DIR/pool0.set"
 
 # Create poolset file
@@ -86,13 +86,13 @@ srpr 40M 9
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 # Delete the second part in the primary replica
 rm $DIR/testfile2 -Force -ea si
@@ -101,10 +101,10 @@ rm $DIR/testfile2 -Force -ea si
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
     $POOLSET $FLAGS
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly synchronized
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

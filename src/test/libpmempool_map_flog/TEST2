@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -91,7 +91,7 @@ do
 	echo ${field}: $spcmd >> $LOG_TEMP
 	$PMEMSPOIL $POOL $spcmd
 
-	expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt -a 1
+	expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt -a 1 $POOL
 	cat $LOG >> $LOG_TEMP
 done
 

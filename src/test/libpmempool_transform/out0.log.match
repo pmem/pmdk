@@ -1,7 +1,7 @@
 pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
-libpmempool_transform$(nW)TEST0: START: libpmempool_transform
+libpmempool_transform$(nW)TEST0: START: libpmempool_transform$(nW)
  $(nW)libpmempool_transform$(nW) $(nW)poolset.in $(nW)poolset.out 0
 result: 0, errno: 0
 libpmempool_transform$(nW)TEST0: DONE

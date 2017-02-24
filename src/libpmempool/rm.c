@@ -138,11 +138,31 @@ rm_cb(struct part_file *pf, void *arg)
 	return !!ret;
 }
 
+#ifdef _WIN32
+/*
+ * pmempool_rmW -- remove pool files or poolsets in widechar
+ */
+int
+pmempool_rmW(const wchar_t *path, int flags)
+{
+	char *_path = util_toUTF8(path);
+	if (_path == NULL) {
+		ERR("Invalid poolest/pool file path.");
+		return -1;
+	}
+
+	int ret = pmempool_rmU(_path, flags);
+
+	Free(_path);
+	return ret;
+}
+#endif
+
 /*
  * pmempool_rm -- remove pool files or poolsets
  */
 int
-pmempool_rm(const char *path, int flags)
+UNICODE_FUNCTION(pmempool_rm)(const char *path, int flags)
 {
 	LOG(3, "path %s flags %x", path, flags);
 	int ret;

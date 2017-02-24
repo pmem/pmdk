@@ -14,8 +14,8 @@ bttdevice.arena.btt_map(7)=0xC0000002
 bttdevice.arena.btt_map(10)=0xC0000002
 bttdevice.arena.btt_map(11)=0xC0000002
 bttdevice.arena.btt_map(12)=0xC0000003
-libpmempool_map_flog$(nW)TEST3: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST3: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
