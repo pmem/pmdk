@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,7 +50,7 @@ LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -rf $LOG && touch $LOG
 rm -rf $LOG_TEMP && touch $LOG_TEMP
 
-LAYOUT=OBJ_LAYOUT
+LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
 $POOLSET_IN = "$DIR/poolset.in"
 $POOLSET_OUT1 = "$DIR/poolset.out1"
 $POOLSET_OUT2 = "$DIR/poolset.out2"

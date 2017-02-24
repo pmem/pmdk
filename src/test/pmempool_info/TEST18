@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +53,7 @@ POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $DEVICE_DAX_PATH >> $LOG
 

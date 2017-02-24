@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -80,7 +80,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 
 rm -f $POOLS $REPS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool $POOLREP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLREP
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLREP >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 0 $POOLREP | grep 'UUID' > $LOG_REP0
 expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 1 $POOLREP | grep 'UUID' > $LOG_REP1

@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <libpmemobj.h>
+#include <util.h>
 
 #define USAGE()\
 printf("usage: pmemalloc"\
@@ -50,9 +51,22 @@ printf("usage: pmemalloc"\
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr, "Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
 	int opt;
 	int tmpi;
 	long long tmpl;
+	int ret = 0;
 	size_t size = 0;
 	size_t root_size = 0;
 	unsigned type_num = 0;
@@ -62,7 +76,8 @@ main(int argc, char *argv[])
 
 	if (argc < 2) {
 		USAGE();
-		return -1;
+		ret = 1;
+		goto end;
 	}
 
 	while ((opt = getopt(argc, argv, "r:o:t:e:sf")) != -1) {
@@ -71,7 +86,8 @@ main(int argc, char *argv[])
 			tmpl = atoll(optarg);
 			if (tmpl < 0) {
 				USAGE();
-				return -1;
+				ret = 1;
+				goto end;
 			}
 			root_size = (size_t)tmpl;
 			break;
@@ -79,7 +95,8 @@ main(int argc, char *argv[])
 			tmpl = atoll(optarg);
 			if (tmpl < 0) {
 				USAGE();
-				return -1;
+				ret = 1;
+				goto end;
 			}
 			size = (size_t)tmpl;
 			break;
@@ -87,7 +104,8 @@ main(int argc, char *argv[])
 			tmpi = atoi(optarg);
 			if (tmpi < 0) {
 				USAGE();
-				return -1;
+				ret = 1;
+				goto end;
 			}
 			type_num = (unsigned)tmpi;
 			break;
@@ -102,7 +120,8 @@ main(int argc, char *argv[])
 			break;
 		default:
 			USAGE();
-			return -1;
+			ret = 1;
+			goto end;
 		}
 	}
 
@@ -111,7 +130,8 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_open(file, NULL)) == NULL) {
 		fprintf(stderr, "pmemobj_open: %s\n", pmemobj_errormsg());
-		return -1;
+		ret = 1;
+		goto end;
 	}
 
 	if (root_size) {
@@ -119,7 +139,8 @@ main(int argc, char *argv[])
 		if (OID_IS_NULL(oid)) {
 			fprintf(stderr, "pmemobj_root: %s\n",
 					pmemobj_errormsg());
-			return -1;
+			ret = 1;
+			goto end;
 		}
 	}
 
@@ -133,7 +154,8 @@ main(int argc, char *argv[])
 		if (OID_IS_NULL(oid)) {
 			fprintf(stderr, "pmemobj_tx_alloc: %s\n",
 					pmemobj_errormsg());
-			return -1;
+			ret = 1;
+			goto end;
 		}
 
 		if (do_set) {
@@ -155,5 +177,10 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
-	return 0;
+end:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
+	return ret;
 }

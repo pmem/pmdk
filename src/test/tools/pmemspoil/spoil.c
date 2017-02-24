@@ -1299,6 +1299,18 @@ pmemspoil_process(struct pmemspoil *psp,
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			outv_err("Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
 	char *appname = basename(argv[0]);
 	util_init();
 	int ret = 0;
@@ -1355,6 +1367,9 @@ error:
 	pool_set_file_close(psp->pfile);
 
 	free(psp);
-
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	return ret;
 }

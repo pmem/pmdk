@@ -54,7 +54,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
 $POOLSET = "$DIR/pool0.set"
 $M = 1024 * 1024
 $M20 = 20 * $M

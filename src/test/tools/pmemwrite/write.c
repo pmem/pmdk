@@ -200,7 +200,20 @@ nomem:
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			outv_err("Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
 	int opt;
+	int ret = 0;
 	util_init();
 	char *appname = basename(argv[0]);
 
@@ -208,10 +221,12 @@ main(int argc, char *argv[])
 		switch (opt) {
 		case 'h':
 			print_usage(appname);
-			exit(EXIT_SUCCESS);
+			ret = 0;
+			goto end;
 		default:
 			print_usage(appname);
-			exit(EXIT_FAILURE);
+			ret = 1;
+			goto end;
 		}
 	}
 
@@ -222,7 +237,8 @@ main(int argc, char *argv[])
 		pmemwrite.args = &argv[optind];
 	} else {
 		print_usage(appname);
-		exit(EXIT_FAILURE);
+		ret = 1;
+		goto end;
 	}
 
 	out_set_vlevel(1);
@@ -235,12 +251,18 @@ main(int argc, char *argv[])
 
 	switch (params.type) {
 	case PMEM_POOL_TYPE_BLK:
-		return pmemwrite_blk(&pmemwrite);
-	case PMEM_POOL_TYPE_LOG:
-		return pmemwrite_log(&pmemwrite);
-	default:
+		ret = pmemwrite_blk(&pmemwrite);
 		break;
+	case PMEM_POOL_TYPE_LOG:
+		ret = pmemwrite_log(&pmemwrite);
+		break;
+	default:
+		ret = 1;
 	}
-
-	return -1;
+end:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
+	return ret;
 }

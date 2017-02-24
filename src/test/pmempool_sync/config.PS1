@@ -1,6 +1,5 @@
-#!/bin/bash -e
-#
-# Copyright 2014-2017, Intel Corporation
+﻿#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,38 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info/TEST14 -- test for info command
+# pmempool_create/config.PS1 -- test configuration
 #
-export UNITTEST_NAME=pmempool_info/TEST14
-export UNITTEST_NUM=14
 
-. ../unittest/unittest.sh
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
-require_test_type medium
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-require_fs_type pmem non-pmem
-
-setup
-
-POOL=$DIR/file.pool
-LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
-
-rm -rf $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool$SUFFIX" obj $POOL
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -ea $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -es $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1024 -t 1 -s -es $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -f -ef $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a -Stx $POOL >> $LOG
-
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

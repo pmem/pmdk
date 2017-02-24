@@ -1,5 +1,5 @@
-#
-# Copyright 2014-2017, Intel Corporation
+﻿#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,36 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_create/TEST7 -- test for pmempool create command with default pool size
+# pmempool_info/config.PS1 -- test configuration
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "pmempool_create\TEST7w"
-$Env:UNITTEST_NUM = "7w"
 
+$global:encoding_dict = @{
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+}
 
-. ..\unittest\unittest.ps1
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-require_test_type medium
-
-# XXX: missing valgrind equivalent
-#
-#require_fs_type any
-#require_build_type nondebug debug
-#
-#configure_valgrind memcheck force-enable "$TEST_LD_LIBRARY_PATH/libpmemobj.so"
-#export PMEMOBJ_VG_CHECK_UNDEF=1
-
-setup
-
-#POOL=$DIR/file.pool
-#
-#expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOL
-#check_file $POOL
-#check_signature PMEMOBJ $POOL
-#check_layout LAYOUT_NAME $POOL
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

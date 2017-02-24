@@ -35,4 +35,4 @@
 #
 
 CONF_GLOBAL_ENCODING="ascii unicode"
-CONF_GLOBAL_UNICODE_SUFFIX="_⿆⾨ㆦ"
+CONF_GLOBAL_UNICODE_SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
