@@ -1021,7 +1021,7 @@ iralloct(void *ptr, size_t size, size_t extra, size_t alignment, bool zero,
 
 		if (oldsize > chunksize) {
 			size_t old_usize JEMALLOC_CC_SILENCE_INIT(0);
-			size_t old_rzsize JEMALLOC_CC_SILENCE_INIT(0);
+			UNUSED size_t old_rzsize JEMALLOC_CC_SILENCE_INIT(0);
 			if (config_valgrind && in_valgrind) {
 				old_usize = isalloc(ptr, config_prof);
 				old_rzsize = config_prof ?
