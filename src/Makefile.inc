@@ -81,6 +81,10 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
+ifneq ($(NORPATH),1)
+LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
+endif
+
 define arch32_error_msg
 
 ##################################################
