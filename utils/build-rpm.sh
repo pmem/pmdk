@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -456,7 +456,8 @@ make install DESTDIR=%{buildroot}\
 	sysconfdir=%{_sysconfdir}\
 	docdir=%{_docdir}\
 	EXPERIMENTAL=${EXPERIMENTAL}\
-	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}
+	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}\
+	NORPATH=1
 mkdir -p %{buildroot}%{_datadir}/nvml
 cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
 

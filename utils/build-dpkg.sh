@@ -347,7 +347,7 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR sysconfdir=/etc
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR sysconfdir=/etc NORPATH=1
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/
