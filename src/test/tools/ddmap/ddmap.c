@@ -315,22 +315,40 @@ do_ddmap(struct ddmap_context *ctx)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			outv_err("Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
 	int ret = 0;
 
 	struct ddmap_context ctx = ddmap_default;
 
 	if ((ret = parse_args(&ctx, argc, argv)))
-		return ret;
+		goto out;
 
 	if ((ret = validate_args(&ctx)))
-		return ret;
+		goto out;
 
 	if ((ret = do_ddmap(&ctx))) {
 		outv_err("failed to perform ddmap\n");
 		if (errno)
 			outv_err("errno: %s\n", strerror(errno));
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
-	return 0;
+out:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
+	return ret;
 }

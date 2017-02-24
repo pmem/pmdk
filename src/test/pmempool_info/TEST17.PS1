@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@ create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
 check_file $POOLSET
 
 remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
+expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET
 expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
 expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
 expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG

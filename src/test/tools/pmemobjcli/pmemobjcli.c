@@ -45,6 +45,7 @@
 
 #include <libpmemobj.h>
 #include "common.h"
+#include "os.h"
 
 #define POCLI_ENV_EXIT_ON_ERROR	"PMEMOBJCLI_EXIT_ON_ERROR"
 #define POCLI_ENV_ECHO_MODE	"PMEMOBJCLI_ECHO_MODE"
@@ -2207,11 +2208,25 @@ pocli_do_process(struct pocli *pcli)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr, "Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
+	int ret = 1;
+
 	const char *fname = NULL;
 	FILE *input = stdin;
 	if (argc < 2 || argc > 4) {
 		printf("usage: %s [-s <script>] <file>\n", argv[0]);
-		return 1;
+		goto out;
 	}
 
 	int is_script = strcmp(argv[1], "-s") == 0;
@@ -2221,23 +2236,23 @@ main(int argc, char *argv[])
 			if (argc == 2) {
 				printf("usage: %s -s <script> <file>\n",
 						argv[0]);
-				return 1;
+				goto out;
 			} else if (argc == 3) {
 				printf("usage: %s -s <script> <file> "
 					"or %s <file>\n", argv[0], argv[2]);
-				return 1;
+				goto out;
 			}
 		}
 		fname = argv[3];
-		input = fopen(argv[2], "r");
+		input = os_fopen(argv[2], "r");
 		if (!input) {
 			perror(argv[2]);
-			return 1;
+			goto out;
 		}
 	} else {
 		if (argc != 2) {
 			printf("usage: %s <file>\n", argv[0]);
-			return 1;
+			goto out;
 		}
 		fname = argv[1];
 	}
@@ -2246,12 +2261,17 @@ main(int argc, char *argv[])
 			pocli_commands, POCLI_NCOMMANDS, POCLI_INBUF_LEN);
 	if (!pcli) {
 		perror("pocli_alloc");
-		return 1;
+		goto out;
 	}
-	int ret = pocli_do_process(pcli);
+	ret = pocli_do_process(pcli);
 
 	pocli_free(pcli);
 	fclose(input);
 
+out:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	return ret;
 }
