@@ -456,7 +456,8 @@ make install DESTDIR=%{buildroot}\
 	sysconfdir=%{_sysconfdir}\
 	docdir=%{_docdir}\
 	EXPERIMENTAL=${EXPERIMENTAL}\
-	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}
+	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}\
+	NORPATH=1
 mkdir -p %{buildroot}%{_datadir}/nvml
 cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
 
