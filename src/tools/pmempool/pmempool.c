@@ -241,7 +241,19 @@ main(int argc, char *argv[])
 {
 	int opt;
 	int option_index;
-
+	int ret = 0;
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			outv_err("Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
 	util_init();
 
 #ifndef _WIN32
@@ -251,7 +263,7 @@ main(int argc, char *argv[])
 
 	if (argc < 2) {
 		print_usage(APPNAME);
-		return 0;
+		goto end;
 	}
 
 	while ((opt = getopt_long(2, argv, "Vh",
@@ -259,13 +271,14 @@ main(int argc, char *argv[])
 		switch (opt) {
 		case 'V':
 			print_version(APPNAME);
-			return 0;
+			goto end;
 		case 'h':
 			print_help(APPNAME);
-			return 0;
+			goto end;
 		default:
 			print_usage(APPNAME);
-			return -1;
+			ret = 1;
+			goto end;
 		}
 	}
 
@@ -273,7 +286,6 @@ main(int argc, char *argv[])
 
 	struct command *cmdp = get_command(cmd_str);
 
-	int ret;
 	if (cmdp) {
 		ret = cmdp->func(APPNAME, argc - 1, argv + 1);
 	} else {
@@ -285,8 +297,13 @@ main(int argc, char *argv[])
 	rpmem_util_cmds_fini();
 #endif
 
+end:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	if (ret)
-		exit(EXIT_FAILURE);
+		return 1;
 
-	exit(EXIT_SUCCESS);
+	return 0;
 }

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -78,13 +78,13 @@ check_signatures PMEMLOG $POOLS
 
 # PMEMOBJ
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME$SUFFIX obj $POOLSET
 check_files $POOL
 check_signatures PMEMOBJ $POOLS
 
 # PMEMOBJ with replica
 rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOLREP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME$SUFFIX obj $POOLREP
 check_files $POOLS $REPS
 check_signatures PMEMOBJ $POOLS $REPS
 
