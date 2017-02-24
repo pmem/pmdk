@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
 $POOLSET = "$DIR/pool1.set"
 $HDR_LEN = "4096"
 

@@ -65,10 +65,10 @@ check_mode 0500 $POOL
 
 # PMEMOBJ
 rm -Force $POOL
-expect_normal_exit $PMEMPOOL create -m 0500 --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL create -m 0500 --layout=pmempool$Env:SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
-check_layout LAYOUT_NAME $POOL
+check_layout pmempool$Env:SUFFIX $POOL
 check_mode 0500 $POOL
 
 pass

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ create_poolset $POOLREP 32M:${POOL1}:x 32M:${POOL2}:x 32M:${POOL3}:x `
                         R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
 check_file $POOLREP
 
-# PMEMBLK
+#PMEMBLK
 remove_files $POOLS
 expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
 check_files $POOL1 $POOL2 $POOL3
@@ -84,13 +84,13 @@ check_signatures PMEMLOG $POOL1 $POOL2 $POOL3
 
 # PMEMOBJ
 remove_files $POOLS
-expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLSET
+expect_normal_exit $PMEMPOOL create --layout=pmempool$Env:SUFFIX obj $POOLSET
 check_files $POOL1 $POOL2 $POOL3
 check_signatures PMEMOBJ $POOL1 $POOL2 $POOL3
 
 # PMEMOBJ with replica
 remove_files $POOLS
-expect_normal_exit $PMEMPOOL create --layout=LAYOUT_NAME obj $POOLREP
+expect_normal_exit $PMEMPOOL create --layout=pmempool$Env:SUFFIX obj $POOLREP
 check_files $POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3
 check_signatures PMEMOBJ $POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3
 

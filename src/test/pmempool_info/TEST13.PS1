@@ -53,7 +53,7 @@ $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 rm $LOG -Force -Recurse -ea si
 
-expect_normal_exit $PMEMPOOL create --layout "pmempool" obj $POOL
+expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
 expect_normal_exit $PMEMALLOC -o $((1*1024*1024)) -t 1 $POOL
 expect_normal_exit $PMEMALLOC -o 16 -t 2 $POOL
 expect_normal_exit $PMEMPOOL info -O -E -a -A -H -Z -Cr0 -s $POOL >> $LOG

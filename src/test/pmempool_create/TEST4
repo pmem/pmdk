@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,10 +61,10 @@ check_mode 555 $POOL
 
 # PMEMOBJ
 rm -rf $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0556 --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0556 --layout=LAYOUT_NAME$SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
-check_layout LAYOUT_NAME $POOL
+check_layout LAYOUT_NAME$SUFFIX $POOL
 check_mode 556 $POOL
 
 pass
