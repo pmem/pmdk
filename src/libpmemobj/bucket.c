@@ -79,11 +79,12 @@ bucket_new(struct block_container *c, struct alloc_class *aclass)
 int
 bucket_insert_block(struct bucket *b, const struct memory_block *m)
 {
-#ifdef USE_VG_MEMCHECK
+#if defined(USE_VG_MEMCHECK) || defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
 	if (On_valgrind) {
 		size_t size = m->m_ops->get_real_size(m);
 		void *data = m->m_ops->get_real_data(m);
 		VALGRIND_MAKE_MEM_NOACCESS(data, size);
+		VALGRIND_ANNOTATE_NEW_MEMORY(data, size);
 	}
 #endif
 	return b->c_ops->insert(b->container, m);
