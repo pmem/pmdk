@@ -342,12 +342,11 @@ using **fork**(2).  The application must take into account this fact when
 using **wait**(2) and **waitpid**(2) functions which may return a PID of
 the **ssh** process executed by **librpmem**.
 
-The **librpmem** library calls the **ibv_fork_init**(3) function in library's
-constructor in order to enable **fork**(2) support in **libibverbs**.
-If an application uses the **libibverbs** before loading the **librpmem**
-library it must call the **ibv_fork_inif**(3) function before allocating
-any resources using **libibverbs**, otherwise **rpmem_open** and
-**rpmem_create** functions will return an error.
+The **librpmem** library requires **fork**(2) support in **libibverbs**,
+otherwise **rpmem_open** and **rpmem_create** functions will return an error.
+By default **libfabric** initializes **libibverbs** with **fork**(2) support
+by calling the **ibv_fork_init**(3) function. See **fi_verbs**(7) for more
+details.
 
 # REMOTE POOL SIZE #
 A remote pool size depends on the configuration of a pool set file on the remote
