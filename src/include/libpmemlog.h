@@ -78,7 +78,7 @@ const char *pmemlog_check_version(
 #define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define pmemlog_open pmemlog_openW
 #define pmemlog_create pmemlog_createW
 #define pmemlog_check pmemlog_checkW
