@@ -584,24 +584,6 @@ function require_binary() {
 }
 
 #
-# converts file to UTF8 w/o bom encoding
-#
-#function convert_files_to_utf8_wo_bom {
-#    sv -Name files $args[0]
-#    foreach($file in $files) {
-#        $content = Get-Content $file
-#        $path = (Get-Item -Path ".\" -Verbose).FullName | Join-Path -ChildPath $file
-#        if($content -ne $null) {
-#            [IO.File]::WriteAllLines($path, $content)
-#        } else {
-#            # recreate as empty file to remove boom
-#            rm -Force -ea si $path
-#            Out-File -InputObject $null -Encoding ascii -FilePath $path
-#        }
-#    }
-#}
-
-#
 # check -- check test results (using .match files)
 #
 # note: win32 version slightly different since the caller can't as
@@ -616,11 +598,6 @@ function check {
     }
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
- #      $outputs = $listing.Split(' ')
- #      for($i=0; $i -lt $outputs.Count; $i++) {
- #          $outputs[$i] = ([io.fileinfo]$outputs[$i]).basename # remove .match extension
- #      }
- #       convert_files_to_utf8_wo_bom $outputs
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
         $pinfo.FileName = "perl"
         $pinfo.RedirectStandardError = $true
