@@ -53,12 +53,15 @@ fill_fetch_all(void)
 		ringbuf_enqueue(rbuf, (void *)i);
 	}
 
+	UT_ASSERTne(ringbuf_tryenqueue(rbuf, (void *)1), 0);
+
 	UT_ASSERT(ringbuf_full(rbuf));
 
 	for (uint64_t i = 1; i <= RINGBUF_LEN; ++i) {
 		void *data = ringbuf_dequeue(rbuf);
 		UT_ASSERTeq(data, (void *)i);
 	}
+	UT_ASSERTeq(ringbuf_trydequeue(rbuf), NULL);
 	UT_ASSERT(ringbuf_empty(rbuf));
 
 	ringbuf_delete(rbuf);

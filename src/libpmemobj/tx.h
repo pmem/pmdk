@@ -79,6 +79,6 @@ struct lane_tx_layout {
  */
 PMEMobjpool *tx_get_pop(void);
 
-void tx_ctl_init(PMEMobjpool *pop);
+void tx_ctl_register(PMEMobjpool *pop);
 
 #endif
