@@ -36,6 +36,7 @@
 
 #include <string.h>
 #include <tchar.h>
+#include <errno.h>
 #include "util.h"
 #include "out.h"
 #include "file.h"
@@ -111,65 +112,67 @@ util_aligned_free(void *ptr)
 }
 
 /*
- * util_toUTF8 -- XXX
+ * util_toUTF8 -- allocating conversion from wide char string to UTF8
  */
 char *
 util_toUTF8(const wchar_t *wstr)
 {
 	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1,
 		NULL, 0, NULL, NULL);
-	if (size == 0) {
-		errno = EINVAL;
-		return NULL;
-	}
+	if (size == 0)
+		goto err;
 
 	char *str = Malloc(size * sizeof(char));
-	if (str == NULL) {
-		errno = ENOMEM;
-		return NULL;
-	}
+	if (str == NULL)
+		goto out;
 
 	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str,
 		size, NULL, NULL) == 0) {
 		Free(str);
-		errno = EINVAL;
-		return NULL;
+		goto err;
 	}
 
+out:
 	return str;
+
+err:
+	errno = EINVAL;
+	return NULL;
 }
 
 /*
- * util_toUTF16 -- XXX
+ * util_toUTF16 -- allocating conversion from UTF8 to wide char string
  */
 wchar_t *
 util_toUTF16(const char *str)
 {
 	int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1,
 		NULL, 0);
-	if (size == 0) {
-		errno = EINVAL;
-		return NULL;
-	}
+	if (size == 0)
+		goto err;
 
 	wchar_t *wstr = Malloc(size * sizeof(wchar_t));
-	if (wstr == NULL) {
-		errno = ENOMEM;
-		return NULL;
-	}
+	if (wstr == NULL)
+		goto out;
 
 	if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wstr,
 		size) == 0) {
 		Free(wstr);
-		errno = EINVAL;
-		return NULL;
+		goto err;
 	}
 
+out:
 	return wstr;
+
+err:
+	errno = EINVAL;
+	return NULL;
 }
 
 /*
- * util_toUTF16 -- XXX user responsible for supplying a large enough out buffer.
+ * util_toUTF16 -- non-allocating conversion from UTF8 to wide char string
+ *
+ * The user responsible for supplying a large enough out buffer.
  */
 int
 util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size)
@@ -193,8 +196,9 @@ err:
 }
 
 /*
- * util_toUTF8_buff -- XXX user responsible for supplying a large enough out
- *	buffer.
+ * util_toUTF8_buff -- non-allocating conversion from wide char string to UTF8
+ *
+ * The user responsible for supplying a large enough out buffer.
  */
 int
 util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size)
@@ -202,35 +206,13 @@ util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size)
 	if (out == NULL)
 		goto err;
 
-	int size = WideCharToMultiByte(CP_UTF8, 0, in, -1,
+	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, in, -1,
 		NULL, 0, NULL, NULL);
 	if (size == 0 || out_size < size)
 		goto err;
 
-	if (WideCharToMultiByte(CP_UTF8, 0, in, -1, out, size,
-		NULL, NULL) == 0)
-		goto err;
-
-	return 0;
-err:
-	errno = EINVAL;
-	return -1;
-}
-
-/*
- * util_toUTF16 -- XXX user responsible for supplying a large enough out buffer.
- */
-int
-util_toUTF16_inplace(const char *in, wchar_t *out, size_t out_size)
-{
-	if (out == NULL)
-		goto err;
-
-	int size = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
-	if (size == 0 || out_size < size)
-		goto err;
-
-	if (MultiByteToWideChar(CP_UTF8, 0, in, -1, out, size) == 0)
+	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, in, -1,
+		out, size, NULL, NULL) == 0)
 		goto err;
 
 	return 0;
