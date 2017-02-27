@@ -13,10 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{0d34316a-f8ec-4b25-ae70-41c75318bc7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libpmempool_rm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST1.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST2.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST3.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST4.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

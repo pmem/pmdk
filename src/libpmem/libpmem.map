@@ -35,7 +35,6 @@
 LIBPMEM_1.0 {
 	global:
 		pmem_map_file;
-		pmem_map_fileA;
 		pmem_unmap;
 		pmem_is_pmem;
 		pmem_persist;

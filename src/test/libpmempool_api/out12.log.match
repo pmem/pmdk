@@ -4,8 +4,8 @@ bttdevice.arena.btt_map(2)=0x00000002
 bttdevice.arena.btt_map(3)=0x00000003
 bttdevice.arena.btt_map(4)=0x00000004
 bttdevice.arena.btt_flog(0).seq=4
-libpmempool_api/TEST12: START: libpmempool_test
- ./libpmempool_test$(nW) $(nW) -r 1 -t btt
+libpmempool_api/TEST12: START: libpmempool_test$(nW)
+ ./libpmempool_test$(nW) -r 1 -t btt $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -18,8 +18,8 @@ the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 BTT Map and / or BTT Flog contain invalid entries
 status = cannot repair
 libpmempool_api/TEST12: DONE
-libpmempool_api/TEST12: START: libpmempool_test
- ./libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_api/TEST12: START: libpmempool_test$(nW)
+ ./libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog

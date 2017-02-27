@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,10 +58,10 @@ rm $LOG_TEMP -Force -ea si
 
 expect_normal_exit $PMEMPOOL create log $POOL
 
-expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL -s 0
-cat $LOG >> $LOG_TEMP
-expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL -s 999999
-cat $LOG >> $LOG_TEMP
+expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 0 $POOL
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 999999 $POOL
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 rm $LOG -Force
 mv $LOG_TEMP $LOG

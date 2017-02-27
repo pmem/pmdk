@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -72,22 +72,22 @@ foreach ($field in ("Zeroed", "Error", "Initial", "Normal")) {
     $x = $map_err[$field]
     for ($i=0; $i -lt $ent_val; $i++) {
         $spcmd = "bttdevice.arena.btt_map($i)=0x${x}000000${i}"
-        echo "${field}: $spcmd" >> $LOG_TEMP
+        echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
         &$PMEMSPOIL $POOL $spcmd
     }
 
     # duplicated entry
     $spcmd = "bttdevice.arena.btt_map(6)=0x${x}0000003"
-    echo "${field}: $spcmd" >> $LOG_TEMP
+    echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
     &$PMEMSPOIL $POOL $spcmd
 
     # lba number is higher then internal nlba
     $spcmd = "bttdevice.arena.btt_map(2)=0x${x}000FFFF"
-    echo "${field}: $spcmd" >> $LOG_TEMP
+    echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
     &$PMEMSPOIL $POOL $spcmd
 
-    expect_normal_exit $EXE $POOL -r 1 -t btt -a 1
-    cat $LOG >> $LOG_TEMP
+    expect_normal_exit $EXE -r 1 -t btt -a 1 $POOL
+    cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 }
 
 mv -Force $LOG_TEMP $LOG

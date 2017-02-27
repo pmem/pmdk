@@ -754,6 +754,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check", "test\vmem_che
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_remove", "test\obj_list_remove\obj_list_remove.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_test_win", "test\libpmempool_api_win\libpmempool_test_win.vcxproj", "{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm_win", "test\libpmempool_rm_win\libpmempool_rm_win.vcxproj", "{67AC1343-98FD-4143-92C0-559C55F749F5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_sync_win", "test\libpmempool_sync_win\libpmempool_sync_win.vcxproj", "{B6DA6617-D98F-4A4D-A7C4-A317212924BF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_transform_win", "test\libpmempool_transform_win\libpmempool_transform_win.vcxproj", "{B30C6212-A160-405A-8FE7-340E721738A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -1685,6 +1693,22 @@ Global
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Debug|x64.Build.0 = Debug|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.ActiveCfg = Release|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.Build.0 = Release|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Debug|x64.ActiveCfg = Debug|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Debug|x64.Build.0 = Debug|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Release|x64.ActiveCfg = Release|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Release|x64.Build.0 = Release|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Debug|x64.ActiveCfg = Debug|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Debug|x64.Build.0 = Debug|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Release|x64.ActiveCfg = Release|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Release|x64.Build.0 = Release|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Debug|x64.ActiveCfg = Debug|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Debug|x64.Build.0 = Debug|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Release|x64.ActiveCfg = Release|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Release|x64.Build.0 = Release|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Debug|x64.ActiveCfg = Debug|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Debug|x64.Build.0 = Debug|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Release|x64.ActiveCfg = Release|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1940,5 +1964,9 @@ Global
 		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{67AC1343-98FD-4143-92C0-559C55F749F5} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{B30C6212-A160-405A-8FE7-340E721738A2} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 	EndGlobalSection
 EndGlobal

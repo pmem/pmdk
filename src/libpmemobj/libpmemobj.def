@@ -41,8 +41,8 @@ EXPORTS
 	pmemobj_set_funcs
 	pmemobj_errormsg
 	pmemobj_createU
-	pmemobj_openU
 	pmemobj_createW
+	pmemobj_openU
 	pmemobj_openW
 	pmemobj_close
 	pmemobj_checkU

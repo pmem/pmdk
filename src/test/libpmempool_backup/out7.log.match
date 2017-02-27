@@ -1,5 +1,5 @@
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.blk -b $(nW)pool.blk_backup -t blk -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
 destination of the backup already exists. Do you want to overwrite it?
 checking pool header
 pool header correct
@@ -11,13 +11,13 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
 libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.blk -b $(nW)pool.blk_backup -t blk -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
 destination of the backup does not match the size of the source pool file: $(nW)pool.blk_backup
 status = fatal
 libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.log -b $(nW)pool.log_backup -t log -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
 destination of the backup already exists. Do you want to overwrite it?
 checking pool header
 pool header correct
@@ -25,20 +25,20 @@ checking pmemlog header
 pmemlog header correct
 status = consistent
 libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.log -b $(nW)pool.log_backup -t log -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
 destination of the backup does not match the size of the source pool file: $(nW)pool.log_backup
 status = fatal
 libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.obj -b $(nW)pool.obj_backup -t obj -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.obj_backup -t obj -r 1 $(nW)pool.obj
 destination of the backup already exists. Do you want to overwrite it?
 checking pool header
 pool header correct
 status = consistent
 libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.obj -b $(nW)pool.obj_backup -t obj -r 1
+libpmempool_backup/TEST7: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.obj_backup -t obj -r 1 $(nW)pool.obj
 destination of the backup does not match the size of the source pool file: $(nW)pool.obj_backup
 status = fatal
 libpmempool_backup/TEST7: DONE
