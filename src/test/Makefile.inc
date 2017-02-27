@@ -205,7 +205,7 @@ CXXFLAGS += -ggdb
 CXXFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 
-CFLAGS  = -std=gnu99
+CFLAGS += -std=gnu99
 CFLAGS += -Wmissing-prototypes
 CFLAGS += $(COMMON_FLAGS)
 CFLAGS += $(EXTRA_CFLAGS)

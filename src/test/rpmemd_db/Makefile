@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,8 @@ OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o rpmem_util.o librpmem.o
 
 LIBPMEM=y
 LIBPMEMCOMMON=y
+
+CFLAGS += -DMOCK_FORK_SAFETY
 
 include ../Makefile.inc
 
