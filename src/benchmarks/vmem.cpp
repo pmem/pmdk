@@ -91,8 +91,8 @@ struct vmem_bench {
 	struct vmem_worker *workers; /* array with private workers data */
 	size_t pool_size;	    /* size of each pool */
 	unsigned npools;	     /* number of created pools */
-	unsigned *alloc_sizes;       /* array with allocation sizes */
-	unsigned *realloc_sizes;     /* array with reallocation sizes */
+	size_t *alloc_sizes;	 /* array with allocation sizes */
+	size_t *realloc_sizes;       /* array with reallocation sizes */
 	unsigned *mix_ops;	   /* array with random indexes */
 	bool rand_alloc;	     /* use range mode in allocation */
 	bool rand_realloc;	   /* use range mode in reallocation */
@@ -236,25 +236,23 @@ err:
  * random_values -- calculates values for random sizes
  */
 static void
-random_values(unsigned *alloc_sizes, struct benchmark_args *args, size_t max,
+random_values(size_t *alloc_sizes, struct benchmark_args *args, size_t max,
 	      size_t min)
 {
-	unsigned i;
 	if (args->seed != 0)
 		srand(args->seed);
 
-	for (i = 0; i < args->n_ops_per_thread; i++)
-		alloc_sizes[i] = RRAND(max - min, min);
+	for (uint64_t i = 0; i < args->n_ops_per_thread; i++)
+		alloc_sizes[i] = RRAND(max, min);
 }
 
 /*
  * static_values -- fulls array with the same value
  */
 static void
-static_values(unsigned *alloc_sizes, size_t dsize, unsigned nops)
+static_values(size_t *alloc_sizes, size_t dsize, uint64_t nops)
 {
-	unsigned i;
-	for (i = 0; i < nops; i++)
+	for (uint64_t i = 0; i < nops; i++)
 		alloc_sizes[i] = dsize;
 }
 
@@ -505,13 +503,14 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 			vw->objs[j].pool_num = vw->pool_number;
 	}
 
-	if ((vb->alloc_sizes = (unsigned *)malloc(
-		     sizeof(unsigned) * args->n_ops_per_thread)) == NULL) {
+	if ((vb->alloc_sizes = (size_t *)malloc(
+		     sizeof(size_t) * args->n_ops_per_thread)) == NULL) {
 		perror("malloc");
 		goto err_free_buf;
 	}
 	if (vb->rand_alloc)
-		random_values(vb->alloc_sizes, args, args->dsize, va->min_size);
+		random_values(vb->alloc_sizes, args, args->dsize,
+			      (size_t)va->min_size);
 	else
 		static_values(vb->alloc_sizes, args->dsize,
 			      args->n_ops_per_thread);
@@ -559,16 +558,16 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 		fprintf(stderr, "invalid reallocation size\n");
 		goto err;
 	}
-	if ((vb->realloc_sizes = (unsigned *)calloc(
-		     args->n_ops_per_thread, sizeof(unsigned))) == NULL) {
+	if ((vb->realloc_sizes = (size_t *)calloc(args->n_ops_per_thread,
+						  sizeof(size_t))) == NULL) {
 		perror("calloc");
 		goto err;
 	}
 	if (vb->rand_realloc)
-		random_values(vb->realloc_sizes, args, va->rsize,
-			      va->min_rsize);
+		random_values(vb->realloc_sizes, args, (size_t)va->rsize,
+			      (size_t)va->min_rsize);
 	else
-		static_values(vb->realloc_sizes, va->rsize,
+		static_values(vb->realloc_sizes, (size_t)va->rsize,
 			      args->n_ops_per_thread);
 	return 0;
 err:
