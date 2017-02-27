@@ -56,7 +56,7 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 #define VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define vmem_create vmem_createW
 #else
 #define vmem_create vmem_createU
@@ -125,7 +125,7 @@ void vmem_set_funcs(
 		void (*print_func)(const char *s));
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define vmem_errormsg vmem_errormsgW
 #else
 #define vmem_errormsg vmem_errormsgU

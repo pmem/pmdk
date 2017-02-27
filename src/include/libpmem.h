@@ -62,7 +62,7 @@ extern "C" {
 #define PMEM_FILE_TMPFILE	(1 << 3)
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define pmem_map_file pmem_map_fileW
 #define pmem_errormsg pmem_errormsgW
 #else

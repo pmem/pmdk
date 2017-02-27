@@ -83,12 +83,11 @@ const char *pmemblk_check_version(
 #define PMEMBLK_MIN_BLK ((size_t)512)
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define pmemblk_open pmemblk_openW
 #define pmemblk_create pmemblk_createW
 #define pmemblk_check pmemblk_checkW
 #define pmemblk_errormsg pmemblk_errormsgW
-
 #else
 #define pmemblk_open pmemblk_openU
 #define pmemblk_create pmemblk_createU
