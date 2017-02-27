@@ -44,7 +44,10 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <errno.h>
 #include "util.h"
+#include "out.h"
 #include "os.h"
 
 /*
@@ -223,4 +226,98 @@ os_getenv(const char *name)
  */
 const char *os_strsignal(int sig) {
 	return strsignal(sig);
+}
+
+struct os_semaphore {
+	sem_t s;
+};
+
+/*
+ * os_semaphore_new -- creates a new semaphore instance
+ */
+struct os_semaphore *
+os_semaphore_new(unsigned value)
+{
+	/* XXX use Malloc when the linking situation of the os is clarified */
+	struct os_semaphore *sem = malloc(sizeof(*sem));
+	if (sem == NULL)
+		return NULL;
+
+	if (sem_init(&sem->s, 0, value) != 0)
+		FATAL("!sem_init");
+
+	return sem;
+}
+
+/*
+ * os_semaphore_delete -- deletes a semaphore instance
+ */
+void
+os_semaphore_delete(struct os_semaphore *sem)
+{
+	if (sem_destroy(&sem->s) != 0)
+		FATAL("!sem_destroy");
+
+	/* XXX use Falloc when the linking situation of the os is clarified */
+	free(sem);
+}
+
+/*
+ * os_semaphore_wait -- decreases the value of the semaphore
+ */
+void
+os_semaphore_wait(struct os_semaphore *sem)
+{
+	errno = 0;
+
+	int ret;
+	do {
+		ret = sem_wait(&sem->s);
+	} while (errno == EINTR); /* signal interrupt */
+
+	if (ret != 0)
+		FATAL("!sem_wait");
+}
+
+/*
+ * os_semaphore_trywait -- tries to decrease the value of the semaphore
+ */
+int
+os_semaphore_trywait(struct os_semaphore *sem)
+{
+	errno = 0;
+	int ret;
+	do {
+		ret = sem_trywait(&sem->s);
+	} while (errno == EINTR); /* signal interrupt */
+
+	if (ret != 0 && errno != EAGAIN)
+		FATAL("!sem_trywait");
+
+	return ret;
+}
+
+/*
+ * os_semaphore_post -- increases the value of the semaphore
+ */
+void
+os_semaphore_post(struct os_semaphore *sem)
+{
+	if (sem_post(&sem->s) != 0)
+		FATAL("!sem_post");
+}
+
+/*
+ * os_semaphore_get -- returns the current value held by the semaphore
+ */
+unsigned
+os_semaphore_get(struct os_semaphore *sem)
+{
+	int value;
+	if (sem_getvalue(&sem->s, &value) != 0)
+		FATAL("!sem_getvalue");
+
+	ASSERT(value >= 0);
+
+	return (unsigned)value;
 }

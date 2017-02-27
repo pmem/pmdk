@@ -164,7 +164,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	}
 
 	if (pop) {
-		tx_ctl_init(pop);
+		tx_ctl_register(pop);
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -1118,10 +1118,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		obj_pool_init();
 
-		if ((pop->tx_postcommit_tasks = ringbuf_new(0)) == NULL) {
-			ERR("!ringbuf_new");
-			return -1;
-		}
+		pop->tx_postcommit_tasks = NULL;
 
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
@@ -1740,7 +1737,9 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("ctree_remove");
 	}
 
-	ringbuf_delete(pop->tx_postcommit_tasks);
+	if (pop->tx_postcommit_tasks != NULL) {
+		ringbuf_delete(pop->tx_postcommit_tasks);
+	}
 
 #ifndef _WIN32
 

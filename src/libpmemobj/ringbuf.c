@@ -37,12 +37,12 @@
  */
 
 #include <sched.h>
-#include <semaphore.h>
 #include "valgrind_internal.h"
 
 #include "ringbuf.h"
 #include "util.h"
 #include "out.h"
+#include "os.h"
 
 /* avoid false sharing by padding the variable */
 #define CACHELINE_PADDING(type, name)\
@@ -52,11 +52,12 @@ struct ringbuf {
 	CACHELINE_PADDING(uint64_t, read_pos);
 	CACHELINE_PADDING(uint64_t, write_pos);
 
-	CACHELINE_PADDING(sem_t, nfree);
-	CACHELINE_PADDING(sem_t, nused);
+	CACHELINE_PADDING(struct os_semaphore *, nfree);
+	CACHELINE_PADDING(struct os_semaphore *, nused);
 
-	uint64_t len;
+	unsigned len;
 	uint64_t len_mask;
+	int running;
 
 	void *data[];
 };
@@ -75,16 +76,52 @@ ringbuf_new(unsigned length)
 	if (rbuf == NULL)
 		return NULL;
 
-	sem_init(&rbuf->nfree, 0, length);
-	sem_init(&rbuf->nused, 0, 0);
+	rbuf->nfree = os_semaphore_new(length);
+	if (rbuf->nfree == NULL)
+		goto error;
+
+	rbuf->nused = os_semaphore_new(0);
+	if (rbuf->nused == NULL)
+		goto error;
 
 	rbuf->read_pos = 0;
 	rbuf->write_pos = 0;
 
 	rbuf->len = length;
 	rbuf->len_mask = length - 1;
+	rbuf->running = 1;
 
 	return rbuf;
+
+error:
+	Free(rbuf->nfree);
+	Free(rbuf->nused);
+	Free(rbuf);
+
+	return NULL;
+}
+
+/*
+ * ringbuf_length -- returns the length of the ring buffer
+ */
+unsigned
+ringbuf_length(struct ringbuf *rbuf)
+{
+	return rbuf->len;
+}
+
+/*
+ * ringbuf_stop -- if there are any threads stuck waiting on dequeue, unblocks
+ *	them. Those threads, if there are no new elements, will return NULL.
+ */
+void
+ringbuf_stop(struct ringbuf *rbuf)
+{
+	rbuf->running = 0;
+
+	/* XXX just unlock all waiting threads somehow... */
+	for (uint64_t i = 0; i < 1024; ++i)
+		os_semaphore_post(rbuf->nused);
 }
 
 /*
@@ -93,21 +130,21 @@ ringbuf_new(unsigned length)
 void
 ringbuf_delete(struct ringbuf *rbuf)
 {
-	sem_destroy(&rbuf->nfree);
-	sem_destroy(&rbuf->nused);
+	os_semaphore_delete(rbuf->nfree);
+	os_semaphore_delete(rbuf->nused);
 	Free(rbuf);
 }
 
 /*
- * ringbuf_enqueue -- places a new value into the collection
- *
- * This function blocks if there's no space in the buffer.
+ * ringbuf_enqueue_atomic -- (internal) performs the lockfree insert of an
+ *	element into the ringbuf data array
  */
-void
-ringbuf_enqueue(struct ringbuf *rbuf, void *data)
+static void
+ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 {
-	sem_wait(&rbuf->nfree);
 	size_t w = __sync_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
+
+	ASSERT(rbuf->running);
 
 	/*
 	 * In most cases, this won't loop even once, but sometimes if the
@@ -115,8 +152,66 @@ ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 	 */
 	while (!__sync_bool_compare_and_swap(&rbuf->data[w], NULL, data))
 		;
+}
 
-	sem_post(&rbuf->nused);
+/*
+ * ringbuf_enqueue -- places a new value into the collection
+ *
+ * This function blocks if there's no space in the buffer.
+ */
+int
+ringbuf_enqueue(struct ringbuf *rbuf, void *data)
+{
+	os_semaphore_wait(rbuf->nfree);
+
+	ringbuf_enqueue_atomic(rbuf, data);
+
+	os_semaphore_post(rbuf->nused);
+
+	return 0;
+}
+
+/*
+ * ringbuf_tryenqueue -- places a new value into the collection
+ *
+ * This function fails if there's no space in the buffer.
+ */
+int
+ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
+{
+	if (os_semaphore_trywait(rbuf->nfree) != 0)
+		return -1;
+
+	ringbuf_enqueue_atomic(rbuf, data);
+
+	os_semaphore_post(rbuf->nused);
+
+	return 0;
+}
+
+/*
+ * ringbuf_dequeue_atomic -- performs a lockfree retrieval of data from ringbuf
+ */
+static void *
+ringbuf_dequeue_atomic(struct ringbuf *rbuf)
+{
+	size_t r = __sync_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
+	/*
+	 * Again, in most cases, there won't be even a single loop, but if one
+	 * thread stalls while others perform work, it might happen that two
+	 * threads get the same read position.
+	 */
+	void *data = NULL;
+	do {
+		while ((data = rbuf->data[r]) == NULL && rbuf->running)
+			__sync_synchronize();
+
+		if (__sync_bool_compare_and_swap(&rbuf->data[r], data, NULL))
+			break;
+	} while (rbuf->running);
+
+
+	return data;
 }
 
 /*
@@ -127,23 +222,44 @@ ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 void *
 ringbuf_dequeue(struct ringbuf *rbuf)
 {
-	sem_wait(&rbuf->nused);
-	size_t r = __sync_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
+	os_semaphore_wait(rbuf->nused);
 
-	/*
-	 * Again, in most cases, there won't be even a single loop, but if one
-	 * thread stalls while others perform work, it might happen that two
-	 * threads get the same read position.
-	 */
-	void *data;
-	do {
-		while ((data = rbuf->data[r]) == NULL)
-			__sync_synchronize();
-	} while (!__sync_bool_compare_and_swap(&rbuf->data[r], data, NULL));
+	void *data = ringbuf_dequeue_atomic(rbuf);
 
-	sem_post(&rbuf->nfree);
+	os_semaphore_post(rbuf->nfree);
 
 	return data;
+}
+
+/*
+ * ringbuf_trydequeue -- retrieves one value from the collection
+ *
+ * This function fails if there are no values in the buffer.
+ */
+void *
+ringbuf_trydequeue(struct ringbuf *rbuf)
+{
+	if (os_semaphore_trywait(rbuf->nused) != 0)
+		return NULL;
+
+	void *data = ringbuf_dequeue_atomic(rbuf);
+
+	os_semaphore_post(rbuf->nfree);
+
+	return data;
+}
+
+/*
+ * ringbuf_trydequeue_s -- valgrind-safe variant of the trydequeue function
+ */
+void *
+ringbuf_trydequeue_s(struct ringbuf *rbuf, size_t data_size)
+{
+	void *r = ringbuf_trydequeue(rbuf);
+	if (r != NULL)
+		VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
+
+	return r;
 }
 
 /*
@@ -164,10 +280,7 @@ ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size)
 int
 ringbuf_empty(struct ringbuf *rbuf)
 {
-	int nused;
-	sem_getvalue(&rbuf->nused, &nused);
-
-	return nused == 0;
+	return os_semaphore_get(rbuf->nused) == 0;
 }
 
 /*
@@ -176,8 +289,5 @@ ringbuf_empty(struct ringbuf *rbuf)
 int
 ringbuf_full(struct ringbuf *rbuf)
 {
-	int nfree;
-	sem_getvalue(&rbuf->nfree, &nfree);
-
-	return nfree == 0;
+	return os_semaphore_get(rbuf->nfree) == 0;
 }

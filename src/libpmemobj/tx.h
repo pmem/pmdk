@@ -81,7 +81,7 @@ struct tx_parameters;
  */
 PMEMobjpool *tx_get_pop(void);
 
-void tx_ctl_init(PMEMobjpool *pop);
+void tx_ctl_register(PMEMobjpool *pop);
 
 struct tx_parameters *tx_params_new(void);
 void tx_params_delete(struct tx_parameters *tx_params);
