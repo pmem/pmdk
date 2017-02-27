@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ $Env:PMEMOBJ_LOG_FILE = ""
 require_fs_type any
 require_build_type debug nondebug
 # XXX no windows equivalent for these yet
-#require_valgrind_dev_3_10
+#require_valgrind_dev_version 3.10
 #configure_valgrind drd force-enable
 setup
 

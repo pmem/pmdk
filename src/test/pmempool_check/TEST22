@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,40 +30,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_tx_locks/TEST2 -- unit test for transaction locks
+# pmempool_check/TEST22 -- test for checking pools with device dax under
+#			valgrind
 #
+export UNITTEST_NAME=pmempool_check/TEST22
+export UNITTEST_NUM=22
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "obj_tx_locks\TEST2"
-$Env:UNITTEST_NUM = "2"
-
-
-# standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
 
-$Env:PMEM_LOG_LEVEL = ""
-$Env:PMEM_LOG_FILE = ""
-$Env:PMEMOBJ_LOG_LEVEL = ""
-$Env:PMEMOBJ_LOG_FILE = ""
-
+require_dax_devices 1
 require_fs_type any
-require_build_type debug nondebug
-# XXX no windows equivalent for these yet
-#require_valgrind_dev_version 3.10
-#configure_valgrind helgrind force-enable
+
+configure_valgrind memcheck force-enable $PMEMPOOL$EXESUFFIX
+require_valgrind_dev_version 3.11
+
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_tx_locks$Env:EXESUFFIX $DIR\testfile1 m
+dax_device_zero
+
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
+
+HDR_MAJOR_OFFSET=8
+
+POOLSET=$DEVICE_DAX_PATH
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+expect_normal_exit $DDMAP$EXESUFFIX -o $POOLSET -s $HDR_MAJOR_OFFSET -d "0"
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+
+check
 
 pass

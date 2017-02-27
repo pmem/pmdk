@@ -46,7 +46,7 @@ $Env:UNITTEST_NUM = "0"
 
 . ..\unittest\unittest.ps1
 # XXX: valgrind
-# require_valgrind_dev_3_10
+# require_valgrind_dev_version 3.10
 require_fs_type pmem non-pmem
 require_test_type long
 # configure_valgrind helgrind force-enable

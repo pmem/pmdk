@@ -52,7 +52,7 @@ require_fs_type none
 require_build_type debug nondebug
 
 # XXX: valgrind
-# require_valgrind_dev_3_10
+# require_valgrind_dev_version 3.10
 # configure_valgrind helgrind force-enable
 
 setup

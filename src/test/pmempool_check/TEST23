@@ -1,5 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,40 +30,50 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_tx_locks/TEST2 -- unit test for transaction locks
+# pmempool_check/TEST23 -- test for checking pools with device dax under
+#			valgrind
 #
+export UNITTEST_NAME=pmempool_check/TEST23
+export UNITTEST_NUM=23
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "obj_tx_locks\TEST2"
-$Env:UNITTEST_NUM = "2"
-
-
-# standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
 
-$Env:PMEM_LOG_LEVEL = ""
-$Env:PMEM_LOG_FILE = ""
-$Env:PMEMOBJ_LOG_LEVEL = ""
-$Env:PMEMOBJ_LOG_FILE = ""
-
+require_dax_devices 1
 require_fs_type any
-require_build_type debug nondebug
-# XXX no windows equivalent for these yet
-#require_valgrind_dev_version 3.10
-#configure_valgrind helgrind force-enable
+
+configure_valgrind memcheck force-enable $PMEMPOOL$EXESUFFIX
+require_valgrind_dev_version 3.11
+
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_tx_locks$Env:EXESUFFIX $DIR\testfile1 m
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
+
+POOLSET=$DIR/testset1
+create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+
+#remove the pools in the poolset while preserving the file itself
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -s $POOLSET
+#verify that the poolset still exists
+check_files $POOLSET
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+
+check
 
 pass
