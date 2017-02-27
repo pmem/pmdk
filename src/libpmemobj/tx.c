@@ -1335,11 +1335,11 @@ pmemobj_tx_errno(void)
 }
 
 /*
- * tx_postcommit_cleanup -- performs all the necessery cleanup on a lane after
+ * tx_post_commit_cleanup -- performs all the necessary cleanup on a lane after
  *	successful commit
  */
 static void
-tx_postcommit_cleanup(PMEMobjpool *pop,
+tx_post_commit_cleanup(PMEMobjpool *pop,
 	struct lane_section *section, int detached)
 {
 	struct lane_tx_runtime *runtime =
@@ -1347,8 +1347,16 @@ tx_postcommit_cleanup(PMEMobjpool *pop,
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)section->layout;
 
+	if (detached)
+		lane_attach(pop, runtime->lane_idx);
+
+	struct tx *tx = get_tx();
+	tx->pop = pop;
+	tx->section = section;
+	tx->stage = TX_STAGE_ONCOMMIT;
+
 	/* post commit phase */
-	tx_post_commit(pop, NULL, layout, 0 /* not recovery */);
+	tx_post_commit(pop, tx, layout, 0 /* not recovery */);
 
 	/* clear transaction state */
 	tx_set_state(pop, layout, TX_STATE_NONE);
@@ -1362,9 +1370,7 @@ tx_postcommit_cleanup(PMEMobjpool *pop,
 	ASSERT(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 0 ||
 		pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 1);
 
-	if (detached) {
-		lane_release_detached(pop, runtime->lane_idx);
-	}
+	lane_release(pop);
 }
 
 /*
@@ -1403,14 +1409,15 @@ pmemobj_tx_commit(void)
 		/* set transaction state as committed */
 		tx_set_state(pop, layout, TX_STATE_COMMITTED);
 
-		if (ringbuf_full(pop->tx_postcommit_tasks)) {
-			tx_postcommit_cleanup(pop, tx->section, 0);
-			lane_release(pop);
-			tx->section = NULL;
-		} else {
+		if (pop->tx_postcommit_tasks != NULL &&
+			ringbuf_tryenqueue(pop->tx_postcommit_tasks,
+				tx->section) == 0) {
 			lane_detach(pop);
-			ringbuf_enqueue(pop->tx_postcommit_tasks, tx->section);
+		} else {
+			tx_post_commit_cleanup(pop, tx->section, 0);
 		}
+
+		tx->section = NULL;
 	}
 
 	tx->stage = TX_STAGE_ONCOMMIT;
@@ -1431,7 +1438,7 @@ pmemobj_tx_end(void)
 	if (tx->stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
 
-	if (tx->section == NULL)
+	if (tx->pop == NULL)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_begin");
 
 	if (tx->stage_callback &&
@@ -1451,9 +1458,9 @@ pmemobj_tx_end(void)
 	if (SLIST_EMPTY(&tx->tx_entries)) {
 		ASSERTeq(tx->section, NULL);
 
+		release_and_free_tx_locks(tx);
 		tx->pop = NULL;
 		tx->stage = TX_STAGE_NONE;
-		release_and_free_tx_locks(tx);
 
 		if (tx->stage_callback) {
 			pmemobj_tx_callback cb = tx->stage_callback;
@@ -1486,7 +1493,6 @@ pmemobj_tx_process(void)
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
-	ASSERTne(tx->section, NULL);
 
 	switch (tx->stage) {
 	case TX_STAGE_NONE:
@@ -2287,7 +2293,6 @@ CTL_WRITE_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
 	int arg_in = *(int *)arg;
 
 	pop->tx_debug_skip_expensive_checks = arg_in;
-
 	return 0;
 }
 
@@ -2299,18 +2304,95 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_NODE_END
 };
 
+/*
+ * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
+ */
+static int
+CTL_READ_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+	*arg_out = (int)ringbuf_length(pop->tx_postcommit_tasks);
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(queue_depth) -- sets the depth of the post commit queue
+ */
+static int
+CTL_WRITE_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+
+	struct ringbuf *ntasks = ringbuf_new((unsigned)arg_in);
+	if (ntasks == NULL)
+		return -1;
+
+	if (pop->tx_postcommit_tasks != NULL) {
+		ASSERT(ringbuf_empty(pop->tx_postcommit_tasks));
+		ringbuf_delete(pop->tx_postcommit_tasks);
+	}
+
+	pop->tx_postcommit_tasks = ntasks;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(queue_depth) = CTL_ARG_INT;
+
+/*
+ * CTL_READ_HANDLER(worker) -- launches the post commit worker thread function
+ */
+static int
+CTL_READ_HANDLER(worker)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+
+	struct lane_section *section;
+	while ((section = ringbuf_dequeue_s(pop->tx_postcommit_tasks,
+		sizeof(*section))) != NULL) {
+		tx_post_commit_cleanup(pop, section, 1);
+	}
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(stop) -- stops all post commit workers
+ */
+static int
+CTL_READ_HANDLER(stop)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	ringbuf_stop(pop->tx_postcommit_tasks);
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(post_commit)[] = {
+	CTL_LEAF_RW(queue_depth),
+	CTL_LEAF_RO(worker),
+	CTL_LEAF_RO(stop),
+
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(tx)[] = {
 	CTL_CHILD(debug),
 	CTL_CHILD(cache),
+	CTL_CHILD(post_commit),
 
 	CTL_NODE_END
 };
 
 /*
- * tx_ctl_init -- registers ctl nodes for "tx" module
+ * tx_ctl_register -- registers ctl nodes for "tx" module
  */
 void
-tx_ctl_init(PMEMobjpool *pop)
+tx_ctl_register(PMEMobjpool *pop)
 {
 	CTL_REGISTER_MODULE(pop->ctl, tx);
 }

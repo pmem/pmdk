@@ -466,6 +466,14 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	return (unsigned)lane->lane_idx;
 }
 
+void
+lane_attach(PMEMobjpool *pop, unsigned lane)
+{
+	struct lane_info *info = get_lane_info_record(pop);
+	info->nest_count = 1;
+	info->lane_idx = lane;
+}
+
 /*
  * lane_detach -- detaches the currently held lane from the current thread
  */
@@ -477,18 +485,6 @@ lane_detach(PMEMobjpool *pop)
 	ASSERTeq(lane->nest_count, 0);
 
 	return (unsigned)lane->lane_idx;
-}
-
-/*
- * lane_release_detached -- releases the lock for the given lane
- */
-void
-lane_release_detached(PMEMobjpool *pop, unsigned lane)
-{
-	int ret = util_bool_compare_and_swap64(
-		&pop->lanes_desc.lane_locks[lane], 1, 0);
-
-	ASSERT(ret);
 }
 
 /*

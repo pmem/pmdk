@@ -60,6 +60,7 @@ LOG_TESTS = \
 OBJ_DEPS = obj_list
 # long tests first
 OBJ_TESTS = \
+	obj_async_postcommit\
 	obj_basic_integration\
 	obj_many_size_allocs\
 	obj_realloc\

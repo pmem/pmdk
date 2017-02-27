@@ -591,3 +591,70 @@ os_strsignal(int sig)
 	else
 		return STR_UNKNOWN_SIGNAL;
 }
+
+struct os_semaphore {
+	/* XXX */
+};
+
+/*
+ * os_semaphore_new -- creates a new semaphore instance
+ */
+struct os_semaphore *
+os_semaphore_new(unsigned value)
+{
+	struct os_semaphore *sem = Malloc(sizeof(*sem));
+	if (sem == NULL)
+		return NULL;
+
+
+	return sem;
+}
+
+/*
+ * os_semaphore_delete -- deletes a semaphore instance
+ */
+void
+os_semaphore_delete(struct os_semaphore *sem)
+{
+	Free(sem);
+}
+
+/*
+ * os_semaphore_wait -- decreases the value of the semaphore
+ */
+void
+os_semaphore_wait(struct os_semaphore *sem)
+{
+	FATAL("XXX not implemented");
+}
+
+/*
+ * os_semaphore_trywait -- tries to decrease the value of the semaphore
+ */
+int
+os_semaphore_trywait(struct os_semaphore *sem)
+{
+	FATAL("XXX not implemented");
+
+	return -1;
+}
+
+/*
+ * os_semaphore_post -- increases the value of the semaphore
+ */
+void
+os_semaphore_post(struct os_semaphore *sem)
+{
+	FATAL("XXX not implemented");
+}
+
+/*
+ * os_semaphore_get -- returns the current value held by the semaphore
+ */
+unsigned
+os_semaphore_get(struct os_semaphore *sem)
+{
+	FATAL("XXX not implemented");
+
+	return 0;
+}
