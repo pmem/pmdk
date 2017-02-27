@@ -70,7 +70,9 @@ static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
 
 #ifdef _WIN32
-#define MAXPRINTW (MAXPRINT * 4) /* maximum expected log line in wchar_t */
+
+/* maximum expected log line in wchar_t */
+#define MAXPRINTW (MAXPRINT * sizeof(wchar_t))
 
 static pthread_key_t Last_errormsgw_key;
 #endif

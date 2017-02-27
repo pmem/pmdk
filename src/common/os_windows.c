@@ -135,7 +135,7 @@ os_skipBOM(FILE *file)
 	int orig_errno = errno;
 	/* UTF-8 BOM */
 	uint8_t bom[3];
-	int read_num = fread(bom, sizeof(bom[0]), sizeof(bom), file);
+	size_t read_num = fread(bom, sizeof(bom[0]), sizeof(bom), file);
 	if (read_num != ARRAY_SIZE(bom))
 		goto out;
 

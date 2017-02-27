@@ -116,17 +116,6 @@ UNICODE_FUNCTION(pmempool_check_version)(unsigned major_required,
 	return NULL;
 }
 
-#ifdef _WIN32
-/*
- * pmempool_errormsgW -- return last error message as unicode
- */
-const wchar_t *
-pmempool_errormsgW(void)
-{
-	return out_get_errormsgW();
-}
-#endif
-
 /*
  * pmempool_errormsg -- return last error message
  */
