@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@ vpath %.c $(TOP)/src/librpmem
 vpath %.c $(TOP)/src/tools/rpmemd
 
 TARGET = rpmemd_db
-OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o rpmem_util.o librpmem.o
+OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o
 
 LIBPMEM=y
 LIBPMEMCOMMON=y

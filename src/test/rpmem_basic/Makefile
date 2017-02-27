@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,8 +58,4 @@ LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 INCS += -I../../common
 INCS += -I../../rpmem_common
-ifeq ($(HAS_LIBIBVERBS),y)
-LIBS += -libverbs
-CFLAGS += -DHAS_IBVERBS
-endif
 endif

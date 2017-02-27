@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,14 +42,11 @@
 #include "rpmem.h"
 #include "rpmem_common.h"
 #include "rpmem_util.h"
+#include "rpmem_fip.h"
 #include "util.h"
 #include "out.h"
 
-#ifdef HAS_IBVERBS
-#include <infiniband/verbs.h>
-#endif
-
-extern int Rpmem_fork_fail;
+extern int Rpmem_fork_unsafe;
 
 /*
  * librpmem_init -- load-time initialization for librpmem
@@ -65,12 +62,10 @@ librpmem_init(void)
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	rpmem_util_cmds_init();
-#ifdef HAS_IBVERBS
-	Rpmem_fork_fail = ibv_fork_init();
-	if (Rpmem_fork_fail)
-		RPMEM_LOG(ERR, "Initialization libibverbs to support "
-			"fork() failed. See librpmem(3) for details.");
-#endif
+
+	rpmem_fip_probe_fork_safety(&Rpmem_fork_unsafe);
+	RPMEM_LOG(NOTICE, "Libfabric is %sfork safe",
+		Rpmem_fork_unsafe ? "not " : "");
 }
 
 /*

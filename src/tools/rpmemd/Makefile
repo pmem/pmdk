@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,13 +65,7 @@ LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 INSTALL_TARGET=$(EXPERIMENTAL)
 
 else
-ifeq ($(HAS_LIBIBVERBS),n)
-$(info NOTE: Skipping librpmem because libibverbs headers are missing. \
-Set RPMEM_DISABLE_LIBIBVERBS=y to build librpmem anyway.)
-else
-$(info NOTE: Skipping rpmemd because libfabric is missing \
--- see src/tools/rpmemd/README for details.)
-endif
+$(info NOTE: Skipping rpmemd because $(BUILD_RPMEM_INFO))
 endif
 
 include ../Makefile.inc

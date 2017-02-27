@@ -44,8 +44,7 @@ TARGET = fip
 OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o os_linux.o
 
 else
-$(info NOTE: Skipping fip because libfabric is missing \
--- see src/test/tools/fip/README for details.)
+$(info NOTE: Skipping fip because $(BUILD_RPMEM_INFO))
 endif
 
 include $(TOP)/src/tools/Makefile.inc
@@ -56,4 +55,3 @@ CFLAGS += -I$(TOP)/src/common
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 endif
-

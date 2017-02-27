@@ -57,17 +57,17 @@
 	RPMEM_REMOVE_POOL_SET	\
 )
 
-extern int Rpmem_fork_fail;
+extern int Rpmem_fork_unsafe;
 
 /*
- * If set, indicates the ibv_fork_init() failed and consecutive calls to
+ * If set, indicates libfabric does not support fork() and consecutive calls to
  * rpmem_create/rpmem_open must fail.
  */
-int Rpmem_fork_fail;
+int Rpmem_fork_unsafe;
 
 #define RPMEM_CHECK_FORK() do {\
-if (Rpmem_fork_fail) {\
-	ERR("initialization libibverbs to support fork() failed");\
+if (Rpmem_fork_unsafe) {\
+	ERR("libfabric is initialized without fork() support");\
 	return NULL;\
 }\
 } while (0)

@@ -123,7 +123,21 @@ init_pool(struct pool_entry *pool, const char *pool_path,
 			flags, 0666, &pool->size, NULL);
 		UT_ASSERTne(pool->pool, NULL);
 
-		/* workaround for dev dax */
+		/*
+		 * This is a workaround for an issue with using device dax with
+		 * libibverbs. The problem is that libfabric to handle fork()
+		 * function calls correctly use ibv_fork_init(3) which makes
+		 * all registered memory being madvised with MADV_DONTFORK flag.
+		 * In libpmemobj the remote replication is performed without
+		 * pool header (first 4k). In such case the address passed to
+		 * madvise(2) is aligned to 4k, but device dax can require
+		 * different alignment (default is 2MB). This workaround
+		 * madvises the entire memory region before registering
+		 * it by fi_mr_reg(3).
+		 *
+		 * The librpmem client requires fork() support to work
+		 * correctly.
+		 */
 		ret = madvise(pool->pool, pool->size, MADV_DONTFORK);
 		UT_ASSERTeq(ret, 0);
 
