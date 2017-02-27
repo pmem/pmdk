@@ -45,11 +45,11 @@
 #include "util.h"
 #include "out.h"
 
-#ifdef HAS_IBVERBS
-#include <infiniband/verbs.h>
+#ifndef DO_NOT_USE_LIBFABRIC
+#include "rpmem_fip.h"
+extern int Rpmem_fork_unsafe;
+#define LIBFABRIC_FORK_UNSAFE_VAR "FI_FORK_UNSAFE"
 #endif
-
-extern int Rpmem_fork_fail;
 
 /*
  * librpmem_init -- load-time initialization for librpmem
@@ -65,11 +65,12 @@ librpmem_init(void)
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
 	LOG(3, NULL);
 	rpmem_util_cmds_init();
-#ifdef HAS_IBVERBS
-	Rpmem_fork_fail = ibv_fork_init();
-	if (Rpmem_fork_fail)
-		RPMEM_LOG(ERR, "Initialization libibverbs to support "
-			"fork() failed. See librpmem(3) for details.");
+
+#ifndef DO_NOT_USE_LIBFABRIC
+	Rpmem_fork_unsafe = 0; /* false by default */
+	rpmem_fip_param_get(LIBFABRIC_FORK_UNSAFE_VAR, &Rpmem_fork_unsafe);
+	RPMEM_LOG(NOTICE, "Libfabric is %sfork safe",
+		Rpmem_fork_unsafe ? "not " : "");
 #endif
 }
 
