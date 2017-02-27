@@ -44,10 +44,12 @@ extern "C" {
 #include <sys/types.h>
 #include <dirent.h>
 
-#define MAX_NAME 260 /* max from linux 255 and windows 260 */
+#ifdef _WIN32
+#define NAME_MAX MAX_PATH
+#endif
 
 struct file_info {
-	char filename[MAX_NAME];
+	char filename[NAME_MAX];
 	int is_dir;
 };
 
