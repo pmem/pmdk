@@ -50,7 +50,7 @@ fill_fetch_all(void)
 
 	UT_ASSERT(ringbuf_empty(rbuf));
 	for (uint64_t i = 1; i <= RINGBUF_LEN; ++i) {
-		ringbuf_enqueue(rbuf, (void *)i);
+		ringbuf_tryenqueue(rbuf, (void *)i);
 	}
 
 	UT_ASSERT(ringbuf_full(rbuf));
@@ -102,7 +102,7 @@ producer(void *arg)
 		 */
 		UT_ASSERTeq(m->consumed, 0);
 
-		ringbuf_enqueue(thp->rbuf, m);
+		ringbuf_tryenqueue(thp->rbuf, m);
 	}
 
 	return NULL;

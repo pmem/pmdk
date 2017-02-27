@@ -55,8 +55,9 @@ struct ringbuf {
 	CACHELINE_PADDING(sem_t, nfree);
 	CACHELINE_PADDING(sem_t, nused);
 
-	uint64_t len;
+	unsigned len;
 	uint64_t len_mask;
+	int running;
 
 	void *data[];
 };
@@ -83,8 +84,32 @@ ringbuf_new(unsigned length)
 
 	rbuf->len = length;
 	rbuf->len_mask = length - 1;
+	rbuf->running = 1;
 
 	return rbuf;
+}
+
+/*
+ * ringbuf_length -- returns the length of the ring buffer
+ */
+unsigned
+ringbuf_length(struct ringbuf *rbuf)
+{
+	return rbuf->len;
+}
+
+/*
+ * ringbuf_stop -- if there are any threads stuck waiting on dequeue, unblocks
+ *	them. Those threads, if there are no new elements, will return NULL.
+ */
+void
+ringbuf_stop(struct ringbuf *rbuf)
+{
+	rbuf->running = 0;
+
+	/* XXX just unlock all waiting threads somehow... */
+	for (uint64_t i = 0; i < 1024; ++i)
+		sem_post(&rbuf->nused);
 }
 
 /*
@@ -101,13 +126,17 @@ ringbuf_delete(struct ringbuf *rbuf)
 /*
  * ringbuf_enqueue -- places a new value into the collection
  *
- * This function blocks if there's no space in the buffer.
+ * This function fails if there's no space in the buffer.
  */
-void
-ringbuf_enqueue(struct ringbuf *rbuf, void *data)
+int
+ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 {
-	sem_wait(&rbuf->nfree);
+	if (sem_trywait(&rbuf->nfree) == -1)
+		return -1;
+
 	size_t w = __sync_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
+
+	ASSERT(rbuf->running);
 
 	/*
 	 * In most cases, this won't loop even once, but sometimes if the
@@ -117,6 +146,8 @@ ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 		;
 
 	sem_post(&rbuf->nused);
+
+	return 0;
 }
 
 /*
@@ -135,11 +166,14 @@ ringbuf_dequeue(struct ringbuf *rbuf)
 	 * thread stalls while others perform work, it might happen that two
 	 * threads get the same read position.
 	 */
-	void *data;
+	void *data = NULL;
 	do {
-		while ((data = rbuf->data[r]) == NULL)
+		while ((data = rbuf->data[r]) == NULL && rbuf->running)
 			__sync_synchronize();
-	} while (!__sync_bool_compare_and_swap(&rbuf->data[r], data, NULL));
+
+		if (__sync_bool_compare_and_swap(&rbuf->data[r], data, NULL))
+			break;
+	} while (rbuf->running);
 
 	sem_post(&rbuf->nfree);
 
