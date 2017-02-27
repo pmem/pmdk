@@ -146,7 +146,7 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define pmempool_errormsg pmempool_errormsgW
 #define pmempool_rm pmempool_rmW
 #define pmempool_check_version pmempool_check_versionW
@@ -311,18 +311,7 @@ int pmempool_rm(const char *path, int flags);
 const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
 
-#ifdef _WIN32
-#ifdef UNICODE
-#define pmempool_errormsg pmempool_errormsgW
-#else
-#define pmempool_errormsg pmempool_errormsgU
-#endif
-const char *pmempool_errormsgU(void);
-
-const wchar_t *pmempool_errormsgW(void);
-#else
 const char *pmempool_errormsg(void);
-#endif
 
 #endif
 
