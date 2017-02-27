@@ -37,12 +37,19 @@ LIBRARY libpmempool
 VERSION 1.0
 
 EXPORTS
-	pmempool_check_version
-	pmempool_errormsg
-	pmempool_check_init
-	pmempool_check
+	pmempool_check_versionU
+	pmempool_check_versionW
+	pmempool_errormsgU
+	pmempool_errormsgW
+	pmempool_check_initU
+	pmempool_check_initW
+	pmempool_checkU
+	pmempool_checkW
 	pmempool_check_end
-	pmempool_sync
-	pmempool_transform
-	pmempool_rm
+	pmempool_syncU
+	pmempool_syncW
+	pmempool_transformU
+	pmempool_transformW
+	pmempool_rmU
+	pmempool_rmW
 	DllMain

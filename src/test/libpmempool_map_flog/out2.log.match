@@ -13,8 +13,8 @@ Zeroed: bttdevice.arena.btt_flog(5).new_map=0x8000FFFF
 Zeroed: bttdevice.arena.btt_flog(6).old_map=0x80000001
 Zeroed: bttdevice.arena.btt_flog(7).new_map=0x80000002
 Zeroed: bttdevice.arena.btt_flog(8).new_map=0x80000069
-libpmempool_map_flog$(nW)TEST2: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST2: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -48,8 +48,8 @@ Error: bttdevice.arena.btt_flog(5).new_map=0x4000FFFF
 Error: bttdevice.arena.btt_flog(6).old_map=0x40000001
 Error: bttdevice.arena.btt_flog(7).new_map=0x40000002
 Error: bttdevice.arena.btt_flog(8).new_map=0x40000069
-libpmempool_map_flog$(nW)TEST2: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST2: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -83,8 +83,8 @@ Initial: bttdevice.arena.btt_flog(5).new_map=0x0000FFFF
 Initial: bttdevice.arena.btt_flog(6).old_map=0x00000001
 Initial: bttdevice.arena.btt_flog(7).new_map=0x00000002
 Initial: bttdevice.arena.btt_flog(8).new_map=0x00000069
-libpmempool_map_flog$(nW)TEST2: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST2: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
@@ -118,8 +118,8 @@ Normal: bttdevice.arena.btt_flog(5).new_map=0xC000FFFF
 Normal: bttdevice.arena.btt_flog(6).old_map=0xC0000001
 Normal: bttdevice.arena.btt_flog(7).new_map=0xC0000002
 Normal: bttdevice.arena.btt_flog(8).new_map=0xC0000069
-libpmempool_map_flog$(nW)TEST2: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -r 1 -t btt -a 1
+libpmempool_map_flog$(nW)TEST2: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
 $POOLSET_IN = "$DIR\poolset.in"
 $POOLSET_OUT = "$DIR\poolset.out"
 
@@ -72,18 +72,18 @@ create_poolset $POOLSET_OUT `
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Try to transform poolset
 $FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 $FLAGS = "1024"
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

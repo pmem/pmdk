@@ -11,7 +11,7 @@ REPLICA
 20M $(nW)part10
 20M $(nW)part11
 
-$(nW)TEST1w: START: libpmempool_transform
+$(nW)TEST1w: START: libpmempool_transform$(nW)
 
 Poolset structure:
 Number of replicas       : 2
@@ -38,11 +38,9 @@ Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
 
 PMEM OBJ Header:
-Layout                   : OBJ_LAYOUT
+Layout                   : OBJ_LAYOUT$(nW)
 Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
 Root offset              : 0x0
-
-

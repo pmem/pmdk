@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,19 +54,20 @@ $LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
 
 rm $LOG -Force -Recurse -ea si
 rm $LOG_TEMP -Force -Recurse -ea si
+touch $LOG_TEMP
 
 $pool_args=@{"blk"="blk 512"; "log"="log"}
 
 foreach ($h in $pool_args.GetEnumerator()) {
-	echo "Pool type: $($h.Name) Params: $($h.Value)" >> $LOG_TEMP
+	echo "Pool type: $($h.Name) Params: $($h.Value)" | Out-File -append -encoding ascii $LOG_TEMP
 	expect_normal_exit "$PMEMPOOL create $($h.Value) $POOL" >> $LOG_TEMP
 	&$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 	check_file $POOL
 
 	cp $POOL ${POOL}_copy >> $LOG_TEMP
-	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL `
-		-d 1 -r 1 -y 1 -t $($h.Name)
-	cat $LOG >> $LOG_TEMP
+	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
+		-d 1 -r 1 -y 1 -t $($h.Name) $POOL
+	cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 	cmp $POOL ${POOL}_copy >> $LOG_TEMP
 
 	rm $POOL -Force -Recurse -ea si

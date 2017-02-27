@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -121,7 +121,7 @@ function backup_and_compare () {
 
 	# backup
 	expect_normal_exit ../libpmempool_api/libpmempool_test$EXESUFFIX \
-		$poolset -b $poolset$BACKUP -t $type -r 1
+		-b $poolset$BACKUP -t $type -r 1 $poolset
 	cat $OUT >> $OUT_TEMP
 
 	# compare
