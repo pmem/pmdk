@@ -43,13 +43,7 @@ LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
 
 CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
 else
-ifeq ($(HAS_LIBIBVERBS),n)
-$(info NOTE: Skipping librpmem because libibverbs headers are missing. \
-Set RPMEM_DISABLE_LIBIBVERBS=y to build librpmem anyway.)
-else
-$(info NOTE: Skipping librpmem because libfabric is missing \
--- see src/librpmem/README for details.)
-endif
+$(info NOTE: Skipping librpmem because $(BUILD_RPMEM_INFO))
 endif
 
 include ../Makefile.inc

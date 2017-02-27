@@ -46,6 +46,8 @@ OBJS = rpmemd_db_test.o rpmemd_log.o rpmemd_db.o rpmem_util.o librpmem.o
 LIBPMEM=y
 LIBPMEMCOMMON=y
 
+CFLAGS += -DDO_NOT_USE_LIBFABRIC
+
 include ../Makefile.inc
 
 INCS += -I$(TOP)/src/rpmem_common

@@ -45,6 +45,7 @@
 #include <limits.h>
 
 #include <rdma/fabric.h>
+#include <rdma/fi_prov.h>
 #include <rdma/fi_domain.h>
 #include <rdma/fi_endpoint.h>
 #include <rdma/fi_cm.h>
@@ -1363,4 +1364,45 @@ rpmem_fip_monitor(struct rpmem_fip *fip, int nonblock)
 	int timeout = nonblock ? 0 : -1;
 	return rpmem_fip_read_eq(fip->eq, &entry, FI_CONNECTED,
 			&fip->ep->fid, timeout);
+}
+
+int Libfabric_initialized = 0;
+
+/*
+ * rpmem_fip_param_get -- get fabric parameter value
+ */
+int
+rpmem_fip_param_get(const char *param_name, void *value,
+	const void *default_value, size_t value_size)
+{
+	int ret;
+
+	/*
+	 * fi_getparams forces libfabric to initialize list of parameters.
+	 * fi_param_get lacks this functionality. This is the temporary
+	 * solution to work around this issue.
+	 */
+	if (!Libfabric_initialized) {
+		int count;
+		struct fi_param *params;
+		ret = fi_getparams(&params, &count);
+		if (ret != FI_SUCCESS) {
+			RPMEM_FI_ERR(ret, "getting fabric parameters list");
+			return -1;
+		}
+
+		fi_freeparams(params);
+		Libfabric_initialized = 1;
+	}
+
+	ret = fi_param_get(NULL, param_name, value);
+	if (ret == -FI_ENODATA) {
+		/* set value to default */
+		memcpy(value, default_value, value_size);
+	} else if (ret != FI_SUCCESS) {
+		RPMEM_FI_ERR(ret, "getting fabric parameter value");
+		return -1;
+	}
+
+	return 0;
 }

@@ -66,3 +66,6 @@ int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off);
+
+int rpmem_fip_param_get(const char *param_name, void *value,
+	const void *default_value, size_t value_size);
