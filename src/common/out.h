@@ -207,7 +207,7 @@ void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 	const char *format, va_list ap));
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define out_get_errormsg out_get_errormsgW
 #else
 #define out_get_errormsg out_get_errormsgU

@@ -58,7 +58,7 @@
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4996;4200</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
-      <PreprocessorDefinitions>NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -70,7 +70,7 @@
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4996;4200</DisableSpecificWarnings>
       <CompileAs>CompileAsCpp</CompileAs>
-      <PreprocessorDefinitions>NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

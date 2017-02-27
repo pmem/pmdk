@@ -210,7 +210,7 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
 
 #ifdef _WIN32
-#ifdef UNICODE
+#ifndef NVML_UTF8_API
 #define pmemobj_errormsg pmemobj_errormsgW
 #else
 #define pmemobj_errormsg pmemobj_errormsgU
