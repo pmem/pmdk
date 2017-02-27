@@ -47,7 +47,10 @@ fi
 
 # Find all the commits for the current build
 if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-	commits=$(git rev-list $TRAVIS_COMMIT_RANGE)
+	MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
+	[ -z $MERGE_BASE ] && \
+		MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+	commits=$(git log --pretty=%H $MERGE_BASE..$TRAVIS_COMMIT)
 else
 	commits=$TRAVIS_COMMIT
 fi
