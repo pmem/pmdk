@@ -1,5 +1,5 @@
-libpmempool_api$(nW)TEST1: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -d 0 -a 1 -r 1
+libpmempool_api$(nW)TEST1: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -d 0 -a 1 -r 1 $(*)
 checking pool header
 pool header correct
 checking pmemlog header

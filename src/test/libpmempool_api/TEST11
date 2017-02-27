@@ -60,9 +60,9 @@ $PMEMSPOIL $POOL "bttdevice.arena(0).btt_info.checksum=777"\
 	"bttdevice.arena(0).btt_info_backup.checksum=777" >> $LOG_TEMP
 check_file $POOL
 
-expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit ./libpmempool_test$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
-expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL -r 1 -t btt -a 1 >> $LOG
+expect_normal_exit ./libpmempool_test$EXESUFFIX -r 1 -t btt -a 1 $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG

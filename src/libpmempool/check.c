@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,6 +118,14 @@ error_pool_malloc:
 error_data_malloc:
 	return -1;
 }
+
+#ifdef _WIN32
+void
+convert_status_cache(PMEMpoolcheck *ppc, char *buf, size_t size)
+{
+	cache_to_utf8(ppc->data, buf, size);
+}
+#endif
 
 /*
  * status_get -- (internal) get next check_status
