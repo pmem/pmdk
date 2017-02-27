@@ -39,6 +39,7 @@ export UNITTEST_NUM=1
 
 require_test_type medium
 require_cxx11
+require_binary obj_cpp_priority_queue$EXESUFFIX
 configure_valgrind pmemcheck force-enable
 
 setup

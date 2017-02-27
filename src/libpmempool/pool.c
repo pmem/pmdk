@@ -60,6 +60,7 @@
 #include "file.h"
 #include "set.h"
 #include "check_util.h"
+#include "util_pmem.h"
 
 /* arbitrary size of a maximum file part being read / write at once */
 #define RW_BUFFERING_SIZE (128 * 1024 * 1024)
@@ -641,9 +642,11 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	if (off + nbytes > pool->set_file->size)
 		return -1;
 
-	if (pool->params.type != POOL_TYPE_BTT)
+	if (pool->params.type != POOL_TYPE_BTT) {
 		memcpy((char *)pool->set_file->addr + off, buff, nbytes);
-	else {
+		util_persist_auto(pool->params.is_dev_dax,
+				(char *)pool->set_file->addr + off, nbytes);
+	} else {
 		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
 			return -1;
 		if ((size_t)pool_btt_write(pool, buff, nbytes) != nbytes)
@@ -788,7 +791,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 		pmem_memcpy_persist(daddr, saddr, smapped);
 	} else {
 		memcpy(daddr, saddr, smapped);
-		PERSIST_GENERIC(dpart->is_dev_dax, daddr, smapped);
+		pmem_msync(daddr, smapped);
 	}
 
 	pmem_unmap(daddr, dmapped);

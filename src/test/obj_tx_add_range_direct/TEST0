@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,10 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
+
+# Pmemcheck is disabled here. The next test case (TEST1) will run the same test
+# under pmemcheck
+configure_valgrind pmemcheck force-disable
 
 setup
 

@@ -232,22 +232,6 @@ static
 #define CHECK_FUNC_COMPATIBLE(func1, func2) do {} while (0)
 #endif /* __GNUC__ */
 
-#define PERSIST_GENERIC(is_pmem, addr, len) do {\
-	void *raddr = addr; size_t rlen = len;\
-	if (is_pmem) \
-		pmem_persist(raddr, rlen);\
-	else\
-		pmem_msync(raddr, rlen);\
-} while (0)
-
-#define PERSIST_GENERIC_AUTO(is_dev_dax, addr, len) do {\
-	void *raddr = addr; size_t rlen = len;\
-	if (is_dev_dax || pmem_is_pmem(raddr, rlen))\
-		pmem_persist(raddr, rlen);\
-	else\
-		pmem_msync(raddr, rlen);\
-} while (0)
-
 #ifdef __cplusplus
 }
 #endif

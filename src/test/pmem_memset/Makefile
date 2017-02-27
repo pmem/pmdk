@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,5 +37,6 @@ TARGET = pmem_memset
 OBJS = pmem_memset.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
