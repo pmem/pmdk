@@ -1364,3 +1364,72 @@ rpmem_fip_monitor(struct rpmem_fip *fip, int nonblock)
 	return rpmem_fip_read_eq(fip->eq, &entry, FI_CONNECTED,
 			&fip->ep->fid, timeout);
 }
+
+/*
+ * parse_bool -- convert string value to boolean
+ */
+static int
+parse_bool(const char *str_value)
+{
+	if (strcmp(str_value, "0") == 0 ||
+			strcasecmp(str_value, "false") == 0 ||
+			strcasecmp(str_value, "no") == 0 ||
+			strcasecmp(str_value, "off") == 0) {
+		return 0;
+	}
+
+	if (strcmp(str_value, "1") == 0 ||
+			strcasecmp(str_value, "true") == 0 ||
+			strcasecmp(str_value, "yes") == 0 ||
+			strcasecmp(str_value, "on") == 0) {
+		return 1;
+	}
+
+	return -1;
+}
+
+/*
+ * rpmem_fip_param_get -- read environment variable in the libfabric way
+ *
+ * - If parameter does not exist the output value is not changed.
+ * - If the environment variable is not set the output value is not changed.
+ * - If the environment variable is set and its value is not correct the output
+ * value is set to error value.
+ * - If the environment variable is set and its value is correct the output
+ * value is set according to the environment variable value.
+ */
+static void
+rpmem_fip_param_get(const char *var_name, int *value)
+{
+	struct fi_param *params;
+	int count;
+	int ret = fi_getparams(&params, &count);
+	if (ret != FI_SUCCESS) {
+		RPMEM_FI_ERR(ret, "getting fabric parameters list");
+		return;
+	}
+
+	for (int i = 0; i < count; ++i) {
+		if (strcmp(params[i].name, var_name) != 0)
+			continue;
+		if (!params[i].value) {
+			break;
+		}
+		*value = parse_bool(params[i].value);
+		break;
+	}
+
+	fi_freeparams(params);
+}
+
+#define LIBFABRIC_FORK_UNSAFE_VAR "FI_FORK_UNSAFE"
+
+/*
+ * rpmem_fip_probe_fork_safety -- probe if libfabric is fork safe
+ */
+void
+rpmem_fip_probe_fork_safety(int *fork_unsafe)
+{
+	fork_unsafe = 0; /* false by default */
+	rpmem_fip_param_get(LIBFABRIC_FORK_UNSAFE_VAR, fork_unsafe);
+}

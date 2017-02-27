@@ -195,21 +195,10 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-check_ibv_fork_init = $(shell echo "\#include <infiniband/verbs.h> int main(void) { return ibv_fork_init(); }" |\
-	$(CC) -c $(CFLAGS) -x c -o /dev/null -libverbs - 2>/dev/null && echo y || echo n)
-
-export HAS_LIBFABRIC := $(call check_package, libfabric)
-
-ifeq ($(HAS_LIBFABRIC),y)
-ifeq ($(RPMEM_DISABLE_LIBIBVERBS),y)
-export HAS_LIBIBVERBS := n
-export BUILD_RPMEM := y
-else
-export HAS_LIBIBVERBS := $(call check_ibv_fork_init)
-export BUILD_RPMEM := $(HAS_LIBIBVERBS)
-endif
-else
-export BUILD_RPMEM := n
+export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=1.4)
+ifneq ($(BUILD_RPMEM),y)
+	export BUILD_RPMEM_INFO := libfabric (version >= 1.4) is missing -- \
+see src/librpmem/README for details.
 endif
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
