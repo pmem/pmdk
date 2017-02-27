@@ -1072,11 +1072,58 @@ err:
 	return -1;
 }
 
+#ifdef _WIN32
+/*
+ * pmempool_syncW -- synchronize replicas within a poolset in widechar
+ */
+int
+pmempool_syncW(const wchar_t *poolset, unsigned flags)
+{
+	char *path = util_toUTF8(poolset);
+	if (path == NULL) {
+		ERR("Invalid poolest file path.");
+		return -1;
+	}
+
+	int ret = pmempool_syncU(path, flags);
+
+	Free(path);
+	return ret;
+}
+
+/*
+ * pmempool_transformW -- alter poolset structure in widechar
+ */
+int
+pmempool_transformW(const wchar_t *poolset_src,
+	const wchar_t *poolset_dst, unsigned flags)
+{
+	char *path_src = util_toUTF8(poolset_src);
+	if (path_src == NULL) {
+		ERR("Invalid source poolest file path.");
+		return -1;
+	}
+
+	char *path_dst = util_toUTF8(poolset_dst);
+	if (path_dst == NULL) {
+		ERR("Invalid destination poolest file path.");
+		Free(path_src);
+		return -1;
+	}
+
+	int ret = pmempool_transformU(path_src, path_dst, flags);
+
+	Free(path_src);
+	Free(path_dst);
+	return ret;
+}
+#endif
+
 /*
  * pmempool_sync -- synchronize replicas within a poolset
  */
 int
-pmempool_sync(const char *poolset, unsigned flags)
+UNICODE_FUNCTION(pmempool_sync)(const char *poolset, unsigned flags)
 {
 	LOG(3, "poolset %s, flags %u", poolset, flags);
 	ASSERTne(poolset, NULL);
@@ -1140,7 +1187,7 @@ err:
  * pmempool_transform -- alter poolset structure
  */
 int
-pmempool_transform(const char *poolset_src,
+UNICODE_FUNCTION(pmempool_transform)(const char *poolset_src,
 		const char *poolset_dst, unsigned flags)
 {
 	LOG(3, "poolset_src %s, poolset_dst %s, flags %u", poolset_src,

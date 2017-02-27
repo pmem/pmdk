@@ -1,0 +1,6 @@
+Non-Volatile Memory Library
+
+This is src/test/libpmempool_sync_win/README.
+
+This directory contains unit tests for libpmempool sync. The tests check if
+poolset gets recovered after deleting a part or damaging metadata of a part.

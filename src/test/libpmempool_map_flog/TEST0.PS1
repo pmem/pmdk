@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -71,11 +71,11 @@ foreach ($field in ("Zeroed", "Error", "Initial", "Normal")) {
         $spcmd = "bttdevice.arena.btt_map(0)=0x${x}000000${i}"
 
         expect_normal_exit $BTTCREATE $POOL
-        echo "${field}: $spcmd" >> $LOG_TEMP
+        echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
         &$PMEMSPOIL $POOL $spcmd
 
-        expect_normal_exit $EXE $POOL -r 1 -t btt -a 1
-        cat $LOG >> $LOG_TEMP
+        expect_normal_exit $EXE -r 1 -t btt -a 1 $POOL
+        cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
     }
 }
 

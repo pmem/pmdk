@@ -55,7 +55,7 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT"
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
 $POOLSET = "$DIR/pool0.set"
 $M = 1024 * 1024
 $M20 = 20 * $M
@@ -73,7 +73,7 @@ create_poolset $POOLSET `
     20M:$DIR/testfile5:x
 
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # CLI script for writing some data at 0, 20 and 40 MB
 $WRITE_SCRIPT = "$DIR/write_data"
@@ -93,10 +93,10 @@ srpr 40M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 # Find root offset
 $TMP_FILE = "$DIR/obj_info"
@@ -119,20 +119,20 @@ expect_normal_exit $DDMAP -o "$DIR/testfile2" -s $PART2_OFFSET -d "Wrong5678"
 expect_normal_exit $DDMAP -o "$DIR/testfile3" -s $PART3_OFFSET -d "Wrong9ABC"
 
 # Check if corrupted
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
-    >> $LOG_TEMP
+    | Out-File -append -encoding ascii $LOG_TEMP
 
 # Synchronize replicas
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
     $POOLSET $FLAGS
-cat $LOG >> $LOG_TEMP
+cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

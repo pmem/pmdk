@@ -118,8 +118,8 @@ function backup_and_compare () {
 
 	# backup
 	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
-		$poolset -b $poolset$BACKUP -t $type -r 1
-	cat $OUT >> $OUT_TEMP
+		-b $poolset$BACKUP -t $type -r 1 $poolset
+	cat -Encoding Ascii $OUT | Out-File -append -encoding ascii $OUT_TEMP
 
 	# compare
 	if ($args.Count -gt 2 ) {

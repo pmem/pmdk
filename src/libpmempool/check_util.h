@@ -186,6 +186,10 @@ const char *check_get_pool_type_str(enum pool_type type);
 
 void check_insert_arena(PMEMpoolcheck *ppc, struct arena *arenap);
 
+#ifdef _WIN32
+void cache_to_utf8(struct check_data *data, char *buf, size_t size);
+#endif
+
 #define CHECK_IS(ppc, flag)\
 	util_flag_isset((ppc)->args.flags, PMEMPOOL_CHECK_ ## flag)
 

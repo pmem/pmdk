@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@ expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
 expect_normal_exit $PMEMWRITE $POOL TEST
 
-expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX $POOL -s 0
+expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 0 $POOL
 
 check
 
