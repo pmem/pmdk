@@ -51,6 +51,7 @@
 #include <err.h>
 #include <assert.h>
 #include <endian.h>
+#include <libpmem.h>
 #include "common.h"
 #include "output.h"
 #include "btt.h"
@@ -1330,6 +1331,11 @@ error:
 			pmemspoil_free_fields(&psp->args[i]);
 		free(psp->args);
 	}
+
+	if (pmem_is_pmem(psp->addr, psp->size))
+		pmem_persist(psp->addr, psp->size);
+	else
+		pmem_msync(psp->addr, psp->size);
 
 	pool_set_file_close(psp->pfile);
 
