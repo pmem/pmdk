@@ -63,7 +63,7 @@ for commit in $commits; do
 	subject=$(git log --format="%s" -n 1 $commit)
 	subject_len=$(echo $subject | wc -m)
 	body_len=$(git log --format="%b" -n 1 $commit | wc -L)
-	prefix=$(echo $subject | sed -e "s/^\($AREAS\)\:.*/\1/")
+	prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 
 	if [[ $subject =~ ^Merge.* ]]; then
 		# skip
