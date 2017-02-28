@@ -58,7 +58,8 @@ void
 pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	    unsigned mode)
 {
-	char *_path = ut_toUTF8(path);
+	std::unique_ptr<char> _path(ut_toUTF8(path));
+
 	nvobj::pool<root> pop;
 
 	try {
@@ -66,28 +67,28 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 		nvobj::persistent_ptr<root> root = pop.get_root();
 		UT_ASSERT(root != nullptr);
 	} catch (nvml::pool_error &) {
-		UT_OUT("!%s: pool::create", _path);
+		UT_OUT("!%s: pool::create", _path.get());
 		return;
 	}
 
 	ut_util_stat_t stbuf;
 	STATW(path, &stbuf);
 
-	UT_OUT("%s: file size %zu mode 0%o", _path, stbuf.st_size,
+	UT_OUT("%s: file size %zu mode 0%o", _path.get(), stbuf.st_size,
 	       stbuf.st_mode & 0777);
 	try {
 		pop.close();
 	} catch (std::logic_error &lr) {
-		UT_OUT("%s: pool.close: %s", _path, lr.what());
+		UT_OUT("%s: pool.close: %s", _path.get(), lr.what());
 		return;
 	}
 
 	int result = nvobj::pool<root>::check(path, layout);
 
 	if (result < 0)
-		UT_OUT("!%s: pool::check", _path);
+		UT_OUT("!%s: pool::check", _path.get());
 	else if (result == 0)
-		UT_OUT("%s: pool::check: not consistent", _path);
+		UT_OUT("%s: pool::check: not consistent", _path.get());
 }
 
 /*
@@ -96,22 +97,22 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 void
 pool_open(const wchar_t *path, const wchar_t *layout)
 {
-	char *_path = ut_toUTF8(path);
+	std::unique_ptr<char> _path(ut_toUTF8(path));
 	nvobj::pool<root> pop;
 
 	try {
 		pop = nvobj::pool<root>::open(path, layout);
 	} catch (nvml::pool_error &) {
-		UT_OUT("!%s: pool::open", _path);
+		UT_OUT("!%s: pool::open", _path.get());
 		return;
 	}
 
-	UT_OUT("%s: pool::open: Success", _path);
+	UT_OUT("%s: pool::open: Success", _path.get());
 
 	try {
 		pop.close();
 	} catch (std::logic_error &lr) {
-		UT_OUT("%s: pool.close: %s", _path, lr.what());
+		UT_OUT("%s: pool.close: %s", _path.get(), lr.what());
 	}
 }
 
@@ -122,24 +123,24 @@ void
 double_close(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	     unsigned mode)
 {
-	char *_path = ut_toUTF8(path);
+	std::unique_ptr<char> _path(ut_toUTF8(path));
 	nvobj::pool<root> pop;
 
 	try {
 		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
 	} catch (nvml::pool_error &) {
-		UT_OUT("!%s: pool::create", _path);
+		UT_OUT("!%s: pool::create", _path.get());
 		return;
 	}
 
-	UT_OUT("%s: pool::create: Success", _path);
+	UT_OUT("%s: pool::create: Success", _path.get());
 
 	try {
 		pop.close();
-		UT_OUT("%s: pool.close: Success", _path);
+		UT_OUT("%s: pool.close: Success", _path.get());
 		pop.close();
 	} catch (std::logic_error &lr) {
-		UT_OUT("%s: pool.close: %s", _path, lr.what());
+		UT_OUT("%s: pool.close: %s", _path.get(), lr.what());
 	}
 }
 
