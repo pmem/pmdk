@@ -1,6 +1,5 @@
-#
-# Copyright 2015-2017, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+﻿#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,31 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/out_err_mt_win/TEST0 -- unit test for error messages
+# out_err_mt/config.PS1 -- test configuration
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "out_err_mt_win\TEST0"
-$Env:UNITTEST_NUM = "0w"
 
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-require_test_type medium
-
-require_fs_type any
-
-setup
-
-expect_normal_exit $Env:EXE_DIR\out_err_mt_win$Env:EXESUFFIX `
-	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

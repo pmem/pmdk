@@ -1,5 +1,5 @@
-#
-# Copyright 2016-2017, Intel Corporation
+﻿#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,38 +29,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/out_err_win/TEST0 -- unit test for out_err_win()
+# out_err/config.PS1 -- test configuration
 #
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "out_err_win\TEST0"
-$Env:UNITTEST_NUM = "0"
+$global:encoding_dict = @{
+    ascii = new-object PSObject | select-object sufixexe, sufix;
+    utf16 = new-object PSObject | select-object sufixexe, sufix;
+}
 
+$global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
+$global:encoding_dict.Get_Item("ascii").sufix = ""
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
-
-require_test_type medium
-
-require_fs_type none
-require_build_type debug
-
-setup
-
-$Env:TRACE_LOG_LEVEL = 1
-$Env:TRACE_LOG_FILE = ".\traces$Env:UNITTEST_NUM.log"
-
-expect_normal_exit $Env:EXE_DIR\out_err_win$Env:EXESUFFIX
-
-check
-
-pass
+$global:encoding_dict.Get_Item("utf16").sufixexe = "_win.exe"
+$global:encoding_dict.Get_Item("utf16").sufix = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

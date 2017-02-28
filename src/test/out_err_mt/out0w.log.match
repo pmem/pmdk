@@ -1,4 +1,4 @@
-out_err_mt$(nW)TEST0: START: out_err_mt
+out_err_mt$(nW)TEST0: START: out_err_mt$(nW)
  $(nW)out_err_mt$(nW) $(nW)testfile1 $(nW)testfile2 $(nW)testfile3 $(nW)
 version check
 PMEM: libpmem major version mismatch (need 10000, found 1)
