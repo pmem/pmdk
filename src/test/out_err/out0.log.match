@@ -1,4 +1,4 @@
-out_err$(nW)TEST0: START: out_err
+out_err$(nW)TEST0: START: out_err$(nW)
  $(nW)out_err$(nW)
 ERR #1
 ERR #2: Success
