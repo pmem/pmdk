@@ -103,7 +103,7 @@ conventions for git commit messages:
   the short summary.
 - Valid area names are: **pmem, obj, blk, log, vmem, jemalloc,
   cpp** (for C++ bindings), **test, doc, pool** (for *libpmempool* and
-  *pmempool*), rpmem (for *librpmem* and *rpmemd*), **benchmark, examples**
+  *pmempool*), **rpmem** (for *librpmem* and *rpmemd*), **benchmark, examples**
   and **common** (for everything else).
 - It is acceptable for the short summary to be the only thing in the commit
   message if it is a trivial change.  Otherwise, the second line must be
