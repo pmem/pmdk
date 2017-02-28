@@ -165,7 +165,7 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 		}
 
 	}
-	strcat(info->filename, data.cFileName);
+	strcpy(info->filename, data.cFileName);
 	info->is_dir = data.dwFileAttributes ==	FILE_ATTRIBUTE_DIRECTORY;
 
 	return TRUE;
