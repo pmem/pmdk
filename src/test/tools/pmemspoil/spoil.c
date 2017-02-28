@@ -51,6 +51,7 @@
 #include <err.h>
 #include <assert.h>
 #include <endian.h>
+#include <libpmem.h>
 #include "common.h"
 #include "output.h"
 #include "btt.h"
@@ -300,6 +301,18 @@ static const struct option long_options[] = {
 	{"replica",	required_argument,	NULL,	'r'},
 	{NULL,		0,			NULL,	 0 },
 };
+
+/*
+ * pmemspoil_persist -- flush data to persistence
+ */
+static void
+pmemspoil_persist(void *addr, size_t size)
+{
+	if (pmem_is_pmem(addr, size))
+		pmem_persist(addr, size);
+	else
+		pmem_msync(addr, size);
+}
 
 /*
  * print_usage -- print application usage short description
@@ -587,6 +600,8 @@ pmemspoil_process_char(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 	len = min(len, strlen(pfp->value));
 	memcpy(str, pfp->value, len);
 
+	pmemspoil_persist(str, len);
+
 	return 0;
 }
 
@@ -605,6 +620,8 @@ pmemspoil_process_uint16_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		*valp = htole16(v);
 	else
 		*valp = v;
+
+	pmemspoil_persist(valp, sizeof(*valp));
 
 	return 0;
 }
@@ -625,6 +642,8 @@ pmemspoil_process_uint32_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 	else
 		*valp = v;
 
+	pmemspoil_persist(valp, sizeof(*valp));
+
 	return 0;
 }
 
@@ -643,6 +662,8 @@ pmemspoil_process_uint64_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		*valp = htole64(v);
 	else
 		*valp = v;
+
+	pmemspoil_persist(valp, sizeof(*valp));
 
 	return 0;
 }
