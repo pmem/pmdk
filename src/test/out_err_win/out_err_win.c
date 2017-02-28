@@ -31,7 +31,7 @@
  */
 
 /*
- * traces.c -- unit test for traces
+ * out_err_win.c -- unit test for error messages
  */
 
 #define LOG_PREFIX "trace"
