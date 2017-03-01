@@ -551,6 +551,31 @@ run_get_state(const struct memory_block *m)
 }
 
 /*
+ * huge_reinit -- reinitializes persistent state of a chunk.
+ */
+static void
+huge_reinit(const struct memory_block *m)
+{
+}
+
+/*
+ * run_reinit -- reinitializes persistent state of a run.
+ */
+static void
+run_reinit(const struct memory_block *m)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
+
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+
+	r->incarnation_claim = 0;
+	VALGRIND_SET_CLEAN(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+}
+
+/*
  * run_claim -- marks the run as claimed by an owner in the current heap. This
  *	means that no one but the actual owner can use this memory block.
  */
@@ -559,13 +584,10 @@ run_claim(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t claimant = r->incarnation_claim;
-	if (claimant == m->heap->run_id)
-		return -1; /* already claimed */
 
 	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
 	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		claimant, m->heap->run_id) ? 0 : -1;
+		0, 1) ? 0 : -1;
 	VALGRIND_SET_CLEAN(&r->incarnation_claim,
 		sizeof(r->incarnation_claim));
 	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
@@ -575,14 +597,38 @@ run_claim(const struct memory_block *m)
 }
 
 /*
- * run_claim_revoke -- removes the claim of the current owner of the run
+ * run_claim_inc -- increases the number of claimants on this run. A claim can
+ *	only be fully revoked when there are no additional claims.
  */
 static void
+run_claim_inc(const struct memory_block *m)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	uint64_t value = __sync_fetch_and_add(&r->incarnation_claim, 1);
+	ASSERT(value > 0);
+}
+
+/*
+ * run_claim_dec -- decreases the number of claimants on this run.
+ */
+static void
+run_claim_dec(const struct memory_block *m)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	uint64_t value = __sync_sub_and_fetch(&r->incarnation_claim, 1);
+	ASSERT(value > 0);
+}
+
+/*
+ * run_claim_revoke -- removes the claim of the current owner of the run
+ */
+static int
 run_claim_revoke(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	ASSERTeq(r->incarnation_claim, m->heap->run_id);
 
 	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
 
@@ -592,13 +638,14 @@ run_claim_revoke(const struct memory_block *m)
 	 * so it doesn't race with regular reads.
 	 */
 	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		m->heap->run_id, 0);
-	ASSERTeq(ret, 1 /* true */);
+		1, 0) ? 0 : -1;
 
 	VALGRIND_SET_CLEAN(&r->incarnation_claim,
 		sizeof(r->incarnation_claim));
 	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
 		sizeof(r->incarnation_claim));
+
+	return ret;
 }
 
 /*
@@ -679,9 +726,12 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_data = huge_get_real_data,
 		.claim = NULL,
 		.claim_revoke = NULL,
+		.claim_inc = NULL,
+		.claim_dec = NULL,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.reinit = huge_reinit,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
@@ -695,9 +745,12 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_data = run_get_real_data,
 		.claim = run_claim,
 		.claim_revoke = run_claim_revoke,
+		.claim_inc = run_claim_inc,
+		.claim_dec = run_claim_dec,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.reinit = run_reinit,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,

@@ -178,13 +178,21 @@ struct memory_block_ops {
 	size_t (*get_real_size)(const struct memory_block *m);
 	void (*write_header)(const struct memory_block *m,
 		uint64_t extra_field, uint16_t flags);
+
+	/* this is called for EVERY allocation, but *only* on valgrind */
 	void (*reinit_header)(const struct memory_block *m);
+
+	/* this is called for every run and chunk (not allocations) */
+	void (*reinit)(const struct memory_block *m);
+
 	uint64_t (*get_extra)(const struct memory_block *m);
 	uint16_t (*get_flags)(const struct memory_block *m);
 
 	/* only runs can be claimed, functions are invalid for huge blocks */
 	int (*claim)(const struct memory_block *m);
-	void (*claim_revoke)(const struct memory_block *m);
+	void (*claim_inc)(const struct memory_block *m);
+	void (*claim_dec)(const struct memory_block *m);
+	int (*claim_revoke)(const struct memory_block *m);
 };
 
 struct memory_block {

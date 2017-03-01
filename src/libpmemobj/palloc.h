@@ -48,7 +48,6 @@ struct palloc_heap {
 	struct heap_layout *layout;
 	struct heap_rt *rt;
 	uint64_t size;
-	uint64_t run_id;
 
 	void *base;
 };
