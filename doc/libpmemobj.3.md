@@ -51,6 +51,7 @@ date: pmemobj API version 2.2
 [NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS](#non-transactional-persistent-atomic-lists)<br />
 [TYPE-SAFE NON-TRANSACTIONAL PERSISTENT ATOMIC LISTS](#type-safe-non-transactional-persistent-atomic-lists)<br />
 [TRANSACTIONAL OBJECT MANIPULATION](#transactional-object-manipulation-1)<br />
+[DELAYED ATOMICITY ACTIONS](#delayed-atomicity-actions)<br />
 [CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior)<br />
@@ -372,6 +373,26 @@ TX_SET(TOID o, FIELD, VALUE)
 TX_SET_DIRECT(TYPE *p, FIELD, VALUE)
 TX_MEMCPY(void *dest, const void *src, size_t num)
 TX_MEMSET(void *dest, int c, size_t num)
+```
+
+#### Delayed atomicity actions ####
+
+```c
+PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num);
+void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
+	uint64_t *ptr, uint64_t value);
+
+void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+int pmemobj_tx_publish(struct pobj_action *actv, int actvcnt);
+
+void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+
+#define POBJ_RESERVE(pop, t, act)\
+((TOID(t))pmemobj_reserve(pop, act, sizeof(t), TOID_TYPE_NUM(t)))
+
+#define POBJ_RESERVE_ALLOC(pop, t, size, act)\
+((TOID(t))pmemobj_reserve(pop, act, size, TOID_TYPE_NUM(t)))
 ```
 
 ##### Library API versioning: #####
@@ -2155,6 +2176,91 @@ TX_FREE(TOID o)
 The **TX_FREE**() transactionally frees the memory space represented by an object handle *o*. If *o* is **OID_NULL**, no operation is performed. If successful
 and called during **TX_STAGE_WORK** it returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
 
+# Delayed atomicity actions #
+
+All of the functions described so far have an immediate effect on the persistent
+state of the pool, and as such, the cost of maintaining fail-safety is paid
+outright and, most importantly, in the calling thread. This behavior makes
+implementing algorithms involving relaxed consistency guarantees difficult, if
+not outright impossible.
+
+The following set of functions introduce a mechanism that allows one to delay
+the persistent publication of a set of prepared actions to an arbitrary moment
+in time of the execution of a program.
+
+The publication is fail-safe atomic in the scope of the entire collection of
+actions, but the number of said actions is limited by **POBJ_MAX_ACTIONS**
+variable. If a program exists without publishing the actions, or the actions are
+canceled, any resources reserved by those actions are released and placed back in
+the pool.
+
+A single action is represented by a single `struct pobj_action`. Functions that
+create actions take that structure by pointer, whereas functions that publish
+actions take array of actions and the size of the array. The actions can be
+created, and published, from different threads.
+
+```c
+PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act, size_t size, uint64_t type_num);
+```
+
+The **pmemobj_reserve**() functions performs a transient reservation of an object.
+Behaves similarly to **pmemobj_alloc**(), but performs no modification to the
+persistent state.
+
+The object returned by this function can be freely modified without worrying
+about fail-safe atomicity until the object has been published. Any modifications
+of the object must be manually persisted, just like in the case of the atomic API.
+
+If successful, returns a **PMEMoid**, otherwise a **OID_NULL** is returned.
+
+```c
+void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act, uint64_t *ptr, uint64_t value);
+```
+
+The **pmemobj_set_value** function prepares an action that, once published, will
+modify the memory location pointed to by **ptr** to **value**.
+
+```c
+void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+```
+
+The **pmemobj_publish** function publishes the provided set of actions. The
+publication is fail-safe atomic. Once done, the persistent state will reflect
+the changes contained in the actions.
+The **actvcnt** cannot exceed **POBJ_MAX_ACTIONS**.
+
+```c
+int pmemobj_tx_publish(struct pobj_action *actv, int actvcnt);
+```
+
+The **pmemobj_tx_publish** function moves the provided actions to the scope of
+the transaction in which it is called. Only object reservations are supported
+in transactional publish. Once done, the reserved objects will follow normal
+transactional semantics.
+
+If successful and called during **TX_STAGE_WORK** it returns zero. Otherwise,
+stage changes to **TX_STAGE_ONABORT** and an error number is returned.
+
+```c
+void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+```
+
+The **pmemobj_cancel** function releases any resources held by the provided
+set of actions and invalidates all actions.
+
+```c
+POBJ_RESERVE(pop, t, act)
+```
+
+The **POBJ_RESERVE** macro is a typed variant of **pmemobj_reserve**. The size
+of the reservation is determined from the provided type **t**.
+
+```c
+POBJ_RESERVE_ALLOC(pop, t, size, act)
+```
+
+The **POBJ_RESERVE_ALLOC** macro is a typed variant of **pmemobj_reserve**. The
+**size** of the reservation is user-provided.
 
 # CAVEATS #
 

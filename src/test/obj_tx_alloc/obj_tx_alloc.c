@@ -388,7 +388,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	next = POBJ_NEXT(first);
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
@@ -493,7 +493,7 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	next = POBJ_NEXT(first);
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
@@ -689,10 +689,11 @@ do_tx_xalloc_noflush(PMEMobjpool *pop)
 				TYPE_XNOFLUSHED_COMMIT, POBJ_XALLOC_NO_FLUSH));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
-		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[OBJ_SIZE - sizeof(size_t) - 1] = TEST_VALUE_1;
 		/* let pmemcheck find we didn't flush it */
 	} TX_ONCOMMIT {
-		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+		UT_ASSERTeq(D_RO(obj)->data[OBJ_SIZE - sizeof(size_t) - 1],
+			TEST_VALUE_1);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -700,7 +701,8 @@ do_tx_xalloc_noflush(PMEMobjpool *pop)
 	TOID(struct object) first;
 	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XNOFLUSHED_COMMIT));
 	UT_ASSERT(TOID_EQUALS(first, obj));
-	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+	UT_ASSERTeq(D_RO(first)->data[OBJ_SIZE - sizeof(size_t) - 1],
+		D_RO(obj)->data[OBJ_SIZE - sizeof(size_t) - 1]);
 
 	TOID(struct object) next;
 	TOID_ASSIGN(next, POBJ_NEXT_TYPE_NUM(first.oid));
@@ -723,6 +725,51 @@ do_tx_root(PMEMobjpool *pop)
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
+}
+
+/*
+ * do_tx_alloc_many -- allocates many objects inside of a single transaction
+ */
+static void
+do_tx_alloc_many(PMEMobjpool *pop)
+{
+#define TX_ALLOC_COUNT 70 /* bigger than max reservations */
+	PMEMoid oid, oid2;
+	POBJ_FOREACH_SAFE(pop, oid, oid2) {
+		pmemobj_free(&oid);
+	}
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop));
+	UT_ASSERT(TOID_IS_NULL(first));
+
+	PMEMoid oids[TX_ALLOC_COUNT];
+	TX_BEGIN(pop) {
+		for (int i = 0; i < TX_ALLOC_COUNT; ++i) {
+			oids[i] = pmemobj_tx_alloc(1, 0);
+			UT_ASSERT(!OID_IS_NULL(oids[i]));
+		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		/* empty tx to make sure there's no leftover state */
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		for (int i = 0; i < TX_ALLOC_COUNT; ++i) {
+			pmemobj_tx_free(oids[i]);
+		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(first, pmemobj_first(pop));
+	UT_ASSERT(TOID_IS_NULL(first));
+#undef TX_ALLOC_COUNT
 }
 
 int
@@ -792,6 +839,9 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 
 	do_tx_alloc_oom(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_alloc_many(pop);
 	VALGRIND_WRITE_STATS;
 
 	do_tx_xalloc_noflush(pop);
