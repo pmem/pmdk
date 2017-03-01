@@ -2,6 +2,7 @@ pmemobj_root(256): off = $(nW) uuid = $(nW)
 pmemobj_zalloc(r.0, 8192, 1): 0
 pmemobj_zalloc(r.1, 256, 2): 0
 pmemobj_tx_begin(jmp): 0
+pmemobj_tx_add_range(r, 0, 256): 0
 pmemobj_tx_strdup(0, 5): off = $(nW) uuid = $(nW)
 pmemobj_tx_add_range_direct($(nW), 64, 128): 0
 pmemobj_tx_add_range(r.1, 16, 16): 0
