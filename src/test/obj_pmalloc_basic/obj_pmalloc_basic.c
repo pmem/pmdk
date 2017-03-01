@@ -130,6 +130,7 @@ test_oom_allocs(size_t size)
 		if (pmalloc(mock_pop, &addr->ptr, size, 0, 0)) {
 			break;
 		}
+		UT_ASSERT(palloc_is_allocated(&mock_pop->heap, addr->ptr));
 		UT_ASSERT(addr->ptr != 0);
 		allocs[count++] = addr->ptr;
 	}
@@ -137,10 +138,62 @@ test_oom_allocs(size_t size)
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 		UT_ASSERT(addr->ptr == 0);
+	}
+
+	for (int i = 0; i < count; ++i) {
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 	}
 	UT_ASSERT(count != 0);
 	FREE(allocs);
+
+	return count;
+}
+
+static size_t
+test_oom_resrv(size_t size)
+{
+	uint64_t max_allocs = MOCK_POOL_SIZE / size;
+
+	uint64_t *allocs = CALLOC(max_allocs, sizeof(*allocs));
+	struct pobj_action *resvs = CALLOC(max_allocs, sizeof(*resvs));
+
+	size_t count = 0;
+	for (;;) {
+		if (palloc_reserve(&mock_pop->heap, size, NULL, NULL, 0, 0, 0,
+			&resvs[count]) != 0)
+			break;
+
+		allocs[count] = resvs[count].heap.offset;
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[count]));
+		UT_ASSERT(allocs[count] != 0);
+		count++;
+	}
+
+	for (size_t i = 0; i < count; ) {
+		size_t nresv = MIN(count - i, 10);
+		struct redo_log *redo = pmalloc_redo_hold(mock_pop);
+		struct operation_context ctx;
+		operation_init(&ctx, mock_pop, mock_pop->redo, redo);
+		palloc_publish(&mock_pop->heap, &resvs[i], (int)nresv, &ctx);
+
+		pmalloc_redo_release(mock_pop);
+
+		i += nresv;
+	}
+
+	for (int i = 0; i < count; ++i) {
+		UT_ASSERT(palloc_is_allocated(&mock_pop->heap, allocs[i]));
+		addr->ptr = allocs[i];
+		pfree(mock_pop, &addr->ptr);
+		UT_ASSERT(addr->ptr == 0);
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
+	}
+
+	UT_ASSERT(count != 0);
+	FREE(allocs);
+	FREE(resvs);
 
 	return count;
 }
@@ -277,6 +330,8 @@ test_mock_pool_allocs(void)
 
 	test_malloc_free_loop(MALLOC_FREE_SIZE);
 
+	size_t medium_resv = test_oom_resrv(TEST_MEDIUM_ALLOC_SIZE);
+
 	/*
 	 * Allocating till OOM and freeing the objects in a loop for different
 	 * buckets covers basically all code paths except error cases.
@@ -297,6 +352,7 @@ test_mock_pool_allocs(void)
 	UT_ASSERTeq(small0, small1);
 	UT_ASSERTeq(tiny0, tiny1);
 	UT_ASSERTeq(medium0, medium1);
+	UT_ASSERTeq(medium0, medium_resv);
 
 	/* realloc to the same size shouldn't affect anything */
 	for (size_t i = 0; i < tiny1; ++i)
