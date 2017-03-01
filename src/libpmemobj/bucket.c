@@ -70,6 +70,8 @@ bucket_new(struct block_container *c, struct alloc_class *aclass)
 	b->is_active = 0;
 	b->aclass = aclass;
 
+	LIST_INIT(&b->claimed_blocks);
+
 	return b;
 }
 
@@ -99,4 +101,41 @@ bucket_delete(struct bucket *b)
 	util_mutex_destroy(&b->lock);
 	b->c_ops->destroy(b->container);
 	Free(b);
+}
+
+/*
+ * bucket_add_claimed -- adds a run to the claimed blocks list
+ */
+int
+bucket_add_claimed(struct bucket *b, const struct memory_block *m)
+{
+	struct claimed_entry *e = Malloc(sizeof(*e));
+	if (e == NULL)
+		return -1;
+
+	e->m = *m;
+
+	LIST_INSERT_HEAD(&b->claimed_blocks, e, entry);
+
+	return 0;
+}
+
+/*
+ * bucket_try_revoke_all -- attempts to revoke the claim on every run on the
+ *	claimed list. Removes the entry from the list if successful.
+ */
+void
+bucket_try_revoke_all(struct bucket *b,
+	void cb(struct memory_block *m, void *arg), void *arg)
+{
+	struct claimed_entry *e2 = NULL;
+	for (struct claimed_entry *e = LIST_FIRST(&b->claimed_blocks);
+		e != NULL; e = e2) {
+		e2 = LIST_NEXT(e, entry);
+		if (e->m.m_ops->claim_revoke(&e->m) == 0) {
+			cb(&e->m, arg);
+			LIST_REMOVE(e, entry);
+			Free(e);
+		}
+	}
 }

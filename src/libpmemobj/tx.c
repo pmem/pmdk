@@ -94,22 +94,25 @@ struct tx_undo_runtime {
 	struct pvector_context *ctx[MAX_UNDO_TYPES];
 };
 
+#define MAX_MEMOPS_ENTRIES_PER_TX_ALLOC 3
+#define MAX_TX_ALLOC_RESERVATIONS (MAX_MEMOPS_ENTRIES /\
+	MAX_MEMOPS_ENTRIES_PER_TX_ALLOC)
+
 struct lane_tx_runtime {
 	unsigned lane_idx;
 	struct ctree *ranges;
 	uint64_t cache_offset;
 	struct tx_undo_runtime undo;
+	struct pobj_action alloc_actv[MAX_TX_ALLOC_RESERVATIONS];
+	int actvcnt; /* reservation count */
 };
 
 struct tx_alloc_args {
-	type_num_t type_num;
-	uint64_t entry_offset;
 	uint64_t flags;
 };
 
 struct tx_alloc_copy_args {
 	struct tx_alloc_args super;
-	size_t size;
 	const void *ptr;
 	size_t copy_size;
 	uint64_t flags;
@@ -126,9 +129,17 @@ struct tx_add_range_args {
  * tx_clr_flag -- flags for clearing undo log list
  */
 enum tx_clr_flag {
-	TX_CLR_FLAG_FREE = 1 << 0, /* remove and free each object */
-	TX_CLR_FLAG_VG_CLEAN = 1 << 1, /* clear valgrind state */
-	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2, /* remove from valgrind tx */
+	/* remove and free each object */
+	TX_CLR_FLAG_FREE = 1 << 0,
+
+	/* clear valgrind state */
+	TX_CLR_FLAG_VG_CLEAN = 1 << 1,
+
+	/* remove from valgrind tx */
+	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2,
+
+	/* conditionally remove and free each object */
+	TX_CLR_FLAG_FREE_IF_EXISTS = 1 << 3,
 };
 
 struct tx_parameters {
@@ -312,6 +323,19 @@ tx_free_vec_entry(PMEMobjpool *pop, uint64_t *entry)
 }
 
 /*
+ * tx_free_existing_vec_entry -- free the undo log vector entry if it points to
+ *	a valid object, otherwise zero it.
+ */
+static void
+tx_free_existing_vec_entry(PMEMobjpool *pop, uint64_t *entry)
+{
+	if (palloc_is_allocated(&pop->heap, *entry))
+		pfree(pop, entry);
+	else
+		tx_clear_vec_entry(pop, entry);
+}
+
+/*
  * tx_clear_undo_log_vg -- (internal) tell Valgrind about removal from undo log
  */
 static void
@@ -361,6 +385,8 @@ tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo,
 
 		if (flags & TX_CLR_FLAG_FREE) {
 			pvector_pop_back(undo, tx_free_vec_entry);
+		} else if (flags & TX_CLR_FLAG_FREE_IF_EXISTS) {
+			pvector_pop_back(undo, tx_free_existing_vec_entry);
 		} else {
 			pvector_pop_back(undo, tx_clear_vec_entry);
 		}
@@ -376,7 +402,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 	LOG(3, NULL);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC],
-		TX_CLR_FLAG_FREE |
+		TX_CLR_FLAG_FREE_IF_EXISTS |
 		TX_CLR_FLAG_VG_CLEAN |
 		TX_CLR_FLAG_VG_TX_REMOVE);
 }
@@ -735,6 +761,51 @@ tx_flush_range(uint64_t offset, uint64_t size_flags, void *ctx)
 }
 
 /*
+ * tx_fulfill_reservations -- fulfills all volatile state
+ *	allocation reservations
+ */
+static void
+tx_fulfill_reservations(struct tx *tx)
+{
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx->section->runtime;
+
+	if (lane->actvcnt == 0)
+		return;
+
+	PMEMobjpool *pop = tx->pop;
+
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+
+	struct operation_context ctx;
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	palloc_publish(&pop->heap, lane->alloc_actv, lane->actvcnt, &ctx);
+	lane->actvcnt = 0;
+
+	pmalloc_redo_release(pop);
+}
+
+/*
+ * tx_cancel_reservations -- cancels all volatile state allocation reservations
+ */
+static void
+tx_cancel_reservations(struct tx *tx)
+{
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx->section->runtime;
+
+	PMEMobjpool *pop = tx->pop;
+
+	for (int i = 0; i < lane->actvcnt; ++i) {
+		tx_clear_undo_log_vg(pop, lane->alloc_actv[i].heap.offset,
+			TX_CLR_FLAG_VG_CLEAN | TX_CLR_FLAG_VG_TX_REMOVE);
+	}
+	palloc_cancel(&pop->heap, lane->alloc_actv, lane->actvcnt);
+	lane->actvcnt = 0;
+}
+
+/*
  * tx_pre_commit -- (internal) do pre-commit operations
  */
 static void
@@ -743,6 +814,8 @@ tx_pre_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_runtime *lane)
 	LOG(3, NULL);
 
 	ASSERTne(tx->section->runtime, NULL);
+
+	tx_fulfill_reservations(tx);
 
 	/* Flush all regions and destroy the whole tree. */
 	ctree_delete_cb(lane->ranges, tx_flush_range, pop);
@@ -991,30 +1064,30 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
-	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
-	if (entry_offset == NULL) {
-		ERR("allocation undo log too large");
-		return obj_tx_abort_null(ENOMEM);
-	}
+	PMEMobjpool *pop = tx->pop;
 
 	struct tx_alloc_args args = {
-		.type_num = type_num,
-		.entry_offset = (uint64_t)entry_offset,
 		.flags = flags,
 	};
 
+	if ((lane->actvcnt + 1) == MAX_TX_ALLOC_RESERVATIONS) {
+		tx_fulfill_reservations(tx);
+	}
+
+	int rs = lane->actvcnt;
+
+	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
+		CLASS_ID_FROM_FLAG(flags), &lane->alloc_actv[rs]) != 0) {
+		ERR("out of memory");
+		return obj_tx_abort_null(ENOMEM);
+	}
+
+	lane->actvcnt++;
+
 	/* allocate object to undo log */
 	PMEMoid retoid = OID_NULL;
-	PMEMobjpool *pop = tx->pop;
-
-	pmalloc_construct(pop, entry_offset, size, constructor, &args,
-		type_num, 0, CLASS_ID_FROM_FLAG(flags));
-
-	retoid.off = *entry_offset;
+	retoid.off = lane->alloc_actv[rs].heap.offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
-
-	if (OBJ_OID_IS_NULL(retoid))
-		goto err_oom;
 
 	uint64_t range_flags = (flags & POBJ_FLAG_NO_FLUSH) ?
 			RANGE_FLAG_NO_FLUSH : 0;
@@ -1025,10 +1098,23 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 			size | range_flags) != 0)
 		goto err_oom;
 
+	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
+	if (entry_offset == NULL)
+		goto err_oom;
+
+	/*
+	 * The offset of the object is stored in the undo vector before it is
+	 * actually allocated. The only phase at which we are sure the objects
+	 * in the undo logs are actually allocated is in post-commit.
+	 * This means that when handling abort, each offset needs to be checked
+	 * whether it should be freed or not.
+	 */
+	*entry_offset = retoid.off;
+	pmemops_persist(&pop->p_ops, entry_offset, sizeof(*entry_offset));
+
 	return retoid;
 
 err_oom:
-	pvector_pop_back(lane->undo.ctx[UNDO_ALLOC], NULL);
 
 	ERR("out of memory");
 	return obj_tx_abort_null(ENOMEM);
@@ -1059,11 +1145,6 @@ tx_alloc_copy_common(struct tx *tx, size_t size, type_num_t type_num,
 	}
 
 	struct tx_alloc_copy_args args = {
-		.super = {
-			.type_num = type_num,
-			.entry_offset = (uint64_t)entry_offset,
-		},
-		.size = size,
 		.ptr = ptr,
 		.copy_size = copy_size,
 		.flags = flags,
@@ -1187,6 +1268,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane->ranges = ctree_new();
 		lane->cache_offset = 0;
 		lane->lane_idx = idx;
+
+		lane->actvcnt = 0;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
@@ -1327,6 +1410,8 @@ obj_tx_abort(int errnum, int user)
 
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
+
+		tx_cancel_reservations(tx);
 
 		struct lane_tx_layout *layout =
 				(struct lane_tx_layout *)tx->section->layout;
@@ -2136,6 +2221,55 @@ pmemobj_tx_free(PMEMoid oid)
 	}
 	*entry = oid.off;
 	pmemops_persist(&pop->p_ops, entry, sizeof(*entry));
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_publish -- publishes actions inside of a transaction
+ */
+int
+pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+
+	tx_fulfill_reservations(tx);
+	ASSERT((unsigned)actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx->section->runtime;
+
+	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
+
+	int nentries = 0;
+	int i;
+	for (i = 0; i < actvcnt; ++i) {
+		if (actv[i].type == POBJ_ACTION_TYPE_HEAP) {
+			uint64_t *e = pvector_push_back(ctx);
+			if (e == NULL)
+				break;
+			*e = actv[i].heap.offset;
+			pmemops_persist(&tx->pop->p_ops, e, sizeof(*e));
+			nentries++;
+		} else {
+			ERR("only heap actions can be "
+			"published with a transaction");
+			ASSERT(0);
+		}
+	}
+
+	if (i != actvcnt) { /* failed to store entries in the undo log */
+		while (nentries--) {
+			pvector_pop_back(ctx, tx_clear_vec_entry);
+		}
+		ERR("alloc undo log too large");
+		return obj_tx_abort_err(ENOMEM);
+	}
+
+	memcpy(lane->alloc_actv, actv,
+		sizeof(struct pobj_action) * (unsigned)actvcnt);
+
+	lane->actvcnt = actvcnt;
 
 	return 0;
 }

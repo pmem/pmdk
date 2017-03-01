@@ -372,7 +372,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
 	run->bitmap[nval - 1] = c->run.bitmap_lastval;
 
-	run->incarnation_claim = heap->run_id;
+	run->incarnation_claim = 1; /* claimed by the bucket */
 	VALGRIND_SET_CLEAN(&run->incarnation_claim,
 		sizeof(run->incarnation_claim));
 
@@ -622,7 +622,6 @@ heap_init_free_chunk(struct palloc_heap *heap,
 	struct operation_context ctx;
 	operation_init(&ctx, heap->base, NULL, NULL);
 	ctx.p_ops = &heap->p_ops;
-	heap_chunk_write_footer(hdr, hdr->size_idx);
 	/*
 	 * Perform coalescing just in case there
 	 * are any neighbouring free chunks.
@@ -677,6 +676,10 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 		m.size_idx = hdr->size_idx;
 
 		memblock_rebuild_state(heap, &m);
+
+		if (init) {
+			m.m_ops->reinit(&m);
+		}
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
@@ -734,7 +737,8 @@ heap_reclaim_garbage(struct palloc_heap *heap, struct bucket *bucket)
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
-			m.m_ops->claim_revoke(&m);
+			int ret = m.m_ops->claim_revoke(&m);
+			ASSERTeq(ret, 0);
 			m.size_idx = 0;
 		}
 	}
@@ -788,6 +792,15 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 }
 
 /*
+ * heap_revoke_cb -- (internal) reclaims a run on successful revocation
+ */
+static void
+heap_revoke_cb(struct memory_block *m, void *arg)
+{
+	heap_reclaim_run(m->heap, arg, m);
+}
+
+/*
  * heap_ensure_run_bucket_filled -- (internal) refills the bucket if needed
  */
 static int
@@ -804,13 +817,17 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	/* get rid of the active block in the bucket */
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
+
+		bucket_try_revoke_all(b, heap_revoke_cb, defb);
+
+		b->c_ops->rm_all(b->container);
+		struct memory_block *m = &b->active_memory_block;
+		if (m->m_ops->claim_revoke(m) != 0)
+			bucket_add_claimed(b, m);
+		else
+			heap_reclaim_run(heap, defb, m);
+
 		b->is_active = 0;
-
-		b->active_memory_block.m_ops
-			->claim_revoke(&b->active_memory_block);
-
-		/* either convert to a full chunk or place it in the recycler */
-		heap_reclaim_run(heap, defb, &b->active_memory_block);
 	}
 
 	if (heap_reuse_from_recycler(heap, b, units) == 0)
@@ -865,7 +882,7 @@ heap_resize_chunk(struct palloc_heap *heap, struct bucket *bucket,
 	heap_chunk_init(heap, old_hdr, CHUNK_TYPE_FREE, new_size_idx);
 
 	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0,
-		0, 0, NULL, NULL};
+		0, NULL, NULL, 0, 0};
 	memblock_rebuild_state(heap, &m);
 	bucket_insert_block(bucket, &m);
 }
@@ -882,7 +899,7 @@ heap_recycle_block(struct palloc_heap *heap, struct bucket *b,
 		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, (uint16_t)(m->block_off + units),
-			0, 0, NULL, NULL};
+			0, NULL, NULL, 0, 0};
 		memblock_rebuild_state(heap, &r);
 		bucket_insert_block(b, &r);
 	} else {
@@ -916,6 +933,9 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 
 	if (units != m->size_idx)
 		heap_recycle_block(heap, b, m, units);
+
+	m->m_ops->ensure_header_type(m, b->aclass->header_type);
+	m->header_type = b->aclass->header_type;
 
 	return 0;
 }
@@ -1137,7 +1157,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	os_tls_key_create(&h->thread_arena, heap_thread_arena_destructor);
 
-	heap->run_id = run_id;
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
 	heap->rt = h;

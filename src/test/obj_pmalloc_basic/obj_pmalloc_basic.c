@@ -130,6 +130,7 @@ test_oom_allocs(size_t size)
 		if (pmalloc(mock_pop, &addr->ptr, size, 0, 0)) {
 			break;
 		}
+		UT_ASSERT(palloc_is_allocated(&mock_pop->heap, addr->ptr));
 		UT_ASSERT(addr->ptr != 0);
 		allocs[count++] = addr->ptr;
 	}
@@ -137,7 +138,12 @@ test_oom_allocs(size_t size)
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 		UT_ASSERT(addr->ptr == 0);
+	}
+
+	for (int i = 0; i < count; ++i) {
+		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 	}
 	UT_ASSERT(count != 0);
 	FREE(allocs);
