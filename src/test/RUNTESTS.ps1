@@ -251,8 +251,15 @@ function runtest {
         }
 
         read_global_test_configuration
+	    $test_fs = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
 
         Foreach ($fs in $fss.split(" ").trim()) {
+            if ($test_fs -ne $null) {
+                $res =  $test_fs | select-string -pattern $fs
+                if ($res-eq $null) {
+                    continue;
+                }
+            }
             # don't bother trying when fs-type isn't available...
             if ($fs -eq "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
                 $pmem_skip = 1
