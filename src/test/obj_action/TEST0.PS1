@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +29,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "obj_action\TEST0"
+$Env:UNITTEST_NUM = "0"
 
-#
-# src/test/obj_pmalloc_mt/TEST3 -- multithreaded allocator test
-#	(medium drd version)
-#
-export UNITTEST_NUM=3
-export UNITTEST_NAME=obj_pmalloc_mt/TEST$UNITTEST_NUM
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
-export VALGRIND_OPTS="--suppressions=../drd-log.supp"
-
-require_valgrind_dev_version 3.10
-require_fs_type pmem non-pmem
 require_test_type medium
-configure_valgrind drd force-enable
+
 setup
 
-PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_mt$EXESUFFIX 4 64 4 $DIR/testfile
+$Env:PMEM_IS_PMEM_FORCE=1
+$Env:PMEMOBJ_LOG_LEVEL=1
+
+expect_normal_exit $Env:EXE_DIR\obj_action$Env:EXESUFFIX $DIR\testfile1
 
 pass

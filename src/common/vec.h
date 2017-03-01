@@ -65,6 +65,27 @@ struct name {\
 	}\
 } while (0)
 
+#define VEC_POP_BACK(vec) do {\
+	(vec)->size -= 1;\
+} while (0)
+
+#define VEC_FRONT(vec)\
+(vec)->buffer[0]
+
+#define VEC_BACK(vec)\
+(vec)->buffer[(vec)->size - 1]
+
+#define VEC_ERASE_BY_POS(vec, pos) do {\
+	(vec)->buffer[(pos)] = VEC_BACK(vec);\
+	VEC_POP_BACK(vec);\
+} while (0)
+
+#define VEC_ERASE_BY_PTR(vec, element) do {\
+	ptrdiff_t elpos = (uintptr_t)(element) - (uintptr_t)((vec)->buffer);\
+	elpos /= sizeof(*element);\
+	VEC_ERASE_BY_POS(vec, elpos);\
+} while (0)
+
 #define VEC_PUSH_BACK(vec, element) do {\
 	if ((vec)->capacity == (vec)->size)\
 		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\
@@ -83,14 +104,13 @@ for (size_t _vec_i = 0;\
 	_vec_i < (vec)->size && ((el = (vec)->buffer[_vec_i]), 1);\
 	++_vec_i)
 
+#define VEC_FOREACH_BY_POS(elpos, vec)\
+for (elpos = 0; elpos < (vec)->size; ++elpos)
+
 #define VEC_FOREACH_BY_PTR(el, vec)\
 for (size_t _vec_i = 0;\
 	_vec_i < (vec)->size && ((el = &(vec)->buffer[_vec_i]), 1);\
 	++_vec_i)
-
-#define VEC_POP_BACK(vec) do {\
-	(vec)->size -= 1;\
-} while (0)
 
 #define VEC_SIZE(vec)\
 ((vec)->size)

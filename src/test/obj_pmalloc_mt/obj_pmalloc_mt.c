@@ -144,6 +144,28 @@ tx_worker(void *arg)
 }
 
 static void *
+tx3_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	/*
+	 * Allocate N objects, abort, repeat M times. Should reveal issues in
+	 * transaction abort handling.
+	 */
+	for (int n = 0; n < Tx_per_thread; ++n) {
+		TX_BEGIN(a->pop) {
+			for (int i = 0; i < Ops_per_thread; ++i) {
+				pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			}
+			pmemobj_tx_abort(EINVAL);
+		} TX_END
+	}
+
+	return NULL;
+}
+
+
+static void *
 alloc_free_worker(void *arg)
 {
 	struct worker_args *a = arg;
@@ -268,6 +290,7 @@ main(int argc, char *argv[])
 	 * keep it last.
 	 */
 	run_worker(tx_worker, args);
+	run_worker(tx3_worker, args);
 
 	pmemobj_close(pop);
 

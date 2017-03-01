@@ -55,12 +55,14 @@ struct bucket {
 	struct block_container *container;
 	struct block_container_ops *c_ops;
 
-	struct memory_block active_memory_block;
+	struct memory_block_reserved *active_memory_block;
 	int is_active;
 };
 
 struct bucket *bucket_new(struct block_container *c,
 	struct alloc_class *aclass);
+
+int *bucket_current_resvp(struct bucket *b);
 
 int bucket_insert_block(struct bucket *b, const struct memory_block *m);
 
