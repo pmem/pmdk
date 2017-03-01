@@ -84,6 +84,7 @@ struct recycler {
 	int recalc_inprogress;
 
 	VEC(, uint64_t) recalc;
+	VEC(, struct memory_block_reserved *) pending;
 
 	os_mutex_t lock;
 };
@@ -108,6 +109,7 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 	r->unaccounted_units = 0;
 	r->recalc_inprogress = 0;
 	VEC_INIT(&r->recalc);
+	VEC_INIT(&r->pending);
 
 	os_mutex_init(&r->lock);
 
@@ -126,6 +128,12 @@ void
 recycler_delete(struct recycler *r)
 {
 	VEC_DELETE(&r->recalc);
+
+	struct memory_block_reserved *mr;
+	VEC_FOREACH(mr, &r->pending) {
+		Free(mr);
+	}
+	VEC_DELETE(&r->pending);
 	os_mutex_destroy(&r->lock);
 	ctree_delete(r->runs);
 	Free(r);
@@ -218,6 +226,31 @@ recycler_put(struct recycler *r, const struct memory_block *m, uint64_t score)
 }
 
 /*
+ * recycler_pending_check -- iterates through pending memory blocks, checks
+ *	the reservation status, and puts it in the recycler if the there
+ *	are no more unfulfilled reservations for the block.
+ */
+static void
+recycler_pending_check(struct recycler *r)
+{
+	struct memory_block_reserved *mr = NULL;
+	size_t pos;
+	VEC_FOREACH_BY_POS(pos, &r->pending) {
+		mr = VEC_ARR(&r->pending)[pos];
+		if (mr->nresv == 0) {
+			uint64_t score = recycler_calc_score(r->heap,
+				&mr->m, NULL);
+			if (ctree_insert_unlocked(r->runs, score, 0) != 0) {
+				ERR("unable to track run %u due to OOM",
+					mr->m.chunk_id);
+			}
+			Free(mr);
+			VEC_ERASE_BY_POS(&r->pending, pos);
+		}
+	}
+}
+
+/*
  * recycler_get -- retrieves a chunk from the recycler
  */
 int
@@ -226,6 +259,8 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	int ret = 0;
 
 	util_mutex_lock(&r->lock);
+
+	recycler_pending_check(r);
 
 	uint64_t key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
 	if ((key = ctree_remove_unlocked(r->runs, key, 0)) == 0) {
@@ -246,6 +281,16 @@ out:
 	util_mutex_unlock(&r->lock);
 
 	return ret;
+}
+
+/*
+ * recycler_pending_put -- places the memory block in the pending container
+ */
+void
+recycler_pending_put(struct recycler *r,
+	struct memory_block_reserved *m)
+{
+	VEC_PUSH_BACK(&r->pending, m);
 }
 
 /*
