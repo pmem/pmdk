@@ -3,15 +3,15 @@ os: Visual Studio 2015
 platform: x64
 
 configuration:
-- Debug
 - Release
+- Debug
 
 matrix:
   fast_finish: true
 
 before_build:
 - ps: >-
-    if ($Env:CONFIGURATION -eq "Debug") {
+    if ($Env:CONFIGURATION -eq "Release") {
         utils/CSTYLE.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1
