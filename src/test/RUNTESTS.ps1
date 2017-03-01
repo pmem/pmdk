@@ -185,6 +185,16 @@ function runtest {
     }
 
     #
+    # FS type was forced by user, necessary to treat "any" as either pmem or
+    # non-pmem with "-f"
+    #
+    if($fstype -ne "all") {
+        $Env:FORCE_FS= 1
+    } else {
+        $Env:FORCE_FS= 0
+    }
+
+    #
     # make list of fs-types and build-types to test
     #
     sv -Name fss $fstype
