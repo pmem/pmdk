@@ -501,6 +501,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 			set_out_hs)) {
 		ERR("poolsets are not transformable");
 		ret = -1;
+		errno = EINVAL;
 		goto err_free_cs;
 	}
 
