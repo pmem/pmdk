@@ -13,8 +13,11 @@ pmemobj_zalloc r.1 2 256
 # begin transaction with jmp_buf argument
 pmemobj_tx_begin jmp
 
-# use strdup with 0 pattern and allocate
-# root object at position 4 transactionally
+# create a snapshot of entire root object
+pmemobj_tx_add_range r 0 256
+
+# allocate an object using strdup at 4th position
+# in root object
 pmemobj_tx_strdup r.4 0 5
 
 # add snaphots
