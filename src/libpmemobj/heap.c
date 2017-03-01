@@ -51,8 +51,6 @@
 #include "container_seglists.h"
 #include "alloc_class.h"
 
-#define MAX_RUN_LOCKS 1024
-
 #define NCACHES_PER_CPU	2
 
 struct active_run {
@@ -279,7 +277,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
 	run->bitmap[nval - 1] = c->run.bitmap_lastval;
 
-	run->incarnation_claim = heap->run_id;
+	run->incarnation_claim = 1; /* claimed by the bucket */
 	VALGRIND_SET_CLEAN(&run->incarnation_claim,
 		sizeof(run->incarnation_claim));
 
@@ -518,8 +516,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
 		ASSERT(hdr->size_idx != 0);
-		if (init)
-			heap_chunk_write_footer(hdr, hdr->size_idx);
 
 		struct memory_block m = MEMORY_BLOCK_NONE;
 		m.zone_id = zone_id;
@@ -527,6 +523,11 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 		m.size_idx = hdr->size_idx;
 
 		memblock_rebuild_state(heap, &m);
+
+		if (init) {
+			heap_chunk_write_footer(hdr, hdr->size_idx);
+			m.m_ops->reinit(&m);
+		}
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
@@ -582,7 +583,8 @@ heap_reclaim_garbage(struct palloc_heap *heap)
 	struct memory_block m;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
-			m.m_ops->claim_revoke(&m);
+			int ret = m.m_ops->claim_revoke(&m);
+			ASSERTeq(ret, 0);
 		}
 	}
 
@@ -616,9 +618,12 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	ASSERTeq(b->aclass->type, CLASS_RUN);
 
 	if (b->is_active) {
+		bucket_try_revoke_all(b);
+
 		b->c_ops->rm_all(b->container);
-		b->active_memory_block.m_ops
-			->claim_revoke(&b->active_memory_block);
+		const struct memory_block *m = &b->active_memory_block;
+		if (m->m_ops->claim_revoke(m) != 0)
+			bucket_add_claimed(b, m);
 
 		b->is_active = 0;
 	}
@@ -678,7 +683,8 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		tmp.size_idx = units;
 		if (b->c_ops->get_rm_bestfit(b->container, &tmp) != 0) {
 			b->c_ops->rm_all(b->container);
-			m.m_ops->claim_revoke(&m);
+			int ret = m.m_ops->claim_revoke(&m);
+			ASSERTeq(ret, 0);
 			return ENOMEM;
 		} else {
 			bucket_insert_block(b, &tmp);
@@ -988,7 +994,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_init(&h->run_locks[i], NULL);
 
-	heap->run_id = run_id;
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
 	heap->rt = h;

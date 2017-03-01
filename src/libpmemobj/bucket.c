@@ -100,3 +100,30 @@ bucket_delete(struct bucket *b)
 	b->c_ops->destroy(b->container);
 	Free(b);
 }
+
+int
+bucket_add_claimed(struct bucket *b, const struct memory_block *m)
+{
+	struct claimed_entry *e = Malloc(sizeof(*e));
+	if (e == NULL)
+		return -1;
+
+	e->m = *m;
+
+	LIST_INSERT_HEAD(&b->claimed_blocks, e, entry);
+
+	return 0;
+}
+
+void
+bucket_try_revoke_all(struct bucket *b)
+{
+	struct claimed_entry *e2 = NULL;
+	for (struct claimed_entry *e = LIST_FIRST(&b->claimed_blocks);
+		e != NULL; e = e2) {
+		e2 = LIST_NEXT(e, entry);
+		if (e->m.m_ops->claim_revoke(&e->m) == 0) {
+			LIST_REMOVE(e, entry);
+		}
+	}
+}

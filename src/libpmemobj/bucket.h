@@ -41,6 +41,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "queue.h"
 #include "container.h"
 #include "memblock.h"
 
@@ -49,6 +50,11 @@
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
 (_size == 0 ? 0 : (uint32_t)(((_size - 1) / _unit_size) + 1))
+
+struct claimed_entry {
+	struct memory_block m;
+	LIST_ENTRY(claimed_entry) entry;
+};
 
 struct bucket {
 	pthread_mutex_t lock;
@@ -60,12 +66,16 @@ struct bucket {
 
 	struct memory_block active_memory_block;
 	int is_active;
+
+	LIST_HEAD(, claimed_entry) claimed_blocks;
 };
 
 struct bucket *bucket_new(struct block_container *c,
 	struct alloc_class *aclass);
 
 int bucket_insert_block(struct bucket *b, const struct memory_block *m);
+void bucket_try_revoke_all(struct bucket *b);
+int bucket_add_claimed(struct bucket *b, const struct memory_block *m);
 
 void bucket_delete(struct bucket *b);
 
