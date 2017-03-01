@@ -680,7 +680,7 @@ open_remote_replicas(struct pool_set *set,
  */
 static int
 create_remote_replicas(struct pool_set *set,
-	struct poolset_health_status *set_hs)
+	struct poolset_health_status *set_hs, unsigned flags)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; r++) {
@@ -690,9 +690,11 @@ create_remote_replicas(struct pool_set *set,
 		if (replica_is_replica_healthy(r, set_hs))
 			continue;
 
-		/* ignore errors from remove operation */
-		remove_remote(rep->remote->node_addr,
+		if (!replica_is_poolset_transformed(flags)) {
+			/* ignore errors from remove operation */
+			remove_remote(rep->remote->node_addr,
 					rep->remote->pool_desc);
+		}
 
 		unsigned nlanes = REMOTE_NLANES;
 		int ret = util_poolset_remote_replica_open(set, r,
@@ -807,7 +809,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 		goto out;
 
 	/* create all remote replicas */
-	if (create_remote_replicas(set, set_hs)) {
+	if (create_remote_replicas(set, set_hs, flags)) {
 		ERR("creating remote replicas failed");
 		ret = -1;
 		goto out;
