@@ -417,6 +417,7 @@ do
 		case "$fstype"
 		in
 		none|pmem|non-pmem|any|all)
+			export FORCE_FS=1
 			;;
 		*)
 			usage "bad fs-type: $fstype"
