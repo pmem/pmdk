@@ -184,6 +184,13 @@ function runtest {
         [int64]$time = $timeval
     }
 
+    # FS type was forced by user
+    if($fstype -ne "all") {
+        $Env:FS_SET = 1
+    } else {
+        $Env:FS_SET = 0
+    }
+
     #
     # make list of fs-types and build-types to test
     #
