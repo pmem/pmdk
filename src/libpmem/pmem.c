@@ -668,11 +668,18 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	if ((addr = util_map(fd, len, MAP_SHARED, 0, 0)) == NULL)
 		goto err;    /* util_map() set errno, called LOG */
 
+#ifndef _WIN32
+	/* XXX only Device DAX regions (PMEM) are tracked so far */
+	if (is_dev_dax && util_range_register(addr, len) != 0) {
+		LOG(2, "can't track mapped region");
+	}
+#endif
+
 	if (mapped_lenp != NULL)
 		*mapped_lenp = len;
 
 	if (is_pmemp != NULL)
-		*is_pmemp = pmem_is_pmem(addr, len);
+		*is_pmemp = is_dev_dax || pmem_is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
@@ -680,13 +687,6 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
 
 	(void) close(fd);
-
-#ifndef _WIN32
-	/* XXX only Device DAX regions (PMEM) are tracked so far */
-	if (is_dev_dax && util_range_register(addr, len) != 0) {
-		LOG(2, "can't track mapped region");
-	}
-#endif
 
 	return addr;
 

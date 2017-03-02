@@ -201,6 +201,14 @@ main(int argc, char *argv[])
 		}
 
 		if (addr) {
+			/* is_pmem must be true for device DAX */
+			int is_pmem_check = pmem_is_pmem(addr, mlen);
+			UT_ASSERT(!is_dev_dax || is_pmem_check);
+
+			/* check is_pmem returned from pmem_map_file */
+			if (use_is_pmem)
+				UT_ASSERTeq(is_pmem, is_pmem_check);
+
 			if ((flags & PMEM_FILE_TMPFILE) == 0 && !is_dev_dax) {
 				fd = OPEN(argv[i], O_RDWR);
 
