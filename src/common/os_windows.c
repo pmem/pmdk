@@ -37,7 +37,6 @@
 #include "os.h"
 #include <errno.h>
 
-/* UTF-8 bom (EF BB BF) */
 #define UTF8_BOM "\xEF\xBB\xBF"
 
 /*
@@ -51,7 +50,7 @@ os_open(const char *pathname, int flags, ...)
 		return -1;
 
 	int ret;
-	/* there is no O_TMPFILE on windows */
+
 	if (flags & O_CREAT) {
 		va_list arg;
 		va_start(arg, flags);
@@ -61,9 +60,13 @@ os_open(const char *pathname, int flags, ...)
 	} else {
 		ret = _wopen(path, flags);
 	}
-	Free(path);
+	util_free_UTF16(path);
 	/* BOM skipping should not modify errno */
 	int orig_errno = errno;
+	/*
+	 * text files on windows can contain BOM. As we open files
+	 * in binary mode we have to detect bom and skip it
+	 */
 	if (ret != -1) {
 		char bom[3];
 		if (_read(ret, bom, sizeof(bom)) != 3 ||
@@ -88,7 +91,7 @@ os_stat(const char *pathname, os_stat_t *buf)
 
 	int ret = _wstat64(path, buf);
 
-	Free(path);
+	util_free_UTF16(path);
 	return ret;
 }
 
@@ -103,7 +106,7 @@ os_unlink(const char *pathname)
 		return -1;
 
 	int ret = _wunlink(path);
-	Free(path);
+	util_free_UTF16(path);
 	return ret;
 }
 
@@ -118,12 +121,14 @@ os_access(const char *pathname, int mode)
 		return -1;
 
 	int ret = _waccess(path, mode);
-	Free(path);
+	util_free_UTF16(path);
 	return ret;
 }
 
 /*
  * os_skipBOM -- (internal) Skip BOM in file stream
+ *
+ * text files on windows can contain BOM. We have to detect bom and skip it.
  */
 static void
 os_skipBOM(FILE *file)
@@ -160,14 +165,14 @@ os_fopen(const char *pathname, const char *mode)
 
 	wchar_t *wmode = util_toUTF16(mode);
 	if (path == NULL) {
-		Free(path);
+		util_free_UTF16(path);
 		return NULL;
 	}
 
 	FILE *ret = _wfopen(path, wmode);
 
-	Free(path);
-	Free(wmode);
+	util_free_UTF16(path);
+	util_free_UTF16(wmode);
 
 	os_skipBOM(ret);
 	return ret;
@@ -195,7 +200,7 @@ os_chmod(const char *pathname, mode_t mode)
 		return -1;
 
 	int ret = _wchmod(path, mode);
-	Free(path);
+	util_free_UTF16(path);
 	return ret;
 }
 
@@ -206,20 +211,20 @@ int
 os_mkstemp(char *temp)
 {
 	unsigned rnd;
-	wchar_t *_temp = util_toUTF16(temp);
-	if (_temp == NULL)
+	wchar_t *utemp = util_toUTF16(temp);
+	if (utemp == NULL)
 		return -1;
 
-	wchar_t *path = _wmktemp(_temp);
+	wchar_t *path = _wmktemp(utemp);
 	if (path == NULL) {
-		Free(_temp);
+		util_free_UTF16(utemp);
 		return -1;
 	}
 
 	wchar_t npath[MAX_PATH];
 	wcscpy(npath, path);
 
-	Free(_temp);
+	util_free_UTF16(utemp);
 	/*
 	 * Use rand_s to generate more unique tmp file name than _mktemp do.
 	 * In case with multiple threads and multiple files even after close()

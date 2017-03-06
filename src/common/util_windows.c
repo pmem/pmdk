@@ -141,6 +141,13 @@ err:
 }
 
 /*
+ * util_free_UTF8 -- free UTF8 string
+ */
+void util_free_UTF8(char *str) {
+	Free(str);
+}
+
+/*
  * util_toUTF16 -- allocating conversion from UTF8 to wide char string
  */
 wchar_t *
@@ -170,15 +177,21 @@ err:
 }
 
 /*
- * util_toUTF16 -- non-allocating conversion from UTF8 to wide char string
+ * util_free_UTF16 -- free wide char string
+ */
+void util_free_UTF16(wchar_t *wstr) {
+	Free(wstr);
+}
+
+/*
+ * util_toUTF16_buff -- non-allocating conversion from UTF8 to wide char string
  *
  * The user responsible for supplying a large enough out buffer.
  */
 int
 util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size)
 {
-	if (out == NULL)
-		goto err;
+	ASSERT(out != NULL);
 
 	int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, in,
 		-1, NULL, 0);
@@ -203,8 +216,7 @@ err:
 int
 util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size)
 {
-	if (out == NULL)
-		goto err;
+	ASSERT(out != NULL);
 
 	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, in, -1,
 		NULL, 0, NULL, NULL);

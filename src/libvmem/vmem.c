@@ -208,13 +208,13 @@ UNICODE_FUNCTION(vmem_create)(const char *dir, size_t size)
 VMEM *
 vmem_createW(const wchar_t *dir, size_t size)
 {
-	char *_dir = util_toUTF8(dir);
-	if (_dir == NULL)
+	char *udir = util_toUTF8(dir);
+	if (udir == NULL)
 		return NULL;
 
-	VMEM *ret = vmem_createU(_dir, size);
+	VMEM *ret = vmem_createU(udir, size);
 
-	free(_dir);
+	util_free_UTF8(udir);
 	return ret;
 }
 #endif

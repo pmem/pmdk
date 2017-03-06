@@ -89,22 +89,26 @@ const char *pmemlog_check_version(
 #define pmemlog_check pmemlog_checkU
 #define pmemlog_errormsg pmemlog_errormsgU
 #endif
-PMEMlogpool *pmemlog_openU(const char *path);
-PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
-int pmemlog_checkU(const char *path);
-const char *pmemlog_errormsgU(void);
-
-PMEMlogpool *pmemlog_openW(const wchar_t *path);
-PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
-int pmemlog_checkW(const wchar_t *path);
-const wchar_t *pmemlog_errormsgW(void);
-#else
-PMEMlogpool *pmemlog_open(const char *path);
-PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
-int pmemlog_check(const char *path);
-const char *pmemlog_errormsg(void);
 #endif
 
+#ifndef _WIN32
+PMEMlogpool *pmemlog_open(const char *path);
+#else
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+#endif
+#ifndef _WIN32
+PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
+#else
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+#endif
+#ifndef _WIN32
+int pmemlog_check(const char *path);
+#else
+int pmemlog_checkU(const char *path);
+int pmemlog_checkW(const wchar_t *path);
+#endif
 
 void pmemlog_close(PMEMlogpool *plp);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
@@ -126,6 +130,13 @@ void pmemlog_set_funcs(
 		void (*free_func)(void *ptr),
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
+
+#ifndef _WIN32
+const char *pmemlog_errormsg(void);
+#else
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

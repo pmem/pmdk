@@ -233,13 +233,13 @@ err:
 PMEMlogpool *
 pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
 
-	PMEMlogpool *ret = pmemlog_createU(_path, poolsize, mode);
+	PMEMlogpool *ret = pmemlog_createU(upath, poolsize, mode);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif
@@ -332,13 +332,13 @@ UNICODE_FUNCTION(pmemlog_open)(const char *path)
 PMEMlogpool *
 pmemlog_openW(const wchar_t *path)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
 
-	PMEMlogpool *ret = pmemlog_openU(_path);
+	PMEMlogpool *ret = pmemlog_openU(upath);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif
@@ -742,13 +742,13 @@ UNICODE_FUNCTION(pmemlog_check)(const char *path)
 int
 pmemlog_checkW(const wchar_t *path)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return -1;
 
-	int ret = pmemlog_checkU(_path);
+	int ret = pmemlog_checkU(upath);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif

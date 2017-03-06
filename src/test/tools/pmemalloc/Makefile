@@ -41,7 +41,6 @@ LIBPMEM=y
 LIBPMEMCOMMON=y
 LIBPMEMOBJ=y
 
-
 CFLAGS += -I$(TOP)/src/libpmemobj
 
 include $(TOP)/src/tools/Makefile.inc

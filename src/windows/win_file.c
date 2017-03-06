@@ -57,7 +57,6 @@
 #include <Shlwapi.h>
 #include <stdio.h>
 #include <pmemcompat.h>
-#include <util.h>
 
 /*
  * posix_fallocate -- allocate file space

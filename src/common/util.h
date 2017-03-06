@@ -100,6 +100,8 @@ void util_aligned_free(void *ptr);
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
 wchar_t *util_toUTF16(const char *wstr);
+void util_free_UTF8(char *str);
+void util_free_UTF16(wchar_t *str);
 int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
 int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
 #endif

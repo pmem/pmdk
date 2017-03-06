@@ -58,13 +58,18 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 #ifdef _WIN32
 #ifndef NVML_UTF8_API
 #define vmem_create vmem_createW
+#define vmem_errormsg vmem_errormsgW
 #else
 #define vmem_create vmem_createU
+#define vmem_errormsg vmem_errormsgU
 #endif
+#endif
+
+#ifndef _WIN32
+VMEM *vmem_create(const char *dir, size_t size);
+#else
 VMEM *vmem_createW(const wchar_t *dir, size_t size);
 VMEM *vmem_createU(const char *dir, size_t size);
-#else
-VMEM *vmem_create(const char *dir, size_t size);
 #endif
 
 VMEM *vmem_create_in_region(void *addr, size_t size);
@@ -124,17 +129,11 @@ void vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s));
 
-#ifdef _WIN32
-#ifndef NVML_UTF8_API
-#define vmem_errormsg vmem_errormsgW
-#else
-#define vmem_errormsg vmem_errormsgU
-#endif
-const wchar_t *vmem_errormsgW(void);
-
-const char *vmem_errormsgU(void);
-#else
+#ifndef _WIN32
 const char *vmem_errormsg(void);
+#else
+const wchar_t *vmem_errormsgW(void);
+const char *vmem_errormsgU(void);
 #endif
 
 #ifdef __cplusplus

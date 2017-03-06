@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_create/config.PS1 -- test configuration
+# libpmempool_backup/config.PS1 -- test configuration
 #
 
 $global:encoding_dict = @{

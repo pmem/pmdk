@@ -184,12 +184,12 @@ wmain(int argc, wchar_t *argv[])
 		else
 			is_pmemp = NULL;
 
-		char *_path = ut_toUTF8(path);
-		char *_flags = ut_toUTF8(argv[i + 2]);
+		char *upath = ut_toUTF8(path);
+		char *uflags = ut_toUTF8(argv[i + 2]);
 		UT_OUT("%s %lld %s %o %d %d",
-			_path, len, _flags, mode, use_mlen, use_is_pmem);
-		free(_flags);
-		free(_path);
+			upath, len, uflags, mode, use_mlen, use_is_pmem);
+		free(uflags);
+		free(upath);
 
 		addr = pmem_map_fileW(path, len, flags, mode, mlenp, is_pmemp);
 		if (addr == NULL) {
