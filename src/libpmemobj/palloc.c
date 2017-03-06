@@ -251,6 +251,9 @@ palloc_perform_operations(struct palloc_heap *heap,
 		}
 #endif /* DEBUG */
 
+		if (op->new_state == MEMBLOCK_ALLOCATED)
+			op->m.m_ops->flush_header(&op->m);
+
 		/*
 		 * The actual required metadata modifications are chunk-type
 		 * dependent, but it always is a modification of a single 8 byte
