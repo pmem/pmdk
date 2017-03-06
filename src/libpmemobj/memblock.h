@@ -178,6 +178,7 @@ struct memory_block_ops {
 	size_t (*get_real_size)(const struct memory_block *m);
 	void (*write_header)(const struct memory_block *m,
 		uint64_t extra_field, uint16_t flags);
+	void (*flush_header)(const struct memory_block *m);
 	void (*ensure_header_type)(const struct memory_block *m,
 		enum header_type t);
 
