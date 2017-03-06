@@ -200,7 +200,6 @@ memblock_header_legacy_write(const struct memory_block *m,
 	hdr->size = size;
 	hdr->type_num = extra;
 	hdr->root_size = ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 
 	/* unused fields of the legacy headers are used as a red zone */
@@ -222,7 +221,6 @@ memblock_header_compact_write(const struct memory_block *m,
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	hdr->size = size | ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
 	hdr->extra = extra;
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 }
 
@@ -233,6 +231,38 @@ memblock_header_compact_write(const struct memory_block *m,
 static void
 memblock_no_header_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
+{
+	/* NOP */
+}
+
+/*
+ * memblock_header_legacy_flush --
+ *	(internal) flushes a legacy header
+ */
+static void
+memblock_header_legacy_flush(const struct memory_block *m)
+{
+	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_header_compact_flush --
+ *	(internal) flushes a compact header
+ */
+static void
+memblock_header_compact_flush(const struct memory_block *m)
+{
+	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_no_header_flush --
+ *	(internal) nothing to flush
+ */
+static void
+memblock_no_header_flush(const struct memory_block *m)
 {
 	/* NOP */
 }
@@ -280,6 +310,7 @@ static struct {
 	uint16_t (*get_flags)(const struct memory_block *m);
 	void (*write)(const struct memory_block *m,
 		size_t size, uint64_t extra, uint16_t flags);
+	void (*flush)(const struct memory_block *m);
 	void (*reinit)(const struct memory_block *m);
 } memblock_header_ops[MAX_HEADER_TYPES] = {
 	[HEADER_LEGACY] = {
@@ -287,6 +318,7 @@ static struct {
 		memblock_header_legacy_get_extra,
 		memblock_header_legacy_get_flags,
 		memblock_header_legacy_write,
+		memblock_header_legacy_flush,
 		memblock_header_legacy_reinit,
 	},
 	[HEADER_COMPACT] = {
@@ -294,6 +326,7 @@ static struct {
 		memblock_header_compact_get_extra,
 		memblock_header_compact_get_flags,
 		memblock_header_compact_write,
+		memblock_header_compact_flush,
 		memblock_header_compact_reinit,
 	},
 	[NO_HEADER] = {
@@ -301,6 +334,7 @@ static struct {
 		memblock_no_header_get_extra,
 		memblock_no_header_get_flags,
 		memblock_no_header_write,
+		memblock_no_header_flush,
 		memblock_no_header_reinit,
 	}
 };
@@ -736,6 +770,15 @@ block_write_header(const struct memory_block *m,
 }
 
 /*
+ * block_flush_header -- flushes allocation header
+ */
+static void
+block_flush_header(const struct memory_block *m)
+{
+	memblock_header_ops[m->header_type].flush(m);
+}
+
+/*
  * block_reinit_header -- reinitializes a block after a heap restart
  */
 static void
@@ -777,6 +820,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.flush_header = block_flush_header,
 		.ensure_header_type = huge_ensure_header_type,
 		.reinit = huge_reinit,
 		.reinit_header = block_reinit_header,
@@ -797,6 +841,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.flush_header = block_flush_header,
 		.ensure_header_type = run_ensure_header_type,
 		.reinit = run_reinit,
 		.reinit_header = block_reinit_header,
