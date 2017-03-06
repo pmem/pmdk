@@ -545,6 +545,40 @@ test_tx_api(PMEMobjpool *pop)
 }
 
 static void
+test_action_api(PMEMobjpool *pop)
+{
+	struct pobj_action act[2];
+
+	uint64_t dest_value = 0;
+	PMEMoid oid = pmemobj_reserve(pop, &act[0], 1, 1);
+	pmemobj_set_value(pop, &act[1], &dest_value, 1);
+	pmemobj_publish(pop, act, 2);
+	UT_ASSERTeq(dest_value, 1);
+	pmemobj_free(&oid);
+	UT_ASSERT(OID_IS_NULL(oid));
+
+	dest_value = 0;
+	oid = pmemobj_reserve(pop, &act[0], 1, 1);
+	pmemobj_set_value(pop, &act[1], &dest_value, 1);
+	TX_BEGIN(pop) {
+		pmemobj_tx_publish(act, 2);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(dest_value, 1);
+	pmemobj_free(&oid);
+	UT_ASSERT(OID_IS_NULL(oid));
+
+	dest_value = 0;
+	oid = pmemobj_reserve(pop, &act[0], 1, 1);
+	pmemobj_set_value(pop, &act[1], &dest_value, 1);
+	pmemobj_cancel(pop, act, 2);
+
+	UT_ASSERTeq(dest_value, 0);
+}
+
+static void
 test_offsetof(void)
 {
 	TOID(struct dummy_root) r;
@@ -594,6 +628,7 @@ main(int argc, char *argv[])
 	test_realloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
+	test_action_api(pop);
 	test_offsetof();
 
 	pmemobj_close(pop);

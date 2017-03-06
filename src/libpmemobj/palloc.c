@@ -46,6 +46,42 @@
 #include "sys_util.h"
 #include "palloc.h"
 
+struct pobj_action_internal {
+	enum pobj_action_type type;
+	uint32_t padding;
+	pthread_mutex_t *lock;
+	union {
+		struct {
+			uint64_t offset;
+			enum memblock_state new_state;
+			struct memory_block m;
+		};
+		struct {
+			uint64_t *ptr;
+			uint64_t value;
+		};
+		uint64_t data2[10];
+	};
+};
+
+#define OBJ_HEAP_ACTION_INITIALIZER(off, nstate)\
+{POBJ_ACTION_TYPE_HEAP, 0, NULL, {{off, nstate, MEMORY_BLOCK_NONE}}}
+
+/*
+ * palloc_set_value -- creates a new set memory action
+ */
+void
+palloc_set_value(struct palloc_heap *heap, struct pobj_action *act,
+	uint64_t *ptr, uint64_t value)
+{
+	act->type = POBJ_ACTION_TYPE_MEM;
+
+	struct pobj_action_internal *actp = (struct pobj_action_internal *)act;
+	actp->ptr = ptr;
+	actp->value = value;
+	actp->lock = NULL;
+}
+
 /*
  * alloc_prep_block -- (internal) prepares a memory block for allocation
  *
@@ -96,12 +132,6 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	return 0;
 }
 
-struct palloc_op {
-	uint64_t offset;
-	enum memblock_state new_state;
-	struct memory_block m;
-};
-
 /*
  * palloc_reservation_create -- creates a volatile reservation of a
  *	memory block.
@@ -121,7 +151,8 @@ struct palloc_op {
 static int
 palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags, struct palloc_op *out)
+	uint64_t extra_field, uint16_t flags,
+	struct pobj_action_internal *out)
 {
 	struct memory_block *new_block = &out->m;
 
@@ -171,6 +202,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 
 	heap_bucket_release(heap, b);
 
+	out->lock = new_block->m_ops->get_lock(new_block);
 	out->new_state = MEMBLOCK_ALLOCATED;
 
 	return 0;
@@ -182,47 +214,131 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
  */
 static void
 palloc_reservation_finalize(struct palloc_heap *heap,
-	const struct palloc_op *in)
+	const struct pobj_action_internal *in, int canceled)
 {
 	/* the reservation was either fulfilled or canceled */
 	if (in->m.type == MEMORY_BLOCK_RUN)
 		in->m.m_ops->claim_dec(&in->m);
+
+	if (canceled)
+		in->m.m_ops->invalidate_header(&in->m);
 }
 
 /*
- * palloc_memblock_compare -- compares two memory blocks based on chunk id
- *
- * We leverage information about number of the limited number of locks to
- * minimize the complexity of the sort.
- */
-static int
-palloc_memblock_compare(const void *lhs, const void *rhs)
-{
-	const struct palloc_op *mlhs = lhs;
-	const struct palloc_op *mrhs = rhs;
-	return (int)(mlhs->m.chunk_id % MAX_RUN_LOCKS)
-		- (int)(mrhs->m.chunk_id % MAX_RUN_LOCKS);
-}
-
-/*
- * palloc_perform_operations -- perform the provided free/alloc operations
+ * palloc_exec_heap_action -- executes a single heap action (alloc, free)
  */
 static void
-palloc_perform_operations(struct palloc_heap *heap,
+palloc_exec_heap_action(struct palloc_heap *heap,
+	const struct pobj_action_internal *act,
+	struct operation_context *ctx)
+{
+#ifdef DEBUG
+	/*
+	 * The memory block inside of palloc_op might be coalesced, so
+	 * it can't be used to verify the state (as it might already be
+	 * free).
+	 */
+	struct memory_block m = memblock_from_offset(heap, act->offset);
+	if (m.m_ops->get_state(&m) == act->new_state) {
+		ERR("invalid operation or heap corruption");
+		ASSERT(0);
+	}
+#endif /* DEBUG */
+
+	/* drain is called before the operation processing */
+	if (act->new_state == MEMBLOCK_ALLOCATED)
+		act->m.m_ops->flush_header(&act->m);
+
+	/*
+	 * The actual required metadata modifications are chunk-type
+	 * dependent, but it always is a modification of a single 8 byte
+	 * value - either modification of few bits in a bitmap or
+	 * changing a chunk type from free to used or vice versa.
+	 */
+	act->m.m_ops->prep_hdr(&act->m, act->new_state, ctx);
+}
+
+/*
+ * palloc_finalize_heap_action -- finalizes a single heap action (alloc, free)
+ */
+static void
+palloc_finalize_heap_action(struct palloc_heap *heap,
+	const struct pobj_action_internal *act, int canceled)
+{
+	if (act->new_state == MEMBLOCK_ALLOCATED) {
+		palloc_reservation_finalize(heap, act, canceled);
+	}
+}
+
+/*
+ * palloc_exec_mem_action -- executes a single memory action (set, and, or)
+ */
+static void
+palloc_exec_mem_action(struct palloc_heap *heap,
+	const struct pobj_action_internal *act,
+	struct operation_context *ctx)
+{
+	operation_add_entry(ctx, act->ptr, act->value, OPERATION_SET);
+}
+
+/*
+ * palloc_finalize_mem_action -- finalizes a single memory action (set, and, or)
+ */
+static void
+palloc_finalize_mem_action(struct palloc_heap *heap,
+	const struct pobj_action_internal *act, int canceled)
+{
+
+}
+
+static struct {
+	void (*exec)(struct palloc_heap *heap,
+		const struct pobj_action_internal *act,
+		struct operation_context *ctx);
+	void (*finalize)(struct palloc_heap *heap,
+		const struct pobj_action_internal *act, int canceled);
+} action_funcs[POBJ_MAX_ACTION_TYPE] = {
+	[POBJ_ACTION_TYPE_HEAP] = {
+		.exec = palloc_exec_heap_action,
+		.finalize = palloc_finalize_heap_action
+	},
+	[POBJ_ACTION_TYPE_MEM] = {
+		.exec = palloc_exec_mem_action,
+		.finalize = palloc_finalize_mem_action
+	}
+};
+
+/*
+ * palloc_action_compare -- compares two actions based on lock address
+ */
+static int
+palloc_action_compare(const void *lhs, const void *rhs)
+{
+	const struct pobj_action_internal *mlhs = lhs;
+	const struct pobj_action_internal *mrhs = rhs;
+	return (int)((int64_t)(mlhs->lock) - (int64_t)(mrhs->lock));
+}
+
+/*
+ * palloc_exec_actions -- perform the provided free/alloc operations
+ */
+static void
+palloc_exec_actions(struct palloc_heap *heap,
 	struct operation_context *ctx,
-	struct palloc_op *ops,
-	int nops)
+	struct pobj_action_internal *actv,
+	int actvcnt)
 {
 	/*
 	 * The operations array is sorted so that proper lock ordering is
 	 * ensured.
 	 */
-	qsort(ops, (size_t)nops, sizeof(struct palloc_op),
-		palloc_memblock_compare);
+	qsort(actv, (size_t)actvcnt, sizeof(struct pobj_action_internal),
+		palloc_action_compare);
 
-	struct palloc_op *op;
-	for (int i = 0; i < nops; ++i) {
-		op = &ops[i];
+	struct pobj_action_internal *act;
+	for (int i = 0; i < actvcnt; ++i) {
+		act = &actv[i];
+
 		/*
 		 * This lock must be held for the duration between the creation
 		 * of the allocation metadata updates in the operation context
@@ -230,45 +346,27 @@ palloc_perform_operations(struct palloc_heap *heap,
 		 * thread might operate on the same 8-byte value of the run
 		 * bitmap and override allocation performed by this thread.
 		 */
-		if (i == 0 || op->m.chunk_id != ops[i - 1].m.chunk_id) {
-			pthread_mutex_t *lock = op->m.m_ops->get_lock(&op->m);
-			if (lock)
-				util_mutex_lock(lock);
+		if (i == 0 || act->lock != actv[i - 1].lock) {
+			if (act->lock)
+				util_mutex_lock(act->lock);
 		}
 
-#ifdef DEBUG
-		/*
-		 * The memory block inside of palloc_op might be coalesced, so
-		 * it can't be used to verify the state (as it might already be
-		 * free).
-		 */
-		struct memory_block m = memblock_from_offset(heap, op->offset);
-		if (m.m_ops->get_state(&m) == op->new_state) {
-			ERR("invalid operation or heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-
-		if (op->new_state == MEMBLOCK_ALLOCATED)
-			op->m.m_ops->flush_header(&op->m);
-
-		/*
-		 * The actual required metadata modifications are chunk-type
-		 * dependent, but it always is a modification of a single 8 byte
-		 * value - either modification of few bits in a bitmap or
-		 * changing a chunk type from free to used or vice versa.
-		 */
-		op->m.m_ops->prep_hdr(&op->m, op->new_state, ctx);
+		action_funcs[act->type].exec(heap, act, ctx);
 	}
+
+	/* wait for all the headers to be persistent */
+	pmemops_drain(&heap->p_ops);
+
 	operation_process(ctx);
 
-	for (int i = 0; i < nops; ++i) {
-		op = &ops[i];
+	for (int i = 0; i < actvcnt; ++i) {
+		act = &actv[i];
 
-		if (i == 0 || op->m.chunk_id != ops[i - 1].m.chunk_id) {
-			pthread_mutex_t *lock = op->m.m_ops->get_lock(&op->m);
-			if (lock)
-				util_mutex_unlock(lock);
+		action_funcs[act->type].finalize(heap, act, 0);
+
+		if (i == 0 || act->lock != actv[i - 1].lock) {
+			if (act->lock)
+				util_mutex_unlock(act->lock);
 		}
 	}
 }
@@ -279,13 +377,14 @@ palloc_perform_operations(struct palloc_heap *heap,
 int
 palloc_reserve(struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags, struct palloc_reservation *rs)
+	uint64_t extra_field, uint16_t flags, struct pobj_action *act)
 {
-	COMPILE_ERROR_ON(sizeof(struct palloc_reservation) !=
-		sizeof(struct palloc_op));
+	COMPILE_ERROR_ON(sizeof(struct pobj_action) !=
+		sizeof(struct pobj_action_internal));
+	act->type = POBJ_ACTION_TYPE_HEAP;
 
 	return palloc_reservation_create(heap, size, constructor, arg,
-		extra_field, flags, (struct palloc_op *)rs);
+		extra_field, flags, (struct pobj_action_internal *)act);
 }
 
 /*
@@ -293,10 +392,13 @@ palloc_reserve(struct palloc_heap *heap, size_t size,
  */
 void
 palloc_cancel(struct palloc_heap *heap,
-	struct palloc_reservation *rsv, int rsvcnt)
+	struct pobj_action *actv, int actvcnt)
 {
-	for (int i = 0; i < rsvcnt; ++i)
-		palloc_reservation_finalize(heap, (struct palloc_op *)&rsv[i]);
+	struct pobj_action_internal *act;
+	for (int i = 0; i < actvcnt; ++i) {
+		act = (struct pobj_action_internal *)&actv[i];
+		action_funcs[act->type].finalize(heap, act, 1);
+	}
 }
 
 /*
@@ -304,12 +406,11 @@ palloc_cancel(struct palloc_heap *heap,
  */
 void
 palloc_publish(struct palloc_heap *heap,
-	struct palloc_reservation *rsv, int rsvcnt,
+	struct pobj_action *actv, int actvcnt,
 	struct operation_context *ctx)
 {
-	palloc_perform_operations(heap, ctx, (struct palloc_op *)rsv, rsvcnt);
-	for (int i = 0; i < rsvcnt; ++i)
-		palloc_reservation_finalize(heap, (struct palloc_op *)&rsv[i]);
+	palloc_exec_actions(heap, ctx,
+		(struct pobj_action_internal *)actv, actvcnt);
 }
 
 /*
@@ -353,12 +454,14 @@ palloc_operation(struct palloc_heap *heap,
 	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx)
 {
-	struct palloc_op alloc = {0, MEMBLOCK_ALLOCATED, MEMORY_BLOCK_NONE};
-	struct palloc_op dealloc = {off, MEMBLOCK_FREE, MEMORY_BLOCK_NONE};
+	struct pobj_action_internal alloc =
+		OBJ_HEAP_ACTION_INITIALIZER(0, MEMBLOCK_ALLOCATED);
+	struct pobj_action_internal dealloc =
+		OBJ_HEAP_ACTION_INITIALIZER(off, MEMBLOCK_FREE);
 	struct bucket *bucket = NULL;
 
 	int nops = 0;
-	struct palloc_op ops[2];
+	struct pobj_action_internal ops[2];
 
 	if (size != 0) {
 		if (palloc_reservation_create(heap, size, constructor, arg,
@@ -408,6 +511,7 @@ palloc_operation(struct palloc_heap *heap,
 			dealloc.m = heap_coalesce_huge(heap,
 				bucket, &dealloc.m);
 		}
+		dealloc.lock = dealloc.m.m_ops->get_lock(&dealloc.m);
 
 		ops[nops++] = dealloc;
 	}
@@ -423,7 +527,7 @@ palloc_operation(struct palloc_heap *heap,
 	if (dest_off)
 		operation_add_entry(ctx, dest_off, alloc.offset, OPERATION_SET);
 
-	palloc_perform_operations(heap, ctx, ops, nops);
+	palloc_exec_actions(heap, ctx, ops, nops);
 
 	/*
 	 * After the operation succeeded, the persistent state is all in order
@@ -435,9 +539,6 @@ palloc_operation(struct palloc_heap *heap,
 		bucket_insert_block(bucket, &dealloc.m);
 		heap_bucket_release(heap, bucket);
 	}
-
-	if (alloc.offset != 0)
-		palloc_reservation_finalize(heap, &alloc);
 
 	return 0;
 }
