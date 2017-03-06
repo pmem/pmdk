@@ -268,6 +268,38 @@ memblock_no_header_flush(const struct memory_block *m)
 }
 
 /*
+ * memblock_header_legacy_invalidate --
+ *	(internal) invalidates a legacy header
+ */
+static void
+memblock_header_legacy_invalidate(const struct memory_block *m)
+{
+	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
+	VALGRIND_SET_CLEAN(hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_header_compact_invalidate --
+ *	(internal) invalidates a compact header
+ */
+static void
+memblock_header_compact_invalidate(const struct memory_block *m)
+{
+	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
+	VALGRIND_SET_CLEAN(hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_no_header_invalidate --
+ *	(internal) nothing to invalidate
+ */
+static void
+memblock_no_header_invalidate(const struct memory_block *m)
+{
+	/* NOP */
+}
+
+/*
  * memblock_header_legacy_reinit --
  *	(internal) reinitializes a legacy header after a heap restart
  */
@@ -311,6 +343,7 @@ static struct {
 	void (*write)(const struct memory_block *m,
 		size_t size, uint64_t extra, uint16_t flags);
 	void (*flush)(const struct memory_block *m);
+	void (*invalidate)(const struct memory_block *m);
 	void (*reinit)(const struct memory_block *m);
 } memblock_header_ops[MAX_HEADER_TYPES] = {
 	[HEADER_LEGACY] = {
@@ -319,6 +352,7 @@ static struct {
 		memblock_header_legacy_get_flags,
 		memblock_header_legacy_write,
 		memblock_header_legacy_flush,
+		memblock_header_legacy_invalidate,
 		memblock_header_legacy_reinit,
 	},
 	[HEADER_COMPACT] = {
@@ -327,6 +361,7 @@ static struct {
 		memblock_header_compact_get_flags,
 		memblock_header_compact_write,
 		memblock_header_compact_flush,
+		memblock_header_compact_invalidate,
 		memblock_header_compact_reinit,
 	},
 	[NO_HEADER] = {
@@ -335,6 +370,7 @@ static struct {
 		memblock_no_header_get_flags,
 		memblock_no_header_write,
 		memblock_no_header_flush,
+		memblock_no_header_invalidate,
 		memblock_no_header_reinit,
 	}
 };
@@ -779,6 +815,15 @@ block_flush_header(const struct memory_block *m)
 }
 
 /*
+ * block_invalidate_header -- invalidates allocation header
+ */
+static void
+block_invalidate_header(const struct memory_block *m)
+{
+	memblock_header_ops[m->header_type].invalidate(m);
+}
+
+/*
  * block_reinit_header -- reinitializes a block after a heap restart
  */
 static void
@@ -821,6 +866,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
 		.flush_header = block_flush_header,
+		.invalidate_header = block_invalidate_header,
 		.ensure_header_type = huge_ensure_header_type,
 		.reinit = huge_reinit,
 		.reinit_header = block_reinit_header,
@@ -842,6 +888,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
 		.flush_header = block_flush_header,
+		.invalidate_header = block_invalidate_header,
 		.ensure_header_type = run_ensure_header_type,
 		.reinit = run_reinit,
 		.reinit_header = block_reinit_header,
