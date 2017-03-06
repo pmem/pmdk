@@ -689,10 +689,11 @@ do_tx_xalloc_noflush(PMEMobjpool *pop)
 				TYPE_XNOFLUSHED_COMMIT, POBJ_XALLOC_NO_FLUSH));
 		UT_ASSERT(!TOID_IS_NULL(obj));
 
-		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[OBJ_SIZE - sizeof(size_t) - 1] = TEST_VALUE_1;
 		/* let pmemcheck find we didn't flush it */
 	} TX_ONCOMMIT {
-		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+		UT_ASSERTeq(D_RO(obj)->data[OBJ_SIZE - sizeof(size_t) - 1],
+			TEST_VALUE_1);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -700,7 +701,8 @@ do_tx_xalloc_noflush(PMEMobjpool *pop)
 	TOID(struct object) first;
 	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XNOFLUSHED_COMMIT));
 	UT_ASSERT(TOID_EQUALS(first, obj));
-	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
+	UT_ASSERTeq(D_RO(first)->data[OBJ_SIZE - sizeof(size_t) - 1],
+		D_RO(obj)->data[OBJ_SIZE - sizeof(size_t) - 1]);
 
 	TOID(struct object) next;
 	TOID_ASSIGN(next, pmemobj_next(first.oid));

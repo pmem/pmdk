@@ -102,8 +102,8 @@ struct lane_tx_runtime {
 	struct tx_undo_runtime undo;
 	SLIST_HEAD(txd, tx_data) tx_entries;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
-	struct palloc_reservation alloc_rsv[MAX_TX_ALLOC_RESERVATIONS];
-	int rsvcnt; /* reservation count */
+	struct pobj_action alloc_actv[MAX_TX_ALLOC_RESERVATIONS];
+	int actvcnt; /* reservation count */
 };
 
 struct tx_alloc_args {
@@ -702,7 +702,7 @@ tx_fulfill_reservations()
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
-	if (lane->rsvcnt == 0)
+	if (lane->actvcnt == 0)
 		return;
 
 	PMEMobjpool *pop = lane->pop;
@@ -712,8 +712,8 @@ tx_fulfill_reservations()
 	struct operation_context ctx;
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	palloc_publish(&pop->heap, lane->alloc_rsv, lane->rsvcnt, &ctx);
-	lane->rsvcnt = 0;
+	palloc_publish(&pop->heap, lane->alloc_actv, lane->actvcnt, &ctx);
+	lane->actvcnt = 0;
 
 	pmalloc_redo_release(pop);
 }
@@ -727,12 +727,12 @@ tx_cancel_reservations()
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 	PMEMobjpool *pop = lane->pop;
-	for (int i = 0; i < lane->rsvcnt; ++i) {
-		tx_clear_object_vg(pop, lane->alloc_rsv[i].offset,
+	for (int i = 0; i < lane->actvcnt; ++i) {
+		tx_clear_object_vg(pop, lane->alloc_actv[i].heap.offset,
 			TX_CLR_FLAG_VG_CLEAN | TX_CLR_FLAG_VG_TX_REMOVE);
 	}
-	palloc_cancel(&pop->heap, lane->alloc_rsv, lane->rsvcnt);
-	lane->rsvcnt = 0;
+	palloc_cancel(&pop->heap, lane->alloc_actv, lane->actvcnt);
+	lane->actvcnt = 0;
 }
 
 /*
@@ -1005,23 +1005,23 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 		.flags = flags,
 	};
 
-	if ((lane->rsvcnt + 1) == MAX_TX_ALLOC_RESERVATIONS) {
+	if ((lane->actvcnt + 1) == MAX_TX_ALLOC_RESERVATIONS) {
 		tx_fulfill_reservations();
 	}
 
-	int rs = lane->rsvcnt;
+	int rs = lane->actvcnt;
 
 	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
-		&lane->alloc_rsv[rs]) != 0) {
+		&lane->alloc_actv[rs]) != 0) {
 		ERR("out of memory");
 		return obj_tx_abort_null(ENOMEM);
 	}
 
-	lane->rsvcnt++;
+	lane->actvcnt++;
 
 	/* allocate object to undo log */
 	PMEMoid retoid = OID_NULL;
-	retoid.off = lane->alloc_rsv[rs].offset;
+	retoid.off = lane->alloc_actv[rs].heap.offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
 
 	uint64_t range_flags = (flags & POBJ_FLAG_NO_FLUSH) ?
@@ -1198,7 +1198,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane->ranges = ctree_new();
 		lane->cache_offset = 0;
 
-		lane->rsvcnt = 0;
+		lane->actvcnt = 0;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
@@ -2131,6 +2131,24 @@ pmemobj_tx_free(PMEMoid oid)
 	pmemops_persist(&pop->p_ops, entry, sizeof(*entry));
 
 	return 0;
+}
+
+/*
+ * pmemobj_tx_publish -- publishes actions inside of a transaction
+ */
+void
+pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
+{
+	ASSERT_TX_STAGE_WORK();
+
+	tx_fulfill_reservations();
+	ASSERT((unsigned)actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
+	struct lane_tx_runtime *lane =
+		(struct lane_tx_runtime *)tx.section->runtime;
+
+	memcpy(lane->alloc_actv, actv,
+		sizeof(struct pobj_action) * (unsigned)actvcnt);
+	lane->actvcnt = actvcnt;
 }
 
 /*
