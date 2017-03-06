@@ -1028,8 +1028,8 @@ function setup {
         }
         mkdir $DIR > $null
     }
-    # set console encoding to UTF-8
 
+    # set console encoding to UTF-8
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
     if ($Env:TM -eq "1" ) {

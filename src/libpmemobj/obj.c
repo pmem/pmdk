@@ -1166,21 +1166,21 @@ PMEMobjpool *
 pmemobj_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	mode_t mode)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
-	char *_layout = NULL;
+	char *ulayout = NULL;
 	if (layout != NULL) {
-		_layout = util_toUTF8(layout);
-		if (_layout == NULL) {
-			Free(_path);
+		ulayout = util_toUTF8(layout);
+		if (ulayout == NULL) {
+			util_free_UTF8(upath);
 			return NULL;
 		}
 	}
-	PMEMobjpool *ret = pmemobj_createU(_path, _layout, poolsize, mode);
+	PMEMobjpool *ret = pmemobj_createU(upath, ulayout, poolsize, mode);
 
-	Free(_path);
-	Free(_layout);
+	util_free_UTF8(upath);
+	util_free_UTF8(ulayout);
 
 	return ret;
 }
@@ -1536,22 +1536,22 @@ UNICODE_FUNCTION(pmemobj_open)(const char *path, const char *layout)
 PMEMobjpool *
 pmemobj_openW(const wchar_t *path, const wchar_t *layout)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
 
-	char *_layout = NULL;
+	char *ulayout = NULL;
 	if (layout != NULL) {
-		_layout = util_toUTF8(layout);
-		if (_layout == NULL) {
-			Free(_path);
+		ulayout = util_toUTF8(layout);
+		if (ulayout == NULL) {
+			util_free_UTF8(upath);
 			return NULL;
 		}
 	}
 
-	PMEMobjpool *ret = pmemobj_open(_path, _layout);
-	Free(_path);
-	Free(_layout);
+	PMEMobjpool *ret = pmemobj_openU(upath, ulayout);
+	util_free_UTF8(upath);
+	util_free_UTF8(ulayout);
 	return ret;
 }
 #endif
@@ -1686,23 +1686,23 @@ UNICODE_FUNCTION(pmemobj_check)(const char *path, const char *layout)
 int
 pmemobj_checkW(const wchar_t *path, const wchar_t *layout)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return -1;
 
-	char *_layout = NULL;
+	char *ulayout = NULL;
 	if (layout != NULL) {
-		_layout = util_toUTF8(layout);
-		if (_layout == NULL) {
-			Free(_path);
+		ulayout = util_toUTF8(layout);
+		if (ulayout == NULL) {
+			util_free_UTF8(upath);
 			return -1;
 		}
 	}
 
-	int ret = pmemobj_checkU(_path, _layout);
+	int ret = pmemobj_checkU(upath, ulayout);
 
-	Free(_path);
-	Free(_layout);
+	util_free_UTF8(upath);
+	util_free_UTF8(ulayout);
 
 	return ret;
 }

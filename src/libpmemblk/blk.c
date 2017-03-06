@@ -479,13 +479,13 @@ PMEMblkpool *
 pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
 	mode_t mode)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
 
-	PMEMblkpool *ret = pmemblk_createU(_path, bsize, poolsize, mode);
+	PMEMblkpool *ret = pmemblk_createU(upath, bsize, poolsize, mode);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif
@@ -581,13 +581,13 @@ UNICODE_FUNCTION(pmemblk_open)(const char *path, size_t bsize)
 PMEMblkpool *
 pmemblk_openW(const wchar_t *path, size_t bsize)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return NULL;
 
-	PMEMblkpool *ret = pmemblk_openU(_path, bsize);
+	PMEMblkpool *ret = pmemblk_openU(upath, bsize);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif
@@ -784,13 +784,13 @@ UNICODE_FUNCTION(pmemblk_check)(const char *path, size_t bsize)
 int
 pmemblk_checkW(const wchar_t *path, size_t bsize)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL)
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
 		return -1;
 
-	int ret = pmemblk_checkU(_path, bsize);
+	int ret = pmemblk_checkU(upath, bsize);
 
-	free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif

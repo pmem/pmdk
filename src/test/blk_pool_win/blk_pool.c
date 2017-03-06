@@ -48,18 +48,18 @@
 static void
 pool_create(const wchar_t *path, size_t bsize, size_t poolsize, unsigned mode)
 {
-	char *_path = ut_toUTF8(path);
-	UT_ASSERTne(_path, NULL);
+	char *upath = ut_toUTF8(path);
+	UT_ASSERTne(upath, NULL);
 
 	PMEMblkpool *pbp = pmemblk_createW(path, bsize, poolsize, mode);
 	if (pbp == NULL)
-		UT_OUT("!%s: pmemblk_create", _path);
+		UT_OUT("!%s: pmemblk_create", upath);
 	else {
 		ut_util_stat_t stbuf;
 		STATW(path, &stbuf);
 
 		UT_OUT("%s: file size %zu usable blocks %zu mode 0%o",
-				_path, stbuf.st_size,
+				upath, stbuf.st_size,
 				pmemblk_nblock(pbp),
 				stbuf.st_mode & 0777);
 
@@ -69,30 +69,30 @@ pool_create(const wchar_t *path, size_t bsize, size_t poolsize, unsigned mode)
 		int result = pmemblk_checkW(path, bsize);
 
 		if (result < 0)
-			UT_OUT("!%s: pmemblk_check", _path);
+			UT_OUT("!%s: pmemblk_check", upath);
 		else if (result == 0)
-			UT_OUT("%s: pmemblk_check: not consistent", _path);
+			UT_OUT("%s: pmemblk_check: not consistent", upath);
 		else
 			UT_ASSERTeq(pmemblk_checkW(path, bsize * 2), -1);
 
-		free(_path);
+		free(upath);
 	}
 }
 
 static void
 pool_open(const wchar_t *path, size_t bsize)
 {
-	char *_path = ut_toUTF8(path);
-	UT_ASSERTne(_path, NULL);
+	char *upath = ut_toUTF8(path);
+	UT_ASSERTne(upath, NULL);
 
 	PMEMblkpool *pbp = pmemblk_openW(path, bsize);
 	if (pbp == NULL)
-		UT_OUT("!%s: pmemblk_open", _path);
+		UT_OUT("!%s: pmemblk_open", upath);
 	else {
-		UT_OUT("%s: pmemblk_open: Success", _path);
+		UT_OUT("%s: pmemblk_open: Success", upath);
 		pmemblk_close(pbp);
 	}
-	free(_path);
+	free(upath);
 }
 
 int

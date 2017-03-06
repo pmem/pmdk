@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# blk_pool/config.PS1 -- test configuration
+# log_pool/config.PS1 -- test configuration
 #
 
 $global:encoding_dict = @{

@@ -94,23 +94,28 @@ const char *pmemblk_check_version(
 #define pmemblk_check pmemblk_checkU
 #define pmemblk_errormsg pmemblk_errormsgU
 #endif
-PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
-PMEMblkpool *pmemblk_createU(const char *path, size_t bsize,
-	size_t poolsize, mode_t mode);
-int pmemblk_checkU(const char *path, size_t bsize);
-const char *pmemblk_errormsgU(void);
+#endif
 
-PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
-PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
-	size_t poolsize, mode_t mode);
-int pmemblk_checkW(const wchar_t *path, size_t bsize);
-const wchar_t *pmemblk_errormsgW(void);
-#else
+#ifndef _WIN32
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
+#else
+PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
+PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
+#endif
+#ifndef _WIN32
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
-	size_t poolsize, mode_t mode);
+		size_t poolsize, mode_t mode);
+#else
+PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
+		size_t poolsize, mode_t mode);
+PMEMblkpool *pmemblk_createU(const char *path, size_t bsize,
+		size_t poolsize, mode_t mode);
+#endif
+#ifndef _WIN32
 int pmemblk_check(const char *path, size_t bsize);
-const char *pmemblk_errormsg(void);
+#else
+int pmemblk_checkU(const char *path, size_t bsize);
+int pmemblk_checkW(const wchar_t *path, size_t bsize);
 #endif
 
 void pmemblk_close(PMEMblkpool *pbp);
@@ -132,6 +137,12 @@ void pmemblk_set_funcs(
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
 
+#ifndef _WIN32
+const char *pmemblk_errormsg(void);
+#else
+const char *pmemblk_errormsgU(void);
+const wchar_t *pmemblk_errormsgW(void);
+#endif
 
 
 #ifdef __cplusplus

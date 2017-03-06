@@ -145,15 +145,15 @@ rm_cb(struct part_file *pf, void *arg)
 int
 pmempool_rmW(const wchar_t *path, int flags)
 {
-	char *_path = util_toUTF8(path);
-	if (_path == NULL) {
+	char *upath = util_toUTF8(path);
+	if (upath == NULL) {
 		ERR("Invalid poolest/pool file path.");
 		return -1;
 	}
 
-	int ret = pmempool_rmU(_path, flags);
+	int ret = pmempool_rmU(upath, flags);
 
-	Free(_path);
+	util_free_UTF8(upath);
 	return ret;
 }
 #endif

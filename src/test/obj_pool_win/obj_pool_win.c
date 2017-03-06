@@ -49,18 +49,18 @@ static void
 pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	unsigned mode)
 {
-	char *_path = ut_toUTF8(path);
+	char *upath = ut_toUTF8(path);
 
 	PMEMobjpool *pop = pmemobj_createW(path, layout, poolsize, mode);
 
 	if (pop == NULL)
-		UT_OUT("!%s: pmemobj_create", _path);
+		UT_OUT("!%s: pmemobj_create", upath);
 	else {
 		ut_util_stat_t stbuf;
 		STATW(path, &stbuf);
 
 		UT_OUT("%s: file size %zu mode 0%o",
-			_path, stbuf.st_size,
+			upath, stbuf.st_size,
 				stbuf.st_mode & 0777);
 
 		pmemobj_close(pop);
@@ -68,25 +68,25 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 		int result = pmemobj_checkW(path, layout);
 
 		if (result < 0)
-			UT_OUT("!%s: pmemobj_check", _path);
+			UT_OUT("!%s: pmemobj_check", upath);
 		else if (result == 0)
-			UT_OUT("%s: pmemobj_check: not consistent", _path);
+			UT_OUT("%s: pmemobj_check: not consistent", upath);
 	}
-	free(_path);
+	free(upath);
 }
 
 static void
 pool_open(const wchar_t *path, const wchar_t *layout)
 {
-	char *_path = ut_toUTF8(path);
+	char *upath = ut_toUTF8(path);
 	PMEMobjpool *pop = pmemobj_openW(path, layout);
 	if (pop == NULL) {
-		UT_OUT("!%s: pmemobj_open", _path);
+		UT_OUT("!%s: pmemobj_open", upath);
 	} else {
-		UT_OUT("%s: pmemobj_open: Success", _path);
+		UT_OUT("%s: pmemobj_open: Success", upath);
 		pmemobj_close(pop);
 	}
-	free(_path);
+	free(upath);
 }
 
 int

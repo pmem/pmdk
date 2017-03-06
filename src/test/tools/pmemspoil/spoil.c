@@ -1343,7 +1343,7 @@ main(int argc, char *argv[])
 				psp->pfile->poolset ?
 				psp->pfile->poolset->nreplicas :
 				0);
-		return -1;
+		return 1;
 	}
 
 	psp->addr = pool_set_file_map(psp->pfile, 0);

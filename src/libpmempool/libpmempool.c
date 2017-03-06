@@ -116,6 +116,21 @@ UNICODE_FUNCTION(pmempool_check_version)(unsigned major_required,
 	return NULL;
 }
 
+#ifdef _WIN32
+/*
+ * pmempool_check_versionW -- see if library meets application version
+ *	requirements as widechar
+ */
+const wchar_t *
+pmempool_check_versionW(unsigned major_required, unsigned minor_required)
+{
+	if (pmempool_check_versionU(major_required, minor_required) != NULL)
+		return out_get_errormsgW();
+	else
+		return NULL;
+}
+#endif
+
 /*
  * pmempool_errormsg -- return last error message
  */
@@ -124,6 +139,17 @@ UNICODE_FUNCTION(pmempool_errormsg)(void)
 {
 	return out_get_errormsg();
 }
+
+#ifdef _WIN32
+/*
+ * pmempool_errormsgW -- return last error message as unicode
+ */
+const wchar_t *
+pmempool_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif
 
 /*
  * pmempool_ppc_set_default -- (internal) set default values of check context
@@ -242,6 +268,40 @@ error_path_malloc:
 	return NULL;
 }
 
+#ifdef _WIN32
+/*
+ * pmempool_check_initW -- initialize check context as widechar
+ */
+PMEMpoolcheck *
+pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size)
+{
+	char *upath = util_toUTF8(args->path);
+	if (upath == NULL)
+		return NULL;
+	char *ubackup_path = NULL;
+	if (args->backup_path != NULL) {
+		ubackup_path = util_toUTF8(args->backup_path);
+		if (ubackup_path == NULL) {
+			util_free_UTF8(upath);
+			return NULL;
+		}
+	}
+
+	struct pmempool_check_argsU uargs = {
+		.path = upath,
+		.backup_path = ubackup_path,
+		.pool_type = args->pool_type,
+		.flags = args->flags
+	};
+
+	PMEMpoolcheck *ret = pmempool_check_initU(&uargs, args_size);
+
+	util_free_UTF8(ubackup_path);
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
+
 /*
  * pmempool_check -- continue check till produce status to consume for caller
  */
@@ -264,51 +324,6 @@ UNICODE_FUNCTION(pmempool_check)(PMEMpoolcheck *ppc)
 
 #ifdef _WIN32
 /*
- * pmempool_check_versionW -- see if library meets application version
- *	requirements as widechar
- */
-const wchar_t *
-pmempool_check_versionW(unsigned major_required, unsigned minor_required)
-{
-	if (pmempool_check_versionU(major_required, minor_required) != NULL)
-		return out_get_errormsgW();
-	else
-		return NULL;
-}
-
-/*
- * pmempool_check_initW -- initialize check context as widechar
- */
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size)
-{
-	char *pathU = util_toUTF8(args->path);
-	if (pathU == NULL)
-		return NULL;
-	char *backup_pathU = NULL;
-	if (args->backup_path != NULL) {
-		backup_pathU = util_toUTF8(args->backup_path);
-		if (backup_pathU == NULL) {
-			Free(pathU);
-			return NULL;
-		}
-	}
-
-	struct pmempool_check_argsU uargs = {
-		.path = pathU,
-		.backup_path = backup_pathU,
-		.pool_type = args->pool_type,
-		.flags = args->flags
-	};
-
-	PMEMpoolcheck *ret = pmempool_check_initU(&uargs, args_size);
-
-	Free(backup_pathU);
-	Free(pathU);
-	return ret;
-}
-
-/*
  * pmempool_check -- continue check till produce status to consume for caller
  */
 struct pmempool_check_statusW *
@@ -322,32 +337,24 @@ struct pmempool_check_statusW *
 	memset(buf, 0, ANSWER_BUFFSIZE);
 	convert_status_cache(ppc, buf, ANSWER_BUFFSIZE);
 
-	struct check_status *resultU;
+	struct check_status *uresult;
 	do {
-		resultU = check_step(ppc);
+		uresult = check_step(ppc);
 
-		if (check_is_end(ppc->data) && resultU == NULL)
+		if (check_is_end(ppc->data) && uresult == NULL)
 			return NULL;
-	} while (resultU == NULL);
+	} while (uresult == NULL);
 
-	struct pmempool_check_statusU *ret_resU = check_status_get(resultU);
-	const wchar_t *msgW = util_toUTF16(ret_resU->str.msg);
-	if (msgW == NULL)
+	struct pmempool_check_statusU *uret_res = check_status_get(uresult);
+	const wchar_t *wmsg = util_toUTF16(uret_res->str.msg);
+	if (wmsg == NULL)
 		FATAL("!malloc");
 
-	struct pmempool_check_statusW *ret_resW =
-		(struct pmempool_check_statusW *)ret_resU;
+	struct pmempool_check_statusW *wret_res =
+		(struct pmempool_check_statusW *)uret_res;
 	/* pointer to old message is freed in next check step */
-	ret_resW->str.msg = msgW;
-	return ret_resW;
-}
-/*
- * pmempool_errormsgW -- return last error message as unicode
- */
-const wchar_t *
-pmempool_errormsgW(void)
-{
-	return out_get_errormsgW();
+	wret_res->str.msg = wmsg;
+	return wret_res;
 }
 #endif
 

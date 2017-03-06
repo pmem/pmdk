@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# libpmempool_api/config.sh -- test configuration
+# vmem_create/config.sh -- test configuration
 #
 
 CONF_GLOBAL_ENCODING="ascii unicode"

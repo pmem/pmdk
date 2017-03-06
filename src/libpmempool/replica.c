@@ -1087,7 +1087,7 @@ pmempool_syncW(const wchar_t *poolset, unsigned flags)
 
 	int ret = pmempool_syncU(path, flags);
 
-	Free(path);
+	util_free_UTF8(path);
 	return ret;
 }
 
@@ -1113,8 +1113,8 @@ pmempool_transformW(const wchar_t *poolset_src,
 
 	int ret = pmempool_transformU(path_src, path_dst, flags);
 
-	Free(path_src);
-	Free(path_dst);
+	util_free_UTF8(path_src);
+	util_free_UTF8(path_dst);
 	return ret;
 }
 #endif

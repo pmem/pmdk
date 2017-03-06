@@ -48,17 +48,17 @@
 static void
 pool_create(const wchar_t *path, size_t poolsize, unsigned mode)
 {
-	char *_path = ut_toUTF8(path);
+	char *upath = ut_toUTF8(path);
 	PMEMlogpool *plp = pmemlog_createW(path, poolsize, mode);
 
 	if (plp == NULL)
-		UT_OUT("!%s: pmemlog_create", _path);
+		UT_OUT("!%s: pmemlog_create", upath);
 	else {
 		ut_util_stat_t stbuf;
 		STATW(path, &stbuf);
 
 		UT_OUT("%s: file size %zu usable space %zu mode 0%o",
-			_path, stbuf.st_size,
+			upath, stbuf.st_size,
 				pmemlog_nbyte(plp),
 				stbuf.st_mode & 0777);
 
@@ -67,26 +67,26 @@ pool_create(const wchar_t *path, size_t poolsize, unsigned mode)
 		int result = pmemlog_checkW(path);
 
 		if (result < 0)
-			UT_OUT("!%s: pmemlog_check", _path);
+			UT_OUT("!%s: pmemlog_check", upath);
 		else if (result == 0)
-			UT_OUT("%s: pmemlog_check: not consistent", _path);
+			UT_OUT("%s: pmemlog_check: not consistent", upath);
 	}
-	free(_path);
+	free(upath);
 }
 
 static void
 pool_open(const wchar_t *path)
 {
-	char *_path = ut_toUTF8(path);
+	char *upath = ut_toUTF8(path);
 
 	PMEMlogpool *plp = pmemlog_openW(path);
 	if (plp == NULL)
-		UT_OUT("!%s: pmemlog_open", _path);
+		UT_OUT("!%s: pmemlog_open", upath);
 	else {
-		UT_OUT("%s: pmemlog_open: Success", _path);
+		UT_OUT("%s: pmemlog_open: Success", upath);
 		pmemlog_close(plp);
 	}
-	free(_path);
+	free(upath);
 }
 
 
