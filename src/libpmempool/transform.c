@@ -430,6 +430,39 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 }
 
 /*
+ * do_added_parts_exist -- (internal) check if any part of the replicas that are
+ *                         to be added (marked as broken) already exists
+ */
+static int
+do_added_parts_exist(struct pool_set *set,
+		struct poolset_health_status *set_hs)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		/* skip unbroken (i.e. not being added) replicas */
+		if (!replica_is_replica_broken(r, set_hs))
+			continue;
+
+		struct pool_replica *rep = REP(set, r);
+
+		/* skip remote replicas */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			/* check if part file exists */
+			int oerrno = errno;
+			if (access(rep->part[p].path, F_OK) == 0) {
+				LOG(1, "part file %s exists",
+						rep->part[p].path);
+				return 1;
+			}
+			errno = oerrno;
+		}
+	}
+	return 0;
+}
+
+/*
  * delete_replicas -- (internal) delete replicas which do not have their
  *                    counterpart set in the helping status structure
  */
@@ -501,6 +534,15 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 			set_out_hs)) {
 		ERR("poolsets are not transformable");
 		ret = -1;
+		errno = EINVAL;
+		goto err_free_cs;
+	}
+
+	/* check if any of the parts that are to be added already exists */
+	if (do_added_parts_exist(set_out, set_out_hs)) {
+		ERR("some parts being added already exist");
+		ret = -1;
+		errno = EINVAL;
 		goto err_free_cs;
 	}
 
