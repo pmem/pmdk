@@ -165,7 +165,8 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 		}
 
 	}
-	strcpy(info->filename, data.cFileName);
+	strncpy(info->filename, data.cFileName, NAME_MAX);
+	info->filename[NAME_MAX - 1] = '\0';
 	info->is_dir = data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY;
 
 	return TRUE;
