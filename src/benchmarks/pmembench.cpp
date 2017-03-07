@@ -856,7 +856,7 @@ pmembench_remove_file(const char *path)
 		return -1;
 	}
 
-	while (util_file_dir_next(&it, &info)) {
+	while (util_file_dir_next(&it, &info) == 0) {
 		if (strcmp(info.filename, ".") == 0 ||
 		    strcmp(info.filename, "..") == 0)
 			continue;

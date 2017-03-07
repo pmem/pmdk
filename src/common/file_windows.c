@@ -157,18 +157,18 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 	if (handle->handle == NULL) {
 		handle->handle = FindFirstFileA(handle->path, &data);
 		if (handle->handle == NULL)
-			return FALSE;
-
+			return 1;
 	} else {
-		if (FindNextFileA(handle->handle, &data) == 0) {
-			return FALSE;
-		}
-
+		if (FindNextFileA(handle->handle, &data) == 0)
+			return 1;
 	}
-	strcpy(info->filename, data.cFileName);
+	info->filename[NAME_MAX] = '\0';
+	strncpy(info->filename, data.cFileName, NAME_MAX + 1);
+	if (info->filename[NAME_MAX] != '\0')
+		return -1; /* filename truncated */
 	info->is_dir = data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY;
 
-	return TRUE;
+	return 0;
 }
 
 /*

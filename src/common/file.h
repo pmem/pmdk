@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 struct file_info {
-	char filename[NAME_MAX];
+	char filename[NAME_MAX + 1];
 	int is_dir;
 };
 
