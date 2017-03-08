@@ -265,10 +265,10 @@ static struct ns_callback ns_cb = {
 };
 
 /*
- * pmemblk_descr_create -- (internal) create block memory pool descriptor
+ * blk_descr_create -- (internal) create block memory pool descriptor
  */
 static int
-pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
+blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 {
 	LOG(3, "pbp %p bsize %u zeroed %d", pbp, bsize, zeroed);
 
@@ -283,10 +283,10 @@ pmemblk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 }
 
 /*
- * pmemblk_descr_check -- (internal) validate block memory pool descriptor
+ * blk_descr_check -- (internal) validate block memory pool descriptor
  */
 static int
-pmemblk_descr_check(PMEMblkpool *pbp, size_t *bsize)
+blk_descr_check(PMEMblkpool *pbp, size_t *bsize)
 {
 	LOG(3, "pbp %p bsize %zu", pbp, *bsize);
 
@@ -304,10 +304,10 @@ pmemblk_descr_check(PMEMblkpool *pbp, size_t *bsize)
 }
 
 /*
- * pmemblk_runtime_init -- (internal) initialize block memory pool runtime data
+ * blk_runtime_init -- (internal) initialize block memory pool runtime data
  */
 static int
-pmemblk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
+blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 {
 	LOG(3, "pbp %p bsize %zu rdonly %d",
 			pbp, bsize, rdonly);
@@ -444,13 +444,13 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	ASSERT(!pbp->is_dev_dax || pbp->is_pmem);
 
 	/* create pool descriptor */
-	if (pmemblk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
+	if (blk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
 		LOG(2, "descriptor creation failed");
 		goto err;
 	}
 
 	/* initialize runtime parts */
-	if (pmemblk_runtime_init(pbp, bsize, 0) != 0) {
+	if (blk_runtime_init(pbp, bsize, 0) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -473,7 +473,7 @@ err:
 
 
 /*
- * pmemblk_open_common -- (internal) open a block memory pool
+ * blk_open_common -- (internal) open a block memory pool
  *
  * This routine does all the work, but takes a cow flag so internal
  * calls can map a read-only pool if required.
@@ -482,7 +482,7 @@ err:
  * will supply the block size).
  */
 static PMEMblkpool *
-pmemblk_open_common(const char *path, size_t bsize, int cow)
+blk_open_common(const char *path, size_t bsize, int cow)
 {
 	LOG(3, "path %s bsize %zu cow %d", path, bsize, cow);
 
@@ -521,13 +521,13 @@ pmemblk_open_common(const char *path, size_t bsize, int cow)
 	}
 
 	/* validate pool descriptor */
-	if (pmemblk_descr_check(pbp, &bsize) != 0) {
+	if (blk_descr_check(pbp, &bsize) != 0) {
 		LOG(2, "descriptor check failed");
 		goto err;
 	}
 
 	/* initialize runtime parts */
-	if (pmemblk_runtime_init(pbp, bsize, set->rdonly) != 0) {
+	if (blk_runtime_init(pbp, bsize, set->rdonly) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -553,7 +553,7 @@ pmemblk_open(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
-	return pmemblk_open_common(path, bsize, 0);
+	return blk_open_common(path, bsize, 0);
 }
 
 /*
@@ -728,9 +728,9 @@ pmemblk_check(const char *path, size_t bsize)
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
 	/* map the pool read-only */
-	PMEMblkpool *pbp = pmemblk_open_common(path, bsize, 1);
+	PMEMblkpool *pbp = blk_open_common(path, bsize, 1);
 	if (pbp == NULL)
-		return -1;	/* errno set by pmemblk_open_common() */
+		return -1;	/* errno set by blk_open_common() */
 
 	int retval = btt_check(pbp->bttp);
 	int oerrno = errno;
