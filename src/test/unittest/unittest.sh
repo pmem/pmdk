@@ -2097,6 +2097,9 @@ function init_rpmem_on_node() {
 		fi
 
 		require_node_log_files $slave rpmemd$UNITTEST_NUM.log
+		if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
+			export_vars_node $slave UNITTEST_DO_NOT_CHECK_OPEN_FILES
+		fi
 	done
 	RPMEM_CMD="\"$RPMEM_CMD\""
 
@@ -2121,6 +2124,10 @@ function init_rpmem_on_node() {
 	export_vars_node $master PMEMOBJ_LOG_FILE
 	export_vars_node $master PMEMPOOL_LOG_FILE
 	export_vars_node $master PMEMPOOL_LOG_LEVEL
+
+	if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
+		export_vars_node $master UNITTEST_DO_NOT_CHECK_OPEN_FILES
+	fi
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
 	require_node_log_files $master $PMEMOBJ_LOG_FILE
