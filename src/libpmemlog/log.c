@@ -57,10 +57,10 @@
 #include "valgrind_internal.h"
 
 /*
- * pmemlog_descr_create -- (internal) create log memory pool descriptor
+ * log_descr_create -- (internal) create log memory pool descriptor
  */
 static int
-pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
+log_descr_create(PMEMlogpool *plp, size_t poolsize)
 {
 	LOG(3, "plp %p poolsize %zu", plp, poolsize);
 
@@ -79,15 +79,15 @@ pmemlog_descr_create(PMEMlogpool *plp, size_t poolsize)
 }
 
 /*
- * pmemlog_descr_check -- (internal) validate log memory pool descriptor
+ * log_descr_check -- (internal) validate log memory pool descriptor
  */
 static int
-pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
+log_descr_check(PMEMlogpool *plp, size_t poolsize)
 {
 	LOG(3, "plp %p poolsize %zu", plp, poolsize);
 
 	struct pmemlog hdr = *plp;
-	pmemlog_convert2h(&hdr);
+	log_convert2h(&hdr);
 
 	if ((hdr.start_offset !=
 			roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) ||
@@ -115,10 +115,10 @@ pmemlog_descr_check(PMEMlogpool *plp, size_t poolsize)
 }
 
 /*
- * pmemlog_runtime_init -- (internal) initialize log memory pool runtime data
+ * log_runtime_init -- (internal) initialize log memory pool runtime data
  */
 static int
-pmemlog_runtime_init(PMEMlogpool *plp, int rdonly)
+log_runtime_init(PMEMlogpool *plp, int rdonly)
 {
 	LOG(3, "plp %p rdonly %d", plp, rdonly);
 
@@ -199,13 +199,13 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 	ASSERT(!plp->is_dev_dax || plp->is_pmem);
 
 	/* create pool descriptor */
-	if (pmemlog_descr_create(plp, rep->repsize) != 0) {
+	if (log_descr_create(plp, rep->repsize) != 0) {
 		LOG(2, "descriptor creation failed");
 		goto err;
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, 0) != 0) {
+	if (log_runtime_init(plp, 0) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -227,13 +227,13 @@ err:
 }
 
 /*
- * pmemlog_open_common -- (internal) open a log memory pool
+ * log_open_common -- (internal) open a log memory pool
  *
  * This routine does all the work, but takes a cow flag so internal
  * calls can map a read-only pool if required.
  */
 static PMEMlogpool *
-pmemlog_open_common(const char *path, int cow)
+log_open_common(const char *path, int cow)
 {
 	LOG(3, "path %s cow %d", path, cow);
 
@@ -272,13 +272,13 @@ pmemlog_open_common(const char *path, int cow)
 	}
 
 	/* validate pool descriptor */
-	if (pmemlog_descr_check(plp, rep->repsize) != 0) {
+	if (log_descr_check(plp, rep->repsize) != 0) {
 		LOG(2, "descriptor check failed");
 		goto err;
 	}
 
 	/* initialize runtime parts */
-	if (pmemlog_runtime_init(plp, set->rdonly) != 0) {
+	if (log_runtime_init(plp, set->rdonly) != 0) {
 		ERR("pool initialization failed");
 		goto err;
 	}
@@ -304,7 +304,7 @@ pmemlog_open(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	return pmemlog_open_common(path, 0);
+	return log_open_common(path, 0);
 }
 
 /*
@@ -344,12 +344,12 @@ pmemlog_nbyte(PMEMlogpool *plp)
 }
 
 /*
- * pmemlog_persist -- (internal) persist data, then metadata
+ * log_persist -- (internal) persist data, then metadata
  *
  * On entry, the write lock should be held.
  */
 static void
-pmemlog_persist(PMEMlogpool *plp, uint64_t new_write_offset)
+log_persist(PMEMlogpool *plp, uint64_t new_write_offset)
 {
 	uint64_t old_write_offset = le64toh(plp->write_offset);
 	size_t length = new_write_offset - old_write_offset;
@@ -444,7 +444,7 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 	write_offset += count;
 
 	/* persist the data and the metadata */
-	pmemlog_persist(plp, write_offset);
+	log_persist(plp, write_offset);
 
 end:
 	util_rwlock_unlock(plp->rwlockp);
@@ -528,7 +528,7 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 	}
 
 	/* persist the data and the metadata */
-	pmemlog_persist(plp, write_offset);
+	log_persist(plp, write_offset);
 
 end:
 	util_rwlock_unlock(plp->rwlockp);
@@ -655,9 +655,9 @@ pmemlog_check(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	PMEMlogpool *plp = pmemlog_open_common(path, 1);
+	PMEMlogpool *plp = log_open_common(path, 1);
 	if (plp == NULL)
-		return -1;	/* errno set by pmemlog_open_common() */
+		return -1;	/* errno set by log_open_common() */
 
 	int consistent = 1;
 
@@ -700,10 +700,10 @@ pmemlog_check(const char *path)
 }
 
 /*
- * pmemlog_convert2h -- convert pmemlog structure to host byte order
+ * log_convert2h -- convert pmemlog structure to host byte order
  */
 void
-pmemlog_convert2h(struct pmemlog *plp)
+log_convert2h(struct pmemlog *plp)
 {
 	plp->start_offset = le64toh(plp->start_offset);
 	plp->end_offset = le64toh(plp->end_offset);
@@ -711,10 +711,10 @@ pmemlog_convert2h(struct pmemlog *plp)
 }
 
 /*
- * pmemlog_convert2le -- convert pmemlog structure to LE byte order
+ * log_convert2le -- convert pmemlog structure to LE byte order
  */
 void
-pmemlog_convert2le(struct pmemlog *plp)
+log_convert2le(struct pmemlog *plp)
 {
 	plp->start_offset = htole64(plp->start_offset);
 	plp->end_offset = htole64(plp->end_offset);
