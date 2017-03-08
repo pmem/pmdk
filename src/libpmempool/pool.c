@@ -240,11 +240,11 @@ pool_params_from_header(struct pool_params *params, const struct pool_hdr *hdr)
 }
 
 /*
- * pmempool_check_type_to_pool_type -- (internal) convert check pool type to
+ * pool_check_type_to_pool_type -- (internal) convert check pool type to
  *	internal pool type value
  */
 static enum pool_type
-pmempool_check_type_to_pool_type(enum pmempool_pool_type check_pool_type)
+pool_check_type_to_pool_type(enum pmempool_pool_type check_pool_type)
 {
 	switch (check_pool_type) {
 	case PMEMPOOL_POOL_TYPE_LOG:
@@ -372,7 +372,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 	if (ppc->args.pool_type != PMEMPOOL_POOL_TYPE_DETECT) {
 		enum pool_type declared_type =
-			pmempool_check_type_to_pool_type(ppc->args.pool_type);
+			pool_check_type_to_pool_type(ppc->args.pool_type);
 		if ((params->type & ~declared_type) != 0) {
 			ERR("declared pool type does not match");
 			ret = 1;
