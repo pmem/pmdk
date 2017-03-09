@@ -2062,7 +2062,7 @@ pmemobj_tx_free(PMEMoid oid)
 /*
  * pmemobj_tx_publish -- publishes actions inside of a transaction
  */
-void
+int
 pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 {
 	ASSERT_TX_STAGE_WORK();
@@ -2072,9 +2072,39 @@ pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx.section->runtime;
 
+	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
+
+	int nentries = 0;
+	int i;
+	for (i = 0; i < actvcnt; ++i) {
+		if (actv[i].type == POBJ_ACTION_TYPE_HEAP) {
+			uint64_t *e = pvector_push_back(ctx);
+			if (e == NULL)
+				break;
+			*e = actv[i].heap.offset;
+			pmemops_persist(&lane->pop->p_ops, e, sizeof(*e));
+			nentries++;
+		} else {
+			ERR("only heap actions can be "
+			"published with a transaction");
+			ASSERT(0);
+		}
+	}
+
+	if (i != actvcnt) { /* failed to store entries in the undo log */
+		while (nentries--) {
+			pvector_pop_back(ctx, tx_clear_vec_entry);
+		}
+		ERR("alloc undo log too large");
+		return obj_tx_abort_err(ENOMEM);
+	}
+
 	memcpy(lane->alloc_actv, actv,
 		sizeof(struct pobj_action) * (unsigned)actvcnt);
+
 	lane->actvcnt = actvcnt;
+
+	return 0;
 }
 
 /*
