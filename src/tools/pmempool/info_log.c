@@ -148,7 +148,7 @@ info_log_descriptor(struct pmem_info *pip, int v, struct pmemlog *plp)
 			sizeof(*plp) - sizeof(plp->hdr),
 			sizeof(plp->hdr), 1);
 
-	pmemlog_convert2h(plp);
+	log_convert2h(plp);
 
 	int write_offset_valid = plp->write_offset >= plp->start_offset &&
 				plp->write_offset <= plp->end_offset;

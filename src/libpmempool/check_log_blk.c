@@ -76,7 +76,7 @@ log_read(PMEMpoolcheck *ppc)
 		return CHECK_ERR(ppc, "cannot read pmemlog structure");
 
 	/* endianness conversion */
-	pmemlog_convert2h(&ppc->pool->hdr.log);
+	log_convert2h(&ppc->pool->hdr.log);
 	return 0;
 }
 

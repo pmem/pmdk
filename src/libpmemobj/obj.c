@@ -217,19 +217,19 @@ obj_fini(void)
 }
 
 /*
- * drain_empty -- (internal) empty function for drain on non-pmem memory
+ * obj_drain_empty -- (internal) empty function for drain on non-pmem memory
  */
 static void
-drain_empty(void)
+obj_drain_empty(void)
 {
 	/* do nothing */
 }
 
 /*
- * nopmem_memcpy_persist -- (internal) memcpy followed by an msync
+ * obj_nopmem_memcpy_persist -- (internal) memcpy followed by an msync
  */
 static void *
-nopmem_memcpy_persist(void *dest, const void *src, size_t len)
+obj_nopmem_memcpy_persist(void *dest, const void *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
@@ -239,10 +239,10 @@ nopmem_memcpy_persist(void *dest, const void *src, size_t len)
 }
 
 /*
- * nopmem_memset_persist -- (internal) memset followed by an msync
+ * obj_nopmem_memset_persist -- (internal) memset followed by an msync
  */
 static void *
-nopmem_memset_persist(void *dest, int c, size_t len)
+obj_nopmem_memset_persist(void *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c 0x%02x len %zu", dest, c, len);
 
@@ -525,11 +525,11 @@ obj_rep_drain(void *ctx)
 #define MAX_UNDEFS 1000
 
 /*
- * pmemobj_vg_check_no_undef -- (internal) check whether there are any undefined
+ * obj_vg_check_no_undef -- (internal) check whether there are any undefined
  *				regions
  */
 static void
-pmemobj_vg_check_no_undef(struct pmemobjpool *pop)
+obj_vg_check_no_undef(struct pmemobjpool *pop)
 {
 	LOG(4, "pop %p", pop);
 
@@ -616,10 +616,10 @@ pmemobj_vg_check_no_undef(struct pmemobjpool *pop)
 }
 
 /*
- * pmemobj_vg_boot -- (internal) notify Valgrind about pool objects
+ * obj_vg_boot -- (internal) notify Valgrind about pool objects
  */
 static void
-pmemobj_vg_boot(struct pmemobjpool *pop)
+obj_vg_boot(struct pmemobjpool *pop)
 {
 	if (!On_valgrind)
 		return;
@@ -627,16 +627,16 @@ pmemobj_vg_boot(struct pmemobjpool *pop)
 	LOG(4, "pop %p", pop);
 
 	if (getenv("PMEMOBJ_VG_CHECK_UNDEF"))
-		pmemobj_vg_check_no_undef(pop);
+		obj_vg_check_no_undef(pop);
 }
 
 #endif
 
 /*
- * pmemobj_boot -- (internal) boots the pmemobj pool
+ * obj_boot -- (internal) boots the pmemobj pool
  */
 static int
-pmemobj_boot(PMEMobjpool *pop)
+obj_boot(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -654,10 +654,10 @@ pmemobj_boot(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_descr_create -- (internal) create obj pool descriptor
+ * obj_descr_create -- (internal) create obj pool descriptor
  */
 static int
-pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
+obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 {
 	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
@@ -712,10 +712,10 @@ pmemobj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 }
 
 /*
- * pmemobj_descr_check -- (internal) validate obj pool descriptor
+ * obj_descr_check -- (internal) validate obj pool descriptor
  */
 static int
-pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
+obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 {
 	LOG(3, "pop %p layout %s poolsize %zu", pop, layout, poolsize);
 
@@ -777,11 +777,11 @@ pmemobj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 }
 
 /*
- * pmemobj_replica_init_local -- (internal) initialize runtime part
+ * obj_replica_init_local -- (internal) initialize runtime part
  *                               of the local replicas
  */
 static int
-pmemobj_replica_init_local(PMEMobjpool *rep, int is_pmem)
+obj_replica_init_local(PMEMobjpool *rep, int is_pmem)
 {
 	LOG(3, "rep %p is_pmem %d", rep, is_pmem);
 
@@ -804,20 +804,20 @@ pmemobj_replica_init_local(PMEMobjpool *rep, int is_pmem)
 	} else {
 		rep->persist_local = (persist_local_fn)pmem_msync;
 		rep->flush_local = (flush_local_fn)pmem_msync;
-		rep->drain_local = drain_empty;
-		rep->memcpy_persist_local = nopmem_memcpy_persist;
-		rep->memset_persist_local = nopmem_memset_persist;
+		rep->drain_local = obj_drain_empty;
+		rep->memcpy_persist_local = obj_nopmem_memcpy_persist;
+		rep->memset_persist_local = obj_nopmem_memset_persist;
 	}
 
 	return 0;
 }
 
 /*
- * pmemobj_replica_init_remote -- (internal) initialize runtime part
+ * obj_replica_init_remote -- (internal) initialize runtime part
  *                                of a remote replica
  */
 static int
-pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
+obj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 				unsigned repidx, int create)
 {
 	LOG(3, "rep %p set %p repidx %u", rep, set, repidx);
@@ -858,10 +858,10 @@ pmemobj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 }
 
 /*
- * pmemobj_cleanup_remote -- (internal) clean up the remote pools data
+ * obj_cleanup_remote -- (internal) clean up the remote pools data
  */
 static void
-pmemobj_cleanup_remote(PMEMobjpool *pop)
+obj_cleanup_remote(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -885,10 +885,10 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 }
 
 /*
- * pmemobj_replica_init -- (internal) initialize runtime part of the replica
+ * obj_replica_init -- (internal) initialize runtime part of the replica
  */
 static int
-pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
+obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 			int create)
 {
 	struct pool_replica *repset = set->replica[repidx];
@@ -932,9 +932,9 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 
 	int ret;
 	if (repset->remote)
-		ret = pmemobj_replica_init_remote(rep, set, repidx, create);
+		ret = obj_replica_init_remote(rep, set, repidx, create);
 	else
-		ret = pmemobj_replica_init_local(rep, repset->is_pmem);
+		ret = obj_replica_init_local(rep, repset->is_pmem);
 	if (ret)
 		return ret;
 
@@ -947,28 +947,28 @@ pmemobj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 }
 
 /*
- * pmemobj_replica_fini -- (internal) deinitialize replica
+ * obj_replica_fini -- (internal) deinitialize replica
  */
 static void
-pmemobj_replica_fini(struct pool_replica *repset)
+obj_replica_fini(struct pool_replica *repset)
 {
 	PMEMobjpool *rep = repset->part[0].addr;
 
 	if (repset->remote)
-		pmemobj_cleanup_remote(rep);
+		obj_cleanup_remote(rep);
 
 	redo_log_config_delete(rep->redo);
 }
 
 /*
- * pmemobj_root_restore_size -- restore the value of 'root_size' field based on
- *	the old version of the allocation header.
+ * obj_root_restore_size -- (internal) restore the value of 'root_size' field
+ *	based on the old version of the allocation header
  *
  * This is needed for backward compatibility with the old version of the layout
  * where the root size was stored inside of the object itself.
  */
 static void
-pmemobj_root_restore_size(PMEMobjpool *pop)
+obj_root_restore_size(PMEMobjpool *pop)
 {
 	if (pop->root_offset != 0 && pop->root_size == 0) {
 		uint64_t off = pop->root_offset;
@@ -982,10 +982,10 @@ pmemobj_root_restore_size(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_runtime_init -- (internal) initialize runtime part of the pool header
+ * obj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
-pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
+obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 {
 	LOG(3, "pop %p rdonly %d boot %d", pop, rdonly, boot);
 	struct pmem_ops *p_ops = &pop->p_ops;
@@ -996,7 +996,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		pop->run_id += 2;
 	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
 
-	pmemobj_root_restore_size(pop);
+	obj_root_restore_size(pop);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -1010,7 +1010,7 @@ pmemobj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
 	if (boot) {
-		if ((errno = pmemobj_boot(pop)) != 0)
+		if ((errno = obj_boot(pop)) != 0)
 			return -1;
 
 #ifdef USE_VG_MEMCHECK
@@ -1104,7 +1104,7 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
-		if (pmemobj_replica_init(rep, set, r, 1 /* create */) != 0) {
+		if (obj_replica_init(rep, set, r, 1 /* create */) != 0) {
 			ERR("initialization of replica #%u failed", r);
 			goto err;
 		}
@@ -1117,13 +1117,13 @@ pmemobj_create(const char *path, const char *layout, size_t poolsize,
 	pop->set = set;
 
 	/* create pool descriptor */
-	if (pmemobj_descr_create(pop, layout, set->poolsize) != 0) {
+	if (obj_descr_create(pop, layout, set->poolsize) != 0) {
 		LOG(2, "creation of pool descriptor failed");
 		goto err;
 	}
 
 	/* initialize runtime parts - lanes, obj stores, ... */
-	if (pmemobj_runtime_init(pop, 0, 1 /* boot */,
+	if (obj_runtime_init(pop, 0, 1 /* boot */,
 					runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
 		goto err;
@@ -1142,18 +1142,18 @@ err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	if (set->remote)
-		pmemobj_cleanup_remote(pop);
+		obj_cleanup_remote(pop);
 	util_poolset_close(set, DELETE_CREATED_PARTS);
 	errno = oerrno;
 	return NULL;
 }
 
 /*
- * pmemobj_check_basic_local -- (internal) basic pool consistency check
+ * obj_check_basic_local -- (internal) basic pool consistency check
  *                              of a local replica
  */
 static int
-pmemobj_check_basic_local(PMEMobjpool *pop)
+obj_check_basic_local(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -1207,11 +1207,11 @@ obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 }
 
 /*
- * pmemobj_check_basic_remote -- (internal) basic pool consistency check
+ * obj_check_basic_remote -- (internal) basic pool consistency check
  *                               of a remote replica
  */
 static int
-pmemobj_check_basic_remote(PMEMobjpool *pop)
+obj_check_basic_remote(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -1244,26 +1244,26 @@ pmemobj_check_basic_remote(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_check_basic -- (internal) basic pool consistency check
+ * obj_check_basic -- (internal) basic pool consistency check
  *
  * Used to check if all the replicas are consistent prior to pool recovery.
  */
 static int
-pmemobj_check_basic(PMEMobjpool *pop)
+obj_check_basic(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
 	if (pop->rpp == NULL)
-		return pmemobj_check_basic_local(pop);
+		return obj_check_basic_local(pop);
 	else
-		return pmemobj_check_basic_remote(pop);
+		return obj_check_basic_remote(pop);
 }
 
 /*
- * pmemobj_pool_close -- (internal) close the pool set
+ * obj_pool_close -- (internal) close the pool set
  */
 static void
-pmemobj_pool_close(struct pool_set *set)
+obj_pool_close(struct pool_set *set)
 {
 	int oerrno = errno;
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
@@ -1271,10 +1271,10 @@ pmemobj_pool_close(struct pool_set *set)
 }
 
 /*
- * pmemobj_pool_open -- (internal) open the given pool
+ * obj_pool_open -- (internal) open the given pool
  */
 static int
-pmemobj_pool_open(struct pool_set **set, const char *path, int cow,
+obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
 
@@ -1297,15 +1297,15 @@ pmemobj_pool_open(struct pool_set **set, const char *path, int cow,
 
 	return 0;
 err_rdonly:
-	pmemobj_pool_close(*set);
+	obj_pool_close(*set);
 	return -1;
 }
 
 /*
- * pmemobj_replicas_init -- (internal) initialize all replicas
+ * obj_replicas_init -- (internal) initialize all replicas
  */
 static int
-pmemobj_replicas_init(struct pool_set *set)
+obj_replicas_init(struct pool_set *set)
 {
 	unsigned r;
 	for (r = 0; r < set->nreplicas; r++) {
@@ -1324,7 +1324,7 @@ pmemobj_replicas_init(struct pool_set *set)
 		rep->rpp = NULL;
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
-		if (pmemobj_replica_init(rep, set, r, 0 /* open */) != 0) {
+		if (obj_replica_init(rep, set, r, 0 /* open */) != 0) {
 			ERR("initialization of replica #%u failed", r);
 			goto err;
 		}
@@ -1337,34 +1337,34 @@ pmemobj_replicas_init(struct pool_set *set)
 	return 0;
 err:
 	for (unsigned p = 0; p < r; p++)
-		pmemobj_replica_fini(set->replica[p]);
+		obj_replica_fini(set->replica[p]);
 
 	return -1;
 }
 
 /*
- * pmemobj_replicas_fini -- (internal) deinitialize all replicas
+ * obj_replicas_fini -- (internal) deinitialize all replicas
  */
 static void
-pmemobj_replicas_fini(struct pool_set *set)
+obj_replicas_fini(struct pool_set *set)
 {
 	int oerrno = errno;
 	for (unsigned r = 0; r < set->nreplicas; r++)
-		pmemobj_replica_fini(set->replica[r]);
+		obj_replica_fini(set->replica[r]);
 	errno = oerrno;
 }
 
 /*
- * pmemobj_replicas_check_basic -- (internal) perform basic consistency check
+ * obj_replicas_check_basic -- (internal) perform basic consistency check
  * for all replicas
  */
 static int
-pmemobj_replicas_check_basic(PMEMobjpool *pop)
+obj_replicas_check_basic(PMEMobjpool *pop)
 {
 	PMEMobjpool *rep;
 	for (unsigned r = 0; r < pop->set->nreplicas; r++) {
 		rep = pop->set->replica[r]->part[0].addr;
-		if (pmemobj_check_basic(rep) == 0) {
+		if (obj_check_basic(rep) == 0) {
 			ERR("inconsistent replica #%u", r);
 			return -1;
 		}
@@ -1391,13 +1391,13 @@ pmemobj_replicas_check_basic(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_open_common -- open a transactional memory pool (set)
+ * obj_open_common -- open a transactional memory pool (set)
  *
  * This routine does all the work, but takes a cow flag so internal
  * calls can map a read-only pool if required.
  */
 static PMEMobjpool *
-pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
+obj_open_common(const char *path, const char *layout, int cow, int boot)
 {
 	LOG(3, "path %s layout %s cow %d", path, layout, cow);
 
@@ -1411,21 +1411,21 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	 * available in the pool.
 	 */
 	unsigned runtime_nlanes = OBJ_NLANES;
-	if (pmemobj_pool_open(&set, path, cow, &runtime_nlanes))
+	if (obj_pool_open(&set, path, cow, &runtime_nlanes))
 		return NULL;
 
 	/* pop is master replica from now on */
 	pop = set->replica[0]->part[0].addr;
 	set->poolsize = pop->heap_offset + pop->heap_size;
 
-	if (pmemobj_replicas_init(set))
+	if (obj_replicas_init(set))
 		goto replicas_init;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *repset = set->replica[r];
 		PMEMobjpool *rep = repset->part[0].addr;
 		/* check descriptor */
-		if (pmemobj_descr_check(rep, layout, set->poolsize) != 0) {
+		if (obj_descr_check(rep, layout, set->poolsize) != 0) {
 			LOG(2, "descriptor check of replica #%u failed", r);
 			goto err_descr_check;
 		}
@@ -1435,13 +1435,13 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	if (boot) {
 		/* check consistency of 'master' replica */
-		if (pmemobj_check_basic(pop) == 0) {
+		if (obj_check_basic(pop) == 0) {
 			goto err_check_basic;
 		}
 	}
 
 	if (set->nreplicas > 1) {
-		if (pmemobj_replicas_check_basic(pop))
+		if (obj_replicas_check_basic(pop))
 			goto err_replicas_check_basic;
 	}
 
@@ -1455,14 +1455,14 @@ pmemobj_open_common(const char *path, const char *layout, int cow, int boot)
 	pop->vg_boot = boot;
 #endif
 	/* initialize runtime parts - lanes, obj stores, ... */
-	if (pmemobj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
+	if (obj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
 		ERR("pool initialization failed");
 		goto err_runtime_init;
 	}
 
 #ifdef USE_VG_MEMCHECK
 	if (boot)
-		pmemobj_vg_boot(pop);
+		obj_vg_boot(pop);
 #endif
 
 	util_poolset_fdclose(set);
@@ -1474,9 +1474,9 @@ err_runtime_init:
 err_replicas_check_basic:
 err_check_basic:
 err_descr_check:
-	pmemobj_replicas_fini(set);
+	obj_replicas_fini(set);
 replicas_init:
-	pmemobj_pool_close(set);
+	obj_pool_close(set);
 	return NULL;
 }
 
@@ -1488,7 +1488,7 @@ pmemobj_open(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	return pmemobj_open_common(path, layout, Open_cow, 1);
+	return obj_open_common(path, layout, Open_cow, 1);
 }
 
 /*
@@ -1582,21 +1582,21 @@ pmemobj_check(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	PMEMobjpool *pop = pmemobj_open_common(path, layout, 1, 0);
+	PMEMobjpool *pop = obj_open_common(path, layout, 1, 0);
 	if (pop == NULL)
-		return -1;	/* errno set by pmemobj_open_common() */
+		return -1;	/* errno set by obj_open_common() */
 
 	int consistent = 1;
 
 	/*
 	 * For replicated pools, basic consistency check is performed
-	 * in pmemobj_open_common().
+	 * in obj_open_common().
 	 */
 	if (pop->replica == NULL)
-		consistent = pmemobj_check_basic(pop);
+		consistent = obj_check_basic(pop);
 
-	if (consistent && (errno = pmemobj_boot(pop)) != 0) {
-		LOG(3, "!pmemobj_boot");
+	if (consistent && (errno = obj_boot(pop)) != 0) {
+		LOG(3, "!obj_boot");
 		consistent = 0;
 	}
 

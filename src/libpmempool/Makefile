@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -80,7 +80,7 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
-LIBPMEMLOG_PRIV_FUNCS=pmemlog_convert2h pmemlog_convert2le
+LIBPMEMLOG_PRIV_FUNCS=log_convert2h log_convert2le
 
 include ../Makefile.inc
 

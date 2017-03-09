@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,7 +50,7 @@ LIBPMEMOBJ=y
 LIBPMEMLOG=y
 LIBPMEMPOOL=y
 TOOLS_COMMON=y
-LIBPMEMLOG_PRIV=pmemlog_convert2h pmemlog_convert2le
+LIBPMEMLOG_PRIV=log_convert2h log_convert2le
 LIBPMEMOBJ_PRIV=pvector_new pvector_nvalues pvector_first pvector_next\
 	pvector_delete memblock_from_offset alloc_class_by_id\
 	memblock_rebuild_state alloc_class_get_create_by_unit_size\
