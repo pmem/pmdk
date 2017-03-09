@@ -9,7 +9,7 @@ persist	;msync	;flush	;drain	;task
 5	;0	;2	;2	;tx_alloc_next
 8	;0	;1	;2	;tx_free
 7	;0	;1	;2	;tx_free_next
-11	;0	;3	;2	;tx_add
+15	;0	;3	;2	;tx_add
 3	;0	;1	;1	;tx_add_next
 4	;0	;2	;1	;pmalloc
 4	;0	;1	;1	;pfree

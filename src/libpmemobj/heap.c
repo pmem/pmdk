@@ -545,7 +545,6 @@ heap_init_free_chunk(struct palloc_heap *heap,
 	struct operation_context ctx;
 	operation_init(&ctx, heap->base, NULL, NULL);
 	ctx.p_ops = &heap->p_ops;
-	heap_chunk_write_footer(hdr, hdr->size_idx);
 	/*
 	 * Perform coalescing just in case there
 	 * are any neighbouring free chunks.
@@ -580,6 +579,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 		for (uint32_t i = 0; i < z->header.size_idx; ) {
 			struct chunk_header *hdr = &z->chunk_headers[i];
 			switch (hdr->type) {
+				case CHUNK_TYPE_FREE:
 				case CHUNK_TYPE_USED:
 					heap_chunk_write_footer(hdr,
 						hdr->size_idx);
@@ -602,7 +602,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 		memblock_rebuild_state(heap, &m);
 
 		if (init) {
-			heap_chunk_write_footer(hdr, hdr->size_idx);
 			m.m_ops->reinit(&m);
 		}
 

@@ -977,7 +977,7 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
  * memblock_validate_offset -- checks the state of any arbtirary offset within
  *	the heap.
  *
- * This function is traverses an entire zone, so use with caution.
+ * This function traverses an entire zone, so use with caution.
  */
 enum memblock_state
 memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
@@ -991,10 +991,13 @@ memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
 	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
 
-	off -= CHUNKSIZE * m.chunk_id;
-
 	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
-	struct chunk_header *hdr = NULL;
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
+
+	if (hdr->type == CHUNK_TYPE_RUN_DATA)
+		m.chunk_id -= hdr->size_idx;
+
+	off -= CHUNKSIZE * m.chunk_id;
 
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		hdr = &z->chunk_headers[i];

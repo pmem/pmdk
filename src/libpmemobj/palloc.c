@@ -60,7 +60,7 @@ struct pobj_action_internal {
 			uint64_t *ptr;
 			uint64_t value;
 		};
-		uint64_t data2[10];
+		uint64_t data2[14];
 	};
 };
 
@@ -183,8 +183,6 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 		 * the memory block reservation has to be rolled back.
 		 */
 		if (new_block->type == MEMORY_BLOCK_HUGE) {
-			*new_block = heap_coalesce_huge(
-				heap, b, new_block);
 			bucket_insert_block(b, new_block);
 		}
 		util_mutex_unlock(&b->lock);
@@ -458,7 +456,7 @@ palloc_operation(struct palloc_heap *heap,
 		OBJ_HEAP_ACTION_INITIALIZER(0, MEMBLOCK_ALLOCATED);
 	struct pobj_action_internal dealloc =
 		OBJ_HEAP_ACTION_INITIALIZER(off, MEMBLOCK_FREE);
-	struct bucket *bucket = NULL;
+	struct bucket *b = NULL;
 
 	int nops = 0;
 	struct pobj_action_internal ops[2];
@@ -505,11 +503,11 @@ palloc_operation(struct palloc_heap *heap,
 				->get_user_data(&dealloc.m));
 
 		if (dealloc.m.type == MEMORY_BLOCK_HUGE) {
-			bucket = heap_bucket_acquire_by_id(heap,
+			b = heap_bucket_acquire_by_id(heap,
 				DEFAULT_ALLOC_CLASS_ID);
 
 			dealloc.m = heap_coalesce_huge(heap,
-				bucket, &dealloc.m);
+				b, &dealloc.m);
 		}
 		dealloc.lock = dealloc.m.m_ops->get_lock(&dealloc.m);
 
@@ -536,8 +534,8 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 
 	if (dealloc.m.type == MEMORY_BLOCK_HUGE) {
-		bucket_insert_block(bucket, &dealloc.m);
-		heap_bucket_release(heap, bucket);
+		bucket_insert_block(b, &dealloc.m);
+		heap_bucket_release(heap, b);
 	}
 
 	return 0;
