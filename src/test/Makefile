@@ -65,6 +65,7 @@ OBJ_TESTS = \
 	obj_realloc\
 	obj_sync\
 	\
+	obj_action\
 	obj_bucket\
 	obj_check\
 	obj_convert\

@@ -388,7 +388,7 @@ do_tx_alloc_commit(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	next = POBJ_NEXT(first);
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
@@ -493,7 +493,7 @@ do_tx_zalloc_commit(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	next = POBJ_NEXT(first);
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
@@ -705,7 +705,7 @@ do_tx_xalloc_noflush(PMEMobjpool *pop)
 		D_RO(obj)->data[OBJ_SIZE - sizeof(size_t) - 1]);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	next = POBJ_NEXT(first);
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
@@ -733,13 +733,28 @@ do_tx_root(PMEMobjpool *pop)
 static void
 do_tx_alloc_many(PMEMobjpool *pop)
 {
-#define TX_ALLOC_COUNT 60 /* bigger than max reservations */
+#define TX_ALLOC_COUNT 70 /* bigger than max reservations */
+	PMEMoid oid, oid2;
+	POBJ_FOREACH_SAFE(pop, oid, oid2) {
+		pmemobj_free(&oid);
+	}
+
+	TOID(struct object) first;
+	TOID_ASSIGN(first, pmemobj_first(pop));
+	UT_ASSERT(TOID_IS_NULL(first));
+
 	PMEMoid oids[TX_ALLOC_COUNT];
 	TX_BEGIN(pop) {
 		for (int i = 0; i < TX_ALLOC_COUNT; ++i) {
 			oids[i] = pmemobj_tx_alloc(1, 0);
 			UT_ASSERT(!OID_IS_NULL(oids[i]));
 		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		/* empty tx to make sure there's no leftover state */
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
@@ -752,6 +767,8 @@ do_tx_alloc_many(PMEMobjpool *pop)
 		UT_ASSERT(0);
 	} TX_END
 
+	TOID_ASSIGN(first, pmemobj_first(pop));
+	UT_ASSERT(TOID_IS_NULL(first));
 #undef TX_ALLOC_COUNT
 }
 

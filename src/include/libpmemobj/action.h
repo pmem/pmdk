@@ -43,6 +43,12 @@
 extern "C" {
 #endif
 
+#define POBJ_RESERVE(pop, t, act)\
+((TOID(t))pmemobj_reserve(pop, act, sizeof(t), TOID_TYPE_NUM(t)))
+
+#define POBJ_RESERVE_ALLOC(pop, t, size, act)\
+((TOID(t))pmemobj_reserve(pop, act, size, TOID_TYPE_NUM(t)))
+
 #ifdef __cplusplus
 }
 #endif

@@ -697,10 +697,10 @@ tx_flush_range(uint64_t offset, uint64_t size_flags, void *ctx)
  *	allocation reservations
  */
 static void
-tx_fulfill_reservations()
+tx_fulfill_reservations(struct tx *tx)
 {
 	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx.section->runtime;
+		(struct lane_tx_runtime *)tx->section->runtime;
 
 	if (lane->actvcnt == 0)
 		return;
@@ -722,10 +722,10 @@ tx_fulfill_reservations()
  * tx_cancel_reservations -- cancels all volatile state allocation reservations
  */
 static void
-tx_cancel_reservations()
+tx_cancel_reservations(struct tx *tx)
 {
 	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx.section->runtime;
+		(struct lane_tx_runtime *)tx->section->runtime;
 	PMEMobjpool *pop = lane->pop;
 	for (int i = 0; i < lane->actvcnt; ++i) {
 		tx_clear_object_vg(pop, lane->alloc_actv[i].heap.offset,
@@ -745,7 +745,7 @@ tx_pre_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_runtime *lane)
 
 	ASSERTne(tx->section->runtime, NULL);
 
-	tx_fulfill_reservations();
+	tx_fulfill_reservations(tx);
 
 	/* Flush all regions and destroy the whole tree. */
 	ctree_delete_cb(lane->ranges, tx_flush_range, pop);
@@ -1006,7 +1006,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	};
 
 	if ((lane->actvcnt + 1) == MAX_TX_ALLOC_RESERVATIONS) {
-		tx_fulfill_reservations();
+		tx_fulfill_reservations(tx);
 	}
 
 	int rs = lane->actvcnt;
@@ -1345,7 +1345,7 @@ obj_tx_abort(int errnum, int user)
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
 
-		tx_cancel_reservations();
+		tx_cancel_reservations(tx);
 
 		struct lane_tx_layout *layout =
 				(struct lane_tx_layout *)tx->section->layout;
@@ -2136,19 +2136,50 @@ pmemobj_tx_free(PMEMoid oid)
 /*
  * pmemobj_tx_publish -- publishes actions inside of a transaction
  */
-void
+int
 pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 {
-	ASSERT_TX_STAGE_WORK();
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
 
-	tx_fulfill_reservations();
+	tx_fulfill_reservations(tx);
 	ASSERT((unsigned)actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
 	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx.section->runtime;
+		(struct lane_tx_runtime *)tx->section->runtime;
+
+	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
+
+	int nentries = 0;
+	int i;
+	for (i = 0; i < actvcnt; ++i) {
+		if (actv[i].type == POBJ_ACTION_TYPE_HEAP) {
+			uint64_t *e = pvector_push_back(ctx);
+			if (e == NULL)
+				break;
+			*e = actv[i].heap.offset;
+			pmemops_persist(&lane->pop->p_ops, e, sizeof(*e));
+			nentries++;
+		} else {
+			ERR("only heap actions can be "
+			"published with a transaction");
+			ASSERT(0);
+		}
+	}
+
+	if (i != actvcnt) { /* failed to store entries in the undo log */
+		while (nentries--) {
+			pvector_pop_back(ctx, tx_clear_vec_entry);
+		}
+		ERR("alloc undo log too large");
+		return obj_tx_abort_err(ENOMEM);
+	}
 
 	memcpy(lane->alloc_actv, actv,
 		sizeof(struct pobj_action) * (unsigned)actvcnt);
+
 	lane->actvcnt = actvcnt;
+
+	return 0;
 }
 
 /*

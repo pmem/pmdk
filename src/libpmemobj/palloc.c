@@ -60,7 +60,7 @@ struct pobj_action_internal {
 			uint64_t *ptr;
 			uint64_t value;
 		};
-		uint64_t data2[10];
+		uint64_t data2[14];
 	};
 };
 
