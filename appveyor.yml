@@ -10,6 +10,10 @@ configuration:
 - Debug
 - Release
 
+environment:
+    solutionname: NVML.sln
+    setup: src\setup
+
 matrix:
   fast_finish: true
 
@@ -32,14 +36,27 @@ before_build:
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
+    } else {
+        PowerShell -File "$Env:setup\SET_LIB.PS1" `
+        -projectdir ((Get-Location).Path+"\$Env:setup")`
+        -configuration $Env:CONFIGURATION
     }
 
-build:
-  project: src/NVML.sln
-  parallel: true
-  verbosity: minimal
+build_script:
+- cmd: >-
+    msbuild src\%solutionname% /m /v:m
 
 after_build:
+- cmd: >-
+    set DEVENV="%VS140COMNTOOLS%\..\IDE\devenv.com"
+
+    %DEVENV% src\%solutionname% /build %CONFIGURATION% /project %setup%\setup.vdproj
+
+- ps: >-
+    PowerShell -File "$Env:setup\OUTPUT_MSI.PS1" `
+    -projectdir ((Get-Location).Path+"\$Env:setup")`
+    -configuration $Env:CONFIGURATION
+
 - ps: >-
     utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
 
@@ -57,5 +74,8 @@ test_script:
     }
 
 artifacts:
+- path: '%setup%\%configuration%\*.msi'
+  name: NVML_msi
+
 - path: 'src\x64\*.zip'
   name: NVML
