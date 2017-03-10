@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -132,7 +132,7 @@ check_mapping(int fd, char *addr, size_t len, int prot, int flags, off_t offset)
 	v.sa_handler = signal_handler;
 	SIGACTION(SIGSEGV, &v, NULL);
 
-	char pat[PAGE_SIZE];
+	char pat[PAGE_SIZE] = { 0 };
 	char buf[PAGE_SIZE];
 
 	if ((flags & CHECK_RO) == 0 && fd != -1) {

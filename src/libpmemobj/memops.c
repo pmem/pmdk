@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -98,8 +98,8 @@ operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum operation_type type, enum operation_entry_type en_type)
 {
-	ASSERT(ctx->nentries[ENTRY_PERSISTENT] <= MAX_PERSITENT_ENTRIES);
-	ASSERT(ctx->nentries[ENTRY_TRANSIENT] <= MAX_TRANSIENT_ENTRIES);
+	ASSERT(ctx->nentries[ENTRY_PERSISTENT] < MAX_PERSITENT_ENTRIES);
+	ASSERT(ctx->nentries[ENTRY_TRANSIENT] < MAX_TRANSIENT_ENTRIES);
 
 	/*
 	 * New entry to be added to the operations, all operations eventually

@@ -405,6 +405,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	func_mode = modes[i].func_mode;
 
 	/* populate offsets array */
+	assert(pmb->n_offsets != 0);
 	pmb->offsets = (size_t *)malloc(pmb->n_offsets * sizeof(*pmb->offsets));
 	assert(pmb->offsets != NULL);
 

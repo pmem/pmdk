@@ -250,11 +250,9 @@ mmap_unreserve(void *addr, size_t len)
 static void
 mmap_init(void)
 {
-	if (FileMappingQMutex != INVALID_HANDLE_VALUE)
-		FATAL("multiple calls to mmap_init()");
 
 	HANDLE Mutex = CreateMutex(NULL, TRUE, NULL);
-	if (Mutex == INVALID_HANDLE_VALUE)
+	if (Mutex == INVALID_HANDLE_VALUE || Mutex == NULL)
 		FATAL("CreateMutex failed");
 
 #ifdef C_ASSERT
@@ -647,6 +645,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	PFILE_MAPPING_TRACKER mte = NULL;
 	HANDLE fh = mt->FileHandle;
 	HANDLE fmh = mt->FileMappingHandle;
+	size_t len;
 
 	/*
 	 * In this routine we copy flags from mt to the two subsets that we
@@ -684,7 +683,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		mtb->Access = mt->Access;
 		mtb->Offset = mt->Offset;
 
-		size_t len = (char *)begin - (char *)mt->BaseAddress;
+		len = (char *)begin - (char *)mt->BaseAddress;
 		mtb->FileLen = len >= mt->FileLen ? mt->FileLen : len;
 	}
 
@@ -732,7 +731,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		mte->Offset = mt->Offset +
 			((char *)mte->BaseAddress - (char *)mt->BaseAddress);
 
-		size_t len = (char *)end - (char *)mt->BaseAddress;
+		len = (char *)end - (char *)mt->BaseAddress;
 		mte->FileLen = len >= mt->FileLen ? 0 : mt->FileLen - len;
 	}
 
@@ -741,7 +740,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 		goto err;
 	}
 
-	size_t len = (char *)mt->EndAddress - (char *)mt->BaseAddress;
+	len = (char *)mt->EndAddress - (char *)mt->BaseAddress;
 	if (len > mt->FileLen) {
 		void *addr = (char *)mt->BaseAddress + mt->FileLen;
 		mmap_unreserve(addr, len - mt->FileLen);
@@ -760,7 +759,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	free(mt);
 
 	if (mtb) {
-		size_t len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
 		if (len > mtb->FileLen) {
 			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
 			void *raddr = mmap_reserve(addr, len - mtb->FileLen);
@@ -792,7 +791,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	}
 
 	if (mte) {
-		size_t len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
 		if (len > mte->FileLen) {
 			void *addr = (char *)mte->BaseAddress + mte->FileLen;
 			void *raddr = mmap_reserve(addr, len - mte->FileLen);
@@ -832,7 +831,7 @@ err:
 		CloseHandle(mtb->FileMappingHandle);
 		CloseHandle(mtb->FileHandle);
 
-		size_t len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
 		if (len > mtb->FileLen) {
 			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
 			mmap_unreserve(addr, len - mtb->FileLen);
@@ -846,7 +845,7 @@ err_mte:
 		if (mte->FileHandle)
 			CloseHandle(mte->FileHandle);
 
-		size_t len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
 		if (len > mte->FileLen) {
 			void *addr = (char *)mte->BaseAddress + mte->FileLen;
 			mmap_unreserve(addr, len - mte->FileLen);

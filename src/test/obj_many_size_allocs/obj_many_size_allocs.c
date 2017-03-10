@@ -63,7 +63,7 @@ test_constructor(PMEMobjpool *pop, void *addr, void *args)
 static void
 test_allocs(PMEMobjpool *pop, const char *path)
 {
-	PMEMoid oid[TEST_ALLOC_SIZE];
+	PMEMoid *oid = MALLOC(sizeof(PMEMoid) * TEST_ALLOC_SIZE);
 
 	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL) == 0)
 		UT_FATAL("pmemobj_alloc(0) succeeded");
@@ -86,7 +86,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		pmemobj_free(&oid[i]);
 		UT_ASSERT(OID_IS_NULL(oid[i]));
 	}
-
+	FREE(oid);
 }
 
 static void

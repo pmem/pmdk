@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -361,6 +361,7 @@ remove_extra_node(TOID(struct tree_map_node) *node)
 	 */
 	uint64_t new_key_size = D_RO(tmp)->key_size + D_RO(tmp_child)->key_size;
 	unsigned char *new_key = (unsigned char *)malloc(new_key_size);
+	assert(new_key != NULL);
 	memcpy(new_key, D_RO(tmp)->key, D_RO(tmp)->key_size);
 	memcpy(new_key + D_RO(tmp)->key_size,
 		D_RO(tmp_child)->key,

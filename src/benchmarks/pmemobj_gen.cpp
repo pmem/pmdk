@@ -251,6 +251,7 @@ parse_type_mode(const char *arg)
 static size_t *
 rand_sizes(size_t min, size_t max, size_t n_ops)
 {
+	assert(n_ops != 0);
 	size_t *rand_sizes = (size_t *)malloc(n_ops * sizeof(size_t));
 	if (rand_sizes == NULL) {
 		perror("malloc");
@@ -269,6 +270,7 @@ rand_sizes(size_t min, size_t max, size_t n_ops)
 static int
 random_types(struct pobj_bench *bench_priv, struct benchmark_args *args)
 {
+	assert(bench_priv->args_priv->n_objs != 0);
 	bench_priv->random_types = (size_t *)malloc(
 		bench_priv->args_priv->n_objs * sizeof(size_t));
 	if (bench_priv->random_types == NULL) {
@@ -389,8 +391,13 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 				perror("malloc");
 				goto free_sets;
 			}
-			snprintf((char *)bench_priv->sets[i], path_len,
-				 "%s%s%02x", args->fname, PART_NAME, i);
+			int ret =
+				snprintf((char *)bench_priv->sets[i], path_len,
+					 "%s%s%02x", args->fname, PART_NAME, i);
+			if (ret < 0 || ret >= (int)path_len) {
+				perror("snprintf");
+				goto free_sets;
+			}
 			bench_priv->pop[i] =
 				pmemobj_create(bench_priv->sets[i], LAYOUT_NAME,
 					       psize, FILE_MODE);
