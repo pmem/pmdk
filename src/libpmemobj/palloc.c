@@ -145,15 +145,6 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 		return -1;
 	}
 
-	/*
-	 * The header type is changed in the transient memory block
-	 * representation, but the actual header type as represented by
-	 * the underlying chunk can be different. Only after the
-	 * operation is processed, the transient and persistent
-	 * representations will have matching header types.
-	 */
-	new_block->header_type = c->header_type;
-
 	if (alloc_prep_block(heap, new_block, constructor, arg,
 		extra_field, flags, &out->offset) != 0) {
 		/*
@@ -245,6 +236,19 @@ palloc_perform_operations(struct palloc_heap *heap,
 				util_mutex_lock(lock);
 		}
 
+#ifdef DEBUG
+		/*
+		 * The memory block inside of palloc_op might be coalesced, so
+		 * it can't be used to verify the state (as it might already be
+		 * free).
+		 */
+		struct memory_block m = memblock_from_offset(heap, op->offset);
+		if (m.m_ops->get_state(&m) == op->new_state) {
+			ERR("invalid operation or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
 		/*
 		 * The actual required metadata modifications are chunk-type
 		 * dependent, but it always is a modification of a single 8 byte
@@ -264,6 +268,45 @@ palloc_perform_operations(struct palloc_heap *heap,
 				util_mutex_unlock(lock);
 		}
 	}
+}
+
+/*
+ * palloc_reserve -- creates a single reservation
+ */
+int
+palloc_reserve(struct palloc_heap *heap, size_t size,
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags, struct palloc_reservation *rs)
+{
+	COMPILE_ERROR_ON(sizeof(struct palloc_reservation) !=
+		sizeof(struct palloc_op));
+
+	return palloc_reservation_create(heap, size, constructor, arg,
+		extra_field, flags, (struct palloc_op *)rs);
+}
+
+/*
+ * palloc_cancel -- cancels all reservations in the array
+ */
+void
+palloc_cancel(struct palloc_heap *heap,
+	struct palloc_reservation *rsv, int rsvcnt)
+{
+	for (int i = 0; i < rsvcnt; ++i)
+		palloc_reservation_finalize(heap, (struct palloc_op *)&rsv[i]);
+}
+
+/*
+ * palloc_publish -- publishes all reservations in the array
+ */
+void
+palloc_publish(struct palloc_heap *heap,
+	struct palloc_reservation *rsv, int rsvcnt,
+	struct operation_context *ctx)
+{
+	palloc_perform_operations(heap, ctx, (struct palloc_op *)rsv, rsvcnt);
+	for (int i = 0; i < rsvcnt; ++i)
+		palloc_reservation_finalize(heap, (struct palloc_op *)&rsv[i]);
 }
 
 /*
@@ -482,6 +525,20 @@ palloc_next(struct palloc_heap *heap, uint64_t off)
 	void *uptr = search.m_ops->get_user_data(&search);
 
 	return HEAP_PTR_TO_OFF(heap, uptr);
+}
+
+/*
+ * palloc_is_allocated -- returns true if the offset points to a valid object
+ *
+ * Not MT safe!!
+ * This function can have relevant information only if there were no allocations
+ * done between the reservation of the provided offset and the call to this
+ * function.
+ */
+int
+palloc_is_allocated(struct palloc_heap *heap, uint64_t off)
+{
+	return memblock_validate_offset(heap, off) == MEMBLOCK_ALLOCATED;
 }
 
 /*

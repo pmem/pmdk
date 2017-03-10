@@ -400,7 +400,7 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 */
 	uint64_t val = chunk_get_chunk_hdr_value(
 		op == MEMBLOCK_ALLOCATED ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
-		header_type_to_flag[m->header_type],
+		hdr->flags,
 		m->size_idx);
 
 	operation_add_entry(ctx, hdr, val, OPERATION_SET);
@@ -576,6 +576,42 @@ run_reinit(const struct memory_block *m)
 }
 
 /*
+ * huge_ensure_header_type -- checks the header type of a chunk and modifies
+ *	it if necessery. This is fail-safe atomic.
+ */
+static void
+huge_ensure_header_type(const struct memory_block *m,
+	enum header_type t)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERTeq(hdr->type, CHUNK_TYPE_FREE);
+
+	if ((hdr->flags & header_type_to_flag[t]) == 0) {
+		VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
+		uint16_t f = ((uint16_t)header_type_to_flag[t]);
+		hdr->flags |= f;
+		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
+		VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
+	}
+}
+
+/*
+ * run_ensure_header_type -- runs must be created with appropriate header type.
+ */
+static void
+run_ensure_header_type(const struct memory_block *m,
+	enum header_type t)
+{
+#ifdef DEBUG
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
+	ASSERT((hdr->flags & header_type_to_flag[t]) != 0);
+#endif
+}
+
+/*
  * run_claim -- marks the run as claimed by an owner in the current heap. This
  *	means that no one but the actual owner can use this memory block.
  */
@@ -605,8 +641,13 @@ run_claim_inc(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t value = __sync_fetch_and_add(&r->incarnation_claim, 1);
-	ASSERT(value > 0);
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
+	uint64_t value = util_inc_and_fetch(&r->incarnation_claim);
+	VALGRIND_SET_CLEAN(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+	ASSERT(value > 1);
 }
 
 /*
@@ -617,7 +658,12 @@ run_claim_dec(const struct memory_block *m)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t value = __sync_sub_and_fetch(&r->incarnation_claim, 1);
+	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
+	uint64_t value = util_sub_and_fetch(&r->incarnation_claim);
+	VALGRIND_SET_CLEAN(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
+	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
+		sizeof(r->incarnation_claim));
 	ASSERT(value > 0);
 }
 
@@ -731,6 +777,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.ensure_header_type = huge_ensure_header_type,
 		.reinit = huge_reinit,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
@@ -750,6 +797,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.ensure_header_type = run_ensure_header_type,
 		.reinit = run_reinit,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
@@ -831,6 +879,81 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 	ASSERTeq(off, 0);
 
 	return m;
+}
+
+/*
+ * memblock_validate_offset -- checks the state of any arbtirary offset within
+ *	the heap.
+ *
+ * This function is traverses an entire zone, so use with caution.
+ */
+enum memblock_state
+memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
+{
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.heap = heap;
+
+	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
+	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
+
+	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
+	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
+
+	off -= CHUNKSIZE * m.chunk_id;
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
+	struct chunk_header *hdr = NULL;
+
+	for (uint32_t i = 0; i < z->header.size_idx; ) {
+		hdr = &z->chunk_headers[i];
+		if (i + hdr->size_idx > m.chunk_id && i < m.chunk_id) {
+			return MEMBLOCK_STATE_UNKNOWN; /* invalid chunk */
+		} else if (m.chunk_id == i) {
+			break;
+		}
+		i += hdr->size_idx;
+	}
+	ASSERTne(hdr, NULL);
+
+	m.header_type = memblock_header_type(&m);
+
+	if (hdr->type != CHUNK_TYPE_RUN) {
+		if (header_type_to_size[m.header_type] != off)
+			return MEMBLOCK_STATE_UNKNOWN;
+		else if (hdr->type == CHUNK_TYPE_USED)
+			return MEMBLOCK_ALLOCATED;
+		else if (hdr->type == CHUNK_TYPE_FREE)
+			return MEMBLOCK_FREE;
+		else
+			return MEMBLOCK_STATE_UNKNOWN;
+	}
+
+	if (header_type_to_size[m.header_type] > off)
+		return MEMBLOCK_STATE_UNKNOWN;
+
+	off -= header_type_to_size[m.header_type];
+
+	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
+#ifdef DEBUG
+	enum memory_block_type t = memblock_detect_type(&m, heap->layout);
+	ASSERTeq(t, m.type);
+#endif
+	m.m_ops = &mb_ops[m.type];
+
+	uint64_t unit_size = m.m_ops->block_size(&m);
+
+	if (off != 0) { /* run */
+		off -= RUN_METASIZE;
+		m.block_off = (uint16_t)(off / unit_size);
+		off -= m.block_off * unit_size;
+	}
+
+	m.size_idx = CALC_SIZE_IDX(unit_size,
+		memblock_header_ops[m.header_type].get_size(&m));
+
+	ASSERTeq(off, 0);
+
+	return m.m_ops->get_state(&m);
 }
 
 /*
