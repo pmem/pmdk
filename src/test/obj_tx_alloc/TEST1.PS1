@@ -58,7 +58,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-create_nonzeroed_file 8M 8K $DIR\testfile1
+create_nonzeroed_file 16M 8K $DIR\testfile1
 
 expect_normal_exit $ENV:EXE_DIR\obj_tx_alloc$Env:EXESUFFIX $DIR\testfile1
 
