@@ -75,7 +75,8 @@ EXPORTS
 	pmem_memmove_nodrain
 	pmem_memcpy_nodrain
 	pmem_memset_nodrain
-	pmem_check_version
+	pmem_check_versionU
+	pmem_check_versionW
 	pmem_errormsgU
 	pmem_errormsgW
 

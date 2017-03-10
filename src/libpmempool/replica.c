@@ -1072,58 +1072,14 @@ err:
 	return -1;
 }
 
-#ifdef _WIN32
 /*
- * pmempool_syncW -- synchronize replicas within a poolset in widechar
+ * pmempool_syncU -- synchronize replicas within a poolset
  */
-int
-pmempool_syncW(const wchar_t *poolset, unsigned flags)
-{
-	char *path = util_toUTF8(poolset);
-	if (path == NULL) {
-		ERR("Invalid poolest file path.");
-		return -1;
-	}
-
-	int ret = pmempool_syncU(path, flags);
-
-	util_free_UTF8(path);
-	return ret;
-}
-
-/*
- * pmempool_transformW -- alter poolset structure in widechar
- */
-int
-pmempool_transformW(const wchar_t *poolset_src,
-	const wchar_t *poolset_dst, unsigned flags)
-{
-	char *path_src = util_toUTF8(poolset_src);
-	if (path_src == NULL) {
-		ERR("Invalid source poolest file path.");
-		return -1;
-	}
-
-	char *path_dst = util_toUTF8(poolset_dst);
-	if (path_dst == NULL) {
-		ERR("Invalid destination poolest file path.");
-		Free(path_src);
-		return -1;
-	}
-
-	int ret = pmempool_transformU(path_src, path_dst, flags);
-
-	util_free_UTF8(path_src);
-	util_free_UTF8(path_dst);
-	return ret;
-}
+#ifndef _WIN32
+static inline
 #endif
-
-/*
- * pmempool_sync -- synchronize replicas within a poolset
- */
 int
-UNICODE_FUNCTION(pmempool_sync)(const char *poolset, unsigned flags)
+pmempool_syncU(const char *poolset, unsigned flags)
 {
 	LOG(3, "poolset %s, flags %u", poolset, flags);
 	ASSERTne(poolset, NULL);
@@ -1183,11 +1139,43 @@ err:
 	return -1;
 }
 
+#ifndef _WIN32
 /*
- * pmempool_transform -- alter poolset structure
+ * pmempool_sync -- synchronize replicas within a poolset
  */
 int
-UNICODE_FUNCTION(pmempool_transform)(const char *poolset_src,
+pmempool_sync(const char *poolset, unsigned flags)
+{
+	return pmempool_syncU(poolset, flags);
+}
+#else
+/*
+ * pmempool_syncW -- synchronize replicas within a poolset in widechar
+ */
+int
+pmempool_syncW(const wchar_t *poolset, unsigned flags)
+{
+	char *path = util_toUTF8(poolset);
+	if (path == NULL) {
+		ERR("Invalid poolest file path.");
+		return -1;
+	}
+
+	int ret = pmempool_syncU(path, flags);
+
+	util_free_UTF8(path);
+	return ret;
+}
+#endif
+
+/*
+ * pmempool_transformU -- alter poolset structure
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmempool_transformU(const char *poolset_src,
 		const char *poolset_dst, unsigned flags)
 {
 	LOG(3, "poolset_src %s, poolset_dst %s, flags %u", poolset_src,
@@ -1288,3 +1276,42 @@ err:
 
 	return -1;
 }
+
+#ifndef _WIN32
+/*
+ * pmempool_transform -- alter poolset structure
+ */
+int
+pmempool_transform(const char *poolset_src,
+	const char *poolset_dst, unsigned flags)
+{
+	return pmempool_transformU(poolset_src, poolset_dst, flags);
+}
+#else
+/*
+ * pmempool_transformW -- alter poolset structure in widechar
+ */
+int
+pmempool_transformW(const wchar_t *poolset_src,
+	const wchar_t *poolset_dst, unsigned flags)
+{
+	char *path_src = util_toUTF8(poolset_src);
+	if (path_src == NULL) {
+		ERR("Invalid source poolest file path.");
+		return -1;
+	}
+
+	char *path_dst = util_toUTF8(poolset_dst);
+	if (path_dst == NULL) {
+		ERR("Invalid destination poolest file path.");
+		Free(path_src);
+		return -1;
+	}
+
+	int ret = pmempool_transformU(path_src, path_dst, flags);
+
+	util_free_UTF8(path_src);
+	util_free_UTF8(path_dst);
+	return ret;
+}
+#endif

@@ -5,7 +5,8 @@ mmap
 mprotect
 msync
 munmap
-pmem_check_version
+pmem_check_versionU
+pmem_check_versionW
 pmem_drain
 pmem_errormsgU
 pmem_errormsgW

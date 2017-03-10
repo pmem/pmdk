@@ -1058,10 +1058,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 }
 
 /*
- * pmemobj_create -- create a transactional memory pool (set)
+ * pmemobj_createU -- create a transactional memory pool (set)
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMobjpool *
-UNICODE_FUNCTION(pmemobj_create)(const char *path, const char *layout,
+pmemobj_createU(const char *path, const char *layout,
 		size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s layout %s poolsize %zu mode %o",
@@ -1158,7 +1161,17 @@ err:
 	return NULL;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
+/*
+ * pmemobj_create -- create a transactional memory pool (set)
+ */
+PMEMobjpool *
+pmemobj_create(const char *path, const char *layout,
+		size_t poolsize, mode_t mode)
+{
+	return pmemobj_createU(path, layout, poolsize, mode);
+}
+#else
 /*
  * pmemobj_createW -- create a transactional memory pool (set)
  */
@@ -1519,19 +1532,31 @@ replicas_init:
 }
 
 /*
- * pmemobj_open -- open a transactional memory pool
+ * pmemobj_openU -- open a transactional memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMobjpool *
-UNICODE_FUNCTION(pmemobj_open)(const char *path, const char *layout)
+pmemobj_openU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
 	return obj_open_common(path, layout, Open_cow, 1);
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
  * pmemobj_open -- open a transactional memory pool
+ */
+PMEMobjpool *
+pmemobj_open(const char *path, const char *layout)
+{
+	return pmemobj_openU(path, layout);
+}
+#else
+/*
+ * pmemobj_openW -- open a transactional memory pool
  */
 PMEMobjpool *
 pmemobj_openW(const wchar_t *path, const wchar_t *layout)
@@ -1640,10 +1665,13 @@ pmemobj_close(PMEMobjpool *pop)
 }
 
 /*
- * pmemobj_check -- transactional memory pool consistency check
+ * pmemobj_checkU -- transactional memory pool consistency check
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-UNICODE_FUNCTION(pmemobj_check)(const char *path, const char *layout)
+pmemobj_checkU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
@@ -1679,7 +1707,16 @@ UNICODE_FUNCTION(pmemobj_check)(const char *path, const char *layout)
 	return consistent;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
+/*
+ * pmemobj_check -- transactional memory pool consistency check
+ */
+int
+pmemobj_check(const char *path, const char *layout)
+{
+	return pmemobj_checkU(path, layout);
+}
+#else
 /*
  * pmemobj_checkW -- transactional memory pool consistency check
  */

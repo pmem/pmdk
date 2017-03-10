@@ -601,6 +601,15 @@ out_err(const char *file, int line, const char *func,
 	va_end(ap);
 }
 
+/*
+ * out_get_errormsg -- get the last error message
+ */
+const char *
+out_get_errormsg(void)
+{
+	return Last_errormsg_get();
+}
+
 #ifdef _WIN32
 /*
  * out_get_errormsgW -- get the last error message in wchar_t
@@ -616,12 +625,3 @@ out_get_errormsgW(void)
 	return (const wchar_t *)utf16;
 }
 #endif
-
-/*
- * out_get_errormsg -- get the last error message
- */
-const char *
-UNICODE_FUNCTION(out_get_errormsg)(void)
-{
-	return Last_errormsg_get();
-}

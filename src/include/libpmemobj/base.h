@@ -43,13 +43,24 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmemobj_check_version pmemobj_check_versionW
+#define pmemobj_errormsg pmemobj_errormsgW
+#else
+#define pmemobj_check_version pmemobj_check_versionU
+#define pmemobj_errormsg pmemobj_errormsgU
+#endif
+
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /*
  * opaque type internal to libpmemobj
  */
@@ -187,9 +198,16 @@ void pmemobj_drain(PMEMobjpool *pop);
  */
 #define PMEMOBJ_MAJOR_VERSION 2
 #define PMEMOBJ_MINOR_VERSION 0
-const char *pmemobj_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *pmemobj_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmemobj_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemobj_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /*
  * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
@@ -208,14 +226,6 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
  * (debug helper function) logs notice message if used inside a transaction
  */
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
-
-#ifdef _WIN32
-#ifndef NVML_UTF8_API
-#define pmemobj_errormsg pmemobj_errormsgW
-#else
-#define pmemobj_errormsg pmemobj_errormsgU
-#endif
-#endif
 
 #ifndef _WIN32
 const char *pmemobj_errormsg(void);

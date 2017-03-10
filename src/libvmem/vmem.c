@@ -143,10 +143,13 @@ vmem_fini(void)
 }
 
 /*
- * vmem_create -- create a memory pool in a temp file
+ * vmem_createU -- create a memory pool in a temp file
  */
+#ifndef _WIN32
+static inline
+#endif
 VMEM *
-UNICODE_FUNCTION(vmem_create)(const char *dir, size_t size)
+vmem_createU(const char *dir, size_t size)
 {
 	vmem_init();
 
@@ -201,7 +204,16 @@ UNICODE_FUNCTION(vmem_create)(const char *dir, size_t size)
 
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
+/*
+ * vmem_create -- create a memory pool in a temp file
+ */
+VMEM *
+vmem_create(const char *dir, size_t size)
+{
+	return vmem_createU(dir, size);
+}
+#else
 /*
  * vmem_createW -- create a memory pool in a temp file
  */

@@ -212,10 +212,13 @@ void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 #else
 #define out_get_errormsg out_get_errormsgU
 #endif
-const wchar_t *out_get_errormsgW(void);
-const char *out_get_errormsgU(void);
-#else
+#endif
+
+#ifndef _WIN32
 const char *out_get_errormsg(void);
+#else
+const char *out_get_errormsgU(void);
+const wchar_t *out_get_errormsgW(void);
 #endif
 
 #endif

@@ -41,6 +41,31 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmempool_check_status pmempool_check_statusW
+#define pmempool_check_args pmempool_check_argsW
+
+#define pmempool_check_init pmempool_check_initW
+#define pmempool_check pmempool_checkW
+#define pmempool_sync pmempool_syncW
+#define pmempool_transform pmempool_transformW
+#define pmempool_rm pmempool_rmW
+#define pmempool_check_version pmempool_check_versionW
+#define pmempool_errormsg pmempool_errormsgW
+#else
+#define pmempool_check_status pmempool_check_statusU
+#define pmempool_check_args pmempool_check_argsU
+
+#define pmempool_check_init pmempool_check_initU
+#define pmempool_check pmempool_checkU
+#define pmempool_sync pmempool_syncU
+#define pmempool_transform pmempool_transformU
+#define pmempool_rm pmempool_rmU
+#define pmempool_check_version pmempool_check_versionU
+#define pmempool_errormsg pmempool_errormsgU
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -143,43 +168,9 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 #define PMEMPOOL_MAJOR_VERSION 1
 #define PMEMPOOL_MINOR_VERSION 1
 
-
-#ifdef _WIN32
-#ifndef NVML_UTF8_API
-#define pmempool_errormsg pmempool_errormsgW
-#define pmempool_rm pmempool_rmW
-#define pmempool_check_version pmempool_check_versionW
-#define pmempool_transform pmempool_transformW
-#define pmempool_sync pmempool_syncW
-#define pmempool_check_init pmempool_check_initW
-#define pmempool_check pmempool_checkW
-#define pmempool_check_status pmempool_check_statusW
-#define pmempool_check_args pmempool_check_argsW
-#else
-#define pmempool_errormsg pmempool_errormsgU
-#define pmempool_rm pmempool_rmU
-#define pmempool_check_version pmempool_check_versionU
-#define pmempool_transform pmempool_transformU
-#define pmempool_sync pmempool_syncU
-#define pmempool_check_init pmempool_check_initU
-#define pmempool_check pmempool_checkU
-#define pmempool_check_status pmempool_check_statusU
-#define pmempool_check_args pmempool_check_argsU
-#endif
-#endif
-
 /*
  * check status
  */
-#ifndef _WIN32
-struct pmempool_check_status {
-	enum pmempool_check_msg_type type;
-	struct {
-		const char *msg;
-		const char *answer;
-	} str;
-};
-#else
 struct pmempool_check_statusU {
 	enum pmempool_check_msg_type type;
 	struct {
@@ -188,6 +179,9 @@ struct pmempool_check_statusU {
 	} str;
 };
 
+#ifndef _WIN32
+#define pmempool_check_status pmempool_check_statusU
+#else
 struct pmempool_check_statusW {
 	enum pmempool_check_msg_type type;
 	struct {
@@ -200,14 +194,6 @@ struct pmempool_check_statusW {
 /*
  * check context arguments
  */
-#ifndef _WIN32
-struct pmempool_check_args {
-	const char *path;
-	const char *backup_path;
-	enum pmempool_pool_type pool_type;
-	int flags;
-};
-#else
 struct pmempool_check_argsU {
 	const char *path;
 	const char *backup_path;
@@ -215,6 +201,9 @@ struct pmempool_check_argsU {
 	int flags;
 };
 
+#ifndef _WIN32
+#define pmempool_check_args pmempool_check_argsU
+#else
 struct pmempool_check_argsW {
 	const wchar_t *path;
 	const wchar_t *backup_path;

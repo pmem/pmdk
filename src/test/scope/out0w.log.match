@@ -4,7 +4,8 @@ DllMain
 vmem_aligned_alloc
 vmem_calloc
 vmem_check
-vmem_check_version
+vmem_check_versionU
+vmem_check_versionW
 vmem_create_in_region
 vmem_createU
 vmem_createW

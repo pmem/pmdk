@@ -538,10 +538,13 @@ pmem_is_pmem(const void *addr, size_t len)
 #endif
 
 /*
- * pmem_map_file -- create or open the file and map it to memory
+ * pmem_map_fileU -- create or open the file and map it to memory
  */
+#ifndef _WIN32
+static inline
+#endif
 void *
-UNICODE_FUNCTION(pmem_map_file)(const char *path, size_t len, int flags,
+pmem_map_fileU(const char *path, size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp)
 {
 	LOG(3, "path \"%s\" size %zu flags %x mode %o mapped_lenp %p "
@@ -698,7 +701,18 @@ err:
 	errno = oerrno;
 	return NULL;
 }
-#ifdef _WIN32
+
+#ifndef _WIN32
+/*
+ * pmem_map_file -- create or open the file and map it to memory
+ */
+void *
+pmem_map_file(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp)
+{
+	return pmem_map_fileU(path, len, flags, mode, mapped_lenp, is_pmemp);
+}
+#else
 /*
  * pmem_map_fileW -- create or open the file and map it to memory
  */

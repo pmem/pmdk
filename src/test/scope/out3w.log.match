@@ -2,7 +2,8 @@ scope\TEST3:
 $(*)\libpmemblk.dll:
 DllMain
 pmemblk_bsize
-pmemblk_check_version
+pmemblk_check_versionU
+pmemblk_check_versionW
 pmemblk_checkU
 pmemblk_checkW
 pmemblk_close

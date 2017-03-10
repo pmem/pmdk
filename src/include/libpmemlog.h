@@ -45,6 +45,21 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmemlog_open pmemlog_openW
+#define pmemlog_create pmemlog_createW
+#define pmemlog_check pmemlog_checkW
+#define pmemlog_check_version pmemlog_check_versionW
+#define pmemlog_errormsg pmemlog_errormsgW
+#else
+#define pmemlog_open pmemlog_openU
+#define pmemlog_create pmemlog_createU
+#define pmemlog_check pmemlog_checkU
+#define pmemlog_check_version pmemlog_check_versionU
+#define pmemlog_errormsg pmemlog_errormsgU
+#endif
+
 #else
 #include <sys/uio.h>
 #endif
@@ -52,6 +67,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #include <sys/types.h>
 
 /*
@@ -68,28 +84,21 @@ typedef struct pmemlog PMEMlogpool;
  */
 #define PMEMLOG_MAJOR_VERSION 1
 #define PMEMLOG_MINOR_VERSION 0
-const char *pmemlog_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *pmemlog_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmemlog_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /*
  * support for PMEM-resident log files...
  */
 #define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
-
-#ifdef _WIN32
-#ifndef NVML_UTF8_API
-#define pmemlog_open pmemlog_openW
-#define pmemlog_create pmemlog_createW
-#define pmemlog_check pmemlog_checkW
-#define pmemlog_errormsg pmemlog_errormsgW
-#else
-#define pmemlog_open pmemlog_openU
-#define pmemlog_create pmemlog_createU
-#define pmemlog_check pmemlog_checkU
-#define pmemlog_errormsg pmemlog_errormsgU
-#endif
-#endif
 
 #ifndef _WIN32
 PMEMlogpool *pmemlog_open(const char *path);

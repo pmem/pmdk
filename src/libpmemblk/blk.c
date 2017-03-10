@@ -392,11 +392,13 @@ err:
 }
 
 /*
- * pmemblk_create -- create a block memory pool
+ * pmemblk_createU -- create a block memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMblkpool *
-UNICODE_FUNCTION(pmemblk_create)(const char *path, size_t bsize,
-		size_t poolsize, mode_t mode)
+pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s bsize %zu poolsize %zu mode %o",
 			path, bsize, poolsize, mode);
@@ -471,9 +473,18 @@ err:
 	return NULL;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
  * pmemblk_create -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
+{
+	return pmemblk_createU(path, bsize, poolsize, mode);
+}
+#else
+/*
+ * pmemblk_createW -- create a block memory pool
  */
 PMEMblkpool *
 pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
@@ -564,19 +575,31 @@ err:
 }
 
 /*
- * pmemblk_open -- open a block memory pool
+ * pmemblk_openU -- open a block memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMblkpool *
-UNICODE_FUNCTION(pmemblk_open)(const char *path, size_t bsize)
+pmemblk_openU(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
 	return blk_open_common(path, bsize, 0);
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
- * pmemblk_create -- create a block memory pool
+ * pmemblk_open -- open a block memory pool
+ */
+PMEMblkpool *
+pmemblk_open(const char *path, size_t bsize)
+{
+	return pmemblk_openU(path, bsize);
+}
+#else
+/*
+ * pmemblk_openW -- open a block memory pool
  */
 PMEMblkpool *
 pmemblk_openW(const wchar_t *path, size_t bsize)
@@ -757,10 +780,13 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
 }
 
 /*
- * pmemblk_check -- block memory pool consistency check
+ * pmemblk_checkU -- block memory pool consistency check
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-UNICODE_FUNCTION(pmemblk_check)(const char *path, size_t bsize)
+pmemblk_checkU(const char *path, size_t bsize)
 {
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
@@ -777,9 +803,18 @@ UNICODE_FUNCTION(pmemblk_check)(const char *path, size_t bsize)
 	return retval;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
- * pmemblk_createW -- create a block memory pool
+ * pmemblk_check -- block memory pool consistency check
+ */
+int
+pmemblk_check(const char *path, size_t bsize)
+{
+	return pmemblk_checkU(path, bsize);
+}
+#else
+/*
+ * pmemblk_checkW -- block memory pool consistency check
  */
 int
 pmemblk_checkW(const wchar_t *path, size_t bsize)

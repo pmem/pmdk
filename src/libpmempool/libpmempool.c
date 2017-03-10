@@ -91,12 +91,14 @@ libpmempool_fini(void)
 }
 
 /*
- * pmempool_check_version -- see if library meets application version
+ * pmempool_check_versionU -- see if library meets application version
  *	requirements
  */
+#ifndef _WIN32
+static inline
+#endif
 const char *
-UNICODE_FUNCTION(pmempool_check_version)(unsigned major_required,
-					unsigned minor_required)
+pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
@@ -116,7 +118,16 @@ UNICODE_FUNCTION(pmempool_check_version)(unsigned major_required,
 	return NULL;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
+/*
+ * pmempool_check_version -- see if lib meets application version requirements
+ */
+const char *
+pmempool_check_version(unsigned major_required, unsigned minor_required)
+{
+	return pmempool_check_versionU(major_required, minor_required);
+}
+#else
 /*
  * pmempool_check_versionW -- see if library meets application version
  *	requirements as widechar
@@ -132,17 +143,29 @@ pmempool_check_versionW(unsigned major_required, unsigned minor_required)
 #endif
 
 /*
- * pmempool_errormsg -- return last error message
+ * pmempool_errormsgU -- return last error message
  */
+#ifndef _WIN32
+static inline
+#endif
 const char *
-UNICODE_FUNCTION(pmempool_errormsg)(void)
+pmempool_errormsgU(void)
 {
 	return out_get_errormsg();
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
- * pmempool_errormsgW -- return last error message as unicode
+ * pmempool_errormsg -- return last error message
+ */
+const char *
+pmempool_errormsg(void)
+{
+	return pmempool_errormsgU();
+}
+#else
+/*
+ * pmempool_errormsgW -- return last error message as widechar
  */
 const wchar_t *
 pmempool_errormsgW(void)
@@ -172,11 +195,13 @@ pmempool_ppc_set_default(PMEMpoolcheck *ppc)
 }
 
 /*
- * pmempool_check_init -- initialize check context
+ * pmempool_check_initU -- initialize check context
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMpoolcheck *
-UNICODE_FUNCTION(pmempool_check_init)(
-	struct UNICODE_STRUCT(pmempool_check_args) *args, size_t args_size)
+pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 {
 	LOG(3, "path %s backup_path %s pool_type %u flags %x", args->path,
 		args->backup_path, args->pool_type, args->flags);
@@ -268,7 +293,16 @@ error_path_malloc:
 	return NULL;
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
+/*
+ * pmempool_check_init -- initialize check context
+ */
+PMEMpoolcheck *
+pmempool_check_init(struct pmempool_check_args *args, size_t args_size)
+{
+	return pmempool_check_initU(args, args_size);
+}
+#else
 /*
  * pmempool_check_initW -- initialize check context as widechar
  */
@@ -303,10 +337,13 @@ pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size)
 #endif
 
 /*
- * pmempool_check -- continue check till produce status to consume for caller
+ * pmempool_checkU -- continue check till produce status to consume for caller
  */
-struct UNICODE_STRUCT(pmempool_check_status) *
-UNICODE_FUNCTION(pmempool_check)(PMEMpoolcheck *ppc)
+#ifndef _WIN32
+static inline
+#endif
+struct pmempool_check_statusU *
+pmempool_checkU(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 	ASSERTne(ppc, NULL);
@@ -322,12 +359,21 @@ UNICODE_FUNCTION(pmempool_check)(PMEMpoolcheck *ppc)
 	return check_status_get(result);
 }
 
-#ifdef _WIN32
+#ifndef _WIN32
 /*
  * pmempool_check -- continue check till produce status to consume for caller
  */
+struct pmempool_check_status *
+pmempool_check(PMEMpoolcheck *ppc)
+{
+	return pmempool_checkU(ppc);
+}
+#else
+/*
+ * pmempool_checkW -- continue check till produce status to consume for caller
+ */
 struct pmempool_check_statusW *
-	pmempool_checkW(PMEMpoolcheck *ppc)
+pmempool_checkW(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 	ASSERTne(ppc, NULL);

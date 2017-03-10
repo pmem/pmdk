@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -138,31 +138,14 @@ rm_cb(struct part_file *pf, void *arg)
 	return !!ret;
 }
 
-#ifdef _WIN32
 /*
- * pmempool_rmW -- remove pool files or poolsets in widechar
+ * pmempool_rmU -- remove pool files or poolsets
  */
-int
-pmempool_rmW(const wchar_t *path, int flags)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL) {
-		ERR("Invalid poolest/pool file path.");
-		return -1;
-	}
-
-	int ret = pmempool_rmU(upath, flags);
-
-	util_free_UTF8(upath);
-	return ret;
-}
+#ifndef _WIN32
+static inline
 #endif
-
-/*
- * pmempool_rm -- remove pool files or poolsets
- */
 int
-UNICODE_FUNCTION(pmempool_rm)(const char *path, int flags)
+pmempool_rmU(const char *path, int flags)
 {
 	LOG(3, "path %s flags %x", path, flags);
 	int ret;
@@ -227,3 +210,32 @@ UNICODE_FUNCTION(pmempool_rm)(const char *path, int flags)
 
 	return 0;
 }
+
+#ifndef _WIN32
+/*
+ * pmempool_rm -- remove pool files or poolsets
+ */
+int
+pmempool_rm(const char *path, int flags)
+{
+	return pmempool_rmU(path, flags);
+}
+#else
+/*
+ * pmempool_rmW -- remove pool files or poolsets in widechar
+ */
+int
+pmempool_rmW(const wchar_t *path, int flags)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL) {
+		ERR("Invalid poolest/pool file path.");
+		return -1;
+	}
+
+	int ret = pmempool_rmU(upath, flags);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif

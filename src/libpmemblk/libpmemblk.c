@@ -71,10 +71,13 @@ libpmemblk_fini(void)
 }
 
 /*
- * pmemblk_check_version -- see if lib meets application version requirements
+ * pmemblk_check_versionU -- see if lib meets application version requirements
  */
+#ifndef _WIN32
+static inline
+#endif
 const char *
-pmemblk_check_version(unsigned major_required, unsigned minor_required)
+pmemblk_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
@@ -94,6 +97,29 @@ pmemblk_check_version(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
+#ifndef _WIN32
+/*
+ * pmemblk_check_version -- see if lib meets application version requirements
+ */
+const char *
+pmemblk_check_version(unsigned major_required, unsigned minor_required)
+{
+	return pmemblk_check_versionU(major_required, minor_required);
+}
+#else
+/*
+ * pmemblk_check_versionW -- see if lib meets application version requirements
+ */
+const wchar_t *
+pmemblk_check_versionW(unsigned major_required, unsigned minor_required)
+{
+	if (pmemblk_check_versionU(major_required, minor_required) != NULL)
+		return out_get_errormsgW();
+	else
+		return NULL;
+}
+#endif
+
 /*
  * pmemblk_set_funcs -- allow overriding libpmemblk's call to malloc, etc.
  */
@@ -109,7 +135,28 @@ pmemblk_set_funcs(
 	util_set_alloc_funcs(malloc_func, free_func, realloc_func, strdup_func);
 }
 
-#ifdef _WIN32
+/*
+ * pmemblk_errormsgU -- return last error message
+ */
+#ifndef _WIN32
+static inline
+#endif
+const char *
+pmemblk_errormsgU(void)
+{
+	return out_get_errormsg();
+}
+
+#ifndef _WIN32
+/*
+ * pmemblk_errormsg -- return last error message
+ */
+const char *
+pmemblk_errormsg(void)
+{
+	return pmemblk_errormsgU();
+}
+#else
 /*
  * pmemblk_errormsgW -- return last error message as wchar_t
  */
@@ -119,12 +166,3 @@ pmemblk_errormsgW(void)
 	return out_get_errormsgW();
 }
 #endif
-
-/*
- * pmemblk_errormsg -- return last error message
- */
-const char *
-UNICODE_FUNCTION(pmemblk_errormsg)(void)
-{
-	return out_get_errormsg();
-}

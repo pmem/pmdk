@@ -50,7 +50,8 @@ EXPORTS
 	vmem_aligned_alloc
 	vmem_strdup
 	vmem_malloc_usable_size
-	vmem_check_version
+	vmem_check_versionU
+	vmem_check_versionW
 	vmem_set_funcs
 	vmem_errormsgU
 	vmem_errormsgW

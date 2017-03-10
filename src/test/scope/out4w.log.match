@@ -4,7 +4,8 @@ _pobj_debug_notice
 DllMain
 pmemobj_alloc
 pmemobj_alloc_usable_size
-pmemobj_check_version
+pmemobj_check_versionU
+pmemobj_check_versionW
 pmemobj_checkU
 pmemobj_checkW
 pmemobj_close

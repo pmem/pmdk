@@ -41,6 +41,18 @@
 #ifndef LIBVMEM_H
 #define LIBVMEM_H 1
 
+#ifdef _WIN32
+#ifndef NVML_UTF8_API
+#define vmem_create vmem_createW
+#define vmem_check_version vmem_check_versionW
+#define vmem_errormsg vmem_errormsgW
+#else
+#define vmem_create vmem_createU
+#define vmem_check_version vmem_check_versionU
+#define vmem_errormsg vmem_errormsgU
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,16 +66,6 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
  */
 
 #define VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
-
-#ifdef _WIN32
-#ifndef NVML_UTF8_API
-#define vmem_create vmem_createW
-#define vmem_errormsg vmem_errormsgW
-#else
-#define vmem_create vmem_createU
-#define vmem_errormsg vmem_errormsgU
-#endif
-#endif
 
 #ifndef _WIN32
 VMEM *vmem_create(const char *dir, size_t size);
@@ -101,9 +103,16 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
  */
 #define VMEM_MAJOR_VERSION 1
 #define VMEM_MINOR_VERSION 0
-const char *vmem_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *vmem_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *vmem_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *vmem_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /*
  * Passing NULL to vmem_set_funcs() tells libvmem to continue to use
