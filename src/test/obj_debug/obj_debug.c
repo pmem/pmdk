@@ -35,7 +35,7 @@
  *
  * usage: obj_debug file operation:...
  *
- * operations are 'f' or 'l' or 'r' or 'a'
+ * operations are 'f' or 'l' or 'r' or 'a' or 'n'
  *
  */
 #include <stddef.h>
@@ -195,6 +195,28 @@ test_double_free(const char *path)
 	pmemobj_free(&oid2);
 }
 
+static int
+test_constr(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	PMEMoid oid;
+	pmemobj_alloc(pop, &oid, 1, 1, test_constr, NULL);
+
+	return 0;
+}
+
+static void
+test_alloc_in_constructor(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	PMEMoid oid;
+	pmemobj_alloc(pop, &oid, 1, 1, test_constr, NULL);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -205,8 +227,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	if (strchr("flrap", argv[2][0]) == NULL || argv[2][1] != '\0')
-		UT_FATAL("op must be f or l or r or a or p");
+	if (strchr("flrapn", argv[2][0]) == NULL || argv[2][1] != '\0')
+		UT_FATAL("op must be f or l or r or a or p or n");
 
 	switch (argv[2][0]) {
 		case 'f':
@@ -220,6 +242,9 @@ main(int argc, char *argv[])
 			break;
 		case 'p':
 			test_double_free(path);
+			break;
+		case 'n':
+			test_alloc_in_constructor(path);
 			break;
 	}
 
