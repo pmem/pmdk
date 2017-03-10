@@ -43,7 +43,7 @@ require_test_type medium
 require_fs_type pmem non-pmem
 
 # Valgrind cannot trace more than 32G which is required for this test
-configure_valgrind memcheck force-disable
+configure_valgrind force-disable
 
 setup
 

@@ -1065,6 +1065,10 @@ function require_valgrind_tool() {
 	[ -d "$2" ] && dir="$2" && binary=
 	pushd "$dir" > /dev/null
 	[ -n "$binary" ] || binary=$(get_executables)
+	if [ -z "$binary" ]; then
+		echo "require_valgrind_tool: error: no binary found" >&2
+		exit 1
+	fi
 	strings ${binary} 2>&1 | \
 	grep -q "compiled with support for Valgrind $tool" && true
 	if [ $? -ne 0 ]; then

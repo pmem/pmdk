@@ -43,7 +43,7 @@ export UNITTEST_NUM=2
 require_test_type medium
 
 # the test delibretly fails at various stages of redo logging
-configure_valgrind pmemcheck force-disable
+configure_valgrind pmemcheck force-disable ../obj_list/obj_list$EXESUFFIX
 
 setup
 
