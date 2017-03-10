@@ -49,7 +49,7 @@ require_no_asan
 
 # Valgrind does not call vmmalloc's malloc implementation from library
 # loaded with RTLD_DEEPBIND.
-configure_valgrind memcheck force-disable
+configure_valgrind memcheck force-disable $TEST_LD_LIBRARY_PATH/libvmmalloc.so
 
 setup
 

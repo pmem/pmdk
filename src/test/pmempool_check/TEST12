@@ -43,7 +43,7 @@ require_test_type medium
 require_dax_devices 1
 require_fs_type any
 # covered by TEST21
-configure_valgrind memcheck force-disable
+configure_valgrind memcheck force-disable $PMEMPOOL$EXESUFFIX
 
 setup
 
