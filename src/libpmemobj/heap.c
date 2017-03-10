@@ -341,6 +341,7 @@ heap_run_insert(struct palloc_heap *heap, struct bucket *b,
 	ASSERT(block_off + size_idx <= c->run.bitmap_nallocs);
 
 	uint32_t unit_max = c->run.unit_max;
+
 	struct memory_block nm = *m;
 	nm.size_idx = unit_max - (block_off % unit_max);
 	nm.block_off = block_off;
@@ -773,7 +774,7 @@ heap_resize_chunk(struct palloc_heap *heap,
 
 	struct bucket *def_bucket = heap->rt->default_bucket;
 	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0,
-		0, 0, NULL, NULL};
+		0, NULL, NULL, 0, 0};
 	memblock_rebuild_state(heap, &m);
 	bucket_insert_block(def_bucket, &m);
 }
@@ -790,7 +791,7 @@ heap_recycle_block(struct palloc_heap *heap, struct bucket *b,
 		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, (uint16_t)(m->block_off + units),
-			0, 0, NULL, NULL};
+			0, NULL, NULL, 0, 0};
 		memblock_rebuild_state(heap, &r);
 		bucket_insert_block(b, &r);
 	} else {
@@ -824,6 +825,9 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 
 	if (units != m->size_idx)
 		heap_recycle_block(heap, b, m, units);
+
+	m->m_ops->ensure_header_type(m, b->aclass->header_type);
+	m->header_type = b->aclass->header_type;
 
 	return 0;
 }

@@ -144,6 +144,8 @@ util_clrbit(uint8_t *b, uint32_t i)
 #ifndef _MSC_VER
 #define util_bool_compare_and_swap32 __sync_bool_compare_and_swap
 #define util_bool_compare_and_swap64 __sync_bool_compare_and_swap
+#define util_inc_and_fetch(ptr) __sync_add_and_fetch(ptr, 1)
+#define util_sub_and_fetch(ptr) __sync_sub_and_fetch(ptr, 1)
 #else
 static __inline int
 __sync_bool_compare_and_swap32(volatile LONG *ptr,
@@ -160,6 +162,8 @@ __sync_bool_compare_and_swap64(volatile LONG64 *ptr,
 	LONG64 old = InterlockedCompareExchange64(ptr, newval, oldval);
 	return (old == oldval);
 }
+#define util_inc_and_fetch(ptr) InterlockedIncrement64((LONGLONG volatile *)ptr)
+#define util_sub_and_fetch(ptr) InterlockedDecrement64((LONGLONG volatile *)ptr)
 
 #define util_bool_compare_and_swap32(p, o, n)\
 	__sync_bool_compare_and_swap32((LONG *)(p), (LONG)(o), (LONG)(n))

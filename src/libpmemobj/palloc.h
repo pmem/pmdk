@@ -52,6 +52,12 @@ struct palloc_heap {
 	void *base;
 };
 
+struct palloc_reservation {
+	uint64_t offset;
+	uint64_t data[5];
+	int data2[2];
+};
+
 struct memory_block;
 
 typedef int (*palloc_constr)(void *base, void *ptr,
@@ -62,12 +68,28 @@ int palloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	uint64_t extra_field, uint16_t flags,
 	struct operation_context *ctx);
 
+int
+palloc_reserve(struct palloc_heap *heap, size_t size,
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t flags, struct palloc_reservation *rs);
+
+void
+palloc_cancel(struct palloc_heap *heap,
+	struct palloc_reservation *rsv, int rsvcnt);
+
+void
+palloc_publish(struct palloc_heap *heap,
+	struct palloc_reservation *rsv, int rsvcnt,
+	struct operation_context *ctx);
+
 uint64_t palloc_first(struct palloc_heap *heap);
 uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 
 size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
 uint64_t palloc_extra(struct palloc_heap *heap, uint64_t off);
 uint16_t palloc_flags(struct palloc_heap *heap, uint64_t off);
+
+int palloc_is_allocated(struct palloc_heap *heap, uint64_t off);
 
 int palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t run_id,
 		uint64_t heap_size, void *base, struct pmem_ops *p_ops);

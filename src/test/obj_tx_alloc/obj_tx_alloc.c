@@ -725,6 +725,34 @@ do_tx_root(PMEMobjpool *pop)
 	} TX_END
 }
 
+/*
+ * do_tx_alloc_many -- allocates many objects inside of a single transaction
+ */
+static void
+do_tx_alloc_many(PMEMobjpool *pop)
+{
+#define TX_ALLOC_COUNT 60 /* bigger than max reservations */
+	PMEMoid oids[TX_ALLOC_COUNT];
+	TX_BEGIN(pop) {
+		for (int i = 0; i < TX_ALLOC_COUNT; ++i) {
+			oids[i] = pmemobj_tx_alloc(1, 0);
+			UT_ASSERT(!OID_IS_NULL(oids[i]));
+		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		for (int i = 0; i < TX_ALLOC_COUNT; ++i) {
+			pmemobj_tx_free(oids[i]);
+		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+#undef TX_ALLOC_COUNT
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -792,6 +820,9 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 
 	do_tx_alloc_oom(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_alloc_many(pop);
 	VALGRIND_WRITE_STATS;
 
 	do_tx_xalloc_noflush(pop);
