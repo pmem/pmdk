@@ -197,9 +197,10 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 				errno = 0;
 				continue;
 			} else {
-				return CHECK_ERR(ppc, "unable to access the "
-					" part of the destination poolset: %s",
+				CHECK_INFO(ppc, "unable to access the part of "
+					"the destination poolset: %s",
 					ppc->backup_path);
+				goto err_poolset;
 			}
 		}
 
@@ -207,10 +208,10 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 
 		if ((size_t)util_file_get_size(drep->part[p].path) !=
 				srep->part[p].filesize) {
-			ppc->result = CHECK_RESULT_ERROR;
-			return CHECK_ERR(ppc, "destination of the backup part "
-				"does not match size of the source part file: "
-				"%s", drep->part[p].path);
+			CHECK_INFO(ppc, "destination of the backup part does "
+				"not match size of the source part file: %s",
+				drep->part[p].path);
+			goto err_poolset;
 		}
 	}
 
