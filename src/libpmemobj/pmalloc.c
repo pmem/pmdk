@@ -47,6 +47,19 @@
 #include "palloc.h"
 #include "pmalloc.h"
 
+#ifdef DEBUG
+/*
+ * In order to prevent allocations from inside of a constructor, each lane hold
+ * invocation sets the, otherwise unused, runtime part of the lane section
+ * to a value that marks an in progress allocation. Likewise, each lane release
+ * sets the runtime variable back to NULL.
+ *
+ * Because this check requires additional hold/release pair for every single
+ * allocation, it's done only for debug builds.
+ */
+#define ALLOC_INPROGRESS_MARK ((void *)0x1)
+#endif
+
 /*
  * pmalloc_redo_hold -- acquires allocator lane section and returns a pointer to
  * it's redo log
@@ -56,6 +69,11 @@ pmalloc_redo_hold(PMEMobjpool *pop)
 {
 	struct lane_section *lane;
 	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+
+#ifdef DEBUG
+	ASSERTeq(lane->runtime, NULL);
+	lane->runtime = ALLOC_INPROGRESS_MARK;
+#endif
 
 	struct lane_alloc_layout *sec = (void *)lane->layout;
 	return sec->redo;
@@ -67,6 +85,13 @@ pmalloc_redo_hold(PMEMobjpool *pop)
 void
 pmalloc_redo_release(PMEMobjpool *pop)
 {
+#ifdef DEBUG
+	/* there's no easier way, I've tried */
+	struct lane_section *lane;
+	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+	lane->runtime = NULL;
+	lane_release(pop);
+#endif
 	lane_release(pop);
 }
 
