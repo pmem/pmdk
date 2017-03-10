@@ -177,16 +177,37 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
+#ifndef _WIN32
 #define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+#else
+#define START(argc, argv, ...)\
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);\
+	for (int i = 0; i < argc; i++) {\
+		argv[i] = ut_toUTF8(wargv[i]);\
+		if (argv[i] == NULL) {\
+			for (i--; i >= 0; i--)\
+				free(argv[i]);\
+			UT_FATAL("Error during arguments conversion\n");\
+		}\
+	}\
+	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+#endif
 
 /* indicate the start of the test */
 #define WSTART(argc, argv, ...)\
     ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
+#ifndef _WIN32
 #define DONE(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define DONE(...)\
+	for (int i = argc; i > 0; i--)\
+		free(argv[i - 1]);\
+	ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
 
 /* fatal error detected */
 #define UT_FATAL(...)\

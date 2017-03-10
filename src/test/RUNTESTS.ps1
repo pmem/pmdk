@@ -62,8 +62,6 @@ Param(
     $check_pool = "0",
     [alias("k")]
     $skip_dir = "",
-    [alias("g")]
-    $encoding = "all",
     [alias("h")][switch]
     $help= $false
     )
@@ -112,8 +110,6 @@ function usage {
                 drd: auto (default, enable/disable based on test requirements),
                 force-enable (enable when test does not require drd, but
                 obey test's explicit drd disable)
-        -g encoding run tests with the specified encoding
-                default: all
         -c      check pool files with pmempool check utility"
     exit 1
 }
@@ -175,12 +171,6 @@ function read_global_test_configuration {
         . ".\config.PS1"
         return;
     }
-
-    $global:encoding_dict = @{
-        ascii = new-object PSObject | select-object sufixexe, sufix;
-    }
-    $global:encoding_dict.Get_Item("ascii").sufixexe = ".exe"
-    $global:encoding_dict.Get_Item("ascii").sufix = ""
 }
 
 #
@@ -251,7 +241,7 @@ function runtest {
         }
 
         read_global_test_configuration
-	    $test_fs = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
+        $test_fs = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
 
         Foreach ($fs in $fss.split(" ").trim()) {
             if ($test_fs -ne $null) {
@@ -281,77 +271,65 @@ function runtest {
                 if ($verbose) {
                     Write-Host "RUNTESTS: Testing build-type: $build..."
                 }
-                Foreach ($enc in $encoding_dict.Keys) {
-                    if($encoding -ne "all" -and $encoding -ne $enc) {
-                        continue
+
+                $Env:CHECK_TYPE = $checktype
+                $Env:CHECK_POOL = $check_pool
+                $Env:VERBOSE = $verbose
+                $Env:TYPE = $testtype
+                $Env:FS = $fs
+                $Env:BUILD = $build
+                $Env:EXE_DIR = get_build_dir $build
+
+                $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                $pinfo.FileName = "powershell.exe"
+                $pinfo.RedirectStandardError = $true
+                $pinfo.RedirectStandardOutput = $true
+                $pinfo.UseShellExecute = $false
+                $pinfo.CreateNoWindow = $true
+
+                if ($dryrun -eq "1") {
+                    Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
+                    break
+                }
+                $pinfo.Arguments = ".\$runscript"
+                $pinfo.WorkingDirectory = $(pwd).Path
+                $p = New-Object System.Diagnostics.Process
+                $p.StartInfo = $pinfo
+                $p.Start() | Out-Null
+                $outTask = $p.StandardOutput.ReadToEndAsync()
+                $errTask = $p.StandardError.ReadToEndAsync()
+
+                If ($use_timeout -And $testtype -eq "check") {
+                    # execute with timeout
+                    $timeout = new-timespan -Seconds $time
+                    $stopwatch = [diagnostics.stopwatch]::StartNew()
+                    while (($stopwatch.elapsed -lt $timeout) -And `
+                        ($p.HasExited -eq $false)) {
+                        # wait for test exit or timeout
                     }
 
-                    if ($verbose) {
-                        Write-Host "RUNTESTS: Testing encoding-type: $enc..."
-                    }
+                    # print test's console output
+                    Write-Host -NoNewline $outTask.Result;
+                    Write-Host -NoNewline $errTask.Result;
 
-                    $Env:ENCODING = $enc
-                    $Env:SUFFIX = $encoding_dict.Item($enc).sufix
-                    $Env:EXESUFFIX = $encoding_dict.Item($enc).sufixexe
-                    $Env:CHECK_TYPE = $checktype
-                    $Env:CHECK_POOL = $check_pool
-                    $Env:VERBOSE = $verbose
-                    $Env:TYPE = $testtype
-                    $Env:FS = $fs
-                    $Env:BUILD = $build
-                    $Env:EXE_DIR = get_build_dir $build
-
-                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-                    $pinfo.FileName = "powershell.exe"
-                    $pinfo.RedirectStandardError = $true
-                    $pinfo.RedirectStandardOutput = $true
-                    $pinfo.UseShellExecute = $false
-                    $pinfo.CreateNoWindow = $true
-
-                    if ($dryrun -eq "1") {
-                        Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build ENCODING=$enc .\$runscript"
-                        break
-                    }
-                    $pinfo.Arguments = ".\$runscript"
-                    $pinfo.WorkingDirectory = $(pwd).Path
-                    $p = New-Object System.Diagnostics.Process
-                    $p.StartInfo = $pinfo
-                    $p.Start() | Out-Null
-                    $outTask = $p.StandardOutput.ReadToEndAsync()
-                    $errTask = $p.StandardError.ReadToEndAsync()
-
-                    If ($use_timeout -And $testtype -eq "check") {
-                        # execute with timeout
-                        $timeout = new-timespan -Seconds $time
-                        $stopwatch = [diagnostics.stopwatch]::StartNew()
-                        while (($stopwatch.elapsed -lt $timeout) -And `
-                            ($p.HasExited -eq $false)) {
-                            # wait for test exit or timeout
-                        }
-
-                        # print test's console output
-                        Write-Host -NoNewline $outTask.Result;
-                        Write-Host -NoNewline $errTask.Result;
-
-                        if ($stopwatch.elapsed -ge $timeout) {
-                            $p | Stop-Process -Force
-                            Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build ENCODING=$enc"
-                            cd ..
-                            exit $p.ExitCode
-                        }
-                    } Else {
-                        $p.WaitForExit()
-                        # print test's console output
-                        Write-Host -NoNewline $outTask.Result;
-                        Write-Host -NoNewline $errTask.Result;
-                    }
-
-                    if ($p.ExitCode -ne 0) {
-                        Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
+                    if ($stopwatch.elapsed -ge $timeout) {
+                        $p | Stop-Process -Force
+                        Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
                         exit $p.ExitCode
                     }
-                } # encodings
+                } Else {
+                    $p.WaitForExit()
+                    # print test's console output
+                    Write-Host -NoNewline $outTask.Result;
+                    Write-Host -NoNewline $errTask.Result;
+                }
+
+                if ($p.ExitCode -ne 0) {
+                    Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
+                    cd ..
+                    exit $p.ExitCode
+                }
             } # for builds
         } # for fss
     } # for runscripts
@@ -366,9 +344,6 @@ function runtest {
 sv -Name testconfig ".\testconfig.ps1"
 sv -Name use_timeout "ok"
 sv -Name checktype "none"
-$default_encoding = "ascii"
-$default_suffix = ""
-$default_exesuffix = ".exe"
 
 if (-Not (Test-Path "testconfig.ps1")) {
     Write-Error "
