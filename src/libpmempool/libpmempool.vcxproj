@@ -22,6 +22,7 @@
     <ClInclude Include="..\common\util.h" />
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\common\valgrind_internal.h" />
+    <ClInclude Include="..\include\libpmempool.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="check_util.h" />
     <ClInclude Include="pmempool.h" />

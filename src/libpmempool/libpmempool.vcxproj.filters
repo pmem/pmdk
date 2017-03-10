@@ -1,66 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="check.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="check_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pmempool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\out.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\valgrind_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\sys_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="replica.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\uuid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\pool_hdr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\pmemcommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\mmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\file.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\dlsym.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="..\libpmemblk\btt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="check.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,34 +28,58 @@
     <ClCompile Include="check_write.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libpmempool.c">
+    <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pool.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="libpmempool_main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libpmemblk\btt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libpmemlog\log.c">
+    <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmemlog\libpmemlog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="replica.c">
+    <ClCompile Include="libpmempool.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libpmempool_main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmemlog\log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\mmap.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\mmap_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\out.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pool.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pool_hdr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pool_hdr_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pthread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sync.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="transform.c">
+    <ClCompile Include="..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\uuid_windows.c">
+    <ClCompile Include="rm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="replica.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\uuid.c">
@@ -124,46 +91,82 @@
     <ClCompile Include="..\common\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\set.c">
+    <ClCompile Include="transform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\pthread_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\pool_hdr_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\pool_hdr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\out.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\mmap_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\mmap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\file_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="rm.c">
-    <ClCompile Include="..\common\os_windows.c">
+    <ClCompile Include="..\common\uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="libpmempool.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
+    <ClInclude Include="..\common\mmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\out.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\pmemcommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pmempool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\pool_hdr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="replica.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="check.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="check_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\dlsym.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\uuid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\valgrind_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmempool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{cd079c79-5441-413e-b2ba-99fed2b0b779}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{9ad93d4f-a9d1-4e38-94a1-77e36acc268f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmempool.def">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libpmempool.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
