@@ -73,7 +73,6 @@ enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_BTT,
 };
 
-
 /*
  * perform repairs
  */

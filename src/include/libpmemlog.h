@@ -97,12 +97,14 @@ PMEMlogpool *pmemlog_open(const char *path);
 PMEMlogpool *pmemlog_openU(const char *path);
 PMEMlogpool *pmemlog_openW(const wchar_t *path);
 #endif
+
 #ifndef _WIN32
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
 #else
 PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
 PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
 #endif
+
 #ifndef _WIN32
 int pmemlog_check(const char *path);
 #else

@@ -99,18 +99,20 @@ const char *pmemblk_check_version(
 #ifndef _WIN32
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 #else
-PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
 PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
+PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
 #endif
+
 #ifndef _WIN32
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
 #else
-PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
-		size_t poolsize, mode_t mode);
 PMEMblkpool *pmemblk_createU(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
+PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
+		size_t poolsize, mode_t mode);
 #endif
+
 #ifndef _WIN32
 int pmemblk_check(const char *path, size_t bsize);
 #else
@@ -143,7 +145,6 @@ const char *pmemblk_errormsg(void);
 const char *pmemblk_errormsgU(void);
 const wchar_t *pmemblk_errormsgW(void);
 #endif
-
 
 #ifdef __cplusplus
 }

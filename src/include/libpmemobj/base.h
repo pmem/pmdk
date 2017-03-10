@@ -215,13 +215,14 @@ void _pobj_debug_notice(const char *func_name, const char *file, int line);
 #else
 #define pmemobj_errormsg pmemobj_errormsgU
 #endif
-const wchar_t *pmemobj_errormsgW(void);
-
-const char *pmemobj_errormsgU(void);
-#else
-const char *pmemobj_errormsg(void);
 #endif
 
+#ifndef _WIN32
+const char *pmemobj_errormsg(void);
+#else
+const char *pmemobj_errormsgU(void);
+const wchar_t *pmemobj_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

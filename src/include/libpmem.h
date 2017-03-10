@@ -77,7 +77,6 @@ void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 #else
 void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
-
 void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
 #endif
@@ -111,8 +110,8 @@ const char *pmem_check_version(
 #ifndef _WIN32
 const char *pmem_errormsg(void);
 #else
-const wchar_t *pmem_errormsgW(void);
 const char *pmem_errormsgU(void);
+const wchar_t *pmem_errormsgW(void);
 #endif
 
 #ifdef __cplusplus
