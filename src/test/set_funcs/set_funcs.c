@@ -274,7 +274,7 @@ test_obj(const char *path)
 					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
 
-	unlink(path);
+	UNLINK(path);
 }
 
 static void
@@ -304,7 +304,7 @@ test_blk(const char *path)
 	if (cnt[BLK].mallocs + cnt[BLK].strdups != cnt[BLK].frees)
 		UT_FATAL("BLK memory leak");
 
-	unlink(path);
+	UNLINK(path);
 }
 
 static void
@@ -333,7 +333,7 @@ test_log(const char *path)
 	if (cnt[LOG].mallocs + cnt[LOG].strdups != cnt[LOG].frees)
 		UT_FATAL("LOG memory leak");
 
-	unlink(path);
+	UNLINK(path);
 }
 
 static void

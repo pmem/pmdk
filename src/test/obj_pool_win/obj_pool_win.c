@@ -56,7 +56,7 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 	if (pop == NULL)
 		UT_OUT("!%s: pmemobj_create", upath);
 	else {
-		ut_util_stat_t stbuf;
+		os_stat_t stbuf;
 		STATW(path, &stbuf);
 
 		UT_OUT("%s: file size %zu mode 0%o",

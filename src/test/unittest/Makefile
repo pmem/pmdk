@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,9 +37,14 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../..
 include $(TOP)/src/common.inc
 
+vpath %.c $(TOP)/src/common
+vpath %.h $(TOP)/src/common
+
 TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o
+OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
+	os_linux.o
 CFLAGS = -I$(TOP)/src/include
+CFLAGS += -I$(TOP)/src/common
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
 CFLAGS += -Wall

@@ -209,7 +209,7 @@ wmain(int argc, wchar_t *argv[])
 				fd = WOPEN(argv[i], O_RDWR);
 
 				if (!use_mlen) {
-					ut_util_stat_t stbuf;
+					os_stat_t stbuf;
 					FSTAT(fd, &stbuf);
 					mlen = stbuf.st_size;
 				}

@@ -36,6 +36,7 @@
 
 #ifndef NVML_OS_H
 #define NVML_OS_H 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,7 +64,26 @@ FILE *os_fopen(const char *pathname, const char *mode);
 FILE *os_fdopen(int fd, const char *mode);
 int os_chmod(const char *pathname, mode_t mode);
 int os_mkstemp(char *temp);
+
+/*
+ * XXX: missing APis (used in ut_file.c)
+ *
+ * ftruncate
+ * rename
+ * flock
+ * read
+ * write
+ * writev
+ * posix_fallocate
+ * strsignal
+ * rand_r
+ * setenv
+ * unsetenv
+ * clock_gettime
+ */
+
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* os.h */

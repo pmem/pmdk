@@ -71,7 +71,7 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 		return;
 	}
 
-	ut_util_stat_t stbuf;
+	os_stat_t stbuf;
 	STATW(path, &stbuf);
 
 	UT_OUT("%s: file size %zu mode 0%o", _path.get(), stbuf.st_size,

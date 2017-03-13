@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if (access(argv[1], F_OK) != 0) {
+	if (os_access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
 		(PMEMOBJ_MIN_POOL) + (THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);

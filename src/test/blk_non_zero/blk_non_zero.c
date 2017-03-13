@@ -91,7 +91,7 @@ static int
 is_zeroed(const char *path)
 {
 	int fd = OPEN(path, O_RDWR);
-	ut_util_stat_t stbuf;
+	os_stat_t stbuf;
 
 	FSTAT(fd, &stbuf);
 

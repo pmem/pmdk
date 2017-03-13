@@ -116,6 +116,9 @@ extern "C" {
 #include <dirent.h>
 #include <pthread.h>
 
+/* XXX: move OS abstraction layer out of common */
+#include "os.h"
+
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
@@ -123,31 +126,16 @@ int ut_get_uuid_str(char *);
 
 /* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
 void ut_strerror(int errnum, char *buff, size_t bufflen);
-/* XXX - eliminate duplicated definitions in unittest.h and util.h */
-#ifndef _WIN32
-typedef struct stat ut_util_stat_t;
-#define ut_util_fstat fstat
-#define ut_util_stat stat
-#define ut_util_lseek lseek
-#else
-typedef struct _stat64 ut_util_stat_t;
-#define ut_util_fstat _fstat64
-static inline int ut_util_stat(const char *path,
-	ut_util_stat_t *st_bufp) {
-	int retVal = _stat64(path, st_bufp);
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-	return retVal;
-}
 
+/* XXX - eliminate duplicated definitions in unittest.h and util.h */
+#ifdef _WIN32
 static inline int ut_util_statW(const wchar_t *path,
-	ut_util_stat_t *st_bufp) {
+	os_stat_t *st_bufp) {
 	int retVal = _wstat64(path, st_bufp);
 	/* clear unused bits to avoid confusion */
 	st_bufp->st_mode &= 0600;
 	return retVal;
 }
-#define ut_util_lseek _lseeki64
 #endif
 
 /*
@@ -417,13 +405,13 @@ int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
     off_t offset, off_t len);
 
 int ut_stat(const char *file, int line, const char *func, const char *path,
-    ut_util_stat_t *st_bufp);
+    os_stat_t *st_bufp);
 
 int ut_statW(const char *file, int line, const char *func, const wchar_t *path,
-	ut_util_stat_t *st_bufp);
+	os_stat_t *st_bufp);
 
 int ut_fstat(const char *file, int line, const char *func, int fd,
-    ut_util_stat_t *st_bufp);
+    os_stat_t *st_bufp);
 
 int ut_flock(const char *file, int line, const char *func, int fd, int op);
 
