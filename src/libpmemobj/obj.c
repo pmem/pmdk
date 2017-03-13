@@ -797,6 +797,8 @@ obj_replica_init_local(PMEMobjpool *rep, int is_pmem)
 	/* init hooks */
 	rep->persist_remote = NULL;
 
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(rep, rep->size);
+
 	if (rep->is_pmem) {
 		rep->persist_local = pmem_persist;
 		rep->flush_local = pmem_flush;
