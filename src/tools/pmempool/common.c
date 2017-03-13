@@ -1321,7 +1321,7 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 			return -1;
 	} else {
 		memcpy((char *)file->addr + off, buff, nbytes);
-		util_persist_auto(util_fd_is_device_dax(file->fd),
+		util_persist_auto(util_file_is_device_dax(file->fname),
 				(char *)file->addr + off, nbytes);
 	}
 	return 0;
