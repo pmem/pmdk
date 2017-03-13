@@ -130,7 +130,7 @@ run_mt_test(void *(*worker)(void *))
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "out_err_mt_win");
+	STARTW(argc, argv, "out_err_mt_win");
 
 	if (argc != 5)
 		UT_FATAL("usage: %S filename1 filename2 filename3 dir",

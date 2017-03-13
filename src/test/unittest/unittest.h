@@ -183,7 +183,7 @@ void ut_err(const char *file, int line, const char *func,
 #endif
 
 /* indicate the start of the test */
-#define WSTART(argc, argv, ...)\
+#define STARTW(argc, argv, ...)\
     ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
@@ -196,6 +196,9 @@ void ut_err(const char *file, int line, const char *func,
 		free(argv[i - 1]);\
 	ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 #endif
+
+#define DONEW(...)\
+    ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* fatal error detected */
 #define UT_FATAL(...)\

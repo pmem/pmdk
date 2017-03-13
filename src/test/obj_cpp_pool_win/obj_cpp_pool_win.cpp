@@ -164,7 +164,7 @@ get_root_closed()
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "obj_cpp_pool_win");
+	STARTW(argc, argv, "obj_cpp_pool_win");
 
 	if (argc < 4)
 		UT_FATAL("usage: %s op path layout [poolsize mode]", ut_toUTF8(argv[0]));

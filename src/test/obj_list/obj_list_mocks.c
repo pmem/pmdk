@@ -296,10 +296,10 @@ FUNC_MOCK(redo_log_store_last, void, const struct redo_ctx *ctx,
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(redo_log_store_last)(ctx,
 					redo, index, offset, value);
-			DONE(NULL);
+			DONEW(NULL);
 			break;
 		case FAIL_BEFORE_FINISH:
-			DONE(NULL);
+			DONEW(NULL);
 			break;
 		default:
 			_FUNC_REAL(redo_log_store_last)(ctx,
@@ -319,10 +319,10 @@ FUNC_MOCK(redo_log_set_last, void, const struct redo_ctx *ctx,
 		switch (Redo_fail) {
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(redo_log_set_last)(ctx, redo, index);
-			DONE(NULL);
+			DONEW(NULL);
 			break;
 		case FAIL_BEFORE_FINISH:
-			DONE(NULL);
+			DONEW(NULL);
 			break;
 		default:
 			_FUNC_REAL(redo_log_set_last)(ctx, redo, index);
@@ -340,7 +340,7 @@ FUNC_MOCK(redo_log_process, void, const struct redo_ctx *ctx,
 		FUNC_MOCK_RUN_DEFAULT {
 			_FUNC_REAL(redo_log_process)(ctx, redo, nentries);
 			if (Redo_fail == FAIL_AFTER_PROCESS) {
-				DONE(NULL);
+				DONEW(NULL);
 			}
 		}
 FUNC_MOCK_END

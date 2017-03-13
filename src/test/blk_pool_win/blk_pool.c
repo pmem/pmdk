@@ -98,7 +98,7 @@ pool_open(const wchar_t *path, size_t bsize)
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "blk_pool_win");
+	STARTW(argc, argv, "blk_pool_win");
 
 	if (argc < 4)
 		UT_FATAL("usage: %s op path bsize [poolsize mode]",

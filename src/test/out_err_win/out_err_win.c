@@ -50,7 +50,7 @@ wmain(int argc, wchar_t *argv[])
 {
 	char buff[UT_MAX_ERR_MSG];
 
-	WSTART(argc, argv, "out_err_win");
+	STARTW(argc, argv, "out_err_win");
 
 	/* Execute test */
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,

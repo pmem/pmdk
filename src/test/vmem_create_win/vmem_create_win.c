@@ -50,13 +50,13 @@ signal_handler(int sig)
 
 	vmem_delete(Vmp);
 
-	DONE(NULL);
+	DONEW(NULL);
 }
 
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "vmem_create_win");
+	STARTW(argc, argv, "vmem_create_win");
 
 	if (argc < 2 || argc > 3)
 		UT_FATAL("usage: %s directory", ut_toUTF8(argv[0]));

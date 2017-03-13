@@ -49,7 +49,7 @@ static PMEMobjpool *Pop;
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "libpmempool_rm_win");
+	STARTW(argc, argv, "libpmempool_rm_win");
 	if (argc < 2)
 		FATAL_USAGE(ut_toUTF8(argv[0]));
 

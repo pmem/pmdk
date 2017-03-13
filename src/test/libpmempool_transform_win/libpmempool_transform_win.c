@@ -44,7 +44,7 @@
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "libpmempool_transform_win");
+	STARTW(argc, argv, "libpmempool_transform_win");
 	if (argc != 4)
 		UT_FATAL("usage: %s poolset_in poolset_out flags",
 			ut_toUTF8(argv[0]));

@@ -146,7 +146,7 @@ do_check(int fd, void *addr, size_t mlen)
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "pmem_map_file_win");
+	STARTW(argc, argv, "pmem_map_file_win");
 
 	int fd;
 	void *addr;

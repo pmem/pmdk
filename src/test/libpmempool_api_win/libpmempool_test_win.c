@@ -127,7 +127,7 @@ set_flag(const wchar_t *value, int *flags, int flag)
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "libpmempool_test_win");
+	STARTW(argc, argv, "libpmempool_test_win");
 	struct pmempool_check_args_1_0 args = {
 		.path = NULL,
 		.backup_path = NULL,

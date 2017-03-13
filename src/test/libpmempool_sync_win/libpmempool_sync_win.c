@@ -44,7 +44,7 @@
 int
 wmain(int argc, wchar_t *argv[])
 {
-	WSTART(argc, argv, "libpmempool_sync_win");
+	STARTW(argc, argv, "libpmempool_sync_win");
 	if (argc != 3)
 		UT_FATAL("usage: %s poolset_file flags", ut_toUTF8(argv[0]));
 
