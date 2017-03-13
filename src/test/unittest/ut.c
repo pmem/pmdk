@@ -122,11 +122,17 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
  * ut_spawnv -- creates and executes new synchronous process,
  * ... are additional parameters to new process,
  * the last argument must be a NULL
+ *
+ * XXX: argc/argv are ignored actually, as we need to use the unmodified
+ * UTF16-encoded command line args.
  */
 intptr_t
 ut_spawnv(int argc, const char **argv, ...)
 {
 	int va_count = 0;
+
+	int wargc;
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
 
 	va_list ap;
 	va_start(ap, argv);
@@ -136,21 +142,27 @@ ut_spawnv(int argc, const char **argv, ...)
 	va_end(ap);
 
 	/* 1 for terminating NULL */
-	char **argv2 = calloc(argc + va_count + 1, sizeof(char *));
-	if (argv2 == NULL) {
+	wchar_t **wargv2 = calloc(wargc + va_count + 1, sizeof(wchar_t *));
+	if (wargv2 == NULL) {
 		UT_ERR("Cannot calloc memory for new array");
 		return -1;
 	}
-	memcpy(argv2, argv, argc * sizeof(char *));
+	memcpy(wargv2, wargv, wargc * sizeof(wchar_t *));
 
 	va_start(ap, argv);
 	for (int i = 0; i < va_count; i++) {
-		argv2[argc + i] = va_arg(ap, char *);
+		char *a = va_arg(ap, char *);
+		wargv2[wargc + i] = ut_toUTF16(a);
 	}
 	va_end(ap);
 
-	intptr_t ret = _spawnv(_P_WAIT, argv2[0], argv2);
-	free(argv2);
+	intptr_t ret = _wspawnv(_P_WAIT, wargv2[0], wargv2);
+
+	for (int i = 0; i < va_count; i++) {
+		free(wargv2[wargc + i]);
+	}
+
+	free(wargv2);
 
 	return ret;
 }
