@@ -133,10 +133,13 @@ util_file_dir_next(struct dir_handle *handle, struct file_info *info)
 	LOG(3, "handle: %p info: %p", handle, info);
 	struct dirent *d = readdir(handle->dirp);
 	if (d == NULL)
-		return 0; /* break */
-	strcpy(info->filename, d->d_name);
+		return 1; /* break */
+	info->filename[NAME_MAX] = '\0';
+	strncpy(info->filename, d->d_name, NAME_MAX + 1);
+	if (info->filename[NAME_MAX] != '\0')
+		return -1; /* filename truncated */
 	info->is_dir = d->d_type == DT_DIR;
-	return 1; /* continue */
+	return 0; /* continue */
 }
 
 /*
