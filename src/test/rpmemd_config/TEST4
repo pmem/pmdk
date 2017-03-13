@@ -50,24 +50,27 @@ LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_temp.log
 rm -rf $LOG $LOG_TEMP
 
-CONFIG=$DIR/in${UNITTEST_NUM}.conf
+# use empty config to prevent loading config file from default location
+# which may have nondefault configuration
+EMPTY_CONFIG=$DIR/empty.conf
+touch $EMPTY_CONFIG
 
 function check_user_home_dir {
 	HOME_STR=\\\$HOME
 
-	expect_normal_exit $RPMEMD print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD --poolset-dir=$HOME_STR print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=$HOME_STR print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD --poolset-dir=prefix$HOME_STR print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=prefix$HOME_STR print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD --poolset-dir=${HOME_STR}stickysuffix print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=${HOME_STR}stickysuffix print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD --poolset-dir=${HOME_STR}/suffix print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=${HOME_STR}/suffix print_HOME_env
 	cat $LOG >> $LOG_TEMP
 }
 
