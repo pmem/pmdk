@@ -46,6 +46,7 @@ $Env:UNITTEST_NUM = "1"
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_no_unicode
 
 setup
 

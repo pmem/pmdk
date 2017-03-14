@@ -46,6 +46,7 @@ $Env:UNITTEST_NUM = "13"
 
 require_build_type debug nondebug
 require_test_type medium
+require_no_unicode
 
 setup
 

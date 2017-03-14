@@ -51,6 +51,7 @@ $Env:UNITTEST_NUM = "1"
 
 require_test_type medium
 require_build_type debug nondebug
+require_no_unicode
 
 # XXX - there's no Windows equivalent of Valgrind/pmemcheck yet
 #configure_valgrind pmemcheck force-enable
