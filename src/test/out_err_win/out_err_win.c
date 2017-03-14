@@ -83,5 +83,5 @@ wmain(int argc, wchar_t *argv[])
 	/* Cleanup */
 	common_fini();
 
-	DONE(NULL);
+	DONEW(NULL);
 }

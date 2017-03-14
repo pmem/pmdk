@@ -181,5 +181,5 @@ wmain(int argc, wchar_t *argv[])
 	UT_ASSERTeq(ppc, NULL);
 	print_errors(L"pmempool_check_init");
 
-	DONE(NULL);
+	DONEW(NULL);
 }

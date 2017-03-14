@@ -31,9 +31,9 @@
  */
 
 /*
- * blk_pool.c -- unit test for pmemblk_create() and pmemblk_open()
+ * blk_pool_win.c -- unit test for pmemblk_create() and pmemblk_open()
  *
- * usage: blk_pool op path bsize [poolsize mode]
+ * usage: blk_pool_win op path bsize [poolsize mode]
  *
  * op can be:
  *   c - create
@@ -124,5 +124,5 @@ wmain(int argc, wchar_t *argv[])
 		UT_FATAL("unknown operation");
 	}
 
-	DONE(NULL);
+	DONEW(NULL);
 }

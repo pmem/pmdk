@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26014.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_minimal", "examples\libpmemobj\pmemlog\obj_pmemlog_minimal.vcxproj", "{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}"
 EndProject
@@ -332,7 +332,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create_in_region", "te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{746BA101-5C93-42A5-AC7A-64DCEB186572}"
 	ProjectSection(SolutionItems) = preProject
-		test\out_err_win\out_err_win.vcxproj = test\out_err_win\out_err_win.vcxproj
 		test\RUNTESTS.ps1 = test\RUNTESTS.ps1
 	EndProjectSection
 EndProject

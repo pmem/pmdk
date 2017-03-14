@@ -227,5 +227,5 @@ wmain(int argc, wchar_t *argv[])
 		}
 	}
 
-	DONE(NULL);
+	DONEW(NULL);
 }

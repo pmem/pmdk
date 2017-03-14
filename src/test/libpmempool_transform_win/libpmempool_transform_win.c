@@ -54,5 +54,5 @@ wmain(int argc, wchar_t *argv[])
 	UT_OUT("result: %d, errno: %d", ret, errno);
 	UT_ASSERTeq(ret, 0);
 
-	DONE(NULL);
+	DONEW(NULL);
 }

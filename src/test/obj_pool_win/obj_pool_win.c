@@ -123,5 +123,5 @@ wmain(int argc, wchar_t *argv[])
 		UT_FATAL("unknown operation");
 	}
 
-	DONE(NULL);
+	DONEW(NULL);
 }

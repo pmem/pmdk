@@ -97,9 +97,9 @@
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
     <None Include="out2.log.match" />
-    <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
-    <None Include="TEST2.PS1" />
+    <None Include="TEST0w.PS1" />
+    <None Include="TEST1w.PS1" />
+    <None Include="TEST2w.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">

@@ -176,5 +176,5 @@ wmain(int argc, wchar_t *argv[])
 
 	check_pool((struct pmempool_check_argsW *)&args, args_size);
 
-	DONE(NULL);
+	DONEW(NULL);
 }

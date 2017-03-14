@@ -21,6 +21,11 @@
   <ItemGroup>
     <ClCompile Include="vmem_create_win.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="err0.log.match" />
+    <None Include="out0.log.match" />
+    <None Include="TEST0.PS1" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BF3B6C3A-3073-4AD4-BB41-A41047231982}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
