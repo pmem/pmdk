@@ -148,9 +148,8 @@ main(int argc, char *argv[])
 			TX_BEGIN_PARAM(pop, lock_type, lock) {
 				TOID(struct foo) f = TX_NEW(struct foo);
 				TX_SET(root, foo, f);
-				D_RW(f)->bar = BAR_VALUE;
 				pmemobj_persist(pop,
-					&D_RW(f)->bar,
+					&D_RW(root)->foo,
 					sizeof(PMEMoid));
 				VALGRIND_PMEMCHECK_END_TX;
 

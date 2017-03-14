@@ -44,6 +44,7 @@
 #include "container_seglists.h"
 #include "container.h"
 #include "alloc_class.h"
+#include "valgrind_internal.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
@@ -75,9 +76,11 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 {
 	l->zone0.chunk_headers[chunk_id].size_idx = 1;
 	l->zone0.chunk_headers[chunk_id].type = CHUNK_TYPE_RUN;
+	l->zone0.chunk_headers[chunk_id].flags = 0;
 
 	struct chunk_run *run = (struct chunk_run *)
 		&l->zone0.chunks[chunk_id];
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
 	run->block_size = 1024;
 	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
