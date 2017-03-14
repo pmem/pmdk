@@ -451,7 +451,8 @@ do_added_parts_exist(struct pool_set *set,
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			/* check if part file exists */
 			int oerrno = errno;
-			if (access(rep->part[p].path, F_OK) == 0) {
+			if (access(rep->part[p].path, F_OK) == 0 &&
+					!rep->part[p].is_dev_dax) {
 				LOG(1, "part file %s exists",
 						rep->part[p].path);
 				return 1;
