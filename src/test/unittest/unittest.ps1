@@ -972,7 +972,9 @@ function require_non_pmem {
 function require_fs_type {
     sv -Name req_fs_type 1 -Scope Global
     for ($i=0;$i -lt $args.count;$i++) {
-        if ($args[$i] -eq $Env:FS) {
+        # treat any as either pmem or non-pmem
+        if ($Env:FORCE_FS -eq 1 -and $args[$i] -eq "any" -and $Env:FS -ne "none" -or`
+            $args[$i] -eq $Env:FS) {
             switch ($REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }

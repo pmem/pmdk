@@ -416,7 +416,11 @@ do
 		shift 2
 		case "$fstype"
 		in
-		none|pmem|non-pmem|any|all)
+		none|pmem|non-pmem|any)
+			# necessary to treat "any" as either pmem or non-pmem with "-f"
+			export FORCE_FS=1
+			;;
+		all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"

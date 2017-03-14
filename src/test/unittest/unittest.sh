@@ -894,7 +894,10 @@ function require_fs_type() {
 	req_fs_type=1
 	for type in $*
 	do
-		[ "$type" = "$FS" ] &&
+		# treat any as either pmem or non-pmem
+		[ "$type" = "$FS" ] ||
+			([ -n "${FORCE_FS:+x}" ] && [ "$type" = "any" ] &&
+			[ "$FS" != "none" ]) &&
 		case "$REAL_FS"
 		in
 		pmem)
