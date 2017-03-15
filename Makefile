@@ -100,6 +100,9 @@ clobber:
 test check pcheck check-remote: all
 	$(MAKE) -C src $@
 
+unicode_check:
+	$(MAKE) -C src $@
+
 cstyle:
 	@utils/check-commit.sh
 	$(MAKE) -C src $@

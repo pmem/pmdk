@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@ CP = cp
 CSTYLE = $(TOP)/utils/cstyle
 CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
+UNICODE_CHECK = $(TOP)/utils/check_unicode_api.sh
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)

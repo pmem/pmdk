@@ -58,7 +58,8 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemblk.h include/libpmemlog.h\
 		include/libvmmalloc.h
 
-OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
+OBJ_HEADERS_DIR = include/libpmemobj
+OBJ_HEADERS_INSTALL = $(OBJ_HEADERS_DIR)/*.h
 
 CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
 
@@ -102,6 +103,8 @@ HEADERS =\
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addprefix debug/, $(addsuffix tmp, $(HEADERS)))
 endif
+
+UNICODE_EXCLUDE_PATTERN ?= set_funcs|strdup
 
 debug/%.htmp: %.h
 	$(call check-cstyle, $<, $@)
@@ -186,7 +189,11 @@ uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
-cstyle:
+unicode_check:
+	@echo Checking files for unicode API issues...
+	@$(UNICODE_CHECK) -i $(OBJ_HEADERS_DIR) -x "$(UNICODE_EXCLUDE_PATTERN)" $(HEADERS_INSTALL)
+
+cstyle: unicode_check
 	$(STYLE_CHECK) check $(HEADERS)
 
 format:
