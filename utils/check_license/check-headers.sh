@@ -56,6 +56,7 @@ shift
 
 PATTERN=`mktemp`
 TMP=`mktemp`
+TEMPFILE=`mktemp`
 rm -f $PATTERN $TMP
 
 function exit_if_not_exist()
@@ -140,7 +141,11 @@ $CHECK_LICENSE create $LICENSE $PATTERN
 RV=0
 for file in $FILES ; do
 	[ ! -f $file ] && continue
-	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $file`
+	# ensure that file is UTF-8 encoded
+	ENCODING=`file -b --mime-encoding $file`
+	iconv -f $ENCODING -t "UTF-8" -o $TEMPFILE $file
+
+	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE $file`
 	if [ $? -ne 0 ]; then
 		echo -n $YEARS
 		RV=1
@@ -188,7 +193,7 @@ for file in $FILES ; do
 	fi
 done
 rm -f $TMP
-
+rm -f $TEMPFILE
 # check if error found
 if [ $RV -eq 0 ]; then
 	echo "Copyright headers are OK."

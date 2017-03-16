@@ -45,6 +45,21 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmemlog_open pmemlog_openW
+#define pmemlog_create pmemlog_createW
+#define pmemlog_check pmemlog_checkW
+#define pmemlog_check_version pmemlog_check_versionW
+#define pmemlog_errormsg pmemlog_errormsgW
+#else
+#define pmemlog_open pmemlog_openU
+#define pmemlog_create pmemlog_createU
+#define pmemlog_check pmemlog_checkU
+#define pmemlog_check_version pmemlog_check_versionU
+#define pmemlog_errormsg pmemlog_errormsgU
+#endif
+
 #else
 #include <sys/uio.h>
 #endif
@@ -52,6 +67,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #include <sys/types.h>
 
 /*
@@ -68,19 +84,44 @@ typedef struct pmemlog PMEMlogpool;
  */
 #define PMEMLOG_MAJOR_VERSION 1
 #define PMEMLOG_MINOR_VERSION 0
-const char *pmemlog_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *pmemlog_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmemlog_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /*
  * support for PMEM-resident log files...
  */
 #define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
+#ifndef _WIN32
 PMEMlogpool *pmemlog_open(const char *path);
+#else
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+#endif
+
+#ifndef _WIN32
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
-void pmemlog_close(PMEMlogpool *plp);
+#else
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+#endif
+
+#ifndef _WIN32
 int pmemlog_check(const char *path);
+#else
+int pmemlog_checkU(const char *path);
+int pmemlog_checkW(const wchar_t *path);
+#endif
+
+void pmemlog_close(PMEMlogpool *plp);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
@@ -101,7 +142,12 @@ void pmemlog_set_funcs(
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
 
+#ifndef _WIN32
 const char *pmemlog_errormsg(void);
+#else
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

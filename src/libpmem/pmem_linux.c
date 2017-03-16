@@ -37,6 +37,7 @@
 #include <stddef.h>
 
 #include "pmem.h"
+#include "os.h"
 #include "out.h"
 #include "mmap.h"
 

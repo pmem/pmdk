@@ -1,4 +1,4 @@
-#
+﻿#
 # Copyright 2015-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -235,19 +235,6 @@ function create_nonzeroed_file {
 }
 
 #
-# require_pmem -- only allow script to continue for a real PMEM device
-#
-function require_pmem {
-    # note: PMEM_IS_PMEM 0 means it is PMEM, 1 means it is not
-    if ($PMEM_IS_PMEM -eq "0") {
-        return $true
-    } Else {
-        Write-Error "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
-        exit 1
-    }
-}
-
-#
 # create_poolset -- create a dummy pool set
 #
 # Creates a pool set file using the provided list of part sizes and paths.
@@ -295,7 +282,7 @@ function require_pmem {
 #
 function create_poolset {
     $psfile = $args[0]
-    echo "PMEMPOOLSET" | out-file -encoding ASCII $psfile
+    echo "PMEMPOOLSET" | out-file -encoding utf8 $psfile
     for ($i=1;$i -lt $args.count;$i++) {
         if ($args[$i] -eq "M" -Or $args[$i] -eq 'm') { # remote replica
             $i++
@@ -303,11 +290,11 @@ function create_poolset {
             $fparms = ($cmd.Split("{:}"))
             $node = $fparms[0]
             $desc = $fparms[1]
-            echo "REPLICA $node $desc" | out-file -Append -encoding ASCII $psfile
+            echo "REPLICA $node $desc" | out-file -Append -encoding utf8 $psfile
             continue
         }
         if ($args[$i] -eq "R" -Or $args[$i] -eq 'r') {
-            echo "REPLICA" | out-file -Append -encoding ASCII $psfile
+            echo "REPLICA" | out-file -Append -encoding utf8 $psfile
             continue
         }
         $cmd = $args[$i]
@@ -354,7 +341,7 @@ function create_poolset {
         #     chmod $mode $fpath
         # fi
 
-        echo "$fsize $fpath" | out-file -Append -encoding ASCII $psfile
+        echo "$fsize $fpath" | out-file -Append -encoding utf8 $psfile
     } # for args
 }
 
@@ -584,20 +571,6 @@ function require_binary() {
 }
 
 #
-# converts file to UTF8 w/o bom encoding
-#
-function convert_files_to_utf8_wo_bom {
-    sv -Name files $args[0]
-    foreach($file in $files) {
-        $content = Get-Content $file
-        $path = (Get-Item -Path ".\" -Verbose).FullName | Join-Path -ChildPath $file
-        if($content -ne $null) {
-            [IO.File]::WriteAllLines($path, $content)
-        }
-    }
-}
-
-#
 # check -- check test results (using .match files)
 #
 # note: win32 version slightly different since the caller can't as
@@ -612,11 +585,6 @@ function check {
     }
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        $outputs = $listing.Split(' ')
-        for($i=0; $i -lt $outputs.Count; $i++) {
-            $outputs[$i] = ([io.fileinfo]$outputs[$i]).basename # remove .match extension
-        }
-        convert_files_to_utf8_wo_bom $outputs
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
         $pinfo.FileName = "perl"
         $pinfo.RedirectStandardError = $true
@@ -755,11 +723,11 @@ function get_size {
 # set_file_mode IsReadOnly $true file1 file2
 #
 function set_file_mode {
-	$mode = $args[0]
-	$flag = $args[1]
-	for ($i=2;$i -lt $args.count;$i++) {
-		Set-ItemProperty $args[$i] -name $mode -value $flag
-	}
+    $mode = $args[0]
+    $flag = $args[1]
+    for ($i=2;$i -lt $args.count;$i++) {
+        Set-ItemProperty $args[$i] -name $mode -value $flag
+    }
 }
 
 #
@@ -850,7 +818,7 @@ function check_layout {
     $buff = New-Object Byte[] $LAYOUT_LEN
     # you must assign return value otherwise PS will print it to stdout
     $num = $stream.Read($buff, 0, $LAYOUT_LEN)
-    $enc = [System.Text.Encoding]::ASCII.GetString($buff)
+    $enc = [System.Text.Encoding]::UTF8.GetString($buff)
     $stream.Close()
     if ($enc -ne $layout) {
         Write-Error "error: layout doesn't match $enc != $layout"
@@ -955,6 +923,19 @@ function compare_replicas {
 }
 
 #
+# require_pmem -- only allow script to continue for a real PMEM device
+#
+function require_pmem {
+    # note: PMEM_IS_PMEM 0 means it is PMEM, 1 means it is not
+    if ($PMEM_IS_PMEM -eq "0") {
+        return $true
+    } Else {
+        Write-Error "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
+        exit 1
+    }
+}
+
+#
 # require_non_pmem -- only allow script to continue for a non-PMEM device
 #
 function require_non_pmem {
@@ -972,9 +953,7 @@ function require_non_pmem {
 function require_fs_type {
     sv -Name req_fs_type 1 -Scope Global
     for ($i=0;$i -lt $args.count;$i++) {
-        # treat any as either pmem or non-pmem
-        if ($Env:FORCE_FS -eq 1 -and $args[$i] -eq "any" -and $Env:FS -ne "none" -or`
-            $args[$i] -eq $Env:FS) {
+        if ($args[$i] -eq $Env:FS) {
             switch ($REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }
@@ -1004,10 +983,31 @@ function dax_device_zero() {
 }
 
 #
+# require_no_unicode -- require $DIR w/o non-ASCII characters
+#
+function require_no_unicode {
+    $Env:SUFFIX = ""
+
+    $u = [System.Text.Encoding]::UNICODE
+
+    [string]$DIR_ASCII = [System.Text.Encoding]::Convert([System.Text.Encoding]::UNICODE,
+            [System.Text.Encoding]::ASCII, $u.getbytes($DIR))
+    [string]$DIR_UTF8 = [System.Text.Encoding]::Convert([System.Text.Encoding]::UNICODE,
+            [System.Text.Encoding]::UTF8, $u.getbytes($DIR))
+
+    if ($DIR_UTF8 -ne $DIR_ASCII) {
+        #if (-Not $Env:UNITTEST_QUIET) {
+            Write-Host "${Env:UNITTEST_NAME}: SKIP required: test directory path without non-ASCII characters"
+        #}
+        exit 0
+    }
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup {
-    $Env:LC_ALL = "C"
+    $Script:DIR = $DIR + $Env:SUFFIX
 
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
@@ -1048,6 +1048,10 @@ function setup {
         mkdir $DIR > $null
     }
 
+    # XXX: do it before setup() is invoked
+    # set console encoding to UTF-8
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
     if ($Env:TM -eq "1" ) {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
     }
@@ -1065,7 +1069,6 @@ function dump_last_n_lines {
 
         Write-Host (Get-Content $fname -Tail $ln)
     }
-
 }
 
 #
@@ -1102,7 +1105,8 @@ if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
 if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
-$Env:EXESUFFIX = ".exe"
+if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
+if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
 
 if ($Env:EXE_DIR -eq $null) {
     $Env:EXE_DIR = "..\..\x64\debug"
@@ -1138,13 +1142,6 @@ if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
 }
 
 #
-# When running static binary tests, append the build type to the binary
-#
-#switch -wildcard ($Env:BUILD) {
-#    'static-*' {$Env:EXESUFFIX = '.' + $Env:BUILD}
-#}
-
-#
 # The variable DIR is constructed so the test uses that directory when
 # constructing test files.  DIR is chosen based on the fs-type for
 # this test, and if the appropriate fs-type doesn't have a directory
@@ -1176,33 +1173,38 @@ if (-Not $Env:UNITTEST_NAME) {
 sv -Name REAL_FS $Env:FS
 if ($DIR) {
     # if user passed it in...
-    sv -Name "DIR" ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
+    sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
-        'pmem' { sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-                 if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-                     $Env:PMEM_IS_PMEM_FORCE = "1"
-                 }
-               }
-        'non-pmem' { sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail) }
-        'any' { if ($Env:PMEM_FS_DIR) {
-                    sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-                    $REAL_FS='pmem'
-                    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-                        $Env:PMEM_IS_PMEM_FORCE = "1"
-                    }
-                } ElseIf ($Env:NON_PMEM_FS_DIR) {
-                    sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
-                    $REAL_FS='non-pmem'
-                } Else {
-                    Write-Error "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
-                    exit 1
+        'pmem' {
+            sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+            if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+                $Env:PMEM_IS_PMEM_FORCE = "1"
+            }
+        }
+        'non-pmem' {
+             sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+        }
+        'any' {
+             if ($Env:PMEM_FS_DIR) {
+                sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+                $REAL_FS='pmem'
+                if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+                    $Env:PMEM_IS_PMEM_FORCE = "1"
                 }
-              }
+            } ElseIf ($Env:NON_PMEM_FS_DIR) {
+                sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+                $REAL_FS='non-pmem'
+            } Else {
+                Write-Error "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
+                exit 1
+            }
+        }
         'none' {
-            sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}" }
+            sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}"
+        }
         default {
             if (-Not $Env:UNITTEST_QUIET) {
                 Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
@@ -1279,8 +1281,8 @@ $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 # It also removes all log files created by tests: out*.log, err*.log and trace*.log
 #
 function enable_log_append() {
-	rm -Force -ErrorAction SilentlyContinue "out${Env:UNITTEST_NUM}.log"
-	rm -Force -ErrorAction SilentlyContinue "err${Env:UNITTEST_NUM}.log"
-	rm -Force -ErrorAction SilentlyContinue "trace${Env:UNITTEST_NUM}.log"
-	$Env:UNITTEST_LOG_APPEND=1
+    rm -Force -ErrorAction SilentlyContinue "out${Env:UNITTEST_NUM}.log"
+    rm -Force -ErrorAction SilentlyContinue "err${Env:UNITTEST_NUM}.log"
+    rm -Force -ErrorAction SilentlyContinue "trace${Env:UNITTEST_NUM}.log"
+    $Env:UNITTEST_LOG_APPEND=1
 }

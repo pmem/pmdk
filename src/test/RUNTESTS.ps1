@@ -53,7 +53,7 @@ Param(
     [alias("d")]
     $dreceivetype = "auto",
     [alias("o")]
-    $time = "60s",
+    $time = "180s",
     [alias("s")]
     $testfile = "all",
     [alias("i")]
@@ -165,6 +165,14 @@ if (-Not ("auto" -match $dreceivetype)) {
 }
 sv -Name receivetype $mreceivetype
 
+function read_global_test_configuration {
+    if ((Test-Path "config.PS1")) {
+        # source the test configuration file
+        . ".\config.PS1"
+        return;
+    }
+}
+
 #
 # runtest -- given the test directory name, run tests found inside it
 #
@@ -176,9 +184,9 @@ function runtest {
     [int64]$timeval = $time.Substring(0,$time.length-1)
     if ($time -match "m") {
         [int64]$time = $timeval * 60
-    } ElseIf ($time -eq "h") {
+    } ElseIf ($time -match "h") {
         [int64]$time = $timeval * 60 * 60
-    } ElseIf ($time -eq "d") {
+    } ElseIf ($time -match "d") {
         [int64]$time = $timeval * 60 * 60 * 24
     } Else {
         [int64]$time = $timeval
@@ -231,7 +239,17 @@ function runtest {
         if ($verbose) {
             Write-Host "RUNTESTS: Test: $testName/$runscript "
         }
+
+        read_global_test_configuration
+        $test_fs = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
+
         Foreach ($fs in $fss.split(" ").trim()) {
+            if ($test_fs -ne $null) {
+                $res =  $test_fs | select-string -pattern $fs
+                if ($res-eq $null) {
+                    continue;
+                }
+            }
             # don't bother trying when fs-type isn't available...
             if ($fs -eq "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
                 $pmem_skip = 1
@@ -253,6 +271,7 @@ function runtest {
                 if ($verbose) {
                     Write-Host "RUNTESTS: Testing build-type: $build..."
                 }
+
                 $Env:CHECK_TYPE = $checktype
                 $Env:CHECK_POOL = $check_pool
                 $Env:VERBOSE = $verbose
@@ -297,6 +316,7 @@ function runtest {
                         $p | Stop-Process -Force
                         Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
+                        exit $p.ExitCode
                     }
                 } Else {
                     $p.WaitForExit()

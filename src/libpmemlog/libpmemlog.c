@@ -71,10 +71,13 @@ libpmemlog_fini(void)
 }
 
 /*
- * pmemlog_check_version -- see if lib meets application version requirements
+ * pmemlog_check_versionU -- see if lib meets application version requirements
  */
+#ifndef _WIN32
+static inline
+#endif
 const char *
-pmemlog_check_version(unsigned major_required, unsigned minor_required)
+pmemlog_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
@@ -94,6 +97,29 @@ pmemlog_check_version(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
+#ifndef _WIN32
+/*
+ * pmemlog_check_version -- see if lib meets application version requirements
+ */
+const char *
+pmemlog_check_version(unsigned major_required, unsigned minor_required)
+{
+	return pmemlog_check_versionU(major_required, minor_required);
+}
+#else
+/*
+ * pmemlog_check_versionW -- see if lib meets application version requirements
+ */
+const wchar_t *
+pmemlog_check_versionW(unsigned major_required, unsigned minor_required)
+{
+	if (pmemlog_check_versionU(major_required, minor_required) != NULL)
+		return out_get_errormsgW();
+	else
+		return NULL;
+}
+#endif
+
 /*
  * pmemlog_set_funcs -- allow overriding libpmemlog's call to malloc, etc.
  */
@@ -110,10 +136,34 @@ pmemlog_set_funcs(
 }
 
 /*
+ * pmemlog_errormsgU -- return last error message
+ */
+#ifndef _WIN32
+static inline
+#endif
+const char *
+pmemlog_errormsgU(void)
+{
+	return out_get_errormsg();
+}
+
+#ifndef _WIN32
+/*
  * pmemlog_errormsg -- return last error message
  */
 const char *
 pmemlog_errormsg(void)
 {
-	return out_get_errormsg();
+	return pmemlog_errormsgU();
 }
+#else
+/*
+ * pmemlog_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+pmemlog_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+
+#endif

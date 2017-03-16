@@ -41,6 +41,7 @@
 #include <dirent.h>
 
 #include "file.h"
+#include "os.h"
 #include "out.h"
 
 /*
@@ -65,7 +66,7 @@ util_tmpfile(const char *dir, const char *templ)
 
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
 
-	fd = mkstemp(fullname);
+	fd = os_mkstemp(fullname);
 
 	umask(prev_umask);
 
@@ -74,7 +75,7 @@ util_tmpfile(const char *dir, const char *templ)
 		goto err;
 	}
 
-	(void) unlink(fullname);
+	(void) os_unlink(fullname);
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
 	LOG(3, "unlinked file is \"%s\"", fullname);
 
@@ -84,7 +85,7 @@ err:
 	oerrno = errno;
 	(void) sigprocmask(SIG_SETMASK, &oldset, NULL);
 	if (fd != -1)
-		(void) close(fd);
+		(void) os_close(fd);
 	errno = oerrno;
 	return -1;
 }

@@ -184,7 +184,7 @@ extract_funcs = $(shell \
     grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
     awk '{print "-Wl,--wrap="$$0}')
 
-INCS += -I../unittest -I$(TOP)/src/include
+INCS += -I../unittest -I$(TOP)/src/include -I$(TOP)/src/common
 
 COMMON_FLAGS  = -ggdb
 COMMON_FLAGS += -Wall

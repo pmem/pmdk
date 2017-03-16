@@ -37,13 +37,18 @@ LIBRARY libpmemobj
 VERSION 1.0
 
 EXPORTS
-	pmemobj_check_version
+	pmemobj_check_versionU
+	pmemobj_check_versionW
 	pmemobj_set_funcs
-	pmemobj_errormsg
-	pmemobj_create
-	pmemobj_open
+	pmemobj_errormsgU
+	pmemobj_errormsgW
+	pmemobj_createU
+	pmemobj_createW
+	pmemobj_openU
+	pmemobj_openW
 	pmemobj_close
-	pmemobj_check
+	pmemobj_checkU
+	pmemobj_checkW
 	pmemobj_mutex_zero
 	pmemobj_mutex_lock
 	pmemobj_mutex_trylock

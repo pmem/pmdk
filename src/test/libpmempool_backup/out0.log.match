@@ -1,5 +1,5 @@
-libpmempool_backup$(nW)TEST0: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t blk -r 1
+libpmempool_backup$(nW)TEST0: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
 creating backup file: $(nW)pool.part1_backup
 creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
@@ -20,8 +20,8 @@ checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 status = consistent
 libpmempool_backup$(nW)TEST0: DONE
-libpmempool_backup$(nW)TEST0: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t log -r 1
+libpmempool_backup$(nW)TEST0: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
 creating backup file: $(nW)pool.part1_backup
 creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
@@ -38,8 +38,8 @@ checking pmemlog header
 pmemlog header correct
 status = consistent
 libpmempool_backup$(nW)TEST0: DONE
-libpmempool_backup$(nW)TEST0: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW)pool.set -b $(nW)pool.set_backup -t obj -r 1
+libpmempool_backup$(nW)TEST0: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
 creating backup file: $(nW)pool.part1_backup
 creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup

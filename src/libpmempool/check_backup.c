@@ -40,6 +40,7 @@
 
 #include "out.h"
 #include "file.h"
+#include "os.h"
 #include "libpmempool.h"
 #include "pmempool.h"
 #include "pool.h"
@@ -70,7 +71,7 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, "backup_path %s", ppc->backup_path);
 
-	if (access(ppc->backup_path, F_OK)) {
+	if (os_access(ppc->backup_path, F_OK)) {
 		if (errno == ENOENT) {
 			errno = 0;
 			return 0;
@@ -192,7 +193,7 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 			goto err_poolset;
 		}
 
-		if (access(drep->part[p].path, F_OK)) {
+		if (os_access(drep->part[p].path, F_OK)) {
 			if (errno == ENOENT) {
 				errno = 0;
 				continue;

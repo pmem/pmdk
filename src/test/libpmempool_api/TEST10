@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,8 +54,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL >> $LOG_TEMP
 $PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 check_file $POOL
 
-expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL\
-	-d 0 -r 0 -y 0 >> $LOG
+expect_normal_exit ./libpmempool_test$EXESUFFIX \
+	-d 0 -r 0 -y 0 $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
 rm -f $POOL
 
@@ -63,8 +63,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL >> $LOG_TEMP
 $PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 check_file $POOL
 
-expect_normal_exit ./libpmempool_test$EXESUFFIX $POOL\
-	-d 0 -r 1 -y 1 >> $LOG
+expect_normal_exit ./libpmempool_test$EXESUFFIX\
+	-d 0 -r 1 -y 1 $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG

@@ -42,12 +42,14 @@
 #include "out.h"
 #include "vmem.h"
 
-
 /*
- * vmem_check_version -- see if library meets application version requirements
+ * vmem_check_versionU -- see if library meets application version requirements
  */
+#ifndef _WIN32
+static inline
+#endif
 const char *
-vmem_check_version(unsigned major_required, unsigned minor_required)
+vmem_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	vmem_init();
 	LOG(3, "major_required %u minor_required %u",
@@ -67,6 +69,29 @@ vmem_check_version(unsigned major_required, unsigned minor_required)
 
 	return NULL;
 }
+
+#ifndef _WIN32
+/*
+ * vmem_check_version -- see if library meets application version requirements
+ */
+const char *
+vmem_check_version(unsigned major_required, unsigned minor_required)
+{
+	return vmem_check_versionU(major_required, minor_required);
+}
+#else
+/*
+ * vmem_check_versionW -- see if library meets application version requirements
+ */
+const wchar_t *
+vmem_check_versionW(unsigned major_required, unsigned minor_required)
+{
+	if (vmem_check_versionU(major_required, minor_required) != NULL)
+		return out_get_errormsgW();
+	else
+		return NULL;
+}
+#endif
 
 /*
  * vmem_set_funcs -- allow overriding libvmem's call to malloc, etc.
@@ -89,10 +114,33 @@ vmem_set_funcs(
 }
 
 /*
+ * vmem_errormsgU -- return last error message
+ */
+#ifndef _WIN32
+static inline
+#endif
+const char *
+vmem_errormsgU(void)
+{
+	return out_get_errormsg();
+}
+
+#ifndef _WIN32
+/*
  * vmem_errormsg -- return last error message
  */
 const char *
 vmem_errormsg(void)
 {
-	return out_get_errormsg();
+	return vmem_errormsgU();
 }
+#else
+/*
+ * vmem_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+vmem_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif

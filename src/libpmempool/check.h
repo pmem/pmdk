@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,3 +40,7 @@ void check_fini(PMEMpoolcheck *ppc);
 
 int check_is_end(struct check_data *data);
 struct pmempool_check_status *check_status_get(struct check_status *status);
+
+#ifdef _WIN32
+void convert_status_cache(PMEMpoolcheck *ppc, char *buf, size_t size);
+#endif

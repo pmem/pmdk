@@ -56,6 +56,7 @@
 
 #include "file.h"
 #include "out.h"
+#include "os.h"
 
 /*
  * util_tmpfile --  (internal) create the temporary file
@@ -82,9 +83,9 @@ util_tmpfile(const char *dir, const char *templ)
 	 * is created.
 	 */
 
-	fd = mkstemp(fullname);
+	fd = os_mkstemp(fullname);
 	if (fd < 0) {
-		ERR("!mkstemp");
+		ERR("!os_mkstemp");
 		goto err;
 	}
 
@@ -101,7 +102,7 @@ util_tmpfile(const char *dir, const char *templ)
 err:
 	oerrno = errno;
 	if (fd != -1)
-		(void) close(fd);
+		(void) os_close(fd);
 	errno = oerrno;
 	return -1;
 }

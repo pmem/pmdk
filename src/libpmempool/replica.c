@@ -48,6 +48,7 @@
 
 #include "obj.h"
 #include "file.h"
+#include "os.h"
 #include "out.h"
 #include "pool_hdr.h"
 #include "set.h"
@@ -122,7 +123,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	struct pool_set_part *part = &PART(REP(set, repn), partn);
 	if (part->fd != -1) {
-		close(part->fd);
+		os_close(part->fd);
 		part->fd = -1;
 	}
 
@@ -411,7 +412,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		}
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (access(rep->part[p].path, R_OK|W_OK) != 0) {
+			if (os_access(rep->part[p].path, R_OK|W_OK) != 0) {
 				LOG(1, "part file %s is not accessible",
 						rep->part[p].path);
 				errno = 0;
@@ -987,8 +988,8 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	char *path = Strdup(PART(REP(set, repn), partn).path);
 	const char *dir = dirname(path);
-	util_stat_t sb;
-	if (util_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+	os_stat_t sb;
+	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
 		ERR("a directory %s for part %u in replica %u"
 			" does not exist or is not accessible",
 			path, partn, repn);
@@ -1072,10 +1073,13 @@ err:
 }
 
 /*
- * pmempool_sync -- synchronize replicas within a poolset
+ * pmempool_syncU -- synchronize replicas within a poolset
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-pmempool_sync(const char *poolset, unsigned flags)
+pmempool_syncU(const char *poolset, unsigned flags)
 {
 	LOG(3, "poolset %s, flags %u", poolset, flags);
 	ASSERTne(poolset, NULL);
@@ -1119,14 +1123,14 @@ pmempool_sync(const char *poolset, unsigned flags)
 	}
 
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
-	close(fd);
+	os_close(fd);
 	return 0;
 
 err_close_all:
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 
 err_close_file:
-	close(fd);
+	os_close(fd);
 
 err:
 	if (errno == 0)
@@ -1135,11 +1139,43 @@ err:
 	return -1;
 }
 
+#ifndef _WIN32
 /*
- * pmempool_transform -- alter poolset structure
+ * pmempool_sync -- synchronize replicas within a poolset
  */
 int
-pmempool_transform(const char *poolset_src,
+pmempool_sync(const char *poolset, unsigned flags)
+{
+	return pmempool_syncU(poolset, flags);
+}
+#else
+/*
+ * pmempool_syncW -- synchronize replicas within a poolset in widechar
+ */
+int
+pmempool_syncW(const wchar_t *poolset, unsigned flags)
+{
+	char *path = util_toUTF8(poolset);
+	if (path == NULL) {
+		ERR("Invalid poolest file path.");
+		return -1;
+	}
+
+	int ret = pmempool_syncU(path, flags);
+
+	util_free_UTF8(path);
+	return ret;
+}
+#endif
+
+/*
+ * pmempool_transformU -- alter poolset structure
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmempool_transformU(const char *poolset_src,
 		const char *poolset_dst, unsigned flags)
 {
 	LOG(3, "poolset_src %s, poolset_dst %s, flags %u", poolset_src,
@@ -1177,10 +1213,10 @@ pmempool_transform(const char *poolset_src,
 	struct pool_set *set_in = NULL;
 	if (util_poolset_parse(&set_in, poolset_src, fd_in)) {
 		ERR("parsing source poolset failed");
-		close(fd_in);
+		os_close(fd_in);
 		goto err;
 	}
-	close(fd_in);
+	os_close(fd_in);
 
 	/* open the destination poolset file */
 	int fd_out = util_file_open(poolset_dst, NULL, 0, O_RDONLY);
@@ -1195,10 +1231,10 @@ pmempool_transform(const char *poolset_src,
 	struct pool_set *set_out = NULL;
 	if (util_poolset_parse(&set_out, poolset_dst, fd_out)) {
 		ERR("parsing destination poolset failed");
-		close(fd_out);
+		os_close(fd_out);
 		goto err_free_poolin;
 	}
-	close(fd_out);
+	os_close(fd_out);
 
 	/* check if the source poolset is of a correct type */
 	if (pool_set_type(set_in) != POOL_TYPE_OBJ) {
@@ -1240,3 +1276,42 @@ err:
 
 	return -1;
 }
+
+#ifndef _WIN32
+/*
+ * pmempool_transform -- alter poolset structure
+ */
+int
+pmempool_transform(const char *poolset_src,
+	const char *poolset_dst, unsigned flags)
+{
+	return pmempool_transformU(poolset_src, poolset_dst, flags);
+}
+#else
+/*
+ * pmempool_transformW -- alter poolset structure in widechar
+ */
+int
+pmempool_transformW(const wchar_t *poolset_src,
+	const wchar_t *poolset_dst, unsigned flags)
+{
+	char *path_src = util_toUTF8(poolset_src);
+	if (path_src == NULL) {
+		ERR("Invalid source poolest file path.");
+		return -1;
+	}
+
+	char *path_dst = util_toUTF8(poolset_dst);
+	if (path_dst == NULL) {
+		ERR("Invalid destination poolest file path.");
+		Free(path_src);
+		return -1;
+	}
+
+	int ret = pmempool_transformU(path_src, path_dst, flags);
+
+	util_free_UTF8(path_src);
+	util_free_UTF8(path_dst);
+	return ret;
+}
+#endif

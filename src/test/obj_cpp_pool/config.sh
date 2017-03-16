@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,20 +30,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_cpp_containers/TEST0 -- unit test for list API
+# obj_cpp_pool/config.sh -- test configuration
 #
-# Just run the unit test
-#
-export UNITTEST_NAME=obj_cpp_containers/TEST0
-export UNITTEST_NUM=0
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-setup
-
-pass
+CONF_GLOBAL_ENCODING="ascii unicode"
+CONF_GLOBAL_UNICODE_SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"

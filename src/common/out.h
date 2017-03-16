@@ -205,6 +205,20 @@ void out_fatal(const char *file, int line, const char *func,
 void out_set_print_func(void (*print_func)(const char *s));
 void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 	const char *format, va_list ap));
+
+#ifdef _WIN32
+#ifndef NVML_UTF8_API
+#define out_get_errormsg out_get_errormsgW
+#else
+#define out_get_errormsg out_get_errormsgU
+#endif
+#endif
+
+#ifndef _WIN32
 const char *out_get_errormsg(void);
+#else
+const char *out_get_errormsgU(void);
+const wchar_t *out_get_errormsgW(void);
+#endif
 
 #endif

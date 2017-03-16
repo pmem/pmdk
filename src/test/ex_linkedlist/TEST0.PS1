@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@ $Env:UNITTEST_NUM = "0"
 
 require_test_type medium
 require_build_type debug nondebug
+require_no_unicode
 
 setup
 

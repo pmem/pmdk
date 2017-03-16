@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@
  */
 
 #ifndef WRAP_REAL_OPEN
-#define open __wrap_open
+#define os_open __wrap_os_open
 #endif
 
 #ifndef WRAP_REAL_FALLOCATE

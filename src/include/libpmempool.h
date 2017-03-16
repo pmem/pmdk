@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,31 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmempool_check_status pmempool_check_statusW
+#define pmempool_check_args pmempool_check_argsW
+
+#define pmempool_check_init pmempool_check_initW
+#define pmempool_check pmempool_checkW
+#define pmempool_sync pmempool_syncW
+#define pmempool_transform pmempool_transformW
+#define pmempool_rm pmempool_rmW
+#define pmempool_check_version pmempool_check_versionW
+#define pmempool_errormsg pmempool_errormsgW
+#else
+#define pmempool_check_status pmempool_check_statusU
+#define pmempool_check_args pmempool_check_argsU
+
+#define pmempool_check_init pmempool_check_initU
+#define pmempool_check pmempool_checkU
+#define pmempool_sync pmempool_syncU
+#define pmempool_transform pmempool_transformU
+#define pmempool_rm pmempool_rmU
+#define pmempool_check_version pmempool_check_versionU
+#define pmempool_errormsg pmempool_errormsgU
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -72,7 +97,6 @@ enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_OBJ,
 	PMEMPOOL_POOL_TYPE_BTT,
 };
-
 
 /*
  * perform repairs
@@ -109,16 +133,6 @@ enum pmempool_check_msg_type {
 };
 
 /*
- * check context arguments
- */
-struct pmempool_check_args {
-	const char *path;
-	const char *backup_path;
-	enum pmempool_pool_type pool_type;
-	int flags;
-};
-
-/*
  * check result types
  */
 enum pmempool_check_result {
@@ -130,59 +144,20 @@ enum pmempool_check_result {
 };
 
 /*
- * check status
- */
-struct pmempool_check_status {
-	enum pmempool_check_msg_type type;
-	struct {
-		const char *msg;
-		const char *answer;
-	} str;
-};
-
-/*
  * check context
  */
-typedef struct pmempool_check PMEMpoolcheck;
-
-/*
- * initialize a check context
- */
-PMEMpoolcheck *
-pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
-
-/*
- * start / resume the check
- */
-struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
+typedef struct pmempool_check_ctx PMEMpoolcheck;
 
 /*
  * finalize the check and get the result
  */
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 
-/*
- * LIBPMEMPOOL SYNC & TRANSFORM
- */
-
-/*
- * Synchronize data between replicas within a poolset.
- */
-int pmempool_sync(const char *poolset_file, unsigned flags);
-
-/*
- * Modify internal structure of a poolset.
- */
-int pmempool_transform(const char *poolset_file_src,
-		const char *poolset_file_dst, unsigned flags);
-
-
 /* PMEMPOOL RM */
 
 #define PMEMPOOL_RM_FORCE		(1 << 0) /* ignore any errors */
 #define PMEMPOOL_RM_POOLSET_LOCAL	(1 << 1) /* remove local poolsets */
 #define PMEMPOOL_RM_POOLSET_REMOTE	(1 << 2) /* remove remote poolsets */
-int pmempool_rm(const char *path, int flags);
 
 /*
  * PMEMPOOL_MAJOR_VERSION and PMEMPOOL_MINOR_VERSION provide the current version
@@ -192,13 +167,125 @@ int pmempool_rm(const char *path, int flags);
  */
 #define PMEMPOOL_MAJOR_VERSION 1
 #define PMEMPOOL_MINOR_VERSION 1
-const char *pmempool_check_version(unsigned major_required,
-	unsigned minor_required);
 
 /*
- * get the last error message
+ * check status
  */
+struct pmempool_check_statusU {
+	enum pmempool_check_msg_type type;
+	struct {
+		const char *msg;
+		const char *answer;
+	} str;
+};
+
+#ifndef _WIN32
+#define pmempool_check_status pmempool_check_statusU
+#else
+struct pmempool_check_statusW {
+	enum pmempool_check_msg_type type;
+	struct {
+		const wchar_t *msg;
+		const wchar_t *answer;
+	} str;
+};
+#endif
+
+/*
+ * check context arguments
+ */
+struct pmempool_check_argsU {
+	const char *path;
+	const char *backup_path;
+	enum pmempool_pool_type pool_type;
+	int flags;
+};
+
+#ifndef _WIN32
+#define pmempool_check_args pmempool_check_argsU
+#else
+struct pmempool_check_argsW {
+	const wchar_t *path;
+	const wchar_t *backup_path;
+	enum pmempool_pool_type pool_type;
+	int flags;
+};
+#endif
+
+/*
+ * initialize a check context
+ */
+#ifndef _WIN32
+PMEMpoolcheck *
+pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
+#else
+PMEMpoolcheck *
+pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
+PMEMpoolcheck *
+pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+#endif
+
+/*
+ * start / resume the check
+ */
+#ifndef _WIN32
+struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
+#else
+struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
+struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
+#endif
+
+/*
+ * LIBPMEMPOOL SYNC & TRANSFORM
+ */
+
+/*
+ * Synchronize data between replicas within a poolset.
+ */
+#ifndef _WIN32
+int pmempool_sync(const char *poolset_file, unsigned flags);
+#else
+int pmempool_syncU(const char *poolset_file, unsigned flags);
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
+#endif
+
+/*
+ * Modify internal structure of a poolset.
+ */
+#ifndef _WIN32
+int pmempool_transform(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags);
+#else
+int pmempool_transformU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags);
+int pmempool_transformW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags);
+#endif
+
+/* PMEMPOOL RM */
+#ifndef _WIN32
+int pmempool_rm(const char *path, int flags);
+#else
+int pmempool_rmU(const char *path, int flags);
+int pmempool_rmW(const wchar_t *path, int flags);
+#endif
+
+#ifndef _WIN32
+const char *pmempool_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmempool_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmempool_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
+
+#ifndef _WIN32
 const char *pmempool_errormsg(void);
+#else
+const char *pmempool_errormsgU(void);
+const wchar_t *pmempool_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

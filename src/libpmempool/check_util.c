@@ -233,6 +233,11 @@ status_alloc(void)
 static void
 status_release(struct check_status *status)
 {
+#ifdef _WIN32
+	/* dealloc duplicate string after conversion */
+	if (status->status.str.msg != status->msg)
+		free((void *)status->status.str.msg);
+#endif
 	free(status->msg);
 	free(status);
 }
@@ -435,6 +440,33 @@ check_pop_error(struct check_data *data)
 
 	return NULL;
 }
+
+#ifdef _WIN32
+void
+cache_to_utf8(struct check_data *data, char *buf, size_t size)
+{
+	if (data->check_status_cache == NULL)
+		return;
+
+	struct check_status *status = data->check_status_cache;
+
+	/* if it was a question, convert it and the answer to utf8 */
+	if (status->status.type == PMEMPOOL_CHECK_MSG_TYPE_QUESTION) {
+		struct pmempool_check_statusW *wstatus =
+			(struct pmempool_check_statusW *)&status->status;
+		wchar_t *wstring = (wchar_t *)wstatus->str.msg;
+		status->status.str.msg = util_toUTF8(wstring);
+		if (status->status.str.msg == NULL)
+			FATAL("!malloc");
+		util_free_UTF16(wstring);
+
+		if (util_toUTF8_buff(wstatus->str.answer, buf, size) != 0)
+			FATAL("Invalid answer conversion %s",
+				out_get_errormsg());
+		status->status.str.answer = buf;
+	}
+}
+#endif
 
 /*
  * check_clear_status_cache -- release check_status from cache

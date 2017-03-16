@@ -45,6 +45,17 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmem_map_file pmem_map_fileW
+#define pmem_check_version pmem_check_versionW
+#define pmem_errormsg pmem_errormsgW
+#else
+#define pmem_map_file pmem_map_fileU
+#define pmem_check_version pmem_check_versionU
+#define pmem_errormsg pmem_errormsgU
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -61,8 +72,16 @@ extern "C" {
 #define PMEM_FILE_SPARSE	(1 << 2)
 #define PMEM_FILE_TMPFILE	(1 << 3)
 
+#ifndef _WIN32
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
+#else
+void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+#endif
+
 int pmem_unmap(void *addr, size_t len);
 int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
@@ -85,11 +104,23 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
  */
 #define PMEM_MAJOR_VERSION 1
 #define PMEM_MINOR_VERSION 0
-const char *pmem_check_version(
-		unsigned major_required,
-		unsigned minor_required);
 
+#ifndef _WIN32
+const char *pmem_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmem_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmem_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
+
+#ifndef _WIN32
 const char *pmem_errormsg(void);
+#else
+const char *pmem_errormsgU(void);
+const wchar_t *pmem_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

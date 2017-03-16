@@ -143,10 +143,13 @@ vmem_fini(void)
 }
 
 /*
- * vmem_create -- create a memory pool in a temp file
+ * vmem_createU -- create a memory pool in a temp file
  */
+#ifndef _WIN32
+static inline
+#endif
 VMEM *
-vmem_create(const char *dir, size_t size)
+vmem_createU(const char *dir, size_t size)
 {
 	vmem_init();
 
@@ -201,6 +204,33 @@ vmem_create(const char *dir, size_t size)
 
 }
 
+#ifndef _WIN32
+/*
+ * vmem_create -- create a memory pool in a temp file
+ */
+VMEM *
+vmem_create(const char *dir, size_t size)
+{
+	return vmem_createU(dir, size);
+}
+#else
+/*
+ * vmem_createW -- create a memory pool in a temp file
+ */
+VMEM *
+vmem_createW(const wchar_t *dir, size_t size)
+{
+	char *udir = util_toUTF8(dir);
+	if (udir == NULL)
+		return NULL;
+
+	VMEM *ret = vmem_createU(udir, size);
+
+	util_free_UTF8(udir);
+	return ret;
+}
+#endif
+
 /*
  * vmem_create_in_region -- create a memory pool in a given range
  */
@@ -237,6 +267,7 @@ vmem_create_in_region(void *addr, size_t size)
 		return NULL;
 	}
 
+#ifndef _WIN32
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -244,6 +275,7 @@ vmem_create_in_region(void *addr, size_t size)
 	 * use. It is not considered an error if this fails.
 	 */
 	util_range_none(addr, sizeof(struct pool_hdr));
+#endif
 
 	LOG(3, "vmp %p", vmp);
 	return vmp;
@@ -263,8 +295,9 @@ vmem_delete(VMEM *vmp)
 		errno = EINVAL;
 		return;
 	}
-
+#ifndef _WIN32
 	util_range_rw(vmp->addr, sizeof(struct pool_hdr));
+#endif
 
 	if (vmp->caller_mapped == 0)
 		util_unmap(vmp->addr, vmp->size);

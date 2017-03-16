@@ -48,6 +48,7 @@
 #include "common.h"
 #include "file.h"
 #include "create.h"
+#include "os.h"
 
 #include "set.h"
 #include "output.h"
@@ -268,11 +269,17 @@ pmempool_get_max_size(const char *fname, uint64_t *sizep)
 	char *dir = dirname(name);
 	int ret = 0;
 	ULARGE_INTEGER freespace;
-	if (GetDiskFreeSpaceExA(dir, &freespace, NULL, NULL))
+	wchar_t *str = util_toUTF16(fname);
+	if (str != NULL) {
+		free(name);
+		return -1;
+	}
+	if (GetDiskFreeSpaceExW(str, &freespace, NULL, NULL))
 		ret = -1;
 	else
 		*sizep = freespace.QuadPart;
 
+	free(str);
 	free(name);
 
 	return ret;
@@ -426,7 +433,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	umask(0);
 
-	pc.fexists = access(pc.fname, F_OK) == 0;
+	pc.fexists = os_access(pc.fname, F_OK) == 0;
 	int is_poolset = util_is_poolset_file(pc.fname) == 1;
 
 	if (pc.inherit_fname)  {

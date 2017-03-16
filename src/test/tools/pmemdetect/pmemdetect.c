@@ -42,6 +42,7 @@
 #include "mmap.h"
 #include "libpmem.h"
 #include "file.h"
+#include "os.h"
 
 #define SIZE 4096
 
@@ -75,7 +76,7 @@ is_pmem(const char *path)
 static int
 is_dev_dax(const char *path)
 {
-	if (access(path, W_OK|R_OK)) {
+	if (os_access(path, W_OK|R_OK)) {
 		printf("%s -- permission denied\n", path);
 		return -1;
 	}

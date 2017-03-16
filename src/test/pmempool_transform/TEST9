@@ -53,7 +53,7 @@ LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -rf $LOG && touch $LOG
 rm -rf $LOG_TEMP && touch $LOG_TEMP
 
-LAYOUT=OBJ_LAYOUT
+LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
 HDR_LEN=4096

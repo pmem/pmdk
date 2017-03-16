@@ -58,6 +58,7 @@
 #include "obj.h"
 #include "btt.h"
 #include "file.h"
+#include "os.h"
 #include "set.h"
 #include "check_util.h"
 #include "util_pmem.h"
@@ -72,7 +73,7 @@ static inline off_t
 pool_btt_lseek(struct pool_data *pool, off_t offset, int whence)
 {
 	off_t result;
-	if ((result = util_lseek(pool->set_file->fd, offset, whence)) == -1)
+	if ((result = os_lseek(pool->set_file->fd, offset, whence)) == -1)
 		ERR("!lseek");
 
 	return result;
@@ -173,7 +174,7 @@ pool_set_read_header(const char *fname, struct pool_hdr *hdr)
 	}
 
 err_close_part:
-	close(fdp);
+	os_close(fdp);
 
 err_pool_set:
 	util_poolset_free(set);
@@ -279,8 +280,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 
 	int ret = 0;
 
-	util_stat_t stat_buf;
-	ret = util_fstat(fd, &stat_buf);
+	os_stat_t stat_buf;
+	ret = os_fstat(fd, &stat_buf);
 	if (ret)
 		goto out_close;
 
@@ -295,7 +296,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		 * Need to close the poolset because it will be opened with
 		 * flock in the following instructions.
 		 */
-		close(fd);
+		os_close(fd);
 		fd = -1;
 
 		if (check) {
@@ -402,7 +403,7 @@ out_unmap:
 	}
 out_close:
 	if (fd != -1)
-		close(fd);
+		os_close(fd);
 	return ret;
 }
 
@@ -444,8 +445,8 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 		file->size = params->size;
 	}
 
-	util_stat_t buf;
-	if (util_stat(path, &buf)) {
+	os_stat_t buf;
+	if (os_stat(path, &buf)) {
 		ERR("%s", path);
 		goto err_close_poolset;
 	}
@@ -458,7 +459,7 @@ err_close_poolset:
 	if (params->type != POOL_TYPE_BTT)
 		util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 	else if (file->fd != -1)
-		close(file->fd);
+		os_close(file->fd);
 err_free_fname:
 	free(file->fname);
 err:
@@ -474,7 +475,7 @@ pool_set_parse(struct pool_set **setp, const char *path)
 {
 	LOG(3, "setp %p path %s", setp, path);
 
-	int fd = open(path, O_RDONLY);
+	int fd = os_open(path, O_RDONLY);
 	int ret = 0;
 
 	if (fd < 0)
@@ -486,7 +487,7 @@ pool_set_parse(struct pool_set **setp, const char *path)
 	}
 
 err_close:
-	close(fd);
+	os_close(fd);
 	return ret;
 }
 
@@ -562,9 +563,9 @@ pool_set_file_close(struct pool_set_file *file)
 		util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 	else if (file->addr) {
 		munmap(file->addr, file->size);
-		close(file->fd);
+		os_close(file->fd);
 	} else if (file->fd)
-		close(file->fd);
+		os_close(file->fd);
 
 	free(file->fname);
 	free(file);
@@ -663,7 +664,7 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 {
 	struct pool_set_file *file = pool->set_file;
 	int dfd;
-	if (!access(dst_path, F_OK)) {
+	if (!os_access(dst_path, F_OK)) {
 		if (!overwrite) {
 			errno = EEXIST;
 			return -1;
@@ -681,8 +682,8 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 		return -1;
 
 	int result = 0;
-	util_stat_t stat_buf;
-	if (util_stat(file->fname, &stat_buf)) {
+	os_stat_t stat_buf;
+	if (os_stat(file->fname, &stat_buf)) {
 		result = -1;
 		goto out_close;
 	}
@@ -731,7 +732,7 @@ out_free:
 out_unmap:
 	munmap(daddr, file->size);
 out_close:
-	(void) close(dfd);
+	(void) os_close(dfd);
 	return result;
 }
 
@@ -746,8 +747,8 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 
 	int result = 0;
 
-	util_stat_t stat_buf;
-	if (util_fstat(spart->fd, &stat_buf)) {
+	os_stat_t stat_buf;
+	if (os_fstat(spart->fd, &stat_buf)) {
 		ERR("!util_stat");
 		return -1;
 	}
@@ -761,7 +762,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 	int is_pmem;
 	void *daddr;
 
-	if (!access(dpart->path, F_OK)) {
+	if (!os_access(dpart->path, F_OK)) {
 		if (!overwrite) {
 			errno = EEXIST;
 			result = -1;

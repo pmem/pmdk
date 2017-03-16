@@ -116,6 +116,9 @@ extern "C" {
 #include <dirent.h>
 #include <pthread.h>
 
+/* XXX: move OS abstraction layer out of common */
+#include "os.h"
+
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
@@ -123,23 +126,16 @@ int ut_get_uuid_str(char *);
 
 /* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
 void ut_strerror(int errnum, char *buff, size_t bufflen);
+
 /* XXX - eliminate duplicated definitions in unittest.h and util.h */
-#ifndef _WIN32
-typedef struct stat ut_util_stat_t;
-#define ut_util_fstat fstat
-#define ut_util_stat stat
-#define ut_util_lseek lseek
-#else
-typedef struct _stat64 ut_util_stat_t;
-#define ut_util_fstat _fstat64
-static inline int ut_util_stat(const char *path,
-	ut_util_stat_t *st_bufp) {
-	int retVal = _stat64(path, st_bufp);
+#ifdef _WIN32
+static inline int ut_util_statW(const wchar_t *path,
+	os_stat_t *st_bufp) {
+	int retVal = _wstat64(path, st_bufp);
 	/* clear unused bits to avoid confusion */
 	st_bufp->st_mode &= 0600;
 	return retVal;
 }
-#define ut_util_lseek _lseeki64
 #endif
 
 /*
@@ -148,6 +144,11 @@ static inline int ut_util_stat(const char *path,
 void ut_start(const char *file, int line, const char *func,
 	int argc, char * const argv[], const char *fmt, ...)
 	__attribute__((format(printf, 6, 7)));
+
+void ut_startW(const char *file, int line, const char *func,
+	int argc, wchar_t * const argv[], const char *fmt, ...)
+	__attribute__((format(printf, 6, 7)));
+
 void ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)))
@@ -164,11 +165,39 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
+#ifndef _WIN32
 #define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+#else
+#define START(argc, argv, ...)\
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);\
+	for (int i = 0; i < argc; i++) {\
+		argv[i] = ut_toUTF8(wargv[i]);\
+		if (argv[i] == NULL) {\
+			for (i--; i >= 0; i--)\
+				free(argv[i]);\
+			UT_FATAL("Error during arguments conversion\n");\
+		}\
+	}\
+	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+#endif
+
+/* indicate the start of the test */
+#define STARTW(argc, argv, ...)\
+    ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
+#ifndef _WIN32
 #define DONE(...)\
+    ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define DONE(...)\
+	for (int i = argc; i > 0; i--)\
+		free(argv[i - 1]);\
+	ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
+
+#define DONEW(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* fatal error detected */
@@ -348,6 +377,9 @@ int ut_munmap_anon_aligned(const char *file, int line, const char *func,
 int ut_open(const char *file, int line, const char *func, const char *path,
     int flags, ...);
 
+int ut_wopen(const char *file, int line, const char *func, const wchar_t *path,
+	int flags, ...);
+
 int ut_close(const char *file, int line, const char *func, int fd);
 
 int ut_unlink(const char *file, int line, const char *func, const char *path);
@@ -376,10 +408,13 @@ int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
     off_t offset, off_t len);
 
 int ut_stat(const char *file, int line, const char *func, const char *path,
-    ut_util_stat_t *st_bufp);
+    os_stat_t *st_bufp);
+
+int ut_statW(const char *file, int line, const char *func, const wchar_t *path,
+	os_stat_t *st_bufp);
 
 int ut_fstat(const char *file, int line, const char *func, int fd,
-    ut_util_stat_t *st_bufp);
+    os_stat_t *st_bufp);
 
 int ut_flock(const char *file, int line, const char *func, int fd, int op);
 
@@ -445,6 +480,10 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
 
+/* a _wopen() that can't return < 0 */
+#define WOPEN(path, ...)\
+    ut_wopen(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
+
 /* a close() that can't return -1 */
 #define CLOSE(fd)\
     ut_close(__FILE__, __LINE__, __func__, fd)
@@ -509,6 +548,9 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 
 #define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
+
+#define STATW(path, st_bufp)\
+    ut_statW(__FILE__, __LINE__, __func__, path, st_bufp)
 
 #ifndef _WIN32
 #define SYMLINK(oldpath, newpath)\
@@ -694,6 +736,8 @@ void ut_sighandler(int);
 void ut_register_sighandlers(void);
 
 uint16_t ut_checksum(uint8_t *addr, size_t len);
+char *ut_toUTF8(const wchar_t *wstr);
+wchar_t *ut_toUTF16(const char *wstr);
 
 struct test_case {
 	const char *name;

@@ -181,11 +181,11 @@
 #endif
 
 #include "libpmem.h"
-
 #include "pmem.h"
 #include "cpu.h"
 #include "out.h"
 #include "util.h"
+#include "os.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
@@ -538,11 +538,14 @@ pmem_is_pmem(const void *addr, size_t len)
 #endif
 
 /*
- * pmem_map_file -- create or open the file and map it to memory
+ * pmem_map_fileU -- create or open the file and map it to memory
  */
+#ifndef _WIN32
+static inline
+#endif
 void *
-pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
-	size_t *mapped_lenp, int *is_pmemp)
+pmem_map_fileU(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp)
 {
 	LOG(3, "path \"%s\" size %zu flags %x mode %o mapped_lenp %p "
 		"is_pmemp %p", path, len, flags, mode, mapped_lenp, is_pmemp);
@@ -619,7 +622,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	if (flags & PMEM_FILE_TMPFILE)
 		open_flags |= O_TMPFILE;
 
-	if ((fd = open(path, open_flags, mode)) < 0) {
+	if ((fd = os_open(path, open_flags, mode)) < 0) {
 		ERR("!open %s", path);
 		return NULL;
 	}
@@ -631,7 +634,7 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 			return NULL;
 		}
 	} else {
-		if ((fd = open(path, open_flags, mode)) < 0) {
+		if ((fd = os_open(path, open_flags, mode)) < 0) {
 			ERR("!open %s", path);
 			return NULL;
 		}
@@ -686,18 +689,47 @@ pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
 	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
 
-	(void) close(fd);
+	(void) os_close(fd);
 
 	return addr;
 
 err:
 	oerrno = errno;
-	(void) close(fd);
+	(void) os_close(fd);
 	if (delete_on_err)
-		(void) unlink(path);
+		(void) os_unlink(path);
 	errno = oerrno;
 	return NULL;
 }
+
+#ifndef _WIN32
+/*
+ * pmem_map_file -- create or open the file and map it to memory
+ */
+void *
+pmem_map_file(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp)
+{
+	return pmem_map_fileU(path, len, flags, mode, mapped_lenp, is_pmemp);
+}
+#else
+/*
+ * pmem_map_fileW -- create or open the file and map it to memory
+ */
+void *
+pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+		size_t *mapped_lenp, int *is_pmemp) {
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	void *ret = pmem_map_fileU(upath, len, flags, mode, mapped_lenp,
+					is_pmemp);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 /*
  * pmem_unmap -- unmap the specified region

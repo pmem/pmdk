@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,18 +32,28 @@
 #
 
 #
-# src/test/obj_list/TEST0 -- unit test for list API
+# src/test/blk_pool/TEST32 -- unit test for blk poolsets with unicode
 #
-# Just run the unit test
-#
-export UNITTEST_NAME=obj_list/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=blk_pool/TEST32
+export UNITTEST_NUM=32
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_fs_type non-pmem
 
 setup
+umask 0
+
+expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile⮸ 300 20 0640
+
+cp $DIR/testfile⮸ $DIR/testfileⰊ
+
+create_poolset $DIR/testsetㅓㅹ 20M:$DIR/testfile⮸ R 20M:$DIR/testfileⰊ
+
+expect_normal_exit ./blk_pool$EXESUFFIX o $DIR/testsetㅓㅹ 300
+
+check
 
 pass

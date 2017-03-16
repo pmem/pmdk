@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -72,15 +72,15 @@ check_size $SIZE $INHERIT
 # PMEMOBJ
 rm -rf $POOL
 rm -rf $INHERIT
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME obj $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME$SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
-check_layout LAYOUT_NAME $POOL
+check_layout LAYOUT_NAME$SUFFIX $POOL
 SIZE=$(get_size $POOL)
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMOBJ $INHERIT
-check_layout LAYOUT_NAME $POOL
+check_layout LAYOUT_NAME$SUFFIX $POOL
 check_size $SIZE $INHERIT
 
 pass

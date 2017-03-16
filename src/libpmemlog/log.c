@@ -162,10 +162,13 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
 }
 
 /*
- * pmemlog_create -- create a log memory pool
+ * pmemlog_createU -- create a log memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMlogpool *
-pmemlog_create(const char *path, size_t poolsize, mode_t mode)
+pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
 
@@ -225,6 +228,33 @@ err:
 	errno = oerrno;
 	return NULL;
 }
+
+#ifndef _WIN32
+/*
+ * pmemlog_create -- create a log memory pool
+ */
+PMEMlogpool *
+pmemlog_create(const char *path, size_t poolsize, mode_t mode)
+{
+	return pmemlog_createU(path, poolsize, mode);
+}
+#else
+/*
+ * pmemlog_createW -- create a log memory pool
+ */
+PMEMlogpool *
+pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMlogpool *ret = pmemlog_createU(upath, poolsize, mode);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 /*
  * log_open_common -- (internal) open a log memory pool
@@ -297,15 +327,45 @@ err:
 }
 
 /*
- * pmemlog_open -- open an existing log memory pool
+ * pmemlog_openU -- open an existing log memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMlogpool *
-pmemlog_open(const char *path)
+pmemlog_openU(const char *path)
 {
 	LOG(3, "path %s", path);
 
 	return log_open_common(path, 0);
 }
+
+#ifndef _WIN32
+/*
+ * pmemlog_open -- open an existing log memory pool
+ */
+PMEMlogpool *
+pmemlog_open(const char *path)
+{
+	return pmemlog_openU(path);
+}
+#else
+/*
+ * pmemlog_openW -- open an existing log memory pool
+ */
+PMEMlogpool *
+pmemlog_openW(const wchar_t *path)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMlogpool *ret = pmemlog_openU(upath);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 /*
  * pmemlog_close -- close a log memory pool
@@ -645,13 +705,16 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 }
 
 /*
- * pmemlog_check -- log memory pool consistency check
+ * pmemlog_checkU -- log memory pool consistency check
  *
  * Returns true if consistent, zero if inconsistent, -1/error if checking
  * cannot happen due to other errors.
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-pmemlog_check(const char *path)
+pmemlog_checkU(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
@@ -698,6 +761,36 @@ pmemlog_check(const char *path)
 
 	return consistent;
 }
+
+#ifndef _WIN32
+/*
+ * pmemlog_check -- log memory pool consistency check
+ *
+ * Returns true if consistent, zero if inconsistent, -1/error if checking
+ * cannot happen due to other errors.
+ */
+int
+pmemlog_check(const char *path)
+{
+	return pmemlog_checkU(path);
+}
+#else
+/*
+ * pmemlog_checkW -- log memory pool consistency check
+ */
+int
+pmemlog_checkW(const wchar_t *path)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return -1;
+
+	int ret = pmemlog_checkU(upath);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 /*
  * log_convert2h -- convert pmemlog structure to host byte order

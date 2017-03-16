@@ -21,9 +21,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mocks.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util_poolset.c">
       <Filter>Source Files</Filter>
     </ClCompile>

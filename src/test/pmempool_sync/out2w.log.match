@@ -33,12 +33,12 @@ Forced RO                : 0x0
 Pool set UUID            : $(nW)
 
 PMEM OBJ Header:
-Layout                   : OBJ_LAYOUT
+Layout                   : OBJ_LAYOUT$(nW)
 Lanes offset             : 0x2000
 Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
-Checksum                 : 0x5202e0ab1c2fbf0 [OK]
+Checksum                 : $(nW) [OK]
 Root offset              : $(nW)
 Part file:
 path                     : $(nW)testfile00

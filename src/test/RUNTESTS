@@ -43,10 +43,10 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-	    [ -o timeout ] [ -s test-file ] [-k skip-dir ]
-	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
-	    [ -q provider ] [ -r persistency-method ]
-	    [tests...]
+		[ -o timeout ] [ -s test-file ] [-k skip-dir ]
+		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+		[ -q provider ] [ -r persistency-method ]
+		[tests...]
 -h			print this help message
 -n			dry run
 -v			be verbose
@@ -146,6 +146,11 @@ load_default_global_test_configuration() {
 	global_req_timeout='3m'
 
 	return 0
+}
+
+# switch_hyphen -- substitute hyphen for underscores
+switch_hyphen() {
+	echo ${1//-/_}
 }
 
 #
@@ -302,10 +307,11 @@ runtest() {
 				continue
 			}
 
+
 			# for each build-type being tested...
 			for build in $builds
 			do
-				export RUNTEST_DIR="$1"
+				export RUNTEST_DIR=$1
 				export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build"
 				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
 					$special_params"
@@ -327,9 +333,9 @@ runtest() {
 [ -f testconfig.sh ] || {
 	cat >&2 <<EOF
 RUNTESTS: stopping because no testconfig.sh is found.
-          to create one:
-               cp testconfig.sh.example testconfig.sh
-          and edit testconfig.sh to describe the local machine configuration.
+		  to create one:
+			   cp testconfig.sh.example testconfig.sh
+		  and edit testconfig.sh to describe the local machine configuration.
 EOF
 	exit 1
 }
@@ -367,7 +373,7 @@ skip_dir=""
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r: $*`
+args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -595,7 +601,7 @@ fi
 if [ "$1" ]; then
 	for test in $*
 	do
-		runtest $test
+		[ -f "$test/TEST0" ] && runtest $test
 	done
 else
 	# no arguments means run them all

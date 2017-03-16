@@ -24,7 +24,7 @@ Forced RO                : 0x0
 Pool set UUID            : $(nW)
 
 PMEM OBJ Header:
-Layout                   : OBJ_LAYOUT
+Layout                   : OBJ_LAYOUT$(nW)
 Lanes offset             : $(nW)
 Number of lanes          : 1024
 Heap offset              : $(nW)

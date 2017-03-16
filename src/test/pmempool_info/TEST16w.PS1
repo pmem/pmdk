@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -86,7 +86,7 @@ expect_normal_exit $PMEMPOOL create log $POOLSET
 expect_normal_exit $PMEMPOOL info $POOLSET >> $LOG
 
 remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLREP
+expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLREP
 expect_normal_exit $PMEMPOOL info $POOLREP >> $LOG
 expect_normal_exit $PMEMPOOL info --replica 0 $POOLREP `
 | select-string -pattern "UUID" > $LOG_REP0

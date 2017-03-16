@@ -51,12 +51,43 @@ extern "C" {
 /*
  * Pool management.
  */
+#ifdef _WIN32
+#ifndef NVML_UTF8_API
+#define pmemobj_open pmemobj_openW
+#define pmemobj_create pmemobj_createW
+#define pmemobj_check pmemobj_checkW
+#else
+#define pmemobj_open pmemobj_openU
+#define pmemobj_create pmemobj_createU
+#define pmemobj_check pmemobj_checkU
+#endif
+#endif
+
+#ifndef _WIN32
 PMEMobjpool *pmemobj_open(const char *path, const char *layout);
+#else
+PMEMobjpool *pmemobj_openU(const char *path, const char *layout);
+PMEMobjpool *pmemobj_openW(const wchar_t *path, const wchar_t *layout);
+#endif
+
+#ifndef _WIN32
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
-void pmemobj_close(PMEMobjpool *pop);
-int pmemobj_check(const char *path, const char *layout);
+#else
+PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
+	size_t poolsize, mode_t mode);
+PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
+	size_t poolsize, mode_t mode);
+#endif
 
+#ifndef _WIN32
+int pmemobj_check(const char *path, const char *layout);
+#else
+int pmemobj_checkU(const char *path, const char *layout);
+int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
+#endif
+
+void pmemobj_close(PMEMobjpool *pop);
 /*
  * If called for the first time on a newly created pool, the root object
  * of given size is allocated.  Otherwise, it returns the existing root object.

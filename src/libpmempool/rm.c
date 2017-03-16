@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@
 
 #include "libpmempool.h"
 #include "out.h"
+#include "os.h"
 #include "util.h"
 #include "set.h"
 #include "file.h"
@@ -68,8 +69,8 @@ rm_local(const char *path, int flags, int is_part_file)
 	}
 
 	int oerrno = errno;
-	util_stat_t buff;
-	ret = util_stat(path, &buff);
+	os_stat_t buff;
+	ret = os_stat(path, &buff);
 	if (!ret) {
 		if (S_ISDIR(buff.st_mode)) {
 			errno = EISDIR;
@@ -138,10 +139,13 @@ rm_cb(struct part_file *pf, void *arg)
 }
 
 /*
- * pmempool_rm -- remove pool files or poolsets
+ * pmempool_rmU -- remove pool files or poolsets
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-pmempool_rm(const char *path, int flags)
+pmempool_rmU(const char *path, int flags)
 {
 	LOG(3, "path %s flags %x", path, flags);
 	int ret;
@@ -154,8 +158,8 @@ pmempool_rm(const char *path, int flags)
 
 	int is_poolset = util_is_poolset_file(path);
 	if (is_poolset < 0) {
-		util_stat_t buff;
-		ret = util_stat(path, &buff);
+		os_stat_t buff;
+		ret = os_stat(path, &buff);
 		if (!ret) {
 			if (S_ISDIR(buff.st_mode)) {
 				errno = EISDIR;
@@ -206,3 +210,32 @@ pmempool_rm(const char *path, int flags)
 
 	return 0;
 }
+
+#ifndef _WIN32
+/*
+ * pmempool_rm -- remove pool files or poolsets
+ */
+int
+pmempool_rm(const char *path, int flags)
+{
+	return pmempool_rmU(path, flags);
+}
+#else
+/*
+ * pmempool_rmW -- remove pool files or poolsets in widechar
+ */
+int
+pmempool_rmW(const wchar_t *path, int flags)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL) {
+		ERR("Invalid poolest/pool file path.");
+		return -1;
+	}
+
+	int ret = pmempool_rmU(upath, flags);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif

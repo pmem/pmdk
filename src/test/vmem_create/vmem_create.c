@@ -50,7 +50,7 @@ signal_handler(int sig)
 
 	vmem_delete(Vmp);
 
-	DONE(NULL);
+	DONEW(NULL);
 }
 
 int
@@ -63,9 +63,9 @@ main(int argc, char *argv[])
 
 	Vmp = vmem_create(argv[1], VMEM_MIN_POOL);
 
-	if (Vmp == NULL)
+	if (Vmp == NULL) {
 		UT_OUT("!vmem_create");
-	else {
+	} else {
 		struct sigaction v;
 		sigemptyset(&v.sa_mask);
 		v.sa_flags = 0;

@@ -33,6 +33,7 @@
 
 # make sure we have a well defined locale for string operations here
 export LC_ALL="C"
+#export LC_ALL="en_US.UTF-8"
 
 . ../testconfig.sh
 
@@ -43,7 +44,7 @@ export LC_ALL="C"
 [ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
-
+[ "$SUFFIX" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
 
 TOOLS=../tools
 # Paths to some useful tools
@@ -145,28 +146,28 @@ fi
 
 REAL_FS=$FS
 if [ "$DIR" ]; then
-	DIR=$DIR/$curtestdir$UNITTEST_NUM
+	DIR=$DIR/$curtestdir$UNITTEST_NUM$SUFFIX
 else
 	case "$FS"
 	in
 	pmem)
-		DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
 		;;
 	non-pmem)
-		DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	any)
 		if [ "$PMEM_FS_DIR" != "" ]; then
-			DIR=$PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=pmem
 			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 				export PMEM_IS_PMEM_FORCE=1
 			fi
 		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
-			DIR=$NON_PMEM_FS_DIR/$curtestdir$UNITTEST_NUM
+			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=non-pmem
 		else
 			echo "$UNITTEST_NAME: fs-type=any and both env vars are empty" >&2
@@ -174,13 +175,13 @@ else
 		fi
 		;;
 	none)
-		DIR=/dev/null/not_existing_dir/$curtestdir$UNITTEST_NUM
+		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	*)
 		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
-                ;;
-        esac
+		;;
+	esac
 fi
 
 if [ -d "$PMEM_FS_DIR" ]; then
@@ -1793,7 +1794,7 @@ function setup() {
 			rm --one-file-system -rf -- $DIR
 		fi
 
-		mkdir $DIR
+		mkdir -p $DIR
 	fi
 	if [ "$TM" = "1" ]; then
 		start_time=$(date +%s.%N)

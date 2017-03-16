@@ -53,21 +53,22 @@ static int Opt_force;
  * out_err_vargs -- print error message
  */
 static void
-out_err_vargs(const char *fmt, va_list ap)
+out_err_vargs(const wchar_t *fmt, va_list ap)
 {
-	char errmsg[MAXPRINT];
+	wchar_t errmsg[MAXPRINT];
 	DWORD lasterr = GetLastError();
 
-	vfprintf(stderr, fmt, ap);
+	vfwprintf(stderr, fmt, ap);
 	if (lasterr) {
-		size_t size = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
+		size_t size = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
 				NULL, lasterr,
 				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 				errmsg, MAXPRINT, NULL);
-		fprintf(stderr, ": %s", errmsg);
+		fwprintf(stderr, L": %s", errmsg);
 	} else {
-		fprintf(stderr, "\n");
+		fwprintf(stderr, L"\n");
 	}
+
 	SetLastError(0);
 }
 
@@ -75,7 +76,7 @@ out_err_vargs(const char *fmt, va_list ap)
  * out_err -- print error message
  */
 static void
-out_err(const char *fmt, ...)
+out_err(const wchar_t *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -87,44 +88,44 @@ out_err(const char *fmt, ...)
  * print_file_size -- prints file size and its size on disk
  */
 static void
-print_file_size(const char *filename)
+print_file_size(const wchar_t *filename)
 {
 	LARGE_INTEGER filesize;
 	FILE_COMPRESSION_INFO fci;
 
-	HANDLE fh = CreateFileA(filename, GENERIC_READ,
+	HANDLE fh = CreateFileW(filename, GENERIC_READ,
 			FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (fh == INVALID_HANDLE_VALUE) {
-		out_err("CreateFile");
+		out_err(L"CreateFile");
 		return;
 	}
 
 	BOOL ret = GetFileSizeEx(fh, &filesize);
 	if (ret == FALSE) {
-		out_err("GetFileSizeEx");
+		out_err(L"GetFileSizeEx");
 		goto err;
 	}
 
 	ret = GetFileInformationByHandleEx(fh, FileCompressionInfo,
 			&fci, sizeof(fci));
 	if (ret == FALSE) {
-		out_err("GetFileInformationByHandleEx");
+		out_err(L"GetFileInformationByHandleEx");
 		goto err;
 	}
 
 	if (filesize.QuadPart < 65536)
-		fprintf(stderr, "\ntotal size: %lluB",
+		fwprintf(stderr, L"\ntotal size: %lluB",
 				filesize.QuadPart);
 	else
-		fprintf(stderr, "\ntotal size: %lluKB",
+		fwprintf(stderr, L"\ntotal size: %lluKB",
 				filesize.QuadPart / 1024);
 
 	if (fci.CompressedFileSize.QuadPart < 65536)
-		fprintf(stderr, ", actual size on disk: %lluKB\n",
+		fwprintf(stderr, L", actual size on disk: %lluKB\n",
 				fci.CompressedFileSize.QuadPart);
 	else
-		fprintf(stderr, ", actual size on disk: %lluKB\n",
+		fwprintf(stderr, L", actual size on disk: %lluKB\n",
 				fci.CompressedFileSize.QuadPart / 1024);
 
 err:
@@ -135,15 +136,15 @@ err:
  * create_sparse_file -- creates sparse file of given size
  */
 static int
-create_sparse_file(const char *filename, size_t len)
+create_sparse_file(const wchar_t *filename, size_t len)
 {
 	/* create zero-length file */
 	DWORD create = Opt_force ? CREATE_ALWAYS : CREATE_NEW;
-	HANDLE fh = CreateFileA(filename, GENERIC_READ | GENERIC_WRITE,
+	HANDLE fh = CreateFileW(filename, GENERIC_READ | GENERIC_WRITE,
 			FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 			create, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (fh == INVALID_HANDLE_VALUE) {
-		out_err("CreateFile");
+		out_err(L"CreateFile");
 		return -1;
 	}
 	SetLastError(0);
@@ -154,10 +155,10 @@ create_sparse_file(const char *filename, size_t len)
 			&flags, NULL, 0);
 	if (ret == FALSE) {
 		if (Opt_verbose || Opt_sparse)
-			out_err("GetVolumeInformationByHandle");
+			out_err(L"GetVolumeInformationByHandle");
 	} else if ((flags & FILE_SUPPORTS_SPARSE_FILES) == 0) {
 		if (Opt_verbose || Opt_sparse)
-			out_err("Volume does not support sparse files.");
+			out_err(L"Volume does not support sparse files.");
 		if (Opt_sparse)
 			goto err;
 	}
@@ -169,7 +170,7 @@ create_sparse_file(const char *filename, size_t len)
 				0, &nbytes, NULL);
 		if (ret == FALSE) {
 			if (Opt_verbose || Opt_sparse)
-				out_err("DeviceIoControl");
+				out_err(L"DeviceIoControl");
 			if (Opt_sparse)
 				goto err;
 		}
@@ -181,13 +182,13 @@ create_sparse_file(const char *filename, size_t len)
 
 	DWORD ptr = SetFilePointerEx(fh, llen, NULL, FILE_BEGIN);
 	if (ptr == INVALID_SET_FILE_POINTER) {
-		out_err("SetFilePointerEx");
+		out_err(L"SetFilePointerEx");
 		goto err;
 	}
 
 	ret = SetEndOfFile(fh);
 	if (ret == FALSE) {
-		out_err("SetEndOfFile");
+		out_err(L"SetEndOfFile");
 		goto err;
 	}
 
@@ -196,15 +197,15 @@ create_sparse_file(const char *filename, size_t len)
 
 err:
 	CloseHandle(fh);
-	DeleteFileA(filename);
+	DeleteFileW(filename);
 	return -1;
 }
 
 int
-main(int argc, const char *argv[])
+wmain(int argc, const wchar_t *argv[])
 {
 	if (argc < 2) {
-		fprintf(stderr, "Usage: %s filename len\n", argv[0]);
+		fwprintf(stderr, L"Usage: %s filename len\n", argv[0]);
 		exit(1);
 	}
 
@@ -221,22 +222,22 @@ main(int argc, const char *argv[])
 				Opt_force = 1;
 				break;
 			default:
-				out_err("Unknown option: \'%c\'.", argv[i][1]);
+				out_err(L"Unknown option: \'%c\'.", argv[i][1]);
 				exit(2);
 		}
 		++i;
 	}
 
-	const char *filename = argv[i];
-	long long len = atoll(argv[i + 1]);
+	const wchar_t *filename = argv[i];
+	long long len = _wtoll(argv[i + 1]);
 
 	if (len < 0) {
-		out_err("Invalid file length: %lld.\n", len);
+		out_err(L"Invalid file length: %lld.\n", len);
 		exit(3);
 	}
 
 	if (create_sparse_file(filename, len) < 0) {
-		out_err("File creation failed.");
+		out_err(L"File creation failed.");
 		exit(4);
 	}
 

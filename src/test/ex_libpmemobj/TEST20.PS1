@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,8 +46,10 @@ $Env:UNITTEST_NUM = "20"
 
 require_test_type medium
 require_build_type debug nondebug
+require_no_unicode
 
 setup
+
 expect_normal_exit $Env:EXE_DIR/array $DIR/testfile alloc int 23 int > out$Env:UNITTEST_NUM.log
 expect_normal_exit $Env:EXE_DIR/array $DIR/testfile alloc PMEMoid 17 PMEMoid >> out$Env:UNITTEST_NUM.log
 expect_normal_exit $Env:EXE_DIR/array $DIR/testfile alloc TOID 11 TOID >> out$Env:UNITTEST_NUM.log

@@ -49,6 +49,7 @@
 #include "btt.h"
 #include "btt_layout.h"
 #include "pmemcommon.h"
+#include "os.h"
 
 #define BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
 #define BTT_CREATE_DEF_BLK_SIZE	512UL
@@ -170,7 +171,7 @@ file_error(const int fd, const char *fpath)
 {
 	if (fd != -1)
 		(void) close(fd);
-	unlink(fpath);
+	os_unlink(fpath);
 	return -1;
 }
 
@@ -205,6 +206,19 @@ print_result(struct bbtcreate_options *opts)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr, "Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
+
 	common_init("", "", "", 0, 0);
 
 	int opt;
@@ -229,7 +243,8 @@ main(int argc, char *argv[])
 			} else {
 				fprintf(stderr, "Wrong size format in pool"
 					" size option\n");
-				return -1;
+				res = 1;
+				goto out;
 			}
 			break;
 		case 'b':
@@ -238,7 +253,8 @@ main(int argc, char *argv[])
 			} else {
 				fprintf(stderr, "Wrong size format in block"
 					" size option\n");
-				return -1;
+				res = 1;
+				goto out;
 			}
 			break;
 		case 'l':
@@ -250,7 +266,8 @@ main(int argc, char *argv[])
 				opts.user_uuid = true;
 			} else {
 				fprintf(stderr, "Wrong uuid format.");
-				return -1;
+				res = 1;
+				goto out;
 			}
 			break;
 		case 't':
@@ -261,33 +278,38 @@ main(int argc, char *argv[])
 			break;
 		default:
 			print_usage(argv[0]);
-			return -1;
+			res = 1;
+			goto out;
 		}
 	}
 	if (optind < argc) {
 		opts.fpath = argv[optind];
 	} else {
 		print_usage(argv[0]);
-		return -1;
+		res = 1;
+		goto out;
 	}
 
 	/* check sizes */
 	if (opts.poolsize < BTT_MIN_SIZE) {
 		fprintf(stderr, "Pool size is less then %d MB\n",
 				BTT_MIN_SIZE >> 20);
-		return -1;
+		res = 1;
+		goto out;
 	}
 	if (opts.blocksize < BTT_MIN_LBA_SIZE) {
 		fprintf(stderr, "Block size is less then %zu B\n",
 				BTT_MIN_LBA_SIZE);
-		return -1;
+		res = 1;
+		goto out;
 	}
 
 	/* open file */
-	if ((fd = open(opts.fpath, O_RDWR|O_CREAT,
+	if ((fd = os_open(opts.fpath, O_RDWR|O_CREAT,
 			S_IRUSR|S_IWUSR)) < 0) {
 		perror(opts.fpath);
-		return -1;
+		res = 1;
+		goto out;
 	}
 
 	/* allocate file */
@@ -371,6 +393,10 @@ error_map:
 	common_fini();
 error:
 	close(fd);
-
+out:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	return res;
 }

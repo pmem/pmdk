@@ -58,7 +58,7 @@ echo $null >> $DIR\testfile
 # TEST4 existing file, file length < min required size, poolsize == 0
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR\testfile "test" 0 0640
+    c $DIR\testfile test$Env:SUFFIX 0 0640
 
 check_files $DIR\testfile
 

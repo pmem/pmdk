@@ -45,6 +45,7 @@
 #include "common.h"
 #include "dump.h"
 #include "output.h"
+#include "os.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 
@@ -363,7 +364,7 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		/* use standard output by default */
 		pd.ofh = stdout;
 	} else {
-		pd.ofh = fopen(pd.ofname, "wb");
+		pd.ofh = os_fopen(pd.ofname, "wb");
 		if (!pd.ofh) {
 			warn("%s", pd.ofname);
 			exit(EXIT_FAILURE);

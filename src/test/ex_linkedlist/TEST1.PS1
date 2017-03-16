@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,6 +51,7 @@ $Env:UNITTEST_NUM = "1"
 
 require_test_type medium
 require_build_type debug nondebug
+require_no_unicode
 
 # XXX - there's no Windows equivalent of Valgrind/pmemcheck yet
 #configure_valgrind pmemcheck force-enable

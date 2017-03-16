@@ -38,6 +38,7 @@ TARGET = pmemalloc
 OBJS = pmemalloc.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 LIBPMEMOBJ=y
 
 CFLAGS += -I$(TOP)/src/libpmemobj

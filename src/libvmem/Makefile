@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@ SOURCE = libvmem.c vmem.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
+	$(COMMON)/os_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util_linux.c\
 	$(COMMON)/util.c

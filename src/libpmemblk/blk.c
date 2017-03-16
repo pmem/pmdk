@@ -54,10 +54,10 @@
 #include "out.h"
 #include "btt.h"
 #include "blk.h"
+#include "util.h"
 #include "sys_util.h"
 #include "util_pmem.h"
 #include "valgrind_internal.h"
-
 /*
  * lane_enter -- (internal) acquire a unique lane number
  */
@@ -392,11 +392,13 @@ err:
 }
 
 /*
- * pmemblk_create -- create a block memory pool
+ * pmemblk_createU -- create a block memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMblkpool *
-pmemblk_create(const char *path, size_t bsize, size_t poolsize,
-		mode_t mode)
+pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 {
 	LOG(3, "path %s bsize %zu poolsize %zu mode %o",
 			path, bsize, poolsize, mode);
@@ -471,6 +473,33 @@ err:
 	return NULL;
 }
 
+#ifndef _WIN32
+/*
+ * pmemblk_create -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
+{
+	return pmemblk_createU(path, bsize, poolsize, mode);
+}
+#else
+/*
+ * pmemblk_createW -- create a block memory pool
+ */
+PMEMblkpool *
+pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
+	mode_t mode)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_createU(upath, bsize, poolsize, mode);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 /*
  * blk_open_common -- (internal) open a block memory pool
@@ -546,15 +575,46 @@ err:
 }
 
 /*
- * pmemblk_open -- open a block memory pool
+ * pmemblk_openU -- open a block memory pool
  */
+#ifndef _WIN32
+static inline
+#endif
 PMEMblkpool *
-pmemblk_open(const char *path, size_t bsize)
+pmemblk_openU(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
 	return blk_open_common(path, bsize, 0);
 }
+
+#ifndef _WIN32
+/*
+ * pmemblk_open -- open a block memory pool
+ */
+PMEMblkpool *
+pmemblk_open(const char *path, size_t bsize)
+{
+	return pmemblk_openU(path, bsize);
+}
+#else
+/*
+ * pmemblk_openW -- open a block memory pool
+ */
+PMEMblkpool *
+pmemblk_openW(const wchar_t *path, size_t bsize)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_openU(upath, bsize);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
+
 
 /*
  * pmemblk_close -- close a block memory pool
@@ -720,10 +780,13 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
 }
 
 /*
- * pmemblk_check -- block memory pool consistency check
+ * pmemblk_checkU -- block memory pool consistency check
  */
+#ifndef _WIN32
+static inline
+#endif
 int
-pmemblk_check(const char *path, size_t bsize)
+pmemblk_checkU(const char *path, size_t bsize)
 {
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
@@ -739,6 +802,33 @@ pmemblk_check(const char *path, size_t bsize)
 
 	return retval;
 }
+
+#ifndef _WIN32
+/*
+ * pmemblk_check -- block memory pool consistency check
+ */
+int
+pmemblk_check(const char *path, size_t bsize)
+{
+	return pmemblk_checkU(path, bsize);
+}
+#else
+/*
+ * pmemblk_checkW -- block memory pool consistency check
+ */
+int
+pmemblk_checkW(const wchar_t *path, size_t bsize)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return -1;
+
+	int ret = pmemblk_checkU(upath, bsize);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+#endif
 
 
 #ifdef _MSC_VER

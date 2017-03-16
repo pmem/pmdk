@@ -130,7 +130,7 @@ main(int argc, char *argv[])
 
 	int fd = OPEN(argv[1], O_RDWR);
 
-	ut_util_stat_t stbuf;
+	os_stat_t stbuf;
 	FSTAT(fd, &stbuf);
 
 	Size = stbuf.st_size;

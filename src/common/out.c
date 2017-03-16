@@ -46,6 +46,7 @@
 #include <pthread.h>
 
 #include "out.h"
+#include "os.h"
 #include "valgrind_internal.h"
 #include "util.h"
 
@@ -62,8 +63,20 @@ static FILE *Out_fp;
 static unsigned Log_alignment;
 
 #ifndef NO_LIBPTHREAD
-
 #define MAXPRINT 8192	/* maximum expected log line */
+#else
+#define MAXPRINT 256	/* maximum expected log line for libpmem */
+#endif
+
+struct errormsg
+{
+	char msg[MAXPRINT];
+#ifdef _WIN32
+	wchar_t wmsg[MAXPRINT];
+#endif
+};
+
+#ifndef NO_LIBPTHREAD
 
 static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
 static pthread_key_t Last_errormsg_key;
@@ -94,25 +107,26 @@ Last_errormsg_fini(void)
 {
 	void *p = pthread_getspecific(Last_errormsg_key);
 	if (p) {
-		free(p);
+		Free(p);
 		(void) pthread_setspecific(Last_errormsg_key, NULL);
 	}
 }
 
-static inline const char *
+static inline struct errormsg *
 Last_errormsg_get(void)
 {
 	Last_errormsg_key_alloc();
 
-	char *errormsg = pthread_getspecific(Last_errormsg_key);
+	struct errormsg *errormsg = pthread_getspecific(Last_errormsg_key);
 	if (errormsg == NULL) {
-		errormsg = malloc(MAXPRINT);
+		errormsg = Malloc(sizeof(struct errormsg));
 		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
 		if (ret)
 			FATAL("!pthread_setspecific");
 	}
 	return errormsg;
 }
+
 #else
 
 /*
@@ -124,9 +138,7 @@ Last_errormsg_get(void)
  * not be longer than about 90 chars (in case of pmem_check_version()).
  */
 
-#define MAXPRINT 256	/* maximum expected log line for libpmem */
-
-static __thread char Last_errormsg[MAXPRINT];
+static __thread struct errormsg Last_errormsg;
 
 static inline void
 Last_errormsg_key_alloc(void)
@@ -138,10 +150,10 @@ Last_errormsg_fini(void)
 {
 }
 
-static inline const char *
+static inline const struct errormsg *
 Last_errormsg_get(void)
 {
-	return Last_errormsg;
+	return &Last_errormsg.msg[0];
 }
 
 #endif /* NO_LIBPTHREAD */
@@ -221,7 +233,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			log_file = log_file_pid;
 		}
 
-		if ((Out_fp = fopen(log_file, "w")) == NULL) {
+		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
@@ -566,5 +578,23 @@ out_err(const char *file, int line, const char *func,
 const char *
 out_get_errormsg(void)
 {
-	return Last_errormsg_get();
+	const struct errormsg *errormsg = Last_errormsg_get();
+	return &errormsg->msg[0];
 }
+
+#ifdef _WIN32
+/*
+ * out_get_errormsgW -- get the last error message in wchar_t
+ */
+const wchar_t *
+out_get_errormsgW(void)
+{
+	struct errormsg *errormsg = Last_errormsg_get();
+	const char *utf8 = &errormsg->msg[0];
+	wchar_t *utf16 = &errormsg->wmsg[0];
+	if (util_toUTF16_buff(utf8, utf16, sizeof(errormsg->wmsg)) != 0)
+		FATAL("!Failed to convert string");
+
+	return (const wchar_t *)utf16;
+}
+#endif

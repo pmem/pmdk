@@ -37,13 +37,18 @@ LIBRARY libpmemblk
 VERSION 1.0
 
 EXPORTS
-	pmemblk_check_version
+	pmemblk_check_versionU
+	pmemblk_check_versionW
 	pmemblk_set_funcs
-	pmemblk_errormsg
-	pmemblk_create
-	pmemblk_open
+	pmemblk_errormsgU
+	pmemblk_errormsgW
+	pmemblk_createU
+	pmemblk_createW
+	pmemblk_openU
+	pmemblk_openW
 	pmemblk_close
-	pmemblk_check
+	pmemblk_checkU
+	pmemblk_checkW
 	pmemblk_bsize
 	pmemblk_nblock
 	pmemblk_read

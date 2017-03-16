@@ -1,9 +1,9 @@
-libpmempool_api$(nW)TEST13: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -s 0
+libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -s 0 $(nW)
 Error: Invalid argument
 libpmempool_api$(nW)TEST13: DONE
-libpmempool_api$(nW)TEST13: START: libpmempool_test
- $(nW)libpmempool_test$(nW) $(nW) -s 999999
+libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -s 999999 $(nW)
 checking pool header
 pool header correct
 checking pmemlog header

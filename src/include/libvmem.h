@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,18 @@
 #ifndef LIBVMEM_H
 #define LIBVMEM_H 1
 
+#ifdef _WIN32
+#ifndef NVML_UTF8_API
+#define vmem_create vmem_createW
+#define vmem_check_version vmem_check_versionW
+#define vmem_errormsg vmem_errormsgW
+#else
+#define vmem_create vmem_createU
+#define vmem_check_version vmem_check_versionU
+#define vmem_errormsg vmem_errormsgU
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,7 +67,13 @@ typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 
 #define VMEM_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 
+#ifndef _WIN32
 VMEM *vmem_create(const char *dir, size_t size);
+#else
+VMEM *vmem_createU(const char *dir, size_t size);
+VMEM *vmem_createW(const wchar_t *dir, size_t size);
+#endif
+
 VMEM *vmem_create_in_region(void *addr, size_t size);
 void vmem_delete(VMEM *vmp);
 int vmem_check(VMEM *vmp);
@@ -85,9 +103,16 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
  */
 #define VMEM_MAJOR_VERSION 1
 #define VMEM_MINOR_VERSION 0
-const char *vmem_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *vmem_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *vmem_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *vmem_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /*
  * Passing NULL to vmem_set_funcs() tells libvmem to continue to use
@@ -113,7 +138,12 @@ void vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s));
 
+#ifndef _WIN32
 const char *vmem_errormsg(void);
+#else
+const char *vmem_errormsgU(void);
+const wchar_t *vmem_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

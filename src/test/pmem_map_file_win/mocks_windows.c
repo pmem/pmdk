@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,54 +31,34 @@
  */
 
 /*
- * mocks.c -- mocked functions used in util_poolset.c
+ * mocks_windows.c -- mocked functions used in pmem_map_file.c
+ *                    (Windows-specific)
  */
 
 #include "unittest.h"
-#include "mocks.h"
+
+#define MAX_LEN (4 * 1024 * 1024)
 
 /*
- * open -- open mock
- */
-FUNC_MOCK(open, int, const char *path, int flags, ...)
-FUNC_MOCK_RUN_DEFAULT {
-	if (strcmp(Open_path, path) == 0) {
-		UT_OUT("mocked open: %s", path);
-		errno = EACCES;
-		return -1;
-	}
-
-	va_list ap;
-	va_start(ap, flags);
-	int mode = va_arg(ap, int);
-	va_end(ap);
-
-	return _FUNC_REAL(open)(path, flags, mode);
-}
-FUNC_MOCK_END
-
-/*
- * posix_fallocate -- posix_fallocate mock
+ * posix_fallocate -- interpose on libc posix_fallocate()
  */
 FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
 FUNC_MOCK_RUN_DEFAULT {
-	if (Fallocate_len == len) {
-		UT_OUT("mocked fallocate: %ju", len);
-		return ENOSPC;
+	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
+	if (len > MAX_LEN) {
+		errno = ENOSPC;
+		return -1;
 	}
 	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
 }
 FUNC_MOCK_END
 
 /*
- * pmem_is_pmem -- pmem_is_pmem mock
+ * ftruncate -- interpose on libc ftruncate()
  */
-FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
+FUNC_MOCK(ftruncate, int, int fd, off_t len)
 FUNC_MOCK_RUN_DEFAULT {
-	if (Is_pmem_len == len) {
-		UT_OUT("mocked pmem_is_pmem: %zu", len);
-		return 1;
-	}
-	return _FUNC_REAL(pmem_is_pmem)(addr, len);
+	UT_OUT("ftruncate: len %ju", len);
+	return _FUNC_REAL(ftruncate)(fd, len);
 }
 FUNC_MOCK_END

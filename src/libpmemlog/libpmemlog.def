@@ -37,13 +37,18 @@ LIBRARY libpmemlog
 VERSION 1.0
 
 EXPORTS
-	pmemlog_check_version
+	pmemlog_check_versionU
+	pmemlog_check_versionW
 	pmemlog_set_funcs
-	pmemlog_errormsg
-	pmemlog_create
-	pmemlog_open
+	pmemlog_errormsgU
+	pmemlog_errormsgW
+	pmemlog_createU
+	pmemlog_createW
+	pmemlog_openU
+	pmemlog_openW
 	pmemlog_close
-	pmemlog_check
+	pmemlog_checkU
+	pmemlog_checkW
 	pmemlog_nbyte
 	pmemlog_append
 	pmemlog_appendv

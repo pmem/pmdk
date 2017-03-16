@@ -45,6 +45,21 @@
 
 #ifdef _WIN32
 #include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmemblk_open pmemblk_openW
+#define pmemblk_create pmemblk_createW
+#define pmemblk_check pmemblk_checkW
+#define pmemblk_check_version pmemblk_check_versionW
+#define pmemblk_errormsg pmemblk_errormsgW
+#else
+#define pmemblk_open pmemblk_openU
+#define pmemblk_create pmemblk_createU
+#define pmemblk_check pmemblk_checkU
+#define pmemblk_check_version pmemblk_check_versionU
+#define pmemblk_errormsg pmemblk_errormsgU
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -66,9 +81,16 @@ typedef struct pmemblk PMEMblkpool;
  */
 #define PMEMBLK_MAJOR_VERSION 1
 #define PMEMBLK_MINOR_VERSION 0
-const char *pmemblk_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+
+#ifndef _WIN32
+const char *pmemblk_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmemblk_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemblk_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
 
 /* XXX - unify minimum pool size for both OS-es */
 
@@ -82,11 +104,31 @@ const char *pmemblk_check_version(
 
 #define PMEMBLK_MIN_BLK ((size_t)512)
 
+#ifndef _WIN32
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
+#else
+PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
+PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
+#endif
+
+#ifndef _WIN32
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
-void pmemblk_close(PMEMblkpool *pbp);
+#else
+PMEMblkpool *pmemblk_createU(const char *path, size_t bsize,
+		size_t poolsize, mode_t mode);
+PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
+		size_t poolsize, mode_t mode);
+#endif
+
+#ifndef _WIN32
 int pmemblk_check(const char *path, size_t bsize);
+#else
+int pmemblk_checkU(const char *path, size_t bsize);
+int pmemblk_checkW(const wchar_t *path, size_t bsize);
+#endif
+
+void pmemblk_close(PMEMblkpool *pbp);
 size_t pmemblk_bsize(PMEMblkpool *pbp);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
 int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
@@ -105,7 +147,12 @@ void pmemblk_set_funcs(
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
 
+#ifndef _WIN32
 const char *pmemblk_errormsg(void);
+#else
+const char *pmemblk_errormsgU(void);
+const wchar_t *pmemblk_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

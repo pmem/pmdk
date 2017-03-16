@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
+#include "os.h"
 #include "out.h"
 #include "common.h"
 #include "output.h"
@@ -129,7 +130,7 @@ pmempool_rm_help(char *appname)
 static void
 rm_file(const char *file)
 {
-	int write_protected = access(file, W_OK) != 0;
+	int write_protected = os_access(file, W_OK) != 0;
 	char cask = 'y';
 	switch (ask_mode) {
 	case ASK_ALWAYS:
@@ -231,7 +232,7 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 
 		outv(2, "part file   : %s\n", part_file);
 
-		int exists = access(part_file, F_OK) == 0;
+		int exists = os_access(part_file, F_OK) == 0;
 		if (!exists) {
 			/*
 			 * Ignore not accessible file if force
@@ -333,7 +334,7 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 	for (int i = optind; i < argc; i++) {
 		char *file = argv[i];
 		/* check if file exists and we can read it */
-		int exists = access(file, F_OK | R_OK) == 0;
+		int exists = os_access(file, F_OK | R_OK) == 0;
 		if (!exists) {
 			/* ignore not accessible file if force flag is set */
 			if (force)

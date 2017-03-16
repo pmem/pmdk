@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	for (int arg = 1; arg < argc; arg++) {
 		int fd = OPEN(argv[arg], O_RDONLY);
 
-		ut_util_stat_t stbuf;
+		os_stat_t stbuf;
 		FSTAT(fd, &stbuf);
 
 		void *addr =
