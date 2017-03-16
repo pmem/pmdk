@@ -91,7 +91,8 @@ util_mmap_init(void)
 {
 	LOG(3, NULL);
 
-	pthread_rwlock_init(&Mmap_list_lock, NULL);
+	if ((errno = pthread_rwlock_init(&Mmap_list_lock, NULL)))
+		FATAL("!pthread_rwlock_init");
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
@@ -123,7 +124,8 @@ util_mmap_fini(void)
 {
 	LOG(3, NULL);
 
-	pthread_rwlock_destroy(&Mmap_list_lock);
+	if ((errno = pthread_rwlock_destroy(&Mmap_list_lock)))
+		FATAL("!pthread_rwlock_destroy");
 }
 
 /*
