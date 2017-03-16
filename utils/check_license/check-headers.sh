@@ -56,8 +56,9 @@ shift
 
 PATTERN=`mktemp`
 TMP=`mktemp`
+TMP2=`mktemp`
 TEMPFILE=`mktemp`
-rm -f $PATTERN $TMP
+rm -f $PATTERN $TMP $TMP2
 
 function exit_if_not_exist()
 {
@@ -156,15 +157,18 @@ for file in $FILES ; do
 		if [ $SHALLOW_CLONE -eq 0 ]; then
 			git log --no-merges --format="%ai %aE" -- $file | sort > $TMP
 		else
-			# grep out the grafted commits (commits with no parents)
-			git log --no-merges --format="%ai %aE qwe%prty" -- $file | grep -v "qwerty" | sort > $TMP
+			# mark the grafted commits (commits with no parents)
+			git log --no-merges --format="%ai %aE grafted-%p-commit" -- $file | sort > $TMP
 		fi
 
 		# skip checking dates for new files
 		[ $(cat $TMP | wc -l) -le 1 ] && continue
 
-		FIRST=`cat $TMP | head -n1`
-		LAST=` cat $TMP | tail -n1`
+		# grep out the grafted commits (commits with no parents)
+		grep -v -e "grafted--commit" $TMP > $TMP2
+
+		FIRST=`head -n1 $TMP2`
+		LAST=` tail -n1 $TMP2`
 
 		# skip checking dates for non-Intel commits
 		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2 | cut -d" " -f1`
@@ -192,8 +196,8 @@ for file in $FILES ; do
 		fi
 	fi
 done
-rm -f $TMP
-rm -f $TEMPFILE
+rm -f $TMP $TMP2 $TEMPFILE
+
 # check if error found
 if [ $RV -eq 0 ]; then
 	echo "Copyright headers are OK."
