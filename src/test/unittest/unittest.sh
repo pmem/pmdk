@@ -437,11 +437,13 @@ function create_poolset() {
 			shift 1
 
 			cmd=$1
-			fparms=(${cmd//:/ })
 			shift 1
 
-			node=${fparms[0]}
-			desc=${fparms[1]}
+			# extract last ":" separated segment as descriptor
+			# extract everything before last ":" as node address
+			# this extraction method is compatible with IPv6 and IPv4
+			node=${cmd%:*}
+			desc=${cmd##*:}
 
 			echo "REPLICA $node $desc" >> $psfile
 			continue
