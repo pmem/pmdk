@@ -37,8 +37,8 @@ export UNITTEST_NUM=8
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_dax_devices 1
 require_test_type medium
+require_dax_devices 1
 
 setup
 
