@@ -76,16 +76,17 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 			errno = 0;
 			return 0;
 		} else {
-			return CHECK_ERR(ppc, "unable to access the backup "
-				"destination: %s", ppc->backup_path);
+			return CHECK_ERR(ppc,
+					"unable to access the backup destination: %s",
+					ppc->backup_path);
 		}
 	}
 
 	if ((size_t)util_file_get_size(ppc->backup_path) !=
 			ppc->pool->set_file->size) {
 		ppc->result = CHECK_RESULT_ERROR;
-		return CHECK_ERR(ppc, "destination of the backup does not "
-			"match the size of the source pool file: %s",
+		return CHECK_ERR(ppc,
+			"destination of the backup does not match the size of the source pool file: %s",
 			ppc->backup_path);
 	}
 
@@ -95,8 +96,8 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 		return 0;
 	}
 
-	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE, "destination of the backup "
-		"already exists.|Do you want to overwrite it?");
+	CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_FILE,
+		"destination of the backup already exists.|Do you want to overwrite it?");
 
 	return check_questions_sequence_validate(ppc);
 }
@@ -158,8 +159,8 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 	LOG(3, "backup_path %s", ppc->backup_path);
 
 	if (ppc->pool->set_file->poolset->nreplicas > 1) {
-		CHECK_INFO(ppc, "backup of a poolset with multiple replicas is "
-			"not supported");
+		CHECK_INFO(ppc,
+			"backup of a poolset with multiple replicas is not supported");
 		goto err;
 	}
 
@@ -170,8 +171,8 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 	}
 
 	if (loc->set->nreplicas > 1) {
-		CHECK_INFO(ppc, "backup to a poolset with multiple replicas is "
-			"not supported");
+		CHECK_INFO(ppc,
+			"backup to a poolset with multiple replicas is not supported");
 		goto err_poolset;
 	}
 
@@ -179,17 +180,17 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 	struct pool_replica *srep = ppc->pool->set_file->poolset->replica[0];
 	struct pool_replica *drep = loc->set->replica[0];
 	if (srep->nparts != drep->nparts) {
-		CHECK_INFO(ppc, "number of part files in the backup poolset "
-			"must match number of part files in the source "
-			"poolset");
+		CHECK_INFO(ppc,
+			"number of part files in the backup poolset must match number of part files in the source poolset");
 		goto err_poolset;
 	}
 
 	int overwrite_required = 0;
 	for (unsigned p = 0; p < srep->nparts; p++) {
 		if (srep->part[p].filesize != drep->part[p].filesize) {
-			CHECK_INFO(ppc, "size of the part %u of the backup "
-				"poolset does not match source poolset", p);
+			CHECK_INFO(ppc,
+				"size of the part %u of the backup poolset does not match source poolset",
+				p);
 			goto err_poolset;
 		}
 
@@ -198,8 +199,8 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 				errno = 0;
 				continue;
 			} else {
-				CHECK_INFO(ppc, "unable to access the part of "
-					"the destination poolset: %s",
+				CHECK_INFO(ppc,
+					"unable to access the part of the destination poolset: %s",
 					ppc->backup_path);
 				goto err_poolset;
 			}
@@ -209,8 +210,8 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 
 		if ((size_t)util_file_get_size(drep->part[p].path) !=
 				srep->part[p].filesize) {
-			CHECK_INFO(ppc, "destination of the backup part does "
-				"not match size of the source part file: %s",
+			CHECK_INFO(ppc,
+				"destination of the backup part does not match size of the source part file: %s",
 				drep->part[p].path);
 			goto err_poolset;
 		}
@@ -223,9 +224,9 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 	}
 
 	if (overwrite_required) {
-		CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_PARTS, "part files of the "
-			"destination poolset of the backup already exist.|Do "
-			"you want to overwrite them?");
+		CHECK_ASK(ppc, Q_OVERWRITE_EXISTING_PARTS,
+			"part files of the destination poolset of the backup already exist.|"
+			"Do you want to overwrite them?");
 	}
 
 	return check_questions_sequence_validate(ppc);
