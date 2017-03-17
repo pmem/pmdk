@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,9 @@ require_fs_type none
 require_build_type debug
 
 setup
+
+# limit the number of arenas to fit into the minimal VMEM pool size
+$Env:JE_VMEM_MALLOC_CONF="narenas:64"
 
 expect_normal_exit $Env:EXE_DIR\vmem_stats$Env:EXESUFFIX 1 gbl
 
