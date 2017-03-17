@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemobj(3)
 header: NVM Library
-date: pmemobj API version 2.0.0
+date: pmemobj API version 2.1.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -565,14 +565,18 @@ Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
 For more information please see **ndctl-create-namespace**(1).
 
-In case of a remote replica, the *REPLICA* keyword has to be followed by an address of a remote host (in the format recognized by the **ssh**(1) remote login client)
-and a relative path to a remote pool set file (located in the root config directory on the target node - see **librpmem**(3)):
+In case of a remote replica, the *REPLICA* keyword has to be followed by
+an address of a remote host (in the format recognized by the **ssh**(1)
+remote login client) and a relative path to a remote pool set file (located
+in the root config directory on the target node - see **librpmem**(3)):
 
 ```
 REPLICA [<user>@]<hostname> [<relative-path>/]<remote-pool-set-file>
 ```
 
-There are no other lines in the remote replica section – the REPLICA line defines a remote replica entirely. Here is the example of "myobjpool.set" file:
+There are no other lines in the remote replica section - the REPLICA line
+defines a remote replica entirely. Here is the example of "myobjpool.set"
+file:
 
 ```
 PMEMPOOLSET
@@ -758,7 +762,17 @@ linked data structure - it shall never use memory address of an object, but its 
 void *pmemobj_direct(PMEMoid oid);
 ```
 
-The **pmemobj_direct**() function returns a pointer to an object represented by *oid*. If **OID_NULL** is passed as an argument, function returns NULL.
+The **pmemobj_direct**() function returns a pointer to an object represented by *oid*.
+If **OID_NULL** is passed as an argument, function returns NULL.
+
+>NOTE:
+For preformance reasons, on Linux this function is inlined by default.
+You may decide to compile your programs using the non-inlined variant
+of **pmemobj_direct**() by defining **PMEMOBJ_DIRECT_NON_INLINE** macro.
+You should define this macro by using *\#define* preprocessor directive,
+which must come before *\#include* of **\<libpmemobj.h\>**.
+You could also use *\-D* option to gcc.
+On Windows **PMEMOBJ_DIRECT_NON_INLINE** macro has no effect.
 
 ```c
 PMEMoid pmemobj_oid(const void *addr); (EXPERIMENTAL)
