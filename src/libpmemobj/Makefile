@@ -72,6 +72,6 @@ SOURCE =\
 
 include ../Makefile.inc
 
-CFLAGS += -DUSE_LIBDL
+CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
 
 LIBS += -pthread -lpmem -ldl

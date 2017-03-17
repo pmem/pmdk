@@ -31,10 +31,11 @@
  */
 
 /*
- * obj_direct.c -- unit test for direct
+ * obj_direct.c -- unit test for pmemobj_direct()
  */
 #include "obj.h"
 #include "unittest.h"
+#include "obj_direct.h"
 
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
@@ -48,10 +49,19 @@ static int cond2;
 static PMEMoid thread_oid;
 
 static void *
+obj_direct(PMEMoid oid)
+{
+	void *ptr1 = obj_direct_inline(oid);
+	void *ptr2 = obj_direct_non_inline(oid);
+	UT_ASSERTeq(ptr1, ptr2);
+	return ptr1;
+}
+
+static void *
 test_worker(void *arg)
 {
 	/* check before pool is closed, then let main continue */
-	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTne(obj_direct(thread_oid), NULL);
 	pthread_mutex_lock(&lock1);
 	cond1 = 1;
 	pthread_cond_signal(&sync_cond1);
@@ -62,7 +72,7 @@ test_worker(void *arg)
 	while (!cond2)
 		pthread_cond_wait(&sync_cond2, &lock2);
 	pthread_mutex_unlock(&lock2);
-	UT_ASSERTeq(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTeq(obj_direct(thread_oid), NULL);
 	return NULL;
 }
 
@@ -105,15 +115,15 @@ main(int argc, char *argv[])
 	UT_ASSERTne(tmpoids, NULL);
 
 	oids[0] = OID_NULL;
-	UT_ASSERTeq(pmemobj_direct(oids[0]), NULL);
+	UT_ASSERTeq(obj_direct(oids[0]), NULL);
 
 	for (int i = 0; i < npools; ++i) {
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
-		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
+		UT_ASSERTeq(obj_direct(oids[i]), NULL);
 
 		uint64_t off = pops[i]->heap_offset;
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, off};
-		UT_ASSERTeq((char *)pmemobj_direct(oids[i]) - off,
+		UT_ASSERTeq((char *)obj_direct(oids[i]) - off,
 			(char *)pops[i]);
 
 		r = pmemobj_alloc(pops[i], &tmpoids[i], 100, 1, NULL, NULL);
@@ -122,7 +132,7 @@ main(int argc, char *argv[])
 
 	r = pmemobj_alloc(pops[0], &thread_oid, 100, 2, NULL, NULL);
 	UT_ASSERTeq(r, 0);
-	UT_ASSERTne(pmemobj_direct(thread_oid), NULL);
+	UT_ASSERTne(obj_direct(thread_oid), NULL);
 
 	pthread_t t;
 	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
@@ -134,13 +144,13 @@ main(int argc, char *argv[])
 	pthread_mutex_unlock(&lock1);
 
 	for (int i = 0; i < npools; ++i) {
-		UT_ASSERTne(pmemobj_direct(tmpoids[i]), NULL);
+		UT_ASSERTne(obj_direct(tmpoids[i]), NULL);
 
 		pmemobj_free(&tmpoids[i]);
 
-		UT_ASSERTeq(pmemobj_direct(tmpoids[i]), NULL);
+		UT_ASSERTeq(obj_direct(tmpoids[i]), NULL);
 		pmemobj_close(pops[i]);
-		UT_ASSERTeq(pmemobj_direct(oids[i]), NULL);
+		UT_ASSERTeq(obj_direct(oids[i]), NULL);
 	}
 
 	/* signal the worker that we're free and closed */
