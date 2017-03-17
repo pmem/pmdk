@@ -49,6 +49,9 @@ require_build_type debug
 
 setup
 
+# limit the number of arenas to fit into the minimal VMEM pool size
+$Env:JE_VMEM_MALLOC_CONF="narenas:64"
+
 expect_normal_exit $Env:EXE_DIR\vmem_stats$Env:EXESUFFIX 0 gbl
 
 Get-Content vmem$Env:UNITTEST_NUM.log | Where-Object `
