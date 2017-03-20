@@ -265,6 +265,7 @@ main(int argc, char *argv[])
 
 		src = dest + overlap;
 		memset(dest, 0, bytes);
+		util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
 		MUNMAP(dest, mapped_len);
@@ -277,6 +278,7 @@ main(int argc, char *argv[])
 		src = dest;
 		dest = src + overlap;
 		memset(src, 0, bytes);
+		util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
 		MUNMAP(src, mapped_len);
