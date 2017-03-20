@@ -42,26 +42,33 @@ extern "C" {
 #endif
 
 #include "libpmem.h"
+#include "out.h"
 
 /*
  * util_persist -- flush to persistence
  */
-static inline void
+static inline int
 util_persist(int is_pmem, const void *addr, size_t len)
 {
+	LOG(3, "is_pmem %d, addr %p, len %zu", is_pmem, addr, len);
+
 	if (is_pmem)
 		pmem_persist(addr, len);
-	else
-		pmem_msync(addr, len);
+	else if (pmem_msync(addr, len))
+		return -1;
+
+	return 0;
 }
 
 /*
  * util_persist_auto -- flush to persistence
  */
-static inline void
+static inline int
 util_persist_auto(int is_dev_dax, const void *addr, size_t len)
 {
-	util_persist(is_dev_dax || pmem_is_pmem(addr, len), addr, len);
+	LOG(3, "is_dev_dax %d, addr %p, len %zu", is_dev_dax, addr, len);
+
+	return util_persist(is_dev_dax || pmem_is_pmem(addr, len), addr, len);
 }
 
 #ifdef __cplusplus

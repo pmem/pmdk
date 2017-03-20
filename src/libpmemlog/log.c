@@ -73,7 +73,9 @@ log_descr_create(PMEMlogpool *plp, size_t poolsize)
 	plp->write_offset = plp->start_offset;
 
 	/* store non-volatile part of pool's descriptor */
-	util_persist(plp->is_pmem, &plp->start_offset, 3 * sizeof(uint64_t));
+	if (util_persist(plp->is_pmem, &plp->start_offset,
+			3 * sizeof(uint64_t)))
+		return -1;
 
 	return 0;
 }

@@ -274,10 +274,12 @@ blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 
 	/* create the required metadata */
 	pbp->bsize = htole32(bsize);
-	util_persist(pbp->is_pmem, &pbp->bsize, sizeof(bsize));
+	if (util_persist(pbp->is_pmem, &pbp->bsize, sizeof(bsize)))
+		return -1;
 
 	pbp->is_zeroed = zeroed;
-	util_persist(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed));
+	if (util_persist(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed)))
+		return -1;
 
 	return 0;
 }
