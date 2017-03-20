@@ -402,9 +402,9 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 
 	for (i = 0; i < n_items; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
-		obj_worker->items[i] = (struct item *)malloc(size);
+		obj_worker->items[i] = (struct item *)calloc(1, size);
 		if (obj_worker->items[i] == NULL) {
-			perror("malloc");
+			perror("calloc");
 			goto err;
 		}
 	}
