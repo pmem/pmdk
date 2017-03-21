@@ -1275,6 +1275,7 @@ function run_command()
 	fi
 }
 
+
 #
 # validate_node_number -- validate a node number
 #
@@ -1477,6 +1478,28 @@ function require_nodes() {
 	trap clean_all_remote_nodes ERR SIGINT
 
 	return 0
+}
+
+#
+# check_files_on_node -- check if specified files exist on given node
+#
+function check_files_on_node() {
+	validate_node_number $1
+	local N=$1
+	shift
+	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command ssh $SSH_OPTS ${NODE[$N]} "for f in $*; do if [ ! -f $REMOTE_DIR/\$f ]; then echo \"Missing file \$f on node #$N\" 1>&2; exit 1; fi; done"
+}
+
+#
+# check_no_files_on_node -- check if specified files does not exist on given node
+#
+function check_no_files_on_node() {
+	validate_node_number $1
+	local N=$1
+	shift
+	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	run_command ssh $SSH_OPTS ${NODE[$N]} "for f in $*; do if [ -f $REMOTE_DIR/\$f ]; then echo \"Not deleted file \$f on node #$N\" 1>&2; exit 1; fi; done"
 }
 
 #
