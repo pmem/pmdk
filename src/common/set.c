@@ -1767,6 +1767,12 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
 	struct pool_hdr hdr;
 
+	if (util_is_zeroed(hdrp, sizeof(*hdrp))) {
+		ERR("pool header zeroed");
+		errno = EINVAL;
+		return -1;
+	}
+
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
 	if (!util_convert_hdr_remote(&hdr)) {
