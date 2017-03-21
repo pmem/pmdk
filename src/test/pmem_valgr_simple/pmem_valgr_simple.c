@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 	if (is_pmem) {
 		pmem_persist(tmp64dst, sizeof(*tmp64dst));
 	} else {
-		UT_ASSERTeq(pmem_msync(tmp64dst, sizeof(*tmp64dst)), 0);
+		pmem_msync(tmp64dst, sizeof(*tmp64dst));
 	}
 
 	uint16_t *tmp16dst = (void *)((uintptr_t)dest + 1024);

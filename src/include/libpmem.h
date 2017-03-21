@@ -85,7 +85,7 @@ void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 int pmem_unmap(void *addr, size_t len);
 int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
-int pmem_msync(const void *addr, size_t len);
+void pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);

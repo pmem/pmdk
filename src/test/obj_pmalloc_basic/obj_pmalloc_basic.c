@@ -115,7 +115,7 @@ static void *
 obj_memset(void *ctx, void *ptr, int c, size_t sz)
 {
 	memset(ptr, c, sz);
-	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+	pmem_msync(ptr, sz);
 	return ptr;
 }
 

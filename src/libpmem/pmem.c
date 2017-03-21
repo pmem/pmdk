@@ -389,7 +389,7 @@ pmem_persist(const void *addr, size_t len)
  * still works) but it also works for any memory mapped file, unlike
  * pmem_persist() which is only safe where pmem_is_pmem() returns true.
  */
-int
+void
 pmem_msync(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
@@ -416,16 +416,13 @@ pmem_msync(const void *addr, size_t len)
 	 */
 	VALGRIND_DO_DISABLE_ERROR_REPORTING;
 
-	int ret;
-	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
-		ERR("!msync");
+	if (msync((void *)uptr, len, MS_SYNC) < 0)
+		FATAL("!msync");
 
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
 	/* full flush */
 	VALGRIND_DO_PERSIST(uptr, len);
-
-	return ret;
 }
 
 /*

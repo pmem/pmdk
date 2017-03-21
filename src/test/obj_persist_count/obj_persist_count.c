@@ -53,7 +53,7 @@ FUNC_MOCK(pmem_persist, void, const void *addr, size_t len)
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(pmem_msync, int, const void *addr, size_t len)
+FUNC_MOCK(pmem_msync, void, const void *addr, size_t len)
 	FUNC_MOCK_RUN_DEFAULT {
 		ops_counter.n_msync++;
 		return _FUNC_REAL(pmem_msync)(addr, len);

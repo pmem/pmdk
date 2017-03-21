@@ -125,7 +125,7 @@ do_check(int fd, void *addr, size_t mlen)
 	memset(pat, 0xA5, CHECK_BYTES);
 	memcpy(addr, pat, CHECK_BYTES);
 
-	UT_ASSERTeq(pmem_msync(addr, CHECK_BYTES), 0);
+	pmem_msync(addr, CHECK_BYTES);
 
 	UT_ASSERTeq(pmem_unmap(addr, mlen), 0);
 

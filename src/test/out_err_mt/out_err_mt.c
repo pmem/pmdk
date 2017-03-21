@@ -167,6 +167,8 @@ main(int argc, char *argv[])
 
 	util_init();
 
+	/* We are testing library error reporting */
+
 	pmem_check_version(10000, 0);
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
@@ -177,16 +179,6 @@ main(int argc, char *argv[])
 #endif
 	pmempool_check_version(10005, 0);
 	print_errors("version check");
-
-	void *ptr = NULL;
-	/*
-	 * We are testing library error reporting and we don't want this test
-	 * to fail under memcheck.
-	 */
-	VALGRIND_DO_DISABLE_ERROR_REPORTING;
-	pmem_msync(ptr, 1);
-	VALGRIND_DO_ENABLE_ERROR_REPORTING;
-	print_errors("pmem_msync");
 
 	pmemlog_append(plp, NULL, PMEMLOG_MIN_POOL);
 	print_errors("pmemlog_append");

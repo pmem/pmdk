@@ -101,10 +101,7 @@ do_copy_to_non_pmem(char *addr, int srcfd, off_t len)
 	}
 
 	/* flush it */
-	if (pmem_msync(startaddr, len) < 0) {
-		perror("pmem_msync");
-		exit(1);
-	}
+	pmem_msync(startaddr, len);
 }
 
 int
