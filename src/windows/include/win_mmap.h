@@ -71,7 +71,7 @@ typedef struct FILE_MAPPING_TRACKER {
 	FILE_MAPPING_TRACKER_FLAGS Flags;
 } FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 
-extern HANDLE FileMappingQMutex;
+extern SRWLOCK FileMappingQLock;
 extern SORTEDQ_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingQHead;
 
 #endif /* WIN_MMAP_H */

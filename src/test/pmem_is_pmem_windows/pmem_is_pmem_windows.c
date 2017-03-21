@@ -104,7 +104,7 @@ worker(void *arg)
 	return NULL;
 }
 
-extern HANDLE FileMappingQMutex;
+extern SRWLOCK FileMappingQLock;
 extern struct FMLHead FileMappingQHead;
 
 int
@@ -204,11 +204,11 @@ main(int argc, char *argv[])
 		mt->Access = FILE_MAP_READ;
 		mt->Offset = offset;
 
-		WaitForSingleObject(FileMappingQMutex, INFINITE);
+		AcquireSRWLockExclusive(&FileMappingQLock);
 		SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
 			FILE_MAPPING_TRACKER,
 			mmap_file_mapping_comparer);
-		ReleaseMutex(FileMappingQMutex);
+		ReleaseSRWLockExclusive(&FileMappingQLock);
 	}
 
 	CloseHandle(file_map);

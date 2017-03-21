@@ -107,7 +107,7 @@ is_pmem_proc(const void *addr, size_t len)
 	const void *begin = addr;
 	const void *end = (const void *)((char *)addr + len);
 
-	WaitForSingleObject(FileMappingQMutex, INFINITE);
+	AcquireSRWLockShared(&FileMappingQLock);
 
 	PFILE_MAPPING_TRACKER mt;
 	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
@@ -154,7 +154,7 @@ is_pmem_proc(const void *addr, size_t len)
 		retval = 0;
 	}
 
-	ReleaseMutex(FileMappingQMutex);
+	ReleaseSRWLockShared(&FileMappingQLock);
 
 	LOG(3, "returning %d", retval);
 	return retval;
