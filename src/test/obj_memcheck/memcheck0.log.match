@@ -76,8 +76,8 @@ $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
@@ -99,8 +99,8 @@ $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
@@ -152,6 +152,9 @@ $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
 ==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
 ==$(N)==    by 0x$(X): main $(*)
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
