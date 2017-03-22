@@ -176,7 +176,7 @@ pmembench_costructor(void)
 		clo_field_size(struct benchmark_args, n_threads);
 	pmembench_clos[1].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[1].type_uint.min = 1;
-	pmembench_clos[1].type_uint.max = 32;
+	pmembench_clos[1].type_uint.max = UINT_MAX;
 
 	pmembench_clos[2].opt_short = 'n';
 	pmembench_clos[2].opt_long = "ops-per-thread";
