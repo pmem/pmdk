@@ -42,6 +42,7 @@ extern "C" {
 #endif
 
 #include "libpmem.h"
+#include "out.h"
 
 /*
  * util_persist -- flush to persistence
@@ -49,10 +50,12 @@ extern "C" {
 static inline void
 util_persist(int is_pmem, const void *addr, size_t len)
 {
+	LOG(3, "is_pmem %d, addr %p, len %zu", is_pmem, addr, len);
+
 	if (is_pmem)
 		pmem_persist(addr, len);
-	else
-		pmem_msync(addr, len);
+	else if (pmem_msync(addr, len))
+		FATAL("!pmem_msync");
 }
 
 /*
@@ -61,6 +64,8 @@ util_persist(int is_pmem, const void *addr, size_t len)
 static inline void
 util_persist_auto(int is_dev_dax, const void *addr, size_t len)
 {
+	LOG(3, "is_dev_dax %d, addr %p, len %zu", is_dev_dax, addr, len);
+
 	util_persist(is_dev_dax || pmem_is_pmem(addr, len), addr, len);
 }
 

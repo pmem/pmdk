@@ -59,7 +59,7 @@
 /*
  * log_descr_create -- (internal) create log memory pool descriptor
  */
-static int
+static void
 log_descr_create(PMEMlogpool *plp, size_t poolsize)
 {
 	LOG(3, "plp %p poolsize %zu", plp, poolsize);
@@ -74,8 +74,6 @@ log_descr_create(PMEMlogpool *plp, size_t poolsize)
 
 	/* store non-volatile part of pool's descriptor */
 	util_persist(plp->is_pmem, &plp->start_offset, 3 * sizeof(uint64_t));
-
-	return 0;
 }
 
 /*
@@ -202,10 +200,7 @@ pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 	ASSERT(!plp->is_dev_dax || plp->is_pmem);
 
 	/* create pool descriptor */
-	if (log_descr_create(plp, rep->repsize) != 0) {
-		LOG(2, "descriptor creation failed");
-		goto err;
-	}
+	log_descr_create(plp, rep->repsize);
 
 	/* initialize runtime parts */
 	if (log_runtime_init(plp, 0) != 0) {
