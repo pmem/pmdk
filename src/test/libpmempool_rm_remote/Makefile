@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,36 +31,11 @@
 #
 
 #
-# src/test/out_err_mt/TEST2 -- unit test for error messages
+# src/test/libpmempool_rm_remote/Makefile -- unit test for pmempool_rm
+# with remote replica
 #
-export UNITTEST_NAME=out_err_mt/TEST2
-export UNITTEST_NUM=2
-export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
+SCP_TO_REMOTE_NODES = y
+SCP_TARGET = libpmempool_rm
+SCP_SRC_DIR = ../libpmempool_rm
 
-# standard unit test setup
-. ../unittest/unittest.sh
-require_test_type medium
-
-require_fs_type any
-require_valgrind_dev_version 3.7
-configure_valgrind helgrind force-enable
-setup
-
-unset PMEM_LOG_LEVEL
-unset PMEMLOG_LOG_LEVEL
-unset PMEMBLK_LOG_LEVEL
-unset PMEMOBJ_LOG_LEVEL
-unset VMEM_LOG_LEVEL
-
-unset PMEM_LOG_FILE
-unset PMEMLOG_LOG_FILE
-unset PMEMBLK_LOG_FILE
-unset PMEMOBJ_LOG_FILE
-unset VMEM_LOG_FILE
-
-expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2\
-			 $DIR/testfile3 $DIR
-
-check
-
-pass
+include ../libpmempool_rm/Makefile.inc

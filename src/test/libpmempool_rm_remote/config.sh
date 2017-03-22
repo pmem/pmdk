@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,38 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/out_err_mt/TEST2 -- unit test for error messages
+# libpmempool_rm_remote/config.sh -- test configuration
 #
-export UNITTEST_NAME=out_err_mt/TEST2
-export UNITTEST_NUM=2
-export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
 
-# standard unit test setup
-. ../unittest/unittest.sh
-require_test_type medium
+CONF_GLOBAL_FS_TYPE=any
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
 
-require_fs_type any
-require_valgrind_dev_version 3.7
-configure_valgrind helgrind force-enable
-setup
-
-unset PMEM_LOG_LEVEL
-unset PMEMLOG_LOG_LEVEL
-unset PMEMBLK_LOG_LEVEL
-unset PMEMOBJ_LOG_LEVEL
-unset VMEM_LOG_LEVEL
-
-unset PMEM_LOG_FILE
-unset PMEMLOG_LOG_FILE
-unset PMEMBLK_LOG_FILE
-unset PMEMOBJ_LOG_FILE
-unset VMEM_LOG_FILE
-
-expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1 $DIR/testfile2\
-			 $DIR/testfile3 $DIR
-
-check
-
-pass
+CONF_GLOBAL_RPMEM_PROVIDER=all
+CONF_GLOBAL_RPMEM_PMETHOD=all

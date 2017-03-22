@@ -101,6 +101,12 @@ rm_local(const char *path, int flags, int is_part_file)
 static int
 rm_remote(const char *node, const char *path, int flags)
 {
+	if (!Rpmem_remove) {
+		ERR_F(flags, "cannot remove remote replica"
+			" -- missing librpmem");
+		return -1;
+	}
+
 	int rpmem_flags = 0;
 	if (CHECK_FLAG(flags, FORCE))
 		rpmem_flags |= RPMEM_REMOVE_FORCE;
