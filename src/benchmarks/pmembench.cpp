@@ -34,6 +34,7 @@
  * pmembench.cpp -- main source file for benchmark framework
  */
 
+#define _GNU_SOURCE 1
 #include <cassert>
 #include <cerrno>
 #include <cfloat>
@@ -45,6 +46,7 @@
 #include <err.h>
 #include <getopt.h>
 #include <linux/limits.h>
+#include <pthread.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -472,8 +474,23 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		       struct benchmark_args *args)
 {
 	size_t i;
+	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+	if (ncpus < 0)
+		return -1;
 	for (i = 0; i < nworkers; i++) {
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+
 		workers[i] = benchmark_worker_alloc();
+		int cpu = (((2 * i) % ncpus +
+			    ((long)(i % ncpus) >= (ncpus / 2))));
+		CPU_SET(cpu, &cpuset);
+		errno = pthread_setaffinity_np(workers[i]->thread,
+					       sizeof(cpu_set_t), &cpuset);
+		if (errno) {
+			perror("pthread_setaffinity_np");
+			return -1;
+		}
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = (struct operation_info *)calloc(
