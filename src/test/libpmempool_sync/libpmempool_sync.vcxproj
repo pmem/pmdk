@@ -109,6 +109,7 @@
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
+    <None Include="TEST2.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libpmempool_sync.c" />

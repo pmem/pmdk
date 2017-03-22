@@ -174,6 +174,14 @@ function read_global_test_configuration {
 }
 
 #
+# test_concole_output -- print output from test to console
+#
+function test_concole_output($out, $err) {
+    Write-Host -NoNewline $out.Result;
+    Write-Host -NoNewline $err.Result;
+}
+
+#
 # runtest -- given the test directory name, run tests found inside it
 #
 function runtest {
@@ -301,28 +309,24 @@ function runtest {
 
                 If ($use_timeout -And $testtype -eq "check") {
                     # execute with timeout
-                    $timeout = new-timespan -Seconds $time
+                    $timeout = New-Timespan -Seconds $time
                     $stopwatch = [diagnostics.stopwatch]::StartNew()
-                    while (($stopwatch.elapsed -lt $timeout) -And `
+                    while (($stopwatch.Elapsed.ToString('hh\:mm\:ss') -lt $timeout) -And `
                         ($p.HasExited -eq $false)) {
                         # wait for test exit or timeout
                     }
 
-                    # print test's console output
-                    Write-Host -NoNewline $outTask.Result;
-                    Write-Host -NoNewline $errTask.Result;
-
-                    if ($stopwatch.elapsed -ge $timeout) {
+                    if ($stopwatch.Elapsed.ToString('hh\:mm\:ss') -ge $timeout) {
                         $p | Stop-Process -Force
+                        test_concole_output $outTask $errTask
                         Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
                         cd ..
                         exit $p.ExitCode
                     }
+                    test_concole_output $outTask $errTask
                 } Else {
                     $p.WaitForExit()
-                    # print test's console output
-                    Write-Host -NoNewline $outTask.Result;
-                    Write-Host -NoNewline $errTask.Result;
+                    test_concole_output $outTask $errTask
                 }
 
                 if ($p.ExitCode -ne 0) {
