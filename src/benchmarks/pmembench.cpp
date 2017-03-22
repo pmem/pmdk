@@ -47,6 +47,9 @@
 #include <linux/limits.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#ifndef _WIN32
+#include <pthread.h>
+#endif
 
 #include "benchmark.hpp"
 #include "benchmark_worker.hpp"
@@ -472,8 +475,27 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		       struct benchmark_args *args)
 {
 	size_t i;
+#ifndef _WIN32
+	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+	if (ncpus < 0)
+		return -1;
+#endif
 	for (i = 0; i < nworkers; i++) {
 		workers[i] = benchmark_worker_alloc();
+#ifndef _WIN32
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+
+		int cpu = (((2 * i) % ncpus +
+			    ((long)(i % ncpus) >= (ncpus / 2))));
+		CPU_SET(cpu, &cpuset);
+		errno = pthread_setaffinity_np(workers[i]->thread,
+					       sizeof(cpu_set_t), &cpuset);
+		if (errno) {
+			perror("pthread_setaffinity_np");
+			return -1;
+		}
+#endif
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = (struct operation_info *)calloc(
