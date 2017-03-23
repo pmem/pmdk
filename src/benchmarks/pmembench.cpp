@@ -69,6 +69,8 @@
 /* average time required to get a current time from the system */
 unsigned long long Get_time_avg;
 
+#define MIN_EXE_TIME_E (0.5)
+
 /*
  * struct pmembench -- main context
  */
@@ -170,7 +172,7 @@ static struct version_s {
 static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[8];
+static struct benchmark_clo pmembench_clos[9];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
@@ -284,6 +286,19 @@ pmembench_costructor(void)
 	pmembench_clos[7].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pmembench_clos[7].type_uint.min = 1;
 	pmembench_clos[7].type_uint.max = ULONG_MAX;
+
+	pmembench_clos[8].opt_short = 'e';
+	pmembench_clos[8].opt_long = "min-exe-time";
+	pmembench_clos[8].type = CLO_TYPE_UINT;
+	pmembench_clos[8].descr = "Minimal execution time in seconds";
+	pmembench_clos[8].off =
+		clo_field_offset(struct benchmark_args, min_exe_time);
+	pmembench_clos[8].def = "0";
+	pmembench_clos[8].type_uint.size =
+		clo_field_size(struct benchmark_args, min_exe_time);
+	pmembench_clos[8].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[8].type_uint.min = 0;
+	pmembench_clos[8].type_uint.max = ULONG_MAX;
 }
 
 /*
@@ -1031,6 +1046,75 @@ pmembench_remove_file(const char *path)
 }
 
 /*
+ * pmembench_single_repeat -- runs benchmark ones
+ */
+static int
+pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
+			size_t n_threads, size_t n_ops,
+			struct bench_results *res)
+{
+	int ret = 0;
+
+	if (bench->info->rm_file) {
+		ret = pmembench_remove_file(args->fname);
+		if (ret != 0) {
+			perror("removing file failed");
+			return ret;
+		}
+	}
+
+	if (bench->info->init) {
+		if (bench->info->init(bench, args)) {
+			warn("%s: initialization failed", bench->info->name);
+			return -1;
+		}
+	}
+
+	assert(bench->info->operation != NULL);
+
+	struct benchmark_worker **workers;
+	workers = (struct benchmark_worker **)malloc(
+		args->n_threads * sizeof(struct benchmark_worker *));
+	assert(workers != NULL);
+
+	if ((ret = pmembench_init_workers(workers, n_threads, n_ops, bench,
+					  args)) != 0) {
+		if (bench->info->exit)
+			bench->info->exit(bench, args);
+		return ret;
+	}
+
+	unsigned j;
+	for (j = 0; j < args->n_threads; j++) {
+		benchmark_worker_run(workers[j]);
+	}
+
+	for (j = 0; j < args->n_threads; j++) {
+		benchmark_worker_join(workers[j]);
+		if (workers[j]->ret != 0) {
+			ret = workers[j]->ret;
+			fprintf(stderr, "thread number %d failed\n", j);
+		}
+	}
+
+	results_store(res, workers, args->n_threads, args->n_ops_per_thread);
+
+	for (j = 0; j < args->n_threads; j++) {
+		benchmark_worker_exit(workers[j]);
+
+		free(workers[j]->info.opinfo);
+		benchmark_worker_free(workers[j]);
+	}
+
+	free(workers);
+
+	if (bench->info->exit)
+		bench->info->exit(bench, args);
+
+	return ret;
+}
+
+/*
  * pmembench_run -- runs one benchmark. Parses arguments and performs
  * specific functions.
  */
@@ -1039,10 +1123,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
 	char old_wd[PATH_MAX];
 	int ret = 0;
+
 	struct benchmark_args *args = NULL;
 	struct latency *stats = NULL;
 	double *workers_times = NULL;
-	struct clo_vec *clovec;
+
+	struct clo_vec *clovec = NULL;
 
 	assert(bench->info != NULL);
 	pmembench_merge_clos(bench);
@@ -1101,6 +1187,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 	size_t args_i;
 	for (args_i = 0; args_i < clovec->nargs; args_i++) {
+
 		args = (struct benchmark_args *)clo_vec_get_args(clovec,
 								 args_i);
 		if (args == NULL) {
@@ -1134,6 +1221,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			!bench->info->multithread ? 1 : args->n_threads;
 		size_t n_ops =
 			!bench->info->multiops ? 1 : args->n_ops_per_thread;
+		uint64_t n_ops_per_thread_copy = args->n_ops_per_thread;
 
 		stats = (struct latency *)calloc(args->repeats,
 						 sizeof(struct latency));
@@ -1142,72 +1230,53 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 						 sizeof(double));
 		assert(workers_times != NULL);
 
-		for (unsigned i = 0; i < args->repeats; i++) {
-			if (bench->info->rm_file) {
-				ret = pmembench_remove_file(args->fname);
-				if (ret != 0) {
-					perror("removing file failed");
+		unsigned i = 0;
+		/*
+		 * scale up the number of operations to obtain an execution
+		 * time not smaller than the assumed minimal execution time
+		 */
+		if (args->min_exe_time != 0) {
+			double min_exe_time = args->min_exe_time;
+			total_res->nrepeats = 1;
+			do {
+				ret = pmembench_single_repeat(
+					bench, args, n_threads, n_ops,
+					&total_res->res[0]);
+				if (ret != 0)
 					goto out;
-				}
-			}
+				get_total_results(total_res);
+				if (min_exe_time <
+				    total_res->total.min + MIN_EXE_TIME_E)
+					break;
+				n_ops = (size_t)(
+					(double)n_ops *
+					(min_exe_time + MIN_EXE_TIME_E) /
+					total_res->total.min);
+				args->n_ops_per_thread = n_ops;
 
-			if (bench->info->init) {
-				if (bench->info->init(bench, args)) {
-					warn("%s: initialization failed",
-					     bench->info->name);
-					ret = -1;
-					goto out;
-				}
-			}
+				results_free(total_res);
+				total_res = results_alloc(
+					args->repeats, args->n_threads,
+					args->n_ops_per_thread);
+				assert(total_res != NULL);
+				total_res->nrepeats = 1;
+			} while (1);
+			total_res->nrepeats = args->repeats;
+			i = 1;
+		}
 
-			assert(bench->info->operation != NULL);
-
-			struct benchmark_worker **workers;
-			workers = (struct benchmark_worker **)malloc(
-				args->n_threads *
-				sizeof(struct benchmark_worker *));
-			assert(workers != NULL);
-
-			if ((ret = pmembench_init_workers(workers, n_threads,
-							  n_ops, bench,
-							  args)) != 0) {
-				if (bench->info->exit)
-					bench->info->exit(bench, args);
+		for (; i < args->repeats; i++) {
+			if ((ret = pmembench_single_repeat(
+				     bench, args, n_threads, n_ops,
+				     &total_res->res[i])) != 0)
 				goto out;
-			}
-
-			unsigned j;
-			for (j = 0; j < args->n_threads; j++) {
-				benchmark_worker_run(workers[j]);
-			}
-
-			for (j = 0; j < args->n_threads; j++) {
-				benchmark_worker_join(workers[j]);
-				if (workers[j]->ret != 0) {
-					ret = workers[j]->ret;
-					fprintf(stderr,
-						"thread number %d failed\n", j);
-				}
-			}
-
-			results_store(&total_res->res[i], workers,
-				      args->n_threads, args->n_ops_per_thread);
-
-			for (j = 0; j < args->n_threads; j++) {
-				benchmark_worker_exit(workers[j]);
-
-				free(workers[j]->info.opinfo);
-				benchmark_worker_free(workers[j]);
-			}
-
-			free(workers);
-
-			if (bench->info->exit)
-				bench->info->exit(bench, args);
 		}
 
 		get_total_results(total_res);
 		pmembench_print_results(bench, args, total_res);
+
+		args->n_ops_per_thread = n_ops_per_thread_copy;
+
 		results_free(total_res);
 		free(stats);
 		free(workers_times);
