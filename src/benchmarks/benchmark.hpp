@@ -193,6 +193,8 @@ struct worker_info {
 	struct operation_info *opinfo; /* operation info structure */
 	size_t nops;		       /* number of operations */
 	void *priv;		       /* worker's private data */
+	benchmark_time_t beg;	  /* start time */
+	benchmark_time_t end;	  /* end time */
 };
 
 /*
@@ -202,7 +204,7 @@ struct operation_info {
 	struct worker_info *worker;  /* worker's info */
 	struct benchmark_args *args; /* benchmark arguments */
 	size_t index;		     /* operation's index */
-	benchmark_time_t t_diff;     /* timestamp of start */
+	benchmark_time_t end;	/* operation's end time */
 };
 
 /*
