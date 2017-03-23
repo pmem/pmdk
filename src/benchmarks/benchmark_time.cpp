@@ -116,7 +116,7 @@ benchmark_time_set(benchmark_time_t *time, unsigned long long nsecs)
 
 /*
  * benchmark_get_avg_get_time -- calculates average time required to get the
- * current time from the system
+ * current time from the system in nanoseconds
  */
 unsigned long long
 benchmark_get_avg_get_time(void)
