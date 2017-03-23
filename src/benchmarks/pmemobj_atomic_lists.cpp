@@ -97,7 +97,6 @@ static struct obj_bench {
 	 *	- position_tail,
 	 *	- position_middle.
 	 */
-	bool increment;
 	size_t *alloc_sizes; /* array to store random sizes of each object */
 	size_t max_len;      /* maximum list length */
 	size_t min_len;      /* initial list length */
@@ -162,15 +161,15 @@ struct obj_worker {
 
 	/* head of the circular queue */
 	CIRCLEQ_HEAD(qlist, item) headq;
-	TOID(struct item) * oids; /* persistent pmemobj list elements */
-	struct item **items;      /* volatile elements */
-	size_t n_elm;		  /* number of elements in array */
-	size_t *positions;	/* place on the list if rand mode */
-	struct element elm;       /* pointer to current element */
-				  /*
-				   * list_move is a pointer to structure storing variables used by
-				   * second list (used only for obj_move benchmark).
-				   */
+	TOID(struct item) * oids;    /* persistent pmemobj list elements */
+	struct item **items;	 /* volatile elements */
+	size_t n_elm;		     /* number of elements in array */
+	fn_position_t *fn_positions; /* element access functions */
+	struct element elm;	  /* pointer to current element */
+				     /*
+				      * list_move is a pointer to structure storing variables used by
+				      * second list (used only for obj_move benchmark).
+				      */
 	struct obj_worker *list_move;
 };
 
@@ -253,31 +252,6 @@ position_middle(struct obj_worker *obj_worker, size_t op_idx)
 	return elm;
 }
 
-static struct item *
-queue_get_item(struct obj_worker *obj_worker, size_t idx)
-{
-	struct item *item;
-	CIRCLEQ_FOREACH(item, &obj_worker->headq, fieldq)
-	{
-		if (idx == 0)
-			return item;
-		idx--;
-	}
-	return NULL;
-}
-
-static TOID(struct item) obj_get_item(struct obj_worker *obj_worker, size_t idx)
-{
-	TOID(struct item) oid;
-	POBJ_LIST_FOREACH(oid, &obj_worker->head, field)
-	{
-		if (idx == 0)
-			return oid;
-		idx--;
-	}
-	return TOID_NULL(struct item);
-}
-
 /*
  * position_rand -- returns first, second or last element from the persistent
  * list or volatile queue based on r_positions array.
@@ -285,14 +259,9 @@ static TOID(struct item) obj_get_item(struct obj_worker *obj_worker, size_t idx)
 static struct element
 position_rand(struct obj_worker *obj_worker, size_t op_idx)
 {
-	struct element elm = {0, OID_NULL, false};
+	struct element elm;
+	elm = obj_worker->fn_positions[op_idx](obj_worker, op_idx);
 	elm.before = true;
-	if (!obj_bench.args->queue)
-		elm.itemp =
-			obj_get_item(obj_worker, obj_worker->positions[op_idx]);
-	else
-		elm.itemq = queue_get_item(obj_worker,
-					   obj_worker->positions[op_idx]);
 	return elm;
 }
 
@@ -333,6 +302,40 @@ static fn_type_num_t type_num_modes[] = {type_mode_one, type_mode_per_thread,
 					 type_mode_rand};
 static fn_position_t positions[] = {position_head, position_tail,
 				    position_middle, position_rand};
+
+/* function pointers randomly picked when using rand mode */
+static fn_position_t rand_positions[] = {position_head, position_tail,
+					 position_middle};
+
+/*
+ * get_item -- common part of initial operation of the all benchmarks.
+ * It gets pointer to element on the list where object will
+ * be inserted/removed/moved to/from.
+ */
+static void
+get_item(struct benchmark *bench, struct operation_info *info)
+{
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	obj_worker->elm = obj_bench.fn_position(obj_worker, info->index);
+}
+
+/*
+ * get_move_item -- special part of initial operation of the obj_move
+ * benchmarks. It gets pointer to element on the list where object will be
+ * inserted/removed/moved to/from.
+ */
+static int
+get_move_item(struct benchmark *bench, struct operation_info *info)
+{
+	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	obj_worker->list_move->elm =
+		obj_bench.fn_position(obj_worker->list_move, info->index);
+
+	get_item(bench, info);
+
+	return 0;
+}
+
 /*
  * parse_args -- parse command line string argument
  */
@@ -480,10 +483,11 @@ queue_free_worker_items(struct obj_worker *obj_worker)
  * defining positions where each operation will be performed. Used only
  * in POSITION_MODE_RAND
  */
-static size_t *
-random_positions()
+static fn_position_t *
+random_positions(void)
 {
-	size_t *positions = (size_t *)calloc(obj_bench.max_len, sizeof(size_t));
+	fn_position_t *positions = (fn_position_t *)calloc(
+		obj_bench.max_len, sizeof(fn_position_t));
 	if (positions == NULL) {
 		perror("calloc");
 		return NULL;
@@ -491,12 +495,13 @@ random_positions()
 
 	if (obj_bench.args->seed != 0)
 		srand(obj_bench.args->seed);
-	size_t list_len =
-		obj_bench.increment ? obj_bench.min_len : obj_bench.max_len;
+
+	size_t rmax = ARRAY_SIZE(rand_positions);
 	for (size_t i = 0; i < obj_bench.max_len; i++) {
-		positions[i] = RRAND(list_len, 0);
-		list_len += obj_bench.increment ? 1 : -1;
+		size_t id = RRAND(rmax, 0);
+		positions[i] = rand_positions[id];
 	}
+
 	return positions;
 }
 
@@ -585,6 +590,8 @@ obj_remove_op(struct operation_info *info)
 static int
 insert_op(struct benchmark *bench, struct operation_info *info)
 {
+	get_item(bench, info);
+
 	return obj_bench.args->queue ? queue_insert_op(info)
 				     : obj_insert_op(info);
 }
@@ -595,6 +602,8 @@ insert_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 {
+	get_item(bench, info);
+
 	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	PMEMoid tmp;
 	size_t size = obj_bench.alloc_sizes[info->index];
@@ -619,6 +628,8 @@ obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 static int
 remove_op(struct benchmark *bench, struct operation_info *info)
 {
+	get_item(bench, info);
+
 	return obj_bench.args->queue ? queue_remove_op(info)
 				     : obj_remove_op(info);
 }
@@ -629,6 +640,8 @@ remove_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 {
+	get_item(bench, info);
+
 	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE_FREE(obj_bench.pop, &obj_worker->head,
 			      obj_worker->elm.itemp, field);
@@ -641,6 +654,9 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_move_op(struct benchmark *bench, struct operation_info *info)
 {
+	if (get_move_item(bench, info))
+		return -1;
+
 	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_MOVE_ELEMENT_BEFORE(obj_bench.pop, &obj_worker->head,
 				      &obj_worker->list_move->head,
@@ -650,37 +666,13 @@ obj_move_op(struct benchmark *bench, struct operation_info *info)
 }
 
 /*
- * get_item -- common part of initial operation of the all benchmarks It gets
- * pointer to element on the list where object will
- * be inserted/removed/moved to/from.
+ * free_worker -- free common worker state
  */
-static int
-get_item(struct benchmark *bench, struct operation_info *info)
-{
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
-	obj_worker->elm = obj_bench.fn_position(obj_worker, info->index);
-	return 0;
-}
-
-/*
- * get_move_item -- special part of initial operation of the obj_move
- * benchmarks It gets pointer to element on the list where object will be
- * inserted/removed/moved to/from.
- */
-static int
-get_move_item(struct benchmark *bench, struct operation_info *info)
-{
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
-	obj_worker->list_move->elm =
-		obj_bench.fn_position(obj_worker->list_move, info->index);
-	return get_item(bench, info);
-}
-
 static void
 free_worker(struct obj_worker *obj_worker)
 {
 	if (obj_bench.position_mode == POSITION_MODE_RAND)
-		free(obj_worker->positions);
+		free(obj_worker->fn_positions);
 	free(obj_worker);
 }
 
@@ -730,7 +722,7 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 			field);
 
 	if (obj_bench.position_mode == POSITION_MODE_RAND)
-		free(obj_worker->list_move->positions);
+		free(obj_worker->list_move->fn_positions);
 	free(obj_worker->list_move);
 	free_worker_list(bench, args, worker);
 }
@@ -753,8 +745,8 @@ obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 	obj_worker->n_elm = obj_bench.max_len;
 	obj_worker->list_move = NULL;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
-		obj_worker->positions = random_positions();
-		if (obj_worker->positions == NULL)
+		obj_worker->fn_positions = random_positions();
+		if (obj_worker->fn_positions == NULL)
 			goto err;
 	}
 	if (obj_bench.fn_init(worker, n_elm, list_len) != 0)
@@ -762,7 +754,7 @@ obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 
 	return 0;
 err_positions:
-	free(obj_worker->positions);
+	free(obj_worker->fn_positions);
 err:
 	free(obj_worker);
 	return -1;
@@ -776,7 +768,6 @@ static int
 obj_insert_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		       struct worker_info *worker)
 {
-	obj_bench.increment = true;
 	return obj_init_worker(worker, obj_bench.max_len, obj_bench.min_len);
 }
 
@@ -788,7 +779,6 @@ static int
 obj_insert_new_init_worker(struct benchmark *bench, struct benchmark_args *args,
 			   struct worker_info *worker)
 {
-	obj_bench.increment = true;
 	return obj_init_worker(worker, obj_bench.min_len, obj_bench.min_len);
 }
 
@@ -800,7 +790,6 @@ static int
 obj_remove_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		       struct worker_info *worker)
 {
-	obj_bench.increment = false;
 	return obj_init_worker(worker, obj_bench.max_len, obj_bench.max_len);
 }
 
@@ -812,7 +801,6 @@ static int
 obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		     struct worker_info *worker)
 {
-	obj_bench.increment = false;
 	if (obj_init_worker(worker, obj_bench.max_len, obj_bench.max_len) != 0)
 		return -1;
 
@@ -825,9 +813,8 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 	size_t i;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
-		obj_bench.increment = true;
-		obj_worker->list_move->positions = random_positions();
-		if (obj_worker->list_move->positions == NULL)
+		obj_worker->list_move->fn_positions = random_positions();
+		if (obj_worker->list_move->fn_positions == NULL)
 			goto free_list_move;
 	}
 	for (i = 0; i < obj_bench.min_len; i++) {
@@ -849,7 +836,7 @@ free_all:
 			POBJ_LIST_LAST(&obj_worker->list_move->head, field),
 			field);
 	}
-	free(obj_worker->list_move->positions);
+	free(obj_worker->list_move->fn_positions);
 free_list_move:
 	free(obj_worker->list_move);
 free:
@@ -1050,7 +1037,6 @@ pmem_atomic_list_costructor(void)
 	obj_insert.multiops = true;
 	obj_insert.init_worker = obj_insert_init_worker;
 	obj_insert.free_worker = free_worker_items;
-	obj_insert.op_init = get_item;
 	obj_insert.operation = insert_op;
 	obj_insert.measure_time = true;
 	obj_insert.clos = obj_list_clo;
@@ -1070,7 +1056,6 @@ pmem_atomic_list_costructor(void)
 	obj_remove.multiops = true;
 	obj_remove.init_worker = obj_remove_init_worker;
 	obj_remove.free_worker = free_worker_items;
-	obj_remove.op_init = get_item;
 	obj_remove.operation = remove_op;
 	obj_remove.measure_time = true;
 	obj_remove.clos = obj_list_clo;
@@ -1089,7 +1074,6 @@ pmem_atomic_list_costructor(void)
 	obj_insert_new.multiops = true;
 	obj_insert_new.init_worker = obj_insert_new_init_worker;
 	obj_insert_new.free_worker = free_worker_list;
-	obj_insert_new.op_init = get_item;
 	obj_insert_new.operation = obj_insert_new_op;
 	obj_insert_new.measure_time = true;
 	obj_insert_new.clos = obj_list_clo;
@@ -1108,7 +1092,6 @@ pmem_atomic_list_costructor(void)
 	obj_remove_free.multiops = true;
 	obj_remove_free.init_worker = obj_remove_init_worker;
 	obj_remove_free.free_worker = free_worker_list;
-	obj_remove_free.op_init = get_item;
 	obj_remove_free.operation = obj_remove_free_op;
 	obj_remove_free.measure_time = true;
 	obj_remove_free.clos = obj_list_clo;
@@ -1126,7 +1109,6 @@ pmem_atomic_list_costructor(void)
 	obj_move.multiops = true;
 	obj_move.init_worker = obj_move_init_worker;
 	obj_move.free_worker = obj_move_free_worker;
-	obj_move.op_init = get_move_item;
 	obj_move.operation = obj_move_op;
 	obj_move.measure_time = true;
 	obj_move.clos = obj_list_clo;
