@@ -82,7 +82,7 @@ static const char *help_str =
 "  -h, --help           Print this help message.\n"
 "  -v, --verbose        Be verbose.\n"
 "  -s, --only-pools     Remove only pool files (default).\n"
-"  -p, --pool-set       Remove all poolset files - local and remote.\n"
+"  -a, --all            Remove all poolset files - local and remote.\n"
 "  -l, --local-set      Remove local poolset files\n"
 "  -r, --remote-set     Remove remote poolset files\n"
 "  -f, --force          Ignore nonexisting files.\n"
