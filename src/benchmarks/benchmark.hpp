@@ -91,6 +91,7 @@ struct benchmark_args {
 	size_t dsize;		   /* data size */
 	unsigned seed;		   /* PRNG seed */
 	unsigned repeats;	  /* number of repeats of one scenario */
+	unsigned min_exe_time;     /* minimal execution time */
 	bool help;		   /* print help for benchmark */
 	void *opts;		   /* benchmark specific arguments */
 };
