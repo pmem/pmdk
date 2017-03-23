@@ -267,7 +267,7 @@ static struct ns_callback ns_cb = {
 /*
  * blk_descr_create -- (internal) create block memory pool descriptor
  */
-static int
+static void
 blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 {
 	LOG(3, "pbp %p bsize %u zeroed %d", pbp, bsize, zeroed);
@@ -278,8 +278,6 @@ blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
 
 	pbp->is_zeroed = zeroed;
 	util_persist(pbp->is_pmem, &pbp->is_zeroed, sizeof(pbp->is_zeroed));
-
-	return 0;
 }
 
 /*
@@ -446,10 +444,7 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 	ASSERT(!pbp->is_dev_dax || pbp->is_pmem);
 
 	/* create pool descriptor */
-	if (blk_descr_create(pbp, (uint32_t)bsize, set->zeroed) != 0) {
-		LOG(2, "descriptor creation failed");
-		goto err;
-	}
+	blk_descr_create(pbp, (uint32_t)bsize, set->zeroed);
 
 	/* initialize runtime parts */
 	if (blk_runtime_init(pbp, bsize, 0) != 0) {
