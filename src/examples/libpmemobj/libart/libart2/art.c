@@ -178,7 +178,7 @@ PMEMOIDmove(PMEMoid *dest, PMEMoid *src, const int n)
 PMEMoid
 alloc_node(PMEMobjpool *pop, art_node_type node_type, int buffer_size)
 {
-	PMEMoid an;
+	PMEMoid an = null_oid;
 	art_leaf *alp;
 
 	switch (node_type) {
