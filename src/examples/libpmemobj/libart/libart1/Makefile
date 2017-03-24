@@ -65,3 +65,9 @@ libart1.o: art.o
 
 arttree1: arttree.o
 arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o
+
+clean-libraries:
+	$(RM) *.so *.a
+
+clean-progs:
+	$(RM) $(PROGS) *.o
