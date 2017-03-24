@@ -50,7 +50,7 @@
 PROGS = arttree arttree_structures
 LIBRARIES = art
 
-include ../../Makefile.inc
+include ../../../Makefile.inc
 
 # ## for optimized builds, uncomment the follwoing two lines
 # LIBDIR = $(TOP_SRC)/nondebug
