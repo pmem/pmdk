@@ -1,6 +1,6 @@
 #
-# Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2016, Intel Corporation
+# Copyright 2017, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 #   Description:  build libart port to libpmemobj
 #
 #        Author:  Andreas Bluemle, Dieter Kasper
-#                 Andreas.Bluemle.external@ts.fujitsu.com
+#                 andreas.bluemle@itxperts.de
 #                 dieter.kasper@ts.fujitsu.com
 #
 #  Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
@@ -47,35 +47,22 @@
 # ===========================================================================
 #
 
-PROGS = arttree
-LIBRARIES = art
+PROGS = arttree3
+LIBRARIES = art3
 
-include ../../Makefile.inc
-
-# LIBDIR = $(TOP_SRC)/debug
-# CFLAGS += -O0 -finstrument-functions -finstrument-functions-exclude-function-list=_mm_set1_epi8,_mm_set_epi8,_mm_cmplt_epi8,_mm_loadu_si128,_mm_movemask_epi8,_mm_cmpeq_epi8
-
-# EXTRA_CFLAGS += "-DUSE_VALGRIND -I/root/valgrind/include"
-
-LIBDIR = $(TOP_SRC)/nondebug
-CFLAGS += -O2
+include ../../../Makefile.inc
 
 INCDIR += -I$(TOP_SRC)/common -I$(TOP_SRC)/libpmemobj
-LIBS = -lpmemobj -pthread -lart 
+
+# ## for optimized builds, uncomment the follwoing two lines
+# LIBDIR = $(TOP_SRC)/nondebug
+# CFLAGS += -O2
+
+LIBS = -lpmemobj -pthread -lart3
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L.
-static: LDFLAGS += -Wl,-rpath=. -L. -pg
-static: CFLAGS += -pg
 
-libart.o: art.o
+libart3.o: art.o
 
-arttree: arttree.o
-
-static: arttree.o libart.a ../../../nondebug/libpmemobj.a ../../../nondebug/libpmem.a
-	$(LINKER) -o arttree-static $(LDFLAGS) $^  -pthread
-
-pmemobj_debugger: pmemobj_debugger.o
-
-clean:
-	rm -f *.o arttree pmemobj_debugger libart.so libart.a
+arttree3: arttree.o

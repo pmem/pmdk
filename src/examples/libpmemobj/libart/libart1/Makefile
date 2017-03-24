@@ -47,8 +47,8 @@
 # ===========================================================================
 #
 
-PROGS = arttree arttree_structures
-LIBRARIES = art
+PROGS = arttree1 arttree_structures
+LIBRARIES = art1
 
 include ../../../Makefile.inc
 
@@ -56,12 +56,12 @@ include ../../../Makefile.inc
 # LIBDIR = $(TOP_SRC)/nondebug
 # CFLAGS += -O2
 
-LIBS = -lpmemobj -pthread -lart
+LIBS = -lpmemobj -pthread -lart1
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L.
 
-libart.o: art.o
+libart1.o: art.o
 
-arttree: arttree.o
+arttree1: arttree.o
 arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o
