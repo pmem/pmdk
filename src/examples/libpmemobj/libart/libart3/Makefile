@@ -58,7 +58,7 @@ INCDIR += -I$(TOP_SRC)/common -I$(TOP_SRC)/libpmemobj
 # LIBDIR = $(TOP_SRC)/nondebug
 # CFLAGS += -O2
 
-LIBS = -lpmemobj -pthread -lart
+LIBS = -lpmemobj -pthread -lart3
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L.
