@@ -44,6 +44,7 @@ require_fs_type any
 
 # this test creates huge file
 configure_valgrind memcheck force-disable
+configure_valgrind pmemcheck force-disable
 
 setup
 
