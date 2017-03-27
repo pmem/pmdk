@@ -237,6 +237,8 @@ set_errno(int errnum)
 {
 
 #ifdef _WIN32
+	int err = errnum;
+	errno = err;
 	SetLastError(errnum);
 #else
 	errno = errnum;
