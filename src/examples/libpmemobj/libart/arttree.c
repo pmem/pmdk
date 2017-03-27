@@ -97,6 +97,8 @@ struct ds_context
 #define INSERT (1 << 4)
 #define SEARCH (1 << 5)
 #define REMOVE (1 << 6)
+#define LOOKUP (1 << 7)
+#define ITERATE (1 << 8)
 
 struct ds_context my_context;
 
@@ -110,6 +112,8 @@ extern TOID(art_node_u) null_art_node_u;
 int initialize_context(struct ds_context *ctx, int ac, char *av[]);
 int initialize_pool(struct ds_context *ctx);
 int add_elements(struct ds_context *ctx);
+int lookup_elements(struct ds_context *ctx);
+int iterate_tree(struct ds_context *ctx);
 int insert_element(struct ds_context *ctx);
 int search_element(struct ds_context *ctx);
 int delete_element(struct ds_context *ctx);
@@ -121,6 +125,9 @@ static int dump_art_leaf_callback(void *data,
 		const unsigned char *key, uint32_t key_len,
 		const unsigned char *val, uint32_t val_len);
 static int dump_art_node_callback(void *data,
+		const unsigned char *key, uint32_t key_len,
+		const unsigned char *val, uint32_t val_len);
+static int noop_art_tree_callback(void *data,
 		const unsigned char *key, uint32_t key_len,
 		const unsigned char *val, uint32_t val_len);
 static void print_node_info(char *nodetype, uint64_t off, const art_node *an);
@@ -167,6 +174,10 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 					ctx->mode |= SEARCH;
 					parse_keyval(ctx, av[optind], SEARCH);
 					optind++;
+				} else if (mode == 'l') {
+					ctx->mode |= LOOKUP;
+				} else if (mode == 'n') {
+					ctx->mode |= ITERATE;
 				} else if (mode == 'r') {
 					ctx->mode |= REMOVE;
 					parse_keyval(ctx, av[optind], REMOVE);
@@ -325,6 +336,8 @@ usage(char *progname)
 	printf("       f fill     create and fill art tree\n");
 	printf("       i insert   insert an element into the art tree\n");
 	printf("       s search   search for a key in the art tree\n");
+	printf("       l lookup   lookup keys in the art tree\n");
+	printf("       n iterate  iterate over the art tree\n");
 	printf("       r remove   remove an element from the art tree\n");
 	printf("       d dump     dump art tree\n");
 	printf("       g graph    dump art tree as a graphviz dot graph\n");
@@ -363,6 +376,20 @@ main(int argc, char *argv[])
 	if ((my_context.mode & FILL)) {
 		if (add_elements(&my_context)) {
 			perror("add elements");
+			return 1;
+		}
+	}
+
+	if ((my_context.mode & LOOKUP)) {
+		if (lookup_elements(&my_context)) {
+			perror("lookup keys");
+			return 1;
+		}
+	}
+
+	if ((my_context.mode & ITERATE)) {
+		if (iterate_tree(&my_context)) {
+			perror("iterate tree");
 			return 1;
 		}
 	}
@@ -413,6 +440,9 @@ add_elements(struct ds_context *ctx)
 	int val_len;
 	unsigned char *key;
 	unsigned char *value;
+	unsigned long c_start;
+	unsigned long c_end;
+	int64_t cycles = 0;
 
 	if (ctx == NULL) {
 		errors++;
@@ -428,13 +458,19 @@ add_elements(struct ds_context *ctx)
 			value = NULL;
 			key_len = read_key(&key);
 			val_len = read_value(&value);
+			c_start = read_tsc();
 			art_insert(pop, key, key_len, value, val_len);
+			c_end = read_tsc();
+			cycles += (int64_t)(c_end - c_start);
 			if (key != NULL)
 				free(key);
 			if (value != NULL)
 				free(value);
 		}
 	}
+	printf("performance art_insert: %ld / %d = %ld cycles\n",
+	    cycles, ctx->insertions,
+	    ctx->insertions ? cycles / ctx->insertions : 0);
 
 	return errors;
 }
@@ -460,6 +496,76 @@ insert_element(struct ds_context *ctx)
 
 	return errors;
 }
+
+int
+lookup_elements(struct ds_context *ctx)
+{
+	PMEMobjpool *pop;
+	int errors = 0;
+	int64_t		i;
+	int key_len;
+	unsigned char *key;
+	int64_t		successful = 0;
+	int64_t		failed = 0;
+	unsigned long c_start;
+	unsigned long c_end;
+	int64_t successful_cycles = 0;
+	int64_t failed_cycles = 0;
+
+	if (ctx == NULL) {
+		errors++;
+	} else if (ctx->pop == NULL) {
+		errors++;
+	}
+
+	if (!errors) {
+		pop = ctx->pop;
+
+		for (i = 0; i < ctx->insertions; i++) {
+			TOID(var_string) result;
+			key = NULL;
+			key_len = read_line(&key);
+			c_start = read_tsc();
+			result = art_search(pop, key, key_len);
+			c_end = read_tsc();
+			if (TOID_IS_NULL(result)) {
+				failed_cycles += (int64_t)(c_end - c_start);
+				failed++;
+			} else {
+				successful_cycles += (int64_t)(c_end - c_start);
+				successful++;
+			}
+			if (key   != NULL)
+				free(key);
+		}
+		printf("performance art_search: %ld lookups\n"
+		    "\tkey exists: %ld / %ld = %ld cycles\n"
+		    "\tkey does not exist %ld / %ld = %ld cycles\n",
+		    i,
+		    successful_cycles, successful,
+		    successful_cycles / successful,
+		    failed_cycles, failed,
+		    failed_cycles / failed);
+	}
+
+	return errors;
+}
+
+int
+iterate_tree(struct ds_context *ctx)
+{
+	unsigned long c_start;
+	unsigned long c_end;
+	int64_t cycles = 0;
+
+	c_start = read_tsc();
+	art_iter(ctx->pop, noop_art_tree_callback, NULL);
+	c_end = read_tsc();
+	cycles = (int64_t)(c_end - c_start);
+	printf("performance art_iter: %ld cycles\n", cycles);
+	return 0;
+}
+
 
 int
 search_element(struct ds_context *ctx)
@@ -665,5 +771,19 @@ dump_art_node_callback(void *data,
 		printf("leaf: key len %d = [%s], value len %d = [%s]\n",
 		    key_len, key, val_len, val);
 	}
+	return 0;
+}
+
+static int
+noop_art_tree_callback(void *data,
+	const unsigned char *key, uint32_t key_len,
+	const unsigned char *val, uint32_t val_len)
+{
+	(void) data;
+	(void) key;
+	(void) key_len;
+	(void) val;
+	(void) val_len;
+
 	return 0;
 }

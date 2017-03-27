@@ -52,6 +52,10 @@ LIBRARIES = art
 
 include ../../Makefile.inc
 
+# ## for optimized builds, uncomment the follwoing two lines
+# LIBDIR = $(TOP_SRC)/nondebug
+# CFLAGS += -O2
+
 LIBS = -lpmemobj -pthread -lart
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
