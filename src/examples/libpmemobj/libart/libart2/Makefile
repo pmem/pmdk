@@ -64,3 +64,9 @@ $(PROGS): LDFLAGS += -Wl,-rpath=. -L.
 libart2.o: art.o
 
 arttree2: arttree.o
+
+clean-libraries:
+	$(RM) *.so *.a
+
+clean-progs:
+	$(RM) $(PROGS) *.o
