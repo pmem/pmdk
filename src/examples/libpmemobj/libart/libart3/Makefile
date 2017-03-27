@@ -1,6 +1,6 @@
 #
-# Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2016, Intel Corporation
+# Copyright 2017, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 #   Description:  build libart port to libpmemobj
 #
 #        Author:  Andreas Bluemle, Dieter Kasper
-#                 Andreas.Bluemle.external@ts.fujitsu.com
+#                 andreas.bluemle@itxperts.de
 #                 dieter.kasper@ts.fujitsu.com
 #
 #  Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
@@ -47,21 +47,22 @@
 # ===========================================================================
 #
 
-PROGS = arttree1 arttree_structures
-LIBRARIES = art1
+PROGS = arttree3
+LIBRARIES = art3
 
 include ../../../Makefile.inc
+
+INCDIR += -I$(TOP_SRC)/common -I$(TOP_SRC)/libpmemobj
 
 # ## for optimized builds, uncomment the follwoing two lines
 # LIBDIR = $(TOP_SRC)/nondebug
 # CFLAGS += -O2
 
-LIBS = -lpmemobj -pthread -lart1
+LIBS = -lpmemobj -pthread -lart3
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L.
 
-libart1.o: art.o
+libart3.o: art.o
 
-arttree1: arttree.o
-arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o
+arttree3: arttree.o
