@@ -121,7 +121,7 @@ fill_leaf(PMEMobjpool *pop, PMEMoid al_oid,
 static art_node *
 alloc_node(uint8_t type)
 {
-	art_node *n;
+	art_node *n = NULL;
 
 	switch (type) {
 	case NODE4:
@@ -139,7 +139,9 @@ alloc_node(uint8_t type)
 	default:
 		abort();
 	}
-	n->type = type;
+	if (n != NULL) {
+		n->type = type;
+	}
 	return n;
 }
 
@@ -974,7 +976,7 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 		add_child4(new_node, ref,
 			new_alp->buffer[depth + prefix_diff],
 			SET_LEAF(new_leaf.oid.off));
-		return leaf_oid;
+		return new_leaf.oid;
 	}
 
 RECURSE_SEARCH:;
