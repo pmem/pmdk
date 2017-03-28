@@ -21,3 +21,7 @@ dpkg/
 *.hpptmp
 *.aps
 tags
+GPATH
+GRTAGS
+GSYMS
+GTAGS
