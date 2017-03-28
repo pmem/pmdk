@@ -126,8 +126,7 @@ Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
-$(OPT)Layout                   : pmempool
-$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
+Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(*)
 Number of lanes          : $(*)
 Heap offset              : $(*)
