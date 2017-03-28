@@ -26,8 +26,7 @@ Machine                  : AMD X86-64
 Checksum                 : $(*)
 
 PMEM OBJ Header:
-$(OPT)Layout                   : pmempool
-$(OPT)Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
+Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(nW)
 Number of lanes          : $(nW)
 Heap offset              : $(nW)
@@ -59,7 +58,7 @@ Machine                  : AMD X86-64
 Checksum                 : $(*)
 
 PMEM OBJ Header:
-Layout                   : pmempool
+Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
 Lanes offset             : $(nW)
 Number of lanes          : $(nW)
 Heap offset              : $(nW)
