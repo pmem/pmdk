@@ -62,6 +62,7 @@
 #include "set.h"
 #include "check_util.h"
 #include "util_pmem.h"
+#include "mmap.h"
 
 /* arbitrary size of a maximum file part being read / write at once */
 #define RW_BUFFERING_SIZE (128 * 1024 * 1024)
@@ -350,8 +351,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			goto out_close;
 		}
 		params->size = (size_t)s;
-		addr = mmap(NULL, (uint64_t)params->size, PROT_READ,
-			MAP_SHARED, fd, 0);
+		addr = util_map(fd, params->size, MAP_SHARED, 1, 0);
 		if (addr == MAP_FAILED) {
 			ret = -1;
 			goto out_close;

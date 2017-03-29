@@ -270,7 +270,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 
 	if (args->backup_path != NULL) {
 		ppc->backup_path = strdup(args->backup_path);
-		if (!ppc->args.backup_path) {
+		if (!ppc->backup_path) {
 			ERR("!strdup");
 			goto error_backup_path_malloc;
 		}
