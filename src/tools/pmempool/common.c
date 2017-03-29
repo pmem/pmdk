@@ -719,43 +719,45 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 	vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
 
 	int is_tty = isatty(fileno(stdin));
-	do {
-		printf("%s", qbuff);
-		size_t len = strlen(answers);
-		size_t i;
-		char def_anslo = (char)tolower(def_ans);
-		printf(" [");
-		for (i = 0; i < len; i++) {
-			char anslo = (char)tolower(answers[i]);
-			printf("%c", anslo == def_anslo ?
-					toupper(anslo) : anslo);
-			if (i != len - 1)
-				printf("/");
-		}
-		printf("] ");
-		int c = getchar();
-		if (c == EOF)
-			ans = def_anslo;
-		else
-			ans = (char)tolower(c);
+	printf("%s", qbuff);
+	size_t len = strlen(answers);
+	size_t i;
+	char def_anslo = (char)tolower(def_ans);
+	printf(" [");
+	for (i = 0; i < len; i++) {
+		char anslo = (char)tolower(answers[i]);
+		printf("%c", anslo == def_anslo ?
+				toupper(anslo) : anslo);
+		if (i != len - 1)
+			printf("/");
+	}
+	printf("] ");
+
+	int c = getchar();
+	if (c == EOF)
+		ans = INV_ANS;
+	else
+		ans = (char)tolower(c);
+
+	if (ans != '\n') {
 		valid = 1;
-		if (ans != '\n') {
-			/*
-			 * Valid answer must consist of a single letter and new
-			 * line character just after it. Otherwise it is
-			 * invalid.
-			 */
-			if ((char)getchar() != '\n') {
-				valid = 0;
-				while ((char)getchar() != '\n')
-					;
-			}
-		}
-	} while (!valid || (ans != '\n' && strchr(answers, ans) == NULL));
+		/*
+		 * Valid answer must consist of a single letter and new
+		 * line character just after it. Otherwise it is
+		 * invalid.
+		 */
+		while ((char)(c = getchar()) != '\n' && c != EOF)
+			valid = 0;
+	}
 
 	char ret = ans == '\n' ? def_ans : ans;
+
 	if (!is_tty)
 		printf("%c\n", ret);
+
+	if (!valid || strchr(answers, ans) == NULL)
+		ret = INV_ANS;
+
 	return ret;
 }
 

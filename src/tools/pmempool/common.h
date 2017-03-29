@@ -110,6 +110,9 @@
 #define OBJH_TO_PTR(objh)\
 ((void *)((uintptr_t)objh + sizeof(struct legacy_object_header)))
 
+/* invalid answer for ask_* functions */
+#define INV_ANS	'\0'
+
 /*
  * pmem_pool_type_t -- pool types
  */
