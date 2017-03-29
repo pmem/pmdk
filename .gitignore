@@ -13,10 +13,10 @@ make.out
 core
 a.out
 nbproject/
-rpmbuild/
-dpkgbuild/
-rpm/
-dpkg/
+/rpmbuild/
+/dpkgbuild/
+/rpm/
+/dpkg/
 *.user
 ~*
 *.db
