@@ -243,6 +243,12 @@ If you want to use a custom version of libc++ run:
 ```
 Please remember to set the appropriate versions of *CC/CXX* when using custom versions of the library.
 
+For example, when using a custom version of libc++(version 3.9) installed to /usr/local/libcxx, to execute the tests run:
+
+```
+	$ CC=clang CXX=clang++ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 LIBCPP_LIBDIR=/usr/local/libcxx/lib check
+```
+
 #### Building NVML on Windows ####
 
 Clone the NVML tree and open the solution:
