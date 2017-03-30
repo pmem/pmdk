@@ -36,6 +36,7 @@
 
 #include "benchmark.hpp"
 #include "libpmemblk.h"
+#include "os.h"
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -215,7 +216,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
 	struct blk_args *bargs = (struct blk_args *)args->opts;
 
-	bworker->seed = rand_r(&bargs->seed);
+	bworker->seed = os_rand_r(&bargs->seed);
 
 	bworker->buff = (unsigned char *)malloc(args->dsize);
 	if (!bworker->buff) {
@@ -238,7 +239,8 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		for (size_t i = 0; i < args->n_ops_per_thread; i++) {
 			bworker->blocks[i] =
 				worker->index * bb->blocks_per_thread +
-				rand_r(&bworker->seed) % bb->blocks_per_thread;
+				os_rand_r(&bworker->seed) %
+					bb->blocks_per_thread;
 		}
 	} else {
 		for (size_t i = 0; i < args->n_ops_per_thread; i++)
@@ -327,7 +329,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 #ifdef _WIN32
 		flags |= O_BINARY;
 #endif
-		bb->fd = open(args->fname, flags, args->fmode);
+		bb->fd = os_open(args->fname, flags, args->fmode);
 		if (bb->fd < 0) {
 			perror("open");
 			return -1;
@@ -344,7 +346,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	return 0;
 out_close:
 	if (ba->file_io)
-		close(bb->fd);
+		os_close(bb->fd);
 	else
 		pmemblk_close(bb->pbp);
 	return -1;
@@ -425,7 +427,7 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 	struct blk_args *ba = (struct blk_args *)args->opts;
 
 	if (ba->file_io) {
-		close(bb->fd);
+		os_close(bb->fd);
 	} else {
 		pmemblk_close(bb->pbp);
 		int result = pmemblk_check(args->fname, args->dsize);

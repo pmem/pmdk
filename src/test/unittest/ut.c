@@ -396,7 +396,7 @@ record_open_files(void)
 	DIR *dirp = NULL;
 	struct dirent *dp;
 
-	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
+	if ((dirfd = os_open("/proc/self/fd", O_RDONLY)) < 0 ||
 	    (dirp = fdopendir(dirfd)) == NULL)
 		UT_FATAL("!/proc/self/fd");
 	while ((dp = readdir(dirp)) != NULL) {
@@ -427,7 +427,7 @@ check_open_files(void)
 	DIR *dirp = NULL;
 	struct dirent *dp;
 
-	if ((dirfd = open("/proc/self/fd", O_RDONLY)) < 0 ||
+	if ((dirfd = os_open("/proc/self/fd", O_RDONLY)) < 0 ||
 	    (dirp = fdopendir(dirfd)) == NULL)
 		UT_FATAL("!/proc/self/fd");
 	while ((dp = readdir(dirp)) != NULL) {
@@ -672,7 +672,7 @@ ut_start_common(const char *file, int line, const char *func,
 	GetSystemInfo(&si);
 	Ut_mmap_align = si.dwAllocationGranularity;
 
-	if (getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
+	if (os_getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
 		/* disable windows error message boxes */
 		ut_suppress_errmsg();
 	}
@@ -680,28 +680,28 @@ ut_start_common(const char *file, int line, const char *func,
 #else
 	Ut_mmap_align = Ut_pagesize;
 #endif
-	if (getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
+	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
 
-	if (getenv("UNITTEST_QUIET") != NULL)
+	if (os_getenv("UNITTEST_QUIET") != NULL)
 		Quiet++;
 
-	if (getenv("UNITTEST_FORCE_QUIET") != NULL)
+	if (os_getenv("UNITTEST_FORCE_QUIET") != NULL)
 		Force_quiet++;
 
-	Testname = getenv("UNITTEST_NAME");
+	Testname = os_getenv("UNITTEST_NAME");
 
-	if ((logsuffix = getenv("UNITTEST_NUM")) == NULL)
+	if ((logsuffix = os_getenv("UNITTEST_NUM")) == NULL)
 		logsuffix = "";
 
 	const char *fmode = "w";
-	if (getenv("UNITTEST_LOG_APPEND") != NULL)
+	if (os_getenv("UNITTEST_LOG_APPEND") != NULL)
 		fmode = "a";
 
 	int ret = snprintf(logname, MAXLOGNAME, "out%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGNAME)
 		UT_FATAL("!snprintf");
-	if ((Outfp = fopen(logname, fmode)) == NULL) {
+	if ((Outfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}
@@ -709,7 +709,7 @@ ut_start_common(const char *file, int line, const char *func,
 	ret = snprintf(logname, MAXLOGNAME, "err%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGNAME)
 		UT_FATAL("!snprintf");
-	if ((Errfp = fopen(logname, fmode)) == NULL) {
+	if ((Errfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}
@@ -717,7 +717,7 @@ ut_start_common(const char *file, int line, const char *func,
 	ret = snprintf(logname, MAXLOGNAME, "trace%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGNAME)
 		UT_FATAL("!snprintf");
-	if ((Tracefp = fopen(logname, fmode)) == NULL) {
+	if ((Tracefp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
 	}
@@ -791,7 +791,7 @@ ut_done(const char *file, int line, const char *func,
 
 	va_start(ap, fmt);
 
-	if (!getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
 		check_open_files();
 
 	prefix(file, line, func, 0);

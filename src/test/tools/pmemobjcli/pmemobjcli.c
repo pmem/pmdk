@@ -1990,7 +1990,7 @@ static struct pocli_cmd pocli_commands[] = {
 static int
 pocli_env_parse_bool(const char *envname, bool *value)
 {
-	char *env = getenv(envname);
+	char *env = os_getenv(envname);
 	if (!env)
 		return 0;
 	if (strlen(env) > 1 || (env[0] != '0' && env[0] != '1')) {

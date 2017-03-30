@@ -44,6 +44,14 @@ extern "C" {
 #include <sys/stat.h>
 #include <stdio.h>
 
+struct iovec;
+
+/* os_flock */
+#define OS_LOCK_SH 1
+#define OS_LOCK_EX 2
+#define OS_LOCK_NB 4
+#define OS_LOCK_UN 8
+
 #ifndef _WIN32
 typedef struct stat os_stat_t;
 #define os_fstat	fstat
@@ -64,22 +72,22 @@ FILE *os_fopen(const char *pathname, const char *mode);
 FILE *os_fdopen(int fd, const char *mode);
 int os_chmod(const char *pathname, mode_t mode);
 int os_mkstemp(char *temp);
-
+int os_posix_fallocate(int fd, off_t offset, off_t len);
+int os_ftruncate(int fd, off_t length);
+int os_flock(int fd, int operation);
+ssize_t os_writev(int fd, const struct iovec *iov, int iovcnt);
+int os_clock_gettime(int id, struct timespec *ts);
+int os_rand_r(unsigned *seedp);
+int os_unsetenv(const char *name);
+int os_setenv(const char *name, const char *value, int overwrite);
+char *os_getenv(const char *name);
+const char *os_strsignal(int sig);
 /*
  * XXX: missing APis (used in ut_file.c)
  *
- * ftruncate
  * rename
- * flock
  * read
  * write
- * writev
- * posix_fallocate
- * strsignal
- * rand_r
- * setenv
- * unsetenv
- * clock_gettime
  */
 
 #ifdef __cplusplus

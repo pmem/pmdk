@@ -211,14 +211,15 @@ out_init(const char *log_prefix, const char *log_level_var,
 	char *log_level;
 	char *log_file;
 
-	if ((log_level = getenv(log_level_var)) != NULL) {
+	if ((log_level = os_getenv(log_level_var)) != NULL) {
 		Log_level = atoi(log_level);
 		if (Log_level < 0) {
 			Log_level = 0;
 		}
 	}
 
-	if ((log_file = getenv(log_file_var)) != NULL && log_file[0] != '\0') {
+	if ((log_file = os_getenv(log_file_var)) != NULL &&
+				log_file[0] != '\0') {
 
 		/* reserve more than enough space for a PID + '\0' */
 		char log_file_pid[PATH_MAX];
@@ -244,7 +245,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 #endif	/* DEBUG */
 
-	char *log_alignment = getenv("NVML_LOG_ALIGN");
+	char *log_alignment = os_getenv("NVML_LOG_ALIGN");
 	if (log_alignment) {
 		int align = atoi(log_alignment);
 		if (align > 0)

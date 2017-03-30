@@ -44,6 +44,6 @@
  */
 
 #ifndef WRAP_REAL
-#define posix_fallocate __wrap_posix_fallocate
-#define ftruncate __wrap_ftruncate
+#define os_posix_fallocate __wrap_os_posix_fallocate
+#define os_ftruncate __wrap_os_ftruncate
 #endif

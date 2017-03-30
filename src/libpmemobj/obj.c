@@ -45,6 +45,7 @@
 #include "obj.h"
 
 #include "heap_layout.h"
+#include "os.h"
 #include "pmemops.h"
 #include "set.h"
 #include "sync.h"
@@ -194,7 +195,7 @@ obj_init(void)
 		POOL_HDR_SIZE + POOL_DESC_SIZE);
 
 #ifdef USE_COW_ENV
-	char *env = getenv("PMEMOBJ_COW");
+	char *env = os_getenv("PMEMOBJ_COW");
 	if (env)
 		Open_cow = atoi(env);
 #endif
@@ -637,7 +638,7 @@ obj_vg_boot(struct pmemobjpool *pop)
 
 	LOG(4, "pop %p", pop);
 
-	if (getenv("PMEMOBJ_VG_CHECK_UNDEF"))
+	if (os_getenv("PMEMOBJ_VG_CHECK_UNDEF"))
 		obj_vg_check_no_undef(pop);
 }
 
