@@ -409,6 +409,28 @@ reader_lock_for_pred(void *arg)
 }
 
 /*
+ * cond_zero_test -- (internal) test the zeroing constructor
+ */
+void
+cond_zero_test(nvobj::pool<struct root> &pop)
+{
+	PMEMoid raw_cnd;
+
+	pmemobj_alloc(pop.get_handle(), &raw_cnd, sizeof(PMEMcond), 1,
+		      [](PMEMobjpool *pop, void *ptr, void *arg) -> int {
+			      PMEMcond *mtx = static_cast<PMEMcond *>(ptr);
+			      pmemobj_memset_persist(pop, mtx, 1, sizeof(*mtx));
+			      return 0;
+		      },
+		      NULL);
+
+	nvobj::condition_variable *placed_mtx =
+		new (pmemobj_direct(raw_cnd)) nvobj::condition_variable;
+	std::unique_lock<nvobj::mutex> lock(pop.get_root()->pmutex);
+	placed_mtx->wait_for(lock, wait_time, []() { return false; });
+}
+
+/*
  * mutex_test -- (internal) launch worker threads to test the pshared_mutex
  */
 template <typename Reader, typename Writer>
@@ -450,6 +472,8 @@ main(int argc, char *argv[])
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
+
+	cond_zero_test(pop);
 
 	std::vector<reader_type> notify_functions(
 		{reader_mutex, reader_mutex_pred, reader_lock, reader_lock_pred,

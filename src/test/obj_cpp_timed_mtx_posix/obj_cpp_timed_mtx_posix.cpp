@@ -166,6 +166,27 @@ trylock_until_test(void *arg)
 }
 
 /*
+ * mutex_zero_test -- (internal) test the zeroing constructor
+ */
+void
+mutex_zero_test(nvobj::pool<struct root> &pop)
+{
+	PMEMoid raw_mutex;
+
+	pmemobj_alloc(pop.get_handle(), &raw_mutex, sizeof(PMEMmutex), 1,
+		      [](PMEMobjpool *pop, void *ptr, void *arg) -> int {
+			      PMEMmutex *mtx = static_cast<PMEMmutex *>(ptr);
+			      pmemobj_memset_persist(pop, mtx, 1, sizeof(*mtx));
+			      return 0;
+		      },
+		      NULL);
+
+	nvobj::timed_mutex *placed_mtx =
+		new (pmemobj_direct(raw_mutex)) nvobj::timed_mutex;
+	std::unique_lock<nvobj::timed_mutex> lck(*placed_mtx);
+}
+
+/*
  * mutex_test -- (internal) launch worker threads to test the pmutex
  */
 template <typename Worker>
@@ -202,6 +223,8 @@ main(int argc, char *argv[])
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
+
+	mutex_zero_test(pop);
 
 	timed_mtx_test(pop, increment_pint);
 	UT_ASSERTeq(pop.get_root()->counter, num_threads * num_ops);
