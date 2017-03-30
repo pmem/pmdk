@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,6 +51,7 @@
 #include "rpmemd_fip.h"
 #include "rpmemd_log.h"
 #include "rpmem_fip.h"
+#include "os.h"
 
 #define SIZE_PER_LANE	64
 #define COUNT_PER_LANE	32
@@ -754,9 +755,9 @@ main(int argc, char *argv[])
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
 	rpmem_util_cmds_init();
-	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
+	rpmemd_log_init("rpmemd", os_getenv("RPMEMD_LOG_FILE"), 0);
 	rpmemd_log_level = rpmemd_log_level_from_str(
-			getenv("RPMEMD_LOG_LEVEL"));
+			os_getenv("RPMEMD_LOG_LEVEL"));
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 
 	common_fini();

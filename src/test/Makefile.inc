@@ -293,12 +293,14 @@ objdir=.
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
+	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.o: %.cpp $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
+	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.htmp: %.h

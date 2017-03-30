@@ -265,6 +265,7 @@ objdir=.
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
+	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.htmp: %.h

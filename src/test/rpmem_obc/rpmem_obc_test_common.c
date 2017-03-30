@@ -38,6 +38,7 @@
 #include <netinet/in.h>
 
 #include "rpmem_obc_test_common.h"
+#include "os.h"
 
 #define CMD_BUFF_SIZE	4096
 static const char *rpmem_cmd;
@@ -51,7 +52,7 @@ set_rpmem_cmd(const char *fmt, ...)
 	static char cmd_buff[CMD_BUFF_SIZE];
 
 	if (!rpmem_cmd) {
-		char *cmd = getenv(RPMEM_CMD_ENV);
+		char *cmd = os_getenv(RPMEM_CMD_ENV);
 		UT_ASSERTne(cmd, NULL);
 		rpmem_cmd = STRDUP(cmd);
 	}
