@@ -338,12 +338,12 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			size_t off = replica_get_part_data_offset(set, r, p);
 			size_t len = replica_get_part_data_len(set, r, p);
 
-			if (rep->remote)
-				len = poolsize - off;
-
 			/* do not allow copying too much data */
 			if (off >= poolsize)
 				continue;
+
+			if (off + len > poolsize || rep->remote)
+				len = poolsize - off;
 
 			/*
 			 * First part of replica is mapped
