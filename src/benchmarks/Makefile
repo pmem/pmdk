@@ -173,6 +173,7 @@ objdir=.
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CXX) -MD -c -o $@ $(CXXFLAGS) $<
+	$(call os-check, $@, $<)
 	$(create-deps)
 
 %.htmp: %.h

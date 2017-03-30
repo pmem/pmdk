@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include <stdint.h>
 
 #include "util.h"
+#include "os.h"
 #include "out.h"
 #include "rpmem_common.h"
 #include "rpmem_ssh.h"
@@ -63,7 +64,7 @@ struct rpmem_ssh {
 static const char *
 get_ssh(void)
 {
-	char *cmd = getenv(RPMEM_SSH_ENV);
+	char *cmd = os_getenv(RPMEM_SSH_ENV);
 	if (!cmd)
 		cmd = RPMEM_DEF_SSH;
 

@@ -37,6 +37,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include "os.h"
 
 #include "rpmemd_obc_test_common.h"
 
@@ -52,7 +53,7 @@ set_rpmem_cmd(const char *fmt, ...)
 	static char cmd_buff[CMD_BUFF_SIZE];
 
 	if (!rpmem_cmd) {
-		char *cmd = getenv(RPMEM_CMD_ENV);
+		char *cmd = os_getenv(RPMEM_CMD_ENV);
 		UT_ASSERTne(cmd, NULL);
 		rpmem_cmd = STRDUP(cmd);
 	}

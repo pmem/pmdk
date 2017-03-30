@@ -36,6 +36,7 @@
 
 #include "rpmemd_obc_test_common.h"
 #include "out.h"
+#include "os.h"
 
 /*
  * test_cases -- available test cases
@@ -67,9 +68,9 @@ main(int argc, char *argv[])
 	out_init("rpmemd_obc",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
-	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
+	rpmemd_log_init("rpmemd", os_getenv("RPMEMD_LOG_FILE"), 0);
 	rpmemd_log_level = rpmemd_log_level_from_str(
-			getenv("RPMEMD_LOG_LEVEL"));
+			os_getenv("RPMEMD_LOG_LEVEL"));
 	rpmem_util_cmds_init();
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);

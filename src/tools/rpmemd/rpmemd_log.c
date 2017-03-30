@@ -43,6 +43,7 @@
 #include <stdlib.h>
 
 #include "rpmemd_log.h"
+#include "os.h"
 
 #define RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
 #define RPMEMD_SYSLOG_FACILITY	(LOG_USER)
@@ -122,7 +123,7 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
 		}
 
 		if (fname) {
-			rpmemd_log_file = fopen(fname, "a");
+			rpmemd_log_file = os_fopen(fname, "a");
 			if (!rpmemd_log_file) {
 				perror(fname);
 				return -1;

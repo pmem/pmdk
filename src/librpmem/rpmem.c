@@ -43,6 +43,7 @@
 
 #include "librpmem.h"
 #include "out.h"
+#include "os.h"
 #include "util.h"
 #include "rpmem_common.h"
 #include "rpmem_util.h"
@@ -100,7 +101,7 @@ struct rpmem_pool {
 static int
 env_get_bool(const char *name, int *valp)
 {
-	const char *env = getenv(name);
+	const char *env = os_getenv(name);
 	if (!env)
 		return 1;
 

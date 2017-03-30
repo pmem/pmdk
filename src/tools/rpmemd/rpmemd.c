@@ -52,6 +52,7 @@
 #include "rpmemd_obc.h"
 #include "rpmemd_db.h"
 #include "pool_hdr.h"
+#include "os.h"
 #include "util.h"
 #include "uuid.h"
 
@@ -675,8 +676,8 @@ static void
 rpmemd_print_info(struct rpmemd *rpmemd)
 {
 	RPMEMD_LOG(NOTICE, "ssh connection: %s",
-			_str(getenv("SSH_CONNECTION")));
-	RPMEMD_LOG(NOTICE, "user: %s", _str(getenv("USER")));
+			_str(os_getenv("SSH_CONNECTION")));
+	RPMEMD_LOG(NOTICE, "user: %s", _str(os_getenv("USER")));
 	RPMEMD_LOG(NOTICE, "configuration");
 	RPMEMD_LOG(NOTICE, "\tpool set directory: '%s'",
 			_str(rpmemd->config.poolset_dir));

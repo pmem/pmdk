@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <stdarg.h>
+
+#include "os.h"
 
 #define APP_NAME "ctrld"
 #define BUFF_SIZE 4096
@@ -176,7 +178,7 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 {
 	int rv = -1;
 
-	FILE *fh = fopen(pid_file, "w+");
+	FILE *fh = os_fopen(pid_file, "w+");
 	if (!fh) {
 		CTRLD_LOG("!%s", pid_file);
 		return -1;
@@ -188,7 +190,7 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 		goto err;
 	}
 
-	if (flock(fd, LOCK_EX | LOCK_NB)) {
+	if (os_flock(fd, LOCK_EX | LOCK_NB)) {
 		CTRLD_LOG("!flock");
 		goto err;
 	}
@@ -253,7 +255,7 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 			goto err;
 		}
 
-		if (ftruncate(fileno(fh), 0)) {
+		if (os_ftruncate(fileno(fh), 0)) {
 			CTRLD_LOG("!ftruncate");
 			goto err;
 		}
@@ -284,7 +286,7 @@ err:
 static int
 do_wait(char *pid_file, int timeout)
 {
-	int fd = open(pid_file, O_RDONLY);
+	int fd = os_open(pid_file, O_RDONLY);
 	if (fd < 0) {
 		perror(pid_file);
 		return 1;
@@ -294,12 +296,12 @@ do_wait(char *pid_file, int timeout)
 
 	int t = 0;
 	while ((timeout == -1 || t < timeout) &&
-		flock(fd, LOCK_EX | LOCK_NB)) {
+		os_flock(fd, LOCK_EX | LOCK_NB)) {
 		sleep(1);
 		t++;
 	}
 
-	FILE *fh = fdopen(fd, "r");
+	FILE *fh = os_fdopen(fd, "r");
 	if (!fh) {
 		CTRLD_LOG("!fdopen");
 		ret = 1;
@@ -333,7 +335,7 @@ do_wait(char *pid_file, int timeout)
 	}
 
 err:
-	close(fd);
+	os_close(fd);
 	fclose(fh);
 	return ret;
 }
@@ -344,7 +346,7 @@ err:
 static int
 do_kill(char *pid_file, int signo)
 {
-	FILE *fh = fopen(pid_file, "r");
+	FILE *fh = os_fopen(pid_file, "r");
 	if (!fh) {
 		CTRLD_LOG("!%s", pid_file);
 		return 1;
@@ -403,7 +405,7 @@ has_port_inode(unsigned short port, struct inodes *inodes)
 
 	char buff[BUFF_SIZE];
 
-	FILE *fh = fopen("/proc/net/tcp", "r");
+	FILE *fh = os_fopen("/proc/net/tcp", "r");
 	if (!fh) {
 		CTRLD_LOG("!%s", "/proc/net/tcp");
 		return -1;
@@ -552,7 +554,7 @@ has_port(pid_t pid, unsigned short port)
 static int
 do_wait_port(char *pid_file, unsigned short port)
 {
-	FILE *fh = fopen(pid_file, "r");
+	FILE *fh = os_fopen(pid_file, "r");
 	if (!fh) {
 		CTRLD_LOG("!%s", pid_file);
 		return 1;
@@ -677,7 +679,7 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	log_fh = fopen(buff, "a");
+	log_fh = os_fopen(buff, "a");
 	if (!log_fh) {
 		perror(buff);
 		return -1;

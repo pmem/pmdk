@@ -45,6 +45,7 @@
 
 #include "queue.h"
 #include "set.h"
+#include "os.h"
 #include "out.h"
 #include "file.h"
 #include "sys_util.h"
@@ -453,7 +454,7 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
 	}
 
 	if (pool_set)
-		unlink(path);
+		os_unlink(path);
 
 err_free_path:
 	free(path);

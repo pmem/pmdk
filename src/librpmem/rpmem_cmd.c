@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "out.h"
+#include "os.h"
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 #include "rpmem_cmd.h"
@@ -213,20 +214,20 @@ rpmem_cmd_run(struct rpmem_cmd *cmd)
 		exit(EXIT_FAILURE);
 	}
 
-	close(fd_in[0]);
-	close(fd_out[1]);
-	close(fd_err[1]);
+	os_close(fd_in[0]);
+	os_close(fd_out[1]);
+	os_close(fd_err[1]);
 
 	return 0;
 err_fork:
-	close(fd_err[0]);
-	close(fd_err[1]);
+	os_close(fd_err[0]);
+	os_close(fd_err[1]);
 err_pipe_err:
-	close(fd_out[0]);
-	close(fd_out[1]);
+	os_close(fd_out[0]);
+	os_close(fd_out[1]);
 err_pipe_out:
-	close(fd_in[0]);
-	close(fd_in[1]);
+	os_close(fd_in[0]);
+	os_close(fd_in[1]);
 err_pipe_in:
 	return -1;
 }
@@ -252,9 +253,9 @@ rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status)
 int
 rpmem_cmd_term(struct rpmem_cmd *cmd)
 {
-	close(cmd->fd_in);
-	close(cmd->fd_out);
-	close(cmd->fd_err);
+	os_close(cmd->fd_in);
+	os_close(cmd->fd_out);
+	os_close(cmd->fd_err);
 
 	return kill(cmd->pid, SIGINT);
 }

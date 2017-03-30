@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,9 @@ CP = cp
 CSTYLE = $(TOP)/utils/cstyle
 CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
+OS_CHECK = $(TOP)/utils/os-check.sh
+OS_H = $(TOP)/src/common/os.h
+
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
@@ -142,6 +145,10 @@ else
 define check-cstyle
 endef
 endif
+
+define os-check
+$(OS_CHECK) $(OS_H) $(1) $(2)
+endef
 
 define sub-target-foreach
 $(1)-$(2):

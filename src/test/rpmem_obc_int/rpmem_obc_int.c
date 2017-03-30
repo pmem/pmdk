@@ -45,6 +45,7 @@
 #include "rpmem_obc.h"
 #include "rpmemd_obc.h"
 #include "rpmemd_log.h"
+#include "os.h"
 
 #define POOL_SIZE	1024
 #define NLANES		32
@@ -407,9 +408,9 @@ main(int argc, char *argv[])
 	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
-	rpmemd_log_init("rpmemd", getenv("RPMEMD_LOG_FILE"), 0);
+	rpmemd_log_init("rpmemd", os_getenv("RPMEMD_LOG_FILE"), 0);
 	rpmemd_log_level = rpmemd_log_level_from_str(
-			getenv("RPMEMD_LOG_LEVEL"));
+			os_getenv("RPMEMD_LOG_LEVEL"));
 	rpmem_util_cmds_init();
 
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
