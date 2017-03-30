@@ -128,7 +128,7 @@ init_pool(struct pool_entry *pool, const char *pool_path,
 		UT_ASSERTeq(ret, 0);
 
 		pool->is_mem = 0;
-		unlink(pool_path);
+		os_unlink(pool_path);
 		pool->size -= POOL_HDR_SIZE;
 	}
 }

@@ -115,7 +115,7 @@ int
 ut_posix_fallocate(const char *file, int line, const char *func, int fd,
     off_t offset, off_t len)
 {
-	int retval = posix_fallocate(fd, offset, len);
+	int retval = os_posix_fallocate(fd, offset, len);
 
 	if (retval != 0) {
 		errno = retval;
@@ -278,7 +278,7 @@ ut_fstat(const char *file, int line, const char *func, int fd,
 int
 ut_flock(const char *file, int line, const char *func, int fd, int op)
 {
-	int retval = flock(fd, op);
+	int retval = os_flock(fd, op);
 
 	if (retval != 0)
 		ut_fatal(file, line, func, "!flock: %d", fd);
@@ -512,7 +512,7 @@ int
 ut_ftruncate(const char *file, int line, const char *func, int fd,
     off_t length)
 {
-	int retval = ftruncate(fd, length);
+	int retval = os_ftruncate(fd, length);
 
 	if (retval < 0)
 		ut_fatal(file, line, func, "!ftruncate: %d %llu",

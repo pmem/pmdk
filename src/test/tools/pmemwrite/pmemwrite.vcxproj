@@ -29,9 +29,6 @@
     <ProjectReference Include="..\..\..\windows\getopt\getopt.vcxproj">
       <Project>{9186eac4-2f34-4f17-b940-6585d7869bcd}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\windows\liblinux\liblinux.vcxproj">
-      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\libpmemblk\btt.c" />

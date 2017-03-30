@@ -170,7 +170,7 @@ static int
 file_error(const int fd, const char *fpath)
 {
 	if (fd != -1)
-		(void) close(fd);
+		(void) os_close(fd);
 	os_unlink(fpath);
 	return -1;
 }
@@ -314,15 +314,15 @@ main(int argc, char *argv[])
 
 	/* allocate file */
 	if (!opts.trunc) {
-		if (posix_fallocate(fd, 0,
+		if (os_posix_fallocate(fd, 0,
 				(off_t)opts.poolsize) != 0) {
-			perror("posix_fallocate");
+			perror("os_posix_fallocate");
 			res = file_error(fd, opts.fpath);
 			goto error;
 		}
 	} else {
-		if (ftruncate(fd, (off_t)opts.poolsize) != 0) {
-			perror("ftruncate");
+		if (os_ftruncate(fd, (off_t)opts.poolsize) != 0) {
+			perror("os_ftruncate");
 			res = file_error(fd, opts.fpath);
 			goto error;
 		}
@@ -392,7 +392,7 @@ error_btt:
 error_map:
 	common_fini();
 error:
-	close(fd);
+	os_close(fd);
 out:
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)

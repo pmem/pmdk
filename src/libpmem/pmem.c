@@ -487,7 +487,7 @@ pmem_is_pmem_init(void)
 		 * for systems where pmem_is_pmem() isn't correctly detecting
 		 * true persistent memory.
 		 */
-		char *ptr = getenv("PMEM_IS_PMEM_FORCE");
+		char *ptr = os_getenv("PMEM_IS_PMEM_FORCE");
 		if (ptr) {
 			int val = atoi(ptr);
 
@@ -646,12 +646,13 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_CREATE) {
 		if (flags & PMEM_FILE_SPARSE) {
-			if (ftruncate(fd, (off_t)len) != 0) {
+			if (os_ftruncate(fd, (off_t)len) != 0) {
 				ERR("!ftruncate");
 				goto err;
 			}
 		} else {
-			if ((errno = posix_fallocate(fd, 0, (off_t)len)) != 0) {
+			if ((errno = os_posix_fallocate(fd, 0,
+							(off_t)len)) != 0) {
 				ERR("!posix_fallocate");
 				goto err;
 			}
@@ -1208,7 +1209,7 @@ pmem_get_cpuinfo(void)
 	if (is_cpu_clflushopt_present()) {
 		LOG(3, "clflushopt supported");
 
-		char *e = getenv("PMEM_NO_CLFLUSHOPT");
+		char *e = os_getenv("PMEM_NO_CLFLUSHOPT");
 		if (e && strcmp(e, "1") == 0)
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		else {
@@ -1220,7 +1221,7 @@ pmem_get_cpuinfo(void)
 	if (is_cpu_clwb_present()) {
 		LOG(3, "clwb supported");
 
-		char *e = getenv("PMEM_NO_CLWB");
+		char *e = os_getenv("PMEM_NO_CLWB");
 		if (e && strcmp(e, "1") == 0)
 			LOG(3, "PMEM_NO_CLWB forced no clwb");
 		else {
@@ -1240,7 +1241,7 @@ pmem_init(void)
 
 	pmem_get_cpuinfo();
 
-	char *e = getenv("PMEM_NO_FLUSH");
+	char *e = os_getenv("PMEM_NO_FLUSH");
 	if (e && strcmp(e, "1") == 0) {
 		LOG(3, "forced not flushing CPU cache");
 		Func_flush = flush_empty;
@@ -1253,7 +1254,7 @@ pmem_init(void)
 	 * and pmem_memset_*().
 	 * It has no effect if movnt is not supported or disabled.
 	 */
-	char *ptr = getenv("PMEM_MOVNT_THRESHOLD");
+	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	if (ptr) {
 		long long val = atoll(ptr);
 
@@ -1265,7 +1266,7 @@ pmem_init(void)
 		}
 	}
 
-	ptr = getenv("PMEM_NO_MOVNT");
+	ptr = os_getenv("PMEM_NO_MOVNT");
 	if (ptr && strcmp(ptr, "1") == 0)
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	else {

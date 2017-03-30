@@ -48,7 +48,7 @@
 #endif
 
 #ifndef WRAP_REAL_FALLOCATE
-#define posix_fallocate __wrap_posix_fallocate
+#define os_posix_fallocate __wrap_os_posix_fallocate
 #endif
 
 #ifndef WRAP_REAL_PMEM

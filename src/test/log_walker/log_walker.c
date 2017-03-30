@@ -101,7 +101,7 @@ static ut_jmp_buf_t Jmp;
 static void
 signal_handler(int sig)
 {
-	UT_OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
 	ut_siglongjmp(Jmp);
 }
@@ -121,9 +121,7 @@ main(int argc, char *argv[])
 	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
-	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
-	if (errno != 0)
-		UT_FATAL("!posix_fallocate");
+	POSIX_FALLOCATE(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
 
 	CLOSE(fd);
 

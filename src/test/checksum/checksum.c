@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 			MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
 					MAP_PRIVATE, fd, 0);
 
-		close(fd);
+		CLOSE(fd);
 
 		uint64_t *ptr = addr;
 

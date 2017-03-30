@@ -92,7 +92,7 @@ static ut_jmp_buf_t Jmp;
 static void
 signal_handler(int sig)
 {
-	UT_OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
 	ut_siglongjmp(Jmp);
 }

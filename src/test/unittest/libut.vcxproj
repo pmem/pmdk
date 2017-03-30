@@ -32,9 +32,6 @@
     <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\windows\liblinux\liblinux.vcxproj">
-      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}</ProjectGuid>

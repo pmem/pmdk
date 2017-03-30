@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -202,12 +202,12 @@ main(int argc, char *argv[])
 		 */
 		fd_stderr = dup(2);
 		UT_ASSERTne(fd_stderr, -1);
-		close(2);
-		stderr_fh = fopen(file, "a");
+		os_close(2);
+		stderr_fh = os_fopen(file, "a");
 		UT_ASSERTne(stderr_fh, NULL);
 		break;
 	case TEST_SYSLOG:
-		syslog_fh = fopen(file, "a");
+		syslog_fh = os_fopen(file, "a");
 		UT_ASSERTne(syslog_fh, NULL);
 		break;
 	default:
@@ -249,7 +249,7 @@ main(int argc, char *argv[])
 		/* restore the original stdout file descriptor */
 		fclose(stderr_fh);
 		UT_ASSERTeq(dup2(fd_stderr, 2), 2);
-		close(fd_stderr);
+		os_close(fd_stderr);
 		break;
 	case TEST_SYSLOG:
 		fclose(syslog_fh);

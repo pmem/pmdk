@@ -46,7 +46,7 @@ VMEM *Vmp;
 static void
 signal_handler(int sig)
 {
-	UT_OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
 	vmem_delete(Vmp);
 

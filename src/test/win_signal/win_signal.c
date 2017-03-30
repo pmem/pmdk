@@ -45,10 +45,10 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "win_signal");
 	for (sig = 0; sig < sys_siglist_size; sig++) {
-		UT_OUT("%d; %s", sig, strsignal(sig));
+		UT_OUT("%d; %s", sig, os_strsignal(sig));
 	}
 	for (sig = 33; sig < 66; sig++) {
-		UT_OUT("%d; %s", sig, strsignal(sig));
+		UT_OUT("%d; %s", sig, os_strsignal(sig));
 	}
 	DONE(NULL);
 }
