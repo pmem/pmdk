@@ -73,7 +73,7 @@ set_rpmem_cmd(const char *fmt, ...)
 
 	va_end(ap);
 
-	ret = setenv(RPMEM_CMD_ENV, cmd_buff, 1);
+	ret = os_setenv(RPMEM_CMD_ENV, cmd_buff, 1);
 	UT_ASSERTeq(ret, 0);
 
 	/*

@@ -34,11 +34,11 @@
  * benchmark_time.cpp -- benchmark_time module definitions
  */
 #include "benchmark_time.hpp"
+#include "os.h"
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
 #define NSECPSEC 1000000000
 
 /*
@@ -47,7 +47,7 @@
 void
 benchmark_time_get(benchmark_time_t *time)
 {
-	clock_gettime(CLOCK_MONOTONIC, time);
+	os_clock_gettime(CLOCK_MONOTONIC, time);
 }
 
 /*

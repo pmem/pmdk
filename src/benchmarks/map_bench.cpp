@@ -37,6 +37,7 @@
 #include <pthread.h>
 
 #include "benchmark.hpp"
+#include "os.h"
 
 /* XXX: maps are build as C++ on windows and as C on linux */
 #ifndef _WIN32
@@ -152,8 +153,8 @@ mutex_unlock_nofail(pthread_mutex_t *lock)
 static uint64_t
 get_key(unsigned *seed, uint64_t max_key)
 {
-	unsigned key_lo = rand_r(seed);
-	unsigned key_hi = rand_r(seed);
+	unsigned key_lo = os_rand_r(seed);
+	unsigned key_hi = os_rand_r(seed);
 	uint64_t key = (((uint64_t)key_hi) << 32) | ((uint64_t)key_lo);
 
 	if (max_key)

@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 			UT_OUT("!%s: util_file_create", fname);
 		else {
 			UT_OUT("%s: created", fname);
-			close(fd);
+			os_close(fd);
 		}
 	}
 

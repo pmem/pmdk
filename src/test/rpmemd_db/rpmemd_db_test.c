@@ -554,13 +554,13 @@ err:
 static int
 exists_cb(struct part_file *pf, void *arg)
 {
-	return access(pf->path, F_OK);
+	return os_access(pf->path, F_OK);
 }
 
 static int
 noexists_cb(struct part_file *pf, void *arg)
 {
-	return !access(pf->path, F_OK);
+	return !os_access(pf->path, F_OK);
 }
 
 /*
@@ -622,7 +622,7 @@ test_remove(const char *root_dir, const char *pool_desc)
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 1);
 	UT_ASSERTeq(ret, 0);
 
-	ret = access(path, F_OK);
+	ret = os_access(path, F_OK);
 	UT_ASSERTne(ret, 0);
 }
 

@@ -79,9 +79,6 @@
     <ProjectReference Include="..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\windows\liblinux\liblinux.vcxproj">
-      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\windows\srcversion\srcversion.vcxproj">
       <Project>{901f04db-e1a5-4a41-8b81-9d31c19acd59}</Project>
     </ProjectReference>

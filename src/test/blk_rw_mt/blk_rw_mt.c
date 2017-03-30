@@ -89,9 +89,9 @@ worker(void *arg)
 	int ord = 1;
 
 	for (unsigned i = 0; i < Nops; i++) {
-		off_t lba = rand_r(&myseed) % Nblock;
+		off_t lba = os_rand_r(&myseed) % Nblock;
 
-		if (rand_r(&myseed) % 2) {
+		if (os_rand_r(&myseed) % 2) {
 			/* read */
 			if (pmemblk_read(Handle, buf, lba) < 0)
 				UT_OUT("!read      lba %zu", lba);

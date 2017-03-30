@@ -48,6 +48,7 @@
 #include "benchmark.hpp"
 #include "libpmem.h"
 #include "librpmem.h"
+#include "os.h"
 #include "set.h"
 #include "util.h"
 
@@ -136,7 +137,8 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 					o = i * n_ops + j;
 					break;
 				case OP_MODE_RAND:
-					o = i * n_ops + rand_r(&seed) % n_ops;
+					o = i * n_ops +
+						os_rand_r(&seed) % n_ops;
 					break;
 				default:
 					assert(0);

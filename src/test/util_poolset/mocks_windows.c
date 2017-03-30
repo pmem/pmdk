@@ -68,13 +68,13 @@ FUNC_MOCK_END
 /*
  * posix_fallocate -- posix_fallocate mock
  */
-FUNC_MOCK(posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK(os_posix_fallocate, int, int fd, off_t offset, off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Fallocate_len == len) {
 		UT_OUT("mocked fallocate: %ju", len);
 		return ENOSPC;
 	}
-	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+	return _FUNC_REAL(os_posix_fallocate)(fd, offset, len);
 }
 FUNC_MOCK_END
 

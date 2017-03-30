@@ -263,7 +263,7 @@ timed_check_worker(void *arg)
 				&Test_obj->mutex_locked : &Test_obj->mutex;
 
 		struct timespec t1, t2, t_diff, abs_time;
-		clock_gettime(CLOCK_REALTIME, &t1);
+		os_clock_gettime(CLOCK_REALTIME, &t1);
 		abs_time = t1;
 		abs_time.tv_nsec += TIMEOUT;
 		if (abs_time.tv_nsec >= NANO_PER_ONE) {
@@ -273,7 +273,7 @@ timed_check_worker(void *arg)
 
 		int ret = pmemobj_mutex_timedlock(&Mock_pop, mtx, &abs_time);
 
-		clock_gettime(CLOCK_REALTIME, &t2);
+		os_clock_gettime(CLOCK_REALTIME, &t2);
 
 		if (mutex_id == LOCKED_MUTEX) {
 			UT_ASSERTeq(ret, ETIMEDOUT);

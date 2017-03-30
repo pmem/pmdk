@@ -384,13 +384,13 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		return -1;
 	}
 
-	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}
 
 	/* for windows we can't flock until after we fallocate */
-	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+	if (os_flock(fd, OS_LOCK_EX | OS_LOCK_NB) < 0) {
 		ERR("!flock");
 		goto err;
 	}
@@ -428,7 +428,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		return -1;
 	}
 
-	if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+	if (os_flock(fd, OS_LOCK_EX | OS_LOCK_NB) < 0) {
 		ERR("!flock");
 		(void) os_close(fd);
 		return -1;
@@ -459,7 +459,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 	return fd;
 err:
 	oerrno = errno;
-	if (flock(fd, LOCK_UN))
+	if (os_flock(fd, OS_LOCK_UN))
 		ERR("!flock unlock");
 	(void) os_close(fd);
 	errno = oerrno;
@@ -477,8 +477,8 @@ util_unlink(const char *path)
 	} else {
 #ifdef _WIN32
 		/* on Windows we can not unlink Read-Only files */
-		if (os_chmod(path, _S_IREAD | _S_IWRITE) == -1) {
-			ERR("!_chmod");
+		if (os_chmod(path, S_IREAD | S_IWRITE) == -1) {
+			ERR("!chmod");
 			return -1;
 		}
 #endif

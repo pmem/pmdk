@@ -43,6 +43,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "os.h"
 
 #define MAX_OFFSET 63
 #define CONST_B 0xFF
@@ -134,7 +135,8 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 					o = i * n_ops + j;
 					break;
 				case OP_MODE_RAND:
-					o = i * n_ops + rand_r(&seed) % n_ops;
+					o = i * n_ops +
+						os_rand_r(&seed) % n_ops;
 					break;
 				default:
 					assert(0);

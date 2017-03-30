@@ -43,6 +43,7 @@
 
 #include "benchmark.hpp"
 #include "libpmemlog.h"
+#include "os.h"
 
 /*
  * Size of pool header, pool descriptor
@@ -125,12 +126,12 @@ do_warmup(struct log_bench *lb, size_t nops)
 			    (ssize_t)lb->args->el_size) {
 				ret = -1;
 				perror("write");
-				close(lb->fd);
+				os_close(lb->fd);
 				goto out;
 			}
 		}
 
-		lseek(lb->fd, 0, SEEK_SET);
+		os_lseek(lb->fd, 0, SEEK_SET);
 	}
 
 out:
@@ -230,7 +231,7 @@ fileio_appendv(struct benchmark *bench, struct operation_info *info)
 	struct iovec *iov = &worker_info->iov[info->index * lb->args->vec_size];
 	size_t vec_size = worker_info->vec_sizes[info->index];
 
-	if (writev(lb->fd, iov, lb->args->vec_size) != (ssize_t)vec_size) {
+	if (os_writev(lb->fd, iov, lb->args->vec_size) != (ssize_t)vec_size) {
 		perror("writev");
 		return -1;
 	}
@@ -363,7 +364,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	if (lb->args->rand) {
 		/* each thread has random seed */
-		worker_info->seed = (unsigned)rand_r(&lb->seed);
+		worker_info->seed = (unsigned)os_rand_r(&lb->seed);
 
 		/* each vector element has its own random size */
 		uint64_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
@@ -377,8 +378,8 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 		/* generate append sizes */
 		for (uint64_t i = 0; i < n_sizes; i++) {
-			uint32_t hr = (uint32_t)rand_r(&worker_info->seed);
-			uint32_t lr = (uint32_t)rand_r(&worker_info->seed);
+			uint32_t hr = (uint32_t)os_rand_r(&worker_info->seed);
+			uint32_t lr = (uint32_t)os_rand_r(&worker_info->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			size_t width = lb->args->el_size - lb->args->min_size;
 			worker_info->rand_sizes[i] =
@@ -520,14 +521,14 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		int flags = O_CREAT | O_RDWR | O_SYNC;
 
 		/* Create a file if it does not exist. */
-		if ((lb->fd = open(args->fname, flags, args->fmode)) < 0) {
+		if ((lb->fd = os_open(args->fname, flags, args->fmode)) < 0) {
 			perror(args->fname);
 			ret = -1;
 			goto err_free_lb;
 		}
 
 		/* allocate the pmem */
-		if ((errno = posix_fallocate(lb->fd, 0, lb->psize)) != 0) {
+		if ((errno = os_posix_fallocate(lb->fd, 0, lb->psize)) != 0) {
 			perror("posix_fallocate");
 			ret = -1;
 			goto err_close;
@@ -552,7 +553,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 
 err_close:
 	if (lb->args->fileio)
-		close(lb->fd);
+		os_close(lb->fd);
 	else
 		pmemlog_close(lb->plp);
 err_free_lb:
@@ -572,7 +573,7 @@ log_exit(struct benchmark *bench, struct benchmark_args *args)
 	if (!lb->args->fileio)
 		pmemlog_close(lb->plp);
 	else
-		close(lb->fd);
+		os_close(lb->fd);
 
 	free(lb);
 

@@ -187,9 +187,6 @@ int posix_fallocate(int fd, off_t offset, off_t len);
 /* string.h */
 #define strtok_r strtok_s
 
-const char *strsignal(int sig);
-extern const char * const sys_siglist[];
-
 /* time.h */
 #define CLOCK_MONOTONIC 1
 #define CLOCK_REALTIME 2

@@ -78,7 +78,7 @@ test_open_in_different_process(int argc, char **argv, int sleep)
 		/* child */
 		if (sleep)
 			usleep(sleep);
-		while (access(path, R_OK))
+		while (os_access(path, R_OK))
 			usleep(100 * 1000);
 
 		log = pmemlog_open(path);

@@ -27,9 +27,6 @@
     <ClCompile Include="..\..\libpmem\pmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\windows\win_file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmem\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>

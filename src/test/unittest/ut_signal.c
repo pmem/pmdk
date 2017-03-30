@@ -90,7 +90,8 @@ ut_sigaction(const char *file, int line, const char *func,
 #ifndef _WIN32
 	int retval = sigaction(signum, act, oldact);
 	if (retval != 0)
-		ut_fatal(file, line, func, "!sigaction: %s", strsignal(signum));
+		ut_fatal(file, line, func, "!sigaction: %s",
+			os_strsignal(signum));
 	return retval;
 #else
 	UT_ASSERT(signum < NSIG);

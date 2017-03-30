@@ -816,7 +816,7 @@ remove_part_cb(struct part_file *pf, void *arg)
 #endif
 	const char *part_file = pf->path;
 
-	if (access(part_file, F_OK) == 0)
+	if (os_access(part_file, F_OK) == 0)
 		return util_unlink(part_file);
 
 	return 0;
@@ -832,7 +832,7 @@ pmembench_remove_file(const char *path)
 	os_stat_t status;
 	char *tmp;
 
-	if (access(path, F_OK) != 0)
+	if (os_access(path, F_OK) != 0)
 		return 0;
 
 	if (os_stat(path, &status) != 0)
@@ -899,7 +899,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	 * Check if PMEMBENCH_DIR env var is set and change
 	 * the working directory accordingly.
 	 */
-	char *wd = getenv("PMEMBENCH_DIR");
+	char *wd = os_getenv("PMEMBENCH_DIR");
 	if (wd != NULL) {
 		/* get current dir name */
 		if (getcwd(old_wd, PATH_MAX) == NULL) {
@@ -1224,7 +1224,7 @@ main(int argc, char *argv[])
 		goto out;
 	}
 
-	fexists = access(bench_name, R_OK) == 0;
+	fexists = os_access(bench_name, R_OK) == 0;
 	bench = pmembench_get_bench(bench_name);
 	if (NULL != bench)
 		ret = pmembench_run(pb, bench);

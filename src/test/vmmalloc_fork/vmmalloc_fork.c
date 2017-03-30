@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -148,10 +148,10 @@ main(int argc, char *argv[])
 		UT_ASSERTne(pids1[i], -1);
 
 		if (pids1[i] == 0 && argv[1][0] == 'e' && i == nfork - 1) {
-			int fd = open("/dev/null", O_RDWR, S_IWUSR);
+			int fd = os_open("/dev/null", O_RDWR, S_IWUSR);
 			int res = dup2(fd, 1);
 			UT_ASSERTne(res, -1);
-			close(fd);
+			os_close(fd);
 			execl("/bin/echo", "/bin/echo", "Hello world!", NULL);
 		}
 

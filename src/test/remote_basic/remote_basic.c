@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 
 	const char *file = argv[1];
 
-	if (access(file, F_OK) != 0)
+	if (os_access(file, F_OK) != 0)
 		UT_FATAL("File '%s' does not exist", file);
 	else
 		UT_OUT("File '%s' exists", file);

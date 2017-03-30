@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s file [env]", argv[0]);
 
 	if (argc == 3)
-		UT_ASSERTeq(setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
+		UT_ASSERTeq(os_setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
 
 	int fd = OPEN(argv[1], O_RDWR);
 
@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 
 	UT_OUT("%d", ret[0]);
 
-	UT_ASSERTeq(unsetenv("PMEM_IS_PMEM_FORCE"), 0);
+	UT_ASSERTeq(os_unsetenv("PMEM_IS_PMEM_FORCE"), 0);
 
 	UT_OUT("%d", pmem_is_pmem(Addr, Size));
 
