@@ -46,7 +46,7 @@ $ENV:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_test_type medium
+require_test_type long
 
 setup
 
