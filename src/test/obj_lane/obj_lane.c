@@ -45,10 +45,17 @@
 #include "obj.h"
 #include "tx.h"
 #include "unittest.h"
+#include "pmemcommon.h"
 
 #define MAX_MOCK_LANES 5
 #define MOCK_RUNTIME (void *)(0xABC)
 #define MOCK_RUNTIME_2 (void *)(0xBCD)
+
+#define LOG_PREFIX "trace"
+#define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
+#define LOG_FILE_VAR "TRACE_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 static void *base_ptr;
 #define RPTR(p) (uintptr_t)((char *)p - (char *)base_ptr)
@@ -374,6 +381,9 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_lane");
+
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+		MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc != 2)
 		usage(argv[0]);
