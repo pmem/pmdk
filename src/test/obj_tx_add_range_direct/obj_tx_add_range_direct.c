@@ -551,6 +551,31 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 	UT_ASSERTne(errno, 0);
 }
 
+static void
+do_tx_add_range_lots_of_small_snapshots(PMEMobjpool *pop)
+{
+#define TOTAL_SIZE_OF_SNAPSHOTS (1 << 19)
+#define SIZEOF_SNAPSHOT 8
+	PMEMoid obj;
+	int ret = pmemobj_alloc(pop, &obj,
+		TOTAL_SIZE_OF_SNAPSHOTS, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	TX_BEGIN(pop) {
+		for (size_t n = 0;
+			n < TOTAL_SIZE_OF_SNAPSHOTS; n += SIZEOF_SNAPSHOT) {
+			void *addr = (void *)((size_t)pmemobj_direct(obj) + n);
+			pmemobj_tx_add_range_direct(addr, SIZEOF_SNAPSHOT);
+		}
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(errno, 0);
+#undef TOTAL_SIZE_OF_SNAPSHOTS
+#undef SIZEOF_SNAPSHOT
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -561,7 +586,7 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL * 4,
 			S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
@@ -590,6 +615,8 @@ main(int argc, char *argv[])
 	test_tx_corruption_bug(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_too_large(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_add_range_lots_of_small_snapshots(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_xadd_range_commit(pop);
 

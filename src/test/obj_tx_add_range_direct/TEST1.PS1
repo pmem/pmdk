@@ -47,7 +47,7 @@ $ENV:UNITTEST_NUM = "1w"
 
 require_test_type medium
 
-require_fs_type pmem non-pmem
+require_fs_type pmem
 
 # XXX: we don't have valgrind in Windows yet
 # configure_valgrind pmemcheck force-enable
