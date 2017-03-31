@@ -352,7 +352,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		}
 		params->size = (size_t)s;
 		addr = util_map(fd, params->size, MAP_SHARED, 1, 0);
-		if (addr == MAP_FAILED) {
+		if (addr == NULL) {
 			ret = -1;
 			goto out_close;
 		}
