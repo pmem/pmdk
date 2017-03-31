@@ -64,13 +64,13 @@ dump_info_log 1 0 $DIR/pool.set before.0.log
 dump_info_log_remote 0 $DIR/remote.set before.r.log
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf remote.set
-expect_normal_exit run_on_node 1 ../pmempool sync $DIR/pool.set
+expect_normal_exit run_on_node 1 ../pmempool sync pool.set
 dump_info_log 1 0 $DIR/pool.set after.0.log
 dump_info_log_remote 0 $DIR/remote.set after.r.log
 
 diff_log 1 before.0.log after.0.log
 diff_log 0 before.r.log after.r.log
 
-expect_normal_exit run_on_node 1 ../pmempool sync $DIR/pool.set
+expect_normal_exit run_on_node 1 ../pmempool sync pool.set
 
 pass
