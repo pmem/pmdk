@@ -50,21 +50,21 @@ ut_jmp_buf_t Jmp;
 static void
 signal_handler_1(int sig)
 {
-	UT_OUT("\tsignal_handler_1: %s", strsignal(sig));
+	UT_OUT("\tsignal_handler_1: %s", os_strsignal(sig));
 	ut_siglongjmp(Jmp);
 }
 
 static void
 signal_handler_2(int sig)
 {
-	UT_OUT("\tsignal_handler_2: %s", strsignal(sig));
+	UT_OUT("\tsignal_handler_2: %s", os_strsignal(sig));
 	ut_siglongjmp(Jmp);
 }
 
 static void
 signal_handler_3(int sig)
 {
-	UT_OUT("\tsignal_handler_3: %s", strsignal(sig));
+	UT_OUT("\tsignal_handler_3: %s", os_strsignal(sig));
 	ut_siglongjmp(Jmp);
 }
 

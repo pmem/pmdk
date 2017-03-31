@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -95,7 +95,7 @@ parse_test_params(int *argc, char *argv[])
 		return;
 
 	if (strcmp(argv[*argc - 1], "print_HOME_env") == 0) {
-		char *home = getenv(HOME_ENV);
+		char *home = os_getenv(HOME_ENV);
 		if (home) {
 			UT_OUT("$%s == %s", HOME_ENV, home);
 		} else {

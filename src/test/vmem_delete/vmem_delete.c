@@ -49,7 +49,7 @@ static ut_jmp_buf_t Jmp;
 static void
 signal_handler(int sig)
 {
-	UT_OUT("\tsignal: %s", strsignal(sig));
+	UT_OUT("\tsignal: %s", os_strsignal(sig));
 	ut_siglongjmp(Jmp);
 }
 

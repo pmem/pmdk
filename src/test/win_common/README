@@ -5,5 +5,5 @@ This is src/test/win_common/README.
 This test is Windows specific.
 
 This directory contains a unit test for miscellaneous Linux APIs that
-are implemented for Windows in our liblinux library.
+are implemented for Windows.
 

@@ -99,7 +99,7 @@ util_mmap_init(void)
 	 * For testing, allow overriding the default mmap() hint address.
 	 * If hint address is defined, it also disables address randomization.
 	 */
-	char *e = getenv("PMEM_MMAP_HINT");
+	char *e = os_getenv("PMEM_MMAP_HINT");
 	if (e) {
 		char *endp;
 		errno = 0;
@@ -199,7 +199,7 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 		goto err;
 	}
 
-	if ((errno = posix_fallocate(fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}

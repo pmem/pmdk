@@ -116,10 +116,6 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_PMEM</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
-    <ClCompile Include="..\..\windows\win_file.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
-    </ClCompile>
     <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="mocks_windows.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_OPEN;WRAP_REAL_PMEM;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>

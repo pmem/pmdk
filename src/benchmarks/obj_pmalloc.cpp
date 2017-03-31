@@ -45,6 +45,7 @@
 
 #include "benchmark.hpp"
 #include "libpmemobj.h"
+#include "os.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -183,8 +184,8 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	if (ob->pa->use_random_size) {
 		size_t width = args->dsize - ob->pa->minsize;
 		for (size_t i = 0; i < n_ops_total; i++) {
-			uint32_t hr = (uint32_t)rand_r(&ob->pa->seed);
-			uint32_t lr = (uint32_t)rand_r(&ob->pa->seed);
+			uint32_t hr = (uint32_t)os_rand_r(&ob->pa->seed);
+			uint32_t lr = (uint32_t)os_rand_r(&ob->pa->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			ob->sizes[i] = r64 % width + ob->pa->minsize;
 		}

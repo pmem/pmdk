@@ -45,6 +45,7 @@
 #include "file.h"
 #include "fcntl.h"
 #include "mmap.h"
+#include "os.h"
 
 #define CMPMAP_ZERO (1<<0)
 
@@ -168,7 +169,7 @@ do_cmpmap(void)
 	size_t size2;
 
 	/* open the first file */
-	if ((fd1 = open(File1, O_RDONLY)) < 0) {
+	if ((fd1 = os_open(File1, O_RDONLY)) < 0) {
 		fprintf(stderr, "opening %s failed, errno %d\n", File1, errno);
 		exit(EXIT_FAILURE);
 	}
@@ -191,7 +192,7 @@ do_cmpmap(void)
 	} else if (File2 != NULL) {
 		/* when comparing two files */
 		/* open the second file */
-		if ((fd2 = open(File2, O_RDONLY)) < 0) {
+		if ((fd2 = os_open(File2, O_RDONLY)) < 0) {
 			fprintf(stderr, "opening %s failed, errno %d\n",
 					File2, errno);
 			ret = EXIT_FAILURE;
@@ -260,9 +261,9 @@ out_unmap1:
 
 out_close2:
 	if (File2 != NULL)
-		(void) close(fd2);
+		(void) os_close(fd2);
 out_close1:
-	(void) close(fd1);
+	(void) os_close(fd1);
 	exit(ret);
 }
 

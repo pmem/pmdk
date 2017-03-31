@@ -34,13 +34,16 @@
  * os_linux.c -- Linux abstraction layer
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
-
 #include "util.h"
 #include "os.h"
 
@@ -122,4 +125,102 @@ int
 os_mkstemp(char *temp)
 {
 	return mkstemp(temp);
+}
+
+/*
+ * os_posix_fallocate -- posix_fallocate abstraction layer
+ */
+int
+os_posix_fallocate(int fd, off_t offset, off_t len)
+{
+	return posix_fallocate(fd, offset, len);
+}
+
+/*
+ * os_ftruncate -- ftruncate abstraction layer
+ */
+int
+os_ftruncate(int fd, off_t length)
+{
+	return ftruncate(fd, length);
+}
+
+/*
+ * os_flock -- flock abstraction layer
+ */
+int
+os_flock(int fd, int operation)
+{
+	int opt = 0;
+	if (operation & OS_LOCK_EX)
+		opt |= LOCK_EX;
+	if (operation & OS_LOCK_SH)
+		opt |= LOCK_SH;
+	if (operation & OS_LOCK_UN)
+		opt |= LOCK_UN;
+	if (operation & OS_LOCK_NB)
+		opt |= LOCK_NB;
+
+	return flock(fd, operation);
+}
+
+/*
+ * os_writev -- writev abstraction layer
+ */
+ssize_t
+os_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+	return writev(fd, iov, iovcnt);
+}
+
+/*
+ * os_clock_gettime -- clock_gettime abstraction layer
+ */
+int
+os_clock_gettime(int id, struct timespec *ts)
+{
+	return clock_gettime(id, ts);
+}
+
+/*
+ * os_rand_r -- rand_r abstraction layer
+ */
+int
+os_rand_r(unsigned *seedp)
+{
+	return rand_r(seedp);
+}
+
+/*
+ * os_unsetenv -- unsetenv abstraction layer
+ */
+int
+os_unsetenv(const char *name)
+{
+	return unsetenv(name);
+}
+
+/*
+ * os_setenv -- setenv abstraction layer
+ */
+int
+os_setenv(const char *name, const char *value, int overwrite)
+{
+	return setenv(name, value, overwrite);
+}
+
+/*
+ * os_getenv -- getenv abstraction layer
+ */
+char *
+os_getenv(const char *name)
+{
+	return getenv(name);
+}
+
+/*
+ * os_strsignal -- strsignal abstraction layer
+ */
+const char *os_strsignal(int sig) {
+	return strsignal(sig);
 }

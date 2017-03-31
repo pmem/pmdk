@@ -43,9 +43,6 @@
     <ProjectReference Include="..\jemalloc\msvc\jemalloc.vcxproj">
       <Project>{8d6bb292-9e1c-413d-9f98-4864bdc1514a}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\windows\liblinux\liblinux.vcxproj">
-      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\windows\srcversion\srcversion.vcxproj">
       <Project>{901f04db-e1a5-4a41-8b81-9d31c19acd59}</Project>
     </ProjectReference>

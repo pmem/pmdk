@@ -95,9 +95,6 @@
     <ClCompile Include="win_common.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\windows\liblinux\liblinux.vcxproj">
-      <Project>{b3ff772d-f2ff-4e6e-abd8-763407bb6a5c}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>

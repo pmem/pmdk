@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 			UT_OUT("!%s: util_file_open", argv[arg]);
 		else {
 			UT_OUT("%s: open, len %zu", argv[arg], size);
-			close(fd);
+			os_close(fd);
 		}
 	}
 

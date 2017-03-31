@@ -37,7 +37,7 @@
 
 #include "unittest.h"
 
-#define RRAND(seed, max, min) (rand_r(&seed) % ((max) - (min)) + (min))
+#define RRAND(seed, max, min) (os_rand_r(&seed) % ((max) - (min)) + (min))
 
 static ssize_t object_size;
 static int nobjects;
@@ -97,7 +97,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if (access(argv[1], F_OK) != 0) {
+	if (os_access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
 		(PMEMOBJ_MIN_POOL) + (nthreads * nobjects * object_size),
 		0666);

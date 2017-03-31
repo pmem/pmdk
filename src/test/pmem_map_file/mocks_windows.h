@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,6 @@
  */
 
 #ifndef WRAP_REAL
-#define posix_fallocate __wrap_posix_fallocate
-#define ftruncate __wrap_ftruncate
+#define os_posix_fallocate __wrap_os_posix_fallocate
+#define os_ftruncate __wrap_os_ftruncate
 #endif
