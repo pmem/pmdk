@@ -165,14 +165,13 @@ for file in $FILES ; do
 		[ $(cat $TMP | wc -l) -le 1 ] && continue
 
 		# grep out the grafted commits (commits with no parents)
-		grep -v -e "grafted--commit" $TMP > $TMP2
+		# and skip checking dates for non-Intel commits
+		grep -v -e "grafted--commit" $TMP | grep -e "@intel.com" > $TMP2
+
+		[ $(cat $TMP2 | wc -l) -eq 0 ] && continue
 
 		FIRST=`head -n1 $TMP2`
 		LAST=` tail -n1 $TMP2`
-
-		# skip checking dates for non-Intel commits
-		AUTHOR_LAST=`echo $LAST | cut -d"@" -f2 | cut -d" " -f1`
-		[ "$AUTHOR_LAST" != "intel.com" ] && continue
 
 		COMMIT_FIRST=`echo $FIRST | cut -d"-" -f1`
 		COMMIT_LAST=` echo $LAST  | cut -d"-" -f1`
