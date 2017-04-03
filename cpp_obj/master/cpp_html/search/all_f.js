@@ -1,7 +1,7 @@
 var searchData=
 [
   ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html',1,'nvml::obj']]],
-  ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html#a04fc861e28e667eeff0eb8cecb0befba',1,'nvml::obj::timed_mutex::timed_mutex() noexcept=default'],['../classnvml_1_1obj_1_1timed__mutex.html#ab7bf974caa19bddcaaf83aa682ae47bc',1,'nvml::obj::timed_mutex::timed_mutex(const timed_mutex &amp;)=delete']]],
+  ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html#a7a3fff5226745f47e64e77d5122d9595',1,'nvml::obj::timed_mutex::timed_mutex()'],['../classnvml_1_1obj_1_1timed__mutex.html#ab7bf974caa19bddcaaf83aa682ae47bc',1,'nvml::obj::timed_mutex::timed_mutex(const timed_mutex &amp;)=delete']]],
   ['timed_5fmutex_2ehpp',['timed_mutex.hpp',['../timed__mutex_8hpp.html',1,'']]],
   ['timedlock_5fimpl',['timedlock_impl',['../classnvml_1_1obj_1_1timed__mutex.html#ae1e2cd29138ff443e831c7dfc99d6485',1,'nvml::obj::timed_mutex']]],
   ['timepoint_5fto_5ftimespec',['timepoint_to_timespec',['../conversions_8hpp.html#aa189ed6a09dc2a8b539599c59729b2cf',1,'nvml::detail']]],

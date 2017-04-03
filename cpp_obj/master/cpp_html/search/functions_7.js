@@ -6,5 +6,5 @@ var searchData=
   ['max_5fsize',['max_size',['../classnvml_1_1obj_1_1standard__alloc__policy.html#ad5e6f3f7e37e7f9ebb859780bbc96b22',1,'nvml::obj::standard_alloc_policy::max_size()'],['../classnvml_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html#ac282b6c047502eb47f092419c1ae0a25',1,'nvml::obj::standard_alloc_policy&lt; void &gt;::max_size()']]],
   ['memcpy_5fpersist',['memcpy_persist',['../classnvml_1_1obj_1_1pool__base.html#a33703cd394da6f835d177045eb86ac32',1,'nvml::obj::pool_base']]],
   ['memset_5fpersist',['memset_persist',['../classnvml_1_1obj_1_1pool__base.html#ad9b919d3beeb64d987a9103262245dd2',1,'nvml::obj::pool_base']]],
-  ['mutex',['mutex',['../classnvml_1_1obj_1_1mutex.html#ac38afe6912eb8dd6ccca14745858ad8f',1,'nvml::obj::mutex::mutex() noexcept=default'],['../classnvml_1_1obj_1_1mutex.html#aebc05f2c269e6e701506797588e241cc',1,'nvml::obj::mutex::mutex(const mutex &amp;)=delete']]]
+  ['mutex',['mutex',['../classnvml_1_1obj_1_1mutex.html#acd105469f0be72c377a0b8de077baf0f',1,'nvml::obj::mutex::mutex()'],['../classnvml_1_1obj_1_1mutex.html#aebc05f2c269e6e701506797588e241cc',1,'nvml::obj::mutex::mutex(const mutex &amp;)=delete']]]
 ];
