@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,9 +67,22 @@ public:
 	typedef PMEMcond *native_handle_type;
 
 	/**
-	 * Defaulted constructor.
+	 * Default constructor.
+	 *
+	 * @throw lock_error when the condition_variable is not from persistent
+	 * memory.
 	 */
-	condition_variable() noexcept = default;
+	condition_variable()
+	{
+		PMEMobjpool *pop;
+		if ((pop = pmemobj_pool_by_ptr(&pcond)) == nullptr)
+			throw lock_error(
+				1, std::generic_category(),
+				"Persistent condition variable not from"
+				" persistent memory.");
+
+		pmemobj_cond_zero(pop, &pcond);
+	}
 
 	/**
 	 * Defaulted destructor.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -63,9 +63,20 @@ public:
 	typedef PMEMmutex *native_handle_type;
 
 	/**
-	 * Defaulted constructor.
+	 * Default constructor.
+	 *
+	 * @throw lock_error when the mutex is not from persistent memory.
 	 */
-	mutex() noexcept = default;
+	mutex()
+	{
+		PMEMobjpool *pop;
+		if ((pop = pmemobj_pool_by_ptr(&plock)) == nullptr)
+			throw lock_error(1, std::generic_category(),
+					 "Persistent mutex not from persistent"
+					 "memory.");
+
+		pmemobj_mutex_zero(pop, &plock);
+	}
 
 	/**
 	 * Defaulted destructor.

@@ -129,6 +129,27 @@ reader_trylock(void *arg)
 }
 
 /*
+ * mutex_zero_test -- (internal) test the zeroing constructor
+ */
+void
+mutex_zero_test(nvobj::pool<struct root> &pop)
+{
+	PMEMoid raw_mutex;
+
+	pmemobj_alloc(pop.get_handle(), &raw_mutex, sizeof(PMEMrwlock), 1,
+		      [](PMEMobjpool *pop, void *ptr, void *arg) -> int {
+			      PMEMrwlock *mtx = static_cast<PMEMrwlock *>(ptr);
+			      pmemobj_memset_persist(pop, mtx, 1, sizeof(*mtx));
+			      return 0;
+		      },
+		      NULL);
+
+	nvobj::shared_mutex *placed_mtx =
+		new (pmemobj_direct(raw_mutex)) nvobj::shared_mutex;
+	std::unique_lock<nvobj::shared_mutex> lck(*placed_mtx);
+}
+
+/*
  * mutex_test -- (internal) launch worker threads to test the pshared_mutex
  */
 template <typename Worker>
@@ -168,6 +189,8 @@ main(int argc, char *argv[])
 	} catch (nvml::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
+
+	mutex_zero_test(pop);
 
 	int expected = num_threads * num_ops * 2;
 	mutex_test(pop, writer, reader);
