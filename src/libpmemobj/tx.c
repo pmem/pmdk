@@ -1498,8 +1498,9 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop,
 
 	struct lane_tx_runtime *runtime = tx.section->runtime;
 
-	/* verify if the cache exists and has at least one free slot */
-	if (cache == NULL || runtime->cache_offset == cache_size) {
+	/* verify if the cache exists and has at least 8 bytes of free space */
+	if (cache == NULL || runtime->cache_offset +
+		sizeof(struct tx_range) >= cache_size) {
 		/* no existing cache, allocate a new one */
 		uint64_t *entry = pvector_push_back(undo);
 		if (entry == NULL) {
@@ -1558,6 +1559,7 @@ pmemobj_tx_add_small(struct tx_add_range_args *args)
 		sizeof(struct tx_range);
 
 	if (remaining_space < range_size) {
+		ASSERT(remaining_space > sizeof(struct tx_range));
 		range_size = remaining_space;
 		data_size = remaining_space - sizeof(struct tx_range);
 

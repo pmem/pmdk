@@ -48,6 +48,8 @@ $ENV:UNITTEST_NUM = "0"
 
 require_test_type medium
 
+require_fs_type pmem
+
 setup
 
 expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range_direct$Env:EXESUFFIX $DIR\testfile1
