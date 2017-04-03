@@ -28,3 +28,4 @@ The following characters and operations can be used:
 		- pmemobj_tx_add_common
 	a - tests notice of atomic allocation in tx:
 		- pmemobj_alloc
+	s - tests debug checks in the thread synchronization API

@@ -96,6 +96,14 @@ FUNC_MOCK(pthread_cond_init, int,
 	}
 FUNC_MOCK_END
 
+
+
+PMEMobjpool *
+pmemobj_pool_by_ptr(const void *arg)
+{
+	return &Mock_pop;
+}
+
 /*
  * mock_open_pool -- (internal) simulate pool opening
  */

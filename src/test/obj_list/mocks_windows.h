@@ -87,6 +87,7 @@ extern "C" {
 #define pmemobj_close __wrap_pmemobj_close
 #define pmemobj_direct __wrap_pmemobj_direct
 #define pmemobj_pool_by_oid __wrap_pmemobj_pool_by_oid
+#define pmemobj_pool_by_ptr __wrap_pmemobj_pool_by_ptr
 #endif
 
 #if defined(__cplusplus)
