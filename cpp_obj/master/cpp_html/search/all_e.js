@@ -1,7 +1,7 @@
 var searchData=
 [
   ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html',1,'nvml::obj']]],
-  ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html#a343ec83e072d49cd5ec27063481cf554',1,'nvml::obj::shared_mutex::shared_mutex() noexcept=default'],['../classnvml_1_1obj_1_1shared__mutex.html#af34d84d27c1f6f96edc9b4f00398bd97',1,'nvml::obj::shared_mutex::shared_mutex(const shared_mutex &amp;)=delete']]],
+  ['shared_5fmutex',['shared_mutex',['../classnvml_1_1obj_1_1shared__mutex.html#a32aa7e68434f37f5900a7f22b2fc463c',1,'nvml::obj::shared_mutex::shared_mutex()'],['../classnvml_1_1obj_1_1shared__mutex.html#af34d84d27c1f6f96edc9b4f00398bd97',1,'nvml::obj::shared_mutex::shared_mutex(const shared_mutex &amp;)=delete']]],
   ['shared_5fmutex_2ehpp',['shared_mutex.hpp',['../shared__mutex_8hpp.html',1,'']]],
   ['specialization_2ehpp',['specialization.hpp',['../specialization_8hpp.html',1,'']]],
   ['standard_5falloc_5fpolicy',['standard_alloc_policy',['../classnvml_1_1obj_1_1standard__alloc__policy.html',1,'nvml::obj']]],
