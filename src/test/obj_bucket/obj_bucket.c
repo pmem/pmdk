@@ -108,6 +108,35 @@ container_new_test(void)
 	return &c->super;
 }
 
+static void *
+mock_get_real_data(const struct memory_block *m)
+{
+	return NULL;
+}
+
+static size_t
+mock_get_real_size(const struct memory_block *m)
+{
+	return 0;
+}
+
+static const struct memory_block_ops mock_ops = {
+	.block_size = NULL,
+	.prep_hdr = NULL,
+	.get_lock = NULL,
+	.get_state = NULL,
+	.get_user_data = NULL,
+	.get_real_data = mock_get_real_data,
+	.claim = NULL,
+	.claim_revoke = NULL,
+	.get_user_size = NULL,
+	.get_real_size = mock_get_real_size,
+	.write_header = NULL,
+	.reinit_header = NULL,
+	.get_extra = NULL,
+	.get_flags = NULL,
+};
+
 static void
 test_bucket_insert_get(void)
 {
@@ -116,6 +145,7 @@ test_bucket_insert_get(void)
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
+	m.m_ops = &mock_ops;
 
 	/* get from empty */
 
@@ -141,6 +171,7 @@ test_bucket_remove(void)
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
+	m.m_ops = &mock_ops;
 
 	UT_ASSERT(bucket_insert_block(b, &m) == 0);
 
