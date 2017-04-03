@@ -161,7 +161,7 @@ os_flock(int fd, int operation)
 	if (operation & OS_LOCK_NB)
 		opt |= LOCK_NB;
 
-	return flock(fd, operation);
+	return flock(fd, opt);
 }
 
 /*
