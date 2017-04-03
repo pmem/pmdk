@@ -240,6 +240,7 @@ test_lane_hold_release(void)
 
 	pop->p.lanes_desc.lane_locks = CALLOC(OBJ_NLANES, sizeof(uint64_t));
 	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
+	pop->p.uuid_lo = 123456;
 	base_ptr = &pop->p;
 
 	struct lane_section *sec;
