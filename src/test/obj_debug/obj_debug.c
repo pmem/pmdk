@@ -35,10 +35,11 @@
  *
  * usage: obj_debug file operation:...
  *
- * operations are 'f' or 'l' or 'r' or 'a' or 'n'
+ * operations are 'f' or 'l' or 'r' or 'a' or 'n' or 's'
  *
  */
 #include <stddef.h>
+#include <stdlib.h>
 #include <sys/param.h>
 
 #include "unittest.h"
@@ -64,6 +65,8 @@ struct int3_s {
 	uint32_t i2;
 	uint32_t i3;
 };
+
+typedef	void (*func)(PMEMobjpool *pop, void *sync, void *cond);
 
 static void
 test_FOREACH(const char *path)
@@ -217,18 +220,153 @@ test_alloc_in_constructor(const char *path)
 	pmemobj_alloc(pop, &oid, 1, 1, test_constr, NULL);
 }
 
+static void
+test_mutex_lock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_mutex_lock(pop, (PMEMmutex *)sync);
+}
+
+static void
+test_mutex_unlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_mutex_unlock(pop, (PMEMmutex *)sync);
+}
+
+static void
+test_mutex_trylock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_mutex_trylock(pop, (PMEMmutex *)sync);
+}
+
+static void
+test_mutex_timedlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_mutex_timedlock(pop, (PMEMmutex *)sync, NULL);
+}
+
+static void
+test_mutex_zero(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_mutex_zero(pop, (PMEMmutex *)sync);
+}
+
+static void
+test_rwlock_rdlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_rdlock(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_rwlock_wrlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_wrlock(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_rwlock_timedrdlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_timedrdlock(pop, (PMEMrwlock *)sync, NULL);
+}
+
+static void
+test_rwlock_timedwrlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_timedwrlock(pop, (PMEMrwlock *)sync, NULL);
+}
+
+static void
+test_rwlock_tryrdlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_tryrdlock(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_rwlock_trywrlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_trywrlock(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_rwlock_unlock(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_unlock(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_rwlock_zero(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_rwlock_zero(pop, (PMEMrwlock *)sync);
+}
+
+static void
+test_cond_wait(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_cond_wait(pop, (PMEMcond *)cond, (PMEMmutex *)sync);
+}
+
+static void
+test_cond_signal(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_cond_signal(pop, (PMEMcond *)cond);
+}
+
+static void
+test_cond_broadcast(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_cond_broadcast(pop, (PMEMcond *)cond);
+}
+
+static void
+test_cond_timedwait(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_cond_timedwait(pop, (PMEMcond *)cond, (PMEMmutex *)sync, NULL);
+}
+
+static void
+test_cond_zero(PMEMobjpool *pop, void *sync, void *cond)
+{
+	pmemobj_cond_zero(pop, (PMEMcond *)cond);
+}
+
+static void
+test_sync_pop_check(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	func to_test[] = {
+		test_mutex_lock, test_mutex_unlock, test_mutex_trylock,
+		test_mutex_timedlock, test_mutex_zero, test_rwlock_rdlock,
+		test_rwlock_wrlock, test_rwlock_timedrdlock,
+		test_rwlock_timedwrlock, test_rwlock_tryrdlock,
+		test_rwlock_trywrlock, test_rwlock_unlock, test_rwlock_zero,
+		test_cond_wait, test_cond_signal, test_cond_broadcast,
+		test_cond_timedwait, test_cond_zero
+	};
+
+	srand(time(NULL));
+	int choice = rand() % (sizeof(to_test) / sizeof(to_test[0]));
+	PMEMmutex stack_sync;
+	PMEMcond stack_cond;
+
+	to_test[choice](pop, &stack_sync, &stack_cond);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_debug");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s file-name op:f|l|r|a", argv[0]);
+		UT_FATAL("usage: %s file-name op:f|l|r|a|s", argv[0]);
 
 	const char *path = argv[1];
 
-	if (strchr("flrapn", argv[2][0]) == NULL || argv[2][1] != '\0')
-		UT_FATAL("op must be f or l or r or a or p or n");
+	if (strchr("flrapns", argv[2][0]) == NULL || argv[2][1] != '\0')
+		UT_FATAL("op must be f or l or r or a or p or n or s");
 
 	switch (argv[2][0]) {
 		case 'f':
@@ -245,6 +383,9 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 			test_alloc_in_constructor(path);
+			break;
+		case 's':
+			test_sync_pop_check(path);
 			break;
 	}
 
