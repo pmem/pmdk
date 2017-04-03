@@ -47,12 +47,6 @@ extern "C" {
 #define PMEMOBJ_MAX_LAYOUT ((size_t)1024)
 
 /*
- * similar to offsetof, except that it takes a structure pointer,
- * instead of a structure type name
- */
-#define offsetofp(s, m) ((size_t)&(((s)0)->m))
-
-/*
  * Type safety macros
  */
 #ifndef _MSC_VER
@@ -182,7 +176,7 @@ TOID_DECLARE_ROOT(t);
 
 #define TOID_TYPEOF(o) __typeof__(*(o)._type)
 
-#define TOID_OFFSETOF(o, field) offsetofp(__typeof__((o)._type), field)
+#define TOID_OFFSETOF(o, field) offsetof(TOID_TYPEOF(o), field)
 
 /*
  * XXX - DIRECT_RW and DIRECT_RO are not available when compiled using VC++
