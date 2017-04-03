@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -92,6 +92,13 @@ PMEMOBJ_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemobj/libpmemobj_unscoped.o
 PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
 
 LIBS += -pthread
+
+# XXX: required by clock_gettime(), if glibc version < 2.17
+# The os_clock_gettime() function is now in OS abstraction layer,
+# linked to all the librariess, unit tests and benchmarks.
+ifeq ($(call check_librt), n)
+LIBS += -lrt
+endif
 
 ifeq ($(TOOLS_COMMON), y)
 LIBPMEMCOMMON=y
