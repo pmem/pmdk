@@ -66,6 +66,13 @@ endif
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
 
+# XXX: required by clock_gettime(), if glibc version < 2.17
+# The os_clock_gettime() function is now in OS abstraction layer,
+# linked to all the librariess, unit tests and benchmarks.
+ifeq ($(call check_librt), n)
+LIBS += -lrt
+endif
+
 ifeq ($(LIBPMEMPOOL), y)
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
