@@ -170,7 +170,8 @@ install-cpp:
 install: install-cpp
 
 uninstall-cpp:
-	$(RM) -r $(CPP_HEADERS_DESTDIR)
+	$(foreach f, include/libpmemobj++/*.hpp, $(RM) $(HEADERS_DESTDIR)/libpmemobj++/$(notdir $(f)))
+	$(foreach f, include/libpmemobj++/detail/*.hpp, $(RM) $(HEADERS_DESTDIR)/libpmemobj++/detail/$(notdir $(f)))
 
 uninstall: uninstall-cpp
 
@@ -184,6 +185,7 @@ install: all
 
 uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
+	$(foreach f, $(OBJ_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmemobj/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 
 cstyle:
