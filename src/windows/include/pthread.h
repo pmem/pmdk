@@ -190,6 +190,16 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 
 int pthread_join(pthread_t thread, void **result);
 
+/* thread affinity */
+
+typedef DWORD_PTR cpu_set_t;
+
+void CPU_ZERO(cpu_set_t *set);
+void CPU_SET(int cpu, cpu_set_t *set);
+
+int pthread_setaffinity_np(pthread_t thread, size_t set_size,
+	const cpu_set_t *set);
+
 #ifdef __cplusplus
 }
 #endif
