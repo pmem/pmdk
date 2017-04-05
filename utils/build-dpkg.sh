@@ -651,6 +651,7 @@ cat << EOF > debian/${OBJ_CPP_NAME}.install
 $INC_DIR/libpmemobj++/*.hpp
 $INC_DIR/libpmemobj++/detail/*.hpp
 $DOC_DIR/${OBJ_CPP_DOC_DIR}/*
+$LIB_DIR/pkgconfig/libpmemobj++.pc
 EOF
 
 cat << EOF > debian/${OBJ_CPP_NAME}.triggers
