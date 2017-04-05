@@ -70,7 +70,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 {
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	struct pool_replica *rep = REP(set, repn);
-	char *path = util_realpath(PART(rep, partn).path);
+	char *path = util_part_realpath(PART(rep, partn).path);
 	if (path == NULL) {
 		LOG(1, "cannot get absolute path for %s, replica %u, part %u",
 				PART(rep, partn).path, repn, partn);
@@ -91,7 +91,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 		/* avoid superfluous comparisons */
 		unsigned i = (r == repn) ? partn + 1 : 0;
 		for (unsigned p = i; p < repr->nparts; ++p) {
-			char *pathp = util_realpath(PART(repr, p).path);
+			char *pathp = util_part_realpath(PART(repr, p).path);
 			if (pathp == NULL) {
 				if (errno != ENOENT) {
 					ERR("realpath failed for %s, errno %d",

@@ -75,12 +75,15 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 }
 
 /*
- * util_realpath -- get canonicalized absolute pathname
+ * util_part_realpath -- get canonicalized absolute pathname for a part file
+ *
+ * On Windows, paths cannot be symlinks and paths used in a poolset have to
+ * be absolute (checked when parsing a poolset file), so we just return
+ * the path.
  */
 char *
-util_realpath(const char *path)
+util_part_realpath(const char *path)
 {
-	ASSERT(util_is_absolute_path(path));
 	return strdup(path);
 }
 
