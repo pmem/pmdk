@@ -490,3 +490,23 @@ pthread_join(pthread_t thread, void **result)
 
 	return 0;
 }
+
+void
+CPU_ZERO(cpu_set_t *set)
+{
+	memset(set, 0, sizeof(*set));
+}
+
+void
+CPU_SET(int cpu, cpu_set_t *set)
+{
+	*set |= 1ll << cpu;
+}
+
+int
+pthread_setaffinity_np(pthread_t thread, size_t set_size,
+	const cpu_set_t *set)
+{
+	DWORD_PTR result = SetThreadAffinityMask(thread->thread_handle, *set);
+	return result != 0 ? 0 : EINVAL;
+}
