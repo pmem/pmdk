@@ -52,8 +52,10 @@
 #include "set.h"
 #include "util.h"
 
-#define MAX_OFFSET 63
-#define CONST_B 0xFF
+#define CL_ALIGNMENT 64
+#define MAX_OFFSET (CL_ALIGNMENT - 1)
+
+#define ALIGN_CL(x) (((x) + CL_ALIGNMENT - 1) & ~(CL_ALIGNMENT - 1))
 
 /*
  * rpmem_args -- benchmark specific command line options
@@ -61,6 +63,7 @@
 struct rpmem_args {
 	char *mode;	/* operation mode: stat, seq, rand */
 	bool no_warmup;    /* do not do warmup */
+	bool no_memset;    /* do not call memset before each persist */
 	size_t chunk_size; /* elementary chunk size */
 	size_t dest_off;   /* destination address offset */
 };
@@ -73,12 +76,15 @@ struct rpmem_bench {
 	uint64_t *offsets;	/* random/sequential address offsets */
 	unsigned n_offsets;       /* number of random elements */
 	int const_b;		  /* memset() value */
-	size_t fsize;		  /* file size */
+	size_t min_size;	  /* minimum file size */
 	void *addrp;		  /* mapped file address */
+	void *pool;		  /* memory pool address */
+	size_t pool_size;	 /* size of memory pool */
 	size_t mapped_len;	/* mapped length */
 	RPMEMpool **rpp;	  /* rpmem pool pointers */
 	unsigned *nlanes;	 /* number of lanes for each remote replica */
 	unsigned nreplicas;       /* number of remote replicas */
+	size_t csize_align;       /* aligned elementary chunk size */
 };
 
 /*
@@ -86,9 +92,11 @@ struct rpmem_bench {
  */
 enum operation_mode {
 	OP_MODE_UNKNOWN,
-	OP_MODE_STAT, /* always use the same chunk */
-	OP_MODE_SEQ,  /* use consecutive chunks */
-	OP_MODE_RAND  /* use random chunks */
+	OP_MODE_STAT,      /* always use the same chunk */
+	OP_MODE_SEQ,       /* use consecutive chunks */
+	OP_MODE_RAND,      /* use random chunks */
+	OP_MODE_SEQ_WRAP,  /* use consequtive chunks, but use file size */
+	OP_MODE_RAND_WRAP, /* use random chunks, but use file size */
 };
 
 /*
@@ -103,6 +111,10 @@ parse_op_mode(const char *arg)
 		return OP_MODE_SEQ;
 	else if (strcmp(arg, "rand") == 0)
 		return OP_MODE_RAND;
+	else if (strcmp(arg, "seq-wrap") == 0)
+		return OP_MODE_SEQ_WRAP;
+	else if (strcmp(arg, "rand-wrap") == 0)
+		return OP_MODE_RAND_WRAP;
 	else
 		return OP_MODE_UNKNOWN;
 }
@@ -114,10 +126,10 @@ static int
 init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 	     enum operation_mode op_mode)
 {
-	uint64_t n_threads = args->n_threads;
-	uint64_t n_ops = args->n_ops_per_thread;
+	size_t n_ops_by_size =
+		mb->pool_size / (args->n_threads * mb->csize_align);
 
-	mb->n_offsets = n_ops * n_threads;
+	mb->n_offsets = args->n_ops_per_thread * args->n_threads;
 	mb->offsets = (uint64_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");
@@ -126,25 +138,39 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 
 	unsigned seed = args->seed;
 
-	for (uint64_t i = 0; i < n_threads; i++) {
-		for (uint64_t j = 0; j < n_ops; j++) {
-			uint64_t o;
+	for (size_t i = 0; i < args->n_threads; i++) {
+		for (size_t j = 0; j < args->n_ops_per_thread; j++) {
+			size_t off_idx = i * args->n_ops_per_thread + j;
+			size_t chunk_idx;
 			switch (op_mode) {
 				case OP_MODE_STAT:
-					o = i;
+					chunk_idx = i;
 					break;
 				case OP_MODE_SEQ:
-					o = i * n_ops + j;
+					chunk_idx =
+						i * args->n_ops_per_thread + j;
 					break;
 				case OP_MODE_RAND:
-					o = i * n_ops +
-						os_rand_r(&seed) % n_ops;
+					chunk_idx = i * args->n_ops_per_thread +
+						os_rand_r(&seed) %
+							args->n_ops_per_thread;
+					break;
+				case OP_MODE_SEQ_WRAP:
+					chunk_idx = i * n_ops_by_size +
+						j % n_ops_by_size;
+					break;
+				case OP_MODE_RAND_WRAP:
+					chunk_idx = i * n_ops_by_size +
+						os_rand_r(&seed) %
+							n_ops_by_size;
 					break;
 				default:
 					assert(0);
 					return -1;
 			}
-			mb->offsets[i * n_ops + j] = o * mb->pargs->chunk_size;
+
+			mb->offsets[off_idx] = chunk_idx * mb->csize_align +
+				mb->pargs->dest_off;
 		}
 	}
 
@@ -155,16 +181,20 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
  * do_warmup -- does the warmup by writing the whole pool area
  */
 static int
-do_warmup(struct rpmem_bench *mb, size_t nops)
+do_warmup(struct rpmem_bench *mb)
 {
-	size_t len = mb->fsize;
+	/* clear the entire pool */
+	memset(mb->pool, 0, mb->pool_size);
 
-	memset(mb->addrp, 0, len);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		int ret = rpmem_persist(mb->rpp[r], (size_t)0, len, 0);
+		int ret = rpmem_persist(mb->rpp[r], 0, mb->pool_size, 0);
 		if (ret)
 			return ret;
 	}
+
+	/* if no memset for each operation, do one big memset */
+	if (mb->pargs->no_memset)
+		memset(mb->pool, 0xFF, mb->pool_size);
 
 	return 0;
 }
@@ -182,16 +212,23 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 
 	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
 		info->index;
-	size_t offset = mb->offsets[idx] + mb->pargs->dest_off;
-	void *dest = (char *)mb->addrp + offset;
-	int c = mb->const_b;
+	size_t offset = mb->offsets[idx];
 	size_t len = mb->pargs->chunk_size;
 
+	if (!mb->pargs->no_memset) {
+		void *dest = (char *)mb->pool + offset;
+		/* thread id on MS 4 bits and operation id on LS 4 bits */
+		int c = ((info->worker->index & 0xf) << 4) +
+			((0xf & info->index));
+		memset(dest, c, len);
+	}
+
 	int ret = 0;
-	memset(dest, c, len);
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		unsigned lane = info->worker->index % mb->nlanes[r];
-		ret = rpmem_persist(mb->rpp[r], offset, len, lane);
+		assert(info->worker->index < mb->nlanes[r]);
+
+		ret = rpmem_persist(mb->rpp[r], offset, len,
+				    info->worker->index);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
@@ -206,7 +243,7 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
  * rpmem_map_file -- map local file
  */
 static int
-rpmem_map_file(const char *path, struct rpmem_bench *mb)
+rpmem_map_file(const char *path, struct rpmem_bench *mb, size_t size)
 {
 	int mode;
 #ifndef _WIN32
@@ -215,13 +252,13 @@ rpmem_map_file(const char *path, struct rpmem_bench *mb)
 	mode = S_IWRITE | S_IREAD;
 #endif
 
-	mb->addrp = pmem_map_file(path, mb->fsize, PMEM_FILE_CREATE, mode,
+	mb->addrp = pmem_map_file(path, size, PMEM_FILE_CREATE, mode,
 				  &mb->mapped_len, NULL);
 
 	if (!mb->addrp)
 		return -1;
-	else
-		return 0;
+
+	return 0;
 }
 
 /*
@@ -244,7 +281,14 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	struct pool_replica *rep;
 	struct remote_replica *remote;
 	struct pool_set_part *part;
-	unsigned r;
+
+	struct rpmem_pool_attr attr;
+	memset(&attr, 0, sizeof(attr));
+	int ret = snprintf(attr.signature, sizeof(attr.signature), "PMEMBENCH");
+	if (ret < 0) {
+		perror("snprintf");
+		return -1;
+	}
 
 	/* read and validate poolset */
 	if (util_poolset_read(&set, path)) {
@@ -263,8 +307,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_poolset_free;
 	}
 
-	for (r = 1; r < set->nreplicas; ++r) {
-		if (!set->replica[r]->remote) {
+	for (unsigned i = 1; i < set->nreplicas; ++i) {
+		if (!set->replica[i]->remote) {
 			fprintf(stderr, "Local replicas are not supported\n");
 			goto err_poolset_free;
 		}
@@ -281,17 +325,20 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_poolset_free;
 	}
 
-	if (rep->repsize < mb->fsize) {
+	if (rep->repsize < mb->min_size) {
 		fprintf(stderr, "A master replica is too small (%zu < %zu)\n",
-			rep->repsize, mb->fsize);
+			rep->repsize, mb->min_size);
 		goto err_poolset_free;
 	}
 
 	part = (struct pool_set_part *)&rep->part[0];
-	if (rpmem_map_file(part->path, mb)) {
+	if (rpmem_map_file(part->path, mb, rep->repsize)) {
 		perror(part->path);
 		goto err_poolset_free;
 	}
+
+	mb->pool_size = mb->mapped_len - POOL_HDR_SIZE;
+	mb->pool = (void *)((uintptr_t)mb->addrp + POOL_HDR_SIZE);
 
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
@@ -300,15 +347,14 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		perror("malloc");
 		goto err_unmap_file;
 	}
+
 	mb->rpp = (RPMEMpool **)malloc(mb->nreplicas * sizeof(RPMEMpool *));
 	if (mb->rpp == NULL) {
 		perror("malloc");
 		goto err_free_lanes;
 	}
 
-	struct rpmem_pool_attr attr;
-	memset(&attr, 0, sizeof(attr));
-
+	unsigned r;
 	for (r = 0; r < mb->nreplicas; ++r) {
 		remote = set->replica[r + 1]->remote;
 
@@ -319,10 +365,18 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		++mb->nlanes[r];
 
 		mb->rpp[r] = rpmem_create(remote->node_addr, remote->pool_desc,
-					  mb->addrp, mb->fsize, &mb->nlanes[r],
-					  &attr);
+					  mb->addrp, mb->pool_size,
+					  &mb->nlanes[r], &attr);
 		if (!mb->rpp[r]) {
 			perror("rpmem_create");
+			goto err_rpmem_close;
+		}
+
+		if (mb->nlanes[r] < args->n_threads) {
+			fprintf(stderr, "Number of threads too large for "
+					"replica #%u (max: %u)\n",
+				r, mb->nlanes[r]);
+			r++; /* close current replica */
 			goto err_rpmem_close;
 		}
 	}
@@ -331,9 +385,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	return 0;
 
 err_rpmem_close:
-	for (r = 0; mb->rpp[r]; ++r) {
-		rpmem_close(mb->rpp[r]);
-	}
+	for (unsigned i = 0; i < r; i++)
+		rpmem_close(mb->rpp[i]);
 	free(mb->rpp);
 
 err_free_lanes:
@@ -361,6 +414,38 @@ rpmem_poolset_fini(struct rpmem_bench *mb)
 }
 
 /*
+ * rpmem_set_min_size -- compute minimal file size based on benchmark arguments
+ */
+static void
+rpmem_set_min_size(struct rpmem_bench *mb, enum operation_mode op_mode,
+		   struct benchmark_args *args)
+{
+	mb->csize_align = ALIGN_CL(mb->pargs->chunk_size);
+
+	switch (op_mode) {
+		case OP_MODE_STAT:
+			mb->min_size = mb->csize_align * args->n_threads;
+			break;
+		case OP_MODE_SEQ:
+		case OP_MODE_RAND:
+			mb->min_size = mb->csize_align *
+				args->n_ops_per_thread * args->n_threads;
+			break;
+		case OP_MODE_SEQ_WRAP:
+		case OP_MODE_RAND_WRAP:
+			/*
+			 * at least one chunk per thread to avoid false sharing
+			 */
+			mb->min_size = mb->csize_align * args->n_threads;
+			break;
+		default:
+			assert(0);
+	}
+
+	mb->min_size += POOL_HDR_SIZE;
+}
+
+/*
  * rpmem_init -- initialization function
  */
 static int
@@ -369,70 +454,57 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 	assert(args->opts != NULL);
-	size_t size;
-	size_t large;
-	size_t small;
+
 	struct rpmem_bench *mb =
 		(struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
-
 	if (!mb) {
 		perror("malloc");
 		return -1;
 	}
 
-	mb->pargs = (rpmem_args *)args->opts;
+	mb->pargs = (struct rpmem_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "Invalid operation mode argument '%s'\n",
 			mb->pargs->mode);
-		goto err_free_mb;
+		goto err_parse_mode;
 	}
 
-	size = MAX_OFFSET + mb->pargs->chunk_size;
-	large = size * args->n_ops_per_thread * args->n_threads;
-	small = size * args->n_threads;
-	mb->fsize = (op_mode == OP_MODE_STAT) ? small : large;
-	mb->fsize = PAGE_ALIGNED_UP_SIZE(mb->fsize);
+	rpmem_set_min_size(mb, op_mode, args);
+
+	if (rpmem_poolset_init(args->fname, mb, args)) {
+		goto err_poolset_init;
+	}
 
 	/* initialize offsets[] array depending on benchmark args */
 	if (init_offsets(args, mb, op_mode) < 0) {
-		goto err_free_mb;
-	}
-
-	/* initialize value */
-	mb->const_b = CONST_B;
-
-	if (rpmem_poolset_init(args->fname, mb, args)) {
-		goto err_free_offsets;
+		goto err_init_offsets;
 	}
 
 	if (!mb->pargs->no_warmup) {
-		if (do_warmup(mb, args->n_threads * args->n_ops_per_thread) !=
-		    0) {
+		if (do_warmup(mb) != 0) {
 			fprintf(stderr, "do_warmup() function failed.\n");
-			goto err_poolset_fini;
+			goto err_warmup;
 		}
 	}
 
 	pmembench_set_priv(bench, mb);
 
 	return 0;
-
-err_poolset_fini:
-	rpmem_poolset_fini(mb);
-
-err_free_offsets:
+err_warmup:
 	free(mb->offsets);
-
-err_free_mb:
+err_init_offsets:
+	rpmem_poolset_fini(mb);
+err_poolset_init:
+err_parse_mode:
 	free(mb);
 	return -1;
 }
 
 /*
- * memset_exit -- benchmark cleanup function
+ * rpmem_exit -- benchmark cleanup function
  */
 static int
 rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
@@ -445,7 +517,7 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_clo rpmem_clo[3];
+static struct benchmark_clo rpmem_clo[4];
 /* Stores information about benchmark. */
 static struct benchmark_info rpmem_info;
 CONSTRUCTOR(rpmem_persist_costructor)
@@ -455,8 +527,8 @@ pmem_rpmem_persist(void)
 
 	rpmem_clo[0].opt_short = 'M';
 	rpmem_clo[0].opt_long = "mem-mode";
-	rpmem_clo[0].descr = "Memory writing mode - "
-			     "stat, seq, rand";
+	rpmem_clo[0].descr = "Memory writing mode :"
+			     " stat, seq[-wrap], rand[-wrap]";
 	rpmem_clo[0].def = "seq";
 	rpmem_clo[0].off = clo_field_offset(struct rpmem_args, mode);
 	rpmem_clo[0].type = CLO_TYPE_STR;
@@ -480,6 +552,13 @@ pmem_rpmem_persist(void)
 	rpmem_clo[2].def = "false";
 	rpmem_clo[2].type = CLO_TYPE_FLAG;
 	rpmem_clo[2].off = clo_field_offset(struct rpmem_args, no_warmup);
+
+	rpmem_clo[3].opt_short = 'T';
+	rpmem_clo[3].opt_long = "no-memset";
+	rpmem_clo[3].descr = "Don't call memset for all rpmem_persist";
+	rpmem_clo[3].def = "false";
+	rpmem_clo[3].off = clo_field_offset(struct rpmem_args, no_memset);
+	rpmem_clo[3].type = CLO_TYPE_FLAG;
 
 	rpmem_info.name = "rpmem_persist";
 	rpmem_info.brief = "Benchmark for rpmem_persist() "
