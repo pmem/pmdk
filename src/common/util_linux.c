@@ -51,10 +51,13 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 }
 
 /*
- * util_realpath -- get canonicalized absolute pathname
+ * util_part_realpath -- get canonicalized absolute pathname
+ *
+ * As paths used in a poolset file have to be absolute (checked when parsing
+ * a poolset file), here we only have to resolve symlinks.
  */
 char *
-util_realpath(const char *path)
+util_part_realpath(const char *path)
 {
 	return realpath(path, NULL);
 }
