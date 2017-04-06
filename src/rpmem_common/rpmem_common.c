@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@
 #include "rpmem_common.h"
 #include "rpmem_proto.h"
 #include "rpmem_common_log.h"
+#include "os.h"
 
 /*
  * rpmem_xwrite -- send entire buffer or fail
@@ -297,7 +298,7 @@ rpmem_target_free(struct rpmem_target_info *info)
 char *
 rpmem_get_ssh_conn_addr(void)
 {
-	char *ssh_conn = getenv("SSH_CONNECTION");
+	char *ssh_conn = os_getenv("SSH_CONNECTION");
 	if (!ssh_conn) {
 		RPMEMC_LOG(ERR, "SSH_CONNECTION variable is not set");
 		return NULL;

@@ -1,4 +1,6 @@
-# Copyright 2016-2017, Intel Corporation
+#!/bin/bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,19 +30,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for ctrld tool
+
 #
+# Used to check if there are no banned functions in .o file
+#
+# usage: ./check-os.sh [os.h path] [.o file] [.c file]
 
-SCP_TO_REMOTE_NODES = y
+EXCLUDE="os_linux"
+if [[ $2 =~ $EXCLUDE ]]; then
+	echo "skip $2"
+	exit 0
+fi
 
-TOP = ../../../..
+functions=$(grep -Po "\bos_[^ (\s]*\(" $1 | sed 's/(//g' | sed 's/^os_//g')
+symbols=$(nm -Cuf posix $2 | sed 's/ U *//g')
+echoerr() { echo -e "$@" 1>&2; }
+out=$(
+	for func in $functions
+	do
+		for sym in $symbols
+		do
+			grep -w $func <<<"$sym"
+		done
+	done | sed 's/$/\(\)/g')
 
-vpath %.c $(TOP)/src/common
-vpath %.h $(TOP)/src/common
-CFLAGS += -I$(TOP)/src/common
+[[ ! -z $out ]] &&
+	echo -e "`pwd`/$3:1: non wrapped function(s):\n$out\nplease use os wrappers" &&
+	rm -f $2 && # remove .o file as it don't match requirments
+	exit 1
 
-TARGET = ctrld
-
-OBJS = ctrld.o os_linux.o
-
-include $(TOP)/src/tools/Makefile.inc
+exit 0

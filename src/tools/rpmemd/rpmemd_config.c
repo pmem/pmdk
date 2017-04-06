@@ -49,6 +49,7 @@
 #include "rpmemd.h"
 #include "rpmemd_log.h"
 #include "rpmemd_config.h"
+#include "os.h"
 
 #define CONFIG_LINE_SIZE_INIT	50
 #define INVALID_CHAR_POS	UINT64_MAX
@@ -353,7 +354,7 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 {
 	RPMEMD_ASSERT(filename != NULL);
 
-	FILE *file = fopen(filename, "r");
+	FILE *file = os_fopen(filename, "r");
 	if (file == NULL) {
 		if (required) {
 			RPMEMD_LOG(ERR, "!%s", filename);
@@ -486,7 +487,7 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 static void
 get_home_dir(char *str, size_t size)
 {
-	char *home = getenv(HOME_ENV);
+	char *home = os_getenv(HOME_ENV);
 	if (home) {
 		int r = snprintf(str, size, "%s", home);
 		if (r < 0)

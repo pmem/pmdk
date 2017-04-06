@@ -77,6 +77,7 @@
 #include "jemalloc.h"
 #include "pmemcommon.h"
 #include "file.h"
+#include "os.h"
 #include "vmem.h"
 #include "vmmalloc.h"
 #include "valgrind_internal.h"
@@ -361,15 +362,15 @@ libvmmalloc_create(const char *dir, size_t size)
 	if (Fd == -1)
 		return NULL;
 
-	if ((errno = posix_fallocate(Fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(Fd, 0, (off_t)size)) != 0) {
 		ERR("!posix_fallocate");
-		(void) close(Fd);
+		(void) os_close(Fd);
 		return NULL;
 	}
 
 	void *addr;
 	if ((addr = util_map(Fd, size, MAP_SHARED, 0, 4 << 20)) == NULL) {
-		(void) close(Fd);
+		(void) os_close(Fd);
 		return NULL;
 	}
 
@@ -413,7 +414,7 @@ libvmmalloc_clone(void)
 	if (Fd_clone == -1)
 		return -1;
 
-	if ((errno = posix_fallocate(Fd_clone, 0, (off_t)Vmp->size)) != 0) {
+	if ((errno = os_posix_fallocate(Fd_clone, 0, (off_t)Vmp->size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err_close;
 	}
@@ -447,7 +448,7 @@ libvmmalloc_clone(void)
 	return 0;
 
 err_close:
-	(void) close(Fd_clone);
+	(void) os_close(Fd_clone);
 	return -1;
 }
 
@@ -542,7 +543,7 @@ libvmmalloc_postfork_parent(void)
 		LOG(3, "pool mapped as private - do nothing");
 	} else {
 		LOG(3, "close the cloned pool file");
-		(void) close(Fd_clone);
+		(void) os_close(Fd_clone);
 	}
 }
 
@@ -563,7 +564,7 @@ libvmmalloc_postfork_child(void)
 		LOG(3, "pool mapped as private - do nothing");
 	} else {
 		LOG(3, "close the original pool file");
-		(void) close(Fd);
+		(void) os_close(Fd);
 		Fd = Fd_clone;
 
 		void *addr = Vmp->addr;
@@ -627,14 +628,14 @@ libvmmalloc_init(void)
 
 	Header_size = roundup(sizeof(VMEM), Pagesize);
 
-	if ((Dir = getenv(VMMALLOC_POOL_DIR_VAR)) == NULL) {
+	if ((Dir = os_getenv(VMMALLOC_POOL_DIR_VAR)) == NULL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_DIR_VAR);
 		abort();
 	}
 
-	if ((env_str = getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
+	if ((env_str = os_getenv(VMMALLOC_POOL_SIZE_VAR)) == NULL) {
 		out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
 				"environment variable %s not specified",
 				VMMALLOC_POOL_SIZE_VAR);
@@ -659,7 +660,7 @@ libvmmalloc_init(void)
 		abort();
 	}
 
-	if ((env_str = getenv(VMMALLOC_FORK_VAR)) != NULL) {
+	if ((env_str = os_getenv(VMMALLOC_FORK_VAR)) != NULL) {
 		Forkopt = atoi(env_str);
 		if (Forkopt < 0 || Forkopt > 3) {
 			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
@@ -696,7 +697,7 @@ libvmmalloc_fini(void)
 {
 	LOG(3, NULL);
 
-	char *env_str = getenv(VMMALLOC_LOG_STATS_VAR);
+	char *env_str = os_getenv(VMMALLOC_LOG_STATS_VAR);
 	if ((env_str == NULL) || strcmp(env_str, "1") != 0)
 		return;
 

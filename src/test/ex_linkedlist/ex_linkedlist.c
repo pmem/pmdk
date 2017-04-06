@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -271,7 +271,7 @@ main(int argc, char *argv[])
 	}
 	path = argv[1];
 
-	if (access(path, F_OK) != 0) {
+	if (os_access(path, F_OK) != 0) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(list),
 			PMEMOBJ_MIN_POOL, 0666)) == NULL) {
 			UT_FATAL("!pmemobj_create: %s", path);
