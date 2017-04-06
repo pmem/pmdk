@@ -47,6 +47,9 @@
 #include <linux/limits.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#ifndef _WIN32
+#include <pthread.h>
+#endif
 
 #include "benchmark.hpp"
 #include "benchmark_worker.hpp"
@@ -135,7 +138,7 @@ static struct version_s {
 static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[8];
+static struct benchmark_clo pmembench_clos[9];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
@@ -176,7 +179,7 @@ pmembench_costructor(void)
 		clo_field_size(struct benchmark_args, n_threads);
 	pmembench_clos[1].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[1].type_uint.min = 1;
-	pmembench_clos[1].type_uint.max = 32;
+	pmembench_clos[1].type_uint.max = UINT_MAX;
 
 	pmembench_clos[2].opt_short = 'n';
 	pmembench_clos[2].opt_long = "ops-per-thread";
@@ -249,6 +252,14 @@ pmembench_costructor(void)
 	pmembench_clos[7].type_uint.base = CLO_INT_BASE_DEC | CLO_INT_BASE_HEX;
 	pmembench_clos[7].type_uint.min = 1;
 	pmembench_clos[7].type_uint.max = ULONG_MAX;
+
+	pmembench_clos[8].opt_short = 'F';
+	pmembench_clos[8].opt_long = "thread-affinity";
+	pmembench_clos[8].descr = "Set worker threads CPU affinity mask";
+	pmembench_clos[8].type = CLO_TYPE_FLAG;
+	pmembench_clos[8].off =
+		clo_field_offset(struct benchmark_args, thread_affinity);
+	pmembench_clos[8].def = "false";
 }
 
 /*
@@ -462,8 +473,38 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		       struct benchmark_args *args)
 {
 	size_t i;
+	long ncpus = 0;
+
+	if (args->thread_affinity) {
+		ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+		if (ncpus < 0)
+			return -1;
+	}
+
 	for (i = 0; i < nworkers; i++) {
 		workers[i] = benchmark_worker_alloc();
+
+		if (args->thread_affinity) {
+			cpu_set_t cpuset;
+			CPU_ZERO(&cpuset);
+
+			/*
+			 * Assign threads to every other CPU. Populate all
+			 * available even CPUs first and odd afterwards.
+			 * Wrap-around after populating all available CPUs.
+			 */
+			int cpu =
+				((2 * i) + ((long)(i % ncpus) >= (ncpus / 2))) %
+				ncpus;
+			CPU_SET(cpu, &cpuset);
+			errno = pthread_setaffinity_np(
+				workers[i]->thread, sizeof(cpu_set_t), &cpuset);
+			if (errno) {
+				perror("pthread_setaffinity_np");
+				return -1;
+			}
+		}
+
 		workers[i]->info.index = i;
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = (struct operation_info *)calloc(
