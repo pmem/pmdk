@@ -143,6 +143,8 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	mutexip->pmemmutex.runid = 0;
 	pmemops_persist(&pop->p_ops, &mutexip->pmemmutex.runid,
@@ -159,6 +161,8 @@ int
 pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -180,6 +184,8 @@ int
 pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -214,6 +220,8 @@ pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
 	if (mutex == NULL)
@@ -235,6 +243,8 @@ pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_mutex_t *mutex = GET_MUTEX(pop, mutexip);
 	if (mutex == NULL)
@@ -252,6 +262,8 @@ int
 pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
 
 	/* XXX potential performance improvement - move GET to debug version */
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
@@ -274,6 +286,8 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	rwlockip->pmemrwlock.runid = 0;
 	pmemops_persist(&pop->p_ops, &rwlockip->pmemrwlock.runid,
@@ -290,6 +304,8 @@ int
 pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -311,6 +327,8 @@ int
 pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -335,6 +353,8 @@ pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
@@ -358,6 +378,8 @@ pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
@@ -378,6 +400,8 @@ int
 pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -400,6 +424,8 @@ pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	pthread_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
 	if (rwlock == NULL)
@@ -417,6 +443,8 @@ int
 pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
 
 	/* XXX potential performance improvement - move GET to debug version */
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
@@ -439,6 +467,8 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	condip->pmemcond.runid = 0;
 	pmemops_persist(&pop->p_ops, &condip->pmemcond.runid,
@@ -455,6 +485,8 @@ int
 pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	pthread_cond_t *cond = GET_COND(pop, condip);
@@ -476,6 +508,8 @@ int
 pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	pthread_cond_t *cond = GET_COND(pop, condip);
@@ -501,6 +535,9 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
 		mutexp, abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	pthread_cond_t *cond = GET_COND(pop, condip);
@@ -525,6 +562,9 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 			PMEMmutex *__restrict mutexp)
 {
 	LOG(3, "pop %p cond %p mutex %p", pop, condp, mutexp);
+
+	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;

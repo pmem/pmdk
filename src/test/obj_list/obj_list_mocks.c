@@ -206,6 +206,13 @@ FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 FUNC_MOCK_END
 
 /*
+ * pmemobj_pool_by_ptr -- pmemobj_pool_by_ptr mock
+ *
+ * Just return Pop.
+ */
+FUNC_MOCK_RET_ALWAYS(pmemobj_pool_by_ptr, PMEMobjpool *, Pop, const void *ptr);
+
+/*
  * pmemobj_direct -- pmemobj_direct mock
  */
 FUNC_MOCK(pmemobj_direct, void *, PMEMoid oid)

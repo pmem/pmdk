@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,11 +40,12 @@
 
 #define NUM_LOCKS 2
 
-static struct transaction_data {
-	PMEMobjpool *pop;
-	PMEMmutex *mutexes;
-	PMEMrwlock *rwlocks;
-} test_obj;
+struct transaction_data {
+	PMEMmutex mutexes[NUM_LOCKS];
+	PMEMrwlock rwlocks[NUM_LOCKS];
+};
+
+PMEMobjpool *Pop;
 
 #define DO_LOCK(mtx, rwlock)\
 	pmemobj_tx_lock(TX_PARAM_MUTEX, &(mtx)[0]);\
@@ -82,14 +83,14 @@ static void *
 do_tx_add_locks(struct transaction_data *data)
 {
 	int ret;
-	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
-	TX_BEGIN(data->pop) {
+	IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
+	TX_BEGIN(Pop) {
 		DO_LOCK(data->mutexes, data->rwlocks);
-		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+		IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT { /* not called */
 		UT_ASSERT(0);
 	} TX_END
-	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
+	IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
 	return NULL;
 }
 
@@ -101,17 +102,17 @@ static void *
 do_tx_add_locks_nested(struct transaction_data *data)
 {
 	int ret;
-	TX_BEGIN(data->pop) {
-		IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
-		TX_BEGIN(data->pop) {
+	TX_BEGIN(Pop) {
+		IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
+		TX_BEGIN(Pop) {
 			DO_LOCK(data->mutexes, data->rwlocks);
-			IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+			IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 		} TX_END
-		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+		IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
-	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
+	IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
 	return NULL;
 }
 
@@ -123,20 +124,20 @@ static void *
 do_tx_add_locks_nested_all(struct transaction_data *data)
 {
 	int ret;
-	TX_BEGIN(data->pop) {
-		IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
+	TX_BEGIN(Pop) {
+		IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
 		DO_LOCK(data->mutexes, data->rwlocks);
-		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
-		TX_BEGIN(data->pop) {
-			IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+		IS_LOCKED(Pop, data->mutexes, data->rwlocks);
+		TX_BEGIN(Pop) {
+			IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 			DO_LOCK(data->mutexes, data->rwlocks);
-			IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+			IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 		} TX_END
-		IS_LOCKED(data->pop, data->mutexes, data->rwlocks);
+		IS_LOCKED(Pop, data->mutexes, data->rwlocks);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
-	IS_UNLOCKED(data->pop, data->mutexes, data->rwlocks);
+	IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
 	return NULL;
 }
 
@@ -149,21 +150,20 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		UT_FATAL("usage: %s <file>", argv[0]);
 
-	if ((test_obj.pop = pmemobj_create(argv[1], LAYOUT_NAME,
+	if ((Pop = pmemobj_create(argv[1], LAYOUT_NAME,
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	test_obj.mutexes = CALLOC(NUM_LOCKS, sizeof(PMEMmutex));
-	test_obj.rwlocks = CALLOC(NUM_LOCKS, sizeof(PMEMrwlock));
+	PMEMoid root = pmemobj_root(Pop, sizeof(struct transaction_data));
 
-	do_tx_add_locks(&test_obj);
-	do_tx_add_locks_nested(&test_obj);
-	do_tx_add_locks_nested_all(&test_obj);
+	struct transaction_data *test_obj =
+			(struct transaction_data *)pmemobj_direct(root);
 
-	pmemobj_close(test_obj.pop);
+	do_tx_add_locks(test_obj);
+	do_tx_add_locks_nested(test_obj);
+	do_tx_add_locks_nested_all(test_obj);
 
-	FREE(test_obj.rwlocks);
-	FREE(test_obj.mutexes);
+	pmemobj_close(Pop);
 
 	DONE(NULL);
 }
