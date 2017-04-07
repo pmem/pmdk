@@ -15,6 +15,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
+vmem_wcsdup
 $(*)nondebug/libvmem.so:
 vmem_aligned_alloc
 vmem_calloc
@@ -31,6 +32,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
+vmem_wcsdup
 $(*)debug/libvmem.a:
 vmem_aligned_alloc
 vmem_calloc
@@ -47,6 +49,7 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
+vmem_wcsdup
 $(*)nondebug/libvmem.a:
 vmem_aligned_alloc
 vmem_calloc
@@ -63,3 +66,4 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
+vmem_wcsdup

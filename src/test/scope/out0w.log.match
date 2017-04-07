@@ -19,3 +19,4 @@ vmem_realloc
 vmem_set_funcs
 vmem_stats_print
 vmem_strdup
+vmem_wcsdup
