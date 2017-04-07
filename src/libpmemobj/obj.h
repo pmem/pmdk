@@ -216,4 +216,8 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 #define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
 #endif
 
+#ifdef DEBUG
+extern int pmemobj_debug_skip_expensive_checks;
+#endif
+
 #endif
