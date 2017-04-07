@@ -37,12 +37,15 @@
  */
 
 #include "unittest.h"
+#include <wchar.h>
 
 int
 main(int argc, char *argv[])
 {
 	const char *text = "Some test text";
 	const char *text_empty = "";
+	const wchar_t *wtext = L"Some test text";
+	const wchar_t *wtext_empty = L"";
 	char *dir = NULL;
 	void *mem_pool = NULL;
 	VMEM *vmp;
@@ -69,25 +72,35 @@ main(int argc, char *argv[])
 	}
 
 	char *str1 = vmem_strdup(vmp, text);
+	wchar_t *wcs1 = vmem_wcsdup(vmp, wtext);
 	UT_ASSERTne(str1, NULL);
+	UT_ASSERTne(wcs1, NULL);
 	UT_ASSERTeq(strcmp(text, str1), 0);
+	UT_ASSERTeq(wcscmp(wtext, wcs1), 0);
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
 		UT_ASSERTrange(str1, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(wcs1, mem_pool, VMEM_MIN_POOL);
 	}
 
 	char *str2 = vmem_strdup(vmp, text_empty);
+	wchar_t *wcs2 = vmem_wcsdup(vmp, wtext_empty);
 	UT_ASSERTne(str2, NULL);
+	UT_ASSERTne(wcs2, NULL);
 	UT_ASSERTeq(strcmp(text_empty, str2), 0);
+	UT_ASSERTeq(wcscmp(wtext_empty, wcs2), 0);
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
 		UT_ASSERTrange(str2, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(wcs2, mem_pool, VMEM_MIN_POOL);
 	}
 
 	vmem_free(vmp, str1);
+	vmem_free(vmp, wcs1);
 	vmem_free(vmp, str2);
+	vmem_free(vmp, wcs2);
 
 	vmem_delete(vmp);
 

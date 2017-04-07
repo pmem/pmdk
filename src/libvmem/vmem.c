@@ -43,6 +43,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <wchar.h>
 
 #include "libvmem.h"
 
@@ -403,6 +404,23 @@ vmem_strdup(VMEM *vmp, const char *s)
 		return NULL;
 
 	return (char *)memcpy(retaddr, s, size);
+}
+
+/*
+ * vmem_wcsdup -- allocate memory for copy of wide character string
+ */
+wchar_t *
+vmem_wcsdup(VMEM *vmp, const wchar_t *s)
+{
+	LOG(3, "vmp %p s %p", vmp, s);
+
+	size_t size = (wcslen(s) + 1) * sizeof(wchar_t);
+	void *retaddr = je_vmem_pool_malloc(
+			(pool_t *)((uintptr_t)vmp + Header_size), size);
+	if (retaddr == NULL)
+		return NULL;
+
+	return (wchar_t *)memcpy(retaddr, s, size);
 }
 
 /*
