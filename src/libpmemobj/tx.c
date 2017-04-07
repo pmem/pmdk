@@ -117,6 +117,10 @@ enum tx_clr_flag {
 	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2, /* remove from valgrind tx */
 };
 
+#ifdef DEBUG
+extern int pmemobj_debug_skip_expensive_checks;
+#endif
+
 static void
 obj_tx_abort(int errnum, int user);
 
@@ -623,7 +627,8 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		VALGRIND_REMOVE_FROM_TX(cache, sz);
 
 #ifdef DEBUG
-		if (!zero_all) { /* for recovery we know we zeroed everything */
+		if (!zero_all && /* for recovery we know we zeroed everything */
+			!pmemobj_debug_skip_expensive_checks) {
 			uint64_t usable_size = palloc_usable_size(&pop->heap,
 				first_cache);
 			ASSERTeq(util_is_zeroed(cache, usable_size), 1);

@@ -55,6 +55,9 @@ static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
+#ifdef DEBUG
+int pmemobj_debug_skip_expensive_checks;
+#endif
 
 #ifndef _WIN32
 
@@ -193,6 +196,12 @@ obj_init(void)
 
 	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) !=
 		POOL_HDR_SIZE + POOL_DESC_SIZE);
+
+#ifdef DEBUG
+	const char *e = os_getenv("PMEMOBJ_DEBUG_SKIP_EXPENSIVE_CHECKS");
+	if (e)
+		pmemobj_debug_skip_expensive_checks = atoi(e);
+#endif
 
 #ifdef USE_COW_ENV
 	char *env = os_getenv("PMEMOBJ_COW");
