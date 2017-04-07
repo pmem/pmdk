@@ -618,9 +618,11 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 			sz = r->cache_offset;
 		}
 
-		VALGRIND_ADD_TO_TX(cache, sz);
-		pmemops_memset_persist(&pop->p_ops, cache, 0, sz);
-		VALGRIND_REMOVE_FROM_TX(cache, sz);
+		if (sz) {
+			VALGRIND_ADD_TO_TX(cache, sz);
+			pmemops_memset_persist(&pop->p_ops, cache, 0, sz);
+			VALGRIND_REMOVE_FROM_TX(cache, sz);
+		}
 
 #ifdef DEBUG
 		if (!zero_all) { /* for recovery we know we zeroed everything */
