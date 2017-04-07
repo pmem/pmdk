@@ -51,21 +51,6 @@ benchmark_time_get(benchmark_time_t *time)
 }
 
 /*
- * benchmark_time_diff_dummy -- get time interval for dummy operation
- */
-void
-benchmark_time_diff_dummy(benchmark_time_t *d, benchmark_time_t *t1,
-			  benchmark_time_t *t2)
-{
-	long long nsecs = (t2->tv_sec - t1->tv_sec) * NSECPSEC + t2->tv_nsec -
-		t1->tv_nsec;
-	if (nsecs >= 0)
-		benchmark_time_diff(d, t1, t2);
-	else
-		memset(d, 0, sizeof(*d));
-}
-
-/*
  * benchmark_time_diff -- get time interval
  */
 void
@@ -99,4 +84,57 @@ benchmark_time_get_nsecs(benchmark_time_t *t)
 	ret += t->tv_sec * NSECPSEC;
 
 	return ret;
+}
+
+/*
+ * benchmark_time_compare -- compare two moments in time
+ */
+int
+benchmark_time_compare(const benchmark_time_t *t1, const benchmark_time_t *t2)
+{
+	if (t1->tv_sec == t2->tv_sec)
+		return (int)((long long)t1->tv_nsec - (long long)t2->tv_nsec);
+	else
+		return (int)((long long)t1->tv_sec - (long long)t2->tv_sec);
+}
+
+/*
+ * benchmark_time_set -- set time using number of nanoseconds
+ */
+void
+benchmark_time_set(benchmark_time_t *time, unsigned long long nsecs)
+{
+	time->tv_sec = nsecs / NSECPSEC;
+	time->tv_nsec = nsecs % NSECPSEC;
+}
+
+/*
+ * number of samples used to calculate average time required to get a current
+ * time from the system
+ */
+#define N_PROBES_GET_TIME 10000000UL
+
+/*
+ * benchmark_get_avg_get_time -- calculates average time required to get the
+ * current time from the system in nanoseconds
+ */
+unsigned long long
+benchmark_get_avg_get_time(void)
+{
+	benchmark_time_t time;
+	benchmark_time_t start;
+	benchmark_time_t stop;
+
+	benchmark_time_get(&start);
+	for (size_t i = 0; i < N_PROBES_GET_TIME; i++) {
+		benchmark_time_get(&time);
+	}
+	benchmark_time_get(&stop);
+
+	benchmark_time_diff(&time, &start, &stop);
+
+	unsigned long long avg =
+		benchmark_time_get_nsecs(&time) / N_PROBES_GET_TIME;
+
+	return avg;
 }
