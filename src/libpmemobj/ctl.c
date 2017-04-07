@@ -35,35 +35,14 @@
  *	the library's internal state
  */
 
-#include <sys/param.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include "libpmem.h"
 #include "libpmemobj.h"
 
-#include "util.h"
 #include "out.h"
-#include "lane.h"
-#include "redo.h"
-#include "memops.h"
-#include "pmalloc.h"
-#include "heap_layout.h"
-#include "list.h"
-#include "cuckoo.h"
-#include "ctree.h"
 #include "obj.h"
-#include "sync.h"
-#include "valgrind_internal.h"
 #include "ctl.h"
-#include "memblock.h"
-#include "heap.h"
+
+#include "os.h"
 
 #define CTL_MAX_ENTRIES 100
 
@@ -507,7 +486,7 @@ ctl_file_provider_new(const char *file)
 
 	sp->super.first = ctl_string_provider_first;
 	sp->super.next = ctl_string_provider_next;
-	if ((fp->config = fopen(file, "r")) == NULL)
+	if ((fp->config = os_fopen(file, "r")) == NULL)
 		goto error_file_open;
 
 	int err;

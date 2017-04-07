@@ -380,7 +380,7 @@ static void
 config_file_create(const char *buf)
 {
 	/* the test script will take care of removing this file for us */
-	FILE *f = fopen(testconfig_path, "w+");
+	FILE *f = os_fopen(testconfig_path, "w+");
 	fwrite(buf, sizeof(char), strlen(buf), f);
 	fclose(f);
 }
