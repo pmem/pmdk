@@ -84,6 +84,12 @@ int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	uint64_t type_num);
 
 /*
+ * Allocates a new object with duplicate of the wide character string s.
+ */
+int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
+	uint64_t type_num);
+
+/*
  * Frees an existing object.
  */
 void pmemobj_free(PMEMoid *oidp);

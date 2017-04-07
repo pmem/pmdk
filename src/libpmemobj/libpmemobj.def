@@ -74,6 +74,7 @@ EXPORTS
 	pmemobj_realloc
 	pmemobj_zrealloc
 	pmemobj_strdup
+	pmemobj_wcsdup
 	pmemobj_free
 	pmemobj_alloc_usable_size
 	pmemobj_type_num
@@ -102,6 +103,7 @@ EXPORTS
 	pmemobj_tx_realloc
 	pmemobj_tx_zrealloc
 	pmemobj_tx_strdup
+	pmemobj_tx_wcsdup
 	pmemobj_tx_free
 	pmemobj_tx_errno
 	pmemobj_tx_lock

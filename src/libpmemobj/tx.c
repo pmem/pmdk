@@ -35,6 +35,7 @@
  */
 
 #include <inttypes.h>
+#include <wchar.h>
 
 #include "queue.h"
 #include "ctree.h"
@@ -1940,6 +1941,35 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 				constructor_tx_alloc, POBJ_FLAG_ZERO);
 
 	size_t size = (len + 1) * sizeof(char);
+
+	return tx_alloc_copy_common(size, (type_num_t)type_num, s, size,
+			constructor_tx_copy, 0);
+}
+
+/*
+ * pmemobj_tx_wcsdup -- allocates a new object with duplicate of the wide
+ * character string s.
+ */
+PMEMoid
+pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
+{
+	LOG(3, NULL);
+
+	ASSERT_IN_TX();
+	ASSERT_TX_STAGE_WORK();
+
+	if (NULL == s) {
+		ERR("cannot duplicate NULL string");
+		return obj_tx_abort_null(EINVAL);
+	}
+
+	size_t len = wcslen(s);
+
+	if (len == 0)
+		return tx_alloc_common(sizeof(wchar_t), (type_num_t)type_num,
+				constructor_tx_alloc, POBJ_FLAG_ZERO);
+
+	size_t size = (len + 1) * sizeof(wchar_t);
 
 	return tx_alloc_copy_common(size, (type_num_t)type_num, s, size,
 			constructor_tx_copy, 0);

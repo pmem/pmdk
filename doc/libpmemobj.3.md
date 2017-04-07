@@ -176,6 +176,7 @@ int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_n
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s, uint64_t type_num);
+int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s, uint64_t type_num);
 void pmemobj_free(PMEMoid *oidp);
 
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
@@ -315,6 +316,7 @@ PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPE
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
+PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
 TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
@@ -343,6 +345,7 @@ TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
+TX_WCSDUP(const wchar_t *s, uint64_t type_num)
 TX_FREE(TOID o)
 
 TX_SET(TOID o, FIELD, VALUE)
@@ -1204,6 +1207,18 @@ associated with given *type_num*. Memory for the new string is obtained with **p
 appropriately.
 
 ```c
+int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s, uint64_t type_num);
+```
+
+The **pmemobj_wcsdup**() function provides the same semantics as **wcsdup**(3), but operates on the persistent memory heap associated with memory pool *pop*.
+It stores a handle to a new object in *oidp* which is a duplicate of the wide character string *s*. If NULL is passed as *oidp*, then the newly allocated object may be
+accessed only by iterating objects in the object container associated with given *type_num*, as described in **OBJECT CONTAINERS** section. If the *oidp*
+points to memory location from the **pmemobj** heap the *oidp* is changed atomically. The allocated wide character string object is also added to the internal container
+associated with given *type_num*. Memory for the new wide character string is obtained with **pmemobj_alloc**(), on the given memory pool, and can be freed with
+**pmemobj_free**() on the same memory pool. If **pmemobj_wcsdup**() is unable to satisfy the allocation request, a non-zero value is returned and *errno* is set
+appropriately.
+
+```c
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
 ```
 
@@ -1778,6 +1793,14 @@ successful, returns a handle to the newly allocated object. Otherwise, stage cha
 appropriately. This function must be called during **TX_STAGE_WORK**.
 
 ```c
+PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
+```
+
+The **pmemobj_tx_wcsdup**() function transactionally allocates a new object containing a duplicate of the wide character string *s* and assigns it a type *type_num*. If
+successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set
+appropriately. This function must be called during **TX_STAGE_WORK**.
+
+```c
 int pmemobj_tx_free(PMEMoid oid);
 ```
 
@@ -1999,6 +2022,14 @@ TX_STRDUP(const char *s, uint64_t type_num)
 ```
 
 The **TX_STRDUP**() macro transactionally allocates a new object containing a duplicate of the string *s* and assigns it a type *type_num*. If successful and
+called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and
+*errno* is set appropriately.
+
+```c
+TX_WCSDUP(const wchar_t *s, uint64_t type_num)
+```
+
+The **TX_WCSDUP**() macro transactionally allocates a new object containing a duplicate of the wide character string *s* and assigns it a type *type_num*. If successful and
 called during **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and
 *errno* is set appropriately.
 
