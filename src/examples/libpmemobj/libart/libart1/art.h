@@ -206,6 +206,20 @@ extern TOID(var_string) art_search(PMEMobjpool *pop,
 		const unsigned char *key, int key_len);
 extern TOID(var_string) art_delete(PMEMobjpool *pop,
 		const unsigned char *key, int key_len);
+extern int art_tree_destroy(TOID(struct art_tree_root) t);
+
+#ifndef LIBPMEMOBJ_PROVIDES_READ_TSC
+static inline unsigned long read_tsc(void)
+{
+	unsigned long var;
+	unsigned hi, lo;
+
+	asm volatile("rdtsc" : "=a" (lo), "=d" (hi));
+	var = ((unsigned long long) hi << 32) | lo;
+
+	return var;
+}
+#endif
 
 #ifdef __cplusplus
 }
