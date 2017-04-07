@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2016, Intel Corporation
+; Copyright 2016-2017, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@ EXPORTS
 	vmem_realloc
 	vmem_aligned_alloc
 	vmem_strdup
+	vmem_wcsdup
 	vmem_malloc_usable_size
 	vmem_check_versionU
 	vmem_check_versionW
