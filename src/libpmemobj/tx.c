@@ -39,6 +39,7 @@
 #include "queue.h"
 #include "ctree.h"
 #include "obj.h"
+#include "os.h"
 #include "out.h"
 #include "pmalloc.h"
 #include "tx.h"
@@ -623,7 +624,8 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		VALGRIND_REMOVE_FROM_TX(cache, sz);
 
 #ifdef DEBUG
-		if (!zero_all) { /* for recovery we know we zeroed everything */
+		if (!zero_all && /* for recovery we know we zeroed everything */
+			!os_getenv("PMEMOBJ_DEBUG_SUPPRESS_EXPENSIVE_CHECKS")) {
 			uint64_t usable_size = palloc_usable_size(&pop->heap,
 				first_cache);
 			ASSERTeq(util_is_zeroed(cache, usable_size), 1);
