@@ -41,6 +41,7 @@
 #include <endian.h>
 #include <errno.h>
 
+#include "os.h"
 #include "util.h"
 #include "valgrind_internal.h"
 
@@ -49,6 +50,10 @@ unsigned long long Pagesize;
 
 /* allocation/mmap granularity */
 unsigned long long Mmap_align;
+
+#ifdef DEBUG
+unsigned long long Disabled_debug_checks_mask;
+#endif
 
 /*
  * our versions of malloc & friends start off pointing to the libc versions
@@ -235,6 +240,13 @@ util_parse_size(const char *str, size_t *sizep)
 void
 util_init(void)
 {
+#ifdef DEBUG
+	const char *env = os_getenv("PMEM_DEBUG_DISABLED_CHECKS_MASK");
+	if (env)
+		Disabled_debug_checks_mask = (unsigned long long)atoll(env);
+	else
+		Disabled_debug_checks_mask = 0;
+#endif
 	/* XXX - replace sysconf() with util_get_sys_xxx() */
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);

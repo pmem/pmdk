@@ -51,6 +51,9 @@ extern "C" {
 
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
+#ifdef DEBUG
+extern unsigned long long Disabled_debug_checks_mask;
+#endif
 
 #define PAGE_ALIGNED_DOWN_SIZE(size) ((size) & ~(Pagesize - 1))
 #define PAGE_ALIGNED_UP_SIZE(size)\
