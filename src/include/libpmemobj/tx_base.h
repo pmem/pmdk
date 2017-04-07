@@ -283,6 +283,17 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 
 /*
+ * Transactionally allocates a new object with duplicate of the wide character
+ * string s.
+ *
+ * If successful, returns PMEMoid.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an OID_NULL is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
+
+/*
  * Transactionally frees an existing object.
  *
  * If successful, returns zero.
