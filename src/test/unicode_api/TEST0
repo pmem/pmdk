@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# Copyright 2017, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+#
+# src/test/unicode_api/TEST0 -- unicode C API check
+#
+export UNITTEST_NAME=unicode_api/TEST0
+export UNITTEST_NUM=0
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_fs_type any
+# there's no point in testing different builds
+require_build_type debug
+require_command clang
+
+SRC=../..
+HEADERS_DIR=$SRC/include
+INC_DIR=$SRC/include/libpmemobj
+EXC_PATT="set_funcs|strdup|rpmem"
+FAILED=0
+
+function check_file {
+	local file=$1
+	local dir=$2
+	local pat=$3
+
+	local funcs=$(clang -Xclang -ast-dump $file -fno-color-diagnostics 2> /dev/null |\
+		grep "FunctionDecl.*\(vmem\|pmem\).*char \*" | cut -d " " -f 6)
+	for func in $funcs
+	do
+		local good=0
+		to_check="$dir/*.h $file"
+		if [ -n "${pat:+x}" ] && [[ $func =~ $pat ]]; then
+			continue
+		fi
+
+		for f in $to_check
+		do
+			let good+=$(grep -c "$func[UW][ ]*(" $f)
+		done
+
+		if [ $good -ne 2 ]; then
+			echo "Function $func in file $file does not have unicode U/W counterparts"
+			FAILED=1;
+		fi
+	done
+}
+
+setup
+
+for f in $HEADERS_DIR/*.h
+do
+	check_file $f $INC_DIR $EXC_PATT
+done
+
+if [ $FAILED -ne 0 ]; then
+	exit 1
+fi
+
+pass
