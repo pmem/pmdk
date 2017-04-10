@@ -1,4 +1,4 @@
-nblocks: 184320
+nblocks: 143360
 write: 0:Hello
 write: 13:World!
 write: 20:foo
@@ -25,3 +25,9 @@ read: 20
 
 read: 1
 
+error: 13
+read: 13
+
+write: 13:rewrite
+read: 13
+rewrite
