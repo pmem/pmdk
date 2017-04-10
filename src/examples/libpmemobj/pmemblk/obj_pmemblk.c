@@ -44,6 +44,7 @@
  *   r - read a block
  *   z - zero a block
  *   n - write out number of available blocks
+ *   e - put a block in error state
  */
 
 #include <ex_common.h>
@@ -58,11 +59,13 @@
 #include "libpmem.h"
 #include "libpmemblk.h"
 
-#define USABLE_SIZE (9.0 / 10)
+#define USABLE_SIZE (7.0 / 10)
 #define POOL_SIZE ((size_t)(1024 * 1024 * 100))
 #define MAX_POOL_SIZE ((size_t)1024 * 1024 * 1024 * 16)
 #define MAX_THREADS 256
 #define BSIZE_MAX ((size_t)(1024 * 1024 * 10))
+#define ZERO_MASK (1 << 0)
+#define ERROR_MASK (1 << 1)
 
 POBJ_LAYOUT_BEGIN(obj_pmemblk);
 POBJ_LAYOUT_ROOT(obj_pmemblk, struct base);
@@ -72,6 +75,7 @@ POBJ_LAYOUT_END(obj_pmemblk);
 /* The root object struct holding all necessary data */
 struct base {
 	TOID(uint8_t) data;		/* contiguous memory region */
+	TOID(uint8_t) flags;		/* block flags */
 	size_t bsize;			/* block size */
 	size_t nblocks;			/* number of available blocks */
 	PMEMmutex locks[MAX_THREADS];	/* thread synchronization locks */
@@ -101,7 +105,9 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 		D_RW(bp)->bsize = bsize;
 		size_t pool_size = (size_t)(fsize * USABLE_SIZE);
 		D_RW(bp)->nblocks = pool_size / bsize;
-		D_RW(bp)->data = TX_ZALLOC(uint8_t, pool_size);
+		D_RW(bp)->data = TX_ALLOC(uint8_t, pool_size);
+		D_RW(bp)->flags = TX_ZALLOC(uint8_t,
+				sizeof(uint8_t) * D_RO(bp)->nblocks);
 	} TX_ONABORT {
 		retval = -1;
 	} TX_END
@@ -182,8 +188,25 @@ pmemblk_check(const char *path, size_t bsize)
 int
 pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
 {
-	/* N/A */
-	return 0;
+	PMEMobjpool *pop = (PMEMobjpool *)pbp;
+	TOID(struct base) bp;
+	bp = POBJ_ROOT(pop, struct base);
+	int retval = 0;
+
+	if (blockno >= (long long)D_RO(bp)->nblocks)
+		return 1;
+
+	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX,
+		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_PARAM_NONE) {
+		uint8_t *flags = D_RW(D_RW(bp)->flags) + blockno;
+		/* add the modified flags to the undo log */
+		pmemobj_tx_add_range_direct(flags, sizeof(*flags));
+		*flags |= ERROR_MASK;
+	} TX_ONABORT {
+		retval = 1;
+	} TX_END
+
+	return retval;
 }
 
 /*
@@ -211,9 +234,26 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno)
 		return 1;
 
 	pmemobj_mutex_lock(pop, &D_RW(bp)->locks[blockno % MAX_THREADS]);
-	size_t block_off = blockno * D_RO(bp)->bsize;
-	uint8_t *src = D_RW(D_RW(bp)->data) + block_off;
-	memcpy(buf, src, D_RO(bp)->bsize);
+
+	/* check the error mask */
+	uint8_t *flags = D_RW(D_RW(bp)->flags) + blockno;
+	if ((*flags & ERROR_MASK) != 0) {
+		pmemobj_mutex_unlock(pop,
+				&D_RW(bp)->locks[blockno % MAX_THREADS]);
+		errno = EIO;
+		return 1;
+	}
+
+	/* the block is zeroed, reverse zeroing logic */
+	if ((*flags & ZERO_MASK) == 0) {
+		memset(buf, 0, D_RO(bp)->bsize);
+
+	} else {
+		size_t block_off = blockno * D_RO(bp)->bsize;
+		uint8_t *src = D_RW(D_RW(bp)->data) + block_off;
+		memcpy(buf, src, D_RO(bp)->bsize);
+	}
+
 	pmemobj_mutex_unlock(pop, &D_RW(bp)->locks[blockno % MAX_THREADS]);
 
 	return 0;
@@ -240,6 +280,13 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno)
 		/* add the modified block to the undo log */
 		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
 		memcpy(dst, buf, D_RO(bp)->bsize);
+		/* clear the error flag and set the zero flag */
+		uint8_t *flags = D_RW(D_RW(bp)->flags) + blockno;
+		/* add the modified flags to the undo log */
+		pmemobj_tx_add_range_direct(flags, sizeof(*flags));
+		*flags &= ~ERROR_MASK;
+		/* use reverse logic for zero mask */
+		*flags |= ZERO_MASK;
 	} TX_ONABORT {
 		retval = 1;
 	} TX_END
@@ -263,12 +310,13 @@ pmemblk_set_zero(PMEMblkpool *pbp, long long blockno)
 
 	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX,
 		&D_RW(bp)->locks[blockno % MAX_THREADS], TX_PARAM_NONE) {
-		size_t block_off = blockno * D_RO(bp)->bsize;
-		uint8_t *dst = D_RW(D_RW(bp)->data) + block_off;
-		pmemobj_tx_add_range_direct(dst, D_RO(bp)->bsize);
-		memset(dst, 0, D_RO(bp)->bsize);
+		uint8_t *flags = D_RW(D_RW(bp)->flags) + blockno;
+		/* add the modified flags to the undo log */
+		pmemobj_tx_add_range_direct(flags, sizeof(*flags));
+		/* use reverse logic for zero mask */
+		*flags &= ~ZERO_MASK;
 	} TX_ONABORT {
-		retval = -1;
+		retval = 1;
 	} TX_END
 
 	return retval;
@@ -331,8 +379,10 @@ main(int argc, char *argv[])
 							":");
 				assert(block_str != NULL);
 				if (pmemblk_read(pbp, buf, strtoul(block_str,
-						NULL, 10)))
+						NULL, 10))) {
 					perror("pmemblk_read failed");
+					break;
+				}
 				buf[bsize - 1] = '\0';
 				printf("%s\n", buf);
 				free(buf);
@@ -346,6 +396,16 @@ main(int argc, char *argv[])
 				if (pmemblk_set_zero(pbp, strtoul(block_str,
 						NULL, 10)))
 					perror("pmemblk_set_zero failed");
+				break;
+			}
+			case 'e': {
+				printf("error: %s\n", argv[i] + 2);
+				const char *block_str = strtok(argv[i] + 2,
+							":");
+				assert(block_str != NULL);
+				if (pmemblk_set_error(pbp, strtoul(block_str,
+						NULL, 10)))
+					perror("pmemblk_set_error failed");
 				break;
 			}
 			case 'n': {

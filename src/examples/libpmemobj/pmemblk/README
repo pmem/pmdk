@@ -17,6 +17,7 @@ The "cmd" arguments match the pmemblk functions:
     r - read a block
     z - zero a block
     n - write out number of available blocks
+    e - put a block in error state
 
 This example demonstrates the usage of the very basics of the pmemobj library.
 That includes the pool management (open/create/close), type-safety macros,
