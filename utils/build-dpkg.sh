@@ -139,6 +139,13 @@ Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
  NVM Library for Remote Persistent Memory support
 
+Package: librpmem-dev
+Section: libdevel
+Architecture: any
+Depends: librpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for librpmem
+ Development files for librpmem library.
+
 Package: rpmemd
 Section: misc
 Architecture: any
@@ -263,7 +270,7 @@ Section: libdevel
 Architecture: any
 Depends: libpmemobj (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemobj
- Development files for libpmemobj-dev library.
+ Development files for libpmemobj library.
 
 Package: libpmempool
 Architecture: any
@@ -644,6 +651,7 @@ cat << EOF > debian/${OBJ_CPP_NAME}.install
 $INC_DIR/libpmemobj++/*.hpp
 $INC_DIR/libpmemobj++/detail/*.hpp
 $DOC_DIR/${OBJ_CPP_DOC_DIR}/*
+$LIB_DIR/pkgconfig/libpmemobj++.pc
 EOF
 
 cat << EOF > debian/${OBJ_CPP_NAME}.triggers
@@ -690,7 +698,7 @@ tail -n1 $CHANGELOG_TMP >> debian/changelog
 rm $CHANGELOG_TMP
 
 # This is our first release but we do
-debuild -us -uc
+debuild --preserve-envvar=EXTRA_CFLAGS --preserve-envvar=EXTRA_LDFLAGS -us -uc
 
 cd $OLD_DIR
 
