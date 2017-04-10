@@ -35,6 +35,7 @@
  */
 #include <inttypes.h>
 #include <limits.h>
+#include <wchar.h>
 
 #include "valgrind_internal.h"
 #include "libpmem.h"
@@ -2148,6 +2149,58 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 
 	return obj_alloc_construct(pop, oidp, carg.size,
 		(type_num_t)type_num, 0, constructor_strdup, &carg);
+}
+
+/* arguments for constructor_wcsdup */
+struct carg_wcsdup {
+	size_t size;
+	const wchar_t *s;
+};
+
+/*
+ * constructor_wcsdup -- (internal) constructor of pmemobj_wcsdup
+ */
+static int
+constructor_wcsdup(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
+
+	ASSERTne(ptr, NULL);
+	ASSERTne(arg, NULL);
+
+	struct carg_wcsdup *carg = arg;
+
+	/* copy string */
+	pmemops_memcpy_persist(&pop->p_ops, ptr, carg->s, carg->size);
+
+	return 0;
+}
+
+/*
+ * pmemobj_wcsdup -- allocates a new object with duplicate of the wide character
+ * string s.
+ */
+int
+pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
+	uint64_t type_num)
+{
+	LOG(3, "pop %p oidp %p string %S type_num %" PRIu64,
+		    pop, oidp, s, type_num);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
+	if (NULL == s) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	struct carg_wcsdup carg;
+	carg.size = (wcslen(s) + 1) * sizeof(wchar_t);
+	carg.s = s;
+
+	return obj_alloc_construct(pop, oidp, carg.size,
+		(type_num_t)type_num, 0, constructor_wcsdup, &carg);
 }
 
 /*

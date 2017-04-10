@@ -193,6 +193,9 @@ ret; })
 #define TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)
 
+#define TX_WCSDUP(s, type_num)\
+pmemobj_tx_wcsdup(s, type_num)
+
 #define TX_FREE(o)\
 pmemobj_tx_free((o).oid)
 

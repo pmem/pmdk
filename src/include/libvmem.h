@@ -58,6 +58,7 @@ extern "C" {
 #endif
 
 #include <sys/types.h>
+#include <stddef.h>
 
 typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 
@@ -88,6 +89,7 @@ void *vmem_calloc(VMEM *vmp, size_t nmemb, size_t size);
 void *vmem_realloc(VMEM *vmp, void *ptr, size_t size);
 void *vmem_aligned_alloc(VMEM *vmp, size_t alignment, size_t size);
 char *vmem_strdup(VMEM *vmp, const char *s);
+wchar_t *vmem_wcsdup(VMEM *vmp, const wchar_t *s);
 size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 
 /*
@@ -102,7 +104,7 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
  * these defines to vmem_check_version().
  */
 #define VMEM_MAJOR_VERSION 1
-#define VMEM_MINOR_VERSION 0
+#define VMEM_MINOR_VERSION 1
 
 #ifndef _WIN32
 const char *vmem_check_version(unsigned major_required,
