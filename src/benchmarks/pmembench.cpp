@@ -579,9 +579,9 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
  */
 static void
 results_store(struct bench_results *res, struct benchmark_worker **workers,
-	      size_t nthreads, size_t nops)
+	      unsigned nthreads, size_t nops)
 {
-	for (size_t i = 0; i < nthreads; i++) {
+	for (unsigned i = 0; i < nthreads; i++) {
 		res->thres[i]->beg = workers[i]->info.beg;
 		res->thres[i]->end = workers[i]->info.end;
 		for (size_t j = 0; j < nops; j++) {
@@ -797,6 +797,7 @@ get_total_results(struct total_results *tres)
 	tres->latency.avg /= count;
 
 	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
+	assert(ntotals != NULL);
 	count = 0;
 
 	/* std deviation of latency and percentiles */
