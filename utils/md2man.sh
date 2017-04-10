@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ set -o pipefail
 filename=$1
 template=$2
 outfile=$3
-title=`sed -n 's/^title:\ *\([a-z]*\).*$/\1/p' $filename`
+title=`sed -n 's/^title:\ *\([a-z_-]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*(\([0-9]\)).*$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
