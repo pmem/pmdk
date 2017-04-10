@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,5 +37,3 @@
 #define RPMEM_LOG_PREFIX "librpmem"
 #define RPMEM_LOG_LEVEL_VAR "RPMEM_LOG_LEVEL"
 #define RPMEM_LOG_FILE_VAR "RPMEM_LOG_FILE"
-
-extern unsigned long long Pagesize;
