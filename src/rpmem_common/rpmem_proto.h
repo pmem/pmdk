@@ -48,6 +48,7 @@
 #define RPMEM_UUID_SIZE		16
 #define RPMEM_PROV_SIZE		32
 #define RPMEM_USER_SIZE		16
+#define RPMEM_MAX_PDESC_SIZE	8192
 
 /*
  * rpmem_msg_type -- type of messages

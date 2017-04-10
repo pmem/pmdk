@@ -50,6 +50,7 @@
 #include "rpmem_util.h"
 
 #define ERR_BUFF_LEN	4095
+#define MAX_ARG_LEN	4096
 
 /* +1 in order to be sure it is always null-terminated */
 static char error_str[ERR_BUFF_LEN + 1];
@@ -79,9 +80,13 @@ get_user_at_node(const struct rpmem_target_info *info)
 {
 	char *user_at_node = NULL;
 
+	size_t nlen = strnlen(info->node, RPMEM_MAX_NODE);
+	RPMEM_ASSERT(nlen < RPMEM_MAX_NODE);
+
 	if (info->flags & RPMEM_HAS_USER) {
-		size_t ulen = strlen(info->user);
-		size_t nlen = strlen(info->node);
+		size_t ulen = strnlen(info->user, RPMEM_MAX_USER);
+		RPMEM_ASSERT(ulen < RPMEM_MAX_USER);
+
 		size_t len = ulen + 1 + nlen + 1;
 		user_at_node = malloc(len);
 		if (!user_at_node)
@@ -91,7 +96,7 @@ get_user_at_node(const struct rpmem_target_info *info)
 		if (ret < 0 || (size_t)ret + 1 != len)
 			goto err_printf;
 	} else {
-		user_at_node = strdup(info->node);
+		user_at_node = strndup(info->node, RPMEM_MAX_NODE);
 		if (!user_at_node)
 			goto err_malloc;
 	}
@@ -110,11 +115,16 @@ static char *
 get_cmd(const char **argv)
 {
 	const char *env_cmd = rpmem_util_cmd_get();
-	char *cmd = strdup(env_cmd);
+	if (strnlen(env_cmd, MAX_ARG_LEN) == MAX_ARG_LEN) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	char *cmd = strndup(env_cmd, MAX_ARG_LEN);
 	if (!cmd)
 		return NULL;
 
-	size_t cmd_len = strlen(cmd) + 1;
+	size_t cmd_len = strnlen(cmd, MAX_ARG_LEN) + 1;
 
 	const char *arg;
 	while ((arg = *argv++) != NULL) {
