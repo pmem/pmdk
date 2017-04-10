@@ -53,6 +53,17 @@
 #include "sync.h"
 #include "tx.h"
 
+/*
+ * The variable from which the config is directly loaded. The contained string
+ * cannot contain any comments or extraneous white characters.
+ */
+#define OBJ_CONFIG_ENV_VARIABLE "PMEMOBJ_CONF"
+
+/*
+ * The variable that points to a config file from which the config is loaded.
+ */
+#define OBJ_CONFIG_FILE_ENV_VARIABLE "PMEMOBJ_CONF_FILE"
+
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
@@ -139,6 +150,56 @@ pmemobj_direct(PMEMoid oid)
 #endif /* _WIN32 */
 
 /*
+ * obj_ctl_init_and_load -- (static) initializes CTL and loads configuration
+ *	from env variable and file
+ */
+static int
+obj_ctl_init_and_load(PMEMobjpool *pop)
+{
+	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
+		ERR("!ctl_new");
+		return -1;
+	}
+
+	struct ctl_query_provider *p;
+
+	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
+	if (env_config != NULL) {
+		p = ctl_string_provider_new(env_config);
+		if (p == NULL || ctl_load_config(pop, p) != 0) {
+			ERR("unable to parse config stored in %s "
+			"environment variable", OBJ_CONFIG_ENV_VARIABLE);
+			goto err;
+		}
+
+		ctl_string_provider_delete(p);
+	}
+
+	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
+	if (env_config_file != NULL) {
+		p = ctl_file_provider_new(env_config_file);
+		if (p == NULL || ctl_load_config(pop, p) != 0) {
+			ERR("unable to parse config stored in %s "
+			"file (from %s environment variable)",
+				env_config_file,
+				OBJ_CONFIG_FILE_ENV_VARIABLE);
+
+			goto err;
+		}
+
+		ctl_string_provider_delete(p);
+	}
+
+	return 0;
+
+err:
+	if (p != NULL)
+		ctl_string_provider_delete(p);
+
+	return -1;
+}
+
+/*
  * obj_pool_init -- (internal) allocate global structs holding all opened pools
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
@@ -159,6 +220,12 @@ obj_pool_init(void)
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)
 		FATAL("!ctree_new");
+
+	/*
+	 * Load global config, ignore any issues. They will be caught on the
+	 * subsequent call to this function for individual pools.
+	 */
+	obj_ctl_init_and_load(NULL);
 }
 
 /*
@@ -1032,8 +1099,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
-	if ((pop->ctl = ctl_new()) == NULL) {
-		ERR("!ctl_new");
+	if (obj_ctl_init_and_load(pop) != 0) {
+		errno = EINVAL;
 		return -1;
 	}
 

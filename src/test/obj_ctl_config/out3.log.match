@@ -1,0 +1,5 @@
+obj_ctl_config$(nW)TEST0: START: obj_ctl_config
+ $(nW)obj_ctl_config$(nW) $(nW)
+0
+1
+obj_ctl_config$(nW)TEST0: DONE

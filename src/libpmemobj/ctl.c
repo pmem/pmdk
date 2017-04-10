@@ -34,10 +34,6 @@
  * ctl.c -- implementation of the interface for examination and modification of
  *	the library's internal state
  */
-
-#include "libpmem.h"
-#include "libpmemobj.h"
-
 #include "out.h"
 #include "obj.h"
 #include "ctl.h"

@@ -2235,20 +2235,99 @@ indexes present on the path of an entry point is provided to the handler
 functions as name and index pairs.
 
 The entry points are listed in the following format:
-name | r(ead)w(rite) | global/- | read argument type | write argument type
+name | r(ead)w(rite) | global/- | read argument type | write argument type | Query write argument
 description...
 
 # CTL NAMESPACE #
 
-prefault.at_create | rw | global | int | int
+prefault.at_create | rw | global | int | int | boolean
+
 If set, every single page of the pool will be touched and written to, in order
 to trigger page allocation. This can be used to minimize performance impact of
 pagefaults. Affects only the **pmemobj_create()** function.
 
 Always returns 0.
 
-prefault.at_open | rw | global | int | int
+prefault.at_open | rw | global | int | int | boolean
+
 As above, but affects **pmemobj_open()** function.
+
+# CTL external configuration #
+
+In addition to direct function call, each write entry point can also be set
+using two alternative methods.
+
+The first one is to load configuration directly from a **PMEMOBJ_CONF**
+environment variable. Properly formated ctl config string is a sequence of
+queries separated by ';':
+
+```
+query0;query1;...;queryN
+```
+
+A single query is constructed from the name of the ctl write entry point and
+the argument, separated by '=':
+
+```
+entry_point=entry_point_argument
+```
+
+The entry point argument type is defined by the entry point itself, but there
+are few predefined primitives:
+
+	*) integer: represented by a sequence of [0-9] characters that form
+		a single number.
+	*) boolean: represented by a single character: y/n/Y/N/0/1, each
+		corresponds to true or false. If the argument contains any
+		trailing characters, they are ignored.
+	*) string: a simple sequence of characters.
+
+There are also complex argument types that are formed from the primitives
+separated by a ',':
+
+```
+first_arg,second_arg
+```
+
+In summary, a full configuration sequence can looks like this:
+
+```
+(first entrypoint)=(arguments, ...);...;(last_entry_point)=(arguments, ...);
+```
+
+As an example, to set both prefault at_open and at_create variables:
+
+```
+PMEMOBJ_CONF="prefault.at_open=1;prefault_at_create=1;"
+```
+
+The second method to load an external configuration is to set the
+**PMEMOBJ_CONF_FILE** environment variable to point to a file that contains
+a sequence of ctl queries. The parsing rules are all the same, but the file
+can also contain white-spaces and comments.
+
+To create a comment, simply use '#' anywhere in a line and everything
+afterwards, until a new line '\n', will be ignored.
+
+An example configuration file:
+
+```
+#########################
+# My pmemobj configuration
+#########################
+#
+# Global settings:
+prefault. # modify the behavior of pre-faulting
+	at_open = 1; # prefault when the pool is opened
+
+prefault.
+	at_create = 0; # but don't prefault when it's created
+
+# Per-pool settings:
+# ...
+
+```
+
 
 # EXAMPLE #
 

@@ -1,0 +1,10 @@
+#########################
+# My pmemobj configuration
+#########################
+#
+# Global settings:
+prefault. # modify the behavior of pre-faulting
+	at_open = 1; # prefault when the pool is opened
+
+prefault.
+	at_create = 0; # but don't prefault when it's created
