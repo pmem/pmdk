@@ -38,8 +38,6 @@
 #define PMEMPOOL_LOG_LEVEL_VAR "PMEMPOOL_LOG_LEVEL"
 #define PMEMPOOL_LOG_FILE_VAR "PMEMPOOL_LOG_FILE"
 
-extern unsigned long long Pagesize;
-
 enum check_result {
 	CHECK_RESULT_CONSISTENT,
 	CHECK_RESULT_NOT_CONSISTENT,
