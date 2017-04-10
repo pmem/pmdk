@@ -249,13 +249,32 @@ function runtest {
         }
 
         read_global_test_configuration
-        $test_fs = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
+        if ($testtype -ne "all") {
+            $type = get-content $runscript | select-string -pattern "require_test_type *" | select -last 1
+            if ($type -ne $null) {
+                $type = $type.ToString().split(" ")[1];
+                if ($testtype -eq "check" -and $type -eq "long") {
+                    continue
+                }
+                if ($testtype -ne "check" -and $testtype -ne $type) {
+                    continue
+                }
+            }
+        }
+
+        $test_fss = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
 
         Foreach ($fs in $fss.split(" ").trim()) {
-            if ($test_fs -ne $null) {
-                $res =  $test_fs | select-string -pattern $fs
-                if ($res-eq $null) {
-                    continue;
+            if ($test_fss -ne $null) {
+                $found = 0
+                Foreach ($test_fs in $test_fss.ToString().Split(" ") | select -skip 1) {
+                    if ($test_fs -eq $fs) {
+                        $found = 1
+                        break
+                    }
+                }
+                if ($found -eq 0) {
+                    continue
                 }
             }
             # don't bother trying when fs-type isn't available...
