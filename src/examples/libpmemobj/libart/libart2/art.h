@@ -152,7 +152,7 @@ struct _art_leaf {
 	size_t key_len;
 	size_t val_len;
 	size_t buffer_len;
-	unsigned char buffer[0];	/* single buffer for key + value */
+	unsigned char buffer[];	/* single buffer for key + value */
 };
 
 struct art_tree_root {
@@ -169,12 +169,6 @@ typedef struct _cb_data {
  * Macros to manipulate art_node tags
  */
 #define IS_LEAF(oid) (OID_INSTANCE_OF(oid) == art_leaf_type_num))
-
-#define COPY_BLOB(_obj, _blob, _len) \
-    D_RW(_obj)->len = _len; \
-    TX_MEMCPY(D_RW(_obj)->s, _blob, _len); \
-    D_RW(_obj)->s[_len - 1] = '\0';
-
 
 typedef int(*art_callback)(void *data,
 		const unsigned char *key, uint32_t key_len,

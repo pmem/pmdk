@@ -66,8 +66,6 @@
 #endif
 #endif
 
-PMEMoid null_oid;
-
 /*
  * Macros to manipulate pointer tags
  */
@@ -75,7 +73,6 @@ PMEMoid null_oid;
 #define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
 #define LEAF_RAW(x) ((art_leaf *)((void *)((uintptr_t)x & ~1)))
 
-size_t pmem_art_tree_root_type_num;
 size_t pmem_art_leaf_type_num;
 PMEMoid alloc_leaf(PMEMobjpool *pop, int buffer_size);
 PMEMoid make_leaf(PMEMobjpool *pop,
@@ -99,7 +96,7 @@ fill_leaf(PMEMobjpool *pop, PMEMoid al_oid,
 {
 	art_leaf *alp;
 
-	// assert(pmemobj_type_num(al_oid) == art_leaf_type_num);
+	/* assert(pmemobj_type_num(al_oid) == art_leaf_type_num); */
 	alp = (art_leaf *)pmemobj_direct(al_oid);
 
 	/* assert(alp->buffer_len >= (key_len + val_len)); */
@@ -154,35 +151,40 @@ art_tree_init(art_tree **tp)
 {
 	art_tree *t;
 
-	null_oid = OID_NULL;
-
-	pmem_art_tree_root_type_num = TOID_TYPE_NUM(struct pmem_art_tree_root);
 	pmem_art_leaf_type_num = TOID_TYPE_NUM(art_leaf);
 
 	if (*tp == NULL) {
 		t = (art_tree *)malloc(sizeof(art_tree));
-		t->root = NULL;
-		t->size = 0;
-		*tp = t;
+		if (t != (art_tree *)NULL) {
+			t->root = NULL;
+			t->size = 0;
+			*tp = t;
+		}
 	}
-	return 0;
+	if (*tp != NULL) {
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
-// Recursively destroys the tree
+/*
+ * Recursively destroys the tree
+ */
 static void
 destroy_node(PMEMobjpool *pop, art_node *n)
 {
-	// Break if null
+	/* Break if null */
 	if (!n)
 		return;
 
-	// Special case leafs
+	/* Special case leafs */
 	if (IS_LEAF(n)) {
 		free(LEAF_RAW(n));
 		return;
 	}
 
-	// Handle each node type
+	/* Handle each node type */
 	int i;
 	union {
 		art_node4 *p1;
@@ -224,7 +226,7 @@ destroy_node(PMEMobjpool *pop, art_node *n)
 		abort();
 	}
 
-	// Free ourself on the way up
+	/* Free ourself on the way up */
 	free(n);
 }
 
@@ -274,35 +276,35 @@ find_child(art_node *n, unsigned char c)
 	{
 		p.p2 = (art_node16 *)n;
 
-		// support non-86 architectures
+		/* support non-86 architectures */
 #ifdef __i386__
-		// Compare the key to all 16 stored keys
+		/* Compare the key to all 16 stored keys */
 		__m128i cmp;
 		cmp = _mm_cmpeq_epi8(_mm_set1_epi8(c),
 			_mm_loadu_si128((__m128i *)p.p2->keys));
 
-		// Use a mask to ignore children that don't exist
+		/* Use a mask to ignore children that don't exist */
 		mask = (1 << n->num_children) - 1;
 		bitfield = _mm_movemask_epi8(cmp) & mask;
 #else
 #ifdef __amd64__
-		// Compare the key to all 16 stored keys
+		/* Compare the key to all 16 stored keys */
 		__m128i cmp;
 		cmp = _mm_cmpeq_epi8(_mm_set1_epi8(c),
 			_mm_loadu_si128((__m128i *)p.p2->keys));
 
-		// Use a mask to ignore children that don't exist
+		/* Use a mask to ignore children that don't exist */
 		mask = (1 << n->num_children) - 1;
 		bitfield = _mm_movemask_epi8(cmp) & mask;
 #else
-		// Compare the key to all 16 stored keys
+		/* Compare the key to all 16 stored keys */
 		unsigned bitfield = 0;
 		for (short i = 0; i < 16; ++i) {
 			if (p.p2->keys[i] == c)
 				bitfield |= (1 << i);
 		}
 
-		// Use a mask to ignore children that don't exist
+		/* Use a mask to ignore children that don't exist */
 		bitfield &= mask;
 #endif
 #endif
@@ -336,7 +338,7 @@ find_child(art_node *n, unsigned char c)
 	return NULL;
 }
 
-// Simple inlined if
+/* Simple inlined if */
 static inline int
 min(int a, int b)
 {
@@ -371,11 +373,11 @@ leaf_matches(const art_leaf *n,
 {
 	(void) depth;
 
-	// Fail if the key lengths are different
+	/* Fail if the key lengths are different */
 	if (n->key_len != (uint32_t)key_len)
 		return 1;
 
-	// Compare the keys starting at the depth
+	/* Compare the keys starting at the depth */
 	return memcmp(&(n->buffer[0]), key, key_len);
 }
 
@@ -397,7 +399,7 @@ art_search(PMEMobjpool *pop,  const art_tree *t,
 	int prefix_len, depth = 0;
 
 	while (n) {
-		// Might be a leaf
+		/* Might be a leaf */
 		if (IS_LEAF(n)) {
 			PMEMoid leaf_oid;
 
@@ -405,14 +407,14 @@ art_search(PMEMobjpool *pop,  const art_tree *t,
 			leaf_oid.off  = (uint64_t)LEAF_RAW(n);
 			al = pmemobj_direct(leaf_oid);
 
-			// Check if the expanded path matches
+			/* Check if the expanded path matches */
 			if (!leaf_matches(al, key, key_len, depth)) {
 				return &(al->buffer[al->key_len]);
 			}
 			return NULL;
 		}
 
-		// Bail if the prefix does not match
+		/* Bail if the prefix does not match */
 		if (n->partial_len) {
 			prefix_len = check_prefix(n, key, key_len, depth);
 			if (prefix_len != min(MAX_PREFIX_LEN, n->partial_len))
@@ -420,7 +422,7 @@ art_search(PMEMobjpool *pop,  const art_tree *t,
 			depth = depth + n->partial_len;
 		}
 
-		// Recursively search
+		/* Recursively search */
 		child = find_child(n, key[depth]);
 		n = (child) ? *child : NULL;
 		depth++;
@@ -428,11 +430,13 @@ art_search(PMEMobjpool *pop,  const art_tree *t,
 	return NULL;
 }
 
-// Find the minimum leaf under a node
+/*
+ * Find the minimum leaf under a node
+ */
 static art_leaf *
 minimum(PMEMobjpool *pop, const art_node *n)
 {
-	// Handle base cases
+	/* Handle base cases */
 	if (!n)
 		return NULL;
 	if (IS_LEAF(n)) {
@@ -467,11 +471,13 @@ minimum(PMEMobjpool *pop, const art_node *n)
 	}
 }
 
-// Find the maximum leaf under a node
+/*
+ * Find the maximum leaf under a node
+ */
 static art_leaf *
 maximum(PMEMobjpool *pop, const art_node *n)
 {
-	// Handle base cases
+	/* Handle base cases */
 	if (!n)
 		return NULL;
 	if (IS_LEAF(n)) {
@@ -603,40 +609,40 @@ add_child16(art_node16 *n, art_node **ref, unsigned char c, void *child)
 	if (n->n.num_children < 16) {
 		unsigned mask = (1 << n->n.num_children) - 1;
 
-		// support non-x86 architectures
+		/* support non-x86 architectures */
 #ifdef __i386__
 			__m128i cmp;
 
-			// Compare the key to all 16 stored keys
+			/* Compare the key to all 16 stored keys */
 			cmp = _mm_cmplt_epi8(_mm_set1_epi8(c),
 					_mm_loadu_si128((__m128i *)n->keys));
 
-			// Use a mask to ignore children that don't exist
+			/* Use a mask to ignore children that don't exist */
 			unsigned bitfield = _mm_movemask_epi8(cmp) & mask;
 #else
 #ifdef __amd64__
 			__m128i cmp;
 
-			// Compare the key to all 16 stored keys
+			/* Compare the key to all 16 stored keys */
 			cmp = _mm_cmplt_epi8(_mm_set1_epi8(c),
 					_mm_loadu_si128((__m128i *)n->keys));
 
-			// Use a mask to ignore children that don't exist
+			/* Use a mask to ignore children that don't exist */
 			unsigned bitfield = _mm_movemask_epi8(cmp) & mask;
 #else
-			// Compare the key to all 16 stored keys
+			/* Compare the key to all 16 stored keys */
 			unsigned bitfield = 0;
 			for (short i = 0; i < 16; ++i) {
 				if (c < n->keys[i])
 					bitfield |= (1 << i);
 			}
 
-			// Use a mask to ignore children that don't exist
+			/* Use a mask to ignore children that don't exist */
 			bitfield &= mask;
 #endif
 #endif
 
-		// Check if less than any
+		/* Check if less than any */
 		unsigned idx;
 		if (bitfield) {
 			idx = __builtin_ctz(bitfield);
@@ -647,7 +653,7 @@ add_child16(art_node16 *n, art_node **ref, unsigned char c, void *child)
 		} else
 			idx = n->n.num_children;
 
-		// Set the child
+		/* Set the child */
 		n->keys[idx] = c;
 		n->children[idx] = (art_node *)child;
 		n->n.num_children++;
@@ -655,7 +661,7 @@ add_child16(art_node16 *n, art_node **ref, unsigned char c, void *child)
 	} else {
 		art_node48 *new_node = (art_node48 *)alloc_node(NODE48);
 
-		// Copy the child pointers and populate the key map
+		/* Copy the child pointers and populate the key map */
 		memcpy(new_node->children, n->children,
 		    sizeof(void *)*n->n.num_children);
 		for (int i = 0; i < n->n.num_children; i++) {
@@ -678,13 +684,13 @@ add_child4(art_node4 *n, art_node **ref, unsigned char c, void *child)
 				break;
 		}
 
-		// Shift to make room
+		/* Shift to make room */
 		memmove(n->keys + idx + 1, n->keys + idx,
 			n->n.num_children - idx);
 		memmove(n->children + idx + 1, n->children + idx,
 			(n->n.num_children - idx) * sizeof(void *));
 
-		// Insert element
+		/* Insert element */
 		n->keys[idx] = c;
 		n->children[idx] = (art_node *)child;
 		n->n.num_children++;
@@ -692,7 +698,7 @@ add_child4(art_node4 *n, art_node **ref, unsigned char c, void *child)
 	} else {
 		art_node16 *new_node = (art_node16 *)alloc_node(NODE16);
 
-		// Copy the child pointers and the key map
+		/* Copy the child pointers and the key map */
 		memcpy(new_node->children, n->children,
 				sizeof(void *)*n->n.num_children);
 		memcpy(new_node->keys, n->keys,
@@ -735,9 +741,9 @@ prefix_mismatch(PMEMobjpool *pop, const art_node *n,
 			return idx;
 	}
 
-	// If the prefix is short we can avoid finding a leaf
+	/* If the prefix is short we can avoid finding a leaf */
 	if (n->partial_len > MAX_PREFIX_LEN) {
-		// Prefix is longer than what we've checked, find a leaf
+		/* Prefix is longer than what we've checked, find a leaf */
 		art_leaf *l = minimum(pop, n);
 		max_cmp = min(l->key_len, key_len) - depth;
 		for (; idx < max_cmp; idx++) {
@@ -758,7 +764,7 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 	art_leaf *alp;
 	uint64_t leaf_off;
 
-	// If we are at a NULL node, inject a leaf
+	/* If we are at a NULL node, inject a leaf */
 	if (!n) {
 		leaf_oid = make_leaf(pop, key, key_len, value, val_len);
 		leaf_off = leaf_oid.off;
@@ -766,7 +772,7 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 		return leaf_oid;
 	}
 
-	// If we are at a leaf, we need to replace it with a node
+	/* If we are at a leaf, we need to replace it with a node */
 	if (IS_LEAF(n)) {
 		leaf_off = (uint64_t)LEAF_RAW(n);
 		leaf_oid.pool_uuid_lo = pop->uuid_lo;
@@ -774,7 +780,7 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 		alp = pmemobj_direct(leaf_oid);
 
 
-		// Check if we are updating an existing value
+		/* Check if we are updating an existing value */
 		if (!leaf_matches(alp, key, key_len, depth)) {
 			*old = 1;
 			/*
@@ -786,24 +792,24 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 			 * leaf and insert that into the list again.
 			 */
 			memcpy(&(alp->buffer[alp->key_len]), value, val_len);
-			return null_oid;
+			return OID_NULL;
 		}
 
-		// New value, we must split the leaf into a node4
+		/* New value, we must split the leaf into a node4 */
 		art_node4 *new_node = (art_node4 *)alloc_node(NODE4);
 
-		// Create a new leaf
+		/* Create a new leaf */
 		PMEMoid leaf2_oid =
 			make_leaf(pop, key, key_len, value, val_len);
 		art_leaf *al2p = pmemobj_direct(leaf2_oid);
 		uint64_t leaf2_off = leaf2_oid.off;
 
-		// Determine longest prefix
+		/* Determine longest prefix */
 		int longest_prefix = longest_common_prefix(alp, al2p, depth);
 		new_node->n.partial_len = longest_prefix;
 		memcpy(new_node->n.partial, key + depth,
 			min(MAX_PREFIX_LEN, longest_prefix));
-		// Add the leafs to the new node4
+		/* Add the leafs to the new node4 */
 		*ref = (art_node *)new_node;
 		add_child4(new_node, ref, alp->buffer[depth + longest_prefix],
 			SET_LEAF(leaf_off));
@@ -812,23 +818,23 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 		return leaf2_oid;
 	}
 
-	// Check if given node has a prefix
+	/* Check if given node has a prefix */
 	if (n->partial_len) {
-		// Determine if the prefixes differ, since we need to split
+		/* Determine if the prefixes differ, since we need to split */
 		int prefix_diff = prefix_mismatch(pop, n, key, key_len, depth);
 		if ((uint32_t)prefix_diff >= n->partial_len) {
 			depth += n->partial_len;
 			goto RECURSE_SEARCH;
 		}
 
-		// Create a new node
+		/* Create a new node */
 		art_node4 *new_node = (art_node4 *)alloc_node(NODE4);
 		*ref = (art_node *)new_node;
 		new_node->n.partial_len = prefix_diff;
 		memcpy(new_node->n.partial, n->partial,
 			min(MAX_PREFIX_LEN, prefix_diff));
 
-		// Adjust the prefix of the old node
+		/* Adjust the prefix of the old node */
 		if (n->partial_len <= MAX_PREFIX_LEN) {
 			add_child4(new_node, ref, n->partial[prefix_diff], n);
 			n->partial_len -= (prefix_diff + 1);
@@ -850,7 +856,7 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 			memcpy(dst, src, len);
 		}
 
-		// Insert the new leaf
+		/* Insert the new leaf */
 		leaf_oid = make_leaf(pop, key, key_len, value, val_len);
 		leaf_off = leaf_oid.off;
 		add_child4(new_node, ref, key[depth + prefix_diff],
@@ -860,14 +866,14 @@ recursive_insert(PMEMobjpool *pop, art_node *n, art_node **ref,
 
 RECURSE_SEARCH:;
 
-	// Find a child to recurse to
+	/* Find a child to recurse to */
 	art_node **child = find_child(n, key[depth]);
 	if (child) {
 		return recursive_insert(pop, *child, child,
 			key, key_len, value, val_len, depth + 1, old);
 	}
 
-	// No child, node goes within us
+	/* No child, node goes within us */
 	leaf_oid = make_leaf(pop, key, key_len, value, val_len);
 	leaf_off = leaf_oid.off;
 	add_child(n, ref, key[depth], SET_LEAF(leaf_off));
@@ -883,21 +889,21 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 	art_leaf *alp;
 	art_leaf *new_alp;
 
-	// If we are at a NULL node, inject a leaf
+	/* If we are at a NULL node, inject a leaf */
 	if (!n) {
 		*ref = (art_node *)SET_LEAF(new_leaf.oid.off);
 		return new_leaf.oid;
 	}
 
 	new_alp = pmemobj_direct(new_leaf.oid);
-	// If we are at a leaf, we need to replace it with a node
+	/* If we are at a leaf, we need to replace it with a node */
 	if (IS_LEAF(n)) {
 		leaf_off = (uint64_t)LEAF_RAW(n);
 		leaf_oid.pool_uuid_lo = pop->uuid_lo;
 		leaf_oid.off  = leaf_off;
 		alp = pmemobj_direct(leaf_oid);
 
-		// Check if we are updating an existing value
+		/* Check if we are updating an existing value */
 		if (!leaf_matches(alp, &(new_alp->buffer[0]),
 			new_alp->key_len, depth)) {
 			/*
@@ -911,18 +917,18 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 			memcpy(&(alp->buffer[alp->key_len]),
 				&(new_alp->buffer[new_alp->key_len]),
 				new_alp->val_len);
-			return null_oid;
+			return OID_NULL;
 		}
 
-		// New value, we must split the leaf into a node4
+		/* New value, we must split the leaf into a node4 */
 		art_node4 *new_node = (art_node4 *)alloc_node(NODE4);
 
-		// Determine longest prefix
+		/* Determine longest prefix */
 		int longest_prefix = longest_common_prefix(alp, new_alp, depth);
 		new_node->n.partial_len = longest_prefix;
 		memcpy(new_node->n.partial, &(new_alp->buffer[depth]),
 			min(MAX_PREFIX_LEN, longest_prefix));
-		// Add the leafs to the new node4
+		/* Add the leafs to the new node4 */
 		*ref = (art_node *)new_node;
 		add_child4(new_node, ref,
 			alp->buffer[depth + longest_prefix],
@@ -933,9 +939,9 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 		return new_leaf.oid;
 	}
 
-	// Check if given node has a prefix
+	/* Check if given node has a prefix */
 	if (n->partial_len) {
-		// Determine if the prefixes differ, since we need to split
+		/* Determine if the prefixes differ, since we need to split */
 		int prefix_diff = prefix_mismatch(pop, n, &(new_alp->buffer[0]),
 					new_alp->key_len, depth);
 		if ((uint32_t)prefix_diff >= n->partial_len) {
@@ -943,14 +949,14 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 			goto RECURSE_SEARCH;
 		}
 
-		// Create a new node
+		/* Create a new node */
 		art_node4 *new_node = (art_node4 *)alloc_node(NODE4);
 		*ref = (art_node *)new_node;
 		new_node->n.partial_len = prefix_diff;
 		memcpy(new_node->n.partial, n->partial,
 			min(MAX_PREFIX_LEN, prefix_diff));
 
-		// Adjust the prefix of the old node
+		/* Adjust the prefix of the old node */
 		if (n->partial_len <= MAX_PREFIX_LEN) {
 			add_child4(new_node, ref, n->partial[prefix_diff], n);
 			n->partial_len -= (prefix_diff + 1);
@@ -972,7 +978,7 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 			memcpy(dst, src, len);
 		}
 
-		// Insert the new leaf
+		/* Insert the new leaf */
 		add_child4(new_node, ref,
 			new_alp->buffer[depth + prefix_diff],
 			SET_LEAF(new_leaf.oid.off));
@@ -981,14 +987,14 @@ recursive_insert_leaf(PMEMobjpool *pop, art_node *n, art_node **ref,
 
 RECURSE_SEARCH:;
 
-	// Find a child to recurse to
+	/* Find a child to recurse to */
 	art_node **child = find_child(n, new_alp->buffer[depth]);
 	if (child) {
 		return recursive_insert_leaf(pop, *child, child,
 				depth + 1, new_leaf);
 	}
 
-	// No child, node goes within us
+	/* No child, node goes within us */
 	add_child(n, ref, new_alp->buffer[depth], SET_LEAF(new_leaf.oid.off));
 	return new_leaf.oid;
 }
@@ -1057,8 +1063,8 @@ remove_child256(art_node256 *n, art_node **ref, unsigned char c)
 	n->children[c] = NULL;
 	n->n.num_children--;
 
-	// Resize to a node48 on underflow, not immediately to prevent
-	// trashing if we sit on the 48/49 boundary
+	/* Resize to a node48 on underflow, not immediately to prevent */
+	/* trashing if we sit on the 48/49 boundary */
 	if (n->n.num_children == 37) {
 		art_node48 *new_node = (art_node48 *)alloc_node(NODE48);
 		*ref = (art_node *)new_node;
@@ -1132,11 +1138,11 @@ remove_child4(art_node4 *n, art_node **ref, art_node **l)
 		(n->n.num_children - 1 - pos)*sizeof(void *));
 	n->n.num_children--;
 
-	// Remove nodes with only a single child
+	/* Remove nodes with only a single child */
 	if (n->n.num_children == 1) {
 		art_node *child = n->children[0];
 		if (!IS_LEAF(child)) {
-			// Concatenate the prefixes
+			/* Concatenate the prefixes */
 			int prefix = n->n.partial_len;
 			if (prefix < MAX_PREFIX_LEN) {
 				n->n.partial[prefix] = n->keys[0];
@@ -1150,7 +1156,7 @@ remove_child4(art_node4 *n, art_node **ref, art_node **l)
 				prefix += sub_prefix;
 			}
 
-			// Store the prefix in the child
+			/* Store the prefix in the child */
 			memcpy(child->partial, n->n.partial,
 				min(prefix, MAX_PREFIX_LEN));
 			child->partial_len += n->n.partial_len + 1;
@@ -1185,11 +1191,11 @@ recursive_delete(PMEMobjpool *pop, art_node *n, art_node **ref,
 	uint64_t leaf_off;
 	art_leaf *alp;
 
-	// Search terminated
+	/* Search terminated */
 	if (!n)
-		return null_oid;
+		return OID_NULL;
 
-	// Handle hitting a leaf node
+	/* Handle hitting a leaf node */
 	if (IS_LEAF(n)) {
 		leaf_off = (uint64_t)LEAF_RAW(n);
 		leaf_oid.pool_uuid_lo = pop->uuid_lo;
@@ -1199,24 +1205,24 @@ recursive_delete(PMEMobjpool *pop, art_node *n, art_node **ref,
 			*ref = NULL;
 			return leaf_oid;
 		}
-		return null_oid;
+		return OID_NULL;
 	}
 
-	// Bail if the prefix does not match
+	/* Bail if the prefix does not match */
 	if (n->partial_len) {
 		int prefix_len = check_prefix(n, key, key_len, depth);
 		if (prefix_len != min(MAX_PREFIX_LEN, n->partial_len)) {
-			return null_oid;
+			return OID_NULL;
 		}
 		depth = depth + n->partial_len;
 	}
 
-	// Find child node
+	/* Find child node */
 	art_node **child = find_child(n, key[depth]);
 	if (!child)
-		return null_oid;
+		return OID_NULL;
 
-	// If the child is leaf, delete from this node
+	/* If the child is leaf, delete from this node */
 	if (IS_LEAF(*child)) {
 		leaf_off = (uint64_t)LEAF_RAW(*child);
 		leaf_oid.pool_uuid_lo = pop->uuid_lo;
@@ -1226,9 +1232,9 @@ recursive_delete(PMEMobjpool *pop, art_node *n, art_node **ref,
 			remove_child(n, ref, key[depth], child);
 			return leaf_oid;
 		}
-		return null_oid;
+		return OID_NULL;
 
-	// Recurse
+	/* Recurse */
 	} else {
 		return recursive_delete(pop, *child,
 		    child, key, key_len, depth + 1);
@@ -1276,7 +1282,9 @@ art_delete(PMEMobjpool *pop, art_tree *t, const unsigned char *key, int key_len)
 	return old;
 }
 
-// Recursively iterates over the tree
+/*
+ * Recursively iterates over the tree
+ */
 static int
 recursive_iter(PMEMobjpool *pop, art_node *n, art_callback cb, void *data)
 {
@@ -1284,7 +1292,7 @@ recursive_iter(PMEMobjpool *pop, art_node *n, art_callback cb, void *data)
 
 	cbd.node = n;
 	cbd.child_idx = -1;
-	// Handle base cases
+	/* Handle base cases */
 	if (!n)
 		return 0;
 
@@ -1351,7 +1359,9 @@ recursive_iter(PMEMobjpool *pop, art_node *n, art_callback cb, void *data)
 	return 0;
 }
 
-// Recursively iterates over the tree
+/*
+ * Recursively iterates over the tree
+ */
 static int
 recursive_iter2(PMEMobjpool *pop, art_node *n, art_callback cb, void *data)
 {
@@ -1359,7 +1369,7 @@ recursive_iter2(PMEMobjpool *pop, art_node *n, art_callback cb, void *data)
 
 	cbd.node = n;
 	cbd.child_idx = -1;
-	// Handle base cases
+	/* Handle base cases */
 	if (!n)
 		return 0;
 
@@ -1480,11 +1490,11 @@ static int
 leaf_prefix_matches(const art_leaf *n,
 	const unsigned char *prefix, int prefix_len)
 {
-	// Fail if the key length is too short
+	/* Fail if the key length is too short */
 	if (n->key_len < (uint32_t)prefix_len)
 		return 1;
 
-	// Compare the keys
+	/* Compare the keys */
 	return memcmp(&(n->buffer[0]), prefix, prefix_len);
 }
 
@@ -1509,10 +1519,10 @@ art_iter_prefix(PMEMobjpool *pop, art_tree *t,
 	art_node *n = t->root;
 	int prefix_len, depth = 0;
 	while (n) {
-		// Might be a leaf
+		/* Might be a leaf */
 		if (IS_LEAF(n)) {
 			n = (art_node *)LEAF_RAW(n);
-			// Check if the expanded path matches
+			/* Check if the expanded path matches */
 			if (!leaf_prefix_matches((art_leaf *)n, key, key_len)) {
 				art_leaf *l = (art_leaf *)n;
 				return cb(data,
@@ -1524,7 +1534,10 @@ art_iter_prefix(PMEMobjpool *pop, art_tree *t,
 			return 0;
 		}
 
-		// If the depth matches the prefix, we need to handle this node
+		/*
+		 * If the depth matches the prefix,
+		 * we need to handle this node
+		 */
 		if (depth == key_len) {
 			art_leaf *l = minimum(pop, n);
 			if (!leaf_prefix_matches(l, key, key_len))
@@ -1532,31 +1545,31 @@ art_iter_prefix(PMEMobjpool *pop, art_tree *t,
 			return 0;
 		}
 
-		// Bail if the prefix does not match
+		/* Bail if the prefix does not match */
 		if (n->partial_len) {
 			prefix_len = prefix_mismatch(pop, n,
 				key, key_len, depth);
 
-			// Guard if the mis-match is longer
-			// than the MAX_PREFIX_LEN
+			/* Guard if the mis-match is longer */
+			/* than the MAX_PREFIX_LEN */
 			if ((uint32_t)prefix_len > n->partial_len) {
 				prefix_len = n->partial_len;
 			}
 
-			// If there is no match, search is terminated
+			/* If there is no match, search is terminated */
 			if (!prefix_len) {
 				return 0;
 
-			// If we've matched the prefix, iterate on this node
+			/* If we've matched the prefix, iterate on this node */
 			} else if (depth + prefix_len == key_len) {
 				return recursive_iter(pop, n, cb, data);
 			}
 
-			// if there is a full match, go deeper
+			/* if there is a full match, go deeper */
 			depth = depth + n->partial_len;
 		}
 
-		// Recursively search
+		/* Recursively search */
 		child = find_child(n, key[depth]);
 		n = (child) ? *child : NULL;
 		depth++;

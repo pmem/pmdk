@@ -137,7 +137,7 @@ struct _art_leaf {
     uint32_t key_len;
     uint32_t val_len;
     POBJ_LIST_ENTRY(art_leaf) entries;
-    unsigned char buffer[0];
+    unsigned char buffer[];
 };
 
 /*
