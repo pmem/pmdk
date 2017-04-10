@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +53,8 @@ expect_normal_exit $EX_PATH/obj_pmemblk c $DIR/testfile1 512 \
 	r:13 r:0 r:30 r:20 r:1 \
 	z:20 z:30 \
 	r:13 r:0 r:30 r:20 r:1 \
-	> out$UNITTEST_NUM.log 2>&1
+	e:13 r:13 w:13:rewrite r:13 \
+	> out$UNITTEST_NUM.log 2>err$UNITTEST_NUM.log
 
 check
 
