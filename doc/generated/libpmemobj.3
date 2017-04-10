@@ -153,6 +153,7 @@ int\ pmemobj_zalloc(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ size_t\ size,\ uint64_t
 int\ pmemobj_realloc(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ size_t\ size,\ uint64_t\ type_num);
 int\ pmemobj_zrealloc(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ size_t\ size,\ uint64_t\ type_num);
 int\ pmemobj_strdup(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ const\ char\ *s,\ uint64_t\ type_num);
+int\ pmemobj_wcsdup(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ const\ wchar_t\ *s,\ uint64_t\ type_num);
 void\ pmemobj_free(PMEMoid\ *oidp);
 
 size_t\ pmemobj_alloc_usable_size(PMEMoid\ oid);
@@ -296,6 +297,7 @@ PMEMoid\ pmemobj_tx_xalloc(size_t\ size,\ uint64_t\ type_num,\ uint64_t\ flags);
 PMEMoid\ pmemobj_tx_realloc(PMEMoid\ oid,\ size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_zrealloc(PMEMoid\ oid,\ size_t\ size,\ uint64_t\ type_num);
 PMEMoid\ pmemobj_tx_strdup(const\ char\ *s,\ uint64_t\ type_num);
+PMEMoid\ pmemobj_tx_wcsdup(const\ wchar_t\ *s,\ uint64_t\ type_num);
 int\ pmemobj_tx_free(PMEMoid\ oid);
 
 TX_BEGIN_PARAM(PMEMobjpool\ *pop,\ ...)
@@ -324,6 +326,7 @@ TX_XALLOC(TYPE,\ size_t\ size,\ uint64_t\ flags)\ (EXPERIMENTAL)
 TX_REALLOC(TOID\ o,\ size_t\ size)
 TX_ZREALLOC(TOID\ o,\ size_t\ size)
 TX_STRDUP(const\ char\ *s,\ uint64_t\ type_num)
+TX_WCSDUP(const\ wchar_t\ *s,\ uint64_t\ type_num)
 TX_FREE(TOID\ o)
 
 TX_SET(TOID\ o,\ FIELD,\ VALUE)
@@ -1752,6 +1755,32 @@ appropriately.
 .IP
 .nf
 \f[C]
+int\ pmemobj_wcsdup(PMEMobjpool\ *pop,\ PMEMoid\ *oidp,\ const\ wchar_t\ *s,\ uint64_t\ type_num);
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_wcsdup\f[]() function provides the same semantics as
+\f[B]wcsdup\f[](3), but operates on the persistent memory heap
+associated with memory pool \f[I]pop\f[].
+It stores a handle to a new object in \f[I]oidp\f[] which is a duplicate
+of the wide character string \f[I]s\f[].
+If NULL is passed as \f[I]oidp\f[], then the newly allocated object may
+be accessed only by iterating objects in the object container associated
+with given \f[I]type_num\f[], as described in \f[B]OBJECT CONTAINERS\f[]
+section.
+If the \f[I]oidp\f[] points to memory location from the \f[B]pmemobj\f[]
+heap the \f[I]oidp\f[] is changed atomically.
+The allocated wide character string object is also added to the internal
+container associated with given \f[I]type_num\f[].
+Memory for the new wide character string is obtained with
+\f[B]pmemobj_alloc\f[](), on the given memory pool, and can be freed
+with \f[B]pmemobj_free\f[]() on the same memory pool.
+If \f[B]pmemobj_wcsdup\f[]() is unable to satisfy the allocation
+request, a non\-zero value is returned and \f[I]errno\f[] is set
+appropriately.
+.IP
+.nf
+\f[C]
 size_t\ pmemobj_alloc_usable_size(PMEMoid\ oid);
 \f[]
 .fi
@@ -2791,6 +2820,20 @@ This function must be called during \f[B]TX_STAGE_WORK\f[].
 .IP
 .nf
 \f[C]
+PMEMoid\ pmemobj_tx_wcsdup(const\ wchar_t\ *s,\ uint64_t\ type_num);
+\f[]
+.fi
+.PP
+The \f[B]pmemobj_tx_wcsdup\f[]() function transactionally allocates a
+new object containing a duplicate of the wide character string
+\f[I]s\f[] and assigns it a type \f[I]type_num\f[].
+If successful, returns a handle to the newly allocated object.
+Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
+is returned, and \f[I]errno\f[] is set appropriately.
+This function must be called during \f[B]TX_STAGE_WORK\f[].
+.IP
+.nf
+\f[C]
 int\ pmemobj_tx_free(PMEMoid\ oid);
 \f[]
 .fi
@@ -3171,6 +3214,20 @@ TX_STRDUP(const\ char\ *s,\ uint64_t\ type_num)
 The \f[B]TX_STRDUP\f[]() macro transactionally allocates a new object
 containing a duplicate of the string \f[I]s\f[] and assigns it a type
 \f[I]type_num\f[].
+If successful and called during \f[B]TX_STAGE_WORK\f[] it returns a
+handle to the newly allocated object.
+Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]
+is returned, and \f[I]errno\f[] is set appropriately.
+.IP
+.nf
+\f[C]
+TX_WCSDUP(const\ wchar_t\ *s,\ uint64_t\ type_num)
+\f[]
+.fi
+.PP
+The \f[B]TX_WCSDUP\f[]() macro transactionally allocates a new object
+containing a duplicate of the wide character string \f[I]s\f[] and
+assigns it a type \f[I]type_num\f[].
 If successful and called during \f[B]TX_STAGE_WORK\f[] it returns a
 handle to the newly allocated object.
 Otherwise, stage changes to \f[B]TX_STAGE_ONABORT\f[], \f[B]OID_NULL\f[]

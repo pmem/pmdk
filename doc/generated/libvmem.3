@@ -63,6 +63,7 @@ void\ *vmem_calloc(VMEM\ *vmp,\ size_t\ nmemb,\ size_t\ size);
 void\ *vmem_realloc(VMEM\ *vmp,\ void\ *ptr,\ size_t\ size);
 void\ *vmem_aligned_alloc(VMEM\ *vmp,\ size_t\ alignment,\ size_t\ size);
 char\ *vmem_strdup(VMEM\ *vmp,\ const\ char\ *s);
+wchar_t\ *vmem_wcsdup(VMEM\ *vmp,\ const\ wchar_t\ *s);
 size_t\ vmem_malloc_usable_size(VMEM\ *vmp,\ void\ *ptr);
 \f[]
 .fi
@@ -389,6 +390,23 @@ Memory for the new string is obtained with \f[B]vmem_malloc\f[](), on
 the given memory pool, and can be freed with \f[B]vmem_free\f[]() on the
 same memory pool.
 If \f[B]vmem_strdup\f[]() is unable to satisfy the allocation request, a
+NULL pointer is returned and \f[I]errno\f[] is set appropriately.
+.IP
+.nf
+\f[C]
+wchar_t\ *vmem_wcsdup(VMEM\ *vmp,\ const\ wchar_t\ *s);
+\f[]
+.fi
+.PP
+The \f[B]vmem_wcsdup\f[]() function provides the same semantics as
+\f[B]wcsdup\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+It returns a pointer to a new wide character string which is a duplicate
+of the wide character strin string \f[I]s\f[].
+Memory for the new string is obtained with \f[B]vmem_malloc\f[](), on
+the given memory pool, and can be freed with \f[B]vmem_free\f[]() on the
+same memory pool.
+If \f[B]vmem_wcsdup\f[]() is unable to satisfy the allocation request, a
 NULL pointer is returned and \f[I]errno\f[] is set appropriately.
 .IP
 .nf
