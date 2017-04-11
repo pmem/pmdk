@@ -304,13 +304,39 @@ error_invalid_arguments:
 }
 
 /*
+ * pmemobj_ctl_getU -- programmatically executes a read ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
+		name, arg, NULL);
+}
+
+/*
+ * pmemobj_ctl_setU -- programmatically executes a write ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
+		name, NULL, arg);
+}
+
+#ifndef _WIN32
+/*
  * pmemobj_ctl_get -- programmatically executes a read ctl query
  */
 int
 pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
 {
-	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, arg, NULL);
+	return pmemobj_ctl_getU(pop, name, arg);
 }
 
 /*
@@ -319,9 +345,41 @@ pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
 int
 pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
 {
-	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, NULL, arg);
+	return pmemobj_ctl_setU(pop, name, arg);
 }
+#else
+/*
+ * pmemobj_ctl_getW -- programmatically executes a read ctl query
+ */
+int
+pmemobj_ctl_getW(PMEMobjpool *pop, const char *name, void *arg)
+{
+	char *uname = util_toUTF8(path);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_getU(pop, name, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemobj_ctl_setW -- programmatically executes a write ctl query
+ */
+int
+pmemobj_ctl_setW(PMEMobjpool *pop, const char *name, void *arg)
+{
+	char *uname = util_toUTF8(path);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_setU(pop, name, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+#endif
 
 /*
  * ctl_register_module_node -- adds a new node to the CTL tree root.
