@@ -1118,9 +1118,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 
 	if ((ret = pmembench_init_workers(workers, n_threads, n_ops, bench,
 					  args)) != 0) {
-		if (bench->info->exit)
-			bench->info->exit(bench, args);
-		return ret;
+		goto out;
 	}
 
 	unsigned j;
@@ -1145,6 +1143,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 		benchmark_worker_free(workers[j]);
 	}
 
+out:
 	free(workers);
 
 	if (bench->info->exit)
@@ -1208,6 +1207,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	int ret = 0;
 
 	struct benchmark_args *args = NULL;
+	struct total_results *total_res = NULL;
 	struct latency *stats = NULL;
 	double *workers_times = NULL;
 
@@ -1280,10 +1280,6 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			goto out;
 		}
 
-		struct total_results *total_res = results_alloc(
-			args->repeats, args->n_threads, args->n_ops_per_thread);
-		assert(total_res != NULL);
-
 		args->opts = (void *)((uintptr_t)args +
 				      sizeof(struct benchmark_args));
 		args->is_poolset = util_is_poolset_file(args->fname) == 1;
@@ -1312,6 +1308,9 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		workers_times = (double *)calloc(n_threads * args->repeats,
 						 sizeof(double));
 		assert(workers_times != NULL);
+		total_res = results_alloc(args->repeats, args->n_threads,
+					  args->n_ops_per_thread);
+		assert(total_res != NULL);
 
 		unsigned i = 0;
 		if (args->min_exe_time != 0) {
@@ -1338,10 +1337,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		results_free(total_res);
 		free(stats);
 		free(workers_times);
+		total_res = NULL;
 		stats = NULL;
 		workers_times = NULL;
 	}
 out:
+	if (total_res)
+		results_free(total_res);
 	if (stats)
 		free(stats);
 	if (workers_times)
