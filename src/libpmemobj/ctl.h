@@ -183,7 +183,7 @@ ctl_arg_##name
 
 /*
  * Declaration of a new read-only leaf. If used the corresponding read function
- * must be declared by CTL_READ_HANDLER or CTL_GEN_RO_STAT macros.
+ * must be declared by CTL_READ_HANDLER macro.
  */
 #define CTL_LEAF_RO(name)\
 {CTL_STR(name), CTL_NODE_LEAF, CTL_READ_HANDLER(name), NULL, NULL, NULL}

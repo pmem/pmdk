@@ -51,10 +51,10 @@ int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
 int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
 #else
 int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg);
-int pmemobj_ctl_getW(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg);
 
 int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg);
-int pmemobj_ctl_setW(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg);
 
 #ifndef NVML_UTF8_API
 #define pmemobj_ctl_get pmemobj_ctl_getW

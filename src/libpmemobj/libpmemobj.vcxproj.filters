@@ -261,6 +261,9 @@
     <ClInclude Include="ctl_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\ctl.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

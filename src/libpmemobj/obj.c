@@ -169,7 +169,9 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		if (p == NULL || ctl_load_config(pop, p) != 0) {
 			ERR("unable to parse config stored in %s "
 			"environment variable", OBJ_CONFIG_ENV_VARIABLE);
-			goto err;
+			ctl_string_provider_delete(p);
+
+			return -1;
 		}
 
 		ctl_string_provider_delete(p);
@@ -183,20 +185,15 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 			"file (from %s environment variable)",
 				env_config_file,
 				OBJ_CONFIG_FILE_ENV_VARIABLE);
+			ctl_file_provider_delete(p);
 
-			goto err;
+			return -1;
 		}
 
-		ctl_string_provider_delete(p);
+		ctl_file_provider_delete(p);
 	}
 
 	return 0;
-
-err:
-	if (p != NULL)
-		ctl_string_provider_delete(p);
-
-	return -1;
 }
 
 /*

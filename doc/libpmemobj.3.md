@@ -2258,8 +2258,8 @@ In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
 The first one is to load configuration directly from a **PMEMOBJ_CONF**
-environment variable. Properly formated ctl config string is a sequence of
-queries separated by ';':
+environment variable. Properly formated ctl config string is a single-line
+sequence of queries separated by ';':
 
 ```
 query0;query1;...;queryN
@@ -2296,9 +2296,9 @@ In summary, a full configuration sequence can looks like this:
 ```
 
 As an example, to set both prefault at_open and at_create variables:
-
 ```
-PMEMOBJ_CONF="prefault.at_open=1;prefault_at_create=1;"
+
+PMEMOBJ_CONF="prefault.at_open=1;prefault_at_create=1"
 ```
 
 The second method to load an external configuration is to set the
