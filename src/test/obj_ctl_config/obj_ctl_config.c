@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_ctl_config.c -- tests for the ctl entry points: prefault
+ * obj_ctl_config.c -- tests for ctl configuration
  */
 
 #include "unittest.h"

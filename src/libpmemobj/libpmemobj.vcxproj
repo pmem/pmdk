@@ -78,6 +78,7 @@
     <ClInclude Include="..\include\libpmemobj\atomic.h" />
     <ClInclude Include="..\include\libpmemobj\atomic_base.h" />
     <ClInclude Include="..\include\libpmemobj\base.h" />
+    <ClInclude Include="..\include\libpmemobj\ctl.h" />
     <ClInclude Include="..\include\libpmemobj\iterator.h" />
     <ClInclude Include="..\include\libpmemobj\iterator_base.h" />
     <ClInclude Include="..\include\libpmemobj\lists_atomic.h" />

@@ -352,13 +352,13 @@ pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
  * pmemobj_ctl_getW -- programmatically executes a read ctl query
  */
 int
-pmemobj_ctl_getW(PMEMobjpool *pop, const char *name, void *arg)
+pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg)
 {
-	char *uname = util_toUTF8(path);
+	char *uname = util_toUTF8(name);
 	if (uname == NULL)
 		return -1;
 
-	int ret = pmemobj_ctl_getU(pop, name, arg);
+	int ret = pmemobj_ctl_getU(pop, uname, arg);
 	util_free_UTF8(uname);
 
 	return ret;
@@ -368,13 +368,13 @@ pmemobj_ctl_getW(PMEMobjpool *pop, const char *name, void *arg)
  * pmemobj_ctl_setW -- programmatically executes a write ctl query
  */
 int
-pmemobj_ctl_setW(PMEMobjpool *pop, const char *name, void *arg)
+pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg)
 {
-	char *uname = util_toUTF8(path);
+	char *uname = util_toUTF8(name);
 	if (uname == NULL)
 		return -1;
 
-	int ret = pmemobj_ctl_setU(pop, name, arg);
+	int ret = pmemobj_ctl_setU(pop, uname, arg);
 	util_free_UTF8(uname);
 
 	return ret;
