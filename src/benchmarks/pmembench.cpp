@@ -1228,6 +1228,17 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			ret = -1;
 			goto out_release_clos;
 		}
+		os_stat_t stat_buf;
+		if (os_stat(wd, &stat_buf) != 0) {
+			perror("os_stat");
+			ret = -1;
+			goto out_release_clos;
+		}
+		if (!S_ISDIR(stat_buf.st_mode)) {
+			warn("PMEMBENCH_DIR is not a directory: %s", wd);
+			ret = -1;
+			goto out_release_clos;
+		}
 		if (chdir(wd)) {
 			perror("chdir(wd)");
 			ret = -1;
