@@ -59,6 +59,7 @@
 
 #include <sys/mman.h>
 #include "mmap.h"
+#include "util.h"
 #include "out.h"
 #include "win_mmap.h"
 
@@ -68,12 +69,6 @@
 NTSTATUS
 NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
 	_Inout_ PSIZE_T RegionSize, _In_ ULONG FreeType);
-
-/* allocation/mmap granularity */
-unsigned long long Mmap_align;
-
-/* page size */
-unsigned long long Pagesize;
 
 /*
  * XXX Unify the Linux and Windows code and replace this structure with
@@ -206,13 +201,7 @@ static void
 mmap_init(void)
 {
 	AcquireSRWLockExclusive(&FileMappingQLock);
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	Mmap_align = si.dwAllocationGranularity;
-	Pagesize = si.dwPageSize;
-
 	SORTEDQ_INIT(&FileMappingQHead);
-
 	ReleaseSRWLockExclusive(&FileMappingQLock);
 }
 
