@@ -2929,6 +2929,12 @@ util_poolset_foreach_part(const char *path,
 		goto err_close;
 	}
 
+	if (set->remote && util_remote_load()) {
+		ERR("remote replication not available");
+		ret = -1;
+		goto err_close;
+	}
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct part_file part;
 		if (set->replica[r]->remote) {
