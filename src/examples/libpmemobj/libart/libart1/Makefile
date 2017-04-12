@@ -1,7 +1,6 @@
 #
-#
-# Copyright 2017, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,6 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
 # ===========================================================================
 #
 #      Filename:  Makefile
@@ -45,10 +45,29 @@
 #  Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
 #
 # ===========================================================================
-
 #
-# examples/libpmemobj/libart/Makefile -- build the libpmemobj/libart examples
-#
-DIRS = libart1 libart2 libart3
 
-include ../../Makefile.inc
+PROGS = arttree1 arttree_structures
+LIBRARIES = art1
+
+include ../../../Makefile.inc
+
+# ## for optimized builds, uncomment the follwoing two lines
+# LIBDIR = $(TOP_SRC)/nondebug
+# CFLAGS += -O2
+
+LIBS = -lpmemobj -pthread -lart1
+
+$(PROGS): | $(DYNAMIC_LIBRARIES)
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
+
+libart1.o: art.o
+
+arttree1: arttree.o
+arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o
+
+clean-libraries:
+	$(RM) *.so *.a
+
+clean-progs:
+	$(RM) $(PROGS) *.o

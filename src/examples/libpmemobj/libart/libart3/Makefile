@@ -1,7 +1,6 @@
 #
-#
 # Copyright 2017, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,6 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
 # ===========================================================================
 #
 #      Filename:  Makefile
@@ -39,16 +39,36 @@
 #   Description:  build libart port to libpmemobj
 #
 #        Author:  Andreas Bluemle, Dieter Kasper
-#                 Andreas.Bluemle.external@ts.fujitsu.com
+#                 andreas.bluemle@itxperts.de
 #                 dieter.kasper@ts.fujitsu.com
 #
 #  Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
 #
 # ===========================================================================
-
 #
-# examples/libpmemobj/libart/Makefile -- build the libpmemobj/libart examples
-#
-DIRS = libart1 libart2 libart3
 
-include ../../Makefile.inc
+PROGS = arttree3
+LIBRARIES = art3
+
+include ../../../Makefile.inc
+
+INCDIR += -I$(TOP_SRC)/common -I$(TOP_SRC)/libpmemobj
+
+# ## for optimized builds, uncomment the follwoing two lines
+# LIBDIR = $(TOP_SRC)/nondebug
+# CFLAGS += -O2
+
+LIBS = -lpmemobj -pthread -lart3
+
+$(PROGS): | $(DYNAMIC_LIBRARIES)
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
+
+libart3.o: art.o
+
+arttree3: arttree.o
+
+clean-libraries:
+	$(RM) *.so *.a
+
+clean-progs:
+	$(RM) $(PROGS) *.o
