@@ -41,6 +41,7 @@
 #include "pmem.h"
 #include "queue.h"
 #include "win_mmap.h"
+#include "util.h"
 
 #define NTHREAD 16
 
@@ -120,6 +121,8 @@ main(int argc, char *argv[])
 
 	if (argc !=  3)
 		UT_FATAL("usage: %s file {begin|end|middle|nothing}", argv[0]);
+
+	util_init(); /* to initialize Mmap_align */
 
 	char *str_pmem_is_pmem_force = os_getenv("PMEM_IS_PMEM_FORCE");
 	if (str_pmem_is_pmem_force && atoi(str_pmem_is_pmem_force) == 1)
