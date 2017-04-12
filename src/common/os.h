@@ -43,6 +43,7 @@ extern "C" {
 
 #include <sys/stat.h>
 #include <stdio.h>
+#include <unistd.h>
 
 struct iovec;
 

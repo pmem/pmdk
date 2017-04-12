@@ -34,6 +34,7 @@
  * rm.c -- implementation of pmempool_rm() function
  */
 #include <errno.h>
+#include <fcntl.h>
 
 #include "libpmempool.h"
 #include "out.h"
@@ -193,6 +194,21 @@ pmempool_rmU(const char *path, int flags)
 	}
 
 	LOG(2, "%s: poolset file", path);
+
+	/* fill up pool_set structure */
+	struct pool_set *set = NULL;
+	int fd = os_open(path, O_RDONLY);
+	if (fd == -1 || util_poolset_parse(&set, path, fd)) {
+		ERR_F(flags, "parsing poolset file failed");
+		if (CHECK_FLAG(flags, FORCE))
+			return 0;
+		return -1;
+	}
+	os_close(fd);
+
+	if (set->remote)
+		util_remote_load(); /* error will be handled in rm_remote() */
+
 	struct cb_args args;
 	args.flags = flags;
 	args.error = 0;
