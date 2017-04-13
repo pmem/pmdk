@@ -58,6 +58,9 @@ INC_DIR=$PREFIX/include
 MAN1_DIR=$PREFIX/share/man/man1
 MAN3_DIR=$PREFIX/share/man/man3
 DOC_DIR=$PREFIX/share/doc
+if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
+	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
+fi
 
 function convert_changelog() {
 	while read line
