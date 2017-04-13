@@ -48,6 +48,7 @@
  */
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <string.h>
 #include <unistd.h>
@@ -325,7 +326,7 @@ find_child(art_node *n, int node_type, unsigned char c)
 
 	case ART_NODE256:
 		p.p4 = (art_node256 *)n;
-		printf("0x%lx", p.p4->children[c].oid.off);
+		printf("0x%" PRIx64, p.p4->children[c].oid.off);
 		if (p.p4->children[c].oid.off != 0) {
 			printf("]\n");
 			return p.p4->children[c].oid.off;
@@ -385,7 +386,7 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 	obj_len = art_node_sizes[node_type];
 	off_pages = (off / pagesize) * pagesize;
 	off_in_page = off - off_pages;
-	printf("%s at off 0x%lx\n", art_node_names[node_type], off);
+	printf("%s at off 0x%" PRIx64 "\n", art_node_names[node_type], off);
 	p = mmap(NULL, off_in_page + obj_len,
 		    PROT_READ, MAP_SHARED, fd, off_pages);
 	if (node_type == VAR_STRING) {
@@ -515,7 +516,7 @@ dump_art_tree_root(char *prefix, uint64_t off, void *p)
 {
 	art_tree_root *tree_root;
 	tree_root = (art_tree_root *)p;
-	printf("at offset 0x%lx, art_tree_root {\n", off);
+	printf("at offset 0x%" PRIx64 ", art_tree_root {\n", off);
 	printf("    size %d\n", tree_root->size);
 	dump_PMEMoid("    art_node_u", (PMEMoid *)&(tree_root->root));
 	printf("\n};\n");
@@ -524,6 +525,7 @@ dump_art_tree_root(char *prefix, uint64_t off, void *p)
 static void
 dump_PMEMoid(char *prefix, PMEMoid *oid)
 {
-	printf("%s { PMEMoid pool_uuid_lo %lx off 0x%lx = %ld }\n",
+	printf("%s { PMEMoid pool_uuid_lo %" PRIx64
+	    " off 0x%" PRIx64 " = %" PRId64 " }\n",
 	    prefix, oid->pool_uuid_lo, oid->off, oid->off);
 }

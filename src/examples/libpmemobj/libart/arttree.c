@@ -1,6 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +56,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <emmintrin.h>
 #include <sys/types.h>
@@ -555,7 +556,7 @@ print_node_info(char *nodetype, uint64_t off, const art_node *an)
 	int p_len, i;
 
 	p_len = an->partial_len;
-	printf("N%lx [label=\"%s at\\n0x%lx\\n%d children",
+	printf("N%" PRIx64 " [label=\"%s at\\n0x%" PRIx64 "\\n%d children",
 	    off, nodetype, off, an->num_children);
 	if (p_len != 0) {
 		printf("\\nlen %d", p_len);
@@ -593,7 +594,8 @@ dump_art_node_callback(void *data,
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node4",
 				    cbd->node.oid.off, an);
-				printf("N%lx -> N%lx [label=\"%c\"];\n",
+				printf("N%" PRIx64 " -> N%" PRIx64
+				    " [label=\"%c\"];\n",
 				    cbd->node.oid.off,
 				    child.oid.off,
 				    D_RO(an4)->keys[cbd->child_idx]);
@@ -606,7 +608,8 @@ dump_art_node_callback(void *data,
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node16",
 				    cbd->node.oid.off, an);
-				printf("N%lx -> N%lx [label=\"%c\"];\n",
+				printf("N%" PRIx64 " -> N%" PRIx64
+				    " [label=\"%c\"];\n",
 				    cbd->node.oid.off,
 				    child.oid.off,
 				    D_RO(an16)->keys[cbd->child_idx]);
@@ -619,7 +622,8 @@ dump_art_node_callback(void *data,
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node48",
 				    cbd->node.oid.off, an);
-				printf("N%lx -> N%lx [label=\"%c\"];\n",
+				printf("N%" PRIx64 " -> N%" PRIx64
+				    " [label=\"%c\"];\n",
 				    cbd->node.oid.off,
 				    child.oid.off,
 				    D_RO(an48)->keys[cbd->child_idx]);
@@ -632,7 +636,8 @@ dump_art_node_callback(void *data,
 			if (!TOID_IS_NULL(child)) {
 				print_node_info("node256",
 				    cbd->node.oid.off, an);
-				printf("N%lx -> N%lx [label=\"0x%x\"];\n",
+				printf("N%" PRIx64 " -> N%" PRIx64
+				    " [label=\"0x%x\"];\n",
 				    cbd->node.oid.off,
 				    child.oid.off,
 				    (char)((cbd->child_idx) & 0xff));
@@ -642,20 +647,20 @@ dump_art_node_callback(void *data,
 			al = D_RO(cbd->node)->u.al;
 			oid_key = D_RO(al)->key;
 			oid_value = D_RO(al)->value;
-			printf("N%lx [shape=box,"
-				"label=\"leaf at\\n0x%lx\"];\n",
+			printf("N%" PRIx64 " [shape=box,"
+				"label=\"leaf at\\n0x%" PRIx64 "\"];\n",
 			    cbd->node.oid.off, cbd->node.oid.off);
-			printf("N%lx [shape=box,"
-				"label=\"key at 0x%lx: %s\"];\n",
+			printf("N%" PRIx64 " [shape=box,"
+				"label=\"key at 0x%" PRIx64 ": %s\"];\n",
 			    oid_key.oid.off, oid_key.oid.off,
 			    D_RO(oid_key)->s);
-			printf("N%lx [shape=box,"
-				"label=\"value at 0x%lx: %s\"];\n",
+			printf("N%" PRIx64 " [shape=box,"
+				"label=\"value at 0x%" PRIx64 ": %s\"];\n",
 			    oid_value.oid.off, oid_value.oid.off,
 			    D_RO(oid_value)->s);
-			printf("N%lx -> N%lx;\n",
+			printf("N%" PRIx64 " -> N%" PRIx64 ";\n",
 			    cbd->node.oid.off, oid_key.oid.off);
-			printf("N%lx -> N%lx;\n",
+			printf("N%" PRIx64 " -> N%" PRIx64 ";\n",
 			    cbd->node.oid.off, oid_value.oid.off);
 			break;
 		default:

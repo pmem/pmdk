@@ -318,7 +318,7 @@ hm_tx_debug(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, FILE *out)
 
 	fprintf(out, "a: %u b: %u p: %" PRIu64 "\n", D_RO(hashmap)->hash_fun_a,
 		D_RO(hashmap)->hash_fun_b, D_RO(hashmap)->hash_fun_p);
-	fprintf(out, "count: %" PRIu64 ", buckets: %" PRIu64 "\n",
+	fprintf(out, "count: %" PRIu64 ", buckets: %zu\n",
 		D_RO(hashmap)->count, D_RO(buckets)->nbuckets);
 
 	for (size_t i = 0; i < D_RO(buckets)->nbuckets; ++i) {
@@ -326,7 +326,7 @@ hm_tx_debug(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, FILE *out)
 			continue;
 
 		int num = 0;
-		fprintf(out, "%" PRIu64 ": ", i);
+		fprintf(out, "%zu: ", i);
 		for (var = D_RO(buckets)->bucket[i]; !TOID_IS_NULL(var);
 				var = D_RO(var)->next) {
 			fprintf(out, "%" PRIu64 " ", D_RO(var)->key);
