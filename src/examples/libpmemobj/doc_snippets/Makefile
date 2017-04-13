@@ -30,8 +30,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-LIBRARIES = snippets
-
 include ../../Makefile.inc
 
 TARGETS = persistent.o  make_persistent.o pool.o transaction.o
@@ -41,5 +39,7 @@ TARGETS += mutex.o
 else
 $(info NOTE: Skipping C++ chrono examples because of compiler/stdc++ issues)
 endif
+
+all: $(TARGETS)
 
 libsnippets.o: $(TARGETS)
