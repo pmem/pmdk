@@ -192,7 +192,7 @@ struct benchmark_clo {
 struct worker_info {
 	size_t index;		       /* index of worker thread */
 	struct operation_info *opinfo; /* operation info structure */
-	size_t nops;		       /* number of operations */
+	uint64_t nops;		       /* number of operations */
 	void *priv;		       /* worker's private data */
 	benchmark_time_t beg;	  /* start time */
 	benchmark_time_t end;	  /* end time */

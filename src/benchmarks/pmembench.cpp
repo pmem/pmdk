@@ -142,7 +142,7 @@ struct bench_results {
 struct total_results {
 	size_t nrepeats;
 	size_t nthreads;
-	size_t nops;
+	uint64_t nops;
 	double nopsps;
 	struct results total;
 	struct latency latency;
@@ -412,7 +412,7 @@ static int
 pmembench_run_worker(struct benchmark *bench, struct worker_info *winfo)
 {
 	benchmark_time_get(&winfo->beg);
-	for (size_t i = 0; i < winfo->nops; i++) {
+	for (uint64_t i = 0; i < winfo->nops; i++) {
 		if (bench->info->operation(bench, &winfo->opinfo[i]))
 			return -1;
 		benchmark_time_get(&winfo->opinfo[i].end);
@@ -518,7 +518,7 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
  */
 static int
 pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
-		       size_t n_ops, struct benchmark *bench,
+		       uint64_t n_ops, struct benchmark *bench,
 		       struct benchmark_args *args)
 {
 	size_t i;
@@ -558,8 +558,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i]->info.nops = n_ops;
 		workers[i]->info.opinfo = (struct operation_info *)calloc(
 			n_ops, sizeof(struct operation_info));
-		size_t j;
-		for (j = 0; j < n_ops; j++) {
+		for (uint64_t j = 0; j < n_ops; j++) {
 			workers[i]->info.opinfo[j].worker = &workers[i]->info;
 			workers[i]->info.opinfo[j].args = args;
 			workers[i]->info.opinfo[j].index = j;
@@ -579,12 +578,12 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
  */
 static void
 results_store(struct bench_results *res, struct benchmark_worker **workers,
-	      unsigned nthreads, size_t nops)
+	      unsigned nthreads, uint64_t nops)
 {
 	for (unsigned i = 0; i < nthreads; i++) {
 		res->thres[i]->beg = workers[i]->info.beg;
 		res->thres[i]->end = workers[i]->info.end;
-		for (size_t j = 0; j < nops; j++) {
+		for (uint64_t j = 0; j < nops; j++) {
 			res->thres[i]->end_op[j] =
 				workers[i]->info.opinfo[j].end;
 		}
@@ -629,7 +628,7 @@ compare_uint64t(const void *a1, const void *b1)
  * results_alloc -- prepare structure to store all benchmark results
  */
 static struct total_results *
-results_alloc(size_t nrepeats, size_t nthreads, size_t nops)
+results_alloc(size_t nrepeats, size_t nthreads, uint64_t nops)
 {
 	struct total_results *total =
 		(struct total_results *)malloc(sizeof(*total));
@@ -773,7 +772,7 @@ get_total_results(struct total_results *tres)
 		for (size_t j = 0; j < tres->nthreads; j++) {
 			struct thread_results *thres = res->thres[j];
 			benchmark_time_t *beg = &thres->beg;
-			for (size_t o = 0; o < tres->nops; o++) {
+			for (uint64_t o = 0; o < tres->nops; o++) {
 				benchmark_time_t lat;
 				benchmark_time_diff(&lat, beg,
 						    &thres->end_op[o]);
@@ -793,7 +792,7 @@ get_total_results(struct total_results *tres)
 	}
 
 	/* average latency */
-	size_t count = tres->nrepeats * tres->nthreads * tres->nops;
+	uint64_t count = tres->nrepeats * tres->nthreads * tres->nops;
 	tres->latency.avg /= count;
 
 	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
@@ -806,7 +805,7 @@ get_total_results(struct total_results *tres)
 		for (size_t j = 0; j < tres->nthreads; j++) {
 			struct thread_results *thres = res->thres[j];
 			benchmark_time_t *beg = &thres->beg;
-			for (size_t o = 0; o < tres->nops; o++) {
+			for (uint64_t o = 0; o < tres->nops; o++) {
 				benchmark_time_t lat;
 				benchmark_time_diff(&lat, beg,
 						    &thres->end_op[o]);
@@ -1089,7 +1088,7 @@ pmembench_remove_file(const char *path)
  */
 static int
 pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
-			size_t n_threads, size_t n_ops,
+			size_t n_threads, uint64_t n_ops,
 			struct bench_results *res)
 {
 	int ret = 0;
@@ -1159,7 +1158,7 @@ out:
 int
 scale_up_min_exe_time(struct benchmark *bench, struct benchmark_args *args,
 		      struct total_results **total_results, size_t n_threads,
-		      size_t n_ops)
+		      uint64_t n_ops)
 {
 	const double min_exe_time = args->min_exe_time;
 	struct total_results *total_res = *total_results;
@@ -1180,9 +1179,9 @@ scale_up_min_exe_time(struct benchmark *bench, struct benchmark_args *args,
 		 * scale up number of operations to get assumed minimal
 		 * execution time
 		 */
-		n_ops = (size_t)((double)n_ops *
-				 (min_exe_time + MIN_EXE_TIME_E) /
-				 total_res->total.min);
+		n_ops = (uint64_t)((double)n_ops *
+				   (min_exe_time + MIN_EXE_TIME_E) /
+				   total_res->total.min);
 		args->n_ops_per_thread = n_ops;
 
 		results_free(total_res);
@@ -1309,7 +1308,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 		size_t n_threads =
 			!bench->info->multithread ? 1 : args->n_threads;
-		size_t n_ops =
+		uint64_t n_ops =
 			!bench->info->multiops ? 1 : args->n_ops_per_thread;
 		uint64_t n_ops_per_thread_copy = args->n_ops_per_thread;
 
