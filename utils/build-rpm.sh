@@ -52,6 +52,9 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$7
+if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
+	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
+fi
 
 function create_changelog() {
 	echo
