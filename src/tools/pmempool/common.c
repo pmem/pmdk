@@ -204,7 +204,7 @@ util_parse_mode(const char *str, mode_t *mode)
 	while (digits < 3 && *str != '\0') {
 		if (*str < '0' || *str > '7')
 			return -1;
-		m = (m << 3) | (unsigned)(*str - '0');
+		m = (mode_t)(m << 3) | (mode_t)(*str - '0');
 		digits++;
 		str++;
 	}
@@ -240,7 +240,7 @@ util_parse_range_from(char *str, struct range *rangep, struct range entire)
 
 	str[str_len - 1] = '\0';
 
-	if (util_parse_size(str, &rangep->first))
+	if (util_parse_size(str, (size_t *)&rangep->first))
 		return -1;
 
 	rangep->last = entire.last;
@@ -259,7 +259,7 @@ util_parse_range_to(char *str, struct range *rangep, struct range entire)
 	if (str[0] != '-' || str[1] == '\0')
 		return -1;
 
-	if (util_parse_size(str + 1, &rangep->last))
+	if (util_parse_size(str + 1, (size_t *)&rangep->last))
 		return -1;
 
 	rangep->first = entire.first;
@@ -274,7 +274,7 @@ util_parse_range_to(char *str, struct range *rangep, struct range entire)
 static int
 util_parse_range_number(char *str, struct range *rangep, struct range entire)
 {
-	if (util_parse_size(str, &rangep->first) != 0)
+	if (util_parse_size(str, (size_t *)&rangep->first) != 0)
 		return -1;
 	rangep->last = rangep->first;
 	if (rangep->first > entire.last ||
@@ -305,10 +305,10 @@ util_parse_range(char *str, struct range *rangep, struct range entire)
 	*dash = '\0';
 	dash++;
 
-	if (util_parse_size(str, &rangep->first))
+	if (util_parse_size(str, (size_t *)&rangep->first))
 		return -1;
 
-	if (util_parse_size(dash, &rangep->last))
+	if (util_parse_size(dash, (size_t *)&rangep->last))
 		return -1;
 
 	if (rangep->first > rangep->last) {

@@ -478,7 +478,7 @@ outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset, int sep)
 				HEXDUMP_ROW_ASCII_LEN, datap + curr, curr_len);
 
 			if (ra && rh)
-				n = fprintf(out_fh, "%08"PRIx64"  %-*s|%-*s|\n",
+				n = fprintf(out_fh, "%08zx  %-*s|%-*s|\n",
 					curr + offset,
 					HEXDUMP_ROW_HEX_LEN, row_hex_str,
 					HEXDUMP_ROW_WIDTH, row_ascii_str);
@@ -526,10 +526,10 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump)
 	int valid = util_validate_checksum(buf, len, ncsump);
 
 	if (valid)
-		ret = snprintf(str_buff, STR_MAX, "0x%jx [OK]", le64toh(csum));
+		snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]", le64toh(csum));
 	else
-		ret = snprintf(str_buff, STR_MAX,
-			"0x%jx [wrong! should be: 0x%jx]",
+		snprintf(str_buff, STR_MAX,
+			"0x%" PRIx64 " [wrong! should be: 0x%" PRIx64 "]",
 			le64toh(csum), le64toh(*ncsump));
 
 	Free(buf);
