@@ -698,7 +698,12 @@ tail -n1 $CHANGELOG_TMP >> debian/changelog
 rm $CHANGELOG_TMP
 
 # This is our first release but we do
-debuild --preserve-envvar=EXTRA_CFLAGS --preserve-envvar=EXTRA_LDFLAGS -us -uc
+debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
+	--preserve-envvar=EXTRA_CFLAGS_DEBUG \
+	--preserve-envvar=EXTRA_CFLAGS \
+	--preserve-envvar=EXTRA_CXXFLAGS \
+	--preserve-envvar=EXTRA_LDFLAGS \
+	-us -uc
 
 cd $OLD_DIR
 
