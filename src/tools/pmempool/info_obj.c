@@ -54,7 +54,7 @@
 #define PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
 
 typedef void (*pvector_callback_fn)(struct pmem_info *pip, int v, int vnum,
-		const struct memory_block *m, size_t i);
+		const struct memory_block *m, uint64_t i);
 
 /*
  * lane_need_recovery_redo -- return 1 if redo log needs recovery
@@ -292,7 +292,7 @@ info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
 
 	outv_indent(vobj, 1);
 
-	size_t i = 0;
+	uint64_t i = 0;
 	uint64_t off;
 	struct memory_block m;
 	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
@@ -355,7 +355,7 @@ info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
  */
 static void
 set_entry_cb(struct pmem_info *pip, int v, int vid,
-	const struct memory_block *m, size_t i)
+	const struct memory_block *m, uint64_t i)
 {
 	struct tx_range *range = m->m_ops->get_user_data(m);
 	info_obj_object_hdr(pip, v, vid, m, i);
@@ -374,7 +374,7 @@ set_entry_cb(struct pmem_info *pip, int v, int vid,
  */
 static void
 set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
-	const struct memory_block *m, size_t i)
+	const struct memory_block *m, uint64_t i)
 {
 	struct tx_range_cache *cache = m->m_ops->get_user_data(m);
 	info_obj_object_hdr(pip, v, vid, m, i);

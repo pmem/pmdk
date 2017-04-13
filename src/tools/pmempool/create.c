@@ -360,7 +360,8 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			exit(EXIT_SUCCESS);
 		case 's':
 			pcp->str_size = optarg;
-			ret = util_parse_size(optarg, &pcp->params.size);
+			ret = util_parse_size(optarg,
+			    (size_t *)&pcp->params.size);
 			if (ret || pcp->params.size == 0) {
 				outv_err("invalid size value specified '%s'\n",
 						optarg);
@@ -465,7 +466,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 				return -1;
 			}
 			if (util_parse_size(pc.str_bsize,
-						&pc.params.blk.bsize)) {
+					(size_t *)&pc.params.blk.bsize)) {
 				outv_err("cannot parse '%s' as block size\n",
 						pc.str_bsize);
 				return -1;
