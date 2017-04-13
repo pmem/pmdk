@@ -228,7 +228,7 @@ hm_atomic_rebuild(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 			create_buckets, &new_len);
 	if (TOID_IS_NULL(D_RO(hashmap)->buckets_tmp)) {
 		fprintf(stderr,
-			"failed to allocate temporary space of size: %" PRIu64
+			"failed to allocate temporary space of size: %zu"
 			", %s\n",
 			new_len, pmemobj_errormsg());
 		return;
@@ -375,7 +375,7 @@ hm_atomic_debug(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 
 	fprintf(out, "a: %u b: %u p: %" PRIu64 "\n", D_RO(hashmap)->hash_fun_a,
 		D_RO(hashmap)->hash_fun_b, D_RO(hashmap)->hash_fun_p);
-	fprintf(out, "count: %" PRIu64 ", buckets: %" PRIu64 "\n",
+	fprintf(out, "count: %" PRIu64 ", buckets: %zu\n",
 		D_RO(hashmap)->count, D_RO(buckets)->nbuckets);
 
 	for (size_t i = 0; i < D_RO(buckets)->nbuckets; ++i) {
@@ -383,7 +383,7 @@ hm_atomic_debug(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 			continue;
 
 		int num = 0;
-		fprintf(out, "%" PRIu64": ", i);
+		fprintf(out, "%zu: ", i);
 		POBJ_LIST_FOREACH(var, &D_RO(buckets)->bucket[i], list) {
 			fprintf(out, "%" PRIu64 " ", D_RO(var)->key);
 			num++;

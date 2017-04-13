@@ -1,6 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <emmintrin.h>
 #include <stdarg.h>
@@ -655,21 +656,21 @@ asciidump(unsigned char *s, int32_t len)
 static void
 dump_art_tree_root(struct ds_context *ctx, art_tree *node)
 {
-	fprintf(ctx->output, "art_tree 0x%lx {\n"
-		"   size=%ld;\n   root=0x%lx;\n}\n",
-	    (uint64_t)node, node->size, (uint64_t)(node->root));
+	fprintf(ctx->output, "art_tree 0x%" PRIxPTR " {\n"
+		"   size=%" PRId64 ";\n   root=0x%" PRIxPTR ";\n}\n",
+	    (uintptr_t)node, node->size, (uintptr_t)(node->root));
 }
 
 static void
 dump_art_node(struct ds_context *ctx, art_node *node)
 {
-	fprintf(ctx->output,	"art_node 0x%lx {\n"
+	fprintf(ctx->output,	"art_node 0x%" PRIxPTR " {\n"
 				"   type=%s;\n"
 				"   num_children=%d;\n"
 				"   partial_len=%d;\n"
 				"   partial=[%s];\n"
 				"}\n",
-	    (uint64_t)node, art_node_types[node->type].name,
+	    (uintptr_t)node, art_node_types[node->type].name,
 	    node->num_children, node->partial_len,
 	    asciidump(node->partial, node->partial_len));
 }
@@ -679,13 +680,13 @@ dump_art_node4(struct ds_context *ctx, art_node4 *node)
 {
 	int i;
 
-	fprintf(ctx->output, "art_node4 0x%lx {\n", (uint64_t)node);
+	fprintf(ctx->output, "art_node4 0x%" PRIxPTR " {\n", (uintptr_t)node);
 	dump_art_node(ctx, &(node->n));
 	for (i = 0; i < node->n.num_children; i++) {
 		fprintf(ctx->output, "   key[%d]=%s;\n",
 		    i, asciidump(&(node->keys[i]), 1));
-		fprintf(ctx->output, "   child[%d]=0x%lx;\n",
-		    i, (uint64_t)(node->children[i]));
+		fprintf(ctx->output, "   child[%d]=0x%" PRIxPTR ";\n",
+		    i, (uintptr_t)(node->children[i]));
 	}
 	fprintf(ctx->output, "}\n");
 }
@@ -695,13 +696,13 @@ dump_art_node16(struct ds_context *ctx, art_node16 *node)
 {
 	int i;
 
-	fprintf(ctx->output, "art_node16 0x%lx {\n", (uint64_t)node);
+	fprintf(ctx->output, "art_node16 0x%" PRIxPTR " {\n", (uintptr_t)node);
 	dump_art_node(ctx, &(node->n));
 	for (i = 0; i < node->n.num_children; i++) {
 		fprintf(ctx->output, "   key[%d]=%s;\n",
 		    i, asciidump(&(node->keys[i]), 1));
-		fprintf(ctx->output, "   child[%d]=0x%lx;\n",
-		    i, (uint64_t)(node->children[i]));
+		fprintf(ctx->output, "   child[%d]=0x%" PRIxPTR ";\n",
+		    i, (uintptr_t)(node->children[i]));
 	}
 	fprintf(ctx->output, "}\n");
 }
@@ -712,7 +713,7 @@ dump_art_node48(struct ds_context *ctx, art_node48 *node)
 	int i;
 	int idx;
 
-	fprintf(ctx->output, "art_node48 0x%lx {\n", (uint64_t)node);
+	fprintf(ctx->output, "art_node48 0x%" PRIxPTR " {\n", (uintptr_t)node);
 	dump_art_node(ctx, &(node->n));
 	for (i = 0; i < 256; i++) {
 		idx = node->keys[i];
@@ -721,8 +722,8 @@ dump_art_node48(struct ds_context *ctx, art_node48 *node)
 
 		fprintf(ctx->output, "   key[%d]=%s;\n",
 		    i, asciidump((unsigned char *)(&i), 1));
-		fprintf(ctx->output, "   child[%d]=0x%lx;\n",
-		    idx, (uint64_t)(node->children[idx]));
+		fprintf(ctx->output, "   child[%d]=0x%" PRIxPTR ";\n",
+		    idx, (uintptr_t)(node->children[idx]));
 	}
 	fprintf(ctx->output, "}\n");
 }
@@ -732,7 +733,7 @@ dump_art_node256(struct ds_context *ctx, art_node256 *node)
 {
 	int i;
 
-	fprintf(ctx->output, "art_node48 0x%lx {\n", (uint64_t)node);
+	fprintf(ctx->output, "art_node48 0x%" PRIxPTR " {\n", (uintptr_t)node);
 	dump_art_node(ctx, &(node->n));
 	for (i = 0; i < 256; i++) {
 		if (node->children[i] == NULL)
@@ -740,8 +741,8 @@ dump_art_node256(struct ds_context *ctx, art_node256 *node)
 
 		fprintf(ctx->output, "   key[%i]=%s;\n",
 		    i, asciidump((unsigned char *)(&i), 1));
-		fprintf(ctx->output, "   child[%d]=0x%lx;\n",
-		    i, (uint64_t)(node->children[i]));
+		fprintf(ctx->output, "   child[%d]=0x%" PRIxPTR ";\n",
+		    i, (uintptr_t)(node->children[i]));
 	}
 	fprintf(ctx->output, "}\n");
 }
@@ -749,13 +750,13 @@ dump_art_node256(struct ds_context *ctx, art_node256 *node)
 static void
 dump_art_leaf(struct ds_context *ctx, art_leaf *node)
 {
-	fprintf(ctx->output,	"art_leaf 0x%lx {\n"
+	fprintf(ctx->output,	"art_leaf 0x%" PRIxPTR " {\n"
 				"   key_len=%u;\n"
 				"   key=[%s];\n"
 				"   val_len=%u;\n"
 				"   value=[%s];\n"
 				"}\n",
-	    (uint64_t)node,
+	    (uintptr_t)node,
 	    node->key_len, asciidump(node->key, (int32_t)node->key_len),
 	    node->val_len, asciidump(node->value, (int32_t)node->val_len));
 }
@@ -1161,7 +1162,7 @@ print_node_info(char *nodetype, uint64_t addr, art_node *an)
 
 	p_len = an->partial_len;
 	fprintf(my_context.output,
-	    "N%lx [label=\"%s at\\n0x%lx\\n%d children",
+	    "N%" PRIx64 " [label=\"%s at\\n0x%" PRIx64 "\\n%d children",
 	    addr, nodetype, addr, an->num_children);
 	if (p_len != 0) {
 		fprintf(my_context.output, "\\nlen %d", p_len);
@@ -1193,22 +1194,25 @@ dump_art_tree_graph(void *data,
 	if (IS_LEAF(cbd->node)) {
 		al = LEAF_RAW(cbd->node);
 		fprintf(my_context.output,
-			"N%lx [shape=box, label=\"leaf at\\n0x%lx\"];\n",
-			(uint64_t)al, (uint64_t)al);
+			"N%" PRIxPTR " [shape=box, "
+			"label=\"leaf at\\n0x%" PRIxPTR "\"];\n",
+			(uintptr_t)al, (uintptr_t)al);
 		fprintf(my_context.output,
-			"N%lx [shape=box, label=\"key at 0x%lx: %s\"];\n",
-			(uint64_t)al->key, (uint64_t)al->key,
+			"N%" PRIxPTR " [shape=box, "
+			"label=\"key at 0x%" PRIxPTR ": %s\"];\n",
+			(uintptr_t)al->key, (uintptr_t)al->key,
 			asciidump(al->key, al->key_len));
 		fprintf(my_context.output,
-			"N%lx [shape=box, label=\"value at 0x%lx: %s\"];\n",
-			(uint64_t)al->value, (uint64_t)al->value,
+			"N%" PRIxPTR " [shape=box, "
+			"label=\"value at 0x%" PRIxPTR ": %s\"];\n",
+			(uintptr_t)al->value, (uintptr_t)al->value,
 			asciidump(al->value, al->val_len));
 		fprintf(my_context.output,
-			"N%lx -> N%lx;\n",
-			(uint64_t)al, (uint64_t)al->key);
+			"N%" PRIxPTR " -> N%" PRIxPTR ";\n",
+			(uintptr_t)al, (uintptr_t)al->key);
 		fprintf(my_context.output,
-			"N%lx -> N%lx;\n",
-			(uint64_t)al, (uint64_t)al->value);
+			"N%" PRIxPTR " -> N%" PRIxPTR ";\n",
+			(uintptr_t)al, (uintptr_t)al->value);
 		return 0;
 	}
 
@@ -1222,8 +1226,8 @@ dump_art_tree_graph(void *data,
 				print_node_info("node4",
 				    (uint64_t)(cbd->node), &(an4->n));
 			fprintf(my_context.output,
-			    "N%lx -> N%lx [label=\"%s\"];\n",
-			    (uint64_t)an4, (uint64_t)child,
+			    "N%" PRIxPTR " -> N%" PRIxPTR " [label=\"%s\"];\n",
+			    (uintptr_t)an4, (uintptr_t)child,
 			    asciidump(&(an4->keys[cbd->child_idx]), 1));
 		}
 		break;
@@ -1236,8 +1240,8 @@ dump_art_tree_graph(void *data,
 				print_node_info("node16",
 				    (uint64_t)(cbd->node), &(an16->n));
 			fprintf(my_context.output,
-			    "N%lx -> N%lx [label=\"%s\"];\n",
-			    (uint64_t)an16, (uint64_t)child,
+			    "N%" PRIxPTR " -> N%" PRIxPTR " [label=\"%s\"];\n",
+			    (uintptr_t)an16, (uintptr_t)child,
 			    asciidump(&(an16->keys[cbd->child_idx]), 1));
 		}
 		break;
@@ -1251,8 +1255,8 @@ dump_art_tree_graph(void *data,
 				print_node_info("node48",
 				    (uint64_t)(cbd->node), &(an48->n));
 			fprintf(my_context.output,
-			    "N%lx -> N%lx [label=\"%s\"];\n",
-			    (uint64_t)an48, (uint64_t)child,
+			    "N%" PRIxPTR " -> N%" PRIxPTR " [label=\"%s\"];\n",
+			    (uintptr_t)an48, (uintptr_t)child,
 			    asciidump(&(hexvals[cbd->child_idx]), 1));
 		}
 		break;
@@ -1265,8 +1269,8 @@ dump_art_tree_graph(void *data,
 				print_node_info("node256",
 				    (uint64_t)(cbd->node), &(an256->n));
 			fprintf(my_context.output,
-			    "N%lx -> N%lx [label=\"%s\"];\n",
-			    (uint64_t)an256, (uint64_t)child,
+			    "N%" PRIxPTR " -> N%" PRIxPTR " [label=\"%s\"];\n",
+			    (uintptr_t)an256, (uintptr_t)child,
 			    asciidump(&(hexvals[cbd->child_idx]), 1));
 		}
 		break;

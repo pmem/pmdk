@@ -142,7 +142,7 @@ rebuild(void)
 
 	map_cmd(mapc, map, HASHMAP_CMD_REBUILD, 0);
 
-	printf("%" PRIu64"s\n", time(NULL) - t1);
+	printf("%" PRIu64"s\n", (uint64_t)(time(NULL) - t1));
 }
 
 /*
@@ -193,7 +193,7 @@ hashmap_print(uint64_t key, PMEMoid value, void *arg)
 static void
 print_all(void)
 {
-	printf("count: %" PRIu64 "\n", map_count(mapc, map));
+	printf("count: %zu\n", map_count(mapc, map));
 	map_foreach(mapc, map, hashmap_print, NULL);
 	printf("\n");
 }
