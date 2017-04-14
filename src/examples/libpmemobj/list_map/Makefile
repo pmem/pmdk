@@ -35,6 +35,8 @@
 #
 LIBRARIES = skiplist_map
 
+LIBS = -lpmemobj
+
 include ../../Makefile.inc
 
 libskiplist_map.o: skiplist_map.o
