@@ -401,15 +401,6 @@ ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 }
 
 /*
- * ctl_exec_query_config -- (internal) executes a ctl query from a provider
- */
-static int
-ctl_exec_query_config(PMEMobjpool *pop, struct ctl_query_config *q)
-{
-	return ctl_query(pop, CTL_QUERY_CONFIG_INPUT, q->name, NULL, q->value);
-}
-
-/*
  * ctl_load_config -- executes the entire query collection from a provider
  */
 int
@@ -420,7 +411,8 @@ ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p)
 	struct ctl_query_config q = {NULL, NULL};
 
 	for (r = p->first(p, &q); r == 0; r = p->next(p, &q)) {
-		if ((r = ctl_exec_query_config(pop, &q)) != 0)
+		if ((r = ctl_query(pop, CTL_QUERY_CONFIG_INPUT,
+				q.name, NULL, q.value)) != 0)
 			break;
 	}
 
