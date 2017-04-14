@@ -159,6 +159,8 @@ Description: rpmem daemon
 EOF
 }
 
+if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
+then
 CHECK_CMD="
 override_dh_auto_test:
 	dh_auto_test
@@ -167,13 +169,12 @@ override_dh_auto_test:
 	else\
 	        cp src/test/testconfig.sh.example src/test/testconfig.sh;\
 	fi
-"
-
-if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
-then
-CHECK_CMD="
-${CHECK_CMD}
 	make pcheck ${PCHECK_OPTS}
+"
+else
+CHECK_CMD="
+override_dh_auto_test:
+
 "
 fi
 
