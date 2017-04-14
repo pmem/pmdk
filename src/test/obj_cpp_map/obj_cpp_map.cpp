@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 
 		} else {
 			pop = nvobj::pool<root>::create(path, LAYOUT,
-							PMEMOBJ_MIN_POOL,
+							PMEMOBJ_MIN_POOL * 2,
 							S_IWUSR | S_IRUSR);
 			nvobj::transaction::manual tx(pop);
 			pop.get_root()->cons =

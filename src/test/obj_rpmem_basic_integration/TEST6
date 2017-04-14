@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,11 +65,11 @@ TEST_FILE_REMOTE="testfile_remote"
 NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1) $(get_node_dir 2))
 
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL 8M:${NODE_DIRS[0]}/$TEST_FILE_LOCAL:x \
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[0]}/$TEST_FILE_LOCAL:x \
         m ${NODE_ADDR[1]}:${TEST_SET_REMOTE}1 \
 	m ${NODE_ADDR[2]}:${TEST_SET_REMOTE}2
-create_poolset $DIR/${TEST_SET_REMOTE}1 9M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1:x
-create_poolset $DIR/${TEST_SET_REMOTE}2 9M:${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2:x
+create_poolset $DIR/${TEST_SET_REMOTE}1 17M:${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1:x
+create_poolset $DIR/${TEST_SET_REMOTE}2 17M:${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2:x
 
 copy_files_to_node 0 . $DIR/$TEST_SET_LOCAL
 copy_files_to_node 1 . $DIR/${TEST_SET_REMOTE}1
@@ -80,9 +80,9 @@ rm_files_from_node 1 ${TEST_FILE_REMOTE}1
 rm_files_from_node 2 ${TEST_FILE_REMOTE}2
 
 # create remote holey pool files
-create_holey_file_on_node 0 8M ${NODE_DIRS[0]}/$TEST_FILE_LOCAL
-create_holey_file_on_node 1 9M ${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1
-create_holey_file_on_node 2 9M ${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2
+create_holey_file_on_node 0 16M ${NODE_DIRS[0]}/$TEST_FILE_LOCAL
+create_holey_file_on_node 1 17M ${NODE_DIRS[1]}/${TEST_FILE_REMOTE}1
+create_holey_file_on_node 2 17M ${NODE_DIRS[2]}/${TEST_FILE_REMOTE}2
 
 # execute test
 expect_normal_exit run_on_node 0 ./$EXE$EXESUFFIX $TEST_SET_LOCAL

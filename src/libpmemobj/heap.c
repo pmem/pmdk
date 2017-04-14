@@ -257,18 +257,22 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id)
  */
 static void
 heap_run_init(struct palloc_heap *heap, struct bucket *b,
-		struct chunk_header *hdr, struct chunk_run *run)
+	const struct memory_block *m)
 {
 	struct alloc_class *c = b->aclass;
 	ASSERTeq(c->type, CLASS_RUN);
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+
+	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
 	VALGRIND_ADD_TO_TX(run, sizeof(*run));
 	run->block_size = c->unit_size;
 	pmemops_persist(&heap->p_ops, &run->block_size,
 			sizeof(run->block_size));
-
-	ASSERT(hdr->type == CHUNK_TYPE_FREE);
 
 	/* set all the bits */
 	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
@@ -287,6 +291,25 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 
 	pmemops_persist(&heap->p_ops, run->bitmap, sizeof(run->bitmap));
 
+	struct chunk_header run_data_hdr;
+	run_data_hdr.type = CHUNK_TYPE_RUN_DATA;
+	run_data_hdr.flags = 0;
+
+	struct chunk_header *data_hdr;
+	for (unsigned i = 1; i < m->size_idx; ++i) {
+		data_hdr = &z->chunk_headers[m->chunk_id + i];
+		VALGRIND_ADD_TO_TX(data_hdr, sizeof(*data_hdr));
+		run_data_hdr.size_idx = i;
+		*data_hdr = run_data_hdr;
+		VALGRIND_REMOVE_FROM_TX(data_hdr, sizeof(*data_hdr));
+	}
+	pmemops_persist(&heap->p_ops,
+		&z->chunk_headers[m->chunk_id + 1],
+		sizeof(struct chunk_header) * (m->size_idx - 1));
+
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERT(hdr->type == CHUNK_TYPE_FREE);
+
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
@@ -302,8 +325,8 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
  * heap_run_insert -- (internal) inserts and splits a block of memory into a run
  */
 static void
-heap_run_insert(struct palloc_heap *heap, struct bucket *b, uint32_t chunk_id,
-		uint32_t zone_id, uint32_t size_idx, uint16_t block_off)
+heap_run_insert(struct palloc_heap *heap, struct bucket *b,
+	const struct memory_block *m, uint32_t size_idx, uint16_t block_off)
 {
 	struct alloc_class *c = b->aclass;
 	ASSERTeq(c->type, CLASS_RUN);
@@ -312,22 +335,19 @@ heap_run_insert(struct palloc_heap *heap, struct bucket *b, uint32_t chunk_id,
 	ASSERT(block_off + size_idx <= c->run.bitmap_nallocs);
 
 	uint32_t unit_max = c->run.unit_max;
-	struct memory_block m = {chunk_id, zone_id,
-		unit_max - (block_off % unit_max), block_off,
-		0, 0, NULL, NULL};
-
-	if (m.size_idx > size_idx)
-		m.size_idx = size_idx;
-
-	memblock_rebuild_state(heap, &m);
+	struct memory_block nm = *m;
+	nm.size_idx = unit_max - (block_off % unit_max);
+	nm.block_off = block_off;
+	if (nm.size_idx > size_idx)
+		nm.size_idx = size_idx;
 
 	do {
-		bucket_insert_block(b, &m);
-		ASSERT(m.size_idx <= UINT16_MAX);
-		ASSERT(m.block_off + m.size_idx <= UINT16_MAX);
-		m.block_off = (uint16_t)(m.block_off + (uint16_t)m.size_idx);
-		size_idx -= m.size_idx;
-		m.size_idx = size_idx > unit_max ? unit_max : size_idx;
+		bucket_insert_block(b, &nm);
+		ASSERT(nm.size_idx <= UINT16_MAX);
+		ASSERT(nm.block_off + nm.size_idx <= UINT16_MAX);
+		nm.block_off = (uint16_t)(nm.block_off + (uint16_t)nm.size_idx);
+		size_idx -= nm.size_idx;
+		nm.size_idx = size_idx > unit_max ? unit_max : size_idx;
 	} while (size_idx != 0);
 }
 
@@ -336,18 +356,17 @@ heap_run_insert(struct palloc_heap *heap, struct bucket *b, uint32_t chunk_id,
  */
 static uint32_t
 heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
-	struct chunk_run *run, uint32_t chunk_id, uint32_t zone_id)
+	const struct memory_block *m)
 {
 	struct alloc_class *c = b->aclass;
 	ASSERTeq(c->type, CLASS_RUN);
 
-	ASSERT(RUN_NALLOCS(run->block_size) <= UINT16_MAX);
-
-	uint16_t run_bits = (uint16_t)(RUNSIZE / run->block_size);
-	ASSERT(run_bits < (MAX_BITMAP_VALUES * BITS_PER_VALUE));
 	uint16_t block_off = 0;
 	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
 
 	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
 		ASSERT(i < MAX_BITMAP_VALUES);
@@ -355,8 +374,7 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
 		if (v == 0) {
-			heap_run_insert(heap, b, chunk_id, zone_id,
-				BITS_PER_VALUE, block_off);
+			heap_run_insert(heap, b, m, BITS_PER_VALUE, block_off);
 			inserted_blocks += BITS_PER_VALUE;
 			continue;
 		} else if (v == UINT64_MAX) {
@@ -369,14 +387,14 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 			} else if (block_size_idx != 0) {
 				ASSERT(block_off >= block_size_idx);
 
-				heap_run_insert(heap, b, chunk_id, zone_id,
+				heap_run_insert(heap, b, m,
 					block_size_idx,
 					(uint16_t)(block_off - block_size_idx));
 				inserted_blocks += block_size_idx;
 				block_size_idx = 0;
 			}
 
-			if ((block_off++) == run_bits) {
+			if ((block_off++) == c->run.bitmap_nallocs) {
 				i = MAX_BITMAP_VALUES;
 				break;
 			}
@@ -385,7 +403,7 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 		if (block_size_idx != 0) {
 			ASSERT(block_off >= block_size_idx);
 
-			heap_run_insert(heap, b, chunk_id, zone_id,
+			heap_run_insert(heap, b, m,
 					block_size_idx,
 					(uint16_t)(block_off - block_size_idx));
 			inserted_blocks += block_size_idx;
@@ -401,18 +419,11 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
  */
 static void
 heap_create_run(struct palloc_heap *heap, struct bucket *b,
-	uint32_t chunk_id, uint32_t zone_id)
+	struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
-
-	ASSERT(hdr->size_idx == 1);
-	ASSERT(hdr->type == CHUNK_TYPE_FREE);
-
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
-	heap_run_init(heap, b, hdr, run);
-	heap_process_run_metadata(heap, b, run, chunk_id, zone_id);
+	heap_run_init(heap, b, m);
+	memblock_rebuild_state(heap, m);
+	heap_process_run_metadata(heap, b, m);
 }
 
 /*
@@ -420,17 +431,11 @@ heap_create_run(struct palloc_heap *heap, struct bucket *b,
  */
 static uint32_t
 heap_reuse_run(struct palloc_heap *heap, struct bucket *b,
-	uint32_t chunk_id, uint32_t zone_id)
+	const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[chunk_id];
+	ASSERTeq(m->type, MEMORY_BLOCK_RUN);
 
-	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
-	ASSERTeq(hdr->size_idx, 1);
-	ASSERTeq(b->aclass->unit_size, run->block_size);
-
-	return heap_process_run_metadata(heap, b, run, chunk_id, zone_id);
+	return heap_process_run_metadata(heap, b, m);
 }
 
 /*
@@ -481,7 +486,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 		nb.chunk_id = m->chunk_id;
 		nb.zone_id = m->zone_id;
 		nb.block_off = 0;
-		nb.size_idx = 1;
+		nb.size_idx = m->size_idx;
 
 		heap_chunk_init(heap, hdr, CHUNK_TYPE_FREE, nb.size_idx);
 		memblock_rebuild_state(heap, &nb);
@@ -504,6 +509,31 @@ heap_reclaim_run(struct palloc_heap *heap, struct chunk_run *run,
 }
 
 /*
+ * heap_init_free_chunk -- initializes free chunk transient state
+ */
+static void
+heap_init_free_chunk(struct palloc_heap *heap,
+	struct chunk_header *hdr,
+	struct memory_block *m)
+{
+	struct operation_context ctx;
+	operation_init(&ctx, heap->base, NULL, NULL);
+	ctx.p_ops = &heap->p_ops;
+	heap_chunk_write_footer(hdr, hdr->size_idx);
+	/*
+	 * Perform coalescing just in case there
+	 * are any neighbouring free chunks.
+	 */
+	struct memory_block nm = heap_coalesce_huge(heap, m);
+	if (nm.chunk_id != m->chunk_id) {
+		m->m_ops->prep_hdr(&nm, MEMBLOCK_FREE, &ctx);
+		operation_process(&ctx);
+	}
+	*m = nm;
+	bucket_insert_block(heap->rt->default_bucket, m);
+}
+
+/*
  * heap_reclaim_zone_garbage -- (internal) creates volatile state of unused runs
  */
 static int
@@ -513,13 +543,10 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 
 	struct chunk_run *run = NULL;
 	int rchunks = 0;
-	struct bucket *defb = heap->rt->default_bucket;
 
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
 		ASSERT(hdr->size_idx != 0);
-		if (init)
-			heap_chunk_write_footer(hdr, hdr->size_idx);
 
 		struct memory_block m = MEMORY_BLOCK_NONE;
 		m.zone_id = zone_id;
@@ -535,9 +562,12 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 				break;
 			case CHUNK_TYPE_FREE:
 				if (init)
-					bucket_insert_block(defb, &m);
+					heap_init_free_chunk(heap, hdr, &m);
 				break;
 			case CHUNK_TYPE_USED:
+				if (init)
+					heap_chunk_write_footer(hdr,
+						hdr->size_idx);
 				break;
 			default:
 				ASSERT(0);
@@ -630,7 +660,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
 
 		util_mutex_lock(lock);
-		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
+		heap_reuse_run(heap, b, &m);
 		util_mutex_unlock(lock);
 
 		b->active_memory_block = m;
@@ -639,7 +669,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		return 0;
 	}
 
-	m.size_idx = 1;
+	m.size_idx = b->aclass->run.size_idx;
 
 	/* cannot reuse an existing run, create a new one */
 	struct bucket *defb = heap_get_default_bucket(heap);
@@ -647,8 +677,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 		ASSERTeq(m.block_off, 0);
 
-		heap_create_run(heap, b, m.chunk_id, m.zone_id);
-		memblock_rebuild_state(heap, &m);
+		heap_create_run(heap, b, &m);
 
 		b->active_memory_block = m;
 		b->is_active = 1;
@@ -665,7 +694,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
 		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
 		util_mutex_lock(lock);
-		heap_reuse_run(heap, b, m.chunk_id, m.zone_id);
+		heap_reuse_run(heap, b, &m);
 		util_mutex_unlock(lock);
 
 		/*

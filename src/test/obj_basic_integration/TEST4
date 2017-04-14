@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,9 +41,9 @@ require_test_type medium
 
 setup
 
-create_poolset $DIR/testset1 8M:$DIR/testfile1 \
-	r 10M:$DIR/testfile2 \
-	r 12M:$DIR/testfile3
+create_poolset $DIR/testset1 16M:$DIR/testfile1 \
+	r 18M:$DIR/testfile2 \
+	r 20M:$DIR/testfile3
 
 expect_normal_exit\
     ./obj_basic_integration$EXESUFFIX $DIR/testset1

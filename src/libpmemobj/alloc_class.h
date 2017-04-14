@@ -96,6 +96,11 @@ struct alloc_class {
 			 * the bucket.
 			 */
 			unsigned unit_max_alloc;
+
+			/*
+			 * The size index of a single run instance.
+			 */
+			uint32_t size_idx;
 		} run;
 	};
 };

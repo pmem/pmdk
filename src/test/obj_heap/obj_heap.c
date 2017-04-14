@@ -227,11 +227,7 @@ test_heap(void)
 
 	UT_ASSERT(c_small->unit_size < c_big->unit_size);
 
-	struct alloc_class *c_def = heap_get_best_class(heap, CHUNKSIZE);
-	UT_ASSERT(c_def->unit_size == CHUNKSIZE);
-
 	/* new small buckets should be empty */
-	UT_ASSERT(c_def->type == CLASS_HUGE);
 	UT_ASSERT(c_big->type == CLASS_RUN);
 
 	struct memory_block blocks[MAX_BLOCKS] = {
@@ -240,7 +236,7 @@ test_heap(void)
 		{0, 0, 1, 0}
 	};
 
-	struct bucket *b_def = heap_get_bucket_by_class(heap, c_def);
+	struct bucket *b_def = heap_get_default_bucket(heap);
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
