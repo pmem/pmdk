@@ -291,89 +291,55 @@ test_ctl_parser(PMEMobjpool *pop)
 }
 
 static void
-test_string_query_provider(PMEMobjpool *pop)
-{
-	struct ctl_query_config q = {NULL, NULL};
-	int ret;
-
-	struct ctl_query_provider *p = ctl_string_provider_new("");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(q.name, NULL);
-	UT_ASSERTeq(q.value, NULL);
-	UT_ASSERTeq(ret, 1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new(";;");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, 1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new(";=;");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, -1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new("=");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, -1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new("a=");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, -1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new("=b");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, -1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new("a=b=c");
-	UT_ASSERTne(p, NULL);
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, -1);
-	ctl_string_provider_delete(p);
-
-	p = ctl_string_provider_new("a=b;c=d;e=f;");
-	ret = p->first(p, &q);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(strcmp(q.name, "a"), 0);
-	UT_ASSERTeq(strcmp(q.value, "b"), 0);
-
-	ret = p->next(p, &q);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(strcmp(q.name, "c"), 0);
-	UT_ASSERTeq(strcmp(q.value, "d"), 0);
-
-	ret = p->next(p, &q);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(strcmp(q.name, "e"), 0);
-	UT_ASSERTeq(strcmp(q.value, "f"), 0);
-
-	ret = p->next(p, &q);
-	UT_ASSERTeq(ret, 1);
-
-	ctl_string_provider_delete(p);
-}
-
-static void
 test_string_config(PMEMobjpool *pop)
 {
-	struct ctl_query_provider *p = ctl_string_provider_new(
-		"debug.test_config="TEST_CONFIG_VALUE";");
-	UT_ASSERTne(p, NULL);
+	int ret;
 
 	test_config_written = 0;
-	ctl_load_config(pop, p);
-	UT_ASSERTeq(test_config_written, 1);
+	ret = ctl_load_config_from_string(pop, "");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(test_config_written, 0);
 
-	ctl_string_provider_delete(p);
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, ";;");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, ";=;");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, "=");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, "a=");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, "=b");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, "a=b=c");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop, "a=b;c=d;e=f;");
+	UT_ASSERTeq(ret, -1);
+	UT_ASSERTeq(test_config_written, 0);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop,
+			"debug.test_config="TEST_CONFIG_VALUE";");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(test_config_written, 1);
 }
 
 static void
@@ -386,18 +352,15 @@ config_file_create(const char *buf)
 }
 
 static void
-create_and_test_file_config(PMEMobjpool *pop, const char *buf, int result)
+create_and_test_file_config(PMEMobjpool *pop, const char *buf, int ret,
+		int result)
 {
 	config_file_create(buf);
 
-	struct ctl_query_provider *p = ctl_file_provider_new(testconfig_path);
-	UT_ASSERTne(p, NULL);
-
 	test_config_written = 0;
-	ctl_load_config(pop, p);
+	int r = ctl_load_config_from_file(pop, testconfig_path);
+	UT_ASSERTeq(r, ret);
 	UT_ASSERTeq(test_config_written, result);
-
-	ctl_string_provider_delete(p);
 }
 
 static void
@@ -409,8 +372,8 @@ test_too_large_file(PMEMobjpool *pop)
 
 	config_file_create(too_large_buf);
 
-	struct ctl_query_provider *p = ctl_file_provider_new(testconfig_path);
-	UT_ASSERTeq(p, NULL);
+	int ret = ctl_load_config_from_file(pop, testconfig_path);
+	UT_ASSERTne(ret, 0);
 
 	free(too_large_buf);
 }
@@ -419,50 +382,52 @@ static void
 test_file_config(PMEMobjpool *pop)
 {
 	create_and_test_file_config(pop,
-		"debug.test_config="TEST_CONFIG_VALUE";", 1);
+		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
 		"debug.test_config="TEST_CONFIG_VALUE";"
-		"debug.test_config="TEST_CONFIG_VALUE";", 1);
+		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
 		"#this is a comment\n"
-		"debug.test_config="TEST_CONFIG_VALUE";", 1);
+		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
 		"debug.#this is a comment\n"
 		"test_config#this is a comment\n"
-		"="TEST_CONFIG_VALUE";", 1);
+		"="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
-		"debug.test_config="TEST_CONFIG_VALUE";#this is a comment", 1);
+		"debug.test_config="TEST_CONFIG_VALUE";#this is a comment",
+		0, 1);
 	create_and_test_file_config(pop,
-		"\n\n\ndebug\n.\ntest\t_\tconfig="TEST_CONFIG_VALUE";\n", 1);
+		"\n\n\ndebug\n.\ntest\t_\tconfig="TEST_CONFIG_VALUE";\n", 0, 1);
 	create_and_test_file_config(pop,
-		" d e b u g . t e s t _ c o n f i g = "TEST_CONFIG_VALUE";", 1);
+		" d e b u g . t e s t _ c o n f i g = "TEST_CONFIG_VALUE";",
+		0, 1);
 	create_and_test_file_config(pop,
-		"#debug.test_config="TEST_CONFIG_VALUE";", 0);
+		"#debug.test_config="TEST_CONFIG_VALUE";", 0, 0);
 	create_and_test_file_config(pop,
 		"debug.#this is a comment\n"
 		"test_config#this is a not properly terminated comment"
-		"="TEST_CONFIG_VALUE";", 0);
+		"="TEST_CONFIG_VALUE";", -1, 0);
 	create_and_test_file_config(pop,
-		"invalid", 0);
+		"invalid", -1, 0);
 	create_and_test_file_config(pop,
-		"", 0);
+		"", 0, 0);
 
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=;", 0);
+		"debug.test_config_complex_arg=;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=1,2,3;", 0);
+		"debug.test_config_complex_arg=1,2,3;", 0, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=12345,abcd,,1;", 0);
+		"debug.test_config_complex_arg=12345,abcd,,1;", 0, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 1);
+		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 0, 1);
 
 	create_and_test_file_config(NULL,
-		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 1);
+		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
 
 	test_too_large_file(pop);
 
-	struct ctl_query_provider *p = ctl_file_provider_new("does_not_exist");
-	UT_ASSERTeq(p, NULL);
+	int ret = ctl_load_config_from_file(pop, "does_not_exist");
+	UT_ASSERTne(ret, 0);
 }
 
 static void
@@ -668,7 +633,6 @@ main(int argc, char *argv[])
 	test_ctl_global_namespace(pop);
 
 	test_ctl_parser(pop);
-	test_string_query_provider(pop);
 	test_string_config(pop);
 	test_file_config(pop);
 	test_ctl_arg_parsers();
