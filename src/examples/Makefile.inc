@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -132,7 +132,7 @@ $(STATIC_LIBRARIES):
 	$(AR) rv $@ $<
 
 $(DYNAMIC_LIBRARIES):
-	$(CC) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $<
+	$(LINKER) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $<
 
 .PHONY: all clean clobber cstyle\
 	all-dirs clean-dirs clobber-dirs cstyle-dirs\
