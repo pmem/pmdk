@@ -125,7 +125,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	ob->pa = (struct prog_args *)args->opts;
 
-	uint64_t n_ops_total = args->n_ops_per_thread * args->n_threads;
+	size_t n_ops_total = args->n_ops_per_thread * args->n_threads;
 	assert(n_ops_total != 0);
 
 	/* Create pmemobj pool. */

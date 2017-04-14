@@ -367,7 +367,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		worker_info->seed = (unsigned)os_rand_r(&lb->seed);
 
 		/* each vector element has its own random size */
-		uint64_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
+		size_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
 		worker_info->rand_sizes = (size_t *)malloc(
 			n_sizes * sizeof(*worker_info->rand_sizes));
 		if (!worker_info->rand_sizes) {
@@ -377,7 +377,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		}
 
 		/* generate append sizes */
-		for (uint64_t i = 0; i < n_sizes; i++) {
+		for (size_t i = 0; i < n_sizes; i++) {
 			uint32_t hr = (uint32_t)os_rand_r(&worker_info->seed);
 			uint32_t lr = (uint32_t)os_rand_r(&worker_info->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;

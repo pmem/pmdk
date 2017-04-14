@@ -1311,7 +1311,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			!bench->info->multithread ? 1 : args->n_threads;
 		size_t n_ops =
 			!bench->info->multiops ? 1 : args->n_ops_per_thread;
-		uint64_t n_ops_per_thread_copy = args->n_ops_per_thread;
+		size_t n_ops_per_thread_copy = args->n_ops_per_thread;
 
 		stats = (struct latency *)calloc(args->repeats,
 						 sizeof(struct latency));

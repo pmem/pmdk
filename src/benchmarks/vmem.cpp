@@ -47,7 +47,7 @@
 
 struct vmem_bench;
 typedef int (*operation)(struct vmem_bench *vb, unsigned worker_idx,
-			 unsigned info_idx);
+			 size_t info_idx);
 
 /*
  * vmem_args -- additional properties set as arguments opts
@@ -108,7 +108,7 @@ enum lib_mode { VMEM_MODE, STDLIB_MODE };
  * vmem_malloc_op -- malloc operation using vmem
  */
 static int
-vmem_malloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+vmem_malloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_malloc(vb->pools[item->pool_num],
@@ -124,7 +124,7 @@ vmem_malloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
  * stdlib_malloc_op -- malloc operation using stdlib
  */
 static int
-stdlib_malloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+stdlib_malloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = malloc(vb->alloc_sizes[info_idx]);
@@ -139,7 +139,7 @@ stdlib_malloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
  * vmem_free_op -- free operation using vmem
  */
 static int
-vmem_free_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+vmem_free_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	if (item->buf != NULL)
@@ -152,7 +152,7 @@ vmem_free_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
  * stdlib_free_op -- free operation using stdlib
  */
 static int
-stdlib_free_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+stdlib_free_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	if (item->buf != NULL)
@@ -165,7 +165,7 @@ stdlib_free_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
  * vmem_realloc_op -- realloc operation using vmem
  */
 static int
-vmem_realloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+vmem_realloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_realloc(vb->pools[item->pool_num], item->buf,
@@ -181,7 +181,7 @@ vmem_realloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
  * stdlib_realloc_op -- realloc operation using stdlib
  */
 static int
-stdlib_realloc_op(struct vmem_bench *vb, unsigned worker_idx, unsigned info_idx)
+stdlib_realloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = realloc(item->buf, vb->realloc_sizes[info_idx]);
@@ -242,7 +242,7 @@ random_values(size_t *alloc_sizes, struct benchmark_args *args, size_t max,
 	if (args->seed != 0)
 		srand(args->seed);
 
-	for (uint64_t i = 0; i < args->n_ops_per_thread; i++)
+	for (size_t i = 0; i < args->n_ops_per_thread; i++)
 		alloc_sizes[i] = RRAND(max, min);
 }
 
@@ -250,9 +250,9 @@ random_values(size_t *alloc_sizes, struct benchmark_args *args, size_t max,
  * static_values -- fulls array with the same value
  */
 static void
-static_values(size_t *alloc_sizes, size_t dsize, uint64_t nops)
+static_values(size_t *alloc_sizes, size_t dsize, size_t nops)
 {
-	for (uint64_t i = 0; i < nops; i++)
+	for (size_t i = 0; i < nops; i++)
 		alloc_sizes[i] = dsize;
 }
 
@@ -263,7 +263,7 @@ static int
 vmem_do_warmup(struct vmem_bench *vb, struct benchmark_args *args)
 {
 	unsigned i;
-	uint64_t j;
+	size_t j;
 	int ret = 0;
 	for (i = 0; i < args->n_threads; i++) {
 		for (j = 0; j < args->n_ops_per_thread; j++) {
@@ -431,10 +431,9 @@ vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 {
-	unsigned i, j;
 	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
-	for (i = 0; i < args->n_threads; i++) {
-		for (j = 0; j < args->n_ops_per_thread; j++) {
+	for (unsigned i = 0; i < args->n_threads; i++) {
+		for (size_t j = 0; j < args->n_ops_per_thread; j++) {
 			free_op[vb->lib_mode](vb, i, j);
 		}
 	}
@@ -447,7 +446,8 @@ vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 static int
 vmem_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	unsigned i, j;
+	unsigned i;
+	size_t j;
 	assert(bench != NULL);
 	assert(args != NULL);
 
@@ -584,7 +584,8 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 	if (vmem_init(bench, args) != 0)
 		return -1;
 
-	unsigned i, idx, tmp;
+	size_t i;
+	unsigned idx, tmp;
 	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	if ((vb->mix_ops = (unsigned *)calloc(args->n_ops_per_thread,
 					      sizeof(unsigned))) == NULL) {
