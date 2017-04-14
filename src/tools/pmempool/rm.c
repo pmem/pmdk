@@ -127,7 +127,7 @@ pmempool_rm_help(char *appname)
 /*
  * rm_file -- remove single file
  */
-static void
+static int
 rm_file(const char *file)
 {
 	int write_protected = os_access(file, W_OK) != 0;
@@ -146,14 +146,21 @@ rm_file(const char *file)
 
 	const char *pre_msg = write_protected ? "write-protected " : "";
 	char ans = ask_Yn(cask, "remove %sfile '%s' ?", pre_msg, file);
-	if (ans == INV_ANS)
-		err(1, "invalid answer");
+	if (ans == INV_ANS) {
+		outv_err("invalid answer");
+		return 1;
+	}
 
 	if (ans == 'y') {
-		if (util_unlink(file))
-			err(1, "cannot remove file '%s'", file);
+		if (util_unlink(file)) {
+			outv_err("cannot remove file '%s'", file);
+			return 1;
+		}
+
 		outv(1, "removed '%s'\n", file);
 	}
+
+	return 0;
 }
 
 /*
@@ -191,7 +198,7 @@ remove_remote(const char *target, const char *pool_set)
 			return 0;
 		}
 
-		outv_err("cannot remove '%s' on '%s' -- "
+		outv_err("!cannot remove '%s' on '%s' -- "
 			"librpmem not available", pool_set, target);
 		return 1;
 	}
@@ -214,7 +221,7 @@ remove_remote(const char *target, const char *pool_set)
 			 * is interpretted as error in parsing poolset file.
 			 */
 			ret = 1;
-			outv_err("cannot remove '%s' on '%s'",
+			outv_err("!cannot remove '%s' on '%s'",
 					pool_set, target);
 		}
 	} else {
@@ -235,8 +242,10 @@ remove_remote(const char *target, const char *pool_set)
 static int
 rm_poolset_cb(struct part_file *pf, void *arg)
 {
+	int *error = (int *)arg;
+	int ret;
 	if (pf->is_remote) {
-		return remove_remote(pf->node_addr, pf->pool_desc);
+		ret = remove_remote(pf->node_addr, pf->pool_desc);
 	} else {
 		const char *part_file = pf->path;
 
@@ -251,11 +260,15 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 			if (force)
 				return 0;
 
-			err(1, "cannot remove file '%s'", part_file);
+			ret = 1;
+			outv_err("!cannot remove file '%s'", part_file);
+		} else {
+			ret = rm_file(part_file);
 		}
-
-		rm_file(part_file);
 	}
+
+	if (ret)
+		*error = ret;
 
 	return 0;
 }
@@ -263,22 +276,23 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 /*
  * rm_poolset -- remove files parsed from poolset file
  */
-static void
+static int
 rm_poolset(const char *file)
 {
-	int ret = util_poolset_foreach_part(file, rm_poolset_cb, NULL);
-	if (ret) {
-		if (ret == -1) {
-			outv_err("parsing poolset failed: %s\n",
-					out_get_errormsg());
-			exit(1);
-		}
-		if (!force) {
-			outv_err("removing '%s' failed\n", file);
-			exit(1);
-		}
-		return;
+	int error = 0;
+	int ret = util_poolset_foreach_part(file, rm_poolset_cb, &error);
+	if (ret == -1) {
+		outv_err("parsing poolset failed: %s\n",
+				out_get_errormsg());
+		return ret;
 	}
+
+	if (error && !force) {
+		outv_err("!removing '%s' failed\n", file);
+		return error;
+	}
+
+	return 0;
 }
 
 /*
@@ -330,7 +344,7 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 			break;
 		default:
 			print_usage(appname);
-			return -1;
+			return 1;
 		}
 	}
 
@@ -338,9 +352,10 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 
 	if (optind == argc) {
 		print_usage(appname);
-		return -1;
+		return 1;
 	}
 
+	int lret = 0;
 	for (int i = optind; i < argc; i++) {
 		char *file = argv[i];
 		/* check if file exists and we can read it */
@@ -349,7 +364,10 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 			/* ignore not accessible file if force flag is set */
 			if (force)
 				continue;
-			err(1, "cannot remove '%s'", file);
+
+			outv_err("!cannot remove '%s'", file);
+			lret = 1;
+			continue;
 		}
 
 		int is_poolset = util_is_poolset_file(file);
@@ -364,18 +382,22 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 		else
 			outv(2, "pool file   : %s\n", file);
 
+		int ret;
 		if (is_poolset) {
-			rm_poolset(file);
-			if (rm_poolset_mode & RM_POOLSET_LOCAL)
-				rm_file(file);
+			ret = rm_poolset(file);
+			if (!ret && (rm_poolset_mode & RM_POOLSET_LOCAL))
+				ret = rm_file(file);
 		} else {
-			rm_file(file);
+			ret = rm_file(file);
 		}
+
+		if (ret)
+			lret = ret;
 	}
 
 #ifdef USE_RPMEM
 	util_remote_fini();
 #endif
 
-	return 0;
+	return lret;
 }

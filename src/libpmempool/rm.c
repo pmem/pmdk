@@ -56,6 +56,11 @@
 
 #define CHECK_FLAG(f, i) ((f) & PMEMPOOL_RM_##i)
 
+struct cb_args {
+	int flags;
+	int error;
+};
+
 /*
  * rm_local -- (internal) remove single local file
  */
@@ -132,16 +137,18 @@ rm_remote(const char *node, const char *path, int flags)
 static int
 rm_cb(struct part_file *pf, void *arg)
 {
-	int flags = *(int *)arg;
+	struct cb_args *args = (struct cb_args *)arg;
 	int ret;
 	if (pf->is_remote) {
-		ret = rm_remote(pf->node_addr, pf->pool_desc, flags);
+		ret = rm_remote(pf->node_addr, pf->pool_desc, args->flags);
 	} else {
-		ret = rm_local(pf->path, flags, 1);
+		ret = rm_local(pf->path, args->flags, 1);
 	}
 
-	/* return 0 (success) or 1 (error) */
-	return !!ret;
+	if (ret)
+		args->error = ret;
+
+	return 0;
 }
 
 /*
@@ -186,7 +193,10 @@ pmempool_rmU(const char *path, int flags)
 	}
 
 	LOG(2, "%s: poolset file", path);
-	ret = util_poolset_foreach_part(path, rm_cb, &flags);
+	struct cb_args args;
+	args.flags = flags;
+	args.error = 0;
+	ret = util_poolset_foreach_part(path, rm_cb, &args);
 	if (ret == -1) {
 		ERR_F(flags, "parsing poolset file failed");
 		if (CHECK_FLAG(flags, FORCE))
@@ -195,10 +205,10 @@ pmempool_rmU(const char *path, int flags)
 		return ret;
 	}
 
-	if (ret == 1) {
-		ASSERTeq(CHECK_FLAG(flags, FORCE), 0);
-		return ret;
-	}
+	ASSERTeq(ret, 0);
+
+	if (args.error)
+		return args.error;
 
 	if (CHECK_FLAG(flags, POOLSET_LOCAL)) {
 		ret = rm_local(path, flags, 0);
