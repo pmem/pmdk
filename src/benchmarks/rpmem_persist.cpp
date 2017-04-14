@@ -73,8 +73,8 @@ struct rpmem_args {
  */
 struct rpmem_bench {
 	struct rpmem_args *pargs; /* benchmark specific arguments */
-	uint64_t *offsets;	/* random/sequential address offsets */
-	unsigned n_offsets;       /* number of random elements */
+	size_t *offsets;	  /* random/sequential address offsets */
+	size_t n_offsets;	 /* number of random elements */
 	int const_b;		  /* memset() value */
 	size_t min_size;	  /* minimum file size */
 	void *addrp;		  /* mapped file address */
@@ -130,7 +130,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 		mb->pool_size / (args->n_threads * mb->csize_align);
 
 	mb->n_offsets = args->n_ops_per_thread * args->n_threads;
-	mb->offsets = (uint64_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
+	mb->offsets = (size_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
 	if (!mb->offsets) {
 		perror("malloc");
 		return -1;

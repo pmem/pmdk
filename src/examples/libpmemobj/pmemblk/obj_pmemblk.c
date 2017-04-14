@@ -381,6 +381,7 @@ main(int argc, char *argv[])
 				if (pmemblk_read(pbp, buf, strtoul(block_str,
 						NULL, 10))) {
 					perror("pmemblk_read failed");
+					free(buf);
 					break;
 				}
 				buf[bsize - 1] = '\0';

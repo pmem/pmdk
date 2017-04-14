@@ -111,8 +111,8 @@ static int
 init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 	     enum operation_mode op_mode)
 {
-	uint64_t n_threads = args->n_threads;
-	uint64_t n_ops = args->n_ops_per_thread;
+	unsigned n_threads = args->n_threads;
+	size_t n_ops = args->n_ops_per_thread;
 
 	mb->n_offsets = n_ops * n_threads;
 	assert(mb->n_offsets != 0);
@@ -124,9 +124,9 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 
 	unsigned seed = mb->pargs->seed;
 
-	for (uint64_t i = 0; i < n_threads; i++) {
-		for (uint64_t j = 0; j < n_ops; j++) {
-			uint64_t o;
+	for (unsigned i = 0; i < n_threads; i++) {
+		for (size_t j = 0; j < n_ops; j++) {
+			size_t o;
 			switch (op_mode) {
 				case OP_MODE_STAT:
 					o = i;
@@ -230,7 +230,7 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 
 	assert(info->index < mb->n_offsets);
 
-	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
+	size_t idx = info->worker->index * info->args->n_ops_per_thread +
 		info->index;
 	void *dest =
 		(char *)mb->pmem_addr + mb->offsets[idx] + mb->pargs->dest_off;

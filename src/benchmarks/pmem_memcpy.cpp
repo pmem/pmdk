@@ -488,12 +488,10 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
-	uint64_t src_index =
-		info->args->n_ops_per_thread * info->worker->index +
+	size_t src_index = info->args->n_ops_per_thread * info->worker->index +
 		pmb->func_src(pmb, info->index);
 
-	uint64_t dest_index =
-		info->args->n_ops_per_thread * info->worker->index +
+	size_t dest_index = info->args->n_ops_per_thread * info->worker->index +
 		pmb->func_dest(pmb, info->index);
 
 	void *source = pmb->src_addr + src_index * pmb->pargs->chunk_size +
