@@ -123,7 +123,7 @@ all: $(TMP_HEADERS)
 	$(call check-cstyle, $<, $@)
 
 $(PROGS): | $(TMP_HEADERS)
-	$(LINKER) -o $@ $(LDFLAGS) $^ $(LIBS)
+	$(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 lib%.o:
 	$(LD) -o $@ -r $^
@@ -132,7 +132,7 @@ $(STATIC_LIBRARIES):
 	$(AR) rv $@ $<
 
 $(DYNAMIC_LIBRARIES):
-	$(LINKER) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $<
+	$(LINKER) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $(LIBS) $<
 
 .PHONY: all clean clobber cstyle\
 	all-dirs clean-dirs clobber-dirs cstyle-dirs\

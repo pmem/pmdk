@@ -1,6 +1,6 @@
 #
 # Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,10 +51,10 @@ LIBRARIES = art
 
 include ../../Makefile.inc
 
-LIBS = -lvmem -pthread -lart
+LIBS = -lvmem
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
-$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart
 
 libart.o: art.o
 

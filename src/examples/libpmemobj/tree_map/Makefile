@@ -35,6 +35,8 @@
 #
 LIBRARIES = ctree_map btree_map rtree_map rbtree_map
 
+LIBS = -lpmemobj
+
 include ../../Makefile.inc
 
 libctree_map.o: ctree_map.o
