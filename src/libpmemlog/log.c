@@ -34,6 +34,7 @@
  * log.c -- log memory pool entry points for libpmem
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -91,7 +92,8 @@ log_descr_check(PMEMlogpool *plp, size_t poolsize)
 			roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN)) ||
 			(hdr.end_offset != poolsize) ||
 			(hdr.start_offset > hdr.end_offset)) {
-		ERR("wrong start/end offsets (start: %ju end: %ju), "
+		ERR("wrong start/end offsets "
+			"(start: %" PRIu64 " end: %" PRIu64 "), "
 			"pool size %zu",
 			hdr.start_offset, hdr.end_offset, poolsize);
 		errno = EINVAL;
@@ -100,13 +102,14 @@ log_descr_check(PMEMlogpool *plp, size_t poolsize)
 
 	if ((hdr.write_offset > hdr.end_offset) || (hdr.write_offset <
 			hdr.start_offset)) {
-		ERR("wrong write offset (start: %ju end: %ju write: %ju)",
+		ERR("wrong write offset (start: %" PRIu64 " end: %" PRIu64
+			" write: %" PRIu64 ")",
 			hdr.start_offset, hdr.end_offset, hdr.write_offset);
 		errno = EINVAL;
 		return -1;
 	}
 
-	LOG(3, "start: %ju, end: %ju, write: %ju",
+	LOG(3, "start: %" PRIu64 ", end: %" PRIu64 ", write: %" PRIu64 "",
 		hdr.start_offset, hdr.end_offset, hdr.write_offset);
 
 	return 0;
