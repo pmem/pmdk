@@ -53,6 +53,8 @@ SOURCE =\
 	bucket.c\
 	container_ctree.c\
 	container_seglists.c\
+	ctl.c\
+	ctl_global.c\
 	ctree.c\
 	cuckoo.c\
 	heap.c\

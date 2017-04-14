@@ -44,6 +44,7 @@
 #include "list.h"
 #include "mmap.h"
 #include "obj.h"
+#include "ctl_global.h"
 
 #include "heap_layout.h"
 #include "os.h"
@@ -51,6 +52,17 @@
 #include "set.h"
 #include "sync.h"
 #include "tx.h"
+
+/*
+ * The variable from which the config is directly loaded. The contained string
+ * cannot contain any comments or extraneous white characters.
+ */
+#define OBJ_CONFIG_ENV_VARIABLE "PMEMOBJ_CONF"
+
+/*
+ * The variable that points to a config file from which the config is loaded.
+ */
+#define OBJ_CONFIG_FILE_ENV_VARIABLE "PMEMOBJ_CONF_FILE"
 
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
@@ -138,6 +150,53 @@ pmemobj_direct(PMEMoid oid)
 #endif /* _WIN32 */
 
 /*
+ * obj_ctl_init_and_load -- (static) initializes CTL and loads configuration
+ *	from env variable and file
+ */
+static int
+obj_ctl_init_and_load(PMEMobjpool *pop)
+{
+	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
+		ERR("!ctl_new");
+		return -1;
+	}
+
+	struct ctl_query_provider *p;
+
+	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
+	if (env_config != NULL) {
+		p = ctl_string_provider_new(env_config);
+		if (p == NULL || ctl_load_config(pop, p) != 0) {
+			ERR("unable to parse config stored in %s "
+			"environment variable", OBJ_CONFIG_ENV_VARIABLE);
+			ctl_string_provider_delete(p);
+
+			return -1;
+		}
+
+		ctl_string_provider_delete(p);
+	}
+
+	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
+	if (env_config_file != NULL) {
+		p = ctl_file_provider_new(env_config_file);
+		if (p == NULL || ctl_load_config(pop, p) != 0) {
+			ERR("unable to parse config stored in %s "
+			"file (from %s environment variable)",
+				env_config_file,
+				OBJ_CONFIG_FILE_ENV_VARIABLE);
+			ctl_file_provider_delete(p);
+
+			return -1;
+		}
+
+		ctl_file_provider_delete(p);
+	}
+
+	return 0;
+}
+
+/*
  * obj_pool_init -- (internal) allocate global structs holding all opened pools
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
@@ -158,6 +217,12 @@ obj_pool_init(void)
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)
 		FATAL("!ctree_new");
+
+	/*
+	 * Load global config, ignore any issues. They will be caught on the
+	 * subsequent call to this function for individual pools.
+	 */
+	obj_ctl_init_and_load(NULL);
 }
 
 /*
@@ -205,6 +270,7 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
+	ctl_global_register();
 
 	lane_info_boot();
 
@@ -1030,9 +1096,15 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
+	if (obj_ctl_init_and_load(pop) != 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
+
 
 #ifdef USE_VG_MEMCHECK
 		if (On_valgrind) {
@@ -1047,13 +1119,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
-			return -1;
+			goto err;
 		}
 
 		if ((errno = ctree_insert(pools_tree, (uint64_t)pop, pop->size))
 				!= 0) {
 			ERR("!ctree_insert");
-			return -1;
+			goto err;
 		}
 	}
 
@@ -1066,6 +1138,10 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	RANGE_NONE(pop->addr, sizeof(struct pool_hdr), pop->is_dev_dax);
 
 	return 0;
+err:
+	ctl_delete(pop->ctl);
+
+	return -1;
 }
 
 /*
@@ -1625,6 +1701,8 @@ static void
 obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
+
+	ctl_delete(pop->ctl);
 
 	palloc_heap_cleanup(&pop->heap);
 

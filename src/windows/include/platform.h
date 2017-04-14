@@ -43,6 +43,7 @@
 #define PLATFORM_H 1
 
 #pragma warning(disable : 4996)
+#pragma warning(disable : 4200) /* allow flexible array member */
 
 #ifdef __cplusplus
 extern "C" {
