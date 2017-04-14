@@ -52,10 +52,10 @@ LIBRARIES = art
 
 include ../../Makefile.inc
 
-LIBS = -lpmemobj -pthread -lart
+LIBS = -lpmemobj
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
-$(PROGS): LDFLAGS += -Wl,-rpath=. -L.
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart
 
 libart.o: art.o
 

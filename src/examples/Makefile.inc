@@ -132,7 +132,7 @@ $(STATIC_LIBRARIES):
 	$(AR) rv $@ $<
 
 $(DYNAMIC_LIBRARIES):
-	$(CC) -shared -o $@ $(LDFLAGS) -Wl,-shared,-soname=$@ $<
+	$(CC) -shared -o $@ $(LIBS) $(LDFLAGS) -Wl,-shared,-soname=$@ $<
 
 .PHONY: all clean clobber cstyle\
 	all-dirs clean-dirs clobber-dirs cstyle-dirs\
