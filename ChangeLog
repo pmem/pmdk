@@ -1,12 +1,13 @@
 
-Fri Mar 31 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Sat Apr 15 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2.2
-
 	Bug fixes:
 	- pmempool: fix mapping type in pool_params_parse
 	- test: limit number of arenas in vmem_stats
 	- test: do not run pool_lock test as root
+	- common: fix pkg-config files
+	- common: fix building packages for Debian
 
 Tue Feb 21 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
