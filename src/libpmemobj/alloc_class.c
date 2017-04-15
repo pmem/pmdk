@@ -258,7 +258,7 @@ static struct alloc_class *
 alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 {
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
-	uint64_t required_size_bytes = (uint32_t)n * RUN_MIN_NALLOCS;
+	uint64_t required_size_bytes = n * RUN_MIN_NALLOCS;
 	uint32_t required_size_idx = 1;
 	if (required_size_bytes > RUNSIZE) {
 		required_size_bytes -= RUNSIZE;

@@ -174,7 +174,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 			return -1;
 		}
 
-		ctl_string_provider_delete(p);
+		if (p != NULL)
+			ctl_string_provider_delete(p);
 	}
 
 	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
@@ -190,7 +191,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 			return -1;
 		}
 
-		ctl_file_provider_delete(p);
+		if (p != NULL)
+			ctl_file_provider_delete(p);
 	}
 
 	return 0;

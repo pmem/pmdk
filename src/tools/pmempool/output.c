@@ -526,9 +526,10 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump)
 	int valid = util_validate_checksum(buf, len, ncsump);
 
 	if (valid)
-		snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]", le64toh(csum));
+		ret = snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]",
+			le64toh(csum));
 	else
-		snprintf(str_buff, STR_MAX,
+		ret = snprintf(str_buff, STR_MAX,
 			"0x%" PRIx64 " [wrong! should be: 0x%" PRIx64 "]",
 			le64toh(csum), le64toh(*ncsump));
 

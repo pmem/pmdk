@@ -169,6 +169,8 @@ ctl_delete_indexes(struct ctl_indexes *indexes)
 static void *
 ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
 {
+	ASSERTne(arg, NULL);
+
 	char *dest_arg = Malloc(arg_proto->dest_size);
 	if (dest_arg == NULL)
 		return NULL;
@@ -176,7 +178,7 @@ ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
 	char *sptr = NULL;
 	char *arg_sep = strtok_r(arg, CTL_VALUE_ARG_SEPARATOR, &sptr);
 	for (struct ctl_argument_parser *p = arg_proto->parsers;
-		p->parser != NULL; ++p) {
+			p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
 		if (arg_sep == NULL)
 			goto error_parsing;
