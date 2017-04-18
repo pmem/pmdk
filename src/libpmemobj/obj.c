@@ -1787,6 +1787,8 @@ pmemobj_checkU(const char *path, const char *layout)
 	if (consistent) {
 		obj_pool_cleanup(pop);
 	} else {
+		ctl_delete(pop->ctl);
+
 		/* unmap all the replicas */
 		obj_replicas_cleanup(pop->set);
 		util_poolset_close(pop->set, DO_NOT_DELETE_PARTS);
