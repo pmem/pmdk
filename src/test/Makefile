@@ -182,6 +182,8 @@ OTHER_TESTS = \
 	traces\
 	traces_custom_function\
 	traces_pmem\
+	unicode_api\
+	unicode_match_script\
 	util_cpuid\
 	util_uuid_generate\
 	util_file_create\
@@ -190,7 +192,7 @@ OTHER_TESTS = \
 	util_parse_size\
 	util_poolset\
 	util_poolset_parse\
-	util_is_absolute \
+	util_is_absolute\
 	util_is_poolset\
 	util_poolset_size\
 	util_poolset_foreach
