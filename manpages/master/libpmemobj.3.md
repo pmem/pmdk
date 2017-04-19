@@ -2298,7 +2298,7 @@ In summary, a full configuration sequence can looks like this:
 As an example, to set both prefault at_open and at_create variables:
 ```
 
-PMEMOBJ_CONF="prefault.at_open=1;prefault_at_create=1"
+PMEMOBJ_CONF="prefault.at_open=1;prefault.at_create=1"
 ```
 
 The second method to load an external configuration is to set the
