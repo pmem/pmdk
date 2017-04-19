@@ -137,6 +137,9 @@
     <ClCompile Include="..\..\libpmemobj\ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\palloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rm.h">
