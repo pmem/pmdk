@@ -607,8 +607,10 @@ struct ctl *
 ctl_new(void)
 {
 	struct ctl *c = Zalloc(sizeof(struct ctl));
-	c->first_free = 0;
+	if (c == NULL)
+		return NULL;
 
+	c->first_free = 0;
 	return c;
 }
 
