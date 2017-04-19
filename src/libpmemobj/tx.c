@@ -50,14 +50,26 @@ struct tx_data {
 	jmp_buf env;
 };
 
-static __thread struct tx {
+struct tx {
 	enum pobj_tx_stage stage;
 	int last_errnum;
 	struct lane_section *section;
 
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
-} transaction;
+};
+
+/*
+ * get_tx -- (internal) returns current transaction
+ *
+ * This function should be used only in high-level functions.
+ */
+static struct tx *
+get_tx()
+{
+	static __thread struct tx tx;
+	return &tx;
+}
 
 struct tx_lock_data {
 	union {
@@ -536,8 +548,7 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 	if (recovery)
 		tx_foreach_set(pop, NULL, tx_rt, tx_abort_recover_range);
 	else
-		tx_foreach_set(pop, &transaction, tx_rt,
-				tx_abort_restore_range);
+		tx_foreach_set(pop, get_tx(), tx_rt, tx_abort_restore_range);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
@@ -808,7 +819,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 PMEMobjpool *
 tx_get_pop(void)
 {
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 	if (tx->stage == TX_STAGE_NONE)
 		return NULL;
 
@@ -1085,7 +1096,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	LOG(3, NULL);
 
 	int err = 0;
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	struct lane_tx_runtime *lane = NULL;
 	if (tx->stage == TX_STAGE_WORK) {
@@ -1189,7 +1200,7 @@ err_abort:
 int
 pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 {
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1225,7 +1236,7 @@ pmemobj_tx_stage(void)
 {
 	LOG(3, NULL);
 
-	return transaction.stage;
+	return get_tx()->stage;
 }
 
 /*
@@ -1235,7 +1246,7 @@ static void
 obj_tx_abort(int errnum, int user)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1290,7 +1301,7 @@ pmemobj_tx_errno(void)
 {
 	LOG(3, NULL);
 
-	return transaction.last_errnum;
+	return get_tx()->last_errnum;
 }
 
 /*
@@ -1300,7 +1311,7 @@ void
 pmemobj_tx_commit(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1349,7 +1360,7 @@ int
 pmemobj_tx_end(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	if (tx->stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
@@ -1425,7 +1436,7 @@ void
 pmemobj_tx_process(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERTne(tx->section, NULL);
@@ -1712,7 +1723,7 @@ int
 pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1744,7 +1755,7 @@ int
 pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1779,7 +1790,7 @@ int
 pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1810,7 +1821,7 @@ int
 pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1846,7 +1857,7 @@ PMEMoid
 pmemobj_tx_alloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1867,7 +1878,7 @@ PMEMoid
 pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1888,7 +1899,7 @@ PMEMoid
 pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1915,7 +1926,7 @@ PMEMoid
 pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1932,7 +1943,7 @@ PMEMoid
 pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1949,7 +1960,7 @@ PMEMoid
 pmemobj_tx_strdup(const char *s, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -1979,7 +1990,7 @@ PMEMoid
 pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
@@ -2009,7 +2020,7 @@ int
 pmemobj_tx_free(PMEMoid oid)
 {
 	LOG(3, NULL);
-	struct tx *tx = &transaction;
+	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
