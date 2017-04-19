@@ -81,7 +81,7 @@ test_worker(void *arg)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_pmalloc_mt");
+	START(argc, argv, "obj_pmalloc_rand_mt");
 
 	if (argc < 5 && argc > 6)
 		UT_FATAL("usage: %s [file] "
