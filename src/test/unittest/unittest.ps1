@@ -1062,12 +1062,16 @@ function dump_last_n_lines {
         sv -Name fname ((Get-Location).path + "\" + $Args[0])
         sv -Name ln (getLineCount $fname)
         if ($ln -gt $UT_DUMP_LINES) {
+            $ln = $UT_DUMP_LINES
             Write-Error "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
         } else {
             Write-Error "$fname below."
         }
 
-        Write-Host (Get-Content $fname -Tail $ln)
+        # print line by line to force powershell to print file with new lines
+        foreach($line in Get-Content $fname -Tail $ln) {
+           Write-Host $line
+        }
     }
 }
 
