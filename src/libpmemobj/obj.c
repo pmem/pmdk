@@ -161,6 +161,10 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		return -1;
 	}
 
+	if (pop) {
+		tx_ctl_init(pop);
+	}
+
 	struct ctl_query_provider *p;
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);

@@ -626,7 +626,8 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		}
 
 #ifdef DEBUG
-		if (!zero_all) { /* for recovery we know we zeroed everything */
+		if (!zero_all && /* for recovery we know we zeroed everything */
+			!pop->tx_debug_skip_expensive_checks) {
 			uint64_t usable_size = palloc_usable_size(&pop->heap,
 				first_cache);
 			ASSERTeq(util_is_zeroed(cache, usable_size), 1);
@@ -2100,3 +2101,56 @@ static struct section_operations transaction_ops = {
 };
 
 SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
+
+/*
+ * CTL_READ_HANDLER(skip_expensive_checks) -- returns "skip_expensive_checks"
+ * var from pool ctl
+ */
+static int
+CTL_READ_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+	*arg_out = pop->tx_debug_skip_expensive_checks;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(skip_expensive_checks) -- stores "skip_expensive_checks"
+ * var in pool ctl
+ */
+static int
+CTL_WRITE_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+
+	pop->tx_debug_skip_expensive_checks = arg_in;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(skip_expensive_checks) = CTL_ARG_BOOLEAN;
+
+static const struct ctl_node CTL_NODE(debug)[] = {
+	CTL_LEAF_RW(skip_expensive_checks),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(tx)[] = {
+	CTL_CHILD(debug),
+
+	CTL_NODE_END
+};
+
+/*
+ * tx_ctl_init -- registers ctl nodes for "tx" module
+ */
+void
+tx_ctl_init(PMEMobjpool *pop)
+{
+	CTL_REGISTER_MODULE(pop->ctl, tx);
+}
