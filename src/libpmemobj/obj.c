@@ -161,6 +161,12 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		return -1;
 	}
 
+	if (pop) {
+		tx_ctl_init(pop);
+	} else {
+		ctl_global_register();
+	}
+
 	struct ctl_query_provider *p;
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -272,8 +278,6 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
-	ctl_global_register();
-
 	lane_info_boot();
 
 	util_remote_init();

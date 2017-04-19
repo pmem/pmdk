@@ -2252,6 +2252,11 @@ prefault.at_open | rw | global | int | int | boolean
 
 As above, but affects **pmemobj_open()** function.
 
+tx.debug.skip_expensive_checks | rw | - | int | int | boolean
+
+Turns off some expensive checks performed by transaction module in "debug"
+builds. Ignored in "release" builds.
+
 # CTL external configuration #
 
 In addition to direct function call, each write entry point can also be set
