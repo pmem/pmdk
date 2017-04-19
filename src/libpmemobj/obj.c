@@ -1098,6 +1098,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
+	tx_ctl_init(pop);
+
 	if (obj_ctl_init_and_load(pop) != 0) {
 		errno = EINVAL;
 		return -1;
