@@ -22,7 +22,7 @@ Data                     : $(*)
 Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
-PMEM LOG header:
+PMEM LOG Header:
 Start offset             : $(*)
 Write offset             : $(*) [OK]
 End offset               : $(*)
