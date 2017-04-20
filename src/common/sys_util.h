@@ -40,6 +40,8 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include "out.h"
+
 /*
  * util_mutex_init -- pthread_mutex_init variant that never fails from
  * caller perspective. If pthread_mutex_init failed, this function aborts
