@@ -33,7 +33,7 @@ Data                     : $(*)
 Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
-PMEM LOG header:
+PMEM LOG Header:
 00001000$(*)|$(*)|
 00001010$(*)|$(*)|
 00001020$(*)|$(*)|

@@ -76,12 +76,12 @@ Data                     : $(*)
 Machine                  : $(*)
 Checksum                 : $(*) [OK]
 
-PMEM LOG header:
+PMEM LOG Header:
 Start offset             : $(*)
 Write offset             : $(*) [OK]
 End offset               : $(*)
 
-PMEM LOG statistics:
+PMEM LOG Statistics:
 Total                    : $(*)
 Available                : $(*) [100 %]
 Used                     : 0 [0 %]
