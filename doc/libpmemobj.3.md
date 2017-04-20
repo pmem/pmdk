@@ -2235,7 +2235,7 @@ indexes present on the path of an entry point is provided to the handler
 functions as name and index pairs.
 
 The entry points are listed in the following format:
-name | r(ead)w(rite) | global/- | read argument type | write argument type | Query write argument
+name | r(ead)w(rite) | global/- | read argument type | write argument type | config argument type
 description...
 
 # CTL NAMESPACE #
@@ -2258,7 +2258,7 @@ In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
 The first one is to load configuration directly from a **PMEMOBJ_CONF**
-environment variable. Properly formated ctl config string is a single-line
+environment variable. Properly formatted ctl config string is a single-line
 sequence of queries separated by ';':
 
 ```
@@ -2289,10 +2289,10 @@ separated by a ',':
 first_arg,second_arg
 ```
 
-In summary, a full configuration sequence can looks like this:
+In summary, a full configuration sequence looks like this:
 
 ```
-(first entrypoint)=(arguments, ...);...;(last_entry_point)=(arguments, ...);
+(first_entry_point)=(arguments, ...);...;(last_entry_point)=(arguments, ...);
 ```
 
 As an example, to set both prefault at_open and at_create variables:
@@ -2301,7 +2301,7 @@ As an example, to set both prefault at_open and at_create variables:
 PMEMOBJ_CONF="prefault.at_open=1;prefault_at_create=1"
 ```
 
-The second method to load an external configuration is to set the
+The second method of loading an external configuration is to set the
 **PMEMOBJ_CONF_FILE** environment variable to point to a file that contains
 a sequence of ctl queries. The parsing rules are all the same, but the file
 can also contain white-spaces and comments.
