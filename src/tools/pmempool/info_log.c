@@ -122,7 +122,7 @@ info_log_stats(struct pmem_info *pip, int v, struct pmemlog *plp)
 	double perc_used = (double)size_used / (double)size_total * 100.0;
 	double perc_avail =  100.0 - perc_used;
 
-	outv_title(v, "PMEM LOG statistics");
+	outv_title(v, "PMEM LOG Statistics");
 	outv_field(v, "Total", "%s",
 			out_get_size_str(size_total, pip->args.human));
 	outv_field(v, "Available", "%s [%s]",
@@ -141,7 +141,7 @@ info_log_stats(struct pmem_info *pip, int v, struct pmemlog *plp)
 static int
 info_log_descriptor(struct pmem_info *pip, int v, struct pmemlog *plp)
 {
-	outv_title(v, "PMEM LOG header");
+	outv_title(v, "PMEM LOG Header");
 
 	/* dump pmemlog header without pool_hdr */
 	outv_hexdump(pip->args.vhdrdump, (uint8_t *)plp + sizeof(plp->hdr),
