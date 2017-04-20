@@ -249,8 +249,10 @@ static int
 ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 	const char *name, void *read_arg, void *write_arg)
 {
-	if (name == NULL)
+	if (name == NULL) {
+		errno = EINVAL;
 		return -1;
+	}
 
 	/*
 	 * All of the indexes are put on this list so that the handlers can
