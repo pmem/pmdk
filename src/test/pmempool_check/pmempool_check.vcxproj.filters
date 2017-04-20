@@ -39,9 +39,6 @@
     <None Include="out10.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out13.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
@@ -70,5 +67,41 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="README" />
+    <None Include="TEST15.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST16.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST17.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST18.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST19.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="out15.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out16.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out17.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out18.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out19.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST9.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="out13.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

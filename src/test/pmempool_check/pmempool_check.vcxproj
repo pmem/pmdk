@@ -20,6 +20,11 @@
     <None Include="out1.log.match" />
     <None Include="out10.log.match" />
     <None Include="out13.log.match" />
+    <None Include="out15.log.match" />
+    <None Include="out16.log.match" />
+    <None Include="out17.log.match" />
+    <None Include="out18.log.match" />
+    <None Include="out19.log.match" />
     <None Include="out3.log.match" />
     <None Include="out4.log.match" />
     <None Include="out5.log.match" />
@@ -31,12 +36,18 @@
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST10.PS1" />
+    <None Include="TEST15.PS1" />
+    <None Include="TEST16.PS1" />
+    <None Include="TEST17.PS1" />
+    <None Include="TEST18.PS1" />
+    <None Include="TEST19.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST6.PS1" />
     <None Include="TEST7.PS1" />
     <None Include="TEST8.PS1" />
+    <None Include="TEST9.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}</ProjectGuid>
