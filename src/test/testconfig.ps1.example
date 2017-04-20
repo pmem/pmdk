@@ -57,6 +57,11 @@ $Env:NON_PMEM_FS_DIR = "\temp"
 #$Env:TEST_TIMEOUT = "60s"
 
 #
+# To display execution time of each test
+#
+#$Env:TM = "1"
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
