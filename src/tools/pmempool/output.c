@@ -142,10 +142,26 @@ outv_err(const char *fmt, ...)
 void
 outv_err_vargs(const char *fmt, va_list ap)
 {
+	char *_str = strdup(fmt);
+	if (!_str)
+		err(1, "strdup");
+	char *str = _str;
+
 	fprintf(stderr, "error: ");
-	vfprintf(stderr, fmt, ap);
-	if (!strchr(fmt, '\n'))
-		fprintf(stderr, "\n");
+	int errstr = str[0] == '!';
+	if (errstr)
+		str++;
+
+	char *nl = strchr(str, '\n');
+	if (nl)
+		*nl = '\0';
+
+	vfprintf(stderr, str, ap);
+	if (errstr)
+		fprintf(stderr, ": %s", strerror(errno));
+	fprintf(stderr, "\n");
+
+	free(_str);
 }
 
 /*

@@ -98,9 +98,12 @@ convert_v2_v3(void *poolset, void *addr)
 		"pool or all of the variables of those three types are aligned "
 		"to 8 bytes.\nProceed only if you are sure that the above is "
 		"true for this pool.\n");
-	if (ask_Yn('?', "convert the pool ?") == 'y') {
+	char ans = ask_Yn('?', "convert the pool ?");
+	if (ans == INV_ANS)
+		return -1;
+
+	if (ans == 'y')
 		return 0;
-	}
 
 	return -1;
 }
@@ -191,7 +194,14 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 		"layout version.\nThis process is NOT fail-safe.\n"
 		"Proceed only if the pool has been backed up or\n"
 		"the risks are fully understood and acceptable.\n");
-	if (ask_Yn('?', "convert the pool '%s' ?", f) != 'y') {
+	char ans = ask_Yn('?', "convert the pool '%s' ?", f);
+	if (ans == INV_ANS) {
+		fprintf(stderr, "invalid answer");
+		ret = -1;
+		goto out;
+	}
+
+	if (ans != 'y') {
 		ret = 0;
 		goto out;
 	}
