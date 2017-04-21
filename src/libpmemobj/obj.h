@@ -159,10 +159,11 @@ struct pmemobjpool {
 	persist_remote_fn persist_remote; /* remote persist function */
 
 	int vg_boot;
+	int tx_debug_skip_expensive_checks;
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1572];
+	char unused2[1568];
 };
 
 /*
