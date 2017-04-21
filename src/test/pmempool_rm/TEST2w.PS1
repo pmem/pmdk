@@ -84,7 +84,7 @@ check_no_files `
 	$DIR\rep.part1 `
 	$DIR\rep.part2
 
-Get-Content $LOG | Where-Object { $_ -match 'remove' } > tmp$LOG
+Get-Content $LOG | Where-Object { $_ -match 'remov' } > tmp$LOG
 Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
 remove_files tmp$LOG
 
