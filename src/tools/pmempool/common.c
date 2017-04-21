@@ -1290,6 +1290,9 @@ pool_set_file_close(struct pool_set_file *file)
 
 /*
  * pool_set_file_read -- read from pool set file or regular file
+ *
+ * 'buff' has to be a buffer at least 'nbytes' long
+ * 'off' is an offset from the beginning of the file
  */
 int
 pool_set_file_read(struct pool_set_file *file, void *buff,
@@ -1310,6 +1313,9 @@ pool_set_file_read(struct pool_set_file *file, void *buff,
 
 /*
  * pool_set_file_write -- write to pool set file or regular file
+ *
+ * 'buff' has to be a buffer at least 'nbytes' long
+ * 'off' is an offset from the beginning of the file
  */
 int
 pool_set_file_write(struct pool_set_file *file, void *buff,
@@ -1378,6 +1384,10 @@ pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 
 /*
  * pool_set_file_persist -- propagates and persists changes to a memory range
+ *
+ * 'addr' points to the beginning of data in the master replica that has to be
+ *        propagated
+ * 'len' is the number of bytes to be propagated to other replicas
  */
 void
 pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
