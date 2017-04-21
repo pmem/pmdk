@@ -613,6 +613,9 @@ pool_set_file_map(struct pool_set_file *file, uint64_t offset)
 
 /*
  * pool_read -- read from pool set file or regular file
+ *
+ * 'buff' has to be a buffer at least 'nbytes' long
+ * 'off' is an offset from the beginning of the pool
  */
 int
 pool_read(struct pool_data *pool, void *buff, size_t nbytes, uint64_t off)
@@ -634,6 +637,9 @@ pool_read(struct pool_data *pool, void *buff, size_t nbytes, uint64_t off)
 
 /*
  * pool_write -- write to pool set file or regular file
+ *
+ * 'buff' has to be a buffer at least 'nbytes' long
+ * 'off' is an offset from the beginning of the pool
  */
 int
 pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
@@ -786,6 +792,8 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 		result = -1;
 		goto out_sunmap;
 	}
+
+	ASSERT(dmapped >= smapped);
 
 	if (is_pmem) {
 		pmem_memcpy_persist(daddr, saddr, smapped);
