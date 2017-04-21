@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Test Scripts">
-      <UniqueIdentifier>{857d6b52-ca5b-4af1-a2ac-d4aa02dfd8e8}</UniqueIdentifier>
-      <Extensions>ps1</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\unittest\ut.c">
@@ -41,10 +37,5 @@
     <ClInclude Include="..\unittest\unittest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\unittest\unittest.ps1">
-      <Filter>Test Scripts</Filter>
-    </None>
   </ItemGroup>
 </Project>
