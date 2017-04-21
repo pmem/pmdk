@@ -342,17 +342,32 @@ lane_check(PMEMobjpool *pop)
  * get_lane -- (internal) get free lane index
  */
 static inline void
-get_lane(uint64_t *locks, uint64_t *index, uint64_t nlocks)
+get_lane(uint64_t *locks, struct lane_info *info, uint64_t nlocks)
 {
+	info->lane_idx = info->primary;
 	while (1) {
 		do {
-			*index %= nlocks;
+			info->lane_idx %= nlocks;
 			if (likely(util_bool_compare_and_swap64(
-					&locks[*index], 0, 1)))
+					&locks[info->lane_idx], 0, 1))) {
+				if (info->lane_idx == info->primary) {
+					info->primary_attempts =
+						LANE_PRIMARY_ATTEMPTS;
+				} else if (info->primary_attempts == 0) {
+					info->primary = info->lane_idx;
+					info->primary_attempts =
+						LANE_PRIMARY_ATTEMPTS;
+				}
 				return;
+			}
 
-			++(*index);
-		} while (*index < nlocks);
+			if (info->lane_idx == info->primary) {
+				info->primary_attempts--;
+				ASSERT(info->primary_attempts >= 0);
+			}
+
+			++info->lane_idx;
+		} while (info->lane_idx < nlocks);
 
 		sched_yield();
 	}
@@ -386,6 +401,8 @@ get_lane_info_record(PMEMobjpool *pop)
 		info->nest_count = 0;
 		info->next = Lane_info_records;
 		info->prev = NULL;
+		info->primary = 0;
+		info->primary_attempts = LANE_PRIMARY_ATTEMPTS;
 		if (Lane_info_records) {
 			Lane_info_records->prev = info;
 		}
@@ -425,15 +442,15 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	struct lane_info *lane = get_lane_info_record(pop);
 	while (unlikely(lane->lane_idx == UINT64_MAX)) {
 		/* initial wrap to next CL */
-		lane->lane_idx = __sync_fetch_and_add(
+		lane->primary = lane->lane_idx = __sync_fetch_and_add(
 			&pop->lanes_desc.next_lane_idx, LANE_JUMP);
 	} /* handles wraparound */
 
 	uint64_t *llocks = pop->lanes_desc.lane_locks;
 	/* grab next free lane from lanes available at runtime */
-	if (!lane->nest_count++)
-		get_lane(llocks, &lane->lane_idx,
-			pop->lanes_desc.runtime_nlanes);
+	if (!lane->nest_count++) {
+		get_lane(llocks, lane, pop->lanes_desc.runtime_nlanes);
+	}
 
 	if (section) {
 		ASSERT(type < MAX_LANE_SECTION);
