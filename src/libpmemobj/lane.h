@@ -54,6 +54,13 @@
  */
 #define LANE_JUMP (64 / sizeof(uint64_t))
 
+/*
+ * Number of times the algorithm will try to reacquire the primary lane for the
+ * thread. If this threshold is exceeded, a new primary lane is selected for the
+ * thread.
+ */
+#define LANE_PRIMARY_ATTEMPTS 128
+
 #define RLANE_DEFAULT 0
 
 enum lane_section_type {
@@ -115,6 +122,15 @@ struct lane_info {
 	uint64_t pop_uuid_lo;
 	uint64_t lane_idx;
 	unsigned long nest_count;
+
+	/*
+	 * The index of the primary lane for the thread. A thread will always
+	 * try to acquire the primary lane first, and only if that fails it will
+	 * look for a different available lane.
+	 */
+	uint64_t primary;
+	int primary_attempts;
+
 	struct lane_info *prev, *next;
 };
 
