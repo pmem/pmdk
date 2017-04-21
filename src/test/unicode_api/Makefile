@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -32,63 +31,6 @@
 #
 
 #
-# src/test/unicode_api/TEST0 -- unicode C API check
+# src/test/unicode_api/Makefile -- build unittest for unicode api completeness
 #
-export UNITTEST_NAME=unicode_api/TEST0
-export UNITTEST_NUM=0
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
-# there's no point in testing different builds
-require_build_type debug
-require_command clang
-
-SRC=../..
-HEADERS_DIR=$SRC/include
-INC_DIR=$SRC/include/libpmemobj
-EXC_PATT="set_funcs|strdup|rpmem|vmem_stats_print"
-FAILED=0
-
-function check_file {
-	local file=$1
-	local dir=$2
-	local pat=$3
-
-	local funcs=$(clang -Xclang -ast-dump -I$HEADERS_DIR $file -fno-color-diagnostics 2> /dev/null |\
-		grep "FunctionDecl.*\(vmem\|pmem\).*char \*" | cut -d " " -f 6)
-	for func in $funcs
-	do
-		local good=0
-		to_check="$dir/*.h $file"
-		if [ -n "${pat:+x}" ] && [[ $func =~ $pat ]]; then
-			continue
-		fi
-
-		for f in $to_check
-		do
-			let good+=$(grep -c "$func[UW][ ]*(" $f)
-		done
-
-		if [ $good -ne 2 ]; then
-			echo "Function $func in file $file does not have unicode U/W counterparts"
-			FAILED=1;
-		fi
-	done
-}
-
-setup
-
-for f in $HEADERS_DIR/*.h
-do
-	check_file $f $INC_DIR $EXC_PATT
-done
-
-if [ $FAILED -ne 0 ]; then
-	exit 1
-fi
-
-pass
+include ../Makefile.inc
