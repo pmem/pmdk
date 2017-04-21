@@ -26,4 +26,4 @@ script:
   - ./build.sh
 
 after_success:
-  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS:$OS_VER; fi
+  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS-$OS_VER; fi
