@@ -46,6 +46,12 @@
     <None Include="out2.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="TEST4.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST5.PS1">
+      <Filter>Test Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="obj_debug.c">

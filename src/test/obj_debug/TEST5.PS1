@@ -49,7 +49,7 @@ require_build_type debug
 
 setup
 
-FUNCS=18
+$FUNCS=18
 
 For ($i=0; $i -lt $FUNCS; $i++) {
     expect_abnormal_exit $Env:EXE_DIR\obj_debug$Env:EXESUFFIX `
