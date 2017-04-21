@@ -148,9 +148,9 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	test_lazy_load(pop, path);
+	if(0)test_lazy_load(pop, path);
 	test_allocs(pop, path);
-	test_all_classes(pop);
+	if(0)test_all_classes(pop);
 
 	pmemobj_close(pop);
 
