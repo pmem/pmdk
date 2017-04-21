@@ -163,14 +163,14 @@ vmem_createU(const char *dir, size_t size)
 
 	int is_dev_dax = util_file_is_device_dax(dir);
 
-	/* silently enforce multiple of page size */
-	size = roundup(size, Pagesize);
+	/* silently enforce multiple of mapping alignment */
+	size = roundup(size, Mmap_align);
 	void *addr;
 	if (is_dev_dax) {
 		if ((addr = util_file_map_whole(dir)) == NULL)
 			return NULL;
 	} else {
-		if ((addr = util_map_tmpfile(dir, size, 4 << 20)) == NULL)
+		if ((addr = util_map_tmpfile(dir, size, 4 * MEGABYTE)) == NULL)
 			return NULL;
 	}
 

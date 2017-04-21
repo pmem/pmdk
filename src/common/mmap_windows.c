@@ -41,42 +41,40 @@
 
 /*
  * util_map_hint -- determine hint address for mmap()
+ *
+ * XXX - Windows doesn't support large DAX pages yet, so there is
+ * no point in aligning for the same.
  */
 char *
-util_map_hint(size_t len, size_t req_align)
+util_map_hint(int fd, size_t len, size_t req_align)
 {
-	LOG(3, "len %zu req_align %zu", len, req_align);
+	LOG(3, "fd %d len %zu req_align %zu", fd, len, req_align);
 
-#if 0
-	/*
-	 * XXX - for large mappings, we can end up with error
-	 * ERROR_COMMITMENT_LIMIT (0x5AF) - The paging file is too small
-	 * for this operation to complete.  So we should use VirtualAlloc(
-	 * MEM_RESERVE) to see if the virtual address is available.
-	 *
-	 * XXX - Windows doesn't support large DAX pages yet, so there is
-	 * no point in aligning for the same.
-	 */
+	char *hint_addr = MAP_FAILED;
 
 	/* choose the desired alignment based on the requested length */
 	size_t align = util_map_hint_align(len, req_align);
 
+	if (Mmap_no_random)
+		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
+
 	/*
 	 * Create dummy mapping to find an unused region of given size.
 	 * Request for increased size for later address alignment.
+	 *
+	 * For large anonymous mappings, we can end up with error
+	 * ERROR_COMMITMENT_LIMIT (0x5AF) - The paging file is too small
+	 * for this operation to complete.  So, instead of anonymous mapping
+	 * (as on Linux) we do the mapping on the actual file.
 	 */
-	char *addr = mmap(NULL, len + align, PROT_READ|PROT_WRITE,
-			MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0);
+	char *addr = mmap(Mmap_hint, len + align, PROT_READ,
+				MAP_PRIVATE, fd, 0);
 	if (addr != MAP_FAILED) {
 		LOG(4, "system choice %p", addr);
+		hint_addr = (char *)roundup((uintptr_t)addr, align);
 		munmap(addr, len + align);
-		addr = (char *)roundup((uintptr_t)addr, align);
 	}
+	LOG(4, "hint %p", hint_addr);
 
-	LOG(4, "hint %p", addr);
-	return addr;
-#else
-	LOG(4, "hint %p", NULL);
-	return NULL;
-#endif
+	return hint_addr;
 }

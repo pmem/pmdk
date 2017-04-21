@@ -1917,7 +1917,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		addr = util_map_hint(rep->part[0].fd, rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
@@ -2345,7 +2345,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		retry_for_contiguous_addr = 0;
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		addr = util_map_hint(rep->part[0].fd, rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
