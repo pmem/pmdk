@@ -51,6 +51,9 @@
 #include "container_seglists.h"
 #include "alloc_class.h"
 
+/* calculates the size of the entire run, including any additional chunks */
+#define SIZEOF_RUN(runp, size_idx) (sizeof(*run) + ((size_idx - 1) * CHUNKSIZE))
+
 #define MAX_RUN_LOCKS 1024
 
 #define NCACHES_PER_CPU	2
@@ -265,11 +268,13 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+	ASSERTne(m->size_idx, 0);
+	size_t runsize = SIZEOF_RUN(run, m->size_idx);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, runsize);
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
-	VALGRIND_ADD_TO_TX(run, sizeof(*run));
+	VALGRIND_ADD_TO_TX(run, runsize);
 	run->block_size = c->unit_size;
 	pmemops_persist(&heap->p_ops, &run->block_size,
 			sizeof(run->block_size));
@@ -287,7 +292,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	VALGRIND_SET_CLEAN(&run->incarnation_claim,
 		sizeof(run->incarnation_claim));
 
-	VALGRIND_REMOVE_FROM_TX(run, sizeof(*run));
+	VALGRIND_REMOVE_FROM_TX(run, runsize);
 
 	pmemops_persist(&heap->p_ops, run->bitmap, sizeof(run->bitmap));
 
@@ -298,6 +303,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	struct chunk_header *data_hdr;
 	for (unsigned i = 1; i < m->size_idx; ++i) {
 		data_hdr = &z->chunk_headers[m->chunk_id + i];
+		VALGRIND_DO_MAKE_MEM_UNDEFINED(data_hdr, sizeof(*data_hdr));
 		VALGRIND_ADD_TO_TX(data_hdr, sizeof(*data_hdr));
 		run_data_hdr.size_idx = i;
 		*data_hdr = run_data_hdr;
@@ -544,6 +550,25 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 	struct chunk_run *run = NULL;
 	int rchunks = 0;
 
+	/*
+	 * If this is the first time this zone is processed, recreate all
+	 * footers BEFORE any other operation takes place. For example, the
+	 * heap_init_free_chunk call expects the footers to be created.
+	 */
+	if (init) {
+		for (uint32_t i = 0; i < z->header.size_idx; ) {
+			struct chunk_header *hdr = &z->chunk_headers[i];
+			switch (hdr->type) {
+				case CHUNK_TYPE_USED:
+					heap_chunk_write_footer(hdr,
+						hdr->size_idx);
+					break;
+			}
+
+			i += hdr->size_idx;
+		}
+	}
+
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
 		ASSERT(hdr->size_idx != 0);
@@ -565,9 +590,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, uint32_t zone_id, int init)
 					heap_init_free_chunk(heap, hdr, &m);
 				break;
 			case CHUNK_TYPE_USED:
-				if (init)
-					heap_chunk_write_footer(hdr,
-						hdr->size_idx);
 				break;
 			default:
 				ASSERT(0);
@@ -1455,7 +1477,11 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 	if (m->type == MEMORY_BLOCK_RUN) {
 		struct chunk_run *run = chunk;
 
-		VALGRIND_DO_MAKE_MEM_NOACCESS(run, sizeof(*run));
+		ASSERTne(m->size_idx, 0);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(run,
+			SIZEOF_RUN(run, m->size_idx));
+
+		/* set the run metadata as defined */
 		VALGRIND_DO_MAKE_MEM_DEFINED(run,
 			sizeof(*run) - sizeof(run->data));
 
@@ -1467,12 +1493,8 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 			ASSERTeq(ret, 0);
 		}
 	} else {
-		struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
-		m->size_idx = hdr->size_idx;
-		void *addr = chunk;
-
 		size_t size = m->m_ops->get_real_size(m);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(addr, size);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(chunk, size);
 
 		if (objects && m->m_ops->get_state(m) == MEMBLOCK_ALLOCATED) {
 			int ret = cb(m, arg);
@@ -1517,16 +1539,33 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 
 			VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
 
+			m.size_idx = hdr->size_idx;
 			heap_vg_open_chunk(heap, cb, arg, objects, &m);
 			m.block_off = 0;
-			m.size_idx = 0;
 
 			ASSERT(hdr->size_idx > 0);
 
-			/* mark unused chunk headers as not accessible */
-			VALGRIND_DO_MAKE_MEM_NOACCESS(&z->chunk_headers[c + 1],
+			if (hdr->type == CHUNK_TYPE_RUN) {
+				/*
+				 * Mark run data headers as defined.
+				 */
+				for (unsigned j = 1; j < hdr->size_idx; ++j) {
+					struct chunk_header *data_hdr =
+						&z->chunk_headers[c + j];
+					VALGRIND_DO_MAKE_MEM_DEFINED(data_hdr,
+						sizeof(struct chunk_header));
+					ASSERTeq(data_hdr->type,
+						CHUNK_TYPE_RUN_DATA);
+				}
+			} else {
+				/*
+				 * Mark unused chunk headers as not accessible.
+				 */
+				VALGRIND_DO_MAKE_MEM_NOACCESS(
+					&z->chunk_headers[c + 1],
 					(hdr->size_idx - 1) *
 					sizeof(struct chunk_header));
+			}
 
 			c += hdr->size_idx;
 		}

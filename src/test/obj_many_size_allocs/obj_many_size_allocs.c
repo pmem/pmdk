@@ -60,7 +60,7 @@ test_constructor(PMEMobjpool *pop, void *addr, void *args)
 	return 0;
 }
 
-static void
+static PMEMobjpool *
 test_allocs(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid *oid = MALLOC(sizeof(PMEMoid) * TEST_ALLOC_SIZE);
@@ -87,6 +87,8 @@ test_allocs(PMEMobjpool *pop, const char *path)
 		UT_ASSERT(OID_IS_NULL(oid[i]));
 	}
 	FREE(oid);
+
+	return pop;
 }
 
 static void
@@ -149,7 +151,7 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	test_lazy_load(pop, path);
-	test_allocs(pop, path);
+	pop = test_allocs(pop, path);
 	test_all_classes(pop);
 
 	pmemobj_close(pop);
