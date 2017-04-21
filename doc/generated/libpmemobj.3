@@ -3548,6 +3548,12 @@ Always returns 0.
 prefault.at_open | rw | global | int | int | boolean
 .PP
 As above, but affects \f[B]pmemobj_open()\f[] function.
+.PP
+tx.debug.skip_expensive_checks | rw | \- | int | int | boolean
+.PP
+Turns off some expensive checks performed by transaction module in
+"debug" builds.
+Ignored in "release" builds.
 .SH CTL external configuration
 .PP
 In addition to direct function call, each write entry point can also be
