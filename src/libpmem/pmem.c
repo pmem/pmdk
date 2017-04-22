@@ -34,6 +34,17 @@
  * pmem.c -- pmem entry points for libpmem
  *
  *
+ * PERSISTENT MEMORY SUPPORT ON NON-X86 ARCHITECTURES
+ *
+ * At the moment, libpmem does not provide platform-specific support for
+ * persistent memory for architectures other than x86_64.
+ * When compiled for non-IA architecture, the routines for flushing to
+ * persistent memory have empty implementation and should not be used.
+ * Also, for non-IA builds, pmem_is_pmem() function would always return 0
+ * (unless overridden with PMEM_IS_PMEM_FORCE), so the properly written programs
+ * would switch to use pmem_msync().
+ *
+ *
  * PERSISTENT MEMORY INSTRUCTIONS ON X86
  *
  * The primary feature of this library is to provide a way to flush
@@ -164,13 +175,18 @@
  * impractical.  The call tracing log for those functions is set at 15.
  */
 
+/* XXX - move arch-specific implementation to separate files */
+#if (defined(__x86_64__) || defined(__amd64__) ||\
+			defined(_M_X64) || defined(_M_AMD64))
+#define ARCH_X86_64
+#endif
+
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <emmintrin.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -178,6 +194,10 @@
 
 #ifdef _WIN32
 #include <memoryapi.h>
+#endif
+
+#ifdef ARCH_X86_64
+#include <xmmintrin.h>
 #endif
 
 #include "libpmem.h"
@@ -190,7 +210,9 @@
 #include "file.h"
 #include "valgrind_internal.h"
 
-#ifndef _MSC_VER
+#ifdef ARCH_X86_64
+
+#if (defined(__x86_64__) || defined(__amd64__))
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -201,7 +223,7 @@
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
 
-#endif /* _MSC_VER */
+#endif
 
 #define FLUSH_ALIGN ((uintptr_t)64)
 
@@ -222,6 +244,8 @@
 #define MOVNT_THRESHOLD	256
 
 static size_t Movnt_threshold = MOVNT_THRESHOLD;
+
+#endif /* ARCH_X86_64 */
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -246,6 +270,7 @@ predrain_fence_empty(void)
 	/* nothing to do (because CLFLUSH did it for us) */
 }
 
+#ifdef ARCH_X86_64
 /*
  * predrain_fence_sfence -- (internal) issue the pre-drain fence instruction
  */
@@ -256,6 +281,7 @@ predrain_fence_sfence(void)
 
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
 }
+#endif /* ARCH_X86_64 */
 
 /*
  * pmem_drain() calls through Func_predrain_fence to do the fence.  Although
@@ -280,6 +306,7 @@ pmem_drain(void)
 	VALGRIND_DO_FENCE;
 }
 
+#ifdef ARCH_X86_64
 /*
  * flush_clflush -- (internal) flush the CPU cache, using clflush
  */
@@ -338,6 +365,7 @@ flush_clflushopt(const void *addr, size_t len)
 		_mm_clflushopt((char *)uptr);
 	}
 }
+#endif /* ARCH_X86_64 */
 
 /*
  * flush_empty -- (internal) do not flush the CPU cache
@@ -350,12 +378,12 @@ flush_empty(const void *addr, size_t len)
 
 /*
  * pmem_flush() calls through Func_flush to do the work.  Although
- * initialized to flush_clflush(), once the existence of the clflushopt
+ * initialized to flush_empty(), once the existence of the clflush/clflushopt
  * feature is confirmed by pmem_init() at library initialization time,
- * Func_flush is set to flush_clflushopt().  That's the most common case
- * on modern hardware that supports persistent memory.
+ * Func_flush is set to flush_clflushopt() or flush_clflushopt().  That's
+ * the most common case on modern hardware that supports persistent memory.
  */
-static void (*Func_flush)(const void *, size_t) = flush_clflush;
+static void (*Func_flush)(const void *, size_t) = flush_empty;
 
 /*
  * pmem_flush -- flush processor cache for the given range
@@ -760,6 +788,7 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 	return pmemdest;
 }
 
+#ifdef ARCH_X86_64
 /*
  * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
  */
@@ -976,6 +1005,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 
 	return pmemdest;
 }
+#endif /* ARCH_X86_64 */
 
 /*
  * pmem_memmove_nodrain() calls through Func_memmove_nodrain to do the work.
@@ -1046,6 +1076,7 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 	return pmemdest;
 }
 
+#ifdef ARCH_X86_64
 /*
  * memset_nodrain_movnt -- (internal) memset to pmem without hw drain, movnt
  */
@@ -1136,6 +1167,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 
 	return pmemdest;
 }
+#endif /* ARCH_X86_64 */
 
 /*
  * pmem_memset_nodrain() calls through Func_memset_nodrain to do the work.
@@ -1169,6 +1201,7 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 	return pmemdest;
 }
 
+#ifdef ARCH_X86_64
 /*
  * pmem_log_cpuinfo -- log the results of cpu dispatching decisions,
  * and verify them
@@ -1202,6 +1235,7 @@ static void
 pmem_get_cpuinfo(void)
 {
 	if (is_cpu_clflush_present()) {
+		Func_flush = flush_clflush;
 		Func_is_pmem = is_pmem_proc;
 		LOG(3, "clflush supported");
 	}
@@ -1230,6 +1264,7 @@ pmem_get_cpuinfo(void)
 		}
 	}
 }
+#endif /* ARCH_X86_64 */
 
 /*
  * pmem_init -- load-time initialization for pmem.c
@@ -1239,6 +1274,7 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
+#ifdef ARCH_X86_64
 	pmem_get_cpuinfo();
 
 	char *e = os_getenv("PMEM_NO_FLUSH");
@@ -1281,6 +1317,8 @@ pmem_init(void)
 			GetModuleHandle(TEXT("KernelBase.dll")),
 			"QueryVirtualMemoryInformation");
 #endif
+
+#endif /* ARCH_X86_64 */
 }
 
 
