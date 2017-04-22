@@ -85,8 +85,8 @@ int util_range_ro(void *addr, size_t len);
 int util_range_rw(void *addr, size_t len);
 int util_range_none(void *addr, size_t len);
 
-char *util_map_hint_unused(void *addr, size_t len, size_t align);
-char *util_map_hint(size_t len, size_t req_align);
+char *util_map_hint_unused(void *minaddr, size_t len, size_t align);
+char *util_map_hint(int fd, size_t len, size_t req_align);
 
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)

@@ -142,11 +142,14 @@ util_map(int fd, size_t len, int flags, int rdonly, size_t req_align)
 			rdonly, req_align);
 
 	void *base;
-	void *addr = util_map_hint(len, req_align);
+	void *addr = util_map_hint(fd, len, req_align);
 	if (addr == MAP_FAILED) {
 		ERR("cannot find a contiguous region of given size");
 		return NULL;
 	}
+
+	if (req_align)
+		ASSERTeq((uintptr_t)addr % req_align, 0);
 
 	if ((base = mmap(addr, len, rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
 			flags, fd, 0)) == MAP_FAILED) {
