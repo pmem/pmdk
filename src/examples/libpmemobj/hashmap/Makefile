@@ -32,6 +32,8 @@
 
 LIBRARIES = hashmap_atomic hashmap_tx
 
+LIBS = -lpmemobj
+
 include ../../Makefile.inc
 
 libhashmap_atomic.o: hashmap_atomic.o
