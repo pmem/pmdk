@@ -1043,7 +1043,7 @@ iralloct(void *ptr, size_t size, size_t extra, size_t alignment, bool zero,
 			}
 		}
 
-		return NULL;
+		return (ret != NULL) ? (ret) : (ptr);
 	} else {
 		return (huge_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_dalloc));

@@ -2181,6 +2181,10 @@ je_pool_ralloc(pool_t *pool, void *ptr, size_t size)
 			if (config_stats || (config_valgrind && in_valgrind))
 				usize = s2u(size);
 			ret = pool_iralloc(pool, ptr, size, 0, 0, false);
+			/* possibly realloc failed, so usize == old_usize */
+			if ((config_stats || (config_valgrind && in_valgrind)) &&
+			    (ret == ptr))
+				usize = isalloc(ret, config_prof);
 		}
 	} else {
 		/* realloc(NULL, size) is equivalent to malloc(size). */

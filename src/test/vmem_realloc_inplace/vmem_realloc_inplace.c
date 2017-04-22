@@ -69,22 +69,32 @@ main(int argc, char *argv[])
 
 	int *test1 = vmem_malloc(vmp, 12 * 1024 * 1024);
 	UT_ASSERTne(test1, NULL);
+	*test1 = 0x11;
 
 	int *test1r = vmem_realloc(vmp, test1, 6 * 1024 * 1024);
 	UT_ASSERTeq(test1r, test1);
+	UT_ASSERTeq(*test1r, 0x11);
+	*test1r = 0x22;
 
 	test1r = vmem_realloc(vmp, test1, 12 * 1024 * 1024);
 	UT_ASSERTeq(test1r, test1);
+	UT_ASSERTeq(*test1r, 0x22);
+	*test1r = 0x33;
 
 	test1r = vmem_realloc(vmp, test1, 8 * 1024 * 1024);
 	UT_ASSERTeq(test1r, test1);
+	UT_ASSERTeq(*test1r, 0x33);
+	*test1r = 0x44;
 
 	int *test2 = vmem_malloc(vmp, 4 * 1024 * 1024);
 	UT_ASSERTne(test2, NULL);
+	*test2 = 0x55;
 
 	/* 4MB => 16B */
 	int *test2r = vmem_realloc(vmp, test2, 16);
-	UT_ASSERTeq(test2r, NULL);
+	UT_ASSERTeq(test2r, test2);
+	UT_ASSERTeq(*test2r, 0x55);
+	*test2r = 0x66;
 
 	/* ... but the usable size is still 4MB. */
 	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test2), 4 * 1024 * 1024);
@@ -100,10 +110,13 @@ main(int argc, char *argv[])
 	UT_ASSERTne(test1r, NULL);
 	UT_ASSERTne(test1r, test1);
 	UT_ASSERTeq(vmem_malloc_usable_size(vmp, test1r), 16);
+	UT_ASSERTeq(*test1r, 0x44);
+	*test1r = 0x77;
 
 	/* ... and leaves some memory for new allocations. */
 	int *test3 = vmem_malloc(vmp, 3 * 1024 * 1024);
 	UT_ASSERTne(test3, NULL);
+	*test3 = 0x88;
 
 	vmem_free(vmp, test1r);
 	vmem_free(vmp, test2r);
