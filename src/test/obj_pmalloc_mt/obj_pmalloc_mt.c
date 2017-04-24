@@ -207,8 +207,13 @@ main(int argc, char *argv[])
 	run_worker(realloc_worker, args);
 	run_worker(free_worker, args);
 	run_worker(mix_worker, args);
-	run_worker(tx_worker, args);
 	run_worker(alloc_free_worker, args);
+
+	/*
+	 * This workload might create many allocation classes due to pvector,
+	 * keep it last.
+	 */
+	run_worker(tx_worker, args);
 
 	pmemobj_close(pop);
 
