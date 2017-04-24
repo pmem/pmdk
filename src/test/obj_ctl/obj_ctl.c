@@ -216,48 +216,81 @@ static const struct ctl_node CTL_NODE(global_debug)[] = {
 static void
 test_ctl_parser(PMEMobjpool *pop)
 {
+	errno = 0;
 	int ret;
 	ret = pmemobj_ctl_get(pop, NULL, NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "a.b.c.d", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "debug.", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, ".", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "..", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "1.2.3.4", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "debug.1.", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "debug.1.invalid", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
 
 	/* test methods set read to 0 and write to 1 if successful */
 	int arg_read = 1;
 	int arg_write = 0;
 
+	errno = 0;
+
 	/* correct name, wrong args */
 	ret = pmemobj_ctl_get(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_set(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "debug.test_wo", &arg_read);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_get(pop, "debug.test_wo", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_set(pop, "debug.test_ro", &arg_write);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 	ret = pmemobj_ctl_set(pop, "debug.test_ro", NULL);
 	UT_ASSERTne(ret, 0);
+	UT_ASSERTne(errno, 0);
+	errno = 0;
 
 	ret = pmemobj_ctl_get(pop, "debug.test_rw", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
+	UT_ASSERTeq(errno, 0);
 
 	ret = pmemobj_ctl_set(pop, "debug.test_rw", &arg_write);
 	UT_ASSERTeq(ret, 0);
