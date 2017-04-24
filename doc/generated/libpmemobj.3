@@ -3533,7 +3533,7 @@ provided to the handler functions as name and index pairs.
 .PP
 The entry points are listed in the following format: name |
 r(ead)w(rite) | global/\- | read argument type | write argument type |
-Query write argument description...
+config argument type description...
 .SH CTL NAMESPACE
 .PP
 prefault.at_create | rw | global | int | int | boolean
@@ -3561,7 +3561,7 @@ set using two alternative methods.
 .PP
 The first one is to load configuration directly from a
 \f[B]PMEMOBJ_CONF\f[] environment variable.
-Properly formated ctl config string is a single\-line sequence of
+Properly formatted ctl config string is a single\-line sequence of
 queries separated by \[aq];\[aq]:
 .IP
 .nf
@@ -3602,11 +3602,11 @@ first_arg,second_arg
 \f[]
 .fi
 .PP
-In summary, a full configuration sequence can looks like this:
+In summary, a full configuration sequence looks like this:
 .IP
 .nf
 \f[C]
-(first\ entrypoint)=(arguments,\ ...);...;(last_entry_point)=(arguments,\ ...);
+(first_entry_point)=(arguments,\ ...);...;(last_entry_point)=(arguments,\ ...);
 \f[]
 .fi
 .PP
@@ -3619,7 +3619,7 @@ PMEMOBJ_CONF="prefault.at_open=1;prefault.at_create=1"
 \f[]
 .fi
 .PP
-The second method to load an external configuration is to set the
+The second method of loading an external configuration is to set the
 \f[B]PMEMOBJ_CONF_FILE\f[] environment variable to point to a file that
 contains a sequence of ctl queries.
 The parsing rules are all the same, but the file can also contain
