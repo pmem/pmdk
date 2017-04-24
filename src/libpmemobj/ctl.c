@@ -68,28 +68,6 @@ struct ctl {
 };
 
 /*
- * String provider is the simplest, elementary, query provider. It can be used
- * directly to parse environment variables or in conjuction with other code to
- * provide more complex behavior. It is initialized with a string containing all
- * of the queries and tokenizes it into separate structures.
- */
-struct ctl_string_provider {
-	struct ctl_query_provider super;
-
-	char *buf; /* stores the entire string that needs to be parsed */
-	char *sptr; /* for internal use of strtok */
-};
-
-/*
- * File provider builts on top of the string provider to facilitate reading
- * query data from a user-provided file.
- */
-struct ctl_file_provider {
-	struct ctl_string_provider super;
-	FILE *config;
-};
-
-/*
  * ctl_find_node -- (internal) searches for a matching entry point in the
  *	provided nodes
  *
@@ -100,6 +78,8 @@ static struct ctl_node *
 ctl_find_node(struct ctl_node *nodes, const char *name,
 	struct ctl_indexes *indexes)
 {
+	LOG(3, "nodes %p name %s indexes %p", nodes, name, indexes);
+
 	struct ctl_node *n = NULL;
 	char *sptr = NULL;
 	char *parse_str = Strdup(name);
@@ -249,7 +229,10 @@ static int
 ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 	const char *name, void *read_arg, void *write_arg)
 {
+	LOG(3, "pop %p type %d name %s", pop, type, name);
+
 	if (name == NULL) {
+		ERR("invalid query");
 		errno = EINVAL;
 		return -1;
 	}
@@ -295,6 +278,7 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 		void *real_arg = ctl_query_get_real_args(n, write_arg, type);
 		if (real_arg == NULL) {
 			errno = EINVAL;
+			ERR("invalid arguments");
 			goto error_invalid_arguments;
 		}
 		ret = n->write_cb(pop, type, real_arg, &indexes);
@@ -316,6 +300,7 @@ static inline
 int
 pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
 {
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
 	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
 		name, arg, NULL);
 }
@@ -329,6 +314,7 @@ static inline
 int
 pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
 {
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
 	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
 		name, NULL, arg);
 }
@@ -401,50 +387,22 @@ ctl_register_module_node(struct ctl *c, const char *name, struct ctl_node *n)
 }
 
 /*
- * ctl_exec_query_config -- (internal) executes a ctl query from a provider
- */
-static int
-ctl_exec_query_config(PMEMobjpool *pop, struct ctl_query_config *q)
-{
-	return ctl_query(pop, CTL_QUERY_CONFIG_INPUT, q->name, NULL, q->value);
-}
-
-/*
- * ctl_load_config -- executes the entire query collection from a provider
- */
-int
-ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p)
-{
-	int r = 0;
-
-	struct ctl_query_config q = {NULL, NULL};
-
-	for (r = p->first(p, &q); r == 0; r = p->next(p, &q)) {
-		if ((r = ctl_exec_query_config(pop, &q)) != 0)
-			break;
-	}
-
-	/* the method 'next' from data provider returns 1 to indicate end */
-	return r >= 0 ? 0 : -1;
-}
-
-/*
- * ctl_string_provider_parse_query -- (internal) splits an entire query string
+ * ctl_parse_query -- (internal) splits an entire query string
  *	into name and value
  */
 static int
-ctl_string_provider_parse_query(char *qbuf, struct ctl_query_config *q)
+ctl_parse_query(char *qbuf, char **name, char **value)
 {
 	if (qbuf == NULL)
 		return 1;
 
 	char *sptr;
-	q->name = strtok_r(qbuf, CTL_NAME_VALUE_SEPARATOR, &sptr);
-	if (q->name == NULL)
+	*name = strtok_r(qbuf, CTL_NAME_VALUE_SEPARATOR, &sptr);
+	if (*name == NULL)
 		return -1;
 
-	q->value = strtok_r(NULL, CTL_NAME_VALUE_SEPARATOR, &sptr);
-	if (q->value == NULL)
+	*value = strtok_r(NULL, CTL_NAME_VALUE_SEPARATOR, &sptr);
+	if (*value == NULL)
 		return -1;
 
 	/* the value itself mustn't include CTL_NAME_VALUE_SEPARATOR */
@@ -456,150 +414,108 @@ ctl_string_provider_parse_query(char *qbuf, struct ctl_query_config *q)
 }
 
 /*
- * ctl_string_provider_first -- (internal) returns the first query from the
- *	provider's collection
+ * ctl_load_config -- executes the entire query collection from a provider
  */
 static int
-ctl_string_provider_first(struct ctl_query_provider *p,
-	struct ctl_query_config *q)
+ctl_load_config(PMEMobjpool *pop, char *buf)
 {
-	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
+	int r = 0;
+	char *sptr = NULL; /* for internal use of strtok */
+	char *name;
+	char *value;
 
-	char *qbuf = strtok_r(sp->buf, CTL_STRING_QUERY_SEPARATOR, &sp->sptr);
+	char *qbuf = strtok_r(buf, CTL_STRING_QUERY_SEPARATOR, &sptr);
+	do {
+		r = ctl_parse_query(qbuf, &name, &value);
+		if (r == 0)
+			r = ctl_query(pop, CTL_QUERY_CONFIG_INPUT,
+				name, NULL, value);
+		qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sptr);
+	} while (r == 0 && qbuf != NULL);
 
-	return ctl_string_provider_parse_query(qbuf, q);
+	/* ctl_parse_query() returns 1 to indicate end */
+	return r >= 0 ? 0 : -1;
 }
 
 /*
- * ctl_string_provider_first -- (internal) returns the next in sequence query
- *	from the provider's collection
+ * ctl_load_config_from_string -- loads obj configuration from string
  */
-static int
-ctl_string_provider_next(struct ctl_query_provider *p,
-	struct ctl_query_config *q)
+int
+ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string)
 {
-	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
+	LOG(3, "pop %p cfg_string \"%s\"", pop, cfg_string);
 
-	ASSERTne(sp->sptr, NULL);
+	char *buf = Strdup(cfg_string);
+	if (buf == NULL) {
+		ERR("!Strdup");
+		return -1;
+	}
 
-	char *qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sp->sptr);
+	int ret = ctl_load_config(pop, buf);
 
-	return ctl_string_provider_parse_query(qbuf, q);
+	Free(buf);
+	return ret;
 }
 
 /*
- * ctl_string_provider_new --
- *	creates and initializes a new string query provider
- */
-struct ctl_query_provider *
-ctl_string_provider_new(const char *buf)
-{
-	struct ctl_string_provider *sp =
-		Malloc(sizeof(struct ctl_string_provider));
-	if (sp == NULL)
-		goto error_provider_alloc;
-
-	sp->super.first = ctl_string_provider_first;
-	sp->super.next = ctl_string_provider_next;
-	sp->buf = Strdup(buf);
-	if (sp->buf == NULL)
-		goto error_buf_alloc;
-
-	return &sp->super;
-
-error_buf_alloc:
-	Free(sp);
-error_provider_alloc:
-	return NULL;
-}
-
-/*
- * ctl_string_provider_delete -- cleanups and deallocates provider instance
- */
-void
-ctl_string_provider_delete(struct ctl_query_provider *p)
-{
-	struct ctl_string_provider *sp = (struct ctl_string_provider *)p;
-	Free(sp->buf);
-	Free(sp);
-}
-
-/*
- * ctl_file_provider_new --
- *	creates and initializes a new file query provider
+ * ctl_load_config_from_file -- loads obj configuration from file
  *
  * This function opens up the config file, allocates a buffer of size equal to
- * the size of the file, reads its content and sanitizes it for the string query
- * provider pipeline.
+ * the size of the file, reads its content and sanitizes it for ctl_load_config.
  */
-struct ctl_query_provider *
-ctl_file_provider_new(const char *file)
+int
+ctl_load_config_from_file(PMEMobjpool *pop, const char *cfg_file)
 {
-	struct ctl_file_provider *fp =
-		Malloc(sizeof(struct ctl_file_provider));
+	LOG(3, "pop %p cfg_file \"%s\"", pop, cfg_file);
+
+	int ret = -1;
+
+	FILE *fp = os_fopen(cfg_file, "r");
 	if (fp == NULL)
-		goto error_provider_alloc;
-
-	struct ctl_string_provider *sp = &fp->super;
-
-	sp->super.first = ctl_string_provider_first;
-	sp->super.next = ctl_string_provider_next;
-	if ((fp->config = os_fopen(file, "r")) == NULL)
-		goto error_file_open;
+		return ret;
 
 	int err;
-	if ((err = fseek(fp->config, 0, SEEK_END)) != 0)
+	if ((err = fseek(fp, 0, SEEK_END)) != 0)
 		goto error_file_parse;
 
-	long fsize = ftell(fp->config);
+	long fsize = ftell(fp);
 	if (fsize == -1)
 		goto error_file_parse;
+
 	if (fsize > MAX_CONFIG_FILE_LEN) {
 		ERR("Config file too large");
 		goto error_file_parse;
 	}
 
-	if ((err = fseek(fp->config, 0, SEEK_SET)) != 0)
+	if ((err = fseek(fp, 0, SEEK_SET)) != 0)
 		goto error_file_parse;
 
-	sp->buf = Zalloc((size_t)fsize + 1); /* +1 for NULL-termination */
-	if (sp->buf == NULL)
+	char *buf = Zalloc((size_t)fsize + 1); /* +1 for NULL-termination */
+	if (buf == NULL) {
+		ERR("!Zalloc");
 		goto error_file_parse;
+	}
 
 	size_t bufpos = 0;
 
 	int c;
 	int is_comment_section = 0;
-	while ((c = fgetc(fp->config)) != EOF) {
+	while ((c = fgetc(fp)) != EOF) {
 		if (c == '#')
 			is_comment_section = 1;
 		else if (c == '\n')
 			is_comment_section = 0;
 		else if (!is_comment_section && !isspace(c))
-			sp->buf[bufpos++] = (char)c;
+			buf[bufpos++] = (char)c;
 	}
 
-	(void) fclose(fp->config);
+	ret = ctl_load_config(pop, buf);
 
-	return &sp->super;
+	Free(buf);
 
 error_file_parse:
-	fclose(fp->config);
-error_file_open:
-	Free(fp);
-error_provider_alloc:
-	return NULL;
-}
-
-/*
- * ctl_file_provider_delete -- cleanups and deallocates provider instance
- */
-void
-ctl_file_provider_delete(struct ctl_query_provider *p)
-{
-	struct ctl_file_provider *fp = (struct ctl_file_provider *)p;
-	Free(fp->super.buf);
-	Free(fp);
+	(void) fclose(fp);
+	return ret;
 }
 
 /*

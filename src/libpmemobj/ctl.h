@@ -110,31 +110,11 @@ struct ctl_node {
 	struct ctl_node *children;
 };
 
-struct ctl_query_config {
-	char *name;
-	char *value;
-};
-
-struct ctl_query_provider {
-	/*
-	 * Both functions return:
-	 *  0 if the query variable has been successfully populated with data.
-	 *  1 if the iteration reached the end of the collection.
-	 * -1 if a parsing error occured.
-	 */
-	int (*first)(struct ctl_query_provider *p, struct ctl_query_config *q);
-	int (*next)(struct ctl_query_provider *p, struct ctl_query_config *q);
-};
-
-struct ctl_query_provider *ctl_string_provider_new(const char *buf);
-void ctl_string_provider_delete(struct ctl_query_provider *p);
-
-struct ctl_query_provider *ctl_file_provider_new(const char *file);
-void ctl_file_provider_delete(struct ctl_query_provider *p);
-
 struct ctl *ctl_new(void);
-int ctl_load_config(PMEMobjpool *pop, struct ctl_query_provider *p);
 void ctl_delete(struct ctl *stats);
+
+int ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string);
+int ctl_load_config_from_file(PMEMobjpool *pop, const char *cfg_file);
 
 /* Use through CTL_REGISTER_MODULE, never directly */
 void ctl_register_module_node(struct ctl *c,

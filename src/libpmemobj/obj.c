@@ -156,6 +156,8 @@ pmemobj_direct(PMEMoid oid)
 static int
 obj_ctl_init_and_load(PMEMobjpool *pop)
 {
+	LOG(3, "pop %p", pop);
+
 	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
 		ERR("!ctl_new");
 		return -1;
@@ -165,38 +167,25 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		tx_ctl_init(pop);
 	}
 
-	struct ctl_query_provider *p;
-
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
 	if (env_config != NULL) {
-		p = ctl_string_provider_new(env_config);
-		if (p == NULL || ctl_load_config(pop, p) != 0) {
+		if (ctl_load_config_from_string(pop, env_config) != 0) {
 			ERR("unable to parse config stored in %s "
-			"environment variable", OBJ_CONFIG_ENV_VARIABLE);
-			ctl_string_provider_delete(p);
-
+				"environment variable",
+				OBJ_CONFIG_ENV_VARIABLE);
 			return -1;
 		}
-
-		if (p != NULL)
-			ctl_string_provider_delete(p);
 	}
 
 	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
 	if (env_config_file != NULL) {
-		p = ctl_file_provider_new(env_config_file);
-		if (p == NULL || ctl_load_config(pop, p) != 0) {
+		if (ctl_load_config_from_file(pop, env_config_file) != 0) {
 			ERR("unable to parse config stored in %s "
-			"file (from %s environment variable)",
+				"file (from %s environment variable)",
 				env_config_file,
 				OBJ_CONFIG_FILE_ENV_VARIABLE);
-			ctl_file_provider_delete(p);
-
 			return -1;
 		}
-
-		if (p != NULL)
-			ctl_file_provider_delete(p);
 	}
 
 	return 0;
