@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -100,7 +100,7 @@ for file in $files; do
 		# Rebuild Docker image for the current OS version
 		echo "Rebuilding the Docker image for the Dockerfile.$OS-$OS_VER"
 		pushd $images_dir_name
-		./build-image.sh $OS:$OS_VER
+		./build-image.sh ${OS}-${OS_VER}
 		popd
 
 		# Check if the image has to be pushed to Docker Hub
