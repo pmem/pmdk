@@ -1731,7 +1731,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
 		 */
-		ret = nargs.size > runtime->pop->tx_params->cache_size ?
+		ret = nargs.size > runtime->pop->tx_params->cache_threshold ?
 			pmemobj_tx_add_large(tx, &nargs) :
 			pmemobj_tx_add_small(tx, &nargs);
 
@@ -2193,6 +2193,8 @@ static int
 CTL_WRITE_HANDLER(size)(PMEMobjpool *pop,
 	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
 {
+	ASSERTeq(get_tx()->stage, TX_STAGE_NONE);
+
 	ssize_t arg_in = *(int *)arg;
 
 	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE)
@@ -2231,6 +2233,8 @@ static int
 CTL_WRITE_HANDLER(threshold)(PMEMobjpool *pop,
 	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
 {
+	ASSERTeq(get_tx()->stage, TX_STAGE_NONE);
+
 	ssize_t arg_in = *(int *)arg;
 
 	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size)
