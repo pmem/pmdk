@@ -1731,7 +1731,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
 		 */
-		ret = nargs.size > runtime->pop->tx_params->cache_size ?
+		ret = nargs.size > runtime->pop->tx_params->cache_threshold ?
 			pmemobj_tx_add_large(tx, &nargs) :
 			pmemobj_tx_add_small(tx, &nargs);
 
@@ -2195,8 +2195,11 @@ CTL_WRITE_HANDLER(size)(PMEMobjpool *pop,
 {
 	ssize_t arg_in = *(int *)arg;
 
-	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE)
+	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE) {
+		errno = EINVAL;
+		ERR("invalid cache size, must be between 0 and max alloc size");
 		return -1;
+	}
 
 	size_t argu = (size_t)arg_in;
 
@@ -2233,8 +2236,11 @@ CTL_WRITE_HANDLER(threshold)(PMEMobjpool *pop,
 {
 	ssize_t arg_in = *(int *)arg;
 
-	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size)
+	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size) {
+		errno = EINVAL;
+		ERR("invalid threshold size, must be between 0 and cache size");
 		return -1;
+	}
 
 	pop->tx_params->cache_threshold = (size_t)arg_in;
 
