@@ -36,7 +36,6 @@
  * waiting.
  */
 
-#include <sched.h>
 #include "valgrind_internal.h"
 
 #include "ringbuf.h"
@@ -69,7 +68,7 @@ struct ringbuf *
 ringbuf_new(unsigned length)
 {
 	/* length must be a power of two due to masking */
-	ASSERT(__builtin_popcount(length) <= 1);
+	ASSERT(util_popcount(length) <= 1);
 
 	struct ringbuf *rbuf =
 		Zalloc(sizeof(*rbuf) + (length * sizeof(void *)));
@@ -142,7 +141,7 @@ ringbuf_delete(struct ringbuf *rbuf)
 static void
 ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 {
-	size_t w = __sync_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
+	size_t w = util_fetch_and_inc(&rbuf->write_pos) & rbuf->len_mask;
 
 	ASSERT(rbuf->running);
 
@@ -150,7 +149,7 @@ ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 	 * In most cases, this won't loop even once, but sometimes if the
 	 * semaphore is incremented concurrently in dequeue, we need to wait.
 	 */
-	while (!__sync_bool_compare_and_swap(&rbuf->data[w], NULL, data))
+	while (!util_bool_compare_and_swap64(&rbuf->data[w], NULL, data))
 		;
 }
 
@@ -195,7 +194,7 @@ ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 static void *
 ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 {
-	size_t r = __sync_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
+	size_t r = util_fetch_and_inc(&rbuf->read_pos) & rbuf->len_mask;
 	/*
 	 * Again, in most cases, there won't be even a single loop, but if one
 	 * thread stalls while others perform work, it might happen that two
@@ -206,7 +205,7 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 		while ((data = rbuf->data[r]) == NULL && rbuf->running)
 			__sync_synchronize();
 
-		if (__sync_bool_compare_and_swap(&rbuf->data[r], data, NULL))
+		if (util_bool_compare_and_swap64(&rbuf->data[r], data, NULL))
 			break;
 	} while (rbuf->running);
 
