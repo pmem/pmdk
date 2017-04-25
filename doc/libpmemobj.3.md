@@ -2270,6 +2270,9 @@ This value must be a in a range between 0 and **PMEMOBJ_MAX_ALLOC_SIZE**.
 If the current threshold is larger than the new cache size, the threshold will
 be made equal to the new size.
 
+This entry point is not thread safe and should not be modified if there are any
+transactions currently running.
+
 Returns 0 if successful, -1 otherwise.
 
 tx.cache.threshold | rw | - | long long | long long | integer
@@ -2278,6 +2281,9 @@ Threshold in bytes to which the snapshots will use the cache. All bigger
 snapshots will trigger a persistent allocation.
 
 This value must be a in a range between 0 and **tx.cache.size**.
+
+This entry point is not thread safe and should not be modified if there are any
+transactions currently running.
 
 Returns 0 if successful, -1 otherwise.
 
