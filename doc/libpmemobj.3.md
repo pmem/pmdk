@@ -2257,6 +2257,48 @@ tx.debug.skip_expensive_checks | rw | - | int | int | boolean
 Turns off some expensive checks performed by transaction module in "debug"
 builds. Ignored in "release" builds.
 
+tx.post_commit.queue_depth | rw | - | int | int | integer
+
+Controls the depth of the post-commit tasks queue. A post-commit task is the
+collection of work items that need to be performed on the persistent state after
+a successfully completed transaction. This includes freeing no longer needed
+objects and cleaning up various caches. By default, this queue does not exist
+and the post-commit task is executed synchronously in the same thread that
+ran the transaction. By changing this parameter, one can offload this task to
+a separate worker. If the queue is full, the algorithm, instead of waiting,
+performs the post-commit in the current thread.
+
+The task is performed on a finite resource (lanes, of which there are 1024),
+and if the worker threads that process this queue don't keep up with the
+demand, regular threads might start to block waiting for that resource. This
+will happen if the queue depth value is too large.
+
+As a general rule, this value should be set to around 1024 - average number of
+threads in the application (not counting the post-commit workers). But this may
+vary from workload to workload.
+
+This entry point is not thread-safe and must be called when no transactions are
+currently executed.
+
+Always returns 0.
+
+tx.post_commit.worker | r- | - | void * | - | -
+
+The worker function that one needs to launch in a thread to perform asynchronous
+processing of post-commit tasks. It returns only after a stop entry point is
+called. There might be many worker threads at a time. If there's no work to be
+done, this functions sleeps instead of polling.
+
+Always returns 0.
+
+tx.post_commit.worker | r- | - | void * | - | -
+
+This function forces all the post-commit worker functions to exit and return
+control back to the calling thread. This should be called before the application
+terminates or the post commit worker threads needs to be shutdown.
+
+Always returns 0.
+
 # CTL external configuration #
 
 In addition to direct function call, each write entry point can also be set
