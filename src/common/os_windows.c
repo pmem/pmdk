@@ -593,7 +593,7 @@ os_strsignal(int sig)
 }
 
 struct os_semaphore {
-	/* XXX */
+	HANDLE s;
 };
 
 /*
@@ -606,6 +606,8 @@ os_semaphore_new(unsigned value)
 	if (sem == NULL)
 		return NULL;
 
+	sem->s = CreateSemaphore(NULL,
+		value, ULONG_MAX, NULL);
 
 	return sem;
 }
@@ -616,6 +618,7 @@ os_semaphore_new(unsigned value)
 void
 os_semaphore_delete(struct os_semaphore *sem)
 {
+	CloseHandle(sem->s);
 	Free(sem);
 }
 
@@ -625,7 +628,7 @@ os_semaphore_delete(struct os_semaphore *sem)
 void
 os_semaphore_wait(struct os_semaphore *sem)
 {
-	FATAL("XXX not implemented");
+	WaitForSingleObject(sem->s, INFINITE);
 }
 
 /*
@@ -634,9 +637,9 @@ os_semaphore_wait(struct os_semaphore *sem)
 int
 os_semaphore_trywait(struct os_semaphore *sem)
 {
-	FATAL("XXX not implemented");
+	WaitForSingleObject(sem->s, 0);
 
-	return -1;
+	return 0;
 }
 
 /*
@@ -645,7 +648,7 @@ os_semaphore_trywait(struct os_semaphore *sem)
 void
 os_semaphore_post(struct os_semaphore *sem)
 {
-	FATAL("XXX not implemented");
+	ReleaseSemaphore(sem->s, 1, NULL);
 }
 
 /*
@@ -654,7 +657,5 @@ os_semaphore_post(struct os_semaphore *sem)
 unsigned
 os_semaphore_get(struct os_semaphore *sem)
 {
-	FATAL("XXX not implemented");
-
 	return 0;
 }
