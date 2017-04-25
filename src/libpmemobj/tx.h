@@ -40,8 +40,8 @@
 #include <stdint.h>
 #include "pvector.h"
 
-#define TX_RANGE_CACHE_SIZE (1 << 21)
-#define TX_RANGE_CACHE_THRESHOLD (1 << 18)
+#define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 21)
+#define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 18)
 
 #define TX_RANGE_SIZE_MASK (8ULL - 1)
 #define TX_RANGE_ALIGN_SIZE(s) ((s + TX_RANGE_SIZE_MASK) & ~TX_RANGE_SIZE_MASK)
@@ -73,6 +73,8 @@ struct lane_tx_layout {
 	struct pvector undo_log[MAX_UNDO_TYPES];
 };
 
+struct tx_parameters;
+
 /*
  * Returns the current transaction's pool handle, NULL if not within
  * a transaction.
@@ -80,5 +82,8 @@ struct lane_tx_layout {
 PMEMobjpool *tx_get_pop(void);
 
 void tx_ctl_init(PMEMobjpool *pop);
+
+struct tx_parameters *tx_params_new(void);
+void tx_params_delete(struct tx_parameters *tx_params);
 
 #endif

@@ -1091,9 +1091,15 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
-	if (obj_ctl_init_and_load(pop) != 0) {
+	pop->tx_params = tx_params_new();
+	if (pop->tx_params == NULL) {
 		errno = EINVAL;
 		return -1;
+	}
+
+	if (obj_ctl_init_and_load(pop) != 0) {
+		errno = EINVAL;
+		goto err_ctl;
 	}
 
 	if (boot) {
@@ -1135,6 +1141,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	return 0;
 err:
 	ctl_delete(pop->ctl);
+err_ctl:
+	tx_params_delete(pop->tx_params);
 
 	return -1;
 }
@@ -1697,6 +1705,7 @@ obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
+	tx_params_delete(pop->tx_params);
 	ctl_delete(pop->ctl);
 
 	palloc_heap_cleanup(&pop->heap);
@@ -1780,6 +1789,7 @@ pmemobj_checkU(const char *path, const char *layout)
 	if (consistent) {
 		obj_pool_cleanup(pop);
 	} else {
+		tx_params_delete(pop->tx_params);
 		ctl_delete(pop->ctl);
 
 		/* unmap all the replicas */

@@ -130,6 +130,37 @@ enum tx_clr_flag {
 	TX_CLR_FLAG_VG_TX_REMOVE = 1 << 2, /* remove from valgrind tx */
 };
 
+struct tx_parameters {
+	size_t cache_size;
+	size_t cache_threshold;
+};
+
+/*
+ * tx_params_new -- creates a new transactional parameters instance and fills it
+ *	with default values.
+ */
+struct tx_parameters *
+tx_params_new(void)
+{
+	struct tx_parameters *tx_params = Malloc(sizeof(*tx_params));
+	if (tx_params == NULL)
+		return NULL;
+
+	tx_params->cache_size = TX_DEFAULT_RANGE_CACHE_SIZE;
+	tx_params->cache_threshold = TX_DEFAULT_RANGE_CACHE_THRESHOLD;
+
+	return tx_params;
+}
+
+/*
+ * tx_params_delete -- deletes transactional parameters instance
+ */
+void
+tx_params_delete(struct tx_parameters *tx_params)
+{
+	Free(tx_params);
+}
+
 static void
 obj_tx_abort(int errnum, int user);
 
@@ -1538,7 +1569,7 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct tx *tx,
 			return NULL;
 		}
 		int err = pmalloc_construct(pop, entry,
-			TX_RANGE_CACHE_SIZE,
+			pop->tx_params->cache_size,
 			constructor_tx_range_cache, NULL,
 			0, OBJ_INTERNAL_OBJECT_MASK);
 
@@ -1700,7 +1731,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
 		 */
-		ret = nargs.size > TX_RANGE_CACHE_THRESHOLD ?
+		ret = nargs.size > runtime->pop->tx_params->cache_size ?
 			pmemobj_tx_add_large(tx, &nargs) :
 			pmemobj_tx_add_small(tx, &nargs);
 
@@ -2142,6 +2173,84 @@ static struct section_operations transaction_ops = {
 SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
 
 /*
+ * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter
+ */
+static int
+CTL_READ_HANDLER(size)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t *arg_out = arg;
+
+	*arg_out = (ssize_t)pop->tx_params->cache_size;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(size) -- sets the cache size transaction parameter
+ */
+static int
+CTL_WRITE_HANDLER(size)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t arg_in = *(int *)arg;
+
+	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE)
+		return -1;
+
+	size_t argu = (size_t)arg_in;
+
+	pop->tx_params->cache_size = argu;
+	if (pop->tx_params->cache_threshold > argu)
+		pop->tx_params->cache_threshold = argu;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(size) = CTL_ARG_LONG_LONG;
+
+/*
+ * CTL_READ_HANDLER(threshold) -- gets the cache threshold transaction parameter
+ */
+static int
+CTL_READ_HANDLER(threshold)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t *arg_out = arg;
+
+	*arg_out = (ssize_t)pop->tx_params->cache_threshold;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(threshold) --
+ *	sets the cache threshold transaction parameter
+ */
+static int
+CTL_WRITE_HANDLER(threshold)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t arg_in = *(int *)arg;
+
+	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size)
+		return -1;
+
+	pop->tx_params->cache_threshold = (size_t)arg_in;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(threshold) = CTL_ARG_LONG_LONG;
+
+static const struct ctl_node CTL_NODE(cache)[] = {
+	CTL_LEAF_RW(size),
+	CTL_LEAF_RW(threshold),
+
+	CTL_NODE_END
+};
+
+/*
  * CTL_READ_HANDLER(skip_expensive_checks) -- returns "skip_expensive_checks"
  * var from pool ctl
  */
@@ -2181,6 +2290,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 
 static const struct ctl_node CTL_NODE(tx)[] = {
 	CTL_CHILD(debug),
+	CTL_CHILD(cache),
 
 	CTL_NODE_END
 };
