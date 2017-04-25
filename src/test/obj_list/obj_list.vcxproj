@@ -59,6 +59,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_REDO</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_REDO</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\ringbuf.c" />
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />

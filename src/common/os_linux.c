@@ -258,7 +258,7 @@ os_semaphore_delete(struct os_semaphore *sem)
 	if (sem_destroy(&sem->s) != 0)
 		FATAL("!sem_destroy");
 
-	/* XXX use Falloc when the linking situation of the os is clarified */
+	/* XXX use Free when the linking situation of the os is clarified */
 	free(sem);
 }
 
@@ -305,19 +305,4 @@ os_semaphore_post(struct os_semaphore *sem)
 {
 	if (sem_post(&sem->s) != 0)
 		FATAL("!sem_post");
-}
-
-/*
- * os_semaphore_get -- returns the current value held by the semaphore
- */
-unsigned
-os_semaphore_get(struct os_semaphore *sem)
-{
-	int value;
-	if (sem_getvalue(&sem->s, &value) != 0)
-		FATAL("!sem_getvalue");
-
-	ASSERT(value >= 0);
-
-	return (unsigned)value;
 }
