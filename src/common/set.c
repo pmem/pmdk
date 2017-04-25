@@ -1651,7 +1651,13 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 			POOL_HDR_UUID_LEN);
 	}
 
-	hdrp->crtime = (uint64_t)time(NULL);
+	struct timespec t;
+	/* realtime is used because it has better windows implementation */
+	if (clock_gettime(CLOCK_REALTIME, &t) != 0) {
+		ERR("Retrieving time since epoch failed");
+		return -1;
+	}
+	hdrp->crtime = (uint64_t)t.tv_sec;
 
 	if (!arch_flags) {
 		if (util_get_arch_flags(&hdrp->arch_flags)) {
