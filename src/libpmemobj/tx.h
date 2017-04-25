@@ -40,8 +40,8 @@
 #include <stdint.h>
 #include "pvector.h"
 
-#define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 21)
-#define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 18)
+#define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
+#define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)
 
 #define TX_RANGE_SIZE_MASK (8ULL - 1)
 #define TX_RANGE_ALIGN_SIZE(s) ((s + TX_RANGE_SIZE_MASK) & ~TX_RANGE_SIZE_MASK)
