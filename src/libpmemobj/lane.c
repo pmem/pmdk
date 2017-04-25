@@ -361,9 +361,9 @@ get_lane(uint64_t *locks, struct lane_info *info, uint64_t nlocks)
 				return;
 			}
 
-			if (info->lane_idx == info->primary) {
+			if (info->lane_idx == info->primary &&
+					info->primary_attempts > 0) {
 				info->primary_attempts--;
-				ASSERT(info->primary_attempts >= 0);
 			}
 
 			++info->lane_idx;
@@ -466,6 +466,9 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	return (unsigned)lane->lane_idx;
 }
 
+/*
+ * lane_attach -- attaches the lane with the given index to the current thread
+ */
 void
 lane_attach(PMEMobjpool *pop, unsigned lane)
 {

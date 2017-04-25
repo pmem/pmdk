@@ -43,6 +43,13 @@
 #include "out.h"
 #include "os.h"
 
+/*
+ * This number defines by how much the relevant semaphore will be increased to
+ * unlock waiting threads and thus defines how many threads can wait on the
+ * ring buffer at the same time.
+ */
+#define RINGBUF_MAX_CONSUMER_THREADS 1024
+
 /* avoid false sharing by padding the variable */
 #define CACHELINE_PADDING(type, name)\
 union { type name; uint64_t name##_padding[8]; }
@@ -67,8 +74,11 @@ struct ringbuf {
 struct ringbuf *
 ringbuf_new(unsigned length)
 {
+	LOG(4, NULL);
+
 	/* length must be a power of two due to masking */
-	ASSERT(util_popcount(length) <= 1);
+	if (util_popcount(length) > 1)
+		return NULL;
 
 	struct ringbuf *rbuf =
 		Zalloc(sizeof(*rbuf) + (length * sizeof(void *)));
@@ -106,6 +116,8 @@ error:
 unsigned
 ringbuf_length(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
 	return rbuf->len;
 }
 
@@ -116,10 +128,16 @@ ringbuf_length(struct ringbuf *rbuf)
 void
 ringbuf_stop(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
+	/* wait for the buffer to become empty */
+	while (rbuf->read_pos != rbuf->write_pos)
+		__sync_synchronize();
+
 	rbuf->running = 0;
 
 	/* XXX just unlock all waiting threads somehow... */
-	for (uint64_t i = 0; i < 1024; ++i)
+	for (int64_t i = 0; i < RINGBUF_MAX_CONSUMER_THREADS; ++i)
 		os_semaphore_post(rbuf->nused);
 }
 
@@ -129,6 +147,9 @@ ringbuf_stop(struct ringbuf *rbuf)
 void
 ringbuf_delete(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
+	ASSERTeq(rbuf->read_pos, rbuf->write_pos);
 	os_semaphore_delete(rbuf->nfree);
 	os_semaphore_delete(rbuf->nused);
 	Free(rbuf);
@@ -141,6 +162,8 @@ ringbuf_delete(struct ringbuf *rbuf)
 static void
 ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 {
+	LOG(4, NULL);
+
 	size_t w = util_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
 
 	ASSERT(rbuf->running);
@@ -161,6 +184,8 @@ ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 int
 ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 {
+	LOG(4, NULL);
+
 	os_semaphore_wait(rbuf->nfree);
 
 	ringbuf_enqueue_atomic(rbuf, data);
@@ -178,6 +203,8 @@ ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 int
 ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 {
+	LOG(4, NULL);
+
 	if (os_semaphore_trywait(rbuf->nfree) != 0)
 		return -1;
 
@@ -194,6 +221,8 @@ ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 static void *
 ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
 	size_t r = util_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
 	/*
 	 * Again, in most cases, there won't be even a single loop, but if one
@@ -202,13 +231,9 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 	 */
 	void *data = NULL;
 	do {
-		while ((data = rbuf->data[r]) == NULL && rbuf->running)
+		while ((data = rbuf->data[r]) == NULL)
 			__sync_synchronize();
-
-		if (util_bool_compare_and_swap64(&rbuf->data[r], data, NULL))
-			break;
-	} while (rbuf->running);
-
+	} while (!util_bool_compare_and_swap64(&rbuf->data[r], data, NULL));
 
 	return data;
 }
@@ -221,7 +246,12 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 void *
 ringbuf_dequeue(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
 	os_semaphore_wait(rbuf->nused);
+
+	if (!rbuf->running)
+		return NULL;
 
 	void *data = ringbuf_dequeue_atomic(rbuf);
 
@@ -238,7 +268,12 @@ ringbuf_dequeue(struct ringbuf *rbuf)
 void *
 ringbuf_trydequeue(struct ringbuf *rbuf)
 {
+	LOG(4, NULL);
+
 	if (os_semaphore_trywait(rbuf->nused) != 0)
+		return NULL;
+
+	if (!rbuf->running)
 		return NULL;
 
 	void *data = ringbuf_dequeue_atomic(rbuf);
@@ -250,10 +285,16 @@ ringbuf_trydequeue(struct ringbuf *rbuf)
 
 /*
  * ringbuf_trydequeue_s -- valgrind-safe variant of the trydequeue function
+ *
+ * This function is needed for runtime race detection as a way to avoid false
+ * positives due to usage of atomic instructions that might otherwise confuse
+ * valgrind.
  */
 void *
 ringbuf_trydequeue_s(struct ringbuf *rbuf, size_t data_size)
 {
+	LOG(4, NULL);
+
 	void *r = ringbuf_trydequeue(rbuf);
 	if (r != NULL)
 		VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
@@ -263,10 +304,16 @@ ringbuf_trydequeue_s(struct ringbuf *rbuf, size_t data_size)
 
 /*
  * ringbuf_dequeue_s -- valgrind-safe variant of the dequeue function
+ *
+ * This function is needed for runtime race detection as a way to avoid false
+ * positives due to usage of atomic instructions that might otherwise confuse
+ * valgrind.
  */
 void *
 ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size)
 {
+	LOG(4, NULL);
+
 	void *r = ringbuf_dequeue(rbuf);
 	VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
 
