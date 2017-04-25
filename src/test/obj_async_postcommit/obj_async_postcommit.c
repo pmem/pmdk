@@ -31,7 +31,11 @@
  */
 
 /*
- * obj_async_postcommit.c -- tests for the ctl entry points: prefault
+ * obj_async_postcommit.c -- tests for asynchronous postcommit CTL entry points
+ *
+ * This test runs N threads that populate lane transaction section, M threads
+ * that perform asynchronous cleanup of that section, and sets a queue depth
+ * to check if the transactions with these settings can be properly performed.
  */
 
 #include "unittest.h"
@@ -40,9 +44,6 @@
 
 #define OIDS_PER_WORKER 10000
 #define OIDS_PER_TX 10
-#define WORKERS 4
-#define PC_WORKERS 4
-#define POSTCOMMIT_QDEPTH 512
 
 struct worker_args {
 	PMEMobjpool *pop;
@@ -78,36 +79,21 @@ postcommit_worker(void *arg)
 	return NULL;
 }
 
-int
-main(int argc, char *argv[])
+static void
+run_test(PMEMobjpool *pop, int nworkers_pc, int nworkers, int qdepth)
 {
-	START(argc, argv, "obj_async_postcommit");
+	pthread_t *th_pc = MALLOC(sizeof(*th_pc) * nworkers_pc);
 
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name",
-		argv[0]);
-
-	const char *path = argv[1];
-
-	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 10,
-			S_IWUSR | S_IRUSR)) == NULL)
-			UT_FATAL("!pmemobj_create: %s", path);
-
-	pthread_t pc_worker[PC_WORKERS];
-
-	if (PC_WORKERS) {
-		int qdepth = POSTCOMMIT_QDEPTH;
-		pmemobj_ctl_set(pop, "tx.post_commit.queue_depth", &qdepth);
-		for (int i = 0; i < PC_WORKERS; ++i) {
-			pthread_create(&pc_worker[i],
-				NULL, postcommit_worker, pop);
-		}
+	int ret = pmemobj_ctl_set(pop, "tx.post_commit.queue_depth", &qdepth);
+	UT_ASSERTeq(ret, 0);
+	for (int i = 0; i < nworkers_pc; ++i) {
+		PTHREAD_CREATE(&th_pc[i],
+			NULL, postcommit_worker, pop);
 	}
 
-	pthread_t th[WORKERS];
-	struct worker_args args[WORKERS];
-	for (int i = 0; i < WORKERS; ++i) {
+	pthread_t *th = MALLOC(sizeof(*th) * nworkers);
+	struct worker_args *args = MALLOC(sizeof(*args) * nworkers);
+	for (int i = 0; i < nworkers; ++i) {
 		args[i].pop = pop;
 		args[i].oids = MALLOC(sizeof(PMEMoid) * OIDS_PER_WORKER);
 		for (int j = 0; j < OIDS_PER_WORKER; ++j) {
@@ -117,19 +103,45 @@ main(int argc, char *argv[])
 		}
 	}
 
-	for (int i = 0; i < WORKERS; ++i) {
+	for (int i = 0; i < nworkers; ++i) {
 		PTHREAD_CREATE(&th[i], NULL, worker, &args[i]);
 	}
 
-	for (int i = 0; i < WORKERS; ++i) {
+	for (int i = 0; i < nworkers; ++i) {
 		PTHREAD_JOIN(th[i], NULL);
+		FREE(args[i].oids);
 	}
 
-	if (PC_WORKERS) {
-		pmemobj_ctl_get(pop, "tx.post_commit.stop", pop);
-		for (int i = 0; i < PC_WORKERS; ++i)
-			PTHREAD_JOIN(pc_worker[i], NULL);
-	}
+	ret = pmemobj_ctl_get(pop, "tx.post_commit.stop", pop);
+	UT_ASSERTeq(ret, 0);
+	for (int i = 0; i < nworkers_pc; ++i)
+		PTHREAD_JOIN(th_pc[i], NULL);
+
+	FREE(args);
+	FREE(th);
+	FREE(th_pc);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_async_postcommit");
+
+	if (argc != 2)
+		UT_FATAL("usage: %s file-name", argv[0]);
+
+	const char *path = argv[1];
+
+	PMEMobjpool *pop;
+	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 10,
+		S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	run_test(pop, 0, 2, 0);
+	run_test(pop, 1, 2, 128);
+	run_test(pop, 4, 4, 512);
+	run_test(pop, 1, 4, 1024);
+	run_test(pop, 0, 2, 0);
 
 	DONE(NULL);
 }
