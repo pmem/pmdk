@@ -112,6 +112,9 @@
     <ClCompile Include="ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ringbuf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -263,6 +266,9 @@
     </ClInclude>
     <ClInclude Include="..\include\libpmemobj\ctl.h">
       <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="ringbuf.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
