@@ -14,11 +14,16 @@ developers will find higher level libraries like
 
 Man pages that contains a list of the interfaces provided:
 
-* Man page for [libpmemlog current master](../manpages/master/libpmemlog.3.html)
-* Latest releases:
-   * [libpmemlog version 1.2](../manpages/v1.2/libpmemlog.3.html)
-   * [libpmemlog version 1.1](../manpages/v1.1/libpmemlog.3.html)
-   * [libpmemlog version 1.0](../manpages/v1.0/libpmemlog.3.html)
+<ul>
+  <li>Man page for <a href="../manpages/master/{{ page.title }}.3.html">{{ page.title }} current master</a></li>
+  <li>Latest releases:
+    <ul>
+      {% for release in site.data.releases %}{% if release.libs contains page.title %}
+      <li><a href="../manpages/v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></li>
+      {% endif %}{% endfor %}
+    </ul>
+  </li>
+</ul>
 
 #### libpmemlog Examples
 

@@ -20,9 +20,16 @@ available and are recommended for most applications, see:
 
 Man pages that contains a list of the interfaces provided:
 
-* Man page for [librpmem current master](../manpages/master/librpmem.3.html)
-* Latest releases:
-   * Man page for [librpmem version 1.2](../manpages/v1.2/librpmem.3.html)
+<ul>
+  <li>Man page for <a href="../manpages/master/{{ page.title }}.3.html">{{ page.title }} current master</a></li>
+  <li>Latest releases:
+    <ul>
+      {% for release in site.data.releases %}{% if release.libs contains page.title %}
+      <li><a href="../manpages/v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></li>
+      {% endif %}{% endfor %}
+    </ul>
+  </li>
+</ul>
 
 #### The rpmemd utility
 
@@ -30,7 +37,14 @@ The **rpmemd** process is executed on target node by **librpmem** library over
 **ssh**(1) and facilitates access to persistent memory over RDMA.
 
 See the [rpmemd man page](../manpages/master/rpmemd.1.html)
-for current master documentation and examples.
+for current master documentation and examples or see older version:
+
+<ul>
+   {% assign command = 'rpmemd' %}
+   {% for release in site.data.releases %}{% if release.libs contains command %}
+   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% endif %}{% endfor %}
+</ul>
 
 #### librpmem Examples
 

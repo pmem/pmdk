@@ -14,10 +14,16 @@ troubleshooting. It may be useful for testing and debugging purposes also.
 
 Man pages that contains a list of the interfaces provided:
 
-* Man page for [libpmempool current master](../manpages/master/libpmempool.3.html)
-* Latest releases:
-   * [libpmempool version 1.2](../manpages/v1.2/libpmempool.3.html)
-   * [libpmempool version 1.1](../manpages/v1.1/libpmempool.3.html)
+<ul>
+  <li>Man page for <a href="../manpages/master/{{ page.title }}.3.html">{{ page.title }} current master</a></li>
+  <li>Latest releases:
+    <ul>
+      {% for release in site.data.releases %}{% if release.libs contains page.title %}
+      <li><a href="../manpages/v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></li>
+      {% endif %}{% endfor %}
+    </ul>
+  </li>
+</ul>
 
 #### libpmempool Examples
 

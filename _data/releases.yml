@@ -1,0 +1,6 @@
+- tag: 1.2
+  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem libvmmalloc pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool librpmem rpmemd pmempool-sync pmempool-transform
+- tag: 1.1
+  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem libvmmalloc pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool librpmem rpmemd
+- tag: 1.0
+  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem libvmmalloc pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm
