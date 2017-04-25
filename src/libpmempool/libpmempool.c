@@ -69,7 +69,6 @@ libpmempool_init(void)
 	LOG(3, NULL);
 #ifdef USE_RPMEM
 	util_remote_init();
-	util_remote_load();
 	rpmem_util_cmds_init();
 #endif
 }
