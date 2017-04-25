@@ -55,7 +55,4 @@ void *ringbuf_trydequeue(struct ringbuf *rbuf);
 void *ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size);
 void *ringbuf_trydequeue_s(struct ringbuf *rbuf, size_t data_size);
 
-int ringbuf_full(struct ringbuf *rbuf);
-int ringbuf_empty(struct ringbuf *rbuf);
-
 #endif

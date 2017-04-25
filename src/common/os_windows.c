@@ -39,6 +39,7 @@
 #include <pmemcompat.h>
 #include "util.h"
 #include "os.h"
+#include "out.h"
 
 #define UTF8_BOM "\xEF\xBB\xBF"
 
@@ -607,7 +608,8 @@ os_semaphore_new(unsigned value)
 		return NULL;
 
 	sem->s = CreateSemaphore(NULL,
-		value, ULONG_MAX, NULL);
+		value, LONG_MAX, NULL);
+	ASSERTne(sem->s, NULL);
 
 	return sem;
 }
@@ -618,7 +620,8 @@ os_semaphore_new(unsigned value)
 void
 os_semaphore_delete(struct os_semaphore *sem)
 {
-	CloseHandle(sem->s);
+	BOOL ret = CloseHandle(sem->s);
+	ASSERTeq(ret, TRUE);
 	Free(sem);
 }
 
@@ -628,7 +631,8 @@ os_semaphore_delete(struct os_semaphore *sem)
 void
 os_semaphore_wait(struct os_semaphore *sem)
 {
-	WaitForSingleObject(sem->s, INFINITE);
+	DWORD ret = WaitForSingleObject(sem->s, INFINITE);
+	ASSERTeq(ret, WAIT_OBJECT_0);
 }
 
 /*
@@ -637,9 +641,10 @@ os_semaphore_wait(struct os_semaphore *sem)
 int
 os_semaphore_trywait(struct os_semaphore *sem)
 {
-	WaitForSingleObject(sem->s, 0);
+	DWORD ret = WaitForSingleObject(sem->s, 0);
+	ASSERT(ret == WAIT_OBJECT_0 || ret == WAIT_TIMEOUT);
 
-	return 0;
+	return ret == WAIT_OBJECT_0 ? 0 : -1;
 }
 
 /*
@@ -648,14 +653,6 @@ os_semaphore_trywait(struct os_semaphore *sem)
 void
 os_semaphore_post(struct os_semaphore *sem)
 {
-	ReleaseSemaphore(sem->s, 1, NULL);
-}
-
-/*
- * os_semaphore_get -- returns the current value held by the semaphore
- */
-unsigned
-os_semaphore_get(struct os_semaphore *sem)
-{
-	return 0;
+	BOOL ret = ReleaseSemaphore(sem->s, 1, NULL);
+	ASSERTeq(ret, TRUE);
 }

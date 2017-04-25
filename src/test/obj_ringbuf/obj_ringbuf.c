@@ -48,21 +48,17 @@ fill_fetch_all(void)
 	struct ringbuf *rbuf = ringbuf_new(RINGBUF_LEN);
 	UT_ASSERTne(rbuf, NULL);
 
-	UT_ASSERT(ringbuf_empty(rbuf));
 	for (uint64_t i = 1; i <= RINGBUF_LEN; ++i) {
 		ringbuf_enqueue(rbuf, (void *)i);
 	}
 
 	UT_ASSERTne(ringbuf_tryenqueue(rbuf, (void *)1), 0);
 
-	UT_ASSERT(ringbuf_full(rbuf));
-
 	for (uint64_t i = 1; i <= RINGBUF_LEN; ++i) {
 		void *data = ringbuf_dequeue(rbuf);
 		UT_ASSERTeq(data, (void *)i);
 	}
 	UT_ASSERTeq(ringbuf_trydequeue(rbuf), NULL);
-	UT_ASSERT(ringbuf_empty(rbuf));
 
 	ringbuf_delete(rbuf);
 
@@ -123,10 +119,10 @@ consumer(void *arg)
 
 	for (int i = 0; i < thp->nmsg; ++i) {
 		m = ringbuf_dequeue_s(thp->rbuf, sizeof(struct th_msg));
-		int nmsg_consumed = __sync_fetch_and_add(
+		long long nmsg_consumed = util_fetch_and_add(
 			&thp->msg_per_producer_sum[m->th_id], 1);
 
-		__sync_fetch_and_add(&m->consumed, 1);
+		util_fetch_and_add(&m->consumed, 1);
 
 		/* check if the ringbuf is FIFO for a single consumer */
 		if (thp->nconsumers == 1) {
@@ -134,7 +130,7 @@ consumer(void *arg)
 			last_msg_id[m->th_id] = m->msg_id;
 		}
 
-		__sync_fetch_and_add(thp->consumers_msg_sum, m->msg_id);
+		util_fetch_and_add(thp->consumers_msg_sum, m->msg_id);
 
 		/*
 		 * For multiple consumers, it's guaranteed that each dequeue
@@ -158,8 +154,8 @@ static void
 many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 {
 #define RINGBUF_LEN 256
-	pthread_t consumers[nconsumers];
-	pthread_t producers[nproducers];
+	pthread_t *consumers = MALLOC(sizeof(pthread_t) * nconsumers);
+	pthread_t *producers = MALLOC(sizeof(pthread_t) * nproducers);
 	long long consumers_msg_sum = 0;
 	int *msg_per_producer_sum = ZALLOC(sizeof(int) * nproducers);
 	struct th_arg arg_proto = {
@@ -178,8 +174,10 @@ many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 	int msg_per_consumer = msg_total / nconsumers;
 
 	struct th_arg *targ;
-	struct th_arg *producer_args[nproducers];
-	struct th_arg *consumer_args[nconsumers];
+	struct th_arg **producer_args =
+		MALLOC(sizeof(struct th_arg *) * nproducers);
+	struct th_arg **consumer_args =
+		MALLOC(sizeof(struct th_arg *) * nconsumers);
 
 	UT_ASSERTeq(msg_total % nproducers, 0);
 	UT_ASSERTeq(msg_total % nconsumers, 0);
@@ -211,8 +209,6 @@ many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 	for (int i = 0; i < nconsumers; ++i)
 		PTHREAD_JOIN(consumers[i], NULL);
 
-	UT_ASSERT(ringbuf_empty(arg_proto.rbuf));
-
 	long long expected_sum = 0;
 	for (int i = 0; i < nproducers; ++i) {
 		for (int j = 0; j < msg_per_producer; ++j) {
@@ -231,6 +227,8 @@ many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 
 	ringbuf_delete(arg_proto.rbuf);
 	FREE(msg_per_producer_sum);
+	FREE(consumers);
+	FREE(producers);
 #undef RINGBUF_LEN
 }
 

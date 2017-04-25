@@ -92,7 +92,6 @@ void os_semaphore_delete(struct os_semaphore *sem);
 void os_semaphore_wait(struct os_semaphore *sem);
 int os_semaphore_trywait(struct os_semaphore *sem);
 void os_semaphore_post(struct os_semaphore *sem);
-unsigned os_semaphore_get(struct os_semaphore *sem);
 
 /*
  * XXX: missing APis (used in ut_file.c)
