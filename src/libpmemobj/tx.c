@@ -2332,7 +2332,6 @@ CTL_WRITE_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_type type,
 		return -1;
 
 	if (pop->tx_postcommit_tasks != NULL) {
-		ASSERT(ringbuf_empty(pop->tx_postcommit_tasks));
 		ringbuf_delete(pop->tx_postcommit_tasks);
 	}
 

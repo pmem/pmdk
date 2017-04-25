@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,10 +35,6 @@
  */
 
 #include "unittest.h"
-#include <assert.h>
-#include <sys/time.h>
-#include <time.h>
-#include <sys/resource.h>
 
 #define LAYOUT "obj_async_postcommit"
 
@@ -65,7 +61,7 @@ worker(void *args)
 				pmemobj_tx_free(wa->oids[freed++]);
 			}
 		} TX_ONABORT {
-			assert(0);
+			UT_ASSERT(0);
 		} TX_END
 	} while (freed != OIDS_PER_WORKER);
 
@@ -77,11 +73,10 @@ postcommit_worker(void *arg)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)arg;
 	int ret = pmemobj_ctl_get(pop, "tx.post_commit.worker", pop);
-	assert(ret == 0);
+	UT_ASSERTeq(ret, 0);
 
 	return NULL;
 }
-
 
 int
 main(int argc, char *argv[])
@@ -118,22 +113,22 @@ main(int argc, char *argv[])
 		for (int j = 0; j < OIDS_PER_WORKER; ++j) {
 			int ret = pmemobj_alloc(pop,
 				&args[i].oids[j], 1, 1, NULL, NULL);
-			assert(ret == 0);
+			UT_ASSERTeq(ret, 0);
 		}
 	}
 
 	for (int i = 0; i < WORKERS; ++i) {
-		pthread_create(&th[i], NULL, worker, &args[i]);
+		PTHREAD_CREATE(&th[i], NULL, worker, &args[i]);
 	}
 
 	for (int i = 0; i < WORKERS; ++i) {
-		pthread_join(th[i], NULL);
+		PTHREAD_JOIN(th[i], NULL);
 	}
 
 	if (PC_WORKERS) {
 		pmemobj_ctl_get(pop, "tx.post_commit.stop", pop);
 		for (int i = 0; i < PC_WORKERS; ++i)
-			pthread_join(pc_worker[i], NULL);
+			PTHREAD_JOIN(pc_worker[i], NULL);
 	}
 
 	DONE(NULL);

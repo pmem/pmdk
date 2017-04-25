@@ -141,7 +141,7 @@ ringbuf_delete(struct ringbuf *rbuf)
 static void
 ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 {
-	size_t w = util_fetch_and_inc(&rbuf->write_pos) & rbuf->len_mask;
+	size_t w = util_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
 
 	ASSERT(rbuf->running);
 
@@ -194,7 +194,7 @@ ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 static void *
 ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 {
-	size_t r = util_fetch_and_inc(&rbuf->read_pos) & rbuf->len_mask;
+	size_t r = util_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
 	/*
 	 * Again, in most cases, there won't be even a single loop, but if one
 	 * thread stalls while others perform work, it might happen that two
@@ -271,22 +271,4 @@ ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size)
 	VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
 
 	return r;
-}
-
-/*
- * ringbuf_empty -- returns whether the collection is empty
- */
-int
-ringbuf_empty(struct ringbuf *rbuf)
-{
-	return os_semaphore_get(rbuf->nused) == 0;
-}
-
-/*
- * ringbuf_full -- returns whether the collection is full
- */
-int
-ringbuf_full(struct ringbuf *rbuf)
-{
-	return os_semaphore_get(rbuf->nfree) == 0;
 }

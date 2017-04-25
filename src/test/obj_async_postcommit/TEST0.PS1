@@ -1,4 +1,4 @@
-#
+﻿#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,24 @@
 #
 
 #
-# src/test/obj_async_postcommit/Makefile -- build obj_async_postcommit test
+# src/test/obj_async_postcommit/TEST0 -- unit test for async post-commit
 #
-TARGET = obj_async_postcommit
-OBJS = obj_async_postcommit.o
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$ENV:UNITTEST_NAME = "obj_pvector\TEST0"
+$ENV:UNITTEST_NUM = "0"
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_test_type short
+require_fs_type any
+
+setup
+
+expect_normal_exit $ENV:EXE_DIR\obj_async_postcommit$ENV:EXESUFFIX $DIR\testfile1
+
+pass

@@ -145,6 +145,9 @@
     <ClCompile Include="pmemobj_persist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\libpmemobj\ringbuf.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clo.hpp">
