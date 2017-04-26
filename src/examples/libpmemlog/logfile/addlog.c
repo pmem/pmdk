@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 	 * appended to the string).  Allocate 1 additional entry for the
 	 * header that gets prepended to the entry.
 	 */
-	iovcnt = (argc - 2) * 2 + 1;
+	iovcnt = (argc - 2) * 2 + 2;
 	if ((iovp = malloc(sizeof(*iovp) * iovcnt)) == NULL) {
 		perror("malloc");
 		exit(1);
@@ -114,6 +114,13 @@ main(int argc, char *argv[])
 		header.len += 1;
 		next_iovp++;
 	}
+
+	/* pad with NULs (at least one) to align next entry to 8 bytes */
+	int len_to_round = 1 + (8 - (header.len + 1)  % 8) % 8;
+	next_iovp->iov_base = "\0\0\0\0\0\0\0";
+	next_iovp->iov_len = len_to_round;
+	header.len += len_to_round;
+	next_iovp++;
 
 	/* atomically add it all to the log */
 	if (pmemlog_appendv(plp, iovp, iovcnt) < 0) {
