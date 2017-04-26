@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "out.h"
 #include "libpmempool.h"
@@ -654,11 +655,14 @@ const char *
 check_get_time_str(time_t time)
 {
 	static char str_buff[STR_MAX] = {0, };
+	/* localtime() can set errno even when it succeeds */
+	int oerrno = errno;
 	struct tm *tm = localtime(&time);
 
-	if (tm)
+	if (tm) {
+		errno = oerrno;
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
-	else {
+	} else {
 		int ret = snprintf(str_buff, STR_MAX, "unknown");
 		if (ret < 0) {
 			ERR("failed to get time str");

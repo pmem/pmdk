@@ -50,23 +50,21 @@ POOL_P2=$DIR/pool.p2
 LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
-# XXX - this scenario is temporarily disabled due to unstable behavior
+create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
+expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 
-#create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
-#expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+TIME=$(date +"%s")
+let "FUTURE_TIME=$TIME+60*60"
+let "PAST_TIME=$TIME-60*60"
+PAST_TIME=$(date -d @$PAST_TIME +"%y%m%d%H%M")
+$PMEMSPOIL -v $POOL_P1 pool_hdr.crtime=$FUTURE_TIME >> $LOG
+touch -mt $PAST_TIME $POOL_P1
 
-#TIME=$(date +"%s")
-#let "FUTURE_TIME=$TIME+60*60"
-#let "PAST_TIME=$TIME-60*60"
-#PAST_TIME=$(date -d @$PAST_TIME +"%y%m%d%H%M")
-#$PMEMSPOIL -v $POOL_P1 pool_hdr.crtime=$FUTURE_TIME >> $LOG
-#touch -mt $PAST_TIME $POOL_P1
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -vrya $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX check -vrya $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
-
-#check
+check
 
 pass
