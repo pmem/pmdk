@@ -110,5 +110,6 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	-v $HOST_WORKDIR:$WORKDIR \
+	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \
 	$imageName $command
