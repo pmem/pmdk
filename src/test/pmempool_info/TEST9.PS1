@@ -57,7 +57,7 @@ $NFLOG=(expect_normal_exit $PMEMPOOL info -g $POOL | sls -Pattern '^\d+:'|measur
 
 if ($INFO_NFLOG -ne $NFLOG ) {
     echo "$INFO_NFLOG != $NFLOG"
-    exit 1
+    fail 1
 }
 
 pass
