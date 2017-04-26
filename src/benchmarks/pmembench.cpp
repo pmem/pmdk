@@ -1324,11 +1324,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		assert(total_res != NULL);
 
 		unsigned i = 0;
-		if (args->min_exe_time != 0) {
+		if (args->min_exe_time != 0 && bench->info->multiops) {
 			ret = scale_up_min_exe_time(bench, args, &total_res,
 						    n_threads, n_ops);
 			if (ret != 0)
 				goto out;
+			n_ops = args->n_ops_per_thread;
 			i = 1;
 		}
 
