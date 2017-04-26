@@ -374,7 +374,7 @@ const char *
 out_get_time_str(time_t time)
 {
 	static char str_buff[STR_MAX] = {0, };
-	struct tm *tm = localtime(&time);
+	struct tm *tm = util_localtime(&time);
 
 	if (tm) {
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
