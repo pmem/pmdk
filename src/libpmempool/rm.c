@@ -200,6 +200,8 @@ pmempool_rmU(const char *path, int flags)
 	int fd = os_open(path, O_RDONLY);
 	if (fd == -1 || util_poolset_parse(&set, path, fd)) {
 		ERR_F(flags, "parsing poolset file failed");
+		if (fd != -1)
+			os_close(fd);
 		if (CHECK_FLAG(flags, FORCE))
 			return 0;
 		return -1;
