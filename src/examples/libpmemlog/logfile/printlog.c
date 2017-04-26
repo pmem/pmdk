@@ -69,8 +69,8 @@ printlog(const void *buf, size_t len, void *arg)
 		printf("       Created: %s", ctime(&headerp->timestamp));
 		printf("      Contents:\n");
 
-		/* print the log data itself */
-		fwrite(buf, headerp->len, 1, stdout);
+		/* print the log data itself, it is NUL-terminated */
+		printf("%s", (char *)buf);
 		buf = (char *)buf + headerp->len;
 	}
 
