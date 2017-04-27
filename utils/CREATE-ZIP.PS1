@@ -59,7 +59,7 @@ $zipfile = $builddir + "\nvml-" + $ver + "-win-x64-" + $build + ".zip"
 
 
 Remove-Item $zipdir -Force -Recurse -ea si
-Get-ChildItem | Where {$_.Name -Match "nvml-.*-win-x64.zip"} | Remove-Item -Force -ea si
+Get-ChildItem | Where-Object {$_.Name -Match "nvml-.*-win-x64.zip"} | Remove-Item -Force -ea si
 New-Item -ItemType directory -Path ( $zipdir) -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\bin\") -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null

@@ -44,5 +44,5 @@ If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
 			Exit $LASTEXITCODE
 	}
 } else {
-	echo "Cannot execute check_whitespace - perl is missing"
+	Write-Output "Cannot execute check_whitespace - perl is missing"
 }

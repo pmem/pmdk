@@ -44,22 +44,22 @@ $include = @( "*.c", "*.h" )
 
 If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
 	Get-ChildItem -Path $checkdir -Recurse -Include $include | `
-    ? { $_.FullName -notlike "*jemalloc*" } | `
-    foreach {
+    Where-Object { $_.FullName -notlike "*jemalloc*" } | `
+    ForEach-Object {
         $IGNORE = $_.DirectoryName + "\.cstyleignore"
         if(Test-Path $IGNORE) {
-            if((sls $_.Name $IGNORE)) {
+            if((Select-String $_.Name $IGNORE)) {
                 return
             }
         }
         $_
-    } | % {
-		echo $_.FullName
+    } | ForEach-Object {
+		Write-Output $_.FullName
 		& perl $cstyle $_.FullName
 		if ($LASTEXITCODE -ne 0) {
             Exit $LASTEXITCODE
         }
     }
 } else {
-	echo "Cannot execute cstyle - perl is missing"
+	Write-Output "Cannot execute cstyle - perl is missing"
 }
