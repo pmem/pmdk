@@ -55,26 +55,24 @@ $POOL_P2="$DIR\pool.p2"
 $LOG="out$Env:UNITTEST_NUM.log"
 rm $LOG -Force -ea si
 
-# XXX - this scenario is temporarily disabled due to unstable behavior
+create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 
-#create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
+expect_normal_exit $PMEMPOOL create log $POOLSET
 
-#expect_normal_exit $PMEMPOOL create log $POOLSET
+[int]$FUTURE_TIME=[int64](([datetime]::UtcNow)-(Get-Date "1/1/1970")).TotalSeconds
+$FUTURE_TIME+=60*60
+&$PMEMSPOIL -v $POOL_P1 "pool_hdr.crtime=$FUTURE_TIME" >> $LOG
 
-#[int]$FUTURE_TIME=[int64](([datetime]::UtcNow)-(Get-Date "1/1/1970")).TotalSeconds
-#$FUTURE_TIME+=60*60
-#&$PMEMSPOIL -v $POOL_P1 "pool_hdr.crtime=$FUTURE_TIME" >> $LOG
+[DateTime]$past=Get-Date
+$past=$past.AddHours(-1)
+$file=Get-Item $POOL_P1
+$file.LastWriteTime=$past
 
-#[DateTime]$past=Get-Date
-#$past=$past.AddHours(-1)
-#$file=Get-Item $POOL_P1
-#$file.LastWriteTime=$past
+expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL check -vrya $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
-#expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
-#expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL check -vrya $POOLSET >> $LOG
-#expect_normal_exit $PMEMPOOL info $POOLSET >> $null
-
-#check
+check
 
 pass
