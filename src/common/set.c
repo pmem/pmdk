@@ -1231,8 +1231,8 @@ util_part_set_attr(struct pool_hdr *hdrp, const char *sig,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *arch_flags)
 {
-	LOG(3, "hdrp %p sig %.8s major %u compat %#x incompat %#x "
-		"ro_comapt %#x poolset_uuid %p uuid %p next_part_uuid %p"
+	LOG(3, "hdrp %p sig %7s major %u compat %#x incompat %#x "
+		"ro_comapt %#x poolset_uuid %p uuid %p next_part_uuid %p "
 		"prev_part_uuid %p next_repl_uuid %p prev_repl_uuid %p "
 		"arch_flags %p", hdrp, sig, major, compat, incompat, ro_compat,
 		poolset_uuid, uuid, next_part_uuid, prev_part_uuid,
@@ -1616,8 +1616,8 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
-	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+	LOG(3, "set %p repidx %u partidx %u sig %7s major %u "
+		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, partidx, sig, major, compat, incompat,
 		ro_compat, prev_repl_uuid, next_repl_uuid, arch_flags);
@@ -1706,7 +1706,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat)
 {
-	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
+	LOG(3, "set %p repidx %u partidx %u sig %7s major %u "
 		"compat %#x incompat %#x ro_comapt %#x",
 		set, repidx, partidx, sig, major, compat, incompat, ro_compat);
 
@@ -1726,7 +1726,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	/* valid header found */
 	if (memcmp(hdr.signature, sig, POOL_HDR_SIG_LEN)) {
-		ERR("wrong pool type: \"%.8s\"", hdr.signature);
+		ERR("wrong pool type: \"%7s\"", hdr.signature);
 		errno = EINVAL;
 		return -1;
 	}
@@ -1909,8 +1909,8 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
-	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+	LOG(3, "set %p repidx %u flags %d sig %7s major %u "
+		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -2070,7 +2070,7 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid)
 {
-	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
+	LOG(3, "set %p repidx %u flags %d sig %7s major %u "
 		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		set, repidx, flags, sig, major,
@@ -2124,8 +2124,8 @@ util_replica_create(struct pool_set *set, unsigned repidx, int flags,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
-	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+	LOG(3, "set %p repidx %u flags %d sig %7s major %u "
+		"compat %#x incompat %#x ro_comapt %#x "
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -2190,7 +2190,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	unsigned *nlanes, int can_have_rep, int remote, struct pool_attr *pattr)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
-		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
+		"sig %7s major %u compat %#x incompat %#x ro_comapt %#x "
 		"nlanes %p can_have_rep %i remote %i pattr %p",
 		setp, path, poolsize, minsize,
 		sig, major, compat, incompat, ro_compat,
@@ -2339,7 +2339,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	int can_have_rep)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
-		"sig %.8s major %u compat %#x incompat %#x "
+		"sig %7s major %u compat %#x incompat %#x "
 		"ro_comapt %#x nlanes %p can_have_rep %i",
 		setp, path, poolsize, minsize,
 		sig, major, compat, incompat, ro_compat, nlanes, can_have_rep);
@@ -2610,7 +2610,7 @@ static int
 util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
 			uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "set %p sig %.8s major %u compat %#x incompat %#x ro_comapt %#x",
+	LOG(3, "set %p sig %7s major %u compat %#x incompat %#x ro_comapt %#x",
 		set, sig, major, compat, incompat, ro_compat);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
@@ -2715,7 +2715,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	unsigned *nlanes)
 {
-	LOG(3, "setp %p path %s cow %d minsize %zu sig %.8s major %u "
+	LOG(3, "setp %p path %s cow %d minsize %zu sig %7s major %u "
 		"compat %#x incompat %#x ro_comapt %#x nlanes %p",
 		setp, path, cow, minsize, sig, major,
 		compat, incompat, ro_compat, nlanes);

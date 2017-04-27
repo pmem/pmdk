@@ -104,7 +104,7 @@ util_convert_hdr(struct pool_hdr *hdrp)
 		return 0;
 	}
 
-	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
+	LOG(3, "valid header, signature \"%7s\"", hdrp->signature);
 	return 1;
 }
 
@@ -130,7 +130,7 @@ util_convert_hdr_remote(struct pool_hdr *hdrp)
 		return 0;
 	}
 
-	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
+	LOG(3, "valid header, signature \"%7s\"", hdrp->signature);
 	return 1;
 }
 

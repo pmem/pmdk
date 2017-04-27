@@ -190,7 +190,7 @@ pool_hdr_default_check(PMEMpoolcheck *ppc, location *loc)
 	if (memcmp(loc->hdr.signature, def_hdr.signature, POOL_HDR_SIG_LEN)) {
 		CHECK_ASK(ppc, Q_DEFAULT_SIGNATURE,
 			"%spool_hdr.signature is not valid.|Do you want to set "
-			"it to %.8s?", loc->prefix, def_hdr.signature);
+			"it to %7s?", loc->prefix, def_hdr.signature);
 	}
 
 	if (loc->hdr.major != def_hdr.major) {
@@ -244,7 +244,7 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 
 	switch (question) {
 	case Q_DEFAULT_SIGNATURE:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.signature to %.8s",
+		CHECK_INFO(ppc, "%ssetting pool_hdr.signature to %7s",
 			loc->prefix, def_hdr.signature);
 		memcpy(&loc->hdr.signature, &def_hdr.signature,
 			POOL_HDR_SIG_LEN);
