@@ -424,6 +424,8 @@ ctl_load_config(PMEMobjpool *pop, char *buf)
 	char *name;
 	char *value;
 
+	ASSERTne(buf, NULL);
+
 	char *qbuf = strtok_r(buf, CTL_STRING_QUERY_SEPARATOR, &sptr);
 	do {
 		r = ctl_parse_query(qbuf, &name, &value);
