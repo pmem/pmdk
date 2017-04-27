@@ -52,10 +52,13 @@ util_tmpfile(const char *dir, const char *templ)
 {
 	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
 
+	/* the templ must start with a path separator */
+	ASSERTeq(templ[0], '/');
+
 	int oerrno;
 	int fd = -1;
 
-	char *fullname = alloca(strlen(dir) + sizeof(templ));
+	char *fullname = alloca(strlen(dir) + strlen(templ) + 1);
 
 	(void) strcpy(fullname, dir);
 	(void) strcat(fullname, templ);
