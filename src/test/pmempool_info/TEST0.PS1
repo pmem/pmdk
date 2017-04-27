@@ -51,7 +51,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 expect_normal_exit $PMEMPOOL info $POOL >> $LOG

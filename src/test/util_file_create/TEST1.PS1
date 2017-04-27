@@ -63,7 +63,7 @@ expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
 # grant full permissions so test code can cleanup
 & icacls $DIR/testdir1 /grant ${Env:USERNAME}:F >$null
 
-rm -Force -Recurse $DIR/testdir1
+Remove-Item -Force -Recurse $DIR/testdir1
 
 check
 

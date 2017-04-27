@@ -50,9 +50,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
@@ -72,16 +72,16 @@ create_poolset $POOLSET_OUT `
 	20M:$DIR/testfile21:x
 
 # Log poolset structures
-echo poolset_in >> $LOG_TEMP
-cat $POOLSET_IN >> $LOG_TEMP
-echo "" >> $LOG_TEMP
-echo poolset_out >> $LOG_TEMP
-cat $POOLSET_OUT >> $LOG_TEMP
-echo "" >> $LOG_TEMP
+Write-Output poolset_in >> $LOG_TEMP
+Get-Content $POOLSET_IN >> $LOG_TEMP
+Write-Output "" >> $LOG_TEMP
+Write-Output poolset_out >> $LOG_TEMP
+Get-Content $POOLSET_OUT >> $LOG_TEMP
+Write-Output "" >> $LOG_TEMP
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat $LOG >> $LOG_TEMP
+Get-Content $LOG >> $LOG_TEMP
 
 # Try to transform poolset
 expect_abnormal_exit $PMEMPOOL transform `
@@ -90,7 +90,7 @@ expect_abnormal_exit $PMEMPOOL transform `
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 
 pass

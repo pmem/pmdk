@@ -50,9 +50,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
@@ -73,11 +73,11 @@ create_poolset $POOLSET `
     20M:$DIR/testfile5:x
 
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # CLI script for writing some data at 0, 20 and 40 MB
 $WRITE_SCRIPT = "$DIR/write_data"
-echo @"
+Write-Output @"
 pr 55M
 srcp 0 TestOK111
 srcp 20M TestOK222
@@ -86,7 +86,7 @@ srcp 40M TestOK333
 
 # CLI script for reading 9 characters from 0, 20 and 40 MB offset
 $READ_SCRIPT = "$DIR/read_data"
-echo @"
+Write-Output @"
 srpr 0 9
 srpr 20M 9
 srpr 40M 9
@@ -129,11 +129,11 @@ expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_sync_win$Env:EXESUFFIX `
     $POOLSET $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 pass

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	backup_cleanup
 
 	$POOLFILE= -join("$DIR/pool.", $POOL_TYPES[$i]);
-	rm $POOLFILE -Force -ea si
+	Remove-Item $POOLFILE -Force -ea si
 
 	# create source poolset
 	expect_normal_exit $PMEMPOOL create $POOL_TYPES[$i] `
@@ -69,8 +69,8 @@ for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	truncate -s 10M $POOLFILE$BACKUP
 	backup_and_compare $POOLFILE $POOL_TYPES[$i]
 }
-rm $OUT -Force -ea si
-mv $OUT_TEMP $OUT
+Remove-Item $OUT -Force -ea si
+Move-Item $OUT_TEMP $OUT
 
 check
 

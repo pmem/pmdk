@@ -62,7 +62,7 @@ function dirFailOnEmpty {
 function getLineCount {
     [int64]$numLines = 0
     $buff = New-Object IO.StreamReader $args[0]
-    while ($buff.ReadLine() -ne $null){ $numLines++ }
+    while ($null -ne $buff.ReadLine()){ $numLines++ }
     return $numLines
 }
 
@@ -168,7 +168,7 @@ function create_file {
     [int64]$size = (convert_to_bytes $args[0])
     for ($i=1;$i -lt $args.count;$i++) {
         $stream = new-object system.IO.StreamWriter($args[$i], "False", [System.Text.Encoding]::Ascii)
-        1..$size | %{ $stream.Write("0") }
+        1..$size | ForEach-Object { $stream.Write("0") }
         $stream.close()
         Get-ChildItem $args[$i]* >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
@@ -228,7 +228,7 @@ function create_nonzeroed_file {
         $file.Close()
         Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
         $stream = new-object system.IO.StreamWriter($args[$i], "True", [System.Text.Encoding]::Ascii)
-        1..$numz | %{ $stream.Write($Z) }
+        1..$numz | ForEach-Object { $stream.Write($Z) }
         $stream.close()
         Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
@@ -282,7 +282,7 @@ function create_nonzeroed_file {
 #
 function create_poolset {
     $psfile = $args[0]
-    echo "PMEMPOOLSET" | out-file -encoding utf8 $psfile
+    Write-Output "PMEMPOOLSET" | Out-File -encoding utf8 $psfile
     for ($i=1;$i -lt $args.count;$i++) {
         if ($args[$i] -eq "M" -Or $args[$i] -eq 'm') { # remote replica
             $i++
@@ -290,11 +290,11 @@ function create_poolset {
             $fparms = ($cmd.Split("{:}"))
             $node = $fparms[0]
             $desc = $fparms[1]
-            echo "REPLICA $node $desc" | out-file -Append -encoding utf8 $psfile
+            Write-Output "REPLICA $node $desc" | Out-File -Append -encoding utf8 $psfile
             continue
         }
         if ($args[$i] -eq "R" -Or $args[$i] -eq 'r') {
-            echo "REPLICA" | out-file -Append -encoding utf8 $psfile
+            Write-Output "REPLICA" | Out-File -Append -encoding utf8 $psfile
             continue
         }
         $cmd = $args[$i]
@@ -319,7 +319,8 @@ function create_poolset {
         }
         $cmd = $fparms[2]
         $asize = $fparms[3]
-        $mode = $fparms[4]
+        # XXX: didn't convert chmod
+        # $mode = $fparms[4]
 
         if (-not $asize) {
             $asize = $fsize
@@ -341,7 +342,7 @@ function create_poolset {
         #     chmod $mode $fpath
         # fi
 
-        echo "$fsize $fpath" | out-file -Append -encoding utf8 $psfile
+        Write-Output "$fsize $fpath" | out-file -Append -encoding utf8 $psfile
     } # for args
 }
 
@@ -350,10 +351,10 @@ function create_poolset {
 #
 function check_exit_code {
     if ($LASTEXITCODE -ne 0) {
-        sv -Name msg "failed with exit code $LASTEXITCODE"
+        Set-Variable -Name msg "failed with exit code $LASTEXITCODE"
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
-                echo "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
+                Write-Output "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
             } else {
                 Write-Error "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log"
             }
@@ -387,7 +388,7 @@ function expect_normal_exit {
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
-    sv -Name command $args[0]
+    Set-Variable -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
        if ($param -is [array]) {
@@ -404,7 +405,7 @@ function expect_normal_exit {
     # It is to catch the case when the command is not executed (i.e. because
     # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
     # status of some other command executed before.
-    $Global:LASTEXITCODE = 1
+    Set-Variable -Scope Global -Name LASTEXITCODE -Value 1
     Invoke-Expression "$command $params"
 
     check_exit_code
@@ -418,7 +419,7 @@ function expect_abnormal_exit {
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
-    sv -Name command $args[0]
+    Set-Variable -Name command $args[0]
     $params = New-Object System.Collections.ArrayList
     foreach ($param in $Args[1 .. $Args.Count]) {
         if ($param -is [array]) {
@@ -435,7 +436,7 @@ function expect_abnormal_exit {
     # It is to catch the case when the command is not executed (i.e. because
     # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
     # status of some other command executed before.
-    $Global:LASTEXITCODE = 0
+    Set-Variable -Scope Global -Name LASTEXITCODE -Value 0
     Invoke-Expression "$command $params"
     if ($LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
@@ -450,9 +451,9 @@ function check_pool {
     $file = $Args[0]
     if ($Env:CHECK_POOL -eq "1") {
         if ($Env:VERBOSE -ne "0") {
-            echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
+            Write-Output "$Env:UNITTEST_NAME: checking consistency of pool $file"
         }
-        Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
+        & $PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE
         if ($LASTEXITCODE -ne 0) {
             Write-Error("$PMEMPOOL returned error code $LASTEXITCODE")
             Exit $LASTEXITCODE
@@ -479,7 +480,7 @@ function check_pools {
 # - unlimited virtual memory (ulimit -v is unlimited)
 #
 function require_unlimited_vm {
-    Write-Host "${Env:UNITTEST_NAME}: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+    Write-Output "${Env:UNITTEST_NAME}: SKIP required: overcommit_memory enabled and unlimited virtual memory"
     exit 0
 }
 
@@ -489,7 +490,7 @@ function require_unlimited_vm {
 # XXX: not sure how to translate
 #
 function require_no_superuser {
-    Write-Host "${Env:UNITTEST_NAME}: SKIP required: run without superuser rights"
+    Write-Output "${Env:UNITTEST_NAME}: SKIP required: run without superuser rights"
     exit 0
 }
 
@@ -497,7 +498,7 @@ function require_no_superuser {
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
-    sv -Name req_test_type 1 -Scope Global
+    Set-Variable -Name req_test_type 1 -Scope Global
 
     if ($Env:TYPE -eq 'all') {
         return
@@ -520,7 +521,7 @@ function require_test_type() {
             }
         }
         if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TYPE ($* required)"
+            Write-Output "${Env:UNITTEST_NAME}: SKIP test-type $Env:TYPE ($* required)"
         }
         exit 0
     }
@@ -536,7 +537,7 @@ function require_build_type {
         }
 
         if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
+            Write-Output "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
         }
         exit 0
     }
@@ -564,7 +565,7 @@ function memcheck {
 function require_binary() {
     if (-Not (Test-Path $Args[0])) {
        if (-Not $Env:UNITTEST_QUIET) {
-            Write-Host "${Env:UNITTEST_NAME}: SKIP no binary found"
+            Write-Output "${Env:UNITTEST_NAME}: SKIP no binary found"
        }
        exit 0
     }
@@ -579,7 +580,7 @@ function require_binary() {
 function check {
     #	../match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
     $perl = Get-Command -Name perl -ErrorAction SilentlyContinue
-    If ($perl -eq $null) {
+    If ($null -eq $perl) {
         Write-Error "Perl is missing, cannot check test results"
         fail 1
     }
@@ -622,10 +623,10 @@ function pass {
         $end_time = $script:tm.Elapsed.ToString('hh\:mm\:ss\.fff') -Replace "^(00:){1,2}",""
         $script:tm.reset()
     } else {
-        sv -Name end_time $null
+        Set-Variable -Name end_time $null
     }
 
-    sv -Name msg "PASS"
+    Set-Variable -Name msg "PASS"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewline -foregroundcolor green $msg
     if ($end_time) {
@@ -634,7 +635,7 @@ function pass {
 
     if ($Env:FS -ne "none") {
         if (isDir $DIR) {
-             rm -Force -Recurse $DIR
+             Remove-Item -Force -Recurse $DIR
         }
     }
     Write-Host ""
@@ -644,7 +645,7 @@ function pass {
 # pass -- print message that the test has failed
 #
 function fail {
-    sv -Name msg "FAILED"
+    Set-Variable -Name msg "FAILED"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewLine -foregroundcolor red $msg
     Write-Host -NoNewline (" with errorcode " + $args[0])
@@ -668,7 +669,7 @@ function remove_files {
 # check_file -- check if file exists and print error message if not
 #
 function check_file {
-    sv -Name fname $Args[0]
+    Set-Variable -Name fname $Args[0]
     if (-Not (Test-Path $fname)) {
         Write-Error "Missing File: $fname"
         fail 1
@@ -688,7 +689,7 @@ function check_files {
 # check_no_file -- check if file has been deleted and print error message if not
 #
 function check_no_file {
-    sv -Name fname $Args[0]
+    Set-Variable -Name fname $Args[0]
     if (Test-Path $fname) {
         Write-Error "Not deleted file: $fname"
         fail 1
@@ -743,9 +744,9 @@ function get_mode {
 # check_size -- validate file size
 #
 function check_size {
-    sv -Name size -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" $args[1]
-    sv -Name file_size -Scope "Local" (get_size $file)
+    Set-Variable -Name size -Scope "Local" $args[0]
+    Set-Variable -Name file -Scope "Local" $args[1]
+    Set-Variable -Name file_size -Scope "Local" (get_size $file)
 
     if ($file_size -ne $size) {
         Write-Error "error: wrong size $file_size != $size"
@@ -757,10 +758,10 @@ function check_size {
 # check_mode -- validate file mode
 #
 function check_mode {
-    sv -Name mode -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" $args[1]
-    $mode = [math]::floor($mode / 100) # get first digit (user/owner permission)
-    $read_only = (gp $file IsReadOnly).IsReadOnly
+    Set-Variable -Name mode -Scope "Local" $args[0]
+    Set-Variable -Name file -Scope "Local" $args[1]
+    $mode = [math]::floor($mode / 100) # get first digit (user/owner permision)
+    $read_only = (Get-ItemProperty $file IsReadOnly).IsReadOnly
 
     if ($mode -band 2) {
         if ($read_only -eq $true) {
@@ -782,12 +783,13 @@ function check_mode {
 # check_signature -- check if file contains specified signature
 #
 function check_signature {
-    sv -Name sig -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" ($args[1])
-    sv -Name file_sig -Scope "Local" ""
+    Set-Variable -Name sig -Scope "Local" $args[0]
+    Set-Variable -Name file -Scope "Local" ($args[1])
+    Set-Variable -Name file_sig -Scope "Local" ""
     $stream = [System.IO.File]::OpenRead($file)
     $buff = New-Object Byte[] $SIG_LEN
     # you must assign return value otherwise PS will print it to stdout
+    $num = $null
     $num = $stream.Read($buff, 0, $SIG_LEN)
     $file_sig = [System.Text.Encoding]::Ascii.GetString($buff)
     $stream.Close()
@@ -810,13 +812,14 @@ function check_signatures {
 # check_layout -- check if pmemobj pool contains specified layout
 #
 function check_layout {
-    sv -Name layout -Scope "Local" $args[0]
-    sv -Name file -Scope "Local" ($args[1])
+    Set-Variable -Name layout -Scope "Local" $args[0]
+    Set-Variable -Name file -Scope "Local" ($args[1])
 
     $stream = [System.IO.File]::OpenRead($file)
     $stream.Position = $LAYOUT_OFFSET
     $buff = New-Object Byte[] $LAYOUT_LEN
     # you must assign return value otherwise PS will print it to stdout
+    $num = $null
     $num = $stream.Read($buff, 0, $LAYOUT_LEN)
     $enc = [System.Text.Encoding]::UTF8.GetString($buff)
     $stream.Close()
@@ -830,12 +833,13 @@ function check_layout {
 # check_arena -- check if file contains specified arena signature
 #
 function check_arena {
-    sv -Name file -Scope "Local" ($args[0])
+    Set-Variable -Name file -Scope "Local" ($args[0])
 
     $stream = [System.IO.File]::OpenRead($file)
     $stream.Position = $ARENA_OFF
     $buff = New-Object Byte[] $ARENA_SIG_LEN
     # you must assign return value otherwise PS will print it to stdout
+    $num = $null
     $num = $stream.Read($buff, 0, $ARENA_SIG_LEN)
     $enc = [System.Text.Encoding]::ASCII.GetString($buff)
     $stream.Close()
@@ -857,7 +861,7 @@ function dump_pool_info {
     # ignore selected header fields that differ by definition
     # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
     $print = $True
-    Invoke-Expression "$PMEMPOOL info $params" | % {
+    Invoke-Expression "$PMEMPOOL info $params" | ForEach-Object {
         If ($_ -match '^UUID') {
             $print = $False
         }
@@ -884,7 +888,7 @@ function dump_replica_info {
     # ignore selected header fields that differ by definition
     # this is equivalent of: 'sed -e "/^UUID/,/^Checksum/d"'
     $print = $True
-    Invoke-Expression "$PMEMPOOL info $params" | % {
+    Invoke-Expression "$PMEMPOOL info $params" | ForEach-Object {
         If ($_ -match '^UUID') {
             $print = $False
         }
@@ -904,7 +908,6 @@ function dump_replica_info {
 # compare_replicas -- check replicas consistency by comparing `pmempool info` output
 #
 function compare_replicas {
-    $count = $args
 
     foreach ($param in $Args[0 .. ($Args.Count - 3)]) {
         if ($param -is [array]) {
@@ -919,7 +922,7 @@ function compare_replicas {
     $rep1 = $args[$cnt + 1]
     $rep2 = $args[$cnt + 2]
 
-    diff (dump_replica_info $params $rep1) (dump_replica_info $params $rep2)
+    Compare-Object (dump_replica_info $params $rep1) (dump_replica_info $params $rep2)
 }
 
 #
@@ -951,7 +954,7 @@ function require_non_pmem {
 # require_fs_type -- only allow script to continue for a certain fs type
 #
 function require_fs_type {
-    sv -Name req_fs_type 1 -Scope Global
+    Set-Variable -Name req_fs_type -Value "1" -Scope Global
     for ($i=0;$i -lt $args.count;$i++) {
         if ($args[$i] -eq $Env:FS) {
             switch ($REAL_FS) {
@@ -962,7 +965,7 @@ function require_fs_type {
         }
     }
     if (-Not $Env:UNITTEST_QUIET) {
-        Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+        Write-Output "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
     }
     exit 0
 }
@@ -973,7 +976,7 @@ function require_fs_type {
 function require_dax_devices() {
     # XXX: no device dax on Windows
     if (-Not $Env:UNITTEST_QUIET) {
-        Write-Host "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
+        Write-Output "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
     }
     exit 0
 }
@@ -986,7 +989,7 @@ function dax_device_zero() {
 # require_no_unicode -- require $DIR w/o non-ASCII characters
 #
 function require_no_unicode {
-    $Env:SUFFIX = ""
+    [Environment]::SetEnvironmentVariable("SUFFIX", "", "Process")
 
     $u = [System.Text.Encoding]::UNICODE
 
@@ -997,7 +1000,7 @@ function require_no_unicode {
 
     if ($DIR_UTF8 -ne $DIR_ASCII) {
         #if (-Not $Env:UNITTEST_QUIET) {
-            Write-Host "${Env:UNITTEST_NAME}: SKIP required: test directory path without non-ASCII characters"
+            Write-Output "${Env:UNITTEST_NAME}: SKIP required: test directory path without non-ASCII characters"
         #}
         exit 0
     }
@@ -1031,19 +1034,19 @@ function setup {
     if ($MEMCHECK -eq "force-enable") { $Env:RUN_MEMCHECK = 1 }
 
     if ($RUN_MEMCHECK) {
-        sv -Name MCSTR "/memcheck"
+        Set-Variable -Name MCSTR "/memcheck"
     } else {
-        sv -Name MCSTR ""
+        Set-Variable -Name MCSTR ""
     }
 
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$REAL_FS\$Env:BUILD$MCSTR)"
+    Write-Output "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$REAL_FS\$Env:BUILD$MCSTR)"
 
-    rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
+    Remove-Item -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
     if ( $Env:FS -ne "none") {
 
         if (isDir $DIR) {
-             rm -Force -Recurse $DIR
+             Remove-Item -Force -Recurse $DIR
         }
         mkdir $DIR > $null
     }
@@ -1059,8 +1062,8 @@ function setup {
 
 function dump_last_n_lines {
     if (Test-Path $Args[0]) {
-        sv -Name fname ((Get-Location).path + "\" + $Args[0])
-        sv -Name ln (getLineCount $fname)
+        Set-Variable -Name fname ((Get-Location).path + "\" + $Args[0])
+        Set-Variable -Name ln (getLineCount $fname)
         if ($ln -gt $UT_DUMP_LINES) {
             $ln = $UT_DUMP_LINES
             Write-Error "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
@@ -1070,7 +1073,7 @@ function dump_last_n_lines {
 
         # print line by line to force powershell to print file with new lines
         foreach($line in Get-Content $fname -Tail $ln) {
-           Write-Host $line
+           Write-Output $line
         }
     }
 }
@@ -1097,8 +1100,9 @@ function cmp {
     if ("$s1" -ne "$s2") {
         "$args differ"
     }
-
 }
+
+
 #######################################################
 #######################################################
 
@@ -1112,21 +1116,22 @@ if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
 
-if ($Env:EXE_DIR -eq $null) {
+if ($null -eq $Env:EXE_DIR) {
     $Env:EXE_DIR = "..\..\x64\debug"
 }
 
-$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
-$PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
-$PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
-$PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
-$PMEMDETECT="$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
-$PMEMOBJCLI="$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
-$DDMAP="$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
-$BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMPOOL -Value "$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMSPOIL -Value "$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMWRITE -Value "$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMALLOC -Value "$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMDETECT -Value "$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name PMEMOBJCLI -Value "$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name DDMAP -Value "$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name BTTCREATE -Value "$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
 
-$SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
-$DLLVIEW="$Env:EXE_DIR\dllview$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name SPARSEFILE -Value "$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
+Set-Variable -Scope Script -Name DLLVIEW -Value "$Env:EXE_DIR\dllview$Env:EXESUFFIX"
+
 
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
@@ -1155,14 +1160,14 @@ if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
 #	.\TEST0 -d \force\test\dir
 #
 
-sv -Name curtestdir (Get-Item -Path ".\").BaseName
+Set-Variable -Name curtestdir (Get-Item -Path ".\").BaseName
 
 # just in case
 if (-Not $curtestdir) {
     Write-Error -Message "$curtestdir does not exist"
 }
 
-sv -Name curtestdir ("test_" + $curtestdir)
+Set-Variable -Name curtestdir ("test_" + $curtestdir)
 
 if (-Not $Env:UNITTEST_NUM) {
     Write-Error "UNITTEST_NUM does not have a value"
@@ -1174,32 +1179,32 @@ if (-Not $Env:UNITTEST_NAME) {
     exit 1
 }
 
-sv -Name REAL_FS $Env:FS
+Set-Variable -Name REAL_FS $Env:FS
 if ($DIR) {
     # if user passed it in...
-    sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
+    Set-Variable -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
 } else {
     $tail = "\" + $curtestdir + $Env:UNITTEST_NUM
     # choose based on FS env variable
     switch ($Env:FS) {
         'pmem' {
-            sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+            Set-Variable -Name DIR ($Env:PMEM_FS_DIR + $tail)
             if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
         }
         'non-pmem' {
-             sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+             Set-Variable -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
         }
         'any' {
              if ($Env:PMEM_FS_DIR) {
-                sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+                Set-Variable -Name DIR ($Env:PMEM_FS_DIR + $tail)
                 $REAL_FS='pmem'
                 if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                     $Env:PMEM_IS_PMEM_FORCE = "1"
                 }
             } ElseIf ($Env:NON_PMEM_FS_DIR) {
-                sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+                Set-Variable -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
                 $REAL_FS='non-pmem'
             } Else {
                 Write-Error "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
@@ -1207,11 +1212,11 @@ if ($DIR) {
             }
         }
         'none' {
-            sv -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}"
+            Set-Variable -Name DIR "/nul/not_existing_dir/${curtestdir}${Env:UNITTEST_NUM}"
         }
         default {
             if (-Not $Env:UNITTEST_QUIET) {
-                Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+                Write-Output "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
                 exit 0
             }
         }
@@ -1234,20 +1239,20 @@ if (isDir($Env:NON_PMEM_FS_DIR)) {
 }
 
 # Length of pool file's signature
-sv -Name SIG_LEN 8
+Set-Variable -Name SIG_LEN 8
 
 # Offset and length of pmemobj layout
-sv -Name LAYOUT_OFFSET 4096
-sv -Name LAYOUT_LEN 1024
+Set-Variable -Name LAYOUT_OFFSET 4096
+Set-Variable -Name LAYOUT_LEN 1024
 
 # Length of arena's signature
-sv -Name ARENA_SIG_LEN 16
+Set-Variable -Name ARENA_SIG_LEN 16
 
 # Signature of BTT Arena
-sv -Name ARENA_SIG "BTT_ARENA_INFO"
+Set-Variable -Name ARENA_SIG "BTT_ARENA_INFO"
 
 # Offset to first arena
-sv -Name ARENA_OFF 8192
+Set-Variable -Name ARENA_OFF 8192
 
 #
 # The default is to turn on library logging to level 3 and save it to local files.
@@ -1275,7 +1280,7 @@ $Env:MEMCHECK_LOG_FILE = "memcheck_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 $Env:VALIDATE_MEMCHECK_LOG = 1
 
 if (-Not($UT_DUMP_LINES)) {
-    sv -Name "UT_DUMP_LINES" 30
+    Set-Variable -Name "UT_DUMP_LINES" 30
 }
 
 $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
@@ -1285,8 +1290,8 @@ $Env:CHECK_POOL_LOG_FILE = "check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
 # It also removes all log files created by tests: out*.log, err*.log and trace*.log
 #
 function enable_log_append() {
-    rm -Force -ErrorAction SilentlyContinue "out${Env:UNITTEST_NUM}.log"
-    rm -Force -ErrorAction SilentlyContinue "err${Env:UNITTEST_NUM}.log"
-    rm -Force -ErrorAction SilentlyContinue "trace${Env:UNITTEST_NUM}.log"
-    $Env:UNITTEST_LOG_APPEND=1
+    Remove-Item -Force -ErrorAction SilentlyContinue "out${Env:UNITTEST_NUM}.log"
+    Remove-Item -Force -ErrorAction SilentlyContinue "err${Env:UNITTEST_NUM}.log"
+    Remove-Item -Force -ErrorAction SilentlyContinue "trace${Env:UNITTEST_NUM}.log"
+    [Environment]::SetEnvironmentVariable("UNITTEST_LOG_APPEND", 1, "Process")
 }

@@ -40,14 +40,13 @@ $POOL_PART="$DIR/pool.part"
 $OUT="out$Env:UNITTEST_NUM.log"
 $OUT_TEMP="out$Env:UNITTEST_NUM_temp.log"
 $DIFF="diff$Env:UNITTEST_NUM.log"
-rm $DIFF, $OUT_TEMP -Recurse -Force -ea si
+Remove-Item $DIFF, $OUT_TEMP -Recurse -Force -ea si
 touch $DIFF $OUT_TEMP
 
 # params for blk, log and obj pools
-$POOL_TYPES=@( "blk", "log", "obj" )
-$POOL_CREATE_PARAMS=@( @("--write-layout", "512"), "", @("--layout", "test_layout"))
-$POOL_CHECK_PARAMS=@( "-smgB", "-s", @("-soOaAbZH", "-l", "-C"))
-$POOL_OBJ=2
+Set-Variable -Scope Script -Name POOL_TYPES -Value @( "blk", "log", "obj" )
+Set-Variable -Scope Script -Name POOL_CREATE_PARAMS -Value @( @("--write-layout", "512"), "", @("--layout", "test_layout"))
+Set-Variable -Scope Script -Name POOL_CHECK_PARAMS -Value @( "-smgB", "-s", @("-soOaAbZH", "-l", "-C"))
 
 # create_poolset_variation -- create one from the tested poolset variation
 #    usage: create_poolset_variation <variation-id> [<suffix>]
@@ -119,7 +118,7 @@ function backup_and_compare () {
 	# backup
 	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
 		-b $poolset$BACKUP -t $type -r 1 $poolset
-	cat -Encoding Ascii $OUT | Out-File -append -encoding ascii $OUT_TEMP
+	Get-Content -Encoding Ascii $OUT | Out-File -append -encoding ascii $OUT_TEMP
 
 	# compare
 	if ($args.Count -gt 2 ) {
@@ -128,9 +127,11 @@ function backup_and_compare () {
 	}
 }
 
-$ALL_POOL_PARTS="${POOL_PART}1, ${POOL_PART}2, ${POOL_PART}3, ${POOL_PART}4, `
+Set-Variable -Scope Script -Name ALL_POOL_PARTS -Value `
+	"${POOL_PART}1, ${POOL_PART}2, ${POOL_PART}3, ${POOL_PART}4, `
 	${POOL_PART}${REPLICA}"
-$ALL_POOL_BACKUP_PARTS="${POOL_PART}1$BACKUP, ${POOL_PART}2$BACKUP, `
+Set-Variable -Scope Script -Name ALL_POOL_BACKUP_PARTS -Value `
+	"${POOL_PART}1$BACKUP, ${POOL_PART}2$BACKUP, `
 	${POOL_PART}3$BACKUP ${POOL_PART}4$BACKUP, `
 	${POOL_PART}${BACKUP}${REPLICA}"
 
@@ -138,9 +139,9 @@ $ALL_POOL_BACKUP_PARTS="${POOL_PART}1$BACKUP, ${POOL_PART}2$BACKUP, `
 # backup_cleanup -- perform cleanup between test cases
 #
 function backup_cleanup() {
-	rm $POOLSET$BACKUP, ${POOL_PART}1, ${POOL_PART}2, ${POOL_PART}3, `
+    Remove-Item $POOLSET$BACKUP, ${POOL_PART}1, ${POOL_PART}2, ${POOL_PART}3, `
         ${POOL_PART}4, ${POOL_PART}${REPLICA} -ea si
 
-    rm ${POOL_PART}1$BACKUP, ${POOL_PART}2$BACKUP, ${POOL_PART}3$BACKUP, `
+    Remove-Item ${POOL_PART}1$BACKUP, ${POOL_PART}2$BACKUP, ${POOL_PART}3$BACKUP, `
         ${POOL_PART}4$BACKUP, ${POOL_PART}$BACKUP${REPLICA} -ea si
 }

@@ -52,19 +52,19 @@ $POOL="$DIR\file.pool"
 $LOG="out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
 
-rm $LOG -Force -ea si
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 
 
 expect_normal_exit $PMEMPOOL create log $POOL
 
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 0 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 999999 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
-rm $LOG -Force
-mv $LOG_TEMP $LOG
+Remove-Item $LOG -Force
+Move-Item $LOG_TEMP $LOG
 
 check
 pass

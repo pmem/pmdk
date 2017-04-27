@@ -50,9 +50,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
@@ -68,7 +68,7 @@ create_poolset  $POOLSET `
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
-echo @"
+Write-Output @"
 pr 45M
 srcp 0 TestOK111
 srcp 35M TestOK222
@@ -76,14 +76,14 @@ srcp 35M TestOK222
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
-echo @"
+Write-Output @"
 srpr 0 9
 srpr 35M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Create a poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat $LOG >> $LOG_TEMP
+Get-Content $LOG >> $LOG_TEMP
 
 # Write some data into the pool, hitting all part files
 expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
@@ -92,7 +92,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm $DIR/testfile01 -Force -ea si
+Remove-Item $DIR/testfile01 -Force -ea si
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync -d $POOLSET >> $LOG_TEMP
@@ -103,7 +103,7 @@ dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 dump_pool_info $DIR/testfile11 >> $LOG_TEMP
 check_no_file $DIR/testfile01 >> $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 
 pass

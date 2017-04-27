@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,13 +59,13 @@ $PART4="$DIR\pool.part4"
 $PARTS=($PART1,$PART2,$PART3,$PART4)
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 
 foreach ($args in "log","blk","obj") {
 	if ($args -eq "blk") {
-		echo "Arguments: create $args 512" >> $LOG
+		Write-Output "Arguments: create $args 512" >> $LOG
 	} else {
-		echo "Arguments: create $args" >> $LOG
+		Write-Output "Arguments: create $args" >> $LOG
 	}
 
 	if ($args -eq "obj") {
@@ -80,12 +80,12 @@ foreach ($args in "log","blk","obj") {
 
 		switch ($input_type) {
 			1 {
-				echo "Input: two parts per poolset" >> $LOG
+				Write-Output "Input: two parts per poolset" >> $LOG
 				create_poolset $POOLSET1 32M:$PART1 32M:$PART2
 				create_poolset $POOLSET2 32M:$PART3 32M:$PART4
 			}
 			2 {
-				echo "Input: two replicas per poolset" >> $LOG
+				Write-Output "Input: two replicas per poolset" >> $LOG
 				create_poolset $POOLSET1 32M:$PART1 R 32M:$PART2
 				create_poolset $POOLSET2 32M:$PART3 R 32M:$PART4
 			}
@@ -95,23 +95,23 @@ foreach ($args in "log","blk","obj") {
 
 			switch ($output_type) {
 				1 {
-					echo "Output: four parts in poolset" >> $LOG
+					Write-Output "Output: four parts in poolset" >> $LOG
 					create_poolset $POOLSET 32M:$PART1 32M:$PART2 `
 						32M:$PART3 32M:$PART4
 				}
 				2 {
-					echo "Output: two replicas with two parts each in poolset" >> $LOG
+					Write-Output "Output: two replicas with two parts each in poolset" >> $LOG
 					create_poolset $POOLSET 32M:$PART1 32M:$PART2 `
 						R 32M:$PART3 32M:$PART4
 				}
 				3 {
-					echo "Output: four replicas in poolset" >> $LOG
+					Write-Output "Output: four replicas in poolset" >> $LOG
 					create_poolset $POOLSET 32M:$PART1 R 32M:$PART2 `
 						R 32M:$PART3 R 32M:$PART4
 				}
 			}
 
-			rm $PARTS -Force -ea si
+			Remove-Item $PARTS -Force -ea si
 
 			if ($args -eq "blk") {
 				expect_normal_exit $PMEMPOOL create $args 512 $POOLSET1

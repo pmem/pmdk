@@ -53,9 +53,9 @@ dax_device_zero
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
@@ -70,14 +70,14 @@ create_poolset $POOLSET `
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
-echo @"
+Write-Output @"
 pr 1M
 srcp 0 TestOK111
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
-echo @"
+Write-Output @"
 srpr 0 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
@@ -104,7 +104,7 @@ dump_pool_info $POOLSET >> $LOG_TEMP
 dump_pool_info $DIR/part00 >> $LOG_TEMP
 dump_pool_info ${Env:DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 
 pass

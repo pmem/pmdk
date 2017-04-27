@@ -55,12 +55,13 @@ setup
 $Env:PARSER_LOG_LEVEL = 4
 $Env:PARSER_LOG_FILE = ".\parser$Env:UNITTEST_NUM.log"
 
-$POOLSETS = ls -Name pool[0-9]*w.set | sort {$_ -replace "\D+" -as [Int]}
+$POOLSETS = Get-ChildItem -Name pool[0-9]*w.set | Sort-Object {$_ -replace "\D+" -as [Int]}
 
 expect_normal_exit $Env:EXE_DIR\util_poolset_parse$Env:EXESUFFIX $POOLSETS
 
 Get-Content .\parser$Env:UNITTEST_NUM.log | Select-String `
-	-Pattern "<[14]>.*\[.*util_poolset_parse\]" | %{[string]$_} `
+	-Pattern "<[14]>.*\[.*util_poolset_parse\]" `
+	| ForEach-Object {[string]$_} `
 	> grep$Env:UNITTEST_NUM.log
 
 check

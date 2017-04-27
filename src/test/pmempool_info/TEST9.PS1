@@ -52,11 +52,13 @@ setup
 $POOL="$DIR\file.pool"
 
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
-$INFO_NFLOG=((&$PMEMPOOL info $POOL | sls 'Free block').Line | sls -Pattern '\d+').Matches.Value
-$NFLOG=(expect_normal_exit $PMEMPOOL info -g $POOL | sls -Pattern '^\d+:'|measure).count
+$INFO_NFLOG=((&$PMEMPOOL info $POOL | Select-String 'Free block').Line |`
+Select-String -Pattern '\d+').Matches.Value
+$NFLOG=(expect_normal_exit $PMEMPOOL info -g $POOL |`
+Select-String -Pattern '^\d+:' | Measure-Object).count
 
 if ($INFO_NFLOG -ne $NFLOG ) {
-    echo "$INFO_NFLOG != $NFLOG"
+    Write-Output "$INFO_NFLOG != $NFLOG"
     exit 1
 }
 

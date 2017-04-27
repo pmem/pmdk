@@ -56,7 +56,7 @@ setup
 #
 expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile1 20 0600
 
-cp $DIR\testfile1 $DIR\testfile2
+Copy-Item $DIR\testfile1 $DIR\testfile2
 
 &$PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=1111111111111111 `
         pool_hdr.next_part_uuid=1111111111111111 `

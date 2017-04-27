@@ -58,7 +58,7 @@ create_holey_file 1M $DIR\testfile
 #
 expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
-rm $DIR/testfile
+Remove-Item $DIR/testfile
 
 check
 

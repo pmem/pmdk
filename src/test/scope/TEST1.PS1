@@ -52,11 +52,11 @@ require_build_type debug
 setup
 
 function parse_lib {
-    echo "${args}:" >> out$Env:UNITTEST_NUM.log
+    Write-Output "${args}:" >> out$Env:UNITTEST_NUM.log
     & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
 }
 
-echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
+Write-Output "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
 parse_lib "$Env:EXE_DIR\libpmem.dll"
 
 check

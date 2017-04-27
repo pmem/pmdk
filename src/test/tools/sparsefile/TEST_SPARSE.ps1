@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ function epoch {
 #
 function remove_file {
 	if (test-path $args[0]) {
-		rm -force $args[0]
+		Remove-Item -force $args[0]
 	}
 }
 
@@ -132,7 +132,7 @@ for ($i=1;$i -lt $count;$i++) {
 }
 $end = epoch
 $t = ($end - $start) / 1000
-Write-Host "`nsparsefile: $t seconds"
+Write-Output "`nsparsefile: $t seconds"
 
 
 $start = epoch
@@ -142,7 +142,7 @@ for ($i=1;$i -lt $count;$i++) {
 }
 $end = epoch
 $t = ($end - $start) / 1000
-Write-Host "`npowershell + fsutil: $t seconds"
+Write-Output "`npowershell + fsutil: $t seconds"
 
 
 $start = epoch
@@ -152,4 +152,4 @@ for ($i=1;$i -lt $count;$i++) {
 }
 $end = epoch
 $t = ($end - $start) / 1000
-Write-Host "`nfsutil: $t seconds"
+Write-Output "`nfsutil: $t seconds"

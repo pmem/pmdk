@@ -50,9 +50,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
@@ -78,27 +78,27 @@ create_poolset $POOLSET3 `
 
 
 # Log poolset structures
-echo poolset1: >> $LOG_TEMP
-cat $POOLSET1 >> $LOG_TEMP
-echo poolset2: >> $LOG_TEMP
-cat $POOLSET2 >> $LOG_TEMP
-echo poolset3: >> $LOG_TEMP
-cat $POOLSET3 >> $LOG_TEMP
+Write-Output poolset1: >> $LOG_TEMP
+Get-Content $POOLSET1 >> $LOG_TEMP
+Write-Output poolset2: >> $LOG_TEMP
+Get-Content $POOLSET2 >> $LOG_TEMP
+Write-Output poolset3: >> $LOG_TEMP
+Get-Content $POOLSET3 >> $LOG_TEMP
 
 # Create poolsets
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
-cat $LOG >> $LOG_TEMP
+Get-Content $LOG >> $LOG_TEMP
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET2
-cat $LOG >> $LOG_TEMP
+Get-Content $LOG >> $LOG_TEMP
 
 # Spoil the first and the third replicas
-rm $DIR/part00 -Force -ea si
-rm $DIR/part20 -Force -ea si
+Remove-Item $DIR/part00 -Force -ea si
+Remove-Item $DIR/part20 -Force -ea si
 
 # Try to synchronize replicas using the second poolset
 expect_abnormal_exit $PMEMPOOL sync $POOLSET3 >> $LOG_TEMP 2>$null
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 
 pass

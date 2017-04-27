@@ -99,8 +99,8 @@ check_no_files $DIR/testfile21 $DIR/testfile22 `
     $DIR/testfile31 $DIR/testfile32 `
     $DIR/testfile42
 
-sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
-    %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
+Select-String -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
+    ForEach-Object {[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
     > grep$Env:UNITTEST_NUM.log
 
 check

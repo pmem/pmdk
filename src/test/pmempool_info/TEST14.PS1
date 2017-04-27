@@ -51,18 +51,18 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
 expect_abnormal_exit $PMEMALLOC -o 1 -t 1 -ea $POOL
 expect_normal_exit $PMEMPOOL info -l -R -a $POOL >> $LOG
-echo "" >> $LOG
+Write-Output "" >> $LOG
 expect_abnormal_exit $PMEMALLOC -o 1 -t 1 -s -es $POOL
 expect_normal_exit $PMEMPOOL info -l -R -Stx $POOL >> $LOG
-echo "" >> $LOG
+Write-Output "" >> $LOG
 expect_abnormal_exit $PMEMALLOC -o 1024 -t 1 -s -es $POOL
 expect_normal_exit $PMEMPOOL info -l -R -Stx $POOL >> $LOG
-echo "" >> $LOG
+Write-Output "" >> $LOG
 expect_abnormal_exit $PMEMALLOC -o 1 -t 1 -s -f -ef $POOL
 expect_normal_exit $PMEMPOOL info -l -R -a -Stx $POOL >> $LOG
 

@@ -61,7 +61,8 @@ expect_normal_exit $Env:EXE_DIR\pmem_movnt$Env:EXESUFFIX
 
 Get-Content pmem$Env:UNITTEST_NUM.log | Select-String `
 	-Pattern "PMEM_MOVNT_THRESHOLD|pmem_flush" | `
-	%{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
+	ForEach-Object {[string]$_ -replace '^.* len ', `
+	"" -replace '^.*][ ]*',''} `
 	> grep$Env:UNITTEST_NUM.log
 
 check

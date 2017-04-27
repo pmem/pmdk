@@ -49,9 +49,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
@@ -68,7 +68,7 @@ create_poolset $POOLSET `
 
 # Create poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat $LOG
+Get-Content $LOG
 
 # Corrupt metadata in primary replica, recalculate checksum
 expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
@@ -77,6 +77,6 @@ expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
 # Try to synchronize replicas
 expect_abnormal_exit $PMEMPOOL sync $POOLSET 2>$null
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 
 pass

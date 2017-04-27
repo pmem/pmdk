@@ -55,7 +55,7 @@ $POOL_P3="$DIR\pool.p3"
 $POOL_P4="$DIR\pool.p4"
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 
 create_poolset $POOLSET `
 	32M:$POOL_P1 `
@@ -65,7 +65,7 @@ create_poolset $POOLSET `
 
 check_file $POOLSET
 
-rm $POOL_P1, $POOL_P2, $POOL_P3, $POOL_P4 -Force -ea si
+Remove-Item $POOL_P1, $POOL_P2, $POOL_P3, $POOL_P4 -Force -ea si
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
 expect_normal_exit $PMEMPOOL info $POOLSET > $null

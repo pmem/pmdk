@@ -49,7 +49,7 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
 
 $POOLSET = "$DIR/pool.set"
@@ -61,21 +61,21 @@ $REPL2 = "$DIR/pool.rep.part2"
 $REPL3 = "$DIR/pool.rep.part3"
 $POOLS = "$POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3"
 
-rm $POOLS -Force -ea si
+Remove-Item $POOLS -Force -ea si
 create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z `
     R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
 check_file $POOLSET
 
-rm $POOLS -Force -ea si
+Remove-Item $POOLS -Force -ea si
 expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 0 "pmemobj.layout=replica0"
 expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET -f obj `
-    | sls '^Layout.*' | %{$_.Line} >> $LOG
+    | Select-String '^Layout.*' | ForEach-Object {$_.Line} >> $LOG
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 1 "pmemobj.layout=replica1"
 expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET -f obj `
-    | sls '^Layout.*' | %{$_.Line} >> $LOG
+    | Select-String '^Layout.*' | ForEach-Object{$_.Line} >> $LOG
 
 check
 

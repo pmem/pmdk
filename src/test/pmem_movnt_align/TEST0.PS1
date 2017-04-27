@@ -58,7 +58,8 @@ $Env:PMEM_LOG_LEVEL=15
 expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C
 
 Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
-	%{[string]$_ -replace '^.* len ',""} > grep$Env:UNITTEST_NUM.log
+	ForEach-Object {[string]$_ -replace '^.* len ',""} `
+	> grep$Env:UNITTEST_NUM.log
 
 check
 

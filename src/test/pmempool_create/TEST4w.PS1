@@ -57,14 +57,14 @@ check_signature PMEMBLK $POOL
 check_mode 0600 $POOL
 
 # PMEMLOG
-rm -Force $POOL
+Remove-Item -Force $POOL
 expect_normal_exit $PMEMPOOL create -m 0500 log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 check_mode 0500 $POOL
 
 # PMEMOBJ
-rm -Force $POOL
+Remove-Item -Force $POOL
 expect_normal_exit $PMEMPOOL create -m 0500 --layout=pmempool$Env:SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
