@@ -417,12 +417,17 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			 * allocation.
 			 */
 			void *reserved_addr = mmap_reserve(addr, len_align);
-			if (addr != NULL && addr != reserved_addr &&
-					(flags & MAP_FIXED) != 0) {
+			if (reserved_addr == MAP_FAILED) {
+				ERR("cannot reserve region");
+				return MAP_FAILED;
+			}
+
+			if (addr != reserved_addr && (flags & MAP_FIXED) != 0) {
 				ERR("cannot find a contiguous region - "
 					"addr: %p, len: %lx, gle: 0x%08x",
 					addr, len, GetLastError());
-				if (mmap_unreserve(reserved_addr, 0) != 0) {
+				if (mmap_unreserve(reserved_addr,
+						len_align) != 0) {
 					ASSERT(FALSE);
 					ERR("cannot free reserved region");
 				}
