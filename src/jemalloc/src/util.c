@@ -550,8 +550,12 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 				assert(len == '?' || len == 'l');
 				assert_not_implemented(len != 'l');
 				s = va_arg(ap, char *);
-				slen = (prec < 0) ? strlen(s) : (size_t)prec;
-				APPEND_PADDED_S(s, slen, width, left_justify);
+				if (s) {
+					slen = (prec < 0) ? strlen(s) : (size_t)prec;
+					APPEND_PADDED_S(s, slen, width, left_justify);
+				} else {
+					APPEND_S("(null)", 6);
+				}
 				f++;
 				break;
 			case 'p': {
