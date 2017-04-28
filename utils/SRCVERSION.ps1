@@ -63,7 +63,7 @@ $BUGFIX = $false
 $PRIVATE = $true
 $CUSTOM = $false
 
-if ($git -eq $null) {
+if ($null -eq $git) {
     $MAJOR = 0
     $MINOR = 0
     $REVISION = 0
@@ -73,7 +73,6 @@ if ($git -eq $null) {
     $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN VERSION`" "
 } else {
     $version = $(git describe)
-    $no_git = $false
     $ver_array = $(git describe --long).split("-+")
 
     $MAJOR = $ver_array[0].split(".")[0]
@@ -114,28 +113,28 @@ if ($old_src_version -eq $src_version) {
     exit 0
 }
 
-echo "updating source version: $version"
-echo $src_version > $file_path
+Write-Output "updating source version: $version"
+Write-Output $src_version > $file_path
 
-echo "#ifdef RC_INVOKED" >> $file_path
+Write-Output "#ifdef RC_INVOKED" >> $file_path
 
-echo "#define MAJOR $MAJOR" >> $file_path
-echo "#define MINOR $MINOR" >> $file_path
-echo "#define REVISION $REVISION" >> $file_path
-echo "#define BUILD $BUILD" >> $file_path
+Write-Output "#define MAJOR $MAJOR" >> $file_path
+Write-Output "#define MINOR $MINOR" >> $file_path
+Write-Output "#define REVISION $REVISION" >> $file_path
+Write-Output "#define BUILD $BUILD" >> $file_path
 
 if ($PRERELEASE) {
-    echo "#define PRERELEASE 1"  >> $file_path
+    Write-Output "#define PRERELEASE 1"  >> $file_path
 }
 if ($BUGFIX) {
-    echo "#define BUGFIX 1"  >> $file_path
+    Write-Output "#define BUGFIX 1"  >> $file_path
 }
 if ($PRIVATE) {
-    echo "#define PRIVATE 1"  >> $file_path
+    Write-Output "#define PRIVATE 1"  >> $file_path
 }
 if ($CUSTOM) {
-    echo "#define CUSTOM 1"  >> $file_path
-    echo $version_custom_msg  >> $file_path
+    Write-Output "#define CUSTOM 1"  >> $file_path
+    Write-Output $version_custom_msg  >> $file_path
 }
 
-echo "#endif" >> $file_path
+Write-Output "#endif" >> $file_path

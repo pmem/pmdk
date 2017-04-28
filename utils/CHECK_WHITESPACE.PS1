@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,5 +44,5 @@ If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
 			Exit $LASTEXITCODE
 	}
 } else {
-	echo "Cannot execute check_whitespace - perl is missing"
+	Write-Output "Cannot execute check_whitespace - perl is missing"
 }

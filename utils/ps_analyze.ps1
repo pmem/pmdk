@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,37 +29,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# CSTYLE.ps1 -- script to check coding style
+# ps_analyze -- script to analyze ps1 files
 #
-# XXX - integrate with VS projects and execute for each build
-#
+
+Write-Output "Starting PSScript analyzing ..."
 
 $scriptdir = Split-Path -Parent $PSCommandPath
 $rootdir = $scriptdir + "\.."
-$cstyle = $rootdir + "\utils\cstyle"
-$checkdir = $rootdir
+$detected = 0
 
-# XXX - *.cpp/*.hpp files not supported yet
-$include = @( "*.c", "*.h" )
-
-If ( Get-Command -Name perl -ErrorAction SilentlyContinue ) {
-	Get-ChildItem -Path $checkdir -Recurse -Include $include | `
-    Where-Object { $_.FullName -notlike "*jemalloc*" } | `
+$include = @("*.ps1" )
+Get-ChildItem -Path $rootdir -Recurse -Include $include  | `
+    Where-Object { $_.FullName -notlike "*test*" } | `
     ForEach-Object {
-        $IGNORE = $_.DirectoryName + "\.cstyleignore"
-        if(Test-Path $IGNORE) {
-            if((Select-String $_.Name $IGNORE)) {
-                return
-            }
-        }
-        $_
-    } | ForEach-Object {
-		Write-Output $_.FullName
-		& perl $cstyle $_.FullName
-		if ($LASTEXITCODE -ne 0) {
-            Exit $LASTEXITCODE
+        $analyze_result = Invoke-ScriptAnalyzer -Path $_.FullName
+        if ($analyze_result) {
+            $detected = $detected + $analyze_result.Count
+            Write-Output $_.FullName
+            Write-Output $analyze_result
         }
     }
+
+if ($detected) {
+    Write-Output "PSScriptAnalyzer FAILED. Issues detected: $detected"
+    Exit 1
 } else {
-	Write-Output "Cannot execute cstyle - perl is missing"
+    Write-Output "PSScriptAnalyzer PASSED. No issue detected."
+    Exit 0
 }

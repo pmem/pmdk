@@ -2,6 +2,10 @@ version: 1.2.{build}
 os: Visual Studio 2015
 platform: x64
 
+install:
+- ps: Install-PackageProvider -Name NuGet -Force
+- ps: Install-Module PsScriptAnalyzer -Force
+
 configuration:
 - Debug
 - Release
@@ -17,6 +21,10 @@ before_build:
                 exit 1
         }
         utils/CHECK_WHITESPACE.ps1
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
+        utils/ps_analyze.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
