@@ -161,9 +161,11 @@ struct pmemobjpool {
 	int vg_boot;
 	int tx_debug_skip_expensive_checks;
 
+	struct tx_parameters *tx_params;
+
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1568];
+	char unused2[1560];
 };
 
 /*

@@ -2257,6 +2257,36 @@ tx.debug.skip_expensive_checks | rw | - | int | int | boolean
 Turns off some expensive checks performed by transaction module in "debug"
 builds. Ignored in "release" builds.
 
+tx.cache.size | rw | - | long long | long long | integer
+
+Size in bytes of the transaction snapshot cache size. The bigger it is the
+frequency of persistent allocations is lower, but at the cost of higher
+fixed cost.
+
+This should be set to roughly the sum of sizes of the snapshotted regions in
+an average transaction in the pool.
+
+This value must be a in a range between 0 and **PMEMOBJ_MAX_ALLOC_SIZE**.
+If the current threshold is larger than the new cache size, the threshold will
+be made equal to the new size.
+
+This entry point is not thread safe and should not be modified if there are any
+transactions currently running.
+
+Returns 0 if successful, -1 otherwise.
+
+tx.cache.threshold | rw | - | long long | long long | integer
+
+Threshold in bytes to which the snapshots will use the cache. All bigger
+snapshots will trigger a persistent allocation.
+
+This value must be a in a range between 0 and **tx.cache.size**.
+
+This entry point is not thread safe and should not be modified if there are any
+transactions currently running.
+
+Returns 0 if successful, -1 otherwise.
+
 # CTL external configuration #
 
 In addition to direct function call, each write entry point can also be set

@@ -46,7 +46,7 @@
 #define OBJ_SIZE	1024
 #define OVERLAP_SIZE	100
 #define ROOT_TAB_SIZE\
-	(TX_RANGE_CACHE_SIZE / sizeof(int))
+	(TX_DEFAULT_RANGE_CACHE_SIZE / sizeof(int))
 
 #define REOPEN_COUNT	10
 

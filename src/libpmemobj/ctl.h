@@ -130,6 +130,10 @@ int ctl_arg_integer(const void *arg, void *dest, size_t dest_size);
 	{{0, sizeof(int), ctl_arg_integer},\
 	CTL_ARG_PARSER_END}};
 
+#define CTL_ARG_LONG_LONG {sizeof(long long),\
+	{{0, sizeof(long long), ctl_arg_integer},\
+	CTL_ARG_PARSER_END}};
+
 int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
 #define CTL_ARG_STRING(len) {len,\
 	{{0, len, ctl_arg_string},\
