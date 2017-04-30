@@ -747,7 +747,7 @@ add_child4(PMEMobjpool *pop, TOID(art_node4) n, TOID(art_node_u) *ref,
 		assert((idx + 1) < 4);
 		PMEMOIDmove(&(D_RW(n)->children[idx + 1].oid),
 		    &(D_RW(n)->children[idx].oid),
-		n_an->num_children - idx);
+		    n_an->num_children - idx);
 
 		// Insert element
 		D_RW(n)->keys[idx] = c;
@@ -1091,8 +1091,7 @@ static void
 remove_child16(PMEMobjpool *pop,
 	TOID(art_node16) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
-	/* XXX: check distance calculation */
-	int pos = (l - &(D_RO(n)->children[0])) / sizeof(TOID(art_node_u));
+	int pos = l - &(D_RO(n)->children[0]);
 	uint8_t num_children = ((D_RW(n)->n).num_children);
 
 	TX_ADD(n);
@@ -1123,8 +1122,7 @@ static void
 remove_child4(PMEMobjpool *pop,
 	TOID(art_node4) n, TOID(art_node_u) *ref, TOID(art_node_u) *l)
 {
-	/* XXX: check distance calculation */
-	int pos = (l - &(D_RO(n)->children[0])) / sizeof(TOID(art_node_u));
+	int pos = l - &(D_RO(n)->children[0]);
 	uint8_t *num_children = &((D_RW(n)->n).num_children);
 
 	TX_ADD(n);
