@@ -776,7 +776,7 @@ The **pmemobj_direct**() function returns a pointer to an object represented by 
 If **OID_NULL** is passed as an argument, function returns NULL.
 
 >NOTE:
-For preformance reasons, on Linux this function is inlined by default.
+For performance reasons, on Linux this function is inlined by default.
 You may decide to compile your programs using the non-inlined variant
 of **pmemobj_direct**() by defining **PMEMOBJ_DIRECT_NON_INLINE** macro.
 You should define this macro by using *\#define* preprocessor directive,
