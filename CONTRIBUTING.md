@@ -51,7 +51,7 @@ i.e. via email or by including a `Signed-off-by:` line at the bottom
 of your commit comments.
 
 To improve tracking of who is the author of a contribution, we kindly ask you
-to use your real name (not an alias) when commiting your changes to the NVM Library:
+to use your real name (not an alias) when committing your changes to the NVM Library:
 ```
 Author: Random J Developer <random@developer.example.org>
 ```

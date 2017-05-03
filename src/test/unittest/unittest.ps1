@@ -299,7 +299,7 @@ function create_poolset {
         }
         $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
-        # as a delimeter in the arguement
+        # as a delimeter in the argument
 
         $driveLetter = ""
         if ($cmd -match ":([a-zA-Z]):\\") {
@@ -759,7 +759,7 @@ function check_size {
 function check_mode {
     sv -Name mode -Scope "Local" $args[0]
     sv -Name file -Scope "Local" $args[1]
-    $mode = [math]::floor($mode / 100) # get first digit (user/owner permision)
+    $mode = [math]::floor($mode / 100) # get first digit (user/owner permission)
     $read_only = (gp $file IsReadOnly).IsReadOnly
 
     if ($mode -band 2) {

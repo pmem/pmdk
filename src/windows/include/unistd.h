@@ -76,10 +76,10 @@ sysconf(int p)
 static ssize_t
 pread(int fd, void *buf, size_t count, off_t offset)
 {
-	__int64 postion = _lseeki64(fd, 0, SEEK_CUR);
+	__int64 position = _lseeki64(fd, 0, SEEK_CUR);
 	_lseeki64(fd, offset, SEEK_SET);
 	int ret = _read(fd, buf, (unsigned)count);
-	_lseeki64(fd, postion, SEEK_SET);
+	_lseeki64(fd, position, SEEK_SET);
 	return ret;
 }
 
@@ -89,10 +89,10 @@ pread(int fd, void *buf, size_t count, off_t offset)
 static ssize_t
 pwrite(int fd, const void *buf, size_t count, off_t offset)
 {
-	__int64 postion = _lseeki64(fd, 0, SEEK_CUR);
+	__int64 position = _lseeki64(fd, 0, SEEK_CUR);
 	_lseeki64(fd, offset, SEEK_SET);
 	int ret = _write(fd, buf, (unsigned)count);
-	_lseeki64(fd, postion, SEEK_SET);
+	_lseeki64(fd, position, SEEK_SET);
 	return ret;
 }
 
