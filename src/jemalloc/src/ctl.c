@@ -10,7 +10,7 @@
  * - ctl_stats.*
  * - opt_prof_active
  */
-static malloc_mutex_t	ctl_mtx; /* XXX seperate mutex for each pool? */
+static malloc_mutex_t	ctl_mtx; /* XXX separate mutex for each pool? */
 static uint64_t		ctl_epoch;
 
 /******************************************************************************/

@@ -383,7 +383,7 @@ examine_art_node_u(char *appname, struct examine_ctx *ctx, off_t off)
 			dump_PMEMoid("    art_leaf oid",
 			    &(node_u->u.al.oid));
 			break;
-		default: printf("ERROR: unkown node type\n");
+		default: printf("ERROR: unknown node type\n");
 			break;
 		}
 		printf("\n};\n");

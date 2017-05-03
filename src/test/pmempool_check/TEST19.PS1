@@ -63,7 +63,7 @@ $INVALID_ARCH_FLAGS="FFFFFFFF"
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.arch_flags=$INVALID_ARCH_FLAGS" >> $LOG
 expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
-# pmempool info schould exit normally
+# pmempool info should exit normally
 expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
 # if valid part does not exist it is impossible to check arch_flags

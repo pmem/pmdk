@@ -422,7 +422,7 @@ Group:		%{package_group}
 Summary:	Tools for %{name}
 
 %description tools
-Usefull applications for administration and diagnostic purposes.
+Useful applications for administration and diagnostic purposes.
 
 %files tools
 %{_bindir}/pmempool
