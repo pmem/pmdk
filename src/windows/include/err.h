@@ -45,7 +45,7 @@
  * err - windows implementation of unix err function
  */
 __declspec(noreturn) static void
-err(int eval, const char *fmt, ...)
+err(int eval, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)))
 {
 	va_list vl;
 	va_start(vl, fmt);
@@ -58,7 +58,7 @@ err(int eval, const char *fmt, ...)
  * warn - windows implementation of unix warn function
  */
 static void
-warn(const char *fmt, ...)
+warn(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)))
 {
 	va_list vl;
 	va_start(vl, fmt);

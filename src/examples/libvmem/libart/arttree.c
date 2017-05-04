@@ -183,7 +183,7 @@ static void dump_art_node256(struct ds_context *ctx, art_node256 *node);
 static void dump_art_leaf(struct ds_context *ctx, art_leaf *node);
 static char *asciidump(unsigned char *s, int32_t len);
 
-void outv_err(const char *fmt, ...);
+void outv_err(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void outv_err_vargs(const char *fmt, va_list ap);
 
 /*

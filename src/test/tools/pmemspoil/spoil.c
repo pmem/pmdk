@@ -1339,7 +1339,7 @@ main(int argc, char *argv[])
 		err(1, "%s", psp->fname);
 
 	if (pool_set_file_set_replica(psp->pfile, psp->replica)) {
-		outv_err("invalid replica argument max is %lu\n",
+		outv_err("invalid replica argument max is %u\n",
 				psp->pfile->poolset ?
 				psp->pfile->poolset->nreplicas :
 				0);

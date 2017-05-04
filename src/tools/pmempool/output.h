@@ -42,16 +42,17 @@ void out_set_vlevel(int vlevel);
 void out_set_stream(FILE *stream);
 void out_set_prefix(const char *prefix);
 void out_set_col_width(unsigned col_width);
-void outv_err(const char *fmt, ...);
+void outv_err(const char *fmt, ...) FORMAT_PRINTF(1, 2);
 void out_err(const char *file, int line, const char *func,
-		const char *fmt, ...);
+		const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void outv_err_vargs(const char *fmt, va_list ap);
 void outv_indent(int vlevel, int i);
-void outv(int vlevel, const char *fmt, ...);
+void outv(int vlevel, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 void outv_nl(int vlevel);
 int outv_check(int vlevel);
-void outv_title(int vlevel, const char *fmt, ...);
-void outv_field(int vlevel, const char *field, const char *fmt, ...);
+void outv_title(int vlevel, const char *fmt, ...) FORMAT_PRINTF(2, 3);
+void outv_field(int vlevel, const char *field, const char *fmt,
+		...) FORMAT_PRINTF(3, 4);
 void outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset,
 		int sep);
 const char *out_get_uuid_str(uuid_t uuid);

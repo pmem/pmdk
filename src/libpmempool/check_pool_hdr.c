@@ -358,8 +358,8 @@ pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		util_convert2le_hdr(&loc->hdr);
 		break;
 	case Q_ARCH_FLAGS:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.arch_flags to 0x%x",
-			loc->prefix, loc->valid_part_hdrp->arch_flags);
+		CHECK_INFO(ppc, "%ssetting pool_hdr.arch_flags to %p",
+			loc->prefix, &loc->valid_part_hdrp->arch_flags);
 		util_convert2h_hdr_nocheck(&loc->hdr);
 		memcpy(&loc->hdr.arch_flags, &loc->valid_part_hdrp->arch_flags,
 			sizeof(struct arch_flags));

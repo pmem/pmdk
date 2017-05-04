@@ -281,7 +281,7 @@ blk_hdr_check(PMEMpoolcheck *ppc, location *loc)
 		if (ppc->pool->hdr.blk.bsize != btt_bsize) {
 			CHECK_ASK(ppc, Q_BLK_BSIZE,
 				"invalid pmemblk.bsize.|Do you want to set "
-				"pmemblk.bsize to %lu from BTT Info?",
+				"pmemblk.bsize to %u from BTT Info?",
 				btt_bsize);
 		}
 	} else if (!ppc->pool->bttc.zeroed) {

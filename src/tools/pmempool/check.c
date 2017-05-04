@@ -219,7 +219,7 @@ static check_result_t pmempool_check_2_check_res_t[] =
 static char *
 check_ask(const char *msg)
 {
-	char answer = ask_Yn('?', msg);
+	char answer = ask_Yn('?', "%s", msg);
 
 	switch (answer) {
 	case 'y':

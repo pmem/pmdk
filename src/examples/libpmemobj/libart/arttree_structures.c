@@ -141,7 +141,7 @@ extern void arttree_examine_help();
 extern int arttree_search_func();
 extern void arttree_search_help();
 
-void outv_err(const char *fmt, ...);
+void outv_err(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void outv_err_vargs(const char *fmt, va_list ap);
 
 static struct command commands[] = {
