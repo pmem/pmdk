@@ -64,6 +64,7 @@ extern unsigned long long Mmap_align;
 #define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
 
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
+#define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
 /*
  * overridable names for malloc & friends used by this library

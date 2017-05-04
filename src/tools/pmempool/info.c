@@ -705,15 +705,15 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 		uint64_t a = GET_ALIGNMENT(ad, i);
 		if (ad == cur_ad) {
 			outv_field(v + 1, alignment_desc_str[i],
-					"%2d", a);
+					"%2lu", a);
 		} else {
 			uint64_t av = GET_ALIGNMENT(cur_ad, i);
 			if (a == av) {
 				outv_field(v + 1, alignment_desc_str[i],
-					"%2d [OK]", a);
+					"%2lu [OK]", a);
 			} else {
 				outv_field(v + 1, alignment_desc_str[i],
-					"%2d [wrong! should be %2d]", a, av);
+					"%2lu [wrong! should be %2lu]", a, av);
 			}
 		}
 	}

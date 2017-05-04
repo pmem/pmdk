@@ -207,7 +207,7 @@ pmempool_create_blk(struct pmempool_create *pcp)
 	}
 
 	if (pcp->write_btt_layout) {
-		outv(1, "Writing BTT layout using block %lu.\n",
+		outv(1, "Writing BTT layout using block %d.\n",
 				pcp->write_btt_layout);
 
 		if (pmemblk_set_error(pbp, 0) || pmemblk_set_zero(pbp, 0)) {
@@ -512,7 +512,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	if (pc.layout && strlen(pc.layout) >= PMEMOBJ_MAX_LAYOUT) {
 		outv_err("Layout name is to long, maximum number of characters"
-			" (including the terminating null byte) is %d\n",
+			" (including the terminating null byte) is %zu\n",
 			PMEMOBJ_MAX_LAYOUT);
 		return -1;
 	}

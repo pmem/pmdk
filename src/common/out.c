@@ -359,7 +359,7 @@ out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 /*
  * out_snprintf -- (internal) custom snprintf implementation
  */
-__attribute__((format(printf, 3, 4)))
+FORMAT_PRINTF(3, 4)
 static int
 out_snprintf(char *str, size_t size, const char *format, ...)
 {

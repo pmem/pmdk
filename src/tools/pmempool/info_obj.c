@@ -40,6 +40,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include "alloc_class.h"
 
@@ -241,7 +242,7 @@ info_obj_redo(int v, struct redo_log *redo, size_t nentries)
 {
 	outv_field(v, "Redo log entries", "%lu", nentries);
 	for (size_t i = 0; i < nentries; i++) {
-		outv(v, "%010u: "
+		outv(v, "%010zu: "
 			"Offset: 0x%016jx "
 			"Value: 0x%016jx "
 			"Finish flag: %d\n",
@@ -316,7 +317,7 @@ info_obj_alloc_hdr(struct pmem_info *pip, int v,
 
 	outv_field(v, "Size", "%s", out_get_size_str(m->m_ops->get_user_size(m),
 				pip->args.human));
-	outv_field(v, "Extra", "%llu", m->m_ops->get_extra(m));
+	outv_field(v, "Extra", "%lu", m->m_ops->get_extra(m));
 	outv_field(v, "Flags", "0x%x", m->m_ops->get_flags(m));
 }
 
@@ -393,8 +394,9 @@ set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
 			outv_indent(v, 1);
 			title = 1;
 		}
-		outv(v, "%010u: Offset: 0x%016lx Size: %s\n", i, range->offset,
-			out_get_size_str(range->size, pip->args.human));
+		outv(v, "%010" PRIu64 ": Offset: 0x%016lx Size: %s\n", i,
+			range->offset, out_get_size_str(range->size,
+					pip->args.human));
 
 		cache_offset += TX_RANGE_ALIGN_SIZE(range->size) +
 			sizeof(struct tx_range);
@@ -489,7 +491,7 @@ info_obj_lanes(struct pmem_info *pip)
 				!lane_need_recovery(pip, &lanes[i]))
 				continue;
 
-			outv_title(v, "Lane", "%d", i);
+			outv_title(v, "Lane %" PRIu64, i);
 
 			outv_indent(v, 1);
 
@@ -657,7 +659,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 	outv_field(v, "Type", "%s", out_get_chunk_type_str(chunk_hdr->type));
 	outv_field(v, "Flags", "0x%x %s", chunk_hdr->flags,
 			out_get_chunk_flags(chunk_hdr->flags));
-	outv_field(v, "Size idx", "%lu", chunk_hdr->size_idx);
+	outv_field(v, "Size idx", "%u", chunk_hdr->size_idx);
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.zone_id = (uint32_t)z;
@@ -769,9 +771,9 @@ info_obj_root_obj(struct pmem_info *pip)
 	}
 
 	outv_title(v, "Root object");
-	outv_field(v, "Offset", "0x%016x", pop->root_offset);
+	outv_field(v, "Offset", "0x%016zx", pop->root_offset);
 	uint64_t root_size = pop->root_size;
-	outv_field(v, "Size",
+	outv_field(v, "Size", "%s",
 			out_get_size_str(root_size, pip->args.human));
 
 	struct memory_block m = memblock_from_offset(
@@ -809,7 +811,7 @@ info_obj_zones_chunks(struct pmem_info *pip)
 				(pip->args.obj.vzonehdr ||
 				pip->args.obj.vchunkhdr);
 
-			outv_title(vvv, "Zone", "%lu", i);
+			outv_title(vvv, "Zone %zu", i);
 
 			if (zone->header.magic == ZONE_HEADER_MAGIC)
 				pip->obj.stats.n_zones_used++;
@@ -853,7 +855,7 @@ info_obj_descriptor(struct pmem_info *pip)
 	/* address for checksum */
 	void *dscp = (void *)((uintptr_t)(pop) + sizeof(struct pool_hdr));
 
-	outv_field(v, "Layout", layout);
+	outv_field(v, "Layout", "%s", layout);
 	outv_field(v, "Lanes offset", "0x%lx", pop->lanes_offset);
 	outv_field(v, "Number of lanes", "%lu", pop->nlanes);
 	outv_field(v, "Heap offset", "0x%lx", pop->heap_offset);
@@ -1054,7 +1056,7 @@ info_obj_stats_zones(struct pmem_info *pip, int v, struct pmem_obj_stats *stats,
 
 	outv_indent(v, 1);
 	for (uint64_t i = 0; i < stats->n_zones_used; i++) {
-		outv_title(v, "Zone", "%lu", i);
+		outv_title(v, "Zone %" PRIu64, i);
 
 		struct pmem_obj_zone_stats *zstats = &stats->zone_stats[i];
 

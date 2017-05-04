@@ -31,7 +31,7 @@ Heap size                : $(*)
 Checksum                 : $(*) [OK]
 Root offset              : $(*)
 
-Lane:
+Lane 0:
 
  Lane section             : allocator
   Redo log entries         : 10
@@ -156,7 +156,7 @@ Heap size                : $(*)
 Checksum                 : $(*) [OK]
 Root offset              : $(*)
 
-Lane:
+Lane 0:
 
  Lane section             : tx
   State                    : none
@@ -204,7 +204,7 @@ Heap size                : $(*)
 Checksum                 : $(*) [OK]
 Root offset              : $(*)
 
-Lane:
+Lane 0:
 
  Lane section             : tx
   State                    : none
@@ -252,7 +252,7 @@ Heap size                : $(*)
 Checksum                 : $(*) [OK]
 Root offset              : $(*)
 
-Lane:
+Lane 0:
 
  Lane section             : tx
   State                    : none
