@@ -113,6 +113,8 @@
 /* invalid answer for ask_* functions */
 #define INV_ANS	'\0'
 
+#define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+
 /*
  * pmem_pool_type_t -- pool types
  */
@@ -219,8 +221,8 @@ int util_parse_chunk_types(const char *str, uint64_t *types);
 int util_parse_lane_sections(const char *str, uint64_t *types);
 char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
 char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
-char ask_Yn(char op, const char *fmt, ...);
-char ask_yN(char op, const char *fmt, ...);
+char ask_Yn(char op, const char *fmt, ...) FORMAT_PRINTF(2, 3);
+char ask_yN(char op, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 unsigned util_heap_max_zone(size_t size);
 int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp);

@@ -252,7 +252,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->bitmap) {
 		ERR("!calloc");
 		CHECK_ERR(ppc, "arena %u: cannot allocate memory for blocks "
-			"bitmap");
+			"bitmap", arenap->id);
 		goto error;
 	}
 
@@ -260,7 +260,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->dup_bitmap) {
 		ERR("!calloc");
 		CHECK_ERR(ppc, "arena %u: cannot allocate memory for "
-			"duplicated blocks bitmap");
+			"duplicated blocks bitmap", arenap->id);
 		goto error;
 	}
 
@@ -268,7 +268,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->fbitmap) {
 		ERR("!calloc");
 		CHECK_ERR(ppc, "arena %u: cannot allocate memory for BTT Flog "
-			"bitmap");
+			"bitmap", arenap->id);
 		goto error;
 	}
 
@@ -277,7 +277,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->list_inval) {
 		CHECK_ERR(ppc,
 			"arena %u: cannot allocate memory for invalid BTT map "
-			"entries list");
+			"entries list", arenap->id);
 		goto error;
 	}
 
@@ -286,7 +286,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->list_flog_inval) {
 		CHECK_ERR(ppc,
 			"arena %u: cannot allocate memory for invalid BTT Flog "
-			"entries list");
+			"entries list", arenap->id);
 		goto error;
 	}
 
@@ -295,7 +295,7 @@ init(PMEMpoolcheck *ppc, location *loc)
 	if (!loc->list_unmap) {
 		CHECK_ERR(ppc,
 			"arena %u: cannot allocate memory for unmaped blocks "
-			"list");
+			"list", arenap->id);
 		goto error;
 	}
 
@@ -538,7 +538,8 @@ arena_map_flog_check(PMEMpoolcheck *ppc, location *loc)
 	return check_questions_sequence_validate(ppc);
 
 error_push:
-	CHECK_ERR(ppc, "arena %u: cannot allocate momory for list item");
+	CHECK_ERR(ppc, "arena %u: cannot allocate momory for list item",
+			arenap->id);
 	ppc->result = CHECK_RESULT_ERROR;
 cleanup:
 	cleanup(ppc, loc);

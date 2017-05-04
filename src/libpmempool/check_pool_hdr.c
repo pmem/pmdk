@@ -347,6 +347,7 @@ pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
+	uint64_t *flags = NULL;
 
 	switch (question) {
 	case Q_CRTIME:
@@ -358,8 +359,9 @@ pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		util_convert2le_hdr(&loc->hdr);
 		break;
 	case Q_ARCH_FLAGS:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.arch_flags to 0x%x",
-			loc->prefix, loc->valid_part_hdrp->arch_flags);
+		flags = (uint64_t *)&loc->valid_part_hdrp->arch_flags;
+		CHECK_INFO(ppc, "%ssetting pool_hdr.arch_flags to 0x%08" PRIx64
+				"%08" PRIx64, loc->prefix, flags[0], flags[1]);
 		util_convert2h_hdr_nocheck(&loc->hdr);
 		memcpy(&loc->hdr.arch_flags, &loc->valid_part_hdrp->arch_flags,
 			sizeof(struct arch_flags));

@@ -620,6 +620,8 @@ line: while (<$filehandle>) {
 		s/\w\s\(+\*/XXX(*/g;
 		s/\b($typename|void)\s+\(+/XXX(/og;
 		s/\btypedef\s($typename|void)\s+\(+/XXX(/og;
+		# do not match "__attribute__ ((format (...)))"
+		s/\b__attribute__\s*\(\(format\s*\(/__attribute__((XXX(/g;
 		if (/\w\s\(/) {
 			err("extra space between function name and left paren");
 		}

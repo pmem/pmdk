@@ -143,7 +143,7 @@ void check_end(struct check_data *data);
 int check_is_end_util(struct check_data *data);
 
 int check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
-	uint32_t question, const char *fmt, ...);
+		uint32_t question, const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void check_status_release(PMEMpoolcheck *ppc, struct check_status *status);
 void check_clear_status_cache(struct check_data *data);
 struct check_status *check_pop_question(struct check_data *data);
