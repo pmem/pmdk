@@ -40,7 +40,7 @@ Chunk size               : $(*)
 Chunks per zone          : $(*)
 Checksum                 : $(*) [OK]
 
-Zone:
+Zone 0:
 Magic                    : $(*) [OK]
 Size idx                 : $(*)
  
@@ -73,7 +73,7 @@ Heap:
 Number of zones          : 1
 Number of used zones     : 1 [100 %]
 
- Zone:
+ Zone 0:
  Number of chunks         : 1
   used                     : 1 [100 %]
 

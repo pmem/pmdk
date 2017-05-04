@@ -93,7 +93,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 			uint64_t i;
 			for (i = curp->first; i <= curp->last &&
 					i < nchunks; i++) {
-				outv(v, "Chunk %10u:\n", i);
+				outv(v, "Chunk %10lu:\n", i);
 				outv_hexdump(v, addr + i * pip->args.log.walk,
 					pip->args.log.walk,
 					plp->start_offset +

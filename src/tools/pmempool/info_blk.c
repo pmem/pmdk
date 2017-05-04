@@ -169,7 +169,7 @@ info_btt_data(struct pmem_info *pip, int v, struct btt_info *infop,
 
 			if (pmempool_info_read(pip, block_buff,
 					infop->external_lbasize, block_off)) {
-				outv_err("cannot read %d block\n", i);
+				outv_err("cannot read %lu block\n", i);
 				ret = -1;
 				goto error;
 			}
@@ -181,7 +181,7 @@ info_btt_data(struct pmem_info *pip, int v, struct btt_info *infop,
 			 * Print block number, offset and flags
 			 * from map entry.
 			 */
-			outv(v, "Block %10d: offset: %s\n",
+			outv(v, "Block %10lu: offset: %s\n",
 				offset + i,
 				out_get_btt_map_entry(map_entry));
 
@@ -258,7 +258,7 @@ info_btt_map(struct pmem_info *pip, int v,
 				arena_count++;
 				(*count)++;
 
-				outv(v, "%010d: %s\n", offset + i,
+				outv(v, "%010lu: %s\n", offset + i,
 					out_get_btt_map_entry(entry));
 			}
 		}
