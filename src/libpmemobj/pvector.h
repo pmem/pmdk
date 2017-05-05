@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,6 +77,7 @@ struct pvector {
 typedef void (*entry_op_callback)(PMEMobjpool *pop, uint64_t *entry);
 
 struct pvector_context *pvector_new(PMEMobjpool *pop, struct pvector *vec);
+void pvector_reinit(struct pvector_context *vec);
 void pvector_delete(struct pvector_context *ctx);
 
 uint64_t *pvector_push_back(struct pvector_context *ctx);

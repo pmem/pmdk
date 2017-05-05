@@ -1145,6 +1145,10 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane_hold(pop, &tx->section, LANE_SECTION_TRANSACTION);
 
 		lane = tx->section->runtime;
+		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
+		for (int i = 0; i < MAX_UNDO_TYPES; ++i)
+			pvector_reinit(lane->undo.ctx[i]);
+
 		SLIST_INIT(&lane->tx_entries);
 		SLIST_INIT(&lane->tx_locks);
 		lane->ranges = ctree_new();
