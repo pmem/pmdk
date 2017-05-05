@@ -41,7 +41,7 @@
 
 #define THREADS 32
 #define OPS_PER_THREAD 1000
-#define ALLOC_SIZE 100
+#define ALLOC_SIZE 104
 #define REALLOC_SIZE (ALLOC_SIZE * 3)
 #define MIX_RERUNS 2
 
@@ -155,6 +155,38 @@ alloc_free_worker(void *arg)
 	return NULL;
 }
 
+#define OPS_PER_TX 10
+#define TX_PER_TH 100
+#define STEP 8
+#define TEST_LANES 4
+
+static void *
+tx2_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	for (int n = 0; n < TX_PER_TH; ++n) {
+		PMEMoid oids[OPS_PER_TX];
+		TX_BEGIN(a->pop) {
+			for (int i = 0; i < OPS_PER_TX; ++i) {
+				oids[i] = pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+				for (int j = 0; j < ALLOC_SIZE; j += STEP) {
+					pmemobj_tx_add_range(oids[i], j, STEP);
+				}
+			}
+		} TX_END
+
+		TX_BEGIN(a->pop) {
+			for (int i = 0; i < OPS_PER_TX; ++i)
+				pmemobj_tx_free(oids[i]);
+		} TX_ONABORT {
+			UT_ASSERT(0);
+		} TX_END
+	}
+
+	return NULL;
+}
+
 static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
@@ -208,6 +240,17 @@ main(int argc, char *argv[])
 	run_worker(free_worker, args);
 	run_worker(mix_worker, args);
 	run_worker(alloc_free_worker, args);
+
+	/*
+	 * Reduce the number of lanes to a value smaller than the number of
+	 * threads. This will ensure that at least some of the state of the lane
+	 * will be shared between threads. Doing this might reveal bugs related
+	 * to runtime race detection instrumentation.
+	 */
+	unsigned old_nlanes = pop->lanes_desc.runtime_nlanes;
+	pop->lanes_desc.runtime_nlanes = TEST_LANES;
+	run_worker(tx2_worker, args);
+	pop->lanes_desc.runtime_nlanes = old_nlanes;
 
 	/*
 	 * This workload might create many allocation classes due to pvector,
