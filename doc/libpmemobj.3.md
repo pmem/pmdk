@@ -2287,6 +2287,135 @@ transactions currently running.
 
 Returns 0 if successful, -1 otherwise.
 
+heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` | `pobj pobj_alloc_class_desc` | integer, integer, string
+
+A description of an allocation class. Allows one to create or view the internal
+data structures of the allocator.
+
+The `[class_id]` is an index field. Only values between 0-255 are valid.
+If setting an allocation class, but the class_id is already taken, the function
+will return -1.
+The values between 0-128 are reserved for the internal use of the library.
+
+If one wants to retrieve information about all allocation classes, the
+recommended method is to simply call this entry point for all class ids between
+0 and 255, and discard those results for which the function returned -1.
+
+This entry point takes a complex argument.
+
+The first field `unit_size`, is a 8-byte unsigned integer defining the
+allocation class size. While theoretically limited only by the size of the type,
+this value should be between 8 bytes and a couple of megabytes for most of the
+workloads.
+
+The field `units_per_block` defines how many units does a single block of memory
+contains. This value must be between 1 and 2000. This value will be rounded up
+to match internal size of the block (256 kilobytes).
+For example, given a class with `unit_size` of 512 bytes and `units_per_block`
+equal 1000, a single block of memory for that class will have 768 kilobytes.
+This is relevant because the bigger the block size, the lower the contention.
+
+The field `header_type` defines the header of objects from the allocation class.
+There are three types:
+
+ - **POBJ_HEADER_LEGACY**, string value: `legacy`. Used for allocation classes
+	prior to 1.3 version of the library. Not recommended for use.
+	Incurs 64 byte metadata overhead for every objects.
+ - **POBJ_HEADER_COMPACT**, string value: `compact`. Used as default for all
+	predefined allocation classes. Incurs 16 bytes metadata overhead.
+	Fully supports all features.
+ - **POBJ_HEADER_MINIMAL**, string value: `minimal`. Header type that doesn't
+	incur any metadata overhead beyond a single bitmap value. Can be used
+	for very small allocation classes or when objects must be adjacent to
+	each other.
+	This header type does not support type numbers (it's always 0) or
+	allocations that span more than one unit.
+
+The allocation classes are a runtime state of the library and must be created
+after every open. It's highly recommended to use the configuration file to store
+the classes.
+
+This structure is declared in the `ctl.h` header file, please read it for
+an in-depth explanation of the allocation classes and relevant algorithms.
+
+This function returns 0 if the allocation class has been successfully created,
+-1 otherwise.
+
+heap.alloc_class.map.range | -w | - | - | `struct pobj_alloc_class_map_range` | integer, integer, integer
+
+The mapping between allocation class and object sizes.
+
+This entry point takes a complex argument.
+
+The field `start` defines the first size in bytes for which the allocation class
+will be used for.
+
+The field `end` defines the last size in bytes for which the allocation class
+will be used for.
+
+Both of those must be between 0 and `heap.alloc_class.map.limit`. They also
+must take the header size into account.
+
+The field `class_id` defines the allocation class. Must be between 0 and 255.
+If no allocation class with the given id exists, the function fails.
+
+If the given allocation class has a header type **POBJ_HEADER_MINIMAL** and the
+range definition would cause the allocator to use more than one unit for any
+size between `start` and `end`, the function fails.
+
+The class mapping are a runtime state of the library and must be created
+after every open. It's highly recommended to use the configuration file to store
+the mappings.
+
+This entry point is not thread-safe and cannot be performed when there are any
+libpmemobj functions being called concurrently.
+
+heap.alloc_class.map.reset | -w | - | - | `struct pobj_alloc_class_params` | integer, integer, integer
+
+This entry points deletes all of the internal definitions of allocation classes
+and relevant runtime state. This allows one to take full control of the data
+structures of the algorithm.
+
+When called, the reservation on `class_id` is lifted and one is free to register
+allocation classes with id in the 0-128 range.
+
+This entry point takes a complex argument.
+
+The field `limit` defines the size in bytes to which allocations are handled
+using custom allocation classes. Everything above is handled using chunks and
+best-fit.
+
+The field `granularity` defines the size to which all object sizes are aligned
+to. Together with `limit`, it determines the size of the array containing the
+size<>allocation class mapping: `arr_size = limit / granularity`.
+
+The field `fail_no_matching_class` allows one to decide whether the allocator
+should fail when no mapping between a requested size and an allocation class
+exists.
+
+When resetting the allocation classes, one has to take internal metadata
+persistent allocations into account. Those allocations are also affected, and so
+the correct classes must also be defined. The recommended way of accomplishing
+that is to cover the entire map. This is only relevant when using transactions,
+atomic API does not allocate any internal metadata.
+
+This entry point is not thread-safe, and should be called before any allocations
+had a chance of happening in the current incarnation of the heap
+(e.g. immediately after `pmemobj_open`/`pmemobj_create` or from the
+configuration file).
+
+heap.alloc_class.map.limit | r- | - | integer | - | integer
+
+Fetches the previously defined limit of the allocation class mapping array.
+
+Always returns 0.
+
+heap.alloc_class.map.granularity | r- | - | integer | - | integer
+
+Fetches the previously defined granularity of the allocation class mapping array.
+
+Always returns 0.
+
 # CTL external configuration #
 
 In addition to direct function call, each write entry point can also be set

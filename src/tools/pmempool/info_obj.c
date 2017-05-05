@@ -664,6 +664,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.zone_id = (uint32_t)z;
 	m.chunk_id = (uint32_t)c;
+	m.size_idx = (uint32_t)chunk_hdr->size_idx;
 	memblock_rebuild_state(pip->obj.heap, &m);
 
 	if (chunk_hdr->type == CHUNK_TYPE_USED ||
@@ -687,9 +688,9 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 				sizeof(run->block_size) + sizeof(run->bitmap),
 				PTR_TO_OFF(pop, run), 1);
 
-		struct alloc_class *class = alloc_class_get_create_by_unit_size(
-				pip->obj.alloc_classes, run->block_size);
-		if (class) {
+		struct alloc_class *aclass = alloc_class_by_unit_size(
+			pip->obj.alloc_classes, run->block_size);
+		if (aclass) {
 			outv_field(v, "Block size", "%s",
 					out_get_size_str(run->block_size,
 						pip->args.human));
@@ -699,8 +700,8 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 			if (get_bitmap_reserved(run,  &used)) {
 				outv_field(v, "Bitmap", "[error]");
 			} else {
-				stats->class_stats[class->id].n_units += units;
-				stats->class_stats[class->id].n_used += used;
+				stats->class_stats[aclass->id].n_units += units;
+				stats->class_stats[aclass->id].n_used += used;
 
 				outv_field(v, "Bitmap", "%u / %u", used, units);
 			}
@@ -708,7 +709,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 			info_obj_run_bitmap(v && pip->args.obj.vbitmap, run);
 
 			heap_run_foreach_object(pip->obj.heap, info_obj_run_cb,
-				pip, &m, class);
+				pip, &m);
 		} else {
 			outv_field(v, "Block size", "%s [invalid!]",
 					out_get_size_str(run->block_size,

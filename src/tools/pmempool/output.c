@@ -688,8 +688,8 @@ out_get_chunk_flags(uint16_t flags)
 {
 	if (flags & CHUNK_FLAG_COMPACT_HEADER)
 		return "compact header";
-	else if (flags & CHUNK_FLAG_NO_HEADER)
-		return "no header";
+	else if (flags & CHUNK_FLAG_MINIMAL_HEADER)
+		return "minimal header";
 
 	return "";
 }

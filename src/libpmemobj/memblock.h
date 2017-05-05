@@ -158,7 +158,7 @@ enum memblock_state {
 enum header_type {
 	HEADER_LEGACY,
 	HEADER_COMPACT,
-	NO_HEADER,
+	HEADER_MINIMAL,
 
 	MAX_HEADER_TYPES
 };

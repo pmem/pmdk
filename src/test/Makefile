@@ -69,6 +69,8 @@ OBJ_TESTS = \
 	obj_check\
 	obj_convert\
 	obj_ctl\
+	obj_ctl_alloc_class\
+	obj_ctl_alloc_class_config\
 	obj_ctl_config\
 	obj_ctl_prefault\
 	obj_ctree\
