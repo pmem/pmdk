@@ -63,6 +63,8 @@
 static ssize_t
 device_dax_size(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	os_stat_t st;
 	int olderrno;
 
@@ -115,6 +117,8 @@ out:
 int
 util_fd_is_device_dax(int fd)
 {
+	LOG(3, "fd %d", fd);
+
 #ifdef _WIN32
 	return 0;
 #else
@@ -155,6 +159,8 @@ out:
 int
 util_file_is_device_dax(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifdef _WIN32
 	return 0;
 #else
@@ -184,6 +190,8 @@ out:
 ssize_t
 util_file_get_size(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifndef _WIN32
 	if (util_file_is_device_dax(path)) {
 		return device_dax_size(path);
@@ -200,25 +208,48 @@ util_file_get_size(const char *path)
 }
 
 /*
+ * util_file_device_dax_pagesize -- returns page size used by Device DAX
+ */
+size_t
+util_file_device_dax_pagesize(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+#ifndef _WIN32
+	return 0;
+#endif
+	/* XXX - 2M is default for Device DAX */
+	return 2 * MEGABYTE;
+}
+
+/*
  * util_file_map_whole -- maps the entire file into memory
  */
 void *
 util_file_map_whole(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	int fd;
 	int olderrno;
 	void *addr = NULL;
 
-	if ((fd = os_open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0) {
+		LOG(2, "failed to open file \"%s\" for writing", path);
 		return NULL;
+	}
 
 	ssize_t size = util_file_get_size(path);
-	if (size < 0)
+	if (size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		goto out;
+	}
 
 	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		goto out;
+	}
 
 out:
 	olderrno = errno;
@@ -234,21 +265,27 @@ out:
 int
 util_file_zero_whole(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	int fd;
 	int olderrno;
 	int ret = 0;
 
-	if ((fd = os_open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0) {
+		LOG(2, "failed to open file \"%s\" for writing", path);
 		return -1;
+	}
 
 	ssize_t size = util_file_get_size(path);
 	if (size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
 
 	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
 	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
@@ -273,10 +310,15 @@ ssize_t
 util_file_pwrite(const char *path, const void *buffer, size_t size,
 	off_t offset)
 {
+	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
+			path, buffer, size, offset);
+
 	if (!util_file_is_device_dax(path)) {
 		int fd = util_file_open(path, NULL, 0, O_RDWR);
-		if (fd < 0)
+		if (fd < 0) {
+			LOG(2, "failed to open file \"%s\" for writing", path);
 			return -1;
+		}
 
 		ssize_t write_len = pwrite(fd, buffer, size, offset);
 		int olderrno = errno;
@@ -286,23 +328,29 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 	}
 
 	ssize_t file_size = util_file_get_size(path);
-	if (file_size < 0)
+	if (file_size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
+	}
+	LOG(4, "file length %zu", file_size);
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		LOG(1, "Requested size of write goes beyond the mapped memory");
+		LOG(1, "requested size of write goes beyond the file length, "
+			"%zu > %zu", size, max_size);
+		LOG(4, "adjusting size to %zu", max_size);
 		size = max_size;
 	}
 
 	void *addr = util_file_map_whole(path);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		return -1;
+	}
 
 	memcpy(ADDR_SUM(addr, offset), buffer, size);
 	util_unmap(addr, (size_t)file_size);
 	return (ssize_t)size;
-
 }
 
 /*
@@ -312,10 +360,15 @@ ssize_t
 util_file_pread(const char *path, void *buffer, size_t size,
 	off_t offset)
 {
+	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
+			path, buffer, size, offset);
+
 	if (!util_file_is_device_dax(path)) {
 		int fd = util_file_open(path, NULL, 0, O_RDONLY);
-		if (fd < 0)
+		if (fd < 0) {
+			LOG(2, "failed to open file \"%s\"", path);
 			return -1;
+		}
 
 		ssize_t read_len = pread(fd, buffer, size, offset);
 		int olderrno = errno;
@@ -325,18 +378,25 @@ util_file_pread(const char *path, void *buffer, size_t size,
 	}
 
 	ssize_t file_size = util_file_get_size(path);
-	if (file_size < 0)
+	if (file_size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
+	}
+	LOG(4, "file length %zu", file_size);
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		LOG(1, "Requested size of read goes beyond the mapped memory");
+		LOG(1, "requested size of read goes beyond the file length, "
+			"%zu > %zu", size, max_size);
+		LOG(4, "adjusting size to %zu", max_size);
 		size = max_size;
 	}
 
 	void *addr = util_file_map_whole(path);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		return -1;
+	}
 
 	memcpy(buffer, ADDR_SUM(addr, offset), size);
 	util_unmap(addr, (size_t)file_size);
@@ -349,7 +409,7 @@ util_file_pread(const char *path, void *buffer, size_t size,
 int
 util_file_create(const char *path, size_t size, size_t minsize)
 {
-	LOG(3, "path %s size %zu minsize %zu", path, size, minsize);
+	LOG(3, "path \"%s\" size %zu minsize %zu", path, size, minsize);
 
 	ASSERTne(size, 0);
 
@@ -413,7 +473,7 @@ err:
 int
 util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 {
-	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
+	LOG(3, "path \"%s\" size %p minsize %zu flags %d", path, size, minsize,
 			flags);
 
 	int oerrno;
@@ -472,6 +532,8 @@ err:
 int
 util_unlink(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	if (util_file_is_device_dax(path)) {
 		return util_file_zero_whole(path);
 	} else {
@@ -497,6 +559,8 @@ util_unlink(const char *path)
 int
 util_unlink_flock(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifdef WIN32
 	/*
 	 * On Windows it is not possible to unlink the
