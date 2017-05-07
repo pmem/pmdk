@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,33 +31,20 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/pchess/Makefile -- build pchess
 #
-include ../../common.inc
 
-PROGS = manpage btree pi lists setjmp
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda doc_snippets pchess
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
+PROGS = pchess
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+LIBS = -lpmemobj -lpmem
 
-include ../Makefile.inc
+COMPILE_LANG = cpp
+include ../../Makefile.inc
+INCS += -I../
 
-map: hashmap tree_map
-pmemobjfs: map
+EXTRA_CXXFLAGS=-std=c++14
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
-
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+pchess: pchess.o chess.o position.o state.o chess_game.o search.o eval.o
