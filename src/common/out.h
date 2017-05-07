@@ -132,16 +132,24 @@ out_fatal_abort(const char *file, int line, const char *func,
 	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define ASSERTeq_rt(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+#define ASSERTeq_rt(lhs, rhs) do {\
+	unsigned long long _lhs = (unsigned long long)(lhs);\
+	unsigned long long _rhs = (unsigned long long)(rhs);\
+	if (_lhs != _rhs)\
+		OUT_FATAL(__FILE__, __LINE__, __func__,\
+			"assertion failure: %s (0x%llx) == %s (0x%llx)",\
+			#lhs, _lhs, #rhs, _rhs);\
+	} while (0)
 
 /* assert two integer values are not equal at runtime */
-#define ASSERTne_rt(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+#define ASSERTne_rt(lhs, rhs) do {\
+	unsigned long long _lhs = (unsigned long long)(lhs);\
+	unsigned long long _rhs = (unsigned long long)(rhs);\
+	if (_lhs == _rhs)\
+		OUT_FATAL(__FILE__, __LINE__, __func__,\
+			"assertion failure: %s (0x%llx) != %s (0x%llx)",\
+			#lhs, _lhs, #rhs, _rhs);\
+	} while (0)
 
 /* assert a condition is true */
 #define ASSERT(cnd)\

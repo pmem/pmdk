@@ -684,7 +684,7 @@ line: while (<$filehandle>) {
 	if (/\b($typename|void)\*/o) {
 		err("missing space between type name and *");
 	}
-	if (/^\s+#/) {
+	if (/^\s+#(define|ifdef|ifndef|endif|include|pragma|undef|if|else|elif|error)/) {
 		err("preprocessor statement not in column 1");
 	}
 	if (/^#\s/) {
