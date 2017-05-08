@@ -70,7 +70,7 @@ int util_file_dir_remove(const char *path);
 int util_file_is_device_dax(const char *path);
 int util_fd_is_device_dax(int fd);
 ssize_t util_file_get_size(const char *path);
-size_t util_file_device_dax_pagesize(const char *path);
+size_t util_file_device_dax_alignment(const char *path);
 void *util_file_map_whole(const char *path);
 int util_file_zero(const char *path, off_t off, size_t len);
 ssize_t util_file_pread(const char *path, void *buffer, size_t size,

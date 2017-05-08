@@ -785,7 +785,8 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 			ERR("either all the parts must be device dax or none");
 			return -1;
 		}
-		if (util_file_device_dax_pagesize(path) != Pagesize) {
+		if (is_dev_dax &&
+		    util_file_device_dax_alignment(path) != Pagesize) {
 			ERR("Device DAX using huge pages must be the only "
 				"part of the pool set");
 			return -1;
