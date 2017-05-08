@@ -106,7 +106,7 @@ device_dax_size(const char *path)
 	size = strtoll(sizebuf, &endptr, 0);
 	if (endptr == sizebuf || *endptr != '\n' ||
 	    ((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
-		ERR("invalid device size %zu", size);
+		ERR("invalid device size %s", sizebuf);
 		size = -1;
 		goto out;
 	}
@@ -119,6 +119,70 @@ out:
 	errno = olderrno;
 
 	LOG(4, "device size %zu", size);
+	return size;
+}
+
+/*
+ * device_dax_alignment -- (internal) checks the alignment of a given dax device
+ */
+static size_t
+device_dax_alignment(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	os_stat_t st;
+	int olderrno;
+
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
+		return 0;
+	}
+
+	char spath[PATH_MAX];
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/device/align",
+		major(st.st_rdev), minor(st.st_rdev));
+
+	LOG(4, "device align path \"%s\"", spath);
+
+	int fd = os_open(spath, O_RDONLY);
+	if (fd < 0) {
+		ERR("!open \"%s\"", spath);
+		return 0;
+	}
+
+	size_t size = 0;
+
+	char sizebuf[MAX_SIZE_LENGTH + 1];
+	ssize_t nread;
+	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0) {
+		ERR("!read");
+		goto out;
+	}
+
+	sizebuf[nread] = 0; /* null termination */
+
+	char *endptr;
+
+	olderrno = errno;
+	errno = 0;
+
+	/* 'align' is in hex format w/o '0x' prefix */
+	size = strtoull(sizebuf, &endptr, 16);
+	if (endptr == sizebuf || *endptr != '\n' ||
+	    (size == ULLONG_MAX && errno == ERANGE)) {
+		ERR("invalid device alignment %s", sizebuf);
+		size = 0;
+		goto out;
+	}
+
+	errno = olderrno;
+
+out:
+	olderrno = errno;
+	(void) os_close(fd);
+	errno = olderrno;
+
+	LOG(4, "device alignment %zu", size);
 	return size;
 }
 #endif
@@ -238,21 +302,18 @@ util_file_get_size(const char *path)
 }
 
 /*
- * util_file_device_dax_pagesize -- returns page size used by Device DAX
+ * util_file_device_dax_alignment -- returns internal Device DAX alignment
  */
 size_t
-util_file_device_dax_pagesize(const char *path)
+util_file_device_dax_alignment(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
 #ifndef _WIN32
+	return device_dax_alignment(path);
+#else
 	return 0;
 #endif
-	/* XXX - 2M is default for Device DAX */
-	size_t pagesize = 2 * MEGABYTE;
-
-	LOG(4, "Device DAX pagesize %zu", pagesize);
-	return pagesize;
 }
 
 /*

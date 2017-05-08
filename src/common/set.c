@@ -330,15 +330,15 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
 	/*
-	 * XXX - Mapping the first 4K should work even if Device DAX
-	 * is using huge pages.
-	 */
-	/*
 	 * Workaround for dax device not allowing an mmap only of a
 	 * part of the device. This means that currently only one device
 	 * is allowed to be a part of a poolset.
+	 *
+	 * XXX - Mapping the first 4K should work even if Device DAX
+	 * is using huge pages, but it doesn't...
 	 */
-	size_t hdrsize = part->is_dev_dax ? part->filesize : POOL_HDR_SIZE;
+	size_t hdrsize = part->alignment > POOL_HDR_SIZE
+			? part->filesize : POOL_HDR_SIZE;
 
 	void *hdrp = mmap(NULL, hdrsize,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
@@ -391,11 +391,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERTeq(size % Mmap_align, 0);
 	ASSERT(((off_t)offset) >= 0);
 
-	if (part->is_dev_dax) {
-		/* ASSERTeq(offset % part->phys_pagesize, 0); */
-		/* ... for now, assume it must be 0 */
-		ASSERTeq(offset, 0);
-	}
+	ASSERTeq(offset % part->alignment, 0);
 
 	if (!size)
 		size = (part->filesize & ~(Mmap_align - 1)) - offset;
@@ -785,7 +781,8 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 			ERR("either all the parts must be device dax or none");
 			return -1;
 		}
-		if (util_file_device_dax_pagesize(path) != Pagesize) {
+		if (is_dev_dax &&
+		    util_file_device_dax_alignment(path) != Pagesize) {
 			ERR("Device DAX using huge pages must be the only "
 				"part of the pool set");
 			return -1;
@@ -811,6 +808,11 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
 	rep->part[p].remote_hdr = NULL;
+
+	if (is_dev_dax)
+		rep->part[p].alignment = util_file_device_dax_alignment(path);
+	else
+		rep->part[p].alignment = Mmap_align;
 
 	return 0;
 }
@@ -1127,6 +1129,11 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
 
+	if (rep->part[0].is_dev_dax)
+		rep->part[0].alignment = util_file_device_dax_alignment(path);
+	else
+		rep->part[0].alignment = Mmap_align;
+
 	rep->nparts = 1;
 
 	/* it does not have a remote replica */
@@ -1134,7 +1141,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	set->remote = 0;
 
 	/* round down to the nearest mapping alignment boundary */
-	rep->repsize = rep->part[0].filesize & ~(Mmap_align - 1);
+	rep->repsize = rep->part[0].filesize & ~(rep->part[0].alignment - 1);
 
 	set->poolsize = rep->repsize;
 
