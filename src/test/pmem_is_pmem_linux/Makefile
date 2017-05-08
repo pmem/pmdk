@@ -54,6 +54,6 @@ OBJS = pmem_is_pmem_linux.o\
 
 include ../Makefile.inc
 
-CFLAGS += -DSRCVERSION=""
+CFLAGS += -DSRCVERSION="" -DDEBUG
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmem
