@@ -54,8 +54,7 @@ function isDir {
 # force dir w/wildcard to fail if no match
 function dirFailOnEmpty {
     if (0 -eq (Get-ChildItem $args[0]).Count) {
-        Write-Error -Message 'No match: $args[0]'
-        exit 1
+        throw -Message 'No match: $args[0]'
     }
 }
 
@@ -195,8 +194,7 @@ function create_holey_file {
         $fname = $args[$i]
         & $SPARSEFILE $mode $fname $size
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "Error $LASTEXITCODE with sparsefile create"
-            exit $LASTEXITCODE
+            throw "Error $LASTEXITCODE with sparsefile create"
         }
         Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
@@ -585,29 +583,11 @@ function check {
     }
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-        $pinfo.FileName = "perl"
-        $pinfo.RedirectStandardError = $true
-        $pinfo.RedirectStandardOutput = $true
-        $pinfo.UseShellExecute = $false
-        $pinfo.Arguments = "..\..\..\src\test\match $listing"
-        $pinfo.WorkingDirectory = $PWD
-        $p = New-Object System.Diagnostics.Process
-        $p.StartInfo = $pinfo
-        $p.Start() | Out-Null
-
-        while($p.HasExited -eq $false) {
-            # output streams have limited size, we need to read it
-            # during an application runtime to prevent application hang.
-            Write-Host -NoNewline $p.StandardError.ReadToEnd();
-            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
+        Invoke-Expression "perl ..\..\..\src\test\match $listing"
+        if ($LASTEXITCODE -ne 0) {
+            fail 1
         }
 
-        if ($p.ExitCode -ne 0) {
-            Write-Host -NoNewline $p.StandardError.ReadToEnd();
-            Write-Host -NoNewline $p.StandardOutput.ReadToEnd();
-            fail $p.ExitCode
-        }
     } else {
         Write-Error "No match file found for test $Env:UNITTEST_NAME"
         fail 1
@@ -647,9 +627,8 @@ function fail {
     sv -Name msg "FAILED"
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewLine -foregroundcolor red $msg
-    Write-Host -NoNewline (" with errorcode " + $args[0])
-    Write-Host ""
-    exit $args[0]
+    Write-Host (" with errorcode " + $args[0])
+    throw $Env:UNITTEST_NAME + ": FAILED with errorcode $args[0]"
 }
 
 #
@@ -930,8 +909,7 @@ function require_pmem {
     if ($PMEM_IS_PMEM -eq "0") {
         return $true
     } Else {
-        Write-Error "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
-        exit 1
+        throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
     }
 }
 
@@ -942,8 +920,7 @@ function require_non_pmem {
     if ($NON_PMEM_IS_PMEM -eq "1") {
         return $true
     } else {
-        Write-Error "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
-        exit 1
+        throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
     }
 }
 
@@ -1011,8 +988,7 @@ function setup {
 
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
-        Write-Error "error: required test type is not specified"
-        exit 1
+        throw "error: required test type is not specified"
     }
 
     # fs type "none" must be explicitly enabled
@@ -1067,8 +1043,6 @@ function dump_last_n_lines {
         } else {
             Write-Error "$fname below."
         }
-
-        # print line by line to force powershell to print file with new lines
         foreach($line in Get-Content $fname -Tail $ln) {
            Write-Host $line
         }
@@ -1165,13 +1139,11 @@ if (-Not $curtestdir) {
 sv -Name curtestdir ("test_" + $curtestdir)
 
 if (-Not $Env:UNITTEST_NUM) {
-    Write-Error "UNITTEST_NUM does not have a value"
-    exit 1
+    throw "UNITTEST_NUM does not have a value"
 }
 
 if (-Not $Env:UNITTEST_NAME) {
-    Write-Error "UNITTEST_NAME does not have a value"
-    exit 1
+    throw "UNITTEST_NAME does not have a value"
 }
 
 sv -Name REAL_FS $Env:FS
@@ -1202,8 +1174,7 @@ if ($DIR) {
                 sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
                 $REAL_FS='non-pmem'
             } Else {
-                Write-Error "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
-                exit 1
+                throw "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
             }
         }
         'none' {
@@ -1211,8 +1182,7 @@ if ($DIR) {
         }
         default {
             if (-Not $Env:UNITTEST_QUIET) {
-                Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
-                exit 0
+                throw "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
             }
         }
     } # switch

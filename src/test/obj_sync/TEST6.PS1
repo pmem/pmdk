@@ -65,7 +65,7 @@ $ERR_FILE = (Get-Location).path + "\err6.log"
 
  if ((getLineCount $ERR_FILE) -ne 1) {
         Write-Error -Message "error: $Env:CHECK_LOG_FILE match failed"
-        exit 1
+        fail 1
     }
 
 pass

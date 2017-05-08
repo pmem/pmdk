@@ -71,11 +71,11 @@ echo "Number of LBAs [no flag]: $NNON" >> $LOG
 $NSUM=$NZER + $NERR + $NNON
 if ($NSUM -ne $NLBA ) {
     echo "$NSUM != $NLBA"
-    exit 1
+    fail 1
 }
 if ($NSUM -ne $INFO_NLBA ) {
     echo "$NSUM != $INFO_NLBA"
-    exit 1
+    fail 1
 }
 expect_normal_exit $PMEMPOOL info -dz $POOL >> $LOG
 
