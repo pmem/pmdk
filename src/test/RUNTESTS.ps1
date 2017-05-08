@@ -46,12 +46,6 @@ Param(
     $testtype = "check",
     [alias("f")]
     $fstype = "all",
-    [alias("m")]
-    $mreceivetype = "auto",
-    [alias("p")]
-    $preceivetype = "auto",
-    [alias("d")]
-    $dreceivetype = "auto",
     [alias("o")]
     $time = "180s",
     [alias("s")]
@@ -77,7 +71,7 @@ function usage {
     }
     Write-Host "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
                 [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
-                [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
+                [ -c ] [ -i testdir ] [-j jobs]
         -h      print this help message
         -n      dry run
         -v      be verbose
@@ -93,25 +87,9 @@ function usage {
         -o timeout  set timeout for test execution
                 timeout: floating point number with an optional suffix: 's' for seconds
                 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
-                Default value is 60 seconds.
+                Default value is 180 seconds.
         -s test-file    run only specified test file
                 test-file: all (default), TEST0, TEST1, ...
-        -m memcheck run tests with memcheck
-                memcheck: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require memcheck, but
-                obey test's explicit memcheck disable)
-        -p pmemcheck    run tests with pmemcheck
-                pmemcheck: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require pmemcheck, but
-                obey test's explicit pmemcheck disable)
-        -e helgrind run tests with helgrind
-                helgrind: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require helgrind, but
-                obey test's explicit helgrind disable)
-        -d drd      run tests with drd
-                drd: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require drd, but
-                obey test's explicit drd disable)
         -j jobs    number of tests to run simultaneously
         -c      check pool files with pmempool check utility"
     exit 1
@@ -149,24 +127,6 @@ function get_build_dir() {
 
     return $build_dir
 }
-
-# XXX :missing some logic here that's in the bash script
-# having to do with force-enable and memcheck, pmemcheck.
-# don't really get whats going on there but we don't support
-# either in windows right now so will just save the params
-if (-Not ("auto" -match $mreceivetype)) {
-    usage "bad memcheck: $mreceivetype"
-}
-if (-Not ("auto" -match $preceivetype)) {
-    usage "bad pmemcheck: $preceivetype"
-}
-if (-Not ("auto" -match $ereceivetype)) {
-    usage "bad helgrind: $ereceivetype"
-}
-if (-Not ("auto" -match $dreceivetype)) {
-    usage "bad drd: $dreceivetype"
-}
-sv -Name receivetype $mreceivetype
 
 function read_global_test_configuration {
     if ((Test-Path "config.PS1")) {
