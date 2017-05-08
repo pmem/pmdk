@@ -57,7 +57,8 @@ expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
 	t 0x7fff77424000 8192\
 	t 0x7fff77428000 10240\
 	t 0x7fff77423000 0\
-	t 0x7fff77424000 0
+	t 0x7fff77424000 0\
+	t 0x7fff77424000 0xffffffffffffffff
 
 check
 
