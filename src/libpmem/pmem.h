@@ -40,7 +40,7 @@
 
 void pmem_init(void);
 
-int is_pmem_proc(const void *addr, size_t len);
+int is_pmem_detect(const void *addr, size_t len);
 
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 typedef BOOL (WINAPI *PQVM)(

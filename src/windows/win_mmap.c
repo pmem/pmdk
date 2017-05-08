@@ -1008,8 +1008,8 @@ mprotect(void *addr, size_t len, int prot)
 	}
 
 	if (len > UINTPTR_MAX - (uintptr_t)addr) {
-		/* limit len to not get beyond address space */
 		len = UINTPTR_MAX - (uintptr_t)addr;
+		LOG(4, "limit len to %zu to not get beyond address space", len);
 	}
 
 	DWORD protect = 0;
