@@ -48,16 +48,21 @@ PQVM Func_qvmi = NULL;
  * is_direct_mapped -- (internal) for each page in the given region
  * checks with MM, if it's direct mapped.
  */
-int
+static int
 is_direct_mapped(const void *begin, const void *end)
 {
+	LOG(3, "begin %p end %p", begin, end);
+
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 	int retval = 1;
 	WIN32_MEMORY_REGION_INFORMATION region_info;
 	SIZE_T bytes_returned;
 
-	if (Func_qvmi == NULL)
+	if (Func_qvmi == NULL) {
+		LOG(4, "QueryVirtualMemoryInformation not supported, "
+			"assuming non-DAX.");
 		return 0;
+	}
 
 	const void *begin_aligned = (const void *)rounddown((intptr_t)begin,
 					Pagesize);
@@ -65,13 +70,13 @@ is_direct_mapped(const void *begin, const void *end)
 					Pagesize);
 
 	for (const void *page = begin;
-		page < end;
-		page = (const void *)((char *)page + Pagesize)) {
+			page < end;
+			page = (const void *)((char *)page + Pagesize)) {
 		if (Func_qvmi(GetCurrentProcess(), page,
-			MemoryRegionInfo, &region_info, sizeof(region_info),
-			&bytes_returned))
+				MemoryRegionInfo, &region_info,
+				sizeof(region_info), &bytes_returned)) {
 			retval = region_info.DirectMapped;
-		else {
+		} else {
 			LOG(4, "QueryVirtualMemoryInformation failed, assuming "
 				"non-DAX.  Last error: %08x", GetLastError());
 			retval = 0;
@@ -82,30 +87,34 @@ is_direct_mapped(const void *begin, const void *end)
 			break;
 		}
 	}
+
 	return retval;
 #else
 	/* if the MM API is not available the safest answer is NO */
 	return 0;
-#endif	/* NTDDI_VERSION >= NTDDI_WIN10_RS1 */
+#endif /* NTDDI_VERSION >= NTDDI_WIN10_RS1 */
 
 }
 
 /*
- * is_pmem_proc -- implement pmem_is_pmem()
+ * is_pmem_detect -- implement pmem_is_pmem()
  *
  * This function returns true only if the entire range can be confirmed
  * as being direct access persistent memory.  Finding any part of the
  * range is not direct access, or failing to look up the information
  * because it is unmapped or because any sort of error happens, just
  * results in returning false.
- *
  */
 int
-is_pmem_proc(const void *addr, size_t len)
+is_pmem_detect(const void *addr, size_t len)
 {
+	LOG(3, "addr %p len %zu", addr, len);
+
 	int retval = 1;
 	const void *begin = addr;
 	const void *end = (const void *)((char *)addr + len);
+
+	LOG(4, "begin %p end %p", begin, end);
 
 	AcquireSRWLockShared(&FileMappingQLock);
 
@@ -116,9 +125,10 @@ is_pmem_proc(const void *addr, size_t len)
 			break;
 		}
 		if (mt->EndAddress <= begin) {
-			LOG(4, "skipping a mapped range before given range");
+			LOG(4, "skipping all mapped ranges before given range");
 			continue;
 		}
+
 		if (!(mt->Flags & FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED)) {
 			LOG(4, "tracked range [%p, %p) is not direct mapped",
 				mt->BaseAddress, mt->EndAddress);
@@ -133,7 +143,7 @@ is_pmem_proc(const void *addr, size_t len)
 		 * MM for each page in that range.
 		 */
 		if (begin < mt->BaseAddress &&
-			!is_direct_mapped(begin, mt->BaseAddress)) {
+		    !is_direct_mapped(begin, mt->BaseAddress)) {
 			LOG(4, "untracked range [%p, %p) is not direct mapped",
 				begin, mt->BaseAddress);
 			retval = 0;
@@ -156,6 +166,6 @@ is_pmem_proc(const void *addr, size_t len)
 
 	ReleaseSRWLockShared(&FileMappingQLock);
 
-	LOG(3, "returning %d", retval);
+	LOG(4, "returning %d", retval);
 	return retval;
 }

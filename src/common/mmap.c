@@ -503,7 +503,7 @@ util_range_unregister(const void *addr, size_t len)
  * util_range_is_pmem -- return true if entire range is persistent memory
  *
  * XXX Once the Linux and Windows implementation is unified, this function
- * would just become a new is_pmem_proc().
+ * would just become a new is_pmem_detect().
  */
 int
 util_range_is_pmem(const void *addr, size_t len)
