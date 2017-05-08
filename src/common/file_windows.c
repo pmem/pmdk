@@ -190,3 +190,14 @@ util_file_dir_remove(const char *path)
 {
 	return RemoveDirectoryA(path) == 0 ? -1 : 0;
 }
+
+/*
+ * util_file_device_dax_alignment -- returns internal Device DAX alignment
+ */
+size_t
+util_file_device_dax_alignment(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	return 0;
+}

@@ -76,6 +76,7 @@ struct pool_set_part {
 	int flags;		/* stores flags used when opening the file */
 				/* valid only if fd >= 0 */
 	int is_dev_dax;		/* indicates if the part is on device dax */
+	size_t alignment;	/* internal alignment (Device DAX only) */
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */

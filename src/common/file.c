@@ -106,7 +106,7 @@ device_dax_size(const char *path)
 	size = strtoll(sizebuf, &endptr, 0);
 	if (endptr == sizebuf || *endptr != '\n' ||
 	    ((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
-		ERR("invalid device size %zu", size);
+		ERR("invalid device size %s", sizebuf);
 		size = -1;
 		goto out;
 	}
@@ -198,7 +198,7 @@ util_file_is_device_dax(const char *path)
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
-		/* XXX not an error */
+		/* not a problem - 'path' may point to non existent file */
 		/* LOG(4, "!open \"%s\"", path); */
 		goto out;
 	}
@@ -235,24 +235,6 @@ util_file_get_size(const char *path)
 
 	LOG(4, "file length %zu", stbuf.st_size);
 	return stbuf.st_size;
-}
-
-/*
- * util_file_device_dax_pagesize -- returns page size used by Device DAX
- */
-size_t
-util_file_device_dax_pagesize(const char *path)
-{
-	LOG(3, "path \"%s\"", path);
-
-#ifndef _WIN32
-	return 0;
-#endif
-	/* XXX - 2M is default for Device DAX */
-	size_t pagesize = 2 * MEGABYTE;
-
-	LOG(4, "Device DAX pagesize %zu", pagesize);
-	return pagesize;
 }
 
 /*
@@ -316,13 +298,6 @@ util_file_zero(const char *path, off_t off, size_t len)
 		goto out;
 	}
 
-	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
-	if (addr == NULL) {
-		LOG(2, "failed to map entire file \"%s\"", path);
-		ret = -1;
-		goto out;
-	}
-
 	if (off > size) {
 		LOG(2, "offset beyond file length, %ju > %ju", off, size);
 		ret = -1;
@@ -334,6 +309,13 @@ util_file_zero(const char *path, off_t off, size_t len)
 					"%zu > %zu", (size_t)off + len, size);
 		LOG(4, "adjusting len to %zu", size);
 		len = (size_t)size;
+	}
+
+	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
+		ret = -1;
+		goto out;
 	}
 
 	/* zero initialize the entire device */

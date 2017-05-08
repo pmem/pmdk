@@ -89,6 +89,19 @@ is_dev_dax(const char *path)
 	return 1;
 }
 
+/*
+ * is_dev_dax_align -- checks if Device DAX alignment is as specified
+ */
+static int
+is_dev_dax_align(const char *path, size_t req_align)
+{
+	if (is_dev_dax(path) != 0)
+		return -1;
+
+	size_t align = util_file_device_dax_alignment(path);
+	return (req_align == align) ? 1 : 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -116,8 +129,8 @@ main(int argc, char *argv[])
 		ret = is_pmem(path);
 
 	/*
-	 * Return 0 if 'path' points to PMEM-aware filesystem or device dax.
-	 * Otherwise return 1, if any problem occurred return 2.
+	 * Return 0 on 'true'. Otherwise return 1.
+	 * If any problem occurred return 2.
 	 */
 	switch (ret) {
 	case 0:
