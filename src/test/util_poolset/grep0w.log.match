@@ -5,13 +5,13 @@ $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
-open $(nW)testset0: No such file or directory
+open "$(nW)testset0": No such file or directory
 size 12288 smaller than 262144
 size 16384 smaller than 262144
-open $(nW)testfile62: No such file or directory
-open $(nW)testfile72: Permission denied
-posix_fallocate: No space left on device
-open $(nW)testfile102: Permission denied
+open "$(nW)testfile62": No such file or directory
+open "$(nW)testfile72": Permission denied
+posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
+open "$(nW)testfile102": Permission denied
 file size does not match config: $(nW)testfile113, 262144 != 12288
 size 8192 smaller than 262144
 size 65536 smaller than 262144
@@ -19,5 +19,5 @@ file size does not match config: $(nW)testfile142, 262144 != 524288
 file size does not match config: $(nW)testfile152, 262145 != 262144
 Non-empty file detected
 Non-empty file detected
-open $(nW)testset23: Permission denied
+open "$(nW)testset23": Permission denied
 size 65536 smaller than 262144

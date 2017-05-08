@@ -5,15 +5,15 @@ $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
-open $(nW)/testset0: No such file or directory
+open "$(nW)/testset0": No such file or directory
 invalid major version (0)
-open $(nW)/testset2: Permission denied
-open $(nW)/testfile31: No such file or directory
-open $(nW)/testfile42: No such file or directory
+open "$(nW)/testset2": Permission denied
+open "$(nW)/testfile31": No such file or directory
+open "$(nW)/testfile42": No such file or directory
 size 12288 smaller than 32768
 size 16384 smaller than 32768
 size 32767 smaller than 32768
-open $(nW)/testfile82: Permission denied
+open "$(nW)/testfile82": Permission denied
 file size does not match config: $(nW)testfile92, 32768 != 65536
 file size does not match config: $(nW)testfile102, 32769 != 32768
 invalid major version (0)
