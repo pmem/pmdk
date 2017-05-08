@@ -231,6 +231,8 @@ static size_t Movnt_threshold = MOVNT_THRESHOLD;
 int
 pmem_has_hw_drain(void)
 {
+	LOG(3, NULL);
+
 	return 0;
 }
 
@@ -272,7 +274,7 @@ static void (*Func_predrain_fence)(void) = predrain_fence_empty;
 void
 pmem_drain(void)
 {
-	LOG(10, NULL);
+	LOG(15, NULL);
 
 	Func_predrain_fence();
 
@@ -345,6 +347,8 @@ flush_clflushopt(const void *addr, size_t len)
 static void
 flush_empty(const void *addr, size_t len)
 {
+	LOG(15, "addr %p len %zu", addr, len);
+
 	/* NOP */
 }
 
@@ -363,7 +367,7 @@ static void (*Func_flush)(const void *, size_t) = flush_clflush;
 void
 pmem_flush(const void *addr, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(15, "addr %p len %zu", addr, len);
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
@@ -434,7 +438,7 @@ pmem_msync(const void *addr, size_t len)
 static int
 is_pmem_always(const void *addr, size_t len)
 {
-	LOG(3, NULL);
+	LOG(3, "addr %p len %zu", addr, len);
 
 	return 1;
 }
@@ -445,7 +449,7 @@ is_pmem_always(const void *addr, size_t len)
 static int
 is_pmem_never(const void *addr, size_t len)
 {
-	LOG(3, NULL);
+	LOG(3, "addr %p len %zu", addr, len);
 
 	return 0;
 }
@@ -454,7 +458,7 @@ is_pmem_never(const void *addr, size_t len)
  * pmem_is_pmem() calls through Func_is_pmem to do the work.  Although
  * initialized to is_pmem_never(), once the existence of the clflush
  * feature is confirmed by pmem_init() at library initialization time,
- * Func_is_pmem is set to is_pmem_proc().  That's the most common case
+ * Func_is_pmem is set to is_pmem_detect().  That's the most common case
  * on modern hardware.
  */
 static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
@@ -564,7 +568,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (is_dev_dax) {
 		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
-			ERR("invalid flag for device dax %x", flags);
+			ERR("flag unsupported for Device DAX %x", flags);
 			errno = EINVAL;
 			return NULL;
 		} else {
@@ -572,12 +576,12 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 			flags = 0;
 			ssize_t actual_len = util_file_get_size(path);
 			if (actual_len < 0) {
-				ERR("unable to read device dax size");
+				ERR("unable to read Device DAX size");
 				errno = EINVAL;
 				return NULL;
 			}
 			if (len != 0 && len != (size_t)actual_len) {
-				ERR("device dax length must be either 0 or "
+				ERR("Device DAX length must be either 0 or "
 					"the exact size of the device %zu",
 					len);
 				errno = EINVAL;
@@ -631,6 +635,8 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_TMPFILE) {
 		if ((fd = util_tmpfile(path, "/pmem.XXXXXX")) < 0) {
+			LOG(2, "failed to create temporary file at \"%s\"",
+				path);
 			return NULL;
 		}
 	} else {
@@ -993,6 +999,8 @@ static void *(*Func_memmove_nodrain)
 void *
 pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 {
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
 	return Func_memmove_nodrain(pmemdest, src, len);
 }
 
@@ -1153,6 +1161,8 @@ static void *(*Func_memset_nodrain)
 void *
 pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 {
+	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+
 	return Func_memset_nodrain(pmemdest, c, len);
 }
 
@@ -1176,6 +1186,8 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 static void
 pmem_log_cpuinfo(void)
 {
+	LOG(3, NULL);
+
 	if (Func_flush == flush_clwb)
 		LOG(3, "using clwb");
 	else if (Func_flush == flush_clflushopt)
@@ -1201,8 +1213,10 @@ pmem_log_cpuinfo(void)
 static void
 pmem_get_cpuinfo(void)
 {
+	LOG(3, NULL);
+
 	if (is_cpu_clflush_present()) {
-		Func_is_pmem = is_pmem_proc;
+		Func_is_pmem = is_pmem_detect;
 		LOG(3, "clflush supported");
 	}
 
