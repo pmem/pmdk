@@ -1559,7 +1559,8 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		(void) os_close(fd);
 
 		if (size < minsize) {
-			ERR("size %zu smaller than %zu", size, minsize);
+			ERR("file is not a poolset file and its size (%zu)"
+				" is smaller than %zu", size, minsize);
 			errno = EINVAL;
 			return -1;
 		}
