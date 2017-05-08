@@ -56,6 +56,8 @@
 #define DEVICE_DAX_PREFIX "/sys/class/dax"
 #define MAX_SIZE_LENGTH 64
 
+#define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
+
 #ifndef _WIN32
 /*
  * device_dax_size -- (internal) checks the size of a given dax device
@@ -291,12 +293,12 @@ out:
 }
 
 /*
- * util_file_zero_whole -- zeroes the entire file
+ * util_file_zero -- zeroes the specified region of the file
  */
 int
-util_file_zero_whole(const char *path)
+util_file_zero(const char *path, off_t off, size_t len)
 {
-	LOG(3, "path \"%s\"", path);
+	LOG(3, "path \"%s\" off %ju len %zu", path, off, len);
 
 	int fd;
 	int olderrno;
@@ -321,8 +323,21 @@ util_file_zero_whole(const char *path)
 		goto out;
 	}
 
+	if (off > size) {
+		LOG(2, "offset beyond file length, %ju > %ju", off, size);
+		ret = -1;
+		goto out;
+	}
+
+	if ((size_t)off + len > (size_t)size) {
+		LOG(2, "requested size of write goes beyond the file length, "
+					"%zu > %zu", (size_t)off + len, size);
+		LOG(4, "adjusting len to %zu", size);
+		len = (size_t)size;
+	}
+
 	/* zero initialize the entire device */
-	memset(addr, 0, (size_t)size);
+	memset((char *)addr + off, 0, (size_t)size);
 
 	util_unmap(addr, (size_t)size);
 
@@ -363,7 +378,6 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
 	}
-	LOG(4, "file length %zu", file_size);
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
@@ -413,7 +427,6 @@ util_file_pread(const char *path, void *buffer, size_t size,
 		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
 	}
-	LOG(4, "file length %zu", file_size);
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
@@ -568,7 +581,7 @@ util_unlink(const char *path)
 	LOG(3, "path \"%s\"", path);
 
 	if (util_file_is_device_dax(path)) {
-		return util_file_zero_whole(path);
+		return util_file_zero(path, 0, DEVICE_DAX_ZERO_LEN);
 	} else {
 #ifdef _WIN32
 		/* on Windows we can not unlink Read-Only files */
