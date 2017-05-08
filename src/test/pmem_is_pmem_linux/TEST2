@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/pmem_is_pmem_linux/TEST2 -- unit test for pmem_is_pmem /proc parsing
+# src/test/pmem_is_pmem_linux/TEST2 -- unit test for pmem_is_pmem
 #
 export UNITTEST_NAME=pmem_is_pmem_linux/TEST2
 export UNITTEST_NUM=2
@@ -45,20 +45,41 @@ require_fs_type none
 
 setup
 
-# 7fff77424000 2147479552
-#	exactly matches smaps second mm entry, should produce: 1
-# 7fff77428000 10240
-#	subset of smaps second mm entry, should produce: 1
-# 7fff77424000 2147479553
-#	extends past smaps second mm entry, should produce: 0
+# single mm entry - 0x7fff77424000 2147479552
+#
+# 7fff77423000 2147479552
+#	starts before mm entry, should produce: 0
+# 7fff77423000 2147483648
+#	starts before mm entry, should produce: 0
 # 7fff77423000 8192
-#	start at smaps first mm entry, extends into second: should produce: 0
+#	starts before mm entry, should produce: 0
+# 7fff77423000 4096
+#	starts before mm entry, should produce: 0
+# 7fff77424000 2147479552
+#	exactly matches mm entry, should produce: 1
+# 7fff77424000 2147483648
+#	extends past mm entry, should produce: 0
+# 7fff77424000 8192
+#	entirely encompassed by mm entry: should produce: 1
+# 7fff77428000 10240
+#	subset of mm entry: should produce: 1
+# 7fff77423000 0
+#	starts before mm entry, should produce: 0
+# 7fff77424000 0
+#	starts at mm entry: should produce: 1
 expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
 	a 0x7fff77424000 2147479552\
+	\
+	t 0x7fff77423000 2147479552\
+	t 0x7fff77423000 2147483648\
+	t 0x7fff77423000 8192\
+	t 0x7fff77423000 4096\
 	t 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147483648\
+	t 0x7fff77424000 8192\
 	t 0x7fff77428000 10240\
-	t 0x7fff77424000 2147479553\
-	t 0x7fff77423000 8192
+	t 0x7fff77423000 0\
+	t 0x7fff77424000 0
 
 check
 
