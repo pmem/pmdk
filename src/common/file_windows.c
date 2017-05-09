@@ -44,22 +44,18 @@
  * of mentioned functions.  They are used only internally, so current
  * implementation is just good enough to satisfy NVML needs and to make it
  * work on Windows.
- *
- * This is a subject for change in the future.  Likely, all these functions
- * will be replaced with "util_xxx" wrappers with OS-specific implementation
- * for Linux and Windows.
  */
 
 #include <windows.h>
-#include <sys/stat.h> // XXX
-#include <sys/file.h> // XXX
+#include <sys/stat.h>
+#include <sys/file.h>
 
 #include "file.h"
 #include "out.h"
 #include "os.h"
 
 /*
- * util_tmpfile --  (internal) create the temporary file
+ * util_tmpfile -- create a temporary file
  */
 int
 util_tmpfile(const char *dir, const char *templ)
@@ -76,6 +72,8 @@ util_tmpfile(const char *dir, const char *templ)
 		ERR("!snprintf");
 		goto err;
 	}
+
+	LOG(4, "fullname \"%s\"", fullname);
 
 	/*
 	 * XXX - block signals and modify file creation mask for the time
@@ -113,7 +111,7 @@ err:
 int
 util_is_absolute_path(const char *path)
 {
-	LOG(3, "path: %s", path);
+	LOG(3, "path \"%s\"", path);
 
 	if (path == NULL || path[0] == '\0')
 		return 0;

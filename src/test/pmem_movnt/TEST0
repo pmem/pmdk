@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ require_build_type debug
 setup
 
 export PMEM_IS_PMEM_FORCE=1
-export PMEM_LOG_LEVEL=10
+export PMEM_LOG_LEVEL=15
 
 unset PMEM_MOVNT_THRESHOLD
 

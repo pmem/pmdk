@@ -338,7 +338,8 @@ util_range_find(const void *addr, size_t len)
 
 	struct map_tracker *mt;
 	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
-		if (addr < mt->end_addr && end > mt->base_addr)
+		if (addr < mt->end_addr &&
+		    (addr >= mt->base_addr || end > mt->base_addr))
 			return mt;
 
 		/* break if there is no chance to find matching entry */
@@ -502,7 +503,7 @@ util_range_unregister(const void *addr, size_t len)
  * util_range_is_pmem -- return true if entire range is persistent memory
  *
  * XXX Once the Linux and Windows implementation is unified, this function
- * would just become a new is_pmem_proc().
+ * would just become a new is_pmem_detect().
  */
 int
 util_range_is_pmem(const void *addr, size_t len)
@@ -517,7 +518,7 @@ util_range_is_pmem(const void *addr, size_t len)
 		return 0;
 	}
 
-	while (len > 0) {
+	do {
 		struct map_tracker *mt = util_range_find(addr, len);
 		if (mt == NULL) {
 			LOG(4, "address not found %p", addr);
@@ -542,7 +543,7 @@ util_range_is_pmem(const void *addr, size_t len)
 			map_len = len;
 		len -= map_len;
 		addr = (char *)addr + map_len;
-	}
+	} while (len > 0);
 
 	util_rwlock_unlock(&Mmap_list_lock);
 

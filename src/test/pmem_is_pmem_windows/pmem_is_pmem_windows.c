@@ -32,7 +32,7 @@
  */
 
 /*
- * pmem_is_pmem_windows.c -- Windows specific unit test for is_pmem_proc()
+ * pmem_is_pmem_windows.c -- Windows specific unit test for is_pmem_detect()
  *
  * usage: pmem_is_pmem_windows file [env]
  */
@@ -94,14 +94,14 @@ worker(void *arg)
 	 * work in the environment that forces pmem.
 	 *
 	 * NOTE: We can't use pmem_is_pmem instead of checking for the ENV
-	 * variable explicitly, because we want to call is_pmem_proc that is
+	 * variable explicitly, because we want to call is_pmem_detect that is
 	 * defined in this test so that it will use the FileMappingQHead
 	 * that's defined here.  Because we are crafting the Q in the test.
 	 */
 	if (pmem_is_pmem_force)
 		*ret = 1;
 	else
-		*ret =  is_pmem_proc(Addr, Size);
+		*ret =  is_pmem_detect(Addr, Size);
 	return NULL;
 }
 

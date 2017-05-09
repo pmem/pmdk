@@ -52,7 +52,7 @@ require_build_type debug
 setup
 
 $Env:PMEM_IS_PMEM_FORCE=1
-$Env:PMEM_LOG_LEVEL=10
+$Env:PMEM_LOG_LEVEL=15
 
 $Env:PMEM_MOVNT_THRESHOLD=$null
 

@@ -37,12 +37,11 @@
 #include <stddef.h>
 
 #include "pmem.h"
-#include "os.h"
 #include "out.h"
 #include "mmap.h"
 
 /*
- * is_pmem_proc -- implement pmem_is_pmem()
+ * is_pmem_detect -- implement pmem_is_pmem()
  *
  * This function returns true only if the entire range can be confirmed
  * as being direct access persistent memory.  Finding any part of the
@@ -51,12 +50,12 @@
  * results in returning false.
  */
 int
-is_pmem_proc(const void *addr, size_t len)
+is_pmem_detect(const void *addr, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(3, "addr %p len %zu", addr, len);
 
 	int retval = util_range_is_pmem(addr, len);
 
-	LOG(10, "returning %d", retval);
+	LOG(4, "returning %d", retval);
 	return retval;
 }
