@@ -882,6 +882,22 @@ function require_dax_devices() {
 }
 
 #
+# require_dax_device_alignment -- only allow script to continue if
+#    the internal Device DAX alignment is as specified
+#
+function require_dax_device_alignment() {
+	set +e
+	out=$("$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]}" 2>&1)
+	ret=$?
+	set -e
+
+	[ "$ret" == "0" ] && return
+
+	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP Device DAX alignment is not $2"
+	exit 0
+}
+
+#
 # require_node_dax_device -- only allow script to continue if specified node
 # has defined device dax in testconfig.sh
 #

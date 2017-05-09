@@ -44,11 +44,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -98,9 +98,15 @@
     <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\windows\getopt\getopt.vcxproj">
+      <Project>{9186eac4-2f34-4f17-b940-6585d7869bcd}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
