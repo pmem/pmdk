@@ -291,7 +291,7 @@ main(int argc, char *argv[])
 	}
 
 	/* check sizes */
-	if (opts.poolsize < BTT_MIN_SIZE) {
+	if (opts.poolsize - BTT_CREATE_DEF_OFFSET_SIZE < BTT_MIN_SIZE) {
 		fprintf(stderr, "Pool size is less then %d MB\n",
 				BTT_MIN_SIZE >> 20);
 		res = 1;
