@@ -63,3 +63,18 @@ There are following test set files available:
 	- TEST 34 - correct set file: blank lines
 	- TEST 35 - correct set file: blank lines
 	- TEST 36 - correct set file: whitespace before size
+	- TEST 37 - correct set file: remote replica
+	- TEST 38 - incorrect set file: invalid replica's part's line:
+                    missing descriptor
+	- TEST 39 - incorrect set file: invalid replica's part's line:
+                    invalid descriptor (absolute path)
+	- TEST 40 - incorrect set file: invalid part size (AUTO),
+                    but it's not Device DAX
+	- TEST 41 - incorrect set file: invalid part size (AUTO),
+                    but it's not Device DAX
+	- TEST 42 - incorrect set file: invalid part size (AUTO),
+                    but it's not Device DAX
+
+Additional scenarios for Device DAX (require Device DAX to be present):
+	- TEST1 - set file with one Device DAX part
+	- TEST2 - set file with two Device DAX parts

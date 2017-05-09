@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +34,8 @@
 #
 # src/test/blk_rw/TEST10 -- unit test for pmemblk_read/write/set_zero/set_error
 #
+# Same as TEST0, but run on a single Device DAX device.
+#
 export UNITTEST_NAME=blk_rw/TEST10
 export UNITTEST_NUM=10
 
@@ -52,6 +54,5 @@ expect_normal_exit ./blk_rw$EXESUFFIX 512 $DEVICE_DAX_PATH c\
 	r:0 r:1 r:32201 r:32313 z:0 z:1 r:0
 
 check_pool $DEVICE_DAX_PATH
-
 
 pass
