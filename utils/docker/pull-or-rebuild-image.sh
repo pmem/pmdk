@@ -72,6 +72,14 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 	exit 1
 fi
 
+# TRAVIS_COMMIT_RANGE is usually invalid for force pushes - ignore such values
+# when used with non-upstream repository
+if [ -n "$TRAVIS_COMMIT_RANGE" -a $TRAVIS_REPO_SLUG != "pmem/nvml" ]; then
+	if ! git rev-list $TRAVIS_COMMIT_RANGE; then
+		TRAVIS_COMMIT_RANGE=
+	fi
+fi
+
 # Find all the commits for the current build
 if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
 	commits=$(git rev-list $TRAVIS_COMMIT_RANGE)
