@@ -199,7 +199,7 @@ do_aborted_nested_tx(void *arg)
 static void
 run_mt_test(void *(*worker)(void *), void *arg)
 {
-	pthread_t thread[NUM_THREADS];
+	os_thread_t thread[NUM_THREADS];
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		PTHREAD_CREATE(&thread[i], NULL, worker, arg);
 	}

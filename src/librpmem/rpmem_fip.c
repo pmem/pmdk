@@ -39,7 +39,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
-#include <pthread.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <limits.h>

@@ -43,10 +43,10 @@
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
-#include <pthread.h>
 
 #include "out.h"
 #include "os.h"
+#include "os_thread.h"
 #include "valgrind_internal.h"
 #include "util.h"
 
@@ -78,15 +78,15 @@ struct errormsg
 
 #ifndef NO_LIBPTHREAD
 
-static pthread_once_t Last_errormsg_key_once = PTHREAD_ONCE_INIT;
-static pthread_key_t Last_errormsg_key;
+static os_once_t Last_errormsg_key_once = OS_ONCE_INIT;
+static os_tls_key_t Last_errormsg_key;
 
 static void
 _Last_errormsg_key_alloc(void)
 {
-	int pth_ret = pthread_key_create(&Last_errormsg_key, free);
+	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
-		FATAL("!pthread_key_create");
+		FATAL("!os_thread_key_create");
 
 	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
 }
@@ -94,7 +94,7 @@ _Last_errormsg_key_alloc(void)
 static void
 Last_errormsg_key_alloc(void)
 {
-	pthread_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
+	os_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
 	/*
 	 * Workaround Helgrind's bug:
 	 * https://bugs.kde.org/show_bug.cgi?id=337735
@@ -105,10 +105,10 @@ Last_errormsg_key_alloc(void)
 static inline void
 Last_errormsg_fini(void)
 {
-	void *p = pthread_getspecific(Last_errormsg_key);
+	void *p = os_tls_get(Last_errormsg_key);
 	if (p) {
 		Free(p);
-		(void) pthread_setspecific(Last_errormsg_key, NULL);
+		(void) os_tls_set(Last_errormsg_key, NULL);
 	}
 }
 
@@ -117,12 +117,12 @@ Last_errormsg_get(void)
 {
 	Last_errormsg_key_alloc();
 
-	struct errormsg *errormsg = pthread_getspecific(Last_errormsg_key);
+	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
 		errormsg = Malloc(sizeof(struct errormsg));
-		int ret = pthread_setspecific(Last_errormsg_key, errormsg);
+		int ret = os_tls_set(Last_errormsg_key, errormsg);
 		if (ret)
-			FATAL("!pthread_setspecific");
+			FATAL("!os_tls_set");
 	}
 	return errormsg;
 }

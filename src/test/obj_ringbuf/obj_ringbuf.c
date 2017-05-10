@@ -34,7 +34,6 @@
  * obj_ringbuf.c -- unit test for ring buffer
  */
 #include <stdint.h>
-#include <pthread.h>
 
 #include "ringbuf.h"
 #include "util.h"
@@ -150,8 +149,8 @@ static void
 many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 {
 #define RINGBUF_LEN 256
-	pthread_t *consumers = MALLOC(sizeof(pthread_t) * nconsumers);
-	pthread_t *producers = MALLOC(sizeof(pthread_t) * nproducers);
+	os_thread_t *consumers = MALLOC(sizeof(os_thread_t) * nconsumers);
+	os_thread_t *producers = MALLOC(sizeof(os_thread_t) * nproducers);
 	long long consumers_msg_sum = 0;
 	int *msg_per_producer_sum = ZALLOC(sizeof(int) * nproducers);
 	struct th_arg arg_proto = {

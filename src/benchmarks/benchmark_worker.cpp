@@ -37,6 +37,8 @@
 #include <err.h>
 
 #include "benchmark_worker.hpp"
+#include "os_thread.h"
+
 /*
  * worker_state_wait_for_transition -- wait for transition from and to
  * specified states
@@ -47,7 +49,7 @@ worker_state_wait_for_transition(struct benchmark_worker *worker,
 				 enum benchmark_worker_state new_state)
 {
 	while (worker->state == state)
-		pthread_cond_wait(&worker->cond, &worker->lock);
+		os_cond_wait(&worker->cond, &worker->lock);
 	assert(worker->state == new_state);
 }
 
@@ -61,11 +63,11 @@ worker_state_transition(struct benchmark_worker *worker,
 {
 	assert(worker->state == old_state);
 	worker->state = new_state;
-	pthread_cond_signal(&worker->cond);
+	os_cond_signal(&worker->cond);
 }
 
 /*
- * thread_func -- (internal) callback for pthread
+ * thread_func -- (internal) callback for os_thread
  */
 static void *
 thread_func(void *arg)
@@ -73,7 +75,7 @@ thread_func(void *arg)
 	assert(arg != NULL);
 	struct benchmark_worker *worker = (struct benchmark_worker *)arg;
 
-	pthread_mutex_lock(&worker->lock);
+	os_mutex_lock(&worker->lock);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_IDLE,
 					 WORKER_STATE_INIT);
@@ -100,7 +102,7 @@ thread_func(void *arg)
 
 	worker_state_transition(worker, WORKER_STATE_EXIT, WORKER_STATE_DONE);
 
-	pthread_mutex_unlock(&worker->lock);
+	os_mutex_unlock(&worker->lock);
 	return NULL;
 }
 
@@ -116,21 +118,21 @@ benchmark_worker_alloc(void)
 	if (!w)
 		return NULL;
 
-	if (pthread_mutex_init(&w->lock, NULL))
+	if (os_mutex_init(&w->lock))
 		goto err_free_worker;
 
-	if (pthread_cond_init(&w->cond, NULL))
+	if (os_cond_init(&w->cond))
 		goto err_destroy_mutex;
 
-	if (pthread_create(&w->thread, NULL, thread_func, w))
+	if (os_thread_create(&w->thread, NULL, thread_func, w))
 		goto err_destroy_cond;
 
 	return w;
 
 err_destroy_cond:
-	pthread_cond_destroy(&w->cond);
+	os_cond_destroy(&w->cond);
 err_destroy_mutex:
-	pthread_mutex_destroy(&w->lock);
+	os_mutex_destroy(&w->lock);
 err_free_worker:
 	free(w);
 	return NULL;
@@ -142,9 +144,9 @@ err_free_worker:
 void
 benchmark_worker_free(struct benchmark_worker *w)
 {
-	pthread_join(w->thread, NULL);
-	pthread_cond_destroy(&w->cond);
-	pthread_mutex_destroy(&w->lock);
+	os_thread_join(w->thread, NULL);
+	os_cond_destroy(&w->cond);
+	os_mutex_destroy(&w->lock);
 	free(w);
 }
 
@@ -154,7 +156,7 @@ benchmark_worker_free(struct benchmark_worker *w)
 int
 benchmark_worker_init(struct benchmark_worker *worker)
 {
-	pthread_mutex_lock(&worker->lock);
+	os_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_IDLE, WORKER_STATE_INIT);
 
@@ -163,7 +165,7 @@ benchmark_worker_init(struct benchmark_worker *worker)
 
 	int ret = worker->ret_init;
 
-	pthread_mutex_unlock(&worker->lock);
+	os_mutex_unlock(&worker->lock);
 
 	return ret;
 }
@@ -174,14 +176,14 @@ benchmark_worker_init(struct benchmark_worker *worker)
 void
 benchmark_worker_exit(struct benchmark_worker *worker)
 {
-	pthread_mutex_lock(&worker->lock);
+	os_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_END, WORKER_STATE_EXIT);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_EXIT,
 					 WORKER_STATE_DONE);
 
-	pthread_mutex_unlock(&worker->lock);
+	os_mutex_unlock(&worker->lock);
 }
 
 /*
@@ -192,12 +194,12 @@ benchmark_worker_run(struct benchmark_worker *worker)
 {
 	int ret = 0;
 
-	pthread_mutex_lock(&worker->lock);
+	os_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_INITIALIZED,
 				WORKER_STATE_RUN);
 
-	pthread_mutex_unlock(&worker->lock);
+	os_mutex_unlock(&worker->lock);
 
 	return ret;
 }
@@ -208,12 +210,12 @@ benchmark_worker_run(struct benchmark_worker *worker)
 int
 benchmark_worker_join(struct benchmark_worker *worker)
 {
-	pthread_mutex_lock(&worker->lock);
+	os_mutex_lock(&worker->lock);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_RUN,
 					 WORKER_STATE_END);
 
-	pthread_mutex_unlock(&worker->lock);
+	os_mutex_unlock(&worker->lock);
 
 	return 0;
 }

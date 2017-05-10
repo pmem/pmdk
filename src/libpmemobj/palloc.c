@@ -149,8 +149,8 @@ palloc_operation(struct palloc_heap *heap,
 	 * persistent representation of a chunk. Depending on the operation and
 	 * the type of a chunk, they might be NULL.
 	 */
-	pthread_mutex_t *existing_block_lock = NULL;
-	pthread_mutex_t *new_block_lock = NULL;
+	os_mutex_t *existing_block_lock = NULL;
+	os_mutex_t *new_block_lock = NULL;
 
 	/*
 	 * The offset value which is to be written to the destination pointer

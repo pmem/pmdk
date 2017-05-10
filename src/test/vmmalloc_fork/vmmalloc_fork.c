@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	UT_ASSERT(nfork >= 0);
 	UT_ASSERT(nthread >= 0);
 
-	pthread_t thread[nthread];
+	os_thread_t thread[nthread];
 	int first_child = 0;
 
 	int **bufs = malloc(nfork * NBUFS * sizeof(void *));

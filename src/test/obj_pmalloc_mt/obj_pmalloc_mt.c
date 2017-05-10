@@ -190,13 +190,13 @@ tx2_worker(void *arg)
 static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
-	pthread_t t[THREADS];
+	os_thread_t t[THREADS];
 
 	for (int i = 0; i < THREADS; ++i)
-		pthread_create(&t[i], NULL, worker_func, &args[i]);
+		os_thread_create(&t[i], NULL, worker_func, &args[i]);
 
 	for (int i = 0; i < THREADS; ++i)
-		pthread_join(t[i], NULL);
+		os_thread_join(t[i], NULL);
 }
 
 int

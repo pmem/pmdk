@@ -15,11 +15,11 @@
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
+    <ClCompile Include="os_thread_windows.c" />
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="pool_hdr_windows.c" />
-    <ClCompile Include="pthread_windows.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="util_windows.c" />
@@ -31,6 +31,7 @@
     <ClInclude Include="file.h" />
     <ClInclude Include="mmap.h" />
     <ClInclude Include="os.h" />
+    <ClInclude Include="os_thread.h" />
     <ClInclude Include="out.h" />
     <ClInclude Include="pmemcommon.h" />
     <ClInclude Include="pool_hdr.h" />

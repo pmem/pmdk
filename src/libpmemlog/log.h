@@ -36,9 +36,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <pthread.h>
 
 #include "util.h"
+#include "os_thread.h"
 #include "pool_hdr.h"
 
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
@@ -65,7 +65,7 @@ struct pmemlog {
 	size_t size;			/* size of mapped region */
 	int is_pmem;			/* true if pool is PMEM */
 	int rdonly;			/* true if pool is opened read-only */
-	pthread_rwlock_t *rwlockp;	/* pointer to RW lock */
+	os_rwlock_t *rwlockp;	/* pointer to RW lock */
 	int is_dev_dax;			/* true if mapped on device dax */
 
 	struct pool_set *set;		/* pool set info */

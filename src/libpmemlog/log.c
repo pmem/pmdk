@@ -43,7 +43,6 @@
 #include <errno.h>
 #include <time.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <endian.h>
 
 #include "libpmem.h"
@@ -141,8 +140,8 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
 		return -1;
 	}
 
-	if ((errno = pthread_rwlock_init(plp->rwlockp, NULL))) {
-		ERR("!pthread_rwlock_init");
+	if ((errno = os_rwlock_init(plp->rwlockp))) {
+		ERR("!os_rwlock_init");
 		Free((void *)plp->rwlockp);
 		return -1;
 	}
@@ -373,8 +372,8 @@ pmemlog_close(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if ((errno = pthread_rwlock_destroy(plp->rwlockp)))
-		ERR("!pthread_rwlock_destroy");
+	if ((errno = os_rwlock_destroy(plp->rwlockp)))
+		ERR("!os_rwlock_destroy");
 	Free((void *)plp->rwlockp);
 
 	util_poolset_close(plp->set, DO_NOT_DELETE_PARTS);
@@ -388,8 +387,8 @@ pmemlog_nbyte(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_rdlock");
+	if ((errno = os_rwlock_rdlock(plp->rwlockp))) {
+		ERR("!os_rwlock_rdlock");
 		return (size_t)-1;
 	}
 
@@ -458,8 +457,8 @@ pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count)
 		return -1;
 	}
 
-	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_wrlock");
+	if ((errno = os_rwlock_wrlock(plp->rwlockp))) {
+		ERR("!os_rwlock_wrlock");
 		return -1;
 	}
 
@@ -529,8 +528,8 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 		return -1;
 	}
 
-	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_wrlock");
+	if ((errno = os_rwlock_wrlock(plp->rwlockp))) {
+		ERR("!os_rwlock_wrlock");
 		return -1;
 	}
 
@@ -602,8 +601,8 @@ pmemlog_tell(PMEMlogpool *plp)
 {
 	LOG(3, "plp %p", plp);
 
-	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_rdlock");
+	if ((errno = os_rwlock_rdlock(plp->rwlockp))) {
+		ERR("!os_rwlock_rdlock");
 		return (off_t)-1;
 	}
 
@@ -632,8 +631,8 @@ pmemlog_rewind(PMEMlogpool *plp)
 		return;
 	}
 
-	if ((errno = pthread_rwlock_wrlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_wrlock");
+	if ((errno = os_rwlock_wrlock(plp->rwlockp))) {
+		ERR("!os_rwlock_wrlock");
 		return;
 	}
 
@@ -671,8 +670,8 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	 * in place. We prevent everyone from changing the data behind our back
 	 * until we are done with processing it.
 	 */
-	if ((errno = pthread_rwlock_rdlock(plp->rwlockp))) {
-		ERR("!pthread_rwlock_rdlock");
+	if ((errno = os_rwlock_rdlock(plp->rwlockp))) {
+		ERR("!os_rwlock_rdlock");
 		return;
 	}
 

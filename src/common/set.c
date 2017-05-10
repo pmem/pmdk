@@ -87,7 +87,7 @@ int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
 int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
 static int Remote_replication_available;
-static pthread_mutex_t Remote_lock;
+static os_mutex_t Remote_lock;
 static int Remote_usage_counter;
 
 int Prefault_at_open = 0;
@@ -102,7 +102,7 @@ util_remote_init(void)
 {
 	LOG(3, NULL);
 
-	util_mutex_init(&Remote_lock, NULL);
+	util_mutex_init(&Remote_lock);
 	Remote_replication_available = 1;
 }
 

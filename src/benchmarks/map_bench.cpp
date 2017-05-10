@@ -34,10 +34,10 @@
  * and hashmap_tx from examples.
  */
 #include <cassert>
-#include <pthread.h>
 
 #include "benchmark.hpp"
 #include "os.h"
+#include "os_thread.h"
 
 /* XXX: maps are build as C++ on windows and as C on linux */
 #ifndef _WIN32
@@ -102,7 +102,7 @@ struct map_bench_worker {
 
 struct map_bench {
 	struct map_ctx *mapc;
-	pthread_mutex_t lock;
+	os_mutex_t lock;
 	PMEMobjpool *pop;
 	size_t pool_size;
 
@@ -125,11 +125,11 @@ struct map_bench {
  * mutex_lock_nofail -- locks mutex and aborts if locking failed
  */
 static void
-mutex_lock_nofail(pthread_mutex_t *lock)
+mutex_lock_nofail(os_mutex_t *lock)
 {
-	errno = pthread_mutex_lock(lock);
+	errno = os_mutex_lock(lock);
 	if (errno) {
-		perror("pthread_mutex_lock");
+		perror("os_mutex_lock");
 		abort();
 	}
 }
@@ -138,11 +138,11 @@ mutex_lock_nofail(pthread_mutex_t *lock)
  * mutex_unlock_nofail -- unlocks mutex and aborts if unlocking failed
  */
 static void
-mutex_unlock_nofail(pthread_mutex_t *lock)
+mutex_unlock_nofail(os_mutex_t *lock)
 {
-	errno = pthread_mutex_unlock(lock);
+	errno = os_mutex_unlock(lock);
 	if (errno) {
-		perror("pthread_mutex_unlock");
+		perror("os_mutex_unlock");
 		abort();
 	}
 }
@@ -565,9 +565,9 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_bench;
 	}
 
-	errno = pthread_mutex_init(&map_bench->lock, NULL);
+	errno = os_mutex_init(&map_bench->lock);
 	if (errno) {
-		perror("pthread_mutex_init");
+		perror("os_mutex_init");
 		goto err_close;
 	}
 
@@ -597,7 +597,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 err_free_map:
 	map_ctx_free(map_bench->mapc);
 err_destroy_lock:
-	pthread_mutex_destroy(&map_bench->lock);
+	os_mutex_destroy(&map_bench->lock);
 err_close:
 	pmemobj_close(map_bench->pop);
 err_free_bench:
@@ -613,7 +613,7 @@ map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
 
-	pthread_mutex_destroy(&tree->lock);
+	os_mutex_destroy(&tree->lock);
 	map_ctx_free(tree->mapc);
 	pmemobj_close(tree->pop);
 	free(tree);

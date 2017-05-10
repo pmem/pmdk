@@ -34,8 +34,7 @@
  */
 
 #include "benchmark.hpp"
-#include <pthread.h>
-
+#include "os_thread.h"
 /*
  *
  * The following table shows valid state transitions upon specified
@@ -72,7 +71,7 @@ enum benchmark_worker_state {
 };
 
 struct benchmark_worker {
-	pthread_t thread;
+	os_thread_t thread;
 	struct benchmark *bench;
 	struct benchmark_args *args;
 	struct worker_info info;
@@ -83,8 +82,8 @@ struct benchmark_worker {
 		    struct worker_info *info);
 	void (*exit)(struct benchmark *bench, struct benchmark_args *args,
 		     struct worker_info *info);
-	pthread_cond_t cond;
-	pthread_mutex_t lock;
+	os_cond_t cond;
+	os_mutex_t lock;
 	enum benchmark_worker_state state;
 };
 
