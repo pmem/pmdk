@@ -439,7 +439,7 @@ mutex_test(nvobj::pool<struct root> &pop, bool notify, bool notify_all,
 	   Reader writer, Writer reader)
 {
 	const int total_threads = num_threads * 2;
-	pthread_t threads[total_threads];
+	os_thread_t threads[total_threads];
 
 	nvobj::persistent_ptr<struct root> proot = pop.get_root();
 	struct writer_args wargs = {proot, notify, notify_all};

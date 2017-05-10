@@ -34,7 +34,6 @@
  * obj_ctree.c -- unit test for crit-bit tree
  */
 #include <stdint.h>
-#include <pthread.h>
 
 #include "ctree.h"
 #include "util.h"

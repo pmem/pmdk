@@ -45,7 +45,6 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include "out.h"
 #include "queue.h"
