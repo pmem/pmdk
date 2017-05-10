@@ -47,9 +47,6 @@
 #include <linux/limits.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#ifndef _WIN32
-#include <pthread.h>
-#endif
 
 #include "benchmark.hpp"
 #include "benchmark_worker.hpp"
@@ -534,8 +531,8 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i] = benchmark_worker_alloc();
 
 		if (args->thread_affinity) {
-			cpu_set_t cpuset;
-			CPU_ZERO(&cpuset);
+			os_cpu_set_t cpuset;
+			os_cpu_zero(&cpuset);
 
 			/*
 			 * Assign threads to every other CPU. Populate all
@@ -545,11 +542,12 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 			int cpu =
 				((2 * i) + ((long)(i % ncpus) >= (ncpus / 2))) %
 				ncpus;
-			CPU_SET(cpu, &cpuset);
-			errno = pthread_setaffinity_np(
-				workers[i]->thread, sizeof(cpu_set_t), &cpuset);
+			os_cpu_set(cpu, &cpuset);
+			errno = os_thread_setaffinity_np(workers[i]->thread,
+							 sizeof(os_cpu_set_t),
+							 &cpuset);
 			if (errno) {
-				perror("pthread_setaffinity_np");
+				perror("os_thread_setaffinity_np");
 				return -1;
 			}
 		}

@@ -81,7 +81,7 @@ struct rpmem_pool {
 	struct rpmem_target_info *info;
 	char fip_service[NI_MAXSERV];
 	enum rpmem_provider provider;
-	pthread_t monitor;
+	os_thread_t monitor;
 	int closing;
 	/*
 	 * Last error code, need to be volatile because it can
@@ -253,7 +253,7 @@ rpmem_common_fini(RPMEMpool *rpp, int join)
 	rpmem_obc_disconnect(rpp->obc);
 
 	if (join) {
-		int ret = pthread_join(rpp->monitor, NULL);
+		int ret = os_thread_join(rpp->monitor, NULL);
 		if (ret) {
 			errno = ret;
 			ERR("joining monitor thread failed");
@@ -465,7 +465,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 		goto err_fip_process;
 	}
 
-	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
+	ret = os_thread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
 	if (ret) {
 		errno = ret;
 		ERR("!starting monitor thread");
@@ -540,7 +540,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 		goto err_fip_process;
 	}
 
-	ret = pthread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
+	ret = os_thread_create(&rpp->monitor, NULL, rpmem_monitor_thread, rpp);
 	if (ret) {
 		errno = ret;
 		ERR("!starting monitor thread");

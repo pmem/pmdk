@@ -44,6 +44,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "os_thread.h"
 
 struct iovec;
 

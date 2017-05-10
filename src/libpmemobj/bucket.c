@@ -65,7 +65,7 @@ bucket_new(struct block_container *c, struct alloc_class *aclass)
 	b->container = c;
 	b->c_ops = c->c_ops;
 
-	util_mutex_init(&b->lock, NULL);
+	util_mutex_init(&b->lock);
 
 	b->is_active = 0;
 	b->aclass = aclass;

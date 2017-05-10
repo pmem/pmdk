@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 
 	UT_OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
 
-	pthread_t *threads = MALLOC(Nthread * sizeof(pthread_t));
+	os_thread_t *threads = MALLOC(Nthread * sizeof(os_thread_t));
 
 	/* kick off nthread threads */
 	for (unsigned i = 0; i < Nthread; i++)
