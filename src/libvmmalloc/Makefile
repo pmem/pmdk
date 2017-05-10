@@ -41,6 +41,7 @@ SOURCE = libvmmalloc.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/os_linux.c\
+	$(COMMON)/os_thread_linux.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_linux.c
 

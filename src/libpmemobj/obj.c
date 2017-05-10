@@ -99,8 +99,8 @@ struct _pobj_pcache {
 	int invalidate;
 };
 
-static pthread_once_t Cached_pool_key_once = PTHREAD_ONCE_INIT;
-static pthread_key_t Cached_pool_key;
+static os_thread_once_t Cached_pool_key_once = OS_THREAD_ONCE_INIT;
+static os_thread_key_t Cached_pool_key;
 
 /*
  * _Cached_pool_key_alloc -- (internal) allocate pool cache pthread key
@@ -108,9 +108,9 @@ static pthread_key_t Cached_pool_key;
 static void
 _Cached_pool_key_alloc(void)
 {
-	int pth_ret = pthread_key_create(&Cached_pool_key, free);
+	int pth_ret = os_thread_key_create(&Cached_pool_key, free);
 	if (pth_ret)
-		FATAL("!pthread_key_create");
+		FATAL("!os_thread_key_create");
 }
 
 /*
@@ -122,14 +122,14 @@ pmemobj_direct(PMEMoid oid)
 	if (oid.off == 0 || oid.pool_uuid_lo == 0)
 		return NULL;
 
-	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
+	struct _pobj_pcache *pcache = os_thread_getspecific(Cached_pool_key);
 	if (pcache == NULL) {
 		pcache = Malloc(sizeof(struct _pobj_pcache));
 		if (pcache == NULL)
 			FATAL("!pcache malloc");
-		int ret = pthread_setspecific(Cached_pool_key, pcache);
+		int ret = os_thread_setspecific(Cached_pool_key, pcache);
 		if (ret)
-			FATAL("!pthread_setspecific");
+			FATAL("!os_thread_setspecific");
 	}
 
 	if (_pobj_cache_invalidate != pcache->invalidate ||
@@ -263,7 +263,7 @@ obj_init(void)
 
 #ifdef _WIN32
 	/* XXX - temporary implementation (see above) */
-	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
+	os_thread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
 	ctl_global_register();
 
@@ -1744,7 +1744,7 @@ pmemobj_close(PMEMobjpool *pop)
 
 #else /* _WIN32 */
 
-	struct _pobj_pcache *pcache = pthread_getspecific(Cached_pool_key);
+	struct _pobj_pcache *pcache = os_thread_getspecific(Cached_pool_key);
 	if (pcache != NULL) {
 		if (pcache->pop == pop) {
 			pcache->pop = NULL;

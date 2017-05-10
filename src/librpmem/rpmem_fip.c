@@ -170,7 +170,7 @@ struct rpmem_fip {
 	struct fid_mr *raw_mr;		/* RAW memory region */
 	void *raw_mr_desc;		/* RAW memory descriptor */
 
-	pthread_t process_thread;	/* processing thread */
+	os_thread_t process_thread;	/* processing thread */
 };
 
 /*
@@ -1236,7 +1236,7 @@ rpmem_fip_process_start(struct rpmem_fip *fip)
 {
 	int ret;
 
-	ret = pthread_create(&fip->process_thread, NULL,
+	ret = os_thread_create(&fip->process_thread, NULL,
 			rpmem_fip_process_thread, fip);
 	if (ret) {
 		RPMEM_LOG(ERR, "creating process thread -- %d", ret);
@@ -1256,7 +1256,7 @@ rpmem_fip_process_stop(struct rpmem_fip *fip)
 	__sync_fetch_and_or(&fip->closing, 1);
 
 	void *tret;
-	ret = pthread_join(fip->process_thread, &tret);
+	ret = os_thread_join(fip->process_thread, &tret);
 	if (ret) {
 		RPMEM_LOG(ERR, "joining process thread -- %d", ret);
 		return ret;

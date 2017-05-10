@@ -32,84 +32,18 @@
  */
 
 /*
- * pthread_windows.c -- (imperfect) POSIX-like threads for Windows
+ * os_thread_windows.c -- (imperfect) POSIX-like threads for Windows
  *
  * Loosely inspired by:
  * http://locklessinc.com/articles/pthreads_on_windows/
  */
 
-/*
- * XXX - The initial approach to NVML for Windows port was to minimize the
- * amount of changes required in the core part of the library, and to avoid
- * preprocessor conditionals, if possible.  For that reason, some of the
- * Linux system calls that have no equivalents on Windows have been emulated
- * using Windows API.
- * Note that it was not a goal to fully emulate POSIX-compliant behavior
- * of mentioned functions.  They are used only internally, so current
- * implementation is just good enough to satisfy NVML needs and to make it
- * work on Windows.
- *
- * This is a subject for change in the future.  Likely, all these functions
- * will be replaced with "util_xxx" wrappers with OS-specific implementation
- * for Linux and Windows.
- */
-
-#include <pthread.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
+#include "os_thread.h"
 #include "util.h"
 #include "out.h"
-
-int
-pthread_mutexattr_init(pthread_mutexattr_t *attr)
-{
-	if (attr == NULL)
-		return EINVAL;
-
-	*attr = PTHREAD_MUTEX_DEFAULT;
-	return 0;
-}
-
-int
-pthread_mutexattr_destroy(pthread_mutexattr_t *attr)
-{
-	if (attr == NULL)
-		return EINVAL;
-
-	*attr = -1;
-	return 0;
-}
-
-int
-pthread_mutexattr_gettype(const pthread_mutexattr_t *__restrict attr,
-	int *__restrict type)
-{
-	if (attr == NULL || type == NULL || *attr == -1)
-		return EINVAL;
-
-	*type = *attr;
-	return 0;
-}
-
-int
-pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
-{
-	if (attr == NULL)
-		return EINVAL;
-
-	switch (type) {
-		case PTHREAD_MUTEX_NORMAL:
-		case PTHREAD_MUTEX_RECURSIVE:
-			*attr = type;
-			return 0;
-
-		case PTHREAD_MUTEX_ERRORCHECK:
-			/* XXX - not supported */
-		default:
-			return EINVAL;
-	}
-}
 
 /* number of useconds between 1970-01-01T00:00:00Z and 1601-01-01T00:00:00Z */
 #define DELTA_WIN2UNIX (11644473600000000ull)
@@ -134,20 +68,14 @@ pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type)
 }
 
 int
-pthread_mutex_init(pthread_mutex_t *__restrict mutex,
-	const pthread_mutexattr_t *__restrict attr)
+os_thread_mutex_init(os_thread_mutex_t *__restrict mutex)
 {
-	if (attr)
-		mutex->attr = *attr;
-	else
-		mutex->attr = PTHREAD_MUTEX_DEFAULT;
-
 	InitializeCriticalSection(&mutex->lock);
 	return 0;
 }
 
 int
-pthread_mutex_destroy(pthread_mutex_t *__restrict mutex)
+os_thread_mutex_destroy(os_thread_mutex_t *__restrict mutex)
 {
 	DeleteCriticalSection(&mutex->lock);
 	return 0;
@@ -155,32 +83,29 @@ pthread_mutex_destroy(pthread_mutex_t *__restrict mutex)
 
 _Use_decl_annotations_
 int
-pthread_mutex_lock(pthread_mutex_t *__restrict mutex)
+os_thread_mutex_lock(os_thread_mutex_t *__restrict mutex)
 {
 	EnterCriticalSection(&mutex->lock);
 
-	if (mutex->attr != PTHREAD_MUTEX_RECURSIVE) {
-		if (mutex->lock.RecursionCount > 1) {
-			LeaveCriticalSection(&mutex->lock);
-			return EBUSY;
-		}
+	if (mutex->lock.RecursionCount > 1) {
+		LeaveCriticalSection(&mutex->lock);
+		/* XXX: fatal() */
+		return EBUSY;
 	}
-
 	return 0;
 }
 
 _Use_decl_annotations_
 int
-pthread_mutex_trylock(pthread_mutex_t *__restrict mutex)
+os_thread_mutex_trylock(os_thread_mutex_t *__restrict mutex)
 {
 	if (TryEnterCriticalSection(&mutex->lock) == FALSE)
 		return EBUSY;
 
-	if (mutex->attr != PTHREAD_MUTEX_RECURSIVE) {
-		if (mutex->lock.RecursionCount > 1) {
-			LeaveCriticalSection(&mutex->lock);
-			return EBUSY;
-		}
+	if (mutex->lock.RecursionCount > 1) {
+		LeaveCriticalSection(&mutex->lock);
+		/* XXX: fatal() */
+		return EBUSY;
 	}
 
 	return 0;
@@ -188,34 +113,28 @@ pthread_mutex_trylock(pthread_mutex_t *__restrict mutex)
 
 /* XXX - non POSIX */
 int
-pthread_mutex_timedlock(pthread_mutex_t *__restrict mutex,
+os_thread_mutex_timedlock(os_thread_mutex_t *__restrict mutex,
 	const struct timespec *abstime)
 {
-	TIMED_LOCK((pthread_mutex_trylock(mutex) == 0), abstime);
+	TIMED_LOCK((os_thread_mutex_trylock(mutex) == 0), abstime);
 }
 
 int
-pthread_mutex_unlock(pthread_mutex_t *__restrict mutex)
+os_thread_mutex_unlock(os_thread_mutex_t *__restrict mutex)
 {
 	LeaveCriticalSection(&mutex->lock);
 	return 0;
 }
 
 int
-pthread_rwlock_init(pthread_rwlock_t *__restrict rwlock,
-	const pthread_rwlockattr_t *__restrict attr)
+os_thread_rwlock_init(os_thread_rwlock_t *__restrict rwlock)
 {
-	if (attr)
-		rwlock->attr = *attr;
-	else
-		rwlock->attr = PTHREAD_RWLOCK_DEFAULT;
-
 	InitializeSRWLock(&rwlock->lock);
 	return 0;
 }
 
 int
-pthread_rwlock_destroy(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_destroy(os_thread_rwlock_t *__restrict rwlock)
 {
 	/* do nothing */
 	(void) rwlock;
@@ -224,7 +143,7 @@ pthread_rwlock_destroy(pthread_rwlock_t *__restrict rwlock)
 }
 
 int
-pthread_rwlock_rdlock(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_rdlock(os_thread_rwlock_t *__restrict rwlock)
 {
 	AcquireSRWLockShared(&rwlock->lock);
 	rwlock->is_write = 0;
@@ -232,7 +151,7 @@ pthread_rwlock_rdlock(pthread_rwlock_t *__restrict rwlock)
 }
 
 int
-pthread_rwlock_wrlock(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_wrlock(os_thread_rwlock_t *__restrict rwlock)
 {
 	AcquireSRWLockExclusive(&rwlock->lock);
 	rwlock->is_write = 1;
@@ -240,7 +159,7 @@ pthread_rwlock_wrlock(pthread_rwlock_t *__restrict rwlock)
 }
 
 int
-pthread_rwlock_tryrdlock(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_tryrdlock(os_thread_rwlock_t *__restrict rwlock)
 {
 	if (TryAcquireSRWLockShared(&rwlock->lock) == FALSE) {
 		return EBUSY;
@@ -252,7 +171,7 @@ pthread_rwlock_tryrdlock(pthread_rwlock_t *__restrict rwlock)
 
 _Use_decl_annotations_
 int
-pthread_rwlock_trywrlock(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_trywrlock(os_thread_rwlock_t *__restrict rwlock)
 {
 	if (TryAcquireSRWLockExclusive(&rwlock->lock) == FALSE) {
 		return EBUSY;
@@ -263,22 +182,22 @@ pthread_rwlock_trywrlock(pthread_rwlock_t *__restrict rwlock)
 }
 
 int
-pthread_rwlock_timedrdlock(pthread_rwlock_t *__restrict rwlock,
+os_thread_rwlock_timedrdlock(os_thread_rwlock_t *__restrict rwlock,
 	const struct timespec *abstime)
 {
-	TIMED_LOCK((pthread_rwlock_tryrdlock(rwlock) == 0), abstime);
+	TIMED_LOCK((os_thread_rwlock_tryrdlock(rwlock) == 0), abstime);
 }
 
 int
-pthread_rwlock_timedwrlock(pthread_rwlock_t *__restrict rwlock,
+os_thread_rwlock_timedwrlock(os_thread_rwlock_t *__restrict rwlock,
 	const struct timespec *abstime)
 {
-	TIMED_LOCK((pthread_rwlock_trywrlock(rwlock) == 0), abstime);
+	TIMED_LOCK((os_thread_rwlock_trywrlock(rwlock) == 0), abstime);
 }
 
 _Use_decl_annotations_
 int
-pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock)
+os_thread_rwlock_unlock(os_thread_rwlock_t *__restrict rwlock)
 {
 	if (rwlock->is_write)
 		ReleaseSRWLockExclusive(&rwlock->lock);
@@ -288,35 +207,30 @@ pthread_rwlock_unlock(pthread_rwlock_t *__restrict rwlock)
 }
 
 int
-pthread_cond_init(pthread_cond_t *__restrict cond,
-	const pthread_condattr_t *__restrict attr)
+os_thread_cond_init(os_thread_cond_t *__restrict cond)
 {
-	/* XXX - not supported yet */
-	if (attr)
-		return EINVAL;
-
 	InitializeConditionVariable(&cond->cond);
 	return 0;
 }
 
 int
-pthread_cond_destroy(pthread_cond_t *__restrict cond)
+os_thread_cond_destroy(os_thread_cond_t *__restrict cond)
 {
 	/* do nothing */
-	(void) cond;
+	UNREFERENCED_PARAMETER(cond);
 
 	return 0;
 }
 
 int
-pthread_cond_broadcast(pthread_cond_t *__restrict cond)
+os_thread_cond_broadcast(os_thread_cond_t *__restrict cond)
 {
 	WakeAllConditionVariable(&cond->cond);
 	return 0;
 }
 
 int
-pthread_cond_signal(pthread_cond_t *__restrict cond)
+os_thread_cond_signal(os_thread_cond_t *__restrict cond)
 {
 	WakeConditionVariable(&cond->cond);
 	return 0;
@@ -337,8 +251,8 @@ get_rel_wait(const struct timespec *abstime)
 }
 
 int
-pthread_cond_timedwait(pthread_cond_t *__restrict cond,
-	pthread_mutex_t *__restrict mutex, const struct timespec *abstime)
+os_thread_cond_timedwait(os_thread_cond_t *__restrict cond,
+	os_thread_mutex_t *__restrict mutex, const struct timespec *abstime)
 {
 	BOOL ret;
 	SetLastError(0);
@@ -351,8 +265,8 @@ pthread_cond_timedwait(pthread_cond_t *__restrict cond,
 }
 
 int
-pthread_cond_wait(pthread_cond_t *__restrict cond,
-	pthread_mutex_t *__restrict mutex)
+os_thread_cond_wait(os_thread_cond_t *__restrict cond,
+	os_thread_mutex_t *__restrict mutex)
 {
 	/* XXX - return error code based on GetLastError() */
 	BOOL ret;
@@ -361,7 +275,7 @@ pthread_cond_wait(pthread_cond_t *__restrict cond,
 }
 
 int
-pthread_once(pthread_once_t *once, void (*func)(void))
+os_thread_once(os_thread_once_t *once, void (*func)(void))
 {
 	if (!_InterlockedCompareExchange(once, 1, 0))
 		func();
@@ -369,7 +283,7 @@ pthread_once(pthread_once_t *once, void (*func)(void))
 }
 
 int
-pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
+os_thread_key_create(os_thread_key_t *key, void (*destructor)(void *))
 {
 	/* XXX - destructor not supported */
 
@@ -382,7 +296,7 @@ pthread_key_create(pthread_key_t *key, void (*destructor)(void *))
 }
 
 int
-pthread_key_delete(pthread_key_t key)
+os_thread_key_delete(os_thread_key_t key)
 {
 	/* XXX - destructor not supported */
 
@@ -392,7 +306,7 @@ pthread_key_delete(pthread_key_t key)
 }
 
 int
-pthread_setspecific(pthread_key_t key, const void *value)
+os_thread_setspecific(os_thread_key_t key, const void *value)
 {
 	if (!TlsSetValue(key, (LPVOID)value))
 		return ENOENT;
@@ -400,25 +314,25 @@ pthread_setspecific(pthread_key_t key, const void *value)
 }
 
 void *
-pthread_getspecific(pthread_key_t key)
+os_thread_getspecific(os_thread_key_t key)
 {
 	return TlsGetValue(key);
 }
 
 /* threading */
-pthread_once_t Pthread_self_index_initialized;
+os_thread_once_t Pthread_self_index_initialized;
 DWORD Pthread_self_index;
 
 /*
- * pthread_init is called once before the first POSIX thread is spawned i.e.
+ * os_thread_init is called once before the first POSIX thread is spawned i.e.
  * before the start_routine of the first POSIX thread is executed.  Here
  * we make sure:
  *
  *  - we have an entry allocated in thread local storage, where we will store
- *    the address of the pthread_v structure for each thread
+ *    the address of the os_thread_v structure for each thread
  */
 void
-pthread_init(void)
+os_thread_init(void)
 {
 	Pthread_self_index = TlsAlloc();
 	if (Pthread_self_index == TLS_OUT_OF_INDEXES)
@@ -426,18 +340,18 @@ pthread_init(void)
 }
 
 /*
- * pthread_start_routine_wrapper is a start routine for _beginthreadex() and
+ * os_thread_start_routine_wrapper is a start routine for _beginthreadex() and
  * it helps:
  *
- *  - wrap the pthread_create's start function
+ *  - wrap the os_thread_create's start function
  *  - do the necessary initialization for POSIX threading implementation
  */
 unsigned __stdcall
-pthread_start_routine_wrapper(void *arg)
+os_thread_start_routine_wrapper(void *arg)
 {
-	pthread_t thread_info = (pthread_info *)arg;
+	os_thread_t thread_info = (os_thread_t)arg;
 
-	pthread_once(&Pthread_self_index_initialized, pthread_init);
+	os_thread_once(&Pthread_self_index_initialized, os_thread_init);
 	TlsSetValue(Pthread_self_index, thread_info);
 
 	thread_info->result = thread_info->start_routine(thread_info->arg);
@@ -446,21 +360,21 @@ pthread_start_routine_wrapper(void *arg)
 }
 
 int
-pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 	void *(*start_routine)(void *), void *arg)
 {
-	pthread_info *thread_info;
+	os_thread_info *thread_info;
 
 	ASSERT(attr == NULL);
 
-	if ((thread_info = malloc(sizeof(pthread_info))) == NULL)
+	if ((thread_info = malloc(sizeof(os_thread_info))) == NULL)
 		return EAGAIN;
 
 	thread_info->start_routine = start_routine;
 	thread_info->arg = arg;
 
 	thread_info->thread_handle = (HANDLE)_beginthreadex(NULL, 0,
-		pthread_start_routine_wrapper, thread_info, CREATE_SUSPENDED,
+		os_thread_start_routine_wrapper, thread_info, CREATE_SUSPENDED,
 		NULL);
 	if (thread_info->thread_handle == 0) {
 		free(thread_info);
@@ -472,13 +386,13 @@ pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 		return EAGAIN;
 	}
 
-	*thread = (pthread_t)thread_info;
+	*thread = (os_thread_t)thread_info;
 
 	return 0;
 }
 
 int
-pthread_join(pthread_t thread, void **result)
+os_thread_join(os_thread_t thread, void **result)
 {
 	WaitForSingleObject(thread->thread_handle, INFINITE);
 	CloseHandle(thread->thread_handle);
@@ -492,21 +406,21 @@ pthread_join(pthread_t thread, void **result)
 }
 
 void
-CPU_ZERO(cpu_set_t *set)
+OS_CPU_ZERO(os_cpu_set_t *set)
 {
 	memset(set, 0, sizeof(*set));
 }
 
 void
-CPU_SET(int cpu, cpu_set_t *set)
+OS_CPU_SET(int cpu, os_cpu_set_t *set)
 {
 	ASSERT(cpu < sizeof(*set) * 8);
 	*set |= 1LL << cpu;
 }
 
 int
-pthread_setaffinity_np(pthread_t thread, size_t set_size,
-	const cpu_set_t *set)
+os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
+	const os_cpu_set_t *set)
 {
 	DWORD_PTR result = SetThreadAffinityMask(thread->thread_handle, *set);
 	return result != 0 ? 0 : EINVAL;

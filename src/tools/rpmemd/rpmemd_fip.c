@@ -138,7 +138,7 @@ struct rpmemd_fip {
 	struct fid_mr *pres_mr;		/* persist response memory region */
 	void *pres_mr_desc;		/* persist response local descriptor */
 
-	pthread_t cq_thread;		/* completion queue thread */
+	os_thread_t cq_thread;		/* completion queue thread */
 	struct fi_cq_msg_entry *cq_entries;	/* completion queue entries */
 	struct rpmemd_fip_worker **workers;	/* process workers */
 };
@@ -872,7 +872,7 @@ rpmemd_fip_process_start_gpspm(struct rpmemd_fip *fip)
 	}
 
 	/* create completion queue worker thread */
-	errno = pthread_create(&fip->cq_thread, NULL,
+	errno = os_thread_create(&fip->cq_thread, NULL,
 			rpmemd_fip_cq_thread, fip);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!starting cq thread");
@@ -910,7 +910,7 @@ rpmemd_fip_process_stop_gpspm(struct rpmemd_fip *fip)
 
 	void *tret;
 	int ret;
-	errno = pthread_join(fip->cq_thread, &tret);
+	errno = os_thread_join(fip->cq_thread, &tret);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!joining cq thread");
 		lret = -1;

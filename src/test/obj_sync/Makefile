@@ -38,13 +38,13 @@ TOP = ../../..
 vpath %.c $(TOP)/src/libpmemobj
 
 TARGET = obj_sync
-OBJS = obj_sync.o sync.o
+OBJS = obj_sync.o sync.o mocks_linux.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
 
 include ../Makefile.inc
 
-LDFLAGS += $(call extract_funcs, obj_sync.c)
+LDFLAGS += $(call extract_funcs, mocks_linux.c)
 
 INCS += -I$(TOP)/src/libpmemobj/

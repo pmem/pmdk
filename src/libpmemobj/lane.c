@@ -41,7 +41,6 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <limits.h>
-#include <pthread.h>
 
 #include "libpmemobj.h"
 #include "cuckoo.h"
@@ -49,9 +48,10 @@
 #include "out.h"
 #include "util.h"
 #include "obj.h"
+#include "os.h"
 #include "valgrind_internal.h"
 
-static pthread_key_t Lane_info_key;
+static os_thread_key_t Lane_info_key;
 
 static __thread struct cuckoo *Lane_info_ht;
 static __thread struct lane_info *Lane_info_records;
@@ -108,10 +108,10 @@ lane_info_create(void)
 void
 lane_info_boot(void)
 {
-	int result = pthread_key_create(&Lane_info_key, lane_info_ht_destroy);
+	int result = os_thread_key_create(&Lane_info_key, lane_info_ht_destroy);
 	if (result != 0) {
 		errno = result;
-		FATAL("!pthread_key_create");
+		FATAL("!os_thread_key_create");
 	}
 }
 
@@ -123,10 +123,10 @@ static inline void
 lane_info_ht_boot(void)
 {
 	lane_info_create();
-	int result = pthread_setspecific(Lane_info_key, Lane_info_ht);
+	int result = os_thread_setspecific(Lane_info_key, Lane_info_ht);
 	if (result != 0) {
 		errno = result;
-		FATAL("!pthread_setspecific");
+		FATAL("!os_thread_setspecific");
 	}
 }
 

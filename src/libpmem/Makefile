@@ -39,6 +39,7 @@ SOURCE =\
 	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/os_linux.c\
+	$(COMMON)/os_thread_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_linux.c\

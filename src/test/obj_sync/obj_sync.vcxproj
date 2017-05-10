@@ -67,6 +67,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmemobj\sync.c" />
+    <ClCompile Include="mocks_windows.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WRAP_REAL;NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WRAP_REAL;NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="obj_sync.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
