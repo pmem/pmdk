@@ -59,6 +59,7 @@ struct memset_args {
 	char *mode;	/* operation mode: stat, seq, rand */
 	bool memset;       /* use libc memset function */
 	bool persist;      /* perform persist operation */
+	bool msync;	/* perform msync operation */
 	bool no_warmup;    /* do not do warmup */
 	size_t chunk_size; /* elementary chunk size */
 	size_t dest_off;   /* destination address offset */
@@ -150,19 +151,6 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 }
 
 /*
- * do_warmup -- does the warmup by writing the whole pool area
- */
-static void
-do_warmup(struct memset_bench *mb, size_t nops)
-{
-	void *dest = mb->pmem_addr;
-	int c = mb->const_b;
-	size_t len = mb->fsize;
-
-	pmem_memset_persist(dest, c, len);
-}
-
-/*
  * libpmem_memset_persist -- perform operation using libpmem
  * pmem_memset_persist().
  */
@@ -201,6 +189,18 @@ libc_memset_persist(void *dest, int c, size_t len)
 }
 
 /*
+ * libc_memset_msync -- perform operation using libc memset() function
+ * followed by pmem_msync().
+ */
+static int
+libc_memset_msync(void *dest, int c, size_t len)
+{
+	memset(dest, c, len);
+
+	return pmem_msync(dest, len);
+}
+
+/*
  * libc_memset -- perform operation using libc memset() function
  * followed by pmem_flush().
  */
@@ -212,6 +212,34 @@ libc_memset(void *dest, int c, size_t len)
 	pmem_flush(dest, len);
 
 	return 0;
+}
+
+/*
+ * warmup_persist -- does the warmup by writing the whole pool area
+ */
+static int
+warmup_persist(struct memset_bench *mb)
+{
+	void *dest = mb->pmem_addr;
+	int c = mb->const_b;
+	size_t len = mb->fsize;
+
+	pmem_memset_persist(dest, c, len);
+
+	return 0;
+}
+
+/*
+ * warmup_msync -- does the warmup by writing the whole pool area
+ */
+static int
+warmup_msync(struct memset_bench *mb)
+{
+	void *dest = mb->pmem_addr;
+	int c = mb->const_b;
+	size_t len = mb->fsize;
+
+	return libc_memset_msync(dest, c, len);
 }
 
 /*
@@ -256,6 +284,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t size;
 	size_t large;
 	size_t little;
+	int (*warmup_func)(struct memset_bench *) = warmup_persist;
 	struct memset_bench *mb =
 		(struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
@@ -268,7 +297,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
-		fprintf(stderr, "Invalid operation mode argument '%s'",
+		fprintf(stderr, "Invalid operation mode argument '%s'\n",
 			mb->pargs->mode);
 		ret = -1;
 		goto err_free_mb;
@@ -298,20 +327,39 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_free_offsets;
 	}
 
-	if (mb->pargs->memset)
-		mb->func_op = (mb->pargs->persist) ? libc_memset_persist
-						   : libc_memset;
-	else
+	if (mb->pargs->memset) {
+		if (mb->pargs->persist && mb->pargs->msync) {
+			fprintf(stderr, "Invalid benchmark parameters: "
+					"persist and msync cannot be specified "
+					"together\n");
+			ret = -1;
+			goto err_free_offsets;
+		}
+
+		if (mb->pargs->persist) {
+			mb->func_op = libc_memset_persist;
+		} else if (mb->pargs->msync) {
+			mb->func_op = libc_memset_msync;
+			warmup_func = warmup_msync;
+		} else {
+			mb->func_op = libc_memset;
+		}
+	} else {
 		mb->func_op = (mb->pargs->persist) ? libpmem_memset_persist
 						   : libpmem_memset_nodrain;
+	}
 
 	if (!mb->pargs->no_warmup) {
-		do_warmup(mb, args->n_threads * args->n_ops_per_thread);
+		ret = warmup_func(mb);
+		if (ret) {
+			perror("Pool warmup failed");
+			goto err_free_offsets;
+		}
 	}
 
 	pmembench_set_priv(bench, mb);
 
-	return 0;
+	return ret;
 
 err_free_offsets:
 	free(mb->offsets);
@@ -335,7 +383,7 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_clo memset_clo[6];
+static struct benchmark_clo memset_clo[7];
 /* Stores information about benchmark. */
 static struct benchmark_info memset_info;
 CONSTRUCTOR(pmem_memset_costructor)
@@ -394,6 +442,13 @@ pmem_memset_costructor(void)
 	memset_clo[5].type_uint.base = CLO_INT_BASE_DEC;
 	memset_clo[5].type_uint.min = 1;
 	memset_clo[5].type_uint.max = UINT_MAX;
+
+	memset_clo[6].opt_short = 's';
+	memset_clo[6].opt_long = "msync";
+	memset_clo[6].descr = "Use pmem_msync()";
+	memset_clo[6].def = "false";
+	memset_clo[6].off = clo_field_offset(struct memset_args, msync);
+	memset_clo[6].type = CLO_TYPE_FLAG;
 
 	memset_info.name = "pmem_memset";
 	memset_info.brief = "Benchmark for pmem_memset_persist() "
