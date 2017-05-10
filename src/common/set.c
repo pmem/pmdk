@@ -314,8 +314,10 @@ util_replica_force_page_allocation(struct pool_replica *rep)
 {
 	volatile char *cur_addr = rep->part[0].addr;
 	char *addr_end = (char *)cur_addr + rep->part[0].size;
-	for (; cur_addr < addr_end; cur_addr += Pagesize)
+	for (; cur_addr < addr_end; cur_addr += Pagesize) {
 		*cur_addr = *cur_addr;
+		VALGRIND_SET_CLEAN(cur_addr, 1);
+	}
 }
 
 /*
