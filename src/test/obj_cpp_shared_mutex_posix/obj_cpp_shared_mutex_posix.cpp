@@ -157,7 +157,7 @@ void
 mutex_test(nvobj::pool<root> &pop, Worker writer, Worker reader)
 {
 	const int total_threads = num_threads * 2;
-	pthread_t threads[total_threads];
+	os_thread_t threads[total_threads];
 
 	auto proot = pop.get_root();
 

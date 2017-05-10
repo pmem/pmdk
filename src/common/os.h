@@ -44,6 +44,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "os_thread.h"
 
 struct iovec;
 
@@ -83,15 +84,6 @@ int os_unsetenv(const char *name);
 int os_setenv(const char *name, const char *value, int overwrite);
 char *os_getenv(const char *name);
 const char *os_strsignal(int sig);
-
-struct os_semaphore;
-
-struct os_semaphore *os_semaphore_new(unsigned value);
-void os_semaphore_delete(struct os_semaphore *sem);
-
-void os_semaphore_wait(struct os_semaphore *sem);
-int os_semaphore_trywait(struct os_semaphore *sem);
-void os_semaphore_post(struct os_semaphore *sem);
 
 /*
  * XXX: missing APis (used in ut_file.c)

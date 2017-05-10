@@ -371,7 +371,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 			buff[i] = rand();
 	}
 
-	pthread_t *threads = MALLOC(nthreads * sizeof(*threads));
+	os_thread_t *threads = MALLOC(nthreads * sizeof(*threads));
 	struct thread_arg *args = MALLOC(nthreads * sizeof(*args));
 	size_t size_per_thread = buff_size / nthreads;
 	UT_ASSERTeq(buff_size % nthreads, 0);

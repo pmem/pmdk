@@ -36,7 +36,6 @@
  * It checks that objects are removed from transactions before on abort/commit
  * phase.
  */
-#include <pthread.h>
 #include "unittest.h"
 
 #define THREADS 8
@@ -44,7 +43,7 @@
 
 static PMEMobjpool *pop;
 static PMEMoid tab;
-static pthread_mutex_t mtx;
+static os_mutex_t mtx;
 
 static void *
 tx_alloc_free(void *arg)
@@ -53,28 +52,28 @@ tx_alloc_free(void *arg)
 	for (int i = 0; i < LOOPS; ++i) {
 		locked = 0;
 		TX_BEGIN(pop) {
-			pthread_mutex_lock(&mtx);
+			os_mutex_lock(&mtx);
 			locked = 1;
 			tab = pmemobj_tx_alloc(128, 1);
 		} TX_ONCOMMIT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_END
 		locked = 0;
 		TX_BEGIN(pop) {
-			pthread_mutex_lock(&mtx);
+			os_mutex_lock(&mtx);
 			locked = 1;
 			pmemobj_tx_free(tab);
 			tab = OID_NULL;
 		} TX_ONCOMMIT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_END
 	}
 	return NULL;
@@ -87,16 +86,16 @@ tx_snap(void *arg)
 	for (int i = 0; i < LOOPS; ++i) {
 		locked = 0;
 		TX_BEGIN(pop) {
-			pthread_mutex_lock(&mtx);
+			os_mutex_lock(&mtx);
 			locked = 1;
 			if (!OID_IS_NULL(tab))
 				pmemobj_tx_add_range(tab, 0, 8);
 		} TX_ONCOMMIT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				pthread_mutex_unlock(&mtx);
+				os_mutex_unlock(&mtx);
 		} TX_END
 		locked = 0;
 	}
@@ -109,7 +108,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_mt");
 
-	pthread_mutex_init(&mtx, NULL);
+	os_mutex_init(&mtx);
 
 	if (argc != 2)
 		UT_FATAL("usage: %s [file]", argv[0]);
@@ -119,7 +118,7 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create");
 
 	int i = 0;
-	pthread_t *threads = MALLOC(THREADS * sizeof(threads[0]));
+	os_thread_t *threads = MALLOC(THREADS * sizeof(threads[0]));
 
 	for (int j = 0; j < THREADS / 2; ++j) {
 		PTHREAD_CREATE(&threads[i++], NULL, tx_alloc_free, NULL);
@@ -131,7 +130,7 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
-	pthread_mutex_destroy(&mtx);
+	os_mutex_destroy(&mtx);
 
 	FREE(threads);
 

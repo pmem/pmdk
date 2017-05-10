@@ -171,7 +171,7 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMmutex) !=
 		util_alignof(PMEMmutex_internal));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMmutex) !=
-		util_alignof(pthread_mutex_t));
+		util_alignof(os_mutex_t));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMmutex) !=
 		util_alignof(uint64_t));
 
@@ -179,7 +179,7 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMrwlock) !=
 		util_alignof(PMEMrwlock_internal));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMrwlock) !=
-		util_alignof(pthread_rwlock_t));
+		util_alignof(os_rwlock_t));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMrwlock) !=
 		util_alignof(uint64_t));
 
@@ -187,7 +187,7 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMcond) !=
 		util_alignof(PMEMcond_internal));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMcond) !=
-		util_alignof(pthread_cond_t));
+		util_alignof(os_cond_t));
 	UT_COMPILE_ERROR_ON(util_alignof(PMEMcond) !=
 		util_alignof(uint64_t));
 

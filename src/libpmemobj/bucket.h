@@ -37,7 +37,6 @@
 #ifndef LIBPMEMOBJ_BUCKET_H
 #define LIBPMEMOBJ_BUCKET_H 1
 
-#include <pthread.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -48,7 +47,7 @@
 (_size == 0 ? 0 : (uint32_t)(((_size - 1) / _unit_size) + 1))
 
 struct bucket {
-	pthread_mutex_t lock;
+	os_mutex_t lock;
 
 	struct alloc_class *aclass;
 

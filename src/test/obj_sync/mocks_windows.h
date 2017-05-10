@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@
  */
 
 #ifndef WRAP_REAL
-#define pthread_mutex_init __wrap_pthread_mutex_init
-#define pthread_rwlock_init __wrap_pthread_rwlock_init
-#define pthread_cond_init __wrap_pthread_cond_init
+#define os_mutex_init __wrap_os_mutex_init
+#define os_rwlock_init __wrap_os_rwlock_init
+#define os_cond_init __wrap_os_cond_init
 #endif
