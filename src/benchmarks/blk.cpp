@@ -44,7 +44,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
-#include <pthread.h>
 #include <unistd.h>
 
 struct blk_bench;

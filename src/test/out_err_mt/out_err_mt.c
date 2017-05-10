@@ -133,7 +133,7 @@ do_test(void *arg)
 static void
 run_mt_test(void *(*worker)(void *))
 {
-	pthread_t thread[NUM_THREADS];
+	os_thread_t thread[NUM_THREADS];
 	int ver[NUM_THREADS];
 
 	for (int i = 0; i < NUM_THREADS; ++i) {

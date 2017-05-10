@@ -139,7 +139,7 @@ template <typename Worker>
 void
 mutex_test(nvobj::pool<struct root> &pop, Worker function)
 {
-	pthread_t threads[num_threads];
+	os_thread_t threads[num_threads];
 
 	nvobj::persistent_ptr<struct root> proot = pop.get_root();
 

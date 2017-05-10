@@ -43,7 +43,6 @@
 #include <errno.h>
 #include <time.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <endian.h>
 
 #include "libpmem.h"
@@ -340,7 +339,7 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 
 	/* things free by "goto err" if not NULL */
 	struct btt *bttp = NULL;
-	pthread_mutex_t *locks = NULL;
+	os_mutex_t *locks = NULL;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.poolset_uuid,
 			(unsigned)ncpus * 2, pbp, &ns_cb);
@@ -358,13 +357,13 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	}
 
 	for (unsigned i = 0; i < pbp->nlane; i++)
-		util_mutex_init(&locks[i], NULL);
+		util_mutex_init(&locks[i]);
 
 	pbp->locks = locks;
 
 #ifdef DEBUG
 	/* initialize debug lock */
-	util_mutex_init(&pbp->write_lock, NULL);
+	util_mutex_init(&pbp->write_lock);
 #endif
 
 	/*
@@ -622,13 +621,13 @@ pmemblk_close(PMEMblkpool *pbp)
 	btt_fini(pbp->bttp);
 	if (pbp->locks) {
 		for (unsigned i = 0; i < pbp->nlane; i++)
-			pthread_mutex_destroy(&pbp->locks[i]);
+			os_mutex_destroy(&pbp->locks[i]);
 		Free((void *)pbp->locks);
 	}
 
 #ifdef DEBUG
 	/* destroy debug lock */
-	pthread_mutex_destroy(&pbp->write_lock);
+	os_mutex_destroy(&pbp->write_lock);
 #endif
 
 	util_poolset_close(pbp->set, DO_NOT_DELETE_PARTS);

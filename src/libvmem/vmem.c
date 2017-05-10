@@ -40,7 +40,6 @@
 #include <sys/param.h>
 #include <errno.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <wchar.h>
@@ -57,7 +56,7 @@
  * private to this file...
  */
 static size_t Header_size;
-static pthread_mutex_t Vmem_init_lock;
+static os_mutex_t Vmem_init_lock;
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
  *
@@ -125,7 +124,7 @@ ATTR_CONSTRUCTOR
 void
 vmem_construct(void)
 {
-	pthread_mutex_init(&Vmem_init_lock, NULL);
+	os_mutex_init(&Vmem_init_lock);
 	vmem_init();
 }
 
@@ -139,7 +138,7 @@ void
 vmem_fini(void)
 {
 	LOG(3, NULL);
-	pthread_mutex_destroy(&Vmem_init_lock);
+	os_mutex_destroy(&Vmem_init_lock);
 	common_fini();
 }
 
