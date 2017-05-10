@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\libpmemobj\sync.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mocks_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST4.PS1">

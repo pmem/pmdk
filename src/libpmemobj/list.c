@@ -37,6 +37,7 @@
 
 #include "list.h"
 #include "obj.h"
+#include "os_thread.h"
 #include "out.h"
 #include "sync.h"
 #include "valgrind_internal.h"

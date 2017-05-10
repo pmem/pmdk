@@ -33,12 +33,11 @@
 /*
  * obj_sync.c -- unit test for PMEM-resident locks
  */
-#include <pthread.h>
-
 #include "obj.h"
 #include "sync.h"
 #include "unittest.h"
 #include "util.h"
+#include "os.h"
 
 #define MAX_THREAD_NUM 200
 
@@ -67,36 +66,6 @@ static struct mock_obj {
 	int check_data;
 	uint8_t data[DATA_SIZE];
 } *Test_obj;
-
-FUNC_MOCK(pthread_mutex_init, int,
-		pthread_mutex_t *__restrict mutex,
-		const pthread_mutexattr_t *__restrict attr)
-
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
-	FUNC_MOCK_RUN(1) {
-		return -1;
-	}
-FUNC_MOCK_END
-
-FUNC_MOCK(pthread_rwlock_init, int,
-		pthread_rwlock_t *__restrict rwlock,
-		const pthread_rwlockattr_t *__restrict attr)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_rwlock_init, rwlock, attr)
-	FUNC_MOCK_RUN(1) {
-		return -1;
-	}
-FUNC_MOCK_END
-
-FUNC_MOCK(pthread_cond_init, int,
-		pthread_cond_t *__restrict cond,
-		const pthread_condattr_t *__restrict attr)
-	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_cond_init, cond, attr)
-	FUNC_MOCK_RUN(1) {
-		return -1;
-	}
-FUNC_MOCK_END
-
-
 
 PMEMobjpool *
 pmemobj_pool_by_ptr(const void *arg)
@@ -328,23 +297,23 @@ cleanup(char test_type)
 {
 	switch (test_type) {
 		case 'm':
-			pthread_mutex_destroy(&((PMEMmutex_internal *)
+			os_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->pmemmutex.mutex);
 			break;
 		case 'r':
-			pthread_rwlock_destroy(&((PMEMrwlock_internal *)
+			os_rwlock_destroy(&((PMEMrwlock_internal *)
 				&(Test_obj->rwlock))->pmemrwlock.rwlock);
 			break;
 		case 'c':
-			pthread_mutex_destroy(&((PMEMmutex_internal *)
+			os_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->pmemmutex.mutex);
-			pthread_cond_destroy(&((PMEMcond_internal *)
+			os_cond_destroy(&((PMEMcond_internal *)
 				&(Test_obj->cond))->pmemcond.cond);
 			break;
 		case 't':
-			pthread_mutex_destroy(&((PMEMmutex_internal *)
+			os_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->pmemmutex.mutex);
-			pthread_mutex_destroy(&((PMEMmutex_internal *)
+			os_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex_locked))->pmemmutex.mutex);
 			break;
 		default:
@@ -402,10 +371,10 @@ main(int argc, char *argv[])
 	if (opens > MAX_OPENS)
 		UT_FATAL("Do not use more than %d runs.\n", MAX_OPENS);
 
-	pthread_t *write_threads
-		= (pthread_t *)MALLOC(num_threads * sizeof(pthread_t));
-	pthread_t *check_threads
-		= (pthread_t *)MALLOC(num_threads * sizeof(pthread_t));
+	os_thread_t *write_threads
+		= (os_thread_t *)MALLOC(num_threads * sizeof(os_thread_t));
+	os_thread_t *check_threads
+		= (os_thread_t *)MALLOC(num_threads * sizeof(os_thread_t));
 
 	/* first pool open */
 	mock_open_pool(&Mock_pop);

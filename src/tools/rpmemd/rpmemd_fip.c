@@ -39,10 +39,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include <pthread.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <pthread.h>
 
 #include <rdma/fabric.h>
 #include <rdma/fi_domain.h>
@@ -58,6 +56,7 @@
 #include "rpmem_fip_common.h"
 #include "rpmemd_fip.h"
 
+#include "os_thread.h"
 #include "util.h"
 #include "valgrind_internal.h"
 
@@ -119,7 +118,7 @@ struct rpmemd_fip_ops {
 
 struct rpmemd_fip_worker {
 	struct rpmemd_fip *fip;
-	pthread_t thread;
+	os_thread_t thread;
 	struct rpmemd_fip_lane *lanep;
 };
 
@@ -883,16 +882,16 @@ rpmemd_fip_process_start_gpspm(struct rpmemd_fip *fip)
 	for (i = 0; i < fip->nlanes; i++) {
 		fip->workers[i].fip = fip;
 		fip->workers[i].lanep = &fip->lanes[i];
-		errno = pthread_create(&fip->workers[i].thread, NULL,
+		errno = os_thread_create(&fip->workers[i].thread, NULL,
 				rpmemd_fip_worker, &fip->workers[i]);
 		if (errno) {
 			RPMEMD_ERR("!running worker thread");
-			goto err_pthread_create;
+			goto err_thread_create;
 		}
 	}
 
 	return 0;
-err_pthread_create:
+err_thread_create:
 	free(fip->workers);
 err_alloc_workers:
 	return -1;
@@ -917,7 +916,7 @@ rpmemd_fip_process_stop_gpspm(struct rpmemd_fip *fip)
 			lret = ret;
 		}
 		void *tret;
-		errno = pthread_join(worker->thread, &tret);
+		errno = os_thread_join(worker->thread, &tret);
 		if (errno) {
 			RPMEMD_LOG(ERR, "!joining cq thread");
 			lret = -1;

@@ -183,7 +183,7 @@ static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
 unsigned long long Ut_mmap_align;
-pthread_mutex_t Sigactions_lock;
+os_mutex_t Sigactions_lock;
 
 /*
  * flags that control output
@@ -676,7 +676,7 @@ ut_start_common(const char *file, int line, const char *func,
 		/* disable windows error message boxes */
 		ut_suppress_errmsg();
 	}
-	pthread_mutex_init(&Sigactions_lock, NULL);
+	os_mutex_init(&Sigactions_lock);
 #else
 	Ut_mmap_align = Ut_pagesize;
 #endif
@@ -785,7 +785,7 @@ ut_done(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
 #ifdef _WIN32
-	pthread_mutex_destroy(&Sigactions_lock);
+	os_mutex_destroy(&Sigactions_lock);
 #endif
 	va_list ap;
 

@@ -37,7 +37,6 @@
 #define _GNU_SOURCE
 #endif
 
-#include <pthread.h>
 #include <errno.h>
 #include <inttypes.h>
 
@@ -325,10 +324,10 @@ test_lane_info_destroy_in_separate_thread(void)
 
 	struct thread_data data;
 	data.work = LANE_INFO_DESTROY;
-	pthread_t thread;
+	os_thread_t thread;
 
-	pthread_create(&thread, NULL, test_separate_thread, &data);
-	pthread_join(thread, NULL);
+	os_thread_create(&thread, NULL, test_separate_thread, &data);
+	os_thread_join(thread, NULL);
 
 	lane_info_destroy();
 }
@@ -361,10 +360,10 @@ test_lane_cleanup_in_separate_thread(void)
 
 	struct thread_data data;
 	data.work = LANE_CLEANUP;
-	pthread_t thread;
+	os_thread_t thread;
 
-	pthread_create(&thread, NULL, test_separate_thread, &data);
-	pthread_join(thread, NULL);
+	os_thread_create(&thread, NULL, test_separate_thread, &data);
+	os_thread_join(thread, NULL);
 
 	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
 	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);

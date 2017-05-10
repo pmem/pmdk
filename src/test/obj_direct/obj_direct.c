@@ -40,10 +40,10 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-static pthread_mutex_t lock1;
-static pthread_mutex_t lock2;
-static pthread_cond_t sync_cond1;
-static pthread_cond_t sync_cond2;
+static os_mutex_t lock1;
+static os_mutex_t lock2;
+static os_cond_t sync_cond1;
+static os_cond_t sync_cond2;
 static int cond1;
 static int cond2;
 static PMEMoid thread_oid;
@@ -62,16 +62,16 @@ test_worker(void *arg)
 {
 	/* check before pool is closed, then let main continue */
 	UT_ASSERTne(obj_direct(thread_oid), NULL);
-	pthread_mutex_lock(&lock1);
+	os_mutex_lock(&lock1);
 	cond1 = 1;
-	pthread_cond_signal(&sync_cond1);
-	pthread_mutex_unlock(&lock1);
+	os_cond_signal(&sync_cond1);
+	os_mutex_unlock(&lock1);
 
 	/* wait for main thread to free & close, then check */
-	pthread_mutex_lock(&lock2);
+	os_mutex_lock(&lock2);
 	while (!cond2)
-		pthread_cond_wait(&sync_cond2, &lock2);
-	pthread_mutex_unlock(&lock2);
+		os_cond_wait(&sync_cond2, &lock2);
+	os_mutex_unlock(&lock2);
 	UT_ASSERTeq(obj_direct(thread_oid), NULL);
 	return NULL;
 }
@@ -88,10 +88,10 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	pthread_mutex_init(&lock1, NULL);
-	pthread_mutex_init(&lock2, NULL);
-	pthread_cond_init(&sync_cond1, NULL);
-	pthread_cond_init(&sync_cond2, NULL);
+	os_mutex_init(&lock1);
+	os_mutex_init(&lock2);
+	os_cond_init(&sync_cond1);
+	os_cond_init(&sync_cond2);
 	cond1 = cond2 = 0;
 
 	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
@@ -134,14 +134,14 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(r, 0);
 	UT_ASSERTne(obj_direct(thread_oid), NULL);
 
-	pthread_t t;
+	os_thread_t t;
 	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the worker thread to perform the first check */
-	pthread_mutex_lock(&lock1);
+	os_mutex_lock(&lock1);
 	while (!cond1)
-		pthread_cond_wait(&sync_cond1, &lock1);
-	pthread_mutex_unlock(&lock1);
+		os_cond_wait(&sync_cond1, &lock1);
+	os_mutex_unlock(&lock1);
 
 	for (int i = 0; i < npools; ++i) {
 		UT_ASSERTne(obj_direct(tmpoids[i]), NULL);
@@ -154,16 +154,16 @@ main(int argc, char *argv[])
 	}
 
 	/* signal the worker that we're free and closed */
-	pthread_mutex_lock(&lock2);
+	os_mutex_lock(&lock2);
 	cond2 = 1;
-	pthread_cond_signal(&sync_cond2);
-	pthread_mutex_unlock(&lock2);
+	os_cond_signal(&sync_cond2);
+	os_mutex_unlock(&lock2);
 
 	PTHREAD_JOIN(t, NULL);
-	pthread_cond_destroy(&sync_cond1);
-	pthread_cond_destroy(&sync_cond2);
-	pthread_mutex_destroy(&lock1);
-	pthread_mutex_destroy(&lock2);
+	os_cond_destroy(&sync_cond1);
+	os_cond_destroy(&sync_cond2);
+	os_mutex_destroy(&lock1);
+	os_mutex_destroy(&lock2);
 	FREE(pops);
 	FREE(tmpoids);
 	FREE(oids);

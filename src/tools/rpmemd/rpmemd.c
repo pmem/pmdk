@@ -40,7 +40,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <pthread.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -53,6 +52,7 @@
 #include "rpmemd_db.h"
 #include "pool_hdr.h"
 #include "os.h"
+#include "os_thread.h"
 #include "util.h"
 #include "uuid.h"
 
@@ -71,7 +71,7 @@ struct rpmemd {
 	void (*persist)(const void *addr, size_t len); /* used for GPSPM */
 	int closing;		/* set when closing connection */
 	int created;		/* pool created */
-	pthread_t fip_thread;
+	os_thread_t fip_thread;
 	int fip_running;
 };
 
@@ -303,17 +303,17 @@ err_accept:
 static int
 rpmemd_fip_start_thread(struct rpmemd *rpmemd)
 {
-	errno = pthread_create(&rpmemd->fip_thread, NULL,
+	errno = os_thread_create(&rpmemd->fip_thread, NULL,
 			rpmemd_fip_thread, rpmemd);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!creating in-band thread");
-		goto err_pthread_create;
+		goto err_os_thread_create;
 	}
 
 	rpmemd->fip_running = 1;
 
 	return 0;
-err_pthread_create:
+err_os_thread_create:
 	return -1;
 }
 
@@ -325,7 +325,7 @@ rpmemd_fip_stop_thread(struct rpmemd *rpmemd)
 {
 	RPMEMD_ASSERT(rpmemd->fip_running);
 	void *tret;
-	errno = pthread_join(rpmemd->fip_thread, &tret);
+	errno = os_thread_join(rpmemd->fip_thread, &tret);
 	if (errno)
 		RPMEMD_LOG(ERR, "!waiting for in-band thread");
 

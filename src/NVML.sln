@@ -493,6 +493,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{9A84
 		include\pmemcompat.h = include\pmemcompat.h
 		windows\include\pthread.h = windows\include\pthread.h
 		windows\include\sys\queue.h = windows\include\sys\queue.h
+		windows\include\sched.h = windows\include\sched.h
 		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
 		windows\include\strings.h = windows\include\strings.h
 		windows\include\sys\uio.h = windows\include\sys\uio.h

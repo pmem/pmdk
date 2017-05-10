@@ -48,7 +48,7 @@
  * separate bit.
  */
 struct rpmem_fip_lane {
-	pthread_spinlock_t lock;
+	os_spinlock_t lock;
 	int ret;
 	uint64_t sync;
 };

@@ -34,7 +34,6 @@
  * obj_pvector.c -- unit test for pvector
  */
 #include <stdint.h>
-#include <pthread.h>
 
 #include "libpmemobj.h"
 #include "pvector.h"

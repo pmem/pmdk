@@ -58,7 +58,7 @@
  * struct rpmemd_db -- pool set database structure
  */
 struct rpmemd_db {
-	pthread_mutex_t lock;
+	os_mutex_t lock;
 	char *root_dir;
 	mode_t mode;
 };
@@ -104,7 +104,7 @@ rpmemd_db_init(const char *root_dir, mode_t mode)
 
 	db->mode = mode;
 
-	util_mutex_init(&db->lock, NULL);
+	util_mutex_init(&db->lock);
 
 	return db;
 }

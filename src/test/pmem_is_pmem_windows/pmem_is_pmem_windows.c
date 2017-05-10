@@ -217,7 +217,7 @@ main(int argc, char *argv[])
 	CloseHandle(file_map);
 	CLOSE(fd);
 
-	pthread_t threads[NTHREAD];
+	os_thread_t threads[NTHREAD];
 	int ret[NTHREAD];
 
 	/* kick off NTHREAD threads */

@@ -34,7 +34,6 @@
  * rpmemd_fip_worker.c -- worker thread with ring buffer source file
  */
 #include <stdint.h>
-#include <pthread.h>
 
 #include "rpmemd_log.h"
 #include "rpmemd_fip_ring.h"
@@ -50,9 +49,9 @@ struct rpmemd_fip_worker {
 	volatile int *stop;
 	struct rpmemd_fip *arg;
 	struct rpmemd_fip_ring *ring;
-	pthread_t thread;
-	pthread_cond_t cond;
-	pthread_mutex_t lock;
+	os_thread_t thread;
+	os_cond_t cond;
+	os_mutex_t lock;
 	rpmemd_fip_worker_fn func;
 };
 
@@ -73,7 +72,7 @@ rpmemd_fip_worker_thread_func(void *arg)
 		util_mutex_lock(&worker->lock);
 		while (!(*worker->stop) &&
 			rpmemd_fip_ring_is_empty(worker->ring)) {
-			pthread_cond_wait(&worker->cond, &worker->lock);
+			os_cond_wait(&worker->cond, &worker->lock);
 		}
 
 		void *data = rpmemd_fip_ring_pop(worker->ring);
@@ -120,19 +119,19 @@ rpmemd_fip_worker_init(void *arg, volatile int *stop,
 		goto err_ring;
 	}
 
-	errno = pthread_mutex_init(&worker->lock, NULL);
+	errno = os_mutex_init(&worker->lock);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!creating worker's lock");
 		goto err_lock;
 	}
 
-	errno = pthread_cond_init(&worker->cond, NULL);
+	errno = os_cond_init(&worker->cond);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!creating worker's conditional variable");
 		goto err_cond;
 	}
 
-	errno = pthread_create(&worker->thread, NULL,
+	errno = os_thread_create(&worker->thread, NULL,
 			rpmemd_fip_worker_thread_func, worker);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!creating worker's thread");
@@ -141,9 +140,9 @@ rpmemd_fip_worker_init(void *arg, volatile int *stop,
 
 	return worker;
 err_thread:
-	pthread_cond_destroy(&worker->cond);
+	os_cond_destroy(&worker->cond);
 err_cond:
-	pthread_mutex_destroy(&worker->lock);
+	os_mutex_destroy(&worker->lock);
 err_lock:
 	rpmemd_fip_ring_free(worker->ring);
 err_ring:
@@ -164,7 +163,7 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 
 	__sync_fetch_and_or(worker->stop, 1);
 
-	errno = pthread_cond_signal(&worker->cond);
+	errno = os_cond_signal(&worker->cond);
 	if (errno) {
 		RPMEMD_FATAL("!sending signal to worker");
 	}
@@ -172,7 +171,7 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 	util_mutex_unlock(&worker->lock);
 
 	void *tret;
-	errno = pthread_join(worker->thread, &tret);
+	errno = os_thread_join(worker->thread, &tret);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!joining worker's thread");
 		ret = -1;
@@ -184,13 +183,13 @@ rpmemd_fip_worker_fini(struct rpmemd_fip_worker *worker)
 		}
 	}
 
-	errno = pthread_mutex_destroy(&worker->lock);
+	errno = os_mutex_destroy(&worker->lock);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!destroying worker's lock");
 		ret = -1;
 	}
 
-	errno = pthread_cond_destroy(&worker->cond);
+	errno = os_cond_destroy(&worker->cond);
 	if (errno) {
 		RPMEMD_LOG(ERR, "!destroying worker's conditional variable");
 		ret = -1;
@@ -216,7 +215,7 @@ rpmemd_fip_worker_push(struct rpmemd_fip_worker *worker, void *data)
 	if (ret)
 		goto unlock;
 
-	errno = pthread_cond_signal(&worker->cond);
+	errno = os_cond_signal(&worker->cond);
 	if (errno) {
 		ret = -1;
 	}
