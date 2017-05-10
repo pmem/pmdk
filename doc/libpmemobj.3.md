@@ -444,8 +444,9 @@ check when **pmemobj_open**() is called. The layout name, including the terminat
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_create**() and then specifying *poolsize* as
 zero. In this case **pmemobj_create**() will take the pool size from the size of the existing file and will verify that the file appears to be empty by
-searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a transactional object store
-is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
+searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a local transactional object store
+is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**. For remote replicas the minimum file size is defined in
+**\<librpmem.h\>** as **RPMEM_MIN_PART**.
 
 ```c
 void pmemobj_close(PMEMobjpool *pop);
