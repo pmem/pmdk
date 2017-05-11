@@ -454,7 +454,13 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 
 	if (section) {
 		ASSERT(type < MAX_LANE_SECTION);
-		*section = &pop->lanes_desc.lane[lane->lane_idx].sections[type];
+		struct lane_section *s =
+			&pop->lanes_desc.lane[lane->lane_idx].sections[type];
+
+		VALGRIND_ANNOTATE_NEW_MEMORY(s, sizeof(*s));
+		VALGRIND_ANNOTATE_NEW_MEMORY(s->layout, sizeof(*s->layout));
+
+		*section = s;
 	}
 
 	return (unsigned)lane->lane_idx;

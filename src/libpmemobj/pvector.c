@@ -124,6 +124,15 @@ pvector_delete(struct pvector_context *ctx)
 }
 
 /*
+ * pvector_reinit -- reinitializes the pvector runtime data
+ */
+void
+pvector_reinit(struct pvector_context *vec)
+{
+	VALGRIND_ANNOTATE_NEW_MEMORY(vec, sizeof(*vec));
+}
+
+/*
  * find_highest_bit -- (internal) searches for the highest set bit
  */
 static unsigned

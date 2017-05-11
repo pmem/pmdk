@@ -725,6 +725,8 @@ tx_rebuild_undo_runtime(PMEMobjpool *pop, struct lane_tx_layout *layout,
 	for (i = UNDO_ALLOC; i < MAX_UNDO_TYPES; ++i) {
 		if (tx_rt->ctx[i] == NULL)
 			tx_rt->ctx[i] = pvector_new(pop, &layout->undo_log[i]);
+		else
+			pvector_reinit(tx_rt->ctx[i]);
 
 		if (tx_rt->ctx[i] == NULL)
 			goto error_init;
@@ -1145,6 +1147,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane_hold(pop, &tx->section, LANE_SECTION_TRANSACTION);
 
 		lane = tx->section->runtime;
+		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
+
 		SLIST_INIT(&lane->tx_entries);
 		SLIST_INIT(&lane->tx_locks);
 		lane->ranges = ctree_new();
