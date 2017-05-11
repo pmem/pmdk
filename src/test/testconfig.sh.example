@@ -72,6 +72,11 @@ NON_PMEM_FS_DIR=/tmp
 #TEST_TIMEOUT=3m
 
 #
+# To display execution time of each test
+#
+TM=1
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh

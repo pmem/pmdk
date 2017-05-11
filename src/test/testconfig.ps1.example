@@ -59,7 +59,7 @@ $Env:NON_PMEM_FS_DIR = "\temp"
 #
 # To display execution time of each test
 #
-#$Env:TM = "1"
+$Env:TM = "1"
 
 #
 # 2) *** REMOTE CONFIGURATION ***
