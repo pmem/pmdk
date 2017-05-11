@@ -38,7 +38,11 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("b")]
-    $build = "debug"
+    $build = "debug",
+    [alias("v")]
+    $version = "0",
+    [alias("e")]
+    $extended = "0"
     )
 
 $scriptdir = Split-Path -Parent $PSCommandPath
@@ -47,15 +51,16 @@ $rootdir = $scriptdir + "\..\"
 $builddir = $rootdir + "\src\x64\"
 $zipdir = $builddir + "\nvml\"
 
-$git = Get-Command -Name git -ErrorAction SilentlyContinue
-
-if ($git) {
-    $ver = $(git describe)
-} else {
-    $ver = "0"
+if ($version -eq "0") {
+    $git = Get-Command -Name git -ErrorAction SilentlyContinue
+    if ($git) {
+        $version = $(git describe)
+    } else {
+        $version = "0"
+    }
 }
 
-$zipfile = $builddir + "\nvml-" + $ver + "-win-x64-" + $build + ".zip"
+$zipfile = $builddir + "\nvml-" + $version + "-win-x64-" + $build + ".zip"
 
 
 Remove-Item $zipdir -Force -Recurse -ea si
@@ -67,6 +72,11 @@ New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null
 $libs = @("libpmem", "libpmemblk", "libpmemlog", "libpmemobj", "libpmempool",
     "libvmem")
 $apps = @("pmempool")
+$apps_extended =  @("pmempool", "pmemalloc", "pmemdetect", "pmemspoil", "pmemwrite")
+
+if ($extended -eq "1") {
+    $apps = $apps_extended
+}
 
 foreach ($lib in $libs) {
     Copy-Item ($builddir + $build + "\" + $lib + ".dll") ($zipdir + "\bin\")
