@@ -54,6 +54,7 @@
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
+#include "libpmempool.h"
 
 
 #define DEFAULT_MODE	0664
@@ -74,6 +75,7 @@ struct pmempool_create {
 	char *str_bsize;
 	uint64_t csize;
 	int write_btt_layout;
+	int force;
 	char *layout;
 	struct options *opts;
 };
@@ -91,6 +93,7 @@ static const struct pmempool_create pmempool_create_default = {
 	.str_bsize	= NULL,
 	.csize		= 0,
 	.write_btt_layout = 0,
+	.force		= 0,
 	.layout		= NULL,
 	.params		= {
 		.type	= PMEM_POOL_TYPE_UNKNOWN,
@@ -110,6 +113,7 @@ static const char *help_str =
 "  -M, --max-size       use maximum available space on file system\n"
 "  -m, --mode <octal>   set permissions to <octal> (the default is 0664)\n"
 "  -i, --inherit <file> take required parameters from specified pool file\n"
+"  -f, --force          remove the pool first\n"
 "  -v, --verbose        increase verbosity level\n"
 "  -h, --help           display this help and exit\n"
 "\n"
@@ -134,6 +138,7 @@ static const struct option long_options[] = {
 	{"mode",	required_argument,	NULL,	'm' | OPT_ALL},
 	{"write-layout", no_argument,		NULL,	'w' | OPT_BLK},
 	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ},
+	{"force",	no_argument,		NULL,	'f' | OPT_ALL},
 	{NULL,		0,			NULL,	 0 },
 };
 
@@ -388,6 +393,9 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		case 'l':
 			pcp->layout = optarg;
 			break;
+		case 'f':
+			pcp->force = 1;
+			break;
 		default:
 			print_usage(appname);
 			return -1;
@@ -580,6 +588,8 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 		}
 	}
 
+	if (pc.force)
+		pmempool_rm(pc.fname, PMEMPOOL_RM_FORCE);
 
 	outv(1, "Creating pool: %s\n", pc.fname);
 	print_pool_params(&pc.params);
