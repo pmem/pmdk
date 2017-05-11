@@ -1111,6 +1111,8 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	*oid = pmemobj_list_insert_new(ctx->pop, offsetof(struct item, field),
 			head, *dest, (int)before, size, type_num, NULL, NULL);
+	pmemobj_persist(ctx->pop, oid, sizeof(PMEMoid));
+
 	if (OID_IS_NULL(*oid))
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"pmemobj_list_insert_new() failed\n");
