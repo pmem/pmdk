@@ -158,7 +158,7 @@ nszero(void *ns, unsigned lane, size_t len, uint64_t off)
 static void
 print_usage(char *name)
 {
-	printf("Usage: %s [-s <pool_size>] [-b <block_size>] "
+	printf("Usage: %s [-s <pool_file_size>] [-b <block_size>] "
 		"[-l <max_lanes>] [-u <uuid>] [-t] [-v] "
 		"<pool_name>\n", name);
 }
