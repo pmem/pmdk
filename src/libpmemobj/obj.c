@@ -178,7 +178,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	}
 
 	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
-	if (env_config_file != NULL) {
+	if (env_config_file != NULL && env_config_file[0] != '\0') {
 		if (ctl_load_config_from_file(pop, env_config_file) != 0) {
 			ERR("unable to parse config stored in %s "
 				"file (from %s environment variable)",
