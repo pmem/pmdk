@@ -7,9 +7,9 @@ install:
 - ps: Install-Module PsScriptAnalyzer -Force
 
 configuration:
+- Setup
 - Debug
 - Release
-
 environment:
     solutionname: NVML.sln
     setup: src\setup
@@ -37,28 +37,31 @@ before_build:
                 exit 1
         }
     } else {
-        PowerShell -File "$Env:setup\SET_LIB.PS1" `
-        -projectdir ((Get-Location).Path+"\$Env:setup")`
-        -configuration $Env:CONFIGURATION
+        #PowerShell -File "$Env:setup\SET_LIB.PS1" `
+        #-projectdir ((Get-Location).Path+"\$Env:setup")`
+        #-configuration $Env:CONFIGURATION
     }
 
 build_script:
-- cmd: >-
-    msbuild src\%solutionname% /m /v:m
+- ps: >-
+    if ($Env:CONFIGURATION -ne "Setup") {
+        msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
+    } else {
+        msbuild src\$Env:solutionname /property:Configuration=Debug /m /v:m
+        msbuild src\$Env:solutionname /property:Configuration=Release /m /v:m
+        $Env:DEVENV="$Env:VS140COMNTOOLS\..\IDE\devenv.com"
+        &$Env:DEVENV src\$Env:solutionname /build Release /project $Env:setup\setup.vdproj
+    }
 
 after_build:
-- cmd: >-
-    set DEVENV="%VS140COMNTOOLS%\..\IDE\devenv.com"
-
-    %DEVENV% src\%solutionname% /build %CONFIGURATION% /project %setup%\setup.vdproj
-
 - ps: >-
-    PowerShell -File "$Env:setup\OUTPUT_MSI.PS1" `
-    -projectdir ((Get-Location).Path+"\$Env:setup")`
-    -configuration $Env:CONFIGURATION
-
-- ps: >-
-    utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
+    if ($Env:CONFIGURATION -eq "Setup") {
+        PowerShell -File "$Env:setup\OUTPUT_MSI.PS1" `
+        -projectdir ((Get-Location).Path+"\$Env:setup")`
+        -configuration $Env:CONFIGURATION
+    } else {
+        utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
+    }
 
 test_script:
 - ps: >-
@@ -70,11 +73,11 @@ test_script:
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
-        ./RUNTESTS.ps1 -b debug -o 4m
+        #./RUNTESTS.ps1 -b debug -o 4m
     }
 
 artifacts:
-- path: '%setup%\%configuration%\*.msi'
+- path: '%setup%\*.msi'
   name: NVML_msi
 
 - path: 'src\x64\*.zip'

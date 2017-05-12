@@ -49,5 +49,5 @@ if ($git) {
 }
 
 $msifile = "nvml-" + $ver + "-win-x64-" + $configuration + ".msi"
-Set-Location $projectdir\$configuration
+Set-Location $projectdir
 Move-Item nvml_setup.msi $msifile
