@@ -213,8 +213,8 @@ device_dax_alignment(const char *path)
 	olderrno = errno;
 	errno = 0;
 
-	/* 'align' is in hex format w/o '0x' prefix */
-	size = strtoull(sizebuf, &endptr, 16);
+	/* 'align' is in decimal format */
+	size = strtoull(sizebuf, &endptr, 10);
 	if (endptr == sizebuf || *endptr != '\n' ||
 	    (size == ULLONG_MAX && errno == ERANGE)) {
 		ERR("invalid device alignment %s", sizebuf);
