@@ -121,7 +121,7 @@ The size of the remote pool must be at least \f[I]pool_size\f[].
 See \f[B]REMOTE POOL SIZE\f[] section for details.
 The \f[I]nlanes\f[] points to the maximum number of lanes which the
 caller requests to use.
-Upon successfully opening of the remote pool, the \f[I]nlanes\f[]
+Upon successful creation of the remote pool, the \f[I]nlanes\f[]
 contains the maximum number of lanes supported by both local and remote
 nodes\[aq] hardware.
 See \f[B]LANES\f[] section for details.
@@ -158,8 +158,8 @@ The size of the remote pool must be at least \f[I]pool_size\f[].
 See \f[B]REMOTE POOL SIZE\f[] section for details.
 The \f[I]nlanes\f[] points to the maximum number of lanes which the
 caller requests to use.
-Upon successfully opening of the remote pool, the \f[I]nlanes\f[]
-contains the maximum number of lanes supported by both local and remote
+Upon successful opening of the remote pool, the \f[I]nlanes\f[] contains
+the maximum number of lanes supported by both local and remote
 nodes\[aq] hardware.
 See \f[B]LANES\f[] section for details.
 If the \f[I]open_attr\f[] argument is not NULL the remote pool
@@ -389,14 +389,16 @@ otherwise \f[B]rpmem_open\f[] and \f[B]rpmem_create\f[] functions will
 return an error.
 .SH REMOTE POOL SIZE
 .PP
-The remote pool size depends on the configuration of pool set file on
-remote node.
+A remote pool size depends on the configuration of a pool set file on
+the remote node.
 The remote pool size is a sum of sizes of all part files decreased by
 4096 bytes per each part file.
 The 4096 bytes of each part file is utilized for storing internal
 metadata of the pool part files.
-The minimum size of the remote pool is 4096 bytes (not including
-required 4096 bytes per each part file).
+The minimum size of a part file for a remote pool is defined as
+\f[B]RPMEM_MIN_PART\f[] in \f[B]<librpmem.h>\f[].
+The minimum size of a remote pool allowed by the library is defined as
+\f[B]RPMEM_MIN_POOL\f[] therein.
 .SH LIBRARY API VERSIONING
 .PP
 This section describes how the library API is versioned, allowing
