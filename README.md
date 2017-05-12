@@ -2,7 +2,7 @@ nvml: Non-Volatile Memory Library
 =================================
 
 [![Build Status](https://travis-ci.org/pmem/nvml.svg?branch=master)](https://travis-ci.org/pmem/nvml)
-[![Build status](https://ci.appveyor.com/api/projects/status/1f5jwqpqs89itr2k/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/krzycz/nvml-10qrw/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/sehrom4f1neihucf/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/nvml/branch/master)
 [![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-nvml)
 [![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
 
