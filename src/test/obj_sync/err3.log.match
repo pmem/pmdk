@@ -1,2 +1,1 @@
-$(OPT){$(nW)obj_sync.c:$(N) rwlock_write_worker} obj_sync$(nW)TEST3: pmemobj_rwlock_wrlock
-$(OPT){$(nW)obj_sync.c:$(N) rwlock_check_worker} obj_sync$(nW)TEST3: pmemobj_rwlock_rdlock
+{$(nW)obj_sync.c:$(N) rwlock_$(nW)_worker} obj_sync$(nW)TEST3: pmemobj_rwlock_$(nW)

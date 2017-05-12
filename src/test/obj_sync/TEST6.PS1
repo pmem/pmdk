@@ -61,11 +61,4 @@ expect_normal_exit $Env:EXE_DIR\obj_sync$Env:EXESUFFIX c 10 5
 
 check
 
-$ERR_FILE = (Get-Location).path + "\err6.log"
-
- if ((getLineCount $ERR_FILE) -ne 1) {
-        Write-Error -Message "error: $Env:CHECK_LOG_FILE match failed"
-        fail 1
-    }
-
 pass

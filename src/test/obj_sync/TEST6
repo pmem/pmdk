@@ -52,11 +52,4 @@ expect_normal_exit ./obj_sync$EXESUFFIX c 10 5
 
 check
 
-ERR_FILE=err6.log
-if [ `wc -l < $ERR_FILE` -ne 1 ];
-    then
-        echo "error: $CHECK_LOG_FILE match failed"
-        exit 1
-fi
-
 pass
