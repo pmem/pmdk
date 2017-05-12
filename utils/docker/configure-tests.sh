@@ -41,6 +41,7 @@ NON_PMEM_FS_DIR=/tmp
 PMEM_FS_DIR=/tmp
 PMEM_FS_DIR_FORCE_PMEM=1
 TEST_BUILD="debug nondebug"
+TM=1
 EOF
 
 # Configure remote tests
