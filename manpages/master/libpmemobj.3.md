@@ -3,10 +3,10 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemobj(3)
 header: NVM Library
-date: pmemobj API version 2.1.0
+date: pmemobj API version 2.1.1
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -444,8 +444,9 @@ check when **pmemobj_open**() is called. The layout name, including the terminat
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_create**() and then specifying *poolsize* as
 zero. In this case **pmemobj_create**() will take the pool size from the size of the existing file and will verify that the file appears to be empty by
-searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a transactional object store
-is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
+searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a local transactional object store
+is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**. For remote replicas the minimum file size is defined in
+**\<librpmem.h\>** as **RPMEM_MIN_PART**.
 
 ```c
 void pmemobj_close(PMEMobjpool *pop);
@@ -567,9 +568,13 @@ defining a part of the PMEMOBJ pool as described above.
 
 The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using Device DAX
-there's also one additional restriction, that a pool set can consist only of a
-single part.
+will be automatically resolved at pool creation time.
+When using Device DAX there's also one additional restriction - it is not allowed
+to concatenate more than one Device DAX device in a single replica
+if the configured internal alignment is other than 4KiB.  In such case given
+replica can consist only of a single part (single Device DAX).
+Please see **ndctl-create-namespace**(1) for information on how to configure
+desired alignment on Device DAX.
 
 Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
