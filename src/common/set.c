@@ -331,31 +331,29 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	COMPILE_ERROR_ON(POOL_HDR_SIZE == 0);
 	ASSERTeq(POOL_HDR_SIZE % Pagesize, 0);
 
-	void *hdrp;
-	if (part->is_dev_dax) {
-		/*
-		 * Workaround for dax device not allowing an mmap only of a
-		 * part of the device. This means that currently only one device
-		 * is allowed to be a part of a poolset.
-		 */
-		hdrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
-		if (hdrp == MAP_FAILED) {
-			ERR("!mmap: %s", part->path);
-			return -1;
-		}
-		part->hdrsize = part->filesize;
-	} else {
-		hdrp = mmap(NULL, POOL_HDR_SIZE,
+	/*
+	 * Workaround for Device DAX not allowing to map a portion
+	 * of the device if offset/length are not aligned to the internal
+	 * device alignment (page size).  I.e. if the device alignment
+	 * is 2M, we cannot map the 4K header, but need to align the mapping
+	 * length to 2M.
+	 *
+	 * According to mmap(2), system should automatically align mapping
+	 * length to be a multiple of the underlying page size, but it's
+	 * not true for Device DAX.
+	 */
+	size_t hdrsize = part->alignment > POOL_HDR_SIZE
+			? part->alignment : POOL_HDR_SIZE;
+
+	void *hdrp = mmap(NULL, hdrsize,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
 			flags, part->fd, 0);
-
-		if (hdrp == MAP_FAILED) {
-			ERR("!mmap: %s", part->path);
-			return -1;
-		}
-		part->hdrsize = POOL_HDR_SIZE;
+	if (hdrp == MAP_FAILED) {
+		ERR("!mmap: %s", part->path);
+		return -1;
 	}
 
+	part->hdrsize = hdrsize;
 	part->hdr = hdrp;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->hdr, part->hdrsize);
@@ -398,38 +396,26 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERTeq(size % Mmap_align, 0);
 	ASSERT(((off_t)offset) >= 0);
 
-	void *addrp;
-	if (part->is_dev_dax) {
-		/*
-		 * DAX device can only be in a poolset in which it's the only
-		 * part and we do not need to utilize a hint address.
-		 */
-		addrp = util_map(part->fd, part->filesize, flags, rdonly, 0);
-		if (addrp == MAP_FAILED) {
-			ERR("!mmap: %s", part->path);
-			return -1;
-		}
-		part->addr = addrp;
-		part->size = part->filesize;
-	} else {
-		if (!size)
-			size = (part->filesize & ~(Mmap_align - 1)) - offset;
+	ASSERTeq(offset % part->alignment, 0);
 
-		addrp = mmap(addr, size,
+	if (!size)
+		size = (part->filesize & ~(Mmap_align - 1)) - offset;
+
+	void *addrp = mmap(addr, size,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-				flags, part->fd,
-				(off_t)offset);
-		if (addrp == MAP_FAILED) {
-			ERR("!mmap: %s", part->path);
-			return -1;
-		}
-		part->addr = addrp;
-		part->size = size;
-		if (addr != NULL && (flags & MAP_FIXED) && part->addr != addr) {
-			ERR("!mmap: %s", part->path);
-			munmap(addr, size);
-			return -1;
-		}
+			flags, part->fd, (off_t)offset);
+	if (addrp == MAP_FAILED) {
+		ERR("!mmap: %s", part->path);
+		return -1;
+	}
+
+	part->addr = addrp;
+	part->size = size;
+
+	if (addr != NULL && (flags & MAP_FIXED) && part->addr != addr) {
+		ERR("!mmap: %s", part->path);
+		munmap(addr, size);
+		return -1;
 	}
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->addr, part->size);
@@ -795,9 +781,17 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	ASSERTne(rep, NULL);
 
 	int is_dev_dax = util_file_is_device_dax(path);
-	if (rep->nparts != 0 && (is_dev_dax || rep->part[0].is_dev_dax)) {
-		ERR("device dax must be the only part in the poolset");
-		return -1;
+	if (rep->nparts != 0) {
+		if (is_dev_dax != rep->part[0].is_dev_dax) {
+			ERR("either all the parts must be device dax or none");
+			return -1;
+		}
+		if (is_dev_dax &&
+		    util_file_device_dax_alignment(path) != Pagesize) {
+			ERR("Device DAX using huge pages must be the only "
+				"part of the replica");
+			return -1;
+		}
 	}
 
 	/* XXX - pre-allocate space for X parts, and reallocate every X parts */
@@ -819,6 +813,13 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
 	rep->part[p].remote_hdr = NULL;
+
+	if (is_dev_dax)
+		rep->part[p].alignment = util_file_device_dax_alignment(path);
+	else
+		rep->part[p].alignment = Mmap_align;
+
+	ASSERTne(rep->part[p].alignment, 0);
 
 	return 0;
 }
@@ -1135,6 +1136,13 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
 
+	if (rep->part[0].is_dev_dax)
+		rep->part[0].alignment = util_file_device_dax_alignment(path);
+	else
+		rep->part[0].alignment = Mmap_align;
+
+	ASSERTne(rep->part[0].alignment, 0);
+
 	rep->nparts = 1;
 
 	/* it does not have a remote replica */
@@ -1142,7 +1150,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	set->remote = 0;
 
 	/* round down to the nearest mapping alignment boundary */
-	rep->repsize = rep->part[0].filesize & ~(Mmap_align - 1);
+	rep->repsize = rep->part[0].filesize & ~(rep->part[0].alignment - 1);
 
 	set->poolsize = rep->repsize;
 
@@ -2635,17 +2643,17 @@ util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
  * This function opens opens a pool set without checking the header values.
  */
 int
-util_pool_open_nocheck(struct pool_set *set, int rdonly)
+util_pool_open_nocheck(struct pool_set *set, int cow)
 {
-	LOG(3, "set %p rdonly %i", set, rdonly);
+	LOG(3, "set %p cow %i", set, cow);
 
-	if (rdonly && set->replica[0]->part[0].is_dev_dax) {
+	if (cow && set->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;
 	}
 
-	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
 	ASSERTne(set, NULL);
@@ -2700,17 +2708,17 @@ err_poolset:
  * calls can map a read-only pool if required.
  */
 int
-util_pool_open(struct pool_set **setp, const char *path, int rdonly,
+util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	unsigned *nlanes)
 {
-	LOG(3, "setp %p path %s rdonly %d minsize %zu sig %.8s major %u "
+	LOG(3, "setp %p path %s cow %d minsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x nlanes %p",
-		setp, path, rdonly, minsize, sig, major,
+		setp, path, cow, minsize, sig, major,
 		compat, incompat, ro_compat, nlanes);
 
-	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
 	int ret = util_poolset_create_set(setp, path, 0, minsize);
@@ -2719,7 +2727,7 @@ util_pool_open(struct pool_set **setp, const char *path, int rdonly,
 		return -1;
 	}
 
-	if (rdonly && (*setp)->replica[0]->part[0].is_dev_dax) {
+	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		util_poolset_free(*setp);
@@ -2783,23 +2791,23 @@ err_poolset:
  * calls can map a read-only pool if required.
  */
 int
-util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
+util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
 	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
 	unsigned char *arch_flags)
 {
-	LOG(3, "setp %p path %s rdonly %d minsize %zu "
+	LOG(3, "setp %p path %s cow %d minsize %zu "
 		"sig %p major %p compat %p incompat %p ro_comapt %p"
 		"poolset_uuid %p first_part_uuid %p"
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
-		setp, path, rdonly, minsize,
+		setp, path, cow, minsize,
 		sig, major, compat, incompat, ro_compat,
 		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
 		arch_flags);
 
-	int flags = rdonly ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
 	int ret = util_poolset_create_set(setp, path, 0, minsize);
@@ -2808,7 +2816,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
 		return -1;
 	}
 
-	if (rdonly && (*setp)->replica[0]->part[0].is_dev_dax) {
+	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;

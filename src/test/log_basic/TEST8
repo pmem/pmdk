@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/log_basic/TEST7 -- unit test for:
+# src/test/log_basic/TEST8 -- unit test for:
 # - pmemlog_append
 # and:
 # - pmemlog_nbyte
@@ -44,24 +44,29 @@
 # - pmemlog_open
 # - pmemlog_close
 #
-# Same as TEST1, but run on a single Device DAX device.
+# Same as TEST1, but run on a pool set that spans two Device DAX devices
+# with 4K alignment.
 #
-export UNITTEST_NAME=log_basic/TEST7
-export UNITTEST_NUM=7
+export UNITTEST_NAME=log_basic/TEST8
+export UNITTEST_NUM=8
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_dax_devices 1
 require_fs_type any
+require_dax_devices 2
+require_dax_device_alignment 0 4096
+require_dax_device_alignment 1 4096
 
 setup
 
 dax_device_zero
 
-expect_normal_exit ./log_basic$EXESUFFIX $DEVICE_DAX_PATH a n t w r t w
+create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
-check_pool $DEVICE_DAX_PATH
+expect_normal_exit ./log_basic$EXESUFFIX $DIR/testset a n t w r t w
+
+check_pool $DIR/testset
 
 pass

@@ -3,10 +3,10 @@ layout: manual
 Content-Style: 'text/css'
 title: libpmemlog(3)
 header: NVM Library
-date: pmemlog API version 1.0.5
+date: pmemlog API version 1.0.6
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -183,9 +183,13 @@ B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB,
 
 The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using Device DAX
-there's also one additional restriction, that a pool set can consist only of a
-single part.
+will be automatically resolved at pool creation time.
+When using Device DAX there's also one additional restriction - it is not allowed
+to concatenate more than one Device DAX device in a single pool set
+if the configured internal alignment is other than 4KiB.  In such case a pool set
+can consist only of a single part (single Device DAX).
+Please see **ndctl-create-namespace**(1) for information on how to configure
+desired alignment on Device DAX.
 
 Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.

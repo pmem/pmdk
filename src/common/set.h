@@ -76,6 +76,7 @@ struct pool_set_part {
 	int flags;		/* stores flags used when opening the file */
 				/* valid only if fd >= 0 */
 	int is_dev_dax;		/* indicates if the part is on device dax */
+	size_t alignment;	/* internal alignment (Device DAX only) */
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */
@@ -219,11 +220,11 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
-int util_pool_open_nocheck(struct pool_set *set, int rdonly);
-int util_pool_open(struct pool_set **setp, const char *path, int rdonly,
+int util_pool_open_nocheck(struct pool_set *set, int cow);
+int util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
 	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes);
-int util_pool_open_remote(struct pool_set **setp, const char *path, int rdonly,
+int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,

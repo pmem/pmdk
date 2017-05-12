@@ -31,13 +31,15 @@
  */
 
 /*
- * pmemdetect.c -- detect pmem device
+ * pmemdetect.c -- detect PMEM/Device DAX device or Device DAX alignment
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <getopt.h>
+#include <errno.h>
 
 #include "mmap.h"
 #include "libpmem.h"
@@ -45,6 +47,81 @@
 #include "os.h"
 
 #define SIZE 4096
+
+#define DEVDAX_DETECT	(1 << 0)
+#define DEVDAX_ALIGN	(1 << 1)
+
+/* arguments */
+static int Opts;
+static char *Path;
+static size_t Align;
+
+/*
+ * print_usage -- print short description of usage
+ */
+static void
+print_usage(void)
+{
+	printf("Usage: pmemdetect [options] path\n");
+	printf("Valid options:\n");
+	printf("-d, --devdax    - check if path is Device DAX\n");
+	printf("-a, --align=N   - check Device DAX alignment\n");
+	printf("-h, --help      - print this usage info\n");
+}
+
+/*
+ * long_options -- command line options
+ */
+static const struct option long_options[] = {
+	{"devdax",	no_argument,		NULL,	'd'},
+	{"align",	required_argument,	NULL,	'a'},
+	{"help",	no_argument,		NULL,	'h'},
+	{NULL,		0,			NULL,	 0 },
+};
+
+/*
+ * parse_args -- (internal) parse command line arguments
+ */
+static int
+parse_args(int argc, char *argv[])
+{
+	int opt;
+	while ((opt = getopt_long(argc, argv, "a:dh",
+			long_options, NULL)) != -1) {
+		switch (opt) {
+		case 'd':
+			Opts |= DEVDAX_DETECT;
+			break;
+		case 'a':
+			Opts |= DEVDAX_ALIGN;
+			char *endptr;
+			errno = 0;
+			size_t align = strtoull(optarg, &endptr, 0);
+			if ((endptr && *endptr != '\0') || errno) {
+				fprintf(stderr, "'%s' -- invalid alignment",
+						optarg);
+				return -1;
+			}
+			Align = (size_t)align;
+			break;
+		case 'h':
+			print_usage();
+			exit(EXIT_SUCCESS);
+		default:
+			print_usage();
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (optind < argc) {
+		Path = argv[optind];
+	} else {
+		print_usage();
+		exit(EXIT_FAILURE);
+	}
+
+	return 0;
+}
 
 /*
  * is_pmem -- checks if given path points to pmem-aware filesystem
@@ -71,7 +148,7 @@ is_pmem(const char *path)
 }
 
 /*
- * is_dev_dax -- checks if given path points to device dax
+ * is_dev_dax -- checks if given path points to Device DAX
  */
 static int
 is_dev_dax(const char *path)
@@ -89,35 +166,40 @@ is_dev_dax(const char *path)
 	return 1;
 }
 
+/*
+ * is_dev_dax_align -- checks if Device DAX alignment is as specified
+ */
+static int
+is_dev_dax_align(const char *path, size_t req_align)
+{
+	if (is_dev_dax(path) != 0)
+		return -1;
+
+	size_t align = util_file_device_dax_alignment(path);
+	return (req_align == align) ? 1 : 0;
+}
+
 int
 main(int argc, char *argv[])
 {
 	int ret;
 
-	if (argc != 2 && argc != 3) {
-		fprintf(stderr, "usage: %s [-d] path\n", argv[0]);
-		exit(2);
-	}
-
-	const char *path = argv[1];
-	int dev_dax = 0;
-
-	if (argc == 3 && strcmp(argv[1], "-d") == 0) {
-		path = argv[2];
-		dev_dax = 1;
-	}
+	if (parse_args(argc, argv))
+		exit(EXIT_FAILURE);
 
 	util_init();
 	util_mmap_init();
 
-	if (dev_dax)
-		ret = is_dev_dax(path);
+	if (Opts & DEVDAX_DETECT)
+		ret = is_dev_dax(Path);
+	else if (Opts & DEVDAX_ALIGN)
+		ret = is_dev_dax_align(Path, Align);
 	else
-		ret = is_pmem(path);
+		ret = is_pmem(Path);
 
 	/*
-	 * Return 0 if 'path' points to PMEM-aware filesystem or device dax.
-	 * Otherwise return 1, if any problem occurred return 2.
+	 * Return 0 on 'true'. Otherwise return 1.
+	 * If any problem occurred return 2.
 	 */
 	switch (ret) {
 	case 0:

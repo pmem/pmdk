@@ -56,6 +56,8 @@
 #define DEVICE_DAX_PREFIX "/sys/class/dax"
 #define MAX_SIZE_LENGTH 64
 
+#define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
+
 #ifndef _WIN32
 /*
  * device_dax_size -- (internal) checks the size of a given dax device
@@ -63,25 +65,36 @@
 static ssize_t
 device_dax_size(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	os_stat_t st;
 	int olderrno;
 
-	if (os_stat(path, &st) < 0)
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
 		return -1;
+	}
 
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/size",
 		major(st.st_rdev), minor(st.st_rdev));
+
+	LOG(4, "device size path \"%s\"", spath);
+
 	int fd = os_open(spath, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("!open \"%s\"", spath);
 		return -1;
+	}
 
 	ssize_t size = -1;
 
 	char sizebuf[MAX_SIZE_LENGTH + 1];
 	ssize_t nread;
-	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0)
+	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0) {
+		ERR("!read");
 		goto out;
+	}
 
 	sizebuf[nread] = 0; /* null termination */
 
@@ -92,7 +105,8 @@ device_dax_size(const char *path)
 
 	size = strtoll(sizebuf, &endptr, 0);
 	if (endptr == sizebuf || *endptr != '\n' ||
-		((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
+	    ((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
+		ERR("invalid device size %s", sizebuf);
 		size = -1;
 		goto out;
 	}
@@ -104,6 +118,7 @@ out:
 	(void) os_close(fd);
 	errno = olderrno;
 
+	LOG(4, "device size %zu", size);
 	return size;
 }
 #endif
@@ -115,6 +130,8 @@ out:
 int
 util_fd_is_device_dax(int fd)
 {
+	LOG(3, "fd %d", fd);
+
 #ifdef _WIN32
 	return 0;
 #else
@@ -122,28 +139,39 @@ util_fd_is_device_dax(int fd)
 	int olderrno = errno;
 	int ret = 0;
 
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("invalid file descriptor %d", fd);
 		goto out;
+	}
 
-	if (os_fstat(fd, &st) < 0)
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat");
 		goto out;
+	}
 
-	if (!S_ISCHR(st.st_mode))
+	if (!S_ISCHR(st.st_mode)) {
+		LOG(4, "not a character device");
 		goto out;
+	}
 
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
 		major(st.st_rdev), minor(st.st_rdev));
 
+	LOG(4, "device subsystem path \"%s\"", spath);
+
 	char npath[PATH_MAX];
 	char *rpath = realpath(spath, npath);
-	if (rpath == NULL)
+	if (rpath == NULL) {
+		ERR("!realpath \"%s\"", spath);
 		goto out;
+	}
 
 	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
 
 out:
 	errno = olderrno;
+	LOG(4, "returning %d", ret);
 	return ret;
 #endif
 
@@ -155,25 +183,32 @@ out:
 int
 util_file_is_device_dax(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifdef _WIN32
 	return 0;
 #else
 	int olderrno = errno;
 	int ret = 0;
 
-	if (path == NULL)
+	if (path == NULL) {
+		ERR("invalid (NULL) path");
 		goto out;
+	}
 
 	int fd = os_open(path, O_RDONLY);
-
-	if (fd < 0)
+	if (fd < 0) {
+		/* not a problem - 'path' may point to non existent file */
+		/* LOG(4, "!open \"%s\"", path); */
 		goto out;
+	}
 
 	ret = util_fd_is_device_dax(fd);
 	(void) os_close(fd);
 
 out:
 	errno = olderrno;
+	LOG(4, "returning %d", ret);
 	return ret;
 #endif
 }
@@ -184,6 +219,8 @@ out:
 ssize_t
 util_file_get_size(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifndef _WIN32
 	if (util_file_is_device_dax(path)) {
 		return device_dax_size(path);
@@ -192,10 +229,11 @@ util_file_get_size(const char *path)
 
 	os_stat_t stbuf;
 	if (os_stat(path, &stbuf) < 0) {
-		ERR("!fstat %s", path);
+		ERR("!stat \"%s\"", path);
 		return -1;
 	}
 
+	LOG(4, "file length %zu", stbuf.st_size);
 	return stbuf.st_size;
 }
 
@@ -205,20 +243,28 @@ util_file_get_size(const char *path)
 void *
 util_file_map_whole(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	int fd;
 	int olderrno;
 	void *addr = NULL;
 
-	if ((fd = os_open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0) {
+		ERR("!open \"%s\"", path);
 		return NULL;
+	}
 
 	ssize_t size = util_file_get_size(path);
-	if (size < 0)
+	if (size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		goto out;
+	}
 
 	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		goto out;
+	}
 
 out:
 	olderrno = errno;
@@ -229,32 +275,51 @@ out:
 }
 
 /*
- * util_file_zero_whole -- zeroes the entire file
+ * util_file_zero -- zeroes the specified region of the file
  */
 int
-util_file_zero_whole(const char *path)
+util_file_zero(const char *path, off_t off, size_t len)
 {
+	LOG(3, "path \"%s\" off %ju len %zu", path, off, len);
+
 	int fd;
 	int olderrno;
 	int ret = 0;
 
-	if ((fd = os_open(path, O_RDWR)) < 0)
+	if ((fd = os_open(path, O_RDWR)) < 0) {
+		ERR("!open \"%s\"", path);
 		return -1;
+	}
 
 	ssize_t size = util_file_get_size(path);
 	if (size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
 
+	if (off > size) {
+		LOG(2, "offset beyond file length, %ju > %ju", off, size);
+		ret = -1;
+		goto out;
+	}
+
+	if ((size_t)off + len > (size_t)size) {
+		LOG(2, "requested size of write goes beyond the file length, "
+					"%zu > %zu", (size_t)off + len, size);
+		LOG(4, "adjusting len to %zu", size);
+		len = (size_t)size;
+	}
+
 	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
 	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
 
 	/* zero initialize the entire device */
-	memset(addr, 0, (size_t)size);
+	memset((char *)addr + off, 0, (size_t)size);
 
 	util_unmap(addr, (size_t)size);
 
@@ -273,10 +338,15 @@ ssize_t
 util_file_pwrite(const char *path, const void *buffer, size_t size,
 	off_t offset)
 {
+	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
+			path, buffer, size, offset);
+
 	if (!util_file_is_device_dax(path)) {
 		int fd = util_file_open(path, NULL, 0, O_RDWR);
-		if (fd < 0)
+		if (fd < 0) {
+			LOG(2, "failed to open file \"%s\"", path);
 			return -1;
+		}
 
 		ssize_t write_len = pwrite(fd, buffer, size, offset);
 		int olderrno = errno;
@@ -286,23 +356,28 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 	}
 
 	ssize_t file_size = util_file_get_size(path);
-	if (file_size < 0)
+	if (file_size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
+	}
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		LOG(1, "Requested size of write goes beyond the mapped memory");
+		LOG(2, "requested size of write goes beyond the file length, "
+			"%zu > %zu", size, max_size);
+		LOG(4, "adjusting size to %zu", max_size);
 		size = max_size;
 	}
 
 	void *addr = util_file_map_whole(path);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		return -1;
+	}
 
 	memcpy(ADDR_SUM(addr, offset), buffer, size);
 	util_unmap(addr, (size_t)file_size);
 	return (ssize_t)size;
-
 }
 
 /*
@@ -312,10 +387,15 @@ ssize_t
 util_file_pread(const char *path, void *buffer, size_t size,
 	off_t offset)
 {
+	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
+			path, buffer, size, offset);
+
 	if (!util_file_is_device_dax(path)) {
 		int fd = util_file_open(path, NULL, 0, O_RDONLY);
-		if (fd < 0)
+		if (fd < 0) {
+			LOG(2, "failed to open file \"%s\"", path);
 			return -1;
+		}
 
 		ssize_t read_len = pread(fd, buffer, size, offset);
 		int olderrno = errno;
@@ -325,18 +405,24 @@ util_file_pread(const char *path, void *buffer, size_t size,
 	}
 
 	ssize_t file_size = util_file_get_size(path);
-	if (file_size < 0)
+	if (file_size < 0) {
+		LOG(2, "cannot determine file length \"%s\"", path);
 		return -1;
+	}
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		LOG(1, "Requested size of read goes beyond the mapped memory");
+		LOG(2, "requested size of read goes beyond the file length, "
+			"%zu > %zu", size, max_size);
+		LOG(4, "adjusting size to %zu", max_size);
 		size = max_size;
 	}
 
 	void *addr = util_file_map_whole(path);
-	if (addr == NULL)
+	if (addr == NULL) {
+		LOG(2, "failed to map entire file \"%s\"", path);
 		return -1;
+	}
 
 	memcpy(buffer, ADDR_SUM(addr, offset), size);
 	util_unmap(addr, (size_t)file_size);
@@ -349,7 +435,7 @@ util_file_pread(const char *path, void *buffer, size_t size,
 int
 util_file_create(const char *path, size_t size, size_t minsize)
 {
-	LOG(3, "path %s size %zu minsize %zu", path, size, minsize);
+	LOG(3, "path \"%s\" size %zu minsize %zu", path, size, minsize);
 
 	ASSERTne(size, 0);
 
@@ -380,18 +466,18 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	 * initialization completes.
 	 */
 	if ((fd = os_open(path, flags, mode)) < 0) {
-		ERR("!open %s", path);
+		ERR("!open \"%s\"", path);
 		return -1;
 	}
 
 	if ((errno = os_posix_fallocate(fd, 0, (off_t)size)) != 0) {
-		ERR("!posix_fallocate");
+		ERR("!posix_fallocate \"%s\", %zu", path, size);
 		goto err;
 	}
 
 	/* for windows we can't flock until after we fallocate */
 	if (os_flock(fd, OS_LOCK_EX | OS_LOCK_NB) < 0) {
-		ERR("!flock");
+		ERR("!flock \"%s\"", path);
 		goto err;
 	}
 
@@ -413,7 +499,7 @@ err:
 int
 util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 {
-	LOG(3, "path %s size %p minsize %zu flags %d", path, size, minsize,
+	LOG(3, "path \"%s\" size %p minsize %zu flags %d", path, size, minsize,
 			flags);
 
 	int oerrno;
@@ -424,12 +510,12 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 #endif
 
 	if ((fd = os_open(path, flags)) < 0) {
-		ERR("!open %s", path);
+		ERR("!open \"%s\"", path);
 		return -1;
 	}
 
 	if (os_flock(fd, OS_LOCK_EX | OS_LOCK_NB) < 0) {
-		ERR("!flock");
+		ERR("!flock \"%s\"", path);
 		(void) os_close(fd);
 		return -1;
 	}
@@ -440,7 +526,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 		ssize_t actual_size = util_file_get_size(path);
 		if (actual_size < 0) {
-			ERR("stat %s: negative size", path);
+			ERR("stat \"%s\": negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
@@ -452,8 +538,10 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 			goto err;
 		}
 
-		if (size)
+		if (size) {
 			*size = (size_t)actual_size;
+			LOG(4, "actual file size %zu", *size);
+		}
 	}
 
 	return fd;
@@ -472,13 +560,15 @@ err:
 int
 util_unlink(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 	if (util_file_is_device_dax(path)) {
-		return util_file_zero_whole(path);
+		return util_file_zero(path, 0, DEVICE_DAX_ZERO_LEN);
 	} else {
 #ifdef _WIN32
 		/* on Windows we can not unlink Read-Only files */
 		if (os_chmod(path, S_IREAD | S_IWRITE) == -1) {
-			ERR("!chmod");
+			ERR("!chmod \"%s\"", path);
 			return -1;
 		}
 #endif
@@ -497,6 +587,8 @@ util_unlink(const char *path)
 int
 util_unlink_flock(const char *path)
 {
+	LOG(3, "path \"%s\"", path);
+
 #ifdef WIN32
 	/*
 	 * On Windows it is not possible to unlink the
@@ -505,8 +597,10 @@ util_unlink_flock(const char *path)
 	return util_unlink(path);
 #else
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);
-	if (fd < 0)
-		return fd;
+	if (fd < 0) {
+		LOG(2, "failed to open file \"%s\"", path);
+		return -1;
+	}
 
 	int ret = util_unlink(path);
 
