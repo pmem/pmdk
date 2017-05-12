@@ -132,7 +132,7 @@ argument. Both *pool_addr* and *pool_size* must be aligned to system's page
 size (see **sysconf**(3)). The size of the remote pool must be at least
 *pool_size*. See **REMOTE POOL SIZE** section for details.
 The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successfully opening of the remote pool, the *nlanes* contains the
+use. Upon successful creation of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
 See **LANES** section for details.
 The *create_attr* structure contains the attributes used for creating the
@@ -159,7 +159,7 @@ argument. Both *pool_addr* and *pool_size* must be aligned to system's page
 size (see **sysconf**(3)). The size of the remote pool must be at least
 *pool_size*. See **REMOTE POOL SIZE** section for details.
 The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successfully opening of the remote pool, the *nlanes* contains the
+use. Upon successful opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
 See **LANES** section for details.
 If the *open_attr* argument is not NULL the remote pool attributes
@@ -350,12 +350,13 @@ any resources using **libibverbs**, otherwise **rpmem_open** and
 **rpmem_create** functions will return an error.
 
 # REMOTE POOL SIZE #
-The remote pool size depends on the configuration of pool set file on remote
+A remote pool size depends on the configuration of a pool set file on the remote
 node. The remote pool size is a sum of sizes of all part files decreased by 4096
 bytes per each part file. The 4096 bytes of each part file is utilized for
-storing internal metadata of the pool part files. The minimum size of the
-remote pool is 4096 bytes (not including required 4096 bytes per each part
-file).
+storing internal metadata of the pool part files. The minimum size of a part
+file for a remote pool is defined as **RPMEM_MIN_PART** in **\<librpmem.h\>**.
+The minimum size of a remote pool allowed by the library is defined as
+**RPMEM_MIN_POOL** therein.
 
 # LIBRARY API VERSIONING #
 
