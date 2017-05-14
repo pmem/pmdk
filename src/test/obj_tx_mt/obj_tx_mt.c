@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +39,8 @@
 #include <pthread.h>
 #include "unittest.h"
 
-#define LOOPS 100
+#define THREADS 8
+#define LOOPS 8
 
 static PMEMobjpool *pop;
 static PMEMoid tab;
@@ -62,7 +63,6 @@ tx_alloc_free(void *arg)
 			if (locked)
 				pthread_mutex_unlock(&mtx);
 		} TX_END
-
 		locked = 0;
 		TX_BEGIN(pop) {
 			pthread_mutex_lock(&mtx);
@@ -119,10 +119,9 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create");
 
 	int i = 0;
-	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-	pthread_t *threads = MALLOC(2 * ncpus * sizeof(threads[0]));
+	pthread_t *threads = MALLOC(THREADS * sizeof(threads[0]));
 
-	for (int j = 0; j < ncpus; ++j) {
+	for (int j = 0; j < THREADS / 2; ++j) {
 		PTHREAD_CREATE(&threads[i++], NULL, tx_alloc_free, NULL);
 		PTHREAD_CREATE(&threads[i++], NULL, tx_snap, NULL);
 	}
