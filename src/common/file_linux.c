@@ -47,6 +47,9 @@
 
 #define MAX_SIZE_LENGTH 64
 
+#define MiB	((uintptr_t)1 << 20)
+#define GiB	((uintptr_t)1 << 30)
+
 /*
  * util_tmpfile --  (internal) create the temporary file
  */
@@ -220,6 +223,18 @@ device_dax_alignment(const char *path)
 		ERR("invalid device alignment %s", sizebuf);
 		size = 0;
 		goto out;
+	}
+
+	/* just in case someone is using kernel < 4.9 */
+	if (size != 4096 && size != 2 * MiB && size != GiB) {
+		/* in older kernels 'align' was in hex format */
+		size = strtoull(sizebuf, &endptr, 16);
+		if (endptr == sizebuf || *endptr != '\n' ||
+		    (size == ULLONG_MAX && errno == ERANGE)) {
+			ERR("invalid device alignment %s", sizebuf);
+			size = 0;
+			goto out;
+		}
 	}
 
 	errno = olderrno;
