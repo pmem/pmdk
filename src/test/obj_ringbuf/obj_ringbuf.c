@@ -95,10 +95,6 @@ producer(void *arg)
 		m = &thp->msgs[i];
 		m->th_id = thp->th_id;
 		m->msg_id = i;
-		/*
-		 * This assignment is done with a compare and swap so that it's
-		 * ensured that no two threads use the same variable.
-		 */
 		UT_ASSERTeq(m->consumed, 0);
 
 		ringbuf_enqueue(thp->rbuf, m);

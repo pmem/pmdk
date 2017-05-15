@@ -134,7 +134,8 @@ ringbuf_stop(struct ringbuf *rbuf)
 	while (rbuf->read_pos != rbuf->write_pos)
 		__sync_synchronize();
 
-	rbuf->running = 0;
+	int ret = util_bool_compare_and_swap64(&rbuf->running, 1, 0);
+	ASSERTeq(ret, 1);
 
 	/* XXX just unlock all waiting threads somehow... */
 	for (int64_t i = 0; i < RINGBUF_MAX_CONSUMER_THREADS; ++i)
@@ -174,6 +175,8 @@ ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 	 */
 	while (!util_bool_compare_and_swap64(&rbuf->data[w], NULL, data))
 		;
+
+	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&rbuf->data[w]);
 }
 
 /*
@@ -230,6 +233,8 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 	 * threads get the same read position.
 	 */
 	void *data = NULL;
+
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&rbuf->data[r]);
 	do {
 		while ((data = rbuf->data[r]) == NULL)
 			__sync_synchronize();

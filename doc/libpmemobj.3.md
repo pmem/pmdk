@@ -2240,7 +2240,9 @@ indexes present on the path of an entry point is provided to the handler
 functions as name and index pairs.
 
 The entry points are listed in the following format:
+
 name | r(ead)w(rite) | global/- | read argument type | write argument type | config argument type
+
 description...
 
 # CTL NAMESPACE #
@@ -2324,7 +2326,7 @@ tx.post_commit.worker | r- | - | void * | - | -
 The worker function that one needs to launch in a thread to perform asynchronous
 processing of post-commit tasks. It returns only after a stop entry point is
 called. There might be many worker threads at a time. If there's no work to be
-done, this functions sleeps instead of polling.
+done, this function sleeps instead of polling.
 
 Always returns 0.
 

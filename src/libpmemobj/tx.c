@@ -1347,13 +1347,25 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)section->layout;
 
-	if (detached)
-		lane_attach(pop, runtime->lane_idx);
-
 	struct tx *tx = get_tx();
-	tx->pop = pop;
-	tx->section = section;
-	tx->stage = TX_STAGE_ONCOMMIT;
+
+	if (detached) {
+#if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
+		/* cleanup the state of lane data in race detection tools */
+		if (On_valgrind) {
+			VALGRIND_ANNOTATE_NEW_MEMORY(layout, sizeof(*layout));
+			VALGRIND_ANNOTATE_NEW_MEMORY(runtime, sizeof(*runtime));
+			int ret = tx_rebuild_undo_runtime(pop, layout,
+				&runtime->undo);
+			ASSERTeq(ret, 0); /* can't fail, valgrind-related */
+		}
+#endif
+
+		lane_attach(pop, runtime->lane_idx);
+		tx->pop = pop;
+		tx->section = section;
+		tx->stage = TX_STAGE_ONCOMMIT;
+	}
 
 	/* post commit phase */
 	tx_post_commit(pop, tx, layout, 0 /* not recovery */);
