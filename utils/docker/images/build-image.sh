@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,9 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# build-image.sh <OS:VER> - prepares a Docker image with <OS>-based
+# build-image.sh <OS-VER> - prepares a Docker image with <OS>-based
 #                           environment for building NVML project, according
-#                           to the Dockerfile.<OS:VER> file located
+#                           to the Dockerfile.<OS-VER> file located
 #                           in the same directory.
 #
 # The script can be run locally.
@@ -41,8 +41,8 @@
 
 function usage {
 	echo "Usage:"
-	echo "    build-image.sh <OS:VER>"
-	echo "where <OS:VER>, for example, can be 'ubuntu:16.04', provided " \
+	echo "    build-image.sh <OS-VER>"
+	echo "where <OS-VER>, for example, can be 'ubuntu-16.04', provided " \
 		"a Dockerfile named 'Dockerfile.ubuntu-16.04' exists in the " \
 		"current directory."
 }
@@ -54,16 +54,15 @@ if [[ -z "$1" ]]; then
 fi
 
 # Check if the file Dockerfile.OS-VER exists
-os_ver=${1/\:/-}
-if [[ ! -f "Dockerfile.$os_ver" ]]; then
+if [[ ! -f "Dockerfile.$1" ]]; then
 	echo "ERROR: wrong argument."
 	usage
 	exit 1
 fi
 
-# Build a Docker image tagged with nvml/OS:VER
-tag=nvml/$1
+# Build a Docker image tagged with pmem/nvml:OS-VER
+tag=pmem/nvml:$1
 sudo docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
-	-f Dockerfile.$os_ver .
+	-f Dockerfile.$1 .

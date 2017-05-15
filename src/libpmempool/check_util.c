@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -618,7 +618,7 @@ const char *
 check_get_time_str(time_t time)
 {
 	static char str_buff[STR_MAX] = {0, };
-	struct tm *tm = localtime(&time);
+	struct tm *tm = util_localtime(&time);
 
 	if (tm)
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);

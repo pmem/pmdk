@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <endian.h>
+#include <errno.h>
+#include <time.h>
 
 #include "util.h"
 #include "valgrind_internal.h"
@@ -267,4 +269,21 @@ util_concat_str(const char *s1, const char *s2)
 	strcat(result, s2);
 
 	return result;
+}
+
+/*
+ * util_localtime -- a wrapper for localtime function
+ *
+ * localtime can set nonzero errno even if it succeeds (e.g. when there is no
+ * /etc/localtime file under Linux) and we do not want the errno to be polluted
+ * in such cases.
+ */
+struct tm *
+util_localtime(const time_t *timep)
+{
+	int oerrno = errno;
+	struct tm *tm = localtime(timep);
+	if (!tm)
+		errno = oerrno;
+	return tm;
 }

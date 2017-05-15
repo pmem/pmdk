@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@
 # further scripts.
 #
 # If the Docker image does not have to be rebuilt, it will be pulled from
-# the Docker Hub.
+# Docker Hub.
 #
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
@@ -87,10 +87,10 @@ for file in $files; do
 		# Rebuild Docker image for the current OS version
 		echo "Rebuilding the Docker image for the Dockerfile.$OS-$OS_VER"
 		pushd $images_dir_name
-		./build-image.sh $OS:$OS_VER
+		./build-image.sh ${OS}-${OS_VER}
 		popd
 
-		# Check if the image has to be pushed to the Docker Hub
+		# Check if the image has to be pushed to Docker Hub
 		# (i.e. the build is triggered by commits to the pmem/nvml
 		# repository's master branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
@@ -99,16 +99,16 @@ for file in $files; do
 			&& $TRAVIS_BRANCH == "master" \
 			&& $TRAVIS_EVENT_TYPE != "pull_request" ]]
 		then
-			echo "The image will be pushed to the Docker Hub"
+			echo "The image will be pushed to Docker Hub"
 			touch push_image_to_repo_flag
 		else
-			echo "Skip pushing the image to the Docker Hub"
+			echo "Skip pushing the image to Docker Hub"
 		fi
 		exit 0
 	fi
 done
 
 # Getting here means rebuilding the Docker image is not required.
-# Pull the image from the Docker Hub.
-sudo docker pull nvml/$OS:$OS_VER
+# Pull the image from Docker Hub.
+sudo docker pull pmem/nvml:${OS}-${OS_VER}
 

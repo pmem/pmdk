@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,7 +47,11 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 	exit 1
 fi
 
-imageName=nvml/${OS}:${OS_VER}
+if [[ -z "$TEST_BUILD" ]]; then
+	TEST_BUILD=all
+fi
+
+imageName=pmem/nvml:${OS}-${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
 if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi
@@ -82,6 +86,7 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	-v $HOST_WORKDIR:$WORKDIR \
+	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \
 	$imageName $command
 
