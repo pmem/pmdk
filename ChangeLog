@@ -1,4 +1,14 @@
 
+Mon May 15 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2.3
+	Bug fixes:
+	- test: extend timeout for selected tests
+	- test: reduce number of operations in obj_tx_mt
+
+	Other changes:
+	- common: move Docker images to new repo
+
 Sat Apr 15 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2.2
