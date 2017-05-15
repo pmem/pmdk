@@ -51,7 +51,7 @@ $POOL = "$DIR/testfile"
 $SCRIPT = "..\tools\pmemobjcli\pmemobjcli_example_tx.posc"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 
-rm $POOL -Force -ea si
+Remove-Item $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create obj $POOL -s 16M
 expect_normal_exit $PMEMOBJCLI -s $SCRIPT $POOL > $LOG
 

@@ -52,13 +52,13 @@ setup
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit $PMEMWRITE $POOL TEST
 expect_normal_exit $PMEMPOOL dump -b -o $LOG $POOL
-echo "" | out-file -encoding ASCII -append $LOG
-expect_normal_exit $PMEMPOOL dump -b $POOL | out-file -encoding ASCII -append $LOG
+Write-Output "" | Out-File -encoding ASCII -append $LOG
+expect_normal_exit $PMEMPOOL dump -b $POOL | Out-File -encoding ASCII -append $LOG
 
 check
 

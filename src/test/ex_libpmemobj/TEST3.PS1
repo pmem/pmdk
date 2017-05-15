@@ -50,7 +50,7 @@ require_no_unicode
 
 setup
 
-echo @"
+Write-Output @"
 i 1234
 i 4321
 p

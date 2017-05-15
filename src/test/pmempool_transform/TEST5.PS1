@@ -50,9 +50,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
@@ -76,7 +76,7 @@ create_poolset $POOLSET_OUT `
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
-echo @"
+Write-Output @"
 pr 50M
 srcp 0 TestOK111
 srcp 25M TestOK222
@@ -85,23 +85,23 @@ srcp 45M TestOK333
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
-echo @"
+Write-Output @"
 srpr 0 9
 srpr 25M 9
 srpr 45M 9
 "@ | out-file -encoding ASCII $READ_SCRIPT
 
 # Log poolset structures
-echo poolset_in >> $LOG_TEMP
-cat $POOLSET_IN >> $LOG_TEMP
-echo "" >> $LOG_TEMP
-echo poolset_out >> $LOG_TEMP
-cat $POOLSET_OUT >> $LOG_TEMP
-echo "" >> $LOG_TEMP
+Write-Output poolset_in >> $LOG_TEMP
+Get-content $POOLSET_IN >> $LOG_TEMP
+Write-Output "" >> $LOG_TEMP
+Write-Output poolset_out >> $LOG_TEMP
+Get-content $POOLSET_OUT >> $LOG_TEMP
+Write-Output "" >> $LOG_TEMP
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat $LOG >> $LOG_TEMP
+Get-Content $LOG >> $LOG_TEMP
 
 # Write some data into the pool, hitting two part files
 expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
@@ -123,7 +123,7 @@ dump_pool_info $DIR/testfile01 >> $LOG_TEMP
 dump_pool_info $DIR/testfile02 >> $LOG_TEMP
 dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 
 pass

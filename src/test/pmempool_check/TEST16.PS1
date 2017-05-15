@@ -53,7 +53,7 @@ $POOLSET="$DIR\pool.set"
 $POOL_P1="$DIR\pool.p1"
 $POOL_P2="$DIR\pool.p2"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 
 create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 

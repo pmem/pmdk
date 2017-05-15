@@ -59,14 +59,14 @@ check_signature PMEMBLK $POOL
 check_size $SIZE $POOL
 
 # PMEMLOG
-rm $POOL
+Remove-Item $POOL
 expect_normal_exit $PMEMPOOL create -s $SIZE log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 check_size $SIZE $POOL
 
 #PMEMOBJ
-rm $POOL
+Remove-Item $POOL
 expect_normal_exit $PMEMPOOL create -s $SIZE obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL

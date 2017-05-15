@@ -50,11 +50,11 @@ setup
 
 create_holey_file 1M $DIR/testfile
 
-rm -Force log$Env:UNITTEST_NUM.log -ErrorAction SilentlyContinue
+Remove-Item -Force log$Env:UNITTEST_NUM.log -ErrorAction SilentlyContinue
 
 function concat_log {
-	cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
-	rm out$Env:UNITTEST_NUM.log
+	Get-Content out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+	Remove-Item out$Env:UNITTEST_NUM.log
 }
 
 # fail after finish flag is set in redo log

@@ -51,7 +51,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
 expect_normal_exit $PMEMALLOC -o (1*1024*1024) -t 1 $POOL

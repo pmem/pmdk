@@ -51,9 +51,9 @@ setup
 $POOL = "$DIR/file.pool"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $EXE = "$Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX"
@@ -71,15 +71,15 @@ foreach ($field in ("Zeroed", "Error", "Initial", "Normal")) {
         $spcmd = "bttdevice.arena.btt_map(0)=0x${x}000000${i}"
 
         expect_normal_exit $BTTCREATE $POOL
-        echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
+        Write-Output "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
         &$PMEMSPOIL $POOL $spcmd
 
         expect_normal_exit $EXE -r 1 -t btt -a 1 $POOL
-        cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+        Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
     }
 }
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check_file $POOL
 
 check

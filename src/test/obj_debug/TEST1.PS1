@@ -52,8 +52,8 @@ setup
 $Env:PMEMOBJ_LOG_LEVEL = "4"
 expect_normal_exit $Env:EXE_DIR\obj_debug$Env:EXESUFFIX $DIR/testfile1 l
 
-sls -Path pmemobj$Env:UNITTEST_NUM.log -Pattern "_pobj_debug_notice" | `
-    %{$_.Line} > grep$Env:UNITTEST_NUM.log
+Select-String -Path pmemobj$Env:UNITTEST_NUM.log -Pattern "_pobj_debug_notice" | `
+    ForEach-Object {$_.Line} > grep$Env:UNITTEST_NUM.log
 
 check
 

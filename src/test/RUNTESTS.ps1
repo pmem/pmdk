@@ -71,9 +71,9 @@ Param(
 #
 function usage {
     if (1 -eq $args.Count) {
-        Write-Host "Error: $args"
+        Write-Output "Error: $args"
     }
-    Write-Host "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+    Write-Output "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
                 [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
                 [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
         -h      print this help message
@@ -163,7 +163,7 @@ if (-Not ("auto" -match $ereceivetype)) {
 if (-Not ("auto" -match $dreceivetype)) {
     usage "bad drd: $dreceivetype"
 }
-sv -Name receivetype $mreceivetype
+Set-Variable -Name receivetype $mreceivetype
 
 function read_global_test_configuration {
     if ((Test-Path "config.PS1")) {
@@ -185,8 +185,8 @@ function test_concole_output($out, $err) {
 # runtest -- given the test directory name, run tests found inside it
 #
 function runtest {
-    $Env:UNITTEST_QUIET = 1
-    sv -Name testName $args[0]
+    [Environment]::SetEnvironmentVariable("UNITTEST_QUIET", "1", "Process")
+    Set-Variable -Name testName $args[0]
 
     # setup the timeout for seconds (default)
     [int64]$timeval = $time.Substring(0,$time.length-1)
@@ -213,45 +213,45 @@ function runtest {
     #
     # make list of fs-types and build-types to test
     #
-    sv -Name fss $fstype
+    Set-Variable -Name fss $fstype
     if ($fss -eq "all") {
         $fss = "none pmem non-pmem any"
     }
-    sv -Name builds $buildtype
+    Set-Variable -Name builds $buildtype
     if ($builds -eq "all") {
         $builds = "debug nondebug"
     }
     if ($skip_dir.split() -contains $testName) {
-        Write-Host "RUNTESTS: Skipping: $testName"
+        Write-Output "RUNTESTS: Skipping: $testName"
         return
     }
-    cd $testName
+    Set-Location $testName
     if ($testfile -eq "all") {
-        sv -Name dirCheck ".\TEST*.ps1"
+        Set-Variable -Name dirCheck ".\TEST*.ps1"
     } else {
-        sv -Name dirCheck "..\$testName\$testfile.ps1"
+        Set-Variable -Name dirCheck "..\$testName\$testfile.ps1"
     }
-    sv -Name runscripts ""
-    Get-ChildItem $dirCheck | Sort-Object { $_.BaseName -replace "\D+" -as [Int] } | % {
-        $runscripts += $_.Name + " "
+    Set-Variable -Name runscripts "" -Scope Script
+    Get-ChildItem $dirCheck | Sort-Object { $_.BaseName -replace "\D+" -as [Int] } | ForEach-Object {
+        $Script:runscripts += $_.Name + " "
     }
 
     $runscripts = $runscripts.trim()
     if (-Not($runscripts -match "ps1")) {
-        cd ..
+        Set-Location ..
         return
     }
 
     # for each TEST script found...
     Foreach ($runscript in $runscripts.split(" ")) {
         if ($verbose) {
-            Write-Host "RUNTESTS: Test: $testName/$runscript "
+            Write-Output "RUNTESTS: Test: $testName/$runscript "
         }
 
         read_global_test_configuration
         if ($testtype -ne "all") {
-            $type = get-content $runscript | select-string -pattern "require_test_type *" | select -last 1
-            if ($type -ne $null) {
+            $type = Get-Content $runscript | Select-String -pattern "require_test_type *" | Select-Object -last 1
+            if ($null -ne $type) {
                 $type = $type.ToString().split(" ")[1];
                 if ($testtype -eq "check" -and $type -eq "long") {
                     continue
@@ -262,12 +262,12 @@ function runtest {
             }
         }
 
-        $test_fss = get-content $runscript | select-string -pattern "require_fs_type *" | select -last 1
+        $test_fss = Get-Content $runscript | Select-String -pattern "require_fs_type *" | Select-Object -last 1
 
         Foreach ($fs in $fss.split(" ").trim()) {
-            if ($test_fss -ne $null) {
+            if ($null -ne $test_fss) {
                 $found = 0
-                Foreach ($test_fs in $test_fss.ToString().Split(" ") | select -skip 1) {
+                Foreach ($test_fs in $test_fss.ToString().Split(" ") | Select-Object -skip 1) {
                     if ($test_fs -eq $fs) {
                         $found = 1
                         break
@@ -279,11 +279,11 @@ function runtest {
             }
             # don't bother trying when fs-type isn't available...
             if ($fs -eq "pmem" -And (-Not $Env:PMEM_FS_DIR)) {
-                $pmem_skip = 1
+                # $pmem_skip = 1
                 continue
             }
             if ($fs -eq "non-pmem" -And (-Not $Env:NON_PMEM_FS_DIR)) {
-                $non_pmem_skip = 1
+                # $non_pmem_skip = 1
                 continue
             }
             if ($fs -eq "any" -And (-Not $Env:NON_PMEM_FS_DIR) -And (-Not $Env:PMEM_FS_DIR)) {
@@ -291,21 +291,22 @@ function runtest {
             }
 
             if ($verbose) {
-                Write-Host "RUNTESTS: Testing fs-type: $fs..."
+                Write-Output "RUNTESTS: Testing fs-type: $fs..."
             }
             # for each build-type being tested...
             Foreach ($build in $builds.split(" ").trim()) {
                 if ($verbose) {
-                    Write-Host "RUNTESTS: Testing build-type: $build..."
+                    Write-Output "RUNTESTS: Testing build-type: $build..."
                 }
 
-                $Env:CHECK_TYPE = $checktype
                 $Env:CHECK_POOL = $check_pool
                 $Env:VERBOSE = $verbose
                 $Env:TYPE = $testtype
                 $Env:FS = $fs
                 $Env:BUILD = $build
-                $Env:EXE_DIR = get_build_dir $build
+                $exe_dir = get_build_dir $build
+                [Environment]::SetEnvironmentVariable("EXE_DIR", $exe_dir, "Process")
+                [Environment]::SetEnvironmentVariable("CHECK_TYPE", $checktype, "Process")
 
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
                 $pinfo.FileName = "powershell.exe"
@@ -315,11 +316,11 @@ function runtest {
                 $pinfo.CreateNoWindow = $true
 
                 if ($dryrun -eq "1") {
-                    Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
+                    Write-Output "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
                     break
                 }
                 $pinfo.Arguments = ".\$runscript"
-                $pinfo.WorkingDirectory = $(pwd).Path
+                $pinfo.WorkingDirectory = $(Get-Location).Path
                 $p = New-Object System.Diagnostics.Process
                 $p.StartInfo = $pinfo
                 $p.Start() | Out-Null
@@ -339,7 +340,7 @@ function runtest {
                         $p | Stop-Process -Force
                         test_concole_output $outTask $errTask
                         Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
-                        cd ..
+                        Set-Location ..
                         exit $p.ExitCode
                     }
                     test_concole_output $outTask $errTask
@@ -350,13 +351,13 @@ function runtest {
 
                 if ($p.ExitCode -ne 0) {
                     Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
-                    cd ..
+                    Set-Location ..
                     exit $p.ExitCode
                 }
             } # for builds
         } # for fss
     } # for runscripts
-    cd ..
+    Set-Location ..
 }
 
 ####################
@@ -364,9 +365,9 @@ function runtest {
 #
 # defaults for non-params...
 #
-sv -Name testconfig ".\testconfig.ps1"
-sv -Name use_timeout "ok"
-sv -Name checktype "none"
+Set-Variable -Name testconfig ".\testconfig.ps1"
+Set-Variable -Name use_timeout "ok"
+Set-Variable -Name checktype "none"
 
 if (-Not (Test-Path "testconfig.ps1")) {
     Write-Error "
@@ -412,25 +413,25 @@ if ($verbose -eq "1") {
     if ($verbose -eq "1") {
         Write-Host -NoNewline " -v"
     }
-    Write-Host ""
-    Write-Host "    build-type: $buildtype"
-    Write-Host "    test-type: $testtype"
-    Write-Host "    fs-type: $fstype"
-    Write-Host "    check-type: $checktype"
+    Write-Output ""
+    Write-Output "    build-type: $buildtype"
+    Write-Output "    test-type: $testtype"
+    Write-Output "    fs-type: $fstype"
+    Write-Output "    check-type: $checktype"
     if ($check_pool -eq "1") {
-        sv -Name check_pool_str "yes"
+        Set-Variable -Name check_pool_str "yes"
     } else {
-        sv -Name check_pool_str "no"
+        Set-Variable -Name check_pool_str "no"
     }
-    Write-Host "    check-pool: $check_pool_str"
-    Write-Host "Tests: $args"
+    Write-Output "    check-pool: $check_pool_str"
+    Write-Output "Tests: $args"
 }
 if ($testdir -eq "all") {
-    Get-ChildItem -Directory | % {
+    Get-ChildItem -Directory | ForEach-Object {
         $LASTEXITCODE = 0
         runtest $_.Name
         if ($LASTEXITCODE -ne 0) {
-            Write-Host ""
+            Write-Output ""
             Write-Error "RUNTESTS FAILED at $test_script"
             Exit $LASTEXITCODE
         }
@@ -439,7 +440,7 @@ if ($testdir -eq "all") {
     $LASTEXITCODE = 0
     runtest $testdir
     if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
+        Write-Output ""
         Write-Error "RUNTESTS FAILED at $test_script"
         Exit $LASTEXITCODE
     }

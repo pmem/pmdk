@@ -37,17 +37,29 @@ Write-Output "Starting PSScript analyzing ..."
 $scriptdir = Split-Path -Parent $PSCommandPath
 $rootdir = $scriptdir + "\.."
 $detected = 0
-
+$files = @("TEST_SPARSE.ps1", "RUNTESTS.ps1", "unittest.ps1")
+#
+# to not remove -NoNewline output option and run tools in format "$command $params"
+#
+$exclude_rules = @('PSAvoidUsingWriteHost', 'PSAvoidUsingInvokeExpression')
 $include = @("*.ps1" )
+
 Get-ChildItem -Path $rootdir -Recurse -Include $include  | `
-    Where-Object { $_.FullName -notlike "*test*" } | `
     ForEach-Object {
-        $analyze_result = Invoke-ScriptAnalyzer -Path $_.FullName
+        $path = $_.FullName
+        $exclude = @()
+        $files | ForEach-Object {
+            if ($path -match $_){
+                $script:exclude = $exclude_rules
+            }
+        }
+        $analyze_result = Invoke-ScriptAnalyzer -Path $_.FullName -ExcludeRule $exclude
         if ($analyze_result) {
             $detected = $detected + $analyze_result.Count
             Write-Output $_.FullName
             Write-Output $analyze_result
         }
+        $exclude = @()
     }
 
 if ($detected) {

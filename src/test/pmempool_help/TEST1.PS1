@@ -51,14 +51,14 @@ setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 foreach($cmd in "info","dump","create","check") {
-	rm help_${cmd}.log -Force -ea si
-    rm ${cmd}_help.log -Force -ea si
+	Remove-Item help_${cmd}.log -Force -ea si
+    Remove-Item ${cmd}_help.log -Force -ea si
 	expect_normal_exit $PMEMPOOL help $cmd >> help_${cmd}.log
 	expect_normal_exit $PMEMPOOL ${cmd} --help >> ${cmd}_help.log
-	compare-object (get-content help_${cmd}.log) (get-content ${cmd}_help.log) >> $LOG
+	Compare-Object (Get-Content help_${cmd}.log) (Get-Content ${cmd}_help.log) >> $LOG
 }
 
 expect_normal_exit $PMEMPOOL help help >> $LOG

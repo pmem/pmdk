@@ -56,32 +56,32 @@ $INHERIT="$DIR\inherit.pool"
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 check_file $POOL
 check_signature PMEMBLK $POOL
-sv -Name SIZE -Scope "Local" (get_size $POOL)
+Set-Variable -Name SIZE -Scope "Local" (get_size $POOL)
 expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMBLK $INHERIT
 check_size $SIZE $INHERIT
 
 # PMEMLOG
-rm $POOL
-rm $INHERIT
+Remove-Item $POOL
+Remove-Item $INHERIT
 expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
-sv -Name SIZE -Scope "Local" (get_size $POOL)
+Set-Variable -Name SIZE -Scope "Local" (get_size $POOL)
 expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMLOG $INHERIT
 check_size $SIZE $INHERIT
 
 # PMEMOBJ
-rm $POOL
-rm $INHERIT
+Remove-Item $POOL
+Remove-Item $INHERIT
 expect_normal_exit $PMEMPOOL create --layout=pmempool$Env:SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL
 check_layout pmempool$Env:SUFFIX $POOL
-sv -Name SIZE -Scope "Local" (get_size $POOL)
+Set-Variable -Name SIZE -Scope "Local" (get_size $POOL)
 expect_normal_exit $PMEMPOOL create --inherit $POOL $INHERIT
 check_file $INHERIT
 check_signature PMEMOBJ $INHERIT

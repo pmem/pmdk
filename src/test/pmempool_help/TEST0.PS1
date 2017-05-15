@@ -51,7 +51,7 @@ setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+Remove-Item $LOG -Force -Recurse -ea si
 
 expect_normal_exit $PMEMPOOL >> $LOG
 expect_normal_exit $PMEMPOOL --version >> $LOG

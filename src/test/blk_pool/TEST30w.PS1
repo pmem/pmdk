@@ -57,7 +57,7 @@ setup
 #        (pool set with replica section)
 #
 # XXX fix one we figure out windows poolsets and $PMEMSPOIL tool(?)
-echo "XXX" > out30w.log
+Write-Output "XXX" > out30w.log
 
 #expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
 #    c $DIR\testfile1 300 20 0640

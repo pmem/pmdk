@@ -49,7 +49,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create obj $POOL
 

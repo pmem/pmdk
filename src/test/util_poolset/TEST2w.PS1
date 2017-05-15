@@ -100,8 +100,8 @@ expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
     $DIR/testset9 $DIR/testset10 `
     $DIR/testset11 $DIR/testset12
 
-sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
-    %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
+Select-String -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
+    ForEach-Object {[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
     > grep$Env:UNITTEST_NUM.log
 
 check

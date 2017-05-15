@@ -52,7 +52,7 @@ require_build_type debug
 
 setup
 
-rm -Force .\custom_file.log-*
+Remove-Item -Force .\custom_file.log-*
 
 $Env:TRACE_LOG_LEVEL = "4"
 $Env:TRACE_LOG_FILE = ".\custom_file.log-"
@@ -60,10 +60,10 @@ expect_normal_exit $Env:EXE_DIR\traces$Env:EXESUFFIX
 
 # check results
 if (-not (Test-Path .\custom_file.log-*)) {
-	echo "error: .\custom_file.log-PID not found"
+	Write-Output "error: .\custom_file.log-PID not found"
 	exit 1
 }
-mv -Force .\custom_file.log-* custom_file$Env:UNITTEST_NUM.log
+Move-Item -Force .\custom_file.log-* custom_file$Env:UNITTEST_NUM.log
 
 check
 

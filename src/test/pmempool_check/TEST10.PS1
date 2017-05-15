@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ $POOL_R2_PART1="$DIR/pool.replica2.part1"
 $POOL_R2_PART2="$DIR/pool.replica2.part2"
 
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 
 create_poolset $POOLSET `
 	20M:$POOL_R1_PART1 50M:$POOL_R1_PART2 `

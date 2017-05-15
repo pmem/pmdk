@@ -61,7 +61,7 @@ expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR\testfile1 `
     $DIR\testfile2
 
-rm -Force -Recurse $DIR\testdir1
+Remove-Item -Force -Recurse $DIR\testdir1
 
 check
 

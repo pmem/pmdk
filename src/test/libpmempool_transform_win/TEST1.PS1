@@ -51,9 +51,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
@@ -82,7 +82,7 @@ create_poolset $POOLSET_OUT `
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR/write_data"
-echo @"
+Write-Output @"
 pr 22M
 srcp 0 TestOK111
 srcp 20M TestOK222
@@ -90,14 +90,14 @@ srcp 20M TestOK222
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR/read_data"
-echo @"
+Write-Output @"
 srpr 0 9
 srpr 20M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | Out-File -encoding ASCII $READ_SCRIPT
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Write some data into the pool, hitting two part files
 expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN | Out-File -append -encoding ascii $LOG_TEMP
@@ -109,7 +109,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN | Out-File -append -e
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT | Out-File -append -encoding ascii $LOG_TEMP
@@ -119,6 +119,6 @@ for ($i=0; $i -lt 7; $i++) {
     dump_pool_info $DIR/testfile$i | Out-File -append -encoding ascii $LOG_TEMP
 }
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 pass

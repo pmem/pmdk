@@ -52,9 +52,9 @@ setup
 
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
+Remove-Item $LOG -Force -ea si
 touch $LOG
-rm $LOG_TEMP -Force -ea si
+Remove-Item $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
@@ -68,22 +68,22 @@ create_poolset $POOLSET `
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 # Delete a part from the second replica
-rm $DIR\part10 -Force -ea si
+Remove-Item $DIR\part10 -Force -ea si
 
 # Try to synchronize replicas
 $FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
 $FLAGS = "1024"
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+Get-Content -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
 
-mv -Force $LOG_TEMP $LOG
+Move-Item -Force $LOG_TEMP $LOG
 check
 pass

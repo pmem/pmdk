@@ -89,9 +89,9 @@ remove_files $POOLS $REPS
 expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLREP
 expect_normal_exit $PMEMPOOL info $POOLREP >> $LOG
 expect_normal_exit $PMEMPOOL info --replica 0 $POOLREP `
-| select-string -pattern "UUID" > $LOG_REP0
+| Select-String -pattern "UUID" > $LOG_REP0
 expect_normal_exit $PMEMPOOL info --replica 1 $POOLREP `
-| select-string -pattern "UUID" > $LOG_REP1
+| Select-String -pattern "UUID" > $LOG_REP1
 
 "DIFF" >> $LOG
 Compare-Object $(Get-Content $LOG_REP0) $(Get-Content $LOG_REP1) >> $LOG
