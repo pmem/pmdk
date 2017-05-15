@@ -47,7 +47,11 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 	exit 1
 fi
 
-imageName=nvml/${OS}:${OS_VER}
+if [[ -z "$TEST_BUILD" ]]; then
+	TEST_BUILD=all
+fi
+
+imageName=pmem/nvml:${OS}-${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
 if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi

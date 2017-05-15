@@ -18,4 +18,4 @@ env:
   - MAKE_PKG=1 CC=gcc OS=fedora OS_VER=23 EXPERIMENTAL=y
 
 after_success:
-  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS:$OS_VER; fi
+  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS-$OS_VER; fi
