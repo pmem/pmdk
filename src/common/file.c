@@ -307,8 +307,8 @@ util_file_zero(const char *path, off_t off, size_t len)
 	if ((size_t)off + len > (size_t)size) {
 		LOG(2, "requested size of write goes beyond the file length, "
 					"%zu > %zu", (size_t)off + len, size);
-		LOG(4, "adjusting len to %zu", size);
-		len = (size_t)size;
+		LOG(4, "adjusting len to %zu", size - off);
+		len = (size_t)(size - off);
 	}
 
 	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
@@ -318,8 +318,8 @@ util_file_zero(const char *path, off_t off, size_t len)
 		goto out;
 	}
 
-	/* zero initialize the entire device */
-	memset((char *)addr + off, 0, (size_t)size);
+	/* zero initialize the specified region */
+	memset((char *)addr + off, 0, len);
 
 	util_unmap(addr, (size_t)size);
 
