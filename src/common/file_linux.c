@@ -222,6 +222,21 @@ device_dax_alignment(const char *path)
 		goto out;
 	}
 
+	/*
+	 * If the alignment value is not a power of two, try with
+	 * hex format, as this is how it was printed in older kernels.
+	 * Just in case someone is using kernel <4.9.
+	 */
+	if ((size & (size - 1)) != 0) {
+		size = strtoull(sizebuf, &endptr, 16);
+		if (endptr == sizebuf || *endptr != '\n' ||
+		    (size == ULLONG_MAX && errno == ERANGE)) {
+			ERR("invalid device alignment %s", sizebuf);
+			size = 0;
+			goto out;
+		}
+	}
+
 	errno = olderrno;
 
 out:
