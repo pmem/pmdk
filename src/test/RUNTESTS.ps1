@@ -46,12 +46,6 @@ Param(
     $testtype = "check",
     [alias("f")]
     $fstype = "all",
-    [alias("m")]
-    $mreceivetype = "auto",
-    [alias("p")]
-    $preceivetype = "auto",
-    [alias("d")]
-    $dreceivetype = "auto",
     [alias("o")]
     $time = "180s",
     [alias("s")]
@@ -62,6 +56,8 @@ Param(
     $check_pool = "0",
     [alias("k")]
     $skip_dir = "",
+    [alias("j")]
+    $jobs = 1,
     [alias("h")][switch]
     $help= $false
     )
@@ -75,7 +71,7 @@ function usage {
     }
     Write-Host "Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
                 [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
-                [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ] [ -i testdir ]
+                [ -c ] [ -i testdir ] [-j jobs]
         -h      print this help message
         -n      dry run
         -v      be verbose
@@ -91,25 +87,10 @@ function usage {
         -o timeout  set timeout for test execution
                 timeout: floating point number with an optional suffix: 's' for seconds
                 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
-                Default value is 60 seconds.
+                Default value is 180 seconds.
         -s test-file    run only specified test file
                 test-file: all (default), TEST0, TEST1, ...
-        -m memcheck run tests with memcheck
-                memcheck: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require memcheck, but
-                obey test's explicit memcheck disable)
-        -p pmemcheck    run tests with pmemcheck
-                pmemcheck: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require pmemcheck, but
-                obey test's explicit pmemcheck disable)
-        -e helgrind run tests with helgrind
-                helgrind: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require helgrind, but
-                obey test's explicit helgrind disable)
-        -d drd      run tests with drd
-                drd: auto (default, enable/disable based on test requirements),
-                force-enable (enable when test does not require drd, but
-                obey test's explicit drd disable)
+        -j jobs    number of tests to run simultaneously
         -c      check pool files with pmempool check utility"
     exit 1
 }
@@ -146,24 +127,6 @@ function get_build_dir() {
 
     return $build_dir
 }
-
-# XXX :missing some logic here that's in the bash script
-# having to do with force-enable and memcheck, pmemcheck.
-# don't really get whats going on there but we don't support
-# either in windows right now so will just save the params
-if (-Not ("auto" -match $mreceivetype)) {
-    usage "bad memcheck: $mreceivetype"
-}
-if (-Not ("auto" -match $preceivetype)) {
-    usage "bad pmemcheck: $preceivetype"
-}
-if (-Not ("auto" -match $ereceivetype)) {
-    usage "bad helgrind: $ereceivetype"
-}
-if (-Not ("auto" -match $dreceivetype)) {
-    usage "bad drd: $dreceivetype"
-}
-sv -Name receivetype $mreceivetype
 
 function read_global_test_configuration {
     if ((Test-Path "config.PS1")) {
@@ -307,52 +270,43 @@ function runtest {
                 $Env:BUILD = $build
                 $Env:EXE_DIR = get_build_dir $build
 
-                $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-                $pinfo.FileName = "powershell.exe"
-                $pinfo.RedirectStandardError = $true
-                $pinfo.RedirectStandardOutput = $true
-                $pinfo.UseShellExecute = $false
-                $pinfo.CreateNoWindow = $true
-
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
                     break
                 }
-                $pinfo.Arguments = ".\$runscript"
-                $pinfo.WorkingDirectory = $(pwd).Path
-                $p = New-Object System.Diagnostics.Process
-                $p.StartInfo = $pinfo
-                $p.Start() | Out-Null
-                $outTask = $p.StandardOutput.ReadToEndAsync()
-                $errTask = $p.StandardError.ReadToEndAsync()
+
+                $sb = {
+                    cd $args[0]
+                    Invoke-Expression $args[1]
+                }
+                $j1 = Start-Job -Name $name -ScriptBlock $sb -ArgumentList (pwd).Path, ".\$runscript"
 
                 If ($use_timeout -And $testtype -eq "check") {
                     # execute with timeout
                     $timeout = New-Timespan -Seconds $time
                     $stopwatch = [diagnostics.stopwatch]::StartNew()
                     while (($stopwatch.Elapsed.ToString('hh\:mm\:ss') -lt $timeout) -And `
-                        ($p.HasExited -eq $false)) {
-                        # wait for test exit or timeout
+                        ($j1.State -eq "NotStarted" -or $j1.State -eq "Running")) {
+                        Receive-Job -Job $j1
                     }
 
                     if ($stopwatch.Elapsed.ToString('hh\:mm\:ss') -ge $timeout) {
-                        $p | Stop-Process -Force
-                        test_concole_output $outTask $errTask
-                        Write-Error "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
+                        Stop-Job -Job $j1
+                        Receive-Job -Job $j1
+                        Remove-Job -Job $j1 -Force
                         cd ..
-                        exit $p.ExitCode
+                        throw "RUNTESTS: stopping: $testName/$runscript TIMED OUT, TEST=$testtype FS=$fs BUILD=$build"
                     }
-                    test_concole_output $outTask $errTask
                 } Else {
-                    $p.WaitForExit()
-                    test_concole_output $outTask $errTask
+                    Receive-Job -Job $j1 -Wait
                 }
 
-                if ($p.ExitCode -ne 0) {
-                    Write-Error "RUNTESTS: stopping: $testName/$runscript $msg errorcde= $p.ExitCode, TEST=$testtype FS=$fs BUILD=$build"
+                if ($j1.State -ne "Completed") {
+                    Remove-Job -Job $j1 -Force
                     cd ..
-                    exit $p.ExitCode
+                    throw "RUNTESTS: stopping: $testName/$runscript $msg TEST=$testtype FS=$fs BUILD=$build"
                 }
+                Remove-Job -Job $j1 -Force
             } # for builds
         } # for fss
     } # for runscripts
@@ -425,22 +379,76 @@ if ($verbose -eq "1") {
     Write-Host "    check-pool: $check_pool_str"
     Write-Host "Tests: $args"
 }
+
 if ($testdir -eq "all") {
-    Get-ChildItem -Directory | % {
-        $LASTEXITCODE = 0
-        runtest $_.Name
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host ""
-            Write-Error "RUNTESTS FAILED at $test_script"
-            Exit $LASTEXITCODE
+    if ($jobs -gt 1) {
+        try {
+            $it = 0
+            # unique name for all jobs
+            $name = [guid]::NewGuid().ToString()
+            $tests = (Get-ChildItem -Directory)
+            $threads = 0
+
+            # script block - job's start function
+            $sb = {
+                cd $args[0]
+                $LASTEXITCODE = 0
+                .\RUNTESTS.ps1 -dryrun $args[1] -buildtype $args[2] -testtype $args[3] -fstype $args[4] -time $args[5] -testdir $args[6]
+                if ($LASTEXITCODE -ne 0) {
+                    throw "RUNTESTS FAILED $args[0]"
+                }
+            }
+
+            # start worker jobs
+            1..$jobs | % {
+                if ($it -lt $tests.Length) {
+                    $j1 = Start-Job -Name $name -ScriptBlock $sb -ArgumentList (pwd).ToString(), $dryrun, $buildtype, $testtype, $fstype, $time, $tests[$it].Name | out-null
+                    $it++
+                    $threads++
+                }
+            }
+
+            $fail = $false
+
+            # control loop for receiving job outputs and starting new jobs
+            while ($threads -ne 0) {
+                Get-Job -name $name | Receive-Job
+                Get-Job -name $name | % {
+                    if ($_.State -eq "Running" -or $_.State -eq "NotStarted") {
+                        return
+                    }
+                    if ($_.State -eq "Failed") {
+                        $fail = $true
+                    }
+                    Receive-Job $_
+                    Remove-Job $_ -Force
+                    $threads--
+                    if ($fail -eq $false) {
+                        if ($it -lt $tests.Length) {
+                            Start-Job -Name $name -ScriptBlock $sb -ArgumentList (pwd).ToString(), $dryrun, $buildtype, $testtype, $fstype, $time, $tests[$it].Name | out-null
+                            $it++
+                            $threads++
+                        }
+                    }
+                }
+            }
+            if ($fail -ne 0) {
+                    Write-Error "RUNTESTS FAILED"
+                    Exit 1
+            }
+        } finally {
+            # cleanup jobs in case of exception or C-c
+            if ($threads -ne 0) {
+                Get-Job -name $name | Remove-Job -Force
+            }
+        }
+    } else {
+        Get-ChildItem -Directory | % {
+            $LASTEXITCODE = 0
+            runtest $_.Name
         }
     }
 } else {
     $LASTEXITCODE = 0
     runtest $testdir
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Error "RUNTESTS FAILED at $test_script"
-        Exit $LASTEXITCODE
-    }
 }
