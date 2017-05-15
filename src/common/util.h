@@ -47,6 +47,8 @@ extern "C" {
 #include <stdio.h>
 #include <ctype.h>
 
+#include <sys/param.h>
+
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
@@ -84,6 +86,7 @@ int util_parse_size(const char *str, size_t *sizep);
 char *util_fgets(char *buffer, int max, FILE *stream);
 char *util_realpath(const char *path);
 int util_compare_file_inodes(const char *path1, const char *path2);
+struct tm *util_localtime(const time_t *timep);
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);

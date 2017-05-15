@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -86,6 +86,7 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	-v $HOST_WORKDIR:$WORKDIR \
+	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \
 	$imageName $command
 

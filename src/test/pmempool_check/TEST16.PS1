@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ create_poolset $POOLSET 20M:$POOL_P1 20M:$POOL_P2
 
 expect_normal_exit $PMEMPOOL create log $POOLSET
 
-[int]$FUTURE_TIME=[int][double]::Parse((Get-Date -UFormat %s))
+[int]$FUTURE_TIME=[int64](([datetime]::UtcNow)-(Get-Date "1/1/1970")).TotalSeconds
 $FUTURE_TIME+=60*60
 &$PMEMSPOIL -v $POOL_P1 "pool_hdr.crtime=$FUTURE_TIME" >> $LOG
 
