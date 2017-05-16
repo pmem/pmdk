@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,59 +31,28 @@
  */
 
 /*
- * tx.h -- internal definitions for transactions
+ * ringbuf.h -- internal definitions for mpmc ring buffer
  */
 
-#ifndef LIBPMEMOBJ_INTERNAL_TX_H
-#define LIBPMEMOBJ_INTERNAL_TX_H 1
+#ifndef LIBPMEMOBJ_RINGBUF_H
+#define LIBPMEMOBJ_RINGBUF_H 1
 
+#include <stddef.h>
 #include <stdint.h>
-#include "pvector.h"
+#include <unistd.h>
 
-#define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
-#define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)
+struct ringbuf;
 
-#define TX_RANGE_SIZE_MASK (8ULL - 1)
-#define TX_RANGE_ALIGN_SIZE(s) ((s + TX_RANGE_SIZE_MASK) & ~TX_RANGE_SIZE_MASK)
+struct ringbuf *ringbuf_new(unsigned length);
+void ringbuf_delete(struct ringbuf *rbuf);
+unsigned ringbuf_length(struct ringbuf *rbuf);
+void ringbuf_stop(struct ringbuf *rbuf);
 
-enum tx_state {
-	TX_STATE_NONE = 0,
-	TX_STATE_COMMITTED = 1,
-};
-
-struct tx_range {
-	uint64_t offset;
-	uint64_t size;
-	uint8_t data[];
-};
-
-struct tx_range_cache;
-
-enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
-	UNDO_SET,
-	UNDO_SET_CACHE,
-
-	MAX_UNDO_TYPES
-};
-
-struct lane_tx_layout {
-	uint64_t state;
-	struct pvector undo_log[MAX_UNDO_TYPES];
-};
-
-struct tx_parameters;
-
-/*
- * Returns the current transaction's pool handle, NULL if not within
- * a transaction.
- */
-PMEMobjpool *tx_get_pop(void);
-
-void tx_ctl_register(PMEMobjpool *pop);
-
-struct tx_parameters *tx_params_new(void);
-void tx_params_delete(struct tx_parameters *tx_params);
+int ringbuf_enqueue(struct ringbuf *rbuf, void *data);
+int ringbuf_tryenqueue(struct ringbuf *rbuf, void *data);
+void *ringbuf_dequeue(struct ringbuf *rbuf);
+void *ringbuf_trydequeue(struct ringbuf *rbuf);
+void *ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size);
+void *ringbuf_trydequeue_s(struct ringbuf *rbuf, size_t data_size);
 
 #endif

@@ -127,9 +127,16 @@ pvector_delete(struct pvector_context *ctx)
  * pvector_reinit -- reinitializes the pvector runtime data
  */
 void
-pvector_reinit(struct pvector_context *vec)
+pvector_reinit(struct pvector_context *ctx)
 {
-	VALGRIND_ANNOTATE_NEW_MEMORY(vec, sizeof(*vec));
+	VALGRIND_ANNOTATE_NEW_MEMORY(ctx, sizeof(*ctx));
+	for (size_t n = 1; n < PVECTOR_MAX_ARRAYS; ++n) {
+		if (ctx->vec->arrays[n] == 0)
+			break;
+		size_t arr_size = 1ULL << (n + PVECTOR_INIT_SHIFT);
+		uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[n]);
+		VALGRIND_ANNOTATE_NEW_MEMORY(arrp, sizeof(*arrp) * arr_size);
+	}
 }
 
 /*

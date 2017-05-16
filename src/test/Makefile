@@ -60,6 +60,7 @@ LOG_TESTS = \
 OBJ_DEPS = obj_list
 # long tests first
 OBJ_TESTS = \
+	obj_async_postcommit\
 	obj_basic_integration\
 	obj_many_size_allocs\
 	obj_realloc\
@@ -105,6 +106,7 @@ OBJ_TESTS = \
 	obj_recovery\
 	obj_recreate\
 	obj_redo_log\
+	obj_ringbuf\
 	obj_strdup\
 	obj_toid\
 	obj_tx_alloc\

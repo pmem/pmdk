@@ -75,16 +75,19 @@
     <ClCompile Include="..\..\libpmemobj\container_seglists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="obj_realloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
-      <Filter>pmemobj</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\ctl.c">
-      <Filter>pmemobj</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\ctl_global.c">
-      <Filter>pmemobj</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="obj_realloc.c">
+    <ClCompile Include="..\..\libpmemobj\ringbuf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -47,6 +47,10 @@ extern "C" {
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef _MSC_VER
+#include <intrin.h> /* popcnt */
+#endif
+
 #include <sys/param.h>
 
 extern unsigned long long Pagesize;
@@ -146,6 +150,8 @@ util_clrbit(uint8_t *b, uint32_t i)
 #ifndef _MSC_VER
 #define util_bool_compare_and_swap32 __sync_bool_compare_and_swap
 #define util_bool_compare_and_swap64 __sync_bool_compare_and_swap
+#define util_fetch_and_add(ptr, value) __sync_fetch_and_add((ptr), value)
+#define util_popcount(value) __builtin_popcount(value)
 #else
 static __inline int
 __sync_bool_compare_and_swap32(volatile LONG *ptr,
@@ -167,6 +173,18 @@ __sync_bool_compare_and_swap64(volatile LONG64 *ptr,
 	__sync_bool_compare_and_swap32((LONG *)(p), (LONG)(o), (LONG)(n))
 #define util_bool_compare_and_swap64(p, o, n)\
 	__sync_bool_compare_and_swap64((LONG64 *)(p), (LONG64)(o), (LONG64)(n))
+
+static __inline LONGLONG
+util_sync_fetch_and_add64(volatile LONGLONG *ptr, LONGLONG value)
+{
+	LONGLONG ret = InterlockedAdd64(ptr, value);
+	return ret - value;
+}
+
+#define util_fetch_and_add(ptr, value)\
+	util_sync_fetch_and_add64((LONGLONG *)(ptr), (LONGLONG)(value))
+
+#define util_popcount(value) __popcnt(value)
 #endif
 
 /*

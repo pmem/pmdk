@@ -77,7 +77,7 @@ struct pvector {
 typedef void (*entry_op_callback)(PMEMobjpool *pop, uint64_t *entry);
 
 struct pvector_context *pvector_new(PMEMobjpool *pop, struct pvector *vec);
-void pvector_reinit(struct pvector_context *vec);
+void pvector_reinit(struct pvector_context *ctx);
 void pvector_delete(struct pvector_context *ctx);
 
 uint64_t *pvector_push_back(struct pvector_context *ctx);
