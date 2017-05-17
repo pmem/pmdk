@@ -39,6 +39,7 @@
  */
 
 #include <time.h>
+#include <synchapi.h>
 #include <sys/types.h>
 #include <sys/timeb.h>
 #include "os_thread.h"
