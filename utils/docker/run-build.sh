@@ -43,10 +43,10 @@ export RPMEM_DISABLE_LIBIBVERBS=y
 
 # Build all and run tests
 cd $WORKDIR
-make check-license \
-	&& make cstyle \
-	&& make -j2 USE_LIBUNWIND=1 \
-	&& make -j2 test USE_LIBUNWIND=1 \
-	&& make -j2 pcheck TEST_BUILD=$TEST_BUILD \
-	&& make DESTDIR=/tmp source
+make check-license
+make cstyle
+make -j2 USE_LIBUNWIND=1
+make -j2 test USE_LIBUNWIND=1
+make -j2 pcheck TEST_BUILD=$TEST_BUILD
+make DESTDIR=/tmp source
 
