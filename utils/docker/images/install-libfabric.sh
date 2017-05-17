@@ -34,10 +34,10 @@
 # install-libfabric.sh - installs a customized version of libfabric
 #
 
-libfabric_ver=v1.4.1
+libfabric_ver=1.4.1
 libfabric_url=https://github.com/ofiwg/libfabric/archive
 libfabric_dir=libfabric-$libfabric_ver
-libfabric_tarball=${libfabric_ver}.zip
+libfabric_tarball=v${libfabric_ver}.zip
 wget "${libfabric_url}/${libfabric_tarball}"
 unzip $libfabric_tarball
 cd $libfabric_dir \
