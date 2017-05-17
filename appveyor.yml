@@ -36,10 +36,6 @@ before_build:
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
-    } else {
-        #PowerShell -File "$Env:setup\SET_LIB.PS1" `
-        #-projectdir ((Get-Location).Path+"\$Env:setup")`
-        #-configuration $Env:CONFIGURATION
     }
 
 build_script:
