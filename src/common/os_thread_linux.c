@@ -368,7 +368,6 @@ os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
 			const os_cpu_set_t *set)
 {
 	COMPILE_ERROR_ON(sizeof(os_cpu_set_t) < sizeof(cpu_set_t));
-
 	return pthread_setaffinity_np((pthread_t)thread, set_size,
 		(cpu_set_t *)set);
 }
