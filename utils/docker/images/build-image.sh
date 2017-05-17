@@ -39,6 +39,8 @@
 # The script can be run locally.
 #
 
+set -o pipefail
+
 function usage {
 	echo "Usage:"
 	echo "    build-image.sh <OS-VER>"

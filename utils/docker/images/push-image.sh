@@ -39,6 +39,8 @@
 # for automated builds.
 #
 
+set -o pipefail
+
 function usage {
 	echo "Usage:"
 	echo "    push-image.sh <OS-VER>"

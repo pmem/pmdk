@@ -34,6 +34,8 @@
 # run-coverity.sh - runs the Coverity scan build
 #
 
+set -o pipefail
+
 # Download Coverity certificate
 echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \

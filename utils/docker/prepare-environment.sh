@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +34,8 @@
 # prepare-environment.sh - installs Docker on the host environment and
 #                          pulls a Docker image for building NVML project.
 #
+
+set -o pipefail
 
 # Install the newest Docker engine
 sudo sh -c "echo deb https://apt.dockerproject.org/repo ubuntu-precise main >> /etc/apt/sources.list.d/docker.list"

@@ -35,6 +35,8 @@
 #                and starts a build of NVML project.
 #
 
+set -o pipefail
+
 # Get and prepare NVML source
 ./prepare-for-build.sh
 
