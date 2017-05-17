@@ -36,22 +36,18 @@
 #
 # usage: ./check-os.sh [os.h path] [.o file] [.c file]
 
-EXCLUDE="os_linux"
+EXCLUDE="os_linux|os_thread_linux"
 if [[ $2 =~ $EXCLUDE ]]; then
 	echo "skip $2"
 	exit 0
 fi
 
-functions=$(grep -Po "\bos_[^ (\s]*\(" $1 | sed 's/(//g' | sed 's/^os_//g')
 symbols=$(nm -Cuf posix $2 | sed 's/ U *//g')
-echoerr() { echo -e "$@" 1>&2; }
+functions=$(cat $1 | tr '\n' '|')
 out=$(
-	for func in $functions
+	for sym in $symbols
 	do
-		for sym in $symbols
-		do
-			grep -w $func <<<"$sym"
-		done
+		grep -w $functions <<<"$sym"
 	done | sed 's/$/\(\)/g')
 
 [[ ! -z $out ]] &&
