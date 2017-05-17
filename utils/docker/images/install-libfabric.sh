@@ -40,11 +40,13 @@ libfabric_dir=libfabric-$libfabric_ver
 libfabric_tarball=v${libfabric_ver}.zip
 wget "${libfabric_url}/${libfabric_tarball}"
 unzip $libfabric_tarball
-cd $libfabric_dir \
-	&& ./autogen.sh \
-	&& ./configure --prefix=/usr --enable-sockets \
-	&& make -j2 \
-	&& make install
+
+cd $libfabric_dir
+./autogen.sh
+./configure --prefix=/usr --enable-sockets
+make -j2
+make install
+
 cd ..
 rm -f ${libfabric_tarball}
 rm -rf ${libfabric_dir}
