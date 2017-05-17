@@ -35,6 +35,8 @@
 #                      and ssh server for use during build of NVML project.
 #
 
+set -o pipefail
+
 # Configure tests
 cat << EOF > $WORKDIR/src/test/testconfig.sh
 NON_PMEM_FS_DIR=/tmp

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +34,8 @@
 # run-build-package.sh - is called inside a Docker container; prepares
 #                        the environment and starts a build of NVML project.
 #
+
+set -o pipefail
 
 # Get and prepare nvml source
 ./prepare-for-build.sh

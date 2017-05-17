@@ -34,6 +34,8 @@
 # install-valgrind.sh - installs valgrind for persistent memory
 #
 
+set -o pipefail
+
 git clone --recursive --depth 1 https://github.com/pmem/valgrind.git
 cd valgrind
 ./autogen.sh
