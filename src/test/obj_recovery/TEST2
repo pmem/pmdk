@@ -43,6 +43,8 @@ export UNITTEST_NUM=2
 
 require_test_type medium
 require_no_asan
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 setup
 
