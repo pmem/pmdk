@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * vmmalloc_calloc.c -- unit test for libvmmalloc calloc/cfree
+ * vmmalloc_calloc.c -- unit test for libvmmalloc calloc
  *
  * usage: vmmalloc_calloc
  */
@@ -42,6 +42,11 @@
 
 #define DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
 #define DEFAULT_N	100
+
+/* cfree() has been removed from glibc since version 2.26 */
+#ifndef cfree
+#define cfree free
+#endif
 
 int
 main(int argc, char *argv[])
