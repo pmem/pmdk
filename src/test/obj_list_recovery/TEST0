@@ -41,6 +41,8 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 # the test delibretly fails at various stages of redo logging
 configure_valgrind pmemcheck force-disable ../obj_list/obj_list$EXESUFFIX
