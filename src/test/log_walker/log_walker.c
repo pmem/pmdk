@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 		do_walk(plp);
 	}
 
-	pmemlog_close(plp);
+	/* don't close - the runtime state of pmemlog is undefined */
 
 	DONE(NULL);
 }
