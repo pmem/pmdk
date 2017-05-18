@@ -521,10 +521,12 @@ pmem_is_pmem(const void *addr, size_t len)
 	static int once;
 
 	/* This is not thread-safe, but pmem_is_pmem_init() is. */
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&once);
 	if (once == 0) {
 		pmem_is_pmem_init();
 		util_fetch_and_add(&once, 1);
 	}
+	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&once);
 
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Func_is_pmem);
 	return Func_is_pmem(addr, len);
