@@ -395,11 +395,13 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERTeq(offset % Mmap_align, 0);
 	ASSERTeq(size % Mmap_align, 0);
 	ASSERT(((off_t)offset) >= 0);
-
 	ASSERTeq(offset % part->alignment, 0);
+	ASSERT(offset < part->filesize);
 
 	if (!size)
-		size = (part->filesize & ~(Mmap_align - 1)) - offset;
+		size = (part->filesize - offset) & ~(part->alignment - 1);
+	else
+		size = roundup(size, part->alignment);
 
 	void *addrp = mmap(addr, size,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,

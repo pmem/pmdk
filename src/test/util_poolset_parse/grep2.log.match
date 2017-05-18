@@ -1,0 +1,3 @@
+set file format correct ($(nW)testset1)
+set file format correct ($(nW)testset3)
+set file format correct ($(nW)testset4)
