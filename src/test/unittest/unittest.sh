@@ -239,6 +239,25 @@ RPMEM_LOG_LEVEL"
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 #
+# store_set_e -- store a command that reflects the current state of the 'errexit' shell option
+#
+function store_set_e() {
+	if [ "${-#*e}" != "$-" ]; then
+		SET_E_COMMAND=set -e
+	else
+		SET_E_COMMAND=set +e
+	fi
+}
+
+#
+# restore_set_e -- restore the state of the 'errexit' shell option
+#
+function restore_set_e() {
+	eval $SET_E_COMMAND
+}
+
+
+#
 # get_files -- print list of files in the current directory matching the given regex to stdout
 #
 # This function has been implemented to workaround a race condition in
@@ -247,9 +266,10 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 # example, to list all *.log files in the current directory
 #	get_files ".*\.log"
 function get_files() {
+	store_set_e
 	set +e
 	ls -1 | grep -E "^$*$"
-	set -e
+	restore_set_e
 }
 
 #
@@ -259,6 +279,7 @@ function get_files() {
 # `find`, which fails if any file disappears in the middle of the operation.
 #
 function get_executables() {
+	store_set_e
 	set +e
 	for c in *
 	do
@@ -273,7 +294,7 @@ function get_executables() {
 			echo "$c"
 		fi
 	done
-	set -e
+	restore_set_e
 }
 
 #
@@ -621,6 +642,7 @@ function expect_normal_exit() {
 	        esac
 	fi
 
+	store_set_e
 	set +e
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 		$trace $*
@@ -633,7 +655,7 @@ function expect_normal_exit() {
 			mv $VALGRIND_LOG_FILE $new_log_file
 		done
 	fi
-	set -e
+	restore_set_e
 
 	if [ "$ret" -ne "0" ]; then
 		if [ "$ret" -gt "128" ]; then
@@ -702,11 +724,12 @@ function expect_normal_exit() {
 # expect_abnormal_exit -- run a given command, expect it to exit non-zero
 #
 function expect_abnormal_exit() {
+	store_set_e
 	set +e
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	ret=$?
-	set -e
+	restore_set_e
 
 	if [ "$ret" -eq "0" ]; then
 		msg="succeeded"
@@ -847,10 +870,11 @@ function require_dev_dax_node() {
 
 	for path in ${device_dax_path[@]}
 	do
+		store_set_e
 		set +e
 		out=$($cmd $path 2>&1)
 		ret=$?
-		set -e
+		restore_set_e
 
 		if [ "$ret" == "0" ]; then
 			return
@@ -886,10 +910,11 @@ function require_dax_devices() {
 #    the internal Device DAX alignment is as specified
 #
 function require_dax_device_alignment() {
+	store_set_e
 	set +e
 	out=$("$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]}" 2>&1)
 	ret=$?
-	set -e
+	restore_set_e
 
 	[ "$ret" == "0" ] && return
 
@@ -993,10 +1018,11 @@ function require_node_pkg() {
 
 	COMMAND="$COMMAND pkg-config $1"
 
+	store_set_e
 	set +e
 	run_command ssh $SSH_OPTS ${NODE[$N]} "$COMMAND" 2>&1
 	ret=$?
-	set -e
+	restore_set_e
 
 	if [ "$ret" == 1 ]; then
 		echo "$UNITTEST_NAME: SKIP NODE $N: '$1' package required"
@@ -1050,10 +1076,11 @@ function configure_valgrind() {
 #
 function require_valgrind() {
 	require_no_asan
+	store_set_e
 	set +e
 	VALGRINDEXE=`which valgrind 2>/dev/null`
 	local ret=$?
-	set -e
+	restore_set_e
 	if [ $ret -ne 0 ]; then
 		echo "$UNITTEST_NAME: SKIP valgrind package required"
 		exit 0
@@ -1061,10 +1088,11 @@ function require_valgrind() {
 	[ $NODES_MAX -lt 0 ] && return;
 	for N in $NODES_SEQ; do
 		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
+			store_set_e
 			set +e
 			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
 			ret=$?
-			set -e
+			restore_set_e
 			if [ $ret -ne 0 ]; then
 				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
@@ -1318,6 +1346,7 @@ function clean_remote_node() {
 	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $*"
 
 	# clean the remote node
+	store_set_e
 	set +e
 	for pidfile in ${NODE_PID_FILES[$N]}; do
 		require_ctrld_err $N $pidfile
@@ -1327,7 +1356,7 @@ function clean_remote_node() {
 			../ctrld $pidfile wait 1 ; \
 			rm -f $pidfile"
 	done;
-	set -e
+	restore_set_e
 
 	return 0
 }
@@ -1340,6 +1369,7 @@ function clean_all_remote_nodes() {
 	echo "$UNITTEST_NAME: CLEAN (cleaning processes on remote nodes)"
 
 	local N=0
+	store_set_e
 	set +e
 	for N in $NODES_SEQ; do
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
@@ -1351,7 +1381,7 @@ function clean_all_remote_nodes() {
 				rm -f $pidfile"
 		done
 	done
-	set -e
+	restore_set_e
 
 	return 0
 }
@@ -1399,10 +1429,11 @@ function require_node_libfabric() {
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ../fip ${NODE_ADDR[$N]} $*"
 
+	store_set_e
 	set +e
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
 	ret=$?
-	set -e
+	restore_set_e
 
 	if [ "$ret" == "0" ]; then
 		return
@@ -1419,10 +1450,11 @@ function require_node_libfabric() {
 # check_if_node_is_reachable -- check if the $1 node is reachable
 #
 function check_if_node_is_reachable() {
+	store_set_e
 	set +e
 	run_command ssh $SSH_OPTS ${NODE[$1]} exit
 	local ret=$?
-	set -e
+	restore_set_e
 	return $ret
 }
 
@@ -1471,10 +1503,11 @@ function require_nodes() {
 		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
 
 		if [ "$CHECK_TYPE" != "none" -a "${NODE_VALGRINDEXE[$N]}" = "" ]; then
+			store_set_e
 			set +e
 			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
 			local ret=$?
-			set -e
+			restore_set_e
 			if [ $ret -ne 0 ]; then
 				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
@@ -2083,9 +2116,10 @@ function dump_pool_info() {
 # compare_replicas -- check replicas consistency by comparing `pmempool info` output
 #
 function compare_replicas() {
+	store_set_e
 	set +e
 	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3) -I "^path" -I "^size"
-	set -e
+	restore_set_e
 }
 
 #
