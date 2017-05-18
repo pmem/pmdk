@@ -239,6 +239,41 @@ RPMEM_LOG_LEVEL"
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 #
+# store_exit_on_error -- store on a stack a sign that reflects the current state
+#                        of the 'errexit' shell option
+#
+function store_exit_on_error() {
+	if [ "${-#*e}" != "$-" ]; then
+		estack+=-
+	else
+		estack+=+
+	fi
+}
+
+#
+# restore_exit_on_error -- restore the state of the 'errexit' shell option
+#
+function restore_exit_on_error() {
+	if [ -z $estack ]; then
+		echo "error: store_exit_on_error function has to be called first"
+		exit 1
+	fi
+
+	eval "set ${estack:${#estack}-1:1}e"
+	estack=${estack%?}
+}
+
+#
+# disable_exit_on_error -- store the state of the 'errexit' shell option and
+#                          disable it
+#
+function disable_exit_on_error() {
+	store_exit_on_error
+	set +e
+}
+
+
+#
 # get_files -- print list of files in the current directory matching the given regex to stdout
 #
 # This function has been implemented to workaround a race condition in
@@ -247,9 +282,9 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 # example, to list all *.log files in the current directory
 #	get_files ".*\.log"
 function get_files() {
-	set +e
+	disable_exit_on_error
 	ls -1 | grep -E "^$*$"
-	set -e
+	restore_exit_on_error
 }
 
 #
@@ -259,7 +294,7 @@ function get_files() {
 # `find`, which fails if any file disappears in the middle of the operation.
 #
 function get_executables() {
-	set +e
+	disable_exit_on_error
 	for c in *
 	do
 		local rights=$(stat -c "%a %F" "$c" 2>/dev/null)
@@ -273,7 +308,7 @@ function get_executables() {
 			echo "$c"
 		fi
 	done
-	set -e
+	restore_exit_on_error
 }
 
 #
@@ -621,7 +656,7 @@ function expect_normal_exit() {
 	        esac
 	fi
 
-	set +e
+	disable_exit_on_error
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 		$trace $*
 	ret=$?
@@ -633,7 +668,7 @@ function expect_normal_exit() {
 			mv $VALGRIND_LOG_FILE $new_log_file
 		done
 	fi
-	set -e
+	restore_exit_on_error
 
 	if [ "$ret" -ne "0" ]; then
 		if [ "$ret" -gt "128" ]; then
@@ -702,11 +737,11 @@ function expect_normal_exit() {
 # expect_abnormal_exit -- run a given command, expect it to exit non-zero
 #
 function expect_abnormal_exit() {
-	set +e
+	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
 	ret=$?
-	set -e
+	restore_exit_on_error
 
 	if [ "$ret" -eq "0" ]; then
 		msg="succeeded"
@@ -847,10 +882,10 @@ function require_dev_dax_node() {
 
 	for path in ${device_dax_path[@]}
 	do
-		set +e
+		disable_exit_on_error
 		out=$($cmd $path 2>&1)
 		ret=$?
-		set -e
+		restore_exit_on_error
 
 		if [ "$ret" == "0" ]; then
 			return
@@ -886,10 +921,10 @@ function require_dax_devices() {
 #    the internal Device DAX alignment is as specified
 #
 function require_dax_device_alignment() {
-	set +e
+	disable_exit_on_error
 	out=$("$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]}" 2>&1)
 	ret=$?
-	set -e
+	restore_exit_on_error
 
 	[ "$ret" == "0" ] && return
 
@@ -993,10 +1028,10 @@ function require_node_pkg() {
 
 	COMMAND="$COMMAND pkg-config $1"
 
-	set +e
+	disable_exit_on_error
 	run_command ssh $SSH_OPTS ${NODE[$N]} "$COMMAND" 2>&1
 	ret=$?
-	set -e
+	restore_exit_on_error
 
 	if [ "$ret" == 1 ]; then
 		echo "$UNITTEST_NAME: SKIP NODE $N: '$1' package required"
@@ -1050,10 +1085,10 @@ function configure_valgrind() {
 #
 function require_valgrind() {
 	require_no_asan
-	set +e
+	disable_exit_on_error
 	VALGRINDEXE=`which valgrind 2>/dev/null`
 	local ret=$?
-	set -e
+	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
 		echo "$UNITTEST_NAME: SKIP valgrind package required"
 		exit 0
@@ -1061,10 +1096,10 @@ function require_valgrind() {
 	[ $NODES_MAX -lt 0 ] && return;
 	for N in $NODES_SEQ; do
 		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
-			set +e
+			disable_exit_on_error
 			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
 			ret=$?
-			set -e
+			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
 				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
@@ -1318,7 +1353,7 @@ function clean_remote_node() {
 	NODE_PID_FILES[$N]="${NODE_PID_FILES[$N]} $*"
 
 	# clean the remote node
-	set +e
+	disable_exit_on_error
 	for pidfile in ${NODE_PID_FILES[$N]}; do
 		require_ctrld_err $N $pidfile
 		run_command ssh $SSH_OPTS ${NODE[$N]} "\
@@ -1327,7 +1362,7 @@ function clean_remote_node() {
 			../ctrld $pidfile wait 1 ; \
 			rm -f $pidfile"
 	done;
-	set -e
+	restore_exit_on_error
 
 	return 0
 }
@@ -1340,7 +1375,7 @@ function clean_all_remote_nodes() {
 	echo "$UNITTEST_NAME: CLEAN (cleaning processes on remote nodes)"
 
 	local N=0
-	set +e
+	disable_exit_on_error
 	for N in $NODES_SEQ; do
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 		for pidfile in ${NODE_PID_FILES[$N]}; do
@@ -1351,7 +1386,7 @@ function clean_all_remote_nodes() {
 				rm -f $pidfile"
 		done
 	done
-	set -e
+	restore_exit_on_error
 
 	return 0
 }
@@ -1399,10 +1434,10 @@ function require_node_libfabric() {
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ../fip ${NODE_ADDR[$N]} $*"
 
-	set +e
+	disable_exit_on_error
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
 	ret=$?
-	set -e
+	restore_exit_on_error
 
 	if [ "$ret" == "0" ]; then
 		return
@@ -1419,10 +1454,10 @@ function require_node_libfabric() {
 # check_if_node_is_reachable -- check if the $1 node is reachable
 #
 function check_if_node_is_reachable() {
-	set +e
+	disable_exit_on_error
 	run_command ssh $SSH_OPTS ${NODE[$1]} exit
 	local ret=$?
-	set -e
+	restore_exit_on_error
 	return $ret
 }
 
@@ -1471,10 +1506,10 @@ function require_nodes() {
 		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
 
 		if [ "$CHECK_TYPE" != "none" -a "${NODE_VALGRINDEXE[$N]}" = "" ]; then
-			set +e
+			disable_exit_on_error
 			NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} "which valgrind 2>/dev/null")
 			local ret=$?
-			set -e
+			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
 				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
@@ -2083,9 +2118,9 @@ function dump_pool_info() {
 # compare_replicas -- check replicas consistency by comparing `pmempool info` output
 #
 function compare_replicas() {
-	set +e
+	disable_exit_on_error
 	diff <(dump_pool_info $1 $2) <(dump_pool_info $1 $3) -I "^path" -I "^size"
-	set -e
+	restore_exit_on_error
 }
 
 #
