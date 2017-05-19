@@ -1,0 +1,9 @@
+includedir=${prefix}/include
+
+Name: libpmemblk
+Description: libpmemblk library from NVML project
+Version: ${version}
+URL: http://pmem.io/nvml
+Requires.private: libpmem
+Libs: -L${libdir} -lpmemblk
+Cflags: -I${includedir}

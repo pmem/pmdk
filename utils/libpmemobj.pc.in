@@ -1,0 +1,10 @@
+includedir=${prefix}/include
+
+Name: libpmemobj
+Description: libpmemobj library from NVML project
+Version: ${version}
+URL: http://pmem.io/nvml
+Requires.private: libpmem
+Libs: -L${libdir} -lpmemobj
+Libs.private: -ldl
+Cflags: -I${includedir}

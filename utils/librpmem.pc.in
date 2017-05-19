@@ -1,0 +1,9 @@
+includedir=${prefix}/include
+
+Name: librpmem
+Description: librpmem library from NVML project
+Version: ${version}
+URL: http://pmem.io/nvml
+Requires:
+Libs: -L${libdir} -lpmem
+Cflags: -I${includedir}
