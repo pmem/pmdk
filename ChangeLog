@@ -1,10 +1,11 @@
 
-Mon May 15 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Thu May 18 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2.3
 	Bug fixes:
 	- test: extend timeout for selected tests
 	- test: reduce number of operations in obj_tx_mt
+	- test: define cfree() as free() in vmmalloc_calloc
 
 	Other changes:
 	- common: move Docker images to new repo
