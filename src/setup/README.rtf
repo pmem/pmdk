@@ -1,42 +1,27 @@
-{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Times New Roman;}}
 {\*\generator Riched20 10.0.14393}\viewkind4\uc1
-\pard\f0\fs22\lang1033 Non-Volatile Memory Library\par
-\par
-### NVML for Windows Installation ###\par
-\par
-To install NVM Library on Windows:\par
-* make sure that your system is 64-bit\par
-* download installer\par
-* run installer and follow the installation steps\par
-* after installation sign out or reboot your system\par
-\par
-Now you can use pmempool from each command line.\par
-\par
-Additionally, you have access to system environment variables:\par
-* NVML_IncludePath - location of libraries header files\par
-* NVML_LibraryPath - location of static lib files and debug symbols\par
+\pard\sa200\sl276\slmult1\b\f0\fs28\lang9 NVML for Windows Installation\fs22\par
+After installation sign out or reboot your system\par
+\b0\par
+Then you have access to system environment variables:\par
+(Release installation)\par
+* \b NVML_ExecutablePath \b0 - location of dll binaries and pmempool\par
+* \b NVML_IncludePath \b0 - location of libraries header files\par
+* \b NVML_LibraryPath \b0 - location of static lib files and debug symbols\par
+(Debug installation)\par
+* \b NVML_ExecutablePath_Dbg \b0 - location of dll binaries and pmempool\par
+* \b NVML_IncludePath \b0 - location of libraries header files\par
+* \b NVML_LibraryPath_Dbg \b0 - location of static lib files and debug symbols\par
 \par
 You can use those variables in your Visual Studio projects\par
-in place VC++ Directories or other properties:\par
-`$(NVML_IncludePath)`\par
+in place VC++ Directories or other properties like that:\par
+\b $(NVML_IncludePath)\b0\par
 \par
-To uninstall library run setup.exe and select "Remove nvml" option.\par
-\par
-### NVML Windows Build Installer ###\par
-\par
-To build NVM Library installer on Windows you need:\par
-\par
-* MS Visual Studio 2015\par
-* Microsoft Visual Studio 2015 Installer Projects\par
-* Windows SDK 10.0.14393 (or later)\par
-\par
-Open NVML.sln and build Setup/nvml_setup.\par
-As the result of build you will get setup and msi file.\par
-\par
->NOTE:\par
-If you want to change build configuration from Debug to Release or\par
-otherwise at first run SET_LIB.PS1 script with params:\par
-SET_LIB.PS1 -projectdir <path_to_setup_dir> -configuration <Debug|Release>\par
-and then build nvml_setup as previously.\par
-\par
+To add NVML variables to PATH just do:\par
+\b set PATH=%PATH%;%NVML_ExecutablePath%\par
+\b0 or for permanent changes do:\par
+\b setx PATH=%PATH%;%NVML_ExecutablePath%\par
+\b0\par
+To uninstall library run installer again and select "Remove nvml" option.\par
+It will remove all installed files, binaries and environment variables.\par
 }
