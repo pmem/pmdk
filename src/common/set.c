@@ -1580,7 +1580,6 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		if (*setp == NULL)
 			return -1;
 
-		/* do not close the file */
 		return 0;
 	}
 
