@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,16 +37,20 @@
 export UNITTEST_NAME=ex_libpmemobj/TEST12
 export UNITTEST_NUM=12
 
+EX_PATH=../../examples/libpmemobj/pmemlog
+
 # standard unit test setup
 . ../unittest/unittest.sh
+
+# This test allocates 90M object. Flushing 90M under pmemcheck
+# makes this test run forever...
+configure_valgrind pmemcheck force-disable $EX_PATH
 
 require_test_type medium
 
 require_build_type debug nondebug
 
 setup
-
-EX_PATH=../../examples/libpmemobj/pmemlog
 
 expect_normal_exit $EX_PATH/obj_pmemlog_simple c $DIR/testfile1 \
 	n t a:Hello a:World! n t w r n t v:Hello:World!:bar:foo n t w r \
