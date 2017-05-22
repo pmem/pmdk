@@ -114,13 +114,13 @@ util_map_hint(int fd, size_t len, size_t req_align)
 		 * Create dummy mapping to find an unused region of given size.
 		 * Request for increased size for later address alignment.
 		 *
-		 * For large anonymous mappings, we can end up with error
-		 * ERROR_COMMITMENT_LIMIT (0x5AF): The paging file is too small
-		 * for this operation to complete.  So, instead of anonymous
-		 * mapping (as on Linux) we do the mapping on the actual file.
+		 * Use MAP_NORESERVE flag to only reserve the range of pages
+		 * rather than commit.  We don't want the pages to be actually
+		 * backed by the operating system paging file, as the swap
+		 * file is usually too small to handle terabyte pools.
 		 */
-		char *addr = mmap(Mmap_hint, len + align, PROT_READ,
-					MAP_PRIVATE, fd, 0);
+		char *addr = mmap(NULL, len + align, PROT_READ,
+				MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0);
 		if (addr != MAP_FAILED) {
 			LOG(4, "system choice %p", addr);
 			hint_addr = (char *)roundup((uintptr_t)addr, align);
