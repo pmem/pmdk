@@ -34,6 +34,7 @@
 #
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
+include $(TOP)/src/version.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 	libvmmalloc tools
@@ -62,8 +63,8 @@ OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 
 CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
 
-MAKE_PKG_CONFIG = $(TOP)/utils/make-pkg-config.sh
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
+PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
 		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemobj++.pc
 
@@ -127,8 +128,22 @@ tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
 benchmarks test tools: common
 
-pkg-config:
-	@$(MAKE_PKG_CONFIG) "$(prefix)" "$(libdir)" "$(SRCVERSION)"
+# re-generate *.pc files if version, prefix or libdir changes
+old_pc=$(strip $(shell cat $(PKG_CONFIG_COMMON) 2>/dev/null))
+new_pc="version=$(SRCVERSION) libdir=$(libdir) prefix=$(prefix)"
+update_pc=$(findstring $(old_pc), $(new_pc))
+
+pkg-cfg-common:
+	@$(if $(update_pc),, echo -e "version=$(SRCVERSION)\nlibdir=$(libdir)\nprefix=$(prefix)\n" > $(PKG_CONFIG_COMMON))
+
+$(PKG_CONFIG_COMMON): pkg-cfg-common
+
+%.pc: $(PKG_CONFIG_COMMON) $(TOP)/utils/%.pc.in
+	@echo Generating $@
+	@cat $(PKG_CONFIG_COMMON) > $@
+	@cat $(TOP)/utils/$@.in  >> $@
+
+pkg-config: $(PKG_CONFIG_FILES)
 
 $(eval $(call sub-target,$(INSTALL_TARGETS),install,y))
 $(eval $(call sub-target,$(INSTALL_TARGETS),uninstall,y))
@@ -209,4 +224,5 @@ clobber: clean-here
 
 .PHONY: all install uninstall uninstall-cpp install-cpp clean clobber cstyle\
 	format test check pcheck jemalloc jemalloc-clean jemalloc-test\
-	jemalloc-check cscope $(ALL_TARGETS) pkg-config check-remote clean-here
+	jemalloc-check cscope $(ALL_TARGETS) pkg-config check-remote clean-here\
+	pkg-cfg-common
