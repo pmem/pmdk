@@ -27,8 +27,8 @@ in place VC++ Directories or other properties like that:
 
 To add NVML variables to PATH just do:
 set PATH=%PATH%;%NVML_ExecutablePath%
-or for permanent changes like administrator do:
-setx /M PATH "%PATH%;%NVML_ExecutablePath%"
+or for permanent changes do:
+setx PATH=%PATH%;%NVML_ExecutablePath%
 
 To uninstall library run installer again and select "Remove nvml" option.
 It will remove all installed files, binaries and environemnt variables.

@@ -3,7 +3,10 @@
 \pard\sa200\sl276\slmult1\b\f0\fs28\lang9 NVML for Windows Installation\fs22\par
 After installation sign out or reboot your system\par
 \b0\par
-Then you have access to system environment variables:\par
+Make sure that you have installed\par
+Visual C++ Redistributable for Visual Studio 2015 (or higher)\par
+\par
+After installation you have access to system environment variables:\par
 (Release installation)\par
 * \b NVML_ExecutablePath \b0 - location of dll binaries and pmempool\par
 * \b NVML_IncludePath \b0 - location of libraries header files\par
@@ -19,8 +22,8 @@ in place VC++ Directories or other properties like that:\par
 \par
 To add NVML variables to PATH just do:\par
 \b set PATH=%PATH%;%NVML_ExecutablePath%\par
-\b0 or for permanent changes do:\par
-\b setx PATH=%PATH%;%NVML_ExecutablePath%\par
+\b0 or for permanent changes like administrator do:\par
+\b setx /M PATH "%PATH%;%NVML_ExecutablePath%"\par
 \b0\par
 To uninstall library run installer again and select "Remove nvml" option.\par
 It will remove all installed files, binaries and environment variables.\par

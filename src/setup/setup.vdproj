@@ -99,6 +99,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_2BB9A7998A6A46728BDFA0A5B257087C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_2DE0FE048F874908B89020372C3C579F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -154,12 +160,6 @@
         "Entry"
         {
         "MsmKey" = "8:_46F21D9F77B941659BB2110A3B942B4D"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_4D71BB7B29884855ACAE7CA5B05D7996"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -244,6 +244,12 @@
         "Entry"
         {
         "MsmKey" = "8:_784CB4E28E4545F0B29B354D3DE22095"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_7999C6A8AA584951949E25A533651598"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -950,6 +956,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2BB9A7998A6A46728BDFA0A5B257087C"
+            {
+            "SourcePath" = "8:README.rtf"
+            "TargetName" = "8:README.rtf"
+            "Tag" = "8:"
+            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2DE0FE048F874908B89020372C3C579F"
             {
             "SourcePath" = "8:..\\include\\README"
@@ -1147,26 +1173,6 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4D71BB7B29884855ACAE7CA5B05D7996"
-            {
-            "SourcePath" = "8:README.rtf"
-            "TargetName" = "8:README.rtf"
-            "Tag" = "8:"
-            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
@@ -1437,6 +1443,26 @@
             "Tag" = "8:"
             "Folder" = "8:_6EAECAF5389D4D8F99F43D8DA06EEDB3"
             "Condition" = "8:INSTALL_RELEASE=1"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7999C6A8AA584951949E25A533651598"
+            {
+            "SourcePath" = "8:INSTALL.md"
+            "TargetName" = "8:INSTALL.md"
+            "Tag" = "8:"
+            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
+            "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -2781,7 +2807,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NVML"
         "ProductCode" = "8:{486595D6-FDA0-4A34-9ECA-0EE6B91E8B31}"
-        "PackageCode" = "8:{7868A3D0-E28C-46B9-A13A-883EF320D3E3}"
+        "PackageCode" = "8:{994DECAD-B884-497F-A790-C1CA2CFC8774}"
         "UpgradeCode" = "8:{B4DEC5FF-51F1-490F-B604-DFE564A346C8}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -3075,7 +3101,7 @@
             "Attributes" = "3:3"
                 "Dialogs"
                 {
-                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_95F357CAE4D04DCD9600AB8461AD49C5"
+                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_3D74FB1D5A4D46B0ADE9C46855D4C779"
                     {
                     "Sequence" = "3:100"
                     "DisplayName" = "8:Read Me"
@@ -3104,7 +3130,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:_4D71BB7B29884855ACAE7CA5B05D7996"
+                            "Value" = "8:_2BB9A7998A6A46728BDFA0A5B257087C"
                             "UsePlugInResources" = "11:TRUE"
                             }
                             "Sunken"
@@ -3267,7 +3293,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:_4D71BB7B29884855ACAE7CA5B05D7996"
+                            "Value" = "8:_2BB9A7998A6A46728BDFA0A5B257087C"
                             "UsePlugInResources" = "11:TRUE"
                             }
                             "Sunken"
