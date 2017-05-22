@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,10 @@ export UNITTEST_NUM=2
 
 # this is the long version of the test
 require_test_type long
+
+# libpmemblk does not support race detection tools
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,10 @@ require_test_type medium
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_build_type nondebug static-nondebug
+
+# exits with locked mutexes
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 setup
 
