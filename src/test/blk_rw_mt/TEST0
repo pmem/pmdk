@@ -44,6 +44,8 @@ require_test_type medium
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
+
+# libpmemblk does not support race detection tools
 configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
 

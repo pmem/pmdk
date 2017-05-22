@@ -41,6 +41,8 @@ export UNITTEST_NUM=2
 . ../unittest/unittest.sh
 
 require_test_type medium
+
+# exits with locked mutexes
 configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
 

@@ -42,6 +42,8 @@ export UNITTEST_NUM=2
 
 # this is the long version of the test
 require_test_type long
+
+# libpmemblk does not support race detection tools
 configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
 
