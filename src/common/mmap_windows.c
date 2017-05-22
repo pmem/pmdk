@@ -40,6 +40,57 @@
 #include "out.h"
 
 /*
+ * util_map_hint_unused -- use VirtualQuery to determine hint address
+ *
+ * This is a helper function for util_map_hint().
+ * It iterates thru memory regions and looks for the first unused address
+ * in the process address space that is:
+ * - greater or equal 'minaddr' argument,
+ * - large enough to hold range of given length,
+ * - aligned to the specified unit.
+ */
+char *
+util_map_hint_unused(void *minaddr, size_t len, size_t align)
+{
+	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
+
+	ASSERT(align > 0);
+
+	MEMORY_BASIC_INFORMATION mi;
+	char *lo = NULL;	/* beginning of current range in maps file */
+	char *hi = NULL;	/* end of current range in maps file */
+	char *raddr = minaddr;	/* ignore regions below 'minaddr' */
+
+	if (raddr == NULL)
+		raddr += Pagesize;
+
+	raddr = (char *)roundup((uintptr_t)raddr, align);
+
+	while ((uintptr_t)raddr < UINTPTR_MAX - len) {
+		size_t ret = VirtualQuery(raddr, &mi, sizeof(mi));
+		if (ret == 0) {
+			ERR("VirtualQuery %p", raddr);
+			return MAP_FAILED;
+		}
+		LOG(4, "addr %p len %zu state %d",
+			mi.BaseAddress, mi.RegionSize, mi.State);
+
+		if ((mi.State != MEM_FREE) || (mi.RegionSize < len)) {
+			raddr = (char *)mi.BaseAddress + mi.RegionSize;
+			raddr = (char *)roundup((uintptr_t)raddr, align);
+			LOG(4, "nearest aligned addr %p", raddr);
+		} else {
+			LOG(4, "unused region of size %zu found at %p",
+				mi.RegionSize, mi.BaseAddress);
+			return mi.BaseAddress;
+		}
+	}
+
+	LOG(4, "end of address space reached");
+	return MAP_FAILED;
+}
+
+/*
  * util_map_hint -- determine hint address for mmap()
  *
  * XXX - Windows doesn't support large DAX pages yet, so there is
@@ -55,26 +106,28 @@ util_map_hint(int fd, size_t len, size_t req_align)
 	/* choose the desired alignment based on the requested length */
 	size_t align = util_map_hint_align(len, req_align);
 
-	if (Mmap_no_random)
+	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
-
-	/*
-	 * Create dummy mapping to find an unused region of given size.
-	 * Request for increased size for later address alignment.
-	 *
-	 * For large anonymous mappings, we can end up with error
-	 * ERROR_COMMITMENT_LIMIT (0x5AF) - The paging file is too small
-	 * for this operation to complete.  So, instead of anonymous mapping
-	 * (as on Linux) we do the mapping on the actual file.
-	 */
-	char *addr = mmap(Mmap_hint, len + align, PROT_READ,
-				MAP_PRIVATE, fd, 0);
-	if (addr != MAP_FAILED) {
-		LOG(4, "system choice %p", addr);
-		hint_addr = (char *)roundup((uintptr_t)addr, align);
-		munmap(addr, len + align);
+		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align);
+	} else {
+		/*
+		 * Create dummy mapping to find an unused region of given size.
+		 * Request for increased size for later address alignment.
+		 *
+		 * For large anonymous mappings, we can end up with error
+		 * ERROR_COMMITMENT_LIMIT (0x5AF): The paging file is too small
+		 * for this operation to complete.  So, instead of anonymous
+		 * mapping (as on Linux) we do the mapping on the actual file.
+		 */
+		char *addr = mmap(Mmap_hint, len + align, PROT_READ,
+					MAP_PRIVATE, fd, 0);
+		if (addr != MAP_FAILED) {
+			LOG(4, "system choice %p", addr);
+			hint_addr = (char *)roundup((uintptr_t)addr, align);
+			munmap(addr, len + align);
+		}
 	}
-	LOG(4, "hint %p", hint_addr);
 
+	LOG(4, "hint %p", hint_addr);
 	return hint_addr;
 }
