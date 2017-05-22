@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,6 +38,12 @@ export UNITTEST_NAME=libpmempool_backup/TEST6
 export UNITTEST_NUM=6
 
 . ../unittest/unittest.sh
+
+EXE=../libpmempool_api/libpmempool_test$EXESUFFIX
+
+# This test memcpy + persist entire pool, and it runs
+# forever under pmemcheck.
+configure_valgrind pmemcheck force-disable $EXE
 
 require_test_type medium
 
