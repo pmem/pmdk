@@ -134,7 +134,7 @@ new_pc="version=$(SRCVERSION) libdir=$(libdir) prefix=$(prefix)"
 update_pc=$(findstring $(old_pc), $(new_pc))
 
 pkg-cfg-common:
-	@$(if $(update_pc),, echo -e "version=$(SRCVERSION)\nlibdir=$(libdir)\nprefix=$(prefix)\n" > $(PKG_CONFIG_COMMON))
+	@$(if $(update_pc),, printf "version=%s\nlibdir=%s\nprefix=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON))
 
 $(PKG_CONFIG_COMMON): pkg-cfg-common
 
