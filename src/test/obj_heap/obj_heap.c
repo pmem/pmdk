@@ -236,17 +236,19 @@ test_heap(void)
 		{0, 0, 1, 0}
 	};
 
-	struct bucket *b_def = heap_get_default_bucket(heap);
+	struct bucket *b_def = heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID);
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
 		UT_ASSERT(blocks[i].block_off == 0);
 	}
+	heap_bucket_release(heap, b_def);
 
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
 	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
-	struct bucket *b_run = heap_get_bucket_by_class(heap, c_run);
+	struct bucket *b_run = heap_bucket_acquire(heap, c_run);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted an another is
@@ -266,6 +268,8 @@ test_heap(void)
 
 	/* the old block should be unclaimed now */
 	UT_ASSERTeq(old_run.m_ops->claim(&old_run), 0);
+
+	heap_bucket_release(heap, b_run);
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);
