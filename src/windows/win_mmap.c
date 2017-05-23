@@ -395,12 +395,14 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		if (!GetFileSizeEx(fh, &filesize)) {
 			ERR("cannot query the file size - fh: %d, gle: 0x%08x",
 				fd, GetLastError());
+			CloseHandle(fh);
 			return MAP_FAILED;
 		}
 
 		if (offset >= (off_t)filesize.QuadPart) {
 			errno = EINVAL;
 			ERR("offset is beyond the file size");
+			CloseHandle(fh);
 			return MAP_FAILED;
 		}
 
@@ -419,6 +421,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			void *reserved_addr = mmap_reserve(addr, len_align);
 			if (reserved_addr == MAP_FAILED) {
 				ERR("cannot reserve region");
+				CloseHandle(fh);
 				return MAP_FAILED;
 			}
 
@@ -432,6 +435,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 					ERR("cannot free reserved region");
 				}
 				errno = ENOMEM;
+				CloseHandle(fh);
 				return MAP_FAILED;
 			}
 
@@ -439,6 +443,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			if (mmap_unreserve(reserved_addr, filelen_align) != 0) {
 				ASSERT(FALSE);
 				ERR("cannot free reserved region");
+				CloseHandle(fh);
 				return MAP_FAILED;
 			}
 		}
@@ -458,6 +463,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			errno = EACCES;
 		else
 			errno = EINVAL; /* XXX */
+		CloseHandle(fh);
 		return MAP_FAILED;
 	}
 
@@ -472,6 +478,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		if (addr == NULL || (flags & MAP_FIXED) != 0) {
 			ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
 			errno = EINVAL;
+			CloseHandle(fh);
 			CloseHandle(fmh);
 			return MAP_FAILED;
 		}
@@ -487,6 +494,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (base == NULL) {
 		ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
+		CloseHandle(fh);
 		CloseHandle(fmh);
 		return MAP_FAILED;
 	}
@@ -502,6 +510,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
 	if (mt == NULL) {
 		ERR("!malloc");
+		CloseHandle(fh);
 		CloseHandle(fmh);
 		return MAP_FAILED;
 	}
