@@ -1,0 +1,39 @@
+
+> 
+> key len 4 = [key1], value len 12 = [Hello world!]
+key len 4 = [key2], value len 10 = [1234567890]
+key len 4 = [key3], value len 4 = [NVML]
+key len 4 = [key4], value len 4 = [PMEM]
+
+> 
+
+> digraph g {
+rankdir=LR;
+N$(nW) [label="node4 at\n$(nW)\n4 children\nlen 3: "];
+N$(nW) -> N$(nW) [label="1"];
+N$(nW) [shape=box, label="leaf at\n$(nW)"];
+N$(nW) [shape=box, label="key at $(nW): key1"];
+N$(nW) [shape=box, label="value at $(nW): Hello world!"];
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW) [label="2"];
+N$(nW) [shape=box, label="leaf at\n$(nW)"];
+N$(nW) [shape=box, label="key at $(nW): key2"];
+N$(nW) [shape=box, label="value at $(nW): 1234567890"];
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW) [label="3"];
+N$(nW) [shape=box, label="leaf at\n$(nW)"];
+N$(nW) [shape=box, label="key at $(nW): key3"];
+N$(nW) [shape=box, label="value at $(nW): NVML"];
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW) [label="4"];
+N$(nW) [shape=box, label="leaf at\n$(nW)"];
+N$(nW) [shape=box, label="key at $(nW): key4"];
+N$(nW) [shape=box, label="value at $(nW): PMEM"];
+N$(nW) -> N$(nW);
+N$(nW) -> N$(nW);
+}
+
+> 
