@@ -95,19 +95,13 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 static void
 test_alloc_class_bitmap_correctness(void)
 {
-	struct alloc_class_collection *classes = alloc_class_collection_new();
-	UT_ASSERT(classes != NULL);
-	struct alloc_class *c =
-		alloc_class_get_create_by_unit_size(classes, RUNSIZE / 10);
-	UT_ASSERTne(c, NULL);
-
+	struct alloc_class_run_proto proto;
+	alloc_class_generate_run_proto(&proto, RUNSIZE / 10, 1);
 	/* 54 set (not available for allocations), and 10 clear (available) */
 	uint64_t bitmap_lastval =
 	0b1111111111111111111111111111111111111111111111111111110000000000;
 
-	UT_ASSERTeq(c->run.bitmap_lastval, bitmap_lastval);
-
-	alloc_class_collection_delete(classes);
+	UT_ASSERTeq(proto.bitmap_lastval, bitmap_lastval);
 }
 
 static void
