@@ -1,0 +1,25 @@
+Non-Volatile Memory Library
+
+This is examples/libpmemcto/README.
+
+This directory contains examples for libpmemcto.
+Some of these examples are explained
+in more detail here: http://pmem.io/nvml/libpmemcto
+
+manpage.c is the example used in the libpmemcto man page.
+
+lifesave contains a simple screen saver which implements Conway's Game of Life
+built using libpmemcto (Windows-only).
+
+life contains a simple example which implements Conway's Game of Life
+built using libpmemcto (Linux-only).
+
+To build these examples:
+	make
+
+These examples can be built against an installed system using:
+	make LIBDIR=/usr/lib INCDIR=/usr/include
+
+If you're looking for documentation to get you started using NVML,
+start here: http://pmem.io/nvml and follow the links to examples and
+man pages.  Developers new to NVML are probably looking for libpmemobj.
