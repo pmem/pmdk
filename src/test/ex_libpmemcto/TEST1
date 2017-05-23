@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +32,45 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# src/test/ex_libpmemcto/TEST1 -- unit test for libpmemcto examples
 #
+export UNITTEST_NAME=ex_libpmemcto/TEST1
+export UNITTEST_NUM=1
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool libpmemcto
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include Makefile.inc
+require_test_type medium
+require_build_type debug nondebug
+require_fs_type any
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+setup
 
-clobber clean: rmtmp
+TEST_LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH:../../examples/libpmemcto/libart
+EX_PATH=../../examples/libpmemcto/libart
+
+cat > $DIR/data << EOF
+key1
+Hello world!
+key2
+1234567890
+key3
+NVML
+key4
+PMEM
+EOF
+
+expect_normal_exit $EX_PATH/arttree -m i $DIR/testfile1 > out$UNITTEST_NUM.log << EOF
+fill -n 4 $DIR/data
+dump
+quit
+EOF
+
+expect_normal_exit $EX_PATH/arttree -m i $DIR/testfile1 >> out$UNITTEST_NUM.log << EOF
+graph
+quit
+EOF
+
+check
+
+pass

@@ -1,5 +1,6 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +32,30 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# ==========================================================================
+#
+#     Filename:  Makefile
+#
+#  Description:  implement ART tree using libvmem based on libart
+#
+#       Author:  Andreas Bluemle, Dieter Kasper
+#                Andreas.Bluemle.external@ts.fujitsu.com
+#                dieter.kasper@ts.fujitsu.com
+#
+# Organization:  FUJITSU TECHNOLOGY SOLUTIONS GMBH
+# ==========================================================================
 #
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool libpmemcto
+PROGS = arttree
+LIBRARIES = art
 
-include Makefile.inc
+include ../../Makefile.inc
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+CFLAGS += -ggdb -O0
+LIBS = -lpmem -lpmemcto
 
-clobber clean: rmtmp
+$(PROGS): | $(DYNAMIC_LIBRARIES)
+$(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart
+
+libart.o: art.o
+arttree: arttree.o
