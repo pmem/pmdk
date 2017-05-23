@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +31,26 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# examples/libpmemcto/life/Makefile -- build the life example
 #
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool libpmemcto
+include $(TOP)/src/common.inc
 
-include Makefile.inc
+NCURSES := $(call check_package, ncurses)
+ifeq ($(NCURSES),y)
+PROGS = life
+else
+$(info NOTE: Skipping pminvaders and pminvaders2 because ncurses is missing \
+-- see src/examples/libpmemcto/life/README for details.)
+endif
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+LIBS = -lpmemcto -lpmem -pthread
 
-clobber clean: rmtmp
+ifeq ($(NCURSES),y)
+LIBS += $(shell $(PKG_CONFIG) --libs ncurses)
+endif
+
+include ../../Makefile.inc
+
+life: life.o life_common.o
