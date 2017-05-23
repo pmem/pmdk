@@ -62,16 +62,23 @@ int heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
 int heap_buckets_init(struct palloc_heap *heap);
 
-struct bucket *heap_get_default_bucket(struct palloc_heap *heap);
 struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
+
 struct bucket *
-heap_get_bucket_by_class(struct palloc_heap *heap, struct alloc_class *c);
+heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c);
+
+struct bucket *
+heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id);
+
+void
+heap_bucket_release(struct palloc_heap *heap, struct bucket *b);
 
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
 struct memory_block
-heap_coalesce_huge(struct palloc_heap *heap, const struct memory_block *m);
+heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
+	const struct memory_block *m);
 pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 

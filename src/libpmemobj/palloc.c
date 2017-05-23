@@ -140,8 +140,8 @@ palloc_operation(struct palloc_heap *heap,
 	struct memory_block existing_block = MEMORY_BLOCK_NONE;
 	struct memory_block new_block = MEMORY_BLOCK_NONE;
 
-	pthread_mutex_t *existing_bucket_lock = NULL;
-	pthread_mutex_t *new_bucket_lock = NULL;
+	struct bucket *existing_bucket = NULL;
+	struct bucket *new_bucket = NULL;
 	int ret = 0;
 
 	/*
@@ -173,17 +173,14 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (size != 0) {
 		struct alloc_class *c = heap_get_best_class(heap, size);
-		struct bucket *b = heap_get_bucket_by_class(heap, c);
-
-		existing_bucket_lock = &b->lock;
-
 		/*
-		 * This lock can only be dropped after the run lock is acquired.
+		 * This bucket can only be released after the run lock is
+		 * acquired.
 		 * The reason for this is that the bucket can revoke the claim
 		 * on the run during the heap_get_bestfit_block method which
 		 * means the run will become available to others.
 		 */
-		util_mutex_lock(existing_bucket_lock);
+		new_bucket = heap_bucket_acquire(heap, c);
 
 		/*
 		 * The caller provided size in bytes, but buckets operate in
@@ -196,7 +193,7 @@ palloc_operation(struct palloc_heap *heap,
 		new_block.size_idx = CALC_SIZE_IDX(c->unit_size,
 			size + header_type_to_size[c->header_type]);
 
-		errno = heap_get_bestfit_block(heap, b, &new_block);
+		errno = heap_get_bestfit_block(heap, new_bucket, &new_block);
 		if (errno != 0) {
 			ret = -1;
 			goto out;
@@ -219,11 +216,11 @@ palloc_operation(struct palloc_heap *heap,
 			 */
 			if (new_block.type == MEMORY_BLOCK_HUGE) {
 				new_block = heap_coalesce_huge(
-					heap, &new_block);
-				bucket_insert_block(b, &new_block);
+					heap, new_bucket, &new_block);
 				new_block.m_ops->prep_hdr(&new_block,
 					MEMBLOCK_FREE, ctx);
 				operation_process(ctx);
+				bucket_insert_block(new_bucket, &new_block);
 			}
 
 			errno = ECANCELED;
@@ -292,14 +289,18 @@ palloc_operation(struct palloc_heap *heap,
 
 		struct memory_block coalesced_block = existing_block;
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
-			struct bucket *b = heap_get_default_bucket(heap);
-			if (existing_bucket_lock != &b->lock) {
-				new_bucket_lock = &b->lock;
-				util_mutex_lock(new_bucket_lock);
+			if (new_bucket && new_bucket->aclass->id ==
+						DEFAULT_ALLOC_CLASS_ID) {
+				existing_bucket = new_bucket;
+				new_bucket = NULL;
+			} else {
+				existing_bucket =
+					heap_bucket_acquire_by_id(heap,
+						DEFAULT_ALLOC_CLASS_ID);
 			}
 
 			coalesced_block = heap_coalesce_huge(heap,
-				&existing_block);
+				existing_bucket, &existing_block);
 		}
 
 		/*
@@ -356,22 +357,21 @@ palloc_operation(struct palloc_heap *heap,
 	 * representation.
 	 */
 	if (existing_block.type == MEMORY_BLOCK_HUGE) {
-		bucket_insert_block(heap_get_default_bucket(heap),
-			&existing_block);
+		bucket_insert_block(existing_bucket, &existing_block);
 	}
 
 out:
-	if (existing_bucket_lock != NULL)
-		util_mutex_unlock(existing_bucket_lock);
-
 	if (existing_block_lock != NULL)
 		util_mutex_unlock(existing_block_lock);
 
-	if (new_bucket_lock != NULL)
-		util_mutex_unlock(new_bucket_lock);
-
 	if (new_block_lock != NULL)
 		util_mutex_unlock(new_block_lock);
+
+	if (existing_bucket != NULL)
+		heap_bucket_release(heap, existing_bucket);
+
+	if (new_bucket != NULL)
+		heap_bucket_release(heap, new_bucket);
 
 	return ret;
 }
