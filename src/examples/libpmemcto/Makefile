@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +31,13 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# examples/libpmemcto/Makefile -- build the libpmemcto examples
 #
+PROGS = manpage
+DIRS = life libart
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool libpmemcto
+LIBS = -lpmemcto -lpmem -pthread
 
-include Makefile.inc
+include ../Makefile.inc
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
-
-clobber clean: rmtmp
+manpage: manpage.o

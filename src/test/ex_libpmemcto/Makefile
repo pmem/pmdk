@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +31,21 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# src/test/ex_libpmemcto/Makefile -- build ex_libpmemcto unittest
 #
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool libpmemcto
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEMCTO)
 
-include Makefile.inc
+include ../Makefile.inc
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+NCURSES := $(call check_package, ncurses)
 
-clobber clean: rmtmp
+#EXAMPLES=$(EX_LIBPMEMCTO)/arttree
+
+ifeq ($(NCURSES),y)
+EXAMPLES += $(EX_LIBPMEMCTO)/life/life
+else
+$(info NOTE: Skipping life test because ncurses is missing \
+-- see src/examples/libpmemcto/life/README for details.)
+endif
