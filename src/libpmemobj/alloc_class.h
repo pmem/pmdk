@@ -110,6 +110,20 @@ struct alloc_class *alloc_class_by_id(
 int alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot);
 
+int
+alloc_class_reset(struct alloc_class_collection *ac,
+	size_t granularity, size_t limit, int fail_on_missing_class);
+
+int
+alloc_class_range_set(struct alloc_class_collection *ac,
+	struct alloc_class *c, size_t start, size_t end);
+
+size_t
+alloc_class_granularity(struct alloc_class_collection *ac);
+
+size_t
+alloc_class_limit(struct alloc_class_collection *ac);
+
 ssize_t
 alloc_class_calc_size_idx(struct alloc_class *c, size_t size);
 
