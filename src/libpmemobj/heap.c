@@ -80,6 +80,12 @@ struct heap_rt {
 static __thread unsigned Cache_id = UINT32_MAX;
 static unsigned Next_cache_id;
 
+struct alloc_class_collection *
+heap_alloc_classes(struct palloc_heap *heap)
+{
+	return heap->rt->alloc_classes;
+}
+
 /*
  * bucket_group_init -- (internal) creates new bucket group instance
  */
@@ -966,10 +972,10 @@ heap_get_ncaches(void)
 }
 
 /*
- * heap_create_alloc_class_buckets -- (internal) allocates all cache bucket
+ * heap_create_alloc_class_buckets -- allocates all cache bucket
  * instances of the specified type
  */
-static int
+int
 heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;
@@ -1022,6 +1028,20 @@ error_bucket_create:
 		bucket_group_destroy(h->caches[i].buckets);
 
 	return -1;
+}
+
+/*
+ * heap_buckets_reset -- destroys and initializes each bucket group
+ */
+void
+heap_buckets_reset(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+	for (unsigned i = 0; i < h->ncaches; ++i)
+		bucket_group_destroy(h->caches[i].buckets);
+
+	for (unsigned i = 0; i < h->ncaches; ++i)
+		bucket_group_init(h->caches[i].buckets);
 }
 
 /*

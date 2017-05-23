@@ -47,6 +47,8 @@
 
 #define RUN_UNIT_MAX BITS_PER_VALUE
 
+#define RUN_UNIT_MAX BITS_PER_VALUE
+
 struct alloc_class_collection;
 
 enum alloc_class_type {
@@ -98,14 +100,41 @@ struct alloc_class {
 struct alloc_class_collection *alloc_class_collection_new(void);
 void alloc_class_collection_delete(struct alloc_class_collection *ac);
 
+<<<<<<< HEAD
 void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 	size_t unit_size, uint32_t size_idx);
 
+=======
+>>>>>>> 2227372... obj: alloc class interface
 struct alloc_class *alloc_class_by_unit_size(
 	struct alloc_class_collection *ac, size_t size);
 struct alloc_class *alloc_class_by_alloc_size(
 	struct alloc_class_collection *ac, size_t size);
 struct alloc_class *alloc_class_by_id(
 	struct alloc_class_collection *ac, uint8_t id);
+
+void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
+	size_t unit_size, uint32_t size_idx);
+
+int
+alloc_class_reset(struct alloc_class_collection *ac,
+	size_t granularity, size_t limit, int fail_on_missing_class);
+
+int
+alloc_class_range_set(struct alloc_class_collection *ac,
+	struct alloc_class *c, size_t start, size_t end);
+
+size_t
+alloc_class_granularity(struct alloc_class_collection *ac);
+
+size_t
+alloc_class_limit(struct alloc_class_collection *ac);
+
+struct alloc_class *
+alloc_class_register(struct alloc_class_collection *ac,
+	struct alloc_class *aclass);
+
+void alloc_class_delete(struct alloc_class_collection *ac,
+	struct alloc_class *c);
 
 #endif

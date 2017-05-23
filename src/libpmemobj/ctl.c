@@ -259,10 +259,16 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 	 * Discard invalid calls, this includes the ones that are mostly correct
 	 * but include an extraneous arguments.
 	 */
-	if (n == NULL ||
-		(read_arg != NULL && n->read_cb == NULL) ||
+	if (n == NULL) {
+		ERR("invalid query entry point %s", name);
+		errno = EINVAL;
+		goto error_invalid_arguments;
+	}
+
+	if ((read_arg != NULL && n->read_cb == NULL) ||
 		(write_arg != NULL && n->write_cb == NULL) ||
 		(write_arg == NULL && read_arg == NULL)) {
+		ERR("invalid arguments for entry point %s", name);
 		errno = EINVAL;
 		goto error_invalid_arguments;
 	}
@@ -432,6 +438,12 @@ ctl_load_config(PMEMobjpool *pop, char *buf)
 		if (r == 0)
 			r = ctl_query(pop, CTL_QUERY_CONFIG_INPUT,
 				name, NULL, value);
+
+		if (r == -1) {
+			ERR("failed to parse query %s", qbuf);
+			return -1;
+		}
+
 		qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sptr);
 	} while (r == 0 && qbuf != NULL);
 
@@ -599,6 +611,11 @@ ctl_arg_integer(const void *arg, void *dest, size_t dest_size)
 			break;
 		case sizeof(long long):
 			*(long long *)dest = val;
+			break;
+		case sizeof(uint8_t):
+			if (val > UINT8_MAX || val < 0)
+				return -1;
+			*(uint8_t *)dest = (uint8_t)val;
 			break;
 	}
 

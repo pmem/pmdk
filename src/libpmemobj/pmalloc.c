@@ -46,6 +46,7 @@
 #include "out.h"
 #include "palloc.h"
 #include "pmalloc.h"
+#include "alloc_class.h"
 
 #ifdef DEBUG
 /*
@@ -296,3 +297,296 @@ static struct section_operations allocator_ops = {
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
+
+/*
+ * CTL_WRITE_HANDLER(proto) -- creates a new allocation class
+ */
+static int
+CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "class_id"), 0);
+
+	if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
+		ERR("class id outside of the allowed range");
+		errno = ERANGE;
+		return -1;
+	}
+
+	uint8_t id = (uint8_t)idx->value;
+
+	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
+
+	if (alloc_class_by_id(ac, id) != NULL) {
+		ERR("attempted to overwrite an allocation class");
+		errno = EEXIST;
+		return -1;
+	}
+
+	struct pobj_alloc_class_desc *p = arg;
+
+	struct alloc_class c;
+	c.id = id;
+
+	enum header_type lib_htype = MAX_HEADER_TYPES;
+	switch (p->header_type) {
+		case POBJ_HEADER_LEGACY:
+			lib_htype = HEADER_LEGACY;
+			break;
+		case POBJ_HEADER_COMPACT:
+			lib_htype = HEADER_COMPACT;
+			break;
+		case POBJ_HEADER_MINIMAL:
+			lib_htype = HEADER_MINIMAL;
+			break;
+		default:
+			ASSERT(0); /* unreachable */
+			break;
+	}
+
+	c.header_type = lib_htype;
+	c.type = CLASS_RUN;
+	c.unit_size = p->unit_size;
+	size_t runsize_bytes =
+		CHUNKSIZE_ALIGN(p->units_per_block * p->unit_size);
+	c.run.size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
+
+	alloc_class_generate_run_proto(&c.run, c.unit_size, c.run.size_idx);
+
+	struct alloc_class *realc = alloc_class_register(
+		heap_alloc_classes(&pop->heap), &c);
+
+	if (heap_create_alloc_class_buckets(&pop->heap, realc) != 0) {
+		alloc_class_delete(ac, realc);
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * pmalloc_header_type_parser -- parses the alloc header type argument
+ */
+static int
+pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
+{
+	const char *vstr = arg;
+	enum pobj_header_type *htype = dest;
+	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
+
+	if (strcmp(vstr, "minimal") == 0) {
+		*htype = POBJ_HEADER_MINIMAL;
+	} else if (strcmp(vstr, "compact") == 0) {
+		*htype = POBJ_HEADER_COMPACT;
+	} else if (strcmp(vstr, "legacy") == 0) {
+		*htype = POBJ_HEADER_LEGACY;
+	} else {
+		ERR("invalid header type");
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(proto) -- reads the information about allocation class
+ */
+static int
+CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "class_id"), 0);
+
+	if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
+		ERR("class id outside of the allowed range");
+		errno = ERANGE;
+		return -1;
+	}
+
+	uint8_t id = (uint8_t)idx->value;
+
+	struct alloc_class *c = alloc_class_by_id(
+		heap_alloc_classes(&pop->heap), id);
+
+	if (c == NULL) {
+		ERR("class with the given id does not exist");
+		errno = EEXIST;
+		return -1;
+	}
+
+	ASSERTeq(c->type, CLASS_RUN);
+
+	enum pobj_header_type user_htype = MAX_POBJ_HEADER_TYPES;
+	switch (c->header_type) {
+		case HEADER_LEGACY:
+			user_htype = POBJ_HEADER_LEGACY;
+			break;
+		case HEADER_COMPACT:
+			user_htype = POBJ_HEADER_COMPACT;
+			break;
+		case HEADER_MINIMAL:
+			user_htype = POBJ_HEADER_MINIMAL;
+			break;
+		default:
+			ASSERT(0); /* unreachable */
+			break;
+	}
+
+	struct pobj_alloc_class_desc *p = arg;
+	p->units_per_block = c->run.bitmap_nallocs;
+	p->header_type = user_htype;
+	p->unit_size = c->unit_size;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(desc) = {
+	.dest_size = sizeof(struct pobj_alloc_class_desc),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
+			unit_size, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
+			units_per_block, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
+			header_type, pmalloc_header_type_parser),
+		CTL_ARG_PARSER_END
+	}
+};
+
+static const struct ctl_node CTL_NODE(class_id)[] = {
+	CTL_LEAF_RW(desc),
+
+	CTL_NODE_END
+};
+
+/*
+ * CTL_WRITE_HANDLER(range) -- sets the map in range to the allocation class
+ */
+static int
+CTL_WRITE_HANDLER(range)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct pobj_alloc_class_map_range *range = arg;
+
+	struct alloc_class *c = alloc_class_by_id(
+		heap_alloc_classes(&pop->heap), range->class_id);
+
+	if (c == NULL)
+		return -1;
+
+	int ret = alloc_class_range_set(heap_alloc_classes(&pop->heap),
+		c, range->start, range->end);
+
+	if (ret != 0) {
+		ERR("range setting would be invalid for the class");
+	}
+	return ret;
+}
+
+static struct ctl_argument CTL_ARG(range) = {
+	.dest_size = sizeof(struct pobj_alloc_class_map_range),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			start, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			end, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			class_id, ctl_arg_integer),
+		CTL_ARG_PARSER_END
+	}
+};
+
+/*
+ * CTL_WRITE_HANDLER(limit) -- reads the limit of allocation classes
+ */
+static int
+CTL_READ_HANDLER(limit)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	size_t *limit = arg;
+
+	*limit = alloc_class_limit(heap_alloc_classes(&pop->heap));
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(granularity) -- reads the granularity of allocation classes
+ */
+static int
+CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	size_t *granularity = arg;
+
+	*granularity = alloc_class_granularity(heap_alloc_classes(&pop->heap));
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(map)[] = {
+	CTL_LEAF_WO(range),
+	CTL_LEAF_RO(limit),
+	CTL_LEAF_RO(granularity),
+
+	CTL_NODE_END
+};
+
+/*
+ * CTL_WRITE_HANDLER(reset) -- resets the allocation classes
+ */
+static int
+CTL_WRITE_HANDLER(reset)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct pobj_alloc_class_params *params = arg;
+	int ret = alloc_class_reset(heap_alloc_classes(&pop->heap),
+		params->granularity, params->limit,
+		params->fail_no_matching_class);
+
+	if (ret != 0)
+		return ret;
+
+	heap_buckets_reset(&pop->heap);
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(reset) = {
+	.dest_size = sizeof(struct pobj_alloc_class_params),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			limit, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			granularity, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			fail_no_matching_class, ctl_arg_integer),
+		CTL_ARG_PARSER_END
+	}
+};
+
+static const struct ctl_node CTL_NODE(alloc_class)[] = {
+	CTL_LEAF_WO(reset),
+	CTL_INDEXED(class_id),
+	CTL_CHILD(map),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(heap)[] = {
+	CTL_CHILD(alloc_class),
+
+	CTL_NODE_END
+};
+
+/*
+ * pmalloc_ctl_register -- registers ctl nodes for "heap" module
+ */
+void
+pmalloc_ctl_register(PMEMobjpool *pop)
+{
+	CTL_REGISTER_MODULE(pop->ctl, heap);
+}

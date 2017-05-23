@@ -65,13 +65,24 @@
 	((struct zone *)((uintptr_t)&(((struct heap_layout *)(layoutp))->zone0)\
 					+ ZONE_MAX_SIZE * (zone_id)))
 
+#define CHUNKSIZE_MASK ((CHUNKSIZE) - 1)
+#define CHUNKSIZE_ALIGN(value) ((((value) + CHUNKSIZE_MASK) & ~CHUNKSIZE_MASK))
+
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
+<<<<<<< HEAD
 	CHUNK_FLAG_HEADER_NONE		=	0x0002,
 };
 
 #define CHUNK_FLAGS_ALL_VALID (CHUNK_FLAG_COMPACT_HEADER |\
 	CHUNK_FLAG_HEADER_NONE)
+=======
+	CHUNK_FLAG_MINIMAL_HEADER	=	0x0002,
+};
+
+#define CHUNK_FLAGS_ALL_VALID (CHUNK_FLAG_COMPACT_HEADER |\
+	CHUNK_FLAG_MINIMAL_HEADER)
+>>>>>>> 2227372... obj: alloc class interface
 
 enum chunk_type {
 	CHUNK_TYPE_UNKNOWN,

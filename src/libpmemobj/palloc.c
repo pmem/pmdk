@@ -173,6 +173,12 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (size != 0) {
 		struct alloc_class *c = heap_get_best_class(heap, size);
+		if (c == NULL) {
+			ERR("no allocation class for size %lu bytes", size);
+			errno = EINVAL;
+			return -1;
+		}
+
 		/*
 		 * This bucket can only be released after the run lock is
 		 * acquired.
