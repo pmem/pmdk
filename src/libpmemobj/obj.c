@@ -165,6 +165,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 
 	if (pop) {
 		tx_ctl_register(pop);
+		pmalloc_ctl_register(pop);
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -1097,11 +1098,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		return -1;
 	}
 
-	if (obj_ctl_init_and_load(pop) != 0) {
-		errno = EINVAL;
-		goto err_ctl;
-	}
-
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
@@ -1132,6 +1128,11 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		}
 	}
 
+	if (obj_ctl_init_and_load(pop) != 0) {
+		errno = EINVAL;
+		goto err;
+	}
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -1142,8 +1143,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 err:
-	ctl_delete(pop->ctl);
-err_ctl:
 	tx_params_delete(pop->tx_params);
 
 	return -1;
