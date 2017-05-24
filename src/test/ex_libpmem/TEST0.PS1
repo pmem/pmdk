@@ -52,7 +52,7 @@ setup
 
 create_nonzeroed_file 2M 0 $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\simple_copy $DIR\testfile1 $DIR\testfile2 `
+expect_normal_exit $Env:EXE_DIR\ex_pmem_simple_copy $DIR\testfile1 $DIR\testfile2 `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
 touch cmp$Env:UNITTEST_NUM.log
