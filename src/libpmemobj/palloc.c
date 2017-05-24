@@ -221,6 +221,9 @@ palloc_operation(struct palloc_heap *heap,
 				new_block = heap_coalesce_huge(
 					heap, &new_block);
 				bucket_insert_block(b, &new_block);
+				new_block.m_ops->prep_hdr(&new_block,
+					MEMBLOCK_FREE, ctx);
+				operation_process(ctx);
 			}
 
 			errno = ECANCELED;
