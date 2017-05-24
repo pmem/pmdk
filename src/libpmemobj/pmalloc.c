@@ -195,32 +195,6 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 }
 
 /*
- * prealloc_construct -- resizes an existing memory block with a constructor
- *
- * The block offset is written persistently into the off variable, but only
- * after the constructor function has been called.
- *
- * If successful function returns zero. Otherwise an error number is returned.
- */
-int
-prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags)
-{
-	struct redo_log *redo = pmalloc_redo_hold(pop);
-	struct operation_context ctx;
-
-	operation_init(&ctx, pop, pop->redo, redo);
-
-	int ret = pmalloc_operation(&pop->heap, *off, off, size, constructor,
-			arg, extra_field, flags, &ctx);
-
-	pmalloc_redo_release(pop);
-
-	return ret;
-}
-
-/*
  * pfree -- deallocates a memory block previously allocated by pmalloc
  *
  * A zero value is written persistently into the off variable.

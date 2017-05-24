@@ -68,9 +68,6 @@ int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 
 int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint64_t extra_field, uint16_t flags);
-int prealloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags);
 
 void pfree(PMEMobjpool *pop, uint64_t *off);
 
