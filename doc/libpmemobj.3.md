@@ -174,6 +174,8 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num,
 	pmemobj_constr constructor, void *arg);
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
+int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num,
+	uint64_t flags, pmemobj_constr constructor, void *arg);
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s, uint64_t type_num);
@@ -1168,6 +1170,21 @@ discouraged. If *size* equals 0, then **pmemobj_zalloc**() returns non-zero valu
 added to the internal container associated with given *type_num*.
 
 ```c
+int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp,
+	size_t size, uint64_t type_num, uint64_t flags,
+	pmemobj_constr constructor , void *arg);
+```
+
+The **pmemobj_alloc**() function allocates a new object from the persistent
+memory heap associated with memory pool *pop*. Equivalent to **pmemobj_alloc**()
+but with the addition of allocation modifiers.
+
+The *flags* argument is a bitmask of the following values:
+
++ **POBJ_XALLOC_ZERO** - zero the object (equivalent of **pmemobj_zalloc**())
++ **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation class with id equal to *class_id*
+
+```c
 void pmemobj_free(PMEMoid *oidp);
 ```
 
@@ -1774,6 +1791,7 @@ The **pmemobj_tx_xalloc**() function transactionally allocates a new object of g
 
 + **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
 + **POBJ_XALLOC_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
++ **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation class with id equal to *class_id*
 
 If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
 
@@ -2387,7 +2405,7 @@ There are three types:
 	predefined allocation classes.
 	Incurs 16 bytes metadata overhead for every objects.
 	Fully supports all features.
- - **POBJ_HEADER_MINIMAL**, string value: `minimal`. Header type that doesn't
+ - **POBJ_HEADER_NONE**, string value: `none`. Header type that doesn't
 	incur any metadata overhead beyond a single bitmap entry. Can be used
 	for very small allocation classes or when objects must be adjacent to
 	each other.
@@ -2400,6 +2418,10 @@ the classes.
 
 This structure is declared in the `ctl.h` header file, please read it for
 an in-depth explanation of the allocation classes and relevant algorithms.
+
+Allocation classes constructed in this way can be leveraged by either explicitly
+specifying the class using **POBJ_CLASS_ID(id)** flag in **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()
+functions or by constructing a global mapping between a request size and the class.
 
 This function returns 0 if the allocation class has been successfully created,
 -1 otherwise.
