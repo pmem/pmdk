@@ -12,9 +12,22 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}</ProjectGuid>
-    <RootNamespace>asset_load</RootNamespace>
+    <RootNamespace>pmemblk</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
+    <Link>
+      <AdditionalDependencies>libpmem.lib;libpmemblk.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup Condition="'$(SolutionName)'=='NVML'">
+    <ProjectReference Include="..\..\..\libpmemblk\libpmemblk.vcxproj" >
+      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
+      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -33,44 +46,34 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
-  </ImportGroup>
+  </ImportGroup>  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <PropertyGroup>
+	<IncludePath>$(ProjectDir)..\..\;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Manifest>
+      <AdditionalManifestFiles>..\..\..\LongPath.manifest</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\LongPathSupport.props" />
+	<Import Project="..\..\Examples_$(Configuration).props"  />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\LongPathSupport.props" />
+	<Import Project="..\..\Examples_$(Configuration).props" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(Platform)\$(Configuration)\asset_load\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(solutionDir)examples;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(Platform)\$(Configuration)\asset_load\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(solutionDir)examples;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -79,14 +82,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="asset_load.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\libpmemblk\libpmemblk.vcxproj">
-      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset.h" />

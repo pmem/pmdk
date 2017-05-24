@@ -32,14 +32,14 @@
 #
 
 #
-# src/test/ex_libpmemblk/TEST0 -- unit test for libpmemblk examples
+# src\test\ex_libpmemblk\TEST0 -- unit test for libpmemblk examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemblk/TEST0"
+$Env:UNITTEST_NAME = "ex_libpmemblk\TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -53,12 +53,21 @@ setup
 
 create_holey_file 32M $DIR\testfile1
 
+<<<<<<< HEAD
 expect_normal_exit $Env:EXE_DIR\asset_load $DIR\testfile1 .\asset_list.txt > out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\asset_checkout $DIR\testfile1 2 Joe >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\asset_checkin $DIR\testfile1 2 >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+=======
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_load $DIR\testfile1 .\asset_list.txt > out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_checkout $DIR\testfile1 2 Joe >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_checkin $DIR\testfile1 2 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemblk_asset_list $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+>>>>>>> 63444e62d... examples: standalone examples libpmemblk
 
 check_pool $DIR\testfile1
 
