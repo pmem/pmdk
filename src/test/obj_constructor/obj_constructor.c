@@ -191,6 +191,22 @@ main(int argc, char *argv[])
 	Canceled_ptr->bar = 5;
 	pmemobj_persist(pop, &Canceled_ptr->bar, sizeof(Canceled_ptr->bar));
 
+	/*
+	 * Allocate and cancel a huge object. It should return back to the
+	 * heap and it should be possible to allocate it again.
+	 */
+	Canceled_ptr = NULL;
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 21), 1,
+		vg_test_save_ptr, NULL);
+	UT_ASSERTne(Canceled_ptr, NULL);
+	void *first_ptr = Canceled_ptr;
+	Canceled_ptr = NULL;
+
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 21), 1,
+		vg_test_save_ptr, NULL);
+
+	UT_ASSERTeq(first_ptr, Canceled_ptr);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);
