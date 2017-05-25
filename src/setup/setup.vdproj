@@ -81,6 +81,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_2696230815BA461483A36EEC17E4EED3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_27119A8D75FD4F42A701CFC3D96D0D56"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -148,12 +154,6 @@
         "Entry"
         {
         "MsmKey" = "8:_41DCA17370CF4EED99CD6D5A8BB576B5"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_44EC5F563B8E4B2C8E9DCD2E2DC1D099"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -244,12 +244,6 @@
         "Entry"
         {
         "MsmKey" = "8:_784CB4E28E4545F0B29B354D3DE22095"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7999C6A8AA584951949E25A533651598"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -896,6 +890,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2696230815BA461483A36EEC17E4EED3"
+            {
+            "SourcePath" = "8:README.md"
+            "TargetName" = "8:README.md"
+            "Tag" = "8:"
+            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_27119A8D75FD4F42A701CFC3D96D0D56"
             {
             "SourcePath" = "8:..\\include\\libpmemobj++\\detail\\persistent_ptr_base.hpp"
@@ -1123,26 +1137,6 @@
             "Tag" = "8:"
             "Folder" = "8:_CD7769E9B5DA48AF8356448A55D395BD"
             "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_44EC5F563B8E4B2C8E9DCD2E2DC1D099"
-            {
-            "SourcePath" = "8:..\\..\\README.md"
-            "TargetName" = "8:README.md"
-            "Tag" = "8:"
-            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
-            "Condition" = "8:INSTALL_RELEASE=1 OR INSTALL_DEBUG=1"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -1443,26 +1437,6 @@
             "Tag" = "8:"
             "Folder" = "8:_6EAECAF5389D4D8F99F43D8DA06EEDB3"
             "Condition" = "8:INSTALL_RELEASE=1"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7999C6A8AA584951949E25A533651598"
-            {
-            "SourcePath" = "8:INSTALL.md"
-            "TargetName" = "8:INSTALL.md"
-            "Tag" = "8:"
-            "Folder" = "8:_30B04AF26AC9430EA7D4364157A2FBBB"
-            "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -2807,7 +2781,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NVML"
         "ProductCode" = "8:{486595D6-FDA0-4A34-9ECA-0EE6B91E8B31}"
-        "PackageCode" = "8:{994DECAD-B884-497F-A790-C1CA2CFC8774}"
+        "PackageCode" = "8:{E85DE41D-7439-48D6-AA3C-2C4D116D82FE}"
         "UpgradeCode" = "8:{B4DEC5FF-51F1-490F-B604-DFE564A346C8}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
