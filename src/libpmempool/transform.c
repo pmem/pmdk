@@ -46,7 +46,6 @@
 
 #include "replica.h"
 #include "out.h"
-#include "obj.h"
 #include "file.h"
 #include "os.h"
 
