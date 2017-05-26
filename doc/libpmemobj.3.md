@@ -2363,10 +2363,17 @@ executed.
 
 Always returns 0.
 
-heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` | `pobj pobj_alloc_class_desc` | integer, integer, string
+heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` | `struct pobj_alloc_class_desc` | integer, integer, string
 
 A description of an allocation class. Allows one to create or view the internal
 data structures of the allocator.
+
+Creating custom allocation classes can be beneficial for both raw allocation
+throughput, scaling and, most importantly, fragmentation.
+By carefully constructing allocation classes that match the application workload,
+one can entirely eliminate external and internal fragmentation. For example,
+it is possible to easily construct a slab-like allocation mechanism for any
+data structure.
 
 The `[class_id]` is an index field. Only values between 0-255 are valid.
 If setting an allocation class, but the class_id is already taken, the function
@@ -2412,6 +2419,10 @@ There are three types:
 	This header type does not support type numbers (it's always 0) and
 	allocations that span more than one unit.
 
+The field `class_id` is optional, runtime only (can't be set from config file),
+variable that allows the user to retrieve the identifier of the class. This will
+be equivalent to the provided `[class_id]`.
+
 The allocation classes are a runtime state of the library and must be created
 after every open. It's highly recommended to use the configuration file to store
 the classes.
@@ -2422,6 +2433,21 @@ an in-depth explanation of the allocation classes and relevant algorithms.
 Allocation classes constructed in this way can be leveraged by either explicitly
 specifying the class using **POBJ_CLASS_ID(id)** flag in **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()
 functions or by constructing a global mapping between a request size and the class.
+
+This function returns 0 if the allocation class has been successfully created,
+-1 otherwise.
+
+heap.alloc_class.new.desc | wo | - | - | `struct pobj_alloc_class_desc` | integer, integer, string
+
+Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
+to provide the class_id, it automatically creates the allocation class with the
+first available identifier.
+
+This should be used when it's impossible to guarantee unique allocation class
+naming in the application (e.g. when writing a library that uses libpmemobj).
+
+The required class identifier will be stored in the `class_id` field of the
+`struct pobj_alloc_class_desc`.
 
 This function returns 0 if the allocation class has been successfully created,
 -1 otherwise.
@@ -2461,8 +2487,9 @@ This entry points deletes all of the internal definitions of allocation classes
 and relevant runtime state. This allows one to take full control of the data
 structures of the algorithm.
 
-When called, the reservation on `class_id` is lifted and one is free to register
-allocation classes with id in the 0-127 range.
+When called, the reservation on `class_id` is partially lifted and one is free
+to register allocation classes with id in the 1-127 range. The class 0 is the
+default one, it is used to handle chunk allocation and it must always exist.
 
 This entry point takes a complex argument.
 

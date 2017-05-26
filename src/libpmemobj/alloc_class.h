@@ -44,9 +44,6 @@
 
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
 #define DEFAULT_ALLOC_CLASS_ID (0)
-
-#define RUN_UNIT_MAX BITS_PER_VALUE
-
 #define RUN_UNIT_MAX BITS_PER_VALUE
 
 struct alloc_class_collection;
@@ -100,12 +97,9 @@ struct alloc_class {
 struct alloc_class_collection *alloc_class_collection_new(void);
 void alloc_class_collection_delete(struct alloc_class_collection *ac);
 
-<<<<<<< HEAD
 void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 	size_t unit_size, uint32_t size_idx);
 
-=======
->>>>>>> 2227372... obj: alloc class interface
 struct alloc_class *alloc_class_by_unit_size(
 	struct alloc_class_collection *ac, size_t size);
 struct alloc_class *alloc_class_by_alloc_size(
@@ -113,8 +107,8 @@ struct alloc_class *alloc_class_by_alloc_size(
 struct alloc_class *alloc_class_by_id(
 	struct alloc_class_collection *ac, uint8_t id);
 
-void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
-	size_t unit_size, uint32_t size_idx);
+int alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
+	uint8_t *slot);
 
 int
 alloc_class_reset(struct alloc_class_collection *ac,

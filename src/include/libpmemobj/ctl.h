@@ -165,6 +165,11 @@ struct pobj_alloc_class_desc {
 	 * The header of allocations that originate from this allocation class.
 	 */
 	enum pobj_header_type header_type;
+
+	/*
+	 * The identifier of this allocation class.
+	 */
+	unsigned class_id;
 };
 
 /*

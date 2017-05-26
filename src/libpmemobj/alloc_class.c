@@ -146,7 +146,7 @@ struct alloc_class_collection {
  * This function must be thread-safe because allocation classes can be created
  * at runtime.
  */
-static int
+int
 alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot)
 {
@@ -632,7 +632,7 @@ alloc_class_reset(struct alloc_class_collection *ac,
 	ac->granularity = granularity;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
-		if (c != NULL) {
+		if (c != NULL && c->type == CLASS_RUN) {
 			alloc_class_delete(ac, c);
 		}
 	}

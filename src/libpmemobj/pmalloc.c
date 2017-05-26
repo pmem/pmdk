@@ -305,26 +305,36 @@ static int
 CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
 {
-	struct ctl_index *idx = SLIST_FIRST(indexes);
-	ASSERTeq(strcmp(idx->name, "class_id"), 0);
-
-	if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
-		ERR("class id outside of the allowed range");
-		errno = ERANGE;
-		return -1;
-	}
-
-	uint8_t id = (uint8_t)idx->value;
-
+	uint8_t id;
 	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
 
-	if (alloc_class_by_id(ac, id) != NULL) {
-		ERR("attempted to overwrite an allocation class");
-		errno = EEXIST;
-		return -1;
+	if (SLIST_EMPTY(indexes)) {
+		if (alloc_class_find_first_free_slot(ac, &id) != 0) {
+			ERR("no available free allocation class identifier");
+			errno = EINVAL;
+			return -1;			
+		}
+	} else {
+		struct ctl_index *idx = SLIST_FIRST(indexes);
+		ASSERTeq(strcmp(idx->name, "class_id"), 0);
+
+		if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
+			ERR("class id outside of the allowed range");
+			errno = ERANGE;
+			return -1;
+		}
+
+		id = (uint8_t)idx->value;
+
+		if (alloc_class_by_id(ac, id) != NULL) {
+			ERR("attempted to overwrite an allocation class");
+			errno = EEXIST;
+			return -1;
+		}
 	}
 
 	struct pobj_alloc_class_desc *p = arg;
+	p->class_id = id;
 
 	struct alloc_class c;
 	c.id = id;
@@ -397,6 +407,8 @@ static int
 CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
 {
+	uint8_t id;
+
 	struct ctl_index *idx = SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
@@ -406,7 +418,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 		return -1;
 	}
 
-	uint8_t id = (uint8_t)idx->value;
+	id = (uint8_t)idx->value;
 
 	struct alloc_class *c = alloc_class_by_id(
 		heap_alloc_classes(&pop->heap), id);
@@ -439,6 +451,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	p->units_per_block = c->run.bitmap_nallocs;
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
+	p->class_id = c->id;
 
 	return 0;
 }
@@ -458,6 +471,12 @@ static struct ctl_argument CTL_ARG(desc) = {
 
 static const struct ctl_node CTL_NODE(class_id)[] = {
 	CTL_LEAF_RW(desc),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(new)[] = {
+	CTL_LEAF_WO(desc),
 
 	CTL_NODE_END
 };
@@ -571,6 +590,7 @@ static struct ctl_argument CTL_ARG(reset) = {
 static const struct ctl_node CTL_NODE(alloc_class)[] = {
 	CTL_LEAF_WO(reset),
 	CTL_INDEXED(class_id),
+	CTL_INDEXED(new),
 	CTL_CHILD(map),
 
 	CTL_NODE_END
