@@ -183,6 +183,25 @@ alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 	dest->bitmap_nallocs = (uint32_t)
 		(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
 
+	while (dest->bitmap_nallocs > RUN_BITMAP_SIZE) {
+		LOG(3, "tried to create allocation class (%lu) with number "
+			"of units (%u) exceeding the bitmap size (%u)",
+			unit_size, dest->bitmap_nallocs, RUN_BITMAP_SIZE);
+		if (dest->size_idx > 1) {
+			dest->size_idx -= 1;
+			/* recalculate the number of allocations */
+			dest->bitmap_nallocs = (uint32_t)
+				(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
+			LOG(3, "an allocation class was constructed with "
+				"fewer chunks");
+		} else {
+			dest->bitmap_nallocs = RUN_BITMAP_SIZE;
+			LOG(3, "an allocation class was constructed with "
+				" fewer units than optimal, this might lead to"
+				" inefficent memory utilization!");
+		}
+	}
+
 	/*
 	 * The two other numbers that define our bitmap is the
 	 * size of the array that represents the bitmap and the
