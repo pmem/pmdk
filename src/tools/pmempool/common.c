@@ -58,6 +58,7 @@
 #include "libpmemblk.h"
 #include "libpmemlog.h"
 #include "libpmemobj.h"
+#include "libpmemcto.h"
 #include "btt.h"
 #include "file.h"
 #include "os.h"
@@ -129,6 +130,8 @@ pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp)
 		return PMEM_POOL_TYPE_BLK;
 	else if (memcmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return PMEM_POOL_TYPE_OBJ;
+	else if (memcmp(hdrp->signature, CTO_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+		return PMEM_POOL_TYPE_CTO;
 	else
 		return PMEM_POOL_TYPE_UNKNOWN;
 }
@@ -147,6 +150,8 @@ pmem_pool_type_parse_str(const char *str)
 		return PMEM_POOL_TYPE_OBJ;
 	} else if (strcmp(str, "btt") == 0) {
 		return PMEM_POOL_TYPE_BTT;
+	} else if (strcmp(str, "cto") == 0) {
+		return PMEM_POOL_TYPE_CTO;
 	} else {
 		return PMEM_POOL_TYPE_UNKNOWN;
 	}
