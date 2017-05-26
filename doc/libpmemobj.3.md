@@ -2393,13 +2393,16 @@ this value should be between 8 bytes and a couple of megabytes for most of the
 workloads.
 
 The field `units_per_block` defines how many units does a single block of memory
-contains. This value must be between 1 and 2000. This value will be rounded up
+contains. This value will be rounded up
 to match internal size of the block (256 kilobytes or a multiple thereof).
 For example, given a class with `unit_size` of 512 bytes and `units_per_block`
 equal 1000, a single block of memory for that class will have 768 kilobytes.
 This is relevant because the bigger the block size, the blocks need to be
 fetched less frequently which leads to a lower contention on global state of the
 heap.
+Keep in mind that the information whether an object is allocated or not is
+stored in a bitmap with **2432** entries, this limitation makes it inefficient
+to create allocation classes smaller than 64 bytes.
 
 The field `header_type` defines the header of objects from the allocation class.
 There are three types:
