@@ -167,6 +167,10 @@ struct pmem_info {
 		uint64_t uuid_lo;
 		uint64_t objid;
 	} obj;
+	struct {
+		struct pmemcto *pcp;
+		size_t size;
+	} cto;
 };
 
 int pmempool_info_func(char *appname, int argc, char *argv[]);
@@ -178,3 +182,4 @@ int pmempool_info_blk(struct pmem_info *pip);
 int pmempool_info_log(struct pmem_info *pip);
 int pmempool_info_obj(struct pmem_info *pip);
 int pmempool_info_btt(struct pmem_info *pip);
+int pmempool_info_cto(struct pmem_info *pip);
