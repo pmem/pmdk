@@ -106,6 +106,8 @@ pool_supported(enum pool_type type)
 		return 1;
 	case POOL_TYPE_BLK:
 		return 1;
+	case POOL_TYPE_CTO:
+		return 1;
 	case POOL_TYPE_OBJ:
 	default:
 		return 0;
