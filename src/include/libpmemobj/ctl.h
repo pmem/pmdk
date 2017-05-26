@@ -126,7 +126,7 @@ enum pobj_header_type {
 	 * the heap using pmemobj_first/pmemobj_next functions, but have a
 	 * type_num equal 0.
 	 */
-	POBJ_HEADER_MINIMAL,
+	POBJ_HEADER_NONE,
 
 	MAX_POBJ_HEADER_TYPES
 };

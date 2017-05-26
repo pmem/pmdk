@@ -45,6 +45,13 @@
 #include "tx.h"
 #include "valgrind_internal.h"
 
+#define RANGE_FLAGS_MIN_BIT 48
+#define RANGE_FLAGS_MASK (0xffffULL << RANGE_FLAGS_MIN_BIT)
+
+#define RANGE_GET_SIZE(val) ((val) & ~RANGE_FLAGS_MASK)
+
+#define RANGE_FLAG_NO_FLUSH (0x1ULL << RANGE_FLAGS_MIN_BIT)
+
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
@@ -86,13 +93,6 @@ struct tx_lock_data {
 struct tx_undo_runtime {
 	struct pvector_context *ctx[MAX_UNDO_TYPES];
 };
-
-#define RANGE_FLAGS_MIN_BIT 48
-#define RANGE_FLAGS_MASK (0xffffULL << RANGE_FLAGS_MIN_BIT)
-
-#define RANGE_GET_SIZE(val) ((val) & ~RANGE_FLAGS_MASK)
-
-#define RANGE_FLAG_NO_FLUSH (0x1ULL << RANGE_FLAGS_MIN_BIT)
 
 struct lane_tx_runtime {
 	unsigned lane_idx;
@@ -972,7 +972,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	PMEMobjpool *pop = tx->pop;
 
 	pmalloc_construct(pop, entry_offset, size, constructor, &args,
-		type_num, 0);
+		type_num, 0, CLASS_ID_FROM_FLAG(flags));
 
 	retoid.off = *entry_offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
@@ -1037,7 +1037,8 @@ tx_alloc_copy_common(struct tx *tx, size_t size, type_num_t type_num,
 	PMEMoid retoid;
 	PMEMobjpool *pop = tx->pop;
 	int ret = pmalloc_construct(pop, entry_offset, size,
-			constructor, &args, type_num, 0);
+			constructor, &args, type_num, 0,
+			CLASS_ID_FROM_FLAG(flags));
 
 	retoid.off = *entry_offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
@@ -1543,7 +1544,7 @@ pmemobj_tx_add_large(struct tx *tx, struct tx_add_range_args *args)
 	int ret = pmalloc_construct(args->pop, entry,
 			args->size + sizeof(struct tx_range),
 			constructor_tx_add_range, args,
-			0, OBJ_INTERNAL_OBJECT_MASK);
+			0, OBJ_INTERNAL_OBJECT_MASK, 0);
 
 	if (ret != 0) {
 		pvector_pop_back(undo, NULL);
@@ -1604,7 +1605,7 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct tx *tx,
 		int err = pmalloc_construct(pop, entry,
 			pop->tx_params->cache_size,
 			constructor_tx_range_cache, NULL,
-			0, OBJ_INTERNAL_OBJECT_MASK);
+			0, OBJ_INTERNAL_OBJECT_MASK, 0);
 
 		if (err != 0) {
 			pvector_pop_back(undo, NULL);
@@ -1964,9 +1965,9 @@ pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 		return obj_tx_abort_null(EINVAL);
 	}
 
-	if (flags & ~POBJ_XALLOC_VALID_FLAGS) {
+	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
-				flags & ~POBJ_XALLOC_VALID_FLAGS);
+				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		return obj_tx_abort_null(EINVAL);
 	}
 

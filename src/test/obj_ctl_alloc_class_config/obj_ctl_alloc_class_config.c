@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,12 +59,6 @@ main(int argc, char *argv[])
 	struct pobj_alloc_class_desc alloc_class;
 	int ret;
 
-	ret = pmemobj_ctl_get(pop, "heap.alloc_class.0.desc", &alloc_class);
-	UT_ASSERTeq(ret, 0);
-
-	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,
-		alloc_class.units_per_block);
-
 	ret = pmemobj_ctl_get(pop, "heap.alloc_class.1.desc", &alloc_class);
 	UT_ASSERTeq(ret, 0);
 
@@ -72,6 +66,12 @@ main(int argc, char *argv[])
 		alloc_class.units_per_block);
 
 	ret = pmemobj_ctl_get(pop, "heap.alloc_class.2.desc", &alloc_class);
+	UT_ASSERTeq(ret, 0);
+
+	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,
+		alloc_class.units_per_block);
+
+	ret = pmemobj_ctl_get(pop, "heap.alloc_class.3.desc", &alloc_class);
 	UT_ASSERTeq(ret, 0);
 
 	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,

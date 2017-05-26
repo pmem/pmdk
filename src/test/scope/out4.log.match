@@ -75,6 +75,7 @@ pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
 pmemobj_wcsdup
+pmemobj_xalloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)/nondebug/libpmemobj.so:
@@ -153,6 +154,7 @@ pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
 pmemobj_wcsdup
+pmemobj_xalloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)/debug/libpmemobj.a:
@@ -231,6 +233,7 @@ pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
 pmemobj_wcsdup
+pmemobj_xalloc
 pmemobj_zalloc
 pmemobj_zrealloc
 $(*)/nondebug/libpmemobj.a:
@@ -309,5 +312,6 @@ pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
 pmemobj_wcsdup
+pmemobj_xalloc
 pmemobj_zalloc
 pmemobj_zrealloc

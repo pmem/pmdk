@@ -57,17 +57,17 @@ struct lane_alloc_layout {
 int pmalloc_operation(struct palloc_heap *heap,
 	uint64_t off, uint64_t *dest_off, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags,
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
 	struct operation_context *ctx);
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t flags);
+	uint64_t extra_field, uint16_t object_flags);
 int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags);
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id);
 
 int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t flags);
+	uint64_t extra_field, uint16_t object_flags);
 
 void pfree(PMEMobjpool *pop, uint64_t *off);
 

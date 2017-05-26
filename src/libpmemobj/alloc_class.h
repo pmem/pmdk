@@ -130,6 +130,9 @@ alloc_class_granularity(struct alloc_class_collection *ac);
 size_t
 alloc_class_limit(struct alloc_class_collection *ac);
 
+ssize_t
+alloc_class_calc_size_idx(struct alloc_class *c, size_t size);
+
 struct alloc_class *
 alloc_class_register(struct alloc_class_collection *ac,
 	struct alloc_class *aclass);

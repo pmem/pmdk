@@ -104,7 +104,7 @@ pmalloc_redo_release(PMEMobjpool *pop)
 int
 pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags,
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
 	struct operation_context *ctx)
 {
 #ifdef USE_VG_MEMCHECK
@@ -114,7 +114,7 @@ pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 #endif
 
 	int ret = palloc_operation(heap, off, dest_off, size, constructor, arg,
-			extra_field, flags, ctx);
+			extra_field, object_flags, class_id, ctx);
 	if (ret)
 		return ret;
 
@@ -130,7 +130,7 @@ pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
  */
 int
 pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t flags)
+	uint64_t extra_field, uint16_t object_flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 
@@ -138,7 +138,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL,
-		extra_field, flags, &ctx);
+		extra_field, object_flags, 0, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -156,7 +156,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 int
 pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags)
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 	struct operation_context ctx;
@@ -164,7 +164,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, 0, off, size, constructor, arg,
-			extra_field, flags, &ctx);
+			extra_field, object_flags, class_id, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -180,7 +180,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
  */
 int
 prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t flags)
+	uint64_t extra_field, uint16_t object_flags)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 	struct operation_context ctx;
@@ -188,7 +188,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, NULL,
-		extra_field, flags, &ctx);
+		extra_field, object_flags, 0, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -211,7 +211,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
-		0, 0, &ctx);
+		0, 0, 0, &ctx);
 	ASSERTeq(ret, 0);
 
 	pmalloc_redo_release(pop);
@@ -337,8 +337,8 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		case POBJ_HEADER_COMPACT:
 			lib_htype = HEADER_COMPACT;
 			break;
-		case POBJ_HEADER_MINIMAL:
-			lib_htype = HEADER_MINIMAL;
+		case POBJ_HEADER_NONE:
+			lib_htype = HEADER_NONE;
 			break;
 		default:
 			ASSERT(0); /* unreachable */
@@ -375,8 +375,8 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 	enum pobj_header_type *htype = dest;
 	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
 
-	if (strcmp(vstr, "minimal") == 0) {
-		*htype = POBJ_HEADER_MINIMAL;
+	if (strcmp(vstr, "none") == 0) {
+		*htype = POBJ_HEADER_NONE;
 	} else if (strcmp(vstr, "compact") == 0) {
 		*htype = POBJ_HEADER_COMPACT;
 	} else if (strcmp(vstr, "legacy") == 0) {
@@ -427,8 +427,8 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 		case HEADER_COMPACT:
 			user_htype = POBJ_HEADER_COMPACT;
 			break;
-		case HEADER_MINIMAL:
-			user_htype = POBJ_HEADER_MINIMAL;
+		case HEADER_NONE:
+			user_htype = POBJ_HEADER_NONE;
 			break;
 		default:
 			ASSERT(0); /* unreachable */
