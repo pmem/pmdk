@@ -312,7 +312,7 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		if (alloc_class_find_first_free_slot(ac, &id) != 0) {
 			ERR("no available free allocation class identifier");
 			errno = EINVAL;
-			return -1;			
+			return -1;
 		}
 	} else {
 		struct ctl_index *idx = SLIST_FIRST(indexes);
