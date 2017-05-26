@@ -209,6 +209,36 @@ error:
 	return -1;
 }
 
+
+/*
+ * cto_write -- (internal) write all structures for pmemcto pool
+ */
+static int
+cto_write(PMEMpoolcheck *ppc, location *loc)
+{
+	LOG(3, NULL);
+
+	if (CHECK_WITHOUT_FIXING(ppc))
+		return 0;
+
+#if 0
+	/* XXX: CTO */
+	void *dscp = (void *)((uintptr_t)(&ppc->pool->hdr.cto.hdr) +
+				sizeof(struct pool_hdr));
+
+	util_checksum(dscp, CTO_DSC_P_SIZE, &ppc->pool->hdr.cto.checksum, 1);
+#endif
+
+	if (pool_write(ppc->pool, &ppc->pool->hdr.cto,
+			sizeof(ppc->pool->hdr.cto), 0)) {
+		CHECK_INFO(ppc, "%s", ppc->path);
+		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+		return CHECK_ERR(ppc, "writing pmemcto structure failed");
+	}
+
+	return 0;
+}
+
 struct step {
 	int (*func)(PMEMpoolcheck *, location *loc);
 	enum pool_type type;
@@ -222,6 +252,10 @@ static const struct step steps[] = {
 	{
 		.func		= blk_write,
 		.type		= POOL_TYPE_BLK,
+	},
+	{
+		.func		= cto_write,
+		.type		= POOL_TYPE_CTO,
 	},
 	{
 		.func		= btt_data_write,

@@ -394,6 +394,10 @@ pmempool_dump_func(char *appname, int argc, char *argv[])
 		outv_err("%s: PMEMOBJ pool not supported\n", pd.fname);
 		ret = -1;
 		goto out;
+	case PMEM_POOL_TYPE_CTO:
+		outv_err("%s: PMEMCTO pool not supported\n", pd.fname);
+		ret = -1;
+		goto out;
 	case PMEM_POOL_TYPE_UNKNOWN:
 		outv_err("%s: unknown pool type -- '%s'\n", pd.fname,
 				params.signature);
