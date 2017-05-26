@@ -316,7 +316,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
 		struct alloc_class *c = ac->aclasses[i];
 
-		if (c == NULL || c->run.size_idx < required_size_idx)
+		if (c == NULL || c->type == CLASS_HUGE ||
+				c->run.size_idx < required_size_idx)
 			continue;
 
 		if (n % c->unit_size == 0 &&
@@ -341,7 +342,7 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 */
 	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
 		struct alloc_class *c = ac->aclasses[i];
-		if (c == NULL)
+		if (c == NULL || c->type == CLASS_HUGE)
 			continue;
 		if (c->unit_size == n)
 			return c;
