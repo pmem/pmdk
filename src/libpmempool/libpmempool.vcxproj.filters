@@ -16,9 +16,6 @@
     <ClCompile Include="check_btt_map_flog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="check_log_blk.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="check_pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,6 +86,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_thread_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="check_blk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="check_cto.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="check_log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
