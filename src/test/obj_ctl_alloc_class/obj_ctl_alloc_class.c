@@ -195,6 +195,22 @@ main(int argc, char *argv[])
 	ret = pmemobj_xalloc(pop, &oid, 1, 0, POBJ_CLASS_ID(3), NULL, NULL);
 	UT_ASSERTeq(ret, -1);
 
+	struct pobj_alloc_class_desc alloc_class_3;
+	alloc_class_3.header_type = POBJ_HEADER_NONE;
+	alloc_class_3.unit_size = 777;
+	alloc_class_3.units_per_block = 200;
+	alloc_class_3.class_id = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc", &alloc_class_3);
+	UT_ASSERTeq(ret, 0);
+
+	UT_ASSERTeq(alloc_class_3.class_id, 3);
+
+	ret = pmemobj_xalloc(pop, &oid, 1, 0, POBJ_CLASS_ID(3), NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+	usable_size = pmemobj_alloc_usable_size(oid);
+	UT_ASSERTeq(usable_size, 777);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);

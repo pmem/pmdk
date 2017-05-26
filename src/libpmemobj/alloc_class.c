@@ -136,19 +136,17 @@ struct alloc_class_collection {
 	uint8_t *class_map_by_unit_size;
 
 	int fail_on_missing_class;
-
-	struct alloc_class *default_allocation_class;
 };
 
 
 /*
- * alloc_class_find_first_free_slot -- (internal) searches for the
+ * alloc_class_find_first_free_slot -- searches for the
  *	first available allocation class slot
  *
  * This function must be thread-safe because allocation classes can be created
  * at runtime.
  */
-static int
+int
 alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot)
 {
@@ -222,16 +220,7 @@ alloc_class_register(struct alloc_class_collection *ac,
 	ac->class_map_by_unit_size[SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
 		ac->granularity)] = c->id;
 
-	switch (c->type) {
-		case CLASS_HUGE:
-			ac->default_allocation_class = c;
-			break;
-		case CLASS_RUN:
-			ac->aclasses[c->id] = c;
-			break;
-		default:
-			ASSERT(0);
-	}
+	ac->aclasses[c->id] = c;
 
 	return c;
 }
@@ -521,7 +510,6 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 			alloc_class_delete(ac, c);
 		}
 	}
-	alloc_class_delete(ac, ac->default_allocation_class);
 	Free(ac->class_map_by_alloc_size);
 	Free(ac->class_map_by_unit_size);
 	Free(ac);
@@ -543,12 +531,12 @@ alloc_class_by_map(struct alloc_class_collection *ac,
 			if (ac->fail_on_missing_class)
 				return NULL;
 			else
-				return ac->default_allocation_class;
+				return ac->aclasses[DEFAULT_ALLOC_CLASS_ID];
 		}
 
 		return ac->aclasses[class_id];
 	} else {
-		return ac->default_allocation_class;
+		return ac->aclasses[DEFAULT_ALLOC_CLASS_ID];
 	}
 }
 
@@ -578,8 +566,7 @@ alloc_class_by_unit_size(struct alloc_class_collection *ac, size_t size)
 struct alloc_class *
 alloc_class_by_id(struct alloc_class_collection *ac, uint8_t id)
 {
-	return id == DEFAULT_ALLOC_CLASS_ID ?
-		ac->default_allocation_class : ac->aclasses[id];
+	return ac->aclasses[id];
 }
 
 /*
@@ -624,7 +611,7 @@ alloc_class_reset(struct alloc_class_collection *ac,
 	ac->granularity = granularity;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
-		if (c != NULL) {
+		if (c != NULL && c->type == CLASS_RUN) {
 			alloc_class_delete(ac, c);
 		}
 	}

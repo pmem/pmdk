@@ -43,7 +43,7 @@
 #include "memblock.h"
 
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
-#define DEFAULT_ALLOC_CLASS_ID (MAX_ALLOCATION_CLASSES - 1)
+#define DEFAULT_ALLOC_CLASS_ID (0)
 
 #define RUN_UNIT_MAX BITS_PER_VALUE
 
@@ -107,6 +107,9 @@ struct alloc_class *alloc_class_by_id(
 
 void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 	size_t unit_size, uint32_t size_idx);
+
+int alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
+	uint8_t *slot);
 
 int
 alloc_class_reset(struct alloc_class_collection *ac,
