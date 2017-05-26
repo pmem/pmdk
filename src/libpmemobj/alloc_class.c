@@ -583,6 +583,25 @@ alloc_class_by_id(struct alloc_class_collection *ac, uint8_t id)
 }
 
 /*
+ * alloc_class_calc_size_idx -- calculates how many units does the size require
+ */
+ssize_t
+alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
+{
+	uint32_t size_idx = CALC_SIZE_IDX(c->unit_size,
+		size + header_type_to_size[c->header_type]);
+
+	if (c->type == CLASS_RUN) {
+		if (c->header_type == HEADER_NONE && size_idx != 1)
+			return -1;
+		else if (size_idx > RUN_UNIT_MAX)
+			return -1;
+	}
+
+	return size_idx;
+}
+
+/*
  * alloc_class_reset -- removes all allocation classes and associated
  *	resources
  */
@@ -631,7 +650,7 @@ alloc_class_range_set(struct alloc_class_collection *ac,
 	struct alloc_class *c, size_t start, size_t end)
 {
 	/* only single unit allocs are supported with minimal header */
-	if (c->header_type == HEADER_MINIMAL) {
+	if (c->header_type == HEADER_NONE) {
 		if (CALC_SIZE_IDX(c->unit_size, start) > 1)
 			return -1;
 		if (CALC_SIZE_IDX(c->unit_size, end) > 1)
