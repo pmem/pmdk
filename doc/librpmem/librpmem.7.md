@@ -427,4 +427,5 @@ recommended by the SNIA NVM Programming Technical Work Group:
 **ibv_fork_init**(3), **rpmem_create**(3), **rpmem_open**(3),
 **rpmem_persist**(3), **strerror**(3), **limits.conf**(5), **fabric**(7),
 **fi_sockets**(7), **fi_verbs**(7), **libpmem**(7), **libpmemblk**(7),
-**libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**libpmemcto**(7), **libpmemlog**(7), **libpmemobj**(7)
+and **<http://pmem.io>**

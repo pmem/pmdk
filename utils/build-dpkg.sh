@@ -527,7 +527,9 @@ $LIB_DIR/nvml_debug/libpmemcto.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libpmemcto.so
 $LIB_DIR/pkgconfig/libpmemcto.pc
 $INC_DIR/libpmemcto.h
-$MAN3_DIR/libpmemcto.3.gz
+$MAN7_DIR/libpmemcto.7.gz
+$MAN5_DIR/poolset.5.gz
+$MAN3_DIR/pmemcto*.3.gz
 EOF
 
 cat << EOF > debian/libpmemcto-dev.triggers
