@@ -124,6 +124,8 @@ The others are:
 
 + **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks with atomic updates.
 
++ **libpmemcto**(7), providing close-to-open persistence.
+
 + **libpmem**(7), low-level persistent memory support.
 
 Under normal usage, **libpmemlog** will never print messages or intentionally
@@ -346,4 +348,5 @@ by the SNIA NVM Programming Technical Work Group:
 
 **msync**(2), **pmemlog_append**(3), **pmemlog_create**(3),
 **pmemlog_nbyte**(3), **pmemlog_tell**(3), **strerror**(3),
-**libpmem**(7), **libpmemblk**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**libpmem**(7), **libpmemblk**(7), **libpmemcto**(7), **libpmemobj**(7)
+and **<http://pmem.io>**
