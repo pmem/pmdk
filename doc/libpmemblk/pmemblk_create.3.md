@@ -111,7 +111,7 @@ parts of the pool set.
 For more information on pool set format, see **poolset**(5).
 
 The _UW(pmemblk_open) function opens an existing block memory pool.
-As with _UW(pmemlog_create), *path* must identify either an existing
+As with _UW(pmemblk_create), *path* must identify either an existing
 block memory pool file, or the *set* file used to create a pool set.
 The application must have permission to open the file and memory map the
 file or pool set with read/write permissions. If *bsize* is non-zero,
