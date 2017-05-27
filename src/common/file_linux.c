@@ -41,6 +41,10 @@
 #include <dirent.h>
 #include <fcntl.h>
 
+#ifndef _WIN32
+#include <sys/sysmacros.h>
+#endif
+
 #include "file.h"
 #include "os.h"
 #include "out.h"
