@@ -1,11 +1,11 @@
 
 TBD:
 - doc: finish / clean up pmemcto man pages
-- doc: symlinks to man pages
 - pool: add CTO support to pmempool/libpmempool [info/dump/check]
 - cto: fix Valgrind instrumentation
 - jemalloc: fix conflicts when both vmem and pmemcto are statically linked
-- common: (win) include libpmemcto in NVML installer
+- common: (win) include libpmemcto in NVML installer / vcpkg
+- comon: add libpmemcto to rpm/dpkg
 
 Opens:
 - pmem: (win) disable address randomization for mmap() (???)

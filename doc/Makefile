@@ -36,12 +36,32 @@
 
 include ../src/common.inc
 
+vpath %.md ./pmemcto
+
+MANPAGES_3_PMEMCTO = pmemcto.3.md pmemcto_open.3.md\
+	pmemcto_malloc.3.md pmemcto_aligned_alloc.3.md\
+	pmemcto_strdup.3.md pmemcto_wcsdup.3.md\
+	pmemcto_set_root_pointer.3.md\
+	pmemcto_malloc_usable_size.3.md pmemcto_errormsg.3.md\
+	pmemcto_stats_print.3.md
+
+# dummy man pages - 'links' to other man pages
+MANPAGES_3_DUMMY_PMEMCTO = pmemcto_close.3 pmemcto_create.3\
+	pmemcto_check.3\
+	pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3\
+	pmemcto_get_root_pointer.3
+
 MANPAGES_3_MD = libpmem.3.md libpmemblk.3.md libpmemlog.3.md \
 	libpmemobj.3.md libpmempool.3.md libvmem.3.md libvmmalloc.3.md\
-	libpmemcto.3.md
+	$(MANPAGES_3_PMEMCTO)
+
 MANPAGES_1_MD = pmempool.1.md pmempool-info.1.md pmempool-create.1.md \
 	pmempool-check.1.md pmempool-dump.1.md pmempool-rm.1.md \
 	pmempool-convert.1.md pmempool-sync.1.md pmempool-transform.1.md
+
+MANPAGES_3_DUMMY = $(MANPAGES_3_DUMMY_PMEMCTO)
+MANPAGES_1_DUMMY =
+
 
 MANPAGES_BUILDDIR = generated
 
@@ -50,6 +70,13 @@ MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)
 
 MANPAGES_3 = $(MANPAGES_3_GROFF)
 MANPAGES_1 = $(MANPAGES_1_GROFF)
+
+# experimental
+MANPAGES_3_MD_EXP =
+MANPAGES_1_MD_EXP =
+
+MANPAGES_3_MD_DUMMY_EXP =
+MANPAGES_1_MD_DUMMY_EXP =
 
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_3_MD += librpmem.3.md
@@ -70,6 +97,9 @@ endif
 MANPAGES_GROFF_3 = $(MANPAGES_3:.3.md=.3)
 MANPAGES_GROFF_1 = $(MANPAGES_1:.1.md=.1)
 
+MANPAGES_DUMMY_3 = $(MANPAGES_3_DUMMY) $(MANPAGES_3_DUMMY_EXP)
+MANPAGES_DUMMY_1 = $(MANPAGES_1_DUMMY) $(MANPAGES_1_DUMMY_EXP)
+
 MANPAGES = $(MANPAGES_GROFF_1) $(MANPAGES_GROFF_3)\
 	   $(MANPAGES_1_NOINSTALL) $(MANPAGES_3_NOINSTALL)
 
@@ -78,8 +108,8 @@ MANPAGES_BUILD = $(addprefix $(MANPAGES_BUILDDIR)/, $(MANPAGES))
 HTMLFILES = $(MANPAGES_BUILD:=.html)
 TXTFILES = $(MANPAGES_BUILD:=.txt)
 
-GZFILES_1 = $(MANPAGES_1:=.gz)
-GZFILES_3 = $(MANPAGES_3:=.gz)
+GZFILES_1 = $(MANPAGES_1:=.gz) $(MANPAGES_DUMMY_1:=.gz)
+GZFILES_3 = $(MANPAGES_3:=.gz) $(MANPAGES_DUMMY_3:=.gz)
 GZFILES_1_NOINSTALL = $(MANPAGES_1_NOINSTALL:=.gz)
 GZFILES_3_NOINSTALL = $(MANPAGES_3_NOINSTALL:=.gz)
 GZFILES = $(GZFILES_1) $(GZFILES_3)\
