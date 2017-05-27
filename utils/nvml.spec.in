@@ -674,6 +674,8 @@ imposed by run-time flushing or transactional updates.
 %{_libdir}/libpmemcto.a
 %{_libdir}/pkgconfig/libpmemcto.pc
 %{_includedir}/libpmemcto.h
+%{_mandir}/man7/libpmemcto.7.gz
+%{_mandir}/man5/poolset.5.gz
 %{_mandir}/man3/pmemcto*.3.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
