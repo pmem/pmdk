@@ -354,7 +354,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
-	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:w",
+	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:wf",
 			opts)) != -1) {
 		switch (opt) {
 		case 'v':
