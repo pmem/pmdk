@@ -76,6 +76,11 @@ CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $(EXTRA_CFLAGS_RELEASE)
 LIB_SUBDIR =
 OBJDIR = nondebug
 endif
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
 
 CFLAGS += $(EXTRA_CFLAGS)
 
@@ -249,7 +254,7 @@ $(eval $(cstyle-rule))
 $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p $(objdir)/.deps
-	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
+	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $(call coverage-path, $<)
 	$(call check-os, $@, $<)
 	$(create-deps)
 
