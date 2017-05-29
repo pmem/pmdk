@@ -2,6 +2,6 @@ This directory contains a librpmem library which provides
 remote access to persistent memory over RDMA.
 
 ** DEPENDENCIES: **
-The librpmem library depends on libfabric library:
+The librpmem library depends on libfabric (version >= 1.4) library:
 
 https://github.com/ofiwg/libfabric

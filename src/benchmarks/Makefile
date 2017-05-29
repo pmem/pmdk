@@ -135,8 +135,7 @@ LIBS += -lrpmem
 CONFIGS += pmembench_rpmem
 CXXFLAGS += -DRPMEM_AVAILABLE
 else
-$(info NOTE: Skipping librpmem benchmark because libfabric is missing \
--- see src/librpmem/README for details.)
+$(info NOTE: Skipping librpmem benchmark because $(BUILD_RPMEM_INFO))
 endif
 
 ifeq ($(GLIB),y)

@@ -41,6 +41,7 @@
 #include "rpmemd_db.h"
 #include "rpmemd_log.h"
 #include "set.h"
+#include "out.h"
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -634,6 +635,9 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "rpmemd_db");
 
+	util_init();
+	out_init("rpmemd_db", "RPMEM_LOG_LEVEL", "RPMEM_LOG_FILE", 0, 0);
+
 	if (argc != 5)
 		UT_FATAL("usage: %s <log-file> <root_dir> <pool_desc_1>"
 				" <pool_desc_2>", argv[0]);
@@ -660,5 +664,6 @@ main(int argc, char *argv[])
 
 	rpmemd_log_close();
 
+	out_fini();
 	DONE(NULL);
 }
