@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <sys/sysmacros.h>
 
 #include "file.h"
 #include "os.h"
