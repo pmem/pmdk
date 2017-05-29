@@ -172,7 +172,7 @@ is_dev_dax(const char *path)
 static int
 is_dev_dax_align(const char *path, size_t req_align)
 {
-	if (is_dev_dax(path) != 0)
+	if (is_dev_dax(path) != 1)
 		return -1;
 
 	size_t align = util_file_device_dax_alignment(path);

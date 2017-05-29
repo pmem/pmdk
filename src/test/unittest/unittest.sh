@@ -922,7 +922,7 @@ function require_dax_devices() {
 #
 function require_dax_device_alignment() {
 	disable_exit_on_error
-	out=$("$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]}" 2>&1)
+	out=`$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]} 2>&1`
 	ret=$?
 	restore_exit_on_error
 
