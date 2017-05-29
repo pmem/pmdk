@@ -161,7 +161,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 		/* See comment in ASSERT. */\
 		if (__builtin_constant_p(cnd))\
 			ASSERT_COMPILE_ERROR_ON(cnd);\
-		ASSERTinfo_rt(cnd);\
+		ASSERTinfo_rt(cnd, info);\
 	} while (0)
 
 /* assert two integer values are equal */
