@@ -379,14 +379,13 @@ The application must take into account this fact when using
 \f[B]wait\f[](2) and \f[B]waitpid\f[](2) functions which may return a
 PID of the \f[B]ssh\f[] process executed by \f[B]librpmem\f[].
 .PP
-The \f[B]librpmem\f[] library calls the \f[B]ibv_fork_init\f[](3)
-function in library\[aq]s constructor in order to enable
-\f[B]fork\f[](2) support in \f[B]libibverbs\f[].
-If an application uses the \f[B]libibverbs\f[] before loading the
-\f[B]librpmem\f[] library it must call the \f[B]ibv_fork_inif\f[](3)
-function before allocating any resources using \f[B]libibverbs\f[],
-otherwise \f[B]rpmem_open\f[] and \f[B]rpmem_create\f[] functions will
-return an error.
+The \f[B]librpmem\f[] library requires \f[B]fork\f[](2) support in
+\f[B]libibverbs\f[], otherwise \f[B]rpmem_open\f[] and
+\f[B]rpmem_create\f[] functions will return an error.
+By default \f[B]libfabric\f[] initializes \f[B]libibverbs\f[] with
+\f[B]fork\f[](2) support by calling the \f[B]ibv_fork_init\f[](3)
+function.
+See \f[B]fi_verbs\f[](7) for more details.
 .SH REMOTE POOL SIZE
 .PP
 A remote pool size depends on the configuration of a pool set file on
