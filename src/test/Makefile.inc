@@ -65,7 +65,6 @@ endif
 
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
-LIBS += $(GCOV_LIBS)
 
 # XXX: required by clock_gettime(), if glibc version < 2.17
 # The os_clock_gettime() function is now in OS abstraction layer,

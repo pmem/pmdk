@@ -5,6 +5,7 @@ nvml: Non-Volatile Memory Library
 [![Build status](https://ci.appveyor.com/api/projects/status/sehrom4f1neihucf/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/nvml/branch/master)
 [![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-nvml)
 [![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
+[![Coverage Status](https://codecov.io/github/pmem/nvml/coverage.svg?branch=master)](https://codecov.io/gh/pmem/nvml/branch/master)
 
 This is the top-level README.md of the NVM Library.
 For more information, see http://pmem.io.
