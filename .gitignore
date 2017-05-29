@@ -5,6 +5,7 @@
 !.travis.yml
 !.mailmap
 !.cstyleignore
+!.codecov.yml
 
 *~
 *.swp

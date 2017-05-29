@@ -155,6 +155,8 @@ define check-os
 $(CHECK_OS) $(OS_BANNED) $(1) $(2)
 endef
 
+# XXX: to allow gcov tool to connect coverage with source code, we have to
+# use absolute path to source files
 ifeq ($(COVERAGE),1)
 define coverage-path
 `readlink -f $(1)`
