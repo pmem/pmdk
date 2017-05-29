@@ -52,10 +52,10 @@ setup
 
 @"
 Hello!
-"@| &$Env:EXE_DIR\tx_type_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
+"@| &$Env:EXE_DIR\ex_pmemobj_tx_type_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
 check_exit_code
 
-expect_normal_exit $Env:EXE_DIR\tx_type_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_tx_type_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

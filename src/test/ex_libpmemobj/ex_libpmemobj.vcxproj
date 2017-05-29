@@ -33,7 +33,7 @@
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
-    <None Include="TEST10.PS1" />
+    <None Include="TEST10w.PS1" />
     <None Include="TEST11.PS1" />
     <None Include="TEST12.PS1" />
     <None Include="TEST13.PS1" />
