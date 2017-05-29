@@ -78,6 +78,12 @@ endif
 endif
 endif
 
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 all test: $(TARGET)
@@ -94,7 +100,7 @@ objdir=.
 .c.o:
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
+	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $(call coverage-path, $<) -o $@
 	$(create-deps)
 
 %.htmp: %.h

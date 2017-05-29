@@ -181,6 +181,12 @@ TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
 endif
 
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
 MAKEFILE_DEPS=$(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
 
 ifneq ($(TARGET),)
@@ -264,7 +270,7 @@ objdir=.
 %.o: %.c $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $<
+	$(CC) -MD $(CFLAGS) $(INCS) -c -o $@ $(call coverage-path, $<)
 	$(call check-os, $@, $<)
 	$(create-deps)
 

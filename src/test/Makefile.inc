@@ -65,6 +65,7 @@ endif
 
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread
+LIBS += $(GCOV_LIBS)
 
 # XXX: required by clock_gettime(), if glibc version < 2.17
 # The os_clock_gettime() function is now in OS abstraction layer,
@@ -218,6 +219,12 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
 LINKER=$(CC)
 ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
@@ -298,14 +305,14 @@ objdir=.
 %.o: %.c $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CC) -MD -c $(CFLAGS) $(INCS) $< -o $@
+	$(CC) -MD -c $(CFLAGS) $(INCS) $(call coverage-path, $<) -o $@
 	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.o: %.cpp $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $< -o $@
+	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $(call coverage-path, $<) -o $@
 	$(call check-os, $@, $<)
 	$(create-deps)
 
