@@ -463,6 +463,7 @@ pcheck-remote: TARGET = pcheck
 pcheck-remote: $(REMOTE_TESTS)
 	@echo "No failures."
 
+
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
 $(TESTCONFIG):

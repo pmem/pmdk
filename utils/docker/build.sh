@@ -76,7 +76,7 @@ containerName=nvml-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
-
+if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; ci_env=`bash <(curl -s https://codecov.io/env)`; fi
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
 WORKDIR=/nvml
@@ -88,6 +88,7 @@ SCRIPTSDIR=$WORKDIR/utils/docker
 #  - working directory set (-w)
 sudo docker run --rm --privileged=true --name=$containerName -ti \
 	$DNS_SETTING \
+	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
 	--env CC=$NVML_CC \
