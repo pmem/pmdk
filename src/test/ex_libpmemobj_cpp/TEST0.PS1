@@ -50,11 +50,11 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 1
-expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 2
-expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 3
-expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 pop > $null
-expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 show `
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 2
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 3
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 pop > $null
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 show `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
 check
