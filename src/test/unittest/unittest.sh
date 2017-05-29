@@ -1084,6 +1084,9 @@ function configure_valgrind() {
 #	valgrind package is installed
 #
 function require_valgrind() {
+	if [ -n "$CHECK_DISABLE" ]; then
+		exit 0
+	fi
 	require_no_asan
 	disable_exit_on_error
 	VALGRINDEXE=`which valgrind 2>/dev/null`

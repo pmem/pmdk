@@ -200,9 +200,14 @@ ifeq ($(CHECK_POOL),y)
 test_check_pool=" -c "
 endif
 
+ifeq ($(CHECK_DISABLE),y)
+test_check_disable=" -g "
+endif
+
 RUNTEST_OPTIONS := "$(test_build)$(test_type)$(test_fs)$(test_time)"
 RUNTEST_OPTIONS += "$(test_memcheck)$(test_pmemcheck)$(test_helgrind)$(test_drd)"
 RUNTEST_OPTIONS += "$(test_providers)$(test_pmethods)$(test_check_pool)"
+RUNTEST_OPTIONS += "$(test_check_disable)"
 
 export libdir := $(exec_prefix)/$(LIB_PREFIX)
 export includedir := $(prefix)/$(INC_PREFIX)

@@ -44,7 +44,7 @@ usage()
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file ] [-k skip-dir ]
-		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -g ] [ -c ]
 		[ -q provider ] [ -r persistency-method ]
 		[tests...]
 -h			print this help message
@@ -76,6 +76,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			helgrind: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require helgrind, but
 			obey test's explicit helgrind disable)
+-g			don't run test with valgrind
 -d drd			run tests with drd
 			drd: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require drd, but
@@ -314,7 +315,7 @@ runtest() {
 				export RUNTEST_DIR=$1
 				export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build"
 				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
-					$special_params"
+					$special_params CHECK_DISABLE=$checkdisable"
 				export RUNTEST_SCRIPT="$runscript"
 				export RUNTEST_TIMEOUT="$req_timeout"
 
@@ -373,7 +374,7 @@ skip_dir=""
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r:g:x: $*`
+args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r:gx: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -513,6 +514,15 @@ do
 			;;
 		esac
 		;;
+	-g)
+		shift 1
+		if [ "$checktype" != "none" ]
+		then
+			usage "cannot force-enable and force-disable two test types at the same time"
+		else
+			checkdisable="1"
+		fi
+		;;
 	-o)
 		runtest_timeout="$2"
 		shift 2
@@ -559,6 +569,10 @@ done
 [ -z "$buildtype" ] && buildtype=$def_buildtype
 [[ $buildtype =~ .*all.* ]] && buildtype=all
 
+if [[ "$checktype" != "none" && -n $checkdisable ]]
+then
+	usage "cannot force-enable and force-disable two test types at the same time"
+fi
 
 [ "$verbose" ] && {
 	echo -n Options:
@@ -569,6 +583,7 @@ done
 	echo "    test-type: $testtype"
 	echo "    fs-type: $fstype"
 	echo "    check-type: $checktype"
+	echo "    check-disable: $checkdisable"
 	if [ "$check_pool" ]
 	then
 		check_pool_str="yes"
