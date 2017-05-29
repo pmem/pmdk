@@ -31,14 +31,14 @@
 #
 
 #
-# src/test/ex_libpmemobj/TEST17 -- unit test for libpmemobj examples
+# src\test\ex_libpmemobj\TEST17 -- unit test for libpmemobj examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemobj/TEST17"
+$Env:UNITTEST_NAME = "ex_libpmemobj\TEST17"
 $Env:UNITTEST_NUM = "17"
 
 # standard unit test setup
@@ -49,14 +49,14 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 1 foo 100 > out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 2 bar 200 >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 3 foo 300 >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 1 bar 400 >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 1 foo print >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 2 bar print >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 3 foo print >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\lists $DIR\testfile1 1 bar print >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 1 foo 100 > out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 2 bar 200 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 3 foo 300 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 1 bar 400 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 1 foo print >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 2 bar print >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 3 foo print >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemobj_lists $DIR\testfile1 1 bar print >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

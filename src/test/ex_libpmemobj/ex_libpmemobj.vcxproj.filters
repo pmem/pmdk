@@ -96,9 +96,6 @@
     <None Include="TEST9.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST10.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
     <None Include="TEST11.PS1">
       <Filter>Test Scripts</Filter>
     </None>
@@ -124,5 +121,8 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="README" />
+    <None Include="TEST10w.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
