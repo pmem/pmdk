@@ -42,7 +42,6 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
-#include "libpmem.h"
 #include "librpmem.h"
 #include "rpmemd.h"
 #include "rpmemd_log.h"
@@ -51,6 +50,7 @@
 #include "rpmemd_fip.h"
 #include "rpmemd_obc.h"
 #include "rpmemd_db.h"
+#include "rpmemd_util.h"
 #include "pool_hdr.h"
 #include "os.h"
 #include "util.h"
@@ -68,7 +68,6 @@ struct rpmemd {
 	struct rpmemd_config config; /* configuration */
 	size_t nthreads;	/* number of processing threads */
 	enum rpmem_persist_method persist_method;
-	void (*persist)(const void *addr, size_t len); /* used for GPSPM */
 	int closing;		/* set when closing connection */
 	int created;		/* pool created */
 	pthread_t fip_thread;
@@ -206,8 +205,14 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		.nthreads	= rpmemd->nthreads,
 		.provider	= req->provider,
 		.persist_method = rpmemd->persist_method,
-		.persist	= rpmemd->persist,
 	};
+
+	const int is_pmem = rpmemd_db_pool_is_pmem(rpmemd->pool);
+	if (rpmemd_apply_pm_policy(&fip_attr.persist_method, &fip_attr.persist,
+			is_pmem)) {
+		*status = RPMEM_ERR_FATAL;
+		goto err_fip_init;
+	}
 
 	const char *node = rpmem_get_ssh_conn_addr();
 	enum rpmem_err err;
@@ -735,7 +740,6 @@ main(int argc, char *argv[])
 	}
 
 	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
-	rpmemd->persist = pmem_persist;
 	rpmemd->persist_method = rpmemd_get_pm(&rpmemd->config);
 	rpmemd->nthreads = rpmemd_get_nthreads();
 	if (!rpmemd->nthreads) {

@@ -50,6 +50,7 @@
 #include "rpmem_fip_oob.h"
 #include "rpmemd_fip.h"
 #include "rpmemd_log.h"
+#include "rpmemd_util.h"
 #include "rpmem_fip.h"
 #include "os.h"
 
@@ -249,6 +250,7 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 	unsigned nlanes;
 	enum rpmem_provider provider;
 	char *addr = NULL;
+	int ret;
 	server_exchange_begin(&nlanes, &provider, &addr);
 	UT_ASSERTne(addr, NULL);
 
@@ -258,9 +260,12 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
 		.nthreads = NTHREADS,
 	};
+
+	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			1 /* is pmem */);
+	UT_ASSERTeq(ret, 0);
 
 	struct rpmem_resp_attr resp;
 	struct rpmemd_fip *fip;
@@ -367,7 +372,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
+		.persist = pmem_msync,
 		.nthreads = NTHREADS,
 	};
 
@@ -425,7 +430,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
+		.persist = pmem_msync,
 		.nthreads = NTHREADS,
 	};
 

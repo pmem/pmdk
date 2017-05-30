@@ -211,6 +211,23 @@ requests. Non-allocating writes are guaranteed to bypass all of the CPU caches
 and force the write requests to flow directly to the Integrated Memory
 Controller without delay.
 
+The **rpmemd** dynamically choose the appropriate persistency method and the
+flushing to persistence primitive for GPSPM for each opened pool set name
+depending on available persistency methods and whether all pool set parts are
+stored in the persistent memory.
+
+If the **Appliance Persistency Method** is enabled and the pool set is stored
+in the persistent memory **rpmemd** will use the **Appliance Persistency
+Method**. If the pool set is NOT stored in the persistent memory it will
+fallback to the **General Puropose Server Persistency Method** with
+**pmem_msync**().
+
+If the **General Puropose Server Persistency Method** is enabled and the pool
+set is stored in the persistent momory **rpmemd** will use **pmem_persist**().
+If the pool set is NOT stored in the persistent momory it will use
+**pmem_msync**().
+
+See **libpmem**(3) for details about **pmem_persist**() and **pmem_msync**().
 
 # SEE ALSO #
 
