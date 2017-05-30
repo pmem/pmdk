@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -89,8 +89,6 @@ void operation_add_entry(struct operation_context *ctx,
 void operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum operation_type type, enum operation_entry_type en_type);
-void operation_add_entries(struct operation_context *ctx,
-	struct operation_entry *entries, size_t nentries);
 void operation_process(struct operation_context *ctx);
 
 #endif

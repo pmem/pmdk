@@ -151,19 +151,6 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 }
 
 /*
- * operation_add_entries -- adds new entries to the current operation
- */
-void
-operation_add_entries(struct operation_context *ctx,
-	struct operation_entry *entries, size_t nentries)
-{
-	for (size_t i = 0; i < nentries; ++i) {
-		operation_add_entry(ctx, entries[i].ptr,
-			entries[i].value, entries[i].type);
-	}
-}
-
-/*
  * operation_process_persistent_redo -- (internal) process using redo
  */
 static void
