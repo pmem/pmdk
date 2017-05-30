@@ -59,3 +59,4 @@ int rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
 void rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp);
 void rpmemd_db_fini(struct rpmemd_db *db);
 int rpmemd_db_check_dir(struct rpmemd_db *db);
+int rpmemd_db_pool_is_pmem(struct rpmemd_db_pool *pool);

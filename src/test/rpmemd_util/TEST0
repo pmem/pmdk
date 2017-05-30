@@ -1,4 +1,6 @@
-# Copyright 2016-2017, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,53 +30,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
 #
+# rpmemd_util/TEST0 -- test rpmemd_apply_pm_policy function
+#
+export UNITTEST_NAME=rpmemd_util/TEST0
+export UNITTEST_NUM=0
 
-vpath %.c ../../rpmem_common/
+. ../unittest/unittest.sh
 
-TOP = ../../..
-include $(TOP)/src/common.inc
+require_test_type medium
 
-ifeq ($(BUILD_RPMEM),y)
-SCP_TO_REMOTE_NODES = y
-TARGET = rpmemd
-OBJS = rpmemd.o\
-       rpmemd_log.o\
-       rpmemd_config.o\
-       rpmem_common.o\
-       rpmemd_obc.o\
-       rpmemd_db.o\
-       rpmemd_fip.o\
-       rpmemd_fip_worker.o\
-       rpmem_fip_common.o\
-       rpmemd_util.o
+require_fs_type any
 
-LIBPMEM=y
-TOOLS_COMMON=y
-LIBPMEMBLK_PRIV=btt_info_convert2h
+setup
 
-INCS += -I$(TOP)/src/rpmem_common
-CFLAGS += -DRPMEMC_LOG_RPMEMD
-ifneq ($(DEBUG),)
-CFLAGS += -DDEBUG
-endif
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+OUT=stdout${UNITTEST_NUM}.log
 
+expect_normal_exit ./rpmemd_util$EXESUFFIX &> $OUT
 
-INSTALL_TARGET=$(EXPERIMENTAL)
+check
 
-else
-ifeq ($(HAS_LIBIBVERBS),n)
-$(info NOTE: Skipping librpmem because libibverbs headers are missing. \
-Set RPMEM_DISABLE_LIBIBVERBS=y to build librpmem anyway.)
-else
-$(info NOTE: Skipping rpmemd because libfabric is missing \
--- see src/tools/rpmemd/README for details.)
-endif
-endif
-
-include ../Makefile.inc
-
-.PHONY: test check
+pass
