@@ -683,3 +683,12 @@ rpmemd_db_check_dir(struct rpmemd_db *db)
 
 	return ret;
 }
+
+/*
+ * rpmemd_db_pool_is_pmem -- true if pool is in PMEM
+ */
+int
+rpmemd_db_pool_is_pmem(struct rpmemd_db_pool *pool)
+{
+	return REP(pool->set, 0)->is_pmem;
+}
