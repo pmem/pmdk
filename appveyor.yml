@@ -13,7 +13,6 @@ configuration:
 
 environment:
     solutionname: NVML.sln
-    setup: src\setup
 
 matrix:
   fast_finish: true
@@ -47,14 +46,14 @@ build_script:
         msbuild src\$Env:solutionname /property:Configuration=Debug /m /v:m
         msbuild src\$Env:solutionname /property:Configuration=Release /m /v:m
         $Env:DEVENV="$Env:VS140COMNTOOLS\..\IDE\devenv.com"
-        &$Env:DEVENV src\$Env:solutionname /build Release /project src\setup\setup.vdproj
+        &$Env:DEVENV src\$Env:solutionname /build Release /project src\windows\setup\setup.vdproj
     }
 
 after_build:
 - ps: >-
     if ($Env:CONFIGURATION -eq "Setup") {
-        PowerShell -File "src\setup\OUTPUT_MSI.PS1" `
-        -projectdir ((Get-Location).Path+"\src\setup")`
+        PowerShell -File "src\windows\setup\OUTPUT_MSI.PS1" `
+        -projectdir ((Get-Location).Path+"\src\windows\setup")`
         -configuration $Env:CONFIGURATION
     } else {
         utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
@@ -74,7 +73,7 @@ test_script:
     }
 
 artifacts:
-- path: 'src\setup\*.msi'
+- path: 'src\windows\setup\*.msi'
   name: NVML_msi
 
 - path: 'src\x64\*.zip'
