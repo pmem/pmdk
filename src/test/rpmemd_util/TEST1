@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +31,23 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# rpmem_basic/config.sh -- test configuration
+# rpmemd_util/TEST1 -- test rpmemd_apply_pm_policy function - invalid case
 #
+export UNITTEST_NAME=rpmemd_util/TEST1
+export UNITTEST_NUM=1
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+. ../unittest/unittest.sh
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
 
-CONF_RPMEM_PMETHOD[10]=APM
-CONF_RPMEM_PMETHOD[11]=GPSPM
+require_fs_type any
+
+setup
+
+OUT=stdout${UNITTEST_NUM}.log
+
+expect_abnormal_exit ./rpmemd_util$EXESUFFIX invalid &> $OUT
+
+check
+
+pass

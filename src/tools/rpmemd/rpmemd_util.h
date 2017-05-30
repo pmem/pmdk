@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,32 +31,11 @@
  */
 
 /*
- * rpmemd_fip.h -- rpmemd libfabric provider module header file
+ * rpmemd_util.h -- rpmemd utility functions declarations
  */
 
-#include <stddef.h>
-
-struct rpmemd_fip;
-
-struct rpmemd_fip_attr {
-	void *addr;
-	size_t size;
-	unsigned nlanes;
-	size_t nthreads;
-	enum rpmem_provider provider;
-	enum rpmem_persist_method persist_method;
-	int (*persist)(const void *addr, size_t len);
-};
-
-struct rpmemd_fip *rpmemd_fip_init(const char *node,
-		const char *service,
-		struct rpmemd_fip_attr *attr,
-		struct rpmem_resp_attr *resp,
-		enum rpmem_err *err);
-void rpmemd_fip_fini(struct rpmemd_fip *fip);
-
-int rpmemd_fip_accept(struct rpmemd_fip *fip, int timeout);
-int rpmemd_fip_process_start(struct rpmemd_fip *fip);
-int rpmemd_fip_process_stop(struct rpmemd_fip *fip);
-int rpmemd_fip_wait_close(struct rpmemd_fip *fip, int timeout);
-int rpmemd_fip_close(struct rpmemd_fip *fip);
+int rpmemd_pmem_persist(const void *addr, size_t len);
+int rpmemd_flush_fatal(const void *addr, size_t len);
+int rpmemd_apply_pm_policy(enum rpmem_persist_method *persist_method,
+		int (**persist)(const void *addr, size_t len),
+		const int is_pmem);

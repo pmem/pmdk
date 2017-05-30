@@ -1,6 +1,5 @@
-#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# rpmem_basic/config.sh -- test configuration
+# src/test/rpmemd_util/Makefile -- build rpmemd_util test
 #
+vpath %.c ../../tools/rpmemd
+vpath %.c ../../rpmem_common
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+TARGET = rpmemd_util
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+OBJS = rpmemd_util_test.o rpmem_common.o rpmemd_log.o rpmemd_util.o
 
-CONF_RPMEM_PMETHOD[10]=APM
-CONF_RPMEM_PMETHOD[11]=GPSPM
+LIBPMEM=y
+
+include ../Makefile.inc
+
+INCS += -I$(TOP)/src/rpmem_common
+CFLAGS += -I../../tools/rpmemd
+CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'

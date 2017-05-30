@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,15 +30,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# rpmem_basic/config.sh -- test configuration
+# src/test/rpmem_basic/TEST11 -- test rpmemd persistency policy for GPSPM
 #
+export UNITTEST_NAME=rpmem_basic/TEST11
+export UNITTEST_NUM=11
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
 
-CONF_RPMEM_PMETHOD[10]=APM
-CONF_RPMEM_PMETHOD[11]=GPSPM
+setup
+
+. setup.sh
+. common_pm_policy.sh
+
+for PMEM_IS_PMEM_FORCE in {0..1}; do
+	test_pm_policy $PMEM_IS_PMEM_FORCE
+done
+
+check_local
+
+pass

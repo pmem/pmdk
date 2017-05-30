@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,7 +47,8 @@ OBJS = rpmemd.o\
        rpmemd_db.o\
        rpmemd_fip.o\
        rpmemd_fip_worker.o\
-       rpmem_fip_common.o
+       rpmem_fip_common.o\
+       rpmemd_util.o
 
 LIBPMEM=y
 TOOLS_COMMON=y
