@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}</ProjectGuid>
-	<TargetName>$(ProjectName)</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
     <RootNamespace>pmemobj</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -34,7 +34,7 @@
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\hashmap\hashmap_atomic.vcxproj">
       <Project>{f5e2f6c4-19ba-497a-b754-232e469be647}</Project>
     </ProjectReference>
@@ -72,13 +72,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-	<Import Project="..\..\Examples_$(Configuration).props"  />
+    <Import Project="..\..\Examples_$(Configuration).props" />
   </ImportGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\$(Platform)\$(Configuration);$(ProjectDir)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  <PropertyGroup>
+    <IncludePath>$(SolutionDir)include;$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\$(Platform)\$(Configuration);$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

@@ -15,35 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store_tx", "string_s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{853D45D8-980C-4991-B62A-DAC6FD245402}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "getopt", "windows\getopt\getopt.vcxproj", "{9186EAC4-2F34-4F17-B940-6585D7869BCD}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemlog", "libpmemlog", "{91C30620-70CA-46C7-AC71-71F3C602690E}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{95FAF291-03D1-42FC-9C10-424D551D475D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{9A8482A7-BF0C-423D-8266-189456ED41F6}"
-	ProjectSection(SolutionItems) = preProject
-		windows\include\dirent.h = windows\include\dirent.h
-		windows\include\elf.h = windows\include\elf.h
-		windows\include\endian.h = windows\include\endian.h
-		windows\include\err.h = windows\include\err.h
-		windows\include\features.h = windows\include\features.h
-		windows\include\sys\file.h = windows\include\sys\file.h
-		windows\include\libgen.h = windows\include\libgen.h
-		windows\include\linux\limits.h = windows\include\linux\limits.h
-		windows\include\sys\mman.h = windows\include\sys\mman.h
-		windows\include\sys\mount.h = windows\include\sys\mount.h
-		windows\include\sys\param.h = windows\include\sys\param.h
-		windows\include\platform.h = windows\include\platform.h
-		include\pmemcompat.h = include\pmemcompat.h
-		windows\include\pthread.h = windows\include\pthread.h
-		windows\include\sys\queue.h = windows\include\sys\queue.h
-		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
-		windows\include\strings.h = windows\include\strings.h
-		windows\include\sys\uio.h = windows\include\sys\uio.h
-		windows\include\unistd.h = windows\include\unistd.h
-		windows\include\sys\wait.h = windows\include\sys\wait.h
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "map", "map", "{BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}"
 EndProject
@@ -147,10 +119,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Debug|x64.ActiveCfg = Debug|x64
-		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Debug|x64.Build.0 = Debug|x64
-		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Release|x64.ActiveCfg = Release|x64
-		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Release|x64.Build.0 = Release|x64
 		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Debug|x64.ActiveCfg = Debug|x64
 		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Debug|x64.Build.0 = Debug|x64
 		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Release|x64.ActiveCfg = Release|x64
@@ -328,10 +296,7 @@ Global
 		{1434B17C-6165-4D42-BEA1-5A7730D5A6BB} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
 		{52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
 		{6D63CDF1-F62C-4614-AD8A-95B0A63AA070} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
-		{9186EAC4-2F34-4F17-B940-6585D7869BCD} = {95FAF291-03D1-42FC-9C10-424D551D475D}
 		{91C30620-70CA-46C7-AC71-71F3C602690E} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
-		{95FAF291-03D1-42FC-9C10-424D551D475D} = {853D45D8-980C-4991-B62A-DAC6FD245402}
-		{9A8482A7-BF0C-423D-8266-189456ED41F6} = {95FAF291-03D1-42FC-9C10-424D551D475D}
 		{BD6CC700-B36B-435B-BAF9-FC5AFCD766C9} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{BFEDF709-A700-4769-9056-ACA934D828A8} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{C721EFBD-45DC-479E-9B99-E62FCC1FC6E5} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}

@@ -19,16 +19,6 @@
     <RootNamespace>vmem</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
-    <Link>
-      <AdditionalDependencies>libvmem.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemGroup Condition="'$(SolutionName)'=='NVML'">
-    <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
-      <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -42,15 +32,31 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\$(SolutionName)_$(Configuration).props" />
+    <Import Project="..\Examples_$(Configuration).props" />
   </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Examples_$(Configuration).props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Manifest>
+      <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
+    <Link>
+      <AdditionalDependencies>libvmem.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup Condition="'$(SolutionName)'=='NVML'">
+    <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
+      <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
 </Project>
