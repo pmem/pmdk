@@ -34,6 +34,8 @@
 # install-libfabric.sh - installs a customized version of libfabric
 #
 
+set -o pipefail
+
 libfabric_ver=1.4.1
 libfabric_url=https://github.com/ofiwg/libfabric/archive
 libfabric_dir=libfabric-$libfabric_ver

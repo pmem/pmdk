@@ -34,6 +34,8 @@
 # install-libcxx.sh - installs a customized version of libcxx
 #
 
+set -o pipefail
+
 llvm_url=https://github.com/llvm-mirror/llvm.git
 libcxxabi_url=https://github.com/llvm-mirror/libcxxabi.git
 libcxx_url=https://github.com/pmem/libcxx.git
