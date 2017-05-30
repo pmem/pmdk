@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,32 +31,71 @@
  */
 
 /*
- * rpmemd_fip.h -- rpmemd libfabric provider module header file
+ * rpmemd_util.c -- rpmemd utility functions definitions
  */
 
-#include <stddef.h>
+#include <unistd.h>
 
-struct rpmemd_fip;
+#include "libpmem.h"
+#include "rpmem_common.h"
+#include "rpmemd_log.h"
+#include "rpmemd_util.h"
 
-struct rpmemd_fip_attr {
-	void *addr;
-	size_t size;
-	unsigned nlanes;
-	size_t nthreads;
-	enum rpmem_provider provider;
-	enum rpmem_persist_method persist_method;
-	int (*persist)(const void *addr, size_t len);
-};
+/*
+ * rpmemd_pmem_persist -- pmem_persist wrapper required to unify function
+ * pointer type with pmem_msync
+ */
+int
+rpmemd_pmem_persist(const void *addr, size_t len)
+{
+	pmem_persist(addr, len);
+	return 0;
+}
 
-struct rpmemd_fip *rpmemd_fip_init(const char *node,
-		const char *service,
-		struct rpmemd_fip_attr *attr,
-		struct rpmem_resp_attr *resp,
-		enum rpmem_err *err);
-void rpmemd_fip_fini(struct rpmemd_fip *fip);
+/*
+ * rpmemd_persist_to_str -- convert persist function pointer to string
+ */
+const char *
+rpmemd_persist_to_str(int (*persist)(const void *addr, size_t len))
+{
+	if (persist == rpmemd_pmem_persist) {
+		return "pmem_persist";
+	} else if (persist == pmem_msync) {
+		return "pmem_msync";
+	} else {
+		return NULL;
+	}
+}
 
-int rpmemd_fip_accept(struct rpmemd_fip *fip, int timeout);
-int rpmemd_fip_process_start(struct rpmemd_fip *fip);
-int rpmemd_fip_process_stop(struct rpmemd_fip *fip);
-int rpmemd_fip_wait_close(struct rpmemd_fip *fip, int timeout);
-int rpmemd_fip_close(struct rpmemd_fip *fip);
+/*
+ * rpmemd_apply_pm_policy -- choose the persistency method and the flush
+ * function according to the pool type and the persistency method read from the
+ * config
+ */
+int
+rpmemd_apply_pm_policy(enum rpmem_persist_method *persist_method,
+		int (**persist)(const void *addr, size_t len),
+		const int is_pmem)
+{
+	switch (*persist_method) {
+	case RPMEM_PM_APM:
+		if (is_pmem) {
+			*persist_method = RPMEM_PM_APM;
+			*persist = rpmemd_pmem_persist;
+		} else {
+			*persist_method = RPMEM_PM_GPSPM;
+			*persist = pmem_msync;
+		}
+		break;
+	case RPMEM_PM_GPSPM:
+		*persist_method = RPMEM_PM_GPSPM;
+		*persist = is_pmem ? rpmemd_pmem_persist
+				: pmem_msync;
+		break;
+	default:
+		RPMEMD_LOG(ERR, "invalid persist method: %d", *persist_method);
+		return -1;
+	}
+
+	return 0;
+}

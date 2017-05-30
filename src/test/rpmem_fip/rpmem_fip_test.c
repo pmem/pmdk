@@ -258,7 +258,7 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
+		.persist = pmem_msync,
 		.nthreads = NTHREADS,
 	};
 
@@ -367,7 +367,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
+		.persist = pmem_msync,
 		.nthreads = NTHREADS,
 	};
 
@@ -425,7 +425,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 		.nlanes = nlanes,
 		.provider = provider,
 		.persist_method = persist_method,
-		.persist = pmem_persist,
+		.persist = pmem_msync,
 		.nthreads = NTHREADS,
 	};
 
