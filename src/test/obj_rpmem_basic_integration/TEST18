@@ -35,6 +35,7 @@
 #
 export UNITTEST_NAME=obj_rpmem_basic_integration/TEST18
 export UNITTEST_NUM=18
+export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../helgrind-cxgb4.supp"
 
 EXE=obj_basic_integration
 
