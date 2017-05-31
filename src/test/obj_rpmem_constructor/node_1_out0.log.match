@@ -1,3 +1,0 @@
-obj_rpmem_constructor/TEST0: START: obj_constructor
- ./obj_constructor$(nW) testset_local --big-alloc
-obj_rpmem_constructor/TEST0: DONE

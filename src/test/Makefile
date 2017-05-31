@@ -127,7 +127,6 @@ OBJ_TESTS = \
 
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\
-	obj_rpmem_constructor\
 	obj_rpmem_heap_state\
 	obj_rpmem_heap_interrupt
 
