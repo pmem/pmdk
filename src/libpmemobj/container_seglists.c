@@ -82,11 +82,7 @@ container_seglists_insert_block(struct block_container *bc,
 	ASSERT(m->size_idx <= SEGLIST_BLOCK_LISTS);
 
 	struct seglist_entry *e = m->m_ops->get_user_data(m);
-#ifdef USE_VG_MEMCHECK
-	if (On_valgrind) {
-		VALGRIND_DO_MAKE_MEM_DEFINED(e, sizeof(*e));
-	}
-#endif
+	VALGRIND_DO_MAKE_MEM_DEFINED(e, sizeof(*e));
 
 	struct seglist_entry **last = c->blocks[m->size_idx - 1].stqh_last;
 
