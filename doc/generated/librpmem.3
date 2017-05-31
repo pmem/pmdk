@@ -56,7 +56,7 @@ int\ rpmem_set_attr(RPMEMpool\ *rpp,\ const\ struct\ rpmem_pool_attr\ *attr);
 int\ rpmem_close(RPMEMpool\ *rpp);
 
 int\ rpmem_persist(RPMEMpool\ *rpp,\ size_t\ offset,\ size_t\ length,\ unsigned\ lane);
-int\ rpmem_read(RPMEMpool\ *rpp,\ void\ *buff,\ size_t\ offset,\ size_t\ length);
+int\ rpmem_read(RPMEMpool\ *rpp,\ void\ *buff,\ size_t\ offset,\ size_t\ length,\ unsigned\ lane);
 int\ rpmem_remove(const\ char\ *target,\ const\ char\ *pool_set_name,\ int\ flags);
 \f[]
 .fi
@@ -234,6 +234,10 @@ int\ rpmem_read(RPMEMpool\ *rpp,\ void\ *buff,\ size_t\ offset,\ size_t\ length)
 The \f[B]rpmem_read\f[]() function reads \f[I]length\f[] bytes of data
 from remote pool at \f[I]offset\f[] and copies it to the buffer
 \f[I]buff\f[].
+The operation is performed on a given lane.
+The lane must be less than the value returned by \f[B]rpmem_open\f[]()
+or \f[B]rpmem_create\f[]() through the \f[I]nlanes\f[] argument (so it
+can take a value from 0 to \f[I]nlanes\f[] \- 1).
 The function returns 0 if the data was read entirely, otherwise
 non\-zero value is returned and \f[I]errno\f[] set appropriately.
 The \f[I]rpp\f[] must point to a remote pool opened or created
