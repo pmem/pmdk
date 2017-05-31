@@ -148,24 +148,17 @@ err_getinfo:
 }
 
 /*
- * rpmem_fip_read_eq -- read event queue entry and expect specified event
- * and fid
- *
- * Returns:
- * 1 - timeout
- * 0 - success
- * otherwise - error
+ * rpmem_fip_read_eq -- read event queue entry with specified timeout
  */
 int
 rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
-	uint32_t exp_event, fid_t exp_fid, int timeout)
+	uint32_t *event, int timeout)
 {
 	int ret;
 	ssize_t sret;
-	uint32_t event;
 	struct fi_eq_err_entry err;
 
-	sret = fi_eq_sread(eq, &event, entry, sizeof(*entry), timeout, 0);
+	sret = fi_eq_sread(eq, event, entry, sizeof(*entry), timeout, 0);
 	VALGRIND_DO_MAKE_MEM_DEFINED(&sret, sizeof(sret));
 
 	if (timeout != -1 && sret == -FI_ETIMEDOUT) {
@@ -174,7 +167,10 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	}
 
 	if (sret < 0 || (size_t)sret != sizeof(*entry)) {
-		ret = (int)sret;
+		if (sret < 0)
+			ret = (int)sret;
+		else
+			ret = -1;
 
 		sret = fi_eq_readerr(eq, &err, 0);
 		if (sret < 0) {
@@ -189,8 +185,29 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 						NULL, NULL, 0));
 		}
 
-		goto err_read_event;
+		return ret;
 	}
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_read_eq -- read event queue entry and expect specified event
+ * and fid
+ *
+ * Returns:
+ * 1 - timeout
+ * 0 - success
+ * otherwise - error
+ */
+int
+rpmem_fip_read_eq_check(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
+	uint32_t exp_event, fid_t exp_fid, int timeout)
+{
+	uint32_t event;
+	int ret = rpmem_fip_read_eq(eq, entry, &event, timeout);
+	if (ret)
+		return ret;
 
 	if (event != exp_event || entry->fid != exp_fid) {
 		errno = EIO;
@@ -198,15 +215,11 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 				"expected (%u)%s", event, exp_event,
 				entry->fid != exp_fid ?
 				" invalid endpoint" : "");
-		ret = -1;
-		goto err_event_data;
+
+		return -1;
 	}
 
 	return 0;
-err_event_data:
-err_read_event:
-
-	return ret;
 }
 
 /*
@@ -230,65 +243,75 @@ rpmem_fip_lane_attrs[MAX_RPMEM_FIP_NODE][MAX_RPMEM_PM] = {
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_GPSPM] = {
 		.n_per_sq = 2, /* WRITE + SEND */
 		.n_per_rq = 1, /* RECV */
-		.n_per_cq = 2, /* SEND + RECV */
+		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_APM] = {
 		.n_per_sq = 2, /* WRITE + READ */
 		.n_per_rq = 0, /* unused */
-		.n_per_cq = 1, /* READ */
+		.n_per_cq = 2,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_GPSPM] = {
 		.n_per_sq = 1, /* SEND */
 		.n_per_rq = 1, /* RECV */
-		.n_per_cq = 2, /* SEND + RECV */
+		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_APM] = {
 		.n_per_sq = 0, /* unused */
 		.n_per_rq = 0, /* unused */
-		.n_per_cq = 0, /* unused */
+		.n_per_cq = 1,
 	},
 };
 
 /*
- * rpmem_fip_cq_size -- returns completion queue size based on number
- * of lanes, persist method and node type
+ * rpmem_fip_cq_size -- returns completion queue size based on
+ * persist method and node type
  */
 size_t
-rpmem_fip_cq_size(size_t nlanes, enum rpmem_persist_method pm,
-	enum rpmem_fip_node node)
+rpmem_fip_cq_size(enum rpmem_persist_method pm, enum rpmem_fip_node node)
 {
 	RPMEMC_ASSERT(pm < MAX_RPMEM_PM);
 	RPMEMC_ASSERT(node < MAX_RPMEM_FIP_NODE);
 
 	struct rpmem_fip_lane_attr *attr = &rpmem_fip_lane_attrs[node][pm];
-	size_t cq_mul = attr->n_per_cq ? : 1;
-
-	return nlanes * cq_mul;
+	return attr->n_per_cq ? : 1;
 }
 
 /*
- * rpmem_fip_max_nlanes -- returns maximum number of lanes based on
- * fabric interface information, persist method and node type.
+ * rpmem_fip_tx_size -- returns submission queue (transmit queue) size based
+ * on persist method and node type
  */
 size_t
-rpmem_fip_max_nlanes(struct fi_info *fi, enum rpmem_persist_method pm,
-	enum rpmem_fip_node node)
+rpmem_fip_tx_size(enum rpmem_persist_method pm, enum rpmem_fip_node node)
 {
 	RPMEMC_ASSERT(pm < MAX_RPMEM_PM);
 	RPMEMC_ASSERT(node < MAX_RPMEM_FIP_NODE);
 
 	struct rpmem_fip_lane_attr *attr = &rpmem_fip_lane_attrs[node][pm];
+	return attr->n_per_sq ? : 1;
+}
 
-	size_t sq_size = fi->tx_attr->size;
-	size_t rq_size = fi->rx_attr->size;
+/*
+ * rpmem_fip_tx_size -- returns receive queue size based
+ * on persist method and node type
+ */
+size_t
+rpmem_fip_rx_size(enum rpmem_persist_method pm, enum rpmem_fip_node node)
+{
+	RPMEMC_ASSERT(pm < MAX_RPMEM_PM);
+	RPMEMC_ASSERT(node < MAX_RPMEM_FIP_NODE);
 
-	size_t sq_div = attr->n_per_sq ? : 1;
-	size_t rq_div = attr->n_per_rq ? : 1;
+	struct rpmem_fip_lane_attr *attr = &rpmem_fip_lane_attrs[node][pm];
+	return attr->n_per_rq ? : 1;
+}
 
-	size_t max_by_sq = sq_size / sq_div;
-	size_t max_by_rq = rq_size / rq_div;
-
-	return min(max_by_sq, max_by_rq);
+/*
+ * rpmem_fip_max_nlanes -- returns maximum number of lanes
+ */
+size_t
+rpmem_fip_max_nlanes(struct fi_info *fi)
+{
+	return min(fi->domain_attr->max_ep_tx_ctx,
+			fi->domain_attr->max_ep_rx_ctx);
 }
 
 /*

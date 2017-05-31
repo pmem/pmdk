@@ -81,7 +81,8 @@ static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
 int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 			unsigned lane);
-int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
+		size_t length, unsigned lane);
 int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
 int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
