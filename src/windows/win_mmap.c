@@ -282,6 +282,8 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		return MAP_FAILED;
 	}
 
+
+	/* XXX shall we use SEC_LARGE_PAGES flag? */
 	DWORD protect = 0;
 	DWORD access = 0;
 
@@ -347,8 +349,6 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		}
 	}
 
-	/* XXX - MAP_NORESERVE */
-
 	size_t len_align = roundup(len, Mmap_align);
 	size_t filelen;
 	size_t filelen_align;
@@ -364,6 +364,14 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 		offset = 0;
 		filelen = len;
 		filelen_align = len_align;
+
+		if ((flags & MAP_NORESERVE) != 0) {
+			/*
+			 * For anonymous mappings the meaning of MAP_NORESERVE
+			 * flag is pretty much the same as SEC_RESERVE.
+			 */
+			protect |= SEC_RESERVE;
+		}
 	} else {
 		LARGE_INTEGER filesize;
 
