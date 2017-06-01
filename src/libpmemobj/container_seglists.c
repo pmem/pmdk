@@ -52,14 +52,14 @@
  */
 struct seglist_entry {
 	struct memory_block m;
-	SLIST_ENTRY(seglist_entry) entry;
+	STAILQ_ENTRY(seglist_entry) entry;
 };
 
 #define SEGLIST_BLOCK_LISTS 64U
 
 struct block_container_seglists {
 	struct block_container super;
-	SLIST_HEAD(, seglist_entry) blocks[SEGLIST_BLOCK_LISTS];
+	STAILQ_HEAD(, seglist_entry) blocks[SEGLIST_BLOCK_LISTS];
 	uint64_t nonempty_lists;
 };
 
@@ -87,12 +87,23 @@ container_seglists_insert_block(struct block_container *bc,
 	}
 #endif
 
+	struct seglist_entry **last = c->blocks[m->size_idx - 1].stqh_last;
+
 	VALGRIND_ADD_TO_TX(e, sizeof(*e));
+	VALGRIND_ADD_TO_TX(last, sizeof(*last));
 
 	e->m = *m;
-	SLIST_INSERT_HEAD(&c->blocks[m->size_idx - 1], e, entry);
 
+	/*
+	 * Add to the end of the list, so that the blocks inserted first are
+	 * allocated first (FIFO).
+	 */
+	STAILQ_INSERT_TAIL(&c->blocks[m->size_idx - 1], e, entry);
+
+	VALGRIND_SET_CLEAN(last, sizeof(*last));
 	VALGRIND_SET_CLEAN(e, sizeof(*e));
+
+	VALGRIND_REMOVE_FROM_TX(last, sizeof(*last));
 	VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
 
 	/* marks the list as nonempty */
@@ -124,12 +135,12 @@ container_seglists_get_rm_block_bestfit(struct block_container *bc,
 	/* finds the list that serves the smallest applicable size */
 	i = (uint32_t)__builtin_ffsll((long long)v) - 1;
 
-	struct seglist_entry *e = SLIST_FIRST(&c->blocks[i]);
+	struct seglist_entry *e = STAILQ_FIRST(&c->blocks[i]);
 	VALGRIND_ADD_TO_TX(e, sizeof(*e));
 
-	SLIST_REMOVE_HEAD(&c->blocks[i], entry);
+	STAILQ_REMOVE_HEAD(&c->blocks[i], entry);
 
-	if (SLIST_EMPTY(&c->blocks[i])) /* marks the list as empty */
+	if (STAILQ_EMPTY(&c->blocks[i])) /* marks the list as empty */
 		c->nonempty_lists &= ~(1ULL << (i));
 
 	VALGRIND_SET_CLEAN(e, sizeof(*e));
@@ -162,11 +173,11 @@ container_seglists_rm_all(struct block_container *bc)
 		(struct block_container_seglists *)bc;
 
 	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i) {
-		while (!SLIST_EMPTY(&c->blocks[i])) {
-			struct seglist_entry *e = SLIST_FIRST(&c->blocks[i]);
+		while (!STAILQ_EMPTY(&c->blocks[i])) {
+			struct seglist_entry *e = STAILQ_FIRST(&c->blocks[i]);
 			VALGRIND_ADD_TO_TX(e, sizeof(*e));
 
-			SLIST_REMOVE_HEAD(&c->blocks[i], entry);
+			STAILQ_REMOVE_HEAD(&c->blocks[i], entry);
 
 			VALGRIND_SET_CLEAN(e, sizeof(*e));
 			VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
@@ -216,7 +227,7 @@ container_new_seglists(struct palloc_heap *heap)
 	bc->super.c_ops = &container_seglists_ops;
 
 	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
-		SLIST_INIT(&bc->blocks[i]);
+		STAILQ_INIT(&bc->blocks[i]);
 	bc->nonempty_lists = 0;
 
 	return (struct block_container *)&bc->super;
