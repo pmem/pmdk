@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -82,6 +82,8 @@ rm_files_from_node 0 $TEST_FILE_REMOTE
 rm_files_from_node 1 part1 part2
 
 # execute test
+PMEMOBJ_NLANES=300
+export_vars_node 1 PMEMOBJ_NLANES
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
 
 pass
