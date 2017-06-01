@@ -211,6 +211,27 @@ for the write requests.
 Non\-allocating writes are guaranteed to bypass all of the CPU caches
 and force the write requests to flow directly to the Integrated Memory
 Controller without delay.
+.PP
+The \f[B]rpmemd\f[] dynamically choose the appropriate persistency
+method and the flushing to persistence primitive for GPSPM for each
+opened pool set name depending on available persistency methods and
+whether all pool set parts are stored in the persistent memory.
+.PP
+If the \f[B]Appliance Persistency Method\f[] is enabled and the pool set
+is stored in the persistent memory \f[B]rpmemd\f[] will use the
+\f[B]Appliance Persistency Method\f[].
+If the pool set is NOT stored in the persistent memory it will fallback
+to the \f[B]General Puropose Server Persistency Method\f[] with
+\f[B]pmem_msync\f[]().
+.PP
+If the \f[B]General Puropose Server Persistency Method\f[] is enabled
+and the pool set is stored in the persistent momory \f[B]rpmemd\f[] will
+use \f[B]pmem_persist\f[]().
+If the pool set is NOT stored in the persistent momory it will use
+\f[B]pmem_msync\f[]().
+.PP
+See \f[B]libpmem\f[](3) for details about \f[B]pmem_persist\f[]() and
+\f[B]pmem_msync\f[]().
 .SH SEE ALSO
 .PP
 \f[B]librpmem\f[](3), \f[B]libpmem\f[](3), \f[B]libpmemobj\f[](3) and
