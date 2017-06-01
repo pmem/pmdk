@@ -81,6 +81,8 @@ rm_files_from_node 0 $TEST_FILE_REMOTE
 rm_files_from_node 1 $TEST_FILE_LOCAL
 
 # execute test
+PMEMOBJ_NLANES=300
+export_vars_node 1 PMEMOBJ_NLANES
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
 
 pass
