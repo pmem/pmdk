@@ -212,12 +212,6 @@ obj_pool_init(void)
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)
 		FATAL("!ctree_new");
-
-	/*
-	 * Load global config, ignore any issues. They will be caught on the
-	 * subsequent call to this function for individual pools.
-	 */
-	obj_ctl_init_and_load(NULL);
 }
 
 /*
@@ -266,6 +260,12 @@ obj_init(void)
 	pthread_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
 	ctl_global_register();
+
+	/*
+	 * Load global config, ignore any issues. They will be caught on the
+	 * subsequent call to this function for individual pools.
+	 */
+	obj_ctl_init_and_load(NULL);
 
 	lane_info_boot();
 
