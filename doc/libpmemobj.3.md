@@ -2205,6 +2205,10 @@ goes to stderr.
 Setting the environment variable **PMEMOBJ_LOG_LEVEL** has no effect on the non-debug version of **libpmemobj**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemobj** behavior.
 
+**libpmemobj** by default uses up to 1024 lanes (isolated paths of execution)
+which consume system resources. It is possible to limit this value by writing
+a desired number of lanes to the **PMEMOBJ_NLANES** environment variable.
+
 # CONTROL AND STATISTICS #
 
 The library provides a uniform interface that allows to impact its behavior as
