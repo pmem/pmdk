@@ -67,9 +67,6 @@
     <ClCompile Include="..\common\pool_hdr_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\pthread_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sync.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -95,6 +92,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\uuid_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

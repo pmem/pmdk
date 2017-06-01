@@ -37,7 +37,6 @@
 #ifndef LIBPMEMOBJ_HEAP_H
 #define LIBPMEMOBJ_HEAP_H 1
 
-#include <pthread.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -46,6 +45,7 @@
 #include "memblock.h"
 #include "memops.h"
 #include "palloc.h"
+#include "os_thread.h"
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
@@ -79,7 +79,7 @@ int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 struct memory_block
 heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m);
-pthread_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
+os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 
 int

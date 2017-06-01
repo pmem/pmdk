@@ -114,10 +114,10 @@ extern "C" {
 #include <signal.h>
 #include <errno.h>
 #include <dirent.h>
-#include <pthread.h>
 
 /* XXX: move OS abstraction layer out of common */
 #include "os.h"
+#include "os_thread.h"
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
@@ -628,21 +628,21 @@ int ut_sigaction(const char *file, int line, const char *func,
 /*
  * pthreads...
  */
-int ut_pthread_create(const char *file, int line, const char *func,
-    pthread_t *__restrict thread,
-    const pthread_attr_t *__restrict attr,
+int ut_thread_create(const char *file, int line, const char *func,
+    os_thread_t *__restrict thread,
+    const os_thread_attr_t *__restrict attr,
     void *(*start_routine)(void *), void *__restrict arg);
-int ut_pthread_join(const char *file, int line, const char *func,
-    pthread_t thread, void **value_ptr);
+int ut_thread_join(const char *file, int line, const char *func,
+    os_thread_t thread, void **value_ptr);
 
-/* a pthread_create() that can't return an error */
+/* a os_thread_create() that can't return an error */
 #define PTHREAD_CREATE(thread, attr, start_routine, arg)\
-    ut_pthread_create(__FILE__, __LINE__, __func__,\
+    ut_thread_create(__FILE__, __LINE__, __func__,\
     thread, attr, start_routine, arg)
 
-/* a pthread_join() that can't return an error */
+/* a os_thread_join() that can't return an error */
 #define PTHREAD_JOIN(thread, value_ptr)\
-    ut_pthread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
+    ut_thread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
  * processes...
@@ -729,7 +729,7 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
 
 extern unsigned long Ut_pagesize;
 extern unsigned long long Ut_mmap_align;
-extern pthread_mutex_t Sigactions_lock;
+extern os_mutex_t Sigactions_lock;
 
 void ut_dump_backtrace(void);
 void ut_sighandler(int);

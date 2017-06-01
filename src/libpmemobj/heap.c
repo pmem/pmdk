@@ -36,7 +36,6 @@
 
 #include <errno.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <string.h>
 #include <float.h>
 
@@ -78,7 +77,7 @@ struct heap_rt {
 
 	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
 
-	pthread_mutex_t run_locks[MAX_RUN_LOCKS];
+	os_mutex_t run_locks[MAX_RUN_LOCKS];
 	unsigned max_zone;
 	unsigned zones_exhausted;
 	unsigned ncaches;
@@ -168,7 +167,7 @@ heap_bucket_release(struct palloc_heap *heap, struct bucket *b)
 /*
  * heap_get_run_lock -- returns the lock associated with memory block
  */
-pthread_mutex_t *
+os_mutex_t *
 heap_get_run_lock(struct palloc_heap *heap, uint32_t chunk_id)
 {
 	return &heap->rt->run_locks[chunk_id % MAX_RUN_LOCKS];
@@ -482,7 +481,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 
 	ASSERTeq(c->type, CLASS_RUN);
 
-	pthread_mutex_t *lock = m->m_ops->get_lock(m);
+	os_mutex_t *lock = m->m_ops->get_lock(m);
 	util_mutex_lock(lock);
 
 	unsigned i;
@@ -702,7 +701,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
-		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
+		os_mutex_t *lock = m.m_ops->get_lock(&m);
 
 		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, &m);
@@ -737,7 +736,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	 * huge chunks might have reclaimed some unused runs.
 	 */
 	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
-		pthread_mutex_t *lock = m.m_ops->get_lock(&m);
+		os_mutex_t *lock = m.m_ops->get_lock(&m);
 		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, &m);
 		util_mutex_unlock(lock);
@@ -1058,7 +1057,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	h->zones_exhausted = 0;
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
-		util_mutex_init(&h->run_locks[i], NULL);
+		util_mutex_init(&h->run_locks[i]);
 
 	heap->run_id = run_id;
 	heap->p_ops = *p_ops;

@@ -78,6 +78,7 @@
 #include "pmemcommon.h"
 #include "file.h"
 #include "os.h"
+#include "os_thread.h"
 #include "vmem.h"
 #include "vmmalloc.h"
 #include "valgrind_internal.h"
@@ -610,10 +611,10 @@ libvmmalloc_init(void)
 	 * have to register fork handlers before the call to out_init(),
 	 * as it may indirectly call malloc() when opening the log file.
 	 */
-	if (pthread_atfork(libvmmalloc_prefork,
+	if (os_thread_atfork(libvmmalloc_prefork,
 			libvmmalloc_postfork_parent,
 			libvmmalloc_postfork_child) != 0) {
-		perror("Error (libvmmalloc): pthread_atfork");
+		perror("Error (libvmmalloc): os_thread_atfork");
 		abort();
 	}
 

@@ -44,13 +44,13 @@
     <ClCompile Include="uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pthread_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="os_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

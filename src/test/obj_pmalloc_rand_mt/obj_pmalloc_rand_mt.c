@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	pthread_t *threads = MALLOC(sizeof(pthread_t) * nthreads);
+	os_thread_t *threads = MALLOC(sizeof(os_thread_t) * nthreads);
 
 	for (int i = 0; i < nthreads; ++i) {
 		PTHREAD_CREATE(&threads[i], NULL, test_worker, pop);

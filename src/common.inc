@@ -42,7 +42,7 @@ CSTYLE = $(TOP)/utils/cstyle
 CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 CHECK_OS = $(TOP)/utils/check-os.sh
-OS_H = $(TOP)/src/common/os.h
+OS_BANNED = $(TOP)/utils/os-banned
 
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
@@ -147,7 +147,7 @@ endef
 endif
 
 define check-os
-$(CHECK_OS) $(OS_H) $(1) $(2)
+$(CHECK_OS) $(OS_BANNED) $(1) $(2)
 endef
 
 define sub-target-foreach

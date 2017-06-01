@@ -42,6 +42,8 @@
 #include "util.h"
 #include "out.h"
 #include "os.h"
+#include "os_thread.h"
+#include "sys_util.h"
 
 /*
  * This number defines by how much the relevant semaphore will be increased to
@@ -58,8 +60,8 @@ struct ringbuf {
 	CACHELINE_PADDING(uint64_t, read_pos);
 	CACHELINE_PADDING(uint64_t, write_pos);
 
-	CACHELINE_PADDING(struct os_semaphore *, nfree);
-	CACHELINE_PADDING(struct os_semaphore *, nused);
+	CACHELINE_PADDING(os_semaphore_t, nfree);
+	CACHELINE_PADDING(os_semaphore_t, nused);
 
 	unsigned len;
 	uint64_t len_mask;
@@ -85,13 +87,16 @@ ringbuf_new(unsigned length)
 	if (rbuf == NULL)
 		return NULL;
 
-	rbuf->nfree = os_semaphore_new(length);
-	if (rbuf->nfree == NULL)
-		goto error;
+	if (os_semaphore_init(&rbuf->nfree, length)) {
+		Free(rbuf);
+		return NULL;
+	}
 
-	rbuf->nused = os_semaphore_new(0);
-	if (rbuf->nused == NULL)
-		goto error;
+	if (os_semaphore_init(&rbuf->nused, 0)) {
+		util_semaphore_destroy(&rbuf->nfree);
+		Free(rbuf);
+		return NULL;
+	}
 
 	rbuf->read_pos = 0;
 	rbuf->write_pos = 0;
@@ -101,13 +106,6 @@ ringbuf_new(unsigned length)
 	rbuf->running = 1;
 
 	return rbuf;
-
-error:
-	Free(rbuf->nfree);
-	Free(rbuf->nused);
-	Free(rbuf);
-
-	return NULL;
 }
 
 /*
@@ -139,7 +137,7 @@ ringbuf_stop(struct ringbuf *rbuf)
 
 	/* XXX just unlock all waiting threads somehow... */
 	for (int64_t i = 0; i < RINGBUF_MAX_CONSUMER_THREADS; ++i)
-		os_semaphore_post(rbuf->nused);
+		util_semaphore_post(&rbuf->nused);
 }
 
 /*
@@ -151,8 +149,8 @@ ringbuf_delete(struct ringbuf *rbuf)
 	LOG(4, NULL);
 
 	ASSERTeq(rbuf->read_pos, rbuf->write_pos);
-	os_semaphore_delete(rbuf->nfree);
-	os_semaphore_delete(rbuf->nused);
+	util_semaphore_destroy(&rbuf->nfree);
+	util_semaphore_destroy(&rbuf->nused);
 	Free(rbuf);
 }
 
@@ -189,11 +187,11 @@ ringbuf_enqueue(struct ringbuf *rbuf, void *data)
 {
 	LOG(4, NULL);
 
-	os_semaphore_wait(rbuf->nfree);
+	util_semaphore_wait(&rbuf->nfree);
 
 	ringbuf_enqueue_atomic(rbuf, data);
 
-	os_semaphore_post(rbuf->nused);
+	util_semaphore_post(&rbuf->nused);
 
 	return 0;
 }
@@ -208,12 +206,12 @@ ringbuf_tryenqueue(struct ringbuf *rbuf, void *data)
 {
 	LOG(4, NULL);
 
-	if (os_semaphore_trywait(rbuf->nfree) != 0)
+	if (util_semaphore_trywait(&rbuf->nfree) != 0)
 		return -1;
 
 	ringbuf_enqueue_atomic(rbuf, data);
 
-	os_semaphore_post(rbuf->nused);
+	util_semaphore_post(&rbuf->nused);
 
 	return 0;
 }
@@ -253,14 +251,14 @@ ringbuf_dequeue(struct ringbuf *rbuf)
 {
 	LOG(4, NULL);
 
-	os_semaphore_wait(rbuf->nused);
+	util_semaphore_wait(&rbuf->nused);
 
 	if (!rbuf->running)
 		return NULL;
 
 	void *data = ringbuf_dequeue_atomic(rbuf);
 
-	os_semaphore_post(rbuf->nfree);
+	util_semaphore_post(&rbuf->nfree);
 
 	return data;
 }
@@ -275,7 +273,7 @@ ringbuf_trydequeue(struct ringbuf *rbuf)
 {
 	LOG(4, NULL);
 
-	if (os_semaphore_trywait(rbuf->nused) != 0)
+	if (util_semaphore_trywait(&rbuf->nused) != 0)
 		return NULL;
 
 	if (!rbuf->running)
@@ -283,7 +281,7 @@ ringbuf_trydequeue(struct ringbuf *rbuf)
 
 	void *data = ringbuf_dequeue_atomic(rbuf);
 
-	os_semaphore_post(rbuf->nfree);
+	util_semaphore_post(&rbuf->nfree);
 
 	return data;
 }

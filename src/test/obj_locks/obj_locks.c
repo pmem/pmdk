@@ -54,7 +54,7 @@ struct locks {
 };
 
 struct thread_args {
-	pthread_t t;
+	os_thread_t t;
 	TOID(struct locks) lock;
 	int t_id;
 };

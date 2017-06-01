@@ -128,7 +128,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <endian.h>
 
 #include "out.h"
@@ -153,7 +152,7 @@ struct btt {
 	 * only one write threads ends up writing the initial metadata by
 	 * calling write_layout().
 	 */
-	pthread_mutex_t layout_write_mutex;
+	os_mutex_t layout_write_mutex;
 	int laidout;
 
 	/*
@@ -226,12 +225,12 @@ struct btt {
 		/*
 		 * Map locking.  Indexed by pre-map LBA modulo nlane.
 		 */
-		pthread_mutex_t *map_locks;
+		os_mutex_t *map_locks;
 
 		/*
 		 * Arena info block locking.
 		 */
-		pthread_mutex_t info_lock;
+		os_mutex_t info_lock;
 	} *arenas;
 
 	/*
@@ -751,7 +750,7 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 		return -1;
 	}
 	for (uint32_t lane = 0; lane < bttp->nfree; lane++)
-		util_mutex_init(&arenap->map_locks[lane], NULL);
+		util_mutex_init(&arenap->map_locks[lane]);
 
 	return 0;
 }
@@ -794,7 +793,7 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 		return -1;
 
 	/* initialize the per arena info block lock */
-	util_mutex_init(&arenap->info_lock, NULL);
+	util_mutex_init(&arenap->info_lock);
 
 	return 0;
 }
@@ -1428,7 +1427,7 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 		return NULL;
 	}
 
-	util_mutex_init(&bttp->layout_write_mutex, NULL);
+	util_mutex_init(&bttp->layout_write_mutex);
 	memcpy(bttp->parent_uuid, parent_uuid, BTTINFO_UUID_LEN);
 	bttp->rawsize = rawsize;
 	bttp->lbasize = lbasize;

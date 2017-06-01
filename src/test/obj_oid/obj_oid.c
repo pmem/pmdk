@@ -40,8 +40,8 @@
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
 
-static pthread_mutex_t lock;
-static pthread_cond_t cond;
+static os_mutex_t lock;
+static os_cond_t cond;
 static int flag = 1;
 
 static PMEMoid thread_oid;
@@ -52,22 +52,22 @@ static PMEMoid thread_oid;
 static void *
 test_worker(void *arg)
 {
-	pthread_mutex_lock(&lock);
+	os_mutex_lock(&lock);
 	/* before pool is closed */
 	void *direct = pmemobj_direct(thread_oid);
 	UT_ASSERT(OID_EQUALS(thread_oid, pmemobj_oid(direct)));
 
 	flag = 0;
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&lock);
+	os_cond_signal(&cond);
+	os_mutex_unlock(&lock);
 
-	pthread_mutex_lock(&lock);
+	os_mutex_lock(&lock);
 	while (flag == 0)
-		pthread_cond_wait(&cond, &lock);
+		os_cond_wait(&cond, &lock);
 	/* after pool is closed */
 	UT_ASSERT(OID_IS_NULL(pmemobj_oid(direct)));
 
-	pthread_mutex_unlock(&lock);
+	os_mutex_unlock(&lock);
 
 	return NULL;
 }
@@ -80,8 +80,8 @@ main(int argc, char *argv[])
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	pthread_mutex_init(&lock, NULL);
-	pthread_cond_init(&cond, NULL);
+	os_mutex_init(&lock);
+	os_cond_init(&cond);
 
 	int npools = atoi(argv[2]);
 	const char *dir = argv[1];
@@ -123,14 +123,14 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(r, 0);
 	UT_ASSERT(!OID_IS_NULL(pmemobj_oid(pmemobj_direct(thread_oid))));
 
-	pthread_mutex_lock(&lock);
+	os_mutex_lock(&lock);
 
-	pthread_t t;
+	os_thread_t t;
 	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the thread to perform the first direct */
 	while (flag != 0)
-		pthread_cond_wait(&cond, &lock);
+		os_cond_wait(&cond, &lock);
 
 	for (int i = 0; i < npools; ++i) {
 		pmemobj_free(&tmpoids[i]);
@@ -144,8 +144,8 @@ main(int argc, char *argv[])
 
 	/* signal the waiting thread */
 	flag = 1;
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&lock);
+	os_cond_signal(&cond);
+	os_mutex_unlock(&lock);
 
 	PTHREAD_JOIN(t, NULL);
 
@@ -153,8 +153,8 @@ main(int argc, char *argv[])
 	FREE(oids);
 	FREE(pops);
 
-	pthread_mutex_destroy(&lock);
-	pthread_cond_destroy(&cond);
+	os_mutex_destroy(&lock);
+	os_cond_destroy(&cond);
 
 	DONE(NULL);
 }

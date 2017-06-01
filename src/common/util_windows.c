@@ -182,7 +182,9 @@ err:
 /*
  * util_free_UTF16 -- free wide char string
  */
-void util_free_UTF16(wchar_t *wstr) {
+void
+util_free_UTF16(wchar_t *wstr)
+{
 	Free(wstr);
 }
 

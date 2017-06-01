@@ -40,7 +40,6 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include "file.h"
 #include "queue.h"
@@ -79,7 +78,7 @@ struct map_tracker {
 
 static SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
 		SORTEDQ_HEAD_INITIALIZER(Mmap_list);
-static pthread_rwlock_t Mmap_list_lock;
+static os_rwlock_t Mmap_list_lock;
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -91,8 +90,8 @@ util_mmap_init(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = pthread_rwlock_init(&Mmap_list_lock, NULL)))
-		FATAL("!pthread_rwlock_init");
+	if ((errno = os_rwlock_init(&Mmap_list_lock)))
+		FATAL("!os_rwlock_init");
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
@@ -124,8 +123,8 @@ util_mmap_fini(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = pthread_rwlock_destroy(&Mmap_list_lock)))
-		FATAL("!pthread_rwlock_destroy");
+	if ((errno = os_rwlock_destroy(&Mmap_list_lock)))
+		FATAL("!os_rwlock_destroy");
 }
 
 /*
@@ -359,7 +358,7 @@ util_range_register(const void *addr, size_t len)
 
 	int ret = 0;
 
-	if (pthread_rwlock_wrlock(&Mmap_list_lock)) {
+	if (os_rwlock_wrlock(&Mmap_list_lock)) {
 		errno = EBUSY;
 		ERR("!cannot lock map tracking list");
 		return -1;
@@ -477,7 +476,7 @@ util_range_unregister(const void *addr, size_t len)
 
 	int ret = 0;
 
-	if (pthread_rwlock_wrlock(&Mmap_list_lock)) {
+	if (os_rwlock_wrlock(&Mmap_list_lock)) {
 		errno = EBUSY;
 		ERR("!cannot lock map tracking list");
 		return -1;
@@ -511,7 +510,7 @@ util_range_is_pmem(const void *addr, size_t len)
 
 	int retval = 1;
 
-	if (pthread_rwlock_rdlock(&Mmap_list_lock)) {
+	if (os_rwlock_rdlock(&Mmap_list_lock)) {
 		errno = EBUSY;
 		ERR("!cannot lock map tracking list");
 		return 0;

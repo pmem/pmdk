@@ -39,6 +39,7 @@ SOURCE =\
 	mmap.c\
 	mmap_linux.c\
 	os_linux.c\
+	os_thread_linux.c\
 	out.c\
 	pool_hdr.c\
 	pool_hdr_linux.c\

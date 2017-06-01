@@ -489,7 +489,7 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
  *	single bucket there's no reason to lock them - the bucket itself is
  *	protected.
  */
-static pthread_mutex_t *
+static os_mutex_t *
 huge_get_lock(const struct memory_block *m)
 {
 	return NULL;
@@ -498,7 +498,7 @@ huge_get_lock(const struct memory_block *m)
 /*
  * run_get_lock -- gets the runtime mutex from the heap.
  */
-static pthread_mutex_t *
+static os_mutex_t *
 run_get_lock(const struct memory_block *m)
 {
 	return heap_get_run_lock(m->heap, m->chunk_id);

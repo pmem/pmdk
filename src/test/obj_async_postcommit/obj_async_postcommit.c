@@ -82,7 +82,7 @@ postcommit_worker(void *arg)
 static void
 run_test(PMEMobjpool *pop, int nworkers_pc, int nworkers, int qdepth)
 {
-	pthread_t *th_pc = MALLOC(sizeof(*th_pc) * nworkers_pc);
+	os_thread_t *th_pc = MALLOC(sizeof(*th_pc) * nworkers_pc);
 
 	int ret = pmemobj_ctl_set(pop, "tx.post_commit.queue_depth", &qdepth);
 	UT_ASSERTeq(ret, 0);
@@ -91,7 +91,7 @@ run_test(PMEMobjpool *pop, int nworkers_pc, int nworkers, int qdepth)
 			NULL, postcommit_worker, pop);
 	}
 
-	pthread_t *th = MALLOC(sizeof(*th) * nworkers);
+	os_thread_t *th = MALLOC(sizeof(*th) * nworkers);
 	struct worker_args *args = MALLOC(sizeof(*args) * nworkers);
 	for (int i = 0; i < nworkers; ++i) {
 		args[i].pop = pop;

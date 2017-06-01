@@ -95,12 +95,12 @@ ut_sigaction(const char *file, int line, const char *func,
 	return retval;
 #else
 	UT_ASSERT(signum < NSIG);
-	pthread_mutex_lock(&Sigactions_lock);
+	os_mutex_lock(&Sigactions_lock);
 	if (oldact)
 		*oldact = Sigactions[signum];
 	if (act)
 		Sigactions[signum] = *act;
-	pthread_mutex_unlock(&Sigactions_lock);
+	os_mutex_unlock(&Sigactions_lock);
 
 	if (signum == SIGABRT) {
 		ut_suppress_errmsg();

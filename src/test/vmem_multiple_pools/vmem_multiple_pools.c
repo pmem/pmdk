@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	const unsigned mem_pools_size = (npools / 2 + npools % 2) * nthreads;
 	mem_pools = MALLOC(mem_pools_size * sizeof(char *));
 	pools = CALLOC(npools * nthreads, sizeof(VMEM *));
-	pthread_t *threads = CALLOC(nthreads, sizeof(pthread_t));
+	os_thread_t *threads = CALLOC(nthreads, sizeof(os_thread_t));
 	UT_ASSERTne(threads, NULL);
 	int *pool_idx = CALLOC(nthreads, sizeof(int));
 	UT_ASSERTne(pool_idx, NULL);

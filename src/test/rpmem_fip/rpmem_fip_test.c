@@ -611,7 +611,7 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	pthread_t *persist_thread = MALLOC(resp.nlanes * sizeof(pthread_t));
+	os_thread_t *persist_thread = MALLOC(resp.nlanes * sizeof(os_thread_t));
 	struct persist_arg *args = MALLOC(resp.nlanes *
 			sizeof(struct persist_arg));
 
