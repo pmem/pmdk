@@ -221,6 +221,7 @@ PMEMPOOL_TESTS = \
 
 RPMEM_TESTS =\
 	rpmemd_config\
+	rpmemd_util\
 	rpmemd_log\
 	rpmemd_dbg\
 	rpmem_proto\

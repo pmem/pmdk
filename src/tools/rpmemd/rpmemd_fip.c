@@ -135,7 +135,7 @@ struct rpmemd_fip {
 	struct fid_mr *mr;		/* memory region for pool */
 	struct rpmemd_fip_ops *ops;	/* ops specific for persist method */
 
-	void (*persist)(const void *addr, size_t len);	/* persist function */
+	int (*persist)(const void *addr, size_t len);	/* persist function */
 	void *addr;			/* pool's address */
 	size_t size;			/* size of the pool */
 	enum rpmem_persist_method persist_method;
