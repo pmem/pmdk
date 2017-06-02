@@ -129,6 +129,12 @@ CXXFLAGS += -I../rpmem_common
 CXXFLAGS += -I../librpmem
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
+ifeq ($(COVERAGE),1)
+CXXFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
 ifeq ($(BUILD_RPMEM),y)
 SRC += rpmem_persist.cpp
 LIBS += -lrpmem $(shell pkg-config --libs libfabric)
@@ -171,7 +177,7 @@ objdir=.
 %.o: %.cpp Makefile
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
-	$(CXX) -MD -c -o $@ $(CXXFLAGS) $<
+	$(CXX) -MD -c -o $@ $(CXXFLAGS) $(call coverage-path, $<)
 	$(call check-os, $@, $<)
 	$(create-deps)
 
