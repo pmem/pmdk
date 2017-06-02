@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,7 +38,7 @@
 # exits in the middle of transaction, so pool cannot be closed
 export MEMCHECK_DONT_CHECK_LEAKS=1
 
-verify_scenario() {
+verify_scenario_1_0() {
 	# convert tool always ask for confirmation, so say yes ;)
 	echo -e "y\ny\n" | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
@@ -49,17 +49,38 @@ verify_scenario() {
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
 
-create_scenario() {
-	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
-		--command=trip_on_pre_commit.gdb --args\
-		./obj_convert$EXESUFFIX $DIR/scenario$1a c $1 &> /dev/null
-
-	LD_LIBRARY_PATH=$PATH_TO_1_0_DBG gdb --batch\
-		--command=trip_on_post_commit.gdb --args\
-		./obj_convert$EXESUFFIX $DIR/scenario$1c c $1 &> /dev/null
+verify_scenario_1_2() {
+	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
+	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
 
-run_scenarios() {
+create_scenario() {
+	LD_LIBRARY_PATH=$1 gdb --batch\
+		--command=trip_on_pre_commit.gdb --args\
+		./obj_convert$EXESUFFIX $DIR/scenario$2a c $2 &> /dev/null
+
+	LD_LIBRARY_PATH=$1 gdb --batch\
+		--command=trip_on_post_commit.gdb --args\
+		./obj_convert$EXESUFFIX $DIR/scenario$2c c $2 &> /dev/null
+}
+
+create_scenario_1_0() {
+	create_scenario $PATH_TO_1_0_DBG $1
+}
+
+create_scenario_1_2() {
+	create_scenario $PATH_TO_1_2_DBG $1
+}
+
+clear_scenarios() {
+	for i in "${sc[@]}"
+	do
+		rm -rf $DIR/scenario$1a
+		rm -rf $DIR/scenario$1c
+	done
+}
+
+run_scenarios_1_0() {
 	sc=("$@")
 
 	if [ -z ${PATH_TO_1_0_DBG+x} ];
@@ -68,12 +89,39 @@ run_scenarios() {
 	else
 		for i in "${sc[@]}"
 		do
-			create_scenario $i
+			create_scenario_1_0 $i
 		done
 	fi
 
 	for i in "${sc[@]}"
 	do
-		verify_scenario $i
+		verify_scenario_1_0 $i
 	done
+}
+
+run_scenarios_1_2() {
+	sc=("$@")
+	if [ -z ${PATH_TO_1_2_DBG+x} ];
+	then
+		tar -xzf pools_1_2.tar.gz -C $DIR
+	else
+		for i in "${sc[@]}"
+		do
+			create_scenario_1_2 $i
+		done
+	fi
+
+	for i in "${sc[@]}"
+	do
+		verify_scenario_1_2 $i
+	done
+}
+
+#PATH_TO_1_2_DBG=/home/pbalcer/nvml2/src/debug
+
+run_scenarios() {
+	run_scenarios_1_0 $@
+	clear_scenarios $@
+
+	run_scenarios_1_2 $@
 }
