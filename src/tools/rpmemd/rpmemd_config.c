@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -468,7 +469,7 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 		default:
 			if (set_option((enum rpmemd_option)opt, optarg, config)
 					== 0) {
-				*cl_options |= (uint64_t)(1 << opt);
+				*cl_options |= (UINT64_C(1) << opt);
 			} else {
 				print_usage(argv[0]);
 				exit(-1);
