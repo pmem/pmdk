@@ -214,22 +214,22 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 			errorstr = strerror(errno);
 			prefix = ": ";
 		}
+
+		va_list ap;
+		va_start(ap, fmt);
+		ret = vsnprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt, fmt, ap);
+		va_end(ap);
+
+		if (ret < 0)
+			RPMEMD_FATAL("vsnprintf failed");
+
+		cnt += (size_t)ret;
+
+		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
+				"%s%s%s", prefix, errorstr, suffix);
+		if (ret < 0)
+			RPMEMD_FATAL("snprintf failed");
 	}
-
-	va_list ap;
-	va_start(ap, fmt);
-	ret = vsnprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt, fmt, ap);
-	va_end(ap);
-
-	if (ret < 0)
-		RPMEMD_FATAL("vsnprintf failed");
-
-	cnt += (size_t)ret;
-
-	ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
-			"%s%s%s", prefix, errorstr, suffix);
-	if (ret < 0)
-		RPMEMD_FATAL("snprintf failed");
 
 	if (rpmemd_use_syslog) {
 		int prio = rpmemd_level2prio[level];
