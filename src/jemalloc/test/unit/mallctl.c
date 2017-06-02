@@ -1,5 +1,11 @@
 #include "test/jemalloc_test.h"
 
+/*
+ * The minimal size of a pool. This must be large enough so that on systems with
+ * large amount of CPUs arena statistics can be allocated (32kb per arena).
+ */
+#define MALLCTL_MIN_SIZE (1 << 27) /* 128 megabytes */
+
 TEST_BEGIN(test_mallctl_errors)
 {
 	uint64_t epoch;
@@ -108,9 +114,9 @@ TEST_BEGIN(test_mallctlnametomib_short_mib)
 	unsigned npools;
 	size_t sz = sizeof(npools);
 
-	mem = calloc(1, POOL_MINIMAL_SIZE);
+	mem = calloc(1, MALLCTL_MIN_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
-	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+	pool = je_pool_create(mem, MALLCTL_MIN_SIZE, 1);
 
 	assert_ptr_ne((void*)pool, NULL, "Unexpected je_pool_create() failure");
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
@@ -217,17 +223,19 @@ TEST_BEGIN(test_mallctl_with_multiple_pools)
 	size_t sz = sizeof(npools);
 	size_t mib[4], miblen;
 
-	mem = calloc(NPOOLS, POOL_MINIMAL_SIZE);
+	mem = calloc(NPOOLS, MALLCTL_MIN_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
 
 	for (i = 0; i < NPOOLS; ++i) {
-		pools[i] = je_pool_create( mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 1);
-		assert_ptr_ne( (void*)pools[i], NULL, "Unexpected je_pool_create() failure");
+		pools[i] = je_pool_create( mem + (i * MALLCTL_MIN_SIZE),
+			MALLCTL_MIN_SIZE, 1);
+		assert_ptr_ne( (void*)pools[i], NULL,
+			"Unexpected je_pool_create() failure");
 	}
 
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
 	    "Unexpected mallctl() failure");
-	assert_u_eq(npools, NPOOLS+1, "Unexpected number of pools");
+	assert_u_eq(npools, NPOOLS + 1, "Unexpected number of pools");
 
 	miblen = 4;
 	assert_d_eq(mallctlnametomib("pool.0.arenas.narenas", mib, &miblen), 0,
@@ -305,9 +313,9 @@ TEST_BEGIN(test_arena_i_purge)
 	void *mem;
 	pool_t *pool;
 
-	mem = calloc(1, POOL_MINIMAL_SIZE);
+	mem = calloc(1, MALLCTL_MIN_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
-	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+	pool = je_pool_create(mem, MALLCTL_MIN_SIZE, 1);
 
 	assert_ptr_ne( (void*)pool, NULL, "Unexpected je_pool_create() failure");
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
@@ -445,12 +453,14 @@ TEST_BEGIN(test_arenas_extend)
 	       miblen	= sizeof(mib_narenas),
 	       sz	= sizeof(unsigned);
 
-	mem = calloc(NPOOLS, POOL_MINIMAL_SIZE);
+	mem = calloc(NPOOLS, MALLCTL_MIN_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
 
 	for (i = 0; i < NPOOLS; ++i) {
-		pools[i] = je_pool_create(mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 0);
-		assert_ptr_ne((void *)pools[i], NULL, "Unexpected je_pool_create() failure");
+		pools[i] = je_pool_create(mem + (i * MALLCTL_MIN_SIZE),
+			MALLCTL_MIN_SIZE, 0);
+		assert_ptr_ne((void *)pools[i], NULL,
+			"Unexpected je_pool_create() failure");
 	}
 
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
