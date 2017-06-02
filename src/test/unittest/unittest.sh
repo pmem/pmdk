@@ -2163,6 +2163,11 @@ function init_rpmem_on_node() {
 			trace=$(get_trace $CHECK_TYPE $log_file $slave)
 		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
+
+		# Force pmem for APM. Otherwise in case of lack of a pmem rpmemd will
+		# silently fallback to GPSPM.
+		[ "$RPMEM_PM" == "APM" ] && CMD="$CMD PMEM_IS_PMEM_FORCE=1"
+
 		CMD="$CMD ${NODE_ENV[$slave]}"
 		CMD="$CMD LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$slave]}"
 		CMD="$CMD $trace ../rpmemd"
