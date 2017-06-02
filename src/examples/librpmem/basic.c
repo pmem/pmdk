@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	char *pool_set = argv[3];
 	unsigned nlanes = NLANES;
 	void *pool;
-	size_t align = sysconf(_SC_PAGESIZE);
+	size_t align = (size_t)sysconf(_SC_PAGESIZE);
 	errno = posix_memalign(&pool, align, POOL_SIZE);
 	if (errno) {
 		perror("posix_memalign");
