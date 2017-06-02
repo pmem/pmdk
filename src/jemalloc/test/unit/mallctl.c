@@ -507,9 +507,17 @@ TEST_BEGIN(test_stats_arenas)
 }
 TEST_END
 
+/*
+ * Each arena allocates 32 kilobytes of CTL metadata, and since we only
+ * have 12 megabytes, we have to hard-limit it to a known value, otherwise
+ * on systems with high CPU count, the tests might run out of memory.
+ */
+#define NARENAS_IN_POOL 64
+
 int
 main(void)
 {
+	opt_narenas = NARENAS_IN_POOL;
 
 	return (test(
 	    test_mallctl_errors,
