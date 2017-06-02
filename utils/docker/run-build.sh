@@ -35,7 +35,7 @@
 #                and starts a build of NVML project.
 #
 
-# Get and prepare NVML source
+# Prepare build environment
 ./prepare-for-build.sh
 
 # Build librpmem even if libfabric is not compiled with ibverbs

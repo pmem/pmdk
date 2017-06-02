@@ -54,12 +54,6 @@ if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	exit 0
 fi
 
-if [[ "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" ]]
-then
-	echo "INFO: Skip Docker image preparation for Coverity scan job"
-	exit 0
-fi
-
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set properly " \
              "(eg. OS=ubuntu, OS_VER=16.04)."

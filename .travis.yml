@@ -12,7 +12,7 @@ env:
     - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
     - MAKE_PKG=1 NVML_CC=clang NVML_CXX=clang++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
     - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=fedora OS_VER=25 EXPERIMENTAL=y
-    - COVERITY=1
+    - COVERITY=1 REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04
 
 before_install:
   - export HOST_WORKDIR=`pwd`
