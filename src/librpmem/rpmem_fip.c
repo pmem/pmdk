@@ -1257,6 +1257,6 @@ rpmem_fip_param_get(const char *var_name, int *value)
 void
 rpmem_fip_probe_fork_safety(int *fork_unsafe)
 {
-	fork_unsafe = 0; /* false by default */
+	*fork_unsafe = 0; /* false by default */
 	rpmem_fip_param_get(LIBFABRIC_FORK_UNSAFE_VAR, fork_unsafe);
 }
