@@ -195,9 +195,9 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=1.4)
+export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=1.4.2)
 ifneq ($(BUILD_RPMEM),y)
-	export BUILD_RPMEM_INFO := libfabric (version >= 1.4) is missing -- \
+	export BUILD_RPMEM_INFO := libfabric (version >= 1.4.2) is missing -- \
 see src/librpmem/README for details.
 endif
 
