@@ -221,6 +221,8 @@ many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 	UT_ASSERTeq(consumers_msg_sum, expected_sum);
 
 	ringbuf_delete(arg_proto.rbuf);
+	FREE(producer_args);
+	FREE(consumer_args);
 	FREE(msg_per_producer_sum);
 	FREE(consumers);
 	FREE(producers);
