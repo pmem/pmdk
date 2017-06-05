@@ -84,7 +84,7 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 
 int
 heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-	void *arg, struct memory_block *m, struct alloc_class *c);
+	void *arg, struct memory_block *m);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 

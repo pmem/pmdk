@@ -57,12 +57,6 @@
 
 #define NCACHES_PER_CPU	2
 
-struct active_run {
-	uint32_t chunk_id;
-	uint32_t zone_id;
-	SLIST_ENTRY(active_run) run;
-};
-
 struct bucket_cache {
 	/* one cache bucket per allocation class */
 	struct bucket *buckets[MAX_ALLOCATION_CLASSES]; /* no default bucket */
@@ -358,7 +352,7 @@ heap_run_insert(struct palloc_heap *heap, struct bucket *b,
 	ASSERT(size_idx <= BITS_PER_VALUE);
 	ASSERT(block_off + size_idx <= c->run.bitmap_nallocs);
 
-	uint32_t unit_max = c->run.unit_max;
+	uint32_t unit_max = RUN_UNIT_MAX;
 	struct memory_block nm = *m;
 	nm.size_idx = unit_max - (block_off % unit_max);
 	nm.block_off = block_off;
@@ -384,6 +378,7 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 {
 	struct alloc_class *c = b->aclass;
 	ASSERTeq(c->type, CLASS_RUN);
+	ASSERTeq(m->size_idx, c->run.size_idx);
 
 	uint16_t block_off = 0;
 	uint16_t block_size_idx = 0;
@@ -391,6 +386,8 @@ heap_process_run_metadata(struct palloc_heap *heap, struct bucket *b,
 
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+
+	ASSERTeq(run->block_size, c->unit_size);
 
 	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
 		ASSERT(i < MAX_BITMAP_VALUES);
@@ -474,24 +471,21 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 	if (m->m_ops->claim(m) != 0)
 		return 0; /* this run already has an owner */
 
-	struct alloc_class *c = alloc_class_get_create_by_unit_size(
-		heap->rt->alloc_classes, run->block_size);
-	if (c == NULL)
-		return 0;
-
-	ASSERTeq(c->type, CLASS_RUN);
+	struct alloc_class_run_proto run_proto;
+	alloc_class_generate_run_proto(&run_proto,
+		run->block_size, m->size_idx);
 
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 	util_mutex_lock(lock);
 
 	unsigned i;
-	unsigned nval = c->run.bitmap_nval;
+	unsigned nval = run_proto.bitmap_nval;
 	for (i = 0; nval > 0 && i < nval - 1; ++i)
 		if (run->bitmap[i] != 0)
 			break;
 
 	int empty = (i == (nval - 1)) &&
-		(run->bitmap[i] == c->run.bitmap_lastval);
+		(run->bitmap[i] == run_proto.bitmap_lastval);
 	if (empty) {
 		struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
 		struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -523,7 +517,13 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 
 		*m = nb;
 	} else {
-		recycler_put(heap->rt->recyclers[c->id], m);
+		struct alloc_class *c = alloc_class_by_unit_size(
+			heap->rt->alloc_classes,
+			run->block_size);
+		if (c != NULL && c->type == CLASS_RUN &&
+				c->run.size_idx == m->size_idx) {
+			recycler_put(heap->rt->recyclers[c->id], m);
+		}
 	}
 
 	util_mutex_unlock(lock);
@@ -1362,11 +1362,8 @@ out:
  */
 int
 heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-		void *arg, struct memory_block *m, struct alloc_class *c)
+		void *arg, struct memory_block *m)
 {
-	if (c == NULL)
-		return -1;
-
 	uint16_t i = m->block_off / BITS_PER_VALUE;
 	uint16_t block_start = m->block_off % BITS_PER_VALUE;
 	uint16_t block_off;
@@ -1374,12 +1371,16 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	struct chunk_run *run = (struct chunk_run *)
 		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
 
-	for (; i < c->run.bitmap_nval; ++i) {
+	struct alloc_class_run_proto run_proto;
+	alloc_class_generate_run_proto(&run_proto,
+		run->block_size, m->size_idx);
+
+	for (; i < run_proto.bitmap_nval; ++i) {
 		uint64_t v = run->bitmap[i];
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
 
 		for (uint16_t j = block_start; j < BITS_PER_VALUE; ) {
-			if (block_off + j >= (uint16_t)c->run.bitmap_nallocs)
+			if (block_off + j >= (uint16_t)run_proto.bitmap_nallocs)
 				break;
 
 			if (!BIT_IS_CLR(v, j)) {
@@ -1396,7 +1397,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 						!= 0)
 					return 1;
 
-				m->size_idx = CALC_SIZE_IDX(c->unit_size,
+				m->size_idx = CALC_SIZE_IDX(run->block_size,
 					m->m_ops->get_real_size(m));
 				j = (uint16_t)(j + m->size_idx);
 			} else {
@@ -1419,18 +1420,15 @@ heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 	struct zone *zone = ZID_TO_ZONE(heap->layout, m->zone_id);
 	struct chunk_header *hdr = &zone->chunk_headers[m->chunk_id];
 	memblock_rebuild_state(heap, m);
+	m->size_idx = hdr->size_idx;
 
 	switch (hdr->type) {
 		case CHUNK_TYPE_FREE:
 			return 0;
 		case CHUNK_TYPE_USED:
-			m->size_idx = hdr->size_idx;
 			return cb(m, arg);
 		case CHUNK_TYPE_RUN:
-			return heap_run_foreach_object(heap, cb, arg, m,
-				alloc_class_get_create_by_unit_size(
-					heap->rt->alloc_classes,
-					m->m_ops->block_size(m)));
+			return heap_run_foreach_object(heap, cb, arg, m);
 		default:
 			ASSERT(0);
 	}
@@ -1506,10 +1504,7 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 			sizeof(*run) - sizeof(run->data));
 
 		if (objects) {
-			int ret = heap_run_foreach_object(heap, cb, arg, m,
-				alloc_class_get_create_by_unit_size(
-					heap->rt->alloc_classes,
-					m->m_ops->block_size(m)));
+			int ret = heap_run_foreach_object(heap, cb, arg, m);
 			ASSERTeq(ret, 0);
 		}
 	} else {
