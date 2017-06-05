@@ -65,6 +65,9 @@ pmemobj_tx_add_range_direct
 pmemobj_tx_alloc
 pmemobj_tx_begin
 pmemobj_tx_commit
+pmemobj_tx_ctx_delete
+pmemobj_tx_ctx_new
+pmemobj_tx_ctx_set
 pmemobj_tx_end
 pmemobj_tx_errno
 pmemobj_tx_free
