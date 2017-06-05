@@ -61,7 +61,7 @@ const size_t header_type_to_size[MAX_HEADER_TYPES] = {
 const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
 	0,
 	CHUNK_FLAG_COMPACT_HEADER,
-	CHUNK_FLAG_NO_HEADER
+	CHUNK_FLAG_HEADER_NONE
 };
 
 /*
@@ -76,8 +76,8 @@ memblock_header_type(const struct memory_block *m)
 	if (hdr->flags & CHUNK_FLAG_COMPACT_HEADER)
 		return HEADER_COMPACT;
 
-	if (hdr->flags & CHUNK_FLAG_NO_HEADER)
-		return NO_HEADER;
+	if (hdr->flags & CHUNK_FLAG_HEADER_NONE)
+		return HEADER_NONE;
 
 	return HEADER_LEGACY;
 }
@@ -95,7 +95,7 @@ memblock_header_legacy_get_size(const struct memory_block *m)
 }
 
 /*
- * memblock_header_legacy_get_size --
+ * memblock_header_compact_get_size --
  *	(internal) returns the size stored in a compact header
  */
 static size_t
@@ -107,11 +107,11 @@ memblock_header_compact_get_size(const struct memory_block *m)
 }
 
 /*
- * memblock_header_legacy_get_size --
+ * memblock_header_none_get_size --
  *	(internal) determines the sizes of an object without a header
  */
 static size_t
-memblock_no_header_get_size(const struct memory_block *m)
+memblock_header_none_get_size(const struct memory_block *m)
 {
 	return m->m_ops->block_size(m);
 }
@@ -141,11 +141,11 @@ memblock_header_compact_get_extra(const struct memory_block *m)
 }
 
 /*
- * memblock_no_header_get_extra --
+ * memblock_header_none_get_extra --
  *	(internal) objects without a header do have an extra field
  */
 static uint64_t
-memblock_no_header_get_extra(const struct memory_block *m)
+memblock_header_none_get_extra(const struct memory_block *m)
 {
 	return 0;
 }
@@ -175,11 +175,11 @@ memblock_header_compact_get_flags(const struct memory_block *m)
 }
 
 /*
- * memblock_no_header_get_flags --
+ * memblock_header_none_get_flags --
  *	(internal) objects without a header do not support flags
  */
 static uint16_t
-memblock_no_header_get_flags(const struct memory_block *m)
+memblock_header_none_get_flags(const struct memory_block *m)
 {
 	return 0;
 }
@@ -227,11 +227,11 @@ memblock_header_compact_write(const struct memory_block *m,
 }
 
 /*
- * memblock_no_header_write --
+ * memblock_header_none_write --
  *	(internal) nothing to write
  */
 static void
-memblock_no_header_write(const struct memory_block *m,
+memblock_header_none_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
 {
 	/* NOP */
@@ -265,11 +265,11 @@ memblock_header_compact_reinit(const struct memory_block *m)
 }
 
 /*
- * memblock_no_header_reinit --
+ * memblock_header_none_reinit --
  *	(internal) nothing to reinitialize
  */
 static void
-memblock_no_header_reinit(const struct memory_block *m)
+memblock_header_none_reinit(const struct memory_block *m)
 {
 	/* NOP */
 }
@@ -296,12 +296,12 @@ static struct {
 		memblock_header_compact_write,
 		memblock_header_compact_reinit,
 	},
-	[NO_HEADER] = {
-		memblock_no_header_get_size,
-		memblock_no_header_get_extra,
-		memblock_no_header_get_flags,
-		memblock_no_header_write,
-		memblock_no_header_reinit,
+	[HEADER_NONE] = {
+		memblock_header_none_get_size,
+		memblock_header_none_get_extra,
+		memblock_header_none_get_flags,
+		memblock_header_none_write,
+		memblock_header_none_reinit,
 	}
 };
 
@@ -448,6 +448,9 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 
 	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+
+	ASSERT(m->size_idx <= BITS_PER_VALUE);
+
 	/*
 	 * Free blocks are represented by clear bits and used blocks by set
 	 * bits - which is the reverse of the commonly used scheme.
