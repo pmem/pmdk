@@ -210,7 +210,8 @@ the **rpmem_persist**() returns 0, otherwise it returns non-zero value
 and sets *errno* appropriately.
 
 ```c
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length);
+int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+	unsigned lane);
 ```
 
 The **rpmem_read**() function reads *length* bytes of data from remote pool
