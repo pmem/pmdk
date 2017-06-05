@@ -91,7 +91,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 	return pop;
 }
 
-static void
+static PMEMobjpool *
 test_lazy_load(PMEMobjpool *pop, const char *path)
 {
 	PMEMoid oid[3];
@@ -110,6 +110,8 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 
 	ret = pmemobj_alloc(pop, &oid[1], LAZY_LOAD_BIG_SIZE, 0, NULL, NULL);
 	UT_ASSERTeq(ret, 0);
+
+	return pop;
 }
 
 #define ALLOC_BLOCK_SIZE 64
@@ -150,7 +152,7 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	test_lazy_load(pop, path);
+	pop = test_lazy_load(pop, path);
 	pop = test_allocs(pop, path);
 	test_all_classes(pop);
 
