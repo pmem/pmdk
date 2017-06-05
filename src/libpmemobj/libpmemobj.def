@@ -111,6 +111,8 @@ EXPORTS
 	pmemobj_tx_free
 	pmemobj_tx_errno
 	pmemobj_tx_lock
+	pmemobj_tx_ctx_set
+	pmemobj_tx_ctx_restore
 	pmemobj_memcpy_persist
 	pmemobj_memset_persist
 	pmemobj_persist
