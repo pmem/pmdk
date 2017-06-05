@@ -127,6 +127,7 @@ static int
 test_create(const char *root_dir, const char *pool_desc)
 {
 	struct rpmem_pool_attr attr;
+	memset(&attr, 0, sizeof(attr));
 	struct rpmemd_db_pool *prp;
 	struct rpmemd_db *db;
 	int ret = -1;
@@ -159,6 +160,7 @@ test_create_dual(const char *root_dir, const char *pool_desc_1,
 			const char *pool_desc_2)
 {
 	struct rpmem_pool_attr attr1;
+	memset(&attr1, 0, sizeof(attr1));
 	struct rpmemd_db_pool *prp1, *prp2;
 	struct rpmemd_db *db;
 	int ret = -1;
@@ -625,6 +627,8 @@ test_remove(const char *root_dir, const char *pool_desc)
 
 	ret = os_access(path, F_OK);
 	UT_ASSERTne(ret, 0);
+
+	rpmemd_db_fini(db);
 }
 
 int
