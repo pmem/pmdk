@@ -648,7 +648,7 @@ rpmemd_db_check_dir_r(struct list_head *head, struct rpmemd_db *db,
 	return 0;
 
 err_free_set:
-	free(set);
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 err_free_paths:
 	free(new_desc);
 	free(full_path);
@@ -675,6 +675,7 @@ rpmemd_db_check_dir(struct rpmemd_db *db)
 	while (!LIST_EMPTY(&head)) {
 		struct rpmemd_db_entry *edb = LIST_FIRST(&head);
 		LIST_REMOVE(edb, next);
+		util_poolset_close(edb->set, DO_NOT_DELETE_PARTS);
 		free(edb->pool_desc);
 		free(edb);
 	}
