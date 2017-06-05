@@ -1,0 +1,83 @@
+obj_tx_ctx$(nW)TEST0: START: obj_tx_ctx
+ $(nW)obj_tx_ctx$(nW) $(nW)testfile1 $(nW)testfile2
+noneA:
+x = 0, y = 0, z = 3
+x = 0, y = 0, z = 0
+noneAaborted:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+workAA:
+x = 1, y = 2, z = 3
+x = 0, y = 0, z = 0
+workAAaborted:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+workActxA:
+x = 1, y = 2, z = 3
+x = 0, y = 0, z = 0
+workActxAaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+workAB:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+nested transaction for different pool
+workABaborted:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+nested transaction for different pool
+workActxB:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 3
+workActxBaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+onabortActxA:
+x = 0, y = 0, z = 3
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+onabortActxAaborted:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+onabortActxB:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 3
+explicit transaction abort: Operation canceled
+onabortActxBaborted:
+x = 0, y = 0, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+oncommitActxA:
+x = 1, y = 2, z = 3
+x = 0, y = 0, z = 0
+oncommitActxAaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+oncommitActxB:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 3
+oncommitActxBaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+finallyActxA:
+x = 1, y = 2, z = 3
+x = 0, y = 0, z = 0
+finallyActxAaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+finallyActxB:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 3
+finallyActxBaborted:
+x = 1, y = 2, z = 0
+x = 0, y = 0, z = 0
+explicit transaction abort: Operation canceled
+obj_tx_ctx$(nW)TEST0: DONE
