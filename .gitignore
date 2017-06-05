@@ -24,3 +24,9 @@ nbproject/
 *.hpptmp
 *.aps
 tags
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+.dir-locals.el
+\#*\#
