@@ -306,6 +306,9 @@ int pmemobj_tx_end(void);
 int pmemobj_tx_errno(void);
 void pmemobj_tx_process(void);
 
+int pmemobj_tx_ctx_set(struct pobj_tx_ctx *new_ctx, struct pobj_tx_ctx **old_ctx);
+int pmemobj_tx_ctx_restore(struct pobj_tx_ctx *ctx);
+
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
@@ -1591,13 +1594,9 @@ transaction is interrupted by a power failure or a system crash, it is guarantee
 transaction will be rolled-back, restoring the consistent state of the memory pool from the moment when the transaction was started.
 
 Note that transactions do not provide the atomicity with respect to other threads. All the modifications performed within the transactions are immediately
-visible to other threads, and this is the responsibility of the program to implement a proper thread synchronization mechanism.
+visible to other threads, and it is the responsibility of a programer to implement a proper thread synchronization mechanism.
 
-Each transaction is visible only for the thread that started it. No other threads can add operations, commit or abort the transaction initiated by another
-thread. There may be multiple open transactions on given memory pool at the same time, but only one transaction per thread.
-
-Nested transactions are supported but flattened. Committing the nested transaction does not commit the outer transaction, however errors in the nested
-transaction are propagated up to the outermost level, resulting in the interruption of the entire transaction.
+Each transaction is visible only to the thread that started it. No other threads can add operations, commit or abort the transaction initiated by another thread. There may be multiple open transactions from multiple threads on a single memory pool at the same time.
 
 Please see the **CAVEATS** section for known limitations of the transactional API.
 
@@ -1605,7 +1604,7 @@ Please see the **CAVEATS** section for known limitations of the transactional AP
 enum tx_stage pmemobj_tx_stage(void);
 ```
 
-The **pmemobj_tx_stage**() function returns the stage of the current transaction stage for a thread. Stages are changed only by the **pmemobj_tx_\***() functions.
+The **pmemobj_tx_stage**() function returns the stage of the current transaction in the thread. Stages are changed only by the **pmemobj_tx_\***() functions.
 The transaction stages are defined as follows:
 
 + **TX_STAGE_NONE** - no open transaction in this thread
@@ -1618,12 +1617,8 @@ The transaction stages are defined as follows:
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, ...);
 ```
 
-The **pmemobj_tx_begin**() function starts a new transaction in the current thread. If called within an open transaction, it starts a nested transaction. The
-caller may use *env* argument to provide a pointer to the information of a calling environment to be restored in case of transaction abort. This information
-must be filled by a caller, using **setjmp**(3) macro.
+The **pmemobj_tx_begin**() function starts a new transaction in the current thread. The caller may use *env* argument to provide a pointer to the information of a calling environment to be restored in case of transaction abort. This information must be filled by a caller, using **setjmp**(3) macro.
 
-New transaction may be started only if the current stage is **TX_STAGE_NONE** or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK**
-and function returns zero. Otherwise, stage changes to **TX_STAGE_ONABORT** and an error number is returned.
 
 Optionally, a list of parameters for the transaction may be provided as the following arguments. Each parameter consists of a type and type-specific number
 of values. Currently there are 4 types:
@@ -1637,26 +1632,73 @@ Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning of a
 it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all locks prior to successful completion and they will be held by the current thread
 until the outermost transaction is finished. Locks are taken in the order from left to right. To avoid deadlocks, user must take care of the proper order of locks.
 
-**TX_PARAM_CB** registers specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
+**TX_PARAM_CB** registers a specified callback function to be executed at each transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
 stages as a first operation after stage change. It will also be called after each transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
 pmemobj_tx_callback must be compatible with:
 
 ```void func(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)```
 
 *pop* is a pool identifier used in **pmemobj_tx_begin**(), *stage* is a current transaction stage and *arg* is a second parameter of **TX_PARAM_CB**.
-Without considering transaction nesting this mechanism can be deemed as an alternative method for executing code between stages (instead of **TX_ONCOMMIT**,
+This mechanism can be deemed as an alternative method for executing code between stages (instead of **TX_ONCOMMIT**,
 **TX_ONABORT**, etc).
-However there are 2 significant differences when nested transactions are used:
 
-+  Registered function is executed only in the most outer transaction (even if registered in the inner one).
+Note that **TX_PARAM_CB** does not replace **TX_ONCOMMIT**/**TX_ONABORT**/etc. macros. They can be used together - a callback will be executed *before* **TX_ONCOMMIT**/**TX_ONABORT**/etc. section.
+
+If **pmemobj_tx_begin**() is called on the same memory pool within an open transaction, it starts a nested transaction on the pool. A new transaction may be started in this way only if the current stage of the open transaction is **TX_STAGE_NONE** or **TX_STAGE_WORK**.
+If successful, the transaction stage changes to **TX_STAGE_WORK** and the function returns zero. Otherwise, thes stage changes to **TX_STAGE_ONABORT** and an error number is returned.
+Transactions nested this way are flattened. Committing the inner transaction does not commit the outer transaction, however errors in the inner transaction are propagated up to the outermost level, resulting in the interruption of the entire transaction.
+
+There are 2 significant differences between nesting transactions and using stage callbacks:
+
++  Registered callback functions are executed only in the most outer transaction (even if registered in the inner one).
 
 +  There can be only one callback in the whole transaction (it can't be changed in the inner transaction).
 
-Note that **TX_PARAM_CB** does not replace **TX_ONCOMMIT**/**TX_ONABORT**/etc. macros. They can be used together - a callback will be executed *before*
-**TX_ONCOMMIT**/**TX_ONABORT**/etc. section.
+**TX_PARAM_CB** can be used when the code dealing with transaction stage changes is shared between multiple users or when it must be executed only in the outer transaction. For example it can be very useful when application must synchronize persistent and transient state.
 
-**TX_PARAM_CB** can be used when the code dealing with transaction stage changes is shared between multiple users or when it must be executed only in the outer
-transaction. For example it can be very useful when application must synchronize persistent and transient state.
+**pmemobj_tx_begin**() can also be called within an open transaction on a different memory pool. However, for this to succeed the current *transaction context* has to be changed.
+
+When opening the first transaction, a default context is being created. Then all nested transactions on the same pool or consecutive transactions on different pools use the default transaction context until it gets changed explicitly by a user.
+
+The following functions serve for manipulating the transaction context:
+
+```c
+int pmemobj_tx_ctx_set(struct pobj_tx_ctx *new_ctx, struct pobj_tx_ctx **old_ctx);
+int pmemobj_tx_ctx_restore(struct pobj_tx_ctx *ctx);
+```
+
+**pmemobj_tx_ctx_set**() sets the current transaction context to *new_ctx*, storing the previous context under the *old_ctx* pointer. *old_ctx* argument cannot be NULL. Passing NULL for the *new_ctx* allows for creation a new transaction context on the beginning of a subsequent transaction.
+
+**pmemobj_tx_ctx_restore**() restores a previously stored transaction context and frees the current one.
+
+Changing the current transaction context lets the user nest transactions for different pools or the same pool regardless of the stage of the outer transaction.
+
+This is an example of nesting transactions on different pools:
+
+```c
+TX_BEGIN(popA) {
+	... /* do sth on the pool A */
+	struct pobj_tx_ctx *old_ctx;
+	pmemobj_tx_ctx_set(NULL, &old_ctx); /* change the transaction context to a new one */
+	TX_BEGIN(popB) { /* start a nested transaction on the pool B with a new context */
+		/* do sth on the pool B */
+	} TX_END
+	pmemobj_tx_ctx_restore(old_ctx); /* restore the previous transaction context */
+	... /* do sth else on the pool A */
+} TX_ONABORT {
+	...
+	struct pobj_tx_ctx *old_ctx;
+	pmemobj_tx_ctx_set(NULL, &old_ctx);
+	TX_BEGIN(popC) {
+		/* do sth on the pool C */
+	} TX_END
+	pmemobj_tx_
+	...
+} TX_END
+```
+
+Transactions started with different transaction contexts are independent. Particularly, nesting transactions on the same pool with different contexts does not flattent them. The inner transaction commits its changes even if the outer transaction aborts in the next step.
+
 
 ```c
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);

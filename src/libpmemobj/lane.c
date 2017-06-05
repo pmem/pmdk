@@ -471,24 +471,23 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
  * lane_attach -- attaches the lane with the given index to the current thread
  */
 void
-lane_attach(PMEMobjpool *pop, unsigned lane)
+lane_attach(PMEMobjpool *pop, unsigned lane, unsigned long nest_count)
 {
 	struct lane_info *info = get_lane_info_record(pop);
-	info->nest_count = 1;
+	info->nest_count = nest_count;
 	info->lane_idx = lane;
 }
 
 /*
  * lane_detach -- detaches the currently held lane from the current thread
  */
-unsigned
+unsigned long
 lane_detach(PMEMobjpool *pop)
 {
 	struct lane_info *lane = get_lane_info_record(pop);
-	lane->nest_count -= 1;
-	ASSERTeq(lane->nest_count, 0);
-
-	return (unsigned)lane->lane_idx;
+	unsigned long lane_nest_cnt = lane->nest_count;
+	lane->nest_count = 0;
+	return lane_nest_cnt;
 }
 
 /*
@@ -516,4 +515,13 @@ lane_release(PMEMobjpool *pop)
 			FATAL("util_bool_compare_and_swap64");
 		}
 	}
+}
+
+/*
+ * lane_attach_cnt -- returns a lane attachment count of a pool
+ */
+unsigned long
+get_lane_nest_cnt(PMEMobjpool *pop)
+{
+	return get_lane_info_record(pop)->nest_count;
 }

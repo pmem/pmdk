@@ -36,6 +36,7 @@
 
 #include <inttypes.h>
 #include <wchar.h>
+#include <pthread.h>
 
 #include "queue.h"
 #include "ctree.h"
@@ -57,21 +58,79 @@ struct tx {
 	struct lane_section *section;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 	SLIST_HEAD(txd, tx_data) tx_entries;
-
+	unsigned lane;
+	unsigned long lane_nest_count;	/* valid only after call to */
+					/* pmemobj_tx_setctx() */
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
 };
 
+static pthread_key_t tx_ctx_key;
+static pthread_once_t tx_ctx_once = PTHREAD_ONCE_INIT;
+
 /*
- * get_tx -- (internal) returns current transaction
- *
- * This function should be used only in high-level functions.
+ * tx_ctx_create_key -- (internal) creates a pthread key for the transaction
+ *                      context
+ */
+static void
+tx_ctx_create_key(void)
+{
+	LOG(3, NULL);
+	int result = pthread_key_create(&tx_ctx_key, Free);
+	if (result) {
+		errno = result;
+		FATAL("!pthread_key_create");
+	}
+	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&tx_ctx_once);
+}
+
+/*
+ * create_tx_ctx -- (internal) creates an empty transaction context
  */
 static struct tx *
-get_tx()
+create_tx_ctx(void)
 {
-	static __thread struct tx tx;
-	return &tx;
+	LOG(3, NULL);
+	struct tx *ctx = Zalloc(sizeof(struct tx));
+	if (ctx == NULL) {
+		ERR("!Zalloc");
+		return NULL;
+	}
+	int res = pthread_setspecific(tx_ctx_key, ctx);
+	if (res) {
+		errno = res;
+		ERR("!pthread_setspecific");
+		Free(ctx);
+		return NULL;
+	}
+	return ctx;
+}
+
+
+/*
+ * get_tx_ctx -- (internal) gets the current transaction context
+ */
+static struct tx *
+get_tx_ctx(void)
+{
+	LOG(3, NULL);
+	return (struct tx *)pthread_getspecific(tx_ctx_key);
+}
+
+/*
+ * set_tx_ctx -- (internal) sets the current transaction context
+ */
+static int
+set_tx_ctx(struct tx *tx)
+{
+	LOG(3, "tx %p", tx);
+	int result = pthread_setspecific(tx_ctx_key, tx);
+	if (result) {
+		errno = result;
+		ERR("!pthread_setspecific");
+		return -1;
+	}
+	return 0;
 }
 
 struct tx_lock_data {
@@ -577,10 +636,13 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 {
 	LOG(3, NULL);
 
-	if (recovery)
+	if (recovery) {
 		tx_foreach_set(pop, NULL, tx_rt, tx_abort_recover_range);
-	else
-		tx_foreach_set(pop, get_tx(), tx_rt, tx_abort_restore_range);
+	} else {
+		struct tx *tx = get_tx_ctx();
+		ASSERTne(tx, NULL);
+		tx_foreach_set(pop, tx, tx_rt, tx_abort_restore_range);
+	}
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
@@ -854,7 +916,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 PMEMobjpool *
 tx_get_pop(void)
 {
-	return get_tx()->pop;
+	return get_tx_ctx() == NULL ? NULL : get_tx_ctx()->pop;
 }
 
 /*
@@ -1116,6 +1178,99 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 }
 
 /*
+ * pmemobj_tx_ctx_init -- initializes the transaction context
+ */
+void
+pmemobj_tx_ctx_init(void)
+{
+	LOG(3, NULL);
+	int result = pthread_once(&tx_ctx_once, tx_ctx_create_key);
+	if (result) {
+		errno = result;
+		FATAL("!pthread_once");
+	}
+
+	/*
+	 * Workaround Helgrind's bug:
+	 * https://bugs.kde.org/show_bug.cgi?id=337735
+	 */
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&tx_ctx_once);
+}
+
+/*
+ * pmemobj_tx_ctx_fini -- destroys the transaction context
+ */
+void
+pmemobj_tx_ctx_fini(void)
+{
+	LOG(3, NULL);
+	void *ctx = pthread_getspecific(tx_ctx_key);
+	if (ctx != NULL) {
+		Free(ctx);
+		(void) pthread_setspecific(tx_ctx_key, NULL);
+	}
+}
+
+/*
+ * pmemobj_tx_setctx -- sets new transaction context
+ *
+ * Upon success the old transaction context is stored under old_ctx.
+ * A pointer passed as old_ctx cannot be NULL.
+ */
+int
+pmemobj_tx_ctx_set(struct pobj_tx_ctx *new_ctx, struct pobj_tx_ctx **old_ctx)
+{
+	LOG(3, "new_ctx %p, old_ctx %p", new_ctx, old_ctx);
+	if (old_ctx == NULL) {
+		ERR("pointer for old transaction context cannot be NULL");
+		return -1;
+	}
+
+	struct tx *old_tx = get_tx_ctx();
+	if (old_tx != NULL && old_tx->pop != NULL)
+		old_tx->lane_nest_count = lane_detach(old_tx->pop);
+
+	struct tx *new_tx = (struct tx *)new_ctx;
+	if (new_tx != NULL && new_tx->pop == NULL) {
+		ERR("NULL pop");
+		return -1;
+	}
+
+	if (set_tx_ctx(new_tx))
+		return -1;
+
+	*old_ctx = (struct pobj_tx_ctx *)old_tx;
+
+	if (new_tx != NULL)
+		lane_attach(new_tx->pop, new_tx->lane, new_tx->lane_nest_count);
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_restorectx -- restores transaction context
+ *
+ * The current transaction context is replaced and then freed
+ */
+int
+pmemobj_tx_ctx_restore(struct pobj_tx_ctx *ctx)
+{
+	LOG(3, "ctx %p", ctx);
+	if (ctx == NULL) {
+		ERR("transaction context cannot be NULL");
+		return -1;
+	}
+
+	struct pobj_tx_ctx *old_ctx;
+	if (pmemobj_tx_ctx_set(ctx, &old_ctx)) {
+		ERR("!pmemobj_tx_setctx");
+		return -1;
+	}
+	Free(old_ctx);
+	return 0;
+}
+
+/*
  * pmemobj_tx_begin -- initializes new transaction
  */
 int
@@ -1124,10 +1279,21 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	LOG(3, NULL);
 
 	int err = 0;
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
+
+	if (pop == NULL) {
+		if (tx == NULL || tx->pop == NULL) {
+			FATAL("NULL pop");
+		} else {
+			err = errno = EINVAL;
+			ERR("!NULL pop");
+			goto err_abort;
+		}
+	}
+
 
 	struct lane_tx_runtime *lane = NULL;
-	if (tx->stage == TX_STAGE_WORK) {
+	if (tx != NULL && tx->stage == TX_STAGE_WORK) {
 		ASSERTne(tx->section, NULL);
 		if (tx->pop != pop) {
 			ERR("nested transaction for different pool");
@@ -1135,11 +1301,21 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		}
 
 		VALGRIND_START_TX;
-	} else if (tx->stage == TX_STAGE_NONE) {
+	} else if (tx == NULL || tx->stage == TX_STAGE_NONE) {
 		VALGRIND_START_TX;
+
+		if (tx == NULL) {
+			tx = create_tx_ctx();
+			if (tx == NULL) {
+				err = errno;
+				return err;
+			}
+		}
 
 		unsigned idx = lane_hold(pop, &tx->section,
 			LANE_SECTION_TRANSACTION);
+
+		tx->lane = idx;
 
 		lane = tx->section->runtime;
 		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
@@ -1233,7 +1409,10 @@ err_abort:
 int
 pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 {
-	struct tx *tx = get_tx();
+	LOG(3, "type %d, lockp %p", type, lockp);
+	struct tx *tx = get_tx_ctx();
+
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1246,6 +1425,7 @@ pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 static void
 obj_tx_callback(struct tx *tx)
 {
+	LOG(3, "tx %p", tx);
 	if (!tx->stage_callback)
 		return;
 
@@ -1263,8 +1443,9 @@ enum pobj_tx_stage
 pmemobj_tx_stage(void)
 {
 	LOG(3, NULL);
+	struct tx *tx = get_tx_ctx();
 
-	return get_tx()->stage;
+	return tx == NULL ? TX_STAGE_NONE : tx->stage;
 }
 
 /*
@@ -1274,8 +1455,9 @@ static void
 obj_tx_abort(int errnum, int user)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1330,8 +1512,9 @@ int
 pmemobj_tx_errno(void)
 {
 	LOG(3, NULL);
-
-	return get_tx()->last_errnum;
+	struct tx *tx = get_tx_ctx();
+	ASSERTne(tx, NULL);
+	return tx->last_errnum;
 }
 
 /*
@@ -1347,7 +1530,8 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	struct lane_tx_layout *layout =
 		(struct lane_tx_layout *)section->layout;
 
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
+	ASSERTne(tx, NULL);
 
 	if (detached) {
 #if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
@@ -1361,7 +1545,7 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 		}
 #endif
 
-		lane_attach(pop, runtime->lane_idx);
+		lane_attach(pop, runtime->lane_idx, 1);
 		tx->pop = pop;
 		tx->section = section;
 		tx->stage = TX_STAGE_ONCOMMIT;
@@ -1392,8 +1576,9 @@ void
 pmemobj_tx_commit(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1424,6 +1609,7 @@ pmemobj_tx_commit(void)
 		if (pop->tx_postcommit_tasks != NULL &&
 			ringbuf_tryenqueue(pop->tx_postcommit_tasks,
 				tx->section) == 0) {
+			ASSERTeq(get_lane_nest_cnt(pop), 1);
 			lane_detach(pop);
 		} else {
 			tx_post_commit_cleanup(pop, tx->section, 0);
@@ -1445,7 +1631,8 @@ int
 pmemobj_tx_end(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
+	ASSERTne(tx, NULL);
 
 	if (tx->stage == TX_STAGE_WORK)
 		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
@@ -1502,8 +1689,9 @@ void
 pmemobj_tx_process(void)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 
 	switch (tx->stage) {
@@ -1788,8 +1976,9 @@ int
 pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1819,8 +2008,9 @@ int
 pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1851,8 +2041,9 @@ int
 pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1879,8 +2070,9 @@ int
 pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1912,8 +2104,9 @@ PMEMoid
 pmemobj_tx_alloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1933,8 +2126,9 @@ PMEMoid
 pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1954,8 +2148,9 @@ PMEMoid
 pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1981,8 +2176,9 @@ PMEMoid
 pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -1998,8 +2194,9 @@ PMEMoid
 pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -2015,8 +2212,9 @@ PMEMoid
 pmemobj_tx_strdup(const char *s, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -2045,8 +2243,9 @@ PMEMoid
 pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
@@ -2075,8 +2274,9 @@ int
 pmemobj_tx_free(PMEMoid oid)
 {
 	LOG(3, NULL);
-	struct tx *tx = get_tx();
+	struct tx *tx = get_tx_ctx();
 
+	ASSERTne(tx, NULL);
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
