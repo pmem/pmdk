@@ -176,7 +176,17 @@ static struct rpmem_msg_create *
 rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr, size_t *msg_sizep)
 {
-	size_t pool_desc_size = strlen(req->pool_desc) + 1;
+	size_t pool_desc_size = strnlen(req->pool_desc,
+			RPMEM_MAX_PDESC_SIZE + 1);
+	if (pool_desc_size == RPMEM_MAX_PDESC_SIZE + 1) {
+		errno = EINVAL;
+		ERR("!pool descriptor too long (max is %d)",
+				RPMEM_MAX_PDESC_SIZE);
+		return NULL;
+	}
+
+	pool_desc_size += 1;
+
 	size_t msg_size = sizeof(struct rpmem_msg_create) + pool_desc_size;
 	struct rpmem_msg_create *msg = malloc(msg_size);
 	if (!msg) {
@@ -294,7 +304,17 @@ static struct rpmem_msg_open *
 rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr, size_t *msg_sizep)
 {
-	size_t pool_desc_size = strlen(req->pool_desc) + 1;
+	size_t pool_desc_size = strnlen(req->pool_desc,
+			RPMEM_MAX_PDESC_SIZE + 1);
+	if (pool_desc_size == RPMEM_MAX_PDESC_SIZE + 1) {
+		errno = EINVAL;
+		ERR("!pool descriptor too long (max is %d)",
+				RPMEM_MAX_PDESC_SIZE);
+		return NULL;
+	}
+
+	pool_desc_size += 1;
+
 	size_t msg_size = sizeof(struct rpmem_msg_open) + pool_desc_size;
 	struct rpmem_msg_open *msg = malloc(msg_size);
 	if (!msg) {

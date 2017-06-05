@@ -115,8 +115,19 @@ rpmemd_db_init(const char *root_dir, mode_t mode)
 static char *
 rpmemd_db_concat(const char *path1, const char *path2)
 {
-	size_t len1 = strlen(path1);
-	size_t len2 = strlen(path2);
+	size_t len1 = strnlen(path1, PATH_MAX + 1);
+	if (len1 == PATH_MAX + 1) {
+		RPMEMD_LOG(ERR, "too long poolset dir (max is %d)", PATH_MAX);
+		errno = EINVAL;
+		return NULL;
+	}
+	size_t len2 = strnlen(path2, PATH_MAX + 1);
+	if (len2 == PATH_MAX + 1) {
+		RPMEMD_LOG(ERR, "too long poolset path (max is %d)", PATH_MAX);
+		errno = EINVAL;
+		return NULL;
+	}
+
 	size_t new_len = len1 + len2 + 2; /* +1 for '/' in snprintf() */
 
 	if (path1[0] != '/') {

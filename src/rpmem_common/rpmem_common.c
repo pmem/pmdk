@@ -215,7 +215,13 @@ rpmem_target_parse(const char *target)
 	if (tmp) {
 		*tmp = '\0';
 		info->flags |= RPMEM_HAS_USER;
-		strncpy(info->user, str, sizeof(info->user) - 1);
+		size_t user_len = strnlen(info->user, RPMEM_MAX_USER);
+		if (user_len == RPMEM_MAX_USER) {
+			errno = EINVAL;
+			goto err_user_len;
+		}
+
+		strncpy(info->user, str, RPMEM_MAX_USER - 1);
 		tmp++;
 	} else {
 		tmp = str;
@@ -231,7 +237,12 @@ rpmem_target_parse(const char *target)
 		}
 
 		*end = '\0';
-		strncpy(info->node, tmp, sizeof(info->node) - 1);
+		size_t node_len = strnlen(tmp, RPMEM_MAX_NODE);
+		if (node_len == RPMEM_MAX_NODE) {
+			errno = EINVAL;
+			goto err_len;
+		}
+		strncpy(info->node, tmp, RPMEM_MAX_NODE - 1);
 		tmp = end + 1;
 
 		end = strchr(tmp, ':');
@@ -250,12 +261,24 @@ rpmem_target_parse(const char *target)
 				*first = '\0';
 				first++;
 				info->flags |= RPMEM_HAS_SERVICE;
+				size_t service_len = strnlen(first,
+						RPMEM_MAX_SERVICE);
+				if (service_len == RPMEM_MAX_SERVICE) {
+					errno = EINVAL;
+					goto err_len;
+				}
 				strncpy(info->service, first,
-						sizeof(info->service) - 1);
+						RPMEM_MAX_SERVICE - 1);
 			}
 		}
 
-		strncpy(info->node, tmp, sizeof(info->node) - 1);
+		size_t node_len = strnlen(tmp, RPMEM_MAX_NODE);
+		if (node_len == RPMEM_MAX_NODE) {
+			errno = EINVAL;
+			goto err_len;
+		}
+
+		strncpy(info->node, tmp, RPMEM_MAX_NODE - 1);
 	}
 
 	if (*info->node == '\0') {
@@ -272,7 +295,9 @@ rpmem_target_parse(const char *target)
 
 	return info;
 err_node:
+err_len:
 err_ipv6:
+err_user_len:
 	free(str);
 err_strdup:
 	free(info);

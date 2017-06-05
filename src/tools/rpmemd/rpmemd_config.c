@@ -54,6 +54,7 @@
 
 #define CONFIG_LINE_SIZE_INIT	50
 #define INVALID_CHAR_POS	UINT64_MAX
+#define MAX_VALUE_LEN		4096
 
 struct rpmemd_special_chars_pos {
 	uint64_t equal_char;
@@ -155,7 +156,8 @@ print_help(const char *name)
 static inline char *
 parse_config_string(const char *value)
 {
-	if (strlen(value) == 0) {
+	size_t len = strnlen(value, MAX_VALUE_LEN);
+	if (len == 0 || len == MAX_VALUE_LEN) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -399,10 +401,11 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 		}
 
 		if (pos.EOL_char != INVALID_CHAR_POS) {
-			strcpy(line_copy, line);
+			strncpy(line_copy, line, line_max - 1);
+			line_copy[line_max - 1] = '\0';
 			parse_config_line(line_copy, &pos, config, disabled);
 			if (errno != 0) {
-				size_t len = strlen(line);
+				size_t len = strnlen(line, line_max);
 				if (len > 0 && line[len - 1] == '\n')
 					line[len - 1] = '\0';
 				RPMEMD_LOG(ERR, "Invalid config file line at "
@@ -528,9 +531,21 @@ concat_dir_and_file_name(char *path, size_t size, const char *dir,
 static char *
 str_replace_home(char *haystack, const char *home_dir)
 {
-	const size_t placeholder_len = strlen(HOME_STR_PLACEHOLDER);
-	const size_t home_len = strlen(home_dir);
-	size_t haystack_len = strlen(haystack);
+	const size_t placeholder_len = strnlen(HOME_STR_PLACEHOLDER,
+			PATH_MAX + 1);
+	RPMEMD_ASSERT(placeholder_len <= PATH_MAX);
+
+	const size_t home_len = strnlen(home_dir, PATH_MAX + 1);
+	if (home_len == PATH_MAX + 1) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	size_t haystack_len = strnlen(haystack, PATH_MAX + 1);
+	if (haystack_len == PATH_MAX + 1) {
+		errno = EINVAL;
+		return NULL;
+	}
 
 	char *pos = strstr(haystack, HOME_STR_PLACEHOLDER);
 	if (!pos)
@@ -615,6 +630,11 @@ rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[])
 	}
 
 	config->poolset_dir = str_replace_home(config->poolset_dir, home_dir);
+	if (!config->poolset_dir) {
+		RPMEMD_LOG(ERR, "invalid home directory");
+		return -1;
+	}
+
 	return 0;
 }
 

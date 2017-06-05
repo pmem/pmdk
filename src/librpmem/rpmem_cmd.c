@@ -50,6 +50,8 @@
 #include "rpmem_util.h"
 #include "rpmem_cmd.h"
 
+#define MAX_ARG_LEN 4096
+
 /*
  * rpmem_cmd_init -- initialize command
  */
@@ -94,7 +96,7 @@ rpmem_cmd_push(struct rpmem_cmd *cmd, const char *arg)
 
 	cmd->args.argv = argv;
 
-	char *arg_dup = strdup(arg);
+	char *arg_dup = strndup(arg, MAX_ARG_LEN);
 	if (!arg_dup) {
 		RPMEM_LOG(ERR, "allocating argument");
 		goto err_strdup;
@@ -119,9 +121,8 @@ rpmem_cmd_log(struct rpmem_cmd *cmd)
 	RPMEM_ASSERT(cmd->args.argc > 0);
 
 	size_t size = 0;
-	for (int i = 0; i < cmd->args.argc; i++) {
-		size += strlen(cmd->args.argv[i]) + 1;
-	}
+	for (int i = 0; i < cmd->args.argc; i++)
+		size += strnlen(cmd->args.argv[i], MAX_ARG_LEN) + 1;
 
 	char *buff = malloc(size);
 	if (!buff) {

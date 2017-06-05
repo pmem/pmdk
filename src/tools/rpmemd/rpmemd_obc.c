@@ -124,7 +124,14 @@ rpmemd_obc_check_pool_desc(struct rpmem_msg_hdr *hdrp, size_t msg_size,
 		return -1;
 	}
 
-	size_t len = strlen((char *)pool_desc->desc) + 1;
+	size_t len = strnlen((char *)pool_desc->desc, RPMEM_MAX_PDESC_SIZE + 1);
+	if (len == RPMEM_MAX_PDESC_SIZE + 1) {
+		RPMEMD_LOG(ERR, "invalid pool desciptor size (max is %d)",
+				RPMEM_MAX_PDESC_SIZE);
+		errno = EINVAL;
+		return -1;
+	}
+	len += 1;
 
 	if (pool_desc->size != len) {
 		RPMEMD_LOG(ERR, "invalid pool descriptor size -- is %lu "
