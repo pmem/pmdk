@@ -34,6 +34,7 @@
 # install-libfabric.sh - installs a customized version of libfabric
 #
 
+# Keep in sync with requirements in src/common.inc.
 libfabric_ver=1.4.2
 libfabric_url=https://github.com/ofiwg/libfabric/archive
 libfabric_dir=libfabric-$libfabric_ver

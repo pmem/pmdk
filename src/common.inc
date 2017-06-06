@@ -195,6 +195,8 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
+# Keep in sync with requirements in src/test/unittest/unittest.sh and
+# utils/docker/images/install-libfabric.sh.
 export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=1.4.2)
 ifneq ($(BUILD_RPMEM),y)
 	export BUILD_RPMEM_INFO := libfabric (version >= 1.4.2) is missing -- \
