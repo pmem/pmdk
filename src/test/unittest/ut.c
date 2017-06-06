@@ -458,24 +458,25 @@ check_open_files(void)
 
 #define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
 
-#define ObjectBasicInformation 0
-#define ObjectNameInformation 1
 #define ObjectTypeInformation 2
-#define SystemHandleInformation 16
+#define SystemExtendedHandleInformation 64
 
-typedef struct _SYSTEM_HANDLE {
-	ULONG ProcessId;
-	BYTE ObjectTypeNumber;
-	BYTE Flags;
-	USHORT Handle;
+typedef struct _SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX {
 	PVOID Object;
-	ACCESS_MASK GrantedAccess;
-} SYSTEM_HANDLE, *PSYSTEM_HANDLE;
+	HANDLE UniqueProcessId;
+	HANDLE HandleValue;
+	ULONG GrantedAccess;
+	USHORT CreatorBackTraceIndex;
+	USHORT ObjectTypeIndex;
+	ULONG HandleAttributes;
+	ULONG Reserved;
+} SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX, *PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
 
-typedef struct _SYSTEM_HANDLE_INFORMATION {
-	ULONG HandleCount;
-	SYSTEM_HANDLE Handles[1];
-} SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
+typedef struct _SYSTEM_HANDLE_INFORMATION_EX {
+	ULONG_PTR NumberOfHandles;
+	ULONG_PTR Reserved;
+	SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles[1];
+} SYSTEM_HANDLE_INFORMATION_EX, *PSYSTEM_HANDLE_INFORMATION_EX;
 
 typedef enum _POOL_TYPE {
 	NonPagedPool,
@@ -521,16 +522,17 @@ enum_handles(int op)
 	ULONG hi_size = 0x200000; /* default size */
 	ULONG req_size = 0;
 
-	PSYSTEM_HANDLE_INFORMATION hndl_info =
-		(PSYSTEM_HANDLE_INFORMATION)MALLOC(hi_size);
+	PSYSTEM_HANDLE_INFORMATION_EX hndl_info =
+		(PSYSTEM_HANDLE_INFORMATION_EX)MALLOC(hi_size);
 
 	/* if it fails with the default info size, realloc and try again */
 	NTSTATUS status;
-	while ((status = NtQuerySystemInformation(SystemHandleInformation,
+	while ((status = NtQuerySystemInformation(
+			SystemExtendedHandleInformation,
 			hndl_info, hi_size, &req_size)
 				== STATUS_INFO_LENGTH_MISMATCH)) {
 		hi_size = req_size + 4096;
-		hndl_info = (PSYSTEM_HANDLE_INFORMATION)REALLOC(hndl_info,
+		hndl_info = (PSYSTEM_HANDLE_INFORMATION_EX)REALLOC(hndl_info,
 				hi_size);
 	}
 	UT_ASSERT(status >= 0);
@@ -544,19 +546,20 @@ enum_handles(int op)
 	DWORD ni_size = 4096; /* initial size */
 	PVOID name_info = MALLOC(ni_size);
 
-	for (ULONG i = 0; i < hndl_info->HandleCount; i++) {
-		SYSTEM_HANDLE handle = hndl_info->Handles[i];
-		UNICODE_STRING wname;
+	for (ULONG i = 0; i < hndl_info->NumberOfHandles; i++) {
+		SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX handle
+			= hndl_info->Handles[i];
 		char name[MAX_PATH];
 
 		/* ignore handles not owned by current process */
-		if (handle.ProcessId != pid)
+		if ((ULONGLONG)handle.UniqueProcessId != pid)
 			continue;
 
 		/* query the object type */
-		status = NtQueryObject((HANDLE)handle.Handle,
+		status = NtQueryObject(handle.HandleValue,
 			ObjectTypeInformation, type_info, ti_size, NULL);
-		UT_ASSERT(status >= 0);
+		if (status < 0)
+			continue; /* if handle can't be queried, ignore it */
 
 		/* register/verify only handles of selected types */
 		switch (type_info->MaintainTypeList) {
@@ -565,7 +568,7 @@ enum_handles(int op)
 			case 0x0f: /* Semaphore */
 			case 0x1e: /* File */
 			case 0x23: /* Section (memory mapping) */
-				;
+				break;
 			default:
 				continue;
 		}
@@ -577,34 +580,17 @@ enum_handles(int op)
 		if (handle.GrantedAccess == 0x0012019f)
 			continue;
 
-		wname.Length = 0;
-		wname.Buffer = NULL;
-		if (NtQueryObject((HANDLE)handle.Handle, ObjectNameInformation,
-				name_info, ni_size, &req_size) < 0) {
-			/* reallocate buffer to required size and try again */
-			if (req_size > ni_size)
-				ni_size = req_size;
-			name_info = REALLOC(name_info, ni_size);
-			if (NtQueryObject((HANDLE)handle.Handle,
-					ObjectNameInformation,
-					name_info, ni_size, NULL) >= 0) {
-				wname = *(PUNICODE_STRING)name_info;
-			}
-		} else {
-			wname = *(PUNICODE_STRING)name_info;
-		}
-
-		int ret = snprintf(name, MAX_PATH, "%.*S: %.*S",
-			type_info->Name.Length / 2, type_info->Name.Buffer,
-			wname.Length / 2, wname.Buffer);
+		int ret = snprintf(name, MAX_PATH, "%.*S",
+			type_info->Name.Length / 2, type_info->Name.Buffer);
 
 		if (ret < 0 || ret >= MAX_PATH)
 			UT_FATAL("!snprintf");
 
+		int fd = (int)(ULONGLONG)handle.HandleValue;
 		if (op == 0)
-			Fd_lut = open_file_add(Fd_lut, handle.Handle, name);
+			Fd_lut = open_file_add(Fd_lut, fd, name);
 		else
-			open_file_remove(Fd_lut, handle.Handle, name);
+			open_file_remove(Fd_lut, fd, name);
 	}
 
 	FREE(type_info);
