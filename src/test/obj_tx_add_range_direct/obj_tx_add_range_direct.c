@@ -576,6 +576,40 @@ do_tx_add_range_lots_of_small_snapshots(PMEMobjpool *pop)
 #undef SIZEOF_SNAPSHOT
 }
 
+static void
+do_tx_add_cache_overflowing_range(PMEMobjpool *pop)
+{
+	/*
+	 * This test adds snapshot to the cache, but in way that results in
+	 * one of the add_range being split into two caches.
+	 */
+	size_t s = TX_DEFAULT_RANGE_CACHE_SIZE * 2;
+	size_t snapshot_s = TX_DEFAULT_RANGE_CACHE_THRESHOLD - 8;
+	PMEMoid obj;
+	int ret = pmemobj_zalloc(pop, &obj, s, 0);
+	UT_ASSERTeq(ret, 0);
+
+	TX_BEGIN(pop) {
+		size_t n = 0;
+		while (n != s) {
+			if (n + snapshot_s > s)
+				snapshot_s = s - n;
+			void *addr = (void *)((size_t)pmemobj_direct(obj) + n);
+			pmemobj_tx_add_range_direct(addr, snapshot_s);
+			memset(addr, 0xc, snapshot_s);
+			n += snapshot_s;
+		}
+		pmemobj_tx_abort(0);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERT(util_is_zeroed(pmemobj_direct(obj), s));
+
+	UT_ASSERTne(errno, 0);
+	pmemobj_free(&obj);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -617,6 +651,8 @@ main(int argc, char *argv[])
 	do_tx_add_range_too_large(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_range_lots_of_small_snapshots(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_add_cache_overflowing_range(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_xadd_range_commit(pop);
 
