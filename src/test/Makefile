@@ -72,6 +72,7 @@ OBJ_TESTS = \
 	obj_ctl\
 	obj_ctl_config\
 	obj_ctl_prefault\
+	obj_ctl_valgrind\
 	obj_ctree\
 	obj_cuckoo\
 	obj_debug\
