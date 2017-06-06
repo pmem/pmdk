@@ -752,12 +752,13 @@ dump_art_leaf(struct ds_context *ctx, art_leaf *node)
 {
 	fprintf(ctx->output,	"art_leaf 0x%" PRIxPTR " {\n"
 				"   key_len=%u;\n"
-				"   key=[%s];\n"
-				"   val_len=%u;\n"
+				"   key=[%s];\n",
+	    (uintptr_t)node,
+	    node->key_len, asciidump(node->key, (int32_t)node->key_len));
+
+	fprintf(ctx->output,	"   val_len=%u;\n"
 				"   value=[%s];\n"
 				"}\n",
-	    (uintptr_t)node,
-	    node->key_len, asciidump(node->key, (int32_t)node->key_len),
 	    node->val_len, asciidump(node->value, (int32_t)node->val_len));
 }
 
@@ -863,8 +864,10 @@ arttree_search_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		p = art_search(ctx->art_tree, ctx->key,
 			    (int)strlen((const char *)ctx->key));
 		if (p != NULL) {
-			fprintf(ctx->output, "found key [%s]: value [%s]\n",
-			    asciidump(ctx->key, strlen((const char *)ctx->key)),
+			fprintf(ctx->output, "found key [%s]: ",
+			    asciidump(ctx->key,
+					    strlen((const char *)ctx->key)));
+			fprintf(ctx->output, "value [%s]\n",
 			    asciidump((unsigned char *)p, 20));
 		} else {
 			fprintf(ctx->output, "not found key [%s]\n",
@@ -908,9 +911,10 @@ arttree_delete_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 		p = art_delete(ctx->vmp, ctx->art_tree, ctx->key,
 			(int)strlen((const char *)ctx->key));
 		if (p != NULL) {
-			fprintf(ctx->output, "delete leaf with key [%s]:"
-					" value [%s]\n",
-			    asciidump(ctx->key, strlen((const char *)ctx->key)),
+			fprintf(ctx->output, "delete leaf with key [%s]:",
+			    asciidump(ctx->key,
+					    strlen((const char *)ctx->key)));
+			fprintf(ctx->output, " value [%s]\n",
 			    asciidump((unsigned char *)p, 20));
 		} else {
 			fprintf(ctx->output, "no leaf with key [%s]\n",
@@ -1106,8 +1110,9 @@ dump_art_leaf_callback(void *data,
 	const unsigned char *key, uint32_t key_len,
 	const unsigned char *val, uint32_t val_len)
 {
-	fprintf(my_context.output, "key len %d = [%s], value len %d = [%s]\n",
-		key_len, asciidump((unsigned char *)key, key_len),
+	fprintf(my_context.output, "key len %d = [%s], ",
+		key_len, asciidump((unsigned char *)key, key_len));
+	fprintf(my_context.output, "value len %d = [%s]\n",
 		val_len, asciidump((unsigned char *)val, val_len));
 	fflush(my_context.output);
 	return 0;
