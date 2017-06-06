@@ -67,8 +67,16 @@ cc ... -lpmem
 int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
+!ifdef{WIN32}
+{
+void *pmem_map_fileU(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
+void *pmem_map_fileW(const wchar_t *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
+}{
 void *pmem_map_file(const char *path, size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
+}
 int pmem_unmap(void *addr, size_t len);
 ```
 
@@ -94,15 +102,31 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 ##### Library API versioning: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmem_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmem_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmem_check_version(
 	unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
 ##### Error handling: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmem_errormsgU(void);
+const wchar_t *pmem_errormsgW(void);
+}{
 const char *pmem_errormsg(void);
+}
 ```
 
 
@@ -235,15 +259,23 @@ returns true use **pmem_persist**() to force the changes to be stored durably
 in persistent memory.
 
 ```c
+!ifdef{WIN32}
+{
+void *pmem_map_fileU(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
+void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+		size_t *mapped_lenp, int *is_pmemp);
+}{
 void *pmem_map_file(const char *path, size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
+}
 ```
 
-Given a *path*, **pmem_map_file**() function creates a new read/write
+Given a *path*, !pmem_map_file function creates a new read/write
 mapping for the named file. It will map the file using **mmap**(2), but
 it also takes extra steps to make large page mappings more likely.
 
-On success, **pmem_map_file**() returns a pointer to mapped area. If
+On success, !pmem_map_file returns a pointer to mapped area. If
 *mapped_lenp* is not NULL, the length of the mapping is also stored at
 the address it points to. The *is_pmemp* argument, if non-NULL, points
 to a flag that **pmem_is_pmem**() sets to say if the mapped file is
@@ -263,7 +295,7 @@ following file creation flags:
 + **PMEM_FILE_EXCL** - Same meaning as **O_EXCL** on **open**(2) -
   Ensure that this call creates the file. If this flag is specified in
   conjunction with **PMEM_FILE_CREATE**, and pathname already exists,
-  then **pmem_map_file**() will fail.
+  then !pmem_map_file will fail.
 
 + **PMEM_FILE_TMPFILE** - Same meaning as **O_TMPFILE** on **open**(2).
   Create a mapping for an unnamed temporary file. **PMEM_FILE_CREATE**
@@ -275,7 +307,7 @@ following file creation flags:
   in conjunction with **PMEM_FILE_CREATE** or **PMEM_FILE_TMPFILE**,
   otherwise ignored.
 
-If creation flags are not supplied, then **pmem_map_file**() creates a
+If creation flags are not supplied, then !pmem_map_file creates a
 mapping for an existing file. In such case, *len* should be zero. The
 entire file is mapped to memory; its length is used as the length of the
 mapping and returned via *mapped_lenp*.
@@ -285,7 +317,7 @@ The path of a file can point to a Device DAX and in such case only
 effectively do nothing. For Device DAX mappings, the *len* argument must be,
 regardless of the flags, equal to either 0 or the exact size of the device.
 
-To delete mappings created with **pmem_map_file**(), use **pmem_unmap**().
+To delete mappings created with !pmem_map_file, use **pmem_unmap**().
 
 ```c
 int pmem_unmap(void *addr, size_t len);
@@ -433,19 +465,29 @@ This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmem_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmem_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmem_check_version(
 	unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
-The **pmem_check_version**() function is used to see if the installed
+The !pmem_check_version function is used to see if the installed
 **libpmem** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
 the compile-time version information, supplied by defines in
 **\<libpmem.h\>**, like this:
 
 ```c
-reason = pmem_check_version(PMEM_MAJOR_VERSION,
+reason = pmem_check_version!U{}(PMEM_MAJOR_VERSION,
                             PMEM_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -464,10 +506,10 @@ in version 1.0 of the library. Interfaces added after version 1.0 will
 contain the text *introduced in version x.y* in the section of this
 manual describing the feature.
 
-When the version check performed by **pmem_check_version**() is
+When the version check performed by !pmem_check_version is
 successful, the return value is NULL. Otherwise the return value is a
 static string describing the reason for failing the version check. The
-string returned by **pmem_check_version**() must not be modified or
+string returned by !pmem_check_version must not be modified or
 freed.
 
 
@@ -482,10 +524,16 @@ call to **libpmem** function, an application may retrieve an error
 message describing the reason of failure using the following function:
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmem_errormsgU(void);
+const wchar_t *pmem_errormsgW(void);
+}{
 const char *pmem_errormsg(void);
+}
 ```
 
-The **pmem_errormsg**() function returns a pointer to a static buffer
+The !pmem_errormsg function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error
 message may include description of the corresponding error code (if
 *errno* was set), as returned by **strerror**(3). The error message buffer
@@ -511,7 +559,7 @@ variable **PMEM_LOG_LEVEL**, which can be set to the following values:
 
 + **1** - Additional details on any errors detected are logged (in addition
   to returning the *errno*-based errors as usual). The same information
-  may be retrieved using **pmem_errormsg**().
+  may be retrieved using !pmem_errormsg.
 
 + **2** - A trace of basic operations is logged.
 
@@ -604,7 +652,7 @@ This variable is intended for use during library testing.
 + **PMEM_MMAP_HINT**=*val*
 
 This environment variable allows overriding
-the hint address used by **pmem_map_file**(). If set, it also disables
+the hint address used by !pmem_map_file. If set, it also disables
 mapping address randomization. This variable is intended for use during
 library testing and debugging. Setting it to some fairly large value
 (i.e. 0x10000000000) will very likely result in mapping the file at the
@@ -658,9 +706,9 @@ main(int argc, char *argv[])
 
 	/* create a pmem file and memory map it */
 
-	if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+	if ((pmemaddr = pmem_map_file!U{}(PATH, PMEM_LEN, PMEM_FILE_CREATE,
 			0666, &mapped_len, &is_pmem)) == NULL) {
-		perror("pmem_map_file");
+		perror("pmem_map_file!U");
 		exit(1);
 	}
 
