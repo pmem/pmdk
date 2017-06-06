@@ -1657,8 +1657,8 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_add_range_args *args)
 		range_size = remaining_space;
 		data_size = remaining_space - sizeof(struct tx_range);
 
-		args->offset += range_size;
-		args->size -= range_size;
+		args->offset += data_size;
+		args->size -= data_size;
 	} else {
 		args->size = 0;
 	}
@@ -1680,9 +1680,8 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_add_range_args *args)
 
 	VALGRIND_REMOVE_FROM_TX(range, range_size);
 
-	if (args->size != 0) {
-		pmemobj_tx_add_small(tx, args);
-	}
+	if (args->size != 0)
+		return pmemobj_tx_add_small(tx, args);
 
 	return 0;
 }
