@@ -39,11 +39,11 @@ FROM ubuntu:16.04
 MAINTAINER wojciech.uss@intel.com
 
 # Update the Apt cache and install basic tools
-RUN apt-get update
-RUN apt-get install -y software-properties-common libunwind8-dev autoconf \
+RUN apt-get update && apt-get install -y software-properties-common\
+	libunwind8-dev autoconf \
 	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
-	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby
+	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby gdb
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
@@ -69,4 +69,3 @@ ENV OS_VER 16.04
 ENV START_SSH_COMMAND service ssh start
 ENV PACKAGE_MANAGER dpkg
 ENV NOTTY 1
-
