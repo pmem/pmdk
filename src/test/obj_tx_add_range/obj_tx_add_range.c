@@ -372,6 +372,33 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(obj)->value, 0);
 }
 
+
+
+/*
+ * do_tx_add_huge_range_abort -- call pmemobj_tx_add_range on a huge range and
+ * commit the tx
+ */
+static void
+do_tx_add_huge_range_abort(PMEMobjpool *pop)
+{
+	int ret;
+	size_t snapshot_s = TX_DEFAULT_RANGE_CACHE_THRESHOLD + 1;
+
+	PMEMoid obj;
+	pmemobj_zalloc(pop, &obj, snapshot_s, 0);
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_add_range(obj, 0, snapshot_s);
+		UT_ASSERTeq(ret, 0);
+		memset(pmemobj_direct(obj), 0xc, snapshot_s);
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERT(util_is_zeroed(pmemobj_direct(obj), snapshot_s));
+}
+
 /*
  * do_tx_add_range_commit -- call pmemobj_tx_add_range and commit the tx
  */
@@ -635,10 +662,11 @@ main(int argc, char *argv[])
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_too_large(pop);
 		VALGRIND_WRITE_STATS;
+		do_tx_add_huge_range_abort(pop);
+		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_commit(pop);
 		pmemobj_close(pop);
 	}
-
 
 	DONE(NULL);
 }
