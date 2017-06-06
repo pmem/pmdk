@@ -1,3 +1,8 @@
 ignore:
   - "src/jemalloc/.*"
   - "src/windows/.*"
+
+comment:
+  layout: "diff"
+  behavior: default
+  require_changes: yes
