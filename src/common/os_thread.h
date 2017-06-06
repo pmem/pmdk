@@ -37,6 +37,7 @@
 
 #ifndef OS_THREAD_H
 #define OS_THREAD_H 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -75,7 +76,7 @@ typedef union {
 
 typedef union {
 	long long align;
-	char padding[128];
+	char padding[512];
 } os_cpu_set_t;
 
 typedef volatile int os_spinlock_t; /* XXX: not implemented on windows */
@@ -148,7 +149,6 @@ int os_thread_join(os_thread_t thread, void **result);
 int os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
 	const os_cpu_set_t *set);
 
-
 int os_thread_atfork(void (*prepare)(void), void (*parent)(void),
 	void (*child)(void));
 
@@ -158,7 +158,6 @@ int os_semaphore_destroy(os_semaphore_t *sem);
 int os_semaphore_wait(os_semaphore_t *sem);
 int os_semaphore_trywait(os_semaphore_t *sem);
 int os_semaphore_post(os_semaphore_t *sem);
-
 
 #ifdef __cplusplus
 }

@@ -330,7 +330,7 @@ os_cond_wait(os_cond_t *__restrict cond,
 }
 
 /*
- * os_thread_create - pthread_create abstraction layer
+ * os_thread_create -- pthread_create abstraction layer
  */
 int
 os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
@@ -342,7 +342,7 @@ os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 }
 
 /*
- * os_thread_join - pthread_join abstraction layer
+ * os_thread_join -- pthread_join abstraction layer
  */
 int
 os_thread_join(os_thread_t thread, void **result)
@@ -351,7 +351,7 @@ os_thread_join(os_thread_t thread, void **result)
 }
 
 /*
- * os_thread_atfork - pthread_atfork abstraction layer
+ * os_thread_atfork -- pthread_atfork abstraction layer
  */
 int
 os_thread_atfork(void (*prepare)(void), void (*parent)(void),
@@ -361,7 +361,7 @@ os_thread_atfork(void (*prepare)(void), void (*parent)(void),
 }
 
 /*
- * os_thread_setaffinity_np - pthread_atfork abstraction layer
+ * os_thread_setaffinity_np -- pthread_atfork abstraction layer
  */
 int
 os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
@@ -373,7 +373,7 @@ os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
 }
 
 /*
- * os_cpu_zero - CP_ZERO abstraction layer
+ * os_cpu_zero -- CP_ZERO abstraction layer
  */
 void
 os_cpu_zero(os_cpu_set_t *set)
@@ -382,7 +382,7 @@ os_cpu_zero(os_cpu_set_t *set)
 }
 
 /*
- * os_cpu_set- CP_SET abstraction layer
+ * os_cpu_set -- CP_SET abstraction layer
  */
 void
 os_cpu_set(size_t cpu, os_cpu_set_t *set)
