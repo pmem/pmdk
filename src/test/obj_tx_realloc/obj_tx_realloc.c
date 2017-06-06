@@ -58,6 +58,7 @@ enum type_number {
 	TYPE_ABORT_HUGE,
 	TYPE_ABORT_ZERO_HUGE,
 	TYPE_ABORT_ZERO_HUGE_MACRO,
+	TYPE_FREE,
 };
 
 struct object {
@@ -456,6 +457,27 @@ do_tx_root_realloc(PMEMobjpool *pop)
 	} TX_END
 }
 
+/*
+ * do_tx_realloc_free -- reallocate an allocated object
+ * and commit the transaction
+ */
+static void
+do_tx_realloc_free(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_FREE, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			0, TYPE_COMMIT));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_FREE));
+	UT_ASSERT(TOID_IS_NULL(obj));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -481,6 +503,7 @@ main(int argc, char *argv[])
 	do_tx_zrealloc_huge_macro(pop);
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
+	do_tx_realloc_free(pop);
 
 	pmemobj_close(pop);
 
