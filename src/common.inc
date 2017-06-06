@@ -43,10 +43,15 @@ CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 CHECK_OS = $(TOP)/utils/check-os.sh
 OS_BANNED = $(TOP)/utils/os-banned
+COVERAGE = 0
 
 PKG_CONFIG = pkg-config
 CLANG_FORMAT ?= clang-format
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
+
+GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
+GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
+GCOV_LIBS=-lgcov
 
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
@@ -149,6 +154,18 @@ endif
 define check-os
 $(CHECK_OS) $(OS_BANNED) $(1) $(2)
 endef
+
+# XXX: to allow gcov tool to connect coverage with source code, we have to
+# use absolute path to source files
+ifeq ($(COVERAGE),1)
+define coverage-path
+`readlink -f $(1)`
+endef
+else
+define coverage-path
+$(1)
+endef
+endif
 
 define sub-target-foreach
 $(1)-$(2):
