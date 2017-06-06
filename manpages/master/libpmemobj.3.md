@@ -2205,6 +2205,10 @@ goes to stderr.
 Setting the environment variable **PMEMOBJ_LOG_LEVEL** has no effect on the non-debug version of **libpmemobj**.
 See also **libpmem**(3) to get information about other environment variables affecting **libpmemobj** behavior.
 
+**libpmemobj** by default supports up to 1024 parallel transactions / allocations.
+For debugging purposes it is possible to decrease this value by writing
+a desired limit to the **PMEMOBJ_NLANES** environment variable.
+
 # CONTROL AND STATISTICS #
 
 The library provides a uniform interface that allows to impact its behavior as
