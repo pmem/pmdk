@@ -159,21 +159,6 @@ ut_posix_fallocate(const char *file, int line, const char *func, int fd,
 }
 
 /*
- * ut_access -- an access that cannot return -1
- */
-int
-ut_access(const char *file, int line, const char *func, const char *path,
-    int mode)
-{
-	int retval = os_access(path, mode);
-
-	if (retval != 0)
-		ut_fatal(file, line, func, "!access: %s: %d", path, mode);
-
-	return retval;
-}
-
-/*
  * ut_write -- a write that can't return -1
  */
 size_t
@@ -223,23 +208,6 @@ ut_read(const char *file, int line, const char *func, int fd,
 	return (size_t)retval;
 }
 
-#ifndef _WIN32
-/*
- * ut_readlink -- a readlink that can't return -1
- */
-size_t
-ut_readlink(const char *file, int line, const char *func, const char *path,
-    void *buf, size_t count)
-{
-	ssize_t retval = readlink(path, buf, count);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!readlink: %s", path);
-
-	return (size_t)retval;
-}
-#endif
-
 /*
  * ut_lseek -- an lseek that can't return -1
  */
@@ -254,34 +222,6 @@ ut_lseek(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
-
-#ifndef _WIN32
-int
-ut_fcntl(const char *file, int line, const char *func, int fd,
-    int cmd, int num, ...)
-{
-
-	int retval;
-	va_list args;
-	uint64_t arg = 0;
-
-	/*
-	 * In the case of fcntl, num is always 0 or 1
-	 */
-	if (num != 0) {
-		va_start(args, num);
-		arg = va_arg(args, uint64_t);
-		retval = fcntl(fd, cmd, arg);
-		va_end(args);
-	} else
-		retval = fcntl(fd, cmd);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!fcntl: %d", fd);
-
-	return retval;
-}
-#endif
 
 /*
  * ut_fstat -- a fstat that cannot return -1
@@ -299,20 +239,6 @@ ut_fstat(const char *file, int line, const char *func, int fd,
 	/* clear unused bits to avoid confusion */
 	st_bufp->st_mode &= 0600;
 #endif
-
-	return retval;
-}
-
-/*
- * ut_flock -- a flock that cannot return -1
- */
-int
-ut_flock(const char *file, int line, const char *func, int fd, int op)
-{
-	int retval = os_flock(fd, op);
-
-	if (retval != 0)
-		ut_fatal(file, line, func, "!flock: %d", fd);
 
 	return retval;
 }
@@ -408,135 +334,6 @@ ut_mprotect(const char *file, int line, const char *func, void *addr,
 	return retval;
 }
 
-#ifndef _WIN32
-/*
- * ut_symlink -- a symlink that cannot return -1
- */
-int
-ut_symlink(const char *file, int line, const char *func, const char *oldpath,
-    const char *newpath)
-{
-	int retval = symlink(oldpath, newpath);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!symlink: %s %s", oldpath, newpath);
-
-	return retval;
-}
-
-/*
- * ut_link -- a link that cannot return -1
- */
-int
-ut_link(const char *file, int line, const char *func, const char *oldpath,
-    const char *newpath)
-{
-	int retval = link(oldpath, newpath);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!link: %s %s", oldpath,
-		    newpath);
-
-	return retval;
-}
-
-/*
- * ut_mkdir -- a mkdir that cannot return -1
- */
-int
-ut_mkdir(const char *file, int line, const char *func,
-    const char *pathname, mode_t mode)
-{
-	int retval = mkdir(pathname, mode);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!mkdir: %s", pathname);
-
-	return retval;
-}
-
-/*
- * ut_rmdir -- a rmdir that cannot return -1
- */
-int
-ut_rmdir(const char *file, int line, const char *func,
-    const char *pathname)
-{
-	int retval = rmdir(pathname);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!rmdir: %s", pathname);
-
-	return retval;
-}
-#endif
-
-/*
- * ut_rename -- a rename that cannot return -1
- */
-int
-ut_rename(const char *file, int line, const char *func,
-    const char *oldpath, const char *newpath)
-{
-	int retval = rename(oldpath, newpath);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!rename: %s %s", oldpath, newpath);
-
-	return retval;
-}
-
-#if !defined(_WIN32) && !defined(__FreeBSD__)
-/* XXX Fix for FreeBSD if ever used */
-/*
- * ut_mount -- a mount that cannot return -1
- */
-int
-ut_mount(const char *file, int line, const char *func, const char *src,
-    const char *tar, const char *fstype, unsigned long flags,
-    const void *data)
-{
-	int retval = mount(src, tar, fstype, flags, data);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!mount: %s %s %s %lx",
-		    src, tar, fstype, flags);
-
-	return retval;
-}
-
-/*
- * ut_umount -- a umount that cannot return -1
- */
-int
-ut_umount(const char *file, int line, const char *func, const char *tar)
-{
-	int retval = umount(tar);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!umount: %s", tar);
-
-	return retval;
-}
-
-/*
- * ut_truncate -- a truncate that cannot return -1
- */
-int
-ut_truncate(const char *file, int line, const char *func, const char *path,
-    os_off_t length)
-{
-	int retval = truncate(path, length);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!truncate: %s %llu",
-				path, (unsigned long long)length);
-
-	return retval;
-}
-
-#endif
-
 /*
  * ut_ftruncate -- a ftruncate that cannot return -1
  */
@@ -552,95 +349,3 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
-
-/*
- * ut_chmod -- a chmod that cannot return -1
- */
-int
-ut_chmod(const char *file, int line, const char *func, const char *path,
-    mode_t mode)
-{
-	int retval = os_chmod(path, mode);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!mode: %s %o", path, mode);
-
-	return retval;
-}
-
-#ifndef _WIN32
-/*
- * ut_mknod -- a mknod that cannot return -1
- */
-int
-ut_mknod(const char *file, int line, const char *func, const char *pathname,
-    mode_t mode, dev_t dev)
-{
-	int retval = mknod(pathname, mode, dev);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!mknod: %s", pathname);
-
-	return retval;
-}
-
-/*
- * ut_pselect -- a pselect that cannot return -1
- */
-int
-ut_pselect(const char *file, int line, const char *func, int nfds,
-    fd_set *rfds, fd_set *wfds, fd_set *efds, const struct timespec *tv,
-    const sigset_t *sigmask)
-{
-	int retval = pselect(nfds, rfds, wfds, efds, tv, sigmask);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!pselect");
-
-	return retval;
-}
-
-/*
- * ut_opendir -- an opendir that cannot return NULL
- */
-DIR *
-ut_opendir(const char *file, int line, const char *func,
-    const char *name)
-{
-	DIR *retval = opendir(name);
-
-	if (retval == NULL)
-		ut_fatal(file, line, func, "!opendir: %s", name);
-
-	return retval;
-}
-
-/*
- * ut_dirfd -- a dirfd that cannot return -1
- */
-int
-ut_dirfd(const char *file, int line, const char *func,
-    DIR *dirp)
-{
-	int retval = dirfd(dirp);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!dirfd: %p", dirp);
-
-	return retval;
-}
-
-/*
- * ut_closedir -- a closedir that cannot return -1
- */
-int
-ut_closedir(const char *file, int line, const char *func, DIR *dirp)
-{
-	int retval = closedir(dirp);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!closedir: %p", dirp);
-
-	return retval;
-}
-#endif
