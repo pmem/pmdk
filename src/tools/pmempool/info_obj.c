@@ -149,17 +149,6 @@ lane_need_recovery(struct pmem_info *pip, struct lane_layout *lane)
 }
 
 /*
- * get_bitmap_size -- get number of used bits in chunk run's bitmap
- */
-static uint32_t
-get_bitmap_size(struct chunk_run *run)
-{
-	uint64_t size = RUNSIZE / run->block_size;
-	assert(size <= UINT32_MAX);
-	return (uint32_t)size;
-}
-
-/*
  * get_bitmap_reserved -- get number of reserved blocks in chunk run
  */
 static int
@@ -583,10 +572,8 @@ info_obj_object(struct pmem_info *pip, const struct memory_block *m,
  * info_obj_run_bitmap -- print chunk run's bitmap
  */
 static void
-info_obj_run_bitmap(int v, struct chunk_run *run)
+info_obj_run_bitmap(int v, struct chunk_run *run, uint32_t bsize)
 {
-	uint32_t bsize = get_bitmap_size(run);
-
 	if (outv_check(v) && outv_check(VERBOSE_MAX)) {
 		/* print all values from bitmap for higher verbosity */
 		for (int i = 0; i < MAX_BITMAP_VALUES; i++) {
@@ -694,7 +681,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 					out_get_size_str(run->block_size,
 						pip->args.human));
 
-			uint32_t units = get_bitmap_size(run);
+			uint32_t units = class->run.bitmap_nallocs;
 			uint32_t used = 0;
 			if (get_bitmap_reserved(run,  &used)) {
 				outv_field(v, "Bitmap", "[error]");
@@ -705,7 +692,8 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 				outv_field(v, "Bitmap", "%u / %u", used, units);
 			}
 
-			info_obj_run_bitmap(v && pip->args.obj.vbitmap, run);
+			info_obj_run_bitmap(v && pip->args.obj.vbitmap,
+				run, units);
 
 			heap_run_foreach_object(pip->obj.heap, info_obj_run_cb,
 				pip, &m, class);
