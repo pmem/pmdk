@@ -65,6 +65,11 @@
  */
 #define OBJ_CONFIG_FILE_ENV_VARIABLE "PMEMOBJ_CONF_FILE"
 
+/*
+ * The variable which overwrites a number of lanes available at runtime.
+ */
+#define OBJ_NLANES_ENV_VARIABLE "PMEMOBJ_NLANES"
+
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ctree *pools_tree; /* tree used for searching by address */
 
@@ -1151,6 +1156,34 @@ err_ctl:
 }
 
 /*
+ * obj_get_nlanes -- get a number of lanes available at runtime. If the value
+ * provided with the PMEMOBJ_NLANES environment variable is greater than 0 and
+ * smaller than OBJ_NLANES constant it returns PMEMOBJ_NLANES. Otherwise it
+ * returns OBJ_NLANES.
+ */
+static unsigned
+obj_get_nlanes(void)
+{
+	LOG(3, NULL);
+
+	char *env_nlanes = os_getenv(OBJ_NLANES_ENV_VARIABLE);
+	if (env_nlanes) {
+		int nlanes = atoi(env_nlanes);
+		if (nlanes <= 0) {
+			ERR("%s variable must be a positive integer",
+					OBJ_NLANES_ENV_VARIABLE);
+			errno = EINVAL;
+			goto no_valid_env;
+		}
+
+		return (unsigned)(OBJ_NLANES < nlanes ? OBJ_NLANES : nlanes);
+	}
+
+no_valid_env:
+	return OBJ_NLANES;
+}
+
+/*
  * pmemobj_createU -- create a transactional memory pool (set)
  */
 #ifndef _WIN32
@@ -1177,9 +1210,10 @@ pmemobj_createU(const char *path, const char *layout,
 	 * A number of lanes available at runtime equals the lowest value
 	 * from all reported by remote replicas hosts. In the single host mode
 	 * the runtime number of lanes is equal to the total number of lanes
-	 * available in the pool.
+	 * available in the pool or the value provided with PMEMOBJ_NLANES
+	 * environment variable whichever is lower.
 	 */
-	unsigned runtime_nlanes = OBJ_NLANES;
+	unsigned runtime_nlanes = obj_get_nlanes();
 
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
@@ -1552,9 +1586,10 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 	 * A number of lanes available at runtime equals the lowest value
 	 * from all reported by remote replicas hosts. In the single host mode
 	 * the runtime number of lanes is equal to the total number of lanes
-	 * available in the pool.
+	 * available in the pool or the value provided with PMEMOBJ_NLANES
+	 * environment variable whichever is lower.
 	 */
-	unsigned runtime_nlanes = OBJ_NLANES;
+	unsigned runtime_nlanes = obj_get_nlanes();
 	if (obj_pool_open(&set, path, cow, &runtime_nlanes))
 		return NULL;
 
