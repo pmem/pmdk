@@ -3491,6 +3491,11 @@ Setting the environment variable \f[B]PMEMOBJ_LOG_LEVEL\f[] has no
 effect on the non\-debug version of \f[B]libpmemobj\f[].
 See also \f[B]libpmem\f[](3) to get information about other environment
 variables affecting \f[B]libpmemobj\f[] behavior.
+.PP
+\f[B]libpmemobj\f[] by default supports up to 1024 parallel transactions
+/ allocations.
+For debugging purposes it is possible to decrease this value by writing
+a desired limit to the \f[B]PMEMOBJ_NLANES\f[] environment variable.
 .SH CONTROL AND STATISTICS
 .PP
 The library provides a uniform interface that allows to impact its
