@@ -50,6 +50,9 @@ extern "C" {
  * aligned to the cache-line boundary.
  */
 
+#define POBJ_XALLOC_VALID_FLAGS	(POBJ_XALLOC_ZERO |\
+	POBJ_XALLOC_CLASS_MASK)
+
 /*
  * Allocates a new object from the pool and calls a constructor function before
  * returning. It is guaranteed that allocated object is either properly
@@ -58,6 +61,13 @@ extern "C" {
  */
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, pmemobj_constr constructor, void *arg);
+
+/*
+ * Allocates with flags a new object from the pool.
+ */
+int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num, uint64_t flags,
+	pmemobj_constr constructor, void *arg);
 
 /*
  * Allocates a new zeroed object from the pool.
