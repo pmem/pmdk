@@ -103,12 +103,9 @@ enum tx_lock_deprecated pobj_tx_lock {
 typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
 		void *);
 
-#define POBJ_FLAG_ZERO		(((uint64_t)1) << 0)
-#define POBJ_FLAG_NO_FLUSH	(((uint64_t)1) << 1)
-
-#define POBJ_XALLOC_ZERO	POBJ_FLAG_ZERO
-#define POBJ_XALLOC_NO_FLUSH	POBJ_FLAG_NO_FLUSH
-#define POBJ_XALLOC_VALID_FLAGS	(POBJ_XALLOC_ZERO | POBJ_XALLOC_NO_FLUSH)
+#define POBJ_TX_XALLOC_VALID_FLAGS	(POBJ_XALLOC_ZERO |\
+	POBJ_XALLOC_NO_FLUSH |\
+	POBJ_XALLOC_CLASS_MASK)
 
 #define POBJ_XADD_NO_FLUSH	POBJ_FLAG_NO_FLUSH
 #define POBJ_XADD_VALID_FLAGS	POBJ_XADD_NO_FLUSH

@@ -60,7 +60,7 @@
 static int
 alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags,
+	uint64_t extra_field, uint16_t object_flags,
 	uint64_t *offset_value)
 {
 	void *uptr = m->m_ops->get_user_data(m);
@@ -83,7 +83,7 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 		return ret;
 	}
 
-	m->m_ops->write_header(m, extra_field, flags);
+	m->m_ops->write_header(m, extra_field, object_flags);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -134,7 +134,7 @@ int
 palloc_operation(struct palloc_heap *heap,
 	uint64_t off, uint64_t *dest_off, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags,
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
 	struct operation_context *ctx)
 {
 	struct memory_block existing_block = MEMORY_BLOCK_NONE;
@@ -172,15 +172,17 @@ palloc_operation(struct palloc_heap *heap,
 	 * (best-fit, next-fit, ...) varies depending on the bucket container.
 	 */
 	if (size != 0) {
-		struct alloc_class *c = heap_get_best_class(heap, size);
-		/*
-		 * This bucket can only be released after the run lock is
-		 * acquired.
-		 * The reason for this is that the bucket can revoke the claim
-		 * on the run during the heap_get_bestfit_block method which
-		 * means the run will become available to others.
-		 */
-		new_bucket = heap_bucket_acquire(heap, c);
+		ASSERT(class_id < UINT8_MAX);
+		struct alloc_class *c = class_id == 0 ?
+			heap_get_best_class(heap, size) :
+			alloc_class_by_id(heap_alloc_classes(heap),
+				(uint8_t)class_id);
+
+		if (c == NULL) {
+			ERR("no allocation class for size %lu bytes", size);
+			errno = EINVAL;
+			return -1;
+		}
 
 		/*
 		 * The caller provided size in bytes, but buckets operate in
@@ -190,8 +192,24 @@ palloc_operation(struct palloc_heap *heap,
 		 * For example, to allocate 500 bytes from a bucket that
 		 * provides 256 byte blocks two memory 'units' are required.
 		 */
-		new_block.size_idx = CALC_SIZE_IDX(c->unit_size,
-			size + header_type_to_size[c->header_type]);
+		ssize_t size_idx = alloc_class_calc_size_idx(c, size);
+		if (size_idx < 0) {
+			ERR("allocation class not suitable for size %lu bytes",
+				size);
+			errno = EINVAL;
+			return -1;
+		}
+		ASSERT(size_idx <= UINT32_MAX);
+		new_block.size_idx = (uint32_t)size_idx;
+
+		/*
+		 * This bucket can only be released after the run lock is
+		 * acquired.
+		 * The reason for this is that the bucket can revoke the claim
+		 * on the run during the heap_get_bestfit_block method which
+		 * means the run will become available to others.
+		 */
+		new_bucket = heap_bucket_acquire(heap, c);
 
 		errno = heap_get_bestfit_block(heap, new_bucket, &new_block);
 		if (errno != 0) {
@@ -209,7 +227,7 @@ palloc_operation(struct palloc_heap *heap,
 		new_block.header_type = c->header_type;
 
 		if (alloc_prep_block(heap, &new_block, constructor, arg,
-			extra_field, flags, &offset_value) != 0) {
+			extra_field, object_flags, &offset_value) != 0) {
 			/*
 			 * Constructor returned non-zero value which means
 			 * the memory block reservation has to be rolled back.

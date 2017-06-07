@@ -74,6 +74,7 @@ EXPORTS
 	pmemobj_pool_by_oid
 	pmemobj_pool_by_ptr
 	pmemobj_alloc
+	pmemobj_xalloc
 	pmemobj_zalloc
 	pmemobj_realloc
 	pmemobj_zrealloc

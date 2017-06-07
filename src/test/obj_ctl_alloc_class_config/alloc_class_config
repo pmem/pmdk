@@ -1,0 +1,41 @@
+heap.alloc_class.reset =
+	4096, # handle sizes up to 4k, leave the rest to the default
+	16, # 16 byte granularity
+	1 # use default for missing classes
+;
+
+heap.alloc_class.1.desc =
+	128, # unit size
+	1000, # roughly 1k units per run
+	none # don't use the header
+;
+
+heap.alloc_class.2.desc =
+	1024, # unit size
+	1000, # roughly 1k units per run
+	compact # use compact headers
+;
+
+heap.alloc_class.3.desc =
+	2048, # unit size
+	1000, # roughly 1k units per run
+	legacy # use compact headers
+;
+
+heap.alloc_class.map.range =
+	0, # from 0 bytes
+	128, # to 128 bytes
+	1 # use the first allocation class
+;
+
+heap.alloc_class.map.range =
+	129, # from 129 bytes
+	2048, # to 1024 bytes
+	2 # use the second allocation class
+;
+
+heap.alloc_class.map.range =
+	2049, # from 129 bytes
+	4096, # to 1024 bytes
+	3 # use the third allocation class
+;
