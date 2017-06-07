@@ -256,7 +256,7 @@ pvector_push_back(struct pvector_context *ctx)
 			if (pmalloc_construct(pop,
 				&ctx->vec->arrays[s.idx],
 				arr_size, pvector_array_constr, NULL,
-				0, OBJ_INTERNAL_OBJECT_MASK) != 0)
+				0, OBJ_INTERNAL_OBJECT_MASK, 0) != 0)
 					return NULL;
 		}
 	}

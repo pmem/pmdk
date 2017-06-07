@@ -61,6 +61,8 @@ int heap_check(void *heap_start, uint64_t heap_size);
 int heap_check_remote(void *heap_start, uint64_t heap_size,
 		struct remote_ops *ops);
 int heap_buckets_init(struct palloc_heap *heap);
+int heap_create_alloc_class_buckets(struct palloc_heap *heap,
+	struct alloc_class *c);
 
 struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
@@ -87,6 +89,8 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block *m);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
+
+struct alloc_class_collection *heap_alloc_classes(struct palloc_heap *heap);
 
 void *heap_end(struct palloc_heap *heap);
 

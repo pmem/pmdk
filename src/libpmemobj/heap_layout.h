@@ -65,6 +65,9 @@
 	((struct zone *)((uintptr_t)&(((struct heap_layout *)(layoutp))->zone0)\
 					+ ZONE_MAX_SIZE * (zone_id)))
 
+#define CHUNKSIZE_MASK ((CHUNKSIZE) - 1)
+#define CHUNKSIZE_ALIGN(value) ((((value) + CHUNKSIZE_MASK) & ~CHUNKSIZE_MASK))
+
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
 	CHUNK_FLAG_HEADER_NONE		=	0x0002,
