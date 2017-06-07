@@ -682,7 +682,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 					out_get_size_str(run->block_size,
 						pip->args.human));
 
-			uint32_t units = class->run.bitmap_nallocs;
+			uint32_t units = aclass->run.bitmap_nallocs;
 			uint32_t used = 0;
 			if (get_bitmap_reserved(run,  &used)) {
 				outv_field(v, "Bitmap", "[error]");
