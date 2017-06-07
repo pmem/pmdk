@@ -126,4 +126,3 @@ done
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
 sudo docker pull pmem/nvml:${OS}-${OS_VER}
-

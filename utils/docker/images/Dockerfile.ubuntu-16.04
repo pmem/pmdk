@@ -39,7 +39,7 @@ FROM ubuntu:16.04
 MAINTAINER wojciech.uss@intel.com
 
 # Update the Apt cache and install basic tools
-RUN apt-get update && apt-get install -y software-properties-common\
+RUN apt-get update && apt-get install -y software-properties-common \
 	libunwind8-dev autoconf \
 	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
