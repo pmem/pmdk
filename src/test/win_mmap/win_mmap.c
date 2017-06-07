@@ -709,7 +709,7 @@ test_mprotect(int fd, int fd_ro)
 	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
 
 	/* len > mapping size - should fail */
-	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	ptr1 = mmap(NULL, FILE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	UT_ASSERTeq(munmap(ptr1 + FILE_SIZE / 2, FILE_SIZE / 2), 0);
 	errno = 0;
 	UT_ASSERTne(mprotect(ptr1, FILE_SIZE, PROT_READ), 0);
