@@ -994,6 +994,7 @@ function require_command() {
 
 #
 # require_pkg -- only allow script to continue if specified package exists
+#    usage: require_pkg <package name> [<package minimal version>]
 #
 function require_pkg() {
 	if ! command -v pkg-config 1>/dev/null
@@ -1002,9 +1003,16 @@ function require_pkg() {
 		exit 0
 	fi
 
-	if ! pkg-config $1
+	local COMMAND="pkg-config $1"
+	local MSG="$UNITTEST_NAME: SKIP '$1' package"
+	if [ "$#" -eq "2" ]; then
+		COMMAND="$COMMAND --atleast-version $2"
+		MSG="$MSG (version >= $2)"
+	fi
+	MSG="$MSG required"
+	if ! $COMMAND
 	then
-		echo "$UNITTEST_NAME: SKIP '$1' package required"
+		echo "$MSG"
 		exit 0
 	fi
 }
@@ -1012,6 +1020,7 @@ function require_pkg() {
 #
 # require_node_pkg -- only allow script to continue if specified package exists
 # on specified node
+#    usage: require_node_pkg <node> <package name> [<package minimal version>]
 #
 function require_node_pkg() {
 	validate_node_number $1
@@ -1027,6 +1036,12 @@ function require_node_pkg() {
 	fi
 
 	COMMAND="$COMMAND pkg-config $1"
+	MSG="$UNITTEST_NAME: SKIP NODE $N: '$1' package"
+	if [ "$#" -eq "2" ]; then
+		COMMAND="$COMMAND --atleast-version $2"
+		MSG="$MSG (version >= $2)"
+	fi
+	MSG="$MSG required"
 
 	disable_exit_on_error
 	run_command ssh $SSH_OPTS ${NODE[$N]} "$COMMAND" 2>&1
@@ -1034,7 +1049,7 @@ function require_node_pkg() {
 	restore_exit_on_error
 
 	if [ "$ret" == 1 ]; then
-		echo "$UNITTEST_NAME: SKIP NODE $N: '$1' package required"
+		echo "$MSG"
 		exit 0
 	fi
 }
@@ -1409,12 +1424,16 @@ function export_vars_node() {
 #                            specified node
 #
 function require_node_libfabric() {
+	# Minimal required version of libfabric.
+	# Keep in sync with requirements in src/common.inc.
+	local version="1.4.2"
 	validate_node_number $1
 
 	local N=$1
 	shift
 
-	require_node_pkg $N libfabric
+	require_pkg libfabric "$version"
+	require_node_pkg $N libfabric "$version"
 	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
 		if ! fi_info --list | grep -q verbs; then
 			echo "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
