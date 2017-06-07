@@ -151,7 +151,7 @@ struct alloc_class_collection {
  * This function must be thread-safe because allocation classes can be created
  * at runtime.
  */
-static int
+int
 alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot)
 {
@@ -237,21 +237,21 @@ alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 /*
  * alloc_class_register -- registers an allocation classes in the collection
  */
-static struct alloc_class *
+struct alloc_class *
 alloc_class_register(struct alloc_class_collection *ac,
-	struct alloc_class *aclass)
+	struct alloc_class *c)
 {
-	struct alloc_class *c = Malloc(sizeof(*c));
-	if (c == NULL)
+	struct alloc_class *nc = Malloc(sizeof(*nc));
+	if (nc == NULL)
 		return NULL;
 
-	*c = *aclass;
-	ac->class_map_by_unit_size[SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
-		ac->granularity)] = c->id;
+	*nc = *c;
+	ac->class_map_by_unit_size[SIZE_TO_CLASS_MAP_INDEX(nc->unit_size,
+		ac->granularity)] = nc->id;
 
-	ac->aclasses[c->id] = c;
+	ac->aclasses[nc->id] = nc;
 
-	return c;
+	return nc;
 }
 
 /*
@@ -296,7 +296,7 @@ alloc_class_from_params(struct alloc_class_collection *ac,
 /*
  * alloc_class_delete -- (internal) deletes an allocation class
  */
-static void
+void
 alloc_class_delete(struct alloc_class_collection *ac,
 	struct alloc_class *c)
 {
@@ -545,6 +545,7 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 			alloc_class_delete(ac, c);
 		}
 	}
+
 	Free(ac->class_map_by_alloc_size);
 	Free(ac->class_map_by_unit_size);
 	Free(ac);
@@ -602,4 +603,23 @@ struct alloc_class *
 alloc_class_by_id(struct alloc_class_collection *ac, uint8_t id)
 {
 	return ac->aclasses[id];
+}
+
+/*
+ * alloc_class_calc_size_idx -- calculates how many units does the size require
+ */
+ssize_t
+alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
+{
+	uint32_t size_idx = CALC_SIZE_IDX(c->unit_size,
+		size + header_type_to_size[c->header_type]);
+
+	if (c->type == CLASS_RUN) {
+		if (c->header_type == HEADER_NONE && size_idx != 1)
+			return -1;
+		else if (size_idx > RUN_UNIT_MAX)
+			return -1;
+	}
+
+	return size_idx;
 }

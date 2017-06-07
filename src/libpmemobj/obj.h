@@ -187,6 +187,9 @@ struct pmemobjpool {
  */
 #define OBJ_INTERNAL_OBJECT_MASK ((1ULL) << 15)
 
+#define CLASS_ID_FROM_FLAG(flag)\
+((uint16_t)((flag) >> 48))
+
 /*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
  * 8 bytes with most significant 8 bytes.
