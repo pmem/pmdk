@@ -517,7 +517,7 @@ list_insert_new(PMEMobjpool *pop,
 	if (constructor) {
 		if ((ret = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg, 0, 0))) {
+				constructor, arg, 0, 0, 0))) {
 			ERR("!pmalloc_construct");
 			goto err_pmalloc;
 		}

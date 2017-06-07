@@ -99,7 +99,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags)
+	uint64_t extra_field, uint16_t flags, uint16_t class_id)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = size + OOB_OFF + sizeof(uint64_t) * 2;
@@ -154,7 +154,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t flags)
+	uint64_t extra_field, uint16_t flags, uint16_t class_id)
 	FUNC_MOCK_RUN_DEFAULT {
 		int ret = __wrap_prealloc(pop, off, size, 0, 0);
 		if (!ret) {
