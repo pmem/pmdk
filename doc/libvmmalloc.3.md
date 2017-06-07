@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libvmmalloc(3)
+title: LIBVMMALLOC(3)
 header: NVM Library
-date: vmmalloc API version 1.0.2
+date: vmmalloc API version 1.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)

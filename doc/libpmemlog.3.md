@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmemlog(3)
+title: LIBPMEMLOG(3)
 header: NVM Library
-date: pmemlog API version 1.0.6
+date: pmemlog API version 1.0
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
