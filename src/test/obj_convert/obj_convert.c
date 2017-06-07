@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -158,8 +158,8 @@ static void
 sc1_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
+	POBJ_ZALLOC(pop, &D_RW(rt)->foo, struct foo,
+		sizeof(struct foo));
 	trap = 1;
 
 	TX_BEGIN(pop) {
@@ -223,8 +223,8 @@ static void
 sc3_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->bar, struct bar,
-		sizeof(struct bar), NULL, NULL);
+	POBJ_ZALLOC(pop, &D_RW(rt)->bar, struct bar,
+		sizeof(struct bar));
 
 	TX_BEGIN(pop) {
 		TEST_CALL(bar, pop, D_RW(rt)->bar, BIG_ALLOC,
@@ -261,8 +261,8 @@ static void
 sc4_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
+	POBJ_ZALLOC(pop, &D_RW(rt)->foo, struct foo,
+		sizeof(struct foo));
 
 	TX_BEGIN(pop) {
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
@@ -299,8 +299,8 @@ static void
 sc5_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
+	POBJ_ZALLOC(pop, &D_RW(rt)->foo, struct foo,
+		sizeof(struct foo));
 
 	TX_BEGIN(pop) {
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
@@ -408,6 +408,15 @@ sc7_create(PMEMobjpool *pop)
 static void
 sc7_verify_abort(PMEMobjpool *pop)
 {
+	int nallocs = 0;
+
+	TOID(struct foo) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	UT_ASSERTeq(nallocs, 0);
+
 	TX_BEGIN(pop) {
 		TOID(struct foo) f = TX_NEW(struct foo);
 		(void) f;
@@ -419,19 +428,14 @@ sc7_verify_abort(PMEMobjpool *pop)
 static void
 sc7_verify_commit(PMEMobjpool *pop)
 {
-	TX_BEGIN(pop) {
-		/*
-		 * Due to a bug in clang-3.4 a pmemobj_tx_alloc call with its
-		 * result being casted to union immediately is optimized out and
-		 * the verify fails even though it should work. Assigning the
-		 * TX_NEW result to a variable is a hacky workaround for this
-		 * problem.
-		 */
-		TOID(struct foo) f = TX_NEW(struct foo);
-		(void) f;
-	} TX_ONCOMMIT {
-		UT_ASSERT(0);
-	} TX_END
+	int nallocs = 0;
+
+	TOID(struct foo) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	UT_ASSERTne(nallocs, 0);
 }
 
 /*
@@ -497,10 +501,10 @@ static void
 sc9_create(PMEMobjpool *pop)
 {
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
-	POBJ_ALLOC(pop, &D_RW(rt)->bar, struct bar,
-		sizeof(struct bar), NULL, NULL);
-	POBJ_ALLOC(pop, &D_RW(rt)->foo, struct foo,
-		sizeof(struct foo), NULL, NULL);
+	POBJ_ZALLOC(pop, &D_RW(rt)->bar, struct bar,
+		sizeof(struct bar));
+	POBJ_ZALLOC(pop, &D_RW(rt)->foo, struct foo,
+		sizeof(struct foo));
 
 	TX_BEGIN(pop) {
 		TEST_CALL(foo, pop, D_RW(rt)->foo, SMALL_ALLOC,
