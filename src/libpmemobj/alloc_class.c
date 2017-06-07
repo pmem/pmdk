@@ -623,3 +623,88 @@ alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
 
 	return size_idx;
 }
+
+/*
+ * alloc_class_reset -- removes all allocation classes and associated
+ *	resources
+ */
+int
+alloc_class_reset(struct alloc_class_collection *ac,
+	size_t granularity, size_t limit, int fail_on_missing_class)
+{
+	size_t maps_size = (limit / granularity) + 1;
+	uint8_t *class_map_by_alloc_size;
+	uint8_t *class_map_by_unit_size;
+	if ((class_map_by_alloc_size = Malloc(maps_size)) == NULL) {
+		return -1;
+	}
+	if ((class_map_by_unit_size = Malloc(maps_size)) == NULL) {
+		Free(class_map_by_alloc_size);
+		return -1;
+	}
+
+	ac->last_run_max_size = limit;
+	ac->granularity = granularity;
+	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		struct alloc_class *c = ac->aclasses[i];
+		if (c != NULL && c->type == CLASS_RUN) {
+			alloc_class_delete(ac, c);
+		}
+	}
+	Free(ac->class_map_by_alloc_size);
+	Free(ac->class_map_by_unit_size);
+
+	ac->class_map_by_alloc_size = class_map_by_alloc_size;
+	ac->class_map_by_unit_size = class_map_by_unit_size;
+	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);
+	memset(ac->class_map_by_unit_size, 0xFF, maps_size);
+
+	ac->fail_on_missing_class = fail_on_missing_class;
+
+	return 0;
+}
+
+/*
+ * alloc_class_range_set -- sets the allocation class for the given range in the
+ *	map
+ */
+int
+alloc_class_range_set(struct alloc_class_collection *ac,
+	struct alloc_class *c, size_t start, size_t end)
+{
+	/* only single unit allocs are supported with minimal header */
+	if (c->header_type == HEADER_NONE) {
+		if (CALC_SIZE_IDX(c->unit_size, start) > 1)
+			return -1;
+		if (CALC_SIZE_IDX(c->unit_size, end) > 1)
+			return -1;
+	}
+
+	size_t start_blocks = SIZE_TO_CLASS_MAP_INDEX(start, ac->granularity);
+	size_t end_blocks = SIZE_TO_CLASS_MAP_INDEX(end, ac->granularity);
+
+	for (size_t n = start_blocks; n <= end_blocks; ++n) {
+		ac->class_map_by_alloc_size[n] = c->id;
+	}
+
+	return 0;
+}
+
+/*
+ * alloc_class_granularity -- returns the allocation class map granularity
+ */
+size_t
+alloc_class_granularity(struct alloc_class_collection *ac)
+{
+	return ac->granularity;
+}
+
+/*
+ * alloc_class_limit -- returns the limit in bytes of the allocation classes
+ *	map
+ */
+size_t
+alloc_class_limit(struct alloc_class_collection *ac)
+{
+	return ac->last_run_max_size;
+}

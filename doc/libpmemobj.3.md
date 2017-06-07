@@ -2573,9 +2573,9 @@ the classes.
 This structure is declared in the `libpmemobj/ctl.h` header file, please read it
 for an in-depth explanation of the allocation classes and relevant algorithms.
 
-Allocation classes constructed in this way can be leveraged by explicitly
+Allocation classes constructed in this way can be leveraged by either explicitly
 specifying the class using **POBJ_CLASS_ID(id)** flag in **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()
-functions.
+functions or by constructing a global mapping between a request size and the class.
 
 Example of a valid alloc class query string:
 ```
@@ -2605,6 +2605,97 @@ The required class identifier will be stored in the `class_id` field of the
 
 This function returns 0 if the allocation class has been successfully created,
 -1 otherwise.
+
+heap.alloc_class.map.range | -w | - | - | `struct pobj_alloc_class_map_range` | integer, integer, integer
+
+The mapping between allocation class and object sizes.
+
+This entry point takes a complex argument.
+
+```
+struct pobj_alloc_class_map_range {
+	size_t start;
+	size_t end;
+	uint8_t class_id;
+};
+```
+
+The field `start` defines the first size in bytes for which the allocation class
+will be used for.
+
+The field `end` defines the last size in bytes for which the allocation class
+will be used for.
+
+Both of those must be between 0 and `heap.alloc_class.map.limit`. They also
+must take the header size into account.
+
+The field `class_id` defines the allocation class. Must be between 0 and 255.
+If no allocation class with the given id exists, the function fails.
+
+If the given allocation class has a header type **POBJ_HEADER_MINIMAL** and the
+range definition would cause the allocator to use more than one unit for any
+size between `start` and `end`, the function fails.
+
+The class mapping is a runtime state of the library and must be created
+after every open. It's highly recommended to use the configuration file to store
+the mappings.
+
+This entry point is not thread-safe and cannot be performed when there are any
+libpmemobj functions being called concurrently.
+
+heap.alloc_class.map.reset | -w | - | - | `struct pobj_alloc_class_params` | integer, integer, integer
+
+This entry point deletes all of the internal definitions of allocation classes
+and relevant runtime state. This allows one to take full control of the data
+structures of the algorithm.
+
+When called, the reservation on `class_id` is partially lifted and one is free
+to register allocation classes with id in the 1-127 range. The class 0 is the
+default one, it is used to handle block allocation and it must always exist.
+
+This entry point takes a complex argument.
+
+```
+struct pobj_alloc_class_params {
+	size_t limit;
+	size_t granularity;
+	int fail_no_matching_class;
+};
+```
+
+The field `limit` defines the size in bytes to which allocations are handled
+using custom allocation classes. Everything above is handled using entire blocks
+and best-fit.
+
+The field `granularity` defines the size to which all object sizes are aligned
+to. Together with `limit`, it determines the size of the array containing the
+size <> allocation class mapping: `arr_size = limit / granularity`.
+
+The field `fail_no_matching_class` allows one to decide whether the allocator
+should fail when no mapping between a requested size and an allocation class
+exists. If not set, all sizes without corresponding allocation class will be
+handled using entire blocks (256 kilobytes).
+
+When resetting the allocation classes, it is recommended to cover all possible
+sizes. This is due to the fact that the library can internally call the
+persistent allocator for its own metadata.
+
+This entry point is not thread-safe, and should be called before any allocations
+had a chance of happening in the current incarnation of the heap
+(e.g. immediately after `pmemobj_open`/`pmemobj_create` or from the
+configuration file).
+
+heap.alloc_class.map.limit | r- | - | integer | - | integer
+
+Fetches the previously defined limit of the allocation class mapping array.
+
+Always returns 0.
+
+heap.alloc_class.map.granularity | r- | - | integer | - | integer
+
+Fetches the previously defined granularity of the allocation class mapping array.
+
+Always returns 0.
 
 # CTL external configuration #
 
