@@ -1,0 +1,6 @@
+obj_ctl_alloc_class_config$(nW)TEST0: START: obj_ctl_alloc_class_config
+ $(nW)obj_ctl_alloc_class_config$(nW) $(nW)
+2 128 2045
+1 1024 1023
+0 2048 1023
+obj_ctl_alloc_class_config$(nW)TEST0: DONE

@@ -171,6 +171,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 
 	if (pop) {
 		tx_ctl_register(pop);
+		pmalloc_ctl_register(pop);
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -1091,11 +1092,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		return -1;
 	}
 
-	if (obj_ctl_init_and_load(pop) != 0) {
-		errno = EINVAL;
-		goto err_ctl;
-	}
-
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
@@ -1126,6 +1122,11 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		}
 	}
 
+	if (obj_ctl_init_and_load(pop) != 0) {
+		errno = EINVAL;
+		goto err;
+	}
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -1136,8 +1137,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 err:
-	ctl_delete(pop->ctl);
-err_ctl:
 	tx_params_delete(pop->tx_params);
 
 	return -1;
@@ -1958,9 +1957,8 @@ constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
  */
 static int
 obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
-	type_num_t type_num, int zero_init,
-	pmemobj_constr constructor,
-	void *arg)
+	type_num_t type_num, uint64_t flags,
+	pmemobj_constr constructor, void *arg)
 {
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
@@ -1971,7 +1969,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	struct carg_bytype carg;
 
 	carg.user_type = type_num;
-	carg.zero_init = zero_init;
+	carg.zero_init = flags & POBJ_FLAG_ZERO;
 	carg.constructor = constructor;
 	carg.arg = arg;
 
@@ -1986,7 +1984,9 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	int ret = pmalloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
-			constructor_alloc_bytype, &carg, type_num, 0, &ctx);
+			constructor_alloc_bytype, &carg, type_num, 0,
+			CLASS_ID_FROM_FLAG(flags),
+			&ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -2015,6 +2015,40 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	return obj_alloc_construct(pop, oidp, size, type_num,
 			0, constructor, arg);
+}
+
+/*
+ * pmemobj_xalloc -- allocates with flags
+ */
+int
+pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
+	uint64_t type_num, uint64_t flags,
+	pmemobj_constr constructor, void *arg)
+{
+	LOG(3, "pop %p oidp %p size %zu type_num %llx flags %llx "
+		"constructor %p arg %p",
+		pop, oidp, size, (unsigned long long)type_num,
+		(unsigned long long)flags,
+		constructor, arg);
+
+	/* log notice message if used inside a transaction */
+	_POBJ_DEBUG_NOTICE_IN_TX();
+
+	if (size == 0) {
+		ERR("allocation with size 0");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
+		errno = EINVAL;
+		return -1;
+	}
+
+	return obj_alloc_construct(pop, oidp, size, type_num,
+			flags, constructor, arg);
 }
 
 /* arguments for constructor_realloc and constructor_zrealloc */
@@ -2047,8 +2081,8 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num,
-					1, NULL, NULL);
+	return obj_alloc_construct(pop, oidp, size, type_num, POBJ_FLAG_ZERO,
+		NULL, NULL);
 }
 
 /*
@@ -2067,7 +2101,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 	operation_add_entry(&ctx, &oidp->pool_uuid_lo, 0, OPERATION_SET);
 
 	pmalloc_operation(&pop->heap, oidp->off, &oidp->off, 0, NULL, NULL,
-			0, 0, &ctx);
+			0, 0, 0, &ctx);
 
 	pmalloc_redo_release(pop);
 }
@@ -2115,7 +2149,7 @@ obj_realloc_common(PMEMobjpool *pop,
 			return 0;
 
 		return obj_alloc_construct(pop, oidp, size, type_num,
-				zero_init, NULL, NULL);
+				POBJ_FLAG_ZERO, NULL, NULL);
 	}
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
@@ -2145,7 +2179,7 @@ obj_realloc_common(PMEMobjpool *pop,
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	int ret = pmalloc_operation(&pop->heap, oidp->off, &oidp->off,
-			size, constructor_realloc, &carg, type_num, 0, &ctx);
+			size, constructor_realloc, &carg, type_num, 0, 0, &ctx);
 
 	pmalloc_redo_release(pop);
 
@@ -2472,7 +2506,7 @@ obj_alloc_root(PMEMobjpool *pop, size_t size,
 	int ret = pmalloc_operation(&pop->heap, pop->root_offset,
 			&pop->root_offset, size,
 			constructor_zrealloc_root, &carg,
-			POBJ_ROOT_TYPE_NUM, OBJ_INTERNAL_OBJECT_MASK, &ctx);
+			POBJ_ROOT_TYPE_NUM, OBJ_INTERNAL_OBJECT_MASK, 0, &ctx);
 
 	pmalloc_redo_release(pop);
 
