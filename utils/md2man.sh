@@ -49,15 +49,15 @@ set -o pipefail
 filename=$1
 template=$2
 outfile=$3
-title=`sed -n 's/^title:\ *\([a-z_-]*\).*$/\1/p' $filename`
+title=`sed -n 's/^title:\ *\([A-Za-z_-]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*(\([0-9]\)).*$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
 cat $filename | sed -n -e '/# NAME #/,$p' |\
 pandoc -s -t man -o $outfile --template=$template \
     -V title=$title -V section=$section \
-    -V description='"NVM Library"' -V version="$version" \
-    -V year=$(date +"%Y") |\
+    -V date=$(date +"%F") -V version="$version" \
+    -V year=$(date +"%Y") |
 sed '/^\.IP/{
 N
 /\n\.nf/{
