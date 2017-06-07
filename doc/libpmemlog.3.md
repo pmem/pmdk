@@ -63,8 +63,16 @@ cc ... -lpmemlog -lpmem
 ##### Most commonly used functions: #####
 
 ```c
+!ifdef{WIN32}
+{
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+}{
 PMEMlogpool *pmemlog_open(const char *path);
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
+}
 void pmemlog_close(PMEMlogpool *plp);
 size_t pmemlog_nbyte(PMEMlogpool *plp);
 intpmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
@@ -79,9 +87,19 @@ void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 ##### Library API versioning: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmemlog_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmemlog_check_version(
 	unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
 ##### Managing library behavior: #####
@@ -92,13 +110,25 @@ void pmemlog_set_funcs(
 	void (*free_func)(void *ptr),
 	void *(*realloc_func)(void *ptr, size_t size),
 	char *(*strdup_func)(const char *s));
-int pmemlog_check(const char *path);
+!ifdef{WIN32}
+{
+	int pmemlog_checkU(const char *path);
+	int pmemlog_checkW(const wchar_t *path);
+}{
+	int pmemlog_check(const char *path);
+}
 ```
 
 ##### Error handling: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+}{
 const char *pmemlog_errormsg(void);
+}
 ```
 
 
@@ -129,7 +159,7 @@ information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** b
 
 # MOST COMMONLY USED FUNCTIONS #
 
-To use the pmem-resident log file provided by **libpmemlog**, a *memory pool* is first created. This is done with the **pmemlog_create**() function described
+To use the pmem-resident log file provided by **libpmemlog**, a *memory pool* is first created. This is done with the !pmemlog_create function described
 in this section. The other functions described in this section then operate on the resulting log memory pool.
 
 Once created, the memory pool is represented by an opaque handle, of type *PMEMlogpool\**, which is passed to most of the other functions in this section.
@@ -138,23 +168,35 @@ be persistent memory or a regular file (see the **pmem_is_pmem**() function in *
 changes directly when using the log memory API provided by **libpmemlog**.
 
 ```c
+!ifdef{WIN32}
+{
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+}{
 PMEMlogpool *pmemlog_open(const char *path);
+}
 ```
 
-The **pmemlog_open**() function opens an existing log memory pool, returning a memory pool handle used with most of the functions in this section. *path* must
-be an existing file containing a log memory pool as created by **pmemlog_create**(). The application must have permission to open the file and memory map it
-with read/write permissions. If an error prevents the pool from being opened, **pmemlog_open**() returns NULL and sets *errno* appropriately.
+The !pmemlog_open function opens an existing log memory pool, returning a memory pool handle used with most of the functions in this section. *path* must
+be an existing file containing a log memory pool as created by !pmemlog_create. The application must have permission to open the file and memory map it
+with read/write permissions. If an error prevents the pool from being opened, !pmemlog_open returns NULL and sets *errno* appropriately.
 
 ```c
+!ifdef{WIN32}
+{
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+}{
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
+}
 ```
 
-The **pmemlog_create**() function creates a log memory pool with the given total *poolsize*. Since the transactional nature of a log memory pool requires some
+The !pmemlog_create function creates a log memory pool with the given total *poolsize*. Since the transactional nature of a log memory pool requires some
 space overhead in the memory pool, the resulting available log size is less than *poolsize*, and is made available to the caller via the **pmemlog_nbyte**()
 function described below. *path* specifies the name of the memory pool file to be created. *mode* specifies the permissions to use when creating the file as
 described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The caller may choose to take
-responsibility for creating the memory pool file by creating it before calling **pmemlog_create**() and then specifying *poolsize* as zero. In this case
-**pmemlog_create**() will take the pool size from the size of the existing file and will verify that the file appears to be empty by searching for any non-zero
+responsibility for creating the memory pool file by creating it before calling !pmemlog_create and then specifying *poolsize* as zero. In this case
+!pmemlog_create will take the pool size from the size of the existing file and will verify that the file appears to be empty by searching for any non-zero
 data in the pool header at the beginning of the file. The minimum file size allowed by the library for a log pool is defined in **\<libpmemlog.h\>** as
 **PMEMLOG_MIN_POOL**.
 
@@ -163,17 +205,17 @@ maximum size of the pmemlog memory pool could be limited by the capacity of a si
 resident log spanning multiple memory devices by creation of persistent memory pools consisting of multiple files, where each part of such a *pool set* may be
 stored on different pmem-aware filesystem.
 
-Creation of all the parts of the pool set can be done with the **pmemlog_create**() function. However, the recommended method for creating pool sets is to do
+Creation of all the parts of the pool set can be done with the !pmemlog_create function. However, the recommended method for creating pool sets is to do
 it by using the **pmempool**(1) utility.
 
-When creating the pool set consisting of multiple files, the *path* argument passed to **pmemlog_create**() must point to the special *set* file that defines
+When creating the pool set consisting of multiple files, the *path* argument passed to !pmemlog_create must point to the special *set* file that defines
 the pool layout and the location of all the parts of the pool set. The *poolsize* argument must be 0. The meaning of *layout* and *mode* arguments doesn't
 change, except that the same *mode* is used for creation of all the parts of the pool set. If the error prevents any of the pool set files from being created,
-**pmemlog_create**() returns NULL and sets *errno* appropriately.
+!pmemlog_create returns NULL and sets *errno* appropriately.
 
-When opening the pool set consisting of multiple files, the *path* argument passed to **pmemlog_open**() must not point to the pmemlog memory pool file, but to
+When opening the pool set consisting of multiple files, the *path* argument passed to !pmemlog_open must not point to the pmemlog memory pool file, but to
 the same *set* file that was used for the pool set creation. If an error prevents any of the pool set files from being opened, or if the actual size of any
-file does not match the corresponding part size defined in *set* file **pmemlog_open**() returns NULL and sets *errno* appropriately.
+file does not match the corresponding part size defined in *set* file !pmemlog_open returns NULL and sets *errno* appropriately.
 
 The set file is a plain text file, which must start with the line containing a *PMEMPOOLSET* string, followed by the specification of all the pool parts in the
 next lines. For each part, the file size and the absolute path must be provided.
@@ -218,7 +260,7 @@ void pmemlog_close(PMEMlogpool *plp);
 ```
 
 The **pmemlog_close**() function closes the memory pool indicated by *plp* and deletes the memory pool handle. The log memory pool itself lives on in the file
-that contains it and may be re-opened at a later time using **pmemlog_open**() as described above.
+that contains it and may be re-opened at a later time using !pmemlog_open as described above.
 
 ```c
 size_t pmemlog_nbyte(PMEMlogpool *plp);
@@ -289,16 +331,26 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing applications to work with an evolving API.
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmemlog_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmemlog_check_version(
 	unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
-The **pmemlog_check_version**() function is used to see if the installed **libpmemlog** supports the version of the library API required by an application. The
+The !pmemlog_check_version function is used to see if the installed **libpmemlog** supports the version of the library API required by an application. The
 easiest way to do this is for the application to supply the compile-time version information, supplied by defines in **\<libpmemlog.h\>**, like this:
 
 ```c
-reason = pmemblk_check_version(PMEMLOG_MAJOR_VERSION,
+reason = pmemlog_check_version!U{}(PMEMLOG_MAJOR_VERSION,
                                PMEMLOG_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -312,8 +364,8 @@ An application can also check specifically for the existence of an interface by 
 are documented in this man page as follows: unless otherwise specified, all interfaces described here are available in version 1.0 of the library. Interfaces
 added after version 1.0 will contain the text *introduced in version x.y* in the section of this manual describing the feature.
 
-When the version check performed by **pmemlog_check_version**() is successful, the return value is NULL. Otherwise the return value is a static string
-describing the reason for failing the version check. The string returned by **pmemlog_check_version**() must not be modified or freed.
+When the version check performed by !pmemlog_check_version is successful, the return value is NULL. Otherwise the return value is a static string
+describing the reason for failing the version check. The string returned by !pmemlog_check_version must not be modified or freed.
 
 
 # MANAGING LIBRARY BEHAVIOR #
@@ -333,14 +385,20 @@ the handlers will cause the **libpmemlog** default function to be used. The libr
 allocate approximately 4-8 kilobytes for each memory pool in use.
 
 ```c
-int pmemlog_check(const char *path);
+!ifdef{WIN32}
+{
+	int pmemlog_checkU(const char *path);
+	int pmemlog_checkW(const wchar_t *path);
+}{
+	int pmemlog_check(const char *path);
+}
 ```
 
-The **pmemlog_check**() function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any
-inconsistencies found will cause **pmemlog_check**() to return 0, in which case the use of the file with **libpmemlog** will result in undefined behavior. The
+The !pmemlog_check function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause !pmemlog_check to return 0, in which case the use of the file with **libpmemlog** will result in undefined behavior. The
 debug version of **libpmemlog** will provide additional details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
-ERROR HANDLING** section below. **pmemlog_check**() will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
-**pmemlog_check**() opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
+ERROR HANDLING** section below. !pmemlog_check will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
+!pmemlog_check opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
@@ -351,10 +409,16 @@ assertions. If an error is detected during the call to **libpmemlog** function, 
 using the following function:
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+}{
 const char *pmemlog_errormsg(void);
+}
 ```
 
-The **pmemlog_errormsg**() function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
+The !pmemlog_errormsg function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
 include description of the corresponding error code (if *errno* was set), as returned by **strerror**(3). The error message buffer is thread-local; errors
 encountered in one thread do not affect its value in other threads. The buffer is never cleared by any library function; its content is significant only when
 the return value of the immediately preceding call to **libpmemlog** function indicated an error, or if *errno* was set. The application must not modify or
@@ -368,7 +432,7 @@ variable **PMEMLOG_LOG_LEVEL**, which can be set to the following values:
 + **0** - This is the default level when **PMEMLOG_LOG_LEVEL** is not set. No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be
-retrieved using **pmemlog_errormsg**().
+retrieved using !pmemlog_errormsg.
 
 + **2** - A trace of basic operations is logged.
 
@@ -419,10 +483,10 @@ main(int argc, char *argv[])
 	char *str;
 
 	/* create the pmemlog pool or open it if it already exists */
-	plp = pmemlog_create(path, POOL_SIZE, 0666);
+	plp = pmemlog_create!U{}(path, POOL_SIZE, 0666);
 
 	if (plp == NULL)
-		plp = pmemlog_open(path);
+		plp = pmemlog_open!U{}(path);
 
 	if (plp == NULL) {
 		perror(path);
