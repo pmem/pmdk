@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmempool(3)
+title: LIBPMEMPOOL(3)
 header: NVM Library
-date: pmempool API version 1.1.0
+date: pmempool API version 1.1
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
