@@ -2,3 +2,4 @@
 *.jpg binary
 *.png binary
 *.gif binary
+*.match text -whitespace
