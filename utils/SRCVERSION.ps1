@@ -63,7 +63,13 @@ $BUGFIX = $false
 $PRIVATE = $true
 $CUSTOM = $false
 
-if ($null -eq $git) {
+if ($null -ne $args[0]) {
+    $version = $args[0]
+    $ver_array = $version.split("-+")
+} elseif ($null -ne $git) {
+    $version = $(git describe)
+    $ver_array = $(git describe --long).split("-+")
+} else {
     $MAJOR = 0
     $MINOR = 0
     $REVISION = 0
@@ -71,10 +77,9 @@ if ($null -eq $git) {
 
     $CUSTOM = $true
     $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN VERSION`" "
-} else {
-    $version = $(git describe)
-    $ver_array = $(git describe --long).split("-+")
+}
 
+if ($null -ne $ver_array) {
     $MAJOR = $ver_array[0].split(".")[0]
     $MINOR = $ver_array[0].split(".")[1]
     $BUILD = $ver_array[$ver_array.length - 2]
