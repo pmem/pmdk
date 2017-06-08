@@ -111,7 +111,7 @@ ddmap_print_bytes(const char *data, size_t len)
 		if (data[i] == '\0')
 			/* print the degree symbol for NUL */
 			printf("\u00B0");
-		if (data[i] >= ' ' && data[i] <= '~')
+		else if (data[i] >= ' ' && data[i] <= '~')
 			/* print printable ASCII character */
 			printf("%c", data[i]);
 		else
@@ -222,7 +222,6 @@ ddmap_write_from_file(const char *path_in, const char *path_out, off_t offset, s
 	close(sfd);
 	util_unmap(addr, file_out_size);
 	return 0;
-	 
  }
 
 /*
@@ -251,7 +250,6 @@ ddmap_write(const char *path, const char *str, off_t offset, size_t len)
 		if (ddmap_zero(path, (size_t)offset + length, len - length))
 			return -1;
 	}
-	
 	return 0;
 }
 
