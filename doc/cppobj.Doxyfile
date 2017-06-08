@@ -221,4 +221,4 @@ HTML_TIMESTAMP = NO
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED = __cpp_lib_uncaught_exceptions
+PREDEFINED = __cpp_lib_uncaught_exceptions _WIN32
