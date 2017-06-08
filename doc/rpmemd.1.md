@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: rpmemd(1)
+title: RPMEMD(1)
 header: NVM Library
-date: version 1.0.2
+date: version 1.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
