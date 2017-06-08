@@ -188,6 +188,7 @@ public:
 #ifdef _WIN32
 	/**
 	 * Opens an existing object store memory pool. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file containing the memory
 	 *	pool or a pool set.
@@ -210,6 +211,7 @@ public:
 
 	/**
 	 * Creates a new transactional object store pool. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file to be created. If exists
 	 *	the pool can be created in-place depending on the size
@@ -238,6 +240,7 @@ public:
 
 	/**
 	 * Checks if a given pool is consistent. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file containing the memory
 	 *	pool or a pool set.
@@ -537,6 +540,7 @@ public:
 #ifdef _WIN32
 	/**
 	 * Opens an existing object store memory pool. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file containing the memory
 	 *	pool or a pool set.
@@ -555,6 +559,7 @@ public:
 
 	/**
 	 * Creates a new transactional object store pool. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file to be created. If exists
 	 *	the pool can be created in-place depending on the size
@@ -578,6 +583,7 @@ public:
 
 	/**
 	 * Checks if a given pool is consistent. Wide string variant.
+	 * Available only on Windows.
 	 *
 	 * @param path System path to the file containing the memory
 	 *	pool or a pool set.
