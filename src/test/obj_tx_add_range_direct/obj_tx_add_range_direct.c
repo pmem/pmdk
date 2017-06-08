@@ -554,26 +554,22 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 static void
 do_tx_add_range_lots_of_small_snapshots(PMEMobjpool *pop)
 {
-#define TOTAL_SIZE_OF_SNAPSHOTS (1 << 19)
-#define SIZEOF_SNAPSHOT 8
+	size_t s = TX_DEFAULT_RANGE_CACHE_SIZE * 2;
+	size_t snapshot_s = 8;
 	PMEMoid obj;
-	int ret = pmemobj_alloc(pop, &obj,
-		TOTAL_SIZE_OF_SNAPSHOTS, 0, NULL, NULL);
+	int ret = pmemobj_alloc(pop, &obj, s, 0, NULL, NULL);
 	UT_ASSERTeq(ret, 0);
 
 	TX_BEGIN(pop) {
-		for (size_t n = 0;
-			n < TOTAL_SIZE_OF_SNAPSHOTS; n += SIZEOF_SNAPSHOT) {
+		for (size_t n = 0; n < s; n += snapshot_s) {
 			void *addr = (void *)((size_t)pmemobj_direct(obj) + n);
-			pmemobj_tx_add_range_direct(addr, SIZEOF_SNAPSHOT);
+			pmemobj_tx_add_range_direct(addr, snapshot_s);
 		}
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
 
 	UT_ASSERTeq(errno, 0);
-#undef TOTAL_SIZE_OF_SNAPSHOTS
-#undef SIZEOF_SNAPSHOT
 }
 
 static void
