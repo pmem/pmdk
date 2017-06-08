@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libvmem(3)
+title: LIBVMEM(3)
 header: NVM Library
-date: vmem API version 1.0.2
+date: vmem API version 1.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)

@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool-transform(1)
+title: PMEMPOOL-TRANSFORM(1)
 header: NVM Library
-date: pmem Tools version 1.2.0
+date: pmem Tools version 1.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)

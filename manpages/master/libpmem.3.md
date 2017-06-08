@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmem(3)
+title: LIBPMEM(3)
 header: NVM Library
-date: pmem API version 1.0.4
+date: pmem API version 1.0
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
