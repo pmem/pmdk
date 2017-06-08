@@ -2349,6 +2349,30 @@ executed.
 
 Always returns 0.
 
+valgrind.memcheck_built_in | ro | global | int | - | boolean
+
+Sets argument to 1 or 0 depending of whether pmemobj was built with Valgrind Memcheck enabled.
+
+Always returns 0.
+
+valgrind.drd_built_in | ro | global | int | - | boolean
+
+Sets argument to 1 or 0 depending of whether pmemobj was built with Valgrind DRD enabled.
+
+Always returns 0.
+
+valgrind.helgrind_built_in | ro | global | int | - | boolean
+
+Sets argument to 1 or 0 depending of whether pmemobj was built with Valgrind Helgrind enabled.
+
+Always returns 0.
+
+valgrind.pmemcheck_built_in | ro | global | int | - | boolean
+
+Sets argument to 1 or 0 depending of whether pmemobj was built with Valgrind Pmemcheck enabled.
+
+Always returns 0.
+
 # CTL external configuration #
 
 In addition to direct function call, each write entry point can also be set

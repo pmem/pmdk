@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #include "set.h"
 #include "out.h"
 #include "ctl_global.h"
+#include "valgrind_internal.h"
 
 static int
 CTL_READ_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_type type,
@@ -91,8 +92,78 @@ static const struct ctl_node CTL_NODE(prefault)[] = {
 	CTL_NODE_END
 };
 
+static int
+CTL_READ_HANDLER(memcheck_built_in)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+#ifdef USE_VG_MEMCHECK
+	*arg_out = 1;
+#else
+	*arg_out = 0;
+#endif
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(drd_built_in)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+#ifdef USE_VG_DRD
+	*arg_out = 1;
+#else
+	*arg_out = 0;
+#endif
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(helgrind_built_in)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+#ifdef USE_VG_HELGRIND
+	*arg_out = 1;
+#else
+	*arg_out = 0;
+#endif
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(pmemcheck_built_in)(PMEMobjpool *pop, enum ctl_query_type type,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+
+#ifdef USE_VG_PMEMCHECK
+	*arg_out = 1;
+#else
+	*arg_out = 0;
+#endif
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(valgrind)[] = {
+	CTL_LEAF_RO(memcheck_built_in),
+	CTL_LEAF_RO(drd_built_in),
+	CTL_LEAF_RO(helgrind_built_in),
+	CTL_LEAF_RO(pmemcheck_built_in),
+
+	CTL_NODE_END
+};
+
 void
 ctl_global_register(void)
 {
 	CTL_REGISTER_MODULE(NULL, prefault);
+	CTL_REGISTER_MODULE(NULL, valgrind);
 }
