@@ -49,17 +49,22 @@
 #include "container_ctree.h"
 #include "container_seglists.h"
 #include "alloc_class.h"
+#include "os_thread.h"
 
 /* calculates the size of the entire run, including any additional chunks */
 #define SIZEOF_RUN(runp, size_idx) (sizeof(*run) + ((size_idx - 1) * CHUNKSIZE))
 
 #define MAX_RUN_LOCKS 1024
 
-#define NCACHES_PER_CPU	2
+/*
+ * Arenas store the collection of buckets for allocation classes. Each thread
+ * is assigned an arena on its first allocator operation.
+ */
+struct arena {
+	/* one bucket per allocation class */
+	struct bucket *buckets[MAX_ALLOCATION_CLASSES];
 
-struct bucket_cache {
-	/* one cache bucket per allocation class */
-	struct bucket *buckets[MAX_ALLOCATION_CLASSES]; /* no default bucket */
+	size_t nthreads;
 };
 
 struct heap_rt {
@@ -67,38 +72,43 @@ struct heap_rt {
 
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
-	struct bucket_cache *caches;
+	struct arena *arenas;
+
+	/* protects assignment of arenas */
+	os_mutex_t arenas_lock;
+
+	/* stores a pointer to one of the arenas */
+	os_tls_key_t thread_arena;
 
 	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
 
 	os_mutex_t run_locks[MAX_RUN_LOCKS];
 	unsigned max_zone;
 	unsigned zones_exhausted;
-	unsigned ncaches;
+	unsigned narenas;
 };
 
-static __thread unsigned Cache_id = UINT32_MAX;
-static unsigned Next_cache_id;
-
 /*
- * bucket_group_init -- (internal) creates new bucket group instance
+ * heap_arena_init -- (internal) initializes arena instance
  */
 static void
-bucket_group_init(struct bucket **buckets)
+heap_arena_init(struct arena *arena)
 {
+	arena->nthreads = 0;
+
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
-		buckets[i] = NULL;
+		arena->buckets[i] = NULL;
 }
 
 /*
- * bucket_group_destroy -- (internal) destroys bucket group instance
+ * heap_arena_destroy -- (internal) destroys arena instance
  */
 static void
-bucket_group_destroy(struct bucket **buckets)
+heap_arena_destroy(struct arena *arena)
 {
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
-		if (buckets[i] != NULL)
-			bucket_delete(buckets[i]);
+		if (arena->buckets[i] != NULL)
+			bucket_delete(arena->buckets[i]);
 }
 
 /*
@@ -112,6 +122,64 @@ heap_get_best_class(struct palloc_heap *heap, size_t size)
 }
 
 /*
+ * heap_thread_arena_destructor -- (internal) removes arena thread assignment
+ */
+static void
+heap_thread_arena_destructor(void *arg)
+{
+	struct arena *a = arg;
+	util_fetch_and_sub(&a->nthreads, 1);
+}
+
+/*
+ * heap_thread_arena_assign -- (internal) assigns the least used arena
+ *	to current thread
+ *
+ * To avoid complexities with regards to races in the search for the least
+ * used arena, a lock is used, but the nthreads counter of the arena is still
+ * bumped using atomic instruction because it can happen in parallel to a
+ * destructor of a thread, which also touches that variable.
+ */
+static struct arena *
+heap_thread_arena_assign(struct heap_rt *heap)
+{
+	os_mutex_lock(&heap->arenas_lock);
+
+	struct arena *least_used = NULL;
+
+	struct arena *a;
+	for (unsigned i = 0; i < heap->narenas; ++i) {
+		a = &heap->arenas[i];
+		if (least_used == NULL || a->nthreads < least_used->nthreads)
+			least_used = a;
+	}
+
+	LOG(4, "assiging %p arena to current thread", a);
+
+	util_fetch_and_add(&least_used->nthreads, 1);
+
+	os_mutex_unlock(&heap->arenas_lock);
+
+	os_tls_set(heap->thread_arena, least_used);
+
+	return least_used;
+}
+
+/*
+ * heap_thread_arena -- (internal) returns the arena assigned to the current
+ *	thread
+ */
+static struct arena *
+heap_thread_arena(struct heap_rt *heap)
+{
+	struct arena *a;
+	if ((a = os_tls_get(heap->thread_arena)) == NULL)
+		a = heap_thread_arena_assign(heap);
+
+	return a;
+}
+
+/*
  * heap_bucket_acquire_by_id -- fetches by id a bucket exclusive for the thread
  *	until heap_bucket_release is called
  */
@@ -120,18 +188,12 @@ heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id)
 {
 	struct heap_rt *rt = heap->rt;
 	struct bucket *b;
+
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
 		b = rt->default_bucket;
 	} else {
-		/*
-		 * Choose cache index only once in a threads lifetime.
-		 * Buckets are not exclusive for a thread, which means locking.
-		 */
-		while (Cache_id == UINT32_MAX) {
-			Cache_id = __sync_fetch_and_add(&Next_cache_id, 1);
-		}
-
-		b = heap->rt->caches[Cache_id % rt->ncaches].buckets[class_id];
+		struct arena *arena = heap_thread_arena(heap->rt);
+		b = arena->buckets[class_id];
 	}
 
 	util_mutex_lock(&b->lock);
@@ -944,25 +1006,20 @@ heap_end(struct palloc_heap *h)
 }
 
 /*
- * heap_get_ncpus -- (internal) returns the number of available CPUs
+ * heap_get_narenas -- (internal) returns the number of arenas to create
  */
 static unsigned
-heap_get_ncpus(void)
+heap_get_narenas(void)
 {
 	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if (cpus < 1)
 		cpus = 1;
-	return (unsigned)cpus;
-}
 
-/*
- * heap_get_ncaches -- (internal) returns the number of bucket caches according
- * to number of cpus and number of caches per cpu.
- */
-static unsigned
-heap_get_ncaches(void)
-{
-	return NCACHES_PER_CPU * heap_get_ncpus();
+	unsigned arenas = (unsigned)cpus;
+
+	LOG(4, "creating %u arenas", arenas);
+
+	return arenas;
 }
 
 /*
@@ -974,10 +1031,10 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;
 	int i;
-	for (i = 0; i < (int)h->ncaches; ++i) {
-		h->caches[i].buckets[c->id] = bucket_new(
+	for (i = 0; i < (int)h->narenas; ++i) {
+		h->arenas[i].buckets[c->id] = bucket_new(
 			container_new_seglists(heap), c);
-		if (h->caches[i].buckets[c->id] == NULL)
+		if (h->arenas[i].buckets[c->id] == NULL)
 			goto error_cache_bucket_new;
 	}
 
@@ -985,7 +1042,7 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 
 error_cache_bucket_new:
 	for (i -= 1; i >= 0; --i) {
-		bucket_delete(h->caches[i].buckets[c->id]);
+		bucket_delete(h->arenas[i].buckets[c->id]);
 	}
 
 	return -1;
@@ -1018,8 +1075,8 @@ heap_buckets_init(struct palloc_heap *heap)
 	return 0;
 
 error_bucket_create:
-	for (unsigned i = 0; i < h->ncaches; ++i)
-		bucket_group_destroy(h->caches[i].buckets);
+	for (unsigned i = 0; i < h->narenas; ++i)
+		heap_arena_destroy(&h->arenas[i]);
 
 	return -1;
 }
@@ -1046,11 +1103,11 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	h->ncaches = heap_get_ncaches();
-	h->caches = Malloc(sizeof(struct bucket_cache) * h->ncaches);
-	if (h->caches == NULL) {
+	h->narenas = heap_get_narenas();
+	h->arenas = Malloc(sizeof(struct arena) * h->narenas);
+	if (h->arenas == NULL) {
 		err = ENOMEM;
-		goto error_heap_cache_malloc;
+		goto error_arenas_malloc;
 	}
 
 	h->max_zone = heap_max_zone(heap_size);
@@ -1058,6 +1115,10 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_init(&h->run_locks[i]);
+
+	util_mutex_init(&h->arenas_lock);
+
+	os_tls_key_create(&h->thread_arena, heap_thread_arena_destructor);
 
 	heap->run_id = run_id;
 	heap->p_ops = *p_ops;
@@ -1067,8 +1128,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->base = base;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
-	for (unsigned i = 0; i < h->ncaches; ++i)
-		bucket_group_init(h->caches[i].buckets);
+	for (unsigned i = 0; i < h->narenas; ++i)
+		heap_arena_init(&h->arenas[i]);
 
 	size_t rec_i;
 	for (rec_i = 0; rec_i < MAX_ALLOCATION_CLASSES; ++rec_i) {
@@ -1081,10 +1142,10 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	return 0;
 
 error_recycler_new:
-	Free(h->caches);
+	Free(h->arenas);
 	for (size_t i = 0; i < rec_i; ++i)
 		recycler_delete(h->recyclers[i]);
-error_heap_cache_malloc:
+error_arenas_malloc:
 	alloc_class_collection_delete(h->alloc_classes);
 error_alloc_classes_new:
 	Free(h);
@@ -1161,13 +1222,17 @@ heap_cleanup(struct palloc_heap *heap)
 
 	bucket_delete(rt->default_bucket);
 
-	for (unsigned i = 0; i < rt->ncaches; ++i)
-		bucket_group_destroy(rt->caches[i].buckets);
+	for (unsigned i = 0; i < rt->narenas; ++i)
+		heap_arena_destroy(&rt->arenas[i]);
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
 		util_mutex_destroy(&rt->run_locks[i]);
 
-	Free(rt->caches);
+	util_mutex_destroy(&rt->arenas_lock);
+
+	os_tls_key_delete(rt->thread_arena);
+
+	Free(rt->arenas);
 
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		recycler_delete(rt->recyclers[i]);
