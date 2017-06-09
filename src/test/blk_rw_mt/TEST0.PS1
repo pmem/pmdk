@@ -44,7 +44,8 @@ $Env:UNITTEST_NUM = "0"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_test_type medium
+# this is the short version of the test
+require_test_type short
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
