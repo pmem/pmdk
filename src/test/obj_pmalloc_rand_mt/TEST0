@@ -47,6 +47,6 @@ configure_valgrind helgrind force-enable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_rand_mt$EXESUFFIX $DIR/testfile 8 1000 260000 10000
+	./obj_pmalloc_rand_mt$EXESUFFIX $DIR/testfile 8 1000 260000 10000 1234
 
 pass

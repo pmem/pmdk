@@ -42,13 +42,13 @@
 static ssize_t object_size;
 static int nobjects;
 static int iterations = 1000000;
+static unsigned seed;
 
 static void *
 test_worker(void *arg)
 {
 	PMEMobjpool *pop = arg;
 
-	unsigned seed = time(NULL);
 	PMEMoid *objects = ZALLOC(sizeof(PMEMoid) * nobjects);
 	int fill = 0;
 
@@ -83,10 +83,10 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_rand_mt");
 
-	if (argc < 5 && argc > 6)
+	if (argc < 5 && argc > 7)
 		UT_FATAL("usage: %s [file] "
 			"[threads #] [objects #] [object size] "
-			"[iterations (def: 1000000)] ",
+			"[iterations (def: 1000000)] [seed (def: time)]",
 			argv[0]);
 
 	int nthreads = atoi(argv[2]);
@@ -94,6 +94,10 @@ main(int argc, char *argv[])
 	object_size = atoi(argv[4]);
 	if (argc > 5)
 		iterations = atoi(argv[5]);
+	if (argc > 6)
+		seed = (unsigned)atoi(argv[6]);
+	else
+		seed = time(NULL);
 
 	PMEMobjpool *pop;
 
