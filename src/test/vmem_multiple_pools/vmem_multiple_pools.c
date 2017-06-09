@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 	for (int t = 0; t < nthreads; t++)
 		PTHREAD_JOIN(threads[t], NULL);
 
-	for (int pool_id = 0; pool_id < npools; ++pool_id) {
+	for (int pool_id = 0; pool_id < npools * nthreads; ++pool_id) {
 		if (pools[pool_id] != NULL) {
 			vmem_delete(pools[pool_id]);
 			pools[pool_id] = NULL;
