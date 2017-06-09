@@ -45,7 +45,7 @@ $Env:UNITTEST_NUM = "1"
 . ..\unittest\unittest.ps1
 
 # this is the short version of the test
-require_test_type short
+require_test_type medium
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
