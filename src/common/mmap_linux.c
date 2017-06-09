@@ -141,9 +141,9 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
  * address.
  */
 char *
-util_map_hint(int fd, size_t len, size_t req_align)
+util_map_hint(size_t len, size_t req_align)
 {
-	LOG(3, "fd %d len %zu req_align %zu", fd, len, req_align);
+	LOG(3, "len %zu req_align %zu", len, req_align);
 
 	char *hint_addr = MAP_FAILED;
 

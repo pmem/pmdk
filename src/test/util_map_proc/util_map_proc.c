@@ -95,7 +95,7 @@ main(int argc, char *argv[])
 
 		void *h1 =
 			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
-		void *h2 = util_map_hint(-1, len, 0);
+		void *h2 = util_map_hint(len, 0);
 		if (h1 != MAP_FAILED && h1 != NULL)
 			UT_ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
 		if (h2 != MAP_FAILED && h2 != NULL)
