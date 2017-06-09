@@ -621,7 +621,7 @@ function pass {
 }
 
 #
-# pass -- print message that the test has failed
+# fail -- print message that the test has failed
 #
 function fail {
     sv -Name msg "FAILED"

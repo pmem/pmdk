@@ -304,7 +304,7 @@ function runtest {
                 if ($j1.State -ne "Completed") {
                     Remove-Job -Job $j1 -Force
                     cd ..
-                    throw "RUNTESTS: stopping: $testName/$runscript $msg TEST=$testtype FS=$fs BUILD=$build"
+                    throw "RUNTESTS: stopping: $testName/$runscript FAILED TEST=$testtype FS=$fs BUILD=$build"
                 }
                 Remove-Job -Job $j1 -Force
             } # for builds
@@ -380,20 +380,24 @@ if ($verbose -eq "1") {
     Write-Host "Tests: $args"
 }
 
-if ($testdir -eq "all") {
-    if ($jobs -gt 1) {
-        try {
+$threads = 0
+$status = 0
+
+try {
+    if ($testdir -eq "all") {
+        if ($jobs -gt 1) {
             $it = 0
             # unique name for all jobs
             $name = [guid]::NewGuid().ToString()
             $tests = (Get-ChildItem -Directory)
-            $threads = 0
 
             # script block - job's start function
             $sb = {
                 cd $args[0]
                 $LASTEXITCODE = 0
-                .\RUNTESTS.ps1 -dryrun $args[1] -buildtype $args[2] -testtype $args[3] -fstype $args[4] -time $args[5] -testdir $args[6]
+                .\RUNTESTS.ps1 -dryrun $args[1] -buildtype $args[2]
+                        -testtype $args[3] -fstype $args[4] -time $args[5]
+                        -testdir $args[6]
                 if ($LASTEXITCODE -ne 0) {
                     throw "RUNTESTS FAILED $args[0]"
                 }
@@ -402,7 +406,10 @@ if ($testdir -eq "all") {
             # start worker jobs
             1..$jobs | % {
                 if ($it -lt $tests.Length) {
-                    $j1 = Start-Job -Name $name -ScriptBlock $sb -ArgumentList (pwd).ToString(), $dryrun, $buildtype, $testtype, $fstype, $time, $tests[$it].Name | out-null
+                    $j1 = Start-Job -Name $name -ScriptBlock $sb
+                            -ArgumentList (pwd).ToString(),
+                            $dryrun, $buildtype, $testtype, $fstype,
+                            $time, $tests[$it].Name | Out-Null
                     $it++
                     $threads++
                 }
@@ -425,30 +432,40 @@ if ($testdir -eq "all") {
                     $threads--
                     if ($fail -eq $false) {
                         if ($it -lt $tests.Length) {
-                            Start-Job -Name $name -ScriptBlock $sb -ArgumentList (pwd).ToString(), $dryrun, $buildtype, $testtype, $fstype, $time, $tests[$it].Name | out-null
+                            Start-Job -Name $name -ScriptBlock $sb
+                                    -ArgumentList (pwd).ToString(),
+                                    $dryrun, $buildtype, $testtype, $fstype,
+                                    $time, $tests[$it].Name | Out-Null
                             $it++
                             $threads++
                         }
                     }
                 }
             }
-            if ($fail -ne 0) {
-                    Write-Error "RUNTESTS FAILED"
-                    Exit 1
+            if ($fail -eq $true) {
+                Write-Error "RUNTESTS FAILED"
+                Exit 1
             }
-        } finally {
-            # cleanup jobs in case of exception or C-c
-            if ($threads -ne 0) {
-                Get-Job -name $name | Remove-Job -Force
+        } else {
+            # only one job
+            Get-ChildItem -Directory | % {
+                $LASTEXITCODE = 0
+                runtest $_.Name
             }
         }
     } else {
-        Get-ChildItem -Directory | % {
-            $LASTEXITCODE = 0
-            runtest $_.Name
-        }
+        # only one test
+        $LASTEXITCODE = 0
+        runtest $testdir
     }
-} else {
-    $LASTEXITCODE = 0
-    runtest $testdir
+} catch {
+    Write-Error "RUNTESTS FAILED"
+    $status = 1
+} finally {
+    # cleanup jobs in case of exception or C-c
+    if ($threads -ne 0) {
+        Get-Job -name $name | Remove-Job -Force
+    }
 }
+
+Exit $status
