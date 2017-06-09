@@ -346,7 +346,21 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	size_t hdrsize = part->alignment > POOL_HDR_SIZE
 			? part->alignment : POOL_HDR_SIZE;
 
-	void *hdrp = mmap(NULL, hdrsize,
+	void *addr = NULL;
+
+#ifdef USE_VG_MEMCHECK
+	if (On_valgrind) {
+		/* this is required only for Device DAX & memcheck */
+		addr = util_map_hint(hdrsize, hdrsize);
+		if (addr == MAP_FAILED) {
+			ERR("canot find a contiguous region of given size");
+			/* there's nothing we can do */
+			return -1;
+		}
+	}
+#endif
+
+	void *hdrp = mmap(addr, hdrsize,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
 			flags, part->fd, 0);
 	if (hdrp == MAP_FAILED) {
@@ -1941,7 +1955,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->part[0].fd, rep->repsize, 0);
+		addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
@@ -2369,7 +2383,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		retry_for_contiguous_addr = 0;
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->part[0].fd, rep->repsize, 0);
+		addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
