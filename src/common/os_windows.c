@@ -237,7 +237,7 @@ os_mkstemp(char *temp)
 	 * multiples files by system.
 	 */
 	rand_s(&rnd);
-	int cnt = _snwprintf(npath + wcslen(npath), MAX_PATH, L"%d", rnd);
+	int cnt = _snwprintf(npath + wcslen(npath), MAX_PATH, L"%u", rnd);
 	if (cnt < 0)
 		return cnt;
 
