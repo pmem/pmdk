@@ -567,7 +567,7 @@ enum_handles(int op)
 			case 0x0d: /* Mutant */
 			case 0x0f: /* Semaphore */
 			case 0x1e: /* File */
-			case 0x23: /* Section (memory mapping) */
+			/* case 0x23: */ /* Section (memory mapping) */
 				break;
 			default:
 				continue;

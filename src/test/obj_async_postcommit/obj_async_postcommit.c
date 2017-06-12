@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 10,
-		S_IWUSR | S_IRUSR)) == NULL)
+			S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	run_test(pop, 0, 2, 0);
@@ -142,6 +142,8 @@ main(int argc, char *argv[])
 	run_test(pop, 4, 4, 512);
 	run_test(pop, 1, 4, 1024);
 	run_test(pop, 0, 2, 0);
+
+	pmemobj_close(pop);
 
 	DONE(NULL);
 }

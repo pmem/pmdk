@@ -136,6 +136,8 @@ main(int argc, char *argv[])
 
 			ptr++;
 		}
+
+		MUNMAP(addr, stbuf.st_size);
 	}
 
 	DONE(NULL);
