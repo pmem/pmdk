@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,13 +61,14 @@ else
 fi
 
 # Check for changes in the generated docs directory
+# Only new files are allowed (first version)
 for commit in $commits; do
 	last_author=$(git --no-pager show -s --format='%aN <%aE>' $commit)
 	if [ "$last_author" == "$allowed_user" ]; then
 		continue
 	fi
 
-	fail=$(git diff-tree --no-commit-id --name-only -r $commit | grep ^$directory | wc -l)
+	fail=$(git diff-tree --no-commit-id --name-status -r $commit | grep -c ^M.*$directory)
 	if [ $fail -ne 0 ]; then
 		echo "FAIL: changes to ${directory} allowed only by \"${allowed_user}\""
 		exit 1

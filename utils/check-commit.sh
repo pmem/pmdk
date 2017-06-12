@@ -58,7 +58,7 @@ fi
 # valid area names
 AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|jemalloc\|cpp\|doc\|common"
 
-# Check for changes in the generated docs directory
+# Check commit message
 for commit in $commits; do
 	subject=$(git log --format="%s" -n 1 $commit)
 	subject_len=$(echo $subject | wc -m)
