@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@ export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 MIN_POOL=$((32 * 1024))
+MIN_PART=$((16 * 1024))
 
 mkdir -p $DIR/subdir1
 mkdir -p $DIR/subdir2
@@ -63,7 +64,7 @@ create_poolset $DIR/testset3 32K:$DIR/testfile31:x \
 create_poolset $DIR/testset4 12K:$DIR/testfile41:x \
 	32K:$DIR/testfile42:x # fail - part1 too small
 create_poolset $DIR/testset5 32K:$DIR/testfile51:x \
-	16K:$DIR/testfile52:x # fail - part2 too small
+	12K:$DIR/testfile52:x # fail - part2 too small
 create_poolset $DIR/testset6 32K:$DIR/testfile61:x \
 	32K:$DIR/nodir/testfile62:x # fail - part2 non-existing dir
 create_poolset $DIR/testset7 32K:$DIR/testfile71:x \
@@ -77,14 +78,14 @@ create_poolset $DIR/testset10 32K:$DIR/testfile101:z \
 create_poolset $DIR/testset11 32K:$DIR/testfile111:z:32K \
 	32K:$DIR/testfile112:z 16K:$DIR/testfile113:z:32K # fail - part3 too small
 create_poolset $DIR/testset12 32K:$DIR/testfile121:z:32K \
-	8K:$DIR/testfile122:z:8K # fail - part2 too small
-create_poolset $DIR/testset13 8K:$DIR/testfile131:z:8K \
+	12K:$DIR/testfile122:z:12K # fail - part2 too small
+create_poolset $DIR/testset13 12K:$DIR/testfile131:z:12K \
 	32K:$DIR/testfile132:z:32K # fail - part2 too small
 create_poolset $DIR/testset14 32K:$DIR/testfile141:z:32K \
 	64K:$DIR/testfile142:z:32K # fail - part2 size doesn't match
 create_poolset $DIR/testset15 32K:$DIR/testfile151:z:32768 \
 	32K:$DIR/testfile152:z:32769 # fail - part2 size doesn't match
-create_poolset $DIR/testset16 32767:$DIR/testfile161:z:32767 \
+create_poolset $DIR/testset16 4095:$DIR/testfile161:z:4095 \
 	32K:$DIR/testfile162:z:32K # fail - part1 too small
 create_poolset $DIR/testset17 32769:$DIR/testfile171:z \
 	36863:$DIR/testfile172:z 36864:$DIR/testfile173:z # pass
@@ -107,8 +108,7 @@ create_poolset $DIR/testset25 32K:$DIR/testfile251:z 32K:$DIR/testfile252:x \
 create_poolset $DIR/testset26 32K:$DIR/testfile261:z 64K:$DIR/testfile262:z \
 	r 40K:$DIR/testfile263 r 96K:$DIR/testfile264 # pass - pmem/non-pmem
 
-
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $MIN_PART\
 	$DIR/testset0 $DIR/testset1\
 	$DIR/testset2 $DIR/testset3\
 	$DIR/testset4 $DIR/testset5\

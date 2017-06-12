@@ -102,6 +102,8 @@ const wchar_t *pmemblk_check_versionW(unsigned major_required,
 #define PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 64))
 #endif
 
+#define PMEMBLK_MIN_PART POOL_HDR_SIZE
+
 #define PMEMBLK_MIN_BLK ((size_t)512)
 
 #ifndef _WIN32
