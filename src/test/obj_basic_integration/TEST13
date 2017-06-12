@@ -1,0 +1,110 @@
+#!/bin/bash -e
+#
+# Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+#
+# src/test/obj_basic_integration/TEST13 -- maximally divided pool
+#
+# Create minimal net size pool divided to as many as small parts as possible.
+#
+export UNITTEST_NAME=obj_basic_integration/TEST13
+export UNITTEST_NUM=13
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_build_type debug
+require_test_type medium
+
+setup
+
+#
+# ceil_div -- divide and return ceil of ratio
+#    usage: ceil_div <numerator> <denumerator>
+#
+function ceil_div()
+{
+	let "result = ($1 + $2 - 1) / ($2)"
+	echo $result
+}
+
+# assume quarter of maximum number of open file descriptors are available
+PART_MAX=$(ulimit -n)
+let "PART_NUM = $PART_MAX / 4"
+
+let "NET_SIZE = 9 * 1024"
+ALIGNMENT=4
+
+# calculate a required part size to get the net pool size >= 9MB
+# PART_SIZE = ceil(($NET_SIZE - $ALIGNMENT) / $PART_NUM) + 4
+PART_SIZE=$(ceil_div "$NET_SIZE - $ALIGNMENT" "$PART_NUM")
+let "PART_SIZE = $PART_SIZE + 4"
+# align PART_SIZE to ALIGNMENT
+PART_SIZE=$(ceil_div "$PART_SIZE" "$ALIGNMENT")
+let "PART_SIZE = $PART_SIZE * $ALIGNMENT"
+
+# recalculate PART_NUM to create as small number of parts as possible
+# PART_NUM = ceil(($NET_SIZE - 4) / ($PART_SIZE - 4))
+PART_NUM=$(ceil_div "$NET_SIZE - 4" "$PART_SIZE - 4")
+
+echo "$UNITTEST_NAME: use $PART_NUM x ${PART_SIZE}K parts"
+
+# create poolset file
+CMD="$DIR/testset"
+for i in `seq 1 $PART_NUM`; do
+	CMD="$CMD ${PART_SIZE}K:$DIR/testfile$i:x"
+done
+create_poolset $CMD
+
+expect_any_exit ./obj_basic_integration$EXESUFFIX $DIR/testset
+
+# test ended successfully
+if [ "$EXIT_CODE" -eq "0" ]; then
+	check
+	pass
+	exit 0
+fi
+
+# check if test failed because of too many open file descriptors
+TOO_MANY_FILES=$($STRERROR 24)
+result=$(cat pmemobj$UNITTEST_NUM.log | grep -c "$TOO_MANY_FILES" || true)
+
+if [ "$result" -eq "1" ]; then
+	echo "$UNITTEST_NAME: SKIP: no enough file descriptors available"\
+		"(less than $PART_NUM out of $PART_MAX)"
+	exit 0
+fi
+
+# fail caused by any other reason is considered real fail
+fail $EXIT_CODE
+exit 1
