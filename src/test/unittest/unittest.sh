@@ -58,6 +58,7 @@ TOOLS=../tools
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
+[ "$STRERROR" ] || STRERROR=$TOOLS/strerror/strerror
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -671,23 +672,8 @@ function expect_normal_exit() {
 	restore_exit_on_error
 
 	if [ "$ret" -ne "0" ]; then
-		if [ "$ret" -gt "128" ]; then
-			msg="crashed (signal $(($ret - 128)))"
-		else
-			msg="failed with exit code $ret"
-		fi
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		fail "$ret"
 
-		if [ -f err$UNITTEST_NUM.log ]; then
-			if [ "$UNITTEST_QUIET" = "1" ]; then
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below." >&2
-				cat err$UNITTEST_NUM.log >&2
-			else
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above." >&2
-			fi
-		else
-			echo -e "$UNITTEST_NAME $msg." >&2
-		fi
 		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
 			dump_last_n_lines $VALGRIND_LOG_FILE
 		fi
@@ -738,13 +724,9 @@ function expect_normal_exit() {
 # expect_abnormal_exit -- run a given command, expect it to exit non-zero
 #
 function expect_abnormal_exit() {
-	disable_exit_on_error
-	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-	$TRACE $*
-	ret=$?
-	restore_exit_on_error
+	expect_any_exit $*
 
-	if [ "$ret" -eq "0" ]; then
+	if [ "$EXIT_CODE" -eq "0" ]; then
 		msg="succeeded"
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
@@ -754,6 +736,17 @@ function expect_abnormal_exit() {
 
 		false
 	fi
+}
+
+#
+# expect_any_exit -- run a given command, return exit code in EXIT_CODE variable
+#
+function expect_any_exit() {
+	disable_exit_on_error
+	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
+	$TRACE $*
+	EXIT_CODE=$?
+	restore_exit_on_error
 }
 
 #
@@ -1952,6 +1945,32 @@ function pass() {
 	echo -e "$UNITTEST_NAME: $msg$tm"
 	if [ "$FS" != "none" ]; then
 		rm --one-file-system -rf -- $DIR
+	fi
+}
+
+#
+# fail -- print message that the test has filed
+#    usage: fail <error>
+#
+function fail() {
+	local ret=$1
+
+	if [ "$ret" -gt "128" ]; then
+		msg="crashed (signal $(($ret - 128)))"
+	else
+		msg="failed with exit code $ret"
+	fi
+	[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+
+	if [ -f err$UNITTEST_NUM.log ]; then
+		if [ "$UNITTEST_QUIET" = "1" ]; then
+			echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below." >&2
+			cat err$UNITTEST_NUM.log >&2
+		else
+			echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above." >&2
+		fi
+	else
+		echo -e "$UNITTEST_NAME $msg." >&2
 	fi
 }
 
