@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,41 +30,42 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# src/test/blk_pool/TEST31 -- create a pool with the smallest parts
+# possible
+#
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
-#
-# src/test/util_poolset/TEST3 -- unit test for util_pool_open()
-#
-export UNITTEST_NAME=util_poolset/TEST3
-export UNITTEST_NUM=3
+$Env:UNITTEST_NAME = "blk_pool\TEST31w"
+$Env:UNITTEST_NUM = "31w"
+
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type non-pmem
 
 setup
 
-export TEST_LOG_LEVEL=4
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+#
+# TEST31 non-existing file, poolsize >= min required size, bsize > min bsize
+#        part size == min part size (pool set)
 
-MIN_POOL=$((32 * 1024))
-MIN_PART=$((32 * 1024))
+create_poolset $DIR\testset 2M:$DIR\testfile1:x 2M:$DIR\testfile2:x `
+    2M:$DIR\testfile2:x 2M:$DIR\testfile3:x 2M:$DIR\testfile4:x `
+    2M:$DIR\testfile5:x 2M:$DIR\testfile6:x 2M:$DIR\testfile7:x `
+    2M:$DIR\testfile8:x 2M:$DIR\testfile9:x
 
-for i in `seq 1 128`; do
-	FILES="$FILES 32K:$DIR/testfile$i:x "
-done
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 100 0 0640
 
-# prepare pool sets
-create_poolset $DIR/testset1 $FILES
-
-# create pool sets
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $MIN_PART $DIR/testset1
-
-# now check if pool sets may be opened
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $MIN_PART $DIR/testset1
-
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+check_files $DIR\testset $DIR\testfile1 $DIR\testfile2
 
 check
 
