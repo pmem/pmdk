@@ -52,21 +52,22 @@ setup
 $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_POOL = 4 * 1024 * 1024 # 4MiB
+$MIN_POOL_STR = $MIN_POOL.toString() + "B"
 
 # prepare pool sets
-create_poolset $DIR\testset1 256K:$DIR\testfile11:x 256K:$DIR\testfile12:x
-create_poolset $DIR\testset2 256K:$DIR\testfile21:x 256K:$DIR\testfile22:x
-create_poolset $DIR\testset3 256K:$DIR\testfile31:x 256K:$DIR\testfile32:x
-create_poolset $DIR\testset4 256K:$DIR\testfile41:x 256K:$DIR\testfile42:x
-create_poolset $DIR\testset5 256K:$DIR\testfile51:x 256K:$DIR\testfile52:x
-create_poolset $DIR\testset6 256K:$DIR\testfile61:x 256K:$DIR\testfile62:x
-create_poolset $DIR\testset7 256K:$DIR\testfile71:x 256K:$DIR\testfile72:x
-create_poolset $DIR\testset8 256K:$DIR\testfile81:x 256K:$DIR\testfile82:x
-create_poolset $DIR\testset9 256K:$DIR\testfile91:x 256K:$DIR\testfile92:x
-create_poolset $DIR\testset10 256K:$DIR\testfile101:x 256K:$DIR\testfile102:x
-create_poolset $DIR\testset11 256K:$DIR\testfile111:x 256K:$DIR\testfile112:x
-create_poolset $DIR\testset12 256K:$DIR\testfile121:x 256K:$DIR\testfile122:x
+create_poolset $DIR\testset1 $MIN_POOL_STR:$DIR\testfile11:x $MIN_POOL_STR:$DIR\testfile12:x
+create_poolset $DIR\testset2 $MIN_POOL_STR:$DIR\testfile21:x $MIN_POOL_STR:$DIR\testfile22:x
+create_poolset $DIR\testset3 $MIN_POOL_STR:$DIR\testfile31:x $MIN_POOL_STR:$DIR\testfile32:x
+create_poolset $DIR\testset4 $MIN_POOL_STR:$DIR\testfile41:x $MIN_POOL_STR:$DIR\testfile42:x
+create_poolset $DIR\testset5 $MIN_POOL_STR:$DIR\testfile51:x $MIN_POOL_STR:$DIR\testfile52:x
+create_poolset $DIR\testset6 $MIN_POOL_STR:$DIR\testfile61:x $MIN_POOL_STR:$DIR\testfile62:x
+create_poolset $DIR\testset7 $MIN_POOL_STR:$DIR\testfile71:x $MIN_POOL_STR:$DIR\testfile72:x
+create_poolset $DIR\testset8 $MIN_POOL_STR:$DIR\testfile81:x $MIN_POOL_STR:$DIR\testfile82:x
+create_poolset $DIR\testset9 $MIN_POOL_STR:$DIR\testfile91:x $MIN_POOL_STR:$DIR\testfile92:x
+create_poolset $DIR\testset10 $MIN_POOL_STR:$DIR\testfile101:x $MIN_POOL_STR:$DIR\testfile102:x
+create_poolset $DIR\testset11 $MIN_POOL_STR:$DIR\testfile111:x $MIN_POOL_STR:$DIR\testfile112:x
+create_poolset $DIR\testset12 $MIN_POOL_STR:$DIR\testfile121:x $MIN_POOL_STR:$DIR\testfile122:x
 
 # create pool sets
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
