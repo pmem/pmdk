@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@ export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 MIN_POOL=$((32 * 1024))
+MIN_PART=$((16 * 1024))
 
 create_poolset $DIR/testset1 32K:$DIR/testfile11:z:32K # pass
 create_poolset $DIR/testset2 32K:$DIR/testfile21:x \
@@ -71,8 +72,7 @@ create_poolset $DIR/testset10 32K:$DIR/testfile101:z:32768 \
 create_poolset $DIR/testset11 32769:$DIR/testfile111:z:32769 \
 	36863:$DIR/testfile112:z:36863 36864:$DIR/testfile113:z:36864 # pass
 
-
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
+expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $MIN_PART\
 	$DIR/testset0 $DIR/testset1\
 	-mo:$DIR/testset2 $DIR/testset2\
 	$DIR/testset3 $DIR/testset4\

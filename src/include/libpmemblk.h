@@ -97,9 +97,11 @@ const wchar_t *pmemblk_check_versionW(unsigned major_required,
 #ifndef _WIN32
 /* minimum pool size: 16MB + 4KB (minimum BTT size + mmap alignment) */
 #define PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 8))
+#define PMEMBLK_MIN_PART ((size_t)(1024 * 4)) /* 4 KB */
 #else
 /* minimum pool size: 16MB + 64KB (minimum BTT size + mmap alignment) */
 #define PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 64))
+#define PMEMBLK_MIN_PART ((size_t)(1024 * 64)) /* 64 KB */
 #endif
 
 #define PMEMBLK_MIN_BLK ((size_t)512)
