@@ -1,0 +1,8 @@
+This is src/test/tools/strerror/README file.
+
+This directory contains a simple application which returns a string
+describing a given error number. It's used as a helper program by unit tests.
+The error strings differ from OS to OS.
+
+usage:
+$ strerror <errno>
