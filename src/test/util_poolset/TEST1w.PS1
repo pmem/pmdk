@@ -51,30 +51,29 @@ setup
 $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment (262144)
+$MIN_POOL = 4 * 1024 * 1024 # 4MB
 
-create_poolset $DIR\testset1 256K:$DIR\testfile11:z:256K # pass
-create_poolset $DIR\testset2 256K:$DIR\testfile21:x `
-    256K:$DIR\testfile22:x # fail - can't read poolset file
-create_poolset $DIR\testset3 256K:$DIR\testfile31:x `
-    256K:$DIR\testfile32:x # fail - no files
-create_poolset $DIR\testset4 256K:$DIR\testfile41:z:256K `
-    256K:$DIR\testfile42:x # fail - no second part
-create_poolset $DIR\testset5 12K:$DIR\testfile51:z:12K `
-    256K:$DIR\testfile52:z:256K # fail - part1 too small
-create_poolset $DIR\testset6 256K:$DIR\testfile61:z:256K `
-    16K:$DIR\testfile62:z:16K # fail - part2 too small
-create_poolset $DIR\testset7 262143B:$DIR\testfile71:z:262143B `
-    256K:$DIR\testfile72:z:256K # fail - part1 too small
-create_poolset $DIR\testset8 256K:$DIR\testfile81:z:256K `
-    256K:$DIR\testfile82:z:256K # fail - no access permissions
-create_poolset $DIR\testset9 256K:$DIR\testfile91:z:256K `
-    512K:$DIR\testfile92:z:256K # fail - part2 size doesn't match
-create_poolset $DIR\testset10 256K:$DIR\testfile101:z:262144B `
-    256K:$DIR\testfile102:z:262145B # fail - part2 size doesn't match
-create_poolset $DIR\testset11 262145B:$DIR\testfile111:z:262145B `
-    327679B:$DIR\testfile112:z:327679B 327680B:$DIR\testfile113:z:327680B # pass
-
+create_poolset $DIR\testset1 4M:$DIR\testfile11:z:4M # pass
+create_poolset $DIR\testset2 4M:$DIR\testfile21:x `
+    4M:$DIR\testfile22:x # fail - can't read poolset file
+create_poolset $DIR\testset3 4M:$DIR\testfile31:x `
+    4M:$DIR\testfile32:x # fail - no files
+create_poolset $DIR\testset4 4M:$DIR\testfile41:z:4M `
+    4M:$DIR\testfile42:x # fail - no second part
+create_poolset $DIR\testset5 128K:$DIR\testfile51:z:128K `
+    4M:$DIR\testfile52:z:4M # fail - part1 too small
+create_poolset $DIR\testset6 4M:$DIR\testfile61:z:4M `
+    128K:$DIR\testfile62:z:128K # fail - part2 too small
+create_poolset $DIR\testset7 2097151B:$DIR\testfile71:z:2097151B `
+    4M:$DIR\testfile72:z:4M # fail - part1 too small
+create_poolset $DIR\testset8 4M:$DIR\testfile81:z:4M `
+    4M:$DIR\testfile82:z:4M # fail - no access permissions
+create_poolset $DIR\testset9 4M:$DIR\testfile91:z:4M `
+    512K:$DIR\testfile92:z:4M # fail - part2 size doesn't match
+create_poolset $DIR\testset10 4M:$DIR\testfile101:z:4194304B `
+    4M:$DIR\testfile102:z:4194305B # fail - part2 size doesn't match
+create_poolset $DIR\testset11 2097153B:$DIR\testfile111:z:2097153B `
+    3145729B:$DIR\testfile112:z:3145729B 3145727B:$DIR\testfile113:z:3145727B # pass
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX o $MIN_POOL `
     $DIR\testset0 $DIR\testset1 `

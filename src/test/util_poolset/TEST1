@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,32 +47,31 @@ setup
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-MIN_POOL=$((32 * 1024))
+MIN_POOL=$((4 * 1024 * 1024)) # 4MB
 
-create_poolset $DIR/testset1 32K:$DIR/testfile11:z:32K # pass
-create_poolset $DIR/testset2 32K:$DIR/testfile21:x \
-	32K:$DIR/testfile22:x # fail - can't read poolset file
-create_poolset $DIR/testset3 32K:$DIR/testfile31:x \
-	32K:$DIR/testfile32:x # fail - no files
-create_poolset $DIR/testset4 32K:$DIR/testfile41:z:32K \
-	32K:$DIR/testfile42:x # fail - no second part
-create_poolset $DIR/testset5 12K:$DIR/testfile51:z:12K \
-	32K:$DIR/testfile52:z:32K # fail - part1 too small
-create_poolset $DIR/testset6 32K:$DIR/testfile61:z:32K \
-	16K:$DIR/testfile62:z:16K # fail - part2 too small
-create_poolset $DIR/testset7 32767:$DIR/testfile71:z:32767 \
-	32K:$DIR/testfile72:z:32K # fail - part1 too small
-create_poolset $DIR/testset8 32K:$DIR/testfile81:z:32K \
-	32K:$DIR/testfile82:z:32K # fail - no access permissions
-create_poolset $DIR/testset9 32K:$DIR/testfile91:z:32K \
-	64K:$DIR/testfile92:z:32K # fail - part2 size doesn't match
-create_poolset $DIR/testset10 32K:$DIR/testfile101:z:32768 \
-	32K:$DIR/testfile102:z:32769 # fail - part2 size doesn't match
+create_poolset $DIR/testset1 4M:$DIR/testfile11:z:4M # pass
+create_poolset $DIR/testset2 4M:$DIR/testfile21:x \
+	4M:$DIR/testfile22:x # fail - can't read poolset file
+create_poolset $DIR/testset3 4M:$DIR/testfile31:x \
+	4M:$DIR/testfile32:x # fail - no files
+create_poolset $DIR/testset4 4M:$DIR/testfile41:z:4M \
+	4M:$DIR/testfile42:x # fail - no second part
+create_poolset $DIR/testset5 1M:$DIR/testfile51:z:1M \
+	4M:$DIR/testfile52:z:4M # fail - part1 too small
+create_poolset $DIR/testset6 4M:$DIR/testfile61:z:4M \
+	1M:$DIR/testfile62:z:1M # fail - part2 too small
+create_poolset $DIR/testset7 2097151:$DIR/testfile71:z:2097151 \
+	4M:$DIR/testfile72:z:4M # fail - part1 too small
+create_poolset $DIR/testset8 4M:$DIR/testfile81:z:4M \
+	4M:$DIR/testfile82:z:4M # fail - no access permissions
+create_poolset $DIR/testset9 4M:$DIR/testfile91:z:4M \
+	64K:$DIR/testfile92:z:4M # fail - part2 size doesn't match
+create_poolset $DIR/testset10 4M:$DIR/testfile101:z:4194304 \
+	4M:$DIR/testfile102:z:4194303 # fail - part2 size doesn't match
 create_poolset $DIR/testset11 32769:$DIR/testfile111:z:32769 \
 	36863:$DIR/testfile112:z:36863 36864:$DIR/testfile113:z:36864 # pass
 
-
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
+expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL \
 	$DIR/testset0 $DIR/testset1\
 	-mo:$DIR/testset2 $DIR/testset2\
 	$DIR/testset3 $DIR/testset4\

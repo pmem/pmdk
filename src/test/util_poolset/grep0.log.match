@@ -6,18 +6,18 @@ $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
 open "$(nW)/testset0": No such file or directory
-size 12288 smaller than 32768
-size 16384 smaller than 32768
+size 1000000 smaller than 2097152
+size 1000000 smaller than 2097152
 open "$(nW)/nodir/testfile62": No such file or directory
 open "/proc/testfile72": Permission denied
 posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
 open "$(nW)/testfile102": Permission denied
-file size does not match config: $(nW)testfile113, 32768 != 16384
-size 8192 smaller than 32768
-size 8192 smaller than 32768
-file size does not match config: $(nW)testfile142, 32768 != 65536
-file size does not match config: $(nW)testfile152, 32769 != 32768
+file size does not match config: $(nW)testfile113, 4194304 != 1048576
+size 12288 smaller than 2097152
+size 12288 smaller than 2097152
+file size does not match config: $(nW)testfile142, 4194304 != 8388608
+file size does not match config: $(nW)testfile152, 3145728 != 4194304
 Non-empty file detected
 Non-empty file detected
 open "$(nW)/testset23": Permission denied
-size 16384 smaller than 32768
+net pool size 1048576 smaller than 4194304
