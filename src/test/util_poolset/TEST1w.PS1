@@ -52,6 +52,7 @@ $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
 $MIN_POOL = 256 * 1024  # 4 * mmap alignment (262144)
+$MIN_PART = 192 * 1024  # 3 * mmap alignment (196608)
 
 create_poolset $DIR/testset1 256K:$DIR/testfile11:z:256K # pass
 create_poolset $DIR/testset2 256K:$DIR/testfile21:x `
@@ -60,10 +61,10 @@ create_poolset $DIR/testset3 256K:$DIR/testfile31:x `
     256K:$DIR/testfile32:x # fail - no files
 create_poolset $DIR/testset4 256K:$DIR/testfile41:z:256K `
     256K:$DIR/testfile42:x # fail - no second part
-create_poolset $DIR/testset5 12K:$DIR/testfile51:z:12K `
+create_poolset $DIR/testset5 128K:$DIR/testfile51:z:128K `
     256K:$DIR/testfile52:z:256K # fail - part1 too small
 create_poolset $DIR/testset6 256K:$DIR/testfile61:z:256K `
-    16K:$DIR/testfile62:z:16K # fail - part2 too small
+    128K:$DIR/testfile62:z:128K # fail - part2 too small
 create_poolset $DIR/testset7 262143B:$DIR/testfile71:z:262143B `
     256K:$DIR/testfile72:z:256K # fail - part1 too small
 create_poolset $DIR/testset8 256K:$DIR/testfile81:z:256K `
@@ -76,7 +77,7 @@ create_poolset $DIR/testset11 262145B:$DIR/testfile111:z:262145B `
     327679B:$DIR/testfile112:z:327679B 327680B:$DIR/testfile113:z:327680B # pass
 
 
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
+expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL $MIN_PART `
     $DIR/testset0 $DIR/testset1 `
     "-mo:$DIR/testset2" $DIR/testset2 `
     $DIR/testset3 $DIR/testset4 `
