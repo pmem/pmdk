@@ -52,67 +52,67 @@ setup
 $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_POOL = 4 * 1024 * 1024 # 4MB
 
 mkdir $DIR\subdir1 -Force > $null
 mkdir $DIR\subdir2 -Force > $null
 
 # non-existing files (delete on failure)
-create_poolset $DIR\testset1 256K:$DIR\testfile11:x # pass
-create_poolset $DIR\testset2 256K:$DIR\testfile21:x `
-    256K:$DIR\testfile22:x # pass
-create_poolset $DIR\testset3 256K:$DIR\testfile31:x `
-    256K:$DIR\testfile32:z:256K # pass
-create_poolset $DIR\testset4 12K:$DIR\testfile41:x `
-    256K:$DIR\testfile42:x # fail - part1 too small
-create_poolset $DIR\testset5 256K:$DIR\testfile51:x `
-    16K:$DIR\testfile52:x # fail - part2 too small
-create_poolset $DIR\testset6 256K:$DIR\testfile61:x `
-    256K:$DIR\nodir\testfile62:x # fail - part2 non-existing dir
-create_poolset $DIR\testset7 256K:$DIR\testfile71:x `
-    256K:\dummy\testfile72:x # fail - part2 can't write to dir
-create_poolset $DIR\testset8 256K:$DIR\testfile81:x `
+create_poolset $DIR\testset1 4M:$DIR\testfile11:x # pass
+create_poolset $DIR\testset2 4M:$DIR\testfile21:x `
+    4M:$DIR\testfile22:x # pass
+create_poolset $DIR\testset3 4M:$DIR\testfile31:x `
+    4M:$DIR\testfile32:z:4M # pass
+create_poolset $DIR\testset4 128K:$DIR\testfile41:x `
+    4M:$DIR\testfile42:x # fail - part1 too small
+create_poolset $DIR\testset5 4M:$DIR\testfile51:x `
+    128K:$DIR\testfile52:x # fail - part2 too small
+create_poolset $DIR\testset6 4M:$DIR\testfile61:x `
+    4M:$DIR\nodir\testfile62:x # fail - part2 non-existing dir
+create_poolset $DIR\testset7 4M:$DIR\testfile71:x `
+    4M:\dummy\testfile72:x # fail - part2 can't write to dir
+create_poolset $DIR\testset8 4M:$DIR\testfile81:x `
     1G:$DIR\testfile82:x # fail - part2 no space left
 
 # exiting files (do not delete on failure)
-create_poolset $DIR\testset10 256K:$DIR\testfile101:z `
-    256K:$DIR\testfile102:z:256K:0400 # fail - part2 read-only
-create_poolset $DIR\testset11 256K:$DIR\testfile111:z:256K `
-    256K:$DIR\testfile112:z 12K:$DIR\testfile113:z:256K # fail - part3 too small
-create_poolset $DIR\testset12 256K:$DIR\testfile121:z:256K `
-    8K:$DIR\testfile122:z:8K # fail - part2 too small
-create_poolset $DIR\testset13 64K:$DIR\testfile131:z:64K `
-    256K:$DIR\testfile132:z:256K # fail - part2 too small
-create_poolset $DIR\testset14 256K:$DIR\testfile141:z:256K `
-    512K:$DIR\testfile142:z:256K # fail - part2 size doesn't match
-create_poolset $DIR\testset15 256K:$DIR\testfile151:z:262144B `
-    256K:$DIR\testfile152:z:262145B # fail - part2 size doesn't match
-create_poolset $DIR\testset16 262143B:$DIR\testfile161:z:262143B `
-    256K:$DIR\testfile162:z:256K # fail - part1 too small
+create_poolset $DIR\testset10 4M:$DIR\testfile101:z `
+    4M:$DIR\testfile102:z:4M:0400 # fail - part2 read-only
+create_poolset $DIR\testset11 4M:$DIR\testfile111:z:4M `
+    4M:$DIR\testfile112:z 2M:$DIR\testfile113:z:4M # fail - part3 too small
+create_poolset $DIR\testset12 4M:$DIR\testfile121:z:4M `
+    1M:$DIR\testfile122:z:1M # fail - part2 too small
+create_poolset $DIR\testset13 1M:$DIR\testfile131:z:1M `
+    4M:$DIR\testfile132:z:4M # fail - part2 too small
+create_poolset $DIR\testset14 4M:$DIR\testfile141:z:4M `
+    8M:$DIR\testfile142:z:4M # fail - part2 size doesn't match
+create_poolset $DIR\testset15 4M:$DIR\testfile151:z:4194304B `
+    4M:$DIR\testfile152:z:4194303B # fail - part2 size doesn't match
+create_poolset $DIR\testset16 4194303B:$DIR\testfile161:z:4194304B `
+    4M:$DIR\testfile162:z:4M # fail - part1 too small
 create_poolset $DIR\testset17 262145B:$DIR\testfile171:z `
     266239B:$DIR\testfile172:z 266240B:$DIR\testfile173:z # pass
-create_poolset $DIR\testset18 259K:$DIR\subdir1\testfile181:z `
-    257K:$DIR\subdir2\testfile182:z # pass
+create_poolset $DIR\testset18 3M:$DIR\subdir1\testfile181:z `
+    3M:$DIR\subdir2\testfile182:z # pass
 
 # mixed (some files exist, some don't)
-create_poolset $DIR\testset20 256K:$DIR\testfile201:x `
-    256K:$DIR\testfile202:n # fail - part2 non-zeroed file
-create_poolset $DIR\testset21 256K:$DIR\testfile21:x `
-    256K:$DIR\testfile22:x # fail - part2 valid hdr (reuse file from case #2)
-create_poolset $DIR\testset22 256K:$DIR\testfile221:x `
-    256K:$DIR\testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
-create_poolset $DIR\testset23 256K:$DIR\testfile231:x `
-    256K:$DIR\testfile232:z # fail - can't read set file
-create_poolset $DIR\testset24 256K:$DIR\testfile241:x 256K:$DIR\testfile242:x `
-    r 280K:$DIR\testfile243:x `
-    r 320K:$DIR\testfile244:x 256K:$DIR\testfile245:x # pass - replicas
-create_poolset $DIR\testset25 256K:$DIR\testfile251:z 256K:$DIR\testfile252:x `
-    r 64K:$DIR\testfile253:z # fail - replica too small
-create_poolset $DIR\testset26 256K:$DIR\testfile261:z 512K:$DIR\testfile262:z `
-    r 320K:$DIR\testfile263 r 768K:$DIR\testfile264 # pass - pmem\non-pmem
+create_poolset $DIR\testset20 4M:$DIR\testfile201:x `
+    4M:$DIR\testfile202:n # fail - part2 non-zeroed file
+create_poolset $DIR\testset21 4M:$DIR\testfile21:x `
+    4M:$DIR\testfile22:x # fail - part2 valid hdr (reuse file from case #2)
+create_poolset $DIR\testset22 4M:$DIR\testfile221:x `
+    4M:$DIR\testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
+create_poolset $DIR\testset23 4M:$DIR\testfile231:x `
+    4M:$DIR\testfile232:z # fail - can't read set file
+create_poolset $DIR\testset24 4M:$DIR\testfile241:x 4M:$DIR\testfile242:x `
+    r 8M:$DIR\testfile243:x `
+    r 6M:$DIR\testfile244:x 2M:$DIR\testfile245:x # pass - replicas
+create_poolset $DIR\testset25 4M:$DIR\testfile251:z 4M:$DIR\testfile252:x `
+    r 3M:$DIR\testfile253:z # fail - replica too small
+create_poolset $DIR\testset26 4M:$DIR\testfile261:z 2M:$DIR\testfile262:z `
+    r 7M:$DIR\testfile263 r 5M:$DIR\testfile264 # pass - pmem\non-pmem
 
 $_1GB = 1024*1024*1024
-$_768KB = 768 * 1024
+$_5MB = 5 * 1024 * 1024
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
     $DIR\testset0 $DIR\testset1 `
@@ -130,7 +130,7 @@ expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
     $DIR\testset22 `
     "-mo:$DIR\testset23" $DIR\testset23 `
     $DIR\testset24 $DIR\testset25 `
-    "-mp:$_768KB" $DIR\testset26
+    "-mp:$_5MB" $DIR\testset26
 
 check_files $DIR\testfile11 `
     $DIR\testfile21 $DIR\testfile22 `

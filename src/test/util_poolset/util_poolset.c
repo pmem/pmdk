@@ -149,9 +149,9 @@ main(int argc, char *argv[])
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
 
-	if (argc < 4)
-		UT_FATAL("usage: %s cmd minlen [mockopts] setfile ...",
-			argv[0]);
+	if (argc < 3)
+		UT_FATAL("usage: %s cmd minsize [mockopts] "
+			"setfile ...", argv[0]);
 
 	char *fname;
 	struct pool_set *set;
@@ -165,7 +165,8 @@ main(int argc, char *argv[])
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname, 0, minsize,
+			ret = util_pool_create(&set, fname,
+				0, minsize,
 				SIG, 1, 0, 0, 0, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
@@ -183,7 +184,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				minsize, SIG, 1, 0, 0, 0, NULL);
+				SIG, 1, 0, 0, 0, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {

@@ -52,21 +52,21 @@ setup
 $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_POOL = 4 * 1024 * 1024 # 4MB
 
 # prepare pool sets
-create_poolset $DIR\testset1 256K:$DIR\testfile11:x 256K:$DIR\testfile12:x
-create_poolset $DIR\testset2 256K:$DIR\testfile21:x 256K:$DIR\testfile22:x
-create_poolset $DIR\testset3 256K:$DIR\testfile31:x 256K:$DIR\testfile32:x
-create_poolset $DIR\testset4 256K:$DIR\testfile41:x 256K:$DIR\testfile42:x
-create_poolset $DIR\testset5 256K:$DIR\testfile51:x 256K:$DIR\testfile52:x
-create_poolset $DIR\testset6 256K:$DIR\testfile61:x 256K:$DIR\testfile62:x
-create_poolset $DIR\testset7 256K:$DIR\testfile71:x 256K:$DIR\testfile72:x
-create_poolset $DIR\testset8 256K:$DIR\testfile81:x 256K:$DIR\testfile82:x
-create_poolset $DIR\testset9 256K:$DIR\testfile91:x 256K:$DIR\testfile92:x
-create_poolset $DIR\testset10 256K:$DIR\testfile101:x 256K:$DIR\testfile102:x
-create_poolset $DIR\testset11 256K:$DIR\testfile111:x 256K:$DIR\testfile112:x
-create_poolset $DIR\testset12 256K:$DIR\testfile121:x 256K:$DIR\testfile122:x
+create_poolset $DIR\testset1 4M:$DIR\testfile11:x 4M:$DIR\testfile12:x
+create_poolset $DIR\testset2 4M:$DIR\testfile21:x 4M:$DIR\testfile22:x
+create_poolset $DIR\testset3 4M:$DIR\testfile31:x 4M:$DIR\testfile32:x
+create_poolset $DIR\testset4 4M:$DIR\testfile41:x 4M:$DIR\testfile42:x
+create_poolset $DIR\testset5 4M:$DIR\testfile51:x 4M:$DIR\testfile52:x
+create_poolset $DIR\testset6 4M:$DIR\testfile61:x 4M:$DIR\testfile62:x
+create_poolset $DIR\testset7 4M:$DIR\testfile71:x 4M:$DIR\testfile72:x
+create_poolset $DIR\testset8 4M:$DIR\testfile81:x 4M:$DIR\testfile82:x
+create_poolset $DIR\testset9 4M:$DIR\testfile91:x 4M:$DIR\testfile92:x
+create_poolset $DIR\testset10 4M:$DIR\testfile101:x 4M:$DIR\testfile102:x
+create_poolset $DIR\testset11 4M:$DIR\testfile111:x 4M:$DIR\testfile112:x
+create_poolset $DIR\testset12 4M:$DIR\testfile121:x 4M:$DIR\testfile122:x
 
 # create pool sets
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
