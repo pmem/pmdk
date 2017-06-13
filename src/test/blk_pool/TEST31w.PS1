@@ -1,5 +1,6 @@
 #
 # Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,50 +30,42 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/test/blk_pool/TEST31 -- create a pool with the smallest parts
+# possible
 #
-# src/test/util_poolset/TEST3w -- unit test for util_pool_open()
+#
+# parameter handling
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST3w"
-$Env:UNITTEST_NUM = "3w"
+
+$Env:UNITTEST_NAME = "blk_pool\TEST31w"
+$Env:UNITTEST_NUM = "31w"
+
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type non-pmem
 
 setup
 
-$Env:TEST_LOG_LEVEL = "4"
-$Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
+#
+# TEST31 non-existing file, poolsize >= min required size, bsize > min bsize
+#        part size == min part size (pool set)
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
-$MIN_PART = 192 * 1024  # 3 * mmap alignment
+create_poolset $DIR\testset 2M:$DIR\testfile1:x 2M:$DIR\testfile2:x `
+    2M:$DIR\testfile3:x 2M:$DIR\testfile4:x 2M:$DIR\testfile5:x `
+    2M:$DIR\testfile6:x 2M:$DIR\testfile7:x 2M:$DIR\testfile8:x `
+    2M:$DIR\testfile9:x 2M:$DIR\testfile10:x
 
-$FILES = @()
-for ($p = 1; $p -le 128; $p++) {
-    $FILES += "256K:$DIR\testfile${p}:x"
-}
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 100 0 0640
 
-# prepare pool sets
-create_poolset $DIR/testset1 @FILES
-
-# create pool sets
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL $MIN_PART `
-    $DIR/testset1
-
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL $MIN_PART `
-    $DIR/testset1
-
-sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
-    %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
-    > grep$Env:UNITTEST_NUM.log
+check_files $DIR\testset $DIR\testfile1 $DIR\testfile2
 
 check
 
