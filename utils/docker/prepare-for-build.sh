@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,8 +39,13 @@
 # Mount filesystem for tests
 echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 
-# Configure tests (e.g. ssh for remote tests)
-./configure-tests.sh
+# Configure tests (e.g. ssh for remote tests) unless the current configuration
+# should be preserved
+if [[ "$KEEP_TEST_CONFIG" != "1" ]]; then
+	./configure-tests.sh
+fi
 
-# Check for changes in automatically generated docs
-../check-doc.sh
+# Check for changes in automatically generated docs (only when on Travis)
+if [[ -n "$TRAVIS" ]]; then
+	../check-doc.sh
+fi
