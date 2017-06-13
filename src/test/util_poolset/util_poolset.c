@@ -150,22 +150,24 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 4)
-		UT_FATAL("usage: %s cmd minlen [mockopts] setfile ...",
-			argv[0]);
+		UT_FATAL("usage: %s cmd minsize minpartsize [mockopts] "
+			"setfile ...", argv[0]);
 
 	char *fname;
 	struct pool_set *set;
 	int ret;
 
 	size_t minsize = strtoul(argv[2], &fname, 0);
+	size_t minpartsize = strtoul(argv[3], &fname, 0);
 
-	for (int arg = 3; arg < argc; arg++) {
+	for (int arg = 4; arg < argc; arg++) {
 		arg += mock_options(argv[arg]);
 		fname = argv[arg];
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname, 0, minsize,
+			ret = util_pool_create(&set, fname,
+				0, minsize, minpartsize,
 				SIG, 1, 0, 0, 0, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
@@ -183,7 +185,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				minsize, SIG, 1, 0, 0, 0, NULL);
+				SIG, 1, 0, 0, 0, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {

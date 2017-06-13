@@ -100,6 +100,15 @@ const wchar_t *pmemlog_check_versionW(unsigned major_required,
  */
 #define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
 
+/* XXX - unify minimum part size for both OS-es */
+
+#ifndef _WIN32
+#define PMEMLOG_MIN_PART ((size_t)(1024 * 4)) /* 4 KB */
+#else
+#define PMEMLOG_MIN_PART PMEMLOG_MIN_POOL
+#endif
+
+
 #ifndef _WIN32
 PMEMlogpool *pmemlog_open(const char *path);
 #else

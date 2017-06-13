@@ -48,6 +48,14 @@ extern "C" {
 
 #define PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
 
+/* XXX - unify minimum part size for both OS-es */
+
+#ifndef _WIN32
+#define PMEMOBJ_MIN_PART ((size_t)(1024 * 4)) /* 4 KB */
+#else
+#define PMEMOBJ_MIN_PART PMEMOBJ_MIN_POOL
+#endif
+
 /*
  * Pool management.
  */
