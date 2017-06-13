@@ -1,5 +1,5 @@
 util_poolset$(nW)TEST0w: START: util_poolset
- $(nW)util_poolset$(nW) c 262144 $(nW)testset0 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset5 $(nW)testset6 -mo:$(nW)testfile72 $(nW)testset7 -mf:1073741824 $(nW)testset8 -mo:$(nW)testfile102 $(nW)testset10 $(nW)testset11 $(nW)testset12 $(nW)testset13 $(nW)testset14 $(nW)testset15 $(nW)testset18 $(nW)testset20 $(nW)testset21 $(nW)testset22 -mo:$(nW)testset23 $(nW)testset23 $(nW)testset24 $(nW)testset25 -mp:786432 $(nW)testset26
+ $(nW)util_poolset$(nW) c 262144 196608 $(nW)testset0 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset5 $(nW)testset6 -mo:$(nW)testfile72 $(nW)testset7 -mf:1073741824 $(nW)testset8 -mo:$(nW)testfile102 $(nW)testset10 $(nW)testset11 $(nW)testset12 $(nW)testset13 $(nW)testset14 $(nW)testset15 $(nW)testset18 $(nW)testset20 $(nW)testset21 $(nW)testset22 -mo:$(nW)testset23 $(nW)testset23 $(nW)testset24 $(nW)testset25 -mp:786432 $(nW)testset26
 $(nW)testset0: util_pool_create: No such file or directory
 $(nW)testset1: created: nreps 1 poolsize 262144 zeroed 1
   replica[0]: nparts 1 repsize 262144 is_pmem 0

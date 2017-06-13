@@ -29,50 +29,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/util_poolset/TEST3w -- unit test for util_pool_open()
+# src/test/obj_pool/TEST30w -- create a pool with the smallest parts possible
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST3w"
-$Env:UNITTEST_NUM = "3w"
+$Env:UNITTEST_NAME = "obj_pool\TEST30w"
+$Env:UNITTEST_NUM = "30w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type non-pmem
+
+require_fs_type any
 
 setup
 
-$Env:TEST_LOG_LEVEL = "4"
-$Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
+create_poolset $DIR\testset 2M:$DIR\testfile1:x 2M:$DIR\testfile2:x `
+    2M:$DIR\testfile3:x 2M:$DIR\testfile4:x 2M:$DIR\testfile5:x
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
-$MIN_PART = 192 * 1024  # 3 * mmap alignment
-
-$FILES = @()
-for ($p = 1; $p -le 128; $p++) {
-    $FILES += "256K:$DIR\testfile${p}:x"
-}
-
-# prepare pool sets
-create_poolset $DIR/testset1 @FILES
-
-# create pool sets
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL $MIN_PART `
-    $DIR/testset1
-
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL $MIN_PART `
-    $DIR/testset1
-
-sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
-    %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
-    > grep$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX c $DIR\testset test 0 0600
 
 check
 

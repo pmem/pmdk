@@ -53,6 +53,7 @@ $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
 $MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_PART = 192 * 1024  # 3 * mmap alignment
 
 # prepare pool sets
 create_poolset $DIR/testset1 256K:$DIR/testfile11:x 256K:$DIR/testfile12:x
@@ -69,7 +70,7 @@ create_poolset $DIR/testset11 256K:$DIR/testfile111:x 256K:$DIR/testfile112:x
 create_poolset $DIR/testset12 256K:$DIR/testfile121:x 256K:$DIR/testfile122:x
 
 # create pool sets
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL `
+expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL $MIN_PART `
     $DIR/testset1 $DIR/testset2 `
     $DIR/testset3 $DIR/testset4 `
     $DIR/testset5 $DIR/testset6 `
@@ -92,7 +93,7 @@ expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL `
 &$PMEMSPOIL $DIR/testfile121 pool_hdr.next_repl_uuid="0123456789012345" "pool_hdr.checksum_gen()"
 
 # now check if pool sets may be opened
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
+expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL $MIN_PART `
     $DIR/testset1 $DIR/testset2 `
     $DIR/testset3 $DIR/testset4 `
     $DIR/testset5 $DIR/testset6 `

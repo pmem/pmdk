@@ -53,6 +53,7 @@ $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
 $MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_PART = 192 * 1024  # 3 * mmap alignment
 
 mkdir $DIR/subdir1 -Force > $null
 mkdir $DIR/subdir2 -Force > $null
@@ -63,10 +64,10 @@ create_poolset $DIR/testset2 256K:$DIR/testfile21:x `
     256K:$DIR/testfile22:x # pass
 create_poolset $DIR/testset3 256K:$DIR/testfile31:x `
     256K:$DIR/testfile32:z:256K # pass
-create_poolset $DIR/testset4 12K:$DIR/testfile41:x `
+create_poolset $DIR/testset4 128K:$DIR/testfile41:x `
     256K:$DIR/testfile42:x # fail - part1 too small
 create_poolset $DIR/testset5 256K:$DIR/testfile51:x `
-    16K:$DIR/testfile52:x # fail - part2 too small
+    128K:$DIR/testfile52:x # fail - part2 too small
 create_poolset $DIR/testset6 256K:$DIR/testfile61:x `
     256K:$DIR/nodir/testfile62:x # fail - part2 non-existing dir
 create_poolset $DIR/testset7 256K:$DIR/testfile71:x `
@@ -80,7 +81,7 @@ create_poolset $DIR/testset10 256K:$DIR/testfile101:z `
 create_poolset $DIR/testset11 256K:$DIR/testfile111:z:256K `
     256K:$DIR/testfile112:z 12K:$DIR/testfile113:z:256K # fail - part3 too small
 create_poolset $DIR/testset12 256K:$DIR/testfile121:z:256K `
-    8K:$DIR/testfile122:z:8K # fail - part2 too small
+    128K:$DIR/testfile122:z:128K # fail - part2 too small
 create_poolset $DIR/testset13 64K:$DIR/testfile131:z:64K `
     256K:$DIR/testfile132:z:256K # fail - part2 too small
 create_poolset $DIR/testset14 256K:$DIR/testfile141:z:256K `
@@ -114,7 +115,7 @@ create_poolset $DIR/testset26 256K:$DIR/testfile261:z 512K:$DIR/testfile262:z `
 $_1GB = 1024*1024*1024
 $_768KB = 768 * 1024
 
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL `
+expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL $MIN_PART `
     $DIR/testset0 $DIR/testset1 `
     $DIR/testset2 $DIR/testset3 `
     $DIR/testset4 $DIR/testset5 `
