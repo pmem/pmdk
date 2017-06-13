@@ -61,7 +61,6 @@ struct ddmap_context {
 			/* operations */
 	size_t len;		/* number of bytes to read */
 	int checksum;	/* compute checksum */
-};
 
 /*
  * the default context, with all fields initialized to zero or NULL
