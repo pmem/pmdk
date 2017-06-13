@@ -1461,16 +1461,16 @@ util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
  *                              part files of a pool set and replica sets
  */
 static int
-util_poolset_files_local(struct pool_set *set, size_t minsize, int create)
+util_poolset_files_local(struct pool_set *set, size_t minpartsize, int create)
 {
-	LOG(3, "set %p minsize %zu create %d", set, minsize, create);
+	LOG(3, "set %p minpartsize %zu create %d", set, minpartsize, create);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote) {
 			for (unsigned p = 0; p < rep->nparts; p++) {
-				if (util_part_open(&rep->part[p], minsize,
-							create))
+				if (util_part_open(&rep->part[p], minpartsize,
+						create))
 					return -1;
 			}
 		}
@@ -2266,14 +2266,14 @@ util_replica_close(struct pool_set *set, unsigned repidx)
  */
 int
 util_pool_create_uuids(struct pool_set **setp, const char *path,
-	size_t poolsize, size_t minsize, const char *sig,
+	size_t poolsize, size_t minsize, size_t minpartsize, const char *sig,
 	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	unsigned *nlanes, int can_have_rep, int remote, struct pool_attr *pattr)
 {
-	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
+	LOG(3, "setp %p path %s poolsize %zu minsize %zu minpartsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
 		"nlanes %p can_have_rep %i remote %i pattr %p",
-		setp, path, poolsize, minsize,
+		setp, path, poolsize, minsize, minpartsize,
 		sig, major, compat, incompat, ro_compat,
 		nlanes, can_have_rep, remote, pattr);
 
@@ -2299,6 +2299,14 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	struct pool_set *set = *setp;
 
 	ASSERT(set->nreplicas > 0);
+
+	if (set->poolsize < minsize) {
+		ERR("net pool size %zu smaller than %zu", set->poolsize,
+			minsize);
+		util_poolset_free(set);
+		errno = EINVAL;
+		return -1;
+	}
 
 	if (remote) {
 		/* it is a remote replica - it cannot have replicas */
@@ -2356,7 +2364,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			POOL_HDR_UUID_LEN);
 	}
 
-	ret = util_poolset_files_local(set, minsize, 1);
+	ret = util_poolset_files_local(set, minpartsize, 1);
 	if (ret != 0)
 		goto err_poolset;
 
@@ -2438,19 +2446,19 @@ err_unload:
  */
 int
 util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes,
-	int can_have_rep)
+	size_t minsize, size_t minpartsize, const char *sig, uint32_t major,
+	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	unsigned *nlanes, int can_have_rep)
 {
-	LOG(3, "setp %p path %s poolsize %zu minsize %zu "
+	LOG(3, "setp %p path %s poolsize %zu minsize %zu minpartsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x "
 		"ro_comapt %#x nlanes %p can_have_rep %i",
-		setp, path, poolsize, minsize,
+		setp, path, poolsize, minsize, minpartsize,
 		sig, major, compat, incompat, ro_compat, nlanes, can_have_rep);
 
-	return util_pool_create_uuids(setp, path, poolsize, minsize, sig, major,
-					compat, incompat, ro_compat, nlanes,
-					can_have_rep, POOL_LOCAL, NULL);
+	return util_pool_create_uuids(setp, path, poolsize, minsize,
+			minpartsize, sig, major, compat, incompat, ro_compat,
+			nlanes, can_have_rep, POOL_LOCAL, NULL);
 }
 
 /*
@@ -2772,7 +2780,7 @@ util_pool_open_nocheck(struct pool_set *set, int cow)
 		return -1;
 	}
 
-	int ret = util_poolset_files_local(set, 0, 0);
+	int ret = util_poolset_files_local(set, 0 /* minpartsize */, 0);
 	if (ret != 0)
 		goto err_poolset;
 
@@ -2815,19 +2823,20 @@ err_poolset:
  */
 int
 util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	size_t minpartsize, const char *sig, uint32_t major,
+	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
 	unsigned *nlanes)
 {
-	LOG(3, "setp %p path %s cow %d minsize %zu sig %.8s major %u "
+	LOG(3, "setp %p path %s cow %d minpartsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_comapt %#x nlanes %p",
-		setp, path, cow, minsize, sig, major,
+		setp, path, cow, minpartsize, sig, major,
 		compat, incompat, ro_compat, nlanes);
 
 	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
-	int ret = util_poolset_create_set(setp, path, 0, minsize);
+	/* do not check minsize */
+	int ret = util_poolset_create_set(setp, path, 0, 0);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
@@ -2852,7 +2861,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 		return -1;
 	}
 
-	ret = util_poolset_files_local(set, minsize, 0);
+	ret = util_poolset_files_local(set, minpartsize, 0);
 	if (ret != 0)
 		goto err_poolset;
 
@@ -2863,7 +2872,8 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 		}
 
 	if (set->remote) {
-		ret = util_poolset_files_remote(set, minsize, nlanes, 0);
+		/* do not check minsize */
+		ret = util_poolset_files_remote(set, 0, nlanes, 0);
 		if (ret != 0)
 			goto err_replica;
 	}
@@ -2898,17 +2908,17 @@ err_poolset:
  */
 int
 util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
-	size_t minsize, char *sig, uint32_t *major,
+	size_t minpartsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
 	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
 	unsigned char *arch_flags)
 {
-	LOG(3, "setp %p path %s cow %d minsize %zu "
+	LOG(3, "setp %p path %s cow %d minpartsize %zu "
 		"sig %p major %p compat %p incompat %p ro_comapt %p"
 		"poolset_uuid %p first_part_uuid %p"
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
-		setp, path, cow, minsize,
+		setp, path, cow, minpartsize,
 		sig, major, compat, incompat, ro_compat,
 		poolset_uuid, first_part_uuid, prev_repl_uuid, next_repl_uuid,
 		arch_flags);
@@ -2916,7 +2926,8 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
-	int ret = util_poolset_create_set(setp, path, 0, minsize);
+	/* do not check minsize */
+	int ret = util_poolset_create_set(setp, path, 0, 0);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
@@ -2935,7 +2946,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 		goto err_poolset;
 	}
 
-	ret = util_poolset_files_local(set, minsize, 0);
+	ret = util_poolset_files_local(set, minpartsize, 0);
 	if (ret != 0)
 		goto err_poolset;
 

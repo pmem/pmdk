@@ -1,6 +1,6 @@
-#!/bin/bash -e
 #
 # Copyright 2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,41 +30,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# src/test/blk_pool/TEST31 -- create a pool with the smallest parts
+# possible
+#
+#
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
-#
-# src/test/util_poolset/TEST3 -- unit test for util_pool_open()
-#
-export UNITTEST_NAME=util_poolset/TEST3
-export UNITTEST_NUM=3
+$Env:UNITTEST_NAME = "blk_pool\TEST31w"
+$Env:UNITTEST_NUM = "31w"
+
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type non-pmem
 
 setup
 
-export TEST_LOG_LEVEL=4
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+#
+# TEST31 non-existing file, poolsize >= min required size, bsize > min bsize
+#        part size == min part size (pool set)
+$MIN_PART = (2 * 1024 * 1024).toString() + "B" # 2MiB
 
-MIN_POOL=$((4 * 1024 * 1024)) # 4MiB
-MIN_PART=$((2 * 1024 * 1024)) # 2MiB
+create_poolset $DIR\testset $MIN_PART:$DIR\testfile1:x $MIN_PART:$DIR\testfile2:x `
+    $MIN_PART:$DIR\testfile3:x $MIN_PART:$DIR\testfile4:x $MIN_PART:$DIR\testfile5:x `
+    $MIN_PART:$DIR\testfile6:x $MIN_PART:$DIR\testfile7:x $MIN_PART:$DIR\testfile8:x `
+    $MIN_PART:$DIR\testfile9:x $MIN_PART:$DIR\testfile10:x
 
-for i in `seq 1 128`; do
-	FILES="$FILES $MIN_PART:$DIR/testfile$i:x "
-done
+expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
+    c $DIR\testset 100 0 0640
 
-# prepare pool sets
-create_poolset $DIR/testset1 $FILES
-
-# create pool sets
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $DIR/testset1
-
-# now check if pool sets may be opened
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $DIR/testset1
-
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+check_files $DIR\testset $DIR\testfile1 $DIR\testfile2 $DIR\testfile3 `
+    $DIR\testfile4 $DIR\testfile5 $DIR\testfile6 $DIR\testfile7 $DIR\testfile8 `
+    $DIR\testfile9 $DIR\testfile10
 
 check
 

@@ -52,11 +52,12 @@ setup
 $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$MIN_POOL = 256 * 1024  # 4 * mmap alignment
+$MIN_POOL = 4 * 1024 * 1024 # 4MiB
+$MIN_PART_STR = (2 * 1024 * 1024).toString() + "B" # 2MiB
 
 $FILES = @()
 for ($p = 1; $p -le 128; $p++) {
-    $FILES += "256K:$DIR\testfile${p}:x"
+    $FILES += "$MIN_PART_STR:$DIR\testfile${p}:x"
 }
 
 # prepare pool sets
