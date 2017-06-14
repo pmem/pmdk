@@ -52,7 +52,7 @@ setup
 require_node_dax_device 0
 require_node_dax_device 1
 
-create_poolset $DIR/pool0.set AUTO:${NODE_DEVICE_DAX_PATH[1]}
+create_poolset $DIR/pool0.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
 
 expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
 expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
@@ -63,10 +63,10 @@ expect_normal_exit run_on_node 0 ../pmempool rm -sf $POOLS_DIR/pool0.set
 expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DEVICE_DAX_PATH[0]}
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[0]} 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[1]} 0\
 	test_persist 0 0 1 1\
 	test_close 0\
-	test_open 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[0]} 0 init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[1]} 0 init\
 	test_persist 0 0 8 8\
 	test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 0
