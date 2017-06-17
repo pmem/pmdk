@@ -697,7 +697,8 @@ function expect_normal_exit() {
 			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-			dump_last_n_lines out$UNITTEST_NUM.log
+
+			dump_last_n_lines trace$UNITTEST_NUM.log
 			dump_last_n_lines $PMEM_LOG_FILE
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE

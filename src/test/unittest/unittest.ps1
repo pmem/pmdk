@@ -362,7 +362,7 @@ function check_exit_code {
         # XXX: if we implement a memcheck thing...
         # if [ "$RUN_MEMCHECK" ]; then
 
-        dump_last_n_lines out$Env:UNITTEST_NUM.log
+        dump_last_n_lines trace$Env:UNITTEST_NUM.log
         dump_last_n_lines $Env:PMEM_LOG_FILE
         dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
         dump_last_n_lines $Env:PMEMLOG_LOG_FILE
