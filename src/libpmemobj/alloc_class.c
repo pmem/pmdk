@@ -390,7 +390,7 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 			return c;
 
 		ASSERT(frag >= 1.f);
-		if (frag < best_frag) {
+		if (frag < best_frag || best_c == NULL) {
 			best_c = c;
 			best_frag = frag;
 		}
@@ -484,7 +484,7 @@ alloc_class_collection_new(void)
 	 * internal fragmentation for that size is chosen.
 	 */
 	for (size_t i = FIRST_GENERATED_CLASS_SIZE;
-		i <= ac->last_run_max_size / ac->granularity; ++i) {
+			i <= ac->last_run_max_size / ac->granularity; ++i) {
 		struct alloc_class *c = alloc_class_find_min_frag(ac,
 				i * ac->granularity);
 		size_t header_offset = CALC_SIZE_IDX(ac->granularity,
