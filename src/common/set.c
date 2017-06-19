@@ -1916,21 +1916,12 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 }
 
 /*
- * util_replica_create_local -- (internal) create a new memory pool
- *                              for local replica
+ * util_replica_map_local -- (internal) map memory pool for local replica
  */
 static int
-util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
-	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
+util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 {
-	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
-		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
-		set, repidx, flags, sig, major,
-		compat, incompat, ro_compat,
-		prev_repl_uuid, next_repl_uuid, arch_flags);
+	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
 
 	/*
 	 * XXX: Like we reserve space for all parts in this replica when we map
@@ -1949,6 +1940,9 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	size_t mapsize;
 	void *addr;
 	struct pool_replica *rep = set->replica[repidx];
+
+	ASSERTeq(rep->remote, NULL);
+	ASSERTne(rep->part, NULL);
 
 	do {
 		retry_for_contiguous_addr = 0;
@@ -1973,29 +1967,6 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 				rep->part[0].size);
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 				rep->part[0].addr, rep->part[0].size, 0);
-
-		/* map all headers - don't care about the address */
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
-				LOG(2, "header mapping failed - part #%d", p);
-				goto err;
-			}
-		}
-
-		/* create headers, set UUID's */
-		for (unsigned p = 0; p < rep->nparts; p++) {
-			if (util_header_create(set, repidx, p, sig, major,
-					compat, incompat, ro_compat,
-					prev_repl_uuid, next_repl_uuid,
-					arch_flags) != 0) {
-				LOG(2, "header creation failed - part #%d", p);
-				goto err;
-			}
-		}
-
-		/* unmap all headers */
-		for (unsigned p = 0; p < rep->nparts; p++)
-			util_unmap_hdr(&rep->part[p]);
 
 		set->zeroed &= rep->part[0].created;
 
@@ -2069,11 +2040,99 @@ err:
 		munmap(rep->part[0].addr, rep->repsize - mapsize);
 	}
 	for (unsigned p = 0; p < rep->nparts; p++) {
-		util_unmap_hdr(&rep->part[p]);
 		util_unmap_part(&rep->part[p]);
 	}
 	errno = oerrno;
 	return -1;
+}
+
+/*
+ * util_replica_init_headers_local -- (internal) initialize pool headers
+ */
+static int
+util_replica_init_headers_local(struct pool_set *set, unsigned repidx,
+	int flags, const char *sig, uint32_t major, uint32_t compat,
+	uint32_t incompat, uint32_t ro_compat,
+	const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
+{
+	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
+		"compat %#x incompat %#x ro_comapt %#x"
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
+		set, repidx, flags, sig, major,
+		compat, incompat, ro_compat,
+		prev_repl_uuid, next_repl_uuid, arch_flags);
+
+	struct pool_replica *rep = set->replica[repidx];
+
+	/* map all headers - don't care about the address */
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
+			LOG(2, "header mapping failed - part #%d", p);
+			goto err;
+		}
+	}
+
+	/* create headers, set UUID's */
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		if (util_header_create(set, repidx, p, sig, major,
+				compat, incompat, ro_compat,
+				prev_repl_uuid, next_repl_uuid,
+				arch_flags) != 0) {
+			LOG(2, "header creation failed - part #%d", p);
+			goto err;
+		}
+	}
+
+	/* unmap all headers */
+	for (unsigned p = 0; p < rep->nparts; p++)
+		util_unmap_hdr(&rep->part[p]);
+
+	return 0;
+
+err:
+	LOG(4, "error clean up");
+	int oerrno = errno;
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		util_unmap_hdr(&rep->part[p]);
+	}
+	errno = oerrno;
+	return -1;
+}
+
+/*
+ * util_replica_create_local -- (internal) create a new memory pool for local
+ * replica
+ */
+static int
+util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
+	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
+	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
+{
+	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
+		"compat %#x incompat %#x ro_comapt %#x "
+		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
+		set, repidx, flags, sig, major,
+		compat, incompat, ro_compat,
+		prev_repl_uuid, next_repl_uuid, arch_flags);
+	/*
+	 * the first replica has to be mapped prior to remote ones so if
+	 * a replica is already mapped skip mapping creation
+	 */
+	if (PART(REP(set, repidx), 0).addr == NULL) {
+		if (util_replica_map_local(set, repidx, flags) != 0) {
+			LOG(2, "replica #%u map failed", repidx);
+			return -1;
+		}
+	}
+	if (util_replica_init_headers_local(set, repidx, flags, sig, major,
+			compat, incompat, ro_compat, prev_repl_uuid,
+			next_repl_uuid, arch_flags) != 0) {
+		LOG(2, "replica #%u headers initialization failed", repidx);
+		return -1;
+	}
+	return 0;
 }
 
 /*
@@ -2128,39 +2187,6 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 
 	LOG(3, "replica #%u addr %p", repidx, rep->part[0].addr);
 
-	return 0;
-}
-
-/*
- * util_replica_create -- (internal) create a new memory pool replica
- */
-static int
-util_replica_create(struct pool_set *set, unsigned repidx, int flags,
-	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
-{
-	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
-		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
-		set, repidx, flags, sig, major,
-		compat, incompat, ro_compat,
-		prev_repl_uuid, next_repl_uuid, arch_flags);
-
-	if (set->replica[repidx]->remote == NULL) {
-		/* local replica */
-		if (util_replica_create_local(set, repidx, flags, sig, major,
-					compat, incompat, ro_compat,
-					prev_repl_uuid, next_repl_uuid,
-					arch_flags) != 0)
-			return -1;
-	} else {
-		/* remote replica */
-		if (util_replica_create_remote(set, repidx, flags, sig, major,
-					compat, incompat, ro_compat,
-					prev_repl_uuid, next_repl_uuid) != 0)
-			return -1;
-	}
 	return 0;
 }
 
@@ -2295,9 +2321,35 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	if (ret != 0)
 		goto err_poolset;
 
+	/* map first local replica - it has to exist prior to remote ones */
+	ret = util_replica_map_local(set, 0, flags);
+	if (ret != 0)
+		goto err_poolset;
+
+	/* prepare remote replicas first */
+	if (set->remote) {
+		for (unsigned r = 0; r < set->nreplicas; r++) {
+			if (REP(set, r)->remote == NULL) {
+				continue;
+			}
+			if (util_replica_create_remote(set, r, flags, sig,
+						major, compat, incompat,
+						ro_compat, NULL, NULL) != 0) {
+				LOG(2, "replica #%u creation failed", r);
+				goto err_create;
+			}
+		}
+
+		ret = util_poolset_files_remote(set, minsize, nlanes,
+				1 /* create */);
+		if (ret != 0)
+			goto err_create;
+	}
+
+	/* prepare local replicas */
 	if (remote) {
-		if (util_replica_create(set, 0, flags, sig, major, compat,
-					incompat, ro_compat,
+		if (util_replica_create_local(set, 0, flags, sig, major,
+					compat, incompat, ro_compat,
 					pattr->prev_repl_uuid,
 					pattr->next_repl_uuid,
 					pattr->user_flags) != 0) {
@@ -2306,20 +2358,17 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		}
 	} else {
 		for (unsigned r = 0; r < set->nreplicas; r++) {
-			if (util_replica_create(set, r, flags, sig, major,
+			if (REP(set, r)->remote != NULL) {
+				continue;
+			}
+			if (util_replica_create_local(set, r, flags, sig, major,
 						compat, incompat, ro_compat,
-						NULL, NULL, NULL) != 0) {
+						NULL, NULL,
+						NULL) != 0) {
 				LOG(2, "replica #%u creation failed", r);
 				goto err_create;
 			}
 		}
-	}
-
-	if (set->remote) {
-		ret = util_poolset_files_remote(set, minsize, nlanes,
-				1 /* create */);
-		if (ret != 0)
-			goto err_create;
 	}
 
 	return 0;
