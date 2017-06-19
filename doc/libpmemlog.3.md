@@ -276,6 +276,14 @@ through the log, or 0 to terminate the walk. The callback function is called whi
 callback function must not try to append to the log itself or deadlock will occur.
 
 
+# CAVEATS #
+
+**libpmemlog** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing applications to work with an evolving API.
