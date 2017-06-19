@@ -909,7 +909,7 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 	uint64_t total_used = 0;
 
 	outv_indent(v, 1);
-	for (unsigned class = 0; class < NALLOC_CLASSES; class++) {
+	for (unsigned class = 0; class < MAX_ALLOCATION_CLASSES; class++) {
 		struct alloc_class *c = alloc_class_by_id(
 				pip->obj.alloc_classes, (uint8_t)class);
 		if (c == NULL)
@@ -1021,7 +1021,7 @@ info_obj_add_zone_stats(struct pmem_obj_zone_stats *total,
 			stats->size_chunks_type[type];
 	}
 
-	for (int class = 0; class < NALLOC_CLASSES; class++) {
+	for (int class = 0; class < MAX_ALLOCATION_CLASSES; class++) {
 		total->class_stats[class].n_units +=
 			stats->class_stats[class].n_units;
 		total->class_stats[class].n_used +=

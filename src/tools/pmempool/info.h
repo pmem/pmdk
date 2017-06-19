@@ -34,7 +34,7 @@
  * info.h -- pmempool info command header file
  */
 
-#define NALLOC_CLASSES (UINT8_MAX + 1)
+#include "alloc_class.h"
 
 /*
  * Verbose levels used in application:
@@ -125,7 +125,7 @@ struct pmem_obj_zone_stats {
 	uint64_t n_chunks_type[MAX_CHUNK_TYPE];
 	uint64_t size_chunks;
 	uint64_t size_chunks_type[MAX_CHUNK_TYPE];
-	struct pmem_obj_class_stats class_stats[NALLOC_CLASSES];
+	struct pmem_obj_class_stats class_stats[MAX_ALLOCATION_CLASSES];
 };
 
 struct pmem_obj_type_stats {
