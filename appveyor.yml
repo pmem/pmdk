@@ -14,7 +14,7 @@ configuration:
 
 environment:
     solutionname: NVML.sln
-    APPVEYOR_RDP_PASSWORD: whocares
+    APPVEYOR_RDP_PASSWORD: xkMmP72UV3JH9FMocx8H
 
 matrix:
   fast_finish: true
