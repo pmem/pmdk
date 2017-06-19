@@ -1,6 +1,7 @@
 version: 1.2.{build}
 os: Visual Studio 2015
 platform: x64
+image: Previous Visual Studio 2015
 
 install:
 - ps: Install-PackageProvider -Name NuGet -Force
