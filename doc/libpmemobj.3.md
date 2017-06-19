@@ -2105,6 +2105,7 @@ that thread. If application wants to use **pthread_cancel**(3), it must disable 
 **pthread_setcancelstate**(3) with **PTHREAD_CANCEL_DISABLE**) and re-enable it after. Deferring cancellation (**pthread_setcanceltype**(3) with
 **PTHREAD_CANCEL_DEFERRED**) is not safe enough, because **libpmemobj** internally may call functions that are specified as cancellation points in POSIX.
 
+If **libpmemobj** is loaded in a multithreaded user application as a dynamic shared library using *dlopen*, it has to be unloaded by a call to *dlclose* from the main thread. Otherwise a memory leak can occur.
 
 # LIBRARY API VERSIONING #
 
