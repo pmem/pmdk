@@ -249,7 +249,11 @@ intersection() {
 # runtest -- given the test directory name, run tests found inside it
 #
 runtest() {
-	export UNITTEST_QUIET=1
+	if [ -z ${UNITTEST_QUIET+x} ]
+	then
+		export UNITTEST_QUIET=1
+	fi
+
 	[ -f "$1/TEST0" ] || {
 		echo FAIL: $1: test not found. >&2
 		exit 1
