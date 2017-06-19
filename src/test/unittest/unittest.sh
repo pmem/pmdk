@@ -929,7 +929,7 @@ function require_dax_device_alignment() {
 
 	[ "$ret" == "0" ] && return
 
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP Device DAX alignment is not $2"
+	echo "$UNITTEST_NAME: SKIP Device DAX alignment is not $2"
 	exit 0
 }
 
