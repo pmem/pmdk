@@ -53,7 +53,7 @@ configure_valgrind pmemcheck force-enable
 setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX\
-	create obj --layout realloc --size=128M $DIR/testfile1
+	create obj --layout realloc --size=512M $DIR/testfile1
 
 # last parameter disables integrity tests, because they are veeeeeery slow
 # under pmemcheck (19 minutes vs 7 seconds)

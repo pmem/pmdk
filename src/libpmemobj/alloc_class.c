@@ -61,41 +61,47 @@
 
 /*
  * Allocation categories are used for allocation classes generation. Each one
- * defines the biggest handled size (in alloc blocks) and step of the generation
- * process. The bigger the step the bigger is the acceptable internal
- * fragmentation. For each category the internal fragmentation can be calculated
- * as: step/size. So for step == 1 the acceptable fragmentation is 0% and so on.
+ * defines the biggest handled size (in bytes) and step pct of the generation
+ * process. The step percentage defines maximum allowed external fragmentation
+ * for the category.
  */
-#define MAX_ALLOC_CATEGORIES 6
+#define MAX_ALLOC_CATEGORIES 9
 
 /*
- * The first size (in alloc blocks) which is actually used in the allocation
+ * The first size (in byes) which is actually used in the allocation
  * class generation algorithm. All smaller sizes use the first predefined bucket
  * with the smallest run unit size.
  */
-#define FIRST_GENERATED_CLASS_SIZE 2
+#define FIRST_GENERATED_CLASS_SIZE 128
+
+/*
+ * The granularity of the allocation class generation algorithm.
+ */
+#define ALLOC_BLOCK_SIZE_GEN 64
 
 static struct {
 	size_t size;
-	size_t step;
+	float step;
 } categories[MAX_ALLOC_CATEGORIES] = {
 	/* dummy category - the first allocation class is predefined */
-	{FIRST_GENERATED_CLASS_SIZE, 0},
-
-	{16, 1},
-	{64, 2},
-	{256, 4},
-	{512, 8},
-	{1024, 128},
+	{FIRST_GENERATED_CLASS_SIZE, 0.05f},
+	{1024, 0.05f},
+	{2048, 0.05f},
+	{4096, 0.05f},
+	{8192, 0.05f},
+	{16384, 0.05f},
+	{32768, 0.05f},
+	{131072, 0.05f},
+	{393216, 0.05f},
 };
 
 #define RUN_UNIT_MAX_ALLOC 8U
 
 /*
- * Every allocation has to be a multiple of a cacheline because we need to
+ * Every allocation has to be a multiple of at least 8 because we need to
  * ensure proper alignment of every pmem structure.
  */
-#define ALLOC_BLOCK_SIZE 64
+#define ALLOC_BLOCK_SIZE 16
 
 /*
  * Converts size (in bytes) to number of allocation blocks.
@@ -116,7 +122,7 @@ static struct {
 /*
  * Hard limit of chunks per single run.
  */
-#define RUN_SIZE_IDX_CAP (8)
+#define RUN_SIZE_IDX_CAP (16)
 
 struct alloc_class_collection {
 	size_t granularity;
@@ -137,7 +143,6 @@ struct alloc_class_collection {
 
 	int fail_on_missing_class;
 };
-
 
 /*
  * alloc_class_find_first_free_slot -- searches for the
@@ -201,7 +206,7 @@ alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 				"this might lead to "
 				"inefficient memory utilization!",
 				unit_size,
-				dest->bitmap_nallocs, RUN_BITMAP_SIZE);
+				RUN_BITMAP_SIZE, dest->bitmap_nallocs);
 
 			dest->bitmap_nallocs = RUN_BITMAP_SIZE;
 		}
@@ -337,18 +342,21 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 */
 	size_t runsize_bytes = RUN_SIZE_BYTES(required_size_idx);
 	while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES) {
-		n += ac->granularity;
+		n += ALLOC_BLOCK_SIZE_GEN;
 	}
 
 	/*
 	 * Now that the desired unit size is found the existing classes need
-	 * to be searched for possible duplicates. If a class with the
-	 * calculated unit size already exists, simply return that.
+	 * to be searched for possible duplicates. If a class that can handle
+	 * the calculated size already exists, simply return that.
 	 */
-	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
+	for (int i = 1; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
 		if (c == NULL || c->type == CLASS_HUGE)
 			continue;
+		if (n / c->unit_size <= RUN_UNIT_MAX_ALLOC &&
+			n % c->unit_size == 0)
+			return c;
 		if (c->unit_size == n)
 			return c;
 	}
@@ -380,12 +388,14 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		if (c == NULL)
 			continue;
 
-		size_t units = CALC_SIZE_IDX(c->unit_size, n);
+		size_t real_size = n + header_type_to_size[c->header_type];
+
+		size_t units = CALC_SIZE_IDX(c->unit_size, real_size);
 		/* can't exceed the maximum allowed run unit max */
 		if (units > RUN_UNIT_MAX_ALLOC)
 			break;
 
-		float frag = (float)(c->unit_size * units) / (float)n;
+		float frag = (float)(c->unit_size * units) / (float)real_size;
 		if (frag == 1.f)
 			return c;
 
@@ -404,7 +414,7 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
  * alloc_class_collection_new -- creates a new collection of allocation classes
  */
 struct alloc_class_collection *
-alloc_class_collection_new(void)
+alloc_class_collection_new()
 {
 	struct alloc_class_collection *ac = Malloc(sizeof(*ac));
 	if (ac == NULL)
@@ -432,7 +442,8 @@ alloc_class_collection_new(void)
 	if (predefined_class == NULL)
 		goto error_alloc_class_create;
 
-	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE; ++i) {
+	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE / ac->granularity;
+		++i) {
 		ac->class_map_by_alloc_size[i] = predefined_class->id;
 	}
 
@@ -441,16 +452,19 @@ alloc_class_collection_new(void)
 	 * created. The unit size of those classes is depended on the category
 	 * initial size and step.
 	 */
-	size_t size = 0;
+	size_t granularity_mask = ALLOC_BLOCK_SIZE_GEN - 1;
 	for (int c = 1; c < MAX_ALLOC_CATEGORIES; ++c) {
-		for (size_t i = categories[c - 1].size + 1;
-			i <= categories[c].size; i += categories[c].step) {
-
-			size = i + (categories[c].step - 1);
-			if (alloc_class_find_or_create(ac,
-				size * ac->granularity) == NULL)
+		size_t n = categories[c - 1].size + ALLOC_BLOCK_SIZE_GEN;
+		do {
+			if (alloc_class_find_or_create(ac, n) == NULL)
 				goto error_alloc_class_create;
-		}
+
+			float stepf = (float)n * categories[c].step;
+			size_t stepi = (size_t)stepf;
+			stepi = stepf == stepi ? stepi : stepi + 1;
+
+			n += (stepi + (granularity_mask)) & ~granularity_mask;
+		} while (n <= categories[c].size);
 	}
 
 	/*
@@ -483,14 +497,11 @@ alloc_class_collection_new(void)
 	 * Now that the alloc classes are created, the bucket with the minimal
 	 * internal fragmentation for that size is chosen.
 	 */
-	for (size_t i = FIRST_GENERATED_CLASS_SIZE;
-			i <= ac->last_run_max_size / ac->granularity; ++i) {
+	for (size_t i = FIRST_GENERATED_CLASS_SIZE / ac->granularity;
+		i <= ac->last_run_max_size / ac->granularity; ++i) {
 		struct alloc_class *c = alloc_class_find_min_frag(ac,
 				i * ac->granularity);
-		size_t header_offset = CALC_SIZE_IDX(ac->granularity,
-			header_type_to_size[c->header_type]);
-		ac->class_map_by_alloc_size[i - header_offset] = c->id;
-		/* this is here to make sure the last entry is filled */
+
 		ac->class_map_by_alloc_size[i] = c->id;
 	}
 
@@ -508,7 +519,6 @@ alloc_class_collection_new(void)
 			uint8_t class_id = ac->class_map_by_unit_size[
 				SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
 					ac->granularity)];
-
 			ASSERTeq(class_id, c->id);
 		}
 	}

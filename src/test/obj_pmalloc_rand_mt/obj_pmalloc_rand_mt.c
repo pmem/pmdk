@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 
 	if (os_access(argv[1], F_OK) != 0) {
 		pop = pmemobj_create(argv[1], "TEST",
-		(PMEMOBJ_MIN_POOL) + (nthreads * nobjects * object_size),
+		(PMEMOBJ_MIN_POOL * 10) + (nthreads * nobjects * object_size),
 		0666);
 	} else {
 		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {

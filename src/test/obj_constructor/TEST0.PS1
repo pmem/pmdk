@@ -53,7 +53,7 @@ require_fs_type any
 
 setup
 
-create_holey_file 8M $DIR\testfile1
+create_holey_file 16M $DIR\testfile1
 
 # This is a pretty length test on non-pmem devices, so force clflushes.
 $Env:PMEM_IS_PMEM_FORCE=1

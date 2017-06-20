@@ -479,19 +479,14 @@ sc8_verify_abort(PMEMobjpool *pop)
 static void
 sc8_verify_commit(PMEMobjpool *pop)
 {
-	TX_BEGIN(pop) {
-		/*
-		 * Due to a bug in clang-3.4 a pmemobj_tx_alloc call with its
-		 * result being casted to union immediately is optimized out and
-		 * the verify fails even though it should work. Assigning the
-		 * TX_NEW result to a variable is a hacky workaround for this
-		 * problem.
-		 */
-		TOID(struct bar) f = TX_NEW(struct bar);
-		(void) f;
-	} TX_ONCOMMIT {
-		UT_ASSERT(0);
-	} TX_END
+	int nallocs = 0;
+
+	TOID(struct bar) f;
+	POBJ_FOREACH_TYPE(pop, f) {
+		nallocs++;
+	}
+
+	UT_ASSERTne(nallocs, 0);
 }
 
 /*
