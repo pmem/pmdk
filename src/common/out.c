@@ -120,6 +120,10 @@ Last_errormsg_get(void)
 	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
 		errormsg = Malloc(sizeof(struct errormsg));
+		if (errormsg == NULL)
+			FATAL("!malloc");
+		/* make sure it contains empty string initially */
+		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
 		if (ret)
 			FATAL("!os_tls_set");
