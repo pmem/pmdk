@@ -47,7 +47,7 @@ Size idx                 : $(*)
  Chunk                    : 0
  Type                     : used
  Flags                    : $(*)
- Size idx                 : 5
+ Size idx                 : 13
 
   Object                   : $(*)
   Offset                   : $(*)

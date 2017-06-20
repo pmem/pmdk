@@ -196,13 +196,13 @@ main(int argc, char *argv[])
 	 * heap and it should be possible to allocate it again.
 	 */
 	Canceled_ptr = NULL;
-	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 21), 1,
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 22), 1,
 		vg_test_save_ptr, NULL);
 	UT_ASSERTne(Canceled_ptr, NULL);
 	void *first_ptr = Canceled_ptr;
 	Canceled_ptr = NULL;
 
-	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 21), 1,
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo) + (1 << 22), 1,
 		vg_test_save_ptr, NULL);
 
 	UT_ASSERTeq(first_ptr, Canceled_ptr);

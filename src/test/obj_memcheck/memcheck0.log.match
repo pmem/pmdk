@@ -65,19 +65,19 @@ $(OPT)==$(N)==  Address 0x$(X) is in a rw- mapped file $(nW) segment
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
+==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 
@@ -88,19 +88,19 @@ $(OPT)==$(N)==    by 0x$(X): pmemops_persist $(*)
 $(OPT)==$(N)==    by 0x$(X): pmemobj_persist $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
-==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
+==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_free $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_free $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    $(S) 0x$(X): alloc_prep_block $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmalloc_operation $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): obj_alloc_construct $(*)
-$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_alloc $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
+$(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)== 

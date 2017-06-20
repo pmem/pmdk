@@ -55,7 +55,7 @@ setup
 
 rm $DIR\testfile1 -Force -ErrorAction SilentlyContinue
 
-expect_normal_exit $PMEMPOOL create obj --layout realloc --size=128M $DIR\testfile1
+expect_normal_exit $PMEMPOOL create obj --layout realloc --size=512M $DIR\testfile1
 
 $Env:PMEM_IS_PMEM_FORCE=1
 

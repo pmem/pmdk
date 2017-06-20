@@ -150,8 +150,6 @@ test_everything(const char *path)
 	s2->dyn[0] = 9;
 	pmemobj_persist(pop, s2, sizeof(struct struct1) + 100 * sizeof(int));
 
-
-
 	POBJ_ALLOC(pop, &rt->s2, struct struct1, sizeof(struct struct1),
 			NULL, NULL);
 	POBJ_REALLOC(pop, &rt->s2, struct struct1,

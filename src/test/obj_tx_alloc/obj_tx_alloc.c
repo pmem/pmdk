@@ -652,7 +652,7 @@ do_tx_xalloc_commit(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
 	TOID(struct object) next;
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	TOID_ASSIGN(next, POBJ_NEXT_TYPE_NUM(first.oid));
 	UT_ASSERT(TOID_IS_NULL(next));
 
 	/* xalloc ZERO */
@@ -673,7 +673,7 @@ do_tx_xalloc_commit(PMEMobjpool *pop)
 	UT_ASSERT(TOID_EQUALS(first, obj));
 	UT_ASSERTeq(D_RO(first)->value, D_RO(obj)->value);
 
-	TOID_ASSIGN(next, pmemobj_next(first.oid));
+	TOID_ASSIGN(next, POBJ_NEXT_TYPE_NUM(first.oid));
 	UT_ASSERT(TOID_IS_NULL(next));
 }
 
