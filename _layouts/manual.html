@@ -33,6 +33,33 @@
 		</ul>
 	</div>
 	<br>
+	{% if page.title == 'pmempool' or page.title contains 'pmempool-' %}
+	{% else %}
+	<div id="shortcut">
+		<table id="man">
+			<tr><th>Man Linux</th></tr>
+			<tr><td><a href="/nvml/manpages/linux/master/{{ page.title }}.3.html">{{ page.title }} current master</a></td></tr>
+			  {% for release in site.data.releases_linux %}
+				{% if release.libs contains page.title %}
+					<tr><td><a href="../v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></td></tr>
+				{% endif %}
+			  {% endfor %}
+		</table>
+
+		{% if page.title != 'librpmem' and page.title != 'libvmmalloc' %}
+		<table id="man">
+			<tr><th>Man Windows</th></tr>
+			<tr><td><a href="/nvml/manpages/windows/master/{{ page.title }}.3.html">{{ page.title }} current master</a></td></tr>
+			  {% for release in site.data.releases_windows %}
+				{% if release.libs contains page.title %}
+					<tr><td><a href="../v{{ release.tag }}/{{ page.title }}.3.html">{{ page.title }} version {{ release.tag }}</a></td></tr>
+				{% endif %}
+			  {% endfor %}
+		</table>
+		{% endif %}
+	</div>
+	{% endif %}
+
 	<h3>{{ page.title }} - NVML man page</h3>
 	{{ content }}
 	<br>
