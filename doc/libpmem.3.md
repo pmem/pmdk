@@ -552,12 +552,13 @@ or if *errno* was set. The application must not modify or free the error
 message string, but it may be modified by subsequent calls to other
 library functions.
 
-A second version of **libpmem**, accessed when a program uses the
-libraries under **/usr/lib/nvml_debug**, contains run-time assertions
-and trace points. The typical way to access the debug version is to set
-the environment variable **LD_LIBRARY_PATH** to
-**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on
-where the debug libraries are installed on the system. The trace points
+A second version of **libpmem**, accessed when a program uses
+the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**}, contains
+run-time assertions and trace points. The typical way to
+access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
+{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
+libraries are installed on the system. The trace points
 in the debug version of the library are enabled using the environment
 variable **PMEM_LOG_LEVEL**, which can be set to the following values:
 
