@@ -75,6 +75,7 @@ if ($null -ne $args[0]) {
     $REVISION = 0
     $BUILD = 0
 
+    $version = "UNKNOWN VERSION"
     $CUSTOM = $true
     $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN VERSION`" "
 }
