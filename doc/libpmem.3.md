@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEM(3)
+title: LIBPMEM!3
 header: NVM Library
 date: pmem API version 1.0
 ...

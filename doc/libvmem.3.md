@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMEM(3)
+title: LIBVMEM!3
 header: NVM Library
 date: vmem API version 1.0
 ...

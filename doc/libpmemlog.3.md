@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMLOG(3)
+title: LIBPMEMLOG!3
 header: NVM Library
 date: pmemlog API version 1.0
 ...

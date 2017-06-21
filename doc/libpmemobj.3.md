@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMOBJ(3)
+title: LIBPMEMOBJ!3
 header: NVM Library
 date: pmemobj API version 2.1
 ...

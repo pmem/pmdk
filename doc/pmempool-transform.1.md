@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-TRANSFORM(1)
+title: PMEMPOOL-TRANSFORM!1
 header: NVM Library
 date: pmem Tools version 1.2
 ...
