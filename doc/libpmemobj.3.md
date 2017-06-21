@@ -414,8 +414,15 @@ information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** b
 
 # MOST COMMONLY USED FUNCTIONS #
 
-To use the pmem-resident transactional object store provided by **libpmemobj**, a *memory pool* is first created. This is done with the **pmemobj_create**()
-function described in this section. The other functions described in this section then operate on the resulting memory pool.
+To use the pmem-resident transactional object store provided by **libpmemobj**,
+a *memory pool* is first created.
+This is done with the **pmemobj_create**() function described in this section.
+The other functions described in this section then operate on the resulting
+memory pool.
+
+Additionally, none of the three functions described below are thread-safe with
+respect to any other **libpmemobj** functions. In other words, when creating,
+opening or deleting a pool, nothing else in the library can happen in parallel.
 
 Once created, the memory pool is represented by an opaque handle, of type *PMEMobjpool\**, which is passed to most of the other functions in this section.
 Internally, **libpmemobj** will use either **pmem_persist**() or **msync**(2) when it needs to flush changes, depending on whether the memory pool appears to
