@@ -1917,7 +1917,7 @@ pmemobj_pool_by_ptr(const void *addr)
 		return NULL;
 
 	uint64_t key = (uint64_t)addr;
-	size_t pool_size = ctree_find_le(pools_tree, &key);
+	size_t pool_size = ctree_find_le_unlocked(pools_tree, &key);
 
 	if (pool_size == 0)
 		return NULL;
