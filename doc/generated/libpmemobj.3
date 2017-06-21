@@ -418,6 +418,11 @@ this section.
 The other functions described in this section then operate on the
 resulting memory pool.
 .PP
+Additionally, none of the three functions described below are
+thread\-safe with respect to any other \f[B]libpmemobj\f[] functions.
+In other words, when creating, opening or deleting a pool, nothing else
+in the library can happen in parallel.
+.PP
 Once created, the memory pool is represented by an opaque handle, of
 type \f[I]PMEMobjpool*\f[], which is passed to most of the other
 functions in this section.
