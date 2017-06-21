@@ -154,7 +154,7 @@ heap_thread_arena_assign(struct heap_rt *heap)
 			least_used = a;
 	}
 
-	LOG(4, "assiging %p arena to current thread", a);
+	LOG(4, "assigning %p arena to current thread", least_used);
 
 	util_fetch_and_add(&least_used->nthreads, 1);
 
