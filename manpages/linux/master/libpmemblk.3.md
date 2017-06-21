@@ -1,12 +1,12 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmemblk(3)
+title: libpmemblk
 header: NVM Library
-date: pmemblk API version 1.0.5
+date: pmemblk API version 1.0
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -56,7 +56,7 @@ date: pmemblk API version 1.0.5
 # SYNOPSIS #
 
 ```c
-#include <ibpmemblk.h>
+#include <libpmemblk.h>
 cc ... -lpmemblk -lpmem
 ```
 
@@ -228,9 +228,13 @@ B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
 
 The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time. When using Device DAX
-there's also one additional restriction, that a pool set can consist only of a
-single part.
+will be automatically resolved at pool creation time.
+When using Device DAX there's also one additional restriction - it is not allowed
+to concatenate more than one Device DAX device in a single pool set
+if the configured internal alignment is other than 4KiB.  In such case a pool set
+can consist only of a single part (single Device DAX).
+Please see **ndctl-create-namespace**(1) for information on how to configure
+desired alignment on Device DAX.
 
 Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
@@ -308,6 +312,14 @@ int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 The **pmemblk_set_error**() function sets the error state for block number *blockno* in memory pool *pbp*.
 A block in the error state returns *errno* **EIO** when read. Writing the block clears the error state and returns the block to normal use.
 On success, zero is returned. On error, -1 is returned and *errno* is set.
+
+
+# CAVEATS #
+
+**libpmemblk** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
 
 
 # LIBRARY API VERSIONING #

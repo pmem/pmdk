@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: librpmem(3)
+title: librpmem
 header: NVM Library
 date: rpmem API version 1.0.2
 ...

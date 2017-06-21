@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL(1)
+title: pmempool
 header: NVM Library
-date: pmem Tools version 1.2
+date: pmem Tools version 1.2.0
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -98,7 +98,7 @@ Creates a pool of specified type with additional properties specific for this ty
 Dumps usable data from pool in hexadecimal or binary format.
 
 + **pmempool-rm**(1)
-Removes pool file or all pool files listed in pool set configuration file.
+Removes pool file or all pool files listed in poolset configuration file.
 
 + **pmempool-convert**(1) -
 Updates the pool to the latest available layout version.

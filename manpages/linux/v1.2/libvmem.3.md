@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMEM(3)
+title: libvmem
 header: NVM Library
-date: vmem API version 1.0
+date: vmem API version 1.0.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -79,7 +79,6 @@ void *vmem_calloc(VMEM *vmp, size_t nmemb, size_t size);
 void *vmem_realloc(VMEM *vmp, void *ptr, size_t size);
 void *vmem_aligned_alloc(VMEM *vmp, size_t alignment, size_t size);
 char *vmem_strdup(VMEM *vmp, const char *s);
-wchar_t *vmem_wcsdup(VMEM *vmp, const wchar_t *s);
 size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 ```
 
@@ -260,15 +259,6 @@ memory pool, and can be freed with **vmem_free**() on the same memory pool. If *
 returned and *errno* is set appropriately.
 
 ```c
-wchar_t *vmem_wcsdup(VMEM *vmp, const wchar_t *s);
-```
-
-The **vmem_wcsdup**() function provides the same semantics as **wcsdup**(3), but operates on the memory pool *vmp* instead of the process heap supplied by the
-system. It returns a pointer to a new wide character string which is a duplicate of the wide character strin string *s*. Memory for the new string is obtained with **vmem_malloc**(), on the given
-memory pool, and can be freed with **vmem_free**() on the same memory pool. If **vmem_wcsdup**() is unable to satisfy the allocation request, a NULL pointer is
-returned and *errno* is set appropriately.
-
-```c
 size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 ```
 
@@ -325,14 +315,6 @@ will cause the **libvmem** default function to be used. The library does not mak
 **vmem_set_funcs**(). The *print_func* function is called by **libvmem** when the **vmem_stats_print**() entry point is used, or when additional tracing is
 enabled in the debug version of the library as described in the **DEBUGGING AND ERROR HANDLING** section below. The default *print_func* used by the library
 prints to the file specified by the **VMEM_LOG_FILE** environment variable, or to *stderr* if that variable is not set.
-
-
-# CAVEATS #
-
-**libvmem** relies on the library destructor being called from the main thread.
-For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
-resources associated with that thread might not be cleaned up properly.
 
 
 # DEBUGGING AND ERROR HANDLING #

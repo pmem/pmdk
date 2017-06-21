@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmempool(3)
+title: libpmempool
 header: NVM Library
 date: pmempool API version 1.1.0
 ...

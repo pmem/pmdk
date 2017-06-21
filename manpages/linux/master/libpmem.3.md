@@ -1,9 +1,9 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: libpmem(3)
+title: libpmem
 header: NVM Library
-date: pmem API version 1.0.4
+date: pmem API version 1.0
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
@@ -417,6 +417,14 @@ pmem_drain();
 Using **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**()
 or **pmem_memset_nodrain**() on a destination where
 **pmem_is_pmem**() returns false may not do anything useful.
+
+
+# CAVEATS #
+
+**libpmem** relies on the library destructor being called from the main thread.
+For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+ resources associated with that thread might not be cleaned up properly.
 
 
 # LIBRARY API VERSIONING #

@@ -1,9 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool(1)
+<<<<<<< HEAD:manpages/master/pmempool.1.md
+title: PMEMPOOL(1)
+=======
+title: pmempool
+>>>>>>> cc15ddcf4... doc: prepare old md/html to new layout:manpages/linux/master/pmempool.1.md
 header: NVM Library
-date: pmem Tools version 1.2.0
+date: pmem Tools version 1.2
 ...
 
 [comment]: <> (Copyright 2016, Intel Corporation)
@@ -98,7 +102,7 @@ Creates a pool of specified type with additional properties specific for this ty
 Dumps usable data from pool in hexadecimal or binary format.
 
 + **pmempool-rm**(1)
-Removes pool file or all pool files listed in poolset configuration file.
+Removes pool file or all pool files listed in pool set configuration file.
 
 + **pmempool-convert**(1) -
 Updates the pool to the latest available layout version.
