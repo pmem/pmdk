@@ -68,6 +68,8 @@ If it is *not* possible to analyze the rest of the file, **pmempool** exits with
 Currently there is lack of interprocess synchronization for pool files, so the *info* command should be invoked off-line. Using **pmempool** on pool file which
 may be modified by another process may lead to unexpected errors in pool file.
 
+**pmempool** supports also pools described by poolset files. Poolset file can contain multiple replicas also remote ones but **pmempool** currently does not read any data from the remote replica. It prints only a remote node address and a remote replica descriptor.
+
 **pmempool info** opens pool file in *read-only* mode so the file will remain untouched after processing.
 
 The *info* command may collect and print basic statistics about data usage. The statistics are specific to the type of pool. See **STATISTICS** section for
