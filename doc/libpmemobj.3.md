@@ -73,6 +73,13 @@ date: pmemobj API version 2.1
 cc -std=gnu99 ... -lpmemobj -lpmem
 ```
 
+!ifdef{WIN32}
+{
+>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+basic API functions are expanded to UTF-8 API with postfix *U*,
+otherwise they are expanded to UNICODE API with postfix *W*.
+}
+
 ##### Most commonly used functions: #####
 
 ```c

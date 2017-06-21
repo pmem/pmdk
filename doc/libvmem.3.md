@@ -60,6 +60,13 @@ date: vmem API version 1.0
 cc ... -lvmem
 ```
 
+!ifdef{WIN32}
+{
+>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+basic API functions are expanded to UTF-8 API with postfix *U*,
+otherwise they are expanded to UNICODE API with postfix *W*.
+}
+
 ##### Memory pool management: #####
 
 ```c
