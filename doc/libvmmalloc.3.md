@@ -158,6 +158,14 @@ In case of large memory pools, creating a copy of the pool file may stall the fo
 on the file system), it will fall back to option #1.
 
 
+# CAVEATS #
+
+**libvmmalloc** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # DEBUGGING #
 
 Two versions of **libvmmalloc** are typically available on a development system. The normal version is optimized for performance. That version skips checks

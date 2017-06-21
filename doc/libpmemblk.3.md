@@ -314,6 +314,14 @@ A block in the error state returns *errno* **EIO** when read. Writing the block 
 On success, zero is returned. On error, -1 is returned and *errno* is set.
 
 
+# CAVEATS #
+
+**libpmemblk** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing applications to work with an evolving API.

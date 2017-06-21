@@ -327,6 +327,14 @@ enabled in the debug version of the library as described in the **DEBUGGING AND 
 prints to the file specified by the **VMEM_LOG_FILE** environment variable, or to *stderr* if that variable is not set.
 
 
+# CAVEATS #
+
+**libvmem** relies on the library destructor being called from the main thread.
+For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # DEBUGGING AND ERROR HANDLING #
 
 Two versions of **libvmem** are typically available on a development system. The normal version, accessed when a program is linked using the **-lvmem** option,
