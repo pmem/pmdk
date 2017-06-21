@@ -360,6 +360,14 @@ file for a remote pool is defined as **RPMEM_MIN_PART** in **\<librpmem.h\>**.
 The minimum size of a remote pool allowed by the library is defined as
 **RPMEM_MIN_POOL** therein.
 
+# CAVEATS #
+
+**librpmem** relies on the library destructor being called from the main thread.
+For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing
