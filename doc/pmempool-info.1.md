@@ -57,7 +57,8 @@ $ pmempool info [<options>] <file>
 
 # DESCRIPTION #
 
-The **pmempool** invoked with *info* command analyzes an existing pool created by **NVML** libraries.
+The **pmempool** invoked with *info* command analyzes an existing pool created by **NVML** libraries provided by **file** parameter. **file** can be either existing pool file or poolset file.
+
 The main task of this command is to print all usable information from pool headers and user data in human readable format. It automatically recognizes pool
 type by parsing and analyzing pool header. The recognition is done by checking the signature in pool header. The main job of *info* command is to present
 internal data structures as they are stored in file but *not* for checking consistency. For this purpose there is the **pmempool-check**(1) command available.
@@ -67,6 +68,8 @@ If it is *not* possible to analyze the rest of the file, **pmempool** exits with
 
 Currently there is lack of interprocess synchronization for pool files, so the *info* command should be invoked off-line. Using **pmempool** on pool file which
 may be modified by another process may lead to unexpected errors in pool file.
+
+Poolset file can contain multiple replicas also remote ones but **pmempool** currently does not read any data from the remote replica. It prints only a remote node address and a remote replica descriptor.
 
 **pmempool info** opens pool file in *read-only* mode so the file will remain untouched after processing.
 
