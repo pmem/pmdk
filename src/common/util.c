@@ -283,7 +283,8 @@ util_localtime(const time_t *timep)
 {
 	int oerrno = errno;
 	struct tm *tm = localtime(timep);
-	if (!tm)
+	if (tm != NULL)
 		errno = oerrno;
+
 	return tm;
 }
