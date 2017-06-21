@@ -312,6 +312,7 @@ REMOTE_TESTS = \
 	remote_obj_basic\
 	$(OBJ_REMOTE_TESTS)\
 	$(RPMEM_TESTS)\
+	pmempool_info_remote\
 	pmempool_sync_remote\
 	pmempool_transform_remote\
 	libpmempool_rm_remote

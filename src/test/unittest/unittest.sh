@@ -44,6 +44,7 @@ export LC_ALL="C"
 [ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
+[ "$SILENT" ] || export SILENT=1
 [ "$SUFFIX" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
 
 TOOLS=../tools
@@ -1337,8 +1338,10 @@ function run_command()
 	if [ "$VERBOSE" != "0" ]; then
 		echo "$ $COMMAND"
 		$COMMAND
-	else
+	elif [ "$SILENT" == "1" ]; then
 		$COMMAND > /dev/null
+	else
+		$COMMAND
 	fi
 }
 
