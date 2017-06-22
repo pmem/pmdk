@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_cpp_shared_mutex\TEST0"
+$Env:UNITTEST_NAME = "obj_cpp_shared_mutex/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -55,7 +55,7 @@ setup
 # TEST0
 #
 expect_normal_exit $Env:EXE_DIR\obj_cpp_shared_mutex$Env:EXESUFFIX `
-    $DIR/testfile
+    $DIR\testfile
 
 # pass will print the appropriate pass/fail message
 pass

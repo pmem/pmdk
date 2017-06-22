@@ -52,6 +52,6 @@ setup
 
 $Env:PMEM_IS_PMEM_FORCE=1
 
-expect_normal_exit $Env:EXE_DIR/obj_pmalloc_oom_mt$Env:EXESUFFIX $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\obj_pmalloc_oom_mt$Env:EXESUFFIX $DIR\testfile
 
 pass

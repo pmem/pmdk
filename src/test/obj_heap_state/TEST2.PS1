@@ -36,7 +36,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_heap_state\TEST2"
+$Env:UNITTEST_NAME = "obj_heap_state/TEST2"
 $Env:UNITTEST_NUM = "2"
 
 

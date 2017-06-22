@@ -35,7 +35,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_out_of_memory\TEST2"
+$Env:UNITTEST_NAME = "obj_out_of_memory/TEST2"
 $Env:UNITTEST_NUM = "2"
 
 

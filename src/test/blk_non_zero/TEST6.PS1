@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "blk_non_zero\TEST6"
+$Env:UNITTEST_NAME = "blk_non_zero/TEST6"
 $Env:UNITTEST_NUM = "6"
 
 # standard unit test setup

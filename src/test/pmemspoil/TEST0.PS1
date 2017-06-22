@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmemspoil\TEST0"
+$Env:UNITTEST_NAME = "pmemspoil/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 . ..\unittest\unittest.ps1
@@ -52,13 +52,13 @@ $LOG = "out${Env:UNITTEST_NUM}.log"
 rm $LOG -Force -ea si
 touch $LOG
 
-$POOLSET = "$DIR/pool.set"
-$POOL1 = "$DIR/pool.part1"
-$POOL2 = "$DIR/pool.part2"
-$POOL3 = "$DIR/pool.part3"
-$REPL1 = "$DIR/pool.rep.part1"
-$REPL2 = "$DIR/pool.rep.part2"
-$REPL3 = "$DIR/pool.rep.part3"
+$POOLSET = "$DIR\pool.set"
+$POOL1 = "$DIR\pool.part1"
+$POOL2 = "$DIR\pool.part2"
+$POOL3 = "$DIR\pool.part3"
+$REPL1 = "$DIR\pool.rep.part1"
+$REPL2 = "$DIR\pool.rep.part2"
+$REPL3 = "$DIR\pool.rep.part3"
 $POOLS = "$POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3"
 
 rm $POOLS -Force -ea si

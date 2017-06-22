@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_strdup\TEST0"
+$Env:UNITTEST_NAME = "obj_strdup/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -50,6 +50,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_strdup$Env:EXESUFFIX $DIR/testfile1
+expect_normal_exit $Env:EXE_DIR\obj_strdup$Env:EXESUFFIX $DIR\testfile1
 
 pass

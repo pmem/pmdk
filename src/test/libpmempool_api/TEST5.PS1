@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_api\TEST5"
+$Env:UNITTEST_NAME = "libpmempool_api/TEST5"
 $Env:UNITTEST_NUM = "5"
 
 . ..\unittest\unittest.ps1

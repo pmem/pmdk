@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_cpp_cond_var\TEST0"
+$Env:UNITTEST_NAME = "obj_cpp_cond_var/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 

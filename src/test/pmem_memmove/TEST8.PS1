@@ -42,7 +42,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_memmove\TEST8"
+$Env:UNITTEST_NAME = "pmem_memmove/TEST8"
 $Env:UNITTEST_NUM = "8"
 
 

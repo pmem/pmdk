@@ -42,7 +42,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_recreate\TEST1"
+$Env:UNITTEST_NAME = "obj_recreate/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 

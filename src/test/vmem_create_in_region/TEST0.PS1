@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_create_in_region\TEST0"
+$Env:UNITTEST_NAME = "vmem_create_in_region/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup

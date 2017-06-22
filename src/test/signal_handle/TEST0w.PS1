@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "signal_handle\TEST0w"
+$Env:UNITTEST_NAME = "signal_handle/TEST0w"
 $Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup

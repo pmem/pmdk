@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_check_version\TEST0"
+$Env:UNITTEST_NAME = "vmem_check_version/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup

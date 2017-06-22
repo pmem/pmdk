@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_pages_purging\TEST0"
+$Env:UNITTEST_NAME = "vmem_pages_purging/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup

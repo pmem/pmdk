@@ -42,7 +42,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_uuid_generate\TEST0"
+$Env:UNITTEST_NAME = "util_uuid_generate/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
