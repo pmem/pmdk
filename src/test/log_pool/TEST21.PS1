@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "log_pool\TEST21"
+$Env:UNITTEST_NAME = "log_pool/TEST21"
 $Env:UNITTEST_NUM = "21"
 
 
@@ -58,7 +58,7 @@ create_holey_file 1M $DIR\testfile
 #
 expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
-rm $DIR/testfile
+rm $DIR\testfile
 
 check
 

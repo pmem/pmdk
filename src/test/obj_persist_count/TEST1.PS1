@@ -38,11 +38,11 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_persist_count\TEST1"
+$Env:UNITTEST_NAME = "obj_persist_count/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 

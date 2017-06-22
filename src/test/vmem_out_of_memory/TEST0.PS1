@@ -1,4 +1,4 @@
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_out_of_memory\TEST0"
+$Env:UNITTEST_NAME = "vmem_out_of_memory/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup

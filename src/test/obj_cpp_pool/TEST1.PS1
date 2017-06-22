@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_cpp_pool\TEST1"
+$Env:UNITTEST_NAME = "obj_cpp_pool/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 
@@ -55,10 +55,10 @@ setup
 # TEST1
 #
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
-    c $DIR/testfile "test" 20 0600
+    c $DIR\testfile "test" 20 0600
 
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool$Env:EXESUFFIX `
-    o $DIR/testfile "test"
+    o $DIR\testfile "test"
 
 check
 

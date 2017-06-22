@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "blk_non_zero\TEST7"
+$Env:UNITTEST_NAME = "blk_non_zero/TEST7"
 $Env:UNITTEST_NUM = "7"
 
 
@@ -55,7 +55,7 @@ setup
 $FILE_SIZE = $((1024*1024*1024))
 
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$Env:EXESUFFIX 512 `
-$DIR/testfile1 c $FILE_SIZE	w:100 w:200 w:300 w:400 `
+$DIR\testfile1 c $FILE_SIZE	w:100 w:200 w:300 w:400 `
 r:100 r:200 r:300 r:400	w:100 z:200 w:300 z:400 `
 r:100 r:200 r:300 r:400	e:100 w:200 e:300 w:400	`
 r:100 r:200 r:300 r:400

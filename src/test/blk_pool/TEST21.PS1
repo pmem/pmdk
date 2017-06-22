@@ -41,7 +41,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST21"
+$Env:UNITTEST_NAME = "blk_pool/TEST21"
 $Env:UNITTEST_NUM = "21"
 
 
@@ -58,7 +58,7 @@ create_holey_file 1M $DIR\testfile
 # TEST21 existing file, file size < min required size, bsize == 0
 #
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    o $DIR/testfile 0
+    o $DIR\testfile 0
 
 check
 

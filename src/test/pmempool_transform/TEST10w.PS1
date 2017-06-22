@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST10"
+$Env:UNITTEST_NAME = "pmempool_transform/TEST10"
 $Env:UNITTEST_NUM = "10w"
 
 . ..\unittest\unittest.ps1
@@ -56,20 +56,20 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
-$POOLSET_IN = "$DIR/poolset.in"
-$POOLSET_OUT = "$DIR/poolset.out"
+$POOLSET_IN = "$DIR\poolset.in"
+$POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x
+	20M:$DIR\testfile00:x `
+	20M:$DIR\testfile01:x
 
 create_poolset $POOLSET_OUT `
-	20M:$DIR/testfile00:x `
-	20M:$DIR/testfile01:x `
+	20M:$DIR\testfile00:x `
+	20M:$DIR\testfile01:x `
 	r `
-	20M:$DIR/testfile01:x `
-	20M:$DIR/testfile21:x
+	20M:$DIR\testfile01:x `
+	20M:$DIR\testfile21:x
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP

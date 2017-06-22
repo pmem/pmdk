@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,15 +42,15 @@ $Env:UNITTEST_NAME="obj_list_move/TEST2"
 $Env:UNITTEST_NUM="2"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
 setup
 
-create_holey_file 1M $DIR/testfile
+create_holey_file 1M $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR/testfile `
+expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR\testfile `
 	i:0:-1 i:0:-1 i:0:-1 i:0:-1 i:0:-1 i:0:-1 P:2 R:2 `
 	M:0:0:0 P:2 R:2 `
 	M:0:1:0 P:2 R:2 `

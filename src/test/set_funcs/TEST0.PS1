@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "set_funcs\TEST0"
+$Env:UNITTEST_NAME = "set_funcs/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -48,6 +48,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\set_funcs$Env:EXESUFFIX $DIR/testfile $DIR
+expect_normal_exit $Env:EXE_DIR\set_funcs$Env:EXESUFFIX $DIR\testfile $DIR
 
 pass

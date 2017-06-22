@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -39,7 +38,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_map_flog\TEST1"
+$Env:UNITTEST_NAME = "libpmempool_map_flog/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1
@@ -49,7 +48,7 @@ require_fs_type any
 
 setup
 
-$POOL = "$DIR/file.pool"
+$POOL = "$DIR\file.pool"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
 rm $LOG -Force -ea si

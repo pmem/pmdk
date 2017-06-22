@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST0"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 . ..\unittest\unittest.ps1
@@ -55,7 +55,7 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET = "$DIR\pool0.set"
 $M = 1024 * 1024
 $M20 = 20 * $M
 $M40 = 40 * $M
@@ -64,15 +64,15 @@ $ADDR_MASK = "0xFFFF0000"
 
 # Create poolset file
 create_poolset $POOLSET `
-    20M:$DIR/testfile1:x `
-    20M:$DIR/testfile2:x `
-    21M:$DIR/testfile3:x `
+    20M:$DIR\testfile1:x `
+    20M:$DIR\testfile2:x `
+    21M:$DIR\testfile3:x `
     R `
-    40M:$DIR/testfile4:x `
-    20M:$DIR/testfile5:x
+    40M:$DIR\testfile4:x `
+    20M:$DIR\testfile5:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 55M
 srcp 0 TestOK111
@@ -81,7 +81,7 @@ srcp 40M TestOK333
 "@ | out-file -encoding ASCII $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 20M 9

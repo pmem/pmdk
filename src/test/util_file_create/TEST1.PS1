@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_file_create\TEST1"
+$Env:UNITTEST_NAME = "util_file_create/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
@@ -52,18 +52,18 @@ require_no_superuser
 
 setup
 
-mkdir $DIR/testdir1 > $null
+mkdir $DIR\testdir1 > $null
 
 # remove write permissions
 & icacls $DIR/testdir1 /deny ${Env:USERNAME}:W >$null
 
 expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
-    0x4000:$DIR/testdir1/testfile
+    0x4000:$DIR\testdir1\testfile
 
 # grant full permissions so test code can cleanup
 & icacls $DIR/testdir1 /grant ${Env:USERNAME}:F >$null
 
-rm -Force -Recurse $DIR/testdir1
+rm -Force -Recurse $DIR\testdir1
 
 check
 

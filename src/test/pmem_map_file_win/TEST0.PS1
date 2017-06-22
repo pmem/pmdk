@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_map_file_win\TEST0"
+$Env:UNITTEST_NAME = "pmem_map_file_win/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
@@ -56,24 +56,24 @@ setup
 # this test invokes sigsegvs by design
 # export ASAN_OPTIONS=handle_segv=0
 
-create_holey_file 2G $DIR/testfile1
+create_holey_file 2G $DIR\testfile1
 
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 
-expect_normal_exit $Env:EXE_DIR/pmem_map_file_win$Env:EXESUFFIX `
-    $DIR/testfile1 0 - 0 1 1 `
-    $DIR/testfile1 -1 - 0 1 1 `
-    $DIR/testfile1 0 - 0 0 0 `
-    $DIR/testfile1 0 X 0 0 0 `
-    $DIR/testfile1 0 - 0644 1 1 `
-    $DIR/testfile1 1024 - 0 1 1 `
-    $DIR/testfile1 0 C 0 1 1 `
-    $DIR/testfile1 0 E 0 1 1 `
-    $DIR/testfile1 4096 T 0644 1 1 `
-    $DIR/testfile1 4096 E 0644 1 1 `
-    $DIR/testfile1 0 - 0644 1 1
+expect_normal_exit $Env:EXE_DIR\pmem_map_file_win$Env:EXESUFFIX `
+    $DIR\testfile1 0 - 0 1 1 `
+    $DIR\testfile1 -1 - 0 1 1 `
+    $DIR\testfile1 0 - 0 0 0 `
+    $DIR\testfile1 0 X 0 0 0 `
+    $DIR\testfile1 0 - 0644 1 1 `
+    $DIR\testfile1 1024 - 0 1 1 `
+    $DIR\testfile1 0 C 0 1 1 `
+    $DIR\testfile1 0 E 0 1 1 `
+    $DIR\testfile1 4096 T 0644 1 1 `
+    $DIR\testfile1 4096 E 0644 1 1 `
+    $DIR\testfile1 0 - 0644 1 1
 
-check_files $DIR/testfile1
+check_files $DIR\testfile1
 
 check
 

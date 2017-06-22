@@ -41,7 +41,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_pool\TEST20"
+$Env:UNITTEST_NAME = "obj_pool/TEST20"
 $Env:UNITTEST_NUM = "20"
 
 
@@ -56,7 +56,7 @@ setup
 # TEST20 non-existing file, layout is NULL
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    o $DIR/testfile NULL
+    o $DIR\testfile NULL
 
 check
 

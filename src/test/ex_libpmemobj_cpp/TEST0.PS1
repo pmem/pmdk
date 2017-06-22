@@ -42,7 +42,7 @@ $Env:UNITTEST_NAME = "ex_libpmemobj_cpp/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup
-. ../unittest/unittest.PS1
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 require_build_type debug nondebug
@@ -50,11 +50,11 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR/queue $DIR/testfile1 push 1
-expect_normal_exit $Env:EXE_DIR/queue $DIR/testfile1 push 2
-expect_normal_exit $Env:EXE_DIR/queue $DIR/testfile1 push 3
-expect_normal_exit $Env:EXE_DIR/queue $DIR/testfile1 pop > $null
-expect_normal_exit $Env:EXE_DIR/queue $DIR/testfile1 show `
+expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 1
+expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 2
+expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 push 3
+expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 pop > $null
+expect_normal_exit $Env:EXE_DIR\queue $DIR\testfile1 show `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
 check

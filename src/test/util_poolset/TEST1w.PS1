@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST1w"
+$Env:UNITTEST_NAME = "util_poolset/TEST1w"
 $Env:UNITTEST_NUM = "1w"
 
 # standard unit test setup
@@ -53,51 +53,51 @@ $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
 $MIN_POOL = 256 * 1024  # 4 * mmap alignment (262144)
 
-create_poolset $DIR/testset1 256K:$DIR/testfile11:z:256K # pass
-create_poolset $DIR/testset2 256K:$DIR/testfile21:x `
-    256K:$DIR/testfile22:x # fail - can't read poolset file
-create_poolset $DIR/testset3 256K:$DIR/testfile31:x `
-    256K:$DIR/testfile32:x # fail - no files
-create_poolset $DIR/testset4 256K:$DIR/testfile41:z:256K `
-    256K:$DIR/testfile42:x # fail - no second part
-create_poolset $DIR/testset5 12K:$DIR/testfile51:z:12K `
-    256K:$DIR/testfile52:z:256K # fail - part1 too small
-create_poolset $DIR/testset6 256K:$DIR/testfile61:z:256K `
-    16K:$DIR/testfile62:z:16K # fail - part2 too small
-create_poolset $DIR/testset7 262143B:$DIR/testfile71:z:262143B `
-    256K:$DIR/testfile72:z:256K # fail - part1 too small
-create_poolset $DIR/testset8 256K:$DIR/testfile81:z:256K `
-    256K:$DIR/testfile82:z:256K # fail - no access permissions
-create_poolset $DIR/testset9 256K:$DIR/testfile91:z:256K `
-    512K:$DIR/testfile92:z:256K # fail - part2 size doesn't match
-create_poolset $DIR/testset10 256K:$DIR/testfile101:z:262144B `
-    256K:$DIR/testfile102:z:262145B # fail - part2 size doesn't match
-create_poolset $DIR/testset11 262145B:$DIR/testfile111:z:262145B `
-    327679B:$DIR/testfile112:z:327679B 327680B:$DIR/testfile113:z:327680B # pass
+create_poolset $DIR\testset1 256K:$DIR\testfile11:z:256K # pass
+create_poolset $DIR\testset2 256K:$DIR\testfile21:x `
+    256K:$DIR\testfile22:x # fail - can't read poolset file
+create_poolset $DIR\testset3 256K:$DIR\testfile31:x `
+    256K:$DIR\testfile32:x # fail - no files
+create_poolset $DIR\testset4 256K:$DIR\testfile41:z:256K `
+    256K:$DIR\testfile42:x # fail - no second part
+create_poolset $DIR\testset5 12K:$DIR\testfile51:z:12K `
+    256K:$DIR\testfile52:z:256K # fail - part1 too small
+create_poolset $DIR\testset6 256K:$DIR\testfile61:z:256K `
+    16K:$DIR\testfile62:z:16K # fail - part2 too small
+create_poolset $DIR\testset7 262143B:$DIR\testfile71:z:262143B `
+    256K:$DIR\testfile72:z:256K # fail - part1 too small
+create_poolset $DIR\testset8 256K:$DIR\testfile81:z:256K `
+    256K:$DIR\testfile82:z:256K # fail - no access permissions
+create_poolset $DIR\testset9 256K:$DIR\testfile91:z:256K `
+    512K:$DIR\testfile92:z:256K # fail - part2 size doesn't match
+create_poolset $DIR\testset10 256K:$DIR\testfile101:z:262144B `
+    256K:$DIR\testfile102:z:262145B # fail - part2 size doesn't match
+create_poolset $DIR\testset11 262145B:$DIR\testfile111:z:262145B `
+    327679B:$DIR\testfile112:z:327679B 327680B:$DIR\testfile113:z:327680B # pass
 
 
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
-    $DIR/testset0 $DIR/testset1 `
-    "-mo:$DIR/testset2" $DIR/testset2 `
-    $DIR/testset3 $DIR/testset4 `
-    $DIR/testset5 $DIR/testset6 `
-    $DIR/testset7 `
-    "-mo:$DIR/testfile82" $DIR/testset8 `
-    $DIR/testset9 $DIR/testset10 `
-    $DIR/testset11
+expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX o $MIN_POOL `
+    $DIR\testset0 $DIR\testset1 `
+    "-mo:$DIR\testset2" $DIR\testset2 `
+    $DIR\testset3 $DIR\testset4 `
+    $DIR\testset5 $DIR\testset6 `
+    $DIR\testset7 `
+    "-mo:$DIR\testfile82" $DIR\testset8 `
+    $DIR\testset9 $DIR\testset10 `
+    $DIR\testset11
 
-check_files $DIR/testfile11 `
-    $DIR/testfile51 $DIR/testfile52 `
-    $DIR/testfile61 $DIR/testfile62 `
-    $DIR/testfile71 $DIR/testfile72 `
-    $DIR/testfile81 $DIR/testfile82 `
-    $DIR/testfile91 $DIR/testfile92 `
-    $DIR/testfile101 $DIR/testfile102 `
-    $DIR/testfile111 $DIR/testfile112 $DIR/testfile113
+check_files $DIR\testfile11 `
+    $DIR\testfile51 $DIR\testfile52 `
+    $DIR\testfile61 $DIR\testfile62 `
+    $DIR\testfile71 $DIR\testfile72 `
+    $DIR\testfile81 $DIR\testfile82 `
+    $DIR\testfile91 $DIR\testfile92 `
+    $DIR\testfile101 $DIR\testfile102 `
+    $DIR\testfile111 $DIR\testfile112 $DIR\testfile113
 
-check_no_files $DIR/testfile21 $DIR/testfile22 `
-    $DIR/testfile31 $DIR/testfile32 `
-    $DIR/testfile42
+check_no_files $DIR\testfile21 $DIR\testfile22 `
+    $DIR\testfile31 $DIR\testfile32 `
+    $DIR\testfile42
 
 sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
     %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `

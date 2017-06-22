@@ -32,10 +32,10 @@
 #
 # libpmempool_backup/common.PS1 -- functions for libpmempool_backup unittest
 #
-$POOLSET="$DIR/pool.set"
+$POOLSET="$DIR\pool.set"
 $BACKUP="_backup"
 $REPLICA="_replica"
-$POOL_PART="$DIR/pool.part"
+$POOL_PART="$DIR\pool.part"
 
 $OUT="out$Env:UNITTEST_NUM.log"
 $OUT_TEMP="out$Env:UNITTEST_NUM_temp.log"
