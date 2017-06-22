@@ -65,7 +65,7 @@
 #
 #	-d	debug -- show lots of debug output
 #
-#	-q	don't print any output on mismatch (just exit with result code)
+#	-q	don't print log files on mismatch
 #
 #	-v	verbose -- show every line as it is being matched
 #
@@ -205,7 +205,11 @@ sub match {
 				$opt = 0;
 			} else {
 				if (!$opt_v) {
-					print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+					if ($opt_q) {
+						print "[MATCHING FAILED]\n";
+					} else {
+						print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+					}
 					$opt_v = 1;
 					match($mfile, $ofile);
 				}
@@ -217,7 +221,11 @@ sub match {
 
 	if ($output ne '') {
 		if (!$opt_v) {
-			print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+			if ($opt_q) {
+				print "[MATCHING FAILED]\n";
+			} else {
+				print "[MATCHING FAILED, COMPLETE FILE ($ofile) BELOW]\n$all_lines\n[EOF]\n";
+			}
 		}
 
 		# make it a little more print-friendly...
