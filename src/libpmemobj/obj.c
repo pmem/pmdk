@@ -1216,7 +1216,7 @@ pmemobj_createU(const char *path, const char *layout,
 	unsigned runtime_nlanes = obj_get_nlanes();
 
 	if (util_pool_create(&set, path,
-			poolsize, PMEMOBJ_MIN_POOL, PMEMOBJ_MIN_PART,
+			poolsize, PMEMOBJ_MIN_POOL,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
 			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes,

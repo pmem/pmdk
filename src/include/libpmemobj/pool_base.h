@@ -47,7 +47,6 @@ extern "C" {
 #endif
 
 #define PMEMOBJ_MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MB */
-#define PMEMOBJ_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MB */
 
 /*
  * Pool management.

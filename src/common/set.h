@@ -188,14 +188,14 @@ int util_poolset_foreach_part(const char *path,
 size_t util_poolset_size(const char *path);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize, size_t minpartsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes, int can_have_rep);
+	size_t minsize, const char *sig, uint32_t major, uint32_t compat,
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes,
+	int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
-	size_t poolsize, size_t minsize, size_t minpartsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes, int can_have_rep,
-	int remote, struct pool_attr *poolattr);
+	size_t poolsize, size_t minsize, const char *sig, uint32_t major,
+	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	unsigned *nlanes, int can_have_rep, int remote,
+	struct pool_attr *poolattr);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);

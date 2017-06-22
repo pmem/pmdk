@@ -222,7 +222,7 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 	pattr.user_flags = attr->user_flags;
 
 	ret = util_pool_create_uuids(&set, path,
-					0, RPMEM_MIN_POOL, RPMEM_MIN_PART,
+					0, RPMEM_MIN_POOL,
 					attr->signature,
 					attr->major,
 					attr->compat_features,

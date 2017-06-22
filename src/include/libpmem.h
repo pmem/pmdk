@@ -64,6 +64,8 @@ extern "C" {
 
 #include <sys/types.h>
 
+#define PMEM_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MB */
+
 /*
  * flags supported by pmem_map_file()
  */

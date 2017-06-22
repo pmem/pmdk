@@ -416,7 +416,7 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 	struct pool_set *set;
 
 	if (util_pool_create(&set, path,
-			poolsize, PMEMBLK_MIN_POOL, PMEMBLK_MIN_PART,
+			poolsize, PMEMBLK_MIN_POOL,
 			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
 			BLK_FORMAT_COMPAT, BLK_FORMAT_INCOMPAT,
 			BLK_FORMAT_RO_COMPAT, NULL,

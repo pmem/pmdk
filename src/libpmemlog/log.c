@@ -175,7 +175,7 @@ pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 	struct pool_set *set;
 
 	if (util_pool_create(&set, path,
-			poolsize, PMEMLOG_MIN_POOL, PMEMLOG_MIN_PART,
+			poolsize, PMEMLOG_MIN_POOL,
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT, LOG_FORMAT_INCOMPAT,
 			LOG_FORMAT_RO_COMPAT, NULL,
