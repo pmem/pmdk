@@ -211,6 +211,8 @@ pmempool_rmU(const char *path, int flags)
 	if (set->remote)
 		util_remote_load(); /* error will be handled in rm_remote() */
 
+	util_poolset_free(set);
+
 	struct cb_args args;
 	args.flags = flags;
 	args.error = 0;
