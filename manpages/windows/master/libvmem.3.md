@@ -60,12 +60,15 @@ date: vmem API version 1.0
 cc ... -lvmem
 ```
 
-
+>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+basic API functions are expanded to UTF-8 API with postfix *U*,
+otherwise they are expanded to UNICODE API with postfix *W*.
 
 ##### Memory pool management: #####
 
 ```c
-VMEM *vmem_create(const char *dir, size_t size);
+VMEM *vmem_createU(const char *dir, size_t size);
+VMEM *vmem_createW(const wchar_t *dir, size_t size);
 VMEM *vmem_create_in_region(void *addr, size_t size);
 void vmem_delete(VMEM *vmp);
 int vmem_check(VMEM *vmp);
@@ -88,7 +91,10 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 ##### Managing overall library behavior: #####
 
 ```c
-const char *vmem_check_version(
+const char *vmem_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *vmem_check_versionW(
 	unsigned major_required,
 	unsigned minor_required);
 void vmem_set_funcs(
@@ -102,7 +108,8 @@ void vmem_set_funcs(
 ##### Error handling: #####
 
 ```c
-const char *vmem_errormsg(void);
+const char *vmem_errormsgU(void);
+const wchar_t *vmem_errormsgW(void);
 ```
 
 
@@ -130,23 +137,24 @@ interfaces less commonly used for managing the overall library behavior. These g
 
 # MANAGING MEMORY POOLS #
 
-To use **libvmem**, a *memory pool* is first created. This is most commonly done with the **vmem_create**() function described in this section. The other
+To use **libvmem**, a *memory pool* is first created. This is most commonly done with the **vmem_createU**()/**vmem_createW**() function described in this section. The other
 functions described in this section are for less common cases, where applications have special needs for creating pools or examining library state.
 
 Once created, a memory pool is represented by an opaque pool handle, of type *VMEM\**, which is passed to the functions for memory allocation described in the
 next section.
 
 ```c
-VMEM *vmem_create(const char *dir, size_t size);
+VMEM *vmem_createU(const char *dir, size_t size);
+VMEM *vmem_createW(const wchar_t *dir, size_t size);
 ```
 
-The **vmem_create**() function creates a memory pool. The resulting pool is then used with functions like **vmem_malloc**() and **vmem_free**() to provide the
-familiar *malloc-like* programming model for the memory pool. **vmem_create**() creates the pool by allocating a temporary file in the given directory *dir*.
+The **vmem_createU**()/**vmem_createW**() function creates a memory pool. The resulting pool is then used with functions like **vmem_malloc**() and **vmem_free**() to provide the
+familiar *malloc-like* programming model for the memory pool. **vmem_createU**()/**vmem_createW**() creates the pool by allocating a temporary file in the given directory *dir*.
 The file is created in a fashion similar to **tmpfile**(3), so that the file name does not appear when the directory is listed and the space is automatically
 freed when the program terminates. *size* bytes are allocated and the resulting space is memory-mapped. The minimum *size* value allowed by the library is
-defined in **\<libvmem.h\>** as **VMEM_MIN_POOL**. Calling **vmem_create**() with a size smaller than that will return an error. The maximum allowed size is not
+defined in **\<libvmem.h\>** as **VMEM_MIN_POOL**. Calling **vmem_createU**()/**vmem_createW**() with a size smaller than that will return an error. The maximum allowed size is not
 limited by **libvmem**, but by the file system specified by the *dir* argument. The *size* passed in is the raw size of the memory pool and **libvmem** will
-use some of that space for its own metadata. **vmem_create**() returns an opaque memory pool handle or NULL if an error occurred (in which case *errno* is set
+use some of that space for its own metadata. **vmem_createU**()/**vmem_createW**() returns an opaque memory pool handle or NULL if an error occurred (in which case *errno* is set
 appropriately). The opaque memory pool handle is then used with the other functions described in this man page that operate on a specific memory pool.
 
 This function can also be called with the **dir** argument pointing to a device
@@ -162,7 +170,7 @@ VMEM *vmem_create_in_region(void *addr, size_t size);
 The **vmem_create_in_region**() is an alternate **libvmem** entry point for creating a memory pool. It is for the rare case where an application needs to
 create a memory pool from an already memory-mapped region. Instead of allocating space from a given file system, **vmem_create_in_region**() is given the
 memory region explicitly via the *addr* and *size* arguments. Any data in the region is lost by calling **vmem_create_in_region**(), which will immediately
-store its own data structures for managing the pool there. Like **vmem_create**() above, the minimum *size* allowed is defined as **VMEM_MIN_POOL**. The *addr*
+store its own data structures for managing the pool there. Like **vmem_createU**()/**vmem_createW**() above, the minimum *size* allowed is defined as **VMEM_MIN_POOL**. The *addr*
 argument must be page aligned. **vmem_create_in_region**() returns an opaque memory pool handle or NULL if an error occurred (in which case *errno* is set
 appropriately). Undefined behavior occurs if *addr* does not point to the contiguous memory region in the virtual address space of the calling process, or if
 the *size* is larger than the actual size of the memory region pointed by *addr*.
@@ -171,7 +179,7 @@ the *size* is larger than the actual size of the memory region pointed by *addr*
 void vmem_delete(VMEM *vmp);
 ```
 
-The **vmem_delete**() function releases the memory pool *vmp*. If the memory pool was created using **vmem_create**(), deleting it allows the space to be
+The **vmem_delete**() function releases the memory pool *vmp*. If the memory pool was created using **vmem_createU**()/**vmem_createW**(), deleting it allows the space to be
 reclaimed.
 
 ```c
@@ -286,16 +294,19 @@ default library behavior.
 
 
 ```c
-const char *vmem_check_version(
+const char *vmem_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *vmem_check_versionW(
 	unsigned major_required,
 	unsigned minor_required);
 ```
 
-The **vmem_check_version**() function is used to see if the installed **libvmem** supports the version of the library API required by an application. The
+The **vmem_check_versionU**()/**vmem_check_versionW**() function is used to see if the installed **libvmem** supports the version of the library API required by an application. The
 easiest way to do this is for the application to supply the compile-time version information, supplied by defines in **\<libvmem.h\>**, like this:
 
 ```c
-reason = vmem_check_version(VMEM_MAJOR_VERSION,
+reason = vmem_check_versionU(VMEM_MAJOR_VERSION,
                             VMEM_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -309,8 +320,8 @@ An application can also check specifically for the existence of an interface by 
 are documented in this man page as follows: unless otherwise specified, all interfaces described here are available in version 1.0 of the library. Interfaces
 added after version 1.0 will contain the text *introduced in version x.y* in the section of this manual describing the feature.
 
-When the version check performed by **vmem_check_version**() is successful, the return value is NULL. Otherwise the return value is a static string describing
-the reason for failing the version check. The string returned by **vmem_check_version**() must not be modified or freed.
+When the version check performed by **vmem_check_versionU**()/**vmem_check_versionW**() is successful, the return value is NULL. Otherwise the return value is a static string describing
+the reason for failing the version check. The string returned by **vmem_check_versionU**()/**vmem_check_versionW**() must not be modified or freed.
 
 ```c
 void vmem_set_funcs(
@@ -345,20 +356,21 @@ error is detected during the call to **libvmem** function, an application may re
 function:
 
 ```c
-const char *vmem_errormsg(void);
+const char *vmem_errormsgU(void);
+const wchar_t *vmem_errormsgW(void);
 ```
 
-The **vmem_errormsg**() function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
+The **vmem_errormsgU**()/**vmem_errormsgW**() function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
 include description of the corresponding error code (if *errno* was set), as returned by **strerror**(3). The error message buffer is thread-local; errors
 encountered in one thread do not affect its value in other threads. The buffer is never cleared by any library function; its content is significant only when
 the return value of the immediately preceding call to **libvmem** function indicated an error, or if *errno* was set. The application must not modify or free
 the error message string, but it may be modified by subsequent calls to other library functions.
 
 A second version of **libvmem**, accessed when a program uses
-the libraries under **/usr/lib/nvml_debug**, contains
+the libraries under **/nvml/src/x64/Debug**, contains
 run-time assertions and trace points. The typical way to
 access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on where the debug
+**LD_LIBRARY_PATH** to **/nvml/src/x64/Debug** or other location depending on where the debug
 libraries are installed on the system.
 The trace points in the debug version of the library are enabled using the environment variable
 **VMEM_LOG_LEVEL**, which can be set to the following values:
@@ -366,7 +378,7 @@ The trace points in the debug version of the library are enabled using the envir
 + **0** - This is the default level when **VMEM_LOG_LEVEL** is not set. Only statistics are logged, and then only in response to a call to **vmem_stats_print**().
 
 + **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be
-retrieved using **vmem_errormsg**().
+retrieved using **vmem_errormsgU**()/**vmem_errormsgW**().
 
 + **2** - A trace of basic operations including allocations and deallocations is logged.
 
@@ -399,9 +411,9 @@ main(int argc, char *argv[])
 	char *ptr;
 
 	/* create minimum size pool of memory */
-	if ((vmp = vmem_create("/pmem-fs",
+	if ((vmp = vmem_createU("/pmem-fs",
 			VMEM_MIN_POOL)) == NULL) {
-		perror("vmem_create");
+		perror("vmem_createU");
 		exit(1);
 	}
 
