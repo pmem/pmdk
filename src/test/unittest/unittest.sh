@@ -1138,6 +1138,10 @@ function configure_valgrind() {
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
 	fi
+
+	if [ "$UT_VALGRIND_SKIP_PRINT_MISMATCHED" == 1 ]; then
+		export UT_SKIP_PRINT_MISMATCHED=1
+	fi
 }
 
 #
@@ -1946,7 +1950,11 @@ function setup() {
 # check_local -- check local test results (using .match files)
 #
 function check_local() {
-	../match $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
+	if [ "$UT_SKIP_PRINT_MISMATCHED" == 1 ]; then
+		option=-q
+	fi
+
+	../match $option $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
 }
 
 #
@@ -1976,7 +1984,11 @@ function check() {
 			done
 		done
 
-		../match $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
+		if [ "$UT_SKIP_PRINT_MISMATCHED" == 1 ]; then
+			option=-q
+		fi
+
+		../match $option $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
 	fi
 }
 
