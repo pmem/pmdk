@@ -60,7 +60,7 @@ pool_example()
 	pop.close();
 
 	// or open a pmemobj pool
-	pop = pool<root>::open("poolfile", "");
+	pop = pool<root>::open("poolfile", "layout");
 
 	// typical usage schemes
 	auto root_obj = pop.get_root();
@@ -78,7 +78,7 @@ pool_example()
 	pop.close();
 
 	// check pool consistency
-	pool<root>::check("poolfile", "");
+	pool<root>::check("poolfile", "layout");
 }
 //! [pool_example]
 
