@@ -43,7 +43,7 @@ $Env:UNITTEST_NAME="obj_list_valgrind/TEST4"
 $Env:UNITTEST_NUM="4"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type pmem non-pmem
@@ -54,9 +54,9 @@ require_fs_type pmem non-pmem
 
 setup
 
-create_holey_file 1M $DIR/testfile
+create_holey_file 1M $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR/testfile `
+expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR\testfile `
 		n:1:0:10 `
 		n:0:0:11 `
 		n:1:-1:12 `

@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_tx_realloc\TEST1"
+$ENV:UNITTEST_NAME = "obj_tx_realloc/TEST1"
 $ENV:UNITTEST_NUM = "1"
 
 

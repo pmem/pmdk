@@ -44,15 +44,15 @@ $Env:UNITTEST_NAME="obj_list_insert/TEST2"
 $Env:UNITTEST_NUM="2"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
 setup
 
-create_holey_file 1M $DIR/testfile
+create_holey_file 1M $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR/testfile `
+expect_normal_exit $Env:EXE_DIR\obj_list$Env:EXESUFFIX $DIR\testfile `
 	i:0:-1 P:2 R:2 `
 	i:0:-1 P:2 R:2 `
 	i:0:-1 P:2 R:2 `

@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST20"
+$Env:UNITTEST_NAME = "blk_pool/TEST20"
 $Env:UNITTEST_NUM = "20"
 
 
@@ -55,7 +55,7 @@ setup
 # TEST20 non-existing file, bsize == 0
 #
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    o $DIR/testfile 0
+    o $DIR\testfile 0
 
 check
 

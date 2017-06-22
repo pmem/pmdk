@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_cpp_pool_win\TEST0"
+$Env:UNITTEST_NAME = "obj_cpp_pool_win/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -55,7 +55,7 @@ setup
 # TEST0
 #
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool_win$Env:EXESUFFIX `
-    c $DIR/testfile "test" 20 0600
+    c $DIR\testfile "test" 20 0600
 
 check_files $DIR\testfile
 

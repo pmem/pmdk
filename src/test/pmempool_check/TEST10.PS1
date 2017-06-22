@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_check\TEST10"
+$Env:UNITTEST_NAME = "pmempool_check/TEST10"
 $Env:UNITTEST_NUM = "10"
 
 . ..\unittest\unittest.ps1
@@ -48,11 +48,11 @@ require_fs_type any
 
 setup
 
-$POOLSET="$DIR/pool.set"
-$POOL_R1_PART1="$DIR/pool.replica1.part1"
-$POOL_R1_PART2="$DIR/pool.replica1.part2"
-$POOL_R2_PART1="$DIR/pool.replica2.part1"
-$POOL_R2_PART2="$DIR/pool.replica2.part2"
+$POOLSET="$DIR\pool.set"
+$POOL_R1_PART1="$DIR\pool.replica1.part1"
+$POOL_R1_PART2="$DIR\pool.replica1.part2"
+$POOL_R2_PART1="$DIR\pool.replica2.part1"
+$POOL_R2_PART2="$DIR\pool.replica2.part2"
 
 $LOG="out$Env:UNITTEST_NUM.log"
 rm $LOG -Force -ea si

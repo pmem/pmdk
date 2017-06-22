@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_pool\TEST7"
+$Env:UNITTEST_NAME = "obj_pool/TEST7"
 $Env:UNITTEST_NUM = "7"
 
 

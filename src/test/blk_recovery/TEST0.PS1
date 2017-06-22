@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME="blk_recovery\TEST0"
+$Env:UNITTEST_NAME="blk_recovery/TEST0"
 $Env:UNITTEST_NUM="0"
 
 

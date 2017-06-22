@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "traces_pmem\TEST0"
+$Env:UNITTEST_NAME = "traces_pmem/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -57,13 +57,13 @@ require_build_type debug static-debug
 setup
 
 $Env:PMEM_LOG_LEVEL = 4
-$Env:PMEM_LOG_FILE = "./trace_pmem$Env:UNITTEST_NUM.log"
+$Env:PMEM_LOG_FILE = ".\trace_pmem$Env:UNITTEST_NUM.log"
 $Env:PMEMBLK_LOG_LEVEL = 4
-$Env:PMEMBLK_LOG_FILE = "./trace_pmemblk$Env:UNITTEST_NUM.log"
+$Env:PMEMBLK_LOG_FILE = ".\trace_pmemblk$Env:UNITTEST_NUM.log"
 $Env:PMEMLOG_LOG_LEVEL = 4
-$Env:PMEMLOG_LOG_FILE = "./trace_pmemlog$Env:UNITTEST_NUM.log"
+$Env:PMEMLOG_LOG_FILE = ".\trace_pmemlog$Env:UNITTEST_NUM.log"
 $Env:PMEMOBJ_LOG_LEVEL = 4
-$Env:PMEMOBJ_LOG_FILE = "./trace_pmemobj$Env:UNITTEST_NUM.log"
+$Env:PMEMOBJ_LOG_FILE = ".\trace_pmemobj$Env:UNITTEST_NUM.log"
 
 expect_normal_exit $Env:EXE_DIR\traces_pmem$Env:EXESUFFIX
 

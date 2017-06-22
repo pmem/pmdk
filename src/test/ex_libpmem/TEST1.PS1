@@ -50,12 +50,12 @@ require_no_unicode
 
 setup
 
-create_nonzeroed_file 2 0 $DIR/testfile1
+create_nonzeroed_file 2 0 $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR/full_copy $DIR/testfile1 $DIR/testfile2 `
+expect_normal_exit $Env:EXE_DIR\full_copy $DIR\testfile1 $DIR\testfile2 `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
-cmp $DIR/testfile1 $DIR/testfile2 > cmp$Env:UNITTEST_NUM.log 2>&1
+cmp $DIR\testfile1 $DIR\testfile2 > cmp$Env:UNITTEST_NUM.log 2>&1
 
 check
 

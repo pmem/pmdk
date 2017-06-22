@@ -42,7 +42,7 @@ $Env:UNITTEST_NAME = "ex_libpmemobj/TEST8"
 $Env:UNITTEST_NUM = "8"
 
 # standard unit test setup
-. ../unittest/unittest.PS1
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 require_build_type debug nondebug
@@ -52,10 +52,10 @@ setup
 
 @"
 Hello!
-"@| &$Env:EXE_DIR/tx_writer $DIR/testfile1 > out$Env:UNITTEST_NUM.log 2>&1
+"@| &$Env:EXE_DIR\tx_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
 check_exit_code
 
-expect_normal_exit $Env:EXE_DIR/tx_reader $DIR/testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\tx_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

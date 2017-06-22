@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ expect_normal_exit $Env:EXE_DIR\util_is_absolute$Env:EXESUFFIX `
     C:\foo\bar `
     \foo\bar `
     foo\bar `
-    D:/foo/bar `
+    D:\foo\bar `
     /foo/bar `
     e: `
     E:\

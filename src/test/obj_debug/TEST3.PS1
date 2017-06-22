@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_debug\TEST3"
+$Env:UNITTEST_NAME = "obj_debug/TEST3"
 $Env:UNITTEST_NUM = "3"
 
 # standard unit test setup
@@ -50,6 +50,6 @@ require_build_type debug
 setup
 
 expect_abnormal_exit $Env:EXE_DIR\obj_debug$Env:EXESUFFIX `
-    $DIR/testfile1 p 2>$null
+    $DIR\testfile1 p 2>$null
 
 pass
