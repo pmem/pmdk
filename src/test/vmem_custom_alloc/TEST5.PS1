@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "vmem_custom_alloc\TEST5"
+$Env:UNITTEST_NAME = "vmem_custom_alloc/TEST5"
 $Env:UNITTEST_NUM = "5"
 
 # standard unit test setup

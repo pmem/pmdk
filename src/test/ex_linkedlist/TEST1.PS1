@@ -43,7 +43,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_linkedlist\TEST1"
+$Env:UNITTEST_NAME = "ex_linkedlist/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
@@ -58,7 +58,7 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR/ex_linkedlist$Env:EXESUFFIX $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\ex_linkedlist$Env:EXESUFFIX $DIR\testfile
 
 check
 

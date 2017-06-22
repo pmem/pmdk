@@ -51,18 +51,18 @@ require_fs_type any
 
 setup
 
-create_poolset $DIR/testset1 16M:$DIR/testfile1 `
-	r 18M:$DIR/testfile2 `
-	r 20M:$DIR/testfile3
+create_poolset $DIR\testset1 16M:$DIR\testfile1 `
+	r 18M:$DIR\testfile2 `
+	r 20M:$DIR\testfile3
 
 expect_normal_exit `
-    $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX $DIR/testset1
+    $Env:EXE_DIR\obj_basic_integration$Env:EXESUFFIX $DIR\testset1
 
 compare_replicas "-soOaAb -l -Z -H -C" `
-	$DIR/testfile1 $DIR/testfile2 > diff$Env:UNITTEST_NUM.log
+	$DIR\testfile1 $DIR\testfile2 > diff$Env:UNITTEST_NUM.log
 
 compare_replicas "-soOaAb -l -Z -H -C" `
-	$DIR/testfile1 $DIR/testfile3 >> diff$Env:UNITTEST_NUM.log
+	$DIR\testfile1 $DIR\testfile3 >> diff$Env:UNITTEST_NUM.log
 
 check
 

@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmemobjcli\TEST0"
+$Env:UNITTEST_NAME = "pmemobjcli/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 . ..\unittest\unittest.ps1
@@ -46,7 +46,7 @@ require_test_type medium
 
 setup
 
-$POOL = "$DIR/testfile"
+$POOL = "$DIR\testfile"
 $SCRIPT = "..\tools\pmemobjcli\pmemobjcli_example.posc"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 

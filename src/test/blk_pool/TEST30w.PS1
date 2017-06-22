@@ -41,7 +41,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST30w"
+$Env:UNITTEST_NAME = "blk_pool/TEST30w"
 $Env:UNITTEST_NUM = "30w"
 
 
@@ -64,7 +64,7 @@ echo "XXX" > out30w.log
 
 #cp $DIR\testfile1 $DIR\testfile2
 
-#$PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=1111111111111111 \
+#$PMEMSPOIL $DIR\testfile1 pool_hdr.uuid=1111111111111111 \
 #	pool_hdr.next_part_uuid=1111111111111111 \
 #	pool_hdr.prev_part_uuid=1111111111111111 \
 #	pool_hdr.next_repl_uuid=2222222222222222 \

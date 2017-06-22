@@ -52,23 +52,23 @@ setup
 enable_log_append
 
 
-[System.IO.File]::WriteAllText("$DIR/file.1", "TEST");
-[System.IO.File]::WriteAllText("$DIR/file.2", "TEST`n");
-[System.IO.File]::WriteAllText("$DIR/file.3", "");
-[System.IO.File]::WriteAllText("$DIR/file.4", "NOTAPMEMPOOLSET`n");
+[System.IO.File]::WriteAllText("$DIR\file.1", "TEST");
+[System.IO.File]::WriteAllText("$DIR\file.2", "TEST`n");
+[System.IO.File]::WriteAllText("$DIR\file.3", "");
+[System.IO.File]::WriteAllText("$DIR\file.4", "NOTAPMEMPOOLSET`n");
 
-check_files $DIR/file.1 $DIR/file.2 $DIR/file.3 $DIR/file.4
+check_files $DIR\file.1 $DIR\file.2 $DIR\file.3 $DIR\file.4
 
 # this should remove all the files
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX $DIR/file.1 $DIR/file.2 $DIR/file.3 $DIR/file.4
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX $DIR\file.1 $DIR\file.2 $DIR\file.3 $DIR\file.4
 
 # check if all pool files are removed
-check_no_files $DIR/file.1 $DIR/file.2 $DIR/file.3 $DIR/file.4
+check_no_files $DIR\file.1 $DIR\file.2 $DIR\file.3 $DIR\file.4
 
 # this should report errors for all files
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX $DIR/file.1 $DIR/file.2 $DIR/file.3 $DIR/file.4
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX $DIR\file.1 $DIR\file.2 $DIR\file.3 $DIR\file.4
 # this should ignore all errors
-expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX -f $DIR/file.1 $DIR/file.2 $DIR/file.3 $DIR/file.4
+expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX -f $DIR\file.1 $DIR\file.2 $DIR\file.3 $DIR\file.4
 
 check
 

@@ -57,7 +57,7 @@ expect_normal_exit $Env:EXE_DIR\util_is_absolute$Env:EXESUFFIX `
     C:\foo\bar `
     \foo\bar `
     foo\bar `
-    D:/foo/bar `
+    D:\foo\bar `
     /foo/bar `
     e: `
     E:\

@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "log_pool\TEST28"
+$Env:UNITTEST_NAME = "log_pool/TEST28"
 $Env:UNITTEST_NUM = "28"
 
 
@@ -58,14 +58,14 @@ expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile1 20 0600
 
 cp $DIR\testfile1 $DIR\testfile2
 
-&$PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=1111111111111111 `
+&$PMEMSPOIL $DIR\testfile1 pool_hdr.uuid=1111111111111111 `
         pool_hdr.next_part_uuid=1111111111111111 `
         pool_hdr.prev_part_uuid=1111111111111111 `
         pool_hdr.next_repl_uuid=2222222222222222 `
         pool_hdr.prev_repl_uuid=2222222222222222 `
         "pool_hdr.checksum_gen()"
 
-&$PMEMSPOIL $DIR/testfile2 pool_hdr.uuid=2222222222222222 `
+&$PMEMSPOIL $DIR\testfile2 pool_hdr.uuid=2222222222222222 `
         pool_hdr.next_part_uuid=2222222222222222 `
         pool_hdr.prev_part_uuid=2222222222222222 `
         pool_hdr.next_repl_uuid=1111111111111111 `

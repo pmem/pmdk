@@ -39,7 +39,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "libpmempool_backup\TEST5"
+$Env:UNITTEST_NAME = "libpmempool_backup/TEST5"
 $Env:UNITTEST_NUM = "5"
 
 . ..\unittest\unittest.ps1
@@ -50,7 +50,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-. ./common.PS1
+. .\common.PS1
 
 for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	backup_cleanup

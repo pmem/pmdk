@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_cpp_make_persistent\TEST0"
+$Env:UNITTEST_NAME = "obj_cpp_make_persistent/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 

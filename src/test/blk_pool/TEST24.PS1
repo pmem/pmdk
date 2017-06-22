@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST24"
+$Env:UNITTEST_NAME = "blk_pool/TEST24"
 $Env:UNITTEST_NUM = "24"
 
 
@@ -56,10 +56,10 @@ setup
 #        (bsize doesn't match the value from pool header)
 #
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    c $DIR/testfile 512 20 0640
+    c $DIR\testfile 512 20 0640
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    o $DIR/testfile 1024
+    o $DIR\testfile 1024
 
 check
 

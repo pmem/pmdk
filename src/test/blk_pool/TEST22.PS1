@@ -41,7 +41,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST22"
+$Env:UNITTEST_NAME = "blk_pool/TEST22"
 $Env:UNITTEST_NUM = "22"
 
 
@@ -57,11 +57,11 @@ setup
 #        (valid pool header)
 #
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    c $DIR/testfile 512 20 0640
+    c $DIR\testfile 512 20 0640
 truncate -s 1M $DIR\testfile
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
-    o $DIR/testfile 0
+    o $DIR\testfile 0
 
 check
 

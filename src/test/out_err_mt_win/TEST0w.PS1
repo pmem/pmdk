@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "out_err_mt_win\TEST0"
+$Env:UNITTEST_NAME = "out_err_mt_win/TEST0"
 $Env:UNITTEST_NUM = "0w"
 
 

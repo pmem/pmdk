@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "pmem_is_pmem_windows\TEST5"
+$ENV:UNITTEST_NAME = "pmem_is_pmem_windows/TEST5"
 $ENV:UNITTEST_NUM = "5"
 
 # standard unit test setup

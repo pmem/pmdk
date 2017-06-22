@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "log_pool\TEST22"
+$Env:UNITTEST_NAME = "log_pool/TEST22"
 $Env:UNITTEST_NUM = "22"
 
 
@@ -55,10 +55,10 @@ setup
 # TEST22 existing file, file size < min required size
 #        (valid pool header)
 #
-expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR/testfile 20 0640
-truncate -s 1M $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX c $DIR\testfile 20 0640
+truncate -s 1M $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR/testfile
+expect_normal_exit $Env:EXE_DIR\log_pool$Env:EXESUFFIX o $DIR\testfile
 
 check
 

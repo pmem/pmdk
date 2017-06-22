@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_create\TEST6w"
+$Env:UNITTEST_NAME = "pmempool_create/TEST6w"
 $Env:UNITTEST_NUM = "6w"
 
 

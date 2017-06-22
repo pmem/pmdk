@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_direct\TEST0"
+$ENV:UNITTEST_NAME = "obj_direct/TEST0"
 $ENV:UNITTEST_NUM = "0"
 
 

@@ -42,7 +42,7 @@ $Env:UNITTEST_NAME = "ex_libpmemobj/TEST19"
 $Env:UNITTEST_NUM = "19"
 
 # standard unit test setup
-. ../unittest/unittest.PS1
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 require_build_type debug nondebug
@@ -59,7 +59,7 @@ c 4321
 r 4321
 c 4321
 q
-"@ | &$Env:EXE_DIR/mapcli skiplist $DIR/testfile1 555 > out$Env:UNITTEST_NUM.log 2>&1
+"@ | &$Env:EXE_DIR\mapcli skiplist $DIR\testfile1 555 > out$Env:UNITTEST_NUM.log 2>&1
 check_exit_code
 
 check
