@@ -628,6 +628,15 @@ function expect_normal_exit() {
 		N=-1
 	fi
 
+	if [ -n "$TRACE" ]; then
+		case "$1"
+		in
+		*_on_node*)
+			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			exit 0
+		esac
+	fi
+
 	local trace=$(get_trace $_CHECK_TYPE $VALGRIND_LOG_FILE $N)
 
 	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
@@ -738,6 +747,15 @@ function expect_normal_exit() {
 # expect_abnormal_exit -- run a given command, expect it to exit non-zero
 #
 function expect_abnormal_exit() {
+	if [ -n "$TRACE" ]; then
+		case "$1"
+		in
+		*_on_node*)
+			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			exit 0
+		esac
+	fi
+
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
