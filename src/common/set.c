@@ -944,6 +944,36 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 	return 0;
 }
 
+char *
+util_readline(FILE *fh)
+{
+	size_t bufsize = PARSER_MAX_LINE;
+	size_t position = 0;
+	char *buffer = NULL;
+
+	do {
+		char *tmp = buffer;
+		buffer = Realloc(buffer, bufsize);
+		if (buffer == NULL) {
+			Free(tmp);
+			return NULL;
+		}
+
+		ASSERT((bufsize / 2) <= INT_MAX);
+		ASSERT((bufsize - position) >= (bufsize / 2));
+		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
+		if (s == NULL) {
+			Free(buffer);
+			return NULL;
+		}
+
+		position = strlen(buffer);
+		bufsize *= 2;
+	} while (!feof(fh) && buffer[position - 1] != '\n');
+
+	return buffer;
+}
+
 /*
  * util_poolset_parse -- parse pool set config file
  *
@@ -956,11 +986,9 @@ int
 util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 {
 	LOG(3, "setp %p path %s fd %d", setp, path, fd);
-
-	struct pool_set *set;
+	struct pool_set *set = NULL;
 	enum parser_codes result;
-	char line[PARSER_MAX_LINE];
-	char *s;
+	char *line;
 	char *ppath;
 	char *pool_desc;
 	char *node_addr;
@@ -990,7 +1018,11 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	unsigned nparts = 0; /* number of parts in current replica */
 
 	/* read the first line */
-	s = util_fgets(line, PARSER_MAX_LINE, fs);
+	line = util_readline(fs);
+	if (line == NULL) {
+		ERR("!Reading poolset file");
+		goto err;
+	}
 	nlines++;
 
 	set = Zalloc(sizeof(struct pool_set));
@@ -1000,7 +1032,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	}
 
 	/* check also if the last character is '\n' */
-	if (s && strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
+	if (strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
 	    line[POOLSET_HDR_SIG_LEN] == '\n') {
 		/* 'PMEMPOOLSET' signature detected */
 		LOG(10, "PMEMPOOLSET");
@@ -1016,23 +1048,24 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	}
 
 	while (result == PARSER_CONTINUE) {
+		Free(line);
 		/* read next line */
-		s = util_fgets(line, PARSER_MAX_LINE, fs);
+		line = util_readline(fs);
 		nlines++;
 
-		if (s) {
+		if (line) {
 			/* chop off newline and comments */
 			if ((cp = strchr(line, '\n')) != NULL)
 				*cp = '\0';
-			if (cp != s && (cp = strchr(line, '#')) != NULL)
+			if (cp != line && (cp = strchr(line, '#')) != NULL)
 				*cp = '\0';
 
 			/* skip comments and blank lines */
-			if (cp == s)
+			if (cp == line)
 				continue;
 		}
 
-		if (!s) {
+		if (!line) {
 			if (nparts >= 1) {
 				result = PARSER_FORMAT_OK;
 			} else {
@@ -1099,6 +1132,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	if (result == PARSER_FORMAT_OK) {
 		LOG(4, "set file format correct (%s)", path);
 		(void) fclose(fs);
+		Free(line);
 		util_poolset_set_size(set);
 		*setp = set;
 		return 0;
@@ -1108,6 +1142,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	}
 
 err:
+	Free(line);
 	(void) fclose(fs);
 	if (set)
 		util_poolset_free(set);

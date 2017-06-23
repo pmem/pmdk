@@ -225,7 +225,12 @@ os_mkstemp(char *temp)
 		return -1;
 	}
 
-	wchar_t npath[MAX_PATH];
+	wchar_t *npath = Malloc(sizeof(*npath) * wcslen(path) + _MAX_FNAME);
+	if (npath == NULL) {
+		util_free_UTF16(utemp);
+		return -1;
+	}
+
 	wcscpy(npath, path);
 
 	util_free_UTF16(utemp);
@@ -237,17 +242,22 @@ os_mkstemp(char *temp)
 	 * multiples files by system.
 	 */
 	rand_s(&rnd);
-	int cnt = _snwprintf(npath + wcslen(npath), MAX_PATH, L"%u", rnd);
-	if (cnt < 0)
-		return cnt;
+
+	int ret = _snwprintf(npath + wcslen(npath), _MAX_FNAME, L"%u", rnd);
+	if (ret < 0)
+		goto out;
 
 	/*
 	 * Use O_TEMPORARY flag to make sure the file is deleted when
 	 * the last file descriptor is closed.  Also, it prevents opening
 	 * this file from another process.
 	 */
-	return _wopen(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
+	ret = _wopen(npath, O_RDWR | O_CREAT | O_EXCL | O_TEMPORARY,
 		S_IWRITE | S_IREAD);
+
+out:
+	Free(npath);
+	return ret;
 }
 
 

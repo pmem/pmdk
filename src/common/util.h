@@ -212,12 +212,6 @@ char *util_concat_str(const char *s1, const char *s2);
 #endif
 #endif
 
-#ifndef _WIN32
-#define DIR_SEPARATOR '/'
-#else
-#define DIR_SEPARATOR '\\'
-#endif
-
 #if defined(__CHECKER__)
 #define COMPILE_ERROR_ON(cond)
 #define ASSERT_COMPILE_ERROR_ON(cond)

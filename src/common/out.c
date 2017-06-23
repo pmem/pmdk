@@ -392,7 +392,7 @@ out_common(const char *file, int line, const char *func, int level,
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	if (file) {
-		char *f = strrchr(file, DIR_SEPARATOR);
+		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
@@ -468,7 +468,7 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
-			char *f = strrchr(file, DIR_SEPARATOR);
+			char *f = strrchr(file, OS_DIR_SEPARATOR);
 			if (f)
 				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,
