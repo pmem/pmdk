@@ -367,7 +367,7 @@ test_vmem(const char *dir)
 		if (cnt[i].mallocs || cnt[i].frees)
 			UT_FATAL("VMEM allocation used %d functions", i);
 	}
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
+	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 8)
 		UT_FATAL("VMEM memory leak");
 }
 
