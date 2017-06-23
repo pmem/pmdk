@@ -64,9 +64,11 @@ test_script:
 - ps: >-
     if ($Env:CONFIGURATION -ne "Setup") {
         cd src/test
-        md /temp
-        echo "`$Env:NON_PMEM_FS_DIR = `"\temp`"" > testconfig.ps1
-        echo "`$Env:PMEM_FS_DIR = `"\temp`"" >> testconfig.ps1
+        md C:\temp
+        echo "`$Local:LONGDIR = `"LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid`"" > testconfig.ps1
+        echo "`$Env:DIRSUFFIX = `"`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR`"" >> testconfig.ps1
+        echo "`$Env:NON_PMEM_FS_DIR = `"\\?\C:\temp`"" >> testconfig.ps1
+        echo "`$Env:PMEM_FS_DIR = `"\\?\C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
