@@ -56,8 +56,7 @@ export UNITTEST_NUM=8
 require_test_type medium
 require_fs_type any
 require_dax_devices 2
-require_dax_device_alignment 0 4096
-require_dax_device_alignment 1 4096
+require_dax_device_alignments 4096 4096
 
 setup
 

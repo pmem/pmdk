@@ -877,7 +877,6 @@ function require_dev_dax_node() {
 			exit 0
 		fi
 		local device_dax_path=${DEVICE_DAX_PATH[@]}
-		local var_name="DEVICE_DAX_PATH"
 		local cmd="$PMEMDETECT -d"
 	fi
 
@@ -889,7 +888,7 @@ function require_dev_dax_node() {
 		restore_exit_on_error
 
 		if [ "$ret" == "0" ]; then
-			return
+			continue
 		elif [ "$ret" == "1" ]; then
 			echo "$prefix $out"
 			exit 0
@@ -918,19 +917,47 @@ function require_dax_devices() {
 }
 
 #
-# require_dax_device_alignment -- only allow script to continue if
-#    the internal Device DAX alignment is as specified
+# require_dax_device_alignments -- only allow script to continue if
+#    the internal Device DAX alignments are as specified.
+# If necessary, it sorts DEVICE_DAX_PATH entries to match
+# the requested alignment order.
 #
-function require_dax_device_alignment() {
-	disable_exit_on_error
-	out=`$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]} 2>&1`
-	ret=$?
-	restore_exit_on_error
+# usage: require_dax_device_alignments alignment1 [ alignment2 ... ]
+#
+function require_dax_device_alignments() {
+	local cnt=${#DEVICE_DAX_PATH[@]}
+	local j=0
 
-	[ "$ret" == "0" ] && return
+	for alignment in $*
+	do
+		for (( i=j; i<cnt; i++ ))
+		do
+			#echo "j=$j i=$i alignment=$alignment"
+			path=${DEVICE_DAX_PATH[$i]}
 
-	echo "$UNITTEST_NAME: SKIP Device DAX alignment is not $2"
-	exit 0
+			disable_exit_on_error
+			out=`$PMEMDETECT -a $alignment $path 2>&1`
+			ret=$?
+			restore_exit_on_error
+
+			if [ "$ret" == "0" ]; then
+				#echo "found $path alignment=$alignment"
+				if [ $i -ne $j ]; then
+					tmp=${DEVICE_DAX_PATH[$j]}
+					DEVICE_DAX_PATH[$j]=$path
+					DEVICE_DAX_PATH[$i]=$tmp
+				fi
+				break
+			fi
+		done
+
+		if [ $i -eq $cnt ]; then
+			echo "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+			exit 0
+		fi
+
+		j=$(( j + 1 ))
+	done
 }
 
 #
