@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_debug\TEST2"
+$Env:UNITTEST_NAME = "obj_debug/TEST2"
 $Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
@@ -54,7 +54,7 @@ require_build_type debug
 setup
 
 $Env:PMEMOBJ_LOG_LEVEL = "4"
-expect_normal_exit $Env:EXE_DIR\obj_debug$Env:EXESUFFIX $DIR/testfile1 a
+expect_normal_exit $Env:EXE_DIR\obj_debug$Env:EXESUFFIX $DIR\testfile1 a
 
 sls -Path pmemobj$Env:UNITTEST_NUM.log -Pattern "_pobj_debug_notice" | `
     %{$_.Line} > grep$Env:UNITTEST_NUM.log

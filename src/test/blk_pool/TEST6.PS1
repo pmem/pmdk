@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "blk_pool\TEST6"
+$Env:UNITTEST_NAME = "blk_pool/TEST6"
 $Env:UNITTEST_NUM = "6"
 
 
@@ -51,7 +51,7 @@ require_test_type medium
 
 setup
 
-echo $null >> $DIR\testfile
+touch $DIR\testfile
 
 #
 # TEST6 existing file, file length < min required size, poolsize == 0,

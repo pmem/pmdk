@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_movnt_align\TEST5"
+$Env:UNITTEST_NAME = "pmem_movnt_align/TEST5"
 $Env:UNITTEST_NUM = "5"
 
 # standard unit test setup

@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_ctree\TEST0"
+$ENV:UNITTEST_NAME = "obj_ctree/TEST0"
 $ENV:UNITTEST_NUM = "0"
 
 

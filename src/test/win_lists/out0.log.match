@@ -1,4 +1,4 @@
-win_lists\TEST0: START: win_lists - testing list
+win_lists/TEST0: START: win_lists - testing list
  $(nW)win_lists$(nW)
 Node value: 0
 Node value: 9
@@ -10,4 +10,4 @@ Node value: 4
 Node value: 3
 Node value: 2
 Node value: 1
-win_lists\TEST0: DONE
+win_lists/TEST0: DONE

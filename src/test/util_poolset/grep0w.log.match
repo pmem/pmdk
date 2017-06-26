@@ -10,7 +10,7 @@ size 12288 smaller than 262144
 size 16384 smaller than 262144
 open "$(nW)testfile62": No such file or directory
 open "$(nW)testfile72": Permission denied
-posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
+posix_fallocate "$(nW)testfile82", 1073741824: No space left on device
 open "$(nW)testfile102": Permission denied
 file size does not match config: $(nW)testfile113, 262144 != 12288
 size 8192 smaller than 262144

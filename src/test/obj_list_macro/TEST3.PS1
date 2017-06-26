@@ -42,13 +42,13 @@ $Env:UNITTEST_NAME="obj_list_macro/TEST3"
 $Env:UNITTEST_NUM="3"
 
 # standard unit test setup
-. ../unittest/unittest.ps1
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_list_macro$Env:EXESUFFIX $DIR/testfile `
+expect_normal_exit $Env:EXE_DIR\obj_list_macro$Env:EXESUFFIX $DIR\testfile `
 	i:1:0:1 P:1 R:1 `
 	i:1:0:2 P:1 R:1 `
 	i:1:-1:3 P:1 R:1 `

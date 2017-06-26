@@ -55,23 +55,23 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET = "$DIR\pool0.set"
 
 # Create poolset file
 create_poolset $POOLSET `
-    20M:$DIR/testfile1:x `
-    20M:$DIR/testfile2:x `
-    21M:$DIR/testfile3:x `
+    20M:$DIR\testfile1:x `
+    20M:$DIR\testfile2:x `
+    21M:$DIR\testfile3:x `
     R `
-    40M:$DIR/testfile4:x `
-    20M:$DIR/testfile5:x
+    40M:$DIR\testfile4:x `
+    20M:$DIR\testfile5:x
 
 # Create poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
 cat $LOG
 
 # Corrupt metadata in primary replica, recalculate checksum
-expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
+expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
     "pool_hdr.checksum_gen()"
 
 # Try to synchronize replicas
