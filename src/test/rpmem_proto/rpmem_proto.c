@@ -71,6 +71,19 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr, user_flags);
 	ASSERT_ALIGNED_CHECK(struct rpmem_pool_attr);
 
+	ASSERT_ALIGNED_BEGIN(struct rpmem_pool_attr_packed);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, signature);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, major);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, compat_features);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, incompat_features);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, ro_compat_features);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, poolset_uuid);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, uuid);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, next_uuid);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, prev_uuid);
+	ASSERT_ALIGNED_FIELD(struct rpmem_pool_attr_packed, user_flags);
+	ASSERT_ALIGNED_CHECK(struct rpmem_pool_attr_packed);
+
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_ibc_attr);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_ibc_attr, port);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_ibc_attr, persist_method);

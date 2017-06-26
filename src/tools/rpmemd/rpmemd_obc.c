@@ -248,6 +248,8 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 	struct rpmem_msg_hdr *hdrp)
 {
 	struct rpmem_msg_create *msg = (struct rpmem_msg_create *)hdrp;
+	struct rpmem_pool_attr attr;
+	unpack_rpmem_pool_attr(&msg->pool_attr, &attr);
 	struct rpmem_req_attr req = {
 		.pool_size = msg->pool_size,
 		.nlanes = (unsigned)msg->nlanes,
@@ -255,7 +257,7 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 		.provider = (enum rpmem_provider)msg->provider,
 	};
 
-	return req_cb->create(obc, arg, &req, &msg->pool_attr);
+	return req_cb->create(obc, arg, &req, &attr);
 }
 
 /*
@@ -297,8 +299,10 @@ rpmemd_obc_process_set_attr(struct rpmemd_obc *obc,
 	struct rpmem_msg_hdr *hdrp)
 {
 	struct rpmem_msg_set_attr *msg = (struct rpmem_msg_set_attr *)hdrp;
+	struct rpmem_pool_attr attr;
+	unpack_rpmem_pool_attr(&msg->pool_attr, &attr);
 
-	return req_cb->set_attr(obc, arg, &msg->pool_attr);
+	return req_cb->set_attr(obc, arg, &attr);
 }
 
 typedef int (*rpmemd_obc_process_fn)(struct rpmemd_obc *obc,
@@ -517,9 +521,9 @@ rpmemd_obc_open_resp(struct rpmemd_obc *obc,
 			.persist_method = res->persist_method,
 			.nlanes = res->nlanes,
 		},
-		.pool_attr = *pool_attr,
 	};
 
+	pack_rpmem_pool_attr(pool_attr, &resp.pool_attr);
 	rpmem_hton_msg_open_resp(&resp);
 
 	return rpmemd_obc_send(obc, &resp, sizeof(resp));
