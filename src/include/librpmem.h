@@ -66,7 +66,7 @@ struct rpmem_pool_attr {
 	unsigned char next_uuid[RPMEM_POOL_HDR_UUID_LEN]; /* next pool uuid */
 	unsigned char prev_uuid[RPMEM_POOL_HDR_UUID_LEN]; /* prev pool uuid */
 	unsigned char user_flags[RPMEM_POOL_USER_FLAGS_LEN]; /* user flags */
-};
+} __attribute__((packed));
 
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
