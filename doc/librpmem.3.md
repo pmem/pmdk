@@ -106,6 +106,10 @@ capabilities. The **librpmem** utilizes the **ssh** client to authenticate
 a user on remote node and for encryption of connection's out-of-band
 configuration data. See **SSH** section for details.
 
+The maximum replicated memory region size can not be bigger than the maximum
+locked-in-memory address space limit. See **ulimit**(3) and **limits.conf**(5)
+for more details.
+
 This library is for applications that use remote persistent memory directly,
 without the help of any library-supplied transactions or memory
 allocation. Higher-level libraries that build on **libpmem** are
@@ -258,6 +262,9 @@ The application is obligated to use at most the returned number of
 lanes in parallel. The **rpmem_persist**() does not provide any locking mechanism
 thus the serialization of the calls shall be performed by the application if
 required.
+
+The number of lanes possible to create by **librpmem** is limited by a maximum
+number of open files. See **ulimit**(3) and **limits.conf**(5) for more details.
 
 
 # TARGET NODE ADDRESS FORMAT #
