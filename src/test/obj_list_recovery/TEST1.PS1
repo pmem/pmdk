@@ -53,7 +53,7 @@ create_holey_file 1M $DIR\testfile
 rm -Force log$Env:UNITTEST_NUM.log -ErrorAction SilentlyContinue
 
 function concat_log {
-	cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+	cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 	rm out$Env:UNITTEST_NUM.log
 }
 

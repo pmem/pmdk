@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST7"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST7"
 $Env:UNITTEST_NUM = "7"
 
 . ..\unittest\unittest.ps1
@@ -57,30 +57,30 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET = "$DIR/pool.set"
+$POOLSET = "$DIR\pool.set"
 $HDR_LEN = "4096"
 
 # Create poolset files
 create_poolset $POOLSET `
 	AUTO:${Env:DEVICE_DAX_PATH}:x `
 	r `
-	20M:$DIR/part10:x `
-	20M:$DIR/part11:x
+	20M:$DIR\part10:x `
+	20M:$DIR\part11:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 25M
 srcp 0 TestOK111
 srcp 21M TestOK222
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 21M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Clean the dax devices
 expect_normal_exit $DDMAP -o ${Env:DEVICE_DAX_PATH[0]} -l $HDR_LEN
@@ -95,7 +95,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete one part of the second replica
-rm $DIR/part10 -Force -ea si
+rm $DIR\part10 -Force -ea si
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
@@ -105,8 +105,8 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET >> $LOG_TEMP
-dump_pool_info $DIR/part10 >> $LOG_TEMP
-dump_pool_info $DIR/part11 >> $LOG_TEMP
+dump_pool_info $DIR\part10 >> $LOG_TEMP
+dump_pool_info $DIR\part11 >> $LOG_TEMP
 dump_pool_info ${Env:DEVICE_DAX_PATH} >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG

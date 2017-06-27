@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST3"
+$Env:UNITTEST_NAME = "pmempool_transform/TEST3"
 $Env:UNITTEST_NUM = "3w"
 
 . ..\unittest\unittest.ps1
@@ -56,31 +56,31 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
-$POOLSET_IN = "$DIR/poolset.in"
-$POOLSET_OUT = "$DIR/poolset.out"
+$POOLSET_IN = "$DIR\poolset.in"
+$POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
-    20M:$DIR/testfile00:x
+    20M:$DIR\testfile00:x
 
 create_poolset $POOLSET_OUT `
-    20M:$DIR/testfile00:x `
+    20M:$DIR\testfile00:x `
     R `
-    20M:$DIR/testfile10:x `
-    1M:$DIR/testfile11:x
+    20M:$DIR\testfile10:x `
+    1M:$DIR\testfile11:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 15M
 srcp 0 TestOK111
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP
@@ -109,10 +109,10 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
-dump_pool_info $DIR/testfile00 >> $LOG_TEMP
+dump_pool_info $DIR\testfile00 >> $LOG_TEMP
 
 # Make sure no other parts were created
-check_no_files $DIR/testfile10 $DIR/testfile11
+check_no_files $DIR\testfile10 $DIR\testfile11
 
 mv -Force $LOG_TEMP $LOG
 check

@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform_win\TEST2"
+$Env:UNITTEST_NAME = "libpmempool_transform_win/TEST2"
 $Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
@@ -72,18 +72,18 @@ create_poolset $POOLSET_OUT `
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Try to transform poolset
 $FLAGS = "1" # invalid flag
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 $FLAGS = "1024"
 expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

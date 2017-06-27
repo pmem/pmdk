@@ -42,6 +42,8 @@ extern "C" {
 #endif
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+
 #include <sys/types.h>
 
 #include "pool_hdr.h"

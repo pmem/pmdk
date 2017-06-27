@@ -55,9 +55,9 @@ setup
 # TEST0
 #
 expect_normal_exit $Env:EXE_DIR\obj_cpp_pool_primitives$Env:EXESUFFIX `
-    $DIR/testfile
+    $DIR\testfile
 
-check_file $DIR/testfile
+check_file $DIR\testfile
 
 # pass will print the appropriate pass/fail message
 pass

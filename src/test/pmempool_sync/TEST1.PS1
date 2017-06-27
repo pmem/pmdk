@@ -73,7 +73,7 @@ pr 55M
 srcp 0 TestOK111
 srcp 20M TestOK222
 srcp 40M TestOK333
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR\read_data"
@@ -81,7 +81,7 @@ echo @"
 srpr 0 9
 srpr 20M 9
 srpr 40M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
@@ -94,7 +94,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm $DIR/testfile2 -Force -ea si
+rm $DIR\testfile2 -Force -ea si
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP

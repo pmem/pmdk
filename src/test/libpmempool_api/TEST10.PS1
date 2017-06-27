@@ -62,7 +62,7 @@ check_file $POOL
 
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
 	-d 0 -r 0 -y 0 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 rm $POOL -Force
 
 expect_normal_exit $PMEMPOOL create log $POOL >> $LOG_TEMP
@@ -71,7 +71,7 @@ check_file $POOL
 
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
 	-d 0 -r 1 -y 1 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 rm $LOG -Force
 mv $LOG_TEMP $LOG

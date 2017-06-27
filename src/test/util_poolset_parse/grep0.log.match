@@ -41,3 +41,5 @@ $(*)pool39$(nW).set [incorrect descriptor (must be a relative path):7]
 $(*)pool40$(nW).set [incorrect format of size:2]
 $(*)pool41$(nW).set [incorrect format of size:4]
 $(*)pool42$(nW).set [incorrect format of size:8]
+$(*)pool43$(nW).set [incorrect format of size:8]
+$(*)set file format correct ($(nW)pool44$(nW).set)
