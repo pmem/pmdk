@@ -47,6 +47,7 @@ $Env:UNITTEST_NUM = "1"
 
 require_test_type medium
 require_no_unicode
+require_short_path
 
 setup
 

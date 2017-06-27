@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_transform\TEST5"
+$Env:UNITTEST_NAME = "pmempool_transform/TEST5"
 $Env:UNITTEST_NUM = "5w"
 
 . ..\unittest\unittest.ps1
@@ -56,40 +56,40 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
-$POOLSET_IN = "$DIR/poolset.in"
-$POOLSET_OUT = "$DIR/poolset.out"
+$POOLSET_IN = "$DIR\poolset.in"
+$POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
 create_poolset $POOLSET_IN `
-    20M:$DIR/testfile00:x `
-    20M:$DIR/testfile01:x `
-    20M:$DIR/testfile02:x `
+    20M:$DIR\testfile00:x `
+    20M:$DIR\testfile01:x `
+    20M:$DIR\testfile02:x `
     R `
-    60M:$DIR/testfile10:x
+    60M:$DIR\testfile10:x
 
 create_poolset $POOLSET_OUT `
-    20M:$DIR/testfile00:x `
-    20M:$DIR/testfile01:x `
-    20M:$DIR/testfile02:x `
+    20M:$DIR\testfile00:x `
+    20M:$DIR\testfile01:x `
+    20M:$DIR\testfile02:x `
     R `
-    90M:$DIR/abc/testfile10:x
+    90M:$DIR\abc\testfile10:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 50M
 srcp 0 TestOK111
 srcp 25M TestOK222
 srcp 45M TestOK333
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 25M 9
 srpr 45M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Log poolset structures
 echo poolset_in >> $LOG_TEMP
@@ -118,10 +118,10 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
-dump_pool_info $DIR/testfile00 >> $LOG_TEMP
-dump_pool_info $DIR/testfile01 >> $LOG_TEMP
-dump_pool_info $DIR/testfile02 >> $LOG_TEMP
-dump_pool_info $DIR/testfile10 >> $LOG_TEMP
+dump_pool_info $DIR\testfile00 >> $LOG_TEMP
+dump_pool_info $DIR\testfile01 >> $LOG_TEMP
+dump_pool_info $DIR\testfile02 >> $LOG_TEMP
+dump_pool_info $DIR\testfile10 >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -99,8 +99,9 @@ main(int argc, char *argv[])
 	size_t *lengths = MALLOC(sizeof(size_t) * argc - 2);
 	UT_ASSERTne(lengths, NULL);
 
-	char name1[MAX_PATH];
-	char name2[MAX_PATH];
+	size_t appendix_length = 20; /* a file name length */
+	char *name1 = MALLOC(strlen(argv[1]) + appendix_length);
+	char *name2 = MALLOC(strlen(argv[1]) + appendix_length);
 
 	sprintf(name1, "%s\\testfile1", argv[1]);
 	sprintf(name2, "%s\\testfile2", argv[1]);
@@ -112,6 +113,8 @@ main(int argc, char *argv[])
 		for (int j = 0; j < argc - 2; j++)
 			test_mmap_fixed(name1, name2, lengths[i], lengths[j]);
 
+	FREE(name1);
+	FREE(name2);
 	FREE(lengths);
 
 	DONE(NULL);

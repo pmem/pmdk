@@ -72,14 +72,14 @@ echo @"
 pr 45M
 srcp 0 TestOK111
 srcp 35M TestOK222
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 35M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create a poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
