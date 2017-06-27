@@ -46,6 +46,8 @@ require_test_type medium
 
 require_fs_type any
 
+require_short_path
+
 setup
 
 $POOL="$DIR\file.pool"
@@ -59,7 +61,7 @@ touch $LOG_TEMP
 $pool_args=@{"blk"="blk 512"; "log"="log"}
 
 foreach ($h in $pool_args.GetEnumerator()) {
-	echo "Pool type: $($h.Name) Params: $($h.Value)" | Out-File -append -encoding ascii $LOG_TEMP
+	echo "Pool type: $($h.Name) Params: $($h.Value)" | out-file -append -encoding ascii -literalpath $LOG_TEMP
 	expect_normal_exit "$PMEMPOOL create $($h.Value) $POOL" >> $LOG_TEMP
 	&$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
 	check_file $POOL
@@ -67,7 +69,7 @@ foreach ($h in $pool_args.GetEnumerator()) {
 	cp $POOL ${POOL}_copy >> $LOG_TEMP
 	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
 		-d 1 -r 1 -y 1 -t $($h.Name) $POOL
-	cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+	cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 	cmp $POOL ${POOL}_copy >> $LOG_TEMP
 
 	rm $POOL -Force -Recurse -ea si
