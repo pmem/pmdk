@@ -944,7 +944,10 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 	return 0;
 }
 
-char *
+/*
+ * util_readline -- read line from stream
+ */
+static char *
 util_readline(FILE *fh)
 {
 	size_t bufsize = PARSER_MAX_LINE;
@@ -959,7 +962,8 @@ util_readline(FILE *fh)
 			return NULL;
 		}
 
-		ASSERT((bufsize / 2) <= INT_MAX);
+		/* ensure if we can cast bufsize to int */
+		ASSERT(bufsize / 2 <= INT_MAX);
 		ASSERT((bufsize - position) >= (bufsize / 2));
 		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
 		if (s == NULL) {
