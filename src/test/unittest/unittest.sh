@@ -1387,7 +1387,7 @@ function run_command()
 		echo "$ $COMMAND"
 		$COMMAND
 	else
-		$COMMAND > /dev/null
+		$COMMAND
 	fi
 }
 
@@ -1638,7 +1638,7 @@ function copy_files_to_node() {
 
 	# copy all required files
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR > /dev/null
 
 	return 0
 }

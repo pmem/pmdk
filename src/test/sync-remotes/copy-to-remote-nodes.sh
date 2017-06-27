@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,11 +49,11 @@ shift
 
 case "$COPY_TYPE" in
 	common)
-		copy_common_to_remote_nodes $*
+		copy_common_to_remote_nodes $* > /dev/null
 		exit 0
                 ;;
 	test)
-		copy_test_to_remote_nodes $*
+		copy_test_to_remote_nodes $* > /dev/null
 		exit 0
                 ;;
 esac
