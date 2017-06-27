@@ -58,9 +58,10 @@ malloc_null(size_t size)
 #ifdef _WIN32
 	/*
 	 * Because Windows version requires UTF-16 string conversion
-	 * which requires one malloc call to succeed
+	 * which requires three malloc calls to succeed due to long path
+	 * support
 	 */
-	if (custom_alloc_calls < 2) {
+	if (custom_alloc_calls < 4) {
 		custom_allocs++;
 		return malloc(size);
 	}

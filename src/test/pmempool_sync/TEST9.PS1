@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST9"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST9"
 $Env:UNITTEST_NUM = "9w"
 
 . ..\unittest\unittest.ps1
@@ -56,23 +56,23 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET1 = "$DIR/poolset1"
-$POOLSET2 = "$DIR/poolset2"
+$POOLSET1 = "$DIR\poolset1"
+$POOLSET2 = "$DIR\poolset2"
 
 # Create poolset files
 create_poolset $POOLSET1 `
-	20M:$DIR/part00:x `
-	20M:$DIR/part01:x `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x `
 	r `
-	20M:$DIR/part10:x `
-	20M:$DIR/part11:x
+	20M:$DIR\part10:x `
+	20M:$DIR\part11:x
 
 create_poolset $POOLSET2 `
-	20M:$DIR/part00:x `
-	20M:$DIR/part01:x `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x `
 	r `
-	20M:$DIR/part10:x `
-	10M:$DIR/part11:x
+	20M:$DIR\part10:x `
+	10M:$DIR\part11:x
 
 # Log poolset structures
 echo poolset1: >> $LOG_TEMP
@@ -88,8 +88,8 @@ cat $LOG >> $LOG_TEMP
 expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
 
 # Delete parts from the second replica
-rm $DIR/part00 -Force -ea si
-rm $DIR/part01 -Force -ea si
+rm $DIR\part00 -Force -ea si
+rm $DIR\part01 -Force -ea si
 
 # Try to synchronize replicas using the second poolset
 expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
