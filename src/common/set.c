@@ -944,6 +944,9 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 	return 0;
 }
 
+/*
+ * util_readline -- read line from stream
+ */
 char *
 util_readline(FILE *fh)
 {

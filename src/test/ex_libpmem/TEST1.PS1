@@ -47,6 +47,8 @@ $Env:UNITTEST_NUM = "1"
 
 require_test_type medium
 require_no_unicode
+# cmp does not support long paths
+require_short_path
 
 setup
 
