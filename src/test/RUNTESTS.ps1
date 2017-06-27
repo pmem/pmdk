@@ -395,8 +395,8 @@ try {
             $sb = {
                 cd $args[0]
                 $LASTEXITCODE = 0
-                .\RUNTESTS.ps1 -dryrun $args[1] -buildtype $args[2]
-                        -testtype $args[3] -fstype $args[4] -time $args[5]
+                .\RUNTESTS.ps1 -dryrun $args[1] -buildtype $args[2] `
+                        -testtype $args[3] -fstype $args[4] -time $args[5] `
                         -testdir $args[6]
                 if ($LASTEXITCODE -ne 0) {
                     throw "RUNTESTS FAILED $args[0]"
@@ -406,9 +406,9 @@ try {
             # start worker jobs
             1..$jobs | % {
                 if ($it -lt $tests.Length) {
-                    $j1 = Start-Job -Name $name -ScriptBlock $sb
-                            -ArgumentList (pwd).ToString(),
-                            $dryrun, $buildtype, $testtype, $fstype,
+                    $j1 = Start-Job -Name $name -ScriptBlock $sb `
+                            -ArgumentList (pwd).ToString(), `
+                            $dryrun, $buildtype, $testtype, $fstype, `
                             $time, $tests[$it].Name | Out-Null
                     $it++
                     $threads++
@@ -432,9 +432,9 @@ try {
                     $threads--
                     if ($fail -eq $false) {
                         if ($it -lt $tests.Length) {
-                            Start-Job -Name $name -ScriptBlock $sb
-                                    -ArgumentList (pwd).ToString(),
-                                    $dryrun, $buildtype, $testtype, $fstype,
+                            Start-Job -Name $name -ScriptBlock $sb `
+                                    -ArgumentList (pwd).ToString(), `
+                                    $dryrun, $buildtype, $testtype, $fstype, `
                                     $time, $tests[$it].Name | Out-Null
                             $it++
                             $threads++

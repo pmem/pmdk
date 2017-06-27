@@ -43,8 +43,8 @@ $Env:UNITTEST_NUM = "2w"
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
+require_short_path
 
 setup
 
@@ -68,8 +68,8 @@ check_no_files `
 	$DIR\rep.part2
 
 # Try to remove files without force flag
-expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 $LOG
-expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 $LOG
+expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 -literalpath $LOG
+expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 -literalpath $LOG
 
 # Try to remove files with force flag
 expect_normal_exit $PMEMPOOL rm -flv `
@@ -87,6 +87,7 @@ check_no_files `
 Get-Content $LOG | Where-Object { $_ -match 'remov' } > tmp$LOG
 Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
 remove_files tmp$LOG
+
 
 check
 
