@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,33 +30,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-# copy-to-remote-nodes.sh -- helper script used to sync remote nodes
-
-if [ ! -f ../testconfig.sh ]; then
-	echo "SKIP: testconfig.sh does not exist"
-	exit 0
-fi
-
-# defined only to be able to source unittest.sh
-UNITTEST_NAME=0
-UNITTEST_NUM=0
+#
+# pmempool_info_remote/TEST0 -- test for info command with remote replica
+#
+export UNITTEST_NAME=pmempool_info_remote/TEST0
+export UNITTEST_NUM=0
 
 . ../unittest/unittest.sh
 
-COPY_TYPE=$1
-shift
+require_test_type medium
 
-case "$COPY_TYPE" in
-	common)
-		copy_common_to_remote_nodes $* > /dev/null
-		exit 0
-                ;;
-	test)
-		copy_test_to_remote_nodes $* > /dev/null
-		exit 0
-                ;;
-esac
+require_fs_type any
 
-echo "Error: unknown copy type: $COPY_TYPE"
-exit 1
+setup
+
+require_nodes 2
+
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
+
+init_rpmem_on_node 1 0
+
+# define files and directories
+TEST_SET_LOCAL="testset_local"
+TEST_SET_REMOTE="testset_remote"
+
+TEST_FILE_LOCAL="testfile_local"
+TEST_FILE_REMOTE="testfile_remote"
+
+NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
+
+LOG=out${UNITTEST_NUM}.log
+
+# create and upload poolset files
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
+        m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+
+rm_files_from_node 0 $TEST_FILE_REMOTE
+rm_files_from_node 1 $TEST_FILE_LOCAL
+
+expect_normal_exit run_on_node 1 ../pmempool create obj $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool info $TEST_SET_LOCAL > ./$LOG
+
+check_local
+
+pass

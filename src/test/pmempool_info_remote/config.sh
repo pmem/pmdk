@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,33 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+#
+# pmempool_info_remote/config.sh -- test configuration
+#
 
-# copy-to-remote-nodes.sh -- helper script used to sync remote nodes
+CONF_GLOBAL_FS_TYPE=any
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
 
-if [ ! -f ../testconfig.sh ]; then
-	echo "SKIP: testconfig.sh does not exist"
-	exit 0
-fi
-
-# defined only to be able to source unittest.sh
-UNITTEST_NAME=0
-UNITTEST_NUM=0
-
-. ../unittest/unittest.sh
-
-COPY_TYPE=$1
-shift
-
-case "$COPY_TYPE" in
-	common)
-		copy_common_to_remote_nodes $* > /dev/null
-		exit 0
-                ;;
-	test)
-		copy_test_to_remote_nodes $* > /dev/null
-		exit 0
-                ;;
-esac
-
-echo "Error: unknown copy type: $COPY_TYPE"
-exit 1
+CONF_GLOBAL_RPMEM_PROVIDER=sockets
+CONF_GLOBAL_RPMEM_PMETHOD=GPSPM
