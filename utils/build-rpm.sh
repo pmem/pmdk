@@ -76,48 +76,6 @@ function create_changelog() {
 	done < $1
 }
 
-function add_rpmem_packages() {
-cat << EOF >> $RPM_SPEC_FILE
-%package -n librpmem
-Summary: librpmem library
-Group: %{package_group}/Libraries
-%description -n librpmem
-NVML librpmem library
-
-%files -n librpmem
-%defattr(-,root,root,-)
-%{_libdir}/librpmem.so.*
-
-%package -n librpmem-devel
-Summary: librpmem development library
-Group: Development/Libraries
-%description -n librpmem-devel
-Development files for NVML librpmem library
-
-%files -n librpmem-devel
-%defattr(-,root,root,-)
-%{_libdir}/librpmem.so
-%{_libdir}/librpmem.a
-%{_libdir}/pkgconfig/librpmem.pc
-%{_libdir}/nvml_debug/librpmem.so
-%{_libdir}/nvml_debug/librpmem.so.*
-%{_libdir}/nvml_debug/librpmem.a
-%{_includedir}/librpmem.h
-%{_mandir}/man3/librpmem.3.gz
-
-%package -n rpmemd
-Group:		%{package_group}
-Summary:	Remote Access to Persistent Memory daemon
-
-%description -n rpmemd
-Remote Access to Persistent Memory daemon
-
-%files -n rpmemd
-%{_bindir}/rpmemd
-%{_mandir}/man1/rpmemd.1.gz
-
-EOF
-}
 
 check_tool rpmbuild
 check_file $SCRIPT_DIR/pkg-config.sh
@@ -201,6 +159,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	gcc glibc-devel
 BuildRequires:	autoconf, automake, make, doxygen
+BuildRequires:	libfabric
 BuildArch:	x86_64
 
 %description
@@ -475,13 +434,59 @@ make clobber
 
 EOF
 
+if [ "${BUILD_RPMEM}" = "y" ]
+then
+
+cat << EOF >> $RPM_SPEC_FILE
+%package -n librpmem
+Summary: librpmem library
+Group: %{package_group}/Libraries
+Requires: libfabric >= 1.4.2
+%description -n librpmem
+NVML librpmem library
+
+%files -n librpmem
+%defattr(-,root,root,-)
+%{_libdir}/librpmem.so.*
+
+%package -n librpmem-devel
+Summary: librpmem development library
+Group: Development/Libraries
+Requires: librpmem = %{version}-%{release}
+%description -n librpmem-devel
+Development files for NVML librpmem library
+
+%files -n librpmem-devel
+%defattr(-,root,root,-)
+%{_libdir}/librpmem.so
+%{_libdir}/librpmem.a
+%{_libdir}/pkgconfig/librpmem.pc
+%{_libdir}/nvml_debug/librpmem.so
+%{_libdir}/nvml_debug/librpmem.so.*
+%{_libdir}/nvml_debug/librpmem.a
+%{_includedir}/librpmem.h
+%{_mandir}/man3/librpmem.3.gz
+
+%package -n rpmemd
+Group:		%{package_group}
+Requires:	libfabric >= 1.4.2
+Summary:	Remote Access to Persistent Memory daemon
+
+%description -n rpmemd
+Remote Access to Persistent Memory daemon
+
+%files -n rpmemd
+%{_bindir}/rpmemd
+%{_mandir}/man1/rpmemd.1.gz
+
+EOF
+
+fi
+
 # Experimental features
 if [ "${EXPERIMENTAL}" = "y" ]
 then
-	if [ "${BUILD_RPMEM}" = "y" ]
-	then
-		add_rpmem_packages;
-	fi
+	# no experimental features
 fi
 
 [ -f $CHANGELOG_FILE ] && create_changelog $CHANGELOG_FILE >> $RPM_SPEC_FILE
