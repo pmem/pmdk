@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -115,10 +115,10 @@ html: $(HTMLFILES) doxygen_docs
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
 
-$(MANPAGES_BUILDDIR)/%.3: %.3.md default.man ../utils/md2man.sh FORCE
+$(MANPAGES_BUILDDIR)/%.3: %.3.md default.man macros.man ../utils/md2man.sh FORCE
 	../utils/md2man.sh ./$< default.man $@
 
-$(MANPAGES_BUILDDIR)/%.1: %.1.md default.man ../utils/md2man.sh FORCE
+$(MANPAGES_BUILDDIR)/%.1: %.1.md default.man macros.man ../utils/md2man.sh FORCE
 	../utils/md2man.sh ./$< default.man $@
 
 compress: $(GZFILES_BUILD)
