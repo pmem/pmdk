@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-CHECK(1)
+title: PMEMPOOL-CHECK!1
 header: NVM Library
 date: pmem Tools version 1.2
 ...
