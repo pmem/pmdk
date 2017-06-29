@@ -140,6 +140,8 @@ sc0_create(PMEMobjpool *pop)
 static void
 sc0_verify_abort(PMEMobjpool *pop)
 {
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct root));
+
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	UT_ASSERTeq(D_RW(rt)->value[0], 0);
 }
@@ -147,6 +149,8 @@ sc0_verify_abort(PMEMobjpool *pop)
 static void
 sc0_verify_commit(PMEMobjpool *pop)
 {
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct root));
+
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	UT_ASSERTeq(D_RW(rt)->value[0], TEST_VALUE);
 }

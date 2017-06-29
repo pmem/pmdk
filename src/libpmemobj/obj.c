@@ -1058,15 +1058,37 @@ obj_replica_fini(struct pool_replica *repset)
 static void
 obj_root_restore_size(PMEMobjpool *pop)
 {
-	if (pop->root_offset != 0 && pop->root_size == 0) {
-		uint64_t off = pop->root_offset;
-		off -= sizeof(struct allocation_header_legacy);
-		struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
-		pop->root_size = hdr->root_size;
+#define LEGACY_INTERNAL_OBJECT_MASK ((1ULL) << 63)
+#define LEGACY_POOL_SIZE_OFFSET (6168)
+	if (pop->root_offset == 0)
+		return;
 
-		struct pmem_ops *p_ops = &pop->p_ops;
-		pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
-	}
+	/*
+	 * Read the pool size of the old version, if it's non-zero AND the
+	 * root size is also non-zero it means we need to update the root size.
+	 * If the old_pool_size is zeroed it means we already did it.
+	 */
+	uint64_t *old_pool_size = (uint64_t *)((char *)pop +
+		LEGACY_POOL_SIZE_OFFSET);
+
+	if (pop->root_size != 0 && *old_pool_size == 0)
+		return;
+
+	ASSERTeq(*old_pool_size, pop->size);
+
+	struct pmem_ops *p_ops = &pop->p_ops;
+	pmemops_memset_persist(p_ops, &pop->pmem_reserved, 0,
+		sizeof(pop->pmem_reserved));
+
+	uint64_t off = pop->root_offset;
+	off -= sizeof(struct allocation_header_legacy);
+	struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
+	pop->root_size = hdr->root_size & ~LEGACY_INTERNAL_OBJECT_MASK;
+
+	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
+
+#undef LEGACY_INTERNAL_OBJECT_MASK
+#undef LEGACY_POOL_SIZE_OFFSET
 }
 
 /*
@@ -1083,8 +1105,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	if (pop->run_id == 0)
 		pop->run_id += 2;
 	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
-
-	obj_root_restore_size(pop);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -1136,6 +1156,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			ERR("!ctree_insert");
 			goto err;
 		}
+
+		obj_root_restore_size(pop);
 	}
 
 	/*
