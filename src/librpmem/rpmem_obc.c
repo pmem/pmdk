@@ -196,7 +196,7 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 			req->pool_desc, pool_desc_size);
 
 	if (pool_attr) {
-		memcpy(&msg->pool_attr, pool_attr, sizeof(msg->pool_attr));
+		pack_rpmem_pool_attr(pool_attr, &msg->pool_attr);
 	} else {
 		RPMEM_LOG(INFO, "using zeroed pool attributes");
 		memset(&msg->pool_attr, 0, sizeof(msg->pool_attr));
@@ -577,12 +577,13 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 
 	rpmem_ntoh_msg_open_resp(&resp);
 
+
 	if (rpmem_obc_check_open_resp(&resp))
 		goto err_msg_resp;
 
 	rpmem_obc_get_res(res, &resp.ibc);
 	if (pool_attr)
-		memcpy(pool_attr, &resp.pool_attr, sizeof(*pool_attr));
+		unpack_rpmem_pool_attr(&resp.pool_attr, pool_attr);
 
 	free(msg);
 	return 0;
