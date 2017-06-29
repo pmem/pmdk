@@ -1058,15 +1058,40 @@ obj_replica_fini(struct pool_replica *repset)
 static void
 obj_root_restore_size(PMEMobjpool *pop)
 {
-	if (pop->root_offset != 0 && pop->root_size == 0) {
-		uint64_t off = pop->root_offset;
-		off -= sizeof(struct allocation_header_legacy);
-		struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
-		pop->root_size = hdr->root_size;
+#define LEGACY_INTERNAL_OBJECT_MASK ((1ULL) << 63)
+#define ROOT_SIZE_MAX_DIFFERENCE (256 * 1024) /* single chunk */
+	if (pop->root_offset == 0)
+		return;
 
-		struct pmem_ops *p_ops = &pop->p_ops;
-		pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
-	}
+	size_t root_usable_size = palloc_usable_size(&pop->heap,
+		pop->root_offset);
+
+	/*
+	 * Between versions 1.2 and 1.3 we've introduced the 'root_size' field
+	 * which was placed in the location that was occupied by the field
+	 * `addr`. It either contains nothing or a direct pointer to the
+	 * beginning of the pool. In the second case, we can verify if that's
+	 * a valid root size by comparing the actual root usable size with the
+	 * stored value - if the difference is too large, we know we have to
+	 * retrieve the old root size from the legacy header.
+	 */
+	if (pop->root_size != 0 &&
+		pop->root_size < root_usable_size + ROOT_SIZE_MAX_DIFFERENCE)
+		return;
+
+	struct pmem_ops *p_ops = &pop->p_ops;
+	pmemops_memset_persist(p_ops, &pop->pmem_reserved, 0,
+		sizeof(pop->pmem_reserved));
+
+	uint64_t off = pop->root_offset;
+	off -= sizeof(struct allocation_header_legacy);
+	struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
+	pop->root_size = hdr->root_size & ~LEGACY_INTERNAL_OBJECT_MASK;
+
+	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
+
+#undef LEGACY_INTERNAL_OBJECT_MASK
+#undef ROOT_SIZE_MAX_DIFFERENCE
 }
 
 /*
@@ -1083,8 +1108,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	if (pop->run_id == 0)
 		pop->run_id += 2;
 	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
-
-	obj_root_restore_size(pop);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -1136,6 +1159,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			ERR("!ctree_insert");
 			goto err;
 		}
+
+		obj_root_restore_size(pop);
 	}
 
 	/*
