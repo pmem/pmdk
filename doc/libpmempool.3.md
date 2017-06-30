@@ -445,6 +445,8 @@ synchronization.
 are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
+Currently synchronizing data is allowed only for **pmemobj** pools (see
+**libpmemobj**(3)).
 
 The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
