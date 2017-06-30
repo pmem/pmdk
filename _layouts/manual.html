@@ -47,7 +47,7 @@
 			  {% endfor %}
 		</table>
 
-		{% if dc_title != 'librpmem' and dc_title != 'libvmmalloc' %}
+		{% if dc_title != 'librpmem' and dc_title != 'rpmemd' and dc_title != 'libvmmalloc' %}
 		<table id="man">
 			<tr><th>Man Windows</th></tr>
 			<tr><td><a href="/nvml/manpages/windows/master/{{ dc_title }}.3.html">{{ dc_title }} current master</a></td></tr>
