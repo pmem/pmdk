@@ -117,6 +117,7 @@ sudo docker run --privileged=true --name=$containerName -ti \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env CLANG_FORMAT=clang-format-3.8 \
+	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	$DAX_SETTING \

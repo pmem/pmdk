@@ -238,6 +238,9 @@ RPMEM_LOG_LEVEL"
 
 export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
+# In case a lock is required for Device DAXes
+DEVDAX_LOCK=../devdax.lock
+
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
 #                        of the 'errexit' shell option
@@ -871,6 +874,22 @@ function require_non_pmem() {
 }
 
 #
+# lock_devdax -- acquire a lock on Device DAXes
+#
+lock_devdax() {
+	exec {DEVDAX_LOCK_FD}> $DEVDAX_LOCK
+	flock $DEVDAX_LOCK_FD
+}
+
+#
+# unlock_devdax -- release a lock on Device DAXes
+#
+unlock_devdax() {
+	flock -u $DEVDAX_LOCK_FD
+	eval "exec ${DEVDAX_LOCK_FD}>-"
+}
+
+#
 # require_dev_dax_node -- common function for require_dax_devices and
 # node_require_dax_device
 #
@@ -915,6 +934,7 @@ function require_dev_dax_node() {
 			exit 1
 		fi
 	done
+	DEVDAX_TO_LOCK=1
 }
 
 #
@@ -1944,6 +1964,10 @@ function setup() {
 	if [ "$TM" = "1" ]; then
 		start_time=$(date +%s.%N)
 	fi
+
+	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
+		lock_devdax
+	fi
 }
 
 #
@@ -1996,6 +2020,10 @@ function check() {
 # pass -- print message that the test has passed
 #
 function pass() {
+	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
+		unlock_devdax
+	fi
+
 	if [ "$TM" = "1" ]; then
 		end_time=$(date +%s.%N)
 		tm=$(date -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \

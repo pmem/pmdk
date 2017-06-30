@@ -41,7 +41,8 @@ echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 
 # Configure tests (e.g. ssh for remote tests) unless the current configuration
 # should be preserved
-if [[ "$KEEP_TEST_CONFIG" != "1" ]]; then
+KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
+if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then
 	./configure-tests.sh
 fi
 
