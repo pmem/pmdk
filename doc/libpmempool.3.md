@@ -411,6 +411,9 @@ return one of the following values:
 
 # POOL SET SYNCHRONIZATION AND TRANSFORMATION #
 
+Currently, the following operations are allowed only for **pmemobj** pools (see
+**libpmemobj**(3)).
+
 ### POOL SET SYNC ###
 
 ```c
@@ -468,9 +471,6 @@ It supports the following operations:
 * removing one or more replicas,
 
 * reordering of replicas.
-
-Currently these operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(3)).
 
 
 **pmempool_transform**() accepts three arguments:
