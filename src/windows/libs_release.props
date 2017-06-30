@@ -32,5 +32,4 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\common;$(SolutionDir)\windows\include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
-  <ItemGroup />
 </Project>
