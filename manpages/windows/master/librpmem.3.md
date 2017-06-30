@@ -376,6 +376,10 @@ For this reason, all functions that might trigger destruction (e.g.
 **dlclose**()) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
+**librpmem** registers a pool as a single memory region. A Chelsio T4 and T5
+hardware can not handle a memory region greater than or equal to 8GB due to
+a hardware bug. So *pool_size* value for **rpmem_create**() and **rpmem_open**()
+using this hardware can not be greater than or equal to 8GB.
 
 # LIBRARY API VERSIONING #
 
