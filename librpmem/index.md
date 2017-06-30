@@ -27,13 +27,13 @@ Man pages that contains a list of the **Linux** interfaces provided:
 The **rpmemd** process is executed on target node by **librpmem** library over
 **ssh**(1) and facilitates access to persistent memory over RDMA.
 
-See the [rpmemd man page](../manpages/master/rpmemd.1.html)
+See the [rpmemd man page](../manpages/linux/master/rpmemd.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'rpmemd' %}
    {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
