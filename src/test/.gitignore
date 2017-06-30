@@ -12,3 +12,5 @@ testfile*
 libs.tar
 *.synced
 .sync-dir
+# ignore lock files
+*.lock
