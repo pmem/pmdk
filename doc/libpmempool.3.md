@@ -72,15 +72,15 @@ otherwise they are expanded to UNICODE API with postfix *W*.
 ```c
 !ifdef{WIN32}
 {
-PMEMpoolcheck *
-pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
 struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
 struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
 }{
-PMEMpoolcheck
-*pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 }
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
@@ -187,13 +187,13 @@ Currently, checking the consistency of a *pmemobj* pool is **not** supported.
 ```c
 !ifdef{WIN32}
 {
-PMEMpoolcheck *
-pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
 }{
-PMEMpoolcheck *
-pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 }
 ```
 
