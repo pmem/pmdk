@@ -46,8 +46,8 @@ cc\ \-std=gnu99\ ...\ \-lpmempool\ \-lpmem
 .IP
 .nf
 \f[C]
-PMEMpoolcheck
-*pmempool_check_init(struct\ pmempool_check_args\ *args,\ size_t\ args_size);
+PMEMpoolcheck\ *pmempool_check_init(struct\ pmempool_check_args\ *args,
+\ \ \ \ size_t\ args_size);
 struct\ pmempool_check_status\ *pmempool_check(PMEMpoolcheck\ *ppc);
 enum\ pmempool_check_result\ pmempool_check_end(PMEMpoolcheck\ *ppc);
 \f[]
@@ -123,8 +123,8 @@ Currently, checking the consistency of a \f[I]pmemobj\f[] pool is
 .IP
 .nf
 \f[C]
-PMEMpoolcheck\ *
-pmempool_check_init(struct\ pmempool_check_args\ *args,\ size_t\ args_size);
+PMEMpoolcheck\ *pmempool_check_init(struct\ pmempool_check_args\ *args,
+\ \ \ \ size_t\ args_size);
 \f[]
 .fi
 .PP

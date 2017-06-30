@@ -476,7 +476,7 @@ cannot be longer than \f[B]PMEMOBJ_MAX_LAYOUT\f[] as defined in
 It is allowed to pass NULL as \f[I]layout\f[], which is equivalent for
 using an empty string as a layout name.
 \f[I]mode\f[] specifies the permissions to use when creating the file as
-described by \f[B]create\f[](2).
+described by \f[B]creat\f[](2).
 The memory pool file is fully allocated to the size \f[I]poolsize\f[]
 using \f[B]posix_fallocate\f[](3).
 The caller may choose to take responsibility for creating the memory
