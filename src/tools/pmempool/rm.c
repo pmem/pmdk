@@ -298,7 +298,6 @@ int
 pmempool_rm_func(char *appname, int argc, char *argv[])
 {
 #ifdef USE_RPMEM
-	util_remote_init();
 	/*
 	 * Try to load librpmem, if loading failed -
 	 * assume it is not available.
@@ -390,10 +389,6 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 		if (ret)
 			lret = ret;
 	}
-
-#ifdef USE_RPMEM
-	util_remote_fini();
-#endif
 
 	return lret;
 }
