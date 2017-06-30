@@ -10,6 +10,14 @@
 #
 
 #
+# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test NVML with file path longer
+# than 255 characters. Due to limitation of powershell you have to use
+# UNC prefix (i.e. \\?\c:\tmp) in PMEM_FS_DIR and NON_PMEM_FS_DIR variables.
+#
+# $Local:LONGDIR = "LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid"
+#$Env:DIRSUFFIX = "$LONGDIR\$LONGDIR\$LONGDIR\$LONGDIR\$LONGDIR"
+
+#
 # For tests that require true persistent memory, set the path to a directory
 # on a PMEM-aware file system here.  Comment this line out if there's no
 # actual persistent memory available on this system.

@@ -58,13 +58,13 @@ rm $DIR\testfile -Force -Recurse -ea si
 expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 & $PMEMSPOIL $DIR\testfile "pmemobj.lane(0).list.redo_log(0).offset=0x1" "pmemobj.lane(0).list.redo_log(1).offset=0x1"
 expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
-cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 rm $DIR\testfile -Force -Recurse
 # Invalid offset in redo log - 4096
 expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 & $PMEMSPOIL $DIR\testfile "pmemobj.lane(0).list.redo_log(0).offset=4096" "pmemobj.lane(0).list.redo_log(1).offset=0x1"
 expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
-cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 rm $DIR\testfile -Force -Recurse
 
 # Invalid offset in redo log - <file size>
@@ -72,14 +72,14 @@ expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 $SIZE=(get_size $DIR\testfile)
 & $PMEMSPOIL $DIR\testfile "pmemobj.lane(0).list.redo_log(0).offset=$SIZE" "pmemobj.lane(0).list.redo_log(1).offset=0x1"
 expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
-cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 rm $DIR\testfile -Force -Recurse
 
 # Invalid obj_offset - 1024
 expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 & $PMEMSPOIL $DIR\testfile "pmemobj.lane(0).list.obj_offset=1024"
 expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
-cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 rm $DIR\testfile -Force -Recurse
 
 # Invalid obj_offset - <file size>
@@ -87,7 +87,7 @@ expect_normal_exit $PMEMPOOL create obj $DIR\testfile
 $SIZE=$(get_size $DIR\testfile)
 & $PMEMSPOIL $DIR\testfile "pmemobj.lane(0).list.obj_offset=$SIZE"
 expect_normal_exit $Env:EXE_DIR\obj_check$Env:EXESUFFIX $DIR\testfile
-cat out$Env:UNITTEST_NUM.log | Out-File -append -encoding ascii log$Env:UNITTEST_NUM.log
+cat out$Env:UNITTEST_NUM.log | out-file -append -encoding ascii -literalpath log$Env:UNITTEST_NUM.log
 
 mv log$Env:UNITTEST_NUM.log out$Env:UNITTEST_NUM.log -force
 

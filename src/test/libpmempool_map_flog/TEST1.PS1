@@ -71,22 +71,22 @@ foreach ($field in ("Zeroed", "Error", "Initial", "Normal")) {
     $x = $map_err[$field]
     for ($i=0; $i -lt $ent_val; $i++) {
         $spcmd = "bttdevice.arena.btt_map($i)=0x${x}000000${i}"
-        echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
+        echo "${field}: $spcmd" | out-file -append -encoding ascii -literalpath $LOG_TEMP
         &$PMEMSPOIL $POOL $spcmd
     }
 
     # duplicated entry
     $spcmd = "bttdevice.arena.btt_map(6)=0x${x}0000003"
-    echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
+    echo "${field}: $spcmd" | out-file -append -encoding ascii -literalpath $LOG_TEMP
     &$PMEMSPOIL $POOL $spcmd
 
     # lba number is higher then internal nlba
     $spcmd = "bttdevice.arena.btt_map(2)=0x${x}000FFFF"
-    echo "${field}: $spcmd" | Out-File -append -encoding ascii $LOG_TEMP
+    echo "${field}: $spcmd" | out-file -append -encoding ascii -literalpath $LOG_TEMP
     &$PMEMSPOIL $POOL $spcmd
 
     expect_normal_exit $EXE -r 1 -t btt -a 1 $POOL
-    cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+    cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 }
 
 mv -Force $LOG_TEMP $LOG

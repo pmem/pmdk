@@ -57,7 +57,7 @@ rm $LOG -Force -Recurse -ea si
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit $PMEMWRITE $POOL TEST1TEST2TEST3TEST4
 expect_normal_exit $PMEMPOOL dump -c5 -o $LOG $POOL
-expect_normal_exit $PMEMPOOL dump -c5 $POOL | out-file -encoding ASCII -append $LOG
+expect_normal_exit $PMEMPOOL dump -c5 $POOL | out-file -encoding ASCII -append -literalpath $LOG
 
 check
 

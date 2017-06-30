@@ -634,7 +634,8 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 #else
 
 	if (flags & PMEM_FILE_TMPFILE) {
-		if ((fd = util_tmpfile(path, "/pmem.XXXXXX")) < 0) {
+		if ((fd = util_tmpfile(path,
+					OS_DIR_SEP_STR"pmem.XXXXXX")) < 0) {
 			LOG(2, "failed to create temporary file at \"%s\"",
 				path);
 			return NULL;

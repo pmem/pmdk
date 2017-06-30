@@ -73,7 +73,7 @@ create_poolset $POOLSET `
     20M:$DIR\testfile5:x
 
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # CLI script for writing some data at 0, 20 and 40 MB
 $WRITE_SCRIPT = "$DIR\write_data"
@@ -82,7 +82,7 @@ pr 55M
 srcp 0 TestOK111
 srcp 20M TestOK222
 srcp 40M TestOK333
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from 0, 20 and 40 MB offset
 $READ_SCRIPT = "$DIR\read_data"
@@ -90,17 +90,17 @@ echo @"
 srpr 0 9
 srpr 20M 9
 srpr 40M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Write some data into the pool, hitting three part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Find root offset
-$TMP_FILE = "$DIR/obj_info"
-expect_normal_exit $PMEMPOOL info -f obj -o $DIR/testfile1 > $TMP_FILE
+$TMP_FILE = "$DIR\obj_info"
+expect_normal_exit $PMEMPOOL info -f obj -o $DIR\testfile1 | out-file -append -encoding ascii -literalpath $TMP_FILE
 
 $ROOT_ADDR = (Get-Content $TMP_FILE | Select-String -pattern "Root offset").ToString().Split(':')[1]
 
@@ -119,10 +119,10 @@ expect_normal_exit $DDMAP -o "$DIR\testfile2" -s $PART2_OFFSET -d "Wrong5678"
 expect_normal_exit $DDMAP -o "$DIR\testfile3" -s $PART3_OFFSET -d "Wrong9ABC"
 
 # Check if corrupted
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Corrupt metadata in primary replica
-expect_normal_exit $PMEMSPOIL $DIR/testfile1 "pool_hdr.uuid=0000000000000000" `
+expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
     | Out-File -append -encoding ascii $LOG_TEMP
 
 # Synchronize replicas

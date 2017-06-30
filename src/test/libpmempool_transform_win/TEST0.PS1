@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_transform_win\TEST0"
+$Env:UNITTEST_NAME = "libpmempool_transform_win/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -87,37 +87,37 @@ echo @"
 pr 22M
 srcp 0 TestOK111
 srcp 20M TestOK222
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
 $READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 20M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create a pool
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Write some data into the pool, hitting two part files
-expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Check if correctly written
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Transform poolset
 $FLAGS = "0"
 expect_normal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Check if correctly copied
-expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT | Out-File -append -encoding ascii $LOG_TEMP
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Check metadata by pmempool info
 for ($i=0; $i -lt 5; $i++) {
-    dump_pool_info $DIR/testfile$i | Out-File -append -encoding ascii $LOG_TEMP
+    dump_pool_info $DIR\testfile$i | out-file -append -encoding ascii -literalpath $LOG_TEMP
 }
 
 mv -Force $LOG_TEMP $LOG
