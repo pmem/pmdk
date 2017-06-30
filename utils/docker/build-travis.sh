@@ -88,7 +88,7 @@ SCRIPTSDIR=$WORKDIR/utils/docker
 #  - environment variables set (--env)
 #  - host directory containing nvml source mounted (-v)
 #  - working directory set (-w)
-sudo docker run --rm --privileged=true --name=$containerName -ti \
+docker run --rm --privileged=true --name=$containerName -ti \
 	$DNS_SETTING \
 	$ci_env \
 	--env http_proxy=$http_proxy \
