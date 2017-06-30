@@ -166,7 +166,7 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
  * used at compile-time by passing these defines to pmempool_check_version().
  */
 #define PMEMPOOL_MAJOR_VERSION 1
-#define PMEMPOOL_MINOR_VERSION 1
+#define PMEMPOOL_MINOR_VERSION 2
 
 /*
  * check status
