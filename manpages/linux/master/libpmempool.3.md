@@ -65,8 +65,8 @@ cc -std=gnu99 ... -lpmempool -lpmem
 ##### Health check functions: #####
 
 ```c
-PMEMpoolcheck
-*pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
@@ -140,8 +140,8 @@ result of the whole check.
 Currently, checking the consistency of a *pmemobj* pool is **not** supported.
 
 ```c
-PMEMpoolcheck *
-pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
 ```
 
 The **pmempool_check_init**() initializes check
