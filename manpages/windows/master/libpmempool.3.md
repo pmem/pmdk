@@ -67,10 +67,10 @@ otherwise they are expanded to UNICODE API with postfix *W*.
 ##### Health check functions: #####
 
 ```c
-PMEMpoolcheck *
-pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
 struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
 struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
@@ -151,10 +151,10 @@ result of the whole check.
 Currently, checking the consistency of a *pmemobj* pool is **not** supported.
 
 ```c
-PMEMpoolcheck *
-pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
 ```
 
 The **pmempool_check_initU**()/**pmempool_check_initW**() initializes check

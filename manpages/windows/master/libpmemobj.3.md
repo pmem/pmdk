@@ -463,7 +463,7 @@ The **pmemobj_createU**()/**pmemobj_createW**() function creates a transactional
 created. *layout* specifies the application's layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a
 check when **pmemobj_openU**()/**pmemobj_openW**() is called. The layout name, including the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
 **\<libpmemobj.h\>**. It is allowed to pass NULL as *layout*, which is equivalent for using an empty string as a layout name. *mode* specifies the permissions to
-use when creating the file as described by **create**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
+use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_createU**()/**pmemobj_createW**() and then specifying *poolsize* as
 zero. In this case **pmemobj_createU**()/**pmemobj_createW**() will take the pool size from the size of the existing file and will verify that the file appears to be empty by
 searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a local transactional object store
@@ -553,13 +553,13 @@ object stores spanning multiple memory devices by creation of persistent memory 
 stored on different pmem-aware filesystem.
 
 To improve reliability and eliminate the single point of failure, all the changes of the data stored in the persistent memory pool could be also automatically
-written to local pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
+written to local  pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
 replicas may be considered as binary copies of the "master" pool set.
 
 Creation of all the parts of the pool set and the associated replica sets can be done with the **pmemobj_createU**()/**pmemobj_createW**() function or by using the **pmempool**(1)
 utility.
 
-Restoring data from a local replica can be done by using the
+Restoring data from a local  replica can be done by using the
 **pmempool-sync**(1) command or **pmempool_syncU**()/**pmempool_syncW**() API from the
 **libpmempool**(3) library.
 
