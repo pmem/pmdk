@@ -14,7 +14,7 @@
 # file path longer than 255 characters.
 #
 # LONGDIR="LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid"
-# DIRSUFFIX="$LONGDIR\$LONGDIR\$LONGDIR\$LONGDIR\$LONGDIR"
+# DIRSUFFIX="$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR"
 #
 # For tests that require true persistent memory, set the path to a directory
 # on a PMEM-aware file system here.  Comment this line out if there's no
