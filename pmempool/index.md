@@ -9,13 +9,13 @@ layout: nvml
 of persistent memory pools. It works for both the *single-file* pools and
 for *pool set files*. Below you can find a list of available commands.
 
-See the [pmempool man page](../manpages/master/pmempool.1.html)
+See the [pmempool man page](../manpages/linux/master/pmempool.1.html)
 for current master documentation and examples or see older versions:
 
 <ul>
    {% assign command = 'pmempool' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -26,13 +26,13 @@ type and parameters. Creating the persistent memory pool is possible using
 the NVM library APIs, however using the **pmempool** utility for creating the
 pool files may simplify the user application.
 
-See the [pmempool create man page](../manpages/master/pmempool-create.1.html)
+See the [pmempool create man page](../manpages/linux/master/pmempool-create.1.html)
 for current documentation and examples or see older versions:
 
 <ul>
    {% assign command = 'pmempool-create' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -45,13 +45,13 @@ structures and evaluates some basic statistics of the pool. By default the
 structures, but by adding command line arguments it is possible to print
 additional information about the pool.
 
-See the [pmempool info man page](../manpages/master/pmempool-info.1.html)
+See the [pmempool info man page](../manpages/linux/master/pmempool-info.1.html)
 for current master documentation and examples or see older versions:
 
 <ul>
    {% assign command = 'pmempool-info' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -62,13 +62,13 @@ pool file. This command currently works only for the **pmemblk** and
 **pmemlog** pool types. It is possible to pick the data dump format as well as
 the range of desired data.
 
-See the [pmempool dump man page](../manpages/master/pmempool-dump.1.html)
+See the [pmempool dump man page](../manpages/linux/master/pmempool-dump.1.html)
 for current master documentation and examples or see older versions:
 
 <ul>
    {% assign command = 'pmempool-dump' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -80,13 +80,13 @@ a broken pool in some cases. Currently it works only for the **pmemblk** and
 **pmemlog** pool types but the support for **pmemobj** pool type will be
 available in the near feature.
 
-See the [pmempool check man page](../manpages/master/pmempool-check.1.html)
+See the [pmempool check man page](../manpages/linux/master/pmempool-check.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'pmempool-check' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -98,13 +98,13 @@ the persistent memory pools. The command may be useful for removing the
 configuration file. For *single-file* pools it works almost the same
 as the standard system **rm** command.
 
-See the [pmempool rm man page](../manpages/master/pmempool-rm.1.html)
+See the [pmempool rm man page](../manpages/linux/master/pmempool-rm.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'pmempool-rm' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -114,13 +114,13 @@ The **pmempool convert** command performs conversion of the specified pool
 from the old layout versions to the newest one supported by this tool.
 Currently only **pmemobj** pools are supported.
 
-See the [pmempool convert man page](../manpages/master/pmempool-convert.1.html)
+See the [pmempool convert man page](../manpages/linux/master/pmempool-convert.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'pmempool-convert' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -132,13 +132,13 @@ are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 
-See the [pmempool sync man page](../manpages/master/pmempool-sync.1.html)
+See the [pmempool sync man page](../manpages/linux/master/pmempool-sync.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'pmempool-sync' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
 
@@ -148,12 +148,12 @@ The **pmempool transform** command modifies internal structure of a poolset
 defined by one poolset file, according to a structure described in
 another poolset file.
 
-See the [pmempool transform man page](../manpages/master/pmempool-transform.1.html)
+See the [pmempool transform man page](../manpages/linux/master/pmempool-transform.1.html)
 for current master documentation and examples or see older version:
 
 <ul>
    {% assign command = 'pmempool-transform' %}
-   {% for release in site.data.releases %}{% if release.libs contains command %}
-   <li><a href="../manpages/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
+   {% for release in site.data.releases_linux %}{% if release.libs contains command %}
+   <li><a href="../manpages/linux/v{{ release.tag }}/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>

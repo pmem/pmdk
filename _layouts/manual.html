@@ -33,7 +33,35 @@
 		</ul>
 	</div>
 	<br>
-	<h3>{{ page.title }} - NVML man page</h3>
+	{% assign dc_title =  page.title | downcase %}	
+	{% if dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
+	{% else %}
+	<div id="shortcut">
+		<table id="man">
+			<tr><th>Man Linux</th></tr>
+			<tr><td><a href="/nvml/manpages/linux/master/{{ dc_title }}.3.html">{{ dc_title }} current master</a></td></tr>
+			  {% for release in site.data.releases_linux %}
+				{% if release.libs contains dc_title %}
+					<tr><td><a href="/nvml/manpages/linux/v{{ release.tag }}/{{ dc_title }}.3.html">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+				{% endif %}
+			  {% endfor %}
+		</table>
+
+		{% if dc_title != 'librpmem' and dc_title != 'libvmmalloc' %}
+		<table id="man">
+			<tr><th>Man Windows</th></tr>
+			<tr><td><a href="/nvml/manpages/windows/master/{{ dc_title }}.3.html">{{ dc_title }} current master</a></td></tr>
+			  {% for release in site.data.releases_windows %}
+				{% if release.libs contains dc_title %}
+					<tr><td><a href="/nvml/manpages/windows/v{{ release.tag }}/{{ dc_title }}.3.html">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+				{% endif %}
+			  {% endfor %}
+		</table>
+		{% endif %}
+	</div>
+	{% endif %}
+
+	<h3>{{ dc_title }} - NVML man page</h3>
 	{{ content }}
 	<br>
 	<br>
