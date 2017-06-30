@@ -314,6 +314,9 @@ issues which can not be repaired
 \f[B]PMEMPOOL_CHECK_RESULT_ERROR\f[] \- the \f[I]pool\f[] has errors or
 the check encountered issue
 .SH POOL SET SYNCHRONIZATION AND TRANSFORMATION
+.PP
+Currently, the following operations are allowed only for
+\f[B]pmemobj\f[] pools (see \f[B]libpmemobj\f[](3)).
 .SS POOL SET SYNC
 .IP
 .nf
@@ -374,9 +377,6 @@ adding one or more replicas,
 removing one or more replicas,
 .IP \[bu] 2
 reordering of replicas.
-.PP
-Currently these operations are allowed only for \f[B]pmemobj\f[] pools
-(see \f[B]libpmemobj\f[](3)).
 .PP
 \f[B]pmempool_transform\f[]() accepts three arguments:
 .IP \[bu] 2
