@@ -208,8 +208,10 @@ pmempool_rmU(const char *path, int flags)
 	}
 	os_close(fd);
 
-	if (set->remote)
-		util_remote_load(); /* error will be handled in rm_remote() */
+	if (set->remote) {
+		/* ignore error - it will be handled in rm_remote() */
+		(void) util_remote_load();
+	}
 
 	util_poolset_free(set);
 
