@@ -98,7 +98,7 @@ echo Building ${OS}-${OS_VER}
 #  - environment variables set (--env)
 #  - host directory containing nvml source mounted (-v)
 #  - working directory set (-w)
-sudo docker run --privileged=true --name=$containerName -ti \
+docker run --privileged=true --name=$containerName -ti \
 	$RM_SETTING \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \

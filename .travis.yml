@@ -3,7 +3,12 @@ dist: trusty
 # until Travis fixes issue with mounting permissions
 group: deprecated-2017Q2
 
+sudo: required
+
 language: c
+
+services:
+  - docker
 
 env:
   matrix:
@@ -22,7 +27,6 @@ env:
 before_install:
   - export HOST_WORKDIR=`pwd`
   - cd utils/docker
-  - ./prepare-environment.sh
   - ./pull-or-rebuild-image.sh
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
   - rm -f push_image_to_repo_flag
