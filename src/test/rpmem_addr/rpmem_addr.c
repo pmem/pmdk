@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
  */
 
 #include "unittest.h"
-
-
 #include "rpmem_common.h"
 
 int
@@ -55,6 +53,7 @@ main(int argc, char *argv[])
 				*info->node ? info->node : "(null)",
 				info->flags & RPMEM_HAS_SERVICE ?
 					info->service : "(null)");
+			free(info);
 		} else {
 			UT_OUT("!%s", argv[i]);
 		}
