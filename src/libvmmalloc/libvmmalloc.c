@@ -177,7 +177,6 @@ cfree(void *ptr)
 	je_vmem_pool_free((pool_t *)((uintptr_t)Vmp + Header_size), ptr);
 }
 
-#ifdef VMMALLOC_OVERRIDE_MEMALIGN
 /*
  * memalign -- allocate a block of size bytes, starting on an address
  * that is a multiple of boundary
@@ -190,16 +189,14 @@ memalign(size_t boundary, size_t size)
 {
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
-		return je_vmem_memalign(boundary, size);
+		return je_vmem_aligned_alloc(boundary, size);
 	}
 	LOG(4, "boundary %zu  size %zu", boundary, size);
 	return je_vmem_pool_aligned_alloc(
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			boundary, size);
 }
-#endif
 
-#ifdef VMMALLOC_OVERRIDE_ALIGNED_ALLOC
 /*
  * aligned_alloc -- allocate a block of size bytes, starting on an address
  * that is a multiple of alignment
@@ -223,7 +220,6 @@ aligned_alloc(size_t alignment, size_t size)
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			alignment, size);
 }
-#endif
 
 /*
  * posix_memalign -- allocate a block of size bytes, starting on an address
@@ -249,7 +245,6 @@ posix_memalign(void **memptr, size_t alignment, size_t size)
 	return ret;
 }
 
-#ifdef VMMALLOC_OVERRIDE_VALLOC
 /*
  * valloc -- allocate a block of size bytes, starting on a page boundary
  */
@@ -261,7 +256,7 @@ valloc(size_t size)
 	ASSERTne(Pagesize, 0);
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
-		return je_vmem_valloc(size);
+		return je_vmem_aligned_alloc(Pagesize, size);
 	}
 	LOG(4, "size %zu", size);
 	return je_vmem_pool_aligned_alloc(
@@ -269,6 +264,11 @@ valloc(size_t size)
 			Pagesize, size);
 }
 
+/*
+ * pvalloc -- allocate a block of size bytes, starting on a page boundary
+ *
+ * Requested size is also aligned to page boundary.
+ */
 __ATTR_MALLOC__
 __ATTR_ALLOC_SIZE__(1)
 void *
@@ -277,14 +277,13 @@ pvalloc(size_t size)
 	ASSERTne(Pagesize, 0);
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
-		return je_vmem_valloc(roundup(size, Pagesize));
+		return je_vmem_aligned_alloc(Pagesize, roundup(size, Pagesize));
 	}
 	LOG(4, "size %zu", size);
 	return je_vmem_pool_aligned_alloc(
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			Pagesize, roundup(size, Pagesize));
 }
-#endif
 
 /*
  * malloc_usable_size -- get usable size of allocation
