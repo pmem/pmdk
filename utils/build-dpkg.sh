@@ -82,82 +82,7 @@ function convert_changelog() {
 	done < $1
 }
 
-function rpmem_install_triggers_overrides() {
-cat << EOF > debian/librpmem.install
-$LIB_DIR/librpmem.so.*
-EOF
 
-cat << EOF > debian/librpmem.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-librpmem: package-name-doesnt-match-sonames
-EOF
-
-cat << EOF > debian/librpmem-dev.install
-$LIB_DIR/nvml_debug/librpmem.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/librpmem.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/librpmem.so.* $LIB_DIR/nvml_dbg/
-$LIB_DIR/librpmem.so
-$LIB_DIR/pkgconfig/librpmem.pc
-$INC_DIR/librpmem.h
-$MAN3_DIR/librpmem.3.gz
-EOF
-
-cat << EOF > debian/librpmem-dev.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/librpmem-dev.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-# We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
-EOF
-
-cat << EOF > debian/rpmemd.install
-usr/bin/rpmemd
-$MAN1_DIR/rpmemd.1.gz
-EOF
-
-cat << EOF > debian/rpmemd.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/rpmemd.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-EOF
-}
-
-function append_rpmem_control() {
-cat << EOF >> $CONTROL_FILE
-
-Package: librpmem
-Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: NVML librpmem library
- NVM Library for Remote Persistent Memory support
-
-Package: librpmem-dev
-Section: libdevel
-Architecture: any
-Depends: librpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for librpmem
- Development files for librpmem library.
-
-Package: rpmemd
-Section: misc
-Architecture: any
-Priority: optional
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: rpmem daemon
- Daemon for Remote Persistent Memory support
-EOF
-}
 
 if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
 then
@@ -337,6 +262,27 @@ Architecture: any
 Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: C++ bindings for libpmemobj
  Headers-only C++ library for libpmemobj.
+
+Package: librpmem
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}, libfabric (>=1.4.2)
+Description: NVML librpmem library
+ NVM Library for Remote Persistent Memory support
+
+Package: librpmem-dev
+Section: libdevel
+Architecture: any
+Depends: librpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for librpmem
+ Development files for librpmem library.
+
+Package: rpmemd
+Section: misc
+Architecture: any
+Priority: optional
+Depends: \${shlibs:Depends}, \${misc:Depends}, libfabric (>=1.4.2)
+Description: rpmem daemon
+ Daemon for Remote Persistent Memory support
 EOF
 
 cp LICENSE debian/copyright
@@ -683,11 +629,60 @@ Index: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/index.html
 Files: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
 EOF
 
+cat << EOF > debian/librpmem.install
+$LIB_DIR/librpmem.so.*
+EOF
+
+cat << EOF > debian/librpmem.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+librpmem: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/librpmem-dev.install
+$LIB_DIR/nvml_debug/librpmem.a $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/librpmem.so $LIB_DIR/nvml_dbg/
+$LIB_DIR/nvml_debug/librpmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/librpmem.so
+$LIB_DIR/pkgconfig/librpmem.pc
+$INC_DIR/librpmem.h
+$MAN3_DIR/librpmem.3.gz
+EOF
+
+cat << EOF > debian/librpmem-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/librpmem-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+EOF
+
+cat << EOF > debian/rpmemd.install
+usr/bin/rpmemd
+$MAN1_DIR/rpmemd.1.gz
+EOF
+
+cat << EOF > debian/rpmemd.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/rpmemd.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+EOF
+
+
 # Experimental features
 if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
-	append_rpmem_control;
-	rpmem_install_triggers_overrides;
+	# no experimental features
 fi
 
 # Convert ChangeLog to debian format
