@@ -114,7 +114,11 @@ runtest_local() {
 	[ $retval != 0 ] && {
 		[ -t 2 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
 		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
-		exit 1
+		if [ "$keep_going" == "y" ]; then
+			keep_going_exit_code=1
+		else
+			exit 1
+		fi
 	}
 	return 0
 }
@@ -358,6 +362,8 @@ testfile=all
 check_pool=0
 checktype="none"
 skip_dir=""
+keep_going=n
+keep_going_exit_code=0
 
 #
 # some of defaults can be overwritten with environment variables
@@ -369,6 +375,7 @@ skip_dir=""
 [ -n "$TEST_TIMEOUT" ] && runtest_timeout=$TEST_TIMEOUT
 [ -n "$TEST_PROVIDERS" ] && provider=$TEST_PROVIDERS
 [ -n "$TEST_PMETHODS" ] && pmethod=$TEST_PMETHODS
+[ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 
 #
 # command-line argument processing...
@@ -559,6 +566,27 @@ done
 [ -z "$buildtype" ] && buildtype=$def_buildtype
 [[ $buildtype =~ .*all.* ]] && buildtype=all
 
+# parse MAKEFLAGS variable
+[ -n "$MAKEFLAGS" ] && {
+	# extract flags from variable
+	FLAGS=
+	for flag in $MAKEFLAGS; do
+		[ "$flag" == "--" ] && break
+		FLAGS+="$flag"
+	done
+
+	[ -n "$FLAGS" ] && {
+		# apply supported flags
+		for i in $(seq ${#FLAGS}); do
+			case "${FLAGS:i-1:1}"
+			in
+			k)
+				keep_going=y
+				;;
+			esac
+		done
+	}
+}
 
 [ "$verbose" ] && {
 	echo -n Options:
@@ -617,4 +645,8 @@ else
 fi
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
-exit 0
+if [ "$keep_going" == "y" ]; then
+	exit $keep_going_exit_code
+else
+	exit 0
+fi

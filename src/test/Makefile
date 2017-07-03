@@ -403,7 +403,7 @@ check: test
 	@echo "No failures."
 
 check-remote-quiet: sync-remotes
-	@./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS)
+	@./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS) MAKEFLAGS="$MAKEFLAGS"
 
 sync-remotes: test
 
