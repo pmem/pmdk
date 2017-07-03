@@ -55,6 +55,7 @@ TEST_CONFIG_FILE=$7
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
+LIBFABRIC_MIN_VERSION=1.4.2
 
 function create_changelog() {
 	echo
@@ -81,6 +82,7 @@ cat << EOF >> $RPM_SPEC_FILE
 %package -n librpmem
 Summary: librpmem library
 Group: %{package_group}/Libraries
+Requires: libfabric >= $LIBFABRIC_MIN_VERSION
 %description -n librpmem
 NVML librpmem library
 
@@ -108,6 +110,7 @@ Development files for NVML librpmem library
 %package -n rpmemd
 Group:		%{package_group}
 Summary:	Remote Access to Persistent Memory daemon
+Requires:	libfabric >= $LIBFABRIC_MIN_VERSION
 
 %description -n rpmemd
 Remote Access to Persistent Memory daemon
