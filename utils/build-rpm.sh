@@ -81,6 +81,7 @@ cat << EOF >> $RPM_SPEC_FILE
 %package -n librpmem
 Summary: librpmem library
 Group: %{package_group}/Libraries
+Requires: libfabric >= 1.4.2
 %description -n librpmem
 NVML librpmem library
 

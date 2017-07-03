@@ -138,7 +138,7 @@ cat << EOF >> $CONTROL_FILE
 
 Package: librpmem
 Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
+Depends: libfabric (>= 1.4.2), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
  NVM Library for Remote Persistent Memory support
 
