@@ -61,6 +61,7 @@ DOC_DIR=$PREFIX/share/doc
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
+LIBFABRIC_MIN_VERSION=1.4.2
 
 function convert_changelog() {
 	while read line
@@ -138,7 +139,7 @@ cat << EOF >> $CONTROL_FILE
 
 Package: librpmem
 Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
+Depends: libfabric (>= $LIBFABRIC_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
 Description: NVML librpmem library
  NVM Library for Remote Persistent Memory support
 
@@ -153,7 +154,7 @@ Package: rpmemd
 Section: misc
 Architecture: any
 Priority: optional
-Depends: \${shlibs:Depends}, \${misc:Depends}
+Depends: libfabric (>= $LIBFABRIC_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
 Description: rpmem daemon
  Daemon for Remote Persistent Memory support
 EOF
