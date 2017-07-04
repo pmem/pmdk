@@ -49,6 +49,10 @@ require_build_type debug
 
 require_fs_type pmem
 
+# Triggers a bug in valgrind 3.10, we should update our valgrind tooling
+# to a newer version and remove this.
+configure_valgrind memcheck force-disable
+
 setup
 
 . common.sh

@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_realloc\TEST1"
+$Env:UNITTEST_NAME = "obj_realloc/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 
@@ -56,7 +56,7 @@ require_fs_type non-pmem
 
 setup
 
-expect_normal_exit $PMEMPOOL create obj --layout realloc --size=128M $DIR\testfile1
+expect_normal_exit $PMEMPOOL create obj --layout realloc --size=512M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\obj_realloc$Env:EXESUFFIX $DIR\testfile1 0
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +57,8 @@
 #define PLAYER_POINTS_PER_HIT 10
 
 using nvml::transaction_error;
+using nvml::transaction_scope_error;
+using nvml::pool_error;
 using nvml::obj::transaction;
 using nvml::obj::persistent_ptr;
 using nvml::obj::pool;
@@ -218,10 +220,11 @@ board_element::board_element(point p,
 }
 
 board_element::board_element(const board_element &element)
+    : position(
+	      make_persistent<point>(element.position->x, element.position->y)),
+      shape(element.shape),
+      element_dir(UNDEFINED)
 {
-	position = make_persistent<point>(element.position->x,
-					  element.position->y);
-	shape = make_persistent<element_shape>(element.shape->get_val());
 }
 
 board_element::~board_element()
@@ -772,15 +775,15 @@ game::init_colors(void)
 	init_pair(FOOD, color_pair.color_fg, color_pair.color_bg);
 }
 
-int
+void
 game::init(void)
 {
 	int ret = 0;
 	persistent_ptr<game_state> r = state.get_root();
 
 	if (r->get_board() == nullptr) {
-		try {
-			transaction::manual tx(state);
+
+		transaction::exec_tx(state, [&r, &ret, this]() {
 			r->init();
 			if (params->use_maze)
 				ret = parse_conf_create_dynamic_layout();
@@ -788,19 +791,15 @@ game::init(void)
 				ret = r->get_board()->creat_static_layout();
 
 			r->get_board()->create_new_food();
-			transaction::commit();
-		} catch (transaction_error &err) {
-			std::cout << err.what() << std::endl;
-		}
+		});
+
 		if (ret) {
 			clean_pool();
 			clear_prog();
-			std::cout << "Error: Config file error!" << std::endl;
-			return ret;
+			throw std::runtime_error("Error: Config file error!");
 		}
 	}
 	direction_key = r->get_board()->get_snake_dir();
-	return ret;
 }
 
 void
@@ -808,24 +807,19 @@ game::process_step(void)
 {
 	snake_event ret_event = EV_OK;
 	persistent_ptr<game_state> r = state.get_root();
-	try {
-		transaction::exec_tx(state, [&]() {
-			ret_event = r->get_board()->move_snake(direction_key);
-			if (EV_COLLISION == ret_event) {
-				r->get_player()->set_state(
-					play_state::STATE_GAMEOVER);
-				return;
-			} else {
-				if (r->get_board()->is_snake_head_food_hit()) {
-					r->get_board()->create_new_food();
-					r->get_board()->add_snake_segment();
-					r->get_player()->update_score();
-				}
+	transaction::exec_tx(state, [&]() {
+		ret_event = r->get_board()->move_snake(direction_key);
+		if (EV_COLLISION == ret_event) {
+			r->get_player()->set_state(play_state::STATE_GAMEOVER);
+			return;
+		} else {
+			if (r->get_board()->is_snake_head_food_hit()) {
+				r->get_board()->create_new_food();
+				r->get_board()->add_snake_segment();
+				r->get_player()->update_score();
 			}
-		});
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-	}
+		}
+	});
 
 	r->get_board()->print(r->get_player()->get_score());
 }
@@ -861,30 +855,23 @@ game::set_direction_key(void)
 	}
 }
 
-int
+void
 game::process_key(const int lastkey)
 {
-	int ret = 0;
 	last_key = lastkey;
 	set_direction_key();
 
 	if (action::ACTION_NEW_GAME == last_key) {
 		clean_pool();
-		ret = init();
+		init();
 	}
-	return ret;
 }
 
 void
 game::clean_pool(void)
 {
 	persistent_ptr<game_state> r = state.get_root();
-
-	try {
-		transaction::exec_tx(state, [&]() { r->clean_pool(); });
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-	}
+	transaction::exec_tx(state, [&]() { r->clean_pool(); });
 }
 
 void
@@ -944,6 +931,8 @@ game::parse_conf_create_dynamic_layout(void)
 			});
 		} catch (transaction_error &err) {
 			std::cout << err.what() << std::endl;
+		} catch (transaction_scope_error &tse) {
+			std::cout << tse.what() << std::endl;
 		}
 		i++;
 	}
@@ -960,31 +949,42 @@ game::parse_conf_create_dynamic_layout(void)
 int
 main(int argc, char *argv[])
 {
-	int input;
-	game *snake_game;
 	struct parameters params;
 	params.use_maze = false;
 
 	if (helper::parse_params(argc, argv, &params))
 		return -1;
 
-	snake_game = new game(&params);
-	if (snake_game->init())
-		return -1;
+	int ret = -1;
+	try {
+		std::unique_ptr<game> snake_game{new game(&params)};
+		snake_game->init();
 
-	while (!snake_game->is_stopped()) {
-		input = getch();
-		if (snake_game->process_key(input))
-			return -1;
-		if (snake_game->is_game_over()) {
-			snake_game->game_over();
-		} else {
-			snake_game->process_delay();
-			snake_game->clear_screen();
-			snake_game->process_step();
+		while (!snake_game->is_stopped()) {
+			int input = getch();
+			snake_game->process_key(input);
+			if (snake_game->is_game_over()) {
+				snake_game->game_over();
+			} else {
+				snake_game->process_delay();
+				snake_game->clear_screen();
+				snake_game->process_step();
+			}
 		}
+
+		snake_game->clear_prog();
+		ret = 0;
+	} catch (transaction_error &err) {
+		std::cout << err.what() << std::endl;
+	} catch (transaction_scope_error &tse) {
+		std::cout << tse.what() << std::endl;
+	} catch (pool_error &pe) {
+		std::cout << pe.what() << std::endl;
+	} catch (std::logic_error &le) {
+		std::cout << le.what() << std::endl;
+	} catch (std::runtime_error &re) {
+		std::cout << re.what() << std::endl;
 	}
 
-	snake_game->clear_prog();
-	return 0;
+	return ret;
 }

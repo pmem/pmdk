@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST1"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1
@@ -55,33 +55,33 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET = "$DIR\pool0.set"
 
 # Create poolset file
 create_poolset $POOLSET `
-    20M:$DIR/testfile1:x `
-    20M:$DIR/testfile2:x `
-    21M:$DIR/testfile3:x `
+    20M:$DIR\testfile1:x `
+    20M:$DIR\testfile2:x `
+    21M:$DIR\testfile3:x `
     R `
-    40M:$DIR/testfile4:x `
-    20M:$DIR/testfile5:x
+    40M:$DIR\testfile4:x `
+    20M:$DIR\testfile5:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 55M
 srcp 0 TestOK111
 srcp 20M TestOK222
 srcp 40M TestOK333
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 20M 9
 srpr 40M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
@@ -94,7 +94,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm $DIR/testfile2 -Force -ea si
+rm $DIR\testfile2 -Force -ea si
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP

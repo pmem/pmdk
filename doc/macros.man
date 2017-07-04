@@ -1,0 +1,80 @@
+#
+# Copyright 2017, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Those macros are defined for pp - generic preprocessor
+# and they are imported while preprocessor execution, for example:
+# pp -DWIN32 -DWEB -import macros.man <input_md_file>
+
+# This solution allows the maintenance of Windows and Linux documentation in the same file.
+
+!def{pmem_map_file}{!ifdef{WIN32}{**pmem_map_fileU**()/**pmem_map_fileW**()}{**pmem_map_file**()}}
+!def{pmem_check_version}{!ifdef{WIN32}{**pmem_check_versionU**()/**pmem_check_versionW**()}{**pmem_check_version**()}}
+!def{pmem_errormsg}{!ifdef{WIN32}{**pmem_errormsgU**()/**pmem_errormsgW**()}{**pmem_errormsg**()}}
+
+!def{pmemlog_create}{!ifdef{WIN32}{**pmemlog_createU**()/**pmemlog_createW**()}{**pmemlog_create**()}}
+!def{pmemlog_open}{!ifdef{WIN32}{**pmemlog_openU**()/**pmemlog_openW**()}{**pmemlog_open**()}}
+!def{pmemlog_check}{!ifdef{WIN32}{**pmemlog_checkU**()/**pmemlog_checkW**()}{**pmemlog_check**()}}
+!def{pmemlog_check_version}{!ifdef{WIN32}{**pmemlog_check_versionU**()/**pmemlog_check_versionW**()}{**pmemlog_check_version**()}}
+!def{pmemlog_errormsg}{!ifdef{WIN32}{**pmemlog_errormsgU**()/**pmemlog_errormsgW**()}{**pmemlog_errormsg**()}}
+
+!def{pmemblk_create}{!ifdef{WIN32}{**pmemblk_createU**()/**pmemblk_createW**()}{**pmemblk_create**()}}
+!def{pmemblk_open}{!ifdef{WIN32}{**pmemblk_openU**()/**pmemblk_openW**()}{**pmemblk_open**()}}
+!def{pmemblk_check}{!ifdef{WIN32}{**pmemblk_checkU**()/**pmemblk_checkW**()}{**pmemblk_check**()}}
+!def{pmemblk_check_version}{!ifdef{WIN32}{**pmemblk_check_versionU**()/**pmemblk_check_versionW**()}{**pmemblk_check_version**()}}
+!def{pmemblk_errormsg}{!ifdef{WIN32}{**pmemblk_errormsgU**()/**pmemblk_errormsgW**()}{**pmemblk_errormsg**()}}
+
+!def{vmem_create}{!ifdef{WIN32}{**vmem_createU**()/**vmem_createW**()}{**vmem_create**()}}
+!def{vmem_errormsg}{!ifdef{WIN32}{**vmem_errormsgU**()/**vmem_errormsgW**()}{**vmem_errormsg**()}}
+!def{vmem_check_version}{!ifdef{WIN32}{**vmem_check_versionU**()/**vmem_check_versionW**()}{**vmem_check_version**()}}
+
+!def{pmempool_check}{!ifdef{WIN32}{**pmempool_checkU**()/**pmempool_checkW**()}{**pmempool_check**()}}
+!def{pmempool_sync}{!ifdef{WIN32}{**pmempool_syncU**()/**pmempool_syncW**()}{**pmempool_sync**()}}
+!def{pmempool_rm}{!ifdef{WIN32}{**pmempool_rmU**()/**pmempool_rmW**()}{**pmempool_rm**()}}
+!def{pmempool_transform}{!ifdef{WIN32}{**pmempool_transformU**()/**pmempool_transformW**()}{**pmempool_transform**()}}
+!def{pmempool_check_init}{!ifdef{WIN32}{**pmempool_check_initU**()/**pmempool_check_initW**()}{**pmempool_check_init**()}}
+!def{pmempool_check_version}{!ifdef{WIN32}{**pmempool_check_versionU**()/**pmempool_check_versionW**()}{**pmempool_check_version**()}}
+!def{pmempool_errormsg}{!ifdef{WIN32}{**pmempool_errormsgU**()/**pmempool_errormsgW**()}{**pmempool_errormsg**()}}
+!def{pmempool_check_status_ptr}{!ifdef{WIN32}{*struct pmempool_check_statusU\**/*struct pmempool_check_statusW\**}{*struct pmempool_check_status\**}}
+!def{pmempool_check_status}{!ifdef{WIN32}{*struct pmempool_check_statusU*/*struct pmempool_check_statusW*}{*struct pmempool_check_status*}}
+!def{pmempool_check_args}{!ifdef{WIN32}{*struct pmempool_check_argsU*/*struct pmempool_check_argsW*}{*struct pmempool_check_args*}}
+
+!def{pmemobj_check_version}{!ifdef{WIN32}{**pmemobj_check_versionU**()/**pmemobj_check_versionW**()}{**pmemobj_check_version**()}}
+!def{pmemobj_errormsg}{!ifdef{WIN32}{**pmemobj_errormsgU**()/**pmemobj_errormsgW**()}{**pmemobj_errormsg**()}}
+!def{pmemobj_create}{!ifdef{WIN32}{**pmemobj_createU**()/**pmemobj_createW**()}{**pmemobj_create**()}}
+!def{pmemobj_open}{!ifdef{WIN32}{**pmemobj_openU**()/**pmemobj_openW**()}{**pmemobj_open**()}}
+!def{pmemobj_check}{!ifdef{WIN32}{**pmemobj_checkU**()/**pmemobj_checkW**()}{**pmemobj_check**()}}
+!def{pmemobj_ctl_get}{!ifdef{WIN32}{**pmemobj_ctl_getU**()/**pmemobj_ctl_getW**()}{**pmemobj_ctl_get**()}}
+!def{pmemobj_ctl_set}{!ifdef{WIN32}{**pmemobj_ctl_setU**()/**pmemobj_ctl_setW**()}{**pmemobj_ctl_set**()}}
+
+!def{U}{!ifdef{WIN32}{U}}
+
+!def{3}{!ifdef{WEB}{}{(3)}}
+!def{1}{!ifdef{WEB}{}{(1)}}

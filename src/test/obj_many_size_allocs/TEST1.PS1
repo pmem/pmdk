@@ -36,7 +36,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_many_size_allocs\TEST1"
+$Env:UNITTEST_NAME = "obj_many_size_allocs/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 

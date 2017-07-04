@@ -146,10 +146,8 @@ rm_file(const char *file)
 
 	const char *pre_msg = write_protected ? "write-protected " : "";
 	char ans = ask_Yn(cask, "remove %sfile '%s' ?", pre_msg, file);
-	if (ans == INV_ANS) {
-		outv_err("invalid answer");
-		return 1;
-	}
+	if (ans == INV_ANS)
+		outv(1, "invalid answer");
 
 	if (ans == 'y') {
 		if (util_unlink(file)) {
@@ -183,10 +181,8 @@ remove_remote(const char *target, const char *pool_set)
 
 	char ans = ask_Yn(cask, "remove remote pool '%s' on '%s'?",
 		pool_set, target);
-	if (ans == INV_ANS) {
+	if (ans == INV_ANS)
 		outv(1, "invalid answer");
-		return -1;
-	}
 
 	if (ans != 'y')
 		return 0;
@@ -302,7 +298,6 @@ int
 pmempool_rm_func(char *appname, int argc, char *argv[])
 {
 #ifdef USE_RPMEM
-	util_remote_init();
 	/*
 	 * Try to load librpmem, if loading failed -
 	 * assume it is not available.
@@ -394,10 +389,6 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 		if (ret)
 			lret = ret;
 	}
-
-#ifdef USE_RPMEM
-	util_remote_fini();
-#endif
 
 	return lret;
 }

@@ -41,11 +41,11 @@
 #include "unittest.h"
 #include "valgrind_internal.h"
 
-#define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
-#define TEST_MEGA_ALLOC_SIZE (1024 * 1024)
-#define TEST_HUGE_ALLOC_SIZE (255 * 1024)
-#define TEST_SMALL_ALLOC_SIZE (200)
-#define TEST_MEDIUM_ALLOC_SIZE (300)
+#define MOCK_POOL_SIZE (PMEMOBJ_MIN_POOL * 3)
+#define TEST_MEGA_ALLOC_SIZE (10 * 1024 * 1024)
+#define TEST_HUGE_ALLOC_SIZE (4 * 255 * 1024)
+#define TEST_SMALL_ALLOC_SIZE (1000)
+#define TEST_MEDIUM_ALLOC_SIZE (10000)
 #define TEST_TINY_ALLOC_SIZE (64)
 #define TEST_RUNS 2
 

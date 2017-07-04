@@ -42,7 +42,7 @@ $Env:UNITTEST_NAME = "ex_libpmemobj/TEST3"
 $Env:UNITTEST_NUM = "3"
 
 # standard unit test setup
-. ../unittest/unittest.PS1
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 require_build_type debug nondebug
@@ -57,7 +57,7 @@ p
 n 5
 p
 q
-"@ | &$Env:EXE_DIR/mapcli hashmap_tx $DIR/testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
+"@ | &$Env:EXE_DIR\mapcli hashmap_tx $DIR\testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
 
 check_exit_code
 

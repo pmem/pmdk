@@ -570,6 +570,63 @@ tx_abort_recover_range(PMEMobjpool *pop, struct tx *tx, struct tx_range *range)
 }
 
 /*
+ * tx_clear_set_cache_but_first -- (internal) removes all but the first cache
+ *	from the UNDO_SET_CACHE vector
+ *
+ * Only the valgrind related flags are valid for the vg_flags variable.
+ */
+static void
+tx_clear_set_cache_but_first(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
+	struct tx *tx, enum tx_clr_flag vg_flags)
+{
+	LOG(3, NULL);
+
+	struct pvector_context *cache_undo = tx_rt->ctx[UNDO_SET_CACHE];
+	uint64_t first_cache = pvector_first(cache_undo);
+
+	if (first_cache == 0)
+		return;
+
+	uint64_t off;
+
+	int zero_all = tx == NULL;
+
+	while ((off = pvector_last(cache_undo)) != first_cache) {
+		tx_clear_undo_log_vg(pop, off, vg_flags);
+
+		pvector_pop_back(cache_undo, tx_free_vec_entry);
+		zero_all = 1;
+	}
+
+	tx_clear_undo_log_vg(pop, first_cache, vg_flags);
+	struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, first_cache);
+
+	size_t sz;
+	if (zero_all) {
+		sz = palloc_usable_size(&pop->heap, first_cache);
+	} else {
+		ASSERTne(tx, NULL);
+		struct lane_tx_runtime *r = tx->section->runtime;
+		sz = r->cache_offset;
+	}
+
+	if (sz) {
+		VALGRIND_ADD_TO_TX(cache, sz);
+		pmemops_memset_persist(&pop->p_ops, cache, 0, sz);
+		VALGRIND_REMOVE_FROM_TX(cache, sz);
+	}
+
+#ifdef DEBUG
+	if (!zero_all && /* for recovery we know we zeroed everything */
+		!pop->tx_debug_skip_expensive_checks) {
+		uint64_t usable_size = palloc_usable_size(&pop->heap,
+			first_cache);
+		ASSERTeq(util_is_zeroed(cache, usable_size), 1);
+	}
+#endif
+}
+
+/*
  * tx_abort_set -- (internal) abort all set operations
  */
 static void
@@ -577,13 +634,20 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 {
 	LOG(3, NULL);
 
+	struct tx *tx = recovery ? NULL : get_tx();
+
 	if (recovery)
 		tx_foreach_set(pop, NULL, tx_rt, tx_abort_recover_range);
 	else
-		tx_foreach_set(pop, get_tx(), tx_rt, tx_abort_restore_range);
+		tx_foreach_set(pop, tx, tx_rt, tx_abort_restore_range);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
-		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
+	if (recovery) /* if recovering from a crash, remove all of the caches */
+		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
+			TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
+	else /* otherwise leave the first one */
+		tx_clear_set_cache_but_first(pop, tx_rt, tx,
+			TX_CLR_FLAG_VG_CLEAN);
+
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET],
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
 }
@@ -644,43 +708,11 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx *tx,
 				tx_post_commit_range_vg_tx_remove);
 #endif
 
-	struct pvector_context *cache_undo = tx_rt->ctx[UNDO_SET_CACHE];
-	uint64_t first_cache = pvector_first(cache_undo);
-	uint64_t off;
-
-	int zero_all = recovery;
-
-	while ((off = pvector_last(cache_undo)) != first_cache) {
-		pvector_pop_back(cache_undo, tx_free_vec_entry);
-		zero_all = 1;
-	}
-
-	if (first_cache != 0) {
-		struct tx_range_cache *cache = OBJ_OFF_TO_PTR(pop, first_cache);
-
-		size_t sz;
-		if (zero_all) {
-			sz = palloc_usable_size(&pop->heap, first_cache);
-		} else {
-			struct lane_tx_runtime *r = tx->section->runtime;
-			sz = r->cache_offset;
-		}
-
-		if (sz) {
-			VALGRIND_ADD_TO_TX(cache, sz);
-			pmemops_memset_persist(&pop->p_ops, cache, 0, sz);
-			VALGRIND_REMOVE_FROM_TX(cache, sz);
-		}
-
-#ifdef DEBUG
-		if (!zero_all && /* for recovery we know we zeroed everything */
-			!pop->tx_debug_skip_expensive_checks) {
-			uint64_t usable_size = palloc_usable_size(&pop->heap,
-				first_cache);
-			ASSERTeq(util_is_zeroed(cache, usable_size), 1);
-		}
-#endif
-	}
+	if (recovery) /* if recovering from a crash, remove all of the caches */
+		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
+			TX_CLR_FLAG_FREE);
+	else /* otherwise leave the first one */
+		tx_clear_set_cache_but_first(pop, tx_rt, tx, 0);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET], TX_CLR_FLAG_FREE);
 }

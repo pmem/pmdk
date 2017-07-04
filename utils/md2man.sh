@@ -42,6 +42,7 @@
 #   section and version
 # - cut-off metadata block and license
 # - unindent code blocks
+# - cut-off windows and web specific parts of documentation using pp
 #
 
 set -o pipefail
@@ -50,10 +51,11 @@ filename=$1
 template=$2
 outfile=$3
 title=`sed -n 's/^title:\ *\([A-Za-z_-]*\).*$/\1/p' $filename`
-section=`sed -n 's/^title:.*(\([0-9]\)).*$/\1/p' $filename`
+section=`sed -n 's/^title:.*\!\([0-9]\).*$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
 cat $filename | sed -n -e '/# NAME #/,$p' |\
+pp -import macros.man |\
 pandoc -s -t man -o $outfile --template=$template \
     -V title=$title -V section=$section \
     -V date=$(date +"%F") -V version="$version" \

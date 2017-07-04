@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset\TEST3w"
+$Env:UNITTEST_NAME = "util_poolset/TEST3w"
 $Env:UNITTEST_NUM = "3w"
 
 # standard unit test setup
@@ -60,14 +60,14 @@ for ($p = 1; $p -le 128; $p++) {
 }
 
 # prepare pool sets
-create_poolset $DIR/testset1 @FILES
+create_poolset $DIR\testset1 @FILES
 
 # create pool sets
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX c $MIN_POOL `
-    $DIR/testset1
+expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
+    $DIR\testset1
 
-expect_normal_exit $Env:EXE_DIR/util_poolset$Env:EXESUFFIX o $MIN_POOL `
-    $DIR/testset1
+expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX o $MIN_POOL `
+    $DIR\testset1
 
 sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
     %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `

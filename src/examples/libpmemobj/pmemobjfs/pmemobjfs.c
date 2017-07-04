@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -259,15 +259,15 @@ pmemobjfs_ioctl(struct pmemobjfs *objfs)
 {
 	switch (objfs->ioctl_cmd) {
 	case PMEMOBJFS_CTL_TX_BEGIN:
-		pmemobj_tx_begin(objfs->pop, NULL, TX_PARAM_NONE);
+		(void) pmemobj_tx_begin(objfs->pop, NULL, TX_PARAM_NONE);
 		break;
 	case PMEMOBJFS_CTL_TX_ABORT:
 		pmemobj_tx_abort(-1);
-		pmemobj_tx_end();
+		(void) pmemobj_tx_end();
 		break;
 	case PMEMOBJFS_CTL_TX_COMMIT:
 		pmemobj_tx_commit();
-		pmemobj_tx_end();
+		(void) pmemobj_tx_end();
 		break;
 	default:
 		break;

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,12 +49,12 @@ require_fs_type pmem non-pmem
 
 setup
 
-. ./common.PS1
+. .\common.PS1
 
 for ($i=0; $i -lt $POOL_TYPES.Count; $i++ ) {
 	backup_cleanup
 
-	$POOLFILE= -join("$DIR/pool.", $POOL_TYPES[$i]);
+	$POOLFILE= -join("$DIR\pool.", $POOL_TYPES[$i]);
 	rm $POOLFILE -Force -ea si
 
 	# create source poolset

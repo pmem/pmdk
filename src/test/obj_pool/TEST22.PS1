@@ -40,7 +40,7 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_pool\TEST22"
+$Env:UNITTEST_NAME = "obj_pool/TEST22"
 $Env:UNITTEST_NUM = "22"
 
 
@@ -56,11 +56,11 @@ setup
 #        (valid pool header)
 #
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    c $DIR/testfile NULL 20 0640
+    c $DIR\testfile NULL 20 0640
 truncate -s 1M $DIR\testfile
 
 expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX `
-    o $DIR/testfile NULL
+    o $DIR\testfile NULL
 
 check
 

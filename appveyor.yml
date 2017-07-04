@@ -2,6 +2,9 @@ version: 1.2.{build}
 os: Visual Studio 2015
 platform: x64
 
+init:
+- ps: write-host "Uninstalling 4014507..."; cmd /c wusa /uninstall /kb:4014507 /quiet /forcerestart
+
 install:
 - ps: Install-PackageProvider -Name NuGet -Force
 - ps: Install-Module PsScriptAnalyzer -Force
@@ -61,15 +64,20 @@ after_build:
 
 test_script:
 - ps: >-
-    if ($Env:CONFIGURATION -eq "Debug") {
+    if ($Env:CONFIGURATION -ne "Setup") {
         cd src/test
-        md /temp
-        echo "`$Env:NON_PMEM_FS_DIR = `"\temp`"" > testconfig.ps1
-        echo "`$Env:PMEM_FS_DIR = `"\temp`"" >> testconfig.ps1
+        md C:\temp
+        echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
+        echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
+    }
+    if ($Env:CONFIGURATION -eq "Debug") {
         ./RUNTESTS.ps1 -b debug -o 4m
+    }
+    if ($Env:CONFIGURATION -eq "Release") {
+        ./RUNTESTS.ps1 -b nondebug -o 4m
     }
 
 artifacts:

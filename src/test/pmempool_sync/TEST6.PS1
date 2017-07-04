@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST6"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST6"
 $Env:UNITTEST_NUM = "6"
 
 . ..\unittest\unittest.ps1
@@ -59,27 +59,27 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET = "$DIR/pool1.set"
+$POOLSET = "$DIR\pool1.set"
 $HDR_LEN = "4096"
 
 # Create poolset file
 create_poolset $POOLSET `
-	20M:$DIR/part00:x `
+	20M:$DIR\part00:x `
 	r `
 	AUTO:${Env:DEVICE_DAX_PATH[0]}:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 1M
 srcp 0 TestOK111
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create poolset1
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET >> $LOG_TEMP
@@ -101,7 +101,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $POOLSET >> $LOG_TEMP
-dump_pool_info $DIR/part00 >> $LOG_TEMP
+dump_pool_info $DIR\part00 >> $LOG_TEMP
 dump_pool_info ${Env:DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG

@@ -220,6 +220,7 @@ LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
+CXXFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif

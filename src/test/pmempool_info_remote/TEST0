@@ -1,6 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2017, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,49 +30,52 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/out_err_mt/TEST1 -- unit test for error messages
+# pmempool_info_remote/TEST0 -- test for info command with remote replica
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "out_err_mt\TEST1"
-$Env:UNITTEST_NUM = "1w"
+export UNITTEST_NAME=pmempool_info_remote/TEST0
+export UNITTEST_NUM=0
 
-
-# standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
 
 require_fs_type any
 
-# XXX: we don't have valgrind in Windows yet
-# require_valgrind_dev_version 3.7
-# configure_valgrind drd force-enable
-
 setup
 
-$Env:PMEM_LOG_LEVEL = $null
-$Env:PMEMLOG_LOG_LEVEL = $null
-$Env:PMEMBLK_LOG_LEVEL = $null
-$Env:PMEMOBJ_LOG_LEVEL = $null
-$Env:VMEM_LOG_LEVEL = $null
-$Env:PMEMPOOL_LOG_LEVEL = $null
+require_nodes 2
 
-$Env:PMEM_LOG_FILE = $null
-$Env:PMEMLOG_LOG_FILE = $null
-$Env:PMEMBLK_LOG_FILE = $null
-$Env:PMEMOBJ_LOG_FILE = $null
-$Env:VMEM_LOG_FILE = $null
-$Env:PMEMPOOL_LOG_FILE = $null
+require_node_libfabric 0 $RPMEM_PROVIDER
+require_node_libfabric 1 $RPMEM_PROVIDER
 
-expect_normal_exit $Env:EXE_DIR\out_err_mt$Env:EXESUFFIX `
-	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR
+init_rpmem_on_node 1 0
 
-check
+# define files and directories
+TEST_SET_LOCAL="testset_local"
+TEST_SET_REMOTE="testset_remote"
+
+TEST_FILE_LOCAL="testfile_local"
+TEST_FILE_REMOTE="testfile_remote"
+
+NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
+
+LOG=out${UNITTEST_NUM}.log
+
+# create and upload poolset files
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
+        m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+
+copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+
+rm_files_from_node 0 $TEST_FILE_REMOTE
+rm_files_from_node 1 $TEST_FILE_LOCAL
+
+expect_normal_exit run_on_node 1 ../pmempool create obj $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool info $TEST_SET_LOCAL > ./$LOG
+
+check_local
 
 pass

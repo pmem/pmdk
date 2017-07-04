@@ -561,16 +561,16 @@ enum_handles(int op)
 		if (status < 0)
 			continue; /* if handle can't be queried, ignore it */
 
-		/* register/verify only handles of selected types */
-		switch (type_info->MaintainTypeList) {
-			case 0x03: /* Directory */
-			case 0x0d: /* Mutant */
-			case 0x0f: /* Semaphore */
-			case 0x1e: /* File */
-			/* case 0x23: */ /* Section (memory mapping) */
-				break;
-			default:
-				continue;
+		/*
+		 * Register/verify only handles of selected types.
+		 * Do not rely on type numbers - check type name instead.
+		 */
+		if (wcscmp(type_info->Name.Buffer, L"Directory") &&
+		    wcscmp(type_info->Name.Buffer, L"Mutant") &&
+		    wcscmp(type_info->Name.Buffer, L"Semaphore") &&
+		    wcscmp(type_info->Name.Buffer, L"File")) {
+			/* does not match any of the above types */
+			continue;
 		}
 
 		/*

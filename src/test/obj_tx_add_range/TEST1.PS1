@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_tx_add_range\TEST1"
+$ENV:UNITTEST_NAME = "obj_tx_add_range/TEST1"
 $ENV:UNITTEST_NUM = "1"
 
 # standard unit test setup

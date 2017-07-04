@@ -10,6 +10,12 @@
 #
 
 #
+# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test NVML with
+# file path longer than 255 characters.
+#
+# LONGDIR="LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid"
+# DIRSUFFIX="$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR"
+#
 # For tests that require true persistent memory, set the path to a directory
 # on a PMEM-aware file system here.  Comment this line out if there's no
 # actual persistent memory available on this system.
@@ -123,6 +129,10 @@ TM=1
 # can be used to specify path to device dax on remote node.
 #
 # There can be only one device dax specified for each node.
+#
+# All remote tests assume the master replica is present on a node of index 1.
+# So the size of device dax on the node of index 1 should not be bigger than
+# a size of device dax devices on other nodes.
 #
 #NODE_DEVICE_DAX_PATH[0]=/dev/dax0.0
 #NODE_DEVICE_DAX_PATH[1]=/dev/dax0.0

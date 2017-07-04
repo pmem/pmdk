@@ -41,6 +41,12 @@
 # Build librpmem even if libfabric is not compiled with ibverbs
 export RPMEM_DISABLE_LIBIBVERBS=y
 
+# Hush error messages, mainly from Valgrind
+export UT_DUMP_LINES=0
+
+# Skip printing mismached files for tests with Valgrind
+export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
+
 # Build all and run tests
 cd $WORKDIR
 make -j2 USE_LIBUNWIND=1 COVERAGE=1

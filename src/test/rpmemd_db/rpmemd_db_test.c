@@ -40,6 +40,7 @@
 #include "librpmem.h"
 #include "rpmemd_db.h"
 #include "rpmemd_log.h"
+#include "util_pmem.h"
 #include "set.h"
 #include "out.h"
 #include <limits.h>
@@ -602,8 +603,11 @@ test_remove(const char *root_dir, const char *pool_desc)
 	UT_ASSERTne(prp, NULL);
 
 	struct pool_hdr *pool_hdr = prp->pool_addr;
-	strncpy((char *)pool_hdr->poolset_uuid, "ERROR",
-			sizeof(pool_hdr->poolset_uuid));
+	const char *uuid = (char *)pool_hdr->poolset_uuid;
+	const size_t uuid_size = sizeof(pool_hdr->poolset_uuid);
+	strncpy((char *)uuid, "ERROR", uuid_size);
+	util_persist_auto(prp->set->replica[0]->part[0].is_dev_dax, uuid,
+			uuid_size);
 	rpmemd_db_pool_close(db, prp);
 
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 0);

@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_dump\TEST2"
+$Env:UNITTEST_NAME = "pmempool_dump/TEST2"
 $Env:UNITTEST_NUM = "2"
 
 
@@ -57,7 +57,7 @@ rm $LOG -Force -Recurse -ea si
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit $PMEMWRITE $POOL TEST_test
 expect_normal_exit $PMEMPOOL dump '-r5,6,7,8' -o $LOG $POOL
-expect_normal_exit $PMEMPOOL dump '-r5-8' $POOL| out-file -encoding ASCII -append $LOG
+expect_normal_exit $PMEMPOOL dump '-r5-8' $POOL| out-file -encoding ASCII -append -literalpath $LOG
 
 check
 

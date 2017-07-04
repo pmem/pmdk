@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_tx_locks_abort\TEST2"
+$ENV:UNITTEST_NAME = "obj_tx_locks_abort/TEST2"
 $ENV:UNITTEST_NUM = "2"
 
 

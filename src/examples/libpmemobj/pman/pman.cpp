@@ -66,7 +66,6 @@ using nvml::obj::pool_base;
 using nvml::obj::make_persistent;
 using nvml::obj::delete_persistent;
 using nvml::obj::transaction;
-using nvml::transaction_error;
 
 namespace examples
 {
@@ -115,7 +114,7 @@ enum field {
 
 class point {
 public:
-	point(){};
+	point() = default;
 	point(int xf, int yf);
 	point(position cor);
 	void move_back();
@@ -267,21 +266,28 @@ private:
  * point::point -- overloaded constructor for point class
  */
 point::point(int xf, int yf)
-{
-	x = xf;
-	y = yf;
-	prev_x = xf;
-	prev_y = yf;
-	prev_field = FREE;
-};
+    : x{xf},
+      y{yf},
+      prev_x{xf},
+      prev_y{yf},
+      cur_field{FREE},
+      prev_field{FREE},
+      dir{DOWN},
+      home{UP_LEFT} {};
 
 /*
  * point::point -- overloaded constructor for point class
  */
 point::point(position cor)
+    : x{0},
+      y{0},
+      prev_x{0},
+      prev_y{0},
+      cur_field{FREE},
+      prev_field{FREE},
+      dir{DOWN},
+      home{cor}
 {
-	home = cor;
-	prev_field = FREE;
 	move_home();
 }
 
@@ -476,7 +482,7 @@ player::progress(int in, bomb_vec *bombs)
 /*
  * alien::alien -- overloaded constructor for alien class
  */
-alien::alien(position cor) : point(cor)
+alien::alien(position cor) : point(cor), rand_pos(false)
 {
 	cur_field = ALIEN;
 	prev_field = FOOD;
@@ -508,7 +514,7 @@ alien::move_back_alien()
  * board_state -- constructor for class board_state initializes boards and
  * needed variables
  */
-board_state::board_state(const std::string &map_file)
+board_state::board_state(const std::string &map_file) : highscore(0)
 {
 	reset_params();
 	board = make_persistent<field[]>(SIZE * SIZE);
@@ -815,7 +821,7 @@ state::init(const std::string &map_file)
 			return false;
 	}
 
-	try {
+	{
 		transaction::manual tx(pop);
 		if (intro_p->size() == 0) {
 			for (int i = 0; i < SIZE / 4; i++) {
@@ -830,22 +836,17 @@ state::init(const std::string &map_file)
 			}
 		}
 		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
 	}
 
 	if (intro_loop() == true)
 		return true;
 
-	try {
+	{
 		transaction::manual tx(pop);
 		intro_p->clear();
 		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
 	}
+
 	return false;
 }
 
@@ -880,14 +881,11 @@ state::intro_loop()
 		print_start();
 		unsigned i = 0;
 		persistent_ptr<intro> p;
-		try {
+		{
 			transaction::manual tx(pop);
 			while ((p = intro_p->get(i++)) != nullptr)
 				p->progress();
 			transaction::commit();
-		} catch (transaction_error &err) {
-			std::cout << err.what() << std::endl;
-			assert(0);
 		}
 		SLEEP(GAME_DELAY);
 		if (in == 'q')
@@ -948,21 +946,16 @@ state::print_game_over()
 void
 state::new_game(const std::string &map_file)
 {
-	try {
-		transaction::manual tx(pop);
+	transaction::manual tx(pop);
 
-		board = make_persistent<board_state>(map_file);
-		pl = make_persistent<player>(POS_MIDDLE);
-		intro_p = make_persistent<list<intro>>();
-		bombs = make_persistent<list<bomb>>();
-		aliens = make_persistent<list<alien>>();
-		aliens->push_back(make_persistent<alien>(UP_LEFT));
+	board = make_persistent<board_state>(map_file);
+	pl = make_persistent<player>(POS_MIDDLE);
+	intro_p = make_persistent<list<intro>>();
+	bombs = make_persistent<list<bomb>>();
+	aliens = make_persistent<list<alien>>();
+	aliens->push_back(make_persistent<alien>(UP_LEFT));
 
-		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
-	}
+	transaction::commit();
 }
 
 /*
@@ -971,22 +964,17 @@ state::new_game(const std::string &map_file)
 void
 state::reset_game()
 {
-	try {
-		transaction::manual tx(pop);
+	transaction::manual tx(pop);
 
-		board->reset_params();
-		board->reset_board();
-		pl = make_persistent<player>(POS_MIDDLE);
-		intro_p = make_persistent<list<intro>>();
-		bombs = make_persistent<list<bomb>>();
-		aliens = make_persistent<list<alien>>();
-		aliens->push_back(make_persistent<alien>(UP_LEFT));
+	board->reset_params();
+	board->reset_board();
+	pl = make_persistent<player>(POS_MIDDLE);
+	intro_p = make_persistent<list<intro>>();
+	bombs = make_persistent<list<bomb>>();
+	aliens = make_persistent<list<alien>>();
+	aliens->push_back(make_persistent<alien>(UP_LEFT));
 
-		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
-	}
+	transaction::commit();
 }
 
 /*
@@ -995,7 +983,7 @@ state::reset_game()
 void
 state::resume()
 {
-	try {
+	{
 		transaction::manual tx(pop);
 		delete_persistent<player>(pl);
 		pl = nullptr;
@@ -1009,10 +997,8 @@ state::resume()
 		intro_p->clear();
 		delete_persistent<list<intro>>(intro_p);
 		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
 	}
+
 	reset_game();
 }
 
@@ -1025,33 +1011,29 @@ state::one_move(int in)
 	unsigned i = 0;
 	persistent_ptr<alien> a;
 	persistent_ptr<bomb> b;
-	try {
-		transaction::manual tx(pop);
-		board->timer = board->timer + 1;
-		pl->progress(in, &bombs);
-		while ((a = aliens->get(i++)) != nullptr)
-			a->progress();
-		i = 0;
-		while ((b = bombs->get(i++)) != nullptr) {
-			b->progress();
-			if (b->exploded)
-				board->explosion(b->x, b->y, EXPLOSION);
-			if (b->used) {
-				board->explosion(b->x, b->y, FREE);
-				bombs->erase(--i);
-			}
+
+	transaction::manual tx(pop);
+	board->timer = board->timer + 1;
+	pl->progress(in, &bombs);
+	while ((a = aliens->get(i++)) != nullptr)
+		a->progress();
+	i = 0;
+	while ((b = bombs->get(i++)) != nullptr) {
+		b->progress();
+		if (b->exploded)
+			board->explosion(b->x, b->y, EXPLOSION);
+		if (b->used) {
+			board->explosion(b->x, b->y, FREE);
+			bombs->erase(--i);
 		}
-		collision();
-		board->print(highscore);
-		highscore = board->highscore;
-		i = 0;
-		while ((b = bombs->get(i++)) != nullptr)
-			b->print_time();
-		transaction::commit();
-	} catch (transaction_error &err) {
-		std::cout << err.what() << std::endl;
-		assert(0);
 	}
+	collision();
+	board->print(highscore);
+	highscore = board->highscore;
+	i = 0;
+	while ((b = bombs->get(i++)) != nullptr)
+		b->print_time();
+	transaction::commit();
 }
 
 /*
@@ -1212,33 +1194,43 @@ main(int argc, char *argv[])
 	if (argc == 3)
 		map_path = argv[2];
 
-	if (pool<examples::state>::check(name, LAYOUT_NAME) == 1)
-		pop = pool<examples::state>::open(name, LAYOUT_NAME);
-	else
-		pop = pool<examples::state>::create(name, LAYOUT_NAME,
-						    PMEMOBJ_MIN_POOL * 2);
+	int ret = -1;
+	try {
+		if (pool<examples::state>::check(name, LAYOUT_NAME) == 1)
+			pop = pool<examples::state>::open(name, LAYOUT_NAME);
+		else
+			pop = pool<examples::state>::create(
+				name, LAYOUT_NAME, PMEMOBJ_MIN_POOL * 2);
 
-	initscr();
-	start_color();
-	init_pair(examples::FOOD, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(examples::WALL, COLOR_WHITE, COLOR_BLACK);
-	init_pair(examples::PLAYER, COLOR_CYAN, COLOR_BLACK);
-	init_pair(examples::ALIEN, COLOR_RED, COLOR_BLACK);
-	init_pair(examples::EXPLOSION, COLOR_CYAN, COLOR_BLACK);
-	init_pair(examples::BONUS, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(examples::LIFE, COLOR_MAGENTA, COLOR_BLACK);
-	nodelay(stdscr, true);
-	curs_set(0);
-	keypad(stdscr, true);
-	persistent_ptr<examples::state> r = pop.get_root();
-	if (r == nullptr)
-		goto out;
+		initscr();
+		start_color();
+		init_pair(examples::FOOD, COLOR_YELLOW, COLOR_BLACK);
+		init_pair(examples::WALL, COLOR_WHITE, COLOR_BLACK);
+		init_pair(examples::PLAYER, COLOR_CYAN, COLOR_BLACK);
+		init_pair(examples::ALIEN, COLOR_RED, COLOR_BLACK);
+		init_pair(examples::EXPLOSION, COLOR_CYAN, COLOR_BLACK);
+		init_pair(examples::BONUS, COLOR_YELLOW, COLOR_BLACK);
+		init_pair(examples::LIFE, COLOR_MAGENTA, COLOR_BLACK);
+		nodelay(stdscr, true);
+		curs_set(0);
+		keypad(stdscr, true);
+		persistent_ptr<examples::state> r = pop.get_root();
 
-	if (r->init(map_path))
-		goto out;
-	r->game();
-out:
-	endwin();
-	pop.close();
-	return 0;
+		if ((r != nullptr) && (r->init(map_path) != false))
+			r->game();
+
+		endwin();
+		pop.close();
+		ret = 0;
+	} catch (nvml::transaction_error &err) {
+		std::cerr << err.what() << std::endl;
+	} catch (nvml::transaction_scope_error &tse) {
+		std::cerr << tse.what() << std::endl;
+	} catch (nvml::pool_error &pe) {
+		std::cerr << pe.what() << std::endl;
+	} catch (std::logic_error &le) {
+		std::cerr << le.what() << std::endl;
+	}
+
+	return ret;
 }

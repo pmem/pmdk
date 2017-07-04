@@ -119,11 +119,38 @@ basename(char *path)
 static char *
 dirname(char *path)
 {
-	char drive[_MAX_DRIVE];
-	char dir[_MAX_DIR];
+	size_t len = strlen(path);
 
-	_splitpath(path, drive, dir, NULL, NULL);
-	sprintf(path, "%s%s", drive, dir);
+	if (len == 0)
+		return NULL;
+
+	char *end = path + len;
+
+	/* strip trailing forslashes and backslashes */
+	while ((--end) > path) {
+		if (*end != '\\' && *end != '/') {
+			*(end + 1) = '\0';
+			break;
+		}
+	}
+
+	/* strip basename */
+	while ((--end) > path) {
+		if (*end == '\\' || *end == '/') {
+			*end = '\0';
+			break;
+		}
+	}
+
+	if (end != path) {
+		return path;
+		/* handle edge cases */
+	} else if (*end == '\\' || *end == '/') {
+		*(end + 1) = '\0';
+	} else {
+		*end++ = '.';
+		*end = '\0';
+	}
 
 	return path;
 }

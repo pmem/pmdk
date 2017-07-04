@@ -1,6 +1,6 @@
+#!/bin/bash -e
 #
-# Copyright 2015-2017, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,47 +30,50 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/out_err_mt/TEST2 -- unit test for error messages
+# pmempool_rm/TEST7 -- test for pmempool rm in interactive mode
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "out_err_mt\TEST2"
-$Env:UNITTEST_NUM = "2w"
+export UNITTEST_NAME=pmempool_rm/TEST7
+export UNITTEST_NUM=7
 
-
-# standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
-
 require_fs_type any
-
-# XXX: we don't have valgrind in Windows yet
-# require_valgrind_dev_version 3.7
-# configure_valgrind helgrind force-enable
 
 setup
 
-$Env:PMEM_LOG_LEVEL = $null
-$Env:PMEMLOG_LOG_LEVEL = $null
-$Env:PMEMBLK_LOG_LEVEL = $null
-$Env:PMEMOBJ_LOG_LEVEL = $null
-$Env:VMEM_LOG_LEVEL = $null
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-$Env:PMEM_LOG_FILE = $null
-$Env:PMEMLOG_LOG_FILE = $null
-$Env:PMEMBLK_LOG_FILE = $null
-$Env:PMEMOBJ_LOG_FILE = $null
-$Env:VMEM_LOG_FILE = $null
+# Create poolset with replica
+create_poolset $DIR/pool.set 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2:z\
+	R 32M:$DIR/rep.part1:z 32M:$DIR/rep.part2:z
 
-expect_normal_exit $Env:EXE_DIR\out_err_mt$Env:EXESUFFIX `
-	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR
+# Check if pool set file exists
+check_files\
+	$DIR/pool.set\
+	$DIR/pool.part1\
+	$DIR/pool.part2\
+	$DIR/rep.part1\
+	$DIR/rep.part2
 
-check
+# Try to remove all files in interactive mode
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il $DIR/pool.set >> $LOG 2>&1 <<EOF
+Y
+x
+n
+y
+N
+EOF
+
+check_no_files\
+	$DIR/pool.part1\
+	$DIR/rep.part2
+
+check_files\
+	$DIR/pool.set\
+	$DIR/pool.part2\
+	$DIR/rep.part1
 
 pass

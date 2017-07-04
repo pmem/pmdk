@@ -65,10 +65,15 @@ util_tmpfile(const char *dir, const char *templ)
 	int oerrno;
 	int fd = -1;
 
-	char fullname[MAX_PATH];
+	size_t len = strlen(dir) + strlen(templ) + 1;
+	char *fullname = Malloc(sizeof(*fullname) * len);
+	if (fullname == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
 
-	int ret = _snprintf(fullname, MAX_PATH, "%s%s", dir, templ);
-	if (ret < 0 || ret >= MAX_PATH) {
+	int ret = _snprintf(fullname, len, "%s%s", dir, templ);
+	if (ret < 0 || ret >= len) {
 		ERR("!snprintf");
 		goto err;
 	}
@@ -95,9 +100,11 @@ util_tmpfile(const char *dir, const char *templ)
 	 * the filesystem.
 	 */
 
+	Free(fullname);
 	return fd;
 
 err:
+	Free(fullname);
 	oerrno = errno;
 	if (fd != -1)
 		(void) os_close(fd);

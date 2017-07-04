@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST3"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST3"
 $Env:UNITTEST_NUM = "3"
 
 . ..\unittest\unittest.ps1
@@ -56,30 +56,30 @@ rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET = "$DIR/pool0.set"
+$POOLSET = "$DIR\pool0.set"
 
 # Create poolset file
 create_poolset  $POOLSET `
-    20M:$DIR/testfile00:x `
-    30M:$DIR/testfile01:x `
+    20M:$DIR\testfile00:x `
+    30M:$DIR\testfile01:x `
     R `
-    30M:$DIR/testfile10:x `
-    20M:$DIR/testfile11:x
+    30M:$DIR\testfile10:x `
+    20M:$DIR\testfile11:x
 
 # CLI script for writing some data hitting all the parts
-$WRITE_SCRIPT = "$DIR/write_data"
+$WRITE_SCRIPT = "$DIR\write_data"
 echo @"
 pr 45M
 srcp 0 TestOK111
 srcp 35M TestOK222
-"@ | out-file -encoding ASCII $WRITE_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
 
 # CLI script for reading 9 characters from all the parts
-$READ_SCRIPT = "$DIR/read_data"
+$READ_SCRIPT = "$DIR\read_data"
 echo @"
 srpr 0 9
 srpr 35M 9
-"@ | out-file -encoding ASCII $READ_SCRIPT
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Create a poolset
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
@@ -92,16 +92,16 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Delete the second part in the primary replica
-rm $DIR/testfile01 -Force -ea si
+rm $DIR\testfile01 -Force -ea si
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync -d $POOLSET >> $LOG_TEMP
 
 # Check metadata by pmempool info
-dump_pool_info $DIR/testfile00 >> $LOG_TEMP
-dump_pool_info $DIR/testfile10 >> $LOG_TEMP
-dump_pool_info $DIR/testfile11 >> $LOG_TEMP
-check_no_file $DIR/testfile01 >> $LOG_TEMP
+dump_pool_info $DIR\testfile00 >> $LOG_TEMP
+dump_pool_info $DIR\testfile10 >> $LOG_TEMP
+dump_pool_info $DIR\testfile11 >> $LOG_TEMP
+check_no_file $DIR\testfile01 >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

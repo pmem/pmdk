@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -98,11 +98,22 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create: %s", path);
 	}
 
+	size_t length = PMEMOBJ_MIN_POOL;
+	size_t arr_len = (length + Ut_pagesize - 1) / Ut_pagesize;
+	unsigned char *vec = MALLOC(sizeof(*vec) * arr_len);
+
+	ret = mincore(pop, length, vec);
+	UT_ASSERTeq(ret, 0);
+
+	size_t resident_pages = 0;
+	for (size_t i = 0; i < arr_len; ++i)
+		resident_pages += vec[i];
+
+	FREE(vec);
+
 	pmemobj_close(pop);
 
-	struct rusage rs;
-	getrusage(RUSAGE_SELF, &rs);
-	UT_OUT("%ld", rs.ru_majflt + rs.ru_minflt);
+	UT_OUT("%ld", resident_pages);
 
 	DONE(NULL);
 }

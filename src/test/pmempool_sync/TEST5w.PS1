@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync\TEST5"
+$Env:UNITTEST_NAME = "pmempool_sync/TEST5"
 $Env:UNITTEST_NUM = "5w"
 
 . ..\unittest\unittest.ps1
@@ -58,44 +58,44 @@ setup
 #touch $LOG_TEMP
 
 #$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-#$POOLSET = "$DIR/pool0.set"
+#$POOLSET = "$DIR\pool0.set"
 
 ## Create poolset file
 #create_poolset $POOLSET `
-#    20M:$DIR/testfile00:x `
-#    30M:$DIR/testfile01:x `
+#    20M:$DIR\testfile00:x `
+#    30M:$DIR\testfile01:x `
 #    R `
-#    30M:$DIR/testfile10:x `
-#    20M:$DIR/testfile11:x
+#    30M:$DIR\testfile10:x `
+#    20M:$DIR\testfile11:x
 
 ## Create a poolset
 #expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
 #cat $LOG >> $LOG_TEMP
 
 ## Delete the second part in the primary replica
-#rm $DIR/testfile01 -Force -ea si
+#rm $DIR\testfile01 -Force -ea si
 
 ## Synchronize replicas
 #expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
 
 ## Check if restored part file have the same permissions as other parts
-#(Get-Item $DIR/testfile00).mode >> $LOG_TEMP
-#(Get-Item $DIR/testfile01).mode >> $LOG_TEMP
+#(Get-Item $DIR\testfile00).mode >> $LOG_TEMP
+#(Get-Item $DIR\testfile01).mode >> $LOG_TEMP
 
 ## Delete the first part in the second replica
-#rm $DIR/testfile10 -Force -ea si
+#rm $DIR\testfile10 -Force -ea si
 
 # XXX: Need chmod() equivalent on Windows
 
 ## Change permissions of all the files
-#chmod 600 $DIR/testfile*
+#chmod 600 $DIR\testfile*
 
 ## Synchronize replicas
 #expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
 
 ## Check if restored part file have the same permissions as other parts
-#(Get-Item $DIR/testfile10).mode >> $LOG_TEMP
-#(Get-Item $DIR/testfile11).mode >> $LOG_TEMP
+#(Get-Item $DIR\testfile10).mode >> $LOG_TEMP
+#(Get-Item $DIR\testfile11).mode >> $LOG_TEMP
 
 #mv -Force $LOG_TEMP $LOG
 #check

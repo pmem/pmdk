@@ -37,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "libpmempool_api\TEST13"
+$Env:UNITTEST_NAME = "libpmempool_api/TEST13"
 $Env:UNITTEST_NUM = "13"
 
 . ..\unittest\unittest.ps1
@@ -59,9 +59,9 @@ rm $LOG_TEMP -Force -ea si
 expect_normal_exit $PMEMPOOL create log $POOL
 
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 0 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX -s 999999 $POOL
-cat -Encoding Ascii $LOG | Out-File -append -encoding ascii $LOG_TEMP
+cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 rm $LOG -Force
 mv $LOG_TEMP $LOG

@@ -628,6 +628,15 @@ function expect_normal_exit() {
 		N=-1
 	fi
 
+	if [ -n "$TRACE" ]; then
+		case "$1"
+		in
+		*_on_node*)
+			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			exit 0
+		esac
+	fi
+
 	local trace=$(get_trace $_CHECK_TYPE $VALGRIND_LOG_FILE $N)
 
 	if [ "$MEMCHECK_DONT_CHECK_LEAKS" = "1" -a "$CHECK_TYPE" = "memcheck" ]; then
@@ -697,7 +706,8 @@ function expect_normal_exit() {
 			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-			dump_last_n_lines out$UNITTEST_NUM.log
+
+			dump_last_n_lines trace$UNITTEST_NUM.log
 			dump_last_n_lines $PMEM_LOG_FILE
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE
@@ -737,6 +747,15 @@ function expect_normal_exit() {
 # expect_abnormal_exit -- run a given command, expect it to exit non-zero
 #
 function expect_abnormal_exit() {
+	if [ -n "$TRACE" ]; then
+		case "$1"
+		in
+		*_on_node*)
+			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			exit 0
+		esac
+	fi
+
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 	$TRACE $*
@@ -876,7 +895,6 @@ function require_dev_dax_node() {
 			exit 0
 		fi
 		local device_dax_path=${DEVICE_DAX_PATH[@]}
-		local var_name="DEVICE_DAX_PATH"
 		local cmd="$PMEMDETECT -d"
 	fi
 
@@ -888,7 +906,7 @@ function require_dev_dax_node() {
 		restore_exit_on_error
 
 		if [ "$ret" == "0" ]; then
-			return
+			continue
 		elif [ "$ret" == "1" ]; then
 			echo "$prefix $out"
 			exit 0
@@ -917,19 +935,47 @@ function require_dax_devices() {
 }
 
 #
-# require_dax_device_alignment -- only allow script to continue if
-#    the internal Device DAX alignment is as specified
+# require_dax_device_alignments -- only allow script to continue if
+#    the internal Device DAX alignments are as specified.
+# If necessary, it sorts DEVICE_DAX_PATH entries to match
+# the requested alignment order.
 #
-function require_dax_device_alignment() {
-	disable_exit_on_error
-	out=`$PMEMDETECT -a $2 ${DEVICE_DAX_PATH[$1]} 2>&1`
-	ret=$?
-	restore_exit_on_error
+# usage: require_dax_device_alignments alignment1 [ alignment2 ... ]
+#
+function require_dax_device_alignments() {
+	local cnt=${#DEVICE_DAX_PATH[@]}
+	local j=0
 
-	[ "$ret" == "0" ] && return
+	for alignment in $*
+	do
+		for (( i=j; i<cnt; i++ ))
+		do
+			#echo "j=$j i=$i alignment=$alignment"
+			path=${DEVICE_DAX_PATH[$i]}
 
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP Device DAX alignment is not $2"
-	exit 0
+			disable_exit_on_error
+			out=`$PMEMDETECT -a $alignment $path 2>&1`
+			ret=$?
+			restore_exit_on_error
+
+			if [ "$ret" == "0" ]; then
+				#echo "found $path alignment=$alignment"
+				if [ $i -ne $j ]; then
+					tmp=${DEVICE_DAX_PATH[$j]}
+					DEVICE_DAX_PATH[$j]=$path
+					DEVICE_DAX_PATH[$i]=$tmp
+				fi
+				break
+			fi
+		done
+
+		if [ $i -eq $cnt ]; then
+			echo "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+			exit 0
+		fi
+
+		j=$(( j + 1 ))
+	done
 }
 
 #
@@ -1091,6 +1137,10 @@ function configure_valgrind() {
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
+	fi
+
+	if [ "$UT_VALGRIND_SKIP_PRINT_MISMATCHED" == 1 ]; then
+		export UT_SKIP_PRINT_MISMATCHED=1
 	fi
 }
 
@@ -1337,7 +1387,7 @@ function run_command()
 		echo "$ $COMMAND"
 		$COMMAND
 	else
-		$COMMAND > /dev/null
+		$COMMAND
 	fi
 }
 
@@ -1588,7 +1638,7 @@ function copy_files_to_node() {
 
 	# copy all required files
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR > /dev/null
 
 	return 0
 }
@@ -1900,7 +1950,11 @@ function setup() {
 # check_local -- check local test results (using .match files)
 #
 function check_local() {
-	../match $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
+	if [ "$UT_SKIP_PRINT_MISMATCHED" == 1 ]; then
+		option=-q
+	fi
+
+	../match $option $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
 }
 
 #
@@ -1930,7 +1984,11 @@ function check() {
 			done
 		done
 
-		../match $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
+		if [ "$UT_SKIP_PRINT_MISMATCHED" == 1 ]; then
+			option=-q
+		fi
+
+		../match $option $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
 	fi
 }
 

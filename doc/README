@@ -6,8 +6,10 @@ This directory contains source for the man pages for the NVM Library.
 If you're looking for documentation to get you started using NVML,
 start here: http://pmem.io/nvml and follow the links to examples and
 man pages.  Developers new to NVML are probably looking for libpmemobj.
-To generate web-based documentation, you need to have groff and doxygen
-installed.
+To generate web-based documentation or Linux man pages, you need to have groff,
+doxygen, pandoc and pp installed. PP generic preprocessor can be found at
+https://github.com/CDSoft/pp. It is used in doc Makefile to cut out Windows-specific
+parts from Linux manuals and to generate OS-specific variants of web-based documentation.
 
 All files in the *generated* directory are automatically generated and updated by the
 nvml-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to the

@@ -41,7 +41,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmem_memcpy\TEST1"
+$Env:UNITTEST_NAME = "pmem_memcpy/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 

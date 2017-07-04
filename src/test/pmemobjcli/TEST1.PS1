@@ -1,4 +1,3 @@
-#!/bin/bash -e
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -38,7 +37,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmemobjcli\TEST1"
+$Env:UNITTEST_NAME = "pmemobjcli/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 . ..\unittest\unittest.ps1
@@ -47,7 +46,7 @@ require_test_type medium
 
 setup
 
-$POOL = "$DIR/testfile"
+$POOL = "$DIR\testfile"
 $SCRIPT = "..\tools\pmemobjcli\pmemobjcli_example_tx.posc"
 $LOG = "out${Env:UNITTEST_NUM}.log"
 

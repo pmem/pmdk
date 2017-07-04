@@ -54,7 +54,7 @@ if [[ -z "$1" ]]; then
 fi
 
 # Check if the image tagged with nvml/OS-VER exists locally
-if [[ ! $(sudo docker images -a | awk -v pattern="^pmem/nvml:$1\$" \
+if [[ ! $(docker images -a | awk -v pattern="^pmem/nvml:$1\$" \
 	'$1":"$2 ~ pattern') ]]
 then
 	echo "ERROR: wrong argument."
@@ -63,8 +63,8 @@ then
 fi
 
 # Log in to the Docker Hub
-sudo docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
+docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
 
 # Push the image to the repository
-sudo docker push pmem/nvml:$1
+docker push pmem/nvml:$1
 

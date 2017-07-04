@@ -41,7 +41,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_is_poolset\TEST0"
+$Env:UNITTEST_NAME = "util_is_poolset/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 
@@ -57,8 +57,9 @@ setup
 create_poolset $DIR\pool.set 32K:$DIR\testfile:x
 expect_normal_exit $PMEMPOOL create obj $DIR\pool.obj
 
-Set-Content -Path $DIR\not_pool.set -Value "NON_PMEMPOOLSET"
-Set-Content -Path $DIR\too_short.set -Value "PMEMPOOL"
+Set-Content -literalpath $DIR\not_pool.set -Value "NON_PMEMPOOLSET"
+Set-Content -literalpath $DIR\too_short.set -Value "PMEMPOOL"
+
 touch $DIR\empty.set
 expect_normal_exit $Env:EXE_DIR\util_is_poolset$Env:EXESUFFIX `
     $DIR\pool.set `

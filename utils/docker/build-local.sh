@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,50 +31,60 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# build.sh - runs a Docker container from a Docker image with environment
-#            prepared for building NVML project.
+# build-local.sh - runs a Docker container from a Docker image with environment
+#                  prepared for building NVML project and starts building NVML
+#
+# this script is for building NVML locally (not on Travis)
+#
+# Notes:
+# - run this script from its location or set the variable 'HOST_WORKDIR' to
+#   where the root of the NVML project is on the host machine,
+# - set variables 'OS' and 'OS_VER' properly to a system you want to build NVML
+#   on (for proper values take a look on the list of Dockerfiles at the
+#   utils/docker/images directory), eg. OS=ubuntu, OS_VER=16.04.
+# - set 'KEEP_TEST_CONFIG' variable to 1 if you do not want the tests to be
+#   reconfigured (your current test configuration will be preserved and used)
+# - tests with Device Dax are not supported by pcheck yet, so do not provide
+#   these devices in your configuration
 #
 
-if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
-	&& "$COVERITY" -eq 1 ]]; then
-	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
-		"'cron' nor by a push to 'coverity_scan' branch"
-	exit 0
-fi
+# Environment variables that can be customized (default values are after dash):
+export KEEP_CONTAINER=${KEEP_CONTAINER:-0}
+export KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
+export TEST_BUILD=${TEST_BUILD:-all}
+export REMOTE_TESTS=${REMOTE_TESTS:-1}
+export MAKE_PKG=${MAKE_PKG:-0}
+export EXTRA_CFLAGS=${EXTRA_CFLAGS:--DUSE_VALGRIND}
+export EXTRA_CXXFLAGS=${EXTRA_CXXFLAGS:-}
+export NVML_CC=${NVML_CC:-gcc}
+export NVML_CXX=${NVML_CXX:-g++}
+export USE_LLVM_LIBCPP=${USE_LLVM_LIBCPP:-}
+export LIBCPP_LIBDIR=${LIBCPP_LIBDIR:-}
+export LIBCPP_INCDIR=${LIBCPP_INCDIR:-}
+export EXPERIMENTAL=${EXPERIMENTAL:-n}
 
-if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
-	&& "$COVERITY" -ne 1 ]]; then
-	echo "INFO: Skip regular jobs if build is triggered either by 'cron'" \
-		" or by a push to 'coverity_scan' branch"
-	exit 0
-fi
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
-	echo "ERROR: The variables OS and OS_VER have to be set properly " \
+	echo "ERROR: The variables OS and OS_VER have to be set " \
 		"(eg. OS=ubuntu, OS_VER=16.04)."
 	exit 1
 fi
 
 if [[ -z "$HOST_WORKDIR" ]]; then
-	echo "ERROR: The variable HOST_WORKDIR has to contain a path to " \
-		"the root of the nvml project on the host machine"
-	exit 1
+	HOST_WORKDIR=$(readlink -f ../..)
 fi
 
-if [[ -z "$TEST_BUILD" ]]; then
-	TEST_BUILD=all
+if [[ "$KEEP_CONTAINER" != "1" ]]; then
+	RM_SETTING=" --rm"
 fi
 
 imageName=pmem/nvml:${OS}-${OS_VER}
 containerName=nvml-${OS}-${OS_VER}
 
-if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
-if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
-if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; ci_env=`bash <(curl -s https://codecov.io/env)`; fi
-
-if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
-	&& "$COVERITY" -eq 1 ]]; then
-	command="./run-coverity.sh"
+if [[ $MAKE_PKG -eq 1 ]] ; then
+	command="./run-build-package.sh"
+else
+	command="./run-build.sh"
 fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
@@ -82,13 +92,15 @@ if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 WORKDIR=/nvml
 SCRIPTSDIR=$WORKDIR/utils/docker
 
+echo Building ${OS}-${OS_VER}
+
 # Run a container with
 #  - environment variables set (--env)
 #  - host directory containing nvml source mounted (-v)
 #  - working directory set (-w)
-sudo docker run --rm --privileged=true --name=$containerName -ti \
+docker run --privileged=true --name=$containerName -ti \
+	$RM_SETTING \
 	$DNS_SETTING \
-	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
 	--env CC=$NVML_CC \
@@ -99,20 +111,14 @@ sudo docker run --rm --privileged=true --name=$containerName -ti \
 	--env LIBCPP_LIBDIR=$LIBCPP_LIBDIR \
 	--env LIBCPP_INCDIR=$LIBCPP_INCDIR \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
+	--env CONFIGURE_TESTS=$CONFIGURE_TESTS \
 	--env TEST_BUILD=$TEST_BUILD \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env CLANG_FORMAT=clang-format-3.8 \
-	--env TRAVIS=$TRAVIS \
-	--env TRAVIS_COMMIT_RANGE=$TRAVIS_COMMIT_RANGE \
-	--env TRAVIS_COMMIT=$TRAVIS_COMMIT \
-	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
-	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
-	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
-	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
-	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
+	$DAX_SETTING \
 	-w $SCRIPTSDIR \
 	$imageName $command

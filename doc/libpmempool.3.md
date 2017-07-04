@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMPOOL(3)
+title: LIBPMEMPOOL!3
 header: NVM Library
 date: pmempool API version 1.1
 ...
@@ -60,42 +60,88 @@ date: pmempool API version 1.1
 cc -std=gnu99 ... -lpmempool -lpmem
 ```
 
+!ifdef{WIN32}
+{
+>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+basic API functions are expanded to UTF-8 API with postfix *U*,
+otherwise they are expanded to UNICODE API with postfix *W*.
+}
+
 ##### Health check functions: #####
 
 ```c
+!ifdef{WIN32}
+{
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
+struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
+struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
+}{
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
 	size_t args_size);
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
+}
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
 ##### Pool set synchronization and transformation: #####
 
 ```c
+!ifdef{WIN32}
+{
+int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
+int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
+	const char *poolset_file_dst, unsigned flags);
+int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
+	const wchar_t *poolset_file_dst, unsigned flags);
+}{
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
 	unsigned flags); (EXPERIMENTAL)
+}
 ```
 
 ##### Pool set management functions: #####
 
 ```c
+!ifdef{WIN32}
+{
+int pmempool_rmU(const char *path, int flags);
+int pmempool_rmW(const wchar_t *path, int flags);
+}{
 int pmempool_rm(const char *path, int flags);
+}
 ```
 
 ##### Library API versioning: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmempool_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmempool_check_versionW(unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
 ##### Error handling: #####
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmempool_errormsgU(void);
+const wchar_t *pmempool_errormsgW(void);
+}{
 const char *pmempool_errormsg(void);
+}
 ```
 
 
@@ -118,19 +164,19 @@ purposes also.
 # POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
-must be first initialized using **pmempool_check_init**()
+must be first initialized using !pmempool_check_init
 function described in this section. Once initialized
 *check context* is represented by an opaque handle, of
 type *PMEMpoolcheck\**, which is passed to all of the
 other functions described in this section.
 
-To execute check **pmempool_check**() must be called iteratively.
+To execute check !pmempool_check must be called iteratively.
 Each call resumes check till new status will be generated.
-Each status is represented by *struct pmempool_check_status\** structure.
+Each status is represented by !pmempool_check_status_ptr structure.
 It may carry various
 types of messages described in this section.
 
-When check is completed **pmempool_check**() returns NULL pointer.
+When check is completed !pmempool_check returns NULL pointer.
 Check must be finalized using **pmempool_check_end**().
 It returns *enum pmempool_check_result* describing
 result of the whole check.
@@ -139,16 +185,58 @@ result of the whole check.
 Currently, checking the consistency of a *pmemobj* pool is **not** supported.
 
 ```c
+!ifdef{WIN32}
+{
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
+}{
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
 	size_t args_size);
+}
 ```
 
-The **pmempool_check_init**() initializes check
+The !pmempool_check_init initializes check
 context. *args* describes parameters of the
 check context. *args_size* should be equal to
-the size of the *struct pmempool_check_args*.
-*struct pmempool_check_args* is defined as follows:
+the size of the !pmempool_check_args.
+!pmempool_check_args is defined as follows:
 
+!ifdef{WIN32}
+{
+```c
+struct pmempool_check_argsU
+{
+	/* path to the pool to check */
+	const char *path;
+
+	/* optional backup path */
+	const char *backup_path;
+
+	/* type of the pool */
+	enum pmempool_pool_type pool_type;
+
+	/* parameters */
+	int flags;
+};
+
+struct pmempool_check_argsW
+{
+	/* path to the pool to check */
+	const wchar_t *path;
+
+	/* optional backup path */
+	const wchar_t *backup_path;
+
+	/* type of the pool */
+	enum pmempool_pool_type pool_type;
+
+	/* parameters */
+	int flags;
+};
+```
+}{
 ```c
 struct pmempool_check_args
 {
@@ -165,7 +253,7 @@ struct pmempool_check_args
 	int flags;
 };
 ```
-
+}
 The *flags* argument accepts any combination of the following values (ORed):
 
 + **PMEMPOOL_CHECK_REPAIR** - perform repairs
@@ -176,7 +264,7 @@ The *flags* argument accepts any combination of the following values (ORed):
 + **PMEMPOOL_CHECK_FORMAT_STR** - generate string format statuses
 
 If provided parameters are invalid or initialization process fails
-**pmempool_check_init**() returns NULL and sets *errno*
+!pmempool_check_init returns NULL and sets *errno*
 appropriately. *pool_type* has to match type of the
 *pool* being processed. You can turn on pool type
 detection by setting *pool_type* to **PMEMPOOL_POOL_TYPE_DETECT**.
@@ -203,7 +291,7 @@ Pool sets with remote replicas are not supported neither as *path* nor as
 This is an example of a *check context* initialization:
 
 ```c
-struct pmempool_check_args args =
+struct pmempool_check_args!U args =
 {
 	.path = "/path/to/blk.pool",
 	.backup_path = NULL,
@@ -214,7 +302,7 @@ struct pmempool_check_args args =
 ```
 
 ```c
-PMEMpoolcheck *ppc = pmempool_check_init(&args, sizeof(args));
+PMEMpoolcheck *ppc = pmempool_check_init!U{}(&args, sizeof(args));
 ```
 
 The check will process a *pool* of type **PMEMPOOL_POOL_TYPE_BLK**
@@ -232,15 +320,47 @@ detailed information about the check (**PMEMPOOL_CHECK_VERBOSE**).
 format statuses (*struct pmempool_check_status*).
 Currently it is the only supported status format so this flag is required.
 
+!ifdef{WIN32}
+{
+```c
+struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
+struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
+```
+}{
 ```c
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 ```
+}
 
-The **pmempool_check**() function starts or resumes the check
+The !pmempool_check function starts or resumes the check
 indicated by *ppc*. When next status will be generated
 it pauses the check and returns a pointer to the
-*struct pmempool_check_status* structure:
+!pmempool_check_status structure:
 
+!ifdef{WIN32}
+{
+```c
+struct pmempool_check_statusU
+{
+	enum pmempool_check_msg_type type; /* type of the status */
+	struct
+	{
+		const char *msg; /* status message string */
+		const char *answer; /* answer to message if applicable */
+	} str;
+};
+
+struct pmempool_check_statusW
+{
+	enum pmempool_check_msg_type type; /* type of the status */
+	struct
+	{
+		const wchar_t *msg; /* status message string */
+		const wchar_t *answer; /* answer to message if applicable */
+	} str;
+};
+```
+}{
 ```c
 struct pmempool_check_status
 {
@@ -252,6 +372,7 @@ struct pmempool_check_status
 	} str;
 };
 ```
+}
 
 This structure can describe three types of statuses:
 
@@ -262,10 +383,10 @@ This structure can describe three types of statuses:
   **PMEMPOOL_CHECK_ALWAYS_YES** flag was not set. It requires *answer* to be
   set to "yes" or "no" before continuing.
 
-After calling **pmempool_check**() again the previously provided
-*struct pmempool_check_status\** pointer must be
+After calling !pmempool_check again the previously provided
+!pmempool_check_status_ptr pointer must be
 considered invalid. When the check completes
-**pmempool_check**() returns NULL pointer.
+!pmempool_check returns NULL pointer.
 
 ```c
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck* ppc);
@@ -290,23 +411,32 @@ return one of the following values:
 
 # POOL SET SYNCHRONIZATION AND TRANSFORMATION #
 
+Currently, the following operations are allowed only for **pmemobj** pools (see
+**libpmemobj**(3)).
+
 ### POOL SET SYNC ###
 
 ```c
+!ifdef{WIN32}
+{
+int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
+}{
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
+}
 ```
 
-The **pmempool_sync**() function synchronizes data between replicas within
+The !pmempool_sync function synchronizes data between replicas within
 a pool set.
 
-**pmempool_sync**() accepts two arguments:
+!pmempool_sync accepts two arguments:
 
 * *poolset_file* - a path to a pool set file,
 
 * *flags* - a combination of flags (ORed) which modify the way of
 synchronization.
 
-NOTE: Only the pool set file used to create the pool should be used
+>NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
 
 The following flags are available:
@@ -314,7 +444,7 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-**pmempool_sync**() function checks if metadata of all replicas in a pool set
+!pmempool_sync function checks if metadata of all replicas in a pool set
 are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
@@ -341,9 +471,6 @@ It supports the following operations:
 * removing one or more replicas,
 
 * reordering of replicas.
-
-Currently these operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(3)).
 
 
 **pmempool_transform**() accepts three arguments:
@@ -373,9 +500,9 @@ by 4096 bytes per each part file. The 4096 bytes of each part file is
 utilized for storing internal metadata of the pool part files.
 
 The function returns either 0 on success or -1 in case of error
-with proper errno set accordingly.
+with proper *errno* set accordingly.
 
->NOTE: The **pmempool_transform**() API is experimental and it may change in future
+>NOTE: The !pmempool_transform API is experimental and it may change in future
 versions of the library.
 
 # POOL SET MANAGEMENT FUNCTIONS: #
@@ -383,16 +510,23 @@ versions of the library.
 ### Removing pool ###
 
 ```c
+!ifdef{WIN32}
+{
+int pmempool_rmU(const char *path, int flags);
+int pmempool_rmW(const wchar_t *path, int flags);
+}{
 int pmempool_rm(const char *path, int flags);
+}
 ```
 
-The **pmempool_rm**() function removes pool pointed by *path*. The *path* can
+The !pmempool_rm function removes pool pointed by *path*. The *path* can
 point to either a regular file, device dax or pool set file. In case of pool
-set file the **pmempool_rm**() will remove all part files from local replicas
-using **unlink**(3) and all remote replicas using **rpmem_remove**()
-function (see **librpmem**(3)), before removing the pool set file itself.
+set file the !pmempool_rm will remove all part files from local replicas
+using **unlink**(3) and all remote replicas (supported on Linux)
+using **rpmem_remove**() function (see **librpmem**(3)),
+before removing the pool set file itself.
 
-The *flags* argument determines the behavior of **pmempool_rm**() function.
+The *flags* argument determines the behavior of !pmempool_rm function.
 It is either 0 or the bitwise OR of one or more of the following flags:
 
 + **PMEMPOOL_RM_FORCE**
@@ -405,25 +539,44 @@ Remove also local pool set file.
 + **PMEMPOOL_RM_POOLSET_REMOTE**
 Remove also remote pool set file.
 
+
+# CAVEATS #
+
+**libpmempool** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmempool_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmempool_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
 const char *pmempool_check_version(
 	unsigned major_required,
 	unsigned minor_required);
+}
 ```
 
-The **pmempool_check_version**() function is used to see if
+The !pmempool_check_version function is used to see if
 the installed **libpmempool** supports the version of the
 library API required by an application. The easiest way to
 do this for the application is to supply the compile-time
 version information, supplied by defines in **\<libpmempool.h\>**, like this:
 
 ```c
-reason = pmempool_check_version(PMEMPOOL_MAJOR_VERSION,
+reason = pmempool_check_version!U{}(PMEMPOOL_MAJOR_VERSION,
                                 PMEMPOOL_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -443,11 +596,11 @@ Interfaces added after version 1.0 will contain the text
 *introduced in version x.y* in the section of this manual
 describing the feature.
 
-When the version check performed by **pmempool_check_version**()
+When the version check performed by !pmempool_check_version
 is successful, the return value is NULL. Otherwise the
 return value is a static string describing the reason for
 failing the version check. The string returned by
-**pmempool_check_version**() must not be modified or freed.
+!pmempool_check_version must not be modified or freed.
 
 
 # DEBUGGING AND ERROR HANDLING #
@@ -463,10 +616,16 @@ application may retrieve an error message describing the
 reason of failure using the following function:
 
 ```c
+!ifdef{WIN32}
+{
+const char *pmempool_errormsgU(void);
+const wchar_t *pmempool_errormsgW(void);
+}{
 const char *pmempool_errormsg(void);
+}
 ```
 
-The **pmempool_errormsg**() function returns a pointer to a
+The !pmempool_errormsg function returns a pointer to a
 static buffer containing the last error message logged for
 current thread. The error message may include description of
 the corresponding error code (if *errno* was set), as returned
@@ -481,12 +640,13 @@ message string, but it may be modified by subsequent calls
 to other library functions.
 
 A second version of **libpmempool**, accessed when a program uses
-the libraries under **/usr/lib/nvml_debug**, contains
+the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**}, contains
 run-time assertions and trace points. The typical way to
 access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or
-**/usr/lib64/nvml_debug** depending on where the debug
-libraries are installed on the system. The trace points in
+**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
+{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
+libraries are installed on the system.
+The trace points in
 the debug version of the library are enabled using the
 environment variable **PMEMPOOL_LOG_LEVEL**, which can be
 set to the following values:
@@ -496,7 +656,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged (in addition to
 returning the *errno*-based errors as usual). The same information may be
-retrieved using **pmempool_errormsg**().
+retrieved using !pmempool_errormsg.
 
 + **2** - A trace of basic operations is logged.
 
@@ -525,7 +685,8 @@ If there are any issues detected, the pool is automatically repaired.
 
 ```c
 #include <stddef.h>
-#include <unistd.h>
+!ifdef{WIN32}{}
+{#include <unistd.h>}
 #include <stdlib.h>
 #include <stdio.h>
 #include <libpmempool.h>
@@ -538,11 +699,11 @@ int
 main(int argc, char *argv[])
 {
 	PMEMpoolcheck *ppc;
-	struct pmempool_check_status *status;
+	struct pmempool_check_status!U *status;
 	enum pmempool_check_result ret;
 
 	/* arguments for check */
-	struct pmempool_check_args args = {
+	struct pmempool_check_args!U args = {
 		.path		= PATH,
 		.backup_path	= NULL,
 		.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
@@ -550,13 +711,13 @@ main(int argc, char *argv[])
 	};
 
 	/* initialize check context */
-	if ((ppc = pmempool_check_init(&args, sizeof(args))) == NULL) {
-		perror("pmempool_check_init");
+	if ((ppc = pmempool_check_init!U{}(&args, sizeof(args))) == NULL) {
+		perror("pmempool_check_init!U");
 		exit(EXIT_FAILURE);
 	}
 
 	/* perform check and repair, answer 'yes' for each question */
-	while ((status = pmempool_check(ppc)) != NULL) {
+	while ((status = pmempool_check!U{}(ppc)) != NULL) {
 		switch (status->type) {
 		case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
 			printf("%s\n", status->str.msg);

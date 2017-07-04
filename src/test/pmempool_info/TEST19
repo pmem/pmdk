@@ -44,8 +44,7 @@ export UNITTEST_NUM=19
 require_test_type medium
 require_fs_type any
 require_dax_devices 2
-require_dax_device_alignment 0 4096
-require_dax_device_alignment 1 4096
+require_dax_device_alignments 4096 4096
 
 setup
 
@@ -56,10 +55,11 @@ rm -rf $LOG && touch $LOG
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $DEVICE_DAX_PATH >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info ${DEVICE_DAX_PATH[0]} >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info ${DEVICE_DAX_PATH[1]} >> $LOG
 
 check
 

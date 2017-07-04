@@ -197,19 +197,12 @@ public:
 	 *
 	 * The mutex must be locked for exclusive access by the calling
 	 * thread, otherwise results in undefined behavior.
-	 *
-	 * @throw lock_error when an error occurs, this includes all
-	 * system related errors with the underlying implementation of
-	 * the mutex.
 	 */
 	void
 	unlock()
 	{
 		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-		if (int ret = pmemobj_rwlock_unlock(pop, &this->plock))
-			throw lock_error(ret, std::system_category(),
-					 "Failed to unlock a"
-					 " shared mutex.");
+		(void)pmemobj_rwlock_unlock(pop, &this->plock);
 	}
 
 	/**
@@ -217,10 +210,6 @@ public:
 	 *
 	 * The mutex must be locked for shared access by the calling
 	 * thread, otherwise results in undefined behavior.
-	 *
-	 * @throw lock_error when an error occurs, this includes all
-	 * system related errors with the underlying implementation of
-	 * the mutex.
 	 */
 	void
 	unlock_shared()

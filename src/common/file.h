@@ -45,7 +45,7 @@ extern "C" {
 #include <dirent.h>
 
 #ifdef _WIN32
-#define NAME_MAX MAX_PATH
+#define NAME_MAX _MAX_FNAME
 #endif
 
 struct file_info {

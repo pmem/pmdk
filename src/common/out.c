@@ -120,6 +120,10 @@ Last_errormsg_get(void)
 	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
 		errormsg = Malloc(sizeof(struct errormsg));
+		if (errormsg == NULL)
+			FATAL("!malloc");
+		/* make sure it contains empty string initially */
+		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
 		if (ret)
 			FATAL("!os_tls_set");
@@ -388,7 +392,7 @@ out_common(const char *file, int line, const char *func, int level,
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	if (file) {
-		char *f = strrchr(file, DIR_SEPARATOR);
+		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
@@ -464,7 +468,7 @@ out_error(const char *file, int line, const char *func,
 		cc = 0;
 
 		if (file) {
-			char *f = strrchr(file, DIR_SEPARATOR);
+			char *f = strrchr(file, OS_DIR_SEPARATOR);
 			if (f)
 				file = f + 1;
 			ret = out_snprintf(&buf[cc], MAXPRINT,

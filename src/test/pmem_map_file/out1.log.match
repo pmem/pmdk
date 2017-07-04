@@ -52,6 +52,6 @@ mapped_len 4096
 $(nW) 4096 TSEC 666 1 1
 ftruncate: len 4096
 mapped_len 4096
-/$(nW)/nonexistingdir 4096 T 666 1 1
+$(nW)nonexistingdir 4096 T 666 1 1
 pmem_map_file: Invalid argument
 pmem_map_file$(nW)TEST1: DONE

@@ -455,8 +455,7 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 	}
 
 	rpmemd->pool = rpmemd_db_pool_create(rpmemd->db,
-			req->pool_desc,
-			0, (struct rpmem_pool_attr *)pool_attr);
+			req->pool_desc, 0, pool_attr);
 	if (!rpmemd->pool) {
 		ret = -1;
 		status = rpmemd_db_get_status(errno);

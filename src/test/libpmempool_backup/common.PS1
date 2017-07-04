@@ -32,10 +32,10 @@
 #
 # libpmempool_backup/common.PS1 -- functions for libpmempool_backup unittest
 #
-$POOLSET="$DIR/pool.set"
+$POOLSET="$DIR\pool.set"
 $BACKUP="_backup"
 $REPLICA="_replica"
-$POOL_PART="$DIR/pool.part"
+$POOL_PART="$DIR\pool.part"
 
 $OUT="out$Env:UNITTEST_NUM.log"
 $OUT_TEMP="out$Env:UNITTEST_NUM_temp.log"
@@ -119,7 +119,7 @@ function backup_and_compare () {
 	# backup
 	expect_normal_exit $Env:EXE_DIR\libpmempool_test$Env:EXESUFFIX `
 		-b $poolset$BACKUP -t $type -r 1 $poolset
-	cat -Encoding Ascii $OUT | Out-File -append -encoding ascii $OUT_TEMP
+	cat -Encoding Ascii $OUT | out-file -append -encoding ascii -literalpath $OUT_TEMP
 
 	# compare
 	if ($args.Count -gt 2 ) {

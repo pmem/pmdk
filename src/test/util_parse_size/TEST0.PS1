@@ -41,7 +41,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_parse_size\TEST0"
+$Env:UNITTEST_NAME = "util_parse_size/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 

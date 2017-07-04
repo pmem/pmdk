@@ -138,18 +138,12 @@ public:
 	 * Unlocking a mutex that has not been locked by the current
 	 * thread results in undefined behavior. Unlocking a mutex that
 	 * has not been lock also results in undefined behavior.
-	 *
-	 * @throw lock_error when an error occurs, this includes all
-	 * system related errors with the underlying implementation of
-	 * the mutex.
 	 */
 	void
 	unlock()
 	{
 		PMEMobjpool *pop = pmemobj_pool_by_ptr(this);
-		if (int ret = pmemobj_mutex_unlock(pop, &this->plock))
-			throw lock_error(ret, std::system_category(),
-					 "Failed to unlock a mutex.");
+		(void)pmemobj_mutex_unlock(pop, &this->plock);
 	}
 
 	/**

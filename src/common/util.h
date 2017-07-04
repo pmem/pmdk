@@ -151,6 +151,7 @@ util_clrbit(uint8_t *b, uint32_t i)
 #define util_bool_compare_and_swap32 __sync_bool_compare_and_swap
 #define util_bool_compare_and_swap64 __sync_bool_compare_and_swap
 #define util_fetch_and_add(ptr, value) __sync_fetch_and_add((ptr), value)
+#define util_fetch_and_sub(ptr, value) __sync_fetch_and_sub((ptr), value)
 #define util_popcount(value) __builtin_popcount(value)
 #else
 static __inline int
@@ -184,6 +185,9 @@ util_sync_fetch_and_add64(volatile LONGLONG *ptr, LONGLONG value)
 #define util_fetch_and_add(ptr, value)\
 	util_sync_fetch_and_add64((LONGLONG *)(ptr), (LONGLONG)(value))
 
+#define util_fetch_and_sub(ptr, value)\
+	util_sync_fetch_and_add64((LONGLONG *)(ptr), (LONGLONG)((-1) * value))
+
 #define util_popcount(value) __popcnt(value)
 #endif
 
@@ -206,12 +210,6 @@ char *util_concat_str(const char *s1, const char *s2);
 #define likely(x) (!!(x))
 #define unlikely(x) (!!(x))
 #endif
-#endif
-
-#ifndef _WIN32
-#define DIR_SEPARATOR '/'
-#else
-#define DIR_SEPARATOR '\\'
 #endif
 
 #if defined(__CHECKER__)

@@ -45,6 +45,15 @@ extern "C" {
 #include <stdio.h>
 #include <unistd.h>
 
+
+#ifndef _WIN32
+#define OS_DIR_SEPARATOR '/'
+#define OS_DIR_SEP_STR "/"
+#else
+#define OS_DIR_SEPARATOR '\\'
+#define OS_DIR_SEP_STR "\\"
+#endif
+
 struct iovec;
 
 /* os_flock */

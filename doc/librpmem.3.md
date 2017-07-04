@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBRPMEM(3)
+title: LIBRPMEM!3
 header: NVM Library
 date: rpmem API version 1.1
 ...
@@ -105,6 +105,10 @@ It utilizes appropriate persistency mechanism based on remote node's platform
 capabilities. The **librpmem** utilizes the **ssh** client to authenticate
 a user on remote node and for encryption of connection's out-of-band
 configuration data. See **SSH** section for details.
+
+The maximum replicated memory region size can not be bigger than the maximum
+locked-in-memory address space limit. See **memlock** in **limits.conf**(5)
+for more details.
 
 This library is for applications that use remote persistent memory directly,
 without the help of any library-supplied transactions or memory
@@ -259,6 +263,11 @@ lanes in parallel. The **rpmem_persist**() does not provide any locking mechanis
 thus the serialization of the calls shall be performed by the application if
 required.
 
+Each lane requires separate connection which is represented by the file descriptor.
+If system will run out of free file descriptors during **rpmem_create**() or
+**rpmem_open**() these functions will fail. See **nofile** in **limits.conf**(5)
+for more details.
+
 
 # TARGET NODE ADDRESS FORMAT #
 
@@ -359,6 +368,18 @@ storing internal metadata of the pool part files. The minimum size of a part
 file for a remote pool is defined as **RPMEM_MIN_PART** in **\<librpmem.h\>**.
 The minimum size of a remote pool allowed by the library is defined as
 **RPMEM_MIN_POOL** therein.
+
+# CAVEATS #
+
+**librpmem** relies on the library destructor being called from the main thread.
+For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+**librpmem** registers a pool as a single memory region. A Chelsio T4 and T5
+hardware can not handle a memory region greater than or equal to 8GB due to
+a hardware bug. So *pool_size* value for **rpmem_create**() and **rpmem_open**()
+using this hardware can not be greater than or equal to 8GB.
 
 # LIBRARY API VERSIONING #
 

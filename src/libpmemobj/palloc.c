@@ -173,6 +173,12 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (size != 0) {
 		struct alloc_class *c = heap_get_best_class(heap, size);
+		if (c == NULL) {
+			errno = EINVAL; /* missing aclass for that size */
+			ret = -1;
+			goto out;
+		}
+
 		/*
 		 * This bucket can only be released after the run lock is
 		 * acquired.
@@ -357,6 +363,7 @@ palloc_operation(struct palloc_heap *heap,
 	 * representation.
 	 */
 	if (existing_block.type == MEMORY_BLOCK_HUGE) {
+		ASSERTne(existing_bucket, NULL);
 		bucket_insert_block(existing_bucket, &existing_block);
 	}
 
