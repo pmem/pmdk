@@ -96,7 +96,8 @@ static struct rpmem_err_str_errno {
 	},
 	[RPMEM_ERR_NOEXIST] = {
 		.err	= ENOENT,
-		.str	= "Pool set doesn't exist",
+		.str	= "Pool set or its part doesn't exist or it is "
+				"unavailable",
 	},
 	[RPMEM_ERR_NOACCESS] = {
 		.err	= EACCES,
