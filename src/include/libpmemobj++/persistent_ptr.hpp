@@ -303,15 +303,6 @@ public:
 	static persistent_ptr<T>
 	pointer_to(T &ref)
 	{
-		/*
-		 * XXX do we really want this to happen automatically for the
-		 * whole object??
-		 *		auto oid = pmemobj_oid_from_ptr(&ref);
-		 *		if (!OID_IS_NULL(oid) &&
-		 *		    (pmemobj_tx_stage() == TX_STAGE_WORK)) {
-		 *			pmemobj_tx_add_range(oid, sizeof(T));
-		 *		}
-		 */
 		return persistent_ptr<T>(std::addressof(ref), 0);
 	}
 
