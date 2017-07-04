@@ -43,8 +43,10 @@
 #define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
 #define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)
 
-#define TX_RANGE_SIZE_MASK (8ULL - 1)
-#define TX_RANGE_ALIGN_SIZE(s) ((s + TX_RANGE_SIZE_MASK) & ~TX_RANGE_SIZE_MASK)
+#define TX_RANGE_MASK (8ULL - 1)
+#define TX_RANGE_MASK_LEGACY (32ULL - 1)
+
+#define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
 
 enum tx_state {
 	TX_STATE_NONE = 0,
