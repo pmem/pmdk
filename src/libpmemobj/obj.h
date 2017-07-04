@@ -121,6 +121,8 @@ struct pmemobjpool {
 
 	uint64_t root_size;
 
+	char pmem_reserved[512]; /* must be zeroed */
+
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
 	size_t size;		/* size of mapped region */
@@ -167,7 +169,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1548];
+	char unused2[1036];
 };
 
 /*

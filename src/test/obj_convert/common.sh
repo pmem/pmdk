@@ -108,7 +108,6 @@ run_scenarios_1_0() {
 			create_scenario_1_0 $i
 		done
 	fi
-
 	for i in "${sc[@]}"
 	do
 		verify_scenario_1_0 $i
