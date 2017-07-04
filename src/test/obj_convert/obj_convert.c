@@ -140,6 +140,7 @@ sc0_create(PMEMobjpool *pop)
 static void
 sc0_verify_abort(PMEMobjpool *pop)
 {
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct root));
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	UT_ASSERTeq(D_RW(rt)->value[0], 0);
 }
@@ -147,6 +148,7 @@ sc0_verify_abort(PMEMobjpool *pop)
 static void
 sc0_verify_commit(PMEMobjpool *pop)
 {
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct root));
 	TOID(struct root) rt = POBJ_ROOT(pop, struct root);
 	UT_ASSERTeq(D_RW(rt)->value[0], TEST_VALUE);
 }
@@ -416,13 +418,6 @@ sc7_verify_abort(PMEMobjpool *pop)
 	}
 
 	UT_ASSERTeq(nallocs, 0);
-
-	TX_BEGIN(pop) {
-		TOID(struct foo) f = TX_NEW(struct foo);
-		(void) f;
-	} TX_ONABORT {
-		UT_ASSERT(0);
-	} TX_END
 }
 
 static void

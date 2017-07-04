@@ -492,42 +492,6 @@ lane_tx_recover(struct lane_tx_layout *tx)
 	}
 }
 
-#define SOURCE_MAJOR_VERSION 1
-#define TARGET_MAJOR_VERSION 2
-
-static int
-util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
-{
-	uint32_t *p32 = addr;
-	uint32_t *p32end = (uint32_t *)((char *)addr + len);
-	uint32_t lo32 = 0;
-	uint32_t hi32 = 0;
-	uint64_t csum;
-
-	while (p32 < p32end)
-		if (p32 == (uint32_t *)csump) {
-			/* lo32 += 0; treat first 32-bits as zero */
-			p32++;
-			hi32 += lo32;
-			/* lo32 += 0; treat second 32-bits as zero */
-			p32++;
-			hi32 += lo32;
-		} else {
-			lo32 += le32toh(*p32);
-			++p32;
-			hi32 += lo32;
-		}
-
-	csum = (uint64_t)hi32 << 32 | lo32;
-
-	if (insert) {
-		*csump = htole64(csum);
-		return 1;
-	}
-
-	return *csump == htole64(csum);
-}
-
 int
 convert_v1_v2(void *psf, void *addr)
 {
@@ -535,11 +499,6 @@ convert_v1_v2(void *psf, void *addr)
 
 	pop = addr;
 	heap = (struct heap_layout *)((char *)addr + pop->heap_offset);
-	if (le32toh(pop->hdr.major) != SOURCE_MAJOR_VERSION)
-		return -1;
-
-	pop->hdr.major = htole32(TARGET_MAJOR_VERSION);
-	util_checksum(&pop->hdr, sizeof(pop->hdr), &pop->hdr.checksum, 1);
 
 	struct lane_layout *lanes =
 		(struct lane_layout *)((char *)addr + pop->lanes_offset);
