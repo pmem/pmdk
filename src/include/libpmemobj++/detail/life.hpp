@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -96,7 +96,7 @@ template <typename T, typename... Args>
 void
 create(typename if_not_array<T>::type *ptr, Args &&... args)
 {
-	::new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
+	new (static_cast<void *>(ptr)) T(std::forward<Args>(args)...);
 }
 
 /*

@@ -59,13 +59,13 @@ public:
 			this->arr[i] = 1;
 	}
 
-	foo(int val) : bar(val)
+	foo(const int &val) : bar(val)
 	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = val;
 	}
 
-	foo(int val, char arr_val) : bar(val)
+	foo(int &val, char arr_val) : bar(val)
 	{
 		for (int i = 0; i < TEST_ARR_SIZE; ++i)
 			this->arr[i] = arr_val;
