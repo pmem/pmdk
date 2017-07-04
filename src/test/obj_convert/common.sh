@@ -38,13 +38,13 @@
 # exits in the middle of transaction, so pool cannot be closed
 export MEMCHECK_DONT_CHECK_LEAKS=1
 
-verify_scenario_1_0() {
+verify_scenario_old() {
 	# convert tool always ask for confirmation, so say yes ;)
-	echo -e "y\ny\n" | expect_normal_exit\
+	yes | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1a &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1a va $1
 
-	echo -e "y\ny\n" | expect_normal_exit\
+	yes | expect_normal_exit\
 		$PMEMPOOL$EXESUFFIX convert $DIR/scenario$1c &> /dev/null
 	expect_normal_exit ./obj_convert$EXESUFFIX $DIR/scenario$1c vc $1
 }
@@ -64,8 +64,14 @@ create_scenario() {
 		./obj_convert$EXESUFFIX $DIR/scenario$2c c $2 &> /dev/null
 }
 
+#PATH_TO_1_0_DBG=/../nvml/src/debug
 create_scenario_1_0() {
 	create_scenario $PATH_TO_1_0_DBG $1
+}
+
+#PATH_TO_1_2_DBG=/../nvml2/src/debug
+create_scenario_1_2() {
+	create_scenario $PATH_TO_1_2_DBG $1
 }
 
 create_scenario_head() {
@@ -111,7 +117,26 @@ run_scenarios_1_0() {
 
 	for i in "${sc[@]}"
 	do
-		verify_scenario_1_0 $i
+		verify_scenario_old $i
+	done
+}
+
+run_scenarios_1_2() {
+	sc=("$@")
+
+	if [ -z ${PATH_TO_1_2_DBG+x} ];
+	then
+		tar -xzf pools_1_2.tar.gz -C $DIR
+	else
+		for i in "${sc[@]}"
+		do
+			create_scenario_1_2 $i
+		done
+	fi
+
+	for i in "${sc[@]}"
+	do
+		verify_scenario_old $i
 	done
 }
 
@@ -120,5 +145,8 @@ run_scenarios() {
 	clear_scenarios $@
 
 	run_scenarios_1_0 $@
+	clear_scenarios $@
+
+	run_scenarios_1_2 $@
 	clear_scenarios $@
 }

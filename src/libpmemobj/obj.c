@@ -730,6 +730,10 @@ obj_boot(PMEMobjpool *pop)
 		return errno;
 	}
 
+	pop->conversion_flags = 0;
+	pmemops_persist(&pop->p_ops,
+		&pop->conversion_flags, sizeof(pop->conversion_flags));
+
 	return 0;
 }
 
@@ -787,6 +791,13 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pmemops_persist(p_ops, &pop->root_offset, sizeof(pop->root_offset));
 	pop->root_size = 0;
 	pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
+
+	pop->conversion_flags = 0;
+	pmemops_persist(p_ops, &pop->conversion_flags,
+		sizeof(pop->conversion_flags));
+
+	pmemops_memset_persist(p_ops, pop->pmem_reserved, 0,
+		sizeof(pop->pmem_reserved));
 
 	return 0;
 }
@@ -1049,27 +1060,6 @@ obj_replica_fini(struct pool_replica *repset)
 }
 
 /*
- * obj_root_restore_size -- (internal) restore the value of 'root_size' field
- *	based on the old version of the allocation header
- *
- * This is needed for backward compatibility with the old version of the layout
- * where the root size was stored inside of the object itself.
- */
-static void
-obj_root_restore_size(PMEMobjpool *pop)
-{
-	if (pop->root_offset != 0 && pop->root_size == 0) {
-		uint64_t off = pop->root_offset;
-		off -= sizeof(struct allocation_header_legacy);
-		struct allocation_header_legacy *hdr = OBJ_OFF_TO_PTR(pop, off);
-		pop->root_size = hdr->root_size;
-
-		struct pmem_ops *p_ops = &pop->p_ops;
-		pmemops_persist(p_ops, &pop->root_size, sizeof(pop->root_size));
-	}
-}
-
-/*
  * obj_runtime_init -- (internal) initialize runtime part of the pool header
  */
 static int
@@ -1083,8 +1073,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	if (pop->run_id == 0)
 		pop->run_id += 2;
 	pmemops_persist(p_ops, &pop->run_id, sizeof(pop->run_id));
-
-	obj_root_restore_size(pop);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
