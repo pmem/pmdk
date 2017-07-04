@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ template <typename T, typename... Args>
 int
 obj_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 {
-	auto *arg_pack = static_cast<std::tuple<Args...> *>(arg);
+	auto *arg_pack = static_cast<std::tuple<Args &...> *>(arg);
 
 	typedef typename make_index_sequence<Args...>::type index;
 	try {
