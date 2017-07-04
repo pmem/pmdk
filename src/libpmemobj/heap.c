@@ -640,6 +640,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 		for (uint32_t i = 0; i < z->header.size_idx; ) {
 			struct chunk_header *hdr = &z->chunk_headers[i];
 			switch (hdr->type) {
+				case CHUNK_TYPE_FREE:
 				case CHUNK_TYPE_USED:
 					heap_chunk_write_footer(hdr,
 						hdr->size_idx);
