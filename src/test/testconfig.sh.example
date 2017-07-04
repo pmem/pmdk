@@ -130,6 +130,10 @@ TM=1
 #
 # There can be only one device dax specified for each node.
 #
+# All remote tests assume the master replica is present on a node of index 1.
+# So the size of device dax on the node of index 1 should not be bigger than
+# a size of device dax devices on other nodes.
+#
 #NODE_DEVICE_DAX_PATH[0]=/dev/dax0.0
 #NODE_DEVICE_DAX_PATH[1]=/dev/dax0.0
 #NODE_DEVICE_DAX_PATH[2]=/dev/dax0.0
