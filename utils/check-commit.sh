@@ -56,7 +56,7 @@ else
 fi
 
 # valid area names
-AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|jemalloc\|cpp\|doc\|common"
+AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|cpp\|doc\|common"
 
 # Check commit message
 for commit in $commits; do
