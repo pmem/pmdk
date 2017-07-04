@@ -1,7 +1,7 @@
 obj_persist_count$(nW)TEST0: START: obj_persist_count
  $(nW)obj_persist_count$(nW) $(nW)testfile
 persist	;msync	;flush	;drain	;task
-0	;12	;0	;0	;pool_create
+0	;15	;0	;0	;pool_create
 0	;8	;0	;0	;root_alloc
 0	;2	;0	;0	;atomic_alloc
 0	;1	;0	;0	;atomic_free

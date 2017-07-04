@@ -541,7 +541,11 @@ tx_foreach_set(PMEMobjpool *pop, struct tx *tx, struct tx_undo_runtime *tx_rt,
 				break;
 
 			cb(pop, tx, range);
-			cache_offset += TX_RANGE_ALIGN_SIZE(range->size) +
+
+			size_t amask = pop->conversion_flags &
+				CONVERSION_FLAG_OLD_SET_CACHE ?
+				TX_RANGE_MASK_LEGACY : TX_RANGE_MASK;
+			cache_offset += TX_ALIGN_SIZE(range->size, amask) +
 				sizeof(struct tx_range);
 		}
 	}
@@ -1681,7 +1685,7 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_add_range_args *args)
 
 	uint64_t data_offset = args->offset;
 	uint64_t data_size = args->size;
-	uint64_t range_size = TX_RANGE_ALIGN_SIZE(args->size) +
+	uint64_t range_size = TX_ALIGN_SIZE(args->size, TX_RANGE_MASK) +
 		sizeof(struct tx_range);
 
 	if (remaining_space < range_size) {

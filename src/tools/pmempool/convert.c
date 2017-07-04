@@ -116,6 +116,7 @@ static convert_func version_convert[] = {
 	NULL, /* from version 0 to version 1 - does not exist */
 	convert_v1_v2, /* from v1 to v2 */
 	convert_v2_v3, /* from v2 to v3 */
+	convert_v3_v4, /* from v3 to v4 */
 };
 
 /*
@@ -248,7 +249,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	}
 
 	if (i != m) /* at least one step has been performed */
-		printf("The pool has been converted to version %d\n.", i);
+		printf("The pool has been converted to version %d\n", i);
 
 	util_persist_auto(psf->poolset->replica[0]->part[0].is_dev_dax, pop,
 			psf->size);
@@ -262,6 +263,7 @@ out:
 				util_unmap_hdr(part);
 		}
 	}
+
 	pool_set_file_close(psf);
 
 	return ret;

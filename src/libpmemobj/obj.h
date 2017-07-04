@@ -53,7 +53,7 @@
 
 /* attributes of the obj memory pool format for the pool header */
 #define OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
-#define OBJ_FORMAT_MAJOR 3
+#define OBJ_FORMAT_MAJOR 4
 #define OBJ_FORMAT_COMPAT 0x0000
 #define OBJ_FORMAT_INCOMPAT 0x0000
 #define OBJ_FORMAT_RO_COMPAT 0x0000
@@ -102,6 +102,8 @@ typedef void *(*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
 
 typedef uint64_t type_num_t;
 
+#define CONVERSION_FLAG_OLD_SET_CACHE ((1ULL) << 0)
+
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
 
@@ -120,6 +122,14 @@ struct pmemobjpool {
 	uint64_t run_id;
 
 	uint64_t root_size;
+
+	/*
+	 * These flags can be set from a conversion tool and are set only for
+	 * the first recovery of the pool.
+	 */
+	uint64_t conversion_flags;
+
+	char pmem_reserved[512]; /* must be zeroed */
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
@@ -167,7 +177,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1548];
+	char unused2[1028];
 };
 
 /*

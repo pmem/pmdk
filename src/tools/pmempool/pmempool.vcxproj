@@ -42,6 +42,7 @@
     <ClCompile Include="common.c" />
     <ClCompile Include="convert.c" />
     <ClCompile Include="convert_obj_v1_v2.c" />
+    <ClCompile Include="convert_obj_v3_v4.c" />
     <ClCompile Include="create.c" />
     <ClCompile Include="dump.c" />
     <ClCompile Include="info.c" />
