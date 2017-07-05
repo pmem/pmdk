@@ -56,7 +56,7 @@ create_poolset $DIR\pool.set 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z `
 
 # Check if pool set file exists
 check_files `
-	$DIR\pool.set
+	$DIR\pool.set `
 	$DIR\pool.part1 `
 	$DIR\pool.part2 `
 	$DIR\rep.part1 `
