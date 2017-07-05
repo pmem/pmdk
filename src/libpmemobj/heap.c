@@ -583,7 +583,8 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 			heap->rt->alloc_classes,
 			run->block_size);
 		if (c != NULL && c->type == CLASS_RUN &&
-				c->run.size_idx == m->size_idx) {
+				c->run.size_idx == m->size_idx &&
+				c->header_type == m->header_type) {
 			recycler_put(heap->rt->recyclers[c->id], m);
 		}
 	}
