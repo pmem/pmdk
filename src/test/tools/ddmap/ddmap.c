@@ -57,8 +57,8 @@ struct ddmap_context {
 	char *file_in;	/* input file name */
 	char *file_out;	/* output file name */
 	char *str;	/* string data to write */
-	off_t offset;	/* offset from beginning of file for read/write */
-			/* operations */
+	off_t offset_in;	/* offset from beginning of input file for */
+			/* read/write operations */
 	off_t offset_out;	/* offset from beginning of output file for */
 			/* read/write operations */
 	size_t len;	/* number of bytes to read */
@@ -81,7 +81,7 @@ print_usage(void)
 	printf("-i FILE           - read from FILE\n");
 	printf("-o FILE           - write to FILE\n");
 	printf("-d STRING         - STRING to be written\n");
-	printf("-s N              - skip N bytes at start of input/output\n");
+	printf("-s N              - skip N bytes at start of input\n");
 	printf("-q N              - skip N bytes at start of output\n");
 	printf("-l N              - read or write up to N bytes at a time\n");
 	printf("-c                - compute checksum\n");
@@ -95,8 +95,8 @@ static const struct option long_options[] = {
 	{"input-file",	required_argument,	NULL,	'i'},
 	{"output-file",	required_argument,	NULL,	'o'},
 	{"string",	required_argument,	NULL,	'd'},
-	{"offset",	required_argument,	NULL,	's'},
-	{"skip-output",	required_argument,	NULL,	'q'},
+	{"offset-in",	required_argument,	NULL,	's'},
+	{"offset-out",	required_argument,	NULL,	'q'},
 	{"length",	required_argument,	NULL,	'l'},
 	{"checksum",	no_argument,		NULL, 	'c'},
 	{"help",	no_argument,		NULL,	'h'},
@@ -201,33 +201,37 @@ ddmap_write_data(const char *path, const char *data, off_t offset, size_t len)
  */
 static int
 ddmap_write_from_file(const char *path_in, const char *path_out,
-	off_t offset, off_t offset_out, size_t len)
+	off_t offset_in, off_t offset_out, size_t len)
 {
 	int fd;
 	char *src;
 	ssize_t file_in_size = util_file_get_size(path_in);
 
-	if ((size_t)file_in_size < len + (size_t)offset) {
+	if ((size_t)file_in_size < len + (size_t)offset_in) {
 		outv_err("offset with length exceed input file size");
 		return -1;
 	}
 
-	fd = os_open(path_in, O_RDONLY);
-	if (fd > 0) {
-		src = mmap(NULL, (size_t)file_in_size, PROT_READ, MAP_SHARED,
-			fd, 0);
-		os_close(fd);
-		if (src == MAP_FAILED) {
-			outv_err("error occurred while mapping input file");
+	if (!util_file_is_device_dax(path_in)) {
+		fd = os_open(path_in, O_RDONLY);
+		if (fd < 0) {
+			outv_err("invalid file path");
 			return -1;
 		}
-		src += offset;
-		ddmap_write_data(path_out, src, offset_out, len);
-		util_unmap(src, (size_t)file_in_size);
+
+		src = mmap(NULL, (size_t)file_in_size,  PROT_READ,
+			MAP_SHARED, fd, offset_in);
+		os_close(fd);
+		if (src == MAP_FAILED) {
+			outv_err("an error occurred while mapping input file");
+			return -1;
+		}
 	} else {
-		outv_err("invalid input file path");
-		return -1;
+		src = util_file_map_whole(path_in);
 	}
+	src += offset_in;
+	ddmap_write_data(path_out, src, offset_out, len);
+	util_unmap(src, (size_t)file_in_size);
 	return 0;
 }
 
@@ -261,7 +265,7 @@ ddmap_write(const char *path, const char *str, off_t offset, size_t len)
 }
 
 /*
- * compute_checksum -- (internal) compute checksum of a slice of an input file
+ * ddmap_checksum -- (internal) compute checksum of a slice of an input file
  */
 static int
 ddmap_checksum(const char *path, size_t len, off_t offset)
@@ -283,13 +287,12 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 			return -1;
 		}
 
-		src = mmap(NULL, len + (size_t)offset,  PROT_READ,
-			MAP_SHARED, sfd, 0);
+		src = mmap(NULL, len, PROT_READ, MAP_SHARED, sfd, offset);
+		os_close(sfd);
 		if (src == MAP_FAILED) {
 			outv_err("an error occurred while mapping file");
 			return -1;
 		}
-		os_close(sfd);
 	} else {
 		src = util_file_map_whole(path);
 	}
@@ -327,15 +330,17 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 		case 's':
 			offset = strtol(optarg, &endptr, 0);
 			if ((endptr && *endptr != '\0') || errno) {
-				outv_err("'%s' -- invalid offset", optarg);
+				outv_err("'%s' -- invalid input offset",
+					optarg);
 				return -1;
 			}
-			ctx->offset = offset;
+			ctx->offset_in = offset;
 			break;
 		case 'q':
 			offset = strtol(optarg, &endptr, 0);
 			if ((endptr && *endptr != '\0') || errno) {
-				outv_err("'%s' -- invalid offset", optarg);
+				outv_err("'%s' -- invalid output offset",
+					optarg);
 				return -1;
 			}
 			ctx->offset_out = offset;
@@ -399,22 +404,23 @@ do_ddmap(struct ddmap_context *ctx)
 {
 	if ((ctx->file_in != NULL) && (ctx->file_out != NULL)) {
 		if (ddmap_write_from_file(ctx->file_in, ctx->file_out,
-			ctx->offset, ctx->offset_out, ctx->len))
+			ctx->offset_in, ctx->offset_out, ctx->len))
 			return -1;
 		return 0;
 	}
 
 	if ((ctx->checksum == 1) && (ctx->file_in != NULL)) {
-		if (ddmap_checksum(ctx->file_in, ctx->len, ctx->offset))
+		if (ddmap_checksum(ctx->file_in, ctx->len, ctx->offset_in))
 			return -1;
 		return 0;
 	}
 
 	if (ctx->file_in != NULL) {
-		if (ddmap_read(ctx->file_in, ctx->offset, ctx->len))
+		if (ddmap_read(ctx->file_in, ctx->offset_in, ctx->len))
 			return -1;
 	} else { /* ctx->file_out != NULL */
-		if (ddmap_write(ctx->file_out, ctx->str, ctx->offset, ctx->len))
+		if (ddmap_write(ctx->file_out, ctx->str, ctx->offset_in,
+			ctx->len))
 			return -1;
 	}
 
