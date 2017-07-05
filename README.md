@@ -22,7 +22,7 @@ This tree contains a collection of libraries for using Non-Volatile Memory
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
 * **libvmem**, **libvmmalloc** -- volatile use of pmem
 * **libpmempool** -- persistent memory pool management
-* **librpmem** -- remote access to persistent memory (EXPERIMENTAL)
+* **librpmem** -- remote access to persistent memory
 
 and one command-line utility:
 
