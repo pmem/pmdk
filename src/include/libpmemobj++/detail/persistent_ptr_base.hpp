@@ -124,6 +124,7 @@ public:
 	persistent_ptr_base(persistent_ptr_base<U> const &r) noexcept
 		: oid(r.oid)
 	{
+		this->oid.off += calculate_offset<U>();
 		verify_type();
 	}
 
@@ -143,6 +144,7 @@ public:
 	persistent_ptr_base(persistent_ptr_base<U> const &r) noexcept
 		: oid(r.oid)
 	{
+		this->oid.off += calculate_offset<U>();
 		verify_type();
 	}
 
@@ -161,6 +163,9 @@ public:
 			decltype(static_cast<T *>(std::declval<Y *>()))>::type>
 	operator persistent_ptr_base<Y>() noexcept
 	{
+		/*
+		 * The offset conversion should not be required here.
+		 */
 		return persistent_ptr_base<Y>(this->oid);
 	}
 
@@ -345,6 +350,32 @@ protected:
 				oid.pool_uuid_lo)>::max();
 			oid.off = reinterpret_cast<decltype(oid.off)>(vptr);
 		}
+	}
+
+	/**
+	 * Calculate in-object offset for structures with inheritance.
+	 *
+	 * In case of the given inheritance:
+	 *
+	 *	  A   B
+	 *	   \ /
+	 *	    C
+	 *
+	 * A pointer to B *ptr = &C should be offset by sizeof(A). This function
+	 * calculates that offset.
+	 *
+	 * @return offset between to compatible pointer types to the same object
+	 */
+	template <typename U>
+	inline ptrdiff_t
+	calculate_offset() const
+	{
+		static const ptrdiff_t ptr_offset_magic = 0xDEADBEEF;
+
+		U *tmp{reinterpret_cast<U *>(ptr_offset_magic)};
+		T *diff = static_cast<T *>(tmp);
+		return reinterpret_cast<ptrdiff_t>(diff) -
+			reinterpret_cast<ptrdiff_t>(tmp);
 	}
 };
 
