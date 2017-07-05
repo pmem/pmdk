@@ -59,6 +59,8 @@ struct ddmap_context {
 	char *str;	/* string data to write */
 	off_t offset;	/* offset from beginning of file for read/write */
 			/* operations */
+	off_t offset_out;	/* offset from beginning of output file for */
+			/* read/write operations */
 	size_t len;	/* number of bytes to read */
 	int checksum;	/* compute checksum */
 };
@@ -80,6 +82,7 @@ print_usage(void)
 	printf("-o FILE           - write to FILE\n");
 	printf("-d STRING         - STRING to be written\n");
 	printf("-s N              - skip N bytes at start of input/output\n");
+	printf("-q N              - skip N bytes at start of output\n");
 	printf("-l N              - read or write up to N bytes at a time\n");
 	printf("-c                - compute checksum\n");
 	printf("-h                - print this usage info\n");
@@ -93,6 +96,7 @@ static const struct option long_options[] = {
 	{"output-file",	required_argument,	NULL,	'o'},
 	{"string",	required_argument,	NULL,	'd'},
 	{"offset",	required_argument,	NULL,	's'},
+	{"skip-output",	required_argument,	NULL,	'q'},
 	{"length",	required_argument,	NULL,	'l'},
 	{"checksum",	no_argument,		NULL, 	'c'},
 	{"help",	no_argument,		NULL,	'h'},
@@ -197,21 +201,33 @@ ddmap_write_data(const char *path, const char *data, off_t offset, size_t len)
  */
 static int
 ddmap_write_from_file(const char *path_in, const char *path_out,
-	off_t offset, size_t len)
+	off_t offset, off_t offset_out, size_t len)
 {
 	int fd;
 	char *src;
 	ssize_t file_in_size = util_file_get_size(path_in);
 
+	if ((size_t)file_in_size < len + (size_t)offset) {
+		outv_err("offset with length exceed input file size");
+		return -1;
+	}
+
 	fd = os_open(path_in, O_RDONLY);
 	if (fd > 0) {
-		src = mmap(NULL, (size_t)file_in_size, PROT_READ, MAP_PRIVATE,
+		src = mmap(NULL, (size_t)file_in_size, PROT_READ, MAP_SHARED,
 			fd, 0);
-		ddmap_write_data(path_out, src, offset, len);
-		util_unmap(src, (size_t)file_in_size);
 		os_close(fd);
-	} else
+		if (src == MAP_FAILED) {
+			outv_err("error occurred while mapping input file");
+			return -1;
+		}
+		src += offset;
+		ddmap_write_data(path_out, src, offset_out, len);
+		util_unmap(src, (size_t)file_in_size);
+	} else {
 		outv_err("invalid input file path");
+		return -1;
+	}
 	return 0;
 }
 
@@ -245,7 +261,7 @@ ddmap_write(const char *path, const char *str, off_t offset, size_t len)
 }
 
 /*
- * compute_checksum -- (internal) compute checksum of a portion of input file
+ * compute_checksum -- (internal) compute checksum of a slice of an input file
  */
 static int
 ddmap_checksum(const char *path, size_t len, off_t offset)
@@ -255,6 +271,11 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 	uint64_t checksum;
 	ssize_t filesize = util_file_get_size(path);
 
+	if ((size_t)filesize < len + (size_t)offset) {
+		outv_err("offset with length exceed file size");
+		return -1;
+	}
+
 	if (!util_file_is_device_dax(path)) {
 		sfd = os_open(path, O_RDONLY);
 		if (sfd < 0) {
@@ -262,23 +283,20 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 			return -1;
 		}
 
-		src = mmap(NULL, len,  PROT_READ, MAP_PRIVATE, sfd, 0);
+		src = mmap(NULL, len + (size_t)offset,  PROT_READ,
+			MAP_SHARED, sfd, 0);
+		if (src == MAP_FAILED) {
+			outv_err("an error occurred while mapping file");
+			return -1;
+		}
+		os_close(sfd);
 	} else {
 		src = util_file_map_whole(path);
 	}
 
-	if (offset != 0) {
-		if ((size_t)offset < (size_t)filesize)
-			src += offset;
-		else
-			outv_err("offset beyond the file");
-	}
-
+	src += offset;
 	util_checksum(src, len, &checksum, 1);
 	util_unmap(src, (size_t)filesize);
-
-	if (sfd > 0)
-		os_close(sfd);
 
 	printf("%" PRIu64 "\n", checksum);
 	return 0;
@@ -294,7 +312,7 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 	char *endptr;
 	off_t offset;
 	size_t length;
-	while ((opt = getopt_long(argc, argv, "i:o:d:s:l:chv",
+	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:l:chv",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'i':
@@ -313,6 +331,14 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 				return -1;
 			}
 			ctx->offset = offset;
+			break;
+		case 'q':
+			offset = strtol(optarg, &endptr, 0);
+			if ((endptr && *endptr != '\0') || errno) {
+				outv_err("'%s' -- invalid offset", optarg);
+				return -1;
+			}
+			ctx->offset_out = offset;
 			break;
 		case 'l':
 			length = strtoul(optarg, &endptr, 0);
@@ -347,8 +373,8 @@ static int
 validate_args(struct ddmap_context *ctx)
 {
 	if ((ctx->file_in == NULL) && (ctx->file_out == NULL)) {
-		outv_err("either input file, output file or both files must"
-			" be provided");
+		outv_err("an input file and/or an output file must be "
+			"provided");
 		return -1;
 	} else if (ctx->file_out == NULL) {
 		if (ctx->len == 0) {
@@ -373,7 +399,7 @@ do_ddmap(struct ddmap_context *ctx)
 {
 	if ((ctx->file_in != NULL) && (ctx->file_out != NULL)) {
 		if (ddmap_write_from_file(ctx->file_in, ctx->file_out,
-			ctx->offset, ctx->len))
+			ctx->offset, ctx->offset_out, ctx->len))
 			return -1;
 		return 0;
 	}
