@@ -56,7 +56,7 @@ create_poolset $DIR\pool.set 32M:$DIR\pool.part1:z 32M:$DIR\pool.part2:z `
 
 # Check if pool set file exists
 check_files `
-	$DIR\pool.set
+	$DIR\pool.set `
 	$DIR\pool.part1 `
 	$DIR\pool.part2 `
 	$DIR\rep.part1 `
@@ -69,7 +69,7 @@ x
 n
 y
 N
-"@ | expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il $DIR/pool.set 2>&1 | out-file -width 1024 $LOG
+"@ | &$PMEMPOOL$EXESUFFIX rm -il $DIR/pool.set 2>&1 | out-file -width 1024 -literalpath $LOG
 
 check_no_files `
 	$DIR/pool.part1 `
