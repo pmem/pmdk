@@ -1,4 +1,116 @@
 
+Wed Jul 05 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.3
+	This release introduces some useful features and optimizations
+	in libpmemobj.  Most of them are experimental and controlled by
+	the new pmemobj_ctl APIs.  For details, please check the feature
+	requests identified by the issue numbers listed next to the items below.
+
+	Other important changes are related to performance tuning and
+	stabilization of librpmem library, which is used by libpmemobj to get
+	remote access to persistent memory and to provide basic data replication
+	over RDMA.  The librpmem is no longer considered experimental.
+
+	NVML for Windows is feature complete (except for libvmmalloc).
+	This release includes the support for Unicode, long paths and
+	the NVML installer.
+
+	New features:
+	- common: add support for concatenated DAX Devices
+	- common: add Unicode support on Windows
+	- common: add long path support on Windows
+	- common: add NVML installer for Windows
+	- pmem: make pmem_is_pmem() true for Device DAX only
+	- obj: add pmemobj_wcsdup()/pmemobj_tx_wcsdup() APIs
+	- obj: export non-inlined pmemobj_direct()
+	- obj: add PMEMOBJ_NLANES env variable
+	- cpp: introduce the allocator
+	- cpp: add wstring version of C++ entry points
+	- vmem: add vmem_wcsdup() API entry
+	- rpmem: add rpmem_set_attr() API entry
+	- rpmem: switch to libfabric v1.4.2
+	- pool: add pmempool_rm() function (#307)
+	- pool: add --force flag for create command (#529)
+	- benchmark: add a minimal execution time option
+	- benchmark: add thread affinity option
+	- benchmark: print 99% and 99.9% percentiles
+	- doc: separate Linux/Windows version of web-based man pages
+
+	Optimizations:
+	- obj: cache _pobj_cached_pool in pmemobj_direct()
+	- obj: optimize thread utilization of buckets
+	- obj: stop grabbing a lock when querying pool ptr
+	- rpmem: use multiple endpoints
+
+	Bug fixes:
+	- common: fix issues reported by static code analyzers
+	- pmem: fix mmap() implementation on Windows
+	- pmem: fix mapping addr/length alignment on Windows
+	- pmem: fix PMEM_MMAP_HINT implementation on Windows
+	- pmem: fix pmem_is_pmem() on invalid memory ranges
+	- pmem: fix wrong is_pmem returned by pmem_map_file()
+	- pmem: fix mprotect() for private mappings on Windows
+	- pmem: modify pmem_is_pmem() behavior for len==0
+	- obj: add failsafe to prevent allocs in constructor
+	- cpp: fix swap implementation
+	- cpp: fix sync primitives' constructors
+	- cpp: fix wrong pointer type in the allocator
+	- cpp: return persistent_ptr::swap to being public
+	- pool: treat invalid answer as 'n'
+	- pool: unify flags value for dry run
+	- pool: transform for remote replicas
+	- rpmem: persistency method detection
+	- benchmark: fix time measurement
+
+	Experimental features/optimizations:
+	- obj: pmemobjctl - statistics and control submodule (#194, #211)
+	- obj: zero-overhead allocations - customizable alloc header (#347)
+	- obj: flexible run size index (#377)
+	- obj: dynamic range cache (#378)
+	- obj: asynchronous post-commit (#381)
+	- obj: configurable object cache (#515)
+	- obj: add cache size and threshold tx params
+	- obj: add CTL var for suppressing expensive checks
+
+Thu May 18 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2.3
+	Bug fixes:
+	- test: extend timeout for selected tests
+	- test: reduce number of operations in obj_tx_mt
+	- test: define cfree() as free() in vmmalloc_calloc
+
+	Other changes:
+	- common: move Docker images to new repo
+
+Sat Apr 15 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2.2
+	Bug fixes:
+	- pmempool: fix mapping type in pool_params_parse
+	- test: limit number of arenas in vmem_stats
+	- test: do not run pool_lock test as root
+	- common: fix pkg-config files
+	- common: fix building packages for Debian
+
+Tue Feb 21 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.2.1
+	This NVML release changes the behavior of pmem_is_pmem() on Linux.
+	The pmem_is_pmem() function will now return true only if the entire
+	range is mapped directly from Device DAX (/dev/daxX.Y) without an
+	intervening file system, and only if the corresponding file mapping
+	was created with pmem_map_file().  See libpmem(3) for details.
+
+	Bug fixes:
+	- jemalloc: fix test compilation on Fedora 26 (rawhide)
+	- test: fix cpp test compilation on Fedora 26 (rawhide)
+	- common: use same queue.h on linux and windows
+	- common: queue.h clang static analyzer fix
+	- common: fix path handling in build-dpkg.sh
+	- test: fix match files in pmempool_transform/TEST8
+
 Fri Dec 30 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.2 - Windows Technical Preview #1
