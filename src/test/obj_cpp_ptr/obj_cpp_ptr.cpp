@@ -314,6 +314,37 @@ test_ptr_array(nvobj::pool<root> &pop)
 	for (int i = 0; i < TEST_ARR_SIZE; ++i)
 		UT_ASSERTeq(r->parr[i], 0);
 }
+
+/*
+ * test_offset -- test offset calculation within a hierarchy
+ */
+void
+test_offset(nvobj::pool<root> &pop)
+{
+	struct A {
+		uint64_t a;
+	};
+
+	struct B {
+		uint64_t b;
+	};
+
+	struct C : public A, public B {
+		uint64_t c;
+	};
+
+	try {
+		nvobj::transaction::exec_tx(pop, [&pop] {
+			auto cptr = nvobj::make_persistent<C>();
+			nvobj::persistent_ptr<B> bptr = cptr;
+			UT_ASSERT((bptr.raw().off - cptr.raw().off) ==
+				  sizeof(A));
+			nvobj::delete_persistent<C>(cptr);
+		});
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+}
 }
 
 int
@@ -339,6 +370,7 @@ main(int argc, char *argv[])
 	test_ptr_atomic(pop);
 	test_ptr_transactional(pop);
 	test_ptr_array(pop);
+	test_offset(pop);
 
 	pop.close();
 
