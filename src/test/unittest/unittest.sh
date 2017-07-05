@@ -1663,7 +1663,7 @@ function copy_files_from_node() {
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local temp_file=node_${N}_temp_file.tar
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR
+	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR > /dev/null
 	cd $DEST_DIR \
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
@@ -1978,7 +1978,7 @@ function check() {
 		done
 
 		for N in $NODES_SEQ; do
-			[ "${NODE_SCP_MATCH_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_MATCH_FILES[$N]} .
+			[ "${NODE_SCP_MATCH_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_MATCH_FILES[$N]} . > /dev/null
 			for file in ${NODE_MATCH_FILES[$N]}; do
 				mv $file node_${N}_${file}
 			done
@@ -2396,7 +2396,7 @@ function copy_common_to_remote_nodes() {
 		# create the working dir if it does not exist
 		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p ${NODE_WORKING_DIR[$N]}"
 		# copy all common files
-		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]}
+		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]} > /dev/null
 		# unpack libraries
 		run_command ssh $SSH_OPTS ${NODE[$N]} "cd ${NODE_WORKING_DIR[$N]} \
 			&& tar -xf $LIBS_TAR && rm -f $LIBS_TAR"
@@ -2433,7 +2433,7 @@ function copy_test_to_remote_nodes() {
 		# create a new test dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
 		# copy all required files
-		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR
+		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR > /dev/null
 	done
 
 	return 0
