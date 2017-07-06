@@ -538,12 +538,12 @@ function require_build_type {
         if ($args[$i] -eq $Env:BUILD) {
             return
         }
-
-        if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
-        }
-        exit 0
     }
+
+    if (-Not $Env:UNITTEST_QUIET) {
+        echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
+    }
+    exit 0
 }
 
 #
