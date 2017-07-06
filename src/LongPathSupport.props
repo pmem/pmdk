@@ -8,5 +8,4 @@
       <AdditionalManifestFiles>$(SolutionDir)LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <ItemGroup />
 </Project>
