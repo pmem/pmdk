@@ -45,7 +45,7 @@
 #define TEST_MEGA_ALLOC_SIZE (10 * 1024 * 1024)
 #define TEST_HUGE_ALLOC_SIZE (4 * 255 * 1024)
 #define TEST_SMALL_ALLOC_SIZE (1000)
-#define TEST_MEDIUM_ALLOC_SIZE (10000)
+#define TEST_MEDIUM_ALLOC_SIZE (1024 * 200)
 #define TEST_TINY_ALLOC_SIZE (64)
 #define TEST_RUNS 2
 
@@ -119,7 +119,7 @@ obj_memset(void *ctx, void *ptr, int c, size_t sz)
 	return ptr;
 }
 
-static void
+static size_t
 test_oom_allocs(size_t size)
 {
 	uint64_t max_allocs = MOCK_POOL_SIZE / size;
@@ -141,6 +141,8 @@ test_oom_allocs(size_t size)
 	}
 	UT_ASSERT(count != 0);
 	FREE(allocs);
+
+	return count;
 }
 
 static void
@@ -279,11 +281,22 @@ test_mock_pool_allocs(void)
 	 * Allocating till OOM and freeing the objects in a loop for different
 	 * buckets covers basically all code paths except error cases.
 	 */
-	test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
-	test_oom_allocs(TEST_TINY_ALLOC_SIZE);
-	test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
-	test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
-	test_oom_allocs(TEST_MEGA_ALLOC_SIZE);
+	size_t medium0 = test_oom_allocs(TEST_MEDIUM_ALLOC_SIZE);
+	size_t mega0 = test_oom_allocs(TEST_MEGA_ALLOC_SIZE);
+	size_t huge0 = test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
+	size_t small0 = test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
+	size_t tiny0 = test_oom_allocs(TEST_TINY_ALLOC_SIZE);
+	size_t huge1 = test_oom_allocs(TEST_HUGE_ALLOC_SIZE);
+	size_t small1 = test_oom_allocs(TEST_SMALL_ALLOC_SIZE);
+	size_t mega1 = test_oom_allocs(TEST_MEGA_ALLOC_SIZE);
+	size_t tiny1 = test_oom_allocs(TEST_TINY_ALLOC_SIZE);
+	size_t medium1 = test_oom_allocs(TEST_MEDIUM_ALLOC_SIZE);
+
+	UT_ASSERTeq(mega0, mega1);
+	UT_ASSERTeq(huge0, huge1);
+	UT_ASSERTeq(small0, small1);
+	UT_ASSERTeq(tiny0, tiny1);
+	UT_ASSERTeq(medium0, medium1);
 
 	test_realloc(TEST_SMALL_ALLOC_SIZE, TEST_MEDIUM_ALLOC_SIZE);
 	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);

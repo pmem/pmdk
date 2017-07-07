@@ -93,6 +93,25 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 }
 
 static void
+init_run_with_max_block(struct heap_layout *l, uint32_t chunk_id)
+{
+	l->zone0.chunk_headers[chunk_id].size_idx = 1;
+	l->zone0.chunk_headers[chunk_id].type = CHUNK_TYPE_RUN;
+	l->zone0.chunk_headers[chunk_id].flags = 0;
+
+	struct chunk_run *run = (struct chunk_run *)
+		&l->zone0.chunks[chunk_id];
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
+
+	run->block_size = 1024;
+	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+
+	/* the biggest block is 10 bits */
+	run->bitmap[3] =
+	0b1000001110111000111111110000111111000000000011111111110000000011;
+}
+
+static void
 test_alloc_class_bitmap_correctness(void)
 {
 	struct alloc_class_run_proto proto;
@@ -245,8 +264,7 @@ test_heap(void)
 	struct bucket *b_run = heap_bucket_acquire(heap, c_run);
 
 	/*
-	 * Allocate blocks from a run until one run is exhausted an another is
-	 * created.
+	 * Allocate blocks from a run until one run is exhausted.
 	 */
 	UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &old_run), ENOMEM);
 	UT_ASSERTeq(old_run.m_ops->claim(&old_run), -1);
@@ -258,10 +276,14 @@ test_heap(void)
 		UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &new_run),
 			ENOMEM);
 		UT_ASSERTne(new_run.size_idx, 0);
-	} while (old_run.chunk_id == new_run.chunk_id);
+	} while (old_run.block_off != new_run.block_off);
+	/*
+	 * This while will stop when we confirm that we will contiously reuse
+	 * the same run.
+	 */
 
-	/* the old block should be unclaimed now */
-	UT_ASSERTeq(old_run.m_ops->claim(&old_run), 0);
+	/* the old block should be claimed by recycler */
+	UT_ASSERTeq(old_run.m_ops->claim(&old_run), -1);
 
 	heap_bucket_release(heap, b_run);
 
@@ -304,8 +326,15 @@ test_recycler(void)
 	struct recycler *r = recycler_new(&pop->heap);
 	UT_ASSERTne(r, NULL);
 
-	init_run_with_score(pop->heap.layout, 0, 0);
-	init_run_with_score(pop->heap.layout, 1, 64);
+	init_run_with_score(pop->heap.layout, 0, 64);
+	init_run_with_score(pop->heap.layout, 1, 128);
+
+	init_run_with_score(pop->heap.layout, 15, 0);
+
+	/* shouldn't be allowed to insert full runs */
+	struct memory_block mrun_full = {15, 0, 1, 0};
+	ret = recycler_put(r, &mrun_full);
+	UT_ASSERTeq(ret, -1);
 
 	struct memory_block mrun = {0, 0, 1, 0};
 	struct memory_block mrun2 = {1, 0, 1, 0};
@@ -315,12 +344,14 @@ test_recycler(void)
 	ret = recycler_put(r, &mrun2);
 	UT_ASSERTeq(ret, 0);
 
-	struct memory_block mrun_ret;
-	struct memory_block mrun2_ret;
+	struct memory_block mrun_ret = MEMORY_BLOCK_NONE;
+	mrun_ret.size_idx = 1;
+	struct memory_block mrun2_ret = MEMORY_BLOCK_NONE;
+	mrun2_ret.size_idx = 1;
 
-	ret = recycler_get(r, &mrun2_ret);
-	UT_ASSERTeq(ret, 0);
 	ret = recycler_get(r, &mrun_ret);
+	UT_ASSERTeq(ret, 0);
+	ret = recycler_get(r, &mrun2_ret);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(mrun2.chunk_id, mrun2_ret.chunk_id);
 	UT_ASSERTeq(mrun.chunk_id, mrun_ret.chunk_id);
@@ -334,8 +365,13 @@ test_recycler(void)
 	mrun2.chunk_id = 2;
 	struct memory_block mrun3 = {5, 0, 1, 0};
 	struct memory_block mrun4 = {10, 0, 1, 0};
-	struct memory_block mrun3_ret;
-	struct memory_block mrun4_ret;
+
+	mrun_ret.size_idx = 1;
+	mrun2_ret.size_idx = 1;
+	struct memory_block mrun3_ret = MEMORY_BLOCK_NONE;
+	mrun3_ret.size_idx = 1;
+	struct memory_block mrun4_ret = MEMORY_BLOCK_NONE;
+	mrun4_ret.size_idx = 1;
 
 	ret = recycler_put(r, &mrun);
 	UT_ASSERTeq(ret, 0);
@@ -346,18 +382,33 @@ test_recycler(void)
 	ret = recycler_put(r, &mrun4);
 	UT_ASSERTeq(ret, 0);
 
-	ret = recycler_get(r, &mrun3_ret);
-	UT_ASSERTeq(ret, 0);
-	ret = recycler_get(r, &mrun_ret);
+	ret = recycler_get(r, &mrun2_ret);
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_get(r, &mrun4_ret);
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_get(r, &mrun2_ret);
+	ret = recycler_get(r, &mrun_ret);
+	UT_ASSERTeq(ret, 0);
+	ret = recycler_get(r, &mrun3_ret);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(mrun.chunk_id, mrun_ret.chunk_id);
 	UT_ASSERTeq(mrun2.chunk_id, mrun2_ret.chunk_id);
 	UT_ASSERTeq(mrun3.chunk_id, mrun3_ret.chunk_id);
 	UT_ASSERTeq(mrun4.chunk_id, mrun4_ret.chunk_id);
+
+	init_run_with_max_block(pop->heap.layout, 1);
+	struct memory_block mrun5 = {1, 0, 1, 0};
+	ret = recycler_put(r, &mrun5);
+	UT_ASSERTeq(ret, 0);
+
+	struct memory_block mrun5_ret = MEMORY_BLOCK_NONE;
+	mrun5_ret.size_idx = 11;
+	ret = recycler_get(r, &mrun5_ret);
+	UT_ASSERTeq(ret, ENOMEM);
+
+	mrun5_ret = MEMORY_BLOCK_NONE;
+	mrun5_ret.size_idx = 10;
+	ret = recycler_get(r, &mrun5_ret);
+	UT_ASSERTeq(ret, 0);
 
 	recycler_delete(r);
 
