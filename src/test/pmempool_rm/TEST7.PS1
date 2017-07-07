@@ -69,15 +69,15 @@ x
 n
 y
 N
-"@ | &$PMEMPOOL$EXESUFFIX rm -il $DIR/pool.set 2>&1 | out-file -width 1024 -literalpath $LOG
+"@ | &$PMEMPOOL rm -il $DIR\pool.set 2>&1 | out-file -width 1024 -literalpath $LOG
 
 check_no_files `
-	$DIR/pool.part1 `
-	$DIR/rep.part2
+	$DIR\pool.part1 `
+	$DIR\rep.part2
 
 check_files `
-	$DIR/pool.set `
-	$DIR/pool.part2 `
-	$DIR/rep.part1
+	$DIR\pool.set `
+	$DIR\pool.part2 `
+	$DIR\rep.part1
 
 pass
