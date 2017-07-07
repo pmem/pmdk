@@ -28,5 +28,8 @@
     <None Include="out1.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="TEST7.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

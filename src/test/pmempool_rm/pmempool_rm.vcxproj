@@ -23,6 +23,7 @@
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST2w.PS1" />
+    <None Include="TEST7.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{99F7F00F-1DE5-45EA-992B-64BA282FAC76}</ProjectGuid>
