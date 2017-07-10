@@ -193,8 +193,8 @@ function create_holey_file {
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
         & $SPARSEFILE $mode $fname $size
-        if ($LASTEXITCODE -ne 0) {
-            throw "Error $LASTEXITCODE with sparsefile create"
+        if ($Global:LASTEXITCODE -ne 0) {
+            throw "Error $Global:LASTEXITCODE with sparsefile create"
         }
         Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
@@ -353,8 +353,8 @@ function create_poolset {
 # check_exit_code -- check if $LASTEXITCODE is equal 0
 #
 function check_exit_code {
-    if ($LASTEXITCODE -ne 0) {
-        sv -Name msg "failed with exit code $LASTEXITCODE"
+    if ($Global:LASTEXITCODE -ne 0) {
+        sv -Name msg "failed with exit code $Global:LASTEXITCODE"
         if (Test-Path ("err" + $Env:UNITTEST_NUM + ".log")) {
             if ($Env:UNITTEST_QUIET) {
                 echo "${Env:UNITTEST_NAME}: $msg. err$Env:UNITTEST_NUM.log" >> ("err" + $Env:UNITTEST_NUM + ".log")
@@ -441,7 +441,7 @@ function expect_abnormal_exit {
     # status of some other command executed before.
     $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
-    if ($LASTEXITCODE -eq 0) {
+    if ($Global:LASTEXITCODE -eq 0) {
         Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
         fail 1
     }
@@ -453,13 +453,11 @@ function expect_abnormal_exit {
 function check_pool {
     $file = $Args[0]
     if ($Env:CHECK_POOL -eq "1") {
-        if ($Env:VERBOSE -ne "0") {
-            echo "$Env:UNITTEST_NAME: checking consistency of pool $file"
-        }
+        Write-Verbose "$Env:UNITTEST_NAME: checking consistency of pool $file"
         Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error("$PMEMPOOL returned error code $LASTEXITCODE")
-            Exit $LASTEXITCODE
+        if ($Global:LASTEXITCODE -ne 0) {
+            Write-Error("$PMEMPOOL returned error code $Global:LASTEXITCODE")
+            Exit $Global:LASTEXITCODE
         }
     }
 }
@@ -590,7 +588,7 @@ function check {
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         Invoke-Expression "perl ..\..\..\src\test\match $listing"
-        if ($LASTEXITCODE -ne 0) {
+        if ($Global:LASTEXITCODE -ne 0) {
             fail 1
         }
 
@@ -1080,7 +1078,7 @@ function cmp {
     if($argc -le 2) {
         # fc does not support / in file path
         fc.exe /b ([String]$file1).Replace('/','\') ([string]$file2).Replace('/','\') > $null
-        if ($LASTEXITCODE -ne 0) {
+        if ($Global:LASTEXITCODE -ne 0) {
             "$args differ"
         }
         return
@@ -1102,7 +1100,6 @@ if (-Not $Env:FS) { $Env:FS = 'any'}
 if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
 if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
-if (-Not $Env:VERBOSE) { $Env:VERBOSE = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
@@ -1123,6 +1120,7 @@ $BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
 $SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
 $DLLVIEW="$Env:EXE_DIR\dllview$Env:EXESUFFIX"
 
+sv -Name req_fs_type 0 -Scope Global
 #
 # For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
 # constructed so the test pulls in the appropriate library from this
@@ -1215,13 +1213,13 @@ if (isDir($Env:PMEM_FS_DIR)) {
         $PMEM_IS_PMEM = "0"
     } else {
         &$PMEMDETECT $Env:PMEM_FS_DIR
-        $PMEM_IS_PMEM = $LASTEXITCODE
+        $PMEM_IS_PMEM = $Global:LASTEXITCODE
     }
 }
 
 if (isDir($Env:NON_PMEM_FS_DIR)) {
     &$PMEMDETECT $Env:NON_PMEM_FS_DIR
-    $NON_PMEM_IS_PMEM = $LASTEXITCODE
+    $NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
 }
 
 # Length of pool file's signature
