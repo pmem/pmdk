@@ -68,12 +68,10 @@ PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
 		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemobj++.pc
 
-ifeq ($(EXPERIMENTAL),y)
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc
 	HEADERS_INSTALL += include/librpmem.h
 	INSTALL_TARGETS += librpmem
-endif
 endif
 
 SCOPE_SRC_DIRS = $(SCOPE_DIRS) include jemalloc/src

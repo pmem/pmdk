@@ -300,6 +300,19 @@ Please refer to the **src/test/README** for more details on how to
 run different types of tests.
 
 
+### The librpmem and rpmemd packages ###
+
+**NOTE:**
+The **libfabric** package required to build the **librpmem** and **rpmemd** is
+not yet available on stable Debian-based distributions. This makes it
+impossible to create Debian packages.
+
+If you want to build Debian packages of **librpmem** and **rpmemd** run:
+```
+	$ make RPMEM_DPKG=y dpkg
+```
+
+
 ### Experimental Packages ###
 
 Some components in the source tree are treated as experimental. By default
@@ -310,15 +323,7 @@ If you want to build/install experimental packages run:
 ```
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
-**NOTE:**
-The **libfabric** package required to build the **librpmem** and **rpmemd** is
-not yet available on stable Debian-based distributions. This makes it
-impossible to create Debian packages.
 
-If you want to build Debian packages of **librpmem** and **rpmemd** run:
-```
-	$ make EXPERIMENTAL=y RPMEM_DPKG=y dpkg
-```
 
 ### Contacts ###
 

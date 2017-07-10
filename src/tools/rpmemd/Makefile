@@ -62,8 +62,7 @@ endif
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 
-
-INSTALL_TARGET=$(EXPERIMENTAL)
+INSTALL_TARGET=y
 
 else
 $(info NOTE: Skipping rpmemd because $(BUILD_RPMEM_INFO))
