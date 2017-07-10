@@ -684,7 +684,7 @@ Index: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/index.html
 Files: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
 EOF
 
-# Experimental features
+# librpmem & rpmemd
 if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
 	append_rpmem_control;

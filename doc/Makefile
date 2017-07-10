@@ -51,8 +51,8 @@ MANPAGES_3 = $(MANPAGES_3_GROFF)
 MANPAGES_1 = $(MANPAGES_1_GROFF)
 
 ifeq ($(BUILD_RPMEM),y)
-MANPAGES_3_MD_EXP = librpmem.3.md
-MANPAGES_1_MD_EXP = rpmemd.1.md
+MANPAGES_3_MD += librpmem.3.md
+MANPAGES_1_MD += rpmemd.1.md
 endif
 
 MANPAGES_3_GROFF_EXP = $(MANPAGES_3_MD_EXP:.3.md=.3)

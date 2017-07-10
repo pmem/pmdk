@@ -481,10 +481,13 @@ EOF
 # Experimental features
 if [ "${EXPERIMENTAL}" = "y" ]
 then
-	if [ "${BUILD_RPMEM}" = "y" ]
-	then
-		add_rpmem_packages;
-	fi
+	echo "no experimental features for now"
+fi
+
+# librpmem & rpmemd
+if [ "${BUILD_RPMEM}" = "y" ]
+then
+	add_rpmem_packages;
 fi
 
 [ -f $CHANGELOG_FILE ] && create_changelog $CHANGELOG_FILE >> $RPM_SPEC_FILE
