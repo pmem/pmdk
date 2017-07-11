@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: rpmemd(1)
+title: rpmemd
 header: NVM Library
 date: version 1.0.2
 ...

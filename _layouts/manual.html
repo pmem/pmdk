@@ -33,16 +33,20 @@
 		</ul>
 	</div>
 	<br>
-	{% assign dc_title =  page.title | downcase %}	
+	{% assign dc_title =  page.title | downcase %}
+	{% assign man_name =  dc_title | append:'.3.html' %}
+	{% if dc_title == 'rpmemd' %}
+		{% assign man_name =  dc_title | append:'.1.html' %}
+	{% endif %}
 	{% if dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
 	{% else %}
 	<div id="shortcut">
 		<table id="man">
 			<tr><th>Man Linux</th></tr>
-			<tr><td><a href="/nvml/manpages/linux/master/{{ dc_title }}.3.html">{{ dc_title }} current master</a></td></tr>
+			<tr><td><a href="/nvml/manpages/linux/master/{{ man_name }}">{{ dc_title }} current master</a></td></tr>
 			  {% for release in site.data.releases_linux %}
 				{% if release.libs contains dc_title %}
-					<tr><td><a href="/nvml/manpages/linux/v{{ release.tag }}/{{ dc_title }}.3.html">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+					<tr><td><a href="/nvml/manpages/linux/v{{ release.tag }}/{{ man_name }}">{{ dc_title }} version {{ release.tag }}</a></td></tr>
 				{% endif %}
 			  {% endfor %}
 		</table>
@@ -50,10 +54,10 @@
 		{% if dc_title != 'librpmem' and dc_title != 'rpmemd' and dc_title != 'libvmmalloc' %}
 		<table id="man">
 			<tr><th>Man Windows</th></tr>
-			<tr><td><a href="/nvml/manpages/windows/master/{{ dc_title }}.3.html">{{ dc_title }} current master</a></td></tr>
+			<tr><td><a href="/nvml/manpages/windows/master/{{ man_name }}">{{ dc_title }} current master</a></td></tr>
 			  {% for release in site.data.releases_windows %}
 				{% if release.libs contains dc_title %}
-					<tr><td><a href="/nvml/manpages/windows/v{{ release.tag }}/{{ dc_title }}.3.html">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+					<tr><td><a href="/nvml/manpages/windows/v{{ release.tag }}/{{ man_name }}">{{ dc_title }} version {{ release.tag }}</a></td></tr>
 				{% endif %}
 			  {% endfor %}
 		</table>
