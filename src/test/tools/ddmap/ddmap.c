@@ -98,7 +98,7 @@ static const struct option long_options[] = {
 	{"offset-in",	required_argument,	NULL,	's'},
 	{"offset-out",	required_argument,	NULL,	'q'},
 	{"length",	required_argument,	NULL,	'l'},
-	{"checksum",	no_argument,		NULL, 	'c'},
+	{"checksum",	no_argument,		NULL,	'c'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
 };
@@ -220,7 +220,7 @@ ddmap_write_from_file(const char *path_in, const char *path_out,
 		}
 
 		src = mmap(NULL, (size_t)file_in_size,  PROT_READ,
-			MAP_SHARED, fd, offset_in);
+			MAP_SHARED, fd, 0);
 		os_close(fd);
 		if (src == MAP_FAILED) {
 			outv_err("an error occurred while mapping input file");
@@ -287,7 +287,8 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 			return -1;
 		}
 
-		src = mmap(NULL, len, PROT_READ, MAP_SHARED, sfd, offset);
+		src = mmap(NULL, len + (size_t)offset, PROT_READ, MAP_SHARED,
+			sfd, 0);
 		os_close(sfd);
 		if (src == MAP_FAILED) {
 			outv_err("an error occurred while mapping file");
@@ -297,9 +298,8 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 		src = util_file_map_whole(path);
 	}
 
-	src += offset;
-	util_checksum(src, len, &checksum, 1);
-	util_unmap(src, (size_t)filesize);
+	util_checksum(src + offset, len, &checksum, 1);
+	util_unmap(src, (size_t)offset + len);
 
 	printf("%" PRIu64 "\n", checksum);
 	return 0;
