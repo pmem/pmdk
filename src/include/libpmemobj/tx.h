@@ -124,8 +124,7 @@ _pobj_validate_cb_sig(pmemobj_tx_callback cb)
 pmemobj_tx_add_range((o).oid, 0, sizeof(*(o)._type))
 
 #define TX_ADD_FIELD(o, field)\
-pmemobj_tx_add_range((o).oid, TOID_OFFSETOF(o, field),\
-		sizeof(D_RO(o)->field))
+	TX_ADD_DIRECT(&(D_RO(o)->field))
 
 #define TX_ADD_DIRECT(p)\
 pmemobj_tx_add_range_direct(p, sizeof(*p))
@@ -139,8 +138,7 @@ pmemobj_tx_xadd_range((o).oid, 0, sizeof(*(o)._type), flags)
 
 /* EXPERIMENTAL */
 #define TX_XADD_FIELD(o, field, flags)\
-pmemobj_tx_xadd_range((o).oid, TOID_OFFSETOF(o, field),\
-		sizeof(D_RO(o)->field), flags)
+	TX_XADD_DIRECT(&(D_RO(o)->field), flags)
 
 /* EXPERIMENTAL */
 #define TX_XADD_DIRECT(p, flags)\
