@@ -345,6 +345,16 @@ If you want to build/install experimental packages run:
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
+Also there is initial support for 64-bit ARM processors provided.
+Currently only supported for aarch64. Currently examples, tools and benchmarks
+and some packages may not get built on ARM cores. But the build will build
+lipmem, libvmem libpmemblk libpmemlog libpmemobj libpmempool, libvmmalloc,
+libpmemcto succesfully.
+
+To trigger the build on a ARM processor
+```
+    $ make EXTRA_CFLAGS="-DAARCH64" BUILD_AARCH64=y
+```
 
 ### Contacts ###
 
