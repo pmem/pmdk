@@ -170,7 +170,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#ifndef AARCH64
 #include <emmintrin.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -189,6 +191,9 @@
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
+#ifdef AARCH64
+#include "neon_sse.h"
+#endif
 
 #ifndef _MSC_VER
 /*
@@ -196,11 +201,13 @@
  * intrinsic functions are not always available.  The intrinsic
  * functions are defined here in terms of asm statements for now.
  */
+
+#ifndef AARCH64
 #define _mm_clflushopt(addr)\
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-
+#endif /* AARCH64 */
 #endif /* _MSC_VER */
 
 #define FLUSH_ALIGN ((uintptr_t)64)
@@ -774,7 +781,6 @@ static void *
 memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-
 	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 	size_t i;
 	__m128i *d;
