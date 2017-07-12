@@ -2225,6 +2225,15 @@ function init_rpmem_on_node() {
 
 	validate_node_number $master
 
+	case "$RPMEM_PM" in
+	APM|GPSPM)
+		;;
+	*)
+		echo "$UNITTEST_NAME: SKIP required: RPMEM_PM is invalid or empty"
+		exit 0
+		;;
+	esac
+
 	RPMEM_CMD=""
 	local SEPARATOR="|"
 	for slave in "$@"
@@ -2272,12 +2281,16 @@ function init_rpmem_on_node() {
 	RPMEM_ENABLE_SOCKETS=0
 	RPMEM_ENABLE_VERBS=0
 
-	case $RPMEM_PROVIDER in
+	case "$RPMEM_PROVIDER" in
 	sockets)
 		RPMEM_ENABLE_SOCKETS=1
 		;;
 	verbs)
 		RPMEM_ENABLE_VERBS=1
+		;;
+	*)
+		echo "$UNITTEST_NAME: SKIP required: RPMEM_PROVIDER is invalid or empty"
+		exit 0
 		;;
 	esac
 

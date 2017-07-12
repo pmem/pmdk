@@ -289,6 +289,9 @@ runtest() {
 		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
 		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
 
+		# skip remote test if required providers or persistency methods are missing
+		[[ ( -n "$provs" && -z "$pmeths" ) || ( -z "$provs" && -n "$pmeths" ) ]] && continue
+
 		# for each fs-type being tested...
 		for fs in $fss
 		do
