@@ -93,6 +93,7 @@ NVML librpmem library
 %package -n librpmem-devel
 Summary: librpmem development library
 Group: Development/Libraries
+Requires: librpmem >= $PACKAGE_VERSION
 %description -n librpmem-devel
 Development files for NVML librpmem library
 
@@ -229,6 +230,7 @@ $(cat $MAGIC_UNINSTALL | sed '/^#/d')
 %package -n libpmem-devel
 Summary: libpmem development library
 Group: Development/Libraries
+Requires: libpmem >= $PACKAGE_VERSION
 %description -n libpmem-devel
 Development files for NVML libpmem library
 
@@ -256,6 +258,7 @@ NVML libpmemblk library
 %package -n libpmemblk-devel
 Summary: libpmemblk development library
 Group: Development/Libraries
+Requires: libpmemblk >= $PACKAGE_VERSION
 %description -n libpmemblk-devel
 Development files for NVML libpmemblk library
 
@@ -283,6 +286,7 @@ NVML libpmemlog library
 %package -n libpmemlog-devel
 Summary: libpmemlog development library
 Group: Development/Libraries
+Requires: libpmemlog >= $PACKAGE_VERSION
 %description -n libpmemlog-devel
 Development files for NVML libpmemlog library
 
@@ -310,6 +314,7 @@ NVML libpmemobj library
 %package -n libpmemobj-devel
 Summary: libpmemobj development library
 Group: Development/Libraries
+Requires: libpmemobj >= $PACKAGE_VERSION
 %description -n libpmemobj-devel
 Development files for NVML libpmemobj library
 
@@ -338,6 +343,7 @@ NVML libpmempool library
 %package -n libpmempool-devel
 Summary: libpmempool development library
 Group: Development/Libraries
+Requires: libpmempool >= $PACKAGE_VERSION
 %description -n libpmempool-devel
 Development files for NVML libpmempool library
 
@@ -365,6 +371,7 @@ NVML libvmem library
 %package -n libvmem-devel
 Summary: libvmem development library
 Group: Development/Libraries
+Requires: libvmem >= $PACKAGE_VERSION
 %description -n libvmem-devel
 Development files for NVML libvmem library
 
@@ -392,6 +399,7 @@ NVML libvmmalloc library
 %package -n libvmmalloc-devel
 Summary: libvmmalloc development library
 Group: Development/Libraries
+Requires: libvmmalloc >= $PACKAGE_VERSION
 %description -n libvmmalloc-devel
 Development files for NVML libvmmalloc library
 
