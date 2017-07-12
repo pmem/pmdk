@@ -41,7 +41,6 @@ and tutorials.
 ><sup>2</sup> NVML for Windows is feature complete, but not yet considered production quality.
 >
 ><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time NVML is available as a technical preview release for development purposes.
-
 ### Pre-Built Packages ###
 
 If you want to install these libraries to try them out of your system, you can
@@ -345,6 +344,16 @@ If you want to build/install experimental packages run:
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
+Also there is initial support for 64-bit ARM processors provided.
+Currently only supported for aarch64. Currently examples, tools and benchmarks
+and some packages may not get built on ARM cores. But the build will build
+lipmem, libvmem libpmemblk libpmemlog libpmemobj libpmempool, libvmmalloc,
+libpmemcto succesfully.
+
+To trigger the build on a ARM processor
+```
+    $ make EXTRA_CFLAGS="-DAARCH64" BUILD_AARCH64=y
+```
 
 ### Contacts ###
 
