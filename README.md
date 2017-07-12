@@ -345,6 +345,20 @@ If you want to build/install experimental packages run:
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
+### Experimental support for 64-bit ARM ###
+
+There is an initial support for 64-bit ARM processors provided,
+currently only for aarch64.  All the PMDK libraries except **librpmem**
+can be built for 64-bit ARM.  The examples, tools and benchmarks
+are not ported yet and may not get built on ARM cores.
+**NOTE:**
+The support for ARM processors is highly experimental. The libraries
+are only validated to "early access" quality with Cortex-A53 processor.
+
+To trigger the build on an ARM processor, run:
+```
+    $ make EXTRA_CFLAGS="-DAARCH64" BUILD_AARCH64=y
+```
 
 ### Contacts ###
 
