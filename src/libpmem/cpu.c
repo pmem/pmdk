@@ -80,10 +80,6 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 
 #endif
 
-#ifndef bit_SSE2
-#define bit_SSE2	(1 << 26)
-#endif
-
 #ifndef bit_CLFLUSH
 #define bit_CLFLUSH	(1 << 23)
 #endif
