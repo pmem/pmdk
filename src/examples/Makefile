@@ -35,7 +35,7 @@
 #
 
 DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
-	libpmempool
+       libpmempool
 
 include Makefile.inc
 
