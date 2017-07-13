@@ -3,10 +3,10 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-DUMP!1
 header: NVM Library
-date: pmem Tools version 1.2
+date: pmem Tools version 1.3
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
