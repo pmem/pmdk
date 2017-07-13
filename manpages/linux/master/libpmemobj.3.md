@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: LIBPMEMOBJ
 header: NVM Library
-date: pmemobj API version 2.1
+date: pmemobj API version 2.2
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
@@ -323,7 +323,7 @@ PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
 
 TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
-TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
 TX_BEGIN(PMEMobjpool *pop)
 TX_ONABORT
 TX_ONCOMMIT
@@ -386,8 +386,8 @@ const char *pmemobj_errormsg(void);
 ##### Control and statistics: #####
 
 ```c
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
+int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
 ```
 
 # DESCRIPTION #
@@ -1731,7 +1731,7 @@ range will be rolled-back. The supplied block of memory has to be within the poo
 changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
 
 ```c
-int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags);
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
 ```
 
 The **pmemobj_tx_xadd_range**() function behaves exactly the same as **pmemobj_tx_add_range**() when *flags* equals zero.
@@ -1750,7 +1750,7 @@ changes within this range will be rolled-back. The supplied block of memory has 
 zero. Otherwise, state changes to **TX_STAGE_ONABORT** and an error number is returned. This function must be called during **TX_STAGE_WORK**.
 
 ```c
-int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size);
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size); (EXPERIMENTAL)
 ```
 
 The **pmemobj_tx_xadd_range_direct**() function behaves exactly the same as **pmemobj_tx_add_range_direct**() when *flags* equals zero.
@@ -1776,7 +1776,7 @@ Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and 
 This function must be called during **TX_STAGE_WORK**.
 
 ```c
-PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
 ```
 
 The **pmemobj_tx_xalloc**() function transactionally allocates a new object of given *size* and *type_num*. The *flags* argument is a bitmask of the following values:
@@ -1908,7 +1908,7 @@ The **TX_ADD_FIELD**() macro saves in the undo log the current value of given *F
 directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
-TX_XADD_FIELD(TOID o, FIELD, uint64_t flags)
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags) (EXPERIMENTAL)
 ```
 
 The **TX_XADD_FIELD**() macro works exactly like **TX_ADD_FIELD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
@@ -1922,7 +1922,7 @@ The **TX_ADD**() macro takes a "snapshot" of the entire object referenced by obj
 its *TYPE*. The application is then free to directly modify the object. In case of a failure or abort, all the changes within the object will be rolled-back.
 
 ```c
-TX_XADD(TOID o, uint64_t flags)
+TX_XADD(TOID o, uint64_t flags) (EXPERIMENTAL)
 ```
 
 The **TX_XADD**() macro works exactly like **TX_ADD** when *flags* equals 0. The *flags* argument is a bitmask of values described in
@@ -1936,7 +1936,7 @@ The **TX_ADD_FIELD_DIRECT**() macro saves in the undo log the current value of g
 is then free to directly modify the specified *FIELD*. In case of a failure or abort, the saved value will be restored.
 
 ```c
-TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags) (EXPERIMENTAL)
 ```
 
 The **TX_XADD_FIELD_DIRECT**() macro works exactly like **TX_ADD_FIELD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
@@ -1951,7 +1951,7 @@ determined from its *TYPE*. The application is then free to directly modify the 
 be rolled-back.
 
 ```c
-TX_XADD_DIRECT(TYPE *p, uint64_t flags)
+TX_XADD_DIRECT(TYPE *p, uint64_t flags) (EXPERIMENTAL)
 ```
 
 The **TX_XADD_DIRECT**() macro works exactly like **TX_ADD_DIRECT** when *flags* equals 0. The *flags* argument is a bitmask of values described in
@@ -2018,7 +2018,7 @@ size is passed by *size* argument. If successful and called during **TX_STAGE_WO
 to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 
 ```c
-TX_XALLOC(TYPE, size_t size, uint64_t flags)
+TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
 ```
 
 The **TX_XALLOC**() macro transactionally allocates a new object of given *TYPE* and assigns it a type number read from the typed *OID*. The allocation size is passed by *size* argument.
@@ -2238,8 +2238,8 @@ well as reason about its internals.
 There are two main functions to that interface:
 
 ```c
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
+int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
+int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
 ```
 
 The *name* argument specifies an entry point as defined in the CTL namespace
