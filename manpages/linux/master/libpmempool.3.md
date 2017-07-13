@@ -6,7 +6,7 @@ header: NVM Library
 date: pmempool API version 1.1
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -116,6 +116,7 @@ is for applications that need high reliability or built-in
 troubleshooting. It may be useful for testing and debugging
 purposes also.
 
+
 # POOL CHECKING FUNCTIONS #
 
 To perform check provided by **libpmempool**, a *check context*
@@ -136,8 +137,8 @@ Check must be finalized using **pmempool_check_end**().
 It returns *enum pmempool_check_result* describing
 result of the whole check.
 
-# NOTE #
-Currently, checking the consistency of a *pmemobj* pool is **not** supported.
+> NOTE: Currently, checking the consistency of a *pmemobj* pool is
+**not** supported.
 
 ```c
 PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
@@ -293,6 +294,7 @@ return one of the following values:
 Currently, the following operations are allowed only for **pmemobj** pools (see
 **libpmemobj**(3)).
 
+
 ### POOL SET SYNC ###
 
 ```c
@@ -377,6 +379,7 @@ with proper *errno* set accordingly.
 
 >NOTE: The **pmempool_transform**() API is experimental and it may change in future
 versions of the library.
+
 
 # POOL SET MANAGEMENT FUNCTIONS: #
 
