@@ -116,10 +116,11 @@ When check is completed \f[B]pmempool_check\f[]() returns NULL pointer.
 Check must be finalized using \f[B]pmempool_check_end\f[]().
 It returns \f[I]enum pmempool_check_result\f[] describing result of the
 whole check.
-.SH NOTE
+.RS
 .PP
-Currently, checking the consistency of a \f[I]pmemobj\f[] pool is
+NOTE: Currently, checking the consistency of a \f[I]pmemobj\f[] pool is
 \f[B]not\f[] supported.
+.RE
 .IP
 .nf
 \f[C]
