@@ -86,11 +86,11 @@ pmempool-transform(1) -- Modify internal structure of a poolset
     Man page source is in pmempool-transform.1.md
     HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-transform.1.html
 
-librpmem(3) -- remote access to persistent memory
+librpmem(3) -- remote access to persistent memory (EXPERIMENTAL)
     Man page source is in librmpem.3.md
     HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/librpmem.3.html
 
-rpmemd(1) -- remote persistent memory daemon
+rpmemd(1) -- remote persistent memory daemon (EXPERIMENTAL)
     Man page source is in rpmemd.1.md
     HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/rpmemd.1.html
 
