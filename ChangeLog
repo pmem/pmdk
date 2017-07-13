@@ -1,5 +1,5 @@
 
-Wed Jul 05 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Thu Jul 13 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.3
 	This release introduces some useful features and optimizations
@@ -10,7 +10,7 @@ Wed Jul 05 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	Other important changes are related to performance tuning and
 	stabilization of librpmem library, which is used by libpmemobj to get
 	remote access to persistent memory and to provide basic data replication
-	over RDMA.  The librpmem is no longer considered experimental.
+	over RDMA.  The librpmem is still considered experimental.
 
 	NVML for Windows is feature complete (except for libvmmalloc).
 	This release includes the support for Unicode, long paths and
@@ -28,8 +28,6 @@ Wed Jul 05 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- cpp: introduce the allocator
 	- cpp: add wstring version of C++ entry points
 	- vmem: add vmem_wcsdup() API entry
-	- rpmem: add rpmem_set_attr() API entry
-	- rpmem: switch to libfabric v1.4.2
 	- pool: add pmempool_rm() function (#307)
 	- pool: add --force flag for create command (#529)
 	- benchmark: add a minimal execution time option
@@ -72,6 +70,8 @@ Wed Jul 05 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- obj: configurable object cache (#515)
 	- obj: add cache size and threshold tx params
 	- obj: add CTL var for suppressing expensive checks
+	- rpmem: add rpmem_set_attr() API entry
+	- rpmem: switch to libfabric v1.4.2
 
 Thu May 18 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 

@@ -3,10 +3,10 @@ layout: manual
 Content-Style: 'text/css'
 title: RPMEMD!1
 header: NVM Library
-date: version 1.0
+date: version 1.3
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -48,7 +48,7 @@ date: version 1.0
 
 # NAME #
 
-**rpmemd** -- librpmem target node process
+**rpmemd** -- librpmem target node process (EXPERIMENTAL)
 
 
 # SYNOPSIS #

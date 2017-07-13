@@ -54,7 +54,7 @@ date: rpmem API version 1.1
 
 # NAME #
 
-**librpmem** -- remote persistent memory support library (experimental)
+**librpmem** -- remote persistent memory support library (EXPERIMENTAL)
 
 
 # SYNOPSIS #
