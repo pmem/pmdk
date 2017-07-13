@@ -178,6 +178,10 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a145055cb3d9484e0b5a7b9eae3d854f5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1detail_1_1persistent__ptr__base.html#a145055cb3d9484e0b5a7b9eae3d854f5">persistent_ptr_base</a> (<a class="el" href="classnvml_1_1detail_1_1persistent__ptr__base.html#a37cfd0e88e7194eafec188e0187c5362">element_type</a> *vptr, int)</td></tr>
 <tr class="memdesc:a145055cb3d9484e0b5a7b9eae3d854f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Private constructor enabling persistent_ptrs to volatile objects.  <a href="#a145055cb3d9484e0b5a7b9eae3d854f5">More...</a><br /></td></tr>
 <tr class="separator:a145055cb3d9484e0b5a7b9eae3d854f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acadc4bac67e4c707710bacbfc857440f"><td class="memTemplParams" colspan="2">template&lt;typename U &gt; </td></tr>
+<tr class="memitem:acadc4bac67e4c707710bacbfc857440f"><td class="memTemplItemLeft" align="right" valign="top">ptrdiff_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classnvml_1_1detail_1_1persistent__ptr__base.html#acadc4bac67e4c707710bacbfc857440f">calculate_offset</a> () const </td></tr>
+<tr class="memdesc:acadc4bac67e4c707710bacbfc857440f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate in-object offset for structures with inheritance.  <a href="#acadc4bac67e4c707710bacbfc857440f">More...</a><br /></td></tr>
+<tr class="separator:acadc4bac67e4c707710bacbfc857440f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
@@ -358,6 +362,39 @@ template&lt;typename T&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="acadc4bac67e4c707710bacbfc857440f"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<div class="memtemplate">
+template&lt;typename U &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">ptrdiff_t <a class="el" href="classnvml_1_1detail_1_1persistent__ptr__base.html">nvml::detail::persistent_ptr_base</a>&lt; T &gt;::calculate_offset </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Calculate in-object offset for structures with inheritance. </p>
+<p>In case of the given inheritance:</p>
+<p>A B \ / C</p>
+<p>A pointer to B *ptr = &amp;C should be offset by sizeof(A). This function calculates that offset.</p>
+<dl class="section return"><dt>Returns</dt><dd>offset between to compatible pointer types to the same object </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a0b0a5b62f716fbcc12bf440e4b299b62"></a>
 <div class="memitem">
 <div class="memproto">

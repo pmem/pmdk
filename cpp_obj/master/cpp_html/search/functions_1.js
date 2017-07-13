@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['calculate_5foffset',['calculate_offset',['../classnvml_1_1detail_1_1persistent__ptr__base.html#acadc4bac67e4c707710bacbfc857440f',1,'nvml::detail::persistent_ptr_base']]],
   ['check',['check',['../classnvml_1_1obj_1_1pool__base.html#ab2a882cf19c7048289e43ec6c77c5a56',1,'nvml::obj::pool_base::check(const std::string &amp;path, const std::string &amp;layout) noexcept'],['../classnvml_1_1obj_1_1pool__base.html#a97a7f9dcde72cafb732a2f03451a8900',1,'nvml::obj::pool_base::check(const std::wstring &amp;path, const std::wstring &amp;layout) noexcept'],['../classnvml_1_1obj_1_1pool.html#a0d6e32301388552bbdc2c297b7c48598',1,'nvml::obj::pool::check(const std::string &amp;path, const std::string &amp;layout)'],['../classnvml_1_1obj_1_1pool.html#a0e433e44f56e3721bad33e6c4209bcfc',1,'nvml::obj::pool::check(const std::wstring &amp;path, const std::wstring &amp;layout)']]],
   ['close',['close',['../classnvml_1_1obj_1_1pool__base.html#a228e4679648b2c753e41ae3cf3256909',1,'nvml::obj::pool_base']]],
   ['commit',['commit',['../classnvml_1_1obj_1_1transaction.html#a8f036c0fa7bc23f927202943c13952a6',1,'nvml::obj::transaction']]],

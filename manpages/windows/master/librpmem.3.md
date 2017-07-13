@@ -54,7 +54,7 @@ date: rpmem API version 1.1
 
 # NAME #
 
-**librpmem** -- remote persistent memory support library
+**librpmem** -- remote persistent memory support library (experimental)
 
 
 # SYNOPSIS #
@@ -577,6 +577,11 @@ main(int argc, char *argv[])
 }
 ```
 
+# NOTE #
+
+The **librpmem** API is experimental and may be a subject of changes in the future.
+However, using the remote replication in **libpmemobj**(3) is safe and backward
+compatibility will be preserved.
 
 # ACKNOWLEDGEMENTS #
 
