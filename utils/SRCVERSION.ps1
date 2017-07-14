@@ -75,9 +75,9 @@ if ($null -ne $args[0]) {
     $REVISION = 0
     $BUILD = 0
 
-    $version = "UNKNOWN VERSION"
+    $version = "UNKNOWN_VERSION"
     $CUSTOM = $true
-    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN VERSION`" "
+    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN_VERSION`" "
 }
 
 if ($null -ne $ver_array) {
