@@ -123,7 +123,8 @@ OBJ_TESTS = \
 	obj_tx_realloc\
 	obj_tx_strdup\
 	obj_constructor\
-	obj_oid
+	obj_oid\
+	obj_zones
 
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\

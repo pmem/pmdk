@@ -670,9 +670,11 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 					run, &m);
 				break;
 			case CHUNK_TYPE_FREE:
-				if (init)
+				if (init) {
+					rchunks += (int)m.size_idx;
 					heap_init_free_chunk(heap, bucket,
 						hdr, &m);
+				}
 				break;
 			case CHUNK_TYPE_USED:
 				break;
