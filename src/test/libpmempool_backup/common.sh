@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # libpmempool_backup/common.sh -- functions for libpmempool_backup unittest
 #
+set -e
+
 POOLSET=$DIR/pool.set
 BACKUP=_backup
 REPLICA=_replica

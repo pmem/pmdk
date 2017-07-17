@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,7 +68,7 @@ rm -f $DIR/testfile
 
 # Invalid offset in redo log - <file size>
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-SIZE=$(stat -c%s $DIR/testfile)
+SIZE=$(stat $STATSIZE_OPT $DIR/testfile)
 $PMEMSPOIL $DIR/testfile\
 	"pmemobj.lane(0).list.redo_log(0).offset=$SIZE"\
 	"pmemobj.lane(0).list.redo_log(1).offset=0x1"
@@ -86,7 +86,7 @@ rm -f $DIR/testfile
 
 # Invalid obj_offset - <file size>
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile
-SIZE=$(stat -c%s $DIR/testfile)
+SIZE=$(stat $STATSIZE_OPT $DIR/testfile)
 $PMEMSPOIL $DIR/testfile\
 	"pmemobj.lane(0).list.obj_offset=$SIZE"
 expect_normal_exit ./obj_check$EXESUFFIX $DIR/testfile

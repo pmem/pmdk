@@ -1,5 +1,5 @@
-#!/bin/bash -e
-# Copyright 2016, Intel Corporation
+#!/usr/bin/env bash
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,6 +31,8 @@
 #
 # utils/style_check.sh -- common style checking script
 #
+set -e
+
 ARGS=("$@")
 CSTYLE_ARGS=()
 CLANG_ARGS=()
