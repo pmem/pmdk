@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
-expect_normal_exit $BTTCREATE $POOL -v >> $LOG
+expect_normal_exit $BTTCREATE -v $POOL >> $LOG
 
 $PMEMSPOIL -v $POOL "bttdevice.arena(0).btt_info.sig=BADSIGNATURE"\
 		"bttdevice.arena(0).btt_info.external_lbasize=10"\

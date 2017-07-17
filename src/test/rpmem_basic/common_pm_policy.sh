@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -34,6 +34,7 @@
 #
 # src/test/rpmem_basic/common_pm_policy.sh -- common part for TEST[10-11] scripts
 #
+set -e
 
 LOG=rpmemd$UNITTEST_NUM.log
 OUT=out$UNITTEST_NUM.log

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2015-2017, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.

@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ setup
 require_nodes 1
 
 # create a unique name for pool file
-POOL_FILE=/tmp/pool-remote_obj_basic-TEST$UNITTEST_NUM-$$-`date +%s`
+POOL_FILE=/tmp/pool-remote_obj_basic-TEST$UNITTEST_NUM-$$-`$DATE_CMD +%s`
 
 # create poolset file
 POOLSET_FILE=pool$UNITTEST_NUM.set

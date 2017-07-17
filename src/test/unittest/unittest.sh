@@ -30,6 +30,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+set -e
 
 # make sure we have a well defined locale for string operations here
 export LC_ALL="C"
@@ -77,6 +78,29 @@ $DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
+
+# Portability
+if [ "$OSTYPE" = "FreeBSD" ]; then
+	DATE_CMD="gdate"
+	DD_CMD="gdd"
+	VM_OVERCOMMIT="sysctl vm.overcommit"
+	RM_ONEFS_OPT="-x"
+	STATMODE_OPT="-f%Lp"
+	STATPERM_OPT="-f%Sp"
+	STATSIZE_OPT="-f%z"
+	TRACE_CMD="truss"
+	INCLUDE_VMEM="no"
+else
+	DATE_CMD="date"
+	DD_CMD="dd"
+	VM_OVERCOMMIT="cat /proc/sys/vm/overcommit_memory"
+	RM_ONEFS_OPT="--one-file-system"
+	STATMODE_OPT="-c%a"
+	STATPERM_OPT="-c%A"
+	STATSIZE_OPT="-c%s"
+	TRACE_CMD="strace"
+	INCLUDE_VMEM="yes"
+fi
 
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
@@ -202,28 +226,29 @@ fi
 # The default is to turn on library logging to level 3 and save it to local files.
 # Tests that don't want it on, should override these environment variables.
 #
-export VMEM_LOG_LEVEL=3
+LIBRARY_LOG_LEVEL=3
+export VMEM_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export VMEM_LOG_FILE=vmem$UNITTEST_NUM.log
-export PMEM_LOG_LEVEL=3
+export PMEM_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export PMEM_LOG_FILE=pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=3
+export PMEMBLK_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export PMEMBLK_LOG_FILE=pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=3
+export PMEMLOG_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
-export PMEMOBJ_LOG_LEVEL=3
+export PMEMOBJ_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
-export PMEMPOOL_LOG_LEVEL=3
+export PMEMPOOL_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 
 export VMMALLOC_POOL_DIR="$DIR"
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
-export VMMALLOC_LOG_LEVEL=3
+export VMMALLOC_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
 export VALIDATE_VALGRIND_LOG=1
 
-export RPMEM_LOG_LEVEL=3
+export RPMEM_LOG_LEVEL=$LIBRARY_LOG_LEVEL
 export RPMEM_LOG_FILE=rpmem$UNITTEST_NUM.log
 export RPMEMD_LOG_LEVEL=info
 export RPMEMD_LOG_FILE=rpmemd$UNITTEST_NUM.log
@@ -297,13 +322,7 @@ function get_executables() {
 	disable_exit_on_error
 	for c in *
 	do
-		local rights=$(stat -c "%a %F" "$c" 2>/dev/null)
-		if [ "$rights" == "" ]
-		then
-			continue
-		fi
-		local executable=$((${rights:0:1} % 2))
-		if [ "${rights#[0-7]* }" == "regular file" -a $executable -eq 1 ]
+		if [ -f $c -a -x $c ]
 		then
 			echo "$c"
 		fi
@@ -372,7 +391,7 @@ function create_file() {
 	shift
 	for file in $*
 	do
-		dd if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> prep$UNITTEST_NUM.log
+		$DD_CMD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> prep$UNITTEST_NUM.log
 	done
 }
 
@@ -391,7 +410,7 @@ function create_nonzeroed_file() {
 	for file in $*
 	do
 		truncate -s ${offset} $file >> prep$UNITTEST_NUM.log
-		dd if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
+		$DD_CMD if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
 	done
 }
 
@@ -520,12 +539,12 @@ function create_poolset() {
 			;;
 		n)
 			# non-zeroed file
-			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
+			$DD_CMD if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
 			;;
 		h)
 			# non-zeroed file, except 4K header
 			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
-			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
+			$DD_CMD if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
 			truncate -s $asize $fpath >> prep$UNITTEST_NUM.log
 			;;
 		esac
@@ -809,7 +828,7 @@ function check_pools() {
 # - unlimited virtual memory (ulimit -v is unlimited)
 #
 function require_unlimited_vm() {
-	local overcommit=$(cat /proc/sys/vm/overcommit_memory)
+	local overcommit=$($VM_OVERCOMMIT)
 	local vm_limit=$(ulimit -v)
 	[ "$overcommit" != "2" ] && [ "$vm_limit" = "unlimited" ] && return
 	echo "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
@@ -1100,6 +1119,15 @@ function require_node_pkg() {
 	fi
 }
 
+
+#
+# require_vmem -- run test only if libvmem is present
+#
+function require_vmem() {
+	[ "$INCLUDE_VMEM" == "yes" ] && return
+	echo "$UNITTEST_NAME: SKIP no vmem"
+	exit 0
+}
 #
 # configure_valgrind -- only allow script to continue when settings match
 #
@@ -1936,13 +1964,13 @@ function setup() {
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
-			rm --one-file-system -rf -- $DIR
+			rm $RM_ONEFS_OPT -rf -- $DIR
 		fi
 
 		mkdir -p $DIR
 	fi
 	if [ "$TM" = "1" ]; then
-		start_time=$(date +%s.%N)
+		start_time=$($DATE_CMD +%s.%N)
 	fi
 }
 
@@ -1997,8 +2025,8 @@ function check() {
 #
 function pass() {
 	if [ "$TM" = "1" ]; then
-		end_time=$(date +%s.%N)
-		tm=$(date -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
+		end_time=$($DATE_CMD +%s.%N)
+		tm=$($DATE_CMD -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
 			sed -e "s/^00://g" -e "s/^00://g" -e "s/\([0-9]*\)\.\([0-9][0-9][0-9]\).*/\1.\2/")
 		tm="\t\t\t[$tm s]"
 	else
@@ -2008,7 +2036,7 @@ function pass() {
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
 	echo -e "$UNITTEST_NAME: $msg$tm"
 	if [ "$FS" != "none" ]; then
-		rm --one-file-system -rf -- $DIR
+		rm $RM_ONEFS_OPT -rf -- $DIR
 	fi
 }
 
@@ -2079,7 +2107,7 @@ check_no_files()
 #
 get_size()
 {
-	stat -c%s $1
+	stat $STATSIZE_OPT $1
 }
 
 #
@@ -2087,7 +2115,7 @@ get_size()
 #
 get_mode()
 {
-	stat -c%a $1
+	stat $STATMODE_OPT $1
 }
 
 #
@@ -2129,7 +2157,7 @@ check_signature()
 {
 	local sig=$1
 	local file=$2
-	local file_sig=$(dd if=$file bs=1 count=$SIG_LEN 2>/dev/null | tr -d \\0)
+	local file_sig=$($DD_CMD if=$file bs=1 count=$SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $file_sig ]]
 	then
@@ -2158,7 +2186,7 @@ check_layout()
 {
 	local layout=$1
 	local file=$2
-	local file_layout=$(dd if=$file bs=1\
+	local file_layout=$($DD_CMD if=$file bs=1\
 		skip=$LAYOUT_OFFSET count=$LAYOUT_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $layout != $file_layout ]]
@@ -2174,7 +2202,7 @@ check_layout()
 check_arena()
 {
 	local file=$1
-	local sig=$(dd if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
+	local sig=$($DD_CMD if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $ARENA_SIG ]]
 	then
@@ -2363,18 +2391,20 @@ function copy_common_to_remote_nodes() {
 	local NODES_ALL_SEQ=$(seq -s' ' 0 $NODES_ALL_MAX)
 
 	DIR_SYNC=$1
-	[ ! -d $DIR_SYNC ] \
+	if [ "$DIR_SYNC" != "" ]; then
+		[ ! -d $DIR_SYNC ] \
 		&& echo "error: $DIR_SYNC does not exist or is not a directory" >&2 \
 		&& exit 1
+	fi
 
 	# add all libraries to the 'to-copy' list
 	local LIBS_TAR=libs.tar
 	pack_all_libs $LIBS_TAR
 
-	if [ "$(ls $DIR_SYNC)" != "" ]; then
+	if [ "$DIR_SYNC" != "" -a "$(ls $DIR_SYNC)" != "" ]; then
 		FILES_COMMON_DIR="$DIR_SYNC/* $LIBS_TAR"
 	else
-		FILES_COMMON_DIR="$LIBS_TAR"
+		FILES_COMMON_DIR="$FILES_COMMON_DIR $LIBS_TAR"
 	fi
 
 	for N in $NODES_ALL_SEQ; do

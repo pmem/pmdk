@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2015-2017, Intel Corporation
 #
@@ -34,6 +34,7 @@
 #
 # src/test/obj_convert/common.sh -- common part of conversion tool tests
 #
+set -e
 
 # exits in the middle of transaction, so pool cannot be closed
 export MEMCHECK_DONT_CHECK_LEAKS=1

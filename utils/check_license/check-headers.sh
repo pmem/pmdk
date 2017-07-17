@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -145,7 +145,7 @@ for file in $FILES ; do
 	[ ! -f $file ] && continue
 	# ensure that file is UTF-8 encoded
 	ENCODING=`file -b --mime-encoding $file`
-	iconv -f $ENCODING -t "UTF-8" -o $TEMPFILE $file
+	iconv -f $ENCODING -t "UTF-8" $file > $TEMPFILE
 
 	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE $file`
 	if [ $? -ne 0 ]; then
