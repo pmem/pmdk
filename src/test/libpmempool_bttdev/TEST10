@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ $PMEMSPOIL $POOL "bttdevice.arena(0).btt_info.checksum=777"\
 	"bttdevice.arena(0).btt_info.sig=ERROR"\
 	"bttdevice.arena(0).btt_info_backup.checksum=777"
 
-expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 
 check_file $POOL
 

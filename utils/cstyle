@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 #
 # CDDL HEADER START
 #
@@ -22,6 +22,8 @@
 #
 # Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
 # Use is subject to license terms.
+#
+# Portions copyright 2017, Intel Corporation.
 #
 # @(#)cstyle 1.58 98/09/09 (from shannon)
 #ident	"%Z%%M%	%I%	%E% SMI"
@@ -54,6 +56,7 @@ require 5.0;
 use IO::File;
 use Getopt::Std;
 use strict;
+use warnings;
 
 my $usage =
 "usage: cstyle [-chpvCP] [-o constructs] file ...
