@@ -30,7 +30,7 @@ Machine                  : AMD X86-64
 Checksum                 : $(*)
 
 PMEM OBJ Header:
-Layout                   : pmempool😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋
+Layout                   : pmempool$(*)
 Lanes offset             : $(nW)
 Number of lanes          : $(nW)
 Heap offset              : $(nW)
