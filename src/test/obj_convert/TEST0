@@ -40,6 +40,7 @@ export UNITTEST_NUM=0
 # standard unit test setup
 . ../unittest/unittest.sh
 
+require_command gdb
 require_test_type medium
 
 # must be non-static debug release of the binary because the test relies on the
