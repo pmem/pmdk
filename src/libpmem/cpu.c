@@ -39,13 +39,7 @@
  * http://www.intel.com/content/www/us/en/processors/
  * architectures-software-developer-manuals.html
  *
- * XXX - According to the patch submitted to binutils mailing list
- * (https://sourceware.org/ml/binutils/2015-03/msg00078.html), AMD processors
- * will support CLFLUSHOPT instruction, and its availability will be indicated
- * by the same CPUID feature flag.  However, except this patch, there is
- * no public documentation yet for AMD processors supporting new ISA.  Once
- * it is available, we will modify CPU features detection routines to support
- * other CPU vendors.
+ * https://support.amd.com/TechDocs/24594.pdf
  */
 
 #include <string.h>
@@ -163,9 +157,6 @@ is_cpu_clflush_present(void)
 int
 is_cpu_clflushopt_present(void)
 {
-	if (!is_cpu_genuine_intel())
-		return 0;
-
 	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLFLUSHOPT);
 	LOG(4, "CLFLUSHOPT %ssupported", ret == 0 ? "not " : "");
 
