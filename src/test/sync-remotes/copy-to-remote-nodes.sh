@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -31,7 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
 # copy-to-remote-nodes.sh -- helper script used to sync remote nodes
+#
+set -e
 
 if [ ! -f ../testconfig.sh ]; then
 	echo "SKIP: testconfig.sh does not exist"
