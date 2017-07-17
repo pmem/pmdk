@@ -72,8 +72,8 @@ rm -f $DIR/testfile01
 expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
 
 # Check if restored part file have the same permissions as other parts
-stat -c %A $DIR/testfile00 >> $LOG_TEMP
-stat -c %A $DIR/testfile01 >> $LOG_TEMP
+stat $STATPERM_OPT $DIR/testfile00 >> $LOG_TEMP
+stat $STATPERM_OPT $DIR/testfile01 >> $LOG_TEMP
 
 # Delete the first part in the second replica
 rm -f $DIR/testfile10
@@ -85,8 +85,8 @@ chmod 600 $DIR/testfile*
 expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
 
 # Check if restored part file have the same permissions as other parts
-stat -c %A $DIR/testfile10 >> $LOG_TEMP
-stat -c %A $DIR/testfile11 >> $LOG_TEMP
+stat $STATPERM_OPT $DIR/testfile10 >> $LOG_TEMP
+stat $STATPERM_OPT $DIR/testfile11 >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 check

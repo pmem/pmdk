@@ -53,10 +53,10 @@ rm -rf $LOG && touch $LOG
 create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 
-TIME=$(date +"%s")
+TIME=$($DATE_CMD +"%s")
 let "FUTURE_TIME=$TIME+60*60"
 let "PAST_TIME=$TIME-60*60"
-PAST_TIME=$(date -d @$PAST_TIME +"%y%m%d%H%M")
+PAST_TIME=$($DATE_CMD -d @$PAST_TIME +"%y%m%d%H%M")
 $PMEMSPOIL -v $POOL_P1 pool_hdr.crtime=$FUTURE_TIME >> $LOG
 touch -mt $PAST_TIME $POOL_P1
 
