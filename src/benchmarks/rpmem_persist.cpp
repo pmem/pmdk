@@ -284,11 +284,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 
 	struct rpmem_pool_attr attr;
 	memset(&attr, 0, sizeof(attr));
-	int ret = snprintf(attr.signature, sizeof(attr.signature), "PMEMBENCH");
-	if (ret < 0) {
-		perror("snprintf");
-		return -1;
-	}
+	memcpy(attr.signature, "PMEMBNCH", sizeof(attr.signature));
 
 	/* read and validate poolset */
 	if (util_poolset_read(&set, path)) {
