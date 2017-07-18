@@ -528,10 +528,13 @@ heap_reuse_run(struct palloc_heap *heap, struct bucket *b,
  */
 static int
 heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
-	struct chunk_run *run, struct memory_block *m)
+	struct memory_block *m)
 {
 	if (m->m_ops->claim(m) != 0)
 		return 0; /* this run already has an owner */
+
+	struct chunk_run *run = (struct chunk_run *)
+		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
 
 	struct alloc_class_run_proto run_proto;
 	alloc_class_generate_run_proto(&run_proto,
@@ -582,11 +585,13 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 		struct alloc_class *c = alloc_class_by_unit_size(
 			heap->rt->alloc_classes,
 			run->block_size);
-		if (c != NULL && c->type == CLASS_RUN &&
-				c->run.size_idx == m->size_idx &&
-				c->header_type == m->header_type) {
-			recycler_put(heap->rt->recyclers[c->id], m);
-		}
+
+		if (c == NULL ||
+		    c->type != CLASS_RUN ||
+		    c->run.size_idx != m->size_idx ||
+		    c->header_type != m->header_type ||
+		    recycler_put(heap->rt->recyclers[c->id], m) < 0)
+			m->m_ops->claim_revoke(m);
 	}
 
 	util_mutex_unlock(lock);
@@ -629,7 +634,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 
-	struct chunk_run *run = NULL;
 	int rchunks = 0;
 
 	/*
@@ -665,9 +669,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
-				run = (struct chunk_run *)&z->chunks[i];
-				rchunks += heap_reclaim_run(heap, bucket,
-					run, &m);
+				rchunks += heap_reclaim_run(heap, bucket, &m);
 				break;
 			case CHUNK_TYPE_FREE:
 				if (init) {
@@ -718,10 +720,11 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 static int
 heap_reclaim_garbage(struct palloc_heap *heap, struct bucket *bucket)
 {
-	struct memory_block m;
+	struct memory_block m = MEMORY_BLOCK_NONE;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
 			m.m_ops->claim_revoke(&m);
+			m.size_idx = 0;
 		}
 	}
 
@@ -747,81 +750,22 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 }
 
 /*
- * heap_ensure_run_bucket_filled -- (internal) refills the bucket if needed
+ * heap_reuse_from_recycler -- (internal) try reusing runs that are currently
+ *	in the recycler
  */
 static int
-heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
-	uint32_t units)
+heap_reuse_from_recycler(struct palloc_heap *heap,
+	struct bucket *b, uint32_t units)
 {
-	ASSERTeq(b->aclass->type, CLASS_RUN);
-
-	if (b->is_active) {
-		b->c_ops->rm_all(b->container);
-		b->active_memory_block.m_ops
-			->claim_revoke(&b->active_memory_block);
-
-		b->is_active = 0;
-	}
-
-	struct heap_rt *h = heap->rt;
 	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.size_idx = units;
 
-	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
+	if (recycler_get(heap->rt->recyclers[b->aclass->id], &m) == 0) {
 		os_mutex_t *lock = m.m_ops->get_lock(&m);
 
 		util_mutex_lock(lock);
 		heap_reuse_run(heap, b, &m);
 		util_mutex_unlock(lock);
-
-		b->active_memory_block = m;
-		b->is_active = 1;
-
-		return 0;
-	}
-
-	m.size_idx = b->aclass->run.size_idx;
-
-	/* cannot reuse an existing run, create a new one */
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
-			DEFAULT_ALLOC_CLASS_ID);
-	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
-		ASSERTeq(m.block_off, 0);
-
-		heap_create_run(heap, b, &m);
-
-		b->active_memory_block = m;
-		b->is_active = 1;
-
-		heap_bucket_release(heap, defb);
-		return 0;
-	}
-	heap_bucket_release(heap, defb);
-
-	/*
-	 * Try the recycler again, the previous call to the bestfit_block for
-	 * huge chunks might have reclaimed some unused runs.
-	 */
-	if (recycler_get(h->recyclers[b->aclass->id], &m) == 0) {
-		os_mutex_t *lock = m.m_ops->get_lock(&m);
-		util_mutex_lock(lock);
-		heap_reuse_run(heap, b, &m);
-		util_mutex_unlock(lock);
-
-		/*
-		 * To verify that the recycler run is not able to satisfy our
-		 * request we attempt to retrieve a block. This is not ideal,
-		 * and should be replaced by a different heuristic once proper
-		 * memory block scoring is implemented.
-		 */
-		struct memory_block tmp = MEMORY_BLOCK_NONE;
-		tmp.size_idx = units;
-		if (b->c_ops->get_rm_bestfit(b->container, &tmp) != 0) {
-			b->c_ops->rm_all(b->container);
-			m.m_ops->claim_revoke(&m);
-			return ENOMEM;
-		} else {
-			bucket_insert_block(b, &tmp);
-		}
 
 		b->active_memory_block = m;
 		b->is_active = 1;
@@ -830,6 +774,65 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	}
 
 	return ENOMEM;
+}
+
+/*
+ * heap_ensure_run_bucket_filled -- (internal) refills the bucket if needed
+ */
+static int
+heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
+	uint32_t units)
+{
+	ASSERTeq(b->aclass->type, CLASS_RUN);
+
+	int ret = 0;
+
+	struct bucket *defb = heap_bucket_acquire_by_id(heap,
+			DEFAULT_ALLOC_CLASS_ID);
+
+	/* get rid of the active block in the bucket */
+	if (b->is_active) {
+		b->c_ops->rm_all(b->container);
+		b->is_active = 0;
+
+		b->active_memory_block.m_ops
+			->claim_revoke(&b->active_memory_block);
+
+		/* either convert to a full chunk or place it in the recycler */
+		heap_reclaim_run(heap, defb, &b->active_memory_block);
+	}
+
+	if (heap_reuse_from_recycler(heap, b, units) == 0)
+		goto out;
+
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.size_idx = b->aclass->run.size_idx;
+
+	/* cannot reuse an existing run, create a new one */
+	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
+		ASSERTeq(m.block_off, 0);
+
+		heap_create_run(heap, b, &m);
+
+		b->active_memory_block = m;
+		b->is_active = 1;
+
+		goto out;
+	}
+
+	/*
+	 * Try the recycler again, the previous call to the bestfit_block for
+	 * huge chunks might have reclaimed some unused runs.
+	 */
+	if (heap_reuse_from_recycler(heap, b, units) == 0)
+		goto out;
+
+	ret = ENOMEM;
+
+out:
+	heap_bucket_release(heap, defb);
+
+	return ret;
 }
 
 /*
