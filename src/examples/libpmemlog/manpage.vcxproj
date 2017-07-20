@@ -39,11 +39,6 @@
   <PropertyGroup>
     <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
-    <Link>
-      <AdditionalDependencies>libpmem.lib;libpmemlog.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup>
     <Manifest>
       <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>

@@ -15,11 +15,6 @@
     <RootNamespace>pmemlog</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
-    <Link>
-      <AdditionalDependencies>libpmem.lib;libpmemlog.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup Condition="'$(SolutionName)'=='NVML'">
     <ProjectReference Include="..\..\..\libpmemlog\libpmemlog.vcxproj">
       <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>

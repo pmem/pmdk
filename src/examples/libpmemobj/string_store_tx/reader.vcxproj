@@ -15,11 +15,6 @@
     <RootNamespace>pmemobj_tx</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(SolutionName)'=='Examples'">
-    <Link>
-      <AdditionalDependencies>libpmem.lib;libpmemobj.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup Condition="'$(SolutionName)'=='NVML'">
     <ProjectReference Include="..\..\..\libpmemobj\libpmemobj.vcxproj">
       <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
