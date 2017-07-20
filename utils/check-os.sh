@@ -42,7 +42,7 @@ if [[ $2 =~ $EXCLUDE ]]; then
 	exit 0
 fi
 
-symbols=$(nm --demangle --undefined-only --format=posix $2 | sed 's/ U *//g')
+symbols=$(nm -Cuf posix $2 | sed 's/ U *//g')
 functions=$(cat $1 | tr '\n' '|')
 out=$(
 	for sym in $symbols

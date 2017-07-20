@@ -65,7 +65,7 @@ do
 	expect_normal_exit $BTTCREATE $POOL
 	$PMEMSPOIL -v $POOL $spcmd >> $LOG_TEMP
 
-	expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL
+	expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt
 	cat $LOG >> $LOG_TEMP
 	rm -f POOL
 
