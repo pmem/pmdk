@@ -50,7 +50,7 @@ rm -rf $LOG && touch $LOG
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
 INFO_NFLOG=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL | grep 'Free blocks' | grep -o '[0-9]\+')
-NFLOG=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -g $POOL | grep -co '^[0-9]\+:')
+NFLOG=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -g $POOL | grep -o '^[0-9]\+:' | wc -l)
 
 [[ $INFO_NFLOG == $NFLOG ]] || exit 1
 

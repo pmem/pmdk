@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,10 +53,10 @@ rm -rf $LOG && touch $LOG
 create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 
-TIME=$($DATE_CMD +"%s")
+TIME=$(date +"%s")
 let "FUTURE_TIME=$TIME+60*60"
 let "PAST_TIME=$TIME-60*60"
-PAST_TIME=$($DATE_CMD -d @$PAST_TIME +"%y%m%d%H%M")
+PAST_TIME=$(date -d @$PAST_TIME +"%y%m%d%H%M")
 $PMEMSPOIL -v $POOL_P1 pool_hdr.crtime=$FUTURE_TIME >> $LOG
 touch -mt $PAST_TIME $POOL_P1
 
