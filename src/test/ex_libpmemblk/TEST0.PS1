@@ -32,14 +32,14 @@
 #
 
 #
-# src\test\ex_libpmemblk\TEST0 -- unit test for libpmemblk examples
+# src/test/ex_libpmemblk/TEST0 -- unit test for libpmemblk examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemblk\TEST0"
+$Env:UNITTEST_NAME = "ex_libpmemblk/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 # standard unit test setup

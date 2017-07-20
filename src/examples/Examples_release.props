@@ -14,6 +14,7 @@
 	  <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+	  <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
 	  <EnableCOMDATFolding>true</EnableCOMDATFolding>

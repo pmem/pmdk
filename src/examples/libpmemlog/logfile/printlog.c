@@ -34,9 +34,9 @@
  * printlog -- given a log file, print the entries
  *
  * Usage:
- *	printlog [t] /path/to/pm-aware/file
+ *	printlog [-t] /path/to/pm-aware/file
  *
- * t option means truncate the file after printing it.
+ * -t option means truncate the file after printing it.
  */
 
 #include <ex_common.h>
@@ -84,11 +84,11 @@ main(int argc, char *argv[])
 	PMEMlogpool *plp;
 
 	if (argc > 2) {
-		if (strcmp(argv[1], "t") == 0) {
+		if (strcmp(argv[1], "-t") == 0) {
 			tflag = 1;
 			ind++;
 		} else {
-			fprintf(stderr, "usage: %s [t] file\n", argv[0]);
+			fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
 			exit(1);
 		}
 	}

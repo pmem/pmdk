@@ -31,14 +31,14 @@
 #
 
 #
-# src\test\ex_libpmemobj\TEST17 -- unit test for libpmemobj examples
+# src/test/ex_libpmemobj/TEST17 -- unit test for libpmemobj examples
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "ex_libpmemobj\TEST17"
+$Env:UNITTEST_NAME = "ex_libpmemobj/TEST17"
 $Env:UNITTEST_NUM = "17"
 
 # standard unit test setup

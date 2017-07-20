@@ -51,7 +51,7 @@ $rootdir = $scriptdir + "\..\"
 $builddir = $rootdir + "\src\x64\"
 $srcdir = $rootdir + "\src\"
 $zipdir = $builddir + "\nvml\"
-$zipexp = $rootdir + "\nvml_examples\"
+$zipexpdir = $rootdir + "\nvml_examples\"
 
 if ($version -eq "0") {
     $git = Get-Command -Name git -ErrorAction SilentlyContinue
@@ -104,26 +104,28 @@ Copy-Item ($rootdir + "ChangeLog") ($zipdir)
 Add-Type -Assembly System.IO.Compression.FileSystem
 $comprlevel = [System.IO.Compression.CompressionLevel]::Optimal
 
-if($build -eq "release") {
-    Remove-Item $zipexp -Force -Recurse -ea si
-    New-Item -ItemType directory -Path ($zipexp) -Force | Out-Null
-    Copy-Item ($srcdir + "LongPath.manifest") ($zipexp)
+if($build -eq "Release") {
+    Remove-Item $zipexpdir -Force -Recurse -ea si
+    New-Item -ItemType directory -Path ($zipexpdir) -Force | Out-Null
+    Copy-Item ($srcdir + "LongPath.manifest") ($zipexpdir)
 
     foreach ($type in $exp_types) {
-        Copy-Item -Path ($srcdir + "examples") -Filter $type -Recurse -Destination $zipexp -Container -Force
+        Copy-Item -Path ($srcdir + "examples") -Filter $type -Recurse -Destination $zipexpdir -Container -Force
     }
     do {
-        $empty_dirs = $(Get-ChildItem $zipexp -Recurse | Where-Object {$_.PsIsContainer -eq $true})
+        $empty_dirs = $(Get-ChildItem $zipexpdir -Recurse | Where-Object {$_.PsIsContainer -eq $true})
         $to_remove = $($empty_dirs | Where-Object{$_.GetDirectories().Count -eq 0 -and $_.GetFiles().Count -eq 0})
         for($i=0; $i -lt $to_remove.count; $i++) {
             Remove-Item $to_remove[$i].FullName -Force
         }
     } while ($null -ne $to_remove)
 
-    if (Test-Path  ($zipexp)) {
-        [System.IO.Compression.ZipFile]::CreateFromDirectory($zipexp, $expfile,
+    if (Test-Path  ($zipexpdir)) {
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($zipexpdir, $expfile,
             $comprlevel, $true)
     }
+
+	Remove-Item $zipexpdir -Force -Recurse -ea si
 }
 
 if (Test-Path  ($zipdir)) {
@@ -131,5 +133,4 @@ if (Test-Path  ($zipdir)) {
         $comprlevel, $true)
 }
 
-Remove-Item $zipdir -Force -Recurse -ea si
 Remove-Item $zipdir -Force -Recurse -ea si
