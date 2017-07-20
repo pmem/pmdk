@@ -34,7 +34,7 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
 LN = ln
-OBJCOPY = objcopy
+OBJCOPY ?= objcopy
 MKDIR = mkdir
 INSTALL = install
 CP = cp
@@ -45,7 +45,7 @@ CHECK_OS = $(TOP)/utils/check-os.sh
 OS_BANNED = $(TOP)/utils/os-banned
 COVERAGE = 0
 
-PKG_CONFIG = pkg-config
+PKG_CONFIG ?= pkg-config
 CLANG_FORMAT ?= clang-format
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 

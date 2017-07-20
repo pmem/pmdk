@@ -214,6 +214,6 @@ sparse:
 PMEMOBJ_SYMBOLS=pmalloc pfree lane_hold lane_release
 
 pmemobj.o: $(LIBS_PATH)/libpmemobj/libpmemobj_unscoped.o
-	objcopy --localize-hidden $(addprefix -G, $(PMEMOBJ_SYMBOLS)) $< $@
+	$(OBJCOPY) --localize-hidden $(addprefix -G, $(PMEMOBJ_SYMBOLS)) $< $@
 
 -include .deps/*.P
