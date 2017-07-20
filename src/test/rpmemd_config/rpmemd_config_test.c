@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <sys/param.h>
 #include <syslog.h>
+#include <pwd.h>
 
 #include "unittest.h"
 #include "rpmemd_log.h"
@@ -111,6 +112,10 @@ parse_test_params(int *argc, char *argv[])
 int
 main(int argc, char *argv[])
 {
+
+	/* workaround for getpwuid open fd */
+	getpwuid(getuid());
+
 	START(argc, argv, "rpmemd_config");
 
 	int ret = rpmemd_log_init("rpmemd_log", NULL, 0);
