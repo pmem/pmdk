@@ -1,5 +1,4 @@
-#
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,36 +27,23 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-include ../../common.inc
-
-PROGS = manpage btree pi lists setjmp
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator
-
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda pmpong doc_snippets
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
-
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
-
-include ../Makefile.inc
-
-map: hashmap tree_map
-pmemobjfs: map
-
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
-
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+Param(
+[string]$TEMP,
+[string]$TargetDir
+)
+$url = "https://www.sfml-dev.org/files/SFML-2.4.2-windows-vc14-64-bit.zip"
+$Filename = [System.IO.Path]::GetFileName($url)
+$path = "$env:TEMP\$Filename"
+$webClient = new-object System.Net.WebClient
+$webClient.DownloadFile($url,$path)
+$SFMLFileExists = Test-Path $env:TEMP\SFML-2.4.2
+if ($SFMLFileExists -eq $False) {
+  $shell = New-Object -ComObject shell.application
+  $zip = $shell.NameSpace($path)
+  foreach ($item in $zip.items()) {
+    $shell.Namespace($env:TEMP).CopyHere($item)
+  }
+}
+Copy-Item $env:TEMP\SFML-2.4.2\bin\* -Destination $env:TargetDir
+Copy-Item $env:TEMP\SFML-2.4.2\include -Destination $env:TargetDir -recurse
+Copy-Item $env:TEMP\SFML-2.4.2\lib -Destination $env:TargetDir -recurse
