@@ -83,7 +83,7 @@ function configure_poolsets() {
 
 	expect_normal_exit run_on_node 1 ../pmempool rm -sf $POOLSET_LOCAL
 	expect_normal_exit run_on_node 1 ../pmempool create obj $POOLSET_LOCAL
-	expect_normal_exit run_on_node 1 ../pmemobjcli -s $PMEMOBJCLI_SCRIPT $POOLSET_LOCAL
+	expect_normal_exit run_on_node 1 ../pmemobjcli -s $PMEMOBJCLI_SCRIPT $POOLSET_LOCAL > /dev/null
 }
 
 DUMP_INFO_LOG="../pmempool info -lHZCOoAa"
