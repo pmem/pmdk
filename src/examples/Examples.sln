@@ -113,6 +113,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data_store", "libpmemobj\ma
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mapcli", "libpmemobj\map\mapcli.vcxproj", "{BB248BAC-6E1B-433C-A254-75140A273AB5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "libpmemobj\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -287,6 +289,10 @@ Global
 		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Debug|x64.Build.0 = Debug|x64
 		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Release|x64.ActiveCfg = Release|x64
 		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Release|x64.Build.0 = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.ActiveCfg = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.Build.0 = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.ActiveCfg = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -345,5 +351,6 @@ Global
 		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{BB248BAC-6E1B-433C-A254-75140A273AB5} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723} = {52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}
 	EndGlobalSection
 EndGlobal
