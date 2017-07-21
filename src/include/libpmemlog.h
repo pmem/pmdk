@@ -98,7 +98,13 @@ const wchar_t *pmemlog_check_versionW(unsigned major_required,
 /*
  * support for PMEM-resident log files...
  */
-#define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MB */
+#define PMEMLOG_MIN_POOL ((size_t)(1024 * 1024 * 2)) /* min pool size: 2MiB */
+
+/*
+ * This limit is set arbitrary to incorporate a pool header and required
+ * alignment plus supply.
+ */
+#define PMEMLOG_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
 #ifndef _WIN32
 PMEMlogpool *pmemlog_open(const char *path);

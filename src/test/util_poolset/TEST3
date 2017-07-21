@@ -48,10 +48,11 @@ setup
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-MIN_POOL=$((32 * 1024))
+MIN_POOL=$((4 * 1024 * 1024)) # 4MiB
+MIN_PART=$((2 * 1024 * 1024)) # 2MiB
 
 for i in `seq 1 128`; do
-	FILES="$FILES 32K:$DIR/testfile$i:x "
+	FILES="$FILES $MIN_PART:$DIR/testfile$i:x "
 done
 
 # prepare pool sets

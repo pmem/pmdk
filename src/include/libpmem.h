@@ -65,6 +65,12 @@ extern "C" {
 #include <sys/types.h>
 
 /*
+ * This limit is set arbitrary to incorporate a pool header and required
+ * alignment plus supply.
+ */
+#define PMEM_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
+
+/*
  * flags supported by pmem_map_file()
  */
 #define PMEM_FILE_CREATE	(1 << 0)

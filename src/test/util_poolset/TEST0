@@ -49,66 +49,66 @@ setup
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-MIN_POOL=$((32 * 1024))
+MIN_POOL=$((4 * 1024 * 1024)) # 4MiB
 
 mkdir -p $DIR/subdir1
 mkdir -p $DIR/subdir2
 
 # non-existing files (delete on failure)
-create_poolset $DIR/testset1 32K:$DIR/testfile11:x # pass
-create_poolset $DIR/testset2 32K:$DIR/testfile21:x \
-	32K:$DIR/testfile22:x # pass
-create_poolset $DIR/testset3 32K:$DIR/testfile31:x \
-	32K:$DIR/testfile32:z:32K # pass
-create_poolset $DIR/testset4 12K:$DIR/testfile41:x \
-	32K:$DIR/testfile42:x # fail - part1 too small
-create_poolset $DIR/testset5 32K:$DIR/testfile51:x \
-	16K:$DIR/testfile52:x # fail - part2 too small
-create_poolset $DIR/testset6 32K:$DIR/testfile61:x \
-	32K:$DIR/nodir/testfile62:x # fail - part2 non-existing dir
-create_poolset $DIR/testset7 32K:$DIR/testfile71:x \
-	32K:/proc/testfile72:x # fail - part2 can't write to dir
-create_poolset $DIR/testset8 32K:$DIR/testfile81:x \
+create_poolset $DIR/testset1 $MIN_POOL:$DIR/testfile11:x # pass
+create_poolset $DIR/testset2 $MIN_POOL:$DIR/testfile21:x \
+	$MIN_POOL:$DIR/testfile22:x # pass
+create_poolset $DIR/testset3 $MIN_POOL:$DIR/testfile31:x \
+	$MIN_POOL:$DIR/testfile32:z:$MIN_POOL # pass
+create_poolset $DIR/testset4 1MB:$DIR/testfile41:x \
+	$MIN_POOL:$DIR/testfile42:x # fail - part1 too small
+create_poolset $DIR/testset5 $MIN_POOL:$DIR/testfile51:x \
+	1MB:$DIR/testfile52:x # fail - part2 too small
+create_poolset $DIR/testset6 $MIN_POOL:$DIR/testfile61:x \
+	$MIN_POOL:$DIR/nodir/testfile62:x # fail - part2 non-existing dir
+create_poolset $DIR/testset7 $MIN_POOL:$DIR/testfile71:x \
+	$MIN_POOL:/proc/testfile72:x # fail - part2 can't write to dir
+create_poolset $DIR/testset8 $MIN_POOL:$DIR/testfile81:x \
 	1G:$DIR/testfile82:x # fail - part2 no space left
 
 # exiting files (do not delete on failure)
-create_poolset $DIR/testset10 32K:$DIR/testfile101:z \
-	32K:$DIR/testfile102:z:32K:0444 # fail - part2 read-only
-create_poolset $DIR/testset11 32K:$DIR/testfile111:z:32K \
-	32K:$DIR/testfile112:z 16K:$DIR/testfile113:z:32K # fail - part3 too small
-create_poolset $DIR/testset12 32K:$DIR/testfile121:z:32K \
-	8K:$DIR/testfile122:z:8K # fail - part2 too small
-create_poolset $DIR/testset13 8K:$DIR/testfile131:z:8K \
-	32K:$DIR/testfile132:z:32K # fail - part2 too small
-create_poolset $DIR/testset14 32K:$DIR/testfile141:z:32K \
-	64K:$DIR/testfile142:z:32K # fail - part2 size doesn't match
-create_poolset $DIR/testset15 32K:$DIR/testfile151:z:32768 \
-	32K:$DIR/testfile152:z:32769 # fail - part2 size doesn't match
-create_poolset $DIR/testset16 32767:$DIR/testfile161:z:32767 \
-	32K:$DIR/testfile162:z:32K # fail - part1 too small
-create_poolset $DIR/testset17 32769:$DIR/testfile171:z \
-	36863:$DIR/testfile172:z 36864:$DIR/testfile173:z # pass
-create_poolset $DIR/testset18 35K:$DIR/subdir1/testfile181:z \
-	33K:$DIR/subdir2/testfile182:z # pass
+create_poolset $DIR/testset10 $MIN_POOL:$DIR/testfile101:z \
+	$MIN_POOL:$DIR/testfile102:z:$MIN_POOL:0444 # fail - part2 read-only
+create_poolset $DIR/testset11 $MIN_POOL:$DIR/testfile111:z:$MIN_POOL \
+	$MIN_POOL:$DIR/testfile112:z 1M:$DIR/testfile113:z:$MIN_POOL # fail - part3 too small
+create_poolset $DIR/testset12 $MIN_POOL:$DIR/testfile121:z:$MIN_POOL \
+	12K:$DIR/testfile122:z:12K # fail - part2 too small
+create_poolset $DIR/testset13 12K:$DIR/testfile131:z:12K \
+	$MIN_POOL:$DIR/testfile132:z:$MIN_POOL # fail - part2 too small
+create_poolset $DIR/testset14 $MIN_POOL:$DIR/testfile141:z:$MIN_POOL \
+	8M:$DIR/testfile142:z:$MIN_POOL # fail - part2 size doesn't match
+create_poolset $DIR/testset15 $MIN_POOL:$DIR/testfile151:z:$MIN_POOL \
+	$MIN_POOL:$DIR/testfile152:z:3M # fail - part2 size doesn't match
+create_poolset $DIR/testset16 1M:$DIR/testfile161:z:1M \
+	$MIN_POOL:$DIR/testfile162:z:$MIN_POOL # fail - part1 too small
+create_poolset $DIR/testset17 2M:$DIR/testfile171:z \
+	2M:$DIR/testfile172:z 2M:$DIR/testfile173:z # pass
+create_poolset $DIR/testset18 2M:$DIR/subdir1/testfile181:z \
+	3M:$DIR/subdir2/testfile182:z # pass
 
 # mixed (some files exist, some don't)
-create_poolset $DIR/testset20 32K:$DIR/testfile201:x \
-	32K:$DIR/testfile202:n # fail - part2 non-zeroed file
-create_poolset $DIR/testset21 32K:$DIR/testfile21:x \
-	32K:$DIR/testfile22:x # fail - part2 valid hdr (reuse file from case #2)
-create_poolset $DIR/testset22 32K:$DIR/testfile221:x \
-	32K:$DIR/testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
-create_poolset $DIR/testset23 32K:$DIR/testfile231:x \
-	32K:$DIR/testfile232:z # fail - can't read set file
-create_poolset $DIR/testset24 32K:$DIR/testfile241:x 32K:$DIR/testfile242:x \
-	r 80K:$DIR/testfile243:x r 40K:$DIR/testfile244:x 32K:$DIR/testfile245:x # pass - replicas
-create_poolset $DIR/testset25 32K:$DIR/testfile251:z 32K:$DIR/testfile252:x \
-	r 16K:$DIR/testfile253:z # fail - replica too small
-create_poolset $DIR/testset26 32K:$DIR/testfile261:z 64K:$DIR/testfile262:z \
-	r 40K:$DIR/testfile263 r 96K:$DIR/testfile264 # pass - pmem/non-pmem
+create_poolset $DIR/testset20 $MIN_POOL:$DIR/testfile201:x \
+	$MIN_POOL:$DIR/testfile202:n # fail - part2 non-zeroed file
+create_poolset $DIR/testset21 $MIN_POOL:$DIR/testfile21:x \
+	$MIN_POOL:$DIR/testfile22:x # fail - part2 valid hdr (reuse file from case #2)
+create_poolset $DIR/testset22 $MIN_POOL:$DIR/testfile221:x \
+	$MIN_POOL:$DIR/testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
+create_poolset $DIR/testset23 $MIN_POOL:$DIR/testfile231:x \
+	$MIN_POOL:$DIR/testfile232:z # fail - can't read set file
+create_poolset $DIR/testset24 $MIN_POOL:$DIR/testfile241:x $MIN_POOL:$DIR/testfile242:x \
+	r 8M:$DIR/testfile243:x r $MIN_POOL:$DIR/testfile244:x \
+	$MIN_POOL:$DIR/testfile245:x # pass - replicas
+create_poolset $DIR/testset25 $MIN_POOL:$DIR/testfile251:z $MIN_POOL:$DIR/testfile252:x \
+	r 1M:$DIR/testfile253:z # fail - replica too small
+create_poolset $DIR/testset26 $MIN_POOL:$DIR/testfile261:z 2M:$DIR/testfile262:z \
+	r 8M:$DIR/testfile263 r 6M:$DIR/testfile264 # pass - pmem/non-pmem
 
-
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL \
 	$DIR/testset0 $DIR/testset1\
 	$DIR/testset2 $DIR/testset3\
 	$DIR/testset4 $DIR/testset5\
@@ -124,7 +124,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset22\
 	-mo:$DIR/testset23 $DIR/testset23\
 	$DIR/testset24 $DIR/testset25\
-	-mp:$((96*1024)) $DIR/testset26
+	-mp:$((6*1024*1024)) $DIR/testset26
 
 check_files $DIR/testfile11\
 	$DIR/testfile21 $DIR/testfile22\

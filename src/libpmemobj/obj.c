@@ -1203,7 +1203,8 @@ pmemobj_createU(const char *path, const char *layout,
 	 */
 	unsigned runtime_nlanes = obj_get_nlanes();
 
-	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
+	if (util_pool_create(&set, path,
+			poolsize, PMEMOBJ_MIN_POOL, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
 			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes,
@@ -1444,7 +1445,7 @@ obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
 
-	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_POOL,
+	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
 			OBJ_FORMAT_RO_COMPAT, nlanes) != 0) {

@@ -126,27 +126,6 @@ pool_btt_write(struct pool_data *pool, const void *src, size_t count)
 }
 
 /*
- * pool_get_min_size -- (internal) return minimum size of pool for specified
- *	type
- */
-static uint64_t
-pool_get_min_size(enum pool_type type)
-{
-	switch (type) {
-	case POOL_TYPE_LOG:
-		return PMEMLOG_MIN_POOL;
-	case POOL_TYPE_BLK:
-		return PMEMBLK_MIN_POOL;
-	case POOL_TYPE_OBJ:
-		return PMEMOBJ_MIN_POOL;
-	default:
-		break;
-	}
-
-	return 0;
-}
-
-/*
  * pool_set_read_header -- (internal) read a header of a pool set
  */
 static int
@@ -203,17 +182,14 @@ pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 		return -1;
 	}
 
-	/* get minimum size based on pool type for util_pool_open */
-	size_t minsize = pool_get_min_size(type);
-
 	/*
 	 * Open the poolset, the values passed to util_pool_open are read
 	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
 	 */
-	if (util_pool_open(poolset, fname, rdonly, minsize, hdr.signature,
-			hdr.major, hdr.compat_features, hdr.incompat_features,
-			hdr.ro_compat_features, NULL)) {
+	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
+			hdr.signature, hdr.major, hdr.compat_features,
+			hdr.incompat_features, hdr.ro_compat_features, NULL)) {
 		ERR("opening poolset failed");
 		return -1;
 	}
