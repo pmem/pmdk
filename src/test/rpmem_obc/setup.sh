@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 #
 # src/test/rpmem_obc/setup.sh -- common setup for rpmem_obc tests
 #
+set -e
 
 require_nodes 2
 require_node_log_files 1 $RPMEM_LOG_FILE

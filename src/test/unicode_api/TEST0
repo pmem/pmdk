@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -34,6 +34,7 @@
 #
 # src/test/unicode_api/TEST0 -- unicode C API check
 #
+
 export UNITTEST_NAME=unicode_api/TEST0
 export UNITTEST_NUM=0
 
@@ -70,7 +71,7 @@ function check_file {
 		grep "FunctionDecl.*\(vmem\|pmem\).*char \*" | cut -d " " -f $DEF_COL)
 	for func in $funcs
 	do
-		local good=0
+		local good=1	# Not starting at 0 allows set -e
 		to_check="$dir/*.h $file"
 		if [ -n "${pat:+x}" ] && [[ $func =~ $pat ]]; then
 			continue
@@ -80,8 +81,7 @@ function check_file {
 		do
 			let good+=$(grep -c "$func[UW][ ]*(" $f)
 		done
-
-		if [ $good -ne 2 ]; then
+		if [ $good -ne 3 ]; then
 			echo "Function $func in file $file does not have unicode U/W counterparts"
 			FAILED=1;
 		fi

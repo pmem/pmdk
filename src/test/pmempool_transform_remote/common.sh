@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -34,6 +34,7 @@
 # pmempool_transform_remote/common.sh -- commons for pmempool transform tests
 #                                        with remote replication
 #
+set -e
 
 require_nodes 2
 
