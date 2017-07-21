@@ -188,8 +188,9 @@ responsibility for creating the memory pool file by creating it before calling
 **pmemblk_create**() and then specifying *poolsize* as zero. In this case
 **pmemblk_create**() will take the pool size from the size of the existing file
 and will verify that the file appears to be empty by searching for any non-zero
-data in the pool header at the beginning of the file. The minimum file size allowed
-by the library for a block pool is defined in **\<libpmemblk.h\>** as **PMEMBLK_MIN_POOL**.
+data in the pool header at the beginning of the file. The net pool size of a
+pool file is equal to the file size. The minimum net pool size allowed by the
+library for a block pool is defined in **\<libpmemblk.h\>** as **PMEMBLK_MIN_POOL**.
 *bsize* can be any non-zero value, however **libpmemblk** will silently round up
 the given size to **PMEMBLK_MIN_BLK**, as defined in **\<libpmemblk.h\>**.
 
@@ -242,9 +243,21 @@ Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
 For more information please see **ndctl-create-namespace**(1).
 
-The minimum file size of each part of the pool set is the same as the minimum size
-allowed for a block pool consisting of one file. It is defined in **\<libpmemblk.h\>**
-as **PMEMBLK_MIN_POOL**. Lines starting with "#" character are ignored.
+The minimum file size of each part of the pool set is defined in **\<libpmemblk.h\>**
+as **PMEMBLK_MIN_PART**. The net pool size of the pool set is equal to:
+
+```
+net_pool_size = sum_over_all_parts(page_aligned_part_size - 4KiB) + 4KiB
+```
+where
+```
+page_aligned_part_size = part_size & ~(page_size - 1)
+```
+
+Note that page size is OS specific. For more information please see **sysconf**(3).
+The minimum net pool size of a pool set allowed by the library for a block pool
+is defined in **\<libpmemblk.h\>** as **PMEMBLK_MIN_POOL**.
+Lines starting with "#" character are ignored.
 
 Here is the example "myblkpool.set" file:
 

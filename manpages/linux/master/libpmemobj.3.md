@@ -451,8 +451,7 @@ check when **pmemobj_open**() is called. The layout name, including the terminat
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file by creating it before calling **pmemobj_create**() and then specifying *poolsize* as
 zero. In this case **pmemobj_create**() will take the pool size from the size of the existing file and will verify that the file appears to be empty by
-searching for any non-zero data in the pool header at the beginning of the file. The minimum file size allowed by the library for a local transactional object store
-is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
+searching for any non-zero data in the pool header at the beginning of the file. The minimum net pool size allowed by the library for a local transactional object store is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
 For remote replicas the minimum file size is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.
 
 ```c
@@ -565,8 +564,19 @@ being opened, or if the actual size of any file does not match the corresponding
 The set file is a plain text file, which must start with the line containing a *PMEMPOOLSET* string, followed by the specification of all the pool parts in the
 next lines. For each part, the file size and the absolute path must be provided. The size has to be compliant with the format specified in IEC 80000-13, IEEE
 1541 or the Metric Interchange Format. Standards accept SI units with obligatory B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
-- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024). The minimum file size of each part of the pool set is the same as the minimum size allowed
-for a transactional object store consisting of one file. It is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
+- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024). The minimum file size of each part of the pool set is defined in **\<libpmemobj.h\>**
+as **PMEMOBJ_MIN_PART**. The net pool size of the pool set is equal to:
+
+```
+net_pool_size = sum_over_all_parts(page_aligned_part_size - 4KiB) + 4KiB
+```
+where
+```
+page_aligned_part_size = part_size & ~(page_size - 1)
+```
+
+Note that page size is OS specific. For more information please see **sysconf**(3).
+The minimum net pool size of a pool set allowed by the library for a transactional object store is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
 
 Sections defining the replica sets are optional. There could be multiple replica sections and each must start with the line containing a *REPLICA* string.
 Lines starting with "#" character are ignored. A replica can be local or remote. In case of a local replica, the REPLICA line has to consist of the *REPLICA*
