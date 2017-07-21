@@ -121,9 +121,11 @@ check-license:
 sparse:
 	$(MAKE) -C src sparse
 
+# XXX: restore before commit
+# $(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
+
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
-	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
 	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
 	mkdir -p $(DESTDIR)/nvml
 	echo -n $(SRCVERSION) > $(DESTDIR)/nvml/.version
