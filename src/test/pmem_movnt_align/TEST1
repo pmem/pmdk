@@ -52,7 +52,7 @@ export PMEM_LOG_LEVEL=15
 
 expect_normal_exit ./pmem_movnt_align$EXESUFFIX F
 
-grep "pmem_flush" pmem$UNITTEST_NUM.log | sed 's/.*len //' > grep$UNITTEST_NUM.log
+$GREP "pmem_flush" pmem$UNITTEST_NUM.log | sed 's/.*len //' > grep$UNITTEST_NUM.log
 
 check
 

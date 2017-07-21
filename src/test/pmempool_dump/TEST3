@@ -51,8 +51,8 @@ rm -rf $LOG && touch $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL 0:w:TEST0
 expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r-1 -o dump.log $POOL
-cat dump.log | grep "^00000000" >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | grep "^00000000" >> $LOG
+cat dump.log | $GREP "^00000000" >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | $GREP "^00000000" >> $LOG
 
 check
 

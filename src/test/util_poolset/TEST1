@@ -94,7 +94,7 @@ check_no_files $DIR/testfile21 $DIR/testfile22\
 	$DIR/testfile31 $DIR/testfile32\
 	$DIR/testfile42
 
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
 

@@ -73,7 +73,7 @@ expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
 				pool0.set pool1.set
 
 mv rpmem0.log rpmem0_tmp.log
-grep -e flock -e Non-empty rpmem0_tmp.log > rpmem0.log || true
+$GREP -e flock -e Non-empty rpmem0_tmp.log > rpmem0.log || true
 
 check
 

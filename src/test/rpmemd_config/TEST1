@@ -58,7 +58,7 @@ cat $LOG >> $LOG_TEMP
 expect_normal_exit $RPMEMD --config $CONFIG
 cat $LOG >> $LOG_TEMP
 
-grep -v rpmemd_config $LOG_TEMP > $LOG
+$GREP -v rpmemd_config $LOG_TEMP > $LOG
 
 check
 

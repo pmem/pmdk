@@ -97,7 +97,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 TMP_FILE=$DIR/obj_info
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -f obj -o $DIR/testfile1 \
 	> $TMP_FILE
-ROOT_ADDR="$(cat $TMP_FILE | grep "Root offset" | \
+ROOT_ADDR="$(cat $TMP_FILE | $GREP "Root offset" | \
 	sed 's/^Root offset[ \t]*: 0x\([0-9][0-9]*\)/\1/')"
 ROOT_ADDR=$((16#$ROOT_ADDR))
 

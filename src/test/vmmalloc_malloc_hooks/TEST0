@@ -55,7 +55,7 @@ export TEST_LD_PRELOAD=libvmmalloc.so
 
 expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX
 
-egrep 'size\ 4321' \
+$GREP -E 'size\ 4321' \
     vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check

@@ -55,7 +55,7 @@ export TEST_LD_PRELOAD=libvmmalloc.so
 
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
-egrep 'VMMALLOC_POOL_SIZE|VMMALLOC_POOL_DIR|TMPDIR|mkstemp|size\ 4321' \
+$GREP -E 'VMMALLOC_POOL_SIZE|VMMALLOC_POOL_DIR|TMPDIR|mkstemp|size\ 4321' \
     vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check

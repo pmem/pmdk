@@ -53,7 +53,7 @@ POOLSETS=`ls -1 ./pool*[0-9].set | sort -V`
 
 expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
 
-grep -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
+$GREP -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
 	sed -e "s/^.*util_poolset_parse][ ]*//g" > grep$UNITTEST_NUM.log
 
 check

@@ -55,7 +55,7 @@ export TEST_LD_PRELOAD=libvmmalloc.so
 
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
-grep 'Error (libvmmalloc)' vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+$GREP 'Error (libvmmalloc)' vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 

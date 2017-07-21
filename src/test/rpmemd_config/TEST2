@@ -70,7 +70,7 @@ check_config "persist-apm=$INVALID_FLAG # invalid persist-apm value"
 check_config "persist-general=$INVALID_FLAG # invalid persist-general value"
 check_config "use-syslog=$INVALID_FLAG # invalid use-syslog value"
 
-grep -v START $OUT_TEMP > $OUT
+$GREP -v START $OUT_TEMP > $OUT
 
 check
 

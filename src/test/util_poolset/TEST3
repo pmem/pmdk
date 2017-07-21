@@ -64,7 +64,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL $DIR/testset1
 # now check if pool sets may be opened
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $DIR/testset1
 
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
 

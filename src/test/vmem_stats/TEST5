@@ -54,7 +54,7 @@ setup
 export JE_VMEM_MALLOC_CONF="narenas:64"
 
 expect_normal_exit ./vmem_stats$EXESUFFIX 1
-grep -v '<libvmem>:'  vmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+$GREP -v '<libvmem>:'  vmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 
