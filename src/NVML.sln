@@ -346,6 +346,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create_in_region", "te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{746BA101-5C93-42A5-AC7A-64DCEB186572}"
 	ProjectSection(SolutionItems) = preProject
+		test\RUNTESTLIB.PS1 = test\RUNTESTLIB.PS1
 		test\RUNTESTS.ps1 = test\RUNTESTS.ps1
 		test\unittest\unittest.ps1 = test\unittest\unittest.ps1
 	EndProjectSection
@@ -585,7 +586,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_linkedlist", "test\ex_li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_sync_win", "test\libpmempool_sync_win\libpmempool_sync_win.vcxproj", "{B6DA6617-D98F-4A4D-A7C4-A317212924BF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\pmemspoil\pmemspoil.vcxproj", "{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools_pmemspoil", "test\pmemspoil\pmemspoil.vcxproj", "{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_win", "test\obj_pool_win\obj_pool_win.vcxproj", "{B775480C-5B32-4F64-B026-47367280EC56}"
 EndProject
@@ -675,7 +676,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool", "libpmempool\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple_copy", "examples\libpmem\simple_copy.vcxproj", "{D062166F-0EC7-4C13-A772-0C7157EEFE41}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemobjcli", "test\pmemobjcli\pmemobjcli.vcxproj", "{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools_pmemobjcli", "test\pmemobjcli\pmemobjcli.vcxproj", "{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemobjcli", "test\tools\pmemobjcli\pmemobjcli.vcxproj", "{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}"
 EndProject
