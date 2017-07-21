@@ -82,8 +82,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 rm -f $POOLS $REPS
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLREP
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLREP >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 0 $POOLREP | grep 'UUID' > $LOG_REP0
-expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 1 $POOLREP | grep 'UUID' > $LOG_REP1
+expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 0 $POOLREP | $GREP 'UUID' > $LOG_REP0
+expect_normal_exit $PMEMPOOL$EXESUFFIX info --replica 1 $POOLREP | $GREP 'UUID' > $LOG_REP1
 
 echo "DIFF" >> $LOG
 diff --normal $LOG_REP0 $LOG_REP1 >> $LOG || true

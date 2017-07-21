@@ -90,7 +90,7 @@ expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt -a 1 $POOL
 cat $LOG >> $LOG_TEMP
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL -f btt -m\
-	| grep "error" >> $LOG_TEMP
+	| $GREP "error" >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 check_file $POOL

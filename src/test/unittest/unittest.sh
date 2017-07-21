@@ -38,6 +38,7 @@ export LC_ALL="C"
 . ../testconfig.sh
 
 # defaults
+[ "$GREP" ] || export GREP="grep -a"
 [ "$TEST" ] || export TEST=check
 [ "$FS" ] || export FS=any
 [ "$BUILD" ] || export BUILD=debug

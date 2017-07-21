@@ -85,7 +85,7 @@ check_user_home_dir
 
 HOME=$HOME_BACKUP
 
-grep -v rpmemd_config $LOG_TEMP > $LOG
+$GREP -v rpmemd_config $LOG_TEMP > $LOG
 
 check
 

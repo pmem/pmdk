@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@ export TEST_LD_PRELOAD=libvmmalloc.so
 
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 
-grep 'Error (libvmmalloc)' stderr$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+$GREP 'Error (libvmmalloc)' stderr$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,11 +68,11 @@ expect_normal_exit $PMEMPOOL create obj --layout pmempool $POOLSET
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 0 "pmemobj.layout=replica0"
 expect_normal_exit $PMEMPOOL info --replica 0 $POOLSET -f obj\
-	| grep '^Layout.*' >> $LOG
+	| $GREP '^Layout.*' >> $LOG
 
 expect_normal_exit $PMEMSPOIL $POOLSET --replica 1 "pmemobj.layout=replica1"
 expect_normal_exit $PMEMPOOL info --replica 1 $POOLSET -f obj\
-	| grep '^Layout.*' >> $LOG
+	| $GREP '^Layout.*' >> $LOG
 
 
 check

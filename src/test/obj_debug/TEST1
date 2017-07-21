@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ setup
 export PMEMOBJ_LOG_LEVEL=4
 expect_normal_exit ./obj_debug$EXESUFFIX $DIR/testfile1 l
 
-grep _pobj_debug_notice ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+$GREP _pobj_debug_notice ./pmemobj$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 

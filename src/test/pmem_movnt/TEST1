@@ -53,7 +53,7 @@ export PMEM_LOG_LEVEL=15
 export PMEM_MOVNT_THRESHOLD=1024
 
 expect_normal_exit ./pmem_movnt$EXESUFFIX
-egrep "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
+$GREP -E "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
     sed -e 's/^.* len //g' -e 's/^.*][ ]*//g' > grep$UNITTEST_NUM.log
 
 check

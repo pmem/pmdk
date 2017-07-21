@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,8 +51,8 @@ rm -rf $LOG && touch $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL 0:w:TEST0
 expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r-1 -o dump.log $POOL
-cat dump.log | grep "^00000000" >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | grep "^00000000" >> $LOG
+cat dump.log | $GREP "^00000000" >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX dump -r0 $POOL | $GREP "^00000000" >> $LOG
 
 check
 

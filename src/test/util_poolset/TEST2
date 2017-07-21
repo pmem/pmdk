@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -97,7 +97,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset9 $DIR/testset10\
 	$DIR/testset11 $DIR/testset12
 
-grep "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
 

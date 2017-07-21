@@ -62,5 +62,5 @@ function test_pm_policy()
 	copy_files_from_node 0 . $LOG
 
 	# extract persist method and flush function
-	cat $LOG | grep -A2 "persistency policy:" >> $OUT
+	cat $LOG | $GREP -A2 "persistency policy:" >> $OUT
 }

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@ POOLSETS="$DIR/testset1 $DIR/testset2 $DIR/testset3"
 
 expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
 
-grep -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
+$GREP -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
 	sed -e "s/^.*util_poolset_parse][ ]*//g" > grep$UNITTEST_NUM.log
 
 check

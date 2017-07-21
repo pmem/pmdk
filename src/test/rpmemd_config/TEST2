@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -70,7 +70,7 @@ check_config "persist-apm=$INVALID_FLAG # invalid persist-apm value"
 check_config "persist-general=$INVALID_FLAG # invalid persist-general value"
 check_config "use-syslog=$INVALID_FLAG # invalid use-syslog value"
 
-grep -v START $OUT_TEMP > $OUT
+$GREP -v START $OUT_TEMP > $OUT
 
 check
 
