@@ -58,10 +58,10 @@ setup
 #        part size == min part size (pool set)
 $MIN_PART = (2 * 1024 * 1024).toString() + "B" # 2MiB
 
-create_poolset $DIR\testset $MIN_PART:$DIR\testfile1:x $MIN_PART:$DIR\testfile2:x `
-    $MIN_PART:$DIR\testfile3:x $MIN_PART:$DIR\testfile4:x $MIN_PART:$DIR\testfile5:x `
-    $MIN_PART:$DIR\testfile6:x $MIN_PART:$DIR\testfile7:x $MIN_PART:$DIR\testfile8:x `
-    $MIN_PART:$DIR\testfile9:x $MIN_PART:$DIR\testfile10:x
+create_poolset $DIR\testset ${MIN_PART}:$DIR\testfile1:x ${MIN_PART}:$DIR\testfile2:x `
+    ${MIN_PART}:$DIR\testfile3:x ${MIN_PART}:$DIR\testfile4:x ${MIN_PART}:$DIR\testfile5:x `
+    ${MIN_PART}:$DIR\testfile6:x ${MIN_PART}:$DIR\testfile7:x ${MIN_PART}:$DIR\testfile8:x `
+    ${MIN_PART}:$DIR\testfile9:x ${MIN_PART}:$DIR\testfile10:x
 
 expect_normal_exit $Env:EXE_DIR\blk_pool$Env:EXESUFFIX `
     c $DIR\testset 100 0 0640

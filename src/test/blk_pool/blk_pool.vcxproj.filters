@@ -192,5 +192,8 @@
     <None Include="out15w.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="TEST31w.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>

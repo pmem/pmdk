@@ -116,6 +116,7 @@
     <None Include="TEST28.PS1" />
     <None Include="TEST29.PS1" />
     <None Include="TEST3.PS1" />
+    <None Include="TEST30.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />
     <None Include="TEST6.PS1" />
