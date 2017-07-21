@@ -79,6 +79,7 @@ On Windows, to build NVML and run the tests you need:
 * **MS Visual Studio 2015**
 * [Windows SDK 10.0.14393](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (or later)
 * **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
+* **PowerShell 5**
 
 
 Some tests and example applications require additional packages, but they
