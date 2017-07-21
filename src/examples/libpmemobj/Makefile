@@ -41,7 +41,7 @@ DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	linkedlist list_map slab_allocator
 
 ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda doc_snippets
+DIRS += cpp pman cpp_map panaconda pmpong doc_snippets
 else
 $(info NOTE: Skipping C++ examples because of compiler issues)
 endif
