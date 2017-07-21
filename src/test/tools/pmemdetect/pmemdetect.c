@@ -182,10 +182,24 @@ is_dev_dax_align(const char *path, size_t req_align)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr, "Error during arguments conversion\n");
+			return 2;
+		}
+	}
+#endif
 	int ret;
 
-	if (parse_args(argc, argv))
-		exit(EXIT_FAILURE);
+	if (parse_args(argc, argv)) {
+		ret = 2;
+		goto out;
+	}
 
 	util_init();
 	util_mmap_init();
@@ -214,6 +228,10 @@ main(int argc, char *argv[])
 	}
 
 	util_mmap_fini();
-
+out:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
 	return ret;
 }
