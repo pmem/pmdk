@@ -40,7 +40,7 @@ Here is the list of the most important rules:
 - Never type `unsigned int` - just use `unsigned` in such case.
 Same with `long int` and `long`, etc.
 - Sized types like `uint32_t`, `int64_t` should be used when there is an on-media format.
-Otherwise, just use `unsiged`, `long`, etc.
+Otherwise, just use `unsigned`, `long`, etc.
 - Functions with local scope must be declared as `static`.
 
 ### License & copyright
@@ -56,23 +56,24 @@ file, feel free to put your copyright string on top of it.
 ### Naming convention
 - Keep identifier names short, but meaningful. One-letter variables are discouraged.
 - Use proper prefix for function name, depending on the module it belongs to.
-- Use *under_score* pattern for function/variable names. Please, do not use neither
-CamelCase nor Hungarian notation.
+- Use *under_score* pattern for function/variable names. Please, do not use
+CamelCase or Hungarian notation.
 - UPPERCASE constant/macro/enum names.
 - Capitalize first letter for variables with global or module-level scope.
 - Avoid using `l` as a variable name, because it is hard to distinguish `l` from `1`
 on some displays.
 
-### Multi-OS support (Linux/Windows)
-- Do not ever add `#ifdef <OS>` sections lightly. They should be treated as technical
+### Multi-OS support (Linux/FreeBSD/Windows)
+- Do not add `#ifdef <OS>` sections lightly. They should be treated as technical
 debt and avoided when possible.
 - Use `_WIN32` macro for conditional directives when including code using
 Windows-specific API.
+- Use `__FreeBSD__` macro for conditional directives for FreeBSD-specific code.
 - Use `_MSC_VER` macro for conditional directives when including code using VC++
 or gcc specific extensions.
 - In case of large portions of code (i.e. a whole function) that have different
 implementation for each OS, consider moving them to separate files.
-(i.e. *xxx_linux.c* and *xxx_windows.c*)
+(i.e. *xxx_linux.c*, *xxx_freebsd.c* and *xxx_windows.c*)
 - Keep in mind that `long int` is still 32-bit on 64-bit Windows. Remember to
 use `long long` types whenever it applies, as well as proper formatting
 strings and type suffixes (i.. `%llu`, `ULL`).
@@ -91,6 +92,7 @@ log level for most frequently called routines.
 
 ### Unit tests
 - There **must** be unit tests provided for each new function/module added.
+- Test scripts **must** start with `#!/usr/bin/env <shell>` for portability between Linux and FreeBSD.
 - Please, see [this](https://github.com/pmem/nvml/blob/master/src/test/README)
 and [that](https://github.com/pmem/nvml/blob/master/src/test/unittest/README)
 document to get familiar with
