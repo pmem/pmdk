@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,36 +28,26 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-include ../../common.inc
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
-PROGS = manpage btree pi lists setjmp
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator
-
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda pmpong doc_snippets
+SFML := $(call check_package, sfml-all --atleast-version 2.4)
+ifeq ($(SFML),y)
+PROGS = pmpong $(shell find /usr/share/fonts -name *.ttf | head -n 1 >| fontConf $<)
 else
-$(info NOTE: Skipping C++ examples because of compiler issues)
+$(info NOTE: Skipping pmpong because sfml is missing \
+-- see src/examples/libpmemobj/pmpong/README for details.)
 endif
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+LIBS = -lpmemobj -lpmem
 
-include ../Makefile.inc
+ifeq ($(SFML),y)
+LIBS += $(shell $(PKG_CONFIG) --libs sfml-all)
+endif
 
-map: hashmap tree_map
-pmemobjfs: map
+COMPILE_LANG = cpp
+include ../../Makefile.inc
+INCS += -I../
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-queue: queue.o
-lists: lists.o
-
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+pmpong: MainGame.o Paddle.o Ball.o PongGameStatus.o GameController.o Pool.o GameView.o MenuView.o GameOverView.o
