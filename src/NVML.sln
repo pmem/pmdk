@@ -798,6 +798,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check", "test\vmem_che
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_remove", "test\obj_list_remove\obj_list_remove.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "examples\libpmemobj\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -1773,6 +1775,10 @@ Global
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Debug|x64.Build.0 = Debug|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.ActiveCfg = Release|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.Build.0 = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.ActiveCfg = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.Build.0 = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.ActiveCfg = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2050,5 +2056,6 @@ Global
 		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
 		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 	EndGlobalSection
 EndGlobal
