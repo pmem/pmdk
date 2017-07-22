@@ -53,63 +53,63 @@ $Env:TEST_LOG_LEVEL = "4"
 $Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
 $MIN_POOL = 4 * 1024 * 1024 # 4MiB
-$MIN_POOL_STR = $MIN_POOL.toString() + "B"
+$MIN_POOL_STR = ${MIN_POOL}.toString() + "B" # 4MiB
 
 mkdir $DIR\subdir1 -Force > $null
 mkdir $DIR\subdir2 -Force > $null
 
 # non-existing files (delete on failure)
-create_poolset $DIR\testset1 $MIN_POOL_STR:$DIR\testfile11:x # pass
-create_poolset $DIR\testset2 $MIN_POOL_STR:$DIR\testfile21:x `
-    $MIN_POOL_STR:$DIR\testfile22:x # pass
-create_poolset $DIR\testset3 $MIN_POOL_STR:$DIR\testfile31:x `
-    $MIN_POOL_STR:$DIR\testfile32:z:$MIN_POOL_STR # pass
+create_poolset $DIR\testset1 ${MIN_POOL_STR}:$DIR\testfile11:x # pass
+create_poolset $DIR\testset2 ${MIN_POOL_STR}:$DIR\testfile21:x `
+    ${MIN_POOL_STR}:$DIR\testfile22:x # pass
+create_poolset $DIR\testset3 ${MIN_POOL_STR}:$DIR\testfile31:x `
+    ${MIN_POOL_STR}:$DIR\testfile32:z:${MIN_POOL_STR} # pass
 create_poolset $DIR\testset4 128K:$DIR\testfile41:x `
-    $MIN_POOL_STR:$DIR\testfile42:x # fail - part1 too small
-create_poolset $DIR\testset5 $MIN_POOL_STR:$DIR\testfile51:x `
+    ${MIN_POOL_STR}:$DIR\testfile42:x # fail - part1 too small
+create_poolset $DIR\testset5 ${MIN_POOL_STR}:$DIR\testfile51:x `
     128K:$DIR\testfile52:x # fail - part2 too small
-create_poolset $DIR\testset6 $MIN_POOL_STR:$DIR\testfile61:x `
-    $MIN_POOL_STR:$DIR\nodir\testfile62:x # fail - part2 non-existing dir
-create_poolset $DIR\testset7 $MIN_POOL_STR:$DIR\testfile71:x `
-    $MIN_POOL_STR:\dummy\testfile72:x # fail - part2 can't write to dir
-create_poolset $DIR\testset8 $MIN_POOL_STR:$DIR\testfile81:x `
+create_poolset $DIR\testset6 ${MIN_POOL_STR}:$DIR\testfile61:x `
+    ${MIN_POOL_STR}:$DIR\nodir\testfile62:x # fail - part2 non-existing dir
+create_poolset $DIR\testset7 ${MIN_POOL_STR}:$DIR\testfile71:x `
+    ${MIN_POOL_STR}:\dummy\testfile72:x # fail - part2 can't write to dir
+create_poolset $DIR\testset8 ${MIN_POOL_STR}:$DIR\testfile81:x `
     1G:$DIR\testfile82:x # fail - part2 no space left
 
 # exiting files (do not delete on failure)
-create_poolset $DIR\testset10 $MIN_POOL_STR:$DIR\testfile101:z `
-    $MIN_POOL_STR:$DIR\testfile102:z:$MIN_POOL_STR:0400 # fail - part2 read-only
-create_poolset $DIR\testset11 $MIN_POOL_STR:$DIR\testfile111:z:$MIN_POOL_STR `
-    $MIN_POOL_STR:$DIR\testfile112:z 2M:$DIR\testfile113:z:$MIN_POOL_STR # fail - part3 too small
-create_poolset $DIR\testset12 $MIN_POOL_STR:$DIR\testfile121:z:$MIN_POOL_STR `
+create_poolset $DIR\testset10 ${MIN_POOL_STR}:$DIR\testfile101:z `
+    ${MIN_POOL_STR}:$DIR\testfile102:z:${MIN_POOL_STR}:0400 # fail - part2 read-only
+create_poolset $DIR\testset11 ${MIN_POOL_STR}:$DIR\testfile111:z:${MIN_POOL_STR} `
+    ${MIN_POOL_STR}:$DIR\testfile112:z 2M:$DIR\testfile113:z:${MIN_POOL_STR} # fail - part3 too small
+create_poolset $DIR\testset12 ${MIN_POOL_STR}:$DIR\testfile121:z:${MIN_POOL_STR} `
     1M:$DIR\testfile122:z:1M # fail - part2 too small
 create_poolset $DIR\testset13 1M:$DIR\testfile131:z:1M `
-    $MIN_POOL_STR:$DIR\testfile132:z:$MIN_POOL_STR # fail - part2 too small
-create_poolset $DIR\testset14 $MIN_POOL_STR:$DIR\testfile141:z:$MIN_POOL_STR `
-    8M:$DIR\testfile142:z:$MIN_POOL_STR # fail - part2 size doesn't match
-create_poolset $DIR\testset15 $MIN_POOL_STR:$DIR\testfile151:z:4194304B `
-    $MIN_POOL_STR:$DIR\testfile152:z:4194303B # fail - part2 size doesn't match
+    ${MIN_POOL_STR}:$DIR\testfile132:z:${MIN_POOL_STR} # fail - part2 too small
+create_poolset $DIR\testset14 ${MIN_POOL_STR}:$DIR\testfile141:z:${MIN_POOL_STR} `
+    8M:$DIR\testfile142:z:${MIN_POOL_STR} # fail - part2 size doesn't match
+create_poolset $DIR\testset15 ${MIN_POOL_STR}:$DIR\testfile151:z:4194304B `
+    ${MIN_POOL_STR}:$DIR\testfile152:z:4194303B # fail - part2 size doesn't match
 create_poolset $DIR\testset16 4194303B:$DIR\testfile161:z:4194304B `
-    $MIN_POOL_STR:$DIR\testfile162:z:$MIN_POOL_STR # fail - part1 too small
+    ${MIN_POOL_STR}:$DIR\testfile162:z:${MIN_POOL_STR} # fail - part1 too small
 create_poolset $DIR\testset17 262145B:$DIR\testfile171:z `
     266239B:$DIR\testfile172:z 266240B:$DIR\testfile173:z # pass
 create_poolset $DIR\testset18 3M:$DIR\subdir1\testfile181:z `
     3M:$DIR\subdir2\testfile182:z # pass
 
 # mixed (some files exist, some don't)
-create_poolset $DIR\testset20 $MIN_POOL_STR:$DIR\testfile201:x `
-    $MIN_POOL_STR:$DIR\testfile202:n # fail - part2 non-zeroed file
-create_poolset $DIR\testset21 $MIN_POOL_STR:$DIR\testfile21:x `
-    $MIN_POOL_STR:$DIR\testfile22:x # fail - part2 valid hdr (reuse file from case #2)
-create_poolset $DIR\testset22 $MIN_POOL_STR:$DIR\testfile221:x `
-    $MIN_POOL_STR:$DIR\testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
-create_poolset $DIR\testset23 $MIN_POOL_STR:$DIR\testfile231:x `
-    $MIN_POOL_STR:$DIR\testfile232:z # fail - can't read set file
-create_poolset $DIR\testset24 $MIN_POOL_STR:$DIR\testfile241:x $MIN_POOL_STR:$DIR\testfile242:x `
+create_poolset $DIR\testset20 ${MIN_POOL_STR}:$DIR\testfile201:x `
+    ${MIN_POOL_STR}:$DIR\testfile202:n # fail - part2 non-zeroed file
+create_poolset $DIR\testset21 ${MIN_POOL_STR}:$DIR\testfile21:x `
+    ${MIN_POOL_STR}:$DIR\testfile22:x # fail - part2 valid hdr (reuse file from case #2)
+create_poolset $DIR\testset22 ${MIN_POOL_STR}:$DIR\testfile221:x `
+    ${MIN_POOL_STR}:$DIR\testfile222:h # fail - part2 zeroed hdr (rest is non-zeroed)
+create_poolset $DIR\testset23 ${MIN_POOL_STR}:$DIR\testfile231:x `
+    ${MIN_POOL_STR}:$DIR\testfile232:z # fail - can't read set file
+create_poolset $DIR\testset24 ${MIN_POOL_STR}:$DIR\testfile241:x ${MIN_POOL_STR}:$DIR\testfile242:x `
     r 8M:$DIR\testfile243:x `
     r 6M:$DIR\testfile244:x 2M:$DIR\testfile245:x # pass - replicas
-create_poolset $DIR\testset25 $MIN_POOL_STR:$DIR\testfile251:z $MIN_POOL_STR:$DIR\testfile252:x `
+create_poolset $DIR\testset25 ${MIN_POOL_STR}:$DIR\testfile251:z ${MIN_POOL_STR}:$DIR\testfile252:x `
     r 3M:$DIR\testfile253:z # fail - replica too small
-create_poolset $DIR\testset26 $MIN_POOL_STR:$DIR\testfile261:z 2M:$DIR\testfile262:z `
+create_poolset $DIR\testset26 ${MIN_POOL_STR}:$DIR\testfile261:z 2M:$DIR\testfile262:z `
     r 7M:$DIR\testfile263 r 5M:$DIR\testfile264 # pass - pmem\non-pmem
 
 $_1GB = 1024*1024*1024
