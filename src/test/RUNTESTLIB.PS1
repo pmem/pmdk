@@ -176,7 +176,7 @@ Write-Host "Usage: $name [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-typ
 
 function get_build_dir() {
     param(
-        [ValidateSet(”debug”,”nondebug”)]
+        [ValidateSet("debug", "nondebug")]
         [string]$build
     )
 
@@ -242,15 +242,16 @@ function restore_env_variables {
 #
 function runtest {
     param (
-    [Parameter(ValueFromPipeline = $true, Mandatory=$true)]
+    [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
     [string] $testName,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [Config] $config
     )
+
     $Env:UNITTEST_QUIET = 1
 
-    if($config.forcefs) {
+    if ($config.forcefs) {
         $Env:FORCE_FS= 1
     } else {
         $Env:FORCE_FS= 0
@@ -269,7 +270,7 @@ function runtest {
 
     $runscripts = $runscripts.trim()
 
-    if(-not $runscripts) {
+    if (-not $runscripts) {
         return
     }
 
@@ -321,6 +322,6 @@ To create one:
     Copy-Item testconfig.ps1.example testconfig.ps1
 and edit testconfig.ps1 to describe the local machine configuration.
 "
-
 }
+
 . .\testconfig.ps1
