@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -103,6 +103,7 @@ const char *rpmem_provider_to_str(enum rpmem_provider provider);
  */
 struct rpmem_req_attr {
 	size_t pool_size;
+	size_t min_part_size;
 	unsigned nlanes;
 	enum rpmem_provider provider;
 	const char *pool_desc;

@@ -665,7 +665,7 @@ open_remote_replicas(struct pool_set *set,
 
 		unsigned nlanes = REMOTE_NLANES;
 		int ret = util_poolset_remote_replica_open(set, r,
-				set->poolsize, 0, &nlanes);
+				set->poolsize, 0, 0, &nlanes);
 		if (ret) {
 			LOG(1, "Opening '%s' on '%s' failed",
 					rep->remote->pool_desc,
@@ -700,7 +700,7 @@ create_remote_replicas(struct pool_set *set,
 
 		unsigned nlanes = REMOTE_NLANES;
 		int ret = util_poolset_remote_replica_open(set, r,
-				set->poolsize, 1, &nlanes);
+				set->poolsize, 0, 1, &nlanes);
 		if (ret) {
 			LOG(1, "Creating '%s' on '%s' failed",
 					rep->remote->pool_desc,

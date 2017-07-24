@@ -167,29 +167,6 @@ rpmemd_db_get_status(int err)
 }
 
 /*
- * rpmemd_check_pool -- verify pool parameters
- */
-static int
-rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
-	int *status)
-{
-	if (rpmemd->pool->pool_size < RPMEM_MIN_POOL) {
-		RPMEMD_LOG(ERR, "invalid pool size -- must be >= %zu",
-				RPMEM_MIN_POOL);
-		*status = RPMEM_ERR_POOL_CFG;
-		return -1;
-	}
-
-	if (rpmemd->pool->pool_size - POOL_HDR_SIZE < req->pool_size) {
-		RPMEMD_LOG(ERR, "requested size is too big");
-		*status = RPMEM_ERR_BADSIZE;
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
  * rpmemd_common_fip_init -- initialize fabric provider
  */
 static int
@@ -236,6 +213,7 @@ rpmemd_print_req_attr(const struct rpmem_req_attr *req)
 {
 	RPMEMD_LOG(NOTICE, "\tpool descriptor: '%s'", _str(req->pool_desc));
 	RPMEMD_LOG(NOTICE, "\tpool size: %lu", req->pool_size);
+	RPMEMD_LOG(NOTICE, "\tmin part size: %lu", req->min_part_size);
 	RPMEMD_LOG(NOTICE, "\tnlanes: %u", req->nlanes);
 	RPMEMD_LOG(NOTICE, "\tprovider: %s",
 			rpmem_provider_to_str(req->provider));
@@ -464,7 +442,8 @@ rpmemd_req_create(struct rpmemd_obc *obc, void *arg,
 
 	rpmemd->created = 1;
 
-	ret = rpmemd_check_pool(rpmemd, req, &status);
+	ret = rpmemd_db_check_pool(rpmemd->pool, req->pool_size,
+			req->min_part_size, &status);
 	if (ret)
 		goto err_pool_check;
 
@@ -549,7 +528,8 @@ rpmemd_req_open(struct rpmemd_obc *obc, void *arg,
 	RPMEMD_LOG(NOTICE, "pool attributes:");
 	rpmemd_print_pool_attr(&pool_attr);
 
-	ret = rpmemd_check_pool(rpmemd, req, &status);
+	ret = rpmemd_db_check_pool(rpmemd->pool, req->pool_size,
+			req->min_part_size, &status);
 	if (ret)
 		goto err_pool_check;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <librpmem.h>
 
 #define POOL_SIZE	(32 * 1024 * 1024)
+#define MIN_PART_SIZE	(2 * 1024 * 1024)
 #define NLANES		4
 static unsigned char pool[POOL_SIZE];
 
@@ -54,7 +55,7 @@ main(int argc, char *argv[])
 
 	/* create a remote pool */
 	RPMEMpool *rpp = rpmem_create("localhost", "pool.set",
-		pool, POOL_SIZE, &nlanes, &pool_attr);
+		pool, POOL_SIZE, MIN_PART_SIZE, &nlanes, &pool_attr);
 	if (!rpp) {
 		fprintf(stderr, "rpmem_create: %s\n", rpmem_errormsg());
 		return 1;

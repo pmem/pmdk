@@ -42,6 +42,7 @@
 #include <librpmem.h>
 
 #define POOL_SIZE	(32 * 1024 * 1024)
+#define MIN_PART_SIZE	(2 * 1024 * 1024)
 #define NLANES		64
 #define SET_POOLSET_UUID 1
 #define SET_UUID 2
@@ -91,7 +92,7 @@ main(int argc, char *argv[])
 		default_attr(&pool_attr);
 
 		RPMEMpool *rpp = rpmem_create(target, pool_set,
-			pool, POOL_SIZE, &nlanes, &pool_attr);
+			pool, POOL_SIZE, MIN_PART_SIZE, &nlanes, &pool_attr);
 
 		if (!rpp) {
 			fprintf(stderr, "rpmem_create: %s\n",
@@ -116,7 +117,7 @@ main(int argc, char *argv[])
 
 		struct rpmem_pool_attr pool_attr;
 		RPMEMpool *rpp = rpmem_open(target, pool_set,
-			pool, POOL_SIZE, &nlanes, &pool_attr);
+			pool, POOL_SIZE, MIN_PART_SIZE, &nlanes, &pool_attr);
 		if (!rpp) {
 			fprintf(stderr, "rpmem_open: %s\n",
 					rpmem_errormsg());

@@ -46,7 +46,7 @@ create_poolset $DIR/pool.set  8M:$PART_DIR/pool.part0 8M:$PART_DIR/pool.part1
 copy_files_to_node 0 $POOLS_DIR $DIR/pool.set
 
 # create pool and close it - local pool from file
-SIMPLE_ARGS="test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
+SIMPLE_ARGS="test_create 0 pool.set ${NODE_ADDR[0]} pool 8M 0 test_close 0"
 
 function test_pm_policy()
 {

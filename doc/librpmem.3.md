@@ -68,10 +68,10 @@ cc ... -lrpmem
 
 ```c
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	void *pool_addr, size_t pool_size, size_t min_part_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr);
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	void *pool_addr, size_t pool_size, size_t min_part_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr);
 int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
@@ -123,7 +123,7 @@ allocation and transactional operations on variable-sized objects.
 
 ```c
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	void *pool_addr, size_t pool_size, size_t min_part_size, unsigned *nlanes,
 	const struct rpmem_pool_attr *create_attr);
 ```
 
@@ -135,6 +135,8 @@ associated local memory pool of a given size specified by the *pool_size*
 argument. Both *pool_addr* and *pool_size* must be aligned to system's page
 size (see **sysconf**(3)). The size of the remote pool must be at least
 *pool_size*. See **REMOTE POOL SIZE** section for details.
+The *min_part_size* is a required minimal size of pool part files on the
+*target* node or 0 if it does not matter.
 The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successful creation of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.
@@ -150,7 +152,7 @@ NULL and sets *errno* appropriately.
 
 ```c
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
+	void *pool_addr, size_t pool_size, size_t min_part_size, unsigned *nlanes,
 	struct rpmem_pool_attr *open_attr);
 ```
 
@@ -162,6 +164,8 @@ associated local memory pool of a given size specified by the *pool_size*
 argument. Both *pool_addr* and *pool_size* must be aligned to system's page
 size (see **sysconf**(3)). The size of the remote pool must be at least
 *pool_size*. See **REMOTE POOL SIZE** section for details.
+The *min_part_size* is a required minimal size of pool part files on the
+*target* node or 0 if it does not matter.
 The *nlanes* points to the maximum number of lanes which the caller requests to
 use. Upon successful opening of the remote pool, the *nlanes* contains the
 maximum number of lanes supported by both local and remote nodes' hardware.

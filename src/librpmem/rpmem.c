@@ -422,8 +422,8 @@ rpmem_check_args(void *pool_addr, size_t pool_size, unsigned *nlanes)
  */
 RPMEMpool *
 rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	const struct rpmem_pool_attr *create_attr)
+	void *pool_addr, size_t pool_size, size_t min_part_size,
+	unsigned *nlanes, const struct rpmem_pool_attr *create_attr)
 {
 	RPMEM_CHECK_FORK();
 
@@ -438,10 +438,11 @@ rpmem_create(const char *target, const char *pool_set_name,
 		goto err_common_init;
 
 	struct rpmem_req_attr req = {
-		.pool_size	= pool_size,
-		.nlanes		= *nlanes,
-		.provider	= rpp->provider,
-		.pool_desc	= pool_set_name,
+		.pool_size		= pool_size,
+		.min_part_size		= min_part_size,
+		.nlanes			= *nlanes,
+		.provider		= rpp->provider,
+		.pool_desc		= pool_set_name,
 	};
 
 	struct rpmem_resp_attr resp;
@@ -488,8 +489,8 @@ err_common_init:
  */
 RPMEMpool *
 rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	struct rpmem_pool_attr *open_attr)
+	void *pool_addr, size_t pool_size, size_t min_part_size,
+	unsigned *nlanes, struct rpmem_pool_attr *open_attr)
 {
 	RPMEM_CHECK_FORK();
 
@@ -505,6 +506,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 
 	struct rpmem_req_attr req = {
 		.pool_size	= pool_size,
+		.min_part_size	= min_part_size,
 		.nlanes		= *nlanes,
 		.provider	= rpp->provider,
 		.pool_desc	= pool_set_name,

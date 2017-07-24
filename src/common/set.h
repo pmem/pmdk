@@ -243,12 +243,12 @@ int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
 int util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
-	size_t minsize, int create, void *pool_addr,
+	size_t minsize, size_t minpartsize, int create, void *pool_addr,
 	size_t pool_size, unsigned *nlanes);
 int util_remote_load(void);
 int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
 int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
-	size_t minsize, int create, unsigned *nlanes);
+	size_t minsize, size_t minpartsize, int create, unsigned *nlanes);
 int util_replica_close_local(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
 int util_replica_close_remote(struct pool_replica *rep, unsigned repn,

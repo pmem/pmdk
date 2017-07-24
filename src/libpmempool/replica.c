@@ -402,7 +402,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 
 			unsigned nlanes = REMOTE_NLANES;
 			int ret = util_poolset_remote_open(rep, r,
-					rep->repsize, 0,
+					rep->repsize, 0, 0,
 					rep->part[0].addr,
 					rep->part[0].size, &nlanes);
 			if (ret)

@@ -361,7 +361,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		++mb->nlanes[r];
 
 		mb->rpp[r] = rpmem_create(remote->node_addr, remote->pool_desc,
-					  mb->addrp, mb->pool_size,
+					  mb->addrp, mb->pool_size, 0,
 					  &mb->nlanes[r], &attr);
 		if (!mb->rpp[r]) {
 			perror("rpmem_create");

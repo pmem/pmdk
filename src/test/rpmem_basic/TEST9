@@ -53,13 +53,13 @@ run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mk
 copy_files_to_node 0 $POOLS_DIR $DIR/pool.set
 
 # Create pool
-ARGS="$ARGS test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool.set ${NODE_ADDR[0]} pool 8M 0 test_close 0"
 # Open pool and verify if its header is in initial state
-ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M init"
+ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M 0 init"
 # Overwrite pool header to alternate state and close pool
 ARGS="$ARGS test_set_attr 0 alt test_close 0"
 # Open pool and verify if its header is in alternate state
-ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M alt test_close 0"
+ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M 0 alt test_close 0"
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 

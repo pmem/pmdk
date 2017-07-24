@@ -70,7 +70,7 @@ for node in 1 2; do
 
 	# Prepare pool5 for test of read and persist operations
 	expect_normal_exit run_on_node ${node} ./rpmem_basic$EXESUFFIX\
-		test_create 3 pool5.set ${REP_ADDR[${node}]} mem 8M test_close 3
+		test_create 3 pool5.set ${REP_ADDR[${node}]} mem 8M 0 test_close 3
 	expect_normal_exit run_on_node ${REPLICA[${node}]} ./rpmem_basic$EXESUFFIX\
 		fill_pool $POOLS_DIR/pool5.set 1234
 
@@ -79,25 +79,25 @@ for node in 1 2; do
 	# CREATE
 	#
 	# Create pool from non-existing pool set file
-	ARGS="$ARGS test_create 0 poolX.set ${REP_ADDR[${node}]} pool 8M"
+	ARGS="$ARGS test_create 0 poolX.set ${REP_ADDR[${node}]} pool 8M 0"
 	# Create pool from pool set file which can't be read
-	ARGS="$ARGS test_create 0 pool0r.set ${REP_ADDR[${node}]} pool 8M"
+	ARGS="$ARGS test_create 0 pool0r.set ${REP_ADDR[${node}]} pool 8M 0"
 	# Create too big pool
-	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 32M"
+	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 32M 0"
 	# Create pool and close it - local pool from file
-	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 8M test_close 0"
+	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 8M 0 test_close 0"
 	# Create already existing pool
-	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 8M"
+	ARGS="$ARGS test_create 0 pool0.set ${REP_ADDR[${node}]} pool 8M 0"
 	# Create pool and close it - local pool from memory
-	ARGS="$ARGS test_create 0 pool1.set ${REP_ADDR[${node}]} mem 8M test_close 0"
+	ARGS="$ARGS test_create 0 pool1.set ${REP_ADDR[${node}]} mem 8M 0 test_close 0"
 	# Create pool from pool set with subdirectory
-	ARGS="$ARGS test_create 0 subdir/pool2.set ${REP_ADDR[${node}]} mem 8M test_close 0"
+	ARGS="$ARGS test_create 0 subdir/pool2.set ${REP_ADDR[${node}]} mem 8M 0 test_close 0"
 	# Create pool but don't close it immediately
-	ARGS="$ARGS test_create 0 pool3.set ${REP_ADDR[${node}]} mem 8M"
+	ARGS="$ARGS test_create 0 pool3.set ${REP_ADDR[${node}]} mem 8M 0"
 	# Create already created and not closed pool
-	ARGS="$ARGS test_create 1 pool3.set ${REP_ADDR[${node}]} mem 8M"
+	ARGS="$ARGS test_create 1 pool3.set ${REP_ADDR[${node}]} mem 8M 0"
 	# Create pool from pool set which has duplicated part file
-	ARGS="$ARGS test_create 2 pool4.set ${REP_ADDR[${node}]} mem 8M"
+	ARGS="$ARGS test_create 2 pool4.set ${REP_ADDR[${node}]} mem 8M 0"
 	# Close previously created pool
 	ARGS="$ARGS test_close 0"
 
@@ -105,30 +105,30 @@ for node in 1 2; do
 	# OPEN
 	#
 	# Open pool from non-existing pool set file
-	ARGS="$ARGS test_open 0 poolX.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 0 poolX.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	# Open pool from pool set file which can't be read
-	ARGS="$ARGS test_open 0 pool0r.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 0 pool0r.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	# Open too big pool
-	ARGS="$ARGS test_open 0 pool0.set ${REP_ADDR[${node}]} pool 32M init"
+	ARGS="$ARGS test_open 0 pool0.set ${REP_ADDR[${node}]} pool 32M 0 init"
 	# Open pool and close it - local pool from file
-	ARGS="$ARGS test_open 0 pool0.set ${REP_ADDR[${node}]} pool 8M init test_close 0"
+	ARGS="$ARGS test_open 0 pool0.set ${REP_ADDR[${node}]} pool 8M 0 init test_close 0"
 	# Open pool and close it - local pool from memory
-	ARGS="$ARGS test_open 0 pool1.set ${REP_ADDR[${node}]} mem 8M init test_close 0"
+	ARGS="$ARGS test_open 0 pool1.set ${REP_ADDR[${node}]} mem 8M 0 init test_close 0"
 	# Open pool from pool set with subdirectory
-	ARGS="$ARGS test_open 0 subdir/pool2.set ${REP_ADDR[${node}]} pool 8M init test_close 0"
+	ARGS="$ARGS test_open 0 subdir/pool2.set ${REP_ADDR[${node}]} pool 8M 0 init test_close 0"
 	# Open pool but don't close it immediately
-	ARGS="$ARGS test_open 0 pool3.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 0 pool3.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	# Open already opened and not closed pool
-	ARGS="$ARGS test_open 1 pool3.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 1 pool3.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	# Open pool from pool set which has duplicated part file
-	ARGS="$ARGS test_open 2 pool4.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 2 pool4.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	# Close previously created pool
 	ARGS="$ARGS test_close 0"
 
 	#
 	# READ & PERSIST
 	#
-	ARGS="$ARGS test_open 3 pool5.set ${REP_ADDR[${node}]} pool 8M init"
+	ARGS="$ARGS test_open 3 pool5.set ${REP_ADDR[${node}]} pool 8M 0 init"
 	ARGS="$ARGS test_read 3 1234"
 	ARGS="$ARGS test_persist 3 4321 1 1"
 	ARGS="$ARGS test_persist 3 4321 8 8"

@@ -73,10 +73,12 @@
 
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
-			void *pool_addr, size_t pool_size, unsigned *nlanes,
+			void *pool_addr, size_t pool_size, size_t min_part_size,
+			unsigned *nlanes,
 			const struct rpmem_pool_attr *rpmem_attr);
 static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
-			void *pool_addr, size_t pool_size, unsigned *nlanes,
+			void *pool_addr, size_t pool_size, size_t min_part_size,
+			unsigned *nlanes,
 			struct rpmem_pool_attr *rpmem_attr);
 int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
@@ -1402,8 +1404,8 @@ util_pool_close_remote(RPMEMpool *rpp)
  */
 int
 util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
-			size_t minsize, int create, void *pool_addr,
-			size_t pool_size, unsigned *nlanes)
+	size_t minsize, size_t minpartsize, int create, void *pool_addr,
+	size_t pool_size, unsigned *nlanes)
 {
 	LOG(3, "rep %p repidx %u minsize %zu create %d "
 		"pool_addr %p pool_size %zu nlanes %p",
@@ -1426,6 +1428,7 @@ util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
 						rep->remote->pool_desc,
 						pool_addr,
 						pool_size,
+						minpartsize,
 						&remote_nlanes,
 						&rpmem_attr_create);
 		if (rep->remote->rpp == NULL) {
@@ -1440,6 +1443,7 @@ util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
 						rep->remote->pool_desc,
 						pool_addr,
 						pool_size,
+						minpartsize,
 						&remote_nlanes,
 						&rpmem_attr_open);
 		if (rep->remote->rpp == NULL) {
@@ -1484,7 +1488,7 @@ util_poolset_files_local(struct pool_set *set, size_t minpartsize, int create)
  */
 int
 util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
-	size_t minsize, int create, unsigned *nlanes)
+	size_t minsize, size_t minpartsize, int create, unsigned *nlanes)
 {
 #ifndef _WIN32
 	/*
@@ -1519,7 +1523,7 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	size_t pool_size = set->poolsize - POOL_HDR_SIZE;
 
 	return util_poolset_remote_open(set->replica[repidx], repidx, minsize,
-			create, pool_addr, pool_size, nlanes);
+			minpartsize, create, pool_addr, pool_size, nlanes);
 }
 
 /*
@@ -1528,7 +1532,7 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
  */
 static int
 util_poolset_files_remote(struct pool_set *set, size_t minsize,
-				unsigned *nlanes, int create)
+	size_t minpartsize, unsigned *nlanes, int create)
 {
 	LOG(3, "set %p minsize %zu nlanes %p create %d",
 		set, minsize, nlanes, create);
@@ -1537,7 +1541,7 @@ util_poolset_files_remote(struct pool_set *set, size_t minsize,
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote) {
 			if (util_poolset_remote_replica_open(set, r,
-				minsize, create, nlanes))
+				minsize, minpartsize, create, nlanes))
 				return -1;
 		}
 	}
@@ -2387,8 +2391,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			}
 		}
 
-		ret = util_poolset_files_remote(set, minsize, nlanes,
-				1 /* create */);
+		ret = util_poolset_files_remote(set, minsize, minpartsize,
+				nlanes, 1 /* create */);
 		if (ret != 0)
 			goto err_create;
 	}
@@ -2793,7 +2797,7 @@ util_pool_open_nocheck(struct pool_set *set, int cow)
 		}
 
 	if (set->remote) {
-		ret = util_poolset_files_remote(set, 0, NULL, 0);
+		ret = util_poolset_files_remote(set, 0, 0, NULL, 0);
 		if (ret != 0)
 			goto err_replica;
 	}
@@ -2873,7 +2877,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 
 	if (set->remote) {
 		/* do not check minsize */
-		ret = util_poolset_files_remote(set, 0, nlanes, 0);
+		ret = util_poolset_files_remote(set, 0, 0, nlanes, 0);
 		if (ret != 0)
 			goto err_replica;
 	}

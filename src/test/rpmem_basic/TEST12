@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/rpmem_basic/TEST4 -- unit test for rpmem_persist
+# src/test/rpmem_basic/TEST12 -- unit test for minimal part size
 #
-export UNITTEST_NAME=rpmem_basic/TEST4
-export UNITTEST_NUM=4
+export UNITTEST_NAME=rpmem_basic/TEST12
+export UNITTEST_NUM=12
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -52,18 +52,23 @@ run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p 
 
 copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
 
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M 0 test_close 0
+# Minimal part size bigger than pool parts - create fail
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M 10M"
+# Minimal part size equal to pool parts - create succeed
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M 8M test_close 0"
+# Remove create pool parts before creating them one more time
+ARGS="$ARGS test_remove ${NODE_ADDR[0]} pool0.set 0 0"
+# Minimal part size smaller than pool parts - create succeed
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M 4M test_close 0"
+# Minimal part size bigger than pool parts - open fail
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 10M init"
+# Minimal part size equal to pool parts - open succeed
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 8M init test_close 0"
+# Minimal part size smaller than pool parts - open succeed
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 4M init test_close 0"
 
-expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	fill_pool $POOLS_DIR/pool0.set 1234
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 0 init\
-	test_persist 0 4321 8 8\
-	test_close 0
-
-expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	check_pool $POOLS_DIR/pool0.set 4321 8M
+check
 
 pass

@@ -93,6 +93,7 @@ struct pool_entry {
 	RPMEMpool *rpp;
 	void *pool;
 	size_t size;
+	size_t min_part_size;
 	int is_mem;
 };
 
@@ -104,9 +105,12 @@ struct pool_entry pools[MAX_IDS];
  */
 static void
 init_pool(struct pool_entry *pool, const char *pool_path,
-	const char *pool_size)
+	const char *pool_size, const char *min_part_size)
 {
 	int ret = util_parse_size(pool_size, &pool->size);
+	UT_ASSERTeq(ret, 0);
+
+	ret = util_parse_size(min_part_size, &pool->min_part_size);
 	UT_ASSERTeq(ret, 0);
 
 	int flags = PMEM_FILE_CREATE;
@@ -212,15 +216,16 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 static int
 test_create(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 5)
+	if (argc < 6)
 		UT_FATAL("usage: test_create <id> <pool set> "
-				"<target> <pool> <size>");
+				"<target> <pool> <size> <min part size>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
 	const char *target = argv[2];
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
+	const char *min_part_size_str = argv[5];
 
 	unsigned nlanes = NLANES;
 	int id = atoi(id_str);
@@ -228,11 +233,11 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, pool_path, size_str, min_part_size_str);
 
 	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
-			pool->size, &nlanes, &pool_attr);
+			pool->size, pool->min_part_size, &nlanes, &pool_attr);
 
 	if (pool->rpp) {
 		UT_ASSERTne(nlanes, 0);
@@ -242,7 +247,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 5;
+	return 6;
 }
 
 /*
@@ -251,16 +256,18 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 static int
 test_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 6)
+	if (argc < 7)
 		UT_FATAL("usage: test_open <id> <pool set> "
-				"<target> <pool> <pool attr name>");
+				"<target> <pool> <size> <min part size> "
+				"<pool attr name>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
 	const char *target = argv[2];
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
-	const char *pool_attr_name = argv[5];
+	const char *min_part_size_str = argv[5];
+	const char *pool_attr_name = argv[6];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -270,11 +277,11 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 
 	unsigned nlanes = NLANES;
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, pool_path, size_str, min_part_size_str);
 
 	struct rpmem_pool_attr pool_attr;
 	pool->rpp = rpmem_open(target, pool_set, pool->pool,
-			pool->size, &nlanes, &pool_attr);
+			pool->size, pool->min_part_size, &nlanes, &pool_attr);
 
 	if (pool->rpp) {
 		cmp_pool_attr(&pool_attr, &pool_attrs[pool_attr_id]);
@@ -286,7 +293,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 6;
+	return 7;
 }
 
 /*
