@@ -139,6 +139,7 @@ struct rpmem_msg_create {
 	uint16_t major;			/* protocol version major number */
 	uint16_t minor;			/* protocol version minor number */
 	uint64_t pool_size;		/* minimum required size of a pool */
+	uint64_t min_part_size;		/* minimum required size of a part */
 	uint32_t nlanes;		/* number of lanes used by initiator */
 	uint32_t provider;		/* provider */
 	struct rpmem_pool_attr_packed pool_attr;	/* pool attributes */
@@ -168,6 +169,7 @@ struct rpmem_msg_open {
 	uint16_t major;			/* protocol version major number */
 	uint16_t minor;			/* protocol version minor number */
 	uint64_t pool_size;		/* minimum required size of a pool */
+	uint64_t min_part_size;		/* minimum required size of a part */
 	uint32_t nlanes;		/* number of lanes used by initiator */
 	uint32_t provider;		/* provider */
 	struct rpmem_msg_pool_desc pool_desc;	/* pool descriptor */
@@ -326,6 +328,7 @@ rpmem_ntoh_msg_create(struct rpmem_msg_create *msg)
 	msg->major = be16toh(msg->major);
 	msg->minor = be16toh(msg->minor);
 	msg->pool_size = be64toh(msg->pool_size);
+	msg->min_part_size = be64toh(msg->min_part_size);
 	msg->nlanes = be32toh(msg->nlanes);
 	msg->provider = be32toh(msg->provider);
 	rpmem_ntoh_pool_attr(&msg->pool_attr);
@@ -372,6 +375,7 @@ rpmem_ntoh_msg_open(struct rpmem_msg_open *msg)
 	msg->major = be16toh(msg->major);
 	msg->minor = be16toh(msg->minor);
 	msg->pool_size = be64toh(msg->pool_size);
+	msg->min_part_size = be64toh(msg->min_part_size);
 	msg->nlanes = be32toh(msg->nlanes);
 	msg->provider = be32toh(msg->provider);
 	rpmem_ntoh_msg_pool_desc(&msg->pool_desc);

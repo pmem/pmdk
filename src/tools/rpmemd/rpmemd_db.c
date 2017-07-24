@@ -53,6 +53,7 @@
 #include "librpmem.h"
 #include "rpmemd_db.h"
 #include "rpmemd_log.h"
+#include "rpmem_common.h"
 
 /*
  * struct rpmemd_db -- pool set database structure
@@ -248,7 +249,6 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 
 	/* mark as opened */
 	prp->pool_addr = set->replica[0]->part[0].addr;
-	prp->pool_size = set->poolsize;
 	prp->set = set;
 
 	free(path);
@@ -316,7 +316,6 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 
 	/* mark as opened */
 	prp->pool_addr = set->replica[0]->part[0].addr;
-	prp->pool_size = set->poolsize;
 	prp->set = set;
 
 	free(path);
@@ -373,6 +372,43 @@ rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
 		attr->next_uuid,
 		attr->prev_uuid,
 		attr->user_flags);
+}
+
+/*
+ * rpmemd_db_check_pool -- verify pool parameters
+ */
+int
+rpmemd_db_check_pool(struct rpmemd_db_pool *pool, size_t pool_size,
+	size_t min_part_size, int *status)
+{
+	const struct pool_set *set = pool->set;
+	if (set->poolsize < RPMEM_MIN_POOL) {
+		RPMEMD_LOG(ERR, "invalid pool size -- must be >= %zu",
+				RPMEM_MIN_POOL);
+		*status = RPMEM_ERR_POOL_CFG;
+		return -1;
+	}
+
+	if (set->poolsize - POOL_HDR_SIZE < pool_size) {
+		RPMEMD_LOG(ERR, "requested size is too big");
+		*status = RPMEM_ERR_BADSIZE;
+		return -1;
+	}
+
+	if (min_part_size == 0)
+		goto no_err;
+
+	const struct pool_replica *replica = set->replica[0];
+	for (unsigned p = 0; p < replica->nparts; ++p) {
+		if (PART(replica, p).filesize < min_part_size) {
+			RPMEMD_LOG(ERR, "requested part size is too big");
+			*status = RPMEM_ERR_BADSIZE;
+			return -1;
+		}
+	}
+
+no_err:
+	return 0;
 }
 
 /*

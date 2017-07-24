@@ -59,16 +59,16 @@ expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
 expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M 0 test_close 0
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 0 init\
 	test_close 0
 
 expect_normal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M 0 init
 
 check
 

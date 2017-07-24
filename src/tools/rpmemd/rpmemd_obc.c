@@ -252,6 +252,7 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 	unpack_rpmem_pool_attr(&msg->pool_attr, &attr);
 	struct rpmem_req_attr req = {
 		.pool_size = msg->pool_size,
+		.min_part_size = msg->min_part_size,
 		.nlanes = (unsigned)msg->nlanes,
 		.pool_desc = (char *)msg->pool_desc.desc,
 		.provider = (enum rpmem_provider)msg->provider,
@@ -271,6 +272,7 @@ rpmemd_obc_process_open(struct rpmemd_obc *obc,
 	struct rpmem_msg_open *msg = (struct rpmem_msg_open *)hdrp;
 	struct rpmem_req_attr req = {
 		.pool_size = msg->pool_size,
+		.min_part_size = msg->min_part_size,
 		.nlanes = (unsigned)msg->nlanes,
 		.pool_desc = (const char *)msg->pool_desc.desc,
 		.provider = (enum rpmem_provider)msg->provider,

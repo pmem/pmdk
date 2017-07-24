@@ -69,12 +69,12 @@ struct rpmem_pool_attr {
 };
 
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		const struct rpmem_pool_attr *create_attr);
+		void *pool_addr, size_t pool_size, size_t min_part_size,
+		unsigned *nlanes, const struct rpmem_pool_attr *create_attr);
 
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		struct rpmem_pool_attr *open_attr);
+		void *pool_addr, size_t pool_size, size_t min_part_size,
+		unsigned *nlanes, struct rpmem_pool_attr *open_attr);
 
 int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
@@ -96,8 +96,8 @@ int rpmem_remove(const char *target, const char *pool_set, int flags);
  * that the version available at run-time is compatible with the version used
  * at compile-time by passing these defines to rpmem_check_version().
  */
-#define RPMEM_MAJOR_VERSION 1
-#define RPMEM_MINOR_VERSION 1
+#define RPMEM_MAJOR_VERSION 2
+#define RPMEM_MINOR_VERSION 0
 const char *rpmem_check_version(unsigned major_required,
 		unsigned minor_required);
 

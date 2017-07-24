@@ -1,0 +1,9 @@
+rpmem_basic/TEST12: START: rpmem_basic
+ ./rpmem_basic$(nW) $(*)
+pool0.set: File too large
+pool0.set: created
+pool0.set: created
+pool0.set: File too large
+pool0.set: opened
+pool0.set: opened
+rpmem_basic/TEST12: DONE

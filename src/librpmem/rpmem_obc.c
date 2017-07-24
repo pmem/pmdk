@@ -189,6 +189,7 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 	msg->major = RPMEM_PROTO_MAJOR;
 	msg->minor = RPMEM_PROTO_MINOR;
 	msg->pool_size = req->pool_size;
+	msg->min_part_size = req->min_part_size;
 	msg->nlanes = req->nlanes;
 	msg->provider = req->provider;
 
@@ -307,6 +308,7 @@ rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 	msg->major = RPMEM_PROTO_MAJOR;
 	msg->minor = RPMEM_PROTO_MINOR;
 	msg->pool_size = req->pool_size;
+	msg->min_part_size = req->min_part_size;
 	msg->nlanes = req->nlanes;
 	msg->provider = req->provider;
 
