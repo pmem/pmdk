@@ -74,13 +74,13 @@ or gcc specific extensions.
 - In case of large portions of code (i.e. a whole function) that have different
 implementation for each OS, consider moving them to separate files.
 (i.e. *xxx_linux.c*, *xxx_freebsd.c* and *xxx_windows.c*)
-- Keep in mind that `long int` is still 32-bit on 64-bit Windows. Remember to
-use `long long` types whenever it applies, as well as proper formatting
-strings and type suffixes (i.. `%llu`, `ULL`).
+- Keep in mind that `long int` is always 32-bit in VC++, even when building for
+64-bit platforms. Remember to use `long long` types whenever it applies, as well
+as proper formatting strings and type suffixes (i.. `%llu`, `ULL`).
 - Standard compliant solutions should be used in preference of compiler-specific ones.
 (i.e. static inline functions versus statement expressions)
 - Do not use formatting strings that are not supported by Windows implementations
-of printf()/scanf() family. (like `%j` or `%m`)
+of printf()/scanf() family. (like `%m`)
 - It is recommended to use `PRI*` and `SCN*` macros in printf()/scanf() functions
 for width-based integral types (`uint32_t`, `int64_t`, etc.).
 
