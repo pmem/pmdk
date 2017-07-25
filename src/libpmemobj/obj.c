@@ -1261,6 +1261,9 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_poolset_chmod(set, mode))
 		goto err;
 
+	if (os_chmod(path, mode))
+		goto err;
+
 	util_poolset_fdclose(set);
 
 	LOG(3, "pop %p", pop);
