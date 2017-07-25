@@ -181,6 +181,8 @@ typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num,
 	pmemobj_constr constructor, void *arg);
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
+int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num,
+	uint64_t flags, pmemobj_constr constructor, void *arg);
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size, uint64_t type_num);
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s, uint64_t type_num);
@@ -1174,6 +1176,21 @@ discouraged. If *size* equals 0, then **pmemobj_zalloc**() returns non-zero valu
 added to the internal container associated with given *type_num*.
 
 ```c
+int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp,
+	size_t size, uint64_t type_num, uint64_t flags,
+	pmemobj_constr constructor , void *arg);
+```
+
+The **pmemobj_xalloc**() function allocates a new object from the persistent
+memory heap associated with memory pool *pop*. Equivalent to **pmemobj_alloc**()
+but with the addition of allocation modifiers.
+
+The *flags* argument is a bitmask of the following values:
+
++ **POBJ_XALLOC_ZERO** - zero the object (equivalent of **pmemobj_zalloc**())
++ **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation class with id equal to *class_id*
+
+```c
 void pmemobj_free(PMEMoid *oidp);
 ```
 
@@ -1782,6 +1799,7 @@ The **pmemobj_tx_xalloc**() function transactionally allocates a new object of g
 
 + **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
 + **POBJ_XALLOC_NO_FLUSH** - skip flush on commit (when application deals with flushing or uses pmemobj_memcpy_persist)
++ **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation class with id equal to *class_id*
 
 If successful, returns a handle to the newly allocated object. Otherwise, stage changes to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set appropriately.
 If *size* equals 0, **OID_NULL** is returned and *errno* is set appropriately. This function must be called during **TX_STAGE_WORK**.
@@ -2374,6 +2392,118 @@ This entry point must be called when no transactions are currently being
 executed.
 
 Always returns 0.
+
+heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` | `struct pobj_alloc_class_desc` | integer, integer, string
+
+A description of an allocation class. Allows one to create or view the internal
+data structures of the allocator.
+
+Creating custom allocation classes can be beneficial for both raw allocation
+throughput, scalability and, most importantly, fragmentation.
+By carefully constructing allocation classes that match the application workload,
+one can entirely eliminate external and internal fragmentation. For example,
+it is possible to easily construct a slab-like allocation mechanism for any
+data structure.
+
+The `[class_id]` is an index field. Only values between 0-254 are valid.
+If setting an allocation class, but the `class_id` is already taken, the function
+will return -1.
+The values between 0-127 are reserved for the default allocation classes of the
+library and can be used only for reading.
+
+If one wants to retrieve information about all allocation classes, the
+recommended method is to simply call this entry point for all class ids between
+0 and 254 and discard those results for which the function returned an error.
+
+This entry point takes a complex argument.
+
+```
+struct pobj_alloc_class_desc {
+	size_t unit_size;
+	unsigned units_per_block;
+	enum pobj_header_type header_type;
+	unsigned class_id;
+};
+```
+
+The first field `unit_size`, is an 8-byte unsigned integer that defines the
+allocation class size. While theoretically limited only by **PMEMOBJ_MAX_ALLOC_SIZE**,
+this value should be between 8 bytes and a couple of megabytes for most of the
+workloads.
+
+The field `units_per_block` defines how many units does a single block of memory
+contains. This value will be rounded up
+to match internal size of the block (256 kilobytes or a multiple thereof).
+For example, given a class with `unit_size` of 512 bytes and `units_per_block`
+equal 1000, a single block of memory for that class will have 512 kilobytes.
+This is relevant because the bigger the block size, the blocks need to be
+fetched less frequently which leads to a lower contention on global state of the
+heap.
+Keep in mind that the information whether an object is allocated or not is
+stored in a bitmap with limited number of entries, this makes it inefficient to
+create allocation classes smaller than 128 bytes.
+
+The field `header_type` defines the header of objects from the allocation class.
+There are three types:
+
+ - **POBJ_HEADER_LEGACY**, string value: `legacy`. Used for allocation classes
+	prior to 1.3 version of the library. Not recommended for use.
+	Incurs 64 byte metadata overhead for every object.
+	Fully supports all features.
+ - **POBJ_HEADER_COMPACT**, string value: `compact`. Used as default for all
+	predefined allocation classes.
+	Incurs 16 bytes metadata overhead for every object.
+	Fully supports all features.
+ - **POBJ_HEADER_NONE**, string value: `none`. Header type that doesn't
+	incur any metadata overhead beyond a single bitmap entry. Can be used
+	for very small allocation classes or when objects must be adjacent to
+	each other.
+	This header type does not support type numbers (it's always 0) and
+	allocations that span more than one unit.
+
+The field `class_id` is optional, runtime only (can't be set from config file),
+variable that allows the user to retrieve the identifier of the class. This will
+be equivalent to the provided `[class_id]`.
+
+The allocation classes are a runtime state of the library and must be created
+after every open. It's highly recommended to use the configuration file to store
+the classes.
+
+This structure is declared in the `libpmemobj/ctl.h` header file, please read it
+for an in-depth explanation of the allocation classes and relevant algorithms.
+
+Allocation classes constructed in this way can be leveraged by explicitly
+specifying the class using **POBJ_CLASS_ID(id)** flag in **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()
+functions.
+
+Example of a valid alloc class query string:
+```
+heap.alloc_class.128.desc=500,1000,compact
+```
+This query, if executed, will create an allocation class with an id of 128 that
+has a unit size of 500 bytes, has at least 1000 units per block and uses
+a compact header.
+
+For reading, function returns 0 if successful, if the allocation class does
+not exist it sets the errno to **ENOENT** and returns -1;
+
+For writing, function returns 0 if the allocation class has been successfully
+created, -1 otherwise.
+
+heap.alloc_class.new.desc | wo | - | - | `struct pobj_alloc_class_desc` | integer, integer, string
+
+Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
+to provide the class_id, it automatically creates the allocation class with the
+first available identifier.
+
+This should be used when it's impossible to guarantee unique allocation class
+naming in the application (e.g. when writing a library that uses libpmemobj).
+
+The required class identifier will be stored in the `class_id` field of the
+`struct pobj_alloc_class_desc`.
+
+This function returns 0 if the allocation class has been successfully created,
+-1 otherwise.
 
 # CTL external configuration #
 
