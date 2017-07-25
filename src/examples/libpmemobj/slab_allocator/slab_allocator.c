@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,49 +31,75 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * slab_allocator.c -- slab-like mechanism for libpmemobj
  */
 
-#ifndef LIBPMEMOBJ_PMALLOC_H
-#define LIBPMEMOBJ_PMALLOC_H 1
+#include "slab_allocator.h"
+#include <stdlib.h>
 
-#include <stddef.h>
-#include <stdint.h>
-
-#include "libpmemobj.h"
-#include "memops.h"
-#include "palloc.h"
-
-/*
- * The maximum number of entries in redo log used by the allocator. The common
- * case is to use two, one for modification of the object destination memory
- * location and the second for applying the chunk metadata modifications.
- */
-#define ALLOC_REDO_LOG_SIZE 10
-struct lane_alloc_layout {
-	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
+struct slab_allocator {
+	PMEMobjpool *pop;
+	struct pobj_alloc_class_desc class;
 };
 
-int pmalloc_operation(struct palloc_heap *heap,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	struct operation_context *ctx);
+/*
+ * slab_new -- creates a new slab allocator instance
+ */
+struct slab_allocator *
+slab_new(PMEMobjpool *pop, size_t size)
+{
+	struct slab_allocator *slab = malloc(sizeof(struct slab_allocator));
+	if (slab == NULL)
+		return NULL;
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t object_flags);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id);
+	slab->pop = pop;
 
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t object_flags);
+	slab->class.header_type = POBJ_HEADER_NONE;
+	slab->class.unit_size = size;
 
-void pfree(PMEMobjpool *pop, uint64_t *off);
+	/* should be a reasonably high number, but not too crazy */
+	slab->class.units_per_block = 1000;
 
-struct redo_log *pmalloc_redo_hold(PMEMobjpool *pop);
-void pmalloc_redo_release(PMEMobjpool *pop);
+	if (pmemobj_ctl_set(pop,
+		"heap.alloc_class.new.desc", &slab->class) != 0)
+		goto error;
 
-void pmalloc_ctl_register(PMEMobjpool *pop);
+	return slab;
 
-#endif
+error:
+	free(slab);
+	return NULL;
+}
+
+/*
+ * slab_delete -- deletes an existing slab allocator instance
+ */
+void
+slab_delete(struct slab_allocator *slab)
+{
+	free(slab);
+}
+
+/*
+ * slab_alloc -- works just like pmemobj_alloc but uses the predefined
+ *	blocks from the slab
+ */
+int
+slab_alloc(struct slab_allocator *slab, PMEMoid *oid,
+	pmemobj_constr constructor, void *arg)
+{
+	return pmemobj_xalloc(slab->pop, oid, slab->class.unit_size, 0,
+		POBJ_CLASS_ID(slab->class.class_id),
+		constructor, arg);
+}
+
+/*
+ * slab_tx_alloc -- works just like pmemobj_tx_alloc but uses the predefined
+ *	blocks from the slab
+ */
+PMEMoid
+slab_tx_alloc(struct slab_allocator *slab)
+{
+	return pmemobj_tx_xalloc(slab->class.unit_size, 0,
+		POBJ_CLASS_ID(slab->class.class_id));
+}

@@ -89,6 +89,16 @@ struct heap_rt {
 };
 
 /*
+ * heap_alloc_classes -- returns the allocation classes collection
+ */
+struct alloc_class_collection *
+heap_alloc_classes(struct palloc_heap *heap)
+{
+	return heap->rt->alloc_classes;
+}
+
+
+/*
  * heap_arena_init -- (internal) initializes arena instance
  */
 static void
@@ -1030,10 +1040,10 @@ heap_get_narenas(void)
 }
 
 /*
- * heap_create_alloc_class_buckets -- (internal) allocates all cache bucket
+ * heap_create_alloc_class_buckets -- allocates all cache bucket
  * instances of the specified type
  */
-static int
+int
 heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;

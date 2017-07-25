@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,49 +31,21 @@
  */
 
 /*
- * pmalloc.h -- internal definitions for persistent malloc
+ * slab_allocator.h -- slab-like mechanism for libpmemobj
  */
 
-#ifndef LIBPMEMOBJ_PMALLOC_H
-#define LIBPMEMOBJ_PMALLOC_H 1
+#ifndef SLAB_ALLOCATOR_H
+#define SLAB_ALLOCATOR_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <libpmemobj.h>
 
-#include "libpmemobj.h"
-#include "memops.h"
-#include "palloc.h"
+struct slab_allocator;
 
-/*
- * The maximum number of entries in redo log used by the allocator. The common
- * case is to use two, one for modification of the object destination memory
- * location and the second for applying the chunk metadata modifications.
- */
-#define ALLOC_REDO_LOG_SIZE 10
-struct lane_alloc_layout {
-	struct redo_log redo[ALLOC_REDO_LOG_SIZE];
-};
+struct slab_allocator *slab_new(PMEMobjpool *pop, size_t size);
+void slab_delete(struct slab_allocator *slab);
 
-int pmalloc_operation(struct palloc_heap *heap,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	struct operation_context *ctx);
+int slab_alloc(struct slab_allocator *slab, PMEMoid *oid,
+	pmemobj_constr constructor, void *arg);
+PMEMoid slab_tx_alloc(struct slab_allocator *slab);
 
-int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t object_flags);
-int pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id);
-
-int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
-	uint64_t extra_field, uint16_t object_flags);
-
-void pfree(PMEMobjpool *pop, uint64_t *off);
-
-struct redo_log *pmalloc_redo_hold(PMEMobjpool *pop);
-void pmalloc_redo_release(PMEMobjpool *pop);
-
-void pmalloc_ctl_register(PMEMobjpool *pop);
-
-#endif
+#endif /* SLAB_ALLOCATOR_H */
