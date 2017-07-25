@@ -58,6 +58,9 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libpmem\cpu.c" />
+    <ClCompile Include="..\..\libpmem\libpmem.c" />
+    <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="pmem_is_pmem_windows.c" />
