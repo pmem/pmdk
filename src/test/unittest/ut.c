@@ -870,7 +870,7 @@ ut_checksum(uint8_t *addr, size_t len)
 		sum2 = (uint16_t)(sum2 + sum1) % 255;
 	}
 
-	return (uint16_t)(sum2 << 8) | sum1;
+	return (uint16_t)((sum2 << 8) | sum1);
 }
 
 #ifdef _WIN32
