@@ -199,8 +199,9 @@ palloc_operation(struct palloc_heap *heap,
 		new_block.size_idx = CALC_SIZE_IDX(c->unit_size,
 			size + header_type_to_size[c->header_type]);
 
-		errno = heap_get_bestfit_block(heap, new_bucket, &new_block);
-		if (errno != 0) {
+		int err = heap_get_bestfit_block(heap, new_bucket, &new_block);
+		if (err != 0) {
+			errno = err;
 			ret = -1;
 			goto out;
 		}
