@@ -44,6 +44,7 @@ export UNITTEST_NUM=30
 require_test_type medium
 
 setup
+umask 0
 
 # create poolset file
 CMD="$DIR/testset"
