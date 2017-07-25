@@ -42,7 +42,6 @@
 #include <ex_common.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include <getopt.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,27 +79,21 @@ printlog(const void *buf, size_t len, void *arg)
 int
 main(int argc, char *argv[])
 {
-	int opt;
+	int ind = 1;
 	int tflag = 0;
 	PMEMlogpool *plp;
 
-	while ((opt = getopt(argc, argv, "t")) != -1)
-		switch (opt) {
-		case 't':
+	if (argc > 2) {
+		if (strcmp(argv[1], "-t") == 0) {
 			tflag = 1;
-			break;
-
-		default:
+			ind++;
+		} else {
 			fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
 			exit(1);
 		}
-
-	if (optind >= argc) {
-		fprintf(stderr, "usage: %s [-t] file\n", argv[0]);
-		exit(1);
 	}
 
-	const char *path = argv[optind];
+	const char *path = argv[ind];
 
 	if ((plp = pmemlog_open(path)) == NULL) {
 		perror(path);

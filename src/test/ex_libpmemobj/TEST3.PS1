@@ -57,7 +57,7 @@ p
 n 5
 p
 q
-"@ | &$Env:EXE_DIR\mapcli hashmap_tx $DIR\testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
+"@ | &$Env:EXE_DIR\ex_pmemobj_mapcli hashmap_tx $DIR\testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
 
 check_exit_code
 

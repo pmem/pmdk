@@ -12,78 +12,24 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}</ProjectGuid>
-    <RootNamespace>libmap</RootNamespace>
+    <TargetName>$(ProjectName)</TargetName>
+    <RootNamespace>pmemobj</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\LongPathSupport.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\LongPathSupport.props" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>.;$(solutionDir)include;$(solutionDir)examples\libpmemobj\list_map;$(solutionDir)examples\libpmemobj\hashmap;$(solutionDir)examples\libpmemobj\tree_map;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <IntDir>$(Platform)\$(Configuration)\libmap\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>.;$(solutionDir)include;$(solutionDir)examples\libpmemobj\list_map;$(solutionDir)examples\libpmemobj\hashmap;$(solutionDir)examples\libpmemobj\tree_map;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <IntDir>$(Platform)\$(Configuration)\libmap\</IntDir>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
+  <ItemDefinitionGroup>
+    <Manifest>
+      <AdditionalManifestFiles>..\..\..\LongPath.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>NVML_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(SolutionName)'=='NVML'">
     <ProjectReference Include="..\..\..\libpmemobj\libpmemobj.vcxproj">
       <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\hashmap\hashmap_atomic.vcxproj">
       <Project>{f5e2f6c4-19ba-497a-b754-232e469be647}</Project>
     </ProjectReference>
@@ -106,6 +52,30 @@
       <Project>{3ed56e55-84a6-422c-a8d4-a8439fb8f245}</Project>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\Examples_$(Configuration).props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <IncludePath>$(SolutionDir)include;$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\$(Platform)\$(Configuration);$(ProjectDir)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
     <ClInclude Include="map_btree.h" />
@@ -125,7 +95,28 @@
     <ClCompile Include="map_rtree.c" />
     <ClCompile Include="map_skiplist.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\hashmap\hashmap_atomic.vcxproj">
+      <Project>{f5e2f6c4-19ba-497a-b754-232e469be647}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\hashmap\hashmap_tx.vcxproj">
+      <Project>{d93a2683-6d99-4f18-b378-91195d23e007}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\list_map\list_map.vcxproj">
+      <Project>{3799ba67-3c4f-4ae0-85dc-5baaea01a180}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tree_map\btree_map.vcxproj">
+      <Project>{79d37ffe-ff76-44b3-bb27-3dcaeff2ebe9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tree_map\ctree_map.vcxproj">
+      <Project>{be18f227-a9f0-4b38-b689-4e2f9f09ca5f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tree_map\rbtree_map.vcxproj">
+      <Project>{17a4b817-68b1-4719-a9ef-bd8fab747de6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\tree_map\rtree_map.vcxproj">
+      <Project>{3ed56e55-84a6-422c-a8d4-a8439fb8f245}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
 </Project>

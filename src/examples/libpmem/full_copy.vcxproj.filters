@@ -4,9 +4,6 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{0f7bab61-c1ad-4a74-8663-fe40f393b2eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{49656c2d-a394-46ac-9e4e-23a07c2a05c1}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="full_copy.c">
