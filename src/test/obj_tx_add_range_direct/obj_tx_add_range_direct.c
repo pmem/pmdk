@@ -549,6 +549,7 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 	} TX_END
 
 	UT_ASSERTne(errno, 0);
+	errno = 0;
 }
 
 static void
@@ -603,6 +604,7 @@ do_tx_add_cache_overflowing_range(PMEMobjpool *pop)
 	UT_ASSERT(util_is_zeroed(pmemobj_direct(obj), s));
 
 	UT_ASSERTne(errno, 0);
+	errno = 0;
 	pmemobj_free(&obj);
 }
 
