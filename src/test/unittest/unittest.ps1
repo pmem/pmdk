@@ -373,6 +373,7 @@ function check_exit_code {
         dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
         dump_last_n_lines $Env:PMEMLOG_LOG_FILE
         dump_last_n_lines $Env:PMEMBLK_LOG_FILE
+        dump_last_n_lines $Env:PMEMPOOL_LOG_FILE
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
 
@@ -910,9 +911,9 @@ function compare_replicas {
 #
 function require_pmem {
     # note: PMEM_IS_PMEM 0 means it is PMEM, 1 means it is not
-    if ($PMEM_IS_PMEM -eq "0") {
+    if ($Global:PMEM_IS_PMEM -eq "0") {
         return $true
-    } Else {
+    } else {
         throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
     }
 }
@@ -921,7 +922,7 @@ function require_pmem {
 # require_non_pmem -- only allow script to continue for a non-PMEM device
 #
 function require_non_pmem {
-    if ($NON_PMEM_IS_PMEM -eq "1") {
+    if ($Global:NON_PMEM_IS_PMEM -eq "1") {
         return $true
     } else {
         throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
@@ -933,9 +934,13 @@ function require_non_pmem {
 #
 function require_fs_type {
     $Global:req_fs_type = 1
-    for ($i=0;$i -lt $args.count;$i++) {
-        if ($args[$i] -eq $Env:FS) {
-            switch ($REAL_FS) {
+
+    for ($i = 0; $i -lt $args.count; $i++) {
+        $type = $args[$i]
+
+        # treat 'any' as either 'pmem' or 'non-pmem'
+        if (($type -eq $Env:FS) -or (($type -eq "any") -and ($Env:FS -ne "none"))) {
+            switch ($Global:REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }
                 'none' { return }
@@ -1030,7 +1035,7 @@ function setup {
         sv -Name MCSTR ""
     }
 
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$REAL_FS\$Env:BUILD$MCSTR)"
+    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD$MCSTR)"
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
@@ -1166,7 +1171,8 @@ if (-Not $Env:UNITTEST_NAME) {
     throw "UNITTEST_NAME does not have a value"
 }
 
-sv -Name REAL_FS $Env:FS
+$Global:REAL_FS = $Env:FS
+
 if ($DIR) {
     # if user passed it in...
     sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
@@ -1186,13 +1192,13 @@ if ($DIR) {
         'any' {
              if ($Env:PMEM_FS_DIR) {
                 sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-                $REAL_FS='pmem'
+                $Global:REAL_FS='pmem'
                 if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                     $Env:PMEM_IS_PMEM_FORCE = "1"
                 }
             } ElseIf ($Env:NON_PMEM_FS_DIR) {
                 sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
-                $REAL_FS='non-pmem'
+                $Global:REAL_FS='non-pmem'
             } Else {
                 throw "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
             }
@@ -1211,16 +1217,16 @@ if ($DIR) {
 if (isDir($Env:PMEM_FS_DIR)) {
     if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
         # "0" means there is PMEM
-        $PMEM_IS_PMEM = "0"
+        $Global:PMEM_IS_PMEM = "0"
     } else {
         &$PMEMDETECT $Env:PMEM_FS_DIR
-        $PMEM_IS_PMEM = $Global:LASTEXITCODE
+        $Global:PMEM_IS_PMEM = $Global:LASTEXITCODE
     }
 }
 
 if (isDir($Env:NON_PMEM_FS_DIR)) {
     &$PMEMDETECT $Env:NON_PMEM_FS_DIR
-    $NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
+    $Global:NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
 }
 
 # Length of pool file's signature

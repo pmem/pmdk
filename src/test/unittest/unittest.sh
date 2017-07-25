@@ -714,6 +714,7 @@ function expect_normal_exit() {
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE
 			dump_last_n_lines $PMEMBLK_LOG_FILE
+			dump_last_n_lines $PMEMPOOL_LOG_FILE
 			dump_last_n_lines $VMEM_LOG_FILE
 			dump_last_n_lines $VMMALLOC_LOG_FILE
 			dump_last_n_lines $RPMEM_LOG_FILE

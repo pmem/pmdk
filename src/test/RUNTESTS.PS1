@@ -187,8 +187,8 @@ try {
         # control loop for receiving job outputs and starting new jobs
         while ($threads -ne 0) {
             if ($Global:stopwatch.Elapsed.TotalSeconds -ge $config.timeout.TotalSeconds) {
-                    Get-Job -name $name | Remove-Job -Force
-                    throw "RUNTESTS: stopping: TIMED OUT"
+                Get-Job -name $name | Remove-Job -Force
+                throw "RUNTESTS: stopping: TIMED OUT"
             }
             Get-Job -name $name | Receive-Job
             Get-Job -name $name | % {
@@ -215,33 +215,33 @@ try {
         }
     } else {
         # if there is no timeout don't run tests in separate thread - usefull for script debugging
-        if($config.timeout.TotalSeconds -eq 0) {
+        if ($config.timeout.TotalSeconds -eq 0) {
             & $sb_ST $PSScriptRoot $config
         } else {
             $job = Start-Job -Name $name -Args $PSScriptRoot, $config -ScriptBlock $sb_ST -Verbose
             $threads++
             while ($Global:stopwatch.Elapsed.TotalSeconds -lt $config.timeout.TotalSeconds -and  $(Get-Job).ChildJobs.Count -ne 0) {
-                    Receive-Job -Job $job
+                Receive-Job -Job $job
 
-                    if ($job.State -eq "Running" -or $job.State -eq "NotStarted") {
-                        sleep -Milliseconds 100
-                        continue
-                    }
-                    if ($job.State -eq "Failed") {
-                        Remove-Job -job $job -Force | out-null
-                        $threads--
-                        throw "one of the tests failed"
-                    }
-
-                    Receive-Job $job
-                    Remove-Job $job -Force
+                if ($job.State -eq "Running" -or $job.State -eq "NotStarted") {
+                    sleep -Milliseconds 100
+                    continue
+                }
+                if ($job.State -eq "Failed") {
+                    Remove-Job -job $job -Force | out-null
                     $threads--
-                    return
+                    throw "one of the tests failed"
+                }
+
+                Receive-Job $job
+                Remove-Job $job -Force
+                $threads--
+                return
             }
 
             if ($Global:stopwatch.Elapsed.TotalSeconds -ge $config.timeout.TotalSeconds) {
-                    Receive-Job -Job $job
-                    throw "TIMED OUT"
+                Receive-Job -Job $job
+                throw "TIMED OUT"
             }
         }
     }
