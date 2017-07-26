@@ -45,9 +45,9 @@ require_test_type medium
 require_fs_type any
 require_build_type nondebug debug
 
-setup
-
 . setup.sh
+
+setup
 
 create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 

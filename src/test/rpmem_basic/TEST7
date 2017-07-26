@@ -45,12 +45,12 @@ require_test_type medium
 require_fs_type any
 require_build_type nondebug debug
 
-setup
-
 . setup.sh
 
 require_node_dax_device 0
 require_node_dax_device 1
+
+setup
 
 create_poolset $DIR/pool0.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
 
