@@ -889,7 +889,7 @@ lock_devdax() {
 #
 unlock_devdax() {
 	flock -u $DEVDAX_LOCK_FD
-	eval "exec ${DEVDAX_LOCK_FD}>-"
+	eval "exec ${DEVDAX_LOCK_FD}>&-"
 }
 
 #
