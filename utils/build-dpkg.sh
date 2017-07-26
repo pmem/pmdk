@@ -37,11 +37,13 @@
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-if [ $# -lt 6 -o $# -gt 7 ]
+# two arguments - BUILD_RPMEM and DISTRO are defined
+# and used only for build-rpm and they are ignored here
+if [ $# -lt 6 -o $# -gt 9 ]
 then
 	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
 					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
-					"[TEST_CONFIG_FILE] "
+					"BUILD_RPMEM [TEST_CONFIG_FILE] [DISTRO] "
 	exit 1
 fi
 
@@ -51,7 +53,7 @@ WORKING_DIR=$3
 OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
-TEST_CONFIG_FILE=$7
+TEST_CONFIG_FILE=$8
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
 INC_DIR=$PREFIX/include

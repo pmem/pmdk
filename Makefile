@@ -72,6 +72,8 @@ RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
 EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
+TEST_CONFIG_FILE ?=$(CURDIR)/src/test/testconfig.sh
+
 rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
 dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
 rpm dpkg: override prefix=/usr
@@ -121,12 +123,10 @@ check-license:
 sparse:
 	$(MAKE) -C src sparse
 
-# XXX: restore before commit
-# $(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
-
 source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
 	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
+	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
 	mkdir -p $(DESTDIR)/nvml
 	echo -n $(SRCVERSION) > $(DESTDIR)/nvml/.version
 	git archive HEAD | tar -x -C $(DESTDIR)/nvml
@@ -136,7 +136,7 @@ pkg-clean:
 
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
-			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} $(CURDIR)/src/test/testconfig.sh
+			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} ${BUILD_RPMEM} ${TEST_CONFIG_FILE} ${DISTRO}
 
 install uninstall:
 	$(MAKE) -C src $@

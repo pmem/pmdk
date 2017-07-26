@@ -35,21 +35,24 @@
 #
 
 SCRIPT_DIR=$(dirname $0)
-
 source $SCRIPT_DIR/pkg-common.sh
 
 check_tool rpmbuild
-
 check_file $SCRIPT_DIR/pkg-config.sh
 source $SCRIPT_DIR/pkg-config.sh
 
-
-if [ $# -lt 6 -o $# -gt 7 ]
+if [ $# -lt 7 -o $# -gt 9 ]
 then
-        echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
-                                        "OUT_DIR EXPERIMENTAL RUN_CHECK"\
-                                        "[TEST_CONFIG_FILE] "
-        exit 1
+		echo "Usage: $(basename $0) VERSION_TAG"\
+									"SOURCE_DIR"\
+									"WORKING_DIR"\
+									"OUT_DIR"\
+									"EXPERIMENTAL"\
+									"RUN_CHECK"\
+									"BUILD_RPMEM"\
+									"[TEST_CONFIG_FILE]"\
+									"[DISTRO] "
+		exit 1
 fi
 
 PACKAGE_VERSION_TAG=$1
@@ -58,15 +61,32 @@ WORKING_DIR=$3
 OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
-TEST_CONFIG_FILE=$7
+BUILD_RPMEM=$7
+TEST_CONFIG_FILE=$8
+DISTRO=$9
+
+
+# detected distro or defined in cmd
+if [ -z "${DISTRO}" ]
+then
+	OS=$(get_os)
+	if [ "$OS" != "1" ]
+	then
+		echo "Detected OS: $OS"
+		DISTRO=$OS
+	else
+		error "Unknown distribution"
+		exit 1
+	fi
+fi
+
+
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
 
 LIBFABRIC_MIN_VERSION=1.4.2
-
 RPMBUILD_OPTS=""
-
 PACKAGE_VERSION=$(get_version $PACKAGE_VERSION_TAG)
 
 if [ -z "$PACKAGE_VERSION" ]
@@ -90,12 +110,9 @@ OLDPWD=$PWD
 cd $WORKING_DIR
 
 check_dir $SOURCE
-
 mv $SOURCE $PACKAGE_SOURCE
 
-
-# XXX: add comdline arg to specify distro
-if [ "$DISTRO" == "suse" ]
+if [ "$DISTRO" = "SLES" ]
 then
 	RPM_LICENSE="BSD-3-Clause"
 	RPM_GROUP_SYS_BASE="System\/Base"
@@ -103,38 +120,39 @@ then
 	RPM_GROUP_DEV_LIBS="Development\/Libraries\/C and C++"
 	RPM_PKG_NAME_SUFFIX="1"
 	RPM_MAKE_FLAGS="BINDIR=""%_bindir"" NORPATH=1"
-	RPM_MAKE_INSTALL="%fdupes %{buildroot}/%{_prefix}"
+	RPM_MAKE_INSTALL="%fdupes %{buildroot}\/%{_prefix}"
+	sed -i '/^#.*bugzilla.redhat/d' \
+		$OLDPWD/$SCRIPT_DIR/nvml.spec.in
 else
 	RPM_LICENSE="BSD"
 	RPM_GROUP_SYS_BASE="System Environment\/Base"
 	RPM_GROUP_SYS_LIBS="System Environment\/Libraries"
 	RPM_GROUP_DEV_LIBS="Development\/Libraries"
 	RPM_PKG_NAME_SUFFIX=""
-	RPM_MAKE_FLAGS="NORPATH=1" # XXX
+	RPM_MAKE_FLAGS="NORPATH=1"
 	RPM_MAKE_INSTALL=""
 fi
 
 #
 # Create parametrized spec file required by rpmbuild.
-# Most of variables are set in config.sh file in order to
+# Most of variables are set in pkg-config.sh file in order to
 # keep descriptive values separately from this script.
 #
+
 sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
-    -e "s/__LICENSE__/$RPM_LICENSE/g" \
-    -e "s/__GROUP_SYS_BASE__/$RPM_GROUP_SYS_BASE/g" \
-    -e "s/__GROUP_SYS_LIBS__/$RPM_GROUP_SYS_LIBS/g" \
-    -e "s/__GROUP_DEV_LIBS__/$RPM_GROUP_DEV_LIBS/g" \
-    -e "s/__PKG_NAME_SUFFIX__/$RPM_PKG_NAME_SUFFIX/g" \
-    -e "s/__MAKE_FLAGS__/$RPM_MAKE_FLAGS/g" \
-    -e "s/__MAKE_INSTALL_FDUPES__/$RPM_MAKE_INSTALL/g" \
-    -e "s/__LIBFABRIC_MIN_VER__/$LIBFABRIC_MIN_VERSION/g" \
-    $OLDPWD/$SCRIPT_DIR/nvml.spec.in > $RPM_SPEC_FILE
+	-e "s/__LICENSE__/$RPM_LICENSE/g" \
+	-e "s/__PACKAGE_MAINTAINER__/$PACKAGE_MAINTAINER/g" \
+	-e "s/__PACKAGE_SUMMARY__/$PACKAGE_SUMMARY/g" \
+	-e "s/__GROUP_SYS_BASE__/$RPM_GROUP_SYS_BASE/g" \
+	-e "s/__GROUP_SYS_LIBS__/$RPM_GROUP_SYS_LIBS/g" \
+	-e "s/__GROUP_DEV_LIBS__/$RPM_GROUP_DEV_LIBS/g" \
+	-e "s/__PKG_NAME_SUFFIX__/$RPM_PKG_NAME_SUFFIX/g" \
+	-e "s/__MAKE_FLAGS__/$RPM_MAKE_FLAGS/g" \
+	-e "s/__MAKE_INSTALL_FDUPES__/$RPM_MAKE_INSTALL/g" \
+	-e "s/__LIBFABRIC_MIN_VER__/$LIBFABRIC_MIN_VERSION/g" \
+	$OLDPWD/$SCRIPT_DIR/nvml.spec.in > $RPM_SPEC_FILE
 
-
-#Source0:	$PACKAGE_TARBALL
-
-
-# Experimental features
+# experimental features
 if [ "${EXPERIMENTAL}" = "y" ]
 then
 	# no experimental features for now
@@ -147,29 +165,40 @@ then
 	RPMBUILD_OPTS+="--with rpmem "
 fi
 
-if [ "${BUILD_PACKAGE_CHECK}" != "y" ]
+# use specified testconfig file or default
+if [[( -n "${TEST_CONFIG_FILE}") && ( -f "$TEST_CONFIG_FILE" ) ]]
 then
-	RPMBUILD_OPTS+="--nocheck "
+	echo "Test config file: $TEST_CONFIG_FILE"
+	TEST_CONFIG_VAL=${TEST_CONFIG_FILE}
+else
+	echo -e "Test config file $TEST_CONFIG_FILE does not exist.\n"\
+		"Default test config will be used."
+	 TEST_CONFIG_VAL="default"
 fi
 
-#if [ -f $TEST_CONFIG_FILE ]
-#then
-#	RPMBUILD_OPTS+="--define '_testconfig ""$TEST_CONFIG_FILE"" ' "
-#fi
-
+# run make check or not
+if [ "${BUILD_PACKAGE_CHECK}" = "y" ]
+then
+	CHECK=1
+else
+	CHECK=0
+fi
 
 tar zcf $PACKAGE_TARBALL $PACKAGE_SOURCE
 
 # Create directory structure for rpmbuild
 mkdir -v BUILD SPECS
 
-echo "opts: $RPMBUILD_OPTS"
+echo "opts: $RPMBUILD_OPTS --define _testconfig ${TEST_CONFIG_VAL} --define _check ${CHECK}"
+
 
 rpmbuild --define "_topdir `pwd`"\
-         --define "_rpmdir ${OUT_DIR}"\
-	 --define "_srcrpmdir ${OUT_DIR}"\
-	 $RPMBUILD_OPTS\
-         -ta $PACKAGE_TARBALL
+		--define "_rpmdir ${OUT_DIR}"\
+		--define "_srcrpmdir ${OUT_DIR}"\
+		--define "_testconfig ${TEST_CONFIG_VAL}"\
+		--define "_check ${CHECK}"\
+		 -ta $PACKAGE_TARBALL \
+		 $RPMEMBUILD_OPTS
 
 echo "Building rpm packages done"
 

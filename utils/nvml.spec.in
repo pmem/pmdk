@@ -1,35 +1,42 @@
 
 # rpmbuild options:
 #   --with | --without rpmem
-#   --define '_testconfig <path to custom testconfig.sh>'
+#   --define "_testconfig <path to custom testconfig.sh or 'default'>"
+#   --define "_check <1|0>" - run make check or not
 #
+
+# do not terminate build if files in the $RPM_BUILD_ROOT
+# directory are not found in the %files (without rpmem case)
+%define _unpackaged_files_terminate_build 0
+
+# default definition
+%bcond_with rpmem
 
 # disable 'make check' on suse
 %if %{defined suse_version}
-%define _with_check 0
-%else
-%define _with_check 1
+	%define _check 0
+	%define dist .suse%{suse_version}
 %endif
 
-# default definitions
-%{!?_with_rpmem: %{?_without_rpmem: %define _with_rpmem 0}}
-
-# XXX: fix that
-#%if 0%{?_with_rpmem:1} || 0%{?suse_version} > 1315 || 0%{?fedora} >= 27 || 0%{?rhel} >= 7
-#%define with_fabric 1
-#%endif
+%if %{with rpmem} || (0%{?suse_version} > 1315) || (0%{?fedora} >= 27) || (0%{?rhel} >= 7)
+%define with_fabric 1
+%endif
 
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
 
 Name:		nvml
 Version:	__VERSION__
 Release:	1%{?dist}
-Summary:	Non-Volatile Memory Library
+Summary:	__PACKAGE_SUMMARY__
+Packager:	__PACKAGE_MAINTAINER__
+Group:		__GROUP_SYS_LIBS__
 License:	__LICENSE__
 URL:		http://pmem.io/nvml
-# XXX: for local builds, use local tarball 
-Source0:	https://github.com/pmem/%{name}/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
+Source0:        %{name}-%{version}.tar.gz
+
+BuildRequires:	gcc
+BuildRequires:	make
 BuildRequires:	glibc-devel
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -38,7 +45,7 @@ BuildRequires:	pkgconfig
 BuildRequires:	doxygen
 BuildRequires:	gdb
 
-%if 0%{?_with_rpmem:1}
+%if %{with rpmem}
 BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 %endif
 
@@ -54,12 +61,11 @@ BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 # implementation of the low-level routines for flushing to persistent
 # memory.
 
-# XXX: cut it off for suse
-
 # https://bugzilla.redhat.com/show_bug.cgi?id=1340634
 # https://bugzilla.redhat.com/show_bug.cgi?id=1340635
 # https://bugzilla.redhat.com/show_bug.cgi?id=1340636
 # https://bugzilla.redhat.com/show_bug.cgi?id=1340637
+
 ExclusiveArch: x86_64
 
 %description
@@ -528,8 +534,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%if 0%{?_with_rpmem:1}
-
+%if %{with rpmem} && 0%{?with_fabric:1}
 %package -n librpmem__PKG_NAME_SUFFIX__
 Summary: Remote Access to Persistent Memory library
 Group: __GROUP_SYS_LIBS__
@@ -604,7 +609,7 @@ and facilitates access to persistent memory over RDMA.
 %{_bindir}/rpmemd
 %{_mandir}/man1/rpmemd.1.gz
 
-%endif # _with_rpmem
+%endif # _with_rpmem && libfabric
 
 
 %package tools
@@ -666,14 +671,17 @@ __MAKE_INSTALL_FDUPES__
 
 
 %check
-%if 0%{?_with_check:1}
-%if 0%{?_testconfig:1}
-cp %{_testconfig} src/test/testconfig.sh
+%if "%{_check}" == "1"
+	%if "%{_testconfig}" != "default"
+		cp %{_testconfig} src/test/testconfig.sh
+	%else
+		cp src/test/testconfig.sh.example src/test/testconfig.sh
+		echo "PMEM_FS_DIR=/tmp" >> src/test/testconfig.sh
+		echo "PMEM_FS_DIR_FORCE_PMEM=1" >> src/test/testconfig.sh
+	%endif
+	make check
 %else
-echo "PMEM_FS_DIR=/tmp" > src/test/testconfig.sh
-echo "PMEM_FS_DIR_FORCE_PMEM=1" >> src/test/testconfig.sh
-%endif
-make check
+	echo "Check skipped"
 %endif
 
 %post   -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
@@ -691,7 +699,7 @@ make check
 %post   -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 
-%if 0%{?_with_rpmem:1}
+%if %{with rpmem}
 %post   -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %endif
