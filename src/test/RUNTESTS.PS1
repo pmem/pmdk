@@ -121,12 +121,16 @@ $config.skip_dir = $skip_dir
 $config.testfile = $testfile
 $config.verbose = $VerbosePreference
 
-Register-EngineEvent -SourceIdentifier "timeout-reset" -Action {
+if ($config.testtype -eq "check") {
+    Register-EngineEvent -SourceIdentifier "timeout-reset" -Action {
+        $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
+    } | Out-Null
     $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
-} | Out-Null
-
-$Global:stopwatch = [diagnostics.stopwatch]::StartNew()
-
+} else {
+    # disable timeout
+    $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
+    $Global:stopwatch.Stop()
+}
 # script blocks - job's start functions
 
 $sb_ST = {
