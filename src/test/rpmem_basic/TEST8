@@ -43,9 +43,9 @@ export UNITTEST_NUM=8
 
 require_test_type medium
 
-setup
-
 . setup2to1.sh
+
+setup
 
 for node in 1 2; do
 

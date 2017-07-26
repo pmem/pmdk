@@ -889,7 +889,7 @@ lock_devdax() {
 #
 unlock_devdax() {
 	flock -u $DEVDAX_LOCK_FD
-	eval "exec ${DEVDAX_LOCK_FD}>-"
+	eval "exec ${DEVDAX_LOCK_FD}>&-"
 }
 
 #
@@ -1704,7 +1704,7 @@ function copy_log_files() {
 		for file in ${NODE_LOG_FILES[$N]}; do
 			NODE_SCP_LOG_FILES[$N]="${NODE_SCP_LOG_FILES[$N]} ${NODE[$N]}:$DIR/${file}"
 		done
-		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . 2>/dev/null
+		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . &> prep$UNITTEST_NUM.log
 		for file in ${NODE_LOG_FILES[$N]}; do
 			[ -f $file ] && mv $file node_${N}_${file}
 		done

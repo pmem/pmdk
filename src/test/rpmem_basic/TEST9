@@ -42,9 +42,9 @@ export UNITTEST_NUM=9
 
 require_test_type medium
 
-setup
-
 . setup.sh
+
+setup
 
 create_poolset $DIR/pool.set  8M:$PART_DIR/pool.pool
 
