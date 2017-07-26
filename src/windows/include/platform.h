@@ -44,6 +44,7 @@
 
 #pragma warning(disable : 4996)
 #pragma warning(disable : 4200) /* allow flexible array member */
+#pragma warning(disable : 4819) /* non unicode characteres */
 
 #ifdef __cplusplus
 extern "C" {
