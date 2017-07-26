@@ -42,7 +42,7 @@
 #define LAYOUT_NAME "DEFAULT_LAYOUT_NAME"
 #define DEFAULT_POOLFILE_NAME "DEFAULT_FILENAME"
 
-#ifndef _WIN33
+#ifndef _WIN32
 #define FONT_PATH "NotoSansCJK-Regular.ttc"
 #else
 #define FONT_PATH "C:/Windows/Fonts/Arial.ttf"
