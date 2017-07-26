@@ -33,7 +33,8 @@ private:
 	void menu(sf::RenderWindow *gameWindow, View *view);
 	void gameMatch(sf::RenderWindow *gameWindow, View *view);
 	void gameOver(sf::RenderWindow *gameWindow, View *view);
-	void gameMatchSimulation(sf::RenderWindow *gameWindow, View *view, bool isOnlySimulation);
+	void gameMatchSimulation(sf::RenderWindow *gameWindow,
+					View *view, bool isOnlySimulation);
 
 	void resetGameStatus();
 

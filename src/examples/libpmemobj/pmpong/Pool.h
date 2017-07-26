@@ -14,7 +14,7 @@
 #include "GameController.h"
 
 
-struct GameStruct{
+struct GameStruct {
 public:
 	nvml::obj::persistent_ptr<GameController> gam;
 };

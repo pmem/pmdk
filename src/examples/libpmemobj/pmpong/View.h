@@ -11,9 +11,9 @@
 #include "GameConstants.h"
 #include "PongGameStatus.h"
 
-class View{
+class View {
 public:
-	virtual ~View(){};
+	virtual ~View() {};
 	virtual void prepareView(PongGameStatus &gameStatus) = 0;
 	virtual void displayView(sf::RenderWindow *gameWindow) = 0;
 };
