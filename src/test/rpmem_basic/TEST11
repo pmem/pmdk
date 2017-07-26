@@ -42,9 +42,10 @@ export UNITTEST_NUM=11
 
 require_test_type medium
 
+. setup.sh
+
 setup
 
-. setup.sh
 . common_pm_policy.sh
 
 for PMEM_IS_PMEM_FORCE in {0..1}; do
