@@ -338,7 +338,7 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		struct ctl_index *idx = SLIST_FIRST(indexes);
 		ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
-		if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
+		if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
 			ERR("class id outside of the allowed range");
 			errno = ERANGE;
 			return -1;
@@ -414,7 +414,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	struct ctl_index *idx = SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
-	if (idx->value < 0 || idx->value > MAX_ALLOCATION_CLASSES) {
+	if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
 		ERR("class id outside of the allowed range");
 		errno = ERANGE;
 		return -1;
