@@ -66,6 +66,10 @@ typedef struct {
 	HANDLE handle;
 } internal_semaphore_t;
 
+typedef union {
+	GROUP_AFFINITY affinity;
+} internal_os_cpu_set_t;
+
 
 typedef struct {
 	HANDLE thread_handle;
@@ -547,7 +551,9 @@ os_thread_join(os_thread_t thread, void **result)
 void
 os_cpu_zero(os_cpu_set_t *set)
 {
-	memset(set, 0, sizeof(*set));
+	internal_os_cpu_set_t *internal_set = (internal_os_cpu_set_t *)set;
+
+	memset(&internal_set->affinity, 0, sizeof(internal_set->affinity));
 }
 
 /*
@@ -556,9 +562,29 @@ os_cpu_zero(os_cpu_set_t *set)
 void
 os_cpu_set(size_t cpu, os_cpu_set_t *set)
 {
-	PDWORD set_internal = (PDWORD)set;
-	ASSERT(cpu < sizeof(*set_internal) * 8);
-	*set_internal |= 1LL << cpu;
+	internal_os_cpu_set_t *internal_set = (internal_os_cpu_set_t *)set;
+	int sum = 0;
+	int group_max = GetActiveProcessorGroupCount();
+	int group = 0;
+	while (group < group_max) {
+		sum += GetActiveProcessorCount(group);
+		if (sum > cpu) {
+			/*
+			 * XXX: can't set affinity to two diffrent cpu groups
+			 */
+			if (internal_set->affinity.Group != group) {
+				internal_set->affinity.Mask = 0;
+				internal_set->affinity.Group = group;
+			}
+
+			cpu -= sum - GetActiveProcessorCount(group);
+			internal_set->affinity.Mask |= 1LL << cpu;
+			return;
+		}
+
+		group++;
+	}
+	FATAL("os_cpu_set cpu out of bounds");
 }
 
 /*
@@ -568,11 +594,12 @@ int
 os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
 	const os_cpu_set_t *set)
 {
+	internal_os_cpu_set_t *internal_set = (internal_os_cpu_set_t *)set;
 	internal_os_thread_t internal_thread = (internal_os_thread_t)thread;
-	PDWORD set_internal = (PDWORD)set;
-	DWORD_PTR result = SetThreadAffinityMask(internal_thread->thread_handle,
-		*set_internal);
-	return result != 0 ? 0 : EINVAL;
+
+	int ret = SetThreadGroupAffinity(internal_thread->thread_handle,
+			&internal_set->affinity, NULL);
+	return ret != 0 ? 0 : EINVAL;
 }
 
 /*

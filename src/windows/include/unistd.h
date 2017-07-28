@@ -51,15 +51,20 @@ static __inline long
 sysconf(int p)
 {
 	SYSTEM_INFO si;
-	GetSystemInfo(&si);
+	int ret = 0;
 
 	switch (p) {
 	case _SC_PAGESIZE:
+		GetSystemInfo(&si);
 		return si.dwPageSize;
 		break;
 
 	case _SC_NPROCESSORS_ONLN:
-		return si.dwNumberOfProcessors;
+		for (int i = 0; i < GetActiveProcessorGroupCount(); i++) {
+			ret += GetActiveProcessorCount(i);
+		}
+
+		return ret;
 		break;
 
 	default:
