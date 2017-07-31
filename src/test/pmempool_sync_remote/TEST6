@@ -42,12 +42,12 @@ export UNITTEST_NUM=6
 
 require_test_type medium
 
-setup
-
 . ./common.sh
 
 require_node_dax_device 0
 require_node_dax_device 1
+
+setup
 
 create_poolset $DIR/pool.set 8M:$(get_node_dir 1)/pool.1:x \
 	r AUTO:${NODE_DEVICE_DAX_PATH[1]}\

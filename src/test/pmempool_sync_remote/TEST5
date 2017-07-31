@@ -42,11 +42,11 @@ export UNITTEST_NUM=5
 
 require_test_type medium
 
-setup
-
 . ./common.sh
 
 require_node_dax_device 0
+
+setup
 
 create_poolset $DIR/pool.set 8M:$(get_node_dir 1)/pool.1:x \
         m ${NODE_ADDR[0]}:remote.set

@@ -41,9 +41,9 @@ export UNITTEST_NUM=2
 
 require_test_type medium
 
-setup
-
 . common.sh
+
+setup
 
 configure_poolsets 1 1
 

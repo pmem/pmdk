@@ -43,13 +43,13 @@ export UNITTEST_NUM=3
 
 require_test_type medium
 
-setup
-
 require_nodes 2
 
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 require_node_dax_device 0
+
+setup
 
 init_rpmem_on_node 1 0
 
