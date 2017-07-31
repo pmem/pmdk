@@ -44,9 +44,9 @@ export UNITTEST_NUM=7
 require_test_type	medium
 require_fs_type		any
 
-setup
-
 . common.sh
+
+setup
 
 # Create poolset files
 create_poolset $DIR/pool.set \
