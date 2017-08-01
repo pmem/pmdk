@@ -1087,8 +1087,6 @@ heap_buckets_init(struct palloc_heap *heap)
 	if (h->default_bucket == NULL)
 		goto error_bucket_create;
 
-	heap_populate_bucket(heap, h->default_bucket);
-
 	return 0;
 
 error_bucket_create:
