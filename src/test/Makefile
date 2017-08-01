@@ -193,6 +193,7 @@ OTHER_TESTS = \
 	util_file_create\
 	util_file_open\
 	util_map_proc\
+	util_os_linux_common\
 	util_parse_size\
 	util_poolset\
 	util_poolset_parse\
