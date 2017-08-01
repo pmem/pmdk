@@ -55,8 +55,6 @@
 #include "srcversion.h"
 #endif
 
-static char nvml_src_version[] = "SRCVERSION:" SRCVERSION;
-
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
@@ -265,7 +263,10 @@ out_init(const char *log_prefix, const char *log_level_var,
 	LOG(1, "pid %d: program: %s", getpid(), getexecname());
 #endif
 	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
-	LOG(1, "src version %s", nvml_src_version);
+
+	static __attribute__((used)) const char *version_msg =
+			"src version: " SRCVERSION;
+	LOG(1, "%s", version_msg);
 #ifdef USE_VG_PMEMCHECK
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
