@@ -1,4 +1,5 @@
-# Copyright 2014-2017, Intel Corporation
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,30 +28,16 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/common/Makefile -- Makefile for common
 #
 
-LIBRARY_NAME = pmemcommon
-SOURCE =\
-	extent_linuc.c\
-	file.c\
-	file_linux.c\
-	mmap.c\
-	mmap_linux.c\
-	os_linux.c\
-	os_thread_linux.c\
-	out.c\
-	pool_hdr.c\
-	pool_hdr_linux.c\
-	set.c\
-	sysfs.c\
-	util.c\
-	uuid.c\
-	uuid_linux.c\
-	util_linux.c
+#
+# src/test/util_os_linux_common/Makefile -- build util_os_linux_common
+#
+#
+TARGET = util_os_linux_common
+OBJS = util_os_linux_common.o
+
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
-
-CFLAGS += -DUSE_LIBDL
