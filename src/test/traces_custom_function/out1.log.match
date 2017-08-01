@@ -4,7 +4,7 @@ CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW
 
 CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
 
-CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version SRCVERSION:$(nW)
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version: $(nW)
 
 $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind pmemcheck
 $(OPT)
