@@ -142,6 +142,7 @@ struct alloc_class_collection {
 	uint8_t *class_map_by_unit_size;
 
 	int fail_on_missing_class;
+	int autogenerate_on_missing_class;
 };
 
 /*
@@ -425,6 +426,7 @@ alloc_class_collection_new()
 	ac->granularity = ALLOC_BLOCK_SIZE;
 	ac->last_run_max_size = MAX_RUN_SIZE;
 	ac->fail_on_missing_class = 0;
+	ac->autogenerate_on_missing_class = 1;
 
 	size_t maps_size = (MAX_RUN_SIZE / ac->granularity) + 1;
 
@@ -493,18 +495,6 @@ alloc_class_collection_new()
 	ac->last_run_max_size = MAX_RUN_SIZE > theoretical_run_max_size ?
 		theoretical_run_max_size : MAX_RUN_SIZE;
 
-	/*
-	 * Now that the alloc classes are created, the bucket with the minimal
-	 * internal fragmentation for that size is chosen.
-	 */
-	for (size_t i = FIRST_GENERATED_CLASS_SIZE / ac->granularity;
-		i <= ac->last_run_max_size / ac->granularity; ++i) {
-		struct alloc_class *c = alloc_class_find_min_frag(ac,
-				i * ac->granularity);
-
-		ac->class_map_by_alloc_size[i] = c->id;
-	}
-
 #ifdef DEBUG
 	/*
 	 * Verify that each bucket's unit size points back to the bucket by the
@@ -552,6 +542,27 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 }
 
 /*
+ * alloc_class_assign_by_size -- (internal) chooses the allocation class that
+ *	best approximates the provided size
+ */
+static struct alloc_class *
+alloc_class_assign_by_size(struct alloc_class_collection *ac,
+	size_t size)
+{
+	size_t class_map_index = SIZE_TO_CLASS_MAP_INDEX(size,
+		ac->granularity);
+
+	struct alloc_class *c = alloc_class_find_min_frag(ac,
+		class_map_index * ac->granularity);
+	ASSERTne(c, NULL);
+
+	ac->class_map_by_alloc_size[class_map_index] = c->id;
+
+	return c;
+}
+
+
+/*
  * alloc_class_by_map -- (internal) returns the allocation class found for
  *	given size in the provided map
  */
@@ -566,6 +577,9 @@ alloc_class_by_map(struct alloc_class_collection *ac,
 		if (class_id == MAX_ALLOCATION_CLASSES) {
 			if (ac->fail_on_missing_class)
 				return NULL;
+			else if (ac->autogenerate_on_missing_class &&
+					map == ac->class_map_by_alloc_size)
+				return alloc_class_assign_by_size(ac, size);
 			else
 				return ac->aclasses[DEFAULT_ALLOC_CLASS_ID];
 		}
