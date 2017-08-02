@@ -556,7 +556,15 @@ alloc_class_assign_by_size(struct alloc_class_collection *ac,
 		class_map_index * ac->granularity);
 	ASSERTne(c, NULL);
 
-	ac->class_map_by_alloc_size[class_map_index] = c->id;
+	/*
+	 * We don't lock this array because locking this section here and then
+	 * bailing out if someone else was faster would be still slower than
+	 * just calculating the class and failing to assign the variable.
+	 * We are using a compare and swap so that helgrind/drd don't complain.
+	 */
+	util_bool_compare_and_swap64(
+		&ac->class_map_by_alloc_size[class_map_index],
+		MAX_ALLOCATION_CLASSES, c->id);
 
 	return c;
 }
