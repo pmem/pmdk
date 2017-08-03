@@ -31,26 +31,39 @@
  */
 
 /*
- * extent.h -- fs extent query API
+ * extents -- extents listing
  */
 
-#ifndef NVML_EXTENT_H
-#define NVML_EXTENT_H 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "extent.h"
 
-#include <stdint.h>
-#include <stddef.h>
+int
+main(int argc, char *argv[])
+{
+	if (argc != 3) {
+		fprintf(stderr, "usage: %s file blocksize", argv[0]);
+		return 0;
+	}
 
-struct extent_iter;
+	int fd = open(argv[1], O_RDWR);
+	int ibs = atoi(argv[2]);
+	assert(ibs > 0);
+	size_t bs = (size_t)ibs;
 
-struct extent {
-	uint64_t offset;
-	uint64_t length;
-};
+	struct extent extent;
+	struct extent_iter *iter = extent_new(fd);
+	assert(iter != NULL);
 
-struct extent_iter *extent_new(int fd);
-void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
+	while (extent_next(iter, &extent) >= 0)
+		printf("%lu %lu\n", extent.offset / bs, extent.length / bs);
 
-int extent_next(struct extent_iter *iter, struct extent *extent);
+	extent_delete(iter);
 
-#endif /* NVML_EXTENT_H */
+	close(fd);
+
+	return 0;
+}

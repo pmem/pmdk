@@ -135,10 +135,23 @@ sysfs_dev_new(int fd, const char *subpath, const char *format)
 	if (os_fstat(fd, &st) < 0)
 		return NULL;
 
-	char *devtype = S_ISCHR(st.st_mode) ? "char" : "block";
+	char *devtype;
+	unsigned major;
+	unsigned minor;
+
+	if (S_ISCHR(st.st_mode)) {
+		devtype = "char";
+		major = major(st.st_rdev);
+		minor = minor(st.st_rdev);
+	} else {
+		devtype = "block";
+		major = major(st.st_dev);
+		minor = minor(st.st_dev);
+	}
+
 	char devpath[PATH_MAX];
 	if (snprintf(devpath, PATH_MAX, "/sys/dev/%s/%d:%d/%s",
-		devtype, major(st.st_dev), minor(st.st_dev), subpath) < 0)
+		devtype, major, minor, subpath) < 0)
 		return NULL;
 
 	return sysfs_new(devpath, format);

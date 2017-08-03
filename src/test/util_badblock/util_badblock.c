@@ -31,26 +31,39 @@
  */
 
 /*
- * extent.h -- fs extent query API
+ * util_badblock.c -- unit test for badblock iterator
+ *
  */
 
-#ifndef NVML_EXTENT_H
-#define NVML_EXTENT_H 1
+#include "unittest.h"
+#include "badblock.h"
 
-#include <stdint.h>
-#include <stddef.h>
+static void
+test_badblock(const char *path, int nbadblocks)
+{
+	struct badblock_iter *iter = badblock_new(path);
+	UT_ASSERTne(iter, NULL);
 
-struct extent_iter;
+	int fbadblocks = 0;
 
-struct extent {
-	uint64_t offset;
-	uint64_t length;
-};
+	struct badblock b;
+	while (iter->i_ops.next(iter, &b) == 0)
+		fbadblocks++;
 
-struct extent_iter *extent_new(int fd);
-void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
+	UT_ASSERTeq(nbadblocks, fbadblocks);
 
-int extent_next(struct extent_iter *iter, struct extent *extent);
+	iter->i_ops.del(iter);
+}
 
-#endif /* NVML_EXTENT_H */
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "util_badblock");
+
+	if (argc != 3)
+		UT_FATAL("usage: %s file nbadblocks", argv[0]);
+
+	test_badblock(argv[1], atoi(argv[2]));
+
+	DONE(NULL);
+}

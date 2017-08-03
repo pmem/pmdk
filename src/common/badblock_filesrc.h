@@ -31,26 +31,12 @@
  */
 
 /*
- * extent.h -- fs extent query API
+ * badblock_filesrc_linux.h - builtin file badblock source
  */
 
-#ifndef NVML_EXTENT_H
-#define NVML_EXTENT_H 1
+#ifndef NVML_BADBLOCK_FILESRC_LINUX_H
+#define NVML_BADBLOCK_FILESRC_LINUX_H 1
 
-#include <stdint.h>
-#include <stddef.h>
+void badblock_file_source_register(void);
 
-struct extent_iter;
-
-struct extent {
-	uint64_t offset;
-	uint64_t length;
-};
-
-struct extent_iter *extent_new(int fd);
-void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
-
-int extent_next(struct extent_iter *iter, struct extent *extent);
-
-#endif /* NVML_EXTENT_H */
+#endif

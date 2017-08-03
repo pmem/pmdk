@@ -88,6 +88,10 @@ extent_new(int fd)
 	iter->fmap->fm_flags = 0;
 	iter->fmap->fm_extent_count = 0;
 
+	/* devdax does not have any extents */
+	if (util_fd_is_device_dax(fd))
+		return iter;
+
 	if (ioctl(fd, FS_IOC_FIEMAP, iter->fmap) != 0)
 		goto error_fiemap_ioctl;
 
@@ -127,6 +131,15 @@ extent_delete(struct extent_iter *iter)
 
 	Free(iter->fmap);
 	Free(iter);
+}
+
+/*
+ * extent_length -- returns the number of extents
+ */
+size_t
+extent_length(struct extent_iter *iter)
+{
+	return iter->fmap->fm_extent_count;
 }
 
 /*

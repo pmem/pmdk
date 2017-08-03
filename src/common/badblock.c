@@ -31,26 +31,69 @@
  */
 
 /*
- * extent.h -- fs extent query API
+ * badblock_linux.c - implementation of the linux badblock query API
  */
+#include <stdlib.h>
+#include <fcntl.h>
+#include <queue.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/fiemap.h>
+#include <linux/fs.h>
+#include "file.h"
+#include "os.h"
+#include "out.h"
+#include "sysfs.h"
+#include "extent.h"
+#include "badblock.h"
+#include "plugin.h"
+#include "badblock_filesrc.h"
 
-#ifndef NVML_EXTENT_H
-#define NVML_EXTENT_H 1
-
-#include <stdint.h>
-#include <stddef.h>
-
-struct extent_iter;
-
-struct extent {
-	uint64_t offset;
-	uint64_t length;
+struct badblock_source {
+	struct badblock_iter *(*iter_from_file)(const char *file);
+	SLIST_ENTRY(badblock_source) e;
 };
 
-struct extent_iter *extent_new(int fd);
-void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
+static SLIST_HEAD(, badblock_source) sources;
 
-int extent_next(struct extent_iter *iter, struct extent *extent);
+/*
+ * badblock_register_source -- registers a new badblock source
+ */
+static void
+badblock_register_source(const char *name, void *funcs, void *arg)
+{
+	LOG(3, "%s", name);
 
-#endif /* NVML_EXTENT_H */
+	struct badblock_source *bsrc = Malloc(sizeof(*bsrc));
+	if (bsrc == NULL) {
+		ERR("failed to allocate badblock source");
+		return;
+	}
+
+	bsrc->iter_from_file = funcs;
+
+	SLIST_INSERT_HEAD(&sources, bsrc, e);
+}
+
+/*
+ * badblock_new -- creates a new badblock iterator
+ */
+struct badblock_iter *
+badblock_new(const char *path)
+{
+	struct badblock_iter *iter;
+
+	if (SLIST_EMPTY(&sources)) {
+		badblock_file_source_register();
+		plugin_load("badblock_source", 1,
+			badblock_register_source, NULL);
+	}
+
+	struct badblock_source *bsrc;
+	SLIST_FOREACH(bsrc, &sources, e) {
+		if ((iter = bsrc->iter_from_file(path)) != NULL)
+			break;
+	}
+
+	return iter;
+}

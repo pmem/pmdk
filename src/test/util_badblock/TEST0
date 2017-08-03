@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/bin/bash -e
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,33 +29,36 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/common/Makefile -- Makefile for common
 #
 
-LIBRARY_NAME = pmemcommon
-SOURCE =\
-	badblock_filesrc_linux.c\
-	badblock.c\
-	extent_linux.c\
-	file.c\
-	file_linux.c\
-	mmap.c\
-	mmap_linux.c\
-	os_linux.c\
-	os_thread_linux.c\
-	out.c\
-	plugin.c\
-	pool_hdr.c\
-	pool_hdr_linux.c\
-	set.c\
-	sysfs.c\
-	util.c\
-	uuid.c\
-	uuid_linux.c\
-	util_linux.c
+#
+# src/test/util_badblock/TEST0 -- unit test for util_badblock
+#
+export UNITTEST_NAME=util_badblock/TEST0
+export UNITTEST_NUM=0
 
-include ../Makefile.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CFLAGS += -DUSE_LIBDL
+require_test_type medium
+
+# this test actually REQUIRES pmem! It will fail on regular file systems.
+require_fs_type pmem
+require_fs_name ext4
+
+setup
+
+fallocate -l 100M $DIR/testfile1
+
+FIRST_SECTOR=`$EXTENTS $DIR/testfile1 512 | awk '{if (NR==1) print $1}'`
+DEVICE=`df $DIR | awk '{if (NR==2) {sub("/dev/", "", $1); print $1;}}'`
+BADBLOCKS="/sys/block/$DEVICE/badblocks"
+
+echo $BADBLOCKS
+
+#this does not add the blocks to the list we are reading from
+#echo $FIRST_SECTOR 8 > $BADBLOCKS
+
+expect_normal_exit ./util_badblock$EXESUFFIX $DIR/testfile1 0
+
+pass

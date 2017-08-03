@@ -31,26 +31,30 @@
  */
 
 /*
- * extent.h -- fs extent query API
+ * badblock.h -- badblock query API
  */
 
-#ifndef NVML_EXTENT_H
-#define NVML_EXTENT_H 1
+#ifndef NVML_BADBLOCK_H
+#define NVML_BADBLOCK_H 1
 
 #include <stdint.h>
-#include <stddef.h>
+#include <sys/types.h>
 
-struct extent_iter;
-
-struct extent {
+struct badblock {
 	uint64_t offset;
 	uint64_t length;
 };
 
-struct extent_iter *extent_new(int fd);
-void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
+struct badblock_iter {
+	struct {
+		int (*next)(struct badblock_iter *iter, struct badblock *b);
+		int (*clear)(struct badblock_iter *iter, struct badblock *b);
+		size_t (*len)(struct badblock_iter *iter);
+		void (*del)(struct badblock_iter *iter);
+	} i_ops;
+	/* the rest of this structure is private */
+};
 
-int extent_next(struct extent_iter *iter, struct extent *extent);
+struct badblock_iter *badblock_new(const char *path);
 
-#endif /* NVML_EXTENT_H */
+#endif /* NVML_BADBLOCK_H */
