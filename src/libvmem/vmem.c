@@ -52,6 +52,8 @@
 #include "file.h"
 #include "vmem.h"
 
+#include "valgrind_internal.h"
+
 /*
  * private to this file...
  */
@@ -252,6 +254,13 @@ vmem_create_in_region(void *addr, size_t size)
 		return NULL;
 	}
 
+	/*
+	 * Initially, treat this memory region as undefined.
+	 * Once jemalloc initializes its metadata, it will also mark
+	 * registered free chunks (usable heap space) as unaddressable.
+	 */
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(addr, size);
+
 	/* store opaque info at beginning of mapped area */
 	struct vmem *vmp = addr;
 	memset(&vmp->hdr, '\0', sizeof(vmp->hdr));
@@ -299,8 +308,15 @@ vmem_delete(VMEM *vmp)
 	util_range_rw(vmp->addr, sizeof(struct pool_hdr));
 #endif
 
-	if (vmp->caller_mapped == 0)
+	if (vmp->caller_mapped == 0) {
 		util_unmap(vmp->addr, vmp->size);
+	} else {
+		/*
+		 * The application cannot do any assumptions about the content
+		 * of this memory region once the pool is destroyed.
+		 */
+		VALGRIND_DO_MAKE_MEM_UNDEFINED(vmp->addr, vmp->size);
+	}
 }
 
 /*
