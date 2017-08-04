@@ -241,8 +241,10 @@ pvector_push_back(struct pvector_context *ctx)
 			 * initial embedded array must be assigned as the first
 			 * element of the sequence.
 			 */
+#ifdef DEBUG
 			ASSERTeq(util_is_zeroed(ctx->vec,
 				sizeof(*ctx->vec)), 1);
+#endif
 
 			ctx->vec->arrays[0] = OBJ_PTR_TO_OFF(pop,
 				&ctx->vec->embedded);

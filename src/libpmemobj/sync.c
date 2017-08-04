@@ -133,6 +133,14 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	return _get_lock(pop_runid, runid, lock, init_lock, size);
 }
 
+static inline void
+assert_address_belongs_to_pool(PMEMobjpool *pop, void *addr)
+{
+#ifdef DEBUG
+	ASSERTeq(pop, pmemobj_pool_by_ptr(addr));
+#endif
+}
+
 /*
  * pmemobj_mutex_zero -- zero-initialize a pmem resident mutex
  *
@@ -143,7 +151,7 @@ pmemobj_mutex_zero(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	mutexip->pmemmutex.runid = 0;
@@ -162,7 +170,7 @@ pmemobj_mutex_lock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -185,7 +193,7 @@ pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -220,7 +228,7 @@ pmemobj_mutex_timedlock(PMEMobjpool *pop, PMEMmutex *__restrict mutexp,
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -243,7 +251,7 @@ pmemobj_mutex_trylock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_mutex_t *mutex = GET_MUTEX(pop, mutexip);
@@ -263,7 +271,7 @@ pmemobj_mutex_unlock(PMEMobjpool *pop, PMEMmutex *mutexp)
 {
 	LOG(3, "pop %p mutex %p", pop, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
+	assert_address_belongs_to_pool(pop, mutexp);
 
 	/* XXX potential performance improvement - move GET to debug version */
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
@@ -286,7 +294,7 @@ pmemobj_rwlock_zero(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	rwlockip->pmemrwlock.runid = 0;
@@ -305,7 +313,7 @@ pmemobj_rwlock_rdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -328,7 +336,7 @@ pmemobj_rwlock_wrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -353,7 +361,7 @@ pmemobj_rwlock_timedrdlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -378,7 +386,7 @@ pmemobj_rwlock_timedwrlock(PMEMobjpool *pop, PMEMrwlock *__restrict rwlockp,
 	LOG(3, "pop %p rwlock %p timeout sec %ld nsec %ld", pop, rwlockp,
 		abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -401,7 +409,7 @@ pmemobj_rwlock_tryrdlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -424,7 +432,7 @@ pmemobj_rwlock_trywrlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
 	os_rwlock_t *rwlock = GET_RWLOCK(pop, rwlockip);
@@ -444,7 +452,7 @@ pmemobj_rwlock_unlock(PMEMobjpool *pop, PMEMrwlock *rwlockp)
 {
 	LOG(3, "pop %p rwlock %p", pop, rwlockp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(rwlockp));
+	assert_address_belongs_to_pool(pop, rwlockp);
 
 	/* XXX potential performance improvement - move GET to debug version */
 	PMEMrwlock_internal *rwlockip = (PMEMrwlock_internal *)rwlockp;
@@ -467,7 +475,7 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+	assert_address_belongs_to_pool(pop, condp);
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	condip->pmemcond.runid = 0;
@@ -486,7 +494,7 @@ pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+	assert_address_belongs_to_pool(pop, condp);
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	os_cond_t *cond = GET_COND(pop, condip);
@@ -509,7 +517,7 @@ pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+	assert_address_belongs_to_pool(pop, condp);
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	os_cond_t *cond = GET_COND(pop, condip);
@@ -535,8 +543,8 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
 		mutexp, abs_timeout->tv_sec, abs_timeout->tv_nsec);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
-	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+	assert_address_belongs_to_pool(pop, mutexp);
+	assert_address_belongs_to_pool(pop, condp);
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
@@ -563,8 +571,8 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 {
 	LOG(3, "pop %p cond %p mutex %p", pop, condp, mutexp);
 
-	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
-	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
+	assert_address_belongs_to_pool(pop, mutexp);
+	assert_address_belongs_to_pool(pop, condp);
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;

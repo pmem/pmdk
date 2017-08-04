@@ -167,7 +167,9 @@ err_pool_set:
 static int
 pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
+#ifdef DEBUG
 	ASSERTeq(util_is_poolset_file(fname), 1);
+#endif
 
 	struct pool_hdr hdr;
 	if (pool_set_read_header(fname, &hdr))

@@ -1413,11 +1413,13 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	runtime->cache_offset = 0;
 	/* cleanup cache */
 
+#ifdef DEBUG
 	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_ALLOC]), 0);
 	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_SET]), 0);
 	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]), 0);
 	ASSERT(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 0 ||
 		pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 1);
+#endif
 
 	lane_release(pop);
 }

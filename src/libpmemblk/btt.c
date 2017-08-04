@@ -1055,9 +1055,11 @@ btt_info_set_offs(struct btt_info *info, uint64_t arena_size,
 	info->flogoff = info->infooff - btt_flog_size(info->nfree);
 	info->mapoff = info->flogoff - btt_map_size(info->external_nlba);
 
+#ifdef DEBUG
 	ASSERTeq(btt_arena_datasize(arena_size, info->nfree) -
 		btt_map_size(info->external_nlba), info->mapoff -
 		info->dataoff);
+#endif
 }
 
 /*
