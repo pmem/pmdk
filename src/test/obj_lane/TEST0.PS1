@@ -49,7 +49,8 @@ $Env:UNITTEST_NUM = "0"
 require_test_type medium
 
 setup
-expect_normal_exit $Env:EXE_DIR\obj_lane$Env:EXESUFFIX s
+
+expect_normal_exit $Env:EXE_DIR\obj_lane$Env:EXESUFFIX s 2>$null
 
 check
 
