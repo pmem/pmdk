@@ -393,7 +393,7 @@ memcheck-summary-errors:
 memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
-check: test
+check: sync-remotes
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
 	@echo "No failures."
 
