@@ -194,6 +194,7 @@ OTHER_TESTS = \
 	util_file_open\
 	util_map_proc\
 	util_parse_size\
+	util_plugin\
 	util_poolset\
 	util_poolset_parse\
 	util_is_absolute\
