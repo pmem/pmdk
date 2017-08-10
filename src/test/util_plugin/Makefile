@@ -1,4 +1,5 @@
-# Copyright 2014-2017, Intel Corporation
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,29 +28,20 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/common/Makefile -- Makefile for common
 #
 
-LIBRARY_NAME = pmemcommon
-SOURCE =\
-	file.c\
-	file_linux.c\
-	mmap.c\
-	mmap_linux.c\
-	os_linux.c\
-	os_thread_linux.c\
-	out.c\
-	plugin.c\
-	pool_hdr.c\
-	pool_hdr_linux.c\
-	set.c\
-	util.c\
-	uuid.c\
-	uuid_linux.c\
-	util_linux.c
+#
+# src/test/util_plugin/Makefile -- build plugin framework test
+#
+TARGET = util_plugin
+OBJS = util_plugin.o
 
+LIBPMEMCOMMON=y
 include ../Makefile.inc
 
-CFLAGS += -DUSE_LIBDL
+PLUGINS=plugin0.so plugin1.so plugin2.so plugin3.so plugin4.so
+
+all: $(PLUGINS)
+
+$(PLUGINS): %.so : %.c
+	$(CC) -fpic -shared -g $^ -o $@
