@@ -1,0 +1,15 @@
+==$(N)== Memcheck, a memory error detector
+==$(N)== Copyright $(*)
+==$(N)== Using $(*)
+==$(N)== Command:$(*)
+==$(N)== Parent PID: $(N)
+==$(N)== 
+==$(N)== 
+==$(N)== HEAP SUMMARY:
+==$(N)==     in use at exit: 0 bytes in 0 blocks
+==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
+==$(N)== 
+==$(N)== All heap blocks were freed -- no leaks are possible
+==$(N)== 
+==$(N)== For counts of detected and suppressed errors, rerun with: -v
+==$(N)== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
