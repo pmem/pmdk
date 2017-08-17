@@ -1,0 +1,446 @@
+---
+layout: manual
+Content-Style: 'text/css'
+title: LIBPMEMLOG!7
+header: NVM Library
+date: pmemlog API version 1.0
+...
+
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
+
+[comment]: <> (Redistribution and use in source and binary forms, with or without)
+[comment]: <> (modification, are permitted provided that the following conditions)
+[comment]: <> (are met:)
+[comment]: <> (    * Redistributions of source code must retain the above copyright)
+[comment]: <> (      notice, this list of conditions and the following disclaimer.)
+[comment]: <> (    * Redistributions in binary form must reproduce the above copyright)
+[comment]: <> (      notice, this list of conditions and the following disclaimer in)
+[comment]: <> (      the documentation and/or other materials provided with the)
+[comment]: <> (      distribution.)
+[comment]: <> (    * Neither the name of the copyright holder nor the names of its)
+[comment]: <> (      contributors may be used to endorse or promote products derived)
+[comment]: <> (      from this software without specific prior written permission.)
+
+[comment]: <> (THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS)
+[comment]: <> ("AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT)
+[comment]: <> (LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR)
+[comment]: <> (A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT)
+[comment]: <> (OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,)
+[comment]: <> (SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT)
+[comment]: <> (LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,)
+[comment]: <> (DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY)
+[comment]: <> (THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT)
+[comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
+[comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
+
+[comment]: <> (libpmemlog.7 -- man page for libpmemlog)
+
+[NAME](#name)<br />
+[SYNOPSIS](#synopsis)<br />
+[DESCRIPTION](#description)<br />
+[LIBRARY API VERSIONING](#library-api-versioning-1)<br />
+[MANAGING LIBRARY BEHAVIOR](#managing-library-behavior-1)<br />
+[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[EXAMPLE](#example)<br />
+[BUGS](#bugs)<br />
+[ACKNOWLEDGEMENTS](#acknowledgements)<br />
+[SEE ALSO](#see-also)
+
+
+# NAME #
+
+**libpmemlog** -- persistent memory resident log file
+
+
+# SYNOPSIS #
+
+```c
+#include <libpmemlog.h>
+cc ... -lpmemlog -lpmem
+```
+
+!ifdef{WIN32}
+{
+>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+basic API functions are expanded to UTF-8 API with postfix *U*,
+otherwise they are expanded to UNICODE API with postfix *W*.
+}
+
+##### Most commonly used functions: #####
+
+```c
+!ifdef{WIN32}
+{
+PMEMlogpool *pmemlog_openU(const char *path);
+PMEMlogpool *pmemlog_openW(const wchar_t *path);
+PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
+}{
+PMEMlogpool *pmemlog_open(const char *path);
+PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
+}
+void pmemlog_close(PMEMlogpool *plp);
+size_t pmemlog_nbyte(PMEMlogpool *plp);
+int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
+int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
+long long pmemlog_tell(PMEMlogpool *plp);
+void pmemlog_rewind(PMEMlogpool *plp);
+void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
+	int (*process_chunk)(const void *buf, size_t len, void *arg),
+	void *arg);
+```
+
+##### Library API versioning: #####
+
+```c
+!ifdef{WIN32}
+{
+const char *pmemlog_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
+const char *pmemlog_check_version(
+	unsigned major_required,
+	unsigned minor_required);
+}
+```
+
+##### Managing library behavior: #####
+
+```c
+void pmemlog_set_funcs(
+	void *(*malloc_func)(size_t size),
+	void (*free_func)(void *ptr),
+	void *(*realloc_func)(void *ptr, size_t size),
+	char *(*strdup_func)(const char *s));
+!ifdef{WIN32}
+{
+	int pmemlog_checkU(const char *path);
+	int pmemlog_checkW(const wchar_t *path);
+}{
+	int pmemlog_check(const char *path);
+}
+```
+
+##### Error handling: #####
+
+```c
+!ifdef{WIN32}
+{
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+}{
+const char *pmemlog_errormsg(void);
+}
+```
+
+
+# DESCRIPTION #
+
+**libpmemlog**
+provides a log file in *persistent memory* (pmem) such that
+additions to the log are appended atomically. This library is intended
+for applications using direct access storage (DAX), which is storage
+that supports load/store access without paging blocks from a block
+storage device. Some types of *non-volatile memory DIMMs* (NVDIMMs) provide
+this type of byte addressable access to storage. A *persistent memory aware
+file system* is typically used to expose the direct access to applications.
+Memory mapping a file from this type of file system
+results in the load/store, non-paged access to pmem.
+**libpmemlog** builds on thistype of memory mapped file.
+
+This library is for applications that need a persistent log file
+updated atomically (the updates cannot be *torn* by program interruption
+such as power failures). This library builds on the low-level pmem
+support provided by **libpmem**(3), handling the transactional update of
+the log, flushing to persistence, and recovery for the application.
+
+**libpmemlog** is one of a collection of persistent memory libraries available, the others are:
+
++ **libpmemobj**(7), a general use persistent memory API,
+	providing memory allocation and transactional operations on variable-sized objects.
+
++ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks with atomic updates.
+
++ **libpmem**(7), low-level persistent memory support.
+
+Under normal usage, **libpmemlog** will never print messages or intentionally
+cause the process to exit. The only exception to this is the debugging
+information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** below.
+
+To use the pmem-resident log file provided by **libpmemlog**, a *memory pool* is
+first created. This is done with the **pmemlog_create**(3) function.
+The other functions mentioned above in SYNOPSIS section
+then operate on the resulting log memory pool.
+
+Once created, the memory pool is represented by an opaque handle,
+of type *PMEMlogpool\**, which is passed to most of the other
+functions from **libpmemlog**. Internally, **libpmemlog** will use
+either **pmem_persist**(3) or **msync**(2) when it needs to flush changes,
+depending on whether the memory pool appears to be persistent memory
+or a regular file (see the **pmem_is_pmem**(3) function in **libpmem**(7)
+for more information). There is no need for applications to flush
+changes directly when using the log memory API provided by **libpmemlog**.
+
+
+# CAVEATS #
+
+**libpmemlog** relies on the library destructor being called from the main
+thread. For this reason, all functions that might trigger destruction (e.g.
+**dlclose**()) should be called in the main thread. Otherwise some of the
+resources associated with that thread might not be cleaned up properly.
+
+
+# LIBRARY API VERSIONING #
+
+This section describes how the library API is versioned,
+allowing applications to work with an evolving API.
+
+```c
+!ifdef{WIN32}
+{
+const char *pmemlog_check_versionU(
+	unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmemlog_check_versionW(
+	unsigned major_required,
+	unsigned minor_required);
+}{
+const char *pmemlog_check_version(
+	unsigned major_required,
+	unsigned minor_required);
+}
+```
+
+The !pmemlog_check_version function is used to see if the installed **libpmemlog**
+supports the version of the library API required by an application. The
+easiest way to do this is for the application to supply the compile-time
+version information, supplied by defines in **\<libpmemlog.h\>**, like this:
+
+```c
+reason = pmemlog_check_version!U{}(PMEMLOG_MAJOR_VERSION,
+                               PMEMLOG_MINOR_VERSION);
+if (reason != NULL) {
+	/* version check failed, reason string tells you why */
+}
+```
+
+Any mismatch in the major version number is considered a failure,
+but a library with a newer minor version number will pass this check
+since increasing minor versions imply backwards compatibility.
+
+An application can also check specifically for the existence of an interface
+by checking for the version where that interface was introduced. These versions
+are documented in this man page as follows: unless otherwise specified, all
+interfaces described here are available in version 1.0 of the library. Interfaces
+added after version 1.0 will contain the text *introduced
+in version x.y* in the section of this manual describing the feature.
+
+When the version check performed by !pmemlog_check_version is successful,
+the return value is NULL. Otherwise the return value is a static string
+describing the reason for failing the version check.
+The string returned by !pmemlog_check_version must not be modified or freed.
+
+
+# MANAGING LIBRARY BEHAVIOR #
+
+The library entry points described in this section
+are less commonly used than the previous sections.
+
+```c
+void pmemlog_set_funcs(
+	void *(*malloc_func)(size_t size),
+	void (*free_func)(void *ptr),
+	void *(*realloc_func)(void *ptr, size_t size),
+	char *(*strdup_func)(const char *s));
+```
+
+The **pmemlog_set_funcs**() function allows an application to override
+memory allocation calls used internally by **libpmemlog**.
+Passing in NULL for any of the handlers will cause the
+**libpmemlog** default function to be used. The library does not make
+heavy use of the system malloc functions, but it does
+allocate approximately 4-8 kilobytes for each memory pool in use.
+
+```c
+!ifdef{WIN32}
+{
+	int pmemlog_checkU(const char *path);
+	int pmemlog_checkW(const wchar_t *path);
+}{
+	int pmemlog_check(const char *path);
+}
+```
+
+The !pmemlog_check function performs a consistency check of the file
+indicated by *path* and returns 1 if the memory pool is found to be consistent.
+Any inconsistencies found will cause !pmemlog_check to return 0,
+in which case the use of the file with **libpmemlog** will result in undefined behavior.
+The debug version of **libpmemlog** will provide additional
+details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1,
+as described in the **DEBUGGING AND ERROR HANDLING** section below.
+!pmemlog_check will return -1 and set *errno* if it cannot
+perform the consistency check due to other errors. !pmemlog_check opens
+the given *path* read-only so it never makes any changes to the file.
+This function is not supported on Device DAX.
+
+
+# DEBUGGING AND ERROR HANDLING #
+
+Two versions of **libpmemlog** are typically available on a development system.
+The normal version, accessed when a program is linked using the **-lpmemlog**
+option, is optimized for performance. That version skips checks that
+impact performance and never logs any trace information or performs any run-time
+assertions. If an error is detected during the call to **libpmemlog** function,
+an application may retrieve an error message describing the reason of failure
+using the following function:
+
+```c
+!ifdef{WIN32}
+{
+const char *pmemlog_errormsgU(void);
+const wchar_t *pmemlog_errormsgW(void);
+}{
+const char *pmemlog_errormsg(void);
+}
+```
+
+The !pmemlog_errormsg function returns a pointer to a static buffer
+containing the last error message logged for current thread. The error message may
+include description of the corresponding error code (if *errno* was set),
+as returned by **strerror**(3). The error message buffer is thread-local; errors
+encountered in one thread do not affect its value in other threads.
+The buffer is never cleared by any library function; its content is significant only when
+the return value of the immediately preceding call to **libpmemlog** function
+indicated an error, or if *errno* was set. The application must not modify or
+free the error message string, but it may be modified by subsequent
+calls to other library functions.
+
+A second version of **libpmemlog**, accessed when a program uses
+the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**},
+contains run-time assertions and trace points. The typical way to
+access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
+{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
+libraries are installed on the system.
+The trace points in the debug version of the library are enabled using the environment
+variable **PMEMLOG_LOG_LEVEL**, which can be set to the following values:
+
++ **0** - This is the default level when **PMEMLOG_LOG_LEVEL** is not set.
+	No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged
+	(in addition to returning the *errno*-based errors as usual).
+	The same information may be retrieved using !pmemlog_errormsg.
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - This level enables a very verbose amount of function call tracing in the library.
+
++ **4** - This level enables voluminous and fairly obscure tracing information
+	that is likely only useful to the **libpmemlog** developers.
+
+The environment variable **PMEMLOG_LOG_FILE** specifies a file name where
+all logging information should be written. If the last character in the name is "-",
+the PID of the current process will be appended to the file name when
+the log file is created. If **PMEMLOG_LOG_FILE** is not set,
+the logging output goes to stderr.
+
+Setting the environment variable **PMEMLOG_LOG_LEVEL** has no effect on the non-debug
+version of **libpmemlog**. See also **libpmem**(3) to get information about other
+environment variables affecting **libpmemlog** behavior.
+
+
+# EXAMPLE #
+
+The following example illustrates how the **libpmemlog** API is used.
+
+```c
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <libpmemlog.h>
+
+/* size of the pmemlog pool -- 1 GB */
+#define POOL_SIZE ((size_t)(1 << 30))
+
+/*
+ * printit -- log processing callback for use with pmemlog_walk()
+ */
+int
+printit(const void *buf, size_t len, void *arg)
+{
+	fwrite(buf, len, 1, stdout);
+	return 0;
+}
+
+int
+main(int argc, char *argv[])
+{
+	const char path[] = "/pmem-fs/myfile";
+	PMEMlogpool *plp;
+	size_t nbyte;
+	char *str;
+
+	/* create the pmemlog pool or open it if it already exists */
+	plp = pmemlog_create!U{}(path, POOL_SIZE, 0666);
+
+	if (plp == NULL)
+		plp = pmemlog_open!U{}(path);
+
+	if (plp == NULL) {
+		perror(path);
+		exit(1);
+	}
+
+	/* how many bytes does the log hold? */
+	nbyte = pmemlog_nbyte(plp);
+	printf("log holds %zu bytes", nbyte);
+
+	/* append to the log... */
+	str = "This is the first string appended";
+	if (pmemlog_append(plp, str, strlen(str)) < 0) {
+		perror("pmemlog_append");
+		exit(1);
+	}
+	str = "This is the second string appended";
+	if (pmemlog_append(plp, str, strlen(str)) < 0) {
+		perror("pmemlog_append");
+		exit(1);
+	}
+
+	/* print the log contents */
+	printf("log contains:");
+	pmemlog_walk(plp, 0, printit, NULL);
+
+	pmemlog_close(plp);
+}
+```
+
+See <http://pmem.io/nvml/libpmemlog>
+for more examples using the **libpmemlog** API.
+
+
+# BUGS #
+
+Unlike **libpmemobj**(7), data replication is not supported in **libpmemlog**.
+Thus, it is not allowed to specify replica sections in pool set files.
+
+
+# ACKNOWLEDGEMENTS #
+
+**libpmemlog** builds on the persistent memory programming model recommended
+by the SNIA NVM Programming Technical Work Group:
+<http://snia.org/nvmp>
+
+
+# SEE ALSO #
+
+**msync**(2), **strerror**(3), **libpmem**(7),
+**libpmemblk**(7), **libpmemobj**(7) and **<http://pmem.io>**
