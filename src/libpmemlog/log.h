@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <endian.h>
 
 #include "util.h"
 #include "os_thread.h"
@@ -74,5 +75,24 @@ struct pmemlog {
 /* data area starts at this alignment after the struct pmemlog above */
 #define LOG_FORMAT_DATA_ALIGN ((uintptr_t)4096)
 
-void log_convert2h(struct pmemlog *plp);
-void log_convert2le(struct pmemlog *plp);
+/*
+ * log_convert2h -- convert pmemlog structure to host byte order
+ */
+static inline void
+log_convert2h(struct pmemlog *plp)
+{
+	plp->start_offset = le64toh(plp->start_offset);
+	plp->end_offset = le64toh(plp->end_offset);
+	plp->write_offset = le64toh(plp->write_offset);
+}
+
+/*
+ * log_convert2le -- convert pmemlog structure to LE byte order
+ */
+static inline void
+log_convert2le(struct pmemlog *plp)
+{
+	plp->start_offset = htole64(plp->start_offset);
+	plp->end_offset = htole64(plp->end_offset);
+	plp->write_offset = htole64(plp->write_offset);
+}
