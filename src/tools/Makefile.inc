@@ -36,6 +36,7 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 include $(TOP)/src/common.inc
 
 INSTALL_TARGET ?= y
+BUILD_STATIC ?= y
 
 INCS += -I.
 INCS += -I$(TOP)/src/include
@@ -74,8 +75,10 @@ TARGET_DIR=$(DESTDIR)$(bindir)
 BASH_COMP_FILES ?=
 BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
 
+ifeq ($(BUILD_STATIC),y)
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
+endif
 
 LIBSDIR=$(TOP)/src
 LIBSDIR_DEBUG=$(LIBSDIR)/debug

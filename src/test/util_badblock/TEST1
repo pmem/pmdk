@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +30,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+
 #
+# src/test/util_badblock/TEST1 -- unit test for util_badblock
+#
+export UNITTEST_NAME=util_badblock/TEST1
+export UNITTEST_NUM=1
 
-TOP = ../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+DEVDAX_BADBLOCK=../../tools/plugin_badblocks_devdax
 
-TARGETS = pmempool rpmemd plugin_badblocks_devdax
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+require_test_type medium
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
+require_dax_devices 1
 
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
+require_binary $DEVDAX_BADBLOCK/plugin_badblocks_devdax.so
 
-$(TESTCONFIG):
+setup
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
+expect_normal_exit ./util_badblock$EXESUFFIX $DEVICE_DAX_PATH 0 $DEVDAX_BADBLOCK
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
-
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+pass

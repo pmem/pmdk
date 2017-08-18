@@ -186,6 +186,8 @@ iter_from_file(const char *file)
 
 	struct badblock_iter_file *iter = Malloc(sizeof(*iter) +
 		sizeof(struct extent) * extent_length(eiter));
+	iter->nextents = 0;
+
 	if (iter == NULL)
 		goto error_iter_alloc;
 

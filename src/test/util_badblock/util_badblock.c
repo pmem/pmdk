@@ -37,6 +37,7 @@
 
 #include "unittest.h"
 #include "badblock.h"
+#include "plugin.h"
 
 static void
 test_badblock(const char *path, int nbadblocks)
@@ -60,8 +61,12 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "util_badblock");
 
-	if (argc != 3)
-		UT_FATAL("usage: %s file nbadblocks", argv[0]);
+	if (argc != 4)
+		UT_FATAL("usage: %s file nbadblocks plugin_dir", argv[0]);
+
+	char *plugin_dir = argv[3];
+	int ret = plugin_init(plugin_dir);
+	UT_ASSERTeq(ret, 0);
 
 	test_badblock(argv[1], atoi(argv[2]));
 

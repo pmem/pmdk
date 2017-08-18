@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -44,9 +44,10 @@ require_test_type medium
 
 # this test actually REQUIRES pmem! It will fail on regular file systems.
 require_fs_type pmem
-require_fs_name ext4
 
 setup
+
+require_fs_name ext4
 
 fallocate -l 100M $DIR/testfile1
 
@@ -59,6 +60,6 @@ echo $BADBLOCKS
 #this does not add the blocks to the list we are reading from
 #echo $FIRST_SECTOR 8 > $BADBLOCKS
 
-expect_normal_exit ./util_badblock$EXESUFFIX $DIR/testfile1 0
+expect_normal_exit ./util_badblock$EXESUFFIX $DIR/testfile1 0 .
 
 pass
