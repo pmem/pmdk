@@ -130,14 +130,14 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 	int olderrno = errno;
 	if (util_unlink(part->path)) {
 		if (errno != ENOENT) {
-			ERR("removing part %u from replica %u failed",
+			ERR("!removing part %u from replica %u failed",
 					partn, repn);
 			return -1;
 		}
 	}
 
 	errno = olderrno;
-	LOG(1, "Removed part %s number %u from replica %u", part->path, partn,
+	LOG(4, "Removed part %s number %u from replica %u", part->path, partn,
 			repn);
 	return 0;
 }
@@ -970,6 +970,7 @@ replica_check_part_sizes(struct pool_set *set, size_t min_size)
 			if (PART(rep, p).filesize < min_size) {
 				ERR("replica %u, part %u: file is too small",
 						r, p);
+				errno = EINVAL;
 				return -1;
 			}
 		}
@@ -990,7 +991,7 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	const char *dir = dirname(path);
 	os_stat_t sb;
 	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-		ERR("a directory %s for part %u in replica %u"
+		ERR("directory %s for part %u in replica %u"
 			" does not exist or is not accessible",
 			path, partn, repn);
 		Free(path);
