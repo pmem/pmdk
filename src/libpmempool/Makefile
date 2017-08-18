@@ -82,8 +82,6 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
-LIBPMEMLOG_PRIV_FUNCS=log_convert2h log_convert2le
-
 include ../Makefile.inc
 
 LIBS += -lpmem -ldl
@@ -92,8 +90,4 @@ CFLAGS += -DUSE_RPMEM
 
 pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
 	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \
-	$< $@
-
-pmemlog_priv_funcs.o: $(PMEMLOG_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV_FUNCS)) \
 	$< $@

@@ -789,25 +789,3 @@ pmemlog_checkW(const wchar_t *path)
 	return ret;
 }
 #endif
-
-/*
- * log_convert2h -- convert pmemlog structure to host byte order
- */
-void
-log_convert2h(struct pmemlog *plp)
-{
-	plp->start_offset = le64toh(plp->start_offset);
-	plp->end_offset = le64toh(plp->end_offset);
-	plp->write_offset = le64toh(plp->write_offset);
-}
-
-/*
- * log_convert2le -- convert pmemlog structure to LE byte order
- */
-void
-log_convert2le(struct pmemlog *plp)
-{
-	plp->start_offset = htole64(plp->start_offset);
-	plp->end_offset = htole64(plp->end_offset);
-	plp->write_offset = htole64(plp->write_offset);
-}
