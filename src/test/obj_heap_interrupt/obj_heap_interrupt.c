@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -124,3 +124,12 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
+
+
+#ifdef _MSC_VER
+/*
+ * Since libpmemobj is linked statically, we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+#endif
