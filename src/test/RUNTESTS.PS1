@@ -50,7 +50,7 @@ Param(
     [string]$testtype = "check",
 
     [alias("f")]
-    [ValidateSet(“pmem", "nonpmem", "any", "none", "all")]
+    [ValidateSet(“pmem", "non-pmem", "any", "none", "all")]
     [string]$fstype = "all",
 
     [alias("o")]
