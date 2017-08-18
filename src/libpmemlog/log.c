@@ -811,11 +811,3 @@ log_convert2le(struct pmemlog *plp)
 	plp->end_offset = htole64(plp->end_offset);
 	plp->write_offset = htole64(plp->write_offset);
 }
-
-#ifdef _MSC_VER
-/*
- * libpmemlog constructor/destructor functions
- */
-MSVC_CONSTR(libpmemlog_init)
-MSVC_DESTR(libpmemlog_fini)
-#endif

@@ -58,4 +58,4 @@ struct vmem {
 	int caller_mapped;
 };
 
-void vmem_init(void);
+void vmem_construct(void);
