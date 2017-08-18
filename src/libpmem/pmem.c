@@ -1297,12 +1297,3 @@ pmem_init(void)
 			"QueryVirtualMemoryInformation");
 #endif
 }
-
-
-#ifdef _MSC_VER
-/*
- * libpmem constructor/destructor functions
- */
-MSVC_CONSTR(libpmem_init)
-MSVC_DESTR(libpmem_fini)
-#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,11 +38,17 @@
  * should be moved here.
  */
 
+#include <stdio.h>
+
+void libpmempool_init(void);
+void libpmempool_fini(void);
+
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
+		libpmempool_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -50,6 +56,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
+		libpmempool_fini();
 		break;
 	}
 	return TRUE;

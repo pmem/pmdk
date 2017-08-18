@@ -83,12 +83,12 @@ print_jemalloc_stats(void *ignore, const char *s)
 }
 
 /*
- * vmem_init -- initialization for vmem
+ * vmem_construct -- initialization for vmem
  *
  * Called automatically by the run-time loader or on the first use of vmem.
  */
 void
-vmem_init(void)
+vmem_construct(void)
 {
 	static bool initialized = false;
 
@@ -118,16 +118,16 @@ vmem_init(void)
 }
 
 /*
- * vmem_construct -- load-time initialization for vmem
+ * vmem_init -- load-time initialization for vmem
  *
  * Called automatically by the run-time loader.
  */
 ATTR_CONSTRUCTOR
 void
-vmem_construct(void)
+vmem_init(void)
 {
 	os_mutex_init(&Vmem_init_lock);
-	vmem_init();
+	vmem_construct();
 }
 
 /*
@@ -153,7 +153,7 @@ static inline
 VMEM *
 vmem_createU(const char *dir, size_t size)
 {
-	vmem_init();
+	vmem_construct();
 
 	LOG(3, "dir \"%s\" size %zu", dir, size);
 	if (size < VMEM_MIN_POOL) {
@@ -239,7 +239,7 @@ vmem_createW(const wchar_t *dir, size_t size)
 VMEM *
 vmem_create_in_region(void *addr, size_t size)
 {
-	vmem_init();
+	vmem_construct();
 	LOG(3, "addr %p size %zu", addr, size);
 
 	if (((uintptr_t)addr & (Pagesize - 1)) != 0) {
@@ -325,7 +325,7 @@ vmem_delete(VMEM *vmp)
 int
 vmem_check(VMEM *vmp)
 {
-	vmem_init();
+	vmem_construct();
 	LOG(3, "vmp %p", vmp);
 
 	return je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size));
@@ -449,11 +449,3 @@ vmem_malloc_usable_size(VMEM *vmp, void *ptr)
 	return je_vmem_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
 }
-
-#ifdef _MSC_VER
-/*
- * libvmem constructor/destructor functions
- */
-MSVC_CONSTR(vmem_construct)
-MSVC_DESTR(vmem_fini)
-#endif

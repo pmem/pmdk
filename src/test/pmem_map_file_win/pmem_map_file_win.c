@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_map_file.c -- unit test for mapping persistent memory for raw access
+ * pmem_map_file_win.c -- unit test for mapping persistent memory for raw access
  *
- * usage: pmem_map_file file
+ * usage: pmem_map_file_win file
  */
 
 #define _GNU_SOURCE
@@ -229,3 +229,10 @@ wmain(int argc, wchar_t *argv[])
 
 	DONEW(NULL);
 }
+
+
+/*
+ * Since libpmem is linked statically, we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)

@@ -51,7 +51,7 @@ static inline
 const char *
 vmem_check_versionU(unsigned major_required, unsigned minor_required)
 {
-	vmem_init();
+	vmem_construct();
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
 
@@ -104,7 +104,7 @@ vmem_set_funcs(
 		char *(*strdup_func)(const char *s),
 		void (*print_func)(const char *s))
 {
-	vmem_init();
+	vmem_construct();
 	LOG(3, NULL);
 
 	util_set_alloc_funcs(malloc_func, free_func,

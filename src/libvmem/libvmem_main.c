@@ -38,11 +38,15 @@
  * should be moved here.
  */
 
+void vmem_init(void);
+void vmem_fini(void);
+
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
+		vmem_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -50,6 +54,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
+		vmem_fini();
 		break;
 	}
 	return TRUE;
