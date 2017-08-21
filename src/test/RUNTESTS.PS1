@@ -128,6 +128,7 @@ if ($config.testtype -eq "check") {
     $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
 } else {
     # disable timeout
+    $config.timeout.TotalSeconds = 0
     $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
     $Global:stopwatch.Stop()
 }
@@ -250,6 +251,11 @@ try {
         }
     }
 } catch {
+    # in case of fail test without timeout configured
+    # we have to return to src/test dir
+    if ($config.timeout.TotalSeconds -eq 0) {
+        cd ..
+    }
     Write-Error "RUNTESTS FAILED: $_"
     $status = 1
 } finally {

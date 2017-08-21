@@ -62,6 +62,7 @@ function getLineCount {
     [int64]$numLines = 0
     $buff = New-Object IO.StreamReader $args[0]
     while ($buff.ReadLine() -ne $null){ $numLines++ }
+    $buff.Close()
     return $numLines
 }
 
