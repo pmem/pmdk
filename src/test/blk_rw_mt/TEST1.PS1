@@ -46,8 +46,8 @@ $Env:UNITTEST_NUM = "1"
 
 require_test_type medium
 
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
+# windows msyncs are too slow to run this test on non-pmem
+require_fs_type pmem
 
 setup
 
