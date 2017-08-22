@@ -763,7 +763,7 @@ get_total_results(struct total_results *tres)
 		tres->total.std_dev += dev;
 	}
 
-	tres->total.std_dev = sqrt(tres->total.std_dev);
+	tres->total.std_dev = sqrt(tres->total.std_dev / tres->nrepeats);
 
 	/* latency */
 	for (size_t i = 0; i < tres->nrepeats; i++) {
@@ -823,7 +823,7 @@ get_total_results(struct total_results *tres)
 		}
 	}
 
-	tres->latency.std_dev = sqrt(tres->latency.std_dev);
+	tres->latency.std_dev = sqrt(tres->latency.std_dev / count);
 
 	/* find 99.0% and 99.9% percentiles */
 	qsort(ntotals, count, sizeof(uint64_t), compare_uint64t);
