@@ -386,15 +386,17 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 	for (int i = MAX_ALLOCATION_CLASSES - 1; i >= 0; --i) {
 		struct alloc_class *c = ac->aclasses[i];
 
-		if (c == NULL)
+		/* can't use alloc classes /w no headers by default */
+		if (c == NULL || c->header_type == HEADER_NONE)
 			continue;
 
 		size_t real_size = n + header_type_to_size[c->header_type];
 
 		size_t units = CALC_SIZE_IDX(c->unit_size, real_size);
+
 		/* can't exceed the maximum allowed run unit max */
 		if (units > RUN_UNIT_MAX_ALLOC)
-			break;
+			continue;
 
 		float frag = (float)(c->unit_size * units) / (float)real_size;
 		if (frag == 1.f)
