@@ -48,8 +48,10 @@ test_badblock(const char *path, int nbadblocks)
 	int fbadblocks = 0;
 
 	struct badblock b;
-	while (iter->i_ops.next(iter, &b) == 0)
+	while (iter->i_ops.next(iter, &b) == 0) {
 		fbadblocks++;
+		iter->i_ops.clear(iter, &b);
+	}
 
 	UT_ASSERTeq(nbadblocks, fbadblocks);
 

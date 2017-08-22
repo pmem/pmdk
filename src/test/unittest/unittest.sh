@@ -824,6 +824,16 @@ function require_unlimited_vm() {
 }
 
 #
+# require_superuser -- require user with superuser rights
+#
+function require_superuser() {
+	local user_id=$(id -u)
+	[ "$user_id" == "0" ] && return
+	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	exit 0
+}
+
+#
 # require_no_superuser -- require user without superuser rights
 #
 function require_no_superuser() {
@@ -1077,6 +1087,14 @@ function require_command() {
 	if ! command -pv $1 1>/dev/null
 	then
 		echo "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+function require_module() {
+	MODULE=`cat /proc/modules | grep $1 | wc -l`
+	if [ $MODULE == "0" ]; then
+		echo "$UNITTEST_NAME: SKIP: '$1' module required"
 		exit 0
 	fi
 }

@@ -392,6 +392,7 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		size_t real_size = n + header_type_to_size[c->header_type];
 
 		size_t units = CALC_SIZE_IDX(c->unit_size, real_size);
+
 		/* can't exceed the maximum allowed run unit max */
 		if (units > RUN_UNIT_MAX_ALLOC)
 			break;
