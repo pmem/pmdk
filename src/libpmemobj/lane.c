@@ -156,6 +156,8 @@ lane_info_cleanup(PMEMobjpool *pop)
 
 		Free(info);
 	}
+
+	(void) os_tls_key_delete(Lane_info_key);
 }
 
 /*
