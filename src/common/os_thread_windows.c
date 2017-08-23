@@ -425,8 +425,6 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 int
 os_tls_key_delete(os_tls_key_t key)
 {
-	/* XXX - destructor not supported */
-
 	if (!TlsFree(key))
 		return EINVAL;
 	return 0;
