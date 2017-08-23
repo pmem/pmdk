@@ -128,7 +128,7 @@ if ($config.testtype -eq "check") {
     $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
 } else {
     # disable timeout
-    $config.timeout.TotalSeconds = 0
+    $config.setTimeout(0)
     $Global:stopwatch = [diagnostics.stopwatch]::StartNew()
     $Global:stopwatch.Stop()
 }
