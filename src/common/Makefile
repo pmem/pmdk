@@ -35,6 +35,7 @@
 LIBRARY_NAME = pmemcommon
 SOURCE =\
 	badblock_filesrc_linux.c\
+	badblock_poolset.c\
 	badblock.c\
 	extent_linux.c\
 	file.c\

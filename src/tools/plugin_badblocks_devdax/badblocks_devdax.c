@@ -226,12 +226,8 @@ iter_from_file(const char *file)
 	struct badblock *b;
 	struct badblock *rb;
 
-	iter->sector_size = ndctl_namespace_get_sector_size(
-				ndctl_dax_get_namespace(iter->dax));
-
-	/* assume the default if it cannot be read */
-	if (iter->sector_size == 0)
-		iter->sector_size = DEFAULT_SECTOR_SIZE;
+	/* reading the sector size is very unreliable, so assume the default */
+	iter->sector_size = DEFAULT_SECTOR_SIZE;
 
 	ndctl_region_badblock_foreach(ndctl_dax_get_region(iter->dax), b) {
 		if (iter->nbadblocks >= allocated_badblocks) {

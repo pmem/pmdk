@@ -31,72 +31,12 @@
  */
 
 /*
- * badblock_linux.c - implementation of the linux badblock query API
+ * badblock_poolset.h - builtin poolset badblock source
  */
-#include <stdlib.h>
-#include <fcntl.h>
-#include <queue.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/fiemap.h>
-#include <linux/fs.h>
-#include "file.h"
-#include "os.h"
-#include "out.h"
-#include "sysfs.h"
-#include "extent.h"
-#include "badblock.h"
-#include "plugin.h"
-#include "badblock_filesrc.h"
-#include "badblock_poolset.h"
 
-struct badblock_source {
-	struct badblock_iter *(*iter_from_file)(const char *file);
-	SLIST_ENTRY(badblock_source) e;
-};
+#ifndef NVML_BADBLOCK_POOLSET_H
+#define NVML_BADBLOCK_POOLSET_H 1
 
-static SLIST_HEAD(, badblock_source) sources;
+void badblock_poolset_source_register(void);
 
-/*
- * badblock_register_source -- registers a new badblock source
- */
-static void
-badblock_register_source(const char *name, void *funcs, void *arg)
-{
-	LOG(3, "%s", name);
-
-	struct badblock_source *bsrc = Malloc(sizeof(*bsrc));
-	if (bsrc == NULL) {
-		ERR("failed to allocate badblock source");
-		return;
-	}
-
-	bsrc->iter_from_file = funcs;
-
-	SLIST_INSERT_HEAD(&sources, bsrc, e);
-}
-
-/*
- * badblock_new -- creates a new badblock iterator
- */
-struct badblock_iter *
-badblock_new(const char *path)
-{
-	struct badblock_iter *iter;
-
-	if (SLIST_EMPTY(&sources)) {
-		badblock_poolset_source_register();
-		badblock_file_source_register();
-
-		plugin_load("badblock_source", 1,
-			badblock_register_source, NULL);
-	}
-
-	struct badblock_source *bsrc;
-	SLIST_FOREACH(bsrc, &sources, e) {
-		if ((iter = bsrc->iter_from_file(path)) != NULL)
-			break;
-	}
-
-	return iter;
-}
+#endif
