@@ -409,13 +409,9 @@ os_once(os_once_t *once, void (*func)(void))
 int
 os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 {
-	/* XXX - destructor not supported */
-
-	*key = TlsAlloc();
+	*key = FlsAlloc(destructor);
 	if (*key == TLS_OUT_OF_INDEXES)
 		return EAGAIN;
-	if (!TlsSetValue(*key, NULL)) /* XXX - not needed? */
-		return ENOMEM;
 	return 0;
 }
 
@@ -425,9 +421,7 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 int
 os_tls_key_delete(os_tls_key_t key)
 {
-	/* XXX - destructor not supported */
-
-	if (!TlsFree(key))
+	if (!FlsFree(key))
 		return EINVAL;
 	return 0;
 }
@@ -438,7 +432,7 @@ os_tls_key_delete(os_tls_key_t key)
 int
 os_tls_set(os_tls_key_t key, const void *value)
 {
-	if (!TlsSetValue(key, (LPVOID)value))
+	if (!FlsSetValue(key, (LPVOID)value))
 		return ENOENT;
 	return 0;
 }
@@ -449,43 +443,21 @@ os_tls_set(os_tls_key_t key, const void *value)
 void *
 os_tls_get(os_tls_key_t key)
 {
-	return TlsGetValue(key);
+	return FlsGetValue(key);
 }
 
 /* threading */
-static os_once_t Pthread_self_index_initialized;
-static DWORD Pthread_self_index;
-
-/*
- * os_thread_init is called once before the first POSIX thread is spawned i.e.
- * before the start_routine of the first POSIX thread is executed.  Here
- * we make sure:
- *
- *  - we have an entry allocated in thread local storage, where we will store
- *    the address of the os_thread_v structure for each thread
- */
-void
-os_thread_init(void)
-{
-	Pthread_self_index = TlsAlloc();
-	if (Pthread_self_index == TLS_OUT_OF_INDEXES)
-		abort();
-}
 
 /*
  * os_thread_start_routine_wrapper is a start routine for _beginthreadex() and
  * it helps:
  *
  *  - wrap the os_thread_create's start function
- *  - do the necessary initialization for POSIX threading implementation
  */
 static unsigned __stdcall
 os_thread_start_routine_wrapper(void *arg)
 {
 	internal_os_thread_t thread_info = (internal_os_thread_t)arg;
-
-	os_once(&Pthread_self_index_initialized, os_thread_init);
-	TlsSetValue(Pthread_self_index, thread_info);
 
 	thread_info->result = thread_info->start_routine(thread_info->arg);
 
