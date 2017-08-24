@@ -1,0 +1,116 @@
+<librpmem>: <1> [$(*)] $(*)
+<librpmem>: <1> [$(*)] librpmem version $(nW)
+<librpmem>: <1> [$(*)] src version: $(nW)
+<librpmem>: <3> [$(*)] 
+<librpmem>: <3> [$(*)] Libfabric is fork safe
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user 192.168.0.182 22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user 192.168.0.182 22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user:192.168.0.182::22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user:192.168.0.182::22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user::192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user::192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.18222
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.18222
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.182@22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.182@22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user:192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user:192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user|192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user|192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.182|22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@192.168.0.182|22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@.192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@.192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@:192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@:192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] create request:
+<librpmem>: <3> [$(*)] 	target: user@@192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] open request:
+<librpmem>: <3> [$(*)] 	target: user@@192.168.0.182:22
+<librpmem>: <3> [$(*)] 	pool set: invalid.poolset
+<librpmem>: <3> [$(*)] 	nlanes: 32
+<librpmem>: <1> [$(*)] cannot find provider
+<librpmem>: <3> [$(*)] 
