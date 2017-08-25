@@ -108,6 +108,7 @@ Last_errormsg_fini(void)
 		Free(p);
 		(void) os_tls_set(Last_errormsg_key, NULL);
 	}
+	(void) os_tls_key_delete(Last_errormsg_key);
 }
 
 static inline struct errormsg *

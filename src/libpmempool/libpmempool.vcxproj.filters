@@ -43,9 +43,6 @@
     <ClCompile Include="libpmempool_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemlog\log.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>

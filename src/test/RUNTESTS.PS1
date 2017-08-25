@@ -42,15 +42,15 @@ Param(
     [switch]$dryrun = $false,
 
     [alias("b")]
-    [ValidateSet(“all”, ”debug”, ”nondebug”)]
+    [ValidateSet("all", "debug", "nondebug")]
     [string]$buildtype = "all",
 
     [alias("t")]
-    [ValidateSet(“check", "short", "medium", "long", "all")]
+    [ValidateSet("check", "short", "medium", "long", "all")]
     [string]$testtype = "check",
 
     [alias("f")]
-    [ValidateSet(“pmem", "nonpmem", "any", "none", "all")]
+    [ValidateSet("pmem", "non-pmem", "any", "none", "all")]
     [string]$fstype = "all",
 
     [alias("o")]

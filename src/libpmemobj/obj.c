@@ -295,6 +295,10 @@ obj_fini(void)
 		ctree_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
+
+#ifdef _WIN32
+	(void) os_tls_key_delete(Cached_pool_key);
+#endif
 }
 
 /*
@@ -2775,11 +2779,3 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
-
-#ifdef _MSC_VER
-/*
- * libpmemobj constructor/destructor functions
- */
-MSVC_CONSTR(libpmemobj_init)
-MSVC_DESTR(libpmemobj_fini)
-#endif
