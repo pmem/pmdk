@@ -80,9 +80,9 @@ static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
 			struct rpmem_pool_attr *rpmem_attr);
 int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-			unsigned lane);
-int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
-		size_t length, unsigned lane);
+		unsigned lane);
+int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane);
 int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
 int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
@@ -821,6 +821,7 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 	set->replica[set->nreplicas - 1] = rep;
 
 	unsigned p = rep->nparts++;
+	set->nparts++;
 
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
@@ -1200,6 +1201,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	ASSERTne(rep->part[0].alignment, 0);
 
 	rep->nparts = 1;
+	set->nparts = 1;
 
 	/* it does not have a remote replica */
 	rep->remote = NULL;

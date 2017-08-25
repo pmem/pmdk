@@ -91,17 +91,16 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```c
 !ifdef{WIN32}
 {
-int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
-	const char *poolset_file_dst, unsigned flags);
-int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
-	const wchar_t *poolset_file_dst, unsigned flags);
+int pmempool_syncU(const char *poolset_file, unsigned flags, ...); (EXPERIMENTAL)
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags, ...); (EXPERIMENTAL)
+int pmempool_transformU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags, ...); (EXPERIMENTAL)
+int pmempool_transformW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags, ...); (EXPERIMENTAL)
 }{
-int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
+int pmempool_sync(const char *poolset_file, unsigned flags, ...); (EXPERIMENTAL)
 int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
+	const char *poolset_file_dst, unsigned flags, ...); (EXPERIMENTAL)
 }
 ```
 
@@ -421,8 +420,8 @@ Currently, the following operations are allowed only for **pmemobj** pools (see
 ```c
 !ifdef{WIN32}
 {
-int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
+int pmempool_syncU(const char *poolset_file, unsigned flags, ...); (EXPERIMENTAL)
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags, ...); (EXPERIMENTAL)
 }{
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 }
@@ -431,7 +430,7 @@ int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 The !pmempool_sync function synchronizes data between replicas within
 a pool set.
 
-!pmempool_sync accepts two arguments:
+!pmempool_sync accepts two mandatory arguments:
 
 * *poolset_file* - a path to a pool set file,
 
@@ -444,7 +443,10 @@ for syncing the pool.
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+synchronization,
+
+* **PMEMPOOL_PROGRESS** - report progress of the operation via a callback
+function passed as an optional argument.
 
 !pmempool_sync function checks if metadata of all replicas in a pool set
 are consistent, i.e. all parts are healthy, and if any of them is not,
@@ -453,6 +455,27 @@ the healthy replicas.
 
 The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
+
+If the flag **PMEMPOOL_PROGRESS** is set, !pmempool_sync accepts an optional
+argument: a pointer to a callback function for reporting progress of the
+operation.
+
+The callback has to have the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that NULL value of the *msg* breaks the current progress report
+(e.g. in case of an error).
 
 >NOTE: The !pmempool_sync API is experimental and it may change in future
 versions of the library.
@@ -464,14 +487,14 @@ versions of the library.
 {
 int pmempool_transformU(const char *poolset_file_src,
 	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
+	unsigned flags, ...); (EXPERIMENTAL)
 int pmempool_transformW(const wchar_t *poolset_file_src,
 	const wchar_t *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
+	unsigned flags, ...); (EXPERIMENTAL)
 }{
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
+	unsigned flags, ...); (EXPERIMENTAL)
 }
 ```
 
@@ -485,7 +508,7 @@ It supports the following operations:
 * reordering of replicas.
 
 
-!pmempool_transform accepts three arguments:
+!pmempool_transform accepts three mandatory arguments:
 
 * *poolset_file_src* - a path to a pool set file which defines the source
 pool set to be changed,
@@ -494,12 +517,15 @@ pool set to be changed,
 structure of the pool set,
 
 * *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+transformation.
 
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
+
+* **PMEMPOOL_PROGRESS** - report progress of the operation via a callback
+function passed as an optional argument.
 
 When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
@@ -513,6 +539,27 @@ utilized for storing internal metadata of the pool part files.
 
 The function returns either 0 on success or -1 in case of error
 with proper *errno* set accordingly.
+
+If the flag **PMEMPOOL_PROGRESS** is set, !pmempool_transform accepts an optional
+argument: a pointer to a callback function for reporting progress of the
+ operation.
+
+The callback has to have the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that NULL value of the *msg* breaks the current progress report
+(e.g. in case of an error).
 
 >NOTE: The !pmempool_transform API is experimental and it may change in future
 versions of the library.

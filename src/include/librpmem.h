@@ -51,6 +51,13 @@ extern "C" {
 
 typedef struct rpmem_pool RPMEMpool;
 
+/*
+ * a callback function for reporting progress of an operation
+ *
+ * Expected behavior: passing NULL as msg cancels the current progress report
+ */
+typedef int (*RPMEM_progress_cb)(const char *msg, size_t curr, size_t total);
+
 #define RPMEM_POOL_HDR_SIG_LEN	8
 #define RPMEM_POOL_HDR_UUID_LEN	16 /* uuid byte length */
 #define RPMEM_POOL_USER_FLAGS_LEN 16
@@ -82,8 +89,13 @@ int rpmem_close(RPMEMpool *rpp);
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		unsigned lane);
+int rpmem_persist_progress(RPMEMpool *rpp, size_t offset, size_t length,
+		unsigned lane, const char *msg, RPMEM_progress_cb progress_cb);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
 		unsigned lane);
+int rpmem_read_progress(RPMEMpool *rpp, void *buff, size_t offset,
+		size_t length, unsigned lane, const char *msg,
+		RPMEM_progress_cb progress_cb);
 
 #define RPMEM_REMOVE_FORCE 0x1
 #define RPMEM_REMOVE_POOL_SET 0x2
