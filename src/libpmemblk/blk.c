@@ -824,12 +824,3 @@ pmemblk_checkW(const wchar_t *path, size_t bsize)
 	return ret;
 }
 #endif
-
-
-#ifdef _MSC_VER
-/*
- * libpmemblk constructor/destructor functions
- */
-MSVC_CONSTR(libpmemblk_init)
-MSVC_DESTR(libpmemblk_fini)
-#endif
