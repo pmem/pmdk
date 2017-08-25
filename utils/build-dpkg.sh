@@ -54,6 +54,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$8
+
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
 INC_DIR=$PREFIX/include
@@ -715,10 +716,10 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 cd $OLD_DIR
 
 find $WORKING_DIR -name "*.deb"\
-              -or -name "*.dsc"\
-	      -or -name "*.changes"\
-	      -or -name "*.orig.tar.gz"\
-	      -or -name "*.debian.tar.gz" | while read FILE
+		-or -name "*.dsc"\
+		-or -name "*.changes"\
+		-or -name "*.orig.tar.gz"\
+		-or -name "*.debian.tar.gz" | while read FILE
 do
 	mv -v $FILE $OUT_DIR/
 done

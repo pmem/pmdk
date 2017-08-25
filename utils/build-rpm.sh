@@ -43,16 +43,16 @@ source $SCRIPT_DIR/pkg-config.sh
 
 if [ $# -lt 7 -o $# -gt 9 ]
 then
-		echo "Usage: $(basename $0) VERSION_TAG"\
-									"SOURCE_DIR"\
-									"WORKING_DIR"\
-									"OUT_DIR"\
-									"EXPERIMENTAL"\
-									"RUN_CHECK"\
-									"BUILD_RPMEM"\
-									"[TEST_CONFIG_FILE]"\
-									"[DISTRO] "
-		exit 1
+	echo "Usage: $(basename $0) VERSION_TAG"\
+				"SOURCE_DIR"\
+				"WORKING_DIR"\
+				"OUT_DIR"\
+				"EXPERIMENTAL"\
+				"RUN_CHECK"\
+				"BUILD_RPMEM"\
+				"[TEST_CONFIG_FILE]"\
+				"[DISTRO] "
+	exit 1
 fi
 
 PACKAGE_VERSION_TAG=$1
@@ -121,8 +121,6 @@ then
 	RPM_PKG_NAME_SUFFIX="1"
 	RPM_MAKE_FLAGS="BINDIR=""%_bindir"" NORPATH=1"
 	RPM_MAKE_INSTALL="%fdupes %{buildroot}\/%{_prefix}"
-	sed -i '/^#.*bugzilla.redhat/d' \
-		$OLDPWD/$SCRIPT_DIR/nvml.spec.in
 else
 	RPM_LICENSE="BSD"
 	RPM_GROUP_SYS_BASE="System Environment\/Base"
@@ -138,7 +136,6 @@ fi
 # Most of variables are set in pkg-config.sh file in order to
 # keep descriptive values separately from this script.
 #
-
 sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
 	-e "s/__LICENSE__/$RPM_LICENSE/g" \
 	-e "s/__PACKAGE_MAINTAINER__/$PACKAGE_MAINTAINER/g" \
@@ -152,6 +149,11 @@ sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
 	-e "s/__LIBFABRIC_MIN_VER__/$LIBFABRIC_MIN_VERSION/g" \
 	$OLDPWD/$SCRIPT_DIR/nvml.spec.in > $RPM_SPEC_FILE
 
+if [ "$DISTRO" = "SLES" ]
+then
+	sed -i '/^#.*bugzilla.redhat/d' $RPM_SPEC_FILE
+fi
+
 # experimental features
 if [ "${EXPERIMENTAL}" = "y" ]
 then
@@ -163,6 +165,8 @@ fi
 if [ "${BUILD_RPMEM}" = "y" ]
 then
 	RPMBUILD_OPTS+="--with rpmem "
+else
+	RPMBUILD_OPTS+="--without rpmem "
 fi
 
 # use specified testconfig file or default
@@ -173,7 +177,7 @@ then
 else
 	echo -e "Test config file $TEST_CONFIG_FILE does not exist.\n"\
 		"Default test config will be used."
-	 TEST_CONFIG_VAL="default"
+	TEST_CONFIG_VAL="default"
 fi
 
 # run make check or not
@@ -191,14 +195,13 @@ mkdir -v BUILD SPECS
 
 echo "opts: $RPMBUILD_OPTS --define _testconfig ${TEST_CONFIG_VAL} --define _check ${CHECK}"
 
-
 rpmbuild --define "_topdir `pwd`"\
-		--define "_rpmdir ${OUT_DIR}"\
-		--define "_srcrpmdir ${OUT_DIR}"\
-		--define "_testconfig ${TEST_CONFIG_VAL}"\
-		--define "_check ${CHECK}"\
-		 -ta $PACKAGE_TARBALL \
-		 $RPMEMBUILD_OPTS
+	--define "_rpmdir ${OUT_DIR}"\
+	--define "_srcrpmdir ${OUT_DIR}"\
+	--define "_testconfig ${TEST_CONFIG_VAL}"\
+	--define "_check ${CHECK}"\
+	 -ta $PACKAGE_TARBALL \
+	 $RPMBUILD_OPTS
 
 echo "Building rpm packages done"
 

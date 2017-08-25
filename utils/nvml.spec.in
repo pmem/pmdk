@@ -9,17 +9,16 @@
 # directory are not found in the %files (without rpmem case)
 %define _unpackaged_files_terminate_build 0
 
-# default definition
-%bcond_with rpmem
-
 # disable 'make check' on suse
 %if %{defined suse_version}
 	%define _check 0
 	%define dist .suse%{suse_version}
 %endif
 
-%if %{with rpmem} || (0%{?suse_version} > 1315) || (0%{?fedora} >= 27) || (0%{?rhel} >= 7)
-%define with_fabric 1
+%if (0%{?suse_version} > 1315) || (0%{?fedora} >= 27) || (0%{?rhel} >= 7)
+%bcond_without rpmem
+%else
+%bcond_with rpmem
 %endif
 
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
@@ -141,7 +140,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 Summary: Persistent Memory Resident Array of Blocks library
 Group: __GROUP_SYS_LIBS__
 Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description -n libpmemblk
+%description -n libpmemblk__PKG_NAME_SUFFIX__
 The libpmemblk implements a pmem-resident array of blocks, all the same
 size, where a block is updated atomically with respect to power
 failure or program interruption (no torn blocks).
@@ -206,7 +205,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 Summary: Persistent Memory Resident Log File library
 Group: __GROUP_SYS_LIBS__
 Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description -n libpmemlog
+%description -n libpmemlog__PKG_NAME_SUFFIX__
 The libpmemlog library provides a pmem-resident log file. This is
 useful for programs like databases that append frequently to a log
 file.
@@ -534,7 +533,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%if %{with rpmem} && 0%{?with_fabric:1}
+%if %{with rpmem}
 %package -n librpmem__PKG_NAME_SUFFIX__
 Summary: Remote Access to Persistent Memory library
 Group: __GROUP_SYS_LIBS__
@@ -609,7 +608,7 @@ and facilitates access to persistent memory over RDMA.
 %{_bindir}/rpmemd
 %{_mandir}/man1/rpmemd.1.gz
 
-%endif # _with_rpmem && libfabric
+%endif # _with_rpmem
 
 
 %package tools
@@ -675,8 +674,7 @@ __MAKE_INSTALL_FDUPES__
 	%if "%{_testconfig}" != "default"
 		cp %{_testconfig} src/test/testconfig.sh
 	%else
-		cp src/test/testconfig.sh.example src/test/testconfig.sh
-		echo "PMEM_FS_DIR=/tmp" >> src/test/testconfig.sh
+		echo "PMEM_FS_DIR=/tmp" > src/test/testconfig.sh
 		echo "PMEM_FS_DIR_FORCE_PMEM=1" >> src/test/testconfig.sh
 	%endif
 	make check
