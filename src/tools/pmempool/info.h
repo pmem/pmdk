@@ -72,6 +72,7 @@ struct pmempool_info_args {
 	int vdata;		/* verbosity level for data dump */
 	int vhdrdump;		/* verbosity level for headers hexdump */
 	int vstats;		/* verbosity level for statistics */
+	int vbadblocks;		/* verbosity level for bad blocks */
 	struct {
 		size_t walk;		/* data chunk size */
 	} log;
