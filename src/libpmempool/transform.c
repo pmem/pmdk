@@ -494,7 +494,7 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
  */
 int
 replica_transform(struct pool_set *set_in, struct pool_set *set_out,
-		unsigned flags)
+		unsigned flags, PMEM_progress_cb progress_cb)
 {
 	LOG(3, "set_in %p, set_out %p", set_in, set_out);
 
@@ -505,7 +505,8 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
-	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
+	if (replica_check_poolset_health(set_in, &set_in_hs, flags,
+			progress_cb)) {
 		ERR("source poolset health check failed");
 		return -1;
 	}
@@ -550,7 +551,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* signal that sync is called by transform */
 	flags |= IS_TRANSFORMED;
-	if (replica_sync(set_out, set_out_hs, flags)) {
+	if (replica_sync(set_out, set_out_hs, flags, progress_cb)) {
 		ret = -1;
 		goto err_free_cs;
 	}

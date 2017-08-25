@@ -93,15 +93,31 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 {
 int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
-	const char *poolset_file_dst, unsigned flags);
-int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
-	const wchar_t *poolset_file_dst, unsigned flags);
+int pmempool_transformU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
+int pmempool_transformW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
+
+int pmempool_sync_progressW(const wchar_t *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_sync_progressU(const char *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_transform_progressU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_transform_progressW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }{
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
+	const char *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
+
+int pmempool_sync_progress(const char *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_transform_progress(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }
 ```
 
@@ -423,8 +439,16 @@ Currently, the following operations are allowed only for **pmemobj** pools (see
 {
 int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
 int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
+
+int pmempool_sync_progressW(const wchar_t *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_sync_progressU(const char *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }{
 int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
+
+int pmempool_sync_progress(const char *poolset_file, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }
 ```
 
@@ -454,8 +478,30 @@ the healthy replicas.
 The function returns either 0 on success or -1 in case of error
 with proper errno set accordingly.
 
->NOTE: The !pmempool_sync API is experimental and it may change in future
-versions of the library.
+The !pmempool_sync_progress function is a variant of !pmempool_sync which also
+allows for reporting progress of operations. It accepts additional argument
+
+* *progress_cb* - a callback function for reporting progress of operations.
+
+The callback has the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that NULL value of the *msg* breaks the current progress report
+(e.g. in case of an error).
+
+>NOTE: The !pmempool_sync and !pmempool_sync_progress APIs are experimental and
+may change in future versions of the library.
 
 ### POOL SET TRANSFORM ###
 
@@ -468,10 +514,21 @@ int pmempool_transformU(const char *poolset_file_src,
 int pmempool_transformW(const wchar_t *poolset_file_src,
 	const wchar_t *poolset_file_dst,
 	unsigned flags); (EXPERIMENTAL)
+
+int pmempool_transform_progressU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
+int pmempool_transform_progressW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }{
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst,
 	unsigned flags); (EXPERIMENTAL)
+
+int pmempool_transform_progress(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags,
+	PMEM_progress_cb progress_cb); (EXPERIMENTAL)
 }
 ```
 
@@ -494,12 +551,12 @@ pool set to be changed,
 structure of the pool set,
 
 * *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+transformation.
 
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
 
 When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
@@ -513,6 +570,29 @@ utilized for storing internal metadata of the pool part files.
 
 The function returns either 0 on success or -1 in case of error
 with proper *errno* set accordingly.
+
+The !pmempool_transform_progress function is a variant of !pmempool_transform
+which also allows for reporting progress of operations. It accepts additional
+argument
+
+* *progress_cb* - a callback function for reporting progress of operations.
+
+The callback has the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that passing NULL for *msg* breaks the current progress report
+(e.g. in case of an error).
 
 >NOTE: The !pmempool_transform API is experimental and it may change in future
 versions of the library.

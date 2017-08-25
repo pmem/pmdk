@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,6 +76,7 @@ static const char *help_str =
 "  -d, --dry-run        do not apply changes, only check for viability of"
 " transformation\n"
 "  -v, --verbose        increase verbosity level\n"
+"  -p, --progress       display info about progress of a command\n"
 "  -h, --help           display this help and exit\n"
 "\n"
 "For complete documentation see %s-transform(1) manual page.\n"
@@ -88,6 +89,7 @@ static const struct option long_options[] = {
 	{"dry-run",	no_argument,		NULL,	'd'},
 	{"help",	no_argument,		NULL,	'h'},
 	{"verbose",	no_argument,		NULL,	'v'},
+	{"progress",	no_argument,		NULL,	'p'},
 	{NULL,		0,			NULL,	 0 },
 };
 
@@ -129,7 +131,7 @@ pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
 		char *appname, int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "dhv",
+	while ((opt = getopt_long(argc, argv, "dhvp",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
@@ -140,6 +142,9 @@ pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
 			exit(EXIT_SUCCESS);
 		case 'v':
 			out_set_vlevel(1);
+			break;
+		case 'p':
+			ctx->flags |= PMEMPOOL_PROGRESS;
 			break;
 		default:
 			print_usage(appname);
@@ -171,8 +176,12 @@ pmempool_transform_func(char *appname, int argc, char *argv[])
 	if ((ret = pmempool_transform_parse_args(&ctx, appname, argc, argv)))
 		return ret;
 
-	ret = pmempool_transform(ctx.poolset_file_src, ctx.poolset_file_dst,
-			ctx.flags);
+	/* check whether progress should be reported */
+	if (util_is_pmempool_progress_set())
+		ctx.flags |= PMEMPOOL_PROGRESS;
+
+	ret = pmempool_transform(ctx.poolset_file_src,
+			ctx.poolset_file_dst, ctx.flags, pmempool_progress_cb);
 
 	if (ret) {
 		if (errno)

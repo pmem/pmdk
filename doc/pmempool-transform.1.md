@@ -96,9 +96,16 @@ viability of the operation is performed.
 
 : Increase verbosity level.
 
+`-p, --progress`
+
+: Report progress of the operation.
+
 `-h, --help`
 
 : Display help message and exit.
+
+Setting environment variable **PMEMPOOL_PROGRESS** to 1 also enables displaying
+progress of the operation.
 
 
 # EXAMPLES #

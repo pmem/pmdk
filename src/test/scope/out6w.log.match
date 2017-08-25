@@ -12,7 +12,11 @@ pmempool_errormsgU
 pmempool_errormsgW
 pmempool_rmU
 pmempool_rmW
+pmempool_sync_progressU
+pmempool_sync_progressW
 pmempool_syncU
 pmempool_syncW
+pmempool_transform_progressU
+pmempool_transform_progressW
 pmempool_transformU
 pmempool_transformW

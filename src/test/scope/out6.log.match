@@ -7,7 +7,9 @@ pmempool_check_version
 pmempool_errormsg
 pmempool_rm
 pmempool_sync
+pmempool_sync_progress
 pmempool_transform
+pmempool_transform_progress
 $(*)nondebug/libpmempool.so:
 pmempool_check
 pmempool_check_end
@@ -16,7 +18,9 @@ pmempool_check_version
 pmempool_errormsg
 pmempool_rm
 pmempool_sync
+pmempool_sync_progress
 pmempool_transform
+pmempool_transform_progress
 $(*)debug/libpmempool.a:
 pmempool_check
 pmempool_check_end
@@ -25,7 +29,9 @@ pmempool_check_version
 pmempool_errormsg
 pmempool_rm
 pmempool_sync
+pmempool_sync_progress
 pmempool_transform
+pmempool_transform_progress
 $(*)nondebug/libpmempool.a:
 pmempool_check
 pmempool_check_end
@@ -34,4 +40,6 @@ pmempool_check_version
 pmempool_errormsg
 pmempool_rm
 pmempool_sync
+pmempool_sync_progress
 pmempool_transform
+pmempool_transform_progress

@@ -602,6 +602,65 @@ rpmem_close(RPMEMpool *rpp)
 }
 
 /*
+ * rpmem_persist_progress -- persist operation on target node and report
+ *                           progress of the operation
+ *
+ * rpp           -- remote pool handle
+ * offset        -- offset in pool
+ * length        -- length of persist operation
+ * lane          -- lane number
+ * msg           -- a message for progress report
+ * progress_cb   -- a callback function for reporting progress
+ */
+int
+rpmem_persist_progress(RPMEMpool *rpp, size_t offset, size_t length,
+		unsigned lane, const char *msg, RPMEM_progress_cb progress_cb)
+{
+	LOG(3, "rpp %p, offset %zu, length %zu, lane %d", rpp, offset, length,
+			lane);
+
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	int ret = 0;
+
+	if (progress_cb == NULL) {
+		ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
+	} else {
+		if (msg == NULL || *msg == '\0')
+			msg = "Persisting data";
+
+		size_t off = 0;
+		size_t next_off = 0;
+
+		progress_cb(msg, 0, length);
+		for (unsigned i = 0; i < 100; ++i) {
+			next_off = (length * (i + 1) + 99) / 100;
+			ret = rpmem_fip_persist(rpp->fip, offset + off,
+					next_off - off, lane);
+			if (unlikely(ret)) {
+				progress_cb(NULL, 0, 0);
+				break;
+			} else {
+				progress_cb(msg, next_off, length);
+			}
+			off = next_off;
+		}
+	}
+
+	if (unlikely(ret)) {
+		ERR("persist operation failed");
+		rpp->error = ret;
+		errno = rpp->error;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * rpmem_persist -- persist operation on target node
  *
  * rpp           -- remote pool handle
@@ -615,33 +674,23 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 	LOG(3, "rpp %p, offset %zu, length %zu, lane %d", rpp, offset, length,
 			lane);
 
-	if (unlikely(rpp->error)) {
-		errno = rpp->error;
-		return -1;
-	}
-
-	int ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
-	if (unlikely(ret)) {
-		ERR("persist operation failed");
-		rpp->error = ret;
-		errno = rpp->error;
-		return -1;
-	}
-
-	return 0;
+	return rpmem_persist_progress(rpp, offset, length, lane, NULL, NULL);
 }
 
 /*
- * rpmem_read -- read data from remote pool:
+ * rpmem_read_progress -- read data from remote pool and report progress of the
+ *                        operation
  *
  * rpp           -- remote pool handle
  * buff          -- output buffer
  * offset        -- offset in pool
  * length        -- length of read operation
+ * msg           -- a message for progress report
+ * progress_cb   -- a callback function for reporting progress
  */
 int
-rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
-	size_t length, unsigned lane)
+rpmem_read_progress(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane, const char *msg, RPMEM_progress_cb progress_cb)
 {
 	LOG(3, "rpp %p, buff %p, offset %zu, length %zu, lane %d", rpp, buff,
 			offset, length, lane);
@@ -651,13 +700,57 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 		return -1;
 	}
 
-	int ret = rpmem_fip_read(rpp->fip, buff, length, offset, lane);
+	int ret = 0;
+
+	if (progress_cb == NULL) {
+		rpmem_fip_read(rpp->fip, buff, length, offset, lane);
+	} else {
+		if (msg == NULL || *msg == '\0')
+			msg = "Persisting data";
+
+		size_t off = 0;
+		size_t next_off = 0;
+
+		progress_cb(msg, 0, length);
+		for (unsigned i = 0; i < 100; ++i) {
+			next_off = (length * (i + 1) + 99) / 100;
+			ret = rpmem_fip_read(rpp->fip, ADDR_SUM(buff, off),
+					next_off - off, offset + off, lane);
+			if (unlikely(ret)) {
+				progress_cb(NULL, 0, 0);
+				break;
+			} else {
+				progress_cb(msg, next_off, length);
+			}
+			off = next_off;
+		}
+	}
+
 	if (unlikely(ret)) {
 		rpp->error = ret;
+		errno = rpp->error;
 		return -1;
 	}
 
 	return 0;
+}
+
+/*
+ * rpmem_read -- read data from remote pool
+ *
+ * rpp           -- remote pool handle
+ * buff          -- output buffer
+ * offset        -- offset in pool
+ * length        -- length of read operation
+ */
+int
+rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane)
+{
+	LOG(3, "rpp %p, buff %p, offset %zu, length %zu, lane %d", rpp, buff,
+			offset, length, lane);
+
+	return rpmem_read_progress(rpp, buff, offset, length, lane, NULL, NULL);
 }
 
 /*

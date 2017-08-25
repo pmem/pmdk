@@ -49,7 +49,9 @@
 #define pmempool_check_init pmempool_check_initW
 #define pmempool_check pmempool_checkW
 #define pmempool_sync pmempool_syncW
+#define pmempool_sync_progress pmempool_sync_progressW
 #define pmempool_transform pmempool_transformW
+#define pmempool_transform_progress pmempool_transform_progressW
 #define pmempool_rm pmempool_rmW
 #define pmempool_check_version pmempool_check_versionW
 #define pmempool_errormsg pmempool_errormsgW
@@ -60,7 +62,9 @@
 #define pmempool_check_init pmempool_check_initU
 #define pmempool_check pmempool_checkU
 #define pmempool_sync pmempool_syncU
+#define pmempool_sync_progress pmempool_sync_progressU
 #define pmempool_transform pmempool_transformU
+#define pmempool_transform_progress pmempool_transform_progressU
 #define pmempool_rm pmempool_rmU
 #define pmempool_check_version pmempool_check_versionU
 #define pmempool_errormsg pmempool_errormsgU
@@ -84,6 +88,12 @@ extern "C" {
  */
 #define PMEMPOOL_DRY_RUN (1 << 1)
 
+/*
+ * a callback function for reporting progress of an operation
+ *
+ * Expected behavior: passing NULL as msg cancels the current progress report
+ */
+typedef void (*PMEM_progress_cb)(const char *msg, size_t curr, size_t total);
 
 /* PMEMPOOL CHECK */
 
@@ -122,6 +132,10 @@ enum pmempool_pool_type {
  * generate string format statuses
  */
 #define PMEMPOOL_CHECK_FORMAT_STR	(1 << 5)
+/*
+ * report progress of a sync or transform operation
+ */
+#define PMEMPOOL_PROGRESS		(1 << 6)
 
 /*
  * types of check statuses
@@ -245,10 +259,10 @@ struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
  * EXPERIMENTAL
  */
 #ifndef _WIN32
-int pmempool_sync(const char *poolset_file, unsigned flags);
+int pmempool_sync(const char *poolset_file, unsigned flags, ...);
 #else
-int pmempool_syncU(const char *poolset_file, unsigned flags);
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
+int pmempool_syncU(const char *poolset_file, unsigned flags, ...);
+int pmempool_syncW(const wchar_t *poolset_file, unsigned flags, ...);
 #endif
 
 /*
@@ -258,12 +272,12 @@ int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
  */
 #ifndef _WIN32
 int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst, unsigned flags);
+	const char *poolset_file_dst, unsigned flags, ...);
 #else
 int pmempool_transformU(const char *poolset_file_src,
-	const char *poolset_file_dst, unsigned flags);
+	const char *poolset_file_dst, unsigned flags, ...);
 int pmempool_transformW(const wchar_t *poolset_file_src,
-	const wchar_t *poolset_file_dst, unsigned flags);
+	const wchar_t *poolset_file_dst, unsigned flags, ...);
 #endif
 
 /* PMEMPOOL RM */
