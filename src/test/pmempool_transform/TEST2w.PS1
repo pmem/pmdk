@@ -95,7 +95,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Run transform in dry-run mode
-expect_normal_exit $PMEMPOOL transform -d $POOLSET_IN $POOLSET_OUT >> $LOG
+expect_normal_exit $PMEMPOOL transform -q -d $POOLSET_IN $POOLSET_OUT >> $LOG
 cat $LOG >> $LOG_TEMP
 
 # Check if stored data can be read

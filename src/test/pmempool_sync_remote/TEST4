@@ -48,11 +48,11 @@ configure_poolsets 0 1
 dump_info_log_remote 0 ${NODE_DIR[0]}${POOLSET_REMOTE[0]} before.log
 
 expect_normal_exit run_on_node 0 rm ${NODE_DIR[0]}remote.0.part.2
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}$POOLSET_LOCAL
 dump_info_log_remote 0 ${NODE_DIR[0]}${POOLSET_REMOTE[0]} after.2.log
 
 diff_log 0 before.log after.2.log
 
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}$POOLSET_LOCAL
 
 pass

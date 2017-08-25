@@ -93,7 +93,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 rm $DIR\testfile01 -Force -ea si
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL sync -d $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL sync -q -d $POOLSET >> $LOG_TEMP
 
 # Check metadata by pmempool info
 dump_pool_info $DIR\testfile00 >> $LOG_TEMP

@@ -84,6 +84,10 @@ viability of synchronization.
 
 : Increase verbosity level.
 
+`-q, --quiet`
+
+: Do not display progress of the operation.
+
 `-h, --help`
 
 : Display help message and exit.

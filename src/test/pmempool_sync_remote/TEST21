@@ -50,8 +50,8 @@ run_on_node 1 ../pmemspoil  ${NODE_DIR[1]}pool.part.1 \
 				   pool_hdr.shutdown_state.dirty=1 \
 				   "pool_hdr.shutdown_state.checksum_gen\(\)"
 
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}$POOLSET_LOCAL
 
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}$POOLSET_LOCAL
 
 pass

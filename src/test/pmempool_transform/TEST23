@@ -102,7 +102,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
 # Dry run for transforming the poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform -d $POOLSET_IN $POOLSET_OUT \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q -d $POOLSET_IN $POOLSET_OUT \
 	>> $LOG_TEMP
 
 # Check if not transformed

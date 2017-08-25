@@ -94,7 +94,7 @@ rm $DIR\part00 -Force -ea si
 rm $DIR\part20 -Force -ea si
 
 # Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET3 >> $LOG_TEMP 2>$null
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET3 >> $LOG_TEMP 2>$null
 
 mv -Force $LOG_TEMP $LOG
 check

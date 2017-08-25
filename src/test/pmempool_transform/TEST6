@@ -89,11 +89,11 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT\
 cat $LOG >> $LOG_TEMP
 
 # Transform poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q \
 	$POOLSET_IN $POOLSET_OUT1 >> $LOG_TEMP
 
 # Try to transform poolset again
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform \
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform -q \
 	$POOLSET_IN $POOLSET_OUT2 >> $LOG_TEMP 2>&1
 
 # Check metadata by pmempool info

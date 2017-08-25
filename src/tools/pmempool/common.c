@@ -1443,3 +1443,31 @@ util_pool_clear_badblocks(const char *path, int create)
 
 	return 0;
 }
+
+/*
+ * pmempool_progress_cb -- a callback function for printing progress of
+ *                         operations to stdout
+ */
+int
+pmempool_progress_cb(const char *msg, size_t curr, size_t total)
+{
+	LOG(3, "msg %s, curr %zu, total %zu", msg, curr, total);
+
+	if (msg == NULL) {
+		printf("\n");
+		return 0;
+	}
+
+	if (total == 0)
+		return 0;
+
+	printf("%s", msg);
+	int percent = (int)(curr * 100 / total);
+	printf(": %3d%%", percent);
+	if (curr == total)
+		printf("\n");
+	else
+		printf("\r");
+	fflush(stdout);
+	return 0;
+}
