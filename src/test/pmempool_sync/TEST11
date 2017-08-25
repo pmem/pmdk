@@ -87,7 +87,7 @@ expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part00 -n 10 -b 1
 expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part20 -n 10 -b 1
 
 # Try to synchronize replicas using the third poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET3 &>> $LOG_TEMP
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET3 &>> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 check

@@ -67,14 +67,14 @@ expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET
 cat $LOG >> $LOG_TEMP
 
 # Synchronize healthy pool set - should fail as there are no replicas
-expect_abnormal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP 2>&1
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
     >> $LOG_TEMP
 
 # Synchronize broken pool set - should fail as there are no other replicas
-expect_abnormal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP 2>&1
 
 # Remove poolset
 expect_normal_exit $PMEMPOOL rm $POOLSET
@@ -84,14 +84,14 @@ expect_normal_exit $PMEMPOOL create log $POOLSET
 cat $LOG >> $LOG_TEMP
 
 # Synchronize healthy pool set - should fail as there are no replicas
-expect_abnormal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP 2>&1
 
 # Corrupt metadata in primary replica
 expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
     >> $LOG_TEMP
 
 # Synchronize broken pool set - should fail as there are no other replicas
-expect_abnormal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP 2>&1
 
 mv -Force $LOG_TEMP $LOG
 #check

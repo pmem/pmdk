@@ -65,7 +65,7 @@ create_poolset $POOLSET \
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[0]}
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[1]}
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET > $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET > $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 pass

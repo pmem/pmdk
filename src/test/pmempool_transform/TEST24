@@ -94,7 +94,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET_IN \
 	>> $LOG_TEMP
 
 # Transform the poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_IN $POOLSET_OUT >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_IN $POOLSET_OUT >> \
 	$LOG_TEMP
 
 # Write some data into the pool, hitting all the part files
@@ -106,7 +106,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \
 	$LOG_TEMP
 
 # Dry run for transforming the poolset back
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform -d $POOLSET_OUT $POOLSET_IN \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q -d $POOLSET_OUT $POOLSET_IN \
 	>> $LOG_TEMP
 
 # Check if not transformed

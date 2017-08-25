@@ -82,7 +82,7 @@ expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
 # Try to transform poolset
-expect_abnormal_exit $PMEMPOOL transform `
+expect_abnormal_exit $PMEMPOOL transform -q `
     $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
 
 # Check metadata by pmempool info

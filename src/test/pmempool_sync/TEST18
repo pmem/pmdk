@@ -105,7 +105,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[1]} >> $LOG_TEMP
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET >> $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP

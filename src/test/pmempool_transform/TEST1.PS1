@@ -104,7 +104,7 @@ expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
 $FLAGS = "0"
-expect_normal_exit $PMEMPOOL transform $POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
+expect_normal_exit $PMEMPOOL transform -q $POOLSET_IN $POOLSET_OUT $FLAGS >> $LOG
 cat $LOG >> $LOG_TEMP
 
 # Check if correctly copied

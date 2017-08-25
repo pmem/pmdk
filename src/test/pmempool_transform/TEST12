@@ -105,7 +105,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET_1 \
 	>> $LOG_TEMP
 
 # Remove the second replica
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_1 $POOLSET_2 >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_1 $POOLSET_2 >> \
 	$LOG_TEMP
 
 # Write some data into the pool, hitting all the part files
@@ -117,7 +117,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_2 >> \
 	$LOG_TEMP
 
 # Make an attempt to transform the poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform \
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform -q \
 	$POOLSET_2 $POOLSET_3 2> $ERR_LOG > /dev/null
 
 # Check if data is still correctly written

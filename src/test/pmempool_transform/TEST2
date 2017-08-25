@@ -93,7 +93,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
 # Run transform in dry-run mode
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform -d \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q -d \
 	$POOLSET_IN $POOLSET_OUT>> $LOG
 cat $LOG >> $LOG_TEMP
 
