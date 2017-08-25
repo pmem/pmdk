@@ -191,7 +191,7 @@ try {
 
         # control loop for receiving job outputs and starting new jobs
         while ($threads -ne 0) {
-            if ($Global:stopwatch.Elapsed.TotalSeconds -ge $config.timeout.TotalSeconds) {
+            if ($config.timeout.TotalSeconds -ne 0 -and $Global:stopwatch.Elapsed.TotalSeconds -ge $config.timeout.TotalSeconds) {
                 Get-Job -name $name | Remove-Job -Force
                 throw "RUNTESTS: stopping: TIMED OUT"
             }
