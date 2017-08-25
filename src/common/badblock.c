@@ -33,13 +33,7 @@
 /*
  * badblock_linux.c - implementation of the linux badblock query API
  */
-#include <stdlib.h>
-#include <fcntl.h>
-#include <queue.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/fiemap.h>
-#include <linux/fs.h>
+#include "queue.h"
 #include "file.h"
 #include "os.h"
 #include "out.h"
@@ -47,8 +41,10 @@
 #include "extent.h"
 #include "badblock.h"
 #include "plugin.h"
+#ifndef _WIN32
 #include "badblock_filesrc.h"
 #include "badblock_poolset.h"
+#endif
 
 struct badblock_source {
 	struct badblock_iter *(*iter_from_file)(const char *file);
@@ -57,6 +53,7 @@ struct badblock_source {
 
 static SLIST_HEAD(, badblock_source) sources;
 
+#ifndef _WIN32
 /*
  * badblock_register_source -- registers a new badblock source
  */
@@ -75,6 +72,7 @@ badblock_register_source(const char *name, void *funcs, void *arg)
 
 	SLIST_INSERT_HEAD(&sources, bsrc, e);
 }
+#endif
 
 /*
  * badblock_new -- creates a new badblock iterator
@@ -85,11 +83,12 @@ badblock_new(const char *path)
 	struct badblock_iter *iter;
 
 	if (SLIST_EMPTY(&sources)) {
+#ifndef _WIN32
 		badblock_poolset_source_register();
 		badblock_file_source_register();
-
 		plugin_load("badblock_source", 1,
 			badblock_register_source, NULL);
+#endif
 	}
 
 	struct badblock_source *bsrc;
