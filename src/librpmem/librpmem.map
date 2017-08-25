@@ -40,7 +40,9 @@ LIBRPMEM_1.0 {
 		rpmem_close;
 		rpmem_remove;
 		rpmem_persist;
+		rpmem_persist_progress;
 		rpmem_read;
+		rpmem_read_progress;
 		rpmem_check_version;
 		rpmem_errormsg;
 	local:

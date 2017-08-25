@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 #include <endian.h>
+#include <assert.h>
 #include "common.h"
 #include "output.h"
 #include "libpmempool.h"
@@ -75,6 +76,7 @@ static const char *help_str =
 "  -d, --dry-run        do not apply changes, only check for viability of"
 " synchronization\n"
 "  -v, --verbose        increase verbosity level\n"
+"  -p, --progress       display info about progress of a command\n"
 "  -h, --help           display this help and exit\n"
 "\n"
 "For complete documentation see %s-sync(1) manual page.\n"
@@ -87,6 +89,7 @@ static const struct option long_options[] = {
 	{"dry-run",	no_argument,		NULL,	'd'},
 	{"help",	no_argument,		NULL,	'h'},
 	{"verbose",	no_argument,		NULL,	'v'},
+	{"progress",	no_argument,		NULL,	'p'},
 	{NULL,		0,			NULL,	 0 },
 };
 
@@ -127,17 +130,20 @@ pmempool_sync_parse_args(struct pmempool_sync_context *ctx, char *appname,
 		int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "dhv",
+	while ((opt = getopt_long(argc, argv, "dhvp",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
-			ctx->flags = PMEMPOOL_DRY_RUN;
+			ctx->flags |= PMEMPOOL_DRY_RUN;
 			break;
 		case 'h':
 			pmempool_sync_help(appname);
 			exit(EXIT_SUCCESS);
 		case 'v':
 			out_set_vlevel(1);
+			break;
+		case 'p':
+			ctx->flags |= PMEMPOOL_PROGRESS;
 			break;
 		default:
 			print_usage(appname);
@@ -168,7 +174,11 @@ pmempool_sync_func(char *appname, int argc, char *argv[])
 	if ((ret = pmempool_sync_parse_args(&ctx, appname, argc, argv)))
 		return ret;
 
-	ret = pmempool_sync(ctx.poolset_file, ctx.flags);
+	/* check whether progress should be reported */
+	if (util_is_pmempool_progress_set())
+		ctx.flags |= PMEMPOOL_PROGRESS;
+
+	ret = pmempool_sync(ctx.poolset_file, ctx.flags, pmempool_progress_cb);
 
 	if (ret) {
 		outv_err("failed to synchronize: %s\n", pmempool_errormsg());

@@ -110,6 +110,7 @@ struct pool_replica {
 
 struct pool_set {
 	unsigned nreplicas;
+	unsigned nparts;	/* total number of parts in the poolset */
 	uuid_t uuid;
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
@@ -255,9 +256,9 @@ int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
+	unsigned lane);
 extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
-				size_t length, unsigned lane);
+	size_t length, unsigned lane);
 extern int (*Rpmem_close)(RPMEMpool *rpp);
 
 extern int (*Rpmem_remove)(const char *target,
