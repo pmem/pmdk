@@ -73,6 +73,7 @@ typedef struct _stat64 os_stat_t;
 #endif
 
 #define os_close close
+#define os_fclose fclose
 
 int os_open(const char *pathname, int flags, ...);
 int os_stat(const char *pathname, os_stat_t *buf);

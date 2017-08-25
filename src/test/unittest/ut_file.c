@@ -95,6 +95,38 @@ ut_close(const char *file, int line, const char *func, int fd)
 }
 
 /*
+ * ut_fopen --an fopen that cannot return != 0
+ */
+FILE *
+ut_fopen(const char *file, int line, const char *func, const char *path,
+    const char *mode)
+{
+	FILE *retval = os_fopen(path, mode);
+
+	if (retval == NULL)
+		ut_fatal(file, line, func, "!fopen: %s", path);
+
+	return retval;
+}
+
+/*
+ * ut_fclose -- a fclose that cannot return != 0
+ */
+int
+ut_fclose(const char *file, int line, const char *func, FILE *stream)
+{
+	int retval = os_fclose(stream);
+
+	if (retval != 0)
+	{
+		ut_fatal(file, line, func, "!fclose: 0x%llx",
+			(unsigned long long)stream);
+	}
+
+	return retval;
+}
+
+/*
  * ut_unlink -- an unlink that cannot return -1
  */
 int

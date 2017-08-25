@@ -382,6 +382,11 @@ int ut_wopen(const char *file, int line, const char *func, const wchar_t *path,
 
 int ut_close(const char *file, int line, const char *func, int fd);
 
+FILE *ut_fopen(const char *file, int line, const char *func, const char *path,
+    const char *mode);
+
+int ut_fclose(const char *file, int line, const char *func, FILE *stream);
+
 int ut_unlink(const char *file, int line, const char *func, const char *path);
 
 int ut_access(const char *file, int line, const char *func, const char *path,
@@ -487,6 +492,14 @@ int ut_closedir(const char *file, int line, const char *func, DIR *dirp);
 /* a close() that can't return -1 */
 #define CLOSE(fd)\
     ut_close(__FILE__, __LINE__, __func__, fd)
+
+/* an fopen() that can't return != 0 */
+#define FOPEN(path, mode)\
+    ut_fopen(__FILE__, __LINE__, __func__, path, mode)
+
+/* a fclose() that can't return != 0 */
+#define FCLOSE(stream)\
+    ut_fclose(__FILE__, __LINE__, __func__, stream)
 
 /* an unlink() that can't return -1 */
 #define UNLINK(path)\
