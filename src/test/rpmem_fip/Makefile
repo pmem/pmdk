@@ -52,7 +52,6 @@ OBJS = rpmem_fip_test.o\
        rpmem_cmd.o\
        rpmem_common.o\
        rpmem_fip_common.o\
-       rpmemd_fip_worker.o\
        rpmemd_util.o\
        rpmemd_obc.o\
        rpmemd_log.o
