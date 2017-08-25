@@ -70,7 +70,7 @@ expect_normal_exit $PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=0000000000000000\
 	"pool_hdr.checksum_gen\(\)" >> $LOG_TEMP
 
 # Try to synchronize replicas
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET &>> $LOG_TEMP
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET &>> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 check

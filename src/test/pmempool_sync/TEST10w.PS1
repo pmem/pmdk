@@ -80,7 +80,7 @@ expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
 cat $LOG >> $LOG_TEMP
 
 # Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET2 >> $LOG_TEMP 2>$null
 
 # Check metadata using pmempool info
 dump_pool_info $POOLSET1 >> $LOG_TEMP

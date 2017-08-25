@@ -115,13 +115,13 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset - remove the smaller replica
-expect_normal_exit $PMEMPOOL transform $POOLSET_IN $POOLSET_OUT1 >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL transform -q $POOLSET_IN $POOLSET_OUT1 >> $LOG_TEMP
 
 # Check if correctly read
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT1 >> $LOG_TEMP
 
 # Transform poolset - add a larger replica
-expect_normal_exit $PMEMPOOL transform $POOLSET_OUT1 $POOLSET_OUT2 >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL transform -q $POOLSET_OUT1 $POOLSET_OUT2 >> $LOG_TEMP
 
 # Check if correctly read
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_OUT2 >> $LOG_TEMP

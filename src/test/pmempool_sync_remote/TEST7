@@ -71,7 +71,7 @@ dump_info_log_remote 0 ${NODE_DIR[0]}remote.set before.r.log
 
 expect_normal_exit run_on_node 1 rm -f ${NODE_DIR[1]}pool.1
 expect_normal_exit run_on_node 1 rm -f ${NODE_DIR[1]}pool.2
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}pool.set
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}pool.set
 
 dump_info_log 1 0 ${NODE_DIR[1]}pool.set after.0.log
 dump_info_log 1 1 ${NODE_DIR[1]}pool.set after.1.log

@@ -242,3 +242,5 @@ static const struct range ENTIRE_UINT64 = {
 	0,		/* first */
 	UINT64_MAX	/* last */
 };
+
+int pmempool_progress_cb(const char *msg, size_t curr, size_t total);

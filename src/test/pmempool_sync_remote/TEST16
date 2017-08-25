@@ -97,7 +97,7 @@ dump_info_log_remote 0 ${NODE_DIR[0]}remote.set before.r.log
 
 expect_normal_exit run_on_node 1 ../pmempool rm -f ${NODE_DIR[1]}part00
 expect_normal_exit run_on_node 1 ../pmempool rm -f ${NODE_DIR[1]}part01
-expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}pool.set
+expect_normal_exit run_on_node 1 ../pmempool sync -q ${NODE_DIR[1]}pool.set
 
 exec_pmemobjcli_script 1 ${NODE_DIR[1]}$READ_SCRIPT ${NODE_DIR[1]}pool.set after.data.log
 dump_info_log 1 0 ${NODE_DIR[1]}pool.set after.0.log

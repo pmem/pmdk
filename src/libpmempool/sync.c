@@ -54,6 +54,8 @@
 #include "rpmem_ssh.h"
 #endif
 
+#define MAX_MSG_BUFFER 60
+
 /*
  * validate_args -- (internal) check whether passed arguments are valid
  */
@@ -95,9 +97,14 @@ err:
  */
 static int
 recreate_broken_parts(struct pool_set *set,
-			struct poolset_health_status *set_hs)
+	struct poolset_health_status *set_hs, unsigned flags,
+	PMEM_progress_cb progress_cb)
 {
-	LOG(3, "set %p, set_hs %p", set, set_hs);
+	LOG(3, "set %p, set_hs %p, flags %u", set, set_hs, flags);
+
+	char *msg = "(Re)creating parts";
+	size_t n = 0;
+	size_t max = poolset_count_broken_parts(set, set_hs, LOCAL);
 
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		if (set->replica[r]->remote)
@@ -110,9 +117,13 @@ recreate_broken_parts(struct pool_set *set,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
+			if (progress_cb)
+				progress_cb(msg, n++, max);
+
 			/* remove parts from broken replica */
 			if (replica_remove_part(set, r, p)) {
 				LOG(2, "cannot remove part");
+				util_break_progress(progress_cb);
 				return -1;
 			}
 
@@ -120,10 +131,14 @@ recreate_broken_parts(struct pool_set *set,
 			if (util_part_open(&broken_r->part[p], 0,
 						1 /* create */)) {
 				LOG(2, "cannot open/create parts");
+				util_break_progress(progress_cb);
 				return -1;
 			}
 		}
 	}
+
+	if (progress_cb)
+		progress_cb(msg, max, max);
 
 	return 0;
 }
@@ -274,10 +289,17 @@ fill_struct_uuids(struct pool_set *set, unsigned src_replica,
  */
 static int
 create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
-		struct poolset_health_status *set_hs)
+		struct poolset_health_status *set_hs,
+		PMEM_progress_cb progress_cb)
 {
-	LOG(3, "set %p, src_replica %u, set_hs %p", set, src_replica, set_hs);
+	LOG(3, "set %p, src_replica %u, set_hs %p, progress_cb %p", set,
+			src_replica, set_hs, progress_cb);
 	struct pool_hdr *src_hdr = HDR(REP(set, src_replica), 0);
+
+	char *msg = "(Re)creating headers";
+	size_t n = 0;
+	size_t max = poolset_count_broken_parts(set, set_hs, ALL);
+
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
@@ -288,16 +310,22 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
+			if (progress_cb)
+				progress_cb(msg, n++, max);
+
 			struct pool_attr attr;
 			util_pool_hdr2attr(&attr, src_hdr);
 			if (util_header_create(set, r, p, &attr, 0) != 0) {
 				LOG(1, "part headers create failed for"
 						" replica %u part %u", r, p);
 				errno = EINVAL;
+				util_break_progress(progress_cb);
 				return -1;
 			}
 		}
 	}
+	if (progress_cb)
+		progress_cb(msg, max, max);
 	return 0;
 }
 
@@ -307,10 +335,11 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
  */
 static int
 copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
-		unsigned flags, struct poolset_health_status *set_hs)
+		unsigned flags, struct poolset_health_status *set_hs,
+		PMEM_progress_cb progress_cb)
 {
-	LOG(3, "set %p, healthy_replica %u, flags %u, set_hs %p", set,
-			healthy_replica, flags, set_hs);
+	LOG(3, "set %p, healthy_replica %u, flags %u, set_hs %p, progress_cb "
+			"%p", set, healthy_replica, flags, set_hs, progress_cb);
 
 	/* get pool size from healthy replica */
 	size_t poolsize = set->poolsize;
@@ -348,33 +377,56 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			size_t fpoff = (p == 0) ? POOL_HDR_SIZE : 0;
 			void *dst_addr = ADDR_SUM(part->addr, fpoff);
 
+			char msg[MAX_MSG_BUFFER];
+
 			if (rep->remote) {
-				int ret = Rpmem_persist(rep->remote->rpp, off,
-						len, 0);
+				if (progress_cb) {
+					snprintf(msg, MAX_MSG_BUFFER, "Copying "
+						"data to remote replica %u", r);
+				}
+				int ret = util_rpmem_persist(
+					rep->remote->rpp, off,
+					len, 0, msg, progress_cb);
 				if (ret) {
 					LOG(1,
 						"Copying data to remote node failed -- '%s' on '%s'",
 						rep->remote->pool_desc,
 						rep->remote->node_addr);
+					util_break_progress(progress_cb);
 					return -1;
 				}
 			} else if (rep_h->remote) {
-				int ret = Rpmem_read(rep_h->remote->rpp,
-						dst_addr, off, len, 0);
+				if (progress_cb) {
+					snprintf(msg, MAX_MSG_BUFFER, "Copying "
+						"data to part %u in replica %u",
+						p, r);
+				}
+				int ret = util_rpmem_read(
+					rep_h->remote->rpp, dst_addr,
+					off, len, 0, msg,
+					progress_cb);
 				if (ret) {
 					LOG(1,
 						"Reading data from remote node failed -- '%s' on '%s'",
 						rep_h->remote->pool_desc,
 						rep_h->remote->node_addr);
+					util_break_progress(progress_cb);
 					return -1;
 				}
 			} else {
 				void *src_addr =
 					ADDR_SUM(rep_h->part[0].addr, off);
 
+				if (progress_cb) {
+					snprintf(msg, MAX_MSG_BUFFER, "Copying "
+						"data to part %u in replica %u",
+						p, r);
+				}
+
 				/* copy all data */
-				memcpy(dst_addr, src_addr, len);
-				util_persist(part->is_dev_dax, dst_addr, len);
+				util_memcpy_persist(part->is_dev_dax,
+						dst_addr, src_addr, len, msg,
+						progress_cb);
 			}
 		}
 	}
@@ -565,10 +617,14 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
  *                          replicas
  */
 static int
-update_remote_headers(struct pool_set *set)
+update_remote_headers(struct pool_set *set, unsigned flags,
+		PMEM_progress_cb progress_cb)
 {
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++ r) {
+		if (progress_cb)
+			progress_cb("Updating remote headers",
+					r, set->nreplicas);
 		/* skip local or just created replicas */
 		if (REP(set, r)->remote == NULL ||
 				PART(REP(set, r), 0)->created == 1)
@@ -580,6 +636,9 @@ update_remote_headers(struct pool_set *set)
 			return -1;
 		}
 	}
+	if (progress_cb)
+		progress_cb("Updating remote headers", set->nreplicas,
+				set->nreplicas);
 	return 0;
 }
 
@@ -589,10 +648,13 @@ update_remote_headers(struct pool_set *set)
  *                 after recreating parts
  */
 static int
-update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
+update_uuids(struct pool_set *set, struct poolset_health_status *set_hs,
+		unsigned flags, PMEM_progress_cb progress_cb)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (progress_cb)
+			progress_cb("Updating uuids", r, set->nreplicas);
 		if (!replica_is_replica_healthy(r, set_hs))
 			update_parts_linkage(set, r, set_hs);
 
@@ -600,7 +662,11 @@ update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 		update_poolset_uuids(set, r, set_hs);
 	}
 
-	if (update_remote_headers(set))
+	if (progress_cb)
+		progress_cb("Updating uuids", set->nreplicas,
+				set->nreplicas);
+
+	if (update_remote_headers(set, flags, progress_cb))
 		return -1;
 
 	return 0;
@@ -677,15 +743,24 @@ open_remote_replicas(struct pool_set *set,
  */
 static int
 create_remote_replicas(struct pool_set *set,
-	struct poolset_health_status *set_hs, unsigned flags)
+	struct poolset_health_status *set_hs, unsigned flags,
+	PMEM_progress_cb progress_cb)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	char *msg = "(Re)creating remote replicas";
+	size_t n = 0;
+	size_t max = poolset_count_broken_parts(set, set_hs, REMOTE);
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		if (!rep->remote)
 			continue;
 		if (replica_is_replica_healthy(r, set_hs))
 			continue;
+
+		if (progress_cb)
+			progress_cb(msg, n++, max);
 
 		if (!replica_is_poolset_transformed(flags)) {
 			/* ignore errors from remove operation */
@@ -700,10 +775,13 @@ create_remote_replicas(struct pool_set *set,
 			LOG(1, "Creating '%s' on '%s' failed",
 					rep->remote->pool_desc,
 					rep->remote->node_addr);
+			util_break_progress(progress_cb);
 			return ret;
 		}
 	}
 
+	if (progress_cb)
+		progress_cb(msg, max, max);
 	return 0;
 }
 
@@ -713,9 +791,9 @@ create_remote_replicas(struct pool_set *set,
  */
 int
 replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
-		unsigned flags)
+		unsigned flags, PMEM_progress_cb progress_cb)
 {
-	LOG(3, "set %p, flags %u", set, flags);
+	LOG(3, "set %p, flags %u, progress_cb %p", set, flags, progress_cb);
 	int ret = 0;
 	struct poolset_health_status *set_hs = NULL;
 
@@ -726,7 +804,8 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 			return -1;
 
 		/* examine poolset's health */
-		if (replica_check_poolset_health(set, &set_hs, flags)) {
+		if (replica_check_poolset_health(set, &set_hs, flags,
+				progress_cb)) {
 			ERR("poolset health check failed");
 			return -1;
 		}
@@ -756,7 +835,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* recreate broken parts */
-	if (recreate_broken_parts(set, set_hs)) {
+	if (recreate_broken_parts(set, set_hs, flags, progress_cb)) {
 		ERR("recreating broken parts failed");
 		ret = -1;
 		goto out;
@@ -794,14 +873,15 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* create headers for broken parts */
-	if (create_headers_for_broken_parts(set, healthy_replica, set_hs)) {
+	if (create_headers_for_broken_parts(set, healthy_replica,
+			set_hs, progress_cb)) {
 		ERR("creating headers for broken parts failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* create all remote replicas */
-	if (create_remote_replicas(set, set_hs, flags)) {
+	if (create_remote_replicas(set, set_hs, flags, progress_cb)) {
 		ERR("creating remote replicas failed");
 		ret = -1;
 		goto out;
@@ -809,14 +889,14 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* check and copy data if possible */
 	if (copy_data_to_broken_parts(set, healthy_replica,
-			flags, set_hs)) {
+			flags, set_hs, progress_cb)) {
 		ERR("copying data to broken parts failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* update uuids of replicas and parts */
-	if (update_uuids(set, set_hs)) {
+	if (update_uuids(set, set_hs, flags, progress_cb)) {
 		ERR("updating uuids failed");
 		ret = -1;
 		goto out;

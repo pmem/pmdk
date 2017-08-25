@@ -67,7 +67,7 @@ cat $LOG >> $LOG_TEMP
 rm -f $DIR/testfile01
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET >> $LOG_TEMP
 
 # Check if restored part file have the same permissions as other parts
 stat $STAT_PERM $DIR/testfile00 >> $LOG_TEMP
@@ -80,7 +80,7 @@ rm -f $DIR/testfile10
 chmod 600 $DIR/testfile*
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET >> $LOG_TEMP
 
 # Check if restored part file have the same permissions as other parts
 stat $STAT_PERM $DIR/testfile10 >> $LOG_TEMP

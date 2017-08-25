@@ -124,6 +124,10 @@ viability of the operation is performed.
 
 : Increase verbosity level.
 
+`-q, --quiet`
+
+: Do not display progress of the operation.
+
 `-h, --help`
 
 : Display help message and exit.
