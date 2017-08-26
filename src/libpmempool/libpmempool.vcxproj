@@ -46,7 +46,6 @@
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="..\libpmemlog\libpmemlog.c" />
-    <ClCompile Include="..\libpmemlog\log.c" />
     <ClCompile Include="check.c" />
     <ClCompile Include="check_backup.c" />
     <ClCompile Include="check_btt_info.c" />
