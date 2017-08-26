@@ -37,11 +37,11 @@
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-if [ $# -lt 6 -o $# -gt 7 ]
+if [ $# -lt 6 -o $# -gt 8 ]
 then
         echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
                                         "OUT_DIR EXPERIMENTAL RUN_CHECK"\
-                                        "[TEST_CONFIG_FILE] "
+                                        "[TEST_CONFIG_FILE] [DAXEMU_CFG_FILE]"
         exit 1
 fi
 
@@ -52,6 +52,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$7
+DAXEMU_CFG_FILE=$8
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
@@ -147,6 +148,11 @@ if [ -f $TEST_CONFIG_FILE ]; then
 	cp $TEST_CONFIG_FILE src/test/testconfig.sh
 else
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
+fi
+if [ -f $DAXEMU_CFG_FILE ]; then
+	cp $DAXEMU_CFG_FILE src/test/daxemu.cfg
+else
+	cp src/test/daxemu.cfg.example src/test/daxemu.cfg
 fi
 
 make pcheck $PCHECK_OPTS

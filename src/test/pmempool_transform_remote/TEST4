@@ -42,6 +42,7 @@ export UNITTEST_NUM=4
 require_test_type	medium
 require_fs_type		any
 require_dax_devices	1
+require_dax_real
 
 setup
 

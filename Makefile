@@ -134,7 +134,9 @@ pkg-clean:
 
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
-			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} $(CURDIR)/src/test/testconfig.sh
+			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK}\
+			$(CURDIR)/src/test/testconfig.sh\
+			$(CURDIR)/src/test/daxemu.cfg
 
 install uninstall:
 	$(MAKE) -C src $@

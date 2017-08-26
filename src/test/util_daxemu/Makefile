@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -32,29 +31,13 @@
 #
 
 #
-# src/test/blk_rw/TEST12 -- unit test for pmemblk_read/write/set_zero/set_error
+# src/test/util_daxemu/Makefile -- build util_daxemu unit test
 #
-# Same as TEST10, but run on a pool set that spans two Device DAX devices
-# with 2M alignment. Expected failure, as 2M alignment is not supported yet.
-#
-export UNITTEST_NAME=blk_rw/TEST12
-export UNITTEST_NUM=12
+vpath %.c ../../common
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = util_daxemu
+OBJS = util_daxemu.o
 
-require_test_type medium
-require_fs_type any
-require_dax_devices 2
-require_dax_device_alignments 2097152 2097152 # 2MiB
+LIBPMEMCOMMON=y
 
-setup
-
-dax_device_zero
-
-create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
-
-expect_abnormal_exit ./blk_rw$EXESUFFIX 512 $DIR/testset c\
-	r:0 r:1 r:32201 r:32313 z:0 z:1 r:0
-
-pass
+include ../Makefile.inc

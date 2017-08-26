@@ -130,6 +130,8 @@ pmempool_rm_help(char *appname)
 static int
 rm_file(const char *file)
 {
+	outv(2, "file %s", file);
+
 	int write_protected = os_access(file, W_OK) != 0;
 	char cask = 'y';
 	switch (ask_mode) {
@@ -167,6 +169,8 @@ rm_file(const char *file)
 static int
 remove_remote(const char *target, const char *pool_set)
 {
+	outv(2, "target %s pool_set %s", target, pool_set);
+
 #ifdef USE_RPMEM
 	char cask = 'y';
 	switch (ask_mode) {
@@ -238,6 +242,8 @@ remove_remote(const char *target, const char *pool_set)
 static int
 rm_poolset_cb(struct part_file *pf, void *arg)
 {
+	outv(2, "part_file %p arg %p", pf, arg);
+
 	int *error = (int *)arg;
 	int ret;
 	if (pf->is_remote) {
@@ -275,7 +281,10 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 static int
 rm_poolset(const char *file)
 {
+	outv(2, "file %s", file);
+
 	int error = 0;
+
 	int ret = util_poolset_foreach_part(file, rm_poolset_cb, &error);
 	if (ret == -1) {
 		outv_err("parsing poolset failed: %s\n",
@@ -297,6 +306,8 @@ rm_poolset(const char *file)
 int
 pmempool_rm_func(char *appname, int argc, char *argv[])
 {
+	outv(2, NULL);
+
 #ifdef USE_RPMEM
 	/*
 	 * Try to load librpmem, if loading failed -

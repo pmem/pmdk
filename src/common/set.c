@@ -3009,6 +3009,8 @@ err_poolset:
 int
 util_is_poolset_file(const char *path)
 {
+	LOG(3, "path %s", path);
+
 	if (util_file_is_device_dax(path))
 		return 0;
 
@@ -3055,6 +3057,8 @@ int
 util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg)
 {
+	LOG(3, "path %s cb %p arg %p", path, cb, arg);
+
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -3079,6 +3083,7 @@ util_poolset_foreach_part(const char *path,
 			part.is_remote = 0;
 			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
 				part.path = set->replica[r]->part[p].path;
+				LOG(4, "part.path %s", part.path);
 				ret = cb(&part, arg);
 				if (ret)
 					goto out;
@@ -3104,6 +3109,8 @@ err_close:
 size_t
 util_poolset_size(const char *path)
 {
+	LOG(3, "path %s", path);
+
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0)
 		return 0;
@@ -3127,6 +3134,8 @@ err_close:
 void
 util_replica_fdclose(struct pool_replica *rep)
 {
+	LOG(3, "rep %p", rep);
+
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		struct pool_set_part *part = &rep->part[p];
 		util_part_fdclose(part);

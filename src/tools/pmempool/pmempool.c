@@ -52,6 +52,7 @@
 #include "synchronize.h"
 #include "transform.h"
 #include "set.h"
+#include "out.h"
 
 #ifndef _WIN32
 #include "rpmem_common.h"
@@ -239,6 +240,11 @@ get_command(char *cmd_str)
 int
 main(int argc, char *argv[])
 {
+	util_init();
+	out_init("pmempool", "PMEMPOOL_LOG_LEVEL", "PMEMPOOL_LOG_FILE",
+		1, 0);
+
+
 	int opt;
 	int option_index;
 	int ret = 0;

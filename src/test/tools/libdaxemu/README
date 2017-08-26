@@ -1,0 +1,24 @@
+This is src/test/tools/libdaxemu/README file.
+
+This directory contains Device DAX emulation library.
+
+The library allows to run unit tests that require access to Device DAX
+devices on a system that does not have Device DAX support, or if user has
+no privileges to create/open Device DAX.
+
+It emulates the behavior of memory mapping and selected file I/O routines
+on a real Device DAX.
+
+The emulation is based on interposing each access to the files like:
+   /dev/daxX.Y
+   /sys/dev/char/M.N/device/align
+   /sys/dev/char/M.N/size
+   /sys/dev/char/M.N/subsystem
+
+To emulate Device DAX, prepare the configuration file with the list
+of fake Device DAX devices and preload the library using LD_PRELOAD.
+For example:
+
+	DAXEMU_CFG_FILE=daxemu.cfg LD_PRELOAD=libdaxemu.so prog args ...
+
+See src/test/daxemu.cfg.example for details on configuration file format.

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,31 +28,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# Makefile -- Makefile for libdaxemu
 #
-# src/test/blk_rw/TEST12 -- unit test for pmemblk_read/write/set_zero/set_error
-#
-# Same as TEST10, but run on a pool set that spans two Device DAX devices
-# with 2M alignment. Expected failure, as 2M alignment is not supported yet.
-#
-export UNITTEST_NAME=blk_rw/TEST12
-export UNITTEST_NUM=12
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TOP = ../../../..
+include $(TOP)/src/common.inc
 
-require_test_type medium
-require_fs_type any
-require_dax_devices 2
-require_dax_device_alignments 2097152 2097152 # 2MiB
+vpath %.c $(TOP)/src/common/
 
-setup
+LIBRARY = libdaxemu.so
+OBJS = libdaxemu.o\
+	out.o\
+	file_linux.o\
+	os_linux.o\
+	os_thread_linux.o\
+	util.o\
+	util_linux.o
 
-dax_device_zero
+LIB_MAP = libdaxemu.map
 
-create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
-expect_abnormal_exit ./blk_rw$EXESUFFIX 512 $DIR/testset c\
-	r:0 r:1 r:32201 r:32313 z:0 z:1 r:0
+include $(TOP)/src/tools/Makefile.inc
 
-pass
+INCS += -I$(TOP)/src/common
+LIBS += -ldl
+CFLAGS += -fPIC
+CFLAGS += -DDEBUG
+CFLAGS += -ggdb
+
+all: $(LIBRARY)
+
+$(LIBRARY): $(OBJS) $(LIB_MAP)
+	$(CC) -shared -o $@ $(LDFLAGS) -Wl,-shared,--version-script=$(LIB_MAP),-soname=$@ $(LIBS) $(OBJS)
+
+clobber:
+	$(RM) $(LIBRARIES)

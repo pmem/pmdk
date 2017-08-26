@@ -47,6 +47,16 @@ TEST_BUILD="debug nondebug"
 TM=1
 EOF
 
+# Disable Device DAX emulation if Coverage is enabled
+if [[ $COVERAGE -ne 1 ]]; then
+	cat << EOF >> $WORKDIR/src/test/testconfig.sh
+DEVICE_DAX_PATH=(/dev/dax10.0 /dev/dax20.0 /dev/dax30.0 /dev/dax40.0)
+TEST_DAXEMU=1
+EOF
+
+cp $WORKDIR/src/test/daxemu.cfg.example $WORKDIR/src/test/daxemu.cfg
+fi
+
 # Configure remote tests
 if [[ $REMOTE_TESTS -eq 1 ]]; then
 	echo "Configuring remote tests"
