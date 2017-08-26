@@ -59,8 +59,8 @@
  *
  * Called automatically by the run-time loader.
  */
-__attribute__((constructor))
-static void
+ATTR_CONSTRUCTOR
+void
 libpmempool_init(void)
 {
 	common_init(PMEMPOOL_LOG_PREFIX, PMEMPOOL_LOG_LEVEL_VAR,
@@ -78,8 +78,8 @@ libpmempool_init(void)
  *
  * Called automatically when the process terminates.
  */
-__attribute__((destructor))
-static void
+ATTR_DESTRUCTOR
+void
 libpmempool_fini(void)
 {
 	LOG(3, NULL);
@@ -436,3 +436,12 @@ pmempool_check_end(PMEMpoolcheck *ppc)
 			return PMEMPOOL_CHECK_RESULT_ERROR;
 	}
 }
+
+
+#ifdef _MSC_VER
+/*
+ * libpmem constructor/destructor functions
+ */
+MSVC_CONSTR(libpmempool_init)
+MSVC_DESTR(libpmempool_fini)
+#endif
