@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "scope\TEST6"
+$Env:UNITTEST_NAME = "scope/TEST6"
 $Env:UNITTEST_NUM = "6w"
 
 # standard unit test setup

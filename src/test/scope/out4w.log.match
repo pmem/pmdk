@@ -1,4 +1,4 @@
-scope\TEST4:
+scope/TEST4:
 $(*)\libpmemobj.dll:
 _pobj_debug_notice
 DllMain

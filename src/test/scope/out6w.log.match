@@ -1,4 +1,4 @@
-scope\TEST6:
+scope/TEST6:
 $(*)\libpmempool.dll:
 DllMain
 pmempool_check_end

@@ -39,7 +39,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_ctl\TEST0"
+$ENV:UNITTEST_NAME = "obj_ctl/TEST0"
 $ENV:UNITTEST_NUM = "0"
 
 # standard unit test setup

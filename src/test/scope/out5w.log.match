@@ -1,4 +1,4 @@
-scope\TEST5:
+scope/TEST5:
 $(*)\libvmmalloc.dll:
 DllMain
 aligned_alloc

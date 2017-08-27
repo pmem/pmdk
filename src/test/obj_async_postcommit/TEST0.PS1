@@ -38,7 +38,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$ENV:UNITTEST_NAME = "obj_async_postcommit\TEST0"
+$ENV:UNITTEST_NAME = "obj_async_postcommit/TEST0"
 $ENV:UNITTEST_NUM = "0"
 
 # standard unit test setup

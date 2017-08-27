@@ -1,4 +1,4 @@
-scope\TEST2:
+scope/TEST2:
 $(*)\libpmemlog.dll:
 DllMain
 pmemlog_append
