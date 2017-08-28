@@ -246,6 +246,7 @@ TEST_BEGIN(test_malloc_snprintf)
 	TEST("_0x1234abc_", "_%#llx_", ((long long)0x1234abc));
 	TEST("_0X1234ABC_", "_%#llX_", ((long long)0x1234ABC));
 
+#ifndef __INTEL_COMPILER
 	TEST("_-1234_", "_%qd_", ((long long)-1234));
 	TEST("_1234_", "_%qd_", ((long long)1234));
 	TEST("_-1234_", "_%qi_", ((long long)-1234));
@@ -254,6 +255,7 @@ TEST_BEGIN(test_malloc_snprintf)
 	TEST("_1234_", "_%qu_", ((long long)1234));
 	TEST("_0x1234abc_", "_%#qx_", ((long long)0x1234abc));
 	TEST("_0X1234ABC_", "_%#qX_", ((long long)0x1234ABC));
+#endif
 
 	TEST("_-1234_", "_%jd_", ((intmax_t)-1234));
 	TEST("_1234_", "_%jd_", ((intmax_t)1234));
