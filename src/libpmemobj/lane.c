@@ -63,7 +63,7 @@ struct section_operations *Section_ops[MAX_LANE_SECTION];
 /*
  * lane_info_destroy -- destroy lane info hash table
  */
-inline void
+void
 lane_info_destroy(void)
 {
 	if (unlikely(Lane_info_ht == NULL))
