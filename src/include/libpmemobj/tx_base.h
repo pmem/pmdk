@@ -80,7 +80,8 @@ enum pobj_tx_param {
 #endif
 #endif
 
-#if !defined(_has_deprecated_with_message) && defined(__GNUC__)
+#if !defined(_has_deprecated_with_message) && \
+		defined(__GNUC__) && !defined(__INTEL_COMPILER)
 #if __GNUC__ * 100 + __GNUC_MINOR__ >= 601 /* 6.1 */
 #define _has_deprecated_with_message
 #endif
