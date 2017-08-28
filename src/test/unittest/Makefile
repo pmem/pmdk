@@ -51,8 +51,10 @@ CFLAGS += -Wall
 CFLAGS += -Werror
 CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
+ifeq ($(call check_icc), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
+endif
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
 ifeq ($(call check_Wconversion), y)
@@ -60,11 +62,14 @@ CFLAGS += -Wconversion
 endif
 CFLAGS += -pthread
 CFLAGS += -fno-common
+
+ifeq ($(call check_icc), n)
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
 CFLAGS += -Wunreachable-code-return
 endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
+endif
 endif
 
 ifeq ($(USE_LIBUNWIND),1)
