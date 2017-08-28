@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -108,6 +108,17 @@ function get_version() {
 	else
 		RELEASE=${RELEASE//[-:_.]/"~"}
 		echo -n ${VERSION}${RELEASE}
+	fi
+}
+
+function get_os() {
+	if [ -f /etc/os-release ]
+	then
+		local OS=$(cat /etc/os-release | grep -m1 -o -P '(?<=NAME=).*($)')
+		[[ "$OS" =~ Fedora|SLES ]] && echo -n $OS ||
+		([[ "$OS" =~ "Red Hat" ]] && echo -n "RHEL" || echo 1)
+	else
+		echo 1
 	fi
 }
 
