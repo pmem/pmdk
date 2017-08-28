@@ -55,7 +55,7 @@ extern "C" {
 /*
  * check compiler support for various function attributes
  */
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 
 #define GCC_VER (__GNUC__ * 100 + __GNUC_MINOR__)
 
@@ -83,7 +83,7 @@ extern "C" {
 #define __ATTR_ALLOC_ALIGN__(x)
 #endif
 
-#else /* clang and other compilers */
+#else /* clang, icc and other compilers */
 
 #ifndef __has_attribute
 #define __has_attribute(x) 0
