@@ -85,10 +85,7 @@ get_persist_method(const char *pm)
 	else if (strcmp(pm, "APM") == 0)
 		return RPMEM_PM_APM;
 	else
-		UT_ASSERT(0);
-
-	/* XXX: cheat icc */
-	__builtin_unreachable();
+		UT_FATAL("unknown method");
 }
 
 /*
