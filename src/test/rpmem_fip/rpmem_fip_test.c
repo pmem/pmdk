@@ -86,6 +86,9 @@ get_persist_method(const char *pm)
 		return RPMEM_PM_APM;
 	else
 		UT_ASSERT(0);
+
+	/* XXX: cheat icc */
+	__builtin_unreachable();
 }
 
 /*
