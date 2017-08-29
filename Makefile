@@ -130,7 +130,7 @@ source:
 	git archive HEAD | tar -x -C $(DESTDIR)/nvml
 
 pkg-clean:
-	$(RM) -r $(DESTDIR)
+	@$(RM) -r $(DESTDIR)
 
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
