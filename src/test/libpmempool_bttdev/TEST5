@@ -60,7 +60,7 @@ $PMEMSPOIL $POOL "bttdevice.arena(0).btt_info.sig=ERROR"\
 	"bttdevice.arena(1).btt_info.sig=ERROR"\
 	"bttdevice.arena(1).btt_info_backup.sig=ERROR"
 
-expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 
 check_file $POOL
 
