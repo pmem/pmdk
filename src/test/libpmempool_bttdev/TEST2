@@ -54,11 +54,11 @@ EXE=../libpmempool_api/libpmempool_test
 expect_normal_exit $BTTCREATE $POOL >> $LOG
 
 $PMEMSPOIL $POOL "bttdevice.arena(0).btt_info_backup.sig=ERROR"
-expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
 
 $PMEMSPOIL $POOL "bttdevice.arena(0).btt_info.sig=ERROR"
-expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG

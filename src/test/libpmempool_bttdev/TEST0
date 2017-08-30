@@ -51,7 +51,7 @@ EXE=../libpmempool_api/libpmempool_test
 
 expect_normal_exit $BTTCREATE $POOL >> $LOG
 
-expect_normal_exit $EXE$EXESUFFIX $POOL -r 1 -t btt >> $LOG
+expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL >> $LOG
 
 check_file $POOL
 
