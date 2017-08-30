@@ -569,7 +569,8 @@ board_state::print(unsigned hs)
 		highscore = score;
 	mvprintw(SIZE + 1, 0, "Score: %d\t\tHighscore: %u\t\tLevel: %u\t"
 			      "   Timer: %u",
-		 score, highscore, level, timer);
+		 (unsigned)score, (unsigned)highscore, (unsigned)level,
+		 (unsigned)timer);
 	mvaddch(8, SIZE * 2 + 5, shape(FOOD));
 	mvprintw(8, SIZE * 2 + 10, " +1 point");
 	mvaddch(16, SIZE * 2 + 5, shape(BONUS));
@@ -934,7 +935,7 @@ state::print_game_over()
 	mvprintw(y + 10, x, "#######      #       #######   #     #");
 
 	mvprintw(y + 13, x, "       Your final score is %u         ",
-		 board->score);
+		 (unsigned)board->score);
 	if (board->score == highscore)
 		mvprintw(y + 14, x, "       YOU BET YOUR BEST SCORE!       ");
 	mvprintw(y + 16, x, "          Press 'q' to quit           ");

@@ -203,7 +203,10 @@ COMMON_FLAGS  = -ggdb
 COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Werror
 COMMON_FLAGS += -Wpointer-arith
+
+ifeq ($(call check_compiler, icc), n)
 COMMON_FLAGS += -Wunused-macros
+endif
 COMMON_FLAGS += -fno-common
 
 CXXFLAGS  = -std=c++11
