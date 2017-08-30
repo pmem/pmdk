@@ -40,7 +40,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#ifndef __FreeBSD__
 #include <sys/sysmacros.h>
+#endif
 
 #include "file.h"
 #include "os.h"

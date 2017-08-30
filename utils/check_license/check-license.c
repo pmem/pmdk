@@ -45,6 +45,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ctype.h>
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 
 #define LICENSE_MAX_LEN		2048
 #define COPYRIGHT		"Copyright "

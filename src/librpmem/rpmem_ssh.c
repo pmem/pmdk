@@ -40,6 +40,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
 
 #include "util.h"
 #include "os.h"

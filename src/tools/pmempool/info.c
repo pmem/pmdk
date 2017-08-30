@@ -45,7 +45,9 @@
 #include <inttypes.h>
 #include <assert.h>
 #include <sys/param.h>
+#ifndef __FreeBSD__
 #define __USE_UNIX98
+#endif
 #include <unistd.h>
 #include <sys/mman.h>
 

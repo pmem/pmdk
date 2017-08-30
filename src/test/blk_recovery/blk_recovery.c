@@ -44,7 +44,11 @@
 
 #include "blk.h"
 #include "btt_layout.h"
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include "endian.h"
+#endif
 
 static size_t Bsize;
 

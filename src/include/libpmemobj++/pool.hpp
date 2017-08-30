@@ -40,6 +40,9 @@
 
 #include <stddef.h>
 #include <sys/stat.h>
+#ifdef __FreeBSD__
+#include <string>
+#endif
 
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj++/p.hpp"

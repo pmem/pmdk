@@ -52,6 +52,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
+#ifdef __FreeBSD__
+#define _WITH_GETLINE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

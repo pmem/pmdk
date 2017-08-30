@@ -33,12 +33,19 @@
 /*
  * panaconda.cpp -- example of usage c++ bindings in nvml
  */
+#ifdef __FreeBSD__
+#define _WITH_GETLINE
+#endif
 #include <cstdlib>
 #include <ctime>
 #include <getopt.h>
 #include <iostream>
-#include <ncurses.h>
 #include <stdio.h>
+#ifdef __FreeBSD__
+#include <ncurses/ncurses.h> /* Need pkg, not system, version */
+#else
+#include <ncurses.h>
+#endif
 #include <stdlib.h>
 
 #include "panaconda.hpp"

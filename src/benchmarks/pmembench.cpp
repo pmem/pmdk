@@ -44,7 +44,11 @@
 #include <dirent.h>
 #include <err.h>
 #include <getopt.h>
+#ifdef __FreeBSD__
+#include <sys/limits.h>
+#else
 #include <linux/limits.h>
+#endif
 #include <sys/wait.h>
 #include <unistd.h>
 

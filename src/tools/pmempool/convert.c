@@ -42,7 +42,11 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <sys/mman.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include "common.h"
 #include "set.h"
 #include "libpmem.h"

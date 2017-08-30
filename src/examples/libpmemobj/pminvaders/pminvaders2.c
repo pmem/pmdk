@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +39,11 @@
  */
 
 #include <stddef.h>
+#ifdef __FreeBSD__
+#include <ncurses/ncurses.h>	/* Need pkg, not system, version */
+#else
 #include <ncurses.h>
+#endif
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>

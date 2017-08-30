@@ -49,7 +49,11 @@
 #include <assert.h>
 #include <getopt.h>
 #include <unistd.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 
 #include "common.h"
 

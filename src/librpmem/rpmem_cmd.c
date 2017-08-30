@@ -42,6 +42,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#ifdef __FreeBSD__
+#include <signal.h>
+#endif
 
 #include "util.h"
 #include "out.h"

@@ -36,7 +36,11 @@
 
 #include <stdint.h>
 #include <sys/param.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 
 #include "out.h"
 #include "btt.h"

@@ -33,8 +33,10 @@
 /*
  * spoil.c -- pmempool spoil command source file
  */
+#ifndef __FreeBSD__
 #include <features.h>
 #define __USE_UNIX98
+#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -50,7 +52,11 @@
 #include <libgen.h>
 #include <err.h>
 #include <assert.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <libpmem.h>
 #include "common.h"
 #include "output.h"
