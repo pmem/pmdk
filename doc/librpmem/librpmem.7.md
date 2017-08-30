@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBRPMEM!3
+title: LIBRPMEM!7
 header: NVM Library
 date: rpmem API version 1.1
 ...
@@ -33,17 +33,17 @@ date: rpmem API version 1.1
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (librpmem.3 -- man page for librpmem)
+[comment]: <> (librpmem.7 -- man page for librpmem)
 
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[MOST COMMONLY USED FUNCTIONS](#most-commonly-used-functions-1)<br />
-[LANES](#lanes)<br />
 [TARGET NODE ADDRESS FORMAT](#target-node-address-format)<br />
 [REMOTE POOL ATTRIBUTES](#remote-pool-attributes)<br />
 [SSH](#ssh)<br />
+[FORK](#fork)<br />
+[CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [ENVIRONMENT](#environment)<br />
@@ -112,142 +112,12 @@ for more details.
 
 This library is for applications that use remote persistent memory directly,
 without the help of any library-supplied transactions or memory
-allocation. Higher-level libraries that build on **libpmem** are
+allocation. Higher-level libraries that build on **libpmem**(7) are
 available and are recommended for most applications, see:
 
-+ **libpmemobj**(3), a general use persistent memory API, providing memory
++ **libpmemobj**(7), a general use persistent memory API, providing memory
 allocation and transactional operations on variable-sized objects.
 
-
-# MOST COMMONLY USED FUNCTIONS #
-
-```c
-RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	const struct rpmem_pool_attr *create_attr);
-```
-
-The **rpmem_create**() function creates a remote pool on a given *target* node.
-The *pool_set_name* is a relative path in the root config directory on
-the *target* node that uniquely identifies the pool set file on remote node
-to be used when mapping the remote pool. The *pool_addr* is a pointer to the
-associated local memory pool of a given size specified by the *pool_size*
-argument. Both *pool_addr* and *pool_size* must be aligned to system's page
-size (see **sysconf**(3)). The size of the remote pool must be at least
-*pool_size*. See **REMOTE POOL SIZE** section for details.
-The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successful creation of the remote pool, the *nlanes* contains the
-maximum number of lanes supported by both local and remote nodes' hardware.
-See **LANES** section for details.
-The *create_attr* structure contains the attributes used for creating the
-remote pool. If *create_attr* is NULL, a zeroed structure with attributes will
-be used to create the pool. The attributes are stored in pool's meta-data and
-can be read when opening the remote pool using **rpmem_open**() function call.
-Upon success the **rpmem_create**() returns an opaque handle to the remote pool
-which shall be used in subsequent API calls. If any error prevents the
-**librpmem** from creating the remote pool, the **rpmem_create**() returns
-NULL and sets *errno* appropriately.
-
-```c
-RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	struct rpmem_pool_attr *open_attr);
-```
-
-The **rpmem_open**() function opens an existing remote pool on a given *target*
-node. The *pool_set_name* is a relative path in the root config directory on
-the *target* node that uniquely identifies the pool set file on remote node
-to be used when mapping the remote pool. The *pool_addr* is a pointer to the
-associated local memory pool of a given size specified by the *pool_size*
-argument. Both *pool_addr* and *pool_size* must be aligned to system's page
-size (see **sysconf**(3)). The size of the remote pool must be at least
-*pool_size*. See **REMOTE POOL SIZE** section for details.
-The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successful opening of the remote pool, the *nlanes* contains the
-maximum number of lanes supported by both local and remote nodes' hardware.
-See **LANES** section for details.
-If the *open_attr* argument is not NULL the remote pool attributes
-are returned by the provided structure. Upon success the **rpmem_open**()
-returns an opaque handle to the remote pool which shall be used in
-subsequent API calls. If any error prevents the **librpmem** from opening the
-remote pool, the **rpmem_open**() returns NULL and sets *errno*
-appropriately.
-
-```c
-int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
-```
-
-The **rpmem_set_attr**() function overwrites pool's attributes.
-The *attr* structure contains the attributes used for overwriting the remote
-pool attributes that were passed to **rpmem_create**() at pool's creation.
-If *attr* is NULL, a zeroed structure with attributes will be used.
-New attributes are stored in pool's meta-data.
-
-```c
-int rpmem_close(RPMEMpool *rpp);
-```
-
-The **rpmem_close**() function closes a remote pool indicated by *rpp*.
-All resources are released on both local and remote side. The pool itself lives
-on the remote node and may be re-opened at a later time using **rpmem_open**()
-function as described above. If any error occurred when closing remote pool,
-non-zero value is returned and *errno* value is set.
-
-```c
-int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
-```
-
-The **rpmem_persist**() function copies data of given *length* at given
-*offset* from the associated local memory pool and makes sure the data is
-persistent on the remote node before the function returns. The remote node
-is identified by the *rpp* handle which must be returned from either
-**rpmem_open**() or **rpmem_create**() functions. The *offset* is relative
-to the *pool_addr* specified in the **rpmem_open**() or **rpmem_create**()
-function calls. The *offset* and *length* combined must not exceed the
-*pool_size* passed to the **rpmem_open**() or **rpmem_create**() functions.
-The **rpmem_persist**() operation is performed using given *lane* number.
-The lane must be less than the value returned by **rpmem_open**() or
-**rpmem_create**() through the *nlanes* argument (so it can take a value
-from 0 to *nlanes* - 1).
-If the entire memory area was made persistent on remote node
-the **rpmem_persist**() returns 0, otherwise it returns non-zero value
-and sets *errno* appropriately.
-
-```c
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
-	unsigned lane);
-```
-
-The **rpmem_read**() function reads *length* bytes of data from remote pool
-at *offset* and copies it to the buffer *buff*. The operation is performed on
-a given lane. The lane must be less than the value returned by **rpmem_open**()
-or **rpmem_create**() through the *nlanes* argument (so it can take a value
-from 0 to *nlanes* - 1). The function returns 0 if the data was read entirely,
-otherwise non-zero value is returned and *errno* set appropriately.
-The *rpp* must point to a remote pool opened or created previously by
-**rpmem_open**() or **rpmem_create**() functions respectively.
-
-```c
-int rpmem_remove(const char *target, const char *pool_set_name, int flags);
-```
-
-The **rpmem_remove**() function removes a remote pool on a given *target* node.
-The *pool_set_name* is a relative path in the root config directory on the
-*target* node that uniquely identifies the pool set file on remote node.
-By default only the pool part files are removed and pool set file is left
-untouched. If the pool is not consistent the **rpmem_remove**() function fails.
-The *flags* argument determines the behavior of **rpmem_remove**() function.
-It is either 0 or the bitwise OR of one or more of the following flags:
-
-+ **RPMEM_REMOVE_FORCE**
-Ignore errors when opening inconsistent pool. The pool set file must be in
-appropriate format though.
-
-+ **RPMEM_REMOVE_POOL_SET**
-Remove pool set file after removing the pool described by this pool set.
-
-If the pool has been removed the **rpmem_remove**() returns 0, otherwise
-it returns non-zero value and sets *errno* appropriately.
 
 # TARGET NODE ADDRESS FORMAT #
 
@@ -325,7 +195,8 @@ is executed with **-4** option which forces using **IPv4** addressing.
 The SSH command executed by **librpmem** can be overwritten by
 **RPMEM_SSH** environment variable. The command executed by the **ssh**
 can be overwritten by **RPMEM_CMD** variable. See **ENVIRONMENT**
-section for details. See **FORK** section for more details.
+section for details. See **FORK** section belove for more details.
+
 
 # FORK #
 The **ssh** process is executed
@@ -340,14 +211,6 @@ By default **libfabric** initializes **libibverbs** with **fork**(2) support
 by calling the **ibv_fork_init**(3) function. See **fi_verbs**(7) for more
 details.
 
-# REMOTE POOL SIZE #
-A remote pool size depends on the configuration of a pool set file on the remote
-node. The remote pool size is a sum of sizes of all part files decreased by 4096
-bytes per each part file. The 4096 bytes of each part file is utilized for
-storing internal metadata of the pool part files. The minimum size of a part
-file for a remote pool is defined as **RPMEM_MIN_PART** in **\<librpmem.h\>**.
-The minimum size of a remote pool allowed by the library is defined as
-**RPMEM_MIN_POOL** therein.
 
 # CAVEATS #
 
@@ -565,7 +428,7 @@ main(int argc, char *argv[])
 # NOTE #
 
 The **librpmem** API is experimental and may be a subject of changes in the future.
-However, using the remote replication in **libpmemobj**(3) is safe and backward
+However, using the remote replication in **libpmemobj**(7) is safe and backward
 compatibility will be preserved.
 
 # ACKNOWLEDGEMENTS #
@@ -577,6 +440,8 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**libpmemobj**(3), **libpmemblk**(3), **libpmemlog**(3),
-**libpmem**(3), **strerror**(3)
+**rpmemd**(1), **ssh**(1), **fork**(2), **dlopen**(3),
+**ibv_fork_init**(3), **strerror**(3), **limits.conf**(5),
+**fi_sockets**(7), **fi_verbs**(7), **libpmem**(7),
+**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<http://pmem.io>**
