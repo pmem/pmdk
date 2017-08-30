@@ -1091,7 +1091,7 @@ function require_command() {
 	fi
 }
 
-function require_module() {
+function require_kernel_module() {
 	MODULE=`cat /proc/modules | grep $1 | wc -l`
 	if [ $MODULE == "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: '$1' module required"

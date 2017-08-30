@@ -32,6 +32,17 @@
 
 /*
  * badblock_filesrc_linux.c - implementation of linux badblock file source
+ *
+ * Badblocks for a particular file can only be found by looking at the
+ * underlying device and then filtering out the badblocks that do not overlap
+ * with the extents on which the file is located.
+ *
+ * To achieve the above, we are using only the kernel exposed features:
+ * the region badblocks list and file-system extents list.
+ *
+ * To clear a badblock, we are using a the kernel provided feature that
+ * automatically discards the poisoned page when we hole-punch it at the
+ * appropriate offset in the file.
  */
 #define _GNU_SOURCE
 
@@ -56,7 +67,7 @@ struct badblock_iter_file {
 			struct badblock *b);
 		int (*clear)(struct badblock_iter_file *iter,
 			struct badblock *b);
-		size_t (*len)(struct badblock_iter_file *iter);
+		size_t (*count)(struct badblock_iter_file *iter);
 		void (*del)(struct badblock_iter_file *iter);
 	} i_ops;
 
@@ -76,19 +87,9 @@ badblock_find_extent(struct badblock_iter_file *iter, struct badblock *b)
 	for (int i = 0; i < (int)iter->nextents; ++i) {
 		struct extent *cur = &iter->extents[i];
 
-		if (cur->offset <= b->offset &&
-			cur->offset + cur->length >= b->offset + b->length) {
+		if (cur->offset <= b->offset + b->length &&
+			cur->offset + cur->length > b->offset)
 			return i;
-		} else if (cur->offset >= b->offset &&
-			cur->offset + cur->length <= b->offset + b->length) {
-			return i;
-		} else if (cur->offset + cur->length >= b->offset &&
-			cur->offset + cur->length <= b->offset + b->length) {
-			return i;
-		} else if (cur->offset >= b->offset &&
-			cur->offset + cur->length <= b->offset + b->length) {
-			return i;
-		}
 	}
 
 	return -1;
@@ -135,10 +136,10 @@ badblock_del(struct badblock_iter_file *iter)
 }
 
 /*
- * badblock_len -- length of the badblock iterator
+ * badblock_count -- number of the badblocks
  */
 static size_t
-badblock_len(struct badblock_iter_file *iter)
+badblock_count(struct badblock_iter_file *iter)
 {
 	return iter->nextents;
 }
@@ -173,7 +174,7 @@ iter_from_file(const char *file)
 {
 	LOG(3, "%s", file);
 
-	int fd = open(file, O_RDONLY);
+	int fd = os_open(file, O_RDONLY);
 	if (fd < 0)
 		goto error_file_open;
 
@@ -185,7 +186,7 @@ iter_from_file(const char *file)
 		goto error_extent_iter;
 
 	struct badblock_iter_file *iter = Malloc(sizeof(*iter) +
-		sizeof(struct extent) * extent_length(eiter));
+		sizeof(struct extent) * extent_count(eiter));
 	iter->nextents = 0;
 
 	if (iter == NULL)
@@ -222,7 +223,7 @@ iter_from_file(const char *file)
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.len = badblock_len;
+	iter->i_ops.count = badblock_count;
 
 	return iter;
 
@@ -278,10 +279,10 @@ static struct plugin_ops badblock_file_source_plugin = {
 };
 
 /*
- * badblock_file_source_register -- registers the file badblock source
+ * badblock_file_source_add -- registers the file badblock source
  */
 void
-badblock_file_source_register(void)
+badblock_file_source_add(void)
 {
 	plugin_add(&badblock_file_source_plugin);
 }

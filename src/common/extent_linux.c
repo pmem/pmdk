@@ -134,10 +134,10 @@ extent_delete(struct extent_iter *iter)
 }
 
 /*
- * extent_length -- returns the number of extents
+ * extent_count -- returns the number of extents
  */
 size_t
-extent_length(struct extent_iter *iter)
+extent_count(struct extent_iter *iter)
 {
 	return iter->fmap->fm_extent_count;
 }

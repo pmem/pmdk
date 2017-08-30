@@ -49,7 +49,7 @@ struct extent {
 
 struct extent_iter *extent_new(int fd);
 void extent_delete(struct extent_iter *iter);
-size_t extent_length(struct extent_iter *iter);
+size_t extent_count(struct extent_iter *iter);
 
 int extent_next(struct extent_iter *iter, struct extent *extent);
 

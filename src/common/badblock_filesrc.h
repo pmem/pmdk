@@ -37,6 +37,6 @@
 #ifndef NVML_BADBLOCK_FILESRC_LINUX_H
 #define NVML_BADBLOCK_FILESRC_LINUX_H 1
 
-void badblock_file_source_register(void);
+void badblock_file_source_add(void);
 
 #endif

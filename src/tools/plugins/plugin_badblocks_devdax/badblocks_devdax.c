@@ -32,6 +32,14 @@
 
 /*
  * badblocks_devdax.c - implementation of linux badblock devdax source
+ *
+ * This plugin leverages the ndctl implementation of the ACPI 6.2 nvdimm related
+ * features: Address Range Scrub (ARS) and the Clear Uncorrectable Error
+ * function.
+ *
+ * There's no need to be selective of badblocks, because the pool can be created
+ * only on the whole device - and that means that a badblock anywhere on the
+ * device dax can potentially corrupt the pool.
  */
 #define _GNU_SOURCE
 
@@ -63,7 +71,7 @@ struct badblock_iter_dax {
 			struct badblock_pmem *b);
 		int (*clear)(struct badblock_iter_dax *iter,
 			struct badblock_pmem *b);
-		size_t (*len)(struct badblock_iter_dax *iter);
+		size_t (*count)(struct badblock_iter_dax *iter);
 		void (*del)(struct badblock_iter_dax *iter);
 	} i_ops;
 	struct ndctl_ctx *ctx;
@@ -103,10 +111,10 @@ badblock_del(struct badblock_iter_dax *iter)
 }
 
 /*
- * badblock_len -- length of the badblock iterator
+ * badblock_count -- number of the badblocks
  */
 static size_t
-badblock_len(struct badblock_iter_dax *iter)
+badblock_count(struct badblock_iter_dax *iter)
 {
 	return iter->nbadblocks;
 }
@@ -218,7 +226,7 @@ iter_from_file(const char *file)
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.len = badblock_len;
+	iter->i_ops.count = badblock_count;
 
 	iter->nbadblocks = 0;
 	iter->ndctl_badblocks = NULL;

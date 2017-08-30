@@ -28,28 +28,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for rpmemd
+# Makefile -- top Makefile for plugins
 #
 
-TOP = ../../..
-include $(TOP)/src/common.inc
+TARGETS = plugin_badblocks_devdax
 
-INSTALL_TARGET = n
-BUILD_STATIC = n
-
-LIBNDCTL := $(call check_package, libndctl --atleast-version 57.0)
-ifeq ($(LIBNDCTL),y)
-TARGET = plugin_badblocks_devdax.so
-else
-$(info NOTE: Skipping plugin_badblocks_devdax because ndctl is missing)
-endif
-
-OBJS = badblocks_devdax.o
-
-LDFLAGS += -shared -Wl,-soname=$@
-CFLAGS += -fPIC $(shell $(PKG_CONFIG) --cflags libndctl)
-LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
+$(TARGETS):
+	$(MAKE) -C $@ $(TARGET)
 
 include ../Makefile.inc
 
-.PHONY: test check
+.PHONY: $(TARGETS)

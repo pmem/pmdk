@@ -31,7 +31,7 @@
  */
 
 /*
- * util_os_linux_common.c -- unit test for extent and sysfs iterators
+ * util_sysfs.c -- unit test for sysfs iterators
  *
  */
 
@@ -86,7 +86,7 @@ test_sysfs_dev_single(const char *path)
 		&sector);
 	UT_ASSERTeq(ret, 1);
 
-	UT_ASSERTeq(sector, 512);
+	UT_ASSERTne(sector, 0);
 
 	CLOSE(fd);
 }

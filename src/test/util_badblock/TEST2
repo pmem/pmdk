@@ -40,10 +40,10 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-DEVDAX_BADBLOCK=../../tools/plugin_badblocks_devdax
+DEVDAX_BADBLOCK=../../tools/plugins/plugin_badblocks_devdax
 
 require_test_type medium
-require_module nfit_test
+require_kernel_module nfit_test
 require_command ndctl
 require_superuser
 

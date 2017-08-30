@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "extent.h"
+#include "os.h"
 
 int
 main(int argc, char *argv[])
@@ -49,7 +50,8 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	int fd = open(argv[1], O_RDWR);
+	int fd = os_open(argv[1], O_RDWR);
+	assert(fd > 0);
 	int ibs = atoi(argv[2]);
 	assert(ibs > 0);
 	size_t bs = (size_t)ibs;
@@ -63,7 +65,7 @@ main(int argc, char *argv[])
 
 	extent_delete(iter);
 
-	close(fd);
+	os_close(fd);
 
 	return 0;
 }

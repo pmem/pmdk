@@ -37,6 +37,6 @@
 #ifndef NVML_BADBLOCK_POOLSET_H
 #define NVML_BADBLOCK_POOLSET_H 1
 
-void badblock_poolset_source_register(void);
+void badblock_poolset_source_add(void);
 
 #endif

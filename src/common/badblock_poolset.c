@@ -32,6 +32,9 @@
 
 /*
  * badblock_poolset.c - implementation of poolset badblock source
+ *
+ * Poolset badblock iterator is a composition of lower-level badblock sources
+ * such as file or devdax plugins.
  */
 #define _GNU_SOURCE
 
@@ -64,7 +67,7 @@ struct badblock_iter_poolset {
 			struct badblock *b);
 		int (*clear)(struct badblock_iter_poolset *iter,
 			struct badblock *b);
-		size_t (*len)(struct badblock_iter_poolset *iter);
+		size_t (*count)(struct badblock_iter_poolset *iter);
 		void (*del)(struct badblock_iter_poolset *iter);
 	} i_ops;
 
@@ -111,10 +114,10 @@ badblock_del(struct badblock_iter_poolset *iter)
 }
 
 /*
- * badblock_len -- length of the badblock iterator
+ * badblock_count -- length of the badblock iterator
  */
 static size_t
-badblock_len(struct badblock_iter_poolset *iter)
+badblock_count(struct badblock_iter_poolset *iter)
 {
 	return iter->nbadblocks;
 }
@@ -144,6 +147,9 @@ badblock_clear(struct badblock_iter_poolset *iter, struct badblock *b)
 static int
 part_cb(struct part_file *pf, void *arg)
 {
+	if (pf->is_remote) /* not supported yet */
+		return 0;
+
 	struct badblock_iter_poolset *poolset_iter = arg;
 
 	struct badblock_iter *iter = badblock_new(pf->path);
@@ -151,7 +157,7 @@ part_cb(struct part_file *pf, void *arg)
 		return 1;
 
 	struct badblock_part *part = Malloc(sizeof(*part) +
-		sizeof(struct badblock) * iter->i_ops.len(iter));
+		sizeof(struct badblock) * iter->i_ops.count(iter));
 	if (part == NULL)
 		goto error_part_alloc;
 
@@ -199,7 +205,7 @@ iter_from_file(const char *file)
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.len = badblock_len;
+	iter->i_ops.count = badblock_count;
 
 	return iter;
 
@@ -248,10 +254,10 @@ static struct plugin_ops badblock_poolset_source_plugin = {
 };
 
 /*
- * badblock_file_source_register -- registers the poolset badblock source
+ * badblock_poolset_source_add -- registers the poolset badblock source
  */
 void
-badblock_poolset_source_register(void)
+badblock_poolset_source_add(void)
 {
 	plugin_add(&badblock_poolset_source_plugin);
 }

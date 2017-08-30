@@ -46,6 +46,8 @@
 #include "badblock_poolset.h"
 #endif
 
+#define PLUGIN_BADBLOCK_SOURCE_VERSION 1
+
 struct badblock_source {
 	struct badblock_iter *(*iter_from_file)(const char *file);
 	SLIST_ENTRY(badblock_source) e;
@@ -84,9 +86,9 @@ badblock_new(const char *path)
 
 	if (SLIST_EMPTY(&sources)) {
 #ifndef _WIN32
-		badblock_poolset_source_register();
-		badblock_file_source_register();
-		plugin_load("badblock_source", 1,
+		badblock_poolset_source_add();
+		badblock_file_source_add();
+		plugin_load("badblock_source", PLUGIN_BADBLOCK_SOURCE_VERSION,
 			badblock_register_source, NULL);
 #endif
 	}
