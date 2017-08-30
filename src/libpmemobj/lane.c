@@ -61,10 +61,21 @@ static __thread struct lane_info *Lane_info_cache;
 struct section_operations *Section_ops[MAX_LANE_SECTION];
 
 /*
- * lane_info_destroy -- destroy lane info hash table
+ * lane_info_create -- (internal) constructor for thread shared data
  */
-void
-lane_info_destroy(void)
+static inline void
+lane_info_create(void)
+{
+	Lane_info_ht = cuckoo_new();
+	if (Lane_info_ht == NULL)
+		FATAL("cuckoo_new");
+}
+
+/*
+ * lane_info_delete -- (internal) deletes lane info hash table
+ */
+static inline void
+lane_info_delete(void)
 {
 	if (unlikely(Lane_info_ht == NULL))
 		return;
@@ -84,23 +95,27 @@ lane_info_destroy(void)
 }
 
 /*
+ * lane_info_ht_boot -- (internal) boot lane info and add it to thread shared
+ *	data
+ */
+static inline void
+lane_info_ht_boot(void)
+{
+	lane_info_create();
+	int result = os_tls_set(Lane_info_key, Lane_info_ht);
+	if (result != 0) {
+		errno = result;
+		FATAL("!os_tls_set");
+	}
+}
+
+/*
  * lane_info_ht_destroy -- (internal) destructor for thread shared data
  */
 static inline void
 lane_info_ht_destroy(void *ht)
 {
-	lane_info_destroy();
-}
-
-/*
- * lane_info_create -- (internal) constructor for thread shared data
- */
-static inline void
-lane_info_create(void)
-{
-	Lane_info_ht = cuckoo_new();
-	if (Lane_info_ht == NULL)
-		FATAL("cuckoo_new");
+	lane_info_delete();
 }
 
 /*
@@ -117,18 +132,13 @@ lane_info_boot(void)
 }
 
 /*
- * lane_info_ht_boot -- (internal) boot lane info and add it to thread shared
- *	data
+ * lane_info_destroy -- destroy lane info hash table
  */
-static inline void
-lane_info_ht_boot(void)
+void
+lane_info_destroy(void)
 {
-	lane_info_create();
-	int result = os_tls_set(Lane_info_key, Lane_info_ht);
-	if (result != 0) {
-		errno = result;
-		FATAL("!os_tls_set");
-	}
+	lane_info_delete();
+	(void) os_tls_key_delete(Lane_info_key);
 }
 
 /*

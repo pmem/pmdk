@@ -295,6 +295,10 @@ obj_fini(void)
 		ctree_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
+
+#ifdef _WIN32
+	(void) os_tls_key_delete(Cached_pool_key);
+#endif
 }
 
 /*
