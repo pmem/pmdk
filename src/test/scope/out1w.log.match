@@ -1,4 +1,4 @@
-scope\TEST1:
+scope/TEST1:
 $(*)\libpmem.dll:
 DllMain
 mmap

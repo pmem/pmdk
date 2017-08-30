@@ -436,12 +436,3 @@ pmempool_check_end(PMEMpoolcheck *ppc)
 			return PMEMPOOL_CHECK_RESULT_ERROR;
 	}
 }
-
-
-#ifdef _MSC_VER
-/*
- * libpmem constructor/destructor functions
- */
-MSVC_CONSTR(libpmempool_init)
-MSVC_DESTR(libpmempool_fini)
-#endif

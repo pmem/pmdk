@@ -40,7 +40,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_is_absolute\TEST1"
+$Env:UNITTEST_NAME = "util_is_absolute/TEST1"
 $Env:UNITTEST_NUM = "1"
 
 

@@ -789,12 +789,3 @@ pmemlog_checkW(const wchar_t *path)
 	return ret;
 }
 #endif
-
-
-#ifdef _MSC_VER
-/*
- * libpmemlog constructor/destructor functions
- */
-MSVC_CONSTR(libpmemlog_init)
-MSVC_DESTR(libpmemlog_fini)
-#endif

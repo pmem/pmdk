@@ -42,7 +42,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "unicode_match_script\TEST0"
+$Env:UNITTEST_NAME = "unicode_match_script/TEST0"
 $Env:UNITTEST_NUM = "0"
 
 

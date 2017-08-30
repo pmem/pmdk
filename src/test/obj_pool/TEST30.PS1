@@ -36,7 +36,7 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_pool\TEST30w"
+$Env:UNITTEST_NAME = "obj_pool/TEST30w"
 $Env:UNITTEST_NUM = "30w"
 
 # standard unit test setup
