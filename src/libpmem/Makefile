@@ -50,6 +50,11 @@ SOURCE =\
 	pmem.c\
 	pmem_linux.c
 
+# The corresponding intrinsics are only exposed in the headers
+# when (cross) compiling for a target CPU where the instructions are available.
+CFLAGS += -mclflushopt
+CFLAGS += -mclwb
+
 include ../Makefile.inc
 
 LIBS += -pthread
