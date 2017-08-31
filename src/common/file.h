@@ -43,9 +43,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
-#ifdef __FreeBSD__
 #include <limits.h>
-#endif
 
 #ifdef _WIN32
 #define NAME_MAX _MAX_FNAME

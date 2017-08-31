@@ -47,7 +47,7 @@
 #ifdef __FreeBSD__
 #include <sys/endian.h>
 #else
-#include "endian.h"
+#include <endian.h>
 #endif
 
 static size_t Bsize;
