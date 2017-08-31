@@ -34,7 +34,12 @@
  * rpmemd_log.c -- rpmemd logging functions definitions
  */
 /* for GNU version of basename */
+/* XXX Consider changing to Posix basename for consistency */
+#ifdef __FreeBSD__
+#include <libgen.h>
+#else
 #define _GNU_SOURCE
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <syslog.h>

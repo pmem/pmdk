@@ -43,6 +43,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <limits.h>
 
 #ifdef _WIN32
 #define NAME_MAX _MAX_FNAME

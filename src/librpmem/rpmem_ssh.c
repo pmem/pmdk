@@ -40,6 +40,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "util.h"
 #include "os.h"

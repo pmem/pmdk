@@ -45,6 +45,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define LICENSE_MAX_LEN		2048
 #define COPYRIGHT		"Copyright "

@@ -39,6 +39,7 @@
 #define PMEMOBJ_POOL_HPP
 
 #include <stddef.h>
+#include <string>
 #include <sys/stat.h>
 
 #include "libpmemobj++/detail/pexceptions.hpp"

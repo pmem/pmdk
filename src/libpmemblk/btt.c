@@ -128,11 +128,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdint.h>
-#ifdef __FreeBSD__
-#include <sys/endian.h>
-#else
 #include <endian.h>
-#endif
 
 #include "out.h"
 #include "uuid.h"
