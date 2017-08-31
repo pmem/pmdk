@@ -108,7 +108,7 @@ debug/%.htmp: %.h
 debug/%.hpptmp: %.hpp
 	$(call check-cstyle, $<, $@)
 
-all: $(TMP_HEADERS) $(ALL_TARGETS) pkg-config
+all: $(TMP_HEADERS) $(ALL_TARGETS)
 install: $(INSTALL_TARGETS:=-install)
 uninstall: $(INSTALL_TARGETS:=-uninstall)
 clean: $(CLEAN_TARGETS:=-clean)
@@ -126,13 +126,8 @@ tools: libpmem libpmemblk libpmemlog libpmemobj
 libpmemblk libpmemlog libpmemobj: libpmem
 benchmarks test tools: common
 
-# re-generate *.pc files if version, prefix or libdir changes
-old_pc=$(strip $(shell cat $(PKG_CONFIG_COMMON) 2>/dev/null))
-new_pc="version=$(SRCVERSION) libdir=$(libdir) prefix=$(prefix)"
-update_pc=$(findstring $(old_pc), $(new_pc))
-
 pkg-cfg-common:
-	@$(if $(update_pc),, printf "version=%s\nlibdir=%s\nprefix=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON))
+	@printf "version=%s\nlibdir=%s\nprefix=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON)
 
 $(PKG_CONFIG_COMMON): pkg-cfg-common
 
@@ -188,13 +183,17 @@ uninstall-cpp:
 
 uninstall: uninstall-cpp
 
-install: all
+# Re-generate pkg-config files on 'make install' (not on 'make all'),
+# to handle the case when prefix is specified only for 'install'.
+# Clean up generated files when done.
+install: all pkg-config
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 	install -d $(HEADERS_DESTDIR)/libpmemobj
 	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -d $(PKG_CONFIG_DESTDIR)
 	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
+	$(RM) $(PKG_CONFIG_FILES)
 
 uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
