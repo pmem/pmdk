@@ -41,7 +41,9 @@
 #include <sys/types.h>
 
 struct badblock {
-	uint64_t offset;
+	const char *file;
+	uint64_t offset_physical;
+	uint64_t offset_logical;
 	uint64_t length;
 };
 
@@ -49,7 +51,6 @@ struct badblock_iter {
 	struct {
 		int (*next)(struct badblock_iter *iter, struct badblock *b);
 		int (*clear)(struct badblock_iter *iter, struct badblock *b);
-		size_t (*count)(struct badblock_iter *iter);
 		void (*del)(struct badblock_iter *iter);
 	} i_ops;
 	/* the rest of this structure is private */

@@ -57,7 +57,9 @@
 #include "badblock_filesrc.h"
 
 struct badblock {
-	uint64_t offset;
+	const char *file;
+	uint64_t offset_physical;
+	uint64_t offset_logical;
 	uint64_t length;
 };
 
@@ -67,13 +69,13 @@ struct badblock_iter_file {
 			struct badblock *b);
 		int (*clear)(struct badblock_iter_file *iter,
 			struct badblock *b);
-		size_t (*count)(struct badblock_iter_file *iter);
 		void (*del)(struct badblock_iter_file *iter);
 	} i_ops;
 
 	struct sysfs_iter *badblock_iter;
 	size_t sector_size;
 	int fd;
+	char *file;
 	size_t nextents;
 	struct extent extents[];
 };
@@ -87,21 +89,12 @@ badblock_find_extent(struct badblock_iter_file *iter, struct badblock *b)
 	for (int i = 0; i < (int)iter->nextents; ++i) {
 		struct extent *cur = &iter->extents[i];
 
-		if (cur->offset <= b->offset + b->length &&
-			cur->offset + cur->length > b->offset)
+		if (cur->offset_physical <= b->offset_physical + b->length &&
+			cur->offset_physical + cur->length > b->offset_physical)
 			return i;
 	}
 
 	return -1;
-}
-
-/*
- * badblock_from_fd -- checks whether or not the badblock is from a file
- */
-static int
-badblock_from_fd(struct badblock_iter_file *iter, struct badblock *b)
-{
-	return badblock_find_extent(iter, b) > 0;
 }
 
 /*
@@ -112,14 +105,25 @@ badblock_next(struct badblock_iter_file *iter, struct badblock *badblock)
 {
 	LOG(3, "iter %p badblock %p", iter, badblock);
 
+	int extent_id;
 	do {
 		if (sysfs_next(iter->badblock_iter,
-			&badblock->offset, &badblock->length) != 2)
+			&badblock->offset_physical, &badblock->length) != 2)
 				return -1;
-	} while (!badblock_from_fd(iter, badblock));
+	} while ((extent_id = badblock_find_extent(iter, badblock)) == -1);
+
+	struct extent *e = &iter->extents[extent_id];
+
+	badblock->file = iter->file;
 
 	badblock->length *= iter->sector_size;
-	badblock->offset *= iter->sector_size;
+	badblock->offset_physical *= iter->sector_size;
+	int64_t off = (int64_t)e->offset_physical -
+		(int64_t)badblock->offset_physical;
+	if (off < 0)
+		off = 0;
+
+	badblock->offset_logical = e->offset_logical + (uint64_t)e;
 
 	return 0;
 }
@@ -132,16 +136,8 @@ badblock_del(struct badblock_iter_file *iter)
 {
 	close(iter->fd);
 	sysfs_delete(iter->badblock_iter);
+	Free(iter->file);
 	Free(iter);
-}
-
-/*
- * badblock_count -- number of the badblocks
- */
-static size_t
-badblock_count(struct badblock_iter_file *iter)
-{
-	return iter->nextents;
 }
 
 /*
@@ -150,7 +146,10 @@ badblock_count(struct badblock_iter_file *iter)
 static int
 badblock_clear(struct badblock_iter_file *iter, struct badblock *b)
 {
-	LOG(3, "length %" PRIu64 " offset %" PRIu64, b->length, b->offset);
+	LOG(3, "length %" PRIu64
+		" offset logical %" PRIu64
+		" offset physical %" PRIu64,
+		b->length, b->offset_logical, b->offset_physical);
 
 	ASSERTne(iter->nextents, 0);
 	int extent_id = badblock_find_extent(iter, b);
@@ -158,9 +157,9 @@ badblock_clear(struct badblock_iter_file *iter, struct badblock *b)
 
 	struct extent *extent = &iter->extents[extent_id];
 
-	ASSERT(extent->offset >= b->offset);
+	ASSERT(extent->offset_logical >= b->offset_logical);
 
-	uint64_t file_offset = extent->offset - b->offset;
+	uint64_t file_offset = extent->offset_logical - b->offset_logical;
 
 	return fallocate(iter->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
 		(long)file_offset, (long)b->length);
@@ -187,10 +186,11 @@ iter_from_file(const char *file)
 
 	struct badblock_iter_file *iter = Malloc(sizeof(*iter) +
 		sizeof(struct extent) * extent_count(eiter));
-	iter->nextents = 0;
 
 	if (iter == NULL)
 		goto error_iter_alloc;
+
+	iter->nextents = 0;
 
 	while (extent_next(eiter, &iter->extents[iter->nextents++]) == 0)
 		;
@@ -218,15 +218,20 @@ iter_from_file(const char *file)
 	if (iter->badblock_iter == NULL)
 		goto error_sysfs_alloc;
 
+	iter->file = Strdup(file);
+	if (iter->file == NULL)
+		goto error_file_alloc;
+
 	extent_delete(eiter);
 
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.count = badblock_count;
 
 	return iter;
 
+error_file_alloc:
+	sysfs_delete(iter->badblock_iter);
 error_sysfs_alloc:
 error_ns_query:
 error_sector_size_read:

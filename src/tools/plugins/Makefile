@@ -36,6 +36,8 @@ TARGETS = plugin_badblocks_devdax
 $(TARGETS):
 	$(MAKE) -C $@ $(TARGET)
 
+all: $(TARGETS)
+
 include ../Makefile.inc
 
 .PHONY: $(TARGETS)

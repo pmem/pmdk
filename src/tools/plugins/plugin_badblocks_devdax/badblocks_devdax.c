@@ -61,7 +61,9 @@ int pmem_plugin_load(void);
 void pmem_plugin_unload(void);
 
 struct badblock_pmem {
-	uint64_t offset;
+	const char *file;
+	uint64_t offset_physical;
+	uint64_t offset_logical;
 	uint64_t length;
 };
 
@@ -71,9 +73,10 @@ struct badblock_iter_dax {
 			struct badblock_pmem *b);
 		int (*clear)(struct badblock_iter_dax *iter,
 			struct badblock_pmem *b);
-		size_t (*count)(struct badblock_iter_dax *iter);
 		void (*del)(struct badblock_iter_dax *iter);
 	} i_ops;
+	char *file;
+
 	struct ndctl_ctx *ctx;
 	struct ndctl_dax *dax;
 
@@ -93,8 +96,10 @@ badblock_next(struct badblock_iter_dax *iter, struct badblock_pmem *badblock)
 		return -1;
 
 	struct badblock *b = &iter->ndctl_badblocks[iter->pos++];
+	badblock->file = iter->file;
 	badblock->length = b->len * iter->sector_size;
-	badblock->offset = b->offset * iter->sector_size;
+	badblock->offset_logical = badblock->offset_physical =
+		b->offset * iter->sector_size;
 
 	return 0;
 }
@@ -107,16 +112,8 @@ badblock_del(struct badblock_iter_dax *iter)
 {
 	ndctl_unref(iter->ctx);
 	free(iter->ndctl_badblocks);
+	free(iter->file);
 	free(iter);
-}
-
-/*
- * badblock_count -- number of the badblocks
- */
-static size_t
-badblock_count(struct badblock_iter_dax *iter)
-{
-	return iter->nbadblocks;
 }
 
 /*
@@ -125,7 +122,7 @@ badblock_count(struct badblock_iter_dax *iter)
 static int
 badblock_clear(struct badblock_iter_dax *iter, struct badblock_pmem *b)
 {
-	size_t addr = b->offset;
+	size_t addr = b->offset_physical;
 	size_t len = b->length;
 	struct ndctl_region *r = ndctl_dax_get_region(iter->dax);
 
@@ -223,10 +220,13 @@ iter_from_file(const char *file)
 	if ((iter->dax = badblock_find_dax(iter, file)) == NULL)
 		goto error_no_dax;
 
+	iter->file = strdup(file);
+	if (iter->file == NULL)
+		goto error_file_alloc;
+
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.count = badblock_count;
 
 	iter->nbadblocks = 0;
 	iter->ndctl_badblocks = NULL;
@@ -257,6 +257,8 @@ iter_from_file(const char *file)
 
 error_badblock_iter:
 	free(iter->ndctl_badblocks);
+	free(iter->file);
+error_file_alloc:
 error_no_dax:
 	ndctl_unref(iter->ctx);
 error_ndctl_new:

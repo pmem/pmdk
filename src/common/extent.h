@@ -43,7 +43,8 @@
 struct extent_iter;
 
 struct extent {
-	uint64_t offset;
+	uint64_t offset_physical;
+	uint64_t offset_logical;
 	uint64_t length;
 };
 

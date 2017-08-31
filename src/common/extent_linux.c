@@ -153,7 +153,8 @@ extent_next(struct extent_iter *iter, struct extent *extent)
 	if (iter->pos == iter->fmap->fm_extent_count)
 		return -1;
 
-	extent->offset = iter->fmap->fm_extents[iter->pos].fe_physical;
+	extent->offset_physical = iter->fmap->fm_extents[iter->pos].fe_physical;
+	extent->offset_logical = iter->fmap->fm_extents[iter->pos].fe_logical;
 	extent->length = iter->fmap->fm_extents[iter->pos].fe_length;
 
 	iter->pos += 1;

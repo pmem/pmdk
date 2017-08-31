@@ -758,7 +758,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	outv(v, "\nBadblocks:\n");
 	outv(v, "\tPhysical Offset\t\tLength");
 	while (iter->i_ops.next(iter, &b) == 0) {
-		outv(v, "\t%"PRIu64"\t\t%"PRIu64, b.offset, b.length);
+		outv(v, "\t%"PRIu64"\t\t%"PRIu64, b.offset_physical, b.length);
 	}
 	outv(v, "\n");
 

@@ -53,12 +53,9 @@
 
 struct badblock_part {
 	struct badblock_iter *iter;
+	char *file;
 
 	SLIST_ENTRY(badblock_part) e;
-
-	size_t nbadblocks;
-	size_t pos;
-	struct badblock badblocks[];
 };
 
 struct badblock_iter_poolset {
@@ -67,11 +64,8 @@ struct badblock_iter_poolset {
 			struct badblock *b);
 		int (*clear)(struct badblock_iter_poolset *iter,
 			struct badblock *b);
-		size_t (*count)(struct badblock_iter_poolset *iter);
 		void (*del)(struct badblock_iter_poolset *iter);
 	} i_ops;
-
-	size_t nbadblocks;
 
 	struct badblock_part *current;
 	SLIST_HEAD(, badblock_part) parts;
@@ -88,12 +82,10 @@ badblock_next(struct badblock_iter_poolset *iter, struct badblock *badblock)
 	if (part == NULL)
 		return -1;
 
-	if (part->nbadblocks == part->pos) {
+	if (part->iter->i_ops.next(part->iter, badblock) != 0) {
 		iter->current = SLIST_NEXT(part, e);
 		return badblock_next(iter, badblock);
 	}
-
-	*badblock = part->badblocks[part->pos++];
 
 	return 0;
 }
@@ -106,6 +98,7 @@ badblock_del(struct badblock_iter_poolset *iter)
 {
 	while (!SLIST_EMPTY(&iter->parts)) {
 		struct badblock_part *part = SLIST_FIRST(&iter->parts);
+		Free(part->file);
 		part->iter->i_ops.del(part->iter);
 		Free(part);
 		SLIST_REMOVE_HEAD(&iter->parts, e);
@@ -114,28 +107,20 @@ badblock_del(struct badblock_iter_poolset *iter)
 }
 
 /*
- * badblock_count -- length of the badblock iterator
- */
-static size_t
-badblock_count(struct badblock_iter_poolset *iter)
-{
-	return iter->nbadblocks;
-}
-
-/*
  * badblock_clear -- clear a badblock
  */
 static int
 badblock_clear(struct badblock_iter_poolset *iter, struct badblock *b)
 {
-	LOG(3, "length %" PRIu64 " offset %" PRIu64, b->length, b->offset);
+	LOG(3, "length %" PRIu64
+		" offset logical %" PRIu64
+		" offset physical %" PRIu64,
+		b->length, b->offset_logical, b->offset_physical);
 
 	struct badblock_part *part;
 	SLIST_FOREACH(part, &iter->parts, e) {
-		for (size_t i = 0; i < part->nbadblocks; ++i) {
-			if (part->badblocks[i].offset == b->offset)
-				return part->iter->i_ops.clear(part->iter, b);
-		}
+		if (strcmp(part->file, b->file) == 0)
+			return part->iter->i_ops.clear(part->iter, b);
 	}
 
 	return -1;
@@ -156,24 +141,22 @@ part_cb(struct part_file *pf, void *arg)
 	if (iter == NULL)
 		return 1;
 
-	struct badblock_part *part = Malloc(sizeof(*part) +
-		sizeof(struct badblock) * iter->i_ops.count(iter));
+	struct badblock_part *part = Malloc(sizeof(*part));
 	if (part == NULL)
 		goto error_part_alloc;
 
-	part->iter = iter;
-	part->nbadblocks = 0;
-	part->pos = 0;
-	while (iter->i_ops.next(iter,
-		&part->badblocks[part->nbadblocks]) == 0)
-		part->nbadblocks++;
+	part->file = Strdup(pf->path);
+	if (part->file == NULL)
+		goto error_file_alloc;
 
-	poolset_iter->nbadblocks += part->nbadblocks;
+	part->iter = iter;
 
 	SLIST_INSERT_HEAD(&poolset_iter->parts, part, e);
 
 	return 0;
 
+error_file_alloc:
+	Free(part);
 error_part_alloc:
 	iter->i_ops.del(iter);
 	return 1;
@@ -194,7 +177,6 @@ iter_from_file(const char *file)
 	if (iter == NULL)
 		goto error_iter_alloc;
 
-	iter->nbadblocks = 0;
 	SLIST_INIT(&iter->parts);
 
 	if (util_poolset_foreach_part(file, part_cb, iter) != 0)
@@ -205,7 +187,6 @@ iter_from_file(const char *file)
 	iter->i_ops.next = badblock_next;
 	iter->i_ops.clear = badblock_clear;
 	iter->i_ops.del = badblock_del;
-	iter->i_ops.count = badblock_count;
 
 	return iter;
 

@@ -61,7 +61,8 @@ main(int argc, char *argv[])
 	assert(iter != NULL);
 
 	while (extent_next(iter, &extent) >= 0)
-		printf("%lu %lu\n", extent.offset / bs, extent.length / bs);
+		printf("%lu %lu\n", extent.offset_physical / bs,
+			extent.length / bs);
 
 	extent_delete(iter);
 
