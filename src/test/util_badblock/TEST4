@@ -32,24 +32,45 @@
 #
 
 #
-# src/test/util_badblock/TEST1 -- unit test for util_badblock
+# src/test/util_badblock/TEST4 -- unit test for util_badblock
 #
-export UNITTEST_NAME=util_badblock/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=util_badblock/TEST4
+export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-DEVDAX_BADBLOCK=../../tools/plugins/plugin_badblocks_devdax
-
 require_test_type medium
-
-require_dax_devices 1
-
-require_binary $DEVDAX_BADBLOCK/plugin_badblocks_devdax.so
+require_fs_type any
+require_build_type static-debug
 
 setup
 
-expect_normal_exit ./util_badblock$EXESUFFIX $DEVICE_DAX_PATH 0 $DEVDAX_BADBLOCK
+require_fs_name ext4
+
+TEST_BADBLOCK=../../tools/plugins/plugin_badblocks_test
+
+fallocate -l 100M $DIR/testfile11
+fallocate -l 100M $DIR/testfile12
+
+create_poolset $DIR/testset1 64M:$DIR/testfile11:x 64M:$DIR/testfile12:x
+
+BADBLOCK_TEST_CONFIG=$DIR/badblock_config
+
+echo "1 1 1
+2 2 2
+3 3 3
+4 4 4
+" > $DIR/testfile11_badblock_config
+
+echo "5 5 5
+6 6 6
+" > $DIR/testfile12_badblock_config
+
+export BADBLOCK_TEST_CONFIG
+
+expect_normal_exit ./util_badblock$EXESUFFIX $DIR/testset1 6 $TEST_BADBLOCK
+
+expect_normal_exit ./util_badblock$EXESUFFIX $DIR/testset1 0 $TEST_BADBLOCK
 
 pass

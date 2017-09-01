@@ -31,7 +31,7 @@
 # Makefile -- top Makefile for plugins
 #
 
-TARGETS = plugin_badblocks_devdax
+TARGETS = plugin_badblocks_devdax plugin_badblocks_test
 
 $(TARGETS):
 	$(MAKE) -C $@ $(TARGET)

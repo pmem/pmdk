@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,26 +28,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# Makefile -- top Makefile for badblocks_test
 #
-# src/test/util_badblock/TEST1 -- unit test for util_badblock
-#
-export UNITTEST_NAME=util_badblock/TEST1
-export UNITTEST_NUM=1
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TOP = ../../../..
+include $(TOP)/src/common.inc
 
-DEVDAX_BADBLOCK=../../tools/plugins/plugin_badblocks_devdax
+INSTALL_TARGET = n
+BUILD_STATIC = n
 
-require_test_type medium
+TARGET = plugin_badblocks_test.so
+OBJS = badblocks_test.o
 
-require_dax_devices 1
+TOOLS_COMMON=y
+LIBPMEM=y
+LIBPMEMBLK_PRIV=btt_info_convert2h
 
-require_binary $DEVDAX_BADBLOCK/plugin_badblocks_devdax.so
+LDFLAGS += -shared -Wl,-soname=$@
+CFLAGS += -fPIC $(shell $(PKG_CONFIG) --cflags libndctl)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
 
-setup
+include ../../Makefile.inc
 
-expect_normal_exit ./util_badblock$EXESUFFIX $DEVICE_DAX_PATH 0 $DEVDAX_BADBLOCK
-
-pass
+.PHONY: test check
