@@ -44,7 +44,7 @@
 #include <sys/file.h>
 #include <sys/mman.h>
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__FreeBSD__)
 #include <sys/sysmacros.h>
 #endif
 

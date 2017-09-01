@@ -43,7 +43,12 @@
 
 #ifndef _WIN32
 #include <sys/ioctl.h>
+#ifdef __FreeBSD__
+#include <sys/disk.h>
+#define BLKGETSIZE64 DIOCGMEDIASIZE
+#else
 #include <linux/fs.h>
+#endif
 #endif
 
 #include "libpmem.h"

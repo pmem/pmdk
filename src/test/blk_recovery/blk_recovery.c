@@ -44,7 +44,7 @@
 
 #include "blk.h"
 #include "btt_layout.h"
-#include "endian.h"
+#include <endian.h>
 
 static size_t Bsize;
 

@@ -40,7 +40,11 @@
 #include <libpmemobj++/make_persistent_array.hpp>
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
+#ifdef __FreeBSD__
+#include <ncurses/ncurses.h> /* Need pkg, not system, version */
+#else
 #include <ncurses.h>
+#endif
 
 #define LAYOUT_NAME "pman"
 #define SIZE 40
