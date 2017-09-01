@@ -513,7 +513,12 @@ be required normally.
 + **RPMEM_ENABLE_SOCKETS**=0\|1
 
 Setting this variable to 1 enables using **fi_sockets**(7) provider for
-in-band RDMA connection. By default the *sockets* provider is disabled.
+in-band RDMA connection. The *sockets* provider does not support IPv6.
+It is required to disable IPv6 system wide if **RPMEM_ENABLE_SOCKETS** == 1 and
+*target* == localhost (or any other loopback interface address) and
+**SSH_CONNECTION** variable (see **ssh**(1) for more details) contains IPv6
+address after ssh to loopback interface. By default the *sockets* provider is
+disabled.
 
 * **RPMEM_ENABLE_VERBS**=0\|1
 
