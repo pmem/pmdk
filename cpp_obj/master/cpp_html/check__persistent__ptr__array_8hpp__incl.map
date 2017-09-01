@@ -1,9 +1,9 @@
 <map id="nvml/src/include/libpmemobj++/detail/check_persistent_ptr_array.hpp" name="nvml/src/include/libpmemobj++/detail/check_persistent_ptr_array.hpp">
-<area shape="rect" id="node3" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="395,109,582,151"/>
-<area shape="rect" id="node8" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="206,363,365,404"/>
-<area shape="rect" id="node14" href="$persistent__ptr__base_8hpp_source.html" title="libpmemobj++/detail\l/persistent_ptr_base.hpp" alt="" coords="207,199,388,240"/>
-<area shape="rect" id="node16" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="544,363,702,404"/>
-<area shape="rect" id="node18" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="750,206,928,233"/>
-<area shape="rect" id="node9" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="489,452,648,493"/>
-<area shape="rect" id="node20" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="602,288,761,315"/>
+<area shape="rect" id="node3" href="$persistent__ptr_8hpp.html" title="Persistent smart pointer. " alt="" coords="208,109,394,151"/>
+<area shape="rect" id="node8" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="500,363,659,404"/>
+<area shape="rect" id="node14" href="$persistent__ptr__base_8hpp_source.html" title="libpmemobj++/detail\l/persistent_ptr_base.hpp" alt="" coords="274,199,456,240"/>
+<area shape="rect" id="node16" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="232,363,391,404"/>
+<area shape="rect" id="node18" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="620,206,798,233"/>
+<area shape="rect" id="node9" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="879,452,1038,493"/>
+<area shape="rect" id="node21" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="350,288,508,315"/>
 </map>
