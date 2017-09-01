@@ -35,6 +35,7 @@
  */
 
 #include "benchmark.hpp"
+#include "libpmem.h"
 #include "libpmemblk.h"
 #include "os.h"
 #include <cassert>
@@ -50,6 +51,26 @@ struct blk_bench;
 struct blk_worker;
 
 /*
+ * op_type -- type of operation
+ */
+enum op_type {
+	OP_TYPE_UNKNOWN,
+	OP_TYPE_BLK,
+	OP_TYPE_FILE,
+	OP_TYPE_MEMCPY,
+};
+
+/*
+ * op_mode -- mode of the copy process
+ */
+enum op_mode {
+	OP_MODE_UNKNOWN,
+	OP_MODE_STAT, /* read/write always the same chunk */
+	OP_MODE_SEQ,  /* read/write chunk by chunk */
+	OP_MODE_RAND  /* read/write to chunks selected randomly */
+};
+
+/*
  * typedef for the worker function
  */
 typedef int (*worker_fn)(struct blk_bench *, struct benchmark_args *,
@@ -59,11 +80,11 @@ typedef int (*worker_fn)(struct blk_bench *, struct benchmark_args *,
  * blk_args -- benchmark specific arguments
  */
 struct blk_args {
-	bool file_io;   /* use file-io */
-	size_t fsize;   /* file size */
+	size_t fsize;   /* requested file size */
 	bool no_warmup; /* don't do warmup */
 	unsigned seed;  /* seed for randomization */
-	bool rand;      /* random blocks */
+	char *type_str; /* type: blk, file, memcpy */
+	char *mode_str; /* mode: stat, seq, rand */
 };
 
 /*
@@ -71,20 +92,59 @@ struct blk_args {
  */
 struct blk_bench {
 	PMEMblkpool *pbp;	 /* pmemblk handle */
+	char *addr;		  /* address of user data (memcpy) */
 	int fd;			  /* file descr. for file io */
-	size_t nblocks;		  /* number of blocks */
+	size_t nblocks;		  /* actual number of blocks */
 	size_t blocks_per_thread; /* number of blocks per thread */
 	worker_fn worker;	 /* worker function */
+	enum op_type type;
+	enum op_mode mode;
 };
 
 /*
  * struct blk_worker -- pmemblk worker context
  */
 struct blk_worker {
-	off_t *blocks;       /* array with block numbers */
-	unsigned char *buff; /* buffer for read/write */
-	unsigned seed;       /* worker seed */
+	off_t *blocks; /* array with block numbers */
+	char *buff;    /* buffer for read/write */
+	unsigned seed; /* worker seed */
 };
+
+/*
+ * parse_op_type -- parse command line "--operation" argument
+ *
+ * Returns proper operation type.
+ */
+static enum op_type
+parse_op_type(const char *arg)
+{
+	if (strcmp(arg, "blk") == 0)
+		return OP_TYPE_BLK;
+	else if (strcmp(arg, "file") == 0)
+		return OP_TYPE_FILE;
+	else if (strcmp(arg, "memcpy") == 0)
+		return OP_TYPE_MEMCPY;
+	else
+		return OP_TYPE_UNKNOWN;
+}
+
+/*
+ * parse_op_mode -- parse command line "--mode" argument
+ *
+ * Returns proper operation mode.
+ */
+static enum op_mode
+parse_op_mode(const char *arg)
+{
+	if (strcmp(arg, "stat") == 0)
+		return OP_MODE_STAT;
+	else if (strcmp(arg, "seq") == 0)
+		return OP_MODE_SEQ;
+	else if (strcmp(arg, "rand") == 0)
+		return OP_MODE_RAND;
+	else
+		return OP_MODE_UNKNOWN;
+}
 
 /*
  * blk_do_warmup -- perform warm-up by writing to each block
@@ -92,7 +152,6 @@ struct blk_worker {
 static int
 blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 {
-	struct blk_args *ba = (struct blk_args *)args->opts;
 	size_t lba;
 	int ret = 0;
 	char *buff = (char *)calloc(1, args->dsize);
@@ -102,20 +161,31 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 	}
 
 	for (lba = 0; lba < bb->nblocks; ++lba) {
-		if (ba->file_io) {
-			size_t off = lba * args->dsize;
-			if (pwrite(bb->fd, buff, args->dsize, off) !=
-			    (ssize_t)args->dsize) {
-				perror("pwrite");
-				ret = -1;
-				goto out;
-			}
-		} else {
-			if (pmemblk_write(bb->pbp, buff, lba) < 0) {
-				perror("pmemblk_write");
-				ret = -1;
-				goto out;
-			}
+		switch (bb->type) {
+			case OP_TYPE_FILE: {
+				size_t off = lba * args->dsize;
+				if (pwrite(bb->fd, buff, args->dsize, off) !=
+				    (ssize_t)args->dsize) {
+					perror("pwrite");
+					ret = -1;
+					goto out;
+				}
+			} break;
+			case OP_TYPE_BLK:
+				if (pmemblk_write(bb->pbp, buff, lba) < 0) {
+					perror("pmemblk_write");
+					ret = -1;
+					goto out;
+				}
+				break;
+			case OP_TYPE_MEMCPY: {
+				size_t off = lba * args->dsize;
+				pmem_memcpy_persist((char *)bb->addr + off,
+						    buff, args->dsize);
+			} break;
+			default:
+				perror("unknown type");
+				return -1;
 		}
 	}
 
@@ -155,6 +225,18 @@ fileio_read(struct blk_bench *bb, struct benchmark_args *ba,
 }
 
 /*
+ * memcpy_read -- read function for memcpy
+ */
+static int
+memcpy_read(struct blk_bench *bb, struct benchmark_args *ba,
+	    struct blk_worker *bworker, off_t off)
+{
+	off_t file_off = off * ba->dsize;
+	memcpy(bworker->buff, (char *)bb->addr + file_off, ba->dsize);
+	return 0;
+}
+
+/*
  * blk_write -- write function for pmemblk
  */
 static int
@@ -165,6 +247,19 @@ blk_write(struct blk_bench *bb, struct benchmark_args *ba,
 		perror("pmemblk_write");
 		return -1;
 	}
+	return 0;
+}
+
+/*
+ * memcpy_write -- write function for memcpy
+ */
+static int
+memcpy_write(struct blk_bench *bb, struct benchmark_args *ba,
+	     struct blk_worker *bworker, off_t off)
+{
+	off_t file_off = off * ba->dsize;
+	pmem_memcpy_persist((char *)bb->addr + file_off, bworker->buff,
+			    ba->dsize);
 	return 0;
 }
 
@@ -217,7 +312,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	bworker->seed = os_rand_r(&bargs->seed);
 
-	bworker->buff = (unsigned char *)malloc(args->dsize);
+	bworker->buff = (char *)malloc(args->dsize);
 	if (!bworker->buff) {
 		perror("malloc");
 		goto err_buff;
@@ -234,16 +329,26 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		goto err_blocks;
 	}
 
-	if (bargs->rand) {
-		for (size_t i = 0; i < args->n_ops_per_thread; i++) {
-			bworker->blocks[i] =
-				worker->index * bb->blocks_per_thread +
-				os_rand_r(&bworker->seed) %
-					bb->blocks_per_thread;
-		}
-	} else {
-		for (size_t i = 0; i < args->n_ops_per_thread; i++)
-			bworker->blocks[i] = i % bb->blocks_per_thread;
+	switch (bb->mode) {
+		case OP_MODE_RAND:
+			for (size_t i = 0; i < args->n_ops_per_thread; i++) {
+				bworker->blocks[i] =
+					worker->index * bb->blocks_per_thread +
+					os_rand_r(&bworker->seed) %
+						bb->blocks_per_thread;
+			}
+			break;
+		case OP_MODE_SEQ:
+			for (size_t i = 0; i < args->n_ops_per_thread; i++)
+				bworker->blocks[i] = i % bb->blocks_per_thread;
+			break;
+		case OP_MODE_STAT:
+			for (size_t i = 0; i < args->n_ops_per_thread; i++)
+				bworker->blocks[i] = 0;
+			break;
+		default:
+			perror("unknown mode");
+			goto err_blocks;
 	}
 
 	worker->priv = bworker;
@@ -278,8 +383,22 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	struct blk_args *ba = (struct blk_args *)args->opts;
 	assert(ba != NULL);
 
+	bb->type = parse_op_type(ba->type_str);
+	if (bb->type == OP_TYPE_UNKNOWN) {
+		fprintf(stderr, "Invalid operation argument '%s'",
+			ba->type_str);
+		return -1;
+	}
+	bb->mode = parse_op_mode(ba->mode_str);
+	if (bb->mode == OP_MODE_UNKNOWN) {
+		fprintf(stderr, "Invalid mode argument '%s'", ba->mode_str);
+		return -1;
+	}
+
 	if (ba->fsize == 0)
 		ba->fsize = PMEMBLK_MIN_POOL;
+
+	size_t req_fsize = ba->fsize;
 
 	if (ba->fsize / args->dsize < args->n_threads ||
 	    ba->fsize < PMEMBLK_MIN_POOL) {
@@ -302,6 +421,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	}
 
 	bb->fd = -1;
+
 	/*
 	 * Create pmemblk in order to get the number of blocks
 	 * even for file-io mode.
@@ -315,12 +435,16 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 
 	bb->nblocks = pmemblk_nblock(bb->pbp);
 
+	/* limit the number of used blocks */
+	if (bb->nblocks > req_fsize / args->dsize)
+		bb->nblocks = req_fsize / args->dsize;
+
 	if (bb->nblocks < args->n_threads) {
 		fprintf(stderr, "too small file size");
 		goto out_close;
 	}
 
-	if (ba->file_io) {
+	if (bb->type == OP_TYPE_FILE) {
 		pmemblk_close(bb->pbp);
 		bb->pbp = NULL;
 
@@ -333,6 +457,9 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 			perror("open");
 			return -1;
 		}
+	} else if (bb->type == OP_TYPE_MEMCPY) {
+		/* skip pool header, so addr points to the first block */
+		bb->addr = (char *)bb->pbp + 8192;
 	}
 
 	bb->blocks_per_thread = bb->nblocks / args->n_threads;
@@ -344,7 +471,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 
 	return 0;
 out_close:
-	if (ba->file_io)
+	if (bb->type == OP_TYPE_FILE)
 		os_close(bb->fd);
 	else
 		pmemblk_close(bb->pbp);
@@ -361,7 +488,6 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 
 	int ret;
-	struct blk_args *ba = (struct blk_args *)args->opts;
 	struct blk_bench *bb =
 		(struct blk_bench *)malloc(sizeof(struct blk_bench));
 	if (bb == NULL) {
@@ -371,14 +497,24 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 
 	pmembench_set_priv(bench, bb);
 
-	if (ba->file_io)
-		bb->worker = fileio_read;
-	else
-		bb->worker = blk_read;
-
 	ret = blk_init(bb, args);
 	if (ret != 0)
 		free(bb);
+
+	switch (bb->type) {
+		case OP_TYPE_FILE:
+			bb->worker = fileio_read;
+			break;
+		case OP_TYPE_BLK:
+			bb->worker = blk_read;
+			break;
+		case OP_TYPE_MEMCPY:
+			bb->worker = memcpy_read;
+			break;
+		default:
+			perror("unknown operation type");
+			return -1;
+	}
 
 	return ret;
 }
@@ -393,7 +529,6 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 
 	int ret;
-	struct blk_args *ba = (struct blk_args *)args->opts;
 	struct blk_bench *bb =
 		(struct blk_bench *)malloc(sizeof(struct blk_bench));
 	if (bb == NULL) {
@@ -403,15 +538,24 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 
 	pmembench_set_priv(bench, bb);
 
-	if (ba->file_io)
-		bb->worker = fileio_write;
-	else
-		bb->worker = blk_write;
-
 	ret = blk_init(bb, args);
-
 	if (ret != 0)
 		free(bb);
+
+	switch (bb->type) {
+		case OP_TYPE_FILE:
+			bb->worker = fileio_write;
+			break;
+		case OP_TYPE_BLK:
+			bb->worker = blk_write;
+			break;
+		case OP_TYPE_MEMCPY:
+			bb->worker = memcpy_write;
+			break;
+		default:
+			perror("unknown operation type");
+			return -1;
+	}
 
 	return ret;
 }
@@ -423,20 +567,29 @@ static int
 blk_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
-	struct blk_args *ba = (struct blk_args *)args->opts;
 
-	if (ba->file_io) {
-		os_close(bb->fd);
-	} else {
-		pmemblk_close(bb->pbp);
-		int result = pmemblk_check(args->fname, args->dsize);
-		if (result < 0) {
-			perror("pmemblk_check error");
+	int result;
+	switch (bb->type) {
+		case OP_TYPE_FILE:
+			os_close(bb->fd);
+			break;
+		case OP_TYPE_BLK:
+			pmemblk_close(bb->pbp);
+			result = pmemblk_check(args->fname, args->dsize);
+			if (result < 0) {
+				perror("pmemblk_check error");
+				return -1;
+			} else if (result == 0) {
+				perror("pmemblk_check: not consistent");
+				return -1;
+			}
+			break;
+		case OP_TYPE_MEMCPY:
+			pmemblk_close(bb->pbp);
+			break;
+		default:
+			perror("unknown operation type");
 			return -1;
-		} else if (result == 0) {
-			perror("pmemblk_check: not consistent");
-			return -1;
-		}
 	}
 
 	free(bb);
@@ -451,12 +604,12 @@ CONSTRUCTOR(blk_costructor)
 void
 blk_costructor(void)
 {
-	blk_clo[0].opt_short = 'i';
-	blk_clo[0].opt_long = "file-io";
-	blk_clo[0].descr = "File I/O mode";
-	blk_clo[0].type = CLO_TYPE_FLAG;
-	blk_clo[0].off = clo_field_offset(struct blk_args, file_io);
-	blk_clo[0].def = "false";
+	blk_clo[0].opt_short = 'o';
+	blk_clo[0].opt_long = "operation";
+	blk_clo[0].descr = "Operation type - blk, file, memcpy";
+	blk_clo[0].type = CLO_TYPE_STR;
+	blk_clo[0].off = clo_field_offset(struct blk_args, type_str);
+	blk_clo[0].def = "blk";
 
 	blk_clo[1].opt_short = 'w';
 	blk_clo[1].opt_long = "no-warmup";
@@ -464,16 +617,16 @@ blk_costructor(void)
 	blk_clo[1].type = CLO_TYPE_FLAG;
 	blk_clo[1].off = clo_field_offset(struct blk_args, no_warmup);
 
-	blk_clo[2].opt_short = 'r';
-	blk_clo[2].opt_long = "random";
-	blk_clo[2].descr = "Use random block numbers "
-			   "for write/read";
-	blk_clo[2].off = clo_field_offset(struct blk_args, rand);
-	blk_clo[2].type = CLO_TYPE_FLAG;
+	blk_clo[2].opt_short = 'm';
+	blk_clo[2].opt_long = "mode";
+	blk_clo[2].descr = "Reading/writing mode - stat, seq, rand";
+	blk_clo[2].type = CLO_TYPE_STR;
+	blk_clo[2].off = clo_field_offset(struct blk_args, mode_str);
+	blk_clo[2].def = "seq";
 
 	blk_clo[3].opt_short = 'S';
 	blk_clo[3].opt_long = "seed";
-	blk_clo[3].descr = "Random mode";
+	blk_clo[3].descr = "Random seed";
 	blk_clo[3].off = clo_field_offset(struct blk_args, seed);
 	blk_clo[3].def = "1";
 	blk_clo[3].type = CLO_TYPE_UINT;
@@ -484,8 +637,7 @@ blk_costructor(void)
 
 	blk_clo[4].opt_short = 's';
 	blk_clo[4].opt_long = "file-size";
-	blk_clo[4].descr = "File size in bytes - 0 means "
-			   "minimum";
+	blk_clo[4].descr = "Requested file size in bytes - 0 means minimum";
 	blk_clo[4].type = CLO_TYPE_UINT;
 	blk_clo[4].off = clo_field_offset(struct blk_args, fsize);
 	blk_clo[4].def = "0";
