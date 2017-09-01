@@ -146,7 +146,7 @@ Description: NVML librpmem library
 Package: librpmem-dev
 Section: libdevel
 Architecture: any
-Depends: librpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Depends: librpmem (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for librpmem
  Development files for librpmem library.
 
@@ -247,7 +247,7 @@ Description: NVML libpmemblk library
 Package: libpmemblk-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemblk (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemblk (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemblk
  Development files for libpmemblk library.
 
@@ -260,7 +260,7 @@ Description: NVML libpmemlog library
 Package: libpmemlog-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemlog (=\${binary:Version}),  \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemlog (=\${binary:Version}), libpmem-dev,  \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemlog
  Development files for libpmemlog library.
 
@@ -273,7 +273,7 @@ Description: NVML libpmemobj library
 Package: libpmemobj-dev
 Section: libdevel
 Architecture: any
-Depends: libpmemobj (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmemobj (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmemobj
  Development files for libpmemobj library.
 
@@ -286,7 +286,7 @@ Description: NVML libpmempool library
 Package: libpmempool-dev
 Section: libdevel
 Architecture: any
-Depends: libpmempool (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmempool (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmempool
  Development files for libpmempool library.
 
