@@ -1,7 +1,7 @@
 <map id="nvml/src/include/libpmemobj++/transaction.hpp" name="nvml/src/include/libpmemobj++/transaction.hpp">
-<area shape="rect" id="node4" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="181,333,340,375"/>
-<area shape="rect" id="node7" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="298,95,477,121"/>
-<area shape="rect" id="node10" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="708,169,867,196"/>
-<area shape="rect" id="node12" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="473,244,632,285"/>
-<area shape="rect" id="node15" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="708,244,867,285"/>
+<area shape="rect" id="node4" href="$pexceptions_8hpp.html" title="Custom exceptions. " alt="" coords="419,333,578,375"/>
+<area shape="rect" id="node7" href="$pool_8hpp.html" title="C++ pmemobj pool. " alt="" coords="399,95,577,121"/>
+<area shape="rect" id="node10" href="$p_8hpp.html" title="Resides on pmem property template. " alt="" coords="89,169,247,196"/>
+<area shape="rect" id="node12" href="$common_8hpp.html" title="Commonly used functionality. " alt="" coords="290,244,449,285"/>
+<area shape="rect" id="node15" href="$specialization_8hpp.html" title="Helper template for persistent ptr specialization. " alt="" coords="54,244,213,285"/>
 </map>
