@@ -80,3 +80,19 @@ FUNC_MOCK_RUN_DEFAULT {
 	return _FUNC_REAL(fs_new)(path2);
 }
 FUNC_MOCK_END
+
+/*
+ * os_stat -- os_stat mock to handle sysfs path
+ */
+FUNC_MOCK(os_stat, int, const char *path, os_stat_t *buf)
+FUNC_MOCK_RUN_DEFAULT {
+	if (!strstr(path, BUS_DEVICE_PATH))
+		return _FUNC_REAL(os_stat)(path, buf);
+
+	const char *prefix = os_getenv("BUS_DEVICE_PATH");
+	char path2[PATH_MAX] = { 0 };
+	strcat(path2, prefix);
+	strcat(path2, path + strlen(BUS_DEVICE_PATH));
+	return _FUNC_REAL(os_stat)(path2, buf);
+}
+FUNC_MOCK_END
