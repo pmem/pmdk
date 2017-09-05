@@ -54,8 +54,8 @@ setup
 
 rm -Force .\custom_file.log-*
 
-$Env:TRACE_LOG_LEVEL = "4"
-$Env:TRACE_LOG_FILE = ".\custom_file.log-"
+$Env:UT_LOG_LEVEL = "4"
+$Env:UT_LOG_FILE = ".\custom_file.log-"
 expect_normal_exit $Env:EXE_DIR\traces$Env:EXESUFFIX
 
 # check results

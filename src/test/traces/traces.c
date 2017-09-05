@@ -34,9 +34,9 @@
  * traces.c -- unit test for traces
  */
 
-#define LOG_PREFIX "trace"
-#define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
-#define LOG_FILE_VAR "TRACE_LOG_FILE"
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "UT_LOG_LEVEL"
+#define LOG_FILE_VAR "UT_LOG_FILE"
 #define MAJOR_VERSION 1
 #define MINOR_VERSION 0
 

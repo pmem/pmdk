@@ -222,6 +222,11 @@ export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
+export OUT_LOG_FILE=out$UNITTEST_NUM.log
+export ERR_LOG_FILE=err$UNITTEST_NUM.log
+export TRACE_LOG_FILE=trace$UNITTEST_NUM.log
+export PREP_LOG_FILE=prep$UNITTEST_NUM.log
+
 export VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
 export VALIDATE_VALGRIND_LOG=1
 
@@ -377,7 +382,7 @@ function create_file() {
 	shift
 	for file in $*
 	do
-		dd if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> prep$UNITTEST_NUM.log
+		dd if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> $PREP_LOG_FILE
 	done
 }
 
@@ -395,8 +400,8 @@ function create_nonzeroed_file() {
 	shift 2
 	for file in $*
 	do
-		truncate -s ${offset} $file >> prep$UNITTEST_NUM.log
-		dd if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $file
+		truncate -s ${offset} $file >> $PREP_LOG_FILE
+		dd if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $file
 	done
 }
 
@@ -417,7 +422,7 @@ function create_holey_file() {
 	shift
 	for file in $*
 	do
-		truncate -s ${size} $file >> prep$UNITTEST_NUM.log
+		truncate -s ${size} $file >> $PREP_LOG_FILE
 	done
 }
 
@@ -521,17 +526,17 @@ function create_poolset() {
 			;;
 		z)
 			# zeroed (holey) file
-			truncate -s $asize $fpath >> prep$UNITTEST_NUM.log
+			truncate -s $asize $fpath >> $PREP_LOG_FILE
 			;;
 		n)
 			# non-zeroed file
-			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
+			dd if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			;;
 		h)
 			# non-zeroed file, except 4K header
 			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
-			dd if=/dev/zero bs=$asize count=1 2>>prep$UNITTEST_NUM.log | tr '\0' '\132' >> $fpath
-			truncate -s $asize $fpath >> prep$UNITTEST_NUM.log
+			dd if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
+			truncate -s $asize $fpath >> $PREP_LOG_FILE
 			;;
 		esac
 
@@ -692,12 +697,12 @@ function expect_normal_exit() {
 		fi
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
-		if [ -f err$UNITTEST_NUM.log ]; then
+		if [ -f $ERR_LOG_FILE ]; then
 			if [ "$UNITTEST_QUIET" = "1" ]; then
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log below." >&2
-				cat err$UNITTEST_NUM.log >&2
+				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE below." >&2
+				cat $ERR_LOG_FILE >&2
 			else
-				echo -e "$UNITTEST_NAME $msg. err$UNITTEST_NUM.log above." >&2
+				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE above." >&2
 			fi
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
@@ -712,7 +717,7 @@ function expect_normal_exit() {
 				dump_last_n_lines $f
 			done
 
-			dump_last_n_lines trace$UNITTEST_NUM.log
+			dump_last_n_lines $TRACE_LOG_FILE
 			dump_last_n_lines $PMEM_LOG_FILE
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE
@@ -1595,7 +1600,7 @@ function require_nodes() {
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
 
-		require_node_log_files $N err$UNITTEST_NUM.log out$UNITTEST_NUM.log trace$UNITTEST_NUM.log
+		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
 		if [ "$CHECK_TYPE" != "none" -a "${NODE_VALGRINDEXE[$N]}" = "" ]; then
 			disable_exit_on_error
@@ -1704,7 +1709,7 @@ function copy_log_files() {
 		for file in ${NODE_LOG_FILES[$N]}; do
 			NODE_SCP_LOG_FILES[$N]="${NODE_SCP_LOG_FILES[$N]} ${NODE[$N]}:$DIR/${file}"
 		done
-		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . &> prep$UNITTEST_NUM.log
+		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . &> $PREP_LOG_FILE
 		for file in ${NODE_LOG_FILES[$N]}; do
 			[ -f $file ] && mv $file node_${N}_${file}
 		done
@@ -1913,7 +1918,7 @@ function create_holey_file_on_node() {
 	shift 2
 	for file in $*
 	do
-		run_on_node $N truncate -s ${size} $file >> prep$UNITTEST_NUM.log
+		run_on_node $N truncate -s ${size} $file >> $PREP_LOG_FILE
 	done
 }
 
@@ -2488,8 +2493,8 @@ function copy_test_to_remote_nodes() {
 # It also removes all log files created by tests: out*.log, err*.log and trace*.log
 #
 function enable_log_append() {
-	rm -f out$UNITTEST_NUM.log
-	rm -f err$UNITTEST_NUM.log
-	rm -f trace$UNITTEST_NUM.log
+	rm -f $OUT_LOG_FILE
+	rm -f $ERR_LOG_FILE
+	rm -f $TRACE_LOG_FILE
 	export UNITTEST_LOG_APPEND=1
 }

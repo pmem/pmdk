@@ -51,8 +51,8 @@ shopt -u failglob
 rm -f ./custom_file.log-*
 shopt -s failglob
 
-export TRACE_LOG_LEVEL=4
-export TRACE_LOG_FILE=./custom_file.log-
+export UT_LOG_LEVEL=4
+export UT_LOG_FILE=./custom_file.log-
 expect_normal_exit ./traces$EXESUFFIX
 
 # check results
