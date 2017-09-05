@@ -90,10 +90,16 @@ void os_cpu_set(size_t cpu, os_cpu_set_t *set);
 #endif
 int os_once(os_once_t *o, void (*func)(void));
 
+/* arbitrary limit matching PTHREAD_KEY_MAX on Linux */
+#define OS_THREAD_KEYS_MAX 1024
+
 int os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *));
 int os_tls_key_delete(os_tls_key_t key);
 int os_tls_set(os_tls_key_t key, const void *value);
 void *os_tls_get(os_tls_key_t key);
+void os_tls_init(void);
+void os_tls_fini(void);
+void os_tls_thread_fini(void);
 
 int os_mutex_init(os_mutex_t *__restrict mutex);
 int os_mutex_destroy(os_mutex_t *__restrict mutex);

@@ -407,5 +407,6 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 	}
 
+	common_fini();
 	DONE(NULL);
 }

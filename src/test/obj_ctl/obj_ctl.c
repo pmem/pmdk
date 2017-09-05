@@ -37,6 +37,13 @@
 #include "unittest.h"
 #include "obj.h"
 #include "ctl.h"
+#include "pmemcommon.h"
+
+#define LOG_PREFIX "trace"
+#define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
+#define LOG_FILE_VAR "TRACE_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 static char *testconfig_path;
 static int test_config_written;
@@ -644,6 +651,9 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctl");
 
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+		MAJOR_VERSION, MINOR_VERSION);
+
 	if (argc != 3)
 		UT_FATAL("usage: %s file-name testconfig", argv[0]);
 
@@ -672,5 +682,6 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
+	common_fini();
 	DONE(NULL);
 }
