@@ -67,7 +67,6 @@ void
 libpmem_fini(void)
 {
 	LOG(3, NULL);
-
 	common_fini();
 }
 
