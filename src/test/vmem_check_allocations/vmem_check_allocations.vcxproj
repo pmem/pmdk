@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vmem_check_allocations.c" />

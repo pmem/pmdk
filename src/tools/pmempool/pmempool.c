@@ -243,6 +243,8 @@ main(int argc, char *argv[])
 	int option_index;
 	int ret = 0;
 #ifdef _WIN32
+	os_tls_init();
+
 	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	for (int i = 0; i < argc; i++) {
 		argv[i] = util_toUTF8(wargv[i]);
@@ -301,6 +303,7 @@ end:
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)
 		free(argv[i - 1]);
+	os_tls_fini();
 #endif
 	if (ret)
 		return 1;

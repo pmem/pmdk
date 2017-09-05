@@ -36,6 +36,7 @@
 
 #include "pmemcommon.h"
 #include "obj.h"
+#include "os_thread.h"
 
 /*
  * libpmemobj_init -- load-time initialization for obj
