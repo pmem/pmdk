@@ -37,7 +37,6 @@
  */
 
 #include "unittest.h"
-
 #include "file.h"
 
 int

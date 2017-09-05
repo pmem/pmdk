@@ -95,6 +95,12 @@ int os_tls_key_delete(os_tls_key_t key);
 int os_tls_set(os_tls_key_t key, const void *value);
 void *os_tls_get(os_tls_key_t key);
 
+#ifdef _WIN32
+void os_tls_init(void);
+void os_tls_fini(void);
+void os_tls_thread_fini(void);
+#endif
+
 int os_mutex_init(os_mutex_t *__restrict mutex);
 int os_mutex_destroy(os_mutex_t *__restrict mutex);
 _When_(return == 0, _Acquires_lock_(mutex->lock))

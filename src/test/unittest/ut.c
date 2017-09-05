@@ -40,6 +40,7 @@
  */
 
 #include "unittest.h"
+#include "os_thread.h"
 
 #ifndef _WIN32
 int
@@ -643,6 +644,9 @@ static void
 ut_start_common(const char *file, int line, const char *func,
     const char *fmt, va_list ap)
 {
+#ifdef _WIN32
+	os_tls_init();
+#endif
 
 	int saveerrno = errno;
 	char logname[MAXLOGNAME];
@@ -793,6 +797,11 @@ ut_done(const char *file, int line, const char *func,
 
 	if (Tracefp != NULL)
 		fclose(Tracefp);
+
+#ifdef _WIN32
+	os_tls_thread_fini();
+	os_tls_fini();
+#endif
 
 	exit(0);
 }
