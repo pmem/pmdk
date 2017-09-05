@@ -385,9 +385,6 @@ function check_exit_code {
             Write-Error "${Env:UNITTEST_NAME}: $msg"
         }
 
-        # XXX: if we implement a memcheck thing...
-        # if [ "$RUN_MEMCHECK" ]; then
-
         dump_last_n_lines $Env:TRACE_LOG_FILE
         dump_last_n_lines $Env:PMEM_LOG_FILE
         dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
@@ -406,9 +403,6 @@ function check_exit_code {
 #
 
 function expect_normal_exit {
-    #XXX: add memcheck eq checks for windows once we get one
-    # if [ "$RUN_MEMCHECK" ]; then...
-
     #XXX:  bash sets up LD_PRELOAD and other gcc options here
     # that we can't do, investigating how to address API hooking...
 
@@ -433,7 +427,6 @@ function expect_normal_exit {
     Invoke-Expression "$command $params"
 
     check_exit_code
-    # XXX: if we implement a memcheck thing... set some env vars here
 }
 
 #
@@ -570,13 +563,6 @@ function require_build_type {
 #
 function require_pkg {
     # XXX: placeholder for checking dependencies if we have a need
-}
-
-#
-# memcheck -- only allow script to continue when memcheck's settings match
-#
-function memcheck {
-    # XXX: placeholder
 }
 
 #
@@ -1044,18 +1030,7 @@ function setup {
         exit 0
     }
 
-    # XXX: don't think we have a memcheck eq for windows yet but
-    # will leave the logic in here in case we find something to use
-    # that we can flip on/off with a flag
-    if ($MEMCHECK -eq "force-enable") { $Env:RUN_MEMCHECK = 1 }
-
-    if ($RUN_MEMCHECK) {
-        sv -Name MCSTR "/memcheck"
-    } else {
-        sv -Name MCSTR ""
-    }
-
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD$MCSTR)"
+    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD)"
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
@@ -1107,7 +1082,6 @@ function cmp {
 if (-Not $Env:TYPE) { $Env:TYPE = 'check'}
 if (-Not $Env:FS) { $Env:FS = 'any'}
 if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
-if (-Not $Env:MEMCHECK) { $Env:MEMCHECK = 'auto'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
@@ -1274,9 +1248,6 @@ $Env:VMMALLOC_LOG_FILE = "vmmalloc${Env:UNITTEST_NUM}.log"
 $Env:TRACE_LOG_FILE = "trace${Env:UNITTEST_NUM}.log"
 $Env:ERR_LOG_FILE = "err${Env:UNITTEST_NUM}.log"
 $Env:OUT_LOG_FILE = "out${Env:UNITTEST_NUM}.log"
-
-$Env:MEMCHECK_LOG_FILE = "memcheck_${Env:BUILD}_${Env:UNITTEST_NUM}.log"
-$Env:VALIDATE_MEMCHECK_LOG = 1
 
 if (-Not($UT_DUMP_LINES)) {
     sv -Name "UT_DUMP_LINES" 30
