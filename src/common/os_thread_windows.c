@@ -46,6 +46,22 @@
 #include "util.h"
 #include "out.h"
 
+
+struct key_dtor {
+	os_tls_key_t key;
+	void (*destructor)(void *);
+};
+
+/*
+ * A list of all the TLS keys created by the process.
+ * Actually it's a static array, as the number of keys is limited anyway.
+ */
+static struct key_dtor_list {
+	size_t cnt;
+	struct key_dtor keys[OS_THREAD_KEYS_MAX];
+} Tls_keys;
+
+
 typedef struct {
 	unsigned attr;
 	CRITICAL_SECTION lock;
@@ -398,9 +414,74 @@ os_cond_wait(os_cond_t *__restrict cond,
 int
 os_once(os_once_t *once, void (*func)(void))
 {
-	if (!_InterlockedCompareExchange64(once, 1, 0))
+	os_once_t tmp;
+
+	while ((tmp = *once) != 2) {
+		if (tmp == 1)
+			continue; /* another thread is already calling func() */
+
+		/* try to be the first one... */
+		if (!util_bool_compare_and_swap64(once, tmp, 1))
+			continue; /* sorry, another thread was faster */
+
 		func();
+
+		if (!util_bool_compare_and_swap64(once, 1, 2)) {
+			ERR("error setting once");
+			return -1;
+		}
+	}
+
 	return 0;
+}
+
+/*
+ * os_tls_fini -- destroy TLS data
+ *
+ * Destroys all the TLS data by calling destructor for each key.
+ */
+void
+os_tls_fini(void)
+{
+	for (int i = 0; i < Tls_keys.cnt; i++) {
+		void *key = os_tls_get(Tls_keys.keys[i].key);
+		if (key != NULL && Tls_keys.keys[i].destructor != NULL)
+			Tls_keys.keys[i].destructor(key);
+	}
+}
+
+/*
+ * os_tls_key_insert -- (internal) insert a key to the list of tls keys
+ */
+static int
+os_tls_key_insert(os_tls_key_t *key, void (*destructor)(void *))
+{
+	if (Tls_keys.cnt == OS_THREAD_KEYS_MAX)
+		return ENOMEM;
+
+	Tls_keys.keys[Tls_keys.cnt].key = *key;
+	Tls_keys.keys[Tls_keys.cnt].destructor = destructor;
+	Tls_keys.cnt++;
+
+	return 0;
+}
+
+/*
+ * os_tls_key_remove -- (internal) removes a key from the list of tls keys
+ */
+static void
+os_tls_key_remove(os_tls_key_t key)
+{
+	for (int i = 0; i < Tls_keys.cnt; i++) {
+		if (Tls_keys.keys[i].key == key) {
+			/* move the list up */
+			memmove(&Tls_keys.keys[i], &Tls_keys.keys[i + 1],
+				sizeof(struct key_dtor) * Tls_keys.cnt - i - 1);
+			Tls_keys.cnt--;
+			return;
+		}
+	}
+	FATAL("unknown TLS key");
 }
 
 /*
@@ -409,9 +490,16 @@ os_once(os_once_t *once, void (*func)(void))
 int
 os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 {
-	*key = FlsAlloc(destructor);
+	*key = TlsAlloc();
 	if (*key == TLS_OUT_OF_INDEXES)
 		return EAGAIN;
+
+	int ret = os_tls_key_insert(key, destructor);
+	if (ret != 0) {
+		(void) TlsFree(*key);
+		return ret;
+	}
+
 	return 0;
 }
 
@@ -421,7 +509,9 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 int
 os_tls_key_delete(os_tls_key_t key)
 {
-	if (!FlsFree(key))
+	os_tls_key_remove(key);
+
+	if (!TlsFree(key))
 		return EINVAL;
 	return 0;
 }
@@ -432,7 +522,7 @@ os_tls_key_delete(os_tls_key_t key)
 int
 os_tls_set(os_tls_key_t key, const void *value)
 {
-	if (!FlsSetValue(key, (LPVOID)value))
+	if (!TlsSetValue(key, (LPVOID)value))
 		return ENOENT;
 	return 0;
 }
@@ -443,7 +533,7 @@ os_tls_set(os_tls_key_t key, const void *value)
 void *
 os_tls_get(os_tls_key_t key)
 {
-	return FlsGetValue(key);
+	return TlsGetValue(key);
 }
 
 /* threading */

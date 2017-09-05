@@ -32,13 +32,9 @@
 
 /*
  * libpmempool_main.c -- entry point for libpmempool.dll
- *
- * XXX - This is a placeholder.  All the library initialization/cleanup
- * that is done in library ctors/dtors, as well as TLS initialization
- * should be moved here.
  */
 
-#include <stdio.h>
+#include "os_thread.h"
 
 void libpmempool_init(void);
 void libpmempool_fini(void);
@@ -52,11 +48,15 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_THREAD_ATTACH:
+		break;
+
 	case DLL_THREAD_DETACH:
+		os_tls_fini();
 		break;
 
 	case DLL_PROCESS_DETACH:
 		libpmempool_fini();
+		os_tls_fini(); /* main thread */
 		break;
 	}
 	return TRUE;
