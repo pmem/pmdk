@@ -398,8 +398,24 @@ os_cond_wait(os_cond_t *__restrict cond,
 int
 os_once(os_once_t *once, void (*func)(void))
 {
-	if (!_InterlockedCompareExchange64(once, 1, 0))
+	os_once_t tmp;
+
+	while ((tmp = *once) != 2) {
+		if (tmp == 1)
+			continue; /* another thread is already calling func() */
+
+		/* try to be the first one... */
+		if (!util_bool_compare_and_swap64(once, tmp, 1))
+			continue; /* sorry, another thread was faster */
+
 		func();
+
+		if (!util_bool_compare_and_swap64(once, 1, 2)) {
+			ERR("error setting once");
+			return -1;
+		}
+	}
+
 	return 0;
 }
 
