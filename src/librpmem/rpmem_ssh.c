@@ -248,8 +248,6 @@ rpmem_ssh_execv(const struct rpmem_target_info *info, const char **argv)
 
 	return rps;
 err_run:
-	rpmem_cmd_term(rps->cmd);
-	rpmem_cmd_wait(rps->cmd, NULL);
 err_push:
 	free(cmd);
 err_cmd:
