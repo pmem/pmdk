@@ -409,7 +409,7 @@ os_once(os_once_t *once, void (*func)(void))
 int
 os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 {
-	*key = FlsAlloc(destructor);
+	*key = TlsAlloc();
 	if (*key == TLS_OUT_OF_INDEXES)
 		return EAGAIN;
 	return 0;
@@ -421,7 +421,7 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 int
 os_tls_key_delete(os_tls_key_t key)
 {
-	if (!FlsFree(key))
+	if (!TlsFree(key))
 		return EINVAL;
 	return 0;
 }
@@ -432,7 +432,7 @@ os_tls_key_delete(os_tls_key_t key)
 int
 os_tls_set(os_tls_key_t key, const void *value)
 {
-	if (!FlsSetValue(key, (LPVOID)value))
+	if (!TlsSetValue(key, (LPVOID)value))
 		return ENOENT;
 	return 0;
 }
@@ -443,7 +443,7 @@ os_tls_set(os_tls_key_t key, const void *value)
 void *
 os_tls_get(os_tls_key_t key)
 {
-	return FlsGetValue(key);
+	return TlsGetValue(key);
 }
 
 /* threading */
