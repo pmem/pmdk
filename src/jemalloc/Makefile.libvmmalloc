@@ -29,14 +29,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/jemalloc/Makefile.nvml -- Makefile for building jemalloc
-# inside NVML tree
+# src/jemalloc/Makefile.libvmmalloc -- Makefile for building jemalloc
+# for libvmmalloc
 #
 
 EXTRA_TARGETS = jemalloc
 
 default: all
 
+NVMLDIR=libvmmalloc
 include ./jemalloc.mk
 
 ifeq ($(DEBUG),1)

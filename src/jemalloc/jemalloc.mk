@@ -1,4 +1,4 @@
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ JEMALLOC_DIR = $(realpath ../jemalloc)
 ifeq ($(OBJDIR),$(abspath $(OBJDIR)))
 JEMALLOC_OBJDIR = $(OBJDIR)/jemalloc
 else
-JEMALLOC_OBJDIR = ../$(OBJDIR)/jemalloc
+JEMALLOC_OBJDIR = ../$(OBJDIR)/$(NVMLDIR)/jemalloc
 endif
 JEMALLOC_MAKEFILE = $(JEMALLOC_OBJDIR)/Makefile
 JEMALLOC_CFG = $(JEMALLOC_DIR)/configure
@@ -55,6 +55,11 @@ JEMALLOC_CFG_OUT_FILES = $(patsubst $(JEMALLOC_DIR)/%, $(JEMALLOC_OBJDIR)/%, $(J
 JEMALLOC_AUTOM4TE_CACHE=autom4te.cache
 JEMALLOC_CONFIG_FILE = $(JEMALLOC_DIR)/jemalloc.cfg
 JEMALLOC_CONFIG = $(shell cat $(JEMALLOC_CONFIG_FILE))
+ifeq ($(OSTYPE), FreeBSD)
+ifndef $(CC)
+JEMALLOC_CONFIG += CC=$(CC) # Default to system compiler (not gcc) on FreeBSD
+endif
+endif
 CFLAGS_FILTER += -fno-common
 CFLAGS_FILTER += -Wmissing-prototypes
 CFLAGS_FILTER += -Wpointer-arith
@@ -76,6 +81,9 @@ CFLAGS_FILTER += -Wshadow
 CFLAGS_FILTER += -Wdisabled-macro-expansion
 CFLAGS_FILTER += -Wlanguage-extension-token
 JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
+ifeq ($(OSTYPE), FreeBSD)
+JEMALLOC_CFLAGS += -I/usr/local/include
+endif
 JEMALLOC_REMOVE_LDFLAGS_TMP = -Wl,--warn-common
 JEMALLOC_LDFLAGS=$(filter-out $(JEMALLOC_REMOVE_LDFLAGS_TMP), $(LDFLAGS))
 JEMALLOC_CFG_OUT_FILES_FIRST=$(firstword $(JEMALLOC_CFG_OUT_FILES))

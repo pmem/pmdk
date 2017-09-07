@@ -47,7 +47,7 @@ SOURCE =\
 	set.c\
 	util.c\
 	uuid.c\
-	uuid_linux.c\
+	uuid_$(shell uname -s | tr "[:upper:]" "[:lower:]").c\
 	util_linux.c
 
 include ../Makefile.inc

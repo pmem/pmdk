@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,4 +39,4 @@ OBJS = util_map_proc.o
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc
-LIBS += -ldl
+LIBS += $(LIBDL)

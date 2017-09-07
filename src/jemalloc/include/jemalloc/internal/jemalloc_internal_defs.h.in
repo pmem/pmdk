@@ -86,6 +86,12 @@
  */
 #undef JEMALLOC_MUTEX_INIT_CB
 
+/*
+ * Defined if --disable_bsd_malloc_hooks is set. This overrides the
+ * JEMALLOC_MUTEX_INIT_CB checks for prefork/postfork.
+ */
+#undef JEMALLOC_DISABLE_BSD_MALLOC_HOOKS
+
 /* Non-empty if the tls_model attribute is supported. */
 #undef JEMALLOC_TLS_MODEL
 

@@ -34,7 +34,12 @@ include $(TOP)/src/common.inc
 
 SFML := $(call check_package, sfml-all --atleast-version 2.4)
 ifeq ($(SFML),y)
-PROGS = pmpong $(shell find /usr/share/fonts -name *.ttf | head -n 1 >| fontConf $<)
+ifeq ($(OSTYPE),FreeBSD)
+FONTDIR=/usr/local/share/fonts
+else
+FONTDIR=/usr/share/fonts
+endif
+PROGS = pmpong $(shell find $(FONTDIR) -name *.ttf | head -n 1 >| fontConf $<)
 else
 $(info NOTE: Skipping pmpong because sfml is missing \
 -- see src/examples/libpmemobj/pmpong/README for details.)

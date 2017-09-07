@@ -90,6 +90,8 @@ SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 # include/lib*.h - skip include/pmemcompat.h
 HEADERS =\
 	$(foreach f, $(wildcard\
+		freebsd/include/*.h\
+		freebsd/include/*/*.h\
 		include/lib*.h\
 		include/libpmemobj/*.h\
 		include/libpmemobj++/*.hpp\
@@ -167,9 +169,11 @@ check-remote: test
 	$(MAKE) -C test $@
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
-	$(MAKE) -C jemalloc -f Makefile.nvml $@
+	$(MAKE) -C jemalloc -f Makefile.libvmem $@
+	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@
 ifeq ($(custom_build),)
-	$(MAKE) -C jemalloc -f Makefile.nvml $@ DEBUG=1
+	$(MAKE) -C jemalloc -f Makefile.libvmem $@ DEBUG=1
+	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ DEBUG=1
 endif
 
 install-cpp:

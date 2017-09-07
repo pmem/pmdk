@@ -48,7 +48,7 @@ SOURCE =\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
+	$(COMMON)/uuid_$(shell uname -s | tr "[:upper:]" "[:lower:]").c\
 	$(COMMON)/util_linux.c\
 	blk.c\
 	btt.c\

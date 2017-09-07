@@ -50,9 +50,9 @@
 PROGS = arttree arttree_structures
 LIBRARIES = art
 
-include ../../Makefile.inc
-
 LIBS = -lpmemobj
+
+include ../../Makefile.inc
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart

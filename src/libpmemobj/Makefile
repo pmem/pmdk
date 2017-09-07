@@ -48,7 +48,7 @@ SOURCE =\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
+	$(COMMON)/uuid_$(shell uname -s | tr "[:upper:]" "[:lower:]").c\
 	$(COMMON)/util_linux.c\
 	alloc_class.c\
 	bucket.c\
@@ -78,4 +78,4 @@ include ../Makefile.inc
 
 CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
 
-LIBS += -pthread -lpmem -ldl
+LIBS += -pthread -lpmem $(LIBDL)

@@ -57,7 +57,7 @@ SOURCE =\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
-	$(COMMON)/uuid_linux.c\
+	$(COMMON)/uuid_$(shell uname -s | tr "[:upper:]" "[:lower:]").c\
 	$(COMMON)/util_linux.c\
 	libpmempool.c\
 	check.c\
@@ -84,7 +84,7 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 
 include ../Makefile.inc
 
-LIBS += -lpmem -ldl
+LIBS += -lpmem $(LIBDL)
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM
 
