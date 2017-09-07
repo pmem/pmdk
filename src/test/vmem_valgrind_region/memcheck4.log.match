@@ -5,9 +5,9 @@
 ==$(N)== Parent PID: $(N)
 ==$(N)== 
 ==$(N)== Use of uninitialised value of size 8
-==$(N)==    at 0x$(X): _itoa_word (in /usr/lib64/libc-2.24.so)
-==$(N)==    by 0x$(X): vfprintf (in /usr/lib64/libc-2.24.so)
-==$(N)==    by 0x$(X): vsnprintf (in /usr/lib64/libc-2.24.so)
+==$(N)==    at 0x$(X): _itoa_word $(*)
+==$(N)==    by 0x$(X): vfprintf $(*)
+==$(N)==    by 0x$(X): vsnprintf $(*)
 ==$(N)==    by 0x$(X): vout (ut.c:$(N))
 ==$(N)==    by 0x$(X): ut_out (ut.c:$(N))
 ==$(N)==    by 0x$(X): do_iterate (vmem_valgrind_region.c:$(N))
