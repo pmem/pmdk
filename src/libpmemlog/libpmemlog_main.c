@@ -32,11 +32,9 @@
 
 /*
  * libpmemlog_main.c -- entry point for libpmemlog.dll
- *
- * XXX - This is a placeholder.  All the library initialization/cleanup
- * that is done in library ctors/dtors, as well as TLS initialization
- * should be moved here.
  */
+
+#include "os_thread.h"
 
 void libpmemlog_init(void);
 void libpmemlog_fini(void);
@@ -50,7 +48,10 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_THREAD_ATTACH:
+		break;
+
 	case DLL_THREAD_DETACH:
+		os_tls_thread_fini();
 		break;
 
 	case DLL_PROCESS_DETACH:

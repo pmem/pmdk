@@ -46,6 +46,7 @@
 #include "util.h"
 #include "out.h"
 
+
 typedef struct {
 	unsigned attr;
 	CRITICAL_SECTION lock;
@@ -420,6 +421,161 @@ os_once(os_once_t *once, void (*func)(void))
 }
 
 /*
+ * According to MSDN, the maximum number of TLS indexes per process is 1088.
+ */
+#define TLS_KEYS_MAX 1088
+
+struct key_dtor {
+	os_tls_key_t key;
+	void (*destructor)(void *);
+};
+
+/*
+ * A list of all the TLS keys created by the process.
+ * Actually it's a static array, as the number of keys is limited anyway.
+ */
+static struct key_dtor_list {
+	size_t cnt;
+	struct key_dtor keys[TLS_KEYS_MAX];
+} Tls_keys;
+
+/* TLS key list guard */
+os_mutex_t Tls_lock;
+
+/*
+ * In case of static linking of NVM libraries, it may happen that
+ * os_tls_init/os_tls_fini are called more than once per process
+ * (i.e once from libpmem ctor/dtor and teh second time by the program itself).
+ * This refcnt guarantees that only the last call to os_tls_fini would
+ * actually destroy TLS data.
+ */
+static uint64_t Tls_refcnt;
+
+os_once_t Tls_initialized;
+os_once_t Tls_destroyed;
+
+/*
+ * tls_init -- initialize TLS key list
+ *
+ * Must be called only once.
+ */
+static void
+tls_init(void)
+{
+	if (os_mutex_init(&Tls_lock) != 0)
+		FATAL("TLS lock init");
+}
+
+/*
+ * os_tls_init -- initialize TLS key list
+ */
+void
+os_tls_init(void)
+{
+	os_once(&Tls_initialized, tls_init);
+	util_fetch_and_add(&Tls_refcnt, 1);
+}
+
+/*
+ * tls_fini -- destroy TLS key list
+ *
+ * Must be called only once.
+ */
+static void
+tls_fini(void)
+{
+	if (os_mutex_destroy(&Tls_lock) != 0)
+		FATAL("TLS lock destroy");
+}
+
+/*
+ * os_tls_fini -- destroy TLS key list
+ */
+void
+os_tls_fini(void)
+{
+	if (util_fetch_and_sub(&Tls_refcnt, 1) == 1)
+		os_once(&Tls_destroyed, tls_fini); /* XXX */
+}
+
+/*
+ * os_tls_thread_fini -- destroy TLS data
+ *
+ * Destroys all the TLS data by calling destructor for each key.
+ */
+void
+os_tls_thread_fini(void)
+{
+	if (util_bool_compare_and_swap64(&Tls_refcnt, 0, 0))
+		/* TLS data has been already destroyed */
+		return;
+
+	os_mutex_lock(&Tls_lock);
+
+	for (int i = 0; i < Tls_keys.cnt; i++) {
+		void *key = os_tls_get(Tls_keys.keys[i].key);
+		if (key != NULL && Tls_keys.keys[i].destructor != NULL)
+			Tls_keys.keys[i].destructor(key);
+	}
+
+	os_mutex_unlock(&Tls_lock);
+}
+
+/*
+ * os_tls_key_insert -- (internal) insert a key to the list of tls keys
+ */
+static int
+os_tls_key_insert(os_tls_key_t *key, void (*destructor)(void *))
+{
+	int ret = 0;
+
+	if (util_bool_compare_and_swap64(&Tls_refcnt, 0, 0))
+		/* TLS data has been already destroyed */
+		return 0;
+
+	os_mutex_lock(&Tls_lock);
+
+	if (Tls_keys.cnt == TLS_KEYS_MAX) {
+		ret = ENOMEM;
+		goto exit;
+	}
+
+	Tls_keys.keys[Tls_keys.cnt].key = *key;
+	Tls_keys.keys[Tls_keys.cnt].destructor = destructor;
+	Tls_keys.cnt++;
+
+exit:
+	os_mutex_unlock(&Tls_lock);
+	return ret;
+}
+
+/*
+ * os_tls_key_remove -- (internal) removes a key from the list of tls keys
+ */
+static void
+os_tls_key_remove(os_tls_key_t key)
+{
+	if (util_bool_compare_and_swap64(&Tls_refcnt, 0, 0))
+		/* TLS data has been already destroyed */
+		return;
+
+	os_mutex_lock(&Tls_lock);
+
+	for (int i = 0; i < Tls_keys.cnt; i++) {
+		if (Tls_keys.keys[i].key == key) {
+			/* move the list up */
+			memmove(&Tls_keys.keys[i], &Tls_keys.keys[i + 1],
+				sizeof(struct key_dtor) * Tls_keys.cnt - i - 1);
+			Tls_keys.cnt--;
+			os_mutex_unlock(&Tls_lock);
+			return;
+		}
+	}
+
+	os_mutex_unlock(&Tls_lock);
+}
+
+/*
  * os_tls_key_create -- creates a new tls key
  */
 int
@@ -428,6 +584,13 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 	*key = TlsAlloc();
 	if (*key == TLS_OUT_OF_INDEXES)
 		return EAGAIN;
+
+	int ret = os_tls_key_insert(key, destructor);
+	if (ret != 0) {
+		(void) TlsFree(*key);
+		return ret;
+	}
+
 	return 0;
 }
 
@@ -437,6 +600,8 @@ os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *))
 int
 os_tls_key_delete(os_tls_key_t key)
 {
+	os_tls_key_remove(key);
+
 	if (!TlsFree(key))
 		return EINVAL;
 	return 0;

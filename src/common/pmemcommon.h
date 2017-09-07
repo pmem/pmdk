@@ -40,12 +40,17 @@
 #include "util.h"
 #include "out.h"
 #include "mmap.h"
+#include "os_thread.h"
 
 static inline void
 common_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version)
 {
+#ifdef _WIN32
+	os_tls_init();
+#endif
+
 	util_init();
 	out_init(log_prefix, log_level_var, log_file_var, major_version,
 		minor_version);
@@ -57,5 +62,10 @@ common_fini(void)
 {
 	util_mmap_fini();
 	out_fini();
+
+#ifdef _WIN32
+	os_tls_thread_fini();
+	os_tls_fini();
+#endif
 }
 #endif
