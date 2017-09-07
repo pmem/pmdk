@@ -53,7 +53,7 @@ require_build_type debug
 
 setup
 
-$Env:TRACE_LOG_LEVEL = "4"
+$Env:UT_LOG_LEVEL = "4"
 # NOTE: Any test that need to redirect stderr could follow the below syntax:
 #   1. primarily to avoid powershell converting the error strings to exception
 #      objects

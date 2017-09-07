@@ -47,7 +47,7 @@ require_build_type debug
 
 setup
 
-export TRACE_LOG_LEVEL=3
+export UT_LOG_LEVEL=3
 expect_normal_exit ./traces$EXESUFFIX 2>redir_stderr$UNITTEST_NUM.log
 
 check
