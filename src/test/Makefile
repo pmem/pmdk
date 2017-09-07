@@ -259,7 +259,8 @@ VMEM_TESTS = \
 	vmem_realloc_inplace\
 	vmem_stats\
 	vmem_strdup\
-	vmem_valgrind
+	vmem_valgrind\
+	vmem_valgrind_region
 
 VMMALLOC_TESTS = \
 	vmmalloc_calloc\
