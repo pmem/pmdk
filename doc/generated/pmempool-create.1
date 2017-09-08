@@ -33,8 +33,7 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .SH NAME
 .PP
-\f[B]pmempool\-create\f[] \-\- Create Persistent Memory Pool of
-specified type
+\f[B]pmempool\-create\f[] \-\- create a persistent memory pool
 .SH SYNOPSIS
 .IP
 .nf
@@ -57,8 +56,8 @@ for specified pool type.
 The minimum sizes for \f[B]blk\f[], \f[B]log\f[] and \f[B]obj\f[] pool
 types are \f[B]PMEMBLK_MIN_POOL\f[], \f[B]PMEMLOG_MIN_POOL\f[] and
 \f[B]PMEMOBJ_MIN_POOL\f[] respectively.
-See \f[B]libpmemblk\f[](3), \f[B]libpmemlog\f[](3) and
-\f[B]libpmemobj\f[](3) for details.
+See \f[B]libpmemblk\f[](7), \f[B]libpmemlog\f[](7) and
+\f[B]libpmemobj\f[](7) for details.
 .PP
 For \f[I]pmemblk\f[] pool type block size \f[I]<bsize>\f[] is a required
 argument.
@@ -113,7 +112,7 @@ of block entry is performed.
 Using \f[B]\-w\f[] option you can force writing the \f[B]BTT\f[] layout
 by writing zero data to specified block number.
 By default the \f[I]write operation\f[] is performed to block number 0.
-Please refer to \f[B]libpmemblk\f[](3) for details.
+Please refer to \f[B]libpmemblk\f[](7) for details.
 .PP
 \f[C]\-w,\ \-\-write\-layout\f[]
 .PP
@@ -123,7 +122,7 @@ operation\f[] to block number zero.
 .PP
 By default when creating a pmem \f[B]obj\f[] pool, the layout name
 provided to the \f[B]libpmemobj\f[] library is an empty string.
-Please refer to \f[B]libpmemobj\f[](3) for details.
+Please refer to \f[B]libpmemobj\f[](7) for details.
 .PP
 \f[C]\-l,\ \-\-layout\ <layout>\f[]
 .PP
@@ -172,5 +171,5 @@ $\ pmempool\ create\ \-\-inherit=pool.log\ new_pool.log
 Create a pool file based on pool.log file
 .SH SEE ALSO
 .PP
-\f[B]pmempool\f[](1), \f[B]libpmemlog\f[](3), \f[B]libpmemblk\f[](3),
-\f[B]libpmemobj\f[](3) and \f[B]<http://pmem.io>\f[]
+\f[B]pmempool\f[](1), \f[B]libpmemblk\f[](7), \f[B]libpmemlog\f[](7),
+\f[B]libpmemobj\f[](7) and \f[B]<http://pmem.io>\f[]

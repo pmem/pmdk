@@ -33,8 +33,8 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .SH NAME
 .PP
-\f[B]pmempool\-info\f[] \-\- print basic information about Persistent
-Memory Pool file
+\f[B]pmempool\-info\f[] \-\- show information about persistent memory
+pool
 .SH SYNOPSIS
 .IP
 .nf
@@ -126,7 +126,7 @@ See \f[B]EXAMPLES\f[] section for an example of usage of these options.
 Dump user data in hexadecimal format.
 In case of pmem \f[I]blk\f[] pool type data is dumped in
 \f[I]blocks\f[].
-In case of pmem \f[I]log\f[] pool type data is dumped as a whole or in
+In case of pmem \f[I]log\f[] pool type data is dumped as a wholeor in
 \f[I]chunks\f[] if \f[B]\-w\f[] option is used (See \f[B]Options for
 PMEMLOG\f[] section for details).
 .PP
@@ -160,7 +160,7 @@ Display help message and exit.
 \f[C]\-w,\ \-\-walk\ <size>\f[]
 .PP
 Use this option to walk through used data with fixed data chunk size.
-See \f[B]pmemlog_walk\f[]() in \f[B]libpmemlog\f[](3) for details.
+See \f[B]pmemlog_walk\f[](3) in \f[B]libpmemlog\f[](7) for details.
 .SS Options for PMEMBLK:
 .PP
 By default the \f[I]info\f[] command displays the \f[B]pmemblk\f[]
@@ -450,5 +450,5 @@ Dump data blocks from 10 to 100, skip blocks marked with error flag and
 not marked with any flag.
 .SH SEE ALSO
 .PP
-\f[B]pmempool\f[](1), \f[B]libpmemlog\f[](3), \f[B]libpmemblk\f[](3),
-\f[B]libpmemobj\f[](3) and \f[B]<http://pmem.io>\f[]
+\f[B]pmempool\f[](1), \f[B]libpmemblk\f[](7), \f[B]libpmemlog\f[](7),
+\f[B]libpmemobj\f[](7) and \f[B]<http://pmem.io>\f[]

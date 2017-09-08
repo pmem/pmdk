@@ -33,7 +33,7 @@
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .SH NAME
 .PP
-\f[B]pmempool\-dump\f[] \-\- Dump user data from specified pool
+\f[B]pmempool\-dump\f[] \-\- dump user data from persistent memory pool
 .SH SYNOPSIS
 .IP
 .nf
@@ -72,7 +72,7 @@ of bytes or number of data chunks for \f[B]log\f[] pool type.
 \f[C]\-c,\ \-\-chunk\ <size>\f[]
 .PP
 Size of chunk for \f[B]log\f[] pool type.
-See \f[B]pmemlog_walk\f[]() in \f[B]libpmemlog\f[](3) for details.
+See \f[B]pmemlog_walk\f[](3) in \f[B]libpmemlog\f[](7) for details.
 .PP
 \f[C]\-o,\ \-\-output\ <file>\f[]
 .PP
@@ -134,5 +134,5 @@ $\ pmempool\ dump\ \-r\ 1K\-2K\ pool.bin
 Dump data form 1K to 2K from pool.bin file.
 .SH SEE ALSO
 .PP
-\f[B]pmempool\f[](1), \f[B]libpmemlog\f[](3), \f[B]libpmemblk\f[](3),
-\f[B]libpmemobj\f[](3) and \f[B]<http://pmem.io>\f[]
+\f[B]pmempool\f[](1), \f[B]libpmemblk\f[](7), \f[B]libpmemlog\f[](7),
+\f[B]libpmemobj\f[](7) and \f[B]<http://pmem.io>\f[]
