@@ -109,7 +109,7 @@ convenient.
 %{_libdir}/libpmem.a
 %{_libdir}/pkgconfig/libpmem.pc
 %{_includedir}/libpmem.h
-%{_mandir}/man3/libpmem.3.gz
+%{_mandir}/man7/libpmem.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -176,7 +176,7 @@ more generally useful.
 %{_libdir}/libpmemblk.a
 %{_libdir}/pkgconfig/libpmemblk.pc
 %{_includedir}/libpmemblk.h
-%{_mandir}/man3/libpmemblk.3.gz
+%{_mandir}/man7/libpmemblk.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -238,7 +238,7 @@ level libraries like libpmemobj to be more generally useful.
 %{_libdir}/libpmemlog.a
 %{_libdir}/pkgconfig/libpmemlog.pc
 %{_includedir}/libpmemlog.h
-%{_mandir}/man3/libpmemlog.3.gz
+%{_mandir}/man7/libpmemlog.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -302,7 +302,7 @@ probably want to start with this library.
 %{_libdir}/pkgconfig/libpmemobj.pc
 %{_includedir}/libpmemobj.h
 %{_includedir}/libpmemobj/*.h
-%{_mandir}/man3/libpmemobj.3.gz
+%{_mandir}/man7/libpmemobj.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -365,7 +365,7 @@ applications that want to make use of libvmem.
 %{_libdir}/libvmem.a
 %{_libdir}/pkgconfig/libvmem.pc
 %{_includedir}/libvmem.h
-%{_mandir}/man3/libvmem.3.gz
+%{_mandir}/man7/libvmem.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -432,7 +432,7 @@ applications that want to specifically make use of libvmmalloc.
 %{_libdir}/libvmmalloc.a
 %{_libdir}/pkgconfig/libvmmalloc.pc
 %{_includedir}/libvmmalloc.h
-%{_mandir}/man3/libvmmalloc.3.gz
+%{_mandir}/man7/libvmmalloc.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -518,7 +518,7 @@ pools created by libpmemlog, libpemblk and libpmemobj libraries.
 %{_libdir}/libpmempool.a
 %{_libdir}/pkgconfig/libpmempool.pc
 %{_includedir}/libpmempool.h
-%{_mandir}/man3/libpmempool.3.gz
+%{_mandir}/man7/libpmempool.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -583,7 +583,7 @@ applications that want to specifically make use of librpmem.
 %{_libdir}/librpmem.a
 %{_libdir}/pkgconfig/librpmem.pc
 %{_includedir}/librpmem.h
-%{_mandir}/man3/librpmem.3.gz
+%{_mandir}/man7/librpmem.7.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 

@@ -59,7 +59,9 @@ PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
 INC_DIR=$PREFIX/include
 MAN1_DIR=$PREFIX/share/man/man1
-MAN3_DIR=$PREFIX/share/man/man3
+MAN3_DIR=$PROFIX/share/man/man3
+MAN7_DIR=$PREFIX/share/man/man7
+
 DOC_DIR=$PREFIX/share/doc
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
@@ -104,7 +106,7 @@ $LIB_DIR/nvml_debug/librpmem.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/librpmem.so
 $LIB_DIR/pkgconfig/librpmem.pc
 $INC_DIR/librpmem.h
-$MAN3_DIR/librpmem.3.gz
+$MAN7_DIR/librpmem.7.gz
 EOF
 
 cat << EOF > debian/librpmem-dev.triggers
@@ -355,7 +357,7 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR sysconfdir=/etc NORPATH=1
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man7dir=/$MAN7_DIR sysconfdir=/etc NORPATH=1
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/nvml/
@@ -398,7 +400,7 @@ $LIB_DIR/nvml_debug/libpmem.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libpmem.so
 $LIB_DIR/pkgconfig/libpmem.pc
 $INC_DIR/libpmem.h
-$MAN3_DIR/libpmem.3.gz
+$MAN7_DIR/libpmem.7.gz
 EOF
 
 cat << EOF > debian/libpmem-dev.triggers
@@ -433,7 +435,7 @@ $LIB_DIR/nvml_debug/libpmemblk.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libpmemblk.so
 $LIB_DIR/pkgconfig/libpmemblk.pc
 $INC_DIR/libpmemblk.h
-$MAN3_DIR/libpmemblk.3.gz
+$MAN7_DIR/libpmemblk.7.gz
 EOF
 
 cat << EOF > debian/libpmemblk-dev.triggers
@@ -468,7 +470,7 @@ $LIB_DIR/nvml_debug/libpmemlog.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libpmemlog.so
 $LIB_DIR/pkgconfig/libpmemlog.pc
 $INC_DIR/libpmemlog.h
-$MAN3_DIR/libpmemlog.3.gz
+$MAN7_DIR/libpmemlog.7.gz
 EOF
 
 cat << EOF > debian/libpmemlog-dev.triggers
@@ -504,7 +506,7 @@ $LIB_DIR/libpmemobj.so
 $LIB_DIR/pkgconfig/libpmemobj.pc
 $INC_DIR/libpmemobj.h
 $INC_DIR/libpmemobj/*.h
-$MAN3_DIR/libpmemobj.3.gz
+$MAN7_DIR/libpmemobj.7.gz
 EOF
 
 cat << EOF > debian/libpmemobj-dev.triggers
@@ -539,7 +541,7 @@ $LIB_DIR/nvml_debug/libpmempool.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libpmempool.so
 $LIB_DIR/pkgconfig/libpmempool.pc
 $INC_DIR/libpmempool.h
-$MAN3_DIR/libpmempool.3.gz
+$MAN7_DIR/libpmempool.7.gz
 EOF
 
 cat << EOF > debian/libpmempool-dev.triggers
@@ -574,7 +576,7 @@ $LIB_DIR/nvml_debug/libvmem.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libvmem.so
 $LIB_DIR/pkgconfig/libvmem.pc
 $INC_DIR/libvmem.h
-$MAN3_DIR/libvmem.3.gz
+$MAN7_DIR/libvmem.7.gz
 EOF
 
 cat << EOF > debian/libvmem-dev.lintian-overrides
@@ -609,7 +611,7 @@ $LIB_DIR/nvml_debug/libvmmalloc.so.* $LIB_DIR/nvml_dbg/
 $LIB_DIR/libvmmalloc.so
 $LIB_DIR/pkgconfig/libvmmalloc.pc
 $INC_DIR/libvmmalloc.h
-$MAN3_DIR/libvmmalloc.3.gz
+$MAN7_DIR/libvmmalloc.7.gz
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.lintian-overrides
