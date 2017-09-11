@@ -498,8 +498,10 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 	pmembench_set_priv(bench, bb);
 
 	ret = blk_init(bb, args);
-	if (ret != 0)
+	if (ret != 0) {
 		free(bb);
+		return ret;
+	}
 
 	switch (bb->type) {
 		case OP_TYPE_FILE:
@@ -539,8 +541,10 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 	pmembench_set_priv(bench, bb);
 
 	ret = blk_init(bb, args);
-	if (ret != 0)
+	if (ret != 0) {
 		free(bb);
+		return ret;
+	}
 
 	switch (bb->type) {
 		case OP_TYPE_FILE:
