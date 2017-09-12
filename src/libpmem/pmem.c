@@ -500,6 +500,8 @@ pmem_is_pmem_init(void)
 			else if (val == 1)
 				Func_is_pmem = is_pmem_always;
 
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Func_is_pmem);
+
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
 
@@ -521,9 +523,10 @@ pmem_is_pmem(const void *addr, size_t len)
 	/* This is not thread-safe, but pmem_is_pmem_init() is. */
 	if (once == 0) {
 		pmem_is_pmem_init();
-		once++;
+		util_fetch_and_add(&once, 1);
 	}
 
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Func_is_pmem);
 	return Func_is_pmem(addr, len);
 }
 
