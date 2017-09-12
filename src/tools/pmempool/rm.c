@@ -297,14 +297,6 @@ rm_poolset(const char *file)
 int
 pmempool_rm_func(char *appname, int argc, char *argv[])
 {
-#ifdef USE_RPMEM
-	/*
-	 * Try to load librpmem, if loading failed -
-	 * assume it is not available.
-	 */
-	rpmem_avail = !util_remote_load();
-#endif
-
 	/* by default do not remove any poolset files */
 	rm_poolset_mode = RM_POOLSET_NONE;
 
@@ -349,6 +341,17 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 		print_usage(appname);
 		return 1;
 	}
+
+#ifdef USE_RPMEM
+	if (util_remote_init()) {
+		outv(1, "Duplicate util_remote_init()\n");
+	}
+	/*
+	 * Try to load librpmem, if loading failed -
+	 * assume it is not available.
+	 */
+	rpmem_avail = !util_remote_load();
+#endif
 
 	int lret = 0;
 	for (int i = optind; i < argc; i++) {

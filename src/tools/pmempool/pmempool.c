@@ -257,7 +257,9 @@ main(int argc, char *argv[])
 	util_init();
 
 #ifndef _WIN32
-	util_remote_init();
+	if (util_remote_init()) {
+		outv(1, "Duplicate util_remote_init()");
+	}
 	rpmem_util_cmds_init();
 #endif
 

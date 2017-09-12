@@ -128,8 +128,8 @@ rpmemd_db_concat(const char *path1, const char *path2)
 	if (path2[0] == '/') {
 		RPMEMD_LOG(ERR, "the second path is not a relative one -- '%s'",
 				path2);
-		/* set to EBADR to distinguish this case from other errors */
-		errno = EBADR;
+		/* set to EBADF to distinguish this case from other errors */
+		errno = EBADF;
 		return NULL;
 	}
 
@@ -177,7 +177,7 @@ rpmemd_db_pool_madvise(struct pool_set *set)
 	 */
 	const struct pool_set_part *part = &set->replica[0]->part[0];
 	if (part->is_dev_dax) {
-		int ret = madvise(part->addr, part->filesize, MADV_DONTFORK);
+		int ret = MADVISE(part->addr, part->filesize, MADV_DONTFORK);
 		if (ret) {
 			ERR("!madvise");
 			return -1;

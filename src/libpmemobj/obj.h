@@ -46,6 +46,7 @@
 #include "redo.h"
 #include "ctl.h"
 #include "ringbuf.h"
+#include "sync.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -175,9 +176,17 @@ struct pmemobjpool {
 
 	struct tx_parameters *tx_params;
 
+	/*
+	 * Locks are dynamically allocated on FreeBSD. Keep track so
+	 * we can free them on pmemobj_close.
+	 */
+	PMEMmutex_internal *mutex_head;
+	PMEMrwlock_internal *rwlock_head;
+	PMEMcond_internal *cond_head;
+
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1028];
+	char unused2[1004];
 };
 
 /*

@@ -22,6 +22,15 @@
 #ifndef RB_H_
 #define	RB_H_
 
+/* XXX Avoid super-slow compile with clang */
+#define NOSANITIZE
+#ifdef __clang__
+#if __has_attribute(__no_sanitize__)
+#undef NOSANITIZE
+#define NOSANITIZE __attribute__((no_sanitize("undefined")))
+#endif
+#endif
+
 #ifdef RB_COMPACT
 /* Node structure. */
 #define	rb_node(a_type)							\
@@ -513,7 +522,7 @@ a_prefix##insert(a_rbt_type *rbtree, a_type *node) {			\
     rbtree->rbt_root = path->node;					\
     rbtn_black_set(a_type, a_field, rbtree->rbt_root);			\
 }									\
-a_attr void								\
+a_attr void NOSANITIZE							\
 a_prefix##remove(a_rbt_type *rbtree, a_type *node) {			\
     struct {								\
 	a_type *node;							\

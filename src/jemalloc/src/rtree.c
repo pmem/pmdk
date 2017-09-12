@@ -84,10 +84,9 @@ rtree_delete(rtree_t *rtree)
 {
 
 	rtree_delete_subtree(rtree, rtree->root, 0);
+	malloc_mutex_destroy(&rtree->mutex);
 	if (rtree->dalloc)
 		rtree->dalloc(rtree->pool, rtree);
-
-	malloc_mutex_destroy(&rtree->mutex);
 }
 
 void

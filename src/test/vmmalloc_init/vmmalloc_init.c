@@ -56,9 +56,14 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		switch (argv[1][0]) {
 		case 'd':
+#ifdef __FreeBSD__
+			UT_OUT("FreeBSD does not support RTLD_DEEPBIND");
+			handle = dlopen("./libtest.so", RTLD_NOW | RTLD_LOCAL);
+#else
 			UT_OUT("deep binding");
 			handle = dlopen("./libtest.so",
 				RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+#endif
 			break;
 		case 'l':
 			UT_OUT("lazy binding");

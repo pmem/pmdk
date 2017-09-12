@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,9 @@
  */
 
 #include <stdlib.h>
+#ifndef __FreeBSD__
 #include <malloc.h>
+#endif
 #include <errno.h>
 #include "unittest.h"
 
@@ -85,8 +87,13 @@ main(int argc, char *argv[])
 
 	switch (argv[1][0]) {
 	case 'm':
+#ifdef __FreeBSD__
+		UT_OUT("memalign not supported on FreeBSD");
+		DONE(NULL);
+#else
 		UT_OUT("testing memalign");
 		Aalloc = memalign;
+#endif
 		break;
 	case 'p':
 		UT_OUT("testing posix_memalign");

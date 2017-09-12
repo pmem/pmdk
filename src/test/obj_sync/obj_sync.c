@@ -293,23 +293,23 @@ cleanup(char test_type)
 	switch (test_type) {
 		case 'm':
 			os_mutex_destroy(&((PMEMmutex_internal *)
-				&(Test_obj->mutex))->pmemmutex.mutex);
+				&(Test_obj->mutex))->PMEMmutex_lock);
 			break;
 		case 'r':
 			os_rwlock_destroy(&((PMEMrwlock_internal *)
-				&(Test_obj->rwlock))->pmemrwlock.rwlock);
+				&(Test_obj->rwlock))->PMEMrwlock_lock);
 			break;
 		case 'c':
 			os_mutex_destroy(&((PMEMmutex_internal *)
-				&(Test_obj->mutex))->pmemmutex.mutex);
+				&(Test_obj->mutex))->PMEMmutex_lock);
 			os_cond_destroy(&((PMEMcond_internal *)
-				&(Test_obj->cond))->pmemcond.cond);
+				&(Test_obj->cond))->PMEMcond_cond);
 			break;
 		case 't':
 			os_mutex_destroy(&((PMEMmutex_internal *)
-				&(Test_obj->mutex))->pmemmutex.mutex);
+				&(Test_obj->mutex))->PMEMmutex_lock);
 			os_mutex_destroy(&((PMEMmutex_internal *)
-				&(Test_obj->mutex_locked))->pmemmutex.mutex);
+				&(Test_obj->mutex_locked))->PMEMmutex_lock);
 			break;
 		default:
 			FATAL_USAGE();

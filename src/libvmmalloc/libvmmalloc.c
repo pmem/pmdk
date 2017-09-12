@@ -50,10 +50,15 @@
  *
  * 3) Malloc hooks in glibc are overridden to prevent any references to glibc's
  *    malloc(3) functions in case the application uses dlopen with
- *    RTLD_DEEPBIND flag.
+ *    RTLD_DEEPBIND flag. (Not relevant for FreeBSD since FreeBSD supports
+ *    neither malloc hooks nor RTLD_DEEPBIND.)
  *
  * 4) If the process forks, there is no separate log file open for a new
  *    process, even if the configured log file name is terminated with "-".
+ *
+ * 5) Fork options 2 and 3 are currently not supported on FreeBSD because
+ *    locks are dynamically allocated on FreeBSD and hence they would be cloned
+ *    as part of the pool. This may be solvable.
  */
 
 #define _GNU_SOURCE
@@ -69,7 +74,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
+#ifndef __FreeBSD__
 #include <malloc.h>
+#endif
 
 #include "libvmem.h"
 #include "libvmmalloc.h"
@@ -165,7 +172,10 @@ free(void *ptr)
  * cfree -- free a block previously allocated by calloc
  *
  * the implementation is identical to free()
+ *
+ * Not supported on FreeBSD
  */
+#ifndef __FreeBSD__
 void
 cfree(void *ptr)
 {
@@ -176,11 +186,15 @@ cfree(void *ptr)
 	LOG(4, "ptr %p", ptr);
 	je_vmem_pool_free((pool_t *)((uintptr_t)Vmp + Header_size), ptr);
 }
+#endif /* #ifndef __FreeBSD__ */
 
 /*
  * memalign -- allocate a block of size bytes, starting on an address
  * that is a multiple of boundary
+ *
+ * Not supported on FreeBSD
  */
+#ifndef __FreeBSD__
 __ATTR_MALLOC__
 __ATTR_ALLOC_ALIGN__(1)
 __ATTR_ALLOC_SIZE__(2)
@@ -196,6 +210,7 @@ memalign(size_t boundary, size_t size)
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			boundary, size);
 }
+#endif /* #ifndef __FreeBSD__ */
 
 /*
  * aligned_alloc -- allocate a block of size bytes, starting on an address
@@ -268,7 +283,10 @@ valloc(size_t size)
  * pvalloc -- allocate a block of size bytes, starting on a page boundary
  *
  * Requested size is also aligned to page boundary.
+ *
+ * Not supported on FreeBSD
  */
+#ifndef __FreeBSD__
 __ATTR_MALLOC__
 __ATTR_ALLOC_SIZE__(1)
 void *
@@ -284,6 +302,7 @@ pvalloc(size_t size)
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			Pagesize, roundup(size, Pagesize));
 }
+#endif /* #ifndef __FreeBSD__ */
 
 /*
  * malloc_usable_size -- get usable size of allocation
@@ -670,6 +689,14 @@ libvmmalloc_init(void)
 					VMMALLOC_FORK_VAR, Forkopt);
 				abort();
 		}
+#ifdef __FreeBSD__
+		if (Forkopt > 1) {
+			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
+					"%s value %d not supported on FreeBSD",
+					VMMALLOC_FORK_VAR, Forkopt);
+				abort();
+		}
+#endif
 		LOG(4, "Fork action %d", Forkopt);
 	}
 

@@ -32,6 +32,9 @@
 
 /*
  * ctrld.c -- simple application which helps running tests on remote node.
+ *
+ * XXX - wait_port is not supported on FreeBSD because there are currently
+ *       no test cases that require it.
  */
 
 #include <stdio.h>
@@ -40,6 +43,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <dirent.h>
+#include <signal.h>
+#include <limits.h>
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/file.h>
@@ -49,6 +54,12 @@
 #include <stdarg.h>
 
 #include "os.h"
+
+#ifdef __FreeBSD__
+#include "signals_freebsd.h"
+#else
+#include "signals_linux.h"
+#endif
 
 #define APP_NAME "ctrld"
 #define BUFF_SIZE 4096
@@ -84,42 +95,6 @@ log_err(const char *file, int lineno, const char *fmt, ...)
 
 #define CTRLD_LOG(...) log_err(__FILE__, __LINE__, __VA_ARGS__)
 
-/* table of signal names */
-#define SIGNAL_2_STR(sig) [sig] = #sig
-static const char *signal2str[] = {
-	SIGNAL_2_STR(SIGHUP),
-	SIGNAL_2_STR(SIGINT),
-	SIGNAL_2_STR(SIGQUIT),
-	SIGNAL_2_STR(SIGILL),
-	SIGNAL_2_STR(SIGTRAP),
-	SIGNAL_2_STR(SIGABRT),
-	SIGNAL_2_STR(SIGBUS),
-	SIGNAL_2_STR(SIGFPE),
-	SIGNAL_2_STR(SIGKILL),
-	SIGNAL_2_STR(SIGUSR1),
-	SIGNAL_2_STR(SIGSEGV),
-	SIGNAL_2_STR(SIGUSR2),
-	SIGNAL_2_STR(SIGPIPE),
-	SIGNAL_2_STR(SIGALRM),
-	SIGNAL_2_STR(SIGTERM),
-	SIGNAL_2_STR(SIGSTKFLT),
-	SIGNAL_2_STR(SIGCHLD),
-	SIGNAL_2_STR(SIGCONT),
-	SIGNAL_2_STR(SIGSTOP),
-	SIGNAL_2_STR(SIGTSTP),
-	SIGNAL_2_STR(SIGTTIN),
-	SIGNAL_2_STR(SIGTTOU),
-	SIGNAL_2_STR(SIGURG),
-	SIGNAL_2_STR(SIGXCPU),
-	SIGNAL_2_STR(SIGXFSZ),
-	SIGNAL_2_STR(SIGVTALRM),
-	SIGNAL_2_STR(SIGPROF),
-	SIGNAL_2_STR(SIGWINCH),
-	SIGNAL_2_STR(SIGPOLL),
-	SIGNAL_2_STR(SIGPWR),
-	SIGNAL_2_STR(SIGSYS)
-};
-
 struct inode_item {
 	LIST_ENTRY(inode_item) next;
 	unsigned long inode;
@@ -143,8 +118,10 @@ usage(void)
 			"run specified command with given timeout");
 	CTRLD_LOG("  wait [<timeout>]                     -- "
 			"wait for command");
+#ifndef __FreeBSD_
 	CTRLD_LOG("  wait_port <port>                     -- "
 			"wait until a port is opened");
+#endif
 	CTRLD_LOG("  kill <signal>                        -- "
 			"send a signal to command");
 	exit(EXIT_FAILURE);
@@ -385,6 +362,7 @@ out:
 	return ret;
 }
 
+#ifndef __FreeBSD__	/* XXX wait_port support */
 /*
  * contains_inode -- check if list contains specified inode
  */
@@ -609,6 +587,7 @@ err:
 	fclose(fh);
 	return -1;
 }
+#endif	/* __FreeBSD__ wait_port support */
 
 /*
  * convert_signal_name -- convert a signal name to a signal number
@@ -616,7 +595,7 @@ err:
 static int
 convert_signal_name(const char *signal_name)
 {
-	for (int sig = SIGHUP; sig <= SIGSYS; sig++)
+	for (int sig = SIGHUP; sig <= SIGNALMAX; sig++)
 		if (strcmp(signal_name, signal2str[sig]) == 0)
 			return sig;
 	return -1;
@@ -754,6 +733,7 @@ main(int argc, char *argv[])
 
 		CTRLD_LOG("kill %s %s", pid_file, argv[3]);
 		ret = do_kill(pid_file, signo);
+#ifndef __FreeBSD__
 	} else if (strcmp(cmd, "wait_port") == 0) {
 		if (argc != 4)
 			usage();
@@ -762,6 +742,7 @@ main(int argc, char *argv[])
 
 		CTRLD_LOG("wait_port %s %u", pid_file, port);
 		ret = do_wait_port(pid_file, port);
+#endif
 	} else {
 		usage();
 	}

@@ -233,8 +233,9 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
 	unsigned char *arch_flags);
 
-void util_remote_init(void);
-void util_remote_fini(void);
+int util_remote_init(void);
+int util_remote_fini(void);
+int util_remote_available(void);
 
 int util_update_remote_header(struct pool_set *set, unsigned repn);
 void util_remote_init_lock(void);

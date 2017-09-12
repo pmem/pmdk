@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/vmmalloc_fork/TEST2 -- unit test for libvmmalloc fork() support
+# src/test/vmmalloc_init/TEST19 -- unit test for vmmalloc_init
 #
-export UNITTEST_NAME=vmmalloc_fork/TEST2
-export UNITTEST_NUM=2
+export UNITTEST_NAME=vmmalloc_init/TEST19
+export UNITTEST_NUM=19
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -44,22 +44,25 @@ require_test_type medium
 
 require_fs_type any
 # there's no point in testing statically linked builds
-require_build_type debug nondebug
+require_build_type nondebug
 require_no_asan
-
-# Must be defined before require_preload
-export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
-export VMMALLOC_LOG_LEVEL=3
-export VMMALLOC_FORK=2
-export TEST_LD_PRELOAD=libvmmalloc.so
-require_preload "VMMALLOC_FORK value 2" ./vmmalloc_fork x x t
 
 setup
 
-# this test is leaky by design
-export MEMCHECK_DONT_CHECK_LEAKS=1
+export VMMALLOC_FORK=2
+export TEST_LD_PRELOAD=libvmmalloc.so
 
-expect_normal_exit ./vmmalloc_fork$EXESUFFIX c 4 2
+<<<<<<< HEAD
+if [ "$(uname -s)" == "FreeBSD" ]; then
+=======
+if [ "$OSTYPE" == "FreeBSD" ]; then
+>>>>>>> 8b969ecb... common: FreeBSD port
+expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
+$GREP 'Error (libvmmalloc)' stderr$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+rm -f ./vmmalloc_init$EXESUFFIX.core
+else
+expect_normal_exit ./vmmalloc_init$EXESUFFIX > grep$UNITTEST_NUM.log
+fi
 
 check
 

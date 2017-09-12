@@ -65,7 +65,7 @@ a pull request.  The NVM Library project uses the common
 The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
-#### Linux
+#### Linux/FreeBSD
 
 Before contributing please remember to run:
 ```

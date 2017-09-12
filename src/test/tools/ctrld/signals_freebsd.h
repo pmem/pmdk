@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,75 +31,48 @@
  */
 
 /*
- * vmmalloc_valloc.c -- unit test for libvmmalloc valloc/pvalloc
- *
- * usage: vmmalloc_valloc [v|p]
+ * signals_fbsd.h - Signal definitions for FreeBSD
  */
+#ifndef _SIGNALS_FBSD_H
+#define _SIGNALS_FBSD_H 1
 
-#include <sys/param.h>
-#include <libvmmalloc.h>
-#include "unittest.h"
+#define SIGNAL_2_STR(sig) [sig] = #sig
 
-static void *(*Valloc)(size_t size);
+static const char *signal2str[] = {
+	SIGNAL_2_STR(SIGHUP),	/*  1 */
+	SIGNAL_2_STR(SIGINT),	/*  2 */
+	SIGNAL_2_STR(SIGQUIT),	/*  3 */
+	SIGNAL_2_STR(SIGILL),	/*  4 */
+	SIGNAL_2_STR(SIGTRAP),	/*  5 */
+	SIGNAL_2_STR(SIGABRT),	/*  6 */
+	SIGNAL_2_STR(SIGEMT),	/*  7 */
+	SIGNAL_2_STR(SIGFPE),	/*  8 */
+	SIGNAL_2_STR(SIGKILL),	/*  9 */
+	SIGNAL_2_STR(SIGBUS),	/* 10 */
+	SIGNAL_2_STR(SIGSEGV),	/* 11 */
+	SIGNAL_2_STR(SIGSYS),	/* 12 */
+	SIGNAL_2_STR(SIGPIPE),	/* 13 */
+	SIGNAL_2_STR(SIGALRM),	/* 14 */
+	SIGNAL_2_STR(SIGTERM),	/* 15 */
+	SIGNAL_2_STR(SIGURG),	/* 16 */
+	SIGNAL_2_STR(SIGSTOP),	/* 17 */
+	SIGNAL_2_STR(SIGTSTP),	/* 18 */
+	SIGNAL_2_STR(SIGCONT),	/* 19 */
+	SIGNAL_2_STR(SIGCHLD),	/* 20 */
+	SIGNAL_2_STR(SIGTTIN),	/* 21 */
+	SIGNAL_2_STR(SIGTTOU),	/* 22 */
+	SIGNAL_2_STR(SIGIO),	/* 23 */
+	SIGNAL_2_STR(SIGXCPU),	/* 24 */
+	SIGNAL_2_STR(SIGXFSZ),	/* 25 */
+	SIGNAL_2_STR(SIGVTALRM), /* 26 */
+	SIGNAL_2_STR(SIGPROF),	/* 27 */
+	SIGNAL_2_STR(SIGWINCH),	/* 28 */
+	SIGNAL_2_STR(SIGINFO),	/* 29 */
+	SIGNAL_2_STR(SIGUSR1),	/* 30 */
+	SIGNAL_2_STR(SIGUSR2),	/* 31 */
+	SIGNAL_2_STR(SIGTHR),	/* 32 */
+	SIGNAL_2_STR(SIGLIBRT)	/* 33 */
+};
+#define SIGNALMAX SIGLIBRT
 
-int
-main(int argc, char *argv[])
-{
-	const int test_value = 123456;
-	size_t pagesize = sysconf(_SC_PAGESIZE);
-	size_t min_size = sizeof(int);
-	size_t max_size = 4 * pagesize;
-	size_t size;
-	int *ptr;
-
-	START(argc, argv, "vmmalloc_valloc");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s [v|p]", argv[0]);
-
-	switch (argv[1][0]) {
-	case 'v':
-		UT_OUT("testing valloc");
-		Valloc = valloc;
-		break;
-	case 'p':
-#ifdef __FreeBSD__
-		UT_OUT("pvalloc not supported on FreeBSD");
-		DONE(NULL);
-#else
-		UT_OUT("testing pvalloc");
-		Valloc = pvalloc;
 #endif
-		break;
-	default:
-		UT_FATAL("usage: %s [v|p]", argv[0]);
-	}
-
-	for (size = min_size; size < max_size; size *= 2) {
-		ptr = Valloc(size);
-
-		/* at least one allocation must succeed */
-		UT_ASSERT(ptr != NULL);
-		if (ptr == NULL)
-			break;
-
-		/* ptr should be usable */
-		*ptr = test_value;
-		UT_ASSERTeq(*ptr, test_value);
-
-		/* check for correct address alignment */
-		UT_ASSERTeq((uintptr_t)(ptr) & (pagesize - 1), 0);
-
-#ifndef __FreeBSD__
-		if (Valloc == pvalloc) {
-			/* check for correct allocation size */
-			size_t usable = malloc_usable_size(ptr);
-			UT_ASSERTeq(usable, roundup(size, pagesize));
-		}
-#endif
-
-		free(ptr);
-	}
-
-	DONE(NULL);
-}

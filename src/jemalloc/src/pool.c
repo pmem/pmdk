@@ -12,7 +12,14 @@ bool pool_new(pool_t *pool, unsigned pool_id)
 	if (malloc_mutex_init(&pool->memory_range_mtx))
 		return (true);
 
-	if (malloc_rwlock_init(&pool->arenas_lock))
+	/*
+	 * Rwlock initialization must be deferred if we are
+	 * creating the base pool in the JEMALLOC_LAZY_LOCK case.
+	 * This is safe because the lock won't be used until
+	 * isthreaded has been set.
+	 */
+	if ((isthreaded || (pool != &base_pool))
+		&& malloc_rwlock_init(&pool->arenas_lock))
 		return (true);
 
 	if (base_boot(pool))

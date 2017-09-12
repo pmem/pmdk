@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMMALLOC!3
+title: _MP(LIBVMMALLOC, 3)
 header: NVM Library
 date: vmmalloc API version 1.0
 ...
@@ -61,7 +61,7 @@ or
 
 ```c
 #include <stdlib.h>
-#include <malloc.h>
+#include _BSDWX(<malloc_np.h>,<malloc.h>)
 #include <libvmmalloc.h>
 
 cc [ flag... ] file... -lvmmalloc [ library... ]
@@ -75,12 +75,12 @@ void free(void *ptr);
 void *calloc(size_t number, size_t size);
 void *realloc(void *ptr, size_t size);
 int posix_memalign(void **memptr, size_t alignment, size_t size);
-void *aligned_alloc(size_t alignment, size_t size);
-void *memalign(size_t alignment, size_t size);
-void *valloc(size_t size);
-void *pvalloc(size_t size);
-size_t malloc_usable_size(const void *ptr);
-void cfree(void *ptr);
+void *aligned_alloc(size_t alignment, size_t size);_BSDWX(,
+void *memalign(size_t alignment, size_t size);)
+void *valloc(size_t size);_BSDWX(,
+void *pvalloc(size_t size);)
+size_t malloc_usable_size(const void *ptr);_BSDWX(,
+void cfree(void *ptr);)
 ```
 
 
@@ -157,6 +157,7 @@ In case of large memory pools, creating a copy of the pool file may stall the fo
 + **3** - The library first attempts to create a copy of the memory pool (as for option #2), but if it fails (i.e. because of insufficient amount of free space
 on the file system), it will fall back to option #1.
 
+>NOTE: Options **2** and **3** are not currently supported on FreeBSD.
 
 # CAVEATS #
 
@@ -171,7 +172,7 @@ resources associated with that thread might not be cleaned up properly.
 Two versions of **libvmmalloc** are typically available on a development system. The normal version is optimized for performance. That version skips checks
 that impact performance and never logs any trace information or performs any run-time assertions. A second version, accessed when using the libraries under
 **/usr/lib/nvml_debug**, contains run-time assertions and trace points. The typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on where the debug libraries are installed on the system. The trace points
+**LD_LIBRARY_PATH** to **/usr/local/lib/nvml_debug**, **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on where the debug libraries are installed on the system. The trace points
 in the debug version of the library are enabled using the environment variable **VMMALLOC_LOG_LEVEL** which can be set to the following values:
 
 + **0** - Tracing is disabled. This is the default level when **VMMALLOC_LOG_LEVEL** is not set.
@@ -203,7 +204,7 @@ attempts to grow or shrink that memory pool.
 
 # BUGS #
 
-**libvmmalloc** may not work properly with the programs that perform **fork**(3) and do not call **exec**(3) immediately afterwards. See **ENVIRONMENT**
+**libvmmalloc** may not work properly with programs that perform **fork**(3) and do not call **exec**(3) immediately afterwards. See **ENVIRONMENT**
 section for more details about the experimental **fork**() support.
 
 If the trace points in the debug version of the library are enabled and the process performs fork, there is no new log file created for the child process, even

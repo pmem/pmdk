@@ -15,10 +15,10 @@ $(OPT)==$(N)==    by 0x$(X): vmem_malloc (vmem.c:$(N))
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
-==$(N)==     in use at exit: 9,807,424 bytes in 8 blocks
+==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
 ==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
 ==$(N)== 
-==$(N)== 9,807,424 bytes in 8 blocks are definitely lost in loss record 1 of 1
+==$(N)== 9,807,424 bytes in 8 blocks are definitely lost in loss record $(N) of $(N)
 ==$(N)==    at 0x$(X): je_vmem_pool_malloc $(*)
 $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    by 0x$(X): do_alloc (vmem_valgrind_region.c:$(N))
@@ -29,7 +29,7 @@ $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    indirectly lost: 0 bytes in 0 blocks
 ==$(N)==      possibly lost: 0 bytes in 0 blocks
 ==$(N)==    still reachable: 0 bytes in 0 blocks
-==$(N)==         suppressed: $(N) bytes in $(N) blocks
+==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 ==$(N)== 
 ==$(N)== For counts of detected and suppressed errors, rerun with: -v
 $(OPT)==$(N)== Use --track-origins=yes to see where uninitialised values come from

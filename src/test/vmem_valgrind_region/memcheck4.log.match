@@ -4,14 +4,26 @@
 ==$(N)== Command:$(*)
 ==$(N)== Parent PID: $(N)
 ==$(N)== 
-==$(N)== Use of uninitialised value of size 8
-==$(N)==    at 0x$(X): _itoa_word $(*)
-==$(N)==    by 0x$(X): vfprintf $(*)
-==$(N)==    by 0x$(X): vsnprintf $(*)
+$(OPT)==$(N)== Use of uninitialised value of size 8
+$(OPX)==$(N)== Syscall param write(buf) points to uninitialised byte(s)
+$(OPT)==$(N)==    at 0x$(X): _itoa_word $(*)
+$(OPX)==$(N)==    at 0x$(X): _write $(*)
+$(OPT)==$(N)==    by 0x$(X): vfprintf $(*)
+$(OPX)==$(N)==    by 0x$(X): $(*) (in /lib/libc.so.$(N))
+$(OPT)==$(N)==    by 0x$(X): vsnprintf $(*)
+$(OPX)==$(N)==    by 0x$(X): $(*) (in /lib/libc.so.$(N))
+$(OPT)==$(N)==    by 0x$(X): $(*) (in /lib/libc.so.$(N))
+$(OPT)==$(N)==    by 0x$(X): fputs $(*)
 ==$(N)==    by 0x$(X): vout (ut.c:$(N))
 ==$(N)==    by 0x$(X): ut_out (ut.c:$(N))
 ==$(N)==    by 0x$(X): do_iterate (vmem_valgrind_region.c:$(N))
 ==$(N)==    by 0x$(X): main (vmem_valgrind_region.c:$(N))
+$(OPT)==$(N)==  Address 0x$(X) is 54 bytes inside a block of size 131,072 alloc'd
+$(OPT)==$(N)==    at 0x$(X): malloc (vg_replace_malloc.c:$(N))
+$(OPT)==$(N)==    by 0x$(X): setvbuf (in /lib/libc.so.$(N))
+$(OPT)==$(N)==    by 0x$(X): ut_start_common (ut.c:$(N))
+$(OPT)==$(N)==    by 0x$(X): ut_start (ut.c:$(N))
+$(OPT)==$(N)==    by 0x$(X): main (vmem_valgrind_region.c:$(N))
 ==$(N)== 
 ==$(N)== Invalid read of size 8
 ==$(N)==    at 0x$(X): do_iterate (vmem_valgrind_region.c:$(N))
@@ -24,10 +36,10 @@ $(OPT)==$(N)==    by 0x$(X): vmem_malloc (vmem.c:$(N))
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
-==$(N)==     in use at exit: 9,807,424 bytes in 8 blocks
+==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
 ==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
 ==$(N)== 
-==$(N)== 9,807,424 bytes in 8 blocks are definitely lost in loss record 1 of 1
+==$(N)== 9,807,424 bytes in 8 blocks are definitely lost in loss record $(N) of $(N)
 ==$(N)==    at 0x$(X): je_vmem_pool_malloc $(*)
 $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    by 0x$(X): do_alloc (vmem_valgrind_region.c:$(N))
@@ -38,7 +50,7 @@ $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    indirectly lost: 0 bytes in 0 blocks
 ==$(N)==      possibly lost: 0 bytes in 0 blocks
 ==$(N)==    still reachable: 0 bytes in 0 blocks
-==$(N)==         suppressed: $(N) bytes in $(N) blocks
+==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 ==$(N)== 
 ==$(N)== For counts of detected and suppressed errors, rerun with: -v
 $(OPT)==$(N)== Use --track-origins=yes to see where uninitialised values come from

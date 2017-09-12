@@ -20,9 +20,9 @@ This tree contains a collection of libraries for using Non-Volatile Memory
 
 * **libpmem** -- basic pmem operations like flushing
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
-* **libvmem**, **libvmmalloc** -- volatile use of pmem
+* **libvmem**, **libvmmalloc**<sup>1</sup> -- volatile use of pmem
 * **libpmempool** -- persistent memory pool management
-* **librpmem** -- remote access to persistent memory (EXPERIMENTAL)
+* **librpmem**<sup>1</sup> -- remote access to persistent memory (EXPERIMENTAL)
 
 and one command-line utility:
 
@@ -32,11 +32,14 @@ These libraries and utilities are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,
 and tutorials.
 
-**Currently, these libraries only work on 64-bit Linux and Windows.**
+**Currently, these libraries only work on 64-bit Linux, Windows**<sup>2</sup>
+**and 64-bit FreeBSD 11+**<sup>3</sup>.
 
->**NOTE: NVML for Windows is feature complete, but not yet considered production quality.**
+><sup>1</sup> Not supported on Windows.
 >
->The Windows port does not include _libvmmalloc_ and _librpmem_ libraries.
+><sup>2</sup> NVML for Windows is feature complete, but not yet considered production quality.
+>
+><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time NVML is available as a technical preview release for development purposes.
 
 ### Pre-Built Packages ###
 
@@ -61,6 +64,7 @@ The source tree is organized as follows:
 * **src/include** -- public header files for all the libraries
 * **src/benchmarks** -- benchmarks used by development team
 * **src/examples** -- brief example programs using these libraries
+* **src/freebsd** -- FreeBSD-specific header files
 * **src/test** -- unit tests used by development team
 * **src/tools** -- various tools developed for NVML
 * **src/windows** -- Windows-specific source and header files
@@ -82,6 +86,16 @@ On Windows, to build NVML and run the tests you need:
 * **PowerShell 5**
 
 
+To build and test this library on FreeBSD, you may need to install the following
+required packages on the build system:
+
+* **autoconf**
+* **bash**
+* **coreutils**
+* **gmake**
+* **ncurses**<sup>4</sup>
+* **pkgconf**
+
 Some tests and example applications require additional packages, but they
 do not interrupt building if they are missing. An appropriate message is
 displayed instead. For details please read the **DEPENDENCIES** section
@@ -92,8 +106,9 @@ See our [Dockerfiles](https://github.com/pmem/nvml/blob/master/utils/docker/imag
 to get an idea what packages are required to build on the _Travis-CI_
 system.
 
+><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
-#### Building NVML on Linux ####
+#### Building NVML on Linux or FreeBSD ####
 
 To build the latest development version, just clone this tree and build
 the master branch:
@@ -103,7 +118,7 @@ the master branch:
 ```
 
 Once the build system is setup, the NVM Library is built using
-this command at the top level:
+the `make`<sup>5</sup> command at the top level:
 ```
 	$ make
 ```
@@ -116,7 +131,7 @@ compiler, you have to provide the `CC` and `CXX` variables. For example:
 
 These variables are independent and setting `CC=clang` does not set `CXX=clang++`.
 
-Once the make completes (*), all the libraries are built and the examples
+Once the make completes,<sup>6</sup> all the libraries are built and the examples
 under `src/examples` are built as well.  You can play with the library
 within the build tree, or install it locally on your machine.  Installing
 the library is more convenient since it installs man pages and libraries
@@ -145,7 +160,7 @@ generate the documentation separately, run:
 ```
 	$ make doc
 ```
-**DEPENDENCIES:** pandoc
+**DEPENDENCIES:** doxygen, graphviz, pandoc<sup>7</sup>
 
 To install a complete copy of the source tree to $(DESTDIR)/nvml:
 ```
@@ -174,17 +189,21 @@ If you want to build packages without running tests, run:
 ```
 **DEPENDENCIES:** devscripts
 
-(*) By default all code is built with -Werror flag which fails the whole build
-when compiler emits any warning. It's very useful during development, but can be
-annoying in deployment. If you want to disable -Werror, you can use EXTRA_CFLAGS
-variable:
+><sup>5</sup> For FreeBSD, use `gmake` rather than `make`.
+>
+><sup>6</sup> By default all code is built with the -Werror flag, which fails
+the whole build when the compiler emits any warning. This is very useful during
+development, but can be annoying in deployment. If you want to disable -Werror,
+use the EXTRA_CFLAGS variable:
 ```
 	$ make EXTRA_CFLAGS="-Wno-error"
 ```
-or
+>or
 ```
 	$ make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
 ```
+>
+><sup>7</sup>Pandoc is provided by the **hs-pandoc** package on FreeBSD.
 
 #### Testing the Libraries ####
 
@@ -211,18 +230,20 @@ This will set the timeout to 1 minute.
 Please refer to the **src/test/README** for more details on how to
 run different types of tests.
 
-To compile this library with enabled support for the PM-aware version
-of [Valgrind](https://github.com/pmem/valgrind), supply the compiler
-with the **USE_VG_PMEMCHECK** flag, for example:
+The libraries support standard Valgrind drd, helgrind and memcheck, as well as
+a PM-aware version of [Valgrind](https://github.com/pmem/valgrind)<sup>8</sup>.
+To test the libraries with Valgrind, supply the compiler with the **USE_VG_\<TOOL\>** flag, for example:
 ```
 	$ make EXTRA_CFLAGS=-DUSE_VG_PMEMCHECK
 ```
-For Valgrind memcheck support, supply **USE_VG_MEMCHECK** flag.
-**USE_VALGRIND** flag enables both.
 
-To test the libraries with AddressSanitizer and UndefinedBehaviorSanitizer, run:
+The **USE_VALGRIND** flag enables all Valgrind tools (drd, helgrind, memcheck and pmemcheck).
+
+The **SANITIZE** flag allows the libraries to be tested with various
+sanitizers<sup>9</sup>. For example, to test the libraries with AddressSanitizer
+and UndefinedBehaviorSanitizer, run:
 ```
-	$ make EXTRA_CFLAGS="-fsanitize=address,undefined" EXTRA_LDFLAGS="-fsanitize=address,undefined" clobber all test check
+	$ make SANITIZE=address,undefined clobber check
 ```
 
 If you wish to run C++ standard library containers tests, you need to set the
@@ -241,6 +262,10 @@ For example, when using a custom version of libc++(version 3.9) installed to /us
 ```
 	$ CC=clang CXX=clang++ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 LIBCPP_LIBDIR=/usr/local/libcxx/lib check
 ```
+
+><sup>8</sup> PM-aware Valgrind is not yet available for FreeBSD.
+>
+><sup>9</sup> The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.
 
 #### Building NVML on Windows ####
 

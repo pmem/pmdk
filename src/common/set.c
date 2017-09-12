@@ -97,25 +97,42 @@ int Prefault_at_create = 0;
 /*
  * util_remote_init -- initialize remote replication
  */
-void
+int
 util_remote_init(void)
 {
 	LOG(3, NULL);
+	if (Remote_replication_available)
+		return -1;
 
 	util_mutex_init(&Remote_lock);
 	Remote_replication_available = 1;
+
+	return 0;
 }
 
 /*
  * util_remote_fini -- finalize remote replication
  */
-void
+int
 util_remote_fini(void)
 {
 	LOG(3, NULL);
+	if (!Remote_replication_available)
+		return -1;
 
 	Remote_replication_available = 0;
 	util_mutex_destroy(&Remote_lock);
+
+	return 0;
+}
+
+/*
+ * util_remote_available -- return remote replication state
+ */
+int
+util_remote_available(void)
+{
+	return Remote_replication_available;
 }
 
 /*
@@ -351,7 +368,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
 		/* this is required only for Device DAX & memcheck */
-		addr = util_map_hint(hdrsize, hdrsize);
+		addr = util_map_hint(hdrsize, hdrsize, NULL);
 		if (addr == MAP_FAILED) {
 			ERR("canot find a contiguous region of given size");
 			/* there's nothing we can do */
@@ -604,6 +621,13 @@ util_poolset_close(struct pool_set *set, enum del_parts_mode del)
 	if (set->remote)
 		util_remote_unload();
 
+	/*
+	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
+	 *     reference count, so we had to keep the files open until now.
+	 */
+#ifdef __FreeBSD__
+	util_poolset_fdclose(set);
+#endif
 	util_poolset_free(set);
 
 	errno = oerrno;
@@ -1500,7 +1524,7 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	 * The librpmem client requires fork() support to work correctly.
 	 */
 	if (set->replica[0]->part[0].is_dev_dax) {
-		int ret = madvise(set->replica[0]->part[0].addr,
+		int ret = MADVISE(set->replica[0]->part[0].addr,
 				set->replica[0]->part[0].filesize,
 				MADV_DONTFORK);
 		if (ret) {
@@ -1672,7 +1696,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+		"compat %#x incompat %#x ro_compat %#x "
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, partidx, sig, major, compat, incompat,
 		ro_compat, prev_repl_uuid, next_repl_uuid, arch_flags);
@@ -1983,7 +2007,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		addr = util_map_hint(rep->repsize, 0, NULL);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
@@ -2266,7 +2290,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	unsigned *nlanes, int can_have_rep, int remote, struct pool_attr *pattr)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu minpartsize %zu "
-		"sig %.8s major %u compat %#x incompat %#x ro_comapt %#x "
+		"sig %.8s major %u compat %#x incompat %#x ro_compat %#x "
 		"nlanes %p can_have_rep %i remote %i pattr %p",
 		setp, path, poolsize, minsize, minpartsize,
 		sig, major, compat, incompat, ro_compat,
@@ -2474,7 +2498,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		retry_for_contiguous_addr = 0;
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		addr = util_map_hint(rep->repsize, 0, NULL);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;

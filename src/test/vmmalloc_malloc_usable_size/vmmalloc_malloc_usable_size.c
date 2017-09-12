@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,11 @@
  * usage: vmmalloc_malloc_usable_size
  */
 
+#ifdef __FreeBSD__
+#include <malloc_np.h>
+#else
 #include <malloc.h>
+#endif
 #include "unittest.h"
 
 static const struct {

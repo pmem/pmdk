@@ -62,6 +62,8 @@ typedef struct {
 	CONDITION_VARIABLE cond;
 } internal_os_cond_t;
 
+typedef long long internal_os_once_t;
+
 typedef struct {
 	HANDLE handle;
 } internal_semaphore_t;
@@ -397,19 +399,20 @@ os_cond_wait(os_cond_t *__restrict cond,
 int
 os_once(os_once_t *once, void (*func)(void))
 {
-	os_once_t tmp;
+	internal_os_once_t *once_internal = (internal_os_once_t *)once;
+	internal_os_once_t tmp;
 
-	while ((tmp = *once) != 2) {
+	while ((tmp = *once_internal) != 2) {
 		if (tmp == 1)
 			continue; /* another thread is already calling func() */
 
 		/* try to be the first one... */
-		if (!util_bool_compare_and_swap64(once, tmp, 1))
+		if (!util_bool_compare_and_swap64(once_internal, tmp, 1))
 			continue; /* sorry, another thread was faster */
 
 		func();
 
-		if (!util_bool_compare_and_swap64(once, 1, 2)) {
+		if (!util_bool_compare_and_swap64(once_internal, 1, 2)) {
 			ERR("error setting once");
 			return -1;
 		}

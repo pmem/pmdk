@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMOBJ!3
+title: _MP(LIBPMEMOBJ, 3)
 header: NVM Library
 date: pmemobj API version 2.2
 ...
@@ -73,29 +73,17 @@ date: pmemobj API version 2.2
 cc -std=gnu99 ... -lpmemobj -lpmem
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
+_WINUX(
+_q_>NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
 basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+otherwise they are expanded to UNICODE API with postfix *W*._e_)
 
 ##### Most commonly used functions: #####
 
 ```c
-!ifdef{WIN32}
-{
-PMEMobjpool *pmemobj_openU(const char *path, const char *layout);
-PMEMobjpool *pmemobj_openW(const wchar_t *path, const wchar_t *layout);
-PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
-	size_t poolsize, mode_t mode);
-}{
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
-PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-}
+_UWFUNCR1(PMEMobjpool, *pmemobj_open, *path, const char *layout)
+_UWFUNCR1(PMEMobjpool, *pmemobj_create, *path, _q_const char *layout,
+	size_t poolsize, mode_t mode_e_)
 void pmemobj_close(PMEMobjpool *pop);
 ```
 
@@ -377,19 +365,9 @@ TX_MEMSET(void *dest, int c, size_t num)
 ##### Library API versioning: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemobj_check_versionU(
+_UWFUNC(pmemobj_check_version, _q_
 	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmemobj_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmemobj_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
+	unsigned minor_required_e_)
 ```
 
 ##### Managing library behavior: #####
@@ -401,40 +379,22 @@ void pmemobj_set_funcs(
 	void *(*realloc_func)(void *ptr, size_t size),
 	char *(*strdup_func)(const char *s));
 
-!ifdef{WIN32}
-{
-int pmemobj_checkU(const char *path, const char *layout);
-int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
-}{
-int pmemobj_check(const char *path, const char *layout);
-}
+_UWFUNCR1(int, pmemobj_check, *path, const char *layout)
 ```
 
 ##### Error handling: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemobj_errormsgU(void);
-const wchar_t *pmemobj_errormsgW(void);
-}{
-const char *pmemobj_errormsg(void);
-}
+_UWFUNC(pmemobj_errormsg, void)
 ```
 
 ##### Control and statistics: #####
 
 ```c
-!ifdef{WIN32}
-{
-int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-}{
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-}
+_UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
+	_q_ (EXPERIMENTAL)_e_)
+_UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
+	_q_ (EXPERIMENTAL)_e_)
 ```
 
 # DESCRIPTION #
@@ -446,8 +406,8 @@ Memory mapping a file from this type of file system results in the load/store, n
 file.
 
 This library is for applications that need a transactions and persistent memory management.
-!ifndef{WIN32}
-{The **libpmemobj** requires a **-std=gnu99** compilation flag to build properly.}
+_WINUX(,
+_q_The **libpmemobj** requires a **-std=gnu99** compilation flag to build properly._e_)
 This library builds on the low-level pmem support provided by **libpmem**, handling the transactional updates, flushing changes to persistence,
 and recovery for the application.
 
@@ -465,7 +425,7 @@ information, when enabled, as described under **DEBUGGING AND ERROR HANDLING** b
 
 # MOST COMMONLY USED FUNCTIONS #
 
-To use the pmem-resident transactional object store provided by **libpmemobj**, a *memory pool* is first created. This is done with the !pmemobj_create
+To use the pmem-resident transactional object store provided by **libpmemobj**, a *memory pool* is first created. This is done with the _UW(pmemobj_create)
 function described in this section. The other functions described in this section then operate on the resulting memory pool.
 
 Additionally, none of the three functions described below are thread-safe with
@@ -478,50 +438,37 @@ be persistent memory or a regular file (see the **pmem_is_pmem**() function in *
 changes directly when using the obj memory API provided by **libpmemobj**.
 
 ```c
-!ifdef{WIN32}
-{
-PMEMobjpool *pmemobj_openU(const char *path, const char *layout);
-PMEMobjpool *pmemobj_openW(const wchar_t *path, const wchar_t *layout);
-}{
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
-}
+_UWFUNCR1(PMEMobjpool, *pmemobj_open, *path, const char *layout)
 ```
 
-The !pmemobj_open function opens an existing object store memory pool, returning a memory pool handle used with most of the functions in this section.
-*path* must be an existing file containing a pmemobj memory pool as created by !pmemobj_create. If *layout* is non-NULL, it is compared to the layout
-name provided to !pmemobj_create when the pool was first created. This can be used to verify the layout of the pool matches what was expected. The
+The _UW(pmemobj_open) function opens an existing object store memory pool, returning a memory pool handle used with most of the functions in this section.
+*path* must be an existing file containing a pmemobj memory pool as created by _UW(pmemobj_create). If *layout* is non-NULL, it is compared to the layout
+name provided to _UW(pmemobj_create) when the pool was first created. This can be used to verify the layout of the pool matches what was expected. The
 application must have permission to open the file and memory map it with read/write permissions. If an error prevents the pool from being opened, or if the
-given *layout* does not match the pool's layout, !pmemobj_open returns NULL and sets *errno* appropriately.
+given *layout* does not match the pool's layout, _UW(pmemobj_open) returns NULL and sets *errno* appropriately.
 
 ```c
-!ifdef{WIN32}
-{
-PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
-	size_t poolsize, mode_t mode);
-}{
-PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-}
+_UWFUNCR1(PMEMobjpool, *pmemobj_create, *path, _q_const char *layout,
+	size_t poolsize, mode_t mode_e_)
 ```
 
-The !pmemobj_create function creates a transactional object store with the given total *poolsize*. *path* specifies the name of the memory pool file to be
+The _UW(pmemobj_create) function creates a transactional object store with the given total *poolsize*. *path* specifies the name of the memory pool file to be
 created. *layout* specifies the application's layout type in the form of a string. The layout name is not interpreted by **libpmemobj**, but may be used as a
-check when !pmemobj_open is called. The layout name, including the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
+check when _UW(pmemobj_open) is called. The layout name, including the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
 **\<libpmemobj.h\>**. It is allowed to pass NULL as *layout*, which is equivalent for using an empty string as a layout name. *mode* specifies the permissions to
 use when creating the file as described by **creat**(2). The memory pool file is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
-caller may choose to take responsibility for creating the memory pool file by creating it before calling !pmemobj_create and then specifying *poolsize* as
-zero. In this case !pmemobj_create will take the pool size from the size of the existing file and will verify that the file appears to be empty by
-searching for any non-zero data in the pool header at the beginning of the file. The minimum net pool size allowed by the library for a local transactional object store is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
-!ifndef{WIN32}{For remote replicas the minimum file size is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.}
+caller may choose to take responsibility for creating the memory pool file by creating it before calling _UW(pmemobj_create) and then specifying *poolsize* as
+zero. In this case _UW(pmemobj_create) will take the pool size from the size of the existing file and will verify that the file appears to be empty by
+searching for any non-zero data in the pool header at the beginning of the file. The minimum net pool size allowed by the library for a local transactional object store
+is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
+_WINUX(,For remote replicas the minimum file size is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.)
 
 ```c
 void pmemobj_close(PMEMobjpool *pop);
 ```
 
 The **pmemobj_close**() function closes the memory pool indicated by *pop* and deletes the memory pool handle. The object store itself lives on in the file
-that contains it and may be re-opened at a later time using !pmemobj_open as described above.
+that contains it and may be re-opened at a later time using _UW(pmemobj_open) as described above.
 
 
 # LOW-LEVEL MEMORY MANIPULATION #
@@ -599,28 +546,28 @@ object stores spanning multiple memory devices by creation of persistent memory 
 stored on different pmem-aware filesystem.
 
 To improve reliability and eliminate the single point of failure, all the changes of the data stored in the persistent memory pool could be also automatically
-written to local !ifndef{WIN32}{or remote} pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
+written to local _WINUX(,or remote) pool replicas, thereby providing a backup for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
 replicas may be considered as binary copies of the "master" pool set.
 
-Creation of all the parts of the pool set and the associated replica sets can be done with the !pmemobj_create function or by using the **pmempool**(1)
+Creation of all the parts of the pool set and the associated replica sets can be done with the _UW(pmemobj_create) function or by using the **pmempool**(1)
 utility.
 
-Restoring data from a local !ifndef{WIN32}{or remote} replica can be done by using the
-**pmempool-sync**(1) command or !pmempool_sync API from the
+Restoring data from a local _WINUX(,or remote) replica can be done by using the
+**pmempool-sync**(1) command or _UW(pmempool_sync) API from the
 **libpmempool**(3) library.
 
 Modifications of a pool set file configuration can be done by using the
-**pmempool-transform**(1) command or !pmempool_transform API from the
+**pmempool-transform**(1) command or _UW(pmempool_transform) API from the
 **libpmempool**(3) library.
 
-When creating the pool set consisting of multiple files, or when creating the replicated pool set, the *path* argument passed to !pmemobj_create must
+When creating the pool set consisting of multiple files, or when creating the replicated pool set, the *path* argument passed to _UW(pmemobj_create) must
 point to the special *set* file that defines the pool layout and the location of all the parts of the pool set. The *poolsize* argument must be 0. The meaning
 of *layout* and *mode* arguments doesn't change, except that the same *mode* is used for creation of all the parts of the pool set and replicas. If the error
-prevents any of the pool set files from being created, !pmemobj_create returns NULL and sets *errno* appropriately.
+prevents any of the pool set files from being created, _UW(pmemobj_create) returns NULL and sets *errno* appropriately.
 
-When opening the pool set consisting of multiple files, or when opening the replicated pool set, the *path* argument passed to !pmemobj_open must not
+When opening the pool set consisting of multiple files, or when opening the replicated pool set, the *path* argument passed to _UW(pmemobj_open) must not
 point to the pmemobj memory pool file, but to the same *set* file that was used for the pool set creation. If an error prevents any of the pool set files from
-being opened, or if the actual size of any file does not match the corresponding part size defined in *set* file !pmemobj_open returns NULL and sets
+being opened, or if the actual size of any file does not match the corresponding part size defined in *set* file _UW(pmemobj_open) returns NULL and sets
 *errno* appropriately.
 
 The set file is a plain text file, which must start with the line containing a *PMEMPOOLSET* string, followed by the specification of all the pool parts in the
@@ -659,9 +606,8 @@ Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
 For more information please see **ndctl-create-namespace**(1).
 
-!ifndef{WIN32}
-{
-In case of a remote replica, the *REPLICA* keyword has to be followed by
+_WINUX(,
+_q_In case of a remote replica, the *REPLICA* keyword has to be followed by
 an address of a remote host (in the format recognized by the **ssh**(1)
 remote login client) and a relative path to a remote pool set file (located
 in the root config directory on the target node - see **librpmem**(3)):
@@ -688,7 +634,7 @@ REPLICA
 # remote replica
 REPLICA user@example.com remote-objpool.set
 ```
-}
+_e_)
 The files in the set may be created by running the following command:
 
 ```
@@ -2218,26 +2164,16 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing applications to work with an evolving API.
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemobj_check_versionU(
+_UWFUNC(pmemobj_check_version, _q_
 	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmemonj_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmemobj_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
+	unsigned minor_required_e_)
 ```
 
-The !pmemobj_check_version function is used to see if the installed **libpmemobj** supports the version of the library API required by an application. The
+The _UW(pmemobj_check_version) function is used to see if the installed **libpmemobj** supports the version of the library API required by an application. The
 easiest way to do this is for the application to supply the compile-time version information, supplied by defines in **\<libpmemobj.h\>**, like this:
 
 ```c
-reason = pmemobj_check_version!U{}(PMEMOBJ_MAJOR_VERSION,
+reason = _U(pmemobj_check_version)(PMEMOBJ_MAJOR_VERSION,
                                PMEMOBJ_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -2251,8 +2187,8 @@ An application can also check specifically for the existence of an interface by 
 are documented in this man page as follows: unless otherwise specified, all interfaces described here are available in version 1.0 of the library. Interfaces
 added after version 1.0 will contain the text *introduced in version x.y* in the section of this manual describing the feature.
 
-When the version check performed by !pmemobj_check_version is successful, the return value is NULL. Otherwise the return value is a static string
-describing the reason for failing the version check. The string returned by !pmemobj_check_version must not be modified or freed.
+When the version check performed by _UW(pmemobj_check_version) is successful, the return value is NULL. Otherwise the return value is a static string
+describing the reason for failing the version check. The string returned by _UW(pmemobj_check_version) must not be modified or freed.
 
 
 # MANAGING LIBRARY BEHAVIOR #
@@ -2272,53 +2208,41 @@ the handlers will cause the **libpmemobj** default function to be used. The libr
 allocate approximately 4-8 kilobytes for each memory pool in use.
 
 ```c
-!ifdef{WIN32}
-{
-int pmemobj_checkU(const char *path, const char *layout);
-int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
-}{
-int pmemobj_check(const char *path, const char *layout);
-}
+_UWFUNCR1(int, pmemobj_check, *path, const char *layout)
 ```
 
-The !pmemobj_check function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any
-inconsistencies found will cause !pmemobj_check to return 0, in which case the use of the file with **libpmemobj** will result in undefined behavior. The
+The _UW(pmemobj_check) function performs a consistency check of the file indicated by *path* and returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause _UW(pmemobj_check) to return 0, in which case the use of the file with **libpmemobj** will result in undefined behavior. The
 debug version of **libpmemobj** will provide additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
-ERROR HANDLING** section below. !pmemobj_check will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
-!pmemobj_check opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
+ERROR HANDLING** section below. _UW(pmemobj_check) will return -1 and set *errno* if it cannot perform the consistency check due to other errors.
+_UW(pmemobj_check) opens the given *path* read-only so it never makes any changes to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
 
-!ifndef{WIN32}
-{Two versions of **libpmemobj** are typically available on a development system. The normal version, accessed when a program is linked using the **-lpmemobj**
+_WINUX(,
+_q_Two versions of **libpmemobj** are typically available on a development system. The normal version, accessed when a program is linked using the **-lpmemobj**
 option, is optimized for performance. That version skips checks that impact performance and never logs any trace information or performs any run-time
-assertions.}
+assertions._e_)
 If an error is detected during the call to **libpmemobj** function, an application may retrieve an error message describing the reason of failure
 using the following function:
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemobj_errormsgU(void);
-const wchar_t *pmemobj_errormsgW(void);
-}{
-const char *pmemobj_errormsg(void);
-}
+_UWFUNC(pmemobj_errormsg, void)
 ```
 
-The !pmemobj_errormsg function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
+The _UW(pmemobj_errormsg) function returns a pointer to a static buffer containing the last error message logged for current thread. The error message may
 include description of the corresponding error code (if *errno* was set), as returned by **strerror**(3). The error message buffer is thread-local; errors
 encountered in one thread do not affect its value in other threads. The buffer is never cleared by any library function; its content is significant only when
 the return value of the immediately preceding call to **libpmemobj** function indicated an error, or if *errno* was set. The application must not modify or
 free the error message string, but it may be modified by subsequent calls to other library functions.
 
 A second version of **libpmemobj**, accessed when a program uses
-the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**}, contains
+the libraries under _WINUX(**/nvml/src/x64/Debug**,**/usr/lib/nvml_debug**), contains
 run-time assertions and trace points. The typical way to
 access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
-{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
+**LD_LIBRARY_PATH** to _WINUX(**/nvml/src/x64/Debug** or other location,
+**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**), depending on where the debug
 libraries are installed on the system.
 The trace points in the debug version of the library are enabled using the environment
 variable **PMEMOBJ_LOG_LEVEL** which can be set to the following values:
@@ -2326,7 +2250,7 @@ variable **PMEMOBJ_LOG_LEVEL** which can be set to the following values:
 + **0** - This is the default level when **PMEMOBJ_LOG_LEVEL** is not set. No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged (in addition to returning the *errno*-based errors as usual). The same information may be
-retrieved using !pmemobj_errormsg.
+retrieved using _UW(pmemobj_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
@@ -2353,16 +2277,10 @@ well as reason about its internals.
 There are two main functions to that interface:
 
 ```c
-!ifdef{WIN32}
-{
-int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-}{
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-}
+_UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
+	_q_ (EXPERIMENTAL)_e_)
+_UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
+	_q_ (EXPERIMENTAL)_e_)
 ```
 
 The *name* argument specifies an entry point as defined in the CTL namespace
@@ -2400,13 +2318,13 @@ prefault.at_create | rw | global | int | int | boolean
 
 If set, every single page of the pool will be touched and written to, in order
 to trigger page allocation. This can be used to minimize performance impact of
-pagefaults. Affects only the !pmemobj_create function.
+pagefaults. Affects only the _UW(pmemobj_create) function.
 
 Always returns 0.
 
 prefault.at_open | rw | global | int | int | boolean
 
-As above, but affects !pmemobj_open function.
+As above, but affects _UW(pmemobj_open) function.
 
 tx.debug.skip_expensive_checks | rw | - | int | int | boolean
 

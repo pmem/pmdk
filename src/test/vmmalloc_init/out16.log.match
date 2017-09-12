@@ -1,4 +1,5 @@
 vmmalloc_init/TEST16: START: vmmalloc_init
  ./vmmalloc_init$(nW) d
-deep binding
+$(OPT)deep binding
+$(OPX)FreeBSD does not support RTLD_DEEPBIND
 vmmalloc_init/TEST16: DONE

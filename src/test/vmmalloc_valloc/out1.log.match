@@ -1,4 +1,5 @@
 vmmalloc_valloc/TEST1: START: vmmalloc_valloc
  ./vmmalloc_valloc$(nW) p
-testing pvalloc
+$(OPT)testing pvalloc
+$(OPX)pvalloc not supported on FreeBSD
 vmmalloc_valloc/TEST1: DONE

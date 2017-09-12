@@ -1,3 +1,4 @@
+$(OPT)Duplicate util_remote_init()
 removed '$(nW)pool.log'
 removed '$(nW)pool.blk'
 removed '$(nW)pool.obj'
@@ -5,6 +6,7 @@ removed '$(nW)pool.part1'
 removed '$(nW)pool.part2'
 removed '$(nW)rep.part1'
 removed '$(nW)rep.part2'
+$(OPT)Duplicate util_remote_init()
 removed '$(nW)pool.part1'
 removed '$(nW)pool.part2'
 removed '$(nW)rep.part1'
