@@ -48,7 +48,7 @@ SOURCE = libvmem.c vmem.c\
 
 default: all
 
-NVMLDIR = libvmem
+JEMALLOC_NVMLDIR = libvmem
 include ../jemalloc/jemalloc.mk
 
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc
