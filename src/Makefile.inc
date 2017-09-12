@@ -87,7 +87,7 @@ endif
 
 ifneq ($(SANITIZE),)
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
-ifneq ($(NVMLDIR),libvmmalloc)
+ifneq ($(JEMALLOC_NVMLDIR),libvmmalloc)
 CFLAGS += -fsanitize=$(SANITIZE)
 LDFLAGS += -fsanitize=$(SANITIZE)
 else ifneq ($(OSTYPE),FreeBSD)

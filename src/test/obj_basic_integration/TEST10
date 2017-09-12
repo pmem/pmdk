@@ -38,7 +38,7 @@ export UNITTEST_NUM=10
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_command strace
+require_command $STRACE
 require_dax_devices 1
 
 # covered by TEST5
@@ -48,7 +48,7 @@ setup
 
 dax_device_zero
 
-expect_normal_exit strace -emsync -ostrace$UNITTEST_NUM.log \
+expect_normal_exit $STRACE -emsync -ostrace$UNITTEST_NUM.log \
 	./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
 
 check

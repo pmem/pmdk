@@ -102,11 +102,11 @@ ROOT_ADDR="$(cat $TMP_FILE | $GREP "Root offset" | \
 ROOT_ADDR=$((16#$ROOT_ADDR))
 
 # Calculate offsets from the root object start to hit each part file
-PART1_FILE_SIZE=$(stat -c%s "$DIR/testfile1")
+PART1_FILE_SIZE=$(stat $STAT_SIZE "$DIR/testfile1")
 PART1_SIZE=$(( ($PART1_FILE_SIZE & $ADDR_MASK) - $ROOT_ADDR ))
 PART2_OFFSET=$(( $M20 - $PART1_SIZE + $POOL_HEADER_OFFSET ))
 
-PART2_FILE_SIZE=$(stat -c%s "$DIR/testfile2")
+PART2_FILE_SIZE=$(stat $STAT_SIZE "$DIR/testfile2")
 PART2_SIZE=$(( ($PART2_FILE_SIZE & $ADDR_MASK) - $POOL_HEADER_OFFSET ))
 PART3_OFFSET=$(( $M40 - ($PART1_SIZE + $PART2_SIZE)\
 	+ $POOL_HEADER_OFFSET ))
