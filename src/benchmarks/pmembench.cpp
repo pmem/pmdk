@@ -172,7 +172,7 @@ static struct version_s {
 static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[10];
+static struct benchmark_clo pmembench_clos[11];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
@@ -295,18 +295,32 @@ pmembench_costructor(void)
 		clo_field_offset(struct benchmark_args, thread_affinity);
 	pmembench_clos[8].def = "false";
 
-	pmembench_clos[9].opt_short = 'e';
-	pmembench_clos[9].opt_long = "min-exe-time";
-	pmembench_clos[9].type = CLO_TYPE_UINT;
-	pmembench_clos[9].descr = "Minimal execution time in seconds";
+	/*
+	 * XXX: add link to blog post about optimal affinity
+	 * when it will be done
+	 */
+	pmembench_clos[9].opt_short = 'I';
+	pmembench_clos[9].opt_long = "affinity-list";
+	pmembench_clos[9].descr =
+		"Set affinity mask as a list of CPUs separated by semicolon";
+	pmembench_clos[9].type = CLO_TYPE_STR;
 	pmembench_clos[9].off =
+		clo_field_offset(struct benchmark_args, affinity_list);
+	pmembench_clos[9].def = "";
+	pmembench_clos[9].ignore_in_res = true;
+
+	pmembench_clos[10].opt_short = 'e';
+	pmembench_clos[10].opt_long = "min-exe-time";
+	pmembench_clos[10].type = CLO_TYPE_UINT;
+	pmembench_clos[10].descr = "Minimal execution time in seconds";
+	pmembench_clos[10].off =
 		clo_field_offset(struct benchmark_args, min_exe_time);
-	pmembench_clos[9].def = "0";
-	pmembench_clos[9].type_uint.size =
+	pmembench_clos[10].def = "0";
+	pmembench_clos[10].type_uint.size =
 		clo_field_size(struct benchmark_args, min_exe_time);
-	pmembench_clos[9].type_uint.base = CLO_INT_BASE_DEC;
-	pmembench_clos[9].type_uint.min = 0;
-	pmembench_clos[9].type_uint.max = ULONG_MAX;
+	pmembench_clos[10].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[10].type_uint.min = 0;
+	pmembench_clos[10].type_uint.max = ULONG_MAX;
 }
 
 /*
@@ -511,6 +525,53 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 }
 
 /*
+ * pmembench_parse_affinity -- parse affinity list
+ */
+static int
+pmembench_parse_affinity(const char *list, char **saveptr)
+{
+	char *str;
+	char *end;
+	int cpu = 0;
+
+	if (*saveptr) {
+		str = strtok(NULL, ";");
+		if (str == NULL) {
+			/* end of list - we have to start over */
+			free(*saveptr);
+			*saveptr = NULL;
+		}
+	}
+
+	if (!*saveptr) {
+		*saveptr = strdup(list);
+		if (*saveptr == NULL) {
+			perror("strdup");
+			return -1;
+		}
+
+		str = strtok(*saveptr, ";");
+		if (str == NULL)
+			goto err;
+	}
+
+	if (*str == '\0')
+		goto err;
+
+	cpu = strtol(str, &end, 10);
+
+	if (*end != '\0')
+		goto err;
+
+	return cpu;
+err:
+	errno = EINVAL;
+	perror("pmembench_parse_affinity");
+	free(*saveptr);
+	return -1;
+}
+
+/*
  * pmembench_init_workers -- init benchmark's workers
  */
 static int
@@ -519,7 +580,8 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		       struct benchmark_args *args)
 {
 	size_t i;
-	long ncpus = 0;
+	int ncpus = 0;
+	char *saveptr = NULL;
 
 	if (args->thread_affinity) {
 		ncpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -531,17 +593,20 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i] = benchmark_worker_alloc();
 
 		if (args->thread_affinity) {
+			int cpu;
 			os_cpu_set_t cpuset;
-			os_cpu_zero(&cpuset);
 
-			/*
-			 * Assign threads to every other CPU. Populate all
-			 * available even CPUs first and odd afterwards.
-			 * Wrap-around after populating all available CPUs.
-			 */
-			int cpu =
-				((2 * i) + ((long)(i % ncpus) >= (ncpus / 2))) %
-				ncpus;
+			if (*args->affinity_list != '\0') {
+				cpu = pmembench_parse_affinity(
+					args->affinity_list, &saveptr);
+				if (cpu == -1)
+					return -1;
+			} else {
+				cpu = (int)i;
+			}
+
+			cpu %= ncpus;
+			os_cpu_zero(&cpuset);
 			os_cpu_set(cpu, &cpuset);
 			errno = os_thread_setaffinity_np(workers[i]->thread,
 							 sizeof(os_cpu_set_t),
@@ -568,6 +633,10 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		workers[i]->init = bench->info->init_worker;
 		workers[i]->exit = bench->info->free_worker;
 		benchmark_worker_init(workers[i]);
+	}
+
+	if (saveptr != NULL) {
+		free(saveptr);
 	}
 	return 0;
 }
