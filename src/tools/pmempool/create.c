@@ -279,7 +279,7 @@ pmempool_get_max_size(const char *fname, uint64_t *sizep)
 		free(name);
 		return -1;
 	}
-	if (GetDiskFreeSpaceExW(str, &freespace, NULL, NULL))
+	if (GetDiskFreeSpaceExW(str, &freespace, NULL, NULL) == 0)
 		ret = -1;
 	else
 		*sizep = freespace.QuadPart;
