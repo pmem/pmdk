@@ -41,8 +41,9 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
-
 require_build_type debug nondebug
+# Valgrind interprets msync as a read and hence reports a race
+require_fs_type pmem
 
 setup
 
