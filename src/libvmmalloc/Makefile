@@ -47,6 +47,7 @@ SOURCE = libvmmalloc.c\
 
 default: all
 
+JEMALLOC_NVMLDIR=libvmmalloc
 include ../jemalloc/jemalloc.mk
 
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc

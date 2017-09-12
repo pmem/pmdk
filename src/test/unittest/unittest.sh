@@ -80,6 +80,29 @@ $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
+# Portability
+VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
+if [ "$OSTYPE" = "FreeBSD" ]; then
+	DATE="gdate"
+	DD="gdd"
+	VM_OVERCOMMIT="[ $(sysctl vm.overcommit | awk '{print $2}') == 0 ]"
+	RM_ONEFS="-x"
+	STAT_MODE="-f%Lp"
+	STAT_PERM="-f%Sp"
+	STAT_SIZE="-f%z"
+	STRACE="truss"
+	VALGRIND_SUPP="$VALGRIND_SUPP --suppressions=../freebsd.supp"
+else
+	DATE="date"
+	DD="dd"
+	VM_OVERCOMMIT="[ $(cat /proc/sys/vm/overcommit_memory) != 2 ]"
+	RM_ONEFS="--one-file-system"
+	STAT_MODE="-c%a"
+	STAT_PERM="-c%A"
+	STAT_SIZE="-c%s"
+	STRACE="strace"
+fi
+
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
 
@@ -307,13 +330,7 @@ function get_executables() {
 	disable_exit_on_error
 	for c in *
 	do
-		local rights=$(stat -c "%a %F" "$c" 2>/dev/null)
-		if [ "$rights" == "" ]
-		then
-			continue
-		fi
-		local executable=$((${rights:0:1} % 2))
-		if [ "${rights#[0-7]* }" == "regular file" -a $executable -eq 1 ]
+		if [ -f $c -a -x $c ]
 		then
 			echo "$c"
 		fi
@@ -382,7 +399,7 @@ function create_file() {
 	shift
 	for file in $*
 	do
-		dd if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> $PREP_LOG_FILE
+		$DD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> $PREP_LOG_FILE
 	done
 }
 
@@ -401,7 +418,7 @@ function create_nonzeroed_file() {
 	for file in $*
 	do
 		truncate -s ${offset} $file >> $PREP_LOG_FILE
-		dd if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $file
+		$DD if=/dev/zero bs=1K count=${size} iflag=count_bytes 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $file
 	done
 }
 
@@ -530,12 +547,12 @@ function create_poolset() {
 			;;
 		n)
 			# non-zeroed file
-			dd if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
+			$DD if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			;;
 		h)
 			# non-zeroed file, except 4K header
 			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
-			dd if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
+			$DD if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			truncate -s $asize $fpath >> $PREP_LOG_FILE
 			;;
 		esac
@@ -595,7 +612,7 @@ function get_trace() {
 	if [ "$check_type" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
 		opts="$opts --leak-check=full"
 	fi
-	opts="$opts --suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
+	opts="$opts $VALGRIND_SUPP"
 	if [ "$node" -ne -1 ]; then
 		exe=${NODE_VALGRINDEXE[$node]}
 		opts="$opts"
@@ -820,9 +837,7 @@ function check_pools() {
 # - unlimited virtual memory (ulimit -v is unlimited)
 #
 function require_unlimited_vm() {
-	local overcommit=$(cat /proc/sys/vm/overcommit_memory)
-	local vm_limit=$(ulimit -v)
-	[ "$overcommit" != "2" ] && [ "$vm_limit" = "unlimited" ] && return
+	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
 	echo "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
 	exit 0
 }
@@ -1319,8 +1334,8 @@ function require_valgrind_dev_version() {
 #	NOT require libasan
 #
 function require_no_asan_for() {
-	ASAN_ENABLED=`nm $1 | grep __asan_ | wc -l`
-	if [ "$ASAN_ENABLED" != "0" ]; then
+	nm $1 | grep -q __asan_ || ASAN_ENABLED=$?
+	if [ "$ASAN_ENABLED" = "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: ASAN enabled"
 		exit 0
 	fi
@@ -1391,6 +1406,29 @@ function require_binary() {
 	fi
 
 	return
+}
+
+#
+# require_preload - continue script execution only if supplied
+#	executable does not generate SIGABRT
+#
+#	Used to check that LD_PRELOAD of, e.g., libvmmalloc is possible
+#
+#	usage: require_preload <errorstr> <executable> [<exec_args>]
+#
+function require_preload() {
+	msg=$1
+	shift
+	trap SIGABRT
+	disable_exit_on_error
+	ret=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
+	ret=$?
+	restore_exit_on_error
+	if [ $ret == 134 ]; then
+		echo "$UNITTEST_NAME: SKIP: $msg not supported"
+		rm -f $1.core
+		exit 0
+	fi
 }
 
 #
@@ -1964,13 +2002,13 @@ function setup() {
 
 	if [ "$FS" != "none" ]; then
 		if [ -d "$DIR" ]; then
-			rm --one-file-system -rf -- $DIR
+			rm $RM_ONEFS -rf -- $DIR
 		fi
 
 		mkdir -p $DIR
 	fi
 	if [ "$TM" = "1" ]; then
-		start_time=$(date +%s.%N)
+		start_time=$($DATE +%s.%N)
 	fi
 
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
@@ -2033,8 +2071,8 @@ function pass() {
 	fi
 
 	if [ "$TM" = "1" ]; then
-		end_time=$(date +%s.%N)
-		tm=$(date -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
+		end_time=$($DATE +%s.%N)
+		tm=$($DATE -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
 			sed -e "s/^00://g" -e "s/^00://g" -e "s/\([0-9]*\)\.\([0-9][0-9][0-9]\).*/\1.\2/")
 		tm="\t\t\t[$tm s]"
 	else
@@ -2044,7 +2082,7 @@ function pass() {
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
 	echo -e "$UNITTEST_NAME: $msg$tm"
 	if [ "$FS" != "none" ]; then
-		rm --one-file-system -rf -- $DIR
+		rm $RM_ONEFS -rf -- $DIR
 	fi
 }
 
@@ -2115,7 +2153,7 @@ check_no_files()
 #
 get_size()
 {
-	stat -c%s $1
+	stat $STAT_SIZE $1
 }
 
 #
@@ -2123,7 +2161,7 @@ get_size()
 #
 get_mode()
 {
-	stat -c%a $1
+	stat $STAT_MODE $1
 }
 
 #
@@ -2165,7 +2203,7 @@ check_signature()
 {
 	local sig=$1
 	local file=$2
-	local file_sig=$(dd if=$file bs=1 count=$SIG_LEN 2>/dev/null | tr -d \\0)
+	local file_sig=$($DD if=$file bs=1 count=$SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $file_sig ]]
 	then
@@ -2194,7 +2232,7 @@ check_layout()
 {
 	local layout=$1
 	local file=$2
-	local file_layout=$(dd if=$file bs=1\
+	local file_layout=$($DD if=$file bs=1\
 		skip=$LAYOUT_OFFSET count=$LAYOUT_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $layout != $file_layout ]]
@@ -2210,7 +2248,7 @@ check_layout()
 check_arena()
 {
 	local file=$1
-	local sig=$(dd if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
+	local sig=$($DD if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
 
 	if [[ $sig != $ARENA_SIG ]]
 	then
@@ -2412,18 +2450,20 @@ function copy_common_to_remote_nodes() {
 	local NODES_ALL_SEQ=$(seq -s' ' 0 $NODES_ALL_MAX)
 
 	DIR_SYNC=$1
-	[ ! -d $DIR_SYNC ] \
+	if [ "$DIR_SYNC" != "" ]; then
+		[ ! -d $DIR_SYNC ] \
 		&& echo "error: $DIR_SYNC does not exist or is not a directory" >&2 \
 		&& exit 1
+	fi
 
 	# add all libraries to the 'to-copy' list
 	local LIBS_TAR=libs.tar
 	pack_all_libs $LIBS_TAR
 
-	if [ "$(ls $DIR_SYNC)" != "" ]; then
+	if [ "$DIR_SYNC" != "" -a "$(ls $DIR_SYNC)" != "" ]; then
 		FILES_COMMON_DIR="$DIR_SYNC/* $LIBS_TAR"
 	else
-		FILES_COMMON_DIR="$LIBS_TAR"
+		FILES_COMMON_DIR="$FILES_COMMON_DIR $LIBS_TAR"
 	fi
 
 	for N in $NODES_ALL_SEQ; do

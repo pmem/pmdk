@@ -52,10 +52,10 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL 1:e 2:w:TEST
 
 INFO_NLBA=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL | $GREP 'External LBA count' | grep -o '[0-9]\+')
-NLBA=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -m $POOL | $GREP '[0-9]\+: 0x[0-9]\+.*' | wc -l)
-NZER=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -mue $POOL | $GREP '[0-9]\+: 0x[0-9]\+.*' | wc -l)
-NERR=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -muz $POOL | $GREP '[0-9]\+: 0x[0-9]\+.*' | wc -l)
-NNON=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -mez $POOL | $GREP '[0-9]\+: 0x[0-9]\+.*' | wc -l)
+NLBA=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -m $POOL | $GREP -c '[0-9]\+: 0x[0-9]\+.*')
+NZER=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -mue $POOL | $GREP -c '[0-9]\+: 0x[0-9]\+.*')
+NERR=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -muz $POOL | $GREP -c '[0-9]\+: 0x[0-9]\+.*')
+NNON=$(expect_normal_exit $PMEMPOOL$EXESUFFIX info -mez $POOL | $GREP -c '[0-9]\+: 0x[0-9]\+.*')
 
 echo "Number of LBAs: $INFO_NLBA" >> $LOG
 echo "Number of LBAs in map: $NLBA" >> $LOG

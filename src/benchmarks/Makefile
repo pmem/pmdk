@@ -101,7 +101,7 @@ OBJS=$(SRC:.cpp=.o)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
-LDFLAGS = -L$(LIBS_PATH)
+LDFLAGS = -L$(LIBS_PATH) $(OS_LIBS)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
 ifeq ($(DEBUG),)
@@ -109,7 +109,8 @@ LIBS += ../nondebug/libpmemcommon.a
 else
 LIBS += ../debug/libpmemcommon.a
 endif
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm -ldl
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm\
+	$(LIBDL) $(LIBUUID)
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
@@ -127,12 +128,18 @@ CXXFLAGS += -I../common
 CXXFLAGS += -I../examples/libpmemobj/map
 CXXFLAGS += -I../rpmem_common
 CXXFLAGS += -I../librpmem
+CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
 ifeq ($(COVERAGE),1)
 CXXFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
+endif
+
+ifneq ($(SANITIZE),)
+CXXFLAGS += -fsanitize=$(SANITIZE)
+LDFLAGS += -fsanitize=$(SANITIZE)
 endif
 
 ifeq ($(BUILD_RPMEM),y)

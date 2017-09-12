@@ -223,3 +223,17 @@ see src/librpmem/README for details.
 endif
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
+
+ifeq ($(OSTYPE),FreeBSD)
+OS_INCS = -I$(TOP)/src/freebsd/include -I/usr/local/include
+OS_LIBS = -L/usr/local/lib
+LIBDL=
+LIBUTIL=-lutil
+LIBUUID=-luuid
+else
+OS_INCS=
+OS_LIBS=
+LIBDL=-ldl
+LIBUTIL=
+LIBUUID=
+endif

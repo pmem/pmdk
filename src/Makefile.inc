@@ -43,7 +43,7 @@ vpath %.c $(RPMEM_COMMON)
 COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
 
-INCS += -I../include -I../common/
+INCS += -I../include -I../common/ $(OS_INCS)
 
 CFLAGS += -std=gnu99
 CFLAGS += -Wall
@@ -83,6 +83,19 @@ ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
+endif
+
+ifneq ($(SANITIZE),)
+# On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
+ifneq ($(JEMALLOC_NVMLDIR),libvmmalloc)
+CFLAGS += -fsanitize=$(SANITIZE)
+LDFLAGS += -fsanitize=$(SANITIZE)
+else ifneq ($(OSTYPE),FreeBSD)
+CFLAGS += -fsanitize=$(SANITIZE)
+LDFLAGS += -fsanitize=$(SANITIZE)
+else
+$(info SANITIZE not supported for libvmmalloc, ignored)
+endif
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)

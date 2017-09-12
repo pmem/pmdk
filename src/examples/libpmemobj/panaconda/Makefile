@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,9 @@ $(info NOTE: Skipping panaconda because ncurses is missing \
 endif
 
 LIBS = -lpmemobj -lpmem -pthread
+ifeq ($(OSTYPE),FreeBSD)
+LIBS += -lc
+endif
 
 ifeq ($(NCURSES),y)
 LIBS += $(shell $(PKG_CONFIG) --libs ncurses)

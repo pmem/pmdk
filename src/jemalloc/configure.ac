@@ -254,6 +254,7 @@ EXTRA_LDFLAGS=
 ARFLAGS='crus'
 AROUT=' $@'
 CC_MM=1
+MALLOCINC="malloc.h"
 
 AN_MAKEVAR([AR], [AC_PROG_AR])
 AN_PROGRAM([ar], [AC_PROG_AR])
@@ -287,6 +288,7 @@ case "${host}" in
 	abi="elf"
 	AC_DEFINE([JEMALLOC_PURGE_MADVISE_FREE], [ ])
 	force_lazy_lock="1"
+	MALLOCINC="stdlib.h"
 	;;
   *-*-linux*)
 	CFLAGS="$CFLAGS"
@@ -362,10 +364,10 @@ case "${host}" in
 esac
 
 JEMALLOC_USABLE_SIZE_CONST=const
-AC_CHECK_HEADERS([malloc.h], [
+AC_CHECK_HEADERS([${MALLOCINC}], [
   AC_MSG_CHECKING([whether malloc_usable_size definition can use const argument])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [#include <malloc.h>
+    [#include <${MALLOCINC}>
      #include <stddef.h>
     size_t malloc_usable_size(const void *ptr);
     ],
@@ -1064,28 +1066,49 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D_REENTRANT"
 
+dnl The force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb
+dnl checks for FreeBSD assume that jemalloc is being built as a libc malloc
+dnl replacement. If jemalloc is being built for a different purpose, these checks
+dnl can be ovverridden with --disable-bsd-malloc-hooks.
+AC_ARG_ENABLE([bsd-malloc-hooks], [AS_HELP_STRING([--disable-bsd-malloc-hooks],
+  [Disable force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb checks])],
+[if test "x$enable_bsd_malloc_hooks" = "xno" ; then
+    AC_DEFINE([JEMALLOC_DISABLE_BSD_MALLOC_HOOKS], [ ])
+  enable_bsd_malloc_hooks="0"
+  force_lazy_lock="0"
+else
+  enable_bsd_malloc_hooks="1"
+fi
+],
+[enable_bsd_malloc_hooks="1"]
+)
+
 dnl Check whether the BSD-specific _malloc_thread_cleanup() exists.  If so, use
 dnl it rather than pthreads TSD cleanup functions to support cleanup during
 dnl thread exit, in order to avoid pthreads library recursion during
 dnl bootstrapping.
-AC_CHECK_FUNC([_malloc_thread_cleanup],
-              [have__malloc_thread_cleanup="1"],
-              [have__malloc_thread_cleanup="0"]
-             )
-if test "x$have__malloc_thread_cleanup" = "x1" ; then
-  AC_DEFINE([JEMALLOC_MALLOC_THREAD_CLEANUP], [ ])
-  force_tls="1"
+if test "x$enable_bsd_malloc_hooks" = "x1" ; then
+  AC_CHECK_FUNC([_malloc_thread_cleanup],
+                [have__malloc_thread_cleanup="1"],
+                [have__malloc_thread_cleanup="0"]
+               )
+  if test "x$have__malloc_thread_cleanup" = "x1" ; then
+    AC_DEFINE([JEMALLOC_MALLOC_THREAD_CLEANUP], [ ])
+    force_tls="1"
+  fi
 fi
 
 dnl Check whether the BSD-specific _pthread_mutex_init_calloc_cb() exists.  If
 dnl so, mutex initialization causes allocation, and we need to implement this
 dnl callback function in order to prevent recursive allocation.
-AC_CHECK_FUNC([_pthread_mutex_init_calloc_cb],
-              [have__pthread_mutex_init_calloc_cb="1"],
-              [have__pthread_mutex_init_calloc_cb="0"]
-             )
-if test "x$have__pthread_mutex_init_calloc_cb" = "x1" ; then
-  AC_DEFINE([JEMALLOC_MUTEX_INIT_CB])
+if test "x$enable_bsd_malloc_hooks" = "x1" ; then
+  AC_CHECK_FUNC([_pthread_mutex_init_calloc_cb],
+                [have__pthread_mutex_init_calloc_cb="1"],
+                 [have__pthread_mutex_init_calloc_cb="0"]
+              )
+  if test "x$have__pthread_mutex_init_calloc_cb" = "x1" ; then
+    AC_DEFINE([JEMALLOC_MUTEX_INIT_CB])
+  fi
 fi
 
 dnl Disable lazy locking by default.

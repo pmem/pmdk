@@ -268,13 +268,15 @@ VMMALLOC_TESTS = \
 	vmmalloc_fork\
 	vmmalloc_init\
 	vmmalloc_malloc\
-	vmmalloc_malloc_hooks\
 	vmmalloc_malloc_usable_size\
 	vmmalloc_memalign\
 	vmmalloc_out_of_memory\
 	vmmalloc_realloc\
 	vmmalloc_valgrind\
 	vmmalloc_valloc
+ifneq ($(OSTYPE),FreeBSD)
+	VMMALLOC_TESTS += vmmalloc_malloc_hooks	# No malloc hooks in FreeBSD
+endif
 
 EXAMPLES_TESTS = \
 	ex_libpmem\
