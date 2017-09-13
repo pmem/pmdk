@@ -530,7 +530,7 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 static int
 pmembench_parse_affinity(const char *list, char **saveptr)
 {
-	char *str;
+	char *str = NULL;
 	char *end;
 	int cpu = 0;
 
@@ -555,7 +555,7 @@ pmembench_parse_affinity(const char *list, char **saveptr)
 			goto err;
 	}
 
-	if (*str == '\0')
+	if ((str == NULL) || (*str == '\0'))
 		goto err;
 
 	cpu = strtol(str, &end, 10);

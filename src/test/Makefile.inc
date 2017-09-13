@@ -234,18 +234,9 @@ LIBS += $(GCOV_LIBS)
 endif
 
 ifneq ($(SANITIZE),)
-# On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
-ifeq (,$(filter vmmalloc_%,$(TARGET)))
 CFLAGS += -fsanitize=$(SANITIZE)
 CXXFLAGS += -fsanitize=$(SANITIZE)
 LDFLAGS += -fsanitize=$(SANITIZE)
-else ifneq ($(OSTYPE),FreeBSD)
-CFLAGS += -fsanitize=$(SANITIZE)
-CXXFLAGS += -fsanitize=$(SANITIZE)
-LDFLAGS += -fsanitize=$(SANITIZE)
-else
-$(info SANITIZE not supported for libvmmalloc, ignored)
-endif
 endif
 
 LINKER=$(CC)
