@@ -81,10 +81,10 @@ struct ctree {
 static unsigned
 find_crit_bit(uint64_t lhs, uint64_t rhs)
 {
-	/* __builtin_clzll is undefined for 0 */
+	/* util_mssb_index is undefined for 0 */
 	uint64_t val = lhs ^ rhs;
 	ASSERTne(val, 0);
-	return 64 - (unsigned)__builtin_clzll(val) - 1;
+	return util_mssb_index64(val);
 }
 
 /*

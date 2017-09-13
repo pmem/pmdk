@@ -47,6 +47,7 @@
 #include "common.h"
 #include "output.h"
 #include "info.h"
+#include "util.h"
 
 #define BITMAP_BUFF_SIZE 1024
 
@@ -162,8 +163,8 @@ get_bitmap_reserved(struct chunk_run *run, uint32_t *reserved)
 
 	uint32_t ret = 0;
 	for (uint64_t i = 0; i < nvals - 1; i++)
-		ret += util_count_ones(run->bitmap[i]);
-	ret += util_count_ones(run->bitmap[nvals - 1] & ~last_val);
+		ret += util_popcount64(run->bitmap[i]);
+	ret += util_popcount64(run->bitmap[nvals - 1] & ~last_val);
 
 	*reserved = ret;
 

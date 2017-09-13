@@ -51,6 +51,7 @@
 #include "rpmem_ssh.h"
 #include "out.h"
 #include "sys_util.h"
+#include "util.h"
 
 /*
  * rpmem_obc -- rpmem out-of-band client connection handle
@@ -139,7 +140,7 @@ rpmem_obc_close_conn(struct rpmem_obc *rpc)
 {
 	rpmem_ssh_close(rpc->ssh);
 
-	(void) __sync_fetch_and_and(&rpc->ssh, 0);
+	(void) util_fetch_and_and64(&rpc->ssh, 0);
 }
 
 /*

@@ -42,6 +42,7 @@
 #include "ctree.h"
 #include "out.h"
 #include "sys_util.h"
+#include "util.h"
 #include "valgrind_internal.h"
 #include "queue.h"
 
@@ -133,7 +134,7 @@ container_seglists_get_rm_block_bestfit(struct block_container *bc,
 		return ENOMEM;
 
 	/* finds the list that serves the smallest applicable size */
-	i = (uint32_t)__builtin_ffsll((long long)v) - 1;
+	i = util_lssb_index64(v);
 
 	struct seglist_entry *e = STAILQ_FIRST(&c->blocks[i]);
 	VALGRIND_ADD_TO_TX(e, sizeof(*e));

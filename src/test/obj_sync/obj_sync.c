@@ -79,12 +79,7 @@ pmemobj_pool_by_ptr(const void *arg)
 static void
 mock_open_pool(PMEMobjpool *pop)
 {
-#ifdef _WIN32
-	__sync_fetch_and_add64(&pop->run_id, 2);
-#else
-	__sync_fetch_and_add(&pop->run_id, 2);
-#endif
-
+	util_fetch_and_add64(&pop->run_id, 2);
 }
 
 /*

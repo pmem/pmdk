@@ -58,6 +58,7 @@
 #include "output.h"
 #include "btt.h"
 #include "set.h"
+#include "util.h"
 
 #define STR(x)	#x
 
@@ -682,11 +683,11 @@ pmemspoil_process_chunk_type_t(struct pmemspoil *psp,
 	if (util_parse_chunk_types(pfp->value, &types))
 		return -1;
 
-	if (util_count_ones(types) != 1)
+	if (util_popcount64(types) != 1)
 		return -1;
 
 	/* ignore 'le' */
-	*valp = (enum chunk_type)(__builtin_ffsll((long long)types) - 1);
+	*valp = (enum chunk_type)util_lssb_index64(types);
 
 	return 0;
 }

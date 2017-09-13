@@ -41,6 +41,7 @@
 #include "util.h"
 #include "sync.h"
 #include "sys_util.h"
+#include "util.h"
 #include "valgrind_internal.h"
 
 #define GET_MUTEX(pop, mutexp)\
@@ -106,7 +107,7 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 
 		if (init_lock(lock, NULL)) {
 			ERR("error initializing lock");
-			__sync_fetch_and_and(runid, 0);
+			util_fetch_and_and64(runid, 0);
 			return NULL;
 		}
 
