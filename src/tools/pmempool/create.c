@@ -253,9 +253,13 @@ static int
 pmempool_get_max_size(const char *fname, uint64_t *sizep)
 {
 	struct statvfs buf;
-	char *name = strdup(fname);
-	char *dir = dirname(name);
 	int ret = 0;
+	char *name = strdup(fname);
+	if (name == NULL) {
+		return -1;
+	}
+
+	char *dir = dirname(name);
 
 	if (statvfs(dir, &buf))
 		ret = -1;
@@ -270,12 +274,16 @@ pmempool_get_max_size(const char *fname, uint64_t *sizep)
 static int
 pmempool_get_max_size(const char *fname, uint64_t *sizep)
 {
-	char *name = strdup(fname);
-	char *dir = dirname(name);
 	int ret = 0;
 	ULARGE_INTEGER freespace;
-	wchar_t *str = util_toUTF16(fname);
-	if (str != NULL) {
+	char *name = strdup(fname);
+	if (name == NULL) {
+		return -1;
+	}
+
+	char *dir = dirname(name);
+	wchar_t *str = util_toUTF16(dir);
+	if (str == NULL) {
 		free(name);
 		return -1;
 	}
