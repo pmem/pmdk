@@ -49,7 +49,7 @@ static int Rcounter_malloc;
 static void *
 __wrap_malloc(size_t size)
 {
-	switch (__sync_fetch_and_add(&Rcounter_malloc, 1)) {
+	switch (util_fetch_and_add32(&Rcounter_malloc, 1)) {
 		case 1: /* internal out_err malloc */
 		default:
 			return malloc(size);

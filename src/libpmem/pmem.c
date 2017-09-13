@@ -523,7 +523,7 @@ pmem_is_pmem(const void *addr, size_t len)
 	/* This is not thread-safe, but pmem_is_pmem_init() is. */
 	if (once == 0) {
 		pmem_is_pmem_init();
-		util_fetch_and_add(&once, 1);
+		util_fetch_and_add32(&once, 1);
 	}
 
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Func_is_pmem);

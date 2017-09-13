@@ -118,6 +118,7 @@ extern "C" {
 /* XXX: move OS abstraction layer out of common */
 #include "os.h"
 #include "os_thread.h"
+#include "util.h"
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
@@ -710,7 +711,7 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
 	static unsigned RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
-		switch (__sync_fetch_and_add(&RCOUNTER(name), 1)) {
+		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
 
 #define FUNC_MOCK_END\
 	}}

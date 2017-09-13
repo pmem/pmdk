@@ -904,7 +904,7 @@ static int
 rpmemd_fip_process_stop_gpspm(struct rpmemd_fip *fip)
 {
 	/* this stops all worker threads */
-	__sync_fetch_and_or(&fip->closing, 1);
+	util_fetch_and_or32(&fip->closing, 1);
 	int ret;
 	int lret = 0;
 

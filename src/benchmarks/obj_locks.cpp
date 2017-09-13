@@ -184,7 +184,7 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 			if (util_bool_compare_and_swap64(runid, tmp_runid,
 							 (pop_runid - 1))) {
 				if (init_lock(&lock, NULL)) {
-					__sync_fetch_and_and(runid, 0);
+					util_fetch_and_and64(runid, 0);
 					return NULL;
 				}
 

@@ -135,6 +135,7 @@
 #include "btt.h"
 #include "btt_layout.h"
 #include "sys_util.h"
+#include "util.h"
 
 /*
  * The opaque btt handle containing state tracked by this module
@@ -633,7 +634,7 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 	LOG(3, "bttp %p arenap %p lane %u setf 0x%x", bttp, arenap, lane, setf);
 
 	/* update runtime state */
-	__sync_fetch_and_or(&arenap->flags, setf);
+	util_fetch_and_or32(&arenap->flags, setf);
 
 	if (!bttp->laidout) {
 		/* no layout yet to update */
@@ -750,7 +751,7 @@ build_rtt(struct btt *bttp, struct arena *arenap)
 	}
 	for (uint32_t lane = 0; lane < bttp->nfree; lane++)
 		arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
-	__sync_synchronize();
+	util_synchronize();
 
 	return 0;
 }
@@ -1575,7 +1576,7 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 		 * both set.
 		 */
 		arenap->rtt[lane] = entry;
-		__sync_synchronize();
+		util_synchronize();
 
 		/*
 		 * In case this thread was preempted between reading entry and

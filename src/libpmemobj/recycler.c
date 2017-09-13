@@ -158,7 +158,7 @@ recycler_calc_score(struct recycler *r, const struct memory_block *m,
 		if (value == 0)
 			continue;
 
-		uint16_t free_in_value = (uint16_t)__builtin_popcountll(value);
+		uint16_t free_in_value = util_popcount64(value);
 		free_space = (uint16_t)(free_space + free_in_value);
 
 		/*
@@ -257,7 +257,8 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 	struct empty_runs runs;
 	VEC_INIT(&runs);
 
-	uint64_t units = util_fetch_and_add(&r->unaccounted_units, m->size_idx);
+	uint64_t units;
+	units = util_fetch_and_add64(&r->unaccounted_units, m->size_idx);
 
 	if (r->recalc_inprogress || units < (r->nallocs * THRESHOLD_MUL))
 		return runs;
@@ -297,7 +298,7 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 
 	VEC_CLEAR(&r->recalc);
 
-	util_fetch_and_sub(&r->unaccounted_units, units);
+	util_fetch_and_sub64(&r->unaccounted_units, units);
 	int ret = util_bool_compare_and_swap32(&r->recalc_inprogress, 0, 1);
 	ASSERTeq(ret, 1);
 

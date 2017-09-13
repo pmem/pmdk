@@ -138,7 +138,7 @@ static void
 heap_thread_arena_destructor(void *arg)
 {
 	struct arena *a = arg;
-	util_fetch_and_sub(&a->nthreads, 1);
+	util_fetch_and_sub64(&a->nthreads, 1);
 }
 
 /*
@@ -166,7 +166,7 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	LOG(4, "assigning %p arena to current thread", least_used);
 
-	util_fetch_and_add(&least_used->nthreads, 1);
+	util_fetch_and_add64(&least_used->nthreads, 1);
 
 	os_mutex_unlock(&heap->arenas_lock);
 
