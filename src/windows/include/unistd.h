@@ -119,10 +119,12 @@ basename(char *path)
 static char *
 dirname(char *path)
 {
-	size_t len = strlen(path);
+	if (path == NULL)
+		return ".";
 
+	size_t len = strlen(path);
 	if (len == 0)
-		return NULL;
+		return ".";
 
 	char *end = path + len;
 
