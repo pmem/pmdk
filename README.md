@@ -240,7 +240,7 @@ To test the libraries with Valgrind, supply the compiler with the **USE_VG_\<TOO
 The **USE_VALGRIND** flag enables all Valgrind tools (drd, helgrind, memcheck and pmemcheck).
 
 The **SANITIZE** flag allows the libraries to be tested with various
-sanitizers<sup>9</sup>. For example, to test the libraries with AddressSanitizer
+sanitizers. For example, to test the libraries with AddressSanitizer
 and UndefinedBehaviorSanitizer, run:
 ```
 	$ make SANITIZE=address,undefined clobber check
