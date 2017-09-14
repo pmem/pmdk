@@ -45,40 +45,49 @@ vpath %.c $(COMMON)
 
 INCS += -I../include -I../common/ $(OS_INCS)
 
-CFLAGS += -std=gnu99
-CFLAGS += -Wall
-CFLAGS += -Werror
-CFLAGS += -Wmissing-prototypes
-CFLAGS += -Wpointer-arith
-CFLAGS += -Wsign-conversion
-CFLAGS += -Wsign-compare
+# default CFLAGS
+DEFAULT_CFLAGS += -std=gnu99
+DEFAULT_CFLAGS += -Wall
+DEFAULT_CFLAGS += -Werror
+DEFAULT_CFLAGS += -Wmissing-prototypes
+DEFAULT_CFLAGS += -Wpointer-arith
+DEFAULT_CFLAGS += -Wsign-conversion
+DEFAULT_CFLAGS += -Wsign-compare
 ifeq ($(call check_Wconversion), y)
-CFLAGS += -Wconversion
+DEFAULT_CFLAGS += -Wconversion
 endif
-CFLAGS += -pthread
-CFLAGS += -fno-common
-CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
 ifeq ($(call check_compiler, icc), n)
-CFLAGS += -Wunused-macros
-CFLAGS += -Wmissing-field-initializers
+DEFAULT_CFLAGS += -Wunused-macros
+DEFAULT_CFLAGS += -Wmissing-field-initializers
 ifeq ($(call check_flag, -Wunreachable-code-return), y)
-CFLAGS += -Wunreachable-code-return
+DEFAULT_CFLAGS += -Wunreachable-code-return
 endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
-CFLAGS += -Wmissing-variable-declarations
+DEFAULT_CFLAGS += -Wmissing-variable-declarations
 endif
 endif
 
 ifeq ($(DEBUG),1)
-CFLAGS += -O0 -ggdb -DDEBUG $(EXTRA_CFLAGS_DEBUG)
+# Undefine _FORTIFY_SOURCE in case it's set in system-default or
+# user-defined CFLAGS as it conflicts with -O0.
+CFLAGS += -Wp,-U_FORTIFY_SOURCE
+CFLAGS += -O0 -ggdb -DDEBUG
 LIB_SUBDIR = /nvml_debug
 OBJDIR = debug
 else
-CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $(EXTRA_CFLAGS_RELEASE)
+DEFAULT_CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 LIB_SUBDIR =
 OBJDIR = nondebug
 endif
+
+# use defaults, if system or user-defined CFLAGS are not specified
+CFLAGS ?= $(DEFAULT_CFLAGS)
+
+CFLAGS += -fno-common
+CFLAGS += -pthread
+CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
@@ -99,6 +108,12 @@ endif
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
+
+ifeq ($(DEBUG),1)
+CFLAGS += $(EXTRA_CFLAGS_DEBUG)
+else
+CFLAGS += $(EXTRA_CFLAGS_RELEASE)
+endif
 
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
