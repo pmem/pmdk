@@ -396,7 +396,13 @@ clo_parse_range(struct benchmark_clo *clo, const char *arg,
 		if (parse_single(clo, arg, &value)) {
 			ret = -1;
 		} else {
-			clo_vec_vlist_add(vlist, &value, clo->type_uint.size);
+			if (clo->type == CLO_TYPE_UINT)
+				clo_vec_vlist_add(vlist, &value,
+						  clo->type_uint.size);
+			else
+				clo_vec_vlist_add(vlist, &value,
+						  clo->type_int.size);
+
 			ret = 0;
 		}
 	} else if (ret == 4) {
@@ -483,7 +489,13 @@ clo_parse_ranges(struct benchmark_clo *clo, const char *arg,
 		goto out;
 
 	/* add list of values to CLO vector */
-	ret = clo_vec_memcpy_list(clovec, clo->off, clo->type_uint.size, vlist);
+	if (clo->type == CLO_TYPE_UINT)
+		ret = clo_vec_memcpy_list(clovec, clo->off, clo->type_uint.size,
+					  vlist);
+	else
+		ret = clo_vec_memcpy_list(clovec, clo->off, clo->type_int.size,
+					  vlist);
+
 out:
 	free(args);
 	clo_vec_vlist_free(vlist);
