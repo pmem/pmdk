@@ -1334,8 +1334,11 @@ function require_valgrind_dev_version() {
 #	NOT require libasan
 #
 function require_no_asan_for() {
-	nm $1 | grep -q __asan_ || ASAN_ENABLED=$?
-	if [ "$ASAN_ENABLED" = "0" ]; then
+	disable_exit_on_error
+	nm $1 | grep -q __asan_
+	ASAN_ENABLED=$?
+	restore_exit_on_error
+	if [ "$ASAN_ENABLED" == "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: ASAN enabled"
 		exit 0
 	fi

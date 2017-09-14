@@ -44,24 +44,30 @@
 #include "valgrind_internal.h"
 
 #ifdef __FreeBSD__
-#define RECORD_LOCK(type, p) \
-	PMEM##type##_internal *head = pop->type##_head;\
-	while (!util_bool_compare_and_swap64(&pop->type##_head, head, p)) {\
-		head = pop->type##_head;\
-	}\
-	p->PMEM##type##_next = head
+#define RECORD_LOCK(init, type, p) \
+	if (init) {\
+		PMEM##type##_internal *head = pop->type##_head;\
+		while (!util_bool_compare_and_swap64(&pop->type##_head, head,\
+			p)) {\
+			head = pop->type##_head;\
+		}\
+		p->PMEM##type##_next = head;\
+	}
 #else
 #define RECORD_LOCK(type, p)
 #endif
 
 /*
- * _get_lock -- (internal) atomically initialize and return a lock
+ * _get_lock -- (internal) atomically initialize and return a lock.
+ *	Returns -1 on error, 0 if the caller is not the lock
+ *	initializer, 1 if the caller is the lock initializer.
  */
-static void *
+static int
 _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 	int (*init_lock)(void *lock, void *arg))
 {
 	uint64_t tmp_runid;
+	int initializer = 0;
 
 	while ((tmp_runid = *runid) != pop_runid) {
 		if (tmp_runid == pop_runid - 1)
@@ -71,20 +77,22 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 				pop_runid - 1))
 			continue;
 
+		initializer = 1;
+
 		if (init_lock(lock, NULL)) {
 			ERR("error initializing lock");
 			__sync_fetch_and_and(runid, 0);
-			return NULL;
+			return -1;
 		}
 
 		if (util_bool_compare_and_swap64(runid, pop_runid - 1,
 				pop_runid) == 0) {
 			ERR("error setting lock runid");
-			return NULL;
+			return -1;
 		}
 	}
 
-	return lock;
+	return initializer;
 }
 
 /*
@@ -108,12 +116,13 @@ get_mutex(PMEMobjpool *pop, PMEMmutex_internal *imp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(imp, _POBJ_CL_SIZE);
 
-	if (_get_lock(pop->run_id, runid, &imp->PMEMmutex_lock,
-		(void *)os_mutex_init) == NULL) {
+	int initializer = _get_lock(pop->run_id, runid, &imp->PMEMmutex_lock,
+		(void *)os_mutex_init);
+	if (initializer == -1) {
 		return NULL;
 	}
 
-	RECORD_LOCK(mutex, imp);
+	RECORD_LOCK(initializer, mutex, imp);
 
 	return &imp->PMEMmutex_lock;
 }
@@ -141,12 +150,13 @@ get_rwlock(PMEMobjpool *pop, PMEMrwlock_internal *irp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(irp, _POBJ_CL_SIZE);
 
-	if (_get_lock(pop->run_id, runid, &irp->PMEMrwlock_lock,
-		(void *)os_rwlock_init) == NULL) {
+	int initializer = _get_lock(pop->run_id, runid, &irp->PMEMrwlock_lock,
+		(void *)os_rwlock_init);
+	if (initializer == -1) {
 		return NULL;
 	}
 
-	RECORD_LOCK(rwlock, irp);
+	RECORD_LOCK(initializer, rwlock, irp);
 
 	return &irp->PMEMrwlock_lock;
 }
@@ -173,12 +183,13 @@ get_cond(PMEMobjpool *pop, PMEMcond_internal *icp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(icp, _POBJ_CL_SIZE);
 
-	if (_get_lock(pop->run_id, runid, &icp->PMEMcond_cond,
-		(void *)os_cond_init) == NULL) {
+	int initializer = _get_lock(pop->run_id, runid, &icp->PMEMcond_cond,
+		(void *)os_cond_init);
+	if (initializer == -1) {
 		return NULL;
 	}
 
-	RECORD_LOCK(cond, icp);
+	RECORD_LOCK(initializer, cond, icp);
 
 	return &icp->PMEMcond_cond;
 }
