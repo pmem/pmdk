@@ -37,8 +37,8 @@
 set -e
 
 require_nodes 2
-require_node_libfabric 0 $RPMEM_PROVIDER
-require_node_libfabric 1 $RPMEM_PROVIDER
+require_node_libfabric 0 $RPMEM_PROVIDER $SETUP_LIBFABRIC_VERSION
+require_node_libfabric 1 $RPMEM_PROVIDER $SETUP_LIBFABRIC_VERSION
 require_node_log_files 0 $RPMEMD_LOG_FILE
 require_node_log_files 1 $RPMEM_LOG_FILE
 require_node_log_files 1 $PMEM_LOG_FILE
@@ -48,4 +48,6 @@ POOLS_PART=pool_parts
 PART_DIR=${NODE_TEST_DIR[0]}/$POOLS_PART
 RPMEM_POOLSET_DIR=${NODE_TEST_DIR[0]}/$POOLS_DIR
 
-init_rpmem_on_node 1 0
+if [ -z "$SETUP_MANUAL_INIT_RPMEM" ]; then
+	init_rpmem_on_node 1 0
+fi
