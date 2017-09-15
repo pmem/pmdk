@@ -91,9 +91,11 @@ const char *pool_attr_names[] = {
 
 struct pool_entry {
 	RPMEMpool *rpp;
+	const char *target;
 	void *pool;
 	size_t size;
 	int is_mem;
+	int exp_errno;
 };
 
 #define MAX_IDS	1024
@@ -103,9 +105,12 @@ struct pool_entry pools[MAX_IDS];
  * init_pool -- map local pool file or allocate memory region
  */
 static void
-init_pool(struct pool_entry *pool, const char *pool_path,
+init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 	const char *pool_size)
 {
+	pool->target = target;
+	pool->exp_errno = 0;
+
 	int ret = util_parse_size(pool_size, &pool->size);
 	UT_ASSERTeq(ret, 0);
 
@@ -161,6 +166,7 @@ free_pool(struct pool_entry *pool)
 
 	pool->pool = NULL;
 	pool->rpp = NULL;
+	pool->target = NULL;
 }
 
 /*
@@ -207,6 +213,17 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 }
 
 /*
+ * check_return_and_errno - validate return value and errno
+ */
+#define check_return_and_errno(ret, exp_errno) \
+	if (exp_errno != 0) { \
+		UT_ASSERTne(ret, 0); \
+		UT_ASSERTeq(errno, exp_errno); \
+	} else { \
+		UT_ASSERTeq(ret, 0); \
+	}
+
+/*
  * test_create -- test case for creating remote pool
  */
 static int
@@ -228,7 +245,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, target, pool_path, size_str);
 
 	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
@@ -270,7 +287,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 
 	unsigned nlanes = NLANES;
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, target, pool_path, size_str);
 
 	struct rpmem_pool_attr pool_attr;
 	pool->rpp = rpmem_open(target, pool_set, pool->pool,
@@ -305,7 +322,7 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(pool->rpp, NULL);
 
 	int ret = rpmem_close(pool->rpp);
-	UT_ASSERTeq(ret, 0);
+	check_return_and_errno(ret, pool->exp_errno);
 
 	free_pool(pool);
 
@@ -321,6 +338,7 @@ struct thread_arg {
 	size_t size;
 	int nops;
 	unsigned lane;
+	int exp_errno;
 };
 
 /*
@@ -339,7 +357,7 @@ persist_thread(void *arg)
 				left : persist_size;
 
 		int ret = rpmem_persist(args->rpp, off, size, args->lane);
-		UT_ASSERTeq(ret, 0);
+		check_return_and_errno(ret, args->exp_errno);
 	}
 
 	return NULL;
@@ -384,6 +402,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		size_t size_left = buff_size - size_per_thread * i;
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
+		args[i].exp_errno = pool->exp_errno;
 		PTHREAD_CREATE(&threads[i], NULL, persist_thread, &args[i]);
 	}
 
@@ -416,11 +435,13 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
 	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
-	UT_ASSERTeq(ret, 0);
+	check_return_and_errno(ret, pool->exp_errno);
 
-	for (size_t i = 0; i < buff_size; i++) {
-		uint8_t r = rand();
-		UT_ASSERTeq(buff[i], r);
+	if (ret == 0) {
+		for (size_t i = 0; i < buff_size; i++) {
+			uint8_t r = rand();
+			UT_ASSERTeq(buff[i], r);
+		}
 	}
 
 	return 2;
@@ -547,6 +568,128 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 	return 2;
 }
 
+enum wait_type {
+	WAIT,
+	NOWAIT
+};
+
+const char *wait_type_str[2] = {
+	"wait",
+	"nowait"
+};
+
+static enum wait_type
+str2wait(const char *str)
+{
+	for (int i = 0; i < ARRAY_SIZE(wait_type_str); ++i) {
+		if (strcmp(wait_type_str[i], str) == 0)
+			return (enum wait_type)i;
+	}
+
+	UT_FATAL("'%s' does not match <wait|nowait>", str);
+}
+
+#define SSH_EXE "ssh"
+#define RPMEMD_TERMINATE_CMD SSH_EXE " -tt %s kill -9 %d"
+#define GET_RPMEMD_PID_CMD SSH_EXE " %s cat %s"
+#define COUNT_RPMEMD_CMD SSH_EXE " %s ps -A | grep -c %d"
+
+/*
+ * rpmemd_kill -- kill target rpmemd
+ */
+static int
+rpmemd_kill(const char *target, int pid)
+{
+	char cmd[100];
+	snprintf(cmd, sizeof(cmd), RPMEMD_TERMINATE_CMD, target, pid);
+	return system(cmd);
+}
+
+/*
+ * popen_readi -- popen cmd and read integer
+ */
+static int
+popen_readi(const char *cmd)
+{
+	FILE *stream = popen(cmd, "r");
+	UT_ASSERT(stream != NULL);
+
+	int i;
+	int ret = fscanf(stream, "%d", &i);
+	UT_ASSERT(ret == 1);
+
+	pclose(stream);
+
+	return i;
+}
+
+/*
+ * rpmemd_get_pid -- get target rpmemd pid
+ */
+static int
+rpmemd_get_pid(const char *target, const char *pid_file)
+{
+	char cmd[100];
+	snprintf(cmd, sizeof(cmd), GET_RPMEMD_PID_CMD, target, pid_file);
+	return popen_readi(cmd);
+}
+
+/*
+ * rpmemd_is_running -- tell if target rpmemd is running
+ */
+static int
+rpmemd_is_running(const char *target, int pid)
+{
+	char cmd[100];
+	snprintf(cmd, sizeof(cmd), COUNT_RPMEMD_CMD, target, pid);
+	return popen_readi(cmd) > 0;
+}
+
+/*
+ * rpmemd_kill_wait -- kill target rpmemd and wait for it to stop
+ */
+static void
+rpmemd_kill_wait(const char *target, const char *pid_file, enum wait_type wait)
+{
+	int pid = rpmemd_get_pid(target, pid_file);
+	int ret;
+
+	do {
+		ret = rpmemd_kill(target, pid);
+		if (ret != 0 || wait == NOWAIT) {
+			break;
+		}
+	} while (rpmemd_is_running(target, pid));
+}
+
+/*
+ * rpmemd_terminate -- terminate target rpmemd
+ */
+static int
+rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3) {
+		UT_FATAL("usage: rpmemd_terminate <id> <pid file> "
+				"<wait|nowait>");
+	}
+
+	const char *id_str = argv[0];
+	const char *pid_file = argv[1];
+	const char *wait_str = argv[2];
+
+	int id = atoi(id_str);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+
+	struct pool_entry *pool = &pools[id];
+	UT_ASSERTne(pool->target, NULL);
+	pool->exp_errno = ECONNRESET;
+
+	enum wait_type wait = str2wait(wait_str);
+	rpmemd_kill_wait(pool->target, pid_file, wait);
+
+	return 3;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -560,6 +703,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_remove),
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
+	TEST_CASE(rpmemd_terminate),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
