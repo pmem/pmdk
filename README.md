@@ -91,15 +91,19 @@ required packages on the build system:
 
 * **autoconf**
 * **bash**
+* **binutils**
 * **coreutils**
+* **e2fsprogs-libuuid**
 * **gmake**
+* **gnugrep**
+* **libunwind**
 * **ncurses**<sup>4</sup>
 * **pkgconf**
 
 Some tests and example applications require additional packages, but they
 do not interrupt building if they are missing. An appropriate message is
 displayed instead. For details please read the **DEPENDENCIES** section
-in appropriate README file.
+in the appropriate README file.
 
 
 See our [Dockerfiles](https://github.com/pmem/nvml/blob/master/utils/docker/images/)

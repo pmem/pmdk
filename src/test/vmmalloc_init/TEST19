@@ -53,10 +53,14 @@ export VMMALLOC_FORK=2
 export TEST_LD_PRELOAD=libvmmalloc.so
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 if [ "$(uname -s)" == "FreeBSD" ]; then
 =======
 if [ "$OSTYPE" == "FreeBSD" ]; then
 >>>>>>> 8b969ecb... common: FreeBSD port
+=======
+if [ "$(uname -s)" == "FreeBSD" ]; then
+>>>>>>> 0f3f7853... common: Build shell compatibility fixes
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 $GREP 'Error (libvmmalloc)' stderr$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 rm -f ./vmmalloc_init$EXESUFFIX.core

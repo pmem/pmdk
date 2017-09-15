@@ -61,7 +61,7 @@ OPTS="$OPTS -DWIN32"
 else
 OPTS="$OPTS -UWIN32"
 fi
-if [ "$OSTYPE" = "FreeBSD" ]; then
+if [ "$(uname -s)" == "FreeBSD" ]; then
 OPTS="$OPTS -DFREEBSD"
 else
 OPTS="$OPTS -UFREEBSD"
