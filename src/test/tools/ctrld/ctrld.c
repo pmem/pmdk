@@ -137,6 +137,8 @@ usage(void)
 {
 	CTRLD_LOG("usage: %s <pid file> <cmd> [<arg>]", APP_NAME);
 	CTRLD_LOG("commands:");
+	CTRLD_LOG("  exe <command> [<args...>] -- "
+			"run specified command");
 	CTRLD_LOG("  run  <timeout> <command> [<args...>] -- "
 			"run specified command with given timeout");
 	CTRLD_LOG("  wait [<timeout>]                     -- "
@@ -168,6 +170,88 @@ alloc_argv(unsigned argc, char *argv[], unsigned off)
 	nargv[nargc] = NULL;
 
 	return nargv;
+}
+
+/*
+ * do_run -- execute the 'exe' command
+ */
+static int
+do_exe(const char *pid_file, char *cmd, char *argv[])
+{
+	int rv = -1;
+
+	FILE *fh = os_fopen(pid_file, "w+");
+	if (!fh) {
+		CTRLD_LOG("!%s", pid_file);
+		return -1;
+	}
+
+	int fd = fileno(fh);
+	if (fd == -1) {
+		CTRLD_LOG("!fileno");
+		goto err;
+	}
+
+	if (os_flock(fd, LOCK_EX | LOCK_NB)) {
+		CTRLD_LOG("!flock");
+		goto err;
+	}
+
+	int child = fork();
+	switch (child) {
+	case -1:
+		CTRLD_LOG("!fork");
+		fprintf(fh, "-1r%d", errno);
+		goto err;
+	case 0:
+		execvp(cmd, argv);
+		CTRLD_LOG("!execvp(%s)", cmd);
+		goto err;
+	default:
+		break;
+	}
+
+	if (fprintf(fh, "%d", child) < 0) {
+		CTRLD_LOG("!fprintf");
+		goto err;
+	}
+
+	if (fflush(fh)) {
+		CTRLD_LOG("!fflush");
+		goto err;
+	}
+
+	int ret = 0;
+	int pid = wait(&ret);
+	if (pid == child) {
+
+		if (WIFSIGNALED(ret)) {
+			ret = 128 + WTERMSIG(ret);
+		} else {
+			ret = WEXITSTATUS(ret);
+		}
+
+		if (fseek(fh, 0, SEEK_SET)) {
+			CTRLD_LOG("!fseek");
+			goto err;
+		}
+
+		if (os_ftruncate(fileno(fh), 0)) {
+			CTRLD_LOG("!ftruncate");
+			goto err;
+		}
+
+		fprintf(fh, "%dr%d", child, ret);
+
+	} else {
+		CTRLD_LOG("!wait");
+		goto err;
+	}
+
+	rv = 0;
+err:
+	fclose(fh);
+	return rv;
 }
 
 /*
@@ -685,7 +769,22 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (strcmp(cmd, "run") == 0) {
+	if (strcmp(cmd, "exe") == 0) {
+		if (argc < 4)
+			usage();
+
+		char *command = argv[3];
+		char **nargv = alloc_argv((unsigned)argc, argv, 3);
+		if (!nargv) {
+			CTRLD_LOG("!get_argv");
+			return 1;
+		}
+
+		log_run(pid_file, command, nargv);
+		ret = do_exe(pid_file, command, nargv);
+
+		free(nargv);
+	} else if (strcmp(cmd, "run") == 0) {
 		if (argc < 5)
 			usage();
 

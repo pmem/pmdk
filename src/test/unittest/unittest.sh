@@ -2287,14 +2287,15 @@ function get_node_dir() {
 }
 
 #
-# init_rpmem_on_node -- prepare rpmem environment variables on node
+# mem_on_node -- prepare rpmem environment variables on node
 #    usage: init_rpmem_on_node <master-node> <slave-node-1> [<slave-node-2> ...]
 #
 # example:
 #    The following command initialize rpmem environment variables on the node 1
-#    to perform replication to the node 0.
+#    to perform replication to the node 0 and node 2. Additionaly rpmemd pid
+#    will be stored in file.pid.
 #
-#       init_rpmem_on_node 1 0
+#       init_rpmem_on_node 1 0 2:file.pid
 #
 function init_rpmem_on_node() {
 	local master=$1
@@ -2315,6 +2316,10 @@ function init_rpmem_on_node() {
 	local SEPARATOR="|"
 	for slave in "$@"
 	do
+		slave=(${slave//:/ })
+		pid=${slave[1]}
+		slave=${slave[0]}
+
 		validate_node_number $slave
 		local poolset_dir=${NODE_TEST_DIR[$slave]}
 		if [ -n "$RPMEM_POOLSET_DIR" ]; then
@@ -2324,6 +2329,9 @@ function init_rpmem_on_node() {
 		if [ -n "$(is_valgrind_enabled_on_node $slave)" ]; then
 			log_file=${CHECK_TYPE}${UNITTEST_NUM}.log
 			trace=$(get_trace $CHECK_TYPE $log_file $slave)
+		fi
+		if [ -n "$pid" ]; then
+			trace="$trace ../ctrld $pid exe"
 		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 
