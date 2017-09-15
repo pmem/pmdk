@@ -161,7 +161,7 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 	sret = fi_eq_sread(eq, event, entry, sizeof(*entry), timeout, 0);
 	VALGRIND_DO_MAKE_MEM_DEFINED(&sret, sizeof(sret));
 
-	if (timeout != -1 && sret == -FI_ETIMEDOUT) {
+	if (timeout != -1 && (sret == -FI_ETIMEDOUT || sret == -FI_EAGAIN)) {
 		errno = ETIMEDOUT;
 		return 1;
 	}
@@ -178,7 +178,8 @@ rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 			RPMEMC_LOG(ERR, "error reading from event queue: "
 				"cannot read error from event queue: %s",
 				fi_strerror((int)sret));
-		} else {
+		} else if (sret > 0) {
+			RPMEMC_ASSERT(sret == sizeof(err));
 			errno = -err.prov_errno;
 			RPMEMC_LOG(ERR, "error reading from event queue: %s",
 					fi_eq_strerror(eq, err.prov_errno,
