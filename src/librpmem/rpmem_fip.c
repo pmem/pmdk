@@ -52,6 +52,8 @@
 
 #include "out.h"
 #include "util.h"
+#include "os_thread.h"
+#include "os.h"
 #include "rpmem_common.h"
 #include "rpmem_fip_common.h"
 #include "rpmem_proto.h"
@@ -163,6 +165,7 @@ struct rpmem_fip {
 		struct rpmem_fip_plane_gpspm gpspm;
 	} LANE_UNION_ALIGN *lanes;
 
+	os_thread_t monitor;
 
 	struct rpmem_msg_persist *pmsg;	/* persist message buffer */
 	struct fid_mr *pmsg_mr;		/* persist message memory region */
@@ -301,10 +304,11 @@ rpmem_fip_lane_wait(struct rpmem_fip *fip, struct rpmem_fip_lane *lanep,
 	int ret = 0;
 	struct fi_cq_msg_entry cq_entry;
 
-	while (!fip->closing && (lanep->event & e)) {
-		sret = fi_cq_sread(lanep->cq, &cq_entry, 1, NULL, -1);
+	while (lanep->event & e) {
 		if (unlikely(fip->closing))
-			return 0;
+			return ECONNRESET;
+
+		sret = fi_cq_sread(lanep->cq, &cq_entry, 1, NULL, -1);
 
 		if (unlikely(sret == -FI_EAGAIN) || sret == 0)
 			continue;
@@ -329,6 +333,9 @@ err_cq_read:
 	str_err = fi_cq_strerror(lanep->cq, err.prov_errno, NULL, NULL, 0);
 	RPMEM_LOG(ERR, "error reading from completion queue: %s", str_err);
 err:
+	if (unlikely(fip->closing))
+		return ECONNRESET; /* it will be passed to errno */
+
 	return ret;
 }
 
@@ -576,6 +583,67 @@ rpmem_fip_lanes_connect(struct rpmem_fip *fip)
 	}
 
 	return 0;
+}
+
+/*
+ * rpmem_fip_monitor_thread -- (internal) monitor in-band connection
+ */
+static void *
+rpmem_fip_monitor_thread(void *arg)
+{
+	struct rpmem_fip *fip = (struct rpmem_fip *)arg;
+	struct fi_eq_cm_entry entry;
+	uint32_t event;
+	int ret;
+
+	while (!fip->closing) {
+		ret = rpmem_fip_read_eq(fip->eq, &entry, &event,
+				RPMEM_MONITOR_TIMEOUT);
+		if (unlikely(ret == 0) && event == FI_SHUTDOWN) {
+			RPMEM_LOG(ERR, "event queue got FI_SHUTDOWN");
+
+			/* mark in-band connection as closing */
+			fip->closing = 1;
+
+			for (unsigned i = 0; i < fip->nlanes; i++) {
+				fi_cq_signal(fip->lanes[i].base.cq);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+/*
+ * rpmem_fip_monitor_init -- (internal) initialize in-band monitor
+ */
+static int
+rpmem_fip_monitor_init(struct rpmem_fip *fip)
+{
+	errno = os_thread_create(&fip->monitor, NULL, rpmem_fip_monitor_thread,
+			fip);
+	if (errno) {
+		RPMEM_LOG(ERR, "!connenction monitor thread");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_monitor_fini -- (internal) finalize in-band monitor
+ */
+static int
+rpmem_fip_monitor_fini(struct rpmem_fip *fip)
+{
+	fip->closing = 1;
+
+	int ret = os_thread_join(&fip->monitor, NULL);
+	if (ret) {
+		RPMEM_LOG(ERR, "joining monitor thread failed");
+	}
+
+	return ret;
 }
 
 /*
@@ -1036,7 +1104,12 @@ rpmem_fip_connect(struct rpmem_fip *fip)
 	if (ret)
 		goto err_lanes_connect;
 
+	ret = rpmem_fip_monitor_init(fip);
+	if (ret)
+		goto err_monitor;
+
 	return 0;
+err_monitor:
 err_lanes_connect:
 err_lanes_post:
 	return ret;
@@ -1050,14 +1123,31 @@ rpmem_fip_close(struct rpmem_fip *fip)
 {
 	int ret;
 	int lret = 0;
+
+	if (unlikely(fip->closing)) {
+		goto close_monitor;
+	}
+
+	/* shutdown lanes */
 	for (unsigned i = 0; i < fip->nlanes; i++) {
 		ret = fi_shutdown(fip->lanes[i].base.ep, 0);
 		if (ret) {
-			RPMEM_FI_ERR(ret, "disconnecting endpoint");
+			RPMEM_FI_ERR(-ret, "disconnecting endpoint");
 			lret = ret;
+
+			if (unlikely(ret == -FI_ECONNRESET ||
+					(fip->closing && ret == -FI_EINVAL))) {
+				goto close_monitor;
+			}
 		}
 	}
 
+close_monitor:
+	/* close fip monitor */
+	ret = rpmem_fip_monitor_fini(fip);
+	if (ret) {
+		lret = ret;
+	}
 	return lret;
 }
 
@@ -1068,6 +1158,9 @@ int
 rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	unsigned lane)
 {
+	if (unlikely(fip->closing))
+		return ECONNRESET; /* it will be passed to errno */
+
 	RPMEM_ASSERT(lane < fip->nlanes);
 	if (unlikely(lane >= fip->nlanes))
 		return EINVAL; /* it will be passed to errno */
@@ -1095,6 +1188,9 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		len -= tmp_len;
 	}
 err:
+	if (unlikely(fip->closing))
+		return ECONNRESET; /* it will be passed to errno */
+
 	return ret;
 }
 
@@ -1106,6 +1202,10 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len,
 	size_t off, unsigned lane)
 {
 	int ret;
+
+	if (unlikely(fip->closing))
+		return ECONNRESET; /* it will be passed to errno */
+
 	RPMEM_ASSERT(lane < fip->nlanes);
 	if (unlikely(lane >= fip->nlanes))
 		return EINVAL; /* it will be passed to errno */
@@ -1189,6 +1289,9 @@ err_readmsg:
 err_rd_mr:
 	free(rd_buff);
 err_malloc_rd_buff:
+	if (unlikely(fip->closing))
+		return ECONNRESET; /* it will be passed to errno */
+
 	return ret;
 }
 

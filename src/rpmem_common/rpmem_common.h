@@ -46,6 +46,7 @@
 #define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
 #define RPMEM_ACCEPT_TIMEOUT 30000
 #define RPMEM_CONNECT_TIMEOUT 30000
+#define RPMEM_MONITOR_TIMEOUT 1000
 
 #include <sys/socket.h>
 #include <netdb.h>
