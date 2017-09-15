@@ -653,7 +653,9 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 
 	int ret = rpmem_fip_read(rpp->fip, buff, length, offset, lane);
 	if (unlikely(ret)) {
+		ERR("read operation failed");
 		rpp->error = ret;
+		errno = rpp->error;
 		return -1;
 	}
 
