@@ -137,6 +137,8 @@ usage(void)
 {
 	CTRLD_LOG("usage: %s <pid file> <cmd> [<arg>]", APP_NAME);
 	CTRLD_LOG("commands:");
+	CTRLD_LOG("  exe <command> [<args...>] -- "
+			"run specified command");
 	CTRLD_LOG("  run  <timeout> <command> [<args...>] -- "
 			"run specified command with given timeout");
 	CTRLD_LOG("  wait [<timeout>]                     -- "
@@ -171,10 +173,13 @@ alloc_argv(unsigned argc, char *argv[], unsigned off)
 }
 
 /*
- * do_run -- execute the 'run' command
+ * do_run_or_exe -- execute the 'run' or the 'exe' command
+ *
+ * if timeout is equal to 0 cmd will be just executed (the 'exe' command)
+ * otherwise it will be run and wait with timeout (the 'run' command)
  */
 static int
-do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
+do_run_or_exe(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 {
 	int rv = -1;
 
@@ -195,9 +200,11 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 		goto err;
 	}
 
-	if (daemon(1, 0)) {
-		CTRLD_LOG("!daemon");
-		goto err;
+	if (timeout != 0) {
+		if (daemon(1, 0)) {
+			CTRLD_LOG("!daemon");
+			goto err;
+		}
 	}
 
 	int child = fork();
@@ -224,25 +231,30 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 		goto err;
 	}
 
-	int child_timeout = fork();
-	switch (child_timeout) {
-	case -1:
-		CTRLD_LOG("!fork");
-		fprintf(fh, "-1r%d", errno);
-		goto err;
-	case 0:
-		fclose(fh);
-		sleep(timeout);
-		return 0;
-	default:
-		break;
+	int child_timeout = -1;
+	if (timeout != 0) {
+		child_timeout = fork();
+		switch (child_timeout) {
+		case -1:
+			CTRLD_LOG("!fork");
+			fprintf(fh, "-1r%d", errno);
+			goto err;
+		case 0:
+			fclose(fh);
+			sleep(timeout);
+			return 0;
+		default:
+			break;
+		}
 	}
 
 	int ret = 0;
 	int pid = wait(&ret);
 	if (pid == child) {
-		/* kill the timeout child */
-		kill(child_timeout, SIGTERM);
+		if (timeout != 0) {
+			/* kill the timeout child */
+			kill(child_timeout, SIGTERM);
+		}
 
 		if (WIFSIGNALED(ret)) {
 			ret = 128 + WTERMSIG(ret);
@@ -262,7 +274,7 @@ do_run(const char *pid_file, char *cmd, char *argv[], unsigned timeout)
 
 		fprintf(fh, "%dr%d", child, ret);
 
-	} else if (pid == child_timeout) {
+	} else if (timeout != 0 && pid == child_timeout) {
 		CTRLD_LOG("run: timeout");
 		if (kill(child, SIGTERM) && errno != ESRCH) {
 			CTRLD_LOG("!kill");
@@ -685,7 +697,22 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (strcmp(cmd, "run") == 0) {
+	if (strcmp(cmd, "exe") == 0) {
+		if (argc < 4)
+			usage();
+
+		char *command = argv[3];
+		char **nargv = alloc_argv((unsigned)argc, argv, 3);
+		if (!nargv) {
+			CTRLD_LOG("!get_argv");
+			return 1;
+		}
+
+		log_run(pid_file, command, nargv);
+		ret = do_run_or_exe(pid_file, command, nargv, 0 /* timeout */);
+
+		free(nargv);
+	} else if (strcmp(cmd, "run") == 0) {
 		if (argc < 5)
 			usage();
 
@@ -698,7 +725,7 @@ main(int argc, char *argv[])
 		}
 
 		log_run(pid_file, command, nargv);
-		ret = do_run(pid_file, command, nargv, timeout);
+		ret = do_run_or_exe(pid_file, command, nargv, timeout);
 
 		free(nargv);
 	} else if (strcmp(cmd, "wait") == 0) {
