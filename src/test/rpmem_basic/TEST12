@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,18 +30,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# rpmem_basic/config.sh -- test configuration
+# src/test/rpmem_basic/TEST12 -- unit test for handling rpmemd termination
+# during rpmem_close and rpmem_persist
 #
+export UNITTEST_NAME=rpmem_basic/TEST12
+export UNITTEST_NUM=12
 
-CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+# standard unit test setup
+. ../unittest/unittest.sh
 
-CONF_GLOBAL_RPMEM_PROVIDER=all
-CONF_GLOBAL_RPMEM_PMETHOD=all
+require_test_type medium
 
-CONF_RPMEM_PMETHOD[10]=APM
-CONF_RPMEM_PMETHOD[11]=GPSPM
+. setup.sh
 
-# XXX: sockets provider can hang or crash during rpmemd termination
-CONF_RPMEM_PROVIDER[13]=verbs
+setup
+
+create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
+
+run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
+
+copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+
+SEED=4321
+CREATE="test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M"
+OPEN="test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init"
+PERSIST="test_persist 0 $SEED 1 1"
+TERMINATE="rpmemd_terminate 0"
+CLOSE="test_close 0"
+
+ARGS="$ARGS $CREATE $PERSIST $CLOSE"
+ARGS="$ARGS $OPEN $TERMINATE wait $CLOSE"
+ARGS="$ARGS $OPEN $TERMINATE nowait $CLOSE"
+ARGS="$ARGS $OPEN $TERMINATE wait $PERSIST $CLOSE"
+ARGS="$ARGS $OPEN $TERMINATE nowait $PERSIST $CLOSE"
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
+
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	check_pool $POOLS_DIR/pool0.set $SEED 8M
+
+pass

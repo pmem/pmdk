@@ -91,9 +91,11 @@ const char *pool_attr_names[] = {
 
 struct pool_entry {
 	RPMEMpool *rpp;
+	const char *target;
 	void *pool;
 	size_t size;
 	int is_mem;
+	int exp_errno;
 };
 
 #define MAX_IDS	1024
@@ -103,9 +105,12 @@ struct pool_entry pools[MAX_IDS];
  * init_pool -- map local pool file or allocate memory region
  */
 static void
-init_pool(struct pool_entry *pool, const char *pool_path,
+init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 	const char *pool_size)
 {
+	pool->target = target;
+	pool->exp_errno = 0;
+
 	int ret = util_parse_size(pool_size, &pool->size);
 	UT_ASSERTeq(ret, 0);
 
@@ -161,6 +166,7 @@ free_pool(struct pool_entry *pool)
 
 	pool->pool = NULL;
 	pool->rpp = NULL;
+	pool->target = NULL;
 }
 
 /*
@@ -207,6 +213,20 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 }
 
 /*
+ * check_return_and_errno - validate return value and errno
+ */
+static void
+check_return_and_errno(int ret, int exp_errno)
+{
+	if (exp_errno != 0) {
+		UT_ASSERTne(ret, 0);
+		UT_ASSERTeq(errno, exp_errno);
+	} else {
+		UT_ASSERTeq(ret, 0);
+	}
+}
+
+/*
  * test_create -- test case for creating remote pool
  */
 static int
@@ -228,7 +248,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, target, pool_path, size_str);
 
 	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
@@ -270,7 +290,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 
 	unsigned nlanes = NLANES;
 
-	init_pool(pool, pool_path, size_str);
+	init_pool(pool, target, pool_path, size_str);
 
 	struct rpmem_pool_attr pool_attr;
 	pool->rpp = rpmem_open(target, pool_set, pool->pool,
@@ -305,7 +325,7 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(pool->rpp, NULL);
 
 	int ret = rpmem_close(pool->rpp);
-	UT_ASSERTeq(ret, 0);
+	check_return_and_errno(ret, pool->exp_errno);
 
 	free_pool(pool);
 
@@ -321,6 +341,7 @@ struct thread_arg {
 	size_t size;
 	int nops;
 	unsigned lane;
+	int exp_errno;
 };
 
 /*
@@ -339,7 +360,7 @@ persist_thread(void *arg)
 				left : persist_size;
 
 		int ret = rpmem_persist(args->rpp, off, size, args->lane);
-		UT_ASSERTeq(ret, 0);
+		check_return_and_errno(ret, args->exp_errno);
 	}
 
 	return NULL;
@@ -384,6 +405,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		size_t size_left = buff_size - size_per_thread * i;
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
+		args[i].exp_errno = pool->exp_errno;
 		PTHREAD_CREATE(&threads[i], NULL, persist_thread, &args[i]);
 	}
 
@@ -416,11 +438,13 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
 	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
-	UT_ASSERTeq(ret, 0);
+	check_return_and_errno(ret, pool->exp_errno);
 
-	for (size_t i = 0; i < buff_size; i++) {
-		uint8_t r = rand();
-		UT_ASSERTeq(buff[i], r);
+	if (ret == 0) {
+		for (size_t i = 0; i < buff_size; i++) {
+			uint8_t r = rand();
+			UT_ASSERTeq(buff[i], r);
+		}
 	}
 
 	return 2;
@@ -547,6 +571,143 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 	return 2;
 }
 
+enum rpmemd_terminate_wait {
+	terminate_wait,
+	terminate_nowait
+};
+
+const char *rpmemd_terminate_wait_str[2] = {
+	"wait",
+	"nowait"
+};
+
+static enum rpmemd_terminate_wait str_2_rpmemd_terminate_wait(const char *str)
+{
+	for (int i = 0; i < ARRAY_SIZE(rpmemd_terminate_wait_str); ++i) {
+		if (strcmp(rpmemd_terminate_wait_str[i], str) == 0)
+			return (enum rpmemd_terminate_wait)i;
+	}
+
+	UT_FATAL("'%s' does not match <wait|nowait>", str);
+}
+
+/*
+ * argv_exe -- execute provided command and read output
+ */
+static int
+argv_exe(char *argv[], char *out, size_t size)
+{
+	/* create communication pipe */
+	int pipefd[2];
+	if (pipe(pipefd) == -1) {
+		UT_FATAL("cannot create pipe");
+	}
+
+	/* create child process */
+	pid_t pid = fork();
+	UT_ASSERTne(pid, -1);
+
+	if (!pid) {
+		/* attach child process stdout to pipe */
+		dup2(pipefd[1], STDOUT_FILENO);
+		os_close(pipefd[0]);
+		os_close(pipefd[1]);
+
+		/* execute command */
+		execvp(argv[0], argv);
+		exit(EXIT_FAILURE);
+	}
+
+	os_close(pipefd[1]);
+	int nread = 0;
+	if (out) {
+		/* read from child process stdout */
+		UT_ASSERTne(size, 0);
+		nread = read(pipefd[0], out, size);
+	}
+	os_close(pipefd[0]);
+
+	return nread;
+}
+
+#define SSH_EXE "ssh"
+#define RPMEMD_TERMINATE_CMD SSH_EXE " -tt %s pkill rpmemd"
+#define COUNT_RPMEMD_CMD "ps -A | grep -c rpmemd"
+
+/*
+ * kill_rpmemd -- kill target rpmemd
+ */
+static int
+kill_rpmemd(const char *target)
+{
+	char cmd[100];
+	snprintf(cmd, sizeof(cmd), RPMEMD_TERMINATE_CMD, target);
+	return system(cmd);
+}
+
+/*
+ * wait_till_rpmemd_is_dead -- return when target rpmemd is dead
+ */
+static void
+wait_till_rpmemd_is_dead(const char *target, enum rpmemd_terminate_wait wait)
+{
+	/* prepare arguments */
+	char *ssh_argv[4];
+	ssh_argv[0] = SSH_EXE;
+	ssh_argv[1] = strdup(target);
+	ssh_argv[2] = COUNT_RPMEMD_CMD;
+	ssh_argv[3] = NULL;
+
+	char buf[10];
+	int count;
+	int ret;
+
+	do {
+		/* kill rpmemd */
+		ret = kill_rpmemd(target);
+		if (ret != 0 || wait == terminate_nowait) {
+			break;
+		}
+
+		/* get number of rpmemd instances running */
+		ret = argv_exe(ssh_argv, buf, sizeof(buf));
+		if (ret == 0) {
+			/* no data read */
+			count = -1;
+			continue;
+		} else {
+			count = atoi(buf);
+		}
+	} while (count != 0);
+
+	/* release arguments */
+	free(ssh_argv[1]);
+}
+
+/*
+ * rpmemd_terminate -- terminate target rpmemd
+ */
+static int
+rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: rpmemd_terminate <id> <wait|nowait>");
+
+	const char *id_str = argv[0];
+	const char *wait_str = argv[1];
+
+	int id = atoi(id_str);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	struct pool_entry *pool = &pools[id];
+	UT_ASSERTne(pool->target, NULL);
+	pool->exp_errno = ECONNRESET;
+
+	enum rpmemd_terminate_wait wait = str_2_rpmemd_terminate_wait(wait_str);
+	wait_till_rpmemd_is_dead(pool->target, wait);
+
+	return 2;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -560,6 +721,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_remove),
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
+	TEST_CASE(rpmemd_terminate),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
