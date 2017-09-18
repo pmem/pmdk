@@ -39,6 +39,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_0D8F31B59D104CAABA3719FA67A36C63"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0E34693EAB944EEC8397F227C859F88D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -46,6 +52,12 @@
         "Entry"
         {
         "MsmKey" = "8:_0EEA55377E224B2C8BEFF6DBA5652533"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_11012DD505C84881B68D9809B6A0D9D5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -219,6 +231,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_4E9BBF9EC7F3426DBDF60B762A7EE3C2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_51C7AA0ED0364F708910E3B21F6E7722"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -279,6 +297,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_6B1E353873584918BD505A9C0DA69CE4"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_71C926815A0147A383CC258D15E8873E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -316,6 +340,12 @@
         "Entry"
         {
         "MsmKey" = "8:_7C5C2B42980F4D66B91212F4DCE79A4C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_7DCA1B4D45CA4F3D930F686FB3DBF52A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -381,6 +411,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_A63E53BC4BC646609129BDE33DB7484D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_ACC2DF7E44DA4CF5A6D15C142B0CB81B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -400,6 +436,12 @@
         "Entry"
         {
         "MsmKey" = "8:_B1C34630A706415D9689263BD007618C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B76127EC06AE4A14ABD5BD6B071621EF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -768,6 +810,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0D8F31B59D104CAABA3719FA67A36C63"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Debug\\libpmemcto.dll"
+            "TargetName" = "8:libpmemcto.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_AE96C7A744024C2BA7011C890DBC7C12"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0E34693EAB944EEC8397F227C859F88D"
             {
             "SourcePath" = "8:..\\..\\include\\libpmemobj++\\pext.hpp"
@@ -795,6 +857,26 @@
             "Tag" = "8:"
             "Folder" = "8:_6EAECAF5389D4D8F99F43D8DA06EEDB3"
             "Condition" = "8:INSTALL_RELEASE=1"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11012DD505C84881B68D9809B6A0D9D5"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Release\\libpmemcto.pdb"
+            "TargetName" = "8:libpmemcto.pdb"
+            "Tag" = "8:"
+            "Folder" = "8:_DB5C797EA3304C9E8759A215582ED7E3"
+            "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -1368,6 +1450,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4E9BBF9EC7F3426DBDF60B762A7EE3C2"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Debug\\libpmemcto.lib"
+            "TargetName" = "8:libpmemcto.lib"
+            "Tag" = "8:"
+            "Folder" = "8:_052C7992113842789106C3DC76CBE758"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_51C7AA0ED0364F708910E3B21F6E7722"
             {
             "SourcePath" = "8:..\\..\\include\\libpmemobj\\pool_base.h"
@@ -1568,6 +1670,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6B1E353873584918BD505A9C0DA69CE4"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Release\\libpmemcto.lib"
+            "TargetName" = "8:libpmemcto.lib"
+            "Tag" = "8:"
+            "Folder" = "8:_DB5C797EA3304C9E8759A215582ED7E3"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_71C926815A0147A383CC258D15E8873E"
             {
             "SourcePath" = "8:..\\..\\x64\\Debug\\libpmem.lib"
@@ -1694,6 +1816,26 @@
             "TargetName" = "8:iterator_base.h"
             "Tag" = "8:"
             "Folder" = "8:_D769F17FD88643E88DAF9E9FE59EBA5B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7DCA1B4D45CA4F3D930F686FB3DBF52A"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Debug\\libpmemcto.pdb"
+            "TargetName" = "8:libpmemcto.pdb"
+            "Tag" = "8:"
+            "Folder" = "8:_052C7992113842789106C3DC76CBE758"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1908,6 +2050,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A63E53BC4BC646609129BDE33DB7484D"
+            {
+            "SourcePath" = "8:..\\..\\include\\libpmemcto.h"
+            "TargetName" = "8:libpmemcto.h"
+            "Tag" = "8:"
+            "Folder" = "8:_9C2B088744FB4FF7BB5C5BFE31034DB2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ACC2DF7E44DA4CF5A6D15C142B0CB81B"
             {
             "SourcePath" = "8:..\\..\\x64\\Debug\\libpmemblk.pdb"
@@ -1975,6 +2137,26 @@
             "Tag" = "8:"
             "Folder" = "8:_DB5C797EA3304C9E8759A215582ED7E3"
             "Condition" = "8:INSTALL_RELEASE=1"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B76127EC06AE4A14ABD5BD6B071621EF"
+            {
+            "SourcePath" = "8:..\\..\\x64\\Release\\libpmemcto.dll"
+            "TargetName" = "8:libpmemcto.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_6EAECAF5389D4D8F99F43D8DA06EEDB3"
+            "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -2859,7 +3041,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NVML"
         "ProductCode" = "8:{486595D6-FDA0-4A34-9ECA-0EE6B91E8B31}"
-        "PackageCode" = "8:{E85DE41D-7439-48D6-AA3C-2C4D116D82FE}"
+        "PackageCode" = "8:{3E34DB30-D8D8-4D12-9D8F-6ED9FE221A1C}"
         "UpgradeCode" = "8:{B4DEC5FF-51F1-490F-B604-DFE564A346C8}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
