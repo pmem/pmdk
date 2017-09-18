@@ -42,7 +42,6 @@ export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_build_type debug nondebug
 require_fs_type any
 
 require_valgrind_dev_version 3.7

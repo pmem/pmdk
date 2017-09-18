@@ -41,6 +41,8 @@ JEMALLOC_NVMLDIR=libpmemcto
 include ./jemalloc.mk
 
 JEMALLOC_CONFIG += --disable-bsd-malloc-hooks
+JEMALLOC_CONFIG += --with-jemalloc-prefix=je_cto_
+JEMALLOC_CONFIG += --with-private-namespace=je_cto_
 
 ifeq ($(DEBUG),1)
 JEMALLOC_CONFIG += --enable-debug

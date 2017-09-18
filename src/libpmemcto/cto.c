@@ -96,7 +96,7 @@ cto_init(void)
 			POOL_HDR_SIZE + CTO_DSC_P_SIZE);
 
 	/* set up jemalloc messages to a custom print function */
-	je_vmem_malloc_message = cto_print_jemalloc_messages;
+	je_cto_malloc_message = cto_print_jemalloc_messages;
 }
 
 /*
@@ -288,7 +288,7 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 	}
 
 	/* Prepare pool for jemalloc - empty */
-	if (je_vmem_pool_create(
+	if (je_cto_pool_create(
 			(void *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			rep->repsize - CTO_DSC_SIZE_ALIGNED,
 			set->zeroed, 1) == NULL) {
@@ -483,7 +483,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 			set->poolsize - CTO_DSC_SIZE_ALIGNED);
 
 	/* Prepare pool for jemalloc */
-	if (je_vmem_pool_create(
+	if (je_cto_pool_create(
 			(void *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			set->poolsize - CTO_DSC_SIZE_ALIGNED, 0, 0) == NULL) {
 		ERR("pool creation failed");
@@ -561,7 +561,7 @@ pmemcto_close(PMEMctopool *pcp)
 {
 	LOG(3, "pcp %p", pcp);
 
-	int ret = je_vmem_pool_delete(
+	int ret = je_cto_pool_delete(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED));
 	if (ret != 0) {
 		ERR("invalid pool handle: %p", pcp);
@@ -628,7 +628,7 @@ pmemcto_checkU(const char *path, const char *layout)
 	if (pcp == NULL)
 		return -1;	/* errno set by pmemcto_open_common() */
 
-	int consistent = je_vmem_pool_check(
+	int consistent = je_cto_pool_check(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED));
 
 	pmemcto_close(pcp);
@@ -687,7 +687,7 @@ pmemcto_stats_print(PMEMctopool *pcp, const char *opts)
 {
 	LOG(3, "vmp %p opts \"%s\"", pcp, opts ? opts : "");
 
-	je_vmem_pool_malloc_stats_print(
+	je_cto_pool_malloc_stats_print(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			cto_print_jemalloc_stats, NULL, opts);
 }
@@ -700,7 +700,7 @@ pmemcto_malloc(PMEMctopool *pcp, size_t size)
 {
 	LOG(3, "pcp %p size %zu", pcp, size);
 
-	return je_vmem_pool_malloc(
+	return je_cto_pool_malloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			size);
 }
@@ -713,7 +713,7 @@ pmemcto_free(PMEMctopool *pcp, void *ptr)
 {
 	LOG(3, "pcp %p ptr %p", pcp, ptr);
 
-	je_vmem_pool_free((pool_t *)(
+	je_cto_pool_free((pool_t *)(
 			(uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED), ptr);
 }
 
@@ -725,7 +725,7 @@ pmemcto_calloc(PMEMctopool *pcp, size_t nmemb, size_t size)
 {
 	LOG(3, "pcp %p nmemb %zu size %zu", pcp, nmemb, size);
 
-	return je_vmem_pool_calloc(
+	return je_cto_pool_calloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			nmemb, size);
 }
@@ -738,7 +738,7 @@ pmemcto_realloc(PMEMctopool *pcp, void *ptr, size_t size)
 {
 	LOG(3, "pcp %p ptr %p size %zu", pcp, ptr, size);
 
-	return je_vmem_pool_ralloc(
+	return je_cto_pool_ralloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			ptr, size);
 }
@@ -751,7 +751,7 @@ pmemcto_aligned_alloc(PMEMctopool *pcp, size_t alignment, size_t size)
 {
 	LOG(3, "pcp %p alignment %zu size %zu", pcp, alignment, size);
 
-	return je_vmem_pool_aligned_alloc(
+	return je_cto_pool_aligned_alloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			alignment, size);
 }
@@ -765,7 +765,7 @@ pmemcto_strdup(PMEMctopool *pcp, const char *s)
 	LOG(3, "pcp %p s %p", pcp, s);
 
 	size_t size = strlen(s) + 1;
-	void *retaddr = je_vmem_pool_malloc(
+	void *retaddr = je_cto_pool_malloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			size);
 	if (retaddr == NULL)
@@ -783,7 +783,7 @@ pmemcto_wcsdup(PMEMctopool *pcp, const wchar_t *s)
 	LOG(3, "pcp %p s %p", pcp, s);
 
 	size_t size = (wcslen(s) + 1) * sizeof(wchar_t);
-	void *retaddr = je_vmem_pool_malloc(
+	void *retaddr = je_cto_pool_malloc(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			size);
 	if (retaddr == NULL)
@@ -800,6 +800,6 @@ pmemcto_malloc_usable_size(PMEMctopool *pcp, void *ptr)
 {
 	LOG(3, "pcp %p ptr %p", pcp, ptr);
 
-	return je_vmem_pool_malloc_usable_size(
+	return je_cto_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED), ptr);
 }

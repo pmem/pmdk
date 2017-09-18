@@ -90,8 +90,11 @@ atomic_sub_z
 base_alloc
 base_boot
 base_calloc
+base_free_fn
+base_malloc_fn
 base_node_alloc
 base_node_dalloc
+base_pool
 base_postfork_child
 base_postfork_parent
 base_prefork
@@ -274,6 +277,8 @@ narenas_total
 narenas_total_get
 ncpus
 nhbins
+npools
+npools_cnt
 opt_abort
 opt_dss
 opt_junk
@@ -299,6 +304,7 @@ opt_xmalloc
 opt_zero
 p2rz
 pages_purge
+pools_shared_data_initialized
 pow2_ceil
 prof_backtrace
 prof_boot0

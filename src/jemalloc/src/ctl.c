@@ -1265,7 +1265,7 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 		if (npools < POOLS_MIN)
 			npools = POOLS_MIN;
 
-		unsigned *tseqno = je_base_malloc(npools * sizeof (unsigned));
+		unsigned *tseqno = base_malloc_fn(npools * sizeof (unsigned));
 		if (tseqno == NULL)
 			return (ENOMEM);
 
@@ -1273,9 +1273,9 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 			memcpy(tseqno, tcache_tsd->seqno, tcache_tsd->npools * sizeof (unsigned));
 		memset(&tseqno[tcache_tsd->npools], 0, (npools - tcache_tsd->npools) * sizeof (unsigned));
 
-		tcache_t **tcaches = je_base_malloc(npools * sizeof (tcache_t *));
+		tcache_t **tcaches = base_malloc_fn(npools * sizeof (tcache_t *));
 		if (tcaches == NULL) {
-			je_base_free(tseqno);
+			base_free_fn(tseqno);
 			return (ENOMEM);
 		}
 
@@ -1283,9 +1283,9 @@ thread_arena_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 			memcpy(tcaches, tcache_tsd->tcaches, tcache_tsd->npools * sizeof (tcache_t *));
 		memset(&tcaches[tcache_tsd->npools], 0, (npools - tcache_tsd->npools) * sizeof (tcache_t *));
 
-		je_base_free(tcache_tsd->seqno);
+		base_free_fn(tcache_tsd->seqno);
 		tcache_tsd->seqno = tseqno;
-		je_base_free(tcache_tsd->tcaches);
+		base_free_fn(tcache_tsd->tcaches);
 		tcache_tsd->tcaches = tcaches;
 
 		tcache_tsd->npools = npools;

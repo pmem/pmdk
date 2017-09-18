@@ -41,7 +41,6 @@ export UNITTEST_NUM=0
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_build_type debug nondebug
 require_fs_type any
 
 setup
