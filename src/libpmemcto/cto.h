@@ -92,4 +92,33 @@ struct pmemcto {
 void cto_init(void);
 void cto_fini(void);
 
+
+/*
+ * XXX temporary hack
+ *
+ * On Linux we have separate jemalloc builds for libvmem, libvmmalloc
+ * and libpmemcto, with different function name prefixes.  This is to avoid
+ * symbol colisions in case of static linking of those libraries.
+ * On Windows we don't provide statically linked librarries, so there is
+ * no need to have separate jemallloc builds.  HOwever, since libpmemcto is
+ * linking to jemalloc symbols with different names, we have to do renaming
+ * here (unless there i sa better solution).
+ */
+#ifdef _WIN32
+#define je_cto_pool_create je_vmem_pool_create
+#define je_cto_pool_delete je_vmem_pool_delete
+#define je_cto_pool_malloc je_vmem_pool_malloc
+#define je_cto_pool_calloc je_vmem_pool_calloc
+#define je_cto_pool_ralloc je_vmem_pool_ralloc
+#define je_cto_pool_aligned_alloc je_vmem_pool_aligned_alloc
+#define je_cto_pool_free je_vmem_pool_free
+#define je_cto_pool_malloc_usable_size je_vmem_pool_malloc_usable_size
+#define je_cto_pool_malloc_stats_print je_vmem_pool_malloc_stats_print
+#define je_cto_pool_extend je_vmem_pool_extend
+#define je_cto_pool_set_alloc_funcs je_vmem_pool_set_alloc_funcs
+#define je_cto_pool_check je_vmem_pool_check
+#define je_cto_malloc_message je_vmem_malloc_message
+#endif
+
+
 #endif /* LIBPMEMCTO_CTO_H */
