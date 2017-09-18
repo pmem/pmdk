@@ -69,8 +69,8 @@ is_direct_mapped(const void *begin, const void *end)
 	const void *end_aligned = (const void *)roundup((intptr_t)end,
 					Pagesize);
 
-	for (const void *page = begin;
-			page < end;
+	for (const void *page = begin_aligned;
+			page < end_aligned;
 			page = (const void *)((char *)page + Pagesize)) {
 		if (Func_qvmi(GetCurrentProcess(), page,
 				MemoryRegionInfo, &region_info,
