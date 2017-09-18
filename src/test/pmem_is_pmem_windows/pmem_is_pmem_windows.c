@@ -236,3 +236,10 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
+
+
+/*
+ * Since libpmem is linked statically, we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)
