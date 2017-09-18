@@ -48,8 +48,8 @@ bool		pools_shared_data_initialized;
  * initialize pool. If not defined functions then base_pool will be
  * created for allocations from RAM.
  */
-void	*(*je_base_malloc)(size_t);
-void	(*je_base_free)(void *);
+void	*(*base_malloc_fn)(size_t);
+void	(*base_free_fn)(void *);
 
 /* Set to true once the allocator has been initialized. */
 static bool		malloc_initialized = false;
@@ -308,7 +308,7 @@ arenas_tsd_extend(tsd_pool_t *tsd, unsigned len)
 	if (npools < POOLS_MIN)
 		npools = POOLS_MIN;
 
-	unsigned *tseqno = je_base_malloc(npools * sizeof (unsigned));
+	unsigned *tseqno = base_malloc_fn(npools * sizeof (unsigned));
 	if (tseqno == NULL)
 		return (true);
 
@@ -316,9 +316,9 @@ arenas_tsd_extend(tsd_pool_t *tsd, unsigned len)
 		memcpy(tseqno, tsd->seqno, tsd->npools * sizeof (unsigned));
 	memset(&tseqno[tsd->npools], 0, (npools - tsd->npools) * sizeof (unsigned));
 
-	arena_t **tarenas = je_base_malloc(npools * sizeof (arena_t *));
+	arena_t **tarenas = base_malloc_fn(npools * sizeof (arena_t *));
 	if (tarenas == NULL) {
-		je_base_free(tseqno);
+		base_free_fn(tseqno);
 		return (true);
 	}
 
@@ -326,9 +326,9 @@ arenas_tsd_extend(tsd_pool_t *tsd, unsigned len)
 		memcpy(tarenas, tsd->arenas, tsd->npools * sizeof (arena_t *));
 	memset(&tarenas[tsd->npools], 0, (npools - tsd->npools) * sizeof (arena_t *));
 
-	je_base_free(tsd->seqno);
+	base_free_fn(tsd->seqno);
 	tsd->seqno = tseqno;
-	je_base_free(tsd->arenas);
+	base_free_fn(tsd->arenas);
 	tsd->arenas = tarenas;
 
 	tsd->npools = npools;
@@ -355,8 +355,8 @@ arenas_cleanup(void *arg)
 		}
 	}
 
-	je_base_free(tsd->seqno);
-	je_base_free(tsd->arenas);
+	base_free_fn(tsd->seqno);
+	base_free_fn(tsd->arenas);
 	tsd->npools = 0;
 
 	malloc_mutex_unlock(&pools_lock);
@@ -366,7 +366,7 @@ arenas_cleanup(void *arg)
 JEMALLOC_ALWAYS_INLINE_C void
 malloc_thread_init(void)
 {
-	if (config_fill && opt_quarantine && je_base_malloc == base_malloc_default) {
+	if (config_fill && opt_quarantine && base_malloc_fn == base_malloc_default) {
 		/* create pool base and call quarantine_alloc_hook() inside */
 		malloc_init_base_pool();
 	}
@@ -854,9 +854,9 @@ malloc_init_hard(void)
 	}
 
 	pools_shared_data_initialized = false;
-	if (je_base_malloc == NULL && je_base_free == NULL) {
-		je_base_malloc = base_malloc_default;
-		je_base_free = base_free_default;
+	if (base_malloc_fn == NULL && base_free_fn == NULL) {
+		base_malloc_fn = base_malloc_default;
+		base_free_fn = base_free_default;
 	}
 
 	if (chunk_global_boot()) {
@@ -1498,7 +1498,7 @@ pools_shared_data_destroy(void)
 	if (npools == 0) {
 		pools_shared_data_initialized = false;
 
-		je_base_free(tcache_bin_info);
+		base_free_fn(tcache_bin_info);
 		tcache_bin_info = NULL;
 	}
 }
@@ -2537,8 +2537,8 @@ je_pool_set_alloc_funcs(void *(*malloc_func)(size_t),
 	if (malloc_func != NULL && free_func != NULL) {
 		malloc_mutex_lock(&pool_base_lock);
 		if (pools == NULL) {
-			je_base_malloc = malloc_func;
-			je_base_free = free_func;
+			base_malloc_fn = malloc_func;
+			base_free_fn = free_func;
 		}
 		malloc_mutex_unlock(&pool_base_lock);
 	}

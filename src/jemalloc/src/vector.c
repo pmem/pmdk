@@ -58,7 +58,7 @@ vec_set(vector_t *vector, int index, void *val)
 	if (*vec_list == NULL) {
 		int vec_part_len = get_vec_part_len(index);
 
-		*vec_list = je_base_malloc(sizeof(vec_list_t) +
+		*vec_list = base_malloc_fn(sizeof(vec_list_t) +
 				sizeof(void *) * vec_part_len);
 		if (*vec_list == NULL)
 			return;
@@ -76,7 +76,7 @@ vec_delete(vector_t *vector)
 	vec_list_t *vec_list_next, *vec_list = vector->list;
 	while (vec_list != NULL) {
 		vec_list_next = vec_list->next;
-		je_base_free(vec_list);
+		base_free_fn(vec_list);
 		vec_list = vec_list_next;
 	}
 }

@@ -138,7 +138,7 @@ pmemcto_set_funcs(
 	util_set_alloc_funcs(malloc_func, free_func,
 			realloc_func, strdup_func);
 	out_set_print_func(print_func);
-	je_vmem_pool_set_alloc_funcs(malloc_func, free_func);
+	je_cto_pool_set_alloc_funcs(malloc_func, free_func);
 }
 
 /*
