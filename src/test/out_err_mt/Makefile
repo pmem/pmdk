@@ -36,10 +36,6 @@
 TARGET = out_err_mt
 OBJS = out_err_mt.o
 
-# XXX temporary hack
-BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
-
 LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMLOG=y
