@@ -853,6 +853,7 @@ heap_resize_chunk(struct palloc_heap *heap, struct bucket *bucket,
 	uint32_t chunk_id, uint32_t zone_id, uint32_t new_size_idx)
 {
 	uint32_t new_chunk_id = chunk_id + new_size_idx;
+	ASSERTne(new_chunk_id, chunk_id);
 
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 	struct chunk_header *old_hdr = &z->chunk_headers[chunk_id];
