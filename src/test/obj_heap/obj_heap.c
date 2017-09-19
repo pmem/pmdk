@@ -321,6 +321,14 @@ test_recycler(void)
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
+	/* trigger heap bucket populate */
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.size_idx = 1;
+	struct bucket *b = heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID);
+	UT_ASSERT(heap_get_bestfit_block(heap, b, &m) == 0);
+	heap_bucket_release(heap, b);
+
 	int ret;
 
 	struct recycler *r = recycler_new(&pop->heap);
