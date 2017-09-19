@@ -104,7 +104,7 @@ type ## _tx(PMEMobjpool *pop, TOID(struct type) var, int array_size,\
 			TEST_CALL(type, pop, var, array_size, recursion,\
 				oper);\
 \
-		for (int i = 0; i <= array_size; ++i) {\
+		for (int i = 0; i < array_size; ++i) {\
 			if (oper == SET)\
 				TX_SET(var, value[i], TEST_VALUE +\
 					D_RO(var)->value[i]);\
