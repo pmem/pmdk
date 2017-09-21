@@ -277,9 +277,7 @@ obj_init(void)
 
 	lane_info_boot();
 
-	if (util_remote_init()) {
-		LOG(4, "Duplicate util_remote_init()");
-	}
+	util_remote_init();
 }
 
 /*
@@ -1750,10 +1748,12 @@ obj_replicas_cleanup(struct pool_set *set)
 static void
 obj_pool_lock_cleanup(PMEMobjpool *pop)
 {
+	LOG(3, "pop %p", pop);
+
 	PMEMmutex_internal *nextm;
 	for (PMEMmutex_internal *m = pop->mutex_head; m != NULL; m = nextm) {
 		nextm = m->PMEMmutex_next;
-		LOG(3, "mutex %p *mutex %p", &m->PMEMmutex_lock,
+		LOG(4, "mutex %p *mutex %p", &m->PMEMmutex_lock,
 			m->PMEMmutex_bsd_mutex_p);
 		os_mutex_destroy(&m->PMEMmutex_lock);
 		m->PMEMmutex_next = NULL;
@@ -1764,7 +1764,7 @@ obj_pool_lock_cleanup(PMEMobjpool *pop)
 	PMEMrwlock_internal *nextr;
 	for (PMEMrwlock_internal *r = pop->rwlock_head; r != NULL; r = nextr) {
 		nextr = r->PMEMrwlock_next;
-		LOG(3, "rwlock %p *rwlock %p", &r->PMEMrwlock_lock,
+		LOG(4, "rwlock %p *rwlock %p", &r->PMEMrwlock_lock,
 			r->PMEMrwlock_bsd_rwlock_p);
 		os_rwlock_destroy(&r->PMEMrwlock_lock);
 		r->PMEMrwlock_next = NULL;
@@ -1775,7 +1775,7 @@ obj_pool_lock_cleanup(PMEMobjpool *pop)
 	PMEMcond_internal *nextc;
 	for (PMEMcond_internal *c = pop->cond_head; c != NULL; c = nextc) {
 		nextc = c->PMEMcond_next;
-		LOG(3, "cond %p *cond %p", &c->PMEMcond_cond,
+		LOG(4, "cond %p *cond %p", &c->PMEMcond_cond,
 			c->PMEMcond_bsd_cond_p);
 		os_cond_destroy(&c->PMEMcond_cond);
 		c->PMEMcond_next = NULL;

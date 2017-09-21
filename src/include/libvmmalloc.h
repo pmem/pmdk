@@ -124,26 +124,22 @@ extern void *realloc(void *ptr, size_t size) __ATTR_ALLOC_SIZE__(2);
 
 extern void free(void *ptr);
 
+extern void cfree(void *ptr);
+
 extern int posix_memalign(void **memptr, size_t alignment, size_t size)
 	__ATTR_NONNULL__(1);
 
+extern void *memalign(size_t boundary, size_t size)
+	__ATTR_MALLOC__ __ATTR_ALLOC_ALIGN__(1) __ATTR_ALLOC_SIZE__(2);
 
 extern void *aligned_alloc(size_t alignment, size_t size)
 	__ATTR_MALLOC__ __ATTR_ALLOC_ALIGN__(1) __ATTR_ALLOC_SIZE__(2);
 
 extern void *valloc(size_t size) __ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1);
 
-extern size_t malloc_usable_size(void *ptr);
-
-/* Only define functions supported by the underlying OS */
-#ifndef __FreeBSD__
-extern void cfree(void *ptr);
-
-extern void *memalign(size_t boundary, size_t size)
-	__ATTR_MALLOC__ __ATTR_ALLOC_ALIGN__(1) __ATTR_ALLOC_SIZE__(2);
-
 extern void *pvalloc(size_t size) __ATTR_MALLOC__ __ATTR_ALLOC_SIZE__(1);
-#endif
+
+extern size_t malloc_usable_size(void *ptr);
 
 #ifdef __cplusplus
 }

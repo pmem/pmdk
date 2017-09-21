@@ -35,18 +35,18 @@
 #
 TARGET = vmmalloc_memalign
 OBJS = vmmalloc_memalign.o
-EXTRA_DEPS = libaa.so
+EXTRA_DEPS = libwf.so
 
 vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
 
 include ../Makefile.inc
 
-libaa.so: aligned_alloc.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libaa.so -o $@ $^
+libwf.so: ../../common/vmmalloc_weakfuncs.c
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
 
-clobber: libaa_cleanup
+clobber: libwf_cleanup
 
-libaa_cleanup:
-	$(RM) libaa.so
+libwf_cleanup:
+	$(RM) libwf.so
 
-LIBS += ./libaa.so -Wl,-rpath=.
+LIBS += ./libwf.so -Wl,-rpath=.

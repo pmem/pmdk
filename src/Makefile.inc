@@ -94,9 +94,20 @@ LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif
 
-ifneq ($(SANITIZE),)
-CFLAGS += -fsanitize=$(SANITIZE)
-LDFLAGS += -fsanitize=$(SANITIZE)
+# On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
+tsanitize := $(SANITIZE)
+ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(JEMALLOC_NVMLDIR),libvmmalloc)
+hasaddrcomma := address,
+tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
+ifneq ($(tsanitize),$(SANITIZE))
+$(info SANITIZE=address not supported for libvmmalloc, ignored)
+endif
+endif
+endif
+ifneq ($(tsanitize),)
+CFLAGS += -fsanitize=$(tsanitize)
+LDFLAGS += -fsanitize=$(tsanitize)
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)

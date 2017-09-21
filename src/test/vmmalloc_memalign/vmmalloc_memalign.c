@@ -43,14 +43,13 @@
 #endif
 #include <errno.h>
 #include "unittest.h"
+#include "vmmalloc_weakfuncs.h"
 
 #define USAGE "usage: %s [m|p|a]"
 
 #define MIN_ALIGN (2)
 #define MAX_ALIGN (4L * 1024L * 1024L)
 #define MAX_ALLOCS (100)
-
-extern void *aligned_alloc(size_t alignment, size_t size);
 
 /* buffer for all allocations */
 static int *allocs[MAX_ALLOCS];
@@ -87,13 +86,8 @@ main(int argc, char *argv[])
 
 	switch (argv[1][0]) {
 	case 'm':
-#ifdef __FreeBSD__
-		UT_OUT("memalign not supported on FreeBSD");
-		DONE(NULL);
-#else
 		UT_OUT("testing memalign");
 		Aalloc = memalign;
-#endif
 		break;
 	case 'p':
 		UT_OUT("testing posix_memalign");

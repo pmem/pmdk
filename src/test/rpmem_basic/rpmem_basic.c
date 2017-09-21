@@ -143,7 +143,7 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 		 * The librpmem client requires fork() support to work
 		 * correctly.
 		 */
-		ret = MADVISE(pool->pool, pool->size, MADV_DONTFORK);
+		ret = os_madvise(pool->pool, pool->size, MADV_DONTFORK);
 
 		UT_ASSERTeq(ret, 0);
 

@@ -103,7 +103,7 @@ util_map_hint(size_t len, size_t req_align, const char *altfile)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
 
-	ASSERT(altfile == NULL); /* Not needed on Windows */
+	ASSERTeq(altfile, NULL); /* Not needed on Windows */
 
 	char *hint_addr = MAP_FAILED;
 

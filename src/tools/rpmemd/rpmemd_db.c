@@ -177,7 +177,8 @@ rpmemd_db_pool_madvise(struct pool_set *set)
 	 */
 	const struct pool_set_part *part = &set->replica[0]->part[0];
 	if (part->is_dev_dax) {
-		int ret = MADVISE(part->addr, part->filesize, MADV_DONTFORK);
+		int ret = os_madvise(part->addr, part->filesize,
+			MADV_DONTFORK);
 		if (ret) {
 			ERR("!madvise");
 			return -1;

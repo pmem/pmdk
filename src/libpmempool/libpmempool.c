@@ -68,9 +68,7 @@ libpmempool_init(void)
 		PMEMPOOL_MINOR_VERSION);
 	LOG(3, NULL);
 #ifdef USE_RPMEM
-	if (util_remote_init()) {
-		LOG(4, "Duplicate util_remote_init()");
-	}
+	util_remote_init();
 	rpmem_util_cmds_init();
 #endif
 }

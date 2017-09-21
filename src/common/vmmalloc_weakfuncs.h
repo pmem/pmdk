@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,14 +31,32 @@
  */
 
 /*
- * aligned_alloc.c -- dummy implementation of aligned_alloc()
+ * vmmalloc_weakfuncs.h -- definitions for vmmalloc tests
  */
 
-#include "aligned_alloc.h"
+#ifndef VMMALLOC_WEAKFUNCS_H
+#define VMMALLOC_WEAKFUNCS_H
 
-__attribute__((weak))
-void *
-aligned_alloc(size_t alignment, size_t size)
-{
-	return NULL;
-}
+#include <stddef.h>
+#ifndef __FreeBSD__
+#include <malloc.h>
+#endif
+
+void *aligned_alloc(size_t alignment, size_t size);
+void *memalign(size_t boundary, size_t size);
+void *pvalloc(size_t size);
+
+#ifdef __MALLOC_HOOK_VOLATILE
+#define MALLOC_HOOK_VOLATILE __MALLOC_HOOK_VOLATILE
+#else
+#define MALLOC_HOOK_VOLATILE /* */
+#endif
+
+void (*MALLOC_HOOK_VOLATILE __free_hook)(void *, const void *);
+void *(*MALLOC_HOOK_VOLATILE __malloc_hook)(size_t size, const void *);
+void *(*MALLOC_HOOK_VOLATILE __memalign_hook)(size_t alignment, size_t size,
+	const void *);
+void *(*MALLOC_HOOK_VOLATILE __realloc_hook)(void *ptr, size_t size,
+	const void *);
+
+#endif

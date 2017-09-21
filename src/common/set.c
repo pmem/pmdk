@@ -97,42 +97,31 @@ int Prefault_at_create = 0;
 /*
  * util_remote_init -- initialize remote replication
  */
-int
+void
 util_remote_init(void)
 {
 	LOG(3, NULL);
-	if (Remote_replication_available)
-		return -1;
 
-	util_mutex_init(&Remote_lock);
-	Remote_replication_available = 1;
-
-	return 0;
+	/* XXX Is duplicate initialization really okay? */
+	if (!Remote_replication_available) {
+		util_mutex_init(&Remote_lock);
+		Remote_replication_available = 1;
+	}
 }
 
 /*
  * util_remote_fini -- finalize remote replication
  */
-int
+void
 util_remote_fini(void)
 {
 	LOG(3, NULL);
-	if (!Remote_replication_available)
-		return -1;
 
-	Remote_replication_available = 0;
-	util_mutex_destroy(&Remote_lock);
-
-	return 0;
-}
-
-/*
- * util_remote_available -- return remote replication state
- */
-int
-util_remote_available(void)
-{
-	return Remote_replication_available;
+	/* XXX Okay to be here if not initialized? */
+	if (Remote_replication_available) {
+		Remote_replication_available = 0;
+		util_mutex_destroy(&Remote_lock);
+	}
 }
 
 /*
@@ -1524,7 +1513,7 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	 * The librpmem client requires fork() support to work correctly.
 	 */
 	if (set->replica[0]->part[0].is_dev_dax) {
-		int ret = MADVISE(set->replica[0]->part[0].addr,
+		int ret = os_madvise(set->replica[0]->part[0].addr,
 				set->replica[0]->part[0].filesize,
 				MADV_DONTFORK);
 		if (ret) {

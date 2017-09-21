@@ -343,13 +343,11 @@ pmempool_rm_func(char *appname, int argc, char *argv[])
 	}
 
 #ifdef USE_RPMEM
-	if (util_remote_init()) {
-		outv(1, "Duplicate util_remote_init()\n");
-	}
 	/*
 	 * Try to load librpmem, if loading failed -
 	 * assume it is not available.
 	 */
+	util_remote_init();
 	rpmem_avail = !util_remote_load();
 #endif
 

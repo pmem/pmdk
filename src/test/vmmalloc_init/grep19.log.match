@@ -1,2 +1,0 @@
-$(OPT)Error (libvmmalloc): VMMALLOC_FORK value 2 not supported on FreeBSD
-$(OPX)vmmalloc_init/TEST19: START: vmmalloc_init

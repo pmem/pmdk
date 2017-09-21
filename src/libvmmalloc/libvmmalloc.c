@@ -173,9 +173,8 @@ free(void *ptr)
  *
  * the implementation is identical to free()
  *
- * Not supported on FreeBSD
+ * XXX Not supported on FreeBSD, but we define it anyway
  */
-#ifndef __FreeBSD__
 void
 cfree(void *ptr)
 {
@@ -186,15 +185,13 @@ cfree(void *ptr)
 	LOG(4, "ptr %p", ptr);
 	je_vmem_pool_free((pool_t *)((uintptr_t)Vmp + Header_size), ptr);
 }
-#endif /* #ifndef __FreeBSD__ */
 
 /*
  * memalign -- allocate a block of size bytes, starting on an address
  * that is a multiple of boundary
  *
- * Not supported on FreeBSD
+ * XXX Not supported on FreeBSD, but we define it anyway
  */
-#ifndef __FreeBSD__
 __ATTR_MALLOC__
 __ATTR_ALLOC_ALIGN__(1)
 __ATTR_ALLOC_SIZE__(2)
@@ -210,7 +207,6 @@ memalign(size_t boundary, size_t size)
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			boundary, size);
 }
-#endif /* #ifndef __FreeBSD__ */
 
 /*
  * aligned_alloc -- allocate a block of size bytes, starting on an address
@@ -284,9 +280,8 @@ valloc(size_t size)
  *
  * Requested size is also aligned to page boundary.
  *
- * Not supported on FreeBSD
+ * XXX Not supported on FreeBSD, but we define it anyway.
  */
-#ifndef __FreeBSD__
 __ATTR_MALLOC__
 __ATTR_ALLOC_SIZE__(1)
 void *
@@ -302,7 +297,6 @@ pvalloc(size_t size)
 			(pool_t *)((uintptr_t)Vmp + Header_size),
 			Pagesize, roundup(size, Pagesize));
 }
-#endif /* #ifndef __FreeBSD__ */
 
 /*
  * malloc_usable_size -- get usable size of allocation

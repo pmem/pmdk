@@ -95,7 +95,6 @@ required packages on the build system:
 * **coreutils**
 * **e2fsprogs-libuuid**
 * **gmake**
-* **gnugrep**
 * **libunwind**
 * **ncurses**<sup>4</sup>
 * **pkgconf**

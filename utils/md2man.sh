@@ -76,5 +76,10 @@ m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
 pandoc -s -t man -o $outfile --template=$template \
     -V title=$title -V section=$section \
     -V date=$(date +"%F") -V version="$version" \
-    -V year=$(date +"%Y")
-
+    -V year=$(date +"%Y") |
+sed '/^\.IP/{
+N
+/\n\.nf/{
+	s/IP/PP/
+    }
+}'
