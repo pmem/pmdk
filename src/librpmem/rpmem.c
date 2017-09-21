@@ -738,12 +738,8 @@ rpmem_remove(const char *target, const char *pool_set, int flags)
 
 	ret = rpmem_ssh_close(ssh);
 	if (ret) {
-		if (ret > 0) {
-			errno = ret;
-			ERR("!remote command failed");
-		} else {
-			ERR("remote command failed");
-		}
+		errno = EINVAL;
+		ERR("remote command failed");
 		goto err_ssh_close;
 	}
 
