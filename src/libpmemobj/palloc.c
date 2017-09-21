@@ -139,17 +139,57 @@ palloc_operation(struct palloc_heap *heap,
 {
 	struct memory_block existing_block = MEMORY_BLOCK_NONE;
 	struct memory_block new_block = MEMORY_BLOCK_NONE;
-	struct memory_block coalesced_block = MEMORY_BLOCK_NONE;
 
 	struct bucket *existing_bucket = NULL;
 	struct bucket *new_bucket = NULL;
 	int ret = 0;
 
 	/*
+	 * These two lock are responsible for protecting the metadata for the
+	 * persistent representation of a chunk. Depending on the operation and
+	 * the type of a chunk, they might be NULL.
+	 * These lock must be held for the duration between the creation of the
+	 * allocation metadata updates in the operation context and the
+	 * operation processing. This is because a different thread might
+	 * operate on the same 8-byte value of the run bitmap and override
+	 * allocation performed by this thread.
+	 */
+	int nlocks = 0;
+	os_mutex_t *locks[] = {NULL, NULL}; /* alloc, free, or both */
+
+	/*
 	 * The offset value which is to be written to the destination pointer
 	 * provided by the caller.
 	 */
 	uint64_t offset_value = 0;
+
+	/* size of the existing block */
+	size_t user_size = 0;
+
+	/*
+	 * The offset of an existing block can be nonzero which means this
+	 * operation is either free or a realloc - either way the offset of the
+	 * object needs to be translated into structure that all of the heap
+	 * methods operate in.
+	 */
+	if (off != 0) {
+		existing_block = memblock_from_offset(heap, off);
+
+#ifdef DEBUG
+		if (existing_block.m_ops->get_state(&existing_block) !=
+				MEMBLOCK_ALLOCATED) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
+		user_size = existing_block.m_ops
+			->get_user_size(&existing_block);
+
+		/* reallocation to exactly the same size, which is a no-op */
+		if (user_size == size)
+			goto out;
+	}
 
 	/*
 	 * The first step in the allocation of a new block is reserving it in
@@ -243,24 +283,20 @@ palloc_operation(struct palloc_heap *heap,
 			ret = -1;
 			goto out;
 		}
+
+#ifdef DEBUG
+		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
+
+		locks[nlocks] = new_block.m_ops->get_lock(&new_block);
+		if (locks[nlocks] != NULL)
+			nlocks += 1;
 	}
 
-	/*
-	 * The offset of an existing block can be nonzero which means this
-	 * operation is either free or a realloc - either way the offset of the
-	 * object needs to be translated into structure that all of the heap
-	 * methods operate in.
-	 */
-	if (off != 0) {
-		existing_block = memblock_from_offset(heap, off);
-
-		size_t user_size = existing_block.m_ops
-			->get_user_size(&existing_block);
-
-		/* reallocation to exactly the same size, which is a no-op */
-		if (user_size == size)
-			goto out;
-
+	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
 		/* not in-place realloc */
 		if (!MEMORY_BLOCK_IS_NONE(new_block)) {
 			size_t old_size = user_size;
@@ -277,7 +313,14 @@ palloc_operation(struct palloc_heap *heap,
 				to_cpy);
 		}
 
-		coalesced_block = existing_block;
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+			(char *)existing_block.m_ops
+				->get_user_data(&existing_block));
+
+		/*
+		 * Need to update the volatile state of huge blocks, the runs
+		 * will be coalesced as needed during allocation.
+		 */
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
 			if (new_bucket && new_bucket->aclass->id ==
 						DEFAULT_ALLOC_CLASS_ID) {
@@ -289,31 +332,10 @@ palloc_operation(struct palloc_heap *heap,
 						DEFAULT_ALLOC_CLASS_ID);
 			}
 
-			coalesced_block = heap_coalesce_huge(heap,
+			existing_block = heap_coalesce_huge(heap,
 				existing_bucket, &existing_block);
 		}
-	}
 
-	/*
-	 * These two lock are responsible for protecting the metadata for the
-	 * persistent representation of a chunk. Depending on the operation and
-	 * the type of a chunk, they might be NULL.
-	 * These lock must be held for the duration between the creation of the
-	 * allocation metadata updates in the operation context and the
-	 * operation processing. This is because a different thread might
-	 * operate on the same 8-byte value of the run bitmap and override
-	 * allocation performed by this thread.
-	 */
-	int nlocks = 0;
-	os_mutex_t *locks[] = {NULL, NULL}; /* alloc, free, or both */
-
-	if (!MEMORY_BLOCK_IS_NONE(new_block)) {
-		locks[nlocks] = new_block.m_ops->get_lock(&new_block);
-		if (locks[nlocks] != NULL)
-			nlocks += 1;
-	}
-
-	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
 		locks[nlocks] = existing_block.m_ops->get_lock(&existing_block);
 		if (locks[nlocks] != NULL)
 			nlocks += 1;
@@ -335,44 +357,18 @@ palloc_operation(struct palloc_heap *heap,
 	for (int i = 0; i < nlocks; ++i)
 		util_mutex_lock(locks[i]);
 
+	/*
+	 * The actual required metadata modifications are chunk-type
+	 * dependent, but it always is a modification of a single 8 byte
+	 * value - either modification of few bits in a bitmap or
+	 * changing a chunk type from free to used or vice versa.
+	 */
 	if (!MEMORY_BLOCK_IS_NONE(new_block)) {
-#ifdef DEBUG
-		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
-			ERR("Double free or heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-
-		/*
-		 * The actual required metadata modifications are chunk-type
-		 * dependent, but it always is a modification of a single 8 byte
-		 * value - either modification of few bits in a bitmap or
-		 * changing a chunk type from free to used.
-		 */
 		new_block.m_ops->prep_hdr(&new_block, MEMBLOCK_ALLOCATED, ctx);
 	}
-
 	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
-#ifdef DEBUG
-		if (existing_block.m_ops->get_state(&existing_block) !=
-				MEMBLOCK_ALLOCATED) {
-			ERR("Double free or heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
-			(char *)existing_block.m_ops
-				->get_user_data(&existing_block));
-
-		/*
-		 * This method will insert new entries into the operation
-		 * context which will, after processing, update the chunk
-		 * metadata to 'free'.
-		 */
-		existing_block = coalesced_block;
 		existing_block.m_ops->prep_hdr(&existing_block,
 			MEMBLOCK_FREE, ctx);
-
 	}
 
 	/*

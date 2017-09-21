@@ -298,6 +298,13 @@ test_mock_pool_allocs(void)
 	UT_ASSERTeq(tiny0, tiny1);
 	UT_ASSERTeq(medium0, medium1);
 
+	/* realloc to the same size shouldn't affect anything */
+	for (size_t i = 0; i < tiny1; ++i)
+		test_realloc(TEST_TINY_ALLOC_SIZE, TEST_TINY_ALLOC_SIZE);
+
+	size_t tiny2 = test_oom_allocs(TEST_TINY_ALLOC_SIZE);
+	UT_ASSERTeq(tiny1, tiny2);
+
 	test_realloc(TEST_SMALL_ALLOC_SIZE, TEST_MEDIUM_ALLOC_SIZE);
 	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);
 
