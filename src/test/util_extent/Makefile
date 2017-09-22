@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,50 +31,13 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/util_extent/Makefile -- build util_extent test
 #
+#
+TARGET = util_extent
+OBJS = util_extent.o
 
-TOP = ../../..
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
-
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents
-
-REMOTE_TOOLS = \
-	ctrld\
-	fip\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
-
-all test cstyle clean clobber format sparse: $(DIRS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck:
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+include ../Makefile.inc

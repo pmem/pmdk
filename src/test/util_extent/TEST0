@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,50 +32,24 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/util_extent/TEST0 -- unit test for util_extent
 #
+export UNITTEST_NAME=util_extent/TEST0
+export UNITTEST_NUM=0
 
-TOP = ../../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+require_test_type medium
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents
+require_fs_type pmem non-pmem
 
-REMOTE_TOOLS = \
-	ctrld\
-	fip\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
+setup
 
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
+require_fs_name ext4
 
-all test cstyle clean clobber format sparse: $(DIRS)
+fallocate -l 100M  $DIR/testfile1
 
-$(TESTCONFIG):
+expect_normal_exit ./util_extent$EXESUFFIX $DIR/testfile1
 
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck:
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+pass
