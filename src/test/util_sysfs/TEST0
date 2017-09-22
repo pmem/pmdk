@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +30,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+
 #
+# src/test/util_sysfs/TEST0 -- unit test for util_sysfs
+#
+export UNITTEST_NAME=util_sysfs/TEST0
+export UNITTEST_NUM=0
 
-TOP = ../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+require_test_type medium
 
-TARGETS = pmempool rpmemd plugins
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+require_fs_type pmem non-pmem
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
+setup
 
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
+require_fs_name ext4
 
-$(TESTCONFIG):
+fallocate -l 100M  $DIR/testfile1
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
+expect_normal_exit ./util_sysfs$EXESUFFIX $DIR/testfile1
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
-
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+pass

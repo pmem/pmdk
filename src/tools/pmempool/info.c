@@ -57,6 +57,7 @@
 #include "info.h"
 #include "set.h"
 #include "file.h"
+#include "badblock.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\
@@ -91,6 +92,7 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
 	.vstats		= VERBOSE_SILENT,
+	.vbadblocks	= VERBOSE_SILENT,
 	.log		= {
 		.walk		= 0,
 	},
@@ -133,6 +135,7 @@ static const struct option long_options[] = {
 	{"headers-hex",	no_argument,		NULL, 'x' | OPT_ALL},
 	{"stats",	no_argument,		NULL, 's' | OPT_ALL},
 	{"range",	required_argument,	NULL, 'r' | OPT_ALL},
+	{"badblocks",	no_argument,		NULL, 'k' | OPT_ALL},
 	{"walk",	required_argument,	NULL, 'w' | OPT_LOG},
 	{"skip-zeros",	no_argument,		NULL, 'z' | OPT_BLK | OPT_BTT},
 	{"skip-error",	no_argument,		NULL, 'e' | OPT_BLK | OPT_BTT},
@@ -269,6 +272,7 @@ static const char *help_str =
 "  -d, --data                      Dump log data and blocks.\n"
 "  -s, --stats                     Print statistics.\n"
 "  -r, --range <range>             Range of blocks/chunks/objects.\n"
+"  -k, --badblocks                 Print badblocks.\n"
 "\n"
 "Options for PMEMLOG:\n"
 "  -w, --walk <size>               Chunk size.\n"
@@ -359,7 +363,7 @@ parse_args(char *appname, int argc, char *argv[],
 
 	struct ranges *rangesp = &argsp->ranges;
 	while ((opt = util_options_getopt(argc, argv,
-			"vhnf:ezuF:L:c:dmxVw:gBsr:lRS:OECZHT:bot:aAp:",
+			"vhnf:ezuF:L:c:dmxVw:gBsr:lRS:OECZHT:bot:aAp:k",
 			opts)) != -1) {
 
 		switch (opt) {
@@ -421,6 +425,9 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 's':
 			argsp->vstats = VERBOSE_DEFAULT;
+			break;
+		case 'k':
+			argsp->vbadblocks = VERBOSE_DEFAULT;
 			break;
 		case 'w':
 			argsp->log.walk = (size_t)atoll(optarg);
@@ -736,6 +743,33 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 }
 
 /*
+ * pmempool_info_badblocks -- prints info about file badblocks
+ */
+static int
+pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
+{
+	if (!outv_check(pip->args.vbadblocks))
+		return 0;
+
+	struct badblock_iter *iter = badblock_new(file_name);
+	if (iter == NULL)
+		return -1;
+
+	struct badblock b;
+
+	outv(v, "\nBadblocks:\n");
+	outv(v, "\tPhysical Offset\t\tLength");
+	while (iter->i_ops.next(iter, &b) == 0) {
+		outv(v, "\t%"PRIu64"\t\t%"PRIu64, b.offset_physical, b.length);
+	}
+	outv(v, "\n");
+
+	iter->i_ops.del(iter);
+
+	return 0;
+}
+
+/*
  * pmempool_info_file -- print info about single file
  */
 static int
@@ -845,6 +879,12 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 
 		if (pip->params.is_part) {
 			ret = 0;
+			goto out_close;
+		}
+
+		if ((ret = pmempool_info_badblocks(pip,
+				file_name, VERBOSE_DEFAULT)) != 0) {
+			outv_err("Unable to retrieve badblock info");
 			goto out_close;
 		}
 

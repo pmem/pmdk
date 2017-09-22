@@ -60,6 +60,7 @@ TOOLS=../tools
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
+[ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -843,6 +844,16 @@ function require_unlimited_vm() {
 }
 
 #
+# require_superuser -- require user with superuser rights
+#
+function require_superuser() {
+	local user_id=$(id -u)
+	[ "$user_id" == "0" ] && return
+	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	exit 0
+}
+
+#
 # require_no_superuser -- require user without superuser rights
 #
 function require_no_superuser() {
@@ -1059,6 +1070,25 @@ function require_fs_type() {
 }
 
 #
+# require_fs_name -- verifies if the $DIR is on the required file system
+#
+# Must be AFTER setup() because $DIR must exist
+#
+function require_fs_name() {
+	fsname=`df $DIR -PT | awk '{if (NR == 2) print $2}'`
+
+	for name in $*
+	do
+		if [ "$name" == "$fsname" ]; then
+			return
+		fi
+	done
+
+	echo "$UNITTEST_NAME: SKIP no required file system"
+	exit 0
+}
+
+#
 # require_build_type -- only allow script to continue for a certain build type
 #
 function require_build_type() {
@@ -1077,6 +1107,14 @@ function require_command() {
 	if ! command -pv $1 1>/dev/null
 	then
 		echo "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+function require_kernel_module() {
+	MODULE=`cat /proc/modules | grep $1 | wc -l`
+	if [ $MODULE == "0" ]; then
+		echo "$UNITTEST_NAME: SKIP: '$1' module required"
 		exit 0
 	fi
 }

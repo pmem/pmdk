@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +30,53 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+
 #
+# src/test/util_badblock/TEST2 -- unit test for util_badblock
+#
+export UNITTEST_NAME=util_badblock/TEST2
+export UNITTEST_NUM=2
 
-TOP = ../..
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+DEVDAX_BADBLOCK=../../tools/plugins/plugin_badblocks_devdax
 
-TARGETS = pmempool rpmemd plugins
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+require_test_type medium
+require_kernel_module nfit_test
+require_command ndctl
+require_superuser
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
+require_binary $DEVDAX_BADBLOCK/plugin_badblocks_devdax.so
 
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
+setup
 
-$(TESTCONFIG):
+ndctl disable-region all &> /dev/null
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
+modprobe -r nfit_test
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+modprobe nfit_test
+ndctl disable-region all &> /dev/null
+ndctl zero-labels all &> /dev/null
+ndctl enable-region all &> /dev/null
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+BUS="nfit_test.0"
+REGION=`ndctl list -b $BUS -t pmem -Ri | sed '/dev/!d;s/[", ]//g;s/dev://g' | tail -1`
+DEVICE=`ndctl create-namespace -b $BUS -r $REGION -f -m dax -a 4096 | sed '/chardev/!d;s/[", ]//g;s/chardev://g'`
 
-clobber: clean
+FULLDEV="/dev/$DEVICE"
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
+NBADBLOCKS=`cat /sys/bus/platform/devices/$BUS/ndbus1/$REGION/badblocks | wc -l`
 
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV $NBADBLOCKS $DEVDAX_BADBLOCK
+
+NBADBLOCKS=`cat /sys/bus/platform/devices/$BUS/ndbus1/$REGION/badblocks | wc -l`
+
+ndctl disable-region all &> /dev/null
+modprobe -r nfit_test
+
+if [ "$NBADBLOCKS" -ne 0 ]; then
+	exit 1
+fi
+
+pass

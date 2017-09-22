@@ -34,6 +34,10 @@
 
 LIBRARY_NAME = pmemcommon
 SOURCE =\
+	badblock_filesrc_linux.c\
+	badblock_poolset.c\
+	badblock.c\
+	extent_linux.c\
 	file.c\
 	file_linux.c\
 	mmap.c\
@@ -45,6 +49,7 @@ SOURCE =\
 	pool_hdr.c\
 	pool_hdr_linux.c\
 	set.c\
+	sysfs.c\
 	util.c\
 	uuid.c\
 	uuid_$(shell uname -s | tr "[:upper:]" "[:lower:]").c\
