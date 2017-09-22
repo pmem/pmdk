@@ -1059,6 +1059,25 @@ function require_fs_type() {
 }
 
 #
+# require_fs_name -- verifies if the $DIR is on the required file system
+#
+# Must be AFTER setup() because $DIR must exist
+#
+function require_fs_name() {
+	fsname=`df $DIR -PT | awk '{if (NR == 2) print $2}'`
+
+	for name in $*
+	do
+		if [ "$name" == "$fsname" ]; then
+			return
+		fi
+	done
+
+	echo "$UNITTEST_NAME: SKIP no required file system"
+	exit 0
+}
+
+#
 # require_build_type -- only allow script to continue for a certain build type
 #
 function require_build_type() {
