@@ -235,8 +235,7 @@ The **rpmem_remove**() function removes a remote pool on a given *target* node.
 The *pool_set_name* is a relative path in the root config directory on the
 *target* node that uniquely identifies the pool set file on remote node.
 By default only the pool part files are removed and pool set file is left
-untouched. If the pool is not consistent the **rpmem_remove**() function fails,
-unless otherwise specified.
+untouched. If the pool is not consistent the **rpmem_remove**() function fails.
 The *flags* argument determines the behavior of **rpmem_remove**() function.
 It is either 0 or the bitwise OR of one or more of the following flags:
 
@@ -247,6 +246,8 @@ appropriate format though.
 + **RPMEM_REMOVE_POOL_SET**
 Remove pool set file after removing the pool described by this pool set.
 
+If the pool has been removed the **rpmem_remove**() returns 0, otherwise
+it returns non-zero value and sets *errno* appropirately.
 
 # LANES #
 
