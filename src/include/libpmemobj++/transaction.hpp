@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -202,19 +202,8 @@ public:
 		 */
 		template <typename... L>
 		automatic(obj::pool_base &pop, L &... locks)
+		    : tx_worker(pop, locks...)
 		{
-			if (pmemobj_tx_begin(pop.get_handle(), NULL,
-					     TX_PARAM_NONE) != 0)
-				throw transaction_error(
-					"failed to start transaction");
-
-			auto err = add_lock(locks...);
-
-			if (err) {
-				pmemobj_tx_abort(EINVAL);
-				throw transaction_error("failed to add"
-							" lock");
-			}
 		}
 
 		/**
@@ -223,23 +212,24 @@ public:
 		 * End pmemobj transaction. Depending on the context
 		 * of object destruction, the transaction will
 		 * automatically be either committed or aborted.
+		 *
+		 * @throw nvml::transaction_error if the transaction got aborted
+		 * without an active exception.
 		 */
-		~automatic() noexcept
+		~automatic() noexcept(false)
 		{
-			/* manual abort or commit end transaction */
-			if (pmemobj_tx_stage() != TX_STAGE_WORK) {
-				(void)pmemobj_tx_end();
+			/* active exception, abort handled by tx_worker */
+			if (exceptions.new_uncaught_exception())
 				return;
-			}
 
-			if (this->exceptions.new_uncaught_exception())
-				/* exit with an active exception */
-				pmemobj_tx_abort(ECANCELED);
-			else
-				/* normal exit commit tx */
+			/* transaction ended normally */
+			if (pmemobj_tx_stage() == TX_STAGE_WORK)
 				pmemobj_tx_commit();
-
-			(void)pmemobj_tx_end();
+			/* transaction aborted, throw an exception */
+			else if (pmemobj_tx_stage() == TX_STAGE_ONABORT ||
+				 (pmemobj_tx_stage() == TX_STAGE_FINALLY &&
+				  pmemobj_tx_errno() != 0))
+				throw transaction_error("Transaction aborted");
 		}
 
 		/**
@@ -298,6 +288,8 @@ public:
 			 */
 			int count;
 		} exceptions;
+
+		transaction::manual tx_worker;
 	};
 #endif /* __cpp_lib_uncaught_exceptions */
 
