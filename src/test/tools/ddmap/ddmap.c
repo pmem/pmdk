@@ -203,7 +203,6 @@ static int
 ddmap_write_from_file(const char *path_in, const char *path_out,
 	off_t offset_in, off_t offset_out, size_t len)
 {
-	int fd;
 	char *src;
 	ssize_t file_in_size = util_file_get_size(path_in);
 
@@ -212,24 +211,10 @@ ddmap_write_from_file(const char *path_in, const char *path_out,
 		return -1;
 	}
 
-	if (!util_file_is_device_dax(path_in)) {
-		fd = os_open(path_in, O_RDONLY);
-		if (fd < 0) {
-			outv_err("invalid file path");
-			return -1;
-		}
-
-		src = mmap(NULL, (size_t)file_in_size,  PROT_READ,
-			MAP_SHARED, fd, 0);
-		os_close(fd);
-		if (src == MAP_FAILED) {
-			outv_err("an error occurred while mapping input file");
-			return -1;
-		}
-	} else {
-		src = util_file_map_whole(path_in);
-	}
+	util_init();
+	src = util_file_map_whole(path_in);
 	src += offset_in;
+
 	ddmap_write_data(path_out, src, offset_out, len);
 	util_unmap(src, (size_t)file_in_size);
 	return 0;
@@ -270,7 +255,6 @@ ddmap_write(const char *path, const char *str, off_t offset, size_t len)
 static int
 ddmap_checksum(const char *path, size_t len, off_t offset)
 {
-	int sfd = 0;
 	char *src;
 	uint64_t checksum;
 	ssize_t filesize = util_file_get_size(path);
@@ -280,26 +264,11 @@ ddmap_checksum(const char *path, size_t len, off_t offset)
 		return -1;
 	}
 
-	if (!util_file_is_device_dax(path)) {
-		sfd = os_open(path, O_RDONLY);
-		if (sfd < 0) {
-			outv_err("invalid file path");
-			return -1;
-		}
-
-		src = mmap(NULL, len + (size_t)offset, PROT_READ, MAP_SHARED,
-			sfd, 0);
-		os_close(sfd);
-		if (src == MAP_FAILED) {
-			outv_err("an error occurred while mapping file");
-			return -1;
-		}
-	} else {
-		src = util_file_map_whole(path);
-	}
+	util_init();
+	src = util_file_map_whole(path);
 
 	util_checksum(src + offset, len, &checksum, 1);
-	util_unmap(src, (size_t)offset + len);
+	util_unmap(src, (size_t)filesize);
 
 	printf("%" PRIu64 "\n", checksum);
 	return 0;
