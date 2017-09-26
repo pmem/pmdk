@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -223,16 +223,41 @@ public:
 		 * End pmemobj transaction. Depending on the context
 		 * of object destruction, the transaction will
 		 * automatically be either committed or aborted.
+		 *
+		 * @throw nvml::transaction_error if the transaction got aborted
+		 * without an active exception.
 		 */
-		~automatic() noexcept
+		~automatic() noexcept(false)
 		{
 			/* manual abort or commit end transaction */
-			if (pmemobj_tx_stage() != TX_STAGE_WORK) {
-				(void)pmemobj_tx_end();
-				return;
+			switch (pmemobj_tx_stage()) {
+				case TX_STAGE_ONCOMMIT:
+					(void)pmemobj_tx_end();
+					return;
+				case TX_STAGE_ONABORT:
+					(void)pmemobj_tx_end();
+					/* transaction aborted, throw to notify
+					 */
+					if (!exceptions
+						     .new_uncaught_exception())
+						throw transaction_error(
+							"transaction aborted");
+					return;
+				case TX_STAGE_FINALLY:
+					(void)pmemobj_tx_end();
+					/* transaction aborted, throw to notify
+					 */
+					if (pmemobj_tx_errno() != 0 &&
+					    !exceptions
+						     .new_uncaught_exception())
+						throw transaction_error(
+							"transaction aborted");
+					return;
+				default:
+					break;
 			}
 
-			if (this->exceptions.new_uncaught_exception())
+			if (exceptions.new_uncaught_exception())
 				/* exit with an active exception */
 				pmemobj_tx_abort(ECANCELED);
 			else

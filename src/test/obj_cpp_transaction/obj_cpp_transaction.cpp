@@ -488,15 +488,21 @@ test_tx_throw_no_abort_scope(nvobj::pool<root> &pop)
 		} catch (...) {
 			UT_ASSERT(0);
 		}
+		counter = 0;
 		UT_ASSERT(exception_thrown);
 		exception_thrown = false;
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
 	}
 
 	/* the transaction will be aborted silently */
 	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
-	UT_ASSERT(!exception_thrown);
+	if (std::is_same<T, nvobj::transaction::automatic>::value)
+		UT_ASSERT(exception_thrown);
+	else
+		UT_ASSERT(!exception_thrown);
 	UT_ASSERT(rootp->pfoo == nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
 }
@@ -578,6 +584,143 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 	UT_ASSERT(rootp->pfoo == nullptr);
 	UT_ASSERT(rootp->parr == nullptr);
 }
+
+/*
+ * test_tx_automatic_destructor_throw -- test transaction with a C tx_abort
+ *	and no exceptions
+ */
+void
+test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
+{
+	auto rootp = pop.get_root();
+
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+
+	bool exception_thrown = false;
+	try {
+		nvobj::transaction::automatic to(pop);
+		rootp->pfoo = nvobj::make_persistent<foo>();
+		pmemobj_tx_abort(ECANCELED);
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERT(exception_thrown);
+	exception_thrown = false;
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+
+	exception_thrown = false;
+	try {
+		nvobj::transaction::automatic to(pop);
+		rootp->pfoo = nvobj::make_persistent<foo>();
+		pmemobj_tx_abort(ECANCELED);
+		pmemobj_tx_process(); /* move to finally */
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERT(exception_thrown);
+	exception_thrown = false;
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+
+	exception_thrown = false;
+	try {
+		nvobj::transaction::automatic to(pop);
+		pmemobj_tx_commit();
+		pmemobj_tx_process(); /* move to finally */
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), 0);
+	UT_ASSERT(!exception_thrown);
+
+	counter = 0;
+	try {
+		nvobj::transaction::automatic to(pop);
+		rootp->pfoo = nvobj::make_persistent<foo>();
+		try {
+			nvobj::transaction::automatic to_nested(pop);
+			pmemobj_tx_abort(-1);
+		} catch (nvml::transaction_error &) {
+			/*verify the exception only */
+			counter = 1;
+			throw;
+		} catch (...) {
+			UT_ASSERT(0);
+		}
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), -1);
+	UT_ASSERT(exception_thrown);
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+
+	try {
+		nvobj::transaction::automatic to(pop);
+		rootp->pfoo = nvobj::make_persistent<foo>();
+		try {
+			nvobj::transaction::automatic to_nested(pop);
+			pmemobj_tx_abort(-1);
+		} catch (nvml::transaction_error &) {
+			/*verify the exception only */
+		} catch (...) {
+			UT_ASSERT(0);
+		}
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), -1);
+	UT_ASSERT(exception_thrown);
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+
+	try {
+		counter = 0;
+		nvobj::transaction::automatic to(pop);
+		rootp->pfoo = nvobj::make_persistent<foo>();
+		try {
+			nvobj::transaction::automatic to_nested(pop);
+			counter = 1;
+			throw std::runtime_error("error");
+		} catch (std::runtime_error &) {
+			exception_thrown = true;
+			counter = 0;
+		} catch (...) {
+			UT_ASSERT(0);
+		}
+		UT_ASSERT(exception_thrown);
+		exception_thrown = false;
+	} catch (nvml::transaction_error &) {
+		exception_thrown = true;
+	} catch (...) {
+		UT_ASSERT(0);
+	}
+
+	/* the transaction will be aborted silently */
+	UT_ASSERTeq(nvobj::transaction::get_last_tx_error(), ECANCELED);
+	UT_ASSERT(exception_thrown);
+	UT_ASSERT(rootp->pfoo == nullptr);
+	UT_ASSERT(rootp->parr == nullptr);
+}
 }
 
 int
@@ -611,7 +754,7 @@ main(int argc, char *argv[])
 		pop, fake_commit);
 	test_tx_throw_no_abort_scope<nvobj::transaction::automatic>(pop);
 	test_tx_no_throw_abort_scope<nvobj::transaction::automatic>(pop);
-
+	test_tx_automatic_destructor_throw(pop);
 	pop.close();
 
 	DONE(nullptr);
