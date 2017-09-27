@@ -593,14 +593,11 @@ heap_reclaim_run(struct palloc_heap *heap, struct bucket *defb,
 
 		*m = nb;
 	} else {
-		struct alloc_class *c = alloc_class_by_unit_size(
+		struct alloc_class *c = alloc_class_by_run(
 			heap->rt->alloc_classes,
-			run->block_size);
+			run->block_size, m->header_type, m->size_idx);
 
 		if (c == NULL ||
-		    c->type != CLASS_RUN ||
-		    c->run.size_idx != m->size_idx ||
-		    c->header_type != m->header_type ||
 		    recycler_put(heap->rt->recyclers[c->id], m) < 0)
 			m->m_ops->claim_revoke(m);
 	}

@@ -100,8 +100,9 @@ void alloc_class_collection_delete(struct alloc_class_collection *ac);
 void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 	size_t unit_size, uint32_t size_idx);
 
-struct alloc_class *alloc_class_by_unit_size(
-	struct alloc_class_collection *ac, size_t size);
+struct alloc_class *alloc_class_by_run(
+	struct alloc_class_collection *ac,
+	size_t unit_size, enum header_type header_type, uint32_t size_idx);
 struct alloc_class *alloc_class_by_alloc_size(
 	struct alloc_class_collection *ac, size_t size);
 struct alloc_class *alloc_class_by_id(

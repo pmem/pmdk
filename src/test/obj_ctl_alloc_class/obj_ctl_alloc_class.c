@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 10,
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
@@ -162,6 +162,22 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 	usable_size = pmemobj_alloc_usable_size(oid);
 	UT_ASSERTeq(usable_size, 777);
+
+	struct pobj_alloc_class_desc alloc_class_new_huge;
+	alloc_class_new_huge.header_type = POBJ_HEADER_NONE;
+	alloc_class_new_huge.unit_size = (2 << 23);
+	alloc_class_new_huge.units_per_block = 1;
+	alloc_class_new_huge.class_id = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_new_huge);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_xalloc(pop, &oid, 1, 0,
+		POBJ_CLASS_ID(alloc_class_new_huge.class_id), NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+	usable_size = pmemobj_alloc_usable_size(oid);
+	UT_ASSERTeq(usable_size, (2 << 23));
 
 	pmemobj_close(pop);
 

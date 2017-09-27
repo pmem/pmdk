@@ -53,9 +53,9 @@ TOOLS_COMMON=y
 
 LIBPMEMOBJ_PRIV=pvector_new pvector_nvalues pvector_first pvector_next\
 	pvector_delete memblock_from_offset alloc_class_by_id\
-	memblock_rebuild_state alloc_class_get_create_by_unit_size\
+	memblock_rebuild_state alloc_class_by_run\
 	heap_run_foreach_object alloc_class_collection_new\
-	alloc_class_by_unit_size alloc_class_collection_delete
+	alloc_class_collection_delete
 
 LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le

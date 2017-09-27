@@ -29,6 +29,9 @@
     <ClCompile Include="..\..\libpmemobj\ctree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\cuckoo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\memblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
