@@ -43,6 +43,12 @@
 extern "C" {
 #endif
 
+#ifdef _CRT_USE_BUILTIN_OFFSETOF
+#undef offsetof
+#define offsetof(s, m) ((size_t)&reinterpret_cast < char const volatile& > \
+((((s *)0)->m)))
+#endif
+
 #define TOID_NULL(t)	((TOID(t))OID_NULL)
 #define PMEMOBJ_MAX_LAYOUT ((size_t)1024)
 
