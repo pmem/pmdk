@@ -52,6 +52,7 @@
 #include "synchronize.h"
 #include "transform.h"
 #include "set.h"
+#include "plugin.h"
 
 #ifndef _WIN32
 #include "rpmem_common.h"
@@ -257,6 +258,7 @@ main(int argc, char *argv[])
 	util_init();
 
 #ifndef _WIN32
+	plugin_init(NULL);
 	util_remote_init();
 	rpmem_util_cmds_init();
 #endif
@@ -298,6 +300,10 @@ main(int argc, char *argv[])
 #endif
 
 end:
+#ifndef _WIN32
+	plugin_fini();
+#endif
+
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)
 		free(argv[i - 1]);
