@@ -50,13 +50,11 @@
  * - aligned to the specified unit.
  */
 char *
-util_map_hint_unused(void *minaddr, size_t len, size_t align,
-			const char *altfile)
+util_map_hint_unused(void *minaddr, size_t len, size_t align)
 {
 	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
 
 	ASSERT(align > 0);
-	ASSERT(altfile == NULL); /* Not needed on Windows */
 
 	MEMORY_BASIC_INFORMATION mi;
 	char *lo = NULL;	/* beginning of current range in maps file */
@@ -99,11 +97,9 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align,
  * no point in aligning for the same.
  */
 char *
-util_map_hint(size_t len, size_t req_align, const char *altfile)
+util_map_hint(size_t len, size_t req_align)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
-
-	ASSERTeq(altfile, NULL); /* Not needed on Windows */
 
 	char *hint_addr = MAP_FAILED;
 
@@ -112,8 +108,7 @@ util_map_hint(size_t len, size_t req_align, const char *altfile)
 
 	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
-		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align,
-			altfile);
+		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align);
 	} else {
 		/*
 		 * Create dummy mapping to find an unused region of given size.

@@ -142,7 +142,7 @@ util_map(int fd, size_t len, int flags, int rdonly, size_t req_align)
 			rdonly, req_align);
 
 	void *base;
-	void *addr = util_map_hint(len, req_align, NULL);
+	void *addr = util_map_hint(len, req_align);
 	if (addr == MAP_FAILED) {
 		ERR("cannot find a contiguous region of given size");
 		return NULL;

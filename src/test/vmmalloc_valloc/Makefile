@@ -35,16 +35,5 @@
 #
 TARGET = vmmalloc_valloc
 OBJS = vmmalloc_valloc.o
-EXTRA_DEPS = libwf.so
 
-include ../Makefile.inc
-
-libwf.so: ../../common/vmmalloc_weakfuncs.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
-
-clobber: libwf_cleanup
-
-libwf_cleanup:
-	$(RM) libwf.so
-
-LIBS += ./libwf.so -Wl,-rpath=.
+include ../vmmalloc_memalign/Makefile.inc

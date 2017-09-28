@@ -357,7 +357,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 #ifdef USE_VG_MEMCHECK
 	if (On_valgrind) {
 		/* this is required only for Device DAX & memcheck */
-		addr = util_map_hint(hdrsize, hdrsize, NULL);
+		addr = util_map_hint(hdrsize, hdrsize);
 		if (addr == MAP_FAILED) {
 			ERR("canot find a contiguous region of given size");
 			/* there's nothing we can do */
@@ -1996,7 +1996,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0, NULL);
+		addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
@@ -2487,7 +2487,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		retry_for_contiguous_addr = 0;
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0, NULL);
+		addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;

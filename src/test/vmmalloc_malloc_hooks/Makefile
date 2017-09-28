@@ -35,18 +35,7 @@
 #
 TARGET = vmmalloc_malloc_hooks
 OBJS = vmmalloc_malloc_hooks.o
-EXTRA_DEPS = libwf.so
 
-include ../Makefile.inc
+vmmalloc_malloc_hooks.o: CFLAGS += -Wno-deprecated-declarations
 
-CFLAGS += -Wno-deprecated-declarations
-
-libwf.so: ../../common/vmmalloc_weakfuncs.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
-
-clobber: libwf_cleanup
-
-libwf_cleanup:
-	$(RM) libwf.so
-
-LIBS += ./libwf.so -Wl,-rpath=.
+include ../vmmalloc_memalign/Makefile.inc

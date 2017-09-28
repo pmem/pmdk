@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,11 +31,22 @@
 #
 
 #
-# src/test/vmmalloc_memalign/Makefile -- build vmmalloc_memalign unit test
+# src/test/vmmalloc_memalign/Makefile.inc -- common Makefile rules
+#	for vmmalloc tests sharing libwf.so
 #
-TARGET = vmmalloc_memalign
-OBJS = vmmalloc_memalign.o
 
-vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
+EXTRA_DEPS = ../vmmalloc_memalign/libwf.so
 
-include Makefile.inc
+include ../Makefile.inc
+
+INCS += -I../vmmalloc_memalign
+
+../vmmalloc_memalign/libwf.so: ../vmmalloc_memalign/vmmalloc_weakfuncs.c
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
+
+clobber: libwf_cleanup
+
+libwf_cleanup:
+	$(RM) ../vmmalloc_memalign/libwf.so
+
+LIBS += ../vmmalloc_memalign/libwf.so -Wl,-rpath=../vmmalloc_memalign
