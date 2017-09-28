@@ -38,9 +38,7 @@
 #define NVML_VALGRIND_INTERNAL_H 1
 
 #ifdef USE_VALGRIND
-#ifndef __FreeBSD__	/* XXX TODO: pmemcheck for FreeBSD */
 #define USE_VG_PMEMCHECK
-#endif
 #define USE_VG_HELGRIND
 #define USE_VG_MEMCHECK
 #define USE_VG_DRD

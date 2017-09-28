@@ -201,46 +201,6 @@ out_postfork_child(void)
 }
 #endif
 
-#ifndef _WIN32
-/*
- * out_prefork -- lock output file prior to fork. This prevents any
- *	running threads (which will not be duplicated in the child)
- *	from holding the output file lock and deadlocking the child.
- */
-static void
-out_prefork(void)
-{
-	if (Out_fp != NULL) {
-		flockfile(Out_fp);
-	}
-}
-
-/*
- * out_postfork_parent -- unlock output file after fork
- */
-static void
-out_postfork_parent(void)
-{
-	if (Out_fp != NULL) {
-		funlockfile(Out_fp);
-	}
-}
-
-/*
- * out_postfork_child -- unlock output file after fork
- */
-static void
-out_postfork_child(void)
-{
-/* Handled by standard library on Linux */
-#ifdef __FreeBSD__
-	if (Out_fp != NULL) {
-		funlockfile(Out_fp);
-	}
-#endif
-}
-#endif
-
 /*
  * out_init -- initialize the log
  *

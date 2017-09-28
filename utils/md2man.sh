@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -42,37 +42,20 @@
 #   section and version
 # - cut-off metadata block and license
 # - unindent code blocks
-# - cut-off windows and web specific parts of documentation
+# - cut-off windows and web specific parts of documentation using pp
 #
 
-set -e
 set -o pipefail
 
 filename=$1
 template=$2
 outfile=$3
-title=`sed -n 's/^title:\ _MP(*\([A-Za-z_-]*\).*$/\1/p' $filename`
-section=`sed -n 's/^title:.*\([0-9]\))$/\1/p' $filename`
+title=`sed -n 's/^title:\ *\([A-Za-z_-]*\).*$/\1/p' $filename`
+section=`sed -n 's/^title:.*\!\([0-9]\).*$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
-OPTS=
-if [ -v WIN32 ]; then
-OPTS="$OPTS -DWIN32"
-else
-OPTS="$OPTS -UWIN32"
-fi
-if [ "$(uname -s)" == "FreeBSD" ]; then
-OPTS="$OPTS -DFREEBSD"
-else
-OPTS="$OPTS -UFREEBSD"
-fi
-if [ -v WEB ]; then
-OPTS="$OPTS -DWEB"
-else
-OPTS="$OPTS -UWEB"
-fi
-
-m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
+cat $filename | sed -n -e '/# NAME #/,$p' |\
+pp -import macros.man |\
 pandoc -s -t man -o $outfile --template=$template \
     -V title=$title -V section=$section \
     -V date=$(date +"%F") -V version="$version" \
