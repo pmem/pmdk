@@ -14,12 +14,12 @@ it to be persistent.
 
 Man pages that contains a list of the **Linux** interfaces provided:
 
-* Man page for <a href="../manpages/linux/master/{{ page.title }}.3.html">{{ page.title }} current master</a>
+* Man page for <a href="../manpages/linux/master/libvmem/{{ page.title }}.7.html">{{ page.title }} current master</a>
 
 
 Man pages that contains a list of the **Windows** interfaces provided:
 
-* Man page for <a href="../manpages/windows/master/{{ page.title }}.3.html">{{ page.title }} current master</a>
+* Man page for <a href="../manpages/windows/master/libvmem/{{ page.title }}.7.html">{{ page.title }} current master</a>
 
 #### libvmem Examples
 

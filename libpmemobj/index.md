@@ -11,12 +11,12 @@ management, locking, lists, and a number of other features.
 
 Man pages that contains a list of the **Linux** interfaces provided:
 
-* Man page for <a href="../manpages/linux/master/{{ page.title }}.3.html">{{ page.title }} current master</a>
+* Man page for <a href="../manpages/linux/master/libpmemobj/{{ page.title }}.7.html">{{ page.title }} current master</a>
 
 
 Man pages that contains a list of the **Windows** interfaces provided:
 
-* Man page for <a href="../manpages/windows/master/{{ page.title }}.3.html">{{ page.title }} current master</a>
+* Man page for <a href="../manpages/windows/master/libpmemobj/{{ page.title }}.7.html">{{ page.title }} current master</a>
 
 #### libpmemobj Examples
 
