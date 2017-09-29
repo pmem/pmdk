@@ -174,9 +174,7 @@ CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk
 CFLAGS += -I$(TOP)/src/libpmemobj
 CFLAGS += -I$(TOP)/src/tools/pmempool
-ifneq ($(OSTYPE),FreeBSD)
-common.o: CFLAGS += -D__USE_UNIX98
-endif
+CFLAGS += $(UNIX98_CFLAGS)
 
 endif
 

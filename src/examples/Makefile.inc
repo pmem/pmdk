@@ -43,9 +43,7 @@ LIBDIR = $(TOP_SRC)/debug
 include $(TOP)/src/common.inc
 
 CXXFLAGS = -std=c++11 -ggdb -Wall -Werror
-ifeq ($(OSTYPE),FreeBSD)
-CXXFLAGS += -D_GLIBCXX_USE_C99
-endif
+CXXFLAGS += $(GLIBC_CXXFLAGS)
 CXXFLAGS +=  $(EXTRA_CXXFLAGS)
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror -Wmissing-prototypes $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)

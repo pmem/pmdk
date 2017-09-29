@@ -34,7 +34,7 @@ include $(TOP)/src/common.inc
 
 SFML := $(call check_package, sfml-all --atleast-version 2.4)
 ifeq ($(SFML),y)
-ifeq ($(OSTYPE),FreeBSD)
+ifeq ($(shell uname -s),FreeBSD)
 FONTDIR=/usr/local/share/fonts
 else
 FONTDIR=/usr/share/fonts

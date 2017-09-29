@@ -45,7 +45,7 @@ $(info NOTE: Skipping panaconda because ncurses is missing \
 endif
 
 LIBS = -lpmemobj -lpmem -pthread
-ifeq ($(OSTYPE),FreeBSD)
+ifeq ($(shell uname -s),FreeBSD)
 LIBS += -lc
 endif
 
