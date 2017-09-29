@@ -269,3 +269,14 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+extern "C" {
+	/*
+	 * Since libpmemobj is linked statically,
+	 * we need to invoke its ctor/dtor.
+	 */
+	MSVC_CONSTR(libpmemobj_init)
+	MSVC_DESTR(libpmemobj_fini)
+}
+#endif
