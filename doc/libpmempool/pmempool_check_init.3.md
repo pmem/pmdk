@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL_CHECK_INIT!3
+title: _MP(PMEMPOOL_CHECK_INIT, 3)
 collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
@@ -177,10 +177,10 @@ Pool type detection fail ends check.
 *pool*. It indicates a *backup_path* file will be created and backup will be
 performed.
 
-+ an existing *pool set* file of the same structure (the same number of parts
-with exactly the same size) as the source *pool set*. It is valid only in case
-*path* is a *pool set*. It indicates backup will be performed in a form
-described by the *backup_path* *pool set*.
++ an existing *pool set* file: Backup will be performed as defined by the
+*backup_path* pool set. *path* must be a pool set, and *backup_path* must have
+the same structure (the same number of parts with exactly the same size) as the
+*path* pool set.
 
 Backup is supported only if the source *pool set* has no defined replicas.
 
@@ -249,9 +249,9 @@ pointer after calling **pmempool_check_end**().
 
 # RETURN VALUE #
 
-The !pmempool_check_init returns NULL and sets *errno*
-appropriately if provided parameters are invalid or initialization process fails,
-otherwise it returns an opaque handle, of type *PMEMpoolcheck\**.
+_UW(pmempool_check_init) returns an opaque handle of type *PMEMpoolcheck\**.
+If the provided parameters are invalid or the initialization process fails,
+_UW(pmempool_check_init) returns NULL and sets *errno* appropriately.
 
 The !pmempool_check returns NULL pointer when the check completes or
 returns a pointer to the !pmempool_check_status structure

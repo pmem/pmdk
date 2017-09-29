@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_OPEN!3
+title: _MP(PMEMOBJ_OPEN, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -78,12 +78,7 @@ int pmemobj_check(const char *path, const char *layout);
 }
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 
 # DESCRIPTION #
@@ -102,34 +97,36 @@ Once created, the memory pool is represented by an opaque handle,
 of type *PMEMobjpool\**, which is passed to most of the other functions
 in this section. Internally, **libpmemobj** will use either **pmem_persist**(3)
 or **msync**(2) when it needs to flush changes, depending on whether the memory
-pool appears to be persistent memory or a regular file (see the **pmem_is_pmem**(3)
-function in **libpmem**(7) for more information). There is no need for applications
-to flush changes directly when using the obj memory API provided by **libpmemobj**.
+pool appears to be persistent memory or a regular file (see the
+**pmem_is_pmem**(3) function in **libpmem**(7) for more information). There is
+no need for applications to flush changes directly when using the object
+memory API provided by **libpmemobj**.
 
-The !pmemobj_create function creates a transactional object store with the given
-total *poolsize*. *path* specifies the name of the memory pool file to be
-created. *layout* specifies the application's layout type in the form of a string.
-The layout name is not interpreted by **libpmemobj**, but may be used as a
-check when !pmemobj_open is called. The layout name, including the terminating null
-byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as defined in
-**\<libpmemobj.h\>**. It is allowed to pass NULL as *layout*, which is equivalent
-for using an empty string as a layout name. *mode* specifies the permissions to
-use when creating the file as described by **creat**(2). The memory pool file is
-fully allocated to the size *poolsize* using **posix_fallocate**(3). The
+The _UW(pmemobj_create) function creates a transactional object store with the
+given total *poolsize*. *path* specifies the name of the memory pool file to be
+created. *layout* specifies the application's layout type in the form of a
+string. The layout name is not interpreted by **libpmemobj**, but may be used
+as a check when _UW(pmemobj_open) is called. The layout name, including the
+terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as
+defined in **\<libpmemobj.h\>**. A NULL *layout* is equivalent
+to using an empty string as a layout name. *mode* specifies the permissions to
+use when creating the file, as described by **creat**(2). The memory pool file
+is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file
-by creating it before calling !pmemobj_create and then specifying *poolsize* as
-zero. In this case !pmemobj_create will take the pool size from the size of
-the existing file and will verify that the file appears to be empty by
-searching for any non-zero data in the pool header at the beginning of the file.
-The minimum net pool size allowed by the library for a local transactional object
-store is defined in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**.
-!ifndef{WIN32}{For remote replicas the minimum file size is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.}
+by creating it before calling _UW(pmemobj_create), and then specifying
+*poolsize* as zero. In this case _UW(pmemobj_create) will take the pool size
+from the size of the existing file and will verify that the file appears to be
+empty by searching for any non-zero data in the pool header at the beginning of
+the file. The minimum net pool size allowed by the library for a local
+transactional object store is defined in **\<libpmemobj.h\>** as
+**PMEMOBJ_MIN_POOL**. _WINUX(,=q=For remote replicas the minimum file size
+is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.=e=)
 
-The !pmemobj_open function opens an existing object store memory pool,
-*path* must be an existing file containing a pmemobj memory pool
-as created by !pmemobj_create. If *layout* is non-NULL, it is compared to the layout
-name provided to !pmemobj_create when the pool was first created.
-This can be used to verify the layout of the pool matches what was expected.
+The _UW(pmemobj_open) function opens an existing object store memory pool.
+*path* must be an existing file containing a pmemobj memory pool as created
+by _UW(pmemobj_create). If *layout* is non-NULL, it is compared to the layout
+name provided to _UW(pmemobj_create) when the pool was first created. This can
+be used to verify that the layout of the pool matches what was expected.
 The application must have permission to open the file and memory map it with
 read/write permissions.
 

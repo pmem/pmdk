@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL_SYNC!3
+title: _MP(PMEMPOOL_SYNC, 3)
 collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
@@ -46,7 +46,7 @@ date: pmempool API version 1.1
 
 # NAME #
 
-!pmempool_sync, !pmempool_transform -- pool file or pool set synchronization and transformation
+_UW(pmempool_sync), _UW(pmempool_transform) -- pool set synchronization and transformation
 
 
 # SYNOPSIS #
@@ -70,20 +70,15 @@ int pmempool_transform(const char *poolset_file_src,
 }
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 
 # DESCRIPTION #
 
-The !pmempool_sync function synchronizes data between replicas within
+The _UW(pmempool_sync) function synchronizes data between replicas within
 a pool set.
 
-!pmempool_sync accepts two arguments:
+_UW(pmempool_sync) accepts two arguments:
 
 * *poolset_file* - a path to a pool set file,
 
@@ -98,13 +93,13 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-!pmempool_sync function checks if metadata of all replicas in a pool set
-are consistent, i.e. all parts are healthy, and if any of them is not,
-the corrupted or missing parts are recreated and filled with data from one of
-the healthy replicas.
+_UW(pmempool_sync) checks that the metadata of all replicas in
+a pool set is consistent, i.e. all parts are healthy, and if any of them is
+not, the corrupted or missing parts are recreated and filled with data from
+one of the healthy replicas.
 
-The !pmempool_transform function modifies internal structure of a pool set.
-It supports the following operations:
+_UW(pmempool_transform) modifies the internal structure of a
+pool set. It supports the following operations:
 
 * adding one or more replicas,
 
@@ -132,32 +127,27 @@ synchronization.
 When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
-Also, to add a replica it is necessary for its effective size to match or exceed
-the pool size. Otherwise the whole operation fails and no changes are applied.
-Effective size of a replica is the sum of sizes of all its part files decreased
-by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+at a time. Reordering replicas can be combined with either of them.
+Also, to add a replica it is necessary for its effective size to match or
+exceed the pool size. Otherwise the whole operation fails and no changes are
+applied. The effective size of a replica is the sum of sizes of all its part
+files decreased by 4096 bytes per each part file. The 4096 bytes of each part
+file is utilized for storing internal metadata of the pool part files.
 
 
 # RETURN VALUE #
 
-The !pmempool_sync function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
-
-The !pmempool_transform function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
+_UW(pmempool_sync) and _UW(pmempool_transform) return 0 on success.
+Otherwise, they return -1 and set *errno* appropriately.
 
 
 # NOTES #
 
-Currently, the following operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(7)).
 
-The !pmempool_sync API is experimental and it may change in future
+The _UW(pmempool_sync) API is experimental and it may change in future
 versions of the library.
 
-The !pmempool_transform API is experimental and it may change in future
+The _UW(pmempool_transform) API is experimental and it may change in future
 versions of the library.
 
 # SEE ALSO #

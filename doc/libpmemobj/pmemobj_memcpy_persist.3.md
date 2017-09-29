@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_MEMCPY_PERSIST!3
+title: _MP(PMEMOBJ_MEMCPY_PERSIST, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -102,7 +102,8 @@ For more information on partial flushing operations see the **pmem_flush**(3) ma
 The **pmemobj_memcpy_persist**(), and **pmemobj_memset_persist**(), functions
 return same value as their namesakes **memcpy**(3), and **memset**(3).
 
-The **pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**() return no value.
+**pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**()
+return no value.
 
 
 # EXAMPLES #

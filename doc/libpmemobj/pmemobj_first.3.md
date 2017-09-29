@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_FIRST!3
+title: _MP(PMEMOBJ_FIRST, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -34,7 +34,7 @@ date: pmemobj API version 2.2
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemobj_first.3 -- man page for pmemobj containers operations)
+[comment]: <> (pmemobj_first.3 -- man page for pmemobj container operations)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -45,8 +45,8 @@ date: pmemobj API version 2.2
 # NAME #
 
 **pmemobj_first**(), **pmemobj_next**(),
-**POBJ_FIRST_TYPE_NUM**(), **POBJ_FIRST**(),
-**POBJ_NEXT_TYPE_NUM**(), **POBJ_NEXT**(),
+**POBJ_FIRST**(), **POBJ_FIRST_TYPE_NUM**(),
+**POBJ_NEXT**(), **POBJ_NEXT_TYPE_NUM**(),
 **POBJ_FOREACH**(), **POBJ_FOREACH_SAFE**(),
 **POBJ_FOREACH_TYPE**(), **POBJ_FOREACH_SAFE_TYPE**()
 -- operations to iterate through objects in containers
@@ -60,10 +60,10 @@ date: pmemobj API version 2.2
 PMEMoid pmemobj_first(PMEMobjpool *pop);
 PMEMoid pmemobj_next(PMEMoid oid);
 
-POBJ_FIRST_TYPE_NUM(PMEMobjpool *pop, uint64_t type_num)
 POBJ_FIRST(PMEMobjpool *pop, TYPE)
-POBJ_NEXT_TYPE_NUM(PMEMoid oid)
+POBJ_FIRST_TYPE_NUM(PMEMobjpool *pop, uint64_t type_num)
 POBJ_NEXT(TOID oid)
+POBJ_NEXT_TYPE_NUM(PMEMoid oid)
 
 POBJ_FOREACH(PMEMobjpool *pop, PMEMoid varoid)
 POBJ_FOREACH_SAFE(PMEMobjpool *pop, PMEMoid varoid, PMEMoid nvaroid)
@@ -74,13 +74,11 @@ POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *pop, TOID var, TOID nvar)
 
 # DESCRIPTION #
 
-All the objects in the persistent memory pool are assigned a *type number* and
-are accessible by it.
-
-The **libpmemobj**(7) provides a mechanism allowing to iterate through the internal
-object collection, either looking for a specific object, or performing a
-specific operation on each object of given type. Software should not make any
-assumptions about the order of the objects in the internal object containers.
+The **libpmemobj** container operations provide a mechanism that allows
+iteration through the internal object collection, either looking for a
+specific object, or performing a specific operation on each object of given
+type. Software should not make any assumptions about the order of the objects
+in the internal object containers.
 
 The **pmemobj_first**() function returns the first object from the pool.
 
@@ -96,35 +94,36 @@ The **POBJ_NEXT**() macro returns the next object of the same type
 as the object referenced by *oid*.
 
 The **POBJ_NEXT_TYPE_NUM**() macro returns the next object of the same type
-as the object referenced by *oid*.
+number as the object referenced by *oid*.
 
-The following four macros provide more convenient way to iterate through the internal
-collections, performing a specific operation on each object.
+The following four macros provide more convenient way to iterate through the
+internal collections, performing a specific operation on each object.
 
-The **POBJ_FOREACH**() macro allows to perform a specific operation on each allocated
-object stored in the persistent memory pool pointed by *pop*. It traverses the internal
-collection of all the objects, assigning a handle to each element in turn to *varoid* variable.
+The **POBJ_FOREACH**() macro performs a specific operation on each allocated
+object stored in the persistent memory pool *pop*. It traverses the internal
+collection of all the objects, assigning a handle to each element in turn to
+*varoid*.
 
-The **POBJ_FOREACH_TYPE**() macro allows to perform a specific operation on each allocated
-object of the same type as object passed as *var* argument, stored in the persistent memory pool
-pointed by *pop*. It traverses the internal collection of all the objects of the specified type,
-assigning a handle to each element in turn to *var* variable.
+The **POBJ_FOREACH_TYPE**() macro performs a specific operation on each
+allocated object stored in the persistent memory pool *pop* that has the same
+type as *var*. It traverses the internal collection of all the objects of the
+specified type, assigning a handle to each element in turn to *var*.
 
-The macros **POBJ_FOREACH_SAFE**() and **POBJ_FOREACH_SAFE_TYPE**() work in a similar fashion
-as **POBJ_FOREACH**() and **POBJ_FOREACH_TYPE**() except that prior to performing the operation
-on the object, they preserve a handle to the next object in the collection by assigning it to
-*nvaroid* or *nvar* variable. This allows safe deletion of selected objects while iterating
+The macros **POBJ_FOREACH_SAFE**() and **POBJ_FOREACH_SAFE_TYPE**() work in a
+similar fashion as **POBJ_FOREACH**() and **POBJ_FOREACH_TYPE**(), except that
+prior to performing the operation on the object, they preserve a handle to the
+next object in the collection by assigning it to *nvaroid* or *nvar*,
+respectively. This allows safe deletion of selected objects while iterating
 through the collection.
-
 
 # RETURN VALUE #
 
-The **pmemobj_first**() function returns the first object from the pool.
-If the pool is empty, **OID_NULL** is returned.
+**pmemobj_first**() returns the first object from the pool, or, if the pool
+is empty, **OID_NULL**.
 
-The **pmemobj_next**() function returns the next object from the pool.
-If an object referenced by *oid* is the last object in the collection, or if the
-*OID_NULL* is passed as an argument, function returns **OID_NULL**.
+**pmemobj_next**() returns the next object from the pool. If the object
+referenced by *oid* is the last object in the collection, or if *oid*
+is *OID_NULL*, **pmemobj_next**() returns **OID_NULL**.
 
 
 # SEE ALSO #

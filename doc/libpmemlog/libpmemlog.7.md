@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMLOG!7
+title: _MP(LIBPMEMLOG, 7)
 collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
@@ -60,29 +60,14 @@ date: pmemlog API version 1.0
 cc ... -lpmemlog -lpmem
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemlog_check_versionU(
+_UWFUNC(pmemlog_check_version, =q=
 	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmemlog_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmemlog_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
+	unsigned minor_required=e=)
 ```
 
 ##### Managing library behavior: #####
@@ -98,20 +83,16 @@ void pmemlog_set_funcs(
 ##### Error handling: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmemlog_errormsgU(void);
-const wchar_t *pmemlog_errormsgW(void);
-}{
-const char *pmemlog_errormsg(void);
-}
+_UWFUNCR(int, pmemlog_check, *path)
 ```
 
 ##### Other library functions: #####
 
-A description of other **libpmemlog** functions can be found on different manual pages:
-* most commonly used functions: **pmemlog_create**(3), **pmemlog_nbyte**(3),
-**pmemlog_append**(3), **pmemlog_tell**(3)
+A description of other **libpmemlog** functions can be found on the following
+manual pages:
+
+* **pmemlog_create**(3), **pmemlog_nbyte**(3), **pmemlog_append**(3),
+**pmemlog_tell**(3)
 
 
 # DESCRIPTION #
@@ -134,7 +115,8 @@ such as power failures). This library builds on the low-level pmem
 support provided by **libpmem**(3), handling the transactional update of
 the log, flushing to persistence, and recovery for the application.
 
-**libpmemlog** is one of a collection of persistent memory libraries available, the others are:
+**libpmemlog** is one of a collection of persistent memory libraries available.
+The others are:
 
 + **libpmemobj**(7), a general use persistent memory API,
 	providing memory allocation and transactional operations on variable-sized objects.
@@ -175,13 +157,14 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-The !pmemlog_check_version function is used to see if the installed **libpmemlog**
-supports the version of the library API required by an application. The
-easiest way to do this is for the application to supply the compile-time
-version information, supplied by defines in **\<libpmemlog.h\>**, like this:
+The _UW(pmemlog_check_version) function is used to see if the installed
+**libpmemlog** supports the version of the library API required by an
+application. The easiest way to do this is for the application to supply
+the compile-time version information provided by defines in
+**\<libpmemlog.h\>**, like this:
 
 ```c
-reason = pmemlog_check_version!U{}(PMEMLOG_MAJOR_VERSION,
+reason = _U(pmemlog_check_version)(PMEMLOG_MAJOR_VERSION,
                                PMEMLOG_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -199,16 +182,12 @@ interfaces described here are available in version 1.0 of the library. Interface
 added after version 1.0 will contain the text *introduced
 in version x.y* in the section of this manual describing the feature.
 
-When the version check performed by !pmemlog_check_version is successful,
-the return value is NULL. Otherwise the return value is a static string
-describing the reason for failing the version check.
-The string returned by !pmemlog_check_version must not be modified or freed.
+On success, _UW(pmemobj_check_version) returns NULL. Otherwise, the return
+value is a static string describing the reason the version check failed. The
+string returned by _UW(pmemobj_check_version) must not be modified or freed.
 
 
 # MANAGING LIBRARY BEHAVIOR #
-
-The library entry points described in this section
-are less commonly used than the previous sections.
 
 The **pmemlog_set_funcs**() function allows an application to override
 memory allocation calls used internally by **libpmemlog**.
@@ -220,40 +199,36 @@ allocate approximately 4-8 kilobytes for each memory pool in use.
 
 # DEBUGGING AND ERROR HANDLING #
 
-Two versions of **libpmemlog** are typically available on a development system.
-The normal version, accessed when a program is linked using the **-lpmemlog**
-option, is optimized for performance. That version skips checks that
-impact performance and never logs any trace information or performs any run-time
-assertions. If an error is detected during the call to **libpmemlog** function,
-an application may retrieve an error message describing the reason of failure.
+The _UW(pmemobj_errormsg) function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **libpmemobj** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
 
-The !pmemlog_errormsg function returns a pointer to a static buffer
-containing the last error message logged for current thread. The error message may
-include description of the corresponding error code (if *errno* was set),
-as returned by **strerror**(3). The error message buffer is thread-local; errors
-encountered in one thread do not affect its value in other threads.
-The buffer is never cleared by any library function; its content is significant only when
-the return value of the immediately preceding call to **libpmemlog** function
-indicated an error, or if *errno* was set. The application must not modify or
-free the error message string, but it may be modified by subsequent
-calls to other library functions.
+Two versions of **libpmemobj** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lpmemobj** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
 
-A second version of **libpmemlog**, accessed when a program uses
-the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**},
-contains run-time assertions and trace points. The typical way to
-access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
-{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
-libraries are installed on the system.
-The trace points in the debug version of the library are enabled using the environment
-variable **PMEMLOG_LOG_LEVEL**, which can be set to the following values:
+A second version of **libpmemobj**, accessed when a program uses the libraries
+under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to _LDLIBPATH(). The trace points in the debug version of
+the library are enabled using the environment variable **PMEMOBJ_LOG_LEVEL**,
+which can be set to the following values:
 
 + **0** - This is the default level when **PMEMLOG_LOG_LEVEL** is not set.
 	No log messages are emitted at this level.
 
-+ **1** - Additional details on any errors detected are logged
-	(in addition to returning the *errno*-based errors as usual).
-	The same information may be retrieved using !pmemlog_errormsg.
++ **1** - Additional details on any errors detected are logged,
+	in addition to returning the *errno*-based errors as usual.
+	The same information may be retrieved using _UW(pmemlog_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
@@ -262,15 +237,15 @@ variable **PMEMLOG_LOG_LEVEL**, which can be set to the following values:
 + **4** - This level enables voluminous and fairly obscure tracing information
 	that is likely only useful to the **libpmemlog** developers.
 
-The environment variable **PMEMLOG_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the name is "-",
+The **PMEMLOG_LOG_FILE** environment variable specifies a file name where all
+logging information should be written. If the last character in the name is "-",
 the PID of the current process will be appended to the file name when
 the log file is created. If **PMEMLOG_LOG_FILE** is not set,
 the logging output goes to stderr.
 
-Setting the environment variable **PMEMLOG_LOG_LEVEL** has no effect on the non-debug
-version of **libpmemlog**. See also **libpmem**(3) to get information about other
-environment variables affecting **libpmemlog** behavior.
+Setting **PMEMLOG_LOG_LEVEL** has no effect on the non-debug version of
+**libpmemlog**. See also **libpmem**(7) for information about other environment
+variables affecting **libpmemlog** behavior.
 
 
 # EXAMPLE #
@@ -308,10 +283,10 @@ main(int argc, char *argv[])
 	char *str;
 
 	/* create the pmemlog pool or open it if it already exists */
-	plp = pmemlog_create!U{}(path, POOL_SIZE, 0666);
+	plp = _U(pmemlog_create)(path, POOL_SIZE, 0666);
 
 	if (plp == NULL)
-		plp = pmemlog_open!U{}(path);
+		plp = _U(pmemlog_open)(path);
 
 	if (plp == NULL) {
 		perror(path);
@@ -349,7 +324,7 @@ for more examples using the **libpmemlog** API.
 # BUGS #
 
 Unlike **libpmemobj**(7), data replication is not supported in **libpmemlog**.
-Thus, it is not allowed to specify replica sections in pool set files.
+Thus, specifying replica sections in pool set files is not allowed.
 
 
 # ACKNOWLEDGEMENTS #
