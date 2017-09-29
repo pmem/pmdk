@@ -55,7 +55,7 @@ JEMALLOC_CFG_OUT_FILES = $(patsubst $(JEMALLOC_DIR)/%, $(JEMALLOC_OBJDIR)/%, $(J
 JEMALLOC_AUTOM4TE_CACHE=autom4te.cache
 JEMALLOC_CONFIG_FILE = $(JEMALLOC_DIR)/jemalloc.cfg
 JEMALLOC_CONFIG = $(shell cat $(JEMALLOC_CONFIG_FILE))
-ifeq ($(OSTYPE), FreeBSD)
+ifeq ($(shell uname -s),FreeBSD)
 ifndef $(CC)
 JEMALLOC_CONFIG += CC=$(CC) # Default to system compiler (not gcc) on FreeBSD
 endif
@@ -81,7 +81,7 @@ CFLAGS_FILTER += -Wshadow
 CFLAGS_FILTER += -Wdisabled-macro-expansion
 CFLAGS_FILTER += -Wlanguage-extension-token
 JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
-ifeq ($(OSTYPE), FreeBSD)
+ifeq ($(shell uname -s),FreeBSD)
 JEMALLOC_CFLAGS += -I/usr/local/include
 endif
 JEMALLOC_REMOVE_LDFLAGS_TMP = -Wl,--warn-common

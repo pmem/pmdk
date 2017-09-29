@@ -193,11 +193,13 @@ endif
 # in the unittest framework. It scans the code for functions that should be
 # wrapped and adds required linker flags.
 #
-WRAPPER_FUNCS=FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK
 PAREN=(
 extract_funcs = $(shell \
-    grep -Po '($(WRAPPER_FUNCS))\$(PAREN)\K[^,]*' $(1) | \
-    awk '{print "-Wl,--wrap="$$0}')
+    awk -F '[$(PAREN),]' \
+    '/(FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK)\$(PAREN)[^,]/ \
+    { \
+        print "-Wl,--wrap=" $$2 \
+    }' $(1) )
 
 INCS += -I../unittest -I$(TOP)/src/include -I$(TOP)/src/common
 
@@ -212,9 +214,7 @@ endif
 COMMON_FLAGS += -fno-common
 
 CXXFLAGS  = -std=c++11
-ifeq ($(OSTYPE),FreeBSD)
-CXXFLAGS += -D_GLIBCXX_USE_C99
-endif
+CXXFLAGS += $(GLIBC_CXXFLAGS)
 CXXFLAGS += -ggdb
 CXXFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
@@ -334,7 +334,7 @@ objdir=.
 	$(call check-cstyle, $<, $@)
 
 clean:
-	$(RM) *.o */*.o core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
+	$(RM) *.o */*.o core *.core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
 	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)

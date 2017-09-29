@@ -224,13 +224,17 @@ endif
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
-ifeq ($(OSTYPE),FreeBSD)
-OS_INCS = -I$(TOP)/src/freebsd/include -I/usr/local/include
-OS_LIBS = -L/usr/local/lib
+ifeq ($(shell uname -s),FreeBSD)
+GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
+UNIX98_CFLAGS=
+OS_INCS=-I$(TOP)/src/freebsd/include -I/usr/local/include
+OS_LIBS=-L/usr/local/lib
 LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
 else
+GLIBC_CXXFLAGS=
+UNIX98_CFLAGS=-D__USE_UNIX98
 OS_INCS=
 OS_LIBS=
 LIBDL=-ldl
