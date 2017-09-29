@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMBLK_READ!3
+title: _MP(PMEMBLK_READ, 3)
 collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
@@ -34,7 +34,7 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_read.3 -- man page for functions that checks number of available blocks or usable space in persistent memory resident array of blocks)
+[comment]: <> (pmemblk_read.3 -- man page for libpmemblk read and write functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -45,8 +45,8 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-**pmemblk_read**(), **pmemblk_write**() --  read or write a block from buffer to block number
-in the persistent memory resident array of blocks.
+**pmemblk_read**(), **pmemblk_write**() --  read or write a block from a block
+memory pool
 
 
 # SYNOPSIS #
@@ -61,19 +61,21 @@ int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
 
 # DESCRIPTION #
 
-The **pmemblk_read**() function reads a block from memory pool *pbp*, block number *blockno*, into the buffer *buf*.
+The **pmemblk_read**() function reads the block with block number *blockno*
+from memory pool *pbp* into the buffer *buf*. Reading a block that has never
+been written by **pmemblk_write**() will return a block of zeroes.
 
-The **pmemblk_write**() function writes a block from *buf* to block number *blockno* in the memory pool *pbp*.
-The write is atomic with respect to other reads and writes. In addition, the write cannot be torn by program failure or system crash;
-on recovery the block is guaranteed to contain either the old data or the new data, never a mixture of both.
+The **pmemblk_write**() function writes a block from *buf* to block number
+*blockno* in the memory pool *pbp*. The write is atomic with respect to other
+reads and writes. In addition, the write cannot be torn by program failure or
+system crash; on recovery the block is guaranteed to contain either the old
+data or the new data, never a mixture of both.
 
 
 # RETURN VALUE #
 
-The **pmemblk_read**() function on success returns 0. On error, -1 is returned and *errno* is set.
-Reading a block that has never been written by **pmemblk_write**() will return a block of zeroes.
-
-The **pmemblk_write**() function on success returns 0. On error, -1 is returned and *errno* is set.
+On success, the **pmemblk_read**() and **pmemblk_write**() functions return 0.
+On error, they return -1 and set *errno* appropriately.
 
 # SEE ALSO #
 

@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMPOOL!7
+title: _MP(LIBPMEMPOOL, 7)
 collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
@@ -55,61 +55,47 @@ date: pmempool API version 1.1
 
 ```c
 #include <libpmempool.h>
-cc -std=gnu99 ... -lpmempool -lpmem
+cc _WINUX(,-std=gnu99) ... -lpmempool -lpmem
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmempool_check_versionU(unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmempool_check_versionW(unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmempool_check_version(unsigned major_required,
-	unsigned minor_required);
-}
+_UWFUNC(pmempool_check_version, =q=
+	unsigned major_required,
+	unsigned minor_required=e=)
 ```
 
 ##### Error handling: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmempool_errormsgU(void);
-const wchar_t *pmempool_errormsgW(void);
-}{
-const char *pmempool_errormsg(void);
-}
+_UWFUNC(pmempool_errormsg, void)
 ```
 
 ##### Other library functions: #####
 
-A description of other **libpmempool** functions can be found on different manual pages:
-* health check functions: **pmempool_check_init**(3)
-* pool set synchronization and transformation: **pmempool_sync**(3)
-* pool set management functions: **pmempool_rm**(3)
+A description of other **libpmempool** functions can be found on the following
+manual pages:
+
++ health check functions: **pmempool_check_init**(3)
+
++ pool set synchronization and transformation: **pmempool_sync**(3)
+
++ pool set management functions: **pmempool_rm**(3)
 
 
 # DESCRIPTION #
 
 **libpmempool**
 provides a set of utilities for off-line analysis and
-manipulation of a *pool*. By *pool* in this
-manpage we mean pmemobj pool, pmemblk pool, pmemlog pool or
-BTT layout, independent of the underlying storage. Some of
+manipulation of a *pool*. A *pool* in this
+manpage means a pmemobj pool, pmemblk pool, pmemlog pool or
+BTT layout, independent of the underlying storage. Some
 **libpmempool** functions are required to work without
-any impact on processed *pool* but some of them may
-create a new or modify an existing one.
+any impact on the *pool* but some may create a new or modify
+an existing *pool*.
 
 **libpmempool**
 is for applications that need high reliability or built-in
@@ -127,20 +113,22 @@ thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
+_WINUX(,=q=**libpmempool** requires the **-std=gnu99** compilation flag to
+build properly.=e=)
 
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-The !pmempool_check_version function is used to see if
+The _UW(pmempool_check_version) function is used to see if
 the installed **libpmempool** supports the version of the
 library API required by an application. The easiest way to
 do this for the application is to supply the compile-time
 version information, supplied by defines in **\<libpmempool.h\>**, like this:
 
 ```c
-reason = pmempool_check_version!U{}(PMEMPOOL_MAJOR_VERSION,
+reason = _U(pmempool_check_version)(PMEMPOOL_MAJOR_VERSION,
                                 PMEMPOOL_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -160,74 +148,69 @@ Interfaces added after version 1.0 will contain the text
 *introduced in version x.y* in the section of this manual
 describing the feature.
 
-When the version check performed by !pmempool_check_version
+When the version check performed by _UW(pmempool_check_version)
 is successful, the return value is NULL. Otherwise the
 return value is a static string describing the reason for
 failing the version check. The string returned by
-!pmempool_check_version must not be modified or freed.
+_UW(pmempool_check_version) must not be modified or freed.
 
 
 # DEBUGGING AND ERROR HANDLING #
 
-Two versions of libpmempool are typically available on a development
-system. The normal version, accessed when a program is
-linked using the **-lpmempool** option, is optimized for
-performance. That version skips checks that impact
-performance and exceptionally logs any trace information or
-performs any run-time assertions. If an error is detected
-during the call to **libpmempool** function, an
-application may retrieve an error message describing the reason of failure.
+If an error is detected during the call to a **libpmempool** function, the
+application may retrieve an error message describing the reason for the failure
+from _UW(pmempool_errormsg). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **libpmempool** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
 
-The !pmempool_errormsg function returns a pointer to a
-static buffer containing the last error message logged for
-current thread. The error message may include description of
-the corresponding error code (if *errno* was set), as returned
-by **strerror**(3). The error message buffer is
-thread-local; errors encountered in one thread do not affect
-its value in other threads. The buffer is never cleared by
-any library function; its content is significant only when
-the return value of the immediately preceding call to
-**libpmempool** function indicated an error, or if *errno*
-was set. The application must not modify or free the error
-message string, but it may be modified by subsequent calls
-to other library functions.
+Two versions of **libpmempool** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lpmempool** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
 
-A second version of **libpmempool**, accessed when a program uses
-the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**}, contains
-run-time assertions and trace points. The typical way to
-access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
-{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
-libraries are installed on the system.
-The trace points in
-the debug version of the library are enabled using the
-environment variable **PMEMPOOL_LOG_LEVEL**, which can be
-set to the following values:
+A second version of **libpmempool**, accessed when a program uses the libraries
+under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+controlled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEMPOOL_LOG_LEVEL**
+
+The value of **PMEMPOOL_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
 
 + **0** - This is the default level when **PMEMPOOL_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
 
-+ **1** - Additional details on any errors detected are logged (in addition to
-returning the *errno*-based errors as usual). The same information may be
-retrieved using !pmempool_errormsg.
++ **1** - Additional details on any errors detected are logged (in addition
+to returning the *errno*-based errors as usual). The same information
+may be retrieved using _UW(pmempool_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call tracing in
-the library.
++ **3** - Enables a very verbose amount of function call tracing in the library.
 
-+ **4** - This level enables voluminous and fairly obscure tracing information
-that is likely only useful to the libpmempool developers.
++ **4** - Enables voluminous and fairly obscure tracing
+information that is likely only useful to the **libpmempool** developers.
 
-The environment variable **PMEMPOOL_LOG_FILE** specifies a file name
-where all logging information should be written. If the last
-character in the name is "-", the PID of the
-current process will be appended to the file name when the
-log file is created. If **PMEMPOOL_LOG_FILE** is not set,
-the logging output goes to stderr.
+Unless **PMEMPOOL_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting the environment variable **PMEMPOOL_LOG_FILE** has no effect
-on the non-debug version of **libpmempool**.
++ **PMEMPOOL_LOG_FILE**
+
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **PMEMPOOL_LOG_FILE** is not set, output is
+written to *stderr*.
 
 
 # EXAMPLE #
@@ -237,9 +220,8 @@ The program detects the type and checks consistency of given pool.
 If there are any issues detected, the pool is automatically repaired.
 
 ```c
-#include <stddef.h>
-!ifdef{WIN32}{}
-{#include <unistd.h>}
+#include <stddef.h>_WINUX(,=q=
+#include <unistd.h>=e=)
 #include <stdlib.h>
 #include <stdio.h>
 #include <libpmempool.h>
@@ -252,11 +234,11 @@ int
 main(int argc, char *argv[])
 {
 	PMEMpoolcheck *ppc;
-	struct pmempool_check_status!U *status;
+	struct _U(pmempool_check_status) *status;
 	enum pmempool_check_result ret;
 
 	/* arguments for check */
-	struct pmempool_check_args!U args = {
+	struct _U(pmempool_check_args) args = {
 		.path		= PATH,
 		.backup_path	= NULL,
 		.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
@@ -264,13 +246,13 @@ main(int argc, char *argv[])
 	};
 
 	/* initialize check context */
-	if ((ppc = pmempool_check_init!U{}(&args, sizeof(args))) == NULL) {
-		perror("pmempool_check_init!U");
+	if ((ppc = _U(pmempool_check_init)(&args, sizeof(args))) == NULL) {
+		perror("_U(pmempool_check_init)");
 		exit(EXIT_FAILURE);
 	}
 
 	/* perform check and repair, answer 'yes' for each question */
-	while ((status = pmempool_check!U{}(ppc)) != NULL) {
+	while ((status = _U(pmempool_check)(ppc)) != NULL) {
 		switch (status->type) {
 		case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
 			printf("%s\n", status->str.msg);

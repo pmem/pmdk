@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL_RM!3
+title: _MP(PMEMPOOL_RM, 3)
 collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
@@ -45,7 +45,7 @@ date: pmempool API version 1.1
 
 # NAME #
 
-!pmempool_rm -- remove persistent memory pool
+_UW(pmempool_rm) -- remove persistent memory pool
 
 
 # SYNOPSIS #
@@ -53,49 +53,36 @@ date: pmempool API version 1.1
 ```c
 #include <libpmempool.h>
 
-!ifdef{WIN32}
-{
-int pmempool_rmU(const char *path, int flags);
-int pmempool_rmW(const wchar_t *path, int flags);
-}{
-int pmempool_rm(const char *path, int flags);
-}
+_UWFUNCR1(int, pmempool_rm, *path, int flags)
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 
 # DESCRIPTION #
 
-The !pmempool_rm function removes pool pointed by *path*. The *path* can
-point to either a regular file, device dax or pool set file. In case of pool
-set file the !pmempool_rm will remove all part files from local replicas
-using **unlink**(3) and all remote replicas (supported on Linux)
-using **rpmem_remove**(3) function (see **librpmem**(7)),
-before removing the pool set file itself.
+The _UW(pmempool_rm) function removes the pool pointed to by *path*. The *path*
+can point to a regular file, device dax or pool set file. If *path* is a pool
+set file, _UW(pmempool_rm) will remove all part files from local replicas
+using **unlink**(2)_WINUX(,=q=, and all remote replicas using **rpmem_remove**(3)
+(see **librpmem**(7)),=e=) before removing the pool set file itself.
 
-The *flags* argument determines the behavior of !pmempool_rm function.
+The *flags* argument determines the behavior of _UW(pmempool_rm).
 It is either 0 or the bitwise OR of one or more of the following flags:
 
-+ **PMEMPOOL_RM_FORCE**
-Ignore all errors when removing part files from local replicas or remote
-replica.
++ **PMEMPOOL_RM_FORCE** - Ignore all errors when removing part files from
+local _WINUX(,or remote )replicas.
 
-+ **PMEMPOOL_RM_POOLSET_LOCAL**
-Remove also local pool set file.
++ **PMEMPOOL_RM_POOLSET_LOCAL** - Also remove local pool set file.
 
-+ **PMEMPOOL_RM_POOLSET_REMOTE**
-Remove also remote pool set file.
+_WINUX(,
++ **PMEMPOOL_RM_POOLSET_REMOTE** - Also remove remote pool set file.)
+
 
 # RETURN VALUE #
 
-The !pmempool_rm function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
+On success, _UW(pmempool_rm) returns 0. On error, it returns -1 and sets
+*errno* accordingly.
 
 
 # SEE ALSO #

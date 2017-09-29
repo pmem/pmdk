@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMLOG_APPEND!3
+title: _MP(PMEMLOG_APPEND, 3)
 collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
@@ -46,7 +46,8 @@ date: pmemlog API version 1.0
 
 # NAME #
 
-**pmemlog_append**(), **pmemlog_appendv**() -- appends bytes to the persistent memory resident log file
+**pmemlog_append**(), **pmemlog_appendv**() -- append bytes to the persistent
+memory resident log file
 
 
 # SYNOPSIS #
@@ -65,25 +66,26 @@ to the current write offset in the log memory pool *plp*.
 Calling this function is analogous to appending to a file.
 The append is atomic and cannot be torn by a program failure or system crash.
 
-The **pmemlog_appendv**() function appends to the log *plp* just like **pmemlog_append**() above,
-but this function takes a scatter/gather list in a manner
-similar to **writev**(2). In this case, the entire list of buffers is appended atomically,
+The **pmemlog_appendv**() function appends to the log memory pool *plp* from
+the scatter/gather list *iov* in a manner
+similar to **writev**(2). The entire list of buffers is appended atomically,
 as if the buffers in *iov* were concatenated in order.
+The append is atomic and cannot be torn by a program failure or system crash.
 
 
 # RETURN VALUE #
 
-The **pmemlog_append**() function on success returns 0. On error, -1 is returned and *errno* is set.
-
-The **pmemlog_appendv**() function on success returns 0. On error, -1 is returned and *errno* is set.
+On success, **pmemlog_append**() and **pmemlog_appendv**() return 0.
+On error, they return -1 and set *errno* appropriately.
 
 
 # NOTES #
 
 Since **libpmemlog**(3) is designed as a low-latency code path,
-many of the checks routinely done by the operating system for **writev**(2) are not
-practical in the library's implementation of **pmemlog_appendv**().
-No attempt is made to detect NULL or incorrect pointers, or illegal count values, for example.
+many of the checks routinely done by the operating system for **writev**(2)
+are not practical in the library's implementation of **pmemlog_appendv**().
+No attempt is made to detect NULL or incorrect pointers, or illegal count
+values, for example.
 
 
 # SEE ALSO #

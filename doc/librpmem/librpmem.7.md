@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBRPMEM!7
+title: _MP(LIBRPMEM, 7)
 collection: librpmem
 header: NVM Library
 date: rpmem API version 1.1
@@ -46,8 +46,8 @@ date: rpmem API version 1.1
 [FORK](#fork)<br />
 [CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [ENVIRONMENT](#environment)<br />
+[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -81,19 +81,21 @@ const char *rpmem_errormsg(void);
 
 ##### Other library functions: #####
 
-A description of other **librpmem** functions can be found on different manual pages:
-* most commonly used functions: **rpmem_create**(3), **rpmem_persist**(3)
+A description of other **librpmem** functions can be found on the following
+manual pages:
+
++ **rpmem_create**(3), **rpmem_persist**(3)
 
 
 # DESCRIPTION #
 
 **librpmem** provides low-level support for remote access to
 *persistent memory* (pmem) utilizing RDMA-capable RNICs. The library can be
-used to replicate remotely a memory region over RDMA protocol.
-It utilizes appropriate persistency mechanism based on remote node's platform
-capabilities. The **librpmem** utilizes the **ssh** client to authenticate
-a user on remote node and for encryption of connection's out-of-band
-configuration data. See **SSH** section for details.
+used to remotely replicate a memory region over the RDMA protocol. It utilizes
+an appropriate persistency mechanism based on the remote node's platform
+capabilities. **librpmem** utilizes the **ssh**(1) client to authenticate
+a user on the remote node, and for encryption of the connection's out-of-band
+configuration data. See **SSH**, below, for details.
 
 The maximum replicated memory region size can not be bigger than the maximum
 locked-in-memory address space limit. See **memlock** in **limits.conf**(5)
@@ -178,25 +180,26 @@ The *user_flags* field is a 16-byte user-defined flags.
 
 # SSH #
 
-The **librpmem** utilizes **ssh**(1) client to login and execute the
-**rpmemd**(1) process on remote node. By default the **ssh** process
-is executed with **-4** option which forces using **IPv4** addressing.
-The SSH command executed by **librpmem** can be overwritten by
-**RPMEM_SSH** environment variable. The command executed by the **ssh**
-can be overwritten by **RPMEM_CMD** variable. See **ENVIRONMENT**
-section for details. See **FORK** section below for more details.
+**librpmem** utilizes the **ssh**(1) client to login and execute the
+**rpmemd**(1) process on the remote node. By default, **ssh**(1)
+is executed with the **-4** option, which forces using **IPv4** addressing.
+
+For debugging purposes, both the ssh client and the commands executed
+on the remote node may be overridden by setting the **RPMEM_SSH** and
+**RPMEM_CMD** environment variables, respectively. See **ENVIRONMENT**
+for details.
 
 
 # FORK #
-The **ssh** process is executed
+The **ssh**(1) client is executed
 by **rpmem_open**(3) and **rpmem_create**(3) after forking a child process
-using **fork**(2).  The application must take into account this fact when
-using **wait**(2) and **waitpid**(2) functions which may return a PID of
-the **ssh** process executed by **librpmem**.
+using **fork**(2).  The application must take this into account when
+using **wait**(2) and **waitpid**(2), which may return the *PID* of
+the **ssh**(1) process executed by **librpmem**.
 
-The **librpmem** library requires **fork**(2) support in **libibverbs**,
-otherwise **rpmem_open**(3) and **rpmem_create**(3) functions will return an error.
-By default **libfabric** initializes **libibverbs** with **fork**(2) support
+If **fork**(2) support is not enabled in **libibverbs**,
+**rpmem_open**(3) and **rpmem_create**(3) will fail.
+By default, **fabric**(7) initializes **libibverbs** with **fork**(2) support
 by calling the **ibv_fork_init**(3) function. See **fi_verbs**(7) for more
 details.
 
@@ -205,7 +208,7 @@ details.
 
 **librpmem** relies on the library destructor being called from the main thread.
 For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 **librpmem** registers a pool as a single memory region. A Chelsio T4 and T5
@@ -251,86 +254,29 @@ string returned by **rpmem_check_version**() must not be modified or
 freed.
 
 
-# DEBUGGING AND ERROR HANDLING #
-
-Two versions of **librpmem** are typically available on a development
-system. The normal version, accessed when a program is linked using the
-**-lrpmem** option, is optimized for performance. That version skips
-checks that impact performance and never logs any trace information or
-performs any run-time assertions. If an error is detected during the
-call to **librpmem** function, an application may retrieve an error
-message describing the reason of failure.
-
-The **rpmem_errormsg**() function returns a pointer to a static buffer
-containing the last error message logged for current thread. The error
-message may include description of the corresponding error code (if
-*errno* was set), as returned by **strerror**(3). The error message buffer
-is thread-local; errors encountered in one thread do not affect its
-value in other threads. The buffer is never cleared by any library
-function; its content is significant only when the return value of the
-immediately preceding call to **librpmem** function indicated an error,
-or if *errno* was set. The application must not modify or free the error
-message string, but it may be modified by subsequent calls to other
-library functions.
-
-A second version of **librpmem**, accessed when a program uses the
-libraries under **/usr/lib/nvml_debug**, contains run-time assertions
-and trace points. The typical way to access the debug version is to set
-the environment variable **LD_LIBRARY_PATH** to
-**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on
-where the debug libraries are installed on the system. The trace points
-in the debug version of the library are enabled using the environment
-variable **RPMEM_LOG_LEVEL**, which can be set to the following values:
-
-+ **0** - This is the default level when **RPMEM_LOG_LEVEL** is not set.
-  No log messages are emitted at this level.
-
-+ **1** - Additional details on any errors detected are logged (in addition
-  to returning the *errno*-based errors as usual). The same information
-  may be retrieved using **rpmem_errormsg**().
-
-+ **2** - A trace of basic operations is logged.
-
-+ **3** - This level enables a very verbose amount of function call
-  tracing in the library.
-
-+ **4** - This level enables voluminous and fairly obscure tracing
-  information that is likely only useful to the **librpmem** developers.
-
-The environment variable **RPMEM_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the
-name is "-", the PID of the current process will be appended to the file
-name when the log file is created. If **RPMEM_LOG_FILE** is not set,
-the logging output goes to stderr.
-
-Setting the environment variable **RPMEM_LOG_LEVEL** has no effect on
-the non-debug version of **librpmem**.
-
-
 # ENVIRONMENT #
 
 **librpmem** can change its default behavior based on the following
 environment variables. These are largely intended for testing and are
 not normally required.
 
-+ **RPMEM_CMD**=*cmd*
-
-Setting this environment variable makes it possible to override the
-default command executed on remote node using **ssh**. Setting this
-variable shall not be required normally, but it can be used for testing
-and debugging purposes.
-
-**RPMEM_CMD** can contain multiple commands separated by vertical bar (`|`).
-Each consecutive command is executed on remote node in order read from a
-pool set file. This environment variable is read when library is initialized so
-**RPMEM_CMD** must be set prior to application launch or prior to **dlopen**(3)
-of **librpmem** in case of using dynamic linking loader.
 
 + **RPMEM_SSH**=*ssh_client*
 
-Setting this environment variable makes it possible to override the
-default **ssh** client command name. Setting this variable shall not
-be required normally.
+Setting this environment variable overrides the default **ssh**(1) client
+command name.
+
++ **RPMEM_CMD**=*cmd*
+
+Setting this environment variable overrides the default command executed on
+the remote node using either **ssh**(1) or the alternative remote shell command
+specified by **RPMEM_SSH**.
+
+**RPMEM_CMD** can contain multiple commands separated by a vertical bar (`|`).
+Each consecutive command is executed on the remote node in order read from a
+pool set file. This environment variable is read when the library is
+initialized, so **RPMEM_CMD** must be set prior to application launch (or
+prior to **dlopen**(3) if **librpmem** is being dynamically loaded).
 
 + **RPMEM_ENABLE_SOCKETS**=0\|1
 
@@ -346,6 +292,64 @@ disabled.
 
 Setting this variable to 0 disables using **fi_verbs**(7) provider for
 in-band RDMA connection. The *verbs* provider is enabled by default.
+
+
+# DEBUGGING AND ERROR HANDLING #
+
+If an error is detected during the call to a **librpmem** function, the
+application may retrieve an error message describing the reason for the failure
+from **rpmem_errormsg**(). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **librpmem** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
+
+Two versions of **librpmem** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lrpmem** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
+
+A second version of **librpmem**, accessed when a program uses the libraries
+under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+controlled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **RPMEM_LOG_LEVEL**
+
+The value of **RPMEM_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - This is the default level when **RPMEM_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged
+(in addition to returning the *errno*-based errors as usual).
+The same information may be retrieved using **rpmem_errormsg**().
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call
+tracing in the library.
+
++ **4** - Enables voluminous and fairly obscure tracing information
+that is likely only useful to the **librpmem** developers.
+
+Unless **RPMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **RPMEM_LOG_FILE**
+
+Specifies the name of a file where all logging information should be written.
+If the last character in the name is "-", the *PID* of the current process will
+be appended to the file name when the log file is created. If
+**RPMEM_LOG_FILE** is not set, logging output is written to *stderr*.
 
 
 # EXAMPLE #
@@ -406,7 +410,7 @@ main(int argc, char *argv[])
 
 # NOTE #
 
-The **librpmem** API is experimental and may be a subject of changes in the future.
+The **librpmem** API is experimental and may be subject to change in the future.
 However, using the remote replication in **libpmemobj**(7) is safe and backward
 compatibility will be preserved.
 
@@ -419,8 +423,8 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**rpmemd**(1), **ssh**(1), **fork**(2), **dlopen**(3),
-**ibv_fork_init*i*(3), **rpmem_create**(3), **rpmem_open**(3),
-**rpmem_persist**(3), **strerror**(3), **limits.conf**(5), **fi_sockets**(7),
-**fi_verbs**(7), **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**rpmemd**(1), **ssh**(1), **fork**(2), **dlclose**(3), **dlopen**(3),
+**ibv_fork_init**(3), **rpmem_create**(3), **rpmem_open**(3),
+**rpmem_persist**(3), **strerror**(3), **limits.conf**(5), **fabric**(7),
+**fi_sockets**(7), **fi_verbs**(7), **libpmem**(7), **libpmemblk**(7),
+**libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**

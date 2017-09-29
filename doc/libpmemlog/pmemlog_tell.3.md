@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMLOG_TELL!3
+title: _MP(PMEMLOG_TELL, 3)
 collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
@@ -72,26 +72,26 @@ This function can be used to determine how much data is currently in the log.
 The **pmemlog_rewind**() function resets the current write point for the log to zero.
 After this call, the next append adds to the beginning of the log.
 
-The **pmemlog_walk**() function walks through the log *plp*, from beginning to end,
-calling the callback function *process_chunk* for each *chunksize* block of
-data found. The argument *arg* is also passed to the callback to help
-avoid the need for global state. The *chunksize* argument is useful for logs with
-fixed-length records and may be specified as 0 to cause a single call
-to the callback with the entire log contents passed as the *buf* argument.
-The *len* argument tells the *process_chunk* function how much data buf is holding.
-The callback function should return 1 if **pmemlog_walk**() should continue walking
-through the log, or 0 to terminate the walk. The callback function is called
-while holding **libpmemlog**(7) internal locks that make calls atomic, so the
-callback function must not try to append to the log itself or deadlock will occur.
+The **pmemlog_walk**() function walks through the log *plp*, from beginning to
+end, calling the callback function *process_chunk* for each *chunksize* block
+of data found. The argument *arg* is also passed to the callback to help
+avoid the need for global state. The *chunksize* argument is useful for logs
+with fixed-length records and may be specified as 0 to cause a single call
+to the callback with the entire log contents passed as the *buf* argument. The
+*len* argument tells the *process_chunk* function how much data *buf* is
+holding. The callback function should return 1 if **pmemlog_walk**() should
+continue walking through the log, or 0 to terminate the walk. The callback
+function is called while holding **libpmemlog**(7) internal locks that make
+calls atomic, so the callback function must not try to append to the log itself
+or deadlock will occur.
 
 
 # RETURN VALUE #
 
-The **pmemlog_tell**() function returns the current write point for the log or -1 if error occur.
+On success, **pmemlog_tell**() returns the current write point for the log.
+On error, it returns -1 and sets *errno* appropriately.
 
-The **pmemlog_rewind**() function returns no value.
-
-The **pmemlog_walk**() function returns no value.
+The **pmemlog_rewind**() and **pmemlog_walk**() functions return no value.
 
 
 # SEE ALSO #

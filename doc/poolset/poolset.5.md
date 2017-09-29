@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: POOLSET!5
+title: _MP(POOLSET, 5)
 collection: poolset
 header: NVM Library
 date: poolset API version 1.0
@@ -39,6 +39,8 @@ date: poolset API version 1.0
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[REPLICAS](#replicas)<br />
+[NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
 
@@ -56,50 +58,66 @@ mypool.set
 
 # DESCRIPTION #
 
-Depending on the configuration of the system, the available space of non-volatile
+Depending on the configuration of the system, the available non-volatile
 memory space may be divided into multiple memory devices. In such case, the
 maximum size of the transactional object store could be limited by the capacity
-of a single memory device.
+of a single memory device. Therefore, **libpmemobj**(7), **libpmemblk**(7) and
+**libpmemlog**(7) allow building object stores spanning multiple memory devices
+by creation of persistent memory pools consisting of multiple files, where each
+part of such a *pool set* may be stored on a different pmem-aware filesystem.
 
-The **libpmemobj**(7), **libpmemblk** and **libpmemlog** allows building object
-stores spanning multiple memory devices by creation of persistent memory pools
-consisting of multiple files, where each part of such a *pool set* may be
-stored on different pmem-aware filesystem.
-
-In case of **libpmemobj**(7) to improve reliability and eliminate the single point of
-failure, all the changes of the data stored in the persistent memory pool could be also
-automatically written to local !ifndef{WIN32}{or remote} pool replicas, thereby providing
-a backup for a persistent memory pool by producing a *mirrored pool set*. In practice,
+To improve reliability and eliminate single point of failure, **libpmemobj**(7)
+also allows all the data written to a persistent memory pool to be copied
+to local _WINUX(,or remote) pool *replicas*, thereby providing backup for the
+persistent memory pool by producing a *mirrored pool set*. In practice,
 the pool replicas may be considered as binary copies of the "master" pool set.
 Data replication is not supported in **libpmemblk**(7) and **libpmemlog**(7).
 
-The set file for each type of pool is a plain text file, which must start
-with the line containing a *PMEMPOOLSET* string, followed by the specification
-of all the pool parts in the next lines.
-For each part, the file size and the absolute path must be provided.
+The *set* file for each type of pool is a plain text file. Lines in the file
+are formatted as follows:
 
-The size has to be compliant with the format specified in IEC 80000-13, IEEE 1541
-or the Metric Interchange Format. Standards accept SI units with obligatory
-B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
-- KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
++ The first line of the file must be the literal string "PMEMPOOLSET"
 
-The path of a part can point to a Device DAX and in such case the size
-argument can be set to an "AUTO" string, which means that the size of the device
-will be automatically resolved at pool creation time.
-When using Device DAX there's also one additional restriction - it is not allowed
-to concatenate more than one Device DAX device in a single pool set
-if the configured internal alignment is other than 4KiB.  In such case a pool set
-can consist only of a single part (single Device DAX).
-Please see **ndctl-create-namespace**(1) for information on how to configure
-desired alignment on Device DAX.
++ The pool parts are specified, one per line, in the format:
 
-Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
-ranges to be allocated and mapped without need of an intervening file system.
-For more information please see **ndctl-create-namespace**(1).
+	*size* *pathname*
 
-The minimum file size of each part of the pool set is defined in **\<libpmemblk.h\>**
-as **PMEMBLK_MIN_PART** for block pool, in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_PART**
-for obj pool or in **\<libpmemlog.h>** as **PMEMLOG_MIN_PART** for log pool.
++ *Replica* sections, if any, start with the literal string "REPLICA".
+See **REPLICAS**, below, for further details.
+
++ Lines starting with "#" are considered comments and are ignored.
+
+The *size* must be compliant with the format specified in IEC 80000-13, IEEE 1541
+or the Metric Interchange Format. These standards accept SI units with
+obligatory B - kB, MB, GB, ... (multiplier by 1000) suffixes, and IEC units
+with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024)
+suffixes.
+
+*pathname* must be an absolute pathname.
+
+The *pathname* of a part can point to a Device DAX. Device DAX is the
+device-centric analogue of Filesystem DAX. It allows memory ranges to be
+allocated and mapped without need of an intervening file system.
+
+Pools created on Device DAX have additional options and restrictions:
+
++ The *size* may be set to "AUTO", in which case the size of the device will be
+automatically resolved at pool creation time.
+
++ To concatenate more than one Device DAX device into a single pool set, the
+configured internal alignment must be 4KiB.
+
+Please see **ndctl-create-namespace**(1) for more information on Device DAX,
+including how to configure desired alignment.
+
+The minimum file size of each part of the pool set is defined as follows:
+
++ For block pools, as **PMEMBLK_MIN_PART** in **\<libpmemblk.h\>**
+
++ For object pools, as **PMEMOBJ_MIN_PART** in **\<libpmemobj.h\>**
+
++ For log pools, as **PMEMLOG_MIN_PART** in **\<libpmemlog.h\>**
+
 The net pool size of the pool set is equal to:
 
 ```
@@ -110,13 +128,18 @@ where
 page_aligned_part_size = part_size & ~(page_size - 1)
 ```
 
-Note that page size is OS specific. For more information please see **sysconf**(3).
-The minimum net pool size of a pool set allowed by the library for a block pool
-is defined in **\<libpmemblk.h\>** as **PMEMBLK_MIN_POOL**, for log pool in
-**\<libpmemlog.h\>** as **PMEMLOG_MIN_POOL** and in **\<libpmemobj.h\>** as **PMEMOBJ_MIN_POOL**
-for obj pool. Lines starting with "#" character are ignored.
+Note that page size is OS specific. For more information please see
+**sysconf**(3).
 
-Here is the example "myblkpool.set" file:
+The minimum net pool size of a pool set is defined as follows:
+
++ For block pools, as **PMEMBLK_MIN_POOL** in **\<libpmemblk.h\>**
+
++ For object pools, as **PMEMOBJ_MIN_POOL** in **\<libpmemobj.h\>**
+
++ For log pools, as **PMEMLOG_MIN_POOL** in **\<libpmemlog.h\>**
+
+Here is an example "mypool.set" file:
 
 ```
 PMEMPOOLSET
@@ -125,65 +148,48 @@ PMEMPOOLSET
 400G /mountpoint2/myfile.part2
 ```
 
-The files in the set may be created by running one of the following commands:
+The files in the set may be created by running one of the following commands.
+To create a block pool:
 
 ```
-$ pmempool create blk <bsize> myblkpool.set
-```
-for block pool or for log pool:
-```
-$ pmempool create log <bsize> mylogpool.set
+$ pmempool create blk <bsize> mypool.set
 ```
 
->WARNING:
-Creation of all the parts of the pool set and the associated replica sets can be done
-with the **pmemobj_create**(3), **pmemblk_create**(3), **pmemlog_create**(3) function
-or by using the **pmempool**(1) utility.
+To create a log pool:
 
-Restoring data from a local !ifndef{WIN32}{or remote} replica can be done by using the
-**pmempool-sync**(1) command or !pmempool_sync API from the
-**libpmempool**(3) library.
+```
+$ pmempool create log <bsize> mypool.set
+```
 
-Modifications of a pool set file configuration can be done by using the
-**pmempool-transform**(1) command or !pmempool_transform API from the
-**libpmempool**(3) library.
 
-When creating the pool set consisting of multiple files, or when creating
-the replicated pool set, the *path* argument passed to **pmemobj_create**(3),
-**pmemblk_create**(3), **pmemlog_create**(3) must point to the special *set*
-file that defines the pool layout and the location of all the parts of the pool set.
+# REPLICAS #
 
-When opening the pool set consisting of multiple files, or when opening the replicated
-pool set, the *path* argument passed to **pmemobj_create**(3), **pmemblk_create**(3),
-**pmemlog_create**(3) must not point to the pmemobj, pmemblk or pmemlog memory pool
-file, but to the same *set* file that was used for the pool set creation.
-If an error prevents any of the pool set files from being opened, or if the actual
-size of any file does not match the corresponding part size defined in *set* file
-**pmemobj_create**(3), **pmemblk_create**(3) or **pmemlog_create**(3) return
-NULL and set *errno* appropriately.
+Sections defining replica sets are optional. There may be multiple replica
+sections.
 
-Sections defining the replica sets are optional. There could be multiple replica
-sections and each must start with the line containing a *REPLICA* string.
-Lines starting with "#" character are ignored. A replica can be local
-or remote. In case of a local replica, the REPLICA line has to consist of the *REPLICA*
-string only and it has to be followed by at least one line defining a part of
-the local replica. The format of such line is the same as the format of the line
-defining a part of the pool as described above.
+Local replica sections begin with a line containing only the literal string
+"REPLICA", followed by one or more pool part lines as described above.
 
-!ifndef{WIN32}
-{
-In case of a remote replica, the *REPLICA* keyword has to be followed by
-an address of a remote host (in the format recognized by the **ssh**(1)
-remote login client) and a relative path to a remote pool set file (located
-in the root config directory on the target node - see **librpmem**(3)):
+_WINUX(,
+=q=Remote replica sections consist of the *REPLICA* keyword, followed on
+the same line by the address of a remote host and a relative path to a
+remote pool set file:
 
 ```
 REPLICA [<user>@]<hostname> [<relative-path>/]<remote-pool-set-file>
 ```
 
++ *hostname* must be in the format recognized by the **ssh**(1) remote login
+client
+
++ *pathname* is relative to the root config directory on the target
+node - see **librpmem**(3)
+
 There are no other lines in the remote replica section - the REPLICA line
-defines a remote replica entirely. Here is the example of "myobjpool.set"
-file:
+defines a remote replica entirely.
+=e=)
+
+Here is an example "myobjpool.set" file with replicas:
 
 ```
 PMEMPOOLSET
@@ -194,17 +200,44 @@ PMEMPOOLSET
 # local replica
 REPLICA
 500G /mountpoint3/mymirror.part0
-200G /mountpoint4/mymirror.part1
+200G /mountpoint4/mymirror.part1 _WINUX(,=q=
 
 # remote replica
-REPLICA user@example.com remote-objpool.set
+REPLICA user@example.com remote-objpool.set=e=)
 ```
-}
-The files in the obj set may be created by running the following command:
+
+The files in the object pool set may be created by running the following command:
 
 ```
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
+
+
+# NOTES #
+
+Creation of all the parts of the pool set and the associated replica sets can
+be done with the **pmemobj_create**(3), **pmemblk_create**(3) or
+**pmemlog_create**(3) function, or by using the **pmempool**(1) utility.
+
+Restoring data from a local _WINUX(,or remote) replica can be done by using the
+**pmempool-sync**(1) command or the _UW(pmempool_sync) API from the
+**libpmempool**(3) library.
+
+Modifications of a pool set file configuration can be done by using the
+**pmempool-transform**(1) command or the _UW(pmempool_transform) API from the
+**libpmempool**(3) library.
+
+When creating a pool set consisting of multiple files, or when creating
+a replicated pool set, the *path* argument passed to **pmemobj_create**(3),
+**pmemblk_create**(3) or **pmemlog_create**(3) must point to the special *set*
+file that defines the pool layout and the location of all the parts of the
+pool set.
+
+When opening a pool set consisting of multiple files, or when opening a
+replicated pool set, the *path* argument passed to **pmemobj_open**(3),
+**pmemblk_open**(3) or **pmemlog_open**(3) must point to the same *set* file
+that was used for pool set creation.
+
 
 # SEE ALSO #
 
