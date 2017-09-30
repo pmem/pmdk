@@ -219,6 +219,7 @@ The match script provides several pattern-matching macros that allow for normal
 variation in the test output:
 
 	$(N)	an integer (i.e. one or more decimal digits)
+	$(NC)	one or more decimal digits with optional comma separators
 	$(FP)	a floating point number
 	$(S)	ascii string
 	$(X)	hex number
@@ -227,6 +228,8 @@ variation in the test output:
 	$(*)	any string
 	$(DD)	output of a "dd" run
 	$(OPT)	the entire line is optional
+	$(OPX)	ends a contiguous list of $(OPT)...$(OPX) lines, at least
+		one of which must match
 
 The small C programs used for unit testing are designed to not worry about the
 return values for things not under test.  This is done with the all-caps
@@ -262,3 +265,14 @@ pattern for creating new unit tests is to follow steps like these:
 When a "check" type test is run (the default), each test should try to limit
 the real execution time to a couple minutes or less.  "short" and "long"
 versions of the tests are encouraged, especially for stress testing.
+
+PORTABILITY CONSIDERATIONS
+
+unittest.sh defines a number of macros to support portability across POSIX
+operating systems. See the Portability section of unittest.sh for details.
+
+When a matching line count of an output file is required, use "$GREP -c" rather
+than "$GREP | wc -l".
+
+Use canonical ordering of program options and arguments, i.e., put all options
+before any arguments. Not all operating systems support option reordering.
