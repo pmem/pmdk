@@ -1516,7 +1516,9 @@ vg_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
 	if (noaccess) {
 		JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(node->addr, node->size);
 	} else {
+		/* assume memory is defined */
 		JEMALLOC_VALGRIND_MALLOC(1, node->addr, node->size, 1);
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(node->addr, node->size);
 	}
 
 	return (NULL);
@@ -1545,10 +1547,12 @@ vg_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree,
 	size_t pageind = arena_mapelm_to_pageind(map);
 	void *chunk_addr = (void *)((uintptr_t)run_chunk + (pageind << LG_PAGE));
 
-	if (noaccess)
+	if (noaccess) {
 		JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(chunk_addr, chunk_size);
-	else
+	} else {
 		JEMALLOC_VALGRIND_MALLOC(1, chunk_addr, chunk_size, 1);
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(chunk_addr, chunk_size);
+	}
 
 	return (NULL);
 }
@@ -1559,7 +1563,7 @@ vg_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree,
  * as defined/undefined.
  */
 static int
-vg_pool_init(pool_t *pool)
+vg_pool_init(pool_t *pool, size_t size)
 {
 	malloc_mutex_lock(&pool->huge_mtx);
 	malloc_mutex_lock(&pool->chunks_mtx);
@@ -1568,8 +1572,23 @@ vg_pool_init(pool_t *pool)
 	/* mark base_alloc used space as defined */
 	char *base_start = (char *)CACHELINE_CEILING((uintptr_t)pool +
 			sizeof(pool_t));
-	char *base_end = pool->base_past_addr;
+	char *base_end = pool->base_next_addr;
 	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(base_start, base_end - base_start);
+	JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(base_end, (char *)pool->base_past_addr - base_end);
+
+	/* pointer to the address of chunks, align the address to chunksize */
+	void *usable_addr =
+		(void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+
+	/* usable chunks space, must be multiple of chunksize */
+	size_t usable_size =
+		(size - (uintptr_t)((char *)usable_addr - (char *)pool))
+		& ~chunksize_mask;
+
+	/* initially mark the entire heap as defined */
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
+			usable_addr,
+			usable_size);
 
 	/* iterate thru unused (available) chunks - mark as NOACCESS */
 	int noaccess = 1;
@@ -1580,10 +1599,6 @@ vg_pool_init(pool_t *pool)
 	noaccess = 0;
 	extent_tree_ad_iter(&pool->huge, NULL,
 			vg_tree_binary_iter_cb, &noaccess);
-
-	//JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
-	//		pool->chunks_szad_mmap,
-	//		sizeof(pool->chunks_szad_mmap));
 
 	/* iterate thru arenas/runs */
 	for (unsigned i = 0; i < pool->narenas_total; ++i) {
@@ -1597,7 +1612,8 @@ vg_pool_init(pool_t *pool)
 			for (unsigned b = 0; b < NBINS; b++) {
 				arena_bin_t *bin = &arena->bins[b];
 
-				JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
+				if (bin->runcur != NULL)
+					JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
 						bin->runcur,
 						sizeof(*(bin->runcur)));
 			}
@@ -1717,7 +1733,7 @@ pool_open(pool_t *pool, size_t size, unsigned pool_id)
 	malloc_mutex_unlock(&pools_lock);
 
 	if (config_valgrind)
-		vg_pool_init(pool); /* XXX */
+		vg_pool_init(pool, size);
 
 	return pool;
 }

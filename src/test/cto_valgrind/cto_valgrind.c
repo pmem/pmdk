@@ -35,7 +35,7 @@
  *
  * usage: cto_valgrind filename <test-number>
  *
- * test-number can be a number from 0 to 5
+ * test-number can be a number from 0 to 6
  */
 
 #include "unittest.h"
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s filename <test-number>", argv[0]);
 
 	PMEMctopool *pcp = pmemcto_create(argv[1], "test",
-			PMEMCTO_MIN_POOL, 0600);
+			2 * PMEMCTO_MIN_POOL, 0600);
 	UT_ASSERTne(pcp, NULL);
 
 	int test_case = atoi(argv[2]);
@@ -112,32 +112,41 @@ main(int argc, char *argv[])
 		}
 		case 5: {
 			UT_OUT("close & re-open");
-			int *ptrs[4];
+			int *ptrs[5];
 			ptrs[0] = pmemcto_malloc(pcp, sizeof(int));
 			ptrs[1] = pmemcto_malloc(pcp, 256 * sizeof(int));
 			ptrs[2] = pmemcto_malloc(pcp, 16384);
 			ptrs[3] = pmemcto_malloc(pcp, 3 * 1024 * 1024);
+			ptrs[4] = pmemcto_malloc(pcp, 8 * 1024 * 1024);
+			UT_ASSERTne(ptrs[0], NULL);
+			UT_ASSERTne(ptrs[1], NULL);
+			UT_ASSERTne(ptrs[2], NULL);
+			UT_ASSERTne(ptrs[3], NULL);
+			UT_ASSERTne(ptrs[4], NULL);
 			*ptrs[0] = 55;
 			*ptrs[1] = 55;
 			*ptrs[2] = 55;
 			*ptrs[3] = 55;
+			*ptrs[4] = 55;
 			pmemcto_close(pcp);
 
 			pcp = pmemcto_open(argv[1], "test");
 			UT_ASSERTne(pcp, NULL);
-
 			*ptrs[0] = 77;
 			*ptrs[1] = 77;
 			*ptrs[2] = 77;
 			*ptrs[3] = 77;
+			*ptrs[4] = 77;
 			pmemcto_free(pcp, ptrs[0]);
 			pmemcto_free(pcp, ptrs[1]);
 			pmemcto_free(pcp, ptrs[2]);
 			pmemcto_free(pcp, ptrs[3]);
-			*ptrs[0] = 99; /* not detected */
-			*ptrs[1] = 99;
-			*ptrs[2] = 99;
-			*ptrs[3] = 99; /* detected */
+			pmemcto_free(pcp, ptrs[4]);
+			*ptrs[0] = 99; /* XXX not detected */
+			*ptrs[1] = 99; /* XXX not detected */
+			*ptrs[2] = 99; /* XXX not detected */
+			*ptrs[3] = 99;
+			*ptrs[4] = 99;
 			pmemcto_close(pcp);
 			break;
 		}
