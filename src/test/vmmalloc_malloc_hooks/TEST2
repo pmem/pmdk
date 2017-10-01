@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2014-2018, Intel Corporation
 #
@@ -31,22 +32,32 @@
 #
 
 #
-# src/test/vmmalloc_memalign/Makefile -- build vmmalloc_memalign unit test
+# src/test/vmmalloc_malloc_hooks/TEST2 -- unit test for
+# libvmmalloc malloc hooks
 #
-TARGET = vmmalloc_memalign
-OBJS = vmmalloc_memalign.o
-EXTRA_DEPS = libaa.so
+export UNITTEST_NAME=vmmalloc_malloc_hooks/TEST2
+export UNITTEST_NUM=2
 
-vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type medium
 
-libaa.so: aligned_alloc.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libaa.so -o $@ $^
+require_fs_type any
+# there's no point in testing statically linked builds
+require_build_type debug
+require_no_asan
 
-clobber: libaa_cleanup
+setup
 
-libaa_cleanup:
-	$(RM) libaa.so
+export VMMALLOC_LOG_LEVEL=4
+export TEST_LD_PRELOAD=libvmmalloc.so
 
-LIBS += ./libaa.so -Wl,-rpath=.
+expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX
+
+grep -E 'size\ 4321' \
+    vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
+
+check
+
+pass
