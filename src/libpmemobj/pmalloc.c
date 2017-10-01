@@ -361,13 +361,18 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 	c.type = CLASS_RUN;
 	c.unit_size = p->unit_size;
 	size_t runsize_bytes =
-		CHUNK_ALIGN_UP(p->units_per_block * p->unit_size);
+		CHUNK_ALIGN_UP((p->units_per_block * p->unit_size) +
+		RUN_METASIZE);
 	c.run.size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
 
 	alloc_class_generate_run_proto(&c.run, c.unit_size, c.run.size_idx);
 
 	struct alloc_class *realc = alloc_class_register(
 		heap_alloc_classes(&pop->heap), &c);
+	if (realc == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
 
 	if (heap_create_alloc_class_buckets(&pop->heap, realc) != 0) {
 		alloc_class_delete(ac, realc);

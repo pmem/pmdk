@@ -42,6 +42,12 @@
 #include "util.h"
 #include "out.h"
 #include "bucket.h"
+#include "cuckoo.h"
+
+#define RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s)\
+((uint64_t)(map_idx_s) << 32 |\
+(uint64_t)(header_type_s) << 16 |\
+(uint64_t)(size_idx_s))
 
 /*
  * Value used to mark a reserved spot in the bucket array.
@@ -139,7 +145,7 @@ struct alloc_class_collection {
 	uint8_t *class_map_by_alloc_size;
 
 	/* maps allocation classes to run unit sizes */
-	uint8_t *class_map_by_unit_size;
+	struct cuckoo *class_map_by_unit_size;
 
 	int fail_on_missing_class;
 	int autogenerate_on_missing_class;
@@ -247,8 +253,23 @@ alloc_class_register(struct alloc_class_collection *ac,
 		return NULL;
 
 	*nc = *c;
-	ac->class_map_by_unit_size[SIZE_TO_CLASS_MAP_INDEX(nc->unit_size,
-		ac->granularity)] = nc->id;
+
+	if (c->type == CLASS_RUN) {
+		size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(nc->unit_size,
+			ac->granularity);
+		ASSERT(map_idx <= UINT32_MAX);
+		uint32_t map_idx_s = (uint32_t)map_idx;
+		ASSERT(nc->run.size_idx <= UINT16_MAX);
+		uint16_t size_idx_s = (uint16_t)nc->run.size_idx;
+		uint16_t header_type_s = (uint16_t)nc->header_type;
+		uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
+			header_type_s, size_idx_s);
+		if (cuckoo_insert(ac->class_map_by_unit_size, k, nc) != 0) {
+			ERR("unable to register allocation class");
+			Free(nc);
+			return NULL;
+		}
+	}
 
 	ac->aclasses[nc->id] = nc;
 
@@ -419,7 +440,7 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 struct alloc_class_collection *
 alloc_class_collection_new()
 {
-	struct alloc_class_collection *ac = Malloc(sizeof(*ac));
+	struct alloc_class_collection *ac = Zalloc(sizeof(*ac));
 	if (ac == NULL)
 		return NULL;
 
@@ -432,19 +453,21 @@ alloc_class_collection_new()
 
 	size_t maps_size = (MAX_RUN_SIZE / ac->granularity) + 1;
 
-	ac->class_map_by_alloc_size = Malloc(maps_size);
-	ac->class_map_by_unit_size = Malloc(maps_size);
+	if ((ac->class_map_by_alloc_size = Malloc(maps_size)) == NULL)
+		goto error;
+	if ((ac->class_map_by_unit_size = cuckoo_new()) == NULL)
+		goto error;
+
 	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);
-	memset(ac->class_map_by_unit_size, 0xFF, maps_size);
 
 	if (alloc_class_from_params(ac, CLASS_HUGE, CHUNKSIZE, 0, 0, 1) == NULL)
-		goto error_alloc_class_create;
+		goto error;
 
 	struct alloc_class *predefined_class =
 		alloc_class_from_params(ac, CLASS_RUN, MIN_RUN_SIZE,
 			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, 1);
 	if (predefined_class == NULL)
-		goto error_alloc_class_create;
+		goto error;
 
 	for (size_t i = 0; i < FIRST_GENERATED_CLASS_SIZE / ac->granularity;
 		++i) {
@@ -461,7 +484,7 @@ alloc_class_collection_new()
 		size_t n = categories[c - 1].size + ALLOC_BLOCK_SIZE_GEN;
 		do {
 			if (alloc_class_find_or_create(ac, n) == NULL)
-				goto error_alloc_class_create;
+				goto error;
 
 			float stepf = (float)n * categories[c].step;
 			size_t stepi = (size_t)stepf;
@@ -506,19 +529,17 @@ alloc_class_collection_new()
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
 
-		if (c != NULL) {
+		if (c != NULL && c->type == CLASS_RUN) {
 			ASSERTeq(i, c->id);
-			uint8_t class_id = ac->class_map_by_unit_size[
-				SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
-					ac->granularity)];
-			ASSERTeq(class_id, c->id);
+			ASSERTeq(alloc_class_by_run(ac, c->unit_size,
+				c->header_type, c->run.size_idx), c);
 		}
 	}
 #endif
 
 	return ac;
 
-error_alloc_class_create:
+error:
 	alloc_class_collection_delete(ac);
 
 	return NULL;
@@ -538,8 +559,8 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 		}
 	}
 
+	cuckoo_delete(ac->class_map_by_unit_size);
 	Free(ac->class_map_by_alloc_size);
-	Free(ac->class_map_by_unit_size);
 	Free(ac);
 }
 
@@ -571,24 +592,21 @@ alloc_class_assign_by_size(struct alloc_class_collection *ac,
 	return c;
 }
 
-
 /*
- * alloc_class_by_map -- (internal) returns the allocation class found for
- *	given size in the provided map
+ * alloc_class_by_alloc_size -- returns allocation class that is assigned
+ *	to handle an allocation of the provided size
  */
-static struct alloc_class *
-alloc_class_by_map(struct alloc_class_collection *ac,
-	uint8_t *map, size_t size)
+struct alloc_class *
+alloc_class_by_alloc_size(struct alloc_class_collection *ac, size_t size)
 {
 	if (size < ac->last_run_max_size) {
-		uint8_t class_id = map[
+		uint8_t class_id = ac->class_map_by_alloc_size[
 			SIZE_TO_CLASS_MAP_INDEX(size, ac->granularity)];
 
 		if (class_id == MAX_ALLOCATION_CLASSES) {
 			if (ac->fail_on_missing_class)
 				return NULL;
-			else if (ac->autogenerate_on_missing_class &&
-					map == ac->class_map_by_alloc_size)
+			else if (ac->autogenerate_on_missing_class)
 				return alloc_class_assign_by_size(ac, size);
 			else
 				return ac->aclasses[DEFAULT_ALLOC_CLASS_ID];
@@ -601,23 +619,22 @@ alloc_class_by_map(struct alloc_class_collection *ac,
 }
 
 /*
- * alloc_class_by_alloc_size -- returns allocation class that is assigned
- *	to handle an allocation of the provided size
- */
-struct alloc_class *
-alloc_class_by_alloc_size(struct alloc_class_collection *ac, size_t size)
-{
-	return alloc_class_by_map(ac, ac->class_map_by_alloc_size, size);
-}
-
-/*
- * alloc_class_by_unit_size -- returns the allocation class that has the given
+ * alloc_class_by_run -- returns the allocation class that has the given
  *	unit size
  */
 struct alloc_class *
-alloc_class_by_unit_size(struct alloc_class_collection *ac, size_t size)
+alloc_class_by_run(struct alloc_class_collection *ac,
+	size_t unit_size, enum header_type header_type, uint32_t size_idx)
 {
-	return alloc_class_by_map(ac, ac->class_map_by_unit_size, size);
+	size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(unit_size, ac->granularity);
+	ASSERT(map_idx <= UINT32_MAX);
+	uint32_t map_idx_s = (uint32_t)map_idx;
+	ASSERT(size_idx <= UINT16_MAX);
+	uint16_t size_idx_s = (uint16_t)size_idx;
+	uint16_t header_type_s = (uint16_t)header_type;
+
+	return cuckoo_get(ac->class_map_by_unit_size,
+		RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s));
 }
 
 /*

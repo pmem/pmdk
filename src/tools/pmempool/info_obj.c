@@ -675,8 +675,9 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 				sizeof(run->block_size) + sizeof(run->bitmap),
 				PTR_TO_OFF(pop, run), 1);
 
-		struct alloc_class *aclass = alloc_class_by_unit_size(
-			pip->obj.alloc_classes, run->block_size);
+		struct alloc_class *aclass = alloc_class_by_run(
+			pip->obj.alloc_classes,
+			run->block_size, m.header_type, m.size_idx);
 		if (aclass) {
 			outv_field(v, "Block size", "%s",
 					out_get_size_str(run->block_size,
