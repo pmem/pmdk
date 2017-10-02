@@ -58,6 +58,20 @@ extern "C" {
 #define POOLSET_REPLICA_SIG "REPLICA"
 #define POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
 
+#define POOLSET_OPTION_SIG "OPTION"
+#define POOLSET_OPTION_SIG_LEN 6	/* does NOT include '\0' */
+
+/* pool set option flags */
+enum pool_set_option_flag {
+	OPTION_UNKNOWN = 0x0,
+	OPTION_NO_HDRS = 0x1,
+};
+
+struct pool_set_option {
+	const char *name;
+	enum pool_set_option_flag flag;
+};
+
 #define POOL_LOCAL 0
 #define POOL_REMOTE 1
 
@@ -115,6 +129,7 @@ struct pool_set {
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
 	int remote;		/* true if contains a remote replica */
+	unsigned options;	/* enabled pool set options */
 	struct pool_replica *replica[];
 };
 
