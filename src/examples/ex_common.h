@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,10 +60,10 @@ file_exists(char const *file)
 }
 
 /*
- * fls -- returns last set bit position or -1 if set bit not found
+ * find_last_set_64 -- returns last set bit position or -1 if set bit not found
  */
 static inline int
-fls(uint64_t val)
+find_last_set_64(uint64_t val)
 {
 	return 64 - __builtin_clzll(val) - 1;
 }
@@ -85,10 +85,10 @@ file_exists(char const *file)
 }
 
 /*
- * fls -- returns last set bit position or -1 if set bit not found
+ * find_last_set_64 -- returns last set bit position or -1 if set bit not found
  */
 static inline int
-fls(uint64_t val)
+find_last_set_64(uint64_t val)
 {
 	DWORD lz = 0;
 

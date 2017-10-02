@@ -65,7 +65,7 @@ struct ctree_map {
 static int
 find_crit_bit(uint64_t lhs, uint64_t rhs)
 {
-	return fls(lhs ^ rhs);
+	return find_last_set_64(lhs ^ rhs);
 }
 
 /*
