@@ -671,6 +671,16 @@ function expect_normal_exit() {
 		export ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}"
 	fi
 
+	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
+		if [ $(valgrind_version) -ge 312 ]; then
+			preload=`basename $TEST_LD_PRELOAD`
+		fi
+		if [ "$preload" == "libvmmalloc.so" ]; then
+			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
+		fi
+	fi
+
 	local REMOTE_VALGRIND_LOG=0
 	if [ "$CHECK_TYPE" != "none" ]; then
 	        case "$1"
@@ -693,9 +703,11 @@ function expect_normal_exit() {
 	fi
 
 	disable_exit_on_error
+
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 		$trace $*
 	ret=$?
+
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
 		for node in $CHECK_NODES
 		do
@@ -784,9 +796,19 @@ function expect_abnormal_exit() {
 		esac
 	fi
 
+	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
+		if [ $(valgrind_version) -ge 312 ]; then
+			preload=`basename $TEST_LD_PRELOAD`
+		fi
+		if [ "$preload" == "libvmmalloc.so" ]; then
+			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
+		fi
+	fi
+
 	disable_exit_on_error
-	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-	$TRACE $*
+	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE $*
 	ret=$?
 	restore_exit_on_error
 
