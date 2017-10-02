@@ -730,6 +730,9 @@ heap_reclaim_garbage(struct palloc_heap *heap, struct bucket *bucket)
 {
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		if (heap->rt->recyclers[i] == NULL)
+			continue;
+
 		while (recycler_get(heap->rt->recyclers[i], &m) == 0) {
 			m.m_ops->claim_revoke(&m);
 			m.size_idx = 0;
@@ -841,6 +844,32 @@ out:
 	heap_bucket_release(heap, defb);
 
 	return ret;
+}
+
+/*
+ * heap_memblock_on_free -- bookkeeping actions executed at every free of a
+ *	block
+ */
+void
+heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
+{
+	if (m->type != MEMORY_BLOCK_RUN)
+		return;
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
+	struct chunk_header *hdr = (struct chunk_header *)
+		&z->chunk_headers[m->chunk_id];
+	struct chunk_run *run = (struct chunk_run *)
+		&z->chunks[m->chunk_id];
+
+	struct alloc_class *c = alloc_class_by_run(
+		heap->rt->alloc_classes,
+		run->block_size, m->header_type, hdr->size_idx);
+
+	if (c == NULL)
+		return;
+
+	recycler_inc_unaccounted(heap->rt->recyclers[c->id], m);
 }
 
 /*
@@ -1046,6 +1075,13 @@ int
 heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;
+
+	if (c->type == CLASS_RUN) {
+		h->recyclers[c->id] = recycler_new(heap, c->run.bitmap_nallocs);
+		if (h->recyclers[c->id] == NULL)
+			goto error_recycler_new;
+	}
+
 	int i;
 	for (i = 0; i < (int)h->narenas; ++i) {
 		h->arenas[i].buckets[c->id] = bucket_new(
@@ -1057,10 +1093,13 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	return 0;
 
 error_cache_bucket_new:
+	recycler_delete(h->recyclers[c->id]);
+
 	for (i -= 1; i >= 0; --i) {
 		bucket_delete(h->arenas[i].buckets[c->id]);
 	}
 
+error_recycler_new:
 	return -1;
 }
 
@@ -1147,7 +1186,13 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	size_t rec_i;
 	for (rec_i = 0; rec_i < MAX_ALLOCATION_CLASSES; ++rec_i) {
-		if ((h->recyclers[rec_i] = recycler_new(heap)) == NULL) {
+		struct alloc_class *c = alloc_class_by_id(h->alloc_classes,
+			(uint8_t)rec_i);
+		if (c == NULL || c->type == CLASS_HUGE)
+			continue;
+
+		if ((h->recyclers[rec_i] =
+			recycler_new(heap, c->run.bitmap_nallocs)) == NULL) {
 			err = ENOMEM;
 			goto error_recycler_new;
 		}
@@ -1249,6 +1294,9 @@ heap_cleanup(struct palloc_heap *heap)
 	Free(rt->arenas);
 
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		if (heap->rt->recyclers[i] == NULL)
+			continue;
+
 		recycler_delete(rt->recyclers[i]);
 	}
 
