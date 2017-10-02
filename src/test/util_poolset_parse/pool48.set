@@ -1,0 +1,3 @@
+PMEMPOOLSET
+OPTION	NOHDRS	AUTOGROW  # two options in a single line
+100G /mountpoint1/part0

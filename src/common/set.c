@@ -93,6 +93,12 @@ static int Remote_usage_counter;
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
 
+/* list of pool set option names and flags */
+static struct pool_set_option Options[] = {
+	{ "NOHDRS", OPTION_NO_HDRS },
+	{ "AUTOGROW", OPTION_AUTO_GROW },
+	{ NULL, OPTION_UNKNOWN }
+};
 
 /*
  * util_remote_init -- initialize remote replication
@@ -286,6 +292,8 @@ enum parser_codes {
 	PARSER_REP_NO_PARTS,
 	PARSER_SIZE_MISMATCH,
 	PARSER_OUT_OF_MEMORY,
+	PARSER_OPTION_UNKNOWN,
+	PARSER_OPTION_EXPECTED,
 	PARSER_FORMAT_OK,
 	PARSER_MAX_CODE
 };
@@ -303,6 +311,8 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"no replica parts",
 	"sizes of pool set and replica mismatch",
 	"allocating memory failed",
+	"unknown option",
+	"missing option name",
 	"" /* format correct */
 };
 
@@ -785,6 +795,45 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 }
 
 /*
+ * parser_read_options -- (internal) read line and validate options
+ */
+static enum parser_codes
+parser_read_options(char *line, unsigned *options)
+{
+	LOG(3, "line '%s'", line);
+
+	int opt_cnt = 0;
+	char *saveptr = NULL; /* must be NULL initialized on Windows */
+
+	char *opt_str = strtok_r(line, " \t", &saveptr);
+	while (opt_str != NULL) {
+		LOG(4, "option '%s'", opt_str);
+
+		int i = 0;
+		while (Options[i].name && strcmp(opt_str, Options[i].name) != 0)
+			i++;
+
+		if (Options[i].name == NULL) {
+			LOG(4, "unknown option '%s'", opt_str);
+			return PARSER_OPTION_UNKNOWN;
+		}
+
+		if (*options & Options[i].flag)
+			LOG(4, "duplicated option '%s'", opt_str);
+
+		*options |= Options[i].flag;
+
+		opt_cnt++;
+		opt_str = strtok_r(NULL, " \t", &saveptr);
+	}
+
+	if (opt_cnt == 0)
+		return PARSER_OPTION_EXPECTED;
+
+	return PARSER_CONTINUE;
+}
+
+/*
  * util_parse_add_part -- (internal) add a new part file to the replica info
  */
 static int
@@ -1077,6 +1126,14 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 					result = PARSER_SET_NO_PARTS;
 				else
 					result = PARSER_REP_NO_PARTS;
+			}
+		} else if (strncmp(line, POOLSET_OPTION_SIG,
+					POOLSET_OPTION_SIG_LEN) == 0) {
+			result = parser_read_options(
+					line + POOLSET_OPTION_SIG_LEN,
+					&set->options);
+			if (result == PARSER_CONTINUE) {
+				LOG(10, "OPTIONS: %x", set->options);
 			}
 		} else if (strncmp(line, POOLSET_REPLICA_SIG,
 					POOLSET_REPLICA_SIG_LEN) == 0) {

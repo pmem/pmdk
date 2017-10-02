@@ -150,5 +150,44 @@
     <None Include="pool39w.set">
       <Filter>Pool Set Files</Filter>
     </None>
+    <None Include="pool40w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool41w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool42w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool43w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool44w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool45w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool46w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool47w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool48w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool49w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool50w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool51w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="pool52w.set">
+      <Filter>Pool Set Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

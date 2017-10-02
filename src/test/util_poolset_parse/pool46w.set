@@ -1,0 +1,4 @@
+PMEMPOOLSET
+OPTION NOHDRS # same option specified twice
+OPTION NOHDRS
+100G w:\mountpoint1\part0
