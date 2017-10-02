@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -186,6 +186,8 @@ main(int argc, char *argv[])
 
 			/* prevent reporting leaked memory as still reachable */
 			ptr = NULL;
+			/* Clean up pool, above malloc will still leak */
+			vmem_delete(vmp);
 			break;
 		}
 		case 4: {

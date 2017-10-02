@@ -46,6 +46,7 @@
 # exact matches.  the supported tokens are:
 #
 #	$(N)	an integer (i.e. one or more decimal digits)
+#	$(NC)	one or more decimal digits with comma separators
 #	$(FP)	a floating point number
 #	$(S)	ascii string
 #	$(X)	hex number
@@ -55,6 +56,8 @@
 #	$(*)	any string
 #	$(DD)	output of a "dd" run
 #	$(OPT)	line is optional (may be missing, matched if found)
+#	$(OPX)	ends a contiguous list of $(OPT)...$(OPX) lines, at least
+#		one of which must match
 #
 # arguments are:
 #
@@ -164,6 +167,8 @@ sub match {
 	my $line_pat = 0;
 	my $line_out = 0;
 	my $opt = 0;
+	my $opx = 0;
+	my $opt_found = 0;
 
 	my $fstr = snarf($mfile);
 	for (split /^/, $fstr) {
@@ -173,6 +178,7 @@ sub match {
 		s/([*+?|{}.\\^\$\[()])/\\$1/g;
 		s/\\\$\\\(FP\\\)/[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?/g;
 		s/\\\$\\\(N\\\)/[-+]?\\d+/g;
+		s/\\\$\\\(NC\\\)/[-+]?\\d+(,[0-9]+)*/g;
 		s/\\\$\\\(\\\*\\\)/\\p{Print}*/g;
 		s/\\\$\\\(S\\\)/\\P{IsC}+/g;
 		s/\\\$\\\(X\\\)/\\p{XPosixXDigit}+/g;
@@ -182,6 +188,10 @@ sub match {
 		s/\\\$\\\(DD\\\)/\\d+\\+\\d+ records in\n\\d+\\+\\d+ records out\n\\d+ bytes \\\(\\d+ .B\\\) copied, [.0-9e-]+[^,]*, [.0-9]+ .B.s/g;
 		if (s/\\\$\\\(OPT\\\)//) {
 			$opt = 1;
+		} elsif (s/\\\$\\\(OPX\\\)//) {
+			$opx = 1;
+		} else {
+			$opt_found = 0;
 		}
 
 		if ($opt_v) {
@@ -199,7 +209,7 @@ sub match {
 		print " => /$_/\n" if $opt_d;
 		print " [$output]\n" if $opt_d;
 		unless ($output =~ s/^$_//) {
-			if ($opt) {
+			if ($opt || ($opx && $opt_found)) {
 				printf("%s:%-3d      [skipping optional line]\n", $ofile, $line_out) if $opt_v;
 				$line_out--;
 				$opt = 0;
@@ -216,7 +226,10 @@ sub match {
 
 				die "$mfile:$line_pat did not match pattern\n";
 			}
+		} elsif ($opt) {
+			$opt_found = 1;
 		}
+		$opx = 0;
 	}
 
 	if ($output ne '') {
