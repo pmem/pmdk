@@ -48,7 +48,8 @@ setup
 
 # due to alignment requirements there should be no hint address for
 # the last two range lengths
-expect_normal_exit ./util_map_proc$EXESUFFIX maps_align\
+mapfile="maps_align_"$(uname -s | tr "[:upper:]" "[:lower:]")
+expect_normal_exit ./util_map_proc$EXESUFFIX $mapfile\
      0x0001000000\
      0x0001100000\
      0x0001110000\

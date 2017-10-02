@@ -48,7 +48,8 @@ configure_valgrind memcheck force-disable
 setup
 
 # there should be an unused region for each length
-expect_normal_exit ./util_map_proc$EXESUFFIX maps_all\
+mapfile="maps_all_"$(uname -s | tr "[:upper:]" "[:lower:]")
+expect_normal_exit ./util_map_proc$EXESUFFIX $mapfile\
      0x0000100000\
      0x0001000000\
      0x0040000000\
