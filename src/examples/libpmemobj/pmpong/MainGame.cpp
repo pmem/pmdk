@@ -57,8 +57,7 @@ main(int argc, char *argv[])
 	}
 	std::string fileName = argv[1];
 	try {
-		Pool *pool;
-		pool = pool->getGamePoolFromFile(fileName);
+		Pool *pool = Pool::getGamePoolFromFile(fileName);
 		nvml::obj::persistent_ptr<GameController> gameController =
 			pool->getGameController();
 		if (mode == "-s")
