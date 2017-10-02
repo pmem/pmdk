@@ -80,6 +80,7 @@ OBJ_TESTS = \
 	obj_direct\
 	obj_first_next\
 	obj_fragmentation\
+	obj_fragmentation2\
 	obj_heap\
 	obj_heap_interrupt\
 	obj_heap_state\
@@ -190,6 +191,7 @@ OTHER_TESTS = \
 	unicode_match_script\
 	util_cpuid\
 	util_uuid_generate\
+	util_vec\
 	util_file_create\
 	util_file_open\
 	util_map_proc\
