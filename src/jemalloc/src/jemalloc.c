@@ -1497,10 +1497,10 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	if (malloc_init_base_pool())
 		return (NULL);
 
+	malloc_mutex_lock(&pools_lock);
+
 	assert(pools != NULL);
 	assert(npools > 0);
-
-	malloc_mutex_lock(&pools_lock);
 
 	/*
 	 * Find unused pool ID.
