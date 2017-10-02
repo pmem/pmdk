@@ -35,21 +35,30 @@
  */
 
 #include "recycler.h"
+#include "vec.h"
 #include "out.h"
 #include "util.h"
 #include "sys_util.h"
 #include "ctree.h"
 
+/*
+ * The zone variable is offseted by 1 to make sure the key is never 0.
+ * XXX: The tree API should change so that a 0 key is valid, once that happens,
+ * this workaround can be removed.
+ */
 #define RUN_KEY_PACK(z, c, free_space, max_block)\
 ((uint64_t)(max_block) << 48 |\
 (uint64_t)(free_space) << 32 |\
-(uint64_t)(c) << 16 | (z))
+(uint64_t)(c) << 16 | (z + 1))
 
 #define RUN_KEY_GET_ZONE_ID(k)\
-((uint16_t)(k))
+((uint16_t)(((int16_t)(k)) - 1))
 
 #define RUN_KEY_GET_CHUNK_ID(k)\
 ((uint16_t)((k) >> 16))
+
+#define RUN_KEY_GET_FREE_SPACE(k)\
+((uint16_t)((k) >> 32))
 
 struct recycler_element {
 	uint32_t chunk_id;
@@ -59,13 +68,25 @@ struct recycler_element {
 struct recycler {
 	struct ctree *runs;
 	struct palloc_heap *heap;
+
+	/*
+	 * How many unaccounted units there *might* be inside of the memory
+	 * blocks stored in the recycler.
+	 * The value is not meant to be accurate, but rather a rough measure on
+	 * how often should the memory block scores be recalculated.
+	 */
+	size_t unaccounted_units;
+	size_t recalc_threshold;
+	VEC(, uint64_t) recalc;
+
+	os_mutex_t lock;
 };
 
 /*
  * recycler_new -- creates new recycler instance
  */
 struct recycler *
-recycler_new(struct palloc_heap *heap)
+recycler_new(struct palloc_heap *heap, size_t recalc_threshold)
 {
 	struct recycler *r = Malloc(sizeof(struct recycler));
 	if (r == NULL)
@@ -76,6 +97,11 @@ recycler_new(struct palloc_heap *heap)
 		goto error_alloc_tree;
 
 	r->heap = heap;
+	r->recalc_threshold = recalc_threshold;
+	r->unaccounted_units = 0;
+	VEC_INIT(&r->recalc);
+
+	os_mutex_init(&r->lock);
 
 	return r;
 
@@ -91,6 +117,7 @@ error_alloc_recycler:
 void
 recycler_delete(struct recycler *r)
 {
+	os_mutex_destroy(&r->lock);
 	ctree_delete(r->runs);
 	Free(r);
 }
@@ -100,7 +127,8 @@ recycler_delete(struct recycler *r)
  *	what's the largest request that the run can handle
  */
 static uint64_t
-recycler_calc_score(struct recycler *r, const struct memory_block *m)
+recycler_calc_score(struct recycler *r, const struct memory_block *m,
+	uint16_t *found)
 {
 	struct zone *z = ZID_TO_ZONE(r->heap->layout, m->zone_id);
 	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
@@ -126,6 +154,7 @@ recycler_calc_score(struct recycler *r, const struct memory_block *m)
 		/* if the entire value is empty, no point in searching */
 		if (free_in_value == BITS_PER_VALUE) {
 			max_block = BITS_PER_VALUE;
+			continue;
 		}
 
 		/*
@@ -143,8 +172,8 @@ recycler_calc_score(struct recycler *r, const struct memory_block *m)
 			max_block = n;
 	}
 
-	if (free_space == 0)
-		return 0;
+	if (found != NULL)
+		*found = free_space;
 
 	return RUN_KEY_PACK(m->zone_id, m->chunk_id, free_space, max_block);
 }
@@ -155,12 +184,82 @@ recycler_calc_score(struct recycler *r, const struct memory_block *m)
 int
 recycler_put(struct recycler *r, const struct memory_block *m)
 {
-	uint64_t score = recycler_calc_score(r, m);
+	int ret = 0;
 
-	if (score == 0)
+	util_mutex_lock(&r->lock);
+
+	uint64_t score = recycler_calc_score(r, m, NULL);
+
+	ret = ctree_insert_unlocked(r->runs, score, 0);
+
+	util_mutex_unlock(&r->lock);
+
+	return ret;
+}
+
+/*
+ * recycler_recalc_if_needed -- (internal) if the unaccounted units exceed the
+ *	threshold, we recalculate scores of the the recycler runs until we find
+ *	the desired amount of units.
+ */
+static int
+recycler_recalc_if_needed(struct recycler *r)
+{
+	if (r->unaccounted_units < r->recalc_threshold)
 		return -1;
 
-	return ctree_insert(r->runs, score, 0);
+	size_t units = r->unaccounted_units;
+
+	uint64_t found_units = 0;
+	uint16_t free_space = 0;
+	struct memory_block m;
+	uint64_t key;
+	do {
+		if ((key = ctree_remove(r->runs, 0, 0)) == 0)
+			break;
+
+		m.chunk_id = RUN_KEY_GET_CHUNK_ID(key);
+		m.zone_id = RUN_KEY_GET_ZONE_ID(key);
+		uint64_t key_free_space = RUN_KEY_GET_FREE_SPACE(key);
+		uint64_t score = recycler_calc_score(r, &m, &free_space);
+
+		ASSERT(free_space >= key_free_space);
+		uint64_t free_space_diff = free_space - key_free_space;
+		found_units += free_space_diff;
+		VEC_PUSH_BACK(&r->recalc, score);
+	} while (found_units < units);
+
+	VEC_FOREACH(&r->recalc, key) {
+		ctree_insert(r->runs, key, 0);
+	}
+
+	VEC_CLEAR(&r->recalc);
+
+	util_fetch_and_sub(&r->unaccounted_units, units);
+
+	return 0;
+}
+
+static int
+recycler_get_run(struct recycler *r, struct memory_block *m)
+{
+	uint64_t key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
+	if ((key = ctree_remove_unlocked(r->runs, key, 0)) != 0)
+		goto out;
+
+	if (recycler_recalc_if_needed(r) != 0)
+		return ENOMEM;
+
+	key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
+	if ((key = ctree_remove_unlocked(r->runs, key, 0)) != 0)
+		goto out;
+
+	return ENOMEM;
+
+out:
+	m->chunk_id = RUN_KEY_GET_CHUNK_ID(key);
+	m->zone_id = RUN_KEY_GET_ZONE_ID(key);
+	return 0;
 }
 
 /*
@@ -169,12 +268,14 @@ recycler_put(struct recycler *r, const struct memory_block *m)
 int
 recycler_get(struct recycler *r, struct memory_block *m)
 {
-	uint64_t key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
-	if ((key = ctree_remove(r->runs, key, 0)) == 0)
-		return ENOMEM;
+	int ret = 0;
 
-	m->chunk_id = RUN_KEY_GET_CHUNK_ID(key);
-	m->zone_id = RUN_KEY_GET_ZONE_ID(key);
+	util_mutex_lock(&r->lock);
+
+	if (recycler_get_run(r, m) != 0) {
+		ret = ENOMEM;
+		goto out;
+	}
 
 	struct zone *z = ZID_TO_ZONE(r->heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
@@ -182,5 +283,18 @@ recycler_get(struct recycler *r, struct memory_block *m)
 
 	memblock_rebuild_state(r->heap, m);
 
-	return 0;
+out:
+	util_mutex_unlock(&r->lock);
+
+	return ret;
+}
+
+/*
+ * recycler_inc_unaccounted -- increases the number of unaccounted units in the
+ *	recycler
+ */
+void
+recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
+{
+	util_fetch_and_add(&r->unaccounted_units, m->size_idx);
 }

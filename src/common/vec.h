@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,19 +31,74 @@
  */
 
 /*
- * recycler.h -- internal definitions of run recycler
- *
- * This is a container that stores runs that are currently not used by any of
- * the buckets.
+ * vec.h -- vector interface
  */
 
-#include "memblock.h"
+#define VEC_GROW_SIZE (64)
 
-struct recycler;
+#define VEC(name, type)\
+struct name {\
+	type *buffer;\
+	size_t size;\
+	size_t capacity;\
+}
 
-struct recycler *recycler_new(struct palloc_heap *layout,
-	size_t recalc_threshold);
-void recycler_delete(struct recycler *r);
-int recycler_put(struct recycler *r, const struct memory_block *m);
-int recycler_get(struct recycler *r, struct memory_block *m);
-void recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m);
+#define VEC_INITALIZER {NULL, 0, 0}
+
+#define VEC_INIT(vec) do {\
+	(vec)->buffer = NULL;\
+	(vec)->size = 0;\
+	(vec)->capacity = 0;\
+} while (0)
+
+#define VEC_RESERVE(vec, ncapacity) do {\
+	if ((ncapacity) > (vec)->size) {\
+		void *tbuf = Realloc((vec)->buffer,\
+			sizeof(*(vec)->buffer) * (ncapacity));\
+		ASSERTne(tbuf, NULL);\
+		/* there's no way to return a value from a macro in MSVC... */\
+		(vec)->buffer = tbuf;\
+		(vec)->capacity = ncapacity;\
+	}\
+} while (0)
+
+#define VEC_PUSH_BACK(vec, element) do {\
+	if ((vec)->capacity == (vec)->size)\
+		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\
+	(vec)->buffer[(vec)->size++] = (element);\
+} while (0)
+
+#define VEC_EMPLACE_BACK(vec, ...) do {\
+	if ((vec)->capacity == (vec)->size)\
+		VEC_RESERVE((vec), (vec)->capacity + VEC_GROW_SIZE);\
+	(vec)->buffer[(vec)->size++] = (typeof(*(vec)->buffer)) {__VA_ARGS__};\
+} while (0)
+
+#define VEC_FOREACH(vec, el)\
+for (size_t _vec_i = 0;\
+	_vec_i < (vec)->size && ((el = (vec)->buffer[_vec_i]), 1);\
+	++_vec_i)
+
+#define VEC_POP_BACK(vec) do {\
+	(vec)->size -= 1;\
+} while (0)
+
+#define VEC_SIZE(vec)\
+((vec)->size)
+
+#define VEC_CAPACITY(vec)\
+((vec)->capacity)
+
+#define VEC_ARR(vec)\
+((vec)->buffer)
+
+#define VEC_GET(vec, id)\
+(&(vec)->buffer[id])
+
+#define VEC_CLEAR(vec) do {\
+	(vec)->size = 0;\
+} while (0)
+
+#define VEC_DELETE(vec) do {\
+	Free((vec)->buffer);\
+} while (0)
