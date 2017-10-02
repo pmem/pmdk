@@ -391,6 +391,10 @@ palloc_operation(struct palloc_heap *heap,
 		bucket_insert_block(existing_bucket, &coalesced_block);
 	}
 
+	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
+		heap_memblock_on_free(heap, &existing_block);
+	}
+
 	for (int i = 0; i < nlocks; ++i)
 		util_mutex_unlock(locks[i]);
 
