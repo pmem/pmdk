@@ -50,6 +50,7 @@ require_no_asan
 
 setup
 
+# user-defined hooks should not be called
 export TEST_LD_PRELOAD=libvmmalloc.so
 
 expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX

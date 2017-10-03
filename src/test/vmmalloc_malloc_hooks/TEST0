@@ -45,18 +45,14 @@ require_test_type medium
 
 require_fs_type any
 # there's no point in testing statically linked builds
-require_build_type debug
+require_build_type debug nondebug
 require_no_asan
 
 setup
 
-export VMMALLOC_LOG_LEVEL=4
-export TEST_LD_PRELOAD=libvmmalloc.so
-
+# do not pre-load libvmmalloc.so
+# user-defined hooks should be called
 expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX
-
-$GREP -E 'size\ 4321' \
-    vmmalloc$UNITTEST_NUM.log > grep$UNITTEST_NUM.log
 
 check
 
