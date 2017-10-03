@@ -105,6 +105,8 @@ util_mmap_init(void)
 
 		if (errno || endp == e) {
 			LOG(2, "Invalid PMEM_MMAP_HINT");
+		} else if (os_access(OS_MAPFILE, R_OK)) {
+			LOG(2, "No /proc, PMEM_MMAP_HINT ignored");
 		} else {
 			Mmap_hint = (void *)val;
 			Mmap_no_random = 1;

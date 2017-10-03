@@ -43,6 +43,7 @@ export UNITTEST_NUM=4
 require_test_type medium
 
 require_fs_type none
+require_procfs
 configure_valgrind memcheck force-disable
 
 setup
