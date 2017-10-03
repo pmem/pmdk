@@ -144,6 +144,8 @@ int os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 
 int os_thread_join(os_thread_t thread, void **result);
 
+void os_thread_self(os_thread_t *thread);
+
 /* thread affinity */
 
 int os_thread_setaffinity_np(os_thread_t thread, size_t set_size,

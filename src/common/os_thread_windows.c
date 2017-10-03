@@ -534,6 +534,16 @@ os_thread_join(os_thread_t thread, void **result)
 }
 
 /*
+ * os_thread_self -- returns handle to calling thread
+ */
+void
+os_thread_self(os_thread_t *thread)
+{
+	internal_os_thread_t internal_thread = (internal_os_thread_t)*thread;
+	internal_thread->thread_handle = GetCurrentThread();
+}
+
+/*
  * os_cpu_zero -- clears cpu set
  */
 void
