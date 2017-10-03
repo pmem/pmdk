@@ -351,6 +351,15 @@ os_thread_join(os_thread_t thread, void **result)
 }
 
 /*
+ * os_thread_self -- pthread_self abstraction layer
+ */
+void
+os_thread_self(os_thread_t *thread)
+{
+	*thread = (os_thread_t)pthread_self();
+}
+
+/*
  * os_thread_atfork -- pthread_atfork abstraction layer
  */
 int
