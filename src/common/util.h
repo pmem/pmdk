@@ -89,6 +89,7 @@ int util_is_zeroed(const void *addr, size_t len);
 int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
 int util_parse_size(const char *str, size_t *sizep);
 char *util_fgets(char *buffer, int max, FILE *stream);
+char *util_getexecname(char *path, size_t pathlen);
 char *util_part_realpath(const char *path);
 int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);

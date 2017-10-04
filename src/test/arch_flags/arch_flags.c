@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,6 @@
 #include "pool_hdr.h"
 #include "pmemcommon.h"
 
-#define ELF_FILE_NAME "/proc/self/exe"
 #define FATAL_USAGE()\
 UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
 #define ARCH_FLAGS_LOG_PREFIX "arch_flags"
@@ -61,11 +60,16 @@ static int Open_ret;
 static char *Open_path;
 
 /*
+ * Execname -- pathname of executable
+ */
+static char Execname[PATH_MAX];
+
+/*
  * open -- open syscall mock
  */
 FUNC_MOCK(open, int, const char *pathname, int flags, mode_t mode)
 	FUNC_MOCK_RUN_DEFAULT {
-		if (strcmp(pathname, ELF_FILE_NAME) == 0) {
+		if (strcmp(pathname, Execname) == 0) {
 			if (Open_ret) {
 				errno = Open_ret;
 				return -1;
@@ -150,6 +154,8 @@ main(int argc, char *argv[])
 
 	if (argc < 3)
 		FATAL_USAGE();
+
+	util_getexecname(Execname, PATH_MAX);
 
 	int i;
 	for (i = 1; i < argc - 1; i += 2) {

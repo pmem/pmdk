@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,67 +31,18 @@
  */
 
 /*
- * pool_hdr_linux.c -- pool header utilities for Linux-like OSes
+ * errno_freebsd.h -- map Linux errno's to something close on FreeBSD
  */
 
-#include <fcntl.h>
-#include <link.h>
-#include <string.h>
-#include <unistd.h>
+#ifndef NVML_ERRNO_FREEBSD_H
+#define NVML_ERRNO_FREEBSD_H 1
 
-#include "out.h"
-#include "os.h"
-#include "pool_hdr.h"
+#ifdef __FreeBSD__
+#define EBADFD EBADF
+#define ELIBACC EINVAL
+#define EMEDIUMTYPE EOPNOTSUPP
+#define ENOMEDIUM ENODEV
+#define EREMOTEIO EIO
+#endif
 
-/*
- * util_get_arch_flags -- get architecture identification flags
- */
-int
-util_get_arch_flags(struct arch_flags *arch_flags)
-{
-	int fd;
-	ElfW(Ehdr) elf;
-	char *path;
-	int ret = -1;
-
-	memset(arch_flags, 0, sizeof(*arch_flags));
-
-	if ((path = malloc(PATH_MAX)) == NULL) {
-		ERR("!malloc");
-		goto out;
-	}
-
-	util_getexecname(path, PATH_MAX);
-
-	if ((fd = os_open(path, O_RDONLY)) < 0) {
-		ERR("!open %s", path);
-		goto out_free;
-	}
-
-	if (read(fd, &elf, sizeof(elf)) != sizeof(elf)) {
-		ERR("!read %s", path);
-		goto out_close;
-	}
-
-	if (elf.e_ident[EI_MAG0] != ELFMAG0 ||
-	    elf.e_ident[EI_MAG1] != ELFMAG1 ||
-	    elf.e_ident[EI_MAG2] != ELFMAG2 ||
-	    elf.e_ident[EI_MAG3] != ELFMAG3) {
-		ERR("invalid ELF magic");
-		goto out_close;
-	}
-
-	ret = 0;
-
-	arch_flags->e_machine = elf.e_machine;
-	arch_flags->ei_class = elf.e_ident[EI_CLASS];
-	arch_flags->ei_data = elf.e_ident[EI_DATA];
-	arch_flags->alignment_desc = alignment_desc();
-
-out_close:
-	os_close(fd);
-out_free:
-	free(path);
-out:
-	return ret;
-}
+#endif /* NVML_ERRNO_FREEBSD_H */
