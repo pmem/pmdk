@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL_SYNC!3
+collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
 ...

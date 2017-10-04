@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: RPMEM_PERSIST!3
+collection: librpmem
 header: NVM Library
 date: rpmem API version 1.1
 ...

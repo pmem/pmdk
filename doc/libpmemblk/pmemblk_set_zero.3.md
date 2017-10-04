@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: PMEMBLK_SET_ZERO!3
+collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
 ...
@@ -33,8 +34,8 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_set_zero.3 -- man page for functions that sets
-									zeros or error state in the memory pool)
+[comment]: <> (pmemblk_set_zero.3 -- man page for functions that sets zeros or error state in the memory pool)
+
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />

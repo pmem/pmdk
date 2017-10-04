@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: POOLSET!5
+collection: poolset
 header: NVM Library
 date: poolset API version 1.0
 ...

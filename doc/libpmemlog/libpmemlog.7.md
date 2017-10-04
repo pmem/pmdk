@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: LIBPMEMLOG!7
+collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
 ...

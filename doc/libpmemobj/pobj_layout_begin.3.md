@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: POBJ_LAYOUT_BEGIN!3
+collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
 ...

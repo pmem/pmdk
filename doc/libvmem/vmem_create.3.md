@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: VMEM_CREATE!3
+collection: libvmem
 header: NVM Library
 date: vmem API version 1.1
 ...

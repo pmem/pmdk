@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-RM!1
+collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.3
 ...

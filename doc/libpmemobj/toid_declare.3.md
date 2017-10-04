@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: TOID_DECLARE!3
+collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
 ...
