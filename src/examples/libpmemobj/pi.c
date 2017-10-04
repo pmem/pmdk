@@ -108,7 +108,7 @@ calc_pi(LPVOID arg)
 		result += (pow(-1, (double)i) / (2 * i + 1));
 	}
 	D_RW(task)->proto.result = result;
-	pmemobj_persist(pop, &D_RW(task)->proto.result, sizeof(double));
+	pmemobj_persist(pop, &D_RW(task)->proto.result, sizeof(result));
 
 	POBJ_LIST_MOVE_ELEMENT_HEAD(pop, &D_RW(pi)->todo, &D_RW(pi)->done,
 					task, todo, done);
