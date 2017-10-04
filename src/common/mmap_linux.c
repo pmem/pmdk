@@ -43,6 +43,12 @@
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
+#ifdef __FreeBSD__
+static const char *sscanf_os = "%p %p";
+#else
+static const char *sscanf_os = "%p-%p";
+#endif
+
 /*
  * util_map_hint_unused -- use /proc to determine a hint address for mmap()
  *
@@ -65,8 +71,8 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	ASSERT(align > 0);
 
 	FILE *fp;
-	if ((fp = os_fopen("/proc/self/maps", "r")) == NULL) {
-		ERR("!/proc/self/maps");
+	if ((fp = os_fopen(OS_MAPFILE, "r")) == NULL) {
+		ERR("!%s", OS_MAPFILE);
 		return MAP_FAILED;
 	}
 
@@ -82,7 +88,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 
 	while (fgets(line, PROCMAXLEN, fp) != NULL) {
 		/* check for range line */
-		if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
+		if (sscanf(line, sscanf_os, &lo, &hi) == 2) {
 			LOG(4, "%p-%p", lo, hi);
 			if (lo > raddr) {
 				if ((uintptr_t)(lo - raddr) >= len) {

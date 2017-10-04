@@ -57,6 +57,13 @@ int util_unmap(void *addr, size_t len);
 
 void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 
+#ifdef __FreeBSD__
+#define MAP_NORESERVE 0
+#define OS_MAPFILE "/proc/curproc/map"
+#else
+#define OS_MAPFILE "/proc/self/maps"
+#endif
+
 /*
  * macros for micromanaging range protections for the debug version
  */

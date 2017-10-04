@@ -82,7 +82,7 @@ $DIR_SRC/test/tools/fip/fip"
 
 # Portability
 VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
-if [ "$OSTYPE" = "FreeBSD" ]; then
+if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
 	VM_OVERCOMMIT="[ $(sysctl vm.overcommit | awk '{print $2}') == 0 ]"
@@ -849,6 +849,24 @@ function require_no_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" != "0" ] && return
 	echo "$UNITTEST_NAME: SKIP required: run without superuser rights"
+	exit 0
+}
+
+#
+# require_no_freebsd -- Skip test on FreeBSD
+#
+function require_no_freebsd() {
+	[ "$(uname -s)" != "FreeBSD" ] && return
+	echo "$UNITTEST_NAME: SKIP: Not supported on FreeBSD"
+	exit 0
+}
+
+#
+# require_procfs -- Skip test if /proc is not mounted
+#
+function require_procfs() {
+	mount | grep -q "/proc" && return
+	echo "$UNITTEST_NAME: SKIP: /proc not mounted"
 	exit 0
 }
 
