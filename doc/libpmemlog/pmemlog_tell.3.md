@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: PMEMLOG_TELL!3
+collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
 ...
@@ -33,8 +34,7 @@ date: pmemlog API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemlog_tell.3 -- man page for pmemlog_tell, pmemlog_rewind
-								and pmemlog_walk functions)
+[comment]: <> (pmemlog_tell.3 -- man page for pmemlog_tell, pmemlog_rewind and pmemlog_walk functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />

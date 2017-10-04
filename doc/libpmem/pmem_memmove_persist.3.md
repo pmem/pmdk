@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: PMEM_MEMMOVE_PERSIST!3
+collection: libpmem
 header: NVM Library
 date: pmem API version 1.0
 ...
@@ -33,8 +34,7 @@ date: pmem API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem_memmove_persist.3 -- the functions in this section provide
-										optimized copying to persistent memory
+[comment]: <> (pmem_memmove_persist.3 -- the functions in this section provide optimized copying to persistent memory
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
