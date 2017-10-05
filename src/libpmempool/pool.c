@@ -920,21 +920,21 @@ pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp)
 	switch (type) {
 	case POOL_TYPE_LOG:
 		hdrp->major = LOG_FORMAT_MAJOR;
-		hdrp->compat_features = LOG_FORMAT_COMPAT;
-		hdrp->incompat_features = LOG_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT;
+		hdrp->compat_features = LOG_FORMAT_COMPAT_DEFAULT;
+		hdrp->incompat_features = LOG_FORMAT_INCOMPAT_DEFAULT;
+		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT_DEFAULT;
 		break;
 	case POOL_TYPE_BLK:
 		hdrp->major = BLK_FORMAT_MAJOR;
-		hdrp->compat_features = BLK_FORMAT_COMPAT;
-		hdrp->incompat_features = BLK_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT;
+		hdrp->compat_features = BLK_FORMAT_COMPAT_DEFAULT;
+		hdrp->incompat_features = BLK_FORMAT_INCOMPAT_DEFAULT;
+		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT_DEFAULT;
 		break;
 	case POOL_TYPE_OBJ:
 		hdrp->major = OBJ_FORMAT_MAJOR;
-		hdrp->compat_features = OBJ_FORMAT_COMPAT;
-		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT;
+		hdrp->compat_features = OBJ_FORMAT_COMPAT_DEFAULT;
+		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT_DEFAULT;
+		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT_DEFAULT;
 		break;
 	default:
 		break;

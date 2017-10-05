@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -30,41 +29,48 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+#
+# pmempool_info\TEST20.PS1 -- test for info command
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmempool_info/TEST20"
+$Env:UNITTEST_NUM = "20"
 
-#
-# src/test/log_basic/TEST9 -- unit test for:
-# - pmemlog_append
-# and:
-# - pmemlog_nbyte
-# - pmemlog_tell
-# - pmemlog_walk
-# - pmemlog_rewind
-# in case of non-empty pool and
-# - pmemlog_check
-# - pmemlog_open
-# - pmemlog_close
-#
-# Same as TEST1, but run on a pool set that spans two Device DAX devices
-# with 2M alignment. Expected failure, as 2M alignment is not supported
-# if NOHDRS option is not specified.
-#
-export UNITTEST_NAME=log_basic/TEST9
-export UNITTEST_NUM=9
 
-# standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any
-require_dax_devices 2
-require_dax_device_alignments 2097152 2097152 # 2MiB
 
 setup
 
-dax_device_zero
+$LOG="out$Env:UNITTEST_NUM.log"
+remove_files $LOG
 
-create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
+$POOLSET="$DIR\pool.set"
+$POOL1="$DIR\pool.part1"
+$POOL2="$DIR\pool.part2"
+$POOLS="$POOL1 $POOL2"
+$REPL1="$DIR\pool.rep.part1"
+$REPL2="$DIR\pool.rep.part2"
+$REPS="$REPL1 $REPL2"
 
-expect_abnormal_exit ./log_basic$EXESUFFIX $DIR/testset a n t w r t w
+remove_files $POOLSET
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
+	R 32M:${REPL1}:z 32M:${REPL2}:z `
+	O NOHDRS
+
+check_file $POOLSET
+
+remove_files $POOLS $REPS
+expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET
+expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
+expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG
+
+check
 
 pass

@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -30,41 +29,68 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+#
+# pmempool_create/TEST8w.PS1 -- test for pmempool create command with poolset
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "pmempool_create/TEST8w"
+$Env:UNITTEST_NUM = "8w"
 
-#
-# src/test/log_basic/TEST9 -- unit test for:
-# - pmemlog_append
-# and:
-# - pmemlog_nbyte
-# - pmemlog_tell
-# - pmemlog_walk
-# - pmemlog_rewind
-# in case of non-empty pool and
-# - pmemlog_check
-# - pmemlog_open
-# - pmemlog_close
-#
-# Same as TEST1, but run on a pool set that spans two Device DAX devices
-# with 2M alignment. Expected failure, as 2M alignment is not supported
-# if NOHDRS option is not specified.
-#
-export UNITTEST_NAME=log_basic/TEST9
-export UNITTEST_NUM=9
-
-# standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any
-require_dax_devices 2
-require_dax_device_alignments 2097152 2097152 # 2MiB
 
 setup
 
-dax_device_zero
+$POOLSET="$DIR\pool.set"
+$POOL1="$DIR\pool.part1"
+$POOL2="$DIR\pool.part2"
+$POOL3="$DIR\pool.part3"
+$POOLS="$POOL1 $POOL2 $POOL3"
+$POOLREP="$DIR\rep.set"
+$REPL1="$DIR\pool.rep.part1"
+$REPL2="$DIR\pool.rep.part2"
+$REPL3="$DIR\pool.rep.part3"
+$REPS="$REPL1 $REPL2 $REPL3"
 
-create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
+remove_files $POOLSET
+create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z 32M:${POOL3}:z
+check_file $POOLSET
 
-expect_abnormal_exit ./log_basic$EXESUFFIX $DIR/testset a n t w r t w
+remove_files $POOLREP
+create_poolset $POOLREP 32M:${POOL1}:x 32M:${POOL2}:x 32M:${POOL3}:x `
+                        R 32M:${REPL1}:z 32M:${REPL2}:z 32M:${REPL3}:z
+check_file $POOLREP
+
+#PMEMBLK
+remove_files $POOLS
+expect_normal_exit $PMEMPOOL create blk 512 $POOLSET
+check_files $POOL1 $POOL2 $POOL3
+check_signatures PMEMBLK $POOL1
+
+# PMEMLOG
+remove_files $POOLS
+expect_normal_exit $PMEMPOOL create log $POOLSET
+check_files $POOL1 $POOL2 $POOL3
+check_signatures PMEMLOG $POOL1
+
+# PMEMOBJ
+remove_files $POOLS
+expect_normal_exit $PMEMPOOL create --layout=pmempool$Env:SUFFIX obj $POOLSET
+check_files $POOL1 $POOL2 $POOL3
+check_signatures PMEMOBJ $POOL1
+
+# PMEMOBJ with replica
+remove_files $POOLS
+expect_normal_exit $PMEMPOOL create --layout=pmempool$Env:SUFFIX obj $POOLREP
+check_files $POOL1 $POOL2 $POOL3 $REPL1 $REPL2 $REPL3
+check_signatures PMEMOBJ $POOL1 $REPL1
+
+remove_files $POOLS $REPS $POOLSET $POOLREP
 
 pass

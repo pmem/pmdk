@@ -55,9 +55,14 @@
 /* attributes of the obj memory pool format for the pool header */
 #define OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
 #define OBJ_FORMAT_MAJOR 4
-#define OBJ_FORMAT_COMPAT 0x0000
-#define OBJ_FORMAT_INCOMPAT 0x0000
-#define OBJ_FORMAT_RO_COMPAT 0x0000
+
+#define OBJ_FORMAT_COMPAT_DEFAULT 0x0000
+#define OBJ_FORMAT_INCOMPAT_DEFAULT 0x000
+#define OBJ_FORMAT_RO_COMPAT_DEFAULT 0x0000
+
+#define OBJ_FORMAT_COMPAT_CHECK 0x0000
+#define OBJ_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define OBJ_FORMAT_RO_COMPAT_CHECK 0x0000
 
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define OBJ_DSC_P_SIZE		2048
