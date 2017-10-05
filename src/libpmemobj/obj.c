@@ -1209,8 +1209,8 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_pool_create(&set, path,
 			poolsize, PMEMOBJ_MIN_POOL, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
-			OBJ_FORMAT_RO_COMPAT, &runtime_nlanes,
+			OBJ_FORMAT_COMPAT_DEFAULT, OBJ_FORMAT_INCOMPAT_DEFAULT,
+			OBJ_FORMAT_RO_COMPAT_DEFAULT, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
@@ -1450,8 +1450,8 @@ obj_pool_open(struct pool_set **set, const char *path, int cow,
 
 	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT, OBJ_FORMAT_INCOMPAT,
-			OBJ_FORMAT_RO_COMPAT, nlanes) != 0) {
+			OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
+			OBJ_FORMAT_RO_COMPAT_CHECK, nlanes) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}

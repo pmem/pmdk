@@ -22,7 +22,7 @@ Data                     : $(*)
 Machine                  : $(*)
 Checksum                 : $(nW) [OK]
 Part file:
-path                     : $(nW)pool.part1
+path                     : $(nW)pool.part2
 type                     : regular file
 size                     : $(nW)
 

@@ -43,6 +43,7 @@
 #include <time.h>
 
 #include "util.h"
+#include "os.h"
 #include "valgrind_internal.h"
 
 /* library-wide page size */
