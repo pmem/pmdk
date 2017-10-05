@@ -46,7 +46,7 @@
 #include "libpmemobj.h"
 
 #define LAYOUT_NAME "benchmark"
-#define FACTOR 4
+#define FACTOR 1.2f
 #define ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
@@ -288,8 +288,8 @@ alloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker, size_t idx)
 {
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
-	obj_worker->oids[idx].oid =
-		pmemobj_tx_alloc(obj_bench->sizes[idx], type_num);
+	obj_worker->oids[idx].oid = pmemobj_tx_xalloc(
+		obj_bench->sizes[idx], type_num, POBJ_XALLOC_NO_FLUSH);
 	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
 		perror("pmemobj_tx_alloc");
 		return -1;
@@ -980,9 +980,8 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t psize = args->n_ops_per_thread * (dsize + ALLOC_OVERHEAD) *
 		args->n_threads;
 
-	if (psize < PMEMOBJ_MIN_POOL)
-		psize = PMEMOBJ_MIN_POOL;
-	psize *= FACTOR;
+	psize += PMEMOBJ_MIN_POOL;
+	psize = (size_t)(psize * FACTOR);
 
 	/*
 	 * When adding all allocated objects to undo log there is necessary
@@ -990,7 +989,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	 */
 	if (obj_bench.op_mode == OP_MODE_ALL_OBJ ||
 	    obj_bench.op_mode == OP_MODE_ALL_OBJ_NESTED)
-		psize += psize * FACTOR;
+		psize *= 2;
 
 	obj_bench.op_mode = parse_op[obj_bench.obj_args->parse_mode](
 		obj_bench.obj_args->operation);
