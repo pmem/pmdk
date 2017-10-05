@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 
 	/* wait for all the threads to complete */
 	for (unsigned i = 0; i < Nthread; i++)
-		PTHREAD_JOIN(threads[i], NULL);
+		PTHREAD_JOIN(&threads[i], NULL);
 
 	FREE(threads);
 	pmemblk_close(Handle);

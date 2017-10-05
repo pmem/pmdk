@@ -149,7 +149,7 @@ main(int argc, char *argv[])
 	os_cond_signal(&cond);
 	os_mutex_unlock(&lock);
 
-	PTHREAD_JOIN(t, NULL);
+	PTHREAD_JOIN(&t, NULL);
 
 	FREE(path);
 	FREE(tmpoids);

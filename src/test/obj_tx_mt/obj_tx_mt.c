@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 	}
 
 	while (i > 0)
-		PTHREAD_JOIN(threads[--i], NULL);
+		PTHREAD_JOIN(&threads[--i], NULL);
 
 	pmemobj_close(pop);
 

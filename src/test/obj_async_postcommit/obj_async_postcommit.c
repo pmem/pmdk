@@ -108,14 +108,14 @@ run_test(PMEMobjpool *pop, int nworkers_pc, int nworkers, int qdepth)
 	}
 
 	for (int i = 0; i < nworkers; ++i) {
-		PTHREAD_JOIN(th[i], NULL);
+		PTHREAD_JOIN(&th[i], NULL);
 		FREE(args[i].oids);
 	}
 
 	ret = pmemobj_ctl_get(pop, "tx.post_commit.stop", pop);
 	UT_ASSERTeq(ret, 0);
 	for (int i = 0; i < nworkers_pc; ++i)
-		PTHREAD_JOIN(th_pc[i], NULL);
+		PTHREAD_JOIN(&th_pc[i], NULL);
 
 	FREE(args);
 	FREE(th);

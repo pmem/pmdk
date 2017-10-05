@@ -147,7 +147,7 @@ mutex_test(nvobj::pool<struct root> &pop, Worker function)
 		PTHREAD_CREATE(&threads[i], nullptr, function, &proot);
 
 	for (int i = 0; i < num_threads; ++i)
-		PTHREAD_JOIN(threads[i], nullptr);
+		PTHREAD_JOIN(&threads[i], nullptr);
 }
 }
 

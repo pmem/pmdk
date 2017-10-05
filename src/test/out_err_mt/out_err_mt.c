@@ -132,7 +132,7 @@ run_mt_test(void *(*worker)(void *))
 		PTHREAD_CREATE(&thread[i], NULL, worker, &ver[i]);
 	}
 	for (int i = 0; i < NUM_THREADS; ++i) {
-		PTHREAD_JOIN(thread[i], NULL);
+		PTHREAD_JOIN(&thread[i], NULL);
 	}
 }
 

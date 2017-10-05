@@ -37,6 +37,10 @@
 #include "os_thread.h"
 #include "util.h"
 
+typedef struct {
+	pthread_t thread;
+} internal_os_thread_t;
+
 /*
  * os_once -- pthread_once abstraction layer
  */
@@ -336,8 +340,10 @@ int
 os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 		void *(*start_routine)(void *), void *arg)
 {
-	COMPILE_ERROR_ON(sizeof(os_thread_t) < sizeof(pthread_t));
-	return pthread_create((pthread_t *)thread, (pthread_attr_t *)attr,
+	COMPILE_ERROR_ON(sizeof(os_thread_t) < sizeof(internal_os_thread_t));
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)thread;
+
+	return pthread_create(&thread_info->thread, (pthread_attr_t *)attr,
 		start_routine, arg);
 }
 
@@ -345,9 +351,11 @@ os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
  * os_thread_join -- pthread_join abstraction layer
  */
 int
-os_thread_join(os_thread_t thread, void **result)
+os_thread_join(os_thread_t *thread, void **result)
 {
-	return pthread_join((pthread_t)thread, result);
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)thread;
+
+	return pthread_join(thread_info->thread, result);
 }
 
 /*
@@ -356,7 +364,9 @@ os_thread_join(os_thread_t thread, void **result)
 void
 os_thread_self(os_thread_t *thread)
 {
-	*thread = (os_thread_t)pthread_self();
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)thread;
+
+	thread_info->thread = pthread_self();
 }
 
 /*
@@ -373,11 +383,13 @@ os_thread_atfork(void (*prepare)(void), void (*parent)(void),
  * os_thread_setaffinity_np -- pthread_atfork abstraction layer
  */
 int
-os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
+os_thread_setaffinity_np(os_thread_t *thread, size_t set_size,
 			const os_cpu_set_t *set)
 {
 	COMPILE_ERROR_ON(sizeof(os_cpu_set_t) < sizeof(cpu_set_t));
-	return pthread_setaffinity_np((pthread_t)thread, set_size,
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)thread;
+
+	return pthread_setaffinity_np(thread_info->thread, set_size,
 		(cpu_set_t *)set);
 }
 

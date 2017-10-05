@@ -330,7 +330,7 @@ rpmemd_fip_stop_thread(struct rpmemd *rpmemd)
 {
 	RPMEMD_ASSERT(rpmemd->fip_running);
 	void *tret;
-	errno = os_thread_join(rpmemd->fip_thread, &tret);
+	errno = os_thread_join(&rpmemd->fip_thread, &tret);
 	if (errno)
 		RPMEMD_LOG(ERR, "!waiting for in-band thread");
 

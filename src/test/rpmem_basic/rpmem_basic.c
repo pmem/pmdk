@@ -388,7 +388,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 	}
 
 	for (int i = 0; i < nthreads; i++)
-		PTHREAD_JOIN(threads[i], NULL);
+		PTHREAD_JOIN(&threads[i], NULL);
 
 	FREE(args);
 	FREE(threads);

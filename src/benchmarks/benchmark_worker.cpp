@@ -144,7 +144,7 @@ err_free_worker:
 void
 benchmark_worker_free(struct benchmark_worker *w)
 {
-	os_thread_join(w->thread, NULL);
+	os_thread_join(&w->thread, NULL);
 	os_cond_destroy(&w->cond);
 	os_mutex_destroy(&w->lock);
 	free(w);

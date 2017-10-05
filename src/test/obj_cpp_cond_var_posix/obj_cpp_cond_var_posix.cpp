@@ -450,7 +450,7 @@ mutex_test(nvobj::pool<struct root> &pop, bool notify, bool notify_all,
 	}
 
 	for (int i = 0; i < total_threads; ++i)
-		PTHREAD_JOIN(threads[i], nullptr);
+		PTHREAD_JOIN(&threads[i], nullptr);
 }
 }
 

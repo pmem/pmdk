@@ -161,7 +161,7 @@ main(int argc, char *argv[])
 	os_cond_signal(&sync_cond2);
 	os_mutex_unlock(&lock2);
 
-	PTHREAD_JOIN(t, NULL);
+	PTHREAD_JOIN(&t, NULL);
 	os_cond_destroy(&sync_cond1);
 	os_cond_destroy(&sync_cond2);
 	os_mutex_destroy(&lock1);

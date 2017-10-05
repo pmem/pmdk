@@ -623,7 +623,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 			cpu %= ncpus;
 			os_cpu_zero(&cpuset);
 			os_cpu_set(cpu, &cpuset);
-			errno = os_thread_setaffinity_np(workers[i]->thread,
+			errno = os_thread_setaffinity_np(&workers[i]->thread,
 							 sizeof(os_cpu_set_t),
 							 &cpuset);
 			if (errno) {
@@ -1182,7 +1182,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 		os_thread_t self;
 		os_thread_self(&self);
 		os_cpu_set(args->main_affinity, &cpuset);
-		errno = os_thread_setaffinity_np(self, sizeof(os_cpu_set_t),
+		errno = os_thread_setaffinity_np(&self, sizeof(os_cpu_set_t),
 						 &cpuset);
 		if (errno) {
 			perror("os_thread_setaffinity_np");
@@ -1637,11 +1637,11 @@ out:
 
 #ifdef _MSC_VER
 extern "C" {
-	/*
-	 * Since libpmemobj is linked statically,
-	 * we need to invoke its ctor/dtor.
-	 */
-	MSVC_CONSTR(libpmemobj_init)
-	MSVC_DESTR(libpmemobj_fini)
+/*
+ * Since libpmemobj is linked statically,
+ * we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
 }
 #endif

@@ -75,12 +75,12 @@ main(int argc, char *argv[])
 
 	os_thread_t t;
 	os_thread_create(&t, NULL, oom_worker, NULL);
-	os_thread_join(t, NULL);
+	os_thread_join(&t, NULL);
 
 	int first_thread_allocated = allocated;
 
 	os_thread_create(&t, NULL, oom_worker, NULL);
-	os_thread_join(t, NULL);
+	os_thread_join(&t, NULL);
 
 	UT_ASSERTeq(first_thread_allocated, allocated);
 

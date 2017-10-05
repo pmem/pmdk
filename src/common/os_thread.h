@@ -60,7 +60,11 @@ typedef union {
 	char padding[48]; /* linux: 48 windows: 12 */
 } os_cond_t;
 
-typedef uintptr_t os_thread_t;
+typedef union {
+	long long align;
+	char padding[32]; /* linux: 8 windows: 32 */
+} os_thread_t;
+
 typedef long long os_once_t; /* long on linux */
 typedef unsigned os_tls_key_t;
 
@@ -142,13 +146,13 @@ int os_cond_wait(os_cond_t *__restrict cond,
 int os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 	void *(*start_routine)(void *), void *arg);
 
-int os_thread_join(os_thread_t thread, void **result);
+int os_thread_join(os_thread_t *thread, void **result);
 
 void os_thread_self(os_thread_t *thread);
 
 /* thread affinity */
 
-int os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
+int os_thread_setaffinity_np(os_thread_t *thread, size_t set_size,
 	const os_cpu_set_t *set);
 
 int os_thread_atfork(void (*prepare)(void), void (*parent)(void),

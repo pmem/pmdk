@@ -56,7 +56,7 @@ ut_thread_create(const char *file, int line, const char *func,
  */
 int
 ut_thread_join(const char *file, int line, const char *func,
-    os_thread_t thread, void **value_ptr)
+    os_thread_t *thread, void **value_ptr)
 {
 	if ((errno = os_thread_join(thread, value_ptr)) != 0)
 		ut_fatal(file, line, func, "!os_thread_join");

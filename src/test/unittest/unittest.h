@@ -646,7 +646,7 @@ int ut_thread_create(const char *file, int line, const char *func,
     const os_thread_attr_t *__restrict attr,
     void *(*start_routine)(void *), void *__restrict arg);
 int ut_thread_join(const char *file, int line, const char *func,
-    os_thread_t thread, void **value_ptr);
+    os_thread_t *thread, void **value_ptr);
 
 /* a os_thread_create() that can't return an error */
 #define PTHREAD_CREATE(thread, attr, start_routine, arg)\
