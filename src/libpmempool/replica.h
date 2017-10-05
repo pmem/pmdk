@@ -67,6 +67,7 @@
  */
 struct replica_health_status {
 	unsigned nparts;
+	unsigned nhdrs;
 	/* a flag for the replica */
 	unsigned flags;
 	/* effective size of a pool, valid only for healthy replica */

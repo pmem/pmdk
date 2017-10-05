@@ -53,6 +53,8 @@ extern "C" {
 
 #include <sys/param.h>
 
+extern int Nohdrs;
+
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
