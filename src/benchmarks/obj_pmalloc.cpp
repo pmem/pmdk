@@ -59,7 +59,7 @@ extern "C" {
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.
  */
-#define FACTOR 8
+#define FACTOR 1.2f
 
 /* The minimum allocation size that pmalloc can perform */
 #define ALLOC_MIN_SIZE 64
@@ -134,7 +134,8 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		alloc_size = ALLOC_MIN_SIZE;
 
 	/* For data objects */
-	size_t poolsize = n_ops_total * (alloc_size + OOB_HEADER_SIZE)
+	size_t poolsize = PMEMOBJ_MIN_POOL +
+		(n_ops_total * (alloc_size + OOB_HEADER_SIZE))
 		/* for offsets */
 		+ n_ops_total * sizeof(uint64_t);
 
