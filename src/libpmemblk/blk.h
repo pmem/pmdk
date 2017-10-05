@@ -46,9 +46,14 @@
 /* attributes of the blk memory pool format for the pool header */
 #define BLK_HDR_SIG "PMEMBLK"	/* must be 8 bytes including '\0' */
 #define BLK_FORMAT_MAJOR 1
-#define BLK_FORMAT_COMPAT 0x0000
-#define BLK_FORMAT_INCOMPAT 0x0000
-#define BLK_FORMAT_RO_COMPAT 0x0000
+
+#define BLK_FORMAT_COMPAT_DEFAULT 0x0000
+#define BLK_FORMAT_INCOMPAT_DEFAULT 0x0000
+#define BLK_FORMAT_RO_COMPAT_DEFAULT 0x0000
+
+#define BLK_FORMAT_COMPAT_CHECK 0x0000
+#define BLK_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define BLK_FORMAT_RO_COMPAT_CHECK 0x0000
 
 struct pmemblk {
 	struct pool_hdr hdr;	/* memory pool header */

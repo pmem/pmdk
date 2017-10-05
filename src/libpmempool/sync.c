@@ -139,7 +139,7 @@ fill_struct_part_uuids(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -175,7 +175,7 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			flags);
 	struct pool_replica *rep = REP(set, repn);
 	struct pool_hdr *hdrp;
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip unbroken parts */
 		if (!replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -282,7 +282,7 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 		if (!replica_is_replica_broken(r, set_hs))
 			continue;
 
-		for (unsigned p = 0; p < set_hs->replica[r]->nparts; p++) {
+		for (unsigned p = 0; p < set_hs->replica[r]->nhdrs; p++) {
 			/* skip unbroken parts */
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
@@ -450,7 +450,7 @@ update_parts_linkage(struct pool_set *set, unsigned repn,
 {
 	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
 		struct pool_hdr *prev_hdrp = HDRP(rep, p);
 		struct pool_hdr *next_hdrp = HDRN(rep, p);
@@ -501,7 +501,7 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	ASSERT(next_r->nparts > 0);
 
 	/* set uuids in the current replica */
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
 		memcpy(hdrp->prev_repl_uuid, PART(prev_r, 0).uuid,
 				POOL_HDR_UUID_LEN);
@@ -514,7 +514,7 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	}
 
 	/* set uuids in the previous replica */
-	for (unsigned p = 0; p < prev_r->nparts; ++p) {
+	for (unsigned p = 0; p < prev_r->nhdrs; ++p) {
 		struct pool_hdr *prev_hdrp = HDR(prev_r, p);
 		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0).uuid,
 				POOL_HDR_UUID_LEN);
@@ -527,7 +527,7 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	}
 
 	/* set uuids in the next replica */
-	for (unsigned p = 0; p < next_r->nparts; ++p) {
+	for (unsigned p = 0; p < next_r->nhdrs; ++p) {
 		struct pool_hdr *next_hdrp = HDR(next_r, p);
 
 		memcpy(next_hdrp->prev_repl_uuid, PART(rep, 0).uuid,
@@ -552,7 +552,7 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 {
 	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
 		memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);

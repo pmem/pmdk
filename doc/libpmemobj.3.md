@@ -632,6 +632,10 @@ as **PMEMOBJ_MIN_PART**. The net pool size of the pool set is equal to:
 ```
 net_pool_size = sum_over_all_parts(page_aligned_part_size - 4KiB) + 4KiB
 ```
+or, in case when the pool was created with *OPTION NOHDRS*:
+```
+net_pool_size = sum_over_all_parts(page_aligned_part_size) - 4KiB
+```
 where
 ```
 page_aligned_part_size = part_size & ~(page_size - 1)
