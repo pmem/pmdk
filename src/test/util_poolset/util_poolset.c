@@ -80,8 +80,9 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 		struct pool_replica *rep = set->replica[r];
 		size_t repsize = 0;
 
-		UT_OUT("  replica[%d]: nparts %d repsize %zu is_pmem %d",
-			r, rep->nparts, rep->repsize, rep->is_pmem);
+		UT_OUT("  replica[%d]: nparts %d nhdrs %d repsize %zu "
+				"is_pmem %d",
+			r, rep->nparts, rep->nhdrs, rep->repsize, rep->is_pmem);
 
 		for (unsigned i = 0; i < rep->nparts; i++) {
 			struct pool_set_part *part = &rep->part[i];
@@ -92,10 +93,10 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 			repsize += partsize;
 			if (i > 0)
 				UT_ASSERTeq(part->size,
-					partsize - Ut_mmap_align);
+					partsize - Ut_mmap_align); /* XXX */
 		}
 
-		repsize -= (rep->nparts - 1) * Ut_mmap_align;
+		repsize -= (rep->nhdrs - 1) * Ut_mmap_align;
 		UT_ASSERTeq(rep->repsize, repsize);
 		UT_ASSERTeq(rep->part[0].size, repsize);
 

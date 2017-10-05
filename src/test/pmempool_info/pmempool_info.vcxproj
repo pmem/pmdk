@@ -46,6 +46,7 @@
     <None Include="TEST16w.PS1" />
     <None Include="TEST17.PS1" />
     <None Include="TEST2.PS1" />
+    <None Include="TEST20.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />

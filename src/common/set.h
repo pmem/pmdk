@@ -115,6 +115,7 @@ struct remote_replica {
 
 struct pool_replica {
 	unsigned nparts;
+	unsigned nhdrs;		/* should be either 1 or nparts */
 	size_t repsize;		/* total size of all the parts (mappings) */
 	int is_pmem;		/* true if all the parts are in PMEM */
 	struct remote_replica *remote;	/* not NULL if the replica */
@@ -156,12 +157,19 @@ struct pool_attr {
 /* get index of the (r - 1)th replica */
 #define REPPidx(set, r) (((set)->nreplicas + (r) - 1) % (set)->nreplicas)
 
-/* get intex of the (r)th part */
+/* get index of the (r)th part */
 #define PARTidx(rep, p) (((rep)->nparts + (p)) % (rep)->nparts)
-/* get intex of the (r + 1)th part */
+/* get index of the (r + 1)th part */
 #define PARTNidx(rep, p) (((rep)->nparts + (p) + 1) % (rep)->nparts)
-/* get intex of the (r - 1)th part */
+/* get index of the (r - 1)th part */
 #define PARTPidx(rep, p) (((rep)->nparts + (p) - 1) % (rep)->nparts)
+
+/* get index of the (r)th part */
+#define HDRidx(rep, p) (((rep)->nhdrs + (p)) % (rep)->nhdrs)
+/* get index of the (r + 1)th part */
+#define HDRNidx(rep, p) (((rep)->nhdrs + (p) + 1) % (rep)->nhdrs)
+/* get index of the (r - 1)th part */
+#define HDRPidx(rep, p) (((rep)->nhdrs + (p) - 1) % (rep)->nhdrs)
 
 /* get (r)th replica */
 #define REP(set, r)\
@@ -181,11 +189,11 @@ struct pool_attr {
 	((rep)->part[PARTPidx(rep, p)])
 
 #define HDR(rep, p)\
-	((struct pool_hdr *)(PART(rep, p).hdr))
+	((struct pool_hdr *)(((rep)->part[HDRidx(rep, p)]).hdr))
 #define HDRN(rep, p)\
-	((struct pool_hdr *)(PARTN(rep, p).hdr))
+	((struct pool_hdr *)(((rep)->part[HDRNidx(rep, p)]).hdr))
 #define HDRP(rep, p)\
-	((struct pool_hdr *)(PARTP(rep, p).hdr))
+	((struct pool_hdr *)(((rep)->part[HDRPidx(rep, p)]).hdr))
 
 extern int Prefault_at_open;
 extern int Prefault_at_create;

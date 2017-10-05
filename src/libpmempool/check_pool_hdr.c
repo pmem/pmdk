@@ -422,7 +422,7 @@ pool_hdr_poolset_uuid_find(PMEMpoolcheck *ppc, location *loc)
 	uuid_t *common_puuid = loc->valid_puuid;
 	for (unsigned r = 0; r < nreplicas; r++) {
 		struct pool_replica *rep = REP(poolset, r);
-		for (unsigned p = 0; p < rep->nparts; p++) {
+		for (unsigned p = 0; p < rep->nhdrs; p++) {
 			struct pool_hdr *hdr = HDR(rep, p);
 
 			/*
@@ -945,7 +945,7 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 
 	if (!loc->valid_part_done || loc->valid_part_replica != loc->replica) {
 		loc->valid_part_hdrp = NULL;
-		for (unsigned p = 0; p < rep->nparts; ++p) {
+		for (unsigned p = 0; p < rep->nhdrs; ++p) {
 			if (pool_hdr_valid(HDR(rep, p))) {
 				loc->valid_part_hdrp = HDR(rep, p);
 				break;
@@ -969,7 +969,7 @@ check_pool_hdr(PMEMpoolcheck *ppc)
 
 	for (; loc->replica < nreplicas; loc->replica++) {
 		struct pool_replica *rep = poolset->replica[loc->replica];
-		for (; loc->part < rep->nparts; loc->part++) {
+		for (; loc->part < rep->nhdrs; loc->part++) {
 			init_location_data(ppc, loc);
 
 			/* do all checks */
