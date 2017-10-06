@@ -623,7 +623,7 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	}
 
 	for (unsigned i = 0; i < nlanes; i++)
-		PTHREAD_JOIN(persist_thread[i], NULL);
+		PTHREAD_JOIN(&persist_thread[i], NULL);
 
 	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);

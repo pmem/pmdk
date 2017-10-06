@@ -263,7 +263,7 @@ rpmem_common_fini(RPMEMpool *rpp, int join)
 	rpmem_obc_disconnect(rpp->obc);
 
 	if (join) {
-		int ret = os_thread_join(rpp->monitor, NULL);
+		int ret = os_thread_join(&rpp->monitor, NULL);
 		if (ret) {
 			errno = ret;
 			ERR("joining monitor thread failed");

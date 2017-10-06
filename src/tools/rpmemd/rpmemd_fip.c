@@ -916,7 +916,7 @@ rpmemd_fip_process_stop_gpspm(struct rpmemd_fip *fip)
 			lret = ret;
 		}
 		void *tret;
-		errno = os_thread_join(worker->thread, &tret);
+		errno = os_thread_join(&worker->thread, &tret);
 		if (errno) {
 			RPMEMD_LOG(ERR, "!joining cq thread");
 			lret = -1;

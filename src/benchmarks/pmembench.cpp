@@ -45,6 +45,7 @@
 #include <err.h>
 #include <getopt.h>
 #include <linux/limits.h>
+#include <sched.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -56,6 +57,7 @@
 #include "file.h"
 #include "mmap.h"
 #include "os.h"
+#include "os_thread.h"
 #include "queue.h"
 #include "scenario.hpp"
 #include "set.h"
@@ -172,7 +174,7 @@ static struct version_s {
 static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[11];
+static struct benchmark_clo pmembench_clos[12];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
@@ -309,18 +311,31 @@ pmembench_costructor(void)
 	pmembench_clos[9].def = "";
 	pmembench_clos[9].ignore_in_res = true;
 
-	pmembench_clos[10].opt_short = 'e';
-	pmembench_clos[10].opt_long = "min-exe-time";
-	pmembench_clos[10].type = CLO_TYPE_UINT;
-	pmembench_clos[10].descr = "Minimal execution time in seconds";
+	pmembench_clos[10].opt_long = "main-affinity";
+	pmembench_clos[10].descr = "Set affinity for main thread";
+	pmembench_clos[10].type = CLO_TYPE_INT;
 	pmembench_clos[10].off =
+		clo_field_offset(struct benchmark_args, main_affinity);
+	pmembench_clos[10].def = "-1";
+	pmembench_clos[10].ignore_in_res = false;
+	pmembench_clos[10].type_int.size =
+		clo_field_size(struct benchmark_args, main_affinity);
+	pmembench_clos[10].type_int.base = CLO_INT_BASE_DEC;
+	pmembench_clos[10].type_int.min = (-1);
+	pmembench_clos[10].type_int.max = LONG_MAX;
+
+	pmembench_clos[11].opt_short = 'e';
+	pmembench_clos[11].opt_long = "min-exe-time";
+	pmembench_clos[11].type = CLO_TYPE_UINT;
+	pmembench_clos[11].descr = "Minimal execution time in seconds";
+	pmembench_clos[11].off =
 		clo_field_offset(struct benchmark_args, min_exe_time);
-	pmembench_clos[10].def = "0";
-	pmembench_clos[10].type_uint.size =
+	pmembench_clos[11].def = "0";
+	pmembench_clos[11].type_uint.size =
 		clo_field_size(struct benchmark_args, min_exe_time);
-	pmembench_clos[10].type_uint.base = CLO_INT_BASE_DEC;
-	pmembench_clos[10].type_uint.min = 0;
-	pmembench_clos[10].type_uint.max = ULONG_MAX;
+	pmembench_clos[11].type_uint.base = CLO_INT_BASE_DEC;
+	pmembench_clos[11].type_uint.min = 0;
+	pmembench_clos[11].type_uint.max = ULONG_MAX;
 }
 
 /*
@@ -608,7 +623,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 			cpu %= ncpus;
 			os_cpu_zero(&cpuset);
 			os_cpu_set(cpu, &cpuset);
-			errno = os_thread_setaffinity_np(workers[i]->thread,
+			errno = os_thread_setaffinity_np(&workers[i]->thread,
 							 sizeof(os_cpu_set_t),
 							 &cpuset);
 			if (errno) {
@@ -1161,6 +1176,21 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 {
 	int ret = 0;
 
+	if (args->main_affinity != -1) {
+		os_cpu_set_t cpuset;
+		os_cpu_zero(&cpuset);
+		os_thread_t self;
+		os_thread_self(&self);
+		os_cpu_set(args->main_affinity, &cpuset);
+		errno = os_thread_setaffinity_np(&self, sizeof(os_cpu_set_t),
+						 &cpuset);
+		if (errno) {
+			perror("os_thread_setaffinity_np");
+			return -1;
+		}
+		sched_yield();
+	}
+
 	if (bench->info->rm_file) {
 		ret = pmembench_remove_file(args->fname);
 		if (ret != 0) {
@@ -1604,3 +1634,14 @@ out:
 	util_mmap_fini();
 	return ret;
 }
+
+#ifdef _MSC_VER
+extern "C" {
+/*
+ * Since libpmemobj is linked statically,
+ * we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+}
+#endif

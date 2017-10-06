@@ -167,7 +167,7 @@ mutex_test(nvobj::pool<root> &pop, Worker writer, Worker reader)
 	}
 
 	for (int i = 0; i < total_threads; ++i)
-		PTHREAD_JOIN(threads[i], nullptr);
+		PTHREAD_JOIN(&threads[i], nullptr);
 }
 }
 

@@ -402,8 +402,8 @@ main(int argc, char *argv[])
 				(void *)(uintptr_t)i);
 		}
 		for (unsigned i = 0; i < num_threads; i++) {
-			PTHREAD_JOIN(write_threads[i], NULL);
-			PTHREAD_JOIN(check_threads[i], NULL);
+			PTHREAD_JOIN(&write_threads[i], NULL);
+			PTHREAD_JOIN(&check_threads[i], NULL);
 		}
 
 		if (test_type == 't') {

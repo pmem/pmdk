@@ -190,7 +190,7 @@ do_lock_mt(TOID(struct locks) lock, unsigned f_num)
 								&threads[i]);
 	}
 	for (int i = 0; i < NUM_THREADS; ++i)
-		PTHREAD_JOIN(threads[i].t, NULL);
+		PTHREAD_JOIN(&threads[i].t, NULL);
 
 	/*
 	 * If all threads passed function properly and used every lock, there

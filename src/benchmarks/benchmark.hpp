@@ -88,6 +88,7 @@ struct benchmark_args {
 	unsigned n_threads;      /* number of working threads */
 	size_t n_ops_per_thread; /* number of operations per thread */
 	bool thread_affinity;    /* set worker threads CPU affinity mask */
+	ssize_t main_affinity;   /* main thread affinity */
 	char *affinity_list;     /* set CPU affinity order */
 	size_t dsize;		 /* data size */
 	unsigned seed;		 /* PRNG seed */

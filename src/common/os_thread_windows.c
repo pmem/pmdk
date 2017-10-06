@@ -66,17 +66,16 @@ typedef struct {
 	HANDLE handle;
 } internal_semaphore_t;
 
-typedef union {
+typedef struct {
 	GROUP_AFFINITY affinity;
 } internal_os_cpu_set_t;
-
 
 typedef struct {
 	HANDLE thread_handle;
 	void *arg;
 	void *(*start_routine)(void *);
 	void *result;
-} internal_os_thread_info, *internal_os_thread_t;
+} internal_os_thread_t;
 
 /* number of useconds between 1970-01-01T00:00:00Z and 1601-01-01T00:00:00Z */
 #define DELTA_WIN2UNIX (11644473600000000ull)
@@ -473,7 +472,7 @@ os_tls_get(os_tls_key_t key)
 static unsigned __stdcall
 os_thread_start_routine_wrapper(void *arg)
 {
-	internal_os_thread_t thread_info = (internal_os_thread_t)arg;
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)arg;
 
 	thread_info->result = thread_info->start_routine(thread_info->arg);
 
@@ -487,12 +486,8 @@ int
 os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 	void *(*start_routine)(void *), void *arg)
 {
-	internal_os_thread_info *thread_info;
-
-	ASSERT(attr == NULL);
-
-	if ((thread_info = malloc(sizeof(internal_os_thread_info))) == NULL)
-		return EAGAIN;
+	COMPILE_ERROR_ON(sizeof(os_thread_t) < sizeof(internal_os_thread_t));
+	internal_os_thread_t *thread_info = (internal_os_thread_t *)thread;
 
 	thread_info->start_routine = start_routine;
 	thread_info->arg = arg;
@@ -510,8 +505,6 @@ os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
 		return EAGAIN;
 	}
 
-	*thread = (os_thread_t)thread_info;
-
 	return 0;
 }
 
@@ -519,18 +512,26 @@ os_thread_create(os_thread_t *thread, const os_thread_attr_t *attr,
  * os_thread_join -- joins a thread
  */
 int
-os_thread_join(os_thread_t thread, void **result)
+os_thread_join(os_thread_t *thread, void **result)
 {
-	internal_os_thread_t internal_thread = (internal_os_thread_t)thread;
+	internal_os_thread_t *internal_thread = (internal_os_thread_t *)thread;
 	WaitForSingleObject(internal_thread->thread_handle, INFINITE);
 	CloseHandle(internal_thread->thread_handle);
 
 	if (result != NULL)
 		*result = internal_thread->result;
 
-	free(internal_thread);
-
 	return 0;
+}
+
+/*
+ * os_thread_self -- returns handle to calling thread
+ */
+void
+os_thread_self(os_thread_t *thread)
+{
+	internal_os_thread_t *internal_thread = (internal_os_thread_t *)thread;
+	internal_thread->thread_handle = GetCurrentThread();
 }
 
 /*
@@ -579,11 +580,11 @@ os_cpu_set(size_t cpu, os_cpu_set_t *set)
  * os_thread_setaffinity_np -- sets affinity of the thread
  */
 int
-os_thread_setaffinity_np(os_thread_t thread, size_t set_size,
+os_thread_setaffinity_np(os_thread_t *thread, size_t set_size,
 	const os_cpu_set_t *set)
 {
 	internal_os_cpu_set_t *internal_set = (internal_os_cpu_set_t *)set;
-	internal_os_thread_t internal_thread = (internal_os_thread_t)thread;
+	internal_os_thread_t *internal_thread = (internal_os_thread_t *)thread;
 
 	int ret = SetThreadGroupAffinity(internal_thread->thread_handle,
 			&internal_set->affinity, NULL);

@@ -199,10 +199,10 @@ many_consumers_many_producers(int nconsumers, int nproducers, int msg_total)
 	}
 
 	for (int i = 0; i < nproducers; ++i)
-		PTHREAD_JOIN(producers[i], NULL);
+		PTHREAD_JOIN(&producers[i], NULL);
 
 	for (int i = 0; i < nconsumers; ++i)
-		PTHREAD_JOIN(consumers[i], NULL);
+		PTHREAD_JOIN(&consumers[i], NULL);
 
 	long long expected_sum = 0;
 	for (int i = 0; i < nproducers; ++i) {
