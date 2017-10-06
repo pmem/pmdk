@@ -657,15 +657,12 @@ Useful applications for administration and diagnosis of persistent memory.
 %prep
 %setup -q -n %{name}-%{version}
 
+
 %build
-# Currently, NVML makefiles do not allow to easily override CFLAGS,
-# so the build flags are passed via EXTRA_CFLAGS.  For debug build
-# selected flags are overriden to disable compiler optimizations.
-EXTRA_CFLAGS_RELEASE="%{optflags}" \
-EXTRA_CFLAGS_DEBUG="%{optflags} -Wp,-U_FORTIFY_SOURCE -O0" \
-EXTRA_CXXFLAGS="%{optflags}" \
-make %{?_smp_mflags} \
-__MAKE_FLAGS__
+# For debug build default flags may be overriden to disable compiler
+# optimizations.
+CFLAGS="%{optflags}" \
+%{make_build} __MAKE_FLAGS__
 
 
 # Override LIB_AR with empty string to skip installation of static libraries
