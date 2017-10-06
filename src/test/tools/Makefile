@@ -48,7 +48,8 @@ DIRS = \
        bttcreate\
        fip\
        ddmap\
-       cmpmap
+       cmpmap\
+       extents
 
 REMOTE_TOOLS = \
 	ctrld\

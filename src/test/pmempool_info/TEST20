@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +30,48 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+#
+# pmempool_info/TEST20 -- test for info commands with badblocks
 #
 
-TOP = ../..
+export UNITTEST_NAME=pmempool_info/TEST20
+export UNITTEST_NUM=20
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+. ../unittest/unittest.sh
 
-TARGETS = pmempool rpmemd plugins
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+require_test_type medium
+require_fs_type any
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
+require_build_type debug nondebug
 
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
+setup
 
-$(TESTCONFIG):
+LOG=out${UNITTEST_NUM}.log
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
+rm -rf $LOG && touch $LOG
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+POOLSET=$DIR/testset1
+fallocate -l 64M $DIR/testfile11
+fallocate -l 64M $DIR/testfile12
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+echo "1 1
+2 2
+3 3
+" > $DIR/testfile11_badblock_config
 
-clobber: clean
+echo "4 4
+5 5
+6 6
+" > $DIR/testfile12_badblock_config
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
+export PMEM_PLUGIN_DIR=../../tools/plugins/plugin_badblocks_test
 
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+create_poolset $POOLSET 64M:$DIR/testfile11:x 64M:$DIR/testfile12:x
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG
+
+check
+
+pass

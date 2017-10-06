@@ -37,10 +37,14 @@
 #include <dirent.h>
 #include <string.h>
 #include <queue.h>
+#include <errno.h>
 #include "util.h"
 #include "out.h"
 #include "plugin.h"
 #include "dlsym.h"
+
+#define PLUGIN_DIR_DEFAULT "/usr/lib/pmem/plugins"
+#define PLUGIN_DIR_ENV_VAR "PMEM_PLUGIN_DIR"
 
 struct plugin {
 	const char *module_name; /* identifier of the upper layer module */
@@ -116,16 +120,30 @@ plugin_init(const char *plugin_dir)
 {
 	LOG(3, "%s", plugin_dir);
 
+	if (plugin_dir == NULL) {
+		char *dir_env = getenv(PLUGIN_DIR_ENV_VAR);
+		if (dir_env != NULL && dir_env[0] != '\0')
+			plugin_dir = dir_env;
+		else
+			plugin_dir = PLUGIN_DIR_DEFAULT;
+	}
+
+	LOG(3, "loading plugins from %s", plugin_dir);
+
 	struct dirent *entry;
 
+	int olderrno = errno;
 	DIR *pdir = opendir(plugin_dir);
-	if (pdir == NULL)
+	if (pdir == NULL) {
+		errno = olderrno;
 		return -1;
+	}
 
 	size_t dirlen = strlen(plugin_dir);
 
 	char *plugin_path = Malloc(dirlen + PATH_MAX + 1);
 	if (plugin_path == NULL) {
+		errno = olderrno;
 		closedir(pdir);
 		return -1;
 	}
@@ -146,6 +164,7 @@ plugin_init(const char *plugin_dir)
 	closedir(pdir);
 	Free(plugin_path);
 
+	errno = olderrno;
 	return 0;
 }
 

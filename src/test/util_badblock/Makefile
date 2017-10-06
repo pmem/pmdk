@@ -1,4 +1,5 @@
-# Copyright 2014-2017, Intel Corporation
+#
+# Copyright 2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +29,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+
 #
+# src/test/util_badblock/Makefile -- build util_badblock test
+#
+#
+TARGET = util_badblock
+OBJS = util_badblock.o
 
-TOP = ../..
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
-
-TARGETS = pmempool rpmemd plugins
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
-
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
-
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(TARGETS) $(TESTCONFIG)
-
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
-
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
-
-clobber: clean
-
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+include ../Makefile.inc
