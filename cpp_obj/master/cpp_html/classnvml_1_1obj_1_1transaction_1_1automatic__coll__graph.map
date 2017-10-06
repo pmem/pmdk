@@ -1,3 +1,4 @@
 <map id="nvml::obj::transaction::automatic" name="nvml::obj::transaction::automatic">
-<area shape="rect" id="node2" href="$classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html" title="Internal class for counting active exceptions. " alt="" coords="5,5,168,61"/>
+<area shape="rect" id="node2" href="$classnvml_1_1obj_1_1transaction_1_1manual.html" title="C++ manual scope transaction class. " alt="" coords="7,5,167,47"/>
+<area shape="rect" id="node3" href="$classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html" title="Internal class for counting active exceptions. " alt="" coords="5,70,168,126"/>
 </map>

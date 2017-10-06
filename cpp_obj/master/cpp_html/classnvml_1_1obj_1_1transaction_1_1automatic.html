@@ -106,7 +106,8 @@ Collaboration diagram for nvml::obj::transaction::automatic:</div>
 <div class="dyncontent">
 <div class="center"><img src="classnvml_1_1obj_1_1transaction_1_1automatic__coll__graph.png" border="0" usemap="#nvml_1_1obj_1_1transaction_1_1automatic_coll__map" alt="Collaboration graph"/></div>
 <map name="nvml_1_1obj_1_1transaction_1_1automatic_coll__map" id="nvml_1_1obj_1_1transaction_1_1automatic_coll__map">
-<area shape="rect" id="node2" href="classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html" title="Internal class for counting active exceptions. " alt="" coords="5,5,168,61"/>
+<area shape="rect" id="node2" href="classnvml_1_1obj_1_1transaction_1_1manual.html" title="C++ manual scope transaction class. " alt="" coords="7,5,167,47"/>
+<area shape="rect" id="node3" href="classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html" title="Internal class for counting active exceptions. " alt="" coords="5,70,168,126"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -122,9 +123,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9a6a721329bc74ad3942a711a3a33508"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html#a9a6a721329bc74ad3942a711a3a33508">automatic</a> (<a class="el" href="classnvml_1_1obj_1_1pool__base.html">obj::pool_base</a> &amp;pop, L &amp;...locks)</td></tr>
 <tr class="memdesc:a9a6a721329bc74ad3942a711a3a33508"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII constructor with pmem resident locks.  <a href="#a9a6a721329bc74ad3942a711a3a33508">More...</a><br /></td></tr>
 <tr class="separator:a9a6a721329bc74ad3942a711a3a33508"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a44756be48ec2103739053e1d7e0e36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html#a5a44756be48ec2103739053e1d7e0e36">~automatic</a> () noexcept</td></tr>
-<tr class="memdesc:a5a44756be48ec2103739053e1d7e0e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor.  <a href="#a5a44756be48ec2103739053e1d7e0e36">More...</a><br /></td></tr>
-<tr class="separator:a5a44756be48ec2103739053e1d7e0e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441b99f7ba63e1403c2055c725d939cb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html#a441b99f7ba63e1403c2055c725d939cb">~automatic</a> () noexcept(false)</td></tr>
+<tr class="memdesc:a441b99f7ba63e1403c2055c725d939cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor.  <a href="#a441b99f7ba63e1403c2055c725d939cb">More...</a><br /></td></tr>
+<tr class="separator:a441b99f7ba63e1403c2055c725d939cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a517098c8755d182b9b58ee1c2f3ecf7d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a517098c8755d182b9b58ee1c2f3ecf7d"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html#a517098c8755d182b9b58ee1c2f3ecf7d">automatic</a> (const <a class="el" href="classnvml_1_1obj_1_1transaction_1_1automatic.html">automatic</a> &amp;<a class="el" href="classnvml_1_1obj_1_1p.html">p</a>)=delete</td></tr>
 <tr class="memdesc:a517098c8755d182b9b58ee1c2f3ecf7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deleted copy constructor. <br /></td></tr>
@@ -200,7 +201,7 @@ template&lt;typename... L&gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="a5a44756be48ec2103739053e1d7e0e36"></a>
+<a class="anchor" id="a441b99f7ba63e1403c2055c725d939cb"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -222,7 +223,13 @@ template&lt;typename... L&gt; </div>
 </div><div class="memdoc">
 
 <p>Destructor. </p>
-<p>End pmemobj transaction. Depending on the context of object destruction, the transaction will automatically be either committed or aborted. </p>
+<p>End pmemobj transaction. Depending on the context of object destruction, the transaction will automatically be either committed or aborted.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classnvml_1_1transaction__error.html" title="Custom transaction error class. ">nvml::transaction_error</a></td><td>if the transaction got aborted without an active exception. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
