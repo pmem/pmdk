@@ -46,6 +46,7 @@ require_fs_type any
 # there's no point in testing statically linked builds
 require_build_type nondebug
 require_no_asan
+require_no_freebsd
 
 # Valgrind does not call vmmalloc's malloc implementation from library
 # loaded with RTLD_DEEPBIND.

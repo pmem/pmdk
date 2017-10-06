@@ -58,9 +58,10 @@ os_open(const char *pathname, int flags, ...)
 	if (flags & O_CREAT) {
 		va_list arg;
 		va_start(arg, flags);
-		mode_t mode = va_arg(arg, mode_t);
+		/* Clang requires int due to auto-promotion */
+		int mode = va_arg(arg, int);
 		va_end(arg);
-		return open(pathname, flags, mode);
+		return open(pathname, flags, (mode_t)mode);
 	} else {
 		return open(pathname, flags);
 	}
