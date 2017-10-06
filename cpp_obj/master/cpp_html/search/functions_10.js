@@ -1,7 +1,7 @@
 var searchData=
 [
   ['_7eallocator',['~allocator',['../classnvml_1_1obj_1_1allocator.html#a50de46a51ab34db131950853bf125470',1,'nvml::obj::allocator']]],
-  ['_7eautomatic',['~automatic',['../classnvml_1_1obj_1_1transaction_1_1automatic.html#a5a44756be48ec2103739053e1d7e0e36',1,'nvml::obj::transaction::automatic']]],
+  ['_7eautomatic',['~automatic',['../classnvml_1_1obj_1_1transaction_1_1automatic.html#a441b99f7ba63e1403c2055c725d939cb',1,'nvml::obj::transaction::automatic']]],
   ['_7econdition_5fvariable',['~condition_variable',['../classnvml_1_1obj_1_1condition__variable.html#a07ccf0fce80793df435fa6098b61c00d',1,'nvml::obj::condition_variable']]],
   ['_7emanual',['~manual',['../classnvml_1_1obj_1_1transaction_1_1manual.html#a37c7d34cefc9be8f0524e670af385b21',1,'nvml::obj::transaction::manual']]],
   ['_7emutex',['~mutex',['../classnvml_1_1obj_1_1mutex.html#ab83746e6d55f0b4a010438b0303c67a3',1,'nvml::obj::mutex']]],

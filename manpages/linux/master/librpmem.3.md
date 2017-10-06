@@ -247,7 +247,7 @@ appropriate format though.
 Remove pool set file after removing the pool described by this pool set.
 
 If the pool has been removed the **rpmem_remove**() returns 0, otherwise
-it returns non-zero value and sets *errno* appropirately.
+it returns non-zero value and sets *errno* appropriately.
 
 # LANES #
 
