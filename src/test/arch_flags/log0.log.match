@@ -6,8 +6,8 @@ $(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind h
 $(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind memcheck
 $(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind drd
 <arch_flags>: <3> [$(nW) util_mmap_init] 
-<arch_flags>: <1> [$(nW) util_get_arch_flags]$(W)open /proc/self/exe: $(*)
-<arch_flags>: <1> [$(nW) util_get_arch_flags]$(W)read /proc/self/exe: $(*)
+<arch_flags>: <1> [$(nW) util_get_arch_flags]$(W)open $(*): $(*)
+<arch_flags>: <1> [$(nW) util_get_arch_flags]$(W)read $(*): $(*)
 <arch_flags>: <1> [$(nW) util_get_arch_flags]$(W)invalid ELF magic
 <arch_flags>: <1> [$(nW) util_check_arch_flags]$(W)invalid ei_class value
 <arch_flags>: <1> [$(nW) util_check_arch_flags]$(W)invalid ei_data value

@@ -237,3 +237,18 @@ err:
 	errno = EINVAL;
 	return -1;
 }
+
+/*
+ * util_getexecname -- return name of current executable
+ */
+char *
+util_getexecname(char *path, size_t pathlen)
+{
+	ssize_t cc;
+	if ((cc = GetModuleFileNameA(NULL, path, (DWORD)pathlen)) == 0)
+		strcpy(path, "unknown");
+	else
+		path[cc] = '\0';
+
+	return path;
+}

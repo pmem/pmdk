@@ -114,3 +114,30 @@ util_aligned_free(void *ptr)
 {
 	free(ptr);
 }
+
+/*
+ * util_getexecname -- return name of current executable
+ */
+char *
+util_getexecname(char *path, size_t pathlen)
+{
+	ssize_t cc;
+
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+	int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+
+	cc = (sysctl(mib, 4, path, &pathlen, NULL, 0) == -1) ?
+		-1 : (ssize_t)pathlen;
+#else
+	cc = readlink("/proc/self/exe", path, pathlen);
+#endif
+	if (cc == -1)
+		strcpy(path, "unknown");
+	else
+		path[cc] = '\0';
+
+	return path;
+}
