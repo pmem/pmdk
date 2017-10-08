@@ -1730,13 +1730,8 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		hdrp->crtime = (uint64_t)stbuf.st_ctime;
 	}
 
-	if (!arch_flags) {
-		if (util_get_arch_flags(&hdrp->arch_flags)) {
-			ERR("Reading architecture flags failed");
-			errno = EINVAL;
-			return -1;
-		}
-	}
+	if (!arch_flags)
+		util_get_arch_flags(&hdrp->arch_flags);
 
 	util_convert2le_hdr(hdrp);
 

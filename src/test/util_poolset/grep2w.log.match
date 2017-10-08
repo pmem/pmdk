@@ -9,9 +9,9 @@ invalid checksum of pool header
 wrong pool type: "ERRORXX"
 pool version 99 (library expects 1)
 invalid reserved values
-invalid e_machine value
-invalid ei_data value
-invalid ei_class value
+invalid machine value
+invalid data value
+invalid machine_class value
 invalid alignment_desc value
 wrong architecture flags
 incompatible feature flags

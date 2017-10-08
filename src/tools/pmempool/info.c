@@ -664,11 +664,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	}
 
 	struct arch_flags arch_flags;
-	if (util_get_arch_flags(&arch_flags)) {
-		outv_err("cannot read architecture flags\n");
-		free(hdr);
-		return -1;
-	}
+	util_get_arch_flags(&arch_flags);
 
 	outv_title(v, "POOL Header");
 	outv_hexdump(pip->args.vhdrdump, hdr, sizeof(*hdr), 0, 1);
@@ -721,11 +717,12 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	}
 
 	outv_field(v, "Class", "%s",
-			out_get_ei_class_str(hdr->arch_flags.ei_class));
+			out_get_arch_machine_class_str(
+				hdr->arch_flags.machine_class));
 	outv_field(v, "Data", "%s",
-			out_get_ei_data_str(hdr->arch_flags.ei_data));
+			out_get_arch_data_str(hdr->arch_flags.data));
 	outv_field(v, "Machine", "%s",
-			out_get_e_machine_str(hdr->arch_flags.e_machine));
+			out_get_arch_machine_str(hdr->arch_flags.machine));
 
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
 				&hdr->checksum));
