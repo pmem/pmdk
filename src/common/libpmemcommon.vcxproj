@@ -19,7 +19,6 @@
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
-    <ClCompile Include="pool_hdr_windows.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="util_windows.c" />
