@@ -24,7 +24,7 @@ Previous replica UUID    : $(*)
 Next replica UUID        : $(*)
 Creation Time            : $(*)
 Alignment Descriptor     : $(*)[OK]
-Class                    : ELF64
+Class                    : 64
 Data                     : $(*)
 Machine                  : $(*)
 Checksum                 : $(nW) [OK]

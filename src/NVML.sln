@@ -482,7 +482,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{9A8482A7-BF0C-423D-8266-189456ED41F6}"
 	ProjectSection(SolutionItems) = preProject
 		windows\include\dirent.h = windows\include\dirent.h
-		windows\include\elf.h = windows\include\elf.h
 		windows\include\endian.h = windows\include\endian.h
 		windows\include\err.h = windows\include\err.h
 		windows\include\features.h = windows\include\features.h
