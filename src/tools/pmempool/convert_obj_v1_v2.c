@@ -47,10 +47,10 @@ static void *poolset;
 
 struct arch_flags {
 	uint64_t alignment_desc;	/* alignment descriptor */
-	uint8_t ei_class;		/* ELF format file class */
-	uint8_t ei_data;		/* ELF format data encoding */
+	uint8_t machine_class;		/* address size -- 64 bit or 32 bit */
+	uint8_t data;			/* data encoding -- LE or BE */
 	uint8_t reserved[4];
-	uint16_t e_machine;		/* required architecture */
+	uint16_t machine;		/* required architecture */
 };
 
 /*

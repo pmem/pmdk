@@ -57,16 +57,6 @@ extern "C" {
 
 #ifndef _WIN32
 
-/* ELF and /proc */
-#ifdef __FreeBSD__
-#include <elf.h>
-#if __ELF_WORD_SIZE == 32
-#define ElfW(type) Elf32_##type
-#else
-#define ElfW(type) Elf64_##type
-#endif
-#endif
-
 /* madvise() */
 #ifdef __FreeBSD__
 #define os_madvise minherit

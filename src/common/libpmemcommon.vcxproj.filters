@@ -29,9 +29,6 @@
     <ClCompile Include="pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pool_hdr_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="set.c">
       <Filter>Source Files</Filter>
     </ClCompile>

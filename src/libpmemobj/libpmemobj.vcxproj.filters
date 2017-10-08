@@ -70,9 +70,6 @@
     <ClCompile Include="..\common\pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\pool_hdr_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>

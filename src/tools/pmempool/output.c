@@ -42,7 +42,6 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <err.h>
-#include <elf.h>
 #include <endian.h>
 #include <inttypes.h>
 #include "common.h"
@@ -759,36 +758,31 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 }
 
 /*
- * out_get_ei_class_str -- get ELF's ei_class value string
+ * out_get_arch_machine_class_str -- get a string representation of the machine
+ * class
  */
 const char *
-out_get_ei_class_str(uint8_t ei_class)
+out_get_arch_machine_class_str(uint8_t machine_class)
 {
 
-	switch (ei_class) {
-	case ELFCLASSNONE:
-		return "none";
-	case ELFCLASS32:
-		return "ELF32";
-	case ELFCLASS64:
-		return "ELF64";
+	switch (machine_class) {
+	case NVML_MACHINE_CLASS_64:
+		return "64";
 	default:
 		return "unknown";
 	}
 }
 
 /*
- * out_get_ei_data_str -- get ELF's ei_data value string
+ * out_get_arch_data_str -- get a string representation of the data endianness
  */
 const char *
-out_get_ei_data_str(uint8_t ei_data)
+out_get_arch_data_str(uint8_t data)
 {
-	switch (ei_data) {
-	case ELFDATANONE:
-		return "none";
-	case ELFDATA2LSB:
+	switch (data) {
+	case NVML_DATA_LE:
 		return "2's complement, little endian";
-	case ELFDATA2MSB:
+	case NVML_DATA_BE:
 		return "2's complement, big endian";
 	default:
 		return "unknown";
@@ -796,27 +790,23 @@ out_get_ei_data_str(uint8_t ei_data)
 }
 
 /*
- * out_get_e_machine_str -- get ELF's e_machine value string
+ * out_get_arch_machine_str -- get a string representation of the machine type
  */
 const char *
-out_get_e_machine_str(uint16_t e_machine)
+out_get_arch_machine_str(uint16_t machine)
 {
 	static char str_buff[STR_MAX] = {0, };
-	switch (e_machine) {
-	case EM_NONE:
-		return "none";
-	case EM_X86_64:
+	switch (machine) {
+	case NVML_MACHINE_X86_64:
 		return "AMD X86-64";
-	default:
-		if (e_machine >= EM_NUM) {
-			return "unknown";
-		} else {
-			int ret = snprintf(str_buff, STR_MAX, "%u", e_machine);
-			if (ret < 0 || ret >= STR_MAX)
-				return "";
-			return str_buff;
-		}
+	case NVML_MACHINE_AARCH64:
+		return "Aarch64";
 	}
+
+	int ret = snprintf(str_buff, STR_MAX, "unknown %u", machine);
+	if (ret < 0 || ret >= STR_MAX)
+		return "unknown";
+	return str_buff;
 }
 
 /*
