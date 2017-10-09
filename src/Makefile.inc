@@ -71,8 +71,8 @@ endif
 ifeq ($(DEBUG),1)
 # Undefine _FORTIFY_SOURCE in case it's set in system-default or
 # user-defined CFLAGS as it conflicts with -O0.
-CFLAGS += -Wp,-U_FORTIFY_SOURCE
-CFLAGS += -O0 -ggdb -DDEBUG
+DEBUG_CFLAGS += -Wp,-U_FORTIFY_SOURCE
+DEBUG_CFLAGS += -O0 -ggdb -DDEBUG
 LIB_SUBDIR = /nvml_debug
 OBJDIR = debug
 else
@@ -102,7 +102,7 @@ endif
 CFLAGS += $(EXTRA_CFLAGS)
 
 ifeq ($(DEBUG),1)
-CFLAGS += $(EXTRA_CFLAGS_DEBUG)
+CFLAGS += $(EXTRA_CFLAGS_DEBUG) $(DEBUG_CFLAGS)
 else
 CFLAGS += $(EXTRA_CFLAGS_RELEASE)
 endif
