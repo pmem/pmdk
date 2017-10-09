@@ -296,6 +296,13 @@ function create_poolset {
             echo "REPLICA" | out-file -Append -encoding utf8 -literalpath $psfile
             continue
         }
+        if ($args[$i] -eq "O" -Or $args[$i] -eq 'o') {
+            $i++
+            $opt = $args[$i]
+            echo "OPTION $opt" | out-file -Append -encoding utf8 -literalpath $psfile
+            continue
+        }
+
         $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
         # as a delimeter in the argument

@@ -459,6 +459,7 @@ function create_holey_file() {
 # different than the part size in the pool set file.
 # 'r' or 'R' on the list of arguments indicate the beginning of the next
 # replica set and 'm' or 'M' the beginning of the next remote replica set.
+# 'o' or 'O' indicates the next argument is a pool set option.
 # A remote replica requires two parameters: a target node and a pool set
 # descriptor.
 #
@@ -493,7 +494,8 @@ function create_holey_file() {
 #
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
 #				R 48M:testfile3:n:11M:0400 \
-#				M remote_node:remote_pool.set
+#				M remote_node:remote_pool.set \
+#                               O NOHDRS
 #
 function create_poolset() {
 	psfile=$1
@@ -522,6 +524,13 @@ function create_poolset() {
 		then
 			echo "REPLICA" >> $psfile
 			shift 1
+			continue
+		fi
+
+		if [ "$1" = "O" ] || [ "$1" = "o" ]
+		then
+			echo "OPTION $2" >> $psfile
+			shift 2
 			continue
 		fi
 
