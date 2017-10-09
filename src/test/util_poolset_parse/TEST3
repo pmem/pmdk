@@ -49,6 +49,9 @@ require_dax_device_alignments 2097152 2097152 # 2MiB
 
 setup
 
+# XXX temporary
+export PMEM_NO_HDRS=1
+
 export PARSER_LOG_LEVEL=4
 export PARSER_LOG_FILE=./parser$UNITTEST_NUM.log
 

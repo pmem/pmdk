@@ -43,6 +43,7 @@
 #include <time.h>
 
 #include "util.h"
+#include "os.h"
 #include "valgrind_internal.h"
 
 /* library-wide page size */
@@ -50,6 +51,9 @@ unsigned long long Pagesize;
 
 /* allocation/mmap granularity */
 unsigned long long Mmap_align;
+
+/* indicates only first part contains pool header */
+int Nohdrs;
 
 /*
  * our versions of malloc & friends start off pointing to the libc versions
@@ -253,6 +257,10 @@ util_init(void)
 #ifdef ANY_VG_TOOL_ENABLED
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
+
+	char *env = os_getenv("PMEM_NO_HDRS");
+	if (env && strcmp(env, "1") == 0)
+		Nohdrs = 1;
 }
 
 /*

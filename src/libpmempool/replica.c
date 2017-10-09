@@ -83,9 +83,10 @@ size_t
 replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn)
 {
+	size_t hdrsize = set_in->nohdrs ? 0 : POOL_HDR_SIZE;
 	return MMAP_ALIGN_DOWN(
 			set_in->replica[repn]->part[partn].filesize) -
-			((partn == 0) ? POOL_HDR_SIZE : Mmap_align);
+			((partn == 0) ? hdrsize : Mmap_align);
 }
 
 /*
@@ -159,6 +160,7 @@ create_replica_health_status(struct pool_set *set, unsigned repn)
 		return NULL;
 	}
 	replica_hs->nparts = nparts;
+	replica_hs->nhdrs = set->replica[repn]->nhdrs;
 	return replica_hs;
 }
 
@@ -447,7 +449,7 @@ map_all_unbroken_headers(struct pool_set *set,
 		if (rep->remote)
 			continue;
 
-		for (unsigned p = 0; p < rep->nparts; ++p) {
+		for (unsigned p = 0; p < rep->nhdrs; ++p) {
 			/* skip broken parts */
 			if (replica_is_part_broken(r, p, set_hs))
 				continue;
@@ -497,7 +499,7 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 		if (rep->remote)
 			continue;
 
-		for (unsigned p = 0; p < rep->nparts; ++p) {
+		for (unsigned p = 0; p < rep->nhdrs; ++p) {
 
 			/* skip broken parts */
 			if (replica_is_part_broken(r, p, set_hs))
@@ -540,7 +542,7 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 	uuid_t poolset_uuid;
 	int uuid_stored = 0;
 	unsigned part_stored = UNDEF_PART;
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -566,7 +568,7 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 	LOG(4, "checking consistency of adjacent replicas' uuids in replica %u",
 			repn);
 	unsigned unbroken_p = UNDEF_PART;
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -593,7 +595,7 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 
 	/* check parts linkage */
 	LOG(4, "checking parts linkage in replica %u", repn);
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -650,7 +652,7 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
 	LOG(3, "set %p, repn %u, poolset_uuid %p, set_hs %p", set, repn,
 			poolset_uuid, set_hs);
 	struct pool_replica *rep = REP(set, repn);
-	for (unsigned p = 0; p < rep->nparts; ++p) {
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
 			continue;
@@ -712,19 +714,20 @@ static int
 get_replica_uuid(struct pool_replica *rep, unsigned repn,
 		struct poolset_health_status *set_hs, uuid_t **uuidpp)
 {
-	unsigned nparts;
+	/* XXX: why not rep->nhdrs */
+	unsigned nhdrs = REP(set_hs, repn)->nhdrs;
 	if (!replica_is_part_broken(repn, 0, set_hs)) {
 		/* the first part is not broken */
 		*uuidpp = &HDR(rep, 0)->uuid;
 		return 0;
-	} else if (!replica_is_part_broken(repn, 1, set_hs)) {
+	} else if (nhdrs > 1 && !replica_is_part_broken(repn, 1, set_hs)) {
 		/* the second part is not broken */
 		*uuidpp = &HDR(rep, 1)->prev_part_uuid;
 		return 0;
-	} else if ((nparts = REP(set_hs, repn)->nparts) > 1 &&
-			!replica_is_part_broken(repn, nparts - 1, set_hs)) {
+	} else if (nhdrs > 1 &&
+			!replica_is_part_broken(repn, nhdrs - 1, set_hs)) {
 		/* the last part is not broken */
-		*uuidpp = &HDR(rep, nparts - 1)->next_part_uuid;
+		*uuidpp = &HDR(rep, nhdrs - 1)->next_part_uuid;
 		return 0;
 	} else {
 		/* cannot get replica uuid */
