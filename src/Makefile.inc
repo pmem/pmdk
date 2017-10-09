@@ -69,10 +69,7 @@ endif
 endif
 
 ifeq ($(DEBUG),1)
-# Undefine _FORTIFY_SOURCE in case it's set in system-default or
-# user-defined CFLAGS as it conflicts with -O0.
-CFLAGS += -Wp,-U_FORTIFY_SOURCE
-CFLAGS += -O0 -ggdb -DDEBUG
+DEFAULT_CFLAGS += -O0 -ggdb -DDEBUG
 LIB_SUBDIR = /nvml_debug
 OBJDIR = debug
 else
@@ -81,8 +78,17 @@ LIB_SUBDIR =
 OBJDIR = nondebug
 endif
 
+ifneq ($(CFLAGS),)
+ifeq ($(DEBUG),1)
+# Undefine _FORTIFY_SOURCE in case it's set in system-default or
+# user-defined CFLAGS as it conflicts with -O0.
+CFLAGS += -Wp,-U_FORTIFY_SOURCE
+CFLAGS += -O0 -ggdb -DDEBUG
+endif
+else
 # use defaults, if system or user-defined CFLAGS are not specified
-CFLAGS ?= $(DEFAULT_CFLAGS)
+CFLAGS = $(DEFAULT_CFLAGS)
+endif
 
 CFLAGS += -fno-common
 CFLAGS += -pthread
