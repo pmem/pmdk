@@ -48,15 +48,15 @@ function usage() {
 }
 
 #
-# require clang-format version 3.8+
+# require clang-format version 3.8
 #
 function check_clang_version() {
 	set +e
 	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
-	grep "version 3.[8-9]\|version [4-9].[0-9]*\|version 3.[1-9][0-9]"i\
+	grep "version 3\.8"\
 	&> /dev/null
 	if [ $? -ne 0 ]; then
-		echo "SKIP: requires clang-format version 3.8+"
+		echo "SKIP: requires clang-format version 3.8"
 		exit 0
 	fi
 	set -e

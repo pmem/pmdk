@@ -46,8 +46,13 @@ OS_BANNED = $(TOP)/utils/os-banned
 COVERAGE = 0
 
 PKG_CONFIG ?= pkg-config
-CLANG_FORMAT ?= clang-format
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
+
+ifeq ($(shell command -v clang-format-3.8 > /dev/null && echo y || echo n), y)
+CLANG_FORMAT ?= clang-format-3.8
+else
+CLANG_FORMAT ?= clang-format
+endif
 
 GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
