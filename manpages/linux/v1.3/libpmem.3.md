@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: LIBPMEM
+collection: libpmem
 header: NVM Library
 date: pmem API version 1.0
 ...
