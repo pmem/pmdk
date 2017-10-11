@@ -455,7 +455,8 @@ alloc_class_collection_new()
 
 	if ((ac->class_map_by_alloc_size = Malloc(maps_size)) == NULL)
 		goto error;
-	if ((ac->class_map_by_unit_size = cuckoo_new()) == NULL)
+	ac->class_map_by_unit_size = cuckoo_new(cuckoo_mt_dangerous);
+	if (ac->class_map_by_unit_size == NULL)
 		goto error;
 
 	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);

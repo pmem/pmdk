@@ -41,7 +41,12 @@
 
 struct cuckoo;
 
-struct cuckoo *cuckoo_new(void);
+enum cuckoo_mt_policy {
+	cuckoo_mt_safe,
+	cuckoo_mt_dangerous
+};
+
+struct cuckoo *cuckoo_new(enum cuckoo_mt_policy);
 void cuckoo_delete(struct cuckoo *c);
 
 int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);
