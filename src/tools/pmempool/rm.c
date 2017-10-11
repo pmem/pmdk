@@ -147,7 +147,7 @@ rm_file(const char *file)
 	const char *pre_msg = write_protected ? "write-protected " : "";
 	char ans = ask_Yn(cask, "remove %sfile '%s' ?", pre_msg, file);
 	if (ans == INV_ANS)
-		outv(1, "invalid answer");
+		outv(1, "invalid answer\n");
 
 	if (ans == 'y') {
 		if (util_unlink(file)) {
@@ -182,7 +182,7 @@ remove_remote(const char *target, const char *pool_set)
 	char ans = ask_Yn(cask, "remove remote pool '%s' on '%s'?",
 		pool_set, target);
 	if (ans == INV_ANS)
-		outv(1, "invalid answer");
+		outv(1, "invalid answer\n");
 
 	if (ans != 'y')
 		return 0;
