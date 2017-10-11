@@ -83,6 +83,14 @@ NON_PMEM_FS_DIR=/tmp
 TM=1
 
 #
+# Normally the first failed test terminates the test run. If KEEP_GOING
+# is set, continues executing all tests. If any tests fail, once all tests
+# have completed reports number of failures, lists failed tests and exits
+# with error status.
+#
+#KEEP_GOING=y
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
@@ -94,6 +102,9 @@ TM=1
 # Addresses of nodes should be defined as an array:
 #
 #    NODE[index]=[<user>@]<host-name-or-IP>
+#
+# The remote account must be set up for automated ssh authentication.
+# The remote user's login shell must be bash.
 #
 #NODE[0]=127.0.0.1
 #NODE[1]=user1@host1
