@@ -34,8 +34,8 @@
  * obj_recovery.c -- unit test for pool recovery
  */
 #include "unittest.h"
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VALGRIND)
-#include <valgrind/pmemcheck.h>
+#include "valgrind_internal.h"
+#ifdef USE_VG_PMEMCHECK
 #define VALGRIND_PMEMCHECK_END_TX VALGRIND_PMC_END_TX
 #else
 #define VALGRIND_PMEMCHECK_END_TX
