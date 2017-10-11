@@ -59,7 +59,7 @@
  * - long
  * - long long
  * - size_t
- * - off_t
+ * - os_off_t
  * - float
  * - double
  * - long double

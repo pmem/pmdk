@@ -643,7 +643,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 		"  long",
 		"  long long",
 		"  size_t",
-		"  off_t",
+		"  os_off_t",
 		"  float",
 		"  double",
 		"  long double",

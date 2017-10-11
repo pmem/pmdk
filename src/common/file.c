@@ -278,7 +278,7 @@ out:
  * util_file_zero -- zeroes the specified region of the file
  */
 int
-util_file_zero(const char *path, off_t off, size_t len)
+util_file_zero(const char *path, os_off_t off, size_t len)
 {
 	LOG(3, "path \"%s\" off %ju len %zu", path, off, len);
 
@@ -336,7 +336,7 @@ out:
  */
 ssize_t
 util_file_pwrite(const char *path, const void *buffer, size_t size,
-	off_t offset)
+	os_off_t offset)
 {
 	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
 			path, buffer, size, offset);
@@ -385,7 +385,7 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
  */
 ssize_t
 util_file_pread(const char *path, void *buffer, size_t size,
-	off_t offset)
+	os_off_t offset)
 {
 	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
 			path, buffer, size, offset);
@@ -445,8 +445,8 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		return -1;
 	}
 
-	if (((off_t)size) < 0) {
-		ERR("invalid size (%zu) for off_t", size);
+	if (((os_off_t)size) < 0) {
+		ERR("invalid size (%zu) for os_off_t", size);
 		errno = EFBIG;
 		return -1;
 	}
@@ -470,7 +470,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		return -1;
 	}
 
-	if ((errno = os_posix_fallocate(fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(fd, 0, (os_off_t)size)) != 0) {
 		ERR("!posix_fallocate \"%s\", %zu", path, size);
 		goto err;
 	}

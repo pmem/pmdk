@@ -83,8 +83,8 @@ swap_mappings(char **dest, char **src, size_t size, int fd)
  * so as not to introduce any possible side affects.
  */
 static void
-do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
-	off_t src_off, off_t off, off_t bytes)
+do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
+	os_off_t src_off, os_off_t off, os_off_t bytes)
 {
 	void *ret;
 	char *src1 = MALLOC(bytes);
@@ -135,14 +135,14 @@ do_memmove(int fd, char *dest, char *src, char *file_name, off_t dest_off,
 	 * went wrong.
 	 */
 	if (dest > src && off != 0) {
-		LSEEK(fd, (off_t)dest_off + off, SEEK_SET);
+		LSEEK(fd, (os_off_t)dest_off + off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
 				UT_ERR("%s: first %zu bytes do not match",
 					file_name, bytes / 2);
 		}
 	} else {
-		LSEEK(fd, (off_t)dest_off, SEEK_SET);
+		LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
 				UT_ERR("%s: first %zu bytes do not match",
@@ -162,11 +162,11 @@ main(int argc, char *argv[])
 	int fd;
 	char *dest;
 	char *src;
-	off_t dest_off = 0;
-	off_t src_off = 0;
+	os_off_t dest_off = 0;
+	os_off_t src_off = 0;
 	uint64_t bytes = 0;
 	int who = 0;
-	off_t overlap = 0;
+	os_off_t overlap = 0;
 	size_t mapped_len;
 
 	START(argc, argv, "pmem_memmove");
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
 		    argv[arg][0]) == NULL || argv[arg][1] != ':')
 			UT_FATAL("op must be d: or s: or b: or o: or S:");
 
-		off_t val = strtoul(&argv[arg][2], NULL, 0);
+		os_off_t val = strtoul(&argv[arg][2], NULL, 0);
 
 		switch (argv[arg][0]) {
 		case 'd':

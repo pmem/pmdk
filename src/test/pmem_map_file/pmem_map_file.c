@@ -136,7 +136,7 @@ do_check(int fd, void *addr, size_t mlen)
 		UT_OUT("unmap successful");
 	}
 
-	LSEEK(fd, (off_t)0, SEEK_SET);
+	LSEEK(fd, (os_off_t)0, SEEK_SET);
 	if (READ(fd, buf, CHECK_BYTES) == CHECK_BYTES) {
 		if (memcmp(pat, buf, CHECK_BYTES))
 			UT_OUT("first %d bytes do not match", CHECK_BYTES);

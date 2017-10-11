@@ -48,6 +48,7 @@
 #include "libpmem.h"
 #include "libpmemlog.h"
 
+#include "os.h"
 #include "set.h"
 #include "out.h"
 #include "log.h"
@@ -604,7 +605,7 @@ pmemlog_tell(PMEMlogpool *plp)
 
 	if ((errno = os_rwlock_rdlock(plp->rwlockp))) {
 		ERR("!os_rwlock_rdlock");
-		return (off_t)-1;
+		return (os_off_t)-1;
 	}
 
 	ASSERT(le64toh(plp->write_offset) >= le64toh(plp->start_offset));

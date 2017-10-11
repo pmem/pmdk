@@ -362,7 +362,7 @@ libvmmalloc_create(const char *dir, size_t size)
 	if (Fd == -1)
 		return NULL;
 
-	if ((errno = os_posix_fallocate(Fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(Fd, 0, (os_off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		(void) os_close(Fd);
 		return NULL;
@@ -409,12 +409,14 @@ static int
 libvmmalloc_clone(void)
 {
 	LOG(3, NULL);
-
+	int err;
 	Fd_clone = util_tmpfile(Dir, "/vmem.XXXXXX");
 	if (Fd_clone == -1)
 		return -1;
 
-	if ((errno = os_posix_fallocate(Fd_clone, 0, (off_t)Vmp->size)) != 0) {
+	err = os_posix_fallocate(Fd_clone, 0, (os_off_t)Vmp->size);
+	if (err != 0) {
+		errno = err;
 		ERR("!posix_fallocate");
 		goto err_close;
 	}

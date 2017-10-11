@@ -595,7 +595,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	}
 
 	if (flags & PMEM_FILE_CREATE) {
-		if ((off_t)len < 0) {
+		if ((os_off_t)len < 0) {
 			ERR("invalid file length %zu", len);
 			errno = EINVAL;
 			return NULL;
@@ -656,13 +656,13 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_CREATE) {
 		if (flags & PMEM_FILE_SPARSE) {
-			if (os_ftruncate(fd, (off_t)len) != 0) {
+			if (os_ftruncate(fd, (os_off_t)len) != 0) {
 				ERR("!ftruncate");
 				goto err;
 			}
 		} else {
 			if ((errno = os_posix_fallocate(fd, 0,
-							(off_t)len)) != 0) {
+							(os_off_t)len)) != 0) {
 				ERR("!posix_fallocate");
 				goto err;
 			}

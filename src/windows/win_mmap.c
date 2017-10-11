@@ -256,7 +256,7 @@ mmap_fini(void)
  * to elevate permissions later.
  */
 void *
-mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
+mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 {
 	LOG(4, "addr %p len %zu prot %d flags %d fd %d offset %ju",
 		addr, len, prot, flags, fd, offset);
@@ -407,7 +407,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 			return MAP_FAILED;
 		}
 
-		if (offset >= (off_t)filesize.QuadPart) {
+		if (offset >= (os_off_t)filesize.QuadPart) {
 			errno = EINVAL;
 			ERR("offset is beyond the file size");
 			CloseHandle(fh);

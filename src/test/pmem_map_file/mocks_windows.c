@@ -42,7 +42,7 @@
 /*
  * posix_fallocate -- interpose on libc posix_fallocate()
  */
-FUNC_MOCK(os_posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK(os_posix_fallocate, int, int fd, os_off_t offset, os_off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
 	if (len > MAX_LEN) {
@@ -56,7 +56,7 @@ FUNC_MOCK_END
 /*
  * ftruncate -- interpose on libc ftruncate()
  */
-FUNC_MOCK(os_ftruncate, int, int fd, off_t len)
+FUNC_MOCK(os_ftruncate, int, int fd, os_off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_OUT("ftruncate: len %ju", len);
 	return _FUNC_REAL(os_ftruncate)(fd, len);

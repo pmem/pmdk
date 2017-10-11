@@ -74,7 +74,7 @@ enum op_mode {
  * typedef for the worker function
  */
 typedef int (*worker_fn)(struct blk_bench *, struct benchmark_args *,
-			 struct blk_worker *, off_t);
+			 struct blk_worker *, os_off_t);
 
 /*
  * blk_args -- benchmark specific arguments
@@ -105,9 +105,9 @@ struct blk_bench {
  * struct blk_worker -- pmemblk worker context
  */
 struct blk_worker {
-	off_t *blocks; /* array with block numbers */
-	char *buff;    /* buffer for read/write */
-	unsigned seed; /* worker seed */
+	os_off_t *blocks; /* array with block numbers */
+	char *buff;       /* buffer for read/write */
+	unsigned seed;    /* worker seed */
 };
 
 /*
@@ -199,7 +199,7 @@ out:
  */
 static int
 blk_read(struct blk_bench *bb, struct benchmark_args *ba,
-	 struct blk_worker *bworker, off_t off)
+	 struct blk_worker *bworker, os_off_t off)
 {
 	if (pmemblk_read(bb->pbp, bworker->buff, off) < 0) {
 		perror("pmemblk_read");
@@ -213,9 +213,9 @@ blk_read(struct blk_bench *bb, struct benchmark_args *ba,
  */
 static int
 fileio_read(struct blk_bench *bb, struct benchmark_args *ba,
-	    struct blk_worker *bworker, off_t off)
+	    struct blk_worker *bworker, os_off_t off)
 {
-	off_t file_off = off * ba->dsize;
+	os_off_t file_off = off * ba->dsize;
 	if (pread(bb->fd, bworker->buff, ba->dsize, file_off) !=
 	    (ssize_t)ba->dsize) {
 		perror("pread");
@@ -229,9 +229,9 @@ fileio_read(struct blk_bench *bb, struct benchmark_args *ba,
  */
 static int
 memcpy_read(struct blk_bench *bb, struct benchmark_args *ba,
-	    struct blk_worker *bworker, off_t off)
+	    struct blk_worker *bworker, os_off_t off)
 {
-	off_t file_off = off * ba->dsize;
+	os_off_t file_off = off * ba->dsize;
 	memcpy(bworker->buff, (char *)bb->addr + file_off, ba->dsize);
 	return 0;
 }
@@ -241,7 +241,7 @@ memcpy_read(struct blk_bench *bb, struct benchmark_args *ba,
  */
 static int
 blk_write(struct blk_bench *bb, struct benchmark_args *ba,
-	  struct blk_worker *bworker, off_t off)
+	  struct blk_worker *bworker, os_off_t off)
 {
 	if (pmemblk_write(bb->pbp, bworker->buff, off) < 0) {
 		perror("pmemblk_write");
@@ -255,9 +255,9 @@ blk_write(struct blk_bench *bb, struct benchmark_args *ba,
  */
 static int
 memcpy_write(struct blk_bench *bb, struct benchmark_args *ba,
-	     struct blk_worker *bworker, off_t off)
+	     struct blk_worker *bworker, os_off_t off)
 {
-	off_t file_off = off * ba->dsize;
+	os_off_t file_off = off * ba->dsize;
 	pmem_memcpy_persist((char *)bb->addr + file_off, bworker->buff,
 			    ba->dsize);
 	return 0;
@@ -268,9 +268,9 @@ memcpy_write(struct blk_bench *bb, struct benchmark_args *ba,
  */
 static int
 fileio_write(struct blk_bench *bb, struct benchmark_args *ba,
-	     struct blk_worker *bworker, off_t off)
+	     struct blk_worker *bworker, os_off_t off)
 {
-	off_t file_off = off * ba->dsize;
+	os_off_t file_off = off * ba->dsize;
 	if (pwrite(bb->fd, bworker->buff, ba->dsize, file_off) !=
 	    (ssize_t)ba->dsize) {
 		perror("pwrite");
@@ -288,7 +288,7 @@ blk_operation(struct benchmark *bench, struct operation_info *info)
 	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
 	struct blk_worker *bworker = (struct blk_worker *)info->worker->priv;
 
-	off_t off = bworker->blocks[info->index];
+	os_off_t off = bworker->blocks[info->index];
 	return bb->worker(bb, info->args, bworker, off);
 }
 
@@ -322,8 +322,8 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	memset(bworker->buff, bworker->seed, args->dsize);
 
 	assert(args->n_ops_per_thread != 0);
-	bworker->blocks = (off_t *)malloc(sizeof(*bworker->blocks) *
-					  args->n_ops_per_thread);
+	bworker->blocks = (os_off_t *)malloc(sizeof(*bworker->blocks) *
+					     args->n_ops_per_thread);
 	if (!bworker->blocks) {
 		perror("malloc");
 		goto err_blocks;
