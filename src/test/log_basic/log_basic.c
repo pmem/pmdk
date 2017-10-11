@@ -147,7 +147,7 @@ do_appendv(PMEMlogpool *plp)
 static void
 do_tell(PMEMlogpool *plp)
 {
-	off_t tell = pmemlog_tell(plp);
+	os_off_t tell = pmemlog_tell(plp);
 	UT_OUT("tell %zu", tell);
 }
 

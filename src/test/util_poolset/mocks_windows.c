@@ -39,7 +39,7 @@
 #include "unittest.h"
 
 extern const char *Open_path;
-extern off_t Fallocate_len;
+extern os_off_t Fallocate_len;
 extern size_t Is_pmem_len;
 
 /*
@@ -68,7 +68,7 @@ FUNC_MOCK_END
 /*
  * posix_fallocate -- posix_fallocate mock
  */
-FUNC_MOCK(os_posix_fallocate, int, int fd, off_t offset, off_t len)
+FUNC_MOCK(os_posix_fallocate, int, int fd, os_off_t offset, os_off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (Fallocate_len == len) {
 		UT_OUT("mocked fallocate: %ju", len);

@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
 			UT_FATAL("op must be r: or w: or z: or e:");
-		off_t lba = strtol(&argv[arg][2], NULL, 0);
+		os_off_t lba = strtol(&argv[arg][2], NULL, 0);
 
 		switch (argv[arg][0]) {
 		case 'r':

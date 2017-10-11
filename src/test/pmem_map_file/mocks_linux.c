@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,11 +44,11 @@
  * posix_fallocate -- interpose on libc posix_fallocate()
  */
 int
-posix_fallocate(int fd, off_t offset, off_t len)
+posix_fallocate(int fd, os_off_t offset, off_t len)
 {
 	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
 
-	static int (*posix_fallocate_ptr)(int fd, off_t offset, off_t len);
+	static int (*posix_fallocate_ptr)(int fd, os_off_t offset, off_t len);
 
 	if (posix_fallocate_ptr == NULL)
 		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
@@ -64,11 +64,11 @@ posix_fallocate(int fd, off_t offset, off_t len)
  * ftruncate -- interpose on libc ftruncate()
  */
 int
-ftruncate(int fd, off_t len)
+ftruncate(int fd, os_off_t len)
 {
 	UT_OUT("ftruncate: len %ju", len);
 
-	static int (*ftruncate_ptr)(int fd, off_t len);
+	static int (*ftruncate_ptr)(int fd, os_off_t len);
 
 	if (ftruncate_ptr == NULL)
 		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");

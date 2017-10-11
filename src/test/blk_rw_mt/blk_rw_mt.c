@@ -89,7 +89,7 @@ worker(void *arg)
 	int ord = 1;
 
 	for (unsigned i = 0; i < Nops; i++) {
-		off_t lba = os_rand_r(&myseed) % Nblock;
+		os_off_t lba = os_rand_r(&myseed) % Nblock;
 
 		if (os_rand_r(&myseed) % 2) {
 			/* read */

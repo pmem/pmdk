@@ -57,9 +57,9 @@ struct ddmap_context {
 	char *file_in;	/* input file name */
 	char *file_out;	/* output file name */
 	char *str;	/* string data to write */
-	off_t offset_in;	/* offset from beginning of input file for */
+	os_off_t offset_in;	/* offset from beginning of input file for */
 			/* read/write operations */
-	off_t offset_out;	/* offset from beginning of output file for */
+	os_off_t offset_out;	/* offset from beginning of output file for */
 			/* read/write operations */
 	size_t len;	/* number of bytes to read */
 	int checksum;	/* compute checksum */
@@ -131,7 +131,7 @@ ddmap_print_bytes(const char *data, size_t len)
  *	print it to stdout
  */
 static int
-ddmap_read(const char *path, off_t offset, size_t len)
+ddmap_read(const char *path, os_off_t offset, size_t len)
 {
 	char *read_buff = Zalloc(len + 1);
 	if (read_buff == NULL) {
@@ -185,7 +185,8 @@ ddmap_zero(const char *path, size_t offset, size_t len)
  * ddmap_write_data -- (internal) write data to a file
  */
 static int
-ddmap_write_data(const char *path, const char *data, off_t offset, size_t len)
+ddmap_write_data(const char *path, const char *data,
+	os_off_t offset, size_t len)
 {
 	if (util_file_pwrite(path, data, len, offset) < 0) {
 			outv_err("pwrite for dax device failed: path %s,"
@@ -201,7 +202,7 @@ ddmap_write_data(const char *path, const char *data, off_t offset, size_t len)
  */
 static int
 ddmap_write_from_file(const char *path_in, const char *path_out,
-	off_t offset_in, off_t offset_out, size_t len)
+	os_off_t offset_in, os_off_t offset_out, size_t len)
 {
 	char *src;
 	ssize_t file_in_size = util_file_get_size(path_in);
@@ -224,7 +225,7 @@ ddmap_write_from_file(const char *path_in, const char *path_out,
  * ddmap_write -- (internal) write the string to the file
  */
 static int
-ddmap_write(const char *path, const char *str, off_t offset, size_t len)
+ddmap_write(const char *path, const char *str, os_off_t offset, size_t len)
 {
 	/* calculate how many characters from the string are to be written */
 	size_t length;
@@ -253,7 +254,7 @@ ddmap_write(const char *path, const char *str, off_t offset, size_t len)
  * ddmap_checksum -- (internal) compute checksum of a slice of an input file
  */
 static int
-ddmap_checksum(const char *path, size_t len, off_t offset)
+ddmap_checksum(const char *path, size_t len, os_off_t offset)
 {
 	char *src;
 	uint64_t checksum;
@@ -282,7 +283,7 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 {
 	int opt;
 	char *endptr;
-	off_t offset;
+	os_off_t offset;
 	size_t length;
 	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:l:chv",
 			long_options, NULL)) != -1) {

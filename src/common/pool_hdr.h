@@ -59,7 +59,7 @@
  * - long
  * - long long
  * - size_t
- * - off_t
+ * - os_off_t
  * - float
  * - double
  * - long double
@@ -137,7 +137,7 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 (alignment_desc_of(long)	<<  3 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(long long)	<<  4 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(size_t)	<<  5 * ALIGNMENT_DESC_BITS) |\
-(alignment_desc_of(off_t)	<<  6 * ALIGNMENT_DESC_BITS) |\
+(alignment_desc_of(os_off_t)	<<  6 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(float)	<<  7 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\

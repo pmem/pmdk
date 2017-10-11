@@ -71,7 +71,7 @@ struct map_tracker {
 	HANDLE FileHandle;
 	HANDLE FileMappingHandle;
 	DWORD Access;
-	off_t Offset;
+	os_off_t Offset;
 	size_t FileLen;
 #endif
 };
@@ -190,8 +190,8 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 {
 	int oerrno;
 
-	if (((off_t)size) < 0) {
-		ERR("invalid size (%zu) for off_t", size);
+	if (((os_off_t)size) < 0) {
+		ERR("invalid size (%zu) for os_off_t", size);
 		errno = EFBIG;
 		return NULL;
 	}
@@ -202,7 +202,7 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 		goto err;
 	}
 
-	if ((errno = os_posix_fallocate(fd, 0, (off_t)size)) != 0) {
+	if ((errno = os_posix_fallocate(fd, 0, (os_off_t)size)) != 0) {
 		ERR("!posix_fallocate");
 		goto err;
 	}

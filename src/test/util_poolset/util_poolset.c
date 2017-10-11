@@ -51,7 +51,7 @@
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
 const char *Open_path = "";
-off_t Fallocate_len = -1;
+os_off_t Fallocate_len = -1;
 size_t Is_pmem_len = 0;
 
 /*

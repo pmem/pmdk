@@ -156,7 +156,7 @@ main(int argc, char *argv[])
 		if (strchr("rwze", argv[read_arg][0]) == NULL ||
 				argv[read_arg][1] != ':')
 			UT_FATAL("op must be r: or w: or z: or e:");
-		off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
+		os_off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
 
 		switch (argv[read_arg][0]) {
 		case 'r':

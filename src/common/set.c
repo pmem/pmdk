@@ -409,7 +409,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
 	ASSERTeq(offset % Mmap_align, 0);
 	ASSERTeq(size % Mmap_align, 0);
-	ASSERT(((off_t)offset) >= 0);
+	ASSERT(((os_off_t)offset) >= 0);
 	ASSERTeq(offset % part->alignment, 0);
 	ASSERT(offset < part->filesize);
 
@@ -420,7 +420,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 
 	void *addrp = mmap(addr, size,
 			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, (off_t)offset);
+			flags, part->fd, (os_off_t)offset);
 	if (addrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
