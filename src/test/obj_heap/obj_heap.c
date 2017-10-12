@@ -331,18 +331,13 @@ test_recycler(void)
 
 	int ret;
 
-	struct recycler *r = recycler_new(&pop->heap);
+	struct recycler *r = recycler_new(&pop->heap, 10000 /* never recalc */);
 	UT_ASSERTne(r, NULL);
 
 	init_run_with_score(pop->heap.layout, 0, 64);
 	init_run_with_score(pop->heap.layout, 1, 128);
 
 	init_run_with_score(pop->heap.layout, 15, 0);
-
-	/* shouldn't be allowed to insert full runs */
-	struct memory_block mrun_full = {15, 0, 1, 0};
-	ret = recycler_put(r, &mrun_full);
-	UT_ASSERTeq(ret, -1);
 
 	struct memory_block mrun = {0, 0, 1, 0};
 	struct memory_block mrun2 = {1, 0, 1, 0};

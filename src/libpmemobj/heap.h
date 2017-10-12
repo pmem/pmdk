@@ -84,6 +84,9 @@ heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
 os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 
+void
+heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
+
 int
 heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block *m);

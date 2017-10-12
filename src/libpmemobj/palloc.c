@@ -143,7 +143,6 @@ palloc_operation(struct palloc_heap *heap,
 
 	struct bucket *existing_bucket = NULL;
 	struct bucket *new_bucket = NULL;
-	int ret = 0;
 
 	/*
 	 * These two lock are responsible for protecting the metadata for the
@@ -180,7 +179,7 @@ palloc_operation(struct palloc_heap *heap,
 
 		/* reallocation to exactly the same size, which is a no-op */
 		if (user_size == size)
-			goto out;
+			return 0;
 	}
 
 	/*
@@ -243,8 +242,8 @@ palloc_operation(struct palloc_heap *heap,
 		int err = heap_get_bestfit_block(heap, new_bucket, &new_block);
 		if (err != 0) {
 			errno = err;
-			ret = -1;
-			goto out;
+			heap_bucket_release(heap, new_bucket);
+			return -1;
 		}
 
 		/*
@@ -272,8 +271,8 @@ palloc_operation(struct palloc_heap *heap,
 			}
 
 			errno = ECANCELED;
-			ret = -1;
-			goto out;
+			heap_bucket_release(heap, new_bucket);
+			return -1;
 		}
 
 		locks[nlocks] = new_block.m_ops->get_lock(&new_block);
@@ -391,17 +390,20 @@ palloc_operation(struct palloc_heap *heap,
 		bucket_insert_block(existing_bucket, &coalesced_block);
 	}
 
-	for (int i = 0; i < nlocks; ++i)
-		util_mutex_unlock(locks[i]);
-
-out:
 	if (existing_bucket != NULL)
 		heap_bucket_release(heap, existing_bucket);
 
 	if (new_bucket != NULL)
 		heap_bucket_release(heap, new_bucket);
 
-	return ret;
+	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
+		heap_memblock_on_free(heap, &existing_block);
+	}
+
+	for (int i = 0; i < nlocks; ++i)
+		util_mutex_unlock(locks[i]);
+
+	return 0;
 }
 
 /*

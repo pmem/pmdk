@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,24 +31,79 @@
  */
 
 /*
- * recycler.h -- internal definitions of run recycler
- *
- * This is a container that stores runs that are currently not used by any of
- * the buckets.
+ * util_vec.c -- unit test for vec implementation
  */
 
-#include "memblock.h"
+#include "unittest.h"
 #include "vec.h"
 
-struct recycler;
-VEC(empty_runs, struct memory_block);
+#define Realloc REALLOC
+#define Free FREE
+#define ASSERTne UT_ASSERTne
 
-struct recycler *recycler_new(struct palloc_heap *layout,
-	size_t nallocs);
-void recycler_delete(struct recycler *r);
-int recycler_put(struct recycler *r, const struct memory_block *m);
+struct test {
+	int foo;
+	int bar;
+};
 
-int recycler_get(struct recycler *r, struct memory_block *m);
+static void
+vec_test()
+{
+	VEC(testvec, struct test) v = VEC_INITIALIZER;
 
-struct empty_runs recycler_inc_unaccounted(struct recycler *r,
-	const struct memory_block *m);
+	UT_ASSERTeq(VEC_SIZE(&v), 0);
+
+	struct test t = {1, 2};
+	struct test t2 = {3, 4};
+
+	VEC_PUSH_BACK(&v, t);
+	VEC_PUSH_BACK(&v, t2);
+
+	UT_ASSERTeq(VEC_ARR(&v)[0].foo, 1);
+	UT_ASSERTeq(VEC_GET(&v, 1)->foo, 3);
+
+	UT_ASSERTeq(VEC_SIZE(&v), 2);
+
+	int n = 0;
+	VEC_FOREACH(t, &v) {
+		switch (n) {
+		case 0:
+			UT_ASSERTeq(t.foo, 1);
+			UT_ASSERTeq(t.bar, 2);
+			break;
+		case 1:
+			UT_ASSERTeq(t.foo, 3);
+			UT_ASSERTeq(t.bar, 4);
+			break;
+		}
+		n++;
+	}
+	UT_ASSERTeq(n, 2);
+	UT_ASSERTeq(VEC_SIZE(&v), n);
+
+	VEC_POP_BACK(&v);
+
+	n = 0;
+	VEC_FOREACH(t, &v) {
+		UT_ASSERTeq(t.foo, 1);
+		UT_ASSERTeq(t.bar, 2);
+		n++;
+	}
+	UT_ASSERTeq(n, 1);
+	UT_ASSERTeq(VEC_SIZE(&v), n);
+
+	VEC_CLEAR(&v);
+	UT_ASSERTeq(VEC_SIZE(&v), 0);
+
+	VEC_DELETE(&v);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "util_vec");
+
+	vec_test();
+
+	DONE(NULL);
+}
