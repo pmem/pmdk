@@ -33,16 +33,16 @@
 /*
  * arch_flags.c -- unit test for architecture flags
  */
+#include <inttypes.h>
 #include <string.h>
-#include <elf.h>
-#include <link.h>
 
 #include "unittest.h"
 #include "pool_hdr.h"
 #include "pmemcommon.h"
 
 #define FATAL_USAGE()\
-UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
+UT_FATAL(\
+	"usage: arch_flags <machine>:<machine_class>:<data>:<alignment_desc>:<reserved>")
 #define ARCH_FLAGS_LOG_PREFIX "arch_flags"
 #define ARCH_FLAGS_LOG_LEVEL_VAR "ARCH_FLAGS_LOG_LEVEL"
 #define ARCH_FLAGS_LOG_FILE_VAR "ARCH_FLAGS_LOG_FILE"
@@ -50,86 +50,33 @@ UT_FATAL("usage: arch_flags <file>:<err>:<alignemnt_desc>:<reserved> <file>")
 #define ARCH_FLAGS_LOG_MINOR 0
 
 /*
- * Open_ret -- fake return value in open syscall
- */
-static int Open_ret;
-
-/*
- * Open_path -- fake path in open syscall
- */
-static char *Open_path;
-
-/*
- * Execname -- pathname of executable
- */
-static char Execname[PATH_MAX];
-
-/*
- * open -- open syscall mock
- */
-FUNC_MOCK(open, int, const char *pathname, int flags, mode_t mode)
-	FUNC_MOCK_RUN_DEFAULT {
-		if (strcmp(pathname, Execname) == 0) {
-			if (Open_ret) {
-				errno = Open_ret;
-				return -1;
-			}
-
-			if (Open_path != NULL) {
-				return __real_open(Open_path, flags, mode);
-			}
-		}
-
-		return __real_open(pathname, flags, mode);
-	}
-FUNC_MOCK_END
-
-/*
- * split_opts_path -- split options string and path to file
- *
- * The valid format is <char>:<opts>:<path>
- */
-static int
-split_path_opts(char *arg, char **path, char **opts)
-{
-	*path = arg;
-	char *ptr = strchr(arg, ':');
-	if (!ptr)
-		return -1;
-	*ptr = '\0';
-	*opts = ptr + 1;
-	return 0;
-}
-
-/*
  * read_arch_flags -- read arch flags from file
  */
 static int
-read_arch_flags(char *arg, struct arch_flags *arch_flags)
+read_arch_flags(char *opts, struct arch_flags *arch_flags)
 {
-	char *path;
-	char *opts;
-	int ret;
-
-	if ((ret = split_path_opts(arg, &path, &opts)))
-		return ret;
-
-	int error;
 	uint64_t alignment_desc;
 	uint64_t reserved;
+	uint16_t machine;
+	uint8_t machine_class;
+	uint8_t data;
 
-	if ((ret = sscanf(opts, "%d:0x%jx:0x%jx", &error,
-			&alignment_desc, &reserved)) != 3)
+	if (sscanf(opts, "%" SCNu16 ":%" SCNu8 ":%" SCNu8
+			":0x%" SCNx64 ":0x%" SCNx64,
+			&machine, &machine_class, &data,
+			&alignment_desc, &reserved) != 5)
 		return -1;
 
-	Open_path = path;
-	Open_ret = error;
+	util_get_arch_flags(arch_flags);
 
-	ret = util_get_arch_flags(arch_flags);
-	UT_OUT("get  : %d", ret);
+	if (machine)
+		arch_flags->machine = machine;
 
-	if (ret)
-		return 1;
+	if (machine_class)
+		arch_flags->machine_class = machine_class;
+
+	if (data)
+		arch_flags->data = data;
 
 	if (alignment_desc)
 		arch_flags->alignment_desc = alignment_desc;
@@ -152,23 +99,17 @@ main(int argc, char *argv[])
 		ARCH_FLAGS_LOG_MAJOR,
 		ARCH_FLAGS_LOG_MINOR);
 
-	if (argc < 3)
+	if (argc < 2)
 		FATAL_USAGE();
 
-	util_getexecname(Execname, PATH_MAX);
-
 	int i;
-	for (i = 1; i < argc - 1; i += 2) {
-		char *arg1 = argv[i];
-		char *arg2 = argv[i + 1];
+	for (i = 1; i < argc; i++) {
 		int ret;
 		struct arch_flags arch_flags;
 
-		if ((ret = read_arch_flags(arg1, &arch_flags)) < 0)
+		if ((ret = read_arch_flags(argv[i], &arch_flags)) < 0)
 			FATAL_USAGE();
 		else if (ret == 0) {
-			Open_path = arg2;
-			Open_ret = 0;
 			ret = util_check_arch_flags(&arch_flags);
 			UT_OUT("check: %d", ret);
 		}

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,4 +38,3 @@ OBJS = arch_flags.o
 
 LIBPMEMCOMMON=y
 include ../Makefile.inc
-LDFLAGS += -Wl,--wrap=open

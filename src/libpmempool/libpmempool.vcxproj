@@ -38,7 +38,6 @@
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
     <ClCompile Include="..\common\pool_hdr.c" />
-    <ClCompile Include="..\common\pool_hdr_windows.c" />
     <ClCompile Include="..\common\set.c" />
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />

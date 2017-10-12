@@ -37,7 +37,9 @@
 #ifndef NVML_POOL_HDR_H
 #define NVML_POOL_HDR_H 1
 
+#include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 #include "uuid.h"
 
 /*
@@ -65,7 +67,7 @@
  * - long double
  * - void *
  *
- * The alignment of each type is computer as an offset of field
+ * The alignment of each type is computed as an offset of field
  * of specific type in the following structure:
  * struct {
  *	char byte;
@@ -73,16 +75,31 @@
  * };
  *
  * The value is decremented by 1 and masked by 4 bits.
- * Multiple alignment are stored on consecutive 4 bits of each
- * type in order specified above.
+ * Multiple alignments are stored on consecutive 4 bits of each
+ * type in the order specified above.
+ *
+ * The values used in the machine, and machine_class fields are in
+ * principle independent of operating systems, and object formats.
+ * In practice they happen to match constants used in ELF object headers.
  */
 struct arch_flags {
 	uint64_t alignment_desc;	/* alignment descriptor */
-	uint8_t ei_class;		/* ELF format file class */
-	uint8_t ei_data;		/* ELF format data encoding */
+	uint8_t machine_class;		/* address size -- 64 bit or 32 bit */
+	uint8_t data;			/* data encoding -- LE or BE */
 	uint8_t reserved[4];
-	uint16_t e_machine;		/* required architecture */
+	uint16_t machine;		/* required architecture */
 };
+
+/* possible values of the machine class field in the above struct */
+#define NVML_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
+
+/* possible values of the machine field in the above struct */
+#define NVML_MACHINE_X86_64 62
+#define NVML_MACHINE_AARCH64 183
+
+/* possible values of the data field in the above struct */
+#define NVML_DATA_LE 1 /* 2's complement, little endian */
+#define NVML_DATA_BE 2 /* 2's complement, big endian */
 
 /*
  * header used at the beginning of all types of memory pools
@@ -118,7 +135,7 @@ void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 int util_convert_hdr(struct pool_hdr *hdrp);
 int util_convert_hdr_remote(struct pool_hdr *hdrp);
-int util_get_arch_flags(struct arch_flags *arch_flags);
+void util_get_arch_flags(struct arch_flags *arch_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
 int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
