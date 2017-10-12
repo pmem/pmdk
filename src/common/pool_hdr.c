@@ -45,13 +45,13 @@
 /* Determine ISA for which NVML is currently compiled */
 #if defined(__x86_64) || defined(_M_X64)
 /* x86 -- 64 bit */
-#define MACHINE NVML_MACHINE_X86_64
-#define MACHINE_CLASS NVML_MACHINE_CLASS_64
+#define NVML_MACHINE NVML_MACHINE_X86_64
+#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
 
 #elif defined(__aarch64__)
 /* 64 bit ARM not supported yet */
-#define MACHINE NVML_MACHINE_AARCH64
-#define MACHINE_CLASS NVML_MACHINE_CLASS_64
+#define NVML_MACHINE NVML_MACHINE_AARCH64
+#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
 
 #else
 /* add appropriate definitions here when porting NVML to another ISA */
@@ -76,8 +76,8 @@ void
 util_get_arch_flags(struct arch_flags *arch_flags)
 {
 	memset(arch_flags, 0, sizeof(*arch_flags));
-	arch_flags->machine = MACHINE;
-	arch_flags->machine_class = MACHINE_CLASS;
+	arch_flags->machine = NVML_MACHINE;
+	arch_flags->machine_class = NVML_MACHINE_CLASS;
 	arch_flags->data = arch_data();
 	arch_flags->alignment_desc = alignment_desc();
 }
