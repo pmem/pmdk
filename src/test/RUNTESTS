@@ -116,6 +116,8 @@ runtest_local() {
 		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
 		if [ "$keep_going" == "y" ]; then
 			keep_going_exit_code=1
+			fail_list="$fail_list $RUNTEST_DIR/$RUNTEST_SCRIPT"
+			((fail_count+=1))
 		else
 			exit 1
 		fi
@@ -367,6 +369,8 @@ checktype="none"
 skip_dir=""
 keep_going=n
 keep_going_exit_code=0
+fail_count=0
+fail_list=""
 
 #
 # some of defaults can be overwritten with environment variables
@@ -648,7 +652,8 @@ else
 fi
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
-if [ "$keep_going" == "y" ]; then
+if [ "$fail_count" != "0" ]; then
+	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0) $fail_list"
 	exit $keep_going_exit_code
 else
 	exit 0
