@@ -65,7 +65,7 @@ endif
 check_package = $(shell $(PKG_CONFIG) $(1) && echo y || echo n)
 
 check_flag = $(shell echo "int main(){return 0;}" |\
-	$(CC) $(CFLAGS) $(1) -x c -o /dev/null - 2>/dev/null && echo y || echo n)
+	$(CC) $(CFLAGS) -Werror $(1) -x c -o /dev/null - 2>/dev/null && echo y || echo n)
 
 check_compiler = $(shell $(CC) --version | grep $(1) && echo y || echo n)
 
