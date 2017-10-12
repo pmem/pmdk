@@ -42,7 +42,7 @@ endif
 PROGS = pmpong $(shell find $(FONTDIR) -name *.ttf | head -n 1 >| fontConf $<)
 else
 $(info NOTE: Skipping pmpong because sfml is missing \
--- see src/examples/libpmemobj/pmpong/README for details.)
+-- see src/examples/libpmemobj/pmpong/README.txt for details.)
 endif
 
 LIBS = -lpmemobj -lpmem
