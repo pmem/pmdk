@@ -1,7 +1,8 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-CONVERT
+title: PMEMPOOL-CHECK
+collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.3
 ...
@@ -33,7 +34,7 @@ date: pmem Tools version 1.3
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool-convert.1 -- man page for pmempool-convert)
+[comment]: <> (pmempool-check.1 -- man page for pmempool-check)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,37 +45,88 @@ date: pmem Tools version 1.3
 
 # NAME #
 
-**pmempool-convert** - Convert pool files from old layout versions to the
-newest one.
+**pmempool-check** -- Check and repair Persistent Memory Pool
 
 
 # SYNOPSIS #
 
 ```
-$ pmempool convert <file>
+$ pmempool check [<options>] <file>
 ```
 
 
 # DESCRIPTION #
 
-The **pmempool** invoked with the *convert* command
-performs a conversion of the specified pool to the newest
-layout supported by this tool. Currently only
-**libpmemobj**(3) pools are supported. It is advised to
-have a backup of the pool before conversion.
+The **pmempool** invoked with *check* command checks consistency of a given pool file. If the pool file is consistent **pmempool** exits with 0 value. If the
+pool file is not consistent non-zero error code is returned.
 
->NOTE:
-The conversion process is not fail-safe - power interruption may damage the
-pool.
+In case of any errors, the proper message is printed. The verbosity level may be increased using **-v** option. The output messages may be also suppressed using
+**-q** option.
+
+It is possible to try to fix encountered problems using **-r** option. In order to be sure this will not corrupt your data you can either create backup of the
+pool file using **-b** option or just print what would be fixed without modifying original pool using **-N** option.
+
+> NOTE:
+Currently, checking the consistency of a *pmemobj* pool is **not** supported.
+
+##### Available options: #####
+
+`-r, --repair`
+
+Try to repair a pool file if possible.
+
+`-y, --yes`
+
+Answer yes on all questions.
+
+`-N, --no-exec`
+
+Don't execute, just show what would be done. Not supported on Device DAX.
+
+`-b, --backup <file>`
+
+Create backup of a pool file before executing. Terminate if it is *not*
+possible to create a backup file. This option requires **-r** option.
+
+`-a, --advanced`
+
+Perform advanced repairs. This option enables more aggressive steps in attempts
+to repair a pool. This option requires `-r, --repair`.
+
+`-q, --quiet`
+
+Be quiet and don't print any messages.
+
+`-v, --verbose`
+
+Be more verbose.
+
+`-h, --help`
+
+Display help message and exit.
 
 
 # EXAMPLE #
 
 ```
-$ pmempool convert pool.obj
+$ pmempool check pool.bin
 ```
 
-Updates pool.obj to the latest layout version.
+Check consistency of "pool.bin" pool file
+
+```
+$ pmempool check --repair --backup pool.bin.backup pool.bin
+```
+
+Check consistency of "pool.bin" pool file, create backup and repair
+if necessary.
+
+```
+$ pmempool check -rvN pool.bin
+```
+
+Check consistency of "pool.bin" pool file, print what would be repaired with
+increased verbosity level.
 
 
 # SEE ALSO #

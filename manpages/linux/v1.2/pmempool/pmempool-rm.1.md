@@ -1,7 +1,8 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool
+title: pmempool-rm(1)
+collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.2.0
 ...
@@ -33,86 +34,76 @@ date: pmem Tools version 1.2.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool.1 -- man page for pmempool)
+[comment]: <> (pmempool-rm.1 -- man page for pmempool-rm)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[OPTIONS](#options)<br />
-[COMMANDS](#commands)<br />
+[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**pmempool** -- Persistent Memory Pool Management Tool
+**pmempool-rm** -- Remove (unlink) poolset files
 
 
 # SYNOPSIS #
 
 ```
-$ pmempool [--help] [--version] <command> [<args>]
+$ pmempool rm [<options>] <file>..
 ```
 
 # DESCRIPTION #
 
-The **pmempool** is a management tool for *Persistent Memory* pool files
-created by **NVML** libraries.
+The **pmempool** invoked with *rm* command removes (unlinks) all files specified
+in command line arguments. If the specified file is a poolset file all parts will
+be removed. All files are removed using the **unlink**(3) call. Without
+specifying the **-i|--interactive** option, the *rm* command prompts only before
+removing *write-protected* files. If specified file does not exist the *rm* command
+terminates with error code. The **-f|--force** command ignores non-existing files
+and never prompts before removing a file.
+See **EXAMPLES** section for example usage of the *rm* command.
 
-The main purpose of **pmempool** is to provide a user with a set of utilities
-for off-line analysis and manipulation of pools created by pmem libraries.
-The pmempool is a generic command which consists of subcommands for specific
-purposes. Some of subcommands are required to work *without* any impact
-on processed pool, but some of them *may* create a new or modify an existing one.
-
-The **pmempool** may be useful for troubleshooting by system administrators
-and for software developers who work on applications based on **NVM** Library.
-The latter may find these tools useful for testing and debugging purposes also.
-
-
-# OPTIONS #
-
-`-V, --version`
-
-Prints the version of **pmempool**.
+##### Available options: #####
 
 `-h, --help`
 
-Prints synopsis and list of commands.
+Print help message
+
+`-v, --verbose`
+
+Be verbose and print all removing files.
+
+`-s, --only-pools`
+
+Remove only pool files and do not remove poolset files.
+
+`-f, --force`
+
+Remove all specified files, ignore not existing files, never prompt.
+
+`-i, --interactive`
+
+Prompt before removing every single file.
 
 
-# COMMANDS #
+# EXAMPLE #
 
-Currently there is a following set of commands available:
+```
+$ pmempool rm pool.obj pool.blk
+```
 
-+ **pmempool-info**(1) -
-Prints information and statistics in human-readable format about specified pool.
+Remove specified pool files
 
-+ **pmempool-check**(1) -
-Checks pool's consistency and repairs pool if it is not consistent.
+```
+$ pmempool rm -s pool.set
+```
 
-+ **pmempool-create**(1) -
-Creates a pool of specified type with additional properties specific for this type of pool.
-
-+ **pmempool-dump**(1) -
-Dumps usable data from pool in hexadecimal or binary format.
-
-+ **pmempool-rm**(1)
-Removes pool file or all pool files listed in poolset configuration file.
-
-+ **pmempool-convert**(1) -
-Updates the pool to the latest available layout version.
-
-+ **pmempool-sync**(1) -
-Synchronizes replicas within a poolset.
-
-+ **pmempool-transform**(1) -
-Modifies internal structure of a poolset.
-
-In order to get more information about specific *command* you can use **pmempool help <command>.**
+Remove all pool files from the "pool.set", do not remove *pool.set* itself.
 
 
 # SEE ALSO #
 
-**libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
+**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
 and **<http://pmem.io>**

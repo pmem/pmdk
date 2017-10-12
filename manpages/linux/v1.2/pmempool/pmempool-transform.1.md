@@ -1,12 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-TRANSFORM
+title: pmempool-transform(1)
+collection: pmempool
 header: NVM Library
-date: pmem Tools version 1.3
+date: pmem Tools version 1.2.0
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -43,7 +44,7 @@ date: pmem Tools version 1.3
 
 # NAME #
 
-**pmempool-transform** -- Modify internal structure of a pool set.
+**pmempool-transform** -- Modify internal structure of a poolset.
 
 # SYNOPSIS #
 
@@ -53,16 +54,16 @@ pmempool transform [options] <poolset_file_src> <poolset_file_dst>
 
 # DESCRIPTION #
 
-The **pmempool transform** command modifies internal structure of a pool set
+The **pmempool transform** command modifies internal structure of a poolset
 defined by the `poolset_file_src` file, according to a structure described in
 the `poolset_file_dst` file.
 
 The following operations are supported:
 
 * adding replicas - one or more new replicas can be added and synchronized with
-other replicas in the pool set,
+other replicas in the poolset,
 
-* removing replicas - one or more replicas can be removed from the pool set,
+* removing replicas - one or more replicas can be removed from the poolset,
 
 * reordering of replicas - the order of existing replicas can be changed.
 
@@ -70,11 +71,11 @@ Currently these operations are allowed only for **pmemobj** pools (see
 **libpmemobj**(3)).
 
 
-The *poolset_file_src* argument provides the source pool set to be changed.
+The *poolset_file_src* argument provides the source poolset to be changed.
 
-The *poolset_file_dst* argument points to the target pool set.
+The *poolset_file_dst* argument points to the target poolset.
 
-When adding or deleting replicas, the two pool set files can differ only in the
+When adding or deleting replicas, the two poolset files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
 at a time. Reordering replicas can be combined with any of them.
@@ -135,7 +136,7 @@ Then, the command
 
 `pmempool transform /path/poolset_file_src /path/poolset_file_dst`
 
-adds a replica to the pool set. All other replicas remain unchanged and
+adds a replica to the poolset. All other replicas remain unchanged and
 the size of the pool remains 60M.
 
 ##### Example 2. #####
@@ -163,7 +164,7 @@ Then
 
 `pmempool_transform /path/poolset_file_src /path/poolset_file_dst`
 
-deletes the second replica from the pool set. The first replica remains
+deletes the second replica from the poolset. The first replica remains
 unchanged and the size of the pool is still 60M.
 
 # SEE ALSO #

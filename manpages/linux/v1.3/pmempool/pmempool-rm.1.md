@@ -1,7 +1,8 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-DUMP
+title: PMEMPOOL-RM
+collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.3
 ...
@@ -33,107 +34,104 @@ date: pmem Tools version 1.3
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool-dump.1 -- man page for pmempool-dump)
+[comment]: <> (pmempool-rm.1 -- man page for pmempool-rm)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[RANGE](#range)<br />
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**pmempool-dump** -- Dump user data from specified pool
+**pmempool-rm** -- Remove (unlink) pool set files
 
 
 # SYNOPSIS #
 
 ```
-$ pmempool dump [<options>] <file>
+$ pmempool rm [<options>] <file>..
 ```
-
 
 # DESCRIPTION #
 
-The **pmempool** invoked with *dump* command dumps user data from specified pool file. The output format may be either binary or hexadecimal.
-
-By default the output format is hexadecimal.
-
-By default data is dumped to standard output. It is possible to dump data to other file by specifying **-o** option. In this case data will be appended to this
-file.
-
-Using **-r** option you can specify number of blocks/bytes/data chunks using special text format. See **RANGE** section for details.
+The **pmempool rm** command removes each specified file. If the specified file
+is a pool set file, all pool files (single-file pool or part files) and remote
+replicas are removed. By default the **pmempool rm** does not remove pool set
+files. All local and remote pool files are removed using **unlink**(3) call,
+except the pools created on **device dax** which are zeroed instead.
+If specified file does not exist, the remote pool is broken or not accessible,
+the **pmempool rm** command terminates with an error code. By default it prompts
+before removing *write-protected* local files.
+See **REMOTE REPLICATION** section for more details about support for remote
+pools.
+See **EXAMPLES** section for example usage of the *rm* command.
 
 ##### Available options: #####
 
-`-b, --binary`
-
-Dump data in binary format.
-
-`-r, --range <range>`
-
-Range of pool file to dump. This may be number of blocks for **blk** pool type or either number of bytes or number of data chunks for **log** pool type.
-
-`-c, --chunk <size>`
-
-Size of chunk for **log** pool type. See **pmemlog_walk**() in **libpmemlog**(3) for details.
-
-`-o, --output <file>`
-
-Name of output file.
-
 `-h, --help`
 
-Display help message and exit.
+Print help message
 
+`-v, --verbose`
 
-# RANGE #
+Be verbose and print all removing files.
 
-Using **-r**, **--range** option it is possible to dump only a range of user data. This section describes valid format of *\<range\>* string.
+`-s, --only-pools`
 
-You can specify multiple ranges separated by commas.
+Remove only pool files and do not remove pool set files (default behaviour).
 
-`<first>-<last>`
+`-a, --all`
 
-All blocks/bytes/data chunks from *\<first\>* to *\<last\>* will be dumped.
+Remove all pool set files - local and remote.
 
-`-<last>`
+`-l, --local`
 
-All blocks/bytes/data chunks up to *\<last\>* will be dumped.
+Remove local pool set files.
 
-`<first>-`
+`-r, --remote`
 
-All blocks/bytes/data chunks starting from *\<first\>* will be dumped.
+Remove remote pool set files.
 
-`<number>`
+`-f, --force`
 
-Only *\<number\>* block/byte/data chunk will be dumped.
+Remove all specified files, ignore nonexistent files, never prompt.
 
+`-i, --interactive`
+
+Prompt before removing every single file or remote pool.
+
+# REMOTE REPLICATION #
+
+A remote pool is removed using **rpmem_remove**() function if **librpmem**(3)
+library is available. If a pool set file contains remote replication but
+**librpmem**(3) is not available, the **pmempool rm** command terminates with
+an error code, unless the **-f, --force** option is specified.
 
 # EXAMPLE #
 
 ```
-$ pmempool dump pool.bin
+$ pmempool rm pool.obj pool.blk
 ```
 
-Dump user data from pool.bin file to standard output
+Remove specified pool files.
 
 ```
-$ pmempool dump -o output.bin -r1,10-100 pool_blk.bin
+$ pmempool rm pool.set
 ```
 
-Dump block number 1 and blocks from 10 to 100 from pool_blk.bin containing pmem blk pool to output.bin file
+Remove all pool files from the "pool.set", do not remove *pool.set* itself.
 
 ```
-$ pmempool dump -r 1K-2K pool.bin
+$ pmempool rm -a pool.set
 ```
 
-Dump data form 1K to 2K from pool.bin file.
-
+Remove all pool files from the "pool.set", remove the local pool set file and all
+remote pool set files.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3)
+**pmempool**(1), **libpmemlog**(3), **libpmemblk**(3), **libpmemobj**(3),
+**librpmem**(3)
 and **<http://pmem.io>**

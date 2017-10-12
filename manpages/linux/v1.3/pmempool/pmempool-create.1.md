@@ -1,12 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool-create(1)
+title: PMEMPOOL-CREATE
+collection: pmempool
 header: NVM Library
-date: pmem Tools version 1.2.0
+date: pmem Tools version 1.3
 ...
 
-[comment]: <> (Copyright 2016, Intel Corporation)
+[comment]: <> (Copyright 2016-2017, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -95,6 +96,10 @@ If the file already exist the permissions are not changed.
 `-i, --inherit <file>`
 
 Create a new pool of the same size and other properties as *\<file\>*.
+
+`-f, --force`
+
+Remove the pool before creating.
 
 `-v, --verbose`
 

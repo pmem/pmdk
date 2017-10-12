@@ -1,7 +1,8 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: pmempool-convert(1)
+title: pmempool-sync(1)
+collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.2.0
 ...
@@ -33,51 +34,51 @@ date: pmem Tools version 1.2.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool-convert.1 -- man page for pmempool-convert)
+[comment]: <> (pmempool-sync.1 -- man page for pmempool-sync)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[EXAMPLE](#example)<br />
+[EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
-
 
 # NAME #
 
-**pmempool-convert** - Convert pool files from old layout versions to the
-newest one.
-
+**pmempool-sync** -- Synchronize replicas or their parts within a poolset.
 
 # SYNOPSIS #
 
 ```
-$ pmempool convert <file>
+pmempool sync [options] <poolset_file>
 ```
 
+NOTE: Only the poolset file used to create the pool should be used
+for syncing the pool.
 
 # DESCRIPTION #
 
-The **pmempool** invoked with the *convert* command
-performs a conversion of the specified pool to the newest
-layout supported by this tool. Currently only
-**libpmemobj**(3) pools are supported. It is advised to
-have a backup of the pool before conversion.
+The **pmempool sync** command synchronizes data between replicas within
+a poolset. It checks if metadata of all replicas in a poolset
+are consistent, i.e. all parts are healthy, and if any of them is not,
+the corrupted or missing parts are recreated and filled with data from one of
+the healthy replicas.
 
->NOTE:
-The conversion process is not fail-safe - power interruption may damage the
-pool.
+##### Available options: #####
 
+`-d, --dry-run`
 
-# EXAMPLE #
+: Enable dry run mode. In this mode no changes are applied, only check for
+viability of synchronization.
 
-```
-$ pmempool convert pool.obj
-```
+`-v, --verbose`
 
-Updates pool.obj to the latest layout version.
+: Increase verbosity level.
+
+`-h, --help`
+
+: Display help message and exit.
 
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmempool**(3), **libpmemlog**(3), **libpmemblk**(3),
-**libpmemobj**(3) and **<http://pmem.io>**
+**libpmempool(3)**, **libpmemblk(3)**, **libpmemlog(3)**, **pmempool(1)**
