@@ -753,7 +753,7 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 
 	/* READ to read-after-write buffer */
 	ret = rpmem_fip_readmsg(lanep->base.ep, &lanep->read, fip->raw_buff,
-			RPMEM_RAW_SIZE, raddr);
+			RPMEM_RAW_SIZE, fip->raddr);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "RMA read");
 		return ret;
