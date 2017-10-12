@@ -78,6 +78,9 @@
 								{% if dc_title == "libpmemlog" or dc_title == "libpmemobj" or dc_title == "libpmemblk" or dc_title == "libpmempool" %}
 									<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
 								{% endif %}
+								{% if dc_title == "libpmemlog" or dc_title == "libpmemobj" or dc_title == "libpmemblk" or dc_title == "libpmempool" %}
+									<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
+								{% endif %}
 								<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
 								{% assign rev_functions =  release.func.[dc_title] | split: " " %}
 								{% for rev_function in rev_functions %}

@@ -1,5 +1,5 @@
 - tag: master
-  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool pmempool-sync pmempool-transform librpmem rpmemd
+  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool pmempool-sync pmempool-transform librpmem rpmemd poolset
   func:
     libpmem: pmem_check_version.3 pmem_drain.3 pmem_errormsg.3 pmem_flush.3 pmem_has_hw_drain.3 pmem_is_pmem.3 pmem_map_file.3 pmem_memcpy_nodrain.3 pmem_memcpy_persist.3 pmem_memmove_nodrain.3 pmem_memmove_persist.3 pmem_memset_nodrain.3 pmem_memset_persist.3 pmem_msync.3 pmem_persist.3 pmem_unmap.3
     libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
