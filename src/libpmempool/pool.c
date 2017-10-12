@@ -75,10 +75,10 @@
 /*
  * pool_btt_lseek -- (internal) perform lseek in BTT file mode
  */
-static inline off_t
-pool_btt_lseek(struct pool_data *pool, off_t offset, int whence)
+static inline os_off_t
+pool_btt_lseek(struct pool_data *pool, os_off_t offset, int whence)
 {
-	off_t result;
+	os_off_t result;
 	if ((result = os_lseek(pool->set_file->fd, offset, whence)) == -1)
 		ERR("!lseek");
 
@@ -607,7 +607,7 @@ pool_read(struct pool_data *pool, void *buff, size_t nbytes, uint64_t off)
 	if (pool->params.type != POOL_TYPE_BTT)
 		memcpy(buff, (char *)pool->set_file->addr + off, nbytes);
 	else {
-		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
+		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
 			return -1;
 		if ((size_t)pool_btt_read(pool, buff, nbytes) != nbytes)
 			return -1;
@@ -634,7 +634,7 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 		util_persist_auto(pool->params.is_dev_dax,
 				(char *)pool->set_file->addr + off, nbytes);
 	} else {
-		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
+		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
 			return -1;
 		if ((size_t)pool_btt_write(pool, buff, nbytes) != nbytes)
 			return -1;
@@ -800,7 +800,7 @@ pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count)
 	if (pool->params.type != POOL_TYPE_BTT)
 		memset((char *)off, 0, count);
 	else {
-		if (pool_btt_lseek(pool, (off_t)off, SEEK_SET) == -1)
+		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
 			return -1;
 
 		size_t zero_size = min(count, RW_BUFFERING_SIZE);

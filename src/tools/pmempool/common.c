@@ -1217,7 +1217,7 @@ pool_set_file_open(const char *fname,
 			goto err_free_fname;
 		}
 
-		off_t seek_size = os_lseek(fd, 0, SEEK_END);
+		os_off_t seek_size = os_lseek(fd, 0, SEEK_END);
 		if (seek_size == -1) {
 			outv_err("lseek SEEK_END failed\n");
 			os_close(fd);
@@ -1299,7 +1299,7 @@ pool_set_file_read(struct pool_set_file *file, void *buff,
 		return -1;
 
 	if (file->fileio) {
-		ssize_t num = pread(file->fd, buff, nbytes, (off_t)off);
+		ssize_t num = pread(file->fd, buff, nbytes, (os_off_t)off);
 		if (num < (ssize_t)nbytes)
 			return -1;
 	} else {
@@ -1322,7 +1322,7 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 		return -1;
 
 	if (file->fileio) {
-		ssize_t num = pwrite(file->fd, buff, nbytes, (off_t)off);
+		ssize_t num = pwrite(file->fd, buff, nbytes, (os_off_t)off);
 		if (num < (ssize_t)nbytes)
 			return -1;
 	} else {

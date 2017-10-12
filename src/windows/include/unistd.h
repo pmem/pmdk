@@ -79,7 +79,7 @@ sysconf(int p)
  * pread - windows port of pread function
  */
 static ssize_t
-pread(int fd, void *buf, size_t count, off_t offset)
+pread(int fd, void *buf, size_t count, os_off_t offset)
 {
 	__int64 position = _lseeki64(fd, 0, SEEK_CUR);
 	_lseeki64(fd, offset, SEEK_SET);
@@ -92,7 +92,7 @@ pread(int fd, void *buf, size_t count, off_t offset)
  * pwrite - windows port of pwrite function
  */
 static ssize_t
-pwrite(int fd, const void *buf, size_t count, off_t offset)
+pwrite(int fd, const void *buf, size_t count, os_off_t offset)
 {
 	__int64 position = _lseeki64(fd, 0, SEEK_CUR);
 	_lseeki64(fd, offset, SEEK_SET);
@@ -162,6 +162,6 @@ dirname(char *path)
 	return path;
 }
 
-int ftruncate(int fd, off_t length);
+int ftruncate(int fd, os_off_t length);
 
 #endif /* UNISTD_H */

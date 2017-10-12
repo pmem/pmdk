@@ -55,13 +55,6 @@ extern "C" {
 #error "32-bit builds of NVML are not supported!"
 #endif
 
-/*
- * Define off_t before windows.h is included!
- * XXX - make sure it has no side-effects
- */
-typedef long long off_t;	/* use 64-bit off_t */
-typedef long _off_t;		/* NOTE: _off_t must be defined as 'long'! */
-#define _OFF_T_DEFINED
 #define _CRT_RAND_S		/* rand_s() */
 
 #include <windows.h>
@@ -177,6 +170,7 @@ typedef int mode_t;
 #define setlinebuf(fp) setvbuf(fp, NULL, _IOLBF, BUFSIZ);
 
 /* unistd.h */
+typedef long long os_off_t;
 typedef long long ssize_t;
 
 int setenv(const char *name, const char *value, int overwrite);
@@ -184,7 +178,7 @@ int unsetenv(const char *name);
 int rand_r(unsigned *seedp);
 
 /* fcntl.h */
-int posix_fallocate(int fd, off_t offset, off_t len);
+int posix_fallocate(int fd, os_off_t offset, os_off_t len);
 
 /* string.h */
 #define strtok_r strtok_s

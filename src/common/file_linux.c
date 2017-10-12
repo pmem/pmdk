@@ -42,8 +42,8 @@
 #include <fcntl.h>
 #include <sys/sysmacros.h>
 
-#include "file.h"
 #include "os.h"
+#include "file.h"
 #include "out.h"
 
 #define MAX_SIZE_LENGTH 64

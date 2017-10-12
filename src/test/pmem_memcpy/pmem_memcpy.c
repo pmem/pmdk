@@ -116,7 +116,7 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 			file_name, bytes / 2);
 
 	/* Now validate the contents of the file */
-	LSEEK(fd, (off_t)dest_off, SEEK_SET);
+	LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(src + src_off, buf, bytes / 2))
 			UT_ERR("%s: first %zu bytes do not match",

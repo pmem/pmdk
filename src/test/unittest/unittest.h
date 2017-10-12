@@ -406,11 +406,11 @@ int ut_fcntl(const char *file, int line, const char *func, int fd,
     int cmd, int num, ...);
 #endif
 
-off_t ut_lseek(const char *file, int line, const char *func, int fd,
-    off_t offset, int whence);
+os_off_t ut_lseek(const char *file, int line, const char *func, int fd,
+    os_off_t offset, int whence);
 
 int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
-    off_t offset, off_t len);
+    os_off_t offset, os_off_t len);
 
 int ut_stat(const char *file, int line, const char *func, const char *path,
     os_stat_t *st_bufp);
@@ -424,7 +424,7 @@ int ut_fstat(const char *file, int line, const char *func, int fd,
 int ut_flock(const char *file, int line, const char *func, int fd, int op);
 
 void *ut_mmap(const char *file, int line, const char *func, void *addr,
-    size_t length, int prot, int flags, int fd, off_t offset);
+    size_t length, int prot, int flags, int fd, os_off_t offset);
 
 int ut_munmap(const char *file, int line, const char *func, void *addr,
     size_t length);
@@ -464,11 +464,11 @@ int ut_mknod(const char *file, int line, const char *func,
     const char *pathname, mode_t mode, dev_t dev);
 
 int ut_truncate(const char *file, int line, const char *func,
-    const char *path, off_t length);
+    const char *path, os_off_t length);
 #endif
 
 int ut_ftruncate(const char *file, int line, const char *func,
-    int fd, off_t length);
+    int fd, os_off_t length);
 
 int ut_chmod(const char *file, int line, const char *func,
     const char *path, mode_t mode);

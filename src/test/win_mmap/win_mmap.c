@@ -121,7 +121,8 @@ check_access(char *addr, size_t len, int prot)
  * check_mapping -- check access to memory mapped file
  */
 static void
-check_mapping(int fd, char *addr, size_t len, int prot, int flags, off_t offset)
+check_mapping(int fd, char *addr, size_t len, int prot,
+	int flags, os_off_t offset)
 {
 	volatile int i;
 

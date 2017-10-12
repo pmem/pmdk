@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* write the first lba */
-	off_t lba = strtoul(argv[3], NULL, 0);
+	os_off_t lba = strtoul(argv[3], NULL, 0);
 	unsigned char *buf = MALLOC(Bsize);
 
 	construct(buf);

@@ -125,7 +125,8 @@ typedef size_t (*fn_num_t)(size_t idx);
 typedef int (*fn_op_t)(struct obj_tx_bench *obj_bench,
 		       struct worker_info *worker, size_t idx);
 
-typedef struct offset (*fn_off_t)(struct obj_tx_bench *obj_bench, size_t idx);
+typedef struct offset (*fn_os_off_t)(struct obj_tx_bench *obj_bench,
+				     size_t idx);
 
 typedef enum op_mode (*fn_parse_t)(const char *arg);
 
@@ -193,17 +194,17 @@ static struct obj_tx_bench {
 	PMEMobjpool *pop;	     /* handle to persistent pool */
 	struct obj_tx_args *obj_args; /* pointer to benchmark arguments */
 	size_t *random_types;	 /* array to store random type numbers */
-	size_t *sizes;    /* array to store size of each allocation */
-	size_t *resizes;  /* array to store size of each reallocation */
-	size_t n_objs;    /* number of objects to allocate */
-	int type_mode;    /* type number mode */
-	int op_mode;      /* type of operation */
-	int lib_mode;     /* type of operation used in initialization */
-	int lib_op;       /* type of main operation */
-	int lib_op_free;  /* type of main operation */
-	int nesting_mode; /* type of nesting in main operation */
-	fn_num_t n_oid;   /* returns object's number in array */
-	fn_off_t fn_off;  /* returns offset for proper operation */
+	size_t *sizes;      /* array to store size of each allocation */
+	size_t *resizes;    /* array to store size of each reallocation */
+	size_t n_objs;      /* number of objects to allocate */
+	int type_mode;      /* type number mode */
+	int op_mode;	/* type of operation */
+	int lib_mode;       /* type of operation used in initialization */
+	int lib_op;	 /* type of main operation */
+	int lib_op_free;    /* type of main operation */
+	int nesting_mode;   /* type of nesting in main operation */
+	fn_num_t n_oid;     /* returns object's number in array */
+	fn_os_off_t fn_off; /* returns offset for proper operation */
 
 	/*
 	 * fn_type_num gets proper function assigned, depending on the

@@ -41,6 +41,7 @@
 #include <sys/param.h>
 #include <endian.h>
 
+#include "os.h"
 #include "common.h"
 #include "output.h"
 #include "info.h"
@@ -394,7 +395,7 @@ info_btt_info(struct pmem_info *pip, int v, struct btt_info *infop)
  * info_btt_layout -- print information about BTT layout
  */
 static int
-info_btt_layout(struct pmem_info *pip, off_t btt_off)
+info_btt_layout(struct pmem_info *pip, os_off_t btt_off)
 {
 	int ret = 0;
 

@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
-	POSIX_FALLOCATE(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
+	POSIX_FALLOCATE(fd, (os_off_t)0, (size_t)(2 * 1024 * 1024));
 
 	CLOSE(fd);
 

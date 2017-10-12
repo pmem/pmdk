@@ -265,7 +265,7 @@ out:
  * os_posix_fallocate -- allocate file space
  */
 int
-os_posix_fallocate(int fd, off_t offset, off_t len)
+os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 {
 	/*
 	 * From POSIX:
@@ -316,7 +316,7 @@ os_posix_fallocate(int fd, off_t offset, off_t len)
  * os_ftruncate -- truncate a file to a specified length
  */
 int
-os_ftruncate(int fd, off_t length)
+os_ftruncate(int fd, os_off_t length)
 {
 	return _chsize_s(fd, length);
 }
@@ -350,7 +350,7 @@ os_flock(int fd, int operation)
 			return -1;
 	}
 
-	off_t filelen = _filelengthi64(fd);
+	os_off_t filelen = _filelengthi64(fd);
 	if (filelen < 0)
 		return -1;
 

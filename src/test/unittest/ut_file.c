@@ -144,7 +144,7 @@ ut_unlink(const char *file, int line, const char *func, const char *path)
  */
 int
 ut_posix_fallocate(const char *file, int line, const char *func, int fd,
-    off_t offset, off_t len)
+    os_off_t offset, os_off_t len)
 {
 	int retval = os_posix_fallocate(fd, offset, len);
 
@@ -243,11 +243,11 @@ ut_readlink(const char *file, int line, const char *func, const char *path,
 /*
  * ut_lseek -- an lseek that can't return -1
  */
-off_t
+os_off_t
 ut_lseek(const char *file, int line, const char *func, int fd,
-    off_t offset, int whence)
+    os_off_t offset, int whence)
 {
-	off_t retval = os_lseek(fd, offset, whence);
+	os_off_t retval = os_lseek(fd, offset, whence);
 
 	if (retval == -1)
 		ut_fatal(file, line, func, "!lseek: %d", fd);
@@ -362,7 +362,7 @@ ut_statW(const char *file, int line, const char *func, const wchar_t *path,
  */
 void *
 ut_mmap(const char *file, int line, const char *func, void *addr,
-    size_t length, int prot, int flags, int fd, off_t offset)
+    size_t length, int prot, int flags, int fd, os_off_t offset)
 {
 	void *ret_addr = mmap(addr, length, prot, flags, fd, offset);
 
@@ -524,7 +524,7 @@ ut_umount(const char *file, int line, const char *func, const char *tar)
  */
 int
 ut_truncate(const char *file, int line, const char *func, const char *path,
-    off_t length)
+    os_off_t length)
 {
 	int retval = truncate(path, length);
 
@@ -542,7 +542,7 @@ ut_truncate(const char *file, int line, const char *func, const char *path,
  */
 int
 ut_ftruncate(const char *file, int line, const char *func, int fd,
-    off_t length)
+    os_off_t length)
 {
 	int retval = os_ftruncate(fd, length);
 

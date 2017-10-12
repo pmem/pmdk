@@ -315,13 +315,13 @@ main(int argc, char *argv[])
 	/* allocate file */
 	if (!opts.trunc) {
 		if (os_posix_fallocate(fd, 0,
-				(off_t)opts.poolsize) != 0) {
+				(os_off_t)opts.poolsize) != 0) {
 			perror("posix_fallocate");
 			res = file_error(fd, opts.fpath);
 			goto error;
 		}
 	} else {
-		if (os_ftruncate(fd, (off_t)opts.poolsize) != 0) {
+		if (os_ftruncate(fd, (os_off_t)opts.poolsize) != 0) {
 			perror("ftruncate");
 			res = file_error(fd, opts.fpath);
 			goto error;

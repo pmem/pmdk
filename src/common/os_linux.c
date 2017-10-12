@@ -134,7 +134,7 @@ os_mkstemp(char *temp)
  * os_posix_fallocate -- posix_fallocate abstraction layer
  */
 int
-os_posix_fallocate(int fd, off_t offset, off_t len)
+os_posix_fallocate(int fd, os_off_t offset, off_t len)
 {
 	return posix_fallocate(fd, offset, len);
 }
@@ -143,7 +143,7 @@ os_posix_fallocate(int fd, off_t offset, off_t len)
  * os_ftruncate -- ftruncate abstraction layer
  */
 int
-os_ftruncate(int fd, off_t length)
+os_ftruncate(int fd, os_off_t length)
 {
 	return ftruncate(fd, length);
 }
