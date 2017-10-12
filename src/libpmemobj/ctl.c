@@ -94,7 +94,14 @@ ctl_find_node(struct ctl_node *nodes, const char *name,
 	 */
 	while (node_name != NULL) {
 		char *endptr;
+		/*
+		 * Ignore errno from strtol: FreeBSD returns EINVAL if no
+		 * conversion is performed. Linux does not, but endptr
+		 * check is valid in both cases.
+		 */
+		int tmp_errno = errno;
 		long index_value = strtol(node_name, &endptr, 0);
+		errno = tmp_errno;
 		struct ctl_index *index_entry = NULL;
 		if (endptr != node_name) { /* a valid index */
 			index_entry = Malloc(sizeof(*index_entry));

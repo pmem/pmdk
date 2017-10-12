@@ -273,8 +273,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 #ifndef _WIN32
 	if (os_thread_atfork(out_prefork, out_postfork_parent,
 		out_postfork_child)) {
-		ERR("!os_thread_atfork");
-		abort();
+		FATAL("!os_thread_atfork");
 	}
 #endif
 

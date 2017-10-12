@@ -486,7 +486,8 @@ ut_rename(const char *file, int line, const char *func,
 	return retval;
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__FreeBSD__)
+/* XXX Fix for FreeBSD if ever used */
 /*
  * ut_mount -- a mount that cannot return -1
  */

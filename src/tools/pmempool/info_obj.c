@@ -915,13 +915,12 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 				pip->obj.alloc_classes, (uint8_t)class);
 		if (c == NULL)
 			continue;
+		if (!stats->class_stats[class].n_units)
+			continue;
 
 		double used_perc = 100.0 *
 			(double)stats->class_stats[class].n_used /
 			(double)stats->class_stats[class].n_units;
-
-		if (!stats->class_stats[class].n_units)
-			continue;
 
 		outv_nl(v);
 		outv_field(v, "Unit size", "%s", out_get_size_str(

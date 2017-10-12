@@ -54,7 +54,10 @@ create_nonzeroed_file 2M 0K $DIR/testfile1
 expect_normal_exit $EX_PATH/simple_copy $DIR/testfile1 $DIR/testfile2 \
 	> out$UNITTEST_NUM.log 2>&1
 
-cmp -n 4096 $DIR/testfile1 $DIR/testfile2 > cmp$UNITTEST_NUM.log 2>&1
+# XXX FreeBSD does not support the -n option to cmp(1)
+dd if=$DIR/testfile1 of=$DIR/testfile1.4k bs=4096 count=1 status=none
+dd if=$DIR/testfile2 of=$DIR/testfile2.4k bs=4096 count=1 status=none
+cmp $DIR/testfile1.4k $DIR/testfile2.4k > cmp$UNITTEST_NUM.log 2>&1
 
 check
 
