@@ -76,5 +76,7 @@
 
 !def{U}{!ifdef{WIN32}{U}}
 
+!def{7}{!ifdef{WEB}{}{(7)}}
+!def{5}{!ifdef{WEB}{}{(5)}}
 !def{3}{!ifdef{WEB}{}{(3)}}
 !def{1}{!ifdef{WEB}{}{(1)}}
