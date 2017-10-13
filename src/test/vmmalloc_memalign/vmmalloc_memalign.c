@@ -38,9 +38,6 @@
  */
 
 #include <stdlib.h>
-#ifndef __FreeBSD__
-#include <malloc.h>
-#endif
 #include <errno.h>
 #include "unittest.h"
 #include "vmmalloc_weakfuncs.h"

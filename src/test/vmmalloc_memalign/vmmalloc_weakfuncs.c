@@ -43,6 +43,7 @@ aligned_alloc(size_t alignment, size_t size)
 	return NULL;
 }
 
+#ifdef __FreeBSD__
 __attribute__((weak))
 void *
 memalign(size_t alignment, size_t size)
@@ -56,3 +57,4 @@ pvalloc(size_t size)
 {
 	return NULL;
 }
+#endif
