@@ -61,13 +61,17 @@ typedef union {
 } os_cond_t;
 
 typedef union {
+	long long align;
+	char padding[32]; /* linux: 8 windows: 32 */
+} os_thread_t;
+
+typedef union {
 	long long align;  /* linux: long windows: 8 FreeBSD: 12 */
 	char padding[16]; /* 16 to be safe */
 } os_once_t;
 
 #define OS_ONCE_INIT { .padding = {0} }
 
-typedef uintptr_t os_thread_t;
 typedef unsigned os_tls_key_t;
 
 typedef union {
