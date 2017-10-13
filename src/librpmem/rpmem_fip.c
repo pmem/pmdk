@@ -90,6 +90,14 @@ typedef int (*rpmem_fip_process_fn)(struct rpmem_fip *fip,
 typedef int (*rpmem_fip_init_fn)(struct rpmem_fip *fip);
 typedef void (*rpmem_fip_fini_fn)(struct rpmem_fip *fip);
 
+typedef ssize_t (*cq_read_fn)(struct fid_cq *cq, void *buf, size_t count);
+
+static ssize_t
+cq_read_infinite(struct fid_cq *cq, void *buf, size_t count)
+{
+	return fi_cq_sread(cq, buf, count, NULL, -1);
+}
+
 /*
  * rpmem_fip_ops -- operations specific for persistency method
  */
@@ -178,6 +186,8 @@ struct rpmem_fip {
 	void *raw_buff;			/* READ-after-WRITE buffer */
 	struct fid_mr *raw_mr;		/* RAW memory region */
 	void *raw_mr_desc;		/* RAW memory descriptor */
+
+	cq_read_fn cq_read;		/* CQ read function */
 };
 
 /*
@@ -308,7 +318,7 @@ rpmem_fip_lane_wait(struct rpmem_fip *fip, struct rpmem_fip_lane *lanep,
 		if (unlikely(fip->closing))
 			return ECONNRESET;
 
-		sret = fi_cq_sread(lanep->cq, &cq_entry, 1, NULL, -1);
+		sret = fip->cq_read(lanep->cq, &cq_entry, 1);
 
 		if (unlikely(sret == -FI_EAGAIN) || sret == 0)
 			continue;
@@ -1045,6 +1055,9 @@ rpmem_fip_init(const char *node, const char *service,
 		attr->provider, attr->persist_method);
 	if (ret)
 		goto err_getinfo;
+
+	fip->cq_read = attr->provider == RPMEM_PROV_LIBFABRIC_VERBS ?
+		fi_cq_read : cq_read_infinite;
 
 	rpmem_fip_set_attr(fip, attr);
 
