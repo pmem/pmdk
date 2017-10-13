@@ -270,7 +270,7 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 
 	uint64_t found_units = 0;
 	uint16_t free_space = 0;
-	struct memory_block nm;
+	struct memory_block nm = MEMORY_BLOCK_NONE;
 	uint64_t key;
 	do {
 		if ((key = ctree_remove_unlocked(r->runs, 0, 0)) == 0)
