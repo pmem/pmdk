@@ -80,6 +80,7 @@ struct recycler {
 	 */
 	size_t unaccounted_units;
 	size_t nallocs;
+	size_t recalc_threshold;
 	int recalc_inprogress;
 
 	VEC(, uint64_t) recalc;
@@ -103,6 +104,7 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 
 	r->heap = heap;
 	r->nallocs = nallocs;
+	r->recalc_threshold = nallocs * THRESHOLD_MUL;
 	r->unaccounted_units = 0;
 	r->recalc_inprogress = 0;
 	VEC_INIT(&r->recalc);
@@ -260,10 +262,10 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 	uint64_t units;
 	units = util_fetch_and_add64(&r->unaccounted_units, m->size_idx);
 
-	if (r->recalc_inprogress || units < (r->nallocs * THRESHOLD_MUL))
+	if (r->recalc_inprogress || units < (r->recalc_threshold))
 		return runs;
 
-	if (util_bool_compare_and_swap32(&r->recalc_inprogress, 0, 1) != 0)
+	if (!util_bool_compare_and_swap32(&r->recalc_inprogress, 0, 1))
 		return runs;
 
 	util_mutex_lock(&r->lock);
@@ -290,7 +292,7 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 		} else {
 			VEC_PUSH_BACK(&r->recalc, score);
 		}
-	} while (found_units < r->nallocs);
+	} while (found_units < r->recalc_threshold);
 
 	VEC_FOREACH(key, &r->recalc) {
 		ctree_insert_unlocked(r->runs, key, 0);
@@ -298,11 +300,11 @@ recycler_inc_unaccounted(struct recycler *r, const struct memory_block *m)
 
 	VEC_CLEAR(&r->recalc);
 
-	util_fetch_and_sub64(&r->unaccounted_units, units);
-	int ret = util_bool_compare_and_swap32(&r->recalc_inprogress, 0, 1);
-	ASSERTeq(ret, 1);
-
 	util_mutex_unlock(&r->lock);
+
+	util_fetch_and_sub64(&r->unaccounted_units, units);
+	int ret = util_bool_compare_and_swap32(&r->recalc_inprogress, 1, 0);
+	ASSERTeq(ret, 1);
 
 	return runs;
 }
