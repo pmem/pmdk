@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # install-libfabric.sh - installs a customized version of libfabric
 #
+
+set -e
 
 # Keep in sync with requirements in src/common.inc.
 libfabric_ver=1.4.2

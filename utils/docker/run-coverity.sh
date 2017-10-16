@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # run-coverity.sh - runs the Coverity scan build
 #
+
+set -e
 
 # Prepare build environment
 ./prepare-for-build.sh

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -36,6 +36,8 @@
 #
 # this script is for building NVML on Travis only
 #
+
+set -e
 
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then

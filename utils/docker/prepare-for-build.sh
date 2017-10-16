@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -35,6 +35,8 @@
 #                        the environment inside a Docker container for
 #                        running build of NVML project.
 #
+
+set -e
 
 # Mount filesystem for tests
 echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G

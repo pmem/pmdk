@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -46,6 +46,8 @@
 # If the Docker image does not have to be rebuilt, it will be pulled from
 # Docker Hub.
 #
+
+set -e
 
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then

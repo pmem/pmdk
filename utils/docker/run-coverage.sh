@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -34,6 +34,8 @@
 # run-coverage.sh - is called inside a Docker container; runs the coverage
 #                   test
 #
+
+set -e
 
 # Get and prepare NVML source
 ./prepare-for-build.sh

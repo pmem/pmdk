@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -38,6 +38,8 @@
 #
 # The script can be run locally.
 #
+
+set -e
 
 function usage {
 	echo "Usage:"

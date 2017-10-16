@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2014-2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # build-dpkg.sh - Script for building deb packages
 #
+
+set -e
 
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh

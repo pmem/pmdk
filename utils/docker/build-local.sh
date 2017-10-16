@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -47,6 +47,8 @@
 # - tests with Device Dax are not supported by pcheck yet, so do not provide
 #   these devices in your configuration
 #
+
+set -e
 
 # Environment variables that can be customized (default values are after dash):
 export KEEP_CONTAINER=${KEEP_CONTAINER:-0}

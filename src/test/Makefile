@@ -374,7 +374,10 @@ sparse  : TARGET = sparse
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 
-all test cstyle format sparse: $(TESTS_BUILD)
+all test format sparse: $(TESTS_BUILD)
+
+cstyle: $(TESTS_BUILD)
+	$(CHECK_SHEBANG) $(foreach dir,$(TESTS_BUILD),$(dir)/TEST? $(dir)/TEST??)
 
 clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)

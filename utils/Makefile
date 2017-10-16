@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,6 +30,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
+	$(filter $(subst *,%,$2),$d)))
+
+SCRIPTS = $(call rwildcard,,*.sh)
+
 all:
 	$(MAKE) -C check_license $@
 
@@ -44,6 +49,7 @@ clobber:
 
 cstyle:
 	$(MAKE) -C check_license $@
+	./check-shebang.sh $(SCRIPTS)
 
 format:
 	$(MAKE) -C check_license $@

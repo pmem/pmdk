@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2014-2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # build-rpm.sh - Script for building rpm packages
 #
+
+set -e
 
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
