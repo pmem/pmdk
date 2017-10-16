@@ -140,15 +140,6 @@ pvector_reinit(struct pvector_context *ctx)
 }
 
 /*
- * find_highest_bit -- (internal) searches for the highest set bit
- */
-static unsigned
-find_highest_bit(uint64_t value)
-{
-	return 64 - (unsigned)__builtin_clzll(value) - 1;
-}
-
-/*
  * A small helper structure that defines the position of a value in the array
  * of arrays.
  */
@@ -176,7 +167,7 @@ pvector_get_array_spec(uint64_t idx)
 	 * the bit position from which the algorithm starts.
 	 */
 	uint64_t pos = idx + PVECTOR_INIT_SIZE;
-	unsigned hbit = find_highest_bit(pos);
+	unsigned hbit = util_mssb_index64(pos);
 	s.idx = (size_t)(hbit - PVECTOR_INIT_SHIFT);
 
 	/*

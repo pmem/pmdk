@@ -96,60 +96,6 @@ extern "C" {
 #define __builtin_constant_p(cnd) 0
 
 /*
- * atomics
- */
-
-__inline int
-__builtin_clzll(uint64_t val)
-{
-	DWORD lz = 0;
-
-	if (BitScanReverse64(&lz, val))
-		return 63 - (int)lz;
-	else
-		return 64;
-}
-
-__inline int
-__builtin_ffsll(long long val)
-{
-	unsigned long ret;
-	return _BitScanForward64(&ret, val) ? ret + 1 : 0;
-}
-
-#define __builtin_popcountll(val) __popcnt64(val)
-
-__inline uint32_t
-__sync_fetch_and_or(volatile uint32_t *a, uint32_t val)
-{
-	return InterlockedOr((LONG *)a, (LONG)val);
-}
-
-__inline uint64_t
-__sync_fetch_and_and(volatile uint64_t *a, uint64_t val)
-{
-	return InterlockedAnd64((LONG64 *)a, (LONG64)val);
-}
-
-__inline uint32_t
-__sync_fetch_and_add(volatile uint32_t *a, uint32_t val)
-{
-	return InterlockedExchangeAdd(a, val);
-}
-
-__inline uint64_t
-__sync_fetch_and_add64(volatile uint64_t *a, uint64_t val)
-{
-	return InterlockedExchangeAdd64((LONG64 *)a, (LONG64)val);
-}
-
-__inline void
-__sync_synchronize()
-{
-	MemoryBarrier();
-}
-
-/*
  * missing definitions
  */
 

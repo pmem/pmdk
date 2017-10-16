@@ -130,9 +130,9 @@ ringbuf_stop(struct ringbuf *rbuf)
 
 	/* wait for the buffer to become empty */
 	while (rbuf->read_pos != rbuf->write_pos)
-		__sync_synchronize();
+		util_synchronize();
 
-	int ret = util_bool_compare_and_swap64(&rbuf->running, 1, 0);
+	int ret = util_bool_compare_and_swap32(&rbuf->running, 1, 0);
 	ASSERTeq(ret, 1);
 
 	/* XXX just unlock all waiting threads somehow... */
@@ -163,7 +163,7 @@ ringbuf_enqueue_atomic(struct ringbuf *rbuf, void *data)
 {
 	LOG(4, NULL);
 
-	size_t w = util_fetch_and_add(&rbuf->write_pos, 1) & rbuf->len_mask;
+	size_t w = util_fetch_and_add64(&rbuf->write_pos, 1) & rbuf->len_mask;
 
 	ASSERT(rbuf->running);
 
@@ -224,7 +224,7 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 {
 	LOG(4, NULL);
 
-	size_t r = util_fetch_and_add(&rbuf->read_pos, 1) & rbuf->len_mask;
+	size_t r = util_fetch_and_add64(&rbuf->read_pos, 1) & rbuf->len_mask;
 	/*
 	 * Again, in most cases, there won't be even a single loop, but if one
 	 * thread stalls while others perform work, it might happen that two
@@ -235,7 +235,7 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&rbuf->data[r]);
 	do {
 		while ((data = rbuf->data[r]) == NULL)
-			__sync_synchronize();
+			util_synchronize();
 	} while (!util_bool_compare_and_swap64(&rbuf->data[r], data, NULL));
 
 	return data;

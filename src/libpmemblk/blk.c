@@ -65,7 +65,7 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 {
 	unsigned mylane;
 
-	mylane = __sync_fetch_and_add(&pbp->next_lane, 1) % pbp->nlane;
+	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
 	util_mutex_lock(&pbp->locks[mylane]);

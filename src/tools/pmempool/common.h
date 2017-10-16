@@ -227,12 +227,6 @@ unsigned util_heap_max_zone(size_t size);
 int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp);
 
-static inline uint32_t
-util_count_ones(uint64_t val)
-{
-	return (uint32_t)__builtin_popcountll(val);
-}
-
 static const struct range ENTIRE_UINT64 = {
 	{ NULL, NULL },	/* range */
 	0,		/* first */
