@@ -46,7 +46,8 @@ date: pmemobj API version 2.2
 # NAME #
 
 **pmemobj_open**(), **pmemobj_create**(),
-**pmemobj_close**() -- create, open and close obj pool
+**pmemobj_close**(), **pmemobj_check**()
+-- create, open and close persistent memory transactional object store
 
 
 # SYNOPSIS #
@@ -58,6 +59,7 @@ PMEMobjpool *pmemobj_open(const char *path, const char *layout);
 PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
 void pmemobj_close(PMEMobjpool *pop);
+int pmemobj_check(const char *path, const char *layout);
 ```
 
 
@@ -115,6 +117,9 @@ deletes the memory pool handle. The object store itself lives on in the file
 that contains it and may be re-opened at a later time using
 **pmemobj_open**() as described above.
 
+The **pmemobj_check**() function performs a consistency check of the file indicated by
+*path*. **pmemobj_check**() opens the given *path* read-only so
+it never makes any changes to the file. This function is not supported on Device DAX.
 
 # RETURN VALUE #
 
@@ -128,6 +133,14 @@ from being opened, or if the given *layout* does not match the pool's layout,
 **pmemobj_open**() returns NULL and sets *errno* appropriately.
 
 The **pmemobj_close**() function returns no value.
+
+The **pmemobj_check**() function returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause **pmemobj_check**() to return 0, in which case the use of
+the file with **libpmemobj** will result in undefined behavior. The debug version of
+**libpmemobj** will provide additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL**
+is at least 1, as described in the **DEBUGGING ANDERROR HANDLING** section in **libpmemobj**(7).
+**pmemobj_check**() will return -1 and set *errno* if it cannot perform the consistency
+check due to other errors.
 
 
 # SEE ALSO #

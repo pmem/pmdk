@@ -46,7 +46,8 @@ date: pmemobj API version 2.2
 # NAME #
 
 **pmemobj_openU**()/**pmemobj_openW**(), **pmemobj_createU**()/**pmemobj_createW**(),
-**pmemobj_close**() -- create, open and close obj pool
+**pmemobj_close**(), **pmemobj_checkU**()/**pmemobj_checkW**()
+-- create, open and close persistent memory transactional object store
 
 
 # SYNOPSIS #
@@ -61,6 +62,8 @@ PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
 PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
 	size_t poolsize, mode_t mode);
 void pmemobj_close(PMEMobjpool *pop);
+int pmemobj_checkU(const char *path, const char *layout);
+int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
 ```
 
 >NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
@@ -120,6 +123,9 @@ deletes the memory pool handle. The object store itself lives on in the file
 that contains it and may be re-opened at a later time using
 **pmemobj_openU**()/**pmemobj_openW**() as described above.
 
+The **pmemobj_checkU**()/**pmemobj_checkW**() function performs a consistency check of the file indicated by
+*path*. **pmemobj_checkU**()/**pmemobj_checkW**() opens the given *path* read-only so
+it never makes any changes to the file. This function is not supported on Device DAX.
 
 # RETURN VALUE #
 
@@ -133,6 +139,14 @@ from being opened, or if the given *layout* does not match the pool's layout,
 **pmemobj_openU**()/**pmemobj_openW**() returns NULL and sets *errno* appropriately.
 
 The **pmemobj_close**() function returns no value.
+
+The **pmemobj_checkU**()/**pmemobj_checkW**() function returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause **pmemobj_checkU**()/**pmemobj_checkW**() to return 0, in which case the use of
+the file with **libpmemobj** will result in undefined behavior. The debug version of
+**libpmemobj** will provide additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL**
+is at least 1, as described in the **DEBUGGING ANDERROR HANDLING** section in **libpmemobj**(7).
+**pmemobj_checkU**()/**pmemobj_checkW**() will return -1 and set *errno* if it cannot perform the consistency
+check due to other errors.
 
 
 # SEE ALSO #

@@ -46,7 +46,7 @@ date: rpmem API version 1.1
 # NAME #
 
 **rpmem_persist**(), **rpmem_read**(),
-**rpmem_remove**() -- functions to copy, read and remove remote pools
+-- functions to copy and read remote pools
 
 
 # SYNOPSIS #
@@ -56,7 +56,6 @@ date: rpmem API version 1.1
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length, unsigned lane);
-int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 ```
 
 
@@ -82,22 +81,6 @@ or **rpmem_create**(3) through the *nlanes* argument (so it can take a value
 from 0 to *nlanes* - 1). The *rpp* must point to a remote pool opened or created
 previously by **rpmem_open**(3) or **rpmem_create**(3) functions respectively.
 
-The **rpmem_remove**() function removes a remote pool on a given *target* node.
-The *pool_set_name* is a relative path in the root config directory on the
-*target* node that uniquely identifies the pool set file on remote node.
-By default only the pool part files are removed and pool set file is left
-untouched. If the pool is not consistent the **rpmem_remove**() function fails,
-unless otherwise specified.
-The *flags* argument determines the behavior of **rpmem_remove**() function.
-It is either 0 or the bitwise OR of one or more of the following flags:
-
-+ **RPMEM_REMOVE_FORCE**
-Ignore errors when opening inconsistent pool. The pool set file must be in
-appropriate format though.
-
-+ **RPMEM_REMOVE_POOL_SET**
-Remove pool set file after removing the pool described by this pool set.
-
 
 # RETURN VALUE #
 
@@ -107,9 +90,6 @@ made persistent on remote node, otherwise it returns non-zero value and sets
 
 The **rpmem_read**() function returns 0 if the data was read entirely,
 otherwise non-zero value is returned and *errno* set appropriately.
-
-The **rpmem_remove**() function returns 0 on success, otherwise non-zero
-value is returned and *errno* set appropriately.
 
 
 # SEE ALSO #

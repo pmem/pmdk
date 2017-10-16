@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: POOLSET!5
+title: POOLSET
 collection: poolset
 header: NVM Library
 date: poolset API version 1.0
@@ -59,16 +59,19 @@ mypool.set
 Depending on the configuration of the system, the available space of non-volatile
 memory space may be divided into multiple memory devices. In such case, the
 maximum size of the transactional object store could be limited by the capacity
-of a single memory device. The **libpmemobj**(7) allows building transactional
-object stores spanning multiple memory devices by creation of persistent memory pools
+of a single memory device.
+
+The **libpmemobj**(7), **libpmemblk** and **libpmemlog** allows building object
+stores spanning multiple memory devices by creation of persistent memory pools
 consisting of multiple files, where each part of such a *pool set* may be
 stored on different pmem-aware filesystem.
 
-To improve reliability and eliminate the single point of failure, all the
-changes of the data stored in the persistent memory pool could be also automatically
-written to local or remote pool replicas, thereby providing a backup
-for a persistent memory pool by producing a *mirrored pool set*. In practice, the pool
-replicas may be considered as binary copies of the "master" pool set.
+In case of **libpmemobj**(7) to improve reliability and eliminate the single point of
+failure, all the changes of the data stored in the persistent memory pool could be also
+automatically written to local or remote pool replicas, thereby providing
+a backup for a persistent memory pool by producing a *mirrored pool set*. In practice,
+the pool replicas may be considered as binary copies of the "master" pool set.
+Data replication is not supported in **libpmemblk**(7) and **libpmemlog**(7).
 
 The set file for each type of pool is a plain text file, which must start
 with the line containing a *PMEMPOOLSET* string, followed by the specification
@@ -133,10 +136,9 @@ $ pmempool create log <bsize> mylogpool.set
 ```
 
 >WARNING:
-Data replication is not supported in **libpmemblk** and **libpmemlog**.
-
 Creation of all the parts of the pool set and the associated replica sets can be done
-with the **pmemobj_create**(), function or by using the **pmempool**(1) utility.
+with the **pmemobj_create**(3), **pmemblk_create**(3), **pmemlog_create**(3) function
+or by using the **pmempool**(1) utility.
 
 Restoring data from a local or remote replica can be done by using the
 **pmempool-sync**(1) command or **pmempool_sync**() API from the
@@ -147,17 +149,18 @@ Modifications of a pool set file configuration can be done by using the
 **libpmempool**(3) library.
 
 When creating the pool set consisting of multiple files, or when creating
-the replicated pool set, the *path* argument passed to **pmemobj_create**(),
-must point to the special *set* file that defines the pool layout and the
-location of all the parts of the pool set.
+the replicated pool set, the *path* argument passed to **pmemobj_create**(3),
+**pmemblk_create**(3), **pmemlog_create**(3) must point to the special *set*
+file that defines the pool layout and the location of all the parts of the pool set.
 
 When opening the pool set consisting of multiple files, or when opening the replicated
-pool set, the *path* argument passed to **pmemobj_open**() must not
-point to the pmemobj memory pool file, but to the same *set* file that was used
-for the pool set creation. If an error prevents any of the pool set files from
-being opened, or if the actual size of any file does not match the corresponding
-part size defined in *set* file **pmemobj_open**() returns NULL and sets
-*errno* appropriately.
+pool set, the *path* argument passed to **pmemobj_create**(3), **pmemblk_create**(3),
+**pmemlog_create**(3) must not point to the pmemobj, pmemblk or pmemlog memory pool
+file, but to the same *set* file that was used for the pool set creation.
+If an error prevents any of the pool set files from being opened, or if the actual
+size of any file does not match the corresponding part size defined in *set* file
+**pmemobj_create**(3), **pmemblk_create**(3) or **pmemlog_create**(3) return
+NULL and set *errno* appropriately.
 
 Sections defining the replica sets are optional. There could be multiple replica
 sections and each must start with the line containing a *REPLICA* string.
@@ -202,5 +205,6 @@ $ pmempool create --layout="mylayout" obj myobjpool.set
 
 # SEE ALSO #
 
-**ndctl-create-namespace**(1), **sysconf**(3),
-**libpmemblk**(7) and **<http://pmem.io>**
+**ndctl-create-namespace**(1), **pmemblk_create**(3), **pmemlog_create**(3),
+**pmemobj_create**(3), **sysconf**(3), **libpmemblk**(7), **libpmemlog**(7),
+**libpmemobj**(7) and **<http://pmem.io>**

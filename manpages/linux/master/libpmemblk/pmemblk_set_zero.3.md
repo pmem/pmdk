@@ -34,8 +34,8 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_set_zero.3 -- man page for functions that sets
-									zeros or error state in the memory pool)
+[comment]: <> (pmemblk_set_zero.3 -- man page for functions that sets zeros or error state in the memory pool)
+
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -46,8 +46,8 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-**pmemblk_set_zero**(), **pmemblk_set_error**() --  read or writes a block from buffer to
-													block number in the memory pool.
+**pmemblk_set_zero**(), **pmemblk_set_error**() --  write zeros or set error state for specific block
+													from persistent memory resident array of blocks.
 
 
 # SYNOPSIS #
@@ -62,20 +62,21 @@ int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 
 # DESCRIPTION #
 
-The **pmemblk_set_zero**() function writes zeros to block number *blockno* in memory pool *pbp*.
-Using this function is faster than actually writing a block of zeros since
-**libpmemblk**(7) uses metadata to indicate the block should read back as zero.
+The **pmemblk_set_zero**() function writes zeros to block number *blockno* in persistent
+memory resident array of blocks *pbp*. Using this function is faster than actually
+writing a block of zeros since **libpmemblk**(7) uses metadata to indicate the block
+should read back as zero.
 
-The **pmemblk_set_error**() function sets the error state for block number *blockno* in memory pool *pbp*.
-
+The **pmemblk_set_error**() function sets the error state for block number
+*blockno* in persistent memory resident array of blocks *pbp*.
+A block in the error state returns *errno* **EIO** when read.
+Writing the block clears the error state and returns the block to normal use.
 
 # RETURN VALUE #
 
 The **pmemblk_set_zero**() function on success returns 0. On error, -1 is returned and *errno* is set.
 
 The **pmemblk_set_error**() function on success returns 0. On error, -1 is returned and *errno* is set.
-A block in the error state returns *errno* **EIO** when read.
-Writing the block clears the error state and returns the block to normal use.
 
 
 # SEE ALSO #

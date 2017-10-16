@@ -46,7 +46,8 @@ date: pmemlog API version 1.0
 # NAME #
 
 **pmemlog_createU**()/**pmemlog_createW**(), **pmemlog_openU**()/**pmemlog_openW**(),
-**pmemlog_close**() -- create, open and close log pool
+**pmemlog_close**(), **pmemlog_checkU**()/**pmemlog_checkW**()
+-- create, open and close persistent memory resident log file
 
 
 # SYNOPSIS #
@@ -59,6 +60,8 @@ PMEMlogpool *pmemlog_openW(const wchar_t *path);
 PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
 PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
 void pmemlog_close(PMEMlogpool *plp);
+int pmemlog_checkU(const char *path);
+int pmemlog_checkW(const wchar_t *path);
 ```
 
 >NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
@@ -119,11 +122,16 @@ The **pmemlog_close**() function closes the memory pool indicated by *plp*
 and deletes the memory pool handle. The log memory pool itself lives on in the file
 that contains it and may be re-opened at a later time using **pmemlog_openU**()/**pmemlog_openW**() as described above.
 
+The **pmemlog_checkU**()/**pmemlog_checkW**() function performs a consistency check of the file indicated
+by *path*. **pmemlog_checkU**()/**pmemlog_checkW**() opens the given *path* read-only so it never makes any
+changes to the file. This function is not supported on Device DAX.
+
+
 # RETURN VALUE #
 
 The **pmemlog_create**() function returns NULL and sets *errno*
 appropriately if the error prevents any of the pool set files from
-being created, othervise it returns a memory pool handle.
+being created, otherwise it returns a memory pool handle.
 
 The **pmemlog_open**() function returns NULL and sets *errno*
 appropriately if an error prevents the pool from being opened.
@@ -134,6 +142,16 @@ or if the actual size of any file does not match the corresponding part size
 defined in *set* file **pmemlog_openU**()/**pmemlog_openW**() returns NULL and sets *errno* appropriately.
 
 The **pmemlog_close**() function returns no value.
+
+The **pmemlog_checkU**()/**pmemlog_checkW**() function returns 1 if the persistent memory
+resident log file is found to be consistent.
+Any inconsistencies found will cause **pmemlog_checkU**()/**pmemlog_checkW**() to return 0,
+in which case the use of the file with **libpmemlog** will result
+in undefined behavior. The debug version of **libpmemlog** will provide
+additional details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1,
+as described in the **DEBUGGING AND ERROR HANDLING** section in **libpmemlog**(7).
+**pmemlog_checkU**()/**pmemlog_checkW**() will return -1 and set *errno* if it cannot
+perform the consistency check due to other errors.
 
 
 # SEE ALSO #

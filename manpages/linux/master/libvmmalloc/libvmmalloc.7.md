@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMMALLOC!7
+title: LIBVMMALLOC
 collection: libvmmalloc
 header: NVM Library
 date: vmmalloc API version 1.0

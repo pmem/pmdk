@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMEM!7
+title: LIBVMEM
 collection: libvmem
 header: NVM Library
 date: vmem API version 1.1
@@ -63,30 +63,6 @@ cc ... -lvmem
 basic API functions are expanded to UTF-8 API with postfix *U*,
 otherwise they are expanded to UNICODE API with postfix *W*.
 
-##### Memory pool management: #####
-
-```c
-VMEM *vmem_createU(const char *dir, size_t size);
-VMEM *vmem_createW(const wchar_t *dir, size_t size);
-VMEM *vmem_create_in_region(void *addr, size_t size);
-void vmem_delete(VMEM *vmp);
-int vmem_check(VMEM *vmp);
-void vmem_stats_print(VMEM *vmp, const char *opts);
-```
-
-##### Memory allocation related functions: #####
-
-```c
-void *vmem_malloc(VMEM *vmp, size_t size);
-void vmem_free(VMEM *vmp, void *ptr);
-void *vmem_calloc(VMEM *vmp, size_t nmemb, size_t size);
-void *vmem_realloc(VMEM *vmp, void *ptr, size_t size);
-void *vmem_aligned_alloc(VMEM *vmp, size_t alignment, size_t size);
-char *vmem_strdup(VMEM *vmp, const char *s);
-wchar_t *vmem_wcsdup(VMEM *vmp, const wchar_t *s);
-size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
-```
-
 ##### Managing overall library behavior: #####
 
 ```c
@@ -110,6 +86,12 @@ void vmem_set_funcs(
 const char *vmem_errormsgU(void);
 const wchar_t *vmem_errormsgW(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **libvmem** functions can be found on different manual pages:
+* memory pool management: **vmem_create**(3)
+* memory allocation related functions: **vmem_malloc**(3)
 
 
 # DESCRIPTION #
@@ -153,16 +135,6 @@ The library entry points described in this section are less commonly
 used than the previous section. These entry points expose library
 information or alter the default library behavior.
 
-
-```c
-const char *vmem_check_versionU(
-	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *vmem_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-```
-
 The **vmem_check_versionU**()/**vmem_check_versionW**() function is used to see if the installed **libvmem**
 supports the version of the library API required by an application.
 The easiest way to do this is for the application to supply the compile-time
@@ -191,15 +163,6 @@ When the version check performed by **vmem_check_versionU**()/**vmem_check_versi
 the return value is NULL. Otherwise the return value is a static string
 describing the reason for failing the version check.
 The string returned by **vmem_check_versionU**()/**vmem_check_versionW**() must not be modified or freed.
-
-```c
-void vmem_set_funcs(
-	void *(*malloc_func)(size_t size),
-	void (*free_func)(void *ptr),
-	void *(*realloc_func)(void *ptr, size_t size),
-	char *(*strdup_func)(const char *s),
-	void (*print_func)(const char *s));
-```
 
 The **vmem_set_funcs**() function allows an application to override some interfaces
 used internally by **libvmem**. Passing in NULL for any of the handlers
@@ -230,13 +193,7 @@ The normal version, accessed when a program is linked using the **-lvmem** optio
 is optimized for performance. That version skips checks that impact performance
 and never logs any trace information or performs any run-time assertions. If an
 error is detected during the call to **libvmem** function, an application may
-retrieve an error message describing the reason of failure using the following
-function:
-
-```c
-const char *vmem_errormsgU(void);
-const wchar_t *vmem_errormsgW(void);
-```
+retrieve an error message describing the reason of failure.
 
 The **vmem_errormsgU**()/**vmem_errormsgW**() function returns a pointer to a static buffer containing the
 last error message logged for current thread. The error message may
@@ -346,5 +303,6 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**malloc**(3), **mmap**(2), **strerror**(3),
-**jemalloc**(3), **pthreads**(7) and **<http://pmem.io>**
+**malloc**(3), **mmap**(2), **jemalloc**(3),
+**strerror**(3), **vmem_create**(3), **vmem_malloc**(3),
+**pthreads**(7) and **<http://pmem.io>**

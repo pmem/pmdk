@@ -46,7 +46,8 @@ date: pmemblk API version 1.0
 # NAME #
 
 **pmemblk_createU**()/**pmemblk_createW**(), **pmemblk_openU**()/**pmemblk_openW**(),
-**pmemblk_close**() -- create, open and close block pool
+**pmemblk_close**(), **pmemblk_checkU**()/**pmemblk_checkW**()
+-- create, open and close block pool
 
 
 # SYNOPSIS #
@@ -60,6 +61,8 @@ PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
 		size_t poolsize, mode_t mode);
 PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
 PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
+int pmemblk_checkU(const char *path, size_t bsize);
+int pmemblk_checkW(const wchar_t *path, size_t bsize);
 ```
 
 >NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
@@ -126,6 +129,19 @@ indicated by *pbp* and deletes the memory pool handle.
 The block memory pool itself lives on in the file that contains it
 and may be re-opened at a later time using **pmemblk_openU**()/**pmemblk_openW**() as described above.
 
+The **pmemblk_checkU**()/**pmemblk_checkW**() function performs a consistency check of the file indicated by *path*.
+and returns 1 if the memory pool is found to be consistent. Any
+inconsistencies found will cause **pmemblk_checkU**()/**pmemblk_checkW**() to return 0,
+in which case the use of the file with **libpmemblk** will result in undefined behavior.
+The debug version of **libpmemblk** will provide additional details on inconsistencies
+when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
+ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_checkU**()/**pmemblk_checkW**() will
+compare it to the block size of the pool and return 0 when they don't
+match. **pmemblk_checkU**()/**pmemblk_checkW**() will return -1 and set *errno* if it cannot perform
+the consistency check due to other errors.
+**pmemblk_checkU**()/**pmemblk_checkW**() opens the given *path* read-only so it never makes any changes
+to the file. This function is not supported on Device DAX.
+
 
 # RETURN VALUE #
 
@@ -146,6 +162,16 @@ and sets *errno* appropriately.
 
 The **pmemblk_close**() function returns no value.
 
+The **pmemblk_checkU**()/**pmemblk_checkW**() returns 1 if the memory pool is found to be consistent.
+Any inconsistencies found will cause **pmemblk_checkU**()/**pmemblk_checkW**() to return 0,
+in which case the use of the file with **libpmemblk** will result in undefined behavior.
+The debug version of **libpmemblk** will provide additional details on inconsistencies
+when **PMEMBLK_LOG_LEVEL** is at least 1. When *bsize* is non-zero **pmemblk_checkU**()/**pmemblk_checkW**() will
+compare it to the block size of the pool and return 0 when they don't
+match. **pmemblk_checkU**()/**pmemblk_checkW**() will return -1 and set *errno* if it cannot perform
+the consistency check due to other errors.
+**pmemblk_checkU**()/**pmemblk_checkW**() opens the given *path* read-only so it never makes any changes
+to the file. This function is not supported on Device DAX.
 
 # SEE ALSO #
 **pmempool**(1), **posix_fallocate**(2), **pmemblk**(7) and **<http://pmem.io>**

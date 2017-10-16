@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMPOOL!7
+title: LIBPMEMPOOL
 collection: libpmempool
 header: NVM Library
 date: pmempool API version 1.1
@@ -60,30 +60,6 @@ cc -std=gnu99 ... -lpmempool -lpmem
 
 
 
-##### Health check functions: #####
-
-```c
-PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
-	size_t args_size);
-struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
-```
-
-##### Pool set synchronization and transformation: #####
-
-```c
-int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
-```
-
-##### Pool set management functions: #####
-
-```c
-int pmempool_rm(const char *path, int flags);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -96,6 +72,13 @@ const char *pmempool_check_version(unsigned major_required,
 ```c
 const char *pmempool_errormsg(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **libpmempool** functions can be found on different manual pages:
+* health check functions: **pmempool_check_init**(3)
+* pool set synchronization and transformation: **pmempool_sync**(3)
+* pool set management functions: **pmempool_rm**(3)
 
 
 # DESCRIPTION #
@@ -128,14 +111,8 @@ resources associated with that thread might not be cleaned up properly.
 
 # LIBRARY API VERSIONING #
 
-This section describes how the library API is versioned, allowing
-applications to work with an evolving API.
-
-```c
-const char *pmempool_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-```
+This section describes how the library API is versioned,
+allowing applications to work with an evolving API.
 
 The **pmempool_check_version**() function is used to see if
 the installed **libpmempool** supports the version of the
@@ -180,12 +157,7 @@ performance. That version skips checks that impact
 performance and exceptionally logs any trace information or
 performs any run-time assertions. If an error is detected
 during the call to **libpmempool** function, an
-application may retrieve an error message describing the
-reason of failure using the following function:
-
-```c
-const char *pmempool_errormsg(void);
-```
+application may retrieve an error message describing the reason of failure.
 
 The **pmempool_errormsg**() function returns a pointer to a
 static buffer containing the last error message logged for
@@ -320,6 +292,6 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**dlclose**(3), **strerror**(3), **libpmemobj**(3),
-**libpmemblk**(3), **libpmemlog**(3), **libpmem**(3)
-and **<http://pmem.io>**
+**dlclose**(3), **pmempool_check_init**(3), **pmempool_rm**(3),
+**pmempool_sync**(3), **strerror**(3), **libpmemobj**(3),
+**libpmemblk**(3), **libpmemlog**(3), **libpmem**(3) and **<http://pmem.io>**

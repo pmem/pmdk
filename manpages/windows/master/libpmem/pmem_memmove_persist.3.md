@@ -34,8 +34,7 @@ date: pmem API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem_memmove_persist.3 -- the functions in this section provide
-										optimized copying to persistent memory
+[comment]: <> (pmem_memmove_persist.3 -- the functions in this section provide optimized copying to persistent memory
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -122,7 +121,7 @@ pmem_drain();
 
 The **pmem_memmove_persist**(), **pmem_memcpy_persist**(), **pmem_memset_persist**(),
 **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**() and **pmem_memset_nodrain**()
-functions return no value.
+functions return address of the destination.
 
 
 # SEE ALSO #

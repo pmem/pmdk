@@ -46,9 +46,8 @@ date: pmem API version 1.0
 
 # NAME #
 
-**pmem_is_pmem**(), **pmem_persist**(), **pmem_msync**(),
-**pmem_map_file**(), **pmem_unmap**() -- check persistency, store persistent
-									data and delete mappings
+**pmem_is_pmem**(), **pmem_map_file**()
+**pmem_unmap**() -- check persistency, store persistent data and delete mappings
 
 
 # SYNOPSIS #
@@ -57,8 +56,6 @@ date: pmem API version 1.0
 #include <libpmem.h>
 
 int pmem_is_pmem(const void *addr, size_t len);
-void pmem_persist(const void *addr, size_t len);
-int pmem_msync(const void *addr, size_t len);
 void *pmem_map_file(const char *path, size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
 int pmem_unmap(void *addr, size_t len);
@@ -81,63 +78,10 @@ The implementation of **pmem_is_pmem**() requires a non-trivial amount
 of work to determine if the given range is entirely persistent memory.
 For this reason, it is better to call **pmem_is_pmem**() once when a
 range of memory is first encountered, save the result, and use the saved
-result to determine whether **pmem_persist**() or **msync**(2) is
+result to determine whether **pmem_persist**(3) or **msync**(2) is
 appropriate for flushing changes to persistence. Calling
 **pmem_is_pmem**() each time changes are flushed to persistence will
 not perform well.
-
->WARNING:
-Using **pmem_persist**() on a range where **pmem_is_pmem**()
-returns false may not do anything useful -- use **msync**(2) instead.
-
-The **pmem_persist**() function force any changes in the range
-\[*addr*, *addr*+*len*) to be stored durably in
-persistent memory. This is equivalent to calling **msync**(2)
-but may be more optimal and will avoid calling into the kernel if
-possible. There are no alignment restrictions on the range described by
-*addr* and *len*, but **pmem_persist**() may expand the range as
-necessary to meet platform alignment requirements.
-
->WARNING:
-Like **msync**(2), there is nothing atomic or transactional
-about this call. Any unwritten stores in the given range will be
-written, but some stores may have already been written by virtue of
-normal cache eviction/replacement policies. Correctly written code must
-not depend on stores waiting until **pmem_persist**() is called to
-become persistent -- they can become persistent at any time before
-**pmem_persist**() is called.
-
-The **pmem_msync**() function is like **pmem_persist**() in that it
-forces any changes in the range \[*addr*, *addr*+*len*) to be stored
-durably. Since it calls **msync**(), this function works on either
-persistent memory or a memory mapped file on traditional storage.
-**pmem_msync**() takes steps to ensure the alignment of addresses and
-lengths passed to **msync**() meet the requirements of that system call.
-It calls **msync**() with the **MS_SYNC** flag as described in
-**msync**(2). Typically the application only checks for the existence of
-persistent memory once, and then uses that result throughout the
-program, for example:
-
-```c
-/* do this call once, after the pmem is memory mapped */
-int is_pmem = pmem_is_pmem(rangeaddr, rangelen);
-
-/* ... make changes to a range of pmem ... */
-
-/* make the changes durable */
-if (is_pmem)
-	pmem_persist(subrangeaddr, subrangelen);
-else
-	pmem_msync(subrangeaddr, subrangelen);
-
-/* ... */
-```
-
->WARNING:
-On Linux, **pmem_msync**() and **msync**(2) have no effect on memory ranges
-mapped from Device DAX.  In case of memory ranges where **pmem_is_pmem**()
-returns true use **pmem_persist**() to force the changes to be stored durably
-in persistent memory.
 
 The **pmem_map_file**() function creates a new read/write
 mapping for the given *path* file. It will map the file using **mmap**(2),
@@ -148,8 +92,7 @@ On success, **pmem_map_file**() returns a pointer to mapped area. If
 the address it points to. The *is_pmemp* argument, if non-NULL, points
 to a flag that **pmem_is_pmem**() sets to say if the mapped file is
 actual pmem, or if **msync**() must be used to flush writes for the
-mapped range. On error, NULL is returned, *errno* is set appropriately,
-and *mapped_lenp* and *is_pmemp* are left untouched.
+mapped range.
 
 The *flags* argument can be 0 or bitwise OR of one or more of the
 following file creation flags:
@@ -199,16 +142,13 @@ using the **munmap**(2).
 
 The **pmem_is_pmem**() function returns true only if the entire range
 \[*addr*, *addr*+*len*) consists of persistent memory. A true return
-from **pmem_is_pmem**() means it is safe to use **pmem_persist**()
+from **pmem_is_pmem**() means it is safe to use **pmem_persist**(3)
 and the related functions to make changes durable for that memory
 range.
 
-The **pmem_persist**() function returns no value.
-
-The **pmem_msync**() return value is the return value of
-**msync**(), which can return -1 and set *errno* to indicate an error.
-
-The **pmem_map_file**() function returns no value.
+The **pmem_map_file**() function returns pointer to the memory-mapped region.
+On error, NULL is returned, *errno* is set appropriately,
+and *mapped_lenp* and *is_pmemp* are left untouched.
 
 The **pmem_unmap**() function on success returns zero.
 On error, -1 is returned, and *errno* is set appropriately.
@@ -219,11 +159,11 @@ On error, -1 is returned, and *errno* is set appropriately.
 On Linux, **pmem_is_pmem**() returns true only if the entire range
 is mapped directly from Device DAX (/dev/daxX.Y) without an intervening
 file system.  In the future, as file systems become available that support
-flushing with **pmem_persist**(), **pmem_is_pmem**() will return true
+flushing with **pmem_persist**(3), **pmem_is_pmem**() will return true
 as appropriate.
 
 
 # SEE ALSO #
 
-**mmap**(2),  **msync**(2), **munmap**(2), **posix_fallocate**(2),
-**libpmem**(7) and **<http://pmem.io>**
+**mmap**(2),  **msync**(2), **munmap**(2), **pmem_persist**(3),
+**posix_fallocate**(2), **libpmem**(7) and **<http://pmem.io>**

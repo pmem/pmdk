@@ -34,8 +34,7 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_read.3 -- man page for functions that checks number of
-				available blocks or usable space in block memory pool)
+[comment]: <> (pmemblk_read.3 -- man page for functions that checks number of available blocks or usable space in persistent memory resident array of blocks)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -46,7 +45,8 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-**pmemblk_read**(), **pmemblk_write**() --  read or writes a block from buffer to block number in the memory pool.
+**pmemblk_read**(), **pmemblk_write**() --  read or write a block from buffer to block number
+in the persistent memory resident array of blocks.
 
 
 # SYNOPSIS #

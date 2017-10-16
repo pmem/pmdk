@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: RPMEMD
 collection: rpmemd
 header: NVM Library
-date: version 1.3
+date: rpmemd version 1.3
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
@@ -61,7 +61,7 @@ $ rpmemd [--help] [--version] [<args>]
 
 # DESCRIPTION #
 
-The **rpmemd** process is executed on target node by **librpmem** library over
+The **rpmemd** process is executed on target node by **librpmem**(7) library over
 **ssh**(1) and facilitates access to persistent memory over RDMA. The **rpmemd**
 should not be run manually under normal conditions.
 
@@ -190,15 +190,15 @@ log-level = err
 
 # PERSISTENCY METHODS #
 
-The **librpmem** supports two methods for making data written to remote
+The **librpmem**(7) supports two methods for making data written to remote
 persistent memory durable. The difference between the use of the two mechanisms
-is based on whether **librpmem** will make use of non-allocating writes on the
+is based on whether **librpmem**(7) will make use of non-allocating writes on the
 remote node.
 
 + **The General Purpose Server Persistency Method** does not have any
 requirements for the platform on which the target daemon runs and can be enabled
 by administrator using the *persist-general* option. This method utilize
-**libpmem**(3) persistency mechanisms on remote node and requires additional
+**libpmem**(7) persistency mechanisms on remote node and requires additional
 communication between initiator and remote node using the in-band connection.
 
 + **The Appliance Persistency Method** requires non-allocating writes enabled on
@@ -221,16 +221,18 @@ If the **Appliance Persistency Method** is enabled and the pool set is stored
 in the persistent memory **rpmemd** will use the **Appliance Persistency
 Method**. If the pool set is NOT stored in the persistent memory it will
 fallback to the **General Puropose Server Persistency Method** with
-**pmem_msync**().
+**pmem_msync**(3).
 
 If the **General Puropose Server Persistency Method** is enabled and the pool
-set is stored in the persistent momory **rpmemd** will use **pmem_persist**().
+set is stored in the persistent momory **rpmemd** will use **pmem_persist**(3).
 If the pool set is NOT stored in the persistent momory it will use
-**pmem_msync**().
+**pmem_msync**(3).
 
-See **libpmem**(3) for details about **pmem_persist**() and **pmem_msync**().
+See **libpmem**(7) for details about **pmem_persist**(3) and **pmem_msync**(3).
+
 
 # SEE ALSO #
 
-**librpmem**(3), **libpmem**(3), **libpmemobj**(3)
-and **<http://pmem.io>**
+**ssh**(1), **pmem_msync**(3), **pmem_persist**(3),
+**syslog**(3), **libpmem**(7), **libpmemobj**(7),
+**librpmem**(7) and **<http://pmem.io>**

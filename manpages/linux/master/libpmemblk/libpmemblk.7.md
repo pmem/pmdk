@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMBLK!7
+title: LIBPMEMBLK
 collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
@@ -62,21 +62,6 @@ cc ... -lpmemblk -lpmem
 
 
 
-##### Most commonly used functions: #####
-
-```c
-PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
-		size_t poolsize, mode_t mode);
-PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
-void pmemblk_close(PMEMblkpool *pbp);
-size_t pmemblk_bsize(PMEMblkpool *pbp);
-size_t pmemblk_nblock(PMEMblkpool *pbp);
-int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
-int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
-int pmemblk_set_zero(PMEMblkpool *pbp, long long blockno);
-int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -93,7 +78,6 @@ void pmemblk_set_funcs(
 	void (*free_func)(void *ptr),
 	void *(*realloc_func)(void *ptr, size_t size),
 	char *(*strdup_func)(const char *s));
-int pmemblk_check(const char *path, size_t bsize);
 ```
 
 ##### Error handling: #####
@@ -101,6 +85,12 @@ int pmemblk_check(const char *path, size_t bsize);
 ```c
 const char *pmemblk_errormsg(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **libpmemblk** functions can be found on different manual pages:
+* most commonly used functions: **pmemblk_create**(3), **pmemblk_bsize**(3),
+**pmemblk_read**(3), **pmemblk_set_zero**(3)
 
 
 # DESCRIPTION #
@@ -162,12 +152,6 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-```c
-const char *pmemblk_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-```
-
 The **pmemblk_check_version**() function is used to see if the installed **libpmemblk**
 supports the version of the library API required by an application. The easiest way
 to do this is for the application to supply the compile-time version information,
@@ -200,15 +184,8 @@ the reason for failing the version check. The string returned by
 
 # MANAGING LIBRARY BEHAVIOR #
 
-The library entry points described in this section are less commonly used than the previous sections.
-
-```c
-void pmemblk_set_funcs(
-	void *(*malloc_func)(size_t size),
-	void (*free_func)(void *ptr),
-	void *(*realloc_func)(void *ptr, size_t size),
-	char *(*strdup_func)(const char *s));
-```
+The library entry points described in this section
+are less commonly used than the previous sections.
 
 The **pmemblk_set_funcs**() function allows an application to override memory
 allocation calls used internally by **libpmemblk**.
@@ -216,23 +193,6 @@ Passing in NULL for any of the handlers will cause
 the **libpmemblk** default function to be used.
 The library does not make heavy use of the system malloc functions,
 but it does allocate approximately 4-8 kilobytes for each memory pool in use.
-
-```c
-int pmemblk_check(const char *path, size_t bsize);
-```
-
-The **pmemblk_check**() function performs a consistency check of the file indicated by *path*
-and returns 1 if the memory pool is found to be consistent. Any
-inconsistencies found will cause **pmemblk_check**() to return 0,
-in which case the use of the file with **libpmemblk** will result in undefined behavior.
-The debug version of **libpmemblk** will provide additional details on inconsistencies
-when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
-ERROR HANDLING** section below. When *bsize* is non-zero **pmemblk_check**() will
-compare it to the block size of the pool and return 0 when they don't
-match. **pmemblk_check**() will return -1 and set *errno* if it cannot perform
-the consistency check due to other errors.
-**pmemblk_check**() opens the given *path* read-only so it never makes any changes
-to the file. This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
@@ -242,12 +202,7 @@ The normal version, accessed when a program is linked using the **-lpmemblk**
 option, is optimized for performance. That version skips checks that impact performance
 and never logs any trace information or performs any run-time
 assertions. If an error is detected during the call to **libpmemblk** function,
-an application may retrieve an error message describing the reason of failure
-using the following function:
-
-```c
-const char *pmemblk_errormsg(void);
-```
+an application may retrieve an error message describing the reason of failure.
 
 The **pmemblk_errormsg**() function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error message may
@@ -374,6 +329,7 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**msync**(2), **pmemblk_create**(3), **pmem_is_pmem**(3),
+**msync**(2), **pmemblk_bsize**(3), **pmemblk_create**(3),
+**pmemblk_read**(3), **pmemblk_set_zero**(3), **pmem_is_pmem**(3),
 **pmem_persist**(3), **strerror**(3), **libpmem**(7),
 **libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**

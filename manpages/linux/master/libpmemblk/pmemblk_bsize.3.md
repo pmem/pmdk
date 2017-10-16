@@ -34,8 +34,7 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_bsize.3 -- man page for functions that checks number of
-				available blocks or usable space in block memory pool)
+[comment]: <> (pmemblk_bsize.3 -- man page for functions that checks number of available blocks or usable space in block memory pool)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />

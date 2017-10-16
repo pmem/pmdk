@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEM!7
+title: LIBPMEM
 collection: libpmem
 header: NVM Library
 date: pmem API version 1.0
@@ -61,36 +61,6 @@ cc ... -lpmem
 
 
 
-##### Most commonly used functions: #####
-
-```c
-int pmem_is_pmem(const void *addr, size_t len);
-void pmem_persist(const void *addr, size_t len);
-int pmem_msync(const void *addr, size_t len);
-void *pmem_map_file(const char *path, size_t len, int flags,
-	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
-int pmem_unmap(void *addr, size_t len);
-```
-
-##### Partial flushing operations: #####
-
-```c
-void pmem_flush(const void *addr, size_t len);
-void pmem_drain(void);
-int pmem_has_hw_drain(void);
-```
-
-##### Copying to persistent memory: #####
-
-```c
-void *pmem_memmove_persist(void *pmemdest, const void *src, size_t len);
-void *pmem_memcpy_persist(void *pmemdest, const void *src, size_t len);
-void *pmem_memset_persist(void *pmemdest, int c, size_t len);
-void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
-void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
-void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -104,6 +74,13 @@ const char *pmem_check_version(
 ```c
 const char *pmem_errormsg(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **libpmem** functions can be found on different manual pages:
+* most commonly used functions: **pmem_is_pmem**(3)
+* partial flushing operations: **pmem_flush**(3)
+* copying to persistent memory: **pmem_memmove_persist**(3)
 
 
 # DESCRIPTION #
@@ -149,12 +126,6 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
-```c
-const char *pmem_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-```
-
 The **pmem_check_version**() function is used to see if the installed
 **libpmem** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
@@ -196,11 +167,7 @@ system. The normal version, accessed when a program is linked using the
 checks that impact performance and never logs any trace information or
 performs any run-time assertions. If an error is detected during the
 call to **libpmem** function, an application may retrieve an error
-message describing the reason of failure using the following function:
-
-```c
-const char *pmem_errormsg(void);
-```
+message describing the reason of failure using the **pmem_errormsg**() function.
 
 The **pmem_errormsg**() function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error
@@ -412,6 +379,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
+**pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
 **libpmemobj**(7), **libpmemblk**(7), **libpmemlog**(7)
 and **<http://pmem.io>**

@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBRPMEM!7
+title: LIBRPMEM
 collection: librpmem
 header: NVM Library
 date: rpmem API version 1.1
@@ -65,23 +65,6 @@ date: rpmem API version 1.1
 cc ... -lrpmem
 ```
 
-##### Most commonly used functions: #####
-
-```c
-RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	const struct rpmem_pool_attr *create_attr);
-RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	struct rpmem_pool_attr *open_attr);
-int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
-int rpmem_close(RPMEMpool *rpp);
-
-int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length, unsigned lane);
-int rpmem_remove(const char *target, const char *pool_set_name, int flags);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -95,6 +78,11 @@ const char *rpmem_check_version(
 ```c
 const char *rpmem_errormsg(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **librpmem** functions can be found on different manual pages:
+* most commonly used functions: **rpmem_create**(3), **rpmem_persist**(3)
 
 
 # DESCRIPTION #
@@ -227,14 +215,8 @@ using this hardware can not be greater than or equal to 8GB.
 
 # LIBRARY API VERSIONING #
 
-This section describes how the library API is versioned, allowing
-applications to work with an evolving API.
-
-```c
-const char *rpmem_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-```
+This section describes how the library API is versioned,
+allowing applications to work with an evolving API.
 
 The **rpmem_check_version**() function is used to see if the installed
 **librpmem** supports the version of the library API required by an
@@ -277,11 +259,7 @@ system. The normal version, accessed when a program is linked using the
 checks that impact performance and never logs any trace information or
 performs any run-time assertions. If an error is detected during the
 call to **librpmem** function, an application may retrieve an error
-message describing the reason of failure using the following function:
-
-```c
-const char *rpmem_errormsg(void);
-```
+message describing the reason of failure.
 
 The **rpmem_errormsg**() function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error
@@ -357,7 +335,12 @@ be required normally.
 + **RPMEM_ENABLE_SOCKETS**=0\|1
 
 Setting this variable to 1 enables using **fi_sockets**(7) provider for
-in-band RDMA connection. By default the *sockets* provider is disabled.
+in-band RDMA connection. The *sockets* provider does not support IPv6.
+It is required to disable IPv6 system wide if **RPMEM_ENABLE_SOCKETS** == 1 and
+*target* == localhost (or any other loopback interface address) and
+**SSH_CONNECTION** variable (see **ssh**(1) for more details) contains IPv6
+address after ssh to loopback interface. By default the *sockets* provider is
+disabled.
 
 * **RPMEM_ENABLE_VERBS**=0\|1
 
@@ -437,7 +420,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **rpmemd**(1), **ssh**(1), **fork**(2), **dlopen**(3),
-**ibv_fork_init**(3), **strerror**(3), **limits.conf**(5),
-**fi_sockets**(7), **fi_verbs**(7), **libpmem**(7),
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+**ibv_fork_init**(3), **rpmem_create**(3), **rpmem_persist**(3),
+**strerror**(3), **limits.conf**(5), **fi_sockets**(7),
+**fi_verbs**(7), **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7),
+**libpmemobj**(7) and **<http://pmem.io>**

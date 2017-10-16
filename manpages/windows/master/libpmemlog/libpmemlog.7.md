@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMLOG!7
+title: LIBPMEMLOG
 collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0
@@ -64,24 +64,6 @@ cc ... -lpmemlog -lpmem
 basic API functions are expanded to UTF-8 API with postfix *U*,
 otherwise they are expanded to UNICODE API with postfix *W*.
 
-##### Most commonly used functions: #####
-
-```c
-PMEMlogpool *pmemlog_openU(const char *path);
-PMEMlogpool *pmemlog_openW(const wchar_t *path);
-PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
-PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
-void pmemlog_close(PMEMlogpool *plp);
-size_t pmemlog_nbyte(PMEMlogpool *plp);
-int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
-int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
-long long pmemlog_tell(PMEMlogpool *plp);
-void pmemlog_rewind(PMEMlogpool *plp);
-void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
-	int (*process_chunk)(const void *buf, size_t len, void *arg),
-	void *arg);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -101,8 +83,6 @@ void pmemlog_set_funcs(
 	void (*free_func)(void *ptr),
 	void *(*realloc_func)(void *ptr, size_t size),
 	char *(*strdup_func)(const char *s));
-int pmemlog_checkU(const char *path);
-	int pmemlog_checkW(const wchar_t *path);
 ```
 
 ##### Error handling: #####
@@ -111,6 +91,12 @@ int pmemlog_checkU(const char *path);
 const char *pmemlog_errormsgU(void);
 const wchar_t *pmemlog_errormsgW(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **libpmemlog** functions can be found on different manual pages:
+* most commonly used functions: **pmemlog_create**(3), **pmemlog_nbyte**(3),
+**pmemlog_append**(3), **pmemlog_tell**(3)
 
 
 # DESCRIPTION #
@@ -174,15 +160,6 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-```c
-const char *pmemlog_check_versionU(
-	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmemlog_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-```
-
 The **pmemlog_check_versionU**()/**pmemlog_check_versionW**() function is used to see if the installed **libpmemlog**
 supports the version of the library API required by an application. The
 easiest way to do this is for the application to supply the compile-time
@@ -218,37 +195,12 @@ The string returned by **pmemlog_check_versionU**()/**pmemlog_check_versionW**()
 The library entry points described in this section
 are less commonly used than the previous sections.
 
-```c
-void pmemlog_set_funcs(
-	void *(*malloc_func)(size_t size),
-	void (*free_func)(void *ptr),
-	void *(*realloc_func)(void *ptr, size_t size),
-	char *(*strdup_func)(const char *s));
-```
-
 The **pmemlog_set_funcs**() function allows an application to override
 memory allocation calls used internally by **libpmemlog**.
 Passing in NULL for any of the handlers will cause the
 **libpmemlog** default function to be used. The library does not make
 heavy use of the system malloc functions, but it does
 allocate approximately 4-8 kilobytes for each memory pool in use.
-
-```c
-int pmemlog_checkU(const char *path);
-	int pmemlog_checkW(const wchar_t *path);
-```
-
-The **pmemlog_checkU**()/**pmemlog_checkW**() function performs a consistency check of the file
-indicated by *path* and returns 1 if the memory pool is found to be consistent.
-Any inconsistencies found will cause **pmemlog_checkU**()/**pmemlog_checkW**() to return 0,
-in which case the use of the file with **libpmemlog** will result in undefined behavior.
-The debug version of **libpmemlog** will provide additional
-details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1,
-as described in the **DEBUGGING AND ERROR HANDLING** section below.
-**pmemlog_checkU**()/**pmemlog_checkW**() will return -1 and set *errno* if it cannot
-perform the consistency check due to other errors. **pmemlog_checkU**()/**pmemlog_checkW**() opens
-the given *path* read-only so it never makes any changes to the file.
-This function is not supported on Device DAX.
 
 
 # DEBUGGING AND ERROR HANDLING #
@@ -258,13 +210,7 @@ The normal version, accessed when a program is linked using the **-lpmemlog**
 option, is optimized for performance. That version skips checks that
 impact performance and never logs any trace information or performs any run-time
 assertions. If an error is detected during the call to **libpmemlog** function,
-an application may retrieve an error message describing the reason of failure
-using the following function:
-
-```c
-const char *pmemlog_errormsgU(void);
-const wchar_t *pmemlog_errormsgW(void);
-```
+an application may retrieve an error message describing the reason of failure.
 
 The **pmemlog_errormsgU**()/**pmemlog_errormsgW**() function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error message may
@@ -399,5 +345,6 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**msync**(2), **strerror**(3), **libpmem**(7),
-**libpmemblk**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**msync**(2), **pmemlog_append**(3), **pmemlog_create**(3),
+**pmemlog_nbyte**(3), **pmemlog_tell**(3), **strerror**(3),
+**libpmem**(7), **libpmemblk**(7), **libpmemobj**(7) and **<http://pmem.io>**

@@ -48,7 +48,7 @@ date: pmemobj API version 2.2
 
 **pmemobj_ctl_getU**()/**pmemobj_ctl_getW**(),
 **pmemobj_ctl_setU**()/**pmemobj_ctl_setW**()
--- allows to impact libpmemobj internal behavior
+-- allows to control the internal behavior of libpmemobj
 
 
 # SYNOPSIS #
