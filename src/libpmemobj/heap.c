@@ -868,7 +868,6 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	struct empty_runs r = recycler_inc_unaccounted(
 		heap->rt->recyclers[c->id], m);
 
-
 	if (VEC_SIZE(&r) == 0)
 		return;
 
@@ -1091,7 +1090,7 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 
 	if (c->type == CLASS_RUN) {
 		h->recyclers[c->id] = recycler_new(heap,
-			c->run.bitmap_nallocs * 2);
+			c->run.bitmap_nallocs);
 		if (h->recyclers[c->id] == NULL)
 			goto error_recycler_new;
 	}
