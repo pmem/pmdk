@@ -34,18 +34,30 @@
  * rpmemd_log.h -- rpmemd logging functions declarations
  */
 
+#include <string.h>
+#include "util.h"
+
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
+
+/*
+ * A tab character is not allowed in rpmemd log because it is not well handled
+ * by syslog. Please use RPMEMD_LOG_INDENT instead.
+ */
+#define RPMEMD_LOG_INDENT "    "
 
 #ifdef DEBUG
 #define RPMEMD_LOG(level, fmt, arg...)\
+	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
 	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
 #else
 #define RPMEMD_LOG(level, fmt, arg...)\
+	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
 	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
 #endif
 
 #ifdef DEBUG
 #define RPMEMD_DBG(fmt, arg...)\
+	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
 	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
 #else
 #define RPMEMD_DBG(fmt, arg...) do {} while (0)

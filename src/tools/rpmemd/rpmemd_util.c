@@ -87,9 +87,9 @@ static void
 rpmem_print_pm_policy(enum rpmem_persist_method persist_method,
 		int (*persist)(const void *addr, size_t len))
 {
-	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "persist method: %s",
 			rpmem_persist_method_to_str(persist_method));
-	RPMEMD_LOG(NOTICE, "\tpersist flush: %s",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "persist flush: %s",
 			rpmemd_persist_to_str(persist));
 }
 
