@@ -84,6 +84,7 @@ endif
 # use defaults, if system or user-defined CFLAGS are not specified
 CFLAGS ?= $(DEFAULT_CFLAGS)
 
+CFLAGS += -std=gnu99
 CFLAGS += -fno-common
 CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
