@@ -45,6 +45,10 @@ require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
 
+# TEST2/TEST3 are specifically for helgrind/drd tests
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
+
 setup
 
 expect_normal_exit ./vmem_multiple_pools$EXESUFFIX $DIR 4 16
