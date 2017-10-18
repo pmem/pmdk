@@ -41,6 +41,7 @@ CP = cp
 CSTYLE = $(TOP)/utils/cstyle
 CSTYLEON = 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
+CHECK_SHEBANG = $(TOP)/utils/check-shebang.sh
 CHECK_OS = $(TOP)/utils/check-os.sh
 OS_BANNED = $(TOP)/utils/os-banned
 COVERAGE = 0

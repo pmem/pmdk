@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright 2014-2017, Intel Corporation
 #

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -38,6 +38,8 @@
 # Docker Hub. The variables can be set in the Travis project's configuration
 # for automated builds.
 #
+
+set -e
 
 function usage {
 	echo "Usage:"

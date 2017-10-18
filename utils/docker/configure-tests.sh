@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -34,6 +34,8 @@
 # configure-tests.sh - is called inside a Docker container; configures tests
 #                      and ssh server for use during build of NVML project.
 #
+
+set -e
 
 # Configure tests
 cat << EOF > $WORKDIR/src/test/testconfig.sh

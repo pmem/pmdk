@@ -74,6 +74,9 @@ ifeq ($(BUILD_RPMEM),y)
 	INSTALL_TARGETS += librpmem
 endif
 
+rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
+	$(filter $(subst *,%,$2),$d)))
+
 SCOPE_SRC_DIRS = $(SCOPE_DIRS) include jemalloc/src
 SCOPE_HDR_DIRS = $(SCOPE_DIRS) include jemalloc/src\
 		jemalloc/include/jemalloc\
@@ -107,6 +110,8 @@ HEADERS =\
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addprefix debug/, $(addsuffix tmp, $(HEADERS)))
 endif
+
+SCRIPTS = $(call rwildcard,,*.sh)
 
 debug/%.htmp: %.h
 	$(call check-cstyle, $<, $@)
@@ -210,6 +215,7 @@ uninstall:
 
 cstyle:
 	$(STYLE_CHECK) check $(HEADERS)
+	$(CHECK_SHEBANG) $(SCRIPTS)
 
 format:
 	$(STYLE_CHECK) format $(HEADERS)

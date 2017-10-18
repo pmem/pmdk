@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2016-2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # install-valgrind.sh - installs valgrind for persistent memory
 #
+
+set -e
 
 git clone --recursive --depth 1 https://github.com/pmem/valgrind.git
 cd valgrind

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -33,6 +33,8 @@
 #
 # install-libcxx.sh - installs a customized version of libcxx
 #
+
+set -e
 
 llvm_url=https://github.com/llvm-mirror/llvm.git
 libcxxabi_url=https://github.com/llvm-mirror/libcxxabi.git
