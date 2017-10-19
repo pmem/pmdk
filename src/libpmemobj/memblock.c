@@ -751,6 +751,7 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 
 	struct chunk_header *hdr = &ZID_TO_ZONE(heap->layout, m.zone_id)
 						->chunk_headers[m.chunk_id];
+
 	if (hdr->type == CHUNK_TYPE_RUN_DATA)
 		m.chunk_id -= hdr->size_idx;
 

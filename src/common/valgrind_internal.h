@@ -65,7 +65,38 @@ extern unsigned _On_valgrind;
 #include <valgrind/drd.h>
 #endif
 
+#if defined(USE_VG_HELGRIND)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_BEGIN(addr, size) do {\
+	if (On_valgrind) \
+		VALGRIND_HG_DISABLE_CHECKING((addr), (size));\
+} while (0)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_END(addr, size) do {\
+	if (On_valgrind) \
+		VALGRIND_HG_ENABLE_CHECKING((addr), (size));\
+} while (0)
+
+#elif defined(USE_VG_DRD)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_BEGIN(addr, size) do {\
+	if (On_valgrind) \
+		ANNOTATE_IGNORE_READS_BEGIN();\
+} while (0)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_END(addr, size) do {\
+	if (On_valgrind) \
+		ANNOTATE_IGNORE_READS_END();\
+} while (0)
+
+#endif
+
 #if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE(addr, size) do {\
+	if (On_valgrind) \
+		ANNOTATE_HAPPENS_BEFORE((obj));\
+} while (0)
 
 #define VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
 	if (On_valgrind) \
@@ -120,6 +151,10 @@ extern unsigned _On_valgrind;
 #define VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN() do {} while (0)
 
 #define VALGRIND_ANNOTATE_IGNORE_WRITES_END() do {} while (0)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_BEGIN(addr, size) do {} while (0)
+
+#define VALGRIND_ANNOTATE_BENIGN_RACE_END(addr, size) do {} while (0)
 
 #endif
 
