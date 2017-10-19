@@ -46,9 +46,15 @@ VEC(empty_runs, struct memory_block);
 struct recycler *recycler_new(struct palloc_heap *layout,
 	size_t nallocs);
 void recycler_delete(struct recycler *r);
-int recycler_put(struct recycler *r, const struct memory_block *m);
+uint64_t recycler_calc_score(struct palloc_heap *heap,
+	const struct memory_block *m, uint64_t *out_free_space);
+
+int recycler_put(struct recycler *r, const struct memory_block *m,
+	uint64_t score);
 
 int recycler_get(struct recycler *r, struct memory_block *m);
 
-struct empty_runs recycler_inc_unaccounted(struct recycler *r,
+struct empty_runs recycler_recalc(struct recycler *r, int force);
+
+void recycler_inc_unaccounted(struct recycler *r,
 	const struct memory_block *m);
