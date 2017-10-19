@@ -368,7 +368,7 @@ static int
 rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
 	enum rpmem_provider provider, enum rpmem_persist_method pm)
 {
-	int ret = 0;
+	int ret = -1;
 	struct fi_info *hints = rpmem_fip_get_hints(provider);
 	if (!hints) {
 		RPMEM_LOG(ERR, "!getting fabric interface information hints");
