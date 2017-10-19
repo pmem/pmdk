@@ -662,7 +662,7 @@ Useful applications for administration and diagnosis of persistent memory.
 # For debug build default flags may be overriden to disable compiler
 # optimizations.
 CFLAGS="%{optflags}" \
-%{make_build} __MAKE_FLAGS__
+make %{?_smp_mflags} __MAKE_FLAGS__
 
 
 # Override LIB_AR with empty string to skip installation of static libraries
