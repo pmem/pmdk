@@ -610,7 +610,7 @@ function check {
 #
 function pass {
     if ($Env:TM -eq 1) {
-        $end_time = $script:tm.Elapsed.ToString('hh\:mm\:ss\.fff') -Replace "^(00:){1,2}",""
+        $end_time = $script:tm.Elapsed.ToString('ddd\:hh\:mm\:ss\.fff') -Replace "^(000:)","" -Replace "^(00:){1,2}",""
         $script:tm.reset()
     } else {
         sv -Name end_time $null
