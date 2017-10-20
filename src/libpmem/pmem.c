@@ -783,6 +783,7 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 	__m128i *d;
 	__m128i *s;
 	void *dest1 = pmemdest;
+	size_t orig_len = len;
 	size_t cnt;
 
 	if (len == 0 || src == pmemdest)
@@ -846,7 +847,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d + 5, xmm5);
 			_mm_stream_si128(d + 6,	xmm6);
 			_mm_stream_si128(d + 7,	xmm7);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 			d += 8;
 		}
 
@@ -857,7 +857,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			for (i = 0; i < cnt; i++) {
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
 				s++;
 				d++;
 			}
@@ -871,7 +870,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			int32_t *s32 = (int32_t *)s;
 			for (i = 0; i < cnt; i++) {
 				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 				d32++;
 				s32++;
 			}
@@ -939,7 +937,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			_mm_stream_si128(d - 7, xmm6);
 			_mm_stream_si128(d - 8, xmm7);
 			d -= 8;
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 		}
 
 		/* copy the tail (<128 bytes) in 16 bytes chunks */
@@ -951,7 +948,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				s--;
 				xmm0 = _mm_loadu_si128(s);
 				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
 			}
 		}
 
@@ -965,7 +961,6 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 				d32--;
 				s32--;
 				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 			}
 
 			cnt = len & DWORD_MASK;
@@ -980,6 +975,8 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 			pmem_flush(d8, cnt);
 		}
 	}
+
+	VALGRIND_DO_FLUSH(pmemdest, orig_len);
 
 	/* serialize non-temporal store instructions */
 	predrain_fence_sfence();
@@ -1068,6 +1065,7 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 
 	size_t i;
 	void *dest1 = pmemdest;
+	size_t orig_len = len;
 	size_t cnt;
 	__m128i xmm0;
 	__m128i *d;
@@ -1106,7 +1104,6 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			_mm_stream_si128(d + 5, xmm0);
 			_mm_stream_si128(d + 6, xmm0);
 			_mm_stream_si128(d + 7, xmm0);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
 			d += 8;
 		}
 	}
@@ -1116,7 +1113,6 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		cnt = len >> MOVNT_SHIFT;
 		for (i = 0; i < cnt; i++) {
 			_mm_stream_si128(d, xmm0);
-			VALGRIND_DO_FLUSH(d, sizeof(*d));
 			d++;
 		}
 	}
@@ -1130,7 +1126,6 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			for (i = 0; i < cnt; i++) {
 				_mm_stream_si32(d32,
 					_mm_cvtsi128_si32(xmm0));
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
 				d32++;
 			}
 		}
@@ -1142,6 +1137,8 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 			pmem_flush(d32, cnt);
 		}
 	}
+
+	VALGRIND_DO_FLUSH(pmemdest, orig_len);
 
 	/* serialize non-temporal store instructions */
 	predrain_fence_sfence();
