@@ -2115,8 +2115,15 @@ function pass() {
 
 	if [ "$TM" = "1" ]; then
 		end_time=$($DATE +%s.%N)
-		tm=$($DATE -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N | \
-			sed -e "s/^00://g" -e "s/^00://g" -e "s/\([0-9]*\)\.\([0-9][0-9][0-9]\).*/\1.\2/")
+
+		start_time_sec=$(date -d "0 $start_time sec" +%s)
+		end_time_sec=$(date -d "0 $end_time sec" +%s)
+
+		days=$(((end_time_sec - start_time_sec) / (24*3600)))
+		days=$(printf "%03d" $days)
+
+		tm=$($DATE -d "0 $end_time sec - $start_time sec" +%H:%M:%S.%N)
+		tm=$(echo "$days:$tm" | sed -e "s/^000://g" -e "s/^00://g" -e "s/^00://g" -e "s/\([0-9]*\)\.\([0-9][0-9][0-9]\).*/\1.\2/")
 		tm="\t\t\t[$tm s]"
 	else
 		tm=""
