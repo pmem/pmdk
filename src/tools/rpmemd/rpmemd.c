@@ -234,10 +234,11 @@ err_fip_init:
 static void
 rpmemd_print_req_attr(const struct rpmem_req_attr *req)
 {
-	RPMEMD_LOG(NOTICE, "\tpool descriptor: '%s'", _str(req->pool_desc));
-	RPMEMD_LOG(NOTICE, "\tpool size: %lu", req->pool_size);
-	RPMEMD_LOG(NOTICE, "\tnlanes: %u", req->nlanes);
-	RPMEMD_LOG(NOTICE, "\tprovider: %s",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "pool descriptor: '%s'",
+			_str(req->pool_desc));
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "pool size: %lu", req->pool_size);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "nlanes: %u", req->nlanes);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "provider: %s",
 			rpmem_provider_to_str(req->provider));
 }
 
@@ -247,16 +248,22 @@ rpmemd_print_req_attr(const struct rpmem_req_attr *req)
 static void
 rpmemd_print_pool_attr(const struct rpmem_pool_attr *attr)
 {
-	RPMEMD_LOG(INFO, "\tsignature: '%s'", _str(attr->signature));
-	RPMEMD_LOG(INFO, "\tmajor: %u", attr->major);
-	RPMEMD_LOG(INFO, "\tcompat_features: 0x%x", attr->compat_features);
-	RPMEMD_LOG(INFO, "\tincompat_features: 0x%x", attr->incompat_features);
-	RPMEMD_LOG(INFO, "\tro_compat_features: 0x%x",
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "signature: '%s'",
+			_str(attr->signature));
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "major: %u", attr->major);
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "compat_features: 0x%x",
+			attr->compat_features);
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "incompat_features: 0x%x",
+			attr->incompat_features);
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "ro_compat_features: 0x%x",
 			attr->ro_compat_features);
-	RPMEMD_LOG(INFO, "\tpoolset_uuid: %s", uuid2str(attr->poolset_uuid));
-	RPMEMD_LOG(INFO, "\tuuid: %s", uuid2str(attr->uuid));
-	RPMEMD_LOG(INFO, "\tnext_uuid: %s", uuid2str(attr->next_uuid));
-	RPMEMD_LOG(INFO, "\tprev_uuid: %s", uuid2str(attr->prev_uuid));
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "poolset_uuid: %s",
+			uuid2str(attr->poolset_uuid));
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "uuid: %s", uuid2str(attr->uuid));
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "next_uuid: %s",
+			uuid2str(attr->next_uuid));
+	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "prev_uuid: %s",
+			uuid2str(attr->prev_uuid));
 }
 
 /*
@@ -265,11 +272,11 @@ rpmemd_print_pool_attr(const struct rpmem_pool_attr *attr)
 static void
 rpmemd_print_resp_attr(const struct rpmem_resp_attr *attr)
 {
-	RPMEMD_LOG(NOTICE, "\tport: %u", attr->port);
-	RPMEMD_LOG(NOTICE, "\trkey: 0x%lx", attr->rkey);
-	RPMEMD_LOG(NOTICE, "\traddr: 0x%lx", attr->raddr);
-	RPMEMD_LOG(NOTICE, "\tnlanes: %u", attr->nlanes);
-	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "port: %u", attr->port);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "rkey: 0x%lx", attr->rkey);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "raddr: 0x%lx", attr->raddr);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "nlanes: %u", attr->nlanes);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "persist method: %s",
 			rpmem_persist_method_to_str(attr->persist_method));
 }
 
@@ -683,11 +690,12 @@ rpmemd_print_info(struct rpmemd *rpmemd)
 			_str(os_getenv("SSH_CONNECTION")));
 	RPMEMD_LOG(NOTICE, "user: %s", _str(os_getenv("USER")));
 	RPMEMD_LOG(NOTICE, "configuration");
-	RPMEMD_LOG(NOTICE, "\tpool set directory: '%s'",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "pool set directory: '%s'",
 			_str(rpmemd->config.poolset_dir));
-	RPMEMD_LOG(NOTICE, "\tpersist method: %s",
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "persist method: %s",
 			rpmem_persist_method_to_str(rpmemd->persist_method));
-	RPMEMD_LOG(NOTICE, "\tnumber of threads: %lu", rpmemd->nthreads);
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "number of threads: %lu",
+			rpmemd->nthreads);
 	RPMEMD_DBG("\tpersist APM: %s",
 		bool2str(rpmemd->config.persist_apm));
 	RPMEMD_DBG("\tpersist GPSPM: %s",
