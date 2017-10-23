@@ -258,8 +258,10 @@ TARGET_STATIC_DEBUG=$(TARGET).static-debug
 SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
 endif
 ifneq ($(BUILD_STATIC_NONDEBUG),n)
+ifneq ($(DEBUG),1)
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
 SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+endif
 endif
 endif
 endif
