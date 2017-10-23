@@ -39,8 +39,8 @@
 #include "pmalloc.h"
 #include "unittest.h"
 
-#define THREADS 32
-#define OPS_PER_THREAD 1000
+#define MAX_THREADS 32
+#define MAX_OPS_PER_THREAD 1000
 #define ALLOC_SIZE 104
 #define REALLOC_SIZE (ALLOC_SIZE * 3)
 #define MIX_RERUNS 2
@@ -48,8 +48,12 @@
 #define CHUNKSIZE (1 << 18)
 #define CHUNKS_PER_THREAD 3
 
+int Threads;
+int Ops_per_thread;
+int Tx_per_thread;
+
 struct root {
-	uint64_t offs[THREADS][OPS_PER_THREAD];
+	uint64_t offs[MAX_THREADS][MAX_OPS_PER_THREAD];
 };
 
 struct worker_args {
@@ -63,7 +67,7 @@ alloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
 
-	for (int i = 0; i < OPS_PER_THREAD; ++i) {
+	for (int i = 0; i < Ops_per_thread; ++i) {
 		pmalloc(a->pop, &a->r->offs[a->idx][i], ALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
@@ -76,7 +80,7 @@ realloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
 
-	for (int i = 0; i < OPS_PER_THREAD; ++i) {
+	for (int i = 0; i < Ops_per_thread; ++i) {
 		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
@@ -89,7 +93,7 @@ free_worker(void *arg)
 {
 	struct worker_args *a = arg;
 
-	for (int i = 0; i < OPS_PER_THREAD; ++i) {
+	for (int i = 0; i < Ops_per_thread; ++i) {
 		pfree(a->pop, &a->r->offs[a->idx][i]);
 		UT_ASSERTeq(a->r->offs[a->idx][i], 0);
 	}
@@ -107,13 +111,13 @@ mix_worker(void *arg)
 	 * contention.
 	 */
 	for (int j = 0; j < MIX_RERUNS; ++j) {
-		for (int i = 0; i < OPS_PER_THREAD; ++i) {
+		for (int i = 0; i < Ops_per_thread; ++i) {
 			pmalloc(a->pop, &a->r->offs[a->idx][i],
 				ALLOC_SIZE, 0, 0);
 			UT_ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
-		for (int i = 0; i < OPS_PER_THREAD; ++i) {
+		for (int i = 0; i < Ops_per_thread; ++i) {
 			pfree(a->pop, &a->r->offs[a->idx][i]);
 			UT_ASSERTeq(a->r->offs[a->idx][i], 0);
 		}
@@ -145,7 +149,7 @@ alloc_free_worker(void *arg)
 	struct worker_args *a = arg;
 
 	PMEMoid oid;
-	for (int i = 0; i < OPS_PER_THREAD; ++i) {
+	for (int i = 0; i < Ops_per_thread; ++i) {
 		int err = pmemobj_alloc(a->pop, &oid, ALLOC_SIZE,
 				0, NULL, NULL);
 		UT_ASSERTeq(err, 0);
@@ -156,7 +160,6 @@ alloc_free_worker(void *arg)
 }
 
 #define OPS_PER_TX 10
-#define TX_PER_TH 100
 #define STEP 8
 #define TEST_LANES 4
 
@@ -165,7 +168,7 @@ tx2_worker(void *arg)
 {
 	struct worker_args *a = arg;
 
-	for (int n = 0; n < TX_PER_TH; ++n) {
+	for (int n = 0; n < Tx_per_thread; ++n) {
 		PMEMoid oids[OPS_PER_TX];
 		TX_BEGIN(a->pop) {
 			for (int i = 0; i < OPS_PER_TX; ++i) {
@@ -190,12 +193,12 @@ tx2_worker(void *arg)
 static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
-	os_thread_t t[THREADS];
+	os_thread_t t[MAX_THREADS];
 
-	for (int i = 0; i < THREADS; ++i)
+	for (int i = 0; i < Threads; ++i)
 		os_thread_create(&t[i], NULL, worker_func, &args[i]);
 
-	for (int i = 0; i < THREADS; ++i)
+	for (int i = 0; i < Threads; ++i)
 		os_thread_join(&t[i], NULL);
 }
 
@@ -204,17 +207,25 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_mt");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s [file]", argv[0]);
+	if (argc != 5)
+		UT_FATAL("usage: %s <threads> <ops/t> <tx/t> [file]", argv[0]);
 
 	PMEMobjpool *pop;
 
-	if (os_access(argv[1], F_OK) != 0) {
-		pop = pmemobj_create(argv[1], "TEST",
-		(PMEMOBJ_MIN_POOL) + (THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
+	Threads = atoi(argv[1]);
+	if (Threads > MAX_THREADS)
+		UT_FATAL("Threads %d > %d", Threads, MAX_THREADS);
+	Ops_per_thread = atoi(argv[2]);
+	if (Ops_per_thread > MAX_OPS_PER_THREAD)
+		UT_FATAL("Ops per thread %d > %d", Threads, MAX_THREADS);
+	Tx_per_thread = atoi(argv[3]);
+
+	if (os_access(argv[4], F_OK) != 0) {
+		pop = pmemobj_create(argv[4], "TEST", (PMEMOBJ_MIN_POOL) +
+			(MAX_THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);
 	} else {
-		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
+		if ((pop = pmemobj_open(argv[4], "TEST")) == NULL) {
 			printf("failed to open pool\n");
 			return 1;
 		}
@@ -227,9 +238,9 @@ main(int argc, char *argv[])
 	struct root *r = pmemobj_direct(oid);
 	UT_ASSERTne(r, NULL);
 
-	struct worker_args args[THREADS];
+	struct worker_args args[MAX_THREADS];
 
-	for (int i = 0; i < THREADS; ++i) {
+	for (int i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
 		args[i].r = r;
 		args[i].idx = i;

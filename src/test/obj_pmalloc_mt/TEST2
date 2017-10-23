@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,20 +32,22 @@
 #
 
 #
-# src/test/obj_pmalloc_mt/TEST1 -- multithreaded allocator test
-#	(long standard version)
+# src/test/obj_pmalloc_mt/TEST2 -- multithreaded allocator test
+#	(medium helgrind version)
 #
-export UNITTEST_NAME=obj_pmalloc_mt/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NUM=2
+export UNITTEST_NAME=obj_pmalloc_mt/TEST$UNITTEST_NUM
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type any
+require_valgrind_dev_version 3.10
+require_fs_type pmem non-pmem
 require_test_type medium
+configure_valgrind helgrind force-enable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_mt$EXESUFFIX 32 1000 100 $DIR/testfile
+	./obj_pmalloc_mt$EXESUFFIX 8 100 10 $DIR/testfile
 
 pass
