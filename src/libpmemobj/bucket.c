@@ -83,7 +83,7 @@ bucket_insert_block(struct bucket *b, const struct memory_block *m)
 	if (On_valgrind) {
 		size_t size = m->m_ops->get_real_size(m);
 		void *data = m->m_ops->get_real_data(m);
-		VALGRIND_MAKE_MEM_NOACCESS(data, size);
+		VALGRIND_DO_MAKE_MEM_NOACCESS(data, size);
 		VALGRIND_ANNOTATE_NEW_MEMORY(data, size);
 	}
 #endif
