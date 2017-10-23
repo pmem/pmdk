@@ -89,7 +89,9 @@ TARGET_DIR=$(DESTDIR)$(bindir)
 BASH_COMP_FILES ?=
 BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
 
+ifneq ($(DEBUG),1)
 TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+endif
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
 
 LIBSDIR=$(TOP)/src
