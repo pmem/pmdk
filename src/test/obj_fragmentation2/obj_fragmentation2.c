@@ -192,7 +192,7 @@ static workload *workloads[] = {
 };
 
 static float workloads_target[] = {
-	0.01f, 1.1f, 1.1f, 0.9f, 0.9f, 1.1f, 0.4f, 1.3f
+	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.2f, 0.7f
 };
 
 int
@@ -224,7 +224,7 @@ main(int argc, char *argv[])
 
 	PMEMoid oid;
 	size_t remaining = 0;
-	size_t chunk = ((1 << 20) * 2) - 16;
+	size_t chunk = 100; /* calc at chunk level */
 	while (pmemobj_alloc(pop, &oid, chunk, 0, NULL, NULL) == 0)
 		remaining += pmemobj_alloc_usable_size(oid) + 16;
 
