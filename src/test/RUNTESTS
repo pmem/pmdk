@@ -118,10 +118,20 @@ runtest_local() {
 			keep_going_exit_code=1
 			fail_list="$fail_list $RUNTEST_DIR/$RUNTEST_SCRIPT"
 			((fail_count+=1))
+
+			if [ "$CLEAN_FAILED" == "y" ]; then
+				dir_rm=$(<$TEMP_LOC)
+				rm -Rf $dir_rm
+				if [ $? == 0 ]; then
+					echo -e "Removed directory with data: $dir_rm"
+				fi
+			fi
 		else
 			exit 1
 		fi
 	}
+	rm -f $TEMP_LOC
+
 	return 0
 }
 
@@ -326,6 +336,13 @@ runtest() {
 					$special_params"
 				export RUNTEST_SCRIPT="$runscript"
 				export RUNTEST_TIMEOUT="$req_timeout"
+
+				if [ "$KEEP_GOING" == "y" ] && [ "$CLEAN_FAILED" == "y" ]; then
+					# temporary file used for sharing data
+					# between RUNTESTS and tests processes
+					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
+					export TEMP_LOC=$temp_loc
+				fi
 
 				if [ -n "$provs" -a -n "$pmeths" ]; then
 					runtest_remote "$provs" "$pmeths"
