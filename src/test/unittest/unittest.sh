@@ -223,6 +223,11 @@ if [ -d "$NON_PMEM_FS_DIR" ]; then
 	NON_PMEM_IS_PMEM=$?
 fi
 
+if [ -f "$TEMP_LOC" ]; then
+	echo "$DIR" > $TEMP_LOC
+fi
+
+
 #
 # The default is to turn on library logging to level 3 and save it to local files.
 # Tests that don't want it on, should override these environment variables.
