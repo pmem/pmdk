@@ -88,15 +88,21 @@ a pool set is consistent, i.e. all parts are healthy, and if any of them is
 not, the corrupted or missing parts are recreated and filled with data from
 one of the healthy replicas.
 
-_UW(pmempool_transform) modifies the internal structure of a
-pool set. It supports the following operations:
+_WINUX(,=q=If a pool set has the option *NOHDRS* (see **poolset**(5)), the internal
+metadata of each replica is limited to the beginning of the first part in the
+replica. In that case, only missing parts or the ones which cannot be opened
+are recreated with the _UW(pmempool_sync) function.=e=)
+
+_UW(pmempool_transform) modifies the internal structure of a pool set.
+It supports the following operations:
 
 * adding one or more replicas,
 
-* removing one or more replicas,
+* removing one or more replicas_WINUX(.,=q=,
 
-* reordering of replicas.
+* adding or removing pool set options.=e=)
 
+Only one of the above operations can be performed at a time.
 
 _UW(pmempool_transform) accepts three arguments:
 
@@ -112,17 +118,32 @@ is performed.
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
 
-When adding or deleting replicas, the two pool set files can differ only in the
+_WINUX(=q=When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with either of them.
+at a time. Reordering replicas is not supported.
 Also, to add a replica it is necessary for its effective size to match or
 exceed the pool size. Otherwise the whole operation fails and no changes are
 applied. The effective size of a replica is the sum of sizes of all its part
+
 files decreased by 4096 bytes per each part file. The 4096 bytes of each part
-file is utilized for storing internal metadata of the pool part files.
+file is utilized for storing internal metadata of the pool part files.=e=)
+
+_WINUX(,=q=When adding or deleting replicas, the two pool set files can differ only in the
+definitions of replicas which are to be added or deleted. When adding or
+removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
+files have to be of the same structure. To add a replica it is necessary for
+its effective size to match or exceed the pool size. Otherwise the whole
+operation fails and no changes are applied.
+If the option *NOHDRS* is not used, the effective size of a replica is the sum
+of sizes of all its part files decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal metadata of
+the pool part files.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files decreased once by 4096 bytes. In this case only
+the first part contains internal metadata.=e=)
 
 
 # RETURN VALUE #

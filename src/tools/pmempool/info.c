@@ -581,6 +581,13 @@ pmempool_info_part(struct pmem_info *pip, unsigned repn, unsigned partn, int v)
 	outv_field(v, "size", "%s", out_get_size_str((size_t)size,
 			pip->args.human));
 
+	/* get alignment of device dax */
+	if (is_dev_dax) {
+		size_t alignment = util_file_device_dax_alignment(path);
+		outv_field(v, "alignment", "%s", out_get_size_str(alignment,
+				pip->args.human));
+	}
+
 	return 0;
 }
 
@@ -625,6 +632,12 @@ pmempool_info_poolset(struct pmem_info *pip, int v)
 	for (unsigned r = 0; r < pip->pfile->poolset->nreplicas; ++r) {
 		if (pmempool_info_replica(pip, r, v))
 			return -1;
+	}
+
+	if (pip->pfile->poolset->options > 0) {
+		outv_title(v, "Poolset options");
+		if (pip->pfile->poolset->options & OPTION_NO_HDRS)
+			outv(v, "%s", "NOHDRS\n");
 	}
 
 	return 0;
@@ -676,7 +689,8 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 			pip->params.is_part ?
 			" [part file]" : "");
 	outv_field(v, "Major", "%d", hdr->major);
-	outv_field(v, "Mandatory features", "0x%x", hdr->incompat_features);
+	outv_field(v, "Mandatory features", "%s",
+			out_get_incompat_features_str(hdr->incompat_features));
 	outv_field(v, "Not mandatory features", "0x%x", hdr->compat_features);
 	outv_field(v, "Forced RO", "0x%x", hdr->ro_compat_features);
 	outv_field(v, "Pool set UUID", "%s",
