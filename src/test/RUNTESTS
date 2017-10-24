@@ -338,6 +338,7 @@ runtest() {
 				export RUNTEST_TIMEOUT="$req_timeout"
 
 				if [ "$KEEP_GOING" == "y" ] && [ "$CLEAN_FAILED" == "y" ]; then
+
 					# temporary file used for sharing data
 					# between RUNTESTS and tests processes
 					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
