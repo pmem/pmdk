@@ -86,12 +86,20 @@ B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB"
 The path of a part can point to a Device DAX and in such case the size
 argument can be set to an "AUTO" string, which means that the size of the device
 will be automatically resolved at pool creation time.
-When using Device DAX there's also one additional restriction - it is not allowed
-to concatenate more than one Device DAX device in a single pool set
-if the configured internal alignment is other than 4KiB.  In such case a pool set
-can consist only of a single part (single Device DAX).
-Please see **ndctl-create-namespace**(1) for information on how to configure
-desired alignment on Device DAX.
+When using Device DAX there's also one additional restriction - by default it is
+not allowed to concatenate more than one Device DAX device in a single pool set
+if the configured internal alignment of any of the devices is other than 4KiB.
+If a Device DAX has alignment different than 4KiB it must be the only part in
+a pool set replica, unless an option *NOHDRS* is used in the pool set file.
+If a line containing the string *OPTION NOHDRS* appears anywhere after
+*PMEMPOOLSET* string in a pool set file, more than one Device DAX devices with
+alignment different than 4KiB can be concatenated in a single replica. Also,
+Device DAX devices with different alignment can be mixed then. However,
+using the *NOHDRS* option has some implications regarding data integrity checking
+and recoverability in case of pool set damage. See !pmempool_sync API for more
+information about pool set recovery.
+For information on how to configure desired alignment on Device DAX, see
+**ndctl-create-namespace**(1).
 
 Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.

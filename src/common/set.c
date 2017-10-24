@@ -1769,7 +1769,8 @@ int
 util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
 	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
+	const unsigned char *next_repl_uuid, const unsigned char *arch_flags,
+	int overwrite)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
 		"compat %#x incompat %#x ro_compat %#x "
@@ -1783,7 +1784,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
 
 	/* check if the pool header is all zeros */
-	if (!util_is_zeroed(hdrp, sizeof(*hdrp))) {
+	if (!util_is_zeroed(hdrp, sizeof(*hdrp)) && !overwrite) {
 		ERR("Non-empty file detected");
 		errno = EEXIST;
 		return -1;
@@ -2225,7 +2226,7 @@ util_replica_init_headers_local(struct pool_set *set, unsigned repidx,
 		if (util_header_create(set, repidx, p, sig, major,
 				compat, incompat, ro_compat,
 				prev_repl_uuid, next_repl_uuid,
-				arch_flags) != 0) {
+				arch_flags, 0) != 0) {
 			LOG(2, "header creation failed - part #%d", p);
 			goto err;
 		}
@@ -2328,7 +2329,7 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 	/* create header, set UUID's */
 	if (util_header_create(set, repidx, 0, sig, major,
 				compat, incompat, ro_compat,
-				prev_repl_uuid, next_repl_uuid, NULL) != 0) {
+				prev_repl_uuid, next_repl_uuid, NULL, 0) != 0) {
 		LOG(2, "header creation failed - part #0");
 		Free(part->remote_hdr);
 		return -1;

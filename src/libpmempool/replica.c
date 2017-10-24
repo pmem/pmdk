@@ -86,7 +86,7 @@ replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 	size_t hdrsize = (set_in->options & OPTION_NO_HDRS) ? 0 : POOL_HDR_SIZE;
 	return MMAP_ALIGN_DOWN(
 			set_in->replica[repn]->part[partn].filesize) -
-			((partn == 0) ? hdrsize : Mmap_align);
+			((partn == 0) ? POOL_HDR_SIZE : hdrsize);
 }
 
 /*

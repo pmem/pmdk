@@ -103,6 +103,12 @@ are consistent, i.e. all parts are healthy, and if any of them is not,
 the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 
+If a pool set has the option *NOHDRS* (see **poolset**(5)), !pmempool_sync
+function has limited capability of checking its metadata. This is due to limited
+internal metadata at the beginning of each but the first part in every replica
+when the option is used. In that case, virtually only missing parts or the ones
+which cannot be opened are recreated.
+
 The !pmempool_transform function modifies internal structure of a pool set.
 It supports the following operations:
 
@@ -110,8 +116,9 @@ It supports the following operations:
 
 * removing one or more replicas,
 
-* reordering of replicas.
+* adding or removing the *NOHDRS* option.
 
+Only one of the above operations can be performed at a time.
 
 !pmempool_transform accepts three arguments:
 
@@ -127,17 +134,22 @@ synchronization.
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
 
 When adding or deleting replicas, the two pool set files can differ only in the
-definitions of replicas which are to be added or deleted. One cannot add and
-remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
-Also, to add a replica it is necessary for its effective size to match or exceed
-the pool size. Otherwise the whole operation fails and no changes are applied.
-Effective size of a replica is the sum of sizes of all its part files decreased
-by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+definitions of replicas which are to be added or deleted. When adding or
+removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
+files have to be of the same structure. To add a replica it is
+necessary for its effective size to match or exceed the pool size. Otherwise
+the whole operation
+fails and no changes are applied.
+If the option *NOHDRS* is not used, the effective size of a replica is the sum
+of sizes of all its part files decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal metadata of
+the pool part files.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files decreased once by 4096 bytes. In this case only
+the first part contains internal metadata.
 
 
 # RETURN VALUE #
