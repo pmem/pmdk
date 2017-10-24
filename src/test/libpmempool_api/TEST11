@@ -46,6 +46,7 @@ require_fs_type any
 configure_valgrind memcheck force-disable
 configure_valgrind pmemcheck force-disable
 configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 setup
 
