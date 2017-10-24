@@ -640,6 +640,47 @@ check_replicas_consistency(struct pool_set *set,
 }
 
 /*
+ * check_replica_options -- (internal) check if options are consistent in the
+ *                          replica
+ */
+static int
+check_replica_options(struct pool_set *set, unsigned repn,
+		struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
+	struct pool_replica *rep = REP(set, repn);
+	struct replica_health_status *rep_hs = REP(set_hs, repn);
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
+		/* skip broken parts */
+		if (replica_is_part_broken(repn, p, set_hs))
+			continue;
+
+		struct pool_hdr *hdr = HDR(rep, p);
+		if (((hdr->incompat_features & POOL_FEAT_NOHDRS) == 0) !=
+				((set->options & OPTION_NO_HDRS) == 0)) {
+			LOG(1, "improper options are set in part %u's header in"
+					" replica %u", p, repn);
+			rep_hs->part[p] |= IS_BROKEN;
+		}
+	}
+	return 0;
+}
+
+/*
+ * check_options -- (internal) check if options are consistent in all replicas
+ */
+static int
+check_options(struct pool_set *set, struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (check_replica_options(set, r, set_hs))
+			return -1;
+	}
+	return 0;
+}
+
+/*
  * check_replica_poolset_uuids - (internal) check if poolset_uuid fields are
  *                               consistent among all parts of a replica;
  *                               the replica is initially considered as
@@ -870,6 +911,12 @@ replica_check_poolset_health(struct pool_set *set,
 
 	/* check if checksums are correct for parts in all replicas */
 	check_checksums(set, set_hs);
+
+	/* check if option flags are consistent */
+	if (check_options(set, set_hs)) {
+		LOG(1, "flags check failed");
+		goto err;
+	}
 
 	/* check if uuids in parts across each replica are consistent */
 	if (check_replicas_consistency(set, set_hs)) {

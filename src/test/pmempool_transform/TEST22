@@ -58,6 +58,7 @@ ERR_LOG=err${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -rf $LOG && touch $LOG
 rm -rf $LOG_TEMP && touch $LOG_TEMP
+rm -rf $ERR_LOG && touch $ERR_LOG
 
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
@@ -77,7 +78,7 @@ create_poolset $POOLSET_OUT \
 	AUTO:${DEVICE_DAX_PATH[0]}:x \
 	AUTO:${DEVICE_DAX_PATH[1]}:x
 
-DAX_SIZE[0]=$(dax_get_size ${DEVICE_DAX_PATH[0]})
+DAX_SIZE[0]=$(get_devdax_size 0)
 
 OFFSET=${DAX_SIZE[0]}
 ROOT_SIZE=$[OFFSET + 1024]

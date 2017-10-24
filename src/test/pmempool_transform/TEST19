@@ -31,8 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST19 -- test for transforming nohdrs->hdrs
+# pmempool_transform/TEST19 -- test for transform with NOHDRS option
 #
+# removing the NOHDRS option
 # case: two replicas larger than the pool size, able to embrace new headers
 #
 export UNITTEST_NAME=pmempool_transform/TEST19

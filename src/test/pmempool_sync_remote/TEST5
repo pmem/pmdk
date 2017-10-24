@@ -44,13 +44,17 @@ require_test_type medium
 
 . ./common.sh
 
-require_node_dax_device 0
+require_node_dax_device 0 1
 
 setup
 
-create_poolset $DIR/pool.set 8M:${NODE_DIR[1]}pool.1:x \
-        m ${NODE_ADDR[0]}:remote.set
-create_poolset $DIR/remote.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
+create_poolset $DIR/pool.set \
+	8M:${NODE_DIR[1]}pool.1:x \
+        m \
+	${NODE_ADDR[0]}:remote.set
+
+create_poolset $DIR/remote.set \
+	AUTO:$(get_node_devdax_path 0 0)
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/remote.set
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/pool.set
