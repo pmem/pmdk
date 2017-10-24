@@ -44,15 +44,23 @@ require_test_type medium
 
 . ./common.sh
 
-require_node_dax_device 0
-require_node_dax_device 1
+require_node_dax_device 0 1
+require_node_dax_device 1 1
 
 setup
 
-create_poolset $DIR/pool.set 8M:$(get_node_dir 1)/pool.1:x \
-	r AUTO:${NODE_DEVICE_DAX_PATH[1]}\
-        m ${NODE_ADDR[0]}:remote.set
-create_poolset $DIR/remote.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
+node_dax_device_zero 0
+node_dax_device_zero 1
+
+create_poolset $DIR/pool.set \
+	8M:${NODE_DIR[1]}pool.1:x \
+	r \
+	AUTO:$(get_node_devdax_path 1 0)\
+        m \
+	${NODE_ADDR[0]}:remote.set
+
+create_poolset $DIR/remote.set \
+	AUTO:$(get_node_devdax_path 0 0)
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/remote.set
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/pool.set
@@ -67,8 +75,8 @@ dump_info_log 1 1 ${NODE_DIR[1]}pool.set before.1.log
 dump_info_log_remote 0 ${NODE_DIR[0]}remote.set before.r.log
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${NODE_DIR[0]}remote.set
-expect_normal_exit run_on_node 1 ../pmempool rm -f ${NODE_DEVICE_DAX_PATH[1]}
 expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}pool.set
+
 dump_info_log 1 0 ${NODE_DIR[1]}pool.set after.0.log
 dump_info_log 1 1 ${NODE_DIR[1]}pool.set after.1.log
 dump_info_log_remote 0 ${NODE_DIR[0]}remote.set after.r.log
