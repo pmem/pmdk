@@ -31,10 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST12 -- test for transforming nohdrs->hdrs
+# pmempool_transform/TEST12 -- test for transform with NOHDRS option
 #
-# case: an attempt to remove NOHDRS option from a single replica with two
-# 2MB-aligned device daxes
+# removing the NOHDRS option
+# case: a single replica with two 2MB-aligned device daxes - should fail
 #
 export UNITTEST_NAME=pmempool_transform/TEST12
 export UNITTEST_NUM=12

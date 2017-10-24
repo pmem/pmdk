@@ -112,6 +112,11 @@ option is used in the pool set file.
 *PMEMPOOLSET* string in a pool set file, Device DAX devices with different
 internal alignment can be concatenated.
 
++ The *NOHDRS* option concerns only local poolset files, i.e. if one wants to
+create a poolset with the *NOHDRS* option and with remote replicas, one has to
+add this option to the local poolset file as well as to every single remote
+poolset file.
+
 + Using the *NOHDRS* option has important implications for data integrity
 checking and recoverability in case of a pool set damage. See _UW(pmempool_sync)
 API for more information about pool set recovery.

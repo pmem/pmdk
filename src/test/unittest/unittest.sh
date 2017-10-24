@@ -286,6 +286,8 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 # In case a lock is required for Device DAXes
 DEVDAX_LOCK=../devdax.lock
 
+NODE_DEVICE_DAX_PATH=(NODE_0_DEVICE_DAX_PATH NODE_1_DEVICE_DAX_PATH NODE_2_DEVICE_DAX_PATH NODE_3_DEVICE_DAX_PATH)
+
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
 #                        of the 'errexit' shell option
@@ -997,11 +999,11 @@ function require_dev_dax_node() {
 	if [ -n "$node" ]; then
 		local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
 		local prefix="$UNITTEST_NAME: SKIP NODE $node:"
-		if [ -z "${NODE_DEVICE_DAX_PATH[$node]}" ]; then
-			echo "$prefix NODE_DEVICE_DAX_PATH[$node] is not set"
+		eval "declare -a device_dax_path=(\${${NODE_DEVICE_DAX_PATH[$node]}[@]})"
+		if [  ${#device_dax_path[@]} -lt $min ]; then
+			echo "$prefix NODE_${node}_DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
 			exit 0
 		fi
-		local device_dax_path=${NODE_DEVICE_DAX_PATH[$node]}
 		local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -d"
 	else
 		local prefix="$UNITTEST_NAME: SKIP"
@@ -1034,13 +1036,55 @@ function require_dev_dax_node() {
 }
 
 #
-# dax_device_zero -- zero all dax devices
+# get_node_devdax_path -- get path of a Device DAX device on a node
 #
-function dax_device_zero() {
+get_node_devdax_path() {
+	local node=$1
+	local device=$2
+	eval "declare -a devdax_paths=(\${${NODE_DEVICE_DAX_PATH[$node]}[@]})"
+	echo ${devdax_paths[$device]}
+}
+
+#
+# dax_device_zero -- zero all local dax devices
+#
+dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
 		${PMEMPOOL}.static-debug rm -f $path
 	done
+}
+
+#
+# node_dax_device_zero -- zero all dax devices on a node
+#
+node_dax_device_zero() {
+	local node=$1
+	local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
+	local prefix="$UNITTEST_NAME: SKIP NODE $node:"
+	eval "declare -a device_dax_path=(\${${NODE_DEVICE_DAX_PATH[$node]}[@]})"
+	local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmempool rm -f"
+
+	# ${PMEMPOOL}.static-debug rm -f $path
+
+	for path in ${device_dax_path[@]}
+	do
+		disable_exit_on_error
+		out=$($cmd $path 2>&1)
+		ret=$?
+		restore_exit_on_error
+
+		if [ "$ret" == "0" ]; then
+			continue
+		elif [ "$ret" == "1" ]; then
+			echo "$prefix $out"
+			exit 0
+		else
+			echo "$UNITTEST_NAME: pmempool rm: $out" >&2
+			exit 1
+		fi
+	done
+
 }
 
 #
@@ -1073,15 +1117,27 @@ function require_dax_devices() {
 }
 
 #
-# require_dax_device_alignments -- only allow script to continue if
-#    the internal Device DAX alignments are as specified.
+# require_dax_device_node_alignments -- only allow script to continue if
+#    the internal Device DAX alignments on a remote nodes are as specified.
 # If necessary, it sorts DEVICE_DAX_PATH entries to match
 # the requested alignment order.
 #
-# usage: require_dax_device_alignments alignment1 [ alignment2 ... ]
+# usage: require_node_dax_device_alignments <node> <alignment1> [ alignment2 ... ]
 #
-function require_dax_device_alignments() {
-	local cnt=${#DEVICE_DAX_PATH[@]}
+function require_node_dax_device_alignments() {
+	local node=$1
+	shift
+
+	if [ "$node" == "-1" ]; then
+		declare -a device_dax_path=DEVICE_DAX_PATH
+		local cmd="$PMEMDETECT -a"
+	else
+		declare -a device_dax_path=${NODE_DEVICE_DAX_PATH[$node]}
+		local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
+		local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -a"
+	fi
+
+	eval "local cnt=\${#$device_dax_path[@]}"
 	local j=0
 
 	for alignment in $*
@@ -1089,26 +1145,31 @@ function require_dax_device_alignments() {
 		for (( i=j; i<cnt; i++ ))
 		do
 			#echo "j=$j i=$i alignment=$alignment"
-			path=${DEVICE_DAX_PATH[$i]}
+			eval "path=\${$device_dax_path[$i]}"
 
 			disable_exit_on_error
-			out=`$PMEMDETECT -a $alignment $path 2>&1`
+			out=$($cmd $alignment $path 2>&1)
 			ret=$?
 			restore_exit_on_error
 
 			if [ "$ret" == "0" ]; then
 				#echo "found $path alignment=$alignment"
 				if [ $i -ne $j ]; then
-					tmp=${DEVICE_DAX_PATH[$j]}
-					DEVICE_DAX_PATH[$j]=$path
-					DEVICE_DAX_PATH[$i]=$tmp
+					eval "tmp=\${$device_dax_path[$j]}"
+					eval "$device_dax_path[$j]=$path"
+					eval "$device_dax_path[$i]=$tmp"
 				fi
 				break
 			fi
 		done
 
 		if [ $i -eq $cnt ]; then
-			echo "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+			if [ "$node" == "-1" ]; then
+				echo "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+			else
+				echo "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment " \
+					"$alignment on node $node"
+			fi
 			exit 0
 		fi
 
@@ -1117,12 +1178,24 @@ function require_dax_device_alignments() {
 }
 
 #
+# require_dax_device_alignments -- only allow script to continue if
+#    the internal Device DAX alignments are as specified.
+# If necessary, it sorts DEVICE_DAX_PATH entries to match
+# the requested alignment order.
+#
+# usage: require_dax_device_alignments alignment1 [ alignment2 ... ]
+#
+require_dax_device_alignments() {
+	require_node_dax_device_alignments -1 $*
+}
+
+#
 # require_node_dax_device -- only allow script to continue if specified node
 # has defined device dax in testconfig.sh
 #
 function require_node_dax_device() {
 	validate_node_number $1
-	require_dev_dax_node 1 $1
+	require_dev_dax_node $2 $1
 }
 
 #
