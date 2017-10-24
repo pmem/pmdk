@@ -91,6 +91,12 @@ TM=1
 #KEEP_GOING=y
 
 #
+# This option works only if KEEP_GOING=y, then if CLEAN_FAILED is set
+# all data created by local test is removed on test failure.
+#
+#CLEAN_FAILED=y
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
