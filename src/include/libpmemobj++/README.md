@@ -56,6 +56,25 @@ nvml::obj::transaction::automatic class requires C++17, so
 you need a more recent version for this to be available(GCC 6.1/Clang 3.7).
 It is recommended to use these or newer versions of GCC or Clang.
 
+### Standard notice ###
+Please note that the C++11 standard, section 3.8, states that a valid
+non-trivially default constructible object (in other words, not plain old data)
+must be properly constructed in the lifetime of the application.
+Libpmemobj, or any shared memory solution for that matter, does not
+strictly adhere to that constraint.
+
+We believe that in the future, languages that wish to support persistent memory
+will need to alter their semantics to establish a defined behavior for objects
+whose lifetimes exceed that of the application. In the meantime, the programs
+that wish to use persistent memory will need to rely on compiler-defined
+behavior.
+
+Our library, and by extension these bindings, have been extensively tested in
+g++, clang++ and MSVC++ to make sure that our solution is safe to use and
+practically speaking implementation defined. The only exception to this rule is
+the use of polymorphic types, which are notably forbidden when using C++
+bindings.
+
 ### Important classes/functions ###
 
  * Transactional allocations - make_persistent.hpp
