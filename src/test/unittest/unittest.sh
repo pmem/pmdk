@@ -1035,6 +1035,17 @@ function dax_device_zero() {
 }
 
 #
+# dax_get_size -- get the size of a device dax
+#
+function dax_get_size() {
+	minor_hex=$(stat -c "%t" $1)
+	major_hex=$(stat -c "%T" $1)
+	minor_dec=$((16#$minor_hex))
+	major_dec=$((16#$major_hex))
+	cat /sys/dev/char/$minor_dec:$major_dec/size
+}
+
+#
 # require_dax_devices -- only allow script to continue for a dax device
 #
 function require_dax_devices() {

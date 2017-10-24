@@ -5,26 +5,36 @@ TestOK111
 TestOK222
 Poolset structure:
 Number of replicas       : 2
-Replica 0 (master) - local, 1 part(s):
+Replica 0 (master) - local, 2 part(s):
 part 0:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
-alignment                : $(nW)
+alignment                : 2097152
+part 1:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+alignment                : 2097152
 Replica 1 - local, 2 part(s):
 part 0:
-path                     : $(nW)part10
-type                     : regular file
+path                     : $(nW)
+type                     : device dax
 size                     : $(nW)
+alignment                : 4096
 part 1:
-path                     : $(nW)part11
-type                     : regular file
+path                     : $(nW)
+type                     : device dax
 size                     : $(nW)
+alignment                : 4096
+
+Poolset options:
+NOHDRS
 
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : 0x1 [NOHDRS]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -38,26 +48,15 @@ Heap size                : $(nW)
 Checksum                 : $(nW) [OK]
 Root offset              : $(nW)
 Part file:
-path                     : $(nW)part10
-type                     : regular file
+path                     : $(nW)
+type                     : device dax
 size                     : $(nW)
+alignment                : 4096
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
-Part file:
-path                     : $(nW)part11
-type                     : regular file
-size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : 0x1 [NOHDRS]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -65,12 +64,12 @@ Part file:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
-alignment                : $(nW)
+alignment                : 2097152
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : 0x1 [NOHDRS]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)

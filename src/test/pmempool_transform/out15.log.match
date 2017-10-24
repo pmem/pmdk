@@ -1,25 +1,34 @@
+poolset_in
+PMEMPOOLSET
+AUTO $(nW)
+AUTO $(nW)
+
+poolset_out
+PMEMPOOLSET
+OPTION NOHDRS
+AUTO $(nW)
+AUTO $(nW)
+
 pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
 TestOK111
 TestOK222
+TestOK111
+TestOK222
 Poolset structure:
-Number of replicas       : 2
-Replica 0 (master) - local, 1 part(s):
+Number of replicas       : 1
+Replica 0 (master) - local, 2 part(s):
 part 0:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
 alignment                : $(nW)
-Replica 1 - local, 2 part(s):
-part 0:
-path                     : $(nW)part10
-type                     : regular file
-size                     : $(nW)
 part 1:
-path                     : $(nW)part11
-type                     : regular file
+path                     : $(nW)
+type                     : device dax
 size                     : $(nW)
+alignment                : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -38,21 +47,10 @@ Heap size                : $(nW)
 Checksum                 : $(nW) [OK]
 Root offset              : $(nW)
 Part file:
-path                     : $(nW)part10
-type                     : regular file
+path                     : $(nW)
+type                     : device dax
 size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
-Part file:
-path                     : $(nW)part11
-type                     : regular file
-size                     : $(nW)
+alignment                : $(nW)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]
