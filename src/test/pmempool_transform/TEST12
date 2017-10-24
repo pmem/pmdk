@@ -31,10 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST12 -- test for transforming nohdrs->hdrs
+# pmempool_transform/TEST12 -- test for transform with NOHDRS option
 #
-# case: an attempt to remove NOHDRS option from a single replica with two
-# 2MB-aligned device daxes
+# removing the NOHDRS option
+# case: a single replica with two 2MB-aligned device daxes - should fail
 #
 export UNITTEST_NAME=pmempool_transform/TEST12
 export UNITTEST_NUM=12
@@ -65,7 +65,7 @@ POOLSET_1=$DIR/poolset.1
 POOLSET_2=$DIR/poolset.2
 POOLSET_3=$DIR/poolset.3
 
-DAX_SIZE[0]=$(dax_get_size ${DEVICE_DAX_PATH[0]})
+DAX_SIZE[0]=$(get_devdax_size 0)
 
 # Create poolset files
 create_poolset $POOLSET_1 \

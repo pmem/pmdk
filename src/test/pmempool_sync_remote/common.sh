@@ -50,6 +50,9 @@ copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
 
+SIZE_4KB=4096
+SIZE_2MB=2097152
+
 #
 # configure_poolsets -- configure pool set files for test
 # usage: configure_poolsets <local replicas> <remote replicas>
@@ -126,3 +129,13 @@ function diff_log() {
 
 	expect_normal_exit run_on_node $node "\"[ -s $f1 ] && [ -s $f2 ] && diff $f1 $f2\""
 }
+
+exec_pmemobjcli_script() {
+	local node=$1
+	local script=$2
+	local poolset=$3
+	local out=$4
+
+	expect_normal_exit run_on_node $node "\"../pmemobjcli -s $script $poolset > $out \""
+}
+

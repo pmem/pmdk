@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST21 -- test for transforming poolset with nohdrs option
+# pmempool_transform/TEST21 -- test for transforming poolset with NOHDRS option
 #
 # case: removing a replica
 #

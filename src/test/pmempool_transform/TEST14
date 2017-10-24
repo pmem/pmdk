@@ -65,7 +65,7 @@ LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
 
-DAX_SIZE[0]=$(dax_get_size ${DEVICE_DAX_PATH[0]})
+DAX_SIZE[0]=$(get_devdax_size 0)
 
 # Create poolset files
 create_poolset $POOLSET_IN \
