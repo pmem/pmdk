@@ -65,27 +65,47 @@ The following operations are supported:
 * adding replicas - one or more new replicas can be added and synchronized with
 other replicas in the pool set,
 
-* removing replicas - one or more replicas can be removed from the pool set,
+* removing replicas - one or more replicas can be removed from the pool set
+_WINUX(.,=q=,
 
-* reordering of replicas - the order of existing replicas can be changed.
+* adding or removing pool set options.=e=)
 
-Currently these operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(7)).
+Only one of the above operations can be performed at a time.
+
+Currently adding and removing replicas are allowed only for **pmemobj** pools
+(see **libpmemobj**(7)).
 
 
 The *poolset_file_src* argument provides the source pool set to be changed.
 
 The *poolset_file_dst* argument points to the target pool set.
 
-When adding or deleting replicas, the two pool set files can differ only in the
+
+_WINUX(=q=When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
+at a time. Reordering replicas is not supported
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased
+
 by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+utilized for storing internal metadata of the pool part files.=e=)
+
+
+_WINUX(,=q=When adding or deleting replicas, the two pool set files can differ only in the
+definitions of replicas which are to be added or deleted. When adding or
+removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
+files have to be of the same structure. To add a replica it is
+necessary for its effective size to match or exceed the pool size. Otherwise
+the whole operation fails and no changes are applied.
+If the option *NOHDRS* is not used, the effective size of a replica is the sum
+of sizes of all its part files decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal metadata of
+the pool part files.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files decreased once by 4096 bytes. In this case only
+the first part contains internal metadata.=e=)
 
 
 ##### Available options: #####
