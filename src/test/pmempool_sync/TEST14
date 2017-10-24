@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -30,45 +31,42 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info\TEST20.PS1 -- test for info command
+# pmempool_sync/TEST14 -- test for fixing pools with device dax using sync
 #
-# check if poolset file with NOHDRS option is handled properly
+# Device DAX devices with 2M alignment.
+# 2nd variant of alignment configuration
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "pmempool_info/TEST20"
-$Env:UNITTEST_NUM = "20"
+export UNITTEST_NAME=pmempool_sync/TEST14
+export UNITTEST_NUM=14
 
-
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
 require_fs_type any
 
+require_dax_devices 4
+require_dax_device_alignments 4096 2097152 4096 2097152 # 4KB, 2MB, 4KB, 2MB
+
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-remove_files $LOG
+dax_device_zero
 
-$POOLSET="$DIR\pool.set"
-$POOL1="$DIR\pool.part1"
-$POOL2="$DIR\pool.part2"
-$POOLS="$POOL1 $POOL2"
-$REPL1="$DIR\pool.rep.part1"
-$REPL2="$DIR\pool.rep.part2"
-$REPS="$REPL1 $REPL2"
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-remove_files $POOLSET
-create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
-	R 32M:${REPL1}:z 32M:${REPL2}:z `
-	O NOHDRS
+POOLSET=$DIR/testset1
+create_poolset $POOLSET \
+	O NOHDRS \
+	AUTO:${DEVICE_DAX_PATH[0]} \
+	AUTO:${DEVICE_DAX_PATH[1]} \
+	R \
+	AUTO:${DEVICE_DAX_PATH[2]} \
+	AUTO:${DEVICE_DAX_PATH[3]}
 
-check_file $POOLSET
-
-remove_files $POOLS $REPS
-expect_abnormal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET 2>$1 >$null
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[0]}
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[1]}
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 pass
