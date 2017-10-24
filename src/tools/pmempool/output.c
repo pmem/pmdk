@@ -829,3 +829,58 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 
 	return str_buff;
 }
+
+/*
+ * out_get_incompat_features_str -- (internal) get a string with names of
+ *                                  incompatibility flags
+ */
+const char *
+out_get_incompat_features_str(uint32_t incompat)
+{
+	static char str_buff[STR_MAX] = {0};
+	int ret = 0;
+
+	if (incompat == 0) {
+		/* print the value only */
+		return "0x0";
+	} else {
+		/* print the value and the left square bracket */
+		ret = snprintf(str_buff, STR_MAX, "0x%x [", incompat);
+		if (ret < 0 || ret >= STR_MAX) {
+			ERR("!snprintf for incompat features");
+			return "<error>";
+		}
+
+		/* print the name of NOHDRS option */
+		int count = 0;
+		int curr = ret;
+		if (incompat & POOL_FEAT_NOHDRS) {
+			ret = snprintf(str_buff + curr,
+				(size_t)(STR_MAX - curr), "%s", "NOHDRS");
+			if (ret < 0 || curr + ret >= STR_MAX)
+				return "";
+			curr += ret;
+			++count;
+			/* take off the flag */
+			incompat &= (uint32_t)(~(POOL_FEAT_NOHDRS));
+		}
+
+		/* handle other flags here */
+
+		/* check if any unknown flags are set */
+		if (incompat > 0) {
+			ret = snprintf(str_buff + curr,
+				(size_t)(STR_MAX - curr), "%s%s",
+				count ? ", " : "", "?UNKNOWN_FLAG?");
+			if (ret < 0 || curr + ret >= STR_MAX)
+				return "";
+			curr += ret;
+		}
+
+		/* print the right square bracket */
+		ret = snprintf(str_buff + curr, (size_t)(STR_MAX - curr), "]");
+		if (ret < 0 || curr + ret >= STR_MAX)
+			return "";
+	}
+	return str_buff;
+}
