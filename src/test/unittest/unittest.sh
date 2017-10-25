@@ -2116,8 +2116,8 @@ function pass() {
 	if [ "$TM" = "1" ]; then
 		end_time=$($DATE +%s.%N)
 
-		start_time_sec=$(date -d "0 $start_time sec" +%s)
-		end_time_sec=$(date -d "0 $end_time sec" +%s)
+		start_time_sec=$($DATE -d "0 $start_time sec" +%s)
+		end_time_sec=$($DATE -d "0 $end_time sec" +%s)
 
 		days=$(((end_time_sec - start_time_sec) / (24*3600)))
 		days=$(printf "%03d" $days)
