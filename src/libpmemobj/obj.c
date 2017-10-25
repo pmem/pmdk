@@ -1097,6 +1097,12 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		return -1;
 	}
 
+	VALGRIND_REMOVE_PMEM_MAPPING(&pop->mutex_head,
+		sizeof(pop->mutex_head));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pop->rwlock_head,
+		sizeof(pop->rwlock_head));
+	VALGRIND_REMOVE_PMEM_MAPPING(&pop->cond_head,
+		sizeof(pop->cond_head));
 	pop->mutex_head = NULL;
 	pop->rwlock_head = NULL;
 	pop->cond_head = NULL;
