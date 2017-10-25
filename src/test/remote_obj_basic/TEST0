@@ -55,7 +55,7 @@ POOLSET_FILE=pool$UNITTEST_NUM.set
 create_poolset $POOLSET_FILE 10M:$POOL_FILE:x
 
 # copy required files to remote nodes
-copy_files_to_node 0 . $POOLSET_FILE
+copy_files_to_node 0 ${NODE_DIR[0]} $POOLSET_FILE
 
 # remove local poolset file
 rm -f $POOLSET_FILE
@@ -67,7 +67,7 @@ rm -f $POOLSET_FILE
 # LD_LIBRARY_PATH for the n-th remote node can be provided
 # in the array NODE_LD_LIBRARY_PATH[n].
 #
-expect_normal_exit run_on_node 0 ./remote_obj_basic$EXESUFFIX create $POOLSET_FILE
+expect_normal_exit run_on_node 0 ./remote_obj_basic$EXESUFFIX create ${NODE_DIR[0]}$POOLSET_FILE
 expect_normal_exit run_on_node 0 rm -f $POOL_FILE
 
 check
