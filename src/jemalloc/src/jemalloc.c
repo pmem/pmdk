@@ -432,6 +432,18 @@ malloc_init_base_pool(void)
 	if (config_fill && opt_quarantine)
 		quarantine_alloc_hook();
 
+	/*
+	 * In the JEMALLOC_LAZY_LOCK case we had to defer initializing the
+	 * arenas_lock until base pool initialization was complete. Deferral
+	 * is safe because there are no other threads yet. We will actually
+	 * recurse here, but since base_pool_initialized is set we will
+	 * drop out of the recursion in the check at the top of this function.
+	 */
+	if (!isthreaded) {
+		if (malloc_rwlock_init(&base_pool.arenas_lock))
+			return (true);
+	}
+
 	return (false);
 }
 
@@ -1452,6 +1464,16 @@ base_free_default(void *ptr)
 
 }
 
+static void
+je_base_pool_destroy(void)
+{
+#ifndef JEMALLOC_MUTEX_INIT_CB
+	pool_destroy(&base_pool);
+	malloc_mutex_destroy(&pool_base_lock);
+	malloc_mutex_destroy(&pools_lock);
+#endif
+}
+
 bool
 pools_shared_data_create(void)
 {
@@ -1613,12 +1635,6 @@ je_pool_delete(pool_t *pool)
 	pool_destroy(pool);
 	pools[pool_id] = NULL;
 	npools_cnt--;
-
-	/*
-	 * TODO: Destroy mutex
-	 * base_mtx
-	 */
-
 	pools_shared_data_destroy();
 
 	malloc_mutex_unlock(&pools_lock);
@@ -2913,6 +2929,7 @@ jemalloc_destructor(void)
 
 	tcache_thread_cleanup(tcache_tsd_get());
 	arenas_cleanup(arenas_tsd_get());
+	je_base_pool_destroy();
 }
 
 #define FOREACH_POOL(func)					\

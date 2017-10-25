@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,69 +31,28 @@
  */
 
 /*
- * vmmalloc_valloc.c -- unit test for libvmmalloc valloc/pvalloc
- *
- * usage: vmmalloc_valloc [v|p]
+ * vmmalloc_weakfuncs.h -- definitions for vmmalloc tests
  */
 
-#include <sys/param.h>
-#include <libvmmalloc.h>
-#include "unittest.h"
-#include "vmmalloc_weakfuncs.h"
+#ifndef VMMALLOC_WEAKFUNCS_H
+#define VMMALLOC_WEAKFUNCS_H
 
-static void *(*Valloc)(size_t size);
+#include <stddef.h>
+#ifndef __FreeBSD__
+#include <malloc.h>
+#endif
 
-int
-main(int argc, char *argv[])
-{
-	const int test_value = 123456;
-	size_t pagesize = sysconf(_SC_PAGESIZE);
-	size_t min_size = sizeof(int);
-	size_t max_size = 4 * pagesize;
-	size_t size;
-	int *ptr;
+void *aligned_alloc(size_t alignment, size_t size);
 
-	START(argc, argv, "vmmalloc_valloc");
+#ifdef __FreeBSD__
+void *memalign(size_t boundary, size_t size);
+void *pvalloc(size_t size);
 
-	if (argc != 2)
-		UT_FATAL("usage: %s [v|p]", argv[0]);
+/* XXX These exist only to allow the tests to compile - they are never used */
+void (*__free_hook)(void *, const void *);
+void *(*__malloc_hook)(size_t size, const void *);
+void *(*__memalign_hook)(size_t alignment, size_t size, const void *);
+void *(*__realloc_hook)(void *ptr, size_t size, const void *);
+#endif
 
-	switch (argv[1][0]) {
-	case 'v':
-		UT_OUT("testing valloc");
-		Valloc = valloc;
-		break;
-	case 'p':
-		UT_OUT("testing pvalloc");
-		Valloc = pvalloc;
-		break;
-	default:
-		UT_FATAL("usage: %s [v|p]", argv[0]);
-	}
-
-	for (size = min_size; size < max_size; size *= 2) {
-		ptr = Valloc(size);
-
-		/* at least one allocation must succeed */
-		UT_ASSERT(ptr != NULL);
-		if (ptr == NULL)
-			break;
-
-		/* ptr should be usable */
-		*ptr = test_value;
-		UT_ASSERTeq(*ptr, test_value);
-
-		/* check for correct address alignment */
-		UT_ASSERTeq((uintptr_t)(ptr) & (pagesize - 1), 0);
-
-		if (Valloc == pvalloc) {
-			/* check for correct allocation size */
-			size_t usable = malloc_usable_size(ptr);
-			UT_ASSERTeq(usable, roundup(size, pagesize));
-		}
-
-		free(ptr);
-	}
-
-	DONE(NULL);
-}
+#endif

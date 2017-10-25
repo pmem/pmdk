@@ -36,8 +36,9 @@
  * usage: vmmalloc_malloc_hooks
  */
 
-#include <malloc.h>
+#include <stdlib.h>
 #include "unittest.h"
+#include "vmmalloc_weakfuncs.h"
 
 static void *(*old_malloc_hook) (size_t, const void *);
 static void *(*old_realloc_hook) (void *, size_t, const void *);

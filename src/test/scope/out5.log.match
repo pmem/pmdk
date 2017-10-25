@@ -1,5 +1,8 @@
 scope/TEST5:
 ../../debug/libvmmalloc.so:
+$(OPT)_malloc_postfork
+$(OPT)_malloc_prefork
+$(OPT)_malloc_thread_cleanup
 aligned_alloc
 calloc
 cfree
@@ -8,10 +11,14 @@ malloc
 malloc_usable_size
 memalign
 posix_memalign
+$(OPT)pthread_create
 pvalloc
 realloc
 valloc
 ../../nondebug/libvmmalloc.so:
+$(OPT)_malloc_postfork
+$(OPT)_malloc_prefork
+$(OPT)_malloc_thread_cleanup
 aligned_alloc
 calloc
 cfree
@@ -20,6 +27,7 @@ malloc
 malloc_usable_size
 memalign
 posix_memalign
+$(OPT)pthread_create
 pvalloc
 realloc
 valloc

@@ -20,10 +20,6 @@ static bool		postpone_init = true;
 static malloc_mutex_t	*postponed_mutexes = NULL;
 #endif
 
-#if defined(JEMALLOC_LAZY_LOCK) && !defined(_WIN32)
-static void	pthread_create_once(void);
-#endif
-
 /******************************************************************************/
 /*
  * We intercept pthread_create() calls in order to toggle isthreaded if the
@@ -31,6 +27,7 @@ static void	pthread_create_once(void);
  */
 
 #if defined(JEMALLOC_LAZY_LOCK) && !defined(_WIN32)
+static void	pthread_create_once(void);
 static int (*pthread_create_fptr)(pthread_t *__restrict, const pthread_attr_t *,
     void *(*)(void *), void *__restrict);
 
@@ -66,6 +63,29 @@ pthread_create(pthread_t *__restrict thread,
 #ifdef JEMALLOC_MUTEX_INIT_CB
 JEMALLOC_EXPORT int	_pthread_mutex_init_calloc_cb(pthread_mutex_t *mutex,
     void *(calloc_cb)(size_t, size_t));
+
+static void *
+base_calloc_wrapper(size_t number, size_t size)
+{
+	return base_calloc(&base_pool, number, size);
+}
+
+/* XXX We need somewhere to allocate mutexes from during early initialization */
+#define BOOTSTRAP_POOL_SIZE 4096
+#define BP_MASK 0xfffffffffffffff0UL
+static char bootstrap_pool[BOOTSTRAP_POOL_SIZE] __attribute__((aligned (16)));
+static char *bpp = bootstrap_pool;
+
+static void *
+bootstrap_calloc(size_t number, size_t size)
+{
+	size_t my_size = ((number * size) + 0xf) & BP_MASK;
+	bpp += my_size;
+	if ((bpp - bootstrap_pool) > BOOTSTRAP_POOL_SIZE) {
+		return NULL;
+	}
+	return (void *)(bpp - my_size);
+}
 #endif
 
 bool
@@ -83,8 +103,8 @@ malloc_mutex_init(malloc_mutex_t *mutex)
 		mutex->postponed_next = postponed_mutexes;
 		postponed_mutexes = mutex;
 	} else {
-		if (_pthread_mutex_init_calloc_cb(&mutex->lock, base_calloc) !=
-		    0)
+		if (_pthread_mutex_init_calloc_cb(&mutex->lock,
+			base_calloc_wrapper) != 0)
 			return (true);
 	}
 #else
@@ -124,7 +144,7 @@ mutex_boot(void)
 	postpone_init = false;
 	while (postponed_mutexes != NULL) {
 		if (_pthread_mutex_init_calloc_cb(&postponed_mutexes->lock,
-		    base_calloc) != 0)
+		    bootstrap_calloc) != 0)
 			return (true);
 		postponed_mutexes = postponed_mutexes->postponed_next;
 	}
@@ -136,7 +156,7 @@ void
 malloc_mutex_postfork_child(malloc_mutex_t *mutex)
 {
 
-#ifdef JEMALLOC_MUTEX_INIT_CB
+#if (defined(JEMALLOC_MUTEX_INIT_CB) || defined(JEMALLOC_DISABLE_BSD_MALLOC_HOOKS))
 	malloc_mutex_unlock(mutex);
 #else
 	if (malloc_mutex_init(mutex)) {
@@ -166,7 +186,7 @@ void
 malloc_rwlock_postfork_child(malloc_rwlock_t *rwlock)
 {
 
-#ifdef JEMALLOC_MUTEX_INIT_CB
+#if (defined(JEMALLOC_MUTEX_INIT_CB) || defined(JEMALLOC_DISABLE_BSD_MALLOC_HOOKS))
 	malloc_rwlock_unlock(rwlock);
 #else
 	if (malloc_rwlock_init(rwlock)) {

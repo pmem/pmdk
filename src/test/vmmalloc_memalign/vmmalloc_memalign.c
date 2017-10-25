@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,17 +38,15 @@
  */
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <errno.h>
 #include "unittest.h"
+#include "vmmalloc_weakfuncs.h"
 
 #define USAGE "usage: %s [m|p|a]"
 
 #define MIN_ALIGN (2)
 #define MAX_ALIGN (4L * 1024L * 1024L)
 #define MAX_ALLOCS (100)
-
-extern void *aligned_alloc(size_t alignment, size_t size);
 
 /* buffer for all allocations */
 static int *allocs[MAX_ALLOCS];

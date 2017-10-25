@@ -109,7 +109,9 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/file.h>
+#ifndef __FreeBSD__
 #include <sys/mount.h>
+#endif
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
@@ -824,6 +826,33 @@ if (off != sizeof(type))\
 		"sizeof(%s) = %lu, fields size = %lu",\
 		STR(type), last, STR(type), sizeof(type), off);\
 } while (0)
+
+/*
+ * AddressSanitizer
+ */
+#ifdef __clang__
+#if __has_feature(address_sanitizer)
+#define UT_DEFINE_ASAN_POISON
+#endif
+#else
+#ifdef __SANITIZE_ADDRESS__
+#define UT_DEFINE_ASAN_POISON
+#endif
+#endif
+#ifdef UT_DEFINE_ASAN_POISON
+void __asan_poison_memory_region(void const volatile *addr, size_t size);
+void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
+#define ASAN_POISON_MEMORY_REGION(addr, size) \
+	__asan_poison_memory_region((addr), (size))
+#define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
+	__asan_unpoison_memory_region((addr), (size))
+#else
+#define ASAN_POISON_MEMORY_REGION(addr, size) \
+	((void)(addr), (void)(size))
+#define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
+	((void)(addr), (void)(size))
+#endif
+
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,12 @@
 
 #define LAYOUT "obj_ctl_prefault"
 
+#ifdef __FreeBSD__
+typedef char vec_t;
+#else
+typedef unsigned char vec_t;
+#endif
+
 int
 main(int argc, char *argv[])
 {
@@ -100,14 +106,14 @@ main(int argc, char *argv[])
 
 	size_t length = PMEMOBJ_MIN_POOL;
 	size_t arr_len = (length + Ut_pagesize - 1) / Ut_pagesize;
-	unsigned char *vec = MALLOC(sizeof(*vec) * arr_len);
+	vec_t *vec = MALLOC(sizeof(*vec) * arr_len);
 
 	ret = mincore(pop, length, vec);
 	UT_ASSERTeq(ret, 0);
 
 	size_t resident_pages = 0;
 	for (size_t i = 0; i < arr_len; ++i)
-		resident_pages += vec[i];
+		resident_pages += vec[i] & 0x1;
 
 	FREE(vec);
 

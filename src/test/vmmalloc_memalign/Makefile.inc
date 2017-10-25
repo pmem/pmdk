@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,35 +31,22 @@
 #
 
 #
-# src/test/vmmalloc_fork/TEST2 -- unit test for libvmmalloc fork() support
+# src/test/vmmalloc_memalign/Makefile.inc -- common Makefile rules
+#	for vmmalloc tests sharing libwf.so
 #
-export UNITTEST_NAME=vmmalloc_fork/TEST2
-export UNITTEST_NUM=2
 
-# standard unit test setup
-. ../unittest/unittest.sh
+EXTRA_DEPS = ../vmmalloc_memalign/libwf.so
 
-require_test_type medium
+include ../Makefile.inc
 
-require_fs_type any
-# there's no point in testing statically linked builds
-require_build_type debug nondebug
-require_no_asan
+INCS += -I../vmmalloc_memalign
 
-# Must be defined before require_preload
-export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
-export VMMALLOC_LOG_LEVEL=3
-export VMMALLOC_FORK=2
-export TEST_LD_PRELOAD=libvmmalloc.so
-require_preload "VMMALLOC_FORK value 2" ./vmmalloc_fork x x t
+../vmmalloc_memalign/libwf.so: ../vmmalloc_memalign/vmmalloc_weakfuncs.c
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
 
-setup
+clobber: libwf_cleanup
 
-# this test is leaky by design
-export MEMCHECK_DONT_CHECK_LEAKS=1
+libwf_cleanup:
+	$(RM) ../vmmalloc_memalign/libwf.so
 
-expect_normal_exit ./vmmalloc_fork$EXESUFFIX c 4 2
-
-check
-
-pass
+LIBS += ../vmmalloc_memalign/libwf.so -Wl,-rpath=../vmmalloc_memalign

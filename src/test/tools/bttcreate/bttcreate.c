@@ -179,7 +179,7 @@ file_error(const int fd, const char *fpath)
  * print_uuid -- print uuid
  */
 static void
-print_uuid(uint8_t *uuid)
+print_uuid(uuid_t uuid)
 {
 	char uuidstr[POOL_HDR_UUID_STR_LEN];
 	if (util_uuid_to_string(uuid, uuidstr) == 0) {

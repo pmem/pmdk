@@ -74,6 +74,7 @@ main(int argc, char *argv[])
 	if (ptr == NULL)
 		UT_ERR("!vmem_malloc");
 	vmem_delete(vmp);
+	ASAN_POISON_MEMORY_REGION(vmp, sizeof(vmp));
 
 	/* arrange to catch SEGV */
 	struct sigaction v;

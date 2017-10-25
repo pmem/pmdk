@@ -157,7 +157,7 @@ rpmemd_db_get_status(int err)
 		return RPMEM_ERR_NOEXIST;
 	case EWOULDBLOCK:
 		return RPMEM_ERR_BUSY;
-	case EBADR:
+	case EBADF:
 		return RPMEM_ERR_BADNAME;
 	case EINVAL:
 		return RPMEM_ERR_POOL_CFG;

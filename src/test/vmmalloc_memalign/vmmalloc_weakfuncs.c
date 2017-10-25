@@ -31,69 +31,30 @@
  */
 
 /*
- * vmmalloc_valloc.c -- unit test for libvmmalloc valloc/pvalloc
- *
- * usage: vmmalloc_valloc [v|p]
+ * vmmalloc_weakfuncs.c -- dummy functions for vmmalloc tests
  */
 
-#include <sys/param.h>
-#include <libvmmalloc.h>
-#include "unittest.h"
 #include "vmmalloc_weakfuncs.h"
 
-static void *(*Valloc)(size_t size);
-
-int
-main(int argc, char *argv[])
+__attribute__((weak))
+void *
+aligned_alloc(size_t alignment, size_t size)
 {
-	const int test_value = 123456;
-	size_t pagesize = sysconf(_SC_PAGESIZE);
-	size_t min_size = sizeof(int);
-	size_t max_size = 4 * pagesize;
-	size_t size;
-	int *ptr;
-
-	START(argc, argv, "vmmalloc_valloc");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s [v|p]", argv[0]);
-
-	switch (argv[1][0]) {
-	case 'v':
-		UT_OUT("testing valloc");
-		Valloc = valloc;
-		break;
-	case 'p':
-		UT_OUT("testing pvalloc");
-		Valloc = pvalloc;
-		break;
-	default:
-		UT_FATAL("usage: %s [v|p]", argv[0]);
-	}
-
-	for (size = min_size; size < max_size; size *= 2) {
-		ptr = Valloc(size);
-
-		/* at least one allocation must succeed */
-		UT_ASSERT(ptr != NULL);
-		if (ptr == NULL)
-			break;
-
-		/* ptr should be usable */
-		*ptr = test_value;
-		UT_ASSERTeq(*ptr, test_value);
-
-		/* check for correct address alignment */
-		UT_ASSERTeq((uintptr_t)(ptr) & (pagesize - 1), 0);
-
-		if (Valloc == pvalloc) {
-			/* check for correct allocation size */
-			size_t usable = malloc_usable_size(ptr);
-			UT_ASSERTeq(usable, roundup(size, pagesize));
-		}
-
-		free(ptr);
-	}
-
-	DONE(NULL);
+	return NULL;
 }
+
+#ifdef __FreeBSD__
+__attribute__((weak))
+void *
+memalign(size_t alignment, size_t size)
+{
+	return NULL;
+}
+
+__attribute__((weak))
+void *
+pvalloc(size_t size)
+{
+	return NULL;
+}
+#endif

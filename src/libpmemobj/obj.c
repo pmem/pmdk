@@ -53,6 +53,7 @@
 #include "set.h"
 #include "sync.h"
 #include "tx.h"
+#include "sys_util.h"
 
 /*
  * The variable from which the config is directly loaded. The contained string
@@ -1096,6 +1097,10 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		return -1;
 	}
 
+	pop->mutex_head = NULL;
+	pop->rwlock_head = NULL;
+	pop->cond_head = NULL;
+
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
 			return -1;
@@ -1264,8 +1269,13 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_poolset_chmod(set, mode))
 		goto err;
 
+	/*
+	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
+	 *     reference count, so we need to keep the files open.
+	 */
+#ifndef __FreeBSD__
 	util_poolset_fdclose(set);
-
+#endif
 	LOG(3, "pop %p", pop);
 
 	return pop;
@@ -1635,9 +1645,13 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 	if (boot)
 		obj_vg_boot(pop);
 #endif
-
+	/*
+	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
+	 *     reference count, so we need to keep the files open.
+	 */
+#ifndef __FreeBSD__
 	util_poolset_fdclose(set);
-
+#endif
 	LOG(3, "pop %p", pop);
 
 	return pop;
@@ -1728,6 +1742,48 @@ obj_replicas_cleanup(struct pool_set *set)
 }
 
 /*
+ * obj_pool_lock_cleanup -- (internal) Destroy any locks or condition
+ *	variables that were allocated at run time
+ */
+static void
+obj_pool_lock_cleanup(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	PMEMmutex_internal *nextm;
+	for (PMEMmutex_internal *m = pop->mutex_head; m != NULL; m = nextm) {
+		nextm = m->PMEMmutex_next;
+		LOG(4, "mutex %p *mutex %p", &m->PMEMmutex_lock,
+			m->PMEMmutex_bsd_mutex_p);
+		os_mutex_destroy(&m->PMEMmutex_lock);
+		m->PMEMmutex_next = NULL;
+		m->PMEMmutex_bsd_mutex_p = NULL;
+	}
+	pop->mutex_head = NULL;
+
+	PMEMrwlock_internal *nextr;
+	for (PMEMrwlock_internal *r = pop->rwlock_head; r != NULL; r = nextr) {
+		nextr = r->PMEMrwlock_next;
+		LOG(4, "rwlock %p *rwlock %p", &r->PMEMrwlock_lock,
+			r->PMEMrwlock_bsd_rwlock_p);
+		os_rwlock_destroy(&r->PMEMrwlock_lock);
+		r->PMEMrwlock_next = NULL;
+		r->PMEMrwlock_bsd_rwlock_p = NULL;
+	}
+	pop->rwlock_head = NULL;
+
+	PMEMcond_internal *nextc;
+	for (PMEMcond_internal *c = pop->cond_head; c != NULL; c = nextc) {
+		nextc = c->PMEMcond_next;
+		LOG(4, "cond %p *cond %p", &c->PMEMcond_cond,
+			c->PMEMcond_bsd_cond_p);
+		os_cond_destroy(&c->PMEMcond_cond);
+		c->PMEMcond_next = NULL;
+		c->PMEMcond_bsd_cond_p = NULL;
+	}
+	pop->cond_head = NULL;
+}
+/*
  * obj_pool_cleanup -- (internal) cleanup the pool and unmap
  */
 static void
@@ -1737,6 +1793,8 @@ obj_pool_cleanup(PMEMobjpool *pop)
 
 	tx_params_delete(pop->tx_params);
 	ctl_delete(pop->ctl);
+
+	obj_pool_lock_cleanup(pop);
 
 	palloc_heap_cleanup(&pop->heap);
 

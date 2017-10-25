@@ -393,7 +393,7 @@ init_bench_mutex(struct mutex_bench *mb)
 			PMEMmutex_internal *p =
 				(PMEMmutex_internal *)&mb->locks[i];
 			p->pmemmutex.runid = mb->pa->runid_initial_value;
-			os_mutex_init(&p->pmemmutex.mutex);
+			os_mutex_init(&p->PMEMmutex_lock);
 		}
 	} else {
 		/* initialize os_thread mutexes */
@@ -481,7 +481,7 @@ init_bench_rwlock(struct mutex_bench *mb)
 			PMEMrwlock_internal *p =
 				(PMEMrwlock_internal *)&mb->locks[i];
 			p->pmemrwlock.runid = mb->pa->runid_initial_value;
-			os_rwlock_init(&p->pmemrwlock.rwlock);
+			os_rwlock_init(&p->PMEMrwlock_lock);
 		}
 	} else {
 		/* initialize os_thread rwlocks */

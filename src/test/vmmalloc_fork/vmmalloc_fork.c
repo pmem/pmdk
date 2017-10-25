@@ -36,7 +36,12 @@
  * usage: vmmalloc_fork [c|e] <nfork> <nthread>
  */
 
+#ifdef __FreeBSD__
+#include <stdlib.h>
+#include <malloc_np.h>
+#else
 #include <malloc.h>
+#endif
 #include <sys/wait.h>
 #include "unittest.h"
 

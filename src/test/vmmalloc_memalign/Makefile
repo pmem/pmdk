@@ -35,18 +35,7 @@
 #
 TARGET = vmmalloc_memalign
 OBJS = vmmalloc_memalign.o
-EXTRA_DEPS = libaa.so
 
 vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
 
-include ../Makefile.inc
-
-libaa.so: aligned_alloc.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libaa.so -o $@ $^
-
-clobber: libaa_cleanup
-
-libaa_cleanup:
-	$(RM) libaa.so
-
-LIBS += ./libaa.so -Wl,-rpath=.
+include Makefile.inc
