@@ -8,7 +8,7 @@ type                     : regular file
 size                     : 16777216
 Replica 1 - remote:
 node                     : $(nW)
-pool set                 : testset_remote
+pool set                 : $(nW)testset_remote
 
 POOL Header:
 Signature                : PMEMOBJ

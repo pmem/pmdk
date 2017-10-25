@@ -1705,6 +1705,7 @@ function require_nodes() {
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
 		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/data/
+		NODE_DIR_REL[$N]=$(realpath --relative-to="${NODE_TEST_DIR[$N]}" "${NODE_DIR[$N]}")
 
 		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
