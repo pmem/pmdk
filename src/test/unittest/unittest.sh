@@ -80,9 +80,6 @@ $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
-# subpath to data on remote node
-RDIR="./data/"
-
 # Portability
 VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
@@ -1707,6 +1704,7 @@ function require_nodes() {
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
+		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/data/
 
 		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
@@ -1773,8 +1771,7 @@ function copy_files_to_node() {
 		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
 
 	# copy all required files
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/data/$DEST_DIR > /dev/null
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$DEST_DIR > /dev/null
 
 	return 0
 }
@@ -2609,9 +2606,9 @@ function copy_test_to_remote_nodes() {
 		# create a new test dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
 
-		# create the working sub-dirs
+		# create the working data dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p \
-			${DIR}/data ${DIR}/log"
+			${DIR}/data"
 
 		# copy all required files
 		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR > /dev/null
