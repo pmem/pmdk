@@ -252,6 +252,100 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 	return 0;
 }
 
+struct pmix_worker {
+	size_t nobjects;
+	size_t shuffle_start;
+	unsigned seed;
+};
+
+/*
+ * pmix_worker_init -- initialization of the worker structure
+ */
+static int
+pmix_worker_init(struct benchmark *bench, struct benchmark_args *args,
+		 struct worker_info *worker)
+{
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	struct pmix_worker *w = (struct pmix_worker *)calloc(1, sizeof(*w));
+	if (w == NULL)
+		return -1;
+
+	w->seed = ob->pa->seed;
+
+	worker->priv = w;
+
+	return 0;
+}
+
+/*
+ * pmix_worker_fini -- destruction of the worker structure
+ */
+static void
+pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
+		 struct worker_info *worker)
+{
+	struct pmix_worker *w = (struct pmix_worker *)worker->priv;
+	free(w);
+}
+
+/*
+ * shuffle_objects -- randomly shuffle elements on a list
+ *
+ * Ideally, we wouldn't count the time this function takes, but for all
+ * practial purposes this is fast enough and isn't visible on the results.
+ * Just make sure the amount of objects to shuffle is not large.
+ */
+static void
+shuffle_objects(uint64_t *objects, size_t start, size_t nobjects,
+		unsigned *seed)
+{
+	uint64_t tmp;
+	size_t dest;
+	for (size_t n = start; n < nobjects; ++n) {
+		dest = RRAND_R(seed, nobjects - 1, 0);
+		tmp = objects[n];
+		objects[n] = objects[dest];
+		objects[dest] = tmp;
+	}
+}
+
+#define FREE_PCT 10
+#define FREE_OPS 10
+
+/*
+ * pmix_op -- mixed workload benchmark
+ */
+static int
+pmix_op(struct benchmark *bench, struct operation_info *info)
+{
+	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	struct pmix_worker *w = (struct pmix_worker *)info->worker->priv;
+
+	uint64_t idx = info->worker->index * info->args->n_ops_per_thread;
+
+	uint64_t *objects = &ob->offs[idx];
+
+	if (w->nobjects > FREE_OPS && FREE_PCT > RRAND_R(&w->seed, 100, 0)) {
+		shuffle_objects(objects, w->shuffle_start, w->nobjects,
+				&w->seed);
+
+		for (int i = 0; i < FREE_OPS; ++i) {
+			uint64_t off = objects[--w->nobjects];
+			pfree(ob->pop, &off);
+		}
+		w->shuffle_start = w->nobjects;
+	} else {
+		int ret = pmalloc(ob->pop, &objects[w->nobjects++],
+				  ob->sizes[idx + info->index], 0, 0);
+		if (ret) {
+			fprintf(stderr, "pmalloc ret: %d\n", ret);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
 /*
  * pmalloc_exit -- the end of the pmalloc benchmark. Frees the memory allocated
  * during pmalloc_op and performs the common exit operations.
@@ -326,6 +420,10 @@ static struct benchmark_info pmalloc_info;
  * Stores information about pfree benchmark.
  */
 static struct benchmark_info pfree_info;
+/*
+ * Stores information about pmix benchmark.
+ */
+static struct benchmark_info pmix_info;
 
 CONSTRUCTOR(obj_pmalloc_costructor)
 void
@@ -395,4 +493,22 @@ obj_pmalloc_costructor(void)
 	pfree_info.rm_file = true;
 	pfree_info.allow_poolset = true;
 	REGISTER_BENCHMARK(pfree_info);
+
+	pmix_info.name = "pmix";
+	pmix_info.brief = "Benchmark for mixed alloc/free workload";
+	pmix_info.init = pmalloc_init;
+
+	pmix_info.exit = pmalloc_exit; /* same as for pmalloc */
+	pmix_info.multithread = true;
+	pmix_info.multiops = true;
+	pmix_info.operation = pmix_op;
+	pmix_info.init_worker = pmix_worker_init;
+	pmix_info.free_worker = pmix_worker_fini;
+	pmix_info.measure_time = true;
+	pmix_info.clos = pmalloc_clo;
+	pmix_info.nclos = ARRAY_SIZE(pmalloc_clo);
+	pmix_info.opts_size = sizeof(struct prog_args);
+	pmix_info.rm_file = true;
+	pmix_info.allow_poolset = true;
+	REGISTER_BENCHMARK(pmix_info);
 };
