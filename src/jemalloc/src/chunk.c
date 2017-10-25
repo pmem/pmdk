@@ -437,26 +437,42 @@ chunk_boot(pool_t *pool)
 }
 
 void
-chunk_prefork(pool_t *pool)
+chunk_prefork0(pool_t *pool)
 {
 
-	malloc_mutex_prefork(&pool->chunks_mtx);
 	if (config_ivsalloc)
 		rtree_prefork(pool->chunks_rtree);
 }
 
 void
-chunk_postfork_parent(pool_t *pool)
+chunk_prefork1(pool_t *pool)
+{
+
+	malloc_mutex_prefork(&pool->chunks_mtx);
+}
+
+void
+chunk_postfork_parent0(pool_t *pool)
 {
 	if (config_ivsalloc)
 		rtree_postfork_parent(pool->chunks_rtree);
+}
+
+void
+chunk_postfork_parent1(pool_t *pool)
+{
 	malloc_mutex_postfork_parent(&pool->chunks_mtx);
 }
 
 void
-chunk_postfork_child(pool_t *pool)
+chunk_postfork_child0(pool_t *pool)
 {
 	if (config_ivsalloc)
 		rtree_postfork_child(pool->chunks_rtree);
+}
+
+void
+chunk_postfork_child1(pool_t *pool)
+{
 	malloc_mutex_postfork_child(&pool->chunks_mtx);
 }

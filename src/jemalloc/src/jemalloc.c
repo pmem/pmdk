@@ -2974,10 +2974,11 @@ _malloc_prefork(void)
 		}
 	}
 
-	FOREACH_POOL(chunk_prefork);
+	FOREACH_POOL(chunk_prefork0);
+	FOREACH_POOL(base_prefork);
+	FOREACH_POOL(chunk_prefork1);
 	chunk_dss_prefork();
 
-	FOREACH_POOL(base_prefork);
 
 	FOREACH_POOL(huge_prefork);
 }
@@ -3002,10 +3003,11 @@ _malloc_postfork(void)
 	/* Release all mutexes, now that fork() has completed. */
 	FOREACH_POOL(huge_postfork_parent);
 
-	FOREACH_POOL(base_postfork_parent);
 
 	chunk_dss_postfork_parent();
-	FOREACH_POOL(chunk_postfork_parent);
+	FOREACH_POOL(chunk_postfork_parent1);
+	FOREACH_POOL(base_postfork_parent);
+	FOREACH_POOL(chunk_postfork_parent0);
 
 	for (i = 0; i < npools; i++) {
 		pool = pools[i];
@@ -3034,10 +3036,11 @@ jemalloc_postfork_child(void)
 	/* Release all mutexes, now that fork() has completed. */
 	FOREACH_POOL(huge_postfork_child);
 
-	FOREACH_POOL(base_postfork_child);
 
 	chunk_dss_postfork_child();
-	FOREACH_POOL(chunk_postfork_child);
+	FOREACH_POOL(chunk_postfork_child1);
+	FOREACH_POOL(base_postfork_child);
+	FOREACH_POOL(chunk_postfork_child0);
 
 	for (i = 0; i < npools; i++) {
 		pool = pools[i];
