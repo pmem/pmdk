@@ -389,12 +389,13 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 			goto error;
 
 		if (line_max_increased) {
-			line_copy = (char *)realloc(line_copy,
+			char *line_new = (char *)realloc(line_copy,
 				sizeof(char) * line_max);
-			if (line_copy == NULL) {
+			if (line_new == NULL) {
 				RPMEMD_LOG(ERR, "!malloc");
-				goto error_malloc_line_copy;
+				goto error;
 			}
+			line_copy = line_new;
 			line_max_increased = 0;
 		}
 
