@@ -342,9 +342,14 @@ test_recycler(void)
 	struct memory_block mrun = {0, 0, 1, 0};
 	struct memory_block mrun2 = {1, 0, 1, 0};
 
-	ret = recycler_put(r, &mrun);
+	memblock_rebuild_state(&pop->heap, &mrun);
+	memblock_rebuild_state(&pop->heap, &mrun2);
+
+	ret = recycler_put(r, &mrun,
+		recycler_calc_score(&pop->heap, &mrun, NULL));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun2);
+	ret = recycler_put(r, &mrun2,
+		recycler_calc_score(&pop->heap, &mrun2, NULL));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun_ret = MEMORY_BLOCK_NONE;
@@ -368,6 +373,8 @@ test_recycler(void)
 	mrun2.chunk_id = 2;
 	struct memory_block mrun3 = {5, 0, 1, 0};
 	struct memory_block mrun4 = {10, 0, 1, 0};
+	memblock_rebuild_state(&pop->heap, &mrun3);
+	memblock_rebuild_state(&pop->heap, &mrun4);
 
 	mrun_ret.size_idx = 1;
 	mrun2_ret.size_idx = 1;
@@ -376,13 +383,17 @@ test_recycler(void)
 	struct memory_block mrun4_ret = MEMORY_BLOCK_NONE;
 	mrun4_ret.size_idx = 1;
 
-	ret = recycler_put(r, &mrun);
+	ret = recycler_put(r, &mrun,
+		recycler_calc_score(&pop->heap, &mrun, NULL));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun2);
+	ret = recycler_put(r, &mrun2,
+		recycler_calc_score(&pop->heap, &mrun2, NULL));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun3);
+	ret = recycler_put(r, &mrun3,
+		recycler_calc_score(&pop->heap, &mrun3, NULL));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun4);
+	ret = recycler_put(r, &mrun4,
+		recycler_calc_score(&pop->heap, &mrun4, NULL));
 	UT_ASSERTeq(ret, 0);
 
 	ret = recycler_get(r, &mrun2_ret);
@@ -400,7 +411,10 @@ test_recycler(void)
 
 	init_run_with_max_block(pop->heap.layout, 1);
 	struct memory_block mrun5 = {1, 0, 1, 0};
-	ret = recycler_put(r, &mrun5);
+	memblock_rebuild_state(&pop->heap, &mrun5);
+
+	ret = recycler_put(r, &mrun5,
+		recycler_calc_score(&pop->heap, &mrun5, NULL));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun5_ret = MEMORY_BLOCK_NONE;
