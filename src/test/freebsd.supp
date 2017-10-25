@@ -65,28 +65,24 @@ drd_FreeBSD_flockfile
    drd:ConflictingAccess
    fun:flockfile
    ...
-   obj:/lib/libthr.so.3
 }
 {
 helgrind_FreeBSD_flockfile
    Helgrind:Race
    fun:flockfile
    ...
-   obj:/lib/libthr.so.3
 }
 {
 drd_FreeBSD_funlockfile
    drd:ConflictingAccess
    fun:funlockfile
    ...
-   obj:/lib/libthr.so.3
 }
 {
 helgrind_FreeBSD_funlockfile
    Helgrind:Race
    fun:funlockfile
    ...
-   obj:/lib/libthr.so.3
 }
 {
 helgrind_FreeBSD__rtld_allocate_tls

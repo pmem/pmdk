@@ -33,7 +33,7 @@
 
 #
 # src/test/obj_pmalloc_mt/TEST1 -- multithreaded allocator test
-#	(long standard version)
+#	(medium non-helgrind/drd version)
 #
 export UNITTEST_NAME=obj_pmalloc_mt/TEST1
 export UNITTEST_NUM=1
@@ -43,6 +43,8 @@ export UNITTEST_NUM=1
 
 require_fs_type any
 require_test_type medium
+configure_valgrind drd force-disable
+configure_valgrind helgrind force-disable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
