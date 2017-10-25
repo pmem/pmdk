@@ -80,6 +80,9 @@ $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
+# subpath to data on remote node
+RDIR="./data/"
+
 # Portability
 VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
@@ -1771,7 +1774,7 @@ function copy_files_to_node() {
 
 	# copy all required files
 	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR > /dev/null
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/data/$DEST_DIR > /dev/null
 
 	return 0
 }
@@ -1887,7 +1890,7 @@ function run_on_node() {
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
-
+	echo "run on node $DIR"
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
 	ret=$?
 	if [ "$ret" -ne "0" ]; then
@@ -2566,6 +2569,7 @@ function copy_common_to_remote_nodes() {
 
 		# create the working dir if it does not exist
 		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p ${NODE_WORKING_DIR[$N]}"
+
 		# copy all common files
 		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]} > /dev/null
 		# unpack libraries
@@ -2601,8 +2605,14 @@ function copy_test_to_remote_nodes() {
 			&& continue
 
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
 		# create a new test dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
+
+		# create the working sub-dirs
+		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p \
+			${DIR}/data ${DIR}/log"
+
 		# copy all required files
 		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR > /dev/null
 	done
