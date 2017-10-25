@@ -65,7 +65,7 @@ rm -f $TEST_FILE_LOCAL
 # LD_LIBRARY_PATH for the n-th remote node can be provided
 # in the array NODE_LD_LIBRARY_PATH[n].
 #
-expect_normal_exit run_on_node 0 ./remote_basic$EXESUFFIX $TEST_FILE_REMOTE
+expect_normal_exit run_on_node 0 ./remote_basic$EXESUFFIX $RDIR/$TEST_FILE_REMOTE
 
 check
 
