@@ -41,4 +41,8 @@ LIBVMEM=y
 include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/
+ifneq ($(DEBUG),1)
 INCS += -I../../nondebug/libvmem/jemalloc/include/
+else
+INCS += -I../../debug/libvmem/jemalloc/include/
+endif

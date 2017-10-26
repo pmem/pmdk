@@ -39,4 +39,8 @@ OBJS = vmmalloc_calloc.o
 include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/
+ifneq ($(DEBUG),1)
 INCS += -I../../nondebug/libvmmalloc/jemalloc/include/
+else
+INCS += -I../../debug/libvmmalloc/jemalloc/include/
+endif
