@@ -468,6 +468,32 @@ err_close:
 }
 
 /*
+ * remap_as_private -- (internal) remap the pool as private
+ */
+static void
+remap_as_private(void)
+{
+	LOG(3, "remap the pool file as private");
+
+	void *r = mmap(Vmp->addr, Vmp->size, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_FIXED, Fd, 0);
+
+	if (r == MAP_FAILED) {
+		out_log(NULL, 0, NULL, 0,
+			"Error (libvmmalloc): remapping failed\n");
+		abort();
+	}
+
+	if (r != Vmp->addr) {
+		out_log(NULL, 0, NULL, 0,
+			"Error (libvmmalloc): wrong address\n");
+		abort();
+	}
+
+	Private = 1;
+}
+
+/*
  * libvmmalloc_prefork -- (internal) prepare for fork()
  *
  * Clones the entire pool or remaps it with MAP_PRIVATE flag.
@@ -484,9 +510,6 @@ libvmmalloc_prefork(void)
 
 	ASSERTne(Vmp, NULL);
 	ASSERTne(Dir, NULL);
-
-	void *addr = Vmp->addr;
-	size_t size = Vmp->size;
 
 	if (Private) {
 		LOG(3, "already mapped as private - do nothing");
@@ -512,24 +535,7 @@ libvmmalloc_prefork(void)
 		/* cloning failed; fall-thru to remapping */
 
 	case 1:
-		LOG(3, "remap the pool file as private");
-
-		Vmp = mmap(addr, size, PROT_READ|PROT_WRITE,
-				MAP_PRIVATE|MAP_FIXED, Fd, 0);
-
-		if (Vmp == MAP_FAILED) {
-			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
-					"remapping failed\n");
-			abort();
-		}
-
-		if (Vmp != addr) {
-			out_log(NULL, 0, NULL, 0, "Error (libvmmalloc): "
-					"wrong address\n");
-			abort();
-		}
-
-		Private = 1;
+		remap_as_private();
 		break;
 
 	case 0:
