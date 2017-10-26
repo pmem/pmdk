@@ -46,10 +46,9 @@ require_node_log_files 1 pmemobj$UNITTEST_NUM.log
 require_node_log_files 1 pmempool$UNITTEST_NUM.log
 
 PMEMOBJCLI_SCRIPT="pmemobjcli.script"
-copy_files_to_node 1 . $PMEMOBJCLI_SCRIPT
+copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
-NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 
 #
 # configure_poolsets -- configure pool set files for test
@@ -58,32 +57,32 @@ NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
 function configure_poolsets() {
 	local n_local=$1
 	local n_remote=$2
-	local poolset_args="8M:${NODE_DIRS[1]}/pool.part.1:x
-		8M:${NODE_DIRS[1]}/pool.part.2:x"
+	local poolset_args="8M:${NODE_DIR[1]}/pool.part.1:x
+		8M:${NODE_DIR[1]}/pool.part.2:x"
 
 	for i in $(seq 0 $((n_local - 1))); do
-		poolset_args="$poolset_args R 8M:${NODE_DIRS[1]}/pool.$i.part.1:x
-		8M:${NODE_DIRS[1]}/pool.$i.part.2:x"
+		poolset_args="$poolset_args R 8M:${NODE_DIR[1]}/pool.$i.part.1:x
+		8M:${NODE_DIR[1]}/pool.$i.part.2:x"
 	done
 
 	for i in $(seq 0 $((n_remote - 1))); do
 		POOLSET_REMOTE[$i]="remote_pool.$i.set"
 
 		create_poolset $DIR/${POOLSET_REMOTE[$i]}\
-			8M:${NODE_DIRS[0]}/remote.$i.part.1:x\
-			8M:${NODE_DIRS[0]}/remote.$i.part.2:x
+			8M:${NODE_DIR[0]}remote.$i.part.1:x\
+			8M:${NODE_DIR[0]}remote.$i.part.2:x
 
-		copy_files_to_node 0 . $DIR/${POOLSET_REMOTE[$i]}
+		copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_REMOTE[$i]}
 
-		poolset_args="$poolset_args m ${NODE_ADDR[0]}:${POOLSET_REMOTE[$i]}"
+		poolset_args="$poolset_args m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/${POOLSET_REMOTE[$i]}"
 	done
 
 	create_poolset $DIR/$POOLSET_LOCAL $poolset_args
-	copy_files_to_node 1 . $DIR/$POOLSET_LOCAL
+	copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_LOCAL
 
-	expect_normal_exit run_on_node 1 ../pmempool rm -sf $POOLSET_LOCAL
-	expect_normal_exit run_on_node 1 ../pmempool create obj $POOLSET_LOCAL
-	expect_normal_exit run_on_node 1 ../pmemobjcli -s $PMEMOBJCLI_SCRIPT $POOLSET_LOCAL > /dev/null
+	expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DIR[1]}$POOLSET_LOCAL
+	expect_normal_exit run_on_node 1 ../pmempool create obj ${NODE_DIR[1]}$POOLSET_LOCAL
+	expect_normal_exit run_on_node 1 ../pmemobjcli -s $PMEMOBJCLI_SCRIPT ${NODE_DIR[1]}$POOLSET_LOCAL > /dev/null
 }
 
 DUMP_INFO_LOG="../pmempool info -lHZCOoAa"
