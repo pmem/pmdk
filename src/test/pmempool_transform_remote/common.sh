@@ -58,13 +58,13 @@ POOLSET_LOCAL_OUT=poolset.out
 POOLSET_REMOTE=poolset.remote
 POOLSET_REMOTE1=poolset.remote1
 POOLSET_REMOTE2=poolset.remote2
-NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
+NODE_DIRS=(${NODE_DIR[0]} ${NODE_DIR[1]})
 
 # CLI scripts for writing and reading some data hitting all the parts
 WRITE_SCRIPT="pmemobjcli.write.script"
 READ_SCRIPT="pmemobjcli.read.script"
-copy_files_to_node 0 . $WRITE_SCRIPT
-copy_files_to_node 0 . $READ_SCRIPT
+
+copy_files_to_node 0 ${NODE_TEST_DIR[0]} $WRITE_SCRIPT $READ_SCRIPT
 
 DUMP_INFO_LOG="../pmempool info"
 DUMP_INFO_SED="sed -e '/^Checksum/d' -e '/^Creation/d' -e '/^Previous replica UUID/d' -e '/^Next replica UUID/d'"

@@ -50,32 +50,32 @@ setup
 
 # Create poolset files
 create_poolset $DIR/pool.set \
-	10M:$(get_node_dir 1)/pool.1:x \
+	10M:${NODE_DIR[1]}pool.1:x \
 	r \
-	20M:$(get_node_dir 1)/pool.2:x \
-        m ${NODE_ADDR[0]}:remote.set
+	20M:${NODE_DIR[1]}pool.2:x \
+        m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/remote.set
 
 create_poolset $DIR/remote.set \
-	20M:$(get_node_dir 0)/pool.3:x
+	20M:${NODE_DIR[0]}pool.3:x
 
-copy_files_to_node 0 . $DIR/remote.set
-copy_files_to_node 1 . $DIR/pool.set
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/remote.set
+copy_files_to_node 1 ${NODE_DIR[1]} $DIR/pool.set
+expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DIR[1]}pool.set
 
-expect_normal_exit run_on_node 1 ../pmempool rm -sf pool.set
-expect_normal_exit run_on_node 1 ../pmempool create obj pool.set
+expect_normal_exit run_on_node 1 ../pmempool create obj ${NODE_DIR[1]}pool.set
 check_files_on_node 1 pool.set pool.1
 check_files_on_node 0 remote.set
 
-dump_info_log 1 0 pool.set before.0.log
-dump_info_log 1 1 pool.set before.1.log
-dump_info_log_remote 0 remote.set before.r.log
+dump_info_log 1 0 ${NODE_DIR[1]}pool.set before.0.log
+dump_info_log 1 1 ${NODE_DIR[1]}pool.set before.1.log
+dump_info_log_remote 0 ${NODE_DIR[0]}remote.set before.r.log
 
-expect_normal_exit run_on_node 1 rm -f $(get_node_dir 1)/pool.1
-expect_normal_exit run_on_node 1 rm -f $(get_node_dir 1)/pool.2
-expect_normal_exit run_on_node 1 ../pmempool sync pool.set
-dump_info_log 1 0 pool.set after.0.log
-dump_info_log 1 1 pool.set after.1.log
-dump_info_log_remote 0 remote.set after.r.log
+expect_normal_exit run_on_node 1 rm -f ${NODE_DIR[1]}pool.1
+expect_normal_exit run_on_node 1 rm -f ${NODE_DIR[1]}pool.2
+expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}pool.set
+dump_info_log 1 0 ${NODE_DIR[1]}pool.set after.0.log
+dump_info_log 1 1 ${NODE_DIR[1]}pool.set after.1.log
+dump_info_log_remote 0 ${NODE_DIR[0]}remote.set after.r.log
 
 diff_log 1 before.0.log after.0.log
 diff_log 1 before.1.log after.1.log
