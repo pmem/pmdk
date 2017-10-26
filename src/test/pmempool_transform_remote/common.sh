@@ -50,7 +50,7 @@ LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -rf $LOG && touch $LOG
 rm -rf $LOG_TEMP && touch $LOG_TEMP
-rm_files_from_node 0 $LOG
+rm_files_from_node 0 ${NODE_TEST_DIR[0]}/$LOG
 
 LAYOUT=OBJ_LAYOUT
 POOLSET_LOCAL_IN=poolset.in

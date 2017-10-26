@@ -1835,10 +1835,7 @@ function rm_files_from_node() {
 	[ $# -eq 0 ] &&\
 		echo "error: rm_files_from_node(): no files provided" >&2 && exit 1
 
-	# copy all required files
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && rm -f $@"
+	run_command ssh $SSH_OPTS ${NODE[$N]} "rm -f $@"
 
 	return 0
 }
