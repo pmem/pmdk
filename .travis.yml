@@ -27,7 +27,7 @@ env:
 before_install:
   - export HOST_WORKDIR=`pwd`
   - cd utils/docker
-  - ./pull-or-rebuild-image.sh
+  - travis_wait 20 ./pull-or-rebuild-image.sh
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
   - rm -f push_image_to_repo_flag
 
