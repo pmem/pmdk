@@ -34,6 +34,7 @@
  * obj_list_mocks.c -- mocks for redo/lane/heap/obj modules
  */
 
+#include "valgrind_internal.h"
 #include "obj_list.h"
 
 /*
@@ -123,6 +124,16 @@ FUNC_MOCK_RUN_DEFAULT
 	Pop->is_pmem = is_pmem;
 	Pop->rdonly = 0;
 	Pop->uuid_lo = 0x12345678;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(&Pop->mutex_head,
+		sizeof(Pop->mutex_head));
+	VALGRIND_REMOVE_PMEM_MAPPING(&Pop->rwlock_head,
+		sizeof(Pop->rwlock_head));
+	VALGRIND_REMOVE_PMEM_MAPPING(&Pop->cond_head,
+		sizeof(Pop->cond_head));
+	Pop->mutex_head = NULL;
+	Pop->rwlock_head = NULL;
+	Pop->cond_head = NULL;
 
 	if (Pop->is_pmem) {
 		Pop->persist_local = pmem_persist;
