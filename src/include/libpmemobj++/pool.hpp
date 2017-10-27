@@ -305,7 +305,7 @@ public:
 	void
 	persist(const persistent_ptr<Y> &ptr) noexcept
 	{
-		pmemobj_persist(this->pop, &ptr, sizeof(ptr));
+		pmemobj_persist(this->pop, ptr.get(), sizeof(Y));
 	}
 
 	/**
@@ -341,7 +341,7 @@ public:
 	void
 	flush(const persistent_ptr<Y> &ptr) noexcept
 	{
-		pmemobj_flush(this->pop, &ptr, sizeof(ptr));
+		pmemobj_flush(this->pop, ptr.get(), sizeof(Y));
 	}
 
 	/**
