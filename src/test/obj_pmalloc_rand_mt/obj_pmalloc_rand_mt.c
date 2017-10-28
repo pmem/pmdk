@@ -53,11 +53,13 @@ test_worker(void *arg)
 	int fill = 0;
 
 	int ret;
+	unsigned myseed = seed;
+
 	for (int i = 0; i < iterations; ++i) {
 		int fill_ratio = ((double)fill / nobjects) * 100;
-		int pos = RRAND(seed, nobjects, 0);
-		size_t size = RRAND(seed, object_size, 64);
-		if (RRAND(seed, 100, 0) < fill_ratio) {
+		int pos = RRAND(myseed, nobjects, 0);
+		size_t size = RRAND(myseed, object_size, 64);
+		if (RRAND(myseed, 100, 0) < fill_ratio) {
 			if (!OID_IS_NULL(objects[pos])) {
 				pmemobj_free(&objects[pos]);
 				objects[pos] = OID_NULL;
