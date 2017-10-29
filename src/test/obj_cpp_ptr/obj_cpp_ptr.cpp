@@ -143,7 +143,7 @@ test_ptr_atomic(nvobj::pool<root> &pop)
 	UT_ASSERTne(pfoo.get(), nullptr);
 
 	(*pfoo).bar = TEST_INT;
-	pop.persist(pfoo);
+	pop.persist(&pfoo->bar, sizeof(pfoo->bar));
 	pop.memset_persist(pfoo->arr, TEST_CHAR, sizeof(pfoo->arr));
 
 	for (auto c : pfoo->arr) {
