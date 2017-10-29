@@ -1160,6 +1160,21 @@ error_bucket_create:
 }
 
 /*
+ * heap_buckets_reset -- resets the volatile state of the heap
+ */
+void
+heap_buckets_reset(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+
+	for (unsigned i = 0; i < h->narenas; ++i)
+		heap_arena_destroy(&h->arenas[i]);
+
+	for (unsigned i = 0; i < h->narenas; ++i)
+		heap_arena_init(&h->arenas[i]);
+}
+
+/*
  * heap_boot -- opens the heap region of the pmemobj pool
  *
  * If successful function returns zero. Otherwise an error number is returned.

@@ -76,6 +76,8 @@ heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id);
 void
 heap_bucket_release(struct palloc_heap *heap, struct bucket *b);
 
+void heap_buckets_reset(struct palloc_heap *heap);
+
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
 struct memory_block

@@ -488,9 +488,117 @@ static const struct ctl_node CTL_NODE(new)[] = {
 	CTL_NODE_END
 };
 
+/*
+ * CTL_WRITE_HANDLER(range) -- sets the map in range to the allocation class
+ */
+static int
+CTL_WRITE_HANDLER(range)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct pobj_alloc_class_map_range *range = arg;
+
+	struct alloc_class *c = alloc_class_by_id(
+		heap_alloc_classes(&pop->heap), range->class_id);
+
+	if (c == NULL)
+		return -1;
+
+	int ret = alloc_class_range_set(heap_alloc_classes(&pop->heap),
+		c, range->start, range->end);
+
+	if (ret != 0) {
+		ERR("range setting would be invalid for the class");
+	}
+	return ret;
+}
+
+static struct ctl_argument CTL_ARG(range) = {
+	.dest_size = sizeof(struct pobj_alloc_class_map_range),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			start, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			end, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_map_range,
+			class_id, ctl_arg_integer),
+		CTL_ARG_PARSER_END
+	}
+};
+
+/*
+ * CTL_WRITE_HANDLER(limit) -- reads the limit of allocation classes
+ */
+static int
+CTL_READ_HANDLER(limit)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	size_t *limit = arg;
+
+	*limit = alloc_class_limit(heap_alloc_classes(&pop->heap));
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(granularity) -- reads the granularity of allocation classes
+ */
+static int
+CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	size_t *granularity = arg;
+
+	*granularity = alloc_class_granularity(heap_alloc_classes(&pop->heap));
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(map)[] = {
+	CTL_LEAF_WO(range),
+	CTL_LEAF_RO(limit),
+	CTL_LEAF_RO(granularity),
+
+	CTL_NODE_END
+};
+
+/*
+ * CTL_WRITE_HANDLER(reset) -- resets the allocation classes
+ */
+static int
+CTL_WRITE_HANDLER(reset)(PMEMobjpool *pop,
+	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+{
+	struct pobj_alloc_class_params *params = arg;
+	int ret = alloc_class_reset(heap_alloc_classes(&pop->heap),
+		params->granularity, params->limit,
+		params->fail_no_matching_class);
+
+	if (ret != 0)
+		return ret;
+
+	heap_buckets_reset(&pop->heap);
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(reset) = {
+	.dest_size = sizeof(struct pobj_alloc_class_params),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			limit, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			granularity, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_params,
+			fail_no_matching_class, ctl_arg_integer),
+		CTL_ARG_PARSER_END
+	}
+};
+
 static const struct ctl_node CTL_NODE(alloc_class)[] = {
+	CTL_LEAF_WO(reset),
 	CTL_INDEXED(class_id),
 	CTL_INDEXED(new),
+	CTL_CHILD(map),
 
 	CTL_NODE_END
 };

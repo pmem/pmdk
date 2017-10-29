@@ -57,19 +57,19 @@ main(int argc, char *argv[])
 	struct pobj_alloc_class_desc alloc_class;
 	int ret;
 
-	ret = pmemobj_ctl_get(pop, "heap.alloc_class.128.desc", &alloc_class);
+	ret = pmemobj_ctl_get(pop, "heap.alloc_class.1.desc", &alloc_class);
 	UT_ASSERTeq(ret, 0);
 
 	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,
 		alloc_class.units_per_block);
 
-	ret = pmemobj_ctl_get(pop, "heap.alloc_class.129.desc", &alloc_class);
+	ret = pmemobj_ctl_get(pop, "heap.alloc_class.2.desc", &alloc_class);
 	UT_ASSERTeq(ret, 0);
 
 	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,
 		alloc_class.units_per_block);
 
-	ret = pmemobj_ctl_get(pop, "heap.alloc_class.130.desc", &alloc_class);
+	ret = pmemobj_ctl_get(pop, "heap.alloc_class.3.desc", &alloc_class);
 	UT_ASSERTeq(ret, 0);
 
 	UT_OUT("%d %lu %d", alloc_class.header_type, alloc_class.unit_size,

@@ -49,6 +49,9 @@ extern "C" {
 /*
  * Allocation class interface
  *
+ * The following set of structs/ctl entry points allows one to fully customize
+ * internal data structures of the allocator.
+ *
  * When requesting an object from the allocator, the first step is to determine
  * which allocation class best approximates the size of the object.
  * Once found, the appropriate free list, called bucket, for that
@@ -66,8 +69,25 @@ extern "C" {
  * memory is split into units that repopulate the bucket.
  *
  * These are the CTL entry points that control allocation classes:
+ *
  * - heap.alloc_class.[class_id].desc
  *	Creates/retrieves allocation class information
+ *
+ * - heap.alloc_class.reset
+ *	Deletes all existing allocation classes and associated resources,
+ *	allowing applications to have complete control over the allocator.
+ *
+ * - heap.alloc_class.[class_id].desc
+ *	Creates/retrieves allocation class information
+ *
+ * - heap.alloc_class.map.range
+ *	Creates a size<>alloc class mapping
+ *
+ * - heap.alloc_class.map.limit
+ *	Retrieves the limit (in bytes) of the map
+ *
+ * - heap.alloc_class.map.granularity
+ *	Retrieves the granularity (in bytes) of the map
  *
  * It's VERY important to remember that the allocation classes are a RUNTIME
  * property of the allocator - they are NOT stored persistently in the pool.
@@ -153,6 +173,70 @@ struct pobj_alloc_class_desc {
 	 * The identifier of this allocation class.
 	 */
 	unsigned class_id;
+};
+
+/*
+ * Memory range supported by an allocation class
+ *
+ * This memory range is written into a single global array which holds the
+ * mapping between the size of an allocation request and the corresponding
+ * allocation class.
+ *
+ * When specifying a range for the allocation classes, one must take the
+ * size of the header into account.
+ * For example, for an allocation class /w unit size of 128 bytes and a compact
+ * header, the size '128' will be handled using two units, because the real
+ * minimal size of that request is 144: 128 + 16 (header size). And so, it might
+ * be better to create a specific allocation class /w unit size 144 and assign
+ * it to handle the request for 128 bytes.
+ */
+struct pobj_alloc_class_map_range {
+	/*
+	 * A size in bytes that denotes the beginning of the range. Will be
+	 * rounded up to the granularity of the map.
+	 */
+	size_t start;
+
+	/*
+	 * The size in bytes that denotes the end of the range.
+	 */
+	size_t end;
+
+	/*
+	 * The identifier of the allocation class that will handle the above
+	 * specified range of memory.
+	 */
+	uint8_t class_id;
+};
+
+/*
+ * Parameters of the allocation classes in general.
+ * Can only be set when recreating the entire class collection.
+ */
+struct pobj_alloc_class_params {
+	/*
+	 * The limit in bytes of the allocation class map. This should be
+	 * equal to the highest range that will be set.
+	 */
+	size_t limit;
+
+	/*
+	 * The granularity with which the map can be set. The bigger it is the
+	 * less volatile memory is used for maintaining the map, but the
+	 * precision is smaller. In other words, this is the size to which
+	 * all the allocation sizes are aligned to when looking for a class.
+	 *
+	 * It does not make sense to set this to a value smaller than the
+	 * smallest allocation class (including header).
+	 */
+	size_t granularity;
+
+	/*
+	 * Specifies whether the persistent allocations should fail if no
+	 * allocation class is specified for the requested size.
+	 * If not set, the default allocation class will handle those requests.
+	 */
+	int fail_no_matching_class;
 };
 
 #ifndef _WIN32
