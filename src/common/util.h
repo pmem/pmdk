@@ -161,6 +161,51 @@ util_clrbit(uint8_t *b, uint32_t i)
 
 #ifndef _MSC_VER
 /*
+ * ISO C11 -- 7.17.1.4
+ * memory_order - an enumerated type whose enumerators identify memory ordering
+ * constraints.
+ */
+typedef enum {
+	memory_order_relaxed = __ATOMIC_RELAXED,
+	memory_order_consume = __ATOMIC_CONSUME,
+	memory_order_acquire = __ATOMIC_ACQUIRE,
+	memory_order_release = __ATOMIC_RELEASE,
+	memory_order_acq_rel = __ATOMIC_ACQ_REL,
+	memory_order_seq_cst = __ATOMIC_SEQ_CST
+} memory_order;
+
+/*
+ * ISO C11 -- 7.17.7.2 The atomic_load generic functions
+ * Integer width specific versions as supplement for:
+ *
+ *
+ * #include <stdatomic.h>
+ * C atomic_load(volatile A *object);
+ * C atomic_load_explicit(volatile A *object, memory_order order);
+ *
+ * The atomic_load interface doesn't return the loaded value, but instead
+ * copies it to a specified address -- see comments at the MSVC version.
+ *
+ * The actual interface here:
+ * #include <util.h>
+ * void util_atomic_load(volatile A *object, A *destination);
+ * void util_atomic_load_explicit(volatile A *object, A *destination,
+ *                                memory_order order);
+ */
+#define util_atomic_load_explicit __atomic_load
+
+/*
+ * ISO C11 -- 7.17.7.1 The atomic_store generic functions
+ * Integer width specific versions as supplement for:
+ *
+ * #include <stdatomic.h>
+ * void atomic_store(volatile A *object, C desired);
+ * void atomic_store_explicit(volatile A *object, C desired,
+ *                            memory_order order);
+ */
+#define util_atomic_store_explicit __atomic_store_n
+
+/*
  * https://gcc.gnu.org/onlinedocs/gcc/_005f_005fsync-Builtins.html
  * https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
  * https://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions
@@ -184,6 +229,63 @@ util_clrbit(uint8_t *b, uint32_t i)
 #define util_mssb_index64(value) ((unsigned char)(63 - __builtin_clzll(value)))
 
 #else
+
+/* ISO C11 -- 7.17.1.4 */
+typedef enum {
+	memory_order_relaxed,
+	memory_order_consume,
+	memory_order_acquire,
+	memory_order_release,
+	memory_order_acq_rel,
+	memory_order_seq_cst
+} memory_order;
+
+/*
+ * ISO C11 -- 7.17.7.2 The atomic_load generic functions
+ * Integer width specific versions as supplement for:
+ *
+ *
+ * #include <stdatomic.h>
+ * C atomic_load(volatile A *object);
+ * C atomic_load_explicit(volatile A *object, memory_order order);
+ *
+ * The atomic_load interface doesn't return the loaded value, but instead
+ * copies it to a specified address.
+ * The MSVC specific implementation needs trigger a barrier (at least compiler
+ * barrier) after the load from the volatile value. The actual load from the
+ * volatile value itself is expected to be atomic.
+ *
+ * The actual interface here:
+ * #include <util.h>
+ * void util_atomic_load(volatile A *object, A *destination);
+ * void util_atomic_load_explicit(volatile A *object, A *destination,
+ *                                memory_order order);
+ */
+
+#define util_atomic_load_explicit(object, dest, order)\
+	do {\
+		*dest = *object;\
+		if (order == memory_order_seq_cst ||\
+		    order == memory_order_acquire)\
+		_ReadWriteBarrier();\
+	} while (0)
+
+/* ISO C11 -- 7.17.7.1 The atomic_store generic functions */
+
+static inline void
+util_msvc_store_optional_barrier(memory_order order)
+{
+	if (order == memory_order_seq_cst || order == memory_order_release)
+		_ReadWriteBarrier();
+}
+
+#define util_atomic_store_explicit(object, desired, order)\
+	do {\
+		if (order == memory_order_seq_cst ||\
+		    order == memory_order_release)\
+			_ReadWriteBarrier();\
+		*object = desired;\
+	} while (0)
 
 /*
  * https://msdn.microsoft.com/en-us/library/hh977022.aspx
@@ -268,6 +370,13 @@ util_mssb_index64(long long value)
 }
 
 #endif
+
+/* ISO C11 -- 7.17.7 Operations on atomic types */
+#define util_atomic_load(object, dest)\
+	util_atomic_load_explicit(object, dest, memory_order_seqcst)
+
+#define util_atomic_store(object, desired)\
+	util_atomic_store_explicit(object, desired, memory_order_seqcst)
 
 /*
  * util_get_printable_ascii -- convert non-printable ascii to dot '.'
