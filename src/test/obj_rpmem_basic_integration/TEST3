@@ -61,26 +61,24 @@ TEST_SET_REMOTE="testset_remote"
 TEST_FILE_LOCAL="testfile_local"
 TEST_FILE_REMOTE="testfile_remote"
 
-NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
-
 # XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL \
-        8M:${NODE_DIRS[1]}/${TEST_FILE_LOCAL}0:x \
-        8M:${NODE_DIRS[1]}/${TEST_FILE_LOCAL}1:x \
+        8M:${NODE_DIR[1]}/${TEST_FILE_LOCAL}0:x \
+        8M:${NODE_DIR[1]}/${TEST_FILE_LOCAL}1:x \
         m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
 create_poolset $DIR/$TEST_SET_REMOTE \
-        8M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}0:x \
-        8M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}1:x
+        8M:${NODE_DIR[0]}/${TEST_FILE_REMOTE}0:x \
+        8M:${NODE_DIR[0]}/${TEST_FILE_REMOTE}1:x
 
-copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 
-rm_files_from_node 0 ${TEST_FILE_REMOTE}0 ${TEST_FILE_REMOTE}1
-rm_files_from_node 1 ${TEST_FILE_LOCAL}0 ${TEST_FILE_LOCAL}1
+rm_files_from_node 0 ${NODE_DIR[0]}${TEST_FILE_REMOTE}0 ${NODE_DIR[0]}${TEST_FILE_REMOTE}1
+rm_files_from_node 1 ${NODE_DIR[1]}${TEST_FILE_LOCAL}0 ${NODE_DIR[1]}${TEST_FILE_LOCAL}1
 
 # execute test
-expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
 
 check
 
@@ -89,8 +87,8 @@ DIFF_FILE=diff$UNITTEST_NUM.log
 rm -f $DIFF_FILE
 for i in {0..1}
 do
-        copy_files_from_node 0 $DIR $TEST_FILE_REMOTE$i
-        copy_files_from_node 1 $DIR $TEST_FILE_LOCAL$i
+        copy_files_from_node 0 $DIR ${NODE_DIR[0]}$TEST_FILE_REMOTE$i
+        copy_files_from_node 1 $DIR ${NODE_DIR[1]}$TEST_FILE_LOCAL$i
 
         compare_replicas "-soOaAb -l -Z -H -C" \
 		$DIR/$TEST_FILE_LOCAL$i $DIR/$TEST_FILE_REMOTE$i >> $DIFF_FILE

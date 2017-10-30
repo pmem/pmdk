@@ -50,13 +50,13 @@ setup
 create_poolset $DIR/$POOLSET_LOCAL_IN \
 	10M:${NODE_DIR[0]}/part00:x \
 	10M:${NODE_DIR[0]}/part01:x \
-	m ${NODE_ADDR[1]}:${NODE_DIR_REL[1]}/$POOLSET_REMOTE1
+	m ${NODE_ADDR[1]}:$POOLSET_REMOTE1
 
 create_poolset $DIR/$POOLSET_LOCAL_OUT \
-	10M:${NODE_DIRS[0]}/part00:x \
-	10M:${NODE_DIRS[0]}/part01:x \
-	m ${NODE_ADDR[1]}:${NODE_DIR_REL[1]}/$POOLSET_REMOTE1 \
-	m ${NODE_ADDR[1]}:${NODE_DIR_REL[1]}/$POOLSET_REMOTE2
+	10M:${NODE_DIR[0]}/part00:x \
+	10M:${NODE_DIR[0]}/part01:x \
+	m ${NODE_ADDR[1]}:$POOLSET_REMOTE1 \
+	m ${NODE_ADDR[1]}:$POOLSET_REMOTE2
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL_IN
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL_OUT

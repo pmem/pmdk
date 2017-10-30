@@ -92,7 +92,7 @@ TM=1
 
 #
 # This option works only if KEEP_GOING=y, then if CLEAN_FAILED is set
-# all data created by local test is removed on test failure.
+# all data created by test is removed on test failure.
 #
 #CLEAN_FAILED=y
 

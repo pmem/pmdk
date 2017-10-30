@@ -53,7 +53,7 @@ create_poolset $DIR/pool.set \
 	10M:${NODE_DIR[1]}pool.1:x \
 	r \
 	20M:${NODE_DIR[1]}pool.2:x \
-        m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/remote.set
+        m ${NODE_ADDR[0]}:remote.set
 
 create_poolset $DIR/remote.set \
 	20M:${NODE_DIR[0]}pool.3:x

@@ -74,7 +74,7 @@ function configure_poolsets() {
 
 		copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_REMOTE[$i]}
 
-		poolset_args="$poolset_args m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/${POOLSET_REMOTE[$i]}"
+		poolset_args="$poolset_args m ${NODE_ADDR[0]}:${POOLSET_REMOTE[$i]}"
 	done
 
 	create_poolset $DIR/$POOLSET_LOCAL $poolset_args

@@ -58,9 +58,9 @@ setup
 
 create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 
-run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
+run_on_node 0 "rm -rf ${RPMEM_POOLSET_DIR[0]} $PART_DIR && mkdir -p ${RPMEM_POOLSET_DIR[0]} && mkdir -p $PART_DIR"
 
-copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
 
 SEED=4321
 CREATE="test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M"
@@ -81,6 +81,6 @@ ARGS="$ARGS $OPEN $TERMINATE nowait $READ $CLOSE"
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	check_pool $POOLS_DIR/pool0.set $SEED 8M
+	check_pool ${RPMEM_POOLSET_DIR[0]}/pool0.set $SEED 8M
 
 pass

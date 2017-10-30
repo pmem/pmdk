@@ -1705,7 +1705,6 @@ function require_nodes() {
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
 		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/data/
-		NODE_DIR_REL[$N]=$(realpath --relative-to="${NODE_TEST_DIR[$N]}" "${NODE_DIR[$N]}")
 
 		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
@@ -1794,14 +1793,26 @@ function copy_files_from_node() {
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
 
 	# compress required files, copy and extract
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local temp_file=node_${N}_temp_file.tar
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR > /dev/null
+	files=""
+	dir_name=""
+
+	for f in "$@"
+	do
+		dir_name=$(dirname $f)
+		files+=$(basename $f)
+		files+=" "
+	done
+
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $dir_name && tar -czf $temp_file $files"
+	run_command scp $SCP_OPTS ${NODE[$N]}:$dir_name/$temp_file $DEST_DIR > /dev/null
+
 	cd $DEST_DIR \
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
 		&& cd - > /dev/null
+
+
 	return 0
 }
 
@@ -2390,9 +2401,9 @@ function init_rpmem_on_node() {
 		slave=${slave[0]}
 
 		validate_node_number $slave
-		local poolset_dir=${NODE_TEST_DIR[$slave]}
-		if [ -n "$RPMEM_POOLSET_DIR" ]; then
-			poolset_dir=$RPMEM_POOLSET_DIR
+		local poolset_dir=${NODE_DIR[$slave]}
+		if [ -n "${RPMEM_POOLSET_DIR[$slave]}" ]; then
+			poolset_dir=${RPMEM_POOLSET_DIR[$slave]}
 		fi
 		local trace=
 		if [ -n "$(is_valgrind_enabled_on_node $slave)" ]; then
@@ -2625,3 +2636,19 @@ function enable_log_append() {
 	rm -f $TRACE_LOG_FILE
 	export UNITTEST_LOG_APPEND=1
 }
+
+# clean data directory on all remote
+# nodes if remote test failed
+if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
+	NODES_ALL=$((${#NODE[@]} - 1))
+	MYPID=$$
+	for ((i=0;i<=$NODES_ALL;i++));
+	do
+		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
+		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
+		if [ $? == 0 ]; then
+			echo -e "Removed data from: ${N[$i]}"
+		fi
+	done
+	exit 0
+fi

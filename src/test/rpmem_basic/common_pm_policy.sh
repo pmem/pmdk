@@ -41,9 +41,9 @@ OUT=out$UNITTEST_NUM.log
 rm -f $OUT
 
 # create poolset and upload
-run_on_node 0 "rm -rf $POOLS_DIR && mkdir -p $POOLS_DIR"
-create_poolset $DIR/pool.set  8M:$PART_DIR/pool.part0 8M:$PART_DIR/pool.part1
-copy_files_to_node 0 $POOLS_DIR $DIR/pool.set
+run_on_node 0 "rm -rf ${RPMEM_POOLSET_DIR[0]} && mkdir -p ${RPMEM_POOLSET_DIR[0]} && mkdir -p ${NODE_DIR[0]}$POOLS_PART"
+create_poolset $DIR/pool.set 8M:$PART_DIR/pool.part0 8M:$PART_DIR/pool.part1
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool.set
 
 # create pool and close it - local pool from file
 SIMPLE_ARGS="test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
@@ -56,11 +56,11 @@ function test_pm_policy()
 	init_rpmem_on_node 1 0
 
 	# remove rpmemd log and pool parts
-	run_on_node 0 "rm -rf $POOLS_PART && mkdir -p $POOLS_PART && rm -f $LOG"
+	run_on_node 0 "rm -rf $PART_DIR && mkdir -p $PART_DIR && rm -f $LOG"
 
 	# execute, get log
 	expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $SIMPLE_ARGS
-	copy_files_from_node 0 . $LOG
+	copy_files_from_node 0 . ${NODE_TEST_DIR[0]}/$LOG
 
 	# extract persist method and flush function
 	cat $LOG | $GREP -A2 "persistency policy:" >> $OUT

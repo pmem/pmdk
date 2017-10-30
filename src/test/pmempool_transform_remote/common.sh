@@ -58,7 +58,6 @@ POOLSET_LOCAL_OUT=poolset.out
 POOLSET_REMOTE=poolset.remote
 POOLSET_REMOTE1=poolset.remote1
 POOLSET_REMOTE2=poolset.remote2
-NODE_DIRS=(${NODE_DIR[0]} ${NODE_DIR[1]})
 
 # CLI scripts for writing and reading some data hitting all the parts
 WRITE_SCRIPT="pmemobjcli.write.script"

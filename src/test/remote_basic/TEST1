@@ -52,10 +52,10 @@ require_nodes 1
 TEST_FILE_REMOTE="test-file"
 TEST_FILE_LOCAL="$DIR/$TEST_FILE_REMOTE"
 touch $TEST_FILE_LOCAL
-echo $TEST_FILE_LOCAL
+
 # list of required files that should be copied to the remote nodes
 copy_files_to_node 0 ${NODE_DIR[0]} $TEST_FILE_LOCAL
-#exit 1
+
 # remove the local test file
 rm -f $TEST_FILE_LOCAL
 
