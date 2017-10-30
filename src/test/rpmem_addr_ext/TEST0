@@ -53,7 +53,7 @@ init_rpmem_on_node 1 0
 
 TARGETS=targets.in
 
-copy_files_to_node 1 . $TARGETS
+copy_files_to_node 1 ${NODE_TEST_DIR[1]} $TARGETS
 
 expect_normal_exit run_on_node 1 ./rpmem_addr_ext$EXESUFFIX $TARGETS
 

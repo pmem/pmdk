@@ -54,14 +54,14 @@ create_poolset $DIR/$POOLSET_LOCAL_IN \
 create_poolset $DIR/$POOLSET_LOCAL_OUT \
 	10M:${NODE_DIR[0]}/part00:x \
 	10M:${NODE_DIR[0]}/part01:x \
-	m ${NODE_ADDR[1]}:${NODE_DIR_REL[1]}/$POOLSET_REMOTE
+	m ${NODE_ADDR[1]}:$POOLSET_REMOTE
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL_IN
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL_OUT
 
 # Create remote poolset file
 create_poolset $DIR/$POOLSET_REMOTE \
-	20M:${NODE_DIRS[1]}/remote.part00
+	20M:${NODE_DIR[1]}/remote.part00
 
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
 

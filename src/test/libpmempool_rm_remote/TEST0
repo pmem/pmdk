@@ -53,7 +53,7 @@ setup
 init_rpmem_on_node 1 0
 
 create_poolset $DIR/pool.set 8M:${NODE_DIR[1]}/pool.1:x \
-        m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/remote.set
+        m ${NODE_ADDR[0]}:remote.set
 create_poolset $DIR/remote.set 8M:${NODE_DIR[0]}remote.1:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/remote.set

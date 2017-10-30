@@ -58,16 +58,14 @@ TEST_SET_REMOTE="testset_remote"
 TEST_FILE_LOCAL="testfile_local"
 TEST_FILE_REMOTE="testfile_remote"
 
-NODE_DIRS=(${NODE_DIR[0]} ${NODE_DIR[1]})
-
 LOG=out${UNITTEST_NUM}.log
 
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIRS[1]}/$TEST_FILE_LOCAL:x \
-        m ${NODE_ADDR[0]}:${NODE_DIR_REL[0]}/$TEST_SET_REMOTE
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIR[1]}/$TEST_FILE_LOCAL:x \
+        m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
 
 
-create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIRS[0]}/$TEST_FILE_REMOTE:x
+create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIR[0]}/$TEST_FILE_REMOTE:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL

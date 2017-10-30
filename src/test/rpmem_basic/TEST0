@@ -55,13 +55,12 @@ create_poolset $DIR/pool4.set  8M:$PART_DIR/pool3.part0 8M:$PART_DIR/pool4.part1
 
 cp $DIR/pool0.set $DIR/pool0r.set
 
-run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mkdir -p $POOLS_PART"
-
-copy_files_to_node 0 $POOLS_DIR $DIR/{pool0.set,pool0r.set,pool1.set,pool3.set,pool4.set}
-copy_files_to_node 0 $POOLS_DIR/subdir/ $DIR/pool2.set
+run_on_node 0 "rm -rf ${NODE_DIR[0]}$POOLS_DIR ${NODE_DIR[0]}$POOLS_PART && mkdir -p ${NODE_DIR[0]}$POOLS_DIR/subdir && mkdir -p ${NODE_DIR[0]}$POOLS_PART"
+copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/{pool0.set,pool0r.set,pool1.set,pool3.set,pool4.set}
+copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR/subdir/ $DIR/pool2.set
 
 # Remove read permission
-run_on_node 0 chmod a-r $POOLS_DIR/pool0r.set
+run_on_node 0 chmod a-r ${NODE_DIR[0]}$POOLS_DIR/pool0r.set
 
 # Create pool from non-existing pool set file
 ARGS="$ARGS test_create 0 poolX.set ${NODE_ADDR[0]} pool 8M"

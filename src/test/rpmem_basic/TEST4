@@ -48,15 +48,15 @@ setup
 
 create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 
-run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR && mkdir -p $POOLS_PART"
+run_on_node 0 "rm -rf ${NODE_DIR[0]}$POOLS_DIR ${NODE_DIR[0]}$POOLS_PART && mkdir -p ${NODE_DIR[0]}$POOLS_DIR && mkdir -p ${NODE_DIR[0]}$POOLS_PART"
 
-copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/pool0.set
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	fill_pool $POOLS_DIR/pool0.set 1234
+	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
@@ -64,6 +64,6 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_close 0
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	check_pool $POOLS_DIR/pool0.set 4321 8M
+	check_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 4321 8M
 
 pass

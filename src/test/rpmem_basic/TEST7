@@ -54,12 +54,12 @@ setup
 
 create_poolset $DIR/pool0.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
 
-expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
-expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+expect_normal_exit run_on_node 0 rm -rf $PART_DIR
+expect_normal_exit run_on_node 0 mkdir -p ${RPMEM_POOLSET_DIR[0]}
+expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
+expect_normal_exit copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
 
-expect_normal_exit run_on_node 0 ../pmempool rm -sf $POOLS_DIR/pool0.set
+expect_normal_exit run_on_node 0 ../pmempool rm -sf ${RPMEM_POOLSET_DIR[0]}/pool0.set
 expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DEVICE_DAX_PATH[0]}
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\

@@ -58,35 +58,35 @@ TEST_SET_REMOTE="testset_remote"
 TEST_FILE_LOCAL="testfile_local"
 TEST_FILE_REMOTE="testfile_remote"
 
-NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
-
 # XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL \
-	16M:${NODE_DIRS[1]}/${TEST_FILE_LOCAL}_part1:x \
-	16M:${NODE_DIRS[1]}/${TEST_FILE_LOCAL}_part2:x \
+	16M:${NODE_DIR[1]}${TEST_FILE_LOCAL}_part1:x \
+	16M:${NODE_DIR[1]}${TEST_FILE_LOCAL}_part2:x \
         m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
 create_poolset $DIR/$TEST_SET_REMOTE \
-	16M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}_part1:x \
-	16M:${NODE_DIRS[0]}/${TEST_FILE_REMOTE}_part2:x
+	16M:${NODE_DIR[0]}${TEST_FILE_REMOTE}_part1:x \
+	16M:${NODE_DIR[0]}${TEST_FILE_REMOTE}_part2:x
 
-copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 
-rm_files_from_node 0 "${TEST_FILE_REMOTE} ${TEST_FILE_REMOTE}_part1 ${TEST_FILE_REMOTE}_part2"
-rm_files_from_node 1 "${TEST_FILE_LOCAL} ${TEST_FILE_LOCAL}_part1 ${TEST_FILE_LOCAL}_part2"
+rm_files_from_node 0 "${NODE_DIR[0]}${TEST_FILE_REMOTE} ${NODE_DIR[0]}${TEST_FILE_REMOTE}_part1 ${NODE_DIR[0]}${TEST_FILE_REMOTE}_part2"
+rm_files_from_node 1 "${NODE_DIR[1]}${TEST_FILE_LOCAL} ${NODE_DIR[1]}${TEST_FILE_LOCAL}_part1 ${NODE_DIR[1]}${TEST_FILE_LOCAL}_part2"
 
 PMEM_IS_PMEM_FORCE=1
 export_vars_node 1 PMEM_IS_PMEM_FORCE
 
 # execute test
-expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
 
 check
 
 # download pools and compare them
-copy_files_from_node 0 $DIR ${TEST_FILE_REMOTE}_part1 ${TEST_FILE_REMOTE}_part2
-copy_files_from_node 1 $DIR ${TEST_FILE_LOCAL}_part1 ${TEST_FILE_LOCAL}_part2
+copy_files_from_node 0 $DIR ${NODE_DIR[0]}${TEST_FILE_REMOTE}_part1 \
+${NODE_DIR[0]}${TEST_FILE_REMOTE}_part2
+copy_files_from_node 1 $DIR ${NODE_DIR[1]}${TEST_FILE_LOCAL}_part1 \
+${NODE_DIR[1]}${TEST_FILE_LOCAL}_part2
 
 compare_replicas "-soOaAb -l -Z -H -C" \
 	$DIR/${TEST_FILE_LOCAL}_part1 $DIR/${TEST_FILE_REMOTE}_part1 \

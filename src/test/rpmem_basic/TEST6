@@ -49,12 +49,12 @@ require_build_type nondebug debug
 
 setup
 
-create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
+create_poolset $DIR/pool0.set 8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 
-expect_normal_exit run_on_node 0 rm -rf $POOLS_PART
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_DIR
-expect_normal_exit run_on_node 0 mkdir -p $POOLS_PART
-expect_normal_exit copy_files_to_node 0 $POOLS_DIR $DIR/pool0.set
+expect_normal_exit run_on_node 0 rm -rf $PART_DIR
+expect_normal_exit run_on_node 0 mkdir -p ${RPMEM_POOLSET_DIR[0]}
+expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
+expect_normal_exit copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
 
 expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
 
@@ -66,7 +66,7 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 1
 
-expect_normal_exit run_on_node 0 "[ ! -f $POOLS_DIR/pool0.set ]"
+expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool0.set ]"
 
 check
 

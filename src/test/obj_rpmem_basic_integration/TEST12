@@ -61,20 +61,18 @@ copy_files_to_node 1 . ../$EXE/$EXE$EXESUFFIX
 TEST_SET_LOCAL="testset_local"
 TEST_SET_REMOTE="testset_remote"
 
-NODE_DIRS=($(get_node_dir 0) $(get_node_dir 1))
-
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL AUTO:${NODE_DEVICE_DAX_PATH[1]}:x \
 	m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
 create_poolset $DIR/$TEST_SET_REMOTE AUTO:${NODE_DEVICE_DAX_PATH[0]}:x
 
-copy_files_to_node 0 . $DIR/$TEST_SET_REMOTE
-copy_files_to_node 1 . $DIR/$TEST_SET_LOCAL
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
+copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 
-expect_normal_exit run_on_node 1 ../pmempool rm -sf $TEST_SET_LOCAL
-expect_normal_exit run_on_node 0 ../pmempool rm -sf $TEST_SET_REMOTE
+expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DIR[1]}$TEST_SET_LOCAL
+expect_normal_exit run_on_node 0 ../pmempool rm -sf ${NODE_DIR[0]}$TEST_SET_REMOTE
 
 # execute test
-expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX $TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
 
 pass

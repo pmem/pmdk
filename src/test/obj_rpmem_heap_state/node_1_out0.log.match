@@ -1,5 +1,5 @@
 obj_rpmem_heap_state/TEST0: START: obj_heap_state
- ./obj_heap_state testset_local
+ ./obj_heap_state $(nW)testset_local
 0 4195664
 1 4195792
 2 4195920

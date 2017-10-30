@@ -48,31 +48,35 @@ require_test_type medium
 setup
 
 for node in 1 2; do
+	replica=${REPLICA[${node}]}
+	poolset_dir=${RPMEM_POOLSET_DIR[$replica]}
+	part_dir=${PART_DIR[${node}]}
 
-	create_poolset $DIR/pool0.set  8M:${PART_DIR[${node}]}/pool0.part0 8M:${PART_DIR[${node}]}/pool0.part1
-	create_poolset $DIR/pool1.set 16M:${PART_DIR[${node}]}/pool1.part0
-	create_poolset $DIR/pool2.set 16M:${PART_DIR[${node}]}/pool2.part0
-	create_poolset $DIR/pool3.set  8M:${PART_DIR[${node}]}/pool3.part0 8M:${PART_DIR[${node}]}/pool3.part1
+	create_poolset $DIR/pool0.set  8M:$part_dir/pool0.part0 8M:$part_dir/pool0.part1
+	create_poolset $DIR/pool1.set 16M:$part_dir/pool1.part0
+	create_poolset $DIR/pool2.set 16M:$part_dir/pool2.part0
+	create_poolset $DIR/pool3.set  8M:$part_dir/pool3.part0 8M:$part_dir/pool3.part1
 	# Pool set file with duplicated part file
-	create_poolset $DIR/pool4.set  8M:${PART_DIR[${node}]}/pool3.part0 8M:${PART_DIR[${node}]}/pool4.part1
+	create_poolset $DIR/pool4.set  8M:$part_dir/pool3.part0 8M:$part_dir/pool4.part1
 	# Pool set file for test of read operation
-	create_poolset $DIR/pool5.set  8M:${PART_DIR[${node}]}/pool5.part0 8M:${PART_DIR[${node}]}/pool5.part1
+	create_poolset $DIR/pool5.set  8M:$part_dir/pool5.part0 8M:$part_dir/pool5.part1
 
 	cp $DIR/pool0.set $DIR/pool0r.set
 
-	run_on_node ${REPLICA[${node}]} "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mkdir -p $POOLS_PART"
+	run_on_node $replica "rm -rf $poolset_dir $part_dir && mkdir -p $poolset_dir/subdir && mkdir -p $part_dir"
 
-	copy_files_to_node ${REPLICA[${node}]} $POOLS_DIR $DIR/{pool0.set,pool0r.set,pool1.set,pool3.set,pool4.set,pool5.set}
-	copy_files_to_node ${REPLICA[${node}]} $POOLS_DIR/subdir/ $DIR/pool2.set
+	copy_files_to_node $replica $poolset_dir $DIR/{pool0.set,pool0r.set,pool1.set,pool3.set,pool4.set,pool5.set}
+	copy_files_to_node $replica $poolset_dir/subdir/ $DIR/pool2.set
 
 	# Remove read permission
-	run_on_node ${REPLICA[${node}]} chmod a-r $POOLS_DIR/pool0r.set
+	run_on_node $replica chmod a-r $poolset_dir/pool0r.set
 
 	# Prepare pool5 for test of read and persist operations
 	expect_normal_exit run_on_node ${node} ./rpmem_basic$EXESUFFIX\
 		test_create 3 pool5.set ${REP_ADDR[${node}]} mem 8M test_close 3
-	expect_normal_exit run_on_node ${REPLICA[${node}]} ./rpmem_basic$EXESUFFIX\
-		fill_pool $POOLS_DIR/pool5.set 1234
+
+	expect_normal_exit run_on_node $replica ./rpmem_basic$EXESUFFIX\
+		fill_pool $poolset_dir/pool5.set 1234
 
 	ARGS=""
 	#

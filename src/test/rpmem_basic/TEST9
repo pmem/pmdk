@@ -48,9 +48,9 @@ setup
 
 create_poolset $DIR/pool.set  8M:$PART_DIR/pool.pool
 
-run_on_node 0 "rm -rf $POOLS_DIR $POOLS_PART && mkdir -p $POOLS_DIR/subdir && mkdir -p $POOLS_PART"
+run_on_node 0 "rm -rf  ${RPMEM_POOLSET_DIR[0]} $PART_DIR && mkdir -p ${RPMEM_POOLSET_DIR[0]}/subdir && mkdir -p $PART_DIR"
 
-copy_files_to_node 0 $POOLS_DIR $DIR/pool.set
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool.set
 
 # Create pool
 ARGS="$ARGS test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
