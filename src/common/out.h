@@ -55,6 +55,7 @@
 
 #ifdef DEBUG
 
+#define DEBUG_ENABLED 1
 #define OUT_LOG out_log
 #define OUT_NONL out_nonl
 #define OUT_FATAL out_fatal
@@ -102,6 +103,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 	abort();
 }
 
+#define DEBUG_ENABLED 0
 #define OUT_LOG out_log_discard
 #define OUT_NONL out_nonl_discard
 #define OUT_FATAL out_fatal_discard
@@ -110,38 +112,49 @@ out_fatal_abort(const char *file, int line, const char *func,
 #endif
 
 /* produce debug/trace output */
-#define LOG(level, ...)\
-	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__)
+#define LOG(level, ...) do { \
+	if (!DEBUG_ENABLED) break;\
+	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__);\
+} while (0)
 
 /* produce debug/trace output without prefix and new line */
-#define LOG_NONL(level, ...)\
-	OUT_NONL(level, __VA_ARGS__)
+#define LOG_NONL(level, ...) do { \
+	if (!DEBUG_ENABLED) break; \
+	OUT_NONL(level, __VA_ARGS__); \
+} while (0)
 
 /* produce output and exit */
 #define FATAL(...)\
 	OUT_FATAL_ABORT(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 /* assert a condition is true at runtime */
-#define ASSERT_rt(cnd)\
-	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s", #cnd), 0)))
+#define ASSERT_rt(cnd) do { \
+	if (!DEBUG_ENABLED || (cnd)) break; \
+	OUT_FATAL(__FILE__, __LINE__, __func__, "assertion failure: %s", #cnd);\
+} while (0)
 
 /* assertion with extra info printed if assertion fails at runtime */
-#define ASSERTinfo_rt(cnd, info)\
-	((void)((cnd) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
+#define ASSERTinfo_rt(cnd, info) do { \
+	if (!DEBUG_ENABLED || (cnd)) break; \
+	OUT_FATAL(__FILE__, __LINE__, __func__, \
+		"assertion failure: %s (%s = %s)", #cnd, #info, info);\
+} while (0)
 
 /* assert two integer values are equal at runtime */
-#define ASSERTeq_rt(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
+#define ASSERTeq_rt(lhs, rhs) do { \
+	if (!DEBUG_ENABLED || ((lhs) == (rhs))) break; \
+	OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+} while (0)
 
 /* assert two integer values are not equal at runtime */
-#define ASSERTne_rt(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (OUT_FATAL(__FILE__, __LINE__, __func__,\
+#define ASSERTne_rt(lhs, rhs) do { \
+	if (!DEBUG_ENABLED || ((lhs) != (rhs))) break; \
+	OUT_FATAL(__FILE__, __LINE__, __func__,\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+} while (0)
 
 /* assert a condition is true */
 #define ASSERT(cnd)\
