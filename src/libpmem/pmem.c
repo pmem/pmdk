@@ -536,14 +536,6 @@ pmem_is_pmem(const void *addr, size_t len)
 #define PMEM_DAX_VALID_FLAGS\
 	(PMEM_FILE_CREATE|PMEM_FILE_SPARSE)
 
-#ifndef USE_O_TMPFILE
-#ifdef O_TMPFILE
-#define USE_O_TMPFILE 1
-#else
-#define USE_O_TMPFILE 0
-#endif
-#endif
-
 /*
  * pmem_map_fileU -- create or open the file and map it to memory
  */
@@ -624,18 +616,6 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		return NULL;
 	}
 
-#if USE_O_TMPFILE
-
-	if (flags & PMEM_FILE_TMPFILE)
-		open_flags |= O_TMPFILE;
-
-	if ((fd = os_open(path, open_flags, mode)) < 0) {
-		ERR("!open %s", path);
-		return NULL;
-	}
-
-#else
-
 	if (flags & PMEM_FILE_TMPFILE) {
 		if ((fd = util_tmpfile(path,
 					OS_DIR_SEP_STR"pmem.XXXXXX")) < 0) {
@@ -651,8 +631,6 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
 			delete_on_err = 1;
 	}
-
-#endif
 
 	if (flags & PMEM_FILE_CREATE) {
 		if (flags & PMEM_FILE_SPARSE) {
