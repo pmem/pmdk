@@ -34,13 +34,18 @@
  * file_linux.c -- Linux-specific versions of file APIs
  */
 
+/* for O_TMPFILE */
+#define _GNU_SOURCE
+
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/sysmacros.h>
+#include <sys/types.h>
 
 #include "os.h"
 #include "file.h"
@@ -51,11 +56,9 @@
 /*
  * util_tmpfile --  (internal) create the temporary file
  */
-int
-util_tmpfile(const char *dir, const char *templ)
+static int
+util_tmpfile_mkstemp(const char *dir, const char *templ)
 {
-	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
-
 	/* the templ must start with a path separator */
 	ASSERTeq(templ[0], '/');
 
@@ -95,6 +98,31 @@ err:
 		(void) os_close(fd);
 	errno = oerrno;
 	return -1;
+}
+
+/*
+ * util_tmpfile --  (internal) create the temporary file
+ */
+int
+util_tmpfile(const char *dir, const char *templ)
+{
+	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+
+#ifdef O_TMPFILE
+	int fd = open(dir, O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR);
+	/*
+	 * Open can fail if underlying file system does not support O_TMPFILE
+	 * flag.
+	 */
+	if (fd >= 0)
+		return fd;
+	if (errno != EOPNOTSUPP) {
+		ERR("!open");
+		return -1;
+	}
+#endif
+
+	return util_tmpfile_mkstemp(dir, templ);
 }
 
 /*
