@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,62 +30,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem.h -- internal definitions for libpmem
- */
+#ifndef PMEM_MEMCPY_AVX512F_H
+#define PMEM_MEMCPY_AVX512F_H
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#include <stddef.h>
 
-void pmem_init(void);
+#include "memcpy_avx.h"
 
-int is_pmem_detect(const void *addr, size_t len);
+static inline void
+memmove_small_avx512f_fw(char *dest, const char *src, size_t len)
+{
+	/* We can't do better than AVX here. */
+	memmove_small_avx(dest, src, len);
+}
 
-#ifndef AVX512F_AVAILABLE
-#ifdef _MSC_VER
-#define AVX512F_AVAILABLE 0
-#else
-#define AVX512F_AVAILABLE 1
-#endif
-#endif
-
-#ifndef AVX_AVAILABLE
-#define AVX_AVAILABLE 1
-#endif
-
-#ifndef SSE2_AVAILABLE
-#define SSE2_AVAILABLE 1
-#endif
-
-#if SSE2_AVAILABLE
-void memmove_mov_sse2(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2(char *dest, const char *src, size_t len);
-void memset_mov_sse2(char *dest, int c, size_t len);
-void memset_movnt_sse2(char *dest, int c, size_t len);
-#endif
-
-#if AVX_AVAILABLE
-void memmove_mov_avx(char *dest, const char *src, size_t len);
-void memmove_movnt_avx(char *dest, const char *src, size_t len);
-void memset_mov_avx(char *dest, int c, size_t len);
-void memset_movnt_avx(char *dest, int c, size_t len);
-#endif
-
-#if AVX512F_AVAILABLE
-void memmove_mov_avx512f(char *dest, const char *src, size_t len);
-void memmove_movnt_avx512f(char *dest, const char *src, size_t len);
-void memset_mov_avx512f(char *dest, int c, size_t len);
-void memset_movnt_avx512f(char *dest, int c, size_t len);
-#endif
-
-extern size_t Movnt_threshold;
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-typedef BOOL (WINAPI *PQVM)(
-		HANDLE, const void *,
-		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
-		SIZE_T, PSIZE_T);
-
-extern PQVM Func_qvmi;
 #endif

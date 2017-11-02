@@ -96,6 +96,14 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #define bit_CLWB	(1 << 24)
 #endif
 
+#ifndef bit_AVX
+#define bit_AVX		(1 << 28)
+#endif
+
+#ifndef bit_AVX512F
+#define bit_AVX512F	(1 << 16)
+#endif
+
 /*
  * is_cpu_feature_present -- (internal) checks if CPU feature is supported
  */
@@ -174,6 +182,30 @@ is_cpu_clwb_present(void)
 
 	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLWB);
 	LOG(4, "CLWB %ssupported", ret == 0 ? "not " : "");
+
+	return ret;
+}
+
+/*
+ * is_cpu_avx_present -- checks if AVX instructions are supported
+ */
+int
+is_cpu_avx_present(void)
+{
+	int ret = is_cpu_feature_present(0x1, ECX_IDX, bit_AVX);
+	LOG(4, "AVX %ssupported", ret == 0 ? "not " : "");
+
+	return ret;
+}
+
+/*
+ * is_cpu_avx512f_present -- checks if AVX-512f instructions are supported
+ */
+int
+is_cpu_avx512f_present(void)
+{
+	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_AVX512F);
+	LOG(4, "AVX512f %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,62 +30,64 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem.h -- internal definitions for libpmem
- */
+#ifndef PMEM_MEMSET_AVX_H
+#define PMEM_MEMSET_AVX_H
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#include <immintrin.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
-void pmem_init(void);
+#include "libpmem.h"
+#include "out.h"
 
-int is_pmem_detect(const void *addr, size_t len);
+static inline void
+memset_small_avx(char *dest, int c, size_t len)
+{
+	ASSERT(len <= 64);
 
-#ifndef AVX512F_AVAILABLE
-#ifdef _MSC_VER
-#define AVX512F_AVAILABLE 0
-#else
-#define AVX512F_AVAILABLE 1
-#endif
-#endif
+	if (len > 32) {
+		/* 33..64 */
+		__m256i ymm = _mm256_set1_epi8((char)c);
 
-#ifndef AVX_AVAILABLE
-#define AVX_AVAILABLE 1
-#endif
+		_mm256_storeu_si256((__m256i *)dest, ymm);
+		_mm256_storeu_si256((__m256i *)(dest + len - 32), ymm);
+	} else if (len > 16) {
+		/* 17..32 */
 
-#ifndef SSE2_AVAILABLE
-#define SSE2_AVAILABLE 1
-#endif
+		__m128i xmm = _mm_set1_epi8((char)c);
 
-#if SSE2_AVAILABLE
-void memmove_mov_sse2(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2(char *dest, const char *src, size_t len);
-void memset_mov_sse2(char *dest, int c, size_t len);
-void memset_movnt_sse2(char *dest, int c, size_t len);
-#endif
+		_mm_storeu_si128((__m128i *)dest, xmm);
+		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
+	} else if (len > 8) {
+		/* 9..16 */
+		uint64_t d;
+		memset(&d, c, 8);
 
-#if AVX_AVAILABLE
-void memmove_mov_avx(char *dest, const char *src, size_t len);
-void memmove_movnt_avx(char *dest, const char *src, size_t len);
-void memset_mov_avx(char *dest, int c, size_t len);
-void memset_movnt_avx(char *dest, int c, size_t len);
-#endif
+		*(uint64_t *)dest = d;
+		*(uint64_t *)(dest + len - 8) = d;
+	} else if (len > 4) {
+		/* 5..8 */
+		uint32_t d;
+		memset(&d, c, 4);
 
-#if AVX512F_AVAILABLE
-void memmove_mov_avx512f(char *dest, const char *src, size_t len);
-void memmove_movnt_avx512f(char *dest, const char *src, size_t len);
-void memset_mov_avx512f(char *dest, int c, size_t len);
-void memset_movnt_avx512f(char *dest, int c, size_t len);
-#endif
+		*(uint32_t *)dest = d;
+		*(uint32_t *)(dest + len - 4) = d;
+	} else if (len > 2) {
+		/* 3..4 */
+		uint16_t d;
+		memset(&d, c, 2);
 
-extern size_t Movnt_threshold;
+		*(uint16_t *)dest = d;
+		*(uint16_t *)(dest + len - 2) = d;
+	} else if (len == 2) {
+		uint16_t d;
+		memset(&d, c, 2);
 
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-typedef BOOL (WINAPI *PQVM)(
-		HANDLE, const void *,
-		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
-		SIZE_T, PSIZE_T);
+		*(uint16_t *)dest = d;
+	} else {
+		*(uint8_t *)dest = (uint8_t)c;
+	}
+}
 
-extern PQVM Func_qvmi;
 #endif
