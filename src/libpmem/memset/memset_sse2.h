@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,18 +30,73 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMDK_CPU_H
-#define PMDK_CPU_H 1
+#ifndef PMEM_MEMSET_SSE2_H
+#define PMEM_MEMSET_SSE2_H
 
-/*
- * cpu.h -- definitions for "cpu" module
- */
+#include <xmmintrin.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
-int is_cpu_genuine_intel(void);
-int is_cpu_clflush_present(void);
-int is_cpu_clflushopt_present(void);
-int is_cpu_clwb_present(void);
-int is_cpu_avx_present(void);
-int is_cpu_avx512f_present(void);
+#include "libpmem.h"
+#include "out.h"
+
+static inline void
+memset_small_sse2(char *dest, int c, size_t len)
+{
+	ASSERT(len <= 64);
+
+	if (len > 48) {
+		/* 49..64 */
+		__m128i xmm = _mm_set1_epi8((char)c);
+
+		_mm_storeu_si128((__m128i *)(dest + 0), xmm);
+		_mm_storeu_si128((__m128i *)(dest + 16), xmm);
+		_mm_storeu_si128((__m128i *)(dest + 32), xmm);
+		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
+	} else if (len > 32) {
+		/* 33..48 */
+		__m128i xmm = _mm_set1_epi8((char)c);
+
+		_mm_storeu_si128((__m128i *)(dest + 0), xmm);
+		_mm_storeu_si128((__m128i *)(dest + 16), xmm);
+		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
+	} else if (len > 16) {
+		/* 17..32 */
+
+		__m128i xmm = _mm_set1_epi8((char)c);
+
+		_mm_storeu_si128((__m128i *)(dest + 0), xmm);
+		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
+	} else if (len > 8) {
+		/* 9..16 */
+		uint64_t d;
+		memset(&d, c, 8);
+
+		*(uint64_t *)dest = d;
+		*(uint64_t *)(dest + len - 8) = d;
+	} else if (len > 4) {
+		/* 5..8 */
+		uint32_t d;
+		memset(&d, c, 4);
+
+		*(uint32_t *)dest = d;
+		*(uint32_t *)(dest + len - 4) = d;
+	} else if (len > 2) {
+		/* 3..4 */
+		uint16_t d;
+		memset(&d, c, 2);
+
+		*(uint16_t *)dest = d;
+		*(uint16_t *)(dest + len - 2) = d;
+	} else if (len == 2) {
+		uint16_t d;
+		memset(&d, c, 2);
+
+		*(uint16_t *)dest = d;
+	} else {
+		*(uint8_t *)dest = (uint8_t)c;
+	}
+}
 
 #endif
