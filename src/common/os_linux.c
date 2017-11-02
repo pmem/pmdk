@@ -34,6 +34,8 @@
  * os_linux.c -- Linux abstraction layer
  */
 
+#define _GNU_SOURCE
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/file.h>
@@ -55,7 +57,13 @@
 int
 os_open(const char *pathname, int flags, ...)
 {
-	if (flags & O_CREAT) {
+	int mode_required = (flags & O_CREAT) == O_CREAT;
+
+#ifdef O_TMPFILE
+	mode_required |= (flags & O_TMPFILE) == O_TMPFILE;
+#endif
+
+	if (mode_required) {
 		va_list arg;
 		va_start(arg, flags);
 		/* Clang requires int due to auto-promotion */
