@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,18 +30,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMDK_CPU_H
-#define PMDK_CPU_H 1
+#ifndef PMEM_MEMSET_AVX512F_H
+#define PMEM_MEMSET_AVX512F_H
 
-/*
- * cpu.h -- definitions for "cpu" module
- */
+#include <stddef.h>
 
-int is_cpu_genuine_intel(void);
-int is_cpu_clflush_present(void);
-int is_cpu_clflushopt_present(void);
-int is_cpu_clwb_present(void);
-int is_cpu_avx_present(void);
-int is_cpu_avx512f_present(void);
+#include "memset_avx.h"
+
+static inline void
+memset_small_avx512f(char *dest, int c, size_t len)
+{
+	/* We can't do better than AVX here. */
+	memset_small_avx(dest, c, len);
+}
 
 #endif

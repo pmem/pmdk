@@ -43,6 +43,45 @@ void pmem_init(void);
 int is_pmem_detect(const void *addr, size_t len);
 void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
 
+#ifndef AVX512F_AVAILABLE
+#ifdef _MSC_VER
+#define AVX512F_AVAILABLE 0
+#else
+#define AVX512F_AVAILABLE 1
+#endif
+#endif
+
+#ifndef AVX_AVAILABLE
+#define AVX_AVAILABLE 1
+#endif
+
+#ifndef SSE2_AVAILABLE
+#define SSE2_AVAILABLE 1
+#endif
+
+#if SSE2_AVAILABLE
+void memmove_mov_sse2(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2(char *dest, const char *src, size_t len);
+void memset_mov_sse2(char *dest, int c, size_t len);
+void memset_movnt_sse2(char *dest, int c, size_t len);
+#endif
+
+#if AVX_AVAILABLE
+void memmove_mov_avx(char *dest, const char *src, size_t len);
+void memmove_movnt_avx(char *dest, const char *src, size_t len);
+void memset_mov_avx(char *dest, int c, size_t len);
+void memset_movnt_avx(char *dest, int c, size_t len);
+#endif
+
+#if AVX512F_AVAILABLE
+void memmove_mov_avx512f(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f(char *dest, const char *src, size_t len);
+void memset_mov_avx512f(char *dest, int c, size_t len);
+void memset_movnt_avx512f(char *dest, int c, size_t len);
+#endif
+
+extern size_t Movnt_threshold;
+
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 typedef BOOL (WINAPI *PQVM)(
 		HANDLE, const void *,

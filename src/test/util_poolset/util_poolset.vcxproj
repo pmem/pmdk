@@ -75,8 +75,8 @@
     <ClCompile Include="..\..\common\set.c" />
     <ClCompile Include="..\..\libpmem\cpu.c" />
     <ClCompile Include="..\..\libpmem\pmem.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_PMEM</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_PMEM</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_PMEM;SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">&lt;inherit from parent or project defaults&gt;;WRAP_REAL_PMEM;SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />

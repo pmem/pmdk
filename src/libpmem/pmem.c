@@ -216,23 +216,9 @@
 #define FLUSH_ALIGN ((uintptr_t)64)
 
 #ifndef __aarch64__
-#define ALIGN_MASK	(FLUSH_ALIGN - 1)
-
-#define CHUNK_SIZE	128 /* 16*8 */
-#define CHUNK_SHIFT	7
-#define CHUNK_MASK	(CHUNK_SIZE - 1)
-
-#define DWORD_SIZE	4
-#define DWORD_SHIFT	2
-#define DWORD_MASK	(DWORD_SIZE - 1)
-
-#define MOVNT_SIZE	16
-#define MOVNT_MASK	(MOVNT_SIZE - 1)
-#define MOVNT_SHIFT	4
-
 #define MOVNT_THRESHOLD	256
 
-static size_t Movnt_threshold = MOVNT_THRESHOLD;
+size_t Movnt_threshold = MOVNT_THRESHOLD;
 #endif
 
 /*
@@ -831,234 +817,6 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 	return pmemdest;
 }
 
-#ifndef __aarch64__
-/*
- * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
- */
-static void *
-memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
-{
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-	size_t i;
-	__m128i *d;
-	__m128i *s;
-	void *dest1 = pmemdest;
-	size_t cnt;
-
-	if (len == 0 || src == pmemdest)
-		return pmemdest;
-
-	if (len < Movnt_threshold) {
-		memmove(pmemdest, src, len);
-		pmem_flush(pmemdest, len);
-		return pmemdest;
-	}
-
-	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
-		/*
-		 * Copy the range in the forward direction.
-		 *
-		 * This is the most common, most optimized case, used unless
-		 * the overlap specifically prevents it.
-		 */
-
-		/* copy up to FLUSH_ALIGN boundary */
-		cnt = (uint64_t)dest1 & ALIGN_MASK;
-		if (cnt > 0) {
-			cnt = FLUSH_ALIGN - cnt;
-
-			/* never try to copy more the len bytes */
-			if (cnt > len)
-				cnt = len;
-
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
-			for (i = 0; i < cnt; i++) {
-				*d8 = *s8;
-				d8++;
-				s8++;
-			}
-			pmem_flush(dest1, cnt);
-			dest1 = (char *)dest1 + cnt;
-			src = (char *)src + cnt;
-			len -= cnt;
-		}
-
-		d = (__m128i *)dest1;
-		s = (__m128i *)src;
-
-		cnt = len >> CHUNK_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			xmm0 = _mm_loadu_si128(s);
-			xmm1 = _mm_loadu_si128(s + 1);
-			xmm2 = _mm_loadu_si128(s + 2);
-			xmm3 = _mm_loadu_si128(s + 3);
-			xmm4 = _mm_loadu_si128(s + 4);
-			xmm5 = _mm_loadu_si128(s + 5);
-			xmm6 = _mm_loadu_si128(s + 6);
-			xmm7 = _mm_loadu_si128(s + 7);
-			s += 8;
-			_mm_stream_si128(d,	xmm0);
-			_mm_stream_si128(d + 1,	xmm1);
-			_mm_stream_si128(d + 2,	xmm2);
-			_mm_stream_si128(d + 3,	xmm3);
-			_mm_stream_si128(d + 4,	xmm4);
-			_mm_stream_si128(d + 5, xmm5);
-			_mm_stream_si128(d + 6,	xmm6);
-			_mm_stream_si128(d + 7,	xmm7);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-			d += 8;
-		}
-
-		/* copy the tail (<128 bytes) in 16 bytes chunks */
-		len &= CHUNK_MASK;
-		if (len != 0) {
-			cnt = len >> MOVNT_SHIFT;
-			for (i = 0; i < cnt; i++) {
-				xmm0 = _mm_loadu_si128(s);
-				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
-				s++;
-				d++;
-			}
-		}
-
-		/* copy the last bytes (<16), first dwords then bytes */
-		len &= MOVNT_MASK;
-		if (len != 0) {
-			cnt = len >> DWORD_SHIFT;
-			int32_t *d32 = (int32_t *)d;
-			int32_t *s32 = (int32_t *)s;
-			for (i = 0; i < cnt; i++) {
-				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-				d32++;
-				s32++;
-			}
-			cnt = len & DWORD_MASK;
-			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t *s8 = (uint8_t *)s32;
-
-			for (i = 0; i < cnt; i++) {
-				*d8 = *s8;
-				d8++;
-				s8++;
-			}
-			pmem_flush(d32, cnt);
-		}
-	} else {
-		/*
-		 * Copy the range in the backward direction.
-		 *
-		 * This prevents overwriting source data due to an
-		 * overlapped destination range.
-		 */
-
-		dest1 = (char *)dest1 + len;
-		src = (char *)src + len;
-
-		cnt = (uint64_t)dest1 & ALIGN_MASK;
-		if (cnt > 0) {
-			/* never try to copy more the len bytes */
-			if (cnt > len)
-				cnt = len;
-
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
-			for (i = 0; i < cnt; i++) {
-				d8--;
-				s8--;
-				*d8 = *s8;
-			}
-			pmem_flush(d8, cnt);
-			dest1 = (char *)dest1 - cnt;
-			src = (char *)src - cnt;
-			len -= cnt;
-		}
-
-		d = (__m128i *)dest1;
-		s = (__m128i *)src;
-
-		cnt = len >> CHUNK_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			xmm0 = _mm_loadu_si128(s - 1);
-			xmm1 = _mm_loadu_si128(s - 2);
-			xmm2 = _mm_loadu_si128(s - 3);
-			xmm3 = _mm_loadu_si128(s - 4);
-			xmm4 = _mm_loadu_si128(s - 5);
-			xmm5 = _mm_loadu_si128(s - 6);
-			xmm6 = _mm_loadu_si128(s - 7);
-			xmm7 = _mm_loadu_si128(s - 8);
-			s -= 8;
-			_mm_stream_si128(d - 1, xmm0);
-			_mm_stream_si128(d - 2, xmm1);
-			_mm_stream_si128(d - 3, xmm2);
-			_mm_stream_si128(d - 4, xmm3);
-			_mm_stream_si128(d - 5, xmm4);
-			_mm_stream_si128(d - 6, xmm5);
-			_mm_stream_si128(d - 7, xmm6);
-			_mm_stream_si128(d - 8, xmm7);
-			d -= 8;
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-		}
-
-		/* copy the tail (<128 bytes) in 16 bytes chunks */
-		len &= CHUNK_MASK;
-		if (len != 0) {
-			cnt = len >> MOVNT_SHIFT;
-			for (i = 0; i < cnt; i++) {
-				d--;
-				s--;
-				xmm0 = _mm_loadu_si128(s);
-				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
-			}
-		}
-
-		/* copy the last bytes (<16), first dwords then bytes */
-		len &= MOVNT_MASK;
-		if (len != 0) {
-			cnt = len >> DWORD_SHIFT;
-			int32_t *d32 = (int32_t *)d;
-			int32_t *s32 = (int32_t *)s;
-			for (i = 0; i < cnt; i++) {
-				d32--;
-				s32--;
-				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-			}
-
-			cnt = len & DWORD_MASK;
-			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t *s8 = (uint8_t *)s32;
-
-			for (i = 0; i < cnt; i++) {
-				d8--;
-				s8--;
-				*d8 = *s8;
-			}
-			pmem_flush(d8, cnt);
-		}
-	}
-
-	/*
-	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
-	 * to serialize non-temporal store instructions.  (It could be only
-	 * one drain after a sequence of pmem_*_nodrain calls).
-	 * However, on platforms that only support strongly-ordered CLFLUSH
-	 * for flushing the CPU cache (or that are forced to not use
-	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
-	 * the flush, so the pmem_drain() is a no-op function.  In such case,
-	 * we need to put a memory barrier here.
-	 */
-	if (Func_predrain_fence == predrain_fence_empty)
-		predrain_memory_barrier();
-
-	return pmemdest;
-}
-#endif
-
 /*
  * pmem_memmove_nodrain() calls through Func_memmove_nodrain to do the work.
  * Although initialized to memmove_nodrain_normal(), once the existence of the
@@ -1131,109 +889,6 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 }
 
 /*
- * memset_nodrain_movnt -- (internal) memset to pmem without hw drain, movnt
- */
-#ifndef __aarch64__
-static void *
-memset_nodrain_movnt(void *pmemdest, int c, size_t len)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
-
-	size_t i;
-	void *dest1 = pmemdest;
-	size_t cnt;
-	__m128i xmm0;
-	__m128i *d;
-
-	if (len < Movnt_threshold) {
-		memset(pmemdest, c, len);
-		pmem_flush(pmemdest, len);
-		return pmemdest;
-	}
-
-	/* memset up to the next FLUSH_ALIGN boundary */
-	cnt = (uint64_t)dest1 & ALIGN_MASK;
-	if (cnt != 0) {
-		cnt = FLUSH_ALIGN - cnt;
-
-		if (cnt > len)
-			cnt = len;
-
-		memset(dest1, c, cnt);
-		pmem_flush(dest1, cnt);
-		len -= cnt;
-		dest1 = (char *)dest1 + cnt;
-	}
-
-	xmm0 = _mm_set1_epi8((char)c);
-
-	d = (__m128i *)dest1;
-	cnt = len / CHUNK_SIZE;
-	if (cnt != 0) {
-		for (i = 0; i < cnt; i++) {
-			_mm_stream_si128(d, xmm0);
-			_mm_stream_si128(d + 1, xmm0);
-			_mm_stream_si128(d + 2, xmm0);
-			_mm_stream_si128(d + 3, xmm0);
-			_mm_stream_si128(d + 4, xmm0);
-			_mm_stream_si128(d + 5, xmm0);
-			_mm_stream_si128(d + 6, xmm0);
-			_mm_stream_si128(d + 7, xmm0);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-			d += 8;
-		}
-	}
-	/* memset the tail (<128 bytes) in 16 bytes chunks */
-	len &= CHUNK_MASK;
-	if (len != 0) {
-		cnt = len >> MOVNT_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			_mm_stream_si128(d, xmm0);
-			VALGRIND_DO_FLUSH(d, sizeof(*d));
-			d++;
-		}
-	}
-
-	/* memset the last bytes (<16), first dwords then bytes */
-	len &= MOVNT_MASK;
-	if (len != 0) {
-		int32_t *d32 = (int32_t *)d;
-		cnt = len >> DWORD_SHIFT;
-		if (cnt != 0) {
-			for (i = 0; i < cnt; i++) {
-				_mm_stream_si32(d32,
-					_mm_cvtsi128_si32(xmm0));
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-				d32++;
-			}
-		}
-
-		/* at this point the cnt < 16 so use memset */
-		cnt = len & DWORD_MASK;
-		if (cnt != 0) {
-			memset((void *)d32, c, cnt);
-			pmem_flush(d32, cnt);
-		}
-	}
-
-	/*
-	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
-	 * to serialize non-temporal store instructions.  (It could be only
-	 * one drain after a sequence of pmem_*_nodrain calls).
-	 * However, on platforms that only support strongly-ordered CLFLUSH
-	 * for flushing the CPU cache (or that are forced to not use
-	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
-	 * the flush, so the pmem_drain() is a no-op function.  In such case,
-	 * we need to put a memory barrier here.
-	 */
-	if (Func_predrain_fence == predrain_fence_empty)
-		predrain_memory_barrier();
-
-	return pmemdest;
-}
-#endif
-
-/*
  * pmem_memset_nodrain() calls through Func_memset_nodrain to do the work.
  * Although initialized to memset_nodrain_normal(), once the existence of the
  * sse2 feature is confirmed by pmem_init() at library initialization time,
@@ -1266,6 +921,108 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 	pmem_drain();
 	return pmemdest;
 }
+
+#if SSE2_AVAILABLE
+static void *
+memmove_nodrain_sse2(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memmove_mov_sse2(dest, src, len);
+		pmem_flush(dest, len);
+	} else {
+		memmove_movnt_sse2(dest, src, len);
+	}
+
+	return dest;
+}
+
+static void *
+memset_nodrain_sse2(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memset_mov_sse2(dest, c, len);
+		pmem_flush(dest, len);
+	} else {
+		memset_movnt_sse2(dest, c, len);
+	}
+
+	return dest;
+}
+#endif
+
+#if AVX_AVAILABLE
+static void *
+memmove_nodrain_avx(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memmove_mov_avx(dest, src, len);
+		pmem_flush(dest, len);
+	} else {
+		memmove_movnt_avx(dest, src, len);
+	}
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memset_mov_avx(dest, c, len);
+		pmem_flush(dest, len);
+	} else {
+		memset_movnt_avx(dest, c, len);
+	}
+
+	return dest;
+}
+#endif
+
+#if AVX512F_AVAILABLE
+static void *
+memmove_nodrain_avx512f(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memmove_mov_avx512f(dest, src, len);
+		pmem_flush(dest, len);
+	} else {
+		memmove_movnt_avx512f(dest, src, len);
+	}
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx512f(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold) {
+		memset_mov_avx512f(dest, c, len);
+		pmem_flush(dest, len);
+	} else {
+		memset_movnt_avx512f(dest, c, len);
+	}
+
+	return dest;
+}
+#endif
 
 /*
  * pmem_log_cpuinfo -- log the results of cpu dispatching decisions,
@@ -1300,12 +1057,23 @@ pmem_log_cpuinfo(void)
 		FATAL("invalid flush function address");
 #endif
 
+#if AVX512F_AVAILABLE
+	if (Func_memmove_nodrain == memmove_nodrain_avx512f)
+		LOG(3, "using movnt AVX512F");
+	else
+#endif
+#if AVX_AVAILABLE
+	if (Func_memmove_nodrain == memmove_nodrain_avx)
+		LOG(3, "using movnt AVX");
+	else
+#endif
+#if SSE2_AVAILABLE
+	if (Func_memmove_nodrain == memmove_nodrain_sse2)
+		LOG(3, "using movnt SSE2");
+	else
+#endif
 	if (Func_memmove_nodrain == memmove_nodrain_normal)
 		LOG(3, "not using movnt");
-#ifndef __aarch64__
-	else if (Func_memmove_nodrain == memmove_nodrain_movnt)
-		LOG(3, "using movnt");
-#endif
 	else
 		FATAL("invalid memove_nodrain function address");
 }
@@ -1346,6 +1114,51 @@ pmem_get_cpuinfo(void)
 			Func_predrain_fence = predrain_memory_barrier;
 		}
 	}
+
+	char *ptr = os_getenv("PMEM_NO_MOVNT");
+	if (ptr && strcmp(ptr, "1") == 0) {
+		LOG(3, "PMEM_NO_MOVNT forced no movnt");
+	} else {
+#if SSE2_AVAILABLE
+		Func_memmove_nodrain = memmove_nodrain_sse2;
+		Func_memset_nodrain = memset_nodrain_sse2;
+#else
+		LOG(3, "sse2 disabled at build time");
+#endif
+
+		if (is_cpu_avx_present()) {
+#if AVX_AVAILABLE
+			LOG(3, "avx supported");
+
+			char *e = os_getenv("PMEM_NO_AVX");
+			if (e && strcmp(e, "1") == 0)
+				LOG(3, "PMEM_NO_AVX forced no avx");
+			else {
+				Func_memmove_nodrain = memmove_nodrain_avx;
+				Func_memset_nodrain = memset_nodrain_avx;
+			}
+#else
+			LOG(3, "avx supported, but disabled at build time");
+#endif
+		}
+
+		if (is_cpu_avx512f_present()) {
+#if AVX512F_AVAILABLE
+			LOG(3, "avx512f supported");
+
+			char *e = os_getenv("PMEM_NO_AVX512F");
+			if (e && strcmp(e, "1") == 0)
+				LOG(3, "PMEM_NO_AVX512F forced no avx512f");
+			else {
+				Func_memmove_nodrain = memmove_nodrain_avx512f;
+				Func_memset_nodrain = memset_nodrain_avx512f;
+			}
+#else
+			LOG(3, "avx512f supported, but disabled at build time");
+#endif
+		}
+	}
+
 }
 
 /*
@@ -1401,14 +1214,8 @@ pmem_init(void)
 		}
 	}
 
-	ptr = os_getenv("PMEM_NO_MOVNT");
-	if (ptr && strcmp(ptr, "1") == 0)
-		LOG(3, "PMEM_NO_MOVNT forced no movnt");
-	else {
-		Func_memmove_nodrain = memmove_nodrain_movnt;
-		Func_memset_nodrain = memset_nodrain_movnt;
-	}
 #endif
+
 	pmem_log_cpuinfo();
 
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)

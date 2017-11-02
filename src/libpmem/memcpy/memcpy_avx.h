@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,18 +30,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMDK_CPU_H
-#define PMDK_CPU_H 1
+#ifndef PMEM_MEMCPY_AVX_H
+#define PMEM_MEMCPY_AVX_H
 
-/*
- * cpu.h -- definitions for "cpu" module
- */
+#include <immintrin.h>
+#include <stddef.h>
+#include <stdint.h>
 
-int is_cpu_genuine_intel(void);
-int is_cpu_clflush_present(void);
-int is_cpu_clflushopt_present(void);
-int is_cpu_clwb_present(void);
-int is_cpu_avx_present(void);
-int is_cpu_avx512f_present(void);
+#include "libpmem.h"
+#include "out.h"
+
+static inline void
+memmove_small_avx(char *dest, const char *src, size_t len)
+{
+	ASSERT(len <= 64);
+
+	if (len > 32) {
+		/* 33..64 */
+		__m256i ymm0 = _mm256_loadu_si256((__m256i *)src);
+		__m256i ymm1 = _mm256_loadu_si256((__m256i *)(src + len - 32));
+
+		_mm256_storeu_si256((__m256i *)dest, ymm0);
+		_mm256_storeu_si256((__m256i *)(dest + len - 32), ymm1);
+	} else if (len > 16) {
+		/* 17..32 */
+		__m128i xmm0 = _mm_loadu_si128((__m128i *)src);
+		__m128i xmm1 = _mm_loadu_si128((__m128i *)(src + len - 16));
+
+		_mm_storeu_si128((__m128i *)dest, xmm0);
+		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm1);
+	} else if (len > 8) {
+		/* 9..16 */
+		uint64_t d0 = *(uint64_t *)src;
+		uint64_t d1 = *(uint64_t *)(src + len - 8);
+
+		*(uint64_t *)dest = d0;
+		*(uint64_t *)(dest + len - 8) = d1;
+	} else if (len > 4) {
+		/* 5..8 */
+		uint32_t d0 = *(uint32_t *)src;
+		uint32_t d1 = *(uint32_t *)(src + len - 4);
+
+		*(uint32_t *)dest = d0;
+		*(uint32_t *)(dest + len - 4) = d1;
+	} else if (len > 2) {
+		/* 3..4 */
+		uint16_t d0 = *(uint16_t *)src;
+		uint16_t d1 = *(uint16_t *)(src + len - 2);
+
+		*(uint16_t *)dest = d0;
+		*(uint16_t *)(dest + len - 2) = d1;
+	} else if (len == 2) {
+		*(uint16_t *)dest = *(uint16_t *)src;
+	} else {
+		*(uint8_t *)dest = *(uint8_t *)src;
+	}
+}
 
 #endif
