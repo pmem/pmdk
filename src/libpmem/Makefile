@@ -48,8 +48,35 @@ SOURCE =\
 	libpmem.c\
 	cpu.c\
 	pmem.c\
-	pmem_linux.c
+	pmem_linux.c\
+	memcpy_nt_avx512f.c\
+	memcpy_nt_avx.c\
+	memcpy_nt_sse2.c\
+	memset_nt_avx512f.c\
+	memset_nt_avx.c\
+	memset_nt_sse2.c\
+	memcpy_t_avx512f.c\
+	memcpy_t_avx.c\
+	memcpy_t_sse2.c\
+	memset_t_avx512f.c\
+	memset_t_avx.c\
+	memset_t_sse2.c
 
 include ../Makefile.inc
+
+vpath %.c $(TOP)/src/libpmem/memcpy
+vpath %.c $(TOP)/src/libpmem/memset
+
+$(objdir)/memcpy_nt_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_nt_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_nt_avx.o: CFLAGS += -mavx
+$(objdir)/memset_nt_avx.o: CFLAGS += -mavx
+
+$(objdir)/memcpy_t_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_t_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_t_avx.o: CFLAGS += -mavx
+$(objdir)/memset_t_avx.o: CFLAGS += -mavx
+
+CFLAGS += -I.
 
 LIBS += -pthread

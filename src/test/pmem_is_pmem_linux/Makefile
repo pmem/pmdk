@@ -36,6 +36,8 @@
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/libpmem/memcpy
+vpath %.c $(TOP)/src/libpmem/memset
 
 TARGET = pmem_is_pmem_linux
 OBJS = pmem_is_pmem_linux.o\
@@ -50,9 +52,31 @@ OBJS = pmem_is_pmem_linux.o\
 	libpmem.o\
 	pmem.o\
 	pmem_linux.o\
-	cpu.o
+	cpu.o \
+	memcpy_nt_sse2.o \
+	memcpy_nt_avx.o \
+	memcpy_nt_avx512f.o\
+	memset_nt_sse2.o \
+	memset_nt_avx.o \
+	memset_nt_avx512f.o \
+	memcpy_t_avx512f.o\
+	memcpy_t_avx.o\
+	memcpy_t_sse2.o\
+	memset_t_avx512f.o\
+	memset_t_avx.o\
+	memset_t_sse2.o
 
 include ../Makefile.inc
+
+$(objdir)/memcpy_nt_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_nt_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_nt_avx.o: CFLAGS += -mavx
+$(objdir)/memset_nt_avx.o: CFLAGS += -mavx
+
+$(objdir)/memcpy_t_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_t_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_t_avx.o: CFLAGS += -mavx
+$(objdir)/memset_t_avx.o: CFLAGS += -mavx
 
 CFLAGS += -DSRCVERSION="" -DDEBUG
 CFLAGS += -I$(TOP)/src/common
