@@ -37,6 +37,7 @@
 #
 export UNITTEST_NAME=pmem_is_pmem/TEST5
 export UNITTEST_NUM=5
+export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh

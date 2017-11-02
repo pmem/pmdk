@@ -36,6 +36,7 @@
 #
 export UNITTEST_NAME=ex_libpmemobj/TEST0
 export UNITTEST_NUM=0
+export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh
