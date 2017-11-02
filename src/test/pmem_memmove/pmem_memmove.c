@@ -121,9 +121,15 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 	UT_ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2))
+	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2)) {
+		for (int i = 0; i < bytes / 2; ++i)
+			UT_OUT("%d 0x%02x 0x%02x %s", i, *(src1 + src_off + i),
+					*(dest + dest_off + i),
+					*(src1 + src_off + i) !=
+					*(dest + dest_off + i) ? "!!!" : "");
 		UT_ERR("%s: %zu bytes do not match with memcmp",
 			file_name, bytes / 2);
+	}
 
 	/*
 	 * This is a special case. An overlapping dest means that
