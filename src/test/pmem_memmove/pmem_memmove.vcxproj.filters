@@ -21,41 +21,5 @@
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST1.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST2.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST3.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST4.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST5.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST6.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST7.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST8.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST9.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST10.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST11.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST12.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
   </ItemGroup>
 </Project>
