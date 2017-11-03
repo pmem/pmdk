@@ -94,13 +94,13 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
 
 	if (memcmp(dest, dest1, bytes / 2))
-		UT_ERR("%s: first %zu bytes do not match",
+		UT_FATAL("%s: first %zu bytes do not match",
 			argv[1], bytes / 2);
 
 	LSEEK(fd, (os_off_t)0, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(buf, dest, bytes / 2))
-			UT_ERR("%s: first %zu bytes do not match",
+			UT_FATAL("%s: first %zu bytes do not match",
 				argv[1], bytes / 2);
 	}
 

@@ -51,6 +51,4 @@ truncate -s 4M $DIR/testfile1
 # unaligned dest, unaligned source, no overlap
 expect_normal_exit ./pmem_memmove$EXESUFFIX $DIR/testfile1 d:7 s:13 b:4096
 
-check
-
 pass

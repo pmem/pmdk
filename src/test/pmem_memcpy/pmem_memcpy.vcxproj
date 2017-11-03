@@ -14,10 +14,6 @@
     <ClCompile Include="..\..\..\src\test\pmem_memcpy\pmem_memcpy.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="out0.log.match" />
-    <None Include="out1.log.match" />
-    <None Include="out2.log.match" />
-    <None Include="out3.log.match" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST2.PS1" />

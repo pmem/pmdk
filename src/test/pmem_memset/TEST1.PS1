@@ -59,6 +59,4 @@ truncate -s 4M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\pmem_memset$Env:EXESUFFIX $DIR\testfile1 13 4096
 
-check
-
 pass
