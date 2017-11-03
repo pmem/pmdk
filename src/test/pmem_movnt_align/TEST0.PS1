@@ -63,11 +63,22 @@ function test {
 		%{[string]$_ -replace '^.* len ',""} > grep$num.log
 }
 
-test C 0
-test F 1
-test B 2
-test S 3
+function test_all {
+	test C 0
+	test F 1
+	test B 2
+	test S 3
+	check
+}
 
-check
+test_all
+
+$Env:PMEM_NO_AVX512F = 1
+
+test_all
+
+$Env:PMEM_NO_AVX = 1
+
+test_all
 
 pass

@@ -54,9 +54,21 @@ function test() {
 	expect_normal_exit ./pmem_movnt_align$EXESUFFIX $1
 }
 
-test C
-test F
-test B
-test S
+function test_all() {
+	test C
+	test F
+	test B
+	test S
+}
+
+test_all
+
+export PMEM_NO_AVX512F=1
+
+test_all
+
+export PMEM_NO_AVX=1
+
+test_all
 
 pass
