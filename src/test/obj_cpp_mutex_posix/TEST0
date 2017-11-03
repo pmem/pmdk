@@ -33,7 +33,6 @@
 
 export UNITTEST_NAME=obj_cpp_mutex_posix/TEST0
 export UNITTEST_NUM=0
-export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -36,7 +36,6 @@
 #
 export UNITTEST_NAME=obj_locks/TEST1
 export UNITTEST_NUM=1
-export VALGRIND_OPTS="--suppressions=../drd-log.supp"
 
 # standard unit test setup
 . ../unittest/unittest.sh
