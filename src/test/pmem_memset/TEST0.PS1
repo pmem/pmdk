@@ -61,7 +61,23 @@ function test {
 	expect_normal_exit $Env:EXE_DIR\pmem_memset$Env:EXESUFFIX $DIR\testfile1 $args
 }
 
-test 0 8
-test 13 4096
+function test_all {
+	test 0 8
+	test 13 4096
+}
+
+test_all
+
+$Env:PMEM_NO_AVX512F = 1
+
+test_all
+
+$Env:PMEM_NO_AVX = 1
+
+test_all
+
+$Env:PMEM_NO_MOVNT = 1
+
+test_all
 
 pass
