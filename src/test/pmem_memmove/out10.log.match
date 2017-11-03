@@ -1,3 +1,0 @@
-pmem_memmove$(nW)TEST10: START: pmem_memmove
- $(nW)pmem_memmove$(nW) $(nW)testfile1 b:8
-pmem_memmove$(nW)EST10: DONE

@@ -51,6 +51,4 @@ truncate -s 4M $DIR/testfile1
 # unaligned destination
 expect_normal_exit ./pmem_memmove$EXESUFFIX $DIR/testfile1 b:4096 d:21
 
-check
-
 pass
