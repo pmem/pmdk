@@ -709,6 +709,10 @@ function expect_normal_exit() {
 	        esac
 	fi
 
+	if [ "$CHECK_TYPE" = "drd" ]; then
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../drd-log.supp"
+	fi
+
 	disable_exit_on_error
 
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
@@ -811,6 +815,10 @@ function expect_abnormal_exit() {
 		if [ "$preload" == "libvmmalloc.so" ]; then
 			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
 		fi
+	fi
+
+	if [ "$CHECK_TYPE" = "drd" ]; then
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../drd-log.supp"
 	fi
 
 	disable_exit_on_error
