@@ -55,10 +55,18 @@ setup
 
 $Env:PMEM_LOG_LEVEL=15
 
-expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C
+function test {
+	$num = $args[1]
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX $args[0]
 
-Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
-	%{[string]$_ -replace '^.* len ',""} > grep$Env:UNITTEST_NUM.log
+	Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
+		%{[string]$_ -replace '^.* len ',""} > grep$num.log
+}
+
+test C 0
+test F 1
+test B 2
+test S 3
 
 check
 
