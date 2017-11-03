@@ -49,28 +49,6 @@
 
 static char *Sfile;
 
-/*
- * fopen -- interpose on libc fopen()
- *
- * This catches opens to /proc/self/maps and sends them to the fake maps
- * file being tested.
- */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, OS_MAPFILE) == 0) {
-		UT_OUT("redirecting " OS_MAPFILE " to %s", Sfile);
-		path = Sfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -93,14 +71,14 @@ main(int argc, char *argv[])
 		else if (len >= 4 * MEGABYTE)
 			align = 2 * MEGABYTE;
 
-		void *h1 =
-			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
-		void *h2 = util_map_hint(len, 0);
+		void *h1 = util_map_hint_unused((void *)TERABYTE, len,
+						GIGABYTE, Sfile);
+		void *h2 = util_map_hint(len, 0, Sfile);
 		if (h1 != MAP_FAILED && h1 != NULL)
 			UT_ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
 		if (h2 != MAP_FAILED && h2 != NULL)
 			UT_ASSERTeq((uintptr_t)h2 & (align - 1), 0);
-		if (h1 == NULL) /* XXX portability */
+		if (h1 == NULL)	/* XXX portability */
 			UT_OUT("len %zu: (nil) %p", len, h2);
 		else if (h2 == NULL)
 			UT_OUT("len %zu: %p (nil)", len, h1);

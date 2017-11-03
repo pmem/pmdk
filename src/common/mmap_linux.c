@@ -64,15 +64,17 @@ static const char *sscanf_os = "%p-%p";
  * different address.
  */
 char *
-util_map_hint_unused(void *minaddr, size_t len, size_t align)
+util_map_hint_unused(void *minaddr, size_t len, size_t align,
+	const char *altfile)
 {
-	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
-
+	LOG(3, "minaddr %p len %zu align %zu altfile %s", minaddr, len, align,
+		(altfile == NULL) ? "" : altfile);
 	ASSERT(align > 0);
 
+	const char *mapfile = (altfile == NULL) ? OS_MAPFILE : altfile;
 	FILE *fp;
-	if ((fp = os_fopen(OS_MAPFILE, "r")) == NULL) {
-		ERR("!%s", OS_MAPFILE);
+	if ((fp = os_fopen(mapfile, "r")) == NULL) {
+		ERR("!%s", mapfile);
 		return MAP_FAILED;
 	}
 
@@ -147,9 +149,10 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
  * address.
  */
 char *
-util_map_hint(size_t len, size_t req_align)
+util_map_hint(size_t len, size_t req_align, const char *altfile)
 {
-	LOG(3, "len %zu req_align %zu", len, req_align);
+	LOG(3, "len %zu req_align %zu altfile %s", len, req_align,
+		(altfile == NULL) ? "" : altfile);
 
 	char *hint_addr = MAP_FAILED;
 
@@ -158,7 +161,8 @@ util_map_hint(size_t len, size_t req_align)
 
 	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", (void *)Mmap_hint);
-		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align);
+		hint_addr = util_map_hint_unused((void *)Mmap_hint, len, align,
+			altfile);
 	} else {
 		/*
 		 * Create dummy mapping to find an unused region of given size.
