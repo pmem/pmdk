@@ -60,6 +60,4 @@ truncate -s 4M $DIR\testfile1
 # unaligned source and dest
 expect_normal_exit $Env:EXE_DIR\pmem_memmove$Env:EXESUFFIX $DIR\testfile1 b:4096 d:21 s:7
 
-check
-
 pass

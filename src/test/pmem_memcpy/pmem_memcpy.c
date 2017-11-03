@@ -112,14 +112,14 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 
 	/* memcmp will validate that what I expect in memory. */
 	if (memcmp(src + src_off, dest + dest_off, bytes / 2))
-		UT_ERR("%s: first %zu bytes do not match",
+		UT_FATAL("%s: first %zu bytes do not match",
 			file_name, bytes / 2);
 
 	/* Now validate the contents of the file */
 	LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(src + src_off, buf, bytes / 2))
-			UT_ERR("%s: first %zu bytes do not match",
+			UT_FATAL("%s: first %zu bytes do not match",
 				file_name, bytes / 2);
 	}
 
@@ -163,7 +163,7 @@ main(int argc, char *argv[])
 	if (src <= dest) {
 		swap_mappings(&dest, &src, mapped_len, fd);
 		if (src <= dest)
-			UT_ERR("cannot map files in memory order");
+			UT_FATAL("cannot map files in memory order");
 	}
 
 	memset(dest, 0, (2 * bytes));
@@ -175,9 +175,8 @@ main(int argc, char *argv[])
 	/* dest > src */
 	swap_mappings(&dest, &src, mapped_len, fd);
 
-	if (dest <= src) {
-		UT_ERR("cannot map files in memory order");
-	}
+	if (dest <= src)
+		UT_FATAL("cannot map files in memory order");
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);
 
