@@ -55,8 +55,13 @@ require_fs_type pmem non-pmem
 
 setup
 
-truncate -s 4M $DIR\testfile1
+function test {
+	remove_files $DIR\testfile1
+	create_holey_file 4M $DIR\testfile1
+	expect_normal_exit $Env:EXE_DIR\pmem_memset$Env:EXESUFFIX $DIR\testfile1 $args
+}
 
-expect_normal_exit $Env:EXE_DIR\pmem_memset$Env:EXESUFFIX $DIR\testfile1 0 8
+test 0 8
+test 13 4096
 
 pass

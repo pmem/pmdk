@@ -54,10 +54,22 @@ require_fs_type any
 
 setup
 
-create_holey_file 4M $DIR\testfile1
-
+function test {
+	remove_files $DIR\testfile1
+	create_holey_file 4M $DIR\testfile1
+	expect_normal_exit $Env:EXE_DIR\pmem_memcpy$Env:EXESUFFIX $DIR\testfile1 $args
+}
 
 # aligned everything
-expect_normal_exit $Env:EXE_DIR\pmem_memcpy$Env:EXESUFFIX $DIR\testfile1 0 0 4096
+test 0 0 4096
+
+# unaligned dest
+test 7 0 4096
+
+# unaligned dest, unaligned src
+test 7 9 4096
+
+# aligned dest, unaligned src
+test 0 9 4096
 
 pass

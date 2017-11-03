@@ -50,11 +50,23 @@ setup
 export PMEM_IS_PMEM_FORCE=1
 export PMEM_LOG_LEVEL=15
 
-unset PMEM_MOVNT_THRESHOLD
+function test() {
+	expect_normal_exit ./pmem_movnt$EXESUFFIX
+	$GREP -E "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
+	    sed -e 's/^.* len //g' -e 's/^.*][ ]*//g' > grep$1.log
+}
 
-expect_normal_exit ./pmem_movnt$EXESUFFIX
-$GREP -E "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
-    sed -e 's/^.* len //g' -e 's/^.*] //g' > grep$UNITTEST_NUM.log
+unset PMEM_MOVNT_THRESHOLD
+test 0
+
+export PMEM_MOVNT_THRESHOLD=1024
+test 1
+
+export PMEM_MOVNT_THRESHOLD=5
+test 2
+
+export PMEM_MOVNT_THRESHOLD=-15
+test 3
 
 check
 

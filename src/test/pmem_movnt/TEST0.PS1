@@ -54,14 +54,26 @@ setup
 $Env:PMEM_IS_PMEM_FORCE=1
 $Env:PMEM_LOG_LEVEL=15
 
+function test {
+	$num = $args[0]
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt$Env:EXESUFFIX
+	Get-Content pmem$Env:UNITTEST_NUM.log | Select-String `
+		-Pattern "PMEM_MOVNT_THRESHOLD|pmem_flush" | `
+		%{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
+		> grep$num.log
+}
+
 $Env:PMEM_MOVNT_THRESHOLD=$null
+test 0
 
-expect_normal_exit $Env:EXE_DIR\pmem_movnt$Env:EXESUFFIX
+$Env:PMEM_MOVNT_THRESHOLD=1024
+test 1
 
-Get-Content pmem$Env:UNITTEST_NUM.log | Select-String `
-	-Pattern "PMEM_MOVNT_THRESHOLD|pmem_flush" | `
-	%{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
-	> grep$Env:UNITTEST_NUM.log
+$Env:PMEM_MOVNT_THRESHOLD=5
+test 2
+
+$Env:PMEM_MOVNT_THRESHOLD=-15
+test 3
 
 check
 
