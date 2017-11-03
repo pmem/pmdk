@@ -52,7 +52,23 @@ function test() {
 	expect_normal_exit ./pmem_memset$EXESUFFIX $DIR/testfile1 $@
 }
 
-test 0 8
-test 13 4096
+function test_all() {
+	test 0 8
+	test 13 4096
+}
+
+test_all
+
+export PMEM_NO_AVX512F=1
+
+test_all
+
+export PMEM_NO_AVX=1
+
+test_all
+
+export PMEM_NO_MOVNT=1
+
+test_all
 
 pass

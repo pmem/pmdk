@@ -63,18 +63,30 @@ function test {
 		> grep$num.log
 }
 
-$Env:PMEM_MOVNT_THRESHOLD=$null
-test 0
+function test_all {
+	$Env:PMEM_MOVNT_THRESHOLD=$null
+	test 0
 
-$Env:PMEM_MOVNT_THRESHOLD=1024
-test 1
+	$Env:PMEM_MOVNT_THRESHOLD=1024
+	test 1
 
-$Env:PMEM_MOVNT_THRESHOLD=5
-test 2
+	$Env:PMEM_MOVNT_THRESHOLD=5
+	test 2
 
-$Env:PMEM_MOVNT_THRESHOLD=-15
-test 3
+	$Env:PMEM_MOVNT_THRESHOLD=-15
+	test 3
 
-check
+	check
+}
+
+test_all
+
+$Env:PMEM_NO_AVX512F = 1
+
+test_all
+
+$Env:PMEM_NO_AVX = 1
+
+test_all
 
 pass
