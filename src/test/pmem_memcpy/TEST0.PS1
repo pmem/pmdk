@@ -60,6 +60,4 @@ create_holey_file 4M $DIR\testfile1
 # aligned everything
 expect_normal_exit $Env:EXE_DIR\pmem_memcpy$Env:EXESUFFIX $DIR\testfile1 0 0 4096
 
-check
-
 pass

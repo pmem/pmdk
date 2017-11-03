@@ -60,6 +60,4 @@ truncate -s 4M $DIR\testfile1
 # small length, offset 1 byte from 64 byte boundary
 expect_normal_exit $Env:EXE_DIR\pmem_memmove$Env:EXESUFFIX $DIR\testfile1 b:4 d:63
 
-check
-
 pass

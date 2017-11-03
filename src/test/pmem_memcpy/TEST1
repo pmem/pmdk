@@ -51,6 +51,4 @@ truncate -s 4M $DIR/testfile1
 # unaligned dest
 expect_normal_exit ./pmem_memcpy$EXESUFFIX $DIR/testfile1 7 0 4096
 
-check
-
 pass

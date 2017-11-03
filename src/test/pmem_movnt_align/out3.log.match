@@ -1,3 +1,0 @@
-pmem_movnt_align$(nW)TEST3: START: pmem_movnt_align
- $(nW)pmem_movnt_align$(nW) S
-pmem_movnt_align$(nW)TEST3: DONE

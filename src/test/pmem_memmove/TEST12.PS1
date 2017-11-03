@@ -61,6 +61,4 @@ truncate -s 4M $DIR\testfile1
 # align < length)
 expect_normal_exit $Env:EXE_DIR\pmem_memmove$Env:EXESUFFIX $DIR\testfile1 o:2 S:2 b:8
 
-check
-
 pass

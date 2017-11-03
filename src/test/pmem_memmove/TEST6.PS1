@@ -60,6 +60,4 @@ truncate -s 4M $DIR\testfile1
 # overlap of src, aligned src and dest
 expect_normal_exit $Env:EXE_DIR\pmem_memmove$Env:EXESUFFIX $DIR\testfile1 b:4096 o:1 S:20
 
-check
-
 pass

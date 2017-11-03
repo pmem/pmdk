@@ -32,17 +32,5 @@
     <None Include="TEST3.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="out0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out2.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out3.log.match">
-      <Filter>Match Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

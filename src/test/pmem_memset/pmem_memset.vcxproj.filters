@@ -24,17 +24,5 @@
     <None Include="TEST1.PS1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="err0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
