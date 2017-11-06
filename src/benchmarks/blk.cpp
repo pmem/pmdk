@@ -185,7 +185,8 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 			} break;
 			default:
 				perror("unknown type");
-				return -1;
+				ret = -1;
+				goto out;
 		}
 	}
 
