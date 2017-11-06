@@ -2287,6 +2287,13 @@ function check_local() {
 }
 
 #
+# match -- execute match
+#
+function match() {
+	../match $@
+}
+
+#
 # check -- check local or remote test results (using .match files)
 #
 function check() {
@@ -2322,7 +2329,7 @@ function check() {
 		done
 
 		if [ -n "$FILES" ]; then
-			../match $option $FILES
+			match $option $FILES
 		fi
 	fi
 }

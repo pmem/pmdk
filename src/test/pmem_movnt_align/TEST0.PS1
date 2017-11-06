@@ -61,6 +61,7 @@ function test {
 
 	Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
 		%{[string]$_ -replace '^.* len ',""} > grep$num.log
+	match grep$num.log.match
 }
 
 function test_all {
@@ -68,7 +69,6 @@ function test_all {
 	test F 1
 	test B 2
 	test S 3
-	check
 }
 
 test_all
