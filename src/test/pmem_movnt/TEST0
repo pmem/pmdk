@@ -54,6 +54,7 @@ function test() {
 	expect_normal_exit ./pmem_movnt$EXESUFFIX
 	$GREP -E "PMEM_MOVNT_THRESHOLD|pmem_flush" pmem$UNITTEST_NUM.log | \
 	    sed -e 's/^.* len //g' -e 's/^.*][ ]*//g' > grep$1.log
+	match grep$1.log.match
 }
 
 function test_all() {
@@ -68,8 +69,6 @@ function test_all() {
 
 	export PMEM_MOVNT_THRESHOLD=-15
 	test 3
-
-	check
 }
 
 test_all

@@ -61,6 +61,7 @@ function test {
 		-Pattern "PMEM_MOVNT_THRESHOLD|pmem_flush" | `
 		%{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
 		> grep$num.log
+	match grep$num.log.match
 }
 
 function test_all {
@@ -75,8 +76,6 @@ function test_all {
 
 	$Env:PMEM_MOVNT_THRESHOLD=-15
 	test 3
-
-	check
 }
 
 test_all
