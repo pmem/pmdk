@@ -70,9 +70,9 @@ PMEMobjpool *Pop;
 	UT_ASSERT(ret != 0);\
 	ret = pmemobj_mutex_trylock((pop), &(mtx)[1]);\
 	UT_ASSERT(ret != 0);\
-	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[0]);\
+	ret = pmemobj_rwlock_trywrlock((pop), &(rwlock)[0]);\
 	UT_ASSERT(ret != 0);\
-	ret += pmemobj_rwlock_trywrlock((pop), &(rwlock)[1]);\
+	ret = pmemobj_rwlock_trywrlock((pop), &(rwlock)[1]);\
 	UT_ASSERT(ret != 0)
 
 /*

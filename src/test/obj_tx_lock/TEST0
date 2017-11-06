@@ -42,6 +42,8 @@ export UNITTEST_NUM=0
 
 require_test_type medium
 
+configure_valgrind drd force-disable
+
 setup
 
 expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1
