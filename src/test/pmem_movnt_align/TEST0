@@ -53,6 +53,7 @@ function test() {
 	expect_normal_exit ./pmem_movnt_align$EXESUFFIX $1
 
 	$GREP "pmem_flush" pmem$UNITTEST_NUM.log | sed 's/.*len //' > grep$2.log
+	match grep$2.log.match
 }
 
 function test_all() {
@@ -60,7 +61,6 @@ function test_all() {
 	test F 1
 	test B 2
 	test S 3
-	check
 }
 
 test_all

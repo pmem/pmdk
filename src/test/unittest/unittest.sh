@@ -2078,6 +2078,13 @@ function check_local() {
 }
 
 #
+# match -- execute match
+#
+function match() {
+	../match $@
+}
+
+#
 # check -- check local or remote test results (using .match files)
 #
 function check() {
@@ -2108,7 +2115,7 @@ function check() {
 			option=-q
 		fi
 
-		../match $option $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
+		match $option $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
 	fi
 }
 
