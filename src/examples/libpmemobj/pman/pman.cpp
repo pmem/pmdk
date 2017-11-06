@@ -738,7 +738,7 @@ board_state::set_board(const std::string &map_file)
 {
 	std::ifstream board_file;
 	board_file.open(map_file.c_str());
-	if (!board_file)
+	if (board_file.fail())
 		assert(0);
 	char num;
 	for (unsigned i = 0; i < SIZE; i++) {
@@ -843,7 +843,7 @@ state::init(const std::string &map_file)
 		transaction::commit();
 	}
 
-	if (intro_loop() == true)
+	if (intro_loop())
 		return true;
 
 	{
@@ -1063,7 +1063,7 @@ state::collision()
 			bool is_over = board->is_last_alien_killed(a->prev_x,
 								   a->prev_y);
 			aliens->erase(--i);
-			if (is_over == true) {
+			if (is_over) {
 				if (board->get_board_elm(pl->x, pl->y) ==
 				    EXPLOSION)
 					board->dead();

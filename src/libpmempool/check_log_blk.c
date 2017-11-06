@@ -252,7 +252,7 @@ static int
 blk_bsize_valid(uint32_t bsize, uint64_t fsize)
 {
 	uint32_t max_bsize = blk_get_max_bsize(fsize);
-	return !(bsize < max_bsize);
+	return (bsize >= max_bsize);
 }
 
 /*
