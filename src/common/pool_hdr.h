@@ -160,4 +160,9 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
 
+/*
+ * incompat features
+ */
+#define POOL_FEAT_NOHDRS 0x0001 /* pool header only in the first part */
+
 #endif

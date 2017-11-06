@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_rm/TEST4 -- test for pmempool rm
+# pmempool_rm/TEST6 -- test for pmempool rm
 #
 # Same as TEST4, but run on a pool set that spans two Device DAX devices
 # with 4K alignment.
