@@ -65,10 +65,23 @@ function test {
 }
 
 function test_all {
+	$Env:PMEM_MOVNT_THRESHOLD=$null
 	test C 0
 	test F 1
 	test B 2
 	test S 3
+
+	$Env:PMEM_MOVNT_THRESHOLD=0
+	test C 0
+	test F 1
+	test B 2
+	test S 3
+
+	$Env:PMEM_MOVNT_THRESHOLD=99999
+	test C 4
+	test F 5
+	test B 6
+	test S 7
 }
 
 test_all
