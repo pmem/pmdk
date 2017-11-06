@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBRPMEM!3
+title: _MP(LIBRPMEM, 3)
 header: NVM Library
 date: rpmem API version 1.1
 ...
