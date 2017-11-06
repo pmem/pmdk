@@ -55,6 +55,19 @@ function test() {
 }
 
 function test_all() {
+	unset PMEM_MOVNT_THRESHOLD
+	test C
+	test F
+	test B
+	test S
+
+	export PMEM_MOVNT_THRESHOLD=0
+	test C
+	test F
+	test B
+	test S
+
+	export PMEM_MOVNT_THRESHOLD=99999
 	test C
 	test F
 	test B
