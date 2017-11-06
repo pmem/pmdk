@@ -224,11 +224,11 @@ fallback to the **General Puropose Server Persistency Method** with
 **pmem_msync**(3).
 
 If the **General Puropose Server Persistency Method** is enabled and the pool
-set is stored in the persistent momory **rpmemd** will use **pmem_persist**(3).
+set is stored in the persistent memory **rpmemd** will use **pmem_persist**(3).
 If the pool set is NOT stored in the persistent momory it will use
 **pmem_msync**(3).
 
-See **libpmem**(7) for details about **pmem_persist**(3) and **pmem_msync**(3).
+See **pmem_persist**(3) and **pmem_msync**(3) for more details.
 
 
 # SEE ALSO #

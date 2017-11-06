@@ -47,9 +47,8 @@ date: rpmem API version 1.1
 # NAME #
 
 **rpmem_create**(), **rpmem_open**(),
-**rpmem_set_attr**(), **rpmem_close**()
--- most commonly used functions to remote
-access to *persistent memory*
+**rpmem_set_attr**(), **rpmem_close**(), **rpmem_remove**()
+-- most commonly used functions to remote access to *persistent memory*
 
 
 # SYNOPSIS #
@@ -65,6 +64,7 @@ RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 	struct rpmem_pool_attr *open_attr);
 int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
+int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 ```
 
 
@@ -111,16 +111,32 @@ All resources are released on both local and remote side. The pool itself lives
 on the remote node and may be re-opened at a later time using **rpmem_open**()
 function as described above.
 
+The **rpmem_remove**() function removes a remote pool on a given *target* node.
+The *pool_set_name* is a relative path in the root config directory on the
+*target* node that uniquely identifies the pool set file on remote node.
+By default only the pool part files are removed and pool set file is left
+untouched. If the pool is not consistent the **rpmem_remove**() function fails.
+The *flags* argument determines the behavior of **rpmem_remove**() function.
+It is either 0 or the bitwise OR of one or more of the following flags:
+
++ **RPMEM_REMOVE_FORCE**
+Ignore errors when opening inconsistent pool. The pool set file must be in
+appropriate format though.
+
++ **RPMEM_REMOVE_POOL_SET**
+Remove pool set file after removing the pool described by this pool set.
+
+
 # RETURN VALUE #
 
 The **rpmem_create**() upon success returns an opaque handle to the remote pool
 which shall be used in subsequent API calls. If any error prevents the
-**librpmem** from creating the remote pool, the **rpmem_create**() returns
+**librpmem**(7) from creating the remote pool, the **rpmem_create**() returns
 NULL and sets *errno* appropriately.
 
 The **rpmem_open**() function upon success returns an opaque handle to the remote
 pool which shall be used in subsequent API calls. If any error prevents the
-**librpmem** from opening the remote pool, the **rpmem_open**() returns NULL
+**librpmem**(7) from opening the remote pool, the **rpmem_open**() returns NULL
 and sets *errno* appropriately. If the *open_attr* argument is not NULL the remote
 pool attributes are returned by the provided structure.
 
@@ -128,6 +144,9 @@ The **rpmem_set_attr**() function on success returns zero, on error it returns -
 
 The **rpmem_close**() function on success it returns zero, if any error occurred
 when closing remote pool, non-zero value is returned and *errno* value is set.
+
+The **rpmem_remove**() function returns 0 if the pool has been removed
+successfully, otherwise non-zero value is returned and *errno* set appropriately.
 
 
 # NOTES #
@@ -164,4 +183,4 @@ for more details.
 # SEE ALSO #
 
 **rpmem_persist**(3), **sysconf**(3), **limits.conf**(5),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **librpmem**(7) and **<http://pmem.io>**

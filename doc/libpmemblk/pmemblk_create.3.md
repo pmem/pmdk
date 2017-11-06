@@ -46,7 +46,8 @@ date: pmemblk API version 1.0
 # NAME #
 
 !pmemblk_create, !pmemblk_open,
-**pmemblk_close**() -- create, open and close block pool
+**pmemblk_close**(), !pmemblk_check
+-- create, open and close block pool
 
 
 # SYNOPSIS #
@@ -67,6 +68,13 @@ PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
 		size_t poolsize, mode_t mode);
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 void pmemblk_close(PMEMblkpool *pbp);
+}
+!ifdef{WIN32}
+{
+int pmemblk_checkU(const char *path, size_t bsize);
+int pmemblk_checkW(const wchar_t *path, size_t bsize);
+}{
+int pmemblk_check(const char *path, size_t bsize);
 }
 ```
 
@@ -137,6 +145,13 @@ indicated by *pbp* and deletes the memory pool handle.
 The block memory pool itself lives on in the file that contains it
 and may be re-opened at a later time using !pmemblk_open as described above.
 
+The !pmemblk_check function performs a consistency check of the file indicated by *path*.
+The debug version of **libpmemblk**(7) will provide additional details on inconsistencies
+when **PMEMBLK_LOG_LEVEL** is at least 1, as described in the **DEBUGGING AND
+ERROR HANDLING** section in **libpmemblk**(7).
+!pmemblk_check opens the given *path* read-only so it never makes any changes
+to the file. This function is not supported on Device DAX.
+
 
 # RETURN VALUE #
 
@@ -145,7 +160,7 @@ NULL and sets *errno* appropriately if the error prevents any of the
 pool set files from being created.
 
 The !pmemblk_open function returns a memory pool handle
-used with most of the functions in **pmemblk**(7) library.
+used with most of the functions in **libpmemblk**(7) library.
 If an error prevents the pool from being
 opened, !pmemblk_open returns NULL and sets *errno* appropriately.
 A block size mismatch with the *bsize* argument passed in results in *errno*
@@ -157,6 +172,13 @@ and sets *errno* appropriately.
 
 The **pmemblk_close**() function returns no value.
 
+The !pmemblk_check returns 1 if the memory pool is found to be consistent.
+Any inconsistencies found will cause !pmemblk_check to return 0,
+in which case the use of the file with **libpmemblk**(7) will result in
+undefined behavior. When *bsize* is non-zero !pmemblk_check will compare it
+to the block size of the pool and return 0 when they don't match.
+!pmemblk_check will return -1 and set *errno* if it cannot perform
+the consistency check due to other errors.
 
 # SEE ALSO #
-**pmempool**(1), **posix_fallocate**(2), **pmemblk**(7) and **<http://pmem.io>**
+**pmempool**(1), **posix_fallocate**(2), **libpmemblk**(7) and **<http://pmem.io>**

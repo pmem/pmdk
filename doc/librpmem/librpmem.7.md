@@ -65,23 +65,6 @@ date: rpmem API version 1.1
 cc ... -lrpmem
 ```
 
-##### Most commonly used functions: #####
-
-```c
-RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	const struct rpmem_pool_attr *create_attr);
-RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
-	void *pool_addr, size_t pool_size, unsigned *nlanes,
-	struct rpmem_pool_attr *open_attr);
-int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
-int rpmem_close(RPMEMpool *rpp);
-
-int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length, unsigned lane);
-int rpmem_remove(const char *target, const char *pool_set_name, int flags);
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -95,6 +78,11 @@ const char *rpmem_check_version(
 ```c
 const char *rpmem_errormsg(void);
 ```
+
+##### Other library functions: #####
+
+A description of other **librpmem** functions can be found on different manual pages:
+* most commonly used functions: **rpmem_create**(3), **rpmem_persist**(3)
 
 
 # DESCRIPTION #
@@ -136,9 +124,9 @@ port number is 22.
 # REMOTE POOL ATTRIBUTES #
 
 The *rpmem_pool_attr* structure describes a remote pool and is stored in remote
-pool's metadata. This structure must be passed to the **rpmem_create**()
+pool's metadata. This structure must be passed to the **rpmem_create**(3)
 function by caller when creating a pool on remote node. When opening the pool
-using **rpmem_open**() function the appropriate fields are read from pool's
+using **rpmem_open**(3) function the appropriate fields are read from pool's
 metadata and returned back to the caller.
 
 ```c
@@ -196,18 +184,18 @@ is executed with **-4** option which forces using **IPv4** addressing.
 The SSH command executed by **librpmem** can be overwritten by
 **RPMEM_SSH** environment variable. The command executed by the **ssh**
 can be overwritten by **RPMEM_CMD** variable. See **ENVIRONMENT**
-section for details. See **FORK** section belove for more details.
+section for details. See **FORK** section below for more details.
 
 
 # FORK #
 The **ssh** process is executed
-by **rpmem_open**() and **rpmem_create**() after forking a child process
+by **rpmem_open**(3) and **rpmem_create**(3) after forking a child process
 using **fork**(2).  The application must take into account this fact when
 using **wait**(2) and **waitpid**(2) functions which may return a PID of
 the **ssh** process executed by **librpmem**.
 
 The **librpmem** library requires **fork**(2) support in **libibverbs**,
-otherwise **rpmem_open** and **rpmem_create** functions will return an error.
+otherwise **rpmem_open**(3) and **rpmem_create**(3) functions will return an error.
 By default **libfabric** initializes **libibverbs** with **fork**(2) support
 by calling the **ibv_fork_init**(3) function. See **fi_verbs**(7) for more
 details.
@@ -222,19 +210,13 @@ resources associated with that thread might not be cleaned up properly.
 
 **librpmem** registers a pool as a single memory region. A Chelsio T4 and T5
 hardware can not handle a memory region greater than or equal to 8GB due to
-a hardware bug. So *pool_size* value for **rpmem_create**() and **rpmem_open**()
+a hardware bug. So *pool_size* value for **rpmem_create**(3) and **rpmem_open**(3)
 using this hardware can not be greater than or equal to 8GB.
 
 # LIBRARY API VERSIONING #
 
-This section describes how the library API is versioned, allowing
-applications to work with an evolving API.
-
-```c
-const char *rpmem_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-```
+This section describes how the library API is versioned,
+allowing applications to work with an evolving API.
 
 The **rpmem_check_version**() function is used to see if the installed
 **librpmem** supports the version of the library API required by an
@@ -277,11 +259,7 @@ system. The normal version, accessed when a program is linked using the
 checks that impact performance and never logs any trace information or
 performs any run-time assertions. If an error is detected during the
 call to **librpmem** function, an application may retrieve an error
-message describing the reason of failure using the following function:
-
-```c
-const char *rpmem_errormsg(void);
-```
+message describing the reason of failure.
 
 The **rpmem_errormsg**() function returns a pointer to a static buffer
 containing the last error message logged for current thread. The error
@@ -442,7 +420,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **rpmemd**(1), **ssh**(1), **fork**(2), **dlopen**(3),
-**ibv_fork_init**(3), **strerror**(3), **limits.conf**(5),
-**fi_sockets**(7), **fi_verbs**(7), **libpmem**(7),
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+**ibv_fork_init*i*(3), **rpmem_create**(3), **rpmem_open**(3),
+**rpmem_persist**(3), **strerror**(3), **limits.conf**(5), **fi_sockets**(7),
+**fi_verbs**(7), **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7),
+**libpmemobj**(7) and **<http://pmem.io>**

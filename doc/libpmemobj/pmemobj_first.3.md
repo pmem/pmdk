@@ -49,7 +49,7 @@ date: pmemobj API version 2.2
 **POBJ_NEXT_TYPE_NUM**(), **POBJ_NEXT**(),
 **POBJ_FOREACH**(), **POBJ_FOREACH_SAFE**(),
 **POBJ_FOREACH_TYPE**(), **POBJ_FOREACH_SAFE_TYPE**()
--- pmemobj containers operations
+-- operations to iterate through objects in containers
 
 
 # SYNOPSIS #
@@ -77,13 +77,12 @@ POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *pop, TOID var, TOID nvar)
 All the objects in the persistent memory pool are assigned a *type number* and
 are accessible by it.
 
-The **libpmemobj** provides a mechanism allowing to iterate through the internal
+The **libpmemobj**(7) provides a mechanism allowing to iterate through the internal
 object collection, either looking for a specific object, or performing a
 specific operation on each object of given type. Software should not make any
 assumptions about the order of the objects in the internal object containers.
 
 The **pmemobj_first**() function returns the first object from the pool.
-If the pool is empty, **OID_NULL** is returned.
 
 The **POBJ_FIRST**() macro returns the first object from the pool of
 the type specified by *TYPE*.
@@ -92,8 +91,6 @@ The **POBJ_FIRST_TYPE_NUM**() macro returns the first object from the pool
 of the type specified by *type_num*.
 
 The **pmemobj_next**() function returns the next object from the pool.
-If an object referenced by *oid* is the last object in the collection, or if the
-*OID_NULL* is passed as an argument, function returns **OID_NULL**.
 
 The **POBJ_NEXT**() macro returns the next object of the same type
 as the object referenced by *oid*.
@@ -118,6 +115,16 @@ as **POBJ_FOREACH**() and **POBJ_FOREACH_TYPE**() except that prior to performin
 on the object, they preserve a handle to the next object in the collection by assigning it to
 *nvaroid* or *nvar* variable. This allows safe deletion of selected objects while iterating
 through the collection.
+
+
+# RETURN VALUE #
+
+The **pmemobj_first**() function returns the first object from the pool.
+If the pool is empty, **OID_NULL** is returned.
+
+The **pmemobj_next**() function returns the next object from the pool.
+If an object referenced by *oid* is the last object in the collection, or if the
+*OID_NULL* is passed as an argument, function returns **OID_NULL**.
 
 
 # SEE ALSO #

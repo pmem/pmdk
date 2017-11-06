@@ -75,7 +75,7 @@ int pmemobj_list_move(PMEMobjpool *pop,
 # DESCRIPTION #
 
 Besides the internal objects collections mentioned at **libpmemobj**(7)
-in section **OBJECT CONTAINERS** the **libpmemobj** provides a mechanism
+in section **OBJECT CONTAINERS** the **libpmemobj**(7) provides a mechanism
 to organize persistent objects in the user-defined persistent atomic circular
 doubly linked lists. All the routines and macros operating on the persistent
 lists provide atomicity with respect to any power-fail interruptions. If any
@@ -151,13 +151,6 @@ the internal object container and frees the associated memory space. The argumen
 *pe_offset* declares an offset of the structure that connects the elements in the list.
 Both *head* and *oid* must point to the objects allocated from the same memory pool
 *pop* and cannot be **OID_NULL**.
-
-```c
-int pmemobj_list_move(PMEMobjpool *pop,
-	size_t pe_old_offset, void *head_old,
-	size_t pe_new_offset, void *head_new,
-	PMEMoid dest, int before, PMEMoid oid);
-```
 
 The **pmemobj_list_move**() function moves the object represented by *oid* from
 the list pointed by *head_old* to the list pointed by *head_new*. Depending on

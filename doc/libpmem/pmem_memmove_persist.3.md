@@ -121,7 +121,7 @@ pmem_drain();
 
 The **pmem_memmove_persist**(), **pmem_memcpy_persist**(), **pmem_memset_persist**(),
 **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**() and **pmem_memset_nodrain**()
-functions return no value.
+functions return address of the destination.
 
 
 # SEE ALSO #

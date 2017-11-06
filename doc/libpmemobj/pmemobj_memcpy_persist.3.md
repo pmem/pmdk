@@ -47,7 +47,7 @@ date: pmemobj API version 2.2
 # NAME #
 
 **pmemobj_memcpy_persist**(), **pmemobj_memset_persist**(), **pmemobj_persist**(),
-**pmemobj_flush**(), **pmemobj_drain**() -- create, open and close obj pool
+**pmemobj_flush**(), **pmemobj_drain**() -- low-level memory manipulation functions
 
 
 # SYNOPSIS #
@@ -66,10 +66,10 @@ void pmemobj_drain(PMEMobjpool *pop);
 # DESCRIPTION #
 
 The **libpmemobj** specific low-level memory manipulation functions
-leverage the knowledge of the additional configuration options available for **libpmemobj**
+leverage the knowledge of the additional configuration options available for **libpmemobj**(7)
 pools, such as replication. They also take advantage of the type of storage behind the pool
 and use appropriate flush/drain functions. It is advised to use
-these functions in conjunction with **libpmemobj** objects, instead of using
+these functions in conjunction with **libpmemobj**(7) objects, instead of using
 low-level memory manipulations functions from **libpmem**.
 
 The **pmemobj_memcpy_persist**(), and **pmemobj_memset_persist**(), functions provide
@@ -94,7 +94,7 @@ versions of the **pmemobj_persist**() function described above.
 These functions allow advanced programs to create their own variations of **pmemobj_persist**().
 For example, a program that needs to flush several discontiguous ranges can
 call **pmemobj_flush**() for each range and then follow up by calling **pmemobj_drain**() once.
-For more information on partial flushing operations see the **libpmem** manpage.
+For more information on partial flushing operations see the **pmem_flush**(3) manpage.
 
 
 # RETURN VALUE #
