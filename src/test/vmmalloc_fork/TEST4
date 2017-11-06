@@ -47,14 +47,14 @@ require_fs_type any
 require_build_type debug nondebug
 require_no_asan
 
+setup
+
 # Must be defined before require_preload
 export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_FORK=2
 export TEST_LD_PRELOAD=libvmmalloc.so
 require_preload "VMMALLOC_FORK value 2" ./vmmalloc_fork x x t
-
-setup
 
 # this test is leaky by design
 export MEMCHECK_DONT_CHECK_LEAKS=1
