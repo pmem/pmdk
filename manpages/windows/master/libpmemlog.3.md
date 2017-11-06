@@ -195,7 +195,7 @@ The size has to be compliant with the format specified in IEC 80000-13, IEEE 154
 B - kB, MB, GB, ... (multiplier by 1000) and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ... - (multiplier by 1024).
 
 The path of a part can point to a Device DAX and in such case the size
-argument can be set to an "AUTO" string, which means that the size of the device
+argument can be set to an *AUTO* string, which means that the size of the device
 will be automatically resolved at pool creation time.
 When using Device DAX there's also one additional restriction - it is not allowed
 to concatenate more than one Device DAX device in a single pool set
@@ -208,11 +208,29 @@ Device DAX is the device-centric analogue of Filesystem DAX. It allows memory
 ranges to be allocated and mapped without need of an intervening file system.
 For more information please see **ndctl-create-namespace**(1).
 
+Lines starting with the *OPTION* string may be used to specify some optional
+pool set configuration settings.  The *OPTION* string must be followed by
+one or more option names saparated by whitespace.
+There could be more than one lines with *OPTION* directive and they may appear
+anywhere in the pool set file.
+It is not an error if the same option name is specified more than once.
+If the specified option is unknown or unsupported in given version of the library
+**pmemobj_createU**()/**pmemobj_createW**() and **pmemobj_openU**()/**pmemobj_openW**() return NULL and set *errno* appropriately.
+
+The valid option names:
++ **NOHDRS** - Only the first part of each replica contains the pool header.
+  This option is required when creating a pool set that spans multiple Device DAX
+  devices with the internal alignment other than 4KiB.
+
 The minimum file size of each part of the pool set is defined in **\<libpmemlog.h\>**
 as **PMEMLOG_MIN_PART**. The net pool size of the pool set is equal to:
 
 ```
 net_pool_size = sum_over_all_parts(page_aligned_part_size - 4KiB) + 4KiB
+```
+or, in case when the pool was created with *OPTION NOHDRS*:
+```
+net_pool_size = sum_over_all_parts(page_aligned_part_size) - 4KiB
 ```
 where
 ```
