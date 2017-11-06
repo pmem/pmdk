@@ -37,16 +37,19 @@
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
 #ifdef DEBUG
-#define RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
+#define RPMEMD_LOG(level, fmt, arg...) do {\
+	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg);\
+} while (0)
 #else
-#define RPMEMD_LOG(level, fmt, arg...)\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
+#define RPMEMD_LOG(level, fmt, arg...) do {\
+	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg);\
+} while (0)
 #endif
 
 #ifdef DEBUG
-#define RPMEMD_DBG(fmt, arg...)\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
+#define RPMEMD_DBG(fmt, arg...) do {\
+	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg);\
+} while (0)
 #else
 #define RPMEMD_DBG(fmt, arg...) do {} while (0)
 #endif
