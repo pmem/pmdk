@@ -1401,3 +1401,49 @@ pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
 	struct pool_replica *rep = file->poolset->replica[0];
 	util_persist(rep->is_pmem, (void *)addr, len);
 }
+
+/*
+ * util_is_pmempool_progress_set -- check whether an environment variable
+ *                                  that indicates progress reporting is set
+ */
+int
+util_is_pmempool_progress_set(void)
+{
+	LOG(3, NULL);
+
+	char *progress = os_getenv(PMEMPOOL_PROGRESS_VAR);
+	if (progress && strcmp(progress, "1") == 0) {
+		LOG(3, "%s set to 1", PMEMPOOL_PROGRESS_VAR);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+/*
+ * pmempool_progress_cb -- a callback function for printing progress of
+ *                         operations to stdout
+ */
+int
+pmempool_progress_cb(const char *msg, size_t curr, size_t total)
+{
+	LOG(3, "msg %s, curr %zu, total %zu", msg, curr, total);
+
+	if (msg == NULL) {
+		printf("\n");
+		return 0;
+	}
+
+	if (total == 0)
+		return 0;
+
+	printf("%s", msg);
+	int percent = (int)(curr * 100 / total);
+	printf(": %3d%%", percent);
+	if (curr == total)
+		printf("\n");
+	else
+		printf("\r");
+	fflush(stdout);
+	return 0;
+}

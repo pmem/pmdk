@@ -61,6 +61,8 @@
 #include "srcversion.h"
 #endif
 
+#define PMEMPOOL_PROGRESS_VAR "PMEMPOOL_PROGRESS"
+
 #define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
 
 #define OPT_SHIFT 12
@@ -232,3 +234,6 @@ static const struct range ENTIRE_UINT64 = {
 	0,		/* first */
 	UINT64_MAX	/* last */
 };
+
+int util_is_pmempool_progress_set(void);
+int pmempool_progress_cb(const char *msg, size_t curr, size_t total);

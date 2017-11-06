@@ -75,10 +75,16 @@ viability of synchronization.
 
 : Increase verbosity level.
 
+`-p, --progress`
+
+: Display progress of the operation.
+
 `-h, --help`
 
 : Display help message and exit.
 
+Setting environment variable **PMEMPOOL_PROGRESS** to 1 also enables displaying
+progress of the operation.
 
 # SEE ALSO #
 

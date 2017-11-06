@@ -83,6 +83,16 @@ struct poolset_health_status {
 	struct replica_health_status *replica[];
 };
 
+/*
+ * Localization is used to describe which parts/replicas have to be taken
+ * into account when performing an operation.
+ */
+enum localization {
+	LOC_ALL,
+	LOC_LOCAL,
+	LOC_REMOTE
+};
+
 size_t replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn);
 size_t replica_get_part_range_data_len(struct pool_set *set_in, unsigned repn,
@@ -105,11 +115,13 @@ int replica_create_poolset_health_status(struct pool_set *set,
 void replica_free_poolset_health_status(struct poolset_health_status *set_s);
 int replica_check_poolset_health(struct pool_set *set,
 		struct poolset_health_status **set_hs,
-		unsigned flags);
+		unsigned flags, PMEM_progress_cb progress_cb);
 int replica_is_part_broken(unsigned repn, unsigned partn,
 		struct poolset_health_status *set_hs);
 unsigned replica_find_unbroken_part(unsigned repn,
 		struct poolset_health_status *set_hs);
+unsigned poolset_count_broken_parts(struct pool_set *set,
+		struct poolset_health_status *set_hs, enum localization loc);
 int replica_is_replica_broken(unsigned repn,
 		struct poolset_health_status *set_hs);
 int replica_is_replica_consistent(unsigned repn,
@@ -125,11 +137,19 @@ int replica_check_part_dirs(struct pool_set *set);
 int replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 		unsigned partn);
 
+void util_memcpy_persist(int is_pmem, void *to, const void *from,
+		size_t size, const char *msg, PMEM_progress_cb progress_cb);
+int util_rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane, const char *msg, PMEM_progress_cb progress_cb);
+
+int util_rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
+		unsigned lane, const char *msg, RPMEM_progress_cb progress_cb);
+void util_break_progress(PMEM_progress_cb progress_cb);
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
 int replica_open_poolset_part_files(struct pool_set *set);
 
 int replica_sync(struct pool_set *set_in, struct poolset_health_status *set_hs,
-		unsigned flags);
+		unsigned flags, PMEM_progress_cb progress_cb);
 int replica_transform(struct pool_set *set_in, struct pool_set *set_out,
-		unsigned flags);
+		unsigned flags, PMEM_progress_cb progress_cb);
