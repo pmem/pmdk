@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -42,6 +42,9 @@
 # and at the end to every function it assign real markdown file
 # representation based on *.gz file content
 #
+# Generated libs_map.yml file is used on gh-pages
+# to handle functions and their aliases
+#
 
 
 list=("$@")
@@ -57,9 +60,9 @@ do
 		content=$(head -c 150 $i)
 		if [[ "$content" == ".so "* ]] ;
 		then
-			content=${content#".so"}
+			content=$(basename ${content#".so"})
 			i="${i%.*}"
-			echo "  $i:${content%.*}" >> $map_file
+			echo "  $i: $content" >> $map_file
 		else
 			r="${i%.*}"
 			echo "  $r: $i" >> $map_file
@@ -104,7 +107,7 @@ function list_pages {
 	fi
 
 	if [ "$parent" == "libvmmalloc" ]; then
-		man_child=($(ls vmmalloc_*.3))
+		man_child=($(ls vmmalloc_*.3 2>/dev/null))
 		echo -n "- $parent: " >> $map_file
 	fi
 
@@ -135,7 +138,6 @@ function list_pages {
 
 man7=($(ls *.7))
 
-mkdir -p man_map
 map_file=libs_map.yml
 [ -e $map_file ] && rm $map_file
 touch $map_file

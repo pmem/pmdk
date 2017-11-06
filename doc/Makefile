@@ -110,7 +110,7 @@ MANPAGES_BUILDDIR = generated
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_7_MD += librpmem/librpmem.7.md
 MANPAGES_3_MD += librpmem/rpmem_create.3.md
-MANPAGES_3_MD += librpemm/rpmem_persist.3.md
+MANPAGES_3_MD += librpmem/rpmem_persist.3.md
 MANPAGES_1_MD += rpmemd/rpmemd.1.md
 MANPAGES_3_DUMMY += rpmem_open.3 rpmem_set_attr.3 rpmem_close.3 rpmem_read.3 rpmem_remove.3 rpmem_check_version.3 rpmem_errormsg.3
 endif

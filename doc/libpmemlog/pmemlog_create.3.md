@@ -46,7 +46,8 @@ date: pmemlog API version 1.0
 # NAME #
 
 !pmemlog_create, !pmemlog_open,
-**pmemlog_close**() -- create, open and close log pool
+**pmemlog_close**(), !pmemlog_check
+-- create, open and close persistent memory resident log file
 
 
 # SYNOPSIS #
@@ -65,6 +66,13 @@ PMEMlogpool *pmemlog_open(const char *path);
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
 }
 void pmemlog_close(PMEMlogpool *plp);
+!ifdef{WIN32}
+{
+int pmemlog_checkU(const char *path);
+int pmemlog_checkW(const wchar_t *path);
+}{
+int pmemlog_check(const char *path);
+}
 ```
 
 !ifdef{WIN32}
@@ -128,11 +136,16 @@ The **pmemlog_close**() function closes the memory pool indicated by *plp*
 and deletes the memory pool handle. The log memory pool itself lives on in the file
 that contains it and may be re-opened at a later time using !pmemlog_open as described above.
 
+The !pmemlog_check function performs a consistency check of the file indicated
+by *path*. !pmemlog_check opens the given *path* read-only so it never makes any
+changes to the file. This function is not supported on Device DAX.
+
+
 # RETURN VALUE #
 
 The **pmemlog_create**() function returns NULL and sets *errno*
 appropriately if the error prevents any of the pool set files from
-being created, othervise it returns a memory pool handle.
+being created, otherwise it returns a memory pool handle.
 
 The **pmemlog_open**() function returns NULL and sets *errno*
 appropriately if an error prevents the pool from being opened.
@@ -143,6 +156,16 @@ or if the actual size of any file does not match the corresponding part size
 defined in *set* file !pmemlog_open returns NULL and sets *errno* appropriately.
 
 The **pmemlog_close**() function returns no value.
+
+The !pmemlog_check function returns 1 if the persistent memory
+resident log file is found to be consistent.
+Any inconsistencies found will cause !pmemlog_check to return 0,
+in which case the use of the file with **libpmemlog** will result
+in undefined behavior. The debug version of **libpmemlog** will provide
+additional details on inconsistencies when **PMEMLOG_LOG_LEVEL** is at least 1,
+as described in the **DEBUGGING AND ERROR HANDLING** section in **libpmemlog**(7).
+!pmemlog_check will return -1 and set *errno* if it cannot
+perform the consistency check due to other errors.
 
 
 # SEE ALSO #

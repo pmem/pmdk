@@ -61,8 +61,8 @@ PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
 INC_DIR=$PREFIX/include
 MAN1_DIR=$PREFIX/share/man/man1
-MAN3_DIR=$PROFIX/share/man/man3
-MAN5_DIR=$PROFIX/share/man/man5
+MAN3_DIR=$PREFIX/share/man/man3
+MAN5_DIR=$PREFIX/share/man/man5
 MAN7_DIR=$PREFIX/share/man/man7
 
 DOC_DIR=$PREFIX/share/doc

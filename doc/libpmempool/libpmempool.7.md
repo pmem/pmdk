@@ -65,56 +65,6 @@ basic API functions are expanded to UTF-8 API with postfix *U*,
 otherwise they are expanded to UNICODE API with postfix *W*.
 }
 
-##### Health check functions: #####
-
-```c
-!ifdef{WIN32}
-{
-PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
-	size_t args_size);
-PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
-	size_t args_size);
-struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
-struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
-}{
-PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
-	size_t args_size);
-struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-}
-enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
-```
-
-##### Pool set synchronization and transformation: #####
-
-```c
-!ifdef{WIN32}
-{
-int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
-	const char *poolset_file_dst, unsigned flags);
-int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
-	const wchar_t *poolset_file_dst, unsigned flags);
-}{
-int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
-}
-```
-
-##### Pool set management functions: #####
-
-```c
-!ifdef{WIN32}
-{
-int pmempool_rmU(const char *path, int flags);
-int pmempool_rmW(const wchar_t *path, int flags);
-}{
-int pmempool_rm(const char *path, int flags);
-}
-```
-
 ##### Library API versioning: #####
 
 ```c
@@ -141,6 +91,13 @@ const wchar_t *pmempool_errormsgW(void);
 const char *pmempool_errormsg(void);
 }
 ```
+
+##### Other library functions: #####
+
+A description of other **libpmempool** functions can be found on different manual pages:
+* health check functions: **pmempool_check_init**(3)
+* pool set synchronization and transformation: **pmempool_sync**(3)
+* pool set management functions: **pmempool_rm**(3)
 
 
 # DESCRIPTION #
@@ -173,24 +130,8 @@ resources associated with that thread might not be cleaned up properly.
 
 # LIBRARY API VERSIONING #
 
-This section describes how the library API is versioned, allowing
-applications to work with an evolving API.
-
-```c
-!ifdef{WIN32}
-{
-const char *pmempool_check_versionU(
-	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmempool_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmempool_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
-```
+This section describes how the library API is versioned,
+allowing applications to work with an evolving API.
 
 The !pmempool_check_version function is used to see if
 the installed **libpmempool** supports the version of the
@@ -235,18 +176,7 @@ performance. That version skips checks that impact
 performance and exceptionally logs any trace information or
 performs any run-time assertions. If an error is detected
 during the call to **libpmempool** function, an
-application may retrieve an error message describing the
-reason of failure using the following function:
-
-```c
-!ifdef{WIN32}
-{
-const char *pmempool_errormsgU(void);
-const wchar_t *pmempool_errormsgW(void);
-}{
-const char *pmempool_errormsg(void);
-}
-```
+application may retrieve an error message describing the reason of failure.
 
 The !pmempool_errormsg function returns a pointer to a
 static buffer containing the last error message logged for
@@ -383,6 +313,6 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**dlclose**(3), **strerror**(3), **libpmemobj**(3),
-**libpmemblk**(3), **libpmemlog**(3), **libpmem**(3)
-and **<http://pmem.io>**
+**dlclose**(3), **pmempool_check_init**(3), **pmempool_rm**(3),
+**pmempool_sync**(3), **strerror**(3), **libpmemobj**(3),
+**libpmemblk**(3), **libpmemlog**(3), **libpmem**(3) and **<http://pmem.io>**

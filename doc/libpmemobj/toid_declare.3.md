@@ -49,7 +49,7 @@ date: pmemobj API version 2.2
 **OID_INSTANCEOF**(), **TOID_ASSIGN**(), **TOID_IS_NULL**(),
 **TOID_EQUALS**(), **TOID_TYPEOF**(), **TOID_OFFSETOF**(),
 **DIRECT_RW**(), **D_RW**(), **DIRECT_RO**(),
-**D_RO**() -- obj type safety mechanism
+**D_RO**() -- libpmemobj type safety mechanism
 
 
 # SYNOPSIS #
@@ -80,7 +80,7 @@ D_RO(TOID oid)
 
 Operating on untyped object handles, as well as on direct untyped object
 pointers (*void\**) may be confusing and error prone. To facilitate
-implementation of type safety mechanism, **libpmemobj** defines a set of macros
+implementation of type safety mechanism, **libpmemobj**(7) defines a set of macros
 that provide a static type enforcement, catching potential errors at compile time.
 For example, a compile-time error is generated when an attempt is made to assign a handle
 to an object of one type to the object handle variable of another type of object.

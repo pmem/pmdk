@@ -85,7 +85,7 @@ POBJ_FREE(TOID *oidp)
 
 # DESCRIPTION #
 
-Functions described in this section provide the mechanism to allocate,
+Functions described in this document provide the mechanism to allocate,
 resize and free objects from the persistent memory pool in a thread-safe
 and fail-safe manner. All the routines are atomic with respect to other threads
 and any power-fail interruptions. If any of those operations is torn by program
@@ -120,7 +120,8 @@ for the object is reclaimed.  The *size* can be any non-zero value, however
 due to internal padding and object metadata, the actual size of the allocation
 will differ from the requested one by at least 64 bytes. For this reason,
 making the allocations of a size less than 64 bytes is extremely inefficient
-and discouraged.
+and discouraged. The allocated object is added to the internal container
+associated with given *type_num*.
 
 The **pmemobj_zalloc**() function allocates a new zeroed object from
 the persistent memory heap associated with memory pool *pop*. The *PMEMoid*
@@ -132,11 +133,13 @@ the *oidp* is modified atomically. The *size* can be any non-zero value,
 however due to internal padding and object metadata, the actual size
 of the allocation will differ from the requested one by at least 64 bytes.
 For this reason, making the allocations of a size less than 64 bytes is extremely
-inefficient and discouraged.
+inefficient and discouraged. The allocated object is added to the internal
+container associated with given *type_num*.
 
 The **pmemobj_xalloc**() function allocates a new object from the persistent
 memory heap associated with memory pool *pop*. Equivalent to **pmemobj_alloc**()
-but with the addition of allocation modifiers.
+but with the addition of allocation modifiers. The allocated object is added to the
+internal container associated with given *type_num*.
 The *flags* argument is a bitmask of the following values:
 
 + **POBJ_XALLOC_ZERO** - zero the object (equivalent of **pmemobj_zalloc**())
@@ -261,12 +264,10 @@ pointer to typed *OID* as *oidp* argument instead of *PMEMoid*.
 In the **pmemobj_alloc**() function, if the constructor returns non-zero value
 the allocation is canceled, the -1 value is returned from the caller and *errno* is set
 to **ECANCELED**. If *size* equals 0, then **pmemobj_alloc**() returns non-zero value,
-sets the *errno* and leaves the *oidp* untouched. The allocated object is added to the
-internal container associated with given *type_num*.
+sets the *errno* and leaves the *oidp* untouched.
 
 The **pmemobj_zalloc**() and **pmemobj_xalloc**() function returns non-zero value
 if *size* equals 0 and sets the *errno* and leaves the *oidp* untouched.
-The allocated object is added to the internal container associated with given *type_num*.
 
 The **pmemobj_free**() function returns no value.
 

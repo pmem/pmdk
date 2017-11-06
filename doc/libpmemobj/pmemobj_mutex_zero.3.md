@@ -54,7 +54,7 @@ date: pmemobj API version 2.2
 
 **pmemobj_cond_zero**(), **pmemobj_cond_broadcast**(), **pmemobj_cond_signal**(),
 **pmemobj_cond_timedwait**(), **pmemobj_cond_wait**()
--- pmemobj locking actions
+-- pmemobj synchronization primitives
 
 
 # SYNOPSIS #
@@ -206,7 +206,7 @@ The **pmemobj_mutex_zero**(), **pmemobj_rwlock_zero**()
 and **pmemobj_cond_zero**() functions return no value.
 
 Other locking functions shall return zero.  Otherwise, an error
-number will be returned to indicate the error.procedury12procedury!@
+number will be returned to indicate the error.
 
 
 # SEE ALSO #

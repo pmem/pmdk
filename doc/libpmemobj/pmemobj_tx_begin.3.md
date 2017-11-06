@@ -304,7 +304,7 @@ The **pmemobj_tx_begin**() function if successful returns zero.
 Otherwise, an error number is returned.
 
 The **pmemobj_tx_begin**() and **pmemobj_tx_lock**() functions return
-zero if *lockp* is successful added to transaction.
+zero if *lockp* is successfully added to transaction.
 Otherwise, an error number is returned.
 
 The **pmemobj_tx_abort**() and **pmemobj_tx_commit**() functions return no value.

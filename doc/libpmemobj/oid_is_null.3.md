@@ -49,7 +49,8 @@ date: pmemobj API version 2.2
 **OID_IS_NULL**(), **OID_EQUALS**(),
 **pmemobj_direct**(), **pmemobj_oid**(),
 **pmemobj_type_num**(), **pmemobj_pool_by_oid**(),
-**pmemobj_pool_by_ptr**() -- mapping addresses, oids and type numbers
+**pmemobj_pool_by_ptr**() -- functions that allows mapping
+operations between object addresses, object handles, oids or type numbers
 
 
 # SYNOPSIS #
@@ -126,9 +127,9 @@ If *addr* is not from within a pmemobj pool, **OID_NULL** is returned.
 If *addr* is not the start of an object (does not point to the beginning of a valid allocation),
 the resulting *PMEMoid* can be safely used only with:
 
-+ **pmemobj_pool_by_oid**
-+ **pmemobj_direct**
-+ **pmemobj_tx_add_range**
++ **pmemobj_pool_by_oid()**
++ **pmemobj_direct()**
++ **pmemobj_tx_add_range(3)**
 
 The **pmemobj_type_num**() function returns a type number of the object represented by *oid*.
 
