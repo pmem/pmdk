@@ -46,19 +46,22 @@
 #define RPMEMD_LOG_INDENT "    "
 
 #ifdef DEBUG
-#define RPMEMD_LOG(level, fmt, arg...)\
+#define RPMEMD_LOG(level, fmt, arg...) do {\
 	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
-	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg)
+	rpmemd_log(RPD_LOG_##level, __FILE__, __LINE__, fmt, ## arg);\
+} while (0)
 #else
-#define RPMEMD_LOG(level, fmt, arg...)\
+#define RPMEMD_LOG(level, fmt, arg...) do {\
 	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
-	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg)
+	rpmemd_log(RPD_LOG_##level, NULL, 0, fmt, ## arg);\
+} while (0)
 #endif
 
 #ifdef DEBUG
-#define RPMEMD_DBG(fmt, arg...)\
+#define RPMEMD_DBG(fmt, arg...) do {\
 	COMPILE_ERROR_ON(strchr(fmt, '\t') != 0);\
-	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg)
+	rpmemd_log(_RPD_LOG_DBG, __FILE__, __LINE__, fmt, ## arg);\
+} while (0)
 #else
 #define RPMEMD_DBG(fmt, arg...) do {} while (0)
 #endif
