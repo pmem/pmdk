@@ -2369,16 +2369,22 @@ pmemobjfs_tx_ioctl(const char *dir, int req)
 	int ret = 0;
 
 	/* append temporary file template to specified path */
-	size_t len = strlen(dir) + strlen(PMEMOBJFS_TMP_TEMPLATE) + 1;
-	char *path = malloc(len);
+	size_t dirlen = strlen(dir);
+	size_t tmpllen = strlen(PMEMOBJFS_TMP_TEMPLATE);
+	char *path = malloc(dirlen + tmpllen + 1);
 	if (!path)
 		return -1;
 
-	strncpy(path, dir, len);
-	strncat(path, PMEMOBJFS_TMP_TEMPLATE, len);
+	strncpy(path, dir, dirlen);
+	strncat(path, PMEMOBJFS_TMP_TEMPLATE, tmpllen);
 
 	/* create temporary file */
+	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
+
 	int fd = mkstemp(path);
+
+	umask(prev_umask);
+
 	if (fd < 0) {
 		perror(path);
 		ret = -1;
