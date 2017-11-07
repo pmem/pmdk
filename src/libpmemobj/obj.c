@@ -277,6 +277,7 @@ obj_init(void)
 
 	lane_info_boot();
 
+	tx_ctx_init();
 	util_remote_init();
 }
 
@@ -295,6 +296,7 @@ obj_fini(void)
 	if (pools_tree)
 		ctree_delete(pools_tree);
 	lane_info_destroy();
+	tx_ctx_fini();
 	util_remote_fini();
 
 #ifdef _WIN32

@@ -1,0 +1,5 @@
+obj_tx_ctx_mt$(nW)TEST0: START: obj_tx_ctx_mt
+ $(nW)obj_tx_ctx_mt$(nW) $(nW)testfile1 $(nW)testfile2
+x = 32, y = 0, z = 0
+x = 0, y = 0, z = 64
+obj_tx_ctx_mt$(nW)TEST0: DONE

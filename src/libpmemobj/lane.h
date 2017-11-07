@@ -148,8 +148,9 @@ unsigned lane_hold(PMEMobjpool *pop, struct lane_section **section,
 	enum lane_section_type type);
 void lane_release(PMEMobjpool *pop);
 
-void lane_attach(PMEMobjpool *pop, unsigned lane);
-unsigned lane_detach(PMEMobjpool *pop);
+void lane_attach(PMEMobjpool *pop, unsigned lane, unsigned long nest_count);
+unsigned long lane_detach(PMEMobjpool *pop);
+unsigned long get_lane_nest_cnt(PMEMobjpool *pop);
 
 #ifndef _MSC_VER
 

@@ -74,6 +74,11 @@ enum pobj_tx_param {
 	/* EXPERIMENTAL */ TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
 };
 
+/*
+ * A current transaction context
+ */
+struct pobj_tx_ctx;
+
 #if !defined(_has_deprecated_with_message) && defined(__clang__)
 #if __has_extension(attribute_deprecated_with_message)
 #define _has_deprecated_with_message
@@ -170,6 +175,22 @@ void pmemobj_tx_process(void);
  * Returns last transaction error code.
  */
 int pmemobj_tx_errno(void);
+
+/*
+ * Creates a new transaction context
+ */
+struct pobj_tx_ctx *pmemobj_tx_ctx_new(void);
+
+/*
+ * Frees the given transaction context
+ */
+void pmemobj_tx_ctx_delete(struct pobj_tx_ctx *ctx);
+
+/*
+ * Sets current transaction context
+ */
+int pmemobj_tx_ctx_set(struct pobj_tx_ctx *new_ctx,
+		struct pobj_tx_ctx **old_ctx);
 
 /*
  * Takes a "snapshot" of the memory block of given size and located at given
