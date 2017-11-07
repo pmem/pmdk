@@ -417,6 +417,9 @@ tcache_destroy(tcache_t *tcache)
 bool
 tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
 {
+	if (len == UINT_MAX)
+		return (true);
+
 	assert(len < POOLS_MAX);
 
 	/* round up the new length to the nearest power of 2... */
