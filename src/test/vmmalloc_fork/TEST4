@@ -47,6 +47,11 @@ require_fs_type any
 require_build_type debug nondebug
 require_no_asan
 
+# This test uses pthread mutexes across fork, and recreates them in the child
+# process.
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
+
 setup
 
 # Must be defined before require_preload
