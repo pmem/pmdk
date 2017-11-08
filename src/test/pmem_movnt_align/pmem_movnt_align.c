@@ -52,55 +52,58 @@
 
 typedef void *(*mem_fn)(void *, const void *, size_t);
 
-/*
- * check -- sets destination and source, performs and operation
- * pointed by mem_func and compares the memory, mem_func shall
- * be either memmove or memcpy
- */
-static void
-check_func(void *dest, void *src, size_t len, mem_fn mem_func)
-{
-	memset(dest, 1, len);
-	memset(src, 0, len);
-
-	mem_func(dest, src, len);
-
-	if (memcmp(dest, src, len))
-		UT_FATAL("memcpy/memmove failed");
-}
+static char *src, *dst;
+static char *scratch;
 
 /*
  * check_memmove -- invoke check function with pmem_memmove_persist
  */
 static void
-check_memmove(void *dest, void *src, size_t len)
+check_memmove(size_t doff, size_t soff, size_t len)
 {
-	check_func(dest, src, len, pmem_memmove_persist);
+	memset(dst + doff, 1, len);
+	memset(src + soff, 0, len);
+
+	pmem_memmove_persist(dst + doff, src + soff, len);
+
+	if (memcmp(dst + doff, src + soff, len))
+		UT_FATAL("memcpy/memmove failed");
 }
 
 /*
  * check_memmove -- invoke check function with pmem_memcpy_persist
  */
 static void
-check_memcpy(void *dest, void *src, size_t len)
+check_memcpy(size_t doff, size_t soff, size_t len)
 {
-	check_func(dest, src, len, pmem_memcpy_persist);
+	memset(dst, 2, N_BYTES);
+	memset(src, 3, N_BYTES);
+	memset(scratch, 2, N_BYTES);
+
+	memset(dst + doff, 1, len);
+	memset(src + soff, 0, len);
+	memcpy(scratch + doff, src + soff, len);
+
+	pmem_memcpy_persist(dst + doff, src + soff, len);
+
+	if (memcmp(dst, scratch, N_BYTES))
+		UT_FATAL("memcpy/memmove failed");
 }
 
 /*
  * check_memset -- check pmem_memset_no_drain function
  */
 static void
-check_memset(void *dest, size_t len)
+check_memset(size_t off, size_t len)
 {
-	char *buff = MALLOC(sizeof(char) * len);
-	memset(buff, 1, len);
+	memset(scratch, 2, N_BYTES);
+	memset(scratch + off, 1, len);
 
-	pmem_memset_persist(dest, 1, len);
+	memset(dst, 2, N_BYTES);
+	pmem_memset_persist(dst + off, 1, len);
 
-	if (memcmp(dest, buff, len))
+	if (memcmp(dst, scratch, N_BYTES))
 		UT_FATAL("memset failed");
-	FREE(buff);
 }
 
 int
@@ -109,7 +112,6 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		UT_FATAL("usage: %s type", argv[0]);
 
-	char *src, *dst;
 	char type = argv[1][0];
 	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
 	const char *no_avx = getenv("PMEM_NO_AVX");
@@ -129,23 +131,26 @@ main(int argc, char *argv[])
 		if (src == NULL || dst == NULL)
 			UT_FATAL("!mmap");
 
+		scratch = MALLOC(N_BYTES);
+
 		/* check memcpy with 0 size */
-		check_memcpy(dst, src, 0);
+		check_memcpy(0, 0, 0);
 
 		/* check memcpy with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst, src, N_BYTES - s);
+			check_memcpy(0, 0, N_BYTES - s);
 
 		/* check memcpy with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src, N_BYTES - s);
+			check_memcpy(s, 0, N_BYTES - s);
 
 		/* check memcpy with unaligned begin and end */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(dst + s, src + s, N_BYTES - 2 * s);
+			check_memcpy(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(src, N_BYTES);
 		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
+		FREE(scratch);
 
 		break;
 	case 'B': /* memmove backward */
@@ -156,22 +161,22 @@ main(int argc, char *argv[])
 			UT_FATAL("!mmap");
 
 		/* check memmove in backward direction with 0 size */
-		check_memmove(dst, src, 0);
+		check_memmove(0, 0, 0);
 
 		/* check memmove in backward direction with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst, src, N_BYTES - s);
+			check_memmove(0, 0, N_BYTES - s);
 
 		/* check memmove in backward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst + s, src, N_BYTES - s);
+			check_memmove(s, 0, N_BYTES - s);
 
 		/*
 		 * check memmove in backward direction with unaligned begin
 		 * and end
 		 */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst + s, src + s, N_BYTES - 2 * s);
+			check_memmove(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(src, 2 * N_BYTES - 4096);
 		break;
@@ -183,22 +188,22 @@ main(int argc, char *argv[])
 			UT_FATAL("!mmap");
 
 		/* check memmove in forward direction with 0 size */
-		check_memmove(dst, src, 0);
+		check_memmove(0, 0, 0);
 
 		/* check memmove in forward direction with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst, src, N_BYTES - s);
+			check_memmove(0, 0, N_BYTES - s);
 
 		/* check memmove in forward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst + s, src, N_BYTES - s);
+			check_memmove(s, 0, N_BYTES - s);
 
 		/*
 		 * check memmove in forward direction with unaligned begin
 		 * and end
 		 */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(dst + s, src + s, N_BYTES - 2 * s);
+			check_memmove(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(dst, 2 * N_BYTES - 4096);
 
@@ -209,22 +214,25 @@ main(int argc, char *argv[])
 		if (dst == NULL)
 			UT_FATAL("!mmap");
 
+		scratch = MALLOC(N_BYTES);
+
 		/* check memset with 0 size */
-		check_memset(dst, 0);
+		check_memset(0, 0);
 
 		/* check memset with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(dst, N_BYTES - s);
+			check_memset(0, N_BYTES - s);
 
 		/* check memset with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(dst + s, N_BYTES - s);
+			check_memset(s, N_BYTES - s);
 
 		/* check memset with unaligned begin and end */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(dst + s, N_BYTES - 2 * s);
+			check_memset(s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
+		FREE(scratch);
 
 		break;
 	default:
