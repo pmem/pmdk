@@ -147,19 +147,17 @@ memset_movnt1x64b(char *dest, __m512i zmm)
 }
 
 static inline void
-memset_movnt1x32b(char *dest, char c)
+memset_movnt1x32b(char *dest, __m256i ymm)
 {
-	__m256i ymm = _mm256_set1_epi8((char)c);
-
 	_mm256_stream_si256((__m256i *)dest, ymm);
 
 	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static inline void
-memset_movnt1x16b(char *dest, char c)
+memset_movnt1x16b(char *dest, __m256i ymm)
 {
-	__m128i xmm = _mm_set1_epi8((char)c);
+	__m128i xmm = _mm256_extracti128_si256(ymm, 0);
 
 	_mm_stream_si128((__m128i *)dest, xmm);
 
@@ -167,10 +165,9 @@ memset_movnt1x16b(char *dest, char c)
 }
 
 static inline void
-memset_movnt1x8b(char *dest, char c)
+memset_movnt1x8b(char *dest, __m256i ymm)
 {
-	uint64_t x;
-	memset(&x, c, 8);
+	uint64_t x = (uint64_t)_mm256_extract_epi64(ymm, 0);
 
 	_mm_stream_si64((long long *)dest, (long long)x);
 
@@ -178,10 +175,9 @@ memset_movnt1x8b(char *dest, char c)
 }
 
 static inline void
-memset_movnt1x4b(char *dest, char c)
+memset_movnt1x4b(char *dest, __m256i ymm)
 {
-	uint32_t x;
-	memset(&x, c, 4);
+	uint64_t x = (uint64_t)_mm256_extract_epi32(ymm, 0);
 
 	_mm_stream_si32((int *)dest, (int)x);
 
@@ -191,6 +187,13 @@ memset_movnt1x4b(char *dest, char c)
 void
 memset_movnt_avx512f(char *dest, int c, size_t len)
 {
+	__m512i zmm = _mm512_set1_epi8((char)c);
+	/*
+	 * Can't use _mm512_extracti64x4_epi64, because some versions of gcc
+	 * crash. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82887
+	 */
+	__m256i ymm = _mm256_set1_epi8((char)c);
+
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
 		cnt = 64 - cnt;
@@ -198,7 +201,7 @@ memset_movnt_avx512f(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_avx512f(dest, c, cnt);
+		memset_small_avx512f(dest, ymm, cnt);
 
 		_mm256_zeroupper();
 		pmem_flush(dest, cnt);
@@ -206,8 +209,6 @@ memset_movnt_avx512f(char *dest, int c, size_t len)
 		dest += cnt;
 		len -= cnt;
 	}
-
-	__m512i zmm = _mm512_set1_epi8((char)c);
 
 	while (len >= 32 * 64) {
 		memset_movnt32x64b(dest, zmm);
@@ -248,23 +249,23 @@ memset_movnt_avx512f(char *dest, int c, size_t len)
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
 	if (len == 32) {
-		memset_movnt1x32b(dest, (char)c);
+		memset_movnt1x32b(dest, ymm);
 		dest += 32;
 		len -= 32;
 	} else if (len == 16) {
-		memset_movnt1x16b(dest, (char)c);
+		memset_movnt1x16b(dest, ymm);
 		dest += 16;
 		len -= 16;
 	} else if (len == 8) {
-		memset_movnt1x8b(dest, (char)c);
+		memset_movnt1x8b(dest, ymm);
 		dest += 8;
 		len -= 8;
 	} else if (len == 4) {
-		memset_movnt1x4b(dest, (char)c);
+		memset_movnt1x4b(dest, ymm);
 		dest += 4;
 		len -= 4;
 	} else if (len) {
-		memset_small_avx512f(dest, c, len);
+		memset_small_avx512f(dest, ymm, len);
 
 		_mm256_zeroupper();
 		pmem_flush(dest, len);

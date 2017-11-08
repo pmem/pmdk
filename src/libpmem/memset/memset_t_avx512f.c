@@ -133,6 +133,10 @@ memset_mov1x64b(char *dest, __m512i zmm)
 void
 memset_mov_avx512f(char *dest, int c, size_t len)
 {
+	__m512i zmm = _mm512_set1_epi8((char)c);
+	/* See comment in memset_movnt_avx512f */
+	__m256i ymm = _mm256_set1_epi8((char)c);
+
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
 		cnt = 64 - cnt;
@@ -140,13 +144,11 @@ memset_mov_avx512f(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_avx512f(dest, c, cnt);
+		memset_small_avx512f(dest, ymm, cnt);
 
 		dest += cnt;
 		len -= cnt;
 	}
-
-	__m512i zmm = _mm512_set1_epi8((char)c);
 
 	while (len >= 32 * 64) {
 		memset_mov32x64b(dest, zmm);
@@ -186,7 +188,7 @@ memset_mov_avx512f(char *dest, int c, size_t len)
 	}
 
 	if (len)
-		memset_small_avx512f(dest, c, len);
+		memset_small_avx512f(dest, ymm, len);
 
 	_mm256_zeroupper();
 }
