@@ -56,7 +56,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align,
 	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
 
 	ASSERT(align > 0);
-	ASSERT(altfile == NULL); /* Not needed on Windows */
+	ASSERTeq(altfile, NULL); /* Not needed on Windows */
 
 	MEMORY_BASIC_INFORMATION mi;
 	char *lo = NULL;	/* beginning of current range in maps file */
@@ -103,7 +103,7 @@ util_map_hint(size_t len, size_t req_align, const char *altfile)
 {
 	LOG(3, "len %zu req_align %zu", len, req_align);
 
-	ASSERT(altfile == NULL); /* Not needed on Windows */
+	ASSERTeq(altfile, NULL); /* Not needed on Windows */
 
 	char *hint_addr = MAP_FAILED;
 
