@@ -49,10 +49,18 @@ main(int argc, char *argv[])
 	char *dest1;
 	char *ret;
 
-	START(argc, argv, "pmem_memset");
-
 	if (argc != 4)
 		UT_FATAL("usage: %s file offset length", argv[0]);
+
+	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
+	const char *no_avx = getenv("PMEM_NO_AVX");
+	const char *no_avx512f = getenv("PMEM_NO_AVX512F");
+
+	START(argc, argv, "pmem_memset %s %s %s %savx %savx512f",
+			argv[2], argv[3],
+			thr ? thr : "default",
+			no_avx ? "!" : "",
+			no_avx512f ? "!" : "");
 
 	fd = OPEN(argv[1], O_RDWR);
 

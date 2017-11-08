@@ -106,14 +106,19 @@ check_memset(void *dest, size_t len)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_movnt_align");
-
 	if (argc != 2)
 		UT_FATAL("usage: %s type", argv[0]);
 
-	char type = argv[1][0];
-
 	char *src, *dst;
+	char type = argv[1][0];
+	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
+	const char *no_avx = getenv("PMEM_NO_AVX");
+	const char *no_avx512f = getenv("PMEM_NO_AVX512F");
+
+	START(argc, argv, "pmem_movnt_align %c %s %savx %savx512f", type,
+			thr ? thr : "default",
+			no_avx ? "!" : "",
+			no_avx512f ? "!" : "");
 
 	size_t s;
 	switch (type) {
