@@ -177,7 +177,17 @@ main(int argc, char *argv[])
 	os_off_t overlap = 0;
 	size_t mapped_len;
 
-	START(argc, argv, "pmem_memmove");
+	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
+	const char *no_avx = getenv("PMEM_NO_AVX");
+	const char *no_avx512f = getenv("PMEM_NO_AVX512F");
+
+	START(argc, argv, "pmem_memmove %s %s %s %s %savx %savx512f",
+			argc > 2 ? argv[2] : "null",
+			argc > 3 ? argv[3] : "null",
+			argc > 4 ? argv[4] : "null",
+			thr ? thr : "default",
+			no_avx ? "!" : "",
+			no_avx512f ? "!" : "");
 
 	fd = OPEN(argv[1], O_RDWR);
 
