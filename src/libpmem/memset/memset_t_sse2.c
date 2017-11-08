@@ -83,6 +83,8 @@ memset_mov1x64b(char *dest, __m128i xmm)
 void
 memset_mov_sse2(char *dest, int c, size_t len)
 {
+	__m128i xmm = _mm_set1_epi8((char)c);
+
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
 		cnt = 64 - cnt;
@@ -90,13 +92,11 @@ memset_mov_sse2(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_sse2(dest, c, cnt);
+		memset_small_sse2(dest, xmm, cnt);
 
 		dest += cnt;
 		len -= cnt;
 	}
-
-	__m128i xmm = _mm_set1_epi8((char)c);
 
 	while (len >= 4 * 64) {
 		memset_mov4x64b(dest, xmm);
@@ -118,5 +118,5 @@ memset_mov_sse2(char *dest, int c, size_t len)
 	}
 
 	if (len)
-		memset_small_sse2(dest, c, len);
+		memset_small_sse2(dest, xmm, len);
 }

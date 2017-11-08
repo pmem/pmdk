@@ -90,6 +90,8 @@ memset_mov1x64b(char *dest, __m256i ymm)
 void
 memset_mov_avx(char *dest, int c, size_t len)
 {
+	__m256i ymm = _mm256_set1_epi8((char)c);
+
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
 		cnt = 64 - cnt;
@@ -97,13 +99,11 @@ memset_mov_avx(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_avx(dest, c, cnt);
+		memset_small_avx(dest, ymm, cnt);
 
 		dest += cnt;
 		len -= cnt;
 	}
-
-	__m256i ymm = _mm256_set1_epi8((char)c);
 
 	while (len >= 8 * 64) {
 		memset_mov8x64b(dest, ymm);
@@ -131,7 +131,7 @@ memset_mov_avx(char *dest, int c, size_t len)
 	}
 
 	if (len)
-		memset_small_avx(dest, c, len);
+		memset_small_avx(dest, ymm, len);
 
 	_mm256_zeroupper();
 }
