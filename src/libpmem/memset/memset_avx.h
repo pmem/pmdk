@@ -42,51 +42,44 @@
 #include "out.h"
 
 static inline void
-memset_small_avx(char *dest, int c, size_t len)
+memset_small_avx(char *dest, __m256i ymm, size_t len)
 {
 	ASSERT(len <= 64);
 
 	if (len > 32) {
 		/* 33..64 */
-		__m256i ymm = _mm256_set1_epi8((char)c);
-
 		_mm256_storeu_si256((__m256i *)dest, ymm);
 		_mm256_storeu_si256((__m256i *)(dest + len - 32), ymm);
 	} else if (len > 16) {
 		/* 17..32 */
-
-		__m128i xmm = _mm_set1_epi8((char)c);
+		__m128i xmm = (__m128i)_mm256_extractf128_si256(ymm, 0);
 
 		_mm_storeu_si128((__m128i *)dest, xmm);
 		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
 	} else if (len > 8) {
 		/* 9..16 */
-		uint64_t d;
-		memset(&d, c, 8);
+		uint64_t d = (uint64_t)_mm256_extract_epi64(ymm, 0);
 
 		*(uint64_t *)dest = d;
 		*(uint64_t *)(dest + len - 8) = d;
 	} else if (len > 4) {
 		/* 5..8 */
-		uint32_t d;
-		memset(&d, c, 4);
+		uint32_t d = (uint32_t)_mm256_extract_epi32(ymm, 0);
 
 		*(uint32_t *)dest = d;
 		*(uint32_t *)(dest + len - 4) = d;
 	} else if (len > 2) {
 		/* 3..4 */
-		uint16_t d;
-		memset(&d, c, 2);
+		uint16_t d = (uint16_t)_mm256_extract_epi16(ymm, 0);
 
 		*(uint16_t *)dest = d;
 		*(uint16_t *)(dest + len - 2) = d;
 	} else if (len == 2) {
-		uint16_t d;
-		memset(&d, c, 2);
+		uint16_t d = (uint16_t)_mm256_extract_epi16(ymm, 0);
 
 		*(uint16_t *)dest = d;
 	} else {
-		*(uint8_t *)dest = (uint8_t)c;
+		*(uint8_t *)dest = (uint8_t)_mm256_extract_epi16(ymm, 0);
 	}
 }
 
