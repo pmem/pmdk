@@ -50,6 +50,9 @@
 #define MOCK_RUNTIME (void *)(0xABC)
 #define MOCK_RUNTIME_2 (void *)(0xBCD)
 
+#define MOCK_LAYOUT (void *)(0xAAA)
+#define MOCK_LAYOUT_2 (void *)(0xBBB)
+
 #define LOG_PREFIX "trace"
 #define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
 #define LOG_FILE_VAR "TRACE_LOG_FILE"
@@ -223,10 +226,12 @@ test_lane_hold_release(void)
 	struct lane mock_lane = {
 		.sections = {
 			[LANE_SECTION_ALLOCATOR] = {
-				.runtime = MOCK_RUNTIME
+				.runtime = MOCK_RUNTIME,
+				.layout = MOCK_LAYOUT
 			},
 			[LANE_SECTION_LIST] = {
-				.runtime = MOCK_RUNTIME_2
+				.runtime = MOCK_RUNTIME_2,
+				.layout = MOCK_LAYOUT_2
 			}
 		}
 	};
