@@ -1,0 +1,53 @@
+util_poolset$(nW)TEST5: START: util_poolset
+ $(nW)util_poolset$(nW) o 4194304 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset5 $(nW)testset6 $(nW)testset7 $(nW)testset8
+$(nW)testset1: opened: nreps 1 poolsize 272625664 rdonly 0
+  replica[0]: nparts 2 nhdrs 2 repsize 272625664 is_pmem 0
+    part[0] path $(nW)testdir11$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir11$(nW)000001.pmem filesize 4194304 size 4190208
+$(nW)testset2: opened: nreps 1 poolsize 276815872 rdonly 0
+  replica[0]: nparts 3 nhdrs 3 repsize 276815872 is_pmem 0
+    part[0] path $(nW)testdir21$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir22$(nW)000001.pmem filesize 4194304 size 4190208
+    part[2] path $(nW)testdir21$(nW)000002.pmem filesize 4194304 size 4190208
+$(nW)testset3: opened: nreps 2 poolsize 272625664 rdonly 0
+  replica[0]: nparts 2 nhdrs 2 repsize 272625664 is_pmem 0
+    part[0] path $(nW)testdir31$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir31$(nW)000001.pmem filesize 4194304 size 4190208
+  replica[1]: nparts 2 nhdrs 2 repsize 272625664 is_pmem 0
+    part[0] path $(nW)testdir32$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir32$(nW)000001.pmem filesize 4194304 size 4190208
+$(nW)testset4: opened: nreps 2 poolsize 276815872 rdonly 0
+  replica[0]: nparts 3 nhdrs 3 repsize 276815872 is_pmem 0
+    part[0] path $(nW)testdir41$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir42$(nW)000001.pmem filesize 4194304 size 4190208
+    part[2] path $(nW)testdir41$(nW)000002.pmem filesize 4194304 size 4190208
+  replica[1]: nparts 3 nhdrs 3 repsize 276815872 is_pmem 0
+    part[0] path $(nW)testdir43$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir44$(nW)000001.pmem filesize 4194304 size 4190208
+    part[2] path $(nW)testdir43$(nW)000002.pmem filesize 4194304 size 4190208
+$(nW)testset5: opened: nreps 1 poolsize 272629760 rdonly 0
+  replica[0]: nparts 2 nhdrs 1 repsize 272629760 is_pmem 0
+    part[0] path $(nW)testdir51$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir51$(nW)000001.pmem filesize 4194304 size 4194304
+$(nW)testset6: opened: nreps 1 poolsize 276824064 rdonly 0
+  replica[0]: nparts 3 nhdrs 1 repsize 276824064 is_pmem 0
+    part[0] path $(nW)testdir61$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir62$(nW)000001.pmem filesize 4194304 size 4194304
+    part[2] path $(nW)testdir61$(nW)000002.pmem filesize 4194304 size 4194304
+$(nW)testset7: opened: nreps 2 poolsize 272629760 rdonly 0
+  replica[0]: nparts 2 nhdrs 1 repsize 272629760 is_pmem 0
+    part[0] path $(nW)testdir71$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir71$(nW)000001.pmem filesize 4194304 size 4194304
+  replica[1]: nparts 2 nhdrs 1 repsize 272629760 is_pmem 0
+    part[0] path $(nW)testdir72$(nW)000000.pmem filesize 268435456 size 272629760
+    part[1] path $(nW)testdir72$(nW)000001.pmem filesize 4194304 size 4194304
+$(nW)testset8: opened: nreps 2 poolsize 276824064 rdonly 0
+  replica[0]: nparts 3 nhdrs 1 repsize 276824064 is_pmem 0
+    part[0] path $(nW)testdir81$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir82$(nW)000001.pmem filesize 4194304 size 4194304
+    part[2] path $(nW)testdir81$(nW)000002.pmem filesize 4194304 size 4194304
+  replica[1]: nparts 3 nhdrs 1 repsize 276824064 is_pmem 0
+    part[0] path $(nW)testdir83$(nW)000000.pmem filesize 268435456 size 545259520
+    part[1] path $(nW)testdir84$(nW)000001.pmem filesize 4194304 size 4194304
+    part[2] path $(nW)testdir83$(nW)000002.pmem filesize 4194304 size 4194304
+util_poolset$(nW)TEST5: DONE
