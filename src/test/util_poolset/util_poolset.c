@@ -50,6 +50,10 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
+#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+
+size_t Extend_size = MIN_PART * 2;
+
 const char *Open_path = "";
 os_off_t Fallocate_len = -1;
 size_t Is_pmem_len = 0;
@@ -91,14 +95,14 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 			size_t partsize =
 				(part->filesize & ~(Ut_mmap_align - 1));
 			repsize += partsize;
-			if (i > 0)
+			if (i > 0 && (set->options & OPTION_NO_HDRS) == 0)
 				UT_ASSERTeq(part->size,
 					partsize - Ut_mmap_align); /* XXX */
 		}
 
 		repsize -= (rep->nhdrs - 1) * Ut_mmap_align;
 		UT_ASSERTeq(rep->repsize, repsize);
-		UT_ASSERTeq(rep->part[0].size, repsize);
+		UT_ASSERT(rep->part[0].size >= repsize);
 
 		if (rep->repsize < poolsize)
 			poolsize = rep->repsize;
@@ -186,13 +190,27 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, 0, 0, NULL, NULL);
+				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
+				0, NULL, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
 				poolset_info(fname, set, 1);
 				util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			}
+			break;
+		case 'e':
+			ret = util_pool_open(&set, fname, 0 /* rdonly */,
+				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
+				0, NULL, NULL);
+			UT_ASSERTeq(ret, 0);
+			void *nptr = util_pool_extend(set, Extend_size);
+			if (nptr == NULL)
+				UT_OUT("!%s: util_pool_extend", fname);
+			else {
+				poolset_info(fname, set, 1);
+			}
+			util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			break;
 		}
 	}
