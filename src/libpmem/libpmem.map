@@ -39,6 +39,7 @@ LIBPMEM_1.0 {
 		pmem_is_pmem;
 		pmem_persist;
 		pmem_msync;
+		pmem_deep_flush;
 		pmem_flush;
 		pmem_drain;
 		pmem_has_hw_drain;
