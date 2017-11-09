@@ -230,6 +230,8 @@ ifneq ($(BUILD_RPMEM),y)
 see src/librpmem/README for details.
 endif
 
+export NDCTL_AVAILABLE := $(call check_package, libndctl)
+
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
 ifeq ($(shell uname -s),FreeBSD)
