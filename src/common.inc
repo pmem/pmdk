@@ -124,6 +124,8 @@ export mandir := $(datarootdir)/man
 export docdir := $(datarootdir)/doc
 export man1dir := $(mandir)/man1
 export man3dir := $(mandir)/man3
+export man5dir := $(mandir)/man5
+export man7dir := $(mandir)/man7
 export cstyle_bin := $(CSTYLE)
 export clang_format_bin := $(CLANG_FORMAT)
 
