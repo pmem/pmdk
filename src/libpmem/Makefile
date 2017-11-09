@@ -50,6 +50,15 @@ SOURCE =\
 	pmem.c\
 	pmem_linux.c
 
+ifeq ($(shell uname -s),Linux)
+SOURCE += $(COMMON)/ddax_range_deep_flush.c
+CFLAGS += -DNVML_COMMON_MMAP_DAX_DEEP_FLUSH=1
+endif
+
 include ../Makefile.inc
 
 LIBS += -pthread
+
+ifeq ($(shell uname -s),Linux)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
+endif
