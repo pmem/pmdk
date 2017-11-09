@@ -54,6 +54,7 @@
 #include <ctype.h>
 #include <linux/limits.h>
 #include <sys/mman.h>
+#include <fts.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -70,6 +71,12 @@
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
+
+#define PMEM_EXT ".pmem"
+#define PMEM_EXT_LEN sizeof(PMEM_EXT)
+#define PMEM_FILE_PADDING 6
+#define PMEM_FILE_NAME_MAX_LEN 20
+#define PMEM_FILE_MAX_LEN (PMEM_FILE_NAME_MAX_LEN + PMEM_FILE_PADDING)
 
 static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
@@ -517,6 +524,11 @@ util_poolset_free(struct pool_set *set)
 			Free(rep->remote->pool_desc);
 			Free(rep->remote);
 		}
+		struct pool_set_directory *d;
+		VEC_FOREACH_BY_PTR(d, &rep->directory) {
+			Free((void *)d->path);
+		}
+		VEC_DELETE(&rep->directory);
 		Free(set->replica[r]);
 	}
 	Free(set);
@@ -780,7 +792,6 @@ parser_read_line(char *line, size_t *size, char **path)
 		return PARSER_WRONG_SIZE;
 	}
 
-
 	return PARSER_CONTINUE;
 }
 
@@ -863,30 +874,44 @@ parser_read_options(char *line, unsigned *options)
 }
 
 /*
- * util_parse_add_part -- (internal) add a new part file to the replica info
+ * util_replica_reserve -- reserves part slots capacity in a replica
  */
 static int
-util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
+util_replica_reserve(struct pool_replica **repp, unsigned n)
 {
-	LOG(3, "set %p path %s filesize %zu", set, path, filesize);
+	LOG(3, "replica %p n %u", *repp, n);
 
-	ASSERTne(set, NULL);
+	struct pool_replica *rep = *repp;
+	if (rep->nallocated <= n) {
+		rep = Realloc(rep, sizeof(struct pool_replica) +
+			(n) * sizeof(struct pool_set_part));
+		if (rep == NULL) {
+			ERR("!Realloc");
+			return -1;
+		}
+		rep->nallocated = n;
+		*repp = rep;
+	}
+	return 0;
+}
 
-	struct pool_replica *rep = set->replica[set->nreplicas - 1];
+/*
+ * util_replica_add_part_by_idx -- (internal) allocates, initializes and adds a
+ *	part structure at the provided location in the replica info
+ */
+static int
+util_replica_add_part_by_idx(struct pool_replica **repp,
+	const char *path, size_t filesize, unsigned p)
+{
+	LOG(3, "replica %p path %s filesize %zu", *repp, path, filesize);
+
+	if (util_replica_reserve(repp, p + 1) != 0)
+		return -1;
+
+	struct pool_replica *rep = *repp;
 	ASSERTne(rep, NULL);
 
 	int is_dev_dax = util_file_is_device_dax(path);
-
-	/* XXX - pre-allocate space for X parts, and reallocate every X parts */
-	rep = Realloc(rep, sizeof(struct pool_replica) +
-			(rep->nparts + 1) * sizeof(struct pool_set_part));
-	if (rep == NULL) {
-		ERR("!Realloc");
-		return -1;
-	}
-	set->replica[set->nreplicas - 1] = rep;
-
-	unsigned p = rep->nparts++;
 
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
@@ -904,7 +929,96 @@ util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
 
 	ASSERTne(rep->part[p].alignment, 0);
 
+	rep->nparts += 1;
+
 	return 0;
+}
+
+/*
+ * util_replica_add_part -- adds a next part in replica info
+ */
+static int
+util_replica_add_part(struct pool_replica **repp,
+	const char *path, size_t filesize)
+{
+	return util_replica_add_part_by_idx(repp, path,
+		filesize, (*repp)->nparts);
+}
+
+/*
+ * util_parse_add_part -- (internal) add a new part file to the replica info
+ */
+static int
+util_parse_add_part(struct pool_set *set, const char *path, size_t filesize)
+{
+	LOG(3, "set %p path %s filesize %zu", set, path, filesize);
+
+	ASSERTne(set, NULL);
+
+	if (set->directory_based) {
+		ERR("cannot mix directories and files in a set");
+		errno = EINVAL;
+		return -1;
+	}
+
+	return util_replica_add_part(&set->replica[set->nreplicas - 1],
+		path, filesize);
+}
+
+/*
+ * util_parse_add_directory --
+ *	(internal) add a new directory to the replica info
+ */
+static int
+util_parse_add_directory(struct pool_set *set, const char *path,
+	size_t filesize)
+{
+	LOG(3, "set %p path %s filesize %zu", set, path, filesize);
+
+	ASSERTne(set, NULL);
+
+	struct pool_replica *rep = set->replica[set->nreplicas - 1];
+	ASSERTne(rep, NULL);
+
+	if (set->directory_based == 0) {
+		if (rep->nparts != 0) {
+			ERR("cannot mix directories and files in a set");
+			errno = EINVAL;
+			return -1;
+		}
+		set->directory_based = 1;
+	}
+
+	struct pool_set_directory d;
+	d.path = path;
+	d.resvsize = filesize;
+
+	VEC_PUSH_BACK(&rep->directory, d);
+
+	rep->resvsize += filesize;
+
+	return 0;
+}
+
+/*
+ * util_parse_add_element --
+ *	(internal) add a new element to the replica info
+ */
+static int
+util_parse_add_element(struct pool_set *set, const char *path, size_t filesize)
+{
+	LOG(3, "set %p path %s filesize %zu", set, path, filesize);
+
+	os_stat_t stat;
+
+	int olderrno = errno;
+
+	if (os_stat(path, &stat) == 0 && S_ISDIR(stat.st_mode))
+		return util_parse_add_directory(set, path, filesize);
+
+	errno = olderrno;
+
+	return util_parse_add_part(set, path, filesize);
 }
 
 /*
@@ -935,6 +1049,8 @@ util_parse_add_replica(struct pool_set **setp)
 		return -1;
 	}
 
+	VEC_INIT(&rep->directory);
+
 	unsigned r = set->nreplicas++;
 
 	set->replica[r] = rep;
@@ -950,6 +1066,9 @@ static int
 util_poolset_check_devdax(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
+
+	if (set->directory_based)
+		return 0;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
@@ -982,6 +1101,7 @@ static void
 util_poolset_set_size(struct pool_set *set)
 {
 	set->poolsize = SIZE_MAX;
+	set->resvsize = SIZE_MAX;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
@@ -993,12 +1113,17 @@ util_poolset_set_size(struct pool_set *set)
 		}
 		rep->repsize -= (rep->nhdrs - 1) * Mmap_align;
 
+		if (rep->resvsize == 0)
+			rep->resvsize = rep->repsize;
+
 		/*
 		 * Calculate pool size - choose the smallest replica size.
 		 * Ignore remote replicas.
 		 */
 		if (rep->remote == NULL && rep->repsize < set->poolsize)
 			set->poolsize = rep->repsize;
+		if (rep->remote == NULL && rep->resvsize < set->resvsize)
+			set->resvsize = rep->resvsize;
 	}
 
 	LOG(3, "pool size set to %zu", set->poolsize);
@@ -1080,6 +1205,123 @@ util_readline(FILE *fh)
 	return buffer;
 }
 
+
+/*
+ * util_part_idx_by_file_name -- (internal) retrieves the part index from a
+ *	name of the file that is an element of a directory poolset
+ */
+static long
+util_part_idx_by_file_name(const char *filename)
+{
+	int olderrno = errno;
+	errno = 0;
+	long part_idx = strtol(filename, NULL, 0);
+	if (errno != 0)
+		return -1;
+
+	errno = olderrno;
+
+	return part_idx;
+}
+
+/*
+ * util_poolset_directory_load -- (internal) loads and initializes all
+ *	existing parts in a single directory
+ */
+static int
+util_poolset_directory_load(struct pool_replica **repp, const char *directory)
+{
+	const char *path[2] = {directory, NULL};
+
+	FTS *f = fts_open((char * const *)path, FTS_COMFOLLOW | FTS_XDEV, NULL);
+	if (f == NULL)
+		return -1;
+
+	int nparts = 0;
+
+	FTSENT *entry;
+	while ((entry = fts_read(f)) != NULL) {
+		if ((entry->fts_info & FTS_F) == 0)
+			continue;
+		if (entry->fts_namelen < PMEM_EXT_LEN)
+			continue;
+		const char *ext = entry->fts_path + entry->fts_pathlen -
+			PMEM_EXT_LEN + 1;
+		if (strcmp(PMEM_EXT, ext) != 0)
+			continue;
+
+		long part_idx = util_part_idx_by_file_name(entry->fts_name);
+		if (part_idx < 0)
+			continue;
+
+		ssize_t size = util_file_get_size(entry->fts_path);
+		if (size < 0) {
+			LOG(3,
+			"found incorrectly sized file (%s) in a poolset directory",
+			entry->fts_path);
+			continue;
+		}
+
+		if (util_replica_add_part_by_idx(repp,
+				Strdup(entry->fts_path),
+				(size_t)size, (unsigned)part_idx) != 0) {
+			fts_close(f);
+			ERR("unable to load part %s",
+				entry->fts_path);
+			return -1;
+		}
+		nparts++;
+	}
+
+	fts_close(f);
+
+	return nparts;
+}
+
+/*
+ * util_poolset_directories_load -- (internal) loads and initializes all
+ *	existing parts in the poolset directories
+ */
+static int
+util_poolset_directories_load(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+
+	if (!set->directory_based)
+		return 0;
+
+	unsigned next_part_id = 0;
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		next_part_id = 0;
+
+		struct pool_set_directory *d;
+		int nparts = 0;
+		int prev_nparts = 0;
+		VEC_FOREACH_BY_PTR(d, &set->replica[r]->directory) {
+			prev_nparts = nparts;
+			nparts = util_poolset_directory_load(&set->replica[r],
+				d->path);
+			if (nparts < 0) {
+				ERR("failed to load parts from directory %s",
+					d->path);
+				return -1;
+			}
+
+			next_part_id += (unsigned)nparts;
+
+			/* always try to evenly spread files across dirs */
+			if (r == 0 && prev_nparts > nparts)
+				set->next_directory_id++;
+		}
+
+		if (r == 0)
+			set->next_id = next_part_id;
+		ASSERTeq(set->next_id, next_part_id);
+	}
+
+	return 0;
+}
+
 /*
  * util_poolset_parse -- parse pool set config file
  *
@@ -1136,6 +1378,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 		ERR("!Malloc for pool set");
 		goto err;
 	}
+	set->growsize = POOLSET_GROW_SIZE;
 
 	/* check also if the last character is '\n' */
 	if (strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
@@ -1232,7 +1475,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 			result = parser_read_line(line, &psize, &ppath);
 			if (result == PARSER_CONTINUE) {
 				/* add a new pool's part to the list */
-				int ret = util_parse_add_part(set,
+				int ret = util_parse_add_element(set,
 					ppath, psize);
 				if (ret != 0) {
 					Free(ppath);
@@ -1251,6 +1494,11 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 
 	if (util_poolset_check_devdax(set) != 0) {
 		errno = EINVAL;
+		goto err;
+	}
+
+	if (util_poolset_directories_load(set) != 0) {
+		ERR("cannot load part files from directories");
 		goto err;
 	}
 
@@ -1298,6 +1546,8 @@ util_poolset_single(const char *path, size_t filesize, int create)
 		return NULL;
 	}
 
+	VEC_INIT(&rep->directory);
+
 	set->replica[0] = rep;
 
 	rep->part[0].filesize = filesize;
@@ -1315,6 +1565,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 
 	ASSERTne(rep->part[0].alignment, 0);
 
+	rep->nallocated = 1;
 	rep->nparts = 1;
 	rep->nhdrs = 1;
 
@@ -1324,8 +1575,10 @@ util_poolset_single(const char *path, size_t filesize, int create)
 
 	/* round down to the nearest mapping alignment boundary */
 	rep->repsize = rep->part[0].filesize & ~(rep->part[0].alignment - 1);
+	rep->resvsize = rep->repsize;
 
 	set->poolsize = rep->repsize;
+	set->resvsize = rep->resvsize;
 
 	set->nreplicas = 1;
 
@@ -1780,6 +2033,56 @@ err:
 }
 
 /*
+ * util_header_update_parts -- (internal) updates the links between part files
+ */
+static void
+util_header_update_parts(struct pool_set *set,
+	unsigned repidx, unsigned partidx, int update_prev, int update_next)
+{
+	LOG(3, "set %p repidx %u partidx %u", set, repidx, partidx);
+
+	struct pool_replica *rep = set->replica[repidx];
+
+	/* opaque info lives at the beginning of mapped memory pool */
+	struct pool_hdr *hdrp = rep->part[partidx].hdr;
+
+	if (update_prev) {
+		memcpy(hdrp->prev_part_uuid, HDRP(rep, partidx)->uuid,
+							POOL_HDR_UUID_LEN);
+	}
+	if (update_next) {
+		memcpy(hdrp->next_part_uuid, HDRN(rep, partidx)->uuid,
+							POOL_HDR_UUID_LEN);
+	}
+
+	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+
+	/* store pool's header */
+	util_persist_auto(rep->part[partidx].is_dev_dax, hdrp, sizeof(*hdrp));
+}
+
+/*
+ * util_header_clone -- (internal) initializes a part header by copying it from
+ *	an already existing part
+ */
+static int
+util_header_clone(struct pool_set *set, unsigned repidx, unsigned partidx)
+{
+	LOG(3, "set %p repidx %u partidx %u", set, repidx, partidx);
+
+	struct pool_set_part *fp = &set->replica[repidx]->part[0];
+
+	struct pool_hdr *hdrp = fp->addr;
+	memcpy(set->uuid, hdrp->poolset_uuid, POOL_HDR_UUID_LEN);
+
+	return util_header_create(set, repidx, partidx, hdrp->signature,
+		hdrp->major,
+		hdrp->compat_features, hdrp->incompat_features,
+		hdrp->ro_compat_features,
+		hdrp->prev_repl_uuid, hdrp->next_repl_uuid, NULL, 0);
+}
+
+/*
  * util_header_create -- create header of a single pool set file
  */
 int
@@ -2116,14 +2419,14 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
 		}
 
 		/* map the first part and reserve space for remaining parts */
-		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
+		if (util_map_part(&rep->part[0], addr, rep->resvsize, 0,
 				flags, 0) != 0) {
 			LOG(2, "pool mapping failed - replica #%u part #0",
 				repidx);
@@ -2164,7 +2467,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 					/* release rest of the VA reserved */
 					ASSERTne(addr, NULL);
 					ASSERTne(addr, MAP_FAILED);
-					munmap(addr, rep->repsize - mapsize);
+					munmap(addr, rep->resvsize - mapsize);
 					break;
 				}
 				LOG(2, "usable space mapping failed - part #%d",
@@ -2204,7 +2507,7 @@ err:
 	if (mapsize < rep->repsize) {
 		ASSERTne(rep->part[0].addr, NULL);
 		ASSERTne(rep->part[0].addr, MAP_FAILED);
-		munmap(rep->part[0].addr, rep->repsize - mapsize);
+		munmap(rep->part[0].addr, rep->resvsize - mapsize);
 	}
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		util_unmap_part(&rep->part[p]);
@@ -2388,6 +2691,172 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 }
 
 /*
+ * util_poolset_append_new_part -- (internal) creates a new part in each replica
+ *	of the poolset
+ */
+static int
+util_poolset_append_new_part(struct pool_set *set, size_t size)
+{
+	LOG(3, "set %p size %zu", set, size);
+
+	if (!set->directory_based)
+		return -1;
+
+	struct pool_set_directory *d;
+	size_t directory_id;
+
+	struct part {
+		char *path;
+		size_t path_len;
+		int fd;
+	} *parts = Zalloc(sizeof(*parts) * set->nreplicas);
+	if (parts == NULL)
+		return -1;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (util_replica_reserve(&set->replica[r],
+			set->replica[r]->nparts + 1) != 0)
+			goto err_part_init;
+
+		struct pool_replica *rep = set->replica[r];
+
+		directory_id = set->next_directory_id %
+			VEC_SIZE(&rep->directory);
+		d = VEC_GET(&rep->directory, directory_id);
+
+		struct part *p = &parts[r];
+
+		p->path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
+		if ((p->path = Malloc(p->path_len)) == NULL)
+			goto err_part_init;
+
+		snprintf(p->path, p->path_len, "%s/%0*u%s",
+			d->path, PMEM_FILE_PADDING, set->next_id, PMEM_EXT);
+
+		p->fd = os_open(p->path, O_RDWR | O_CREAT | O_EXCL,
+			S_IRUSR | S_IWUSR);
+		if (p->fd < 0)
+			goto err_part_init;
+
+		if (os_posix_fallocate(p->fd, 0, (os_off_t)size) != 0)
+			goto err_part_init;
+	}
+
+	/* we cannot easily recover during this loop */
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct part *p = &parts[r];
+
+		/* the capacity is reserved, so this should never fail */
+		if (util_replica_add_part(&set->replica[r], p->path, size) != 0)
+			FATAL("cannot add a new part to the replica info");
+
+		os_close(p->fd);
+	}
+
+	Free(parts);
+
+	set->next_directory_id += 1;
+	set->next_id += 1;
+
+	util_poolset_set_size(set);
+
+	return 0;
+
+err_part_init:
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct part *p = &parts[r];
+		if (p->path != NULL) {
+			os_unlink(p->path);
+			Free(p->path);
+		}
+		if (p->fd > 0)
+			close(p->fd);
+	}
+	Free(parts);
+
+	return -1;
+}
+
+/*
+ * util_pool_extend -- extends the poolset by the provided size
+ */
+void *
+util_pool_extend(struct pool_set *set, size_t size)
+{
+	LOG(3, "set %p size %zu", set, size);
+
+	if (!size)
+		size = set->growsize;
+
+	if (set->poolsize + size > set->resvsize)
+		return NULL;
+
+	size_t old_poolsize = set->poolsize;
+
+	if (util_poolset_append_new_part(set, size) != 0) {
+		ERR("unable to append a new part to the pool");
+		return NULL;
+	}
+
+	size_t hdrsize = (set->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
+	void *addr = NULL;
+	void *addr_base = NULL;
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		unsigned pidx = rep->nparts - 1;
+		struct pool_set_part *p = &rep->part[pidx];
+
+		if (util_part_open(p, 0, 0) != 0)
+			FATAL("cannot open new part");
+
+		addr = (char *)rep->part[0].addr + old_poolsize;
+		if (addr_base == NULL)
+			addr_base = addr;
+
+		if ((set->options & OPTION_NO_HDRS) == 0) {
+			LOG(1,
+			"extending the pool by appending parts with headers is not failsafe!");
+
+			util_uuid_generate(p->uuid);
+
+			if (util_map_hdr(p, MAP_SHARED, 0) != 0)
+				FATAL("cannot map header of part %u", pidx);
+			if (util_map_hdr(&PARTP(rep, pidx), MAP_SHARED, 0) != 0)
+				FATAL("cannot map header of part %u",
+					PARTPidx(rep, pidx));
+			if (util_map_hdr(&PARTN(rep, pidx), MAP_SHARED, 0) != 0)
+				FATAL("cannot map header of part %u",
+					PARTNidx(rep, pidx));
+
+			if (util_header_clone(set, r, pidx) != 0)
+				FATAL("invalid state of a new part");
+
+			util_header_update_parts(set, r,
+				pidx, 1, 1);
+			util_header_update_parts(set, r,
+				PARTPidx(rep, pidx), 0, 1);
+			util_header_update_parts(set, r,
+				PARTNidx(rep, pidx), 1, 0);
+
+			util_unmap_hdr(p);
+			util_unmap_hdr(&PARTP(rep, pidx));
+			util_unmap_hdr(&PARTN(rep, pidx));
+		}
+
+		if (util_map_part(p, addr, 0, hdrsize,
+				MAP_SHARED | MAP_FIXED, 0) != 0)
+			FATAL("cannot map new part in reserved space");
+
+		VALGRIND_REGISTER_PMEM_FILE(p->fd,
+			p->addr, p->size, hdrsize);
+	}
+
+	return addr_base;
+
+}
+
+/*
  * util_pool_create_uuids -- create a new memory pool (set or a single file)
  *                           with given uuids
  *
@@ -2427,6 +2896,13 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	}
 
 	struct pool_set *set = *setp;
+
+	if (set->directory_based &&
+		util_poolset_append_new_part(set, set->growsize) != 0) {
+		ERR("cannot create a new part in provided directories");
+		util_poolset_free(set);
+		return -1;
+	}
 
 	ASSERT(set->nreplicas > 0);
 
@@ -2623,7 +3099,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		mapsize = rep->part[0].filesize & ~(Mmap_align - 1);
 
 		/* map the first part and reserve space for remaining parts */
-		if (util_map_part(&rep->part[0], addr, rep->repsize, 0,
+		if (util_map_part(&rep->part[0], addr, rep->resvsize, 0,
 				flags, 0) != 0) {
 			LOG(2, "pool mapping failed - replica #%u part #0",
 				repidx);
@@ -2631,7 +3107,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		}
 
 		VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr,
-			rep->part[0].size);
+			rep->resvsize);
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
 			rep->part[0].addr, rep->part[0].size, 0);
 
@@ -2668,7 +3144,8 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 					util_unmap_parts(rep, 0, p - 1);
 
 					/* release rest of the VA reserved */
-					munmap(rep->part[0].addr, rep->repsize);
+					munmap(rep->part[0].addr,
+						rep->resvsize);
 					break;
 				}
 				LOG(2, "usable space mapping failed - part #%d",
@@ -2710,7 +3187,7 @@ err:
 	if (mapsize < rep->repsize) {
 		ASSERTne(rep->part[0].addr, NULL);
 		ASSERTne(rep->part[0].addr, MAP_FAILED);
-		munmap(rep->part[0].addr, rep->repsize - mapsize);
+		munmap(rep->part[0].addr, rep->resvsize - mapsize);
 	}
 	for (unsigned p = 0; p < rep->nhdrs; p++)
 		util_unmap_hdr(&rep->part[p]);
