@@ -128,6 +128,8 @@ const char *pmem_errormsgU(void);
 const wchar_t *pmem_errormsgW(void);
 #endif
 
+int pmem_deep_flush(const void *addr, size_t len);
+
 #ifdef __cplusplus
 }
 #endif

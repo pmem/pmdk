@@ -662,7 +662,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 #ifndef _WIN32
 	/* XXX only Device DAX regions (PMEM) are tracked so far */
-	if (is_dev_dax && util_range_register(addr, len) != 0) {
+	if (is_dev_dax && util_range_register(addr, len, fd) != 0) {
 		LOG(2, "can't track mapped region");
 	}
 #endif
@@ -1277,4 +1277,10 @@ pmem_init(void)
 			GetModuleHandle(TEXT("KernelBase.dll")),
 			"QueryVirtualMemoryInformation");
 #endif
+}
+
+int
+pmem_deep_flush(const void *addr, size_t len)
+{
+	return util_range_deep_flush(addr, len);
 }
