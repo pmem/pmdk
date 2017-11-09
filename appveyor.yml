@@ -2,9 +2,6 @@ version: 1.2.{build}
 os: Visual Studio 2015
 platform: x64
 
-init:
-- ps: write-host "Uninstalling 4014507..."; cmd /c wusa /uninstall /kb:4014507 /quiet /forcerestart
-
 install:
 - ps: Install-PackageProvider -Name NuGet -Force
 - ps: Install-Module PsScriptAnalyzer -Force
