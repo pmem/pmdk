@@ -174,6 +174,9 @@ ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
+ifeq ($(NDCTL_AVAILABLE), y)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
+endif
 endif
 
 ifeq ($(LIBRPMEM),y)
@@ -186,6 +189,9 @@ ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
+ifeq ($(NDCTL_AVAILABLE), y)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
+endif
 endif
 
 #

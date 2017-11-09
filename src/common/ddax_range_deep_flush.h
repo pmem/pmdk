@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,15 @@
  */
 
 /*
- * pmem_is_pmem_linux.c -- Linux specific unit test for is_pmem_proc()
- *
- * usage: pmem_is_pmem_linux op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * ddax_range_deep_flush.h -- Internal utility functions for flushing
+ * a memory range residing on a DAX device.
  */
 
-#include <stdlib.h>
+#ifndef NVML_DDAX_RANGE_DEEP_FLUSH_H
+#define NVML_DDAX_RANGE_DEEP_FLUSH_H 1
 
-#include "unittest.h"
-#include "mmap.h"
+#include <sys/types.h>
 
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "pmem_is_pmem_linux");
+int ddax_range_deep_flush(dev_t dev_id);
 
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
-				argv[0]);
-
-	/* insert memory regions to the list */
-	int i;
-	for (i = 1; i < argc; i += 3) {
-		UT_ASSERT(i + 2 < argc);
-
-		errno = 0;
-		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		size_t len = strtoull(argv[i + 2], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		int ret;
-
-		switch (argv[i][0]) {
-		case 'a':
-			ret = util_range_register(addr, len, 0);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			break;
-		default:
-			FATAL("invalid op");
-		}
-	}
-
-	DONE(NULL);
-}
+#endif
