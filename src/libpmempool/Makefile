@@ -73,6 +73,7 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 include ../Makefile.inc
 
 LIBS += -lpmem $(LIBDL)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM
 

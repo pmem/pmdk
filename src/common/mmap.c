@@ -34,12 +34,18 @@
  * mmap.c -- mmap utilities
  */
 
+#ifdef __linux__
+#define _GNU_SOURCE
+#endif
+
 #include <errno.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <ndctl/libndctl.h>
 
 #include "file.h"
 #include "queue.h"
@@ -62,8 +68,9 @@ enum map_tracker_flag {
  */
 struct map_tracker {
 	SORTEDQ_ENTRY(map_tracker) entry;
-	const void *base_addr;
-	const void *end_addr;
+	uintptr_t base_addr;
+	uintptr_t end_addr;
+	int fd;
 	enum map_tracker_flag flags;
 
 #ifdef _WIN32
@@ -330,11 +337,11 @@ util_range_comparer(struct map_tracker *a, struct map_tracker *b)
  * the map tracking list.
  */
 static struct map_tracker *
-util_range_find(const void *addr, size_t len)
+util_range_find(uintptr_t addr, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(10, "addr 0x%016" PRIxPTR " len %zu", addr, len);
 
-	void *end = (char *)addr + len;
+	uintptr_t end = addr + len;
 
 	struct map_tracker *mt;
 	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
@@ -354,11 +361,16 @@ util_range_find(const void *addr, size_t len)
  * util_range_register -- add a memory range into a map tracking list
  */
 int
-util_range_register(const void *addr, size_t len)
+util_range_register(const void *addr, size_t len, int fd)
 {
-	LOG(3, "addr %p len %zu", addr, len);
+	LOG(3, "addr %p len %zu fd %d", addr, len, fd);
 
 	int ret = 0;
+
+	if (fd < 0) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	if (os_rwlock_wrlock(&Mmap_list_lock)) {
 		errno = EBUSY;
@@ -367,7 +379,7 @@ util_range_register(const void *addr, size_t len)
 	}
 
 	/* check if not tracked already */
-	struct map_tracker *mt = util_range_find(addr, len);
+	struct map_tracker *mt = util_range_find((uintptr_t)addr, len);
 	ASSERTeq(mt, NULL);
 
 	mt = Malloc(sizeof(struct map_tracker));
@@ -377,8 +389,9 @@ util_range_register(const void *addr, size_t len)
 		goto err;
 	}
 
-	mt->base_addr = addr;
-	mt->end_addr = (void *)((char *)addr + len);
+	mt->base_addr = (uintptr_t)addr;
+	mt->end_addr = mt->base_addr + len;
+	mt->fd = fd;
 	mt->flags = MTF_DIRECT_MAPPED;
 
 	SORTEDQ_INSERT(&Mmap_list, mt, entry, struct map_tracker,
@@ -393,13 +406,15 @@ err:
  * util_range_split -- (internal) remove or split a map tracking entry
  */
 static int
-util_range_split(struct map_tracker *mt, const void *addr, const void *end)
+util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 {
-	LOG(3, "begin %p end %p", addr, end);
+	LOG(3, "begin %p end %p", addrp, endp);
 
+	uintptr_t addr = (uintptr_t)addrp;
+	uintptr_t end = (uintptr_t)endp;
 	ASSERTne(mt, NULL);
-	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
-	ASSERTeq((uintptr_t)end % Mmap_align, 0);
+	ASSERTeq(addr % Mmap_align, 0);
+	ASSERTeq(end % Mmap_align, 0);
 
 	struct map_tracker *mtb = NULL;
 	struct map_tracker *mte = NULL;
@@ -426,7 +441,7 @@ util_range_split(struct map_tracker *mt, const void *addr, const void *end)
 
 		mtb->flags = mt->flags;
 		mtb->base_addr = mt->base_addr;
-		mtb->end_addr = addr;
+		mtb->end_addr = (uintptr_t)addr;
 	}
 
 	if (end < mt->end_addr) {
@@ -488,7 +503,7 @@ util_range_unregister(const void *addr, size_t len)
 
 	/* XXX optimize the loop */
 	struct map_tracker *mt;
-	while ((mt = util_range_find(addr, len)) != NULL) {
+	while ((mt = util_range_find((uintptr_t)addr, len)) != NULL) {
 		if (util_range_split(mt, addr, end) != 0) {
 			ret = -1;
 			break;
@@ -506,10 +521,11 @@ util_range_unregister(const void *addr, size_t len)
  * would just become a new is_pmem_detect().
  */
 int
-util_range_is_pmem(const void *addr, size_t len)
+util_range_is_pmem(const void *addrp, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(10, "addr %p len %zu", addrp, len);
 
+	uintptr_t addr = (uintptr_t)addrp;
 	int retval = 1;
 
 	if (os_rwlock_rdlock(&Mmap_list_lock)) {
@@ -521,16 +537,19 @@ util_range_is_pmem(const void *addr, size_t len)
 	do {
 		struct map_tracker *mt = util_range_find(addr, len);
 		if (mt == NULL) {
-			LOG(4, "address not found %p", addr);
+			LOG(4, "address not found 0x%016" PRIxPTR, addr);
 			retval = 0;
 			break;
 		}
 
-		LOG(10, "range found - begin %p end %p flags %x",
+		LOG(10, "range found - begin 0x%016" PRIxPTR
+				" end 0x%016" PRIxPTR
+				" flags %x",
 				mt->base_addr, mt->end_addr, mt->flags);
 
 		if (mt->base_addr > addr) {
-			LOG(10, "base address doesn't match: %p > %p",
+			LOG(10, "base address doesn't match: "
+				"0x%" PRIxPTR " > 0x%" PRIxPTR,
 					mt->base_addr, addr);
 			retval = 0;
 			break;
@@ -538,12 +557,152 @@ util_range_is_pmem(const void *addr, size_t len)
 
 		retval &= ((mt->flags & MTF_DIRECT_MAPPED) != 0);
 
-		uintptr_t map_len = ((uintptr_t)mt->end_addr - (uintptr_t)addr);
+		uintptr_t map_len = mt->end_addr - addr;
 		if (map_len > len)
 			map_len = len;
 		len -= map_len;
-		addr = (char *)addr + map_len;
+		addr += map_len;
 	} while (len > 0);
+
+	util_rwlock_unlock(&Mmap_list_lock);
+
+	return retval;
+}
+
+static int
+acquire_region_fd(int slash_dev, int regs_dir_fd, struct ndctl_ctx *ctx,
+			dev_t dev_id)
+{
+	struct ndctl_bus *bus;
+	ndctl_bus_foreach(ctx, bus) {
+		struct ndctl_region *region;
+		ndctl_region_foreach(bus, region) {
+			const char *reg_devname;
+			reg_devname = ndctl_region_get_devname(region);
+			if (reg_devname == NULL)
+				return -1;
+
+			struct ndctl_dax *dax;
+			ndctl_dax_foreach(region, dax) {
+				const char *devname;
+
+				devname = ndctl_dax_get_devname(dax);
+				if (devname == NULL)
+					return -1;
+				struct stat s;
+				if (fstatat(slash_dev, devname, &s, 0) != 0)
+					return -1;
+				if (s.st_rdev == dev_id)
+					return openat(regs_dir_fd, reg_devname,
+							O_PATH);
+			}
+		}
+	}
+
+	errno = EINVAL;
+	return -1;
+}
+
+static int
+acquire_deep_flush_fd(int fd)
+{
+	struct stat fd_stat;
+	if (fstat(fd, &fd_stat) != 0)
+		return -1;
+
+	int retval = -1;
+	struct ndctl_ctx *ctx = NULL;
+	int regs_dir = -1;
+	int region_fd = -1;
+	int slash_dev = -1;
+
+	if ((slash_dev = open("/dev", O_PATH)) < 0)
+		goto done;
+	if ((regs_dir = open("/sys/bus/nd/devices", O_PATH)) < 0)
+		goto done;
+	if (ndctl_new(&ctx) != 0)
+		goto done;
+	region_fd =
+	    acquire_region_fd(slash_dev, regs_dir, ctx, fd_stat.st_rdev);
+	if (region_fd <= 0)
+		retval = openat(region_fd, "deep_flush", O_RDWR);
+
+	int oerrno;
+done:
+	oerrno = errno;
+
+	if (slash_dev >= 0)
+		close(slash_dev);
+	if (region_fd >= 0)
+		close(region_fd);
+	if (regs_dir >= 0)
+		close(regs_dir);
+	if (ctx != NULL)
+		ndctl_unref(ctx);
+
+	errno = oerrno;
+	return retval;
+}
+
+/*
+ * range_deep_flush -- perform deep flush of given address range
+ */
+static int
+range_deep_flush(uintptr_t addr, size_t len)
+{
+	const struct map_tracker *mt = util_range_find(addr, len);
+
+	if (mt == NULL) /* no more overlapping track regions */
+		return msync((void *) addr, len, MS_SYNC);
+
+	if (mt->base_addr > addr) {
+		size_t curr_len = mt->base_addr - addr;
+		if (curr_len > len)
+			curr_len = len;
+		if (msync((void *) addr, curr_len, MS_SYNC) != 0)
+			return -1;
+		if ((len -= curr_len) == 0)
+			return 0;
+		addr = mt->base_addr;
+	}
+
+	int deep_flush_fd = acquire_deep_flush_fd(mt->fd);
+	if (deep_flush_fd < 0)
+		return -1;
+
+	if (write(deep_flush_fd, "1", 1)) {
+		int oerrno = errno;
+		close(deep_flush_fd);
+		errno = oerrno;
+		return -1;
+	}
+
+	close(deep_flush_fd);
+
+	if (mt->end_addr >= addr + len)
+		return 0;
+
+	return range_deep_flush(mt->end_addr, len - mt->end_addr - addr);
+}
+
+/*
+ * util_range_deep_flush -- perform deep flush of given address range
+ */
+int
+util_range_deep_flush(const void *addr, size_t len)
+{
+	LOG(10, "addr %p len %zu", addr, len);
+
+	if (len == 0)
+		return 0;
+
+	if (os_rwlock_rdlock(&Mmap_list_lock)) {
+		errno = EBUSY;
+		ERR("!cannot lock map tracking list");
+		return -1;
+	}
+
+	int retval = range_deep_flush((uintptr_t)addr, len);
 
 	util_rwlock_unlock(&Mmap_list_lock);
 

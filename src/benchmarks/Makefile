@@ -154,6 +154,7 @@ endif
 ifeq ($(GLIB),y)
 CXXFLAGS += $(shell $(PKG_CONFIG) --cflags glib-2.0)
 LIBS += $(shell $(PKG_CONFIG) --libs glib-2.0)
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
 endif
 
 LIBMAP_DIR=../examples/libpmemobj/map

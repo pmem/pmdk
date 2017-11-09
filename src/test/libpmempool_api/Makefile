@@ -41,3 +41,4 @@ LIBPMEM=y
 LIBPMEMPOOL=y
 
 include ../Makefile.inc
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)

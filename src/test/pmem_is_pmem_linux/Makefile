@@ -57,3 +57,4 @@ include ../Makefile.inc
 CFLAGS += -DSRCVERSION="" -DDEBUG
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmem
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)

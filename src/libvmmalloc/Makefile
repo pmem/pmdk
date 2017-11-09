@@ -55,5 +55,6 @@ INCS += -I$(JEMALLOC_OBJDIR)/include/jemalloc
 INCS += -I../libvmem
 EXTRA_OBJS += $(JEMALLOC_LIB)
 LIBS += -pthread
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
 
 include ../Makefile.inc

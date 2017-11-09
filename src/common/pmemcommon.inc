@@ -47,3 +47,5 @@ SOURCE =\
 	$(COMMON)/uuid.c\
 	$(COMMON)/$(call osdep, uuid,.c)\
 	$(COMMON)/util_linux.c
+
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)

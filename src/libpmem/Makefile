@@ -53,3 +53,4 @@ SOURCE =\
 include ../Makefile.inc
 
 LIBS += -pthread
+LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
