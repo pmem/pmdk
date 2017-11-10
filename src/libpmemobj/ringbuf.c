@@ -318,7 +318,8 @@ ringbuf_dequeue_s(struct ringbuf *rbuf, size_t data_size)
 	LOG(4, NULL);
 
 	void *r = ringbuf_dequeue(rbuf);
-	VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
+	if (r != NULL)
+		VALGRIND_ANNOTATE_NEW_MEMORY(r, data_size);
 
 	return r;
 }
