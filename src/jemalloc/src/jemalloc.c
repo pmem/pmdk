@@ -363,13 +363,14 @@ arenas_cleanup(void *arg)
 
 }
 
-JEMALLOC_ALWAYS_INLINE_C void
+JEMALLOC_ALWAYS_INLINE_C bool
 malloc_thread_init(void)
 {
 	if (config_fill && opt_quarantine && base_malloc_fn == base_malloc_default) {
 		/* create pool base and call quarantine_alloc_hook() inside */
-		malloc_init_base_pool();
+		return (malloc_init_base_pool());
 	}
+	return (false);
 }
 
 JEMALLOC_ALWAYS_INLINE_C bool
@@ -1333,7 +1334,8 @@ je_realloc(void *ptr, size_t size)
 
 	if (ptr != NULL) {
 		assert(malloc_initialized || IS_INITIALIZER);
-		malloc_thread_init();
+		if (malloc_thread_init())
+			return (NULL);
 
 		if ((config_prof && opt_prof) || config_stats ||
 		    (config_valgrind && in_valgrind))
@@ -2574,7 +2576,8 @@ size_t
 je_pool_malloc_usable_size(pool_t *pool, void *ptr)
 {
 	assert(malloc_initialized || IS_INITIALIZER);
-	malloc_thread_init();
+	if (malloc_thread_init())
+		return 0;
 
 	if (config_ivsalloc) {
 		/* Return 0 if ptr is not within a chunk managed by jemalloc. */
@@ -2780,7 +2783,8 @@ je_rallocx(void *ptr, size_t size, int flags)
 	assert(ptr != NULL);
 	assert(size != 0);
 	assert(malloc_initialized || IS_INITIALIZER);
-	malloc_thread_init();
+	if (malloc_thread_init())
+		return (NULL);
 
 	if (arena_ind != UINT_MAX) {
 		arena_chunk_t *chunk;
@@ -2920,7 +2924,8 @@ je_xallocx(void *ptr, size_t size, size_t extra, int flags)
 	assert(size != 0);
 	assert(SIZE_T_MAX - size >= extra);
 	assert(malloc_initialized || IS_INITIALIZER);
-	malloc_thread_init();
+	if (malloc_thread_init())
+		 return (0);
 
 	if (arena_ind != UINT_MAX)
 		arena = pool->arenas[arena_ind];
@@ -2971,7 +2976,8 @@ je_sallocx(const void *ptr, int flags)
 	size_t usize;
 
 	assert(malloc_initialized || IS_INITIALIZER);
-	malloc_thread_init();
+	if (malloc_thread_init())
+		return (0);
 
 	if (config_ivsalloc)
 		usize = ivsalloc(ptr, config_prof);
@@ -3074,7 +3080,8 @@ je_malloc_usable_size(JEMALLOC_USABLE_SIZE_CONST void *ptr)
 	size_t ret;
 
 	assert(malloc_initialized || IS_INITIALIZER);
-	malloc_thread_init();
+	if (malloc_thread_init())
+		return (0);
 
 	if (config_ivsalloc)
 		ret = ivsalloc(ptr, config_prof);
