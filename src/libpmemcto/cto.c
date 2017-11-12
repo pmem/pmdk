@@ -246,8 +246,8 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 	if (util_pool_create(&set, path,
 			poolsize, PMEMCTO_MIN_POOL, PMEMCTO_MIN_PART,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
-			CTO_FORMAT_COMPAT, CTO_FORMAT_INCOMPAT,
-			CTO_FORMAT_RO_COMPAT, NULL,
+			CTO_FORMAT_COMPAT_DEFAULT, CTO_FORMAT_INCOMPAT_DEFAULT,
+			CTO_FORMAT_RO_COMPAT_DEFAULT, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
@@ -364,8 +364,8 @@ cto_open_noinit(const char *path, const char *layout, int cow)
 
 	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
-			CTO_FORMAT_COMPAT, CTO_FORMAT_INCOMPAT,
-			CTO_FORMAT_RO_COMPAT, NULL) != 0) {
+			CTO_FORMAT_COMPAT_CHECK, CTO_FORMAT_INCOMPAT_CHECK,
+			CTO_FORMAT_RO_COMPAT_CHECK, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
