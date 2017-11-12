@@ -948,9 +948,9 @@ pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp)
 		break;
 	case POOL_TYPE_CTO:
 		hdrp->major = CTO_FORMAT_MAJOR;
-		hdrp->compat_features = CTO_FORMAT_COMPAT;
-		hdrp->incompat_features = CTO_FORMAT_INCOMPAT;
-		hdrp->ro_compat_features = CTO_FORMAT_RO_COMPAT;
+		hdrp->compat_features = CTO_FORMAT_COMPAT_DEFAULT;
+		hdrp->incompat_features = CTO_FORMAT_INCOMPAT_DEFAULT;
+		hdrp->ro_compat_features = CTO_FORMAT_RO_COMPAT_DEFAULT;
 		break;
 	default:
 		break;
