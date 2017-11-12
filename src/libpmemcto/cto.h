@@ -47,9 +47,14 @@
 /* attributes of the cto memory pool format for the pool header */
 #define CTO_HDR_SIG "PMEMCTO"	/* must be 8 bytes including '\0' */
 #define CTO_FORMAT_MAJOR 1
-#define CTO_FORMAT_COMPAT 0x0000
-#define CTO_FORMAT_INCOMPAT 0x0000
-#define CTO_FORMAT_RO_COMPAT 0x0000
+
+#define CTO_FORMAT_COMPAT_DEFAULT 0x0000
+#define CTO_FORMAT_INCOMPAT_DEFAULT 0x0000
+#define CTO_FORMAT_RO_COMPAT_DEFAULT 0x0000
+
+#define CTO_FORMAT_COMPAT_CHECK 0x0000
+#define CTO_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define CTO_FORMAT_RO_COMPAT_CHECK 0x0000
 
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define CTO_DSC_P_SIZE		2048
@@ -57,8 +62,7 @@
 #define CTO_DSC_P_UNUSED	(CTO_DSC_P_SIZE - PMEMCTO_MAX_LAYOUT - 28)
 
 /*
- * XXX: CTO
- * We don't care about portable data types, as the pool may only be open
+ * XXX: We don't care about portable data types, as the pool may only be open
  * on the same platform.
  * Assuming the shutdown state / consistent flag is updated in a fail-safe
  * manner, there is no need to checksum the persistent part of the descriptor.
@@ -71,7 +75,8 @@ struct pmemcto {
 	void *addr;		/* mapped region */
 	size_t size;		/* size of mapped region */
 	void *root;		/* root pointer */
-	/* XXX - to be replaced with shutdown state in the pool header */
+
+	/* XXX: to be replaced with shutdown state in the pool header */
 	int consistent;		/* successfully flushed before exit */
 	unsigned char unused[CTO_DSC_P_UNUSED]; /* must be zero */
 
@@ -92,19 +97,16 @@ struct pmemcto {
 void cto_init(void);
 void cto_fini(void);
 
-
+#ifdef _WIN32
 /*
- * XXX temporary hack
- *
  * On Linux we have separate jemalloc builds for libvmem, libvmmalloc
  * and libpmemcto, with different function name prefixes.  This is to avoid
- * symbol colisions in case of static linking of those libraries.
- * On Windows we don't provide statically linked librarries, so there is
- * no need to have separate jemallloc builds.  HOwever, since libpmemcto is
- * linking to jemalloc symbols with different names, we have to do renaming
- * here (unless there i sa better solution).
+ * symbol collisions in case of static linking of those libraries.
+ * On Windows we don't provide statically linked libraries, so there is
+ * no need to have separate jemalloc builds.  However, since libpmemcto
+ * links to jemalloc symbols with "je_cto" prefix, we have to do renaming
+ * here (unless there is a better solution).
  */
-#ifdef _WIN32
 #define je_cto_pool_create je_vmem_pool_create
 #define je_cto_pool_delete je_vmem_pool_delete
 #define je_cto_pool_malloc je_vmem_pool_malloc
@@ -119,6 +121,5 @@ void cto_fini(void);
 #define je_cto_pool_check je_vmem_pool_check
 #define je_cto_malloc_message je_vmem_malloc_message
 #endif
-
 
 #endif /* LIBPMEMCTO_CTO_H */
