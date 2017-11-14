@@ -39,7 +39,7 @@
 #include <sys/param.h>
 #include <libvmmalloc.h>
 #include "unittest.h"
-#include "vmmalloc_weakfuncs.h"
+#include "vmmalloc_dummy_funcs.h"
 
 static void *(*Valloc)(size_t size);
 
