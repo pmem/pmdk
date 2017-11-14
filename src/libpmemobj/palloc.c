@@ -139,18 +139,11 @@ palloc_operation(struct palloc_heap *heap,
 {
 	struct memory_block existing_block = MEMORY_BLOCK_NONE;
 	struct memory_block new_block = MEMORY_BLOCK_NONE;
+	struct memory_block coalesced_block = MEMORY_BLOCK_NONE;
 
 	struct bucket *existing_bucket = NULL;
 	struct bucket *new_bucket = NULL;
 	int ret = 0;
-
-	/*
-	 * These two lock are responsible for protecting the metadata for the
-	 * persistent representation of a chunk. Depending on the operation and
-	 * the type of a chunk, they might be NULL.
-	 */
-	os_mutex_t *existing_block_lock = NULL;
-	os_mutex_t *new_block_lock = NULL;
 
 	/*
 	 * The offset value which is to be written to the destination pointer
@@ -233,32 +226,6 @@ palloc_operation(struct palloc_heap *heap,
 			ret = -1;
 			goto out;
 		}
-
-		/*
-		 * This lock must be held for the duration between the creation
-		 * of the allocation metadata updates in the operation context
-		 * and the operation processing. This is because a different
-		 * thread might operate on the same 8-byte value of the run
-		 * bitmap and override allocation performed by this thread.
-		 */
-		new_block_lock = new_block.m_ops->get_lock(&new_block);
-		if (new_block_lock != NULL)
-			util_mutex_lock(new_block_lock);
-
-#ifdef DEBUG
-		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
-			ERR("Double free or heap corruption");
-			ASSERT(0);
-		}
-#endif /* DEBUG */
-
-		/*
-		 * The actual required metadata modifications are chunk-type
-		 * dependent, but it always is a modification of a single 8 byte
-		 * value - either modification of few bits in a bitmap or
-		 * changing a chunk type from free to used.
-		 */
-		new_block.m_ops->prep_hdr(&new_block, MEMBLOCK_ALLOCATED, ctx);
 	}
 
 	/*
@@ -293,7 +260,7 @@ palloc_operation(struct palloc_heap *heap,
 				to_cpy);
 		}
 
-		struct memory_block coalesced_block = existing_block;
+		coalesced_block = existing_block;
 		if (existing_block.type == MEMORY_BLOCK_HUGE) {
 			if (new_bucket && new_bucket->aclass->id ==
 						DEFAULT_ALLOC_CLASS_ID) {
@@ -308,22 +275,67 @@ palloc_operation(struct palloc_heap *heap,
 			coalesced_block = heap_coalesce_huge(heap,
 				existing_bucket, &existing_block);
 		}
+	}
+
+	/*
+	 * These two lock are responsible for protecting the metadata for the
+	 * persistent representation of a chunk. Depending on the operation and
+	 * the type of a chunk, they might be NULL.
+	 * These lock must be held for the duration between the creation of the
+	 * allocation metadata updates in the operation context and the
+	 * operation processing. This is because a different thread might
+	 * operate on the same 8-byte value of the run bitmap and override
+	 * allocation performed by this thread.
+	 */
+	int nlocks = 0;
+	os_mutex_t *locks[] = {NULL, NULL}; /* alloc, free, or both */
+
+	if (!MEMORY_BLOCK_IS_NONE(new_block)) {
+		locks[nlocks] = new_block.m_ops->get_lock(&new_block);
+		if (locks[nlocks] != NULL)
+			nlocks += 1;
+	}
+
+	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
+		locks[nlocks] = existing_block.m_ops->get_lock(&existing_block);
+		if (locks[nlocks] != NULL)
+			nlocks += 1;
+	}
+
+	if (nlocks > 1) {
+		ASSERTeq(nlocks, 2);
+		/* uniq sort by address in descending order */
+		if (locks[0] == locks[1]) {
+			nlocks -= 1;
+			locks[1] = NULL;
+		} else if (locks[1] > locks[0]) {
+			os_mutex_t *t = locks[0];
+			locks[0] = locks[1];
+			locks[1] = t;
+		}
+	}
+
+	for (int i = 0; i < nlocks; ++i)
+		util_mutex_lock(locks[i]);
+
+	if (!MEMORY_BLOCK_IS_NONE(new_block)) {
+#ifdef DEBUG
+		if (new_block.m_ops->get_state(&new_block) != MEMBLOCK_FREE) {
+			ERR("Double free or heap corruption");
+			ASSERT(0);
+		}
+#endif /* DEBUG */
 
 		/*
-		 * This lock must be held until the operation is processed
-		 * successfully, because other threads might operate on the
-		 * same bitmap value.
+		 * The actual required metadata modifications are chunk-type
+		 * dependent, but it always is a modification of a single 8 byte
+		 * value - either modification of few bits in a bitmap or
+		 * changing a chunk type from free to used.
 		 */
-		existing_block_lock = existing_block.m_ops
-			->get_lock(&existing_block);
+		new_block.m_ops->prep_hdr(&new_block, MEMBLOCK_ALLOCATED, ctx);
+	}
 
-		/* the locks might be identical in the case of realloc */
-		if (existing_block_lock == new_block_lock)
-			existing_block_lock = NULL;
-
-		if (existing_block_lock != NULL)
-			util_mutex_lock(existing_block_lock);
-
+	if (!MEMORY_BLOCK_IS_NONE(existing_block)) {
 #ifdef DEBUG
 		if (existing_block.m_ops->get_state(&existing_block) !=
 				MEMBLOCK_ALLOCATED) {
@@ -331,7 +343,6 @@ palloc_operation(struct palloc_heap *heap,
 			ASSERT(0);
 		}
 #endif /* DEBUG */
-
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
 			(char *)existing_block.m_ops
 				->get_user_data(&existing_block));
@@ -344,6 +355,7 @@ palloc_operation(struct palloc_heap *heap,
 		existing_block = coalesced_block;
 		existing_block.m_ops->prep_hdr(&existing_block,
 			MEMBLOCK_FREE, ctx);
+
 	}
 
 	/*
@@ -367,13 +379,10 @@ palloc_operation(struct palloc_heap *heap,
 		bucket_insert_block(existing_bucket, &existing_block);
 	}
 
+	for (int i = 0; i < nlocks; ++i)
+		util_mutex_unlock(locks[i]);
+
 out:
-	if (existing_block_lock != NULL)
-		util_mutex_unlock(existing_block_lock);
-
-	if (new_block_lock != NULL)
-		util_mutex_unlock(new_block_lock);
-
 	if (existing_bucket != NULL)
 		heap_bucket_release(heap, existing_bucket);
 

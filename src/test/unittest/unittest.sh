@@ -1472,15 +1472,16 @@ function export_vars_node() {
 # require_nodes_libfabric -- only allow script to continue if libfabric with
 #                            optionally specified provider is available on
 #                            specified node
+#    usage: require_nodes_libfabric <node> <provider> [<libfabric-version>]
 #
 function require_node_libfabric() {
-	# Minimal required version of libfabric.
-	# Keep in sync with requirements in src/common.inc.
-	local version="1.4.2"
 	validate_node_number $1
 
 	local N=$1
-	shift
+	local provider=$2
+	# Minimal required version of libfabric.
+	# Keep in sync with requirements in src/common.inc.
+	local version=${3:-1.4.2}
 
 	require_pkg libfabric "$version"
 	require_node_pkg $N libfabric "$version"
@@ -1495,13 +1496,12 @@ function require_node_libfabric() {
 			exit 0
 
 		fi
-
 	fi
 
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
-	COMMAND="$COMMAND ../fip ${NODE_ADDR[$N]} $*"
+	COMMAND="$COMMAND ../fip ${NODE_ADDR[$N]} $provider"
 
 	disable_exit_on_error
 	fip_out=$(ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND" 2>&1)
@@ -1514,7 +1514,7 @@ function require_node_libfabric() {
 		echo "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
 		exit 0
 	else
-		echo "NODE $N: require_libfabric $*: $fip_out" >&2
+		echo "NODE $N: require_libfabric $provider: $fip_out" >&2
 		exit 1
 	fi
 }
@@ -2215,9 +2215,10 @@ function get_node_dir() {
 #
 # example:
 #    The following command initialize rpmem environment variables on the node 1
-#    to perform replication to the node 0.
+#    to perform replication to the node 0 and node 2. Additionaly rpmemd pid
+#    will be stored in file.pid.
 #
-#       init_rpmem_on_node 1 0
+#       init_rpmem_on_node 1 0 2:file.pid
 #
 function init_rpmem_on_node() {
 	local master=$1
@@ -2229,6 +2230,10 @@ function init_rpmem_on_node() {
 	local SEPARATOR="|"
 	for slave in "$@"
 	do
+		slave=(${slave//:/ })
+		pid=${slave[1]}
+		slave=${slave[0]}
+
 		validate_node_number $slave
 		local poolset_dir=${NODE_TEST_DIR[$slave]}
 		if [ -n "$RPMEM_POOLSET_DIR" ]; then
@@ -2238,6 +2243,9 @@ function init_rpmem_on_node() {
 		if [ -n "$(is_valgrind_enabled_on_node $slave)" ]; then
 			log_file=${CHECK_TYPE}${UNITTEST_NUM}.log
 			trace=$(get_trace $CHECK_TYPE $log_file $slave)
+		fi
+		if [ -n "$pid" ]; then
+			trace="$trace ../ctrld $pid exe"
 		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 
