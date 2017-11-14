@@ -31,10 +31,10 @@
  */
 
 /*
- * vmmalloc_weakfuncs.c -- dummy functions for vmmalloc tests
+ * vmmalloc_dummy_funcs.c -- dummy functions for vmmalloc tests
  */
 
-#include "vmmalloc_weakfuncs.h"
+#include "vmmalloc_dummy_funcs.h"
 
 __attribute__((weak))
 void *

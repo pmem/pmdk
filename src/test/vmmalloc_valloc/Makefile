@@ -36,4 +36,4 @@
 TARGET = vmmalloc_valloc
 OBJS = vmmalloc_valloc.o
 
-include ../vmmalloc_memalign/Makefile.inc
+include ../vmmalloc_dummy_funcs/Makefile.inc

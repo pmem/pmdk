@@ -264,19 +264,24 @@ VMEM_TESTS = \
 	vmem_valgrind\
 	vmem_valgrind_region
 
+VMMALLOC_DUMMY_FUNCS_DEPS = \
+	vmmalloc_dummy_funcs
+
+VMMALLOC_DUMMY_FUNCS_TESTS = \
+	vmmalloc_malloc_hooks\
+	vmmalloc_memalign\
+	vmmalloc_valloc
+
 VMMALLOC_TESTS = \
 	vmmalloc_calloc\
 	vmmalloc_check_allocations\
 	vmmalloc_fork\
 	vmmalloc_init\
 	vmmalloc_malloc\
-	vmmalloc_malloc_hooks\
 	vmmalloc_malloc_usable_size\
-	vmmalloc_memalign\
 	vmmalloc_out_of_memory\
 	vmmalloc_realloc\
-	vmmalloc_valgrind\
-	vmmalloc_valloc
+	vmmalloc_valgrind
 
 EXAMPLES_TESTS = \
 	ex_libpmem\
@@ -310,6 +315,7 @@ LOCAL_TESTS = \
 	$(PMEM_TESTS)\
 	$(PMEMPOOL_TESTS)\
 	$(VMEM_TESTS)\
+	$(VMMALLOC_DUMMY_FUNCS_TESTS)\
 	$(VMMALLOC_TESTS)\
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
@@ -358,6 +364,7 @@ TESTS = \
 TESTS_BUILD = \
 	$(TEST_DEPS)\
 	$(OBJ_DEPS)\
+	$(VMMALLOC_DUMMY_FUNCS_DEPS)\
 	$(LIBPMEMPOOL_DEPS)\
 	$(LIBPMEMPOOL_MOD_DEPS)\
 	$(TESTS)
@@ -384,11 +391,12 @@ clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
 
-$(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS): $(TEST_DEPS)
+$(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS) $(VMMALLOC_DUMMY_FUNCS_DEPS): $(TEST_DEPS)
 
 $(OBJ_TESTS): $(OBJ_DEPS)
 $(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
 $(LIBPMEMPOOL_MOD_TESTS): $(LIBPMEMPOOL_MOD_DEPS)
+$(VMMALLOC_DUMMY_FUNCS_TESTS): $(VMMALLOC_DUMMY_FUNCS_DEPS)
 
 $(TESTS_BUILD):
 	$(MAKE) -C $@ $(TARGET)
