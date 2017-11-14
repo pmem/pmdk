@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,11 +31,15 @@
 #
 
 #
-# src/test/vmmalloc_memalign/Makefile -- build vmmalloc_memalign unit test
+# src/test/vmmalloc_dummy_funcs/Makefile -- build vmmalloc_dummy_funcs unit test
 #
-TARGET = vmmalloc_memalign
-OBJS = vmmalloc_memalign.o
+OBJS = vmmalloc_dummy_funcs.o
 
-vmmalloc_memalign.o: CFLAGS += -D_ISOC11_SOURCE
+BUILD_STATIC=n
 
-include ../vmmalloc_dummy_funcs/Makefile.inc
+include ../Makefile.inc
+
+libvmmalloc_dummy_funcs.so: $(OBJS)
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libvmmalloc_dummy_funcs.so -o $@
+
+all: libvmmalloc_dummy_funcs.so

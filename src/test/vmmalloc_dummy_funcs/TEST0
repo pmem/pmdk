@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -31,22 +32,8 @@
 #
 
 #
-# src/test/vmmalloc_memalign/Makefile.inc -- common Makefile rules
-#	for vmmalloc tests sharing libwf.so
+# src/test/vmmalloc_dummy_funcs/TEST0 -- dummy unit test
 #
 
-EXTRA_DEPS = ../vmmalloc_memalign/libwf.so
-
-include ../Makefile.inc
-
-INCS += -I../vmmalloc_memalign
-
-../vmmalloc_memalign/libwf.so: ../vmmalloc_memalign/vmmalloc_weakfuncs.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
-
-clobber: libwf_cleanup
-
-libwf_cleanup:
-	$(RM) ../vmmalloc_memalign/libwf.so
-
-LIBS += ../vmmalloc_memalign/libwf.so -Wl,-rpath=../vmmalloc_memalign
+# Directory contains shared library used by vmmalloc_malloc_hooks,
+# vmmalloc_memalign and vmmalloc_valloc.
