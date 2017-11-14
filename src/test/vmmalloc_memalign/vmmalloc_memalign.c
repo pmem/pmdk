@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "unittest.h"
-#include "vmmalloc_weakfuncs.h"
+#include "vmmalloc_dummy_funcs.h"
 
 #define USAGE "usage: %s [m|p|a]"
 
