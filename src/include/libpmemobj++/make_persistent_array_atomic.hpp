@@ -127,7 +127,7 @@ make_persistent_atomic(pool_base &pool,
 template <typename T>
 void
 delete_persistent_atomic(typename detail::pp_if_array<T>::type &ptr,
-			 std::size_t N)
+			 std::size_t)
 {
 	if (ptr == nullptr)
 		return;
