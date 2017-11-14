@@ -732,7 +732,7 @@ function expect_normal_exit() {
 		for node in $CHECK_NODES
 		do
 			local new_log_file=node\_$node\_$VALGRIND_LOG_FILE
-			copy_files_from_node $node "." $VALGRIND_LOG_FILE
+			copy_files_from_node $node "." ${NODE_TEST_DIR[$node]}/$VALGRIND_LOG_FILE
 			mv $VALGRIND_LOG_FILE $new_log_file
 		done
 	fi
@@ -1797,13 +1797,8 @@ function copy_files_from_node() {
 	files=""
 	dir_name=""
 
-	for f in "$@"
-	do
-		dir_name=$(dirname $f)
-		files+=$(basename $f)
-		files+=" "
-	done
-
+	files=$(basename -a $@)
+	dir_name=$(dirname $1)
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $dir_name && tar -czf $temp_file $files"
 	run_command scp $SCP_OPTS ${NODE[$N]}:$dir_name/$temp_file $DEST_DIR > /dev/null
 
@@ -1811,7 +1806,6 @@ function copy_files_from_node() {
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
 		&& cd - > /dev/null
-
 
 	return 0
 }
@@ -1896,7 +1890,7 @@ function run_on_node() {
 	COMMAND="$COMMAND UNITTEST_QUIET=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
-	echo "run on node $DIR"
+
 	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $DIR && $COMMAND"
 	ret=$?
 	if [ "$ret" -ne "0" ]; then
@@ -2646,8 +2640,8 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 	do
 		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
 		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
-		if [ $? == 0 ]; then
-			echo -e "Removed data from: ${N[$i]}"
+		if [ $? -eq 0 ]; then
+			echo -e "Removed data from: ${NODE[$i]}:${N[$i]}"
 		fi
 	done
 	exit 0

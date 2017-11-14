@@ -62,8 +62,6 @@ TEST_SET_REMOTE="testset_remote"
 TEST_FILE_LOCAL="testfile_local"
 TEST_FILE_REMOTE="testfile_remote"
 
-NODE_DIRS=(${NODE_DIR[0]} ${NODE_DIR[1]})
-
 # XXX: Make sum of all parts and replicas sizes equal
 # create and upload poolset files
 create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIR[1]}/$TEST_FILE_LOCAL:x \
