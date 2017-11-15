@@ -46,9 +46,9 @@ date: pmemobj API version 2.2
 
 # NAME #
 
-!pmemobj_ctl_get,
-!pmemobj_ctl_set
--- allows to control the internal behavior of libpmemobj
+_UW(pmemobj_ctl_get),
+_UW(pmemobj_ctl_set)
+-- Query and modify libpmemobj internal behavior
 
 
 # SYNOPSIS #
@@ -56,45 +56,42 @@ date: pmemobj API version 2.2
 ```c
 #include <libpmemobj.h>
 
-!ifdef{WIN32}
-{
-int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-}{
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-}
+_UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
+	=q= (EXPERIMENTAL)=e=)
+_UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
+	=q= (EXPERIMENTAL)=e=)
 ```
+
+_UNICODE()
 
 
 # DESCRIPTION #
 
-The library provides a uniform interface that allows to impact its behavior as
-well as reason about its internals.
-
-The *name* argument specifies an entry point as defined in the CTL namespace
-specification. The entry point description specifies whether the extra *arg* is
-required. Those two parameters together create a CTL query. The *pop* argument is optional if
-the entry point resides in a global namespace (i.e. shared for all the pools).
-The functions themselves are thread-safe and most of the entry points are too.
-If there are special conditions in which an entry point has to be called, they
-are explicitly stated in its description.
-The functions propagate the return value of the entry point. If either the name
-or the provided arguments are invalid, -1 is returned.
-
-Entry points are leafs of a tree-like structure. Each one can read from the
-internal state, write to the internal state or do both.
+The _UW(pmemobj_ctl_get) and _UW(pmemobj_ctl_set) functions provide a uniform
+interface for querying and modifying the internal behavior of **libpmemobj**
+through the control (CTL) namespace.
 
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
 Internal nodes themselves can only contain other nodes and cannot be entry
-points. There are two types of those nodes: named and indexed. Named nodes have
-string identifiers. Indexed nodes represent an abstract array index and have an
-associated string identifier. The index itself is user provided. A collection of
-indexes present on the path of an entry point is provided to the handler
-functions as name and index pairs.
+points. There are two types of those nodes: *named* and *indexed*. Named nodes
+have string identifiers. Indexed nodes represent an abstract array index and
+have an associated string identifier. The index itself is provided by the user.
+A collection of indexes present on the path of an entry point is provided to
+the handler functions as name and index pairs.
+
+The *name* argument specifies an entry point as defined in the CTL namespace
+specification. The entry point description specifies whether the extra *arg* is
+required. Those two parameters together create a CTL query. The *pop* argument
+is optional if the entry point resides in a global namespace (i.e., is shared
+for all the pools). The functions and the entry points are thread-safe unless
+indicated otherwise below. If there are special conditions for calling an entry
+point, they are explicitly stated in its description. The functions propagate
+the return value of the entry point. If either *name* or *arg* is invalid, -1
+is returned.
+
+Entry points are the leaves of the CTL namespace structure. Each entry point
+can read from the internal state, write to the internal state or both.
 
 The entry points are listed in the following format:
 
@@ -325,7 +322,7 @@ This function returns 0 if the allocation class has been successfully created,
 In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
-The first method is to load a configuration directly from a **PMEMOBJ_CONF**
+The first method is to load a configuration directly from the **PMEMOBJ_CONF**
 environment variable. A properly formatted ctl config string is a single-line
 sequence of queries separated by ';':
 

@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: RPMEM_PERSIST!3
+title: _MP(RPMEM_PERSIST, 3)
 collection: librpmem
 header: NVM Library
 date: rpmem API version 1.1
@@ -34,7 +34,7 @@ date: rpmem API version 1.1
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (rpmem_persist.3 -- page for most commonly used librpmem functions)
+[comment]: <> (rpmem_persist.3 -- man page for rpmem persist and read functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -54,8 +54,10 @@ date: rpmem API version 1.1
 ```c
 #include <librpmem.h>
 
-int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane);
-int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length, unsigned lane);
+int rpmem_persist(RPMEMpool *rpp, size_t offset,
+	size_t length, unsigned lane);
+int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
+	size_t length, unsigned lane);
 ```
 
 
@@ -65,31 +67,32 @@ The **rpmem_persist**() function copies data of given *length* at given
 *offset* from the associated local memory pool and makes sure the data is
 persistent on the remote node before the function returns. The remote node
 is identified by the *rpp* handle which must be returned from either
-**rpmem_open**(3) or **rpmem_create**(3) functions. The *offset* is relative
+**rpmem_open**(3) or **rpmem_create**(3). The *offset* is relative
 to the *pool_addr* specified in the **rpmem_open**(3) or **rpmem_create**(3)
-function calls. The *offset* and *length* combined must not exceed the
-*pool_size* passed to the **rpmem_open**(3) or **rpmem_create**(3) functions.
-The **rpmem_persist**() operation is performed using given *lane* number.
+call. The *offset* and *length* combined must not exceed the
+*pool_size* passed to **rpmem_open**(3) or **rpmem_create**(3).
+The **rpmem_persist**() operation is performed using the given *lane* number.
 The lane must be less than the value returned by **rpmem_open**(3) or
 **rpmem_create**(3) through the *nlanes* argument (so it can take a value
 from 0 to *nlanes* - 1).
 
-The **rpmem_read**() function reads *length* bytes of data from remote pool
+The **rpmem_read**() function reads *length* bytes of data from a remote pool
 at *offset* and copies it to the buffer *buff*. The operation is performed on
-a given lane. The lane must be less than the value returned by **rpmem_open**(3)
-or **rpmem_create**(3) through the *nlanes* argument (so it can take a value
-from 0 to *nlanes* - 1). The *rpp* must point to a remote pool opened or created
-previously by **rpmem_open**(3) or **rpmem_create**(3) functions respectively.
+the specified *lane*. The lane must be less than the value returned by
+**rpmem_open**(3) or **rpmem_create**(3) through the *nlanes* argument
+(so it can take a value from 0 to *nlanes* - 1). The *rpp* must point to a
+remote pool opened or created previously by **rpmem_open**(3) or
+**rpmem_create**(3).
 
 
 # RETURN VALUE #
 
-The **rpmem_persist**() function returns zero if the entire memory area was
-made persistent on remote node, otherwise it returns non-zero value and sets
-*errno* appropriately.
+The **rpmem_persist**() function returns 0 if the entire memory area was
+made persistent on the remote node. Otherwise it returns a non-zero value
+and sets *errno* appropriately.
 
-The **rpmem_read**() function returns 0 if the data was read entirely,
-otherwise non-zero value is returned and *errno* set appropriately.
+The **rpmem_read**() function returns 0 if the data was read entirely.
+Otherwise it returns a non-zero value and sets *errno* appropriately.
 
 
 # SEE ALSO #

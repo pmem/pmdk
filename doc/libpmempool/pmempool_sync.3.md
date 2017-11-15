@@ -54,20 +54,10 @@ _UW(pmempool_sync), _UW(pmempool_transform) -- pool set synchronization and tran
 ```c
 #include <libpmempool.h>
 
-!ifdef{WIN32}
-{
-int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
-	const char *poolset_file_dst, unsigned flags);
-int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
-	const wchar_t *poolset_file_dst, unsigned flags);
-}{
-int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
-	unsigned flags); (EXPERIMENTAL)
-}
+_UWFUNCR1(int, pmempool_sync, *poolset_file,=q=
+	unsigned flags=e=, =q= (EXPERIMENTAL)=e=)
+_UWFUNCR12(int, pmempool_transform, *poolset_file_src,
+	*poolset_file_dst, unsigned flags, =q= (EXPERIMENTAL)=e=)
 ```
 
 _UNICODE()
@@ -82,8 +72,8 @@ _UW(pmempool_sync) accepts two arguments:
 
 * *poolset_file* - a path to a pool set file,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 >NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
@@ -108,16 +98,16 @@ pool set. It supports the following operations:
 * reordering of replicas.
 
 
-!pmempool_transform accepts three arguments:
+_UW(pmempool_transform) accepts three arguments:
 
-* *poolset_file_src* - a path to a pool set file which defines the source
+* *poolset_file_src* - pathname of the pool *set* file for the source
 pool set to be changed,
 
-* *poolset_file_dst* - a path to a pool set file which defines the target
+* *poolset_file_dst* - pathname of the pool *set* file that defines the new
 structure of the pool set,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 The following flags are available:
 

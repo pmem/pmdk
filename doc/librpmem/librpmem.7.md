@@ -81,8 +81,10 @@ const char *rpmem_errormsg(void);
 
 ##### Other library functions: #####
 
-A description of other **librpmem** functions can be found on different manual pages:
-* most commonly used functions: **rpmem_create**(3), **rpmem_persist**(3)
+A description of other **librpmem** functions can be found on the following
+manual pages:
+
++ **rpmem_create**(3), **rpmem_persist**(3)
 
 
 # DESCRIPTION #
@@ -251,62 +253,6 @@ string returned by **rpmem_check_version**() must not be modified or
 freed.
 
 
-# DEBUGGING AND ERROR HANDLING #
-
-Two versions of **librpmem** are typically available on a development
-system. The normal version, accessed when a program is linked using the
-**-lrpmem** option, is optimized for performance. That version skips
-checks that impact performance and never logs any trace information or
-performs any run-time assertions. If an error is detected during the
-call to **librpmem** function, an application may retrieve an error
-message describing the reason of failure.
-
-The **rpmem_errormsg**() function returns a pointer to a static buffer
-containing the last error message logged for current thread. The error
-message may include description of the corresponding error code (if
-*errno* was set), as returned by **strerror**(3). The error message buffer
-is thread-local; errors encountered in one thread do not affect its
-value in other threads. The buffer is never cleared by any library
-function; its content is significant only when the return value of the
-immediately preceding call to **librpmem** function indicated an error,
-or if *errno* was set. The application must not modify or free the error
-message string, but it may be modified by subsequent calls to other
-library functions.
-
-A second version of **librpmem**, accessed when a program uses the
-libraries under **/usr/lib/nvml_debug**, contains run-time assertions
-and trace points. The typical way to access the debug version is to set
-the environment variable **LD_LIBRARY_PATH** to
-**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug** depending on
-where the debug libraries are installed on the system. The trace points
-in the debug version of the library are enabled using the environment
-variable **RPMEM_LOG_LEVEL**, which can be set to the following values:
-
-+ **0** - This is the default level when **RPMEM_LOG_LEVEL** is not set.
-  No log messages are emitted at this level.
-
-+ **1** - Additional details on any errors detected are logged (in addition
-  to returning the *errno*-based errors as usual). The same information
-  may be retrieved using **rpmem_errormsg**().
-
-+ **2** - A trace of basic operations is logged.
-
-+ **3** - This level enables a very verbose amount of function call
-  tracing in the library.
-
-+ **4** - This level enables voluminous and fairly obscure tracing
-  information that is likely only useful to the **librpmem** developers.
-
-The environment variable **RPMEM_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the
-name is "-", the PID of the current process will be appended to the file
-name when the log file is created. If **RPMEM_LOG_FILE** is not set,
-the logging output goes to stderr.
-
-Setting the environment variable **RPMEM_LOG_LEVEL** has no effect on
-the non-debug version of **librpmem**.
-
-
 # ENVIRONMENT #
 
 **librpmem** can change its default behavior based on the following
@@ -346,6 +292,64 @@ disabled.
 
 Setting this variable to 0 disables using **fi_verbs**(7) provider for
 in-band RDMA connection. The *verbs* provider is enabled by default.
+
+
+# DEBUGGING AND ERROR HANDLING #
+
+If an error is detected during the call to a **librpmem** function, the
+application may retrieve an error message describing the reason for the failure
+from **rpmem_errormsg**(). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **librpmem** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
+
+Two versions of **librpmem** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lrpmem** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
+
+A second version of **librpmem**, accessed when a program uses the libraries
+under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **RPMEM_LOG_LEVEL**
+
+The value of **RPMEM_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - This is the default level when **RPMEM_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged
+(in addition to returning the *errno*-based errors as usual).
+The same information may be retrieved using **rpmem_errormsg**().
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call
+tracing in the library.
+
++ **4** - Enables voluminous and fairly obscure tracing information
+that is likely only useful to the **librpmem** developers.
+
+Unless **RPMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **RPMEM_LOG_FILE**
+
+Specifies the name of a file where all logging information should be written.
+If the last character in the name is "-", the *PID* of the current process will
+be appended to the file name when the log file is created. If
+**RPMEM_LOG_FILE** is not set, logging output is written to *stderr*.
 
 
 # EXAMPLE #
@@ -406,7 +410,7 @@ main(int argc, char *argv[])
 
 # NOTE #
 
-The **librpmem** API is experimental and may be a subject of changes in the future.
+The **librpmem** API is experimental and may be subject to change in the future.
 However, using the remote replication in **libpmemobj**(7) is safe and backward
 compatibility will be preserved.
 

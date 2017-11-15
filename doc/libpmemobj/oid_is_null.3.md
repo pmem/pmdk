@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: OID_IS_NULL!3
+title: _MP(OID_IS_NULL, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -34,13 +34,13 @@ date: pmemobj API version 2.2
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (oid_is_null.3 -- man page for persistent objects identifier and functions)
+[comment]: <> (oid_is_null.3 -- man page for persistent object identifier and functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
-[NOTES](#notes)<br />
+_WINUX(,[NOTES](#notes)<br />)
 [SEE ALSO](#see-also)<br />
 
 
@@ -49,7 +49,7 @@ date: pmemobj API version 2.2
 **OID_IS_NULL**(), **OID_EQUALS**(),
 **pmemobj_direct**(), **pmemobj_oid**(),
 **pmemobj_type_num**(), **pmemobj_pool_by_oid**(),
-**pmemobj_pool_by_ptr**() -- functions that allows mapping
+**pmemobj_pool_by_ptr**() -- functions that allow mapping
 operations between object addresses, object handles, oids or type numbers
 
 
@@ -71,85 +71,89 @@ PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 
 # DESCRIPTION #
 
-Each object stored in persistent memory pool is represented by an object
+Each object stored in a persistent memory pool is represented by an object
 handle of type *PMEMoid*. In practice, such a handle is a unique Object
-IDentifier (*OID*) of a global scope, which means that two objects from
-different pools may not have the same *OID*. The special **OID_NULL**
+IDentifier (*OID*) of global scope, which means that two objects from
+different pools will never have the same *OID*. The special **OID_NULL**
 macro defines a NULL-like handle that does not represent any object.
-The size of a single object is limited by a **PMEMOBJ_MAX_ALLOC_SIZE**.
-Thus an allocation with requested size greater than this value will fail.
+The size of a single object is limited by **PMEMOBJ_MAX_ALLOC_SIZE**.
+Thus an allocation with a requested size greater than this value will fail.
 
-An *OID* cannot be considered as a direct pointer to an object. Each time
+An *OID* cannot be used as a direct pointer to an object. Each time
 the program attempts to read or write object data, it must obtain the current
-memory address of the object by converting its *OID* into the pointer.
+memory address of the object by converting its *OID* into a pointer.
 
 In contrast to the memory address, the *OID* value for given object does not
-change during the life of an object (except for realloc operation), and remains
+change during the life of an object (except for *realloc*), and remains
 valid after closing and reopening the pool. For this reason, if an object
-contains a reference to another persistent object - necessary to build
-some kind of a linked data structure - it shall never use memory
-address of an object, but its *OID*.
+contains a reference to another persistent object, for example, to build
+some kind of a linked data structure, the reference must be an *OID* and not
+a memory address.
 
-The **pmemobj_direct**() function as argument takes object handle
-of type *PMEMoid* to get pointer to an object represented by *oid*.
+**pmemobj_direct**() returns a pointer to the *PMEMoid* object with
+handle *oid*.
 
-The **pmemobj_oid**() function as argument takes address and
-search *PMEMoid* to an object pointed to by this *addr*.
+**pmemobj_oid**() returns a *PMEMoid* handle to the object pointed
+to by *addr*.
 
-The **pmemobj_type_num**() function takes object handle *oid* and returns
-number of the object represented by this *oid*.
+**pmemobj_type_num**() returns the type number of the *PMEMoid* object with
+handle *oid*.
 
-The **pmemobj_pool_by_oid**() function returns a handle to the pool which
-contains the object represented by *oid* passed as argument to this function.
+**pmemobj_pool_by_oid**() returns a *PMEMobjpool*\* handle to the pool
+containing the *PMEMoid* object with handle *oid*.
 
-The **pmemobj_pool_by_ptr**() function returns a handle to the pool
-which contains the address *addr*.
+**pmemobj_pool_by_ptr**() returns a *PMEMobjpool*\* handle to the pool
+containing the address *addr*.
 
-At the time of allocation (or reallocation), each object may be assigned to
+At the time of allocation (or reallocation), each object may be assigned
 a number representing its type. Such a *type number* may be used to arrange the
-persistent objects based on their actual user-defined structure type, thus facilitating
-implementation of a simple run-time type safety mechanism. It also allows to iterate through
-all the objects of given type stored in the persistent memory pool.
-See *Object containers* section in **libpmemobj**(7) for more details functions.
+persistent objects based on their actual user-defined structure type, thus
+facilitating implementation of a simple run-time type safety mechanism. This
+also allows iterating through all the objects of a given type that are stored
+in the persistent memory pool. See *Object containers* in **libpmemobj**(7) for
+more information.
 
-The **OID_IS_NULL**() macro checks if given *PMEMoid* represents a NULL object.
+The **OID_IS_NULL**() macro checks if *PMEMoid* represents a NULL object.
 
 The **OID_EQUALS**() macro compares two *PMEMoid* objects.
 
 
 # RETURN VALUE #
 
-The **pmemobj_direct**() function returns a pointer to an object represented by *oid*.
-If **OID_NULL** is passed as an argument, function returns NULL.
+The **pmemobj_direct**() function returns a pointer to the object represented
+by *oid*. If *oid* is **OID_NULL**, **pmemobj_direct**() returns NULL.
 
-The **pmemobj_oid**() function returns a *PMEMoid* to an object pointed to by *addr*.
-If *addr* is not from within a pmemobj pool, **OID_NULL** is returned.
-If *addr* is not the start of an object (does not point to the beginning of a valid allocation),
-the resulting *PMEMoid* can be safely used only with:
+The **pmemobj_oid**() function returns a *PMEMoid* handle to the object pointed
+to by *addr*. If *addr* is not from within a pmemobj pool, **OID_NULL** is
+returned. If *addr* is not the start of an object (does not point to the
+beginning of a valid allocation), the resulting *PMEMoid* can be safely used
+only with:
 
 + **pmemobj_pool_by_oid**()
+
 + **pmemobj_direct**()
+
 + **pmemobj_tx_add_range**(3)
 
-The **pmemobj_type_num**() function returns a type number of the object represented by *oid*.
+The **pmemobj_type_num**() function returns the type number of the object
+represented by *oid*.
 
-The **pmemobj_pool_by_oid**() function returns a handle to the pool which contains the object
-represented by *oid*. If the pool is not open or **OID_NULL** is
-passed as an argument, function returns NULL.
+The **pmemobj_pool_by_oid**() function returns a handle to the pool that
+contains the object represented by *oid*. If the the pool is not open or
+*oid* is **OID_NULL**, **pmemobj_pool_by_oid**() returns NULL.
 
-The **pmemobj_pool_by_ptr**() function returns a handle to the pool which contains the address.
-If the address does not belong to any open pool, function returns NULL.
+The **pmemobj_pool_by_ptr**() function returns a handle to the pool that
+contains the address, or NULL if the address does not belong to any open pool.
 
+_WINUX(,=q=
 
 # NOTES #
 
-For performance reasons, on Linux **pmemobj_direct**() function is
-inlined by default. You may decide to compile your programs using the
-non-inlined variant of **pmemobj_direct**() by defining
-**PMEMOBJ_DIRECT_NON_INLINE** macro. You should define this macro
-by using *\#define* preprocessor directive, which must come before
-*\#include* of **\<libpmemobj.h\>**. You could also use *\-D* option to gcc.
-On Windows **PMEMOBJ_DIRECT_NON_INLINE** macro has no effect.
+For performance reasons, on Linux and FreeBSD the **pmemobj_direct**()
+function is inlined by default. To use the non-inlined variant of
+**pmemobj_direct**(), define **PMEMOBJ_DIRECT_NON_INLINE** prior
+to the *\#include* of **\<libpmemobj.h\>**, either with *\#define* or with
+the *\-D* option to the compiler.=e=)
 
 
 # SEE ALSO #

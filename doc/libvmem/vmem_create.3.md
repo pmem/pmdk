@@ -45,7 +45,7 @@ date: vmem API version 1.1
 
 # NAME #
 
-!vmem_create, **vmem_create_in_region**(), **vmem_delete**(),
+_UW(vmem_create), **vmem_create_in_region**(), **vmem_delete**(),
 **vmem_check**(), **vmem_stats_print**() -- volatile memory pool management
 
 
@@ -54,31 +54,20 @@ date: vmem API version 1.1
 ```c
 #include <libvmem.h>
 
-!ifdef{WIN32}
-{
-VMEM *vmem_createU(const char *dir, size_t size);
-VMEM *vmem_createW(const wchar_t *dir, size_t size);
-}{
-VMEM *vmem_create(const char *dir, size_t size);
-}
+_UWFUNCR1(VMEM, *vmem_create, *dir, size_t size)
 VMEM *vmem_create_in_region(void *addr, size_t size);
 void vmem_delete(VMEM *vmp);
 int vmem_check(VMEM *vmp);
 void vmem_stats_print(VMEM *vmp, const char *opts);
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 
 # DESCRIPTION #
 
 To use **libvmem**, a *memory pool* is first created. This is most commonly
-done with the !vmem_create function described in this section. The other
+done with the _UW(vmem_create) function described below. The other
 **libvmem** functions are for less common cases, where applications have
 special needs for creating pools or examining library state.
 
@@ -117,7 +106,7 @@ the virtual address space of the calling process, or if the *size* is larger
 than the actual size of the memory region pointed to by *addr*.
 
 The **vmem_delete**() function releases the memory pool *vmp*.
-If the memory pool was created using !vmem_create, deleting it
+If the memory pool was created using _UW(vmem_create), deleting it
 allows the space to be reclaimed.
 
 The **vmem_check**() function performs an extensive consistency
@@ -133,7 +122,7 @@ testing/debugging.
 
 The **vmem_stats_print**() function produces messages containing statistics
 about the given memory pool. Output is sent to *stderr* unless the user
-sets the environment variable **VMEM_LOG_FILE**, or the application supplies a 
+sets the environment variable **VMEM_LOG_FILE**, or the application supplies a
 replacement *print_func* (see **MANAGING LIBRARY BEHAVIOR** in **libvmem**(7)).
 The *opts* string can either be NULL or it can contain a list of options that
 change the statistics printed. General information that never changes
@@ -150,10 +139,10 @@ that man page).
 # RETURN VALUE #
 
 On success, _UW(vmem_create) returns an opaque memory pool handle of type
-*VMEM\**. On failure, it returns NULL and sets *errno* appropriately.
+*VMEM\**. On error, it returns NULL and sets *errno* appropriately.
 
 On success, **vmem_create_in_region**() returns an opaque memory pool handle
-of type *VMEM\**. On failure, it returns NULL and sets *errno* appropriately.
+of type *VMEM\**. On error, it returns NULL and sets *errno* appropriately.
 
 The **vmem_delete**() function returns no value.
 

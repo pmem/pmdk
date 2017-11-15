@@ -59,29 +59,15 @@ date: vmem API version 1.1
 cc ... -lvmem
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 ##### Managing overall library behavior: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *vmem_check_versionU(
+_UWFUNC(vmem_check_version, =q=
 	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *vmem_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *vmem_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
+	unsigned minor_required=e=)
+
 void vmem_set_funcs(
 	void *(*malloc_func)(size_t size),
 	void (*free_func)(void *ptr),
@@ -93,25 +79,22 @@ void vmem_set_funcs(
 ##### Error handling: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *vmem_errormsgU(void);
-const wchar_t *vmem_errormsgW(void);
-}{
-const char *vmem_errormsg(void);
-}
+_UWFUNC(vmem_errormsg, void)
 ```
 
 ##### Other library functions: #####
 
-A description of other **libvmem** functions can be found on different manual pages:
-* memory pool management: **vmem_create**(3)
-* memory allocation related functions: **vmem_malloc**(3)
+A description of other **libvmem** functions can be found on the following
+manual pages:
+
++ memory pool management: **vmem_create**(3)
+
++ memory allocation related functions: **vmem_malloc**(3)
 
 
 # DESCRIPTION #
 
-**libvmem** provides common *malloc-like* interfaces to memory pools built on
+**libvmem** provides common *malloc*-like interfaces to memory pools built on
 memory-mapped files. These interfaces are for traditional **volatile** memory
 allocation but, unlike the functions described in **malloc**(3),
 the memory managed by **libvmem** may have different attributes,
@@ -147,20 +130,13 @@ those interfaces less commonly used for managing the overall library behavior.
 
 # MANAGING LIBRARY BEHAVIOR #
 
-
-```c
-_UWFUNC(vmem_check_version, =q=
-	unsigned major_required,
-	unsigned minor_required=e=)
-```
-
 The _UW(vmem_check_version) function is used to see if the installed
 **libvmem** supports the version of the library API required by an application.
 The easiest way to do this is for the application to supply the compile-time
 version information, supplied by defines in **\<libvmem.h\>**, like this:
 
 ```c
-reason = vmem_check_version!U{}(VMEM_MAJOR_VERSION,
+reason = _U(vmem_check_version)(VMEM_MAJOR_VERSION,
                             VMEM_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -182,15 +158,6 @@ When the version check is successful, _UW(vmem_check_version) returns NULL.
 Otherwise, _UW(vmem_check_version) returns a static string describing the
 reason for failing the version check. The returned string must not be modified
 or freed.
-
-```c
-void vmem_set_funcs(
-	void *(*malloc_func)(size_t size),
-	void (*free_func)(void *ptr),
-	void *(*realloc_func)(void *ptr, size_t size),
-	char *(*strdup_func)(const char *s),
-	void (*print_func)(const char *s));
-```
 
 The **vmem_set_funcs**() function allows an application to override some
 interfaces used internally by **libvmem**. Passing NULL for any of the
@@ -216,62 +183,57 @@ resources associated with that thread might not be cleaned up properly.
 
 # DEBUGGING AND ERROR HANDLING #
 
-Two versions of **libvmem** are typically available on a development system.
-The normal version, accessed when a program is linked using the **-lvmem**
-option, is optimized for performance. That version skips checks that impact
-performance and never logs any trace information or performs any run-time
-assertions. If an error is detected during a call to **libvmem**,
-the application may retrieve an error message describing the error
-using the following function:
+If an error is detected during the call to a **libvmem** function, the
+application may retrieve an error message describing the reason for the failure
+from _UW(vmem_errormsg). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **libvmem** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
 
-```c
-_UWFUNC(vmem_errormsg, void)
-```
+Two versions of **libvmem** are typically available on a development
+system. The normal version is optimized for performance. That version skips
+checks that impact performance and never logs any trace information or
+performs any run-time assertions. A second version, accessed when using
+libraries from _DEBUGLIBPATH(), contains run-time assertions and trace
+points. The typical way to access the debug version is to set the
+**LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
 
-The _UW(vmem_errormsg) function returns a pointer to a static buffer containing
-the last error message logged for the current thread. If *errno* was set, the
-error message may include a description of the corresponding error code as
-returned by **strerror**(3). The error message buffer is thread-local; errors
-encountered in one thread do not affect its value in other threads. The buffer
-is never cleared by any library function; its content is significant only when
-the return value of the immediately preceding call to **libvmem**
-indicated an error, or if *errno* was set. The application must not modify or
-free the error message string, but it may be modified by subsequent calls to
-other library functions.
++ **VMEM_LOG_LEVEL**
 
-A second version of **libvmem**, accessed when a program uses
-the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**},
-contains run-time assertions and trace points. The typical way to
-access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
-{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
-libraries are installed on the system.
-The trace points in the debug version of the library are enabled using the environment variable
-**VMEM_LOG_LEVEL**, which can be set to the following values:
+The value of **VMEM_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
 
-+ **0** - This is the default level when **VMEM_LOG_LEVEL** is not set.
-	Only statistics are logged, and then only in response to a call to **vmem_stats_print**().
++ **0** - Tracing is disabled. This is the default level when
+**VMEM_LOG_LEVEL** is not set.
 
-+ **1** - Additional details on any errors detected are logged
-	(in addition to returning the *errno*-based errors as usual).
-	The same information may be retrieved using !vmem_errormsg.
++ **1** - Additional details on any errors detected are logged, in addition to
+returning the *errno*-based errors as usual.
 
-+ **2** - A trace of basic operations including allocations and deallocations is logged.
++ **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call tracing in the library.
++ **3** - Enables a very verbose amount of function call tracing
+in the library.
 
-+ **4** - This level enables voluminous and fairly obscure tracing information
-	that is likely only useful to the **libvmem** developers.
++ **4** - Enables voluminous tracing information about all memory
+allocations and deallocations.
 
-The environment variable **VMEM_LOG_FILE** specifies a file name where all
-logging information should be written. If the last character in the name is
-"-", the PID of the current process will be appended to the file name when the
-log file is created. If **VMEM_LOG_FILE** is not set, output goes to *stderr*.
-All printing is performed using the *print_func* function in **libvmem** (see
-**vmem_set_funcs**() above for details on how to override *print_func*).
+Unless **VMEM_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting **VMEM_LOG_LEVEL** has no effect on the
-non-debug version of **libvmem**.
++ **VMEM_LOG_FILE**
+
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **VMEM_LOG_FILE** is not set, output is
+written to *stderr*.
 
 
 # EXAMPLE #
@@ -292,9 +254,9 @@ main(int argc, char *argv[])
 	char *ptr;
 
 	/* create minimum size pool of memory */
-	if ((vmp = vmem_create!U{}("/pmem-fs",
+	if ((vmp = _U(vmem_create)("/pmem-fs",
 			VMEM_MIN_POOL)) == NULL) {
-		perror("vmem_create!U");
+		perror("_U(vmem_create)");
 		exit(1);
 	}
 

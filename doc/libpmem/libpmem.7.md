@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEM!7
+title: _MP(LIBPMEM, 7)
 collection: libpmem
 header: NVM Library
 date: pmem API version 1.0
@@ -39,9 +39,10 @@ date: pmem API version 1.0
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
+[ENVIRONMENT](#environment)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
-[ENVIRONMENT VARIABLES](#environment-variables)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -59,49 +60,32 @@ date: pmem API version 1.0
 cc ... -lpmem
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmem_check_versionU(
+_UWFUNC(pmem_check_version, =q=
 	unsigned major_required,
-	unsigned minor_required);
-const wchar_t *pmem_check_versionW(
-	unsigned major_required,
-	unsigned minor_required);
-}{
-const char *pmem_check_version(
-	unsigned major_required,
-	unsigned minor_required);
-}
+	unsigned minor_required=e=)
 ```
 
 ##### Error handling: #####
 
 ```c
-!ifdef{WIN32}
-{
-const char *pmem_errormsgU(void);
-const wchar_t *pmem_errormsgW(void);
-}{
-const char *pmem_errormsg(void);
-}
+_UWFUNC(pmem_errormsg, void)
 ```
 
 ##### Other library functions: #####
 
-A description of other **libpmem** functions can be found on different manual pages:
-* most commonly used functions: **pmem_is_pmem**(3)
-* partial flushing operations: **pmem_flush**(3)
-* copying to persistent memory: **pmem_memmove_persist**(3)
+A description of other **libpmem** functions can be found on the following
+manual pages:
+
++ most commonly used functions: **pmem_is_pmem**(3)
+
++ partial flushing operations: **pmem_flush**(3)
+
++ copying to persistent memory: **pmem_memmove_persist**(3)
 
 
 # DESCRIPTION #
@@ -147,14 +131,14 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
-The !pmem_check_version function is used to see if the installed
+The _UW(pmem_check_version) function is used to determine whether the installed
 **libpmem** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
 the compile-time version information, supplied by defines in
 **\<libpmem.h\>**, like this:
 
 ```c
-reason = pmem_check_version!U{}(PMEM_MAJOR_VERSION,
+reason = _U(pmem_check_version)(PMEM_MAJOR_VERSION,
                             PMEM_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -173,71 +157,14 @@ in version 1.0 of the library. Interfaces added after version 1.0 will
 contain the text *introduced in version x.y* in the section of this
 manual describing the feature.
 
-When the version check performed by !pmem_check_version is
+When the version check performed by _UW(pmem_check_version) is
 successful, the return value is NULL. Otherwise the return value is a
 static string describing the reason for failing the version check. The
-string returned by !pmem_check_version must not be modified or
+string returned by _UW(pmem_check_version) must not be modified or
 freed.
 
 
-# DEBUGGING AND ERROR HANDLING #
-
-Two versions of **libpmem** are typically available on a development
-system. The normal version, accessed when a program is linked using the
-**-lpmem** option, is optimized for performance. That version skips
-checks that impact performance and never logs any trace information or
-performs any run-time assertions. If an error is detected during the
-call to **libpmem** function, an application may retrieve an error
-message describing the reason of failure using the !pmem_errormsg function.
-
-The !pmem_errormsg function returns a pointer to a static buffer
-containing the last error message logged for current thread. The error
-message may include description of the corresponding error code (if
-*errno* was set), as returned by **strerror**(3). The error message buffer
-is thread-local; errors encountered in one thread do not affect its
-value in other threads. The buffer is never cleared by any library
-function; its content is significant only when the return value of the
-immediately preceding call to **libpmem** function indicated an error,
-or if *errno* was set. The application must not modify or free the error
-message string, but it may be modified by subsequent calls to other
-library functions.
-
-A second version of **libpmem**, accessed when a program uses
-the libraries under !ifdef{WIN32}{**/nvml/src/x64/Debug**}{**/usr/lib/nvml_debug**}, contains
-run-time assertions and trace points. The typical way to
-access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to !ifdef{WIN32}{**/nvml/src/x64/Debug** or other location}
-{**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**} depending on where the debug
-libraries are installed on the system. The trace points
-in the debug version of the library are enabled using the environment
-variable **PMEM_LOG_LEVEL**, which can be set to the following values:
-
-+ **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
-  No log messages are emitted at this level.
-
-+ **1** - Additional details on any errors detected are logged (in addition
-  to returning the *errno*-based errors as usual). The same information
-  may be retrieved using !pmem_errormsg.
-
-+ **2** - A trace of basic operations is logged.
-
-+ **3** - This level enables a very verbose amount of function call
-  tracing in the library.
-
-+ **4** - This level enables voluminous and fairly obscure tracing
-  information that is likely only useful to the **libpmem** developers.
-
-The environment variable **PMEM_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the
-name is "-", the PID of the current process will be appended to the file
-name when the log file is created. If **PMEM_LOG_FILE** is not set,
-the logging output goes to stderr.
-
-Setting the environment variable **PMEM_LOG_LEVEL** has no effect on
-the non-debug version of **libpmem**.
-
-
-# ENVIRONMENT VARIABLES #
+# ENVIRONMENT #
 
 **libpmem** can change its default behavior based on the following
 environment variables. These are largely intended for testing and are
@@ -253,11 +180,11 @@ pmem for some reason.
 
 >NOTE:
 Unlike the other variables, the value of
-**PMEM_IS_PMEM_FORCE** is not queried (and cached) at the
+**PMEM_IS_PMEM_FORCE** is not queried (and cached) at
 library initialization time, but on the first call to
-**pmem_is_pmem**(3) function. It means that in case of
-**libpmemlog**(7), **libpmemblk**(7), and **libpmemobj**(7)
-libraries, it may still be set or modified by the program
+**pmem_is_pmem**(3). This means that in case of
+**libpmemlog**(7), **libpmemblk**(7), and **libpmemobj**(7),
+**PMEM_IS_PMEM_FORCE** may still be set or modified by the program
 until the first attempt to create or open the persistent
 memory pool.
 
@@ -310,7 +237,7 @@ This variable is intended for use during library testing.
 + **PMEM_MMAP_HINT**=*val*
 
 This environment variable allows overriding
-the hint address used by !pmem_map_file. If set, it also disables
+the hint address used by _UW(pmem_map_file). If set, it also disables
 mapping address randomization. This variable is intended for use during
 library testing and debugging. Setting it to some fairly large value
 (i.e. 0x10000000000) will very likely result in mapping the file at the
@@ -326,6 +253,65 @@ direct pointer to the object.
 affects all the NVM libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
+
+
+# DEBUGGING AND ERROR HANDLING #
+
+If an error is detected during the call to a **libpmem** function, the
+application may retrieve an error message describing the reason for the failure
+from _UW(pmem_errormsg). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **libpmem** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
+
+Two versions of **libpmem** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lpmem** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
+
+A second version of **libpmem**, accessed when a program uses the libraries
+under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEM_LOG_LEVEL**
+
+The value of **PMEM_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged, in addition
+to returning the *errno*-based errors as usual. The same information
+may be retrieved using _UW(pmem_errormsg).
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call tracing in the
+library.
+
++ **4** - Enables voluminous and fairly obscure tracing
+information that is likely only useful to the **libpmem** developers.
+
+Unless **PMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **PMEM_LOG_FILE**
+
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **PMEM_LOG_FILE** is not set, output is
+written to *stderr*.
 
 
 # EXAMPLE #
@@ -364,9 +350,9 @@ main(int argc, char *argv[])
 
 	/* create a pmem file and memory map it */
 
-	if ((pmemaddr = pmem_map_file!U{}(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+	if ((pmemaddr = _U(pmem_map_file)(PATH, PMEM_LEN, PMEM_FILE_CREATE,
 			0666, &mapped_len, &is_pmem)) == NULL) {
-		perror("pmem_map_file!U");
+		perror("_U(pmem_map_file)");
 		exit(1);
 	}
 

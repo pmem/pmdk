@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: TOID_DECLARE!3
+title: _MP(TOID_DECLARE, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -79,11 +79,11 @@ D_RO(TOID oid)
 # DESCRIPTION #
 
 Operating on untyped object handles, as well as on direct untyped object
-pointers (*void\**) may be confusing and error prone. To facilitate
-implementation of type safety mechanism, **libpmemobj**(7) defines a set of macros
-that provide a static type enforcement, catching potential errors at compile time.
-For example, a compile-time error is generated when an attempt is made to assign a handle
-to an object of one type to the object handle variable of another type of object.
+pointers (*void\**), may be confusing and error-prone. To facilitate
+type safety, **libpmemobj** defines a set of macros that provide static
+type enforcement, catching potential errors at compile time. For example,
+a compile-time error is generated when an attempt is made to assign a handle to
+an object of one type to the object handle variable of another type of object.
 
 The **TOID_DECLARE**() macro declares a typed *OID* of user-defined type specified by
 argument *TYPE*, and with type number specified by argument *type_num*.

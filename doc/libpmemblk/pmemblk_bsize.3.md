@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMBLK_BSIZE!3
+title: _MP(PMEMBLK_BSIZE, 3)
 collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
@@ -34,7 +34,7 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_bsize.3 -- man page for functions that checks number of available blocks or usable space in block memory pool)
+[comment]: <> (pmemblk_bsize.3 -- man page for functions that check number of available blocks or usable space in block memory pool)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -45,8 +45,8 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-**pmemblk_bsize**(), **pmemblk_nblock**() -- checks number of available blocks or
-												usable space in block memory pool
+**pmemblk_bsize**(), **pmemblk_nblock**() -- check number of available blocks or
+usable space in block memory pool
 
 
 # SYNOPSIS #
@@ -61,19 +61,23 @@ size_t pmemblk_nblock(PMEMblkpool *pbp);
 
 # DESCRIPTION #
 
-The **pmemblk_bsize**() function returns the block size of the specified block memory pool.
-It's the value which was passed as *bsize* to !pmemblk_create.
-*pbp* must be a block memory pool handle as returned by **pmemblk_open**(3) or **pmemblk_create**(3).
+The **pmemblk_bsize**() function returns the block size of the specified
+block memory pool, that is, the value which was passed as *bsize* to
+_MP(pmemblk_create). *pbp* must be a block memory pool handle as returned by
+**pmemblk_open**(3) or **pmemblk_create**(3).
 
-The **pmemblk_nblock**() function returns the usable space in the block memory pool.
-*pbp* must be a block memory pool handle as returned by **pmemblk_open**(3) or **pmemblk_create**(3).
+The **pmemblk_nblock**() function returns the usable space in the block memory
+pool. *pbp* must be a block memory pool handle as returned by
+**pmemblk_open**(3) or **pmemblk_create**(3).
 
 
 # RETURN VALUE #
 
-The **pmemblk_bsize**() function returns the block size of the specified block memory pool.
+The **pmemblk_bsize**() function returns the block size of the specified block
+memory pool.
 
-The **pmemblk_nblock**() function returns the usable space in the block memory pool, expressed as the number of blocks available.
+The **pmemblk_nblock**() function returns the usable space in the block memory
+pool, expressed as the number of blocks available.
 
 
 # SEE ALSO #

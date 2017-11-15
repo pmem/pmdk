@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMLOG_NBYTE!3
+title: _MP(PMEMLOG_NBYTE, 3)
 collection: libpmemlog
 header: NVM Library
 date: pmemlog API version 1.0

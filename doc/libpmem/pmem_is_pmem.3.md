@@ -93,7 +93,7 @@ On success, _UW(pmem_map_file) returns a pointer to the mapped area. If
 mapped file is actual pmem, or if **msync**() must be used to flush writes
 for the mapped range, is stored into \**is_pmemp*.
 
-The *flags* argument is a bitwise OR of zero or more of the
+The *flags* argument is 0 or the bitwise OR of one or more of the
 following file creation flags:
 
 + **PMEM_FILE_CREATE** - Create the named file if it does not exist.

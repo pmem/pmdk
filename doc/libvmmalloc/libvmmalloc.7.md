@@ -40,6 +40,7 @@ date: vmmalloc API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [ENVIRONMENT](#environment)<br />
+[CAVEATS](#caveats)<br />
 [DEBUGGING](#debugging)<br />
 [NOTES](#notes)<br />
 [BUGS](#bugs)<br />
@@ -67,8 +68,6 @@ or
 
 cc [ flag... ] file... -lvmmalloc [ library... ]
 ```
-
-##### Most commonly used functions: #####
 
 ```c
 void *malloc(size_t size);
@@ -109,7 +108,7 @@ allocator for the program.
 
 >NOTE:
 Due to the fact the library operates on a memory-mapped file, **it may not
-work properly with the programs that perform fork(2) not followed by exec(3).**
+work properly with programs that perform fork(2) not followed by exec(3).**
 There are two variants of experimental **fork**() support available in
 libvmmalloc. The desired library behavior may be selected by setting the
 **VMMALLOC_FORK** environment variable. By default variant #1 is enabled.
@@ -139,7 +138,7 @@ make use of any signals, networking, and never calls **select**() or
 
 # ENVIRONMENT #
 
-The **VMMALLOC_POOL_DIR** and **VMMALLOC_POOL_DIR** environment variables
+The **VMMALLOC_POOL_DIR** and **VMMALLOC_POOL_SIZE** environment variables
 **must** be set for **libvmmalloc** to work properly. If either of them is
 not specified, or if their values are not valid, the library prints an
 appropriate error message and terminates the process. Any other environment
@@ -214,7 +213,7 @@ checks that impact performance and never logs any trace information or
 performs any run-time assertions. A second version, accessed when using
 libraries from _DEBUGLIBPATH(), contains run-time assertions and trace
 points. The typical way to access the debug version is to set the
-**LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging is
+**LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging output is
 contolled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
@@ -223,7 +222,7 @@ no effect on the non-debug version of the library.
 The value of **VMMALLOC_LOG_LEVEL** enables trace points in the debug version
 of the library, as follows:
 
-+ **0** - Tracing is disabled. This is the default level when 
++ **0** - Tracing is disabled. This is the default level when
 **VMMALLOC_LOG_LEVEL** is not set.
 
 + **1** - Additional details on any errors detected are logged, in addition to

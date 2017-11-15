@@ -39,6 +39,7 @@ date: pmemlog API version 1.0
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
@@ -91,7 +92,7 @@ _UWFUNCR(int, pmemlog_check, *path)
 A description of other **libpmemlog** functions can be found on the following
 manual pages:
 
-* **pmemlog_create**(3), **pmemlog_nbyte**(3), **pmemlog_append**(3),
+**pmemlog_create**(3), **pmemlog_nbyte**(3), **pmemlog_append**(3),
 **pmemlog_tell**(3)
 
 
@@ -157,9 +158,9 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-The _UW(pmemlog_check_version) function is used to see if the installed
-**libpmemlog** supports the version of the library API required by an
-application. The easiest way to do this is for the application to supply
+The _UW(pmemlog_check_version) function is used to determine whether the
+installed **libpmemlog** supports the version of the library API required by
+an application. The easiest way to do this is for the application to supply
 the compile-time version information provided by defines in
 **\<libpmemlog.h\>**, like this:
 
@@ -182,9 +183,9 @@ interfaces described here are available in version 1.0 of the library. Interface
 added after version 1.0 will contain the text *introduced
 in version x.y* in the section of this manual describing the feature.
 
-On success, _UW(pmemobj_check_version) returns NULL. Otherwise, the return
+On success, _UW(pmemlog_check_version) returns NULL. Otherwise, the return
 value is a static string describing the reason the version check failed. The
-string returned by _UW(pmemobj_check_version) must not be modified or freed.
+string returned by _UW(pmemlog_check_version) must not be modified or freed.
 
 
 # MANAGING LIBRARY BEHAVIOR #
@@ -199,52 +200,59 @@ allocate approximately 4-8 kilobytes for each memory pool in use.
 
 # DEBUGGING AND ERROR HANDLING #
 
-The _UW(pmemobj_errormsg) function returns a pointer to a static buffer
+The _UW(pmemlog_errormsg) function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3). The error message buffer is
 thread-local; errors encountered in one thread do not affect its value in
 other threads. The buffer is never cleared by any library function; its
 content is significant only when the return value of the immediately preceding
-call to a **libpmemobj** function indicated an error, or if *errno* was set.
+call to a **libpmemlog** function indicated an error, or if *errno* was set.
 The application must not modify or free the error message string, but it may
 be modified by subsequent calls to other library functions.
 
-Two versions of **libpmemobj** are typically available on a development
+Two versions of **libpmemlog** are typically available on a development
 system. The normal version, accessed when a program is linked using the
-**-lpmemobj** option, is optimized for performance. That version skips checks
+**-lpmemlog** option, is optimized for performance. That version skips checks
 that impact performance and never logs any trace information or performs any
 run-time assertions.
 
-A second version of **libpmemobj**, accessed when a program uses the libraries
+A second version of **libpmemlog**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to _LDLIBPATH(). The trace points in the debug version of
-the library are enabled using the environment variable **PMEMOBJ_LOG_LEVEL**,
-which can be set to the following values:
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEMLOG_LOG_LEVEL**
+
+The value of **PMEMLOG_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
 
 + **0** - This is the default level when **PMEMLOG_LOG_LEVEL** is not set.
-	No log messages are emitted at this level.
+No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged,
-	in addition to returning the *errno*-based errors as usual.
-	The same information may be retrieved using _UW(pmemlog_errormsg).
+in addition to returning the *errno*-based errors as usual.
+The same information may be retrieved using _UW(pmemlog_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call tracing in the library.
++ **3** - Enables a very verbose amount of function call tracing in the library.
 
-+ **4** - This level enables voluminous and fairly obscure tracing information
-	that is likely only useful to the **libpmemlog** developers.
++ **4** - Enables voluminous and fairly obscure tracing information
+that is likely only useful to the **libpmemlog** developers.
 
-The **PMEMLOG_LOG_FILE** environment variable specifies a file name where all
-logging information should be written. If the last character in the name is "-",
-the PID of the current process will be appended to the file name when
-the log file is created. If **PMEMLOG_LOG_FILE** is not set,
-the logging output goes to stderr.
+Unless **PMEMLOG_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting **PMEMLOG_LOG_LEVEL** has no effect on the non-debug version of
-**libpmemlog**. See also **libpmem**(7) for information about other environment
++ **PMEMLOG_LOG_FILE**
+
+Specifies the name of a file name where all logging information should be
+written. If the last character in the name is "-", the *PID* of the current
+process will be appended to the file name when the log file is created. If
+**PMEMLOG_LOG_FILE** is not set, logging output is written to *stderr*.
+
+See also **libpmem**(7) for information about other environment
 variables affecting **libpmemlog** behavior.
 
 

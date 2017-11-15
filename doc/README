@@ -2,107 +2,55 @@ Non-Volatile Memory Library
 
 This is doc/README.
 
-This directory contains source for the man pages for the NVM Library.
-If you're looking for documentation to get you started using NVML,
-start here: http://pmem.io/nvml and follow the links to examples and
-man pages.  Developers new to NVML are probably looking for libpmemobj.
+Subdirectories of this directory contain source for the man pages for the NVM
+Library in markdown format (.md files). If you're looking for documentation to
+get you started using NVML, start here: http://pmem.io/nvml and follow the
+links to examples and man pages. Developers new to NVML are probably looking
+for libpmemobj.
 
 To generate web-based documentation or Linux/FreeBSD man pages, you need to
 have groff, doxygen and pandoc installed. m4 macros are used in the document
-sources to generate OS-specific variants of man pages and web-based documentation.
-The macros are defined in macros.man.
+sources to generate OS-specific variants of man pages and web-based
+documentation. The macros are defined in macros.man. Processing is performed
+by the ../utils/md2man.sh script.
 
-All files in the *generated* directory are automatically generated and updated by the
-nvml-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to the
-documentation are to be made by modifying the \*.md files in the main doc
-directory.
+All files in the *generated* directory are automatically generated and updated
+by the nvml-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to
+the documentation must be made by modifying the *.md files in the following
+document subdirectories:
 
-libpmem(3) -- low-level persistent memory support
-    Man page source is in: libpmem.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libpmem.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libpmem.3.html
-
-libpmemblk(3) -- pmem-resident arrays of blocks
-    Man page source is in: libpmemblk.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libpmemblk.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libpmemblk.3.html
-
-libpmemlog(3) -- pmem-resident log files
-    Man page source is in: libpmemlog.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libpmemlog.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libpmemlog.3.html
-
-libpmemobj(3) -- transactional object store
-    Man page source is in: libpmemobj.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libpmemobj.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libpmemobj.3.html
-
-libvmem(3) -- volatile memory allocation library
-    Man page source is in libvmem.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libvmem.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libvmem.3.html
-
-libvmmalloc(3) -- general purpose volatile memory allocation library
-    Man page source is in libvmmalloc.3.md
-    HTML formatted version: http://pmem.io/nvml/manpages/master/libvmmalloc.3.html
-
-libpmempool(3) -- persistent memory pool management library
-    Man page source is in libpmempool.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/libpmempool.3.html
-    HTML formatted Windows version: http://pmem.io/nvml/manpages/windows/master/libpmempool.3.html
-
-pmempool(1) -- Persistent Memory Pool Management Tool
-    Man page source is in pmempool.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool.1.html
-
-pmempool-info(1) -- Print basic information about Persistent Memory Pool file
-    Man page source is in pmempool-info.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-info.1.html
-
-pmempool-check(1) -- Check and repair Persistent Memory Pool
-    Man page source is in pmempool-check.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-check.1.html
-
-pmempool-create(1) -- Create Persistent Memory Pool of specified type
-    Man page source is in pmempool-create.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-create.1.html
-
-pmempool-dump(1) -- Dump user data from specified pool
-    Man page source is in pmempool-dump.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-dump.1.html
-
-pmempool-rm(1) -- Remove pool file or pool files from poolset
-    Man page source is in pmempool-rm.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-rm.1.html
-
-pmempool-convert(1) -- Update the pool to the latest available layout version
-    Man page source is in pmempool-convert.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-convert.1.html
-
-pmempool-sync(1) -- Synchronize data between replicas within a poolset
-    Man page source is in pmempool-sync.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-sync.1.html
-
-pmempool-transform(1) -- Modify internal structure of a poolset
-    Man page source is in pmempool-transform.1.md
-    HTML formatted Linux/Windows version: http://pmem.io/nvml/manpages/linux/master/pmempool-transform.1.html
-
-librpmem(3) -- remote access to persistent memory (EXPERIMENTAL)
-    Man page source is in librmpem.3.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/librpmem.3.html
-
-rpmemd(1) -- remote persistent memory daemon (EXPERIMENTAL)
-    Man page source is in rpmemd.1.md
-    HTML formatted Linux version: http://pmem.io/nvml/manpages/linux/master/rpmemd.1.html
+libpmem -- low-level persistent memory support
+libpmemblk -- pmem-resident arrays of blocks
+libpmemlog -- pmem-resident log files
+libpmemobj -- transactional object store
+libvmem -- volatile memory allocation library
+libvmmalloc -- general purpose volatile memory allocation library
+libpmempool -- persistent memory pool management library
+pmempool -- Persistent Memory Pool Management Tool
+librpmem -- remote access to persistent memory (EXPERIMENTAL)
+rpmemd -- remote persistent memory daemon (EXPERIMENTAL)
 
 These man pages provide the API specification for the corresponding libraries
-in this source tree, so any updates to one should be tested, reviewed, and
-committed with changes to the other.
-
+and commands in this source tree, so any updates to one should be tested,
+reviewed, and committed with changes to the other.
 
 To create more readable text files from the source, use:
-	$ make
-An even more convenient way to read these is to use the "man" command to
-format them (includes bold, underline, etc. when run in a terminal window):
-	$ man -l libpmem.3
-	$ man -l libvmem.3
+	$ [g]make
+
+NOTE: This will write man page output into the *generated* subdirectory. Files
+in this directory MUST NOT be included in any pull requests.
+
+The man(1) command may be used to format generated man pages for viewing
+in a terminal window (includes bold, underline, etc.), for example:
+	$ man generated/libpmem.7
+	$ man generated/pmemobj_create.3
+
+In addition, for testing purposes ../utils/md2man.sh will generate a
+preprocessed markdown file with the headers stripped off if the TESTOPTS
+variable is set. For example:
+
+	$ export TESTOPTS="-DWIN32 -UFREEBSD -UWEB"
+	$ ../utils/md2man.sh libpmemobj/libpmemobj.7.md x libpmemobj.7.win.md
+
+will generate a version of the libpmemobj.7 man page for Windows in markdown
+format. The resulting file may be viewed with a markdown-enabled browser.

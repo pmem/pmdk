@@ -76,7 +76,7 @@ POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *pop, TOID var, TOID nvar)
 
 The **libpmemobj** container operations provide a mechanism that allows
 iteration through the internal object collection, either looking for a
-specific object, or performing a specific operation on each object of given
+specific object, or performing a specific operation on each object of a given
 type. Software should not make any assumptions about the order of the objects
 in the internal object containers.
 
@@ -96,7 +96,7 @@ as the object referenced by *oid*.
 The **POBJ_NEXT_TYPE_NUM**() macro returns the next object of the same type
 number as the object referenced by *oid*.
 
-The following four macros provide more convenient way to iterate through the
+The following four macros provide a more convenient way to iterate through the
 internal collections, performing a specific operation on each object.
 
 The **POBJ_FOREACH**() macro performs a specific operation on each allocated

@@ -83,14 +83,14 @@ void pmemblk_set_funcs(
 ##### Error handling: #####
 
 ```c
-_UWFUNC(pmemblk_errormsg, void)nst char *pmemblk_errormsg(void);
-}
+_UWFUNC(pmemblk_errormsg, void)
 ```
 
 ##### Other library functions: #####
 
 A description of other **libpmemblk** functions can be found on the following
 manual pages:
+
 **pmemblk_create**(3), **pmemblk_bsize**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3)
 
@@ -219,34 +219,40 @@ _UW(pmemblk_errormsg) as described above.
 A second version of **libpmemblk**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the  **LD_LIBRARY_PATH**
-environment variable to _LDLIBPATH(), depending on where the debug libraries
-are installed on the system. The trace points in the debug version of the
-library are enabled using the **PMEMBLK_LOG_LEVEL** environment
-variable, which can be set to the following values:
+environment variable to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEMBLK_LOG_LEVEL**
+
+The value of **PMEMBLK_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
 
 + **0** - This is the default level when **PMEMBLK_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged,
-	in addition to returning the *errno*-based errors as usual.
-	The same information may be retrieved using _UW(pmemblk_errormsg).
+in addition to returning the *errno*-based errors as usual.
+The same information may be retrieved using _UW(pmemblk_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call tracing
++ **3** - Enables a very verbose amount of function call tracing
 in the library.
 
-+ **4** - This level enables voluminous and fairly obscure tracing information
++ **4** - Enables voluminous and fairly obscure tracing information
 that is likely only useful to the **libpmemblk** developers.
 
-The **PMEMBLK_LOG_FILE** environment variable specifies a file name where all
-logging information should be written. If the last character in the name is
-"-", the PID of the current process will be appended to the file name when the
-log file is created. If **PMEMBLK_LOG_FILE** is not set, the logging output
-goes to stderr.
+Unless **PMEMBLK_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting **PMEMBLK_LOG_LEVEL** has no effect on the non-debug version of
-**libpmemblk**.
++ **PMEMBLK_LOG_FILE**
+
+Specifies the name of a file
+where all logging information should be written. If the last character in the
+name is "-", the *PID* of the current process will be appended to the file name
+when the log file is created. If **PMEMBLK_LOG_FILE** is not set, the logging
+output is written to *stderr*.
+
 See also **libpmem**(7) for information on other environment variables
 that may affect **libpmemblk** behavior.
 

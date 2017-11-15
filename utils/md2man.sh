@@ -38,11 +38,15 @@
 #
 # This script converts markdown file into groff man page using pandoc.
 # It performs some pre- and post-processing for better results:
+# - uses m4 to preprocess OS-specific directives. See doc/macros.man.
 # - parse input file for YAML metadata block and read man page title,
 #   section and version
 # - cut-off metadata block and license
 # - unindent code blocks
 # - cut-off windows and web specific parts of documentation
+#
+# If the TESTOPTS variable is set, generates a preprocessed markdown file
+# with the header stripped off for testing purposes.
 #
 
 set -e
@@ -55,6 +59,9 @@ title=`sed -n 's/^title:\ _MP(*\([A-Za-z_-]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*\([0-9]\))$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
+if [ "$TESTOPTS" != "" ]; then
+m4 $TESTOPTS macros.man $filename | sed -n -e '/# NAME #/,$p' > $outfile
+else
 OPTS=
 if [ -v WIN32 ]; then
 OPTS="$OPTS -DWIN32"
@@ -83,3 +90,4 @@ N
 	s/IP/PP/
     }
 }'
+fi

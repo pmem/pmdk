@@ -94,7 +94,7 @@ only after the transaction is committed, making the objects visible to the
 **POBJ_FOREACH_\***() macros. This function must be called during
 **TX_STAGE_WORK**.
 
-The **pmemobj_tx_zalloc**() function transactionally allocates new zeroed
+The **pmemobj_tx_zalloc**() function transactionally allocates a new zeroed
 object of given *size* and *type_num*. This function must be called during
 **TX_STAGE_WORK**.
 
@@ -103,10 +103,13 @@ of given *size* and *type_num*. The *flags* argument is a bitmask of the
 following values:
 
 + **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
+
 + **POBJ_XALLOC_NO_FLUSH** - skip flush on commit
 (when application deals with flushing or uses pmemobj_memcpy_persist)
+
 + **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation
 class with id equal to *class_id*
+
 This function must be called during **TX_STAGE_WORK**.
 
 The **pmemobj_tx_realloc**() function transactionally resizes an existing
@@ -137,8 +140,8 @@ The **TX_NEW**() macro transactionally allocates a new object of given *TYPE*
 and assigns it a type number read from the typed *OID*. The allocation size is
 determined from the size of the user-defined structure *TYPE*. If successful
 and called during **TX_STAGE_WORK** it returns a handle to the newly allocated
-object. Otherwise, the stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is
-returned, and *errno* is set appropriately.
+object. Otherwise, the stage is changed to **TX_STAGE_ONABORT**, **OID_NULL**
+is returned, and *errno* is set appropriately.
 
 The **TX_ALLOC**() macro transactionally allocates a new object of given *TYPE*
 and assigns it a type number read from the typed *OID*. The allocation size is
@@ -158,46 +161,46 @@ The **TX_ZALLOC**() macro transactionally allocates a new zeroed object of
 given *TYPE* and assigns it a type number read from the typed *OID*. The
 allocation size is passed by *size* argument. If successful and called during
 **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise,
-the stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno*
-is set appropriately.
+the stage is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and
+*errno* is set appropriately.
 
 The **TX_XALLOC**() macro transactionally allocates a new object of given
 *TYPE* and assigns it a type number read from the typed *OID*. The allocation
 size is passed by *size* argument. The *flags* argument is a bitmask of values
 described in **pmemobj_tx_xalloc** section. If successful and called during
 **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise,
-the stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno*
-is set appropriately.
+the stage is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and
+*errno* is set appropriately.
 
 The **TX_REALLOC**() macro transactionally resizes an existing object
 referenced by a handle *o* to the given *size*. If successful and called during
 **TX_STAGE_WORK** it returns a handle to the reallocated object. Otherwise, the
-stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is
-set appropriately.
+stage is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno*
+is set appropriately.
 
 The **TX_ZREALLOC**() macro transactionally resizes an existing object
 referenced by a handle *o* to the given *size*. If the new size is larger than
 the old size, the extended new space is zeroed. If successful and called during
 **TX_STAGE_WORK** it returns a handle to the reallocated object. Otherwise, the
-stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is
-set appropriately.
+stage is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno*
+is set appropriately.
 
 The **TX_STRDUP**() macro transactionally allocates a new object containing a
 duplicate of the string *s* and assigns it type *type_num*. If successful and
 called during **TX_STAGE_WORK** it returns a handle to the newly allocated
-object. Otherwise, the stage is set to **TX_STAGE_ONABORT**, **OID_NULL** is
-returned, and *errno* is set appropriately.
+object. Otherwise, the stage is changed to **TX_STAGE_ONABORT**, **OID_NULL**
+is returned, and *errno* is set appropriately.
 
 The **TX_WCSDUP**() macro transactionally allocates a new object containing a
 duplicate of the wide character string *s* and assigns it a type *type_num*. If
 successful and called during **TX_STAGE_WORK**, it returns a handle to the
-newly allocated object. Otherwise, the stage is set to **TX_STAGE_ONABORT**,
+newly allocated object. Otherwise, the stage is changed to **TX_STAGE_ONABORT**,
 **OID_NULL** is returned, and *errno* is set appropriately.
 
 The **TX_FREE**() macro transactionally frees the memory space represented by
 an object handle *o*. If *o* is **OID_NULL**, no operation is performed. If
 successful and called during **TX_STAGE_WORK**, **TX_FREE**() returns 0.
-Otherwise, the stage is set to **TX_STAGE_ONABORT** and an error number is
+Otherwise, the stage is changed to **TX_STAGE_ONABORT** and an error number is
 returned.
 
 
@@ -206,12 +209,12 @@ returned.
 On success, the **pmemobj_tx_alloc**() ,**pmemobj_tx_zalloc**(),
 **pmemobj_tx_xalloc**(), **pmemobj_tx_strdup**() and **pmemobj_tx_wcsdup**()
 functions return a handle to the newly allocated object. Otherwise, the stage
-is set to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set
-appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is set
-appropriately.
+is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is
+set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is
+set appropriately.
 
 On success, **pmemobj_tx_realloc**() and **pmemobj_tx_zrealloc**() return
-a handle to the resized object. Otherwise, the stage is set to
+a handle to the resized object. Otherwise, the stage is changed to
 **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is set
 appropriately. Note that the object handle value may change as a result of
 reallocation.

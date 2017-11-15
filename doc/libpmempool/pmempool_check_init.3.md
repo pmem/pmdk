@@ -47,7 +47,7 @@ date: pmempool API version 1.1
 
 # NAME #
 
-!pmempool_check_init, !pmempool_check,
+_UW(pmempool_check_init), _UW(pmempool_check),
 **pmempool_check_end**() -- checks pmempool health
 
 
@@ -56,55 +56,40 @@ date: pmempool API version 1.1
 ```c
 #include <libpmempool.h>
 
-PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
-	size_t args_size);
-PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
-	size_t args_size);
-struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
-struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
-}{
-PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
-	size_t args_size);
-struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-}
+_UWFUNCR1UW(PMEMpoolcheck, *pmempool_check_init, struct pmempool_check_args,
+*args,=q=
+	size_t args_size=e=)
+_UWFUNCRUW(struct pmempool_check_status, *pmempool_check, PMEMpoolcheck *ppc)
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
 
-!ifdef{WIN32}
-{
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
-}
+_UNICODE()
 
 
 # DESCRIPTION #
 
-To perform check provided by **libpmempool**, a *check context*
-must be first initialized using !pmempool_check_init
-function described in this section. Once initialized
-*check context* is represented by an opaque handle, of
+To perform the checks provided by **libpmempool**, a *check context*
+must first be initialized using the _UW(pmempool_check_init)
+function described in this section. Once initialized, the
+*check context* is represented by an opaque handle of
 type *PMEMpoolcheck\**, which is passed to all of the
 other functions available in **libpmempool**
 
-To execute check !pmempool_check must be called iteratively.
-Each call resumes check till new status will be generated.
-Each status is represented by !pmempool_check_status_ptr structure.
-It may carry various types of messages described in this section.
+To execute checks, _UW(pmempool_check) must be called iteratively.
+Each call generates a new check status, represented by a
+_UWS(pmempool_check_status) structure. Status messages are described
+later below.
 
-When check is completed !pmempool_check returns NULL pointer.
-Check must be finalized using **pmempool_check_end**().
-It returns *enum pmempool_check_result* describing
-result of the whole check.
+When the checks are completed, _UW(pmempool_check) returns NULL. The check
+must be finalized using **pmempool_check_end**(), which returns an
+*enum pmempool_check_result* describing the results of the entire check.
 
-The !pmempool_check_init initializes check
-context. *args* describes parameters of the
-check context. *args_size* should be equal to
-the size of the !pmempool_check_args.
-!pmempool_check_args is defined as follows:
+_UW(pmempool_check_init) initializes the check context. *args* describes
+parameters of the check context. *args_size* should be equal to the size of
+the _UWS(pmempool_check_args). _UWS(pmempool_check_args) is defined as follows:
 
-!ifdef{WIN32}
-{
+
+_WINUX(=q=
 ```c
 struct pmempool_check_argsU
 {
@@ -136,7 +121,7 @@ struct pmempool_check_argsW
 	int flags;
 };
 ```
-}{
+=e=,=q=
 ```c
 struct pmempool_check_args
 {
@@ -153,29 +138,32 @@ struct pmempool_check_args
 	int flags;
 };
 ```
-}
+=e=)
 
 The *flags* argument accepts any combination of the following values (ORed):
 
 + **PMEMPOOL_CHECK_REPAIR** - perform repairs
+
 + **PMEMPOOL_CHECK_DRY_RUN** - emulate repairs, not supported on Device DAX
+
 + **PMEMPOOL_CHECK_ADVANCED** - perform hazardous repairs
+
 + **PMEMPOOL_CHECK_ALWAYS_YES** - do not ask before repairs
+
 + **PMEMPOOL_CHECK_VERBOSE** - generate info statuses
+
 + **PMEMPOOL_CHECK_FORMAT_STR** - generate string format statuses
 
-*pool_type* has to match type of the
-*pool* being processed. You can turn on pool type
-detection by setting *pool_type* to **PMEMPOOL_POOL_TYPE_DETECT**.
-Pool type detection fail ends check.
+*pool_type* must match the type of the *pool* being processed. Pool type
+detection may be enabled by setting *pool_type* to
+**PMEMPOOL_POOL_TYPE_DETECT**. A pool type detection failure ends the check.
 
-*backup_path* argument can either be:
+*backup_path* may be:
 
-+ NULL. It indicates no backup will be performed.
++ NULL. No backup will be performed.
 
-+ a non existing file. It is valid only in case *path* is a single file
-*pool*. It indicates a *backup_path* file will be created and backup will be
-performed.
++ a non-existent file: *backup_path* will be created and backup will be
+performed. *path* must be a single file *pool*.
 
 + an existing *pool set* file: Backup will be performed as defined by the
 *backup_path* pool set. *path* must be a pool set, and *backup_path* must have
@@ -184,15 +172,13 @@ the same structure (the same number of parts with exactly the same size) as the
 
 Backup is supported only if the source *pool set* has no defined replicas.
 
-Pool sets with remote replicas are not supported neither as *path* nor as
-*backup_path*.
+Neither *path* nor *backup_path* may specify a pool set with remote replicas.
 
-The !pmempool_check function starts or resumes the check
-indicated by *ppc*. When next status will be generated
-it pauses the check and returns a pointer to the
-!pmempool_check_status structure:
+The _UW(pmempool_check) function starts or resumes the check indicated by *ppc*.
+When the next status is generated, the check is paused and _UW(pmempool_check)
+returns a pointer to the _UWS(pmempool_check_status) structure:
 
-!ifdef{WIN32}
+_WINUX(=q=
 {
 ```c
 struct pmempool_check_statusU
@@ -215,7 +201,7 @@ struct pmempool_check_statusW
 	} str;
 };
 ```
-}{
+=e=,=q=
 ```c
 struct pmempool_check_status
 {
@@ -227,24 +213,24 @@ struct pmempool_check_status
 	} str;
 };
 ```
-}
+=e=)
 
 This structure can describe three types of statuses:
 
 + **PMEMPOOL_CHECK_MSG_TYPE_INFO** - detailed information about the check.
   Generated only if a **PMEMPOOL_CHECK_VERBOSE** flag was set.
-+ **PMEMPOOL_CHECK_MSG_TYPE_ERROR** - encountered error
+
++ **PMEMPOOL_CHECK_MSG_TYPE_ERROR** - An error was encountered.
+
 + **PMEMPOOL_CHECK_MSG_TYPE_QUESTION** - question. Generated only if an
   **PMEMPOOL_CHECK_ALWAYS_YES** flag was not set. It requires *answer* to be
   set to "yes" or "no" before continuing.
 
-After calling !pmempool_check again the previously provided
-!pmempool_check_status_ptr pointer must be
-considered invalid.
+After calling _UW(pmempool_check) again, the previously provided
+_UWS(pmempool_check_status) pointer must be considered invalid.
 
-The **pmempool_check_end**() function finalizes the check and
-releases all related resources. *ppc* is not a valid
-pointer after calling **pmempool_check_end**().
+The **pmempool_check_end**() function finalizes the check and releases all
+related resources. *ppc* is invalid after calling **pmempool_check_end**().
 
 
 # RETURN VALUE #
@@ -253,23 +239,26 @@ _UW(pmempool_check_init) returns an opaque handle of type *PMEMpoolcheck\**.
 If the provided parameters are invalid or the initialization process fails,
 _UW(pmempool_check_init) returns NULL and sets *errno* appropriately.
 
-The !pmempool_check returns NULL pointer when the check completes or
-returns a pointer to the !pmempool_check_status structure
-described above when next status is generated.
+Each call to _UW(pmempool_check) returns a pointer to a
+_UWS(pmempool_check_status) structure when a status is generated. When the
+check completes, _UW(pmempool_check) returns NULL.
 
-The **pmempool_check_end**() function
-returns *enum pmempool_check_result* summarizing result
-of the finalized check. **pmempool_check_end**() can
+The **pmempool_check_end**() function returns an *enum pmempool_check_result*
+summarizing the results of the finalized check. **pmempool_check_end**() can
 return one of the following values:
 
 + **PMEMPOOL_CHECK_RESULT_CONSISTENT** - the *pool* is consistent
+
 + **PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT** - the *pool* is not consistent
+
 + **PMEMPOOL_CHECK_RESULT_REPAIRED** - the *pool* has issues but all repair
   steps completed successfully
+
 + **PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR** - the *pool* has issues which
   can not be repaired
+
 + **PMEMPOOL_CHECK_RESULT_ERROR** - the *pool* has errors or the check
-  encountered issue
+  encountered an issue
 
 
 # EXAMPLE #
@@ -277,7 +266,7 @@ return one of the following values:
 This is an example of a *check context* initialization:
 
 ```c
-struct pmempool_check_args!U args =
+struct _U(pmempool_check_args) args =
 {
 	.path = "/path/to/blk.pool",
 	.backup_path = NULL,
@@ -288,13 +277,13 @@ struct pmempool_check_args!U args =
 ```
 
 ```c
-PMEMpoolcheck *ppc = pmempool_check_init!U{}(&args, sizeof(args));
+PMEMpoolcheck *ppc = _U(pmempool_check_init)(&args, sizeof(args));
 ```
 
 The check will process a *pool* of type **PMEMPOOL_POOL_TYPE_BLK**
-located in the path */path/to/blk.pool*. Before check it will
+located in the path */path/to/blk.pool*. Before the check it will
 not create a backup of the *pool* (*backup_path == NULL*).
-If the check will find any issues it will try to
+If the check finds any issues it will try to
 perform repair steps (**PMEMPOOL_CHECK_REPAIR**), but it
 will not make any changes to the *pool*
 (**PMEMPOOL_CHECK_DRY_RUN**) and it will not perform any
@@ -302,9 +291,9 @@ dangerous repair steps (no **PMEMPOOL_CHECK_ADVANCED**).
 The check will ask before performing any repair steps (no
 **PMEMPOOL_CHECK_ALWAYS_YES**). It will also generate
 detailed information about the check (**PMEMPOOL_CHECK_VERBOSE**).
-**PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
+The **PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
 format statuses (*struct pmempool_check_status*).
-Currently it is the only supported status format so this flag is required.
+Currently this is the only supported status format so this flag is required.
 
 
 # NOTES #

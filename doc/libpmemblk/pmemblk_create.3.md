@@ -45,7 +45,7 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-+_UW(pmemblk_create), _UW(pmemblk_open),
+_UW(pmemblk_create), _UW(pmemblk_open),
 **pmemblk_close**(), _UW(pmemblk_check)
 -- create, open, close and validate block pool
 
@@ -59,7 +59,7 @@ _UWFUNCR1(PMEMblkpool, *pmemblk_create, *path, =q=size_t bsize,
 		size_t poolsize, mode_t mode=e=)
 _UWFUNCR1(PMEMblkpool, *pmemblk_open, *path, size_t bsize)
 void pmemblk_close(PMEMblkpool *pbp);
-+_UWFUNCR1(int, pmemblk_check, *path, size_t bsize)
+_UWFUNCR1(int, pmemblk_check, *path, size_t bsize)
 ```
 
 _UNICODE()
@@ -139,10 +139,10 @@ not supported on Device DAX.
 # RETURN VALUE #
 
 On success, _UW(pmemblk_create) returns a *PMEMblkpool\** handle to the block
-memory pool. On failure, it returns NULL and sets *errno* appropriately.
+memory pool. On error, it returns NULL and sets *errno* appropriately.
 
 On success, _UW(pmemblk_open) returns a *PMEMblkpool\** handle that can be
-used with most of the functions in **libpmemblk**(7). On failure, it returns
+used with most of the functions in **libpmemblk**(7). On error, it returns
 NULL and sets *errno* appropriately. Possible errors include:
 
 + failure to open *path*
@@ -157,7 +157,7 @@ was created. *errno* is set to **EINVAL** in this case.
 
 The **pmemblk_close**() function returns no value.
 
-_UW(pmemblk_check)0 returns 1 if the memory pool is found to be consistent.
+_UW(pmemblk_check) returns 1 if the memory pool is found to be consistent.
 If the check is successfully performed but the pool is found to be inconsistent,
 _UW(pmemblk_check) returns 0. This includes the case where *bsize* is non-zero
 and does not match the block size given when the pool was created. If the

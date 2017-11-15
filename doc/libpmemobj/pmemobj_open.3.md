@@ -40,14 +40,15 @@ date: pmemobj API version 2.2
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-!pmemobj_open, !pmemobj_create,
-**pmemobj_close**(), !pmemobj_check
--- create, open and close persistent memory transactional object store
+_UW(pmemobj_open), _UW(pmemobj_create),
+**pmemobj_close**(), _UW(pmemobj_check)
+-- create, open, close and validate persistent memory transactional object store
 
 
 # SYNOPSIS #
@@ -55,27 +56,11 @@ date: pmemobj API version 2.2
 ```c
 #include <libpmemobj.h>
 
-!ifdef{WIN32}
-{
-PMEMobjpool *pmemobj_openU(const char *path, const char *layout);
-PMEMobjpool *pmemobj_openW(const wchar_t *path, const wchar_t *layout);
-PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
-	size_t poolsize, mode_t mode);
-}{
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
-PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-	size_t poolsize, mode_t mode);
-}
+_UWFUNCR1(PMEMobjpool, *pmemobj_open, *path, const char *layout)
+_UWFUNCR1(PMEMobjpool, *pmemobj_create, *path, =q=const char *layout,
+	size_t poolsize, mode_t mode=e=)
 void pmemobj_close(PMEMobjpool *pop);
-!ifdef{WIN32}
-{
-int pmemobj_checkU(const char *path, const char *layout);
-int pmemobj_checkW(const wchar_t *path, const wchar_t *layout);
-}{
-int pmemobj_check(const char *path, const char *layout);
-}
+_UWFUNCR1(int, pmemobj_check, *path, const char *layout)
 ```
 
 _UNICODE()
@@ -84,18 +69,18 @@ _UNICODE()
 # DESCRIPTION #
 
 To use the pmem-resident transactional object store provided by
-**libpmemobj**(7), a *memory pool* is first created. This is done
-with the !pmemobj_create function described in this section.
-The other functions described in this section then operate
-on the resulting memory pool.
+**libpmemobj**(7), a *memory pool* must first be created
+with the _UW(pmemobj_create) function described below. Existing pools
+may be opened with the _UW(pmemobj_open) function.
 
-Additionally, none of the three functions described below are thread-safe with
+None of the three functions described below is thread-safe with
 respect to any other **libpmemobj** functions. In other words, when creating,
-opening or deleting a pool, nothing else in the library can happen in parallel.
+opening or deleting a pool, nothing else in the library can happen in parallel,
+and therefore these functions should be called from the main thread.
 
 Once created, the memory pool is represented by an opaque handle,
-of type *PMEMobjpool\**, which is passed to most of the other functions
-in this section. Internally, **libpmemobj** will use either **pmem_persist**(3)
+of type *PMEMobjpool\**, which is passed to most of the other **libpmemobj**
+functions. Internally, **libpmemobj** will use either **pmem_persist**(3)
 or **msync**(2) when it needs to flush changes, depending on whether the memory
 pool appears to be persistent memory or a regular file (see the
 **pmem_is_pmem**(3) function in **libpmem**(7) for more information). There is
@@ -133,32 +118,40 @@ read/write permissions.
 The **pmemobj_close**() function closes the memory pool indicated by *pop* and
 deletes the memory pool handle. The object store itself lives on in the file
 that contains it and may be re-opened at a later time using
-!pmemobj_open as described above.
+_UW(pmemobj_open) as described above.
 
-The !pmemobj_check function performs a consistency check of the file indicated by
-*path*. !pmemobj_check opens the given *path* read-only so
-it never makes any changes to the file. This function is not supported on Device DAX.
+The _UW(pmemobj_check) function performs a consistency check of the file
+indicated by *path*. _UW(pmemobj_check) opens the given *path* read-only so
+it never makes any changes to the file. This function is not supported on
+Device DAX.
 
 # RETURN VALUE #
 
-The !pmemobj_create function returns memory pool handle used with
+The _UW(pmemobj_create) function returns a memory pool handle to be used with
 most of the functions in **libpmemobj**(7). On error it returns NULL
 and sets *errno* appropriately.
 
-The !pmemobj_open function returns a memory pool handle used with
-most of the functions in in **libpmemobj**(7). If an error prevents the pool
+The _UW(pmemobj_open) function returns a memory pool handle to be used with
+most of the functions in **libpmemobj**(7). If an error prevents the pool
 from being opened, or if the given *layout* does not match the pool's layout,
-!pmemobj_open returns NULL and sets *errno* appropriately.
+_UW(pmemobj_open) returns NULL and sets *errno* appropriately.
 
 The **pmemobj_close**() function returns no value.
 
-The !pmemobj_check function returns 1 if the memory pool is found to be consistent. Any
-inconsistencies found will cause !pmemobj_check to return 0, in which case the use of
-the file with **libpmemobj** will result in undefined behavior. The debug version of
-**libpmemobj** will provide additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL**
-is at least 1, as described in the **DEBUGGING ANDERROR HANDLING** section in **libpmemobj**(7).
-!pmemobj_check will return -1 and set *errno* if it cannot perform the consistency
-check due to other errors.
+The _UW(pmemobj_check) function returns 1 if the memory pool is found to be
+consistent. Any inconsistencies found will cause _UW(pmemobj_check) to
+return 0, in which case the use of the file with **libpmemobj** will result in
+undefined behavior. The debug version of **libpmemobj** will provide additional
+details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1, as
+described in the **DEBUGGING AND ERROR HANDLING** section in **libpmemobj**(7).
+_UW(pmemobj_check) returns -1 and sets *errno* if it cannot perform the
+consistency check due to other errors.
+
+
+# CAVEATS #
+
+Not all file systems support **posix_fallocate**(3). _UW(pmemobj_create) will
+fail if the underlying file system does not support **posix_fallocate**(3).
 
 
 # SEE ALSO #

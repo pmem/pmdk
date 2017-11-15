@@ -133,7 +133,7 @@ saved value will be restored.
 
 The **TX_XADD_FIELD**() macro works exactly like **TX_ADD_FIELD** when *flags*
 equals 0. The *flags* argument is a bitmask of values described in
-**pmemobj_tx_xadd_range** section.
+**pmemobj_tx_xadd_range**, above.
 
 The **TX_ADD**() macro takes a "snapshot" of the entire object referenced by
 object handle *o* and saves it in the undo log. The object size is determined
@@ -185,13 +185,10 @@ restored.
 
 # RETURN VALUE #
 
-On success, **pmemobj_tx_add_range**() and **pmemobj_tx_xadd_range**() return
-0. Otherwise, the state is set to **TX_STAGE_ONABORT** and an error number is
-returned.
-
-On success, **pmemobj_tx_add_range_direct**() and 
-**pmemobj_tx_xadd_range_direct**() return 0. Otherwise, the state is set to
-**TX_STAGE_ONABORT** and an error number is returned.
+On success, **pmemobj_tx_add_range**(), **pmemobj_tx_xadd_range**(),
+**pmemobj_tx_add_range_direct**() and **pmemobj_tx_xadd_range_direct**()
+return 0. Otherwise, the stage is changed to **TX_STAGE_ONABORT** and an error
+number is returned.
 
 
 # SEE ALSO #

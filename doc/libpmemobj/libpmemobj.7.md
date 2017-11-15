@@ -39,10 +39,6 @@ date: pmemobj API version 2.2
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-
-
-[TRANSACTIONAL OBJECT MANIPULATION](#transactional-object-manipulation-1)<br />
-[CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
@@ -60,14 +56,14 @@ date: pmemobj API version 2.2
 
 ```c
 #include <libpmemobj.h>
-cc -std=gnu99 ... -lpmemobj -lpmem
+cc _WINUX(,-std=gnu99) ... -lpmemobj -lpmem
 ```
 _UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-_UWFUNC(pmem_check_version, =q=
+_UWFUNC(pmemobj_check_version, =q=
 	unsigned major_required,
 	unsigned minor_required=e=)
 ```
@@ -85,27 +81,39 @@ void pmemobj_set_funcs(
 ##### Error handling: #####
 
 ```c
-_UWFUNC(pmem_errormsg, void)
+_UWFUNC(pmemobj_errormsg, void)
 ```
 
 ##### Other library functions: #####
 
-A description of other **libpmemlog** functions can be found on the following
+A description of other **libpmemobj** functions can be found on the following
 manual pages:
-* create, open, close and validate: **pmemobj_open**(3)
-* low-level memory manipulation: **pmemobj_memcpy_persist**(3)
-* locking: **pmemobj_mutex_zero**(3)
-* persistent object identifier: **OID_IS_NULL**(3)
-* type-safety: **TOID_DECLARE**(3)
-* layout declaration: **POBJ_LAYOUT_BEGIN**(3)
-* non-transactional atomic allocations: **pmemobj_alloc**(3)
-* root object management: **pmemobj_root**(3)
-* object containers: **pmemobj_first**(3)
-* non-transactional persistent atomic circular doubly-linked list:
+
++ create, open, close and validate: **pmemobj_open**(3)
+
++ low-level memory manipulation: **pmemobj_memcpy_persist**(3)
+
++ locking: **pmemobj_mutex_zero**(3)
+
++ persistent object identifier: **OID_IS_NULL**(3)
+
++ type-safety: **TOID_DECLARE**(3)
+
++ layout declaration: **POBJ_LAYOUT_BEGIN**(3)
+
++ non-transactional atomic allocations: **pmemobj_alloc**(3)
+
++ root object management: **pmemobj_root**(3)
+
++ object containers: **pmemobj_first**(3)
+
++ non-transactional persistent atomic circular doubly-linked list:
 **pmemobj_list_insert**(3), **POBJ_LIST_HEAD**(3)
-* transactional object manipulation: **pmemobj_tx_begin**(3),
+
++ transactional object manipulation: **pmemobj_tx_begin**(3),
 **pmemobj_tx_add_range**(3), **pmemobj_tx_alloc**(3)
-* control and statistics: **pmemobj_ctl_get**(3)
+
++ control and statistics: **pmemobj_ctl_get**(3)
 
 
 # DESCRIPTION #
@@ -153,7 +161,7 @@ the compile-time version information, supplied by defines in
 **\<libpmemobj.h\>**, like this:
 
 ```c
-reason = _U(pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
+reason = _U(pmemobj_check_version)(PMEMOBJ_MAJOR_VERSION,
                                PMEMOBJ_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -184,18 +192,16 @@ the handlers will cause the **libpmemobj** default function to be used. The
 library does not make heavy use of the system malloc functions, but it does
 allocate approximately 4-8 kilobytes for each memory pool in use.
 
+By default, **libpmemobj** supports up to 1024 parallel
+transactions/allocations. For debugging purposes it is possible to decrease
+this value by setting the **PMEMOBJ_NLANES** environment variable to the
+desired limit.
 
 # DEBUGGING AND ERROR HANDLING #
 
 If an error is detected during the call to a **libpmemobj** function, the
 application may retrieve an error message describing the reason for the failure
-using the following function:
-
-```c
-_UWFUNC(pmemobj_errormsg, void)
-```
-
-The _UW(pmemobj_errormsg) function returns a pointer to a static buffer
+from _UW(pmemobj_errormsg). This function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3). The error message buffer is
@@ -215,39 +221,41 @@ run-time assertions.
 A second version of **libpmemobj**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to _LDLIBPATH(). The trace points in the debug version of
-the library are enabled by setting the **PMEMOBJ_LOG_LEVEL** environment
-variable to one of the following values:
+**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+contolled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEMOBJ_LOG_LEVEL**
+
+The value of **PMEMOBJ_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
 
 + **0** - This is the default level when **PMEMOBJ_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
 
-+ **1** - Additional details on any errors detected are logged
-(in addition to returning the *errno*-based errors as usual).
-The same information may be retrieved using !pmemobj_errormsg.
++ **1** - Additional details on any errors detected are logged,
+in addition to returning the *errno*-based errors as usual.
+The same information may be retrieved using _UW(pmemobj_errormsg).
 
 + **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call
++ **3** - Enables a very verbose amount of function call
 tracing in the library.
 
-+ **4** - This level enables voluminous and fairly obscure tracing information
++ **4** - Enables voluminous and fairly obscure tracing information
 that is likely only useful to the **libpmemobj** developers.
 
-The **PMEMOBJ_LOG_FILE** environment variable specifies a file name where all
-logging information should be written. If the last character in the name is
-"-", the PID of the current process will be appended to the file name when the
-log file is created. If **PMEMOBJ_LOG_FILE** is not set, the logging output
-is written to stderr.
+Unless **PMEMOBJ_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting **PMEMOBJ_LOG_LEVEL** has no effect on the
-non-debug version of **libpmemobj**. See also **libpmem**(7) to get information
++ **PMEMOBJ_LOG_FILE**
+
+Specifies the name of a file where all logging information should be written.
+If the last character in the name is "-", the *PID* of the current process will
+be appended to the file name when the log file is created. If
+**PMEMOBJ_LOG_FILE** is not set, logging output is written to *stderr*.
+
+See also **libpmem**(7) to get information
 about other environment variables affecting **libpmemobj** behavior.
-
-By default, **libpmemobj** supports up to 1024 parallel
-transactions/allocations. For debugging purposes it is possible to decrease
-this value by setting the **PMEMOBJ_NLANES** environment variable to the
-desired limit.
 
 
 # EXAMPLE #
