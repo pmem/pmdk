@@ -2383,6 +2383,14 @@ function init_rpmem_on_node() {
 		;;
 	esac
 
+	# Workaround for SIGSEGV in the infinipath-psm during abort
+	# The infinipath-psm is registering a signal handler and do not unregister
+	# it when rpmem handle is dlclosed. SIGABRT (potentially any other signal)
+	# would try to call the signal handler which does not exist after dlclose.
+	# Issue require a fix in the infinipath-psm or the libfabric.
+	IPATH_NO_BACKTRACE=1
+	export_vars_node $master IPATH_NO_BACKTRACE
+
 	RPMEM_CMD=""
 	local SEPARATOR="|"
 	for slave in "$@"
@@ -2403,6 +2411,12 @@ function init_rpmem_on_node() {
 		fi
 		if [ -n "$pid" ]; then
 			trace="$trace ../ctrld $pid exe"
+		fi
+		if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
+			export_vars_node $slave UNITTEST_DO_NOT_CHECK_OPEN_FILES
+		fi
+		if [ -n ${IPATH_NO_BACKTRACE+x} ]; then
+			export_vars_node $slave IPATH_NO_BACKTRACE
 		fi
 		CMD="cd ${NODE_TEST_DIR[$slave]} && "
 
@@ -2428,9 +2442,6 @@ function init_rpmem_on_node() {
 		fi
 
 		require_node_log_files $slave rpmemd$UNITTEST_NUM.log
-		if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
-			export_vars_node $slave UNITTEST_DO_NOT_CHECK_OPEN_FILES
-		fi
 	done
 	RPMEM_CMD="\"$RPMEM_CMD\""
 
@@ -2466,14 +2477,6 @@ function init_rpmem_on_node() {
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
 	require_node_log_files $master $PMEMOBJ_LOG_FILE
-
-	# Workaround for SIGSEGV in the infinipath-psm during abort
-	# The infinipath-psm is registering a signal handler and do not unregister
-	# it when rpmem handle is dlclosed. SIGABRT (potentially any other signal)
-	# would try to call the signal handler which does not exist after dlclose.
-	# Issue require a fix in the infinipath-psm or the libfabric.
-	IPATH_NO_BACKTRACE=1
-	export_vars_node $master IPATH_NO_BACKTRACE
 }
 
 #
