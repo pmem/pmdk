@@ -206,7 +206,6 @@ main(int argc, char *argv[])
 			break;
 		default:
 			throw std::invalid_argument("invalid queue operation");
-			break;
 	}
 
 	pop.close();
