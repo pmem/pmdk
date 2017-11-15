@@ -57,15 +57,12 @@ sysconf(int p)
 	case _SC_PAGESIZE:
 		GetSystemInfo(&si);
 		return si.dwPageSize;
-		break;
 
 	case _SC_NPROCESSORS_ONLN:
 		for (int i = 0; i < GetActiveProcessorGroupCount(); i++) {
 			ret += GetActiveProcessorCount(i);
 		}
-
 		return ret;
-		break;
 
 	default:
 		return 0;

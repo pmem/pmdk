@@ -229,8 +229,6 @@ main(int argc, char *argv[])
 		ret = rpmemd_log_init("rpmemd_log", file, 0);
 		UT_ASSERTeq(ret, 0);
 		break;
-	default:
-		break;
 	}
 
 	if (do_fatal) {
