@@ -20,14 +20,14 @@ available and are recommended for most applications, see:
 
 Man pages that contains a list of the **Linux** interfaces provided:
 
-* Man page for <a href="../manpages/linux/master/{{ page.title }}.3.html">{{ page.title }} current master</a>
+* Man page for <a href="../manpages/linux/master/librpmem/{{ page.title }}.7.html">{{ page.title }} current master</a>
 
 #### The rpmemd utility
 
 The **rpmemd** process is executed on target node by **librpmem** library over
 **ssh**(1) and facilitates access to persistent memory over RDMA.
 
-See the [rpmemd man page](../manpages/linux/master/rpmemd.1.html)
+See the [rpmemd man page](../manpages/linux/master/rpmemd/rpmemd.1.html)
 for current master documentation and examples or see older version:
 
 <ul>

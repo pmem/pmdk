@@ -11,6 +11,8 @@
 	<script type="text/javascript" src="/js/jquery.min.js"></script>
 	<script type="text/javascript" src="/js/gist-embed.min.js"></script>
 	<script type="text/javascript" src="/nvml/js/nvml_formatter.js"></script>
+	<script type="text/javascript" src="/nvml/js/menu.js"></script>
+	<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js?ver=1.4.2'></script>
 </head>
 <body>
 
@@ -33,39 +35,71 @@
 		</ul>
 	</div>
 	<br>
-	{% assign dc_title =  page.title | downcase %}
-	{% assign man_name =  dc_title | append:'.3.html' %}
-	{% if dc_title == 'rpmemd' %}
-		{% assign man_name =  dc_title | append:'.1.html' %}
+	{% assign page_title =  page.title | downcase %}
+	{% assign dc_title =  page.collection %}
+	{% assign man_name =  dc_title | append:'3.html' %}
+	{% if dc_title == 'rpmemd' or dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
+		{% assign dc_title_ext =  dc_title | append:'.1.html' %}
+		{% assign dc_title_ext_old =  dc_title | append:'.1.html' %}
+	{% else %}
+		{% assign dc_title_ext =  dc_title | append:'.7.html' %}
+		{% assign dc_title_ext_old =  dc_title | append:'.3.html' %}
 	{% endif %}
-	{% if dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
+
+	{% if dc_title == 'pmempool' or dc_title == 'poolset' %}
 	{% else %}
 	<div id="shortcut">
-		<table id="man">
-			<tr><th>Man Linux</th></tr>
-			<tr><td><a href="/nvml/manpages/linux/master/{{ man_name }}">{{ dc_title }} current master</a></td></tr>
-			  {% for release in site.data.releases_linux %}
-				{% if release.libs contains dc_title %}
-					<tr><td><a href="/nvml/manpages/linux/v{{ release.tag }}/{{ man_name }}">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+		{% assign sys_array = "linux,windows" | split: "," %}
+		{% for system in sys_array %}
+		<ul id="menu">
+			{% if system == "windows" %}
+				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" %}
+				{% else %}
+					<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
 				{% endif %}
-			  {% endfor %}
-		</table>
-
-		{% if dc_title != 'librpmem' and dc_title != 'rpmemd' and dc_title != 'libvmmalloc' %}
-		<table id="man">
-			<tr><th>Man Windows</th></tr>
-			<tr><td><a href="/nvml/manpages/windows/master/{{ man_name }}">{{ dc_title }} current master</a></td></tr>
-			  {% for release in site.data.releases_windows %}
+			{% else %}
+				<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
+			{% endif %}
+			{% assign system_rel = system | prepend:'releases_' %}
+			{% for release in site.data.[system_rel] %}
 				{% if release.libs contains dc_title %}
-					<tr><td><a href="/nvml/manpages/windows/v{{ release.tag }}/{{ man_name }}">{{ dc_title }} version {{ release.tag }}</a></td></tr>
+					{% if release.tag == 'master' %}
+						{% assign version_tag = release.tag %}
+						{% assign version_name = "" %}
+					{% else %}
+						{% assign version_tag = release.tag | prepend:'v' %}
+						{% assign version_name = "version" %}
+					{% endif %}
+					<li class="release_tag" ><a href="#">{{ dc_title }} {{version_name}} {{ release.tag }}</a>
+						<ul>
+							{% if release.func == 'empty' %} <!-- old manpages, not divided into functions-->
+									<li><a href="/nvml/manpages/{{ system }}/v{{ release.tag }}/{{ dc_title_ext_old }}">{{ dc_title }}</a></li>
+							{% else %}
+								{% if dc_title == "libpmemlog" or dc_title == "libpmemobj" or dc_title == "libpmemblk" or dc_title == "libpmempool" %}
+									<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
+								{% endif %}
+								<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
+								{% assign rev_functions =  release.func.[dc_title] | split: " " %}
+								{% for rev_function in rev_functions %}
+									{% assign rev_function_no_ext = rev_function | remove:'.3' | remove:'.7' %}
+									{% for x in site.data.libs_map %}
+										{% assign value_to_rev_func = x.[rev_function_no_ext] %}
+										{% if value_to_rev_func != "" and value_to_rev_func != nil %}
+											<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ value_to_rev_func }}">{{ rev_function_no_ext }}</a></li>
+										{% endif %}
+									{% endfor %}
+								{% endfor %}
+							{% endif %}
+						</ul>
+					</li>
 				{% endif %}
-			  {% endfor %}
-		</table>
-		{% endif %}
+			{% endfor %}
+		</ul>
+		{% endfor %}
 	</div>
 	{% endif %}
-
-	<h3>{{ dc_title }} - NVML man page</h3>
+	<h4>NVML man page</h4>
+	<h4>{{ page_title }}</h4>
 	{{ content }}
 	<br>
 	<br>

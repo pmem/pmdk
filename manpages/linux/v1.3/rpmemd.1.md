@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: RPMEMD
+collection: rpmemd
 header: NVM Library
 date: version 1.3
 ...

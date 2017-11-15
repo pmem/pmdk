@@ -2,6 +2,7 @@
 layout: manual
 Content-Style: 'text/css'
 title: LIBPMEMBLK
+collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
 ...
