@@ -449,7 +449,7 @@ if [ -f $TEST_CONFIG_FILE ]; then
 else
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
 fi
-%{__make}
+%{__make} NORPATH=1
 
 %install
 rm -rf %{buildroot}
@@ -462,8 +462,8 @@ make install DESTDIR=%{buildroot}\
 	sysconfdir=%{_sysconfdir}\
 	docdir=%{_docdir}\
 	EXPERIMENTAL=${EXPERIMENTAL}\
-	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}\
-	NORPATH=1
+	CPP_DOC_DIR=${OBJ_CPP_DOC_DIR}
+
 mkdir -p %{buildroot}%{_datadir}/nvml
 cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
 
