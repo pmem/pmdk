@@ -105,6 +105,8 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
 
 
 MANPAGES_BUILDDIR = generated
+MANPAGES_WEBDIR_LINUX = web_linux
+MANPAGES_WEBDIR_WINDOWS = web_windows
 
 
 ifeq ($(BUILD_RPMEM),y)
@@ -141,7 +143,6 @@ MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGE
 	   $(MANPAGES_7_NOINSTALL) $(MANPAGES_5_NOINSTALL) $(MANPAGES_3_NOINSTALL) $(MANPAGES_1_NOINSTALL)
 
 MANPAGES_BUILD = $(addprefix $(MANPAGES_BUILDDIR)/, $(notdir $(MANPAGES)))
-MANPAGES_BUILD_DIR = $(addprefix $(MANPAGES_BUILDDIR)/, $(MANPAGES))
 
 HTMLFILES = $(MANPAGES_BUILD:=.html)
 TXTFILES = $(MANPAGES_BUILD:=.txt)
@@ -182,7 +183,7 @@ CPP_DOCS_DESTDIR = $(DOCS_DESTDIR)/$(CPP_DOC_DIR)
 
 all: md2man $(TXTFILES) doxygen_docs | $(MANPAGES_BUILDDIR)
 
-$(MANPAGES_BUILDDIR):
+$(MANPAGES_BUILDDIR) $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	$(MKDIR) -p $@
 
 %.txt: %
@@ -204,6 +205,16 @@ md2man:
 	$(foreach f, $(MANPAGES_3_MD), ../utils/md2man.sh $(f) default.man $(MANPAGES_BUILDDIR)/$(basename $(notdir $(f)));)
 	$(foreach f, $(MANPAGES_1_MD), ../utils/md2man.sh $(f) default.man $(MANPAGES_BUILDDIR)/$(basename $(notdir $(f)));)
 
+web: | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
+	$(foreach f, $(MANPAGES_7_MD), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_5_MD), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_3_MD), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_1_MD), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_7_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_5_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_3_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(notdir $(f));)
+	$(foreach f, $(MANPAGES_1_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(notdir $(f));)
+
 compress: $(GZFILES_BUILD)
 
 %.gz:
@@ -215,7 +226,9 @@ clobber: clean
 	$(RM) -rf $(DOXYGEN_HTMLDIR) \
 		$(MANPAGES_BUILDDIR)/*.txt \
 		$(MANPAGES_BUILDDIR)/*.html \
-		$(MANPAGES_BUILDDIR)/*.gz
+		$(MANPAGES_BUILDDIR)/*.gz \
+		$(MANPAGES_WEBDIR_LINUX) \
+		$(MANPAGES_WEBDIR_WINDOWS)
 
 install-cpp: doxygen_docs
 	$(call install_recursive,$(DOXYGEN_HTMLDIR),0644,$(CPP_DOCS_DESTDIR))
