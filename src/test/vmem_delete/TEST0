@@ -46,7 +46,6 @@ require_test_type medium
 configure_valgrind memcheck force-disable
 
 require_fs_type none
-
 setup
 
 # this test invokes sigsegvs by design
