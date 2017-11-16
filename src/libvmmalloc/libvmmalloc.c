@@ -727,8 +727,10 @@ libvmmalloc_fini(void)
 	LOG(3, NULL);
 
 	char *env_str = os_getenv(VMMALLOC_LOG_STATS_VAR);
-	if ((env_str == NULL) || strcmp(env_str, "1") != 0)
+	if ((env_str == NULL) || strcmp(env_str, "1") != 0) {
+		common_fini();
 		return;
+	}
 
 	LOG_NONL(0, "\n=========   system heap  ========\n");
 	je_vmem_malloc_stats_print(
