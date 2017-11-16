@@ -197,7 +197,7 @@ mkdir -v BUILD SPECS
 
 echo "opts: $RPMBUILD_OPTS --define _testconfig ${TEST_CONFIG_VAL} --define _check ${CHECK}"
 
-QA_RPATHS=0x0002 rpmbuild --define "_topdir `pwd`"\
+rpmbuild --define "_topdir `pwd`"\
 	--define "_rpmdir ${OUT_DIR}"\
 	--define "_srcrpmdir ${OUT_DIR}"\
 	--define "_testconfig ${TEST_CONFIG_VAL}"\
