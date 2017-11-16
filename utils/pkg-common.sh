@@ -115,7 +115,7 @@ function get_os() {
 	then
 		local OS=$(cat /etc/os-release | grep -m1 -o -P '(?<=NAME=).*($)')
 		[[ "$OS" =~ Fedora|SLES ]] && echo -n $OS ||
-		([[ "$OS" =~ "Red Hat" ]] && echo -n "RHEL" || echo 1)
+		([[ "$OS" =~ "Red Hat"|"CentOS" ]] && echo -n "RHEL" || echo 1)
 	else
 		echo 1
 	fi
