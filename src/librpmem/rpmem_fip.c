@@ -105,6 +105,7 @@ struct rpmem_fip_ops {
 	rpmem_fip_persist_fn persist;
 	rpmem_fip_process_fn process;
 	rpmem_fip_init_fn lanes_init;
+	rpmem_fip_init_fn lanes_init_mem;
 	rpmem_fip_fini_fn lanes_fini;
 	rpmem_fip_init_fn lanes_post;
 };
@@ -596,6 +597,27 @@ rpmem_fip_lanes_connect(struct rpmem_fip *fip)
 }
 
 /*
+ * rpmem_fip_lanes_shutdown -- shutdown all endpoints
+ */
+static int
+rpmem_fip_lanes_shutdown(struct rpmem_fip *fip)
+{
+	int ret;
+	int lret = 0;
+
+	for (unsigned i = 0; i < fip->nlanes; i++) {
+		ret = fi_shutdown(fip->lanes[i].base.ep, 0);
+		if (ret) {
+			RPMEM_FI_ERR(ret, "disconnecting endpoint");
+			lret = ret;
+		}
+	}
+
+	return lret;
+}
+
+
+/*
  * rpmem_fip_monitor_thread -- (internal) monitor in-band connection
  */
 static void *
@@ -684,6 +706,19 @@ rpmem_fip_init_lanes_apm(struct rpmem_fip *fip)
 	/* get read-after-write buffer local descriptor */
 	fip->raw_mr_desc = fi_mr_desc(fip->raw_mr);
 
+	return 0;
+err_fi_raw_mr:
+	free(fip->raw_buff);
+err_malloc_raw:
+	return -1;
+}
+
+/*
+ * rpmem_fip_init_mem_lanes_apm -- initialize lanes rma structures
+ */
+static int
+rpmem_fip_init_mem_lanes_apm(struct rpmem_fip *fip)
+{
 	/*
 	 * Initialize all required structures for:
 	 * WRITE and READ operations.
@@ -712,10 +747,6 @@ rpmem_fip_init_lanes_apm(struct rpmem_fip *fip)
 	}
 
 	return 0;
-err_fi_raw_mr:
-	free(fip->raw_buff);
-err_malloc_raw:
-	return -1;
 }
 
 /*
@@ -871,6 +902,23 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 	/* get persist response messages buffer local descriptor */
 	fip->pres_mr_desc = fi_mr_desc(fip->pres_mr);
 
+	return 0;
+err_fi_mr_reg_pres:
+	free(fip->pres);
+err_malloc_pres:
+	RPMEM_FI_CLOSE(fip->pmsg_mr, "unregistering messages buffer");
+err_fi_mr_reg_pmsg:
+	free(fip->pmsg);
+err_malloc_pmsg:
+	return ret;
+}
+
+/*
+ * rpmem_fip_init_mem_lanes_gpspm -- initialize lanes rma structures
+ */
+static int
+rpmem_fip_init_mem_lanes_gpspm(struct rpmem_fip *fip)
+{
 	/*
 	 * Initialize all required structures for:
 	 * WRITE, SEND and RECV operations.
@@ -916,14 +964,6 @@ rpmem_fip_init_lanes_gpspm(struct rpmem_fip *fip)
 	}
 
 	return 0;
-err_fi_mr_reg_pres:
-	free(fip->pres);
-err_malloc_pres:
-	RPMEM_FI_CLOSE(fip->pmsg_mr, "unregistering messages buffer");
-err_fi_mr_reg_pmsg:
-	free(fip->pmsg);
-err_malloc_pmsg:
-	return ret;
 }
 
 /*
@@ -1004,12 +1044,14 @@ static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PM] = {
 	[RPMEM_PM_GPSPM] = {
 		.persist = rpmem_fip_persist_gpspm,
 		.lanes_init = rpmem_fip_init_lanes_gpspm,
+		.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
 		.lanes_fini = rpmem_fip_fini_lanes_gpspm,
 		.lanes_post = rpmem_fip_post_lanes_gpspm,
 	},
 	[RPMEM_PM_APM] = {
 		.persist = rpmem_fip_persist_apm,
 		.lanes_init = rpmem_fip_init_lanes_apm,
+		.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
 		.lanes_fini = rpmem_fip_fini_lanes_apm,
 		.lanes_post = rpmem_fip_post_lanes_apm,
 	},
@@ -1067,18 +1109,12 @@ rpmem_fip_init(const char *node, const char *service,
 	if (ret)
 		goto err_init_fabric_res;
 
-	ret = rpmem_fip_init_memory(fip);
-	if (ret)
-		goto err_init_memory;
-
 	ret = rpmem_fip_lanes_init(fip);
 	if (ret)
 		goto err_init_lanes;
 
 	return fip;
 err_init_lanes:
-	rpmem_fip_fini_memory(fip);
-err_init_memory:
 	rpmem_fip_fini_fabric_res(fip);
 err_init_fabric_res:
 	fi_freeinfo(fip->fi);
@@ -1095,7 +1131,6 @@ rpmem_fip_fini(struct rpmem_fip *fip)
 {
 	fip->ops->lanes_fini(fip);
 	rpmem_fip_lanes_fini_common(fip);
-	rpmem_fip_fini_memory(fip);
 	rpmem_fip_fini_fabric_res(fip);
 	fi_freeinfo(fip->fi);
 	free(fip);
@@ -1109,10 +1144,6 @@ rpmem_fip_connect(struct rpmem_fip *fip)
 {
 	int ret;
 
-	ret = fip->ops->lanes_post(fip);
-	if (ret)
-		goto err_lanes_post;
-
 	ret = rpmem_fip_lanes_connect(fip);
 	if (ret)
 		goto err_lanes_connect;
@@ -1121,10 +1152,27 @@ rpmem_fip_connect(struct rpmem_fip *fip)
 	if (ret)
 		goto err_monitor;
 
+	ret = rpmem_fip_init_memory(fip);
+	if (ret)
+		goto err_init_memory;
+
+	ret = fip->ops->lanes_init_mem(fip);
+	if (ret)
+		goto err_init_lanes_mem;
+
+	ret = fip->ops->lanes_post(fip);
+	if (ret)
+		goto err_lanes_post;
+
 	return 0;
-err_monitor:
-err_lanes_connect:
 err_lanes_post:
+err_init_lanes_mem:
+	rpmem_fip_fini_memory(fip);
+err_init_memory:
+	rpmem_fip_monitor_fini(fip);
+err_monitor:
+	rpmem_fip_lanes_shutdown(fip);
+err_lanes_connect:
 	return ret;
 }
 
@@ -1137,30 +1185,21 @@ rpmem_fip_close(struct rpmem_fip *fip)
 	int ret;
 	int lret = 0;
 
-	if (unlikely(fip->closing)) {
+	if (unlikely(fip->closing))
 		goto close_monitor;
-	}
 
-	/* shutdown lanes */
-	for (unsigned i = 0; i < fip->nlanes; i++) {
-		ret = fi_shutdown(fip->lanes[i].base.ep, 0);
-		if (ret) {
-			RPMEM_FI_ERR(-ret, "disconnecting endpoint");
-			lret = ret;
+	rpmem_fip_fini_memory(fip);
 
-			if (unlikely(ret == -FI_ECONNRESET ||
-					(fip->closing && ret == -FI_EINVAL))) {
-				goto close_monitor;
-			}
-		}
-	}
+	ret = rpmem_fip_lanes_shutdown(fip);
+	if (ret)
+		lret = ret;
 
 close_monitor:
 	/* close fip monitor */
 	ret = rpmem_fip_monitor_fini(fip);
-	if (ret) {
+	if (ret)
 		lret = ret;
-	}
+
 	return lret;
 }
 
