@@ -46,7 +46,7 @@ require_fs_type any
 setup
 
 RESVSIZE=$(((128 + 4) * 1024 * 1024))
-MIN_POOL=$((4 * 1024 * 1024))
+MIN_POOL=$((128 * 1024 * 1024))
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
@@ -107,7 +107,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset7\
 	$DIR/testset8
 
-# this should fail in poolsets with only one directory
+# this should fail in poolsets with only one directory because this would exceed
+# the reservation size
 expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset1\
 	$DIR/testset2\

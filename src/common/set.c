@@ -54,7 +54,6 @@
 #include <ctype.h>
 #include <linux/limits.h>
 #include <sys/mman.h>
-#include <fts.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -68,6 +67,7 @@
 #include "valgrind_internal.h"
 #include "sys_util.h"
 #include "util_pmem.h"
+#include "fs.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -102,9 +102,7 @@ int Prefault_at_create = 0;
 
 /* list of pool set option names and flags */
 static struct pool_set_option Options[] = {
-#ifndef _WIN32
 	{ "NOHDRS", OPTION_NO_HDRS },
-#endif
 	{ NULL, OPTION_UNKNOWN }
 };
 
@@ -377,7 +375,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 		/* this is required only for Device DAX & memcheck */
 		addr = util_map_hint(hdrsize, hdrsize);
 		if (addr == MAP_FAILED) {
-			ERR("canot find a contiguous region of given size");
+			ERR("cannot find a contiguous region of given size");
 			/* there's nothing we can do */
 			return -1;
 		}
@@ -1231,51 +1229,59 @@ util_part_idx_by_file_name(const char *filename)
 static int
 util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 {
-	const char *path[2] = {directory, NULL};
-
-	FTS *f = fts_open((char * const *)path, FTS_COMFOLLOW | FTS_XDEV, NULL);
+	struct fs *f = fs_new(directory);
 	if (f == NULL)
 		return -1;
 
 	int nparts = 0;
+	char *path = NULL;
 
-	FTSENT *entry;
-	while ((entry = fts_read(f)) != NULL) {
-		if ((entry->fts_info & FTS_F) == 0)
+	struct fs_entry *entry;
+	while ((entry = fs_read(f)) != NULL) {
+		if (entry->type != FS_ENTRY_FILE)
 			continue;
-		if (entry->fts_namelen < PMEM_EXT_LEN)
+		if (entry->namelen < PMEM_EXT_LEN)
 			continue;
-		const char *ext = entry->fts_path + entry->fts_pathlen -
+		const char *ext = entry->path + entry->pathlen -
 			PMEM_EXT_LEN + 1;
 		if (strcmp(PMEM_EXT, ext) != 0)
 			continue;
 
-		long part_idx = util_part_idx_by_file_name(entry->fts_name);
+		long part_idx = util_part_idx_by_file_name(entry->name);
 		if (part_idx < 0)
 			continue;
 
-		ssize_t size = util_file_get_size(entry->fts_path);
+		ssize_t size = util_file_get_size(entry->path);
 		if (size < 0) {
 			LOG(3,
-			"found incorrectly sized file (%s) in a poolset directory",
-			entry->fts_path);
-			continue;
+			"canot read size of file (%s) in a poolset directory",
+			entry->path);
+			goto err_file_size;
 		}
 
-		if (util_replica_add_part_by_idx(repp,
-				Strdup(entry->fts_path),
+		if ((path = Strdup(entry->path)) == NULL)
+			goto err_path_alloc;
+
+		if (util_replica_add_part_by_idx(repp, path,
 				(size_t)size, (unsigned)part_idx) != 0) {
-			fts_close(f);
+
 			ERR("unable to load part %s",
-				entry->fts_path);
-			return -1;
+				entry->path);
+			goto err_replica_add;
 		}
 		nparts++;
 	}
 
-	fts_close(f);
+	fs_delete(f);
 
 	return nparts;
+
+err_replica_add:
+	Free(path);
+err_file_size:
+err_path_alloc:
+	fs_delete(f);
+	return -1;
 }
 
 /*
@@ -1378,7 +1384,6 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 		ERR("!Malloc for pool set");
 		goto err;
 	}
-	set->growsize = POOLSET_GROW_SIZE;
 
 	/* check also if the last character is '\n' */
 	if (strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
@@ -2770,7 +2775,7 @@ err_part_init:
 			Free(p->path);
 		}
 		if (p->fd > 0)
-			close(p->fd);
+			os_close(p->fd);
 	}
 	Free(parts);
 
@@ -2785,8 +2790,8 @@ util_pool_extend(struct pool_set *set, size_t size)
 {
 	LOG(3, "set %p size %zu", set, size);
 
-	if (!size)
-		size = set->growsize;
+	if (size == 0)
+		return NULL;
 
 	if (set->poolsize + size > set->resvsize)
 		return NULL;
@@ -2847,9 +2852,6 @@ util_pool_extend(struct pool_set *set, size_t size)
 		if (util_map_part(p, addr, 0, hdrsize,
 				MAP_SHARED | MAP_FIXED, 0) != 0)
 			FATAL("cannot map new part in reserved space");
-
-		VALGRIND_REGISTER_PMEM_FILE(p->fd,
-			p->addr, p->size, hdrsize);
 	}
 
 	return addr_base;
@@ -2898,7 +2900,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	struct pool_set *set = *setp;
 
 	if (set->directory_based &&
-		util_poolset_append_new_part(set, set->growsize) != 0) {
+			util_poolset_append_new_part(set, minsize) != 0) {
 		ERR("cannot create a new part in provided directories");
 		util_poolset_free(set);
 		return -1;

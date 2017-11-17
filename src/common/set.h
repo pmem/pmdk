@@ -62,12 +62,6 @@ extern "C" {
 #define POOLSET_OPTION_SIG "OPTION"
 #define POOLSET_OPTION_SIG_LEN 6	/* does NOT include '\0' */
 
-/*
- * Big enough not to create new files all the time, small enough so that
- * it's easy to allocate.
- */
-#define POOLSET_GROW_SIZE (1 << 27) /* 128 megabytes */
-
 /* pool set option flags */
 enum pool_set_option_flag {
 	OPTION_UNKNOWN = 0x0,
@@ -150,7 +144,6 @@ struct pool_set {
 	unsigned options;	/* enabled pool set options */
 
 	int directory_based;
-	size_t growsize;
 	size_t resvsize;
 
 	unsigned next_id;

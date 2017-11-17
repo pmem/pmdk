@@ -23,6 +23,9 @@
     <ClCompile Include="mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fs_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="out.c">
       <Filter>Source Files</Filter>
     </ClCompile>

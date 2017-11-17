@@ -1,4 +1,4 @@
-util_poolset$(nW)TEST4: START: util_poolset
+util_poolset$(nW)TEST4w: START: util_poolset
  $(nW)util_poolset$(nW) o 134217728 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset5 $(nW)testset6 $(nW)testset7 $(nW)testset8
 $(nW)testset1: opened: nreps 1 poolsize $(nW) rdonly 0
   replica[0]: nparts 4 nhdrs 4 repsize $(nW) is_pmem $(nW)
@@ -68,4 +68,4 @@ $(nW)testset8: opened: nreps 2 poolsize $(nW) rdonly 0
     part[1] path $(nW)testdir84$(nW)000001.pmem filesize $(nW) size $(nW)
     part[2] path $(nW)testdir83$(nW)000002.pmem filesize $(nW) size $(nW)
     part[3] path $(nW)testdir84$(nW)000003.pmem filesize $(nW) size $(nW)
-util_poolset$(nW)TEST4: DONE
+util_poolset$(nW)TEST4w: DONE
