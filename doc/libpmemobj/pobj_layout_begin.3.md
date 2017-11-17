@@ -67,10 +67,10 @@ POBJ_LAYOUT_TYPES_NUM(layout)
 
 # DESCRIPTION #
 
-**libpmemobj** defines a set of macros for convenient declaration of a pool's
-layout. The layout declaration consists of declarations of a number of used
-types. The declared types will be assigned consecutive type numbers. Declared
-types may be used in conjunction with type safety macros (see
+**libpmemobj**(7) defines a set of macros for convenient declaration of a
+pool's layout. The layout declaration consists of declarations of a number of
+used types. The declared types will be assigned consecutive type numbers.
+Declared types may be used in conjunction with type safety macros (see
 **TOID_DECLARE**(3)). Once created, the layout declaration must not be changed
 unless any new types are added at the end of the existing layout declaration.
 Modifying any existing declaration may lead to changes in the type numbers of

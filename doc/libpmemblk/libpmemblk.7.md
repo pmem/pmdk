@@ -145,7 +145,7 @@ block memory API provided by **libpmemblk**.
 
 **libpmemblk** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -220,7 +220,7 @@ A second version of **libpmemblk**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the  **LD_LIBRARY_PATH**
 environment variable to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **PMEMBLK_LOG_LEVEL**
@@ -341,7 +341,7 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**msync**(2), **pmemblk_bsize**(3), **pmemblk_create**(3),
+**msync**(2), **dlclose**(3), **pmemblk_bsize**(3), **pmemblk_create**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3), **pmem_is_pmem**(3),
 **pmem_persist**(3), **strerror**(3), **libpmem**(7),
 **libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**

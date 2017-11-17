@@ -109,7 +109,7 @@ allocator for the program.
 >NOTE:
 Due to the fact the library operates on a memory-mapped file, **it may not
 work properly with programs that perform fork(2) not followed by exec(3).**
-There are two variants of experimental **fork**() support available in
+There are two variants of experimental **fork**(2) support available in
 libvmmalloc. The desired library behavior may be selected by setting the
 **VMMALLOC_FORK** environment variable. By default variant #1 is enabled.
 See **ENVIRONMENT** for more details.
@@ -132,8 +132,8 @@ system crash.
 Under normal usage, **libvmmalloc** will never print messages or intentionally
 cause the process to exit. The library uses **pthreads**(7) to be fully
 MT-safe, but never creates or destroys threads itself. The library does not
-make use of any signals, networking, and never calls **select**() or
-**poll**().
+make use of any signals, networking, and never calls **select**(2) or
+**poll**(2).
 
 
 # ENVIRONMENT #
@@ -164,7 +164,7 @@ actual usable space is typically less than the size of the memory pool file.
 **VMMALLOC_FORK** controls the behavior of **libvmmalloc** in case of
 **fork**(3), and can be set to the following values:
 
-+ **0** - **fork**() support is disabled. The behavior of **fork**() is
++ **0** - **fork**(2) support is disabled. The behavior of **fork**(2) is
 undefined in this case, but most likely results in memory pool corruption
 and a program crash due to segmentation fault.
 
@@ -201,7 +201,7 @@ below.
 
 **libvmmalloc** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -214,7 +214,7 @@ performs any run-time assertions. A second version, accessed when using
 libraries from _DEBUGLIBPATH(), contains run-time assertions and trace
 points. The typical way to access the debug version is to set the
 **LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **VMMALLOC_LOG_LEVEL**
@@ -254,7 +254,7 @@ summary statistics at program termination.
 
 # NOTES #
 
-Unlike the normal **malloc**(), which asks the system for additional memory
+Unlike the normal **malloc**(3), which asks the system for additional memory
 when it runs out, **libvmmalloc** allocates the size it is told to and never
 attempts to grow or shrink that memory pool.
 
@@ -263,10 +263,10 @@ attempts to grow or shrink that memory pool.
 
 **libvmmalloc** may not work properly with programs that perform **fork**(2)
 and do not call **exec**(3) immediately afterwards. See **ENVIRONMENT**
-for more details about experimental **fork**() support.
+for more details about experimental **fork**(2) support.
 
 If logging is enabled in the debug version of the library and the process
-performs **fork**(), no new log file is created for the child process, even if
+performs **fork**(2), no new log file is created for the child process, even if
 the configured log file name ends with "-". All logging information from
 the child process will be written to the log file owned by the parent process,
 which may lead to corruption or partial loss of log data.
@@ -284,8 +284,8 @@ lifting of managing dynamic memory allocation. See:
 
 # SEE ALSO #
 
-**fork**(2), **exec**(3), **jemalloc**(3),
+**fork**(2), **dlclose(3)**, **exec**(3), **jemalloc**(3),
 **malloc**(3), **malloc_hook**(3),
 **malloc_usable_size**(3), **posix_memalign**(3),
 **libpmem**(7), **libvmem**(7), **pthreads**(7),
-**ld.so**(8) and **<http://pmem.io>**
+**ld.so**(_BSDWX(1,8)) and **<http://pmem.io>**

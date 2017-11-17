@@ -99,12 +99,12 @@ is based on the standard POSIX Thread Library, as described in
 Pmem-aware locks provide semantics similar to standard **pthread** locks,
 except that they are embedded in pmem-resident objects and
 are considered initialized by zeroing them. Therefore, locks allocated
-with **pmemobj_zalloc**() or **pmemobj_tx_zalloc**() do not require another
+with **pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3) do not require another
 initialization step. For performance reasons, they are also padded up to 64
 bytes (cache line size). _BSDWX(=q=Since all **pthread** locks are dynamically
 allocated on FreeBSD, while the lock object is still padded up to 64 bytes
 for consistency with Linux, only the pointer to the lock is embedded in the
-pmem-resident object. **libpmemobj** transparently manages freeing of the
+pmem-resident object. **libpmemobj**(7) transparently manages freeing of the
 locks when the pool is closed.=e=)
 
 The fundamental property of pmem-aware locks is their automatic
@@ -118,8 +118,8 @@ with the *PMEMmutex*, *PMEMrwlock*, or *PMEMcond* type, respectively.
 
 The **pmemobj_mutex_zero**() function explicitly initializes the pmem-aware
 mutex *mutexp* by zeroing it. Initialization is not necessary if the object
-containing the mutex has been allocated using **pmemobj_zalloc**() or
-**pmemobj_tx_zalloc**().
+containing the mutex has been allocated using **pmemobj_zalloc**(3) or
+**pmemobj_tx_zalloc**(3).
 
 The **pmemobj_mutex_lock**() function locks the pmem-aware mutex *mutexp*.
 If the mutex is already locked, the calling thread will block until the mutex
@@ -144,7 +144,7 @@ that is already unlocked or has not been initialized.
 The **pmemobj_rwlock_zero**() function is used to explicitly initialize the
 pmem-aware read/write lock *rwlockp* by zeroing it. Initialization is not
 necessary if the object containing the lock has been allocated using
-**pmemobj_zalloc**() or **pmemobj_tx_zalloc**().
+**pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3).
 
 The **pmemobj_rwlock_rdlock**() function acquires a read lock on *rwlockp*,
 provided that the lock is not presently held for writing and no writer threads
@@ -186,7 +186,7 @@ lock previously obtained by **pmemobj_rwlock_rdlock**(),
 The **pmemobj_cond_zero**() function explicitly initializes the pmem-aware
 condition variable *condp* by zeroing it. Initialization is not necessary if
 the object containing the condition variable has been allocated using
-**pmemobj_zalloc**() or **pmemobj_tx_zalloc**().
+**pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3).
 
 The difference between **pmemobj_cond_broadcast**() and
 **pmemobj_cond_signal**() is that the former unblocks all threads waiting
@@ -222,5 +222,6 @@ number will be returned to indicate the error.
 
 # SEE ALSO #
 
-**pthread_mutex**(3), **pthread_rwlock**(3), **pthread_cond**(3), **libpmem**(7), **libpmemobj**(7)
+**pmemobj_zalloc**(3), **pmemobj_tx_zalloc**(3), **pthread_mutex**(3),
+**pthread_rwlock**(3), **pthread_cond**(3), **libpmem**(7), **libpmemobj**(7)
 and **<http://pmem.io>**

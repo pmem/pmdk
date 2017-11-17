@@ -74,8 +74,8 @@ int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset,
 
 # DESCRIPTION #
 
-In addition to the internal object collections described in the
-**OBJECT CONTAINERS** section of **libpmemobj**(7), **libpmemobj** provides
+In addition to the container operations on internal object collections
+described in **pmemobj_first**(3), **libpmemobj**(7) provides
 a mechanism for organizing persistent objects in user-defined, persistent,
 atomic, circular, doubly-linked lists. All the routines and macros operating
 on the persistent lists provide atomicity with respect to any power-fail
@@ -132,7 +132,7 @@ at the head of the list
 + **POBJ_LIST_DEST_TAIL** - when *dest* is **OID_NULL**, insert the element
 at the tail of the list
 
->NOTE: Earlier versions of **libpmemobj** do not define
+>NOTE: Earlier versions of **libpmemobj**(7) do not define
 **POBJ_LIST_DEST_BEFORE** and **POBJ_LIST_DEST_AFTER**. Use 1 for before,
 and 0 for after.
 
@@ -188,4 +188,5 @@ On other errors, **OID_NULL** is returned and *errno* is set appropriately.
 
 # SEE ALSO #
 
-**POBJ_FOREACH**(3), **libpmemobj**(7) and **<http://pmem.io>**
+**pmemobj_first**(3), **POBJ_FOREACH**(3), **libpmemobj**(7)
+and **<http://pmem.io>**

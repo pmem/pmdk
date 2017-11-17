@@ -49,7 +49,7 @@ date: pmemobj API version 2.2
 **POBJ_NEXT**(), **POBJ_NEXT_TYPE_NUM**(),
 **POBJ_FOREACH**(), **POBJ_FOREACH_SAFE**(),
 **POBJ_FOREACH_TYPE**(), **POBJ_FOREACH_SAFE_TYPE**()
--- operations to iterate through objects in containers
+-- pmemobj container operations
 
 
 # SYNOPSIS #
@@ -74,7 +74,7 @@ POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *pop, TOID var, TOID nvar)
 
 # DESCRIPTION #
 
-The **libpmemobj** container operations provide a mechanism that allows
+The **libpmemobj**(7) container operations provide a mechanism that allows
 iteration through the internal object collection, either looking for a
 specific object, or performing a specific operation on each object of a given
 type. Software should not make any assumptions about the order of the objects

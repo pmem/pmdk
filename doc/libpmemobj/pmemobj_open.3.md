@@ -73,27 +73,27 @@ To use the pmem-resident transactional object store provided by
 with the _UW(pmemobj_create) function described below. Existing pools
 may be opened with the _UW(pmemobj_open) function.
 
-None of the three functions described below is thread-safe with
-respect to any other **libpmemobj** functions. In other words, when creating,
+None of the three functions described below is thread-safe with respect
+to any other **libpmemobj**(7) functions. In other words, when creating,
 opening or deleting a pool, nothing else in the library can happen in parallel,
 and therefore these functions should be called from the main thread.
 
 Once created, the memory pool is represented by an opaque handle,
-of type *PMEMobjpool\**, which is passed to most of the other **libpmemobj**
-functions. Internally, **libpmemobj** will use either **pmem_persist**(3)
+of type *PMEMobjpool\**, which is passed to most of the other **libpmemobj**(7)
+functions. Internally, **libpmemobj**(7) will use either **pmem_persist**(3)
 or **msync**(2) when it needs to flush changes, depending on whether the memory
 pool appears to be persistent memory or a regular file (see the
 **pmem_is_pmem**(3) function in **libpmem**(7) for more information). There is
 no need for applications to flush changes directly when using the object
-memory API provided by **libpmemobj**.
+memory API provided by **libpmemobj**(7).
 
 The _UW(pmemobj_create) function creates a transactional object store with the
 given total *poolsize*. *path* specifies the name of the memory pool file to be
 created. *layout* specifies the application's layout type in the form of a
-string. The layout name is not interpreted by **libpmemobj**, but may be used
-as a check when _UW(pmemobj_open) is called. The layout name, including the
-terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT** as
-defined in **\<libpmemobj.h\>**. A NULL *layout* is equivalent
+string. The layout name is not interpreted by **libpmemobj**(7), but may be
+used as a check when _UW(pmemobj_open) is called. The layout name, including
+the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT**
+as defined in **\<libpmemobj.h\>**. A NULL *layout* is equivalent
 to using an empty string as a layout name. *mode* specifies the permissions to
 use when creating the file, as described by **creat**(2). The memory pool file
 is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
@@ -140,12 +140,12 @@ The **pmemobj_close**() function returns no value.
 
 The _UW(pmemobj_check) function returns 1 if the memory pool is found to be
 consistent. Any inconsistencies found will cause _UW(pmemobj_check) to
-return 0, in which case the use of the file with **libpmemobj** will result in
-undefined behavior. The debug version of **libpmemobj** will provide additional
-details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1, as
-described in the **DEBUGGING AND ERROR HANDLING** section in **libpmemobj**(7).
-_UW(pmemobj_check) returns -1 and sets *errno* if it cannot perform the
-consistency check due to other errors.
+return 0, in which case the use of the file with **libpmemobj**(7) will result
+in undefined behavior. The debug version of **libpmemobj**(7) will provide
+additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1,
+asdescribed in the **DEBUGGING AND ERROR HANDLING** section in
+**libpmemobj**(7). _UW(pmemobj_check) returns -1 and sets *errno* if it cannot
+perform the consistency check due to other errors.
 
 
 # CAVEATS #

@@ -113,7 +113,7 @@ results in the load/store, non-paged access to pmem.
 This library is for applications that need a persistent log file
 updated atomically (the updates cannot be *torn* by program interruption
 such as power failures). This library builds on the low-level pmem
-support provided by **libpmem**(3), handling the transactional update of
+support provided by **libpmem**(7), handling the transactional update of
 the log, flushing to persistence, and recovery for the application.
 
 **libpmemlog** is one of a collection of persistent memory libraries available.
@@ -149,7 +149,7 @@ changes directly when using the log memory API provided by **libpmemlog**.
 
 **libpmemlog** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -221,7 +221,7 @@ A second version of **libpmemlog**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **PMEMLOG_LOG_LEVEL**

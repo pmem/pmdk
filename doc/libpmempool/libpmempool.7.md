@@ -180,7 +180,7 @@ A second version of **libpmempool**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **PMEMPOOL_LOG_LEVEL**

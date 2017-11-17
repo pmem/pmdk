@@ -63,7 +63,7 @@ size_t pmemblk_nblock(PMEMblkpool *pbp);
 
 The **pmemblk_bsize**() function returns the block size of the specified
 block memory pool, that is, the value which was passed as *bsize* to
-_MP(pmemblk_create). *pbp* must be a block memory pool handle as returned by
+_UW(pmemblk_create). *pbp* must be a block memory pool handle as returned by
 **pmemblk_open**(3) or **pmemblk_create**(3).
 
 The **pmemblk_nblock**() function returns the usable space in the block memory

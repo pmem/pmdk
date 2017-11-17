@@ -120,8 +120,19 @@ given memory pool at the same time.
 Please see the **CAVEATS** section below for known limitations of the
 transactional API.
 
-The **pmemobj_tx_stage**() function returns the current transaction stage
+The **pmemobj_tx_stage**() function returns the current *transaction stage*
 for a thread. Stages are changed only by the **pmemobj_tx_\***() functions.
+Transaction stages are defined as follows:
+
++ **TX_STAGE_NONE** - no open transaction in this thread
+
++ **TX_STAGE_WORK** - transaction in progress
+
++ **TX_STAGE_ONCOMMIT** - successfully committed
+
++ **TX_STAGE_ONABORT** - starting the transaction failed or transaction aborted
+
++ **TX_STAGE_FINALLY** - ready for clean up
 
 The **pmemobj_tx_begin**() function starts a new transaction in the current
 thread. If called within an open transaction, it starts a nested transaction.
@@ -130,7 +141,7 @@ calling environment to be restored in case of transaction abort. This
 information must be provided by the caller using the **setjmp**(3) macro.
 
 A new transaction may be started only if the current stage is **TX_STAGE_NONE**
-or **TX_STAGE_WORK**. If successful, the transaction stage changes to
+or **TX_STAGE_WORK**. If successful, the *transaction stage* changes to
 **TX_STAGE_WORK**. Otherwise, the stage is changed to **TX_STAGE_ONABORT**.
 
 Optionally, a list of parameters for the transaction may be provided.
@@ -237,9 +248,9 @@ the following transitions in the transaction stage flow:
 **pmemobj_tx_process**() must not be called after calling **pmemobj_tx_end**()
 for the outermost transaction.
 
-In addition to the above API, **libpmemobj** offers a more intuitive method of
-building transactions using a set of macros described below. When using
-macros, the complete transaction flow looks like this:
+In addition to the above API, **libpmemobj**(7) offers a more intuitive method
+of building transactions using the set of macros described below. When using
+these macros, the complete transaction flow looks like this:
 
 ```c
 TX_BEGIN(Pop) {
@@ -275,7 +286,7 @@ of the environment buffer provided by a caller, they set up the local *jmp_buf*
 buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro
 starts a transaction without any options. **TX_BEGIN_PARAM** may be used when
 there is a need to acquire locks prior to starting a transaction (such as
-for a multi-threaded program) or set up transaction stage callback.
+for a multi-threaded program) or set up a transaction stage callback.
 **TX_BEGIN_CB** is just a wrapper around **TX_BEGIN_PARAM** that validates
 the callback signature. (For compatibility there is also a **TX_BEGIN_LOCK**
 macro, which is an alias for **TX_BEGIN_PARAM**). Each of these macros must be
@@ -308,17 +319,7 @@ was aborted, *errno* is set appropriately.
 # RETURN VALUE #
 
 The **pmemobj_tx_stage**() function returns the stage of the current transaction
-stage for a thread. The transaction stages are defined as follows:
-
-+ **TX_STAGE_NONE** - no open transaction in this thread
-
-+ **TX_STAGE_WORK** - transaction in progress
-
-+ **TX_STAGE_ONCOMMIT** - successfully committed
-
-+ **TX_STAGE_ONABORT** - starting the transaction failed or transaction aborted
-
-+ **TX_STAGE_FINALLY** - ready for clean up
+stage for a thread.
 
 On success, **pmemobj_tx_begin**() returns 0. Otherwise, an error number is
 returned.
@@ -386,21 +387,21 @@ free(bad_example_3); /* undefined behavior */
 ```
 
 Objects which are not volatile-qualified, are of automatic storage duration
-and have been changed between the invocations of **setjmp**(3) and **longjmp**(3)
-(that also means within the work section of the transaction after **TX_BEGIN**())
-should not be used after a transaction abort or should be used with utmost care.
-This also includes code after the **TX_END** macro.
+and have been changed between the invocations of **setjmp**(3) and
+**longjmp**(3) (that also means within the work section of the transaction
+after **TX_BEGIN**()) should not be used after a transaction abort, or should
+be used with utmost care. This also includes code after the **TX_END** macro.
 
-**libpmemobj** is not cancellation-safe. The pool will never be corrupted
+**libpmemobj**(7) is not cancellation-safe. The pool will never be corrupted
 because of a canceled thread, but other threads may stall waiting on locks
 taken by that thread. If the application wants to use **pthread_cancel**(3),
-it must disable cancellation before calling any **libpmemobj** APIs (see
+it must disable cancellation before calling any **libpmemobj**(7) APIs (see
 **pthread_setcancelstate**(3) with **PTHREAD_CANCEL_DISABLE**), and re-enable
 it afterwards. Deferring cancellation (**pthread_setcanceltype**(3) with
-**PTHREAD_CANCEL_DEFERRED**) is not safe enough, because **libpmemobj**
+**PTHREAD_CANCEL_DEFERRED**) is not safe enough, because **libpmemobj**(7)
 internally may call functions that are specified as cancellation points in POSIX.
 
-**libpmemobj** relies on the library destructor being called from the main
+**libpmemobj**(7) relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.

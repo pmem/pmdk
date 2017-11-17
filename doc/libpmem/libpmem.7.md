@@ -122,7 +122,7 @@ as described under **DEBUGGING AND ERROR HANDLING** below.
 
 **libpmem** relies on the library destructor being called from the main thread.
 For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -172,8 +172,8 @@ not normally required.
 
 + **PMEM_IS_PMEM_FORCE**=*val*
 
-If *val* is 0 (zero), then **pmem_is_pmem**(4) will always return
-false. Setting *val* to 1 causes **pmem_is_pmem**(4) to always return
+If *val* is 0 (zero), then **pmem_is_pmem**(3) will always return
+false. Setting *val* to 1 causes **pmem_is_pmem**(3) to always return
 true. This variable is mostly used for testing but can be used to force
 pmem behavior on a system where a range of pmem is not detectable as
 pmem for some reason.
@@ -226,12 +226,11 @@ testing.
 
 + **PMEM_MOVNT_THRESHOLD**=*val*
 
-This environment variable allows overriding the minimal length of
-**pmem_memcpy\_\***(), **pmem_memmove\_\***() or
-**pmem_memset\_\***() operations, for which **libpmem** uses
+This environment variable allows overriding the minimum length of
+the **pmem_memmove_persist**(3) operations, for which **libpmem** uses
 *non-temporal* move instructions. Setting this environment variable to 0
 forces **libpmem** to always use the *non-temporal* move instructions if
-available. It has no effect if **PMEM_NO_MOVNT** variable is set to 1.
+available. It has no effect if **PMEM_NO_MOVNT** is set to 1.
 This variable is intended for use during library testing.
 
 + **PMEM_MMAP_HINT**=*val*
@@ -280,7 +279,7 @@ A second version of **libpmem**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **PMEM_LOG_LEVEL**
@@ -387,6 +386,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
+**dlclose**(3),
 **pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
 **libpmemobj**(7), **libpmemblk**(7), **libpmemlog**(7)

@@ -109,7 +109,7 @@ memory. The library is most useful when used with *Direct Access* storage
 access without being paged via the system page cache. A Persistent Memory-aware
 file system is typically used to provide this type of access. Memory-mapping a
 file from a Persistent Memory-aware file system provides the raw memory pools,
-and this library supplies the more familiar *malloc-like* interfaces on top
+and this library supplies the more familiar *malloc*-like interfaces on top
 of those pools.
 
 Under normal usage, **libvmem** will never print messages or intentionally
@@ -117,9 +117,9 @@ cause the process to exit. Exceptions to this are prints caused by calls to
 **vmem_stats_print**(3), or by enabling debugging as described under
 **DEBUGGING AND ERROR HANDLING** below. The library uses **pthreads**(7) to be
 fully MT-safe, but never creates or destroys threads itself. The library does
-not make use of any signals, networking, and never calls **select**() or
-**poll**(). The system memory allocation routines like **malloc**() and
-**free**() are used by **libvmem** for managing a small amount of run-time
+not make use of any signals, networking, and never calls **select**(2) or
+**poll**(2). The system memory allocation routines like **malloc**(3) and
+**free**(3) are used by **libvmem** for managing a small amount of run-time
 state, but applications are allowed to override these calls if necessary
 (see the description of **vmem_set_funcs**() below).
 
@@ -177,7 +177,7 @@ environment variable, or to *stderr* if that variable is not set.
 
 **libvmem** relies on the library destructor being called from the main thread.
 For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -203,7 +203,7 @@ performs any run-time assertions. A second version, accessed when using
 libraries from _DEBUGLIBPATH(), contains run-time assertions and trace
 points. The typical way to access the debug version is to set the
 **LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **VMEM_LOG_LEVEL**
@@ -212,7 +212,7 @@ The value of **VMEM_LOG_LEVEL** enables trace points in the debug version
 of the library, as follows:
 
 + **0** - Tracing is disabled. This is the default level when
-**VMEM_LOG_LEVEL** is not set.
+**VMEM_LOG_LEVEL** is not set. Only statistics are logged, and then only in response to a call to **vmem_stats_print**().
 
 + **1** - Additional details on any errors detected are logged, in addition to
 returning the *errno*-based errors as usual.
@@ -281,7 +281,7 @@ See <http://pmem.io/nvml/libvmem> for more examples using the **libvmem** API.
 
 # BUGS #
 
-Unlike the normal **malloc**(), which asks the system for additional
+Unlike the normal **malloc**(3), which asks the system for additional
 memory when it runs out, **libvmem** allocates the size it is told
 to and never attempts to grow or shrink that memory pool.
 
@@ -299,6 +299,6 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**malloc**(3), **mmap**(2), **jemalloc**(3),
+**mmap**(2), **dlclose**(3), **malloc**(3), **jemalloc**(3),
 **strerror**(3), **vmem_create**(3), **vmem_malloc**(3),
 **pthreads**(7) and **<http://pmem.io>**

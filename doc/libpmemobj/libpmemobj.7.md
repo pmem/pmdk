@@ -127,7 +127,7 @@ access to storage. A *persistent memory aware file system* is typically used to
 expose the direct access to applications. Memory mapping a file from this type
 of file system results in load/store, non-paged access to pmem. **libpmemobj**
 builds on this type of memory mapped file using the low-level pmem support
-provided by **libpmem**, handling the transactional updates, flushing
+provided by **libpmem**(7), handling the transactional updates, flushing
 changes to persistence, and managing recovery for the application.
 
 _WINUX(,=q=**libpmemobj** requires the **-std=gnu99** compilation flag to
@@ -222,7 +222,7 @@ A second version of **libpmemobj**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
-contolled using the following environment variables. These variables have
+controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
 + **PMEMOBJ_LOG_LEVEL**
