@@ -102,6 +102,7 @@ static int Fd;
 static int Fd_clone;
 static int Private;
 static int Forkopt = 1; /* default behavior - remap as private */
+static bool Destructed;
 
 
 /*
@@ -160,6 +161,12 @@ realloc(void *ptr, size_t size)
 void
 free(void *ptr)
 {
+	/*
+	 * if library is destructed we ignore all calls to free
+	 */
+	if (Destructed)
+		return;
+
 	if (Vmp == NULL) {
 		je_vmem_free(ptr);
 		return;
@@ -178,6 +185,12 @@ free(void *ptr)
 void
 cfree(void *ptr)
 {
+	/*
+	 * if library is destructed we ignore all calls to free
+	 */
+	if (Destructed)
+		return;
+
 	if (Vmp == NULL) {
 		je_vmem_free(ptr);
 		return;
@@ -720,25 +733,24 @@ libvmmalloc_init(void)
  * Called automatically when the process terminates and prints
  * some basic allocator statistics.
  */
-__attribute__((destructor(101)))
+__attribute__((destructor(102)))
 static void
 libvmmalloc_fini(void)
 {
 	LOG(3, NULL);
 
 	char *env_str = os_getenv(VMMALLOC_LOG_STATS_VAR);
-	if ((env_str == NULL) || strcmp(env_str, "1") != 0) {
-		common_fini();
-		return;
+	if ((env_str != NULL) && strcmp(env_str, "1") == 0) {
+		LOG_NONL(0, "\n=========   system heap  ========\n");
+		je_vmem_malloc_stats_print(
+			print_jemalloc_stats, NULL, "gba");
+
+		LOG_NONL(0, "\n=========    vmem pool   ========\n");
+		je_vmem_pool_malloc_stats_print(
+			(pool_t *)((uintptr_t)Vmp + Header_size),
+			print_jemalloc_stats, NULL, "gba");
 	}
 
-	LOG_NONL(0, "\n=========   system heap  ========\n");
-	je_vmem_malloc_stats_print(
-		print_jemalloc_stats, NULL, "gba");
-
-	LOG_NONL(0, "\n=========    vmem pool   ========\n");
-	je_vmem_pool_malloc_stats_print(
-		(pool_t *)((uintptr_t)Vmp + Header_size),
-		print_jemalloc_stats, NULL, "gba");
 	common_fini();
+	Destructed = true;
 }
