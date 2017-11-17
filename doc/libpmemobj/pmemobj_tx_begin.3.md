@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_TX_BEGIN!3
+title: _MP(PMEMOBJ_TX_BEGIN, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -86,12 +86,11 @@ TX_END
 
 # DESCRIPTION #
 
-The functions listed in **libpmemobj**(7) in section *SYNOPSIS* under
-subsections *Non-transactional atomic allocations* and *Non-transactional
-persistent atomic circular doubly-linked list* only guarantee the atomicity
-in scope of a single operation on an object. In case of more complex changes,
+The non-transactional functions and macros described in **pmemobj_alloc**(3),
+**pmemobj_list_insert**(3) and **POBJ_LIST_HEAD**(3) only guarantee the
+atomicity of a single operation on an object. In case of more complex changes
 involving multiple operations on an object, or allocation and modification
-of multiple objects; data consistency and fail-safety may be provided only
+of multiple objects, data consistency and fail-safety may be provided only
 by using *atomic transactions*.
 
 A transaction is defined as series of operations on persistent memory
@@ -99,133 +98,159 @@ objects that either all occur, or nothing occurs. In particular,
 if the execution of a transaction is interrupted by a power failure
 or a system crash, it is guaranteed that after system restart,
 all the changes made as a part of the uncompleted transaction
-will be rolled-back, restoring the consistent state of the memory
+will be rolled back, restoring the consistent state of the memory
 pool from the moment when the transaction was started.
 
-Note that transactions do not provide the atomicity with respect
+Note that transactions do not provide atomicity with respect
 to other threads. All the modifications performed within the transactions
-are immediately visible to other threads, and this is the responsibility
-of the program to implement a proper thread synchronization mechanism.
+are immediately visible to other threads. Therefore it is the responsibility
+of the application to implement a proper thread synchronization mechanism.
+
+Each thread may have only one transaction open at a time, but that
+transaction may be nested. Nested transactions are flattened. Committing
+the nested transaction does not commit the outer transaction; however, errors
+in the nested transaction are propagated up to the outermost level, resulting
+in the interruption of the entire transaction.
 
 Each transaction is visible only for the thread that started it.
 No other threads can add operations, commit or abort the transaction
-initiated by another thread. There may be multiple open transactions on
-given memory pool at the same time, but only one transaction per thread.
+initiated by another thread. Multiple threads may have transactions open on a
+given memory pool at the same time.
 
-Nested transactions are supported but flattened. Committing the nested
-transaction does not commit the outer transaction, however errors in the
-nested transaction are propagated up to the outermost level, resulting in
-the interruption of the entire transaction.
+Please see the **CAVEATS** section below for known limitations of the
+transactional API.
 
-Please see the **CAVEATS** section belove for known limitations of the transactional API.
+The **pmemobj_tx_stage**() function returns the current *transaction stage*
+for a thread. Stages are changed only by the **pmemobj_tx_\***() functions.
+Transaction stages are defined as follows:
 
++ **TX_STAGE_NONE** - no open transaction in this thread
 
-The **pmemobj_tx_stage**() function returns the stage of the current transaction
-stage for a thread. Stages are changed only by the **pmemobj_tx_\***() functions.
++ **TX_STAGE_WORK** - transaction in progress
 
-The **pmemobj_tx_begin**() function starts a new transaction in the current thread.
-If called within an open transaction, it starts a nested transaction. The
-caller may use *env* argument to provide a pointer to the information of a calling
-environment to be restored in case of transaction abort.
-This information must be filled by a caller, using **setjmp**(3) macro.
++ **TX_STAGE_ONCOMMIT** - successfully committed
 
-New transaction may be started only if the current stage is **TX_STAGE_NONE**
-or **TX_STAGE_WORK**. If successful, transaction stage changes to **TX_STAGE_WORK**.
-Otherwise, stage changes to **TX_STAGE_ONABORT**.
++ **TX_STAGE_ONABORT** - starting the transaction failed or transaction aborted
 
-Optionally, a list of parameters for the transaction may be provided as the
-following arguments. Each parameter consists of a type and type-specific number
++ **TX_STAGE_FINALLY** - ready for clean up
+
+The **pmemobj_tx_begin**() function starts a new transaction in the current
+thread. If called within an open transaction, it starts a nested transaction.
+The caller may use the *env* argument to provide a pointer to a
+calling environment to be restored in case of transaction abort. This
+information must be provided by the caller using the **setjmp**(3) macro.
+
+A new transaction may be started only if the current stage is **TX_STAGE_NONE**
+or **TX_STAGE_WORK**. If successful, the *transaction stage* changes to
+**TX_STAGE_WORK**. Otherwise, the stage is changed to **TX_STAGE_ONABORT**.
+
+Optionally, a list of parameters for the transaction may be provided.
+Each parameter consists of a type followed by a type-specific number
 of values. Currently there are 4 types:
 
-+ **TX_PARAM_NONE**, used as a termination marker (no following value)
-+ **TX_PARAM_MUTEX**, followed by one pmem-resident PMEMmutex
-+ **TX_PARAM_RWLOCK**, followed by one pmem-resident PMEMrwlock
-+ (EXPERIMENTAL) **TX_PARAM_CB**, followed by a callback function of type
-*pmemobj_tx_callback* and a void pointer (so 2 values)
++ **TX_PARAM_NONE**, used as a termination marker. No following value.
 
-Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** means that at the beginning
-of a transaction specified lock will be acquired. In case of **TX_PARAM_RWLOCK**
-it's a write lock. It is guaranteed that **pmemobj_tx_begin**() will grab all
-locks prior to successful completion and they will be held by the current thread
-until the outermost transaction is finished. Locks are taken in the order from left
-to right. To avoid deadlocks, user must take care of the proper order of locks.
++ **TX_PARAM_MUTEX**, followed by one value, a pmem-resident PMEMmutex
 
-**TX_PARAM_CB** registers specified callback function to be executed at each
-transaction stage. For **TX_STAGE_WORK** it's executed before commit, for all other
-stages as a first operation after stage change. It will also be called after each
-transaction - in such case *stage* parameter will be set to **TX_STAGE_NONE**.
-pmemobj_tx_callback must be compatible with:
++ **TX_PARAM_RWLOCK**, followed by one value, a pmem-resident PMEMrwlock
+
++ (EXPERIMENTAL) **TX_PARAM_CB**, followed by two values: a callback function
+of type *pmemobj_tx_callback*, and a void pointer
+
+Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** causes the specified lock to
+be acquired at the beginning of the transaction. **TX_PARAM_RWLOCK** acquires
+the lock for writing. It is guaranteed that **pmemobj_tx_begin**() will acquire
+all locks prior to successful completion, and they will be held by the current
+thread until the outermost transaction is finished. Locks are taken in order
+from left to right. To avoid deadlocks, the user is responsible for proper
+lock ordering.
+
+**TX_PARAM_CB** registers the specified callback function to be executed at
+each transaction stage. For **TX_STAGE_WORK**, the callback is executed prior
+to commit. For all other stages, the callback is executed as the first
+operation after a stage change. It will also be called after each transaction;
+in this case the *stage* parameter will be set to **TX_STAGE_NONE**.
+*pmemobj_tx_callback* must be compatible with:
 
 ```void func(PMEMobjpool *pop, enum pobj_tx_stage stage, void *arg)```
 
 *pop* is a pool identifier used in **pmemobj_tx_begin**(), *stage* is a current
-transaction stage and *arg* is a second parameter of **TX_PARAM_CB**.
-Without considering transaction nesting this mechanism can be deemed as an alternative
-method for executing code between stages (instead of **TX_ONCOMMIT**, **TX_ONABORT**, etc).
-However there are 2 significant differences when nested transactions are used:
+transaction stage and *arg* is the second parameter of **TX_PARAM_CB**.
+Without considering transaction nesting, this mechanism can be considered an
+alternative method for executing code between stages (instead of
+**TX_ONCOMMIT**, **TX_ONABORT**, etc). However, there are 2 significant
+differences when nested transactions are used:
 
-+  Registered function is executed only in the most outer transaction
-(even if registered in the inner one).
++ The registered function is executed only in the outermost transaction,
+even if registered in an inner transaction.
 
-+  There can be only one callback in the whole transaction
-(it can't be changed in the inner transaction).
++ There can be only one callback in the entire transaction, that is, the
+callback cannot be changed in an inner transaction.
 
-Note that **TX_PARAM_CB** does not replace **TX_ONCOMMIT**/**TX_ONABORT**/etc. macros.
-They can be used together - a callback will be executed *before*
-**TX_ONCOMMIT**/**TX_ONABORT**/etc. section.
+Note that **TX_PARAM_CB** does not replace the **TX_ONCOMMIT**, **TX_ONABORT**,
+etc. macros. They can be used together: the callback will be executed *before*
+a **TX_ONCOMMIT**, **TX_ONABORT**, etc. section.
 
 **TX_PARAM_CB** can be used when the code dealing with transaction stage
 changes is shared between multiple users or when it must be executed only
-in the outer transaction. For example it can be very useful when application
-must synchronize persistent and transient state.
+in the outer transaction. For example it can be very useful when the
+application must synchronize persistent and transient state.
 
-The **pmemobj_tx_lock**() function grabs a lock pointed by *lockp* and
-adds it to the current transaction. The lock type is specified by *lock_type*
-(**TX_LOCK_MUTEX** or **TX_LOCK_RWLOCK**) and the pointer to the *lockp* of
-*PMEMmutex* or *PMEMrwlock* type. If successful, *lockp* is added to transaction.
-Otherwise, stage changes to **TX_STAGE_ONABORT**. In case of *PMEMrwlock* *lock_type*
-function acquires a write lock. This function must be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_lock**() function acquires the lock *lockp* of type
+*lock_type* and adds it to the current transaction. *lock_type* may be
+**TX_LOCK_MUTEX** or **TX_LOCK_RWLOCK**; *lockp* must be of type
+*PMEMmutex* or *PMEMrwlock*, respectively. If *lock_type* is **TX_LOCK_RWLOCK**
+the lock is acquired for writing. If the lock is not successfully
+acquired, the stage is changed to **TX_STAGE_ONABORT**. This function must be
+called during **TX_STAGE_WORK**.
 
-The **pmemobj_tx_abort**() aborts the current transaction and causes transition to
-**TX_STAGE_ONABORT**. This function must be called during **TX_STAGE_WORK**.
-If the passed *errnum* is equal to zero, it shall be set to **ECANCELED**.
+**pmemobj_tx_abort**() aborts the current transaction and causes a transition
+to **TX_STAGE_ONABORT**. If *errnum* is equal to 0, the transaction
+error code is set to **ECANCELED**; otherwise, it is set to *errnum*.
+This function must be called during **TX_STAGE_WORK**.
 
-The **pmemobj_tx_commit**() function commits the current open transaction and causes
-transition to **TX_STAGE_ONCOMMIT** stage. If called in context of the outermost
-transaction, all the changes may be considered as durably written upon successful
-completion. This function must be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_commit**() function commits the current open transaction and
+causes a transition to **TX_STAGE_ONCOMMIT**. If called in the context of the
+outermost transaction, all the changes may be considered as durably written
+upon successful completion. This function must be called during
+**TX_STAGE_WORK**.
 
-The **pmemobj_tx_end**() function performs a clean up of a current transaction.
-If called in context of the outermost transaction, it releases all the locks
-acquired by **pmemobj_tx_begin**() for outer and nested transactions.
-The **pmemobj_tx_end**() function can be called during **TX_STAGE_NONE** if
-transitioned to this stage using **pmemobj_tx_process**(). If not already in
-**TX_STAGE_NONE** state, it causes the transition to **TX_STAGE_NONE**. In case of
-the nested transaction, it returns to the context of the outer transaction with
-**TX_STAGE_WORK** stage without releasing any locks. Must always be
-called for each **pmemobj_tx_begin**(), even if starting the transaction failed.
-This function must *not* be called during **TX_STAGE_WORK**.
+The **pmemobj_tx_end**() function performs a cleanup of the current
+transaction. If called in the context of the outermost transaction, it releases
+all the locks acquired by **pmemobj_tx_begin**() for outer and nested
+transactions. If called in the context of a nested transaction, it returns
+to the context of the outer transaction in **TX_STAGE_WORK**, without releasing
+any locks. The **pmemobj_tx_end**() function can be called during
+**TX_STAGE_NONE** if transitioned to this stage using **pmemobj_tx_process**().
+If not already in **TX_STAGE_NONE**, it causes the transition to
+**TX_STAGE_NONE**.  **pmemobj_tx_end** must always be called for each
+**pmemobj_tx_begin**(), even if starting the transaction failed. This function
+must *not* be called during **TX_STAGE_WORK**.
 
 The **pmemobj_tx_errno**() function returns the error code of the last transaction.
 
-The **pmemobj_tx_process**() function performs the actions associated with
+The **pmemobj_tx_process**() function performs the actions associated with the
 current stage of the transaction, and makes the transition to the next stage.
-It must be called in transaction. Current stage must always be obtained
-by a call to **pmemobj_tx_stage**(). The **pmemobj_tx_process**() performs
+It must be called in a transaction. The current stage must always be obtained
+by a call to **pmemobj_tx_stage**(). **pmemobj_tx_process**() performs
 the following transitions in the transaction stage flow:
 
 + **TX_STAGE_WORK** -> **TX_STAGE_ONCOMMIT**
+
 + **TX_STAGE_ONABORT** -> **TX_STAGE_FINALLY**
+
 + **TX_STAGE_ONCOMMIT** -> **TX_STAGE_FINALLY**
+
 + **TX_STAGE_FINALLY** -> **TX_STAGE_NONE**
+
 + **TX_STAGE_NONE** -> **TX_STAGE_NONE**
 
-The **pmemobj_tx_process**() must not be called after calling **pmemobj_tx_end**()
+**pmemobj_tx_process**() must not be called after calling **pmemobj_tx_end**()
 for the outermost transaction.
 
-In addition to the above API, the **libpmemobj** offers a more intuitive method of
-building transactions using a set of macros described below. When using
-macros, the complete transaction flow looks like this:
+In addition to the above API, **libpmemobj**(7) offers a more intuitive method
+of building transactions using the set of macros described below. When using
+these macros, the complete transaction flow looks like this:
 
 ```c
 TX_BEGIN(Pop) {
@@ -259,31 +284,33 @@ The **TX_BEGIN_PARAM**(), **TX_BEGIN_CB**() and **TX_BEGIN**() macros start
 a new transaction in the same way as **pmemobj_tx_begin**(), except that instead
 of the environment buffer provided by a caller, they set up the local *jmp_buf*
 buffer and use it to catch the transaction abort. The **TX_BEGIN**() macro
-starts a transaction without any options. **TX_BEGIN_PARAM** may be used in case
-when there is a need to grab locks prior to starting a transaction (like
-for a multi-threaded program) or set up transaction stage callback. **TX_BEGIN_CB**
-is just a wrapper around **TX_BEGIN_PARAM** that validates callback signature.
-(For compatibility there is also **TX_BEGIN_LOCK** macro which is an alias for
-**TX_BEGIN_PARAM**). Each of those macros shall be followed by a block of code
-with all the operations that are to be performed atomically.
+starts a transaction without any options. **TX_BEGIN_PARAM** may be used when
+there is a need to acquire locks prior to starting a transaction (such as
+for a multi-threaded program) or set up a transaction stage callback.
+**TX_BEGIN_CB** is just a wrapper around **TX_BEGIN_PARAM** that validates
+the callback signature. (For compatibility there is also a **TX_BEGIN_LOCK**
+macro, which is an alias for **TX_BEGIN_PARAM**). Each of these macros must be
+followed by a block of code with all the operations that are to be performed
+atomically.
 
 The **TX_ONABORT** macro starts a block of code that will be executed only
 if starting the transaction fails due to an error in **pmemobj_tx_begin**(),
 or if the transaction is aborted. This block is optional, but in practice
-it should not be omitted. If it's desirable to crash the application when
-transaction aborts and there is no **TX_ONABORT** section, application can
-define **POBJ_TX_CRASH_ON_NO_ONABORT** macro before inclusion of **\<libpmemobj.h\>**.
-It provides default **TX_ONABORT** section which just calls **abort**(3).
+it should not be omitted. If it is desirable to crash the application when a
+transaction aborts and there is no **TX_ONABORT** section, the application can
+define the **POBJ_TX_CRASH_ON_NO_ONABORT** macro before inclusion of
+**\<libpmemobj.h\>**. This provides a default **TX_ONABORT** section which
+just calls **abort**(3).
 
 The **TX_ONCOMMIT** macro starts a block of code that will be executed only
 if the transaction is successfully committed, which means that the execution
-of code in **TX_BEGIN**() block has not been interrupted by an error or by a call
-to **pmemobj_tx_abort**(). This block is optional.
+of code in the **TX_BEGIN**() block has not been interrupted by an error or by
+a call to **pmemobj_tx_abort**(). This block is optional.
 
 The **TX_FINALLY** macro starts a block of code that will be executed regardless
 of whether the transaction is committed or aborted. This block is optional.
 
-The **TX_END** macro cleans up and closes the transaction started by
+The **TX_END** macro cleans up and closes the transaction started by the
 **TX_BEGIN**() / **TX_BEGIN_PARAM**() / **TX_BEGIN_CB**() macros.
 It is mandatory to terminate each transaction with this macro. If the transaction
 was aborted, *errno* is set appropriately.
@@ -292,25 +319,19 @@ was aborted, *errno* is set appropriately.
 # RETURN VALUE #
 
 The **pmemobj_tx_stage**() function returns the stage of the current transaction
-stage for a thread. The transaction stages are defined as follows:
+stage for a thread.
 
-+ **TX_STAGE_NONE** - no open transaction in this thread
-+ **TX_STAGE_WORK** - transaction in progress
-+ **TX_STAGE_ONCOMMIT** - successfully committed
-+ **TX_STAGE_ONABORT** - starting the transaction failed or transaction aborted
-+ **TX_STAGE_FINALLY** - ready for clean up
-
-The **pmemobj_tx_begin**() function if successful returns zero.
-Otherwise, an error number is returned.
+On success, **pmemobj_tx_begin**() returns 0. Otherwise, an error number is
+returned.
 
 The **pmemobj_tx_begin**() and **pmemobj_tx_lock**() functions return
-zero if *lockp* is successfully added to transaction.
+zero if *lockp* is successfully added to the transaction.
 Otherwise, an error number is returned.
 
 The **pmemobj_tx_abort**() and **pmemobj_tx_commit**() functions return no value.
 
-The **pmemobj_tx_end**() function returns 0 if transaction was successful.
-Otherwise returns error code set by **pmemobj_tx_abort**().
+The **pmemobj_tx_end**() function returns 0 if the transaction was successful.
+Otherwise it returns the error code set by **pmemobj_tx_abort**().
 Note that **pmemobj_tx_abort**() can be called internally by the library.
 
 The **pmemobj_tx_errno**() function returns the error code of the last transaction.
@@ -320,9 +341,9 @@ The **pmemobj_tx_process**() function returns no value.
 
 # CAVEATS #
 
-The transaction flow control is governed by the **setjmp**(3)/**longjmp**(3)
-macros and they are used in both the macro and function flavors of the API.
-The transaction will longjmp on transaction abort. This has one major drawback
+Transaction flow control is governed by the **setjmp**(3) and **longjmp**(3)
+macros, and they are used in both the macro and function flavors of the API.
+The transaction will longjmp on transaction abort. This has one major drawback,
 which is described in the ISO C standard subsection 7.13.2.1. It says that
 **the values of objects of automatic storage duration that are local to the
 function containing the setjmp invocation that do not have volatile-qualified
@@ -366,20 +387,21 @@ free(bad_example_3); /* undefined behavior */
 ```
 
 Objects which are not volatile-qualified, are of automatic storage duration
-and have been changed between the invocations of **setjmp**(3) and **longjmp**(3)
-(that also means within the work section of the transaction after **TX_BEGIN**())
-should not be used after a transaction abort or should be used with utmost care.
-This also includes code after the **TX_END** macro.
+and have been changed between the invocations of **setjmp**(3) and
+**longjmp**(3) (that also means within the work section of the transaction
+after **TX_BEGIN**()) should not be used after a transaction abort, or should
+be used with utmost care. This also includes code after the **TX_END** macro.
 
-**libpmemobj** is not cancellation-safe. The pool will never be corrupted because
-of canceled thread, but other threads may stall waiting on locks taken by that thread.
-If application wants to use **pthread_cancel**(3), it must disable cancellation before
-calling **libpmemobj** APIs (see **pthread_setcancelstate**(3) with **PTHREAD_CANCEL_DISABLE**)
-and re-enable it after. Deferring cancellation (**pthread_setcanceltype**(3) with
-**PTHREAD_CANCEL_DEFERRED**) is not safe enough, because **libpmemobj** internally
-may call functions that are specified as cancellation points in POSIX.
+**libpmemobj**(7) is not cancellation-safe. The pool will never be corrupted
+because of a canceled thread, but other threads may stall waiting on locks
+taken by that thread. If the application wants to use **pthread_cancel**(3),
+it must disable cancellation before calling any **libpmemobj**(7) APIs (see
+**pthread_setcancelstate**(3) with **PTHREAD_CANCEL_DISABLE**), and re-enable
+it afterwards. Deferring cancellation (**pthread_setcanceltype**(3) with
+**PTHREAD_CANCEL_DEFERRED**) is not safe enough, because **libpmemobj**(7)
+internally may call functions that are specified as cancellation points in POSIX.
 
-**libpmemobj** relies on the library destructor being called from the main
+**libpmemobj**(7) relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.

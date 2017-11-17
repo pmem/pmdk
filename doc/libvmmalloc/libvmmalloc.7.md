@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBVMMALLOC!7
+title: _MP(LIBVMMALLOC, 7)
 collection: libvmmalloc
 header: NVM Library
 date: vmmalloc API version 1.0
@@ -40,6 +40,7 @@ date: vmmalloc API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [ENVIRONMENT](#environment)<br />
+[CAVEATS](#caveats)<br />
 [DEBUGGING](#debugging)<br />
 [NOTES](#notes)<br />
 [BUGS](#bugs)<br />
@@ -62,13 +63,11 @@ or
 
 ```c
 #include <stdlib.h>
-#include <malloc.h>
+#include _BSDWX(<malloc_np.h>,<malloc.h>)
 #include <libvmmalloc.h>
 
 cc [ flag... ] file... -lvmmalloc [ library... ]
 ```
-
-##### Most commonly used functions: #####
 
 ```c
 void *malloc(size_t size);
@@ -87,7 +86,7 @@ void cfree(void *ptr);
 
 # DESCRIPTION #
 
-**libvmmalloc** transparently converts all the dynamic memory allocations
+**libvmmalloc** transparently converts all dynamic memory allocations
 into Persistent Memory allocations.
 
 The typical usage of **libvmmalloc** does not require any modification of
@@ -96,52 +95,58 @@ libraries by setting the environment variable **LD_PRELOAD**. When used in
 that way, **libvmmalloc** interposes the standard system memory allocation
 routines, as defined in **malloc**(3), **posix_memalign**(3) and
 **malloc_usable_size**(3), and provides that all dynamic memory allocations
-are made from a *memory pool* built on memory-mapped file, instead of a system
-heap. The memory managed by **libvmmalloc** may have different attributes,
-depending on the file system containing the memory-mapped file. In particular,
-**libvmmalloc** is part of the *Non-Volatile Memory Library* because it is
-sometimes useful to use non-volatile memory as a volatile memory pool,
-leveraging its capacity, cost, or performance characteristics.
+are made from a *memory pool* built on a memory-mapped file, instead of the
+system heap. The memory managed by **libvmmalloc** may have different
+attributes, depending on the file system containing the memory-mapped file.
+In particular, **libvmmalloc** is part of the *Non-Volatile Memory Library*
+because it is sometimes useful to use non-volatile memory as a volatile
+memory pool, leveraging its capacity, cost, or performance characteristics.
 
-**libvmmalloc** may be also linked to the program, by providing the **-lvmmalloc**
-argument to the linker. Then it becomes the default memory allocator for given
-program.
+**libvmmalloc** may be also linked to the program, by providing the
+**-lvmmalloc* argument to the linker. Then it becomes the default memory
+allocator for the program.
 
 >NOTE:
 Due to the fact the library operates on a memory-mapped file, **it may not
-work properly with the programs that perform fork(3) not followed by exec(3).**
-There are two variants of experimental **fork**() support available in libvmmalloc.
-The desired library behavior may be selected by setting **VMMALLOC_FORK** environment
-variable. By default variant #1 is enabled. See **ENVIRONMENT** section for more details.
+work properly with programs that perform fork(2) not followed by exec(3).**
+There are two variants of experimental **fork**(2) support available in
+libvmmalloc. The desired library behavior may be selected by setting the
+**VMMALLOC_FORK** environment variable. By default variant #1 is enabled.
+See **ENVIRONMENT** for more details.
 
-**libvmmalloc** uses the **mmap**(2) system call to create a pool of volatile memory.
-The library is most useful when used with *Direct Access* storage (DAX), which is
-memory-addressable persistent storage that supports load/store access without being
-paged via the system page cache. A Persistent Memory-aware file system is typically
-used to provide this type of access. Memory-mapping a file from a Persistent Memory-aware
-file system provides the raw memory pools, and this library supplies the traditional
+**libvmmalloc** uses the **mmap**(2) system call to create a pool of
+volatile memory. The library is most useful when used with *Direct Access*
+storage (DAX), which is memory-addressable persistent storage that supports
+load/store access without being paged via the system page cache. A Persistent
+Memory-aware file system is typically used to provide this type of access.
+Memory-mapping a file from a Persistent Memory-aware file system provides the
+raw memory pools, and this library supplies the traditional
 *malloc* interfaces on top of those pools.
 
-The memory pool acting as a system heap replacement is created automatically at
-the library initialization time. User may control its location and size by setting
-the environment variables described in **ENVIRONMENT** section. The allocated file
-space is reclaimed when process terminates or in case of system crash.
+The memory pool acting as a system heap replacement is created automatically
+at library initialization time. The user may control its location and size by
+setting the environment variables described in **ENVIRONMENT**, below. The
+allocated file space is reclaimed when the process terminates or in case of
+system crash.
 
 Under normal usage, **libvmmalloc** will never print messages or intentionally
-cause the process to exit. The library uses **pthreads**(7) to be fully MT-safe,
-but never creates or destroys threads itself. The library does not make use of
-any signals, networking, and never calls **select**() or **poll**().
+cause the process to exit. The library uses **pthreads**(7) to be fully
+MT-safe, but never creates or destroys threads itself. The library does not
+make use of any signals, networking, and never calls **select**(2) or
+**poll**(2).
 
 
 # ENVIRONMENT #
 
-There are two configuration variables that **must** be set to make **libvmmalloc**
-work properly. If any of them is not specified, or if their values are not
-valid, the library prints the appropriate error message and terminates the process.
+The **VMMALLOC_POOL_DIR** and **VMMALLOC_POOL_SIZE** environment variables
+**must** be set for **libvmmalloc** to work properly. If either of them is
+not specified, or if their values are not valid, the library prints an
+appropriate error message and terminates the process. Any other environment
+variables are optional.
 
 + **VMMALLOC_POOL_DIR**=*path*
 
-Specifies a path to directory where the memory pool file should be created.
+Specifies a path to the directory where the memory pool file should be created.
 The directory must exist and be writable.
 
 + **VMMALLOC_POOL_SIZE**=*len*
@@ -154,109 +159,120 @@ less than the minimum allowed size **VMMALLOC_MIN_POOL** as defined in
 Due to the fact the library adds some metadata to the memory pool, the amount of
 actual usable space is typically less than the size of the memory pool file.
 
-+ **VMMALLOC_FORK**=*val*
++ **VMMALLOC_FORK**=*val* (EXPERIMENTAL)
 
-Setting the **VMMALLOC_FORK** configuration variable is optional. It controls
-the behavior of **libvmmalloc** in case of **fork**(3), and can be set to the
-following values:
+**VMMALLOC_FORK** controls the behavior of **libvmmalloc** in case of
+**fork**(3), and can be set to the following values:
 
-+ **0** - fork() support is disabled. The behavior is undefined in such case,
-but most likely results in the memory pool corruption and the program crash due to
-segmentation fault.
++ **0** - **fork**(2) support is disabled. The behavior of **fork**(2) is
+undefined in this case, but most likely results in memory pool corruption
+and a program crash due to segmentation fault.
 
-+ **1** - The memory pool file is remapped with **MAP_PRIVATE** flag before
-the fork completes. From this moment, any access to memory that modifies the heap
-pages, both in the parent and in the child process, will trigger creation of
-a copy of those pages in RAM (copy-on-write). The benefit of such approach is that
-it does not significantly increase the time of fork operation, and does not require
-additional space on the file system. However, all the subsequent memory allocations
-and modifications of the memory allocated before fork, will consume system memory
-resources instead of the memory pool.
++ **1** - The memory pool file is remapped with the **MAP_PRIVATE** flag before
+the fork completes. From this moment, any access to memory that modifies the
+heap pages, both in the parent and in the child process, will trigger creation
+of a copy of those pages in RAM (copy-on-write). The benefit of this approach
+is that it does not significantly increase the time of the initial fork
+operation, and does not require additional space on the file system. However,
+all subsequent memory allocations, and modifications of any memory allocated
+before fork, will consume system memory resources instead of the memory pool.
+
+This is the default option if **VMMALLOC_FORK** is not set.
 
 + **2** - A copy of the entire memory pool file is created for the use of the
 child process. This requires additional space on the file system, but both the
-parent and the child process may still operate on their memory pools, not consuming
-the system memory resources.
+parent and the child process may still operate on their memory pools, not
+consuming system memory resources.
 
 >NOTE:
-In case of large memory pools, creating a copy of the pool file may stall the fork
-operation for a quite long time.
+In case of large memory pools, creating a copy of the pool file may stall
+the fork operation for a quite long time.
 
 + **3** - The library first attempts to create a copy of the memory pool
-(as for option #2), but if it fails (i.e. because of insufficient amount of free
+(as for option #2), but if it fails (i.e. because of insufficient free
 space on the file system), it will fall back to option #1.
 
+>NOTE: Options **2** and **3** are not currently supported on FreeBSD.
+
+Environment variables used for debugging are described in **DEBUGGING**,
+below.
 
 # CAVEATS #
 
 **libvmmalloc** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
 # DEBUGGING #
 
 Two versions of **libvmmalloc** are typically available on a development
-ystem. The normal version is optimized for performance. That version skips
-checks that impact performance and never logs any trace information or performs
-any run-time assertions. A second version, accessed when using the libraries
-under **/usr/lib/nvml_debug**, contains run-time assertions and trace points.
-The typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**
-depending on where the debug libraries are installed on the system. The trace
-points in the debug version of the library are enabled using the environment
-variable **VMMALLOC_LOG_LEVEL** which can be set to the following values:
+system. The normal version is optimized for performance. That version skips
+checks that impact performance and never logs any trace information or
+performs any run-time assertions. A second version, accessed when using
+libraries from _DEBUGLIBPATH(), contains run-time assertions and trace
+points. The typical way to access the debug version is to set the
+**LD_LIBRARY_PATH** environment variable to _LDLIBPATH(). Debugging output is
+controlled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
 
-+ **0** - Tracing is disabled. This is the default level when **VMMALLOC_LOG_LEVEL**
-is not set.
++ **VMMALLOC_LOG_LEVEL**
 
-+ **1** - Additional details on any errors detected are logged (in addition to
-returning the *errno*-based errors as usual).
+The value of **VMMALLOC_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - Tracing is disabled. This is the default level when
+**VMMALLOC_LOG_LEVEL** is not set.
+
++ **1** - Additional details on any errors detected are logged, in addition to
+returning the *errno*-based errors as usual.
 
 + **2** - A trace of basic operations is logged.
 
-+ **3** - This level enables a very verbose amount of function call tracing
++ **3** - Enables a very verbose amount of function call tracing
 in the library.
 
-+ **4** - This level enables voluminous tracing information about all the memory
++ **4** - Enables voluminous tracing information about all memory
 allocations and deallocations.
 
-The environment variable **VMMALLOC_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the name is "-",
-the PID of the current process will be appended to the file name when the log file
-is created. If **VMMALLOC_LOG_FILE** is not set, output goes to stderr.
+Unless **VMMALLOC_LOG_FILE** is set, debugging output is written to *stderr*.
 
-Setting the environment variable **VMMALLOC_LOG_LEVEL** has no effect on
-the non-debug version of **libvmmalloc**.
++ **VMMALLOC_LOG_FILE**
 
-+ **VMMALLOC_LOG_STATS**=1
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **VMMALLOC_LOG_FILE** is not set, output is
+written to *stderr*.
 
-Setting this environment variable to 1 enables logging the human-readable
-summary statistics at the program termination. Statistics are written only for the
-debug version of **libvmmalloc**.
++ **VMMALLOC_LOG_STATS**
+
+Setting **VMMALLOC_LOG_STATS** to 1 enables logging human-readable
+summary statistics at program termination.
 
 
 # NOTES #
 
-Unlike the normal **malloc**(), which asks the system for additional memory
+Unlike the normal **malloc**(3), which asks the system for additional memory
 when it runs out, **libvmmalloc** allocates the size it is told to and never
 attempts to grow or shrink that memory pool.
 
 
 # BUGS #
 
-**libvmmalloc** may not work properly with the programs that perform **fork**(3)
+**libvmmalloc** may not work properly with programs that perform **fork**(2)
 and do not call **exec**(3) immediately afterwards. See **ENVIRONMENT**
-section for more details about the experimental **fork**() support.
+for more details about experimental **fork**(2) support.
 
-If the trace points in the debug version of the library are enabled and the process
-performs fork, there is no new log file created for the child process, even
-if the configured log file name is terminated with "-" character. All the logging
-information from the child process will be written to the log file owned by
-the parent process, which may lead to corruption or partial loss of the log data.
+If logging is enabled in the debug version of the library and the process
+performs **fork**(2), no new log file is created for the child process, even if
+the configured log file name ends with "-". All logging information from
+the child process will be written to the log file owned by the parent process,
+which may lead to corruption or partial loss of log data.
 
-Malloc hooks (see **malloc_hook**(3)), are not supported when using **libvmmalloc**.
+Malloc hooks (see **malloc_hook**(3)), are not supported when using
+**libvmmalloc**.
 
 
 # ACKNOWLEDGEMENTS #
@@ -268,8 +284,8 @@ lifting of managing dynamic memory allocation. See:
 
 # SEE ALSO #
 
-**exec**(3), **fork**(3), **jemalloc**(3),
+**fork**(2), **dlclose(3)**, **exec**(3), **jemalloc**(3),
 **malloc**(3), **malloc_hook**(3),
 **malloc_usable_size**(3), **posix_memalign**(3),
 **libpmem**(7), **libvmem**(7), **pthreads**(7),
-**ld.so**(8) and **<http://pmem.io>**
+**ld.so**(_BSDWX(1,8)) and **<http://pmem.io>**

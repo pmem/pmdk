@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_CTL_GET!3
+title: _MP(PMEMOBJ_CTL_GET, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -46,9 +46,9 @@ date: pmemobj API version 2.2
 
 # NAME #
 
-!pmemobj_ctl_get,
-!pmemobj_ctl_set
--- allows to control the internal behavior of libpmemobj
+_UW(pmemobj_ctl_get),
+_UW(pmemobj_ctl_set)
+-- Query and modify libpmemobj internal behavior
 
 
 # SYNOPSIS #
@@ -56,45 +56,42 @@ date: pmemobj API version 2.2
 ```c
 #include <libpmemobj.h>
 
-!ifdef{WIN32}
-{
-int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg); (EXPERIMENTAL)
-}{
-int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
-}
+_UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
+	=q= (EXPERIMENTAL)=e=)
+_UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
+	=q= (EXPERIMENTAL)=e=)
 ```
+
+_UNICODE()
 
 
 # DESCRIPTION #
 
-The library provides a uniform interface that allows to impact its behavior as
-well as reason about its internals.
-
-The *name* argument specifies an entry point as defined in the CTL namespace
-specification. The entry point description specifies whether the extra *arg* is
-required. Those two parameters together create a CTL query. The *pop* argument is optional if
-the entry point resides in a global namespace (i.e. shared for all the pools).
-The functions themselves are thread-safe and most of the entry points are too.
-If there are special conditions in which an entry point has to be called, they
-are explicitly stated in its description.
-The functions propagate the return value of the entry point. If either the name
-or the provided arguments are invalid, -1 is returned.
-
-Entry points are leafs of a tree-like structure. Each one can read from the
-internal state, write to the internal state or do both.
+The _UW(pmemobj_ctl_get) and _UW(pmemobj_ctl_set) functions provide a uniform
+interface for querying and modifying the internal behavior of **libpmemobj**
+through the control (CTL) namespace.
 
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
 Internal nodes themselves can only contain other nodes and cannot be entry
-points. There are two types of those nodes: named and indexed. Named nodes have
-string identifiers. Indexed nodes represent an abstract array index and have an
-associated string identifier. The index itself is user provided. A collection of
-indexes present on the path of an entry point is provided to the handler
-functions as name and index pairs.
+points. There are two types of those nodes: *named* and *indexed*. Named nodes
+have string identifiers. Indexed nodes represent an abstract array index and
+have an associated string identifier. The index itself is provided by the user.
+A collection of indexes present on the path of an entry point is provided to
+the handler functions as name and index pairs.
+
+The *name* argument specifies an entry point as defined in the CTL namespace
+specification. The entry point description specifies whether the extra *arg* is
+required. Those two parameters together create a CTL query. The *pop* argument
+is optional if the entry point resides in a global namespace (i.e., is shared
+for all the pools). The functions and the entry points are thread-safe unless
+indicated otherwise below. If there are special conditions for calling an entry
+point, they are explicitly stated in its description. The functions propagate
+the return value of the entry point. If either *name* or *arg* is invalid, -1
+is returned.
+
+Entry points are the leaves of the CTL namespace structure. Each entry point
+can read from the internal state, write to the internal state or both.
 
 The entry points are listed in the following format:
 
@@ -107,26 +104,29 @@ description...
 
 prefault.at_create | rw | global | int | int | boolean
 
-If set, every single page of the pool will be touched and written to, in order
-to trigger page allocation. This can be used to minimize performance impact of
-pagefaults. Affects only the !pmemobj_create function.
+If set, every page of the pool will be touched and written to when the pool
+is created, in order to trigger page allocation and minimize the performance
+impact of pagefaults. Affects only the _UW(pmemobj_create) function.
 
 Always returns 0.
 
 prefault.at_open | rw | global | int | int | boolean
 
-As above, but affects !pmemobj_open function.
+If set, every page of the pool will be touched and written to when the pool
+is opened, in order to trigger page allocation and minimize the performance
+impact of pagefaults. Affects only the _UW(pmemobj_open) function.
+
+Always returns 0.
 
 tx.debug.skip_expensive_checks | rw | - | int | int | boolean
 
-Turns off some expensive checks performed by transaction module in "debug"
+Turns off some expensive checks performed by the transaction module in "debug"
 builds. Ignored in "release" builds.
 
 tx.cache.size | rw | - | long long | long long | integer
 
-Size in bytes of the transaction snapshot cache size. The bigger it is the
-frequency of persistent allocations is lower, but at the cost of higher
-fixed cost.
+Size in bytes of the transaction snapshot cache. In a larger cache the
+frequency of persistent allocations is lower, but with higher fixed cost.
 
 This should be set to roughly the sum of sizes of the snapshotted regions in
 an average transaction in the pool.
@@ -142,7 +142,7 @@ Returns 0 if successful, -1 otherwise.
 
 tx.cache.threshold | rw | - | long long | long long | integer
 
-Threshold in bytes to which the snapshots will use the cache. All bigger
+Threshold in bytes, below which snapshots will use the cache. All larger
 snapshots will trigger a persistent allocation.
 
 This value must be a in a range between 0 and **tx.cache.size**.
@@ -164,13 +164,13 @@ a separate worker. If the queue is full, the algorithm, instead of waiting,
 performs the post-commit in the current thread.
 
 The task is performed on a finite resource (lanes, of which there are 1024),
-and if the worker threads that process this queue don't keep up with the
-demand, regular threads might start to block waiting for that resource. This
-will happen if the queue depth value is too large.
+and if the worker threads that process this queue are unable to keep up with
+the demand, regular threads might start to block waiting for that resource.
+This will happen if the queue depth value is too large.
 
-As a general rule, this value should be set to around: 1024 minus the average
-number of threads in the application (not counting the post-commit workers).
-But this may vary from workload to workload.
+As a general rule, this value should be set to approximately 1024 minus the
+average number of threads in the application (not counting the post-commit
+workers); however, this may vary from workload to workload.
 
 The queue depth value must also be a power of two.
 
@@ -181,9 +181,9 @@ Returns 0 if successful, -1 otherwise.
 
 tx.post_commit.worker | r- | - | void * | - | -
 
-The worker function that one needs to launch in a thread to perform asynchronous
-processing of post-commit tasks. It returns only after a stop entry point is
-called. There might be many worker threads at a time. If there's no work to be
+The worker function launched in a thread to perform asynchronous processing
+of post-commit tasks. This function returns only after a stop entry point is
+called. There may be many worker threads at a time. If there is no work to be
 done, this function sleeps instead of polling.
 
 Always returns 0.
@@ -192,10 +192,10 @@ tx.post_commit.stop | r- | - | void * | - | -
 
 This function forces all the post-commit worker functions to exit and return
 control back to the calling thread. This should be called before the application
-terminates and the post commit worker threads needs to be shutdown.
+terminates and the post commit worker threads need to be shutdown.
 
 After the invocation of this entry point, the post-commit task queue can no
-longer be used. If there's a need to restart the worker threads after a stop,
+longer be used. If worker threads must be restarted after a stop,
 the tx.post_commit.queue_depth needs to be set again.
 
 This entry point must be called when no transactions are currently being
@@ -206,25 +206,25 @@ Always returns 0.
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | integer, integer, string
 
-A description of an allocation class. Allows one to create or view the internal
+Describes an allocation class. Allows one to create or view the internal
 data structures of the allocator.
 
 Creating custom allocation classes can be beneficial for both raw allocation
-throughput, scalability and, most importantly, fragmentation.
-By carefully constructing allocation classes that match the application workload,
+throughput, scalability and, most importantly, fragmentation. By carefully
+constructing allocation classes that match the application workload,
 one can entirely eliminate external and internal fragmentation. For example,
 it is possible to easily construct a slab-like allocation mechanism for any
 data structure.
 
 The `[class_id]` is an index field. Only values between 0-254 are valid.
-If setting an allocation class, but the `class_id` is already taken, the function
-will return -1.
+If setting an allocation class, but the `class_id` is already taken, the
+function will return -1.
 The values between 0-127 are reserved for the default allocation classes of the
 library and can be used only for reading.
 
-If one wants to retrieve information about all allocation classes, the
-recommended method is to simply call this entry point for all class ids between
-0 and 254 and discard those results for which the function returned an error.
+The recommended method for retrieving information about all allocation classes
+is to call this entry point for all class ids between 0 and 254 and discard
+those results for which the function returns an error.
 
 This entry point takes a complex argument.
 
@@ -237,51 +237,51 @@ struct pobj_alloc_class_desc {
 };
 ```
 
-The first field `unit_size`, is an 8-byte unsigned integer that defines the
-allocation class size. While theoretically limited only by **PMEMOBJ_MAX_ALLOC_SIZE**,
-this value should be between 8 bytes and a couple of megabytes for most of the
-workloads.
+The first field, `unit_size`, is an 8-byte unsigned integer that defines the
+allocation class size. While theoretically limited only by
+**PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
+8 bytes and 2 megabytes.
 
-The field `units_per_block` defines how many units does a single block of memory
-contains. This value will be rounded up
-to match internal size of the block (256 kilobytes or a multiple thereof).
-For example, given a class with `unit_size` of 512 bytes and `units_per_block`
-equal 1000, a single block of memory for that class will have 512 kilobytes.
-This is relevant because the bigger the block size, the blocks need to be
-fetched less frequently which leads to a lower contention on global state of the
-heap.
-Keep in mind that the information whether an object is allocated or not is
-stored in a bitmap with limited number of entries, this makes it inefficient to
-create allocation classes smaller than 128 bytes.
+The `units_per_block` field defines how many units a single block of memory
+contains. This value will be rounded up to match the internal size of the
+block (256 kilobytes or a multiple thereof). For example, given a class with
+a `unit_size` of 512 bytes and a `units_per_block` of 1000, a single block of
+memory for that class will have 512 kilobytes.
+This is relevant because the bigger the block size, the less frequently blocks
+need to be fetched, resulting in lower contention on global heap state.
+Keep in mind that object allocation is tracked in a bitmap with a limited
+number of entries, making it inefficient to create allocation classes smaller
+than 128 bytes.
 
-The field `header_type` defines the header of objects from the allocation class.
+The `header_type` field defines the header of objects from the allocation class.
 There are three types:
 
  - **POBJ_HEADER_LEGACY**, string value: `legacy`. Used for allocation classes
-	prior to 1.3 version of the library. Not recommended for use.
-	Incurs 64 byte metadata overhead for every object.
+	prior to version 1.3 of the library. Not recommended for use.
+	Incurs a 64 byte metadata overhead for every object.
 	Fully supports all features.
  - **POBJ_HEADER_COMPACT**, string value: `compact`. Used as default for all
 	predefined allocation classes.
-	Incurs 16 bytes metadata overhead for every object.
+	Incurs a 16 byte metadata overhead for every object.
 	Fully supports all features.
- - **POBJ_HEADER_NONE**, string value: `none`. Header type that doesn't
-	incur any metadata overhead beyond a single bitmap entry. Can be used
+ - **POBJ_HEADER_NONE**, string value: `none`. Header type that
+	incurs no metadata overhead beyond a single bitmap entry. Can be used
 	for very small allocation classes or when objects must be adjacent to
 	each other.
-	This header type does not support type numbers (it's always 0) and
-	allocations that span more than one unit.
+	This header type does not support type numbers (type number is always
+	0) or allocations that span more than one unit.
 
-The field `class_id` is optional, runtime only (can't be set from config file),
-variable that allows the user to retrieve the identifier of the class. This will
-be equivalent to the provided `[class_id]`.
+The `class_id` field is an optional, runtime-only variable that allows the
+user to retrieve the identifier of the class. This will be equivalent to the
+provided `[class_id]`. This field cannot be set from a config file.
 
 The allocation classes are a runtime state of the library and must be created
-after every open. It's highly recommended to use the configuration file to store
-the classes.
+after every open. It is highly recommended to use the configuration file to
+store the classes.
 
-This structure is declared in the `libpmemobj/ctl.h` header file, please read it
-for an in-depth explanation of the allocation classes and relevant algorithms.
+This structure is declared in the `libpmemobj/ctl.h` header file. Please refer
+to this file for an in-depth explanation of the allocation classes and relevant
+algorithms.
 
 Allocation classes constructed in this way can be leveraged by explicitly
 specifying the class using **POBJ_CLASS_ID(id)** flag in **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()
@@ -322,8 +322,8 @@ This function returns 0 if the allocation class has been successfully created,
 In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
-The first one is to load configuration directly from a **PMEMOBJ_CONF**
-environment variable. Properly formatted ctl config string is a single-line
+The first method is to load a configuration directly from the **PMEMOBJ_CONF**
+environment variable. A properly formatted ctl config string is a single-line
 sequence of queries separated by ';':
 
 ```
@@ -338,7 +338,7 @@ entry_point=entry_point_argument
 ```
 
 The entry point argument type is defined by the entry point itself, but there
-are few predefined primitives:
+are three predefined primitives:
 
 	*) integer: represented by a sequence of [0-9] characters that form
 		a single number.

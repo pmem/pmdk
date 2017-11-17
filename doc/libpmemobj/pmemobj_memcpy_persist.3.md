@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMOBJ_MEMCPY_PERSIST!3
+title: _MP(PMEMOBJ_MEMCPY_PERSIST, 3)
 collection: libpmemobj
 header: NVM Library
 date: pmemobj API version 2.2
@@ -55,54 +55,64 @@ date: pmemobj API version 2.2
 ```c
 #include <libpmemobj.h>
 
-void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src, size_t len);
-void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
-void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
-void pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len);
+void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest,
+	const void *src, size_t len);
+void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest,
+	int c, size_t len);
+void pmemobj_persist(PMEMobjpool *pop, const void *addr,
+	size_t len);
+void pmemobj_flush(PMEMobjpool *pop, const void *addr,
+	size_t len);
 void pmemobj_drain(PMEMobjpool *pop);
 ```
 
 
 # DESCRIPTION #
 
-The **libpmemobj** specific low-level memory manipulation functions
-leverage the knowledge of the additional configuration options available for **libpmemobj**(7)
-pools, such as replication. They also take advantage of the type of storage behind the pool
-and use appropriate flush/drain functions. It is advised to use
-these functions in conjunction with **libpmemobj**(7) objects, instead of using
-low-level memory manipulations functions from **libpmem**.
+The **libpmemobj**-specific low-level memory manipulation functions described
+here leverage the knowledge of the additional configuration options available
+for **libpmemobj**(7) pools, such as replication. They also take advantage of
+the type of storage behind the pool and use appropriate flush/drain functions.
+It is advised to use these functions in conjunction with **libpmemobj**(7)
+objects rather than using low-level memory manipulation functions from
+**libpmem**.
 
-The **pmemobj_memcpy_persist**(), and **pmemobj_memset_persist**(), functions provide
-the same memory copying as their namesakes **memcpy**(3), and **memset**(3),
-and ensure that the result has been flushed to persistence before returning.
+The **pmemobj_memcpy_persist**() and **pmemobj_memset_persist**() functions
+provide the same memory copying as their namesakes **memcpy**(3), and
+**memset**(3), and ensure that the result has been flushed to persistence
+before returning.
 
-The **pmemobj_persist**() forces any changes in the range \[*addr*, *addr*+*len*) to be stored
-durably in persistent memory. Internally this may call either **pmem_msync**(3) or
-**pmem_persist**(3). There are no alignment restrictions on the range described by
-*addr* and *len*, but **pmemobj_persist**() may expand the range as necessary
-to meet platform alignment requirements.
+**pmemobj_persist**() forces any changes in the range \[*addr*, *addr*+*len*)
+to be stored durably in persistent memory. Internally this may call either
+**pmem_msync**(3) or **pmem_persist**(3). There are no alignment restrictions
+on the range described by *addr* and *len*, but **pmemobj_persist**() may
+expand the range as necessary to meet platform alignment requirements.
 
 >WARNING:
-Like **msync**(2), there is nothing atomic or transactional about this call. Any unwritten
-stores in the given range will be written, but some stores may have already been written
-by virtue of normal cache eviction/replacement policies. Correctly written code must not
-depend on stores waiting until **pmemobj_persist**() is called to become persistent -
-they can become persistent at any time before **pmemobj_persist**() is called.
+Like **msync**(2), there is nothing atomic or transactional about this call.
+Any unwritten stores in the given range will be written, but some stores may
+have already been written by virtue of normal cache eviction/replacement
+policies. Correctly written code must not depend on stores waiting until
+**pmemobj_persist**() is called to become persistent - they can become
+persistent at any time before **pmemobj_persist**() is called.
 
-The  **pmemobj_flush**() and **pmemobj_drain**() functions provide partial
+The **pmemobj_flush**() and **pmemobj_drain**() functions provide partial
 versions of the **pmemobj_persist**() function described above.
-These functions allow advanced programs to create their own variations of **pmemobj_persist**().
+These functions allow advanced programs to create their own variations of
+**pmemobj_persist**().
 For example, a program that needs to flush several discontiguous ranges can
-call **pmemobj_flush**() for each range and then follow up by calling **pmemobj_drain**() once.
-For more information on partial flushing operations see the **pmem_flush**(3) manpage.
+call **pmemobj_flush**() for each range and then follow up by calling
+**pmemobj_drain**() once. For more information on partial flushing operations,
+see **pmem_flush**(3).
 
 
 # RETURN VALUE #
 
-The **pmemobj_memcpy_persist**(), and **pmemobj_memset_persist**(), functions
-return same value as their namesakes **memcpy**(3), and **memset**(3).
+The **pmemobj_memcpy_persist**() and **pmemobj_memset_persist**() functions
+return the same values as their namesakes **memcpy**(3), and **memset**(3).
 
-The **pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**() return no value.
+**pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**()
+return no value.
 
 
 # EXAMPLES #
@@ -123,7 +133,7 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest,
 }
 ```
 
-The **pmemobj_persist**() can be thought of as this:
+**pmemobj_persist**() can be thought of as this:
 
 ```c
 void

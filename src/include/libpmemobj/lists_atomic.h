@@ -71,6 +71,8 @@ D_RO((head)->pe_first)->field.pe_prev)
 #define POBJ_LIST_PREV(elm, field)	(D_RO(elm)->field.pe_prev)
 #define POBJ_LIST_DEST_HEAD	1
 #define POBJ_LIST_DEST_TAIL	0
+#define POBJ_LIST_DEST_BEFORE	1
+#define POBJ_LIST_DEST_AFTER	0
 
 #define POBJ_LIST_FOREACH(var, head, field)\
 for (_pobj_debug_notice("POBJ_LIST_FOREACH", __FILE__, __LINE__),\

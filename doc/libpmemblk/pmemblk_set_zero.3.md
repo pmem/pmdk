@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMBLK_SET_ZERO!3
+title: _MP(PMEMBLK_SET_ZERO, 3)
 collection: libpmemblk
 header: NVM Library
 date: pmemblk API version 1.0
@@ -34,7 +34,7 @@ date: pmemblk API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_set_zero.3 -- man page for functions that sets zeros or error state in the memory pool)
+[comment]: <> (pmemblk_set_zero.3 -- man page for block management functions)
 
 
 [NAME](#name)<br />
@@ -46,8 +46,7 @@ date: pmemblk API version 1.0
 
 # NAME #
 
-**pmemblk_set_zero**(), **pmemblk_set_error**() --  write zeros or set error state for specific block
-													from persistent memory resident array of blocks.
+**pmemblk_set_zero**(), **pmemblk_set_error**() --  block management functions
 
 
 # SYNOPSIS #
@@ -62,10 +61,10 @@ int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 
 # DESCRIPTION #
 
-The **pmemblk_set_zero**() function writes zeros to block number *blockno* in persistent
-memory resident array of blocks *pbp*. Using this function is faster than actually
-writing a block of zeros since **libpmemblk**(7) uses metadata to indicate the block
-should read back as zero.
+The **pmemblk_set_zero**() function writes zeros to block number *blockno* in
+persistent memory resident array of blocks *pbp*. Using this function is faster
+than actually writing a block of zeros since **libpmemblk**(7) uses metadata to
+indicate the block should read back as zero.
 
 The **pmemblk_set_error**() function sets the error state for block number
 *blockno* in persistent memory resident array of blocks *pbp*.
@@ -74,9 +73,8 @@ Writing the block clears the error state and returns the block to normal use.
 
 # RETURN VALUE #
 
-The **pmemblk_set_zero**() function on success returns 0. On error, -1 is returned and *errno* is set.
-
-The **pmemblk_set_error**() function on success returns 0. On error, -1 is returned and *errno* is set.
+On success,  **pmemblk_set_zero**() and **pmemblk_set_error**() return 0.
+On error, they return -1 and set *errno* appropriately.
 
 
 # SEE ALSO #
