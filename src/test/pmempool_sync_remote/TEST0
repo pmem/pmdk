@@ -47,13 +47,13 @@ setup
 
 configure_poolsets 1 1
 
-dump_info_log 1 0 $POOLSET_LOCAL before.0.log
-dump_info_log 1 1 $POOLSET_LOCAL before.1.log
+dump_info_log 1 0 ${NODE_DIR[1]}$POOLSET_LOCAL before.0.log
+dump_info_log 1 1 ${NODE_DIR[1]}$POOLSET_LOCAL before.1.log
 
-expect_normal_exit run_on_node 1 ../pmempool sync $POOLSET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
 
-dump_info_log 1 0 $POOLSET_LOCAL after.0.1.log
-dump_info_log 1 1 $POOLSET_LOCAL after.1.1.log
+dump_info_log 1 0 ${NODE_DIR[1]}$POOLSET_LOCAL after.0.1.log
+dump_info_log 1 1 ${NODE_DIR[1]}$POOLSET_LOCAL after.1.1.log
 
 diff_log 1 before.0.log after.0.1.log
 diff_log 1 before.1.log after.1.1.log

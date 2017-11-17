@@ -67,8 +67,8 @@ for node in 1 2; do
 
 	REP_ADDR[${node}]=${NODE_ADDR[${REPLICA[${node}]}]}
 
-	PART_DIR[${node}]=${NODE_TEST_DIR[${REPLICA[${node}]}]}/$POOLS_PART
-	RPMEM_POOLSET_DIR=${NODE_TEST_DIR[${REPLICA[${node}]}]}/$POOLS_DIR
+	PART_DIR[${node}]=${NODE_DIR[${REPLICA[${node}]}]}$POOLS_PART
+	RPMEM_POOLSET_DIR[${REPLICA[${node}]}]=${NODE_DIR[${REPLICA[${node}]}]}$POOLS_DIR
 
 	init_rpmem_on_node ${node} ${REPLICA[${node}]}
 

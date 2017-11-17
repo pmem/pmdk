@@ -93,6 +93,7 @@ EOF
 # runtest_local -- run test using provided parameters
 #
 runtest_local() {
+	export CLEAN_FAILED_REMOTE=n
 	if [ "$dryrun" ]
 	then
 		echo "(in ./$RUNTEST_DIR) $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
@@ -101,11 +102,13 @@ runtest_local() {
 		# set timeout for "check" tests
 		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) \
 			$RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
-		eval "$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS timeout \
+		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS timeout \
 			--foreground $killopt $RUNTEST_TIMEOUT ./$RUNTEST_SCRIPT"
+		eval "$CMD_STR"
 	else
 		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) $params ./$script"
-		eval "$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
+		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
+		eval "$CMD_STR"
 	fi
 
 	retval=$?
@@ -120,9 +123,13 @@ runtest_local() {
 			((fail_count+=1))
 
 			if [ "$CLEAN_FAILED" == "y" ]; then
+				if [[ $CMD_STR == *"RPMEM_PROVIDER"* ]]; then
+					export CLEAN_FAILED_REMOTE=y
+					eval "$CMD_STR"
+				fi
 				dir_rm=$(<$TEMP_LOC)
 				rm -Rf $dir_rm
-				if [ $? == 0 ]; then
+				if [ $? -eq 0 ]; then
 					echo -e "Removed directory with data: $dir_rm"
 				fi
 			fi

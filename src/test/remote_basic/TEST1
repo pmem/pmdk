@@ -54,7 +54,7 @@ TEST_FILE_LOCAL="$DIR/$TEST_FILE_REMOTE"
 touch $TEST_FILE_LOCAL
 
 # list of required files that should be copied to the remote nodes
-copy_files_to_node 0 . $TEST_FILE_LOCAL
+copy_files_to_node 0 ${NODE_DIR[0]} $TEST_FILE_LOCAL
 
 # remove the local test file
 rm -f $TEST_FILE_LOCAL
@@ -72,7 +72,7 @@ clean_remote_node 0 $PID_FILE
 # LD_LIBRARY_PATH for the n-th remote node can be provided
 # in the array NODE_LD_LIBRARY_PATH[n].
 #
-expect_normal_exit run_on_node_background 0 $PID_FILE ./remote_basic$EXESUFFIX $TEST_FILE_REMOTE
+expect_normal_exit run_on_node_background 0 $PID_FILE ./remote_basic$EXESUFFIX ${NODE_DIR[0]}$TEST_FILE_REMOTE
 expect_normal_exit wait_on_node 0 $PID_FILE
 
 check

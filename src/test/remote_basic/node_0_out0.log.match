@@ -1,5 +1,5 @@
 remote_basic/TEST0: START: remote_basic
- ./remote_basic$(nW) test-file
-File 'test-file' exists
+ ./remote_basic$(nW) $(nW)test-file
+File '$(nW)test-file' exists
 An example of OUT message
 remote_basic/TEST0: DONE

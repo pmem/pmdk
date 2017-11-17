@@ -732,7 +732,7 @@ function expect_normal_exit() {
 		for node in $CHECK_NODES
 		do
 			local new_log_file=node\_$node\_$VALGRIND_LOG_FILE
-			copy_files_from_node $node "." $VALGRIND_LOG_FILE
+			copy_files_from_node $node "." ${NODE_TEST_DIR[$node]}/$VALGRIND_LOG_FILE
 			mv $VALGRIND_LOG_FILE $new_log_file
 		done
 	fi
@@ -1704,6 +1704,7 @@ function require_nodes() {
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
+		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/data/
 
 		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
@@ -1740,7 +1741,7 @@ function check_files_on_node() {
 	validate_node_number $1
 	local N=$1
 	shift
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local REMOTE_DIR=${NODE_DIR[$N]}
 	run_command ssh $SSH_OPTS ${NODE[$N]} "for f in $*; do if [ ! -f $REMOTE_DIR/\$f ]; then echo \"Missing file \$f on node #$N\" 1>&2; exit 1; fi; done"
 }
 
@@ -1751,7 +1752,7 @@ function check_no_files_on_node() {
 	validate_node_number $1
 	local N=$1
 	shift
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+	local REMOTE_DIR=${NODE_DIR[$N]}
 	run_command ssh $SSH_OPTS ${NODE[$N]} "for f in $*; do if [ -f $REMOTE_DIR/\$f ]; then echo \"Not deleted file \$f on node #$N\" 1>&2; exit 1; fi; done"
 }
 
@@ -1770,8 +1771,7 @@ function copy_files_to_node() {
 		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
 
 	# copy all required files
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$REMOTE_DIR/$DEST_DIR > /dev/null
+	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$DEST_DIR > /dev/null
 
 	return 0
 }
@@ -1793,14 +1793,20 @@ function copy_files_from_node() {
 		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
 
 	# compress required files, copy and extract
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local temp_file=node_${N}_temp_file.tar
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && tar -czf $temp_file $@"
-	run_command scp $SCP_OPTS ${NODE[$N]}:$REMOTE_DIR/$temp_file $DEST_DIR > /dev/null
+	files=""
+	dir_name=""
+
+	files=$(basename -a $@)
+	dir_name=$(dirname $1)
+	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $dir_name && tar -czf $temp_file $files"
+	run_command scp $SCP_OPTS ${NODE[$N]}:$dir_name/$temp_file $DEST_DIR > /dev/null
+
 	cd $DEST_DIR \
 		&& tar -xzf $temp_file \
 		&& rm $temp_file \
 		&& cd - > /dev/null
+
 	return 0
 }
 
@@ -1834,10 +1840,7 @@ function rm_files_from_node() {
 	[ $# -eq 0 ] &&\
 		echo "error: rm_files_from_node(): no files provided" >&2 && exit 1
 
-	# copy all required files
-	local REMOTE_DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
-
-	run_command ssh $SSH_OPTS ${NODE[$N]} "cd $REMOTE_DIR && rm -f $@"
+	run_command ssh $SSH_OPTS ${NODE[$N]} "rm -f $@"
 
 	return 0
 }
@@ -2400,9 +2403,9 @@ function init_rpmem_on_node() {
 		slave=${slave[0]}
 
 		validate_node_number $slave
-		local poolset_dir=${NODE_TEST_DIR[$slave]}
-		if [ -n "$RPMEM_POOLSET_DIR" ]; then
-			poolset_dir=$RPMEM_POOLSET_DIR
+		local poolset_dir=${NODE_DIR[$slave]}
+		if [ -n "${RPMEM_POOLSET_DIR[$slave]}" ]; then
+			poolset_dir=${RPMEM_POOLSET_DIR[$slave]}
 		fi
 		local trace=
 		if [ -n "$(is_valgrind_enabled_on_node $slave)" ]; then
@@ -2569,6 +2572,7 @@ function copy_common_to_remote_nodes() {
 
 		# create the working dir if it does not exist
 		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p ${NODE_WORKING_DIR[$N]}"
+
 		# copy all common files
 		run_command scp $SCP_OPTS $FILES_COMMON_DIR ${NODE[$N]}:${NODE_WORKING_DIR[$N]} > /dev/null
 		# unpack libraries
@@ -2604,8 +2608,14 @@ function copy_test_to_remote_nodes() {
 			&& continue
 
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
+
 		# create a new test dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
+
+		# create the working data dir
+		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p \
+			${DIR}/data"
+
 		# copy all required files
 		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR > /dev/null
 	done
@@ -2623,3 +2633,19 @@ function enable_log_append() {
 	rm -f $TRACE_LOG_FILE
 	export UNITTEST_LOG_APPEND=1
 }
+
+# clean data directory on all remote
+# nodes if remote test failed
+if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
+	NODES_ALL=$((${#NODE[@]} - 1))
+	MYPID=$$
+	for ((i=0;i<=$NODES_ALL;i++));
+	do
+		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
+		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
+		if [ $? -eq 0 ]; then
+			echo -e "Removed data from: ${NODE[$i]}:${N[$i]}"
+		fi
+	done
+	exit 0
+fi

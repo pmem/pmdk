@@ -53,25 +53,26 @@ setup
 
 init_rpmem_on_node 1 0
 
-create_poolset $DIR/pool.set 8M:$(get_node_dir 1)/pool.1:x \
+create_poolset $DIR/pool.set 8M:${NODE_DIR[1]}pool.1:x \
         m ${NODE_ADDR[0]}:remote.set
 create_poolset $DIR/remote.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
 
-copy_files_to_node 0 . $DIR/remote.set
-copy_files_to_node 1 . $DIR/pool.set
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/remote.set
+copy_files_to_node 1 ${NODE_DIR[1]} $DIR/pool.set
 
-expect_normal_exit run_on_node 1 ./libpmempool_rm$EXESUFFIX -f pool.set
+expect_normal_exit run_on_node 1 ./libpmempool_rm$EXESUFFIX -f ${NODE_DIR[1]}pool.set
+expect_normal_exit run_on_node 1 ../pmempool create obj ${NODE_DIR[1]}pool.set
 
-expect_normal_exit run_on_node 1 ../pmempool create obj pool.set
 check_files_on_node 1 pool.set pool.1
 check_files_on_node 0 remote.set
 
-expect_normal_exit run_on_node 1 ./libpmempool_rm$EXESUFFIX pool.set
+expect_normal_exit run_on_node 1 ./libpmempool_rm$EXESUFFIX ${NODE_DIR[1]}pool.set
+
 check_files_on_node 1 pool.set
 check_files_on_node 0 remote.set
 check_no_files_on_node 1 pool.1
 
 # Verify that we can create pool on device dax after removing it.
-expect_normal_exit run_on_node 1 ../pmempool create obj pool.set
+expect_normal_exit run_on_node 1 ../pmempool create obj ${NODE_DIR[1]}pool.set
 
 pass
