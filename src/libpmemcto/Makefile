@@ -39,6 +39,7 @@ LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
+	$(COMMON)/fs_linux.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/os_linux.c\
