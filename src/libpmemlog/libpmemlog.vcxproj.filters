@@ -34,6 +34,9 @@
     <ClCompile Include="..\common\mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\fs_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>

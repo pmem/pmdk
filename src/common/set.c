@@ -54,7 +54,6 @@
 #include <ctype.h>
 #include <linux/limits.h>
 #include <sys/mman.h>
-#include <fts.h>
 
 #include "libpmem.h"
 #include "librpmem.h"
@@ -68,6 +67,7 @@
 #include "valgrind_internal.h"
 #include "sys_util.h"
 #include "util_pmem.h"
+#include "fs.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -1214,49 +1214,47 @@ util_part_idx_by_file_name(const char *filename)
 static int
 util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 {
-	const char *path[2] = {directory, NULL};
-
-	FTS *f = fts_open((char * const *)path, FTS_COMFOLLOW | FTS_XDEV, NULL);
+	struct fs *f = fs_new(directory);
 	if (f == NULL)
 		return -1;
 
 	int nparts = 0;
 
-	FTSENT *entry;
-	while ((entry = fts_read(f)) != NULL) {
-		if ((entry->fts_info & FTS_F) == 0)
+	struct fs_entry *entry;
+	while ((entry = fs_read(f)) != NULL) {
+		if (entry->type != FS_ENTRY_FILE)
 			continue;
-		if (entry->fts_namelen < PMEM_EXT_LEN)
+		if (entry->namelen < PMEM_EXT_LEN)
 			continue;
-		const char *ext = entry->fts_path + entry->fts_pathlen -
+		const char *ext = entry->path + entry->pathlen -
 			PMEM_EXT_LEN + 1;
 		if (strcmp(PMEM_EXT, ext) != 0)
 			continue;
 
-		long part_idx = util_part_idx_by_file_name(entry->fts_name);
+		long part_idx = util_part_idx_by_file_name(entry->name);
 		if (part_idx < 0)
 			continue;
 
-		ssize_t size = util_file_get_size(entry->fts_path);
+		ssize_t size = util_file_get_size(entry->path);
 		if (size < 0) {
 			LOG(3,
 			"found incorrectly sized file (%s) in a poolset directory",
-			entry->fts_path);
+			entry->path);
 			continue;
 		}
 
 		if (util_replica_add_part_by_idx(repp,
-				Strdup(entry->fts_path),
+				Strdup(entry->path),
 				(size_t)size, (unsigned)part_idx) != 0) {
-			fts_close(f);
+			fs_delete(f);
 			ERR("unable to load part %s",
-				entry->fts_path);
+				entry->path);
 			return -1;
 		}
 		nparts++;
 	}
 
-	fts_close(f);
+	fs_delete(f);
 
 	return nparts;
 }
