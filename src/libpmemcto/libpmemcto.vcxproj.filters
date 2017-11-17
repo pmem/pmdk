@@ -48,6 +48,9 @@
     <ClCompile Include="..\common\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\fs_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>

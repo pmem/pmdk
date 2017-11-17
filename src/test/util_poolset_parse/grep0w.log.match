@@ -43,11 +43,11 @@ $(*)pool41$(nW).set [incorrect format of size:4]
 $(*)pool42$(nW).set [incorrect format of size:8]
 $(*)pool43$(nW).set [incorrect format of size:8]
 $(*)set file format correct ($(nW)pool44$(nW).set)
-$(*)pool45$(nW).set [unknown option:2]
-$(*)pool46$(nW).set [unknown option:2]
-$(*)pool47$(nW).set [unknown option:2]
-$(*)pool48$(nW).set [unknown option:2]
-$(*)pool49$(nW).set [unknown option:2]
-$(*)pool50$(nW).set [unknown option:3]
+$(*)set file format correct ($(nW)pool45$(nW).set)
+$(*)set file format correct ($(nW)pool46$(nW).set)
+$(*)set file format correct ($(nW)pool47$(nW).set)
+$(*)set file format correct ($(nW)pool48$(nW).set)
+$(*)set file format correct ($(nW)pool49$(nW).set)
+$(*)set file format correct ($(nW)pool50$(nW).set)
 $(*)pool51$(nW).set [unknown option:2]
 $(*)pool52$(nW).set [missing option name:2]

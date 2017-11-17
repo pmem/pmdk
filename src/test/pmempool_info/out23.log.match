@@ -1,12 +1,24 @@
 Directory-based Poolset structure:
-Number of replicas       : 1
+Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
 part 0:
 path                     : $(nW)000000.pmem
 type                     : regular file
 size                     : $(nW)
-1 Directory:
+2 Directories:
 Directory $(nW)testdir11:
+reservation size         : $(nW)
+Directory $(nW)testdir12:
+reservation size         : $(nW)
+Replica 1 - local, 1 part(s):
+part 0:
+path                     : $(nW)000000.pmem
+type                     : regular file
+size                     : $(nW)
+2 Directories:
+Directory $(nW)testdir13:
+reservation size         : $(nW)
+Directory $(nW)testdir14:
 reservation size         : $(nW)
 
 POOL Header:

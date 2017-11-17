@@ -592,6 +592,17 @@ pmempool_info_part(struct pmem_info *pip, unsigned repn, unsigned partn, int v)
 }
 
 /*
+ * pmempool_info_directory -- (internal) print information about directory
+ */
+static void
+pmempool_info_directory(struct pool_set_directory *d,
+	int v)
+{
+	outv(v, "Directory %s:\n", d->path);
+	outv_field(v, "reservation size", "%lu", d->resvsize);
+}
+
+/*
  * pmempool_info_replica -- (internal) print info about replica
  */
 static int
@@ -616,6 +627,15 @@ pmempool_info_replica(struct pmem_info *pip, unsigned repn, int v)
 			return -1;
 	}
 
+	if (pip->pfile->poolset->directory_based) {
+		size_t nd = VEC_SIZE(&rep->directory);
+		outv(v, "%lu %s:\n", nd, nd == 1 ? "Directory" : "Directories");
+		struct pool_set_directory *d;
+		VEC_FOREACH_BY_PTR(d, &rep->directory) {
+			pmempool_info_directory(d, v);
+		}
+	}
+
 	return 0;
 }
 
@@ -626,7 +646,11 @@ static int
 pmempool_info_poolset(struct pmem_info *pip, int v)
 {
 	ASSERTeq(pip->params.is_poolset, 1);
-	outv(v, "Poolset structure:\n");
+	if (pip->pfile->poolset->directory_based)
+		outv(v, "Directory-based Poolset structure:\n");
+	else
+		outv(v, "Poolset structure:\n");
+
 	outv_field(v, "Number of replicas", "%u",
 			pip->pfile->poolset->nreplicas);
 	for (unsigned r = 0; r < pip->pfile->poolset->nreplicas; ++r) {
