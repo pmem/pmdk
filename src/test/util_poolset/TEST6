@@ -46,7 +46,7 @@ require_fs_type any
 setup
 
 RESVSIZE=$((260 * 1024 * 1024)) # 264MiB (base part + 2 extends)
-MIN_POOL=$((4 * 1024 * 1024)) # 4MiB
+MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
@@ -70,6 +70,10 @@ create_poolset $DIR/testset8\
 	R $RESVSIZE:$DIR/testdir83:d $RESVSIZE:$DIR/testfile84\
 	O NOHDRS
 
+create_poolset $DIR/testset9\
+	$RESVSIZE:$DIR/testdir91 $RESVSIZE:$DIR/testfile92:d\
+	O NOHDRS
+
 # create pool sets
 expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset2\
@@ -77,7 +81,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset4\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
