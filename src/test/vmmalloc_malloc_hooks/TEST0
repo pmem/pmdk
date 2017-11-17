@@ -49,6 +49,11 @@ require_build_type debug nondebug
 require_no_asan
 require_no_freebsd
 
+# user-defined hooks won't be called if valgrind is enabled
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
+configure_valgrind memcheck force-disable
+
 setup
 
 # do not pre-load libvmmalloc.so
