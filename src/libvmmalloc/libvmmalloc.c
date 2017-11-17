@@ -102,7 +102,7 @@ static int Fd;
 static int Fd_clone;
 static int Private;
 static int Forkopt = 1; /* default behavior - remap as private */
-
+static bool Destructed; /* when set - ignore all calls (do not call jemalloc) */
 
 /*
  * malloc -- allocate a block of size bytes
@@ -112,6 +112,9 @@ __ATTR_ALLOC_SIZE__(1)
 void *
 malloc(size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
 		return je_vmem_malloc(size);
@@ -129,6 +132,9 @@ __ATTR_ALLOC_SIZE__(1, 2)
 void *
 calloc(size_t nmemb, size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	if (Vmp == NULL) {
 		ASSERT((nmemb * size) <= HUGE);
 		return je_vmem_calloc(nmemb, size);
@@ -145,6 +151,9 @@ __ATTR_ALLOC_SIZE__(2)
 void *
 realloc(void *ptr, size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
 		return je_vmem_realloc(ptr, size);
@@ -160,6 +169,9 @@ realloc(void *ptr, size_t size)
 void
 free(void *ptr)
 {
+	if (unlikely(Destructed))
+		return;
+
 	if (Vmp == NULL) {
 		je_vmem_free(ptr);
 		return;
@@ -178,6 +190,9 @@ free(void *ptr)
 void
 cfree(void *ptr)
 {
+	if (unlikely(Destructed))
+		return;
+
 	if (Vmp == NULL) {
 		je_vmem_free(ptr);
 		return;
@@ -198,6 +213,9 @@ __ATTR_ALLOC_SIZE__(2)
 void *
 memalign(size_t boundary, size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
 		return je_vmem_aligned_alloc(boundary, size);
@@ -220,6 +238,9 @@ __ATTR_ALLOC_SIZE__(2)
 void *
 aligned_alloc(size_t alignment, size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	/* XXX - check if size is a multiple of alignment */
 
 	if (Vmp == NULL) {
@@ -240,6 +261,9 @@ __ATTR_NONNULL__(1)
 int
 posix_memalign(void **memptr, size_t alignment, size_t size)
 {
+	if (unlikely(Destructed))
+		return ENOMEM;
+
 	int ret = 0;
 	int oerrno = errno;
 	if (Vmp == NULL) {
@@ -264,6 +288,9 @@ __ATTR_ALLOC_SIZE__(1)
 void *
 valloc(size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	ASSERTne(Pagesize, 0);
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
@@ -287,6 +314,9 @@ __ATTR_ALLOC_SIZE__(1)
 void *
 pvalloc(size_t size)
 {
+	if (unlikely(Destructed))
+		return NULL;
+
 	ASSERTne(Pagesize, 0);
 	if (Vmp == NULL) {
 		ASSERT(size <= HUGE);
@@ -304,6 +334,9 @@ pvalloc(size_t size)
 size_t
 malloc_usable_size(void *ptr)
 {
+	if (unlikely(Destructed))
+		return 0;
+
 	if (Vmp == NULL) {
 		return je_vmem_malloc_usable_size(ptr);
 	}
@@ -720,25 +753,24 @@ libvmmalloc_init(void)
  * Called automatically when the process terminates and prints
  * some basic allocator statistics.
  */
-__attribute__((destructor(101)))
+__attribute__((destructor(102)))
 static void
 libvmmalloc_fini(void)
 {
 	LOG(3, NULL);
 
 	char *env_str = os_getenv(VMMALLOC_LOG_STATS_VAR);
-	if ((env_str == NULL) || strcmp(env_str, "1") != 0) {
-		common_fini();
-		return;
+	if ((env_str != NULL) && strcmp(env_str, "1") == 0) {
+		LOG_NONL(0, "\n=========   system heap  ========\n");
+		je_vmem_malloc_stats_print(
+			print_jemalloc_stats, NULL, "gba");
+
+		LOG_NONL(0, "\n=========    vmem pool   ========\n");
+		je_vmem_pool_malloc_stats_print(
+			(pool_t *)((uintptr_t)Vmp + Header_size),
+			print_jemalloc_stats, NULL, "gba");
 	}
 
-	LOG_NONL(0, "\n=========   system heap  ========\n");
-	je_vmem_malloc_stats_print(
-		print_jemalloc_stats, NULL, "gba");
-
-	LOG_NONL(0, "\n=========    vmem pool   ========\n");
-	je_vmem_pool_malloc_stats_print(
-		(pool_t *)((uintptr_t)Vmp + Header_size),
-		print_jemalloc_stats, NULL, "gba");
 	common_fini();
+	Destructed = true;
 }
