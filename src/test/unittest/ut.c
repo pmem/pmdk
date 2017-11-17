@@ -198,6 +198,11 @@ unsigned long Ut_pagesize;
 unsigned long long Ut_mmap_align;
 os_mutex_t Sigactions_lock;
 
+static char Buff_out[MAXPRINT];
+static char Buff_err[MAXPRINT];
+static char Buff_trace[MAXPRINT];
+static char Buff_stdout[MAXPRINT];
+
 /*
  * flags that control output
  */
@@ -779,10 +784,10 @@ ut_start_common(const char *file, int line, const char *func,
 		exit(1);
 	}
 
-	setlinebuf(Outfp);
-	setlinebuf(Errfp);
-	setlinebuf(Tracefp);
-	setlinebuf(stdout);
+	setvbuf(Outfp, Buff_out, _IOLBF, MAXPRINT);
+	setvbuf(Errfp, Buff_err, _IOLBF, MAXPRINT);
+	setvbuf(Tracefp, Buff_trace, _IOLBF, MAXPRINT);
+	setvbuf(stdout, Buff_stdout, _IOLBF, MAXPRINT);
 
 	prefix(file, line, func, 0);
 	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
