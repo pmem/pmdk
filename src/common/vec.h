@@ -65,6 +65,12 @@ struct name {\
 	}\
 } while (0)
 
+#define VEC_FRONT(vec)\
+(vec)->buffer[0]
+
+#define VEC_BACK(vec)\
+(vec)->buffer[(vec)->size - 1]
+
 #define VEC_PUSH_BACK(vec, element) do {\
 	if ((vec)->capacity == (vec)->size)\
 		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\

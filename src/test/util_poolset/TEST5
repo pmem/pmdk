@@ -107,7 +107,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset7\
 	$DIR/testset8
 
-# this should fail in poolsets with only one directory
+# this should fail in poolsets with only one directory because this would exceed
+# the reservation size
 expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset1\
 	$DIR/testset2\
