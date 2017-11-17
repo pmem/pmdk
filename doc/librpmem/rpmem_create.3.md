@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: RPMEM_CREATE!3
+title: _MP(RPMEM_CREATE, 3)
 collection: librpmem
 header: NVM Library
 date: rpmem API version 1.1
@@ -34,7 +34,7 @@ date: rpmem API version 1.1
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (rpmem_create.3 -- page for most commonly used librpmem functions)
+[comment]: <> (rpmem_create.3 -- man page for most commonly used librpmem functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -48,7 +48,7 @@ date: rpmem API version 1.1
 
 **rpmem_create**(), **rpmem_open**(),
 **rpmem_set_attr**(), **rpmem_close**(), **rpmem_remove**()
--- most commonly used functions to remote access to *persistent memory*
+-- most commonly used functions for remote access to *persistent memory*
 
 
 # SYNOPSIS #
@@ -70,114 +70,113 @@ int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 
 # DESCRIPTION #
 
-The **rpmem_create**() function creates a remote pool on a given *target* node.
-The *pool_set_name* is a relative path in the root config directory on
-the *target* node that uniquely identifies the pool set file on remote node
-to be used when mapping the remote pool. The *pool_addr* is a pointer to the
-associated local memory pool of a given size specified by the *pool_size*
-argument. Both *pool_addr* and *pool_size* must be aligned to system's page
-size (see **sysconf**(3)). The size of the remote pool must be at least
-*pool_size*. See **REMOTE POOL SIZE** section for details.
-The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successful creation of the remote pool, the *nlanes* contains the
-maximum number of lanes supported by both local and remote nodes' hardware.
-See **LANES** subsection in **NOTES** section for details.
+The **rpmem_create**() function creates a remote pool on a given *target* node,
+using pool *set* file *pool_set_name* to map the remote pool. *pool_set_name*
+is a relative path in the root config directory on the *target* node.
+*pool_addr* is a pointer to the associated local memory pool with size
+*pool_size*. Both *pool_addr* and *pool_size* must be aligned to the system's
+page size (see **sysconf**(3)). The size of the remote pool must be at least
+*pool_size*. See **REMOTE POOL SIZE**, below, for details.
+*nlanes* points to the maximum number of lanes which the caller is requesting.
+Upon successful creation of the remote pool, \**nlanes* is set to the
+maximum number of lanes supported by both the local and remote nodes.
+See **LANES**, below, for details.
 The *create_attr* structure contains the attributes used for creating the
 remote pool. If *create_attr* is NULL, a zeroed structure with attributes will
-be used to create the pool. The attributes are stored in pool's meta-data and
-can be read when opening the remote pool using **rpmem_open**() function call
+be used to create the pool. The attributes are stored in pool's metadata and
+can be read when opening the remote pool with **rpmem_open**().
 
-The **rpmem_open**() function opens an existing remote pool on a given *target*
-node. The *pool_set_name* is a relative path in the root config directory on
-the *target* node that uniquely identifies the pool set file on remote node
-to be used when mapping the remote pool. The *pool_addr* is a pointer to the
-associated local memory pool of a given size specified by the *pool_size*
-argument. Both *pool_addr* and *pool_size* must be aligned to system's page
+The **rpmem_open**() function opens the existing remote pool with *set* file
+*pool_set_name* on remote node *target*. *pool_set_name* is a relative path
+in the root config directory on the *target* node. *pool_addr* is a pointer to
+the associated local memory pool of size *pool_size*.
+Both *pool_addr* and *pool_size* must be aligned to the system's page
 size (see **sysconf**(3)). The size of the remote pool must be at least
-*pool_size*. See **REMOTE POOL SIZE** subsection in **NOTES** section for details.
-The *nlanes* points to the maximum number of lanes which the caller requests to
-use. Upon successful opening of the remote pool, the *nlanes* contains the
-maximum number of lanes supported by both local and remote nodes' hardware.
-See **LANES** subsection in **NOTES** section for details.
+*pool_size*. See **REMOTE POOL SIZE**, below, for details.
+*nlanes* points to the maximum number of lanes which the caller is requesting.
+Upon successful opening of the remote pool, \**nlanes* is set to the
+maximum number of lanes supported by both the local and remote nodes.
+See **LANES**, below, for details.
 
-The **rpmem_set_attr**() function overwrites pool's attributes.
+The **rpmem_set_attr**() function overwrites the pool's attributes.
 The *attr* structure contains the attributes used for overwriting the remote
-pool attributes that were passed to **rpmem_create**() at pool's creation.
+pool attributes that were passed to **rpmem_create**() at pool creation.
 If *attr* is NULL, a zeroed structure with attributes will be used.
-New attributes are stored in pool's meta-data.
+New attributes are stored in the pool's metadata.
 
-The **rpmem_close**() function closes a remote pool indicated by *rpp*.
-All resources are released on both local and remote side. The pool itself lives
-on the remote node and may be re-opened at a later time using **rpmem_open**()
-function as described above.
+The **rpmem_close**() function closes the remote pool *rpp*. All resources
+are released on both the local and remote nodes. The remote pool itself
+persists on the remote node and may be re-opened at a later time using
+**rpmem_open**().
 
-The **rpmem_remove**() function removes a remote pool on a given *target* node.
-The *pool_set_name* is a relative path in the root config directory on the
-*target* node that uniquely identifies the pool set file on remote node.
-By default only the pool part files are removed and pool set file is left
-untouched. If the pool is not consistent the **rpmem_remove**() function fails.
-The *flags* argument determines the behavior of **rpmem_remove**() function.
-It is either 0 or the bitwise OR of one or more of the following flags:
+The **rpmem_remove**() function removes the remote pool with *set* file name
+*pool_set_name* from node *target*. The *pool_set_name* is a relative path in
+the root config directory on the *target* node. By default only the pool part
+files are removed; the pool *set* file is left untouched. If the pool is not
+consistent, the **rpmem_remove**() function fails.
+The *flags* argument determines the behavior of **rpmem_remove**(). *flags* may
+be either 0 or the bitwise OR of one or more of the following flags:
 
-+ **RPMEM_REMOVE_FORCE**
-Ignore errors when opening inconsistent pool. The pool set file must be in
-appropriate format though.
++ **RPMEM_REMOVE_FORCE** - Ignore errors when opening an inconsistent pool.
+The pool *set* file must still be in appropriate format for the pool to be
+removed.
 
-+ **RPMEM_REMOVE_POOL_SET**
-Remove pool set file after removing the pool described by this pool set.
++ **RPMEM_REMOVE_POOL_SET** - Remove the pool *set* file after removing the
+pool described by this pool set.
 
 
 # RETURN VALUE #
 
-The **rpmem_create**() upon success returns an opaque handle to the remote pool
-which shall be used in subsequent API calls. If any error prevents the
-**librpmem**(7) from creating the remote pool, the **rpmem_create**() returns
+On success, **rpmem_create**() returns an opaque handle to the remote pool
+for use in subsequent **librpmem** calls. If any error prevents
+the remote pool from being created, **rpmem_create**() returns
 NULL and sets *errno* appropriately.
 
-The **rpmem_open**() function upon success returns an opaque handle to the remote
-pool which shall be used in subsequent API calls. If any error prevents the
-**librpmem**(7) from opening the remote pool, the **rpmem_open**() returns NULL
-and sets *errno* appropriately. If the *open_attr* argument is not NULL the remote
-pool attributes are returned by the provided structure.
+On success, **rpmem_open**() returns an opaque handle to the remote
+pool for in subsequent **librpmem** calls. If the *open_attr* argument
+is not NULL, the remote pool attributes are returned in the provided structure.
+If any error prevents the remote pool from being opened, **rpmem_open**()
+returns NULL and sets *errno* appropriately.
 
-The **rpmem_set_attr**() function on success returns zero, on error it returns -1.
+On success, **rpmem_set_attr**() returns 0. On error, it returns -1 and sets
+*errno* appropriately.
 
-The **rpmem_close**() function on success it returns zero, if any error occurred
-when closing remote pool, non-zero value is returned and *errno* value is set.
+On success, **rpmem_close**() returns 0. On error, it returns a non-zero value
+and sets *errno* appropriately.
 
-The **rpmem_remove**() function returns 0 if the pool has been removed
-successfully, otherwise non-zero value is returned and *errno* set appropriately.
+On success, **rpmem_remove**() returns 0. On error, it returns a non-zero value
+and sets *errno* appropriately.
 
 
 # NOTES #
 
 ## REMOTE POOL SIZE ##
-A remote pool size depends on the configuration of a pool set file on the remote
-node. The remote pool size is a sum of sizes of all part files decreased by 4096
-bytes per each part file. The 4096 bytes of each part file is utilized for
-storing internal metadata of the pool part files. The minimum size of a part
-file for a remote pool is defined as **RPMEM_MIN_PART** in **\<librpmem.h\>**.
-The minimum size of a remote pool allowed by the library is defined as
-**RPMEM_MIN_POOL** therein.
+The size of a remote pool depends on the configuration in the pool *set* file
+on the remote node. The remote pool size is the sum of the sizes of all part
+files, decreased by 4096 bytes per part file. 4096 bytes of each part file are
+utilized for storing internal metadata. **RPMEM_MIN_PART** and
+**RPMEM_MIN_POOL** in **\<librpmem.h\>** define the minimum size allowed by
+**librpmem** for a part file and a remote pool, respectively.
 
 ## LANES ##
-The term *lane* means an isolated path of execution. Due to a limited resources
-provided by underlying hardware utilized by both local and remote nodes the
-maximum number of parallel **rpmem_persist**(3) operations is limited by the
-maximum number of lanes returned from either the **rpmem_open**() or
-**rpmem_create**() function calls. The caller passes the maximum number of lanes
-one would like to utilize. If the pool has been successfully created or opened,
-the lanes value is updated to the minimum of: the number of lanes requested by
-the caller and the maximum number of lanes supported by underlying hardware.
+The term *lane* means an isolated path of execution. The underlying hardware
+utilized by both local and remote nodes may have limited resources that
+restrict the maximum number of parallel **rpmem_persist**(3) operations.
+The maximum number of supported lanes is returned by the **rpmem_open**() and
+**rpmem_create**() function calls. The caller passes the maximum number of
+lanes requested in \**nlanes*. If the pool is successfully created or opened,
+\**nlanes* is updated to reflect the minimum of the number of lanes requested
+by the caller and the maximum number of lanes supported by underlying hardware.
 The application is obligated to use at most the returned number of
-lanes in parallel. The **rpmem_persist**(3) does not provide any locking mechanism
-thus the serialization of the calls shall be performed by the application if
-required.
+lanes in parallel.
 
-Each lane requires separate connection which is represented by the file descriptor.
-If system will run out of free file descriptors during **rpmem_create**() or
-**rpmem_open**() these functions will fail. See **nofile** in **limits.conf**(5)
-for more details.
+**rpmem_persist**(3) does not provide any locking mechanism; thus any
+serialization of calls must be performed by the application if required.
+
+Each lane requires a separate connection, represented by a file descriptor.
+If the system runs out of free file descriptors during **rpmem_create**() or
+**rpmem_open**(), these functions will fail. See **nofile** in
+**limits.conf**(5) for more details.
 
 
 # SEE ALSO #

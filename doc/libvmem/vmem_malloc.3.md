@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: VMEM_MALLOC!3
+title: _MP(VMEM_MALLOC, 3)
 collection: libvmem
 header: NVM Library
 date: vmem API version 1.1
@@ -68,7 +68,7 @@ size_t vmem_malloc_usable_size(VMEM *vmp, void *ptr);
 
 # DESCRIPTION #
 
-This section describes the *malloc-like* API provided by **libvmem**(7).
+This section describes the *malloc*-like API provided by **libvmem**(7).
 These functions provide the same semantics as their libc namesakes,
 but operate on the memory pools specified by their first arguments.
 
@@ -95,6 +95,12 @@ the system. It changes the size of the memory block pointed to by *ptr* to
 region up to the minimum of the old and new sizes. If the new size is larger
 than the old size, the added memory will *not* be initialized.
 
+Unless *ptr* is NULL, it must have been returned by an earlier call to
+**vmem_malloc**(), **vmem_calloc**() or **vmem_realloc**(). If *ptr* is NULL,
+then the call is equivalent to *vmem_malloc(vmp, size)*, for all values of
+*size*; if *size* is equal to zero, and *ptr* is not NULL, then the call
+is equivalent to *vmem_free(vmp, ptr)*.
+
 The **vmem_aligned_alloc**() function provides the same semantics as
 **aligned_alloc**(3), but operates on the memory pool *vmp* instead of
 the process heap supplied by the system. It allocates *size* bytes from
@@ -111,52 +117,51 @@ but operates on the memory pool *vmp* instead of the process heap supplied by th
 system. Memory for the new string is obtained with **vmem_malloc**(), on the given
 memory pool, and can be freed with **vmem_free**() on the same memory pool.
 
-The **vmem_malloc_usable_size**() function provides the same semantics as **malloc_usable_size**(3),
-but operates on the memory pool *vmp* instead of the process heap supplied by the system.
+The **vmem_malloc_usable_size**() function provides the same semantics as
+**malloc_usable_size**(3), but operates on the memory pool *vmp* instead of the
+process heap supplied by the system.
 
 
 # RETURN VALUE #
 
-The **vmem_malloc**() returns a pointer to the allocated memory.
-If *size* parameter is 0, then **vmem_malloc**() returns either NULL,
+On success, **vmem_malloc**() returns a pointer to the allocated memory.
+If *size* is 0, then **vmem_malloc**() returns either NULL,
 or a unique pointer value that can later be successfully passed to
 **vmem_free**(). If **vmem_malloc**() is unable to satisfy the allocation
-request, a NULL pointer is returned and *errno* is set appropriately.
+request, it returns NULL and sets *errno* appropriately.
 
 The **vmem_free**() function returns no value.
 Undefined behavior occurs if frees do not correspond to allocated memory
 from the same memory pool.
 
-The **vmem_calloc**() function returns a pointer to the allocated memory.
-If *nmemb* or *size* is 0, then **vmem_calloc**() returns either NULL, or a unique
+On success, **vmem_calloc**() returns a pointer to the allocated memory. If
+*nmemb* or *size* is 0, then **vmem_calloc**() returns either NULL, or a unique
 pointer value that can later be successfully passed to **vmem_free**().
-If **vmem_calloc**() is unable to satisfy the allocation request, a NULL
-pointer is returned and *errno* is set appropriately.
+If **vmem_calloc**() is unable to satisfy the allocation request, it returns
+NULL and sets *errno* appropriately.
 
-The **vmem_realloc**() function returns NULL pointer and sets *errno*
-appropriately if function is unable to satisfy the allocation request,
-otherwise if *ptr* is NULL, then the call is equivalent to *vmem_malloc(vmp, size)*,
-for all values of *size*; if *size* is equal to zero, and *ptr* is not NULL,
-then the call is equivalent to *vmem_free(vmp, ptr)*. Unless *ptr* is NULL,
-it must have been returned by an earlier call to **vmem_malloc**(), **vmem_calloc**() or
-**vmem_realloc**(). If the area pointed to was moved, a *vmem_free(vmp, ptr)* is done.
+On success, **vmem_realloc**() returns a pointer to the allocted memory, which
+may be different from *ptr*. If the area pointed to was moved, a
+*vmem_free(vmp, ptr)* is done. If **vmem_realloc**() is unable to satisfy the
+allocation request, it returns NULL and sets *errno* appropriately.
 
-The **vmem_aligned_alloc**() function returns a pointer to the allocated memory.
-If **vmem_aligned_alloc**() is unable to satisfy the allocation request,
-a NULL pointer is returned and *errno* is set appropriately.
+On success, **vmem_aligned_alloc**() returns a pointer to the allocated memory.
+If **vmem_aligned_alloc**() is unable to satisfy the allocation request, it
+returns NULL and sets *errno* appropriately.
 
-The **vmem_strdup**() function returns a pointer to a new string which is a duplicate
-of the string *s*.If **vmem_strdup**() is unable to satisfy the allocation request,
-a NULL pointer is returned and *errno* is set appropriately.
+On success, **vmem_strdup**() returns a pointer to a new string which is a
+duplicate of the string *s*. If **vmem_strdup**() is unable to satisfy the
+allocation request, it returns NULL and sets *errno* appropriately.
 
-The **vmem_wcsdup**() function returns a pointer to a new wide character string
-which is a duplicate of the wide character strin string *s*. If **vmem_wcsdup**()
-is unable to satisfy the allocation request, a NULL pointer is returned and *errno*
-is set appropriately.
+On success, **vmem_wcsdup**() returns a pointer to a new wide character string
+which is a duplicate of the wide character string *s*. If **vmem_wcsdup**()
+is unable to satisfy the allocation request, it returns NULL and sets *errno*
+appropriately.
 
-The **vmem_malloc_usable_size**() function returns the number of usable bytes in the block
-of allocated memory pointed to by *ptr*, a pointer to a block of memory allocated
-by **vmem_malloc**() or a related function. If *ptr* is NULL, 0 is returned.
+The **vmem_malloc_usable_size**() function returns the number of usable bytes
+in the block of allocated memory pointed to by *ptr*, a pointer to a block of
+memory allocated by **vmem_malloc**() or a related function. If *ptr* is NULL,
+0 is returned.
 
 
 # SEE ALSO #

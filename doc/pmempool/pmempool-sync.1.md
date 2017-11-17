@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-SYNC!1
+title: _MP(PMEMPOOL-SYNC, 1)
 collection: pmempool
 header: NVM Library
 date: pmem Tools version 1.3
