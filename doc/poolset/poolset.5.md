@@ -158,7 +158,7 @@ $ pmempool create blk <bsize> mypool.set
 To create a log pool:
 
 ```
-$ pmempool create log <bsize> mypool.set
+$ pmempool create log mypool.set
 ```
 
 
