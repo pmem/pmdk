@@ -13,6 +13,7 @@ pmem_errormsgW
 pmem_flush
 pmem_has_hw_drain
 pmem_is_pmem
+pmem_map_fd
 pmem_map_fileU
 pmem_map_fileW
 pmem_memcpy_nodrain

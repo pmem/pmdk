@@ -1,0 +1,8 @@
+pmem_map_fd/TEST0: START: pmem_map_fd
+ $(nW)/pmem_map_fd$(nW) $(nW)/testfile1 1 1 $(nW)/testfile1 0 0
+$(nW)/testfile1 1 1
+mapped_len 2147483648
+unmap successful
+$(nW)/testfile1 0 0
+unmap successful
+pmem_map_fd/TEST0: DONE
