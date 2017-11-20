@@ -310,6 +310,12 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 
 	struct pobj_alloc_class_desc *p = arg;
 
+	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
+		p->units_per_block <= 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	enum header_type lib_htype = MAX_HEADER_TYPES;
 	switch (p->header_type) {
 		case POBJ_HEADER_LEGACY:
@@ -370,7 +376,7 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 	struct alloc_class *realc = alloc_class_register(
 		heap_alloc_classes(&pop->heap), &c);
 	if (realc == NULL) {
-		errno = ENOMEM;
+		errno = EINVAL;
 		return -1;
 	}
 
@@ -436,8 +442,6 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 		return -1;
 	}
 
-	ASSERTeq(c->type, CLASS_RUN);
-
 	enum pobj_header_type user_htype = MAX_POBJ_HEADER_TYPES;
 	switch (c->header_type) {
 		case HEADER_LEGACY:
@@ -455,7 +459,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	}
 
 	struct pobj_alloc_class_desc *p = arg;
-	p->units_per_block = c->run.bitmap_nallocs;
+	p->units_per_block = c->type == CLASS_HUGE ? 0 : c->run.bitmap_nallocs;
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
