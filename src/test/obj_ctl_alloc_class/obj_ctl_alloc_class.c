@@ -157,6 +157,16 @@ main(int argc, char *argv[])
 		&alloc_class_new);
 	UT_ASSERTeq(ret, 0);
 
+	struct pobj_alloc_class_desc alloc_class_fail;
+	alloc_class_fail.header_type = POBJ_HEADER_NONE;
+	alloc_class_fail.unit_size = 777;
+	alloc_class_fail.units_per_block = 200;
+	alloc_class_fail.class_id = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_fail);
+	UT_ASSERTeq(ret, -1);
+
 	ret = pmemobj_xalloc(pop, &oid, 1, 0,
 		POBJ_CLASS_ID(alloc_class_new.class_id), NULL, NULL);
 	UT_ASSERTeq(ret, 0);

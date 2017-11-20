@@ -301,7 +301,7 @@ not exist it sets the errno to **ENOENT** and returns -1;
 For writing, function returns 0 if the allocation class has been successfully
 created, -1 otherwise.
 
-heap.alloc_class.new.desc | wo | - | - | `struct pobj_alloc_class_desc` | integer, integer, string
+heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | integer, integer, string
 
 Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
 to provide the class_id, it automatically creates the allocation class with the

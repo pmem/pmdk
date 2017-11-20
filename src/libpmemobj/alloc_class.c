@@ -174,6 +174,17 @@ alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 }
 
 /*
+ * alloc_class_reservation_clear -- removes the reservation on class id
+ */
+static void
+alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
+{
+	int ret = util_bool_compare_and_swap64(&ac->aclasses[id],
+		ACLASS_RESERVED, NULL);
+	ASSERT(ret);
+}
+
+/*
  * alloc_class_generate_run_proto -- generates the run bitmap-related
  *	information needed for the allocation class
  */
@@ -250,7 +261,7 @@ alloc_class_register(struct alloc_class_collection *ac,
 {
 	struct alloc_class *nc = Malloc(sizeof(*nc));
 	if (nc == NULL)
-		return NULL;
+		goto error_class_alloc;
 
 	*nc = *c;
 
@@ -266,14 +277,19 @@ alloc_class_register(struct alloc_class_collection *ac,
 			header_type_s, size_idx_s);
 		if (cuckoo_insert(ac->class_map_by_unit_size, k, nc) != 0) {
 			ERR("unable to register allocation class");
-			Free(nc);
-			return NULL;
+			goto error_map_insert;
 		}
 	}
 
 	ac->aclasses[nc->id] = nc;
 
 	return nc;
+
+error_map_insert:
+	Free(nc);
+error_class_alloc:
+	alloc_class_reservation_clear(ac, c->id);
+	return NULL;
 }
 
 /*
