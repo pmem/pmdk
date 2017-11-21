@@ -64,7 +64,7 @@ if [ "$TESTOPTS" != "" ]; then
 else
 	OPTS=
 
-if [ -v WIN32 ]; then
+if [ "$WIN32" == 1 ]; then
 	OPTS="$OPTS -DWIN32"
 else
 	OPTS="$OPTS -UWIN32"
@@ -76,8 +76,9 @@ else
 	OPTS="$OPTS -UFREEBSD"
 fi
 
-if [ -v WEB ]; then
+if [ "$WEB" == 1 ]; then
 	OPTS="$OPTS -DWEB"
+	mkdir -p "$(dirname $outfile)"
 	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
 else
 	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
