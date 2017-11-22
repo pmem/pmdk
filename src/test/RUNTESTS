@@ -660,6 +660,7 @@ fi
 if [ "$1" ]; then
 	for test in $*
 	do
+		[ -d "$test" ] || echo "RUNTESTS: Test does not exist: $test"
 		[ -f "$test/TEST0" ] && runtest $test
 	done
 else
