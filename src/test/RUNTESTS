@@ -94,6 +94,15 @@ EOF
 #
 runtest_local() {
 	export CLEAN_FAILED_REMOTE=n
+
+	local verbose_old=-1
+	for vt in ${verbose_tests//:/ }; do
+		[ "$RUNTEST_DIR" == "$vt" ] && {
+			verbose_old=$verbose
+			verbose=1
+		}
+	done
+
 	if [ "$dryrun" ]
 	then
 		echo "(in ./$RUNTEST_DIR) $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
@@ -138,6 +147,8 @@ runtest_local() {
 		fi
 	}
 	rm -f $TEMP_LOC
+
+	[ "$verbose_old" != "-1" ] && verbose=$verbose_old
 
 	return 0
 }
@@ -395,6 +406,7 @@ keep_going=n
 keep_going_exit_code=0
 fail_count=0
 fail_list=""
+verbose_tests=
 
 #
 # some of defaults can be overwritten with environment variables
@@ -407,6 +419,7 @@ fail_list=""
 [ -n "$TEST_PROVIDERS" ] && provider=$TEST_PROVIDERS
 [ -n "$TEST_PMETHODS" ] && pmethod=$TEST_PMETHODS
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
+[ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
 #
 # command-line argument processing...
