@@ -60,34 +60,37 @@ section=`sed -n 's/^title:.*\([0-9]\))$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
 if [ "$TESTOPTS" != "" ]; then
-m4 $TESTOPTS macros.man $filename | sed -n -e '/# NAME #/,$p' > $outfile
+	m4 $TESTOPTS macros.man $filename | sed -n -e '/# NAME #/,$p' > $outfile
 else
-OPTS=
-if [ -v WIN32 ]; then
-OPTS="$OPTS -DWIN32"
+	OPTS=
+
+if [ "$WIN32" == 1 ]; then
+	OPTS="$OPTS -DWIN32"
 else
-OPTS="$OPTS -UWIN32"
-fi
-if [ "$(uname -s)" == "FreeBSD" ]; then
-OPTS="$OPTS -DFREEBSD"
-else
-OPTS="$OPTS -UFREEBSD"
-fi
-if [ -v WEB ]; then
-OPTS="$OPTS -DWEB"
-else
-OPTS="$OPTS -UWEB"
+	OPTS="$OPTS -UWIN32"
 fi
 
-m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
-pandoc -s -t man -o $outfile --template=$template \
-    -V title=$title -V section=$section \
-    -V date=$(date +"%F") -V version="$version" \
-    -V year=$(date +"%Y") |
+if [ "$(uname -s)" == "FreeBSD" ]; then
+	OPTS="$OPTS -DFREEBSD"
+else
+	OPTS="$OPTS -UFREEBSD"
+fi
+
+if [ "$WEB" == 1 ]; then
+	OPTS="$OPTS -DWEB"
+	mkdir -p "$(dirname $outfile)"
+	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
+else
+	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
+		pandoc -s -t man -o $outfile --template=$template \
+		-V title=$title -V section=$section \
+		-V date=$(date +"%F") -V version="$version" \
+		-V year=$(date +"%Y") |
 sed '/^\.IP/{
 N
 /\n\.nf/{
 	s/IP/PP/
     }
 }'
+fi
 fi
