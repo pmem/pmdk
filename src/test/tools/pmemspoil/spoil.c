@@ -1120,7 +1120,7 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		PROCESS_FIELD(hdr, signature, char);
 		PROCESS_FIELD(hdr, major, uint64_t);
 		PROCESS_FIELD(hdr, minor, uint64_t);
-		PROCESS_FIELD(hdr, size, uint64_t);
+		PROCESS_FIELD(hdr, unused, uint64_t);
 		PROCESS_FIELD(hdr, chunksize, uint64_t);
 		PROCESS_FIELD(hdr, chunks_per_zone, uint64_t);
 		PROCESS_FIELD(hdr, reserved, char);
@@ -1263,7 +1263,7 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 		PROCESS_FIELD(pop, lanes_offset, uint64_t);
 		PROCESS_FIELD(pop, nlanes, uint64_t);
 		PROCESS_FIELD(pop, heap_offset, uint64_t);
-		PROCESS_FIELD(pop, heap_size, uint64_t);
+		PROCESS_FIELD(pop, unused3, uint64_t);
 		PROCESS_FIELD(pop, unused, char);
 		PROCESS_FIELD(pop, checksum, uint64_t);
 		PROCESS_FIELD(pop, run_id, uint64_t);

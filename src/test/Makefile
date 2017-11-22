@@ -82,6 +82,7 @@ OBJ_TESTS = \
 	obj_cuckoo\
 	obj_debug\
 	obj_direct\
+	obj_extend\
 	obj_first_next\
 	obj_fragmentation\
 	obj_fragmentation2\

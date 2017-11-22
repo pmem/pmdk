@@ -627,7 +627,7 @@ obj_vg_check_no_undef(struct pmemobjpool *pop)
 
 	VALGRIND_DO_DISABLE_ERROR_REPORTING;
 	char *addr_start = pop->addr;
-	char *addr_end = addr_start + pop->size;
+	char *addr_end = addr_start + pop->set->poolsize;
 
 	while (addr_start < addr_end) {
 		char *noaccess = (char *)VALGRIND_CHECK_MEM_IS_ADDRESSABLE(
@@ -775,11 +775,12 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pop->heap_offset = pop->lanes_offset +
 		pop->nlanes * sizeof(struct lane_layout);
 	pop->heap_offset = (pop->heap_offset + Pagesize - 1) & ~(Pagesize - 1);
-	pop->heap_size = poolsize - pop->heap_offset;
+
+	size_t heap_size = pop->set->poolsize - pop->heap_offset;
 
 	/* initialize heap prior to storing the checksum */
-	errno = palloc_init((char *)pop + pop->heap_offset, pop->heap_size,
-			p_ops);
+	errno = palloc_init((char *)pop + pop->heap_offset, heap_size,
+		&pop->heap_size, p_ops);
 	if (errno != 0) {
 		ERR("!palloc_init");
 		return -1;
@@ -826,12 +827,6 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 			ERR("!obj_read_remote");
 			return -1;
 		}
-
-		/*
-		 * Set size of the replica to the pool size (required minimum).
-		 * This condition is checked while opening the remote pool.
-		 */
-		pop->size = poolsize;
 	}
 
 	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
@@ -849,24 +844,8 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	if (pop->size < poolsize) {
-		ERR("replica size smaller than pool size: %zu < %zu",
-			pop->size, poolsize);
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (pop->heap_offset + pop->heap_size != poolsize) {
-		ERR("heap size does not match pool size: %" PRIu64 " != %zu",
-			pop->heap_offset + pop->heap_size, poolsize);
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (pop->heap_offset % Pagesize ||
-	    pop->heap_size % Pagesize) {
-		ERR("unaligned heap: off %" PRIu64 ", size %" PRIu64,
-			pop->heap_offset, pop->heap_size);
+	if (pop->heap_offset % Pagesize) {
+		ERR("unaligned heap: off %" PRIu64, pop->heap_offset);
 		errno = EINVAL;
 		return -1;
 	}
@@ -879,9 +858,9 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
  *                               of the local replicas
  */
 static int
-obj_replica_init_local(PMEMobjpool *rep, int is_pmem)
+obj_replica_init_local(PMEMobjpool *rep, int is_pmem, size_t resvsize)
 {
-	LOG(3, "rep %p is_pmem %d", rep, is_pmem);
+	LOG(3, "rep %p is_pmem %d resvsize %zu", rep, is_pmem, resvsize);
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -899,7 +878,7 @@ obj_replica_init_local(PMEMobjpool *rep, int is_pmem)
 	 * instrumentation.
 	 */
 	if (!rep->is_master_replica)
-		VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(rep, rep->size);
+		VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(rep, resvsize);
 
 	if (rep->is_pmem) {
 		rep->persist_local = pmem_persist;
@@ -1018,7 +997,6 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 			rep->p_ops.memset_persist = obj_norep_memset_persist;
 		}
 		rep->p_ops.base = rep;
-		rep->p_ops.pool_size = rep->size;
 	} else {
 		/* non-master replicas */
 		rep->is_master_replica = 0;
@@ -1031,7 +1009,6 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 		rep->p_ops.memset_persist = NULL;
 
 		rep->p_ops.base = NULL;
-		rep->p_ops.pool_size = 0;
 	}
 
 	rep->is_dev_dax = set->replica[repidx]->part[0].is_dev_dax;
@@ -1040,7 +1017,8 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 	if (repset->remote)
 		ret = obj_replica_init_remote(rep, set, repidx, create);
 	else
-		ret = obj_replica_init_local(rep, repset->is_pmem);
+		ret = obj_replica_init_local(rep, repset->is_pmem,
+			set->resvsize);
 	if (ret)
 		return ret;
 
@@ -1124,7 +1102,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			/* mark unused part of the pool as not accessible */
 			void *end = palloc_heap_end(&pop->heap);
 			VALGRIND_DO_MAKE_MEM_NOACCESS(end,
-					(char *)pop + pop->size - (char *)end);
+				(char *)pop + pop->set->poolsize - (char *)end);
 		}
 #endif
 
@@ -1137,7 +1115,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			goto err;
 		}
 
-		if ((errno = ctree_insert(pools_tree, (uint64_t)pop, pop->size))
+		if ((errno = ctree_insert(pools_tree, (uint64_t)pop,
+			pop->set->resvsize))
 				!= 0) {
 			ERR("!ctree_insert");
 			goto err;
@@ -1250,7 +1229,6 @@ pmemobj_createU(const char *path, const char *layout,
 		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
-		rep->size = repset->repsize;
 		rep->replica = NULL;
 		rep->rpp = NULL;
 
@@ -1342,9 +1320,9 @@ pmemobj_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
  *                              of a local replica
  */
 static int
-obj_check_basic_local(PMEMobjpool *pop)
+obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 {
-	LOG(3, "pop %p", pop);
+	LOG(3, "pop %p mapped_size %zu", pop, mapped_size);
 
 	ASSERTeq(pop->rpp, NULL);
 
@@ -1361,7 +1339,7 @@ obj_check_basic_local(PMEMobjpool *pop)
 	}
 
 	errno = palloc_heap_check((char *)pop + pop->heap_offset,
-			pop->heap_size);
+		mapped_size);
 	if (errno != 0) {
 		LOG(2, "!heap_check");
 		consistent = 0;
@@ -1400,9 +1378,9 @@ obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
  *                               of a remote replica
  */
 static int
-obj_check_basic_remote(PMEMobjpool *pop)
+obj_check_basic_remote(PMEMobjpool *pop, size_t mapped_size)
 {
-	LOG(3, "pop %p", pop);
+	LOG(3, "pop %p mapped_size %zu", pop, mapped_size);
 
 	ASSERTne(pop->rpp, NULL);
 
@@ -1423,7 +1401,7 @@ obj_check_basic_remote(PMEMobjpool *pop)
 	/* XXX add lane_check_remote */
 
 	errno = palloc_heap_check_remote((char *)pop + pop->heap_offset,
-			pop->heap_size, &pop->p_ops.remote);
+		mapped_size, &pop->p_ops.remote);
 	if (errno != 0) {
 		LOG(2, "!heap_check_remote");
 		consistent = 0;
@@ -1438,14 +1416,14 @@ obj_check_basic_remote(PMEMobjpool *pop)
  * Used to check if all the replicas are consistent prior to pool recovery.
  */
 static int
-obj_check_basic(PMEMobjpool *pop)
+obj_check_basic(PMEMobjpool *pop, size_t mapped_size)
 {
-	LOG(3, "pop %p", pop);
+	LOG(3, "pop %p mapped_size %zu", pop, mapped_size);
 
 	if (pop->rpp == NULL)
-		return obj_check_basic_local(pop);
+		return obj_check_basic_local(pop, mapped_size);
 	else
-		return obj_check_basic_remote(pop);
+		return obj_check_basic_remote(pop, mapped_size);
 }
 
 /*
@@ -1466,7 +1444,6 @@ static int
 obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
-
 	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
@@ -1508,7 +1485,6 @@ obj_replicas_init(struct pool_set *set)
 		memset(&rep->addr, 0, rt_size);
 
 		rep->addr = rep;
-		rep->size = repset->repsize;
 		rep->replica = NULL;
 		rep->rpp = NULL;
 
@@ -1553,7 +1529,7 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 	PMEMobjpool *rep;
 	for (unsigned r = 0; r < pop->set->nreplicas; r++) {
 		rep = pop->set->replica[r]->part[0].addr;
-		if (obj_check_basic(rep) == 0) {
+		if (obj_check_basic(rep, pop->set->poolsize) == 0) {
 			ERR("inconsistent replica #%u", r);
 			return -1;
 		}
@@ -1606,7 +1582,6 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	/* pop is master replica from now on */
 	pop = set->replica[0]->part[0].addr;
-	set->poolsize = pop->heap_offset + pop->heap_size;
 
 	if (obj_replicas_init(set))
 		goto replicas_init;
@@ -1625,7 +1600,7 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 
 	if (boot) {
 		/* check consistency of 'master' replica */
-		if (obj_check_basic(pop) == 0) {
+		if (obj_check_basic(pop, pop->set->poolsize) == 0) {
 			goto err_check_basic;
 		}
 	}
@@ -1878,7 +1853,7 @@ pmemobj_checkU(const char *path, const char *layout)
 	 * in obj_open_common().
 	 */
 	if (pop->replica == NULL)
-		consistent = obj_check_basic(pop);
+		consistent = obj_check_basic(pop, pop->set->poolsize);
 
 	if (consistent && (errno = obj_boot(pop)) != 0) {
 		LOG(3, "!obj_boot");
@@ -1974,10 +1949,13 @@ pmemobj_pool_by_ptr(const void *addr)
 		return NULL;
 
 	uint64_t key = (uint64_t)addr;
-	size_t pool_size = ctree_find_le_unlocked(pools_tree, &key);
+	size_t resv_size = ctree_find_le_unlocked(pools_tree, &key);
 
-	if (pool_size == 0)
+	if (resv_size == 0)
 		return NULL;
+
+	pop = (PMEMobjpool *)key;
+	size_t pool_size = pop->heap_offset + pop->heap_size;
 
 	ASSERT((uint64_t)addr >= key);
 	uint64_t addr_off = (uint64_t)addr - key;
@@ -2805,12 +2783,6 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
-	if (pe_offset >= pop->size) {
-		ERR("pe_offset (%lu) too big", pe_offset);
-		errno = EINVAL;
-		return -1;
-	}
-
 	return list_insert(pop, (ssize_t)pe_offset, head, dest, before, oid);
 }
 
@@ -2834,12 +2806,6 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
 		errno = ENOMEM;
-		return OID_NULL;
-	}
-
-	if (pe_offset >= pop->size) {
-		ERR("pe_offset (%lu) too big", pe_offset);
-		errno = EINVAL;
 		return OID_NULL;
 	}
 
@@ -2871,12 +2837,6 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
-	if (pe_offset >= pop->size) {
-		ERR("pe_offset (%lu) too big", pe_offset);
-		errno = EINVAL;
-		return -1;
-	}
-
 	if (free) {
 		return list_remove_free_user(pop, pe_offset, head, &oid);
 	} else {
@@ -2903,18 +2863,6 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
-
-	if (pe_old_offset >= pop->size) {
-		ERR("pe_old_offset (%lu) too big", pe_old_offset);
-		errno = EINVAL;
-		return -1;
-	}
-
-	if (pe_new_offset >= pop->size) {
-		ERR("pe_new_offset (%lu) too big", pe_new_offset);
-		errno = EINVAL;
-		return -1;
-	}
 
 	return list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,

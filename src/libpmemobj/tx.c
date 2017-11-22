@@ -1845,8 +1845,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 
 	PMEMobjpool *pop = tx->pop;
 
-	if ((char *)ptr < (char *)pop ||
-			(char *)ptr >= (char *)pop + pop->size) {
+	if (!OBJ_PTR_FROM_POOL(pop, ptr)) {
 		ERR("object outside of pool");
 		return obj_tx_abort_err(EINVAL);
 	}

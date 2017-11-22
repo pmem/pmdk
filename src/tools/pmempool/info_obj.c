@@ -44,6 +44,7 @@
 
 #include "alloc_class.h"
 
+#include "set.h"
 #include "common.h"
 #include "output.h"
 #include "info.h"
@@ -515,8 +516,6 @@ info_obj_heap(struct pmem_info *pip)
 	outv_field(v, "Signature", "%s", heap->signature);
 	outv_field(v, "Major", "%ld", heap->major);
 	outv_field(v, "Minor", "%ld", heap->minor);
-	outv_field(v, "Size", "%s",
-			out_get_size_str(heap->size, pip->args.human));
 	outv_field(v, "Chunk size", "%s",
 			out_get_size_str(heap->chunksize, pip->args.human));
 	outv_field(v, "Chunks per zone", "%ld", heap->chunks_per_zone);

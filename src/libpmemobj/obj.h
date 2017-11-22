@@ -87,7 +87,8 @@
 
 #define OBJ_PTR_FROM_POOL(pop, ptr)\
 	((uintptr_t)(ptr) >= (uintptr_t)(pop) &&\
-	(uintptr_t)(ptr) < (uintptr_t)(pop) + (pop)->size)
+	(uintptr_t)(ptr) < (uintptr_t)(pop) +\
+	(pop)->heap_offset + (pop)->heap_size)
 
 #define OBJ_OFF_IS_VALID(pop, off)\
 	(OBJ_OFF_FROM_HEAP(pop, off) ||\
@@ -119,7 +120,7 @@ struct pmemobjpool {
 	uint64_t lanes_offset;
 	uint64_t nlanes;
 	uint64_t heap_offset;
-	uint64_t heap_size;
+	uint64_t unused3;
 	unsigned char unused[OBJ_DSC_P_UNUSED]; /* must be zero */
 	uint64_t checksum;	/* checksum of above fields */
 
@@ -136,13 +137,14 @@ struct pmemobjpool {
 	 */
 	uint64_t conversion_flags;
 
+	uint64_t heap_size;
+
 	struct stats_persistent stats_persistent;
 
-	char pmem_reserved[504]; /* must be zeroed */
+	char pmem_reserved[496]; /* must be zeroed */
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
-	size_t size;		/* size of mapped region */
 	int is_pmem;		/* true if pool is PMEM */
 	int rdonly;		/* true if pool is opened read-only */
 	struct palloc_heap heap;
@@ -195,7 +197,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[996];
+	char unused2[1012];
 };
 
 /*

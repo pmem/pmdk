@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,9 +52,7 @@ struct pmem_ops {
 	drain_fn drain;		/* drain function */
 	memcpy_fn memcpy_persist; /* persistent memcpy function */
 	memset_fn memset_persist; /* persistent memset function */
-
 	void *base;
-	size_t pool_size;
 
 	struct remote_ops {
 		remote_read_fn read;
