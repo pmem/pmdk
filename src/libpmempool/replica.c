@@ -47,6 +47,7 @@
 #include <libgen.h>
 
 #include "obj.h"
+#include "palloc.h"
 #include "file.h"
 #include "os.h"
 #include "out.h"
