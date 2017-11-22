@@ -40,6 +40,7 @@ export UNITTEST_NUM=10
 require_test_type medium
 require_command $STRACE
 require_dax_devices 1
+require_no_asan
 
 # covered by TEST5
 configure_valgrind memcheck force-disable
