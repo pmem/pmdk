@@ -46,7 +46,7 @@ export LC_ALL="C"
 [ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || export CHECK_POOL=0
 [ "$VERBOSE" ] || export VERBOSE=0
-[ "$SUFFIX" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
+[ -n "${SUFFIX+x}" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
 
 TOOLS=../tools
 # Paths to some useful tools
