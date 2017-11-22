@@ -630,7 +630,7 @@ popen_readi(const char *cmd)
 static int
 rpmemd_get_pid(const char *target, const char *pid_file)
 {
-	char cmd[100];
+	char cmd[PATH_MAX];
 	snprintf(cmd, sizeof(cmd), GET_RPMEMD_PID_CMD, target, pid_file);
 	return popen_readi(cmd);
 }
