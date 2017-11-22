@@ -79,13 +79,21 @@ On success, **pmemlog_append**() and **pmemlog_appendv**() return 0.
 On error, they return -1 and set *errno* appropriately.
 
 
+# ERRORS #
+
+**EINVAL** The vector count *iovcnt* is less than zero.
+
+**ENOSPC** There is no room for the data in the log file.
+
+**EROFS** The log file is open in read-only mode.
+
+
 # NOTES #
 
 Since **libpmemlog**(3) is designed as a low-latency code path,
 many of the checks routinely done by the operating system for **writev**(2)
 are not practical in the library's implementation of **pmemlog_appendv**().
-No attempt is made to detect NULL or incorrect pointers, or illegal count
-values, for example.
+No attempt is made to detect NULL or incorrect pointers, for example.
 
 
 # SEE ALSO #
