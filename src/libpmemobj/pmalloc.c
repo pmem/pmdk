@@ -47,6 +47,7 @@
 #include "palloc.h"
 #include "pmalloc.h"
 #include "alloc_class.h"
+#include "set.h"
 
 #ifdef DEBUG
 /*
@@ -273,7 +274,9 @@ static int
 pmalloc_boot(PMEMobjpool *pop)
 {
 	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
-			pop->heap_size, pop->run_id, pop, &pop->p_ops);
+			pop->set->poolsize - pop->heap_offset, &pop->heap_size,
+			pop, &pop->p_ops,
+			pop->set);
 	if (ret)
 		return ret;
 

@@ -59,6 +59,7 @@
 #include "redo.h"
 #include "util.h"
 #include "valgrind_internal.h"
+#include "set.h"
 
 #include "unittest.h"
 
@@ -126,9 +127,10 @@ pmemobj_open_mock(const char *fname, size_t redo_size)
 	PMEMobjpool *pop = (PMEMobjpool *)addr;
 	VALGRIND_REMOVE_PMEM_MAPPING((char *)addr + sizeof(pop->hdr), 4096);
 	pop->addr = addr;
-	pop->size = size;
 	pop->is_pmem = is_pmem;
 	pop->rdonly = 0;
+	pop->set = MALLOC(sizeof(*pop->set));
+	pop->set->poolsize = size;
 
 	if (pop->is_pmem) {
 		pop->persist_local = pmem_persist;
@@ -146,7 +148,7 @@ pmemobj_open_mock(const char *fname, size_t redo_size)
 	pop->p_ops.base = pop;
 
 	pop->heap_offset = PMEMOBJ_POOL_HDR_SIZE + redo_size;
-	pop->heap_size = pop->size - pop->heap_offset;
+	pop->heap_size = size - pop->heap_offset;
 
 	pop->redo = redo_log_config_new(pop->addr, &pop->p_ops,
 			redo_log_check_offset, pop, REDO_NUM_ENTRIES);
@@ -159,7 +161,9 @@ pmemobj_close_mock(PMEMobjpool *pop)
 {
 	redo_log_config_delete(pop->redo);
 
-	UT_ASSERTeq(pmem_unmap(pop, pop->size), 0);
+	size_t poolsize = pop->set->poolsize;
+	FREE(pop->set);
+	UT_ASSERTeq(pmem_unmap(pop, poolsize), 0);
 }
 
 int
@@ -183,7 +187,7 @@ main(int argc, char *argv[])
 	UT_ASSERTne(pop, NULL);
 
 	UT_ASSERTeq(util_is_zeroed((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE,
-			pop->size - PMEMOBJ_POOL_HDR_SIZE), 1);
+			pop->set->poolsize - PMEMOBJ_POOL_HDR_SIZE), 1);
 
 	struct redo_log *redo =
 		(struct redo_log *)((char *)pop->addr + PMEMOBJ_POOL_HDR_SIZE);
