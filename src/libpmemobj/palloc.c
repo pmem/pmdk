@@ -681,10 +681,12 @@ palloc_is_allocated(struct palloc_heap *heap, uint64_t off)
  * palloc_boot -- initializes allocator section
  */
 int
-palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		uint64_t run_id, void *base, struct pmem_ops *p_ops)
+palloc_boot(struct palloc_heap *heap, void *heap_start,
+		uint64_t heap_size, uint64_t *sizep,
+		void *base, struct pmem_ops *p_ops, struct pool_set *set)
 {
-	return heap_boot(heap, heap_start, heap_size, run_id, base, p_ops);
+	return heap_boot(heap, heap_start, heap_size, sizep,
+		base, p_ops, set);
 }
 
 /*
@@ -700,9 +702,10 @@ palloc_buckets_init(struct palloc_heap *heap)
  * palloc_init -- initializes palloc heap
  */
 int
-palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops)
+palloc_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
+	struct pmem_ops *p_ops)
 {
-	return heap_init(heap_start, heap_size, p_ops);
+	return heap_init(heap_start, heap_size, sizep, p_ops);
 }
 
 /*
@@ -728,7 +731,7 @@ palloc_heap_check(void *heap_start, uint64_t heap_size)
  */
 int
 palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
-		struct remote_ops *ops)
+	struct remote_ops *ops)
 {
 	return heap_check_remote(heap_start, heap_size, ops);
 }
@@ -740,6 +743,15 @@ void
 palloc_heap_cleanup(struct palloc_heap *heap)
 {
 	heap_cleanup(heap);
+}
+
+/*
+ * palloc_real_heap_size -- returns the real size of the heap
+ */
+size_t
+palloc_real_heap_size(void *heap_start, size_t heap_size)
+{
+	return heap_zone_sum_sizes(heap_start, heap_size);
 }
 
 #ifdef USE_VG_MEMCHECK

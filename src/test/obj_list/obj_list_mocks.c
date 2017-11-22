@@ -36,6 +36,7 @@
 
 #include "valgrind_internal.h"
 #include "obj_list.h"
+#include "set.h"
 
 /*
  * pmem_drain_nop -- no operation for drain on non-pmem memory
@@ -120,7 +121,6 @@ FUNC_MOCK_RUN_DEFAULT
 
 	Pop = (PMEMobjpool *)addr;
 	Pop->addr = Pop;
-	Pop->size = size;
 	Pop->is_pmem = is_pmem;
 	Pop->rdonly = 0;
 	Pop->uuid_lo = 0x12345678;
@@ -152,7 +152,7 @@ FUNC_MOCK_RUN_DEFAULT
 	struct pmem_ops *p_ops = &Pop->p_ops;
 
 	Pop->heap_offset = HEAP_OFFSET;
-	Pop->heap_size = Pop->size - Pop->heap_offset;
+	Pop->heap_size = size - Pop->heap_offset;
 	uint64_t heap_offset = HEAP_OFFSET;
 
 	Heap_offset = (uint64_t *)((uintptr_t)Pop +
@@ -211,7 +211,8 @@ FUNC_MOCK_END
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
 		redo_log_config_delete(Pop->redo);
-		UT_ASSERTeq(pmem_unmap(Pop, Pop->size), 0);
+		UT_ASSERTeq(pmem_unmap(Pop,
+			Pop->heap_size + Pop->heap_offset), 0);
 		Pop = NULL;
 	}
 FUNC_MOCK_END
