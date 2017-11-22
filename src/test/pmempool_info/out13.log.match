@@ -35,7 +35,6 @@ PMEMOBJ Heap Header:
 Signature                : MEMORY_HEAP_HDR
 Major                    : $(*)
 Minor                    : $(*)
-Size                     : $(*)
 Chunk size               : $(*)
 Chunks per zone          : $(*)
 Checksum                 : $(*) [OK]
