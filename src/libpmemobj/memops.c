@@ -138,13 +138,10 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 	enum operation_type type)
 {
 	const struct pmem_ops *p_ops = ctx->p_ops;
+	PMEMobjpool *pop = (PMEMobjpool *)p_ops->base;
 
-	int from_pool = ((uintptr_t)ptr >= (uintptr_t)p_ops->base &&
-			(uintptr_t)ptr < (uintptr_t)p_ops->base +
-				p_ops->pool_size);
-
-	ASSERTeq(from_pool, OBJ_OFF_IS_VALID((struct pmemobjpool *)p_ops->base,
-		(uintptr_t)ptr - (uintptr_t)p_ops->base));
+	int from_pool = OBJ_OFF_IS_VALID(pop,
+		(uintptr_t)ptr - (uintptr_t)p_ops->base);
 
 	operation_add_typed_entry(ctx, ptr, value, type,
 		from_pool ? ENTRY_PERSISTENT : ENTRY_TRANSIENT);
