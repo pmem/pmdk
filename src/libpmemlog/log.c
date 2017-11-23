@@ -530,10 +530,14 @@ pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt)
 {
 	LOG(3, "plp %p iovec %p iovcnt %d", plp, iov, iovcnt);
 
-	int ret = 0; // success
+	int ret = 0;
 	int i;
 
-	ASSERT(iovcnt > 0);
+	if (iovcnt < 0) {
+		errno = EINVAL;
+		ERR("iovcnt is less than zero: %d", iovcnt);
+		return -1;
+	}
 
 	if (plp->rdonly) {
 		ERR("can't append to read-only log");
