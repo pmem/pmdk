@@ -1,0 +1,1 @@
+<libpmem>: <1> [pmem.c:$(N) pmem_check_shutdown_state] an ADR failure was detected, the pool might be corrupted

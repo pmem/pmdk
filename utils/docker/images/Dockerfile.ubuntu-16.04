@@ -43,12 +43,13 @@ RUN apt-get update && apt-get install -y software-properties-common \
 	libunwind8-dev autoconf \
 	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
-	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby gdb
+	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby gdb \
+	libjson-c-dev uuid-dev asciidoc uuid-dev libkmod-dev libudev-dev
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
 RUN ./install-valgrind.sh
- 
+
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
@@ -56,6 +57,10 @@ RUN ./install-libfabric.sh
 # Install libcxx
 COPY install-libcxx.sh install-libcxx.sh
 RUN ./install-libcxx.sh
+
+# Install libndctl
+COPY install-libndctl.sh install-libndctl.sh
+RUN ./install-libndctl.sh
 
 # Add user
 ENV USER nvmluser

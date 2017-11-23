@@ -1,4 +1,7 @@
-# Copyright 2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2015-2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,23 +31,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for NVM pmem libraries
+
 #
+# src/test/ex_libpmem/TEST2 -- unit test for libpmem examples
+#
+export UNITTEST_NAME=ex_libpmem/TEST2
+export UNITTEST_NUM=2
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
+# standard unit test setup
+. ../unittest/unittest.sh
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/os_linux.c\
-	$(COMMON)/os_thread_linux.c\
-	$(COMMON)/os_ras_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/$(call osdep, uuid,.c)\
-	$(COMMON)/util_linux.c
+require_test_type medium
+
+require_build_type debug nondebug
+
+setup
+
+EX_PATH=../../examples/libpmem
+
+expect_normal_exit $EX_PATH/shutdown_state 1 $DIR/testfile1 $DIR/testfile2
+
+expect_normal_exit $EX_PATH/shutdown_state 0 $DIR/testfile1 $DIR/testfile2
+
+pass

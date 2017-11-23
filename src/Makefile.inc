@@ -88,6 +88,7 @@ CFLAGS += -std=gnu99
 CFLAGS += -fno-common
 CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+CFLAGS += -lndctl -ldaxctl
 
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)

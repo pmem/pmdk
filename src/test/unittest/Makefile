@@ -57,7 +57,7 @@ CFLAGS += -Wsign-compare
 ifeq ($(call check_Wconversion), y)
 CFLAGS += -Wconversion
 endif
-CFLAGS += -pthread
+CFLAGS += -pthread -lndctl -ldaxctl
 CFLAGS += -fno-common
 
 ifeq ($(call check_compiler, icc), n)

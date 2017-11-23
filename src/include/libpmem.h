@@ -78,6 +78,11 @@ extern "C" {
 #define PMEM_FILE_SPARSE	(1 << 2)
 #define PMEM_FILE_TMPFILE	(1 << 3)
 
+typedef union {
+	long long align;
+	char padding[64];
+} PMEMsds;
+
 #ifndef _WIN32
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
@@ -101,6 +106,14 @@ void *pmem_memset_persist(void *pmemdest, int c, size_t len);
 void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
+
+#ifndef _WIN32
+void pmem_init_shutdown_state(PMEMsds *sds);
+int pmem_add_to_shutdown_state(PMEMsds *sds, const char *path);
+void pmem_set_shutdown_flag(PMEMsds *sds);
+void pmem_clear_shutdown_flag(PMEMsds *sds);
+int pmem_check_shutdown_state(PMEMsds *curr_sds, PMEMsds *pool_sds);
+#endif
 
 /*
  * PMEM_MAJOR_VERSION and PMEM_MINOR_VERSION provide the current version of the
@@ -127,6 +140,7 @@ const char *pmem_errormsg(void);
 const char *pmem_errormsgU(void);
 const wchar_t *pmem_errormsgW(void);
 #endif
+
 
 #ifdef __cplusplus
 }
