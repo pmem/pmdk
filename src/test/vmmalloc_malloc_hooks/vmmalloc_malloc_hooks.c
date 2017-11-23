@@ -38,7 +38,7 @@
 
 #include <stdlib.h>
 #include "unittest.h"
-#include "vmmalloc_weakfuncs.h"
+#include "vmmalloc_dummy_funcs.h"
 
 static void *(*old_malloc_hook) (size_t, const void *);
 static void *(*old_realloc_hook) (void *, size_t, const void *);

@@ -31,22 +31,16 @@
 #
 
 #
-# src/test/vmmalloc_memalign/Makefile.inc -- common Makefile rules
-#	for vmmalloc tests sharing libwf.so
+# src/test/vmmalloc_dummy_funcs/Makefile -- build libvmmalloc_dummy_funcs.so
+# used by vmmalloc_malloc_hooks, vmmalloc_memalign and vmmalloc_valloc.
 #
+OBJS = vmmalloc_dummy_funcs.o
 
-EXTRA_DEPS = ../vmmalloc_memalign/libwf.so
+BUILD_STATIC=n
 
 include ../Makefile.inc
 
-INCS += -I../vmmalloc_memalign
+libvmmalloc_dummy_funcs.so: $(OBJS)
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libvmmalloc_dummy_funcs.so -o $@
 
-../vmmalloc_memalign/libwf.so: ../vmmalloc_memalign/vmmalloc_weakfuncs.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libwf.so -o $@ $^
-
-clobber: libwf_cleanup
-
-libwf_cleanup:
-	$(RM) ../vmmalloc_memalign/libwf.so
-
-LIBS += ../vmmalloc_memalign/libwf.so -Wl,-rpath=../vmmalloc_memalign
+all: libvmmalloc_dummy_funcs.so
