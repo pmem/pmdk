@@ -1,0 +1,1 @@
+<libpmem>: <3> [pmem.c:$(N) pmem_check_shutdown_state] the pool was not closed - SDS will be reinitialized

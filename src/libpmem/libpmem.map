@@ -50,6 +50,11 @@ LIBPMEM_1.0 {
 		pmem_memmove_nodrain;
 		pmem_memcpy_nodrain;
 		pmem_memset_nodrain;
+		pmem_init_shutdown_state;
+		pmem_add_to_shutdown_state;
+		pmem_check_shutdown_state;
+		pmem_set_shutdown_flag;
+		pmem_clear_shutdown_flag;
 	local:
 		*;
 };

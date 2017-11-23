@@ -46,6 +46,7 @@ OBJS = pmem_is_pmem_linux.o\
 	file.o\
 	file_linux.o\
 	os_linux.o\
+	os_ras_linux.o\
 	out.o\
 	libpmem.o\
 	pmem.o\

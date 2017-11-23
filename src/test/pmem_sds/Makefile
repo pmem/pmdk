@@ -1,4 +1,5 @@
-# Copyright 2017, Intel Corporation
+#
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,23 +29,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for NVM pmem libraries
+
 #
+# src/test/pmem_sds/Makefile -- build pmem_sds unittest
+#
+TARGET = pmem_sds
+OBJS = pmem_sds.o ras_mock.o
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
+vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/common
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/os_linux.c\
-	$(COMMON)/os_thread_linux.c\
-	$(COMMON)/os_ras_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/$(call osdep, uuid,.c)\
-	$(COMMON)/util_linux.c
+BUILD_STATIC=n
+
+OBJS +=\
+	$(TOP)/src/debug/common/file.o\
+	$(TOP)/src/debug/common/file_linux.o\
+	$(TOP)/src/debug/common/os_linux.o\
+	$(TOP)/src/debug/common/os_thread_linux.o\
+	$(TOP)/src/debug/common/out.o\
+	$(TOP)/src/debug/common/util.o\
+	$(TOP)/src/debug/common/util_linux.o\
+	$(TOP)/src/debug/common/mmap.o\
+	$(TOP)/src/debug/common/mmap_linux.o\
+	$(TOP)/src/debug/libpmem/libpmem.o\
+	$(TOP)/src/debug/libpmem/cpu.o\
+	$(TOP)/src/debug/libpmem/pmem.o\
+	$(TOP)/src/debug/libpmem/pmem_linux.o
+
+include ../Makefile.inc
+

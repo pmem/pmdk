@@ -91,6 +91,7 @@ endif
 CFLAGS += $(EXTRA_CFLAGS)
 
 LIBS += $(LIBUTIL)
+LIBS +=  -lndctl -ldaxctl
 
 all test: $(TARGET)
 

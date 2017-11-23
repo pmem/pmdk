@@ -213,6 +213,7 @@ PMEM_TESTS = \
 	pmem_memset\
 	pmem_movnt\
 	pmem_movnt_align\
+	pmem_sds\
 	pmem_valgr_simple
 
 PMEMPOOL_TESTS = \

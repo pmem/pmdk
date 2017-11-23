@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+#
 # Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,24 +29,18 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #
-# src/pmemcommon.inc -- common SOURCE definitions for NVM pmem libraries
+# install-libndctl.sh - installs libndctl
 #
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
+set -e
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/os_linux.c\
-	$(COMMON)/os_thread_linux.c\
-	$(COMMON)/os_ras_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/util.c\
-	$(COMMON)/uuid.c\
-	$(COMMON)/$(call osdep, uuid,.c)\
-	$(COMMON)/util_linux.c
+git clone -b pending --depth 1 https://github.com/pmem/ndctl.git
+cd ndctl
+./autogen.sh
+./configure
+make
+make install
+cd ..
+rm -rf ndctl
