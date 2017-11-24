@@ -226,7 +226,7 @@ os_setenv(const char *name, const char *value, int overwrite)
 char *
 os_getenv(const char *name)
 {
-	return getenv(name);
+	return secure_getenv(name);
 }
 
 /*
