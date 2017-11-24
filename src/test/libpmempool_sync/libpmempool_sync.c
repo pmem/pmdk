@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,7 +50,6 @@ main(int argc, char *argv[])
 
 	int ret = pmempool_sync(argv[1], (unsigned)strtoul(argv[2], NULL, 0));
 	UT_OUT("result: %d, errno: %d", ret, errno);
-	UT_ASSERTeq(ret, 0);
 
 	DONE(NULL);
 }

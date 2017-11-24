@@ -52,7 +52,6 @@ wmain(int argc, wchar_t *argv[])
 	int ret = pmempool_transformW(argv[1], argv[2],
 			(unsigned)wcstoul(argv[3], NULL, 0));
 	UT_OUT("result: %d, errno: %d", ret, errno);
-	UT_ASSERTeq(ret, 0);
 
 	DONEW(NULL);
 }
