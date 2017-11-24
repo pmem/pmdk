@@ -2249,7 +2249,20 @@ function check_local() {
 		option=-q
 	fi
 
-	../match $option $(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
+	# If errX.log.match does not exist, assume errX.log should be empty
+	ERR_LOG_LEN=0
+	[ -f $ERR_LOG_FILE ] && ERR_LOG_LEN=$(stat -c %b $ERR_LOG_FILE)
+
+	if [ ! -f ${ERR_LOG_FILE}.match ] && [ $ERR_LOG_LEN -ne 0 ]; then
+		echo "unexpected output in $ERR_LOG_FILE"
+		dump_last_n_lines $ERR_LOG_FILE
+		exit 1
+	fi
+
+	FILES=$(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
+	if [ -n "$FILES" ]; then
+		../match $option $FILES
+	fi
 }
 
 #
@@ -2283,7 +2296,21 @@ function check() {
 			option=-q
 		fi
 
-		../match $option $(get_files "node_[0-9]+_[^0-9]*${UNITTEST_NUM}\.log\.match")
+		# If errX.log.match does not exist, assume errX.log should be empty
+		for N in $NODES_SEQ; do
+			ERR_LOG_LEN=0
+			[ -f node_${N}_${ERR_LOG_FILE} ] && ERR_LOG_LEN=$(stat -c %b node_${N}_${ERR_LOG_FILE})
+
+			if [ ! -f node_${N}_${ERR_LOG_FILE}.match ] && [ $ERR_LOG_LEN -ne 0 ]; then
+				echo "unexpected output in node_${N}_${ERR_LOG_FILE}"
+				dump_last_n_lines node_${N}_${ERR_LOG_FILE}
+				exit 1
+			fi
+		done
+
+		if [ -n "$FILES" ]; then
+			../match $option $FILES
+		fi
 	fi
 }
 

@@ -71,12 +71,12 @@ cat $LOG >> $LOG_TEMP
 
 # Try to transform poolset
 FLAG=1 # invalid flag
-expect_abnormal_exit ./libpmempool_transform$EXESUFFIX \
+expect_normal_exit ./libpmempool_transform$EXESUFFIX \
 	$POOLSET_IN $POOLSET_OUT $FLAG
 cat $LOG >> $LOG_TEMP
 
 FLAG=1024
-expect_abnormal_exit ./libpmempool_transform$EXESUFFIX \
+expect_normal_exit ./libpmempool_transform$EXESUFFIX \
 	$POOLSET_IN $POOLSET_OUT $FLAG
 cat $LOG >> $LOG_TEMP
 

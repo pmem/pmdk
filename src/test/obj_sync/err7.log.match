@@ -1,0 +1,1 @@
+{$(*)obj_sync.c:$(N) timed_check_worker} obj_sync/TEST7: pmemobj_mutex_timedlock: Invalid argument

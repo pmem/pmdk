@@ -76,12 +76,12 @@ rm $DIR\part10 -Force -ea si
 
 # Try to synchronize replicas
 $FLAGS = "1" # invalid flag
-expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 $FLAGS = "1024"
-expect_abnormal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\libpmempool_sync$Env:EXESUFFIX `
 	$POOLSET $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 

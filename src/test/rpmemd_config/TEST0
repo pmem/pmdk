@@ -77,10 +77,10 @@ cat $LOG >> $LOG_TEMP
 expect_normal_exit $RPMEMD --config $EMPTY_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
-expect_abnormal_exit $RPMEMD -c $INVALID_CONFIG 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD -c $INVALID_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
-expect_abnormal_exit $RPMEMD --config $INVALID_CONFIG 1>> $OUT 2>&1
+expect_normal_exit $RPMEMD --config $INVALID_CONFIG 1>> $OUT 2>&1
 cat $LOG >> $LOG_TEMP
 
 $GREP -v rpmemd_config $LOG_TEMP > $LOG

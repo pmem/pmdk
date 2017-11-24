@@ -603,16 +603,27 @@ function check {
         Write-Error "Perl is missing, cannot check test results"
         fail 1
     }
+
+    # If errX.log.match does not exist, assume errX.log should be empty
+    $ERR_LOG_LEN=0
+    if (Test-Path $Env:ERR_LOG_FILE) {
+        $ERR_LOG_LEN = (Get-Item  $Env:ERR_LOG_FILE).length
+    }
+
+    if (-not (Test-Path "${Env:ERR_LOG_FILE}.match") -and ($ERR_LOG_LEN -ne 0)) {
+        Write-Error "unexpected output in ${Env:ERR_LOG_FILE}"
+        dump_last_n_lines $Env:ERR_LOG_FILE
+        fail 1
+    }
+
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        Invoke-Expression "perl ..\..\..\src\test\match $listing"
-        if ($Global:LASTEXITCODE -ne 0) {
-            fail 1
+        if (Test-Path $listing) {
+            Invoke-Expression "perl ..\..\..\src\test\match $listing"
+            if ($Global:LASTEXITCODE -ne 0) {
+                fail 1
+            }
         }
-
-    } else {
-        Write-Error "No match file found for test $Env:UNITTEST_NAME"
-        fail 1
     }
 }
 

@@ -19,9 +19,6 @@
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="err0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vmem_check_version.c">

@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match" />
     <None Include="TEST0.PS1" />
   </ItemGroup>
   <ItemGroup>

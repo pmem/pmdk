@@ -195,10 +195,17 @@ ut_dump_backtrace(void)
 void
 ut_sighandler(int sig)
 {
-	UT_ERR("\n");
-	UT_ERR("Signal %d, backtrace:", sig);
-	ut_dump_backtrace();
-	UT_ERR("\n");
+	/*
+	 * Usually SIGABRT is a result of ASSERT() or FATAL().
+	 * We don't need backtrace, as the reason of the failure
+	 * is logged in debug traces.
+	 */
+	if (sig != SIGABRT) {
+		UT_ERR("\n");
+		UT_ERR("Signal %d, backtrace:", sig);
+		ut_dump_backtrace();
+		UT_ERR("\n");
+	}
 	exit(128 + sig);
 }
 
