@@ -52,7 +52,8 @@
 #include "os_thread.h"
 
 /* calculates the size of the entire run, including any additional chunks */
-#define SIZEOF_RUN(runp, size_idx) (sizeof(*run) + ((size_idx - 1) * CHUNKSIZE))
+#define SIZEOF_RUN(runp, size_idx)\
+	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
 
 #define MAX_RUN_LOCKS 1024
 
