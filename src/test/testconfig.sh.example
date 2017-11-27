@@ -10,7 +10,7 @@
 #
 
 #
-# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test NVML with
+# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test PMDK with
 # file path longer than 255 characters.
 #
 # LONGDIR="LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid"
@@ -22,7 +22,7 @@
 # Note that PMEM_FS_DIR is intended mostly to test codepaths where
 # pmem_persist() is used for flushing data to persistence.  For now, there is
 # no file system on Linux that fully supports pmem_persist(), so even in case
-# of DAX-enabled file systems (like ext4), NVML would behave as for non-PMEM
+# of DAX-enabled file systems (like ext4), PMDK would behave as for non-PMEM
 # file system and would still use pmem_msync().
 # You may change this behavior by setting PMEM_FS_DIR_FORCE_PMEM (see below).
 # To fully test the PMEM codepaths it is strongly recommended to configure

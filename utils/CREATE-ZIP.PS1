@@ -50,8 +50,8 @@ $rootdir = $scriptdir + "\..\"
 
 $builddir = $rootdir + "\src\x64\"
 $srcdir = $rootdir + "\src\"
-$zipdir = $builddir + "\nvml\"
-$zipexpdir = $rootdir + "\nvml_examples\"
+$zipdir = $builddir + "\pmdk\"
+$zipexpdir = $rootdir + "\pmdk_examples\"
 
 if ($version -eq "0") {
     $git = Get-Command -Name git -ErrorAction SilentlyContinue
@@ -62,11 +62,11 @@ if ($version -eq "0") {
     }
 }
 
-$zipfile = $builddir + "\nvml-" + $version + "-win-x64-" + $build + ".zip"
-$expfile = $rootdir + "\nvml_examples-" + $version + "-win-x64.zip"
+$zipfile = $builddir + "\pmdk-" + $version + "-win-x64-" + $build + ".zip"
+$expfile = $rootdir + "\pmdk_examples-" + $version + "-win-x64.zip"
 
 Remove-Item $zipdir -Force -Recurse -ea si
-Get-ChildItem | Where-Object {$_.Name -Match "nvml-.*-win-x64.zip"} | Remove-Item -Force -ea si
+Get-ChildItem | Where-Object {$_.Name -Match "pmdk-.*-win-x64.zip"} | Remove-Item -Force -ea si
 New-Item -ItemType directory -Path ( $zipdir) -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\bin\") -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null

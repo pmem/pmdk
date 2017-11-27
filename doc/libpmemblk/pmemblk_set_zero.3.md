@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEMBLK_SET_ZERO, 3)
 collection: libpmemblk
-header: NVM Library
+header: PMDK
 date: pmemblk API version 1.0
 ...
 

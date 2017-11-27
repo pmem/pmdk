@@ -45,7 +45,7 @@ SOURCE +=\
 
 default: all
 
-JEMALLOC_NVMLDIR = libpmemcto
+JEMALLOC_PMDKDIR = libpmemcto
 include ../jemalloc/jemalloc.mk
 
 INCS += -I../../libpmemcto

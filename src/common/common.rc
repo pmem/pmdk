@@ -31,7 +31,7 @@
  */
 
 /*
- * common.rc -- common part of nvml rc files
+ * common.rc -- common part of PMDK rc files
  */
 
 #include <windows.h>
@@ -88,10 +88,10 @@ BEGIN
 			VALUE "CompanyName", "Intel"
 			VALUE "FileDescription", DESCRIPTION
 			VALUE "FileVersion", SRCVERSION
-			VALUE "InternalName", "NVML"
+			VALUE "InternalName", "PMDK"
 			VALUE "LegalCopyright", "Copyright 2014-2017, Intel Corporation"
 			VALUE "OriginalFilename", FILE_NAME
-			VALUE "ProductName", "NVM Library"
+			VALUE "ProductName", "Persistent Memory Development Kit"
 			VALUE "ProductVersion", SRCVERSION
 #if VERSION_SPECIAL == VS_FF_SPECIALBUILD
 			VALUE "SpecialBuild", VERSION_CUSTOM_MSG

@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEMPOOL, 7)
 collection: libpmempool
-header: NVM Library
+header: PMDK
 date: pmempool API version 1.1
 ...
 
@@ -282,7 +282,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmempool> for more examples using the
+See <http://pmem.io/pmdk/libpmempool> for more examples using the
 **libpmempool** API.
 
 

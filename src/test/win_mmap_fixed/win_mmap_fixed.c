@@ -37,7 +37,7 @@
  * of memory mapping routines - mmap(), munmap(), msync() and mprotect().
  * Those functions should provide the same functionality as their Linux
  * counterparts, at least with respect to the features that are used
- * in NVM libraries.
+ * in PMDK libraries.
  *
  * Known issues and differences between Linux and Windows implementation
  * are described in src/common/mmap_windows.c.

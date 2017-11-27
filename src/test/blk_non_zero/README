@@ -1,4 +1,4 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/test/blk_non_zero/README.
 
@@ -15,8 +15,8 @@ pmemblk_write() for LBA 5, pmemblk_set_zero() for LBA 9, and pmem_set_error()
 for LBA 100.
 
 In tests 0-4 the map is filled with pseudo-random data before any read/write
-operation is made. In tests 5-8 the pool is created by the NVM Library and
-is zero filled. Each block written is filled up with the ordinal number of
+operation is made. In tests 5-8 the pool is created by the libpmemblk Library
+and is zero filled. Each block written is filled up with the ordinal number of
 the write operation (a block full of 8-bit 1s, then a block filled with 8-bit
 2s, etc.).  When a block is read, the number it was filled with is  reported
 (and the program verifies the entire block is filled with that  number).

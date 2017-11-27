@@ -1106,7 +1106,7 @@ if (-Not $Env:FS) { $Env:FS = 'any'}
 if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
-if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"}
+if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
 if ($Env:EXE_DIR -eq $null) {

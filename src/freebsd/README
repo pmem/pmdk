@@ -1,8 +1,8 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/freebsd/README.
 
-This directory contains FreeBSD-specific files for the NVM Library.
+This directory contains FreeBSD-specific files for the Persistent Memory Development Kit.
 
 The subdirectory "include" contains header files that have no equivalents
 on FreeBSD. Most of these files are empty, which is a cheap trick to avoid

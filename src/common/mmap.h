@@ -34,8 +34,8 @@
  * mmap.h -- internal definitions for mmap module
  */
 
-#ifndef NVML_MMAP_H
-#define NVML_MMAP_H 1
+#ifndef PMDK_MMAP_H
+#define PMDK_MMAP_H 1
 #ifdef __cplusplus
 extern "C" {
 #endif

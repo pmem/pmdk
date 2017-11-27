@@ -57,7 +57,7 @@ setup
 # set this to enable runtime creation of pools based on the old version of
 # the library. If not set the pools to convert and verify are extracted from
 # a prebuilt archive.
-#PATH_TO_1_0_DBG=/path/to/nvml_1.0/debug
+#PATH_TO_1_0_DBG=/path/to/pmdk_1.0/debug
 
 run_scenarios 8
 

@@ -55,7 +55,7 @@ Hello world!
 key2
 1234567890
 key3
-NVML
+PMDK
 key4
 PMEM
 EOF

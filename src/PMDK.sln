@@ -718,7 +718,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fifo", "examples\libpmemobj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_help", "test\pmempool_help\pmempool_help.vcxproj", "{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "nvml_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "pmdk_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_file_create", "test\util_file_create\util_file_create.vcxproj", "{D829DB63-E046-474D-8EA3-43A6659294D8}"
 EndProject

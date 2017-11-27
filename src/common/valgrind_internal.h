@@ -34,8 +34,8 @@
  * valgrind_internal.h -- internal definitions for valgrind macros
  */
 
-#ifndef NVML_VALGRIND_INTERNAL_H
-#define NVML_VALGRIND_INTERNAL_H 1
+#ifndef PMDK_VALGRIND_INTERNAL_H
+#define PMDK_VALGRIND_INTERNAL_H 1
 
 #ifdef USE_VALGRIND
 #define USE_VG_PMEMCHECK

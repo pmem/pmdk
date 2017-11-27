@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(VMEM_MALLOC, 3)
 collection: libvmem
-header: NVM Library
+header: PMDK
 date: vmem API version 1.1
 ...
 

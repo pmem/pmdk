@@ -422,7 +422,7 @@ operator==(standard_alloc_policy<T> const &, OtherAllocator const &)
 
 /**
  * (EXPERIMENTAL) Encapsulates the information about the persistent
- * memory allocation model using NVML's libpmemobj. This information includes
+ * memory allocation model using PMDK's libpmemobj. This information includes
  * the knowledge of the pointer type, their difference type, the type of the
  * size of objects in this allocation model as well as memory allocation and
  * deallocation primitives.

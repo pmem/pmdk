@@ -34,10 +34,10 @@
 #
 set -e
 
-if ! grep -q "File: nvml" /etc/magic
+if ! grep -q "File: pmdk" /etc/magic
 then
-	echo "Appending NVML magic to /etc/magic"
-	cat /usr/share/nvml/nvml.magic >> /etc/magic
+	echo "Appending PMDK magic to /etc/magic"
+	cat /usr/share/pmdk/pmdk.magic >> /etc/magic
 else
-	echo "NVML magic already exists"
+	echo "PMDK magic already exists"
 fi

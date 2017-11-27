@@ -1,8 +1,8 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is benchmarks/README.
 
-This directory contains benchmarks for NVM Library.
+This directory contains benchmarks for Persistent Memory Development Kit.
 
 Benchmarks may be built and run from this directory using:
 	$ make

@@ -555,7 +555,7 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
  * Such solution seems to be sufficient for the purpose of our tests, even
  * though it has some limitations.  I.e. it does no work well with malloc/free,
  * so to wrap the system memory allocator functions, we use the built-in
- * feature of all the NVML libraries, allowing to override default memory
+ * feature of all the PMDK libraries, allowing to override default memory
  * allocator with the custom one.
  */
 #ifndef _WIN32

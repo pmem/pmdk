@@ -42,19 +42,19 @@
 #include "out.h"
 #include "pool_hdr.h"
 
-/* Determine ISA for which NVML is currently compiled */
+/* Determine ISA for which PMDK is currently compiled */
 #if defined(__x86_64) || defined(_M_X64)
 /* x86 -- 64 bit */
-#define NVML_MACHINE NVML_MACHINE_X86_64
-#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
+#define PMDK_MACHINE PMDK_MACHINE_X86_64
+#define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
 
 #elif defined(__aarch64__)
 /* 64 bit ARM not supported yet */
-#define NVML_MACHINE NVML_MACHINE_AARCH64
-#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
+#define PMDK_MACHINE PMDK_MACHINE_AARCH64
+#define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
 
 #else
-/* add appropriate definitions here when porting NVML to another ISA */
+/* add appropriate definitions here when porting PMDK to another ISA */
 #error unable to recognize ISA at compile time
 
 #endif
@@ -65,7 +65,7 @@
 static uint8_t
 arch_data(void)
 {
-	uint16_t word = (NVML_DATA_BE << 8) + NVML_DATA_LE;
+	uint16_t word = (PMDK_DATA_BE << 8) + PMDK_DATA_LE;
 	return ((uint8_t *)&word)[0];
 }
 
@@ -76,8 +76,8 @@ void
 util_get_arch_flags(struct arch_flags *arch_flags)
 {
 	memset(arch_flags, 0, sizeof(*arch_flags));
-	arch_flags->machine = NVML_MACHINE;
-	arch_flags->machine_class = NVML_MACHINE_CLASS;
+	arch_flags->machine = PMDK_MACHINE;
+	arch_flags->machine_class = PMDK_MACHINE_CLASS;
 	arch_flags->data = arch_data();
 	arch_flags->alignment_desc = alignment_desc();
 }

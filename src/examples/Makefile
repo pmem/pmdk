@@ -31,7 +31,7 @@
 #
 
 #
-# examples/Makefile -- build the NVM Library examples
+# examples/Makefile -- build the Persistent Memory Development Kit examples
 #
 
 DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\

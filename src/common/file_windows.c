@@ -35,14 +35,14 @@
  */
 
 /*
- * XXX - The initial approach to NVML for Windows port was to minimize the
+ * XXX - The initial approach to PMDK for Windows port was to minimize the
  * amount of changes required in the core part of the library, and to avoid
  * preprocessor conditionals, if possible.  For that reason, some of the
  * Linux system calls that have no equivalents on Windows have been emulated
  * using Windows API.
  * Note that it was not a goal to fully emulate POSIX-compliant behavior
  * of mentioned functions.  They are used only internally, so current
- * implementation is just good enough to satisfy NVML needs and to make it
+ * implementation is just good enough to satisfy PMDK needs and to make it
  * work on Windows.
  */
 

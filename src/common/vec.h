@@ -34,8 +34,8 @@
  * vec.h -- vector interface
  */
 
-#ifndef NVML_VEC_H
-#define NVML_VEC_H 1
+#ifndef PMDK_VEC_H
+#define PMDK_VEC_H 1
 
 #define VEC_GROW_SIZE (64)
 
@@ -132,4 +132,4 @@ for (size_t _vec_i = 0;\
 	Free((vec)->buffer);\
 } while (0)
 
-#endif /* NVML_VEC_H */
+#endif /* PMDK_VEC_H */

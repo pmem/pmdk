@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBVMMALLOC, 7)
 collection: libvmmalloc
-header: NVM Library
+header: PMDK
 date: vmmalloc API version 1.0
 ...
 
@@ -102,7 +102,7 @@ routines, as defined in **malloc**(3), **posix_memalign**(3) and
 are made from a *memory pool* built on a memory-mapped file, instead of the
 system heap. The memory managed by **libvmmalloc** may have different
 attributes, depending on the file system containing the memory-mapped file.
-In particular, **libvmmalloc** is part of the *Non-Volatile Memory Library*
+In particular, **libvmmalloc** is part of the *Persistent Memory Development Kit*
 because it is sometimes useful to use non-volatile memory as a volatile
 memory pool, leveraging its capacity, cost, or performance characteristics.
 

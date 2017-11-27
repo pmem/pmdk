@@ -55,7 +55,7 @@ expect_normal_exit $EX_PATH/addlog $DIR/testfile1 "Hello World! foo bar" > out$U
 expect_normal_exit $EX_PATH/printlog $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
 expect_normal_exit $EX_PATH/addlog $DIR/testfile1 "PMEMLOG" >> out$UNITTEST_NUM.log 2>&1
 expect_normal_exit $EX_PATH/printlog -t $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/addlog $DIR/testfile1 "NVML" >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/addlog $DIR/testfile1 "PMDK" >> out$UNITTEST_NUM.log 2>&1
 expect_normal_exit $EX_PATH/printlog -t $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
 
 check_pool $DIR/testfile1

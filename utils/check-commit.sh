@@ -33,15 +33,15 @@
 
 #
 # Used to check whether all the commit messages in a pull request
-# follow the GIT/NVML guidelines.
+# follow the GIT/PMDK guidelines.
 #
 # usage: ./check-commit.sh
 #
 
-if [[ $TRAVIS_REPO_SLUG != "pmem/nvml" \
+if [[ $TRAVIS_REPO_SLUG != "pmem/pmdk" \
 	|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
 then
-	echo "SKIP: $0 can only be executed for pull requests to pmem/nvml"
+	echo "SKIP: $0 can only be executed for pull requests to pmem/pmdk"
 	exit 0
 fi
 

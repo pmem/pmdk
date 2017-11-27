@@ -31,7 +31,7 @@
  */
 
 /*
- * pman.cpp -- example of usage c++ bindings in nvml
+ * pman.cpp -- example usage of libpmemobj C++ bindings
  */
 
 #include "list.hpp"

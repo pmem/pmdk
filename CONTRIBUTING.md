@@ -1,20 +1,21 @@
-# Contributing to the NVM Library
+# Contributing to the Persistent Memory Development Kit
 
-Here you'll find instructions on how to contribute to the NVM Library.
+Here you'll find instructions on how to contribute to the
+Persistent Memory Development Kit.
 
 Your contributions are most welcome!  You'll find it is best to begin
 with a conversation about your changes, rather than just writing a bunch
 of code and contributing it out of the blue.
 There are several good ways to suggest new features, offer to add a feature,
-or just begin a dialog about the NVM Library:
+or just begin a dialog about the Persistent Memory Development Kit:
 
 * Open an issue in our [GitHub Issues Database](https://github.com/pmem/issues/issues)
 * Suggest a feature, ask a question, start a discussion, etc. in our [pmem Google group](http://groups.google.com/group/pmem)
-* Chat with members of the NVM Library team real-time on the **#pmem** IRC channel on [OFTC](http://www.oftc.net)
+* Chat with members of the PMDK team real-time on the **#pmem** IRC channel on [OFTC](http://www.oftc.net)
 
 **NOTE: If you do decide to implement code changes and contribute them,
 please make sure you agree your contribution can be made available
-under the [BSD-style License used for the NVM Library](https://github.com/pmem/nvml/blob/master/LICENSE).**
+under the [BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE).**
 
 **NOTE: Submitting your changes also means that you certify the following:**
 
@@ -51,7 +52,8 @@ i.e. via email or by including a `Signed-off-by:` line at the bottom
 of your commit comments.
 
 To improve tracking of who is the author of a contribution, we kindly ask you
-to use your real name (not an alias) when committing your changes to the NVM Library:
+to use your real name (not an alias) when committing your changes to the
+Persistent Memory Development Kit:
 ```
 Author: Random J Developer <random@developer.example.org>
 ```
@@ -60,7 +62,7 @@ Author: Random J Developer <random@developer.example.org>
 
 Please feel free to use the forums mentioned above to ask
 for comments & questions on your code before submitting
-a pull request.  The NVM Library project uses the common
+a pull request.  The Persistent Memory Development Kit project uses the common
 *fork and merge* workflow used by most GitHub-hosted projects.
 The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
@@ -92,7 +94,7 @@ no clang-format or it pointing to an older version. In such case run:
 
 On Windows to check the code for style issues, please run:
 ```
-	$ nvml\utils\CSTYLE.ps1
+	$ pmdk\utils\CSTYLE.ps1
 ```
 
 To check or format C++ files, you may use a standalone Visual Studio plugin
@@ -100,34 +102,34 @@ for clang-format.  The plugin installer can be downloaded from
 [LLVM Builds](http://llvm.org/builds) page.
 
 
-If you are actively working on an NVM Library feature, please let other
+If you are actively working on an PMDK feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the label `Type: Feature` and assign it to yourself (due to the way
 GitHub permissions work, you may need to ask a team member to assign it to you).
 
 ### Bug Reports
 
-Bugs for the NVM Library project are tracked in our
+Bugs for the PMDK project are tracked in our
 [GitHub Issues Database](https://github.com/pmem/issues/issues).
 
 When creating a bug report issue, please provide the following information:
 
-#### NVML version
+#### PMDK version
 
-Put the release name of the version of NVML running when the
-bug was discovered in a bug comment.  If you saw this bug in multiple NVML
+Put the release name of the version of PMDK running when the
+bug was discovered in a bug comment.  If you saw this bug in multiple PMDK
 versions, please put at least the most recent version and list the others
 if necessary.
 - Stable release names are in the form `#.#` (where `#` represents
   an integer); for example `0.3`.
 - Release names from working versions look like `#.#+b#` (adding a build #)
   or `#.#-rc#` (adding a release candidate number)
-If NVML was built from source, the version number can be retrieved
+If PMDK was built from source, the version number can be retrieved
 from git using this command: `git describe`
 
-For binary NVML releases, use the entire package name.
-For RPMs, use `rpm -q nvml` to display the name.
-For Deb packages, run `dpkg-query -W nvml` and use the
+For binary PMDK releases, use the entire package name.
+For RPMs, use `rpm -q pmdk` to display the name.
+For Deb packages, run `dpkg-query -W pmdk` and use the
 second (version) string.
 
 #### Milestone field

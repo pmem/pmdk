@@ -37,7 +37,7 @@ EXTRA_TARGETS = jemalloc
 
 default: all
 
-JEMALLOC_NVMLDIR=libvmmalloc
+JEMALLOC_PMDKDIR=libvmmalloc
 include ./jemalloc.mk
 
 ifeq ($(DEBUG),1)

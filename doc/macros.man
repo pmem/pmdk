@@ -97,14 +97,14 @@
 changequote(=q=,=e=)
 changecom()
 define(_BSDWX, ifdef(=q=FREEBSD=e=,$1,$2))
-define(_DEBUGLIBPATH, ifdef(=q=WIN32=e=,**/nvml/src/x64/Debug**,
-ifdef(=q=FREEBSD=e=,**/usr/local/lib/nvml_debug**, **/usr/lib/nvml_debug**)))
-define(_LDLIBPATH, ifdef(=q=WIN32=e=,**/nvml/src/x64/Debug**,
-ifdef(=q=FREEBSD=e=,**/usr/local/lib/nvml_debug**,
-=q==q==q=**/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**, as appropriate=e==e==e=)))
+define(_DEBUGLIBPATH, ifdef(=q=WIN32=e=,**/pmdk/src/x64/Debug**,
+ifdef(=q=FREEBSD=e=,**/usr/local/lib/pmdk_debug**, **/usr/lib/pmdk_debug**)))
+define(_LDLIBPATH, ifdef(=q=WIN32=e=,**/pmdk/src/x64/Debug**,
+ifdef(=q=FREEBSD=e=,**/usr/local/lib/pmdk_debug**,
+=q==q==q=**/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**, as appropriate=e==e==e=)))
 define(_MP, ifdef(=q=WEB=e=,$1,$1($2)))
 define(_UNICODE, ifdef(=q=WIN32=e=,=q==q=
->NOTE: The NVML API supports UNICODE. If the **NVML_UTF8_API** macro is
+>NOTE: The PMDK API supports UNICODE. If the **NVML_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.=e==e=))
 define(_U, ifdef(=q=WIN32=e=,$1U,$1))

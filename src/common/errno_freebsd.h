@@ -34,8 +34,8 @@
  * errno_freebsd.h -- map Linux errno's to something close on FreeBSD
  */
 
-#ifndef NVML_ERRNO_FREEBSD_H
-#define NVML_ERRNO_FREEBSD_H 1
+#ifndef PMDK_ERRNO_FREEBSD_H
+#define PMDK_ERRNO_FREEBSD_H 1
 
 #ifdef __FreeBSD__
 #define EBADFD EBADF
@@ -45,4 +45,4 @@
 #define EREMOTEIO EIO
 #endif
 
-#endif /* NVML_ERRNO_FREEBSD_H */
+#endif /* PMDK_ERRNO_FREEBSD_H */

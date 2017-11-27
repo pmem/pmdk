@@ -1,9 +1,9 @@
 includedir=${prefix}/include
 
 Name: libpmemcto
-Description: libpmemcto library from NVML project
+Description: libpmemcto library from PMDK project
 Version: ${version}
-URL: http://pmem.io/nvml
+URL: http://pmem.io/pmdk
 Requires.private: libpmem
 Libs: -L${libdir} -lpmemcto
 Cflags: -I${includedir}

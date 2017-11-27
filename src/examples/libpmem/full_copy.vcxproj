@@ -42,7 +42,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj" Condition="'$(SolutionName)'=='NVML'">
+    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj" Condition="'$(SolutionName)'=='PMDK'">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
   </ItemGroup>

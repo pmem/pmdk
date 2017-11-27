@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEMPOOL-CONVERT, 1)
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 

@@ -1,18 +1,18 @@
-nvml: Non-Volatile Memory Library
-=================================
+pmdk: Persistent Memory Development Kit
+=======================================
 
-[![Build Status](https://travis-ci.org/pmem/nvml.svg?branch=master)](https://travis-ci.org/pmem/nvml)
-[![Build status](https://ci.appveyor.com/api/projects/status/sehrom4f1neihucf/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/nvml/branch/master)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-nvml)
-[![NVML release version](https://img.shields.io/github/release/pmem/nvml.svg)](https://github.com/pmem/nvml/releases/latest)
-[![Coverage Status](https://codecov.io/github/pmem/nvml/coverage.svg?branch=master)](https://codecov.io/gh/pmem/nvml/branch/master)
+[![Build Status](https://travis-ci.org/pmem/pmdk.svg?branch=master)](https://travis-ci.org/pmem/pmdk)
+[![Build status](https://ci.appveyor.com/api/projects/status/sehrom4f1neihucf/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/pmdk/branch/master)
+[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-pmdk)
+[![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg)](https://github.com/pmem/pmdk/releases/latest)
+[![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
 
-This is the top-level README.md of the NVM Library.
+This is the top-level README.md of the Persistent Memory Development Kit.
 For more information, see http://pmem.io.
 
 ### The Libraries ###
 
-Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE)
+Please see the file [LICENSE](https://github.com/pmem/pmdk/blob/master/LICENSE)
 for information on how this library is licensed.
 
 This tree contains a collection of libraries for using Non-Volatile Memory
@@ -38,9 +38,9 @@ and tutorials.
 
 ><sup>1</sup> Not supported on Windows.
 >
-><sup>2</sup> NVML for Windows is feature complete, but not yet considered production quality.
+><sup>2</sup> PMDK for Windows is feature complete, but not yet considered production quality.
 >
-><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time NVML is available as a technical preview release for development purposes.
+><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
 
 ### Pre-Built Packages ###
 
@@ -54,7 +54,7 @@ Builds are tagged something like `0.2+b1`, which means
 are the simpler *major.minor* tags like `0.2`.  To find
 pre-build packages, check the Downloads associated with
 the stable releases on the
-[github release page](https://github.com/pmem/nvml/releases).
+[github release page](https://github.com/pmem/pmdk/releases).
 
 ### Building The Source ###
 
@@ -67,11 +67,11 @@ The source tree is organized as follows:
 * **src/examples** -- brief example programs using these libraries
 * **src/freebsd** -- FreeBSD-specific header files
 * **src/test** -- unit tests used by development team
-* **src/tools** -- various tools developed for NVML
+* **src/tools** -- various tools developed for PMDK
 * **src/windows** -- Windows-specific source and header files
 * **utils** -- utilities used during build & test
 * **CONTRIBUTING.md** -- instructions for people wishing to contribute
-* **CODING_STYLE.md** -- coding standard and conventions for NVML
+* **CODING_STYLE.md** -- coding standard and conventions for PMDK
 
 To build this library on Linux, you may need to install the following
 required packages on the build system:
@@ -80,7 +80,7 @@ required packages on the build system:
 * **pkg-config**
 
 
-On Windows, to build NVML and run the tests you need:
+On Windows, to build PMDK and run the tests you need:
 * **MS Visual Studio 2015**
 * [Windows SDK 10.0.14393](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (or later)
 * **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
@@ -106,23 +106,23 @@ displayed instead. For details please read the **DEPENDENCIES** section
 in the appropriate README file.
 
 
-See our [Dockerfiles](https://github.com/pmem/nvml/blob/master/utils/docker/images/)
+See our [Dockerfiles](https://github.com/pmem/pmdk/blob/master/utils/docker/images/)
 to get an idea what packages are required to build on the _Travis-CI_
 system.
 
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
-#### Building NVML on Linux or FreeBSD ####
+#### Building PMDK on Linux or FreeBSD ####
 
 To build the latest development version, just clone this tree and build
 the master branch:
 ```
-	$ git clone https://github.com/pmem/nvml
-	$ cd nvml
+	$ git clone https://github.com/pmem/pmdk
+	$ cd pmdk
 ```
 
-Once the build system is setup, the NVM Library is built using
-the `make`<sup>5</sup> command at the top level:
+Once the build system is setup, the Persistent Memory Development Kit is built
+using the `make`<sup>5</sup> command at the top level:
 ```
 	$ make
 ```
@@ -166,7 +166,7 @@ generate the documentation separately, run:
 ```
 **DEPENDENCIES:** doxygen, graphviz, pandoc<sup>7</sup>
 
-To install a complete copy of the source tree to $(DESTDIR)/nvml:
+To install a complete copy of the source tree to $(DESTDIR)/pmdk:
 ```
 	$ make source DESTDIR=some_path
 ```
@@ -271,13 +271,13 @@ For example, when using a custom version of libc++(version 3.9) installed to /us
 >
 ><sup>9</sup> The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.
 
-#### Building NVML on Windows ####
+#### Building PMDK on Windows ####
 
-Clone the NVML tree and open the solution:
+Clone the PMDK tree and open the solution:
 ```
-	> git clone https://github.com/pmem/nvml
-	> cd nvml/src
-	> devenv NVML.sln
+	> git clone https://github.com/pmem/pmdk
+	> cd pmdk/src
+	> devenv PMDK.sln
 ```
 
 Select the desired configuration (Debug or Release) and build the solution
@@ -292,7 +292,7 @@ in the example file (src/test/testconfig.ps1.example).
 
 To run the unit tests, open the PowerShell console and type:
 ```
-	> cd nvml/src/test
+	> cd pmdk/src/test
 	> RUNTESTS.ps1
 ```
 

@@ -34,8 +34,8 @@
  * fs.h -- file system traversal abstraction layer
  */
 
-#ifndef NVML_FS_H
-#define NVML_FS_H 1
+#ifndef PMDK_FS_H
+#define PMDK_FS_H 1
 
 #include <unistd.h>
 
@@ -65,4 +65,4 @@ void fs_delete(struct fs *f);
 /* this call invalidates the previous entry */
 struct fs_entry *fs_read(struct fs *f);
 
-#endif /* NVML_FS_H */
+#endif /* PMDK_FS_H */

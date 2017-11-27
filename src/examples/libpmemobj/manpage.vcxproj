@@ -42,7 +42,7 @@
       <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <ItemGroup Condition="'$(SolutionName)'=='NVML'">
+  <ItemGroup Condition="'$(SolutionName)'=='PMDK'">
     <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
       <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
     </ProjectReference>

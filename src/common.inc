@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/common.inc -- common Makefile rules for NVM library
+# src/common.inc -- common Makefile rules for PMDK
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..

@@ -770,7 +770,7 @@ out_get_arch_machine_class_str(uint8_t machine_class)
 {
 
 	switch (machine_class) {
-	case NVML_MACHINE_CLASS_64:
+	case PMDK_MACHINE_CLASS_64:
 		return "64";
 	default:
 		return "unknown";
@@ -784,9 +784,9 @@ const char *
 out_get_arch_data_str(uint8_t data)
 {
 	switch (data) {
-	case NVML_DATA_LE:
+	case PMDK_DATA_LE:
 		return "2's complement, little endian";
-	case NVML_DATA_BE:
+	case PMDK_DATA_BE:
 		return "2's complement, big endian";
 	default:
 		return "unknown";
@@ -801,9 +801,9 @@ out_get_arch_machine_str(uint16_t machine)
 {
 	static char str_buff[STR_MAX] = {0, };
 	switch (machine) {
-	case NVML_MACHINE_X86_64:
+	case PMDK_MACHINE_X86_64:
 		return "AMD X86-64";
-	case NVML_MACHINE_AARCH64:
+	case PMDK_MACHINE_AARCH64:
 		return "Aarch64";
 	}
 

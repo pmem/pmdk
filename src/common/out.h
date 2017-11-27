@@ -34,8 +34,8 @@
  * out.h -- definitions for "out" module
  */
 
-#ifndef NVML_OUT_H
-#define NVML_OUT_H 1
+#ifndef PMDK_OUT_H
+#define PMDK_OUT_H 1
 
 #include <stdarg.h>
 #include <stddef.h>

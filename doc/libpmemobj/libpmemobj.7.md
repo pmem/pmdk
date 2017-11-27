@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEMOBJ, 7)
 collection: libpmemobj
-header: NVM Library
+header: PMDK
 date: pmemobj API version 2.2
 ...
 
@@ -263,7 +263,7 @@ about other environment variables affecting **libpmemobj** behavior.
 
 # EXAMPLE #
 
-See <http://pmem.io/nvml/libpmemobj> for examples using the **libpmemobj** API.
+See <http://pmem.io/pmdk/libpmemobj> for examples using the **libpmemobj** API.
 
 
 # ACKNOWLEDGEMENTS #

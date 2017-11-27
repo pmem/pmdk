@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for NVM pmem libraries
+# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
 #
 
 osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)

@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEMLOG, 7)
 collection: libpmemlog
-header: NVM Library
+header: PMDK
 date: pmemlog API version 1.0
 ...
 
@@ -327,7 +327,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmemlog>
+See <http://pmem.io/pmdk/libpmemlog>
 for more examples using the **libpmemlog** API.
 
 

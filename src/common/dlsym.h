@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,8 +34,8 @@
  * dlsym.h -- dynamic linking utilities with library-specific implementation
  */
 
-#ifndef NVML_DLSYM_H
-#define NVML_DLSYM_H 1
+#ifndef PMDK_DLSYM_H
+#define PMDK_DLSYM_H 1
 
 #include "out.h"
 

@@ -35,8 +35,8 @@
  * set.h -- internal definitions for set module
  */
 
-#ifndef NVML_SET_H
-#define NVML_SET_H 1
+#ifndef PMDK_SET_H
+#define PMDK_SET_H 1
 #ifdef __cplusplus
 extern "C" {
 #endif
