@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 # examples/libpmem/Makefile -- build the libpmem examples
 #
 
-PROGS = manpage simple_copy full_copy
+PROGS = manpage simple_copy full_copy shutdown_state
 
 LIBS = -lpmem -pthread
 
@@ -45,3 +45,5 @@ manpage: manpage.o
 simple_copy: simple_copy.o
 
 full_copy: full_copy.o
+
+shutdown_state: shutdown_state.o

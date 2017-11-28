@@ -53,7 +53,7 @@ CXXFLAGS += -fsanitize=$(SANITIZE)
 LDFLAGS += -fsanitize=$(SANITIZE)
 endif
 INCS = -I$(INCDIR) -I. -I$(TOP_SRC)/examples $(OS_INCS)
-LIBS += $(OS_LIBS) $(LIBUUID)
+LIBS += $(OS_LIBS) $(LIBUUID) $(LIBNDCTL)
 
 LINKER=$(CC)
 ifeq ($(COMPILE_LANG), cpp)

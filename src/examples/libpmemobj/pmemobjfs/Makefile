@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,10 +56,9 @@ endif
 all-progs: $(LINKS)
 clean-progs: clean-links
 
-include ../../Makefile.inc
-
-
 LIBS += -lpmemobj -lpmem -pthread
+
+include ../../Makefile.inc
 
 ifeq ($(FUSE), y)
 LIBS += $(shell $(PKG_CONFIG) --libs fuse)

@@ -168,6 +168,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <emmintrin.h>
@@ -186,6 +187,7 @@
 #include "out.h"
 #include "util.h"
 #include "os.h"
+#include "os_ras.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
@@ -222,6 +224,20 @@
 #define MOVNT_THRESHOLD	256
 
 static size_t Movnt_threshold = MOVNT_THRESHOLD;
+
+#define SDS_SIG_LEN 8
+#define SDS_SIG "PMEMSDS"
+
+typedef struct {
+	char signature[SDS_SIG_LEN];
+	uint32_t major;
+	uint32_t minor;
+	uint64_t usc;
+	uint64_t uuid;
+	char flag;
+	char reserved[18];
+	uint64_t checksum;
+} PMEMsds_internal;
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -1278,3 +1294,180 @@ pmem_init(void)
 			"QueryVirtualMemoryInformation");
 #endif
 }
+
+/* XXX: deep flush */
+#define FLUSH_SDS(sds) pmem_flush(sds, sizeof(PMEMsds))
+
+#ifndef _WIN32
+/*
+ * pmem_shutdown_state_checksum -- (internal) counts SDS checksum and flush it
+ */
+static void
+pmem_shutdown_state_checksum(PMEMsds_internal *sds)
+{
+	util_checksum(sds, sizeof(PMEMsds_internal), &sds->checksum, 1);
+	FLUSH_SDS(sds);
+}
+/*
+ * pmem_init_shutdown_state -- initializes PMEMsds struct
+ */
+void
+pmem_init_shutdown_state(PMEMsds *sds)
+{
+	COMPILE_ERROR_ON(sizeof(PMEMsds) != sizeof(PMEMsds_internal));
+	PMEMsds_internal *sds_internal = (PMEMsds_internal *)sds;
+	memset(sds_internal, 0, sizeof(PMEMsds_internal));
+	memcpy(sds_internal->signature, SDS_SIG, SDS_SIG_LEN);
+	sds_internal->major = 1;
+	sds_internal->minor = 0;
+	sds_internal->flag = 0;
+
+	pmem_shutdown_state_checksum(sds_internal);
+}
+
+/*
+ * pmem_add_to_shutdown_state -- adds file uuid and usc to PMEMsds struct
+ */
+int
+pmem_add_to_shutdown_state(PMEMsds *sds, const char *path)
+{
+	size_t len;
+	char *uid;
+	uint64_t usc;
+	PMEMsds_internal *sds_internal = (PMEMsds_internal *)sds;
+
+	if (os_dimm_usc(path, &usc)) {
+		ERR("cannot read unsafe shutdown count of %s", path);
+		return 1;
+	}
+
+	if (os_dimm_uid_size(path, &len)) {
+		ERR("cannot read uuid of %s", path);
+		return 1;
+	}
+
+	len += 4 - len % 4;
+
+	uid = Zalloc(len);
+
+	if (uid == NULL) {
+		ERR("!Zalloc");
+		return 1;
+	}
+
+	if (os_dimm_uid(path, uid)) {
+		ERR("cannot read uuid of %s", path);
+		free(uid);
+		return 1;
+	}
+
+	sds_internal->usc += usc;
+
+	uint64_t tmp;
+	util_checksum(uid, len, &tmp, 1);
+	sds_internal->uuid += tmp;
+
+	FLUSH_SDS(sds);
+
+	pmem_shutdown_state_checksum(sds_internal);
+	return 0;
+}
+
+/*
+ * pmem_set_shutdown_flag -- sets dirty pool flag
+ */
+void
+pmem_set_shutdown_flag(PMEMsds *sds)
+{
+	PMEMsds_internal *sds_internal = (PMEMsds_internal *)sds;
+
+	sds_internal->flag = 1;
+	FLUSH_SDS(sds);
+
+	pmem_shutdown_state_checksum(sds_internal);
+}
+
+/*
+ * pmem_clear_shutdown_flag -- clears dirty pool flag
+ */
+void
+pmem_clear_shutdown_flag(PMEMsds *sds)
+{
+	PMEMsds_internal *sds_internal = (PMEMsds_internal *)sds;
+
+	sds_internal->flag = 0;
+	FLUSH_SDS(sds);
+
+	pmem_shutdown_state_checksum(sds_internal);
+}
+
+/*
+ * pmem_reinit_shutdown_state -- (internal) reinitializes PMEMsds struct
+ */
+static void
+pmem_reinit_shutdown_state(PMEMsds_internal *curr_sds,
+			PMEMsds_internal *pool_sds)
+{
+	pmem_init_shutdown_state((PMEMsds *)pool_sds);
+	pool_sds->uuid = curr_sds->uuid;
+	pool_sds->usc = curr_sds->usc;
+	pool_sds->flag = 0;
+
+	FLUSH_SDS(pool_sds);
+
+	pmem_shutdown_state_checksum(pool_sds);
+}
+
+/*
+ * pmem_check_shutdown_state -- compares and fixes shutdown state
+ */
+int
+pmem_check_shutdown_state(PMEMsds *curr_sds, PMEMsds *pool_sds)
+{
+	PMEMsds_internal *pool_sds_int = (PMEMsds_internal *)pool_sds;
+	PMEMsds_internal *curr_sds_int = (PMEMsds_internal *)curr_sds;
+
+	bool is_uuid_usc_correct = pool_sds_int->usc == curr_sds_int->usc &&
+		pool_sds_int->uuid == curr_sds_int->uuid;
+
+	bool is_checksum_correct = util_checksum(pool_sds_int,
+		sizeof(PMEMsds_internal), &pool_sds_int->checksum, 0);
+
+	int flag = pool_sds_int->flag;
+
+	if (!is_checksum_correct) {
+		/* the program was killed during opening or closing the pool */
+		LOG(3, "incorrect checksum - SDS will be reinitialized");
+		pmem_reinit_shutdown_state(curr_sds_int, pool_sds_int);
+		return 0;
+	}
+
+	if (is_uuid_usc_correct) {
+		if (flag == 0) {
+			return 0;
+		} else {
+			/*
+			 * the program was killed when the pool was opened
+			 * but there wasn't an adr failure
+			 */
+			LOG(3,
+				"the pool was not closed - SDS will be reinitialized");
+			pmem_reinit_shutdown_state(curr_sds_int, pool_sds_int);
+			return 0;
+		}
+	} else {
+		if (flag == 0) {
+			/* an adr failure but the pool was closed */
+			LOG(3,
+				"an ADR failure was detected but the pool was closed - SDS will be reinitialized");
+			pmem_reinit_shutdown_state(curr_sds_int, pool_sds_int);
+			return 0;
+		} else {
+			/* an adr failure - the pool might be corrupted */
+			ERR(
+				"an ADR failure was detected, the pool might be corrupted");
+			return 1;
+		}
+	}
+}
+#endif

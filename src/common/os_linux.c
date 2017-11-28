@@ -246,6 +246,8 @@ os_getenv(const char *name)
 /*
  * os_strsignal -- strsignal abstraction layer
  */
-const char *os_strsignal(int sig) {
+const char *
+os_strsignal(int sig)
+{
 	return strsignal(sig);
 }

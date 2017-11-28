@@ -172,6 +172,7 @@ endif
 
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
+LIBS += $(LIBNDCTL)
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
 endif

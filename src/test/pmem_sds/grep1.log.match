@@ -1,0 +1,1 @@
+<libpmem>: <3> [pmem.c:$(N) pmem_check_shutdown_state] incorrect checksum - SDS will be reinitialized

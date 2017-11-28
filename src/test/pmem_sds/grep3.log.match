@@ -1,0 +1,1 @@
+<libpmem>: <3> [pmem.c:$(N) pmem_check_shutdown_state] an ADR failure was detected but the pool was closed - SDS will be reinitialized

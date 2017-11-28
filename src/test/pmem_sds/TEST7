@@ -29,18 +29,41 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# install-libndctl.sh - installs libndctl
 #
 
-set -e
+#
+# src/test/pmem_sds/TEST7 -- unittest for shutdown state
+#
+export UNITTEST_NAME=pmem_sds/TEST7
+export UNITTEST_NUM=7
 
-git clone -b pending https://github.com/pmem/ndctl.git
-cd ndctl
-./autogen.sh
-./configure
-make
-make install
-cd ..
-rm -rf ndctl
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_fs_type any
+
+require_build_type debug
+
+setup
+
+PMEM_LOG_LEVEL=3
+
+# fail after an open flag is set
+expect_normal_exit ./pmem_sds 1 7 \
+				   $DIR/testfile1 5 0 \
+				   $DIR/testfile2 7 0 \
+				   $DIR/testfile3 9 0
+
+# adr failure - USC was incremented
+expect_abnormal_exit ./pmem_sds 0 0 \
+				   $DIR/testfile1 5 0 \
+				   $DIR/testfile2 7 1 \
+				   $DIR/testfile3 9 0
+
+grep "pmem_check_shutdown_state" pmem$UNITTEST_NUM.log > grep$UNITTEST_NUM.log || true
+
+check
+
+pass

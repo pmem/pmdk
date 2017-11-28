@@ -40,6 +40,7 @@ SOURCE =\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/os_linux.c\
 	$(COMMON)/os_thread_linux.c\
+	$(COMMON)/os_ras_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\

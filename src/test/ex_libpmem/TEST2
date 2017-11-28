@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2015-2017, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,18 +30,27 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# install-libndctl.sh - installs libndctl
 #
 
-set -e
+#
+# src/test/ex_libpmem/TEST2 -- unit test for libpmem examples
+#
+export UNITTEST_NAME=ex_libpmem/TEST2
+export UNITTEST_NUM=2
 
-git clone -b pending https://github.com/pmem/ndctl.git
-cd ndctl
-./autogen.sh
-./configure
-make
-make install
-cd ..
-rm -rf ndctl
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_build_type debug nondebug
+
+setup
+
+EX_PATH=../../examples/libpmem
+
+expect_normal_exit $EX_PATH/shutdown_state 1 $DIR/testfile1 $DIR/testfile2
+
+expect_normal_exit $EX_PATH/shutdown_state 0 $DIR/testfile1 $DIR/testfile2
+
+pass
