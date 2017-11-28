@@ -40,7 +40,12 @@ BUILD_STATIC=n
 
 include ../Makefile.inc
 
-libvmmalloc_dummy_funcs.so: $(OBJS)
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libvmmalloc_dummy_funcs.so -o $@
+libvmmalloc_dummy_funcs.so: vmmalloc_dummy_funcs.c
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libvmmalloc_dummy_funcs.so -o $@ $^
 
 all: libvmmalloc_dummy_funcs.so
+
+clobber: libvmmalloc_dummy_funcs_clean
+
+libvmmalloc_dummy_funcs_clean:
+	$(RM) libvmmalloc_dummy_funcs.so
