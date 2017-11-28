@@ -221,6 +221,20 @@ os_setenv(const char *name, const char *value, int overwrite)
 }
 
 /*
+ * secure_getenv -- provide GNU secure_getenv for FreeBSD
+ */
+#ifdef __FreeBSD__
+static char *
+secure_getenv(const char *name)
+{
+	if (issetugid() != 0)
+		return NULL;
+
+	return getenv(name);
+}
+#endif
+
+/*
  * os_getenv -- getenv abstraction layer
  */
 char *
