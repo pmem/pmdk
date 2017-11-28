@@ -105,7 +105,16 @@ Pools created on Device DAX have additional options and restrictions:
 automatically resolved at pool creation time.
 
 + To concatenate more than one Device DAX device into a single pool set, the
-configured internal alignment must be 4KiB.
+configured internal alignment of the devices must be 4KiB, unless the *NOHDRS*
+option is used in the pool set file.
+
++ If a line containing the string *OPTION NOHDRS* appears anywhere after the
+*PMEMPOOLSET* string in a pool set file, Device DAX devices with different
+internal alignment can be concatenated.
+
++ Using the *NOHDRS* option has important implications for data integrity
+checking and recoverability in case of a pool set damage. See _UW(pmempool_sync)
+API for more information about pool set recovery.
 
 Please see **ndctl-create-namespace**(1) for more information on Device DAX,
 including how to configure desired alignment.

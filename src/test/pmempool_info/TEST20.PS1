@@ -32,6 +32,8 @@
 #
 # pmempool_info\TEST20.PS1 -- test for info command
 #
+# check if poolset file with NOHDRS option is handled properly
+#
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
@@ -67,10 +69,6 @@ create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
 check_file $POOLSET
 
 remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET
-expect_normal_exit $PMEMPOOL info $POOL1 >> $LOG
-expect_normal_exit $PMEMPOOL info $REPL1 >> $LOG
-
-check
+expect_abnormal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET 2>$1 >$null
 
 pass

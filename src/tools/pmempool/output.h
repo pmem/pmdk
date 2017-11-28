@@ -73,3 +73,4 @@ const char *out_get_arch_machine_class_str(uint8_t machine_class);
 const char *out_get_arch_data_str(uint8_t data);
 const char *out_get_arch_machine_str(uint16_t machine);
 const char *out_get_alignment_desc_str(uint64_t ad, uint64_t cur_ad);
+const char *out_get_incompat_features_str(uint32_t incompat);

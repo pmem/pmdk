@@ -49,6 +49,8 @@
 #include "obj.h"
 #include "file.h"
 #include "os.h"
+#include "libpmem.h"
+#include "util_pmem.h"
 
 /*
  * poolset_compare_status - a helping structure for gathering corresponding
@@ -59,6 +61,17 @@ struct poolset_compare_status
 	unsigned nreplicas;
 	unsigned flags;
 	unsigned replica[];
+};
+
+/*
+ * type of transform operation to be done
+ */
+enum transform_op {
+	NOT_TRANSFORMABLE,
+	ADD_REPLICAS,
+	RM_REPLICAS,
+	ADD_HDRS,
+	RM_HDRS,
 };
 
 /*
@@ -331,6 +344,23 @@ check_compare_poolsets_status(struct pool_set *set_in,
 }
 
 /*
+ * check_compare_poolset_options -- (internal) check poolset options
+ */
+static void
+check_compare_poolsets_options(struct pool_set *set_in,
+		struct pool_set *set_out,
+		struct poolset_compare_status *set_in_s,
+		struct poolset_compare_status *set_out_s)
+{
+	if (set_in->options & OPTION_NO_HDRS)
+		set_in_s->flags |= OPTION_NO_HDRS;
+
+	if (set_out->options & OPTION_NO_HDRS)
+		set_out_s->flags |= OPTION_NO_HDRS;
+}
+
+
+/*
  * compare_poolsets -- (internal) compare two poolsets; for each replica which
  *                     has a counterpart in the other poolset store the other
  *                     replica's number in a helping structure
@@ -351,6 +381,8 @@ compare_poolsets(struct pool_set *set_in, struct pool_set *set_out,
 	if (check_compare_poolsets_status(set_in, set_out, *set_in_s,
 			*set_out_s))
 		goto err_free_out;
+
+	check_compare_poolsets_options(set_in, set_out, *set_in_s, *set_out_s);
 
 	return 0;
 
@@ -376,8 +408,8 @@ replica_counterpart(unsigned repn,
  *                               one into the other; also gather info about
  *                               replicas's health
  */
-static int
-are_poolsets_transformable(struct poolset_compare_status *set_in_s,
+static enum transform_op
+identify_transform_operation(struct poolset_compare_status *set_in_s,
 		struct poolset_compare_status *set_out_s,
 		struct poolset_health_status *set_in_hs,
 		struct poolset_health_status *set_out_hs)
@@ -403,19 +435,18 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 
 	/* make sure we have at least one replica to keep */
 	if (!has_replica_to_keep)
-		return 0;
+		return NOT_TRANSFORMABLE;
 
 	/* check if there are replicas to be added */
 	for (unsigned r = 0; r < set_out_s->nreplicas; ++r) {
 		if (replica_counterpart(r, set_out_s) == UNDEF_REPLICA) {
 			LOG(2, "Replica %u from output set has no counterpart",
 					r);
-			if (is_removing_replicas)
-				/*
-				 * adding and removing replicas at the same time
-				 * is not allowed
-				 */
-				return 0;
+			if (is_removing_replicas) {
+				LOG(2, "adding and removing replicas at the"
+						"same time is not allowed");
+				return NOT_TRANSFORMABLE;
+			}
 
 			REP(set_out_hs, r)->flags |= IS_BROKEN;
 			is_adding_replicas = 1;
@@ -423,11 +454,36 @@ are_poolsets_transformable(struct poolset_compare_status *set_in_s,
 	}
 
 	/* check if there is anything to do */
-	if (!is_removing_replicas && !is_adding_replicas) {
+	if (!is_removing_replicas && !is_adding_replicas &&
+			(set_in_s->flags & OPTION_NO_HDRS) ==
+				(set_out_s->flags & OPTION_NO_HDRS)) {
 		LOG(2, "both poolsets are equal");
-		return 0;
+		return NOT_TRANSFORMABLE;
 	}
-	return 1;
+
+	/* allow changing the NOHDRS option only as the sole operation */
+	if ((is_removing_replicas || is_adding_replicas) &&
+			(set_in_s->flags & OPTION_NO_HDRS) !=
+				(set_out_s->flags & OPTION_NO_HDRS)) {
+		LOG(2, "cannot add/remove replicas and change the NOHDRS option"
+				" at the same time");
+		return NOT_TRANSFORMABLE;
+	}
+
+	if (is_removing_replicas)
+		return RM_REPLICAS;
+
+	if (is_adding_replicas)
+		return ADD_REPLICAS;
+
+	if (set_out_s->flags & OPTION_NO_HDRS)
+		return RM_HDRS;
+
+	if (set_in_s->flags & OPTION_NO_HDRS)
+		return ADD_HDRS;
+
+	ASSERT(0);
+	return NOT_TRANSFORMABLE;
 }
 
 /*
@@ -490,6 +546,335 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 }
 
 /*
+ * copy_replica_data_fw -- (internal) copy data between replicas of two
+ *                         poolsets, starting from the beginning of the
+ *                         second part
+ */
+static void
+copy_replica_data_fw(struct pool_set *set_dst, struct pool_set *set_src,
+		unsigned repn)
+{
+	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
+	size_t len = replica_get_pool_size(set_src, repn) - POOL_HDR_SIZE -
+			replica_get_part_data_len(set_src, repn, 0);
+	void *src = PART(REP(set_src, repn), 1).addr;
+	void *dst = PART(REP(set_dst, repn), 1).addr;
+	size_t count = len / POOL_HDR_SIZE;
+	while (count-- > 0) {
+		pmem_memcpy_persist(dst, src, POOL_HDR_SIZE);
+		src = ADDR_SUM(src, POOL_HDR_SIZE);
+		dst = ADDR_SUM(dst, POOL_HDR_SIZE);
+	}
+}
+
+/*
+ * copy_replica_data_bw -- (internal) copy data between replicas of two
+ *                         poolsets, starting from the end of the pool
+ */
+static void
+copy_replica_data_bw(struct pool_set *set_dst, struct pool_set *set_src,
+		unsigned repn)
+{
+	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
+	size_t len = replica_get_pool_size(set_src, repn) - POOL_HDR_SIZE -
+			replica_get_part_data_len(set_src, repn, 0);
+	size_t count = len / POOL_HDR_SIZE;
+	void *src = ADDR_SUM(PART(REP(set_src, repn), 1).addr, len);
+	void *dst = ADDR_SUM(PART(REP(set_dst, repn), 1).addr, len);
+	while (count-- > 0) {
+		src = ADDR_SUM(src, -(ssize_t)POOL_HDR_SIZE);
+		dst = ADDR_SUM(dst, -(ssize_t)POOL_HDR_SIZE);
+		pmem_memcpy_persist(dst, src, POOL_HDR_SIZE);
+	}
+}
+
+/*
+ * create_missing_headers -- (internal) create headers for all parts but the
+ *                           first one
+ */
+static int
+create_missing_headers(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	struct pool_hdr *src_hdr = HDR(REP(set, repn), 0);
+	for (unsigned p = 1; p < set->replica[repn]->nhdrs; ++p) {
+		if (util_header_create(set, repn, p,
+				src_hdr->signature, src_hdr->major,
+				src_hdr->compat_features,
+				src_hdr->incompat_features &
+					(uint32_t)(~POOL_FEAT_NOHDRS),
+				src_hdr->ro_compat_features,
+				NULL, NULL, NULL, 1) != 0) {
+			LOG(1, "part headers create failed for"
+					" replica %u part %u", repn, p);
+			errno = EINVAL;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
+ * update_replica_header -- (internal) update field values in the first header
+ *                          in the replica
+ */
+static void
+update_replica_header(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	struct pool_set_part part = PART(REP(set, repn), 0);
+	struct pool_hdr *hdr = (struct pool_hdr *)part.hdr;
+	if (set->options & OPTION_NO_HDRS) {
+		hdr->incompat_features |= POOL_FEAT_NOHDRS;
+		memcpy(hdr->next_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
+		memcpy(hdr->prev_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
+	} else {
+		hdr->incompat_features &= (uint32_t)(~POOL_FEAT_NOHDRS);
+
+	}
+	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
+	util_persist_auto(part.is_dev_dax, hdr, sizeof(*hdr));
+}
+
+/*
+ * fill_replica_struct_uuids -- (internal) gather all uuids required for the
+ *                              replica in the helper structure
+ */
+static int
+fill_replica_struct_uuids(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	struct pool_replica *rep = REP(set, repn);
+	memcpy(PART(rep, 0).uuid, HDR(rep, 0)->uuid, POOL_HDR_UUID_LEN);
+	for (unsigned p = 1; p < rep->nhdrs; ++p) {
+		if (util_uuid_generate(rep->part[p].uuid) < 0) {
+			ERR("cannot generate part UUID");
+			errno = EINVAL;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
+ * update_uuids -- (internal) update uuids in all headers in the replica
+ */
+static void
+update_uuids(struct pool_set *set, unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set, repn);
+	struct pool_replica *rep = REP(set, repn);
+	struct pool_hdr *hdr0 = HDR(rep, 0);
+	for (unsigned p = 0; p < rep->nhdrs; ++p) {
+		struct pool_hdr *hdrp = HDR(rep, p);
+		memcpy(hdrp->next_part_uuid, PARTN(rep, p).uuid,
+				POOL_HDR_UUID_LEN);
+		memcpy(hdrp->prev_part_uuid, PARTP(rep, p).uuid,
+				POOL_HDR_UUID_LEN);
+		memcpy(hdrp->next_repl_uuid, hdr0->next_repl_uuid,
+				POOL_HDR_UUID_LEN);
+		memcpy(hdrp->prev_repl_uuid, hdr0->prev_repl_uuid,
+				POOL_HDR_UUID_LEN);
+		memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
+				POOL_HDR_UUID_LEN);
+		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
+	}
+}
+
+/*
+ * copy_part_fds -- (internal) copy poolset part file descriptors between
+ *                  two poolsets
+ */
+static void
+copy_part_fds(struct pool_set *set_dst, struct pool_set *set_src)
+{
+	ASSERTeq(set_src->nreplicas, set_dst->nreplicas);
+	for (unsigned r = 0; r < set_dst->nreplicas; ++r) {
+		ASSERTeq(REP(set_src, r)->nparts, REP(set_dst, r)->nparts);
+		for (unsigned p = 0; p < REP(set_dst, r)->nparts; ++p) {
+			PART(REP(set_dst, r), p).fd =
+					PART(REP(set_src, r), p).fd;
+		}
+	}
+
+}
+
+/*
+ * remove_hdrs_replica -- (internal) remove headers from the replica
+ */
+static int
+remove_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
+		unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set_in, repn);
+	int ret = 0;
+
+	/* open all part files of the input replica */
+	if (replica_open_replica_part_files(set_in, repn)) {
+		LOG(1, "opening replica %u, part files failed", repn);
+		ret = -1;
+		goto out;
+	}
+
+	/* share part file descriptors between poolset structures */
+	copy_part_fds(set_out, set_in);
+
+	/* map the whole input replica */
+	if (util_replica_open(set_in, repn, MAP_SHARED)) {
+		LOG(1, "opening input replica failed: replica %u", repn);
+		ret = -1;
+		goto out_close;
+	}
+
+	/* map the whole output replica */
+	if (util_replica_open(set_out, repn, MAP_SHARED)) {
+		LOG(1, "opening output replica failed: replica %u", repn);
+		ret = -1;
+		goto out_unmap_in;
+	}
+
+	/* move data between the two mappings of the replica */
+	if (REP(set_in, repn)->nparts > 1)
+		copy_replica_data_fw(set_out, set_in, repn);
+
+	/* make changes to the first part's header */
+	update_replica_header(set_out, repn);
+
+	util_replica_close(set_out, repn);
+out_unmap_in:
+	util_replica_close(set_in, repn);
+out_close:
+	util_replica_fdclose(REP(set_in, repn));
+out:
+	return ret;
+}
+
+/*
+ * add_hdrs_replica -- (internal) add lacking headers to the replica
+ *
+ * when the operation fails and returns -1, the replica remains untouched
+ */
+static int
+add_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
+		unsigned repn)
+{
+	LOG(3, "set %p, repn %u", set_in, repn);
+	int ret = 0;
+
+	/* open all part files of the input replica */
+	if (replica_open_replica_part_files(set_in, repn)) {
+		LOG(1, "opening replica %u, part files failed", repn);
+		ret = -1;
+		goto out;
+	}
+
+	/* share part file descriptors between poolset structures */
+	copy_part_fds(set_out, set_in);
+
+	/* map the whole input replica */
+	if (util_replica_open(set_in, repn, MAP_SHARED)) {
+		LOG(1, "opening input replica failed: replica %u", repn);
+		ret = -1;
+		goto out_close;
+	}
+
+	/* map the whole output replica */
+	if (util_replica_open(set_out, repn, MAP_SHARED)) {
+		LOG(1, "opening output replica failed: replica %u", repn);
+		ret = -1;
+		goto out_unmap_in;
+	}
+
+	/* generate new uuids for lacking headers */
+	if (fill_replica_struct_uuids(set_out, repn)) {
+		LOG(1, "generating lacking uuids for parts failed: replica %u",
+				repn);
+		ret = -1;
+		goto out_unmap_out;
+	}
+
+	/* copy data between the two mappings of the replica */
+	if (REP(set_in, repn)->nparts > 1)
+		copy_replica_data_bw(set_out, set_in, repn);
+
+	/* create the missing headers */
+	if (create_missing_headers(set_out, repn)) {
+		LOG(1, "creating lacking headers failed: replica %u", repn);
+		/*
+		 * copy the data back, so we could fall back to the original
+		 * state
+		 */
+		if (REP(set_in, repn)->nparts > 1)
+			copy_replica_data_fw(set_in, set_out, repn);
+		ret = -1;
+		goto out_unmap_out;
+	}
+
+	/* make changes to the first part's header */
+	update_replica_header(set_out, repn);
+
+	/* store new uuids in all headers and update linkage in the replica */
+	update_uuids(set_out, repn);
+
+out_unmap_out:
+	util_replica_close(set_out, repn);
+out_unmap_in:
+	util_replica_close(set_in, repn);
+out_close:
+	util_replica_fdclose(REP(set_in, repn));
+out:
+	return ret;
+}
+
+/*
+ * remove_hdrs -- (internal) transform a poolset without the NOHDRS option (with
+ *                headers) into a poolset with the NOHDRS option (without
+ *                headers)
+ */
+static int
+remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,
+		struct poolset_health_status *set_in_hs, unsigned flags)
+{
+	LOG(3, "set_in %p, set_out %p, set_in_hs %p, flags %u",
+			set_in, set_out, set_in_hs, flags);
+	for (unsigned r = 0; r < set_in->nreplicas; ++r) {
+		if (remove_hdrs_replica(set_in, set_out, r)) {
+			LOG(1, "removing headers from replica %u failed", r);
+			/* mark all previous replicas as damaged */
+			while (--r < set_in->nreplicas)
+				REP(set_in_hs, r)->flags |= IS_BROKEN;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
+ * add_hdrs -- (internal) transform a poolset with the NOHDRS option (without
+ *             headers) into a poolset without the NOHDRS option (with
+ *             headers)
+ */
+static int
+add_hdrs(struct pool_set *set_in, struct pool_set *set_out,
+		struct poolset_health_status *set_in_hs,
+		unsigned flags)
+{
+	LOG(3, "set_in %p, set_out %p, set_in_hs %p, flags %u",
+			set_in, set_out, set_in_hs, flags);
+	for (unsigned r = 0; r < set_in->nreplicas; ++r) {
+		if (add_hdrs_replica(set_in, set_out, r)) {
+			LOG(1, "adding headers to replica %u failed", r);
+			/* mark all previous replicas as damaged */
+			while (--r < set_in->nreplicas)
+				REP(set_in_hs, r)->flags |= IS_BROKEN;
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/*
  * transform_replica -- transforming one poolset into another
  */
 int
@@ -513,14 +898,14 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (!replica_is_poolset_healthy(set_in_hs)) {
 		ERR("source poolset is broken");
 		ret = -1;
-		goto err_free_hs_in;
+		goto free_hs_in;
 	}
 
 	struct poolset_health_status *set_out_hs = NULL;
 	if (replica_create_poolset_health_status(set_out, &set_out_hs)) {
 		ERR("creating poolset health status failed");
 		ret = -1;
-		goto err_free_hs_in;
+		goto free_hs_in;
 	}
 
 	/* check if the poolsets are transformable */
@@ -529,41 +914,85 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (compare_poolsets(set_in, set_out, &set_in_cs, &set_out_cs)) {
 		ERR("comparing poolsets failed");
 		ret = -1;
-		goto err_free_hs_out;
+		goto free_hs_out;
 	}
 
-	if (!are_poolsets_transformable(set_in_cs, set_out_cs, set_in_hs,
-			set_out_hs)) {
+	enum transform_op operation = identify_transform_operation(set_in_cs,
+			set_out_cs, set_in_hs, set_out_hs);
+
+	if (operation == NOT_TRANSFORMABLE) {
 		ERR("poolsets are not transformable");
 		ret = -1;
 		errno = EINVAL;
-		goto err_free_cs;
+		goto free_cs;
 	}
 
-	/* check if any of the parts that are to be added already exists */
-	if (do_added_parts_exist(set_out, set_out_hs)) {
-		ERR("some parts being added already exist");
-		ret = -1;
-		errno = EINVAL;
-		goto err_free_cs;
+	if (operation == RM_HDRS) {
+		if (!is_dry_run(flags) &&
+				remove_hdrs(set_in, set_out, set_in_hs,
+						flags)) {
+			ERR("removing headers failed; falling back to the "
+					"input poolset");
+			if (replica_sync(set_in, set_in_hs,
+					flags | IS_TRANSFORMED)) {
+				LOG(1, "falling back to the input poolset "
+						"failed");
+			} else {
+				LOG(1, "falling back to the input poolset "
+						"succeeded");
+			}
+			ret = -1;
+		}
+		goto free_cs;
+	}
+
+	if (operation == ADD_HDRS) {
+		if (!is_dry_run(flags) &&
+				add_hdrs(set_in, set_out, set_in_hs, flags)) {
+			ERR("adding headers failed; falling back to the "
+					"input poolset");
+			if (replica_sync(set_in, set_in_hs,
+					flags | IS_TRANSFORMED)) {
+				LOG(1, "falling back to the input poolset "
+						"failed");
+			} else {
+				LOG(1, "falling back to the input poolset "
+						"succeeded");
+			}
+			ret = -1;
+		}
+		goto free_cs;
+	}
+
+	if (operation == ADD_REPLICAS) {
+		/*
+		 * check if any of the parts that are to be added already exists
+		 */
+		if (do_added_parts_exist(set_out, set_out_hs)) {
+			ERR("some parts being added already exist");
+			ret = -1;
+			errno = EINVAL;
+			goto free_cs;
+		}
 	}
 
 	/* signal that sync is called by transform */
-	flags |= IS_TRANSFORMED;
-	if (replica_sync(set_out, set_out_hs, flags)) {
+	if (replica_sync(set_out, set_out_hs, flags | IS_TRANSFORMED)) {
 		ret = -1;
-		goto err_free_cs;
+		goto free_cs;
 	}
 
-	if (!is_dry_run(flags) && delete_replicas(set_in, set_in_cs))
-		ret = -1;
+	if (operation == RM_REPLICAS) {
+		if (!is_dry_run(flags) && delete_replicas(set_in, set_in_cs))
+			ret = -1;
+	}
 
-err_free_cs:
+free_cs:
 	Free(set_in_cs);
 	Free(set_out_cs);
-err_free_hs_out:
+free_hs_out:
 	replica_free_poolset_health_status(set_out_hs);
-err_free_hs_in:
+free_hs_in:
 	replica_free_poolset_health_status(set_in_hs);
 	return ret;
 }

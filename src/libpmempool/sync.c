@@ -191,12 +191,14 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			continue;
 		}
 
-		if (!replica_is_part_broken(repn, p - 1, set_hs)) {
+		if (!replica_is_part_broken(repn, p - 1, set_hs) &&
+				!(set->options & OPTION_NO_HDRS)) {
 			/* try to get part uuid from the previous part */
 			hdrp = HDRP(rep, p);
 			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
 					POOL_HDR_UUID_LEN);
-		} else if (!replica_is_part_broken(repn, p + 1, set_hs)) {
+		} else if (!replica_is_part_broken(repn, p + 1, set_hs) &&
+				!(set->options & OPTION_NO_HDRS)) {
 			/* try to get part uuid from the next part */
 			hdrp = HDRN(rep, p);
 			memcpy(rep->part[p].uuid, hdrp->prev_part_uuid,
@@ -292,7 +294,7 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 					src_hdr->compat_features,
 					src_hdr->incompat_features,
 					src_hdr->ro_compat_features,
-					NULL, NULL, NULL) != 0) {
+					NULL, NULL, NULL, 0) != 0) {
 				LOG(1, "part headers create failed for"
 						" replica %u part %u", r, p);
 				errno = EINVAL;
