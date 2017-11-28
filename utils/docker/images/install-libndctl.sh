@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,49 +31,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Dockerfile - a 'recipe' for Docker to build an image of fedora-based
-#              environment for building the NVML project.
+# install-libndctl.sh - installs libndctl
 #
 
-# Pull base image
-FROM fedora:25
-MAINTAINER wojciech.uss@intel.com
+set -e
 
-# Install basic tools
-RUN dnf install -y git gcc clang openssh-server autoconf automake make \
-	wget tar lbzip2 passwd sudo pkgconfig findutils man libunwind-devel \
-	file rpm-build rpm-build-libs which fuse fuse-devel ncurses-devel \
-	libuv-devel glib2-devel libtool pandoc doxygen cmake gdb asciidoc \
-	uuid-devel kmod-devel xmlto libudev-devel libuuid-devel json-c-devel
-
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
-
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
-
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
-
-# Install libcxx
-COPY install-libcxx.sh install-libcxx.sh
-RUN ./install-libcxx.sh
-
-# Add user
-ENV USER nvmluser
-ENV USERPASS nvmlpass
-RUN useradd -m $USER
-RUN echo $USERPASS | passwd $USER --stdin
-RUN gpasswd wheel -a $USER
-USER $USER
-
-# Set required environment variables
-ENV OS fedora
-ENV OS_VER 25
-ENV START_SSH_COMMAND /usr/sbin/sshd
-ENV PACKAGE_MANAGER rpm
-ENV NOTTY 1
-
+git clone -b pending --depth 1 https://github.com/pmem/ndctl.git
+cd ndctl
+./autogen.sh
+./configure
+make
+make install
+cd ..
+rm -rf ndctl
