@@ -43,6 +43,8 @@
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
+char *Mmap_mapfile = OS_MAPFILE; /* Should be modified only for testing */
+
 #ifdef __FreeBSD__
 static const char *sscanf_os = "%p %p";
 #else
@@ -67,12 +69,11 @@ char *
 util_map_hint_unused(void *minaddr, size_t len, size_t align)
 {
 	LOG(3, "minaddr %p len %zu align %zu", minaddr, len, align);
-
 	ASSERT(align > 0);
 
 	FILE *fp;
-	if ((fp = os_fopen(OS_MAPFILE, "r")) == NULL) {
-		ERR("!%s", OS_MAPFILE);
+	if ((fp = os_fopen(Mmap_mapfile, "r")) == NULL) {
+		ERR("!%s", Mmap_mapfile);
 		return MAP_FAILED;
 	}
 

@@ -47,30 +47,6 @@
 #define GIGABYTE ((uintptr_t)1 << 30)
 #define TERABYTE ((uintptr_t)1 << 40)
 
-static char *Sfile;
-
-/*
- * fopen -- interpose on libc fopen()
- *
- * This catches opens to /proc/self/maps and sends them to the fake maps
- * file being tested.
- */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, OS_MAPFILE) == 0) {
-		UT_OUT("redirecting " OS_MAPFILE " to %s", Sfile);
-		path = Sfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -82,7 +58,8 @@ main(int argc, char *argv[])
 	if (argc < 3)
 		UT_FATAL("usage: %s maps_file len [len]...", argv[0]);
 
-	Sfile = argv[1];
+	Mmap_mapfile = argv[1];
+	UT_OUT("redirecting " OS_MAPFILE " to %s", Mmap_mapfile);
 
 	for (int arg = 2; arg < argc; arg++) {
 		size_t len = (size_t)strtoull(argv[arg], NULL, 0);
