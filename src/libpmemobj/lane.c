@@ -66,7 +66,7 @@ struct section_operations *Section_ops[MAX_LANE_SECTION];
 static inline void
 lane_info_create(void)
 {
-	Lane_info_ht = cuckoo_new();
+	Lane_info_ht = cuckoo_new(cuckoo_mt_dangerous);
 	if (Lane_info_ht == NULL)
 		FATAL("cuckoo_new");
 }

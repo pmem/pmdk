@@ -213,9 +213,9 @@ obj_pool_init(void)
 	if (pools_ht)
 		return;
 
-	pools_ht = cuckoo_new();
+	pools_ht = cuckoo_new(cuckoo_mt_safe);
 	if (pools_ht == NULL)
-		FATAL("!cuckoo_new");
+		FATAL("!cuckoo_dd_new");
 
 	pools_tree = ctree_new();
 	if (pools_tree == NULL)

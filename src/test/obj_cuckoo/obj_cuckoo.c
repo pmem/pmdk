@@ -65,15 +65,15 @@ test_cuckoo_new_delete(void)
 	struct cuckoo *c = NULL;
 
 	/* cuckoo malloc fail */
-	c = cuckoo_new();
+	c = cuckoo_new(cuckoo_mt_dangerous);
 	UT_ASSERT(c == NULL);
 
 	/* tab malloc fail */
-	c = cuckoo_new();
+	c = cuckoo_new(cuckoo_mt_dangerous);
 	UT_ASSERT(c == NULL);
 
 	/* all ok */
-	c = cuckoo_new();
+	c = cuckoo_new(cuckoo_mt_dangerous);
 	UT_ASSERT(c != NULL);
 
 	cuckoo_delete(c);
@@ -82,7 +82,7 @@ test_cuckoo_new_delete(void)
 static void
 test_insert_get_remove(void)
 {
-	struct cuckoo *c = cuckoo_new();
+	struct cuckoo *c = cuckoo_new(cuckoo_mt_dangerous);
 	UT_ASSERT(c != NULL);
 
 	for (int i = 0; i < TEST_INSERTS; ++i)
@@ -127,7 +127,7 @@ rand64(void)
 static void
 test_load_factor(void)
 {
-	struct cuckoo *c = cuckoo_new();
+	struct cuckoo *c = cuckoo_new(cuckoo_mt_dangerous);
 	UT_ASSERT(c != NULL);
 
 	/*

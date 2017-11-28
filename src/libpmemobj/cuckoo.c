@@ -33,13 +33,16 @@
 /*
  * cuckoo.c -- implementation of cuckoo hash table
  */
+#include <stdbool.h>
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sched.h>
 
 #include "cuckoo.h"
 #include "out.h"
+#include "sys_util.h"
 
 #define MAX_HASH_FUNCS 2
 
@@ -54,11 +57,72 @@ struct cuckoo_slot {
 };
 
 struct cuckoo {
-	size_t size; /* number of hash table slots */
-	struct cuckoo_slot *tab;
+	volatile size_t size; /* number of hash table slots */
+
+	struct cuckoo_slot *volatile tab; /* the actual table */
+
+	/* used for detecting concurrent modifications */
+	volatile uint32_t status;
+
+	/* Multi thread safety */
+	enum cuckoo_mt_policy mt_policy;
+
+	/*
+	 * The following three fields are only used
+	 * when mt_policy == cuckoo_mt_safe
+	 */
+	os_mutex_t lock;
+	uint16_t old_tab_count; /* number of deffered deallocations */
+	void **old_tabs; /* an array of pointers to Free */
 };
 
 static const struct cuckoo_slot null_slot = {0, NULL};
+
+/*
+ * status_load -- (internal) read the status field
+ */
+static uint32_t
+status_load(struct cuckoo *c)
+{
+	uint32_t value;
+	util_atomic_load_explicit32(&c->status, &value, memory_order_acquire);
+	return value;
+}
+
+/*
+ * status_increment -- (internal) increment the integer in the status field
+ */
+static void
+status_increment(struct cuckoo *c)
+{
+	util_fetch_and_add32(&c->status, 1);
+}
+
+/*
+ * modification_begin -- (internal) must be called before modifications, to
+ * provide MT safety if needed.
+ */
+static void
+modification_begin(struct cuckoo *c)
+{
+	if (c->mt_policy == cuckoo_mt_safe) {
+		util_mutex_lock(&c->lock);
+		status_increment(c);
+	}
+}
+
+/*
+ * modification_end -- (internal) must be called after modifications, to
+ * provide MT safety if needed.
+ */
+static void
+modification_end(struct cuckoo *c)
+{
+	if (c->mt_policy == cuckoo_mt_safe) {
+		status_increment(c);
+		util_mutex_unlock(&c->lock);
+	}
+}
 
 /*
  * hash_mod -- (internal) first hash function
@@ -95,12 +159,17 @@ static size_t
  * cuckoo_new -- allocates and initializes cuckoo hash table
  */
 struct cuckoo *
-cuckoo_new(void)
+cuckoo_new(enum cuckoo_mt_policy mt_policy)
 {
 	COMPILE_ERROR_ON((size_t)(INITIAL_SIZE * GROWTH_FACTOR)
 		== INITIAL_SIZE);
 
-	struct cuckoo *c = Malloc(sizeof(struct cuckoo));
+	if (mt_policy != cuckoo_mt_safe && mt_policy != cuckoo_mt_dangerous) {
+		errno = EINVAL;
+		return NULL;
+	}
+
+	struct cuckoo *c = Zalloc(sizeof(struct cuckoo));
 	if (c == NULL) {
 		ERR("!Malloc");
 		goto error_cuckoo_malloc;
@@ -112,6 +181,10 @@ cuckoo_new(void)
 	if (c->tab == NULL)
 		goto error_tab_malloc;
 
+	c->mt_policy = mt_policy;
+	if (mt_policy == cuckoo_mt_safe)
+		util_mutex_init(&c->lock);
+
 	return c;
 
 error_tab_malloc:
@@ -121,13 +194,36 @@ error_cuckoo_malloc:
 }
 
 /*
+ * cuckoo_deallocate_old_tab -- (internal) deallocates, or marks for
+ * deallocation a previously allocated, now unused region of memory
+ */
+static void
+cuckoo_deallocate_old_tab(struct cuckoo *c, struct cuckoo_slot *old_tab)
+{
+	if (c->mt_policy == cuckoo_mt_safe) {
+		c->old_tabs[c->old_tab_count] = old_tab;
+		c->old_tab_count++;
+	} else {
+		Free(old_tab);
+	}
+}
+
+/*
  * cuckoo_delete -- cleanups and deallocates cuckoo hash table
+ * When deferred deallocation is enabled, Free is only called
+ * is this routine.
  */
 void
 cuckoo_delete(struct cuckoo *c)
 {
 	ASSERTne(c, NULL);
 	Free(c->tab);
+	if (c->mt_policy == cuckoo_mt_safe) {
+		for (uint16_t i = 0; i < c->old_tab_count; ++i)
+			Free(c->old_tabs[i]);
+		Free(c->old_tabs);
+		util_mutex_destroy(&c->lock);
+	}
 	Free(c);
 }
 
@@ -138,20 +234,21 @@ static int
 cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 {
 	struct cuckoo_slot srct;
+	struct cuckoo_slot *tab = c->tab;
 	size_t h[MAX_HASH_FUNCS] = {0};
 	for (int n = 0; n < MAX_INSERTS; ++n) {
 		for (int i = 0; i < MAX_HASH_FUNCS; ++i) {
 			h[i] = hash_funcs[i](c, src->key);
-			if (c->tab[h[i]].value == NULL) {
-				c->tab[h[i]] = *src;
+			if (tab[h[i]].value == NULL) {
+				tab[h[i]] = *src;
 				return 0;
-			} else if (c->tab[h[i]].key == src->key) {
+			} else if (tab[h[i]].key == src->key) {
 				return EINVAL;
 			}
 		}
 
-		srct = c->tab[h[0]];
-		c->tab[h[0]] = *src;
+		srct = tab[h[0]];
+		tab[h[0]] = *src;
 		src->key = srct.key;
 		src->value = srct.value;
 	}
@@ -160,47 +257,78 @@ cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 }
 
 /*
+ * cuckoo_update_on_grow -- (internal) updates the observable state of the table
+ * to point to the newly rehash internal tab
+ *
+ * The only two fields which matter in this regard, are `tab` and `size`,
+ * as cuckoo_get does only access these.
+ */
+static void
+cuckoo_update_on_grow(struct cuckoo *observable_state, struct cuckoo *new_state)
+{
+	util_atomic_store_explicit64(&observable_state->tab, new_state->tab,
+			memory_order_release);
+	/*
+	 * At this point, other threads might be accessing the
+	 * newly built table, using the old size. Since the size
+	 * of this table never decreases, such accesses always
+	 * refer to accessible memory. The values read from
+	 * that memory are unspecified, but this is indicated
+	 * using the status field of the cuckoo struct.
+	 */
+	util_atomic_store_explicit64(&observable_state->size, new_state->size,
+			memory_order_release);
+}
+
+/*
  * cuckoo_grow -- (internal) rehashes the table with twice the size
+ *
+ * The rehashed table is not visible to other threads while it is under
+ * construction. This routine only modifies anything observable to other threads
+ * once it reaches a point where no more failures are possible. The
+ * modifications are applied to the actual visible state of the cuckoo in a
+ * specific order, to make sure other threads accessing it do not dereference
+ * invalid pointers.
  */
 static int
-cuckoo_grow(struct cuckoo *c)
+cuckoo_grow(struct cuckoo *observable)
 {
-	size_t oldsize = c->size;
-	struct cuckoo_slot *oldtab = c->tab;
-
-	int n;
-	for (n = 0; n < MAX_GROWS; ++n) {
-		size_t nsize = (size_t)((float)c->size * GROWTH_FACTOR);
-
-		size_t tab_rawsize = nsize * sizeof(struct cuckoo_slot);
-		c->tab = Zalloc(tab_rawsize);
-		if (c->tab == NULL) {
-			c->tab = oldtab;
+	struct cuckoo c = *observable;
+	if (c.mt_policy == cuckoo_mt_safe) {
+		/* Make sure there is enough space to hold pointers for later */
+		size_t old_tabs_nsize = sizeof(*c.tab) * (c.old_tab_count + 1u);
+		c.old_tabs = Realloc(c.old_tabs, old_tabs_nsize);
+		if (c.old_tabs == NULL)
 			return ENOMEM;
-		}
+		observable->old_tabs = c.old_tabs;
+	}
 
-		c->size = nsize;
-		unsigned i;
-		for (i = 0; i < oldsize; ++i) {
-			struct cuckoo_slot s = oldtab[i];
-			if (s.value != NULL && (cuckoo_insert_try(c, &s) != 0))
+	struct cuckoo_slot *old_tab = observable->tab;
+	size_t old_size = observable->size;
+	for (int n = 0; n < MAX_GROWS; ++n) {
+		c.size = (size_t)((float)c.size * GROWTH_FACTOR);
+
+		c.tab = Zalloc(c.size * sizeof(c.tab[0]));
+		if (c.tab == NULL)
+			return ENOMEM;
+
+		size_t i;
+		for (i = 0; i < old_size; ++i) {
+			struct cuckoo_slot s = old_tab[i];
+			if (s.value != NULL && (cuckoo_insert_try(&c, &s) != 0))
 				break;
 		}
 
-		if (i == oldsize)
-			break;
-		else
-			Free(c->tab);
+		if (i == old_size) {
+			cuckoo_update_on_grow(observable, &c);
+			cuckoo_deallocate_old_tab(observable, old_tab);
+			return 0;
+		}
+
+		Free(c.tab);
 	}
 
-	if (n == MAX_GROWS) {
-		c->tab = oldtab;
-		c->size = oldsize;
-		return EINVAL;
-	}
-
-	Free(oldtab);
-	return 0;
+	return EINVAL;
 }
 
 /*
@@ -210,17 +338,26 @@ int
 cuckoo_insert(struct cuckoo *c, uint64_t key, void *value)
 {
 	ASSERTne(c, NULL);
-	int err;
+	int err = 0;
+	int n;
 	struct cuckoo_slot src = {key, value};
-	for (int n = 0; n < MAX_GROWS; ++n) {
+
+	modification_begin(c);
+
+	for (n = 0; n < MAX_GROWS; ++n) {
 		if ((err = cuckoo_insert_try(c, &src)) != EAGAIN)
-			return err;
+			break;
 
 		if ((err = cuckoo_grow(c)) != 0)
-			return err;
+			break;
 	}
 
-	return EINVAL;
+	modification_end(c);
+
+	if (n == MAX_GROWS)
+		err = EINVAL;
+
+	return err;
 }
 
 /*
@@ -249,21 +386,110 @@ cuckoo_remove(struct cuckoo *c, uint64_t key)
 	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
 	if (s) {
 		ret = s->value;
+
+		modification_begin(c);
 		*s = null_slot;
+		modification_end(c);
 	}
 
 	return ret;
 }
 
 /*
+ * indicates_modification_in_progress -- (internal) checks if the integer value
+ * indicates an ongoing concurrent modification.
+ * The routines Inserting into, and removing from the table both increment the
+ * integer stored in the status field by one before and after performing the
+ * operation. This means, if that integer is odd (bit #0 is set), a modification
+ * is started, and if it is even (bit #0 is clear), no modification is in
+ * progress.
+ */
+static bool
+indicates_modification_in_progress(uint32_t status)
+{
+	return (status & 1) != 0;
+}
+
+/*
+ * cuckoo_try_lf_get -- Returns the value of a key, as long as
+ * it does not detect concurrent any modifications.
+ *
+ * It is important to avoid optimizations that would hoist the load of the
+ * status field from after the actual lookup to before the cuckoo_find_slot
+ * call, or hoist the one from before the cuckoo_find_slot call to after it.
+ * These two loads (with acquire semantics) must surround the actual lookup,
+ * while any modifications that can affect the lookup code must be surrounded
+ * stores (with release semantics) to the status field.
+ *
+ * This is a way to deal with possible races, with CAS or similar operations,
+ * thus allowing the code to use lower level caches when cuckoo_get is
+ * frequently used. The frequent use here mainly assumes using it as the map
+ * between uuid_lo values and pointers to pools, which is a map that only
+ * ever changes when a pool is opened/created/closed.
+ */
+static int
+cuckoo_get_try(struct cuckoo *c, uint64_t key, void **value)
+{
+	uint32_t status_seen = status_load(c);
+	if (indicates_modification_in_progress(status_seen))
+		return -1;
+
+	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
+	if (s != NULL)
+		*value = s->value;
+	else
+		*value = NULL;
+
+	if (status_seen != status_load(c))
+		return -1;
+
+	return 0;
+}
+
+static void
+os_yield(void)
+{
+	/* XXX clean this up, move to os_* layer */
+#ifdef _WIN32
+	SwitchToThread();
+#else
+	sched_yield();
+#endif
+}
+
+/*
  * cuckoo_get -- returns the value of a key
+ *
+ * When deferred allocation is enabled, cuckoo_get can be used concurrently
+ * with cuckoo_insert or cuckoo_remove. It is important however, that using
+ * cuckoo_insert and cuckoo_remove still conflict with each othere, one must
+ * apply mutual exclusion when using those.
+ *
+ * The cuckoo_get function uses no locking, no syscalls unless it detects
+ * the need for such.
+ *
+ * The fastpath in this function consists of the steps:
+ *  1) checking the status field
+ *  2) performing the requested lookup
+ *  3) checking the status field again
+ *  4) returning the result from step #2
+ *
+ * The status field can indicate wether the underlying data being read from
+ * memory can be trusted or not. If it is not safe to use the data read during
+ * step #2 (only happens while a cuckoo_insert, or cuckoo_remove is executed
+ * on another thread), the slow path is used, which basically just means
+ * restarting the fast-path from step #1.
  */
 void *
 cuckoo_get(struct cuckoo *c, uint64_t key)
 {
 	ASSERTne(c, NULL);
-	struct cuckoo_slot *s = cuckoo_find_slot(c, key);
-	return s ? s->value : NULL;
+	void *result;
+
+	while (cuckoo_get_try(c, key, &result) != 0)
+		os_yield();
+
+	return result;
 }
 
 /*
