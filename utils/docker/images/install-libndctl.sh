@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,47 +31,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
-#              environment for building the NVML project.
+# install-libndctl.sh - installs libndctl
 #
 
-# Pull base image
-FROM ubuntu:16.04
-MAINTAINER wojciech.uss@intel.com
+set -e
 
-# Update the Apt cache and install basic tools
-RUN apt-get update && apt-get install -y software-properties-common \
-	libunwind8-dev autoconf \
-	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
-	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
-	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby gdb \
-	libjson-c-dev asciidoc uuid-dev libkmod-dev libudev-dev
-
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
-
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
-
-# Install libcxx
-COPY install-libcxx.sh install-libcxx.sh
-RUN ./install-libcxx.sh
-
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
-
-# Add user
-ENV USER nvmluser
-ENV USERPASS nvmlpass
-RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
-USER $USER
-
-# Set required environment variables
-ENV OS ubuntu
-ENV OS_VER 16.04
-ENV START_SSH_COMMAND service ssh start
-ENV PACKAGE_MANAGER dpkg
-ENV NOTTY 1
+git clone -b pending --depth 1 https://github.com/pmem/ndctl.git
+cd ndctl
+./autogen.sh
+./configure
+make
+make install
+cd ..
+rm -rf ndctl

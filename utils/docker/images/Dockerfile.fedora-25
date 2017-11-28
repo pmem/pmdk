@@ -42,12 +42,17 @@ MAINTAINER wojciech.uss@intel.com
 RUN dnf install -y git gcc clang openssh-server autoconf automake make \
 	wget tar lbzip2 passwd sudo pkgconfig findutils man libunwind-devel \
 	file rpm-build rpm-build-libs which fuse fuse-devel ncurses-devel \
-	libuv-devel glib2-devel libtool pandoc doxygen cmake gdb
+	libuv-devel glib2-devel libtool pandoc doxygen cmake gdb asciidoc \
+	kmod-devel xmlto libudev-devel libuuid-devel json-c-devel
+
+# Install libndctl
+COPY install-libndctl.sh install-libndctl.sh
+RUN ./install-libndctl.sh
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
 RUN ./install-valgrind.sh
- 
+
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
