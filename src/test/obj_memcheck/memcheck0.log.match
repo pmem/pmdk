@@ -158,7 +158,7 @@ $(OPT)==$(N)==    by 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
-==$(N)==     in use at exit: $(NC) bytes in $(*) blocks
+==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
 ==$(N)==   total heap usage: $(NC) allocs, $(NC) frees, $(NC) bytes allocated
 ==$(N)== 
 $(OPT)==$(N)== All heap blocks were freed -- no leaks are possible
@@ -167,7 +167,7 @@ $(OPT)==$(N)==    definitely lost: 0 bytes in 0 blocks
 $(OPT)==$(N)==    indirectly lost: 0 bytes in 0 blocks
 $(OPT)==$(N)==      possibly lost: 0 bytes in 0 blocks
 $(OPT)==$(N)==    still reachable: 0 bytes in 0 blocks
-$(OPT)==$(N)==         suppressed: $(NC) bytes in 5 blocks
+$(OPT)==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 ==$(N)== 
 ==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== Use --track-origins=yes to see where uninitialised values come from
