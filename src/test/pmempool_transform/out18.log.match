@@ -3,9 +3,8 @@ PMEMPOOLSET
 AUTO $(nW)
 AUTO $(nW)
 REPLICA
-512M $(nW)part00
-512M $(nW)part01
-1G $(nW)part02
+$(nW) $(nW)part00
+1G $(nW)part01
 
 poolset_out
 PMEMPOOLSET
@@ -13,20 +12,16 @@ OPTION NOHDRS
 AUTO $(nW)
 AUTO $(nW)
 REPLICA
-512M $(nW)part00
-512M $(nW)part01
-1G $(nW)part02
+$(nW) $(nW)part00
+1G $(nW)part01
 
 pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 TestOK222
-TestOK333
 TestOK111
 TestOK222
-TestOK333
 TestOK111
 TestOK222
-TestOK333
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 2 part(s):
@@ -40,17 +35,13 @@ path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
 alignment                : 4096
-Replica 1 - local, 3 part(s):
+Replica 1 - local, 2 part(s):
 part 0:
 path                     : $(nW)part00
 type                     : regular file
 size                     : $(nW)
 part 1:
 path                     : $(nW)part01
-type                     : regular file
-size                     : $(nW)
-part 2:
-path                     : $(nW)part02
 type                     : regular file
 size                     : $(nW)
 
@@ -110,18 +101,6 @@ Forced RO                : 0x0
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)part01
-type                     : regular file
-size                     : $(nW)
-
-POOL Header:
-Signature                : PMEMOBJ [part file]
-Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
-Pool set UUID            : $(nW)
-Part file:
-path                     : $(nW)part02
 type                     : regular file
 size                     : $(nW)
 
