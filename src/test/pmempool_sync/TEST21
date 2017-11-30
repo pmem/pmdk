@@ -75,8 +75,6 @@ DAX_SIZE[0]=$(dax_get_size ${DEVICE_DAX_PATH[0]})
 
 OFFSET=${DAX_SIZE[0]}
 ROOT_SIZE=$[OFFSET + 1024]
-echo $OFFSET
-echo $ROOT_SIZE
 
 # CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data
