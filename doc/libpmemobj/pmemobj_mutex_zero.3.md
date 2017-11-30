@@ -94,18 +94,20 @@ int pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *restrict condp,
 
 **libpmemobj**(7) provides several types of synchronization primitives
 designed to be used with persistent memory. The pmem-aware lock implementation
-is based on the standard POSIX Thread Library, as described in
-**pthread_mutex**(3), **pthread_rwlock**(3) and **pthread_cond**(3).
-Pmem-aware locks provide semantics similar to standard **pthread** locks,
-except that they are embedded in pmem-resident objects and
-are considered initialized by zeroing them. Therefore, locks allocated
-with **pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3) do not require another
-initialization step. For performance reasons, they are also padded up to 64
-bytes (cache line size). _BSDWX(=q=Since all **pthread** locks are dynamically
-allocated on FreeBSD, while the lock object is still padded up to 64 bytes
+is based on the standard POSIX Threads Library, as described in
+**pthread_mutex_init**(3), **pthread_rwlock_init**(3) and
+**pthread_cond_init**(3). Pmem-aware locks provide semantics similar to
+standard **pthread** locks, except that they are embedded in pmem-resident
+objects and are considered initialized by zeroing them. Therefore, locks
+allocated with **pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3) do not require
+another initialization step. For performance reasons, they are also padded up
+to 64 bytes (cache line size).
+
+On FreeBSD, since all **pthread** locks are dynamically
+allocated, while the lock object is still padded up to 64 bytes
 for consistency with Linux, only the pointer to the lock is embedded in the
 pmem-resident object. **libpmemobj**(7) transparently manages freeing of the
-locks when the pool is closed.=e=)
+locks when the pool is closed.
 
 The fundamental property of pmem-aware locks is their automatic
 reinitialization every time the persistent object store pool is opened. Thus,
@@ -222,6 +224,6 @@ number will be returned to indicate the error.
 
 # SEE ALSO #
 
-**pmemobj_tx_zalloc**(3), **pmemobj_zalloc**(3), **pthread_cond**(3),
-**pthread_mutex**(3), **pthread_rwlock**(3), **libpmem**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+**pmemobj_tx_zalloc**(3), **pmemobj_zalloc**(3), **pthread_cond_init**(3),
+**pthread_mutex_init**(3), **pthread_rwlock_init**(3), **libpmem**(7),
+**libpmemobj**(7) and **<http://pmem.io>**

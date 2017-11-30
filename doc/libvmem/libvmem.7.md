@@ -115,7 +115,7 @@ of those pools.
 Under normal usage, **libvmem** will never print messages or intentionally
 cause the process to exit. Exceptions to this are prints caused by calls to
 **vmem_stats_print**(3), or by enabling debugging as described under
-**DEBUGGING AND ERROR HANDLING** below. The library uses **pthreads**(7) to be
+**DEBUGGING AND ERROR HANDLING** below. The library uses **pthreads** to be
 fully MT-safe, but never creates or destroys threads itself. The library does
 not make use of any signals, networking, and never calls **select**(2) or
 **poll**(2). The system memory allocation routines like **malloc**(3) and
@@ -299,6 +299,14 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**mmap**(2), **dlclose**(3), **malloc**(3), **jemalloc**(3),
+**mmap**(2), **dlclose**(3), **malloc**(3),
 **strerror**(3), **vmem_create**(3), **vmem_malloc**(3),
-**pthreads**(7) and **<http://pmem.io>**
+and **<http://pmem.io>**
+
+On Linux:
+
+**jemalloc**(3), **pthreads**(7)
+
+On FreeBSD:
+
+**pthread**(3)

@@ -34,20 +34,22 @@ date: pmem API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem_is_pmem.3 -- man page for libpmem persistence functions)
+[comment]: <> (pmem_is_pmem.3 -- man page for libpmem persistence and mapping functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
 [NOTES](#notes)<br />
+[CAVEATS](#caveats)<br />
+[BUGS](#bugs)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
 **pmem_is_pmem**(), _UW(pmem_map_file),
-**pmem_unmap**() -- check persistency, store persistent data and delete mappings
+**pmem_unmap**() -- check persistency, create and delete mappings
 
 
 # SYNOPSIS #
@@ -83,9 +85,12 @@ appropriate for flushing changes to persistence. Calling
 **pmem_is_pmem**() each time changes are flushed to persistence will
 not perform well.
 
-The _UW(pmem_map_file) function creates a new read/write
-mapping for the given *path* file. It will map the file using **mmap**(2),
-but it also takes extra steps to make large page mappings more likely.
+The _UW(pmem_map_file) function creates a new read/write mapping for a
+file. If **PMEM_FILE_CREATE** is not specified in *flags*, the entire existing
+file *path* is mapped, *len* must be zero, and *mode* is ignored. Otherwise,
+*path* is opened or created as specified by *flags* and *mode*, and *len*
+must be non-zero. _UW(pmem_map_file) maps the file using **mmap**(2), but it
+also takes extra steps to make large page mappings more likely.
 
 On success, _UW(pmem_map_file) returns a pointer to the mapped area. If
 *mapped_lenp* is not NULL, the length of the mapping is stored into
@@ -96,36 +101,37 @@ for the mapped range, is stored into \**is_pmemp*.
 The *flags* argument is 0 or the bitwise OR of one or more of the
 following file creation flags:
 
-+ **PMEM_FILE_CREATE** - Create the named file if it does not exist.
++ **PMEM_FILE_CREATE** - Create the file named *path* if it does not exist.
   *len* must be non-zero and specifies the size of the file to be created.
-  *mode* has the same meaning as for **open**(2) and specifies the mode to
-  use in case a new file is created. If neither **PMEM_FILE_CREATE** nor
-  **PMEM_FILE_TMPFILE** is specified, then *mode* is ignored.
+  The file is fully allocated to the size *len* using **posix_fallocate**(3).
+  *mode* specifies the mode to use in case a new file is created (see
+  **creat**(2)).
 
-+ **PMEM_FILE_EXCL** - Same meaning as **O_EXCL** on **open**(2) -
-  Ensure that this call creates the file. If this flag is specified in
-  conjunction with **PMEM_FILE_CREATE**, and pathname already exists,
-  then _UW(pmem_map_file) will fail.
+The remaining flags modify the behavior of _UW(pmem_map_file) when
+**PMEM_FILE_CREATE** is specified.
 
-+ **PMEM_FILE_TMPFILE** - Same meaning as **O_TMPFILE** on **open**(2).
-  Create a mapping for an unnamed temporary file. **PMEM_FILE_CREATE**
-  and *len* must be specified and *path* must be an existing directory
-  name.
++ **PMEM_FILE_EXCL** - If specified in conjunction with **PMEM_FILE_CREATE**,
+  and *path* already exists, then _UW(pmem_map_file) will fail with **EEXIST**.
+  Otherwise, has the same meaning as **O_EXCL** on **open**(2), which is
+  generally undefined.
 
-+ **PMEM_FILE_SPARSE** - When creating a file, create a sparse (holey)
-  file instead of calling **posix_fallocate**(3). Valid only if specified
-  in conjunction with **PMEM_FILE_CREATE** or **PMEM_FILE_TMPFILE**,
-  otherwise ignored.
++ **PMEM_FILE_SPARSE** - When specified in conjunction with
+  **PMEM_FILE_CREATE**, create a sparse (holey) file using **ftruncate**(2)
+  rather than allocating it using **posix_fallocate**(3). If the file already
+  exists, it will be extended or truncated to *len*. Otherwise ignored.
 
-If creation flags are not supplied, then _UW(pmem_map_file) creates a
-mapping for an existing file. In such case, *len* should be zero. The
-entire file is mapped to memory; its length is used as the length of the
-mapping and returned via *mapped_lenp*.
++ **PMEM_FILE_TMPFILE** - Create a mapping for an unnamed temporary file.
+  Must be specified with **PMEM_FILE_CREATE**. *len* must be non-zero,
+  *mode* is ignored (the temporary file is always created with mode 0600),
+  and *path* must specify an existing directory name. If the underlying file
+  system supports **O_TMPFILE** (see **open**(2)), the unnamed temporary
+  file is created in the filesystem containing the directory *path*.
+  Otherwise, the file is created in *path* and immediately unlinked.
 
-The path of a file can point to a Device DAX and in such case only
-**PMEM_FILE_CREATE** and **PMEM_FILE_SPARSE** flags are valid, but they both
-effectively do nothing. For Device DAX mappings, the *len* argument must be,
-regardless of the flags, equal to either 0 or the exact size of the device.
+The *path* can point to a Device DAX. In this case only the
+**PMEM_FILE_CREATE** and **PMEM_FILE_SPARSE** flags are valid, but they are
+both ignored. For Device DAX mappings, *len* must be equal to
+either 0 or the exact size of the device.
 
 To delete mappings created with _UW(pmem_map_file), use **pmem_unmap**().
 
@@ -134,7 +140,7 @@ specified address range, and causes further references to addresses
 within the range to generate invalid memory references. It will use the
 address specified by the parameter *addr*, where *addr* must be a
 previously mapped region. **pmem_unmap**() will delete the mappings
-using the **munmap**(2).
+using **munmap**(2).
 
 
 # RETURN VALUE #
@@ -163,7 +169,27 @@ flushing with **pmem_persist**(3), **pmem_is_pmem**() will return true
 as appropriate.
 
 
+# CAVEATS #
+
+Not all file systems support **posix_fallocate**(3). _UW(pmem_map_file) will
+fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
+the underlying file system does not support **posix_fallocate**(3).
+
+
+# BUGS #
+
+For _UW(pmem_map_file), if *flags* specifes **PMEM_FILE_CREATE** without
+**PMEM_FILE_EXCL** and **PMEM_FILE_SPARSE**, the file already exists,
+and *len* is less than the existing file length, only
+the range [0, *len*), rather than the entire file, will be mapped. *len*
+will be returned in \**mapped_lenp* if *mapped_lenp* is not NULL.
+
+The **O_EXCL** behavior of **O_TMPFILE** (see **open**(2)) is not supported
+by _UW(pmem_map_file) with **PMEM_FILE_TEMPFILE**.
+
+
 # SEE ALSO #
 
-**mmap**(2),  **msync**(2), **munmap**(2), **pmem_persist**(3),
+**creat**(2), **ftruncate**(2), **mmap**(2),  **msync**(2), **munmap**(2),
+**open**(2), **pmem_persist**(3),
 **posix_fallocate**(3), **libpmem**(7) and **<http://pmem.io>**
