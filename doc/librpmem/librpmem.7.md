@@ -293,6 +293,10 @@ disabled.
 Setting this variable to 0 disables using **fi_verbs**(7) provider for
 in-band RDMA connection. The *verbs* provider is enabled by default.
 
+* **RPMEM_MAX_NLANES**=*num*
+
+Limit the maximum number of lanes to *num*. See **LANES**, in **rpmem_create**(3), for details.
+
 
 # DEBUGGING AND ERROR HANDLING #
 

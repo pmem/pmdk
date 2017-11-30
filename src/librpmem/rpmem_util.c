@@ -192,3 +192,22 @@ rpmem_util_cmd_get(void)
 
 	return ret;
 }
+
+/*
+ * rpmem_util_get_env_max_nlanes -- read the maximum number of lanes from
+ * RPMEM_MAX_NLANES
+ */
+void
+rpmem_util_get_env_max_nlanes(unsigned *max_nlanes)
+{
+	char *env_nlanes = os_getenv(RPMEM_MAX_NLANES_ENV);
+	if (env_nlanes) {
+		int nlanes = atoi(env_nlanes);
+		if (nlanes <= 0) {
+			RPMEM_LOG(ERR, "%s variable must be a positive integer",
+					RPMEM_MAX_NLANES_ENV);
+		} else {
+			*max_nlanes = (unsigned)nlanes;
+		}
+	}
+}

@@ -72,6 +72,9 @@ if (Rpmem_fork_unsafe) {\
 }\
 } while (0)
 
+extern unsigned Rpmem_max_nlanes;
+unsigned Rpmem_max_nlanes = UINT_MAX;
+
 /*
  * rpmem_pool -- remote pool context
  */
@@ -467,7 +470,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 
 	struct rpmem_req_attr req = {
 		.pool_size	= pool_size,
-		.nlanes		= *nlanes,
+		.nlanes		= min(*nlanes, Rpmem_max_nlanes),
 		.provider	= rpp->provider,
 		.pool_desc	= pool_set_name,
 	};
