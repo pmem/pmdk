@@ -123,11 +123,18 @@ get_provider(const char *target, const char *prov_name, unsigned *nlanes)
 	}
 
 	/*
+	 * Tune the maximum number of lanes according to environment.
+	 */
+	unsigned max_nlanes = UINT_MAX;
+	rpmem_util_get_env_max_nlanes(&max_nlanes);
+	*nlanes = min(*nlanes, max_nlanes);
+
+	/*
 	 * Decrease number of lanes for socket provider because
 	 * the test may be too long.
 	 */
 	if (provider == RPMEM_PROV_LIBFABRIC_SOCKETS)
-		*nlanes = SOCK_NLANES;
+		*nlanes = min(*nlanes, SOCK_NLANES);
 
 	return provider;
 }
@@ -202,13 +209,13 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 	info = rpmem_target_parse(target);
 	UT_ASSERTne(info, NULL);
 
-	unsigned nlanes;
+	unsigned nlanes = NLANES;
 	enum rpmem_provider provider = get_provider(info->node,
 			prov_name, &nlanes);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, NLANES, provider, &resp);
+	client = client_exchange(info, nlanes, provider, &resp);
 
 	struct rpmem_fip_attr attr = {
 		.provider = provider,
@@ -308,13 +315,13 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 	info = rpmem_target_parse(target);
 	UT_ASSERTne(info, NULL);
 
-	unsigned nlanes;
+	unsigned nlanes = NLANES;
 	enum rpmem_provider provider = get_provider(info->node,
 			prov_name, &nlanes);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, NLANES, provider, &resp);
+	client = client_exchange(info, nlanes, provider, &resp);
 
 	struct rpmem_fip_attr attr = {
 		.provider = provider,
@@ -502,13 +509,13 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 1);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes;
+	unsigned nlanes = NLANES;
 	enum rpmem_provider provider = get_provider(info->node,
 			prov_name, &nlanes);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, NLANES, provider, &resp);
+	client = client_exchange(info, nlanes, provider, &resp);
 
 	struct rpmem_fip_attr attr = {
 		.provider = provider,
@@ -583,13 +590,13 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 1);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes;
+	unsigned nlanes = NLANES;
 	enum rpmem_provider provider = get_provider(info->node,
 			prov_name, &nlanes);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, NLANES, provider, &resp);
+	client = client_exchange(info, nlanes, provider, &resp);
 
 	struct rpmem_fip_attr attr = {
 		.provider = provider,
@@ -674,13 +681,13 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 0);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes;
+	unsigned nlanes = NLANES;
 	enum rpmem_provider provider = get_provider(info->node,
 			prov_name, &nlanes);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, NLANES, provider, &resp);
+	client = client_exchange(info, nlanes, provider, &resp);
 
 	struct rpmem_fip_attr attr = {
 		.provider = provider,
