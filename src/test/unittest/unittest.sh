@@ -2489,6 +2489,9 @@ function init_rpmem_on_node() {
 	if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
 		export_vars_node $master UNITTEST_DO_NOT_CHECK_OPEN_FILES
 	fi
+	if [ -n ${PMEMOBJ_NLANES+x} ]; then
+		export_vars_node $master PMEMOBJ_NLANES
+	fi
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
 	require_node_log_files $master $PMEMOBJ_LOG_FILE
