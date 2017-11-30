@@ -2492,6 +2492,9 @@ function init_rpmem_on_node() {
 	if [ -n ${PMEMOBJ_NLANES+x} ]; then
 		export_vars_node $master PMEMOBJ_NLANES
 	fi
+	if [ -n ${RPMEM_MAX_NLANES+x} ]; then
+		export_vars_node $master RPMEM_MAX_NLANES
+	fi
 
 	require_node_log_files $master rpmem$UNITTEST_NUM.log
 	require_node_log_files $master $PMEMOBJ_LOG_FILE
