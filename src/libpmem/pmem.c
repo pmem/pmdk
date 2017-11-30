@@ -721,6 +721,47 @@ pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 #endif
 
 /*
+ * pmem_map_fd -- map the specified file descriptor to memory
+ */
+void *
+pmem_map_fd(int fd, size_t *mapped_lenp, int *is_pmemp)
+{
+	LOG(3, "fd %d mapped_lenp %p is_pmemp %p",
+		fd, mapped_lenp, is_pmemp);
+
+	os_stat_t stbuf;
+	if (os_fstat(fd, &stbuf) < 0) {
+		ERR("!fstat");
+		return NULL;
+	}
+
+	ssize_t actual_size = (ssize_t)stbuf.st_size;
+	if (actual_size < 0) {
+		ERR("fstat: negative size");
+		errno = EINVAL;
+		return NULL;
+	}
+	size_t len = (size_t)actual_size;
+
+	void *addr = util_map(fd, len, MAP_SHARED, 0, 0);
+	if (addr == NULL)
+		return NULL; /* util_map() set errno, called LOG */
+
+	if (mapped_lenp != NULL)
+		*mapped_lenp = len;
+
+	if (is_pmemp != NULL)
+		*is_pmemp = pmem_is_pmem(addr, len);
+
+	LOG(3, "returning %p", addr);
+
+	VALGRIND_REGISTER_PMEM_MAPPING(addr, len);
+	VALGRIND_REGISTER_PMEM_FILE(fd, addr, len, 0);
+
+	return addr;
+}
+
+/*
  * pmem_unmap -- unmap the specified region
  */
 int

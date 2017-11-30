@@ -46,7 +46,7 @@ date: pmem API version 1.0
 
 # NAME #
 
-**pmem_is_pmem**(), _UW(pmem_map_file),
+**pmem_is_pmem**(), _UW(pmem_map_file), **pmem_map_fd**(),
 **pmem_unmap**() -- check persistency, store persistent data and delete mappings
 
 
@@ -58,6 +58,7 @@ date: pmem API version 1.0
 int pmem_is_pmem(const void *addr, size_t len);
 _UWFUNCR1(void, *pmem_map_file, *path, =q=size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp=e=)
+void *pmem_map_fd(int fd, size_t *mapped_lenp, int *is_pmemp);
 int pmem_unmap(void *addr, size_t len);
 ```
 
@@ -129,6 +130,11 @@ regardless of the flags, equal to either 0 or the exact size of the device.
 
 To delete mappings created with _UW(pmem_map_file), use **pmem_unmap**().
 
+The **pmem_map_fd**() function is same as _UW(pmem_map_file) except that it
+is for the given *fd* file descriptor. The entire file is mapped to memory.
+No matter whether the function succeeds or fails, *fd* remains open after
+the function returns. Note that *fd* should indicate a regular file.
+
 The **pmem_unmap**() function deletes all the mappings for the
 specified address range, and causes further references to addresses
 within the range to generate invalid memory references. It will use the
@@ -145,7 +151,7 @@ from **pmem_is_pmem**() means it is safe to use **pmem_persist**(3)
 and the related functions to make changes durable for that memory
 range.
 
-On success, _UW(pmem_map_file) returns a pointer to the memory-mapped region
+On success, each of _UW(pmem_map_file) and **pmem_map_fd**() returns a pointer to the memory-mapped region
 and sets \**mapped_lenp* and \**is_pmemp* if they are not NULL.
 On error, it returns NULL, sets *errno* appropriately, and does not modify
 \**mapped_lenp* or \**is_pmemp*.
