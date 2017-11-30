@@ -311,9 +311,10 @@ rpmem_fip_rx_size(enum rpmem_persist_method pm, enum rpmem_fip_node node)
 size_t
 rpmem_fip_max_nlanes(struct fi_info *fi)
 {
-	return min(min(fi->domain_attr->tx_ctx_cnt,
+	return min(min(min(fi->domain_attr->tx_ctx_cnt,
 			fi->domain_attr->rx_ctx_cnt),
-			fi->domain_attr->cq_cnt);
+			fi->domain_attr->cq_cnt),
+			Rpmem_max_nlanes);
 }
 
 /*

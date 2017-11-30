@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,3 +53,4 @@ int rpmem_util_proto_errno(enum rpmem_err err);
 void rpmem_util_cmds_init(void);
 void rpmem_util_cmds_fini(void);
 const char *rpmem_util_cmd_get(void);
+void rpmem_util_get_env_max_nlanes(unsigned *max_nlanes);

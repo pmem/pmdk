@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -50,6 +51,8 @@
 #include "rpmem_proto.h"
 #include "rpmem_common_log.h"
 #include "os.h"
+
+unsigned Rpmem_max_nlanes = UINT_MAX;
 
 /*
  * If set, indicates libfabric does not support fork() and consecutive calls to
