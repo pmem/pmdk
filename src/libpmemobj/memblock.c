@@ -200,7 +200,6 @@ memblock_header_legacy_write(const struct memory_block *m,
 	hdr->size = size;
 	hdr->type_num = extra;
 	hdr->root_size = ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 
 	/* unused fields of the legacy headers are used as a red zone */
@@ -222,7 +221,6 @@ memblock_header_compact_write(const struct memory_block *m,
 	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 	hdr->size = size | ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
 	hdr->extra = extra;
-	m->heap->p_ops.persist(m->heap->base, hdr, sizeof(*hdr));
 	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 }
 
@@ -233,6 +231,70 @@ memblock_header_compact_write(const struct memory_block *m,
 static void
 memblock_header_none_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
+{
+	/* NOP */
+}
+
+/*
+ * memblock_header_legacy_flush --
+ *	(internal) flushes a legacy header
+ */
+static void
+memblock_header_legacy_flush(const struct memory_block *m)
+{
+	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_header_compact_flush --
+ *	(internal) flushes a compact header
+ */
+static void
+memblock_header_compact_flush(const struct memory_block *m)
+{
+	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_no_header_flush --
+ *	(internal) nothing to flush
+ */
+static void
+memblock_header_none_flush(const struct memory_block *m)
+{
+	/* NOP */
+}
+
+/*
+ * memblock_header_legacy_invalidate --
+ *	(internal) invalidates a legacy header
+ */
+static void
+memblock_header_legacy_invalidate(const struct memory_block *m)
+{
+	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
+	VALGRIND_SET_CLEAN(hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_header_compact_invalidate --
+ *	(internal) invalidates a compact header
+ */
+static void
+memblock_header_compact_invalidate(const struct memory_block *m)
+{
+	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
+	VALGRIND_SET_CLEAN(hdr, sizeof(*hdr));
+}
+
+/*
+ * memblock_no_header_invalidate --
+ *	(internal) nothing to invalidate
+ */
+static void
+memblock_header_none_invalidate(const struct memory_block *m)
 {
 	/* NOP */
 }
@@ -280,6 +342,8 @@ static struct {
 	uint16_t (*get_flags)(const struct memory_block *m);
 	void (*write)(const struct memory_block *m,
 		size_t size, uint64_t extra, uint16_t flags);
+	void (*flush)(const struct memory_block *m);
+	void (*invalidate)(const struct memory_block *m);
 	void (*reinit)(const struct memory_block *m);
 } memblock_header_ops[MAX_HEADER_TYPES] = {
 	[HEADER_LEGACY] = {
@@ -287,6 +351,8 @@ static struct {
 		memblock_header_legacy_get_extra,
 		memblock_header_legacy_get_flags,
 		memblock_header_legacy_write,
+		memblock_header_legacy_flush,
+		memblock_header_legacy_invalidate,
 		memblock_header_legacy_reinit,
 	},
 	[HEADER_COMPACT] = {
@@ -294,6 +360,8 @@ static struct {
 		memblock_header_compact_get_extra,
 		memblock_header_compact_get_flags,
 		memblock_header_compact_write,
+		memblock_header_compact_flush,
+		memblock_header_compact_invalidate,
 		memblock_header_compact_reinit,
 	},
 	[HEADER_NONE] = {
@@ -301,6 +369,8 @@ static struct {
 		memblock_header_none_get_extra,
 		memblock_header_none_get_flags,
 		memblock_header_none_write,
+		memblock_header_none_flush,
+		memblock_header_none_invalidate,
 		memblock_header_none_reinit,
 	}
 };
@@ -400,7 +470,7 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 */
 	uint64_t val = chunk_get_chunk_hdr_value(
 		op == MEMBLOCK_ALLOCATED ? CHUNK_TYPE_USED : CHUNK_TYPE_FREE,
-		header_type_to_flag[m->header_type],
+		hdr->flags,
 		m->size_idx);
 
 	operation_add_entry(ctx, hdr, val, OPERATION_SET);
@@ -554,54 +624,39 @@ run_get_state(const struct memory_block *m)
 }
 
 /*
- * run_claim -- marks the run as claimed by an owner in the current heap. This
- *	means that no one but the actual owner can use this memory block.
+ * huge_ensure_header_type -- checks the header type of a chunk and modifies
+ *	it if necessery. This is fail-safe atomic.
  */
-static int
-run_claim(const struct memory_block *m)
+static void
+huge_ensure_header_type(const struct memory_block *m,
+	enum header_type t)
 {
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	uint64_t claimant = r->incarnation_claim;
-	if (claimant == m->heap->run_id)
-		return -1; /* already claimed */
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERTeq(hdr->type, CHUNK_TYPE_FREE);
 
-	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
-	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		claimant, m->heap->run_id) ? 0 : -1;
-	VALGRIND_SET_CLEAN(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-
-	return ret;
+	if ((hdr->flags & header_type_to_flag[t]) == 0) {
+		VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
+		uint16_t f = ((uint16_t)header_type_to_flag[t]);
+		hdr->flags |= f;
+		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
+		VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
+	}
 }
 
 /*
- * run_claim_revoke -- removes the claim of the current owner of the run
+ * run_ensure_header_type -- runs must be created with appropriate header type.
  */
 static void
-run_claim_revoke(const struct memory_block *m)
+run_ensure_header_type(const struct memory_block *m,
+	enum header_type t)
 {
+#ifdef DEBUG
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
-	ASSERTeq(r->incarnation_claim, m->heap->run_id);
-
-	VALGRIND_ADD_TO_TX(&r->incarnation_claim, sizeof(r->incarnation_claim));
-
-	/*
-	 * This assignment is done by CAS to satisfy helgrind,drd and
-	 * thread sanitizer. Those tools treat CAS instructions in a special way
-	 * so it doesn't race with regular reads.
-	 */
-	int ret = util_bool_compare_and_swap64(&r->incarnation_claim,
-		m->heap->run_id, 0);
-	ASSERTeq(ret, 1 /* true */);
-
-	VALGRIND_SET_CLEAN(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
-	VALGRIND_REMOVE_FROM_TX(&r->incarnation_claim,
-		sizeof(r->incarnation_claim));
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
+	ASSERT((hdr->flags & header_type_to_flag[t]) != 0);
+#endif
 }
 
 /*
@@ -646,6 +701,24 @@ block_write_header(const struct memory_block *m,
 }
 
 /*
+ * block_flush_header -- flushes allocation header
+ */
+static void
+block_flush_header(const struct memory_block *m)
+{
+	memblock_header_ops[m->header_type].flush(m);
+}
+
+/*
+ * block_invalidate_header -- invalidates allocation header
+ */
+static void
+block_invalidate_header(const struct memory_block *m)
+{
+	memblock_header_ops[m->header_type].invalidate(m);
+}
+
+/*
  * block_reinit_header -- reinitializes a block after a heap restart
  */
 static void
@@ -680,11 +753,12 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_state = huge_get_state,
 		.get_user_data = block_get_user_data,
 		.get_real_data = huge_get_real_data,
-		.claim = NULL,
-		.claim_revoke = NULL,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.flush_header = block_flush_header,
+		.invalidate_header = block_invalidate_header,
+		.ensure_header_type = huge_ensure_header_type,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
@@ -696,11 +770,12 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_state = run_get_state,
 		.get_user_data = block_get_user_data,
 		.get_real_data = run_get_real_data,
-		.claim = run_claim,
-		.claim_revoke = run_claim_revoke,
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
+		.flush_header = block_flush_header,
+		.invalidate_header = block_invalidate_header,
+		.ensure_header_type = run_ensure_header_type,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
@@ -782,6 +857,84 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 	ASSERTeq(off, 0);
 
 	return m;
+}
+
+/*
+ * memblock_validate_offset -- checks the state of any arbtirary offset within
+ *	the heap.
+ *
+ * This function traverses an entire zone, so use with caution.
+ */
+enum memblock_state
+memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
+{
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.heap = heap;
+
+	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
+	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
+
+	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
+	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
+
+	if (hdr->type == CHUNK_TYPE_RUN_DATA)
+		m.chunk_id -= hdr->size_idx;
+
+	off -= CHUNKSIZE * m.chunk_id;
+
+	for (uint32_t i = 0; i < z->header.size_idx; ) {
+		hdr = &z->chunk_headers[i];
+		if (i + hdr->size_idx > m.chunk_id && i < m.chunk_id) {
+			return MEMBLOCK_STATE_UNKNOWN; /* invalid chunk */
+		} else if (m.chunk_id == i) {
+			break;
+		}
+		i += hdr->size_idx;
+	}
+	ASSERTne(hdr, NULL);
+
+	m.header_type = memblock_header_type(&m);
+
+	if (hdr->type != CHUNK_TYPE_RUN) {
+		if (header_type_to_size[m.header_type] != off)
+			return MEMBLOCK_STATE_UNKNOWN;
+		else if (hdr->type == CHUNK_TYPE_USED)
+			return MEMBLOCK_ALLOCATED;
+		else if (hdr->type == CHUNK_TYPE_FREE)
+			return MEMBLOCK_FREE;
+		else
+			return MEMBLOCK_STATE_UNKNOWN;
+	}
+
+	if (header_type_to_size[m.header_type] > off)
+		return MEMBLOCK_STATE_UNKNOWN;
+
+	off -= header_type_to_size[m.header_type];
+
+	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
+#ifdef DEBUG
+	enum memory_block_type t = memblock_detect_type(&m, heap->layout);
+	ASSERTeq(t, m.type);
+#endif
+	m.m_ops = &mb_ops[m.type];
+
+	uint64_t unit_size = m.m_ops->block_size(&m);
+
+	if (off != 0) { /* run */
+		off -= RUN_METASIZE;
+		m.block_off = (uint16_t)(off / unit_size);
+		off -= m.block_off * unit_size;
+	}
+
+	m.size_idx = CALC_SIZE_IDX(unit_size,
+		memblock_header_ops[m.header_type].get_size(&m));
+
+	ASSERTeq(off, 0);
+
+	return m.m_ops->get_state(&m);
 }
 
 /*

@@ -195,6 +195,12 @@
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\action.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libpmemobj\action_base.h">
+      <Filter>Header Files\libpmemobj</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\libpmemobj\atomic.h">
       <Filter>Header Files\libpmemobj</Filter>
     </ClInclude>

@@ -45,7 +45,7 @@ MANPAGES_5_MD = poolset/poolset.5.md
 MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
 		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
 		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
-		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
+		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_action.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
@@ -108,6 +108,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
+		   pmemobj_reserve.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3\
 		   pmemcto_close.3 pmemcto_create.3\
 		   pmemcto_check.3\
 		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3\

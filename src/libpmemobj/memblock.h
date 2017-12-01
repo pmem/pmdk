@@ -47,7 +47,7 @@
 
 #define MEMORY_BLOCK_NONE \
 (struct memory_block)\
-{0, 0, 0, 0, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL, NULL}
+{0, 0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK}
 
 #define MEMORY_BLOCK_IS_NONE(_m)\
 ((_m).heap == NULL)
@@ -178,13 +178,16 @@ struct memory_block_ops {
 	size_t (*get_real_size)(const struct memory_block *m);
 	void (*write_header)(const struct memory_block *m,
 		uint64_t extra_field, uint16_t flags);
+	void (*flush_header)(const struct memory_block *m);
+	void (*invalidate_header)(const struct memory_block *m);
+	void (*ensure_header_type)(const struct memory_block *m,
+		enum header_type t);
+
+	/* this is called for EVERY allocation, but *only* on valgrind */
 	void (*reinit_header)(const struct memory_block *m);
+
 	uint64_t (*get_extra)(const struct memory_block *m);
 	uint16_t (*get_flags)(const struct memory_block *m);
-
-	/* only runs can be claimed, functions are invalid for huge blocks */
-	int (*claim)(const struct memory_block *m);
-	void (*claim_revoke)(const struct memory_block *m);
 };
 
 struct memory_block {
@@ -204,6 +207,7 @@ struct memory_block {
 	 * position of this memory block in run bitmap.
 	 */
 	uint16_t block_off;
+	uint16_t padding;
 
 	/*
 	 * The variables below are associated with the memory block and are
@@ -211,13 +215,32 @@ struct memory_block {
 	 * memblock_from_offset or memblock_rebuild_state, and they should not
 	 * be modified manually.
 	 */
-
-	enum header_type header_type;
-	enum memory_block_type type;
 	const struct memory_block_ops *m_ops;
 	struct palloc_heap *heap;
+	enum header_type header_type;
+	enum memory_block_type type;
 };
 
+/*
+ * This is a representation of a run memory block that is active in a bucket or
+ * is on a pending list in the recycler.
+ * This structure should never be passed around by value because the address of
+ * the nresv variable can be in reservations made through palloc_reserve(). Only
+ * if the number of reservations equals 0 the structure can be moved/freed.
+ */
+struct memory_block_reserved {
+	struct memory_block m;
+
+	/*
+	 * Number of reservations made from this run, the pointer to this value
+	 * is stored in a user facing pobj_action structure. Decremented once
+	 * the reservation is published or canceled.
+	 */
+	int nresv;
+};
+
+enum memblock_state memblock_validate_offset(struct palloc_heap *heap,
+	uint64_t off);
 struct memory_block memblock_from_offset(struct palloc_heap *heap,
 	uint64_t off);
 void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);

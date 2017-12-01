@@ -109,6 +109,11 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_flush;
 		pmemobj_drain;
 		pmemobj_direct;
+		pmemobj_reserve;
+		pmemobj_set_value;
+		pmemobj_publish;
+		pmemobj_tx_publish;
+		pmemobj_cancel;
 		_pobj_cached_pool;
 		_pobj_cache_invalidate;
 		_pobj_debug_notice;

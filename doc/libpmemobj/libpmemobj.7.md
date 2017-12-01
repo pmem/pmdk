@@ -115,6 +115,7 @@ manual pages:
 
 + control and statistics: **pmemobj_ctl_get**(3)
 
++ delayed atomicity actions: **pmemobj_action**(3)
 
 # DESCRIPTION #
 
