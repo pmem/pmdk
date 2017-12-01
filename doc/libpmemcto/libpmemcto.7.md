@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: LIBPMEMCTO(3)
+title: _MP(LIBPMEMCTO, 7)
 collection: libpmemcto
 header: NVM Library
 date: libpmemcto API version 1.0
