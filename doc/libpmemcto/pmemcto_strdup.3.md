@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMCTO_STRDUP(3)
+title: _MP(PMEMCTO_STRDUP, 3)
 collection: libpmemcto
 header: NVM Library
 date: libpmemcto API version 1.0
