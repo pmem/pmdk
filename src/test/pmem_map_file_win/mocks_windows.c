@@ -45,10 +45,8 @@
 FUNC_MOCK(os_posix_fallocate, int, int fd, os_off_t offset, os_off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
-	if (len > MAX_LEN) {
-		errno = ENOSPC;
-		return -1;
-	}
+	if (len > MAX_LEN)
+		return ENOSPC;
 	return _FUNC_REAL(os_posix_fallocate)(fd, offset, len);
 }
 FUNC_MOCK_END
@@ -59,6 +57,10 @@ FUNC_MOCK_END
 FUNC_MOCK(os_ftruncate, int, int fd, os_off_t len)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_OUT("ftruncate: len %ju", len);
+	if (len > MAX_LEN) {
+		errno = ENOSPC;
+		return -1;
+	}
 	return _FUNC_REAL(os_ftruncate)(fd, len);
 }
 FUNC_MOCK_END

@@ -5,6 +5,7 @@ pmem_map_file: No such file or directory
 $(nW)testfile2 0 C 666 0 0
 pmem_map_file: Invalid argument
 $(nW)testfile3 4096 C 666 1 1
+ftruncate: len 4096
 posix_fallocate: off 0 len 4096
 mapped_len 4096
 unmap successful
@@ -13,6 +14,7 @@ pmem_map_file: No such file or directory
 $(nW)testfile5 4096 E 666 1 1
 pmem_map_file: Invalid argument
 $(nW)testfile6 4096 CE 666 1 1
+ftruncate: len 4096
 posix_fallocate: off 0 len 4096
 mapped_len 4096
 unmap successful
@@ -31,13 +33,14 @@ pmem_map_file: Invalid argument
 $(nW)testfile11 4096 CX 666 1 1
 pmem_map_file: Invalid argument
 $(nW)testfile12 2305843009213693951 CE 666 1 1
-posix_fallocate: off 0 len 2305843009213693951
+ftruncate: len 2305843009213693951
 pmem_map_file: $(*)
 $(nW) 0 T 666 1 1
 pmem_map_file: Invalid argument
 $(nW) 4096 T 666 1 1
 pmem_map_file: Invalid argument
 $(nW) 4096 TC 666 1 1
+ftruncate: len 4096
 posix_fallocate: off 0 len 4096
 mapped_len 4096
 $(nW) 4096 TE 666 1 1
@@ -47,6 +50,7 @@ pmem_map_file: Invalid argument
 $(nW) 4096 TSE 666 1 1
 pmem_map_file: Invalid argument
 $(nW) 4096 TCE 666 1 1
+ftruncate: len 4096
 posix_fallocate: off 0 len 4096
 mapped_len 4096
 $(nW) 4096 TSEC 666 1 1
