@@ -98,10 +98,10 @@ cto_hdr_check(PMEMpoolcheck *ppc, location *loc)
 			goto error;
 	}
 
-	if (ppc->pool->hdr.cto.addr == NULL) {
+	if ((void *)ppc->pool->hdr.cto.addr == NULL) {
 		if (CHECK_ASK(ppc, Q_CTO_ADDR,
 				"invalid pmemcto.addr: %p.|Do you want to recover pmemcto.addr?",
-				ppc->pool->hdr.cto.addr))
+				(void *)ppc->pool->hdr.cto.addr))
 			goto error;
 	}
 
@@ -125,12 +125,12 @@ cto_hdr_check(PMEMpoolcheck *ppc, location *loc)
 	char *valid_addr_end =
 		(char *)ppc->pool->hdr.cto.addr + ppc->pool->hdr.cto.size;
 
-	if (ppc->pool->hdr.cto.root != NULL &&
+	if ((void *)ppc->pool->hdr.cto.root != NULL &&
 	    ((char *)ppc->pool->hdr.cto.root < valid_addr_begin ||
 	    (char *)ppc->pool->hdr.cto.root >= valid_addr_end)) {
 		if (CHECK_ASK(ppc, Q_CTO_ROOT,
 				"invalid pmemcto.root: %p.|Do you want to recover pmemcto.root?",
-				ppc->pool->hdr.cto.root))
+				(void *)ppc->pool->hdr.cto.root))
 			goto error;
 	}
 

@@ -131,9 +131,9 @@ cto_descr_create(PMEMctopool *pcp, const char *layout, size_t poolsize)
 	if (layout)
 		strncpy(pcp->layout, layout, PMEMCTO_MAX_LAYOUT - 1);
 
-	pcp->addr = pcp;
+	pcp->addr = (uint64_t)pcp;
 	pcp->size = poolsize;
-	pcp->root = NULL;
+	pcp->root = (uint64_t)NULL;
 	pcp->consistent = 0;
 
 	/* store non-volatile part of pool's descriptor */
@@ -163,7 +163,7 @@ cto_descr_check(PMEMctopool *pcp, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	if (pcp->addr == NULL) {
+	if ((void *)pcp->addr == NULL) {
 		ERR("invalid mapping address");
 		errno = EINVAL;
 		return -1;
@@ -185,7 +185,7 @@ cto_descr_check(PMEMctopool *pcp, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	if (pcp->root != NULL &&
+	if ((void *)pcp->root != NULL &&
 	    ((char *)pcp->root < ((char *)pcp->addr + CTO_DSC_SIZE_ALIGNED) ||
 	    (char *)pcp->root >= ((char *)pcp->addr + pcp->size))) {
 		ERR("invalid root pointer");
@@ -193,7 +193,8 @@ cto_descr_check(PMEMctopool *pcp, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	LOG(4, "addr %p size %zu root %p", pcp->addr, pcp->size, pcp->root);
+	LOG(4, "addr %p size %zu root %p", (void *)pcp->addr, pcp->size,
+			(void *)pcp->root);
 
 	return 0;
 }
@@ -208,7 +209,7 @@ cto_runtime_init(PMEMctopool *pcp, int rdonly, int is_pmem)
 
 	/* reset consistency flag */
 	pcp->consistent = 0;
-	util_persist(pcp->is_pmem, pcp->addr, sizeof(struct pmemcto));
+	util_persist(pcp->is_pmem, (void *)pcp->addr, sizeof(struct pmemcto));
 
 	/*
 	 * If possible, turn off all permissions on the pool header page.
@@ -216,7 +217,7 @@ cto_runtime_init(PMEMctopool *pcp, int rdonly, int is_pmem)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	RANGE_NONE(pcp->addr, sizeof(struct pool_hdr), pcp->is_dev_dax);
+	RANGE_NONE((void *)pcp->addr, sizeof(struct pool_hdr), pcp->is_dev_dax);
 
 	return 0;
 }
@@ -438,7 +439,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 	}
 
 	/* get the last mapping address */
-	void *mapaddr = pcp->addr;
+	void *mapaddr = (void *)pcp->addr;
 	LOG(4, "mapping address: %p", mapaddr);
 
 	int oerrno = errno;
@@ -461,9 +462,10 @@ cto_open_common(const char *path, const char *layout, int cow)
 
 	struct pool_set *set = pcp->set;
 
-	if (pcp->addr != pcp) {
+	if ((void *)pcp->addr != pcp) {
 		ERR("cannot mmap at the same address: %p != %p",
-				pcp, pcp->addr);
+				pcp, (void *)pcp->addr);
+		errno = ENOMEM;
 		goto err;
 	}
 
@@ -487,7 +489,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 			(void *)((uintptr_t)pcp + CTO_DSC_SIZE_ALIGNED),
 			set->poolsize - CTO_DSC_SIZE_ALIGNED, 0, 0) == NULL) {
 		ERR("pool creation failed");
-		util_unmap(pcp->addr, pcp->size);
+		util_unmap((void *)pcp->addr, pcp->size);
 		return NULL;
 	}
 
@@ -572,9 +574,9 @@ pmemcto_close(PMEMctopool *pcp)
 	/* deep flush the entire pool to persistence */
 
 	/* XXX: replace with pmem_deep_flush() when available */
-	RANGE_RW(pcp->addr, sizeof(struct pool_hdr), pcp->is_dev_dax);
+	RANGE_RW((void *)pcp->addr, sizeof(struct pool_hdr), pcp->is_dev_dax);
 	VALGRIND_DO_MAKE_MEM_DEFINED(pcp->addr, pcp->size);
-	util_persist(pcp->is_pmem, pcp->addr, pcp->size);
+	util_persist(pcp->is_pmem, (void *)pcp->addr, pcp->size);
 
 	/* set consistency flag */
 	pcp->consistent = 1;
@@ -598,7 +600,7 @@ pmemcto_set_root_pointer(PMEMctopool *pcp, void *ptr)
 		(char *)ptr < ((char *)pcp->addr + pcp->size)));
 #endif
 
-	pcp->root = ptr;
+	pcp->root = (uint64_t)ptr;
 }
 
 /*
@@ -609,8 +611,8 @@ pmemcto_get_root_pointer(PMEMctopool *pcp)
 {
 	LOG(3, "pcp %p", pcp);
 
-	LOG(4, "root ptr %p", pcp->root);
-	return pcp->root;
+	LOG(4, "root ptr %p", (void *)pcp->root);
+	return (void *)pcp->root;
 }
 
 /*

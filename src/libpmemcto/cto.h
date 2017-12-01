@@ -31,7 +31,7 @@
  */
 
 /*
- * cto.h -- internal definitions for libpmem cto module
+ * cto.h -- internal definitions for libpmemcto module
  */
 #ifndef LIBPMEMCTO_CTO_H
 #define LIBPMEMCTO_CTO_H 1
@@ -72,12 +72,12 @@ struct pmemcto {
 
 	/* persistent part of PMEMCTO pool descriptor (2kB) */
 	char layout[PMEMCTO_MAX_LAYOUT];
-	void *addr;		/* mapped region */
-	size_t size;		/* size of mapped region */
-	void *root;		/* root pointer */
+	uint64_t addr;		/* mapped region */
+	uint64_t size;		/* size of mapped region */
+	uint64_t root;		/* root pointer */
 
 	/* XXX: to be replaced with shutdown state in the pool header */
-	int consistent;		/* successfully flushed before exit */
+	uint8_t consistent;		/* successfully flushed before exit */
 	unsigned char unused[CTO_DSC_P_UNUSED]; /* must be zero */
 
 	/* some run-time state, allocated out of memory pool... */
