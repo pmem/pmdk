@@ -71,10 +71,10 @@ info_cto_descriptor(struct pmem_info *pip)
 					pcp->layout : "(null)";
 
 	outv_field(v, "Layout", "%s", layout);
-	outv_field(v, "Base address", "%p", pcp->addr);
-	outv_field(v, "Size", "0x%zx", pcp->size);
+	outv_field(v, "Base address", "%p", (void *)pcp->addr);
+	outv_field(v, "Size", "0x%zx", (size_t)pcp->size);
 	outv_field(v, "Consistent", "%d", pcp->consistent);
-	outv_field(v, "Root pointer", "%p", pcp->root);
+	outv_field(v, "Root pointer", "%p", (void *)pcp->root);
 }
 
 /*

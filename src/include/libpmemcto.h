@@ -127,12 +127,6 @@ int pmemcto_checkU(const char *path, const char *layout);
 int pmemcto_checkW(const wchar_t *path, const wchar_t *layout);
 #endif
 
-/*
- * XXX - hard to do with a pool set, but for single file...
- *
- * void pmemcto_extend(PMEMctopool *pcp, size_t size);
- */
-
 void pmemcto_close(PMEMctopool *pcp);
 void pmemcto_stats_print(PMEMctopool *pcp, const char *opts);
 
