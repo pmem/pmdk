@@ -135,6 +135,8 @@ struct rpmem_target_info {
 	unsigned flags;
 };
 
+extern int Rpmem_fork_unsafe;
+
 int rpmem_b64_write(int sockfd, const void *buf, size_t len, int flags);
 int rpmem_b64_read(int sockfd, void *buf, size_t len, int flags);
 const char *rpmem_get_ip_str(const struct sockaddr *addr);

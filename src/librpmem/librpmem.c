@@ -46,8 +46,6 @@
 #include "util.h"
 #include "out.h"
 
-extern int Rpmem_fork_unsafe;
-
 /*
  * librpmem_init -- load-time initialization for librpmem
  *

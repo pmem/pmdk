@@ -52,6 +52,12 @@
 #include "os.h"
 
 /*
+ * If set, indicates libfabric does not support fork() and consecutive calls to
+ * rpmem_create/rpmem_open must fail.
+ */
+int Rpmem_fork_unsafe;
+
+/*
  * rpmem_xwrite -- send entire buffer or fail
  *
  * Returns 1 if send returned 0.
