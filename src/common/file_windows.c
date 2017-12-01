@@ -58,9 +58,12 @@
  * util_tmpfile -- create a temporary file
  */
 int
-util_tmpfile(const char *dir, const char *templ)
+util_tmpfile(const char *dir, const char *templ, int flags)
 {
-	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+	LOG(3, "dir \"%s\" template \"%s\" flags %x", dir, templ, flags);
+
+	/* only O_EXCL is allowed here */
+	ASSERT(flags == 0 || flags == O_EXCL);
 
 	int oerrno;
 	int fd = -1;

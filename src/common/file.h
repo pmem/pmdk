@@ -79,7 +79,7 @@ ssize_t util_file_pread(const char *path, void *buffer, size_t size,
 ssize_t util_file_pwrite(const char *path, const void *buffer, size_t size,
 	os_off_t offset);
 
-int util_tmpfile(const char *dir, const char *templ);
+int util_tmpfile(const char *dir, const char *templ, int flags);
 int util_is_absolute_path(const char *path);
 
 int util_file_create(const char *path, size_t size, size_t minsize);
