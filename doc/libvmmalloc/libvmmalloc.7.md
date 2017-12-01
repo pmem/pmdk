@@ -63,7 +63,11 @@ or
 
 ```c
 #include <stdlib.h>
-#include _BSDWX(<malloc_np.h>,<malloc.h>)
+#ifndef __FreeBSD__
+    #include <malloc.h>
+#else
+    #include <malloc_np.h>
+#endif
 #include <libvmmalloc.h>
 
 cc [ flag... ] file... -lvmmalloc [ library... ]
@@ -284,8 +288,14 @@ lifting of managing dynamic memory allocation. See:
 
 # SEE ALSO #
 
-**fork**(2), **dlclose(3)**, **exec**(3), **jemalloc**(3),
-**malloc**(3), **malloc_hook**(3),
+**fork**(2), **dlclose(3)**, **exec**(3), **malloc**(3),
 **malloc_usable_size**(3), **posix_memalign**(3),
-**libpmem**(7), **libvmem**(7), **pthreads**(7),
-**ld.so**(_BSDWX(1,8)) and **<http://pmem.io>**
+**libpmem**(7), **libvmem**(7) and **<http://pmem.io>**
+
+On Linux:
+
+**jemalloc**(3), **malloc_hook**(3), **pthreads**(7), **ld.so**(8)
+
+On FreeBSD:
+
+**ld.so**(1), **pthread**(3)
