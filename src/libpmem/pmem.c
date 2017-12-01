@@ -618,7 +618,8 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_TMPFILE) {
 		if ((fd = util_tmpfile(path,
-					OS_DIR_SEP_STR"pmem.XXXXXX")) < 0) {
+					OS_DIR_SEP_STR"pmem.XXXXXX",
+					open_flags & O_EXCL)) < 0) {
 			LOG(2, "failed to create temporary file at \"%s\"",
 				path);
 			return NULL;
@@ -633,12 +634,15 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	}
 
 	if (flags & PMEM_FILE_CREATE) {
-		if (flags & PMEM_FILE_SPARSE) {
-			if (os_ftruncate(fd, (os_off_t)len) != 0) {
-				ERR("!ftruncate");
-				goto err;
-			}
-		} else {
+		/*
+		 * Always set length of file to 'len'.
+		 * (May either extend or truncate existing file.)
+		 */
+		if (os_ftruncate(fd, (os_off_t)len) != 0) {
+			ERR("!ftruncate");
+			goto err;
+		}
+		if ((flags & PMEM_FILE_SPARSE) == 0) {
 			if ((errno = os_posix_fallocate(fd, 0,
 							(os_off_t)len)) != 0) {
 				ERR("!posix_fallocate");

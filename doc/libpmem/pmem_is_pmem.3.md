@@ -103,7 +103,9 @@ following file creation flags:
 
 + **PMEM_FILE_CREATE** - Create the file named *path* if it does not exist.
   *len* must be non-zero and specifies the size of the file to be created.
-  The file is fully allocated to the size *len* using **posix_fallocate**(3).
+  If the file already exists, it will be extended or truncated to *len.*
+  The new or existing file is then fully allocated to size *len* using
+  **posix_fallocate**(3).
   *mode* specifies the mode to use in case a new file is created (see
   **creat**(2)).
 
@@ -117,15 +119,16 @@ The remaining flags modify the behavior of _UW(pmem_map_file) when
 
 + **PMEM_FILE_SPARSE** - When specified in conjunction with
   **PMEM_FILE_CREATE**, create a sparse (holey) file using **ftruncate**(2)
-  rather than allocating it using **posix_fallocate**(3). If the file already
-  exists, it will be extended or truncated to *len*. Otherwise ignored.
+  rather than allocating it using **posix_fallocate**(3). Otherwise ignored.
 
 + **PMEM_FILE_TMPFILE** - Create a mapping for an unnamed temporary file.
   Must be specified with **PMEM_FILE_CREATE**. *len* must be non-zero,
   *mode* is ignored (the temporary file is always created with mode 0600),
   and *path* must specify an existing directory name. If the underlying file
-  system supports **O_TMPFILE** (see **open**(2)), the unnamed temporary
-  file is created in the filesystem containing the directory *path*.
+  system supports **O_TMPFILE**, the unnamed temporary file is created in
+  the filesystem containing the directory *path*; if **PMEM_FILE_EXCL**
+  is also specified, the temporary file may not subsequently be linked into
+  the filesystem (see **open**(2)).
   Otherwise, the file is created in *path* and immediately unlinked.
 
 The *path* can point to a Device DAX. In this case only the
@@ -174,18 +177,6 @@ as appropriate.
 Not all file systems support **posix_fallocate**(3). _UW(pmem_map_file) will
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
-
-
-# BUGS #
-
-For _UW(pmem_map_file), if *flags* specifes **PMEM_FILE_CREATE** without
-**PMEM_FILE_EXCL** and **PMEM_FILE_SPARSE**, the file already exists,
-and *len* is less than the existing file length, only
-the range [0, *len*), rather than the entire file, will be mapped. *len*
-will be returned in \**mapped_lenp* if *mapped_lenp* is not NULL.
-
-The **O_EXCL** behavior of **O_TMPFILE** (see **open**(2)) is not supported
-by _UW(pmem_map_file) with **PMEM_FILE_TEMPFILE**.
 
 
 # SEE ALSO #
