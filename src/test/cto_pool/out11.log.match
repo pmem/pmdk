@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST11: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) c $(nW)testfile test$(nW) 20 0640
+$(nW)testfile: pmemcto_create: File exists
+cto_pool$(nW)TEST11: DONE

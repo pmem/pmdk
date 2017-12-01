@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST14: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) c $(nW)testfile $(nW) 20 0640
+$(nW)testfile: pmemcto_create: Invalid argument
+cto_pool$(nW)TEST14: DONE

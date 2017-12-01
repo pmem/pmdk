@@ -1388,7 +1388,7 @@ prof_boot2(void)
 			if (opt_abort)
 				abort();
 		}
-		ctx_locks = (malloc_mutex_t *)je_base_malloc(PROF_NCTX_LOCKS *
+		ctx_locks = (malloc_mutex_t *)base_malloc_fn(PROF_NCTX_LOCKS *
 		    sizeof(malloc_mutex_t));
 		if (ctx_locks == NULL)
 			return (true);

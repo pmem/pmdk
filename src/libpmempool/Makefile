@@ -39,6 +39,7 @@ LIBRARY_VERSION = 0.0
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
+INCS += -I$(TOP)/src/libpmemcto
 INCS += -I$(TOP)/src/rpmem_common
 INCS += -I$(TOP)/src/librpmem
 
@@ -52,7 +53,9 @@ SOURCE +=\
 	check_backup.c\
 	check_btt_info.c\
 	check_btt_map_flog.c\
-	check_log_blk.c\
+	check_log.c\
+	check_blk.c\
+	check_cto.c\
 	check_pool_hdr.c\
 	check_util.c\
 	check_write.c\

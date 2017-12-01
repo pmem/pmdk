@@ -244,6 +244,8 @@ export PMEMLOG_LOG_LEVEL=3
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
+export PMEMCTO_LOG_LEVEL=3
+export PMEMCTO_LOG_FILE=pmemcto$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 
@@ -777,6 +779,7 @@ function expect_normal_exit() {
 			dump_last_n_lines $PMEMOBJ_LOG_FILE
 			dump_last_n_lines $PMEMLOG_LOG_FILE
 			dump_last_n_lines $PMEMBLK_LOG_FILE
+			dump_last_n_lines $PMEMCTO_LOG_FILE
 			dump_last_n_lines $PMEMPOOL_LOG_FILE
 			dump_last_n_lines $VMEM_LOG_FILE
 			dump_last_n_lines $VMMALLOC_LOG_FILE

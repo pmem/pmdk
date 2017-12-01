@@ -51,7 +51,7 @@ require_command clang
 SRC=../..
 HEADERS_DIR=$SRC/include
 INC_DIR=$SRC/include/libpmemobj
-EXC_PATT="set_funcs|strdup|rpmem|vmem_stats_print"
+EXC_PATT="set_funcs|strdup|rpmem|vmem_stats_print|pmemcto_stats_print"
 FAILED=0
 DEF_COL=6
 

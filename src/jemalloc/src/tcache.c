@@ -429,7 +429,7 @@ tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
 	if (npools < POOLS_MIN)
 		npools = POOLS_MIN;
 
-	unsigned *tseqno = je_base_malloc(npools * sizeof (unsigned));
+	unsigned *tseqno = base_malloc_fn(npools * sizeof (unsigned));
 	if (tseqno == NULL)
 		return (true);
 
@@ -437,9 +437,9 @@ tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
 		memcpy(tseqno, tsd->seqno, tsd->npools * sizeof (unsigned));
 	memset(&tseqno[tsd->npools], 0, (npools - tsd->npools) * sizeof (unsigned));
 
-	tcache_t **tcaches = je_base_malloc(npools * sizeof (tcache_t *));
+	tcache_t **tcaches = base_malloc_fn(npools * sizeof (tcache_t *));
 	if (tcaches == NULL) {
-		je_base_free(tseqno);
+		base_free_fn(tseqno);
 		return (true);
 	}
 
@@ -447,9 +447,9 @@ tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
 		memcpy(tcaches, tsd->tcaches, tsd->npools * sizeof (tcache_t *));
 	memset(&tcaches[tsd->npools], 0, (npools - tsd->npools) * sizeof (tcache_t *));
 
-	je_base_free(tsd->seqno);
+	base_free_fn(tsd->seqno);
 	tsd->seqno = tseqno;
-	je_base_free(tsd->tcaches);
+	base_free_fn(tsd->tcaches);
 	tsd->tcaches = tcaches;
 
 	tsd->npools = npools;
@@ -494,8 +494,8 @@ tcache_thread_cleanup(void *arg)
 		}
 	}
 
-	je_base_free(tsd_array->seqno);
-	je_base_free(tsd_array->tcaches);
+	base_free_fn(tsd_array->seqno);
+	base_free_fn(tsd_array->tcaches);
 	tsd_array->npools = 0;
 
 	malloc_mutex_unlock(&pools_lock);

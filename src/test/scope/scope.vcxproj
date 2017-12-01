@@ -77,6 +77,7 @@
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />
     <None Include="TEST6.PS1" />
+    <None Include="TEST7.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tools\dllview\dllview.vcxproj">

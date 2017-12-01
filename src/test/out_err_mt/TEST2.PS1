@@ -60,16 +60,18 @@ $Env:PMEM_LOG_LEVEL = $null
 $Env:PMEMLOG_LOG_LEVEL = $null
 $Env:PMEMBLK_LOG_LEVEL = $null
 $Env:PMEMOBJ_LOG_LEVEL = $null
+$Env:PMEMCTO_LOG_LEVEL = $null
 $Env:VMEM_LOG_LEVEL = $null
 
 $Env:PMEM_LOG_FILE = $null
 $Env:PMEMLOG_LOG_FILE = $null
 $Env:PMEMBLK_LOG_FILE = $null
 $Env:PMEMOBJ_LOG_FILE = $null
+$Env:PMEMCTO_LOG_FILE = $null
 $Env:VMEM_LOG_FILE = $null
 
 expect_normal_exit $Env:EXE_DIR\out_err_mt$Env:EXESUFFIX `
-	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR
+	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR\testfile4 $DIR
 
 check
 

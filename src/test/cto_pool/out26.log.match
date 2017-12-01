@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST26: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) o $(nW)testfile NULL
+$(nW)testfile: pmemcto_open: Permission denied
+cto_pool$(nW)TEST26: DONE

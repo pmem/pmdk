@@ -699,6 +699,8 @@ check_get_pool_type_str(enum pool_type type)
 		return "pmemblk";
 	case POOL_TYPE_OBJ:
 		return "pmemobj";
+	case POOL_TYPE_CTO:
+		return "pmemcto";
 	default:
 		return "unknown";
 	}

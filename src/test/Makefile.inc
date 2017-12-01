@@ -50,6 +50,7 @@ EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
+EX_LIBPMEMCTO=$(EXAMPLES_DIR)/libpmemcto
 
 UT = ../unittest/libut.a
 LIBS += $(UT) $(LIBUUID)
@@ -161,6 +162,12 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 INCS += -I$(TOP)/src/libpmemobj
 LIBPMEM=y
 LIBPMEMCOMMON=y
+endif
+
+ifeq ($(LIBPMEMCTO), y)
+DYNAMIC_LIBS += -lpmemcto
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemcto.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemcto.a
 endif
 
 ifeq ($(LIBPMEMCOMMON), y)

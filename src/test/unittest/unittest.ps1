@@ -397,6 +397,7 @@ function check_exit_code {
         dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
         dump_last_n_lines $Env:PMEMLOG_LOG_FILE
         dump_last_n_lines $Env:PMEMBLK_LOG_FILE
+        dump_last_n_lines $Env:PMEMCTO_LOG_FILE
         dump_last_n_lines $Env:PMEMPOOL_LOG_FILE
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
@@ -1244,6 +1245,8 @@ $Env:PMEMLOG_LOG_LEVE = 3
 $Env:PMEMLOG_LOG_FILE = "pmemlog${Env:UNITTEST_NUM}.log"
 $Env:PMEMOBJ_LOG_LEVEL = 3
 $Env:PMEMOBJ_LOG_FILE= "pmemobj${Env:UNITTEST_NUM}.log"
+$Env:PMEMCTO_LOG_LEVEL = 3
+$Env:PMEMCTO_LOG_FILE= "pmemcto${Env:UNITTEST_NUM}.log"
 $Env:PMEMPOOL_LOG_LEVEL = 3
 $Env:PMEMPOOL_LOG_FILE= "pmempool${Env:UNITTEST_NUM}.log"
 

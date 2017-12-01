@@ -16,13 +16,14 @@ Please see the file [LICENSE](https://github.com/pmem/nvml/blob/master/LICENSE)
 for information on how this library is licensed.
 
 This tree contains a collection of libraries for using Non-Volatile Memory
-(NVM).  There are currently eight libraries:
+(NVM).  There are currently nine libraries:
 
 * **libpmem** -- basic pmem operations like flushing
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
 * **libvmem**, **libvmmalloc**<sup>1</sup> -- volatile use of pmem
 * **libpmempool** -- persistent memory pool management
-* **librpmem**<sup>1</sup> -- remote access to persistent memory (EXPERIMENTAL)
+* **librpmem**<sup>1</sup> -- remote access to persistent memory
+* **libpmemcto** -- close-to-open persistence (EXPERIMENTAL)
 
 and one command-line utility:
 
