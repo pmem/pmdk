@@ -62,6 +62,8 @@ struct ddmap_context {
 	os_off_t offset_out;	/* offset from beginning of output file for */
 			/* read/write operations */
 	size_t len;	/* number of bytes to read */
+	unsigned long bytes;	/* size of blocks to write at the time */
+	unsigned long count;	/* number of blocks to read/write */
 	int checksum;	/* compute checksum */
 };
 
@@ -84,6 +86,8 @@ print_usage(void)
 	printf("-s N              - skip N bytes at start of input\n");
 	printf("-q N              - skip N bytes at start of output\n");
 	printf("-l N              - read or write up to N bytes at a time\n");
+	printf("-b N              - write N bytes at a time\n");
+	printf("-n N              - copy N input blocks\n");
 	printf("-c                - compute checksum\n");
 	printf("-h                - print this usage info\n");
 }
@@ -98,6 +102,8 @@ static const struct option long_options[] = {
 	{"offset-in",	required_argument,	NULL,	's'},
 	{"offset-out",	required_argument,	NULL,	'q'},
 	{"length",	required_argument,	NULL,	'l'},
+	{"block-size",	required_argument,	NULL,	'b'},
+	{"count",	required_argument,	NULL,	'n'},
 	{"checksum",	no_argument,		NULL,	'c'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
@@ -202,21 +208,43 @@ ddmap_write_data(const char *path, const char *data,
  */
 static int
 ddmap_write_from_file(const char *path_in, const char *path_out,
-	os_off_t offset_in, os_off_t offset_out, size_t len)
+	os_off_t offset_in, os_off_t offset_out, unsigned long bytes,
+	unsigned long count)
 {
-	char *src;
+	char *src, *tmp_src;
 	ssize_t file_in_size = util_file_get_size(path_in);
-
-	if ((size_t)file_in_size < len + (size_t)offset_in) {
-		outv_err("offset with length exceed input file size");
-		return -1;
-	}
+	size_t data_left, len;
 
 	util_init();
 	src = util_file_map_whole(path_in);
 	src += offset_in;
 
-	ddmap_write_data(path_out, src, offset_out, len);
+	if (!count)
+		count = 1;
+
+	data_left = (size_t)file_in_size;
+	tmp_src = src;
+	do {
+		if (data_left >= (size_t)bytes)
+			len = (size_t)bytes;
+		else
+			len = data_left;
+
+		ddmap_write_data(path_out, tmp_src, offset_out, len);
+		data_left = MAX(0, data_left - (size_t)bytes);
+
+		if (!data_left) {
+			data_left = (size_t)file_in_size;
+			tmp_src = src;
+		} else {
+			data_left -= len;
+			tmp_src += (os_off_t)len;
+		}
+
+		offset_out += (os_off_t)len;
+		count--;
+	} while (count > 0);
+
 	util_unmap(src, (size_t)file_in_size);
 	return 0;
 }
@@ -285,7 +313,8 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 	char *endptr;
 	os_off_t offset;
 	size_t length;
-	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:l:chv",
+	unsigned long count, bytes;
+	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:l:b:n:chv",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'i':
@@ -323,6 +352,20 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 			}
 			ctx->len = length;
 			break;
+		case 'b':
+			bytes = strtoul(optarg, &endptr, 0);
+			if ((endptr && *endptr != '\0') || errno) {
+				outv_err("'%s' -- invalid block size", optarg);
+				return -1;
+			}
+			ctx->bytes = bytes;
+		case 'n':
+			count = strtoul(optarg, &endptr, 0);
+			if ((endptr && *endptr != '\0') || errno) {
+				outv_err("'%s' -- invalid count", optarg);
+				return -1;
+			}
+			ctx->count = count;
 		case 'c':
 			ctx->checksum = 1;
 			break;
@@ -374,7 +417,8 @@ do_ddmap(struct ddmap_context *ctx)
 {
 	if ((ctx->file_in != NULL) && (ctx->file_out != NULL)) {
 		if (ddmap_write_from_file(ctx->file_in, ctx->file_out,
-			ctx->offset_in, ctx->offset_out, ctx->len))
+			ctx->offset_in, ctx->offset_out, ctx->bytes,
+			ctx->count))
 			return -1;
 		return 0;
 	}
