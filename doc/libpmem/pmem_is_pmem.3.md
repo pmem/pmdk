@@ -176,18 +176,6 @@ fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
 
 
-# BUGS #
-
-For _UW(pmem_map_file), if *flags* specifes **PMEM_FILE_CREATE** without
-**PMEM_FILE_EXCL** and **PMEM_FILE_SPARSE**, the file already exists,
-and *len* is less than the existing file length, only
-the range [0, *len*), rather than the entire file, will be mapped. *len*
-will be returned in \**mapped_lenp* if *mapped_lenp* is not NULL.
-
-The **O_EXCL** behavior of **O_TMPFILE** (see **open**(2)) is not supported
-by _UW(pmem_map_file) with **PMEM_FILE_TEMPFILE**.
-
-
 # SEE ALSO #
 
 **creat**(2), **ftruncate**(2), **mmap**(2),  **msync**(2), **munmap**(2),

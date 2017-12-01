@@ -101,15 +101,18 @@ err:
 }
 
 /*
- * util_tmpfile --  (internal) create the temporary file
+ * util_tmpfile -- (internal) create the temporary file
  */
 int
-util_tmpfile(const char *dir, const char *templ)
+util_tmpfile(const char *dir, const char *templ, int flags)
 {
-	LOG(3, "dir \"%s\" template \"%s\"", dir, templ);
+	LOG(3, "dir \"%s\" template \"%s\" flags %x", dir, templ, flags);
+
+	/* only O_EXCL is allowed here */
+	ASSERT(flags == 0 || flags == O_EXCL);
 
 #ifdef O_TMPFILE
-	int fd = open(dir, O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR);
+	int fd = open(dir, O_TMPFILE | O_RDWR | flags, S_IRUSR | S_IWUSR);
 	/*
 	 * Open can fail if underlying file system does not support O_TMPFILE
 	 * flag.
