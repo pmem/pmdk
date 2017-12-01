@@ -269,7 +269,13 @@ export REMOTE_VARS="
 RPMEMD_LOG_FILE
 RPMEMD_LOG_LEVEL
 RPMEM_LOG_FILE
-RPMEM_LOG_LEVEL"
+RPMEM_LOG_LEVEL
+PMEM_LOG_FILE
+PMEM_LOG_LEVEL
+PMEMOBJ_LOG_FILE
+PMEMOBJ_LOG_LEVEL
+PMEMPOOL_LOG_FILE
+PMEMPOOL_LOG_LEVEL"
 
 [ "$UT_DUMP_LINES" ] || UT_DUMP_LINES=30
 
@@ -1732,6 +1738,7 @@ function require_nodes() {
 	done
 
 	# remove all log files of the current unit test from the required nodes
+	# and export the 'log' variables to these nodes
 	for N in $NODES_SEQ; do
 		for f in $(get_files "node_${N}.*${UNITTEST_NUM}\.log"); do
 			rm -f $f
@@ -2478,12 +2485,6 @@ function init_rpmem_on_node() {
 	export_vars_node $master RPMEM_CMD
 	export_vars_node $master RPMEM_ENABLE_SOCKETS
 	export_vars_node $master RPMEM_ENABLE_VERBS
-	export_vars_node $master RPMEM_LOG_LEVEL
-	export_vars_node $master RPMEM_LOG_FILE
-	export_vars_node $master PMEMOBJ_LOG_LEVEL
-	export_vars_node $master PMEMOBJ_LOG_FILE
-	export_vars_node $master PMEMPOOL_LOG_FILE
-	export_vars_node $master PMEMPOOL_LOG_LEVEL
 
 	if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
 		export_vars_node $master UNITTEST_DO_NOT_CHECK_OPEN_FILES
