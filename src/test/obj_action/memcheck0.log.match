@@ -1,0 +1,27 @@
+==$(N)== Memcheck, a memory error detector
+==$(N)== Copyright $(*)
+==$(N)== Using $(*)
+==$(N)== Command: $(*)
+==$(N)== Parent PID: $(N)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== 
+==$(N)== HEAP SUMMARY:
+==$(N)==     in use at exit: 0 bytes in 0 blocks
+==$(N)==   total heap usage: $(*) allocs, $(*) frees, $(*) bytes allocated
+==$(N)== 
+==$(N)== All heap blocks were freed -- no leaks are possible
+==$(N)== 
+==$(N)== For counts of detected and suppressed errors, rerun with: -v
+==$(N)== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 0 from 0)

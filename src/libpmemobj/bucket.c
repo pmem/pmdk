@@ -42,6 +42,7 @@
  * creation.
  */
 
+#include "alloc_class.h"
 #include "bucket.h"
 #include "ctree.h"
 #include "heap.h"
@@ -68,9 +69,23 @@ bucket_new(struct block_container *c, struct alloc_class *aclass)
 	util_mutex_init(&b->lock);
 
 	b->is_active = 0;
+	b->active_memory_block = NULL;
+	if (aclass && aclass->type == CLASS_RUN) {
+		b->active_memory_block =
+			Zalloc(sizeof(struct memory_block_reserved));
+
+		if (b->active_memory_block == NULL)
+			goto error_active_alloc;
+	}
 	b->aclass = aclass;
 
 	return b;
+
+error_active_alloc:
+
+	util_mutex_destroy(&b->lock);
+	Free(b);
+	return NULL;
 }
 
 /*
@@ -96,7 +111,19 @@ bucket_insert_block(struct bucket *b, const struct memory_block *m)
 void
 bucket_delete(struct bucket *b)
 {
+	if (b->active_memory_block)
+		Free(b->active_memory_block);
+
 	util_mutex_destroy(&b->lock);
 	b->c_ops->destroy(b->container);
 	Free(b);
+}
+
+/*
+ * bucket_current_resvp -- returns the pointer to the current reservation count
+ */
+int *
+bucket_current_resvp(struct bucket *b)
+{
+	return b->active_memory_block ? &b->active_memory_block->nresv : NULL;
 }

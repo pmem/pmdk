@@ -2694,6 +2694,60 @@ pmemobj_next(PMEMoid oid)
 }
 
 /*
+ * pmemobj_reserve -- reserves a single object
+ */
+PMEMoid
+pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num)
+{
+	PMEMoid oid = OID_NULL;
+
+	if (palloc_reserve(&pop->heap, size, NULL, NULL, type_num,
+		0, 0, act) != 0)
+		return oid;
+
+	oid.off = act->heap.offset;
+	oid.pool_uuid_lo = pop->uuid_lo;
+
+	return oid;
+}
+
+/*
+ * pmemobj_set_value -- creates an action to set a value
+ */
+void
+pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
+	uint64_t *ptr, uint64_t value)
+{
+	palloc_set_value(&pop->heap, act, ptr, value);
+}
+
+/*
+ * pmemobj_publish -- publishes a collection of actions
+ */
+void
+pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt)
+{
+	struct redo_log *redo = pmalloc_redo_hold(pop);
+
+	struct operation_context ctx;
+	operation_init(&ctx, pop, pop->redo, redo);
+
+	palloc_publish(&pop->heap, actv, actvcnt, &ctx);
+
+	pmalloc_redo_release(pop);
+}
+
+/*
+ * pmemobj_cancel -- cancels collection of actions
+ */
+void
+pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt)
+{
+	palloc_cancel(&pop->heap, actv, actvcnt);
+}
+
+/*
  * pmemobj_list_insert -- adds object to a list
  */
 int

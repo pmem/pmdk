@@ -75,6 +75,8 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\include\libpmemobj\action.h" />
+    <ClInclude Include="..\include\libpmemobj\action_base.h" />
     <ClInclude Include="..\include\libpmemobj\atomic.h" />
     <ClInclude Include="..\include\libpmemobj\atomic_base.h" />
     <ClInclude Include="..\include\libpmemobj\base.h" />

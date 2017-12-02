@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,25 +31,60 @@
  */
 
 /*
- * libpmemobj.h -- definitions of libpmemobj entry points
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmemobj provides a pmem-resident transactional object store.
- *
- * See libpmemobj(3) for details.
+ * libpmemobj/action_base.h -- definitions of libpmemobj action interface
  */
 
-#ifndef LIBPMEMOBJ_H
-#define LIBPMEMOBJ_H 1
+#ifndef LIBPMEMOBJ_ACTION_BASE_H
+#define LIBPMEMOBJ_ACTION_BASE_H 1
 
-#include <libpmemobj/action.h>
-#include <libpmemobj/atomic.h>
-#include <libpmemobj/ctl.h>
-#include <libpmemobj/iterator.h>
-#include <libpmemobj/lists_atomic.h>
-#include <libpmemobj/pool.h>
-#include <libpmemobj/thread.h>
-#include <libpmemobj/tx.h>
+#include <libpmemobj/base.h>
 
-#endif	/* libpmemobj.h */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum pobj_action_type {
+	/* a heap action (e.g., alloc) */
+	POBJ_ACTION_TYPE_HEAP,
+	/* a single memory operation (e.g., value set)  */
+	POBJ_ACTION_TYPE_MEM,
+
+	POBJ_MAX_ACTION_TYPE
+};
+
+struct pobj_action {
+	/*
+	 * These fields are internal for the implementation and are not
+	 * guaranteed to be stable across different versions of the API.
+	 * Use with caution.
+	 *
+	 * This structure should NEVER be stored on persistent memory!
+	 */
+	enum pobj_action_type type;
+	uint32_t data[3];
+	union {
+		struct {
+			/* offset to the element being freed/allocated */
+			uint64_t offset;
+		} heap;
+		uint64_t data2[14];
+	};
+};
+
+#define POBJ_MAX_ACTIONS 60
+
+PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num);
+void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
+	uint64_t *ptr, uint64_t value);
+
+void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+int pmemobj_tx_publish(struct pobj_action *actv, int actvcnt);
+
+void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* libpmemobj/action_base.h */

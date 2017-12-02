@@ -119,5 +119,10 @@ EXPORTS
 	pmemobj_drain
 	pmemobj_direct
 	pmemobj_oid
+	pmemobj_reserve
+	pmemobj_set_value
+	pmemobj_publish
+	pmemobj_tx_publish
+	pmemobj_cancel
 	_pobj_debug_notice
 	DllMain

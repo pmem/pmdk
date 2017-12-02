@@ -42,6 +42,7 @@
 
 #include "pmemops.h"
 #include "redo.h"
+#include "lane.h"
 
 enum operation_type {
 	OPERATION_SET,
@@ -57,8 +58,7 @@ struct operation_entry {
 	enum operation_type type;
 };
 
-#define MAX_TRANSIENT_ENTRIES 10
-#define MAX_PERSITENT_ENTRIES 10
+#define MAX_MEMOPS_ENTRIES REDO_NUM_ENTRIES
 
 enum operation_entry_type {
 	ENTRY_PERSISTENT,
@@ -79,7 +79,7 @@ struct operation_context {
 
 	size_t nentries[MAX_OPERATION_ENTRY_TYPE];
 	struct operation_entry
-		entries[MAX_OPERATION_ENTRY_TYPE][MAX_PERSITENT_ENTRIES];
+		entries[MAX_OPERATION_ENTRY_TYPE][MAX_MEMOPS_ENTRIES];
 };
 
 void operation_init(struct operation_context *ctx, const void *base,

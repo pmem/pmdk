@@ -98,8 +98,8 @@ operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum operation_type type, enum operation_entry_type en_type)
 {
-	ASSERT(ctx->nentries[ENTRY_PERSISTENT] < MAX_PERSITENT_ENTRIES);
-	ASSERT(ctx->nentries[ENTRY_TRANSIENT] < MAX_TRANSIENT_ENTRIES);
+	ASSERT(ctx->nentries[ENTRY_PERSISTENT] < MAX_MEMOPS_ENTRIES);
+	ASSERT(ctx->nentries[ENTRY_TRANSIENT] < MAX_MEMOPS_ENTRIES);
 
 	/*
 	 * New entry to be added to the operations, all operations eventually
