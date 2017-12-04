@@ -1503,6 +1503,7 @@ pools_shared_data_destroy(void)
 	}
 }
 
+#ifdef JEMALLOC_VALGRIND
 /*
  * Iterates thru all the chunks/allocations on the heap and marks them
  * as defined/undefined.
@@ -1638,6 +1639,7 @@ vg_pool_init(pool_t *pool, size_t size)
 
 	return 1;
 }
+#endif /* JEMALLOC_VALGRIND */
 
 /*
  * Creates a new pool.
@@ -1732,8 +1734,10 @@ pool_open(pool_t *pool, size_t size, unsigned pool_id)
 	npools_cnt++;
 	malloc_mutex_unlock(&pools_lock);
 
+#ifdef JEMALLOC_VALGRIND
 	if (config_valgrind)
 		vg_pool_init(pool, size);
+#endif
 
 	return pool;
 }
