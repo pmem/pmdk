@@ -581,6 +581,7 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 						len - 1);
 				pc.params.obj.layout[len - 1] = '\0';
 			}
+			break;
 		case PMEM_POOL_TYPE_CTO:
 			if (!pc.layout) {
 				memcpy(pc.params.cto.layout,
