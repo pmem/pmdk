@@ -71,8 +71,8 @@ PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
 
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc libpmemcto.pc
-	HEADERS_INSTALL += include/librpmem.h include/libpmemcto.h
-	INSTALL_TARGETS += librpmem libpmemcto
+	HEADERS_INSTALL += include/librpmem.h
+	INSTALL_TARGETS += librpmem
 endif
 
 rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
