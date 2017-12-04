@@ -122,7 +122,7 @@ cto_descr_create(PMEMctopool *pcp, const char *layout, size_t poolsize)
 	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* opaque info lives at the beginning of mapped memory pool */
-	void *dscp = (void *)((uintptr_t)(&pcp->hdr) +
+	void *dscp = (void *)((uintptr_t)pcp +
 				sizeof(struct pool_hdr));
 
 	/* create required metadata */
