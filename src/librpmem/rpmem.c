@@ -57,14 +57,6 @@
 	RPMEM_REMOVE_POOL_SET	\
 )
 
-extern int Rpmem_fork_unsafe;
-
-/*
- * If set, indicates libfabric does not support fork() and consecutive calls to
- * rpmem_create/rpmem_open must fail.
- */
-int Rpmem_fork_unsafe;
-
 #define RPMEM_CHECK_FORK() do {\
 if (Rpmem_fork_unsafe) {\
 	ERR("libfabric is initialized without fork() support");\

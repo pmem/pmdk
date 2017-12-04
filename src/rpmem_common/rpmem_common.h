@@ -44,6 +44,7 @@
 #define RPMEM_DEF_SSH	"ssh"
 #define RPMEM_PROV_SOCKET_ENV	"RPMEM_ENABLE_SOCKETS"
 #define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
+#define RPMEM_MAX_NLANES_ENV	"RPMEM_MAX_NLANES"
 #define RPMEM_ACCEPT_TIMEOUT 30000
 #define RPMEM_CONNECT_TIMEOUT 30000
 #define RPMEM_MONITOR_TIMEOUT 1000
@@ -134,6 +135,9 @@ struct rpmem_target_info {
 	char service[RPMEM_MAX_SERVICE];
 	unsigned flags;
 };
+
+extern unsigned Rpmem_max_nlanes;
+extern int Rpmem_fork_unsafe;
 
 int rpmem_b64_write(int sockfd, const void *buf, size_t len, int flags);
 int rpmem_b64_read(int sockfd, void *buf, size_t len, int flags);

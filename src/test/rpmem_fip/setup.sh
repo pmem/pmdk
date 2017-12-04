@@ -49,3 +49,7 @@ RPMEM_CMD="\"cd ${NODE_TEST_DIR[0]} && RPMEMD_LOG_LEVEL=\$RPMEMD_LOG_LEVEL RPMEM
 	./rpmem_fip$EXESUFFIX\""
 
 export_vars_node 1 RPMEM_CMD
+
+if [ -n ${RPMEM_MAX_NLANES+x} ]; then
+	export_vars_node 1 RPMEM_MAX_NLANES
+fi
