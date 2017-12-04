@@ -1019,7 +1019,8 @@ static struct memory_block
 heap_coalesce(struct palloc_heap *heap,
 	const struct memory_block *blocks[], int n)
 {
-	struct memory_block ret;
+	struct memory_block ret = MEMORY_BLOCK_NONE;
+
 	const struct memory_block *b = NULL;
 	ret.size_idx = 0;
 	for (int i = 0; i < n; ++i) {

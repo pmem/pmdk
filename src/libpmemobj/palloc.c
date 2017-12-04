@@ -484,6 +484,7 @@ palloc_operation(struct palloc_heap *heap,
 		OBJ_HEAP_ACTION_INITIALIZER(0, MEMBLOCK_ALLOCATED);
 	struct pobj_action_internal dealloc =
 		OBJ_HEAP_ACTION_INITIALIZER(off, MEMBLOCK_FREE);
+
 	struct bucket *b = NULL;
 	size_t user_size = 0;
 
@@ -558,6 +559,7 @@ palloc_operation(struct palloc_heap *heap,
 	palloc_exec_actions(heap, ctx, ops, nops);
 
 	if (dealloc.m.type == MEMORY_BLOCK_HUGE) {
+		ASSERTne(b, NULL);
 		bucket_insert_block(b, &dealloc.m);
 		heap_bucket_release(heap, b);
 	}
