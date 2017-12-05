@@ -312,35 +312,29 @@ memmove_movnt_avx512f_fw(char *dest, const char *src, size_t len)
 		len -= 1 * 64;
 	}
 
+	if (len == 0) {
+		avx_zeroupper();
+		return;
+	}
+
 	/* There's no point in using more than 1 nt store for 1 cache line. */
 	if (len == 32) {
 		memmove_movnt1x32b(dest, src);
-		dest += 32;
-		src += 32;
-		len -= 32;
+		avx_zeroupper();
 	} else if (len == 16) {
 		memmove_movnt1x16b(dest, src);
-		dest += 16;
-		src += 16;
-		len -= 16;
+		avx_zeroupper();
 	} else if (len == 8) {
 		memmove_movnt1x8b(dest, src);
-		dest += 8;
-		src += 8;
-		len -= 8;
+		avx_zeroupper();
 	} else if (len == 4) {
 		memmove_movnt1x4b(dest, src);
-		dest += 4;
-		src += 4;
-		len -= 4;
-	} else if (len) {
+		avx_zeroupper();
+	} else {
 		memmove_small_avx512f_fw(dest, src, len);
 		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
-
-	if (len == 0)
-		avx_zeroupper();
 }
 
 static void
@@ -406,28 +400,33 @@ memmove_movnt_avx512f_bw(char *dest, const char *src, size_t len)
 		memmove_movnt1x64b(dest, src);
 	}
 
+	if (len == 0) {
+		avx_zeroupper();
+		return;
+	}
+
 	/* There's no point in using more than 1 nt store for 1 cache line. */
 	if (len == 32) {
 		dest -= 32;
 		src -= 32;
-		len -= 32;
 		memmove_movnt1x32b(dest, src);
+		avx_zeroupper();
 	} else if (len == 16) {
 		dest -= 16;
 		src -= 16;
-		len -= 16;
 		memmove_movnt1x16b(dest, src);
+		avx_zeroupper();
 	} else if (len == 8) {
 		dest -= 8;
 		src -= 8;
-		len -= 8;
 		memmove_movnt1x8b(dest, src);
+		avx_zeroupper();
 	} else if (len == 4) {
 		dest -= 4;
 		src -= 4;
-		len -= 4;
 		memmove_movnt1x4b(dest, src);
-	} else if (len) {
+		avx_zeroupper();
+	} else {
 		dest -= len;
 		src -= len;
 
@@ -435,9 +434,6 @@ memmove_movnt_avx512f_bw(char *dest, const char *src, size_t len)
 		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
-
-	if (len == 0)
-		avx_zeroupper();
 }
 
 void

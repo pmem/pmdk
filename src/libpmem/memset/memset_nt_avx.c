@@ -184,33 +184,32 @@ memset_movnt_avx(char *dest, int c, size_t len)
 		len -= 1 * 64;
 	}
 
+	if (len == 0) {
+		avx_zeroupper();
+		goto end;
+	}
+
 	/* There's no point in using more than 1 nt store for 1 cache line. */
 	if (len == 32) {
 		memset_movnt1x32b(dest, ymm);
-		dest += 32;
-		len -= 32;
+		avx_zeroupper();
 	} else if (len == 16) {
 		memset_movnt1x16b(dest, ymm);
-		dest += 16;
-		len -= 16;
+		avx_zeroupper();
 	} else if (len == 8) {
 		memset_movnt1x8b(dest, ymm);
-		dest += 8;
-		len -= 8;
+		avx_zeroupper();
 	} else if (len == 4) {
 		memset_movnt1x4b(dest, ymm);
-		dest += 4;
-		len -= 4;
-	} else if (len) {
+		avx_zeroupper();
+	} else {
 		memset_small_avx(dest, ymm, len);
 
 		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
-	if (len == 0)
-		avx_zeroupper();
-
+end:
 	/* serialize non-temporal store instructions */
 	_mm_sfence();
 }
