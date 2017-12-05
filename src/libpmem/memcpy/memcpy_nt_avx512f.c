@@ -34,6 +34,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avx.h"
 #include "memcpy_avx512f.h"
 #include "libpmem.h"
 #include "pmem.h"
@@ -260,7 +261,7 @@ memmove_movnt_avx512f_fw(char *dest, const char *src, size_t len)
 			cnt = len;
 
 		memmove_small_avx512f_fw(dest, src, cnt);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, cnt);
 
 		dest += cnt;
@@ -334,12 +335,12 @@ memmove_movnt_avx512f_fw(char *dest, const char *src, size_t len)
 		len -= 4;
 	} else if (len) {
 		memmove_small_avx512f_fw(dest, src, len);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
 	if (len == 0)
-		_mm256_zeroupper();
+		avx_zeroupper();
 }
 
 static void
@@ -358,7 +359,7 @@ memmove_movnt_avx512f_bw(char *dest, const char *src, size_t len)
 		len -= cnt;
 
 		memmove_small_avx512f_fw(dest, src, cnt);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, cnt);
 	}
 
@@ -431,12 +432,12 @@ memmove_movnt_avx512f_bw(char *dest, const char *src, size_t len)
 		src -= len;
 
 		memmove_small_avx512f_fw(dest, src, len);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
 	if (len == 0)
-		_mm256_zeroupper();
+		avx_zeroupper();
 }
 
 void
