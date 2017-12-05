@@ -200,18 +200,24 @@ memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
 		return;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		memmove_movnt1x32b(dest, src);
-	} else if (len == 16) {
-		memmove_movnt1x16b(dest, src);
-	} else if (len == 8) {
-		memmove_movnt1x8b(dest, src);
-	} else if (len == 4) {
-		memmove_movnt1x4b(dest, src);
-	} else {
-		memmove_small_sse2(dest, src, len);
-		pmem_flush(dest, len);
+	if (single_bit_set(len)) {
+		if (len == 32)
+			memmove_movnt1x32b(dest, src);
+		else if (len == 16)
+			memmove_movnt1x16b(dest, src);
+		else if (len == 8)
+			memmove_movnt1x8b(dest, src);
+		else if (len == 4)
+			memmove_movnt1x4b(dest, src);
+		else
+			goto nonnt;
+
+		return;
 	}
+
+nonnt:
+	memmove_small_sse2(dest, src, len);
+	pmem_flush(dest, len);
 }
 
 static void
@@ -258,28 +264,35 @@ memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
 		return;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		dest -= 32;
-		src -= 32;
-		memmove_movnt1x32b(dest, src);
-	} else if (len == 16) {
-		dest -= 16;
-		src -= 16;
-		memmove_movnt1x16b(dest, src);
-	} else if (len == 8) {
-		dest -= 8;
-		src -= 8;
-		memmove_movnt1x8b(dest, src);
-	} else if (len == 4) {
-		dest -= 4;
-		src -= 4;
-		memmove_movnt1x4b(dest, src);
-	} else {
-		dest -= len;
-		src -= len;
-		memmove_small_sse2(dest, src, len);
-		pmem_flush(dest, len);
+	if (single_bit_set(len)) {
+		if (len == 32) {
+			dest -= 32;
+			src -= 32;
+			memmove_movnt1x32b(dest, src);
+		} else if (len == 16) {
+			dest -= 16;
+			src -= 16;
+			memmove_movnt1x16b(dest, src);
+		} else if (len == 8) {
+			dest -= 8;
+			src -= 8;
+			memmove_movnt1x8b(dest, src);
+		} else if (len == 4) {
+			dest -= 4;
+			src -= 4;
+			memmove_movnt1x4b(dest, src);
+		} else {
+			goto nonnt;
+		}
+
+		return;
 	}
+
+nonnt:
+	dest -= len;
+	src -= len;
+	memmove_small_sse2(dest, src, len);
+	pmem_flush(dest, len);
 }
 
 void
