@@ -256,24 +256,27 @@ memset_movnt_avx512f(char *dest, int c, size_t len)
 	}
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		memset_movnt1x32b(dest, ymm);
-		avx_zeroupper();
-	} else if (len == 16) {
-		memset_movnt1x16b(dest, ymm);
-		avx_zeroupper();
-	} else if (len == 8) {
-		memset_movnt1x8b(dest, ymm);
-		avx_zeroupper();
-	} else if (len == 4) {
-		memset_movnt1x4b(dest, ymm);
-		avx_zeroupper();
-	} else {
-		memset_small_avx512f(dest, ymm, len);
+	if (single_bit_set(len)) {
+		if (len == 32)
+			memset_movnt1x32b(dest, ymm);
+		else if (len == 16)
+			memset_movnt1x16b(dest, ymm);
+		else if (len == 8)
+			memset_movnt1x8b(dest, ymm);
+		else if (len == 4)
+			memset_movnt1x4b(dest, ymm);
+		else
+			goto nonnt;
 
 		avx_zeroupper();
-		pmem_flush(dest, len);
+		goto end;
 	}
+
+nonnt:
+	memset_small_avx512f(dest, ymm, len);
+
+	avx_zeroupper();
+	pmem_flush(dest, len);
 
 end:
 	/* serialize non-temporal store instructions */

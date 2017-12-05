@@ -147,6 +147,15 @@ util_clrbit(uint8_t *b, uint32_t i)
 #define util_flag_isclr(a, f) (((a) & (f)) == 0)
 
 /*
+ * single_bit_set -- returns !0 when there's only 1 bit set in v, 0 otherwise
+ */
+static inline int
+single_bit_set(uint64_t v)
+{
+	return v && !(v & (v - 1));
+}
+
+/*
  * util_bool_compare_and_swap -- perform an atomic compare and swap
  * util_fetch_and_* -- perform an operation atomically, return old value
  * util_synchronize -- issue a full memory barrier

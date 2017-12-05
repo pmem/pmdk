@@ -221,24 +221,27 @@ memmove_movnt_avx_fw(char *dest, const char *src, size_t len)
 	}
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		memmove_movnt1x32b(dest, src);
-		avx_zeroupper();
-	} else if (len == 16) {
-		memmove_movnt1x16b(dest, src);
-		avx_zeroupper();
-	} else if (len == 8) {
-		memmove_movnt1x8b(dest, src);
-		avx_zeroupper();
-	} else if (len == 4) {
-		memmove_movnt1x4b(dest, src);
-		avx_zeroupper();
-	} else {
-		memmove_small_avx(dest, src, len);
+	if (single_bit_set(len)) {
+		if (len == 32)
+			memmove_movnt1x32b(dest, src);
+		else if (len == 16)
+			memmove_movnt1x16b(dest, src);
+		else if (len == 8)
+			memmove_movnt1x8b(dest, src);
+		else if (len == 4)
+			memmove_movnt1x4b(dest, src);
+		else
+			goto nonnt;
 
 		avx_zeroupper();
-		pmem_flush(dest, len);
+		return;
 	}
+
+nonnt:
+	memmove_small_avx(dest, src, len);
+
+	avx_zeroupper();
+	pmem_flush(dest, len);
 }
 
 static void
@@ -295,33 +298,38 @@ memmove_movnt_avx_bw(char *dest, const char *src, size_t len)
 	}
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		dest -= 32;
-		src -= 32;
-		memmove_movnt1x32b(dest, src);
+	if (single_bit_set(len)) {
+		if (len == 32) {
+			dest -= 32;
+			src -= 32;
+			memmove_movnt1x32b(dest, src);
+		} else if (len == 16) {
+			dest -= 16;
+			src -= 16;
+			memmove_movnt1x16b(dest, src);
+		} else if (len == 8) {
+			dest -= 8;
+			src -= 8;
+			memmove_movnt1x8b(dest, src);
+		} else if (len == 4) {
+			dest -= 4;
+			src -= 4;
+			memmove_movnt1x4b(dest, src);
+		} else {
+			goto nonnt;
+		}
+
 		avx_zeroupper();
-	} else if (len == 16) {
-		dest -= 16;
-		src -= 16;
-		memmove_movnt1x16b(dest, src);
-		avx_zeroupper();
-	} else if (len == 8) {
-		dest -= 8;
-		src -= 8;
-		memmove_movnt1x8b(dest, src);
-		avx_zeroupper();
-	} else if (len == 4) {
-		dest -= 4;
-		src -= 4;
-		memmove_movnt1x4b(dest, src);
-		avx_zeroupper();
-	} else {
-		dest -= len;
-		src -= len;
-		memmove_small_avx(dest, src, len);
-		avx_zeroupper();
-		pmem_flush(dest, len);
+		return;
 	}
+
+nonnt:
+	dest -= len;
+	src -= len;
+	memmove_small_avx(dest, src, len);
+
+	avx_zeroupper();
+	pmem_flush(dest, len);
 }
 
 void

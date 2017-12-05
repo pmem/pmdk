@@ -168,19 +168,25 @@ memset_movnt_sse2(char *dest, int c, size_t len)
 		goto end;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (len == 32) {
-		memset_movnt1x32b(dest, xmm);
-	} else if (len == 16) {
-		memset_movnt1x16b(dest, xmm);
-	} else if (len == 8) {
-		memset_movnt1x8b(dest, xmm);
-	} else if (len == 4) {
-		memset_movnt1x4b(dest, xmm);
-	} else {
-		memset_small_sse2(dest, xmm, len);
+	if (single_bit_set(len)) {
+		if (len == 32)
+			memset_movnt1x32b(dest, xmm);
+		else if (len == 16)
+			memset_movnt1x16b(dest, xmm);
+		else if (len == 8)
+			memset_movnt1x8b(dest, xmm);
+		else if (len == 4)
+			memset_movnt1x4b(dest, xmm);
+		else
+			goto nonnt;
 
-		pmem_flush(dest, len);
+		goto end;
 	}
+
+nonnt:
+	memset_small_sse2(dest, xmm, len);
+
+	pmem_flush(dest, len);
 
 end:
 	/* serialize non-temporal store instructions */
