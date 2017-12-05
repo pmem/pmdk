@@ -554,8 +554,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 		map_bench->pool_size = 0;
 	} else {
-		if (map_bench->pool_size < PMEMOBJ_MIN_POOL)
-			map_bench->pool_size = PMEMOBJ_MIN_POOL;
+		if (map_bench->pool_size < 2 * PMEMOBJ_MIN_POOL)
+			map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
 	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",
