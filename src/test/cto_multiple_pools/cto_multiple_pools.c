@@ -33,7 +33,7 @@
 /*
  * cto_multiple_pools.c -- unit test for cto_multiple_pools
  *
- * usage: cto_multiple_pools directory npools [nthreads]
+ * usage: cto_multiple_pools directory mode npools nthreads
  */
 
 #include "unittest.h"
@@ -43,9 +43,11 @@
 static PMEMctopool **Pools;
 static int Npools;
 static const char *Dir;
+static int *Pool_idx;
+static os_thread_t *Threads;
 
 static void *
-thread_func(void *arg)
+thread_func_open(void *arg)
 {
 	int start_idx = *(int *)arg;
 	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
@@ -56,6 +58,40 @@ thread_func(void *arg)
 
 			/* XXX - buffer overflow */
 			sprintf(filename, "%s/pool%d", Dir, pool_id);
+			UT_OUT("%s", filename);
+
+			Pools[pool_id] = pmemcto_open(filename, "test");
+			UT_ASSERTne(Pools[pool_id], NULL);
+
+#if 0
+			/* XXX re-enable once the bug is fixed */
+			void *ptr = pmemcto_malloc(Pools[pool_id], sizeof(int));
+			UT_OUT("pcp %p ptr %p", Pools[pool_id], ptr);
+			UT_ASSERTne(ptr, NULL);
+
+			pmemcto_free(Pools[pool_id], ptr);
+#endif
+
+			pmemcto_close(Pools[pool_id]);
+		}
+	}
+
+	return NULL;
+}
+
+static void *
+thread_func_create(void *arg)
+{
+	int start_idx = *(int *)arg;
+	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
+
+	for (int repeat = 0; repeat < NREPEATS; ++repeat) {
+		for (int idx = 0; idx < Npools; ++idx) {
+			int pool_id = start_idx + idx;
+
+			/* XXX - buffer overflow */
+			sprintf(filename, "%s/pool%d", Dir, pool_id);
+			UT_OUT("%s", filename);
 
 			/* delete old pool with the same id if exists */
 			if (Pools[pool_id] != NULL) {
@@ -78,46 +114,90 @@ thread_func(void *arg)
 	return NULL;
 }
 
+static void
+test_open(int nthreads)
+{
+	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
+
+	/* create all the pools */
+	for (int pool_id = 0; pool_id < Npools * nthreads; ++pool_id) {
+		/* XXX - buffer overflow */
+		sprintf(filename, "%s/pool%d", Dir, pool_id);
+
+		Pools[pool_id] = pmemcto_create(filename, "test",
+			PMEMCTO_MIN_POOL, 0600);
+		UT_ASSERTne(Pools[pool_id], NULL);
+	}
+
+	for (int pool_id = 0; pool_id < Npools * nthreads; ++pool_id)
+		pmemcto_close(Pools[pool_id]);
+
+	for (int t = 0; t < nthreads; t++) {
+		Pool_idx[t] = Npools * t;
+		PTHREAD_CREATE(&Threads[t], NULL, thread_func_open,
+				&Pool_idx[t]);
+	}
+
+	for (int t = 0; t < nthreads; t++)
+		PTHREAD_JOIN(&Threads[t], NULL);
+}
+
+static void
+test_create(int nthreads)
+{
+	/* create and destroy pools multiple times */
+	for (int t = 0; t < nthreads; t++) {
+		Pool_idx[t] = Npools * t;
+		PTHREAD_CREATE(&Threads[t], NULL, thread_func_create,
+				&Pool_idx[t]);
+	}
+
+	for (int t = 0; t < nthreads; t++)
+		PTHREAD_JOIN(&Threads[t], NULL);
+
+	for (int i = 0; i < Npools * nthreads; ++i) {
+		if (Pools[i] != NULL) {
+			pmemcto_close(Pools[i]);
+			Pools[i] = NULL;
+		}
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "cto_multiple_pools");
 
 	if (argc < 4)
-		UT_FATAL("usage: %s directory npools nthreads", argv[0]);
+		UT_FATAL("usage: %s directory mode npools nthreads", argv[0]);
 
 	Dir = argv[1];
-	Npools = atoi(argv[2]);
-
-	int nthreads = atoi(argv[3]);
+	char mode = argv[2][0];
+	Npools = atoi(argv[3]);
+	int nthreads = atoi(argv[4]);
 
 	UT_OUT("create %d pools in %d thread(s)", Npools, nthreads);
 
-	Pools = CALLOC(Npools * nthreads, sizeof(VMEM *));
-	os_thread_t *threads = CALLOC(nthreads, sizeof(os_thread_t));
+	Pools = CALLOC(Npools * nthreads, sizeof(PMEMctopool *));
+	Threads = CALLOC(nthreads, sizeof(os_thread_t));
+	Pool_idx = CALLOC(nthreads, sizeof(int));
 
-	int *pool_idx = CALLOC(nthreads, sizeof(int));
-	UT_ASSERTne(pool_idx, NULL);
+	switch (mode) {
+	case 'o':
+		test_open(nthreads);
+		break;
 
-	/* create and destroy pools multiple times */
-	for (int t = 0; t < nthreads; t++) {
-		pool_idx[t] = Npools * t;
-		PTHREAD_CREATE(&threads[t], NULL, thread_func, &pool_idx[t]);
-	}
+	case 'c':
+		test_create(nthreads);
+		break;
 
-	for (int t = 0; t < nthreads; t++)
-		PTHREAD_JOIN(&threads[t], NULL);
-
-	for (int i = 0; i < Npools; ++i) {
-		if (Pools[i] != NULL) {
-			pmemcto_close(Pools[i]);
-			Pools[i] = NULL;
-		}
+	default:
+		UT_FATAL("unknown mode");
 	}
 
 	FREE(Pools);
-	FREE(threads);
-	FREE(pool_idx);
+	FREE(Threads);
+	FREE(Pool_idx);
 
 	DONE(NULL);
 }

@@ -51,6 +51,6 @@ setup
 export PMEM_LOG_LEVEL=0
 export PMEMCTO_LOG_LEVEL=0
 
-expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR 2 4
+expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR c 2 4
 
 pass
