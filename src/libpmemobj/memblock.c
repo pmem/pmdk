@@ -813,7 +813,7 @@ memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
  *	originates from the heap
  */
 struct memory_block
-memblock_from_offset(struct palloc_heap *heap, uint64_t off)
+memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 {
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.heap = heap;
@@ -851,12 +851,21 @@ memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 		off -= m.block_off * unit_size;
 	}
 
-	m.size_idx = CALC_SIZE_IDX(unit_size,
+	m.size_idx = !size ? 0 : CALC_SIZE_IDX(unit_size,
 		memblock_header_ops[m.header_type].get_size(&m));
 
 	ASSERTeq(off, 0);
 
 	return m;
+}
+
+/*
+ * memblock_from_offset -- returns memory block with size
+ */
+struct memory_block
+memblock_from_offset(struct palloc_heap *heap, uint64_t off)
+{
+	return memblock_from_offset_opt(heap, off, 1);
 }
 
 /*
