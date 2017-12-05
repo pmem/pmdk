@@ -34,6 +34,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avx.h"
 #include "memcpy_avx.h"
 #include "pmem.h"
 
@@ -227,5 +228,6 @@ memmove_mov_avx(char *dest, const char *src, size_t len)
 		memmove_mov_avx_fw(dest, src, len);
 	else
 		memmove_mov_avx_bw(dest, src, len);
-	_mm256_zeroupper();
+
+	avx_zeroupper();
 }

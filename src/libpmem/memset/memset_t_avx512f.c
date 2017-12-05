@@ -34,6 +34,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avx.h"
 #include "memset_avx512f.h"
 #include "pmem.h"
 
@@ -190,5 +191,5 @@ memset_mov_avx512f(char *dest, int c, size_t len)
 	if (len)
 		memset_small_avx512f(dest, ymm, len);
 
-	_mm256_zeroupper();
+	avx_zeroupper();
 }

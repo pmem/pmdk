@@ -34,6 +34,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avx.h"
 #include "memcpy_avx.h"
 #include "pmem.h"
 #include "valgrind_internal.h"
@@ -177,7 +178,7 @@ memmove_movnt_avx_fw(char *dest, const char *src, size_t len)
 			cnt = len;
 
 		memmove_small_avx(dest, src, cnt);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, cnt);
 
 		dest += cnt;
@@ -238,31 +239,16 @@ memmove_movnt_avx_fw(char *dest, const char *src, size_t len)
 	} else if (len) {
 		memmove_small_avx(dest, src, len);
 
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
 	/*
-	 * We don't have to zero upper 128 bits of ymm registers, but if we
-	 * won't do that and someone memcpy'ies uninitialized data, then
-	 * Valgrind might complain whenever someone will read those registers.
-	 *
-	 * One notable example is loader, which tries to detect whether it
-	 * needs to save whole ymm registers by looking at their current
-	 * (possibly uninitialized) value.
-	 *
-	 * Valgrind complains like that:
-	 * Conditional jump or move depends on uninitialised value(s)
-	 *    at 0x4015CC9: _dl_runtime_resolve_avx_slow
-	 *                                 (in /lib/x86_64-linux-gnu/ld-2.24.so)
-	 *    by 0x10B531: test_realloc_api (obj_basic_integration.c:185)
-	 *    by 0x10F1EE: main (obj_basic_integration.c:594)
-	 *
 	 * We have to issue it only when len is 0, we already did that after
 	 * memmove_small_avx_fw.
 	 */
 	if (len == 0)
-		_mm256_zeroupper();
+		avx_zeroupper();
 }
 
 static void
@@ -281,7 +267,7 @@ memmove_movnt_avx_bw(char *dest, const char *src, size_t len)
 		len -= cnt;
 
 		memmove_small_avx(dest, src, cnt);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, cnt);
 	}
 
@@ -338,12 +324,12 @@ memmove_movnt_avx_bw(char *dest, const char *src, size_t len)
 		dest -= len;
 		src -= len;
 		memmove_small_avx(dest, src, len);
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
 	if (len == 0)
-		_mm256_zeroupper();
+		avx_zeroupper();
 }
 
 void
