@@ -1,5 +1,5 @@
 - tag: master
-  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool pmempool-sync pmempool-transform librpmem rpmemd poolset
+  libs: libpmem libpmemblk libpmemlog libpmemobj libvmem pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool pmempool-sync pmempool-transform librpmem rpmemd poolset libpmemcto
   func:
     libpmem: pmem_check_version.3 pmem_drain.3 pmem_errormsg.3 pmem_flush.3 pmem_has_hw_drain.3 pmem_is_pmem.3 pmem_map_file.3 pmem_memcpy_nodrain.3 pmem_memcpy_persist.3 pmem_memmove_nodrain.3 pmem_memmove_persist.3 pmem_memset_nodrain.3 pmem_memset_persist.3 pmem_msync.3 pmem_persist.3 pmem_unmap.3
     libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
@@ -8,6 +8,7 @@
     libpmempool: pmempool_check.3 pmempool_check_end.3 pmempool_check_init.3 pmempool_check_version.3 pmempool_errormsg.3 pmempool_rm.3 pmempool_sync.3 pmempool_transform.3
     libvmem: vmem_aligned_alloc.3 vmem_calloc.3 vmem_check.3 vmem_check_version.3 vmem_create.3 vmem_create_in_region.3 vmem_delete.3 vmem_errormsg.3 vmem_free.3 vmem_malloc.3 vmem_malloc_usable_size.3 vmem_realloc.3 vmem_set_funcs.3 vmem_stats_print.3 vmem_strdup.3 vmem_wcsdup.3
     librpmem: rpmem_close.3 rpmem_errormsg.3 rpmem_open.3 rpmem_read.3 rpmem_remove.3 rpmem_set_attr.3 rpmem_create.3 rpmem_persist.3
+    libpmemcto: pmemcto_aligned_alloc.3 pmemcto_calloc.3 pmemcto_check.3 pmemcto_close.3 pmemcto_create.3 pmemcto_errormsg.3 pmemcto_free.3 pmemcto_get_root_pointer.3 pmemcto_malloc.3 pmemcto_malloc_usable_size.3 pmemcto_open.3 pmemcto_realloc.3 pmemcto_set_root_pointer.3 pmemcto_stats_print.3 pmemcto_strdup.3 pmemcto_wcsdup.3
 - tag: 1.3
   libs: libpmem libpmemblk libpmemlog libpmemobj libvmem libvmmalloc pmempool pmempool-check pmempool-create pmempool-dump pmempool-info pmempool-rm pmempool-convert libpmempool librpmem rpmemd pmempool-sync pmempool-transform
   func: empty

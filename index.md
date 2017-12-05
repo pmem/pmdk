@@ -37,6 +37,18 @@ to a log file.
 
 See the [libpmemlog page](libpmemlog) for documentation and examples.
 
+#### libpmemcto
+
+The **libpmemcto** provides common malloc-like interfaces to persistent
+memory pools built on memory-mapped files, with no overhead imposed
+by run-time flushing or transactional updates.
+
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
+
+See the [libpmemcto page](libpmemcto) for documentation and examples.
+
 #### libpmem
 
 The **libpmem** library provides low level persistent memory support.
@@ -86,9 +98,6 @@ The **librpmem** provides low-level support for remote access to
 _persistent memory_ utilizing RDMA-capable RNICs. The library can be
 used to replicate content of local persistent memory regions to
 persistent memory on a remote node over RDMA protocol.
->NOTE:
-This is still an **experimental API** and should not be used in production
-environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
