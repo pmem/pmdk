@@ -1130,12 +1130,13 @@ pmem_get_cpuinfo(void)
 #if AVX_AVAILABLE
 			LOG(3, "avx supported");
 
-			char *e = os_getenv("PMEM_NO_AVX");
-			if (e && strcmp(e, "1") == 0)
-				LOG(3, "PMEM_NO_AVX forced no avx");
-			else {
+			char *e = os_getenv("PMEM_AVX");
+			if (e && strcmp(e, "1") == 0) {
+				LOG(3, "PMEM_AVX enabled");
 				Func_memmove_nodrain = memmove_nodrain_avx;
 				Func_memset_nodrain = memset_nodrain_avx;
+			} else {
+				LOG(3, "PMEM_AVX not set or not == 1");
 			}
 #else
 			LOG(3, "avx supported, but disabled at build time");
@@ -1146,12 +1147,13 @@ pmem_get_cpuinfo(void)
 #if AVX512F_AVAILABLE
 			LOG(3, "avx512f supported");
 
-			char *e = os_getenv("PMEM_NO_AVX512F");
-			if (e && strcmp(e, "1") == 0)
-				LOG(3, "PMEM_NO_AVX512F forced no avx512f");
-			else {
+			char *e = os_getenv("PMEM_AVX512F");
+			if (e && strcmp(e, "1") == 0) {
+				LOG(3, "PMEM_AVX512F enabled");
 				Func_memmove_nodrain = memmove_nodrain_avx512f;
 				Func_memset_nodrain = memset_nodrain_avx512f;
+			} else {
+				LOG(3, "PMEM_AVX512F not set or not == 1");
 			}
 #else
 			LOG(3, "avx512f supported, but disabled at build time");

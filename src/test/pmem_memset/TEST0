@@ -59,11 +59,11 @@ function test_all() {
 
 test_all
 
-export PMEM_NO_AVX512F=1
+export PMEM_AVX512F=1
 
 test_all
 
-export PMEM_NO_AVX=1
+export PMEM_AVX=1
 
 test_all
 
