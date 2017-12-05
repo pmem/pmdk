@@ -48,11 +48,11 @@
 
 PROGS = arttree
 LIBRARIES = art
+LIBS = -lpmem -lpmemcto
 
 include ../../Makefile.inc
 
 CFLAGS += -ggdb -O0
-LIBS = -lpmem -lpmemcto
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart

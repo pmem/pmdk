@@ -68,10 +68,11 @@ main(int argc, char *argv[])
 			break;
 		}
 		case 1: {
-			UT_OUT("only remove allocations");
+			UT_OUT("free after close");
 			ptr = pmemcto_malloc(pcp, sizeof(int));
 			UT_ASSERTne(ptr, NULL);
 
+			pmemcto_close(pcp);
 			pmemcto_free(pcp, ptr);
 			break;
 		}

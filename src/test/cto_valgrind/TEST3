@@ -47,6 +47,7 @@ export VALGRIND_OPTS="--suppressions=excluded-errors.supp\
 require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
+require_no_freebsd
 
 require_valgrind_dev_version 3.7
 configure_valgrind memcheck force-enable

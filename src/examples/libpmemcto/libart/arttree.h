@@ -54,6 +54,12 @@ extern "C" {
 
 #include "art.h"
 
+#ifdef __FreeBSD__
+#define RESET_GETOPT optreset = 1; optind = 1
+#else
+#define RESET_GETOPT optind = 0
+#endif
+
 #ifdef __cplusplus
 }
 #endif

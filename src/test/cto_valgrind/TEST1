@@ -53,10 +53,6 @@ configure_valgrind memcheck force-enable
 
 setup
 
-# disable debug traces to avoid unnecessary allocations
-unset PMEMCTO_LOG_LEVEL
-unset PMEMCTO_LOG_FILE
-
-expect_normal_exit ./cto_valgrind$EXESUFFIX $DIR/testfile 1
+expect_abnormal_exit ./cto_valgrind$EXESUFFIX $DIR/testfile 1
 
 pass

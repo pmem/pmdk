@@ -73,6 +73,36 @@ helgrind_FreeBSD_flockfile
    ...
 }
 {
+drd_FreeBSD_fopen
+   drd:ConflictingAccess
+   obj:/lib/libc.so.7
+   fun:fopen
+   ...
+}
+{
+helgrind_FreeBSD_fopen
+   Helgrind:Race
+   obj:/lib/libc.so.7
+   fun:fopen
+   ...
+}
+{
+drd_FreeBSD_fputs
+   drd:ConflictingAccess
+   obj:/lib/libc.so.7
+   ...
+   fun:fputs
+   ...
+}
+{
+helgrind_FreeBSD_fputs
+   Helgrind:Race
+   obj:/lib/libc.so.7
+   ...
+   fun:fputs
+   ...
+}
+{
 drd_FreeBSD_funlockfile
    drd:ConflictingAccess
    fun:funlockfile
