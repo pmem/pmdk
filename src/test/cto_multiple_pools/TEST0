@@ -46,6 +46,6 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR 32 1
+expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR c 32 1
 
 pass

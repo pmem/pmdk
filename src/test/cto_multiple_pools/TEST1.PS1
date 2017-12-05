@@ -49,6 +49,6 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\cto_multiple_pools$Env:EXESUFFIX $DIR 8 4
+expect_normal_exit $Env:EXE_DIR\cto_multiple_pools$Env:EXESUFFIX $DIR c 8 4
 
 pass
