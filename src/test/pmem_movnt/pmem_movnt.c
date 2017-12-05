@@ -46,13 +46,13 @@ main(int argc, char *argv[])
 	char *src;
 
 	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
-	const char *no_avx = getenv("PMEM_NO_AVX");
-	const char *no_avx512f = getenv("PMEM_NO_AVX512F");
+	const char *avx = getenv("PMEM_AVX");
+	const char *avx512f = getenv("PMEM_AVX512F");
 
 	START(argc, argv, "pmem_movnt %s %savx %savx512f",
 			thr ? thr : "default",
-			no_avx ? "!" : "",
-			no_avx512f ? "!" : "");
+			avx ? "" : "!",
+			avx512f ? "" : "!");
 
 	src = MEMALIGN(64, 8192);
 	dst = MEMALIGN(64, 8192);
