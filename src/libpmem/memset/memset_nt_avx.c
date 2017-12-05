@@ -34,6 +34,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avx.h"
 #include "libpmem.h"
 #include "memset_avx.h"
 #include "out.h"
@@ -150,8 +151,9 @@ memset_movnt_avx(char *dest, int c, size_t len)
 
 		memset_small_avx(dest, ymm, cnt);
 
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, cnt);
+		ymm = _mm256_set1_epi8((char)c);
 
 		dest += cnt;
 		len -= cnt;
@@ -202,12 +204,12 @@ memset_movnt_avx(char *dest, int c, size_t len)
 	} else if (len) {
 		memset_small_avx(dest, ymm, len);
 
-		_mm256_zeroupper();
+		avx_zeroupper();
 		pmem_flush(dest, len);
 	}
 
 	if (len == 0)
-		_mm256_zeroupper();
+		avx_zeroupper();
 
 	/* serialize non-temporal store instructions */
 	_mm_sfence();
