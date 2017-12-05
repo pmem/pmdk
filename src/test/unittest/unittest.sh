@@ -1055,6 +1055,17 @@ function dax_get_size() {
 }
 
 #
+# dax_get_alignment -- get the alignment of a device dax
+#
+function dax_get_alignment() {
+	minor_hex=$(stat -c "%t" $1)
+	major_hex=$(stat -c "%T" $1)
+	minor_dec=$((16#$minor_hex))
+	major_dec=$((16#$major_hex))
+	cat /sys/dev/char/$minor_dec:$major_dec/device/align
+}
+
+#
 # require_dax_devices -- only allow script to continue for a dax device
 #
 function require_dax_devices() {
@@ -2670,3 +2681,16 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 	done
 	exit 0
 fi
+
+# calculate the minimum of two or more numbers
+minimum() {
+	local min=$1
+	shift
+	for val in $*; do
+		if [[ "$val" < "$min" ]]; then
+			min=$val
+		fi
+	done
+	echo $min
+}
+
