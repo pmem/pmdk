@@ -105,6 +105,7 @@ struct lane_tx_runtime {
 	struct tx_undo_runtime undo;
 	struct pobj_action alloc_actv[MAX_TX_ALLOC_RESERVATIONS];
 	int actvcnt; /* reservation count */
+	int actvundo; /* reservations in undo log (to skip) */
 };
 
 struct tx_alloc_args {
@@ -402,7 +403,8 @@ tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		TX_CLR_FLAG_VG_CLEAN |
 		(lane ? TX_CLR_FLAG_FREE : TX_CLR_FLAG_FREE_IF_EXISTS);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], lane ? lane->actvcnt : 0,
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC],
+		lane ? lane->actvundo : 0,
 		flags);
 }
 
@@ -781,6 +783,7 @@ tx_fulfill_reservations(struct tx *tx)
 
 	palloc_publish(&pop->heap, lane->alloc_actv, lane->actvcnt, &ctx);
 	lane->actvcnt = 0;
+	lane->actvundo = 0;
 
 	pmalloc_redo_release(pop);
 }
@@ -793,6 +796,7 @@ tx_cancel_reservations(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 {
 	palloc_cancel(&pop->heap, lane->alloc_actv, lane->actvcnt);
 	lane->actvcnt = 0;
+	lane->actvundo = 0;
 }
 
 /*
@@ -1101,6 +1105,8 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	*entry_offset = retoid.off;
 	pmemops_persist(&pop->p_ops, entry_offset, sizeof(*entry_offset));
 
+	lane->actvundo++;
+
 	return retoid;
 
 err_oom:
@@ -1203,6 +1209,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane->lane_idx = idx;
 
 		lane->actvcnt = 0;
+		lane->actvundo = 0;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
@@ -2208,6 +2215,7 @@ pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 		sizeof(struct pobj_action) * (unsigned)actvcnt);
 
 	lane->actvcnt = actvcnt;
+	lane->actvundo = actvcnt;
 
 	return 0;
 }
