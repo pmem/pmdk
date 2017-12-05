@@ -43,6 +43,7 @@
 #include "libpmemobj.h"
 #include "memops.h"
 #include "redo.h"
+#include "valgrind_internal.h"
 
 struct palloc_heap {
 	struct pmem_ops p_ops;
@@ -106,6 +107,7 @@ void palloc_heap_cleanup(struct palloc_heap *heap);
 typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #ifdef USE_VG_MEMCHECK
+void palloc_vg_register_off(struct palloc_heap *heap, uint64_t off);
 void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif
 

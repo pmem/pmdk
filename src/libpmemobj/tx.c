@@ -896,15 +896,7 @@ tx_abort_register_valgrind(PMEMobjpool *pop, struct pvector_context *ctx)
 {
 	uint64_t off;
 	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
-		/*
-		 * Can't use pmemobj_direct and pmemobj_alloc_usable_size
-		 * because pool has not been registered yet.
-		 */
-		void *p = (char *)pop + off;
-		size_t sz = palloc_usable_size(&pop->heap, off);
-
-		VALGRIND_DO_MEMPOOL_ALLOC(pop->heap.layout, p, sz);
-		VALGRIND_DO_MAKE_MEM_DEFINED(p, sz);
+		palloc_vg_register_off(&pop->heap, off);
 	}
 }
 #endif
