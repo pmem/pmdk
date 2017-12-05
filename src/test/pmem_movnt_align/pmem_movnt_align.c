@@ -114,13 +114,13 @@ main(int argc, char *argv[])
 
 	char type = argv[1][0];
 	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
-	const char *no_avx = getenv("PMEM_NO_AVX");
-	const char *no_avx512f = getenv("PMEM_NO_AVX512F");
+	const char *avx = getenv("PMEM_AVX");
+	const char *avx512f = getenv("PMEM_AVX512F");
 
 	START(argc, argv, "pmem_movnt_align %c %s %savx %savx512f", type,
 			thr ? thr : "default",
-			no_avx ? "!" : "",
-			no_avx512f ? "!" : "");
+			avx ? "" : "!",
+			avx512f ? "" : "!");
 
 	size_t s;
 	switch (type) {

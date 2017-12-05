@@ -86,11 +86,11 @@ function test_all {
 
 test_all
 
-$Env:PMEM_NO_AVX512F = 1
+$Env:PMEM_AVX512F = 1
 
 test_all
 
-$Env:PMEM_NO_AVX = 1
+$Env:PMEM_AVX = 1
 
 test_all
 
