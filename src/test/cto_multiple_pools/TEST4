@@ -46,10 +46,6 @@ require_build_type debug nondebug
 
 setup
 
-# XXX - without it, after the threads are spawned, the base addreses
-# could be busy
-export PMEM_MMAP_HINT=0x10000000000
-
 expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR o 4 4
 
 pass

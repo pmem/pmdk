@@ -49,10 +49,6 @@ require_fs_type any
 
 setup
 
-# XXX: CTO - w/o this hint, there is about 50% chance that libpmemcto would
-# fail to map the pool at the same address as it was created
-$Env:PMEM_MMAP_HINT="0x10000000000"
-
 create_holey_file 32M $DIR/testfile1
 
 expect_normal_exit $Env:EXE_DIR\cto_basic$Env:EXESUFFIX $DIR\testfile1

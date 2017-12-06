@@ -30,34 +30,25 @@
 #
 
 #
-# src/test/cto_stats/TEST3.PS1 -- unit test for cto_stats
+# src/test/cto_multiple_pools/TEST4.PS1 -- unit test for cto_multiple_pools
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "cto_stats/TEST3"
-$Env:UNITTEST_NUM = "3"
+$Env:UNITTEST_NAME = "cto_multiple_pools/TEST4"
+$Env:UNITTEST_NUM = "4"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any
-require_build_type debug
+require_build_type debug nondebug
 
 setup
 
-# limit the number of arenas to fit into the minimal PMEMCTO pool size
-$Env:JE_VMEM_MALLOC_CONF="narenas:64"
-
-expect_normal_exit $Env:EXE_DIR\cto_stats$Env:EXESUFFIX `
-    $DIR\testfile1 $DIR\testfile2 gbla
-
-Get-Content pmemcto$Env:UNITTEST_NUM.log | Where-Object `
-    {$_ -notmatch '<libpmemcto>:'} > grep$Env:UNITTEST_NUM.log
-
-check
+expect_normal_exit $Env:EXE_DIR\cto_multiple_pools$Env:EXESUFFIX $DIR o 4 4
 
 pass
