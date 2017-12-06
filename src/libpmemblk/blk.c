@@ -521,7 +521,7 @@ blk_open_common(const char *path, size_t bsize, int cow)
 	if (util_pool_open(&set, path, cow, PMEMBLK_MIN_PART,
 			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
 			BLK_FORMAT_COMPAT_CHECK, BLK_FORMAT_INCOMPAT_CHECK,
-			BLK_FORMAT_RO_COMPAT_CHECK, NULL) != 0) {
+			BLK_FORMAT_RO_COMPAT_CHECK, NULL, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
