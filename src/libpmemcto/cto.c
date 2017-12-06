@@ -62,6 +62,9 @@
 #include "valgrind_internal.h"
 #include "os_thread.h"
 
+/* default hint address for mmap() when PMEM_MMAP_HINT is not specified */
+#define CTO_MMAP_HINT ((void *)0x10000000000)
+
 static os_mutex_t Pool_lock; /* guards pmemcto_create and pmemcto_open */
 
 /*
@@ -251,6 +254,17 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 
 	util_mutex_lock(&Pool_lock);
 
+	/*
+	 * Since pmemcto_create and pmemcto_open are guarded by the lock,
+	 * we can safely modify the global Mmap_hint variable and restore
+	 * it once the pool is created.
+	 */
+	int old_no_random = Mmap_no_random;
+	if (!Mmap_no_random) {
+		Mmap_no_random = 1;
+		Mmap_hint = CTO_MMAP_HINT; /* XXX: add randomization */
+	}
+
 	if (util_pool_create(&set, path,
 			poolsize, PMEMCTO_MIN_POOL, PMEMCTO_MIN_PART,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
@@ -258,10 +272,12 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 			CTO_FORMAT_RO_COMPAT_DEFAULT, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
+		Mmap_no_random = old_no_random;
 		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
 
+	Mmap_no_random = old_no_random;
 	util_mutex_unlock(&Pool_lock);
 
 	ASSERT(set->nreplicas > 0);
