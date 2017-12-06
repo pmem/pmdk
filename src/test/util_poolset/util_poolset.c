@@ -186,7 +186,7 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, 0, 0, NULL);
+				MIN_PART, SIG, 1, 0, 0, 0, NULL, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {

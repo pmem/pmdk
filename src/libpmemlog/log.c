@@ -276,7 +276,7 @@ log_open_common(const char *path, int cow)
 	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART,
 			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
 			LOG_FORMAT_COMPAT_CHECK, LOG_FORMAT_INCOMPAT_CHECK,
-			LOG_FORMAT_RO_COMPAT_CHECK, NULL) != 0) {
+			LOG_FORMAT_RO_COMPAT_CHECK, NULL, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

@@ -118,6 +118,7 @@ struct pool_replica {
 	unsigned nhdrs;		/* should be either 1 or nparts */
 	size_t repsize;		/* total size of all the parts (mappings) */
 	int is_pmem;		/* true if all the parts are in PMEM */
+	void *mapaddr;		/* base address (libpmemcto only) */
 	struct remote_replica *remote;	/* not NULL if the replica */
 					/* is a remote one */
 	struct pool_set_part part[];
@@ -249,7 +250,7 @@ int util_unmap_hdr(struct pool_set_part *part);
 int util_pool_open_nocheck(struct pool_set *set, int cow);
 int util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes);
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes, void *addr);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,

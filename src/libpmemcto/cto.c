@@ -357,16 +357,17 @@ pmemcto_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
  * This routine opens the pool, but does not any run-time initialization.
  */
 static PMEMctopool *
-cto_open_noinit(const char *path, const char *layout, int cow)
+cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
 {
-	LOG(3, "path \"%s\" layout \"%s\"  cow %d", path, layout, cow);
+	LOG(3, "path \"%s\" layout \"%s\" cow %d addr %p",
+			path, layout, cow, addr);
 
 	struct pool_set *set;
 
 	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
 			CTO_FORMAT_COMPAT_CHECK, CTO_FORMAT_INCOMPAT_CHECK,
-			CTO_FORMAT_RO_COMPAT_CHECK, NULL) != 0) {
+			CTO_FORMAT_RO_COMPAT_CHECK, NULL, addr) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -433,7 +434,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 	 */
 
 	/* open pool set to check consistency and to get the mapping address */
-	if ((pcp = cto_open_noinit(path, layout, cow)) == NULL) {
+	if ((pcp = cto_open_noinit(path, layout, cow, NULL)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -446,16 +447,8 @@ cto_open_common(const char *path, const char *layout, int cow)
 	util_poolset_close(pcp->set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 
-	/*
-	 * open the pool once again using the mapping address as a hint
-	 *
-	 * XXX: use global PMEM map hint variable to pass mapping address
-	 * to util_map()
-	 */
-	Mmap_no_random = 1;
-	Mmap_hint = mapaddr;
-
-	if ((pcp = cto_open_noinit(path, layout, cow)) == NULL) {
+	/* open the pool once again using the mapping address as a hint */
+	if ((pcp = cto_open_noinit(path, layout, cow, mapaddr)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
