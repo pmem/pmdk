@@ -109,8 +109,8 @@ LIBS += ../nondebug/libpmemcommon.a
 else
 LIBS += ../debug/libpmemcommon.a
 endif
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm\
-	$(LIBDL) $(LIBUUID)
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm \
+	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif

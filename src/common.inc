@@ -250,6 +250,7 @@ LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
 LIBCXXABI=-lcxxrt
+LIBNDCTL=
 else
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
@@ -259,4 +260,8 @@ LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
 LIBCXXABI=-lc++abi
+ifeq ($(call check_package, libndctl --atleast-version 58.2.37),n)
+$(error libndctl(version >= 58.2.37) is missing -- see README)
+endif
+LIBNDCTL := -lndctl -ldaxctl
 endif
