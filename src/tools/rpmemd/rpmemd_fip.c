@@ -56,6 +56,7 @@
 #include "rpmem_fip_common.h"
 #include "rpmemd_fip.h"
 
+#include "pool_hdr.h"
 #include "os_thread.h"
 #include "util.h"
 #include "valgrind_internal.h"
@@ -251,7 +252,7 @@ rpmemd_fip_set_resp(struct rpmemd_fip *fip, struct rpmem_resp_attr *resp)
 
 	resp->rkey = fi_mr_key(fip->mr);
 	resp->persist_method = fip->persist_method;
-	resp->raddr = (uint64_t)fip->addr;
+	resp->raddr = (uint64_t)fip->addr + POOL_HDR_SIZE;
 	resp->nlanes = fip->nlanes;
 
 	return 0;

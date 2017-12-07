@@ -196,11 +196,10 @@ static int
 rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 	struct rpmem_resp_attr *resp, int *status)
 {
-	void *addr = (void *)((uintptr_t)rpmemd->pool->pool_addr +
-			POOL_HDR_SIZE);
+	void *addr = (void *)((uintptr_t)rpmemd->pool->pool_addr);
 	struct rpmemd_fip_attr fip_attr = {
 		.addr		= addr,
-		.size		= req->pool_size,
+		.size		= req->pool_size + POOL_HDR_SIZE,
 		.nlanes		= req->nlanes,
 		.nthreads	= rpmemd->nthreads,
 		.provider	= req->provider,
