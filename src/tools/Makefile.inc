@@ -128,9 +128,7 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
 LIBS += $(LIBDL)
-ifeq ($(NDCTL_AVAILABLE), y)
-LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
-endif
+LIBS += $(LIBNDCTL)
 endif
 
 ifeq ($(LIBPMEMPOOL), y)
