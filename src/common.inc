@@ -233,12 +233,6 @@ endif
 export NDCTL_DISABLE ?= n
 export NDCTL_AVAILABLE := $(call check_package, libndctl)
 
-ifeq ($(shell uname -s),Linux)
-ifneq ($(NDCTL_AVAILABLE),y)
-$(error libndctl not found)
-endif
-endif
-
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
 ifeq ($(shell uname -s),FreeBSD)
@@ -263,5 +257,5 @@ LIBCXXABI=-lc++abi
 ifeq ($(call check_package, libndctl --atleast-version 58.2.37),n)
 $(error libndctl(version >= 58.2.37) is missing -- see README)
 endif
-LIBNDCTL := -lndctl -ldaxctl
+LIBNDCTL := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
 endif

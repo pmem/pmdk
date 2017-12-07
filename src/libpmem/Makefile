@@ -50,20 +50,8 @@ SOURCE =\
 	pmem.c\
 	pmem_posix.c
 
-
-ifeq ($(NDCTL_AVAILABLE), y)
-CFLAGS += -DNVML_COMMON_MMAP_DAX_DEEP_FLUSH=1
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libndctl)
-endif
-
 include ../Makefile.inc
-
-ifeq ($(NDCTL_DISABLE), y)
-CFLAGS += -DNDCTL_DISABLE
-endif
 
 LIBS += -pthread
 
-ifeq ($(NDCTL_AVAILABLE), y)
-LIBS += $(shell $(PKG_CONFIG) --libs libndctl)
-endif
+LIBS += $(LIBNDCTL)
