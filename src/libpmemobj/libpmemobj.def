@@ -69,6 +69,8 @@ EXPORTS
 	pmemobj_cond_wait
 	pmemobj_ctl_getU;
 	pmemobj_ctl_getW;
+	pmemobj_ctl_runU;
+	pmemobj_ctl_runW;
 	pmemobj_ctl_setU;
 	pmemobj_ctl_setW;
 	pmemobj_pool_by_oid
