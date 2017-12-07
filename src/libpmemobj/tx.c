@@ -221,7 +221,7 @@ obj_tx_abort_null(int errnum)
 static int
 constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
@@ -247,7 +247,7 @@ constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 static int
 constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 	PMEMobjpool *pop = ctx;
 
 	ASSERTne(ptr, NULL);
@@ -363,7 +363,7 @@ static void
 tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo, int nskip,
 	enum tx_clr_flag flags)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	uint64_t val;
 
@@ -393,7 +393,7 @@ static void
 tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 	struct lane_tx_runtime *lane)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 
 	/*
 	 * If not in recovery, the active reservations present in the undo log
@@ -414,7 +414,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 static void
 tx_abort_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0, 0);
 }
@@ -544,7 +544,7 @@ static void
 tx_foreach_set(PMEMobjpool *pop, struct tx *tx, struct tx_undo_runtime *tx_rt,
 	void (*cb)(PMEMobjpool *pop, struct tx *tx, struct tx_range *range))
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	struct tx_range *range = NULL;
 	uint64_t off;
@@ -610,7 +610,7 @@ static void
 tx_clear_set_cache_but_first(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 	struct tx *tx, enum tx_clr_flag vg_flags)
 {
-	LOG(3, NULL);
+	LOG(4, NULL);
 
 	struct pvector_context *cache_undo = tx_rt->ctx[UNDO_SET_CACHE];
 	uint64_t first_cache = pvector_first(cache_undo);
@@ -663,7 +663,7 @@ tx_clear_set_cache_but_first(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 static void
 tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	struct tx *tx = recovery ? NULL : get_tx();
 
@@ -690,7 +690,7 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 static void
 tx_post_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], 0,
 			TX_CLR_FLAG_VG_TX_REMOVE);
@@ -703,7 +703,7 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 static void
 tx_post_commit_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0,
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_TX_REMOVE);
@@ -731,7 +731,7 @@ static void
 tx_post_commit_set(PMEMobjpool *pop, struct tx *tx,
 		struct tx_undo_runtime *tx_rt, int recovery)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 #ifdef USE_VG_PMEMCHECK
 	if (On_valgrind)
@@ -805,7 +805,7 @@ tx_cancel_reservations(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 static void
 tx_pre_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_runtime *lane)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 
 	ASSERTne(tx->section->runtime, NULL);
 
@@ -823,7 +823,7 @@ static int
 tx_rebuild_undo_runtime(PMEMobjpool *pop, struct lane_tx_layout *layout,
 	struct tx_undo_runtime *tx_rt)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	int i;
 	for (i = UNDO_ALLOC; i < MAX_UNDO_TYPES; ++i) {
@@ -851,7 +851,7 @@ error_init:
 static void
 tx_destroy_undo_runtime(struct tx_undo_runtime *tx)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	for (int i = UNDO_ALLOC; i < MAX_UNDO_TYPES; ++i)
 		pvector_delete(tx->ctx[i]);
@@ -864,7 +864,7 @@ static void
 tx_post_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_layout *layout,
 		int recovery)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	struct tx_undo_runtime *tx_rt;
 	struct tx_undo_runtime new_rt = { .ctx = {NULL, } };
@@ -908,7 +908,7 @@ static void
 tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 		struct lane_tx_layout *layout, int recovery)
 {
-	LOG(3, NULL);
+	LOG(7, NULL);
 
 	struct tx_undo_runtime *tx_rt;
 	struct tx_undo_runtime new_rt = { .ctx = {NULL, } };
@@ -1552,7 +1552,7 @@ pmemobj_tx_end(void)
 void
 pmemobj_tx_process(void)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
@@ -1609,7 +1609,7 @@ pmemobj_tx_add_large(struct tx *tx, struct tx_add_range_args *args)
 static int
 constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
-	LOG(3, NULL);
+	LOG(5, NULL);
 	PMEMobjpool *pop = ctx;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 

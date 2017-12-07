@@ -1039,7 +1039,7 @@ err:
 static int
 lane_list_recovery(PMEMobjpool *pop, void *data, unsigned length)
 {
-	LOG(3, "list lane %p", data);
+	LOG(7, "list lane %p", data);
 
 	struct lane_list_layout *section = data;
 	ASSERT(sizeof(*section) <= length);
