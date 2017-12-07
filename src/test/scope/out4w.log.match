@@ -19,6 +19,8 @@ pmemobj_createU
 pmemobj_createW
 pmemobj_ctl_getU
 pmemobj_ctl_getW
+pmemobj_ctl_runU
+pmemobj_ctl_runW
 pmemobj_ctl_setU
 pmemobj_ctl_setW
 pmemobj_direct
