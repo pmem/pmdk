@@ -56,32 +56,27 @@ setup
 $Env:PMEM_LOG_LEVEL=15
 
 function test {
-	$num = $args[1]
 	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX $args[0]
-
-	Get-Content pmem$Env:UNITTEST_NUM.log | Select-String -Pattern "pmem_flush" | `
-		%{[string]$_ -replace '^.* len ',""} > grep$num.log
-	match grep$num.log.match
 }
 
 function test_all {
 	$Env:PMEM_MOVNT_THRESHOLD=$null
-	test C 0
-	test F 1
-	test B 2
-	test S 3
+	test C
+	test F
+	test B
+	test S
 
 	$Env:PMEM_MOVNT_THRESHOLD=0
-	test C 0
-	test F 1
-	test B 2
-	test S 3
+	test C
+	test F
+	test B
+	test S
 
 	$Env:PMEM_MOVNT_THRESHOLD=99999
-	test C 4
-	test F 5
-	test B 6
-	test S 7
+	test C
+	test F
+	test B
+	test S
 }
 
 test_all
