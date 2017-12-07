@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "avx.h"
 #include "libpmem.h"
 #include "out.h"
 
@@ -59,7 +60,7 @@ memset_small_avx_noflush(char *dest, __m256i ymm, size_t len)
 le32:
 	if (len > 16) {
 		/* 17..32 */
-		__m128i xmm = (__m128i)_mm256_extractf128_si256(ymm, 0);
+		__m128i xmm = m256_get16b(ymm);
 
 		_mm_storeu_si128((__m128i *)dest, xmm);
 		_mm_storeu_si128((__m128i *)(dest + len - 16), xmm);
@@ -67,7 +68,7 @@ le32:
 	}
 
 	/* 9..16 */
-	uint64_t d8 = (uint64_t)_mm256_extract_epi64(ymm, 0);
+	uint64_t d8 = m256_get8b(ymm);
 
 	*(uint64_t *)dest = d8;
 	*(uint64_t *)(dest + len - 8) = d8;
@@ -79,7 +80,7 @@ le8:
 
 	if (len > 4) {
 		/* 5..8 */
-		uint32_t d = (uint32_t)_mm256_extract_epi32(ymm, 0);
+		uint32_t d = m256_get4b(ymm);
 
 		*(uint32_t *)dest = d;
 		*(uint32_t *)(dest + len - 4) = d;
@@ -87,7 +88,7 @@ le8:
 	}
 
 	/* 3..4 */
-	uint16_t d2 = (uint16_t)_mm256_extract_epi16(ymm, 0);
+	uint16_t d2 = m256_get2b(ymm);
 
 	*(uint16_t *)dest = d2;
 	*(uint16_t *)(dest + len - 2) = d2;
@@ -95,13 +96,13 @@ le8:
 
 le2:
 	if (len == 2) {
-		uint16_t d2 = (uint16_t)_mm256_extract_epi16(ymm, 0);
+		uint16_t d2 = m256_get2b(ymm);
 
 		*(uint16_t *)dest = d2;
 		return;
 	}
 
-	*(uint8_t *)dest = (uint8_t)_mm256_extract_epi16(ymm, 0);
+	*(uint8_t *)dest = (uint8_t)m256_get2b(ymm);
 }
 
 static inline void
