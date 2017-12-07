@@ -30,18 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEM_MEMCPY_AVX512F_H
-#define PMEM_MEMCPY_AVX512F_H
-
-#include <stddef.h>
-
-#include "memcpy_avx.h"
-
-static inline void
-memmove_small_avx512f(char *dest, const char *src, size_t len)
-{
-	/* We can't do better than AVX here. */
-	memmove_small_avx(dest, src, len);
-}
-
-#endif
+#include "pmem.h"
+#define flush64b _mm_clwb
+#define flush flush_dcache_nolog
+#define EXPORTED_SYMBOL memset_mov_avx_clwb
+#include "memset_t_avx.h"

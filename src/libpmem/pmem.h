@@ -33,10 +33,20 @@
 /*
  * pmem.h -- internal definitions for libpmem
  */
+#ifndef PMEM_H
+#define PMEM_H
+
+#ifdef __aarch64__
+#include "arm_cacheops.h"
+#endif
+
+#include <emmintrin.h>
+#include <stdint.h>
 
 #define PMEM_LOG_PREFIX "libpmem"
 #define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
 #define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+#define FLUSH_ALIGN ((uintptr_t)64)
 
 void pmem_init(void);
 
@@ -60,24 +70,60 @@ void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
 #endif
 
 #if SSE2_AVAILABLE
-void memmove_mov_sse2(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2(char *dest, const char *src, size_t len);
-void memset_mov_sse2(char *dest, int c, size_t len);
-void memset_movnt_sse2(char *dest, int c, size_t len);
+void memmove_mov_sse2_clflush(char *dest, const char *src, size_t len);
+void memmove_mov_sse2_clflushopt(char *dest, const char *src, size_t len);
+void memmove_mov_sse2_clwb(char *dest, const char *src, size_t len);
+void memmove_mov_sse2_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2_clflush(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2_clflushopt(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2_clwb(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2_empty(char *dest, const char *src, size_t len);
+void memset_mov_sse2_clflush(char *dest, int c, size_t len);
+void memset_mov_sse2_clflushopt(char *dest, int c, size_t len);
+void memset_mov_sse2_clwb(char *dest, int c, size_t len);
+void memset_mov_sse2_empty(char *dest, int c, size_t len);
+void memset_movnt_sse2_clflush(char *dest, int c, size_t len);
+void memset_movnt_sse2_clflushopt(char *dest, int c, size_t len);
+void memset_movnt_sse2_clwb(char *dest, int c, size_t len);
+void memset_movnt_sse2_empty(char *dest, int c, size_t len);
 #endif
 
 #if AVX_AVAILABLE
-void memmove_mov_avx(char *dest, const char *src, size_t len);
-void memmove_movnt_avx(char *dest, const char *src, size_t len);
-void memset_mov_avx(char *dest, int c, size_t len);
-void memset_movnt_avx(char *dest, int c, size_t len);
+void memmove_mov_avx_clflush(char *dest, const char *src, size_t len);
+void memmove_mov_avx_clflushopt(char *dest, const char *src, size_t len);
+void memmove_mov_avx_clwb(char *dest, const char *src, size_t len);
+void memmove_mov_avx_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_avx_clflush(char *dest, const char *src, size_t len);
+void memmove_movnt_avx_clflushopt(char *dest, const char *src, size_t len);
+void memmove_movnt_avx_clwb(char *dest, const char *src, size_t len);
+void memmove_movnt_avx_empty(char *dest, const char *src, size_t len);
+void memset_mov_avx_clflush(char *dest, int c, size_t len);
+void memset_mov_avx_clflushopt(char *dest, int c, size_t len);
+void memset_mov_avx_clwb(char *dest, int c, size_t len);
+void memset_mov_avx_empty(char *dest, int c, size_t len);
+void memset_movnt_avx_clflush(char *dest, int c, size_t len);
+void memset_movnt_avx_clflushopt(char *dest, int c, size_t len);
+void memset_movnt_avx_clwb(char *dest, int c, size_t len);
+void memset_movnt_avx_empty(char *dest, int c, size_t len);
 #endif
 
 #if AVX512F_AVAILABLE
-void memmove_mov_avx512f(char *dest, const char *src, size_t len);
-void memmove_movnt_avx512f(char *dest, const char *src, size_t len);
-void memset_mov_avx512f(char *dest, int c, size_t len);
-void memset_movnt_avx512f(char *dest, int c, size_t len);
+void memmove_mov_avx512f_clflush(char *dest, const char *src, size_t len);
+void memmove_mov_avx512f_clflushopt(char *dest, const char *src, size_t len);
+void memmove_mov_avx512f_clwb(char *dest, const char *src, size_t len);
+void memmove_mov_avx512f_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f_clflush(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f_clflushopt(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f_clwb(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f_empty(char *dest, const char *src, size_t len);
+void memset_mov_avx512f_clflush(char *dest, int c, size_t len);
+void memset_mov_avx512f_clflushopt(char *dest, int c, size_t len);
+void memset_mov_avx512f_clwb(char *dest, int c, size_t len);
+void memset_mov_avx512f_empty(char *dest, int c, size_t len);
+void memset_movnt_avx512f_clflush(char *dest, int c, size_t len);
+void memset_movnt_avx512f_clflushopt(char *dest, int c, size_t len);
+void memset_movnt_avx512f_clwb(char *dest, int c, size_t len);
+void memset_movnt_avx512f_empty(char *dest, int c, size_t len);
 #endif
 
 extern size_t Movnt_threshold;
@@ -89,4 +135,130 @@ typedef BOOL (WINAPI *PQVM)(
 		SIZE_T, PSIZE_T);
 
 extern PQVM Func_qvmi;
+#endif
+
+#ifndef _MSC_VER
+/*
+ * The x86 memory instructions are new enough that the compiler
+ * intrinsic functions are not always available.  The intrinsic
+ * functions are defined here in terms of asm statements for now.
+ */
+#ifndef __aarch64__
+#define _mm_clflushopt(addr)\
+	asm volatile(".byte 0x66; clflush %0" : "+m" \
+		(*(volatile char *)(addr)));
+#define _mm_clwb(addr)\
+	asm volatile(".byte 0x66; xsaveopt %0" : "+m" \
+		(*(volatile char *)(addr)));
+#endif /* __aarch64__ */
+#endif /* _MSC_VER */
+
+static inline void
+noflush(const char *addr)
+{
+}
+
+#ifndef __aarch64__
+/*
+ * flush_dcache_invalidate_nolog -- flush the CPU cache, using clflush
+ */
+static inline void
+flush_dcache_invalidate_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN)
+		_mm_clflush((char *)uptr);
+}
+#endif
+
+#ifdef __aarch64__
+/*
+ * flush_clflushopt_nolog -- flush the CPU cache, using
+ * arm_clean_and_invalidate_va_to_poc (see arm_cacheops.h) {DC CIVAC}
+ */
+static inline void
+flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	arm_data_memory_barrier();
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		arm_clean_and_invalidate_va_to_poc((char *)uptr);
+	}
+	arm_data_memory_barrier();
+}
+#else
+/*
+ * flush_clflushopt_nolog -- flush the CPU cache, using clflushopt
+ */
+static inline void
+flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		_mm_clflushopt((char *)uptr);
+	}
+}
+#endif
+
+#ifdef __aarch64__
+/*
+ * flush_dcache_nolog -- flush the CPU cache, using DC CVAC
+ */
+static inline void
+flush_dcache_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		arm_clean_va_to_poc((char *)uptr);
+	}
+}
+#else
+/*
+ * flush_dcache_nolog -- flush the CPU cache, using clwb
+ */
+static inline void
+flush_dcache_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		_mm_clwb((char *)uptr);
+	}
+}
+#endif
+
+/*
+ * flush_empty_nolog -- (internal) do not flush the CPU cache
+ */
+static inline void
+flush_empty_nolog(const void *addr, size_t len)
+{
+	/* NOP */
+}
+
 #endif

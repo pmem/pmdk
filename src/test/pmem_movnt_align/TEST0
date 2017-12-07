@@ -51,29 +51,26 @@ export PMEM_LOG_LEVEL=15
 
 function test() {
 	expect_normal_exit ./pmem_movnt_align$EXESUFFIX $1
-
-	$GREP "pmem_flush" pmem$UNITTEST_NUM.log | sed 's/.*len //' > grep$2.log
-	match grep$2.log.match
 }
 
 function test_all() {
 	unset PMEM_MOVNT_THRESHOLD
-	test C 0
-	test F 1
-	test B 2
-	test S 3
+	test C
+	test F
+	test B
+	test S
 
 	export PMEM_MOVNT_THRESHOLD=0
-	test C 0
-	test F 1
-	test B 2
-	test S 3
+	test C
+	test F
+	test B
+	test S
 
 	export PMEM_MOVNT_THRESHOLD=99999
-	test C 4
-	test F 5
-	test B 6
-	test S 7
+	test C
+	test F
+	test B
+	test S
 }
 
 test_all

@@ -172,9 +172,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#ifndef __aarch64__
-#include <emmintrin.h>
-#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -194,26 +191,6 @@
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep.h"
-#ifdef __aarch64__
-#include "arm_cacheops.h"
-#endif
-
-#ifndef _MSC_VER
-/*
- * The x86 memory instructions are new enough that the compiler
- * intrinsic functions are not always available.  The intrinsic
- * functions are defined here in terms of asm statements for now.
- */
-
-#ifndef __aarch64__
-#define _mm_clflushopt(addr)\
-	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
-#define _mm_clwb(addr)\
-	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#endif /* __aarch64__ */
-#endif /* _MSC_VER */
-
-#define FLUSH_ALIGN ((uintptr_t)64)
 
 #ifndef __aarch64__
 #define MOVNT_THRESHOLD	256
@@ -283,30 +260,7 @@ pmem_drain(void)
 	VALGRIND_DO_FENCE;
 }
 
-
-#ifdef __aarch64__
-/*
- * flush_dcache does similar to clwb using DC CVAC
- */
-static void
-flush_dcache(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		arm_clean_va_to_poc((char *)uptr);
-	}
-}
-
-#else
-
+#ifndef __aarch64__
 /*
  * flush_dcache_invalidate -- (internal) flush the CPU cache, using clflush
  */
@@ -315,16 +269,21 @@ flush_dcache_invalidate(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
-	uintptr_t uptr;
+	flush_dcache_invalidate_nolog(addr, len);
+}
+#endif
 
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clflush((char *)uptr);
-	}
+/*
+ * flush_dcache_invalidate_opt -- (internal) flush the CPU cache,
+ * using clflushopt for X86 and arm_clean_and_invalidate_va_to_poc
+ * for aarch64 (see arm_cacheops.h) {DC CIVAC}
+ */
+static void
+flush_dcache_invalidate_opt(const void *addr, size_t len)
+{
+	LOG(15, "addr %p len %zu", addr, len);
+
+	flush_dcache_invalidate_opt_nolog(addr, len);
 }
 
 /*
@@ -335,60 +294,8 @@ flush_dcache(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clwb((char *)uptr);
-	}
+	flush_dcache_nolog(addr, len);
 }
-#endif
-
-/*
- * flush_dcache_invalidate_opt -- (internal) flush the CPU cache,
- * using clflushopt for X86 and arm_clean_and_invalidate_va_to_poc
- * for aarch64 (see arm_cacheops.h) {DC CIVAC}
- */
-
-#ifdef __aarch64__
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len  %zu", addr, len);
-
-	uintptr_t uptr;
-
-	arm_data_memory_barrier();
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		arm_clean_and_invalidate_va_to_poc((char *)uptr);
-	}
-	arm_data_memory_barrier();
-}
-
-#else
-
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clflushopt((char *)uptr);
-	}
-}
-#endif
 
 /*
  * flush_empty -- (internal) do not flush the CPU cache
@@ -398,7 +305,7 @@ flush_empty(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
-	/* NOP */
+	flush_empty_nolog(addr, len);
 }
 
 /*
@@ -924,33 +831,113 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 
 #if SSE2_AVAILABLE
 static void *
-memmove_nodrain_sse2(void *dest, const void *src, size_t len)
+memmove_nodrain_sse2_clflush(void *dest, const void *src, size_t len)
 {
 	if (len == 0 || src == dest)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memmove_mov_sse2(dest, src, len);
-		pmem_flush(dest, len);
-	} else {
-		memmove_movnt_sse2(dest, src, len);
-	}
+	if (len < Movnt_threshold)
+		memmove_mov_sse2_clflush(dest, src, len);
+	else
+		memmove_movnt_sse2_clflush(dest, src, len);
 
 	return dest;
 }
 
 static void *
-memset_nodrain_sse2(void *dest, int c, size_t len)
+memmove_nodrain_sse2_clflushopt(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_sse2_clflushopt(dest, src, len);
+	else
+		memmove_movnt_sse2_clflushopt(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_sse2_clwb(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_sse2_clwb(dest, src, len);
+	else
+		memmove_movnt_sse2_clwb(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_sse2_empty(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_sse2_empty(dest, src, len);
+	else
+		memmove_movnt_sse2_empty(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_sse2_clflush(void *dest, int c, size_t len)
 {
 	if (len == 0)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memset_mov_sse2(dest, c, len);
-		pmem_flush(dest, len);
-	} else {
-		memset_movnt_sse2(dest, c, len);
-	}
+	if (len < Movnt_threshold)
+		memset_mov_sse2_clflush(dest, c, len);
+	else
+		memset_movnt_sse2_clflush(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_sse2_clflushopt(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_sse2_clflushopt(dest, c, len);
+	else
+		memset_movnt_sse2_clflushopt(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_sse2_clwb(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_sse2_clwb(dest, c, len);
+	else
+		memset_movnt_sse2_clwb(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_sse2_empty(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_sse2_empty(dest, c, len);
+	else
+		memset_movnt_sse2_empty(dest, c, len);
 
 	return dest;
 }
@@ -958,33 +945,113 @@ memset_nodrain_sse2(void *dest, int c, size_t len)
 
 #if AVX_AVAILABLE
 static void *
-memmove_nodrain_avx(void *dest, const void *src, size_t len)
+memmove_nodrain_avx_clflush(void *dest, const void *src, size_t len)
 {
 	if (len == 0 || src == dest)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memmove_mov_avx(dest, src, len);
-		pmem_flush(dest, len);
-	} else {
-		memmove_movnt_avx(dest, src, len);
-	}
+	if (len < Movnt_threshold)
+		memmove_mov_avx_clflush(dest, src, len);
+	else
+		memmove_movnt_avx_clflush(dest, src, len);
 
 	return dest;
 }
 
 static void *
-memset_nodrain_avx(void *dest, int c, size_t len)
+memmove_nodrain_avx_clflushopt(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx_clflushopt(dest, src, len);
+	else
+		memmove_movnt_avx_clflushopt(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_avx_clwb(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx_clwb(dest, src, len);
+	else
+		memmove_movnt_avx_clwb(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_avx_empty(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx_empty(dest, src, len);
+	else
+		memmove_movnt_avx_empty(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx_clflush(void *dest, int c, size_t len)
 {
 	if (len == 0)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memset_mov_avx(dest, c, len);
-		pmem_flush(dest, len);
-	} else {
-		memset_movnt_avx(dest, c, len);
-	}
+	if (len < Movnt_threshold)
+		memset_mov_avx_clflush(dest, c, len);
+	else
+		memset_movnt_avx_clflush(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx_clflushopt(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx_clflushopt(dest, c, len);
+	else
+		memset_movnt_avx_clflushopt(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx_clwb(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx_clwb(dest, c, len);
+	else
+		memset_movnt_avx_clwb(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx_empty(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx_empty(dest, c, len);
+	else
+		memset_movnt_avx_empty(dest, c, len);
 
 	return dest;
 }
@@ -992,33 +1059,113 @@ memset_nodrain_avx(void *dest, int c, size_t len)
 
 #if AVX512F_AVAILABLE
 static void *
-memmove_nodrain_avx512f(void *dest, const void *src, size_t len)
+memmove_nodrain_avx512f_clflush(void *dest, const void *src, size_t len)
 {
 	if (len == 0 || src == dest)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memmove_mov_avx512f(dest, src, len);
-		pmem_flush(dest, len);
-	} else {
-		memmove_movnt_avx512f(dest, src, len);
-	}
+	if (len < Movnt_threshold)
+		memmove_mov_avx512f_clflush(dest, src, len);
+	else
+		memmove_movnt_avx512f_clflush(dest, src, len);
 
 	return dest;
 }
 
 static void *
-memset_nodrain_avx512f(void *dest, int c, size_t len)
+memmove_nodrain_avx512f_clflushopt(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx512f_clflushopt(dest, src, len);
+	else
+		memmove_movnt_avx512f_clflushopt(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_avx512f_clwb(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx512f_clwb(dest, src, len);
+	else
+		memmove_movnt_avx512f_clwb(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memmove_nodrain_avx512f_empty(void *dest, const void *src, size_t len)
+{
+	if (len == 0 || src == dest)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memmove_mov_avx512f_empty(dest, src, len);
+	else
+		memmove_movnt_avx512f_empty(dest, src, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx512f_clflush(void *dest, int c, size_t len)
 {
 	if (len == 0)
 		return dest;
 
-	if (len < Movnt_threshold) {
-		memset_mov_avx512f(dest, c, len);
-		pmem_flush(dest, len);
-	} else {
-		memset_movnt_avx512f(dest, c, len);
-	}
+	if (len < Movnt_threshold)
+		memset_mov_avx512f_clflush(dest, c, len);
+	else
+		memset_movnt_avx512f_clflush(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx512f_clflushopt(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx512f_clflushopt(dest, c, len);
+	else
+		memset_movnt_avx512f_clflushopt(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx512f_clwb(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx512f_clwb(dest, c, len);
+	else
+		memset_movnt_avx512f_clwb(dest, c, len);
+
+	return dest;
+}
+
+static void *
+memset_nodrain_avx512f_empty(void *dest, int c, size_t len)
+{
+	if (len == 0)
+		return dest;
+
+	if (len < Movnt_threshold)
+		memset_mov_avx512f_empty(dest, c, len);
+	else
+		memset_movnt_avx512f_empty(dest, c, len);
 
 	return dest;
 }
@@ -1058,17 +1205,26 @@ pmem_log_cpuinfo(void)
 #endif
 
 #if AVX512F_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_avx512f)
+	if (Func_memmove_nodrain == memmove_nodrain_avx512f_clflush ||
+		Func_memmove_nodrain == memmove_nodrain_avx512f_clflushopt ||
+			Func_memmove_nodrain == memmove_nodrain_avx512f_clwb ||
+			Func_memmove_nodrain == memmove_nodrain_avx512f_empty)
 		LOG(3, "using movnt AVX512F");
 	else
 #endif
 #if AVX_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_avx)
+	if (Func_memmove_nodrain == memmove_nodrain_avx_clflush ||
+		Func_memmove_nodrain == memmove_nodrain_avx_clflushopt ||
+			Func_memmove_nodrain == memmove_nodrain_avx_clwb ||
+			Func_memmove_nodrain == memmove_nodrain_avx_empty)
 		LOG(3, "using movnt AVX");
 	else
 #endif
 #if SSE2_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_sse2)
+	if (Func_memmove_nodrain == memmove_nodrain_sse2_clflush ||
+		Func_memmove_nodrain == memmove_nodrain_sse2_clflushopt ||
+			Func_memmove_nodrain == memmove_nodrain_sse2_clwb ||
+			Func_memmove_nodrain == memmove_nodrain_sse2_empty)
 		LOG(3, "using movnt SSE2");
 	else
 #endif
@@ -1120,8 +1276,27 @@ pmem_get_cpuinfo(void)
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	} else {
 #if SSE2_AVAILABLE
-		Func_memmove_nodrain = memmove_nodrain_sse2;
-		Func_memset_nodrain = memset_nodrain_sse2;
+		if (Func_flush == flush_dcache_invalidate)
+			Func_memmove_nodrain = memmove_nodrain_sse2_clflush;
+		else if (Func_flush == flush_dcache_invalidate_opt)
+			Func_memmove_nodrain = memmove_nodrain_sse2_clflushopt;
+		else if (Func_flush == flush_dcache)
+			Func_memmove_nodrain = memmove_nodrain_sse2_clwb;
+		else if (Func_flush == flush_empty)
+			Func_memmove_nodrain = memmove_nodrain_sse2_empty;
+		else
+			ASSERT(0);
+
+		if (Func_flush == flush_dcache_invalidate)
+			Func_memset_nodrain = memset_nodrain_sse2_clflush;
+		else if (Func_flush == flush_dcache_invalidate_opt)
+			Func_memset_nodrain = memset_nodrain_sse2_clflushopt;
+		else if (Func_flush == flush_dcache)
+			Func_memset_nodrain = memset_nodrain_sse2_clwb;
+		else if (Func_flush == flush_empty)
+			Func_memset_nodrain = memset_nodrain_sse2_empty;
+		else
+			ASSERT(0);
 #else
 		LOG(3, "sse2 disabled at build time");
 #endif
@@ -1133,8 +1308,38 @@ pmem_get_cpuinfo(void)
 			char *e = os_getenv("PMEM_AVX");
 			if (e && strcmp(e, "1") == 0) {
 				LOG(3, "PMEM_AVX enabled");
-				Func_memmove_nodrain = memmove_nodrain_avx;
-				Func_memset_nodrain = memset_nodrain_avx;
+
+				if (Func_flush == flush_dcache_invalidate)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx_clflush;
+				else if (Func_flush ==
+						flush_dcache_invalidate_opt)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx_clflushopt;
+				else if (Func_flush == flush_dcache)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx_clwb;
+				else if (Func_flush == flush_empty)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx_empty;
+				else
+					ASSERT(0);
+
+				if (Func_flush == flush_dcache_invalidate)
+					Func_memset_nodrain =
+						memset_nodrain_avx_clflush;
+				else if (Func_flush ==
+						flush_dcache_invalidate_opt)
+					Func_memset_nodrain =
+						memset_nodrain_avx_clflushopt;
+				else if (Func_flush == flush_dcache)
+					Func_memset_nodrain =
+						memset_nodrain_avx_clwb;
+				else if (Func_flush == flush_empty)
+					Func_memset_nodrain =
+						memset_nodrain_avx_empty;
+				else
+					ASSERT(0);
 			} else {
 				LOG(3, "PMEM_AVX not set or not == 1");
 			}
@@ -1150,8 +1355,38 @@ pmem_get_cpuinfo(void)
 			char *e = os_getenv("PMEM_AVX512F");
 			if (e && strcmp(e, "1") == 0) {
 				LOG(3, "PMEM_AVX512F enabled");
-				Func_memmove_nodrain = memmove_nodrain_avx512f;
-				Func_memset_nodrain = memset_nodrain_avx512f;
+
+				if (Func_flush == flush_dcache_invalidate)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx512f_clflush;
+				else if (Func_flush ==
+						flush_dcache_invalidate_opt)
+					Func_memmove_nodrain =
+					memmove_nodrain_avx512f_clflushopt;
+				else if (Func_flush == flush_dcache)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx512f_clwb;
+				else if (Func_flush == flush_empty)
+					Func_memmove_nodrain =
+						memmove_nodrain_avx512f_empty;
+				else
+					ASSERT(0);
+
+				if (Func_flush == flush_dcache_invalidate)
+					Func_memset_nodrain =
+						memset_nodrain_avx512f_clflush;
+				else if (Func_flush ==
+						flush_dcache_invalidate_opt)
+					Func_memset_nodrain =
+					memset_nodrain_avx512f_clflushopt;
+				else if (Func_flush == flush_dcache)
+					Func_memset_nodrain =
+						memset_nodrain_avx512f_clwb;
+				else if (Func_flush == flush_empty)
+					Func_memset_nodrain =
+						memset_nodrain_avx512f_empty;
+				else
+					ASSERT(0);
 			} else {
 				LOG(3, "PMEM_AVX512F not set or not == 1");
 			}

@@ -77,40 +77,148 @@
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2_clflush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2_clflushopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2_clwb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_sse2.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2_empty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx_clflush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx_clflushopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_sse2.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx_clwb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx_empty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx512f.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f_clflush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_t_sse2.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f_clflushopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f_clwb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx512f.c">
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_sse2_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_sse2_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_sse2_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_sse2_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_sse2_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_sse2_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_sse2_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_sse2_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx512f_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx512f_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx512f_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_nt_avx512f_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_sse2_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_sse2_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_sse2_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_sse2_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx_empty.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx512f_clflush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx512f_clflushopt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx512f_clwb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memset\memset_t_avx512f_empty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -184,6 +292,42 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libpmem\memset\memset_avx512f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_nt_sse2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_nt_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_nt_avx512f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_t_sse2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_t_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_t_avx512f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_nt_sse2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_nt_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_nt_avx512f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_t_sse2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_t_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\memset\memset_t_avx512f.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
