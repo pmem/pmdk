@@ -31,7 +31,7 @@
  */
 
 #include "pmem.h"
-#define flush64b _mm_clflushopt
+#define flush64b pmem_clflushopt
 #define flush flush_dcache_invalidate_opt_nolog
 #define EXPORTED_SYMBOL memset_mov_sse2_clflushopt
 #include "memset_t_sse2.h"
