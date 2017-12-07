@@ -31,8 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-export UNITTEST_NAME=obj_action/TEST0
+#
+# src/test/obj_action/TEST0 -- unit test (short) for obj_action
+#
 export UNITTEST_NUM=0
+export UNITTEST_NAME=obj_action/TEST$UNITTEST_NUM
 
 # standard unit test setup
 . ../unittest/unittest.sh
