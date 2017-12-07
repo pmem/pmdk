@@ -181,6 +181,7 @@
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="cpu.h" />
+    <ClInclude Include="..\..\src\libpmem\avx.h" />
     <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_sse2.h" />
     <ClInclude Include="..\..\src\libpmem\memcpy\memcpy_avx.h" />
     <ClInclude Include="..\..\src\libpmem\memset\memset_sse2.h" />
