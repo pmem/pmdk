@@ -110,7 +110,7 @@ memset_movnt1x32b(char *dest, __m256i ymm)
 static inline void
 memset_movnt1x16b(char *dest, __m256i ymm)
 {
-	__m128i xmm0 = (__m128i)_mm256_extractf128_si256(ymm, 0);
+	__m128i xmm0 = m256_get16b(ymm);
 
 	_mm_stream_si128((__m128i *)dest, xmm0);
 
@@ -120,7 +120,7 @@ memset_movnt1x16b(char *dest, __m256i ymm)
 static inline void
 memset_movnt1x8b(char *dest, __m256i ymm)
 {
-	uint64_t x = (uint64_t)_mm256_extract_epi64(ymm, 0);
+	uint64_t x = m256_get8b(ymm);
 
 	_mm_stream_si64((long long *)dest, (long long)x);
 
@@ -130,7 +130,7 @@ memset_movnt1x8b(char *dest, __m256i ymm)
 static inline void
 memset_movnt1x4b(char *dest, __m256i ymm)
 {
-	uint32_t x = (uint32_t)_mm256_extract_epi32(ymm, 0);
+	uint32_t x = m256_get4b(ymm);
 
 	_mm_stream_si32((int *)dest, (int)x);
 
