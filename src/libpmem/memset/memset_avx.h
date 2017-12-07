@@ -42,7 +42,7 @@
 #include "out.h"
 
 static inline void
-memset_small_avx(char *dest, __m256i ymm, size_t len)
+memset_small_avx_noflush(char *dest, __m256i ymm, size_t len)
 {
 	ASSERT(len <= 64);
 
@@ -102,6 +102,13 @@ le2:
 	}
 
 	*(uint8_t *)dest = (uint8_t)_mm256_extract_epi16(ymm, 0);
+}
+
+static inline void
+memset_small_avx(char *dest, __m256i ymm, size_t len)
+{
+	memset_small_avx_noflush(dest, ymm, len);
+	flush(dest, len);
 }
 
 #endif

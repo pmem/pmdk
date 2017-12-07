@@ -42,7 +42,7 @@
 #include "out.h"
 
 static inline void
-memset_small_sse2(char *dest, __m128i xmm, size_t len)
+memset_small_sse2_noflush(char *dest, __m128i xmm, size_t len)
 {
 	ASSERT(len <= 64);
 
@@ -110,6 +110,13 @@ le2:
 	}
 
 	*(uint8_t *)dest = (uint8_t)_mm_cvtsi128_si32(xmm);
+}
+
+static inline void
+memset_small_sse2(char *dest, __m128i xmm, size_t len)
+{
+	memset_small_sse2_noflush(dest, xmm, len);
+	flush(dest, len);
 }
 
 #endif

@@ -41,7 +41,7 @@
 #include "out.h"
 
 static inline void
-memmove_small_sse2(char *dest, const char *src, size_t len)
+memmove_small_sse2_noflush(char *dest, const char *src, size_t len)
 {
 	ASSERT(len <= 64);
 
@@ -122,6 +122,13 @@ le2:
 	}
 
 	*(uint8_t *)dest = *(uint8_t *)src;
+}
+
+static inline void
+memmove_small_sse2(char *dest, const char *src, size_t len)
+{
+	memmove_small_sse2_noflush(dest, src, len);
+	flush(dest, len);
 }
 
 #endif
