@@ -249,6 +249,7 @@ OS_LIBS=-L/usr/local/lib
 LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
+LIBNDCTL=
 else
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
@@ -257,4 +258,8 @@ OS_LIBS=
 LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
+ifeq ($(call check_package, libndctl --atleast-version 58.2.37),n)
+$(error libndctl(version >= 58.2.37) is missing -- see README)
+endif
+LIBNDCTL := -lndctl -ldaxctl
 endif
