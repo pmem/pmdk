@@ -50,17 +50,25 @@ struct ctl_index {
 
 SLIST_HEAD(ctl_indexes, ctl_index);
 
-enum ctl_query_type {
-	CTL_UNKNOWN_QUERY_TYPE,
+enum ctl_query_source {
+	CTL_UNKNOWN_QUERY_SOURCE,
 	/* query executed directly from the program */
 	CTL_QUERY_PROGRAMMATIC,
 	/* query executed from the config file */
 	CTL_QUERY_CONFIG_INPUT,
 
+	MAX_CTL_QUERY_SOURCE
+};
+
+enum ctl_query_type {
+	CTL_QUERY_READ,
+	CTL_QUERY_WRITE,
+	CTL_QUERY_RUNNABLE,
+
 	MAX_CTL_QUERY_TYPE
 };
 
-typedef int (*node_callback)(PMEMobjpool *pop, enum ctl_query_type type,
+typedef int (*node_callback)(PMEMobjpool *pop, enum ctl_query_source type,
 	void *arg, struct ctl_indexes *indexes);
 
 enum ctl_node_type {
@@ -103,8 +111,7 @@ struct ctl_node {
 	const char *name;
 	enum ctl_node_type type;
 
-	node_callback read_cb;
-	node_callback write_cb;
+	node_callback cb[MAX_CTL_QUERY_TYPE];
 	struct ctl_argument *arg;
 
 	struct ctl_node *children;
@@ -141,19 +148,19 @@ int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
 
 #define CTL_STR(name) #name
 
-#define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, NULL, NULL, NULL, NULL}
+#define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, {NULL, NULL, NULL}, NULL, NULL}
 
 #define CTL_NODE(name)\
 ctl_node_##name
 
 /* Declaration of a new child node */
 #define CTL_CHILD(name)\
-{CTL_STR(name), CTL_NODE_NAMED, NULL, NULL, NULL,\
+{CTL_STR(name), CTL_NODE_NAMED, {NULL, NULL, NULL}, NULL,\
 	(struct ctl_node *)CTL_NODE(name)}
 
 /* Declaration of a new indexed node */
 #define CTL_INDEXED(name)\
-{CTL_STR(name), CTL_NODE_INDEXED, NULL, NULL, NULL,\
+{CTL_STR(name), CTL_NODE_INDEXED, {NULL, NULL, NULL}, NULL,\
 	(struct ctl_node *)CTL_NODE(name)}
 
 #define CTL_READ_HANDLER(name)\
@@ -161,6 +168,9 @@ ctl_##name##_read
 
 #define CTL_WRITE_HANDLER(name)\
 ctl_##name##_write
+
+#define CTL_RUNNABLE_HANDLER(name)\
+ctl_##name##_runnable
 
 #define CTL_ARG(name)\
 ctl_arg_##name
@@ -170,15 +180,23 @@ ctl_arg_##name
  * must be declared by CTL_READ_HANDLER macro.
  */
 #define CTL_LEAF_RO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, CTL_READ_HANDLER(name), NULL, NULL, NULL}
+{CTL_STR(name), CTL_NODE_LEAF, {CTL_READ_HANDLER(name), NULL, NULL}, NULL, NULL}
 
 /*
  * Declaration of a new write-only leaf. If used the corresponding write
  * function must be declared by CTL_WRITE_HANDLER macro.
  */
 #define CTL_LEAF_WO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, NULL, CTL_WRITE_HANDLER(name),\
+{CTL_STR(name), CTL_NODE_LEAF, {NULL, CTL_WRITE_HANDLER(name), NULL},\
 	&CTL_ARG(name), NULL}
+
+/*
+ * Declaration of a new runnable leaf. If used the corresponding run
+ * function must be declared by CTL_RUNNABLE_HANDLER macro.
+ */
+#define CTL_LEAF_RUNNABLE(name)\
+{CTL_STR(name), CTL_NODE_LEAF, {NULL, NULL, CTL_RUNNABLE_HANDLER(name)},\
+	NULL, NULL}
 
 /*
  * Declaration of a new read-write leaf. If used both read and write function
@@ -186,7 +204,7 @@ ctl_arg_##name
  */
 #define CTL_LEAF_RW(name)\
 {CTL_STR(name), CTL_NODE_LEAF,\
-	CTL_READ_HANDLER(name), CTL_WRITE_HANDLER(name),\
+	{CTL_READ_HANDLER(name), CTL_WRITE_HANDLER(name), NULL},\
 	&CTL_ARG(name), NULL}
 
 #define CTL_REGISTER_MODULE(_ctl, name)\

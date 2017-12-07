@@ -303,7 +303,7 @@ SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
  */
 static int
 CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
-	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	uint8_t id;
 	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
@@ -418,7 +418,7 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
  */
 static int
 CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
-	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	uint8_t id;
 

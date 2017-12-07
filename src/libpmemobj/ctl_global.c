@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include "ctl_global.h"
 
 static int
-CTL_READ_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_out = arg;
@@ -50,7 +50,7 @@ CTL_READ_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_type type,
 }
 
 static int
-CTL_WRITE_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int arg_in = *(int *)arg;
@@ -61,7 +61,7 @@ CTL_WRITE_HANDLER(at_create)(PMEMobjpool *pop, enum ctl_query_type type,
 }
 
 static int
-CTL_READ_HANDLER(at_open)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(at_open)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_out = arg;
@@ -71,7 +71,7 @@ CTL_READ_HANDLER(at_open)(PMEMobjpool *pop, enum ctl_query_type type,
 }
 
 static int
-CTL_WRITE_HANDLER(at_open)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(at_open)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int arg_in = *(int *)arg;
