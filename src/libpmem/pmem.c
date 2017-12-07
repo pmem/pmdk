@@ -960,6 +960,117 @@ pmem_log_cpuinfo(void)
 		FATAL("invalid memove_nodrain function address");
 }
 
+static void
+use_sse2_memcpy_memset(void)
+{
+#if SSE2_AVAILABLE
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memmove_nodrain = memmove_nodrain_sse2_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memmove_nodrain = memmove_nodrain_sse2_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memmove_nodrain = memmove_nodrain_sse2_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memmove_nodrain = memmove_nodrain_sse2_empty;
+	else
+		ASSERT(0);
+
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memset_nodrain = memset_nodrain_sse2_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memset_nodrain = memset_nodrain_sse2_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memset_nodrain = memset_nodrain_sse2_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memset_nodrain = memset_nodrain_sse2_empty;
+	else
+		ASSERT(0);
+#else
+	LOG(3, "sse2 disabled at build time");
+#endif
+
+}
+
+static void
+use_avx_memcpy_memset(void)
+{
+#if AVX_AVAILABLE
+	LOG(3, "avx supported");
+
+	char *e = os_getenv("PMEM_AVX");
+	if (e == NULL || strcmp(e, "1") != 0) {
+		LOG(3, "PMEM_AVX not set or not == 1");
+		return;
+	}
+
+	LOG(3, "PMEM_AVX enabled");
+
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memmove_nodrain = memmove_nodrain_avx_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memmove_nodrain = memmove_nodrain_avx_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memmove_nodrain = memmove_nodrain_avx_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memmove_nodrain = memmove_nodrain_avx_empty;
+	else
+		ASSERT(0);
+
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memset_nodrain = memset_nodrain_avx_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memset_nodrain = memset_nodrain_avx_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memset_nodrain = memset_nodrain_avx_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memset_nodrain = memset_nodrain_avx_empty;
+	else
+		ASSERT(0);
+#else
+	LOG(3, "avx supported, but disabled at build time");
+#endif
+}
+
+static void
+use_avx512f_memcpy_memset(void)
+{
+#if AVX512F_AVAILABLE
+	LOG(3, "avx512f supported");
+
+	char *e = os_getenv("PMEM_AVX512F");
+	if (e == NULL || strcmp(e, "1") != 0) {
+		LOG(3, "PMEM_AVX512F not set or not == 1");
+		return;
+	}
+
+	LOG(3, "PMEM_AVX512F enabled");
+
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memmove_nodrain = memmove_nodrain_avx512f_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memmove_nodrain = memmove_nodrain_avx512f_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memmove_nodrain = memmove_nodrain_avx512f_empty;
+	else
+		ASSERT(0);
+
+	if (Func_flush == flush_dcache_invalidate)
+		Func_memset_nodrain = memset_nodrain_avx512f_clflush;
+	else if (Func_flush == flush_dcache_invalidate_opt)
+		Func_memset_nodrain = memset_nodrain_avx512f_clflushopt;
+	else if (Func_flush == flush_dcache)
+		Func_memset_nodrain = memset_nodrain_avx512f_clwb;
+	else if (Func_flush == flush_empty)
+		Func_memset_nodrain = memset_nodrain_avx512f_empty;
+	else
+		ASSERT(0);
+#else
+	LOG(3, "avx512f supported, but disabled at build time");
+#endif
+}
+
 /*
  * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
@@ -1001,127 +1112,14 @@ pmem_get_cpuinfo(void)
 	if (ptr && strcmp(ptr, "1") == 0) {
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	} else {
-#if SSE2_AVAILABLE
-		if (Func_flush == flush_dcache_invalidate)
-			Func_memmove_nodrain = memmove_nodrain_sse2_clflush;
-		else if (Func_flush == flush_dcache_invalidate_opt)
-			Func_memmove_nodrain = memmove_nodrain_sse2_clflushopt;
-		else if (Func_flush == flush_dcache)
-			Func_memmove_nodrain = memmove_nodrain_sse2_clwb;
-		else if (Func_flush == flush_empty)
-			Func_memmove_nodrain = memmove_nodrain_sse2_empty;
-		else
-			ASSERT(0);
+		use_sse2_memcpy_memset();
 
-		if (Func_flush == flush_dcache_invalidate)
-			Func_memset_nodrain = memset_nodrain_sse2_clflush;
-		else if (Func_flush == flush_dcache_invalidate_opt)
-			Func_memset_nodrain = memset_nodrain_sse2_clflushopt;
-		else if (Func_flush == flush_dcache)
-			Func_memset_nodrain = memset_nodrain_sse2_clwb;
-		else if (Func_flush == flush_empty)
-			Func_memset_nodrain = memset_nodrain_sse2_empty;
-		else
-			ASSERT(0);
-#else
-		LOG(3, "sse2 disabled at build time");
-#endif
+		if (is_cpu_avx_present())
+			use_avx_memcpy_memset();
 
-		if (is_cpu_avx_present()) {
-#if AVX_AVAILABLE
-			LOG(3, "avx supported");
-
-			char *e = os_getenv("PMEM_AVX");
-			if (e && strcmp(e, "1") == 0) {
-				LOG(3, "PMEM_AVX enabled");
-
-				if (Func_flush == flush_dcache_invalidate)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx_clflush;
-				else if (Func_flush ==
-						flush_dcache_invalidate_opt)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx_clflushopt;
-				else if (Func_flush == flush_dcache)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx_clwb;
-				else if (Func_flush == flush_empty)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx_empty;
-				else
-					ASSERT(0);
-
-				if (Func_flush == flush_dcache_invalidate)
-					Func_memset_nodrain =
-						memset_nodrain_avx_clflush;
-				else if (Func_flush ==
-						flush_dcache_invalidate_opt)
-					Func_memset_nodrain =
-						memset_nodrain_avx_clflushopt;
-				else if (Func_flush == flush_dcache)
-					Func_memset_nodrain =
-						memset_nodrain_avx_clwb;
-				else if (Func_flush == flush_empty)
-					Func_memset_nodrain =
-						memset_nodrain_avx_empty;
-				else
-					ASSERT(0);
-			} else {
-				LOG(3, "PMEM_AVX not set or not == 1");
-			}
-#else
-			LOG(3, "avx supported, but disabled at build time");
-#endif
-		}
-
-		if (is_cpu_avx512f_present()) {
-#if AVX512F_AVAILABLE
-			LOG(3, "avx512f supported");
-
-			char *e = os_getenv("PMEM_AVX512F");
-			if (e && strcmp(e, "1") == 0) {
-				LOG(3, "PMEM_AVX512F enabled");
-
-				if (Func_flush == flush_dcache_invalidate)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx512f_clflush;
-				else if (Func_flush ==
-						flush_dcache_invalidate_opt)
-					Func_memmove_nodrain =
-					memmove_nodrain_avx512f_clflushopt;
-				else if (Func_flush == flush_dcache)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx512f_clwb;
-				else if (Func_flush == flush_empty)
-					Func_memmove_nodrain =
-						memmove_nodrain_avx512f_empty;
-				else
-					ASSERT(0);
-
-				if (Func_flush == flush_dcache_invalidate)
-					Func_memset_nodrain =
-						memset_nodrain_avx512f_clflush;
-				else if (Func_flush ==
-						flush_dcache_invalidate_opt)
-					Func_memset_nodrain =
-					memset_nodrain_avx512f_clflushopt;
-				else if (Func_flush == flush_dcache)
-					Func_memset_nodrain =
-						memset_nodrain_avx512f_clwb;
-				else if (Func_flush == flush_empty)
-					Func_memset_nodrain =
-						memset_nodrain_avx512f_empty;
-				else
-					ASSERT(0);
-			} else {
-				LOG(3, "PMEM_AVX512F not set or not == 1");
-			}
-#else
-			LOG(3, "avx512f supported, but disabled at build time");
-#endif
-		}
+		if (is_cpu_avx512f_present())
+			use_avx512f_memcpy_memset();
 	}
-
 }
 
 /*
