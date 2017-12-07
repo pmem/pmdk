@@ -829,346 +829,72 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 	return pmemdest;
 }
 
+#if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
+#define MEMCPY_TEMPLATE(postfix) \
+static void *\
+memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
+{\
+	if (len == 0 || src == dest)\
+		return dest;\
+\
+	if (len < Movnt_threshold)\
+		memmove_mov_##postfix(dest, src, len);\
+	else\
+		memmove_movnt_##postfix(dest, src, len);\
+\
+	return dest;\
+}
+
+#define MEMSET_TEMPLATE(postfix)\
+static void *\
+memset_nodrain_##postfix(void *dest, int c, size_t len)\
+{\
+	if (len == 0)\
+		return dest;\
+\
+	if (len < Movnt_threshold)\
+		memset_mov_##postfix(dest, c, len);\
+	else\
+		memset_movnt_##postfix(dest, c, len);\
+\
+	return dest;\
+}
+#endif
+
 #if SSE2_AVAILABLE
-static void *
-memmove_nodrain_sse2_clflush(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
+MEMCPY_TEMPLATE(sse2_clflush)
+MEMCPY_TEMPLATE(sse2_clflushopt)
+MEMCPY_TEMPLATE(sse2_clwb)
+MEMCPY_TEMPLATE(sse2_empty)
 
-	if (len < Movnt_threshold)
-		memmove_mov_sse2_clflush(dest, src, len);
-	else
-		memmove_movnt_sse2_clflush(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_sse2_clflushopt(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_sse2_clflushopt(dest, src, len);
-	else
-		memmove_movnt_sse2_clflushopt(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_sse2_clwb(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_sse2_clwb(dest, src, len);
-	else
-		memmove_movnt_sse2_clwb(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_sse2_empty(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_sse2_empty(dest, src, len);
-	else
-		memmove_movnt_sse2_empty(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_sse2_clflush(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_sse2_clflush(dest, c, len);
-	else
-		memset_movnt_sse2_clflush(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_sse2_clflushopt(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_sse2_clflushopt(dest, c, len);
-	else
-		memset_movnt_sse2_clflushopt(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_sse2_clwb(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_sse2_clwb(dest, c, len);
-	else
-		memset_movnt_sse2_clwb(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_sse2_empty(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_sse2_empty(dest, c, len);
-	else
-		memset_movnt_sse2_empty(dest, c, len);
-
-	return dest;
-}
+MEMSET_TEMPLATE(sse2_clflush)
+MEMSET_TEMPLATE(sse2_clflushopt)
+MEMSET_TEMPLATE(sse2_clwb)
+MEMSET_TEMPLATE(sse2_empty)
 #endif
 
 #if AVX_AVAILABLE
-static void *
-memmove_nodrain_avx_clflush(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
+MEMCPY_TEMPLATE(avx_clflush)
+MEMCPY_TEMPLATE(avx_clflushopt)
+MEMCPY_TEMPLATE(avx_clwb)
+MEMCPY_TEMPLATE(avx_empty)
 
-	if (len < Movnt_threshold)
-		memmove_mov_avx_clflush(dest, src, len);
-	else
-		memmove_movnt_avx_clflush(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx_clflushopt(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx_clflushopt(dest, src, len);
-	else
-		memmove_movnt_avx_clflushopt(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx_clwb(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx_clwb(dest, src, len);
-	else
-		memmove_movnt_avx_clwb(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx_empty(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx_empty(dest, src, len);
-	else
-		memmove_movnt_avx_empty(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx_clflush(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx_clflush(dest, c, len);
-	else
-		memset_movnt_avx_clflush(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx_clflushopt(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx_clflushopt(dest, c, len);
-	else
-		memset_movnt_avx_clflushopt(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx_clwb(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx_clwb(dest, c, len);
-	else
-		memset_movnt_avx_clwb(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx_empty(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx_empty(dest, c, len);
-	else
-		memset_movnt_avx_empty(dest, c, len);
-
-	return dest;
-}
+MEMSET_TEMPLATE(avx_clflush)
+MEMSET_TEMPLATE(avx_clflushopt)
+MEMSET_TEMPLATE(avx_clwb)
+MEMSET_TEMPLATE(avx_empty)
 #endif
 
 #if AVX512F_AVAILABLE
-static void *
-memmove_nodrain_avx512f_clflush(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
+MEMCPY_TEMPLATE(avx512f_clflush)
+MEMCPY_TEMPLATE(avx512f_clflushopt)
+MEMCPY_TEMPLATE(avx512f_clwb)
+MEMCPY_TEMPLATE(avx512f_empty)
 
-	if (len < Movnt_threshold)
-		memmove_mov_avx512f_clflush(dest, src, len);
-	else
-		memmove_movnt_avx512f_clflush(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx512f_clflushopt(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx512f_clflushopt(dest, src, len);
-	else
-		memmove_movnt_avx512f_clflushopt(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx512f_clwb(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx512f_clwb(dest, src, len);
-	else
-		memmove_movnt_avx512f_clwb(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memmove_nodrain_avx512f_empty(void *dest, const void *src, size_t len)
-{
-	if (len == 0 || src == dest)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memmove_mov_avx512f_empty(dest, src, len);
-	else
-		memmove_movnt_avx512f_empty(dest, src, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx512f_clflush(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx512f_clflush(dest, c, len);
-	else
-		memset_movnt_avx512f_clflush(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx512f_clflushopt(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx512f_clflushopt(dest, c, len);
-	else
-		memset_movnt_avx512f_clflushopt(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx512f_clwb(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx512f_clwb(dest, c, len);
-	else
-		memset_movnt_avx512f_clwb(dest, c, len);
-
-	return dest;
-}
-
-static void *
-memset_nodrain_avx512f_empty(void *dest, int c, size_t len)
-{
-	if (len == 0)
-		return dest;
-
-	if (len < Movnt_threshold)
-		memset_mov_avx512f_empty(dest, c, len);
-	else
-		memset_movnt_avx512f_empty(dest, c, len);
-
-	return dest;
-}
+MEMSET_TEMPLATE(avx512f_clflush)
+MEMSET_TEMPLATE(avx512f_clflushopt)
+MEMSET_TEMPLATE(avx512f_clwb)
+MEMSET_TEMPLATE(avx512f_empty)
 #endif
 
 /*
