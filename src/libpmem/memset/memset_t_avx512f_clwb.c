@@ -31,7 +31,7 @@
  */
 
 #include "pmem.h"
-#define flush64b _mm_clwb
+#define flush64b pmem_clwb
 #define flush flush_dcache_nolog
 #define EXPORTED_SYMBOL memset_mov_avx512f_clwb
 #include "memset_t_avx512f.h"

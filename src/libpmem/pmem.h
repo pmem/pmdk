@@ -137,17 +137,20 @@ typedef BOOL (WINAPI *PQVM)(
 extern PQVM Func_qvmi;
 #endif
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+#define pmem_clflushopt _mm_clflushopt
+#define pmem_clwb _mm_clwb
+#else
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
  * functions are defined here in terms of asm statements for now.
  */
 #ifndef __aarch64__
-#define _mm_clflushopt(addr)\
+#define pmem_clflushopt(addr)\
 	asm volatile(".byte 0x66; clflush %0" : "+m" \
 		(*(volatile char *)(addr)));
-#define _mm_clwb(addr)\
+#define pmem_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" \
 		(*(volatile char *)(addr)));
 #endif /* __aarch64__ */
@@ -209,7 +212,7 @@ flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 	 */
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clflushopt((char *)uptr);
+		pmem_clflushopt((char *)uptr);
 	}
 }
 #endif
@@ -247,7 +250,7 @@ flush_dcache_nolog(const void *addr, size_t len)
 	 */
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clwb((char *)uptr);
+		pmem_clwb((char *)uptr);
 	}
 }
 #endif
