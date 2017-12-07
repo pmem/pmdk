@@ -67,6 +67,8 @@ EXPORTS
 	pmemobj_cond_signal
 	pmemobj_cond_timedwait
 	pmemobj_cond_wait
+	pmemobj_ctl_execU;
+	pmemobj_ctl_execW;
 	pmemobj_ctl_getU;
 	pmemobj_ctl_getW;
 	pmemobj_ctl_setU;

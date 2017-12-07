@@ -42,10 +42,10 @@ static char *testconfig_path;
 static int test_config_written;
 
 static int
-CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	int *arg_rw = arg;
 	*arg_rw = 0;
@@ -54,7 +54,7 @@ CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
 }
 
 static int
-CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_rw = arg;
@@ -67,7 +67,7 @@ CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_type type,
 struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
 
 static int
-CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_wo = arg;
@@ -82,10 +82,10 @@ struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 #define TEST_CONFIG_VALUE "abcd"
 
 static int
-CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
 
 	char *config_value = arg;
 	UT_ASSERTeq(strcmp(config_value, TEST_CONFIG_VALUE), 0);
@@ -110,9 +110,10 @@ struct complex_arg {
 
 static int
 CTL_WRITE_HANDLER(test_config_complex_arg)(PMEMobjpool *pop,
-	enum ctl_query_type type, void *arg, struct ctl_indexes *indexes)
+	enum ctl_query_source source, void *arg,
+	struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
 
 	struct complex_arg *c = arg;
 	UT_ASSERTeq(c->a, COMPLEX_ARG_TEST_A);
@@ -136,10 +137,10 @@ struct ctl_argument CTL_ARG(test_config_complex_arg) = {
 };
 
 static int
-CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	int *arg_ro = arg;
 	*arg_ro = 0;
@@ -148,15 +149,28 @@ CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_type type,
 }
 
 static int
-CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	long *index_value = arg;
 	struct ctl_index *idx = SLIST_FIRST(indexes);
 	UT_ASSERT(strcmp(idx->name, "test_index") == 0);
 	*index_value = idx->value;
+
+	return 0;
+}
+
+static int
+CTL_RUNNABLE_HANDLER(test_runnable)(PMEMobjpool *pop,
+	enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
+
+	int *arg_runnable = arg;
+	*arg_runnable = 0;
 
 	return 0;
 }
@@ -169,6 +183,7 @@ static const struct ctl_node CTL_NODE(test_index)[] = {
 static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_LEAF_RO(test_ro),
 	CTL_LEAF_WO(test_wo),
+	CTL_LEAF_RUNNABLE(test_runnable),
 	CTL_LEAF_RW(test_rw),
 	CTL_INDEXED(test_index),
 	CTL_LEAF_WO(test_config),
@@ -178,10 +193,10 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 static int
-CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_CONFIG_INPUT);
+	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
 
 	char *config_value = arg;
 	UT_ASSERTeq(strcmp(config_value, TEST_CONFIG_VALUE), 0);
@@ -193,10 +208,10 @@ CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_type type,
 struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
 
 static int
-CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_type type,
+CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	UT_ASSERTeq(type, CTL_QUERY_PROGRAMMATIC);
+	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	int *arg_ro = arg;
 	*arg_ro = 0;
@@ -319,6 +334,16 @@ test_ctl_parser(PMEMobjpool *pop)
 	ret = pmemobj_ctl_get(pop, "debug.10.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 10);
+
+	arg_read = 1;
+	arg_write = 1;
+	int arg_runnable = 1;
+
+	ret = pmemobj_ctl_exec(pop, "debug.test_runnable", &arg_runnable);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(arg_read, 1);
+	UT_ASSERTeq(arg_write, 1);
+	UT_ASSERTeq(arg_runnable, 0);
 }
 
 static void
@@ -448,9 +473,9 @@ test_file_config(PMEMobjpool *pop)
 	create_and_test_file_config(pop,
 		"debug.test_config_complex_arg=;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=1,2,3;", 0, 0);
+		"debug.test_config_complex_arg=1,2,3;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=12345,abcd,,1;", 0, 0);
+		"debug.test_config_complex_arg=12345,abcd,,1;", -1, 0);
 	create_and_test_file_config(pop,
 		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 0, 1);
 

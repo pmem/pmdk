@@ -47,7 +47,8 @@ date: pmemobj API version 2.2
 # NAME #
 
 _UW(pmemobj_ctl_get),
-_UW(pmemobj_ctl_set)
+_UW(pmemobj_ctl_set),
+_UW(pmemobj_ctl_exec)
 -- Query and modify libpmemobj internal behavior
 
 
@@ -60,6 +61,8 @@ _UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
 	=q= (EXPERIMENTAL)=e=)
 _UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
 	=q= (EXPERIMENTAL)=e=)
+_UWFUNCR2(int, pmemobj_ctl_exec, PMEMobjpool *pop, *name, void *arg,
+	=q= (EXPERIMENTAL)=e=)
 ```
 
 _UNICODE()
@@ -67,9 +70,9 @@ _UNICODE()
 
 # DESCRIPTION #
 
-The _UW(pmemobj_ctl_get) and _UW(pmemobj_ctl_set) functions provide a uniform
-interface for querying and modifying the internal behavior of **libpmemobj**
-through the control (CTL) namespace.
+The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
+functions provide a uniform interface for querying and modifying the internal
+behavior of **libpmemobj** through the control (CTL) namespace.
 
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
@@ -91,18 +94,19 @@ the return value of the entry point. If either *name* or *arg* is invalid, -1
 is returned.
 
 Entry points are the leaves of the CTL namespace structure. Each entry point
-can read from the internal state, write to the internal state or both.
+can read from the internal state, write to the internal state,
+exec a function or a combination of these operations.
 
 The entry points are listed in the following format:
 
-name | r(ead)w(rite) | global/- | read argument type | write argument type | config argument type
+name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument type | exec argument type | config argument type
 
 description...
 
 
 # CTL NAMESPACE #
 
-prefault.at_create | rw | global | int | int | boolean
+prefault.at_create | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is created, in order to trigger page allocation and minimize the performance
@@ -110,7 +114,7 @@ impact of pagefaults. Affects only the _UW(pmemobj_create) function.
 
 Always returns 0.
 
-prefault.at_open | rw | global | int | int | boolean
+prefault.at_open | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is opened, in order to trigger page allocation and minimize the performance
@@ -118,12 +122,12 @@ impact of pagefaults. Affects only the _UW(pmemobj_open) function.
 
 Always returns 0.
 
-tx.debug.skip_expensive_checks | rw | - | int | int | boolean
+tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
 Turns off some expensive checks performed by the transaction module in "debug"
 builds. Ignored in "release" builds.
 
-tx.cache.size | rw | - | long long | long long | integer
+tx.cache.size | rw | - | long long | long long | - | integer
 
 Size in bytes of the transaction snapshot cache. In a larger cache the
 frequency of persistent allocations is lower, but with higher fixed cost.
@@ -140,7 +144,7 @@ transactions currently running.
 
 Returns 0 if successful, -1 otherwise.
 
-tx.cache.threshold | rw | - | long long | long long | integer
+tx.cache.threshold | rw | - | long long | long long | - | integer
 
 Threshold in bytes, below which snapshots will use the cache. All larger
 snapshots will trigger a persistent allocation.
@@ -152,7 +156,7 @@ transactions currently running.
 
 Returns 0 if successful, -1 otherwise.
 
-tx.post_commit.queue_depth | rw | - | int | int | integer
+tx.post_commit.queue_depth | rw | - | int | int | - | integer
 
 Controls the depth of the post-commit tasks queue. A post-commit task is the
 collection of work items that need to be performed on the persistent state after
@@ -179,7 +183,7 @@ currently being executed.
 
 Returns 0 if successful, -1 otherwise.
 
-tx.post_commit.worker | r- | - | void * | - | -
+tx.post_commit.worker | r- | - | void * | - | - | -
 
 The worker function launched in a thread to perform asynchronous processing
 of post-commit tasks. This function returns only after a stop entry point is
@@ -188,7 +192,7 @@ done, this function sleeps instead of polling.
 
 Always returns 0.
 
-tx.post_commit.stop | r- | - | void * | - | -
+tx.post_commit.stop | r- | - | void * | - | - | -
 
 This function forces all the post-commit worker functions to exit and return
 control back to the calling thread. This should be called before the application
@@ -204,7 +208,7 @@ executed.
 Always returns 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
-`struct pobj_alloc_class_desc` | integer, integer, string
+`struct pobj_alloc_class_desc` | - | integer, integer, string
 
 Describes an allocation class. Allows one to create or view the internal
 data structures of the allocator.
@@ -301,7 +305,7 @@ not exist it sets the errno to **ENOENT** and returns -1;
 For writing, function returns 0 if the allocation class has been successfully
 created, -1 otherwise.
 
-heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | integer, integer, string
+heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, string
 
 Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
 to provide the class_id, it automatically creates the allocation class with the
