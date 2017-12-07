@@ -190,10 +190,10 @@ error_parsing:
  */
 static void *
 ctl_query_get_real_args(struct ctl_node *n, void *write_arg,
-	enum ctl_query_type type)
+	enum ctl_query_source source)
 {
 	void *real_arg = NULL;
-	switch (type) {
+	switch (source) {
 		case CTL_QUERY_CONFIG_INPUT:
 			real_arg = ctl_parse_args(n->arg, write_arg);
 			break;
@@ -214,9 +214,9 @@ ctl_query_get_real_args(struct ctl_node *n, void *write_arg,
  */
 static void
 ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
-	enum ctl_query_type type)
+	enum ctl_query_source source)
 {
-	switch (type) {
+	switch (source) {
 		case CTL_QUERY_CONFIG_INPUT:
 			Free(real_arg);
 			break;
@@ -229,14 +229,74 @@ ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
 }
 
 /*
+ * ctl_exec_query_read -- (internal) calls the read callback of a node
+ */
+static int
+ctl_exec_query_read(PMEMobjpool *pop, struct ctl_node *n,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	if (arg == NULL) {
+		ERR("read queries require non-NULL argument");
+		errno = EINVAL;
+		return -1;
+	}
+
+	return n->cb[CTL_QUERY_READ](pop, source, arg, indexes);
+}
+
+/*
+ * ctl_exec_query_write -- (internal) calls the write callback of a node
+ */
+static int
+ctl_exec_query_write(PMEMobjpool *pop, struct ctl_node *n,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	if (arg == NULL) {
+		ERR("write queries require non-NULL argument");
+		errno = EINVAL;
+		return -1;
+	}
+
+	void *real_arg = ctl_query_get_real_args(n, arg, source);
+	if (real_arg == NULL) {
+		errno = EINVAL;
+		ERR("invalid arguments");
+		return -1;
+	}
+
+	int ret = n->cb[CTL_QUERY_WRITE](pop, source, real_arg, indexes);
+	ctl_query_cleanup_real_args(n, real_arg, source);
+
+	return ret;
+}
+
+/*
+ * ctl_exec_query_runnable -- (internal) calls the run callback of a node
+ */
+static int
+ctl_exec_query_runnable(PMEMobjpool *pop, struct ctl_node *n,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	return n->cb[CTL_QUERY_RUNNABLE](pop, source, arg, indexes);
+}
+
+static int (*ctl_exec_query[MAX_CTL_QUERY_TYPE])(PMEMobjpool *pop,
+	struct ctl_node *n, enum ctl_query_source source, void *arg,
+	struct ctl_indexes *indexes) = {
+	ctl_exec_query_read,
+	ctl_exec_query_write,
+	ctl_exec_query_runnable,
+};
+
+/*
  * ctl_query -- (internal) parses the name and calls the appropriate methods
  *	from the ctl tree
  */
 static int
-ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
-	const char *name, void *read_arg, void *write_arg)
+ctl_query(PMEMobjpool *pop, enum ctl_query_source source,
+	const char *name, enum ctl_query_type type, void *arg)
 {
-	LOG(3, "pop %p type %d name %s", pop, type, name);
+	LOG(3, "pop %p source %d name %s", pop, source, name);
 
 	if (name == NULL) {
 		ERR("invalid query");
@@ -262,43 +322,15 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_type type,
 		n = ctl_find_node(pop->ctl->root, name, &indexes);
 	}
 
-	/*
-	 * Discard invalid calls, this includes the ones that are mostly correct
-	 * but include an extraneous arguments.
-	 */
-	if (n == NULL) {
+	if (n == NULL || n->type != CTL_NODE_LEAF || n->cb[type] == NULL) {
 		ERR("invalid query entry point %s", name);
 		errno = EINVAL;
-		goto error_invalid_arguments;
+		goto out;
 	}
 
-	if ((read_arg != NULL && n->read_cb == NULL) ||
-		(write_arg != NULL && n->write_cb == NULL) ||
-		(write_arg == NULL && read_arg == NULL)) {
-		ERR("invalid arguments for entry point %s", name);
-		errno = EINVAL;
-		goto error_invalid_arguments;
-	}
+	ret = ctl_exec_query[type](pop, n, source, arg, &indexes);
 
-	ASSERTeq(n->type, CTL_NODE_LEAF);
-
-	ret = 0;
-
-	if (read_arg)
-		ret = n->read_cb(pop, type, read_arg, &indexes);
-
-	if (write_arg && ret == 0) {
-		void *real_arg = ctl_query_get_real_args(n, write_arg, type);
-		if (real_arg == NULL) {
-			errno = EINVAL;
-			ERR("invalid arguments");
-			goto error_invalid_arguments;
-		}
-		ret = n->write_cb(pop, type, real_arg, &indexes);
-		ctl_query_cleanup_real_args(n, real_arg, type);
-	}
-
-error_invalid_arguments:
+out:
 	ctl_delete_indexes(&indexes);
 
 	return ret;
@@ -315,7 +347,7 @@ pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
 {
 	LOG(3, "pop %p name %s arg %p", pop, name, arg);
 	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, arg, NULL);
+		name, CTL_QUERY_READ, arg);
 }
 
 /*
@@ -329,7 +361,21 @@ pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
 {
 	LOG(3, "pop %p name %s arg %p", pop, name, arg);
 	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, NULL, arg);
+		name, CTL_QUERY_WRITE, arg);
+}
+
+/*
+ * pmemobj_ctl_setU -- programmatically executes a runnable ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
+		name, CTL_QUERY_RUNNABLE, arg);
 }
 
 #ifndef _WIN32
@@ -349,6 +395,15 @@ int
 pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
 {
 	return pmemobj_ctl_setU(pop, name, arg);
+}
+
+/*
+ * pmemobj_ctl_run -- programmatically executes a runnable ctl query
+ */
+int
+pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return pmemobj_ctl_execU(pop, name, arg);
 }
 #else
 /*
@@ -378,6 +433,22 @@ pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg)
 		return -1;
 
 	int ret = pmemobj_ctl_setU(pop, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemobj_ctl_execW -- programmatically executes a runnable ctl query
+ */
+int
+pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_execU(pop, uname, arg);
 	util_free_UTF8(uname);
 
 	return ret;
@@ -444,7 +515,7 @@ ctl_load_config(PMEMobjpool *pop, char *buf)
 		r = ctl_parse_query(qbuf, &name, &value);
 		if (r == 0)
 			r = ctl_query(pop, CTL_QUERY_CONFIG_INPUT,
-				name, NULL, value);
+				name, CTL_QUERY_WRITE, value);
 
 		if (r == -1) {
 			ERR("failed to parse query %s", qbuf);
