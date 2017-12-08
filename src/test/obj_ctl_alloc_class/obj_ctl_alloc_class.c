@@ -193,6 +193,20 @@ main(int argc, char *argv[])
 	usable_size = pmemobj_alloc_usable_size(oid);
 	UT_ASSERTeq(usable_size, (2 << 23));
 
+	struct pobj_alloc_class_desc alloc_class_new_max;
+	alloc_class_new_max.header_type = POBJ_HEADER_COMPACT;
+	alloc_class_new_max.unit_size = PMEMOBJ_MAX_ALLOC_SIZE;
+	alloc_class_new_max.units_per_block = 1024;
+	alloc_class_new_max.class_id = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_new_max);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_xalloc(pop, &oid, 1, 0,
+		POBJ_CLASS_ID(alloc_class_new_max.class_id), NULL, NULL);
+	UT_ASSERTne(ret, 0);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);
