@@ -352,7 +352,7 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 
 		id = (uint8_t)idx->value;
 
-		if (alloc_class_by_id(ac, id) != NULL) {
+		if (alloc_class_reserve(ac, id) != 0) {
 			ERR("attempted to overwrite an allocation class");
 			errno = EEXIST;
 			return -1;
@@ -370,6 +370,8 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		CHUNK_ALIGN_UP((p->units_per_block * p->unit_size) +
 		RUN_METASIZE);
 	c.run.size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
+	if (c.run.size_idx > UINT16_MAX)
+		c.run.size_idx = UINT16_MAX;
 
 	alloc_class_generate_run_proto(&c.run, c.unit_size, c.run.size_idx);
 

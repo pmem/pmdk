@@ -135,7 +135,7 @@ additional *flags* argument that is a bitmask of the following values:
 + **POBJ_XALLOC_ZERO** - zero the object (equivalent of **pmemobj_zalloc**())
 
 + **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
-*class_id*
+*class_id*. The class id cannot be 0.
 
 The **pmemobj_zalloc**() function allocates a new zeroed object from
 the persistent memory heap associated with memory pool *pop*. The *PMEMoid*

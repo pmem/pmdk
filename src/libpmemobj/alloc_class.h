@@ -108,6 +108,7 @@ struct alloc_class *alloc_class_by_alloc_size(
 struct alloc_class *alloc_class_by_id(
 	struct alloc_class_collection *ac, uint8_t id);
 
+int alloc_class_reserve(struct alloc_class_collection *ac, uint8_t id);
 int alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot);
 
