@@ -320,6 +320,19 @@ The required class identifier will be stored in the `class_id` field of the
 This function returns 0 if the allocation class has been successfully created,
 -1 otherwise.
 
+heap.size.granularity | rw- | - | size_t | size_t | - | long long
+
+Reads or modifies the granularity with which the heap grows when OOM.
+Valid only if the poolset has been defined with directories.
+
+This function returns 0 is the value is larger than *PMEMOBJ_MIN_POOL*,
+-1 otherwise.
+
+heap.size.extend | --x | - | - | - | size_t | -
+
+Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_POOL*.
+
+This function returns 0 if successful, -1 otherwise.
 
 # CTL EXTERNAL CONFIGURATION #
 
