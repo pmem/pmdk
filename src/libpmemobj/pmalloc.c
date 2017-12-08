@@ -38,6 +38,7 @@
  * in a reasonable time and with an acceptable common-case fragmentation.
  */
 
+#include <inttypes.h>
 #include "valgrind_internal.h"
 #include "heap.h"
 #include "lane.h"
@@ -505,8 +506,76 @@ static const struct ctl_node CTL_NODE(alloc_class)[] = {
 	CTL_NODE_END
 };
 
+/*
+ * CTL_RUNNABLE_HANDLER(extend) -- extends the pool by the given size
+ */
+static int
+CTL_RUNNABLE_HANDLER(extend)(PMEMobjpool *pop,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t arg_in = *(ssize_t *)arg;
+	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
+		ERR("incorrect size for extend, must be larger than %" PRIu64,
+			PMEMOBJ_MIN_PART);
+		return -1;
+	}
+
+	struct palloc_heap *heap = &pop->heap;
+	struct bucket *defb = heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID);
+
+	int ret = heap_extend(heap, defb, (size_t)arg_in) < 0 ? -1 : 0;
+
+	heap_bucket_release(heap, defb);
+
+	return ret;
+}
+
+/*
+ * CTL_READ_HANDLER(granularity) -- reads the current heap grow size
+ */
+static int
+CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t *arg_out = arg;
+
+	*arg_out = (ssize_t)pop->heap.growsize;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(granularity) -- changes the heap grow size
+ */
+static int
+CTL_WRITE_HANDLER(granularity)(PMEMobjpool *pop,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	ssize_t arg_in = *(int *)arg;
+	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
+		ERR("incorrect grow size, must be 0 or larger than %" PRIu64,
+			PMEMOBJ_MIN_PART);
+		return -1;
+	}
+
+	pop->heap.growsize = (size_t)arg_in;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
+
+static const struct ctl_node CTL_NODE(size)[] = {
+	CTL_LEAF_RW(granularity),
+	CTL_LEAF_RUNNABLE(extend),
+
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_CHILD(alloc_class),
+	CTL_CHILD(size),
 
 	CTL_NODE_END
 };
