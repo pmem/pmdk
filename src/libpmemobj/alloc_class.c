@@ -174,6 +174,16 @@ alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 }
 
 /*
+ * alloc_class_reserve -- reserve the specified class id
+ */
+int
+alloc_class_reserve(struct alloc_class_collection *ac, uint8_t id)
+{
+	return util_bool_compare_and_swap64(&ac->aclasses[id],
+			NULL, ACLASS_RESERVED) ? 0 : -1;
+}
+
+/*
  * alloc_class_reservation_clear -- removes the reservation on class id
  */
 static void

@@ -352,7 +352,7 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 
 		id = (uint8_t)idx->value;
 
-		if (alloc_class_by_id(ac, id) != NULL) {
+		if (alloc_class_reserve(ac, id) != 0) {
 			ERR("attempted to overwrite an allocation class");
 			errno = EEXIST;
 			return -1;

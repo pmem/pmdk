@@ -167,6 +167,10 @@ main(int argc, char *argv[])
 		&alloc_class_fail);
 	UT_ASSERTeq(ret, -1);
 
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.200.desc",
+		&alloc_class_fail);
+	UT_ASSERTeq(ret, -1);
+
 	ret = pmemobj_xalloc(pop, &oid, 1, 0,
 		POBJ_CLASS_ID(alloc_class_new.class_id), NULL, NULL);
 	UT_ASSERTeq(ret, 0);
