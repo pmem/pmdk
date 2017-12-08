@@ -203,6 +203,11 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 {
 	LOG(3, "set_in %p, set_out %p", set_in, set_out);
 
+	if (set_in->directory_based) {
+		ERR("transform of directory poolsets is not supported");
+		goto err;
+	}
+
 	/*
 	 * check if all parts in the target poolset are large enough
 	 * (now replication works only for pmemobj pools)
