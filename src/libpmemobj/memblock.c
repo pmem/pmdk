@@ -655,7 +655,7 @@ run_ensure_header_type(const struct memory_block *m,
 	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
-	ASSERT((hdr->flags & header_type_to_flag[t]) != 0);
+	ASSERT((hdr->flags & header_type_to_flag[t]) == header_type_to_flag[t]);
 #endif
 }
 
