@@ -50,7 +50,8 @@ OBJS = pmem_is_pmem_linux.o\
 	libpmem.o\
 	pmem.o\
 	pmem_linux.o\
-	cpu.o
+	cpu.o\
+	ddax_deep_flush.o
 
 include ../Makefile.inc
 

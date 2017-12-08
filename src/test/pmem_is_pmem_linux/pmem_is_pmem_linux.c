@@ -41,6 +41,7 @@
 
 #include "unittest.h"
 #include "mmap.h"
+#include "pmem.h"
 
 int
 main(int argc, char *argv[])
@@ -67,11 +68,11 @@ main(int argc, char *argv[])
 
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len);
+			ret = map_range_register(addr, len, 0);
 			UT_ASSERTeq(ret, 0);
 			break;
 		case 'r':
-			ret = util_range_unregister(addr, len);
+			ret = map_range_unregister(addr, len);
 			UT_ASSERTeq(ret, 0);
 			break;
 		case 't':
