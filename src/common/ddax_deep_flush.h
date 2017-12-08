@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,25 +31,13 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * ddax_deep_flush.h -- Internal utility functions for flushing
+ * a memory range residing on a DAX device.
  */
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
 
-void pmem_init(void);
+#include <sys/types.h>
 
-int is_pmem_detect(const void *addr, size_t len);
-int map_range_is_pmem(const void *addrp, size_t len);
-int map_range_register(const void *addr, size_t len, int fd);
-int map_range_unregister(const void *addr, size_t len);
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-typedef BOOL (WINAPI *PQVM)(
-		HANDLE, const void *,
-		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
-		SIZE_T, PSIZE_T);
-
-extern PQVM Func_qvmi;
-#endif
+int ddax_region_find(dev_t dev_id);
+int ddax_deep_flush_select(const void *addr, size_t len, int deep_flush_fd);
+int ddax_deep_flush_final(int region_id);

@@ -48,10 +48,12 @@ extern "C" {
 
 #include "out.h"
 #include "queue.h"
+#include "sys_util.h"
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
 extern char *Mmap_mapfile;
+extern os_rwlock_t Mmap_list_lock;
 
 void *util_map(int fd, size_t len, int flags, int rdonly, size_t req_align);
 int util_unmap(void *addr, size_t len);
@@ -116,10 +118,6 @@ util_map_hint_align(size_t len, size_t req_align)
 		align = 2 * MEGABYTE;
 	return align;
 }
-
-int util_range_register(const void *addr, size_t len);
-int util_range_unregister(const void *addr, size_t len);
-int util_range_is_pmem(const void *addr, size_t len);
 
 #ifdef __cplusplus
 }
