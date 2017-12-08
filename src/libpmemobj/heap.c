@@ -58,7 +58,7 @@
 
 #define MAX_RUN_LOCKS 1024
 
-#define HEAP_GROW_SIZE (1 << 27)
+#define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 
 /*
  * Arenas store the collection of buckets for allocation classes. Each thread
@@ -789,7 +789,7 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 		return 0;
 
 	int extend;
-	if ((extend = heap_extend(heap, bucket, HEAP_GROW_SIZE)) < 0)
+	if ((extend = heap_extend(heap, bucket, heap->growsize)) < 0)
 		return ENOMEM;
 
 	if (extend == 1)
@@ -1318,6 +1318,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start,
 	heap->sizep = sizep;
 	heap->base = base;
 	heap->set = set;
+	heap->growsize = HEAP_DEFAULT_GROW_SIZE;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
 	for (unsigned i = 0; i < h->narenas; ++i)
