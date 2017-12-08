@@ -513,7 +513,7 @@ util_poolset_free(struct pool_set *set)
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote == NULL) {
 			/* only local replicas have paths */
-			for (unsigned p = 0; p < rep->nparts; p++) {
+			for (unsigned p = 0; p < rep->nallocated; p++) {
 				Free((void *)(rep->part[p].path));
 			}
 		} else {
@@ -865,16 +865,22 @@ util_replica_reserve(struct pool_replica **repp, unsigned n)
 	LOG(3, "replica %p n %u", *repp, n);
 
 	struct pool_replica *rep = *repp;
-	if (rep->nallocated <= n) {
-		rep = Realloc(rep, sizeof(struct pool_replica) +
-			(n) * sizeof(struct pool_set_part));
-		if (rep == NULL) {
-			ERR("!Realloc");
-			return -1;
-		}
-		rep->nallocated = n;
-		*repp = rep;
+	if (rep->nallocated >= n)
+		return 0;
+
+	rep = Realloc(rep, sizeof(struct pool_replica) +
+		(n) * sizeof(struct pool_set_part));
+	if (rep == NULL) {
+		ERR("!Realloc");
+		return -1;
 	}
+
+	size_t nsize = sizeof(struct pool_set_part) * (n - rep->nallocated);
+	memset(rep->part + rep->nallocated, 0, nsize);
+
+	rep->nallocated = n;
+	*repp = rep;
+
 	return 0;
 }
 
@@ -1282,6 +1288,7 @@ util_poolset_directories_load(struct pool_set *set)
 		return 0;
 
 	unsigned next_part_id = 0;
+	unsigned max_parts_rep = 0;
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		next_part_id = 0;
 
@@ -1305,9 +1312,49 @@ util_poolset_directories_load(struct pool_set *set)
 				set->next_directory_id++;
 		}
 
+		if (next_part_id > set->replica[max_parts_rep]->nparts)
+			max_parts_rep = r;
+
 		if (r == 0)
 			set->next_id = next_part_id;
-		ASSERTeq(set->next_id, next_part_id);
+	}
+
+	/*
+	 * In order to maintain the same semantics of poolset parsing for
+	 * regular poolsets and directory poolsets, we need to speculatively
+	 * recreate the information regarding any missing parts in replicas.
+	 */
+	struct pool_replica *rep;
+	struct pool_replica *mrep = set->replica[max_parts_rep];
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		if (set->replica[r]->nparts == mrep->nparts)
+			continue;
+
+		if (VEC_SIZE(&set->replica[r]->directory) == 0) {
+			ERR("no directories in replica");
+			return -1;
+		}
+
+		if (util_replica_reserve(&set->replica[r], mrep->nparts) != 0)
+			return -1;
+
+		rep = set->replica[r];
+
+		struct pool_set_directory *d = VEC_GET(&rep->directory, 0);
+
+		for (unsigned pidx = 0; pidx < rep->nallocated; ++pidx) {
+			struct pool_set_part *p = &rep->part[pidx];
+			*p = mrep->part[pidx];
+
+			size_t path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
+			if ((p->path = Malloc(path_len)) == NULL)
+				return -1;
+
+			snprintf((char *)p->path, path_len, "%s/%0*u%s",
+				d->path, PMEM_FILE_PADDING,
+				set->next_id, PMEM_EXT);
+		}
+		rep->nparts = mrep->nparts;
 	}
 
 	return 0;
