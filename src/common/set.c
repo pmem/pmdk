@@ -512,7 +512,7 @@ util_poolset_free(struct pool_set *set)
 		struct pool_replica *rep = set->replica[r];
 		if (rep->remote == NULL) {
 			/* only local replicas have paths */
-			for (unsigned p = 0; p < rep->nparts; p++) {
+			for (unsigned p = 0; p < rep->nallocated; p++) {
 				Free((void *)(rep->part[p].path));
 			}
 		} else {
@@ -880,16 +880,22 @@ util_replica_reserve(struct pool_replica **repp, unsigned n)
 	LOG(3, "replica %p n %u", *repp, n);
 
 	struct pool_replica *rep = *repp;
-	if (rep->nallocated <= n) {
-		rep = Realloc(rep, sizeof(struct pool_replica) +
-			(n) * sizeof(struct pool_set_part));
-		if (rep == NULL) {
-			ERR("!Realloc");
-			return -1;
-		}
-		rep->nallocated = n;
-		*repp = rep;
+	if (rep->nallocated >= n)
+		return 0;
+
+	rep = Realloc(rep, sizeof(struct pool_replica) +
+		(n) * sizeof(struct pool_set_part));
+	if (rep == NULL) {
+		ERR("!Realloc");
+		return -1;
 	}
+
+	size_t nsize = sizeof(struct pool_set_part) * (n - rep->nallocated);
+	memset(rep->part + rep->nallocated, 0, nsize);
+
+	rep->nallocated = n;
+	*repp = rep;
+
 	return 0;
 }
 
@@ -1254,7 +1260,7 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 		ssize_t size = util_file_get_size(entry->path);
 		if (size < 0) {
 			LOG(3,
-			"canot read size of file (%s) in a poolset directory",
+			"cannot read size of file (%s) in a poolset directory",
 			entry->path);
 			goto err_file_size;
 		}
@@ -1297,6 +1303,7 @@ util_poolset_directories_load(struct pool_set *set)
 		return 0;
 
 	unsigned next_part_id = 0;
+	unsigned max_parts_rep = 0;
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		next_part_id = 0;
 
@@ -1320,9 +1327,49 @@ util_poolset_directories_load(struct pool_set *set)
 				set->next_directory_id++;
 		}
 
+		if (next_part_id > set->replica[max_parts_rep]->nparts)
+			max_parts_rep = r;
+
 		if (r == 0)
 			set->next_id = next_part_id;
-		ASSERTeq(set->next_id, next_part_id);
+	}
+
+	/*
+	 * In order to maintain the same semantics of poolset parsing for
+	 * regular poolsets and directory poolsets, we need to speculatively
+	 * recreate the information regarding any missing parts in replicas.
+	 */
+	struct pool_replica *rep;
+	struct pool_replica *mrep = set->replica[max_parts_rep];
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		if (set->replica[r]->nparts == mrep->nparts)
+			continue;
+
+		if (VEC_SIZE(&set->replica[r]->directory) == 0) {
+			ERR("no directories in replica");
+			return -1;
+		}
+
+		if (util_replica_reserve(&set->replica[r], mrep->nparts) != 0)
+			return -1;
+
+		rep = set->replica[r];
+
+		struct pool_set_directory *d = VEC_GET(&rep->directory, 0);
+
+		for (unsigned pidx = 0; pidx < rep->nallocated; ++pidx) {
+			struct pool_set_part *p = &rep->part[pidx];
+			*p = mrep->part[pidx];
+
+			size_t path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
+			if ((p->path = Malloc(path_len)) == NULL)
+				return -1;
+
+			snprintf((char *)p->path, path_len, "%s/%0*u%s",
+				d->path, PMEM_FILE_PADDING,
+				pidx, PMEM_EXT);
+		}
+		rep->nparts = mrep->nparts;
 	}
 
 	return 0;
@@ -2038,56 +2085,6 @@ err:
 }
 
 /*
- * util_header_update_parts -- (internal) updates the links between part files
- */
-static void
-util_header_update_parts(struct pool_set *set,
-	unsigned repidx, unsigned partidx, int update_prev, int update_next)
-{
-	LOG(3, "set %p repidx %u partidx %u", set, repidx, partidx);
-
-	struct pool_replica *rep = set->replica[repidx];
-
-	/* opaque info lives at the beginning of mapped memory pool */
-	struct pool_hdr *hdrp = rep->part[partidx].hdr;
-
-	if (update_prev) {
-		memcpy(hdrp->prev_part_uuid, HDRP(rep, partidx)->uuid,
-							POOL_HDR_UUID_LEN);
-	}
-	if (update_next) {
-		memcpy(hdrp->next_part_uuid, HDRN(rep, partidx)->uuid,
-							POOL_HDR_UUID_LEN);
-	}
-
-	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
-
-	/* store pool's header */
-	util_persist_auto(rep->part[partidx].is_dev_dax, hdrp, sizeof(*hdrp));
-}
-
-/*
- * util_header_clone -- (internal) initializes a part header by copying it from
- *	an already existing part
- */
-static int
-util_header_clone(struct pool_set *set, unsigned repidx, unsigned partidx)
-{
-	LOG(3, "set %p repidx %u partidx %u", set, repidx, partidx);
-
-	struct pool_set_part *fp = &set->replica[repidx]->part[0];
-
-	struct pool_hdr *hdrp = fp->addr;
-	memcpy(set->uuid, hdrp->poolset_uuid, POOL_HDR_UUID_LEN);
-
-	return util_header_create(set, repidx, partidx, hdrp->signature,
-		hdrp->major,
-		hdrp->compat_features, hdrp->incompat_features,
-		hdrp->ro_compat_features,
-		hdrp->prev_repl_uuid, hdrp->next_repl_uuid, NULL, 0);
-}
-
-/*
  * util_header_create -- create header of a single pool set file
  */
 int
@@ -2756,6 +2753,7 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 			FATAL("cannot add a new part to the replica info");
 
 		os_close(p->fd);
+		p->fd = 0;
 	}
 
 	Free(parts);
@@ -2790,11 +2788,21 @@ util_pool_extend(struct pool_set *set, size_t size)
 {
 	LOG(3, "set %p size %zu", set, size);
 
-	if (size == 0)
+	if (size == 0) {
+		ERR("cannot extend pool by 0 bytes");
 		return NULL;
+	}
 
-	if (set->poolsize + size > set->resvsize)
+	if ((set->options & OPTION_NO_HDRS) == 0) {
+		ERR(
+		"extending the pool by appending parts with headers is not supported!");
 		return NULL;
+	}
+
+	if (set->poolsize + size > set->resvsize) {
+		ERR("exceeded reservation size");
+		return NULL;
+	}
 
 	size_t old_poolsize = set->poolsize;
 
@@ -2807,55 +2815,44 @@ util_pool_extend(struct pool_set *set, size_t size)
 	void *addr = NULL;
 	void *addr_base = NULL;
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
+	unsigned r;
+	for (r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		unsigned pidx = rep->nparts - 1;
 		struct pool_set_part *p = &rep->part[pidx];
 
-		if (util_part_open(p, 0, 0) != 0)
-			FATAL("cannot open new part");
+		if (util_part_open(p, 0, 0) != 0) {
+			ERR("cannot open the new part");
+			goto err;
+		}
 
 		addr = (char *)rep->part[0].addr + old_poolsize;
 		if (addr_base == NULL)
 			addr_base = addr;
 
-		if ((set->options & OPTION_NO_HDRS) == 0) {
-			LOG(1,
-			"extending the pool by appending parts with headers is not failsafe!");
-
-			util_uuid_generate(p->uuid);
-
-			if (util_map_hdr(p, MAP_SHARED, 0) != 0)
-				FATAL("cannot map header of part %u", pidx);
-			if (util_map_hdr(&PARTP(rep, pidx), MAP_SHARED, 0) != 0)
-				FATAL("cannot map header of part %u",
-					PARTPidx(rep, pidx));
-			if (util_map_hdr(&PARTN(rep, pidx), MAP_SHARED, 0) != 0)
-				FATAL("cannot map header of part %u",
-					PARTNidx(rep, pidx));
-
-			if (util_header_clone(set, r, pidx) != 0)
-				FATAL("invalid state of a new part");
-
-			util_header_update_parts(set, r,
-				pidx, 1, 1);
-			util_header_update_parts(set, r,
-				PARTPidx(rep, pidx), 0, 1);
-			util_header_update_parts(set, r,
-				PARTNidx(rep, pidx), 1, 0);
-
-			util_unmap_hdr(p);
-			util_unmap_hdr(&PARTP(rep, pidx));
-			util_unmap_hdr(&PARTN(rep, pidx));
-		}
-
 		if (util_map_part(p, addr, 0, hdrsize,
-				MAP_SHARED | MAP_FIXED, 0) != 0)
-			FATAL("cannot map new part in reserved space");
+				MAP_SHARED | MAP_FIXED, 0) != 0) {
+			ERR("cannot map the new part");
+			goto err;
+		}
 	}
 
 	return addr_base;
 
+err:
+	for (unsigned rn = 0; rn <= r; ++rn) {
+		struct pool_replica *rep = set->replica[r];
+		unsigned pidx = rep->nparts - 1;
+		struct pool_set_part *p = &rep->part[pidx];
+		rep->nparts--;
+
+		if (p->fd != 0)
+			os_close(p->fd);
+		os_unlink(p->path);
+	}
+	util_poolset_set_size(set);
+
+	return NULL;
 }
 
 /*
@@ -3092,7 +3089,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 
 		/* determine a hint address for mmap() if not specified */
 		if (addr == NULL)
-			addr = util_map_hint(rep->repsize, 0);
+			addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
