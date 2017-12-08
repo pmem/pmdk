@@ -594,6 +594,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signal_handle", "test\signa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_config", "test\obj_ctl_config\obj_ctl_config.vcxproj", "{AEAA72CD-E060-417C-9CA1-49B4738384E0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_heap_size", "test\obj_ctl_heap_size\obj_ctl_heap_size.vcxproj", "{AEAA72CD-E060-417C-9CA1-49B4738384E0}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "checksum", "test\checksum\checksum.vcxproj", "{AF0B7480-EBE3-486B-B0C8-134910BC9324}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}

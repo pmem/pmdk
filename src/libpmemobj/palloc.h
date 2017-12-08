@@ -51,6 +51,7 @@ struct palloc_heap {
 	struct heap_layout *layout;
 	struct heap_rt *rt;
 	uint64_t *sizep;
+	uint64_t growsize;
 
 	struct stats *stats;
 	struct pool_set *set;
