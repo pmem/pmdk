@@ -340,7 +340,15 @@ palloc_action_compare(const void *lhs, const void *rhs)
 {
 	const struct pobj_action_internal *mlhs = lhs;
 	const struct pobj_action_internal *mrhs = rhs;
-	return (int)((int64_t)(mlhs->lock) - (int64_t)(mrhs->lock));
+	uintptr_t vlhs = (uintptr_t)(mlhs->lock);
+	uintptr_t vrhs = (uintptr_t)(mrhs->lock);
+
+	if (vlhs < vrhs)
+		return -1;
+	if (vlhs > vrhs)
+		return 1;
+
+	return 0;
 }
 
 /*
