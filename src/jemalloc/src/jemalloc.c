@@ -1979,7 +1979,8 @@ je_pool_check(pool_t *pool)
 	/* check memory regions defined correctly */
 	node = pool->memory_range_list;
 	while (node != NULL) {
-		total_size += node->usable_addr_end - node->usable_addr;
+		size_t node_size = node->usable_addr_end - node->usable_addr;
+		total_size += node_size;
 		if ((node->addr > node->usable_addr) ||
 			(node->addr_end < node->usable_addr_end) ||
 			(node->usable_addr >= node->usable_addr_end)) {
@@ -1988,6 +1989,11 @@ je_pool_check(pool_t *pool)
 			malloc_mutex_unlock(&pool->memory_range_mtx);
 			return 0;
 		}
+
+		/* for the purpose of further checks we need to mark it as defined */
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED((void *)node->usable_addr,
+				node_size);
+
 		node = node->next;
 	}
 
