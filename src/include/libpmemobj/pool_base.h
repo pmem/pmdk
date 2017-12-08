@@ -55,6 +55,14 @@ extern "C" {
 #define PMEMOBJ_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
 /*
+ * It's recommended to always extend the pool by multiples of a page size so
+ * that the file system has the opportunity to use the largest possible pages.
+ * The size also has to be at least the size of a zone-trackable
+ * unit of memory (a chunk).
+ */
+#define PMEMOBJ_MIN_EXTEND ((size_t)(1024 * 256)) /* 256 kilobytes */
+
+/*
  * Pool management.
  */
 #ifdef _WIN32

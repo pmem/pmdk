@@ -337,6 +337,23 @@ Returns the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be
 inaccurate.
 
+heap.size.granularity | rw- | - | size_t | size_t | - | long long
+
+Reads or modifies the granularity with which the heap grows when OOM.
+Valid only if the poolset has been defined with directories.
+
+The granularity can take a special value of 0 which means that the pool won't
+automatically grow.
+
+This function returns 0 if the value is larger than *PMEMOBJ_MIN_EXTEND* or 0,
+-1 otherwise.
+
+heap.size.extend | --x | - | - | - | size_t | -
+
+Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_EXTEND*.
+
+This function returns 0 if successful, -1 otherwise.
+
 # CTL EXTERNAL CONFIGURATION #
 
 In addition to direct function call, each write entry point can also be set
