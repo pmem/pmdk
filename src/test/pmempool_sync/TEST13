@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST13 -- test for fixing pools with device dax using sync
+# pmempool_sync/TEST13 -- test for pools with device dax and NOHDRS option
 #
 # Device DAX devices: 2 x 2MB alignment + 2 x 4KB alignment.
 # 1st variant of alignment configuration
