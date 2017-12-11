@@ -47,8 +47,8 @@ require_build_type nondebug debug
 
 . setup.sh
 
-require_node_dax_device 0
-require_node_dax_device 1
+require_node_dax_device 0 1
+require_node_dax_device 1 1
 
 setup
 

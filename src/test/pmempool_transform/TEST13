@@ -31,8 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST13 -- test for transforming hdrs->nohdrs
+# pmempool_transform/TEST13 -- test for transform with NOHDRS option
 #
+# adding the NOHDRS option
 # case: single file-based replica with three parts
 #
 export UNITTEST_NAME=pmempool_transform/TEST13

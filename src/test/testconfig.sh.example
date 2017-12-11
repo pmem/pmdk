@@ -151,9 +151,10 @@ TM=1
 # So the size of device dax on the node of index 1 should not be bigger than
 # a size of device dax devices on other nodes.
 #
-#NODE_DEVICE_DAX_PATH[0]=/dev/dax0.0
-#NODE_DEVICE_DAX_PATH[1]=/dev/dax0.0
-#NODE_DEVICE_DAX_PATH[2]=/dev/dax0.0
+#NODE_DEVICE_DAX_PATH[0]="/dev/dax0.0 /dev/dax1.0"
+#NODE_DEVICE_DAX_PATH[1]="/dev/dax0.0 /dev/dax1.0"
+#NODE_DEVICE_DAX_PATH[2]="/dev/dax0.0"
+#NODE_DEVICE_DAX_PATH[3]="/dev/dax0.0"
 
 #
 # NODE_ENV variable for setting environment variables on specified nodes

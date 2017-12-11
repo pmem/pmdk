@@ -71,8 +71,8 @@ create_poolset $POOLSET \
 	AUTO:${DEVICE_DAX_PATH[2]} \
 	AUTO:${DEVICE_DAX_PATH[3]}
 
-DAX_SIZE[0]=$(dax_get_size ${DEVICE_DAX_PATH[0]})
-DAX_SIZE[2]=$(dax_get_size ${DEVICE_DAX_PATH[2]})
+DAX_SIZE[0]=$(get_devdax_size 0)
+DAX_SIZE[2]=$(get_devdax_size 2)
 
 OFFSET=$(minimum ${DAX_SIZE[0]} ${DAX_SIZE[2]})
 ROOT_SIZE=$[OFFSET + 1024]
