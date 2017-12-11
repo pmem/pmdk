@@ -404,7 +404,7 @@ libvmmalloc_create(const char *dir, size_t size)
 	/* silently enforce multiple of page size */
 	size = roundup(size, Pagesize);
 
-	Fd = util_tmpfile(dir, "/vmem.XXXXXX");
+	Fd = util_tmpfile(dir, "/vmem.XXXXXX", O_EXCL);
 	if (Fd == -1)
 		return NULL;
 
@@ -457,7 +457,7 @@ libvmmalloc_clone(void)
 {
 	LOG(3, NULL);
 	int err;
-	Fd_clone = util_tmpfile(Dir, "/vmem.XXXXXX");
+	Fd_clone = util_tmpfile(Dir, "/vmem.XXXXXX", O_EXCL);
 	if (Fd_clone == -1)
 		return -1;
 

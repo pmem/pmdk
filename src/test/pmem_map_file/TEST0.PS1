@@ -71,7 +71,10 @@ expect_normal_exit $Env:EXE_DIR\pmem_map_file$Env:EXESUFFIX `
     $DIR\testfile1 0 E 0 1 1 `
     $DIR\testfile1 4096 T 0644 1 1 `
     $DIR\testfile1 4096 E 0644 1 1 `
-    $DIR\testfile1 0 - 0644 1 1
+    $DIR\testfile1 0 - 0644 1 1 `
+    $DIR\testfile1 4096 C 0644 1 1 `
+    $DIR\testfile1 8192 C 0644 1 1 `
+    $DIR\testfile1 4096 CS 0644 1 1
 
 check_files $DIR\testfile1
 
