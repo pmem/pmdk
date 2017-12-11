@@ -44,6 +44,17 @@ function verbose_msg() {
 	fi
 }
 
+function msg() {
+	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
+		echo "$1"
+	fi
+}
+
+function fatal() {
+	echo "$1" >&2
+	exit 1
+}
+
 # defaults
 [ "$UNITTEST_LOG_LEVEL" ] || export UNITTEST_LOG_LEVEL=2
 [ "$GREP" ] || export GREP="grep -a"
@@ -160,20 +171,17 @@ curtestdir=`basename $PWD`
 
 # just in case
 if [ ! "$curtestdir" ]; then
-	echo "curtestdir does not have a value" >&2
-	exit 1
+	fatal "curtestdir does not have a value"
 fi
 
 curtestdir=test_$curtestdir
 
 if [ ! "$UNITTEST_NUM" ]; then
-	echo "UNITTEST_NUM does not have a value" >&2
-	exit 1
+	fatal "UNITTEST_NUM does not have a value"
 fi
 
 if [ ! "$UNITTEST_NAME" ]; then
-	echo "UNITTEST_NAME does not have a value" >&2
-	exit 1
+	fatal "UNITTEST_NAME does not have a value"
 fi
 
 REAL_FS=$FS
@@ -202,8 +210,7 @@ else
 			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=non-pmem
 		else
-			echo "$UNITTEST_NAME: fs-type=any and both env vars are empty" >&2
-			exit 1
+			fatal "$UNITTEST_NAME: fs-type=any and both env vars are empty"
 		fi
 		;;
 	none)
@@ -310,8 +317,7 @@ function store_exit_on_error() {
 #
 function restore_exit_on_error() {
 	if [ -z $estack ]; then
-		echo "error: store_exit_on_error function has to be called first" >&2
-		exit 1
+		fatal "error: store_exit_on_error function has to be called first"
 	fi
 
 	eval "set ${estack:${#estack}-1:1}e"
@@ -690,7 +696,7 @@ function expect_normal_exit() {
 		case "$1"
 		in
 		*_on_node*)
-			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			msg "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
 			exit 0
 		esac
 	fi
@@ -827,7 +833,7 @@ function expect_abnormal_exit() {
 		case "$1"
 		in
 		*_on_node*)
-			echo "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
+			msg "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
 			exit 0
 		esac
 	fi
@@ -900,7 +906,7 @@ function check_pools() {
 #
 function require_unlimited_vm() {
 	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
-	echo "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+	msg "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
 	exit 0
 }
 
@@ -910,7 +916,7 @@ function require_unlimited_vm() {
 function require_no_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" != "0" ] && return
-	echo "$UNITTEST_NAME: SKIP required: run without superuser rights"
+	msg "$UNITTEST_NAME: SKIP required: run without superuser rights"
 	exit 0
 }
 
@@ -919,7 +925,7 @@ function require_no_superuser() {
 #
 function require_no_freebsd() {
 	[ "$(uname -s)" != "FreeBSD" ] && return
-	echo "$UNITTEST_NAME: SKIP: Not supported on FreeBSD"
+	msg "$UNITTEST_NAME: SKIP: Not supported on FreeBSD"
 	exit 0
 }
 
@@ -928,7 +934,7 @@ function require_no_freebsd() {
 #
 function require_procfs() {
 	mount | grep -q "/proc" && return
-	echo "$UNITTEST_NAME: SKIP: /proc not mounted"
+	msg "$UNITTEST_NAME: SKIP: /proc not mounted"
 	exit 0
 }
 
@@ -963,8 +969,7 @@ function require_test_type() {
 #
 function require_pmem() {
 	[ $PMEM_IS_PMEM -eq 0 ] && return
-	echo "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device" >&2
-	exit 1
+	fatal "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device"
 }
 
 #
@@ -972,8 +977,7 @@ function require_pmem() {
 #
 function require_non_pmem() {
 	[ $NON_PMEM_IS_PMEM -ne 0 ] && return
-	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device" >&2
-	exit 1
+	fatal "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"
 }
 
 #
@@ -1006,14 +1010,14 @@ function require_dev_dax_node() {
 		local prefix="$UNITTEST_NAME: SKIP NODE $node:"
 		local device_dax_path=(${NODE_DEVICE_DAX_PATH[$node]})
 		if [  ${#device_dax_path[@]} -lt $min ]; then
-			echo "$prefix NODE_${node}_DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
+			msg "$prefix NODE_${node}_DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
 			exit 0
 		fi
 		local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmemdetect -d"
 	else
 		local prefix="$UNITTEST_NAME: SKIP"
 		if [ ${#DEVICE_DAX_PATH[@]} -lt $min ]; then
-			echo "$prefix DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
+			msg "$prefix DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
 			exit 0
 		fi
 		local device_dax_path=${DEVICE_DAX_PATH[@]}
@@ -1030,11 +1034,10 @@ function require_dev_dax_node() {
 		if [ "$ret" == "0" ]; then
 			continue
 		elif [ "$ret" == "1" ]; then
-			echo "$prefix $out"
+			msg "$prefix $out"
 			exit 0
 		else
-			echo "$UNITTEST_NAME: pmemdetect: $out" >&2
-			exit 1
+			fatal "$UNITTEST_NAME: pmemdetect: $out"
 		fi
 	done
 	DEVDAX_TO_LOCK=1
@@ -1080,11 +1083,10 @@ node_dax_device_zero() {
 		if [ "$ret" == "0" ]; then
 			continue
 		elif [ "$ret" == "1" ]; then
-			echo "$prefix $out"
+			msg "$prefix $out"
 			exit 0
 		else
-			echo "$UNITTEST_NAME: pmempool rm: $out" >&2
-			exit 1
+			fatal "$UNITTEST_NAME: pmempool rm: $out"
 		fi
 	done
 
@@ -1118,8 +1120,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		echo "UNITTEST_NAME: stat on node $node: $out" >&2
-		exit 1
+		fatal "UNITTEST_NAME: stat on node $node: $out"
 	fi
 	local major=$((16#$out))
 
@@ -1128,8 +1129,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		echo "UNITTEST_NAME: stat on node $node: $out" >&2
-		exit 1
+		fatal "UNITTEST_NAME: stat on node $node: $out"
 	fi
 	local minor=$((16#$out))
 
@@ -1138,8 +1138,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		echo "UNITTEST_NAME: stat on node $node: $out" >&2
-		exit 1
+		fatal "UNITTEST_NAME: stat on node $node: $out"
 	fi
 	echo $out
 }
@@ -1217,9 +1216,9 @@ function require_node_dax_device_alignments() {
 
 		if [ $i -eq $cnt ]; then
 			if [ "$node" == "-1" ]; then
-				echo "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+				msg "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
 			else
-				echo "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment " \
+				msg "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment " \
 					"$alignment on node $node"
 			fi
 			exit 0
@@ -1296,7 +1295,7 @@ function require_build_type() {
 function require_command() {
 	if ! command -pv $1 1>/dev/null
 	then
-		echo "$UNITTEST_NAME: SKIP: '$1' command required"
+		msg "$UNITTEST_NAME: SKIP: '$1' command required"
 		exit 0
 	fi
 }
@@ -1308,7 +1307,7 @@ function require_command() {
 function require_pkg() {
 	if ! command -v pkg-config 1>/dev/null
 	then
-		echo "$UNITTEST_NAME: SKIP pkg-config required"
+		msg "$UNITTEST_NAME: SKIP pkg-config required"
 		exit 0
 	fi
 
@@ -1321,7 +1320,7 @@ function require_pkg() {
 	MSG="$MSG required"
 	if ! $COMMAND
 	then
-		echo "$MSG"
+		msg "$MSG"
 		exit 0
 	fi
 }
@@ -1358,7 +1357,7 @@ function require_node_pkg() {
 	restore_exit_on_error
 
 	if [ "$ret" == 1 ]; then
-		echo "$MSG"
+		msg "$MSG"
 		exit 0
 	fi
 }
@@ -1378,25 +1377,24 @@ function configure_valgrind() {
 
 	if [ "$CHECK_TYPE" == "none" ]; then
 		if [ "$1" == "force-disable" ]; then
-			echo "all valgrind tests disabled"
+			msg "all valgrind tests disabled"
 		elif [ "$2" = "force-enable" ]; then
 			CHECK_TYPE="$1"
 			require_valgrind_tool $1 $3
 		elif [ "$2" = "force-disable" ]; then
 			CHECK_TYPE=none
 		else
-			echo "invalid parameter" >&2
-			exit 1
+			fatal "invalid parameter"
 		fi
 	else
 		if [ "$1" == "force-disable" ]; then
-			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" != "$1" -a "$2" == "force-enable" ]; then
-			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" == "$1" -a "$2" == "force-disable" ]; then
-			echo "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
@@ -1418,7 +1416,7 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		echo "$UNITTEST_NAME: SKIP valgrind package required"
+		msg "$UNITTEST_NAME: SKIP valgrind package required"
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
@@ -1429,7 +1427,7 @@ function require_valgrind() {
 			ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
 			fi
 		fi
@@ -1451,13 +1449,12 @@ function require_valgrind_tool() {
 	pushd "$dir" > /dev/null
 	[ -n "$binary" ] || binary=$(get_executables)
 	if [ -z "$binary" ]; then
-		echo "require_valgrind_tool: error: no binary found" >&2
-		exit 1
+		fatal "require_valgrind_tool: error: no binary found"
 	fi
 	strings ${binary} 2>&1 | \
 	grep -q "compiled with support for Valgrind $tool" && true
 	if [ $? -ne 0 ]; then
-		echo "$UNITTEST_NAME: SKIP not compiled with support for Valgrind $tool"
+		msg "$UNITTEST_NAME: SKIP not compiled with support for Valgrind $tool"
 		exit 0
 	fi
 
@@ -1465,7 +1462,7 @@ function require_valgrind_tool() {
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			echo "$UNITTEST_NAME: SKIP valgrind package with $tool required"
+			msg "$UNITTEST_NAME: SKIP valgrind package with $tool required"
 			exit 0;
 		fi
 	fi
@@ -1483,8 +1480,7 @@ function require_valgrind_tool() {
 #
 function set_valgrind_exe_name() {
 	if [ "$VALGRINDEXE" = "" ]; then
-		echo "set_valgrind_exe_name: error: valgrind is not set up" >&2
-		exit 1
+		fatal "set_valgrind_exe_name: error: valgrind is not set up"
 	fi
 
 	local VALGRINDDIR=`dirname $VALGRINDEXE`
@@ -1500,8 +1496,7 @@ function set_valgrind_exe_name() {
 			echo ${NODE_VALGRINDEXE[$N]}"
 		NODE_VALGRINDEXE[$N]=$(ssh $SSH_OPTS ${NODE[$N]} $COMMAND)
 		if [ $? -ne 0 ]; then
-			echo ${NODE_VALGRINDEXE[$N]}
-			exit 1
+			fatal ${NODE_VALGRINDEXE[$N]}
 		fi
 	done
 }
@@ -1546,7 +1541,7 @@ function require_valgrind_dev_version() {
 			;;
 	esac
 	echo "$code" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | grep -q $define && return
-	echo "$UNITTEST_NAME: SKIP valgrind-devel package (ver $major.$minor or later) required"
+	msg "$UNITTEST_NAME: SKIP valgrind-devel package (ver $major.$minor or later) required"
 	exit 0
 }
 
@@ -1560,7 +1555,7 @@ function require_no_asan_for() {
 	ASAN_ENABLED=$?
 	restore_exit_on_error
 	if [ "$ASAN_ENABLED" == "0" ]; then
-		echo "$UNITTEST_NAME: SKIP: ASAN enabled"
+		msg "$UNITTEST_NAME: SKIP: ASAN enabled"
 		exit 0
 	fi
 }
@@ -1577,7 +1572,7 @@ function require_cxx11() {
 		echo y || echo n`
 
 	if [ "$CXX11_AVAILABLE" == "n" ]; then
-		echo "$UNITTEST_NAME: SKIP: C++11 required"
+		msg "$UNITTEST_NAME: SKIP: C++11 required"
 		exit 0
 	fi
 }
@@ -1609,7 +1604,7 @@ function require_no_asan() {
 #
 function require_tty() {
 	if ! tty >/dev/null; then
-		echo "$UNITTEST_NAME: SKIP no terminal"
+		msg "$UNITTEST_NAME: SKIP no terminal"
 		exit 0
 	fi
 }
@@ -1621,11 +1616,10 @@ function require_tty() {
 #
 function require_binary() {
 	if [ -z "$1" ]; then
-		echo "require_binary: error: binary not provided" >&2
-		exit 1
+		fatal "require_binary: error: binary not provided"
 	fi
 	if [ ! -x "$1" ]; then
-		echo "$UNITTEST_NAME: SKIP no binary found"
+		msg "$UNITTEST_NAME: SKIP no binary found"
 		exit 0
 	fi
 
@@ -1649,7 +1643,7 @@ function require_preload() {
 	ret=$?
 	restore_exit_on_error
 	if [ $ret == 134 ]; then
-		echo "$UNITTEST_NAME: SKIP: $msg not supported"
+		msg "$UNITTEST_NAME: SKIP: $msg not supported"
 		rm -f $1.core
 		exit 0
 	fi
@@ -1661,9 +1655,7 @@ function require_preload() {
 #
 function check_absolute_path() {
 	if [ "${DIR:0:1}" != "/" ]; then
-		echo "Directory \$DIR has to be an absolute path."
-		echo "$DIR was given."
-		exit 1
+		fatal "Directory \$DIR has to be an absolute path. $DIR was given."
 	fi
 }
 
@@ -1688,8 +1680,7 @@ function run_command()
 function validate_node_number() {
 
 	[ $1 -gt $NODES_MAX ] \
-		&& echo "error: node number ($1) greater than maximum allowed node number ($NODES_MAX)" >&2 \
-		&& exit 1
+		&& fatal "error: node number ($1) greater than maximum allowed node number ($NODES_MAX)"
 	return 0
 }
 
@@ -1727,7 +1718,7 @@ function clean_remote_node() {
 #
 function clean_all_remote_nodes() {
 
-	echo "$UNITTEST_NAME: CLEAN (cleaning processes on remote nodes)"
+	msg "$UNITTEST_NAME: CLEAN (cleaning processes on remote nodes)"
 
 	local N=0
 	disable_exit_on_error
@@ -1777,12 +1768,12 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric "$version"
 	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
 		if ! fi_info --list | grep -q verbs; then
-			echo "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
+			msg "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
 			exit 0
 		fi
 
 		if ! run_on_node $N "fi_info --list | grep -q verbs"; then
-			echo "$UNITTEST_NAME: SKIP libfabric on node $N not compiled with verbs provider"
+			msg "$UNITTEST_NAME: SKIP libfabric on node $N not compiled with verbs provider"
 			exit 0
 
 		fi
@@ -1801,11 +1792,10 @@ function require_node_libfabric() {
 	if [ "$ret" == "0" ]; then
 		return
 	elif [ "$ret" == "1" ]; then
-		echo "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
+		msg "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
 		exit 0
 	else
-		echo "NODE $N: require_libfabric $provider: $fip_out" >&2
-		exit 1
+		fatal "NODE $N: require_libfabric $provider: $fip_out"
 	fi
 }
 
@@ -1834,7 +1824,7 @@ function require_nodes() {
 	local N=$1
 
 	[ $N -gt $N_NODES ] \
-		&& echo "$UNITTEST_NAME: SKIP: requires $N node(s), but $N_NODES node(s) provided" \
+		&& msg "$UNITTEST_NAME: SKIP: requires $N node(s), but $N_NODES node(s) provided" \
 		&& exit 0
 
 	NODES_MAX=$(($N - 1))
@@ -1844,19 +1834,17 @@ function require_nodes() {
 	for N in $NODES_SEQ; do
 		# validate node's address
 		[ "${NODE[$N]}" = "" ] \
-			&& echo "$UNITTEST_NAME: SKIP: address of node #$N is not provided" \
+			&& msg "$UNITTEST_NAME: SKIP: address of node #$N is not provided" \
 			&& exit 0
 
 		# validate the working directory
 		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
-			&& echo "error: working directory for node #$N (${NODE[$N]}) is not provided" >&2 \
-			&& exit 1
+			&& fatal "error: working directory for node #$N (${NODE[$N]}) is not provided"
 
 		# check if the node is reachable
 		check_if_node_is_reachable $N
 		[ $? -ne 0 ] \
-			&& echo "error: node #$N (${NODE[$N]}) is unreachable" >&2 \
-			&& exit 1
+			&& fatal "error: node #$N (${NODE[$N]}) is unreachable"
 
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
@@ -1871,7 +1859,7 @@ function require_nodes() {
 			local ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				echo "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
 				exit 0
 			fi
 		fi
@@ -1926,7 +1914,7 @@ function copy_files_to_node() {
 	local DEST_DIR=$2
 	shift 2
 	[ $# -eq 0 ] &&\
-		echo "error: copy_files_to_node(): no files provided" >&2 && exit 1
+		fatal "error: copy_files_to_node(): no files provided"
 
 	# copy all required files
 	run_command scp $SCP_OPTS $@ ${NODE[$N]}:$DEST_DIR > /dev/null
@@ -1945,10 +1933,10 @@ function copy_files_from_node() {
 	local N=$1
 	local DEST_DIR=$2
 	[ ! -d $DEST_DIR ] &&\
-		echo "error: destination directory $DEST_DIR does not exist" >&2 && exit 1
+		fatal "error: destination directory $DEST_DIR does not exist"
 	shift 2
 	[ $# -eq 0 ] &&\
-		echo "error: copy_files_from_node(): no files provided" >&2 && exit 1
+		fatal "error: copy_files_from_node(): no files provided"
 
 	# compress required files, copy and extract
 	local temp_file=node_${N}_temp_file.tar
@@ -1996,7 +1984,7 @@ function rm_files_from_node() {
 	local N=$1
 	shift
 	[ $# -eq 0 ] &&\
-		echo "error: rm_files_from_node(): no files provided" >&2 && exit 1
+		fatal "error: rm_files_from_node(): no files provided"
 
 	run_command ssh $SSH_OPTS ${NODE[$N]} "rm -f $@"
 
@@ -2194,8 +2182,7 @@ function create_holey_file_on_node() {
 function setup() {
 	# test type must be explicitly specified
 	if [ "$req_test_type" != "1" ]; then
-		echo "error: required test type is not specified" >&2
-		exit 1
+		fatal "error: required test type is not specified"
 	fi
 
 	# fs type "none" must be explicitly enabled
@@ -2219,7 +2206,7 @@ function setup() {
 	[ -n "$RPMEM_PROVIDER" ] && PROV="/$RPMEM_PROVIDER"
 	[ -n "$RPMEM_PM" ] && PM="/$RPMEM_PM"
 
-	echo "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
+	msg "$UNITTEST_NAME: SETUP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 
 	for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 		rm -f $f
@@ -2315,7 +2302,9 @@ function pass() {
 	fi
 	msg="PASS"
 	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
-	echo -e "$UNITTEST_NAME: $msg$tm"
+	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
+		echo -e "$UNITTEST_NAME: $msg$tm"
+	fi
 	if [ "$FS" != "none" ]; then
 		rm $RM_ONEFS -rf -- $DIR
 	fi
@@ -2344,8 +2333,7 @@ check_file()
 {
 	if [ ! -f $1 ]
 	then
-		echo "Missing file: ${1}" >&2
-		exit 1
+		fatal "Missing file: ${1}"
 	fi
 }
 
@@ -2367,8 +2355,7 @@ check_no_file()
 {
 	if [ -f $1 ]
 	then
-		echo "Not deleted file: ${1}" >&2
-		exit 1
+		fatal "Not deleted file: ${1}"
 	fi
 }
 
@@ -2410,8 +2397,7 @@ check_size()
 
 	if [[ $size != $file_size ]]
 	then
-		echo "error: wrong size ${file_size} != ${size}" >&2
-		exit 1
+		fatal "error: wrong size ${file_size} != ${size}"
 	fi
 }
 
@@ -2426,8 +2412,7 @@ check_mode()
 
 	if [[ $mode != $file_mode ]]
 	then
-		echo "error: wrong mode ${file_mode} != ${mode}" >&2
-		exit 1
+		fatal "error: wrong mode ${file_mode} != ${mode}"
 	fi
 }
 
@@ -2442,8 +2427,7 @@ check_signature()
 
 	if [[ $sig != $file_sig ]]
 	then
-		echo "error: $file: signature doesn't match ${file_sig} != ${sig}" >&2
-		exit 1
+		fatal "error: $file: signature doesn't match ${file_sig} != ${sig}"
 	fi
 }
 
@@ -2472,8 +2456,7 @@ check_layout()
 
 	if [[ $layout != $file_layout ]]
 	then
-		echo "error: layout doesn't match ${file_layout} != ${layout}" >&2
-		exit 1
+		fatal "error: layout doesn't match ${file_layout} != ${layout}"
 	fi
 }
 
@@ -2487,8 +2470,7 @@ check_arena()
 
 	if [[ $sig != $ARENA_SIG ]]
 	then
-		echo "error: can't find arena signature" >&2
-		exit 1
+		fatal "error: can't find arena signature"
 	fi
 }
 
@@ -2539,7 +2521,7 @@ function init_rpmem_on_node() {
 	APM|GPSPM)
 		;;
 	*)
-		echo "$UNITTEST_NAME: SKIP required: RPMEM_PM is invalid or empty"
+		msg "$UNITTEST_NAME: SKIP required: RPMEM_PM is invalid or empty"
 		exit 0
 		;;
 	esac
@@ -2617,7 +2599,7 @@ function init_rpmem_on_node() {
 		RPMEM_ENABLE_VERBS=1
 		;;
 	*)
-		echo "$UNITTEST_NAME: SKIP required: RPMEM_PROVIDER is invalid or empty"
+		msg "$UNITTEST_NAME: SKIP required: RPMEM_PROVIDER is invalid or empty"
 		exit 0
 		;;
 	esac
@@ -2698,8 +2680,7 @@ function copy_common_to_remote_nodes() {
 	DIR_SYNC=$1
 	if [ "$DIR_SYNC" != "" ]; then
 		[ ! -d $DIR_SYNC ] \
-		&& echo "error: $DIR_SYNC does not exist or is not a directory" >&2 \
-		&& exit 1
+		&& fatal "error: $DIR_SYNC does not exist or is not a directory"
 	fi
 
 	# add all libraries to the 'to-copy' list
@@ -2715,17 +2696,16 @@ function copy_common_to_remote_nodes() {
 	for N in $NODES_ALL_SEQ; do
 		# validate node's address
 		[ "${NODE[$N]}" = "" ] \
-			&& echo "error: address of node #$N is not provided" >&2 \
-			&& exit 1
+			&& fatal "error: address of node #$N is not provided"
 
 		check_if_node_is_reachable $N
 		[ $? -ne 0 ] \
-			&& echo "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." >&2 \
+			&& msg "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." \
 			&& continue
 
 		# validate the working directory
 		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
-			&& echo ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." >&2 \
+			&& msg ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." \
 			&& continue
 
 		# create the working dir if it does not exist
@@ -2752,17 +2732,16 @@ function copy_test_to_remote_nodes() {
 	for N in $NODES_ALL_SEQ; do
 		# validate node's address
 		[ "${NODE[$N]}" = "" ] \
-			&& echo "error: address of node #$N is not provided" >&2 \
-			&& exit 1
+			&& fatal "error: address of node #$N is not provided"
 
 		check_if_node_is_reachable $N
 		[ $? -ne 0 ] \
-			&& echo "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." >&2 \
+			&& msg "warning: node #$N (${NODE[$N]}) is unreachable, skipping..." \
 			&& continue
 
 		# validate the working directory
 		[ "${NODE_WORKING_DIR[$N]}" = "" ] \
-			&& echo ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." >&2 \
+			&& msg ": warning: working directory for node #$N (${NODE[$N]}) is not provided, skipping..." \
 			&& continue
 
 		local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
@@ -2802,7 +2781,7 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
 		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
 		if [ $? -eq 0 ]; then
-			echo -e "Removed data from: ${NODE[$i]}:${N[$i]}"
+			msg "Removed data from: ${NODE[$i]}:${N[$i]}"
 		fi
 	done
 	exit 0
