@@ -44,7 +44,8 @@ RUN apt-get update && apt-get install -y software-properties-common \
 	devscripts pkg-config ssh git gcc clang debhelper sudo whois \
 	libc6-dbg libncurses5-dev libuv1-dev libfuse-dev libglib2.0-dev \
 	libtool pandoc doxygen graphviz clang-format-3.8 cmake ruby gdb \
-	libjson-c-dev asciidoc uuid-dev libkmod-dev libudev-dev
+	libjson-c-dev asciidoc uuid-dev libkmod-dev libudev-dev \
+	bc
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh

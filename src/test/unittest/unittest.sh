@@ -1386,6 +1386,7 @@ function set_valgrind_exe_name() {
 #
 function valgrind_version() {
 	require_valgrind
+	require_command bc
 	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
 }
 
