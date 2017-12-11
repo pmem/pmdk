@@ -303,7 +303,7 @@ function store_exit_on_error() {
 #
 function restore_exit_on_error() {
 	if [ -z $estack ]; then
-		echo "error: store_exit_on_error function has to be called first"
+		echo "error: store_exit_on_error function has to be called first" >&2
 		exit 1
 	fi
 
