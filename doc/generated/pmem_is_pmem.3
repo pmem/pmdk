@@ -95,8 +95,9 @@ following file creation flags:
 does not exist.
 \f[I]len\f[] must be non\-zero and specifies the size of the file to be
 created.
-The file is fully allocated to the size \f[I]len\f[] using
-\f[B]posix_fallocate\f[](3).
+If the file already exists, it will be extended or truncated to
+\f[I]len.\f[] The new or existing file is then fully allocated to size
+\f[I]len\f[] using \f[B]posix_fallocate\f[](3).
 \f[I]mode\f[] specifies the mode to use in case a new file is created
 (see \f[B]creat\f[](2)).
 .PP
@@ -113,8 +114,6 @@ which is generally undefined.
 \f[B]PMEM_FILE_CREATE\f[], create a sparse (holey) file using
 \f[B]ftruncate\f[](2) rather than allocating it using
 \f[B]posix_fallocate\f[](3).
-If the file already exists, it will be extended or truncated to
-\f[I]len\f[].
 Otherwise ignored.
 .IP \[bu] 2
 \f[B]PMEM_FILE_TMPFILE\f[] \- Create a mapping for an unnamed temporary
@@ -123,9 +122,11 @@ Must be specified with \f[B]PMEM_FILE_CREATE\f[].
 \f[I]len\f[] must be non\-zero, \f[I]mode\f[] is ignored (the temporary
 file is always created with mode 0600), and \f[I]path\f[] must specify
 an existing directory name.
-If the underlying file system supports \f[B]O_TMPFILE\f[] (see
-\f[B]open\f[](2)), the unnamed temporary file is created in the
-filesystem containing the directory \f[I]path\f[].
+If the underlying file system supports \f[B]O_TMPFILE\f[], the unnamed
+temporary file is created in the filesystem containing the directory
+\f[I]path\f[]; if \f[B]PMEM_FILE_EXCL\f[] is also specified, the
+temporary file may not subsequently be linked into the filesystem (see
+\f[B]open\f[](2)).
 Otherwise, the file is created in \f[I]path\f[] and immediately
 unlinked.
 .PP
@@ -175,19 +176,6 @@ Not all file systems support \f[B]posix_fallocate\f[](3).
 \f[B]pmem_map_file\f[]() will fail if \f[B]PMEM_FILE_CREATE\f[] is
 specified without \f[B]PMEM_FILE_SPARSE\f[] and the underlying file
 system does not support \f[B]posix_fallocate\f[](3).
-.SH BUGS
-.PP
-For \f[B]pmem_map_file\f[](), if \f[I]flags\f[] specifes
-\f[B]PMEM_FILE_CREATE\f[] without \f[B]PMEM_FILE_EXCL\f[] and
-\f[B]PMEM_FILE_SPARSE\f[], the file already exists, and \f[I]len\f[] is
-less than the existing file length, only the range [0, \f[I]len\f[]),
-rather than the entire file, will be mapped.
-\f[I]len\f[] will be returned in *\f[I]mapped_lenp\f[] if
-\f[I]mapped_lenp\f[] is not NULL.
-.PP
-The \f[B]O_EXCL\f[] behavior of \f[B]O_TMPFILE\f[] (see
-\f[B]open\f[](2)) is not supported by \f[B]pmem_map_file\f[]() with
-\f[B]PMEM_FILE_TEMPFILE\f[].
 .SH SEE ALSO
 .PP
 \f[B]creat\f[](2), \f[B]ftruncate\f[](2), \f[B]mmap\f[](2),
