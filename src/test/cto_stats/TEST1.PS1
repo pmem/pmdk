@@ -52,10 +52,6 @@ setup
 # limit the number of arenas to fit into the minimal PMEMCTO pool size
 $Env:JE_VMEM_MALLOC_CONF="narenas:64"
 
-# XXX: CTO - w/o this hint, there is about 50% chance that libpmemcto would
-# fail to map the pool at the same address as it was created
-$Env:PMEM_MMAP_HINT="0x10000000000"
-
 expect_normal_exit $Env:EXE_DIR\cto_stats$Env:EXESUFFIX `
     $DIR\testfile1 $DIR\testfile2 g
 

@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/cto_multiple_pools/TEST1 -- unit test for cto_multiple_pools
+# src/test/cto_multiple_pools/TEST4 -- unit test for cto_multiple_pools
 #
-export UNITTEST_NAME=cto_multiple_pools/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=cto_multiple_pools/TEST4
+export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -46,6 +46,6 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR c 2 16
+expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR o 4 4
 
 pass

@@ -62,6 +62,11 @@
 #include "valgrind_internal.h"
 #include "os_thread.h"
 
+/* default hint address for mmap() when PMEM_MMAP_HINT is not specified */
+#define CTO_MMAP_HINT ((void *)0x10000000000)
+
+static os_mutex_t Pool_lock; /* guards pmemcto_create and pmemcto_open */
+
 /*
  * cto_print_jemalloc_messages -- (internal) custom print function for jemalloc
  *
@@ -95,6 +100,8 @@ cto_init(void)
 	COMPILE_ERROR_ON(offsetof(struct pmemcto, set) !=
 			POOL_HDR_SIZE + CTO_DSC_P_SIZE);
 
+	util_mutex_init(&Pool_lock);
+
 	/* set up jemalloc messages to a custom print function */
 	je_cto_malloc_message = cto_print_jemalloc_messages;
 }
@@ -108,7 +115,8 @@ void
 cto_fini(void)
 {
 	LOG(3, NULL);
-	/* nothing to be done */
+
+	util_mutex_destroy(&Pool_lock);
 }
 
 /*
@@ -244,6 +252,19 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 		return NULL;
 	}
 
+	util_mutex_lock(&Pool_lock);
+
+	/*
+	 * Since pmemcto_create and pmemcto_open are guarded by the lock,
+	 * we can safely modify the global Mmap_hint variable and restore
+	 * it once the pool is created.
+	 */
+	int old_no_random = Mmap_no_random;
+	if (!Mmap_no_random) {
+		Mmap_no_random = 1;
+		Mmap_hint = CTO_MMAP_HINT; /* XXX: add randomization */
+	}
+
 	if (util_pool_create(&set, path,
 			poolsize, PMEMCTO_MIN_POOL, PMEMCTO_MIN_PART,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
@@ -251,8 +272,13 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 			CTO_FORMAT_RO_COMPAT_DEFAULT, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
+		Mmap_no_random = old_no_random;
+		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
+
+	Mmap_no_random = old_no_random;
+	util_mutex_unlock(&Pool_lock);
 
 	ASSERT(set->nreplicas > 0);
 
@@ -308,7 +334,9 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
+	util_mutex_lock(&Pool_lock);
 	util_poolset_close(set, DELETE_CREATED_PARTS);
+	util_mutex_unlock(&Pool_lock);
 	errno = oerrno;
 	return NULL;
 }
@@ -357,16 +385,17 @@ pmemcto_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
  * This routine opens the pool, but does not any run-time initialization.
  */
 static PMEMctopool *
-cto_open_noinit(const char *path, const char *layout, int cow)
+cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
 {
-	LOG(3, "path \"%s\" layout \"%s\"  cow %d", path, layout, cow);
+	LOG(3, "path \"%s\" layout \"%s\" cow %d addr %p",
+			path, layout, cow, addr);
 
 	struct pool_set *set;
 
 	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
 			CTO_FORMAT_COMPAT_CHECK, CTO_FORMAT_INCOMPAT_CHECK,
-			CTO_FORMAT_RO_COMPAT_CHECK, NULL) != 0) {
+			CTO_FORMAT_RO_COMPAT_CHECK, NULL, addr) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -425,6 +454,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 	LOG(3, "path \"%s\" layout \"%s\" cow %d", path, layout, cow);
 
 	PMEMctopool *pcp;
+	struct pool_set *set;
 
 	/*
 	 * XXX: Opening/mapping the pool twice is not the coolest solution,
@@ -432,9 +462,12 @@ cto_open_common(const char *path, const char *layout, int cow)
 	 * pool sets.
 	 */
 
+	util_mutex_lock(&Pool_lock);
+
 	/* open pool set to check consistency and to get the mapping address */
-	if ((pcp = cto_open_noinit(path, layout, cow)) == NULL) {
+	if ((pcp = cto_open_noinit(path, layout, cow, NULL)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
+		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
 
@@ -446,21 +479,16 @@ cto_open_common(const char *path, const char *layout, int cow)
 	util_poolset_close(pcp->set, DO_NOT_DELETE_PARTS);
 	errno = oerrno;
 
-	/*
-	 * open the pool once again using the mapping address as a hint
-	 *
-	 * XXX: use global PMEM map hint variable to pass mapping address
-	 * to util_map()
-	 */
-	Mmap_no_random = 1;
-	Mmap_hint = mapaddr;
-
-	if ((pcp = cto_open_noinit(path, layout, cow)) == NULL) {
+	/* open the pool once again using the mapping address as a hint */
+	if ((pcp = cto_open_noinit(path, layout, cow, mapaddr)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
+		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
 
-	struct pool_set *set = pcp->set;
+	util_mutex_unlock(&Pool_lock);
+
+	set = pcp->set;
 
 	if ((void *)pcp->addr != pcp) {
 		ERR("cannot mmap at the same address: %p != %p",
@@ -490,7 +518,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 			set->poolsize - CTO_DSC_SIZE_ALIGNED, 0, 0) == NULL) {
 		ERR("pool creation failed");
 		util_unmap((void *)pcp->addr, pcp->size);
-		return NULL;
+		goto err;
 	}
 
 	util_poolset_fdclose(set);
@@ -501,7 +529,9 @@ cto_open_common(const char *path, const char *layout, int cow)
 err:
 	LOG(4, "error clean up");
 	oerrno = errno;
+	util_mutex_lock(&Pool_lock);
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+	util_mutex_unlock(&Pool_lock);
 	errno = oerrno;
 	return NULL;
 }
@@ -582,7 +612,9 @@ pmemcto_close(PMEMctopool *pcp)
 	pcp->consistent = 1;
 	util_persist(pcp->is_pmem, &pcp->consistent, sizeof(pcp->consistent));
 
+	util_mutex_lock(&Pool_lock);
 	util_poolset_close(pcp->set, DO_NOT_DELETE_PARTS);
+	util_mutex_unlock(&Pool_lock);
 }
 
 /*

@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,13 +30,18 @@
 #
 
 #
-# src/test/cto_multiple_pools/TEST1 -- unit test for cto_multiple_pools
+# src/test/cto_multiple_pools/TEST4.PS1 -- unit test for cto_multiple_pools
 #
-export UNITTEST_NAME=cto_multiple_pools/TEST1
-export UNITTEST_NUM=1
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
+$Env:UNITTEST_NAME = "cto_multiple_pools/TEST4"
+$Env:UNITTEST_NUM = "4"
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any
@@ -46,6 +49,6 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./cto_multiple_pools$EXESUFFIX $DIR c 2 16
+expect_normal_exit $Env:EXE_DIR\cto_multiple_pools$Env:EXESUFFIX $DIR o 4 4
 
 pass

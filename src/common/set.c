@@ -2588,14 +2588,18 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	int retry_for_contiguous_addr;
 	size_t mapsize;
 	size_t hdrsize = (set->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
-	void *addr;
 	struct pool_replica *rep = set->replica[repidx];
+	void *addr = rep->mapaddr;
+
+	/* mapaddr can be set for master replica only */
+	ASSERT(repidx == 0 || addr == NULL);
 
 	do {
 		retry_for_contiguous_addr = 0;
 
-		/* determine a hint address for mmap() */
-		addr = util_map_hint(rep->repsize, 0);
+		/* determine a hint address for mmap() if not specified */
+		if (addr == NULL)
+			addr = util_map_hint(rep->repsize, 0);
 		if (addr == MAP_FAILED) {
 			ERR("cannot find a contiguous region of given size");
 			return -1;
@@ -2943,12 +2947,12 @@ int
 util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, const char *sig, uint32_t major,
 	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes)
+	unsigned *nlanes, void *addr)
 {
 	LOG(3, "setp %p path %s cow %d minpartsize %zu sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x nlanes %p",
+		"compat %#x incompat %#x ro_comapt %#x nlanes %p addr %p",
 		setp, path, cow, minpartsize, sig, major,
-		compat, incompat, ro_compat, nlanes);
+		compat, incompat, ro_compat, nlanes, addr);
 
 	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
@@ -2959,6 +2963,9 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
 	}
+
+	/* configure base mapping address for master replica */
+	(*setp)->replica[0]->mapaddr = addr;
 
 	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
