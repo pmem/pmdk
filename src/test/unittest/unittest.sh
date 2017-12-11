@@ -38,7 +38,14 @@ export LC_ALL="C"
 
 . ../testconfig.sh
 
+function verbose_msg() {
+	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
+		echo "$1"
+	fi
+}
+
 # defaults
+[ "$UNITTEST_LOG_LEVEL" ] || export UNITTEST_LOG_LEVEL=2
 [ "$GREP" ] || export GREP="grep -a"
 [ "$TEST" ] || export TEST=check
 [ "$FS" ] || export FS=any
@@ -203,7 +210,7 @@ else
 		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	*)
-		[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
+		verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
 		exit 0
 		;;
 	esac
@@ -755,7 +762,7 @@ function expect_normal_exit() {
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 
 		if [ -f $ERR_LOG_FILE ]; then
-			if [ "$UNITTEST_QUIET" = "1" ]; then
+			if [ "$UNITTEST_LOG_LEVEL" -ge "1" ]; then
 				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE below." >&2
 				cat $ERR_LOG_FILE >&2
 			else
@@ -947,7 +954,7 @@ function require_test_type() {
 			;;
 		esac
 	done
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP test-type $TEST ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP test-type $TEST ($* required)"
 	exit 0
 }
 
@@ -1267,7 +1274,7 @@ function require_fs_type() {
 			;;
 		esac
 	done
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
 	exit 0
 }
 
@@ -1279,7 +1286,7 @@ function require_build_type() {
 	do
 		[ "$type" = "$BUILD" ] && return
 	done
-	[ "$UNITTEST_QUIET" ] || echo "$UNITTEST_NAME: SKIP build-type $BUILD ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP build-type $BUILD ($* required)"
 	exit 0
 }
 
@@ -2038,7 +2045,7 @@ function run_on_node() {
 	shift
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
-	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND UNITTEST_LOG_LEVEL=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]} $*"
 
@@ -2070,7 +2077,7 @@ function run_on_node_background() {
 	shift
 	local DIR=${NODE_WORKING_DIR[$N]}/$curtestdir
 	local COMMAND="UNITTEST_NUM=$UNITTEST_NUM UNITTEST_NAME=$UNITTEST_NAME"
-	COMMAND="$COMMAND UNITTEST_QUIET=1"
+	COMMAND="$COMMAND UNITTEST_LOG_LEVEL=1"
 	COMMAND="$COMMAND ${NODE_ENV[$N]}"
 	COMMAND="$COMMAND LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$REMOTE_LD_LIBRARY_PATH:${NODE_LD_LIBRARY_PATH[$N]}"
 	COMMAND="$COMMAND ../ctrld $PID_FILE run $RUNTEST_TIMEOUT $*"
