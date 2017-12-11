@@ -49,7 +49,7 @@ require_fs_type any
 
 setup
 
-create_holey_file 32M $DIR/testfile1
+create_holey_file 32M $DIR\testfile1
 
 expect_normal_exit $Env:EXE_DIR\cto_basic$Env:EXESUFFIX $DIR\testfile1
 

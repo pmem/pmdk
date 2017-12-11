@@ -57,7 +57,7 @@ create_holey_file 20M $DIR\testfile
 # TEST1 existing file, file length >= min required size, poolsize == 0
 #
 expect_normal_exit $Env:EXE_DIR\cto_pool$Env:EXESUFFIX `
-    c $DIR/testfile test$Env:SUFFIX 0 0600
+    c $DIR\testfile test$Env:SUFFIX 0 0600
 
 check_files $DIR\testfile
 
