@@ -63,13 +63,13 @@
 			;                                                      \
 	} while (0)
 
-using nvml::obj::p;
-using nvml::obj::persistent_ptr;
-using nvml::obj::pool;
-using nvml::obj::pool_base;
-using nvml::obj::make_persistent;
-using nvml::obj::delete_persistent;
-using nvml::obj::transaction;
+using pmem::obj::p;
+using pmem::obj::persistent_ptr;
+using pmem::obj::pool;
+using pmem::obj::pool_base;
+using pmem::obj::make_persistent;
+using pmem::obj::delete_persistent;
+using pmem::obj::transaction;
 
 namespace examples
 {
@@ -1227,11 +1227,11 @@ main(int argc, char *argv[])
 		endwin();
 		pop.close();
 		ret = 0;
-	} catch (nvml::transaction_error &err) {
+	} catch (pmem::transaction_error &err) {
 		std::cerr << err.what() << std::endl;
-	} catch (nvml::transaction_scope_error &tse) {
+	} catch (pmem::transaction_scope_error &tse) {
 		std::cerr << tse.what() << std::endl;
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		std::cerr << pe.what() << std::endl;
 	} catch (std::logic_error &le) {
 		std::cerr << le.what() << std::endl;

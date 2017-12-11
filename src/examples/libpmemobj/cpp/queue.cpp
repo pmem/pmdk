@@ -82,13 +82,13 @@ parse_queue_op(const char *str)
 }
 }
 
-using nvml::obj::p;
-using nvml::obj::persistent_ptr;
-using nvml::obj::pool;
-using nvml::obj::pool_base;
-using nvml::obj::make_persistent;
-using nvml::obj::delete_persistent;
-using nvml::obj::transaction;
+using pmem::obj::p;
+using pmem::obj::persistent_ptr;
+using pmem::obj::pool;
+using pmem::obj::pool_base;
+using pmem::obj::make_persistent;
+using pmem::obj::delete_persistent;
+using pmem::obj::transaction;
 
 namespace examples
 {

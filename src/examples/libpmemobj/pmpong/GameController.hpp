@@ -51,7 +51,7 @@ public:
 	void gameLoop(bool isSimulation = false);
 
 private:
-	nvml::obj::persistent_ptr<PongGameStatus> gameStatus;
+	pmem::obj::persistent_ptr<PongGameStatus> gameStatus;
 
 	void gameOver(sf::RenderWindow *gameWindow, View *view);
 	void menu(sf::RenderWindow *gameWindow, View *view);

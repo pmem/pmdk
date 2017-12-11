@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	std::string fileName = argv[1];
 	try {
 		Pool *pool = Pool::getGamePoolFromFile(fileName);
-		nvml::obj::persistent_ptr<GameController> gameController =
+		pmem::obj::persistent_ptr<GameController> gameController =
 			pool->getGameController();
 		if (mode == "-s")
 			gameController->gameLoop(true);
@@ -66,11 +66,11 @@ main(int argc, char *argv[])
 			gameController->gameLoop();
 		delete pool;
 		exitCode = EXIT_SUCCESS;
-	} catch (nvml::transaction_error &err) {
+	} catch (pmem::transaction_error &err) {
 		std::cerr << err.what() << std::endl;
-	} catch (nvml::transaction_scope_error &tse) {
+	} catch (pmem::transaction_scope_error &tse) {
 		std::cerr << tse.what() << std::endl;
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		std::cerr << pe.what() << std::endl;
 	} catch (std::logic_error &le) {
 		std::cerr << le.what() << std::endl;

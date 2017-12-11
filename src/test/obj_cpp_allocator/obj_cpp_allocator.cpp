@@ -45,7 +45,7 @@
 
 #define LAYOUT "cpp"
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -118,7 +118,7 @@ test_alloc_invalid()
 	try {
 		auto fooptr = al.allocate(1);
 		al.construct(fooptr, foo());
-	} catch (nvml::transaction_scope_error &) {
+	} catch (pmem::transaction_scope_error &) {
 		thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -173,7 +173,7 @@ main(int argc, char *argv[])
 	try {
 		pop = nvobj::pool_base::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 					       S_IWUSR | S_IRUSR);
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 

@@ -86,7 +86,7 @@ struct root {
 };
 
 /*
- * test_map -- (internal) test map<foo> with the nvml allocator
+ * test_map -- (internal) test map<foo> with the PMDK allocator
  */
 void
 test_map(nvobj::pool<root> &pop, bool open)
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
 				nvobj::make_persistent<containers>(pop);
 			nvobj::transaction::commit();
 		}
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 

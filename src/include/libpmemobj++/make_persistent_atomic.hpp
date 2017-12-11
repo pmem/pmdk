@@ -49,7 +49,7 @@
 
 #include <tuple>
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -110,6 +110,6 @@ delete_persistent_atomic(
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_MAKE_PERSISTENT_ATOMIC_HPP */

@@ -47,7 +47,7 @@
 
 #define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace examples
 {

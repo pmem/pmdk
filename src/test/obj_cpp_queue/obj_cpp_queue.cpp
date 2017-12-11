@@ -77,7 +77,7 @@ struct root {
 };
 
 /*
- * test_queue -- (internal) test queue<foo> with the nvml allocator
+ * test_queue -- (internal) test queue<foo> with the PMDK allocator
  */
 void
 test_queue(nvobj::pool<root> &pop, bool open)
@@ -90,12 +90,12 @@ test_queue(nvobj::pool<root> &pop, bool open)
 	conp->fooq.back().test_foo(Last_val);
 	if (open) {
 		{
-			nvml::obj::transaction::exec_tx(pop, [&conp] {
+			pmem::obj::transaction::exec_tx(pop, [&conp] {
 				for (int i = 0; i < 42; ++i)
 					conp->fooq.emplace(rand());
 			});
 
-			nvml::obj::transaction::exec_tx(pop, [&conp] {
+			pmem::obj::transaction::exec_tx(pop, [&conp] {
 				for (int i = 0; i < 42; ++i)
 					conp->fooq.pop();
 			});
@@ -130,7 +130,7 @@ main(int argc, char *argv[])
 				nvobj::make_persistent<containers>(pop);
 			nvobj::transaction::commit();
 		}
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 

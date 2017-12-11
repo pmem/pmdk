@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@ typedef int mode_t;
  * These templates are used to remove a type reference(T&) which, in some
  * cases, is returned by decltype
  */
-namespace nvml {
+namespace pmem {
 
 namespace detail {
 
@@ -75,9 +75,9 @@ struct get_type<T&> {
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
-#define __typeof__(p) nvml::detail::get_type<decltype(p)>::type
+#define __typeof__(p) pmem::detail::get_type<decltype(p)>::type
 
 #endif
 

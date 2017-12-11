@@ -46,7 +46,7 @@
 #include "libpmemobj++/p.hpp"
 #include "libpmemobj/pool_base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -117,7 +117,7 @@ public:
 	 *
 	 * @return handle to the opened pool.
 	 *
-	 * @throw nvml::pool_error when an error during opening occurs.
+	 * @throw pmem::pool_error when an error during opening occurs.
 	 */
 	static pool_base
 	open(const std::string &path, const std::string &layout)
@@ -147,7 +147,7 @@ public:
 	 *
 	 * @return handle to the created pool.
 	 *
-	 * @throw nvml::pool_error when an error during creation occurs.
+	 * @throw pmem::pool_error when an error during creation occurs.
 	 */
 	static pool_base
 	create(const std::string &path, const std::string &layout,
@@ -198,7 +198,7 @@ public:
 	 *
 	 * @return handle to the opened pool.
 	 *
-	 * @throw nvml::pool_error when an error during opening occurs.
+	 * @throw pmem::pool_error when an error during opening occurs.
 	 */
 	static pool_base
 	open(const std::wstring &path, const std::wstring &layout)
@@ -225,7 +225,7 @@ public:
 	 *
 	 * @return handle to the created pool.
 	 *
-	 * @throw nvml::pool_error when an error during creation occurs.
+	 * @throw pmem::pool_error when an error during creation occurs.
 	 */
 	static pool_base
 	create(const std::wstring &path, const std::wstring &layout,
@@ -491,7 +491,7 @@ public:
 	 *
 	 * @return handle to the opened pool.
 	 *
-	 * @throw nvml::pool_error when an error during opening occurs.
+	 * @throw pmem::pool_error when an error during opening occurs.
 	 */
 	static pool<T>
 	open(const std::string &path, const std::string &layout)
@@ -513,7 +513,7 @@ public:
 	 *
 	 * @return handle to the created pool.
 	 *
-	 * @throw nvml::pool_error when an error during creation occurs.
+	 * @throw pmem::pool_error when an error during creation occurs.
 	 */
 	static pool<T>
 	create(const std::string &path, const std::string &layout,
@@ -550,7 +550,7 @@ public:
 	 *
 	 * @return handle to the opened pool.
 	 *
-	 * @throw nvml::pool_error when an error during opening occurs.
+	 * @throw pmem::pool_error when an error during opening occurs.
 	 */
 	static pool<T>
 	open(const std::wstring &path, const std::wstring &layout)
@@ -573,7 +573,7 @@ public:
 	 *
 	 * @return handle to the created pool.
 	 *
-	 * @throw nvml::pool_error when an error during creation occurs.
+	 * @throw pmem::pool_error when an error during creation occurs.
 	 */
 	static pool<T>
 	create(const std::wstring &path, const std::wstring &layout,
@@ -603,6 +603,6 @@ public:
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_POOL_HPP */

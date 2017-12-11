@@ -37,14 +37,14 @@ Pool *gamePoolG;
 
 GameController::GameController()
 {
-	gameStatus = nvml::obj::make_persistent<PongGameStatus>();
+	gameStatus = pmem::obj::make_persistent<PongGameStatus>();
 }
 
 GameController::~GameController()
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolG->getGamePool()->getPoolToTransaction(), [&] {
-			nvml::obj::delete_persistent<PongGameStatus>(
+			pmem::obj::delete_persistent<PongGameStatus>(
 				gameStatus);
 		});
 }
@@ -225,11 +225,11 @@ GameController::gameMatchSimulation(sf::RenderWindow *gameWindow, View *view,
 void
 GameController::resetGameStatus()
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolG->getGamePool()->getPoolToTransaction(), [&] {
-			nvml::obj::delete_persistent<PongGameStatus>(
+			pmem::obj::delete_persistent<PongGameStatus>(
 				gameStatus);
 			gameStatus =
-				nvml::obj::make_persistent<PongGameStatus>();
+				pmem::obj::make_persistent<PongGameStatus>();
 		});
 }

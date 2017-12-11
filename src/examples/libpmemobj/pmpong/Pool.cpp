@@ -36,10 +36,10 @@ Pool *Pool::pongPool = nullptr;
 
 Pool::Pool(const std::string &fileName)
 {
-	if (nvml::obj::pool<GameStruct>::check(fileName, LAYOUT_NAME) == 1) {
-		pool = nvml::obj::pool<GameStruct>::open(fileName, LAYOUT_NAME);
+	if (pmem::obj::pool<GameStruct>::check(fileName, LAYOUT_NAME) == 1) {
+		pool = pmem::obj::pool<GameStruct>::open(fileName, LAYOUT_NAME);
 	} else {
-		pool = nvml::obj::pool<GameStruct>::create(
+		pool = pmem::obj::pool<GameStruct>::create(
 			fileName, LAYOUT_NAME, PMEMOBJ_MIN_POOL * 6);
 	}
 }
@@ -66,21 +66,21 @@ Pool::getGamePool()
 	return pongPool;
 }
 
-nvml::obj::persistent_ptr<GameController>
+pmem::obj::persistent_ptr<GameController>
 Pool::getGameController()
 {
-	nvml::obj::persistent_ptr<GameStruct> root = pool.get_root();
+	pmem::obj::persistent_ptr<GameStruct> root = pool.get_root();
 	if (root != nullptr) {
 		if (root->gam == nullptr)
-			nvml::obj::transaction::exec_tx(pool, [&] {
-				root->gam = nvml::obj::make_persistent<
+			pmem::obj::transaction::exec_tx(pool, [&] {
+				root->gam = pmem::obj::make_persistent<
 					GameController>();
 			});
 	}
 	return root->gam;
 }
 
-nvml::obj::pool<GameStruct> &
+pmem::obj::pool<GameStruct> &
 Pool::getPoolToTransaction()
 {
 	return pool;

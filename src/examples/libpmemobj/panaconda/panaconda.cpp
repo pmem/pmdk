@@ -31,7 +31,7 @@
  */
 
 /*
- * panaconda.cpp -- example of usage c++ bindings in nvml
+ * panaconda.cpp -- example usage of libpmemobj C++ bindings
  */
 #ifdef __FreeBSD__
 #define _WITH_GETLINE
@@ -63,14 +63,14 @@
 
 #define PLAYER_POINTS_PER_HIT 10
 
-using nvml::transaction_error;
-using nvml::transaction_scope_error;
-using nvml::pool_error;
-using nvml::obj::transaction;
-using nvml::obj::persistent_ptr;
-using nvml::obj::pool;
-using nvml::obj::make_persistent;
-using nvml::obj::delete_persistent;
+using pmem::transaction_error;
+using pmem::transaction_scope_error;
+using pmem::pool_error;
+using pmem::obj::transaction;
+using pmem::obj::persistent_ptr;
+using pmem::obj::pool;
+using pmem::obj::make_persistent;
+using pmem::obj::delete_persistent;
 using examples::list;
 
 /*
@@ -213,14 +213,14 @@ board_element::board_element()
 }
 
 board_element::board_element(int px, int py,
-			     nvml::obj::persistent_ptr<element_shape> shape,
+			     pmem::obj::persistent_ptr<element_shape> shape,
 			     direction dir)
     : position(make_persistent<point>(px, py)), shape(shape), element_dir(dir)
 {
 }
 
 board_element::board_element(point p,
-			     nvml::obj::persistent_ptr<element_shape> shape,
+			     pmem::obj::persistent_ptr<element_shape> shape,
 			     direction dir)
     : position(make_persistent<point>(p.x, p.y)), shape(shape), element_dir(dir)
 {
@@ -236,9 +236,9 @@ board_element::board_element(const board_element &element)
 
 board_element::~board_element()
 {
-	nvml::obj::delete_persistent<point>(position);
+	pmem::obj::delete_persistent<point>(position);
 	position = nullptr;
-	nvml::obj::delete_persistent<element_shape>(shape);
+	pmem::obj::delete_persistent<element_shape>(shape);
 	shape = nullptr;
 }
 
@@ -673,13 +673,13 @@ game_state::~game_state()
 {
 }
 
-nvml::obj::persistent_ptr<game_board>
+pmem::obj::persistent_ptr<game_board>
 game_state::get_board()
 {
 	return board;
 }
 
-nvml::obj::persistent_ptr<game_player>
+pmem::obj::persistent_ptr<game_player>
 game_state::get_player()
 {
 	return player;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 make_persistent_example()
@@ -97,7 +97,7 @@ make_persistent_example()
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 make_persistent_array_example()
@@ -155,7 +155,7 @@ make_persistent_array_example()
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 make_persistent_atomic_example()
@@ -212,7 +212,7 @@ make_persistent_atomic_example()
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 make_persistent_array_atomic_example()

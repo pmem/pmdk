@@ -37,12 +37,12 @@ Pool *gamePool;
 
 PongGameStatus::PongGameStatus()
 {
-	player1 = nvml::obj::make_persistent<Paddle>(
+	player1 = pmem::obj::make_persistent<Paddle>(
 		VERTICAL_LINE_OFFSET + LINE_THICKNESS, WINDOW_HEIGHT / 2);
-	player2 = nvml::obj::make_persistent<Paddle>(
+	player2 = pmem::obj::make_persistent<Paddle>(
 		WINDOW_WIDTH - VERTICAL_LINE_OFFSET - PADDLE_WIDTH,
 		WINDOW_HEIGHT / 2);
-	ball = nvml::obj::make_persistent<Ball>(WINDOW_WIDTH / 2,
+	ball = pmem::obj::make_persistent<Ball>(WINDOW_WIDTH / 2,
 						WINDOW_HEIGHT / 2);
 	menuItem = 0;
 	isGameToResume = false;
@@ -51,11 +51,11 @@ PongGameStatus::PongGameStatus()
 
 PongGameStatus::~PongGameStatus()
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePool->getGamePool()->getPoolToTransaction(), [&] {
-			nvml::obj::delete_persistent<Paddle>(player1);
-			nvml::obj::delete_persistent<Paddle>(player2);
-			nvml::obj::delete_persistent<Ball>(ball);
+			pmem::obj::delete_persistent<Paddle>(player1);
+			pmem::obj::delete_persistent<Paddle>(player2);
+			pmem::obj::delete_persistent<Ball>(ball);
 		});
 }
 
@@ -121,7 +121,7 @@ PongGameStatus::simulate()
 void
 PongGameStatus::setMenuItem(int numb)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePool->getGamePool()->getPoolToTransaction(),
 		[&] { this->menuItem = numb; });
 }
@@ -129,7 +129,7 @@ PongGameStatus::setMenuItem(int numb)
 void
 PongGameStatus::setIsGameToResume(bool isGameToRes)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePool->getGamePool()->getPoolToTransaction(),
 		[&] { isGameToResume = isGameToRes; });
 }
@@ -137,7 +137,7 @@ PongGameStatus::setIsGameToResume(bool isGameToRes)
 void
 PongGameStatus::setGameState(game_state state)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePool->getGamePool()->getPoolToTransaction(),
 		[&] { this->actualGameState = state; });
 }
@@ -196,19 +196,19 @@ PongGameStatus::getIsGameToResume()
 	return this->isGameToResume;
 }
 
-nvml::obj::persistent_ptr<Paddle>
+pmem::obj::persistent_ptr<Paddle>
 PongGameStatus::getPlayer1()
 {
 	return this->player1;
 }
 
-nvml::obj::persistent_ptr<Paddle>
+pmem::obj::persistent_ptr<Paddle>
 PongGameStatus::getPlayer2()
 {
 	return this->player2;
 }
 
-nvml::obj::persistent_ptr<Ball>
+pmem::obj::persistent_ptr<Ball>
 PongGameStatus::getBall()
 {
 	return this->ball;

@@ -49,7 +49,7 @@
 #include "libpmemobj++/pool.hpp"
 #include "libpmemobj.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -131,7 +131,7 @@ public:
 	/**
 	 * Dereference operator.
 	 */
-	typename nvml::detail::sp_dereference<T>::type operator*() const
+	typename pmem::detail::sp_dereference<T>::type operator*() const
 		noexcept
 	{
 		return *this->get();
@@ -140,7 +140,7 @@ public:
 	/**
 	 * Member access operator.
 	 */
-	typename nvml::detail::sp_member_access<T>::type operator->() const
+	typename pmem::detail::sp_member_access<T>::type operator->() const
 		noexcept
 	{
 		return this->get();
@@ -152,11 +152,11 @@ public:
 	 * Contains run-time bounds checking for static arrays.
 	 */
 	template <typename = typename std::enable_if<!std::is_void<T>::value>>
-	typename nvml::detail::sp_array_access<T>::type
+	typename pmem::detail::sp_array_access<T>::type
 	operator[](std::ptrdiff_t i) const noexcept
 	{
-		assert(i >= 0 && (i < nvml::detail::sp_extent<T>::value ||
-				  nvml::detail::sp_extent<T>::value == 0) &&
+		assert(i >= 0 && (i < pmem::detail::sp_extent<T>::value ||
+				  pmem::detail::sp_extent<T>::value == 0) &&
 		       "persistent array index out of bounds");
 
 		return this->get()[i];
@@ -310,7 +310,7 @@ public:
 	 * Rebind to a different type of pointer.
 	 */
 	template <class U>
-	using rebind = nvml::obj::persistent_ptr<U>;
+	using rebind = pmem::obj::persistent_ptr<U>;
 
 	/**
 	 * The persistency type to be used with this pointer.
@@ -625,6 +625,6 @@ operator<<(std::ostream &os, persistent_ptr<T> const &pptr)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_PERSISTENT_PTR_HPP */

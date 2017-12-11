@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,17 +47,17 @@ class list {
 	class list_entry {
 	public:
 		list_entry() = delete;
-		list_entry(nvml::obj::persistent_ptr<list_entry> previous,
-			   nvml::obj::persistent_ptr<T> value)
+		list_entry(pmem::obj::persistent_ptr<list_entry> previous,
+			   pmem::obj::persistent_ptr<T> value)
 		{
 			val = value;
 			next = nullptr;
 			prev = previous;
 		}
 
-		nvml::obj::persistent_ptr<list_entry> prev;
-		nvml::obj::persistent_ptr<list_entry> next;
-		nvml::obj::persistent_ptr<T> val;
+		pmem::obj::persistent_ptr<list_entry> prev;
+		pmem::obj::persistent_ptr<list_entry> next;
+		pmem::obj::persistent_ptr<T> val;
 	};
 
 public:
@@ -72,9 +72,9 @@ public:
 	 * Push back the new element.
 	 */
 	void
-	push_back(nvml::obj::persistent_ptr<T> val)
+	push_back(pmem::obj::persistent_ptr<T> val)
 	{
-		auto tmp = nvml::obj::make_persistent<list_entry>(tail, val);
+		auto tmp = pmem::obj::make_persistent<list_entry>(tail, val);
 		if (head == nullptr)
 			head = tmp;
 		else
@@ -87,7 +87,7 @@ public:
 	 * Pop the last element out from the list and return
 	 * the pointer to it
 	 */
-	nvml::obj::persistent_ptr<T>
+	pmem::obj::persistent_ptr<T>
 	pop_back()
 	{
 		assert(head != nullptr);
@@ -103,7 +103,7 @@ public:
 	/**
 	 * Return the pointer to the next element
 	 */
-	nvml::obj::persistent_ptr<list_entry>
+	pmem::obj::persistent_ptr<list_entry>
 	erase(unsigned id)
 	{
 		return remove_elm(get_elm(id));
@@ -122,7 +122,7 @@ public:
 	/**
 	 * Get element with given id in list
 	 */
-	nvml::obj::persistent_ptr<T>
+	pmem::obj::persistent_ptr<T>
 	get(unsigned id)
 	{
 		auto elm = get_elm(id);
@@ -141,7 +141,7 @@ public:
 	}
 
 private:
-	nvml::obj::persistent_ptr<list_entry>
+	pmem::obj::persistent_ptr<list_entry>
 	get_elm(unsigned id)
 	{
 		if (id >= len)
@@ -152,12 +152,12 @@ private:
 		return tmp;
 	}
 
-	nvml::obj::persistent_ptr<list_entry>
-	remove_elm(nvml::obj::persistent_ptr<list_entry> elm)
+	pmem::obj::persistent_ptr<list_entry>
+	remove_elm(pmem::obj::persistent_ptr<list_entry> elm)
 	{
 		assert(elm != nullptr);
 		auto tmp = elm->next;
-		nvml::obj::delete_persistent<T>(elm->val);
+		pmem::obj::delete_persistent<T>(elm->val);
 
 		/* removing item is head */
 		if (elm == head)
@@ -172,12 +172,12 @@ private:
 			elm->next->prev = elm->prev;
 
 		--len;
-		nvml::obj::delete_persistent<list_entry>(elm);
+		pmem::obj::delete_persistent<list_entry>(elm);
 		return tmp;
 	}
 
-	nvml::obj::p<unsigned> len;
-	nvml::obj::persistent_ptr<list_entry> head;
-	nvml::obj::persistent_ptr<list_entry> tail;
+	pmem::obj::p<unsigned> len;
+	pmem::obj::persistent_ptr<list_entry> head;
+	pmem::obj::persistent_ptr<list_entry> tail;
 };
 };

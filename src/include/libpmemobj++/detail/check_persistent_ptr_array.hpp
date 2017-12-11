@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@
 
 #include "libpmemobj++/persistent_ptr.hpp"
 
-namespace nvml
+namespace pmem
 {
 
 namespace detail
@@ -100,6 +100,6 @@ struct pp_if_size_array<T[N]> {
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* LIBPMEMOBJ_CHECK_PERSISTENT_PTR_ARRAY_HPP */

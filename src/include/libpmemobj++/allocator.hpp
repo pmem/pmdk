@@ -45,7 +45,7 @@
 #include "libpmemobj++/pext.hpp"
 #include "libpmemobj.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -526,6 +526,6 @@ operator!=(const allocator<T, P, Tr> &lhs, const OtherAllocator &rhs)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_ALLOCATOR_HPP */

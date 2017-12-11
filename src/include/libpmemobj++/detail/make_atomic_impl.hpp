@@ -45,7 +45,7 @@
 #include "libpmemobj++/detail/integer_sequence.hpp"
 #include "libpmemobj++/detail/life.hpp"
 
-namespace nvml
+namespace pmem
 {
 
 namespace detail
@@ -113,6 +113,6 @@ array_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* LIBPMEMOBJ_MAKE_ATOMIC_IMPL_HPP */

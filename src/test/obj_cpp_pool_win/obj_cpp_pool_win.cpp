@@ -40,7 +40,7 @@
 #include <libpmemobj++/persistent_ptr.hpp>
 #include <libpmemobj++/pool.hpp>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -66,7 +66,7 @@ pool_create(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
 		nvobj::persistent_ptr<root> root = pop.get_root();
 		UT_ASSERT(root != nullptr);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::create", _path.get());
 		return;
 	}
@@ -102,7 +102,7 @@ pool_open(const wchar_t *path, const wchar_t *layout)
 
 	try {
 		pop = nvobj::pool<root>::open(path, layout);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::open", _path.get());
 		return;
 	}
@@ -128,7 +128,7 @@ double_close(const wchar_t *path, const wchar_t *layout, size_t poolsize,
 
 	try {
 		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::create", _path.get());
 		return;
 	}
@@ -154,7 +154,7 @@ get_root_closed()
 
 	try {
 		pop.get_root();
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_OUT("pool.get_root: %s", pe.what());
 	}
 }

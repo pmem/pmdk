@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include <libpmemobj++/pool.hpp>
 #include <mutex>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 void
 unique_guard_example()
@@ -68,7 +68,7 @@ unique_guard_example()
 #include <libpmemobj++/shared_mutex.hpp>
 #include <mutex>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 void
 shared_mutex_example()
@@ -96,7 +96,7 @@ shared_mutex_example()
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/timed_mutex.hpp>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 void
 timed_mutex_example()
@@ -129,7 +129,7 @@ timed_mutex_example()
 #include <mutex>
 #include <thread>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 void
 cond_var_example()

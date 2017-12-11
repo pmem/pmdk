@@ -47,7 +47,7 @@
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj/atomic_base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -158,6 +158,6 @@ delete_persistent_atomic(typename detail::pp_if_size_array<T>::type &ptr)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_MAKE_PERSISTENT_ARRAY_ATOMIC_HPP */

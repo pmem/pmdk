@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include <libpmemobj++/persistent_ptr.hpp>
 #include <libpmemobj++/pool.hpp>
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -63,7 +63,7 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
 		nvobj::persistent_ptr<root> root = pop.get_root();
 		UT_ASSERT(root != nullptr);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::create", path);
 		return;
 	}
@@ -97,7 +97,7 @@ pool_open(const char *path, const char *layout)
 	nvobj::pool<root> pop;
 	try {
 		pop = nvobj::pool<root>::open(path, layout);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::open", path);
 		return;
 	}
@@ -121,7 +121,7 @@ double_close(const char *path, const char *layout, size_t poolsize,
 	nvobj::pool<root> pop;
 	try {
 		pop = nvobj::pool<root>::create(path, layout, poolsize, mode);
-	} catch (nvml::pool_error &) {
+	} catch (pmem::pool_error &) {
 		UT_OUT("!%s: pool::create", path);
 		return;
 	}
@@ -147,7 +147,7 @@ get_root_closed()
 
 	try {
 		pop.get_root();
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_OUT("pool.get_root: %s", pe.what());
 	}
 }

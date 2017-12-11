@@ -60,9 +60,9 @@ public:
 	sf::RectangleShape getPaddleShape();
 
 private:
-	nvml::obj::p<int> y;
-	nvml::obj::p<int> x;
-	nvml::obj::p<int> points;
+	pmem::obj::p<int> y;
+	pmem::obj::p<int> x;
+	pmem::obj::p<int> points;
 
 	void setPoints(int pointsArg);
 	void setY(int yArg);

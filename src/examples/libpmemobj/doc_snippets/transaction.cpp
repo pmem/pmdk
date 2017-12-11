@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,7 +62,7 @@ uncaught_exceptions() noexcept
 #include <libpmemobj++/shared_mutex.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 general_tx_example()
@@ -93,7 +93,7 @@ general_tx_example()
 
 				     },
 				     proot->pmutex, proot->shared_pmutex);
-	} catch (nvml::transaction_error &te) {
+	} catch (pmem::transaction_error &te) {
 		// a transaction error occurred, transaction got aborted
 		// reacquire locks if necessary
 	} catch (...) {
@@ -112,7 +112,7 @@ general_tx_example()
 #include <libpmemobj++/shared_mutex.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 int
 manual_tx_example()
@@ -143,7 +143,7 @@ manual_tx_example()
 		// It's necessary to commit the transaction manually and
 		// it has to be the last operation in the transaction.
 		transaction::commit();
-	} catch (nvml::transaction_error &te) {
+	} catch (pmem::transaction_error &te) {
 		// an internal transaction error occurred, tx aborted
 		// reacquire locks if necessary
 	} catch (...) {
@@ -166,7 +166,7 @@ manual_tx_example()
 #include <libpmemobj++/shared_mutex.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 int
 automatic_tx_example()
@@ -194,7 +194,7 @@ automatic_tx_example()
 		proot->count++;
 
 		// manual transaction commit is no longer necessary
-	} catch (nvml::transaction_error &te) {
+	} catch (pmem::transaction_error &te) {
 		// an internal transaction error occurred, tx aborted
 		// reacquire locks if necessary
 	} catch (...) {

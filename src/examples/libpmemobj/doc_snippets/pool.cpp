@@ -40,7 +40,7 @@
 #include <libpmemobj++/persistent_ptr.hpp>
 #include <libpmemobj++/pool.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 pool_example()
@@ -88,7 +88,7 @@ pool_example()
 #include <libpmemobj++/p.hpp>
 #include <libpmemobj++/pool.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 pool_base_example()
