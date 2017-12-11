@@ -590,7 +590,7 @@ function create_poolset() {
 }
 
 function dump_last_n_lines() {
-	if [ -f $1 ]; then
+	if [ "$1" != "" -a -f "$1" ]; then
 		ln=`wc -l < $1`
 		if [ $ln -gt $UT_DUMP_LINES ]; then
 			echo -e "Last $UT_DUMP_LINES lines of $1 below (whole file has $ln lines)." >&2

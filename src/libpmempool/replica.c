@@ -954,12 +954,12 @@ replica_check_poolset_health(struct pool_set *set,
 	}
 
 	unmap_all_headers(set);
-	util_poolset_fdclose(set);
+	util_poolset_fdclose_always(set);
 	return 0;
 
 err:
 	unmap_all_headers(set);
-	util_poolset_fdclose(set);
+	util_poolset_fdclose_always(set);
 	replica_free_poolset_health_status(set_hs);
 	return -1;
 }
@@ -1119,7 +1119,7 @@ replica_open_poolset_part_files(struct pool_set *set)
 	return 0;
 
 err:
-	util_poolset_fdclose(set);
+	util_poolset_fdclose_always(set);
 	return -1;
 }
 

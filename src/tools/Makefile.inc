@@ -156,7 +156,7 @@ STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEMCTO), y)
-LIBS += -ldl
+LIBS += $(LIBDL)
 DYNAMIC_LIBS += -lpmemcto
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcto.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcto.a

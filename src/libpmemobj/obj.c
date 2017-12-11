@@ -1275,13 +1275,8 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_poolset_chmod(set, mode))
 		goto err;
 
-	/*
-	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
-	 *     reference count, so we need to keep the files open.
-	 */
-#ifndef __FreeBSD__
 	util_poolset_fdclose(set);
-#endif
+
 	LOG(3, "pop %p", pop);
 
 	return pop;
@@ -1651,16 +1646,13 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 	if (boot)
 		obj_vg_boot(pop);
 #endif
-	/*
-	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
-	 *     reference count, so we need to keep the files open.
-	 */
-#ifndef __FreeBSD__
+
 	util_poolset_fdclose(set);
-#endif
+
 	LOG(3, "pop %p", pop);
 
 	return pop;
+
 err_runtime_init:
 err_replicas_check_basic:
 err_check_basic:

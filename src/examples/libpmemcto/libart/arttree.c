@@ -55,6 +55,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <strings.h>
+#ifdef __FreeBSD__
+#define _WITH_GETLINE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -561,7 +564,7 @@ arttree_fill_func(char *appname, struct ds_context *ctx, int ac, char *av[])
 
 	(void) appname;
 
-	optind = 0;
+	RESET_GETOPT;
 	while ((opt = getopt(ac, av, "n:")) != -1) {
 		switch (opt) {
 		case 'n': {

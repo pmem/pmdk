@@ -442,15 +442,14 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 		ERR("!mmap: %s", part->path);
 		return -1;
 	}
-
-	part->addr = addrp;
-	part->size = size;
-
-	if (addr != NULL && (flags & MAP_FIXED) && part->addr != addr) {
+	if (addr != NULL && (flags & MAP_FIXED) && addrp != addr) {
 		ERR("!mmap: %s", part->path);
 		munmap(addr, size);
 		return -1;
 	}
+
+	part->addr = addrp;
+	part->size = size;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(part->addr, part->size);
 	VALGRIND_REGISTER_PMEM_FILE(part->fd, part->addr, part->size, offset);
@@ -626,7 +625,7 @@ util_poolset_close(struct pool_set *set, enum del_parts_mode del)
 	 *     reference count, so we had to keep the files open until now.
 	 */
 #ifdef __FreeBSD__
-	util_poolset_fdclose(set);
+	util_poolset_fdclose_always(set);
 #endif
 	util_poolset_free(set);
 
@@ -679,15 +678,31 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 }
 
 /*
- * util_poolset_fdclose -- close file descriptors related to pool set
+ * util_poolset_fdclose_always -- close file descriptors related to pool set
  */
 void
-util_poolset_fdclose(struct pool_set *set)
+util_poolset_fdclose_always(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
 
 	for (unsigned r = 0; r < set->nreplicas; r++)
 		util_replica_fdclose(set->replica[r]);
+}
+
+/*
+ * util_poolset_fdclose -- close pool set file descriptors if not FreeBSD
+ *
+ * XXX On FreeBSD, mmap()ing a file does not increment the flock()
+ *	reference count, so we need to keep the files open.
+ */
+void
+util_poolset_fdclose(struct pool_set *set)
+{
+#ifdef __FreeBSD__
+	LOG(3, "set %p: holding open", set);
+#else
+	util_poolset_fdclose_always(set);
+#endif
 }
 
 /*
@@ -1388,7 +1403,7 @@ util_part_set_attr(struct pool_hdr *hdrp, const char *sig,
 	const unsigned char *arch_flags)
 {
 	LOG(3, "hdrp %p sig %.8s major %u compat %#x incompat %#x "
-		"ro_comapt %#x poolset_uuid %p uuid %p next_part_uuid %p"
+		"ro_compat %#x poolset_uuid %p uuid %p next_part_uuid %p"
 		"prev_part_uuid %p next_repl_uuid %p prev_repl_uuid %p "
 		"arch_flags %p", hdrp, sig, major, compat, incompat, ro_compat,
 		poolset_uuid, uuid, next_part_uuid, prev_part_uuid,
@@ -1874,7 +1889,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	uint32_t ro_compat)
 {
 	LOG(3, "set %p repidx %u partidx %u sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x",
+		"compat %#x incompat %#x ro_compat %#x",
 		set, repidx, partidx, sig, major, compat, incompat, ro_compat);
 
 	struct pool_replica *rep = set->replica[repidx];
@@ -2209,7 +2224,7 @@ util_replica_init_headers_local(struct pool_set *set, unsigned repidx,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x"
+		"compat %#x incompat %#x ro_compat %#x"
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -2263,7 +2278,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	const unsigned char *next_repl_uuid, const unsigned char *arch_flags)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x "
+		"compat %#x incompat %#x ro_compat %#x "
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -2299,7 +2314,7 @@ util_replica_create_remote(struct pool_set *set, unsigned repidx, int flags,
 	const unsigned char *next_repl_uuid)
 {
 	LOG(3, "set %p repidx %u flags %d sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x "
+		"compat %#x incompat %#x ro_compat %#x "
 		"prev_repl_uuid %p next_repl_uuid %p",
 		set, repidx, flags, sig, major,
 		compat, incompat, ro_compat,
@@ -2567,7 +2582,7 @@ util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu minpartsize %zu "
 		"sig %.8s major %u compat %#x incompat %#x "
-		"ro_comapt %#x nlanes %p can_have_rep %i",
+		"ro_compat %#x nlanes %p can_have_rep %i",
 		setp, path, poolsize, minsize, minpartsize,
 		sig, major, compat, incompat, ro_compat, nlanes, can_have_rep);
 
@@ -2844,7 +2859,7 @@ static int
 util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
 			uint32_t compat, uint32_t incompat, uint32_t ro_compat)
 {
-	LOG(3, "set %p sig %.8s major %u compat %#x incompat %#x ro_comapt %#x",
+	LOG(3, "set %p sig %.8s major %u compat %#x incompat %#x ro_compat %#x",
 		set, sig, major, compat, incompat, ro_compat);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
@@ -2950,7 +2965,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 	unsigned *nlanes, void *addr)
 {
 	LOG(3, "setp %p path %s cow %d minpartsize %zu sig %.8s major %u "
-		"compat %#x incompat %#x ro_comapt %#x nlanes %p addr %p",
+		"compat %#x incompat %#x ro_compat %#x nlanes %p addr %p",
 		setp, path, cow, minpartsize, sig, major,
 		compat, incompat, ro_compat, nlanes, addr);
 
@@ -3040,7 +3055,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	unsigned char *arch_flags)
 {
 	LOG(3, "setp %p path %s cow %d minpartsize %zu "
-		"sig %p major %p compat %p incompat %p ro_comapt %p"
+		"sig %p major %p compat %p incompat %p ro_compat %p"
 		"poolset_uuid %p first_part_uuid %p"
 		"prev_repl_uuid %p next_repl_uuid %p arch_flags %p",
 		setp, path, cow, minpartsize,
