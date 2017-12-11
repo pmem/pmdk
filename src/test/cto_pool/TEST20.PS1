@@ -56,7 +56,7 @@ setup
 # TEST20 non-existing file, layout is NULL
 #
 expect_normal_exit $Env:EXE_DIR\cto_pool$Env:EXESUFFIX `
-    o $DIR/testfile NULL
+    o $DIR\testfile NULL
 
 check
 

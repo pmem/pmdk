@@ -52,7 +52,7 @@ require_test_type medium
 
 setup
 
-echo $null >> $DIR\testfile
+touch $DIR\testfile
 
 #
 # TEST4 existing file, file length < min required size, poolsize == 0

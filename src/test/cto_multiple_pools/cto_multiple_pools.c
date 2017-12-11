@@ -50,14 +50,16 @@ static void *
 thread_func_open(void *arg)
 {
 	int start_idx = *(int *)arg;
-	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
+
+	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
+	char *filename = MALLOC(sizeof(*filename) * len);
 
 	for (int repeat = 0; repeat < NREPEATS; ++repeat) {
 		for (int idx = 0; idx < Npools; ++idx) {
 			int pool_id = start_idx + idx;
 
-			/* XXX - buffer overflow */
-			sprintf(filename, "%s/pool%d", Dir, pool_id);
+			snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
+				Dir, pool_id);
 			UT_OUT("%s", filename);
 
 			Pools[pool_id] = pmemcto_open(filename, "test");
@@ -76,6 +78,7 @@ thread_func_open(void *arg)
 		}
 	}
 
+	FREE(filename);
 	return NULL;
 }
 
@@ -83,14 +86,16 @@ static void *
 thread_func_create(void *arg)
 {
 	int start_idx = *(int *)arg;
-	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
+
+	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
+	char *filename = MALLOC(sizeof(*filename) * len);
 
 	for (int repeat = 0; repeat < NREPEATS; ++repeat) {
 		for (int idx = 0; idx < Npools; ++idx) {
 			int pool_id = start_idx + idx;
 
-			/* XXX - buffer overflow */
-			sprintf(filename, "%s/pool%d", Dir, pool_id);
+			snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
+				Dir, pool_id);
 			UT_OUT("%s", filename);
 
 			/* delete old pool with the same id if exists */
@@ -111,18 +116,21 @@ thread_func_create(void *arg)
 		}
 	}
 
+	FREE(filename);
 	return NULL;
 }
 
 static void
 test_open(int nthreads)
 {
-	char filename[PATH_MAX + 50]; /* reserve some space for pool id */
+	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
+	char *filename = MALLOC(sizeof(*filename) * len);
 
 	/* create all the pools */
 	for (int pool_id = 0; pool_id < Npools * nthreads; ++pool_id) {
-		/* XXX - buffer overflow */
-		sprintf(filename, "%s/pool%d", Dir, pool_id);
+		snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
+				Dir, pool_id);
+		UT_OUT("%s", filename);
 
 		Pools[pool_id] = pmemcto_create(filename, "test",
 			PMEMCTO_MIN_POOL, 0600);
@@ -140,6 +148,8 @@ test_open(int nthreads)
 
 	for (int t = 0; t < nthreads; t++)
 		PTHREAD_JOIN(&Threads[t], NULL);
+
+	FREE(filename);
 }
 
 static void
