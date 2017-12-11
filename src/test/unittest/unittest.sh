@@ -1063,8 +1063,6 @@ node_dax_device_zero() {
 	local device_dax_path=(${NODE_DEVICE_DAX_PATH[$node]})
 	local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmempool rm -f"
 
-	# ${PMEMPOOL}.static-debug rm -f $path
-
 	for path in ${device_dax_path[@]}
 	do
 		disable_exit_on_error

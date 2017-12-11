@@ -365,7 +365,7 @@ pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
 }
 
 /*
- * pmemobj_ctl_setU -- programmatically executes a runnable ctl query
+ * pmemobj_ctl_execU -- programmatically executes a runnable ctl query
  */
 #ifndef _WIN32
 static inline
@@ -398,7 +398,7 @@ pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
 }
 
 /*
- * pmemobj_ctl_run -- programmatically executes a runnable ctl query
+ * pmemobj_ctl_exec -- programmatically executes a runnable ctl query
  */
 int
 pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
