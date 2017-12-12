@@ -46,6 +46,7 @@ extern "C" {
 
 #include <sys/types.h>
 
+#include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
 
@@ -106,6 +107,12 @@ struct pool_set_part {
 	uuid_t uuid;
 };
 
+struct pool_set_directory {
+	const char *path;
+	size_t resvsize; /* size of the address space reservation */
+
+};
+
 struct remote_replica {
 	void *rpp;		/* RPMEMpool opaque handle */
 	char *node_addr;	/* address of a remote node */
@@ -115,12 +122,15 @@ struct remote_replica {
 
 struct pool_replica {
 	unsigned nparts;
+	unsigned nallocated;
 	unsigned nhdrs;		/* should be either 1 or nparts */
 	size_t repsize;		/* total size of all the parts (mappings) */
+	size_t resvsize;	/* min size of the address space reservation */
 	int is_pmem;		/* true if all the parts are in PMEM */
 	void *mapaddr;		/* base address (libpmemcto only) */
 	struct remote_replica *remote;	/* not NULL if the replica */
 					/* is a remote one */
+	VEC(, struct pool_set_directory) directory;
 	struct pool_set_part part[];
 };
 
@@ -132,6 +142,13 @@ struct pool_set {
 	size_t poolsize;	/* the smallest replica size */
 	int remote;		/* true if contains a remote replica */
 	unsigned options;	/* enabled pool set options */
+
+	int directory_based;
+	size_t resvsize;
+
+	unsigned next_id;
+	unsigned next_directory_id;
+
 	struct pool_replica *replica[];
 };
 
@@ -258,6 +275,8 @@ int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
 	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
 	unsigned char *arch_flags);
+
+void *util_pool_extend(struct pool_set *set, size_t size);
 
 void util_remote_init(void);
 void util_remote_fini(void);

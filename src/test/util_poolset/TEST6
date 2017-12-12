@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -29,46 +30,62 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# pmempool_info\TEST20.PS1 -- test for info command
-#
-# check if poolset file with NOHDRS option is handled properly
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "pmempool_info/TEST20"
-$Env:UNITTEST_NUM = "20"
 
+#
+# src/test/util_poolset/TEST6 -- unit test for util_pool_open()
+#
+export UNITTEST_NAME=util_poolset/TEST6
+export UNITTEST_NUM=6
 
-. ..\unittest\unittest.ps1
+# standard unit test setup
+. ../unittest/unittest.sh
 
 require_test_type medium
 require_fs_type any
 
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-remove_files $LOG
+RESVSIZE=$((260 * 1024 * 1024)) # 264MiB (base part + 2 extends)
+MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
+export TEST_LOG_LEVEL=4
+export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-$POOLSET="$DIR\pool.set"
-$POOL1="$DIR\pool.part1"
-$POOL2="$DIR\pool.part2"
-$POOLS="$POOL1 $POOL2"
-$REPL1="$DIR\pool.rep.part1"
-$REPL2="$DIR\pool.rep.part2"
-$REPS="$REPL1 $REPL2"
+# prepare pool sets
+create_poolset $DIR/testset2\
+	$RESVSIZE:$DIR/testdir21:d $RESVSIZE:$DIR/testfile22
+create_poolset $DIR/testset3\
+	$RESVSIZE:$DIR/testdir31:d R $RESVSIZE:$DIR/testfile32
+create_poolset $DIR/testset4\
+	$RESVSIZE:$DIR/testdir41:d $RESVSIZE:$DIR/testdir42:d\
+	R $RESVSIZE:$DIR/testdir43:d $RESVSIZE:$DIR/testfile44
 
-remove_files $POOLSET
-create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
-	R 32M:${REPL1}:z 32M:${REPL2}:z `
+create_poolset $DIR/testset6\
+	$RESVSIZE:$DIR/testdir61:d $RESVSIZE:$DIR/testfile62\
+	O NOHDRS
+create_poolset $DIR/testset7\
+	$RESVSIZE:$DIR/testdir71:d R $RESVSIZE:$DIR/testfile72\
+	O NOHDRS
+create_poolset $DIR/testset8\
+	$RESVSIZE:$DIR/testdir81:d $RESVSIZE:$DIR/testdir82:d\
+	R $RESVSIZE:$DIR/testdir83:d $RESVSIZE:$DIR/testfile84\
 	O NOHDRS
 
-check_file $POOLSET
+create_poolset $DIR/testset9\
+	$RESVSIZE:$DIR/testdir91 $RESVSIZE:$DIR/testfile92:d\
+	O NOHDRS
 
-remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET 2>$1 >$null
+# create pool sets
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
+	$DIR/testset2\
+	$DIR/testset3\
+	$DIR/testset4\
+	$DIR/testset6\
+	$DIR/testset7\
+	$DIR/testset8\
+	$DIR/testset9
+
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+
+check
 
 pass

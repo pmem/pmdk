@@ -256,6 +256,7 @@ function create_nonzeroed_file {
 #            z - create zeroed (holey) file
 #            n - create non-zeroed file
 #            h - create non-zeroed file, but with zeroed header (first 4KB)
+#            d - create empty directory
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
 #   mode  - (optional) same format as for 'chmod' command
 #
@@ -346,6 +347,8 @@ function create_poolset {
             'n' { create_file $asize $fpath }
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4K $fpath }
+			# create empty directory
+            'd' { new-item $fpath -itemtype directory }
         }
 
         # XXX: didn't convert chmod

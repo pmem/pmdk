@@ -36,6 +36,7 @@ osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
 SOURCE =\
 	$(COMMON)/file.c\
 	$(COMMON)/file_linux.c\
+	$(COMMON)/fs_linux.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/os_linux.c\

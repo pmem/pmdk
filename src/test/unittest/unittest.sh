@@ -482,6 +482,7 @@ function create_holey_file() {
 #            z - create zeroed (holey) file
 #            n - create non-zeroed file
 #            h - create non-zeroed file, but with zeroed header (first 4KB)
+#            d - create directory
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
 #   mode  - (optional) same format as for 'chmod' command
 #
@@ -578,6 +579,9 @@ function create_poolset() {
 			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
 			$DD if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			truncate -s $asize $fpath >> $PREP_LOG_FILE
+			;;
+		d)
+			mkdir -p $fpath
 			;;
 		esac
 

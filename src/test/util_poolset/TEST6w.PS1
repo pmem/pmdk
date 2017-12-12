@@ -29,46 +29,72 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_info\TEST20.PS1 -- test for info command
-#
-# check if poolset file with NOHDRS option is handled properly
+# src/test/util_poolset/TEST6w -- unit test for util_pool_open()
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_info/TEST20"
-$Env:UNITTEST_NUM = "20"
+$Env:UNITTEST_NAME = "util_poolset/TEST6w"
+$Env:UNITTEST_NUM = "6w"
 
-
+# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem
 
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-remove_files $LOG
+$Env:TEST_LOG_LEVEL = "6"
+$Env:TEST_LOG_FILE = "test$Env:UNITTEST_NUM.log"
 
-$POOLSET="$DIR\pool.set"
-$POOL1="$DIR\pool.part1"
-$POOL2="$DIR\pool.part2"
-$POOLS="$POOL1 $POOL2"
-$REPL1="$DIR\pool.rep.part1"
-$REPL2="$DIR\pool.rep.part2"
-$REPS="$REPL1 $REPL2"
+$MIN_POOL = 128 * 1024 * 1024 # 4MiB
+$MIN_POOL_STR = ${MIN_POOL}.toString() + "B" # 128MiB
+$RESVSIZE=260 * 1024 * 1024 # 260 MiB
+$RESVSIZE_STR = ${RESVSIZE}.toString() + "B" # 260 MiB
 
-remove_files $POOLSET
-create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
-	R 32M:${REPL1}:z 32M:${REPL2}:z `
+# prepare pool sets
+create_poolset $DIR\testset2 `
+	${RESVSIZE_STR}:$DIR\testdir21:d ${RESVSIZE_STR}:$DIR\testfile22
+create_poolset $DIR\testset3 `
+	${RESVSIZE_STR}:$DIR\testdir31:d R ${RESVSIZE_STR}:$DIR\testfile32
+create_poolset $DIR\testset4 `
+	${RESVSIZE_STR}:$DIR\testdir41:d ${RESVSIZE_STR}:$DIR\testdir42:d `
+	R ${RESVSIZE_STR}:$DIR\testdir43:d ${RESVSIZE_STR}:$DIR\testfile44
+
+create_poolset $DIR\testset6 `
+	${RESVSIZE_STR}:$DIR\testdir61:d ${RESVSIZE_STR}:$DIR\testfile62 `
+	O NOHDRS
+create_poolset $DIR\testset7 `
+	${RESVSIZE_STR}:$DIR\testdir71:d R ${RESVSIZE_STR}:$DIR\testfile72 `
+	O NOHDRS
+create_poolset $DIR\testset8 `
+	${RESVSIZE_STR}:$DIR\testdir81:d ${RESVSIZE_STR}:$DIR\testdir82:d `
+	R ${RESVSIZE_STR}:$DIR\testdir83:d ${RESVSIZE_STR}:$DIR\testfile84 `
 	O NOHDRS
 
-check_file $POOLSET
+create_poolset $DIR\testset9 `
+	${RESVSIZE_STR}:$DIR\testdir91 ${RESVSIZE_STR}:$DIR\testfile92:d `
+	O NOHDRS
 
-remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET 2>$1 >$null
+# create pool sets
+expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
+    $DIR\testset2 `
+    $DIR\testset3 `
+    $DIR\testset4 `
+    $DIR\testset6 `
+    $DIR\testset7 `
+    $DIR\testset8 `
+    $DIR\testset9
+
+sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
+    %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `
+    > grep$Env:UNITTEST_NUM.log
+
+check
 
 pass

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2017, Intel Corporation
 #
@@ -30,45 +31,28 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info\TEST20.PS1 -- test for info command
+# pmempool_rm/TEST9 -- test for pmempool rm
 #
-# check if poolset file with NOHDRS option is handled properly
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$Env:UNITTEST_NAME = "pmempool_info/TEST20"
-$Env:UNITTEST_NUM = "20"
+export UNITTEST_NAME=pmempool_rm/TEST9
+export UNITTEST_NUM=9
 
-
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type medium
 require_fs_type any
 
 setup
 
-$LOG="out$Env:UNITTEST_NUM.log"
-remove_files $LOG
+RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
 
-$POOLSET="$DIR\pool.set"
-$POOL1="$DIR\pool.part1"
-$POOL2="$DIR\pool.part2"
-$POOLS="$POOL1 $POOL2"
-$REPL1="$DIR\pool.rep.part1"
-$REPL2="$DIR\pool.rep.part2"
-$REPS="$REPL1 $REPL2"
+create_poolset $DIR/testset1\
+	$RESVSIZE:$DIR/testdir11:d
 
-remove_files $POOLSET
-create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
-	R 32M:${REPL1}:z 32M:${REPL2}:z `
-	O NOHDRS
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX\
+	$DIR/testset1
 
-check_file $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -af $DIR/testset1
 
-remove_files $POOLS $REPS
-expect_normal_exit $PMEMPOOL create obj --layout pmempool$Env:SUFFIX $POOLSET 2>$1 >$null
+check_no_files $DIR/testset1
 
 pass
