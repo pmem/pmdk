@@ -1217,7 +1217,7 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	if (unlikely(lane >= fip->nlanes))
 		return EINVAL; /* it will be passed to errno */
 
-	if (unlikely(offset + len > fip->size))
+	if (unlikely(offset > fip->size || offset + len > fip->size))
 		return EINVAL; /* it will be passed to errno */
 
 	if (unlikely(len == 0)) {

@@ -196,11 +196,11 @@ static int
 rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 	struct rpmem_resp_attr *resp, int *status)
 {
-	void *addr = (void *)((uintptr_t)rpmemd->pool->pool_addr +
-			POOL_HDR_SIZE);
+	/* register the whole pool with header in RDMA */
+	void *addr = (void *)((uintptr_t)rpmemd->pool->pool_addr);
 	struct rpmemd_fip_attr fip_attr = {
 		.addr		= addr,
-		.size		= req->pool_size,
+		.size		= req->pool_size + POOL_HDR_SIZE,
 		.nlanes		= req->nlanes,
 		.nthreads	= rpmemd->nthreads,
 		.provider	= req->provider,
@@ -222,6 +222,9 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		*status = (int)err;
 		goto err_fip_init;
 	}
+
+	/* let user use the pool without header */
+	resp->raddr += POOL_HDR_SIZE;
 
 	return 0;
 err_fip_init:
