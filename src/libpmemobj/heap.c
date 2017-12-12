@@ -826,6 +826,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 
 	/* get rid of the active block in the bucket */
 	if (b->is_active) {
+		b->c_ops->rm_all(b->container);
 		if (b->active_memory_block->nresv != 0) {
 			struct recycler *r = heap->rt->recyclers[b->aclass->id];
 			recycler_pending_put(r, b->active_memory_block);
@@ -837,7 +838,6 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 				heap_run_into_free_chunk(heap, defb, m);
 			}
 		}
-		b->c_ops->rm_all(b->container);
 		b->is_active = 0;
 	}
 
