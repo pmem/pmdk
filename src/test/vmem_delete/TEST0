@@ -42,8 +42,14 @@ export UNITTEST_NUM=0
 
 require_test_type medium
 
-# this test generates sigsegvs on purpose
+# This test generates sigsegvs on purpose. It issues various vmem
+# operations on a pool that is already destroyed.
+# Valgrind tools get puzzled with accesses to memory regions that are
+# marked as non-acessible, locking destroyed mutexes, etc., so there
+# is no point in running this test under Valgrind.
 configure_valgrind memcheck force-disable
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
 
 require_fs_type none
 setup
