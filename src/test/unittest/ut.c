@@ -792,7 +792,7 @@ ut_start_common(const char *file, int line, const char *func,
 	setvbuf(stdout, Buff_stdout, _IOLBF, MAXPRINT);
 
 	prefix(file, line, func, 0);
-	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
+	vout(OF_NAME, "START", fmt, ap);
 
 #ifdef __FreeBSD__
 	/* XXX Record the fd that will be leaked by uuid_generate */
