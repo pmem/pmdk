@@ -1,4 +1,4 @@
-rpmemd_util/TEST0: START: rpmemd_util
+$(OPT)rpmemd_util/TEST0: START: rpmemd_util
 persistency policy:
     persist method: General Purpose Server Persistency Method
     persist flush: pmem_msync
