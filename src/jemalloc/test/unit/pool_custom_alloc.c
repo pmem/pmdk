@@ -22,7 +22,6 @@ free_test(void *ptr) {
 int
 main(void)
 {
-	exp_base_pool = 0;
 	je_pool_set_alloc_funcs(malloc_test, free_test);
 
 	return test_not_init(POOL_TEST_CASES);

@@ -1,0 +1,6 @@
+Linux NVM Library
+
+This is src/test/pmempool_sync/README.
+
+This directory contains unit tests for pmempool sync. The tests check
+if replica synchronization works.

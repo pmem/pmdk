@@ -287,7 +287,9 @@ static const bool config_ivsalloc =
 #if __STDC_VERSION__ < 199901L
 #  ifdef _MSC_VER
 #    include <malloc.h>
+#ifndef alloca
 #    define alloca _alloca
+#endif
 #  else
 #    ifdef JEMALLOC_HAS_ALLOCA_H
 #      include <alloca.h>
@@ -381,17 +383,21 @@ extern size_t	opt_narenas;
 extern bool	in_valgrind;
 
 /* Number of CPUs. */
-extern unsigned		ncpus;
+extern unsigned	ncpus;
 
 extern unsigned	npools;
-extern pool_t	*pools[POOLS_MAX];
+extern unsigned	npools_cnt;
+
+extern pool_t	base_pool;
+extern pool_t	**pools;
 
 extern malloc_mutex_t	pools_lock;
-extern void	*(*je_base_malloc)(size_t);
-extern void	(*je_base_free)(void *);
+extern void	*(*base_malloc_fn)(size_t);
+extern void	(*base_free_fn)(void *);
 extern bool	pools_shared_data_create(void);
 
 arena_t	*arenas_extend(pool_t *pool, unsigned ind);
+bool	arenas_tsd_extend(tsd_pool_t *tsd, unsigned len);
 void	arenas_cleanup(void *arg);
 arena_t	*choose_arena_hard(pool_t *pool);
 void	jemalloc_prefork(void);
@@ -467,7 +473,7 @@ arena_t	*choose_arena(arena_t *arena);
  * for allocations.
  */
 malloc_tsd_externs(arenas, tsd_pool_t)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, NULL,
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, arenas, tsd_pool_t, {0},
     arenas_cleanup)
 
 
@@ -583,7 +589,7 @@ narenas_total_get(pool_t *pool)
 	return (narenas);
 }
 
-/* 
+/*
  * Choose an arena based on a per-thread value.
  * Arena pointer must be either a valid arena pointer or a dummy arena with
  * pool field filled.
@@ -601,7 +607,13 @@ choose_arena(arena_t *arena)
 	pool = arena->pool;
 	tsd = arenas_tsd_get();
 
-	if ( (tsd->seqno[pool->pool_id] != pool->seqno) || 
+	/* expand arenas array if necessary */
+	if ((tsd->npools <= pool->pool_id) &&
+	    arenas_tsd_extend(tsd, pool->pool_id)) {
+		return (NULL);
+	}
+
+	if ( (tsd->seqno[pool->pool_id] != pool->seqno) ||
 		(ret = tsd->arenas[pool->pool_id]) == NULL) {
 		ret = choose_arena_hard(pool);
 		assert(ret != NULL);
@@ -660,10 +672,38 @@ void	*pool_iralloc(pool_t *pool, void *ptr, size_t size, size_t extra,
     size_t alignment, bool zero);
 bool	ixalloc(void *ptr, size_t size, size_t extra, size_t alignment,
     bool zero);
+int		msc_clz(unsigned int val);
 malloc_tsd_protos(JEMALLOC_ATTR(unused), thread_allocated, thread_allocated_t)
 #endif
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_C_))
+
+# ifdef _MSC_VER
+JEMALLOC_ALWAYS_INLINE int
+msc_clz(unsigned int val)
+{
+	unsigned int res = 0;
+
+# if LG_SIZEOF_INT == 2
+	if (_BitScanReverse(&res, val)) {
+		return 31 - res;
+	}
+	else {
+		return 32;
+	}
+# elif LG_SIZEOF_INT == 3
+	if (_BitScanReverse64(&res, val)) {
+		return 63 - res;
+	}
+	else {
+		return 64;
+	}
+# else
+#	error "Unsupported clz function for that size of int"
+# endif
+}
+#endif
+
 JEMALLOC_ALWAYS_INLINE void *
 imalloct(size_t size, bool try_tcache, arena_t *arena)
 {
@@ -679,7 +719,7 @@ JEMALLOC_ALWAYS_INLINE void *
 imalloc(size_t size)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (imalloct(size, true, &dummy));
 }
 
@@ -704,7 +744,7 @@ JEMALLOC_ALWAYS_INLINE void *
 icalloc(size_t size)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (icalloct(size, true, &dummy));
 }
 
@@ -745,7 +785,7 @@ JEMALLOC_ALWAYS_INLINE void *
 ipalloc(size_t usize, size_t alignment, bool zero)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (ipalloct(usize, alignment, zero, true, &dummy));
 }
 
@@ -808,19 +848,26 @@ pool_isalloc(pool_t *pool, const void *ptr, bool demote)
 JEMALLOC_ALWAYS_INLINE size_t
 ivsalloc(const void *ptr, bool demote)
 {
-	int i;
-	for (i = 0; i < POOLS_MAX; ++i) {
-	    pool_t *pool = pools[i];
+	size_t i;
+
+	malloc_mutex_lock(&pools_lock);
+
+	unsigned n = npools;
+	for (i = 0; i < n; ++i) {
+		pool_t *pool = pools[i];
 		if (pool == NULL)
 			continue;
 
-	    /* Return 0 if ptr is not within a chunk managed by jemalloc. */
-	    if (rtree_get(pool->chunks_rtree, (uintptr_t)CHUNK_ADDR2BASE(ptr)) != 0)
+		/* Return 0 if ptr is not within a chunk managed by jemalloc. */
+		if (rtree_get(pool->chunks_rtree,
+				 (uintptr_t)CHUNK_ADDR2BASE(ptr)) != 0)
 		break;
 	}
 
-	if (i == POOLS_MAX)
-		return (0);
+	malloc_mutex_unlock(&pools_lock);
+
+	if (i == n)
+		return 0;
 
 	return (isalloc(ptr, demote));
 }
@@ -852,7 +899,6 @@ JEMALLOC_ALWAYS_INLINE void
 idalloct(void *ptr, bool try_tcache)
 {
 	arena_chunk_t *chunk;
-	pool_t *base_pool = pools[0];
 
 	assert(ptr != NULL);
 
@@ -860,7 +906,7 @@ idalloct(void *ptr, bool try_tcache)
 	if (chunk != ptr)
 		arena_dalloc(chunk, ptr, try_tcache);
 	else
-		huge_dalloc(base_pool, ptr);
+		huge_dalloc(&base_pool, ptr);
 }
 
 JEMALLOC_ALWAYS_INLINE void
@@ -966,9 +1012,38 @@ iralloct(void *ptr, size_t size, size_t extra, size_t alignment, bool zero,
 	}
 
 	if (size + extra <= arena_maxclass) {
-		return (arena_ralloc(arena, ptr, oldsize, size, extra,
+		void *ret;
+
+		ret = arena_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_alloc,
-		    try_tcache_dalloc));
+		    try_tcache_dalloc);
+
+		if ((ret != NULL) || (size + extra > oldsize))
+			return (ret);
+
+		if (oldsize > chunksize) {
+			size_t old_usize JEMALLOC_CC_SILENCE_INIT(0);
+			UNUSED size_t old_rzsize JEMALLOC_CC_SILENCE_INIT(0);
+			if (config_valgrind && in_valgrind) {
+				old_usize = isalloc(ptr, config_prof);
+				old_rzsize = config_prof ?
+					p2rz(ptr) : u2rz(old_usize);
+			}
+			ret = huge_ralloc(arena, ptr, oldsize, chunksize, 0,
+			    alignment, zero, try_tcache_dalloc);
+
+			JEMALLOC_VALGRIND_REALLOC(true, ret, s2u(chunksize),
+				true, ptr, old_usize, old_rzsize, true, false);
+
+			if (ret != NULL) {
+				/* Now, it should succeed... */
+				return arena_ralloc(arena, ret, chunksize, size,
+				    extra, alignment, zero, try_tcache_alloc,
+				    try_tcache_dalloc);
+			}
+		}
+
+		return NULL;
 	} else {
 		return (huge_ralloc(arena, ptr, oldsize, size, extra,
 		    alignment, zero, try_tcache_dalloc));
@@ -979,7 +1054,7 @@ JEMALLOC_ALWAYS_INLINE void *
 iralloc(void *ptr, size_t size, size_t extra, size_t alignment, bool zero)
 {
 	arena_t dummy;
-	DUMMY_ARENA_INITIALIZE(dummy, pools[0]);
+	DUMMY_ARENA_INITIALIZE(dummy, &base_pool);
 	return (iralloct(ptr, size, extra, alignment, zero, true, true, &dummy));
 }
 
@@ -1010,7 +1085,7 @@ ixalloc(void *ptr, size_t size, size_t extra, size_t alignment, bool zero)
 	if (size <= arena_maxclass)
 		return (arena_ralloc_no_move(ptr, oldsize, size, extra, zero));
 	else
-		return (huge_ralloc_no_move(ptr, oldsize, size, extra));
+		return (huge_ralloc_no_move(&base_pool, ptr, oldsize, size, extra, zero));
 }
 
 malloc_tsd_externs(thread_allocated, thread_allocated_t)
@@ -1021,5 +1096,9 @@ malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, thread_allocated, thread_allocated_t,
 #include "jemalloc/internal/prof.h"
 
 #undef JEMALLOC_H_INLINES
+
+#ifdef _WIN32
+	#define __builtin_clz(x) msc_clz(x)
+#endif
 /******************************************************************************/
 #endif /* JEMALLOC_INTERNAL_H */

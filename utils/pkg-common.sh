@@ -1,6 +1,5 @@
-#!/bin/bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +13,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -73,28 +72,27 @@ function get_version_item() {
 	local INPUT=$1
 	local TARGET=$2
 	local REGEX="([^0-9]*)(([0-9]+\.){,2}[0-9]+)([.+-]?.*)"
+	local VERSION="0.0"
+	local RELEASE="-$INPUT"
 
 	if [[ $INPUT =~ $REGEX ]]
 	then
-		local VERSION="${BASH_REMATCH[2]}"
-		local RELEASE="${BASH_REMATCH[4]}"
-
-		case $TARGET in
-			version)
-				echo -n $VERSION
-				;;
-			release)
-				echo -n $RELEASE
-				;;
-			*)
-				error "Wrong target"
-				exit 1
-				;;
-		esac
-	else
-		error "Wrong tag format"
-		exit 1
+		VERSION="${BASH_REMATCH[2]}"
+		RELEASE="${BASH_REMATCH[4]}"
 	fi
+
+	case $TARGET in
+		version)
+			echo -n $VERSION
+			;;
+		release)
+			echo -n $RELEASE
+			;;
+		*)
+			error "Wrong target"
+			exit 1
+			;;
+	esac
 }
 
 function get_version() {
@@ -103,12 +101,23 @@ function get_version() {
 
 	VERSION=$(format_version $VERSION)
 
-	if [ -z $RELEASE ]
+	if [ -z "$RELEASE" ]
 	then
 		echo -n $VERSION
 	else
 		RELEASE=${RELEASE//[-:_.]/"~"}
 		echo -n ${VERSION}${RELEASE}
+	fi
+}
+
+function get_os() {
+	if [ -f /etc/os-release ]
+	then
+		local OS=$(cat /etc/os-release | grep -m1 -o -P '(?<=NAME=).*($)')
+		[[ "$OS" =~ Fedora|SLES ]] && echo -n $OS ||
+		([[ "$OS" =~ "Red Hat"|"CentOS" ]] && echo -n "RHEL" || echo 1)
+	else
+		echo 1
 	fi
 }
 

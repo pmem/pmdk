@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,19 +38,19 @@
 
 #include "unittest.h"
 
-VMEM *Vmp;
+static VMEM *Vmp;
 
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
 	vmem_delete(Vmp);
 
-	DONE(NULL);
+	DONEW(NULL);
 }
 
 int
@@ -59,23 +59,24 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_create");
 
 	if (argc < 2 || argc > 3)
-		FATAL("usage: %s directory", argv[0]);
+		UT_FATAL("usage: %s directory", argv[0]);
 
 	Vmp = vmem_create(argv[1], VMEM_MIN_POOL);
 
-	if (Vmp == NULL)
-		OUT("!vmem_create");
-	else {
-		struct sigvec v = { 0 };
+	if (Vmp == NULL) {
+		UT_OUT("!vmem_create");
+	} else {
+		struct sigaction v;
+		sigemptyset(&v.sa_mask);
+		v.sa_flags = 0;
+		v.sa_handler = signal_handler;
+		if (SIGACTION(SIGSEGV, &v, NULL) != 0)
+			UT_FATAL("!sigaction");
 
-		v.sv_handler = signal_handler;
-		if (sigvec(SIGSEGV, &v, NULL) < 0)
-			FATAL("!sigvec");
-
-		/* try to deref the opaque handle */
+		/* try to dereference the opaque handle */
 		char x = *(char *)Vmp;
-		OUT("x = %c", x);
+		UT_OUT("x = %c", x);
 	}
 
-	FATAL("no signal received");
+	UT_FATAL("no signal received");
 }

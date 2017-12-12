@@ -1,0 +1,53 @@
+util_poolset$(nW)TEST4w: START: util_poolset
+ $(nW)util_poolset$(nW) o 134217728 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset5 $(nW)testset6 $(nW)testset7 $(nW)testset8
+$(nW)testset1: opened: nreps 1 poolsize $(nW) rdonly 0
+  replica[0]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir11$(nW)000000.pmem filesize $(nW) size $(nW)
+$(nW)testset2: opened: nreps 1 poolsize $(nW) rdonly 0
+  replica[0]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir21$(nW)000000.pmem filesize $(nW) size $(nW)
+$(nW)testset3: opened: nreps 2 poolsize $(nW) rdonly 0
+  replica[0]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir31$(nW)000000.pmem filesize $(nW) size $(nW)
+  replica[1]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir32$(nW)000000.pmem filesize $(nW) size $(nW)
+$(nW)testset4: opened: nreps 2 poolsize $(nW) rdonly 0
+  replica[0]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir41$(nW)000000.pmem filesize $(nW) size $(nW)
+  replica[1]: nparts 1 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir43$(nW)000000.pmem filesize $(nW) size $(nW)
+$(nW)testset5: opened: nreps 1 poolsize $(nW) rdonly 0
+  replica[0]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir51$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir51$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir51$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir51$(nW)000003.pmem filesize $(nW) size $(nW)
+$(nW)testset6: opened: nreps 1 poolsize $(nW) rdonly 0
+  replica[0]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir61$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir62$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir61$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir62$(nW)000003.pmem filesize $(nW) size $(nW)
+$(nW)testset7: opened: nreps 2 poolsize $(nW) rdonly 0
+  replica[0]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir71$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir71$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir71$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir71$(nW)000003.pmem filesize $(nW) size $(nW)
+  replica[1]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir72$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir72$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir72$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir72$(nW)000003.pmem filesize $(nW) size $(nW)
+$(nW)testset8: opened: nreps 2 poolsize $(nW) rdonly 0
+  replica[0]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir81$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir82$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir81$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir82$(nW)000003.pmem filesize $(nW) size $(nW)
+  replica[1]: nparts 4 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir83$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir84$(nW)000001.pmem filesize $(nW) size $(nW)
+    part[2] path $(nW)testdir83$(nW)000002.pmem filesize $(nW) size $(nW)
+    part[3] path $(nW)testdir84$(nW)000003.pmem filesize $(nW) size $(nW)
+util_poolset$(nW)TEST4w: DONE

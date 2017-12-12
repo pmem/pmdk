@@ -1,0 +1,1 @@
+{$(nW)obj_sync.c:$(N) cond_$(nW)_worker} obj_sync$(nW)TEST5: pmemobj_cond_$(nW)

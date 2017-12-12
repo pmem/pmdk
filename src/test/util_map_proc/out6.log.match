@@ -1,0 +1,5 @@
+util_map_proc/TEST6: START: util_map_proc
+ ./util_map_proc$(nW) mapfile_nonexistent 0x12345678
+redirecting /proc/$(*) to mapfile_nonexistent
+len 305419896: 0xffffffffffffffff 0xffffffffffffffff
+util_map_proc/TEST6: DONE

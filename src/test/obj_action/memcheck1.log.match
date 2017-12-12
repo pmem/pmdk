@@ -1,0 +1,34 @@
+==$(N)== Memcheck, a memory error detector
+==$(N)== Copyright $(*)
+==$(N)== Using $(*)
+==$(N)== Command: $(*)
+==$(N)== Parent PID: $(N)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== Invalid write of size 4
+==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==  Address 0x$(X) is $(*)
+==$(N)== 
+==$(N)== 
+==$(N)== HEAP SUMMARY:
+==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
+==$(N)==   total heap usage: $(NC) allocs, $(NC) frees, $(NC) bytes allocated
+==$(N)== 
+$(OPT)==$(N)== All heap blocks were freed -- no leaks are possible
+$(OPT)==$(N)== LEAK SUMMARY:
+$(OPT)==$(N)==    definitely lost: 0 bytes in 0 blocks
+$(OPT)==$(N)==    indirectly lost: 0 bytes in 0 blocks
+$(OPT)==$(N)==      possibly lost: 0 bytes in 0 blocks
+$(OPT)==$(N)==    still reachable: 0 bytes in 0 blocks
+$(OPX)==$(N)==         suppressed: $(NC) bytes in $(N) blocks
+$(OPT)==$(N)==
+==$(N)== 
+==$(N)== For counts of detected and suppressed errors, rerun with: -v
+==$(N)== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: $(N) from $(N))

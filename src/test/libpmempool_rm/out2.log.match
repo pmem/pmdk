@@ -1,0 +1,13 @@
+libpmempool_rm/TEST2: START: libpmempool_rm$(nW)
+ $(nW)libpmempool_rm$(nW) $(*)
+libpmempool_rm/TEST2: DONE
+libpmempool_rm/TEST2: START: libpmempool_rm$(nW)
+ $(nW)libpmempool_rm$(nW) $(*)
+$(nW): removing file failed: No such file or directory
+$(nW): removing file failed: No such file or directory
+$(nW): removing file failed: No such file or directory
+$(nW): removing file failed: No such file or directory
+libpmempool_rm/TEST2: DONE
+libpmempool_rm/TEST2: START: libpmempool_rm$(nW)
+ $(nW)libpmempool_rm$(nW) -f $(*)
+libpmempool_rm/TEST2: DONE

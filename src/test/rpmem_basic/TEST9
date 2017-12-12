@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+#
+# src/test/rpmem_basic/TEST9 -- unit test for rpmem set attributes request
+#
+export UNITTEST_NAME=rpmem_basic/TEST9
+export UNITTEST_NUM=9
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+. setup.sh
+
+setup
+
+create_poolset $DIR/pool.set  8M:$PART_DIR/pool.pool
+
+run_on_node 0 "rm -rf  ${RPMEM_POOLSET_DIR[0]} $PART_DIR && mkdir -p ${RPMEM_POOLSET_DIR[0]}/subdir && mkdir -p $PART_DIR"
+
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool.set
+
+# Create pool
+ARGS="$ARGS test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
+# Open pool and verify if its header is in initial state
+ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M init"
+# Overwrite pool header to alternate state and close pool
+ARGS="$ARGS test_set_attr 0 alt test_close 0"
+# Open pool and verify if its header is in alternate state
+ARGS="$ARGS test_open 0 pool.set ${NODE_ADDR[0]} pool 8M alt test_close 0"
+
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
+
+check
+
+pass

@@ -1,0 +1,20 @@
+util_poolset_foreach$(nW)TEST0: START: util_poolset_foreach
+ $(nW)util_poolset_foreach$(nW) $(*)pool.set1 $(*)pool.set2 $(*)pool.set3 $(*)pool.set4
+$(*)pool.set1: $(*)testfile
+util_poolset_foreach_part($(*)pool.set1): 0
+$(*)pool.set2: $(*)testfile1
+$(*)pool.set2: $(*)testfile2
+util_poolset_foreach_part($(*)pool.set2): 0
+$(*)pool.set3: $(*)testfile11
+$(*)pool.set3: $(*)testfile12
+$(*)pool.set3: $(*)testfile21
+$(*)pool.set3: $(*)testfile22
+util_poolset_foreach_part($(*)pool.set3): 0
+$(*)pool.set4: $(*)testfile11
+$(*)pool.set4: $(*)testfile12
+$(*)pool.set4: $(*)testfile21
+$(*)pool.set4: $(*)testfile22
+$(*)pool.set4: $(*)testfile31
+$(*)pool.set4: $(*)testfile32
+util_poolset_foreach_part($(*)pool.set4): 0
+util_poolset_foreach$(nW)TEST0: DONE

@@ -1,0 +1,43 @@
+obj_first_next$(nW)TEST0: START: obj_first_next
+ $(nW)obj_first_next$(nW) $(nW)testfile a:0:0 a:0:1 a:1:1 a:0:2 a:1:2 a:0:3 a:1:3 P:0 P:1 n:0:2 n:1:1 r:0:0 r:1:0 P:0 P:1 n:0:0 n:1:0 a:0:4 a:1:4 P:0 P:1 n:0:1 n:1:1
+constructor(id = 0)
+constructor(id = 1)
+constructor(id = 1)
+constructor(id = 2)
+constructor(id = 2)
+constructor(id = 3)
+constructor(id = 3)
+type:
+id = 0
+id = 1
+id = 2
+id = 3
+type_sec:
+id = 1
+id = 2
+id = 3
+next id = 3
+next id = 3
+type:
+id = 1
+id = 2
+id = 3
+type_sec:
+id = 2
+id = 3
+next id = 2
+next id = 3
+constructor(id = 4)
+constructor(id = 4)
+type:
+id = $(nW)
+id = $(nW)
+id = $(nW)
+id = $(nW)
+type_sec:
+id = $(nW)
+id = $(nW)
+id = $(nW)
+next id = $(nW)
+next id = $(nW)
+obj_first_next$(nW)TEST0: DONE

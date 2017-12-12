@@ -1,0 +1,4 @@
+obj_check$(nW)TEST1: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile
+error: invalid checksum of pool header
+obj_check$(nW)TEST1: DONE

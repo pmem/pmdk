@@ -1,0 +1,7 @@
+util_is_absolute/TEST0: START: util_is_absolute
+ $(nW)util_is_absolute$(nW) /foo/bar foo/bar / ./foo/bar
+"/foo/bar" - 1
+"foo/bar" - 0
+"/" - 1
+"./foo/bar" - 0
+util_is_absolute/TEST0: DONE

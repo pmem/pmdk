@@ -1,9 +1,16 @@
-# testconfig.sh should not be checked into git  .it describes the configuration
-# of the local machine where the local copy of the source tree is being tested.
+# testconfig.sh or testconfig.ps1 should not be checked into git.
+# It describes the configuration of the local machine where the local copy
+# of the source tree is being tested.
 testconfig.sh
+testconfig.ps1
 # ignore files generated during test runs (left around for analysis)
 *.log
 testfile*
 # ignore static binaries generated for testing
 *.static-debug
 *.static-nondebug
+libs.tar
+*.synced
+.sync-dir
+# ignore lock files
+*.lock

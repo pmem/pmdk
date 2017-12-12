@@ -1,4 +1,5 @@
-pmem_is_pmem/TEST2: START: pmem_is_pmem
- ./pmem_is_pmem$(nW) $(*)/testfile1
+pmem_is_pmem$(nW)TEST2: START: pmem_is_pmem
+ $(nW)pmem_is_pmem$(nW) $(nW)testfile1
 1
-pmem_is_pmem/TEST2: Done
+1
+pmem_is_pmem$(nW)TEST2: DONE

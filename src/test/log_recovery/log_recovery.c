@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -41,13 +41,12 @@
 
 #include <sys/param.h>
 #include "unittest.h"
-#include "util.h"
 #include "log.h"
 
 /*
  * do_append -- call pmemlog_append() & print result
  */
-void
+static void
 do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
@@ -63,13 +62,13 @@ do_append(PMEMlogpool *plp)
 		int rv = pmemlog_append(plp, str[i], strlen(str[i]));
 		switch (rv) {
 		case 0:
-			OUT("append   str[%i] %s", i, str[i]);
+			UT_OUT("append   str[%i] %s", i, str[i]);
 			break;
 		case -1:
-			OUT("!append   str[%i] %s", i, str[i]);
+			UT_OUT("!append   str[%i] %s", i, str[i]);
 			break;
 		default:
-			OUT("!append: wrong return value");
+			UT_OUT("!append: wrong return value");
 			break;
 		}
 	}
@@ -78,7 +77,7 @@ do_append(PMEMlogpool *plp)
 /*
  * do_appendv -- call pmemlog_appendv() & print result
  */
-void
+static void
 do_appendv(PMEMlogpool *plp)
 {
 	struct iovec iov[9] = {
@@ -123,13 +122,13 @@ do_appendv(PMEMlogpool *plp)
 	int rv = pmemlog_appendv(plp, iov, 9);
 	switch (rv) {
 	case 0:
-		OUT("appendv");
+		UT_OUT("appendv");
 		break;
 	case -1:
-		OUT("!appendv");
+		UT_OUT("!appendv");
 		break;
 	default:
-		OUT("!appendv: wrong return value");
+		UT_OUT("!appendv: wrong return value");
 		break;
 	}
 }
@@ -137,11 +136,11 @@ do_appendv(PMEMlogpool *plp)
 /*
  * do_tell -- call pmemlog_tell() & print result
  */
-void
+static void
 do_tell(PMEMlogpool *plp)
 {
-	off_t tell = pmemlog_tell(plp);
-	OUT("tell %zu", tell);
+	os_off_t tell = pmemlog_tell(plp);
+	UT_OUT("tell %zu", tell);
 }
 
 /*
@@ -149,39 +148,40 @@ do_tell(PMEMlogpool *plp)
  *
  * It is a walker function for pmemlog_walk
  */
-int
+static int
 printit(const void *buf, size_t len, void *arg)
 {
-	char *str = alloca(len + 1);
+	char *str = MALLOC(len + 1);
 
 	strncpy(str, buf, len);
 	str[len] = '\0';
-	OUT("%s", str);
+	UT_OUT("%s", str);
 
+	FREE(str);
 	return 0;
 }
 
 /*
  * do_walk -- call pmemlog_walk() & print result
  */
-void
+static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, printit, NULL);
-	OUT("walk all at once");
+	UT_OUT("walk all at once");
 }
 
-sigjmp_buf Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 int
@@ -193,24 +193,22 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_recovery");
 
 	if (argc != 3)
-		FATAL("usage: %s file-name op:a|v", argv[0]);
+		UT_FATAL("usage: %s file-name op:a|v", argv[0]);
 
 	if (strchr("av", argv[2][0]) == NULL || argv[2][1] != '\0')
-		FATAL("op must be a or v");
+		UT_FATAL("op must be a or v");
 
 	const char *path = argv[1];
 
 	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
-	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
-	if (errno != 0)
-		FATAL("!posix_fallocate");
+	POSIX_FALLOCATE(fd, (os_off_t)0, (size_t)(2 * 1024 * 1024));
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
-		FATAL("!pmemlog_create: %s", path);
+	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */
 	if (argv[2][0] == 'a')
@@ -221,16 +219,18 @@ main(int argc, char *argv[])
 	/* print out current write point */
 	do_tell(plp);
 
-	size_t len = roundup(sizeof (*plp), LOG_FORMAT_DATA_ALIGN);
-	OUT("write-protecting the metadata, length %zu", len);
+	size_t len = roundup(sizeof(*plp), LOG_FORMAT_DATA_ALIGN);
+	UT_OUT("write-protecting the metadata, length %zu", len);
 	MPROTECT(plp, len, PROT_READ);
 
 	/* arrange to catch SEGV */
-	struct sigvec v = { 0 };
-	v.sv_handler = signal_handler;
-	SIGVEC(SIGSEGV, &v, NULL);
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		/* try to append more data */
 		if (argv[2][0] == 'a')
 			do_append(plp);
@@ -243,15 +243,15 @@ main(int argc, char *argv[])
 	/* check consistency */
 	result = pmemlog_check(path);
 	if (result < 0)
-		OUT("!%s: pmemlog_check", path);
+		UT_OUT("!%s: pmemlog_check", path);
 	else if (result == 0)
-		OUT("%s: pmemlog_check: not consistent", path);
+		UT_OUT("%s: pmemlog_check: not consistent", path);
 	else
-		OUT("%s: consistent", path);
+		UT_OUT("%s: consistent", path);
 
 	/* map again to print out whole log */
 	if ((plp = pmemlog_open(path)) == NULL)
-		FATAL("!pmemlog_open: %s", path);
+		UT_FATAL("!pmemlog_open: %s", path);
 
 	/* print out current write point */
 	do_tell(plp);

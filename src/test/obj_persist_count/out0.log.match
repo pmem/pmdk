@@ -1,0 +1,18 @@
+obj_persist_count$(nW)TEST0: START: obj_persist_count
+ $(nW)obj_persist_count$(nW) $(nW)testfile
+persist	;msync	;flush	;drain	;task
+0	;13	;0	;0	;pool_create
+0	;8	;0	;0	;root_alloc
+0	;2	;0	;0	;atomic_alloc
+0	;1	;0	;0	;atomic_free
+0	;8	;0	;0	;tx_alloc
+0	;7	;0	;0	;tx_alloc_next
+0	;9	;0	;0	;tx_free
+0	;8	;0	;0	;tx_free_next
+0	;21	;0	;0	;tx_add
+0	;6	;0	;0	;tx_add_next
+0	;6	;0	;0	;pmalloc
+0	;5	;0	;0	;pfree
+0	;2	;0	;0	;pmalloc_stack
+0	;1	;0	;0	;pfree_stack
+obj_persist_count$(nW)TEST0: DONE

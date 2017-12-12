@@ -23,7 +23,6 @@ main(void)
 		return (test_status_fail);
 	}
 
-	exp_base_pool = 1;
 	je_pool_set_alloc_funcs(malloc_test, free_test);
 
 	return test_not_init(POOL_TEST_CASES);

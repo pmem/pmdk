@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -39,16 +39,15 @@
  * operations are 'r' or 'w' or 'z' or 'e'
  *
  */
-#define	_GNU_SOURCE
-#include "unittest.h"
-#include <dlfcn.h>
 
-size_t Bsize;
+#include "unittest.h"
+
+static size_t Bsize;
 
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(unsigned char *buf)
 {
 	static int ord = 1;
@@ -65,7 +64,7 @@ construct(unsigned char *buf)
 /*
  * ident -- identify what a buffer holds
  */
-char *
+static char *
 ident(unsigned char *buf)
 {
 	static char descr[100];
@@ -87,7 +86,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_rw");
 
 	if (argc < 5)
-		FATAL("usage: %s bsize file func op:lba...", argv[0]);
+		UT_FATAL("usage: %s bsize file func op:lba...", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
@@ -96,67 +95,73 @@ main(int argc, char *argv[])
 	PMEMblkpool *handle;
 	switch (*argv[3]) {
 		case 'c':
-			handle = pmemblk_create(path, Bsize, 0, S_IWUSR);
+			handle = pmemblk_create(path, Bsize, 0,
+					S_IWUSR | S_IRUSR);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_create", path);
+				UT_FATAL("!%s: pmemblk_create", path);
 			break;
 		case 'o':
 			handle = pmemblk_open(path, Bsize);
 			if (handle == NULL)
-				FATAL("!%s: pmemblk_open", path);
+				UT_FATAL("!%s: pmemblk_open", path);
 			break;
 	}
 
-	OUT("%s block size %zu usable blocks %zu",
+	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
+
+	unsigned char *buf = MALLOC(Bsize);
+	if (buf == NULL)
+		UT_FATAL("cannot allocate buf");
 
 	/* map each file argument with the given map type */
 	for (int arg = 4; arg < argc; arg++) {
 		if (strchr("rwze", argv[arg][0]) == NULL || argv[arg][1] != ':')
-			FATAL("op must be r: or w: or z: or e:");
-		off_t lba = strtoul(&argv[arg][2], NULL, 0);
-
-		unsigned char buf[Bsize];
+			UT_FATAL("op must be r: or w: or z: or e:");
+		os_off_t lba = strtol(&argv[arg][2], NULL, 0);
 
 		switch (argv[arg][0]) {
 		case 'r':
 			if (pmemblk_read(handle, buf, lba) < 0)
-				OUT("!read      lba %zu", lba);
+				UT_OUT("!read      lba %jd", lba);
 			else
-				OUT("read      lba %zu: %s", lba, ident(buf));
+				UT_OUT("read      lba %jd: %s", lba,
+						ident(buf));
 			break;
 
 		case 'w':
 			construct(buf);
 			if (pmemblk_write(handle, buf, lba) < 0)
-				OUT("!write     lba %zu", lba);
+				UT_OUT("!write     lba %jd", lba);
 			else
-				OUT("write     lba %zu: %s", lba, ident(buf));
+				UT_OUT("write     lba %jd: %s", lba,
+						ident(buf));
 			break;
 
 		case 'z':
 			if (pmemblk_set_zero(handle, lba) < 0)
-				OUT("!set_zero  lba %zu", lba);
+				UT_OUT("!set_zero  lba %jd", lba);
 			else
-				OUT("set_zero  lba %zu", lba);
+				UT_OUT("set_zero  lba %jd", lba);
 			break;
 
 		case 'e':
 			if (pmemblk_set_error(handle, lba) < 0)
-				OUT("!set_error lba %zu", lba);
+				UT_OUT("!set_error lba %jd", lba);
 			else
-				OUT("set_error lba %zu", lba);
+				UT_OUT("set_error lba %jd", lba);
 			break;
 		}
 	}
 
+	FREE(buf);
 	pmemblk_close(handle);
 
-	int result = pmemblk_check(path);
+	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

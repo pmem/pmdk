@@ -410,8 +410,8 @@ extern arena_bin_info_t	arena_bin_info[NBINS];
 /* Number of large size classes. */
 #define			nlclasses (chunk_npages - map_bias)
 
-void	*arena_chunk_alloc_huge(arena_t *arena, size_t size, size_t alignment,
-    bool *zero);
+void	*arena_chunk_alloc_huge(arena_t *arena, void *new_addr, size_t size,
+    size_t alignment, bool *zero);
 void	arena_chunk_dalloc_huge(arena_t *arena, void *chunk, size_t size);
 void	arena_purge_all(arena_t *arena);
 void	arena_tcache_fill_small(arena_t *arena, tcache_bin_t *tbin,
@@ -541,8 +541,7 @@ small_size2bin_compute(size_t size)
 		size_t lg_delta = (x < LG_SIZE_CLASS_GROUP + LG_QUANTUM + 1)
 		    ? LG_QUANTUM : x - LG_SIZE_CLASS_GROUP - 1;
 
-		size_t delta_inverse_mask = ZI(-1) << lg_delta;
-		size_t mod = ((((size-1) & delta_inverse_mask) >> lg_delta)) &
+		size_t mod = ((size - 1) >> lg_delta) &
 		    ((ZU(1) << LG_SIZE_CLASS_GROUP) - 1);
 
 		size_t bin = NTBINS + grp + mod;
@@ -987,7 +986,7 @@ arena_run_regind(arena_run_t *run, arena_bin_info_t *bin_info, const void *ptr)
 
 	/* Rescale (factor powers of 2 out of the numerator and denominator). */
 	interval = bin_info->reg_interval;
-	shift = jemalloc_ffs(interval) - 1;
+	shift = jemalloc_ffs((int)interval) - 1;
 	diff >>= shift;
 	interval >>= shift;
 
@@ -1027,7 +1026,7 @@ arena_run_regind(arena_run_t *run, arena_bin_info_t *bin_info, const void *ptr)
 			regind = (diff * interval_invs[interval - 3]) >>
 			    SIZE_INV_SHIFT;
 		} else
-			regind = diff / interval;
+			regind = diff / (unsigned)interval;
 #undef SIZE_INV
 #undef SIZE_INV_SHIFT
 	}

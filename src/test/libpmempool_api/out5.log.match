@@ -1,0 +1,4 @@
+libpmempool_api$(nW)TEST5: START: libpmempool_test$(nW)
+ $(nW)libpmempool_test$(nW) -d 1 -b $(nW).backup $(nW)
+Error: Invalid argument
+libpmempool_api$(nW)TEST5: DONE

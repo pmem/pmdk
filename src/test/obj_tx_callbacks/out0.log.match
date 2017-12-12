@@ -1,0 +1,66 @@
+obj_tx_callbacks$(nW)TEST0: START: obj_tx_callbacks
+ $(nW)obj_tx_callbacks$(nW) $(nW)testfile1
+cb stage: TX_STAGE_ONABORT
+rt_onabort: free
+on abort 1
+cb stage: TX_STAGE_FINALLY
+finally 1
+cb stage: TX_STAGE_NONE
+end of tx 1
+
+cb stage: TX_STAGE_WORK
+cb stage: TX_STAGE_ONCOMMIT
+on commit 2
+cb stage: TX_STAGE_FINALLY
+finally 2
+cb stage: TX_STAGE_NONE
+end of tx 2
+
+cb stage: TX_STAGE_ONABORT
+on abort 3
+cb stage: TX_STAGE_FINALLY
+finally 3
+cb stage: TX_STAGE_NONE
+end of tx 3
+
+cb stage: TX_STAGE_WORK
+cb stage: TX_STAGE_ONCOMMIT
+rt_oncommit: free
+on commit 4
+cb stage: TX_STAGE_FINALLY
+finally 4
+cb stage: TX_STAGE_NONE
+end of tx 4
+
+inner tx work 5
+inner tx on commit 5
+inner tx finally 5
+cb stage: TX_STAGE_WORK
+cb stage: TX_STAGE_ONCOMMIT
+on commit 5
+cb stage: TX_STAGE_FINALLY
+finally 5
+cb stage: TX_STAGE_NONE
+end of tx 5
+
+inner tx work 6
+inner tx on commit 6
+inner tx finally 6
+cb stage: TX_STAGE_WORK
+cb stage: TX_STAGE_ONCOMMIT
+on commit 6
+cb stage: TX_STAGE_FINALLY
+finally 6
+cb stage: TX_STAGE_NONE
+end of tx 6
+
+start of tx 7
+work
+cb stage: TX_STAGE_WORK
+cb stage: TX_STAGE_ONCOMMIT
+on commit
+cb stage: TX_STAGE_FINALLY
+cb stage: TX_STAGE_NONE
+end of tx 7
+
+obj_tx_callbacks$(nW)TEST0: DONE

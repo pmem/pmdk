@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -47,7 +47,7 @@ static int custom_alloc_calls;
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory.
  */
-void *
+static void *
 malloc_custom(size_t size)
 {
 	++custom_alloc_calls;
@@ -61,7 +61,7 @@ malloc_custom(size_t size)
  * This function updates statistics about custom alloc functions,
  * and frees allocated memory.
  */
-void
+static void
 free_custom(void *ptr)
 {
 	++custom_alloc_calls;
@@ -75,7 +75,7 @@ free_custom(void *ptr)
  * This function updates statistics about custom alloc functions,
  * and returns reallocated memory.
  */
-void *
+static void *
 realloc_custom(void *ptr, size_t size)
 {
 	++custom_alloc_calls;
@@ -88,7 +88,7 @@ realloc_custom(void *ptr, size_t size)
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory with a duplicated string.
  */
-char *
+static char *
 strdup_custom(const char *s)
 {
 	++custom_alloc_calls;
@@ -108,7 +108,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_stats");
 
 	if (argc > 3 || argc < 2) {
-		FATAL("usage: %s 0|1 [opts]", argv[0]);
+		UT_FATAL("usage: %s 0|1 [opts]", argv[0]);
 	} else {
 		expect_custom_alloc = atoi(argv[1]);
 		if (argc > 2)
@@ -119,22 +119,20 @@ main(int argc, char *argv[])
 		vmem_set_funcs(malloc_custom, free_custom,
 				realloc_custom, strdup_custom, NULL);
 
-	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+	mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	vmp_unused = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_unused == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
-	mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+	mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 	vmp_used = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	if (vmp_used == NULL)
-		FATAL("!vmem_create_in_region");
+		UT_FATAL("!vmem_create_in_region");
 
-	int *test = vmem_malloc(vmp_used, sizeof (int)*100);
-	ASSERTne(test, NULL);
+	int *test = vmem_malloc(vmp_used, sizeof(int)*100);
+	UT_ASSERTne(test, NULL);
 
 	vmem_stats_print(vmp_unused, opts);
 	vmem_stats_print(vmp_used, opts);
@@ -145,11 +143,11 @@ main(int argc, char *argv[])
 	vmem_delete(vmp_used);
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

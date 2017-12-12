@@ -1,0 +1,68 @@
+==$(*)== pmemcheck$(*)
+==$(*)== Copyright$(*)
+==$(*)== Using Valgrind-$(*)
+==$(*)== Command: ./obj_tx_alloc$(*)
+==$(*)== Parent PID: $(*)
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== 
+==$(*)== Number of stores not made persistent: 1
+==$(*)== Stores not made persistent properly:
+==$(*)== [0]    at 0x$(*): do_tx_xalloc_noflush (obj_tx_alloc.c:$(*))
+==$(*)==    by 0x$(*): main (obj_tx_alloc.c:$(*))
+==$(*)== 	Address: 0x$(*)	size: 1	state: DIRTY
+==$(*)== Total memory not made persistent: 1
+==$(*)== ERROR SUMMARY: 1 errors

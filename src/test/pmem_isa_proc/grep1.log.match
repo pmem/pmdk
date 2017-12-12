@@ -1,2 +1,0 @@
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] clflush supported
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] clflushopt supported

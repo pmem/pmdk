@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -32,6 +32,8 @@
 #
 # magic-uninstall.sh -- Script for uninstalling magic script
 #
+set -e
+
 HDR_LOCAL=$(grep "File: nvml" /etc/magic)
 HDR_PKG=$(grep "File: nvml" /usr/share/nvml/nvml.magic)
 

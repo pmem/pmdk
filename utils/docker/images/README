@@ -1,0 +1,6 @@
+Non-Volatile Memory Library
+
+This is utils/docker/images/README.
+
+Scripts in this directory let you prepare Docker images for building
+NVML project under specified OS (ubuntu, fedora).

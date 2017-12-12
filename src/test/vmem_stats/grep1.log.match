@@ -6,7 +6,7 @@ chunks: nchunks   highchunks    curchunks
 
 arenas[0]:
 assigned threads: $(*)
-dss allocation precedence: secondary
+dss allocation precedence: $(*)
 dirty pages: $(*):$(*) active:dirty, $(*) sweeps, $(*) madvises, $(*) purged
             allocated      nmalloc      ndalloc    nrequests
 small:              0            0            0            0
@@ -28,7 +28,7 @@ chunks: nchunks   highchunks    curchunks
 
 arenas[0]:
 assigned threads: $(*)
-dss allocation precedence: secondary
+dss allocation precedence: $(*)
 dirty pages: $(*):$(*) active:dirty, $(*) sweeps, $(*) madvises, $(*) purged
             allocated      nmalloc      ndalloc    nrequests
 small:          28224           63            0            0

@@ -27,6 +27,16 @@
 #  define JEMALLOC_CC_SILENCE_INIT(v)
 #endif
 
+#ifndef likely
+#ifdef __GNUC__
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+#define likely(x) !!(x)
+#define unlikely(x) !!(x)
+#endif
+#endif
+
 /*
  * Define a custom assert() in order to reduce the chances of deadlock during
  * assertion failure.
@@ -168,6 +178,21 @@ lg_floor(size_t x)
 	    );
 	return (ret);
 }
+#elif (defined(_MSC_VER))
+JEMALLOC_INLINE size_t
+lg_floor(size_t x)
+{
+	unsigned long ret;
+
+#if (LG_SIZEOF_PTR == 3)
+	_BitScanReverse64(&ret, x);
+#elif (LG_SIZEOF_PTR == 2)
+	_BitScanReverse(&ret, x);
+#else
+#  error "Unsupported type size for lg_floor()"
+#endif
+	return ((unsigned)ret);
+}
 #elif (defined(JEMALLOC_HAVE_BUILTIN_CLZ))
 JEMALLOC_INLINE size_t
 lg_floor(size_t x)
@@ -214,6 +239,8 @@ set_errno(int errnum)
 {
 
 #ifdef _WIN32
+	int err = errnum;
+	errno = err;
 	SetLastError(errnum);
 #else
 	errno = errnum;

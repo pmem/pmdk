@@ -1,0 +1,33 @@
+util_parse_size$(nW)TEST0: START: util_parse_size
+ $(nW)util_parse_size$(S)
+11K - correct 11264
+11M - correct 11534336
+11G - correct 11811160064
+11T - correct 12094627905536
+11P - correct 12384898975268864
+11KiB - correct 11264
+11MiB - correct 11534336
+11GiB - correct 11811160064
+11TiB - correct 12094627905536
+11PiB - correct 12384898975268864
+11kB - correct 11000
+11MB - correct 11000000
+11GB - correct 11000000000
+11TB - correct 11000000000000
+11PB - correct 11000000000000000
+1234 - correct 1234
+10k - incorrect
+10KB - incorrect
+10mB - incorrect
+10mb - incorrect
+10Mb - incorrect
+10B - correct 10
+B - incorrect
+10ki - incorrect
+10KiC - incorrect
+KiD - incorrect
+10Kiboli - incorrect
+10Kboli - incorrect
+10boli - incorrect
+10KiBoli - incorrect
+util_parse_size$(nW)TEST0: DONE

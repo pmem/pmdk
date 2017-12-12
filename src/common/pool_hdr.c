@@ -1,0 +1,256 @@
+/*
+ * Copyright 2014-2017, Intel Corporation
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * pool_hdr.c -- pool header utilities
+ */
+
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <endian.h>
+
+#include "out.h"
+#include "pool_hdr.h"
+
+/* Determine ISA for which NVML is currently compiled */
+#if defined(__x86_64) || defined(_M_X64)
+/* x86 -- 64 bit */
+#define NVML_MACHINE NVML_MACHINE_X86_64
+#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
+
+#elif defined(__aarch64__)
+/* 64 bit ARM not supported yet */
+#define NVML_MACHINE NVML_MACHINE_AARCH64
+#define NVML_MACHINE_CLASS NVML_MACHINE_CLASS_64
+
+#else
+/* add appropriate definitions here when porting NVML to another ISA */
+#error unable to recognize ISA at compile time
+
+#endif
+
+/*
+ * arch_machine -- (internal) determine endianness
+ */
+static uint8_t
+arch_data(void)
+{
+	uint16_t word = (NVML_DATA_BE << 8) + NVML_DATA_LE;
+	return ((uint8_t *)&word)[0];
+}
+
+/*
+ * util_get_arch_flags -- get architecture identification flags
+ */
+void
+util_get_arch_flags(struct arch_flags *arch_flags)
+{
+	memset(arch_flags, 0, sizeof(*arch_flags));
+	arch_flags->machine = NVML_MACHINE;
+	arch_flags->machine_class = NVML_MACHINE_CLASS;
+	arch_flags->data = arch_data();
+	arch_flags->alignment_desc = alignment_desc();
+}
+
+/*
+ * util_convert2le_hdr -- convert pool_hdr into little-endian byte order
+ */
+void
+util_convert2le_hdr(struct pool_hdr *hdrp)
+{
+	hdrp->major = htole32(hdrp->major);
+	hdrp->compat_features = htole32(hdrp->compat_features);
+	hdrp->incompat_features = htole32(hdrp->incompat_features);
+	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
+	hdrp->arch_flags.alignment_desc =
+		htole64(hdrp->arch_flags.alignment_desc);
+	hdrp->arch_flags.machine = htole16(hdrp->arch_flags.machine);
+	hdrp->crtime = htole64(hdrp->crtime);
+	hdrp->checksum = htole64(hdrp->checksum);
+}
+
+/*
+ * util_convert2h_hdr_nocheck -- convert pool_hdr into host byte order
+ */
+void
+util_convert2h_hdr_nocheck(struct pool_hdr *hdrp)
+{
+	hdrp->major = le32toh(hdrp->major);
+	hdrp->compat_features = le32toh(hdrp->compat_features);
+	hdrp->incompat_features = le32toh(hdrp->incompat_features);
+	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
+	hdrp->crtime = le64toh(hdrp->crtime);
+	hdrp->arch_flags.machine = le16toh(hdrp->arch_flags.machine);
+	hdrp->arch_flags.alignment_desc =
+		le64toh(hdrp->arch_flags.alignment_desc);
+	hdrp->checksum = le64toh(hdrp->checksum);
+}
+
+/*
+ * util_convert_hdr -- convert header to host byte order & validate
+ *
+ * Returns true if header is valid, and all the integer fields are
+ * converted to host byte order.  If the header is not valid, this
+ * routine returns false and the header passed in is left in an
+ * unknown state.
+ */
+int
+util_convert_hdr(struct pool_hdr *hdrp)
+{
+	LOG(3, "hdrp %p", hdrp);
+
+	util_convert2h_hdr_nocheck(hdrp);
+
+	/* to be valid, a header must have a major version of at least 1 */
+	if (hdrp->major == 0) {
+		ERR("invalid major version (0)");
+		return 0;
+	}
+
+	/* and to be valid, the fields must checksum correctly */
+	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
+		ERR("invalid checksum of pool header");
+		return 0;
+	}
+
+	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
+	return 1;
+}
+
+/*
+ * util_convert_hdr_remote -- convert remote header to host byte order
+ *                            and validate
+ *
+ * Returns true if header is valid, and all the integer fields are
+ * converted to host byte order.  If the header is not valid, this
+ * routine returns false and the header passed in is left in an
+ * unknown state.
+ */
+int
+util_convert_hdr_remote(struct pool_hdr *hdrp)
+{
+	LOG(3, "hdrp %p", hdrp);
+
+	util_convert2h_hdr_nocheck(hdrp);
+
+	/* and to be valid, the fields must checksum correctly */
+	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
+		ERR("invalid checksum of pool header");
+		return 0;
+	}
+
+	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
+	return 1;
+}
+
+/*
+ * util_arch_flags_check -- validates arch_flags
+ */
+int
+util_check_arch_flags(const struct arch_flags *arch_flags)
+{
+	struct arch_flags cur_af;
+	int ret = 0;
+
+	util_get_arch_flags(&cur_af);
+
+	if (!util_is_zeroed(&arch_flags->reserved,
+				sizeof(arch_flags->reserved))) {
+		ERR("invalid reserved values");
+		ret = -1;
+	}
+
+	if (arch_flags->machine != cur_af.machine) {
+		ERR("invalid machine value");
+		ret = -1;
+	}
+
+	if (arch_flags->data != cur_af.data) {
+		ERR("invalid data value");
+		ret = -1;
+	}
+
+	if (arch_flags->machine_class != cur_af.machine_class) {
+		ERR("invalid machine_class value");
+		ret = -1;
+	}
+
+	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
+		ERR("invalid alignment_desc value");
+		ret = -1;
+	}
+
+	return ret;
+}
+
+/*
+ * util_feature_check -- check features masks
+ */
+int
+util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
+			uint32_t ro_compat, uint32_t compat)
+{
+	LOG(3, "hdrp %p incompat %#x ro_compat %#x compat %#x",
+			hdrp, incompat, ro_compat, compat);
+
+#define GET_NOT_MASKED_BITS(x, mask) ((x) & ~(mask))
+
+	uint32_t ubits;	/* unsupported bits */
+
+	/* check incompatible ("must support") features */
+	ubits = GET_NOT_MASKED_BITS(hdrp->incompat_features, incompat);
+	if (ubits) {
+		ERR("unsafe to continue due to unknown incompat "\
+							"features: %#x", ubits);
+		errno = EINVAL;
+		return -1;
+	}
+
+	/* check RO-compatible features (force RO if unsupported) */
+	ubits = GET_NOT_MASKED_BITS(hdrp->ro_compat_features, ro_compat);
+	if (ubits) {
+		ERR("switching to read-only mode due to unknown ro_compat "\
+							"features: %#x", ubits);
+		return 0;
+	}
+
+	/* check compatible ("may") features */
+	ubits = GET_NOT_MASKED_BITS(hdrp->compat_features, compat);
+	if (ubits) {
+		LOG(3, "ignoring unknown compat features: %#x", ubits);
+	}
+
+#undef	GET_NOT_MASKED_BITS
+
+	return 1;
+}

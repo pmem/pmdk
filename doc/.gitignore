@@ -1,3 +1,7 @@
 *.txt
 *.html
 *.gz
+cpp_html
+LICENSE
+web_linux/
+web_windows/

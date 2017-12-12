@@ -1,0 +1,4 @@
+obj_pool$(nW)TEST1: START: obj_pool$(nW)
+ $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 0 0600
+$(nW)testfile: file size 20971520 mode 0600
+obj_pool$(nW)TEST1: DONE

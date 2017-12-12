@@ -205,7 +205,7 @@ extern bool	opt_prof_accum;       /* Report cumulative bytes. */
 extern char	opt_prof_prefix[
     /* Minimize memory bloat for non-prof builds. */
 #ifdef JEMALLOC_PROF
-    PATH_MAX +
+    JE_PATH_MAX +
 #endif
     1];
 

@@ -1,0 +1,33 @@
+traces_custom_function$(nW)TEST1: START: traces_custom_function
+ $(nW)traces_custom_function$(nW) v
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW)
+
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
+
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version: $(nW)
+
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind pmemcheck
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind helgrind
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind memcheck
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind drd
+$(OPT)
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_init] 
+
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) out_set_vsnprintf_func]$(W)vsnprintf $(nW)$(X)
+
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)no format@@@@@@
+
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)pointer: @@$(nW)12345678@@@@@@
+
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)string: @@Hello world!@@@@@@
+
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)number: @@12345678@@@@@@
+
+CUSTOM_PRINT: <@@trace_func>: <@@0> [@@$(nW):@@$(N) @@main]$(W)error@@: @@Invalid argument@@
+
+CUSTOM_PRINT: <@@trace_func>: <@@3> [@@$(nW):@@$(N) @@util_mmap_fini] @@@@@@
+
+traces_custom_function$(nW)TEST1: DONE

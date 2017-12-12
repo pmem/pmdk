@@ -34,21 +34,22 @@ size_t	opt_narenas = 0;
 bool	in_valgrind;
 
 
-unsigned	npools;
+unsigned	npools_cnt;	/* actual number of pools */
+unsigned	npools; 	/* size of the pools[] array */
 unsigned	ncpus;
 
-pool_t			*pools[POOLS_MAX];
-pool_t			init_pool;
-unsigned		pool_seqno = 0;
-bool			pools_shared_data_initialized;
+pool_t		**pools;
+pool_t		base_pool;
+unsigned	pool_seqno = 0;
+bool		pools_shared_data_initialized;
 
 /*
  * Custom malloc() and free() for shared data and for data needed to
  * initialize pool. If not defined functions then base_pool will be
  * created for allocations from RAM.
  */
-void	*(*je_base_malloc)(size_t);
-void	(*je_base_free)(void *);
+void	*(*base_malloc_fn)(size_t);
+void	(*base_free_fn)(void *);
 
 /* Set to true once the allocator has been initialized. */
 static bool		malloc_initialized = false;
@@ -77,12 +78,15 @@ _init_init_lock(void)
 {
 
 	malloc_mutex_init(&init_lock);
+	malloc_mutex_init(&pools_lock);
+	malloc_mutex_init(&pool_base_lock);
 }
 
 #ifdef _MSC_VER
-#  pragma section(".CRT$XCU", read)
+# pragma comment(linker, "/include:__init_init_lock")
+# pragma section(".CRT$XCU", read)
 JEMALLOC_SECTION(".CRT$XCU") JEMALLOC_ATTR(used)
-static const void (WINAPI *init_init_lock)(void) = _init_init_lock;
+const void (WINAPI *__init_init_lock)(void) = _init_init_lock;
 #endif
 
 #else
@@ -241,7 +245,7 @@ stats_print_atexit(void)
 		 * continue to allocate.
 		 */
 		malloc_mutex_lock(&pools_lock);
-		for (i = 0; i < POOLS_MAX; i++) {
+		for (i = 0; i < npools; i++) {
 			pool = pools[i];
 			if (pool != NULL) {
 				for (j = 0, narenas = narenas_total_get(pool); j < narenas; j++) {
@@ -292,14 +296,55 @@ malloc_ncpus(void)
 	return ((result == -1) ? 1 : (unsigned)result);
 }
 
+bool
+arenas_tsd_extend(tsd_pool_t *tsd, unsigned len)
+{
+	assert(len < POOLS_MAX);
+
+	/* round up the new length to the nearest power of 2... */
+	size_t npools = 1ULL << (32 - __builtin_clz(len + 1));
+
+	/* ... but not less than */
+	if (npools < POOLS_MIN)
+		npools = POOLS_MIN;
+
+	unsigned *tseqno = base_malloc_fn(npools * sizeof (unsigned));
+	if (tseqno == NULL)
+		return (true);
+
+	if (tsd->seqno != NULL)
+		memcpy(tseqno, tsd->seqno, tsd->npools * sizeof (unsigned));
+	memset(&tseqno[tsd->npools], 0, (npools - tsd->npools) * sizeof (unsigned));
+
+	arena_t **tarenas = base_malloc_fn(npools * sizeof (arena_t *));
+	if (tarenas == NULL) {
+		base_free_fn(tseqno);
+		return (true);
+	}
+
+	if (tsd->arenas != NULL)
+		memcpy(tarenas, tsd->arenas, tsd->npools * sizeof (arena_t *));
+	memset(&tarenas[tsd->npools], 0, (npools - tsd->npools) * sizeof (arena_t *));
+
+	base_free_fn(tsd->seqno);
+	tsd->seqno = tseqno;
+	base_free_fn(tsd->arenas);
+	tsd->arenas = tarenas;
+
+	tsd->npools = npools;
+
+	return (false);
+}
+
 void
 arenas_cleanup(void *arg)
 {
 	unsigned i;
 	pool_t *pool;
 	tsd_pool_t *tsd = arg;
+
 	malloc_mutex_lock(&pools_lock);
-	for (i = 0; i < POOLS_MAX; i++) {
+	for (i = 0; i < tsd->npools; i++) {
 		pool = pools[i];
 		if (pool != NULL) {
 			if (pool->seqno == tsd->seqno[i] && tsd->arenas[i] != NULL) {
@@ -309,6 +354,11 @@ arenas_cleanup(void *arg)
 			}
 		}
 	}
+
+	base_free_fn(tsd->seqno);
+	base_free_fn(tsd->arenas);
+	tsd->npools = 0;
+
 	malloc_mutex_unlock(&pools_lock);
 
 }
@@ -316,7 +366,7 @@ arenas_cleanup(void *arg)
 JEMALLOC_ALWAYS_INLINE_C void
 malloc_thread_init(void)
 {
-	if (config_fill && opt_quarantine && je_base_malloc == base_malloc_default) {
+	if (config_fill && opt_quarantine && base_malloc_fn == base_malloc_default) {
 		/* create pool base and call quarantine_alloc_hook() inside */
 		malloc_init_base_pool();
 	}
@@ -335,15 +385,8 @@ malloc_init(void)
 static bool
 malloc_init_base_pool(void)
 {
-	pool_t *base_pool;
-
-	if (base_pool_initialized)
-		return (false);
-
-	if (malloc_init())
-		return (true);
-
 	malloc_mutex_lock(&pool_base_lock);
+
 	if (base_pool_initialized) {
 		/*
 		 * Another thread initialized the base pool before this one
@@ -353,15 +396,26 @@ malloc_init_base_pool(void)
 		return (false);
 	}
 
-	base_pool = &init_pool;
-	npools++;
-	pools[0] = base_pool;
-	pools[0]->seqno = ++pool_seqno;
-
-	if (pool_new(base_pool, 0)) {
+	if (malloc_init()) {
 		malloc_mutex_unlock(&pool_base_lock);
 		return (true);
 	}
+
+	if (pool_new(&base_pool, 0)) {
+		malloc_mutex_unlock(&pool_base_lock);
+		return (true);
+	}
+
+	pools = base_calloc(&base_pool, sizeof(pool_t *), POOLS_MIN);
+	if (pools == NULL) {
+		malloc_mutex_unlock(&pool_base_lock);
+		return (true);
+	}
+
+	pools[0] = &base_pool;
+	pools[0]->seqno = ++pool_seqno;
+	npools_cnt++;
+	npools = POOLS_MIN;
 
 	base_pool_initialized = true;
 	malloc_mutex_unlock(&pool_base_lock);
@@ -375,10 +429,20 @@ malloc_init_base_pool(void)
 	 * a best effort attempt at initializing its TSD by hooking all
 	 * allocation events.
 	 */
-	if (config_fill && opt_quarantine) {
+	if (config_fill && opt_quarantine)
 		quarantine_alloc_hook();
-	}
 
+	/*
+	 * In the JEMALLOC_LAZY_LOCK case we had to defer initializing the
+	 * arenas_lock until base pool initialization was complete. Deferral
+	 * is safe because there are no other threads yet. We will actually
+	 * recurse here, but since base_pool_initialized is set we will
+	 * drop out of the recursion in the check at the top of this function.
+	 */
+	if (!isthreaded) {
+		if (malloc_rwlock_init(&base_pool.arenas_lock))
+			return (true);
+	}
 
 	return (false);
 }
@@ -472,7 +536,7 @@ static void
 malloc_conf_init(void)
 {
 	unsigned i;
-	char buf[PATH_MAX + 1];
+	char buf[JE_PATH_MAX + 1];
 	const char *opts, *k, *v;
 	size_t klen, vlen;
 
@@ -789,12 +853,11 @@ malloc_init_hard(void)
 		}
 	}
 
-	npools = 0;
 	pools_shared_data_initialized = false;
-	memset(pools, 0, sizeof(pool_t *) * POOLS_MAX);
-
-	je_base_malloc = base_malloc_default;
-	je_base_free = base_free_default;
+	if (base_malloc_fn == NULL && base_free_fn == NULL) {
+		base_malloc_fn = base_malloc_default;
+		base_free_fn = base_free_default;
+	}
 
 	if (chunk_global_boot()) {
 		malloc_mutex_unlock(&init_lock);
@@ -810,8 +873,6 @@ malloc_init_hard(void)
 		prof_boot1();
 
 	arena_boot();
-
-	pool_boot();
 
 	/* Initialize allocation counters before any allocations can occur. */
 	if (config_stats && thread_allocated_tsd_boot()) {
@@ -1238,7 +1299,6 @@ ifree(void *ptr)
 
 	assert(ptr != NULL);
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 
 	if (config_prof && opt_prof) {
 		usize = isalloc(ptr, config_prof);
@@ -1273,7 +1333,6 @@ je_realloc(void *ptr, size_t size)
 
 	if (ptr != NULL) {
 		assert(malloc_initialized || IS_INITIALIZER);
-		assert(pools[0] != NULL);
 		malloc_thread_init();
 
 		if ((config_prof && opt_prof) || config_stats ||
@@ -1314,8 +1373,9 @@ je_realloc(void *ptr, size_t size)
 		ta->deallocated += old_usize;
 	}
 	UTRACE(ptr, size, ret);
+
 	JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
-	    old_rzsize, true, false);
+		    old_rzsize, true, false);
 	return (ret);
 }
 
@@ -1391,11 +1451,11 @@ JEMALLOC_EXPORT void *(*__memalign_hook)(size_t alignment, size_t size) =
  * Begin non-standard functions.
  */
 
-static void*
+static void *
 base_malloc_default(size_t size)
 {
-	pool_t *pool = pools[0];
-	return base_alloc(pool, size);
+
+	return base_alloc(&base_pool, size);
 }
 
 static void
@@ -1404,86 +1464,202 @@ base_free_default(void *ptr)
 
 }
 
+static void
+je_base_pool_destroy(void)
+{
+#ifndef JEMALLOC_MUTEX_INIT_CB
+	pool_destroy(&base_pool);
+	malloc_mutex_destroy(&pool_base_lock);
+	malloc_mutex_destroy(&pools_lock);
+#endif
+}
+
 bool
 pools_shared_data_create(void)
 {
 	if (malloc_init())
 		return (true);
 
-	assert(je_base_malloc != base_malloc_default || pools[0] != NULL);
-
 	if (pools_shared_data_initialized)
 		return (false);
 
-	if (config_tcache && tcache_boot0()) {
+	if (config_tcache && tcache_boot0())
 		return (true);
-	}
 
 	pools_shared_data_initialized = true;
 
 	return (false);
 }
 
-void pools_shared_data_destroy(void)
+void
+pools_shared_data_destroy(void)
 {
 	/* Only destroy when no pools exist */
 	if (npools == 0) {
 		pools_shared_data_initialized = false;
 
-		je_base_free(tcache_bin_info);
+		base_free_fn(tcache_bin_info);
 		tcache_bin_info = NULL;
 	}
 }
 
-pool_t *
-je_pool_create(void *addr, size_t size, int zeroed)
+#ifdef JEMALLOC_VALGRIND
+/*
+ * Iterates thru all the chunks/allocations on the heap and marks them
+ * as defined/undefined.
+ */
+static extent_node_t *
+vg_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
 {
-	if (malloc_init())
-		return (NULL);
+	assert(node->size != 0);
+	int noaccess = *(int *)arg;
 
-	if (addr == NULL || size < POOL_MINIMAL_SIZE)
-		return NULL;
-
-	pool_t *pool = (pool_t *)addr;
-	unsigned pool_id = POOLS_MAX;
-	size_t result;
-
-	if (je_base_malloc == base_malloc_default) {
-		/* Preinit base pool if not exist, before lock pool_lock */
-		if (malloc_init_base_pool())
-			return NULL;
+	if (noaccess) {
+		JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(node->addr, node->size);
+	} else {
+		/* assume memory is defined */
+		JEMALLOC_VALGRIND_MALLOC(1, node->addr, node->size, 1);
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(node->addr, node->size);
 	}
 
-	malloc_mutex_lock(&pools_lock);
+	return (NULL);
+}
 
-	/* Find unused pool ID */
-	if (npools < POOLS_MAX) {
-		/*
-		 * Pool 0 is a special pool with reserved ID. Pool is created during
-		 * malloc_init_pool_base() and allocates memory from RAM.
-		 */
-		int i;
-		for (i = 1; i < POOLS_MAX; ++i) {
-			if (pools[i] == NULL) {
-				pool_id = i;
-				break;
+/*
+ * Iterates thru all the chunks/allocations on the heap and marks them
+ * as defined/undefined.
+ */
+static arena_chunk_map_t *
+vg_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree,
+	arena_chunk_map_t *map, void *arg)
+{
+	int noaccess = *(int *)arg;
+
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(map, sizeof(*map));
+
+	assert((map->bits & (CHUNK_MAP_LARGE|CHUNK_MAP_ALLOCATED)) == 0);
+	assert((map->bits & ~PAGE_MASK) != 0);
+
+	size_t chunk_size = (map->bits & ~PAGE_MASK);
+	arena_chunk_t *run_chunk = CHUNK_ADDR2BASE(map);
+
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(run_chunk, sizeof(*run_chunk));
+
+	size_t pageind = arena_mapelm_to_pageind(map);
+	void *chunk_addr = (void *)((uintptr_t)run_chunk + (pageind << LG_PAGE));
+
+	if (noaccess) {
+		JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(chunk_addr, chunk_size);
+	} else {
+		JEMALLOC_VALGRIND_MALLOC(1, chunk_addr, chunk_size, 1);
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(chunk_addr, chunk_size);
+	}
+
+	return (NULL);
+}
+
+/*
+ * Reinitializes memcheck state if run under Valgrind.
+ * Iterates thru all the chunks/allocations on the heap and marks them
+ * as defined/undefined.
+ */
+static int
+vg_pool_init(pool_t *pool, size_t size)
+{
+	malloc_mutex_lock(&pool->huge_mtx);
+	malloc_mutex_lock(&pool->chunks_mtx);
+	malloc_rwlock_wrlock(&pool->arenas_lock);
+
+	/* mark base_alloc used space as defined */
+	char *base_start = (char *)CACHELINE_CEILING((uintptr_t)pool +
+			sizeof(pool_t));
+	char *base_end = pool->base_next_addr;
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(base_start, base_end - base_start);
+	JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(base_end, (char *)pool->base_past_addr - base_end);
+
+	/* pointer to the address of chunks, align the address to chunksize */
+	void *usable_addr =
+		(void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+
+	/* usable chunks space, must be multiple of chunksize */
+	size_t usable_size =
+		(size - (uintptr_t)((char *)usable_addr - (char *)pool))
+		& ~chunksize_mask;
+
+	/* initially mark the entire heap as defined */
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
+			usable_addr,
+			usable_size);
+
+	/* iterate thru unused (available) chunks - mark as NOACCESS */
+	int noaccess = 1;
+	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL,
+			vg_tree_binary_iter_cb, &noaccess);
+
+	/* iterate thru huge allocations - mark as MALLOCLIKE */
+	noaccess = 0;
+	extent_tree_ad_iter(&pool->huge, NULL,
+			vg_tree_binary_iter_cb, &noaccess);
+
+	/* iterate thru arenas/runs */
+	for (unsigned i = 0; i < pool->narenas_total; ++i) {
+		arena_t *arena = pool->arenas[i];
+		if (arena != NULL) {
+			JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(arena, sizeof(*arena));
+
+			malloc_mutex_lock(&arena->lock);
+
+			/* bins */
+			for (unsigned b = 0; b < NBINS; b++) {
+				arena_bin_t *bin = &arena->bins[b];
+
+				if (bin->runcur != NULL)
+					JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
+						bin->runcur,
+						sizeof(*(bin->runcur)));
 			}
+
+			noaccess = 1; /* XXX */
+			arena_runs_avail_tree_iter(arena,
+				vg_tree_chunks_avail_iter_cb, &noaccess);
+
+			arena_chunk_t *spare = arena->spare;
+			if (spare != NULL) {
+				/* XXX - size */
+				JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(
+						spare, chunksize);
+			}
+			malloc_mutex_unlock(&arena->lock);
 		}
 	}
 
-	if (pool_id == POOLS_MAX) {
-		malloc_mutex_unlock(&pools_lock);
-		malloc_printf("<jemalloc>: Too many pools\n");
-		return NULL;
-	}
+	malloc_rwlock_unlock(&pool->arenas_lock);
+	malloc_mutex_unlock(&pool->chunks_mtx);
+	malloc_mutex_unlock(&pool->huge_mtx);
+
+	return 1;
+}
+#endif /* JEMALLOC_VALGRIND */
+
+/*
+ * Creates a new pool.
+ * Initializes the heap and all the allocator metadata.
+ */
+static pool_t *
+pool_create_empty(pool_t *pool, size_t size, int zeroed, unsigned pool_id)
+{
+	size_t result;
 
 	if (!zeroed)
-		memset(addr, 0, sizeof (pool_t));
+		memset(pool, 0, sizeof (pool_t));
 
-	/* preinit base allocator in unused space, align the address to the cache line */
-	pool->base_next_addr = (void *)CACHELINE_CEILING((uintptr_t)addr +
+	/*
+	 * preinit base allocator in unused space, align the address
+	 * to the cache line
+	 */
+	pool->base_next_addr = (void *)CACHELINE_CEILING((uintptr_t)pool +
 		sizeof (pool_t));
-	pool->base_past_addr = (void *)((uintptr_t)addr + size);
+	pool->base_past_addr = (void *)((uintptr_t)pool + size);
 
 	/* prepare pool and internal structures */
 	if (pool_new(pool, pool_id)) {
@@ -1493,36 +1669,43 @@ je_pool_create(void *addr, size_t size, int zeroed)
 		return NULL;
 	}
 
-	/* preallocate the chunk tree nodes for the maximum possible number of chunks */
+	/*
+	 * preallocate the chunk tree nodes for the maximum possible
+	 * number of chunks
+	 */
 	result = base_node_prealloc(pool, size/chunksize);
 	assert(result == 0);
 
 	assert(pools[pool_id] == NULL);
 	pool->seqno = pool_seqno++;
 	pools[pool_id] = pool;
-	npools++;
+	npools_cnt++;
 	malloc_mutex_unlock(&pools_lock);
 
-	pool->memory_range_list = base_alloc(pool, sizeof (*pool->memory_range_list));
+	pool->memory_range_list =
+			base_alloc(pool, sizeof(*pool->memory_range_list));
 
 	/* pointer to the address of chunks, align the address to chunksize */
-	void *usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+	void *usable_addr =
+		(void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 
 	/* reduce end of base allocator up to chunks start */
 	pool->base_past_addr = usable_addr;
 
 	/* usable chunks space, must be multiple of chunksize */
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size =
+		(size - (uintptr_t)((char *)usable_addr - (char *)pool))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
 
 	malloc_mutex_lock(&pool->memory_range_mtx);
 	pool->memory_range_list->next = NULL;
-	pool->memory_range_list->addr = (uintptr_t)addr;
-	pool->memory_range_list->addr_end = (uintptr_t)addr + size;
+	pool->memory_range_list->addr = (uintptr_t)pool;
+	pool->memory_range_list->addr_end = (uintptr_t)pool + size;
 	pool->memory_range_list->usable_addr = (uintptr_t)usable_addr;
-	pool->memory_range_list->usable_addr_end = (uintptr_t)usable_addr + usable_size;
+	pool->memory_range_list->usable_addr_end =
+			(uintptr_t)usable_addr + usable_size;
 	malloc_mutex_unlock(&pool->memory_range_mtx);
 
 	/* register the usable pool space as a single big chunk */
@@ -1535,71 +1718,113 @@ je_pool_create(void *addr, size_t size, int zeroed)
 	return pool;
 }
 
-void
+/*
+ * Opens an existing pool (i.e. pmemcto pool).
+ * Only the run-time state needs to be re-initialized.
+ */
+static pool_t *
+pool_open(pool_t *pool, size_t size, unsigned pool_id)
+{
+	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(pool, sizeof(pool_t));
+
+	pool->pool_id = pool_id;
+	assert(pools[pool_id] == NULL);
+	pool->seqno = pool_seqno++;
+	pools[pool_id] = pool;
+	npools_cnt++;
+	malloc_mutex_unlock(&pools_lock);
+
+#ifdef JEMALLOC_VALGRIND
+	if (config_valgrind)
+		vg_pool_init(pool, size);
+#endif
+
+	return pool;
+}
+
+pool_t *
+je_pool_create(void *addr, size_t size, int zeroed, int empty)
+{
+	if (malloc_init())
+		return (NULL);
+
+	if (addr == NULL || size < POOL_MINIMAL_SIZE)
+		return (NULL);
+
+	pool_t *pool = (pool_t *)addr;
+	unsigned pool_id;
+
+	/* Preinit base pool if not exist, before lock pool_lock */
+	if (malloc_init_base_pool())
+		return (NULL);
+
+	malloc_mutex_lock(&pools_lock);
+
+	assert(pools != NULL);
+	assert(npools > 0);
+
+	/*
+	 * Find unused pool ID.
+	 * Pool 0 is a special pool with reserved ID. Pool is created during
+	 * malloc_init_pool_base() and allocates memory from RAM.
+	 */
+	for (pool_id = 1; pool_id < npools; ++pool_id) {
+		if (pools[pool_id] == NULL)
+			break;
+	}
+
+	if (pool_id == npools && npools < POOLS_MAX) {
+		size_t npools_new = npools * 2;
+		pool_t **pools_new = base_alloc(&base_pool,
+					npools_new * sizeof (pool_t *));
+		if (pools_new == NULL) {
+			malloc_mutex_unlock(&pools_lock);
+			return (NULL);
+		}
+
+		memcpy(pools_new, pools, npools * sizeof (pool_t *));
+		memset(&pools_new[npools], 0,
+				(npools_new - npools) * sizeof (pool_t *));
+
+		pools = pools_new;
+		npools = npools_new;
+	}
+
+	if (pool_id == POOLS_MAX) {
+		malloc_printf("<jemalloc>: Error in pool_create(): "
+			"exceeded max number of pools (%u)\n", POOLS_MAX);
+		malloc_mutex_unlock(&pools_lock);
+		return (NULL);
+	}
+
+	if (empty)
+		return pool_create_empty(pool, size, zeroed, pool_id);
+	else
+		return pool_open(pool, size, pool_id);
+}
+
+int
 je_pool_delete(pool_t *pool)
 {
 	unsigned pool_id = pool->pool_id;
 
 	/* Remove pool from global array */
 	malloc_mutex_lock(&pools_lock);
+
+	if ((pool_id == 0) || (pool_id >= npools) || (pools[pool_id] != pool)) {
+		malloc_mutex_unlock(&pools_lock);
+		malloc_printf("<jemalloc>: Error in pool_delete(): "
+			"invalid pool_id (%u)\n", pool_id);
+		return -1;
+	}
+
 	pool_destroy(pool);
 	pools[pool_id] = NULL;
-	npools--;
-
-	/*
-	 * TODO: Destroy mutex
-	 * base_mtx
-	 */
-
+	npools_cnt--;
 	pools_shared_data_destroy();
 
 	malloc_mutex_unlock(&pools_lock);
-}
-
-static extent_node_t *
-tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
-{
-	size_t *size = (size_t *)arg;
-	assert(node->size != 0);
-	*size += node->size;
-	return (NULL);
-}
-
-static arena_chunk_map_t *
-tree_chunks_avail_iter_cb(arena_avail_tree_t *tree, arena_chunk_map_t *map, void *arg)
-{
-	size_t *navail = (size_t *)arg;
-	assert((map->bits & (CHUNK_MAP_LARGE|CHUNK_MAP_ALLOCATED)) == 0);
-	assert((map->bits & ~PAGE_MASK) != 0);
-	*navail += (map->bits & ~PAGE_MASK);
-	return (NULL);
-}
-
-size_t
-je_pool_freespace(pool_t *pool)
-{
-	size_t size = 0;
-	malloc_mutex_lock(&pool->chunks_mtx);
-	malloc_rwlock_wrlock(&pool->arenas_lock);
-	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL, tree_binary_iter_cb, (void *)&size);
-
-	for (size_t i = 0; i < pool->narenas_total; ++i) {
-		arena_t *arena = pool->arenas[i];
-		if (arena != NULL) {
-			malloc_mutex_lock(&arena->lock);
-			arena_runs_avail_tree_iter(arena, tree_chunks_avail_iter_cb, (void *)&size);
-
-			arena_chunk_t *spare = arena->spare;
-			if (spare != NULL) {
-				size += arena_mapbits_unallocated_size_get(spare, map_bias);
-			}
-			malloc_mutex_unlock(&arena->lock);
-		}
-	}
-
-	malloc_rwlock_unlock(&pool->arenas_lock);
-	malloc_mutex_unlock(&pool->chunks_mtx);
-	return size;
+	return 0;
 }
 
 static int
@@ -1733,24 +1958,29 @@ je_pool_check(pool_t *pool)
 	unsigned i;
 	pool_memory_range_node_t *node;
 
-	if ((pool->pool_id == 0) || (pool->pool_id >= POOLS_MAX)) {
+	malloc_mutex_lock(&pools_lock);
+	if ((pool->pool_id == 0) || (pool->pool_id >= npools)) {
 		malloc_write("<jemalloc>: Error in pool_check(): "
-			"incorrect pool ID\n");
+				"invalid pool id\n");
+		malloc_mutex_unlock(&pools_lock);
 		return -1;
 	}
 
 	if (pools[pool->pool_id] != pool) {
 		malloc_write("<jemalloc>: Error in pool_check(): "
-				"incorrect pool handle, probably pool was deleted\n");
+				"invalid pool handle, probably pool was deleted\n");
+		malloc_mutex_unlock(&pools_lock);
 		return -1;
 	}
+	malloc_mutex_unlock(&pools_lock);
 
 	malloc_mutex_lock(&pool->memory_range_mtx);
 
 	/* check memory regions defined correctly */
 	node = pool->memory_range_list;
 	while (node != NULL) {
-		total_size += node->usable_addr_end - node->usable_addr;
+		size_t node_size = node->usable_addr_end - node->usable_addr;
+		total_size += node_size;
 		if ((node->addr > node->usable_addr) ||
 			(node->addr_end < node->usable_addr_end) ||
 			(node->usable_addr >= node->usable_addr_end)) {
@@ -1759,12 +1989,17 @@ je_pool_check(pool_t *pool)
 			malloc_mutex_unlock(&pool->memory_range_mtx);
 			return 0;
 		}
+
+		/* for the purpose of further checks we need to mark it as defined */
+		JEMALLOC_VALGRIND_MAKE_MEM_DEFINED((void *)node->usable_addr,
+				node_size);
+
 		node = node->next;
 	}
 
 	/* check memory collision with other pools */
 	malloc_mutex_lock(&pools_lock);
-	for (i = 1; i < POOLS_MAX; i++) {
+	for (i = 1; i < npools; i++) {
 		pool_t *pool_cmp = pools[i];
 		if (pool_cmp != NULL && i != pool->pool_id) {
 			node = pool->memory_range_list;
@@ -1857,7 +2092,7 @@ je_pool_check(pool_t *pool)
 size_t
 je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 {
-	void *usable_addr = addr;
+	char *usable_addr = addr;
 	size_t nodes_number = size/chunksize;
 	if (size < POOL_MINIMAL_SIZE)
 		return 0;
@@ -1887,14 +2122,14 @@ je_pool_extend(pool_t *pool, void *addr, size_t size, int zeroed)
 		assert(node != NULL);
 
 		/* pointer to the address of chunks, align the address to chunksize */
-		usable_addr = (void*)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
+		usable_addr = (void *)CHUNK_CEILING((uintptr_t)pool->base_next_addr);
 		/* reduce end of base allocator up to chunks */
 		pool->base_past_addr = usable_addr;
 	}
 
 	usable_addr = (void *)CHUNK_CEILING((uintptr_t)usable_addr);
 
-	size_t usable_size = (size - (uintptr_t)(usable_addr - addr))
+	size_t usable_size = (size - (uintptr_t)(usable_addr - (char *)addr))
 		& ~chunksize_mask;
 
 	assert(usable_size > 0);
@@ -2176,6 +2411,7 @@ je_pool_ralloc(pool_t *pool, void *ptr, size_t size)
 		ta->deallocated += old_usize;
 	}
 	UTRACE(ptr, size, ret);
+
 	JEMALLOC_VALGRIND_REALLOC(true, ret, usize, true, ptr, old_usize,
 	    old_rzsize, true, false);
 	return (ret);
@@ -2326,14 +2562,13 @@ je_pool_set_alloc_funcs(void *(*malloc_func)(size_t),
 {
 	if (malloc_func != NULL && free_func != NULL) {
 		malloc_mutex_lock(&pool_base_lock);
-		if (pools[0] == NULL) {
-			je_base_malloc = malloc_func;
-			je_base_free = free_func;
+		if (pools == NULL) {
+			base_malloc_fn = malloc_func;
+			base_free_fn = free_func;
 		}
 		malloc_mutex_unlock(&pool_base_lock);
 	}
 }
-
 
 size_t
 je_pool_malloc_usable_size(pool_t *pool, void *ptr)
@@ -2416,8 +2651,7 @@ je_mallocx(size_t size, int flags)
 	    & (SIZE_T_MAX-1));
 	bool zero = flags & MALLOCX_ZERO;
 	unsigned arena_ind = ((unsigned)(flags >> 8)) - 1;
-	unsigned pool_id = 0; // TODO add another flag
-	pool_t *pool = pools[pool_id];
+	pool_t *pool = &base_pool;
 	arena_t dummy_arena;
 	DUMMY_ARENA_INITIALIZE(dummy_arena, pool);
 	arena_t *arena;
@@ -2537,8 +2771,7 @@ je_rallocx(void *ptr, size_t size, int flags)
 	    & (SIZE_T_MAX-1));
 	bool zero = flags & MALLOCX_ZERO;
 	unsigned arena_ind = ((unsigned)(flags >> 8)) - 1;
-	unsigned pool_id = 0; // TODO add another flag
-	pool_t *pool = pools[pool_id];
+	pool_t *pool = &base_pool;
 	arena_t dummy_arena;
 	DUMMY_ARENA_INITIALIZE(dummy_arena, pool);
 	bool try_tcache_alloc, try_tcache_dalloc;
@@ -2547,7 +2780,6 @@ je_rallocx(void *ptr, size_t size, int flags)
 	assert(ptr != NULL);
 	assert(size != 0);
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 	malloc_thread_init();
 
 	if (arena_ind != UINT_MAX) {
@@ -2679,8 +2911,7 @@ je_xallocx(void *ptr, size_t size, size_t extra, int flags)
 	    & (SIZE_T_MAX-1));
 	bool zero = flags & MALLOCX_ZERO;
 	unsigned arena_ind = ((unsigned)(flags >> 8)) - 1;
-	unsigned pool_id = 0; // TODO add another flag
-	pool_t *pool = pools[pool_id];
+	pool_t *pool = &base_pool;
 	arena_t dummy_arena;
 	DUMMY_ARENA_INITIALIZE(dummy_arena, pool);
 	arena_t *arena;
@@ -2689,7 +2920,6 @@ je_xallocx(void *ptr, size_t size, size_t extra, int flags)
 	assert(size != 0);
 	assert(SIZE_T_MAX - size >= extra);
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 	malloc_thread_init();
 
 	if (arena_ind != UINT_MAX)
@@ -2741,7 +2971,6 @@ je_sallocx(const void *ptr, int flags)
 	size_t usize;
 
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 	malloc_thread_init();
 
 	if (config_ivsalloc)
@@ -2760,13 +2989,11 @@ je_dallocx(void *ptr, int flags)
 	size_t usize;
 	UNUSED size_t rzsize JEMALLOC_CC_SILENCE_INIT(0);
 	unsigned arena_ind = ((unsigned)(flags >> 8)) - 1;
-	unsigned pool_id = 0; // TODO add another flag
-	pool_t *pool = pools[pool_id];
+	pool_t *pool = &base_pool;
 	bool try_tcache;
 
 	assert(ptr != NULL);
 	assert(malloc_initialized || IS_INITIALIZER);
-	assert(pools[0] != NULL);
 
 	if (arena_ind != UINT_MAX) {
 		arena_chunk_t *chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
@@ -2828,12 +3055,17 @@ je_mallctlbymib(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 	return (ctl_bymib(mib, miblen, oldp, oldlenp, newp, newlen));
 }
 
+int
+je_navsnprintf(char *str, size_t size, const char *format, va_list ap)
+{
+	return malloc_vsnprintf(str, size, format, ap);
+}
+
 void
 je_malloc_stats_print(void (*write_cb)(void *, const char *), void *cbopaque,
     const char *opts)
 {
-	pool_t *base_pool = pools[0];
-	stats_print(base_pool, write_cb, cbopaque, opts);
+	stats_print(&base_pool, write_cb, cbopaque, opts);
 }
 
 size_t
@@ -2874,7 +3106,7 @@ je_malloc_usable_size(JEMALLOC_USABLE_SIZE_CONST void *ptr)
  * trigger the deadlock described above, but doing so would involve forking via
  * a library constructor that runs before jemalloc's runs.
  */
-JEMALLOC_ATTR(constructor)
+JEMALLOC_ATTR(constructor(102))
 static void
 jemalloc_constructor(void)
 {
@@ -2882,13 +3114,22 @@ jemalloc_constructor(void)
 	malloc_init();
 }
 
+JEMALLOC_ATTR(destructor(101))
+static void
+jemalloc_destructor(void)
+{
 
-#define FOREACH_POOL(func)		\
+	tcache_thread_cleanup(tcache_tsd_get());
+	arenas_cleanup(arenas_tsd_get());
+	je_base_pool_destroy();
+}
+
+#define FOREACH_POOL(func)					\
 do {								\
-	unsigned i;					\
-	for (i = 0; i < POOLS_MAX; i++) {	\
-		if (pools[i])			\
-			(func)(pools[i]);	\
+	unsigned i;						\
+	for (i = 0; i < npools; i++) {			\
+		if (pools[i] != NULL)				\
+			(func)(pools[i]);			\
 	}							\
 } while(0)
 
@@ -2913,9 +3154,11 @@ _malloc_prefork(void)
 	ctl_prefork();
 	prof_prefork();
 	pool_prefork();
-	for (i = 0; i < POOLS_MAX; i++) {
+
+	for (i = 0; i < npools; i++) {
 		pool = pools[i];
 		if (pool != NULL) {
+			malloc_rwlock_prefork(&pool->arenas_lock);
 			for (j = 0; j < pool->narenas_total; j++) {
 				if (pool->arenas[j] != NULL)
 					arena_prefork(pool->arenas[j]);
@@ -2923,10 +3166,11 @@ _malloc_prefork(void)
 		}
 	}
 
-	FOREACH_POOL(chunk_prefork);
+	FOREACH_POOL(chunk_prefork0);
+	FOREACH_POOL(base_prefork);
+	FOREACH_POOL(chunk_prefork1);
 	chunk_dss_prefork();
 
-	FOREACH_POOL(base_prefork);
 
 	FOREACH_POOL(huge_prefork);
 }
@@ -2951,20 +3195,23 @@ _malloc_postfork(void)
 	/* Release all mutexes, now that fork() has completed. */
 	FOREACH_POOL(huge_postfork_parent);
 
-	FOREACH_POOL(base_postfork_parent);
 
 	chunk_dss_postfork_parent();
-	FOREACH_POOL(chunk_postfork_parent);
+	FOREACH_POOL(chunk_postfork_parent1);
+	FOREACH_POOL(base_postfork_parent);
+	FOREACH_POOL(chunk_postfork_parent0);
 
-	for (i = 0; i < POOLS_MAX; i++) {
+	for (i = 0; i < npools; i++) {
 		pool = pools[i];
 		if (pool != NULL) {
 			for (j = 0; j < pool->narenas_total; j++) {
 				if (pool->arenas[j] != NULL)
 					arena_postfork_parent(pool->arenas[j]);
 			}
+			malloc_rwlock_postfork_parent(&pool->arenas_lock);
 		}
 	}
+
 	pool_postfork_parent();
 	prof_postfork_parent();
 	ctl_postfork_parent();
@@ -2981,39 +3228,26 @@ jemalloc_postfork_child(void)
 	/* Release all mutexes, now that fork() has completed. */
 	FOREACH_POOL(huge_postfork_child);
 
-	FOREACH_POOL(base_postfork_child);
 
 	chunk_dss_postfork_child();
-	FOREACH_POOL(chunk_postfork_child);
+	FOREACH_POOL(chunk_postfork_child1);
+	FOREACH_POOL(base_postfork_child);
+	FOREACH_POOL(chunk_postfork_child0);
 
-	for (i = 0; i < POOLS_MAX; i++) {
+	for (i = 0; i < npools; i++) {
 		pool = pools[i];
 		if (pool != NULL) {
 			for (j = 0; j < pool->narenas_total; j++) {
 				if (pool->arenas[j] != NULL)
 					arena_postfork_child(pool->arenas[j]);
 			}
+			malloc_rwlock_postfork_child(&pool->arenas_lock);
 		}
 	}
+
 	pool_postfork_child();
 	prof_postfork_child();
 	ctl_postfork_child();
-
-	/* In child process remove pools which don't support copy-on-write */
-	memset(&pools[1], 0, sizeof(pool_t *) * (POOLS_MAX - 1));
-
-	if (pools[0]) {
-		npools = 1;
-	} else {
-		npools = 0;
-		/*
-		 * Delete allocations from data shared for case when custom allocator
-		 * is used, and we want to avoid memory leak.
-		 */
-		if (pools_shared_data_initialized)
-			pools_shared_data_destroy();
-	}
-
 }
 
 /******************************************************************************/
@@ -3026,7 +3260,6 @@ jemalloc_postfork_child(void)
 static void *
 a0alloc(size_t size, bool zero)
 {
-	pool_t *base_pool = pools[0];
 
 	if (malloc_init_base_pool())
 		return (NULL);
@@ -3035,7 +3268,7 @@ a0alloc(size_t size, bool zero)
 		size = 1;
 
 	if (size <= arena_maxclass)
-		return (arena_malloc(base_pool->arenas[0], size, zero, false));
+		return (arena_malloc(base_pool.arenas[0], size, zero, false));
 	else
 		return (huge_malloc(NULL, size, zero));
 }
@@ -3057,7 +3290,6 @@ a0calloc(size_t num, size_t size)
 void
 a0free(void *ptr)
 {
-	pool_t *base_pool = pools[0];
 	arena_chunk_t *chunk;
 
 	if (ptr == NULL)
@@ -3067,7 +3299,7 @@ a0free(void *ptr)
 	if (chunk != ptr)
 		arena_dalloc(chunk, ptr, false);
 	else
-		huge_dalloc(base_pool, ptr);
+		huge_dalloc(&base_pool, ptr);
 }
 
 /******************************************************************************/

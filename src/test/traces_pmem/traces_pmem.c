@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -41,14 +41,16 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "traces_pmem");
 
-	ASSERT(!pmem_check_version(PMEM_MAJOR_VERSION,
+	UT_ASSERT(!pmem_check_version(PMEM_MAJOR_VERSION,
 				PMEM_MINOR_VERSION));
-	ASSERT(!pmemblk_check_version(PMEMBLK_MAJOR_VERSION,
+	UT_ASSERT(!pmemblk_check_version(PMEMBLK_MAJOR_VERSION,
 				PMEMBLK_MINOR_VERSION));
-	ASSERT(!pmemlog_check_version(PMEMLOG_MAJOR_VERSION,
+	UT_ASSERT(!pmemlog_check_version(PMEMLOG_MAJOR_VERSION,
 				PMEMLOG_MINOR_VERSION));
-	ASSERT(!pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
+	UT_ASSERT(!pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
 				PMEMOBJ_MINOR_VERSION));
+	UT_ASSERT(!pmemcto_check_version(PMEMCTO_MAJOR_VERSION,
+				PMEMCTO_MINOR_VERSION));
 
 	DONE(NULL);
 }

@@ -1,0 +1,57 @@
+#
+# src/test/config.sh.example -- example of configuration file for a single unit
+#	test (real config file for the 'unit_test' should have the following
+#	path: src/test/<unit_test>/config.sh)
+#
+
+
+# GLOBAL REQUIREMENTS
+
+# Global requirements are applied for all TEST<num> scripts in the sub-directory
+# where config.sh file is located.
+
+# Most tests are short "make check" tests, designed to run quickly when
+# smoke-checking a build.  Two other test types are available: short and long.
+# A test script can indicate it should only run during a long test run, for
+# example, using:
+	CONF_GLOBAL_TEST_TYPE=long
+
+# If a test does not need any storage, the script uses this line:
+	CONF_GLOBAL_FS_TYPE=none
+# Similarly, if the test only makes sense for pmem or non-pmem:
+	CONF_GLOBAL_FS_TYPE=pmem
+# or
+	CONF_GLOBAL_FS_TYPE=non-pmem
+# If a test needs storage but does not care about its type:
+	CONF_GLOBAL_FS_TYPE=any
+
+# Similar to the above, tests can require a specific build types:
+	CONF_GLOBAL_BUILD_TYPE=debug
+
+# Test can also require custom timeout:
+	CONF_GLOBAL_TIMEOUT=5m
+
+# Remote tests must explicitly require use of fabric providers and persistency
+# methods:
+	CONF_GLOBAL_RPMEM_PROVIDER=all
+	CONF_GLOBAL_RPMEM_PMETHOD=all
+
+# If remote test requires Valgrind support it must explicitly set this
+# requirement:
+	CONF_GLOBAL_RPMEM_VALGRIND=y
+
+
+# PER TEST<num> REQUIREMENTS
+
+# Per TEST<num> requirements are applied only for single TEST<num> script.
+
+# If TEST<num> require other test type than provided by CONF_GLOBAL_TEST_TYPE
+# variable it can indicate this requirement using:
+#	CONF_TEST_TYPE[<num>]=short
+
+# The same for any other global requirements:
+#	CONF_FS_TYPE[<num>]=any
+#	CONF_BUILD_TYPE[<num>]="debug nondebug"
+#	CONF_RPMEM_PROVIDER[<num>]=verbs
+#	CONF_RPMEM_PMETHOD[<num>]=GPSPM
+#	CONF_RPMEM_VALGRIND[<num>]=y

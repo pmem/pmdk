@@ -1,0 +1,6 @@
+rpmem_basic/TEST6: START: rpmem_basic$(nW)
+ ./rpmem_basic test_create 0 pool0.set $(nW) mem 8M test_close 0 test_remove $(nW) pool0.set 0 0 test_create 0 pool0.set $(nW) mem 8M test_close 0 test_remove $(nW) pool0.set 1 0 test_create 0 pool0.set $(nW) mem 8M test_close 0 test_remove $(nW) pool0.set 0 1
+pool0.set: created
+pool0.set: created
+pool0.set: created
+rpmem_basic/TEST6: DONE

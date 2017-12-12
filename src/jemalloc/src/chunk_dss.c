@@ -69,7 +69,6 @@ void *
 chunk_alloc_dss(size_t size, size_t alignment, bool *zero)
 {
 	void *ret;
-	pool_t *base_pool = pools[0];
 
 	cassert(have_dss);
 	assert(size > 0 && (size & chunksize_mask) == 0);
@@ -125,7 +124,7 @@ chunk_alloc_dss(size_t size, size_t alignment, bool *zero)
 				dss_max = dss_next;
 				malloc_mutex_unlock(&dss_mtx);
 				if (cpad_size != 0)
-					chunk_unmap(base_pool, cpad, cpad_size);
+					chunk_unmap(&base_pool, cpad, cpad_size);
 				if (*zero) {
 					JEMALLOC_VALGRIND_MAKE_MEM_UNDEFINED(
 					    ret, size);

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2016, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -33,18 +33,8 @@
 #
 # src/test/checksum/Makefile -- build checksum unit test
 #
-vpath %.c ../..
-vpath %.h ../.. ../../include
 TARGET = checksum
-OBJS = checksum.o util.o out.o
+OBJS = checksum.o
 
-out.o: CFLAGS += -DSRCVERSION=\"utversion\"
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-INCS += -I../.. -I../../include
-
-checksum.o: checksum.c util.h out.h
-
-util.o: util.c util.h out.h
-
-out.o: out.c out.h

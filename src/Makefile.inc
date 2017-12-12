@@ -1,4 +1,4 @@
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -12,7 +12,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -27,107 +27,110 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
 # src/Makefile.inc -- common Makefile rules for NVM library
 #
 
-JEMALLOC_OBJROOT ?=
-JEMALLOC_MAKE_NAME = $(JEMALLOC_OBJROOT)/Makefile
-JEMALLOC_MAKE = $(JEMALLOC_DIR)/$(JEMALLOC_MAKE_NAME)
-JEMALLOC_CFG = $(JEMALLOC_DIR)/configure
-JEMALLOC_CFG_AC = $(JEMALLOC_DIR)/configure.ac
-JEMALLOC_LIB_NAME = libjemalloc_pic.a
-JEMALLOC_LIB = $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/lib/$(JEMALLOC_LIB_NAME)
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
-JEMALLOC_CFG_IN_FILES = $(shell find $(JEMALLOC_DIR) -name "*.in")
-JEMALLOC_CFG_GEN_FILES = $(JEMALLOC_CFG_IN_FILES:.in=)
-JEMALLOC_CFG_OUT_FILES = $(patsubst $(JEMALLOC_DIR)/%, $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/%, $(JEMALLOC_CFG_GEN_FILES))
-JEMALLOC_CFG_OUT_FILES_REL = $(patsubst $(JEMALLOC_DIR)/%, %, $(JEMALLOC_CFG_GEN_FILES))
-.NOTPARALLEL: $(JEMALLOC_CFG_OUT_FILES)
+include $(TOP)/src/common.inc
 
-JECONFIG_FILE = ../jemalloc.cfg
-JECONFIG = $(shell cat $(JECONFIG_FILE))
+INCLUDE = $(TOP)/src/include
 
-MACHINE := $(shell uname -m)
+RPMEM_COMMON = $(TOP)/src/rpmem_common
+vpath %.c $(RPMEM_COMMON)
 
-ifeq ($(MACHINE), x86_64)
-ifneq ($(wildcard /usr/lib64),)
-LIBDIR = usr/lib64
-else
-LIBDIR = usr/lib
-endif
-else
-LIBDIR = usr/lib
+COMMON = $(TOP)/src/common
+vpath %.c $(COMMON)
+
+INCS += -I../include -I../common/ $(OS_INCS)
+
+# default CFLAGS
+DEFAULT_CFLAGS += -std=gnu99
+DEFAULT_CFLAGS += -Wall
+DEFAULT_CFLAGS += -Werror
+DEFAULT_CFLAGS += -Wmissing-prototypes
+DEFAULT_CFLAGS += -Wpointer-arith
+DEFAULT_CFLAGS += -Wsign-conversion
+DEFAULT_CFLAGS += -Wsign-compare
+ifeq ($(call check_Wconversion), y)
+DEFAULT_CFLAGS += -Wconversion
 endif
 
-LIBS_DESTDIR = $(DESTDIR)/$(LIBDIR)/$(VARIANT_DESTDIR)
+ifeq ($(call check_compiler, icc), n)
+DEFAULT_CFLAGS += -Wunused-macros
+DEFAULT_CFLAGS += -Wmissing-field-initializers
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+DEFAULT_CFLAGS += -Wunreachable-code-return
+endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+DEFAULT_CFLAGS += -Wmissing-variable-declarations
+endif
+endif
 
-vpath %.c ..
-vpath %.h .. ../include
-INCS = -I.. -I../include
+ifeq ($(DEBUG),1)
+# Undefine _FORTIFY_SOURCE in case it's set in system-default or
+# user-defined CFLAGS as it conflicts with -O0.
+DEBUG_CFLAGS += -Wp,-U_FORTIFY_SOURCE
+DEBUG_CFLAGS += -O0 -ggdb -DDEBUG
+LIB_SUBDIR = /nvml_debug
+OBJDIR = debug
+else
+DEFAULT_CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
+LIB_SUBDIR =
+OBJDIR = nondebug
+endif
 
-CFLAGS += -std=gnu99 -Wall -Werror -pthread $(EXTRA_CFLAGS)
-LDFLAGS += -Wl,-z,relro $(EXTRA_LDFLAGS)
+# use defaults, if system or user-defined CFLAGS are not specified
+CFLAGS ?= $(DEFAULT_CFLAGS)
 
-LN = ln
-PMEMSOVERSION = 1
-VMEMSOVERSION = 1
-PMEMLIBVERSION = 0.0
-VMEMLIBVERSION = 0.0
-LIBPMEMSO=libpmem.so
-LIBPMEMBLKSO=libpmemblk.so
-LIBPMEMLOGSO=libpmemlog.so
-LIBPMEMOBJSO=libpmemobj.so
-LIBVMEMSO=libvmem.so
-LIBPMEMAR=libpmem.a
-LIBPMEMBLKAR=libpmemblk.a
-LIBPMEMLOGAR=libpmemlog.a
-LIBPMEMOBJAR=libpmemobj.a
-LIBVMEMAR=libvmem.a
-LIBPMEM_SONAME=$(LIBPMEMSO).$(PMEMSOVERSION)
-LIBPMEMBLK_SONAME=$(LIBPMEMBLKSO).$(PMEMSOVERSION)
-LIBPMEMLOG_SONAME=$(LIBPMEMLOGSO).$(PMEMSOVERSION)
-LIBPMEMOBJ_SONAME=$(LIBPMEMOBJSO).$(PMEMSOVERSION)
-LIBVMEM_SONAME=$(LIBVMEMSO).$(VMEMSOVERSION)
-LIBPMEM_REALNAME=$(LIBPMEM_SONAME).$(PMEMLIBVERSION)
-LIBPMEMBLK_REALNAME=$(LIBPMEMBLK_SONAME).$(PMEMLIBVERSION)
-LIBPMEMLOG_REALNAME=$(LIBPMEMLOG_SONAME).$(PMEMLIBVERSION)
-LIBPMEMOBJ_REALNAME=$(LIBPMEMOBJ_SONAME).$(PMEMLIBVERSION)
-LIBVMEM_REALNAME=$(LIBVMEM_SONAME).$(VMEMLIBVERSION)
+CFLAGS += -std=gnu99
+CFLAGS += -fno-common
+CFLAGS += -pthread
+CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
-COMMONOBJS = out.o util.o
-PMEMCOMMONOBJS = $(COMMONOBJS)
-PMEMOBJS = libpmem.o pmem.o $(COMMONOBJS)
-PMEMBLKOBJS = libpmemblk.o blk.o btt.o $(COMMONOBJS)
-PMEMLOGOBJS = libpmemlog.o log.o $(COMMONOBJS)
-PMEMOBJOBJS = libpmemobj.o obj.o $(COMMONOBJS)
-VMEMOBJS = libvmem.o vmem.o $(COMMONOBJS)
-PMEMMAPFILE = ../libpmem.map
-PMEMBLKMAPFILE = ../libpmemblk.map
-PMEMLOGMAPFILE = ../libpmemlog.map
-PMEMOBJMAPFILE = ../libpmemobj.map
-VMEMMAPFILE = ../libvmem.map
-TARGET_LIBS = $(LIBVMEMAR) $(LIBVMEM_REALNAME)
-TARGET_LIBS += $(LIBPMEMAR) $(LIBPMEM_REALNAME)
-TARGET_LIBS += $(LIBPMEMBLKAR) $(LIBPMEMBLK_REALNAME)
-TARGET_LIBS += $(LIBPMEMLOGAR) $(LIBPMEMLOG_REALNAME)
-TARGET_LIBS += $(LIBPMEMOBJAR) $(LIBPMEMOBJ_REALNAME)
-TARGET_LINKS = $(LIBVMEMSO) $(LIBVMEM_SONAME)
-TARGET_LINKS += $(LIBPMEMSO) $(LIBPMEM_SONAME)
-TARGET_LINKS += $(LIBPMEMBLKSO) $(LIBPMEMBLK_SONAME)
-TARGET_LINKS += $(LIBPMEMLOGSO) $(LIBPMEMLOG_SONAME)
-TARGET_LINKS += $(LIBPMEMOBJSO) $(LIBPMEMOBJ_SONAME)
-TARGETS = $(TARGET_LIBS) $(TARGET_LINKS)
-EXTRA_JECONFIG =
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
 
-$(LIBPMEMAR) $(LIBPMEM_REALNAME): LIBS += -luuid
-$(LIBPMEMBLKAR) $(LIBPMEMLOGAR) $(LIBPMEMOBJAR): LIBS += -pthread -luuid
-$(LIBPMEMBLK_REALNAME) $(LIBPMEMOBJ_REALNAME) $(LIBPMEMLOG_REALNAME): LIBS += -pthread -luuid -l:$(LIBPMEM_REALNAME) -L.
-$(LIBVMEMAR) $(LIBVMEM_REALNAME): INCS += -I$(JEMALLOC_DIR)/include/jemalloc
-$(LIBVMEMAR) $(LIBVMEM_REALNAME): LIBS += -pthread
+# On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
+tsanitize := $(SANITIZE)
+ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(JEMALLOC_NVMLDIR),libvmmalloc)
+hasaddrcomma := address,
+tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
+ifneq ($(tsanitize),$(SANITIZE))
+$(info SANITIZE=address not supported for libvmmalloc, ignored)
+endif
+endif
+endif
+ifneq ($(tsanitize),)
+CFLAGS += -fsanitize=$(tsanitize)
+LDFLAGS += -fsanitize=$(tsanitize)
+endif
 
-out.o: CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+CFLAGS += $(EXTRA_CFLAGS)
+
+ifeq ($(DEBUG),1)
+CFLAGS += $(EXTRA_CFLAGS_DEBUG) $(DEBUG_CFLAGS)
+else
+CFLAGS += $(EXTRA_CFLAGS_RELEASE)
+endif
+
+LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
+
+ifneq ($(NORPATH),1)
+LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
+endif
+
+# XXX: required by clock_gettime(), if glibc version < 2.17
+# The os_clock_gettime() function is now in OS abstraction layer,
+# linked to all the librariess, unit tests and benchmarks.
+ifeq ($(call check_librt), n)
+LIBS += -lrt
+endif
 
 define arch32_error_msg
 
@@ -138,146 +141,164 @@ define arch32_error_msg
 
 endef
 
+TESTCMD := $(CC) $(CFLAGS) -dM -E -x c /dev/null -o /dev/null
+TESTBUILD := $(shell $(TESTCMD) && echo 1 || echo 0)
+ifneq ($(TESTBUILD), 1)
+$(error "$(TESTCMD)" failed)
+endif
+
 LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
 ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))
 endif
 
-all: $(TARGETS)
+LIBS_DESTDIR = $(DESTDIR)$(libdir)$(LIB_SUBDIR)
 
-jemalloc: $(JEMALLOC_LIB)
+DIRNAME = $(shell basename $(CURDIR))
 
-jeconfig $(JEMALLOC_CFG_OUT_FILES): $(JEMALLOC_CFG) $(JECONFIG_FILE)
-	cd $(JEMALLOC_DIR) && \
-		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ./configure $(JECONFIG) $(EXTRA_JECONFIG)
-	@for FILE in $(JEMALLOC_CFG_OUT_FILES_REL);\
-	do\
-		mkdir -p $$(dirname $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/$$FILE);\
-		mv -vf $(JEMALLOC_DIR)/$$FILE $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)/$$FILE;\
-	done
+ifeq ($(OBJDIR),$(abspath $(OBJDIR)))
+objdir = $(OBJDIR)/$(DIRNAME)
+else
+objdir = ../$(OBJDIR)/$(DIRNAME)
+endif
 
-$(JEMALLOC_CFG): $(JEMALLOC_CFG_AC)
-	cd $(JEMALLOC_DIR) && \
-	    autoconf
+LIB_OUTDIR ?= $(objdir)/..
 
-$(VMEMOBJS): $(JEMALLOC_LIB)
+ifneq ($(LIB_OUTDIR),)
+LDFLAGS += -L$(LIB_OUTDIR)
+endif
 
-$(JEMALLOC_LIB): $(JEMALLOC_CFG_OUT_FILES)
-	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) all
+ifneq ($(SOURCE),)
+_OBJS = $(SOURCE:.c=.o)
+_OBJS_COMMON = $(patsubst $(COMMON)/%, %, $(_OBJS))
+_OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_COMMON))
+OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
+endif
 
-jemalloc-tests: jemalloc
-	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) tests
+ifneq ($(HEADERS),)
+ifneq ($(filter 1 2, $(CSTYLEON)),)
+TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
+TMP_HEADERS := $(addprefix $(objdir)/, $(TMP_HEADERS))
+endif
+endif
 
-jemalloc-check: jemalloc-tests
-	$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) check
+ifneq ($(LIBRARY_NAME),)
+LIB_NAME = lib$(LIBRARY_NAME)
+endif
 
-$(LIBPMEMAR): $(PMEMOBJS)
-	$(LD) -o $*_unscoped.o -r $(PMEMOBJS)
-	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMMAPFILE)` $*_unscoped.o $*_all.o
-	$(AR) rv $@ $*_all.o
+ifneq ($(LIBRARY_SO_VERSION),)
+LIB_MAP = $(LIB_NAME).map
+LIB_SONAME = $(LIB_NAME).so.$(LIBRARY_SO_VERSION)
+LIB_SO = $(LIB_OUTDIR)/$(LIB_NAME).so
 
-$(LIBPMEMBLKAR): $(PMEMBLKOBJS)
-	$(LD) -o $*_unscoped.o -r $(PMEMBLKOBJS)
-	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMBLKMAPFILE)` $*_unscoped.o $*_all.o
-	$(AR) rv $@ $*_all.o
+LIB_SO_SONAME = $(LIB_SO).$(LIBRARY_SO_VERSION)
 
-$(LIBPMEMLOGAR): $(PMEMLOGOBJS)
-	$(LD) -o $*_unscoped.o -r $(PMEMLOGOBJS)
-	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMLOGMAPFILE)` $*_unscoped.o $*_all.o
-	$(AR) rv $@ $*_all.o
+ifneq ($(LIBRARY_VERSION),)
+LIB_SO_REAL = $(LIB_SO_SONAME).$(LIBRARY_VERSION)
+else
+$(error LIBRARY_VERSION not set)
+endif
 
-$(LIBPMEMOBJAR): $(PMEMOBJOBJS)
-	$(LD) -o $*_unscoped.o -r $(PMEMOBJOBJS)
-	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(PMEMOBJMAPFILE)` $*_unscoped.o $*_all.o
-	$(AR) rv $@ $*_all.o
+TARGET_LIBS = $(LIB_SO_REAL)
+TARGET_LINKS = $(LIB_SO_SONAME) $(LIB_SO)
+endif
 
-$(LIBPMEM_REALNAME): $(PMEMOBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMMAPFILE),-soname,$(LIBPMEM_SONAME) -o $@ $(PMEMOBJS) $(LIBS)
+ifneq ($(LIB_NAME),)
+LIB_AR = $(LIB_OUTDIR)/$(LIB_NAME).a
+LIB_AR_UNSCOPED = $(objdir)/$(LIB_NAME)_unscoped.o
+LIB_AR_ALL = $(objdir)/$(LIB_NAME)_all.o
+TARGET_LIBS += $(LIB_AR)
+endif
 
-$(LIBPMEM_SONAME): $(LIBPMEM_REALNAME)
-	$(LN) -sf $< $@
+ifneq ($(EXTRA_TARGETS),)
+EXTRA_TARGETS_CLEAN = $(EXTRA_TARGETS:=-clean)
+EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
+endif
 
-$(LIBPMEMSO): $(LIBPMEM_SONAME)
-	$(LN) -sf $< $@
+PMEMLOG_PRIV_OBJ=$(LIB_OUTDIR)/libpmemlog/libpmemlog_unscoped.o
+PMEMBLK_PRIV_OBJ=$(LIB_OUTDIR)/libpmemblk/libpmemblk_unscoped.o
 
-$(LIBPMEMBLK_REALNAME): $(PMEMBLKOBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMBLKMAPFILE),-soname,$(LIBPMEMBLK_SONAME) -o $@ $(PMEMBLKOBJS) $(LIBS)
+ifneq ($(LIBPMEMLOG_PRIV_FUNCS),)
+OBJS += pmemlog_priv_funcs.o
+endif
 
-$(LIBPMEMBLK_SONAME): $(LIBPMEMBLK_REALNAME)
-	$(LN) -sf $< $@
+ifneq ($(LIBPMEMBLK_PRIV_FUNCS),)
+OBJS += pmemblk_priv_funcs.o
+endif
 
-$(LIBPMEMBLKSO): $(LIBPMEMBLK_SONAME)
-	$(LN) -sf $< $@
+MAKEFILE_DEPS=../Makefile.inc Makefile $(TOP)/src/common.inc
 
-$(LIBPMEMLOG_REALNAME): $(PMEMLOGOBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMLOGMAPFILE),-soname,$(LIBPMEMLOG_SONAME) -o $@ $(PMEMLOGOBJS) $(LIBS)
+all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO) $(TMP_HEADERS)
 
-$(LIBPMEMLOG_SONAME): $(LIBPMEMLOG_REALNAME)
-	$(LN) -sf $< $@
+$(objdir) $(LIB_OUTDIR):
+	$(MKDIR) -p $@
 
-$(LIBPMEMLOGSO): $(LIBPMEMLOG_SONAME)
-	$(LN) -sf $< $@
+$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP) $(MAKEFILE_DEPS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
 
-$(LIBPMEMOBJ_REALNAME): $(PMEMOBJOBJS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(PMEMOBJMAPFILE),-soname,$(LIBPMEMOBJ_SONAME) -o $@ $(PMEMOBJOBJS) $(LIBS)
+$(LIB_SO_SONAME): $(LIB_SO_REAL) $(MAKEFILE_DEPS)
+	$(LN) -sf $(shell basename $<) $@
 
-$(LIBPMEMOBJ_SONAME): $(LIBPMEMOBJ_REALNAME)
-	$(LN) -sf $< $@
+$(LIB_SO): $(LIB_SO_SONAME) $(MAKEFILE_DEPS)
+	$(LN) -sf $(shell basename $<) $@
 
-$(LIBPMEMOBJSO): $(LIBPMEMOBJ_SONAME)
-	$(LN) -sf $< $@
+$(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS) $(MAKEFILE_DEPS)
+	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
 
-$(LIBVMEMAR): $(VMEMOBJS) $(JEMALLOC_LIB)
-	$(LD) -o $*_unscoped.o -r $(VMEMOBJS) $(JEMALLOC_LIB)
-	objcopy --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(VMEMMAPFILE)` $*_unscoped.o $*_all.o
-	$(AR) rv $@ $*_all.o
+ifeq ($(LIB_MAP),)
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(MAKEFILE_DEPS)
+	$(OBJCOPY) $< $@
+else
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP) $(MAKEFILE_DEPS)
+	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
+endif
 
-$(LIBVMEM_REALNAME): $(VMEMOBJS) $(JEMALLOC_LIB)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(VMEMMAPFILE),-soname,$(LIBVMEM_SONAME) -o $@ $(VMEMOBJS) $(LIBS) $(JEMALLOC_LIB)
+$(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
+	$(AR) rv $@ $(LIB_AR_ALL)
 
-$(LIBVMEM_SONAME): $(LIBVMEM_REALNAME)
-	$(LN) -sf $< $@
+$(PMEMBLK_PRIV_OBJ):
+	$(MAKE) -C $(LIBSDIR) libpmemblk
 
-$(LIBVMEMSO): $(LIBVMEM_SONAME)
-	$(LN) -sf $< $@
+install: all
+ifneq ($(LIBRARY_NAME),)
+	$(INSTALL) -d $(LIBS_DESTDIR)
+	$(INSTALL) -p -m 0755 $(TARGET_LIBS) $(LIBS_DESTDIR)
+	$(CP) -d $(TARGET_LINKS) $(LIBS_DESTDIR)
+endif
 
-.c.o:
-	$(CC) -c -o $@ $(CFLAGS) $(INCS) -fPIC $<
+uninstall:
+ifneq ($(LIBRARY_NAME),)
+	$(foreach f, $(TARGET_LIBS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
+	$(foreach f, $(TARGET_LINKS), $(RM) $(LIBS_DESTDIR)/$(notdir $(f)))
+endif
 
-clean:
-	$(RM) *.o core a.out
-	@if [ -f $(JEMALLOC_MAKE) ];\
-	then\
-		$(MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) clean;\
-	fi
+clean: $(EXTRA_TARGETS_CLEAN)
+ifneq ($(LIBRARY_NAME),)
+	$(RM) $(OBJS) $(TMP_HEADERS)
+	$(RM) $(LIB_AR_ALL) $(LIB_AR_UNSCOPED)
+endif
 
-clobber: clean
-	$(RM) $(TARGETS)
-	@if [ -f $(JEMALLOC_MAKE) ];\
-	then\
-		$(MAKE) cfgoutputs_out+=$(JEMALLOC_MAKE) objroot=$(JEMALLOC_OBJROOT)/ -f $(JEMALLOC_MAKE_NAME) -C $(JEMALLOC_DIR) distclean;\
-	fi
-	$(RM) $(JEMALLOC_CFG)
-	$(RM) -r $(JEMALLOC_CFG_GEN_FILES)
-	$(RM) -r $(JEMALLOC_CFG_OUT_FILES)
-	$(RM) -r $(JEMALLOC_DIR)/$(JEMALLOC_OBJROOT)
+clobber: clean $(EXTRA_TARGETS_CLOBBER)
+ifneq ($(LIBRARY_NAME),)
+	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
+	$(RM) -r $(objdir)/.deps
+endif
 
-install: $(TARGETS)
-	install -d $(LIBS_DESTDIR)
-	install -p -m 0755 $(TARGET_LIBS) $(LIBS_DESTDIR)
-	cp -d $(TARGET_LINKS) $(LIBS_DESTDIR)
+$(eval $(cstyle-rule))
 
-.PHONY: all clean clobber jeconfig jemalloc install jemalloc-tests jemalloc-check $(JEMALLOC_LIB)
+$(objdir)/%.o: %.c $(MAKEFILE_DEPS)
+	$(call check-cstyle, $<)
+	@mkdir -p $(objdir)/.deps
+	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $(call coverage-path, $<)
+	$(call check-os, $@, $<)
+	$(create-deps)
 
-libpmem.o: libpmem.c libpmem.h pmem.h util.h out.h
-blk.o: blk.c libpmem.h pmem.h blk.h util.h out.h
-btt.o: btt.c util.h btt.h btt_layout.h
-log.o: log.c libpmem.h pmem.h log.h util.h out.h
-pmem.o: pmem.c libpmem.h pmem.h out.h
-obj.o: obj.c libpmem.h pmem.h obj.h util.h out.h
+sparse:
+	$(if $(SOURCE), $(sparse-c))
 
-libvmem.o: libvmem.c libvmem.h vmem.h util.h out.h
-vmem.o: vmem.c libvmem.h util.h out.h
+$(objdir)/%.htmp: %.h
+	$(call check-cstyle, $<, $@)
 
-out.o: out.c out.h
-util.o: util.c util.h out.h
+.PHONY: all clean clobber install uninstall cstyle
+
+-include $(objdir)/.deps/*.P

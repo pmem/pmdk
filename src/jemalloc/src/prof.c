@@ -27,7 +27,7 @@ bool		opt_prof_accum = false;
 char		opt_prof_prefix[
     /* Minimize memory bloat for non-prof builds. */
 #ifdef JEMALLOC_PROF
-    PATH_MAX +
+    JE_PATH_MAX +
 #endif
     1];
 
@@ -69,7 +69,7 @@ static char		prof_dump_buf[
     1
 #endif
 ];
-static unsigned		prof_dump_buf_end;
+static size_t		prof_dump_buf_end;
 static int		prof_dump_fd;
 
 /* Do not dump any profiles until bootstrapping is complete. */
@@ -958,19 +958,29 @@ label_return:
 	return (ret);
 }
 
+static int
+prof_getpid(void)
+{
+#ifdef _WIN32
+	return (GetCurrentProcessId());
+#else
+	return (getpid());
+#endif
+}
+
 static bool
 prof_dump_maps(bool propagate_err)
 {
 	bool ret;
 	int mfd;
-	char filename[PATH_MAX + 1];
+	char filename[JE_PATH_MAX + 1];
 
 	cassert(config_prof);
 #ifdef __FreeBSD__
 	malloc_snprintf(filename, sizeof(filename), "/proc/curproc/map");
 #else
 	malloc_snprintf(filename, sizeof(filename), "/proc/%d/maps",
-	    (int)getpid());
+		(int)prof_getpid());
 #endif
 	mfd = open(filename, O_RDONLY);
 	if (mfd != -1) {
@@ -1090,7 +1100,7 @@ label_open_close_error:
 	return (true);
 }
 
-#define	DUMP_FILENAME_BUFSIZE	(PATH_MAX + 1)
+#define	DUMP_FILENAME_BUFSIZE	(JE_PATH_MAX + 1)
 #define	VSEQ_INVALID		UINT64_C(0xffffffffffffffff)
 static void
 prof_dump_filename(char *filename, char v, uint64_t vseq)
@@ -1102,12 +1112,12 @@ prof_dump_filename(char *filename, char v, uint64_t vseq)
 	        /* "<prefix>.<pid>.<seq>.v<vseq>.heap" */
 		malloc_snprintf(filename, DUMP_FILENAME_BUFSIZE,
 		    "%s.%d.%"PRIu64".%c%"PRIu64".heap",
-		    opt_prof_prefix, (int)getpid(), prof_dump_seq, v, vseq);
+		    opt_prof_prefix, (int)prof_getpid(), prof_dump_seq, v, vseq);
 	} else {
 	        /* "<prefix>.<pid>.<seq>.<v>.heap" */
 		malloc_snprintf(filename, DUMP_FILENAME_BUFSIZE,
 		    "%s.%d.%"PRIu64".%c.heap",
-		    opt_prof_prefix, (int)getpid(), prof_dump_seq, v);
+		    opt_prof_prefix, (int)prof_getpid(), prof_dump_seq, v);
 	}
 	prof_dump_seq++;
 }
@@ -1134,7 +1144,7 @@ void
 prof_idump(void)
 {
 	prof_tdata_t *prof_tdata;
-	char filename[PATH_MAX + 1];
+	char filename[JE_PATH_MAX + 1];
 
 	cassert(config_prof);
 
@@ -1378,7 +1388,7 @@ prof_boot2(void)
 			if (opt_abort)
 				abort();
 		}
-		ctx_locks = (malloc_mutex_t *)je_base_malloc(PROF_NCTX_LOCKS *
+		ctx_locks = (malloc_mutex_t *)base_malloc_fn(PROF_NCTX_LOCKS *
 		    sizeof(malloc_mutex_t));
 		if (ctx_locks == NULL)
 			return (true);

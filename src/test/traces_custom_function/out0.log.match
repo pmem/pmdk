@@ -1,19 +1,31 @@
-traces_custom_function/TEST0: START: traces_custom_function
- ./traces_custom_function$(nW)
-CUSTOM_PRINT:$(*)
+traces_custom_function$(nW)TEST0: START: traces_custom_function
+ $(nW)traces_custom_function$(nW) p
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)pid $(N): program: $(nW)
 
-CUSTOM_PRINT:$(*)
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)trace_func version $(S)
 
-CUSTOM_PRINT:$(*)
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)src version: $(nW)
 
-CUSTOM_PRINT:$(*)Log level NONE
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind pmemcheck
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind helgrind
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind memcheck
+$(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for Valgrind drd
+$(OPT)
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_init] 
 
-CUSTOM_PRINT:$(*)Log level ERROR
+CUSTOM_PRINT: <trace_func>: <0> [$(nW):$(N) main]$(W)Log level NONE
 
-CUSTOM_PRINT:$(*)Log level WARNING
+CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) main]$(W)Log level ERROR
 
-CUSTOM_PRINT:$(*)Log level INFO
+CUSTOM_PRINT: <trace_func>: <2> [$(nW):$(N) main]$(W)Log level WARNING
 
-CUSTOM_PRINT:$(*)Log level DEBUG
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) main]$(W)Log level INFO
 
-traces_custom_function/TEST0: Done
+CUSTOM_PRINT: <trace_func>: <4> [$(nW):$(N) main]$(W)Log level DEBUG
+
+CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_fini] 
+
+traces_custom_function$(nW)TEST0: DONE

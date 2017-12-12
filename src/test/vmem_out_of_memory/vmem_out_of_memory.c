@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -49,27 +49,26 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	/* allocate all memory */
 	void *prev = NULL;
 	for (;;) {
-		void **next = vmem_malloc(vmp, sizeof (void *));
+		void **next = vmem_malloc(vmp, sizeof(void *));
 		if (next == NULL) {
 			/* out of memory */
 			break;
@@ -77,14 +76,14 @@ main(int argc, char *argv[])
 
 		/* check that pointer came from mem_pool */
 		if (dir == NULL) {
-			ASSERTrange(next, mem_pool, VMEM_MIN_POOL);
+			UT_ASSERTrange(next, mem_pool, VMEM_MIN_POOL);
 		}
 
 		*next = prev;
 		prev = next;
 	}
 
-	ASSERTne(prev, NULL);
+	UT_ASSERTne(prev, NULL);
 
 	/* free all allocations */
 	while (prev != NULL) {

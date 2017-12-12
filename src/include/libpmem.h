@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -40,8 +40,23 @@
  * See libpmem(3) for details.
  */
 
-#ifndef	LIBPMEM_H
-#define	LIBPMEM_H 1
+#ifndef LIBPMEM_H
+#define LIBPMEM_H 1
+
+#ifdef _WIN32
+#include <pmemcompat.h>
+
+#ifndef NVML_UTF8_API
+#define pmem_map_file pmem_map_fileW
+#define pmem_check_version pmem_check_versionW
+#define pmem_errormsg pmem_errormsgW
+#else
+#define pmem_map_file pmem_map_fileU
+#define pmem_check_version pmem_check_versionU
+#define pmem_errormsg pmem_errormsgU
+#endif
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,16 +64,40 @@ extern "C" {
 
 #include <sys/types.h>
 
-void *pmem_map(int fd);
-int pmem_is_pmem(void *addr, size_t len);
-void pmem_persist(void *addr, size_t len);
-int pmem_msync(void *addr, size_t len);
-void pmem_flush(void *addr, size_t len);
+/*
+ * This limit is set arbitrary to incorporate a pool header and required
+ * alignment plus supply.
+ */
+#define PMEM_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
+
+/*
+ * flags supported by pmem_map_file()
+ */
+#define PMEM_FILE_CREATE	(1 << 0)
+#define PMEM_FILE_EXCL		(1 << 1)
+#define PMEM_FILE_SPARSE	(1 << 2)
+#define PMEM_FILE_TMPFILE	(1 << 3)
+
+#ifndef _WIN32
+void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+#else
+void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp);
+#endif
+
+int pmem_unmap(void *addr, size_t len);
+int pmem_is_pmem(const void *addr, size_t len);
+void pmem_persist(const void *addr, size_t len);
+int pmem_msync(const void *addr, size_t len);
+void pmem_flush(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
-void *pmem_memmove(void *pmemdest, const void *src, size_t len);
-void *pmem_memcpy(void *pmemdest, const void *src, size_t len);
-void *pmem_memset(void *pmemdest, int c, size_t len);
+void *pmem_memmove_persist(void *pmemdest, const void *src, size_t len);
+void *pmem_memcpy_persist(void *pmemdest, const void *src, size_t len);
+void *pmem_memset_persist(void *pmemdest, int c, size_t len);
 void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
@@ -69,11 +108,25 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
  * the version available at run-time is compatible with the version used at
  * compile-time by passing these defines to pmem_check_version().
  */
-#define	PMEM_MAJOR_VERSION 1
-#define	PMEM_MINOR_VERSION 0
-const char *pmem_check_version(
-		unsigned major_required,
-		unsigned minor_required);
+#define PMEM_MAJOR_VERSION 1
+#define PMEM_MINOR_VERSION 0
+
+#ifndef _WIN32
+const char *pmem_check_version(unsigned major_required,
+	unsigned minor_required);
+#else
+const char *pmem_check_versionU(unsigned major_required,
+	unsigned minor_required);
+const wchar_t *pmem_check_versionW(unsigned major_required,
+	unsigned minor_required);
+#endif
+
+#ifndef _WIN32
+const char *pmem_errormsg(void);
+#else
+const char *pmem_errormsgU(void);
+const wchar_t *pmem_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }

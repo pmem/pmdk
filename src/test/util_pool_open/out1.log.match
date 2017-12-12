@@ -1,7 +1,0 @@
-util_pool_open/TEST1: START: util_pool_open
- ./util_pool_open$(nW) 0x4000 $(*)/testlink1 $(*)/testlink2 $(*)/testfile1 $(*)/testfile2
-$(*)/testlink1: util_pool_open: Permission denied
-$(*)/testlink2: util_pool_open: Permission denied
-$(*)/testfile1: util_pool_open: Permission denied
-$(*)/testfile2: util_pool_open: Permission denied
-util_pool_open/TEST1: Done

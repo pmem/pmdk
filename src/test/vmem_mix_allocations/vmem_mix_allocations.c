@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,14 +38,19 @@
 
 #include "unittest.h"
 
+#define COUNT 21
+#define POOL_SIZE VMEM_MIN_POOL
+#define MAX_SIZE (4 << COUNT)
+
 int
 main(int argc, char *argv[])
 {
 	char *dir = NULL;
 	void *mem_pool = NULL;
 	VMEM *vmp;
-	size_t object_size;
-	int *ptr;
+	size_t obj_size;
+	int *ptr[COUNT];
+	int i = 0;
 	size_t sum_alloc = 0;
 
 	START(argc, argv, "vmem_mix_allocations");
@@ -53,41 +58,42 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		mem_pool = MMAP_ANON_ALIGNED(POOL_SIZE, 4 << 20);
 
-		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
+		vmp = vmem_create_in_region(mem_pool, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
-		vmp = vmem_create(dir, VMEM_MIN_POOL);
+		vmp = vmem_create(dir, POOL_SIZE);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
+	obj_size = MAX_SIZE;
 	/* test with multiple size of allocations from 4MB to 2B */
-	for (object_size = 4 * 1024 * 1024; object_size >= 4; object_size /= 2)
-		do {
-			ptr = vmem_malloc(vmp, object_size);
+	for (i = 0; i < COUNT; ++i, obj_size /= 2) {
+		ptr[i] = vmem_malloc(vmp, obj_size);
 
-			if (ptr == NULL)
-				break;
+		if (ptr[i] == NULL)
+			continue;
 
-			sum_alloc += object_size;
+		sum_alloc += obj_size;
 
-			/* check that pointer came from mem_pool */
-			if (dir == NULL) {
-				ASSERTrange(ptr, mem_pool, VMEM_MIN_POOL);
-			}
-		} while (object_size == 2);
+		/* check that pointer came from mem_pool */
+		if (dir == NULL)
+			UT_ASSERTrange(ptr[i], mem_pool, POOL_SIZE);
+	}
 
 	/* allocate more than half of pool size */
-	ASSERT(sum_alloc * 2 > VMEM_MIN_POOL);
+	UT_ASSERT(sum_alloc * 2 > POOL_SIZE);
+
+	while (i > 0)
+		vmem_free(vmp, ptr[--i]);
 
 	vmem_delete(vmp);
 

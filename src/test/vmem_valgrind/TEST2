@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -36,25 +36,24 @@
 #
 export UNITTEST_NAME=vmem_valgrind/TEST2
 export UNITTEST_NUM=2
-
+export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
+	--show-reachable=yes"
 # standard unit test setup
 . ../unittest/unittest.sh
 
-. ./valgrind_check.sh
+require_test_type medium
 
-require_fs_type local pmem
+require_fs_type any
 require_build_type debug nondebug
-require_valgrind_dev_3_7
-
+require_valgrind_dev_version 3.7
+configure_valgrind memcheck force-enable
 setup
 
-export VMEM_LOG_LEVEL=0
+unset VMEM_LOG_LEVEL
 unset VMEM_LOG_FILE
 [ "$FS" == "pmem" ] && DIR_WORK=$DIR
 
-expect_normal_exit valgrind --suppressions=excluded-errors.supp --leak-check=full\
-	--show-reachable=yes --log-file=valgrind$UNITTEST_NUM.log\
-	./vmem_valgrind$EXESUFFIX 2 $DIR_WORK
+expect_normal_exit ./vmem_valgrind$EXESUFFIX 2 $DIR_WORK
 
 check
 

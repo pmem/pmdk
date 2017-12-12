@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,8 +38,8 @@
 
 #include "unittest.h"
 
-#define	TEST_MAX_ALLOCATION_SIZE (4L * 1024L * 1024L)
-#define	TEST_ALLOCS_SIZE (VMEM_MIN_POOL / 8)
+#define TEST_MAX_ALLOCATION_SIZE (4L * 1024L * 1024L)
+#define TEST_ALLOCS_SIZE (VMEM_MIN_POOL / 8)
 
 /* buffer for all allocations */
 static void *allocs[TEST_ALLOCS_SIZE];
@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	size_t object_size;
@@ -66,21 +66,22 @@ main(int argc, char *argv[])
 		size_t j;
 
 		if (dir == NULL) {
-			mem_pool = MMAP(NULL, VMEM_MIN_POOL,
-					PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+			mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 			vmp = vmem_create_in_region(mem_pool,
 				VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create_in_region");
+				UT_FATAL("!vmem_create_in_region");
 		} else {
 			vmp = vmem_create(dir, VMEM_MIN_POOL);
 			if (vmp == NULL)
-				FATAL("!vmem_create");
+				UT_FATAL("!vmem_create");
+
+			/* vmem_create should align pool to 4MB */
+			UT_ASSERTeq(((uintptr_t)vmp) & ((4 << 20) - 1), 0);
 		}
 
-		memset(allocs, 0, TEST_ALLOCS_SIZE);
+		memset(allocs, 0, sizeof(allocs));
 
 		for (i = 0; i < TEST_ALLOCS_SIZE; ++i) {
 			allocs[i] =  vmem_malloc(vmp, object_size);
@@ -91,7 +92,7 @@ main(int argc, char *argv[])
 
 			/* check that pointer came from mem_pool */
 			if (dir == NULL) {
-				ASSERTrange(allocs[i],
+				UT_ASSERTrange(allocs[i],
 					mem_pool, VMEM_MIN_POOL);
 			}
 
@@ -99,19 +100,22 @@ main(int argc, char *argv[])
 			memset(allocs[i], (char)i, object_size);
 		}
 
-		ASSERT((i > 0) && (i + 1 < TEST_MAX_ALLOCATION_SIZE));
+		UT_ASSERT((i > 0) && (i + 1 < TEST_MAX_ALLOCATION_SIZE));
 
 		/* check for unexpected modifications of the data */
 		for (i = 0; i < TEST_ALLOCS_SIZE && allocs[i] != NULL; ++i) {
 			char *buffer = allocs[i];
 			for (j = 0; j < object_size; ++j) {
 				if (buffer[j] != (char)i)
-					FATAL("Content of data object was "
+					UT_FATAL("Content of data object was "
 						"modified unexpectedly for "
 						"object size: %zu, id: %zu",
 						object_size, j);
 			}
 		}
+
+		for (i = 0; i < TEST_ALLOCS_SIZE && allocs[i] != NULL; ++i)
+			vmem_free(vmp, allocs[i]);
 
 		vmem_delete(vmp);
 	}

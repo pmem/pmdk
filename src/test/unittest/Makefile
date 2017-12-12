@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -33,35 +33,97 @@
 #
 # src/test/unittest/Makefile -- build unittest support library
 #
+
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../..
+include $(TOP)/src/common.inc
+
+vpath %.c $(TOP)/src/common
+vpath %.h $(TOP)/src/common
+
 TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o
-CFLAGS = -I../../include -ggdb -Wall -Werror -std=gnu99
+OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
+	os_linux.o os_thread_linux.o
+CFLAGS = -I$(TOP)/src/include
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += $(OS_INCS)
+CFLAGS += -std=gnu99
+CFLAGS += -ggdb
+CFLAGS += -Wall
+CFLAGS += -Werror
+CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wpointer-arith
+CFLAGS += -Wsign-conversion
+CFLAGS += -Wsign-compare
+ifeq ($(call check_Wconversion), y)
+CFLAGS += -Wconversion
+endif
+CFLAGS += -pthread
+CFLAGS += -fno-common
+
+ifeq ($(call check_compiler, icc), n)
+CFLAGS += -Wunused-macros
+CFLAGS += -Wmissing-field-initializers
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
+endif
+
+ifeq ($(USE_LIBUNWIND),1)
+CFLAGS += -DUSE_LIBUNWIND
+else
+ifneq ($(USE_LIBUNWIND),0)
+UNWIND := $(call check_package, libunwind)
+ifeq ($(UNWIND),y)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND
+endif
+endif
+endif
+
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
+CFLAGS += $(EXTRA_CFLAGS)
+
+LIBS += $(LIBUTIL)
 
 all test: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(AR) rv $@ $(OBJS)
 
+ifneq ($(CSTYLEON),0)
+$(TARGET): unittest.htmp
+endif
+
+objdir=.
+
 .c.o:
-	$(CC) -c $(CFLAGS) $(INCS) $(COMMONINCS) $< -o $@
+	$(call check-cstyle, $<)
+	@mkdir -p .deps
+	$(CC) -MD -c $(CFLAGS) $(INCS) $(COMMONINCS) $(call coverage-path, $<) -o $@
+	$(create-deps)
+
+%.htmp: %.h
+	$(call check-cstyle, $<, $@)
 
 clean:
-	$(RM) *.o core a.out
-
-cstyle:
-	../../../utils/cstyle -pP *.[ch]
+	$(RM) *.o core a.out unittest.htmp
 
 clobber: clean
 	$(RM) $(TARGET)
+	$(RM) -r .deps
 
-.PHONY: all test clean clobber cstyle
+test check pcheck: all
 
-ut.o: ut.c unittest.h
+sparse:
+	$(sparse-c)
 
-ut_alloc.o: ut_alloc.c unittest.h
+.PHONY: all test check clean clobber cstyle format pcheck
 
-ut_file.o: ut_file.c unittest.h
-
-ut_pthread.o: ut_pthread.c unittest.h
-
-ut_signal.o: ut_file.c unittest.h
+-include .deps/*.P

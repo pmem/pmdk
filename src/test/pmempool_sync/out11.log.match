@@ -1,0 +1,17 @@
+poolset1:
+PMEMPOOLSET
+10M $(nW)part00
+REPLICA
+10M $(nW)part10
+poolset2:
+PMEMPOOLSET
+10M $(nW)part20
+poolset3:
+PMEMPOOLSET
+10M $(nW)part00
+REPLICA
+10M $(nW)part10
+REPLICA
+10M $(nW)part20
+error: failed to synchronize: gathering uuids failed
+error: Invalid argument

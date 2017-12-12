@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -43,7 +43,7 @@
 /*
  * do_append -- call pmemlog_append() & print result
  */
-void
+static void
 do_append(PMEMlogpool *plp)
 {
 	const char *str[6] = {
@@ -59,13 +59,13 @@ do_append(PMEMlogpool *plp)
 		int rv = pmemlog_append(plp, str[i], strlen(str[i]));
 		switch (rv) {
 		case 0:
-			OUT("append   str[%i] %s", i, str[i]);
+			UT_OUT("append   str[%i] %s", i, str[i]);
 			break;
 		case -1:
-			OUT("!append   str[%i] %s", i, str[i]);
+			UT_OUT("!append   str[%i] %s", i, str[i]);
 			break;
 		default:
-			OUT("!append: wrong return value");
+			UT_OUT("!append: wrong return value");
 			break;
 		}
 	}
@@ -76,7 +76,7 @@ do_append(PMEMlogpool *plp)
  *
  * It is a walker function for pmemlog_walk
  */
-int
+static int
 try_to_store(const void *buf, size_t len, void *arg)
 {
 	memset((void *)buf, 0, len);
@@ -86,24 +86,24 @@ try_to_store(const void *buf, size_t len, void *arg)
 /*
  * do_walk -- call pmemlog_walk() & print result
  */
-void
+static void
 do_walk(PMEMlogpool *plp)
 {
 	pmemlog_walk(plp, 0, try_to_store, NULL);
-	OUT("walk all at once");
+	UT_OUT("walk all at once");
 }
 
-sigjmp_buf Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 int
@@ -114,31 +114,31 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_walker");
 
 	if (argc != 2)
-		FATAL("usage: %s file-name", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
 	int fd = OPEN(path, O_RDWR);
 
 	/* pre-allocate 2MB of persistent memory */
-	errno = posix_fallocate(fd, (off_t)0, (size_t)(2 * 1024 * 1024));
-	if (errno != 0)
-		FATAL("!posix_fallocate");
+	POSIX_FALLOCATE(fd, (os_off_t)0, (size_t)(2 * 1024 * 1024));
 
 	CLOSE(fd);
 
-	if ((plp = pmemlog_create(path, 0, S_IWUSR)) == NULL)
-		FATAL("!pmemlog_create: %s", path);
+	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemlog_create: %s", path);
 
 	/* append some data */
 	do_append(plp);
 
 	/* arrange to catch SEGV */
-	struct sigvec v = { 0 };
-	v.sv_handler = signal_handler;
-	SIGVEC(SIGSEGV, &v, NULL);
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		do_walk(plp);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -48,22 +48,22 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_create_error");
 
 	if (argc > 1)
-		FATAL("usage: %s", argv[0]);
+		UT_FATAL("usage: %s", argv[0]);
 
 	errno = 0;
 	vmp = vmem_create_in_region(mem_pool, 0);
-	ASSERTeq(vmp, NULL);
-	ASSERTeq(errno, EINVAL);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("./", 0);
-	ASSERTeq(vmp, NULL);
-	ASSERTeq(errno, EINVAL);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTeq(errno, EINVAL);
 
 	errno = 0;
 	vmp = vmem_create("invalid dir !@#$%^&*()=", VMEM_MIN_POOL);
-	ASSERTeq(vmp, NULL);
-	ASSERTne(errno, 0);
+	UT_ASSERTeq(vmp, NULL);
+	UT_ASSERTne(errno, 0);
 
 	DONE(NULL);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -36,53 +36,55 @@
  * usage: util_map_proc maps_file len [len]...
  */
 
-#define	_GNU_SOURCE
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 #include "unittest.h"
-#include "util_wrap.h"
+#include "util.h"
+#include "mmap.h"
 
-
-char *Sfile;
-
-/*
- * fopen -- interpose on libc fopen()
- *
- * This catches opens to /proc/self/maps and sends them to the fake maps
- * file being tested.
- */
-FILE *
-fopen(const char *path, const char *mode)
-{
-	static FILE *(*fopen_ptr)(const char *path, const char *mode);
-
-	if (strcmp(path, "/proc/self/maps") == 0) {
-		OUT("redirecting /proc/self/maps to %s", Sfile);
-		path = Sfile;
-	}
-
-	if (fopen_ptr == NULL)
-		fopen_ptr = dlsym(RTLD_NEXT, "fopen");
-
-	return (*fopen_ptr)(path, mode);
-}
+#define MEGABYTE ((uintptr_t)1 << 20)
+#define GIGABYTE ((uintptr_t)1 << 30)
+#define TERABYTE ((uintptr_t)1 << 40)
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "util_map_proc");
 
-	if (argc < 3)
-		FATAL("usage: %s maps_file len [len]...", argv[0]);
+	util_init();
+	util_mmap_init();
 
-	Sfile = argv[1];
+	if (argc < 3)
+		UT_FATAL("usage: %s maps_file len [len]...", argv[0]);
+
+	Mmap_mapfile = argv[1];
+	UT_OUT("redirecting " OS_MAPFILE " to %s", Mmap_mapfile);
 
 	for (int arg = 2; arg < argc; arg++) {
-		size_t len;
+		size_t len = (size_t)strtoull(argv[arg], NULL, 0);
 
-		len = (size_t)strtoull(argv[arg], NULL, 0);
-		OUT("len %zu: %p", len, util_map_hint_wrap(len));
+		size_t align = Ut_pagesize;
+		if (len >= 2 * GIGABYTE)
+			align = GIGABYTE;
+		else if (len >= 4 * MEGABYTE)
+			align = 2 * MEGABYTE;
+
+		void *h1 =
+			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);
+		void *h2 = util_map_hint(len, 0);
+		if (h1 != MAP_FAILED && h1 != NULL)
+			UT_ASSERTeq((uintptr_t)h1 & (GIGABYTE - 1), 0);
+		if (h2 != MAP_FAILED && h2 != NULL)
+			UT_ASSERTeq((uintptr_t)h2 & (align - 1), 0);
+		if (h1 == NULL) /* XXX portability */
+			UT_OUT("len %zu: (nil) %p", len, h2);
+		else if (h2 == NULL)
+			UT_OUT("len %zu: %p (nil)", len, h1);
+		else
+			UT_OUT("len %zu: %p %p", len, h1, h2);
 	}
 
+	util_mmap_fini();
 	DONE(NULL);
 }

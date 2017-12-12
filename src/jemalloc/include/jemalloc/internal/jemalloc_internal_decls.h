@@ -4,14 +4,7 @@
 #include <math.h>
 #ifdef _WIN32
 #  include <windows.h>
-#  define ENOENT ERROR_PATH_NOT_FOUND
-#  define EINVAL ERROR_BAD_ARGUMENTS
-#  define EAGAIN ERROR_OUTOFMEMORY
-#  define EPERM  ERROR_WRITE_FAULT
-#  define EFAULT ERROR_INVALID_ADDRESS
-#  define ENOMEM ERROR_NOT_ENOUGH_MEMORY
-#  undef ERANGE
-#  define ERANGE ERROR_INVALID_DATA
+#  include "msvc_compat/windows_extra.h"
 #else
 #  include <sys/param.h>
 #  include <sys/mman.h>
@@ -47,7 +40,6 @@
 #ifdef _MSC_VER
 #  include <io.h>
 typedef intptr_t ssize_t;
-#  define PATH_MAX 1024
 #  define STDERR_FILENO 2
 #  define __func__ __FUNCTION__
 /* Disable warnings about deprecated system functions */
@@ -56,5 +48,5 @@ typedef intptr_t ssize_t;
 #  include <unistd.h>
 #endif
 #include <fcntl.h>
-
+#  define JE_PATH_MAX 1024
 #endif /* JEMALLOC_INTERNAL_H */

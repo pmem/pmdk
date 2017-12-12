@@ -414,6 +414,49 @@ tcache_destroy(tcache_t *tcache)
 		idalloct(tcache, false);
 }
 
+bool
+tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len)
+{
+	if (len == UINT_MAX)
+		return (true);
+
+	assert(len < POOLS_MAX);
+
+	/* round up the new length to the nearest power of 2... */
+	size_t npools = 1ULL << (32 - __builtin_clz(len + 1));
+
+	/* ... but not less than */
+	if (npools < POOLS_MIN)
+		npools = POOLS_MIN;
+
+	unsigned *tseqno = base_malloc_fn(npools * sizeof (unsigned));
+	if (tseqno == NULL)
+		return (true);
+
+	if (tsd->seqno != NULL)
+		memcpy(tseqno, tsd->seqno, tsd->npools * sizeof (unsigned));
+	memset(&tseqno[tsd->npools], 0, (npools - tsd->npools) * sizeof (unsigned));
+
+	tcache_t **tcaches = base_malloc_fn(npools * sizeof (tcache_t *));
+	if (tcaches == NULL) {
+		base_free_fn(tseqno);
+		return (true);
+	}
+
+	if (tsd->tcaches != NULL)
+		memcpy(tcaches, tsd->tcaches, tsd->npools * sizeof (tcache_t *));
+	memset(&tcaches[tsd->npools], 0, (npools - tsd->npools) * sizeof (tcache_t *));
+
+	base_free_fn(tsd->seqno);
+	tsd->seqno = tseqno;
+	base_free_fn(tsd->tcaches);
+	tsd->tcaches = tcaches;
+
+	tsd->npools = npools;
+
+	return (false);
+}
+
 void
 tcache_thread_cleanup(void *arg)
 {
@@ -421,7 +464,8 @@ tcache_thread_cleanup(void *arg)
 	tsd_tcache_t *tsd_array = arg;
 
 	malloc_mutex_lock(&pools_lock);
-	for (i = 0; i < POOLS_MAX; ++i) {
+
+	for (i = 0; i < tsd_array->npools; ++i) {
 		tcache_t *tcache = tsd_array->tcaches[i];
 		if (tcache != NULL) {
 			if (tcache == TCACHE_STATE_DISABLED) {
@@ -449,6 +493,11 @@ tcache_thread_cleanup(void *arg)
 			}
 		}
 	}
+
+	base_free_fn(tsd_array->seqno);
+	base_free_fn(tsd_array->tcaches);
+	tsd_array->npools = 0;
+
 	malloc_mutex_unlock(&pools_lock);
 }
 
@@ -492,18 +541,18 @@ tcache_boot0(void)
 	 * If necessary, clamp opt_lg_tcache_max, now that arena_maxclass is
 	 * known.
 	 */
-	if (opt_lg_tcache_max < 0 || (1U << opt_lg_tcache_max) < SMALL_MAXCLASS)
+	if (opt_lg_tcache_max < 0 || (1ULL << opt_lg_tcache_max) < SMALL_MAXCLASS)
 		tcache_maxclass = SMALL_MAXCLASS;
-	else if ((1U << opt_lg_tcache_max) > arena_maxclass)
+	else if ((1ULL << opt_lg_tcache_max) > arena_maxclass)
 		tcache_maxclass = arena_maxclass;
 	else
-		tcache_maxclass = (1U << opt_lg_tcache_max);
+		tcache_maxclass = (1ULL << opt_lg_tcache_max);
 
 	nhbins = NBINS + (tcache_maxclass >> LG_PAGE);
 
 	/* Initialize tcache_bin_info. */
-	tcache_bin_info = (tcache_bin_info_t *)je_base_malloc(nhbins *
-		sizeof(tcache_bin_info_t));
+	tcache_bin_info = (tcache_bin_info_t *)base_alloc(&base_pool,
+		nhbins * sizeof(tcache_bin_info_t));
 
 	if (tcache_bin_info == NULL)
 		return (true);

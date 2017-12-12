@@ -16,6 +16,46 @@ or just begin a dialog about the NVM Library:
 please make sure you agree your contribution can be made available
 under the [BSD-style License used for the NVM Library](https://github.com/pmem/nvml/blob/master/LICENSE).**
 
+**NOTE: Submitting your changes also means that you certify the following:**
+
+```
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+In case of any doubt, the gatekeeper may ask you to certify the above in writing,
+i.e. via email or by including a `Signed-off-by:` line at the bottom
+of your commit comments.
+
+To improve tracking of who is the author of a contribution, we kindly ask you
+to use your real name (not an alias) when committing your changes to the NVM Library:
+```
+Author: Random J Developer <random@developer.example.org>
+```
+
 ### Code Contributions
 
 Please feel free to use the forums mentioned above to ask
@@ -25,6 +65,41 @@ a pull request.  The NVM Library project uses the common
 The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
+#### Linux/FreeBSD
+
+Before contributing please remember to run:
+```
+	$ make cstyle
+```
+
+This will check all C/C++ files in the tree for style issues. To check C++
+files you have to have clang-format version 3.8+, otherwise they will be
+skipped. If you want to run this target automatically at build time, you can
+pass CSTYLEON=1 to make. If you want cstyle to be run, but not fail the build,
+pass CSTYLEON=2 to make.
+There is also a target for automatic C++ code formatting, to do this run:
+```
+	$ make format
+```
+
+There are cases, when you might have several clang-format-X.Y binaries and either
+no clang-format or it pointing to an older version. In such case run:
+```
+	$ make CLANG_FORMAT=/path/to/clang-format cstyle|format
+```
+
+#### Windows
+
+On Windows to check the code for style issues, please run:
+```
+	$ nvml\utils\CSTYLE.ps1
+```
+
+To check or format C++ files, you may use a standalone Visual Studio plugin
+for clang-format.  The plugin installer can be downloaded from
+[LLVM Builds](http://llvm.org/builds) page.
+
+
 If you are actively working on an NVM Library feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the label `Type: Feature` and assign it to yourself (due to the way
@@ -32,18 +107,21 @@ GitHub permissions work, you may need to ask a team member to assign it to you).
 
 ### Bug Reports
 
-Bugs for the NVM Library project are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+Bugs for the NVM Library project are tracked in our
+[GitHub Issues Database](https://github.com/pmem/issues/issues).
 
 When creating a bug report issue, please provide the following information:
 
-#### Milestone field
+#### NVML version
 
 Put the release name of the version of NVML running when the
-bug was discovered in the Milestone field.  If you saw this bug
-in multiple NVML versions, please put the most recent version in
-Milestone and list the others in a bug comment.
-- Stable release names are in the form `#.#` (where `#` represents an integer); for example `0.3`.
-- Release names from working versions look like `#.#+b#` (adding a build #) or `#.#-rc#` (adding a release candidate number)
+bug was discovered in a bug comment.  If you saw this bug in multiple NVML
+versions, please put at least the most recent version and list the others
+if necessary.
+- Stable release names are in the form `#.#` (where `#` represents
+  an integer); for example `0.3`.
+- Release names from working versions look like `#.#+b#` (adding a build #)
+  or `#.#-rc#` (adding a release candidate number)
 If NVML was built from source, the version number can be retrieved
 from git using this command: `git describe`
 
@@ -51,6 +129,10 @@ For binary NVML releases, use the entire package name.
 For RPMs, use `rpm -q nvml` to display the name.
 For Deb packages, run `dpkg-query -W nvml` and use the
 second (version) string.
+
+#### Milestone field
+
+Optionally, assign the milestone the issue needs to be fixed before.
 
 #### Type: Bug label
 

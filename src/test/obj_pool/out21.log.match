@@ -1,0 +1,4 @@
+obj_pool$(nW)TEST21: START: obj_pool$(nW)
+ $(nW)obj_pool$(nW) o $(nW)testfile NULL
+$(nW)testfile: pmemobj_open: Invalid argument
+obj_pool$(nW)TEST21: DONE

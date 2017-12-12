@@ -110,7 +110,7 @@ TEST_BEGIN(test_mallctlnametomib_short_mib)
 
 	mem = calloc(1, POOL_MINIMAL_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
-	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1, 1);
 
 	assert_ptr_ne((void*)pool, NULL, "Unexpected je_pool_create() failure");
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
@@ -221,7 +221,7 @@ TEST_BEGIN(test_mallctl_with_multiple_pools)
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
 
 	for (i = 0; i < NPOOLS; ++i) {
-		pools[i] = je_pool_create( mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 1);
+		pools[i] = je_pool_create( mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 1, 1);
 		assert_ptr_ne( (void*)pools[i], NULL, "Unexpected je_pool_create() failure");
 	}
 
@@ -307,7 +307,7 @@ TEST_BEGIN(test_arena_i_purge)
 
 	mem = calloc(1, POOL_MINIMAL_SIZE);
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
-	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1);
+	pool = je_pool_create(mem, POOL_MINIMAL_SIZE, 1, 1);
 
 	assert_ptr_ne( (void*)pool, NULL, "Unexpected je_pool_create() failure");
 	assert_d_eq(mallctl("pools.npools", &npools, &sz, NULL, 0), 0,
@@ -449,7 +449,7 @@ TEST_BEGIN(test_arenas_extend)
 	assert_ptr_ne(mem, NULL, "Unexpected calloc() failure");
 
 	for (i = 0; i < NPOOLS; ++i) {
-		pools[i] = je_pool_create(mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 0);
+		pools[i] = je_pool_create(mem + (i*POOL_MINIMAL_SIZE), POOL_MINIMAL_SIZE, 0, 1);
 		assert_ptr_ne((void *)pools[i], NULL, "Unexpected je_pool_create() failure");
 	}
 
@@ -507,9 +507,17 @@ TEST_BEGIN(test_stats_arenas)
 }
 TEST_END
 
+/*
+ * Each arena allocates 32 kilobytes of CTL metadata, and since we only
+ * have 12 megabytes, we have to hard-limit it to a known value, otherwise
+ * on systems with high CPU count, the tests might run out of memory.
+ */
+#define NARENAS_IN_POOL 64
+
 int
 main(void)
 {
+	opt_narenas = NARENAS_IN_POOL;
 
 	return (test(
 	    test_mallctl_errors,

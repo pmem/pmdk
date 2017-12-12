@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -40,19 +40,22 @@ export UNITTEST_NUM=1
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# this is the short version of the test
-require_test_type short
+require_test_type medium
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 
+# libpmemblk does not support race detection tools
+configure_valgrind helgrind force-disable
+configure_valgrind drd force-disable
+
 setup
 
-rm -f $DIR/testfile1
 truncate -s 1G $DIR/testfile1
 # 100 threads, each doing 100 random I/Os
 expect_normal_exit ./blk_rw_mt$EXESUFFIX 4096 $DIR/testfile1 456 100 100
-rm $DIR/testfile1
+
+check_pool $DIR/testfile1
 
 check
 

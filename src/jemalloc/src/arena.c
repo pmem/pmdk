@@ -568,7 +568,7 @@ arena_chunk_alloc_internal(arena_t *arena, size_t size, size_t alignment,
 	chunk_dalloc = arena->chunk_dalloc;
 	malloc_mutex_unlock(&arena->lock);
 	chunk = (arena_chunk_t *)chunk_alloc_arena(chunk_alloc, chunk_dalloc,
-	    arena, size, alignment, zero);
+	    arena, NULL, size, alignment, zero);
 	malloc_mutex_lock(&arena->lock);
 	if (config_stats && chunk != NULL)
 		arena->stats.mapped += chunksize;
@@ -577,8 +577,8 @@ arena_chunk_alloc_internal(arena_t *arena, size_t size, size_t alignment,
 }
 
 void *
-arena_chunk_alloc_huge(arena_t *arena, size_t size, size_t alignment,
-    bool *zero)
+arena_chunk_alloc_huge(arena_t *arena, void *new_addr, size_t size,
+    size_t alignment, bool *zero)
 {
 	void *ret;
 	chunk_alloc_t *chunk_alloc;
@@ -597,7 +597,7 @@ arena_chunk_alloc_huge(arena_t *arena, size_t size, size_t alignment,
 	arena->nactive += (size >> LG_PAGE);
 	malloc_mutex_unlock(&arena->lock);
 
-	ret = chunk_alloc_arena(chunk_alloc, chunk_dalloc, arena, size,
+	ret = chunk_alloc_arena(chunk_alloc, chunk_dalloc, arena, new_addr, size,
 		alignment, zero);
 	if (config_stats) {
 		if (ret != NULL)
@@ -1698,6 +1698,9 @@ arena_malloc_small(arena_t *arena, size_t size, bool zero)
 	arena_run_t *run;
 	size_t binind;
 
+	if (arena == NULL)
+		return NULL;
+
 	binind = small_size2bin(size);
 	assert(binind < NBINS);
 	bin = &arena->bins[binind];
@@ -1749,6 +1752,9 @@ arena_malloc_large(arena_t *arena, size_t size, bool zero)
 {
 	void *ret;
 	UNUSED bool idump;
+
+	if (arena == NULL)
+		return NULL;
 
 	/* Large allocation. */
 	size = PAGE_CEILING(size);

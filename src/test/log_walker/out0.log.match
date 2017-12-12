@@ -1,5 +1,5 @@
-log_walker/TEST0: START: log_walker
- ./log_walker$(nW) $(*)/testfile1
+log_walker$(nW)TEST0: START: log_walker
+ $(nW)log_walker$(nW) $(nW)testfile1
 append   str[0] 1st append string
 
 append   str[1] 2nd append string
@@ -13,4 +13,4 @@ append   str[4] 5th append string
 append   str[5] 6th append string
 
 signal: Segmentation fault
-log_walker/TEST0: Done
+log_walker$(nW)TEST0: DONE

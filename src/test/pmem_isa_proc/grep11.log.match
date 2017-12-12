@@ -1,6 +1,0 @@
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] clflush supported
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] clwb supported
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] clflushopt supported
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] pcommit supported
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] PMEM_NO_PCOMMIT forced no pcommit
-<libpmem>: <3> [../pmem.c:$(N) pmem_init] movnt supported

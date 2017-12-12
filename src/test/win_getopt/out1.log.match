@@ -1,0 +1,6 @@
+win_getopt/TEST1: START: win_getopt
+ $(nW)win_getopt$(nW) -Z --arg_Z -A
+unknown argument
+unknown argument
+unknown argument
+win_getopt$(nW)TEST1: DONE

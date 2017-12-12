@@ -1,0 +1,12 @@
+obj_check/TEST5: START: obj_check
+ ./obj_check$(nW) $(nW)testfile
+not consistent: tx lane: invalid transaction state
+obj_check/TEST5: DONE
+obj_check/TEST5: START: obj_check
+ ./obj_check$(nW) $(nW)testfile
+not consistent: tx_lane: invalid offset in tx range object
+obj_check/TEST5: DONE
+obj_check/TEST5: START: obj_check
+ ./obj_check$(nW) $(nW)testfile
+not consistent: tx_lane: invalid offset in tx range object
+obj_check/TEST5: DONE

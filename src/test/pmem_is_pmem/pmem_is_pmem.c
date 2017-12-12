@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +14,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -33,30 +34,69 @@
 /*
  * pmem_is_pmem.c -- unit test for pmem_is_pmem()
  *
- * usage: pmem_is_pmem file
+ * usage: pmem_is_pmem file [env]
  */
 
 #include "unittest.h"
+
+#define NTHREAD 16
+
+static void *Addr;
+static size_t Size;
+
+/*
+ * worker -- the work each thread performs
+ */
+static void *
+worker(void *arg)
+{
+	int *ret = (int *)arg;
+	*ret =  pmem_is_pmem(Addr, Size);
+	return NULL;
+}
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem_is_pmem");
 
-	if (argc !=  2)
-		FATAL("usage: %s file", argv[0]);
+	if (argc <  2 || argc > 3)
+		UT_FATAL("usage: %s file [env]", argv[0]);
+
+	if (argc == 3)
+		UT_ASSERTeq(os_setenv("PMEM_IS_PMEM_FORCE", argv[2], 1), 0);
 
 	int fd = OPEN(argv[1], O_RDWR);
 
-	struct stat stbuf;
+	os_stat_t stbuf;
 	FSTAT(fd, &stbuf);
 
-	void *addr =
-		MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	Size = stbuf.st_size;
+	Addr = MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd,
+		0);
 
-	close(fd);
+	CLOSE(fd);
 
-	OUT("%d", pmem_is_pmem(addr, stbuf.st_size));
+	os_thread_t threads[NTHREAD];
+	int ret[NTHREAD];
+
+	/* kick off NTHREAD threads */
+	for (int i = 0; i < NTHREAD; i++)
+		PTHREAD_CREATE(&threads[i], NULL, worker, &ret[i]);
+
+	/* wait for all the threads to complete */
+	for (int i = 0; i < NTHREAD; i++)
+		PTHREAD_JOIN(&threads[i], NULL);
+
+	/* verify that all the threads return the same value */
+	for (int i = 1; i < NTHREAD; i++)
+		UT_ASSERTeq(ret[0], ret[i]);
+
+	UT_OUT("%d", ret[0]);
+
+	UT_ASSERTeq(os_unsetenv("PMEM_IS_PMEM_FORCE"), 0);
+
+	UT_OUT("%d", pmem_is_pmem(Addr, Size));
 
 	DONE(NULL);
 }

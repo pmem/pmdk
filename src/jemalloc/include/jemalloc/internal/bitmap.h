@@ -67,7 +67,7 @@ void	bitmap_unset(bitmap_t *bitmap, const bitmap_info_t *binfo, size_t bit);
 JEMALLOC_INLINE bool
 bitmap_full(bitmap_t *bitmap, const bitmap_info_t *binfo)
 {
-	unsigned rgoff = binfo->levels[binfo->nlevels].group_offset - 1;
+	size_t rgoff = binfo->levels[binfo->nlevels].group_offset - 1;
 	bitmap_t rg = bitmap[rgoff];
 	/* The bitmap is full iff the root group is 0. */
 	return (rg == 0);
@@ -107,7 +107,8 @@ bitmap_set(bitmap_t *bitmap, const bitmap_info_t *binfo, size_t bit)
 		for (i = 1; i < binfo->nlevels; i++) {
 			bit = goff;
 			goff = bit >> LG_BITMAP_GROUP_NBITS;
-			gp = &bitmap[binfo->levels[i].group_offset + goff];
+			if (bitmap != NULL)
+				gp = &bitmap[binfo->levels[i].group_offset + goff];
 			g = *gp;
 			assert(g & (1LU << (bit & BITMAP_GROUP_NBITS_MASK)));
 			g ^= 1LU << (bit & BITMAP_GROUP_NBITS_MASK);

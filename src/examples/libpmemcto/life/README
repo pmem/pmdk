@@ -1,0 +1,19 @@
+Non-Volatile Memory Library
+
+This is examples/libpmemcto/life/README.
+
+This directory contains an example application that implements
+Conway's Game of Life using libpmemcto.
+
+To launch the game:
+	./life file [iterations]
+
+The file with the game session will either be created if it doesn't exist
+or opened if it contains a valid pool.
+
+** DEPENDENCIES: **
+In order to build both variants of the game you need to install ncurses
+development package.
+
+rpm-based systems : ncurses-devel
+dpkg-based systems: libncursesX-dev (where X is the API/ABI version)

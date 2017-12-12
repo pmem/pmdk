@@ -1,0 +1,4 @@
+obj_check$(nW)TEST0: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile
+consistent
+obj_check$(nW)TEST0: DONE

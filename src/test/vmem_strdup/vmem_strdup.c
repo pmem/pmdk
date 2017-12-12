@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -37,12 +37,15 @@
  */
 
 #include "unittest.h"
+#include <wchar.h>
 
 int
 main(int argc, char *argv[])
 {
 	const char *text = "Some test text";
 	const char *text_empty = "";
+	const wchar_t *wtext = L"Some test text";
+	const wchar_t *wtext_empty = L"";
 	char *dir = NULL;
 	void *mem_pool = NULL;
 	VMEM *vmp;
@@ -52,43 +55,52 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		dir = argv[1];
 	} else if (argc > 2) {
-		FATAL("usage: %s [directory]", argv[0]);
+		UT_FATAL("usage: %s [directory]", argv[0]);
 	}
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	char *str1 = vmem_strdup(vmp, text);
-	ASSERTne(str1, NULL);
-	ASSERTeq(strcmp(text, str1), 0);
+	wchar_t *wcs1 = vmem_wcsdup(vmp, wtext);
+	UT_ASSERTne(str1, NULL);
+	UT_ASSERTne(wcs1, NULL);
+	UT_ASSERTeq(strcmp(text, str1), 0);
+	UT_ASSERTeq(wcscmp(wtext, wcs1), 0);
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
-		ASSERTrange(str1, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(str1, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(wcs1, mem_pool, VMEM_MIN_POOL);
 	}
 
 	char *str2 = vmem_strdup(vmp, text_empty);
-	ASSERTne(str2, NULL);
-	ASSERTeq(strcmp(text_empty, str2), 0);
+	wchar_t *wcs2 = vmem_wcsdup(vmp, wtext_empty);
+	UT_ASSERTne(str2, NULL);
+	UT_ASSERTne(wcs2, NULL);
+	UT_ASSERTeq(strcmp(text_empty, str2), 0);
+	UT_ASSERTeq(wcscmp(wtext_empty, wcs2), 0);
 
 	/* check that pointer came from mem_pool */
 	if (dir == NULL) {
-		ASSERTrange(str2, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(str2, mem_pool, VMEM_MIN_POOL);
+		UT_ASSERTrange(wcs2, mem_pool, VMEM_MIN_POOL);
 	}
 
 	vmem_free(vmp, str1);
+	vmem_free(vmp, wcs1);
 	vmem_free(vmp, str2);
+	vmem_free(vmp, wcs2);
 
 	vmem_delete(vmp);
 

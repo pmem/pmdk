@@ -1,4 +1,0 @@
-util_pool_create/TEST1: START: util_pool_create
- ./util_pool_create$(nW) 0x4000 0x4000:$(*)/testdir1/testfile
-$(*)/testdir1/testfile: util_pool_create: Permission denied
-util_pool_create/TEST1: Done

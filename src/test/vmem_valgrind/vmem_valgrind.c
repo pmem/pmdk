@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -49,7 +49,7 @@ static int custom_alloc_calls;
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory.
  */
-void *
+static void *
 malloc_custom(size_t size)
 {
 	++custom_alloc_calls;
@@ -63,7 +63,7 @@ malloc_custom(size_t size)
  * This function updates statistics about custom alloc functions,
  * and frees allocated memory.
  */
-void
+static void
 free_custom(void *ptr)
 {
 	++custom_alloc_calls;
@@ -77,7 +77,7 @@ free_custom(void *ptr)
  * This function updates statistics about custom alloc functions,
  * and returns reallocated memory.
  */
-void *
+static void *
 realloc_custom(void *ptr, size_t size)
 {
 	++custom_alloc_calls;
@@ -90,7 +90,7 @@ realloc_custom(void *ptr, size_t size)
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory with a duplicated string.
  */
-char *
+static char *
 strdup_custom(const char *s)
 {
 	++custom_alloc_calls;
@@ -119,14 +119,14 @@ main(int argc, char *argv[])
 	}
 
 	if (test_case < 0)
-		FATAL("usage: %s <test-number from 0 to 9> [directory]",
+		UT_FATAL("usage: %s <test-number from 0 to 9> [directory]",
 			argv[0]);
 
 	if (test_case < 5) {
-		OUT("use default allocator");
+		UT_OUT("use default allocator");
 		expect_custom_alloc = 0;
 	} else {
-		OUT("use custom alloc functions");
+		UT_OUT("use custom alloc functions");
 		test_case -= 5;
 		expect_custom_alloc = 1;
 		vmem_set_funcs(malloc_custom, free_custom,
@@ -135,43 +135,42 @@ main(int argc, char *argv[])
 
 	if (dir == NULL) {
 		/* allocate memory for function vmem_create_in_region() */
-		void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create_in_region");
+			UT_FATAL("!vmem_create_in_region");
 	} else {
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 		if (vmp == NULL)
-			FATAL("!vmem_create");
+			UT_FATAL("!vmem_create");
 	}
 
 	switch (test_case) {
 		case 0: {
-			OUT("remove all allocations and delete pool");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			UT_OUT("remove all allocations and delete pool");
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_free(vmp, ptr);
 			vmem_delete(vmp);
 			break;
 		}
 		case 1: {
-			OUT("only remove allocations");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			UT_OUT("only remove allocations");
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_free(vmp, ptr);
 			break;
 		}
 		case 2: {
-			OUT("only delete pool");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			UT_OUT("only delete pool");
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			vmem_delete(vmp);
 
@@ -180,20 +179,22 @@ main(int argc, char *argv[])
 			break;
 		}
 		case 3: {
-			OUT("memory leaks");
-			ptr = vmem_malloc(vmp, sizeof (int));
+			UT_OUT("memory leaks");
+			ptr = vmem_malloc(vmp, sizeof(int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			/* prevent reporting leaked memory as still reachable */
 			ptr = NULL;
+			/* Clean up pool, above malloc will still leak */
+			vmem_delete(vmp);
 			break;
 		}
 		case 4: {
-			OUT("heap block overrun");
-			ptr = vmem_malloc(vmp, 12 * sizeof (int));
+			UT_OUT("heap block overrun");
+			ptr = vmem_malloc(vmp, 12 * sizeof(int));
 			if (ptr == NULL)
-				FATAL("!vmem_malloc");
+				UT_FATAL("!vmem_malloc");
 
 			/* heap block overrun */
 			ptr[12] = 7;
@@ -203,17 +204,17 @@ main(int argc, char *argv[])
 			break;
 		}
 		default: {
-			FATAL("!unknown test-number");
+			UT_FATAL("!unknown test-number");
 		}
 	}
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

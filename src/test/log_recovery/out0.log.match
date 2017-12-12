@@ -1,5 +1,5 @@
-log_recovery/TEST0: START: log_recovery
- ./log_recovery$(nW) $(*)/testfile1 a
+log_recovery$(nW)TEST0: START: log_recovery
+ $(nW)log_recovery$(nW) $(nW)testfile1 a
 append   str[0] 1st append string
 
 append   str[1] 2nd append string
@@ -15,7 +15,7 @@ append   str[5] 6th append string
 tell 108
 write-protecting the metadata, length 8192
 signal: Segmentation fault
-$(*)/testfile1: consistent
+$(nW)testfile1: consistent
 tell 108
 1st append string
 2nd append string
@@ -25,4 +25,4 @@ tell 108
 6th append string
 
 walk all at once
-log_recovery/TEST0: Done
+log_recovery$(nW)TEST0: DONE

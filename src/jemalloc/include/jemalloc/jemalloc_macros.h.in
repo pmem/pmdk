@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <strings.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #define	JEMALLOC_VERSION "@jemalloc_version@"
 #define	JEMALLOC_VERSION_MAJOR @jemalloc_version_major@
@@ -28,10 +29,12 @@
 #  define JEMALLOC_NOINLINE JEMALLOC_ATTR(noinline)
 #elif _MSC_VER
 #  define JEMALLOC_ATTR(s)
-#  ifdef DLLEXPORT
-#    define JEMALLOC_EXPORT __declspec(dllexport)
-#  else
-#    define JEMALLOC_EXPORT __declspec(dllimport)
+#  ifndef JEMALLOC_EXPORT
+#    ifdef DLLEXPORT
+#      define JEMALLOC_EXPORT __declspec(dllexport)
+#    else
+#      define JEMALLOC_EXPORT __declspec(dllimport)
+#    endif
 #  endif
 #  define JEMALLOC_ALIGNED(s) __declspec(align(s))
 #  define JEMALLOC_SECTION(s) __declspec(allocate(s))

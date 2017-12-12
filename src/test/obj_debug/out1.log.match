@@ -1,0 +1,3 @@
+obj_debug$(nW)TEST1: START: obj_debug
+ $(nW)obj_debug$(nW) $(nW)testfile1 l
+obj_debug$(nW)TEST1: DONE

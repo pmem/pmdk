@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -37,29 +37,29 @@
 #include "unittest.h"
 
 /*
- * ut_pthread_create -- a pthread_create that cannot return an error
+ * ut_thread_create -- a os_thread_create that cannot return an error
  */
 int
-ut_pthread_create(const char *file, int line, const char *func,
-    pthread_t *restrict thread,
-    const pthread_attr_t *restrict attr,
-    void *(*start_routine)(void *), void *restrict arg)
+ut_thread_create(const char *file, int line, const char *func,
+    os_thread_t *__restrict thread,
+    const os_thread_attr_t *__restrict attr,
+    void *(*start_routine)(void *), void *__restrict arg)
 {
-	if ((errno = pthread_create(thread, attr, start_routine, arg)) != 0)
-		ut_fatal(file, line, func, "!pthread_create");
+	if ((errno = os_thread_create(thread, attr, start_routine, arg)) != 0)
+		ut_fatal(file, line, func, "!os_thread_create");
 
 	return 0;
 }
 
 /*
- * ut_pthread_join -- a pthread_join that cannot return an error
+ * ut_thread_join -- a os_thread_join that cannot return an error
  */
 int
-ut_pthread_join(const char *file, int line, const char *func,
-    pthread_t thread, void **value_ptr)
+ut_thread_join(const char *file, int line, const char *func,
+    os_thread_t *thread, void **value_ptr)
 {
-	if ((errno = pthread_join(thread, value_ptr)) != 0)
-		ut_fatal(file, line, func, "!pthread_join");
+	if ((errno = os_thread_join(thread, value_ptr)) != 0)
+		ut_fatal(file, line, func, "!os_thread_join");
 
 	return 0;
 }

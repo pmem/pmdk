@@ -1,0 +1,3 @@
+obj_locks/TEST1: START: obj_locks
+ ./obj_locks$(nW) $(nW)testfile1
+obj_locks/TEST1: DONE

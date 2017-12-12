@@ -1,0 +1,5 @@
+Non-Volatile Memory Library
+
+This is src/test/libpmempool_rm_win/README.
+
+This directory contains unit tests for pmempool_rm function.

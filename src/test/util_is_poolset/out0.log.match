@@ -1,0 +1,9 @@
+util_is_poolset$(nW)TEST0: START: util_is_poolset
+ $(nW)util_is_poolset$(nW) $(*)pool.set $(*)not_pool.set $(*)too_short.set $(*)pool.obj $(*)empty.set $(*)not_exist.set
+util_is_poolset($(*)pool.set): 1
+util_is_poolset($(*)not_pool.set): 0
+util_is_poolset($(*)too_short.set): 0
+util_is_poolset($(*)pool.obj): 0
+util_is_poolset($(*)empty.set): 0
+util_is_poolset($(*)not_exist.set): -1
+util_is_poolset$(nW)TEST0: DONE

@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -40,15 +40,16 @@ export UNITTEST_NUM=4
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
+require_test_type medium
+
+require_fs_type none
 require_build_type debug
 
 setup
 
-export TRACE_LOG_LEVEL=3
+export UT_LOG_LEVEL=3
 expect_normal_exit ./traces$EXESUFFIX 2>redir_stderr$UNITTEST_NUM.log
 
-# check results
-../match redir_stderr$UNITTEST_NUM.log.match
+check
 
 pass

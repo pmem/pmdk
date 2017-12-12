@@ -160,13 +160,18 @@ if test "x${je_cv_msvc}" = "xyes" -a "x${ac_cv_header_inttypes_h}" = "xno"; then
   CPPFLAGS="$CPPFLAGS -I${srcdir}/include/msvc_compat/C99"
 fi
 
-AC_CHECK_SIZEOF([void *])
-if test "x${ac_cv_sizeof_void_p}" = "x8" ; then
-  LG_SIZEOF_PTR=3
-elif test "x${ac_cv_sizeof_void_p}" = "x4" ; then
-  LG_SIZEOF_PTR=2
+if test "x${je_cv_msvc}" = "xyes" ; then
+  LG_SIZEOF_PTR=LG_SIZEOF_PTR_WIN
+  AC_MSG_RESULT([Using a predefined value for sizeof(void *): 4 for 32-bit, 8 for 64-bit])
 else
-  AC_MSG_ERROR([Unsupported pointer size: ${ac_cv_sizeof_void_p}])
+  AC_CHECK_SIZEOF([void *])
+  if test "x${ac_cv_sizeof_void_p}" = "x8" ; then
+    LG_SIZEOF_PTR=3
+  elif test "x${ac_cv_sizeof_void_p}" = "x4" ; then
+    LG_SIZEOF_PTR=2
+  else
+    AC_MSG_ERROR([Unsupported pointer size: ${ac_cv_sizeof_void_p}])
+  fi
 fi
 AC_DEFINE_UNQUOTED([LG_SIZEOF_PTR], [$LG_SIZEOF_PTR])
 
@@ -249,6 +254,7 @@ EXTRA_LDFLAGS=
 ARFLAGS='crus'
 AROUT=' $@'
 CC_MM=1
+MALLOCINC="malloc.h"
 
 AN_MAKEVAR([AR], [AC_PROG_AR])
 AN_PROGRAM([ar], [AC_PROG_AR])
@@ -282,6 +288,7 @@ case "${host}" in
 	abi="elf"
 	AC_DEFINE([JEMALLOC_PURGE_MADVISE_FREE], [ ])
 	force_lazy_lock="1"
+	MALLOCINC="stdlib.h"
 	;;
   *-*-linux*)
 	CFLAGS="$CFLAGS"
@@ -325,9 +332,10 @@ case "${host}" in
 	fi
 	abi="xcoff"
 	;;
-  *-*-mingw*)
+  *-*-mingw* | *-*-cygwin*)
 	abi="pecoff"
 	force_tls="0"
+	force_lazy_lock="0"
 	RPATH=""
 	so="dll"
 	if test "x$je_cv_msvc" = "xyes" ; then
@@ -356,10 +364,10 @@ case "${host}" in
 esac
 
 JEMALLOC_USABLE_SIZE_CONST=const
-AC_CHECK_HEADERS([malloc.h], [
+AC_CHECK_HEADERS([${MALLOCINC}], [
   AC_MSG_CHECKING([whether malloc_usable_size definition can use const argument])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [#include <malloc.h>
+    [#include <${MALLOCINC}>
      #include <stddef.h>
     size_t malloc_usable_size(const void *ptr);
     ],
@@ -447,7 +455,7 @@ AC_PROG_RANLIB
 AC_PATH_PROG([LD], [ld], [false], [$PATH])
 AC_PATH_PROG([AUTOCONF], [autoconf], [false], [$PATH])
 
-public_syms="pool_create pool_delete pool_malloc pool_calloc pool_ralloc pool_aligned_alloc pool_free pool_malloc_usable_size pool_malloc_stats_print pool_extend pool_set_alloc_funcs pool_freespace pool_check malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib malloc_stats_print malloc_usable_size"
+public_syms="pool_create pool_delete pool_malloc pool_calloc pool_ralloc pool_aligned_alloc pool_free pool_malloc_usable_size pool_malloc_stats_print pool_extend pool_set_alloc_funcs pool_check malloc_conf malloc_message malloc calloc posix_memalign aligned_alloc realloc free mallocx rallocx xallocx sallocx dallocx nallocx mallctl mallctlnametomib mallctlbymib navsnprintf malloc_stats_print malloc_usable_size"
 
 dnl Check for allocator-related functions that should be wrapped.
 AC_CHECK_FUNC([memalign],
@@ -534,15 +542,16 @@ dnl jemalloc_protos_jet.h easy.
 je_="je_"
 AC_SUBST([je_])
 
-cfgoutputs_in="${srcroot}Makefile.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}doc/html.xsl.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}doc/manpages.xsl.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}doc/jemalloc.xml.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}include/jemalloc/jemalloc_macros.h.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}include/jemalloc/jemalloc_protos.h.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}include/jemalloc/internal/jemalloc_internal.h.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}test/test.sh.in"
-cfgoutputs_in="${cfgoutputs_in} ${srcroot}test/include/test/jemalloc_test.h.in"
+cfgoutputs_in="Makefile.in"
+cfgoutputs_in="${cfgoutputs_in} doc/html.xsl.in"
+cfgoutputs_in="${cfgoutputs_in} doc/manpages.xsl.in"
+cfgoutputs_in="${cfgoutputs_in} doc/jemalloc.xml.in"
+cfgoutputs_in="${cfgoutputs_in} include/jemalloc/jemalloc_macros.h.in"
+cfgoutputs_in="${cfgoutputs_in} include/jemalloc/jemalloc_protos.h.in"
+cfgoutputs_in="${cfgoutputs_in} include/jemalloc/jemalloc_typedefs.h.in"
+cfgoutputs_in="${cfgoutputs_in} include/jemalloc/internal/jemalloc_internal.h.in"
+cfgoutputs_in="${cfgoutputs_in} test/test.sh.in"
+cfgoutputs_in="${cfgoutputs_in} test/include/test/jemalloc_test.h.in"
 
 cfgoutputs_out="Makefile"
 cfgoutputs_out="${cfgoutputs_out} doc/html.xsl"
@@ -550,6 +559,7 @@ cfgoutputs_out="${cfgoutputs_out} doc/manpages.xsl"
 cfgoutputs_out="${cfgoutputs_out} doc/jemalloc.xml"
 cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_macros.h"
 cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_protos.h"
+cfgoutputs_out="${cfgoutputs_out} include/jemalloc/jemalloc_typedefs.h"
 cfgoutputs_out="${cfgoutputs_out} include/jemalloc/internal/jemalloc_internal.h"
 cfgoutputs_out="${cfgoutputs_out} test/test.sh"
 cfgoutputs_out="${cfgoutputs_out} test/include/test/jemalloc_test.h"
@@ -560,22 +570,23 @@ cfgoutputs_tup="${cfgoutputs_tup} doc/manpages.xsl:doc/manpages.xsl.in"
 cfgoutputs_tup="${cfgoutputs_tup} doc/jemalloc.xml:doc/jemalloc.xml.in"
 cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_macros.h:include/jemalloc/jemalloc_macros.h.in"
 cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_protos.h:include/jemalloc/jemalloc_protos.h.in"
+cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/jemalloc_typedefs.h:include/jemalloc/jemalloc_typedefs.h.in"
 cfgoutputs_tup="${cfgoutputs_tup} include/jemalloc/internal/jemalloc_internal.h"
 cfgoutputs_tup="${cfgoutputs_tup} test/test.sh:test/test.sh.in"
 cfgoutputs_tup="${cfgoutputs_tup} test/include/test/jemalloc_test.h:test/include/test/jemalloc_test.h.in"
 
-cfghdrs_in="${srcroot}include/jemalloc/jemalloc_defs.h.in"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/jemalloc_internal_defs.h.in"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/private_namespace.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/private_unnamespace.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/private_symbols.txt"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/public_namespace.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/public_unnamespace.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/internal/size_classes.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/jemalloc_rename.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/jemalloc_mangle.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}include/jemalloc/jemalloc.sh"
-cfghdrs_in="${cfghdrs_in} ${srcroot}test/include/test/jemalloc_test_defs.h.in"
+cfghdrs_in="include/jemalloc/jemalloc_defs.h.in"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/jemalloc_internal_defs.h.in"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/private_namespace.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/private_unnamespace.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/private_symbols.txt"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/public_namespace.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/public_unnamespace.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/internal/size_classes.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc_rename.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc_mangle.sh"
+cfghdrs_in="${cfghdrs_in} include/jemalloc/jemalloc.sh"
+cfghdrs_in="${cfghdrs_in} test/include/test/jemalloc_test_defs.h.in"
 
 cfghdrs_out="include/jemalloc/jemalloc_defs.h"
 cfghdrs_out="${cfghdrs_out} include/jemalloc/jemalloc${install_suffix}.h"
@@ -593,8 +604,8 @@ cfghdrs_out="${cfghdrs_out} include/jemalloc/internal/jemalloc_internal_defs.h"
 cfghdrs_out="${cfghdrs_out} test/include/test/jemalloc_test_defs.h"
 
 cfghdrs_tup="include/jemalloc/jemalloc_defs.h:include/jemalloc/jemalloc_defs.h.in"
-cfghdrs_tup="${cfghdrs_tup} include/jemalloc/internal/jemalloc_internal_defs.h:${srcroot}include/jemalloc/internal/jemalloc_internal_defs.h.in"
-cfghdrs_tup="${cfghdrs_tup} test/include/test/jemalloc_test_defs.h:${srcroot}test/include/test/jemalloc_test_defs.h.in"
+cfghdrs_tup="${cfghdrs_tup} include/jemalloc/internal/jemalloc_internal_defs.h:include/jemalloc/internal/jemalloc_internal_defs.h.in"
+cfghdrs_tup="${cfghdrs_tup} test/include/test/jemalloc_test_defs.h:test/include/test/jemalloc_test_defs.h.in"
 
 dnl Silence irrelevant compiler warnings by default.
 AC_ARG_ENABLE([cc-silence],
@@ -1028,7 +1039,7 @@ dnl Set VERSION if source directory has an embedded git repository.
 if test -d "${srcroot}.git" ; then
   git describe --long --abbrev=40 > ${srcroot}VERSION
 fi
-jemalloc_version=`cat ${srcroot}VERSION`
+jemalloc_version=`cat ${srcroot}VERSION 2>/dev/null`
 jemalloc_version_major=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]1}'`
 jemalloc_version_minor=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]2}'`
 jemalloc_version_bugfix=`echo ${jemalloc_version} | tr ".g-" " " | awk '{print [$]3}'`
@@ -1055,28 +1066,49 @@ fi
 
 CPPFLAGS="$CPPFLAGS -D_REENTRANT"
 
+dnl The force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb
+dnl checks for FreeBSD assume that jemalloc is being built as a libc malloc
+dnl replacement. If jemalloc is being built for a different purpose, these checks
+dnl can be ovverridden with --disable-bsd-malloc-hooks.
+AC_ARG_ENABLE([bsd-malloc-hooks], [AS_HELP_STRING([--disable-bsd-malloc-hooks],
+  [Disable force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb checks])],
+[if test "x$enable_bsd_malloc_hooks" = "xno" ; then
+    AC_DEFINE([JEMALLOC_DISABLE_BSD_MALLOC_HOOKS], [ ])
+  enable_bsd_malloc_hooks="0"
+  force_lazy_lock="0"
+else
+  enable_bsd_malloc_hooks="1"
+fi
+],
+[enable_bsd_malloc_hooks="1"]
+)
+
 dnl Check whether the BSD-specific _malloc_thread_cleanup() exists.  If so, use
 dnl it rather than pthreads TSD cleanup functions to support cleanup during
 dnl thread exit, in order to avoid pthreads library recursion during
 dnl bootstrapping.
-AC_CHECK_FUNC([_malloc_thread_cleanup],
-              [have__malloc_thread_cleanup="1"],
-              [have__malloc_thread_cleanup="0"]
-             )
-if test "x$have__malloc_thread_cleanup" = "x1" ; then
-  AC_DEFINE([JEMALLOC_MALLOC_THREAD_CLEANUP], [ ])
-  force_tls="1"
+if test "x$enable_bsd_malloc_hooks" = "x1" ; then
+  AC_CHECK_FUNC([_malloc_thread_cleanup],
+                [have__malloc_thread_cleanup="1"],
+                [have__malloc_thread_cleanup="0"]
+               )
+  if test "x$have__malloc_thread_cleanup" = "x1" ; then
+    AC_DEFINE([JEMALLOC_MALLOC_THREAD_CLEANUP], [ ])
+    force_tls="1"
+  fi
 fi
 
 dnl Check whether the BSD-specific _pthread_mutex_init_calloc_cb() exists.  If
 dnl so, mutex initialization causes allocation, and we need to implement this
 dnl callback function in order to prevent recursive allocation.
-AC_CHECK_FUNC([_pthread_mutex_init_calloc_cb],
-              [have__pthread_mutex_init_calloc_cb="1"],
-              [have__pthread_mutex_init_calloc_cb="0"]
-             )
-if test "x$have__pthread_mutex_init_calloc_cb" = "x1" ; then
-  AC_DEFINE([JEMALLOC_MUTEX_INIT_CB])
+if test "x$enable_bsd_malloc_hooks" = "x1" ; then
+  AC_CHECK_FUNC([_pthread_mutex_init_calloc_cb],
+                [have__pthread_mutex_init_calloc_cb="1"],
+                 [have__pthread_mutex_init_calloc_cb="0"]
+              )
+  if test "x$have__pthread_mutex_init_calloc_cb" = "x1" ; then
+    AC_DEFINE([JEMALLOC_MUTEX_INIT_CB])
+  fi
 fi
 
 dnl Disable lazy locking by default.
@@ -1104,6 +1136,8 @@ if test "x$enable_lazy_lock" = "x1" ; then
       ])
   fi
   AC_DEFINE([JEMALLOC_LAZY_LOCK], [ ])
+else
+  enable_lazy_lock="0"
 fi
 AC_SUBST([enable_lazy_lock])
 

@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -35,22 +35,248 @@
 # RUNTESTS -- setup the environment and run each test
 #
 
-# make sure we have a well defined locale for string operations here
-export LC_ALL="C"
-
 #
 # usage -- print usage message and exit
 #
 usage()
 {
 	[ "$1" ] && echo Error: $1
-	cat <<EOF
-Usage: $0 [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [tests...]
-    build-types: debug, nondebug, static-debug, static-nondebug, all (default)
-     test-types: check (default), short, long
-       fs-types: local, pmem, non-pmem, all (default)
+	cat >&2 <<EOF
+Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+		[ -o timeout ] [ -s test-file ] [-k skip-dir ]
+		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+		[ -q provider ] [ -r persistency-method ]
+		[tests...]
+-h			print this help message
+-n			dry run
+-v			be verbose
+-b build-type		run only specified build type
+			build-type: debug, nondebug, static-debug, static-nondebug, all (default)
+-t test-type		run only specified test type
+			test-type: check (default), short, medium, long, all
+			where: check = short + medium; all = short + medium + long
+-k skip-dir		skip a specific test directory
+-f fs-type		run tests only on specified file systems
+			fs-type: pmem, non-pmem, any, none, all (default)
+-o timeout		set timeout for test execution
+			timeout: floating point number with an optional suffix: 's' for seconds
+			(the default), 'm' for minutes, 'h' for hours or 'd' for days.
+			Default value is 3 minutes.
+-s test-file		run only specified test file
+			test-file: all (default), TEST0, TEST1, ...
+-m memcheck		run tests with memcheck
+			memcheck: auto (default, enable/disable based on test requirements),
+			force-enable (enable when test does not require memcheck, but
+			obey test's explicit memcheck disable)
+-p pmemcheck		run tests with pmemcheck
+			pmemcheck: auto (default, enable/disable based on test requirements),
+			force-enable (enable when test does not require pmemcheck, but
+			obey test's explicit pmemcheck disable)
+-e helgrind		run tests with helgrind
+			helgrind: auto (default, enable/disable based on test requirements),
+			force-enable (enable when test does not require helgrind, but
+			obey test's explicit helgrind disable)
+-d drd			run tests with drd
+			drd: auto (default, enable/disable based on test requirements),
+			force-enable (enable when test does not require drd, but
+			obey test's explicit drd disable)
+-c			check pool files with pmempool check utility
+-q provider		run test only with specified fabric provider
+			provider: verbs, sockets, all (default)
+-r persistency-method	run tests only with specified persistency method
+			persistency-method: GPSPM, APM, all (default)
 EOF
 	exit 1
+}
+
+#
+# runtest_local -- run test using provided parameters
+#
+runtest_local() {
+	export CLEAN_FAILED_REMOTE=n
+
+	local verbose_old=-1
+	for vt in ${verbose_tests//:/ }; do
+		[ "$RUNTEST_DIR" == "$vt" ] && {
+			verbose_old=$verbose
+			verbose=1
+		}
+	done
+
+	if [ "$dryrun" ]
+	then
+		echo "(in ./$RUNTEST_DIR) $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
+	elif [ "$use_timeout" -a "$testtype" = "check" ]
+	then
+		# set timeout for "check" tests
+		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) \
+			$RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
+		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS timeout \
+			--foreground $killopt $RUNTEST_TIMEOUT ./$RUNTEST_SCRIPT"
+		eval "$CMD_STR"
+	else
+		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) $params ./$script"
+		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
+		eval "$CMD_STR"
+	fi
+
+	retval=$?
+	errmsg='failed'
+	[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
+	[ $retval != 0 ] && {
+		[ -t 2 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
+		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
+		if [ "$keep_going" == "y" ]; then
+			keep_going_exit_code=1
+			fail_list="$fail_list $RUNTEST_DIR/$RUNTEST_SCRIPT"
+			((fail_count+=1))
+
+			if [ "$CLEAN_FAILED" == "y" ]; then
+				if [[ $CMD_STR == *"RPMEM_PROVIDER"* ]]; then
+					export CLEAN_FAILED_REMOTE=y
+					eval "$CMD_STR"
+				fi
+				dir_rm=$(<$TEMP_LOC)
+				rm -Rf $dir_rm
+				if [ $? -eq 0 ]; then
+					echo -e "Removed directory with data: $dir_rm"
+				fi
+			fi
+		else
+			exit 1
+		fi
+	}
+	rm -f $TEMP_LOC
+
+	[ "$verbose_old" != "-1" ] && verbose=$verbose_old
+
+	return 0
+}
+
+#
+# runtest_remote -- add remote persistency parameters and run a test
+#	usage: runtest_remote <provider> <persistency-method>
+#
+runtest_remote() {
+	local params="$RUNTEST_PARAMS"
+	for prov in $1; do
+		for pm in $2; do
+			export RUNTEST_PARAMS="$params RPMEM_PROVIDER=$prov RPMEM_PM=$pm"
+			runtest_local
+		done
+	done
+}
+
+#
+# load_default_global_test_configuration -- load a default global configuration
+#
+load_default_global_test_configuration() {
+	global_req_testtype=all
+	global_req_fstype=all
+	global_req_buildtype=all
+	global_req_provider=none
+	global_req_pmethod=none
+	global_req_rpmem_valgrind=n
+	global_req_timeout='3m'
+
+	return 0
+}
+
+# switch_hyphen -- substitute hyphen for underscores
+switch_hyphen() {
+	echo ${1//-/_}
+}
+
+#
+# read_global_test_configuration -- read a global configuration from a test
+#	config file and overwrite a global configuration
+#
+read_global_test_configuration() {
+	if [ ! -e "config.sh" ]; then
+		return
+	fi
+
+	# unset all global settings
+	unset CONF_GLOBAL_TEST_TYPE
+	unset CONF_GLOBAL_FS_TYPE
+	unset CONF_GLOBAL_BUILD_TYPE
+	unset CONF_GLOBAL_RPMEM_PROVIDER
+	unset CONF_GLOBAL_RPMEM_PMETHOD
+	unset CONF_GLOBAL_RPMEM_VALGRIND
+	unset CONF_GLOBAL_TIMEOUT
+
+	# unset all local settings
+	unset CONF_TEST_TYPE
+	unset CONF_FS_TYPE
+	unset CONF_BUILD_TYPE
+	unset CONF_RPMEM_PROVIDER
+	unset CONF_RPMEM_PMETHOD
+	unset CONF_RPMEM_VALGRIND
+	unset CONF_TIMEOUT
+
+	. config.sh
+
+	[ -n "$CONF_GLOBAL_TEST_TYPE" ] && global_req_testtype=$CONF_GLOBAL_TEST_TYPE
+	[ -n "$CONF_GLOBAL_FS_TYPE" ] && global_req_fstype=$CONF_GLOBAL_FS_TYPE
+	[ -n "$CONF_GLOBAL_BUILD_TYPE" ] && global_req_buildtype=$CONF_GLOBAL_BUILD_TYPE
+	[ -n "$CONF_GLOBAL_RPMEM_PROVIDER" ] && global_req_provider=$CONF_GLOBAL_RPMEM_PROVIDER
+	[ -n "$CONF_GLOBAL_RPMEM_PMETHOD" ] && global_req_pmethod=$CONF_GLOBAL_RPMEM_PMETHOD
+	[ -n "$CONF_GLOBAL_RPMEM_VALGRIND" ] && global_req_rpmem_valgrind=$CONF_GLOBAL_RPMEM_VALGRIND
+	[ -n "$CONF_GLOBAL_TIMEOUT" ] && global_req_timeout=$CONF_GLOBAL_TIMEOUT
+
+	return 0
+}
+
+#
+# read_test_configuration -- generate a test configuration from a global
+#	configuration and a test configuration read from a test config file
+#	usage: read_test_configuration <test-id>
+#
+read_test_configuration() {
+	req_testtype=$global_req_testtype
+	req_fstype=$global_req_fstype
+	req_buildtype=$global_req_buildtype
+	req_provider=$global_req_provider
+	req_pmethod=$global_req_pmethod
+	req_rpmem_valgrind=$global_req_rpmem_valgrind
+	req_timeout=$global_req_timeout
+
+	[ -n "${CONF_TEST_TYPE[$1]}" ] && req_testtype=${CONF_TEST_TYPE[$1]}
+	[ -n "${CONF_FS_TYPE[$1]}" ] && req_fstype=${CONF_FS_TYPE[$1]}
+	[ -n "${CONF_BUILD_TYPE[$1]}" ] && req_buildtype=${CONF_BUILD_TYPE[$1]}
+	[ -n "${CONF_RPMEM_PROVIDER[$1]}" ] && req_provider=${CONF_RPMEM_PROVIDER[$1]}
+	[ -n "${CONF_RPMEM_PMETHOD[$1]}" ] && req_pmethod=${CONF_RPMEM_PMETHOD[$1]}
+	[ -n "${CONF_RPMEM_VALGRIND[$1]}" ] && req_rpmem_valgrind=${CONF_RPMEM_VALGRIND[$1]}
+	if [ -n "$runtest_timeout" ]; then
+		req_timeout="$runtest_timeout"
+	else
+		[ -n "${CONF_TIMEOUT[$1]}" ] && req_timeout=${CONF_TIMEOUT[$1]}
+	fi
+
+	special_params=
+	[ "$req_fstype" == "none" -o "$req_fstype" == "any" ] && \
+		special_params="req_fs_type=1"
+
+	return 0
+}
+
+#
+# intersection -- return common elements of collection of available and required
+#	values
+#	usage: intersection <available> <required> <complete-collection>
+#
+intersection() {
+	collection=$1
+	[ "$collection" == "all" ] && collection=$3
+	[ "$2" == "all" ] && echo $collection && return
+	for e in $collection; do
+		for r in $2; do
+			[ "$e" == "$r" ] && {
+				subset="$subset $e"
+			}
+		done
+	done
+	echo $subset
 }
 
 #
@@ -58,60 +284,89 @@ EOF
 #
 runtest() {
 	export UNITTEST_QUIET=1
+	[ -f "$1/TEST0" ] || {
+		echo FAIL: $1: test not found. >&2
+		exit 1
+	}
 	[ -x "$1/TEST0" ] || {
-		echo FAIL: $1: test not found.
+		echo FAIL: $1: test not executable. >&2
 		exit 1
 	}
 
 	cd $1
 
-	#
-	# make list of fs-types and build-types to test
-	#
-	fss=$fstype
-	[ "$fss" = all ] && fss="local pmem non-pmem"
-	builds=$buildtype
-	[ "$builds" = all ] && builds="debug nondebug static-debug static-nondebug"
+	load_default_global_test_configuration
+	read_global_test_configuration
 
-	# for each fs-type being tested...
-	for fs in $fss
+	runscripts=$testfile
+	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V`
+
+	# for each TEST script found...
+	for runscript in $runscripts
 	do
-		# don't bother trying when fs-type isn't available...
-		[ "$fs" = local -a -z "$LOCAL_FS_DIR" ] && {
-			local_skip=1
-			continue
-		}
-		[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
-			pmem_skip=1
-			continue
-		}
-		[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
-			non_pmem_skip=1
+		UNITTEST_NAME="$1/$runscript"
+		local sid=${runscript#TEST}
+		read_test_configuration $sid
+
+		ttype=$(intersection "$testtype" "$req_testtype" "short medium long check")
+		[ -z "$ttype" ] && {
 			continue
 		}
 
-		[ "$verbose" ] && echo RUNTESTS: Testing fs-type: $fs...
-		# for each build-type being tested...
-		for build in $builds
+		[ "$req_rpmem_valgrind" == "y" -a "$RPMEM_VALGRIND_ENABLED" != "y" ] && {
+			echo "$UNITTEST_NAME: SKIP: remote valgrind tests disabled"
+			continue
+		}
+
+		fss=$(intersection "$fstype" "$req_fstype" "none pmem non-pmem any")
+		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static-debug static-nondebug")
+		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
+		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
+
+		# skip remote test if required providers or persistency methods are missing
+		[[ ( -n "$provs" && -z "$pmeths" ) || ( -z "$provs" && -n "$pmeths" ) ]] && continue
+
+		# for each fs-type being tested...
+		for fs in $fss
 		do
-			[ "$verbose" ] && echo RUNTESTS: Testing build-type: $build...
-			# for each TEST script found...
-			for runscript in `ls -1 TEST* | sort -V`
+			# don't bother trying when fs-type isn't available...
+			[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
+				pmem_skip=1
+				continue
+			}
+
+			[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
+				non_pmem_skip=1
+				continue
+			}
+
+			[ "$fs" = any -a -z "$PMEM_FS_DIR" -a -z "$NON_PMEM_FS_DIR" ] && {
+				continue
+			}
+
+
+			# for each build-type being tested...
+			for build in $builds
 			do
-				if [ "$dryrun" ]
-				then
-					echo "(in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-				else
-					[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$1) TEST=$testtype FS=$fs BUILD=$build ./$runscript"
-					TEST=$testtype FS=$fs BUILD=$build ./$runscript
+				export RUNTEST_DIR=$1
+				export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build"
+				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
+					$special_params"
+				export RUNTEST_SCRIPT="$runscript"
+				export RUNTEST_TIMEOUT="$req_timeout"
+
+				if [ "$KEEP_GOING" == "y" ] && [ "$CLEAN_FAILED" == "y" ]; then
+					# temporary file used for sharing data
+					# between RUNTESTS and tests processes
+					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
+					export TEMP_LOC=$temp_loc
 				fi
 
-				[ $? != 0 ] && {
-					echo RUNTESTS: stopping:
-					echo "    $1/$runscript failed"
-					echo "    TEST=$testtype FS=$fs BUILD=$build"
-					exit 1
-				}
+				if [ -n "$provs" -a -n "$pmeths" ]; then
+					runtest_remote "$provs" "$pmeths"
+				else
+					runtest_local
+				fi
 			done
 		done
 	done
@@ -120,11 +375,11 @@ runtest() {
 }
 
 [ -f testconfig.sh ] || {
-	cat <<EOF
+	cat >&2 <<EOF
 RUNTESTS: stopping because no testconfig.sh is found.
-          to create one:
-               cp testconfig.sh.example testconfig.sh
-          and edit testconfig.sh to describe the local machine configuration.
+		  to create one:
+			   cp testconfig.sh.example testconfig.sh
+		  and edit testconfig.sh to describe the local machine configuration.
 EOF
 	exit 1
 }
@@ -134,21 +389,53 @@ EOF
 #
 # defaults...
 #
-buildtype=all
+def_buildtype=all
 testtype=check
 fstype=all
+provider=all
+pmethod=all
+testconfig="./testconfig.sh"
+killopt="-k 10s"
+runtest_timeout="3m"
+use_timeout="ok"
+testfile=all
+check_pool=0
+checktype="none"
+skip_dir=""
+keep_going=n
+keep_going_exit_code=0
+fail_count=0
+fail_list=""
+verbose_tests=
+
+#
+# some of defaults can be overwritten with environment variables
+# (placed e.g. in testconfig.sh)
+#
+[ -n "$TEST_BUILD" ] && def_buildtype=$TEST_BUILD
+[ -n "$TEST_TYPE" ] && testtype=$TEST_TYPE
+[ -n "$TEST_FS" ] && fstype=$TEST_FS
+[ -n "$TEST_TIMEOUT" ] && runtest_timeout=$TEST_TIMEOUT
+[ -n "$TEST_PROVIDERS" ] && provider=$TEST_PROVIDERS
+[ -n "$TEST_PMETHODS" ] && pmethod=$TEST_PMETHODS
+[ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
+[ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
 #
 # command-line argument processing...
 #
-args=`getopt nvb:t:f: $*`
+args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
 do
+	receivetype=auto
 	case "$arg"
 	in
-
+	-k)
+		skip_dir="$skip_dir $2"
+		shift 2
+		;;
 	-n)
 		dryrun=1
 		shift
@@ -158,9 +445,8 @@ do
 		shift
 		;;
 	-b)
-		buildtype="$2"
-		shift 2
-		case "$buildtype"
+		buildtype="$buildtype $2"
+		case "$2"
 		in
 		debug|nondebug|static-debug|static-nondebug|all)
 			;;
@@ -168,13 +454,14 @@ do
 			usage "bad build-type: $buildtype"
 			;;
 		esac
+		shift 2
 		;;
 	-t)
 		testtype="$2"
 		shift 2
 		case "$testtype"
 		in
-		check|short|long)
+		short|medium|long|check|all)
 			;;
 		*)
 			usage "bad test-type: $testtype"
@@ -186,10 +473,130 @@ do
 		shift 2
 		case "$fstype"
 		in
-		local|pmem|non-pmem|all)
+		none|pmem|non-pmem|any)
+			# necessary to treat "any" as either pmem or non-pmem with "-f"
+			export FORCE_FS=1
+			;;
+		all)
 			;;
 		*)
 			usage "bad fs-type: $fstype"
+			;;
+		esac
+		;;
+	-m)
+		receivetype="$2"
+		shift 2
+		case "$receivetype"
+		in
+		auto)
+			;;
+		force-enable)
+			if [ "$checktype" != "none" ]
+			then
+				usage "cannot force-enable two test types at the same time"
+			else
+				checktype="memcheck"
+			fi
+			;;
+		*)
+			usage "bad memcheck: $receivetype"
+			;;
+		esac
+		;;
+	-p)
+		receivetype="$2"
+		shift 2
+		case "$receivetype"
+		in
+		auto)
+			;;
+		force-enable)
+			if [ "$checktype" != "none" ]
+			then
+				usage "cannot force-enable two test types at the same time"
+			else
+				checktype="pmemcheck"
+			fi
+			;;
+		*)
+			usage "bad pmemcheck: $receivetype"
+			;;
+		esac
+		;;
+	-e)
+		receivetype="$2"
+		shift 2
+		case "$receivetype"
+		in
+		auto)
+			;;
+		force-enable)
+			if [ "$checktype" != "none" ]
+			then
+				usage "cannot force-enable two test types at the same time"
+			else
+				checktype="helgrind"
+			fi
+			;;
+		*)
+			usage "bad helgrind: $receivetype"
+			;;
+		esac
+		;;
+	-d)
+		receivetype="$2"
+		shift 2
+		case "$receivetype"
+		in
+		auto)
+			;;
+		force-enable)
+			if [ "$checktype" != "none" ]
+			then
+				usage "cannot force-enable two test types at the same time"
+			else
+				checktype="drd"
+			fi
+			;;
+		*)
+			usage "bad drd: $receivetype"
+			;;
+		esac
+		;;
+	-o)
+		runtest_timeout="$2"
+		shift 2
+		;;
+	-s)
+		testfile="$2"
+		shift 2
+		;;
+	-c)
+		check_pool=1
+		shift
+		;;
+	-q)
+		provider="$2"
+		shift 2
+		case "$provider"
+		in
+		verbs|sockets|all)
+			;;
+		*)
+			usage "bad provider: $provider"
+			;;
+		esac
+		;;
+	-r)
+		pmethod="$2"
+		shift 2
+		case "$pmethod"
+		in
+		GPSPM|APM|all)
+			;;
+		*)
+			usage "bad persistency-method: $pmethod"
 			;;
 		esac
 		;;
@@ -199,6 +606,32 @@ do
 		;;
 	esac
 done
+
+[ -z "$buildtype" ] && buildtype=$def_buildtype
+[[ $buildtype =~ .*all.* ]] && buildtype=all
+
+# parse MAKEFLAGS variable
+[ -n "$MAKEFLAGS" ] && {
+	# extract flags from variable
+	FLAGS=
+	for flag in $MAKEFLAGS; do
+		[ "$flag" == "--" ] && break
+		FLAGS+="$flag"
+	done
+
+	[ -n "$FLAGS" ] && {
+		# apply supported flags
+		for i in $(seq ${#FLAGS}); do
+			case "${FLAGS:i-1:1}"
+			in
+			k)
+				keep_going=y
+				;;
+			esac
+		done
+	}
+}
+
 [ "$verbose" ] && {
 	echo -n Options:
 	[ "$dryrun" ] && echo -n ' -n'
@@ -207,25 +640,59 @@ done
 	echo "    build-type: $buildtype"
 	echo "    test-type: $testtype"
 	echo "    fs-type: $fstype"
+	echo "    check-type: $checktype"
+	if [ "$check_pool" ]
+	then
+		check_pool_str="yes"
+	else
+		check_pool_str="no"
+	fi
+	echo "    check-pool: $check_pool_str"
+	echo "    provider: $provider"
+	echo "    persistency-method: $pmethod"
+	echo "    skip-dir: $skip_dir"
 	echo Tests: $*
 }
 
-echo RUNTESTS: test-type: $testtype
+# check if timeout supports "-k" option
+timeout -k 1s 1s true &>/dev/null
+if [ $? != 0 ]; then
+	unset killopt
+fi
+
+# check if timeout can be run in the foreground
+timeout --foreground 1s true &>/dev/null
+if [ $? != 0 ]; then
+	unset use_timeout
+fi
+
+if [ -n "$TRACE" ]; then
+	unset use_timeout
+fi
 
 if [ "$1" ]; then
 	for test in $*
 	do
-		runtest $test
+		[ -d "$test" ] || echo "RUNTESTS: Test does not exist: $test"
+		[ -f "$test/TEST0" ] && runtest $test
 	done
 else
 	# no arguments means run them all
-	for testdir in */TEST0
+	for testfile0 in */TEST0
 	do
-		runtest `dirname $testdir`
+		testdir=`dirname $testfile0`
+		if [[ "$skip_dir" =~ "$testdir" ]]; then
+			echo "RUNTESTS: Skipping: $testdir"
+			continue
+		fi
+		runtest $testdir
 	done
 fi
-[ "$local_skip" ] && echo "SKIPPED fs-type \"local\" runs: testconfig.sh doesn't set LOCAL_FS_DIR"
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
-[ "$dryrun" ] || echo RUNTESTS: No failures.
-exit 0
+if [ "$fail_count" != "0" ]; then
+	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0) $fail_list"
+	exit $keep_going_exit_code
+else
+	exit 0
+fi

@@ -1,0 +1,10 @@
+util_is_absolute/TEST1: START: util_is_absolute
+ $(nW)util_is_absolute$(nW) C:\foo\bar \foo\bar foo\bar D:\foo\bar /foo/bar e: E:\
+"C:\foo\bar" - 1
+"\foo\bar" - 1
+"foo\bar" - 0
+"D:\foo\bar" - 1
+"/foo/bar" - 0
+"e:" - 1
+"E:\" - 1
+util_is_absolute/TEST1: DONE

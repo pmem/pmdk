@@ -1,5 +1,0 @@
-vmem_fork/TEST2: START: vmem_fork
- ./vmem_fork$(nW) 1
-Finish Child
-Finish Parent
-vmem_fork/TEST2: Done

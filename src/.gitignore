@@ -1,8 +1,21 @@
 *.so
 *.so.*
 *.a
+*.pc
 tags
 TAGS
 cscope.in.out
 cscope.out
 cscope.po.out
+debug/
+nondebug/
+*.sdf
+*.opensdf
+*.opendb
+*.log
+*.suo
+*.vcxproj.user
+.vs/
+x64/
+Generated files/
+srcversion.h

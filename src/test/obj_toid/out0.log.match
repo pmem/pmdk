@@ -1,0 +1,3 @@
+obj_toid$(nW)TEST0: START: obj_toid
+ $(nW)obj_toid$(nW) $(nW)testfile1
+obj_toid$(nW)TEST0: DONE

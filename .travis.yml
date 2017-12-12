@@ -1,9 +1,38 @@
+dist: trusty
+# use temporarily the previous version of Trusty image
+# until Travis fixes issue with mounting permissions
+group: deprecated-2017Q2
+
+sudo: required
+
 language: c
-compiler:
-  - clang
-  - gcc
+
+services:
+  - docker
+
+env:
+  matrix:
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 TEST_BUILD=debug COVERAGE=1
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 TEST_BUILD=debug
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 TEST_BUILD=nondebug
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ USE_LLVM_LIBCPP=1 LIBCPP_LIBDIR=/usr/local/libcxx/lib LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 OS=ubuntu OS_VER=16.04 TEST_BUILD=debug
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ USE_LLVM_LIBCPP=1 LIBCPP_LIBDIR=/usr/local/libcxx/lib LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 OS=ubuntu OS_VER=16.04 TEST_BUILD=nondebug
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ USE_LLVM_LIBCPP=1 LIBCPP_LIBDIR=/usr/local/libcxx/lib LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 OS=fedora OS_VER=25 TEST_BUILD=debug
+    - MAKE_PKG=0 EXTRA_CFLAGS=-DUSE_VALGRIND REMOTE_TESTS=1 NVML_CC=clang NVML_CXX=clang++ USE_LLVM_LIBCPP=1 LIBCPP_LIBDIR=/usr/local/libcxx/lib LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 OS=fedora OS_VER=25 TEST_BUILD=nondebug
+    - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
+    - MAKE_PKG=1 NVML_CC=clang NVML_CXX=clang++ OS=ubuntu OS_VER=16.04 EXPERIMENTAL=y
+    - MAKE_PKG=1 NVML_CC=gcc NVML_CXX=g++ OS=fedora OS_VER=25 EXPERIMENTAL=y
+    - COVERITY=1 REMOTE_TESTS=1 NVML_CC=gcc NVML_CXX=g++ OS=ubuntu OS_VER=16.04
+
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y uuid-dev valgrind
-  - cp src/test/testconfig.sh.example src/test/testconfig.sh
-script: make cstyle && make && make test && make check
+  - export HOST_WORKDIR=`pwd`
+  - cd utils/docker
+  - ./pull-or-rebuild-image.sh
+  - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
+  - rm -f push_image_to_repo_flag
+
+script:
+  - ./build-travis.sh
+
+after_success:
+  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS-$OS_VER; fi

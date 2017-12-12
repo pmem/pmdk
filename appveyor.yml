@@ -1,0 +1,88 @@
+version: 1.2.{build}
+os: Visual Studio 2015
+platform: x64
+
+install:
+- ps: Install-PackageProvider -Name NuGet -Force
+- ps: Install-Module PsScriptAnalyzer -Force
+
+configuration:
+- Debug
+- Release
+- Setup
+
+environment:
+    solutionname: NVML.sln
+
+matrix:
+  fast_finish: true
+
+before_build:
+- ps: >-
+    if ($Env:CONFIGURATION -eq "Debug") {
+        utils/CSTYLE.ps1
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
+        utils/CHECK_WHITESPACE.ps1
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
+        utils/ps_analyze.ps1
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
+        perl utils/sort_solution check
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
+    }
+
+build_script:
+- ps: >-
+    if ($Env:CONFIGURATION -ne "Setup") {
+        msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
+    } else {
+        msbuild src\$Env:solutionname /property:Configuration=Debug /m /v:m
+        msbuild src\$Env:solutionname /property:Configuration=Release /m /v:m
+        $Env:DEVENV="$Env:VS140COMNTOOLS\..\IDE\devenv.com"
+        &$Env:DEVENV src\$Env:solutionname /build Release /project src\windows\setup\setup.vdproj
+    }
+
+after_build:
+- ps: >-
+    if ($Env:CONFIGURATION -eq "Setup") {
+        PowerShell -File "src\windows\setup\OUTPUT_MSI.PS1" `
+        -projectdir ((Get-Location).Path+"\src\windows\setup")`
+        -configuration $Env:CONFIGURATION
+    } else {
+        utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
+    }
+
+test_script:
+- ps: >-
+    if ($Env:CONFIGURATION -ne "Setup") {
+        cd src/test
+        md C:\temp
+        echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
+        echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
+        echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
+        echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
+        echo "`$Env:TM = `"1`"" >> testconfig.ps1
+    }
+    if ($Env:CONFIGURATION -eq "Debug") {
+        ./RUNTESTS.ps1 -b debug -o 4m
+    }
+    if ($Env:CONFIGURATION -eq "Release") {
+        ./RUNTESTS.ps1 -b nondebug -o 4m
+    }
+
+artifacts:
+- path: 'src\windows\setup\*.msi'
+  name: NVML_msi
+
+- path: 'src\x64\*.zip'
+  name: NVML
+  
+- path: '*examples*.zip'
+  name: NVML_examples

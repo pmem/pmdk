@@ -1,0 +1,5 @@
+Non-Volatile Memory Library
+
+This is src/test/pmempool_api_win/README.
+
+This directory contains a unit test for API of libpmempool check.

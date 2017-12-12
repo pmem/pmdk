@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST23: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) o $(nW)testfile NULL
+$(nW)testfile: pmemcto_open: Invalid argument
+cto_pool$(nW)TEST23: DONE

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -40,51 +40,16 @@
  * See libpmemobj(3) for details.
  */
 
-#ifndef	LIBPMEMOBJ_H
-#define	LIBPMEMOBJ_H 1
+#ifndef LIBPMEMOBJ_H
+#define LIBPMEMOBJ_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <libpmemobj/action.h>
+#include <libpmemobj/atomic.h>
+#include <libpmemobj/ctl.h>
+#include <libpmemobj/iterator.h>
+#include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/pool.h>
+#include <libpmemobj/thread.h>
+#include <libpmemobj/tx.h>
 
-#include <sys/types.h>
-
-/*
- * opaque type internal to libpmemobj
- */
-typedef struct pmemobjpool PMEMobjpool;
-
-/*
- * PMEMOBJ_MAJOR_VERSION and PMEMOBJ_MINOR_VERSION provide the current version
- * of the libpmemobj API as provided by this header file.  Applications can
- * verify that the version available at run-time is compatible with the version
- * used at compile-time by passing these defines to pmemobj_check_version().
- */
-#define	PMEMOBJ_MAJOR_VERSION 1
-#define	PMEMOBJ_MINOR_VERSION 0
-const char *pmemobj_check_version(
-		unsigned major_required,
-		unsigned minor_required);
-
-#define	PMEMOBJ_MIN_POOL ((size_t)(1 << 21))	/* min pool size: 2MB */
-#define	PMEMOBJ_LAYOUT_MAX ((size_t)1024)
-
-PMEMobjpool *pmemobj_open(const char *path, const char *layout);
-PMEMobjpool *pmemobj_create(const char *path, const char *layout,
-		size_t poolsize, mode_t mode);
-void pmemobj_close(PMEMobjpool *pop);
-int pmemobj_check(const char *path, const char *layout);
-
-/*
- * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
- * default for that function.  The replacement functions must not make calls
- * back into libpmemobj.
- */
-void pmemobj_set_funcs(
-		void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr));
-
-#ifdef __cplusplus
-}
-#endif
 #endif	/* libpmemobj.h */

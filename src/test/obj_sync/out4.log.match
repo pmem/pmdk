@@ -1,0 +1,3 @@
+obj_sync$(nW)TEST4: START: obj_sync
+ $(nW)obj_sync$(nW) $(nW) $(N) $(N)
+obj_sync$(nW)TEST4: DONE

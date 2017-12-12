@@ -1,4 +1,4 @@
-Linux NVM Library
+Non-Volatile Memory Library
 
 This is src/test/README.
 
@@ -35,12 +35,11 @@ times with a different set of environment variables so run the test with
 different target file systems or different versions of the libraries.  To see
 how RUNTESTS will run a test, use the -n option.  For example:
 
-	$ RUNTESTS -n blk_nblock
-	RUNTESTS: test-type: check
-	(in ./blk_nblock) TEST=check FS=local BUILD=debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=local BUILD=nondebug ./TEST0
-	(in ./blk_nblock) TEST=check FS=local BUILD=static-debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=local BUILD=static-nondebug ./TEST0
+	$ RUNTESTS -n blk_nblock -s TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=static-debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=static-nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=pmem BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=pmem BUILD=nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=pmem BUILD=static-debug ./TEST0
@@ -49,6 +48,10 @@ how RUNTESTS will run a test, use the -n option.  For example:
 	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static-debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static-nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=static-debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=static-nondebug ./TEST0
 
 Notice how the TEST0 script is run repeatedly with different settings for
 the three environment variables TEST, FS, and BUILD, providing the test type,
@@ -56,22 +59,34 @@ file system type, and build type to test.
 
 RUNTESTS takes options to limit what it runs.  The usage is:
 
- RUNTESTS [ -nv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ] [test...]
+ RUNTESTS [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+	    [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
+	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+	    [ -q provider ] [ -r persistency-method ]
+	    [tests...]
 
  Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
- Test types are: check (default), short, long
- File system types are: local, pmem, non-pmem, all (default)
+ Test types are: check (default), short, medium, long, all
+		 where: check = short + medium; all = short + medium + long
+ File system types are: none, pmem, non-pmem, any, all (default)
+ Timeout is: a floating point number with an optional suffix: 's' for seconds
+		 (the default), 'm' for minutes, 'h' for hours or 'd' for days.
+		 Default value is 3 minutes.
+ Test file is: a name of the particular test script (test case).
+		 all (default), TEST0, TEST1, ...
+ Memcheck, helgrind, drd and pmemcheck modes are:
+		 auto (default, enable/disable based on test requirements),
+		 force-enable (enable when test does not require given valgrind tool,
+		 but obey test's explicit tool disable)
+ Providers are: verbs, sockets, all (default)
+ Persistency methods are: GPSPM, APM, all (default)
 
 For example:
 
-	$ RUNTESTS -b debug blk_nblock
-	RUNTESTS: test-type: check
-	blk_nblock/TEST0: SETUP (check/local/debug)
+	$ RUNTESTS -b debug blk_nblock -s TEST0
+	blk_nblock/TEST0: SETUP (check/pmem/debug)
 	blk_nblock/TEST0: START: blk_nblock
 	blk_nblock/TEST0: PASS
-	blk_nblock/TEST0: SKIP fs-type pmem (not configured)
-	blk_nblock/TEST0: SKIP fs-type non-pmem (local required)
-	RUNTESTS: No failures.
 
 Since the "-b debug" option was given, the RUNTESTS run above only executes
 the test for the debug version of the library and skips the other variants.
@@ -84,12 +99,12 @@ an issue.  Just running the script, like this:
 
 will use default values for the environment, namely:
 
-	TEST=check FS=local BUILD=debug
+	TEST=check FS=any BUILD=debug
 
 these defaults can be overridden on the command line:
 
 	$ cd blk_nblock
-	$ TEST=check FS=local BUILD=nondebug ./TEST0
+	$ TEST=check FS=any BUILD=nondebug ./TEST0
 
 The above example runs TEST0 with the nondebug library, just as using
 RUNTESTS with "-b nondebug" would from the parent directory.
@@ -107,11 +122,20 @@ unit test framework also looks for several other variables:
 
 		$ TRACE=strace ./TEST0
 
+	TRACE is not supported for tests which are executed on remote nodes.
+
 	Override the LD_LIBRARY_PATH provided by the unit test framework.  This
 	is useful for running a test against another source tree or against the
 	libraries installed on the system:
 
 		$ TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
+
+	Run test under Valgrind/memcheck:
+
+		$ MEMCHECK=force-enable ./TEST0
+
+	Display test run times:
+		$ TM=1 ./TEST0
 
 
 DETAILS ON HOW TO WRITE UNIT TESTS
@@ -126,10 +150,20 @@ In additional to TEST0, there can be as many TEST<num> scripts as desired, and
 RUNTESTS will execute them in numeric order for each of the test runs it
 executes.
 
-If a test only makes sense using the local directory, meaning it does not need
-an external file system or persistent memory, the script uses this line:
+There are two ways of setting test requirements:
+	- using config.sh file located in a test sub-directory. It is the new and
+	recommended method but it is still under development and does not cover all
+	possible requirements. It is applied prior to the second method. If
+	config.sh includes test requirements which are not met, the test will not be
+	run at all. For details see config.sh.example.
 
-	require_fs_type local
+	- using require_* utility functions. It is the old but still supported
+	method. It can be used simultaneously with config.sh. Available require_*
+	utility functions are described below.
+
+If a test does not need any storage, the script uses this line:
+
+	require_fs_type none
 
 Similarly, if the test only makes sense for pmem or non-pmem:
 
@@ -138,18 +172,26 @@ Similarly, if the test only makes sense for pmem or non-pmem:
 	require_fs_type non-pmem
 
 The above two are often combined to indicate the test should run once for pmem
-and once for non-pmem, but never with the local directory:
+and once for non-pmem:
 
 	require_fs_type pmem non-pmem
+
+If the test requires some storage, but does not care whether it's pmem or not:
+
+	require_fs_type any
+
+If both pmem and non-pmem are available, "any" means "pmem".
 
 Similar to the above, tests can require a specific build types:
 
 	require_build_type debug
 
 Most tests are short "make check" tests, designed to run quickly when
-smoke-checking a build.  Two other test types are available: short and long.  A
-test script can indicate it should only run during a long test run, for
-example, using:
+smoke-checking a build.
+Three test types are available: short, medium and long.
+Each test script must use require_test_type to indicate to which group
+of tests it belongs to.  For example, if it should only run during a long
+test run, it can use this line:
 
 	require_test_type long
 
@@ -176,14 +218,18 @@ author creates a file called out0.log.match and commits that into the repo.
 The match script provides several pattern-matching macros that allow for normal
 variation in the test output:
 
- 	$(N)	an integer (i.e. one or more decimal digits)
- 	$(FP)	a floating point number
+	$(N)	an integer (i.e. one or more decimal digits)
+	$(NC)	one or more decimal digits with optional comma separators
+	$(FP)	a floating point number
 	$(S)	ascii string
 	$(X)	hex number
 	$(W)	whitespace
+	$(nW)	non-whitespace
 	$(*)	any string
- 	$(DD)	output of a "dd" run
+	$(DD)	output of a "dd" run
 	$(OPT)	the entire line is optional
+	$(OPX)	ends a contiguous list of $(OPT)...$(OPX) lines, at least
+		one of which must match
 
 The small C programs used for unit testing are designed to not worry about the
 return values for things not under test.  This is done with the all-caps
@@ -218,4 +264,15 @@ pattern for creating new unit tests is to follow steps like these:
 
 When a "check" type test is run (the default), each test should try to limit
 the real execution time to a couple minutes or less.  "short" and "long"
-versions of the tests are encourages, especially for stress testing.
+versions of the tests are encouraged, especially for stress testing.
+
+PORTABILITY CONSIDERATIONS
+
+unittest.sh defines a number of macros to support portability across POSIX
+operating systems. See the Portability section of unittest.sh for details.
+
+When a matching line count of an output file is required, use "$GREP -c" rather
+than "$GREP | wc -l".
+
+Use canonical ordering of program options and arguments, i.e., put all options
+before any arguments. Not all operating systems support option reordering.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -35,18 +35,19 @@
  *
  * usage: vmem_pages_purging [-z] directory
  */
-
+#include <getopt.h>
 #include "unittest.h"
 #include "jemalloc/internal/jemalloc_internal.h"
 #include "jemalloc/internal/size_classes.h"
 
-#define	DEFAULT_COUNT	(SMALL_MAXCLASS/4)
-#define	DEFAULT_N	100
+#define DEFAULT_COUNT	(SMALL_MAXCLASS / 4)
+#define DEFAULT_N	100
 
-void
+static void
 usage(char *appname)
 {
-	FATAL("usage: %s [-z - use calloc] directory ", appname);
+	UT_FATAL("usage: %s <z - use calloc | \
+		n - do not use calloc> directory ", appname);
 }
 
 int
@@ -57,49 +58,48 @@ main(int argc, char *argv[])
 	int count = DEFAULT_COUNT;
 	int n = DEFAULT_N;
 	VMEM *vmp;
-	int opt;
 	int i, j;
 	int use_calloc = 0;
 
 	START(argc, argv, "vmem_pages_purging");
 
-	while ((opt = getopt(argc, argv, "z")) != -1) {
-		switch (opt) {
-		case 'z':
-			use_calloc = 1;
-			break;
-		default:
-			usage(argv[0]);
-		}
+	switch (argv[1][0]) {
+	case 'z':
+		use_calloc = 1;
+		break;
+	case 'n':
+		break;
+	default:
+		usage(argv[0]);
 	}
 
-	if (optind < argc) {
-		dir = argv[optind];
+	if (argv[2]) {
+		dir = argv[2];
 	} else {
 		usage(argv[0]);
 	}
 
 	vmp = vmem_create(dir, VMEM_MIN_POOL);
 	if (vmp == NULL)
-		FATAL("!vmem_create");
+		UT_FATAL("!vmem_create");
 
 	for (i = 0; i < n; i++) {
 		int *test = NULL;
 		if (use_calloc)
-			test = vmem_calloc(vmp, 1, count * sizeof (int));
+			test = vmem_calloc(vmp, 1, count * sizeof(int));
 		else
-			test = vmem_malloc(vmp, count * sizeof (int));
-		ASSERTne(test, NULL);
+			test = vmem_malloc(vmp, count * sizeof(int));
+		UT_ASSERTne(test, NULL);
 
 		if (use_calloc) {
 			/* vmem_calloc should return zeroed memory */
 			for (j = 0; j < count; j++)
-				ASSERTeq(test[j], 0);
+				UT_ASSERTeq(test[j], 0);
 		}
 		for (j = 0; j < count; j++)
 			test[j] = test_value;
 		for (j = 0; j < count; j++)
-			ASSERTeq(test[j], test_value);
+			UT_ASSERTeq(test[j], test_value);
 
 		vmem_free(vmp, test);
 	}

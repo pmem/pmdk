@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -40,7 +40,9 @@ export UNITTEST_NUM=4
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
+require_test_type medium
+
+require_fs_type none
 require_build_type debug
 
 setup
@@ -49,7 +51,7 @@ parse_lib() {
 	local lib_path=$1
 	echo "$lib_path:" >> out$UNITTEST_NUM.log
 	(nm -g $lib_path |\
-		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
+		perl -ne 'print if s/^[0-9a-z]+ [TB] (\w+)/$1/' |\
 		sort >> out$UNITTEST_NUM.log) 2>&1
 
 }

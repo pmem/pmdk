@@ -1,0 +1,16 @@
+poolset1:
+PMEMPOOLSET
+20M $(nW)/part00
+20M $(nW)/part01
+REPLICA
+20M $(nW)/part10
+20M $(nW)/part11
+poolset2:
+PMEMPOOLSET
+20M $(nW)/part00
+20M $(nW)/part01
+REPLICA
+20M $(nW)/part10
+1M $(nW)/part11
+error: failed to synchronize: replica 1, part 1: file is too small
+error: Invalid argument

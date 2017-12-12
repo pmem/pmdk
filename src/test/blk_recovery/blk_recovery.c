@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +14,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -41,16 +42,16 @@
 
 #include <sys/param.h>
 
-#include "util.h"
 #include "blk.h"
 #include "btt_layout.h"
+#include <endian.h>
 
-size_t Bsize;
+static size_t Bsize;
 
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(unsigned char *buf)
 {
 	static int ord = 1;
@@ -67,7 +68,7 @@ construct(unsigned char *buf)
 /*
  * ident -- identify what a buffer holds
  */
-char *
+static char *
 ident(unsigned char *buf)
 {
 	static char descr[100];
@@ -83,17 +84,17 @@ ident(unsigned char *buf)
 	return descr;
 }
 
-sigjmp_buf Jmp;
+static ut_jmp_buf_t Jmp;
 
 /*
  * signal_handler -- called on SIGSEGV
  */
-void
+static void
 signal_handler(int sig)
 {
-	OUT("signal: %s", strsignal(sig));
+	UT_OUT("signal: %s", os_strsignal(sig));
 
-	siglongjmp(Jmp, 1);
+	ut_siglongjmp(Jmp);
 }
 
 int
@@ -102,64 +103,69 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_recovery");
 
 	if (argc != 5)
-		FATAL("usage: %s bsize file first_lba lba", argv[0]);
+		UT_FATAL("usage: %s bsize file first_lba lba", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 	const char *path = argv[2];
 
 	PMEMblkpool *handle;
-	if ((handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
-		FATAL("!%s: pmemblk_create", path);
+	if ((handle = pmemblk_create(path, Bsize, 0,
+			S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!%s: pmemblk_create", path);
 
-	OUT("%s block size %zu usable blocks %zu",
+	UT_OUT("%s block size %zu usable blocks %zu",
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* write the first lba */
-	off_t lba = strtoul(argv[3], NULL, 0);
-	unsigned char buf[Bsize];
+	os_off_t lba = strtoul(argv[3], NULL, 0);
+	unsigned char *buf = MALLOC(Bsize);
 
 	construct(buf);
 	if (pmemblk_write(handle, buf, lba) < 0)
-		FATAL("!write     lba %zu", lba);
+		UT_FATAL("!write     lba %zu", lba);
 
-	OUT("write     lba %zu: %s", lba, ident(buf));
+	UT_OUT("write     lba %zu: %s", lba, ident(buf));
 
 	/* reach into the layout and write-protect the map */
-	struct btt_info *infop = (void *)handle +
-		roundup(sizeof (struct pmemblk), BLK_FORMAT_DATA_ALIGN);
+	struct btt_info *infop = (void *)((char *)handle +
+		roundup(sizeof(struct pmemblk), BLK_FORMAT_DATA_ALIGN));
 
-	void *mapaddr = (void *)infop + le32toh(infop->mapoff);
-	void *flogaddr = (void *)infop + le32toh(infop->flogoff);
+	char *mapaddr = (char *)infop + le32toh(infop->mapoff);
+	char *flogaddr = (char *)infop + le32toh(infop->flogoff);
 
-	OUT("write-protecting map, length %zu", (size_t)(flogaddr - mapaddr));
+	UT_OUT("write-protecting map, length %zu",
+			(size_t)(flogaddr - mapaddr));
 	MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);
 
 	/* arrange to catch SEGV */
-	struct sigvec v = { 0 };
-	v.sv_handler = signal_handler;
-	SIGVEC(SIGSEGV, &v, NULL);
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
 
 	/* map each file argument with the given map type */
 	lba = strtoul(argv[4], NULL, 0);
 
 	construct(buf);
 
-	if (!sigsetjmp(Jmp, 1)) {
+	if (!ut_sigsetjmp(Jmp)) {
 		if (pmemblk_write(handle, buf, lba) < 0)
-			FATAL("!write     lba %zu", lba);
+			UT_FATAL("!write     lba %zu", lba);
 		else
-			FATAL("write     lba %zu: %s", lba, ident(buf));
+			UT_FATAL("write     lba %zu: %s", lba, ident(buf));
 	}
 
 	pmemblk_close(handle);
+	FREE(buf);
 
-	int result = pmemblk_check(path);
+	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 	else
-		OUT("%s: consistent", path);
+		UT_OUT("%s: consistent", path);
 
 	DONE(NULL);
 }

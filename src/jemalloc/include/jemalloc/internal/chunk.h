@@ -38,19 +38,22 @@ extern size_t		arena_maxclass; /* Max size class for arenas. */
 
 void	*chunk_alloc_base(pool_t *pool, size_t size);
 void	*chunk_alloc_arena(chunk_alloc_t *chunk_alloc,
-    chunk_dalloc_t *chunk_dalloc, arena_t *arena, size_t size,
-    size_t alignment, bool *zero);
-void	*chunk_alloc_default(size_t size, size_t alignment, bool *zero,
-    unsigned arena_ind, pool_t *pool);
+    chunk_dalloc_t *chunk_dalloc, arena_t *arena, void *new_addr,
+    size_t size, size_t alignment, bool *zero);
+void	*chunk_alloc_default(void *new_addr, size_t size, size_t alignment,
+    bool *zero, unsigned arena_ind, pool_t *pool);
 void	chunk_unmap(pool_t *pool, void *chunk, size_t size);
 bool	chunk_dalloc_default(void *chunk, size_t size, unsigned arena_ind, pool_t *pool);
 void	chunk_record(pool_t *pool, extent_tree_t *chunks_szad,
 	extent_tree_t *chunks_ad, void *chunk, size_t size, bool zeroed);
 bool	chunk_global_boot();
 bool	chunk_boot(pool_t *pool);
-void	chunk_prefork(pool_t *pool);
-void	chunk_postfork_parent(pool_t *pool);
-void	chunk_postfork_child(pool_t *pool);
+void	chunk_prefork0(pool_t *pool);
+void	chunk_prefork1(pool_t *pool);
+void	chunk_postfork_parent0(pool_t *pool);
+void	chunk_postfork_parent1(pool_t *pool);
+void	chunk_postfork_child0(pool_t *pool);
+void	chunk_postfork_child1(pool_t *pool);
 
 #endif /* JEMALLOC_H_EXTERNS */
 /******************************************************************************/

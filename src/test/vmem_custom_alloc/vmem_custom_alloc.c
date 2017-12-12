@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,12 +38,12 @@
 
 #include "unittest.h"
 
-#define	TEST_STRING_VALUE "Some test text, to check memory"
-#define	TEST_REPEAT_CREATE_POOLS (20)
+#define TEST_STRING_VALUE "Some test text, to check memory"
+#define TEST_REPEAT_CREATE_POOLS (20)
 
 static int custom_allocs;
 static int custom_alloc_calls;
-static int expect_create_pool;
+static int expect_malloc;
 
 /*
  * malloc_null -- custom malloc function with error
@@ -51,10 +51,22 @@ static int expect_create_pool;
  * This function updates statistics about custom alloc functions,
  * and returns NULL.
  */
-void *
+static void *
 malloc_null(size_t size)
 {
 	++custom_alloc_calls;
+#ifdef _WIN32
+	/*
+	 * Because Windows version requires UTF-16 string conversion
+	 * which requires three malloc calls to succeed due to long path
+	 * support
+	 */
+	if (custom_alloc_calls < 4) {
+		custom_allocs++;
+		return malloc(size);
+	}
+#endif
+
 	return NULL;
 }
 
@@ -64,7 +76,7 @@ malloc_null(size_t size)
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory.
  */
-void *
+static void *
 malloc_custom(size_t size)
 {
 	++custom_alloc_calls;
@@ -78,7 +90,7 @@ malloc_custom(size_t size)
  * This function updates statistics about custom alloc functions,
  * and frees allocated memory.
  */
-void
+static void
 free_custom(void *ptr)
 {
 	++custom_alloc_calls;
@@ -92,7 +104,7 @@ free_custom(void *ptr)
  * This function updates statistics about custom alloc functions,
  * and returns reallocated memory.
  */
-void *
+static void *
 realloc_custom(void *ptr, size_t size)
 {
 	++custom_alloc_calls;
@@ -105,7 +117,7 @@ realloc_custom(void *ptr, size_t size)
  * This function updates statistics about custom alloc functions,
  * and returns allocated memory with a duplicated string.
  */
-char *
+static char *
 strdup_custom(const char *s)
 {
 	++custom_alloc_calls;
@@ -119,7 +131,7 @@ strdup_custom(const char *s)
  * This function creates a memory pool in a file (if dir is not NULL),
  * or in RAM (if dir is NULL) and allocates memory for the test.
  */
-void
+static void
 pool_test(const char *dir)
 {
 	VMEM *vmp = NULL;
@@ -128,34 +140,31 @@ pool_test(const char *dir)
 		vmp = vmem_create(dir, VMEM_MIN_POOL);
 	} else {
 		/* allocate memory for function vmem_create_in_region() */
-		void *mem_pool = MMAP(NULL, VMEM_MIN_POOL, PROT_READ|PROT_WRITE,
-					MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+		void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
 		vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 	}
 
-	if (expect_create_pool == 0) {
-		ASSERTeq(vmp, NULL);
-		DONE(NULL);
-	} else {
-		if (vmp == NULL) {
-			if (dir == NULL) {
-				FATAL("!vmem_create_in_region");
-			} else {
-				FATAL("!vmem_create");
-			}
+	if (vmp == NULL) {
+		if (dir == NULL) {
+			UT_FATAL("!vmem_create_in_region");
+		} else {
+			UT_FATAL("!vmem_create");
 		}
 	}
 
 	char *test = vmem_malloc(vmp, strlen(TEST_STRING_VALUE) + 1);
-	ASSERTne(test, NULL);
 
-	strcpy(test, TEST_STRING_VALUE);
-	ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
+	if (expect_malloc == 0) {
+		UT_ASSERTeq(test, NULL);
+	} else {
+		strcpy(test, TEST_STRING_VALUE);
+		UT_ASSERTeq(strcmp(test, TEST_STRING_VALUE), 0);
 
-	ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
+		UT_ASSERT(vmem_malloc_usable_size(vmp, test) > 0);
 
-	vmem_free(vmp, test);
+		vmem_free(vmp, test);
+	}
 
 	vmem_delete(vmp);
 }
@@ -168,19 +177,19 @@ main(int argc, char *argv[])
 	START(argc, argv, "vmem_custom_alloc");
 
 	if (argc < 2 || argc > 3 || strlen(argv[1]) != 1)
-		FATAL("usage: %s (0-2) [directory]", argv[0]);
+		UT_FATAL("usage: %s (0-2) [directory]", argv[0]);
 
 	switch (argv[1][0]) {
 		case '0': {
 			/* use default allocator */
 			expect_custom_alloc = 0;
-			expect_create_pool = 1;
+			expect_malloc = 1;
 			break;
 		}
 		case '1': {
 			/* error in custom malloc function */
 			expect_custom_alloc = 1;
-			expect_create_pool = 0;
+			expect_malloc = 0;
 			vmem_set_funcs(malloc_null, free_custom,
 				realloc_custom, strdup_custom, NULL);
 			break;
@@ -188,13 +197,13 @@ main(int argc, char *argv[])
 		case '2': {
 			/* use custom alloc functions */
 			expect_custom_alloc = 1;
-			expect_create_pool = 1;
+			expect_malloc = 1;
 			vmem_set_funcs(malloc_custom, free_custom,
 				realloc_custom, strdup_custom, NULL);
 			break;
 		}
 		default: {
-			FATAL("usage: %s (0-2) [directory]", argv[0]);
+			UT_FATAL("usage: %s (0-2) [directory]", argv[0]);
 			break;
 		}
 	}
@@ -209,12 +218,12 @@ main(int argc, char *argv[])
 	}
 
 	/* check memory leak in custom allocator */
-	ASSERTeq(custom_allocs, 0);
+	UT_ASSERTeq(custom_allocs, 0);
 
 	if (expect_custom_alloc == 0) {
-		ASSERTeq(custom_alloc_calls, 0);
+		UT_ASSERTeq(custom_alloc_calls, 0);
 	} else {
-		ASSERTne(custom_alloc_calls, 0);
+		UT_ASSERTne(custom_alloc_calls, 0);
 	}
 
 	DONE(NULL);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -38,8 +38,8 @@
 
 #include <endian.h>
 #include "unittest.h"
-
 #include "util.h"
+#include <inttypes.h>
 
 /*
  * fletcher64 -- compute a Fletcher64 checksum
@@ -47,11 +47,12 @@
  * Gold standard implementation used to compare to the
  * util_checksum() being unit tested.
  */
-uint64_t
+static uint64_t
 fletcher64(void *addr, size_t len)
 {
+	UT_ASSERT(len % 4 == 0);
 	uint32_t *p32 = addr;
-	uint32_t *p32end = addr + len;
+	uint32_t *p32end = (uint32_t *)((char *)addr + len);
 	uint32_t lo32 = 0;
 	uint32_t hi32 = 0;
 
@@ -70,19 +71,19 @@ main(int argc, char *argv[])
 	START(argc, argv, "checksum");
 
 	if (argc < 2)
-		FATAL("usage: %s files...", argv[0]);
+		UT_FATAL("usage: %s files...", argv[0]);
 
 	for (int arg = 1; arg < argc; arg++) {
 		int fd = OPEN(argv[arg], O_RDONLY);
 
-		struct stat stbuf;
+		os_stat_t stbuf;
 		FSTAT(fd, &stbuf);
 
 		void *addr =
-			MMAP(0, stbuf.st_size, PROT_READ|PROT_WRITE,
+			MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
 					MAP_PRIVATE, fd, 0);
 
-		close(fd);
+		CLOSE(fd);
 
 		uint64_t *ptr = addr;
 
@@ -93,7 +94,7 @@ main(int argc, char *argv[])
 		 * verified against the gold standard fletcher64
 		 * routine in this file.
 		 */
-		while ((void *)(ptr + 1) < addr + stbuf.st_size) {
+		while ((char *)(ptr + 1) < (char *)addr + stbuf.st_size) {
 			/* save whatever was at *ptr */
 			uint64_t oldval = *ptr;
 
@@ -101,7 +102,7 @@ main(int argc, char *argv[])
 			*ptr = htole64(0x123);
 
 			/*
-			 * calc a checksum and have it installed
+			 * calculate a checksum and have it installed
 			 */
 			util_checksum(addr, stbuf.st_size, ptr, 1);
 
@@ -110,7 +111,7 @@ main(int argc, char *argv[])
 			/*
 			 * verify inserted checksum checks out
 			 */
-			ASSERT(util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(util_checksum(addr, stbuf.st_size, ptr, 0));
 
 			/* put a zero where the checksum was installed */
 			*ptr = 0;
@@ -124,18 +125,19 @@ main(int argc, char *argv[])
 			/*
 			 * verify checksum now fails
 			 */
-			ASSERT(!util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(!util_checksum(addr, stbuf.st_size, ptr, 0));
 
 			/*
 			 * verify the checksum matched the gold version
 			 */
-			ASSERTeq(csum, gold_csum);
-
-			OUT("%s:%lu 0x%lx", argv[arg],
-				(void *)ptr - addr, csum);
+			UT_ASSERTeq(csum, gold_csum);
+			UT_OUT("%s:%" PRIu64 " 0x%" PRIx64, argv[arg],
+				(char *)ptr - (char *)addr, csum);
 
 			ptr++;
 		}
+
+		MUNMAP(addr, stbuf.st_size);
 	}
 
 	DONE(NULL);

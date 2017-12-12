@@ -1,0 +1,6 @@
+Linux NVM Library
+
+This is src/test/pmempool_transform_remote/README.
+
+This directory contains unit tests for pmempool transform with remote
+replication. The tests check if adding and deleting remote replicas works.

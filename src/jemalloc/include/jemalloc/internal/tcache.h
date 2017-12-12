@@ -42,7 +42,7 @@ typedef struct tsd_tcache_s tsd_tcache_t;
 #define	TCACHE_GC_INCR							\
     ((TCACHE_GC_SWEEP / NBINS) + ((TCACHE_GC_SWEEP / NBINS == 0) ? 0 : 1))
 
-#define	TSD_TCACHE_INITIALIZER	JEMALLOC_ARG_CONCAT({.tcaches = {0}})
+#define	TSD_TCACHE_INITIALIZER	JEMALLOC_ARG_CONCAT({.npools = 0, .seqno = NULL, .tcaches = NULL})
 
 #endif /* JEMALLOC_H_TYPES */
 /******************************************************************************/
@@ -86,8 +86,9 @@ struct tcache_s {
 };
 
 struct tsd_tcache_s {
-	unsigned seqno[POOLS_MAX]; /* Sequence number of pool */
-	tcache_t* tcaches[POOLS_MAX];
+	size_t npools;
+	unsigned *seqno;		/* Sequence number of pool */
+	tcache_t **tcaches;
 };
 
 #endif /* JEMALLOC_H_STRUCTS */
@@ -121,6 +122,7 @@ void	tcache_arena_dissociate(tcache_t *tcache);
 tcache_t *tcache_get_hard(tcache_t *tcache, pool_t *pool, bool create);
 tcache_t *tcache_create(arena_t *arena);
 void	tcache_destroy(tcache_t *tcache);
+bool	tcache_tsd_extend(tsd_tcache_t *tsd, unsigned len);
 void	tcache_thread_cleanup(void *arg);
 void	tcache_stats_merge(tcache_t *tcache, arena_t *arena);
 bool	tcache_boot0(void);
@@ -148,8 +150,10 @@ void	tcache_dalloc_large(tcache_t *tcache, void *ptr, size_t size);
 
 #if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_TCACHE_C_))
 /* Map of thread-specific caches. */
+
+
 malloc_tsd_externs(tcache, tsd_tcache_t)
-malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tsd_tcache_t, NULL,
+malloc_tsd_funcs(JEMALLOC_ALWAYS_INLINE, tcache, tsd_tcache_t, { 0 },
     tcache_thread_cleanup)
 /* Per thread flag that allows thread caches to be disabled. */
 malloc_tsd_externs(tcache_enabled, tcache_enabled_t)
@@ -204,7 +208,7 @@ tcache_enabled_set(bool enabled)
 	tsd = tcache_tsd_get();
 
 	malloc_mutex_lock(&pools_lock);
-	for (i = 0; i < POOLS_MAX; i++) {
+	for (i = 0; i < tsd->npools; i++) {
 		tcache = tsd->tcaches[i];
 		if (tcache != NULL) {
 			if (enabled) {
@@ -239,6 +243,12 @@ tcache_get(pool_t *pool, bool create)
 		return (NULL);
 
 	tsd = tcache_tsd_get();
+
+	/* expand tcaches array if necessary */
+	if ((tsd->npools <= pool->pool_id) &&
+	    tcache_tsd_extend(tsd, pool->pool_id)) {
+		return (NULL);
+	}
 
 	/*
 	 * All subsequent pools with the same id have to cleanup tcache before

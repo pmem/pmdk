@@ -38,11 +38,9 @@
     ptr_maybe_null, old_ptr, old_usize, old_rzsize, old_ptr_maybe_null,	\
     zero) do {								\
 	if (in_valgrind) {						\
-		size_t rzsize = p2rz(ptr);				\
-									\
 		if (!maybe_moved || ptr == old_ptr) {			\
 			VALGRIND_RESIZEINPLACE_BLOCK(ptr, old_usize,	\
-			    usize, rzsize);				\
+			    usize, p2rz(ptr));				\
 			if (zero && old_usize < usize) {		\
 				valgrind_make_mem_defined(		\
 				    (void *)((uintptr_t)ptr +		\
@@ -58,7 +56,7 @@
 				    ?  old_usize : usize;		\
 				size_t tail_size = usize - copy_size;	\
 				VALGRIND_MALLOCLIKE_BLOCK(ptr, usize,	\
-				    rzsize, false);			\
+				    p2rz(ptr), false);			\
 				if (copy_size > 0) {			\
 					valgrind_make_mem_defined(ptr,	\
 					copy_size);			\
@@ -109,4 +107,3 @@ void	valgrind_freelike_block(void *ptr, size_t usize);
 
 #endif /* JEMALLOC_H_INLINES */
 /******************************************************************************/
-

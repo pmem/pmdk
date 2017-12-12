@@ -1,0 +1,4 @@
+pmem_is_pmem_windows$(nW)TEST6: START: pmem_is_pmem_windows
+ $(nW)pmem_is_pmem_windows$(nW) $(nW)testfile1 end
+1
+pmem_is_pmem_windows$(nW)TEST6: DONE

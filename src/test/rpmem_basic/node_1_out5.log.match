@@ -1,0 +1,4 @@
+rpmem_basic/TEST5: START: rpmem_basic$(nW)
+ ./rpmem_basic test_open 0 pool0.set $(nW) pool 8M init
+pool0.set: No such file or directory
+rpmem_basic/TEST5: DONE

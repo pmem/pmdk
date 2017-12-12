@@ -1,0 +1,4 @@
+util_file_create$(nW)TEST1: START: util_file_create
+ $(nW)util_file_create$(nW) 0x4000 0x4000:$(nW)testdir1$(nW)testfile
+$(nW)testdir1$(nW)testfile: util_file_create: Permission denied
+util_file_create$(nW)TEST1: DONE

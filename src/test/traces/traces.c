@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +13,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -34,16 +34,15 @@
  * traces.c -- unit test for traces
  */
 
-#define	LOG_PREFIX "trace"
-#define	LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
-#define	LOG_FILE_VAR "TRACE_LOG_FILE"
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "UT_LOG_LEVEL"
+#define LOG_FILE_VAR "UT_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
-#include "out.h"
-#undef FATAL
-#undef ASSERT
-#undef ASSERTinfo
-#undef ASSERTeq
-#undef ASSERTne
+#include <sys/types.h>
+#include <stdarg.h>
+#include "pmemcommon.h"
 #include "unittest.h"
 
 int
@@ -52,7 +51,8 @@ main(int argc, char *argv[])
 	START(argc, argv, "traces");
 
 	/* Execute test */
-	out_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR);
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+			MAJOR_VERSION, MINOR_VERSION);
 	LOG(0, "Log level NONE");
 	LOG(1, "Log level ERROR");
 	LOG(2, "Log level WARNING");
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	LOG(4, "Log level DEBUG");
 
 	/* Cleanup */
-	out_fini();
+	common_fini();
 
 	DONE(NULL);
 }

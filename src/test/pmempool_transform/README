@@ -1,0 +1,6 @@
+Linux NVM Library
+
+This is src/test/pmempool_transform/README.
+
+This directory contains unit tests for pmempool transform. The tests check
+if adding and deleting replicas works.

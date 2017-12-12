@@ -1,0 +1,155 @@
+#!/usr/bin/perl
+#
+# Copyright 2016, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#
+# sort_solution -- sort visual studio solution projects lists
+#
+
+use strict;
+use warnings;
+use Text::Diff;
+
+use Cwd 'abs_path';
+use File::Basename;
+use File::Compare;
+
+
+sub help {
+	print "Usage: sort_solution [check|sort]\n";
+	exit;
+}
+
+sub sort_global_section {
+	my ($solution_fh, $temp_fh, $section_name) = @_;
+	my $line = "";
+	my @array;
+
+	while (defined($line = <$solution_fh>) && ($line !~ $section_name)) {
+		print $temp_fh $line;
+	}
+	print $temp_fh $line;
+
+	while (defined($line = <$solution_fh>) && ($line !~ "EndGlobalSection")) {
+		push @array, $line;
+	}
+
+	@array = sort @array;
+
+	foreach (@array) {
+		print $temp_fh $_;
+	}
+
+	print $temp_fh $line; # print EndGlobalSection line
+}
+
+my $num_args = $#ARGV + 1;
+if ($num_args != 1) {
+	help;
+}
+my $arg = $ARGV[0];
+
+if($arg ne "check" && $arg ne "sort") {
+	help;
+}
+my $filename = dirname(abs_path($0)).'/../src/NVML.sln';
+my $tempfile = dirname(abs_path($0)).'/../src/temp.sln';
+
+open(my $temp_fh, '>', $tempfile)
+	or die "Could not open file '$tempfile' $!";
+open(my $solution_fh, '<:crlf', $filename)
+	or die "Could not open file '$filename' $!";
+
+my $line;
+
+# Read a header of file
+while (defined($line = <$solution_fh>) && ($line !~ "^Project")) {
+	print $temp_fh $line;
+}
+
+my @part1;
+my $buff;
+my $guid;
+
+# Read the projects list with project dependencies
+do {
+	if($line =~ "^Project") {
+		$buff = $line;
+		$guid = (split(/\,/, $line))[2];
+	} elsif($line =~ "^EndProject") {
+		$buff .= $line;
+		my %table = (
+			guid => $guid,
+			buff => $buff,
+		);
+		push @part1, \%table;
+	} else {
+		$buff .= $line;
+	}
+
+} while (defined($line = <$solution_fh>) && $line ne "Global\n");
+
+# sort the project list by a project GIUD and write to the tempfile
+@part1 = sort { $a->{guid} cmp $b->{guid} } @part1;
+
+foreach (@part1) {
+	my %hash = %$_;
+	print $temp_fh $hash{"buff"};
+}
+print $temp_fh $line; # EndProject line
+
+sort_global_section $solution_fh, $temp_fh, "ProjectConfigurationPlatforms";
+
+sort_global_section $solution_fh, $temp_fh, "NestedProjects";
+
+# read solution file to the end and copy it to the temp file
+while (defined($line = <$solution_fh>)){
+	print $temp_fh $line;
+}
+
+close($temp_fh);
+close($solution_fh);
+
+if($arg eq "check") {
+	my $diff = diff $filename => $tempfile;
+	if ($diff eq "") {
+		unlink $tempfile;
+		exit;
+	}
+
+	print "NVML solution file is not sorted, " .
+		"please use sort_solution script before pushing your changes\n";
+	unlink $tempfile;
+	exit 1;
+} else {
+	unlink $filename or die "Cannot replace solution file $!";
+	rename $tempfile, $filename;
+}

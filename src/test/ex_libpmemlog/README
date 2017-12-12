@@ -1,0 +1,7 @@
+Non-Volatile Memory Library
+
+This is src/test/ex_libpmemlog/README.
+
+This directory contains unit tests for libpmemlog examples.
+
+The unit tests utilizes examples from src/examples/libpmemlog directory.

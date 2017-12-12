@@ -1,6 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
-# Copyright (c) 2014, Intel Corporation
+# Copyright 2014-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -14,7 +14,7 @@
 #       the documentation and/or other materials provided with the
 #       distribution.
 #
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of the copyright holder nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -40,13 +40,16 @@ export UNITTEST_NUM=2
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type local
+require_test_type medium
+
+require_fs_type none
 
 setup
 
 # due to alignment requirements there should be no hint address for
 # the last two range lengths
-expect_normal_exit ./util_map_proc$EXESUFFIX maps_align\
+mapfile="maps_align_"$(uname -s | tr "[:upper:]" "[:lower:]")
+expect_normal_exit ./util_map_proc$EXESUFFIX $mapfile\
      0x0001000000\
      0x0001100000\
      0x0001110000\

@@ -1,7 +1,8 @@
 /******************************************************************************/
 #ifdef JEMALLOC_H_TYPES
 
-#define POOLS_MAX  10
+#define POOLS_MIN  16
+#define POOLS_MAX  32768
 
 /*
  * We want to expose pool_t to the library user
@@ -20,7 +21,7 @@ do {						\
 (name).pool = (p);				\
 } while (0)
 
-#define	TSD_POOL_INITIALIZER		JEMALLOC_ARG_CONCAT({.arenas = {0}})
+#define	TSD_POOL_INITIALIZER		JEMALLOC_ARG_CONCAT({.npools = 0, .arenas = NULL, .seqno = NULL })
 
 
 #endif /* JEMALLOC_H_TYPES */
@@ -108,8 +109,9 @@ struct pool_s {
 };
 
 struct tsd_pool_s {
-	unsigned seqno[POOLS_MAX]; /* Sequence number of pool */
-	arena_t *arenas[POOLS_MAX];
+	size_t npools;		/* size of the arrays */
+	unsigned *seqno;	/* Sequence number of pool */
+	arena_t **arenas;	/* array of arenas indexed by pool id */
 };
 
 /*
@@ -130,7 +132,6 @@ void pool_destroy(pool_t *pool);
 extern malloc_mutex_t	pools_lock;
 extern malloc_mutex_t	pool_base_lock;
 
-bool pool_boot();
 void pool_prefork();
 void pool_postfork_parent();
 void pool_postfork_child();

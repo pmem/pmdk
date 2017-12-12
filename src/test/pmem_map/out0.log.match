@@ -1,3 +1,0 @@
-pmem_map/TEST0: START: pmem_map
- ./pmem_map$(nW) $(*)/testfile1
-pmem_map/TEST0: Done

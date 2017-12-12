@@ -1,0 +1,16 @@
+PMEMPOOLSET
+# bytes
+1000000B /mountpoint1/mymirror0.part0
+1000000 /mountpoint1/mymirror0.part1
+REPLICA
+# kilobytes
+1000kB	/mountpoint2/myfile.part0
+2000K	/mountpoint3/myfile.part1
+REPLICA
+# gigabytes
+10GB	 	/mountpoint3/mymirror0.part0
+20G	  	/mountpoint3/mymirror0.part1
+REPLICA
+# terabytes
+1TB 	  /mountpoint4/mymirror0.part0
+2T  	  /mountpoint4/mymirror0.part1

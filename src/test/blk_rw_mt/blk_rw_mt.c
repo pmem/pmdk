@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014, Intel Corporation
+ * Copyright 2014-2017, Intel Corporation
+ * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,7 +14,7 @@
  *       the documentation and/or other materials provided with the
  *       distribution.
  *
- *     * Neither the name of Intel Corporation nor the names of its
+ *     * Neither the name of the copyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
@@ -39,17 +40,17 @@
 
 #include "unittest.h"
 
-size_t Bsize;
-size_t Nblock = 100;	/* all I/O below this LBA (increases collisions) */
-unsigned Seed;
-unsigned Nthread;
-unsigned Nops;
-PMEMblkpool *Handle;
+static size_t Bsize;
+static size_t Nblock = 100; /* all I/O below this LBA (increases collisions) */
+static unsigned Seed;
+static unsigned Nthread;
+static unsigned Nops;
+static PMEMblkpool *Handle;
 
 /*
  * construct -- build a buffer for writing
  */
-void
+static void
 construct(int *ordp, unsigned char *buf)
 {
 	for (int i = 0; i < Bsize; i++)
@@ -64,14 +65,14 @@ construct(int *ordp, unsigned char *buf)
 /*
  * check -- check for torn buffers
  */
-void
+static void
 check(unsigned char *buf)
 {
 	unsigned val = *buf;
 
 	for (int i = 1; i < Bsize; i++)
 		if (buf[i] != val) {
-			OUT("{%u} TORN at byte %d", val, i);
+			UT_OUT("{%u} TORN at byte %d", val, i);
 			break;
 		}
 }
@@ -79,30 +80,32 @@ check(unsigned char *buf)
 /*
  * worker -- the work each thread performs
  */
-void *
+static void *
 worker(void *arg)
 {
-	long mytid = (long)arg;
+	long mytid = (long)(intptr_t)arg;
 	unsigned myseed = Seed + mytid;
-	unsigned char buf[Bsize];
+	unsigned char *buf = MALLOC(Bsize);
 	int ord = 1;
 
-	for (int i = 0; i < Nops; i++) {
-		off_t lba = rand_r(&myseed) % Nblock;
+	for (unsigned i = 0; i < Nops; i++) {
+		os_off_t lba = os_rand_r(&myseed) % Nblock;
 
-		if (rand_r(&myseed) % 2) {
+		if (os_rand_r(&myseed) % 2) {
 			/* read */
 			if (pmemblk_read(Handle, buf, lba) < 0)
-				OUT("!read      lba %zu", lba);
+				UT_OUT("!read      lba %zu", lba);
 			else
 				check(buf);
 		} else {
 			/* write */
 			construct(&ord, buf);
 			if (pmemblk_write(Handle, buf, lba) < 0)
-				OUT("!write     lba %zu", lba);
+				UT_OUT("!write     lba %zu", lba);
 		}
 	}
+
+	FREE(buf);
 
 	return NULL;
 }
@@ -113,14 +116,15 @@ main(int argc, char *argv[])
 	START(argc, argv, "blk_rw_mt");
 
 	if (argc != 6)
-		FATAL("usage: %s bsize file seed nthread nops", argv[0]);
+		UT_FATAL("usage: %s bsize file seed nthread nops", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 
 	const char *path = argv[2];
 
-	if ((Handle = pmemblk_create(path, Bsize, 0, S_IWUSR)) == NULL)
-		FATAL("!%s: pmemblk_create", path);
+	if ((Handle = pmemblk_create(path, Bsize, 0,
+			S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!%s: pmemblk_create", path);
 
 	if (Nblock == 0)
 		Nblock = pmemblk_nblock(Handle);
@@ -128,26 +132,27 @@ main(int argc, char *argv[])
 	Nthread = strtoul(argv[4], NULL, 0);
 	Nops = strtoul(argv[5], NULL, 0);
 
-	OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
+	UT_OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
 
-	pthread_t threads[Nthread];
+	os_thread_t *threads = MALLOC(Nthread * sizeof(os_thread_t));
 
 	/* kick off nthread threads */
-	for (int i = 0; i < Nthread; i++)
-		PTHREAD_CREATE(&threads[i], NULL, worker, (void *)(long)i);
+	for (unsigned i = 0; i < Nthread; i++)
+		PTHREAD_CREATE(&threads[i], NULL, worker, (void *)(intptr_t)i);
 
 	/* wait for all the threads to complete */
-	for (int i = 0; i < Nthread; i++)
-		PTHREAD_JOIN(threads[i], NULL);
+	for (unsigned i = 0; i < Nthread; i++)
+		PTHREAD_JOIN(&threads[i], NULL);
 
+	FREE(threads);
 	pmemblk_close(Handle);
 
 	/* XXX not ready to pass this part of the test yet */
-	int result = pmemblk_check(path);
+	int result = pmemblk_check(path, Bsize);
 	if (result < 0)
-		OUT("!%s: pmemblk_check", path);
+		UT_OUT("!%s: pmemblk_check", path);
 	else if (result == 0)
-		OUT("%s: pmemblk_check: not consistent", path);
+		UT_OUT("%s: pmemblk_check: not consistent", path);
 
 	DONE(NULL);
 }

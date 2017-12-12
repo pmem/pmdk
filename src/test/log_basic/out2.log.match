@@ -1,6 +1,5 @@
-log_basic/TEST2: START: log_basic
- ./log_basic$(nW) $(*)/testfile1 v n t w r t w
-$(*)/testfile1: pmemlog_check: Invalid argument
+log_basic$(nW)TEST2: START: log_basic
+ $(nW)log_basic$(nW) $(nW)testfile1 v n t w r t w
 appendv
 usable size: 2088960
 tell 144
@@ -39,4 +38,4 @@ tell 0
 
 walk all at once
 walk by 16
-log_basic/TEST2: Done
+log_basic$(nW)TEST2: DONE

@@ -1,0 +1,5 @@
+PMEMPOOLSET
+10M /tmp/test0-pool0-part0.dat
+10M /tmp/test0-pool0-part1.dat
+10M /tmp/test0-pool0-part2.dat
+10M /tmp/test0-pool0-part3.dat

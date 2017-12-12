@@ -1,0 +1,4 @@
+cto_pool$(nW)TEST29: START: cto_pool$(nW)
+ $(nW)cto_pool$(nW) o $(nW)pool.set NULL
+$(nW)pool.set: pmemcto_open: Invalid argument
+cto_pool$(nW)TEST29: DONE

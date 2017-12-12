@@ -1,0 +1,2174 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_minimal", "examples\libpmemobj\pmemlog\obj_pmemlog_minimal.vcxproj", "{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_movnt_align", "test\pmem_movnt_align\pmem_movnt_align.vcxproj", "{025E7D51-41F2-4CBA-956E-C37A4443DB1B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "full_copy", "examples\libpmem\full_copy.vcxproj", "{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_custom_function", "test\traces_custom_function\traces_custom_function.vcxproj", "{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_memblock", "test\obj_memblock\obj_memblock.vcxproj", "{0388E945-A655-41A7-AF27-8981CEE0E49A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check_version", "test\vmem_check_version\vmem_check_version.vcxproj", "{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_callbacks", "test\obj_tx_callbacks\obj_tx_callbacks.vcxproj", "{0529575C-F6E8-44FD-BB82-82A29948D0F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err_mt", "test\out_err_mt\out_err_mt.vcxproj", "{063037B2-CA35-4520-811C-19D9C4ED891E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_macros", "examples\libpmemobj\pmemlog\obj_pmemlog_macros.vcxproj", "{06877FED-15BA-421F-85C9-1A964FB97446}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr_arith", "test\obj_cpp_ptr_arith\obj_cpp_ptr_arith.vcxproj", "{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_mt", "test\obj_tx_mt\obj_tx_mt.vcxproj", "{0703E813-9CC8-4DEA-AA33-42B099CD172D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap_interrupt", "test\obj_heap_interrupt\obj_heap_interrupt.vcxproj", "{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libvmem", "libvmem\libvmem.vcxproj", "{08762559-E9DF-475B-BA99-49F4B5A1D80B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_parse_size", "test\util_parse_size\util_parse_size.vcxproj", "{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_include", "test\log_include\log_include.vcxproj", "{0A049EAD-652F-4E20-8026-90FD99AEE77A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemlog", "libpmemlog\libpmemlog.vcxproj", "{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store\reader.vcxproj", "{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{0CC6D525-806E-433F-AB4A-6CFD546418B1}"
+	ProjectSection(SolutionItems) = preProject
+		examples\ex_common.h = examples\ex_common.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cuckoo", "test\obj_cuckoo\obj_cuckoo.vcxproj", "{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_make_persistent_array_atomic", "test\obj_cpp_make_persistent_array_atomic\obj_cpp_make_persistent_array_atomic.vcxproj", "{0DC1B184-C814-448F-8B5F-CFFA6F05156C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree", "examples\libpmemobj\btree.vcxproj", "{0FB8F0FD-276C-413B-97A8-67ABE0C9043B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct", "test\obj_direct\obj_direct.vcxproj", "{10469175-EEF7-44A0-9961-AC4E45EFD800}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pi", "examples\libpmemobj\pi.vcxproj", "{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\tools\pmemspoil\pmemspoil.vcxproj", "{11E158AE-C85A-4A6E-B66A-ED2994709276}"
+	ProjectSection(ProjectDependencies) = postProject
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_map_file", "test\pmem_map_file\pmem_map_file.vcxproj", "{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{1434B17C-6165-4D42-BEA1-5A7730D5A6BB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_recreate", "test\obj_recreate\obj_recreate.vcxproj", "{1464398A-100F-4518-BDB9-939A6362B6CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemcto", "libpmemcto", "{16721958-ECE3-4674-9913-9AF8E32F0CD8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllview", "test\tools\dllview\dllview.vcxproj", "{179BEB5A-2C90-44F5-A734-FA756A5E668C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rbtree_map", "examples\libpmemobj\tree_map\rbtree_map.vcxproj", "{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_non_zero", "test\blk_non_zero\blk_non_zero.vcxproj", "{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemlog", "libpmemlog", "{1A36B57B-2E88-4D81-89C0-F575C9895E36}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cmpmap", "test\tools\cmpmap\cmpmap.vcxproj", "{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmemblk", "test\ex_libpmemblk\ex_libpmemblk.vcxproj", "{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemcto", "libpmemcto\libpmemcto.vcxproj", "{1BA340EC-B0B2-438D-A47C-27F86F604133}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemobj", "libpmemobj\libpmemobj.vcxproj", "{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_mutex", "test\obj_cpp_mutex\obj_cpp_mutex.vcxproj", "{1E564DB1-0687-4CC4-BAE5-453F93052FDA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "writer", "examples\libpmemobj\string_store_tx_type\writer.vcxproj", "{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_lists", "test\win_lists\win_lists.vcxproj", "{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_basic", "test\cto_basic\cto_basic.vcxproj", "{21991E84-7859-420E-ADDA-1D058E787F06}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_recovery", "test\obj_recovery\obj_recovery.vcxproj", "{2498FCDA-E2CC-43EF-9A35-8CD63F253171}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_aligned_alloc", "test\vmem_aligned_alloc\vmem_aligned_alloc.vcxproj", "{25B5C601-03D7-4861-9C0F-7F0453B04227}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_realloc_inplace", "test\cto_realloc_inplace\cto_realloc_inplace.vcxproj", "{26135DD1-8BB0-4217-A4DC-C1F232F35BA2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_transform", "test\pmempool_transform\pmempool_transform.vcxproj", "{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_out_of_memory", "test\vmem_out_of_memory\vmem_out_of_memory.vcxproj", "{26D24B3D-22CE-44EB-AA21-2BF594F80520}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_test_win", "test\libpmempool_api_win\libpmempool_test_win.vcxproj", "{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_toid", "test\obj_toid\obj_toid.vcxproj", "{296F3C5D-3951-423E-8E2F-FD4A37958C72}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_include", "test\blk_include\blk_include.vcxproj", "{29D9376B-DC36-4940-83F1-A7CBE38A2103}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_dump", "test\pmempool_dump\pmempool_dump.vcxproj", "{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err_mt_win", "test\out_err_mt_win\out_err_mt_win.vcxproj", "{2B1A5104-A324-4D02-B5C7-D021FB8F880C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_include", "test\pmem_include\pmem_include.vcxproj", "{2B7772E6-9DAA-4F38-B0BC-7B2399366325}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lists", "examples\libpmemobj\lists.vcxproj", "{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_locks", "test\obj_locks\obj_locks.vcxproj", "{2DE6B085-3C19-49B1-894A-AD9376000E09}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create", "test\vmem_create\vmem_create.vcxproj", "{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_action", "test\obj_action\obj_action.vcxproj", "{2ED26FDA-3C4E-4514-B387-5E77C302FF71}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemdetect", "test\tools\pmemdetect\pmemdetect.vcxproj", "{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmempool", "libpmempool", "{2F543422-4B8A-4898-BE6B-590F52B4E9D1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bttcreate", "test\tools\bttcreate\bttcreate.vcxproj", "{3142CB13-CADA-48D3-9A25-E6ACB243760A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_valgrind", "test\obj_list_valgrind\obj_list_valgrind.vcxproj", "{34CBF343-52E2-45EF-B934-4F365F227701}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "list_map", "examples\libpmemobj\list_map\list_map.vcxproj", "{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_pmem", "test\traces_pmem\traces_pmem.vcxproj", "{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check_allocations", "test\vmem_check_allocations\vmem_check_allocations.vcxproj", "{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool", "test\log_pool\log_pool.vcxproj", "{3CF270CD-0F56-48E3-AD84-82F369C568BF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {0B1818EB-BDC8-4865-964F-DB8BF05CFD86}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemcto", "libpmemcto", "{3D5A802D-CFAF-4C33-A042-D79851F60356}"
+	ProjectSection(SolutionItems) = preProject
+		examples\libpmemcto\README = examples\libpmemcto\README
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_pages_purging", "test\vmem_pages_purging\vmem_pages_purging.vcxproj", "{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmemcto\manpage.vcxproj", "{3DEB4FBF-638D-4588-A510-E9A77FF75BB1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparsefile", "test\tools\sparsefile\sparsefile.vcxproj", "{3EC30D6A-BDA4-4971-879A-8814204EAE31}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool", "test\obj_pool\obj_pool.vcxproj", "{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtree_map", "examples\libpmemobj\tree_map\rtree_map.vcxproj", "{3ED56E55-84A6-422C-A8D4-A8439FB8F245}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_malloc", "test\vmem_malloc\vmem_malloc.vcxproj", "{40DC66AD-F66D-4194-B9A4-A3A2222516FE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_info", "test\pmempool_info\pmempool_info.vcxproj", "{42CCEF95-5ADD-460C-967E-DD5B2C744943}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj++", "libpmemobj++", "{42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_getopt", "test\win_getopt\win_getopt.vcxproj", "{433F7840-C597-4950-84C9-E4FF7DF6A298}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libvmem", "libvmem", "{45E74E38-35CA-4CB6-8965-BC20D39659AF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_lookup", "test\obj_pool_lookup\obj_pool_lookup.vcxproj", "{4850F425-9128-4E91-973C-5AE7BD97395B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmemobj_cpp", "test\ex_libpmemobj_cpp\ex_libpmemobj_cpp.vcxproj", "{48A3AE10-200B-454E-9D82-EC1A88CF1151}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemcommon", "common\libpmemcommon.vcxproj", "{492BAA3D-0D5D-478E-9765-500463AE69AA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmap", "examples\libpmemobj\map\libmap.vcxproj", "{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pvector", "test\obj_pvector\obj_pvector.vcxproj", "{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "util", "util", "{4C291EEB-3874-4724-9CC2-1335D13FF0EE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_alloc", "test\obj_tx_alloc\obj_tx_alloc.vcxproj", "{4C429783-0B01-449F-A36F-C2019233890B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemalloc", "test\tools\pmemalloc\pmemalloc.vcxproj", "{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_include", "test\libpmempool_include\libpmempool_include.vcxproj", "{4E334022-7A71-4197-9E15-878F7EFC877E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_custom_alloc", "test\vmem_custom_alloc\vmem_custom_alloc.vcxproj", "{4ED1E400-CF16-48C2-B176-2BF186E73531}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_walker", "test\log_walker\log_walker.vcxproj", "{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_poolset_parse", "test\util_poolset_parse\util_poolset_parse.vcxproj", "{50FD1E47-2131-48D2-9435-5CB28DF6B15A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asset_checkout", "examples\libpmemblk\assetdb\asset_checkout.vcxproj", "{513C4CFA-BD5B-4470-BA93-F6D43778A754}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj_cpp", "libpmemobj_cpp", "{52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{52B4C136-F527-4FE0-9781-5B2259A0FF27}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_mix_allocations", "test\vmem_mix_allocations\vmem_mix_allocations.vcxproj", "{537F759B-B617-48D9-A2F3-7FB769A8F9B7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_delete", "test\vmem_delete\vmem_delete.vcxproj", "{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_mmap", "test\win_mmap\win_mmap.vcxproj", "{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctree", "test\obj_ctree\obj_ctree.vcxproj", "{57FD4D93-BAE1-466F-83AF-0288FAF45006}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asset_checkin", "examples\libpmemblk\assetdb\asset_checkin.vcxproj", "{581B3A58-F3F0-4765-91E5-D0C82816A528}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_basic_integration", "test\obj_basic_integration\obj_basic_integration.vcxproj", "{58386481-30B7-40FC-96AF-0723A4A7B228}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pmempool", "pmempool", "{59AB6976-D16B-48D0-8D16-94360D3FE51D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store_tx\reader.vcxproj", "{59D7A9CD-9912-40E4-96E1-8A873F777F62}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memmove", "test\pmem_memmove\pmem_memmove.vcxproj", "{5A391A14-8E29-4788-93FC-EDADED31D32F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_map_file_win", "test\pmem_map_file_win\pmem_map_file_win.vcxproj", "{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data_store", "examples\libpmemobj\map\data_store.vcxproj", "{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_many_size_allocs", "test\obj_many_size_allocs\obj_many_size_allocs.vcxproj", "{5D362DB7-D2BD-4907-AAD8-4B8627E72282}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_simple", "examples\libpmemobj\pmemlog\obj_pmemlog_simple.vcxproj", "{5DB2E259-0D19-4A89-B8EC-B2912F39924D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm", "test\libpmempool_rm\libpmempool_rm.vcxproj", "{5F2B687A-1B42-439C-AEEC-135DD22FB851}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_is_pmem_windows", "test\pmem_is_pmem_windows\pmem_is_pmem_windows.vcxproj", "{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog", "examples\libpmemobj\pmemlog\obj_pmemlog.vcxproj", "{60206D22-E132-4695-8486-10BECA32C5CC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_allocator", "test\obj_cpp_allocator\obj_cpp_allocator.vcxproj", "{6068773F-FDA7-484F-8650-EE1AA5C3CB37}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_backup", "test\libpmempool_backup\libpmempool_backup.vcxproj", "{60B463D4-8CD5-4BF6-A25B-01BE13B87590}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_rw_mt", "test\blk_rw_mt\blk_rw_mt.vcxproj", "{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_lock", "test\obj_pool_lock\obj_pool_lock.vcxproj", "{63B8184D-85E0-4E6A-9729-558C567D1D1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj", "libpmemobj", "{63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_strdup", "test\obj_tx_strdup\obj_tx_strdup.vcxproj", "{643B82A1-D009-46A9-92A0-2883399B05C2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_sync", "test\obj_sync\obj_sync.vcxproj", "{6516D6CF-8000-4341-9487-312BC83EE370}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_basic", "test\obj_pmalloc_basic\obj_pmalloc_basic.vcxproj", "{65D92D98-97E1-48F7-AEF6-75221CF48EA4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memcpy", "test\pmem_memcpy\pmem_memcpy.vcxproj", "{673277EC-D26B-414D-92E3-84EE873316A8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm_win", "test\libpmempool_rm_win\libpmempool_rm_win.vcxproj", "{67AC1343-98FD-4143-92C0-559C55F749F5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_rw", "test\blk_rw\blk_rw.vcxproj", "{6851356E-A5D9-46A6-8262-A7E208729F18}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicode_match_script", "test\unicode_match_script\unicode_match_script.vcxproj", "{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_common", "test\win_common\win_common.vcxproj", "{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_poolset_size", "test\util_poolset_size\util_poolset_size.vcxproj", "{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_macro", "test\obj_list_macro\obj_list_macro.vcxproj", "{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store_tx", "string_store_tx", "{6D63CDF1-F62C-4614-AD8A-95B0A63AA070}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "set_funcs", "test\set_funcs\set_funcs.vcxproj", "{6D7C1169-3246-465F-B630-ECFEF4F3179A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_poolset", "test\util_poolset\util_poolset.vcxproj", "{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_locks_abort", "test\obj_tx_locks_abort\obj_tx_locks_abort.vcxproj", "{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_out_of_memory", "test\obj_out_of_memory\obj_out_of_memory.vcxproj", "{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_file_open", "test\util_file_open\util_file_open.vcxproj", "{715EADD7-0FFE-4F1F-94E7-49302968DF79}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_calloc", "test\vmem_calloc\vmem_calloc.vcxproj", "{718CA6FA-6446-4E43-83DF-BA4E85E5886B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_check", "test\obj_check\obj_check.vcxproj", "{71D182E0-345A-4375-B0FA-3536821B0EE3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_make_persistent_array", "test\obj_cpp_make_persistent_array\obj_cpp_make_persistent_array.vcxproj", "{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "array", "examples\libpmemobj\array\array.vcxproj", "{7264C8F6-73FB-4830-9306-1558D3EAC71B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list", "test\obj_list\obj_list.vcxproj", "{729E3905-FF7D-49C5-9871-6D35D839183E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "writer", "examples\libpmemobj\string_store_tx\writer.vcxproj", "{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lifesaver", "examples\libpmemcto\lifesaver\lifesaver.vcxproj", "{73F35C28-811C-4D77-916E-386EB139C001}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create_in_region", "test\vmem_create_in_region\vmem_create_in_region.vcxproj", "{74243B75-816C-4077-8DF0-98D2C78B0E5D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{746BA101-5C93-42A5-AC7A-64DCEB186572}"
+	ProjectSection(SolutionItems) = preProject
+		test\RUNTESTLIB.PS1 = test\RUNTESTLIB.PS1
+		test\RUNTESTS.ps1 = test\RUNTESTS.ps1
+		test\unittest\unittest.ps1 = test\unittest\unittest.ps1
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store_tx_type\reader.vcxproj", "{74D655D5-F661-4887-A1EB-5A6222AF5FCA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_lock", "test\blk_pool_lock\blk_pool_lock.vcxproj", "{779425B1-2211-499B-A7CC-4F9EC6CB0D25}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree_map", "examples\libpmemobj\tree_map\btree_map.vcxproj", "{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ringbuf", "test\obj_ringbuf\obj_ringbuf.vcxproj", "{7D71EE07-6CE2-49FA-8AB8-976800A050A0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool", "tools\pmempool\pmempool.vcxproj", "{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmem", "test\ex_libpmem\ex_libpmem.vcxproj", "{7DFEB4A5-8B04-4302-9D09-8144918FCF81}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_realloc", "test\vmem_realloc\vmem_realloc.vcxproj", "{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_free", "test\obj_tx_free\obj_tx_free.vcxproj", "{7F51CD29-3BCD-4DD8-B327-F384B5A616D1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asset_list", "examples\libpmemblk\assetdb\asset_list.vcxproj", "{8008010F-8718-4C5F-86B2-195AEBF73422}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmemblk\manpage.vcxproj", "{8010BBB0-C71B-4EFF-95EB-65C01E5EC197}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_win", "test\blk_pool_win\blk_pool_win.vcxproj", "{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_pool_win", "test\cto_pool_win\cto_pool_win.vcxproj", "{8145F442-0EF6-4E55-BAED-8DDE72022355}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{853D45D8-980C-4991-B62A-DAC6FD245402}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap", "test\obj_heap\obj_heap.vcxproj", "{85D4076B-896B-4EBB-8F3A-8B44C24CD452}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_debug", "test\obj_debug\obj_debug.vcxproj", "{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap_state", "test\obj_heap_state\obj_heap_state.vcxproj", "{86EE22CC-6D3C-4F81-ADC8-394946F0DA81}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{877E7D1D-8150-4FE5-A139-B6FBCEAEC393}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_oom_mt", "test\obj_pmalloc_oom_mt\obj_pmalloc_oom_mt.vcxproj", "{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_strdup", "test\vmem_strdup\vmem_strdup.vcxproj", "{89B6AF14-08A0-437A-B31D-A8A3492FA965}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_add_range_direct", "test\obj_tx_add_range_direct\obj_tx_add_range_direct.vcxproj", "{89F947CA-DDEF-4131-8AFB-584ABA4A1302}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err", "test\out_err\out_err.vcxproj", "{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_bucket", "test\obj_bucket\obj_bucket.vcxproj", "{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemblk", "examples\libpmemobj\pmemblk\obj_pmemblk.vcxproj", "{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_oid", "test\obj_oid\obj_oid.vcxproj", "{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_shared_mutex", "test\obj_cpp_shared_mutex\obj_cpp_shared_mutex.vcxproj", "{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jemalloc", "jemalloc\msvc\jemalloc.vcxproj", "{8D6BB292-9E1C-413D-9F98-4864BDC1514A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_persist_count", "test\obj_persist_count\obj_persist_count.vcxproj", "{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "doc_snippets", "examples\libpmemobj\doc_snippets\doc_snippets.vcxproj", "{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_flow", "test\obj_tx_flow\obj_tx_flow.vcxproj", "{8E374371-30E1-4623-8755-2A2F3742170B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_make_persistent", "test\obj_cpp_make_persistent\obj_cpp_make_persistent.vcxproj", "{8F42055F-FFD9-4B10-B266-6DD32923F0AC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "srcversion", "windows\srcversion\srcversion.vcxproj", "{901F04DB-E1A5-4A41-8B81-9D31C19ACD59}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_pool", "test\obj_cpp_pool\obj_cpp_pool.vcxproj", "{90C5FCF1-8243-4988-A4EA-AA6A88268373}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_stats", "test\cto_stats\cto_stats.vcxproj", "{91365DAC-BF62-4B96-919D-7C474D029B61}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "getopt", "windows\getopt\getopt.vcxproj", "{9186EAC4-2F34-4F17-B940-6585D7869BCD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemlog", "libpmemlog", "{91C30620-70CA-46C7-AC71-71F3C602690E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_realloc", "test\obj_realloc\obj_realloc.vcxproj", "{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_create", "test\pmempool_create\pmempool_create.vcxproj", "{92388A20-50FC-45F8-89E3-71F1618EFABB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_check_allocations", "test\cto_check_allocations\cto_check_allocations.vcxproj", "{940C5974-9EF3-4FAC-9820-976B0711F69B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool", "test\blk_pool\blk_pool.vcxproj", "{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{95FAF291-03D1-42FC-9C10-424D551D475D}"
+	ProjectSection(SolutionItems) = preProject
+		common\common.rc = common\common.rc
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_movnt", "test\pmem_movnt\pmem_movnt.vcxproj", "{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_cpuid", "test\util_cpuid\util_cpuid.vcxproj", "{98ACBE5D-1A92-46F9-AA81-533412172952}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_redo_log", "test\obj_redo_log\obj_redo_log.vcxproj", "{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_rm", "test\pmempool_rm\pmempool_rm.vcxproj", "{99F7F00F-1DE5-45EA-992B-64BA282FAC76}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_uuid_generate", "test\util_uuid_generate\util_uuid_generate.vcxproj", "{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{9A8482A7-BF0C-423D-8266-189456ED41F6}"
+	ProjectSection(SolutionItems) = preProject
+		windows\include\dirent.h = windows\include\dirent.h
+		windows\include\endian.h = windows\include\endian.h
+		windows\include\err.h = windows\include\err.h
+		windows\include\features.h = windows\include\features.h
+		windows\include\sys\file.h = windows\include\sys\file.h
+		windows\include\libgen.h = windows\include\libgen.h
+		windows\include\linux\limits.h = windows\include\linux\limits.h
+		windows\include\sys\mman.h = windows\include\sys\mman.h
+		windows\include\sys\mount.h = windows\include\sys\mount.h
+		windows\include\sys\param.h = windows\include\sys\param.h
+		windows\include\platform.h = windows\include\platform.h
+		include\pmemcompat.h = include\pmemcompat.h
+		windows\include\pthread.h = windows\include\pthread.h
+		windows\include\sys\queue.h = windows\include\sys\queue.h
+		windows\include\sched.h = windows\include\sched.h
+		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
+		windows\include\strings.h = windows\include\strings.h
+		windows\include\sys\uio.h = windows\include\sys\uio.h
+		windows\include\unistd.h = windows\include\unistd.h
+		windows\include\sys\wait.h = windows\include\sys\wait.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_realloc", "test\obj_tx_realloc\obj_tx_realloc.vcxproj", "{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{9C37B8CC-F810-4787-924D-65BC227091A3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map_cli", "examples\libpmemobj\cpp_map\map_cli.vcxproj", "{9D1C3F29-1268-4241-BEFB-89D2859C62D3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_invalid", "test\obj_tx_invalid\obj_tx_invalid.vcxproj", "{9D9E33EB-4C24-4646-A3FB-35DA17247917}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmem", "libpmem\libpmem.vcxproj", "{9E9E3D25-2139-4A5D-9200-18148DDEAD45}"
+	ProjectSection(ProjectDependencies) = postProject
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmemlog\manpage.vcxproj", "{9FF51F3E-AF36-4F45-A797-C5F03A090298}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_mt", "test\obj_pmalloc_mt\obj_pmalloc_mt.vcxproj", "{9FF62356-30B4-42A1-8DC7-45262A18DD44}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ddmap", "test\tools\ddmap\ddmap.vcxproj", "{A216BF23-FC5C-4426-BF20-8568A2AA5FA0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_test", "test\libpmempool_api\libpmempool_test.vcxproj", "{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_timed_mtx", "test\obj_cpp_timed_mtx\obj_cpp_timed_mtx.vcxproj", "{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_nblock", "test\blk_nblock\blk_nblock.vcxproj", "{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_cond_var", "test\obj_cpp_cond_var\obj_cpp_cond_var.vcxproj", "{A5794EFF-8232-4E2B-B52C-908823048F54}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err_win", "test\out_err_win\out_err_win.vcxproj", "{A57D9365-172E-4782-ADC6-82A594E30943}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_transaction", "test\obj_cpp_transaction\obj_cpp_transaction.vcxproj", "{A5DF0746-5496-4C29-9CCD-5FA76604BF8B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "queue", "examples\libpmemobj\cpp\queue.vcxproj", "{A6CC801B-CF30-4703-BC54-3E21F90B787D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addlog", "examples\libpmemlog\logfile\addlog.vcxproj", "{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_include", "test\obj_include\obj_include.vcxproj", "{AB15A115-E429-4123-BEBF-206FBA4CF615}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_stats", "test\vmem_stats\vmem_stats.vcxproj", "{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_sync", "test\libpmempool_sync\libpmempool_sync.vcxproj", "{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signal_handle", "test\signal_handle\signal_handle.vcxproj", "{AE9E908D-BAEC-491F-9914-436B3CE35E94}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_config", "test\obj_ctl_config\obj_ctl_config.vcxproj", "{AEAA72CD-E060-417C-9CA1-49B4738384E0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "checksum", "test\checksum\checksum.vcxproj", "{AF0B7480-EBE3-486B-B0C8-134910BC9324}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_aligned_alloc", "test\cto_aligned_alloc\cto_aligned_alloc.vcxproj", "{B2DC2F89-0724-4110-8934-D1173BD73D44}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_transform_win", "test\libpmempool_transform_win\libpmempool_transform_win.vcxproj", "{B30C6212-A160-405A-8FE7-340E721738A2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemwrite", "test\tools\pmemwrite\pmemwrite.vcxproj", "{B35BFA09-DE68-483B-AB61-8790E8F060A8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_multiple_pools", "test\cto_multiple_pools\cto_multiple_pools.vcxproj", "{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_memset\pmem_memset.vcxproj", "{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_linkedlist", "test\ex_linkedlist\ex_linkedlist.vcxproj", "{B440BB05-37A8-42EA-98D3-D83EB113E497}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_sync_win", "test\libpmempool_sync_win\libpmempool_sync_win.vcxproj", "{B6DA6617-D98F-4A4D-A7C4-A317212924BF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools_pmemspoil", "test\pmemspoil\pmemspoil.vcxproj", "{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_win", "test\obj_pool_win\obj_pool_win.vcxproj", "{B775480C-5B32-4F64-B026-47367280EC56}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{B870D8A6-12CD-4DD0-B843-833695C2310A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_recovery", "test\obj_list_recovery\obj_list_recovery.vcxproj", "{B887EA26-846C-4D6A-B0E4-432487506BC7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_first_next", "test\obj_first_next\obj_first_next.vcxproj", "{BABC6427-E533-4DCF-91E3-B5B2ED253F46}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_move", "test\obj_list_move\obj_list_move.vcxproj", "{BAE107BA-7618-4972-8188-2D3CDAAE0453}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mapcli", "examples\libpmemobj\map\mapcli.vcxproj", "{BB248BAC-6E1B-433C-A254-75140A273AB5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "map", "map", "{BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctree_map", "examples\libpmemobj\tree_map\ctree_map.vcxproj", "{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create_win", "test\vmem_create_win\vmem_create_win.vcxproj", "{BF3B6C3A-3073-4AD4-BB41-A41047231982}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemblk", "libpmemblk", "{BFBAB433-860E-4A28-96E3-A4B7AFE3B297}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store", "string_store", "{BFEDF709-A700-4769-9056-ACA934D828A8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_malloc_usable_size", "test\vmem_malloc_usable_size\vmem_malloc_usable_size.vcxproj", "{C00B4A26-6C57-4968-AED5-B45FD31A22E7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scope", "test\scope\scope.vcxproj", "{C0E811E0-8942-4CFD-A817-74D99E9E6577}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_include", "test\cto_include\cto_include.vcxproj", "{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_insert", "test\obj_list_insert\obj_list_insert.vcxproj", "{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_strdup", "test\obj_strdup\obj_strdup.vcxproj", "{C2F94489-A483-4C44-B8A7-11A75F6AEC66}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_realloc_inplace", "test\vmem_realloc_inplace\vmem_realloc_inplace.vcxproj", "{C3A59B21-A287-4631-B4EC-F4A57D26A14F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "printlog", "examples\libpmemlog\logfile\printlog.vcxproj", "{C3CEE34C-29E0-4A22-B258-3FBAF662AA19}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_sync", "test\pmempool_sync\pmempool_sync.vcxproj", "{C5E8B8DB-2507-4904-847F-A52196B075F0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "examples\libpmemobj\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool_win", "test\log_pool_win\log_pool_win.vcxproj", "{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemblk", "libpmemblk", "{C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asset_load", "examples\libpmemblk\assetdb\asset_load.vcxproj", "{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libvmem\manpage.vcxproj", "{C84633F5-05B1-4AC1-A074-104D1DB2A91E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_make_persistent_atomic", "test\obj_cpp_make_persistent_atomic\obj_cpp_make_persistent_atomic.vcxproj", "{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_absolute", "test\util_is_absolute\util_is_absolute.vcxproj", "{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_async_postcommit", "test\obj_async_postcommit\obj_async_postcommit.vcxproj", "{CA0F317B-2474-4186-96CA-67F8D7A9D62C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces", "test\traces\traces.vcxproj", "{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmembench", "benchmarks\pmembench.vcxproj", "{CB906E89-1313-4929-AFF7-86FBF1CC301F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_lane", "test\obj_lane\obj_lane.vcxproj", "{CCA9B681-D10B-45E4-98CC-531503D2EDE8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_create_error", "test\vmem_create_error\vmem_create_error.vcxproj", "{CD4B9690-7A06-4F7A-8492-9336979EE7E9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_multiple_pools", "test\vmem_multiple_pools\vmem_multiple_pools.vcxproj", "{CD7A18D5-55D9-4922-A000-FFAA08ABB006}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_check", "test\pmempool_check\pmempool_check.vcxproj", "{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libut", "test\unittest\libut.vcxproj", "{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool", "libpmempool\libpmempool.vcxproj", "{CF9A0883-6334-44C7-AC29-349468C78E27}"
+	ProjectSection(ProjectDependencies) = postProject
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple_copy", "examples\libpmem\simple_copy.vcxproj", "{D062166F-0EC7-4C13-A772-0C7157EEFE41}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools_pmemobjcli", "test\pmemobjcli\pmemobjcli.vcxproj", "{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemobjcli", "test\tools\pmemobjcli\pmemobjcli.vcxproj", "{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fifo", "examples\libpmemobj\linkedlist\fifo.vcxproj", "{D3A99F36-4B72-4766-ABCD-CCEDC26DD139}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_help", "test\pmempool_help\pmempool_help.vcxproj", "{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "nvml_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_file_create", "test\util_file_create\util_file_create.vcxproj", "{D829DB63-E046-474D-8EA3-43A6659294D8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmemlog", "test\ex_libpmemlog\ex_libpmemlog.vcxproj", "{D8317F1D-7A70-4A39-977A-EAB05A04A87B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_lock", "test\obj_tx_lock\obj_tx_lock.vcxproj", "{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashmap_tx", "examples\libpmemobj\hashmap\hashmap_tx.vcxproj", "{D93A2683-6D99-4F18-B378-91195D23E007}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_pool", "test\cto_pool\cto_pool.vcxproj", "{DB12B063-B09B-4D74-B293-F00A72D07BB2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_recovery", "test\blk_recovery\blk_recovery.vcxproj", "{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp_ptr\obj_cpp_ptr.vcxproj", "{DFEBEBAA-9624-445C-82A0-93363E22D806}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store_tx_type", "string_store_tx_type", "{E3229AF7-1FA2-4632-BB0B-B74F709F1A33}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_is_pmem", "test\pmem_is_pmem\pmem_is_pmem.vcxproj", "{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_poolset_foreach", "test\util_poolset_foreach\util_poolset_foreach.vcxproj", "{E648732D-78FA-427A-928C-9A59222D37B7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool_lock", "test\log_pool_lock\log_pool_lock.vcxproj", "{E68DEB59-C709-4945-AF80-EEBCADDED944}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_constructor", "test\obj_constructor\obj_constructor.vcxproj", "{E7691F81-86EF-467D-82E1-F5B9416386F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl", "test\obj_ctl\obj_ctl.vcxproj", "{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_recovery", "test\log_recovery\log_recovery.vcxproj", "{E901B756-EA72-4B8D-967F-85F109D0D1DE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_locks", "test\obj_tx_locks\obj_tx_locks.vcxproj", "{E9E079D6-25BF-46E3-8075-7D733303DD59}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libvmem", "libvmem", "{EA0D2458-5FCD-4DAB-B07D-229327B98BEB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_map_flog", "test\libpmempool_map_flog\libpmempool_map_flog.vcxproj", "{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmemobj\manpage.vcxproj", "{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{F09A0864-9221-47AD-872F-D4538104D747}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_poolset", "test\util_is_poolset\util_is_poolset.vcxproj", "{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_signal", "test\win_signal\win_signal.vcxproj", "{F13108C4-4C86-4D56-A317-A4E5892A8AF7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_pool_win", "test\obj_cpp_pool_win\obj_cpp_pool_win.vcxproj", "{F322ED35-A389-4B65-AC8A-E25F1337DBCC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_add_range", "test\obj_tx_add_range\obj_tx_add_range.vcxproj", "{F3E5650D-834E-45E6-90C7-3FC2AA954929}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj", "libpmemobj", "{F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "writer", "examples\libpmemobj\string_store\writer.vcxproj", "{F5D850C9-D353-4B84-99BC-E336C231018C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashmap_atomic", "examples\libpmemobj\hashmap\hashmap_atomic.vcxproj", "{F5E2F6C4-19BA-497A-B754-232E469BE647}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmemobj", "test\ex_libpmemobj\ex_libpmemobj.vcxproj", "{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemblk", "libpmemblk\libpmemblk.vcxproj", "{F7C6C6B6-4142-4C82-8699-4A9D8183181B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {492BAA3D-0D5D-478E-9765-500463AE69AA}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{F8373EDD-1B9E-462D-BF23-55638E23E98B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
+	ProjectSection(SolutionItems) = preProject
+		..\appveyor.yml = ..\appveyor.yml
+		..\utils\CHECK_WHITESPACE.PS1 = ..\utils\CHECK_WHITESPACE.PS1
+		..\utils\CREATE-ZIP.PS1 = ..\utils\CREATE-ZIP.PS1
+		..\utils\cstyle = ..\utils\cstyle
+		..\utils\CSTYLE.ps1 = ..\utils\CSTYLE.ps1
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_transform", "test\libpmempool_transform\libpmempool_transform.vcxproj", "{FB2D2B18-E616-4639-8593-0E1AF2DA01A8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_pool_primitives", "test\obj_cpp_pool_primitives\obj_cpp_pool_primitives.vcxproj", "{FB6AFFAA-0279-41F7-A698-F81C90BBD987}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_basic", "test\log_basic\log_basic.vcxproj", "{FBB77433-639E-42DC-9355-EA94CAE294D2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {0B1818EB-BDC8-4865-964F-DB8BF05CFD86}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmem\manpage.vcxproj", "{FCD0587A-4504-4F5E-8E9C-468CC03D250A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_vec", "test\util_vec\util_vec.vcxproj", "{FD726AA3-D4FA-4597-B435-08CC7752888C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_p_ext", "test\obj_cpp_p_ext\obj_cpp_p_ext.vcxproj", "{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_mmap_fixed", "test\win_mmap_fixed\win_mmap_fixed.vcxproj", "{FEA09B48-34C2-4963-8A5A-F97BDA136D72}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check", "test\vmem_check\vmem_check.vcxproj", "{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_remove", "test\obj_list_remove\obj_list_remove.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}.Debug|x64.ActiveCfg = Debug|x64
+		{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}.Debug|x64.Build.0 = Debug|x64
+		{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}.Release|x64.ActiveCfg = Release|x64
+		{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}.Release|x64.Build.0 = Release|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Debug|x64.ActiveCfg = Debug|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Debug|x64.Build.0 = Debug|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Release|x64.ActiveCfg = Release|x64
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B}.Release|x64.Build.0 = Release|x64
+		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Debug|x64.ActiveCfg = Debug|x64
+		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Debug|x64.Build.0 = Debug|x64
+		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Release|x64.ActiveCfg = Release|x64
+		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F}.Release|x64.Build.0 = Release|x64
+		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.ActiveCfg = Debug|x64
+		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Debug|x64.Build.0 = Debug|x64
+		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53}.Release|x64.ActiveCfg = Release|x64
+		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Debug|x64.ActiveCfg = Debug|x64
+		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Debug|x64.Build.0 = Debug|x64
+		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Release|x64.ActiveCfg = Release|x64
+		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Release|x64.Build.0 = Release|x64
+		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Debug|x64.ActiveCfg = Debug|x64
+		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Debug|x64.Build.0 = Debug|x64
+		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Release|x64.ActiveCfg = Release|x64
+		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Release|x64.Build.0 = Release|x64
+		{0529575C-F6E8-44FD-BB82-82A29948D0F2}.Debug|x64.ActiveCfg = Debug|x64
+		{0529575C-F6E8-44FD-BB82-82A29948D0F2}.Debug|x64.Build.0 = Debug|x64
+		{0529575C-F6E8-44FD-BB82-82A29948D0F2}.Release|x64.ActiveCfg = Release|x64
+		{0529575C-F6E8-44FD-BB82-82A29948D0F2}.Release|x64.Build.0 = Release|x64
+		{063037B2-CA35-4520-811C-19D9C4ED891E}.Debug|x64.ActiveCfg = Debug|x64
+		{063037B2-CA35-4520-811C-19D9C4ED891E}.Debug|x64.Build.0 = Debug|x64
+		{063037B2-CA35-4520-811C-19D9C4ED891E}.Release|x64.ActiveCfg = Release|x64
+		{063037B2-CA35-4520-811C-19D9C4ED891E}.Release|x64.Build.0 = Release|x64
+		{06877FED-15BA-421F-85C9-1A964FB97446}.Debug|x64.ActiveCfg = Debug|x64
+		{06877FED-15BA-421F-85C9-1A964FB97446}.Debug|x64.Build.0 = Debug|x64
+		{06877FED-15BA-421F-85C9-1A964FB97446}.Release|x64.ActiveCfg = Release|x64
+		{06877FED-15BA-421F-85C9-1A964FB97446}.Release|x64.Build.0 = Release|x64
+		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}.Debug|x64.ActiveCfg = Debug|x64
+		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}.Debug|x64.Build.0 = Debug|x64
+		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}.Release|x64.ActiveCfg = Release|x64
+		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9}.Release|x64.Build.0 = Release|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Debug|x64.ActiveCfg = Debug|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Debug|x64.Build.0 = Debug|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Release|x64.ActiveCfg = Release|x64
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D}.Release|x64.Build.0 = Release|x64
+		{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}.Debug|x64.ActiveCfg = Debug|x64
+		{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}.Debug|x64.Build.0 = Debug|x64
+		{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}.Release|x64.ActiveCfg = Release|x64
+		{07A153D9-DF17-4DE8-A3C2-EBF171B961AE}.Release|x64.Build.0 = Release|x64
+		{08762559-E9DF-475B-BA99-49F4B5A1D80B}.Debug|x64.ActiveCfg = Debug|x64
+		{08762559-E9DF-475B-BA99-49F4B5A1D80B}.Debug|x64.Build.0 = Debug|x64
+		{08762559-E9DF-475B-BA99-49F4B5A1D80B}.Release|x64.ActiveCfg = Release|x64
+		{08762559-E9DF-475B-BA99-49F4B5A1D80B}.Release|x64.Build.0 = Release|x64
+		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}.Debug|x64.ActiveCfg = Debug|x64
+		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}.Debug|x64.Build.0 = Debug|x64
+		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}.Release|x64.ActiveCfg = Release|x64
+		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB}.Release|x64.Build.0 = Release|x64
+		{0A049EAD-652F-4E20-8026-90FD99AEE77A}.Debug|x64.ActiveCfg = Debug|x64
+		{0A049EAD-652F-4E20-8026-90FD99AEE77A}.Debug|x64.Build.0 = Debug|x64
+		{0A049EAD-652F-4E20-8026-90FD99AEE77A}.Release|x64.ActiveCfg = Release|x64
+		{0A049EAD-652F-4E20-8026-90FD99AEE77A}.Release|x64.Build.0 = Release|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Debug|x64.ActiveCfg = Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Debug|x64.Build.0 = Debug|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Release|x64.ActiveCfg = Release|x64
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86}.Release|x64.Build.0 = Release|x64
+		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}.Debug|x64.ActiveCfg = Debug|x64
+		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}.Debug|x64.Build.0 = Debug|x64
+		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}.Release|x64.ActiveCfg = Release|x64
+		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}.Release|x64.Build.0 = Release|x64
+		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}.Debug|x64.ActiveCfg = Debug|x64
+		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}.Debug|x64.Build.0 = Debug|x64
+		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}.Release|x64.ActiveCfg = Release|x64
+		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}.Release|x64.Build.0 = Release|x64
+		{0DC1B184-C814-448F-8B5F-CFFA6F05156C}.Debug|x64.ActiveCfg = Debug|x64
+		{0DC1B184-C814-448F-8B5F-CFFA6F05156C}.Debug|x64.Build.0 = Debug|x64
+		{0DC1B184-C814-448F-8B5F-CFFA6F05156C}.Release|x64.ActiveCfg = Release|x64
+		{0DC1B184-C814-448F-8B5F-CFFA6F05156C}.Release|x64.Build.0 = Release|x64
+		{0FB8F0FD-276C-413B-97A8-67ABE0C9043B}.Debug|x64.ActiveCfg = Debug|x64
+		{0FB8F0FD-276C-413B-97A8-67ABE0C9043B}.Debug|x64.Build.0 = Debug|x64
+		{0FB8F0FD-276C-413B-97A8-67ABE0C9043B}.Release|x64.ActiveCfg = Release|x64
+		{0FB8F0FD-276C-413B-97A8-67ABE0C9043B}.Release|x64.Build.0 = Release|x64
+		{10469175-EEF7-44A0-9961-AC4E45EFD800}.Debug|x64.ActiveCfg = Debug|x64
+		{10469175-EEF7-44A0-9961-AC4E45EFD800}.Debug|x64.Build.0 = Debug|x64
+		{10469175-EEF7-44A0-9961-AC4E45EFD800}.Release|x64.ActiveCfg = Release|x64
+		{10469175-EEF7-44A0-9961-AC4E45EFD800}.Release|x64.Build.0 = Release|x64
+		{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}.Debug|x64.ActiveCfg = Debug|x64
+		{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}.Debug|x64.Build.0 = Debug|x64
+		{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}.Release|x64.ActiveCfg = Release|x64
+		{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}.Release|x64.Build.0 = Release|x64
+		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Debug|x64.ActiveCfg = Debug|x64
+		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Debug|x64.Build.0 = Debug|x64
+		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Release|x64.ActiveCfg = Release|x64
+		{11E158AE-C85A-4A6E-B66A-ED2994709276}.Release|x64.Build.0 = Release|x64
+		{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F}.Debug|x64.ActiveCfg = Debug|x64
+		{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F}.Debug|x64.Build.0 = Debug|x64
+		{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F}.Release|x64.ActiveCfg = Release|x64
+		{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F}.Release|x64.Build.0 = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.ActiveCfg = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Debug|x64.Build.0 = Debug|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.ActiveCfg = Release|x64
+		{1464398A-100F-4518-BDB9-939A6362B6CF}.Release|x64.Build.0 = Release|x64
+		{179BEB5A-2C90-44F5-A734-FA756A5E668C}.Debug|x64.ActiveCfg = Debug|x64
+		{179BEB5A-2C90-44F5-A734-FA756A5E668C}.Debug|x64.Build.0 = Debug|x64
+		{179BEB5A-2C90-44F5-A734-FA756A5E668C}.Release|x64.ActiveCfg = Release|x64
+		{179BEB5A-2C90-44F5-A734-FA756A5E668C}.Release|x64.Build.0 = Release|x64
+		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}.Debug|x64.ActiveCfg = Debug|x64
+		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}.Debug|x64.Build.0 = Debug|x64
+		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}.Release|x64.ActiveCfg = Release|x64
+		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}.Release|x64.Build.0 = Release|x64
+		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Debug|x64.ActiveCfg = Debug|x64
+		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Debug|x64.Build.0 = Debug|x64
+		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Release|x64.ActiveCfg = Release|x64
+		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Release|x64.Build.0 = Release|x64
+		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Debug|x64.ActiveCfg = Debug|x64
+		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Debug|x64.Build.0 = Debug|x64
+		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Release|x64.ActiveCfg = Release|x64
+		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Release|x64.Build.0 = Release|x64
+		{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE}.Debug|x64.ActiveCfg = Debug|x64
+		{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE}.Debug|x64.Build.0 = Debug|x64
+		{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE}.Release|x64.ActiveCfg = Release|x64
+		{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE}.Release|x64.Build.0 = Release|x64
+		{1BA340EC-B0B2-438D-A47C-27F86F604133}.Debug|x64.ActiveCfg = Debug|x64
+		{1BA340EC-B0B2-438D-A47C-27F86F604133}.Debug|x64.Build.0 = Debug|x64
+		{1BA340EC-B0B2-438D-A47C-27F86F604133}.Release|x64.ActiveCfg = Release|x64
+		{1BA340EC-B0B2-438D-A47C-27F86F604133}.Release|x64.Build.0 = Release|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.ActiveCfg = Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Debug|x64.Build.0 = Debug|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.ActiveCfg = Release|x64
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF}.Release|x64.Build.0 = Release|x64
+		{1E564DB1-0687-4CC4-BAE5-453F93052FDA}.Debug|x64.ActiveCfg = Debug|x64
+		{1E564DB1-0687-4CC4-BAE5-453F93052FDA}.Debug|x64.Build.0 = Debug|x64
+		{1E564DB1-0687-4CC4-BAE5-453F93052FDA}.Release|x64.ActiveCfg = Release|x64
+		{1E564DB1-0687-4CC4-BAE5-453F93052FDA}.Release|x64.Build.0 = Release|x64
+		{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}.Debug|x64.ActiveCfg = Debug|x64
+		{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}.Debug|x64.Build.0 = Debug|x64
+		{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}.Release|x64.ActiveCfg = Release|x64
+		{1EB3DE5B-6357-498D-8CAC-EEC0209EA454}.Release|x64.Build.0 = Release|x64
+		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Debug|x64.ActiveCfg = Debug|x64
+		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Debug|x64.Build.0 = Debug|x64
+		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Release|x64.ActiveCfg = Release|x64
+		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780}.Release|x64.Build.0 = Release|x64
+		{21991E84-7859-420E-ADDA-1D058E787F06}.Debug|x64.ActiveCfg = Debug|x64
+		{21991E84-7859-420E-ADDA-1D058E787F06}.Debug|x64.Build.0 = Debug|x64
+		{21991E84-7859-420E-ADDA-1D058E787F06}.Release|x64.ActiveCfg = Release|x64
+		{21991E84-7859-420E-ADDA-1D058E787F06}.Release|x64.Build.0 = Release|x64
+		{2498FCDA-E2CC-43EF-9A35-8CD63F253171}.Debug|x64.ActiveCfg = Debug|x64
+		{2498FCDA-E2CC-43EF-9A35-8CD63F253171}.Debug|x64.Build.0 = Debug|x64
+		{2498FCDA-E2CC-43EF-9A35-8CD63F253171}.Release|x64.ActiveCfg = Release|x64
+		{2498FCDA-E2CC-43EF-9A35-8CD63F253171}.Release|x64.Build.0 = Release|x64
+		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Debug|x64.ActiveCfg = Debug|x64
+		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Debug|x64.Build.0 = Debug|x64
+		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Release|x64.ActiveCfg = Release|x64
+		{25B5C601-03D7-4861-9C0F-7F0453B04227}.Release|x64.Build.0 = Release|x64
+		{26135DD1-8BB0-4217-A4DC-C1F232F35BA2}.Debug|x64.ActiveCfg = Debug|x64
+		{26135DD1-8BB0-4217-A4DC-C1F232F35BA2}.Debug|x64.Build.0 = Debug|x64
+		{26135DD1-8BB0-4217-A4DC-C1F232F35BA2}.Release|x64.ActiveCfg = Release|x64
+		{26135DD1-8BB0-4217-A4DC-C1F232F35BA2}.Release|x64.Build.0 = Release|x64
+		{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}.Debug|x64.ActiveCfg = Debug|x64
+		{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}.Debug|x64.Build.0 = Debug|x64
+		{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}.Release|x64.ActiveCfg = Release|x64
+		{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}.Release|x64.Build.0 = Release|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Debug|x64.ActiveCfg = Debug|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Debug|x64.Build.0 = Debug|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Release|x64.ActiveCfg = Release|x64
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520}.Release|x64.Build.0 = Release|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Debug|x64.ActiveCfg = Debug|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Debug|x64.Build.0 = Debug|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Release|x64.ActiveCfg = Release|x64
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA}.Release|x64.Build.0 = Release|x64
+		{296F3C5D-3951-423E-8E2F-FD4A37958C72}.Debug|x64.ActiveCfg = Debug|x64
+		{296F3C5D-3951-423E-8E2F-FD4A37958C72}.Debug|x64.Build.0 = Debug|x64
+		{296F3C5D-3951-423E-8E2F-FD4A37958C72}.Release|x64.ActiveCfg = Release|x64
+		{296F3C5D-3951-423E-8E2F-FD4A37958C72}.Release|x64.Build.0 = Release|x64
+		{29D9376B-DC36-4940-83F1-A7CBE38A2103}.Debug|x64.ActiveCfg = Debug|x64
+		{29D9376B-DC36-4940-83F1-A7CBE38A2103}.Debug|x64.Build.0 = Debug|x64
+		{29D9376B-DC36-4940-83F1-A7CBE38A2103}.Release|x64.ActiveCfg = Release|x64
+		{29D9376B-DC36-4940-83F1-A7CBE38A2103}.Release|x64.Build.0 = Release|x64
+		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00}.Debug|x64.ActiveCfg = Debug|x64
+		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00}.Debug|x64.Build.0 = Debug|x64
+		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00}.Release|x64.ActiveCfg = Release|x64
+		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00}.Release|x64.Build.0 = Release|x64
+		{2B1A5104-A324-4D02-B5C7-D021FB8F880C}.Debug|x64.ActiveCfg = Debug|x64
+		{2B1A5104-A324-4D02-B5C7-D021FB8F880C}.Debug|x64.Build.0 = Debug|x64
+		{2B1A5104-A324-4D02-B5C7-D021FB8F880C}.Release|x64.ActiveCfg = Release|x64
+		{2B1A5104-A324-4D02-B5C7-D021FB8F880C}.Release|x64.Build.0 = Release|x64
+		{2B7772E6-9DAA-4F38-B0BC-7B2399366325}.Debug|x64.ActiveCfg = Debug|x64
+		{2B7772E6-9DAA-4F38-B0BC-7B2399366325}.Debug|x64.Build.0 = Debug|x64
+		{2B7772E6-9DAA-4F38-B0BC-7B2399366325}.Release|x64.ActiveCfg = Release|x64
+		{2B7772E6-9DAA-4F38-B0BC-7B2399366325}.Release|x64.Build.0 = Release|x64
+		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}.Debug|x64.ActiveCfg = Debug|x64
+		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}.Debug|x64.Build.0 = Debug|x64
+		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}.Release|x64.ActiveCfg = Release|x64
+		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}.Release|x64.Build.0 = Release|x64
+		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Debug|x64.ActiveCfg = Debug|x64
+		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Debug|x64.Build.0 = Debug|x64
+		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Release|x64.ActiveCfg = Release|x64
+		{2DE6B085-3C19-49B1-894A-AD9376000E09}.Release|x64.Build.0 = Release|x64
+		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468}.Debug|x64.ActiveCfg = Debug|x64
+		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468}.Debug|x64.Build.0 = Debug|x64
+		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468}.Release|x64.ActiveCfg = Release|x64
+		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468}.Release|x64.Build.0 = Release|x64
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71}.Debug|x64.ActiveCfg = Debug|x64
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71}.Debug|x64.Build.0 = Debug|x64
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71}.Release|x64.ActiveCfg = Release|x64
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71}.Release|x64.Build.0 = Release|x64
+		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E}.Debug|x64.ActiveCfg = Debug|x64
+		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E}.Debug|x64.Build.0 = Debug|x64
+		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E}.Release|x64.ActiveCfg = Release|x64
+		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E}.Release|x64.Build.0 = Release|x64
+		{3142CB13-CADA-48D3-9A25-E6ACB243760A}.Debug|x64.ActiveCfg = Debug|x64
+		{3142CB13-CADA-48D3-9A25-E6ACB243760A}.Debug|x64.Build.0 = Debug|x64
+		{3142CB13-CADA-48D3-9A25-E6ACB243760A}.Release|x64.ActiveCfg = Release|x64
+		{3142CB13-CADA-48D3-9A25-E6ACB243760A}.Release|x64.Build.0 = Release|x64
+		{34CBF343-52E2-45EF-B934-4F365F227701}.Debug|x64.ActiveCfg = Debug|x64
+		{34CBF343-52E2-45EF-B934-4F365F227701}.Debug|x64.Build.0 = Debug|x64
+		{34CBF343-52E2-45EF-B934-4F365F227701}.Release|x64.ActiveCfg = Release|x64
+		{34CBF343-52E2-45EF-B934-4F365F227701}.Release|x64.Build.0 = Release|x64
+		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}.Debug|x64.ActiveCfg = Debug|x64
+		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}.Debug|x64.Build.0 = Debug|x64
+		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}.Release|x64.ActiveCfg = Release|x64
+		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}.Release|x64.Build.0 = Release|x64
+		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}.Debug|x64.ActiveCfg = Debug|x64
+		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}.Debug|x64.Build.0 = Debug|x64
+		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}.Release|x64.ActiveCfg = Release|x64
+		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}.Release|x64.Build.0 = Release|x64
+		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2}.Debug|x64.ActiveCfg = Debug|x64
+		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2}.Debug|x64.Build.0 = Debug|x64
+		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2}.Release|x64.ActiveCfg = Release|x64
+		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2}.Release|x64.Build.0 = Release|x64
+		{3CF270CD-0F56-48E3-AD84-82F369C568BF}.Debug|x64.ActiveCfg = Debug|x64
+		{3CF270CD-0F56-48E3-AD84-82F369C568BF}.Debug|x64.Build.0 = Debug|x64
+		{3CF270CD-0F56-48E3-AD84-82F369C568BF}.Release|x64.ActiveCfg = Release|x64
+		{3CF270CD-0F56-48E3-AD84-82F369C568BF}.Release|x64.Build.0 = Release|x64
+		{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}.Debug|x64.ActiveCfg = Debug|x64
+		{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}.Debug|x64.Build.0 = Debug|x64
+		{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}.Release|x64.ActiveCfg = Release|x64
+		{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}.Release|x64.Build.0 = Release|x64
+		{3DEB4FBF-638D-4588-A510-E9A77FF75BB1}.Debug|x64.ActiveCfg = Debug|x64
+		{3DEB4FBF-638D-4588-A510-E9A77FF75BB1}.Debug|x64.Build.0 = Debug|x64
+		{3DEB4FBF-638D-4588-A510-E9A77FF75BB1}.Release|x64.ActiveCfg = Release|x64
+		{3DEB4FBF-638D-4588-A510-E9A77FF75BB1}.Release|x64.Build.0 = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Debug|x64.ActiveCfg = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Debug|x64.Build.0 = Debug|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Release|x64.ActiveCfg = Release|x64
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31}.Release|x64.Build.0 = Release|x64
+		{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78}.Debug|x64.ActiveCfg = Debug|x64
+		{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78}.Debug|x64.Build.0 = Debug|x64
+		{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78}.Release|x64.ActiveCfg = Release|x64
+		{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78}.Release|x64.Build.0 = Release|x64
+		{3ED56E55-84A6-422C-A8D4-A8439FB8F245}.Debug|x64.ActiveCfg = Debug|x64
+		{3ED56E55-84A6-422C-A8D4-A8439FB8F245}.Debug|x64.Build.0 = Debug|x64
+		{3ED56E55-84A6-422C-A8D4-A8439FB8F245}.Release|x64.ActiveCfg = Release|x64
+		{3ED56E55-84A6-422C-A8D4-A8439FB8F245}.Release|x64.Build.0 = Release|x64
+		{40DC66AD-F66D-4194-B9A4-A3A2222516FE}.Debug|x64.ActiveCfg = Debug|x64
+		{40DC66AD-F66D-4194-B9A4-A3A2222516FE}.Debug|x64.Build.0 = Debug|x64
+		{40DC66AD-F66D-4194-B9A4-A3A2222516FE}.Release|x64.ActiveCfg = Release|x64
+		{40DC66AD-F66D-4194-B9A4-A3A2222516FE}.Release|x64.Build.0 = Release|x64
+		{42CCEF95-5ADD-460C-967E-DD5B2C744943}.Debug|x64.ActiveCfg = Debug|x64
+		{42CCEF95-5ADD-460C-967E-DD5B2C744943}.Debug|x64.Build.0 = Debug|x64
+		{42CCEF95-5ADD-460C-967E-DD5B2C744943}.Release|x64.ActiveCfg = Release|x64
+		{42CCEF95-5ADD-460C-967E-DD5B2C744943}.Release|x64.Build.0 = Release|x64
+		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Debug|x64.ActiveCfg = Debug|x64
+		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Debug|x64.Build.0 = Debug|x64
+		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Release|x64.ActiveCfg = Release|x64
+		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Release|x64.Build.0 = Release|x64
+		{4850F425-9128-4E91-973C-5AE7BD97395B}.Debug|x64.ActiveCfg = Debug|x64
+		{4850F425-9128-4E91-973C-5AE7BD97395B}.Debug|x64.Build.0 = Debug|x64
+		{4850F425-9128-4E91-973C-5AE7BD97395B}.Release|x64.ActiveCfg = Release|x64
+		{4850F425-9128-4E91-973C-5AE7BD97395B}.Release|x64.Build.0 = Release|x64
+		{48A3AE10-200B-454E-9D82-EC1A88CF1151}.Debug|x64.ActiveCfg = Debug|x64
+		{48A3AE10-200B-454E-9D82-EC1A88CF1151}.Debug|x64.Build.0 = Debug|x64
+		{48A3AE10-200B-454E-9D82-EC1A88CF1151}.Release|x64.ActiveCfg = Release|x64
+		{48A3AE10-200B-454E-9D82-EC1A88CF1151}.Release|x64.Build.0 = Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Debug|x64.ActiveCfg = Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Debug|x64.Build.0 = Debug|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Release|x64.ActiveCfg = Release|x64
+		{492BAA3D-0D5D-478E-9765-500463AE69AA}.Release|x64.Build.0 = Release|x64
+		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}.Debug|x64.ActiveCfg = Debug|x64
+		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}.Debug|x64.Build.0 = Debug|x64
+		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}.Release|x64.ActiveCfg = Release|x64
+		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8}.Release|x64.Build.0 = Release|x64
+		{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5}.Debug|x64.ActiveCfg = Debug|x64
+		{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5}.Debug|x64.Build.0 = Debug|x64
+		{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5}.Release|x64.ActiveCfg = Release|x64
+		{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5}.Release|x64.Build.0 = Release|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Debug|x64.ActiveCfg = Debug|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Debug|x64.Build.0 = Debug|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Release|x64.ActiveCfg = Release|x64
+		{4C429783-0B01-449F-A36F-C2019233890B}.Release|x64.Build.0 = Release|x64
+		{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF}.Debug|x64.ActiveCfg = Debug|x64
+		{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF}.Debug|x64.Build.0 = Debug|x64
+		{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF}.Release|x64.ActiveCfg = Release|x64
+		{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF}.Release|x64.Build.0 = Release|x64
+		{4E334022-7A71-4197-9E15-878F7EFC877E}.Debug|x64.ActiveCfg = Debug|x64
+		{4E334022-7A71-4197-9E15-878F7EFC877E}.Debug|x64.Build.0 = Debug|x64
+		{4E334022-7A71-4197-9E15-878F7EFC877E}.Release|x64.ActiveCfg = Release|x64
+		{4E334022-7A71-4197-9E15-878F7EFC877E}.Release|x64.Build.0 = Release|x64
+		{4ED1E400-CF16-48C2-B176-2BF186E73531}.Debug|x64.ActiveCfg = Debug|x64
+		{4ED1E400-CF16-48C2-B176-2BF186E73531}.Debug|x64.Build.0 = Debug|x64
+		{4ED1E400-CF16-48C2-B176-2BF186E73531}.Release|x64.ActiveCfg = Release|x64
+		{4ED1E400-CF16-48C2-B176-2BF186E73531}.Release|x64.Build.0 = Release|x64
+		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Debug|x64.ActiveCfg = Debug|x64
+		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Debug|x64.Build.0 = Debug|x64
+		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Release|x64.ActiveCfg = Release|x64
+		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03}.Release|x64.Build.0 = Release|x64
+		{50FD1E47-2131-48D2-9435-5CB28DF6B15A}.Debug|x64.ActiveCfg = Debug|x64
+		{50FD1E47-2131-48D2-9435-5CB28DF6B15A}.Debug|x64.Build.0 = Debug|x64
+		{50FD1E47-2131-48D2-9435-5CB28DF6B15A}.Release|x64.ActiveCfg = Release|x64
+		{50FD1E47-2131-48D2-9435-5CB28DF6B15A}.Release|x64.Build.0 = Release|x64
+		{513C4CFA-BD5B-4470-BA93-F6D43778A754}.Debug|x64.ActiveCfg = Debug|x64
+		{513C4CFA-BD5B-4470-BA93-F6D43778A754}.Debug|x64.Build.0 = Debug|x64
+		{513C4CFA-BD5B-4470-BA93-F6D43778A754}.Release|x64.ActiveCfg = Release|x64
+		{513C4CFA-BD5B-4470-BA93-F6D43778A754}.Release|x64.Build.0 = Release|x64
+		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Debug|x64.ActiveCfg = Debug|x64
+		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Debug|x64.Build.0 = Debug|x64
+		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Release|x64.ActiveCfg = Release|x64
+		{537F759B-B617-48D9-A2F3-7FB769A8F9B7}.Release|x64.Build.0 = Release|x64
+		{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}.Debug|x64.ActiveCfg = Debug|x64
+		{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}.Debug|x64.Build.0 = Debug|x64
+		{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}.Release|x64.ActiveCfg = Release|x64
+		{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}.Release|x64.Build.0 = Release|x64
+		{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}.Debug|x64.ActiveCfg = Debug|x64
+		{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}.Debug|x64.Build.0 = Debug|x64
+		{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}.Release|x64.ActiveCfg = Release|x64
+		{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}.Release|x64.Build.0 = Release|x64
+		{57FD4D93-BAE1-466F-83AF-0288FAF45006}.Debug|x64.ActiveCfg = Debug|x64
+		{57FD4D93-BAE1-466F-83AF-0288FAF45006}.Debug|x64.Build.0 = Debug|x64
+		{57FD4D93-BAE1-466F-83AF-0288FAF45006}.Release|x64.ActiveCfg = Release|x64
+		{57FD4D93-BAE1-466F-83AF-0288FAF45006}.Release|x64.Build.0 = Release|x64
+		{581B3A58-F3F0-4765-91E5-D0C82816A528}.Debug|x64.ActiveCfg = Debug|x64
+		{581B3A58-F3F0-4765-91E5-D0C82816A528}.Debug|x64.Build.0 = Debug|x64
+		{581B3A58-F3F0-4765-91E5-D0C82816A528}.Release|x64.ActiveCfg = Release|x64
+		{581B3A58-F3F0-4765-91E5-D0C82816A528}.Release|x64.Build.0 = Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Debug|x64.ActiveCfg = Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Debug|x64.Build.0 = Debug|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Release|x64.ActiveCfg = Release|x64
+		{58386481-30B7-40FC-96AF-0723A4A7B228}.Release|x64.Build.0 = Release|x64
+		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Debug|x64.ActiveCfg = Debug|x64
+		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Debug|x64.Build.0 = Debug|x64
+		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Release|x64.ActiveCfg = Release|x64
+		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Release|x64.Build.0 = Release|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.ActiveCfg = Debug|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.Build.0 = Debug|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Release|x64.ActiveCfg = Release|x64
+		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Release|x64.Build.0 = Release|x64
+		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}.Debug|x64.ActiveCfg = Debug|x64
+		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}.Debug|x64.Build.0 = Debug|x64
+		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}.Release|x64.ActiveCfg = Release|x64
+		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}.Release|x64.Build.0 = Release|x64
+		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3}.Debug|x64.ActiveCfg = Debug|x64
+		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3}.Debug|x64.Build.0 = Debug|x64
+		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3}.Release|x64.ActiveCfg = Release|x64
+		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3}.Release|x64.Build.0 = Release|x64
+		{5D362DB7-D2BD-4907-AAD8-4B8627E72282}.Debug|x64.ActiveCfg = Debug|x64
+		{5D362DB7-D2BD-4907-AAD8-4B8627E72282}.Debug|x64.Build.0 = Debug|x64
+		{5D362DB7-D2BD-4907-AAD8-4B8627E72282}.Release|x64.ActiveCfg = Release|x64
+		{5D362DB7-D2BD-4907-AAD8-4B8627E72282}.Release|x64.Build.0 = Release|x64
+		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Debug|x64.ActiveCfg = Debug|x64
+		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Debug|x64.Build.0 = Debug|x64
+		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Release|x64.ActiveCfg = Release|x64
+		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Release|x64.Build.0 = Release|x64
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Debug|x64.ActiveCfg = Debug|x64
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Debug|x64.Build.0 = Debug|x64
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Release|x64.ActiveCfg = Release|x64
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Release|x64.Build.0 = Release|x64
+		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}.Debug|x64.ActiveCfg = Debug|x64
+		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}.Debug|x64.Build.0 = Debug|x64
+		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}.Release|x64.ActiveCfg = Release|x64
+		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}.Release|x64.Build.0 = Release|x64
+		{60206D22-E132-4695-8486-10BECA32C5CC}.Debug|x64.ActiveCfg = Debug|x64
+		{60206D22-E132-4695-8486-10BECA32C5CC}.Debug|x64.Build.0 = Debug|x64
+		{60206D22-E132-4695-8486-10BECA32C5CC}.Release|x64.ActiveCfg = Release|x64
+		{60206D22-E132-4695-8486-10BECA32C5CC}.Release|x64.Build.0 = Release|x64
+		{6068773F-FDA7-484F-8650-EE1AA5C3CB37}.Debug|x64.ActiveCfg = Debug|x64
+		{6068773F-FDA7-484F-8650-EE1AA5C3CB37}.Debug|x64.Build.0 = Debug|x64
+		{6068773F-FDA7-484F-8650-EE1AA5C3CB37}.Release|x64.ActiveCfg = Release|x64
+		{6068773F-FDA7-484F-8650-EE1AA5C3CB37}.Release|x64.Build.0 = Release|x64
+		{60B463D4-8CD5-4BF6-A25B-01BE13B87590}.Debug|x64.ActiveCfg = Debug|x64
+		{60B463D4-8CD5-4BF6-A25B-01BE13B87590}.Debug|x64.Build.0 = Debug|x64
+		{60B463D4-8CD5-4BF6-A25B-01BE13B87590}.Release|x64.ActiveCfg = Release|x64
+		{60B463D4-8CD5-4BF6-A25B-01BE13B87590}.Release|x64.Build.0 = Release|x64
+		{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0}.Debug|x64.ActiveCfg = Debug|x64
+		{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0}.Debug|x64.Build.0 = Debug|x64
+		{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0}.Release|x64.ActiveCfg = Release|x64
+		{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0}.Release|x64.Build.0 = Release|x64
+		{63B8184D-85E0-4E6A-9729-558C567D1D1D}.Debug|x64.ActiveCfg = Debug|x64
+		{63B8184D-85E0-4E6A-9729-558C567D1D1D}.Debug|x64.Build.0 = Debug|x64
+		{63B8184D-85E0-4E6A-9729-558C567D1D1D}.Release|x64.ActiveCfg = Release|x64
+		{63B8184D-85E0-4E6A-9729-558C567D1D1D}.Release|x64.Build.0 = Release|x64
+		{643B82A1-D009-46A9-92A0-2883399B05C2}.Debug|x64.ActiveCfg = Debug|x64
+		{643B82A1-D009-46A9-92A0-2883399B05C2}.Debug|x64.Build.0 = Debug|x64
+		{643B82A1-D009-46A9-92A0-2883399B05C2}.Release|x64.ActiveCfg = Release|x64
+		{643B82A1-D009-46A9-92A0-2883399B05C2}.Release|x64.Build.0 = Release|x64
+		{6516D6CF-8000-4341-9487-312BC83EE370}.Debug|x64.ActiveCfg = Debug|x64
+		{6516D6CF-8000-4341-9487-312BC83EE370}.Debug|x64.Build.0 = Debug|x64
+		{6516D6CF-8000-4341-9487-312BC83EE370}.Release|x64.ActiveCfg = Release|x64
+		{6516D6CF-8000-4341-9487-312BC83EE370}.Release|x64.Build.0 = Release|x64
+		{65D92D98-97E1-48F7-AEF6-75221CF48EA4}.Debug|x64.ActiveCfg = Debug|x64
+		{65D92D98-97E1-48F7-AEF6-75221CF48EA4}.Debug|x64.Build.0 = Debug|x64
+		{65D92D98-97E1-48F7-AEF6-75221CF48EA4}.Release|x64.ActiveCfg = Release|x64
+		{65D92D98-97E1-48F7-AEF6-75221CF48EA4}.Release|x64.Build.0 = Release|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Debug|x64.ActiveCfg = Debug|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Debug|x64.Build.0 = Debug|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.ActiveCfg = Release|x64
+		{673277EC-D26B-414D-92E3-84EE873316A8}.Release|x64.Build.0 = Release|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Debug|x64.ActiveCfg = Debug|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Debug|x64.Build.0 = Debug|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Release|x64.ActiveCfg = Release|x64
+		{67AC1343-98FD-4143-92C0-559C55F749F5}.Release|x64.Build.0 = Release|x64
+		{6851356E-A5D9-46A6-8262-A7E208729F18}.Debug|x64.ActiveCfg = Debug|x64
+		{6851356E-A5D9-46A6-8262-A7E208729F18}.Debug|x64.Build.0 = Debug|x64
+		{6851356E-A5D9-46A6-8262-A7E208729F18}.Release|x64.ActiveCfg = Release|x64
+		{6851356E-A5D9-46A6-8262-A7E208729F18}.Release|x64.Build.0 = Release|x64
+		{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40}.Debug|x64.ActiveCfg = Debug|x64
+		{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40}.Debug|x64.Build.0 = Debug|x64
+		{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40}.Release|x64.ActiveCfg = Release|x64
+		{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40}.Release|x64.Build.0 = Release|x64
+		{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}.Debug|x64.ActiveCfg = Debug|x64
+		{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}.Debug|x64.Build.0 = Debug|x64
+		{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}.Release|x64.ActiveCfg = Release|x64
+		{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}.Release|x64.Build.0 = Release|x64
+		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}.Debug|x64.ActiveCfg = Debug|x64
+		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}.Debug|x64.Build.0 = Debug|x64
+		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}.Release|x64.ActiveCfg = Release|x64
+		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}.Release|x64.Build.0 = Release|x64
+		{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408}.Debug|x64.ActiveCfg = Debug|x64
+		{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408}.Debug|x64.Build.0 = Debug|x64
+		{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408}.Release|x64.ActiveCfg = Release|x64
+		{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408}.Release|x64.Build.0 = Release|x64
+		{6D7C1169-3246-465F-B630-ECFEF4F3179A}.Debug|x64.ActiveCfg = Debug|x64
+		{6D7C1169-3246-465F-B630-ECFEF4F3179A}.Debug|x64.Build.0 = Debug|x64
+		{6D7C1169-3246-465F-B630-ECFEF4F3179A}.Release|x64.ActiveCfg = Release|x64
+		{6D7C1169-3246-465F-B630-ECFEF4F3179A}.Release|x64.Build.0 = Release|x64
+		{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}.Debug|x64.ActiveCfg = Debug|x64
+		{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}.Debug|x64.Build.0 = Debug|x64
+		{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}.Release|x64.ActiveCfg = Release|x64
+		{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}.Release|x64.Build.0 = Release|x64
+		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Debug|x64.ActiveCfg = Debug|x64
+		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Debug|x64.Build.0 = Debug|x64
+		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Release|x64.ActiveCfg = Release|x64
+		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB}.Release|x64.Build.0 = Release|x64
+		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Debug|x64.ActiveCfg = Debug|x64
+		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Debug|x64.Build.0 = Debug|x64
+		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Release|x64.ActiveCfg = Release|x64
+		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2}.Release|x64.Build.0 = Release|x64
+		{715EADD7-0FFE-4F1F-94E7-49302968DF79}.Debug|x64.ActiveCfg = Debug|x64
+		{715EADD7-0FFE-4F1F-94E7-49302968DF79}.Debug|x64.Build.0 = Debug|x64
+		{715EADD7-0FFE-4F1F-94E7-49302968DF79}.Release|x64.ActiveCfg = Release|x64
+		{715EADD7-0FFE-4F1F-94E7-49302968DF79}.Release|x64.Build.0 = Release|x64
+		{718CA6FA-6446-4E43-83DF-BA4E85E5886B}.Debug|x64.ActiveCfg = Debug|x64
+		{718CA6FA-6446-4E43-83DF-BA4E85E5886B}.Debug|x64.Build.0 = Debug|x64
+		{718CA6FA-6446-4E43-83DF-BA4E85E5886B}.Release|x64.ActiveCfg = Release|x64
+		{718CA6FA-6446-4E43-83DF-BA4E85E5886B}.Release|x64.Build.0 = Release|x64
+		{71D182E0-345A-4375-B0FA-3536821B0EE3}.Debug|x64.ActiveCfg = Debug|x64
+		{71D182E0-345A-4375-B0FA-3536821B0EE3}.Debug|x64.Build.0 = Debug|x64
+		{71D182E0-345A-4375-B0FA-3536821B0EE3}.Release|x64.ActiveCfg = Release|x64
+		{71D182E0-345A-4375-B0FA-3536821B0EE3}.Release|x64.Build.0 = Release|x64
+		{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F}.Debug|x64.ActiveCfg = Debug|x64
+		{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F}.Debug|x64.Build.0 = Debug|x64
+		{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F}.Release|x64.ActiveCfg = Release|x64
+		{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F}.Release|x64.Build.0 = Release|x64
+		{7264C8F6-73FB-4830-9306-1558D3EAC71B}.Debug|x64.ActiveCfg = Debug|x64
+		{7264C8F6-73FB-4830-9306-1558D3EAC71B}.Debug|x64.Build.0 = Debug|x64
+		{7264C8F6-73FB-4830-9306-1558D3EAC71B}.Release|x64.ActiveCfg = Release|x64
+		{7264C8F6-73FB-4830-9306-1558D3EAC71B}.Release|x64.Build.0 = Release|x64
+		{729E3905-FF7D-49C5-9871-6D35D839183E}.Debug|x64.ActiveCfg = Debug|x64
+		{729E3905-FF7D-49C5-9871-6D35D839183E}.Debug|x64.Build.0 = Debug|x64
+		{729E3905-FF7D-49C5-9871-6D35D839183E}.Release|x64.ActiveCfg = Release|x64
+		{729E3905-FF7D-49C5-9871-6D35D839183E}.Release|x64.Build.0 = Release|x64
+		{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF}.Debug|x64.ActiveCfg = Debug|x64
+		{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF}.Debug|x64.Build.0 = Debug|x64
+		{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF}.Release|x64.ActiveCfg = Release|x64
+		{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF}.Release|x64.Build.0 = Release|x64
+		{73F35C28-811C-4D77-916E-386EB139C001}.Debug|x64.ActiveCfg = Debug|x64
+		{73F35C28-811C-4D77-916E-386EB139C001}.Debug|x64.Build.0 = Debug|x64
+		{73F35C28-811C-4D77-916E-386EB139C001}.Release|x64.ActiveCfg = Release|x64
+		{73F35C28-811C-4D77-916E-386EB139C001}.Release|x64.Build.0 = Release|x64
+		{74243B75-816C-4077-8DF0-98D2C78B0E5D}.Debug|x64.ActiveCfg = Debug|x64
+		{74243B75-816C-4077-8DF0-98D2C78B0E5D}.Debug|x64.Build.0 = Debug|x64
+		{74243B75-816C-4077-8DF0-98D2C78B0E5D}.Release|x64.ActiveCfg = Release|x64
+		{74243B75-816C-4077-8DF0-98D2C78B0E5D}.Release|x64.Build.0 = Release|x64
+		{74D655D5-F661-4887-A1EB-5A6222AF5FCA}.Debug|x64.ActiveCfg = Debug|x64
+		{74D655D5-F661-4887-A1EB-5A6222AF5FCA}.Debug|x64.Build.0 = Debug|x64
+		{74D655D5-F661-4887-A1EB-5A6222AF5FCA}.Release|x64.ActiveCfg = Release|x64
+		{74D655D5-F661-4887-A1EB-5A6222AF5FCA}.Release|x64.Build.0 = Release|x64
+		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Debug|x64.ActiveCfg = Debug|x64
+		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Debug|x64.Build.0 = Debug|x64
+		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Release|x64.ActiveCfg = Release|x64
+		{779425B1-2211-499B-A7CC-4F9EC6CB0D25}.Release|x64.Build.0 = Release|x64
+		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9}.Debug|x64.ActiveCfg = Debug|x64
+		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9}.Debug|x64.Build.0 = Debug|x64
+		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9}.Release|x64.ActiveCfg = Release|x64
+		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9}.Release|x64.Build.0 = Release|x64
+		{7D71EE07-6CE2-49FA-8AB8-976800A050A0}.Debug|x64.ActiveCfg = Debug|x64
+		{7D71EE07-6CE2-49FA-8AB8-976800A050A0}.Debug|x64.Build.0 = Debug|x64
+		{7D71EE07-6CE2-49FA-8AB8-976800A050A0}.Release|x64.ActiveCfg = Release|x64
+		{7D71EE07-6CE2-49FA-8AB8-976800A050A0}.Release|x64.Build.0 = Release|x64
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}.Debug|x64.ActiveCfg = Debug|x64
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}.Debug|x64.Build.0 = Debug|x64
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}.Release|x64.ActiveCfg = Release|x64
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}.Release|x64.Build.0 = Release|x64
+		{7DFEB4A5-8B04-4302-9D09-8144918FCF81}.Debug|x64.ActiveCfg = Debug|x64
+		{7DFEB4A5-8B04-4302-9D09-8144918FCF81}.Debug|x64.Build.0 = Debug|x64
+		{7DFEB4A5-8B04-4302-9D09-8144918FCF81}.Release|x64.ActiveCfg = Release|x64
+		{7DFEB4A5-8B04-4302-9D09-8144918FCF81}.Release|x64.Build.0 = Release|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Debug|x64.ActiveCfg = Debug|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Debug|x64.Build.0 = Debug|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Release|x64.ActiveCfg = Release|x64
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95}.Release|x64.Build.0 = Release|x64
+		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1}.Debug|x64.ActiveCfg = Debug|x64
+		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1}.Debug|x64.Build.0 = Debug|x64
+		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1}.Release|x64.ActiveCfg = Release|x64
+		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1}.Release|x64.Build.0 = Release|x64
+		{8008010F-8718-4C5F-86B2-195AEBF73422}.Debug|x64.ActiveCfg = Debug|x64
+		{8008010F-8718-4C5F-86B2-195AEBF73422}.Debug|x64.Build.0 = Debug|x64
+		{8008010F-8718-4C5F-86B2-195AEBF73422}.Release|x64.ActiveCfg = Release|x64
+		{8008010F-8718-4C5F-86B2-195AEBF73422}.Release|x64.Build.0 = Release|x64
+		{8010BBB0-C71B-4EFF-95EB-65C01E5EC197}.Debug|x64.ActiveCfg = Debug|x64
+		{8010BBB0-C71B-4EFF-95EB-65C01E5EC197}.Debug|x64.Build.0 = Debug|x64
+		{8010BBB0-C71B-4EFF-95EB-65C01E5EC197}.Release|x64.ActiveCfg = Release|x64
+		{8010BBB0-C71B-4EFF-95EB-65C01E5EC197}.Release|x64.Build.0 = Release|x64
+		{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7}.Debug|x64.ActiveCfg = Debug|x64
+		{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7}.Debug|x64.Build.0 = Debug|x64
+		{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7}.Release|x64.ActiveCfg = Release|x64
+		{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7}.Release|x64.Build.0 = Release|x64
+		{8145F442-0EF6-4E55-BAED-8DDE72022355}.Debug|x64.ActiveCfg = Debug|x64
+		{8145F442-0EF6-4E55-BAED-8DDE72022355}.Debug|x64.Build.0 = Debug|x64
+		{8145F442-0EF6-4E55-BAED-8DDE72022355}.Release|x64.ActiveCfg = Release|x64
+		{8145F442-0EF6-4E55-BAED-8DDE72022355}.Release|x64.Build.0 = Release|x64
+		{85D4076B-896B-4EBB-8F3A-8B44C24CD452}.Debug|x64.ActiveCfg = Debug|x64
+		{85D4076B-896B-4EBB-8F3A-8B44C24CD452}.Debug|x64.Build.0 = Debug|x64
+		{85D4076B-896B-4EBB-8F3A-8B44C24CD452}.Release|x64.ActiveCfg = Release|x64
+		{85D4076B-896B-4EBB-8F3A-8B44C24CD452}.Release|x64.Build.0 = Release|x64
+		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3}.Debug|x64.ActiveCfg = Debug|x64
+		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3}.Debug|x64.Build.0 = Debug|x64
+		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3}.Release|x64.ActiveCfg = Release|x64
+		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3}.Release|x64.Build.0 = Release|x64
+		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81}.Debug|x64.ActiveCfg = Debug|x64
+		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81}.Debug|x64.Build.0 = Debug|x64
+		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81}.Release|x64.ActiveCfg = Release|x64
+		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81}.Release|x64.Build.0 = Release|x64
+		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Debug|x64.ActiveCfg = Debug|x64
+		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Debug|x64.Build.0 = Debug|x64
+		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Release|x64.ActiveCfg = Release|x64
+		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}.Release|x64.Build.0 = Release|x64
+		{89B6AF14-08A0-437A-B31D-A8A3492FA965}.Debug|x64.ActiveCfg = Debug|x64
+		{89B6AF14-08A0-437A-B31D-A8A3492FA965}.Debug|x64.Build.0 = Debug|x64
+		{89B6AF14-08A0-437A-B31D-A8A3492FA965}.Release|x64.ActiveCfg = Release|x64
+		{89B6AF14-08A0-437A-B31D-A8A3492FA965}.Release|x64.Build.0 = Release|x64
+		{89F947CA-DDEF-4131-8AFB-584ABA4A1302}.Debug|x64.ActiveCfg = Debug|x64
+		{89F947CA-DDEF-4131-8AFB-584ABA4A1302}.Debug|x64.Build.0 = Debug|x64
+		{89F947CA-DDEF-4131-8AFB-584ABA4A1302}.Release|x64.ActiveCfg = Release|x64
+		{89F947CA-DDEF-4131-8AFB-584ABA4A1302}.Release|x64.Build.0 = Release|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Debug|x64.ActiveCfg = Debug|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Debug|x64.Build.0 = Debug|x64
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2}.Release|x64.ActiveCfg = Release|x64
+		{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}.Debug|x64.ActiveCfg = Debug|x64
+		{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}.Debug|x64.Build.0 = Debug|x64
+		{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}.Release|x64.ActiveCfg = Release|x64
+		{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}.Release|x64.Build.0 = Release|x64
+		{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}.Debug|x64.ActiveCfg = Debug|x64
+		{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}.Debug|x64.Build.0 = Debug|x64
+		{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}.Release|x64.ActiveCfg = Release|x64
+		{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}.Release|x64.Build.0 = Release|x64
+		{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}.Debug|x64.ActiveCfg = Debug|x64
+		{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}.Debug|x64.Build.0 = Debug|x64
+		{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}.Release|x64.ActiveCfg = Release|x64
+		{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}.Release|x64.Build.0 = Release|x64
+		{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}.Debug|x64.ActiveCfg = Debug|x64
+		{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}.Debug|x64.Build.0 = Debug|x64
+		{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}.Release|x64.ActiveCfg = Release|x64
+		{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}.Release|x64.Build.0 = Release|x64
+		{8D6BB292-9E1C-413D-9F98-4864BDC1514A}.Debug|x64.ActiveCfg = Debug|x64
+		{8D6BB292-9E1C-413D-9F98-4864BDC1514A}.Debug|x64.Build.0 = Debug|x64
+		{8D6BB292-9E1C-413D-9F98-4864BDC1514A}.Release|x64.ActiveCfg = Release|x64
+		{8D6BB292-9E1C-413D-9F98-4864BDC1514A}.Release|x64.Build.0 = Release|x64
+		{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}.Debug|x64.ActiveCfg = Debug|x64
+		{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}.Debug|x64.Build.0 = Debug|x64
+		{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}.Release|x64.ActiveCfg = Release|x64
+		{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}.Release|x64.Build.0 = Release|x64
+		{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}.Debug|x64.ActiveCfg = Debug|x64
+		{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}.Debug|x64.Build.0 = Debug|x64
+		{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}.Release|x64.ActiveCfg = Release|x64
+		{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}.Release|x64.Build.0 = Release|x64
+		{8E374371-30E1-4623-8755-2A2F3742170B}.Debug|x64.ActiveCfg = Debug|x64
+		{8E374371-30E1-4623-8755-2A2F3742170B}.Debug|x64.Build.0 = Debug|x64
+		{8E374371-30E1-4623-8755-2A2F3742170B}.Release|x64.ActiveCfg = Release|x64
+		{8E374371-30E1-4623-8755-2A2F3742170B}.Release|x64.Build.0 = Release|x64
+		{8F42055F-FFD9-4B10-B266-6DD32923F0AC}.Debug|x64.ActiveCfg = Debug|x64
+		{8F42055F-FFD9-4B10-B266-6DD32923F0AC}.Debug|x64.Build.0 = Debug|x64
+		{8F42055F-FFD9-4B10-B266-6DD32923F0AC}.Release|x64.ActiveCfg = Release|x64
+		{8F42055F-FFD9-4B10-B266-6DD32923F0AC}.Release|x64.Build.0 = Release|x64
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59}.Debug|x64.ActiveCfg = Debug|x64
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59}.Debug|x64.Build.0 = Debug|x64
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59}.Release|x64.ActiveCfg = Release|x64
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59}.Release|x64.Build.0 = Release|x64
+		{90C5FCF1-8243-4988-A4EA-AA6A88268373}.Debug|x64.ActiveCfg = Debug|x64
+		{90C5FCF1-8243-4988-A4EA-AA6A88268373}.Debug|x64.Build.0 = Debug|x64
+		{90C5FCF1-8243-4988-A4EA-AA6A88268373}.Release|x64.ActiveCfg = Release|x64
+		{90C5FCF1-8243-4988-A4EA-AA6A88268373}.Release|x64.Build.0 = Release|x64
+		{91365DAC-BF62-4B96-919D-7C474D029B61}.Debug|x64.ActiveCfg = Debug|x64
+		{91365DAC-BF62-4B96-919D-7C474D029B61}.Debug|x64.Build.0 = Debug|x64
+		{91365DAC-BF62-4B96-919D-7C474D029B61}.Release|x64.ActiveCfg = Release|x64
+		{91365DAC-BF62-4B96-919D-7C474D029B61}.Release|x64.Build.0 = Release|x64
+		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Debug|x64.ActiveCfg = Debug|x64
+		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Debug|x64.Build.0 = Debug|x64
+		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Release|x64.ActiveCfg = Release|x64
+		{9186EAC4-2F34-4F17-B940-6585D7869BCD}.Release|x64.Build.0 = Release|x64
+		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Debug|x64.ActiveCfg = Debug|x64
+		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Debug|x64.Build.0 = Debug|x64
+		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Release|x64.ActiveCfg = Release|x64
+		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA}.Release|x64.Build.0 = Release|x64
+		{92388A20-50FC-45F8-89E3-71F1618EFABB}.Debug|x64.ActiveCfg = Debug|x64
+		{92388A20-50FC-45F8-89E3-71F1618EFABB}.Debug|x64.Build.0 = Debug|x64
+		{92388A20-50FC-45F8-89E3-71F1618EFABB}.Release|x64.ActiveCfg = Release|x64
+		{92388A20-50FC-45F8-89E3-71F1618EFABB}.Release|x64.Build.0 = Release|x64
+		{940C5974-9EF3-4FAC-9820-976B0711F69B}.Debug|x64.ActiveCfg = Debug|x64
+		{940C5974-9EF3-4FAC-9820-976B0711F69B}.Debug|x64.Build.0 = Debug|x64
+		{940C5974-9EF3-4FAC-9820-976B0711F69B}.Release|x64.ActiveCfg = Release|x64
+		{940C5974-9EF3-4FAC-9820-976B0711F69B}.Release|x64.Build.0 = Release|x64
+		{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}.Debug|x64.ActiveCfg = Debug|x64
+		{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}.Debug|x64.Build.0 = Debug|x64
+		{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}.Release|x64.ActiveCfg = Release|x64
+		{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}.Release|x64.Build.0 = Release|x64
+		{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}.Debug|x64.ActiveCfg = Debug|x64
+		{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}.Debug|x64.Build.0 = Debug|x64
+		{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}.Release|x64.ActiveCfg = Release|x64
+		{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F}.Release|x64.Build.0 = Release|x64
+		{98ACBE5D-1A92-46F9-AA81-533412172952}.Debug|x64.ActiveCfg = Debug|x64
+		{98ACBE5D-1A92-46F9-AA81-533412172952}.Debug|x64.Build.0 = Debug|x64
+		{98ACBE5D-1A92-46F9-AA81-533412172952}.Release|x64.ActiveCfg = Release|x64
+		{98ACBE5D-1A92-46F9-AA81-533412172952}.Release|x64.Build.0 = Release|x64
+		{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}.Debug|x64.ActiveCfg = Debug|x64
+		{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}.Debug|x64.Build.0 = Debug|x64
+		{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}.Release|x64.ActiveCfg = Release|x64
+		{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}.Release|x64.Build.0 = Release|x64
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76}.Debug|x64.ActiveCfg = Debug|x64
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76}.Debug|x64.Build.0 = Debug|x64
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76}.Release|x64.ActiveCfg = Release|x64
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76}.Release|x64.Build.0 = Release|x64
+		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Debug|x64.ActiveCfg = Debug|x64
+		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Debug|x64.Build.0 = Debug|x64
+		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.ActiveCfg = Release|x64
+		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48}.Release|x64.Build.0 = Release|x64
+		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Debug|x64.ActiveCfg = Debug|x64
+		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Debug|x64.Build.0 = Debug|x64
+		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Release|x64.ActiveCfg = Release|x64
+		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}.Release|x64.Build.0 = Release|x64
+		{9D1C3F29-1268-4241-BEFB-89D2859C62D3}.Debug|x64.ActiveCfg = Debug|x64
+		{9D1C3F29-1268-4241-BEFB-89D2859C62D3}.Debug|x64.Build.0 = Debug|x64
+		{9D1C3F29-1268-4241-BEFB-89D2859C62D3}.Release|x64.ActiveCfg = Release|x64
+		{9D1C3F29-1268-4241-BEFB-89D2859C62D3}.Release|x64.Build.0 = Release|x64
+		{9D9E33EB-4C24-4646-A3FB-35DA17247917}.Debug|x64.ActiveCfg = Debug|x64
+		{9D9E33EB-4C24-4646-A3FB-35DA17247917}.Debug|x64.Build.0 = Debug|x64
+		{9D9E33EB-4C24-4646-A3FB-35DA17247917}.Release|x64.ActiveCfg = Release|x64
+		{9D9E33EB-4C24-4646-A3FB-35DA17247917}.Release|x64.Build.0 = Release|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.ActiveCfg = Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Debug|x64.Build.0 = Debug|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.ActiveCfg = Release|x64
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45}.Release|x64.Build.0 = Release|x64
+		{9FF51F3E-AF36-4F45-A797-C5F03A090298}.Debug|x64.ActiveCfg = Debug|x64
+		{9FF51F3E-AF36-4F45-A797-C5F03A090298}.Debug|x64.Build.0 = Debug|x64
+		{9FF51F3E-AF36-4F45-A797-C5F03A090298}.Release|x64.ActiveCfg = Release|x64
+		{9FF51F3E-AF36-4F45-A797-C5F03A090298}.Release|x64.Build.0 = Release|x64
+		{9FF62356-30B4-42A1-8DC7-45262A18DD44}.Debug|x64.ActiveCfg = Debug|x64
+		{9FF62356-30B4-42A1-8DC7-45262A18DD44}.Debug|x64.Build.0 = Debug|x64
+		{9FF62356-30B4-42A1-8DC7-45262A18DD44}.Release|x64.ActiveCfg = Release|x64
+		{9FF62356-30B4-42A1-8DC7-45262A18DD44}.Release|x64.Build.0 = Release|x64
+		{A216BF23-FC5C-4426-BF20-8568A2AA5FA0}.Debug|x64.ActiveCfg = Debug|x64
+		{A216BF23-FC5C-4426-BF20-8568A2AA5FA0}.Debug|x64.Build.0 = Debug|x64
+		{A216BF23-FC5C-4426-BF20-8568A2AA5FA0}.Release|x64.ActiveCfg = Release|x64
+		{A216BF23-FC5C-4426-BF20-8568A2AA5FA0}.Release|x64.Build.0 = Release|x64
+		{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}.Debug|x64.ActiveCfg = Debug|x64
+		{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}.Debug|x64.Build.0 = Debug|x64
+		{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}.Release|x64.ActiveCfg = Release|x64
+		{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D}.Release|x64.Build.0 = Release|x64
+		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7}.Debug|x64.ActiveCfg = Debug|x64
+		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7}.Debug|x64.Build.0 = Debug|x64
+		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7}.Release|x64.ActiveCfg = Release|x64
+		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7}.Release|x64.Build.0 = Release|x64
+		{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}.Debug|x64.ActiveCfg = Debug|x64
+		{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}.Debug|x64.Build.0 = Debug|x64
+		{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}.Release|x64.ActiveCfg = Release|x64
+		{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76}.Release|x64.Build.0 = Release|x64
+		{A5794EFF-8232-4E2B-B52C-908823048F54}.Debug|x64.ActiveCfg = Debug|x64
+		{A5794EFF-8232-4E2B-B52C-908823048F54}.Debug|x64.Build.0 = Debug|x64
+		{A5794EFF-8232-4E2B-B52C-908823048F54}.Release|x64.ActiveCfg = Release|x64
+		{A5794EFF-8232-4E2B-B52C-908823048F54}.Release|x64.Build.0 = Release|x64
+		{A57D9365-172E-4782-ADC6-82A594E30943}.Debug|x64.ActiveCfg = Debug|x64
+		{A57D9365-172E-4782-ADC6-82A594E30943}.Debug|x64.Build.0 = Debug|x64
+		{A57D9365-172E-4782-ADC6-82A594E30943}.Release|x64.ActiveCfg = Release|x64
+		{A57D9365-172E-4782-ADC6-82A594E30943}.Release|x64.Build.0 = Release|x64
+		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B}.Debug|x64.ActiveCfg = Debug|x64
+		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B}.Debug|x64.Build.0 = Debug|x64
+		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B}.Release|x64.ActiveCfg = Release|x64
+		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B}.Release|x64.Build.0 = Release|x64
+		{A6CC801B-CF30-4703-BC54-3E21F90B787D}.Debug|x64.ActiveCfg = Debug|x64
+		{A6CC801B-CF30-4703-BC54-3E21F90B787D}.Debug|x64.Build.0 = Debug|x64
+		{A6CC801B-CF30-4703-BC54-3E21F90B787D}.Release|x64.ActiveCfg = Release|x64
+		{A6CC801B-CF30-4703-BC54-3E21F90B787D}.Release|x64.Build.0 = Release|x64
+		{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}.Debug|x64.ActiveCfg = Debug|x64
+		{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}.Debug|x64.Build.0 = Debug|x64
+		{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}.Release|x64.ActiveCfg = Release|x64
+		{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}.Release|x64.Build.0 = Release|x64
+		{AB15A115-E429-4123-BEBF-206FBA4CF615}.Debug|x64.ActiveCfg = Debug|x64
+		{AB15A115-E429-4123-BEBF-206FBA4CF615}.Debug|x64.Build.0 = Debug|x64
+		{AB15A115-E429-4123-BEBF-206FBA4CF615}.Release|x64.ActiveCfg = Release|x64
+		{AB15A115-E429-4123-BEBF-206FBA4CF615}.Release|x64.Build.0 = Release|x64
+		{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296}.Debug|x64.ActiveCfg = Debug|x64
+		{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296}.Debug|x64.Build.0 = Debug|x64
+		{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296}.Release|x64.ActiveCfg = Release|x64
+		{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296}.Release|x64.Build.0 = Release|x64
+		{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8}.Debug|x64.ActiveCfg = Debug|x64
+		{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8}.Debug|x64.Build.0 = Debug|x64
+		{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8}.Release|x64.ActiveCfg = Release|x64
+		{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8}.Release|x64.Build.0 = Release|x64
+		{AE9E908D-BAEC-491F-9914-436B3CE35E94}.Debug|x64.ActiveCfg = Debug|x64
+		{AE9E908D-BAEC-491F-9914-436B3CE35E94}.Debug|x64.Build.0 = Debug|x64
+		{AE9E908D-BAEC-491F-9914-436B3CE35E94}.Release|x64.ActiveCfg = Release|x64
+		{AE9E908D-BAEC-491F-9914-436B3CE35E94}.Release|x64.Build.0 = Release|x64
+		{AEAA72CD-E060-417C-9CA1-49B4738384E0}.Debug|x64.ActiveCfg = Debug|x64
+		{AEAA72CD-E060-417C-9CA1-49B4738384E0}.Debug|x64.Build.0 = Debug|x64
+		{AEAA72CD-E060-417C-9CA1-49B4738384E0}.Release|x64.ActiveCfg = Release|x64
+		{AEAA72CD-E060-417C-9CA1-49B4738384E0}.Release|x64.Build.0 = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.ActiveCfg = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Debug|x64.Build.0 = Debug|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.ActiveCfg = Release|x64
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324}.Release|x64.Build.0 = Release|x64
+		{B2DC2F89-0724-4110-8934-D1173BD73D44}.Debug|x64.ActiveCfg = Debug|x64
+		{B2DC2F89-0724-4110-8934-D1173BD73D44}.Debug|x64.Build.0 = Debug|x64
+		{B2DC2F89-0724-4110-8934-D1173BD73D44}.Release|x64.ActiveCfg = Release|x64
+		{B2DC2F89-0724-4110-8934-D1173BD73D44}.Release|x64.Build.0 = Release|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Debug|x64.ActiveCfg = Debug|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Debug|x64.Build.0 = Debug|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Release|x64.ActiveCfg = Release|x64
+		{B30C6212-A160-405A-8FE7-340E721738A2}.Release|x64.Build.0 = Release|x64
+		{B35BFA09-DE68-483B-AB61-8790E8F060A8}.Debug|x64.ActiveCfg = Debug|x64
+		{B35BFA09-DE68-483B-AB61-8790E8F060A8}.Debug|x64.Build.0 = Debug|x64
+		{B35BFA09-DE68-483B-AB61-8790E8F060A8}.Release|x64.ActiveCfg = Release|x64
+		{B35BFA09-DE68-483B-AB61-8790E8F060A8}.Release|x64.Build.0 = Release|x64
+		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}.Debug|x64.ActiveCfg = Debug|x64
+		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}.Debug|x64.Build.0 = Debug|x64
+		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}.Release|x64.ActiveCfg = Release|x64
+		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}.Release|x64.Build.0 = Release|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.ActiveCfg = Debug|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.Build.0 = Debug|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.ActiveCfg = Release|x64
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.Build.0 = Release|x64
+		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.ActiveCfg = Debug|x64
+		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.Build.0 = Debug|x64
+		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Release|x64.ActiveCfg = Release|x64
+		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Release|x64.Build.0 = Release|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Debug|x64.ActiveCfg = Debug|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Debug|x64.Build.0 = Debug|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Release|x64.ActiveCfg = Release|x64
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF}.Release|x64.Build.0 = Release|x64
+		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Debug|x64.ActiveCfg = Debug|x64
+		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Debug|x64.Build.0 = Debug|x64
+		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Release|x64.ActiveCfg = Release|x64
+		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F}.Release|x64.Build.0 = Release|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Debug|x64.ActiveCfg = Debug|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Debug|x64.Build.0 = Debug|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Release|x64.ActiveCfg = Release|x64
+		{B775480C-5B32-4F64-B026-47367280EC56}.Release|x64.Build.0 = Release|x64
+		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Debug|x64.ActiveCfg = Debug|x64
+		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Debug|x64.Build.0 = Debug|x64
+		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Release|x64.ActiveCfg = Release|x64
+		{B887EA26-846C-4D6A-B0E4-432487506BC7}.Release|x64.Build.0 = Release|x64
+		{BABC6427-E533-4DCF-91E3-B5B2ED253F46}.Debug|x64.ActiveCfg = Debug|x64
+		{BABC6427-E533-4DCF-91E3-B5B2ED253F46}.Debug|x64.Build.0 = Debug|x64
+		{BABC6427-E533-4DCF-91E3-B5B2ED253F46}.Release|x64.ActiveCfg = Release|x64
+		{BABC6427-E533-4DCF-91E3-B5B2ED253F46}.Release|x64.Build.0 = Release|x64
+		{BAE107BA-7618-4972-8188-2D3CDAAE0453}.Debug|x64.ActiveCfg = Debug|x64
+		{BAE107BA-7618-4972-8188-2D3CDAAE0453}.Debug|x64.Build.0 = Debug|x64
+		{BAE107BA-7618-4972-8188-2D3CDAAE0453}.Release|x64.ActiveCfg = Release|x64
+		{BAE107BA-7618-4972-8188-2D3CDAAE0453}.Release|x64.Build.0 = Release|x64
+		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Debug|x64.ActiveCfg = Debug|x64
+		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Debug|x64.Build.0 = Debug|x64
+		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Release|x64.ActiveCfg = Release|x64
+		{BB248BAC-6E1B-433C-A254-75140A273AB5}.Release|x64.Build.0 = Release|x64
+		{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F}.Debug|x64.ActiveCfg = Debug|x64
+		{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F}.Debug|x64.Build.0 = Debug|x64
+		{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F}.Release|x64.ActiveCfg = Release|x64
+		{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F}.Release|x64.Build.0 = Release|x64
+		{BF3B6C3A-3073-4AD4-BB41-A41047231982}.Debug|x64.ActiveCfg = Debug|x64
+		{BF3B6C3A-3073-4AD4-BB41-A41047231982}.Debug|x64.Build.0 = Debug|x64
+		{BF3B6C3A-3073-4AD4-BB41-A41047231982}.Release|x64.ActiveCfg = Release|x64
+		{BF3B6C3A-3073-4AD4-BB41-A41047231982}.Release|x64.Build.0 = Release|x64
+		{C00B4A26-6C57-4968-AED5-B45FD31A22E7}.Debug|x64.ActiveCfg = Debug|x64
+		{C00B4A26-6C57-4968-AED5-B45FD31A22E7}.Debug|x64.Build.0 = Debug|x64
+		{C00B4A26-6C57-4968-AED5-B45FD31A22E7}.Release|x64.ActiveCfg = Release|x64
+		{C00B4A26-6C57-4968-AED5-B45FD31A22E7}.Release|x64.Build.0 = Release|x64
+		{C0E811E0-8942-4CFD-A817-74D99E9E6577}.Debug|x64.ActiveCfg = Debug|x64
+		{C0E811E0-8942-4CFD-A817-74D99E9E6577}.Debug|x64.Build.0 = Debug|x64
+		{C0E811E0-8942-4CFD-A817-74D99E9E6577}.Release|x64.ActiveCfg = Release|x64
+		{C0E811E0-8942-4CFD-A817-74D99E9E6577}.Release|x64.Build.0 = Release|x64
+		{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7}.Debug|x64.ActiveCfg = Debug|x64
+		{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7}.Debug|x64.Build.0 = Debug|x64
+		{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7}.Release|x64.ActiveCfg = Release|x64
+		{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7}.Release|x64.Build.0 = Release|x64
+		{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218}.Debug|x64.ActiveCfg = Debug|x64
+		{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218}.Debug|x64.Build.0 = Debug|x64
+		{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218}.Release|x64.ActiveCfg = Release|x64
+		{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218}.Release|x64.Build.0 = Release|x64
+		{C2F94489-A483-4C44-B8A7-11A75F6AEC66}.Debug|x64.ActiveCfg = Debug|x64
+		{C2F94489-A483-4C44-B8A7-11A75F6AEC66}.Debug|x64.Build.0 = Debug|x64
+		{C2F94489-A483-4C44-B8A7-11A75F6AEC66}.Release|x64.ActiveCfg = Release|x64
+		{C2F94489-A483-4C44-B8A7-11A75F6AEC66}.Release|x64.Build.0 = Release|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Debug|x64.ActiveCfg = Debug|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Debug|x64.Build.0 = Debug|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Release|x64.ActiveCfg = Release|x64
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F}.Release|x64.Build.0 = Release|x64
+		{C3CEE34C-29E0-4A22-B258-3FBAF662AA19}.Debug|x64.ActiveCfg = Debug|x64
+		{C3CEE34C-29E0-4A22-B258-3FBAF662AA19}.Debug|x64.Build.0 = Debug|x64
+		{C3CEE34C-29E0-4A22-B258-3FBAF662AA19}.Release|x64.ActiveCfg = Release|x64
+		{C3CEE34C-29E0-4A22-B258-3FBAF662AA19}.Release|x64.Build.0 = Release|x64
+		{C5E8B8DB-2507-4904-847F-A52196B075F0}.Debug|x64.ActiveCfg = Debug|x64
+		{C5E8B8DB-2507-4904-847F-A52196B075F0}.Debug|x64.Build.0 = Debug|x64
+		{C5E8B8DB-2507-4904-847F-A52196B075F0}.Release|x64.ActiveCfg = Release|x64
+		{C5E8B8DB-2507-4904-847F-A52196B075F0}.Release|x64.Build.0 = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.ActiveCfg = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Debug|x64.Build.0 = Debug|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.ActiveCfg = Release|x64
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}.Release|x64.Build.0 = Release|x64
+		{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}.Debug|x64.ActiveCfg = Debug|x64
+		{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}.Debug|x64.Build.0 = Debug|x64
+		{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}.Release|x64.ActiveCfg = Release|x64
+		{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}.Release|x64.Build.0 = Release|x64
+		{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}.Debug|x64.ActiveCfg = Debug|x64
+		{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}.Debug|x64.Build.0 = Debug|x64
+		{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}.Release|x64.ActiveCfg = Release|x64
+		{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC}.Release|x64.Build.0 = Release|x64
+		{C84633F5-05B1-4AC1-A074-104D1DB2A91E}.Debug|x64.ActiveCfg = Debug|x64
+		{C84633F5-05B1-4AC1-A074-104D1DB2A91E}.Debug|x64.Build.0 = Debug|x64
+		{C84633F5-05B1-4AC1-A074-104D1DB2A91E}.Release|x64.ActiveCfg = Release|x64
+		{C84633F5-05B1-4AC1-A074-104D1DB2A91E}.Release|x64.Build.0 = Release|x64
+		{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1}.Debug|x64.ActiveCfg = Debug|x64
+		{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1}.Debug|x64.Build.0 = Debug|x64
+		{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1}.Release|x64.ActiveCfg = Release|x64
+		{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1}.Release|x64.Build.0 = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Debug|x64.ActiveCfg = Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Debug|x64.Build.0 = Debug|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Release|x64.ActiveCfg = Release|x64
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4}.Release|x64.Build.0 = Release|x64
+		{CA0F317B-2474-4186-96CA-67F8D7A9D62C}.Debug|x64.ActiveCfg = Debug|x64
+		{CA0F317B-2474-4186-96CA-67F8D7A9D62C}.Debug|x64.Build.0 = Debug|x64
+		{CA0F317B-2474-4186-96CA-67F8D7A9D62C}.Release|x64.ActiveCfg = Release|x64
+		{CA0F317B-2474-4186-96CA-67F8D7A9D62C}.Release|x64.Build.0 = Release|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Debug|x64.ActiveCfg = Debug|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Debug|x64.Build.0 = Debug|x64
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}.Release|x64.ActiveCfg = Release|x64
+		{CB906E89-1313-4929-AFF7-86FBF1CC301F}.Debug|x64.ActiveCfg = Debug|x64
+		{CB906E89-1313-4929-AFF7-86FBF1CC301F}.Debug|x64.Build.0 = Debug|x64
+		{CB906E89-1313-4929-AFF7-86FBF1CC301F}.Release|x64.ActiveCfg = Release|x64
+		{CB906E89-1313-4929-AFF7-86FBF1CC301F}.Release|x64.Build.0 = Release|x64
+		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Debug|x64.ActiveCfg = Debug|x64
+		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Debug|x64.Build.0 = Debug|x64
+		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Release|x64.ActiveCfg = Release|x64
+		{CCA9B681-D10B-45E4-98CC-531503D2EDE8}.Release|x64.Build.0 = Release|x64
+		{CD4B9690-7A06-4F7A-8492-9336979EE7E9}.Debug|x64.ActiveCfg = Debug|x64
+		{CD4B9690-7A06-4F7A-8492-9336979EE7E9}.Debug|x64.Build.0 = Debug|x64
+		{CD4B9690-7A06-4F7A-8492-9336979EE7E9}.Release|x64.ActiveCfg = Release|x64
+		{CD4B9690-7A06-4F7A-8492-9336979EE7E9}.Release|x64.Build.0 = Release|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Debug|x64.ActiveCfg = Debug|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Debug|x64.Build.0 = Debug|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Release|x64.ActiveCfg = Release|x64
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006}.Release|x64.Build.0 = Release|x64
+		{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}.Debug|x64.ActiveCfg = Debug|x64
+		{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}.Debug|x64.Build.0 = Debug|x64
+		{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}.Release|x64.ActiveCfg = Release|x64
+		{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752}.Release|x64.Build.0 = Release|x64
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}.Debug|x64.ActiveCfg = Debug|x64
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}.Debug|x64.Build.0 = Debug|x64
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}.Release|x64.ActiveCfg = Release|x64
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}.Release|x64.Build.0 = Release|x64
+		{CF9A0883-6334-44C7-AC29-349468C78E27}.Debug|x64.ActiveCfg = Debug|x64
+		{CF9A0883-6334-44C7-AC29-349468C78E27}.Debug|x64.Build.0 = Debug|x64
+		{CF9A0883-6334-44C7-AC29-349468C78E27}.Release|x64.ActiveCfg = Release|x64
+		{CF9A0883-6334-44C7-AC29-349468C78E27}.Release|x64.Build.0 = Release|x64
+		{D062166F-0EC7-4C13-A772-0C7157EEFE41}.Debug|x64.ActiveCfg = Debug|x64
+		{D062166F-0EC7-4C13-A772-0C7157EEFE41}.Debug|x64.Build.0 = Debug|x64
+		{D062166F-0EC7-4C13-A772-0C7157EEFE41}.Release|x64.ActiveCfg = Release|x64
+		{D062166F-0EC7-4C13-A772-0C7157EEFE41}.Release|x64.Build.0 = Release|x64
+		{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}.Debug|x64.ActiveCfg = Debug|x64
+		{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}.Debug|x64.Build.0 = Debug|x64
+		{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}.Release|x64.ActiveCfg = Release|x64
+		{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}.Release|x64.Build.0 = Release|x64
+		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}.Debug|x64.ActiveCfg = Debug|x64
+		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}.Debug|x64.Build.0 = Debug|x64
+		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}.Release|x64.ActiveCfg = Release|x64
+		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}.Release|x64.Build.0 = Release|x64
+		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139}.Debug|x64.ActiveCfg = Debug|x64
+		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139}.Debug|x64.Build.0 = Debug|x64
+		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139}.Release|x64.ActiveCfg = Release|x64
+		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139}.Release|x64.Build.0 = Release|x64
+		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Debug|x64.ActiveCfg = Debug|x64
+		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Debug|x64.Build.0 = Debug|x64
+		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Release|x64.ActiveCfg = Release|x64
+		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Release|x64.Build.0 = Release|x64
+		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Debug|x64.ActiveCfg = Debug
+		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Debug|x64.Build.0 = Debug
+		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Release|x64.ActiveCfg = Release
+		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Release|x64.Build.0 = Release
+		{D829DB63-E046-474D-8EA3-43A6659294D8}.Debug|x64.ActiveCfg = Debug|x64
+		{D829DB63-E046-474D-8EA3-43A6659294D8}.Debug|x64.Build.0 = Debug|x64
+		{D829DB63-E046-474D-8EA3-43A6659294D8}.Release|x64.ActiveCfg = Release|x64
+		{D829DB63-E046-474D-8EA3-43A6659294D8}.Release|x64.Build.0 = Release|x64
+		{D8317F1D-7A70-4A39-977A-EAB05A04A87B}.Debug|x64.ActiveCfg = Debug|x64
+		{D8317F1D-7A70-4A39-977A-EAB05A04A87B}.Debug|x64.Build.0 = Debug|x64
+		{D8317F1D-7A70-4A39-977A-EAB05A04A87B}.Release|x64.ActiveCfg = Release|x64
+		{D8317F1D-7A70-4A39-977A-EAB05A04A87B}.Release|x64.Build.0 = Release|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Debug|x64.ActiveCfg = Debug|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Debug|x64.Build.0 = Debug|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Release|x64.ActiveCfg = Release|x64
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC}.Release|x64.Build.0 = Release|x64
+		{D93A2683-6D99-4F18-B378-91195D23E007}.Debug|x64.ActiveCfg = Debug|x64
+		{D93A2683-6D99-4F18-B378-91195D23E007}.Debug|x64.Build.0 = Debug|x64
+		{D93A2683-6D99-4F18-B378-91195D23E007}.Release|x64.ActiveCfg = Release|x64
+		{D93A2683-6D99-4F18-B378-91195D23E007}.Release|x64.Build.0 = Release|x64
+		{DB12B063-B09B-4D74-B293-F00A72D07BB2}.Debug|x64.ActiveCfg = Debug|x64
+		{DB12B063-B09B-4D74-B293-F00A72D07BB2}.Debug|x64.Build.0 = Debug|x64
+		{DB12B063-B09B-4D74-B293-F00A72D07BB2}.Release|x64.ActiveCfg = Release|x64
+		{DB12B063-B09B-4D74-B293-F00A72D07BB2}.Release|x64.Build.0 = Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Debug|x64.ActiveCfg = Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Debug|x64.Build.0 = Debug|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.ActiveCfg = Release|x64
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.Build.0 = Release|x64
+		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Debug|x64.ActiveCfg = Debug|x64
+		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Debug|x64.Build.0 = Debug|x64
+		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Release|x64.ActiveCfg = Release|x64
+		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Release|x64.Build.0 = Release|x64
+		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Debug|x64.ActiveCfg = Debug|x64
+		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Debug|x64.Build.0 = Debug|x64
+		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Release|x64.ActiveCfg = Release|x64
+		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Release|x64.Build.0 = Release|x64
+		{E648732D-78FA-427A-928C-9A59222D37B7}.Debug|x64.ActiveCfg = Debug|x64
+		{E648732D-78FA-427A-928C-9A59222D37B7}.Debug|x64.Build.0 = Debug|x64
+		{E648732D-78FA-427A-928C-9A59222D37B7}.Release|x64.ActiveCfg = Release|x64
+		{E648732D-78FA-427A-928C-9A59222D37B7}.Release|x64.Build.0 = Release|x64
+		{E68DEB59-C709-4945-AF80-EEBCADDED944}.Debug|x64.ActiveCfg = Debug|x64
+		{E68DEB59-C709-4945-AF80-EEBCADDED944}.Debug|x64.Build.0 = Debug|x64
+		{E68DEB59-C709-4945-AF80-EEBCADDED944}.Release|x64.ActiveCfg = Release|x64
+		{E68DEB59-C709-4945-AF80-EEBCADDED944}.Release|x64.Build.0 = Release|x64
+		{E7691F81-86EF-467D-82E1-F5B9416386F9}.Debug|x64.ActiveCfg = Debug|x64
+		{E7691F81-86EF-467D-82E1-F5B9416386F9}.Debug|x64.Build.0 = Debug|x64
+		{E7691F81-86EF-467D-82E1-F5B9416386F9}.Release|x64.ActiveCfg = Release|x64
+		{E7691F81-86EF-467D-82E1-F5B9416386F9}.Release|x64.Build.0 = Release|x64
+		{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}.Debug|x64.ActiveCfg = Debug|x64
+		{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}.Debug|x64.Build.0 = Debug|x64
+		{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}.Release|x64.ActiveCfg = Release|x64
+		{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}.Release|x64.Build.0 = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.ActiveCfg = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Debug|x64.Build.0 = Debug|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.ActiveCfg = Release|x64
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE}.Release|x64.Build.0 = Release|x64
+		{E9E079D6-25BF-46E3-8075-7D733303DD59}.Debug|x64.ActiveCfg = Debug|x64
+		{E9E079D6-25BF-46E3-8075-7D733303DD59}.Debug|x64.Build.0 = Debug|x64
+		{E9E079D6-25BF-46E3-8075-7D733303DD59}.Release|x64.ActiveCfg = Release|x64
+		{E9E079D6-25BF-46E3-8075-7D733303DD59}.Release|x64.Build.0 = Release|x64
+		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6}.Debug|x64.ActiveCfg = Debug|x64
+		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6}.Debug|x64.Build.0 = Debug|x64
+		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6}.Release|x64.ActiveCfg = Release|x64
+		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6}.Release|x64.Build.0 = Release|x64
+		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Debug|x64.ActiveCfg = Debug|x64
+		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Debug|x64.Build.0 = Debug|x64
+		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Release|x64.ActiveCfg = Release|x64
+		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Release|x64.Build.0 = Release|x64
+		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Debug|x64.ActiveCfg = Debug|x64
+		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Debug|x64.Build.0 = Debug|x64
+		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Release|x64.ActiveCfg = Release|x64
+		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Release|x64.Build.0 = Release|x64
+		{F13108C4-4C86-4D56-A317-A4E5892A8AF7}.Debug|x64.ActiveCfg = Debug|x64
+		{F13108C4-4C86-4D56-A317-A4E5892A8AF7}.Debug|x64.Build.0 = Debug|x64
+		{F13108C4-4C86-4D56-A317-A4E5892A8AF7}.Release|x64.ActiveCfg = Release|x64
+		{F13108C4-4C86-4D56-A317-A4E5892A8AF7}.Release|x64.Build.0 = Release|x64
+		{F322ED35-A389-4B65-AC8A-E25F1337DBCC}.Debug|x64.ActiveCfg = Debug|x64
+		{F322ED35-A389-4B65-AC8A-E25F1337DBCC}.Debug|x64.Build.0 = Debug|x64
+		{F322ED35-A389-4B65-AC8A-E25F1337DBCC}.Release|x64.ActiveCfg = Release|x64
+		{F322ED35-A389-4B65-AC8A-E25F1337DBCC}.Release|x64.Build.0 = Release|x64
+		{F3E5650D-834E-45E6-90C7-3FC2AA954929}.Debug|x64.ActiveCfg = Debug|x64
+		{F3E5650D-834E-45E6-90C7-3FC2AA954929}.Debug|x64.Build.0 = Debug|x64
+		{F3E5650D-834E-45E6-90C7-3FC2AA954929}.Release|x64.ActiveCfg = Release|x64
+		{F3E5650D-834E-45E6-90C7-3FC2AA954929}.Release|x64.Build.0 = Release|x64
+		{F5D850C9-D353-4B84-99BC-E336C231018C}.Debug|x64.ActiveCfg = Debug|x64
+		{F5D850C9-D353-4B84-99BC-E336C231018C}.Debug|x64.Build.0 = Debug|x64
+		{F5D850C9-D353-4B84-99BC-E336C231018C}.Release|x64.ActiveCfg = Release|x64
+		{F5D850C9-D353-4B84-99BC-E336C231018C}.Release|x64.Build.0 = Release|x64
+		{F5E2F6C4-19BA-497A-B754-232E469BE647}.Debug|x64.ActiveCfg = Debug|x64
+		{F5E2F6C4-19BA-497A-B754-232E469BE647}.Debug|x64.Build.0 = Debug|x64
+		{F5E2F6C4-19BA-497A-B754-232E469BE647}.Release|x64.ActiveCfg = Release|x64
+		{F5E2F6C4-19BA-497A-B754-232E469BE647}.Release|x64.Build.0 = Release|x64
+		{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B}.Debug|x64.ActiveCfg = Debug|x64
+		{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B}.Debug|x64.Build.0 = Debug|x64
+		{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B}.Release|x64.ActiveCfg = Release|x64
+		{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B}.Release|x64.Build.0 = Release|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Debug|x64.ActiveCfg = Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Debug|x64.Build.0 = Debug|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Release|x64.ActiveCfg = Release|x64
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B}.Release|x64.Build.0 = Release|x64
+		{FB2D2B18-E616-4639-8593-0E1AF2DA01A8}.Debug|x64.ActiveCfg = Debug|x64
+		{FB2D2B18-E616-4639-8593-0E1AF2DA01A8}.Debug|x64.Build.0 = Debug|x64
+		{FB2D2B18-E616-4639-8593-0E1AF2DA01A8}.Release|x64.ActiveCfg = Release|x64
+		{FB2D2B18-E616-4639-8593-0E1AF2DA01A8}.Release|x64.Build.0 = Release|x64
+		{FB6AFFAA-0279-41F7-A698-F81C90BBD987}.Debug|x64.ActiveCfg = Debug|x64
+		{FB6AFFAA-0279-41F7-A698-F81C90BBD987}.Debug|x64.Build.0 = Debug|x64
+		{FB6AFFAA-0279-41F7-A698-F81C90BBD987}.Release|x64.ActiveCfg = Release|x64
+		{FB6AFFAA-0279-41F7-A698-F81C90BBD987}.Release|x64.Build.0 = Release|x64
+		{FBB77433-639E-42DC-9355-EA94CAE294D2}.Debug|x64.ActiveCfg = Debug|x64
+		{FBB77433-639E-42DC-9355-EA94CAE294D2}.Debug|x64.Build.0 = Debug|x64
+		{FBB77433-639E-42DC-9355-EA94CAE294D2}.Release|x64.ActiveCfg = Release|x64
+		{FBB77433-639E-42DC-9355-EA94CAE294D2}.Release|x64.Build.0 = Release|x64
+		{FCD0587A-4504-4F5E-8E9C-468CC03D250A}.Debug|x64.ActiveCfg = Debug|x64
+		{FCD0587A-4504-4F5E-8E9C-468CC03D250A}.Debug|x64.Build.0 = Debug|x64
+		{FCD0587A-4504-4F5E-8E9C-468CC03D250A}.Release|x64.ActiveCfg = Release|x64
+		{FCD0587A-4504-4F5E-8E9C-468CC03D250A}.Release|x64.Build.0 = Release|x64
+		{FD726AA3-D4FA-4597-B435-08CC7752888C}.Debug|x64.ActiveCfg = Debug|x64
+		{FD726AA3-D4FA-4597-B435-08CC7752888C}.Debug|x64.Build.0 = Debug|x64
+		{FD726AA3-D4FA-4597-B435-08CC7752888C}.Release|x64.ActiveCfg = Release|x64
+		{FD726AA3-D4FA-4597-B435-08CC7752888C}.Release|x64.Build.0 = Release|x64
+		{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2}.Debug|x64.ActiveCfg = Debug|x64
+		{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2}.Debug|x64.Build.0 = Debug|x64
+		{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2}.Release|x64.ActiveCfg = Release|x64
+		{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2}.Release|x64.Build.0 = Release|x64
+		{FEA09B48-34C2-4963-8A5A-F97BDA136D72}.Debug|x64.ActiveCfg = Debug|x64
+		{FEA09B48-34C2-4963-8A5A-F97BDA136D72}.Debug|x64.Build.0 = Debug|x64
+		{FEA09B48-34C2-4963-8A5A-F97BDA136D72}.Release|x64.ActiveCfg = Release|x64
+		{FEA09B48-34C2-4963-8A5A-F97BDA136D72}.Release|x64.Build.0 = Release|x64
+		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}.Debug|x64.ActiveCfg = Debug|x64
+		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}.Debug|x64.Build.0 = Debug|x64
+		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}.Release|x64.ActiveCfg = Release|x64
+		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}.Release|x64.Build.0 = Release|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Debug|x64.ActiveCfg = Debug|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Debug|x64.Build.0 = Debug|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.ActiveCfg = Release|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{025E7D51-41F2-4CBA-956E-C37A4443DB1B} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{0287C3DC-AE03-4714-AAFF-C52F062ECA6F} = {1434B17C-6165-4D42-BEA1-5A7730D5A6BB}
+		{02BC3B44-C7F1-4793-86C1-6F36CA8A7F53} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{0388E945-A655-41A7-AF27-8981CEE0E49A} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{0529575C-F6E8-44FD-BB82-82A29948D0F2} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{063037B2-CA35-4520-811C-19D9C4ED891E} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{06877FED-15BA-421F-85C9-1A964FB97446} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{06FCFDE9-8C88-4B7D-B87A-47953DB203C9} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{0703E813-9CC8-4DEA-AA33-42B099CD172D} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{07A153D9-DF17-4DE8-A3C2-EBF171B961AE} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{08762559-E9DF-475B-BA99-49F4B5A1D80B} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{08B62E36-63D2-4FF1-A605-4BBABAEE73FB} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{0A049EAD-652F-4E20-8026-90FD99AEE77A} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03} = {BFEDF709-A700-4769-9056-ACA934D828A8}
+		{0CC6D525-806E-433F-AB4A-6CFD546418B1} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{0DC1B184-C814-448F-8B5F-CFFA6F05156C} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{0FB8F0FD-276C-413B-97A8-67ABE0C9043B} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{10469175-EEF7-44A0-9961-AC4E45EFD800} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{11D76FBC-DFAA-4B31-9DB0-206E171E3F94} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{11E158AE-C85A-4A6E-B66A-ED2994709276} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{12A1A3EF-202C-4DD0-9B5A-F5126CAB078F} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{1434B17C-6165-4D42-BEA1-5A7730D5A6BB} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{1464398A-100F-4518-BDB9-939A6362B6CF} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{16721958-ECE3-4674-9913-9AF8E32F0CD8} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{179BEB5A-2C90-44F5-A734-FA756A5E668C} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{1A36B57B-2E88-4D81-89C0-F575C9895E36} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{1B9B0D6D-E530-44A6-ADAE-09EA2BDC47DE} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{1BA340EC-B0B2-438D-A47C-27F86F604133} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{1E564DB1-0687-4CC4-BAE5-453F93052FDA} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{1EB3DE5B-6357-498D-8CAC-EEC0209EA454} = {E3229AF7-1FA2-4632-BB0B-B74F709F1A33}
+		{1F2E1C51-2B14-4047-BE6D-52E00FC3C780} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{21991E84-7859-420E-ADDA-1D058E787F06} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{2498FCDA-E2CC-43EF-9A35-8CD63F253171} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{25B5C601-03D7-4861-9C0F-7F0453B04227} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{26135DD1-8BB0-4217-A4DC-C1F232F35BA2} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{26166DF1-3C94-44AF-9075-BA31DCD2F6BB} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{26D24B3D-22CE-44EB-AA21-2BF594F80520} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{27FA11C6-431D-41D1-A417-FAB7C4F93DCA} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{296F3C5D-3951-423E-8E2F-FD4A37958C72} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{29D9376B-DC36-4940-83F1-A7CBE38A2103} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{2B1A5104-A324-4D02-B5C7-D021FB8F880C} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{2B7772E6-9DAA-4F38-B0BC-7B2399366325} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{2DE6B085-3C19-49B1-894A-AD9376000E09} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{2F543422-4B8A-4898-BE6B-590F52B4E9D1} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{3142CB13-CADA-48D3-9A25-E6ACB243760A} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{34CBF343-52E2-45EF-B934-4F365F227701} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{3CF270CD-0F56-48E3-AD84-82F369C568BF} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{3D5A802D-CFAF-4C33-A042-D79851F60356} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{3DEB4FBF-638D-4588-A510-E9A77FF75BB1} = {3D5A802D-CFAF-4C33-A042-D79851F60356}
+		{3EC30D6A-BDA4-4971-879A-8814204EAE31} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{3ECCB0F1-3ADF-486A-91C5-79DF0FC22F78} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{3ED56E55-84A6-422C-A8D4-A8439FB8F245} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{40DC66AD-F66D-4194-B9A4-A3A2222516FE} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{42CCEF95-5ADD-460C-967E-DD5B2C744943} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{433F7840-C597-4950-84C9-E4FF7DF6A298} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{45E74E38-35CA-4CB6-8965-BC20D39659AF} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{4850F425-9128-4E91-973C-5AE7BD97395B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{48A3AE10-200B-454E-9D82-EC1A88CF1151} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{49A7CC5A-D5E7-4A07-917F-C6918B982BE8} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{4A3CDA9F-55C2-455E-8E82-1FAAAA2245C5} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{4C291EEB-3874-4724-9CC2-1335D13FF0EE} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{4C429783-0B01-449F-A36F-C2019233890B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{4C6E7F0A-7E6A-4713-B1D2-B7B4ADC992AF} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{4E334022-7A71-4197-9E15-878F7EFC877E} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{4ED1E400-CF16-48C2-B176-2BF186E73531} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{4FB4FF90-4E92-4CFB-A01F-C73D6861CA03} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{50FD1E47-2131-48D2-9435-5CB28DF6B15A} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{513C4CFA-BD5B-4470-BA93-F6D43778A754} = {C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}
+		{52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{537F759B-B617-48D9-A2F3-7FB769A8F9B7} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{57FD4D93-BAE1-466F-83AF-0288FAF45006} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{581B3A58-F3F0-4765-91E5-D0C82816A528} = {C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}
+		{58386481-30B7-40FC-96AF-0723A4A7B228} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{59AB6976-D16B-48D0-8D16-94360D3FE51D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{59D7A9CD-9912-40E4-96E1-8A873F777F62} = {6D63CDF1-F62C-4614-AD8A-95B0A63AA070}
+		{5A391A14-8E29-4788-93FC-EDADED31D32F} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{5D362DB7-D2BD-4907-AAD8-4B8627E72282} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{5DB2E259-0D19-4A89-B8EC-B2912F39924D} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{60206D22-E132-4695-8486-10BECA32C5CC} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{6068773F-FDA7-484F-8650-EE1AA5C3CB37} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{60B463D4-8CD5-4BF6-A25B-01BE13B87590} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{628FADA9-7047-4DD9-BD17-9FE4B5A1ADB0} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{63B8184D-85E0-4E6A-9729-558C567D1D1D} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{63C9B3F8-437D-4AD9-B32D-D04AE38C35B6} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{643B82A1-D009-46A9-92A0-2883399B05C2} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{6516D6CF-8000-4341-9487-312BC83EE370} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{65D92D98-97E1-48F7-AEF6-75221CF48EA4} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{673277EC-D26B-414D-92E3-84EE873316A8} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{67AC1343-98FD-4143-92C0-559C55F749F5} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{6851356E-A5D9-46A6-8262-A7E208729F18} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{69F7907C-A8B2-4B90-8CB7-0CD74D7DFD40} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{6B492754-9F80-44B3-A2A7-1D98AF06F3B2} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{6BCEF2A5-0CEC-4CC6-9CB0-D3FBF871A408} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{6D63CDF1-F62C-4614-AD8A-95B0A63AA070} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{6D7C1169-3246-465F-B630-ECFEF4F3179A} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{6F06A19B-0921-4B71-A3A5-B350B5FFEADB} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{6F4953DA-FDC3-46CF-BF24-3752CCF2E1CB} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{70EE1D40-0C65-4985-8EFC-BD40EE3A89B2} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{715EADD7-0FFE-4F1F-94E7-49302968DF79} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{718CA6FA-6446-4E43-83DF-BA4E85E5886B} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{71D182E0-345A-4375-B0FA-3536821B0EE3} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{72598DD9-3F44-4E6A-B0B7-C5AE3FF43B1F} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{7264C8F6-73FB-4830-9306-1558D3EAC71B} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{729E3905-FF7D-49C5-9871-6D35D839183E} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{7337E34A-97B0-44FC-988B-7E6AE7E0FBBF} = {6D63CDF1-F62C-4614-AD8A-95B0A63AA070}
+		{73F35C28-811C-4D77-916E-386EB139C001} = {3D5A802D-CFAF-4C33-A042-D79851F60356}
+		{74243B75-816C-4077-8DF0-98D2C78B0E5D} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{746BA101-5C93-42A5-AC7A-64DCEB186572} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{74D655D5-F661-4887-A1EB-5A6222AF5FCA} = {E3229AF7-1FA2-4632-BB0B-B74F709F1A33}
+		{779425B1-2211-499B-A7CC-4F9EC6CB0D25} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{7D71EE07-6CE2-49FA-8AB8-976800A050A0} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA} = {877E7D1D-8150-4FE5-A139-B6FBCEAEC393}
+		{7DFEB4A5-8B04-4302-9D09-8144918FCF81} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{7E0106F8-A597-48D5-B4F2-E0FC4D95EE95} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{7F51CD29-3BCD-4DD8-B327-F384B5A616D1} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8008010F-8718-4C5F-86B2-195AEBF73422} = {C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}
+		{8010BBB0-C71B-4EFF-95EB-65C01E5EC197} = {C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}
+		{80AF1B7D-B8CE-4AF0-AE3B-1DABED1B57E7} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{8145F442-0EF6-4E55-BAED-8DDE72022355} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{85D4076B-896B-4EBB-8F3A-8B44C24CD452} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{877E7D1D-8150-4FE5-A139-B6FBCEAEC393} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{89B6AF14-08A0-437A-B31D-A8A3492FA965} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{89F947CA-DDEF-4131-8AFB-584ABA4A1302} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8A0FA780-068A-4534-AA2F-4FF4CF977AF2} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{8A4872D7-A234-4B9B-8215-82C6BB15F3A2} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8C42CA7C-1543-4F1B-A55F-28CD419C7D35} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8CD79300-941F-4FDD-A371-92BF0EFBA0FC} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{8D6BB292-9E1C-413D-9F98-4864BDC1514A} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8DB4158E-96EE-4DE5-A425-C9638F50B9ED} = {52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}
+		{8E374371-30E1-4623-8755-2A2F3742170B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{8F42055F-FFD9-4B10-B266-6DD32923F0AC} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {95FAF291-03D1-42FC-9C10-424D551D475D}
+		{90C5FCF1-8243-4988-A4EA-AA6A88268373} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{91365DAC-BF62-4B96-919D-7C474D029B61} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{9186EAC4-2F34-4F17-B940-6585D7869BCD} = {95FAF291-03D1-42FC-9C10-424D551D475D}
+		{91C30620-70CA-46C7-AC71-71F3C602690E} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{91E19AEB-7B75-43E0-B8B4-D2BB60D839EA} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{92388A20-50FC-45F8-89E3-71F1618EFABB} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{940C5974-9EF3-4FAC-9820-976B0711F69B} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{95B683BD-B9DC-400F-9BC0-8F1505F08BF5} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{95FAF291-03D1-42FC-9C10-424D551D475D} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{96D00A19-5CEF-4CC5-BDE8-E33C68BCE90F} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{98ACBE5D-1A92-46F9-AA81-533412172952} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{9A4078F8-B8E4-4EC6-A6FF-4F29DAD9CE48} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{9A8482A7-BF0C-423D-8266-189456ED41F6} = {95FAF291-03D1-42FC-9C10-424D551D475D}
+		{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{9C37B8CC-F810-4787-924D-65BC227091A3} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{9D1C3F29-1268-4241-BEFB-89D2859C62D3} = {52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}
+		{9D9E33EB-4C24-4646-A3FB-35DA17247917} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{9FF51F3E-AF36-4F45-A797-C5F03A090298} = {91C30620-70CA-46C7-AC71-71F3C602690E}
+		{9FF62356-30B4-42A1-8DC7-45262A18DD44} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{A216BF23-FC5C-4426-BF20-8568A2AA5FA0} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{A2A0FAEA-2B7C-4FC3-B904-1DB4DEACF88D} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{A2DEA0DC-04F3-4384-BCC2-F7EE2CFD6EE7} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{A38EFCDB-53D6-4474-97F3-0DDC6CE70D76} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{A5794EFF-8232-4E2B-B52C-908823048F54} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{A57D9365-172E-4782-ADC6-82A594E30943} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{A5DF0746-5496-4C29-9CCD-5FA76604BF8B} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{A6CC801B-CF30-4703-BC54-3E21F90B787D} = {52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}
+		{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2} = {91C30620-70CA-46C7-AC71-71F3C602690E}
+		{AB15A115-E429-4123-BEBF-206FBA4CF615} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{ABD4B53D-94CD-4C6A-B30A-CB6FEBA16296} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{AE1C32FB-9B52-4760-ABFC-0D2FA2C7A6C8} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{AE9E908D-BAEC-491F-9914-436B3CE35E94} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{AEAA72CD-E060-417C-9CA1-49B4738384E0} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{AF0B7480-EBE3-486B-B0C8-134910BC9324} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{B2DC2F89-0724-4110-8934-D1173BD73D44} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{B30C6212-A160-405A-8FE7-340E721738A2} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{B35BFA09-DE68-483B-AB61-8790E8F060A8} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{B440BB05-37A8-42EA-98D3-D83EB113E497} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{B6DA6617-D98F-4A4D-A7C4-A317212924BF} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{B775480C-5B32-4F64-B026-47367280EC56} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{B870D8A6-12CD-4DD0-B843-833695C2310A} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{B887EA26-846C-4D6A-B0E4-432487506BC7} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{BABC6427-E533-4DCF-91E3-B5B2ED253F46} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{BAE107BA-7618-4972-8188-2D3CDAAE0453} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{BB248BAC-6E1B-433C-A254-75140A273AB5} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{BD6CC700-B36B-435B-BAF9-FC5AFCD766C9} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{BE18F227-A9F0-4B38-B689-4E2F9F09CA5F} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{BF3B6C3A-3073-4AD4-BB41-A41047231982} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{BFBAB433-860E-4A28-96E3-A4B7AFE3B297} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{BFEDF709-A700-4769-9056-ACA934D828A8} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{C00B4A26-6C57-4968-AED5-B45FD31A22E7} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{C0E811E0-8942-4CFD-A817-74D99E9E6577} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{C1C505A8-634D-4640-9DB7-E2B4E59CA2D7} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{C2C36D03-26EE-4BD8-8FFC-86CFE16C1218} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{C2F94489-A483-4C44-B8A7-11A75F6AEC66} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{C3A59B21-A287-4631-B4EC-F4A57D26A14F} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{C3CEE34C-29E0-4A22-B258-3FBAF662AA19} = {91C30620-70CA-46C7-AC71-71F3C602690E}
+		{C5E8B8DB-2507-4904-847F-A52196B075F0} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{C6E9D8C2-D5C1-441B-95ED-378E10DC5723} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{C71DAF3E-9361-4723-93E2-C475D1D0C0D0} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{C721EFBD-45DC-479E-9B99-E62FCC1FC6E5} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{C7E42AE1-052F-4024-B8BA-DE5DCE6BBEEC} = {C721EFBD-45DC-479E-9B99-E62FCC1FC6E5}
+		{C84633F5-05B1-4AC1-A074-104D1DB2A91E} = {EA0D2458-5FCD-4DAB-B07D-229327B98BEB}
+		{C96D08A8-AFCD-4C2D-B50F-4582042FCBC1} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{C973CD39-D63B-4F5C-BE1D-DED17388B5A4} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{CA0F317B-2474-4186-96CA-67F8D7A9D62C} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{CB906E89-1313-4929-AFF7-86FBF1CC301F} = {9C37B8CC-F810-4787-924D-65BC227091A3}
+		{CCA9B681-D10B-45E4-98CC-531503D2EDE8} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{CD4B9690-7A06-4F7A-8492-9336979EE7E9} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{CD7A18D5-55D9-4922-A000-FFAA08ABB006} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{CDD9DFC6-5C3D-42F7-B822-FE29A1C21752} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{CF9A0883-6334-44C7-AC29-349468C78E27} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{D062166F-0EC7-4C13-A772-0C7157EEFE41} = {1434B17C-6165-4D42-BEA1-5A7730D5A6BB}
+		{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E} = {F09A0864-9221-47AD-872F-D4538104D747}
+		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
+		{D5093EC2-5B5A-4D79-842C-6A1481E9C989} = {52B4C136-F527-4FE0-9781-5B2259A0FF27}
+		{D829DB63-E046-474D-8EA3-43A6659294D8} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{D8317F1D-7A70-4A39-977A-EAB05A04A87B} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{D93A2683-6D99-4F18-B378-91195D23E007} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{DB12B063-B09B-4D74-B293-F00A72D07BB2} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
+		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{DFEBEBAA-9624-445C-82A0-93363E22D806} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{E23BB160-006E-44F2-8FB4-3A2240BBC20C} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{E3229AF7-1FA2-4632-BB0B-B74F709F1A33} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{E648732D-78FA-427A-928C-9A59222D37B7} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{E68DEB59-C709-4945-AF80-EEBCADDED944} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{E7691F81-86EF-467D-82E1-F5B9416386F9} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{E901B756-EA72-4B8D-967F-85F109D0D1DE} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{E9E079D6-25BF-46E3-8075-7D733303DD59} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{EA0D2458-5FCD-4DAB-B07D-229327B98BEB} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{F09A0864-9221-47AD-872F-D4538104D747} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{F13108C4-4C86-4D56-A317-A4E5892A8AF7} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{F322ED35-A389-4B65-AC8A-E25F1337DBCC} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{F3E5650D-834E-45E6-90C7-3FC2AA954929} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{F42C09CD-ABA5-4DA9-8383-5EA40FA4D763} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
+		{F5D850C9-D353-4B84-99BC-E336C231018C} = {BFEDF709-A700-4769-9056-ACA934D828A8}
+		{F5E2F6C4-19BA-497A-B754-232E469BE647} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{F63FB47F-1DCE-48E5-9CBD-F3E0A354472B} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
+		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{F8373EDD-1B9E-462D-BF23-55638E23E98B} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{FB2D2B18-E616-4639-8593-0E1AF2DA01A8} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{FB6AFFAA-0279-41F7-A698-F81C90BBD987} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{FBB77433-639E-42DC-9355-EA94CAE294D2} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
+		{FCD0587A-4504-4F5E-8E9C-468CC03D250A} = {1434B17C-6165-4D42-BEA1-5A7730D5A6BB}
+		{FD726AA3-D4FA-4597-B435-08CC7752888C} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
+		{FD86DEA2-449E-44CD-A014-BFC30ED3FDF2} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+	EndGlobalSection
+EndGlobal

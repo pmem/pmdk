@@ -1,0 +1,4 @@
+Conversion cannot be performed on a poolset part.
+Conversion cannot be performed on a poolset part.
+There's no conversion method for the pool.
+Please make sure the pmempool utility is up-to-date.

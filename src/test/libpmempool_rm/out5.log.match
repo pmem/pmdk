@@ -1,0 +1,4 @@
+libpmempool_rm/TEST5: START: libpmempool_rm$(nW)
+ $(nW)libpmempool_rm$(nW) $(*)
+$(nW): removing file failed: Permission denied
+libpmempool_rm/TEST5: DONE

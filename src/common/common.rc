@@ -1,0 +1,109 @@
+/*
+ * Copyright 2016-2017, Intel Corporation
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * common.rc -- common part of nvml rc files
+ */
+
+#include <windows.h>
+#include "srcversion.h"
+
+#define VERSION(major, minor, build, revision) major, minor, build, revision
+
+#ifdef _DEBUG
+#define VERSION_DEBUG VS_FF_DEBUG
+#else
+#define VERSION_DEBUG 0
+#endif
+
+#ifdef PRERELEASE
+#define VERSION_PRERELEASE VS_FF_PRERELEASE
+#else
+#define VERSION_PRERELEASE 0
+#endif
+
+#ifdef BUGFIX
+#define VERSION_PATCHED VS_FF_PATCHED
+#else
+#define VERSION_PATCHED 0
+#endif
+
+#ifdef PRIVATE
+#define VERSION_PRIVATE VS_FF_PRIVATE
+#else
+#define VERSION_PRIVATE 0
+#endif
+
+#ifdef CUSTOM
+#define VERSION_SPECIAL VS_FF_SPECIALBUILD
+#else
+#define VERSION_SPECIAL 0
+#endif
+
+#define VERSION_PRIVATEBUILD VS_FF_PRIVATEBUILD
+#define VER_PATCHED VS_FF_PATCHED
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION	VERSION(MAJOR, MINOR, BUILD, REVISION)
+PRODUCTVERSION	VERSION(MAJOR, MINOR, BUILD, REVISION)
+FILEFLAGSMASK	VS_FFI_FILEFLAGSMASK
+FILEFLAGS	(VERSION_PRIVATEBUILD | VERSION_PRERELEASE | VERSION_DEBUG | VERSION_SPECIAL | VERSION_PATCHED)
+FILEOS		VOS__WINDOWS32
+FILETYPE	TYPE
+FILESUBTYPE	VFT2_UNKNOWN
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		 BLOCK "040904b0"
+		 BEGIN
+			VALUE "CompanyName", "Intel"
+			VALUE "FileDescription", DESCRIPTION
+			VALUE "FileVersion", SRCVERSION
+			VALUE "InternalName", "NVML"
+			VALUE "LegalCopyright", "Copyright 2014-2017, Intel Corporation"
+			VALUE "OriginalFilename", FILE_NAME
+			VALUE "ProductName", "NVM Library"
+			VALUE "ProductVersion", SRCVERSION
+#if VERSION_SPECIAL == VS_FF_SPECIALBUILD
+			VALUE "SpecialBuild", VERSION_CUSTOM_MSG
+#endif
+#if VERSION_PRIVATEBUILD == VS_FF_SPECIALBUILD
+			VALUE "PrivateBuild", "Not a release build"
+#endif
+		 END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+			/* XXX: Update to UNICODE */
+			VALUE "Translation", 0x409, 0
+	END
+END
