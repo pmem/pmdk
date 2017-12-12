@@ -42,6 +42,9 @@ export UNITTEST_NAME=obj_action/TEST$UNITTEST_NUM
 
 require_test_type short
 
+# TEST1 runs valgrind
+configure_valgrind memcheck force-disable
+
 setup
 
 export PMEM_IS_PMEM_FORCE=1
