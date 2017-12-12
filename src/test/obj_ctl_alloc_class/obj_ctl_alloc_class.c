@@ -207,6 +207,21 @@ main(int argc, char *argv[])
 		POBJ_CLASS_ID(alloc_class_new_max.class_id), NULL, NULL);
 	UT_ASSERTne(ret, 0);
 
+	struct pobj_alloc_class_desc alloc_class_new_loop;
+	alloc_class_new_loop.header_type = POBJ_HEADER_COMPACT;
+	alloc_class_new_loop.unit_size = 16384;
+	alloc_class_new_loop.units_per_block = 63;
+	alloc_class_new_loop.class_id = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_new_loop);
+	UT_ASSERTeq(ret, 0);
+
+	size_t s = (63 * 16384) - 16;
+	ret = pmemobj_xalloc(pop, &oid, s + 1, 0,
+		POBJ_CLASS_ID(alloc_class_new_loop.class_id), NULL, NULL);
+	UT_ASSERTne(ret, 0);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);

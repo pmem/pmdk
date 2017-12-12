@@ -686,6 +686,8 @@ alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
 			return -1;
 		else if (size_idx > RUN_UNIT_MAX)
 			return -1;
+		else if (size_idx > c->run.bitmap_nallocs)
+			return -1;
 	}
 
 	return size_idx;
