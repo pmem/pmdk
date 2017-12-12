@@ -209,7 +209,6 @@ static char Buff_stdout[MAXPRINT];
 #define OF_NONL		1	/* do not append newline */
 #define OF_ERR		2	/* output is error output */
 #define OF_TRACE	4	/* output to trace file only */
-#define OF_LOUD		8	/* output even in Quiet mode */
 #define OF_NAME		16	/* include Testname in the output */
 
 /*
@@ -221,16 +220,12 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	char buf[MAXPRINT];
 	unsigned cc = 0;
 	int sn;
-	int log_level = LogLevel;
 	const char *sep = "";
 	char errstr[UT_MAX_ERR_MSG] = "";
 	const char *nl = "\n";
 
 	if (Force_quiet)
 		return;
-
-	if (flags & OF_LOUD)
-		log_level = 2;
 
 	if (flags & OF_NONL)
 		nl = "";
@@ -275,11 +270,11 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	fputs(buf, Tracefp);
 	if (flags & OF_ERR) {
 		fputs(buf, Errfp);
-		if (log_level >= 2)
+		if (LogLevel >= 2)
 			fputs(buf, stderr);
 	} else if ((flags & OF_TRACE) == 0) {
 		fputs(buf, Outfp);
-		if (log_level >= 2)
+		if (LogLevel >= 2)
 			fputs(buf, stdout);
 	}
 }
