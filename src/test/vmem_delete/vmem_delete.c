@@ -192,6 +192,8 @@ main(int argc, char *argv[])
 		}
 	}
 
+	MUNMAP(mem_pool, VMEM_MIN_POOL);
+
 #ifndef _WIN32
 	is_done = true;
 #endif
