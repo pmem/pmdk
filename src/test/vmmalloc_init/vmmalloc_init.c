@@ -94,5 +94,8 @@ main(int argc, char *argv[])
 		free(ptr);
 	}
 
+	if (handle != NULL)
+		dlclose(handle);
+
 	DONE(NULL);
 }
