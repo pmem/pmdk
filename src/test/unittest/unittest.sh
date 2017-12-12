@@ -2794,10 +2794,18 @@ function enable_log_append() {
 if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 	NODES_ALL=$((${#NODE[@]} - 1))
 	MYPID=$$
+
 	for ((i=0;i<=$NODES_ALL;i++));
 	do
+
+		if [[ -z "${NODE_WORKING_DIR[$i]}" || -z "$curtestdir" ]]; then
+			echo "Invalid path to tests data: ${NODE_WORKING_DIR[$i]}/$curtestdir/data/"
+			exit 1
+		fi
+
 		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
-		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
+		run_command ssh $SSH_OPTS ${NODE[$i]} "rm -rf ${N[$i]}; mkdir ${N[$i]}"
+
 		if [ $? -eq 0 ]; then
 			echo -e "Removed data from: ${NODE[$i]}:${N[$i]}"
 		fi
