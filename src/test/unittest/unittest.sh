@@ -2797,7 +2797,9 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 	for ((i=0;i<=$NODES_ALL;i++));
 	do
 		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
-		run_command ssh $SSH_OPTS ${NODE[$i]} touch ${N[$i]}nomatch; rm -rf ${N[$i]}*
+		if [ -n "${N[$i]}" ]; then
+			run_command ssh $SSH_OPTS ${NODE[$i]} "rm -rf ${N[$i]}*"
+		fi
 		if [ $? -eq 0 ]; then
 			echo -e "Removed data from: ${NODE[$i]}:${N[$i]}"
 		fi
