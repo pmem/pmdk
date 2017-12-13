@@ -2242,6 +2242,16 @@ function setup() {
 }
 
 #
+# check_log_empty -- if match file does not exist, assume log should be empty
+#
+function check_log_empty()
+	if [ ! -f ${1}.match ] && [ $(get_size $1) -ne 0 ]; then
+		echo "unexpected output in $1"
+		dump_last_n_lines $1
+		exit 1
+	fi
+
+#
 # check_local -- check local test results (using .match files)
 #
 function check_local() {
@@ -2249,15 +2259,7 @@ function check_local() {
 		option=-q
 	fi
 
-	# If errX.log.match does not exist, assume errX.log should be empty
-	ERR_LOG_LEN=0
-	[ -f $ERR_LOG_FILE ] && ERR_LOG_LEN=$(stat -c %b $ERR_LOG_FILE)
-
-	if [ ! -f ${ERR_LOG_FILE}.match ] && [ $ERR_LOG_LEN -ne 0 ]; then
-		echo "unexpected output in $ERR_LOG_FILE"
-		dump_last_n_lines $ERR_LOG_FILE
-		exit 1
-	fi
+	check_log_empty $ERR_LOG_FILE
 
 	FILES=$(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
 	if [ -n "$FILES" ]; then
@@ -2296,16 +2298,8 @@ function check() {
 			option=-q
 		fi
 
-		# If errX.log.match does not exist, assume errX.log should be empty
 		for N in $NODES_SEQ; do
-			ERR_LOG_LEN=0
-			[ -f node_${N}_${ERR_LOG_FILE} ] && ERR_LOG_LEN=$(stat -c %b node_${N}_${ERR_LOG_FILE})
-
-			if [ ! -f node_${N}_${ERR_LOG_FILE}.match ] && [ $ERR_LOG_LEN -ne 0 ]; then
-				echo "unexpected output in node_${N}_${ERR_LOG_FILE}"
-				dump_last_n_lines node_${N}_${ERR_LOG_FILE}
-				exit 1
-			fi
+			check_log_empty node_${N}_${ERR_LOG_FILE}
 		done
 
 		if [ -n "$FILES" ]; then
@@ -2408,11 +2402,15 @@ check_no_files()
 }
 
 #
-# get_size -- return size of file
+# get_size -- return size of file (0 if file does not exist)
 #
 get_size()
 {
-	stat $STAT_SIZE $1
+	if [ ! -f $1 ]; then
+		echo "0"
+	else
+		stat $STAT_SIZE $1
+	fi
 }
 
 #
