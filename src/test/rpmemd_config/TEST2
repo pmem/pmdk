@@ -58,8 +58,8 @@ INVALID_ENUM=Invalid
 
 function check_config {
 	echo -e $1 > $CONFIG
-	expect_abnormal_exit $RPMEMD -c $CONFIG 1>> $OUT_TEMP 2>&1
-	expect_abnormal_exit $RPMEMD --config $CONFIG 1>> $OUT_TEMP 2>&1
+	expect_normal_exit $RPMEMD -c $CONFIG 1>> $OUT_TEMP 2>&1
+	expect_normal_exit $RPMEMD --config $CONFIG 1>> $OUT_TEMP 2>&1
 }
 
 check_config "; invalid comment format"

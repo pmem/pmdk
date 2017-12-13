@@ -19,3 +19,5 @@ persist_general:	yes
 use_syslog:		yes
 max_lanes:		1024
 log_level:		err
+invalid config
+invalid config

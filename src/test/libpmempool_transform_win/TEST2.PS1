@@ -76,12 +76,12 @@ cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TE
 
 # Try to transform poolset
 $FLAGS = "1" # invalid flag
-expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 $FLAGS = "1024"
-expect_abnormal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
+expect_normal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 

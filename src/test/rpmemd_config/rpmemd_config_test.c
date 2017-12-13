@@ -125,9 +125,12 @@ main(int argc, char *argv[])
 
 	struct rpmemd_config config;
 
-	UT_ASSERT(rpmemd_config_read(&config, argc, argv) == 0);
-
-	config_print(&config);
+	ret = rpmemd_config_read(&config, argc, argv);
+	if (ret) {
+		UT_OUT("invalid config");
+	} else {
+		config_print(&config);
+	}
 
 	rpmemd_log_close();
 	rpmemd_config_free(&config);

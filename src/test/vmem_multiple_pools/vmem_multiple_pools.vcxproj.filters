@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>
