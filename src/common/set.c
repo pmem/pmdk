@@ -449,7 +449,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	}
 	if (addr != NULL && (flags & MAP_FIXED) && addrp != addr) {
 		ERR("!mmap: %s", part->path);
-		munmap(addr, size);
+		munmap(addrp, size);
 		return -1;
 	}
 
