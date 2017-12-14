@@ -46,8 +46,8 @@ date: pmemobj API version 2.2
 
 # NAME #
 
-**pmemobj_reserve**(), **pmemobj_set_value**(), **pmemobj_publish**(),
-**pmemobj_tx_publish**(), **pmemobj_cancel**(),
+**pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_set_value**(),
+**pmemobj_publish**(), **pmemobj_tx_publish**(), **pmemobj_cancel**(),
 **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**()
 -- Delayed atomicity actions
 
@@ -59,6 +59,8 @@ date: pmemobj API version 2.2
 
 PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num);
+PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num, uint64_t flags);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
 void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
@@ -101,6 +103,14 @@ persistent state.
 The object returned by this function can be freely modified without worrying
 about fail-safe atomicity until the object has been published. Any modifications
 of the object must be manually persisted, just like in the case of the atomic API.
+
+**pmemobj_xreserve**() is equivalent to **pmemobj_reserve**(), but with an
+additional *flags* argument that is a bitmask of the following values:
+
++ **POBJ_XALLOC_ZERO** - zero the object
+
++ **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
+*class_id*. The class id cannot be 0.
 
 The **pmemobj_set_value** function prepares an action that, once published, will
 modify the memory location pointed to by *ptr* to *value*.
