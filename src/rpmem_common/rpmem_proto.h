@@ -207,11 +207,16 @@ struct rpmem_msg_close_resp {
 	/* no more fields */
 } PACKED;
 
+#define RPMEM_PERSIST		0x0
+#define RPMEM_DEEP_PERSIST 0x1
+#define RPMEM_FLAGS_ALL		RPMEM_DEEP_PERSIST
+#define RPMEM_FLAGS_MASK	((uint32_t)(~RPMEM_FLAGS_ALL))
 /*
  * rpmem_msg_persist -- remote persist message
  */
 struct rpmem_msg_persist {
-	uint64_t lane;	/* lane identifier */
+	uint32_t flags; /* lane flags */
+	uint32_t lane;	/* lane identifier */
 	uint64_t addr;	/* remote memory address */
 	uint64_t size;	/* remote memory size */
 };
@@ -220,7 +225,8 @@ struct rpmem_msg_persist {
  * rpmem_msg_persist_resp -- remote persist response message
  */
 struct rpmem_msg_persist_resp {
-	uint64_t lane;	/* lane identifier */
+	uint32_t flags;	/* lane flags */
+	uint32_t lane;	/* lane identifier */
 };
 
 /*
