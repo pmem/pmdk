@@ -330,6 +330,9 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 	return 1;
 }
 
+typedef int (*flush_func)(RPMEMpool *rpp, size_t off,
+		size_t size, unsigned lane);
+
 /*
  * thread_arg -- persist worker thread arguments
  */
@@ -340,46 +343,36 @@ struct thread_arg {
 	int nops;
 	unsigned lane;
 	int exp_errno;
+
+	flush_func flush;
 };
 
 /*
- * persist_thread -- persist worker thread function
+ * thread_func -- worker thread function
  */
 static void *
-persist_thread(void *arg)
+thread_func(void *arg)
 {
 	struct thread_arg *args = arg;
-	size_t persist_size = args->size / args->nops;
+	size_t flush_size = args->size / args->nops;
 	UT_ASSERTeq(args->size % args->nops, 0);
 	for (int i = 0; i < args->nops; i++) {
-		size_t off = args->off + i * persist_size;
-		size_t left = args->size - i * persist_size;
-		size_t size = left < persist_size ?
-				left : persist_size;
+		size_t off = args->off + i * flush_size;
+		size_t left = args->size - i * flush_size;
+		size_t size = left < flush_size ?
+				left : flush_size;
 
-		int ret = rpmem_persist(args->rpp, off, size, args->lane);
+		int ret = args->flush(args->rpp, off, size, args->lane);
 		check_return_and_errno(ret, args->exp_errno);
 	}
 
 	return NULL;
 }
 
-/*
- * test_persist -- test case for persist operation
- */
-static int
-test_persist(const struct test_case *tc, int argc, char *argv[])
+static void
+test_flush(int id, int seed, int nthreads, int nops, flush_func func)
 {
-	if (argc < 4)
-		UT_FATAL("usage: test_persist <id> <seed> <nthreads> <nops>");
-
-	int id = atoi(argv[0]);
-	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
-	int seed = atoi(argv[1]);
-
-	int nthreads = atoi(argv[2]);
-	int nops = atoi(argv[3]);
 
 	size_t buff_size = pool->size;
 
@@ -400,11 +393,12 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		args[i].nops = nops;
 		args[i].lane = (unsigned)i;
 		args[i].off = i * size_per_thread;
+		args[i].flush = func;
 		size_t size_left = buff_size - size_per_thread * i;
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
 		args[i].exp_errno = pool->exp_errno;
-		PTHREAD_CREATE(&threads[i], NULL, persist_thread, &args[i]);
+		PTHREAD_CREATE(&threads[i], NULL, thread_func, &args[i]);
 	}
 
 	for (int i = 0; i < nthreads; i++)
@@ -412,6 +406,45 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 
 	FREE(args);
 	FREE(threads);
+}
+
+/*
+ * test_persist -- test case for persist operation
+ */
+static int
+test_persist(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 4)
+		UT_FATAL("usage: test_persist <id> <seed> <nthreads> <nops>");
+
+	int id = atoi(argv[0]);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	int seed = atoi(argv[1]);
+	int nthreads = atoi(argv[2]);
+	int nops = atoi(argv[3]);
+
+	test_flush(id, seed, nthreads, nops, rpmem_persist);
+
+	return 4;
+}
+
+/*
+ * test_deep_flush -- test case for deep_flush operation
+ */
+static int
+test_deep_flush(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 4)
+		UT_FATAL("usage: test_deep_flush <id> <seed> <nthreads> "
+				"<nops>");
+
+	int id = atoi(argv[0]);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	int seed = atoi(argv[1]);
+	int nthreads = atoi(argv[2]);
+	int nops = atoi(argv[3]);
+
+	test_flush(id, seed, nthreads, nops, rpmem_deep_flush);
 
 	return 4;
 }
@@ -700,6 +733,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_attr),
 	TEST_CASE(test_close),
 	TEST_CASE(test_persist),
+	TEST_CASE(test_deep_flush),
 	TEST_CASE(test_read),
 	TEST_CASE(test_remove),
 	TEST_CASE(check_pool),
