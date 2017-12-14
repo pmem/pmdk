@@ -46,6 +46,8 @@ struct rpmemd_fip_attr {
 	enum rpmem_provider provider;
 	enum rpmem_persist_method persist_method;
 	int (*persist)(const void *addr, size_t len);
+	int (*deep_persist)(const void *addr, size_t len, void *ctx);
+	void *ctx;
 };
 
 struct rpmemd_fip *rpmemd_fip_init(const char *node,

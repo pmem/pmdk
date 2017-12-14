@@ -56,6 +56,8 @@ date: rpmem API version 1.1
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset,
 	size_t length, unsigned lane);
+int rpmem_deep_persist(RPMEMpool *rpp, size_t offset,
+	size_t length, unsigned lane);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 	size_t length, unsigned lane);
 ```
@@ -81,6 +83,11 @@ The **rpmem_persist**() operation is performed using the given *lane* number.
 The lane must be less than the value returned by **rpmem_open**(3) or
 **rpmem_create**(3) through the *nlanes* argument (so it can take a value
 from 0 to *nlanes* - 1).
+
+The **rpmem_deep_persist**() function works in the same way as
+**rpmem_persist**(3) function, but additionaly it flushes the data to the
+lowest possible persistency domain available from software.
+Please see **pmem_deep_persist**(3) for details.
 
 The **rpmem_read**() function reads *length* bytes of data from a remote pool
 at *offset* and copies it to the buffer *buff*. The operation is performed on

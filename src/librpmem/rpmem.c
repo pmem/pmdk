@@ -51,6 +51,7 @@
 #include "rpmem_fip.h"
 #include "rpmem_fip_common.h"
 #include "rpmem_ssh.h"
+#include "rpmem_proto.h"
 
 #define RPMEM_REMOVE_FLAGS_ALL (\
 	RPMEM_REMOVE_FORCE |	\
@@ -627,7 +628,46 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 		return -1;
 	}
 
-	int ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
+	int ret = rpmem_fip_persist(rpp->fip, offset, length,
+			lane, RPMEM_PERSIST);
+	if (unlikely(ret)) {
+		ERR("persist operation failed");
+		rpp->error = ret;
+		errno = rpp->error;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * rpmem_deep_persit -- deep flush operation on target node
+ *
+ * rpp           -- remote pool handle
+ * offset        -- offset in pool
+ * length        -- length of deep flush operation
+ * lane          -- lane number
+ */
+int
+rpmem_deep_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
+{
+	LOG(3, "rpp %p, offset %zu, length %zu, lane %d", rpp, offset, length,
+			lane);
+
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	if (offset < RPMEM_HDR_SIZE) {
+		ERR("offset (%zu) in pool is less than %d bytes", offset,
+				RPMEM_HDR_SIZE);
+		errno = EINVAL;
+		return -1;
+	}
+
+	int ret = rpmem_fip_persist(rpp->fip, offset, length,
+			lane, RPMEM_DEEP_PERSIST);
 	if (unlikely(ret)) {
 		ERR("persist operation failed");
 		rpp->error = ret;

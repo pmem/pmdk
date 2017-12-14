@@ -247,9 +247,10 @@ rpmem_fip_lane_attrs[MAX_RPMEM_FIP_NODE][MAX_RPMEM_PM] = {
 		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_APM] = {
-		.n_per_sq = 2, /* WRITE + READ */
-		.n_per_rq = 0, /* unused */
-		.n_per_cq = 2,
+		/* WRITE + READ for persist, WRITE + SEND for deep persist */
+		.n_per_sq = 2, /* WRITE + SEND */
+		.n_per_rq = 1, /* RECV */
+		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_GPSPM] = {
 		.n_per_sq = 1, /* SEND */
@@ -257,9 +258,9 @@ rpmem_fip_lane_attrs[MAX_RPMEM_FIP_NODE][MAX_RPMEM_PM] = {
 		.n_per_cq = 3,
 	},
 	[RPMEM_FIP_NODE_SERVER][RPMEM_PM_APM] = {
-		.n_per_sq = 0, /* unused */
-		.n_per_rq = 0, /* unused */
-		.n_per_cq = 1,
+		.n_per_sq = 1, /* SEND */
+		.n_per_rq = 1, /* RECV */
+		.n_per_cq = 3,
 	},
 };
 

@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,21 +30,40 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/librpmem/librpmem.map -- linker map file for librpmem
+# src/test/rpmem_basic/TEST14 -- unit test for rpmem_deep_persist
 #
-LIBRPMEM_1.0 {
-	global:
-		rpmem_create;
-		rpmem_open;
-		rpmem_set_attr;
-		rpmem_close;
-		rpmem_remove;
-		rpmem_persist;
-		rpmem_deep_persist;
-		rpmem_read;
-		rpmem_check_version;
-		rpmem_errormsg;
-	local:
-		*;
-};
+export UNITTEST_NAME=rpmem_basic/TEST14
+export UNITTEST_NUM=14
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+. setup.sh
+
+setup
+
+create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
+
+run_on_node 0 "rm -rf ${NODE_DIR[0]}$POOLS_DIR ${NODE_DIR[0]}$POOLS_PART && mkdir -p ${NODE_DIR[0]}$POOLS_DIR && mkdir -p ${NODE_DIR[0]}$POOLS_PART"
+
+copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/pool0.set
+
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0
+
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
+
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
+	test_deep_persist 0 4321 8 8\
+	test_close 0
+
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	check_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 4321 8M
+
+pass
