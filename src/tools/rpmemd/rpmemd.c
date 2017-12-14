@@ -55,6 +55,7 @@
 #include "os_thread.h"
 #include "util.h"
 #include "uuid.h"
+#include "set.h"
 
 /*
  * rpmemd -- rpmem handle
@@ -190,6 +191,16 @@ rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 }
 
 /*
+ * rpmemd_deep_persist -- perform deep persist operation
+ */
+static int
+rpmemd_deep_persist(const void *addr, size_t size, void *ctx)
+{
+	struct rpmemd *rpmemd = (struct rpmemd *)ctx;
+	return util_replica_deep_persist(addr, size, rpmemd->pool->set, 0);
+}
+
+/*
  * rpmemd_common_fip_init -- initialize fabric provider
  */
 static int
@@ -205,6 +216,8 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		.nthreads	= rpmemd->nthreads,
 		.provider	= req->provider,
 		.persist_method = rpmemd->persist_method,
+		.deep_persist	= rpmemd_deep_persist,
+		.ctx		= rpmemd
 	};
 
 	const int is_pmem = rpmemd_db_pool_is_pmem(rpmemd->pool);

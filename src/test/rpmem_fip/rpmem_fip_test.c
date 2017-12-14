@@ -173,7 +173,7 @@ client_persist_thread(void *arg)
 		memset(&lpool[offset], val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_persist(args->fip, offset,
-				SIZE_PER_LANE, args->lane);
+				SIZE_PER_LANE, args->lane, RPMEM_PERSIST);
 		UT_ASSERTeq(ret, 0);
 	}
 
