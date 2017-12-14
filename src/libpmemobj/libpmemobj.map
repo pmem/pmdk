@@ -111,6 +111,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_drain;
 		pmemobj_direct;
 		pmemobj_reserve;
+		pmemobj_xreserve;
 		pmemobj_set_value;
 		pmemobj_publish;
 		pmemobj_tx_publish;
