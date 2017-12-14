@@ -448,8 +448,8 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 		return -1;
 	}
 	if (addr != NULL && (flags & MAP_FIXED) && addrp != addr) {
-		ERR("!mmap: %s", part->path);
-		munmap(addr, size);
+		ERR("unable to map at requested address %p", addr);
+		munmap(addrp, size);
 		return -1;
 	}
 
