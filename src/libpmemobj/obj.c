@@ -2705,6 +2705,32 @@ pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 }
 
 /*
+ * pmemobj_reserve -- reserves a single object
+ */
+PMEMoid
+pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num, uint64_t flags)
+{
+	PMEMoid oid = OID_NULL;
+
+	if (flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS);
+		errno = EINVAL;
+		return oid;
+	}
+
+	if (palloc_reserve(&pop->heap, size, NULL, NULL, type_num,
+		0, CLASS_ID_FROM_FLAG(flags), act) != 0)
+		return oid;
+
+	oid.off = act->heap.offset;
+	oid.pool_uuid_lo = pop->uuid_lo;
+
+	return oid;
+}
+
+/*
  * pmemobj_set_value -- creates an action to set a value
  */
 void
