@@ -89,5 +89,6 @@ pmemobj_tx_zrealloc
 pmemobj_type_num
 pmemobj_wcsdup
 pmemobj_xalloc
+pmemobj_xreserve
 pmemobj_zalloc
 pmemobj_zrealloc

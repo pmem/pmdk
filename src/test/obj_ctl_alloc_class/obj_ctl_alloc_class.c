@@ -98,6 +98,16 @@ main(int argc, char *argv[])
 	pmemobj_free(&oid);
 
 	/*
+	 * Reserve as above.
+	 */
+	struct pobj_action act;
+	oid = pmemobj_xreserve(pop, &act, 128, 0, POBJ_CLASS_ID(128));
+	UT_ASSERT(!OID_IS_NULL(oid));
+	usable_size = pmemobj_alloc_usable_size(oid);
+	UT_ASSERTeq(usable_size, 128);
+	pmemobj_cancel(pop, &act, 1);
+
+	/*
 	 * One unit from alloc class 128 - 128 bytes unit size, minimal headers,
 	 * but request size 1 byte.
 	 */
