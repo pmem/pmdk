@@ -72,9 +72,13 @@ struct pobj_action {
 };
 
 #define POBJ_MAX_ACTIONS 60
+#define POBJ_ACTION_XRESERVE_VALID_FLAGS\
+	(POBJ_XALLOC_CLASS_MASK | POBJ_XALLOC_ZERO)
 
 PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num);
+PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num, uint64_t flags);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
 

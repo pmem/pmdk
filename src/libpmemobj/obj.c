@@ -2692,10 +2692,51 @@ PMEMoid
 pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num)
 {
+	LOG(3, "pop %p act %p size %zu type_num %llx",
+		pop, act, size,
+		(unsigned long long)type_num);
+
 	PMEMoid oid = OID_NULL;
 
 	if (palloc_reserve(&pop->heap, size, NULL, NULL, type_num,
 		0, 0, act) != 0)
+		return oid;
+
+	oid.off = act->heap.offset;
+	oid.pool_uuid_lo = pop->uuid_lo;
+
+	return oid;
+}
+
+/*
+ * pmemobj_xreserve -- reserves a single object
+ */
+PMEMoid
+pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
+	size_t size, uint64_t type_num, uint64_t flags)
+{
+	LOG(3, "pop %p act %p size %zu type_num %llx flags %llx",
+		pop, act, size,
+		(unsigned long long)type_num, (unsigned long long)flags);
+
+	PMEMoid oid = OID_NULL;
+
+	if (flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS);
+		errno = EINVAL;
+		return oid;
+	}
+
+	struct carg_bytype carg;
+
+	carg.user_type = type_num;
+	carg.zero_init = flags & POBJ_FLAG_ZERO;
+	carg.constructor = NULL;
+	carg.arg = NULL;
+
+	if (palloc_reserve(&pop->heap, size, constructor_alloc_bytype, &carg,
+		type_num, 0, CLASS_ID_FROM_FLAG(flags), act) != 0)
 		return oid;
 
 	oid.off = act->heap.offset;
