@@ -41,8 +41,6 @@ export UNITTEST_NAME=obj_pmalloc_mt/TEST$UNITTEST_NUM
 # standard unit test setup
 . ../unittest/unittest.sh
 
-export VALGRIND_OPTS="--suppressions=../drd-log.supp"
-
 require_valgrind_dev_version 3.10
 require_fs_type pmem non-pmem
 require_test_type medium
