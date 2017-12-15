@@ -82,10 +82,12 @@ struct iovec;
 
 #ifndef _WIN32
 typedef struct stat os_stat_t;
+typedef  dev_t os_dev_t;
 #define os_fstat	fstat
 #define os_lseek	lseek
 #else
 typedef struct _stat64 os_stat_t;
+typedef unsigned os_dev_t;
 #define os_fstat	_fstat64
 #define os_lseek	_lseeki64
 #endif

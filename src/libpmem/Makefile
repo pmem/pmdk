@@ -40,7 +40,6 @@ SOURCE =\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/os_linux.c\
 	$(COMMON)/os_thread_linux.c\
-	$(COMMON)/os_dimm_linux.c\
 	$(COMMON)/ddax_deep_flush.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\

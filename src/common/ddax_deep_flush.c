@@ -48,6 +48,7 @@
 #include "file.h"
 #include "out.h"
 #include "ddax_deep_flush.h"
+#include "libpmem.h"
 
 #define DAX_REGION_ID_LEN 4
 
@@ -55,11 +56,11 @@
  * ddax_region_find - looks for region number for specified dev_id
  */
 int
-ddax_region_find(dev_t dev_id)
+ddax_region_find(os_dev_t dev_id)
 {
 
 	LOG(2, "ddax_region_find %lu", (unsigned long)dev_id);
-
+#ifndef _WIN32
 	int dax_reg_id_fd;
 	char dax_region_path[PATH_MAX];
 	char reg_id[DAX_REGION_ID_LEN + 1];
@@ -87,37 +88,46 @@ ddax_region_find(dev_t dev_id)
 err:
 	os_close(dax_reg_id_fd);
 	return -1;
+#else
+	return -1;
+#endif
 }
 
 /*
  * ddax_deep_flush_select - check if deep flush request is for pmem or other
  */
 int
-ddax_deep_flush_select(const void *addr, size_t len, int deep_flush_fd)
+ddax_deep_flush_select(const void *addr, size_t len, struct pool_set *set)
 {
-	LOG(2, "ddax_deep_flush_select addr %p len %zu deep_flush_fd %d",
-	addr, len, deep_flush_fd);
+	LOG(2, "ddax_deep_flush_select addr %p len %zu set %p", addr, len, set);
 
-#ifdef LIBPMEM
-	/* ASSERTeq(deep_flush_fd, NULL); */
-	/* XXX pointer to basic pmem deep flush */
-#else
-
-#endif
-	/*
-	 * XXX
-	 * check deep_flush_fd
-	 * #ifdef LIBPMEM
-	 * if null - run basic pmem_deep_flush - end
-	 * #else
-	 * if deep_flush_fd >= 0 - run deep_flush_final on this fd
-	 * else run mscync (libpmemobj_deep_flush case on non-dax)
-	 *
-	 */
+	if (set == NULL) {
+		if (pmem_deep_flush(addr, len)) {
+			ERR("!pmem_deep_flush(%p, %lu)", addr, len);
+			return -1;
+		}
+	} else {
+		if (ddax_pool_set_deep_flush(addr, len, set)) {
+			ERR("!ddax_pool_set_deep_flush(%p, %lu, %p)",
+				addr, len, set);
+			return -1;
+		}
+	}
 
 	return 0;
 }
 
+/*
+ * ddax_pool_set_deep_flush -- perform deep flush on parts on dev dax from range
+ */
+int
+ddax_pool_set_deep_flush(const void *addr, size_t len, struct pool_set *set)
+{
+	LOG(2, "ddax_pool_set_deep_flush addr %p len %zu set %p",
+		addr, len, set);
+
+	return 0;
+}
 
 /*
  * ddax_deep_flush_final -- perform final deep flush on given deep_flush fd
