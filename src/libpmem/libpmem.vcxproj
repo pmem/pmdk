@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
+    <ClCompile Include="..\common\ddax_deep_flush.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
@@ -28,7 +29,6 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
-    <ClInclude Include="..\common\ddax_deep_flush.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c" />
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="cpu.c" />
@@ -40,6 +40,7 @@
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
     <ClInclude Include="..\..\src\include\libpmem.h" />
     <ClInclude Include="..\..\src\libpmem\pmem.h" />
+    <ClInclude Include="..\common\ddax_deep_flush.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
@@ -50,7 +51,6 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
-    <ClInclude Include="..\common\ddax_deep_flush.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="cpu.h" />
   </ItemGroup>
