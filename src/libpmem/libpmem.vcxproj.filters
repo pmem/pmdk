@@ -124,8 +124,7 @@
     <ClInclude Include="..\common\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os_thread.h">
-      <Filter>Header Files</Filter>
+      <ClInclude Include="..\common\os_thread.h">
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
