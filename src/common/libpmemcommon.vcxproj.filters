@@ -53,6 +53,9 @@
     <ClCompile Include="os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ddax_deep_flush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlsym.h">
@@ -92,6 +95,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

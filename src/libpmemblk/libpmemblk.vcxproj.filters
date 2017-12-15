@@ -63,6 +63,9 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\ddax_deep_flush.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmemblk.h">
@@ -108,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\dlsym.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ddax_deep_flush.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
