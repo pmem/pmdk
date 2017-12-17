@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(POOLSET, 5)
 collection: poolset
-header: NVM Library
+header: PMDK
 date: poolset API version 1.0
 ...
 

@@ -1,16 +1,16 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is utils/docker/README.
 
 Scripts in this directory let Travis CI run a Docker container with ubuntu-
-or fedora-based environment and build NVML project inside it.
+or fedora-based environment and build PMDK project inside it.
 
-'build-local.sh' can be used to build NVML locally.
+'build-local.sh' can be used to build PMDK locally.
 
-'build-travis.sh' is used for building NVML on Travis.
+'build-travis.sh' is used for building PMDK on Travis.
 
 NOTE:
-(for those, who have Travis builds enabled for their fork of the NVML project)
+(for those, who have Travis builds enabled for their fork of the PMDK project)
 If you commit changes to any Dockerfile or shell script in the 'images'
 subdirectory and then do git-rebase before pushing your commits to the
 repository, make sure that you do not squash the commit which is the head in

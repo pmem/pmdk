@@ -1,4 +1,4 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/tools/pmempool/README.
 
@@ -29,7 +29,7 @@ pool, but some of them may create new or modify existing one.
 
 The pmempool may be useful for troubleshooting and may be used by system
 administrators and by software developers work on applications based on
-NVM Library. The latter may find these tools useful for testing and debugging
+Persistent Memory Development Kit. The latter may find these tools useful for testing and debugging
 purposes also.
 
 Currently there is a following set of commands available:
@@ -84,7 +84,7 @@ existing commands.
 ---------
 
 The pmempool invoked with *info* command analyzes the existing pool created
-by NVML libraries. The main task of this command is to print all usable
+by PMDK libraries. The main task of this command is to print all usable
 information from pool headers and user data in human readable format. It
 automatically recognizes pool type by parsing and analyzing pool header. The
 recognition is done by checking the signature in pool header. The main
@@ -239,7 +239,7 @@ Below is the description of available features:
 -------
 
 The pmempool *rm* command is a simple helper utility which removes pool files
-created using either NVML libraries or pmempool *create* command.
+created using either PMDK libraries or pmempool *create* command.
 
  * The main feature is to parse the poolset configuration file and remove all
    listed pool files.
@@ -304,4 +304,4 @@ See the top-level README file for detailed information about building packages.
 5. Versioning
 -------------
 
-The versioning of pmempool application is the same as all NVML libraries.
+The versioning of pmempool application is the same as all PMDK libraries.

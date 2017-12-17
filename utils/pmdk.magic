@@ -1,9 +1,9 @@
 
 #------------------------------------------------------------------------------
-# $File: nvml,v 1.1 2016/09/30 22:10:00
-# nvml: file(1) magic for NVM Library pool files
+# $File: pmdk,v 1.2 2017/12/11 20:00:00
+# pmdk: file(1) magic for Persistent Memory Development Kit pool files
 #
-# The NVM Library specific format of pool files.
+# The PMDK specific format of pool files.
 #
 # PMEM signature
 0	string			PMEM

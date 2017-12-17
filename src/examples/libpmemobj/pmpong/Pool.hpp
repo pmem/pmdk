@@ -40,7 +40,7 @@
 
 struct GameStruct {
 public:
-	nvml::obj::persistent_ptr<GameController> gam;
+	pmem::obj::persistent_ptr<GameController> gam;
 };
 
 class Pool {
@@ -49,14 +49,14 @@ public:
 	~Pool();
 	static Pool *getGamePoolFromFile(const std::string &fileName);
 	static Pool *getGamePool();
-	nvml::obj::persistent_ptr<GameController> getGameController();
-	nvml::obj::pool<GameStruct> &getPoolToTransaction();
+	pmem::obj::persistent_ptr<GameController> getGameController();
+	pmem::obj::pool<GameStruct> &getPoolToTransaction();
 
 private:
 	Pool(const std::string &name);
 	static Pool *pongPool;
 
-	nvml::obj::pool<GameStruct> pool;
+	pmem::obj::pool<GameStruct> pool;
 
 	Pool(const Pool &);
 	Pool &operator=(const Pool &);

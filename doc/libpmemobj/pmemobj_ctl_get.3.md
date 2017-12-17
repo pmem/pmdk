@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEMOBJ_CTL_GET, 3)
 collection: libpmemobj
-header: NVM Library
+header: PMDK
 date: pmemobj API version 2.2
 ...
 

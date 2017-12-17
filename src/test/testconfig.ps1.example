@@ -10,7 +10,7 @@
 #
 
 #
-# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test NVML with file path longer
+# Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test PMDK with file path longer
 # than 255 characters. Due to limitation of powershell you have to use
 # UNC prefix (i.e. \\?\c:\tmp) in PMEM_FS_DIR and NON_PMEM_FS_DIR variables.
 #

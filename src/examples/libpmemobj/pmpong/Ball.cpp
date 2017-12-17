@@ -39,16 +39,16 @@ Ball::Ball(int x, int y)
 {
 	this->x = x;
 	this->y = y;
-	velocity = nvml::obj::make_persistent<sf::Vector2f>();
+	velocity = pmem::obj::make_persistent<sf::Vector2f>();
 	this->velocity->x = 0;
 	this->velocity->y = 0;
 }
 
 Ball::~Ball()
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(),
-		[&] { nvml::obj::delete_persistent<sf::Vector2f>(velocity); });
+		[&] { pmem::obj::delete_persistent<sf::Vector2f>(velocity); });
 }
 
 void
@@ -87,7 +87,7 @@ Ball::increaseVelocity()
 void
 Ball::setX(int xArg)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(),
 		[&] { x = xArg; });
 }
@@ -95,7 +95,7 @@ Ball::setX(int xArg)
 void
 Ball::setY(int yArg)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(),
 		[&] { y = yArg; });
 }
@@ -103,7 +103,7 @@ Ball::setY(int yArg)
 void
 Ball::setVelocityX(float xArg)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(),
 		[&] { velocity->x = xArg; });
 }
@@ -111,7 +111,7 @@ Ball::setVelocityX(float xArg)
 void
 Ball::setVelocityY(float yArg)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(),
 		[&] { velocity->y = yArg; });
 }
@@ -119,7 +119,7 @@ Ball::setVelocityY(float yArg)
 void
 Ball::setXY(int xArg, int yArg)
 {
-	nvml::obj::transaction::exec_tx(
+	pmem::obj::transaction::exec_tx(
 		gamePoolB->getGamePool()->getPoolToTransaction(), [&] {
 			x = xArg;
 			y = yArg;
@@ -146,7 +146,7 @@ Ball::getY()
 	return this->y;
 }
 
-nvml::obj::persistent_ptr<sf::Vector2f>
+pmem::obj::persistent_ptr<sf::Vector2f>
 Ball::getVelocity()
 {
 	return this->velocity;

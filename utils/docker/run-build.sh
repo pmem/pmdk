@@ -32,7 +32,7 @@
 
 #
 # run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of NVML project.
+#                and starts a build of PMDK project.
 #
 
 set -e

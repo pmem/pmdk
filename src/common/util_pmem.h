@@ -34,8 +34,8 @@
  * util_pmem.h -- internal definitions for pmem utils
  */
 
-#ifndef NVML_UTIL_PMEM_H
-#define NVML_UTIL_PMEM_H 1
+#ifndef PMDK_UTIL_PMEM_H
+#define PMDK_UTIL_PMEM_H 1
 
 #ifdef __cplusplus
 extern "C" {

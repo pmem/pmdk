@@ -1,10 +1,10 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is examples/libvmem/README.
 
 This directory contains examples for libvmem, the library providing
 a volatile memory allocator for persistent memory.  Some examples
-are described in more detail here: http://pmem.io/nvml/libvmem
+are described in more detail here: http://pmem.io/pmdk/libvmem
 
 manpage.c is the example used in the libvmem man page.
 
@@ -14,6 +14,6 @@ To build these examples:
 These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
-If you're looking for documentation to get you started using NVML,
-start here: http://pmem.io/nvml and follow the links to examples and
+If you're looking for documentation to get you started using PMDK,
+start here: http://pmem.io/pmdk and follow the links to examples and
 man pages.

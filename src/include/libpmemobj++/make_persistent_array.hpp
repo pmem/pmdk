@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@
 #include "libpmemobj++/detail/pexceptions.hpp"
 #include "libpmemobj/tx_base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -220,6 +220,6 @@ delete_persistent(typename detail::pp_if_size_array<T>::type ptr)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_MAKE_PERSISTENT_ARRAY_HPP */

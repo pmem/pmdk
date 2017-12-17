@@ -32,14 +32,14 @@
 
 #
 # build-local.sh - runs a Docker container from a Docker image with environment
-#                  prepared for building NVML project and starts building NVML
+#                  prepared for building PMDK project and starts building PMDK
 #
-# this script is for building NVML locally (not on Travis)
+# this script is for building PMDK locally (not on Travis)
 #
 # Notes:
 # - run this script from its location or set the variable 'HOST_WORKDIR' to
-#   where the root of the NVML project is on the host machine,
-# - set variables 'OS' and 'OS_VER' properly to a system you want to build NVML
+#   where the root of the PMDK project is on the host machine,
+# - set variables 'OS' and 'OS_VER' properly to a system you want to build PMDK
 #   on (for proper values take a look on the list of Dockerfiles at the
 #   utils/docker/images directory), eg. OS=ubuntu, OS_VER=16.04.
 # - set 'KEEP_TEST_CONFIG' variable to 1 if you do not want the tests to be
@@ -58,8 +58,8 @@ export REMOTE_TESTS=${REMOTE_TESTS:-1}
 export MAKE_PKG=${MAKE_PKG:-0}
 export EXTRA_CFLAGS=${EXTRA_CFLAGS:--DUSE_VALGRIND}
 export EXTRA_CXXFLAGS=${EXTRA_CXXFLAGS:-}
-export NVML_CC=${NVML_CC:-gcc}
-export NVML_CXX=${NVML_CXX:-g++}
+export PMDK_CC=${PMDK_CC:-gcc}
+export PMDK_CXX=${PMDK_CXX:-g++}
 export USE_LLVM_LIBCPP=${USE_LLVM_LIBCPP:-}
 export LIBCPP_LIBDIR=${LIBCPP_LIBDIR:-}
 export LIBCPP_INCDIR=${LIBCPP_INCDIR:-}
@@ -91,22 +91,22 @@ fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
-WORKDIR=/nvml
+WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
 echo Building ${OS}-${OS_VER}
 
 # Run a container with
 #  - environment variables set (--env)
-#  - host directory containing nvml source mounted (-v)
+#  - host directory containing PMDK source mounted (-v)
 #  - working directory set (-w)
 docker run --privileged=true --name=$containerName -ti \
 	$RM_SETTING \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
-	--env CC=$NVML_CC \
-	--env CXX=$NVML_CXX \
+	--env CC=$PMDK_CC \
+	--env CXX=$PMDK_CXX \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
 	--env USE_LLVM_LIBCPP=$USE_LLVM_LIBCPP \

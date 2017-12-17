@@ -1,10 +1,10 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is examples/libpmemlog/README.
 
 This directory contains examples for libpmemlog, the library providing
 pmem-resident log files.  Some of these examples are explained in more
-detail here: http://pmem.io/nvml/libpmemlog
+detail here: http://pmem.io/pmdk/libpmemlog
 
 manpage.c is the example used in the libpmemlog man page.
 
@@ -16,6 +16,6 @@ To build these examples:
 These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
-If you're looking for documentation to get you started using NVML,
-start here: http://pmem.io/nvml and follow the links to examples and
-man pages.  Developers new to NVML are probably looking for libpmemobj.
+If you're looking for documentation to get you started using PMDK,
+start here: http://pmem.io/pmdk and follow the links to examples and
+man pages.  Developers new to PMDK are probably looking for libpmemobj.

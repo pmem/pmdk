@@ -34,8 +34,8 @@
  * file.h -- internal definitions for file module
  */
 
-#ifndef NVML_FILE_H
-#define NVML_FILE_H 1
+#ifndef PMDK_FILE_H
+#define PMDK_FILE_H 1
 #ifdef __cplusplus
 extern "C" {
 #endif

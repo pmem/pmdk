@@ -48,6 +48,6 @@ if ($git) {
     $ver = "0"
 }
 
-$msifile = "nvml-" + $ver + "-win-x64-" + $configuration + ".msi"
+$msifile = "pmdk-" + $ver + "-win-x64-" + $configuration + ".msi"
 Set-Location $projectdir
-Move-Item nvml_setup.msi $msifile
+Move-Item pmdk_setup.msi $msifile

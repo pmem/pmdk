@@ -33,7 +33,7 @@
 #
 # prepare-for-build.sh - is called inside a Docker container; prepares
 #                        the environment inside a Docker container for
-#                        running build of NVML project.
+#                        running build of PMDK project.
 #
 
 set -e

@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEMPOOL_RM, 3)
 collection: libpmempool
-header: NVM Library
+header: PMDK
 date: pmempool API version 1.1
 ...
 

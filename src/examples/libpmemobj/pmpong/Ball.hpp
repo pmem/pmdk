@@ -55,13 +55,13 @@ public:
 	void init();
 	int getX();
 	int getY();
-	nvml::obj::persistent_ptr<sf::Vector2f> getVelocity();
+	pmem::obj::persistent_ptr<sf::Vector2f> getVelocity();
 	sf::CircleShape getBallShape();
 
 private:
-	nvml::obj::p<int> x;
-	nvml::obj::p<int> y;
-	nvml::obj::persistent_ptr<sf::Vector2f> velocity;
+	pmem::obj::p<int> x;
+	pmem::obj::p<int> y;
+	pmem::obj::persistent_ptr<sf::Vector2f> velocity;
 };
 
 #endif /* BALL_H_ */

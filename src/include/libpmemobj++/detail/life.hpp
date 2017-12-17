@@ -43,7 +43,7 @@
 
 #include "libpmemobj++/detail/array_traits.hpp"
 
-namespace nvml
+namespace pmem
 {
 
 namespace detail
@@ -150,6 +150,6 @@ destroy(typename if_size_array<T>::type &arg)
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* LIBPMEMOBJ_DESTROYER_HPP */

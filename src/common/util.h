@@ -35,8 +35,8 @@
  * util.h -- internal definitions for util module
  */
 
-#ifndef NVML_UTIL_H
-#define NVML_UTIL_H 1
+#ifndef PMDK_UTIL_H
+#define PMDK_UTIL_H 1
 
 #ifdef __cplusplus
 extern "C" {

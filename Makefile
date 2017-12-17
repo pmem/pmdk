@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Makefile -- top-level Makefile for NVM Library
+# Makefile -- top-level Makefile for PMDK
 #
 # Use "make" to build the library.
 #
@@ -56,7 +56,7 @@
 # Use "make dpkg" to build dpkg packages
 #
 # Use "make source DESTDIR=path_to_dir" to copy source files
-# from HEAD to 'path_to_dir/nvml' directory.
+# from HEAD to 'path_to_dir/pmdk' directory.
 #
 # As root, use "make install" to install the library in the usual
 # locations (/usr/local/lib, /usr/local/include, and /usr/local/share/man).
@@ -127,15 +127,15 @@ source:
 	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
 	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
 	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
-	mkdir -p $(DESTDIR)/nvml
-	echo -n $(SRCVERSION) > $(DESTDIR)/nvml/.version
-	git archive HEAD | tar -x -C $(DESTDIR)/nvml
+	mkdir -p $(DESTDIR)/pmdk
+	echo -n $(SRCVERSION) > $(DESTDIR)/pmdk/.version
+	git archive HEAD | tar -x -C $(DESTDIR)/pmdk
 
 pkg-clean:
 	$(RM) -r $(DESTDIR)
 
 rpm dpkg: pkg-clean source
-	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/nvml $(DESTDIR) $(CURDIR)/$@\
+	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/pmdk $(DESTDIR) $(CURDIR)/$@\
 			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} ${BUILD_RPMEM} ${TEST_CONFIG_FILE} ${DISTRO}
 
 install uninstall:

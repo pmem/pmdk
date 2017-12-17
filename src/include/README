@@ -1,9 +1,9 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/include/README.
 
-This directory contains include files that are meant to be
-installed on a system when the NVM Library package is installed.
+This directory contains include files that are meant to be installed on
+a system when the Persistent Memory Development Kit package is installed.
 These include files provide the public information exported
 by the libraries that is necessary for applications to call into
 the libraries.  Private include files, used only internally in

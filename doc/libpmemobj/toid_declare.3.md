@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(TOID_DECLARE, 3)
 collection: libpmemobj
-header: NVM Library
+header: PMDK
 date: pmemobj API version 2.2
 ...
 

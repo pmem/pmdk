@@ -34,8 +34,8 @@
  * pool_hdr.h -- internal definitions for pool header module
  */
 
-#ifndef NVML_POOL_HDR_H
-#define NVML_POOL_HDR_H 1
+#ifndef PMDK_POOL_HDR_H
+#define PMDK_POOL_HDR_H 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -91,15 +91,15 @@ struct arch_flags {
 };
 
 /* possible values of the machine class field in the above struct */
-#define NVML_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
+#define PMDK_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
 
 /* possible values of the machine field in the above struct */
-#define NVML_MACHINE_X86_64 62
-#define NVML_MACHINE_AARCH64 183
+#define PMDK_MACHINE_X86_64 62
+#define PMDK_MACHINE_AARCH64 183
 
 /* possible values of the data field in the above struct */
-#define NVML_DATA_LE 1 /* 2's complement, little endian */
-#define NVML_DATA_BE 2 /* 2's complement, big endian */
+#define PMDK_DATA_LE 1 /* 2's complement, little endian */
+#define PMDK_DATA_BE 2 /* 2's complement, big endian */
 
 /*
  * header used at the beginning of all types of memory pools

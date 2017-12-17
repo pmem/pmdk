@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/Makefile.inc -- common Makefile rules for NVM library
+# src/Makefile.inc -- common Makefile rules for PMDK
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
@@ -73,7 +73,7 @@ ifeq ($(DEBUG),1)
 # user-defined CFLAGS as it conflicts with -O0.
 DEBUG_CFLAGS += -Wp,-U_FORTIFY_SOURCE
 DEBUG_CFLAGS += -O0 -ggdb -DDEBUG
-LIB_SUBDIR = /nvml_debug
+LIB_SUBDIR = /pmdk_debug
 OBJDIR = debug
 else
 DEFAULT_CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
@@ -98,7 +98,7 @@ endif
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
 tsanitize := $(SANITIZE)
 ifeq ($(shell uname -s),FreeBSD)
-ifeq ($(JEMALLOC_NVMLDIR),libvmmalloc)
+ifeq ($(JEMALLOC_PMDKDIR),libvmmalloc)
 hasaddrcomma := address,
 tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
 ifneq ($(tsanitize),$(SANITIZE))
@@ -135,7 +135,7 @@ endif
 define arch32_error_msg
 
 ##################################################
-###  32-bit builds of NVML are not supported!  ###
+###  32-bit builds of PMDK are not supported!  ###
 ###  Please, use 64-bit platform/compiler.     ###
 ##################################################
 

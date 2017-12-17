@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBVMEM, 7)
 collection: libvmem
-header: NVM Library
+header: PMDK
 date: vmem API version 1.1
 ...
 
@@ -99,7 +99,7 @@ memory-mapped files. These interfaces are for traditional **volatile** memory
 allocation but, unlike the functions described in **malloc**(3),
 the memory managed by **libvmem** may have different attributes,
 depending on the file system containing the memory-mapped files.
-In particular, **libvmem** is part of the *Non-Volatile Memory Library*
+In particular, **libvmem** is part of the *Persistent Memory Development Kit*
 because it is sometimes useful to use non-volatile memory as a volatile memory
 pool, leveraging its capacity, cost, or performance characteristics.
 
@@ -276,7 +276,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libvmem> for more examples using the **libvmem** API.
+See <http://pmem.io/pmdk/libvmem> for more examples using the **libvmem** API.
 
 
 # BUGS #

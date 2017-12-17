@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@
 #include <iostream>
 #include <limits>
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -333,13 +333,13 @@ operator>>=(p<T> &lhs, const Y &rhs)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 namespace std
 {
 
 template <typename T>
-struct numeric_limits<nvml::obj::p<T>> : public numeric_limits<T> {
+struct numeric_limits<pmem::obj::p<T>> : public numeric_limits<T> {
 
 	static constexpr bool is_specialized = true;
 };

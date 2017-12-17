@@ -29,7 +29,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/obj_cpp_mutex/TEST0 -- unit test for nvml::obj::mutex
+# src/test/obj_cpp_mutex/TEST0 -- unit test for pmem::obj::mutex
 #
 #
 # parameter handling

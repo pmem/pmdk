@@ -31,7 +31,7 @@
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
-#              environment for building the NVML project.
+#              environment for building the PMDK project.
 #
 
 # Pull base image

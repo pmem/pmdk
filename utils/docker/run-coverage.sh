@@ -37,7 +37,7 @@
 
 set -e
 
-# Get and prepare NVML source
+# Get and prepare PMDK source
 ./prepare-for-build.sh
 
 # Build librpmem even if libfabric is not compiled with ibverbs

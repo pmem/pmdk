@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/version.inc -- common version rules for NVML makefiles
+# src/version.inc -- common version rules for PMDK makefiles
 #
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..

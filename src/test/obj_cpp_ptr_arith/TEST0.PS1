@@ -29,7 +29,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/obj_cpp_ptr_arith/TEST0 -- unit test for nvml::obj::persistent_ptr
+# src/test/obj_cpp_ptr_arith/TEST0 -- unit test for pmem::obj::persistent_ptr
 #
 #
 # parameter handling

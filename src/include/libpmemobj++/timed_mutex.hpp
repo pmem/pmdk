@@ -43,7 +43,7 @@
 #include "libpmemobj++/detail/conversions.hpp"
 #include "libpmemobj/thread.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -254,6 +254,6 @@ private:
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_TIMED_MUTEX_HPP */

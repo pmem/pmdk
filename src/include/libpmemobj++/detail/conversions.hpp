@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@
 #include <chrono>
 #include <time.h>
 
-namespace nvml
+namespace pmem
 {
 
 namespace detail
@@ -74,6 +74,6 @@ timepoint_to_timespec(const std::chrono::time_point<Clock, Duration> &timepoint)
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_CONVERSIONS_HPP */

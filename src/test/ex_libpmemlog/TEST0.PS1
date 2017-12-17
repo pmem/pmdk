@@ -57,7 +57,7 @@ expect_normal_exit $Env:EXE_DIR\ex_pmemlog_addlog $DIR\testfile1 "Hello" "World!
 expect_normal_exit $Env:EXE_DIR\ex_pmemlog_printlog $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\ex_pmemlog_addlog $DIR\testfile1 "PMEMLOG" >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\ex_pmemlog_printlog -t $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\ex_pmemlog_addlog $DIR\testfile1 "NVML" >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXE_DIR\ex_pmemlog_addlog $DIR\testfile1 "PMDK" >> out$Env:UNITTEST_NUM.log 2>&1
 expect_normal_exit $Env:EXE_DIR\ex_pmemlog_printlog -t $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 
 check_pool $DIR\testfile1

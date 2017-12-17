@@ -1,8 +1,8 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/README.
 
-This directory contains the source for the NVM Library.
+This directory contains the source for the Persistent Memory Development Kit.
 
 libvmem is largely just a wrapper around a modified jemalloc
 library.  See the "jemalloc" subdirectory and the git change

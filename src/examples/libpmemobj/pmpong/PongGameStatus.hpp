@@ -66,19 +66,19 @@ public:
 	bool randomizeDirection();
 	bool getIsGameToResume();
 
-	nvml::obj::persistent_ptr<Paddle> getPlayer1();
-	nvml::obj::persistent_ptr<Paddle> getPlayer2();
-	nvml::obj::persistent_ptr<Ball> getBall();
+	pmem::obj::persistent_ptr<Paddle> getPlayer1();
+	pmem::obj::persistent_ptr<Paddle> getPlayer2();
+	pmem::obj::persistent_ptr<Ball> getBall();
 
 	game_state getGameState();
 
 private:
-	nvml::obj::persistent_ptr<Paddle> player1;
-	nvml::obj::persistent_ptr<Paddle> player2;
-	nvml::obj::persistent_ptr<Ball> ball;
+	pmem::obj::persistent_ptr<Paddle> player1;
+	pmem::obj::persistent_ptr<Paddle> player2;
+	pmem::obj::persistent_ptr<Ball> ball;
 
-	nvml::obj::p<int> menuItem;
-	nvml::obj::p<bool> isGameToResume;
-	nvml::obj::p<game_state> actualGameState;
+	pmem::obj::p<int> menuItem;
+	pmem::obj::p<bool> isGameToResume;
+	pmem::obj::p<game_state> actualGameState;
 };
 #endif /* PONGGAMESTATUS_H_ */

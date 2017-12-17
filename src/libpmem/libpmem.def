@@ -36,7 +36,7 @@
 ; XXX - libpmem exports mmap/munmap/msync/mprotect functions
 ;
 ; This is a _temporary_ solution to make those function available for all
-; the other NVM libraries and to have only one instance of a file mapping
+; the other PMDK libraries and to have only one instance of a file mapping
 ; list (owned by libpmem).  Otherwise, each library would have its own
 ; instance of the file mapping list, resulting in libpmem being not able
 ; to find a file handle associated with the mapping address passed to
@@ -46,7 +46,7 @@
 ; - implementation of pmem_mmap, pmem_unmap, pmem_msync and
 ;   pmem_mprotect functions in libpmem (pmem_unmap and pmem_msync are
 ;   already there);
-; - making sure that all the NVM libraries never call mmap, munmap,
+; - making sure that all the PMDK libraries never call mmap, munmap,
 ;   msync and mprotect directly, but only through their libpmem counterparts;
 ; - new pmem_mmap() function must provide similar functionality to
 ;   mmap(), i.e. it must take 'offset' argument, but should not take

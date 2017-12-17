@@ -1,11 +1,12 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is doc/README.
 
-Subdirectories of this directory contain source for the man pages for the NVM
-Library in markdown format (.md files). If you're looking for documentation to
-get you started using NVML, start here: http://pmem.io/nvml and follow the
-links to examples and man pages. Developers new to NVML are probably looking
+Subdirectories of this directory contain source for the man pages for the
+Persistent Memory Development Kit in markdown format (.md files).
+If you're looking for documentation to
+get you started using PMDK, start here: http://pmem.io/pmdk and follow the
+links to examples and man pages. Developers new to PMDK are probably looking
 for libpmemobj.
 
 To generate web-based documentation or Linux/FreeBSD man pages, you need to
@@ -15,7 +16,7 @@ documentation. The macros are defined in macros.man. Processing is performed
 by the ../utils/md2man.sh script.
 
 All files in the *generated* directory are automatically generated and updated
-by the nvml-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to
+by the pmdk-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to
 the documentation must be made by modifying the *.md files in the following
 document subdirectories:
 

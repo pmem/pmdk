@@ -34,8 +34,8 @@
  * sys_util.h -- internal utility wrappers around system functions
  */
 
-#ifndef NVML_SYS_UTIL_H
-#define NVML_SYS_UTIL_H 1
+#ifndef PMDK_SYS_UTIL_H
+#define PMDK_SYS_UTIL_H 1
 
 #include <errno.h>
 

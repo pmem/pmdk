@@ -45,7 +45,7 @@
 #include "libpmemobj++/pool.hpp"
 #include "libpmemobj/tx_base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -100,7 +100,7 @@ public:
 		 * @param[in,out] locks locks of obj::mutex or
 		 *	obj::shared_mutex type.
 		 *
-		 * @throw nvml::transaction_error when pmemobj_tx_begin
+		 * @throw pmem::transaction_error when pmemobj_tx_begin
 		 * function or locks adding failed.
 		 */
 		template <typename... L>
@@ -197,7 +197,7 @@ public:
 		 * @param[in,out] locks locks of obj::mutex or
 		 *	obj::shared_mutex type.
 		 *
-		 * @throw nvml::transaction_error when pmemobj_tx_begin
+		 * @throw pmem::transaction_error when pmemobj_tx_begin
 		 * function or locks adding failed.
 		 */
 		template <typename... L>
@@ -213,7 +213,7 @@ public:
 		 * of object destruction, the transaction will
 		 * automatically be either committed or aborted.
 		 *
-		 * @throw nvml::transaction_error if the transaction got aborted
+		 * @throw pmem::transaction_error if the transaction got aborted
 		 * without an active exception.
 		 */
 		~automatic() noexcept(false)
@@ -473,6 +473,6 @@ private:
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* LIBPMEMOBJ_TRANSACTION_HPP */

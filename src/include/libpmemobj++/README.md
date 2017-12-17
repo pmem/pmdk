@@ -52,7 +52,7 @@ The NVML team
 ### Compiler notice ###
 The C++ bindings require a C++11 compliant compiler, therefore the minimal
 versions of GCC and Clang are 4.8.1 and 3.3 respectively. However the
-nvml::obj::transaction::automatic class requires C++17, so
+pmem::obj::transaction::automatic class requires C++17, so
 you need a more recent version for this to be available(GCC 6.1/Clang 3.7).
 It is recommended to use these or newer versions of GCC or Clang.
 
@@ -81,9 +81,9 @@ bindings.
  * Transactional array allocations - make_persistent_array.hpp
  * Atomic allocations - make_persistent_atomic.hpp
  * Atomic array allocations - make_persistent_array_atomic.hpp
- * Resides on persistent memory property - [p](@ref nvml::obj::p)
- * Persistent smart pointer - [persistent_ptr](@ref nvml::obj::persistent_ptr)
- * Persistent memory transactions - [transaction](@ref nvml::obj::transaction)
- * Persistent memory resident mutex - [mutex](@ref nvml::obj::mutex)
- * Persistent memory pool - [pool](@ref nvml::obj::pool)
- * Persistent memory allocator - [allocator](@ref nvml::obj::allocator)
+ * Resides on persistent memory property - [p](@ref pmem::obj::p)
+ * Persistent smart pointer - [persistent_ptr](@ref pmem::obj::persistent_ptr)
+ * Persistent memory transactions - [transaction](@ref pmem::obj::transaction)
+ * Persistent memory resident mutex - [mutex](@ref pmem::obj::mutex)
+ * Persistent memory pool - [pool](@ref pmem::obj::pool)
+ * Persistent memory allocator - [allocator](@ref pmem::obj::allocator)

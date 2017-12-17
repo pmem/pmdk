@@ -42,7 +42,7 @@
 #include "libpmemobj/thread.h"
 #include "libpmemobj/tx_base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -185,6 +185,6 @@ private:
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_MUTEX_HPP */

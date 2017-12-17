@@ -313,7 +313,7 @@ How to build jemalloc for Windows
 
 
 6. Now the project can be opened and built in Visual Studio:
-	src\NVML.sln
+	src\PMDK.sln
 
 === Documentation ==============================================================
 

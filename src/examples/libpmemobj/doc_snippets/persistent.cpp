@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 p_property_example()
@@ -88,7 +88,7 @@ p_property_example()
 #include <libpmemobj++/pool.hpp>
 #include <libpmemobj++/transaction.hpp>
 
-using namespace nvml::obj;
+using namespace pmem::obj;
 
 void
 persistent_ptr_example()

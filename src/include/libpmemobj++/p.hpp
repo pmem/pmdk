@@ -43,7 +43,7 @@
 #include "libpmemobj++/detail/common.hpp"
 #include "libpmemobj++/detail/specialization.hpp"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -88,7 +88,7 @@ public:
 	 * automatically registers this operation so that a rollback
 	 * is possible.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	p &
@@ -106,7 +106,7 @@ public:
 	 * Just like regular assignment, also automatically registers
 	 * itself in a transaction.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	template <typename Y, typename = typename std::enable_if<
@@ -134,7 +134,7 @@ public:
 	 *
 	 * @return a reference to the object.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	T &
@@ -161,7 +161,7 @@ public:
 	/**
 	 * Swaps two p objects of the same type.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	void
@@ -191,6 +191,6 @@ swap(p<T> &a, p<T> &b)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_P_HPP */

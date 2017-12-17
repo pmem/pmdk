@@ -42,7 +42,7 @@ JEMALLOC_DIR = $(realpath ../jemalloc)
 ifeq ($(OBJDIR),$(abspath $(OBJDIR)))
 JEMALLOC_OBJDIR = $(OBJDIR)/jemalloc
 else
-JEMALLOC_OBJDIR = ../$(OBJDIR)/$(JEMALLOC_NVMLDIR)/jemalloc
+JEMALLOC_OBJDIR = ../$(OBJDIR)/$(JEMALLOC_PMDKDIR)/jemalloc
 endif
 JEMALLOC_MAKEFILE = $(JEMALLOC_OBJDIR)/Makefile
 JEMALLOC_CFG = $(JEMALLOC_DIR)/configure

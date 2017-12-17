@@ -41,7 +41,7 @@
 #include <stdexcept>
 #include <system_error>
 
-namespace nvml
+namespace pmem
 {
 
 /**
@@ -116,6 +116,6 @@ public:
 	using std::runtime_error::runtime_error;
 };
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_PEXCEPTIONS_HPP */

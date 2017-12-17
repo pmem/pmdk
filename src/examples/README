@@ -1,39 +1,47 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is examples/README.
 
 This directory contains brief educational examples illustrating the use
-of the NVM libraries.  For many of these examples, the Makefile rules
+of the PMDK libraries.  For many of these examples, the Makefile rules
 are here just to check that the example compiles, loads against the
 appropriate library, and passes cstyle.
 
-If you're looking for documentation to get you started using NVML,
-start here: http://pmem.io/nvml and follow the links to examples and
-man pages.  Developers new to NVML are probably looking for libpmemobj.
+If you're looking for documentation to get you started using PMDK,
+start here: http://pmem.io/pmdk and follow the links to examples and
+man pages.  Developers new to PMDK are probably looking for libpmemobj.
 
 Many of the examples in this directory are described in more detail
 on the above web site.
 
-libpmem(3) -- low-level persistent memory support
+libpmem(7) -- low-level persistent memory support
     Example programs are in the libpmem directory.
-    More documentation: http://pmem.io/nvml/libpmem
+    More documentation: http://pmem.io/pmdk/libpmem
 
-libpmemblk(3) -- pmem-resident arrays of blocks
+libpmemblk(7) -- pmem-resident arrays of blocks
     Example programs are in the libpmemblk directory.
-    More documentation: http://pmem.io/nvml/libpmemblk
+    More documentation: http://pmem.io/pmdk/libpmemblk
 
-libpmemlog(3) -- pmem-resident log files
+libpmemcto(7) -- close-to-open persistence
+    Example programs are in the libpmemcto directory.
+    More documentation: http://pmem.io/pmdk/libpmemcto
+
+libpmemlog(7) -- pmem-resident log files
     Example programs are in the libpmemlog directory.
-    More documentation: http://pmem.io/nvml/libpmemlog
+    More documentation: http://pmem.io/pmdk/libpmemlog
 
-libpmemobj(3) -- transactional object store
+libpmemobj(7) -- transactional object store
     Example programs are in the libpmemobj directory.
-    More documentation: http://pmem.io/nvml/libpmemobj
+    More documentation: http://pmem.io/pmdk/libpmemobj
 
-libvmem(3) -- volatile memory allocation library
-    Example programs are in the libvmem directory.
-    More documentation: http://pmem.io/nvml/libvmem
-
-libpmempool(3) -- pool management, diagnostics and repair
+libpmempool(7) -- pool management, diagnostics and repair
     Example programs are in the libpmempool directory.
-    More documentation: http://pmem.io/nvml/libpmempool
+    More documentation: http://pmem.io/pmdk/libpmempool
+
+librpmem(7) -- remote access to persistent memory
+    Example programs are in the libpmemcto directory.
+    More documentation: http://pmem.io/pmdk/librpmem
+
+libvmem(7) -- volatile memory allocation library
+    Example programs are in the libvmem directory.
+    More documentation: http://pmem.io/pmdk/libvmem

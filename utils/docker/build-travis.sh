@@ -32,9 +32,9 @@
 
 #
 # build-travis.sh - runs a Docker container from a Docker image with environment
-#                   prepared for building NVML project and starts building NVML
+#                   prepared for building PMDK project and starts building PMDK
 #
-# this script is for building NVML on Travis only
+# this script is for building PMDK on Travis only
 #
 
 set -e
@@ -61,7 +61,7 @@ fi
 
 if [[ -z "$HOST_WORKDIR" ]]; then
 	echo "ERROR: The variable HOST_WORKDIR has to contain a path to " \
-		"the root of the nvml project on the host machine"
+		"the root of the PMDK project on the host machine"
 	exit 1
 fi
 
@@ -83,20 +83,20 @@ fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
-WORKDIR=/nvml
+WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
 # Run a container with
 #  - environment variables set (--env)
-#  - host directory containing nvml source mounted (-v)
+#  - host directory containing PMDK source mounted (-v)
 #  - working directory set (-w)
 docker run --rm --privileged=true --name=$containerName -ti \
 	$DNS_SETTING \
 	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
-	--env CC=$NVML_CC \
-	--env CXX=$NVML_CXX \
+	--env CC=$PMDK_CC \
+	--env CXX=$PMDK_CXX \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
 	--env USE_LLVM_LIBCPP=$USE_LLVM_LIBCPP \

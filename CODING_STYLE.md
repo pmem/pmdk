@@ -1,16 +1,17 @@
-# C Style and Coding Standards for NVM Library
+# C Style and Coding Standards for Persistent Memory Development Kit
 
 This document defines the coding standards and conventions for writing
-NVM Library code. To ensure readability and consistency within the code,
+PMDK code. To ensure readability and consistency within the code,
 the contributed code must adhere to the rules below.
 
 ### Introduction
-The NVM Library coding style is quite similar to the style used for the SunOS product.
+The Persistent Memory Development Kit coding style is quite similar to the style
+used for the SunOS product.
 A full description of that standard can be found
 [here.](https://www.cis.upenn.edu/~lee/06cse480/data/cstyle.ms.pdf)
 
 This document does not cover the entire set of recommendations and formatting rules
-used in writing NVML code, but rather focuses on some NVML-specific conventions,
+used in writing PMDK code, but rather focuses on some PMDK-specific conventions,
 not described in the document mentioned above, as well as the ones the violation
 of which is most frequently observed during the code review.
 Also, keep in mind that more important than the particular style is **consistency**
@@ -19,7 +20,7 @@ coded in the same style as the file being modified.
 
 ### Code formatting
 Most of the common stylistic errors can be detected by the
-[style checker program](https://github.com/pmem/nvml/blob/master/utils/cstyle)
+[style checker program](https://github.com/pmem/pmdk/blob/master/utils/cstyle)
 included in the repo.
 Simply run `make cstyle` or `CSTYLE.ps1` to verify if your code is well-formatted.
 
@@ -46,8 +47,8 @@ Otherwise, just use `unsigned`, `long`, etc.
 ### License & copyright
 - Make sure you have the right to submit your contribution under the BSD license,
 especially if it is based upon previous work.
-See [CONTRIBUTING.md](https://github.com/pmem/nvml/blob/master/CONTRIBUTING.md) for details.
-- A copy of the [BSD-style License](https://github.com/pmem/nvml/blob/master/LICENSE)
+See [CONTRIBUTING.md](https://github.com/pmem/pmdk/blob/master/CONTRIBUTING.md) for details.
+- A copy of the [BSD-style License](https://github.com/pmem/pmdk/blob/master/LICENSE)
 must be placed at the beginning of each source file, script or man page
 (Obviously, it does not apply to README's, Visual Studio projects and \*.match files.)
 - When adding a new file to the repo, or when making a contribution to an existing
@@ -93,8 +94,8 @@ log level for most frequently called routines.
 ### Unit tests
 - There **must** be unit tests provided for each new function/module added.
 - Test scripts **must** start with `#!/usr/bin/env <shell>` for portability between Linux and FreeBSD.
-- Please, see [this](https://github.com/pmem/nvml/blob/master/src/test/README)
-and [that](https://github.com/pmem/nvml/blob/master/src/test/unittest/README)
+- Please, see [this](https://github.com/pmem/pmdk/blob/master/src/test/README)
+and [that](https://github.com/pmem/pmdk/blob/master/src/test/unittest/README)
 document to get familiar with
 our test framework and the guidelines on how to write and run unit tests.
 

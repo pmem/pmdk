@@ -23,14 +23,14 @@
 
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
 
-Name:		nvml
+Name:		pmdk
 Version:	__VERSION__
 Release:	1%{?dist}
 Summary:	__PACKAGE_SUMMARY__
 Packager:	__PACKAGE_MAINTAINER__
 Group:		__GROUP_SYS_LIBS__
 License:	__LICENSE__
-URL:		http://pmem.io/nvml
+URL:		http://pmem.io/pmdk
 
 Source0:        %{name}-%{version}.tar.gz
 
@@ -50,9 +50,9 @@ BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 
 
 # Debug variants of the libraries should be filtered out of the provides.
-%global __provides_exclude_from ^%{_libdir}/nvml_debug/.*\\.so.*$
+%global __provides_exclude_from ^%{_libdir}/pmdk_debug/.*\\.so.*$
 
-# By design, NVML does not support any 32-bit architecture.
+# By design, PMDK does not support any 32-bit architecture.
 # Due to dependency on xmmintrin.h and some inline assembly, it can be
 # compiled only for x86_64 at the moment.
 # Other 64-bit architectures could also be supported, if only there is
@@ -68,8 +68,8 @@ BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 ExclusiveArch: x86_64
 
 %description
-The NVM Library is a collection of libraries for using memory-mapped
-persistence, optimized specifically for persistent memory.
+The Persistent Memory Development Kit is a collection of libraries for
+using memory-mapped persistence, optimized specifically for persistent memory.
 
 
 %package -n libpmem__PKG_NAME_SUFFIX__
@@ -82,9 +82,9 @@ to pmem is provided.
 
 %files -n libpmem__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
-%dir %{_datadir}/nvml
+%dir %{_datadir}/pmdk
 %{_libdir}/libpmem.so.*
-%{_datadir}/nvml/nvml.magic
+%{_datadir}/pmdk/pmdk.magic
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -127,14 +127,14 @@ to pmem is provided.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmem-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmem.so
-%{_libdir}/nvml_debug/libpmem.so.*
-%{_libdir}/nvml_debug/libpmem.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmem.so
+%{_libdir}/pmdk_debug/libpmem.so.*
+%{_libdir}/pmdk_debug/libpmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -196,14 +196,14 @@ failure or program interruption (no torn blocks).
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmemblk-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmemblk.so
-%{_libdir}/nvml_debug/libpmemblk.so.*
-%{_libdir}/nvml_debug/libpmemblk.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmemblk.so
+%{_libdir}/pmdk_debug/libpmemblk.so.*
+%{_libdir}/pmdk_debug/libpmemblk.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -261,14 +261,14 @@ level libraries like libpmemobj to be more generally useful.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmemlog-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmemlog.so
-%{_libdir}/nvml_debug/libpmemlog.so.*
-%{_libdir}/nvml_debug/libpmemlog.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmemlog.so
+%{_libdir}/pmdk_debug/libpmemlog.so.*
+%{_libdir}/pmdk_debug/libpmemlog.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -333,14 +333,14 @@ probably want to start with this library.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmemobj-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmemobj.so
-%{_libdir}/nvml_debug/libpmemobj.so.*
-%{_libdir}/nvml_debug/libpmemobj.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmemobj.so
+%{_libdir}/pmdk_debug/libpmemobj.so.*
+%{_libdir}/pmdk_debug/libpmemobj.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -396,14 +396,14 @@ its own malloc-style API.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libvmem-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libvmem.so
-%{_libdir}/nvml_debug/libvmem.so.*
-%{_libdir}/nvml_debug/libvmem.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libvmem.so
+%{_libdir}/pmdk_debug/libvmem.so.*
+%{_libdir}/pmdk_debug/libvmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -464,14 +464,14 @@ application.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libvmmalloc-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libvmmalloc.so
-%{_libdir}/nvml_debug/libvmmalloc.so.*
-%{_libdir}/nvml_debug/libvmmalloc.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libvmmalloc.so
+%{_libdir}/pmdk_debug/libvmmalloc.so.*
+%{_libdir}/pmdk_debug/libvmmalloc.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -551,14 +551,14 @@ pools created by libpmemlog, libpemblk and libpmemobj libraries.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmempool-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmempool.so
-%{_libdir}/nvml_debug/libpmempool.so.*
-%{_libdir}/nvml_debug/libpmempool.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmempool.so
+%{_libdir}/pmdk_debug/libpmempool.so.*
+%{_libdir}/pmdk_debug/libpmempool.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -617,14 +617,14 @@ to replicate peristent memory regions over RDMA protocol.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n librpmem-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/librpmem.so
-%{_libdir}/nvml_debug/librpmem.so.*
-%{_libdir}/nvml_debug/librpmem.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/librpmem.so
+%{_libdir}/pmdk_debug/librpmem.so.*
+%{_libdir}/pmdk_debug/librpmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -692,14 +692,14 @@ imposed by run-time flushing or transactional updates.
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
 debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/nvml_debug.
+/usr/lib64/pmdk_debug.
 
 %files -n libpmemcto-debug
 %defattr(-,root,root,-)
-%dir %{_libdir}/nvml_debug
-%{_libdir}/nvml_debug/libpmemcto.so
-%{_libdir}/nvml_debug/libpmemcto.so.*
-%{_libdir}/nvml_debug/libpmemcto.a
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmemcto.so
+%{_libdir}/pmdk_debug/libpmemcto.so.*
+%{_libdir}/pmdk_debug/libpmemcto.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -747,8 +747,8 @@ make install DESTDIR=%{buildroot} \
 	sysconfdir=%{_sysconfdir} \
 	docdir=%{_docdir} \
 	CPP_DOC_DIR=libpmemobj++-devel
-mkdir -p %{buildroot}%{_datadir}/nvml
-cp utils/nvml.magic %{buildroot}%{_datadir}/nvml/
+mkdir -p %{buildroot}%{_datadir}/pmdk
+cp utils/pmdk.magic %{buildroot}%{_datadir}/pmdk/
 __MAKE_INSTALL_FDUPES__
 
 

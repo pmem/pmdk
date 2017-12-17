@@ -1,9 +1,9 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/test/unittest/README.
 
 This directory contains the unit test framework used by
-the NVM Library unit tests.
+the Persistent Memory Development Kit unit tests.
 
 This framework provides a support for mock objects. To mock an interface use
 FUNC_MOCK_RET_ALWAYS or FUNC_MOCK macros in the test code.

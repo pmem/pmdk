@@ -47,7 +47,7 @@
 
 #define LAYOUT "cpp"
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -188,7 +188,7 @@ test_ptr_transactional(nvobj::pool<root> &pop)
 		nvobj::transaction::exec_tx(pop, [&] {
 			pfoo->bar = TEST_INT;
 			/* raw memory access requires extra care */
-			nvml::detail::conditional_add_to_tx(&pfoo->arr);
+			pmem::detail::conditional_add_to_tx(&pfoo->arr);
 			memset(&pfoo->arr, TEST_CHAR, sizeof(pfoo->arr));
 
 			/* do the swap test */
@@ -219,7 +219,7 @@ test_ptr_transactional(nvobj::pool<root> &pop)
 			pfoo->bar = 0;
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -287,7 +287,7 @@ test_ptr_array(nvobj::pool<root> &pop)
 
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -303,7 +303,7 @@ test_ptr_array(nvobj::pool<root> &pop)
 
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -362,7 +362,7 @@ main(int argc, char *argv[])
 	try {
 		pop = nvobj::pool<struct root>::create(
 			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 

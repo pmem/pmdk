@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEM, 7)
 collection: libpmem
-header: NVM Library
+header: PMDK
 date: pmem API version 1.0
 ...
 
@@ -249,7 +249,7 @@ direct pointer to the object.
 
 >NOTE:
 **Setting this environment variable
-affects all the NVM libraries,** disabling mapping address randomization
+affects all the PMDK libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
 
@@ -373,7 +373,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmem>
+See <http://pmem.io/pmdk/libpmem>
 for more examples using the **libpmem** API.
 
 

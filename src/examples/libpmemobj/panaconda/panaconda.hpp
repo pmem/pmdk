@@ -31,7 +31,7 @@
  */
 
 /*
- * panaconda.hpp -- example of usage c++ bindings in nvml
+ * panaconda.hpp -- example usage of libpmemobj C++ bindings
  */
 
 #ifndef PANACONDA_HPP
@@ -55,7 +55,7 @@ enum snake_event { EV_OK, EV_COLLISION };
 
 enum action { ACTION_NEW_GAME = 'n', ACTION_QUIT = 'q' };
 
-typedef nvml::obj::persistent_ptr<examples::list<board_element>> element_list;
+typedef pmem::obj::persistent_ptr<examples::list<board_element>> element_list;
 
 struct color_pair {
 	color_pair();
@@ -81,8 +81,8 @@ public:
 
 class point {
 public:
-	nvml::obj::p<int> x;
-	nvml::obj::p<int> y;
+	pmem::obj::p<int> x;
+	pmem::obj::p<int> y;
 
 	point();
 	point(int x, int y);
@@ -98,7 +98,7 @@ public:
 	int get_val();
 
 private:
-	nvml::obj::p<int> val;
+	pmem::obj::p<int> val;
 	int get_symbol(int shape);
 };
 
@@ -106,26 +106,26 @@ class board_element {
 public:
 	board_element();
 	board_element(int px, int py,
-		      nvml::obj::persistent_ptr<element_shape> shape,
+		      pmem::obj::persistent_ptr<element_shape> shape,
 		      direction dir);
-	board_element(point p, nvml::obj::persistent_ptr<element_shape> shape,
+	board_element(point p, pmem::obj::persistent_ptr<element_shape> shape,
 		      direction dir);
 	board_element(const board_element &element);
 	~board_element();
 
-	nvml::obj::persistent_ptr<point> calc_new_position(const direction dir);
+	pmem::obj::persistent_ptr<point> calc_new_position(const direction dir);
 	void print(void);
 	void print_double_col(void);
 	void print_single_double_col(void);
-	nvml::obj::persistent_ptr<point> get_position(void);
-	void set_position(const nvml::obj::persistent_ptr<point> new_point);
+	pmem::obj::persistent_ptr<point> get_position(void);
+	void set_position(const pmem::obj::persistent_ptr<point> new_point);
 	direction get_direction(void);
 	void set_direction(const direction dir);
 
 private:
-	nvml::obj::persistent_ptr<point> position;
-	nvml::obj::persistent_ptr<element_shape> shape;
-	nvml::obj::p<direction> element_dir;
+	pmem::obj::persistent_ptr<point> position;
+	pmem::obj::persistent_ptr<element_shape> shape;
+	pmem::obj::p<direction> element_dir;
 };
 
 class snake {
@@ -143,8 +143,8 @@ public:
 
 private:
 	element_list snake_segments;
-	nvml::obj::p<point> last_seg_position;
-	nvml::obj::p<direction> last_seg_dir;
+	pmem::obj::p<point> last_seg_position;
+	pmem::obj::p<direction> last_seg_dir;
 };
 
 class game_board {
@@ -167,12 +167,12 @@ public:
 	void add_snake_segment(void);
 
 private:
-	nvml::obj::persistent_ptr<snake> anaconda;
-	nvml::obj::persistent_ptr<board_element> food;
+	pmem::obj::persistent_ptr<snake> anaconda;
+	pmem::obj::persistent_ptr<board_element> food;
 	element_list layout;
 
-	nvml::obj::p<unsigned> size_row;
-	nvml::obj::p<unsigned> size_col;
+	pmem::obj::p<unsigned> size_row;
+	pmem::obj::p<unsigned> size_col;
 
 	void set_new_food(const point point);
 	bool is_snake_collision(point point);
@@ -189,22 +189,22 @@ public:
 	void set_state(const play_state st);
 
 private:
-	nvml::obj::p<int> score;
-	nvml::obj::p<play_state> state;
+	pmem::obj::p<int> score;
+	pmem::obj::p<play_state> state;
 };
 
 class game_state {
 public:
 	game_state();
 	~game_state();
-	nvml::obj::persistent_ptr<game_board> get_board();
-	nvml::obj::persistent_ptr<game_player> get_player();
+	pmem::obj::persistent_ptr<game_board> get_board();
+	pmem::obj::persistent_ptr<game_player> get_player();
 	void init(void);
 	void clean_pool(void);
 
 private:
-	nvml::obj::persistent_ptr<game_board> board;
-	nvml::obj::persistent_ptr<game_player> player;
+	pmem::obj::persistent_ptr<game_board> board;
+	pmem::obj::persistent_ptr<game_player> player;
 };
 
 class game {
@@ -223,7 +223,7 @@ public:
 	void clear_prog(void);
 
 private:
-	nvml::obj::pool<game_state> state;
+	pmem::obj::pool<game_state> state;
 	int last_key;
 	int delay;
 	struct parameters *params;

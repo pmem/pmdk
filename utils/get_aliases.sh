@@ -34,7 +34,7 @@
 #
 # get_aliases.sh -- generate map of manuals functions and libraries
 #
-# usage: run from /nvml/doc/generated location without parameters:
+# usage: run from /pmdk/doc/generated location without parameters:
 # ./../../utils/get_aliases.sh
 #
 # This script searches manpages from section 7 then

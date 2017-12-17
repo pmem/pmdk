@@ -31,7 +31,7 @@
 #
 
 #
-# doc/Makefile -- Makefile for NVM library man pages
+# doc/Makefile -- Makefile for PMDK man pages
 #
 
 include ../src/common.inc

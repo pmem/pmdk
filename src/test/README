@@ -1,8 +1,8 @@
-Non-Volatile Memory Library
+Persistent Memory Development Kit
 
 This is src/test/README.
 
-This directory contains the unit tests for the NVM Library.
+This directory contains the unit tests for the Persistent Memory Development Kit.
 
 Unit tests require a config file, testconfig.sh, to exist in this directory.
 That file describes the local machine configuration (where to find persistent

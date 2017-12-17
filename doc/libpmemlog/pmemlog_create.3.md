@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEMLOG_CREATE, 3)
 collection: libpmemlog
-header: NVM Library
+header: PMDK
 date: pmemlog API version 1.0
 ...
 

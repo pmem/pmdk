@@ -46,7 +46,7 @@
 
 #define LAYOUT "cpp"
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -222,7 +222,7 @@ main(int argc, char *argv[])
 	try {
 		pop = nvobj::pool_base::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
 					       S_IWUSR | S_IRUSR);
-	} catch (nvml::pool_error &pe) {
+	} catch (pmem::pool_error &pe) {
 		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 

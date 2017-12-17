@@ -3,7 +3,7 @@
 "VSVersion" = "3:800"
 "ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
 "IsWebType" = "8:FALSE"
-"ProjectName" = "8:nvml_setup"
+"ProjectName" = "8:PMDK_setup"
 "LanguageId" = "3:1033"
 "CodePage" = "3:1252"
 "UILanguageId" = "3:1033"
@@ -651,7 +651,7 @@
         "DisplayName" = "8:Debug"
         "IsDebugOnly" = "11:TRUE"
         "IsReleaseOnly" = "11:FALSE"
-        "OutputFilename" = "8:nvml_setup.msi"
+        "OutputFilename" = "8:PMDK_setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:0"
         "CabType" = "3:1"
@@ -683,7 +683,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:nvml_setup.msi"
+        "OutputFilename" = "8:PMDK_setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -2172,8 +2172,8 @@
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BAD47572852A47139920EC6F181F6D7E"
             {
-            "SourcePath" = "8:pages\\NVM_Library.url"
-            "TargetName" = "8:NVM_Library.url"
+            "SourcePath" = "8:pages\\PMDK.url"
+            "TargetName" = "8:PMDK.url"
             "Tag" = "8:"
             "Folder" = "8:_126650E969EA4F488F4055E70425660D"
             "Condition" = "8:"
@@ -3013,7 +3013,7 @@
                 {
                     "{9EF0B969-E518-4E46-987F-47570745A589}:_126650E969EA4F488F4055E70425660D"
                     {
-                    "Name" = "8:NVM Library"
+                    "Name" = "8:Persistent Memory Development Kit"
                     "AlwaysCreate" = "11:TRUE"
                     "Condition" = "8:"
                     "Transitive" = "11:FALSE"
@@ -3039,7 +3039,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:NVML"
+        "ProductName" = "8:PMDK"
         "ProductCode" = "8:{486595D6-FDA0-4A34-9ECA-0EE6B91E8B31}"
         "PackageCode" = "8:{3E34DB30-D8D8-4D12-9D8F-6ED9FE221A1C}"
         "UpgradeCode" = "8:{B4DEC5FF-51F1-490F-B604-DFE564A346C8}"
@@ -3051,12 +3051,12 @@
         "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:Intel"
         "ARPHELPTELEPHONE" = "8:"
-        "ARPHELPLINK" = "8:http://pmem.io/"
-        "Title" = "8:NVM Library"
-        "Subject" = "8:The NVM Library is a library for using memory-mapped persistence, optimized specifically for persistent memory."
+        "ARPHELPLINK" = "8:http://pmem.io/pmdk"
+        "Title" = "8:Persistent Memory Development Kit"
+        "Subject" = "8:The Persistent Memory Development Kit is a collection of libraries for using memory-mapped persistence, optimized specifically for persistent memory."
         "ARPCONTACT" = "8:Intel"
-        "Keywords" = "8:NVML"
-        "ARPCOMMENTS" = "8:NVM Library"
+        "Keywords" = "8:PMDK"
+        "ARPCOMMENTS" = "8:PMDK"
         "ARPURLINFOABOUT" = "8:http://www.intel.com/"
         "ARPPRODUCTICON" = "8:"
         "ARPIconIndex" = "3:0"
@@ -3151,7 +3151,7 @@
                                                         {
                                                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_2A3BE80676A74D8FB10ACA42CE487E24"
                                                             {
-                                                            "Name" = "8:NVML_LibraryPath_Dbg"
+                                                            "Name" = "8:PMDK_LibraryPath_Dbg"
                                                             "Condition" = "8:ALLUSERS=1 AND INSTALL_DEBUG=1"
                                                             "Transitive" = "11:TRUE"
                                                             "ValueTypes" = "3:1"
@@ -3159,7 +3159,7 @@
                                                             }
                                                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_6E3FB120E19A4ED18ECB53372DC336D6"
                                                             {
-                                                            "Name" = "8:NVML_IncludePath"
+                                                            "Name" = "8:PMDK_IncludePath"
                                                             "Condition" = "8:ALLUSERS=1 AND (INSTALL_RELEASE=1 OR INSTALL_DEBUG=1)"
                                                             "Transitive" = "11:TRUE"
                                                             "ValueTypes" = "3:1"
@@ -3167,7 +3167,7 @@
                                                             }
                                                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_70D6990FA4C4413497FC890B88914A51"
                                                             {
-                                                            "Name" = "8:NVML_LibraryPath"
+                                                            "Name" = "8:PMDK_LibraryPath"
                                                             "Condition" = "8:ALLUSERS=1 AND INSTALL_RELEASE=1"
                                                             "Transitive" = "11:TRUE"
                                                             "ValueTypes" = "3:1"
@@ -3175,7 +3175,7 @@
                                                             }
                                                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_A46B370540294EC285A0BA52D7D0DD62"
                                                             {
-                                                            "Name" = "8:NVML_ExecutablePath_Dbg"
+                                                            "Name" = "8:PMDK_ExecutablePath_Dbg"
                                                             "Condition" = "8:ALLUSERS=1 AND INSTALL_DEBUG=1"
                                                             "Transitive" = "11:TRUE"
                                                             "ValueTypes" = "3:1"
@@ -3183,7 +3183,7 @@
                                                             }
                                                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_CE4827CF29BA4DD4838059DC1622F58D"
                                                             {
-                                                            "Name" = "8:NVML_ExecutablePath"
+                                                            "Name" = "8:PMDK_ExecutablePath"
                                                             "Condition" = "8:ALLUSERS=1 AND INSTALL_RELEASE=1"
                                                             "Transitive" = "11:TRUE"
                                                             "ValueTypes" = "3:1"
@@ -3231,7 +3231,7 @@
                         {
                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_2E191399522342CB97E69948FA95AA60"
                             {
-                            "Name" = "8:NVML_ExecutablePath_Dbg"
+                            "Name" = "8:PMDK_ExecutablePath_Dbg"
                             "Condition" = "8:ALLUSERS=\"\" AND INSTALL_DEBUG=1"
                             "Transitive" = "11:TRUE"
                             "ValueTypes" = "3:1"
@@ -3239,7 +3239,7 @@
                             }
                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_7D20D0A9BB654A74A1C75E1DF453AA76"
                             {
-                            "Name" = "8:NVML_IncludePath"
+                            "Name" = "8:PMDK_IncludePath"
                             "Condition" = "8:ALLUSERS=\"\" AND (INSTALL_RELEASE=1 OR INSTALL_DEBUG=1)"
                             "Transitive" = "11:TRUE"
                             "ValueTypes" = "3:1"
@@ -3247,7 +3247,7 @@
                             }
                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_90A7408CC4E34340B609B14D74EF32F1"
                             {
-                            "Name" = "8:NVML_LibraryPath"
+                            "Name" = "8:PMDK_LibraryPath"
                             "Condition" = "8:ALLUSERS=\"\" AND INSTALL_RELEASE=1"
                             "Transitive" = "11:TRUE"
                             "ValueTypes" = "3:1"
@@ -3255,7 +3255,7 @@
                             }
                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_B54953B04FEB4D398ED64812CAAC93F4"
                             {
-                            "Name" = "8:NVML_LibraryPath_Dbg"
+                            "Name" = "8:PMDK_LibraryPath_Dbg"
                             "Condition" = "8:ALLUSERS=\"\" AND INSTALL_DEBUG=1"
                             "Transitive" = "11:TRUE"
                             "ValueTypes" = "3:1"
@@ -3263,7 +3263,7 @@
                             }
                             "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_F1F19501BDB6462AA45872F37F5B2484"
                             {
-                            "Name" = "8:NVML_ExecutablePath"
+                            "Name" = "8:PMDK_ExecutablePath"
                             "Condition" = "8:ALLUSERS=\"\" AND  INSTALL_RELEASE=1"
                             "Transitive" = "11:TRUE"
                             "ValueTypes" = "3:1"
@@ -3798,7 +3798,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:Please select NVML version you would like to install"
+                            "Value" = "8:Please select PMDK version you would like to install"
                             "DefaultValue" = "8:#1215"
                             "UsePlugInResources" = "11:TRUE"
                             }
@@ -3811,7 +3811,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:NVML Release"
+                            "Value" = "8:PMDK Release"
                             "DefaultValue" = "8:#1234"
                             "UsePlugInResources" = "11:TRUE"
                             }
@@ -3863,7 +3863,7 @@
                             "ContextData" = "8:"
                             "Attributes" = "3:0"
                             "Setting" = "3:2"
-                            "Value" = "8:NVML Debug"
+                            "Value" = "8:PMDK Debug"
                             "DefaultValue" = "8:#1235"
                             "UsePlugInResources" = "11:TRUE"
                             }

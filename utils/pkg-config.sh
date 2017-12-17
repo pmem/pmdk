@@ -30,16 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Name of package
-PACKAGE_NAME="nvml"
+PACKAGE_NAME="pmdk"
 
 # Name and email of package maintainer
 PACKAGE_MAINTAINER="Krzysztof Czurylo <krzysztof.czurylo@intel.com>"
 
 # Brief description of the package
-PACKAGE_SUMMARY="Non-Volatile Memory Library"
+PACKAGE_SUMMARY="Persistent Memory Development Kit"
 
 # Full description of the package
-PACKAGE_DESCRIPTION="NVM Library for Persistent Memory Programming"
+PACKAGE_DESCRIPTION="The collection of libraries and utilities for Persistent Memory Programming"
 
 # Website
-PACKAGE_URL="http://pmem.io/nvml"
+PACKAGE_URL="http://pmem.io/pmdk"

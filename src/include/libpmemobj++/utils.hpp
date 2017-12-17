@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@
 #include "libpmemobj++/persistent_ptr.hpp"
 #include "libpmemobj/base.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -89,6 +89,6 @@ pool_by_pptr(const persistent_ptr<T> ptr)
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* LIBPMEMOBJ_UTILS_HPP */

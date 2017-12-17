@@ -2,7 +2,7 @@
 > 
 > key len 4 = [key1], value len 12 = [Hello world!]
 key len 4 = [key2], value len 10 = [1234567890]
-key len 4 = [key3], value len 4 = [NVML]
+key len 4 = [key3], value len 4 = [PMDK]
 key len 4 = [key4], value len 4 = [PMEM]
 
 > 
@@ -25,7 +25,7 @@ N$(nW) -> N$(nW);
 N$(nW) -> N$(nW) [label="3"];
 N$(nW) [shape=box, label="leaf at\n$(nW)"];
 N$(nW) [shape=box, label="key at $(nW): key3"];
-N$(nW) [shape=box, label="value at $(nW): NVML"];
+N$(nW) [shape=box, label="value at $(nW): PMDK"];
 N$(nW) -> N$(nW);
 N$(nW) -> N$(nW);
 N$(nW) -> N$(nW) [label="4"];

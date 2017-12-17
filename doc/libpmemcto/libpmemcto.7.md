@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEMCTO, 7)
 collection: libpmemcto
-header: NVM Library
+header: PMDK
 date: libpmemcto API version 1.0
 ...
 
@@ -351,7 +351,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmemcto> for more examples using the
+See <http://pmem.io/pmdk/libpmemcto> for more examples using the
 **libpmemcto** API.
 
 
@@ -370,8 +370,8 @@ to and never attempts to grow or shrink that memory pool.
 
 # AVAILABILITY #
 
-**libpmemcto** is part of the NVM Library since version 1.4 and is available
-from <https://github.com/pmem/nvml>
+**libpmemcto** is part of the PMDK since version 1.4 and is available
+from <https://github.com/pmem/pmdk>
 
 
 # ACKNOWLEDGEMENTS #

@@ -34,8 +34,8 @@
  * os.h -- os abstaction layer
  */
 
-#ifndef NVML_OS_H
-#define NVML_OS_H 1
+#ifndef PMDK_OS_H
+#define PMDK_OS_H 1
 
 #ifdef __cplusplus
 extern "C" {

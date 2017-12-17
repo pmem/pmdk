@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(PMEM_IS_PMEM, 3)
 collection: libpmem
-header: NVM Library
+header: PMDK
 date: pmem API version 1.0
 ...
 

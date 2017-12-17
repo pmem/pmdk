@@ -72,7 +72,7 @@ uncaught_exceptions() noexcept
 
 #define LAYOUT "cpp"
 
-namespace nvobj = nvml::obj;
+namespace nvobj = pmem::obj;
 
 namespace
 {
@@ -268,7 +268,7 @@ test_tx_throw_no_abort(nvobj::pool<root> &pop)
 			UT_ASSERT(exception_thrown);
 			exception_thrown = false;
 		});
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -296,7 +296,7 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 			rootp->pfoo = nvobj::make_persistent<foo>();
 			nvobj::transaction::abort(-1);
 		});
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -313,7 +313,7 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 			nvobj::transaction::exec_tx(
 				pop, [&]() { nvobj::transaction::abort(-1); });
 		});
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -331,13 +331,13 @@ test_tx_no_throw_abort(nvobj::pool<root> &pop)
 				nvobj::transaction::exec_tx(pop, [&]() {
 					nvobj::transaction::abort(-1);
 				});
-			} catch (nvml::manual_tx_abort &) {
+			} catch (pmem::manual_tx_abort &) {
 				exception_thrown = true;
 			} catch (...) {
 				UT_ASSERT(0);
 			}
 		});
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -491,7 +491,7 @@ test_tx_throw_no_abort_scope(nvobj::pool<root> &pop)
 		counter = 0;
 		UT_ASSERT(exception_thrown);
 		exception_thrown = false;
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -527,7 +527,7 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 		rootp->pfoo = nvobj::make_persistent<foo>();
 		counter = 1;
 		nvobj::transaction::abort(ECANCELED);
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -548,7 +548,7 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 			counter = 1;
 			nvobj::transaction::abort(EINVAL);
 		}
-	} catch (nvml::manual_tx_abort &) {
+	} catch (pmem::manual_tx_abort &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -568,12 +568,12 @@ test_tx_no_throw_abort_scope(nvobj::pool<root> &pop)
 			T to_nested(pop);
 			counter = 1;
 			nvobj::transaction::abort(-1);
-		} catch (nvml::manual_tx_abort &) {
+		} catch (pmem::manual_tx_abort &) {
 			exception_thrown = true;
 		} catch (...) {
 			UT_ASSERT(0);
 		}
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -602,7 +602,7 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		nvobj::transaction::automatic to(pop);
 		rootp->pfoo = nvobj::make_persistent<foo>();
 		pmemobj_tx_abort(ECANCELED);
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -620,7 +620,7 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		rootp->pfoo = nvobj::make_persistent<foo>();
 		pmemobj_tx_abort(ECANCELED);
 		pmemobj_tx_process(); /* move to finally */
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -637,7 +637,7 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		nvobj::transaction::automatic to(pop);
 		pmemobj_tx_commit();
 		pmemobj_tx_process(); /* move to finally */
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -653,14 +653,14 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		try {
 			nvobj::transaction::automatic to_nested(pop);
 			pmemobj_tx_abort(-1);
-		} catch (nvml::transaction_error &) {
+		} catch (pmem::transaction_error &) {
 			/*verify the exception only */
 			counter = 1;
 			throw;
 		} catch (...) {
 			UT_ASSERT(0);
 		}
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -677,12 +677,12 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		try {
 			nvobj::transaction::automatic to_nested(pop);
 			pmemobj_tx_abort(-1);
-		} catch (nvml::transaction_error &) {
+		} catch (pmem::transaction_error &) {
 			/*verify the exception only */
 		} catch (...) {
 			UT_ASSERT(0);
 		}
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);
@@ -709,7 +709,7 @@ test_tx_automatic_destructor_throw(nvobj::pool<root> &pop)
 		}
 		UT_ASSERT(exception_thrown);
 		exception_thrown = false;
-	} catch (nvml::transaction_error &) {
+	} catch (pmem::transaction_error &) {
 		exception_thrown = true;
 	} catch (...) {
 		UT_ASSERT(0);

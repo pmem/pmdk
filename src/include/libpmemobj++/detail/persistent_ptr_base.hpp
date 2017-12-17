@@ -44,7 +44,7 @@
 #undef max
 #endif
 
-namespace nvml
+namespace pmem
 {
 
 namespace detail
@@ -70,7 +70,7 @@ public:
 	 * Type of an actual object with all qualifier removed,
 	 * used for easy underlying type access
 	 */
-	typedef typename nvml::detail::sp_element<T>::type element_type;
+	typedef typename pmem::detail::sp_element<T>::type element_type;
 
 	/**
 	 * Default constructor, zeroes the PMEMoid.
@@ -207,7 +207,7 @@ public:
 	 * automatically registers this operation so that a rollback
 	 * is possible.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	persistent_ptr_base &
@@ -221,7 +221,7 @@ public:
 	/**
 	 * Nullptr move assignment operator.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	persistent_ptr_base &
@@ -240,7 +240,7 @@ public:
 	 * Just like regular assignment, also automatically registers
 	 * itself in a transaction.
 	 *
-	 * @throw nvml::transaction_error when adding the object to the
+	 * @throw pmem::transaction_error when adding the object to the
 	 *	transaction failed.
 	 */
 	template <typename Y,
@@ -381,6 +381,6 @@ protected:
 
 } /* namespace detail */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_PERSISTENT_PTR_BASE_HPP */

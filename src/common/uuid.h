@@ -34,8 +34,8 @@
  * uuid.h -- internal definitions for uuid module
  */
 
-#ifndef NVML_UUID_H
-#define NVML_UUID_H 1
+#ifndef PMDK_UUID_H
+#define PMDK_UUID_H 1
 
 #include <stdint.h>
 #include <string.h>

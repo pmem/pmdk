@@ -103,9 +103,9 @@ librpmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/librpmem-dev.install
-$LIB_DIR/nvml_debug/librpmem.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/librpmem.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/librpmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/librpmem.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/librpmem.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/librpmem.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/librpmem.so
 $LIB_DIR/pkgconfig/librpmem.pc
 $INC_DIR/librpmem.h
@@ -125,7 +125,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/rpmemd.install
@@ -149,8 +149,8 @@ cat << EOF >> $CONTROL_FILE
 Package: librpmem
 Architecture: any
 Depends: libfabric (>= $LIBFABRIC_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML librpmem library
- NVM Library for Remote Persistent Memory support
+Description: PMDK librpmem library
+ PMDK Library for Remote Persistent Memory support
 
 Package: librpmem-dev
 Section: libdevel
@@ -237,8 +237,8 @@ Build-Depends: debhelper (>= 9), doxygen
 Package: libpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmem library
- NVM Library for Persistent Memory support
+Description: PMDK libpmem library
+ PMDK Library for Persistent Memory support
 
 Package: libpmem-dev
 Section: libdevel
@@ -250,8 +250,8 @@ Description: Development files for libpmem
 Package: libpmemblk
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmemblk library
- NVM Library for Persistent Memory support - block memory pool.
+Description: PMDK libpmemblk library
+ PMDK Library for Persistent Memory support - block memory pool.
 
 Package: libpmemblk-dev
 Section: libdevel
@@ -263,8 +263,8 @@ Description: Development files for libpmemblk
 Package: libpmemlog
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmemlog library
- NVM Library for Persistent Memory support - log memory pool.
+Description: PMDK libpmemlog library
+ PMDK Library for Persistent Memory support - log memory pool.
 
 Package: libpmemlog-dev
 Section: libdevel
@@ -276,8 +276,8 @@ Description: Development files for libpmemlog
 Package: libpmemcto
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmemcto library
- NVM Library for Persistent Memory support - close-to-open pesistence.
+Description: PMDK libpmemcto library
+ PMDK Library for Persistent Memory support - close-to-open pesistence.
 
 Package: libpmemcto-dev
 Section: libdevel
@@ -289,8 +289,8 @@ Description: Development files for libpmemcto
 Package: libpmemobj
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmemobj library
- NVM Library for Persistent Memory support - transactional object store.
+Description: PMDK libpmemobj library
+ PMDK Library for Persistent Memory support - transactional object store.
 
 Package: libpmemobj-dev
 Section: libdevel
@@ -302,8 +302,8 @@ Description: Development files for libpmemobj
 Package: libpmempool
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libpmempool library
- NVM Library for Persistent Memory support - pool management library.
+Description: PMDK libpmempool library
+ PMDK Library for Persistent Memory support - pool management library.
 
 Package: libpmempool-dev
 Section: libdevel
@@ -315,8 +315,8 @@ Description: Development files for libpmempool
 Package: libvmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libvmem library
- NVM Library for volatile-memory support on top of Persistent Memory.
+Description: PMDK libvmem library
+ PMDK Library for volatile-memory support on top of Persistent Memory.
 
 Package: libvmem-dev
 Section: libdevel
@@ -328,8 +328,8 @@ Description: Development files for libvmem
 Package: libvmmalloc
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: NVML libvmmalloc library
- NVML general purpose volatile-memory allocation library on top of Persistent Memory.
+Description: PMDK libvmmalloc library
+ PMDK general purpose volatile-memory allocation library on top of Persistent Memory.
 
 Package: libvmmalloc-dev
 Section: libdevel
@@ -343,8 +343,8 @@ Section: debug
 Priority: extra
 Architecture: any
 Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmemcto (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
-Description: Debug symbols for NVML libraries
- Debug symbols for all NVML libraries.
+Description: Debug symbols for PMDK libraries
+ Debug symbols for all PMDK libraries.
 
 Package: $PACKAGE_NAME-tools
 Section: misc
@@ -377,8 +377,8 @@ override_dh_auto_install:
 	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc NORPATH=1
 
 override_dh_install:
-	mkdir -p debian/tmp/usr/share/nvml/
-	cp utils/nvml.magic debian/tmp/usr/share/nvml/
+	mkdir -p debian/tmp/usr/share/pmdk/
+	cp utils/pmdk.magic debian/tmp/usr/share/pmdk/
 	dh_install
 
 ${CHECK_CMD}
@@ -398,7 +398,7 @@ EOF
 
 cat << EOF > debian/libpmem.install
 $LIB_DIR/libpmem.so.*
-usr/share/nvml/nvml.magic
+usr/share/pmdk/pmdk.magic
 EOF
 
 cat $MAGIC_INSTALL > debian/libpmem.postinst
@@ -411,9 +411,9 @@ libpmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmem-dev.install
-$LIB_DIR/nvml_debug/libpmem.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmem.so	$LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmem.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmem.so	$LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmem.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmem.so
 $LIB_DIR/pkgconfig/libpmem.pc
 $INC_DIR/libpmem.h
@@ -433,7 +433,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libpmemblk.install
@@ -447,9 +447,9 @@ libpmemblk: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemblk-dev.install
-$LIB_DIR/nvml_debug/libpmemblk.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemblk.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemblk.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmemblk.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemblk.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemblk.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmemblk.so
 $LIB_DIR/pkgconfig/libpmemblk.pc
 $INC_DIR/libpmemblk.h
@@ -470,7 +470,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libpmemlog.install
@@ -484,9 +484,9 @@ libpmemlog: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemlog-dev.install
-$LIB_DIR/nvml_debug/libpmemlog.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemlog.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemlog.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmemlog.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemlog.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemlog.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmemlog.so
 $LIB_DIR/pkgconfig/libpmemlog.pc
 $INC_DIR/libpmemlog.h
@@ -507,7 +507,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libpmemcto.install
@@ -521,9 +521,9 @@ libpmemcto: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemcto-dev.install
-$LIB_DIR/nvml_debug/libpmemcto.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemcto.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemcto.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmemcto.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemcto.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemcto.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmemcto.so
 $LIB_DIR/pkgconfig/libpmemcto.pc
 $INC_DIR/libpmemcto.h
@@ -544,7 +544,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libpmemobj.install
@@ -558,9 +558,9 @@ libpmemobj: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmemobj-dev.install
-$LIB_DIR/nvml_debug/libpmemobj.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemobj.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmemobj.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmemobj.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemobj.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemobj.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmemobj.so
 $LIB_DIR/pkgconfig/libpmemobj.pc
 $INC_DIR/libpmemobj.h
@@ -588,7 +588,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libpmempool.install
@@ -602,9 +602,9 @@ libpmempool: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libpmempool-dev.install
-$LIB_DIR/nvml_debug/libpmempool.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmempool.so $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libpmempool.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libpmempool.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmempool.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmempool.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmempool.so
 $LIB_DIR/pkgconfig/libpmempool.pc
 $INC_DIR/libpmempool.h
@@ -625,7 +625,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libvmem.install
@@ -639,9 +639,9 @@ libvmem: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmem-dev.install
-$LIB_DIR/nvml_debug/libvmem.a $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libvmem.so	$LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libvmem.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libvmem.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libvmem.so	$LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libvmem.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libvmem.so
 $LIB_DIR/pkgconfig/libvmem.pc
 $INC_DIR/libvmem.h
@@ -657,7 +657,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libvmem-dev.triggers
@@ -675,9 +675,9 @@ libvmmalloc: package-name-doesnt-match-sonames
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.install
-$LIB_DIR/nvml_debug/libvmmalloc.a   $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libvmmalloc.so   $LIB_DIR/nvml_dbg/
-$LIB_DIR/nvml_debug/libvmmalloc.so.* $LIB_DIR/nvml_dbg/
+$LIB_DIR/pmdk_debug/libvmmalloc.a   $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libvmmalloc.so   $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libvmmalloc.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libvmmalloc.so
 $LIB_DIR/pkgconfig/libvmmalloc.pc
 $INC_DIR/libvmmalloc.h
@@ -692,7 +692,7 @@ new-package-should-close-itp-bug
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/nvml_dbg/*
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 EOF
 
 cat << EOF > debian/libvmmalloc-dev.triggers
@@ -742,9 +742,9 @@ EOF
 
 cat << EOF > debian/${OBJ_CPP_NAME}.doc-base
 Document: ${OBJ_CPP_NAME}
-Title: NVML libpmemobj C++ bindings Manual
-Author: NVML Developers
-Abstract: This is the HTML docs for the C++ bindings for NVML's libpmemobj.
+Title: PMDK libpmemobj C++ bindings Manual
+Author: PMDK Developers
+Abstract: This is the HTML docs for the C++ bindings for PMDK's libpmemobj.
 Section: Programming
 
 Format: HTML

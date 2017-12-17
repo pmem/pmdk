@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBPMEMBLK, 7)
 collection: libpmemblk
-header: NVM Library
+header: PMDK
 date: pmemblk API version 1.0
 ...
 
@@ -325,7 +325,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmemblk> for more examples using the **libpmemblk** API.
+See <http://pmem.io/pmdk/libpmemblk> for more examples using the **libpmemblk** API.
 
 
 # BUGS #

@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: _MP(LIBRPMEM, 7)
 collection: librpmem
-header: NVM Library
+header: PMDK
 date: rpmem API version 1.1
 ...
 

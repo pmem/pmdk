@@ -45,7 +45,7 @@
 #include "libpmemobj++/mutex.hpp"
 #include "libpmemobj/thread.h"
 
-namespace nvml
+namespace pmem
 {
 
 namespace obj
@@ -577,6 +577,6 @@ private:
 
 } /* namespace obj */
 
-} /* namespace nvml */
+} /* namespace pmem */
 
 #endif /* PMEMOBJ_CONDVARIABLE_HPP */

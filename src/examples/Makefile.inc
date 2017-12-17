@@ -31,7 +31,7 @@
 #
 
 #
-# examples/Makefile.inc -- build the NVM Library examples
+# examples/Makefile.inc -- build the Persistent Memory Development Kit examples
 #
 TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..

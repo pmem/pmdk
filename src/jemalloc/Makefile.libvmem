@@ -37,7 +37,7 @@ EXTRA_TARGETS = jemalloc
 
 default: all
 
-JEMALLOC_NVMLDIR=libvmem
+JEMALLOC_PMDKDIR=libvmem
 include ./jemalloc.mk
 
 JEMALLOC_CONFIG += --disable-bsd-malloc-hooks

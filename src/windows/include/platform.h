@@ -50,9 +50,9 @@
 extern "C" {
 #endif
 
-/* Prevent NVML compilation for 32-bit platforms */
+/* Prevent PMDK compilation for 32-bit platforms */
 #if defined(_WIN32) && !defined(_WIN64)
-#error "32-bit builds of NVML are not supported!"
+#error "32-bit builds of PMDK are not supported!"
 #endif
 
 #define _CRT_RAND_S		/* rand_s() */
