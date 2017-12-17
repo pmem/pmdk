@@ -43,9 +43,7 @@ $Env:UNITTEST_NUM = "1"
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-# this test often fails on CI, change to medium when fixed
-require_test_type long
-
+require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
 
