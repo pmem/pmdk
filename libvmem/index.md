@@ -1,6 +1,6 @@
 ---
 title: libvmem
-layout: nvml
+layout: pmdk
 ---
 
 #### The libvmem library
@@ -11,6 +11,13 @@ use of persistent memory as volatile memory, for cases
 where the pool of persistent memory is useful to an
 application, but when the application doesn't need
 it to be persistent.
+
+>NOTE:
+Since persistent memory support
+has been integrated into [libmemkind](https://github.com/memkind/memkind),
+that library is the **recommended** choice for any new volatile usages,
+since it combines support for multiple types of volatile memory into
+a single, convenient API.
 
 Man pages that contains a list of the **Linux** interfaces provided:
 

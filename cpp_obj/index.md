@@ -1,6 +1,6 @@
 ---
 title: C++ bindings
-layout: nvml
+layout: pmdk
 ---
 
 #### The C++ bindings to libpmemobj

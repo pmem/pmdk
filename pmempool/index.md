@@ -1,6 +1,6 @@
 ---
 title: pmempool
-layout: nvml
+layout: pmdk
 ---
 
 #### The pmempool utility

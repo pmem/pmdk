@@ -1,6 +1,6 @@
 ---
 title: libvmmalloc
-layout: nvml
+layout: pmdk
 ---
 
 #### The libvmmalloc library

@@ -1,11 +1,11 @@
-nvml: NVM Library
+pmdk: Persistent Memory Development Kit
 =================
 
-### pmem.io/nvml web site (NVM Library)
+### pmem.io/pmdk web site
 
-This repo contains the jekyll-based web site for http://pmem.io/nvml.
+This repo contains the jekyll-based web site for http://pmem.io/pmdk.
 
-Please see the file [LICENSE](https://github.com/pmem/nvml/blob/gh-pages/LICENSE)
+Please see the file [LICENSE](https://github.com/pmem/pmdk/blob/gh-pages/LICENSE)
 for information on how the content of this site is licensed.
 
 Send questions or comments to [krzysztof.czurylo@intel.com](mailto:krzysztof.czurylo@intel.com)

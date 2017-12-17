@@ -1,15 +1,20 @@
 ---
-title: NVM Library
-layout: nvml
+title: PMDK
+layout: pmdk
 ---
-The NVM Library is a library for using memory-mapped persistence,
-optimized specifically for _persistent memory_.  The source is in this
-[GitHub repository](https://github.com/pmem/nvml/).  The latest
-release (source and pre-built packages for some common Linux distros)
-can be found in the
-[releases area on GitHub](https://github.com/pmem/nvml/releases).
+The Persistent Memory Development Kit (PMDK),
+formerly known as [NVML](http://pmem.io/blog/2017/12/11/NVML-is-now-PMDK.html),
+is a growing collection of libraries and tools.
+Tuned and validated on both Linux and Windows, the libraries build on
+the DAX feature of those operating systems (short for _Direct Access_)
+which allows applications to access persistent memory as _memory-mapped files_,
+as described in the
+[SNIA NVM Programming Model](https://www.snia.org/sites/default/files/technical_work/final/NVMProgrammingModel_v1.2.pdf).
 
-The NVM Library is actually seven separate libraries:
+The source for PMDK is in this
+[GitHub repository](https://github.com/pmem/pmdk/).
+
+The following libraries are part of PMDK:
 
 #### libpmemobj
 
@@ -66,6 +71,13 @@ volatile memory pool, similar to the system heap but kept separate
 and with its own malloc-style API.
 
 See the [libvmem page](libvmem) for documentation and examples.
+
+>NOTE:
+Since persistent memory support
+has been integrated into [libmemkind](https://github.com/memkind/memkind),
+that library is the **recommended** choice for any new volatile usages,
+since it combines support for multiple types of volatile memory into
+a single, convenient API.
 
 #### libvmmalloc
 

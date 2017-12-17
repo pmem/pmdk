@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>pmem.io: NVM man page</title>
+	<title>pmem.io: PMDK man page</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<link rel="stylesheet" href="/css/manual.css" type="text/css">
 	<link rel="stylesheet" href="/css/pygment_trac.css" type="text/css">
@@ -10,8 +10,8 @@
 	<link href="http://pmem.io/feed.xml" rel="alternate" type="application/atom+xml">
 	<script type="text/javascript" src="/js/jquery.min.js"></script>
 	<script type="text/javascript" src="/js/gist-embed.min.js"></script>
-	<script type="text/javascript" src="/nvml/js/nvml_formatter.js"></script>
-	<script type="text/javascript" src="/nvml/js/menu.js"></script>
+	<script type="text/javascript" src="/pmdk/js/pmdk_formatter.js"></script>
+	<script type="text/javascript" src="/pmdk/js/menu.js"></script>
 	<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js?ver=1.4.2'></script>
 </head>
 <body>
@@ -29,7 +29,7 @@
 			<li><a href="/">Home</a></li>
 			<li><a href="/glossary/">Glossary</a></li>
 			<li><a href="/documents/">Documents</a></li>
-			<li><a href="/nvml/" class="sel">NVM&nbsp;Library</a></li>
+			<li><a href="/pmdk/" title="Persistent Memory Development Kit" class="sel">PMDK</a></li>
 			<li><a href="/blog/">Blog</a></li>
 			<li><a href="/about/">About</a></li>
 		</ul>
@@ -73,19 +73,19 @@
 					<li class="release_tag" ><a href="#">{{ dc_title }} {{version_name}} {{ release.tag }}</a>
 						<ul>
 							{% if release.func == 'empty' %} <!-- old manpages, not divided into functions-->
-									<li><a href="/nvml/manpages/{{ system }}/v{{ release.tag }}/{{ dc_title_ext_old }}">{{ dc_title }}</a></li>
+									<li><a href="/pmdk/manpages/{{ system }}/v{{ release.tag }}/{{ dc_title_ext_old }}">{{ dc_title }}</a></li>
 							{% else %}
 								{% if dc_title == "libpmemlog" or dc_title == "libpmemobj" or dc_title == "libpmemblk" or dc_title == "libpmempool" %}
-									<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
+									<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
 								{% endif %}
-								<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
+								<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
 								{% assign rev_functions =  release.func.[dc_title] | split: " " %}
 								{% for rev_function in rev_functions %}
 									{% assign rev_function_no_ext = rev_function | remove:'.3' | remove:'.7' %}
 									{% for x in site.data.libs_map %}
 										{% assign value_to_rev_func = x.[rev_function_no_ext] %}
 										{% if value_to_rev_func != "" and value_to_rev_func != nil %}
-											<li><a href="/nvml/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ value_to_rev_func }}">{{ rev_function_no_ext }}</a></li>
+											<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ value_to_rev_func }}">{{ rev_function_no_ext }}</a></li>
 										{% endif %}
 									{% endfor %}
 								{% endfor %}
@@ -98,7 +98,7 @@
 		{% endfor %}
 	</div>
 	{% endif %}
-	<h4>NVML man page</h4>
+	<h4>PMDK man page</h4>
 	<h4>{{ page_title }}</h4>
 	{{ content }}
 	<br>

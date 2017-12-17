@@ -1,6 +1,6 @@
 ---
 title: libpmemcto
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmemcto library

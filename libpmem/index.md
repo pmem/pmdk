@@ -1,6 +1,6 @@
 ---
 title: libpmem
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmem library
@@ -143,8 +143,8 @@ instead of calling `msync(2)` directly.  For convenience, the
 the arguments are aligned, as requirement of POSIX.
 
 Buildable source for the
-[libpmem manpage.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
-example above is available in the NVML repository.
+[libpmem manpage.c](https://github.com/pmem/pmdk/tree/master/src/examples/libpmem)
+example above is available in the PMDK repository.
 
 **Copying to Persistent Memory**
 
@@ -165,8 +165,8 @@ used just like `memcpy(3)` except that when the destination is pmem,
 libpmem handles flushing the data to persistence as part of the copy.
 
 Buildable source for the
-[libpmem simple_copy.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
-example above is available in the NVML repository.
+[libpmem simple_copy.c](https://github.com/pmem/pmdk/tree/master/src/examples/libpmem)
+example above is available in the PMDK repository.
 
 **Separating the Flush Steps**
 
@@ -199,5 +199,5 @@ rather than waiting for the hardware queues to drain each time, that
 step is saved until the end, as shown on line 75 above.
 
 Buildable source for the
-[libpmem full_copy.c](https://github.com/pmem/nvml/tree/master/src/examples/libpmem)
-example above is available in the NVML repository.
+[libpmem full_copy.c](https://github.com/pmem/pmdk/tree/master/src/examples/libpmem)
+example above is available in the PMDK repository.

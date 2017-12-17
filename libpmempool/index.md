@@ -1,6 +1,6 @@
 ---
 title: libpmempool
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmempool library

@@ -1,6 +1,6 @@
 ---
 title: librpmem
-layout: nvml
+layout: pmdk
 ---
 
 #### The librpmem library

@@ -1,6 +1,6 @@
 ---
 title: libpmemobj
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmemobj library

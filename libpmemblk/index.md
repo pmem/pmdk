@@ -1,6 +1,6 @@
 ---
 title: libpmemblk
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmemblk library

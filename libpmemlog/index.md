@@ -1,6 +1,6 @@
 ---
 title: libpmemlog
-layout: nvml
+layout: pmdk
 ---
 
 #### The libpmemlog library
