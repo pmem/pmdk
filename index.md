@@ -111,6 +111,10 @@ _persistent memory_ utilizing RDMA-capable RNICs. The library can be
 used to replicate content of local persistent memory regions to
 persistent memory on a remote node over RDMA protocol.
 
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
+
 See the [librpmem page](librpmem) for documentation and examples.
 
 #### C++ bindings
