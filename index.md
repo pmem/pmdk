@@ -3,7 +3,7 @@ title: PMDK
 layout: pmdk
 ---
 The Persistent Memory Development Kit (PMDK),
-formerly known as [NVML](http://pmem.io/blog/2017/12/11/NVML-is-now-PMDK.html),
+formerly known as [NVML](http://pmem.io/2017/12/11/NVML-is-now-PMDK.html),
 is a growing collection of libraries and tools.
 Tuned and validated on both Linux and Windows, the libraries build on
 the DAX feature of those operating systems (short for _Direct Access_)
@@ -110,6 +110,10 @@ The **librpmem** provides low-level support for remote access to
 _persistent memory_ utilizing RDMA-capable RNICs. The library can be
 used to replicate content of local persistent memory regions to
 persistent memory on a remote node over RDMA protocol.
+
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
