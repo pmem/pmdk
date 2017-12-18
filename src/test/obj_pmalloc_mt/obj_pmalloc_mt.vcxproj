@@ -45,6 +45,7 @@
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_pmalloc_mt.c" />
   </ItemGroup>
   <ItemGroup>
