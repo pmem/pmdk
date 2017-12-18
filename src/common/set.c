@@ -3329,6 +3329,32 @@ util_unmap_all_hdrs(struct pool_set *set)
 }
 
 /*
+ * util_poolset_check_options -- check poolset options
+ */
+static int
+util_poolset_check_compatibility(struct pool_set *set, uint32_t incompat)
+{
+	LOG(3, "set %p, incompat %#x", set, incompat);
+	if ((set->options & POOL_FEAT_NOHDRS) !=
+			(incompat & POOL_FEAT_NOHDRS)) {
+		LOG(2, "poolset file options (%u) do not match incompat feature"
+				" flags (%#x)", set->options, incompat);
+		errno = EINVAL;
+		return -1;
+	} else {
+		incompat &= (unsigned)~POOL_FEAT_NOHDRS;
+	}
+
+	if (incompat) {
+		LOG(2, "not supported pool features in the incompatibility "
+				"flags (%#x)", incompat);
+		errno = EINVAL;
+		return -1;
+	}
+	return 0;
+}
+
+/*
  * util_replica_check -- check headers, check UUID's, check replicas linkage
  */
 static int
@@ -3493,6 +3519,10 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 		if (ret != 0)
 			goto err_replica;
 	}
+
+	/* check poolset compatibility */
+	if (util_poolset_check_compatibility(set, incompat))
+		goto err_replica;
 
 	/* check headers, check UUID's, check replicas linkage */
 	if (util_replica_check(set, sig, major, compat, incompat, ro_compat))
