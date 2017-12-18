@@ -292,9 +292,8 @@ util_file_device_dax_alignment(const char *path)
 	return device_dax_alignment(path);
 }
 
-
 /*
- * util_get_dev_id -- returns dev_id freom file stat
+ * util_get_dev_id -- returns dev_id from file stat
  */
 os_dev_t
 util_get_dev_id(const char *path)

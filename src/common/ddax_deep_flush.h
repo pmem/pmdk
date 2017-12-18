@@ -41,7 +41,8 @@
 #include "set.h"
 
 int ddax_region_find(os_dev_t dev_id);
-int ddax_deep_flush_select(const void *addr, size_t len, struct pool_set *set);
-int ddax_pool_set_deep_flush(const void *addr, size_t len,
-struct pool_set *set);
-int ddax_deep_flush_final(int region_id);
+int ddax_deep_flush(const void *addr, size_t len,
+struct pool_set *set, unsigned region_id);
+int ddax_replica_deep_flush(const void *addr, size_t len,
+struct pool_set *set, unsigned region_id);
+int ddax_deep_flush_write(int region_id);
