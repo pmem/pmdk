@@ -53,4 +53,3 @@ SOURCE =\
 include ../Makefile.inc
 
 LIBS += -pthread
-CFLAGS += -DLIBPMEM

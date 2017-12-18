@@ -51,6 +51,7 @@
 #include "libpmem.h"
 
 #define DAX_REGION_ID_LEN 4
+#define MAX_UNIQUE_REGIONS 1024
 
 /*
  * ddax_region_find - looks for region number for specified dev_id
@@ -94,12 +95,14 @@ err:
 }
 
 /*
- * ddax_deep_flush_select - check if deep flush request is for pmem or other
+ * ddax_deep_flush - check if deep flush request is for pmem or other
  */
 int
-ddax_deep_flush_select(const void *addr, size_t len, struct pool_set *set)
+ddax_deep_flush(const void *addr, size_t len, struct pool_set *set,
+unsigned replica_id)
 {
-	LOG(2, "ddax_deep_flush_select addr %p len %zu set %p", addr, len, set);
+	LOG(2, "ddax_deep_flush addr %p len %zu set %p replica_id %u",
+		addr, len, set, replica_id);
 
 	if (set == NULL) {
 		if (pmem_deep_flush(addr, len)) {
@@ -107,9 +110,9 @@ ddax_deep_flush_select(const void *addr, size_t len, struct pool_set *set)
 			return -1;
 		}
 	} else {
-		if (ddax_pool_set_deep_flush(addr, len, set)) {
-			ERR("!ddax_pool_set_deep_flush(%p, %lu, %p)",
-				addr, len, set);
+		if (ddax_replica_deep_flush(addr, len, set, replica_id)) {
+			ERR("!ddax_replica_deep_flush(%p, %lu, %p, %u)",
+				addr, len, set, replica_id);
 			return -1;
 		}
 	}
@@ -118,22 +121,71 @@ ddax_deep_flush_select(const void *addr, size_t len, struct pool_set *set)
 }
 
 /*
- * ddax_pool_set_deep_flush -- perform deep flush on parts on dev dax from range
+ * ddax_replica_deep_flush -- perform deep flush on replica's parts from range
+ * for dev dax write to deep_flush, otherwise run msync
  */
 int
-ddax_pool_set_deep_flush(const void *addr, size_t len, struct pool_set *set)
+ddax_replica_deep_flush(const void *addr, size_t len,
+struct pool_set *set, unsigned replica_id)
 {
-	LOG(2, "ddax_pool_set_deep_flush addr %p len %zu set %p",
-		addr, len, set);
+	LOG(2, "ddax_replica_deep_flush addr %p len %zu set %p replica_id %u",
+		addr, len, set, replica_id);
 
+	int unique[MAX_UNIQUE_REGIONS];
+	int flushed;
+	int u = 0;
+
+	struct pool_replica *rep = set->replica[replica_id];
+	uintptr_t rep_addr = (uintptr_t)rep->part[0].addr;
+	uintptr_t rep_end = rep_addr + rep->repsize;
+	uintptr_t end = (uintptr_t)addr + len;
+
+	ASSERT((uintptr_t)addr >= rep_addr);
+	ASSERT(end <= rep_end);
+
+	for (int u = 0; u < MAX_UNIQUE_REGIONS; u++) {
+		unique[u] = -1;
+	}
+
+	for (unsigned p = 0; p < rep->nparts; p++) {
+		struct pool_set_part *part = &rep->part[p];
+		uintptr_t padd = (uintptr_t)part->addr;
+		uintptr_t pend = padd + part->size;
+			if (padd <= end && pend >= (uintptr_t)addr) {
+			if (part->is_dev_dax) {
+				flushed = 0;
+				for (int i = 0;	i < MAX_UNIQUE_REGIONS; i++) {
+					if (unique[i] == part->region_id) {
+						flushed = 1;
+						break;
+					}
+				}
+				if (!flushed) {
+					pmem_persist(part->addr, part->size);
+					if (ddax_deep_flush_write(
+						part->region_id)) {
+						ERR("ddax_deep_flush_write(%d)",
+							part->region_id);
+						return -1;
+					}
+					if (u < MAX_UNIQUE_REGIONS - 1) {
+						unique[u] = part->region_id;
+						u++;
+					}
+				}
+			} else {
+				pmem_msync(part->addr, part->size);
+			}
+		}
+	}
 	return 0;
 }
 
 /*
- * ddax_deep_flush_final -- perform final deep flush on given deep_flush fd
+ * ddax_deep_flush_write -- perform final write to deep_flush on given region_id
  */
 int
-ddax_deep_flush_final(int region_id)
+ddax_deep_flush_write(int region_id)
 {
 	LOG(2, "ddax_deep_flush_final %d", region_id);
 
@@ -144,7 +196,7 @@ ddax_deep_flush_final(int region_id)
 		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_RDWR)) < 0) {
-		ERR("os_open(\"%s\", O_RDWR", deep_flush_path);
+		ERR("os_open(\"%s\", O_RDWR)", deep_flush_path);
 		return -1;
 	}
 

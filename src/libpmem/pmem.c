@@ -251,6 +251,8 @@ struct map_tracker {
 	uintptr_t base_addr;
 	uintptr_t end_addr;
 	enum map_tracker_flag flags;
+	int region_id;
+	os_dev_t dev_id;
 
 #ifdef _WIN32
 	/* Windows-specific data */
@@ -259,9 +261,6 @@ struct map_tracker {
 	DWORD Access;
 	os_off_t Offset;
 	size_t FileLen;
-#else
-	dev_t dev_id;
-	int region_id;
 #endif
 };
 
@@ -1704,7 +1703,7 @@ pmem_init(void)
 static int
 range_deep_flush(uintptr_t addr, size_t len)
 {
-#if !defined(_WIN32) && !defined(_FreeBSD)
+
 	while (len != 0) {
 		const struct map_tracker *mt = map_range_find(addr, len);
 
@@ -1722,7 +1721,7 @@ range_deep_flush(uintptr_t addr, size_t len)
 			addr = mt->base_addr;
 		}
 
-		if (ddax_deep_flush_final(mt->region_id) < 0) {
+		if (ddax_deep_flush_write(mt->region_id) < 0) {
 			ERR("!cannot perform final write to deep_flush");
 			return -1;
 		}
@@ -1734,9 +1733,6 @@ range_deep_flush(uintptr_t addr, size_t len)
 		addr = mt->end_addr;
 	}
 	return 0;
-#else
-	return msync((void *) addr, len, MS_SYNC);
-#endif
 }
 
 
