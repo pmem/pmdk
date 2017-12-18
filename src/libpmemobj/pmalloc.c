@@ -273,7 +273,8 @@ static int
 pmalloc_boot(PMEMobjpool *pop)
 {
 	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
-			pop->heap_size, pop->run_id, pop, &pop->p_ops);
+			pop->heap_size, pop->run_id, pop, &pop->p_ops,
+			pop->stats);
 	if (ret)
 		return ret;
 
