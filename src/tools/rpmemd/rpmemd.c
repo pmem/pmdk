@@ -67,7 +67,6 @@ struct rpmemd {
 	char *pool_desc;	/* pool descriptor */
 	struct rpmemd_fip *fip;	/* fabric provider handle */
 	struct rpmemd_config config; /* configuration */
-	size_t nthreads;	/* number of processing threads */
 	enum rpmem_persist_method persist_method;
 	int closing;		/* set when closing connection */
 	int created;		/* pool created */
@@ -111,22 +110,6 @@ uuid2str(const uuid_t uuid)
 	}
 
 	return uuid_str;
-}
-
-/*
- * rpmemd_get_nthreads -- returns number of threads to use for fabric
- * processing
- */
-static size_t
-rpmemd_get_nthreads(void)
-{
-	long ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-	if (ncpus < 0) {
-		RPMEMD_LOG(ERR, "getting number of CPUs");
-		return 0;
-	}
-
-	return (size_t)ncpus;
 }
 
 /*
@@ -213,7 +196,7 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		.addr		= addr,
 		.size		= req->pool_size,
 		.nlanes		= req->nlanes,
-		.nthreads	= rpmemd->nthreads,
+		.nthreads	= rpmemd->config.nthreads,
 		.provider	= req->provider,
 		.persist_method = rpmemd->persist_method,
 		.deep_persist	= rpmemd_deep_persist,
@@ -714,7 +697,7 @@ rpmemd_print_info(struct rpmemd *rpmemd)
 	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "persist method: %s",
 			rpmem_persist_method_to_str(rpmemd->persist_method));
 	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "number of threads: %lu",
-			rpmemd->nthreads);
+			rpmemd->config.nthreads);
 	RPMEMD_DBG("\tpersist APM: %s",
 		bool2str(rpmemd->config.persist_apm));
 	RPMEMD_DBG("\tpersist GPSPM: %s",
@@ -767,12 +750,6 @@ main(int argc, char *argv[])
 
 	RPMEMD_LOG(INFO, "%s version %s", DAEMON_NAME, SRCVERSION);
 	rpmemd->persist_method = rpmemd_get_pm(&rpmemd->config);
-	rpmemd->nthreads = rpmemd_get_nthreads();
-	if (!rpmemd->nthreads) {
-		RPMEMD_LOG(ERR, "invalid number of threads -- '%lu'",
-				rpmemd->nthreads);
-		goto err_nthreads;
-	}
 
 	rpmemd->db = rpmemd_db_init(rpmemd->config.poolset_dir, 0666);
 	if (!rpmemd->db) {
@@ -832,7 +809,6 @@ err_status:
 out_rm:
 	rpmemd_db_fini(rpmemd->db);
 err_db_init:
-err_nthreads:
 err_log_init_config:
 	rpmemd_config_free(&rpmemd->config);
 err_config:
