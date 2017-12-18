@@ -180,6 +180,7 @@ CHRONO_TESTS = \
 OTHER_TESTS = \
 	arch_flags\
 	checksum\
+	compat_incompat_features\
 	magic\
 	out_err\
 	out_err_mt\
