@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 		if ((pop = pmemobj_open(path, LAYOUT)) == NULL)
 			UT_FATAL("!pmemobj_open: %s", path);
 	} else {
-		if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+		if ((pop = pmemobj_create(path, LAYOUT, 0,
 			S_IWUSR | S_IRUSR)) == NULL)
 			UT_FATAL("!pmemobj_create: %s", path);
 	}

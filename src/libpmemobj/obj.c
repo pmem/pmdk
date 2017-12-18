@@ -173,6 +173,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (pop) {
 		tx_ctl_register(pop);
 		pmalloc_ctl_register(pop);
+		stats_ctl_register(pop);
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -1097,6 +1098,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		return -1;
 	}
 
+	pop->stats = stats_new(pop);
+	if (pop->stats == NULL) {
+		tx_params_delete(pop->tx_params);
+		errno = ENOMEM;
+		return -1;
+	}
+
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->mutex_head,
 		sizeof(pop->mutex_head));
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->rwlock_head,
@@ -1109,8 +1117,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	if (boot) {
 		if ((errno = obj_boot(pop)) != 0)
-			return -1;
-
+			goto err;
 
 #ifdef USE_VG_MEMCHECK
 		if (On_valgrind) {
@@ -1152,6 +1159,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 err:
+	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
 
 	return -1;
@@ -1789,6 +1797,7 @@ obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
+	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
 	ctl_delete(pop->ctl);
 

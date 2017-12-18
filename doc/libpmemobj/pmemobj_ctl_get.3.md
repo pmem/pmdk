@@ -320,6 +320,18 @@ The required class identifier will be stored in the `class_id` field of the
 This function returns 0 if the allocation class has been successfully created,
 -1 otherwise.
 
+stats.enabled | rw | - | int | int | - | boolean
+
+Enables or disables runtime collection of statistics. The statistics are never
+altered after enabling.
+
+Always returns 0.
+
+stats.heap.allocated_curr | r- | - | int | - | - | -
+
+Returns the number of bytes currently allocated in the heap. If statistics were
+disabled at any time in the lifetime of the heap, this value might be
+inaccurate.
 
 # CTL EXTERNAL CONFIGURATION #
 

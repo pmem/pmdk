@@ -112,6 +112,9 @@
     <ClCompile Include="ringbuf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -262,6 +265,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="alloc_class.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ctl.h">
