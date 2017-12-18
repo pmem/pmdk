@@ -59,6 +59,8 @@
  */
 static size_t Header_size;
 static os_mutex_t Vmem_init_lock;
+static os_mutex_t Pool_lock; /* guards vmem_create and vmem_delete */
+
 /*
  * print_jemalloc_messages -- custom print function, for jemalloc
  *
@@ -126,7 +128,8 @@ ATTR_CONSTRUCTOR
 void
 vmem_init(void)
 {
-	os_mutex_init(&Vmem_init_lock);
+	util_mutex_init(&Vmem_init_lock);
+	util_mutex_init(&Pool_lock);
 	vmem_construct();
 }
 
@@ -140,7 +143,8 @@ void
 vmem_fini(void)
 {
 	LOG(3, NULL);
-	os_mutex_destroy(&Vmem_init_lock);
+	util_mutex_destroy(&Pool_lock);
+	util_mutex_destroy(&Vmem_init_lock);
 	common_fini();
 }
 
@@ -164,15 +168,22 @@ vmem_createU(const char *dir, size_t size)
 
 	int is_dev_dax = util_file_is_device_dax(dir);
 
+	util_mutex_lock(&Pool_lock);
+
 	/* silently enforce multiple of mapping alignment */
 	size = roundup(size, Mmap_align);
 	void *addr;
 	if (is_dev_dax) {
-		if ((addr = util_file_map_whole(dir)) == NULL)
+		if ((addr = util_file_map_whole(dir)) == NULL) {
+			util_mutex_unlock(&Pool_lock);
 			return NULL;
+		}
 	} else {
-		if ((addr = util_map_tmpfile(dir, size, 4 * MEGABYTE)) == NULL)
+		if ((addr = util_map_tmpfile(dir, size,
+					4 * MEGABYTE)) == NULL) {
+			util_mutex_unlock(&Pool_lock);
 			return NULL;
+		}
 	}
 
 	/* store opaque info at beginning of mapped area */
@@ -190,6 +201,7 @@ vmem_createU(const char *dir, size_t size)
 			/* empty */ 1) == NULL) {
 		ERR("pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
+		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
 
@@ -202,9 +214,10 @@ vmem_createU(const char *dir, size_t size)
 	if (!is_dev_dax)
 		util_range_none(addr, sizeof(struct pool_hdr));
 
+	util_mutex_unlock(&Pool_lock);
+
 	LOG(3, "vmp %p", vmp);
 	return vmp;
-
 }
 
 #ifndef _WIN32
@@ -270,11 +283,14 @@ vmem_create_in_region(void *addr, size_t size)
 	vmp->size = size;
 	vmp->caller_mapped = 1;
 
+	util_mutex_lock(&Pool_lock);
+
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 				size - Header_size, 0,
 				/* empty */ 1) == NULL) {
 		ERR("pool creation failed");
+		util_mutex_unlock(&Pool_lock);
 		return NULL;
 	}
 
@@ -288,6 +304,8 @@ vmem_create_in_region(void *addr, size_t size)
 	util_range_none(addr, sizeof(struct pool_hdr));
 #endif
 
+	util_mutex_unlock(&Pool_lock);
+
 	LOG(3, "vmp %p", vmp);
 	return vmp;
 }
@@ -300,12 +318,16 @@ vmem_delete(VMEM *vmp)
 {
 	LOG(3, "vmp %p", vmp);
 
+	util_mutex_lock(&Pool_lock);
+
 	int ret = je_vmem_pool_delete((pool_t *)((uintptr_t)vmp + Header_size));
 	if (ret != 0) {
 		ERR("invalid pool handle: 0x%" PRIxPTR, (uintptr_t)vmp);
 		errno = EINVAL;
+		util_mutex_unlock(&Pool_lock);
 		return;
 	}
+
 #ifndef _WIN32
 	util_range_rw(vmp->addr, sizeof(struct pool_hdr));
 #endif
@@ -319,6 +341,8 @@ vmem_delete(VMEM *vmp)
 		 */
 		VALGRIND_DO_MAKE_MEM_UNDEFINED(vmp->addr, vmp->size);
 	}
+
+	util_mutex_unlock(&Pool_lock);
 }
 
 /*
@@ -330,7 +354,13 @@ vmem_check(VMEM *vmp)
 	vmem_construct();
 	LOG(3, "vmp %p", vmp);
 
-	return je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size));
+	util_mutex_lock(&Pool_lock);
+
+	int ret = je_vmem_pool_check((pool_t *)((uintptr_t)vmp + Header_size));
+
+	util_mutex_unlock(&Pool_lock);
+
+	return ret;
 }
 
 /*
