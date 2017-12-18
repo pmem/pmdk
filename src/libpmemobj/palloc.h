@@ -44,12 +44,15 @@
 #include "memops.h"
 #include "redo.h"
 #include "valgrind_internal.h"
+#include "stats.h"
 
 struct palloc_heap {
 	struct pmem_ops p_ops;
 	struct heap_layout *layout;
 	struct heap_rt *rt;
 	uint64_t size;
+
+	struct stats *stats;
 
 	void *base;
 };
@@ -93,7 +96,8 @@ uint16_t palloc_flags(struct palloc_heap *heap, uint64_t off);
 int palloc_is_allocated(struct palloc_heap *heap, uint64_t off);
 
 int palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t run_id,
-		uint64_t heap_size, void *base, struct pmem_ops *p_ops);
+		uint64_t heap_size, void *base, struct pmem_ops *p_ops,
+		struct stats *stats);
 int palloc_buckets_init(struct palloc_heap *heap);
 
 int palloc_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);

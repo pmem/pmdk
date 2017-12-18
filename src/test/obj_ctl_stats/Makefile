@@ -1,4 +1,5 @@
-# Copyright 2014-2017, Intel Corporation
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,45 +28,15 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
+#
+# src/test/obj_ctl_stats/Makefile -- build obj_ctl_stats test
+#
+TARGET = obj_ctl_stats
+OBJS = obj_ctl_stats.o
 
-include ../common/pmemcommon.inc
-
-SOURCE +=\
-	alloc_class.c\
-	bucket.c\
-	container_ctree.c\
-	container_seglists.c\
-	ctl.c\
-	ctl_global.c\
-	ctree.c\
-	cuckoo.c\
-	heap.c\
-	lane.c\
-	libpmemobj.c\
-	list.c\
-	memblock.c\
-	memops.c\
-	obj.c\
-	palloc.c\
-	pmalloc.c\
-	pvector.c\
-	recycler.c\
-	redo.c\
-	ringbuf.c\
-	sync.c\
-	tx.c\
-	stats.c
+LIBPMEM=y
+LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
-
-LIBS += -pthread -lpmem $(LIBDL)

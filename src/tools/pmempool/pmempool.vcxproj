@@ -15,6 +15,7 @@
     <ClCompile Include="..\..\libpmemlog\libpmemlog.c" />
     <ClCompile Include="..\..\libpmemlog\log.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\libpmemobj\container_ctree.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />

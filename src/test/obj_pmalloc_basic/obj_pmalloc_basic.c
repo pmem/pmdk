@@ -314,9 +314,12 @@ test_mock_pool_allocs(void)
 	void *heap_start = (char *)mock_pop + mock_pop->heap_offset;
 	uint64_t heap_size = mock_pop->heap_size;
 
+	struct stats *s = stats_new(mock_pop);
+	UT_ASSERTne(s, NULL);
+
 	heap_init(heap_start, heap_size, &mock_pop->p_ops);
 	heap_boot(&mock_pop->heap, heap_start, heap_size, MOCK_RUN_ID, mock_pop,
-			&mock_pop->p_ops);
+			&mock_pop->p_ops, s);
 	heap_buckets_init(&mock_pop->heap);
 
 	/* initialize runtime lanes structure */
@@ -364,6 +367,7 @@ test_mock_pool_allocs(void)
 	test_realloc(TEST_SMALL_ALLOC_SIZE, TEST_MEDIUM_ALLOC_SIZE);
 	test_realloc(TEST_HUGE_ALLOC_SIZE, TEST_MEGA_ALLOC_SIZE);
 
+	stats_delete(mock_pop, s);
 	lane_cleanup(mock_pop);
 	redo_log_config_delete(mock_pop->redo);
 	heap_cleanup(&mock_pop->heap);
