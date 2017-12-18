@@ -84,6 +84,7 @@
     <ClCompile Include="..\..\libpmemobj\container_ctree.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_pvector.c" />
   </ItemGroup>
   <ItemGroup>

@@ -48,6 +48,7 @@
     <ClCompile Include="container_ctree.c" />
     <ClCompile Include="container_seglists.c" />
     <ClCompile Include="alloc_class.c" />
+    <ClCompile Include="stats.c" />
     <ClCompile Include="ringbuf.c" />
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +105,7 @@
     <ClInclude Include="container_seglists.h" />
     <ClInclude Include="container.h" />
     <ClInclude Include="alloc_class.h" />
+    <ClInclude Include="stats.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />

@@ -288,8 +288,18 @@ palloc_finalize_heap_action(struct palloc_heap *heap,
 	const struct pobj_action_internal *act, int canceled)
 {
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
+		STATS_INC(heap->stats, persistent, heap_curr_allocated,
+			act->m.m_ops->get_real_size(&act->m));
+
 		palloc_reservation_finalize(heap, act, canceled);
 	} else if (!canceled && act->new_state == MEMBLOCK_FREE) {
+		if (heap->stats->enabled) {
+			struct memory_block m =
+				memblock_from_offset(heap, act->offset);
+			STATS_SUB(heap->stats, persistent, heap_curr_allocated,
+				m.m_ops->get_real_size(&m));
+		}
+
 		heap_memblock_on_free(heap, &act->m);
 	}
 }
@@ -682,9 +692,11 @@ palloc_is_allocated(struct palloc_heap *heap, uint64_t off)
  */
 int
 palloc_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		uint64_t run_id, void *base, struct pmem_ops *p_ops)
+		uint64_t run_id, void *base, struct pmem_ops *p_ops,
+		struct stats *stats)
 {
-	return heap_boot(heap, heap_start, heap_size, run_id, base, p_ops);
+	return heap_boot(heap, heap_start, heap_size, run_id, base, p_ops,
+		stats);
 }
 
 /*

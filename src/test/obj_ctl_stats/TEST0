@@ -1,4 +1,6 @@
-# Copyright 2014-2017, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,45 +29,19 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
+export UNITTEST_NAME=obj_ctl_stats/TEST0
+export UNITTEST_NUM=0
 
-include ../common/pmemcommon.inc
+# standard unit test setup
+. ../unittest/unittest.sh
 
-SOURCE +=\
-	alloc_class.c\
-	bucket.c\
-	container_ctree.c\
-	container_seglists.c\
-	ctl.c\
-	ctl_global.c\
-	ctree.c\
-	cuckoo.c\
-	heap.c\
-	lane.c\
-	libpmemobj.c\
-	list.c\
-	memblock.c\
-	memops.c\
-	obj.c\
-	palloc.c\
-	pmalloc.c\
-	pvector.c\
-	recycler.c\
-	redo.c\
-	ringbuf.c\
-	sync.c\
-	tx.c\
-	stats.c
+require_test_type short
+require_fs_type any
 
-include ../Makefile.inc
+setup
 
-CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
+expect_normal_exit ./obj_ctl_stats$EXESUFFIX $DIR/testfile1
 
-LIBS += -pthread -lpmem $(LIBDL)
+pass

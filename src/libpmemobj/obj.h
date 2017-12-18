@@ -47,6 +47,7 @@
 #include "ctl.h"
 #include "ringbuf.h"
 #include "sync.h"
+#include "stats.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -135,7 +136,11 @@ struct pmemobjpool {
 	 */
 	uint64_t conversion_flags;
 
-	char pmem_reserved[512]; /* must be zeroed */
+	struct stats_persistent stats_persistent;
+
+	char pmem_reserved[504]; /* must be zeroed */
+
+	struct stats *stats;
 
 	/* some run-time state, allocated out of memory pool... */
 	void *addr;		/* mapped region */
@@ -191,7 +196,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1012];
+	char unused2[996];
 };
 
 /*

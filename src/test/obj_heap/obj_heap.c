@@ -215,6 +215,9 @@ test_heap(void)
 	pop->p_ops.base = pop;
 	pop->p_ops.pool_size = pop->size;
 
+	struct stats *s = stats_new(pop);
+	UT_ASSERTne(s, NULL);
+
 	void *heap_start = (char *)pop + pop->heap_offset;
 	uint64_t heap_size = pop->heap_size;
 	struct palloc_heap *heap = &pop->heap;
@@ -223,7 +226,7 @@ test_heap(void)
 	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
 	UT_ASSERT(heap_init(heap_start, heap_size, p_ops) == 0);
 	UT_ASSERT(heap_boot(heap, heap_start, heap_size, TEST_RUN_ID,
-		pop, p_ops) == 0);
+		pop, p_ops, s) == 0);
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
@@ -282,6 +285,7 @@ test_heap(void)
 
 	heap_bucket_release(heap, b_run);
 
+	stats_delete(pop, s);
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);
 	UT_ASSERT(heap->rt == NULL);
@@ -309,10 +313,13 @@ test_recycler(void)
 	struct palloc_heap *heap = &pop->heap;
 	struct pmem_ops *p_ops = &pop->p_ops;
 
+	struct stats *s = stats_new(pop);
+	UT_ASSERTne(s, NULL);
+
 	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
 	UT_ASSERT(heap_init(heap_start, heap_size, p_ops) == 0);
 	UT_ASSERT(heap_boot(heap, heap_start, heap_size, TEST_RUN_ID,
-		pop, p_ops) == 0);
+		pop, p_ops, s) == 0);
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
@@ -424,6 +431,7 @@ test_recycler(void)
 
 	recycler_delete(r);
 
+	stats_delete(pop, s);
 	heap_cleanup(heap);
 	UT_ASSERT(heap->rt == NULL);
 
