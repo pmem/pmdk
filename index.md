@@ -3,7 +3,7 @@ title: PMDK
 layout: pmdk
 ---
 The Persistent Memory Development Kit (PMDK),
-formerly known as [NVML](http://pmem.io/blog/2017/12/11/NVML-is-now-PMDK.html),
+formerly known as [NVML](http://pmem.io/2017/12/11/NVML-is-now-PMDK.html),
 is a growing collection of libraries and tools.
 Tuned and validated on both Linux and Windows, the libraries build on
 the DAX feature of those operating systems (short for _Direct Access_)
