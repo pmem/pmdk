@@ -873,7 +873,7 @@ malloc_init_hard(void)
 	if (config_prof)
 		prof_boot1();
 
-	arena_boot();
+	arena_params_boot();
 
 	/* Initialize allocation counters before any allocations can occur. */
 	if (config_stats && thread_allocated_tsd_boot()) {
@@ -1469,6 +1469,9 @@ base_free_default(void *ptr)
 static void
 je_base_pool_destroy(void)
 {
+	if (base_pool_initialized == false)
+		return;
+
 #ifndef JEMALLOC_MUTEX_INIT_CB
 	pool_destroy(&base_pool);
 	malloc_mutex_destroy(&pool_base_lock);
@@ -1568,9 +1571,10 @@ vg_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree,
 static int
 vg_pool_init(pool_t *pool, size_t size)
 {
-	malloc_mutex_lock(&pool->huge_mtx);
-	malloc_mutex_lock(&pool->chunks_mtx);
-	malloc_rwlock_wrlock(&pool->arenas_lock);
+	/*
+	 * There is no need to grab any locks here, as the pool is not
+	 * being used yet.
+	 */
 
 	/* mark base_alloc used space as defined */
 	char *base_start = (char *)CACHELINE_CEILING((uintptr_t)pool +
@@ -1609,8 +1613,6 @@ vg_pool_init(pool_t *pool, size_t size)
 		if (arena != NULL) {
 			JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(arena, sizeof(*arena));
 
-			malloc_mutex_lock(&arena->lock);
-
 			/* bins */
 			for (unsigned b = 0; b < NBINS; b++) {
 				arena_bin_t *bin = &arena->bins[b];
@@ -1631,13 +1633,8 @@ vg_pool_init(pool_t *pool, size_t size)
 				JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(
 						spare, chunksize);
 			}
-			malloc_mutex_unlock(&arena->lock);
 		}
 	}
-
-	malloc_rwlock_unlock(&pool->arenas_lock);
-	malloc_mutex_unlock(&pool->chunks_mtx);
-	malloc_mutex_unlock(&pool->huge_mtx);
 
 	return 1;
 }
@@ -1727,7 +1724,12 @@ pool_open(pool_t *pool, size_t size, unsigned pool_id)
 {
 	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(pool, sizeof(pool_t));
 
-	pool->pool_id = pool_id;
+	/* prepare pool's runtime state */
+	if (pool_runtime_init(pool, pool_id)) {
+		malloc_mutex_unlock(&pools_lock);
+		return NULL;
+	}
+
 	assert(pools[pool_id] == NULL);
 	pool->seqno = pool_seqno++;
 	pools[pool_id] = pool;
