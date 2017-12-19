@@ -536,16 +536,14 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 /*
  * heap_free_chunk_reuse -- reuses existing free chunk
  */
-static void
+void
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket,
-	struct chunk_header *hdr,
 	struct memory_block *m)
 {
 	struct operation_context ctx;
 	operation_init(&ctx, heap->base, NULL, NULL);
 	ctx.p_ops = &heap->p_ops;
-	heap_chunk_write_footer(hdr, hdr->size_idx);
 
 	/*
 	 * Perform coalescing just in case there
@@ -589,9 +587,10 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	util_mutex_lock(lock);
 
 	heap_chunk_init(heap, hdr, CHUNK_TYPE_FREE, m->size_idx);
+	heap_chunk_write_footer(hdr, hdr->size_idx);
 	memblock_rebuild_state(heap, m);
 
-	heap_free_chunk_reuse(heap, bucket, hdr, m);
+	heap_free_chunk_reuse(heap, bucket, m);
 
 	util_mutex_unlock(lock);
 }
@@ -683,8 +682,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 				break;
 			case CHUNK_TYPE_FREE:
 				rchunks += (int)m.size_idx;
-				heap_free_chunk_reuse(heap, bucket,
-					hdr, &m);
+				heap_free_chunk_reuse(heap, bucket, &m);
 				break;
 			case CHUNK_TYPE_USED:
 				break;
