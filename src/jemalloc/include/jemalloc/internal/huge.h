@@ -25,6 +25,7 @@ size_t	huge_pool_salloc(pool_t *pool, const void *ptr);
 prof_ctx_t	*huge_prof_ctx_get(const void *ptr);
 void	huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx);
 bool	huge_boot(pool_t *pool);
+bool	huge_init(pool_t *pool);
 void	huge_prefork(pool_t *pool);
 void	huge_postfork_parent(pool_t *pool);
 void	huge_postfork_child(pool_t *pool);

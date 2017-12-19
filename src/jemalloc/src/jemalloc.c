@@ -873,7 +873,7 @@ malloc_init_hard(void)
 	if (config_prof)
 		prof_boot1();
 
-	arena_boot();
+	arena_params_boot();
 
 	/* Initialize allocation counters before any allocations can occur. */
 	if (config_stats && thread_allocated_tsd_boot()) {
@@ -1469,6 +1469,9 @@ base_free_default(void *ptr)
 static void
 je_base_pool_destroy(void)
 {
+	if (base_pool_initialized == false)
+		return;
+
 #ifndef JEMALLOC_MUTEX_INIT_CB
 	pool_destroy(&base_pool);
 	malloc_mutex_destroy(&pool_base_lock);
@@ -1727,7 +1730,12 @@ pool_open(pool_t *pool, size_t size, unsigned pool_id)
 {
 	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(pool, sizeof(pool_t));
 
-	pool->pool_id = pool_id;
+	/* prepare pool's runtime state */
+	if (pool_boot(pool, pool_id)) {
+		malloc_mutex_unlock(&pools_lock);
+		return NULL;
+	}
+
 	assert(pools[pool_id] == NULL);
 	pool->seqno = pool_seqno++;
 	pools[pool_id] = pool;

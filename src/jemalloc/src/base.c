@@ -109,15 +109,31 @@ base_node_prealloc(pool_t *pool, size_t number)
 	return number;
 }
 
+/*
+ * Called at each pool opening.
+ */
 bool
 base_boot(pool_t *pool)
 {
-	pool->base_nodes = NULL;
 	if (malloc_mutex_init(&pool->base_mtx))
 		return (true);
 
 	if (malloc_mutex_init(&pool->base_node_mtx))
 		return (true);
+
+	return (false);
+}
+
+/*
+ * Called only at pool creation.
+ */
+bool
+base_init(pool_t *pool)
+{
+	if (base_boot(pool))
+		return (true);
+
+	pool->base_nodes = NULL;
 
 	return (false);
 }
