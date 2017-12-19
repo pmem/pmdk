@@ -87,29 +87,30 @@ at a time. Reordering replicas is not supported
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased
-
 by 4096 bytes per each part file. The 4096 bytes of each part file is
 utilized for storing internal metadata of the pool part files.=e=)
 
-_WINUX(,=q=When adding or deleting replicas, the two pool set files can differ only in the
-definitions of replicas which are to be added or deleted. When adding or
-removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
-files have to be of the same structure. The operation of adding/removing the
-*NOHDRS* option can be performed on a poolset with local replicas only. To
-add/remove the *NOHDRS* option to/from a poolset with remote replicas, one has
+_WINUX(,=q=When adding or deleting replicas, the two pool set files can differ
+only in the definitions of replicas which are to be added or deleted. When
+adding or removing pool set options (see **poolset**(5)), the rest of both pool
+set files have to be of the same structure. The operation of adding/removing
+a pool set option can be performed on a pool set with local replicas only. To
+add/remove a pool set option to/from a pool set with remote replicas, one has
 to remove the remote replicas first, then add/remove the option, and finally
-recreate the remote replicas having added/removed the *NOHDRS* option to/from
+recreate the remote replicas having added/removed the pool set option to/from
 the remote replicas' poolset files.
-To add a replica it is
-necessary for its effective size to match or exceed the pool size. Otherwise
-the whole operation fails and no changes are applied.
-If the option *NOHDRS* is not used, the effective size of a replica is the sum
-of sizes of all its part files decreased by 4096 bytes per each part file.
+To add a replica it is necessary for its effective size to match or exceed the
+pool size. Otherwise the whole operation fails and no changes are applied.
+If none of the poolset options is used, the effective size of a replica is the
+sum of sizes of all its part files decreased by 4096 bytes per each part file.
 The 4096 bytes of each part file is utilized for storing internal metadata of
 the pool part files.
-If the option *NOHDRS* is used, the effective size of a replica is the sum of
+If the option *SINGLEHDR* is used, the effective size of a replica is the sum of
 sizes of all its part files decreased once by 4096 bytes. In this case only
-the first part contains internal metadata.=e=)
+the first part contains internal metadata.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files. In this case none of the parts contains internal
+metadata.=e=)
 
 
 ##### Available options: #####
