@@ -85,6 +85,9 @@ are formatted as follows:
 + *Replica* sections, if any, start with the literal string "REPLICA".
 See **REPLICAS**, below, for further details.
 
++ Poolset options, if any, start with literal *OPTION*. See below
+for details.
+
 + Lines starting with "#" are considered comments and are ignored.
 
 The *size* must be compliant with the format specified in IEC 80000-13, IEEE 1541
@@ -99,27 +102,37 @@ The *pathname* of a part can point to a Device DAX. Device DAX is the
 device-centric analogue of Filesystem DAX. It allows memory ranges to be
 allocated and mapped without need of an intervening file system.
 
+Pool set options can appear anywhere after the line with *PMEMPOOLSET* string.
+Pool set file can contain several poolset options. The following options are
+supported:
+
++ *SINGLEHDR*
+
++ *NOHDRS*
+
+Options *SINGLEHDR* and *NOHDRS* are mutually exclusive. If both are specified
+in a pool set file, the one that appears as the last one is effective.
+
 Pools created on Device DAX have additional options and restrictions:
 
 + The *size* may be set to "AUTO", in which case the size of the device will be
 automatically resolved at pool creation time.
 
 + To concatenate more than one Device DAX device into a single pool set, the
-configured internal alignment of the devices must be 4KiB, unless the *NOHDRS*
-option is used in the pool set file.
+configured internal alignment of the devices must be 4KiB, unless the
+*SINGLEHDR* or *NOHDRS* option is used in the pool set file.
 
-+ If a line containing the string *OPTION NOHDRS* appears anywhere after the
-*PMEMPOOLSET* string in a pool set file, Device DAX devices with different
-internal alignment can be concatenated.
++ If the *SINGLEHDR* or *NOHDRS* poolset option is present,
+Device DAX devices with different internal alignment can be concatenated.
 
-+ The *NOHDRS* option concerns only local poolset files, i.e. if one wants to
-create a poolset with the *NOHDRS* option and with remote replicas, one has to
-add this option to the local poolset file as well as to every single remote
-poolset file.
++ The *SINGLEHDR* and *NOHDRS* options concern only local poolset files,
+i.e. if one wants to create a poolset with one of the options and with remote
+replicas, one has to add this option to the local poolset file as well as to
+every single remote poolset file.
 
-+ Using the *NOHDRS* option has important implications for data integrity
-checking and recoverability in case of a pool set damage. See _UW(pmempool_sync)
-API for more information about pool set recovery.
++ Using the *SINGLEHDR* and *NOHDRS* options has important implications for data
+integrity checking and recoverability in case of a pool set damage.
+See _UW(pmempool_sync) API for more information about pool set recovery.
 
 Please see **ndctl-create-namespace**(1) for more information on Device DAX,
 including how to configure desired alignment.
@@ -157,6 +170,7 @@ Here is an example "mypool.set" file:
 
 ```
 PMEMPOOLSET
+OPTION NOHDRS
 100G /mountpoint0/myfile.part0
 200G /mountpoint1/myfile.part1
 400G /mountpoint2/myfile.part2
@@ -226,6 +240,9 @@ The files in the object pool set may be created by running the following command
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
 
+_WINUX(,
+=q=Remote replica cannot have replicas, i.e. a remote pool set file cannot
+define any replicas.=e=)
 
 # NOTES #
 

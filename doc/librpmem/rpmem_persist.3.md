@@ -69,7 +69,11 @@ persistent on the remote node before the function returns. The remote node
 is identified by the *rpp* handle which must be returned from either
 **rpmem_open**(3) or **rpmem_create**(3). The *offset* is relative
 to the *pool_addr* specified in the **rpmem_open**(3) or **rpmem_create**(3)
-call. The *offset* and *length* combined must not exceed the
+call. As the first 4096 bytes of the pool is used for storing the pool matadata,
+the *offset* argument has to be at least 4096. This restriction does not hold
+if the pool was created via **rpmem_open**() or **rpmem_create**() with NULL *create_attr*
+or *open_attr*, respectively, arguments.
+The *offset* and *length* combined must not exceed the
 *pool_size* passed to **rpmem_open**(3) or **rpmem_create**(3).
 The **rpmem_persist**() operation is performed using the given *lane* number.
 The lane must be less than the value returned by **rpmem_open**(3) or
