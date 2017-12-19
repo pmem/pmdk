@@ -58,7 +58,7 @@ extern "C" {
  * Pool management.
  */
 #ifdef _WIN32
-#ifndef NVML_UTF8_API
+#ifndef PMDK_UTF8_API
 #define pmemobj_open pmemobj_openW
 #define pmemobj_create pmemobj_createW
 #define pmemobj_check pmemobj_checkW

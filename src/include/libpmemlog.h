@@ -46,7 +46,7 @@
 #ifdef _WIN32
 #include <pmemcompat.h>
 
-#ifndef NVML_UTF8_API
+#ifndef PMDK_UTF8_API
 #define pmemlog_open pmemlog_openW
 #define pmemlog_create pmemlog_createW
 #define pmemlog_check pmemlog_checkW
