@@ -38,6 +38,14 @@
 #define PMEMCOMPAT_H
 #include <windows.h>
 
+/* for backward compatibility */
+#ifdef NVML_UTF8_API
+#pragma message( "NVML_UTF8_API macro is obsolete, please use PMDK_UTF8_API instead." )
+#ifndef PMDK_UTF8_API
+#define PMDK_UTF8_API
+#endif
+#endif
+
 struct iovec {
 	void  *iov_base;
 	size_t iov_len;
