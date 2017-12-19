@@ -403,7 +403,8 @@ chunk_dalloc_default(void *chunk, size_t size, unsigned arena_ind, pool_t *pool)
 }
 
 bool
-chunk_global_boot() {
+chunk_global_boot()
+{
 	if (have_dss && chunk_dss_boot())
 		return (true);
 	/* Set variables according to the value of opt_lg_chunk. */
@@ -414,14 +415,37 @@ chunk_global_boot() {
 	return (false);
 }
 
+/*
+ * Called at each pool opening.
+ */
 bool
 chunk_boot(pool_t *pool)
 {
 	if (config_stats || config_prof) {
 		if (malloc_mutex_init(&pool->chunks_mtx))
 			return (true);
-		memset(&pool->stats_chunks, 0, sizeof(chunk_stats_t));
 	}
+
+	if (pool->chunks_rtree) {
+		rtree_t *rtree = pool->chunks_rtree;
+		malloc_mutex_init(&rtree->mutex);
+	}
+
+	return (false);
+}
+
+/*
+ * Called only at pool creation.
+ */
+bool
+chunk_init(pool_t *pool)
+{
+	if (chunk_boot(pool))
+		return (true);
+
+	if (config_stats || config_prof)
+		memset(&pool->stats_chunks, 0, sizeof(chunk_stats_t));
+
 	extent_tree_szad_new(&pool->chunks_szad_mmap);
 	extent_tree_ad_new(&pool->chunks_ad_mmap);
 	extent_tree_szad_new(&pool->chunks_szad_dss);

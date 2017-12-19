@@ -460,7 +460,8 @@ void	arena_stats_merge(arena_t *arena, const char **dss, size_t *nactive,
     size_t *ndirty, arena_stats_t *astats, malloc_bin_stats_t *bstats,
     malloc_large_stats_t *lstats);
 bool	arena_new(pool_t *pool, arena_t *arena, unsigned ind);
-void	arena_boot(void);
+bool	arena_boot(arena_t *arena);
+void	arena_params_boot(void);
 void	arena_prefork(arena_t *arena);
 void	arena_postfork_parent(arena_t *arena);
 void	arena_postfork_child(arena_t *arena);
