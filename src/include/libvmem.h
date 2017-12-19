@@ -42,7 +42,7 @@
 #define LIBVMEM_H 1
 
 #ifdef _WIN32
-#ifndef NVML_UTF8_API
+#ifndef PMDK_UTF8_API
 #define vmem_create vmem_createW
 #define vmem_check_version vmem_check_versionW
 #define vmem_errormsg vmem_errormsgW

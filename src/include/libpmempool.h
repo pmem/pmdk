@@ -42,7 +42,7 @@
 #ifdef _WIN32
 #include <pmemcompat.h>
 
-#ifndef NVML_UTF8_API
+#ifndef PMDK_UTF8_API
 #define pmempool_check_status pmempool_check_statusW
 #define pmempool_check_args pmempool_check_argsW
 
