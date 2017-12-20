@@ -7,6 +7,9 @@
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>

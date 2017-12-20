@@ -56,7 +56,8 @@
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		uint64_t run_id, void *base, struct pmem_ops *p_ops);
+		uint64_t run_id, void *base, struct pmem_ops *p_ops,
+		struct stats *stats);
 int heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops);
 void heap_cleanup(struct palloc_heap *heap);
 int heap_check(void *heap_start, uint64_t heap_size);

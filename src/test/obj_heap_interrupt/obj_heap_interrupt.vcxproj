@@ -37,6 +37,7 @@
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_heap_interrupt.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>

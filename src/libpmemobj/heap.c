@@ -1170,7 +1170,8 @@ error_bucket_create:
  */
 int
 heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		uint64_t run_id, void *base, struct pmem_ops *p_ops)
+		uint64_t run_id, void *base, struct pmem_ops *p_ops,
+		struct stats *stats)
 {
 	struct heap_rt *h = Malloc(sizeof(*h));
 	int err;
@@ -1207,6 +1208,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->rt = h;
 	heap->size = heap_size;
 	heap->base = base;
+	heap->stats = stats;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
 	for (unsigned i = 0; i < h->narenas; ++i)

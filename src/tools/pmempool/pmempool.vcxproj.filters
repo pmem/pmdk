@@ -65,6 +65,9 @@
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>libs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\stats.c">
+      <Filter>libs</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\bucket.c">
       <Filter>libs</Filter>
     </ClCompile>
