@@ -38,7 +38,7 @@
 #include "memcpy_avx.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memmove_mov8x64b(char *dest, const char *src)
 {
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
@@ -85,7 +85,7 @@ memmove_mov8x64b(char *dest, const char *src)
 	flush64b(dest + 7 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov4x64b(char *dest, const char *src)
 {
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
@@ -112,7 +112,7 @@ memmove_mov4x64b(char *dest, const char *src)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov2x64b(char *dest, const char *src)
 {
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
@@ -129,7 +129,7 @@ memmove_mov2x64b(char *dest, const char *src)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov1x64b(char *dest, const char *src)
 {
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
@@ -141,7 +141,7 @@ memmove_mov1x64b(char *dest, const char *src)
 	flush64b(dest + 0 * 64);
 }
 
-static void
+static force_inline void
 memmove_mov_avx_fw(char *dest, const char *src, size_t len)
 {
 	size_t cnt = (uint64_t)dest & 63;
@@ -191,7 +191,7 @@ memmove_mov_avx_fw(char *dest, const char *src, size_t len)
 		memmove_small_avx(dest, src, len);
 }
 
-static void
+static force_inline void
 memmove_mov_avx_bw(char *dest, const char *src, size_t len)
 {
 	dest += len;

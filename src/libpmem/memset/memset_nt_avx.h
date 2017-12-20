@@ -41,7 +41,7 @@
 #include "pmem.h"
 #include "valgrind_internal.h"
 
-static inline void
+static force_inline void
 memset_movnt8x64b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest + 0, ymm);
@@ -64,7 +64,7 @@ memset_movnt8x64b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 8 * 64);
 }
 
-static inline void
+static force_inline void
 memset_movnt4x64b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest + 0, ymm);
@@ -79,7 +79,7 @@ memset_movnt4x64b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
-static inline void
+static force_inline void
 memset_movnt2x64b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest + 0, ymm);
@@ -90,7 +90,7 @@ memset_movnt2x64b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
-static inline void
+static force_inline void
 memset_movnt1x64b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest + 0, ymm);
@@ -99,7 +99,7 @@ memset_movnt1x64b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 64);
 }
 
-static inline void
+static force_inline void
 memset_movnt1x32b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest, ymm);
@@ -107,7 +107,7 @@ memset_movnt1x32b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 32);
 }
 
-static inline void
+static force_inline void
 memset_movnt1x16b(char *dest, __m256i ymm)
 {
 	__m128i xmm0 = m256_get16b(ymm);
@@ -117,7 +117,7 @@ memset_movnt1x16b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest - 16, 16);
 }
 
-static inline void
+static force_inline void
 memset_movnt1x8b(char *dest, __m256i ymm)
 {
 	uint64_t x = m256_get8b(ymm);
@@ -127,7 +127,7 @@ memset_movnt1x8b(char *dest, __m256i ymm)
 	VALGRIND_DO_FLUSH(dest, 8);
 }
 
-static inline void
+static force_inline void
 memset_movnt1x4b(char *dest, __m256i ymm)
 {
 	uint32_t x = m256_get4b(ymm);

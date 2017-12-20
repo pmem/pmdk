@@ -37,7 +37,7 @@
 #include "memcpy_sse2.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memmove_mov4x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -80,7 +80,7 @@ memmove_mov4x64b(char *dest, const char *src)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov2x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -105,7 +105,7 @@ memmove_mov2x64b(char *dest, const char *src)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov1x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -121,7 +121,7 @@ memmove_mov1x64b(char *dest, const char *src)
 	flush64b(dest + 0 * 64);
 }
 
-static void
+static force_inline void
 memmove_mov_sse_fw(char *dest, const char *src, size_t len)
 {
 	size_t cnt = (uint64_t)dest & 63;
@@ -164,7 +164,7 @@ memmove_mov_sse_fw(char *dest, const char *src, size_t len)
 		memmove_small_sse2(dest, src, len);
 }
 
-static void
+static force_inline void
 memmove_mov_sse_bw(char *dest, const char *src, size_t len)
 {
 	dest += len;

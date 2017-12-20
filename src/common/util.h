@@ -122,6 +122,12 @@ void util_set_alloc_funcs(
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #endif
 
+#ifdef _MSC_VER
+#define force_inline inline
+#else
+#define force_inline __attribute__((always_inline)) inline
+#endif
+
 /*
  * util_setbit -- setbit macro substitution which properly deals with types
  */

@@ -35,7 +35,7 @@
 
 #include <immintrin.h>
 
-static inline void
+static force_inline void
 avx_zeroupper(void)
 {
 	/*
@@ -70,40 +70,40 @@ avx_zeroupper(void)
 	_mm256_zeroupper();
 }
 
-static inline __m128i
+static force_inline __m128i
 m256_get16b(__m256i ymm)
 {
 	return _mm256_extractf128_si256(ymm, 0);
 }
 
 #ifdef _MSC_VER
-static inline uint64_t
+static force_inline uint64_t
 m256_get8b(__m256i ymm)
 {
 	return (uint64_t)_mm_extract_epi64(m256_get16b(ymm), 0);
 }
-static inline uint32_t
+static force_inline uint32_t
 m256_get4b(__m256i ymm)
 {
 	return (uint32_t)m256_get8b(ymm);
 }
-static inline uint16_t
+static force_inline uint16_t
 m256_get2b(__m256i ymm)
 {
 	return (uint16_t)m256_get8b(ymm);
 }
 #else
-static inline uint64_t
+static force_inline uint64_t
 m256_get8b(__m256i ymm)
 {
 	return (uint64_t)_mm256_extract_epi64(ymm, 0);
 }
-static inline uint32_t
+static force_inline uint32_t
 m256_get4b(__m256i ymm)
 {
 	return (uint32_t)_mm256_extract_epi32(ymm, 0);
 }
-static inline uint16_t
+static force_inline uint16_t
 m256_get2b(__m256i ymm)
 {
 	return (uint16_t)_mm256_extract_epi16(ymm, 0);

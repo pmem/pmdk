@@ -42,7 +42,7 @@
 #include "libpmem.h"
 #include "out.h"
 
-static inline void
+static force_inline void
 memset_small_avx_noflush(char *dest, __m256i ymm, size_t len)
 {
 	ASSERT(len <= 64);
@@ -105,7 +105,7 @@ le2:
 	*(uint8_t *)dest = (uint8_t)m256_get2b(ymm);
 }
 
-static inline void
+static force_inline void
 memset_small_avx(char *dest, __m256i ymm, size_t len)
 {
 	memset_small_avx_noflush(dest, ymm, len);

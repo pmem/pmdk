@@ -38,7 +38,7 @@
 #include "pmem.h"
 #include "valgrind_internal.h"
 
-static inline void
+static force_inline void
 memmove_movnt4x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -78,7 +78,7 @@ memmove_movnt4x64b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_movnt2x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -102,7 +102,7 @@ memmove_movnt2x64b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_movnt1x64b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -118,7 +118,7 @@ memmove_movnt1x64b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 64);
 }
 
-static inline void
+static force_inline void
 memmove_movnt1x32b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
@@ -130,7 +130,7 @@ memmove_movnt1x32b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 32);
 }
 
-static inline void
+static force_inline void
 memmove_movnt1x16b(char *dest, const char *src)
 {
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src);
@@ -140,7 +140,7 @@ memmove_movnt1x16b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 16);
 }
 
-static inline void
+static force_inline void
 memmove_movnt1x8b(char *dest, const char *src)
 {
 	_mm_stream_si64((long long *)dest, *(long long *)src);
@@ -148,7 +148,7 @@ memmove_movnt1x8b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 8);
 }
 
-static inline void
+static force_inline void
 memmove_movnt1x4b(char *dest, const char *src)
 {
 	_mm_stream_si32((int *)dest, *(int *)src);
@@ -156,7 +156,7 @@ memmove_movnt1x4b(char *dest, const char *src)
 	VALGRIND_DO_FLUSH(dest, 4);
 }
 
-static void
+static force_inline void
 memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
 {
 	size_t cnt = (uint64_t)dest & 63;
@@ -218,7 +218,7 @@ nonnt:
 	memmove_small_sse2(dest, src, len);
 }
 
-static void
+static force_inline void
 memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
 {
 	dest += len;
