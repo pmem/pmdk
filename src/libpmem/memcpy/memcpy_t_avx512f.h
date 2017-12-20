@@ -38,7 +38,7 @@
 #include "memcpy_avx512f.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memmove_mov32x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -141,7 +141,7 @@ memmove_mov32x64b(char *dest, const char *src)
 	flush64b(dest + 31 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov16x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -196,7 +196,7 @@ memmove_mov16x64b(char *dest, const char *src)
 	flush64b(dest + 15 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov8x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -227,7 +227,7 @@ memmove_mov8x64b(char *dest, const char *src)
 	flush64b(dest + 7 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov4x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -246,7 +246,7 @@ memmove_mov4x64b(char *dest, const char *src)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov2x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -259,7 +259,7 @@ memmove_mov2x64b(char *dest, const char *src)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memmove_mov1x64b(char *dest, const char *src)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
@@ -269,7 +269,7 @@ memmove_mov1x64b(char *dest, const char *src)
 	flush64b(dest + 0 * 64);
 }
 
-static void
+static force_inline void
 memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
 {
 	size_t cnt = (uint64_t)dest & 63;
@@ -333,7 +333,7 @@ memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
 		memmove_small_avx512f(dest, src, len);
 }
 
-static void
+static force_inline void
 memmove_mov_avx512f_bw(char *dest, const char *src, size_t len)
 {
 	dest += len;

@@ -35,6 +35,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "util.h"
 
 typedef void (*persist_fn)(void *base, const void *, size_t);
 typedef void (*flush_fn)(void *base, const void *, size_t);
@@ -61,12 +62,6 @@ struct pmem_ops {
 		uintptr_t base;
 	} remote;
 };
-
-#ifdef _MSC_VER
-#define force_inline inline
-#else
-#define force_inline __attribute__((always_inline)) inline
-#endif
 
 static force_inline void
 pmemops_persist(const struct pmem_ops *p_ops, const void *d, size_t s)

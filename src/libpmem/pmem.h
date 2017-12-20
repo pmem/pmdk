@@ -42,6 +42,7 @@
 
 #include <emmintrin.h>
 #include <stdint.h>
+#include "util.h"
 
 #define PMEM_LOG_PREFIX "libpmem"
 #define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
@@ -156,7 +157,7 @@ extern PQVM Func_qvmi;
 #endif /* __aarch64__ */
 #endif /* _MSC_VER */
 
-static inline void
+static force_inline void
 noflush(const char *addr)
 {
 }
@@ -165,7 +166,7 @@ noflush(const char *addr)
 /*
  * flush_dcache_invalidate_nolog -- flush the CPU cache, using clflush
  */
-static inline void
+static force_inline void
 flush_dcache_invalidate_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
@@ -185,7 +186,7 @@ flush_dcache_invalidate_nolog(const void *addr, size_t len)
  * flush_clflushopt_nolog -- flush the CPU cache, using
  * arm_clean_and_invalidate_va_to_poc (see arm_cacheops.h) {DC CIVAC}
  */
-static inline void
+static force_inline void
 flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
@@ -201,7 +202,7 @@ flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 /*
  * flush_clflushopt_nolog -- flush the CPU cache, using clflushopt
  */
-static inline void
+static force_inline void
 flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
@@ -221,7 +222,7 @@ flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 /*
  * flush_dcache_nolog -- flush the CPU cache, using DC CVAC
  */
-static inline void
+static force_inline void
 flush_dcache_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
@@ -239,7 +240,7 @@ flush_dcache_nolog(const void *addr, size_t len)
 /*
  * flush_dcache_nolog -- flush the CPU cache, using clwb
  */
-static inline void
+static force_inline void
 flush_dcache_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
@@ -258,7 +259,7 @@ flush_dcache_nolog(const void *addr, size_t len)
 /*
  * flush_empty_nolog -- (internal) do not flush the CPU cache
  */
-static inline void
+static force_inline void
 flush_empty_nolog(const void *addr, size_t len)
 {
 	/* NOP */

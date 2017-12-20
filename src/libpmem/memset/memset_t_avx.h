@@ -38,7 +38,7 @@
 #include "memset_avx.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memset_mov8x64b(char *dest, __m256i ymm)
 {
 	_mm256_store_si256((__m256i *)dest + 0, ymm);
@@ -68,7 +68,7 @@ memset_mov8x64b(char *dest, __m256i ymm)
 	flush64b(dest + 7 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov4x64b(char *dest, __m256i ymm)
 {
 	_mm256_store_si256((__m256i *)dest + 0, ymm);
@@ -86,7 +86,7 @@ memset_mov4x64b(char *dest, __m256i ymm)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov2x64b(char *dest, __m256i ymm)
 {
 	_mm256_store_si256((__m256i *)dest + 0, ymm);
@@ -98,7 +98,7 @@ memset_mov2x64b(char *dest, __m256i ymm)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov1x64b(char *dest, __m256i ymm)
 {
 	_mm256_store_si256((__m256i *)dest + 0, ymm);
