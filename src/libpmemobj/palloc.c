@@ -231,22 +231,6 @@ out:
 }
 
 /*
- * palloc_reservation_finalize -- cleanups the state associated with the
- *	reservation.
- */
-static void
-palloc_reservation_finalize(struct palloc_heap *heap,
-	const struct pobj_action_internal *in, int canceled)
-{
-	/* the reservation was either fulfilled or canceled */
-	if (in->resvp)
-		util_fetch_and_sub64(in->resvp, 1);
-
-	if (canceled)
-		in->m.m_ops->invalidate_header(&in->m);
-}
-
-/*
  * palloc_exec_heap_action -- executes a single heap action (alloc, free)
  */
 static void
@@ -255,13 +239,7 @@ palloc_exec_heap_action(struct palloc_heap *heap,
 	struct operation_context *ctx)
 {
 #ifdef DEBUG
-	/*
-	 * The memory block inside of the action might be coalesced, so
-	 * it can't be used to verify the state (as it might already be
-	 * free).
-	 */
-	struct memory_block m = memblock_from_offset(heap, act->offset);
-	if (m.m_ops->get_state(&m) == act->new_state) {
+	if (act->m.m_ops->get_state(&act->m) == act->new_state) {
 		ERR("invalid operation or heap corruption");
 		ASSERT(0);
 	}
@@ -285,22 +263,36 @@ palloc_exec_heap_action(struct palloc_heap *heap,
  */
 static void
 palloc_finalize_heap_action(struct palloc_heap *heap,
-	const struct pobj_action_internal *act, int canceled)
+	struct pobj_action_internal *act, int canceled)
 {
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
-		STATS_INC(heap->stats, persistent, heap_curr_allocated,
+		if (act->resvp)
+			util_fetch_and_sub64(act->resvp, 1);
+
+		if (canceled) {
+			act->m.m_ops->invalidate_header(&act->m);
+		} else {
+			STATS_INC(heap->stats, persistent, heap_curr_allocated,
+				act->m.m_ops->get_real_size(&act->m));
+		}
+	} else if (act->new_state == MEMBLOCK_FREE && !canceled) {
+		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
 
-		palloc_reservation_finalize(heap, act, canceled);
-	} else if (!canceled && act->new_state == MEMBLOCK_FREE) {
-		if (heap->stats->enabled) {
-			struct memory_block m =
-				memblock_from_offset(heap, act->offset);
-			STATS_SUB(heap->stats, persistent, heap_curr_allocated,
-				m.m_ops->get_real_size(&m));
-		}
-
 		heap_memblock_on_free(heap, &act->m);
+	}
+
+	if ((act->new_state == MEMBLOCK_FREE && !canceled) ||
+	    (act->new_state == MEMBLOCK_ALLOCATED && canceled)) {
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+			(char *)act->m.m_ops->get_user_data(&act->m));
+
+		if (act->m.type == MEMORY_BLOCK_HUGE) {
+			struct bucket *b = heap_bucket_acquire_by_id(heap,
+				DEFAULT_ALLOC_CLASS_ID);
+			heap_free_chunk_reuse(heap, b, &act->m);
+			heap_bucket_release(heap, b);
+		}
 	}
 }
 
@@ -320,7 +312,7 @@ palloc_exec_mem_action(struct palloc_heap *heap,
  */
 static void
 palloc_finalize_mem_action(struct palloc_heap *heap,
-	const struct pobj_action_internal *act, int canceled)
+	struct pobj_action_internal *act, int canceled)
 {
 
 }
@@ -330,7 +322,7 @@ static struct {
 		const struct pobj_action_internal *act,
 		struct operation_context *ctx);
 	void (*finalize)(struct palloc_heap *heap,
-		const struct pobj_action_internal *act, int canceled);
+		struct pobj_action_internal *act, int canceled);
 } action_funcs[POBJ_MAX_ACTION_TYPE] = {
 	[POBJ_ACTION_TYPE_HEAP] = {
 		.exec = palloc_exec_heap_action,
@@ -503,7 +495,6 @@ palloc_operation(struct palloc_heap *heap,
 	struct pobj_action_internal dealloc =
 		OBJ_HEAP_ACTION_INITIALIZER(off, MEMBLOCK_FREE);
 
-	struct bucket *b = NULL;
 	size_t user_size = 0;
 
 	int nops = 0;
@@ -547,17 +538,6 @@ palloc_operation(struct palloc_heap *heap,
 				to_cpy);
 		}
 
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
-			(char *)dealloc.m.m_ops
-				->get_user_data(&dealloc.m));
-
-		if (dealloc.m.type == MEMORY_BLOCK_HUGE) {
-			b = heap_bucket_acquire_by_id(heap,
-				DEFAULT_ALLOC_CLASS_ID);
-
-			dealloc.m = heap_coalesce_huge(heap,
-				b, &dealloc.m);
-		}
 		dealloc.lock = dealloc.m.m_ops->get_lock(&dealloc.m);
 
 		ops[nops++] = dealloc;
@@ -575,12 +555,6 @@ palloc_operation(struct palloc_heap *heap,
 		operation_add_entry(ctx, dest_off, alloc.offset, OPERATION_SET);
 
 	palloc_exec_actions(heap, ctx, ops, nops);
-
-	if (dealloc.m.type == MEMORY_BLOCK_HUGE) {
-		ASSERTne(b, NULL);
-		bucket_insert_block(b, &dealloc.m);
-		heap_bucket_release(heap, b);
-	}
 
 	return 0;
 }
