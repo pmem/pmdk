@@ -67,6 +67,7 @@ EXPORTS
 	pmem_persist
 	pmem_msync
 	pmem_flush
+	pmem_deep_flush
 	pmem_drain
 	pmem_has_hw_drain
 	pmem_memmove_persist
