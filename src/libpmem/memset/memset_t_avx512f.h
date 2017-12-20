@@ -38,7 +38,7 @@
 #include "memset_avx512f.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memset_mov32x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
@@ -108,7 +108,7 @@ memset_mov32x64b(char *dest, __m512i zmm)
 	flush64b(dest + 31 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov16x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
@@ -146,7 +146,7 @@ memset_mov16x64b(char *dest, __m512i zmm)
 	flush64b(dest + 15 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov8x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
@@ -168,7 +168,7 @@ memset_mov8x64b(char *dest, __m512i zmm)
 	flush64b(dest + 7 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov4x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
@@ -182,7 +182,7 @@ memset_mov4x64b(char *dest, __m512i zmm)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov2x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
@@ -192,7 +192,7 @@ memset_mov2x64b(char *dest, __m512i zmm)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov1x64b(char *dest, __m512i zmm)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);

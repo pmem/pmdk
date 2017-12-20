@@ -37,7 +37,7 @@
 #include "memset_sse2.h"
 #include "pmem.h"
 
-static inline void
+static force_inline void
 memset_mov4x64b(char *dest, __m128i xmm)
 {
 	_mm_store_si128((__m128i *)dest + 0, xmm);
@@ -63,7 +63,7 @@ memset_mov4x64b(char *dest, __m128i xmm)
 	flush64b(dest + 3 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov2x64b(char *dest, __m128i xmm)
 {
 	_mm_store_si128((__m128i *)dest + 0, xmm);
@@ -79,7 +79,7 @@ memset_mov2x64b(char *dest, __m128i xmm)
 	flush64b(dest + 1 * 64);
 }
 
-static inline void
+static force_inline void
 memset_mov1x64b(char *dest, __m128i xmm)
 {
 	_mm_store_si128((__m128i *)dest + 0, xmm);
