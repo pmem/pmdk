@@ -82,7 +82,7 @@ check_gcc_variadic_template_bug = $(shell echo "void print() {} template<typenam
 check_cxx_flags = $(shell echo "int main(){return 0;}" |\
 	$(CXX) $(1) -x c++ -o /dev/null - 2>/dev/null && echo y || echo n)
 
-CXX_TESTS=$(check_clang_template_bug)$(check_gcc_variadic_template_bug)
+CXX_TESTS=$(check_gcc_variadic_template_bug)
 
 cxx_ok=$(if $(findstring n,$(CXX_TESTS)),n,y)
 
