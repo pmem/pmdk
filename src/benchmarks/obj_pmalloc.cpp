@@ -46,6 +46,7 @@
 #include "benchmark.hpp"
 #include "libpmemobj.h"
 #include "os.h"
+#include "valgrind_internal.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
