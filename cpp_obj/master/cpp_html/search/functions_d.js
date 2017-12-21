@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['timed_5fmutex',['timed_mutex',['../classnvml_1_1obj_1_1timed__mutex.html#a7a3fff5226745f47e64e77d5122d9595',1,'nvml::obj::timed_mutex::timed_mutex()'],['../classnvml_1_1obj_1_1timed__mutex.html#ab7bf974caa19bddcaaf83aa682ae47bc',1,'nvml::obj::timed_mutex::timed_mutex(const timed_mutex &amp;)=delete']]],
-  ['timedlock_5fimpl',['timedlock_impl',['../classnvml_1_1obj_1_1timed__mutex.html#ae1e2cd29138ff443e831c7dfc99d6485',1,'nvml::obj::timed_mutex']]],
-  ['timepoint_5fto_5ftimespec',['timepoint_to_timespec',['../conversions_8hpp.html#aa189ed6a09dc2a8b539599c59729b2cf',1,'nvml::detail']]],
-  ['try_5flock',['try_lock',['../classnvml_1_1obj_1_1mutex.html#af9b67e5aa997e1bd78966b1bda536ddc',1,'nvml::obj::mutex::try_lock()'],['../classnvml_1_1obj_1_1shared__mutex.html#a58c0ff8220185a381c61f8955bdb688c',1,'nvml::obj::shared_mutex::try_lock()'],['../classnvml_1_1obj_1_1timed__mutex.html#a56cda52cea035f3868549d14ef0da276',1,'nvml::obj::timed_mutex::try_lock()']]],
-  ['try_5flock_5ffor',['try_lock_for',['../classnvml_1_1obj_1_1timed__mutex.html#a68d4f623bf0f4ab6052972bf2d315563',1,'nvml::obj::timed_mutex']]],
-  ['try_5flock_5fshared',['try_lock_shared',['../classnvml_1_1obj_1_1shared__mutex.html#a9a52629ecfc893dc24d8f7754b54ba63',1,'nvml::obj::shared_mutex']]],
-  ['try_5flock_5funtil',['try_lock_until',['../classnvml_1_1obj_1_1timed__mutex.html#a40639d1926cb858425838832ebd2d364',1,'nvml::obj::timed_mutex']]]
+  ['timed_5fmutex',['timed_mutex',['../classpmem_1_1obj_1_1timed__mutex.html#a432952ca0affc6baab420fceda7c37b4',1,'pmem::obj::timed_mutex::timed_mutex()'],['../classpmem_1_1obj_1_1timed__mutex.html#a72c61d0dd7d100d7d494da1111f502cc',1,'pmem::obj::timed_mutex::timed_mutex(const timed_mutex &amp;)=delete']]],
+  ['timedlock_5fimpl',['timedlock_impl',['../classpmem_1_1obj_1_1timed__mutex.html#ad3661edbe31f8f2d1b536f8182f2b879',1,'pmem::obj::timed_mutex']]],
+  ['timepoint_5fto_5ftimespec',['timepoint_to_timespec',['../conversions_8hpp.html#af01e97a9018816a35f80bd32f50b66a8',1,'pmem::detail']]],
+  ['try_5flock',['try_lock',['../classpmem_1_1obj_1_1mutex.html#ac5200a1d71568e37cf177142c2de6578',1,'pmem::obj::mutex::try_lock()'],['../classpmem_1_1obj_1_1shared__mutex.html#af144d333c724830c62d8a337021a5e48',1,'pmem::obj::shared_mutex::try_lock()'],['../classpmem_1_1obj_1_1timed__mutex.html#ac4e729766548fb54c3597a0532b42a5a',1,'pmem::obj::timed_mutex::try_lock()']]],
+  ['try_5flock_5ffor',['try_lock_for',['../classpmem_1_1obj_1_1timed__mutex.html#addfc0dcd69f92ecbc76239ef6fefe5ee',1,'pmem::obj::timed_mutex']]],
+  ['try_5flock_5fshared',['try_lock_shared',['../classpmem_1_1obj_1_1shared__mutex.html#af161f61d3c651d5242ea998ea0a6b4f9',1,'pmem::obj::shared_mutex']]],
+  ['try_5flock_5funtil',['try_lock_until',['../classpmem_1_1obj_1_1timed__mutex.html#a3f6bf8bc19debd3e569cc921e0653149',1,'pmem::obj::timed_mutex']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['bool_5ftype',['bool_type',['../classnvml_1_1obj_1_1persistent__ptr.html#a15aa8b9e19412f354d28d79e504fbb9c',1,'nvml::obj::persistent_ptr']]]
+  ['bool_5ftype',['bool_type',['../classpmem_1_1obj_1_1persistent__ptr.html#a3e85a0b982f88b0eeb217cf3c0ad3e35',1,'pmem::obj::persistent_ptr']]]
 ];

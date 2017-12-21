@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['persistency_5ftype',['persistency_type',['../classnvml_1_1obj_1_1persistent__ptr.html#a6e8e2c9ca905cd7835cf7c41835b22ac',1,'nvml::obj::persistent_ptr']]],
-  ['pointer',['pointer',['../classnvml_1_1obj_1_1persistent__ptr.html#af7fd5ddf0473aed02164630d69fcf384',1,'nvml::obj::persistent_ptr']]]
+  ['persistency_5ftype',['persistency_type',['../classpmem_1_1obj_1_1persistent__ptr.html#a49b743ee332a992f938b2e086e9f182d',1,'pmem::obj::persistent_ptr']]],
+  ['pointer',['pointer',['../classpmem_1_1obj_1_1persistent__ptr.html#ad8000c13e9a76ddaae15a8df5344a5ba',1,'pmem::obj::persistent_ptr']]]
 ];
