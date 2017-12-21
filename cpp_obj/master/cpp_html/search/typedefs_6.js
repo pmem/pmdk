@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['rebind',['rebind',['../classnvml_1_1obj_1_1persistent__ptr.html#a5370aac0b9e5cf7f12b2cfd42552f982',1,'nvml::obj::persistent_ptr']]],
-  ['reference',['reference',['../classnvml_1_1obj_1_1persistent__ptr.html#a2d54166bff63db92c39b6de3c6049559',1,'nvml::obj::persistent_ptr']]]
+  ['rebind',['rebind',['../classpmem_1_1obj_1_1persistent__ptr.html#a5a5f287d06995fe517000650ee35a2a8',1,'pmem::obj::persistent_ptr']]],
+  ['reference',['reference',['../classpmem_1_1obj_1_1persistent__ptr.html#a7015e71f65550faab67a820744f6bfa1',1,'pmem::obj::persistent_ptr']]]
 ];

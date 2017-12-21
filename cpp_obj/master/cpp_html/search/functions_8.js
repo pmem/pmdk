@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['native_5fhandle',['native_handle',['../classnvml_1_1obj_1_1condition__variable.html#ad6698ded725d5c6d7679cb90c044cb5e',1,'nvml::obj::condition_variable::native_handle()'],['../classnvml_1_1obj_1_1mutex.html#a9666d367d0f6b45eccd6f39ed5335cb5',1,'nvml::obj::mutex::native_handle()'],['../classnvml_1_1obj_1_1shared__mutex.html#af42eb0a9df1736871f16ed2673c55e88',1,'nvml::obj::shared_mutex::native_handle()'],['../classnvml_1_1obj_1_1timed__mutex.html#a8d30e171c8255f991ae14e982495024c',1,'nvml::obj::timed_mutex::native_handle()']]],
-  ['new_5funcaught_5fexception',['new_uncaught_exception',['../classnvml_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html#af4cd86eeca32d2378535b532a9e577de',1,'nvml::obj::transaction::automatic::uncaught_exception_counter']]],
-  ['notify_5fall',['notify_all',['../classnvml_1_1obj_1_1condition__variable.html#a481be88eca326883708c6bc6c6a9913f',1,'nvml::obj::condition_variable']]],
-  ['notify_5fone',['notify_one',['../classnvml_1_1obj_1_1condition__variable.html#a7912d44d373407e4e4b5cc6787ec4175',1,'nvml::obj::condition_variable']]]
+  ['native_5fhandle',['native_handle',['../classpmem_1_1obj_1_1condition__variable.html#a50a0e13cb4b1601f1416cca92ac59e4c',1,'pmem::obj::condition_variable::native_handle()'],['../classpmem_1_1obj_1_1mutex.html#a0128dcaaf043e6a2ce86e503678c9447',1,'pmem::obj::mutex::native_handle()'],['../classpmem_1_1obj_1_1shared__mutex.html#a1f59afab85e7ab4aca1f01c45ff87b29',1,'pmem::obj::shared_mutex::native_handle()'],['../classpmem_1_1obj_1_1timed__mutex.html#a1b511d4db388a6d3d069fc93bd4e982b',1,'pmem::obj::timed_mutex::native_handle()']]],
+  ['new_5funcaught_5fexception',['new_uncaught_exception',['../classpmem_1_1obj_1_1transaction_1_1automatic_1_1uncaught__exception__counter.html#a1cb13bc80535d1a776c0a2b32dce1e95',1,'pmem::obj::transaction::automatic::uncaught_exception_counter']]],
+  ['notify_5fall',['notify_all',['../classpmem_1_1obj_1_1condition__variable.html#a7fe698f5498498eaf15251c0bb877405',1,'pmem::obj::condition_variable']]],
+  ['notify_5fone',['notify_one',['../classpmem_1_1obj_1_1condition__variable.html#ae8bb6885b36cd6b24961e33c5a184db9',1,'pmem::obj::condition_variable']]]
 ];
