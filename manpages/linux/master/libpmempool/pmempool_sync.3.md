@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL_SYNC
 collection: libpmempool
-header: NVM Library
+header: PMDK
 date: pmempool API version 1.1
 ...
 
@@ -46,7 +46,7 @@ date: pmempool API version 1.1
 
 # NAME #
 
-**pmempool_sync**(), **pmempool_transform**() -- pool file or pool set synchronization and transformation
+**pmempool_sync**(), **pmempool_transform**() -- pool set synchronization and transformation
 
 
 # SYNOPSIS #
@@ -54,10 +54,10 @@ date: pmempool API version 1.1
 ```c
 #include <libpmempool.h>
 
-int pmempool_sync(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transform(const char *poolset_file_src,
-	const char *poolset_file_dst,
+int pmempool_sync(const char *poolset_file, 
 	unsigned flags); (EXPERIMENTAL)
+int pmempool_transform(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
 ```
 
 
@@ -72,8 +72,8 @@ a pool set.
 
 * *poolset_file* - a path to a pool set file,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 >NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
@@ -83,61 +83,73 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-**pmempool_sync**() function checks if metadata of all replicas in a pool set
-are consistent, i.e. all parts are healthy, and if any of them is not,
-the corrupted or missing parts are recreated and filled with data from one of
-the healthy replicas.
+**pmempool_sync**() checks that the metadata of all replicas in
+a pool set is consistent, i.e. all parts are healthy, and if any of them is
+not, the corrupted or missing parts are recreated and filled with data from
+one of the healthy replicas.
 
-The **pmempool_transform**() function modifies internal structure of a pool set.
+If a pool set has the option *NOHDRS* (see **poolset**(5)), the internal
+metadata of each replica is limited to the beginning of the first part in the
+replica. In that case, only missing parts or the ones which cannot be opened
+are recreated with the **pmempool_sync**() function.
+
+**pmempool_transform**() modifies the internal structure of a pool set.
 It supports the following operations:
 
 * adding one or more replicas,
 
-* removing one or more replicas,
+* removing one or more replicas_WINUX(.,,
 
-* reordering of replicas.
+* adding or removing pool set options.)
 
+Only one of the above operations can be performed at a time.
 
 **pmempool_transform**() accepts three arguments:
 
-* *poolset_file_src* - a path to a pool set file which defines the source
+* *poolset_file_src* - pathname of the pool *set* file for the source
 pool set to be changed,
 
-* *poolset_file_dst* - a path to a pool set file which defines the target
+* *poolset_file_dst* - pathname of the pool *set* file that defines the new
 structure of the pool set,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
+
+
 
 When adding or deleting replicas, the two pool set files can differ only in the
-definitions of replicas which are to be added or deleted. One cannot add and
-remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
-Also, to add a replica it is necessary for its effective size to match or exceed
-the pool size. Otherwise the whole operation fails and no changes are applied.
-Effective size of a replica is the sum of sizes of all its part files decreased
-by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+definitions of replicas which are to be added or deleted. When adding or
+removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
+files have to be of the same structure. The operation of adding/removing the
+*NOHDRS* option can be performed on a poolset with local replicas only. To
+add/remove the *NOHDRS* option to/from a poolset with remote replicas, one has
+to remove the remote replicas first, then add/remove the option, and finally
+recreate the remote replicas having added/removed the *NOHDRS* option to/from
+the remote replicas' poolset files.
+To add a replica it is necessary for its effective size to match or exceed the
+pool size. Otherwise the whole operation fails and no changes are applied.
+If the option *NOHDRS* is not used, the effective size of a replica is the sum
+of sizes of all its part files decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal metadata of
+the pool part files.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files decreased once by 4096 bytes. In this case only
+the first part contains internal metadata.
 
 
 # RETURN VALUE #
 
-The **pmempool_sync**() function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
-
-The **pmempool_transform**() function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
+**pmempool_sync**() and **pmempool_transform**() return 0 on success.
+Otherwise, they return -1 and set *errno* appropriately.
 
 
 # NOTES #
 
-Currently, the following operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(7)).
 
 The **pmempool_sync**() API is experimental and it may change in future
 versions of the library.

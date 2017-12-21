@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL_SYNC
 collection: libpmempool
-header: NVM Library
+header: PMDK
 date: pmempool API version 1.1
 ...
 
@@ -46,7 +46,7 @@ date: pmempool API version 1.1
 
 # NAME #
 
-**pmempool_syncU**()/**pmempool_syncW**(), **pmempool_transformU**()/**pmempool_transformW**() -- pool file or pool set synchronization and transformation
+**pmempool_syncU**()/**pmempool_syncW**(), **pmempool_transformU**()/**pmempool_transformW**() -- pool set synchronization and transformation
 
 
 # SYNOPSIS #
@@ -54,17 +54,20 @@ date: pmempool API version 1.1
 ```c
 #include <libpmempool.h>
 
-int pmempool_syncU(const char *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags); (EXPERIMENTAL)
-int pmempool_transformU(const char *poolset_file_src, (EXPERIMENTAL)
-	const char *poolset_file_dst, unsigned flags);
-int pmempool_transformW(const wchar_t *poolset_file_src, (EXPERIMENTAL)
-	const wchar_t *poolset_file_dst, unsigned flags);
+int pmempool_syncU(const char *poolset_file, 
+	unsigned flags); (EXPERIMENTAL)
+int pmempool_syncW(const wchar_t *poolset_file, 
+	unsigned flags); (EXPERIMENTAL)
+int pmempool_transformU(const char *poolset_file_src,
+	const char *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
+int pmempool_transformW(const wchar_t *poolset_file_src,
+	const wchar_t *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
 ```
 
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
+
+>NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
+defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
+Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 
 # DESCRIPTION #
@@ -76,8 +79,8 @@ a pool set.
 
 * *poolset_file* - a path to a pool set file,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 >NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
@@ -87,61 +90,61 @@ The following flags are available:
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
-**pmempool_syncU**()/**pmempool_syncW**() function checks if metadata of all replicas in a pool set
-are consistent, i.e. all parts are healthy, and if any of them is not,
-the corrupted or missing parts are recreated and filled with data from one of
-the healthy replicas.
+**pmempool_syncU**()/**pmempool_syncW**() checks that the metadata of all replicas in
+a pool set is consistent, i.e. all parts are healthy, and if any of them is
+not, the corrupted or missing parts are recreated and filled with data from
+one of the healthy replicas.
 
-The **pmempool_transformU**()/**pmempool_transformW**() function modifies internal structure of a pool set.
+
+
+**pmempool_transformU**()/**pmempool_transformW**() modifies the internal structure of a pool set.
 It supports the following operations:
 
 * adding one or more replicas,
 
-* removing one or more replicas,
+* removing one or more replicas_WINUX(.,,
 
-* reordering of replicas.
+* adding or removing pool set options.)
 
+Only one of the above operations can be performed at a time.
 
 **pmempool_transformU**()/**pmempool_transformW**() accepts three arguments:
 
-* *poolset_file_src* - a path to a pool set file which defines the source
+* *poolset_file_src* - pathname of the pool *set* file for the source
 pool set to be changed,
 
-* *poolset_file_dst* - a path to a pool set file which defines the target
+* *poolset_file_dst* - pathname of the pool *set* file that defines the new
 structure of the pool set,
 
-* *flags* - a combination of flags (ORed) which modify the way of
-synchronization.
+* *flags* - a combination of flags (ORed) which modify how synchronization
+is performed.
 
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+transformation.
 
 When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and
 remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
-Also, to add a replica it is necessary for its effective size to match or exceed
-the pool size. Otherwise the whole operation fails and no changes are applied.
-Effective size of a replica is the sum of sizes of all its part files decreased
-by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+at a time. Reordering replicas is not supported.
+Also, to add a replica it is necessary for its effective size to match or
+exceed the pool size. Otherwise the whole operation fails and no changes are
+applied. The effective size of a replica is the sum of sizes of all its part
+files decreased by 4096 bytes per each part file. The 4096 bytes of each part
+file is utilized for storing internal metadata of the pool part files.
+
+
 
 
 # RETURN VALUE #
 
-The **pmempool_syncU**()/**pmempool_syncW**() function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
-
-The **pmempool_transformU**()/**pmempool_transformW**() function returns either 0 on success or -1 in case of error
-with proper *errno* set accordingly.
+**pmempool_syncU**()/**pmempool_syncW**() and **pmempool_transformU**()/**pmempool_transformW**() return 0 on success.
+Otherwise, they return -1 and set *errno* appropriately.
 
 
 # NOTES #
 
-Currently, the following operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(7)).
 
 The **pmempool_syncU**()/**pmempool_syncW**() API is experimental and it may change in future
 versions of the library.

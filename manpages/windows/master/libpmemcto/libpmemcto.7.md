@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: LIBPMEMCTO
 collection: libpmemcto
-header: NVM Library
+header: PMDK
 date: libpmemcto API version 1.0
 ...
 
@@ -64,7 +64,7 @@ cc ... -lpmemcto -lpmem
 ```
 
 
->NOTE: The NVML API supports UNICODE. If the **NVML_UTF8_API** macro is
+>NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
 
@@ -251,9 +251,9 @@ the error message describing the failure may be retrieved with
 **pmemcto_errormsgU**()/**pmemcto_errormsgW**() as described above.
 
 A second version of **libpmemcto**, accessed when a program uses the libraries
-under **/nvml/src/x64/Debug**, contains run-time assertions and trace points. The
+under **/pmdk/src/x64/Debug**, contains run-time assertions and trace points. The
 typical way to access the debug version is to set the  **LD_LIBRARY_PATH**
-environment variable to **/nvml/src/x64/Debug**. Debugging output is
+environment variable to **/pmdk/src/x64/Debug**. Debugging output is
 controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
@@ -358,7 +358,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmemcto> for more examples using the
+See <http://pmem.io/pmdk/libpmemcto> for more examples using the
 **libpmemcto** API.
 
 
@@ -377,8 +377,8 @@ to and never attempts to grow or shrink that memory pool.
 
 # AVAILABILITY #
 
-**libpmemcto** is part of the NVM Library since version 1.4 and is available
-from <https://github.com/pmem/nvml>
+**libpmemcto** is part of the PMDK since version 1.4 and is available
+from <https://github.com/pmem/pmdk>
 
 
 # ACKNOWLEDGEMENTS #

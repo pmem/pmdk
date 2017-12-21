@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: POBJ_LAYOUT_BEGIN
 collection: libpmemobj
-header: NVM Library
+header: PMDK
 date: pmemobj API version 2.2
 ...
 
@@ -67,13 +67,14 @@ POBJ_LAYOUT_TYPES_NUM(layout)
 
 # DESCRIPTION #
 
-The **libpmemobj** defines a set of macros for convenient declaration of pool's layout.
-The declaration of layout consist of declaration of number of used types.
-The declared types will be assigned consecutive type numbers. Declared types may be used
-in conjunction with type safety macros (look at **TOID_DECLARE**(3)).
-Once created the layout declaration shall not be changed unless the new types are added
-at the end of the existing layout declaration. Modifying any of existing declaration may lead
-to changes in type numbers of declared types which in consequence may cause data corruption.
+**libpmemobj**(7) defines a set of macros for convenient declaration of a
+pool's layout. The layout declaration consists of declarations of a number of
+used types. The declared types will be assigned consecutive type numbers.
+Declared types may be used in conjunction with type safety macros (see
+**TOID_DECLARE**(3)). Once created, the layout declaration must not be changed
+unless any new types are added at the end of the existing layout declaration.
+Modifying any existing declaration may lead to changes in the type numbers of
+declared types, which in consequence may cause data corruption.
 
 The **POBJ_LAYOUT_BEGIN**() macro indicates a begin of declaration of layout.
 The *LAYOUT* argument is a name of layout. This argument must be passed to all macros

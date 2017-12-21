@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: LIBPMEMCTO
 collection: libpmemcto
-header: NVM Library
+header: PMDK
 date: libpmemcto API version 1.0
 ...
 
@@ -244,9 +244,9 @@ the error message describing the failure may be retrieved with
 **pmemcto_errormsg**() as described above.
 
 A second version of **libpmemcto**, accessed when a program uses the libraries
-under **/usr/lib/nvml_debug**, contains run-time assertions and trace points. The
+under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points. The
 typical way to access the debug version is to set the  **LD_LIBRARY_PATH**
-environment variable to **/usr/lib/nvml_debug** or **/usr/lib64/nvml_debug**, as appropriate. Debugging output is
+environment variable to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**, as appropriate. Debugging output is
 controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
@@ -351,7 +351,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmemcto> for more examples using the
+See <http://pmem.io/pmdk/libpmemcto> for more examples using the
 **libpmemcto** API.
 
 
@@ -370,8 +370,8 @@ to and never attempts to grow or shrink that memory pool.
 
 # AVAILABILITY #
 
-**libpmemcto** is part of the NVM Library since version 1.4 and is available
-from <https://github.com/pmem/nvml>
+**libpmemcto** is part of the PMDK since version 1.4 and is available
+from <https://github.com/pmem/pmdk>
 
 
 # ACKNOWLEDGEMENTS #

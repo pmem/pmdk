@@ -215,9 +215,9 @@ Two versions of **libvmmalloc** are typically available on a development
 system. The normal version is optimized for performance. That version skips
 checks that impact performance and never logs any trace information or
 performs any run-time assertions. A second version, accessed when using
-libraries from **/usr/lib/pmdk_debug**, contains run-time assertions and trace
+libraries from **/pmdk/src/x64/Debug**, contains run-time assertions and trace
 points. The typical way to access the debug version is to set the
-**LD_LIBRARY_PATH** environment variable to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**, as appropriate. Debugging output is
+**LD_LIBRARY_PATH** environment variable to **/pmdk/src/x64/Debug**. Debugging output is
 controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 

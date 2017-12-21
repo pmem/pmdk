@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-SYNC
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 
@@ -65,6 +65,12 @@ the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 Currently synchronizing data is allowed only for **pmemobj** pools (see
 **libpmemobj**(7)).
+
+If a pool set has the option *NOHDRS* (see **poolset**(5)), **pmempool sync**
+command has limited capability of checking its metadata. This is due to limited
+internal metadata at the beginning of each but the first part in every replica
+when the option is used. In that case, only missing parts or the ones
+which cannot be opened are recreated.
 
 ##### Available options: #####
 

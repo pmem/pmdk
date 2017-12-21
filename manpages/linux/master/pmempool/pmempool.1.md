@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 
@@ -58,7 +58,7 @@ $ pmempool [--help] [--version] <command> [<args>]
 # DESCRIPTION #
 
 The **pmempool** is a management tool for *Persistent Memory* pool files
-created by **NVML** libraries.
+created by **PMDK** libraries.
 
 The main purpose of **pmempool** is to provide a user with a set of utilities
 for off-line analysis and manipulation of pools created by pmem libraries.
@@ -67,7 +67,7 @@ purposes. Some of subcommands are required to work *without* any impact
 on processed pool, but some of them *may* create a new or modify an existing one.
 
 The **pmempool** may be useful for troubleshooting by system administrators
-and for software developers who work on applications based on **NVM** Library.
+and for software developers who work on applications based on **PMDK**.
 The latter may find these tools useful for testing and debugging purposes also.
 
 

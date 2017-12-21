@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: LIBPMEM
 collection: libpmem
-header: NVM Library
+header: PMDK
 date: pmem API version 1.0
 ...
 
@@ -39,9 +39,10 @@ date: pmem API version 1.0
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
+[ENVIRONMENT](#environment)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
-[ENVIRONMENT VARIABLES](#environment-variables)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -59,9 +60,10 @@ date: pmem API version 1.0
 cc ... -lpmem
 ```
 
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
+
+>NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
+defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
+Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 ##### Library API versioning: #####
 
@@ -83,10 +85,14 @@ const wchar_t *pmem_errormsgW(void);
 
 ##### Other library functions: #####
 
-A description of other **libpmem** functions can be found on different manual pages:
-* most commonly used functions: **pmem_is_pmem**(3)
-* partial flushing operations: **pmem_flush**(3)
-* copying to persistent memory: **pmem_memmove_persist**(3)
+A description of other **libpmem** functions can be found on the following
+manual pages:
+
++ most commonly used functions: **pmem_is_pmem**(3)
+
++ partial flushing operations: **pmem_flush**(3)
+
++ copying to persistent memory: **pmem_memmove_persist**(3)
 
 
 # DESCRIPTION #
@@ -123,7 +129,7 @@ as described under **DEBUGGING AND ERROR HANDLING** below.
 
 **libpmem** relies on the library destructor being called from the main thread.
 For this reason, all functions that might trigger destruction (e.g.
-**dlclose**()) should be called in the main thread. Otherwise some of the
+**dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
 
@@ -132,7 +138,7 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
-The **pmem_check_versionU**()/**pmem_check_versionW**() function is used to see if the installed
+The **pmem_check_versionU**()/**pmem_check_versionW**() function is used to determine whether the installed
 **libpmem** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
 the compile-time version information, supplied by defines in
@@ -165,63 +171,7 @@ string returned by **pmem_check_versionU**()/**pmem_check_versionW**() must not 
 freed.
 
 
-# DEBUGGING AND ERROR HANDLING #
-
-Two versions of **libpmem** are typically available on a development
-system. The normal version, accessed when a program is linked using the
-**-lpmem** option, is optimized for performance. That version skips
-checks that impact performance and never logs any trace information or
-performs any run-time assertions. If an error is detected during the
-call to **libpmem** function, an application may retrieve an error
-message describing the reason of failure using the **pmem_errormsgU**()/**pmem_errormsgW**() function.
-
-The **pmem_errormsgU**()/**pmem_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for current thread. The error
-message may include description of the corresponding error code (if
-*errno* was set), as returned by **strerror**(3). The error message buffer
-is thread-local; errors encountered in one thread do not affect its
-value in other threads. The buffer is never cleared by any library
-function; its content is significant only when the return value of the
-immediately preceding call to **libpmem** function indicated an error,
-or if *errno* was set. The application must not modify or free the error
-message string, but it may be modified by subsequent calls to other
-library functions.
-
-A second version of **libpmem**, accessed when a program uses
-the libraries under **/nvml/src/x64/Debug**, contains
-run-time assertions and trace points. The typical way to
-access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/nvml/src/x64/Debug** or other location depending on where the debug
-libraries are installed on the system. The trace points
-in the debug version of the library are enabled using the environment
-variable **PMEM_LOG_LEVEL**, which can be set to the following values:
-
-+ **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
-  No log messages are emitted at this level.
-
-+ **1** - Additional details on any errors detected are logged (in addition
-  to returning the *errno*-based errors as usual). The same information
-  may be retrieved using **pmem_errormsgU**()/**pmem_errormsgW**().
-
-+ **2** - A trace of basic operations is logged.
-
-+ **3** - This level enables a very verbose amount of function call
-  tracing in the library.
-
-+ **4** - This level enables voluminous and fairly obscure tracing
-  information that is likely only useful to the **libpmem** developers.
-
-The environment variable **PMEM_LOG_FILE** specifies a file name where
-all logging information should be written. If the last character in the
-name is "-", the PID of the current process will be appended to the file
-name when the log file is created. If **PMEM_LOG_FILE** is not set,
-the logging output goes to stderr.
-
-Setting the environment variable **PMEM_LOG_LEVEL** has no effect on
-the non-debug version of **libpmem**.
-
-
-# ENVIRONMENT VARIABLES #
+# ENVIRONMENT #
 
 **libpmem** can change its default behavior based on the following
 environment variables. These are largely intended for testing and are
@@ -229,19 +179,19 @@ not normally required.
 
 + **PMEM_IS_PMEM_FORCE**=*val*
 
-If *val* is 0 (zero), then **pmem_is_pmem**(4) will always return
-false. Setting *val* to 1 causes **pmem_is_pmem**(4) to always return
+If *val* is 0 (zero), then **pmem_is_pmem**(3) will always return
+false. Setting *val* to 1 causes **pmem_is_pmem**(3) to always return
 true. This variable is mostly used for testing but can be used to force
 pmem behavior on a system where a range of pmem is not detectable as
 pmem for some reason.
 
 >NOTE:
 Unlike the other variables, the value of
-**PMEM_IS_PMEM_FORCE** is not queried (and cached) at the
+**PMEM_IS_PMEM_FORCE** is not queried (and cached) at
 library initialization time, but on the first call to
-**pmem_is_pmem**(3) function. It means that in case of
-**libpmemlog**(7), **libpmemblk**(7), and **libpmemobj**(7)
-libraries, it may still be set or modified by the program
+**pmem_is_pmem**(3). This means that in case of
+**libpmemlog**(7), **libpmemblk**(7), and **libpmemobj**(7),
+**PMEM_IS_PMEM_FORCE** may still be set or modified by the program
 until the first attempt to create or open the persistent
 memory pool.
 
@@ -283,12 +233,11 @@ testing.
 
 + **PMEM_MOVNT_THRESHOLD**=*val*
 
-This environment variable allows overriding the minimal length of
-**pmem_memcpy\_\***(), **pmem_memmove\_\***() or
-**pmem_memset\_\***() operations, for which **libpmem** uses
+This environment variable allows overriding the minimum length of
+the **pmem_memmove_persist**(3) operations, for which **libpmem** uses
 *non-temporal* move instructions. Setting this environment variable to 0
 forces **libpmem** to always use the *non-temporal* move instructions if
-available. It has no effect if **PMEM_NO_MOVNT** variable is set to 1.
+available. It has no effect if **PMEM_NO_MOVNT** is set to 1.
 This variable is intended for use during library testing.
 
 + **PMEM_MMAP_HINT**=*val*
@@ -307,9 +256,68 @@ direct pointer to the object.
 
 >NOTE:
 **Setting this environment variable
-affects all the NVM libraries,** disabling mapping address randomization
+affects all the PMDK libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
+
+
+# DEBUGGING AND ERROR HANDLING #
+
+If an error is detected during the call to a **libpmem** function, the
+application may retrieve an error message describing the reason for the failure
+from **pmem_errormsgU**()/**pmem_errormsgW**(). This function returns a pointer to a static buffer
+containing the last error message logged for the current thread. If *errno*
+was set, the error message may include a description of the corresponding
+error code as returned by **strerror**(3). The error message buffer is
+thread-local; errors encountered in one thread do not affect its value in
+other threads. The buffer is never cleared by any library function; its
+content is significant only when the return value of the immediately preceding
+call to a **libpmem** function indicated an error, or if *errno* was set.
+The application must not modify or free the error message string, but it may
+be modified by subsequent calls to other library functions.
+
+Two versions of **libpmem** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lpmem** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
+
+A second version of **libpmem**, accessed when a program uses the libraries
+under **/pmdk/src/x64/Debug**, contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to **/pmdk/src/x64/Debug**. Debugging output is
+controlled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEM_LOG_LEVEL**
+
+The value of **PMEM_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged, in addition
+to returning the *errno*-based errors as usual. The same information
+may be retrieved using **pmem_errormsgU**()/**pmem_errormsgW**().
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call tracing in the
+library.
+
++ **4** - Enables voluminous and fairly obscure tracing
+information that is likely only useful to the **libpmem** developers.
+
+Unless **PMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **PMEM_LOG_FILE**
+
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **PMEM_LOG_FILE** is not set, output is
+written to *stderr*.
 
 
 # EXAMPLE #
@@ -372,7 +380,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/nvml/libpmem>
+See <http://pmem.io/pmdk/libpmem>
 for more examples using the **libpmem** API.
 
 
@@ -385,7 +393,8 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
+**dlclose**(3),
 **pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
-**libpmemobj**(7), **libpmemblk**(7), **libpmemlog**(7)
+**libpmemblk**(7), **libpmemcto**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<http://pmem.io>**
