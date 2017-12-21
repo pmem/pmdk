@@ -45,7 +45,8 @@ date: pmem API version 1.0
 
 # NAME #
 
-**pmem_flush**(), **pmem_drain**(), **pmem_persist**(), **pmem_msync**(),
+**pmem_flush**(), **pmem_deep_flush**(), **pmem_drain**(),
+**pmem_persist**(), **pmem_msync**(),
 **pmem_has_hw_drain**() -- check persistency, store persistent data and delete mappings
 
 
@@ -57,6 +58,7 @@ date: pmem API version 1.0
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
+void pmem_deep_flush(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 ```
@@ -145,6 +147,12 @@ of **pmem_persist**(). For example, a program that needs to flush
 several discontiguous ranges can call **pmem_flush**() for each range
 and then follow up by calling **pmem_drain**() once.
 
+The **pmem_deep_flush**() function forces any changes in the range
+\[*addr*, *addr*+*len*) to be stored durably. On memory ranges mapped
+from Device DAX using **pmem_map_file**(3) it is similar to
+**pmem_persist**(), but additionaly it flushes WPQ.
+In other cases it works exactly like **pmem_msync**().
+
 The **pmem_has_hw_drain**() function checks if the machine
 supports an explicit *hardware drain*
 instruction for persistent memory.
@@ -158,6 +166,9 @@ The **pmem_msync**() return value is the return value of
 **msync**(), which can return -1 and set *errno* to indicate an error.
 
 The **pmem_flush**() and **pmem_drain**() functions return no value.
+
+The **pmem_deep_flush**() returns 0 on success, otherwise it
+returns -1 and set *errno* appropriately.
 
 The **pmem_has_hw_drain**() function returns true if the machine
 supports an explicit *hardware drain*
