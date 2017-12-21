@@ -151,8 +151,6 @@ OBJ_REMOTE_TESTS = \
 OBJ_CPP_TESTS = \
 	obj_cpp_allocator\
 	obj_cpp_make_persistent\
-	obj_cpp_make_persistent_array\
-	obj_cpp_make_persistent_array_atomic\
 	obj_cpp_make_persistent_atomic\
 	obj_cpp_mutex_posix\
 	obj_cpp_p_ext\
@@ -162,6 +160,10 @@ OBJ_CPP_TESTS = \
 	obj_cpp_ptr_arith\
 	obj_cpp_shared_mutex_posix\
 	obj_cpp_transaction
+
+OBJ_CPP_ARRAY_TESTS = \
+	obj_cpp_make_persistent_array\
+	obj_cpp_make_persistent_array_atomic
 
 OBJ_CPP_CONTAINER_TESTS = \
 	obj_cpp_deque\
@@ -363,8 +365,14 @@ REMOTE_TESTS = \
 	pmempool_sync_remote\
 	pmempool_transform_remote
 
-ifeq ($(filter n,$(call check_cxx_flags, -std=c++11) $(call check_clang_template_bug)),)
+ifeq ($(filter n,$(call check_cxx_flags, -std=c++11)),)
 LOCAL_TESTS += $(OBJ_CPP_TESTS)
+
+ifeq ($(filter n,$(call check_clang_template_bug)),)
+LOCAL_TESTS += $(OBJ_CPP_ARRAY_TESTS)
+else
+$(info NOTE: Skipping C++ array tests because of compiler issues)
+endif
 
 ifeq ($(call cxx_ok), y)
 LOCAL_TESTS += $(CPP_EXAMPLE_TESTS)
