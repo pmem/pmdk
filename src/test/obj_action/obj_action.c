@@ -67,6 +67,35 @@ struct root {
 	} tx_published;
 };
 
+#define HUGE_ALLOC_SIZE ((1 << 20) * 3)
+#define MAX_ACTS 10
+
+static void
+test_resv_cancel_huge(PMEMobjpool *pop)
+{
+	PMEMoid oid;
+
+	int nallocs = 0;
+	struct pobj_action *act = (struct pobj_action *)
+		ZALLOC(sizeof(struct pobj_action) * MAX_ACTS);
+
+	do {
+		oid = pmemobj_reserve(pop, &act[nallocs++], HUGE_ALLOC_SIZE, 0);
+	} while (!OID_IS_NULL(oid));
+	pmemobj_cancel(pop, act, nallocs - 1);
+
+	int nallocs2 = 0;
+	do {
+		oid = pmemobj_reserve(pop, &act[nallocs2++],
+			HUGE_ALLOC_SIZE, 0);
+	} while (!OID_IS_NULL(oid));
+	pmemobj_cancel(pop, act, nallocs2 - 1);
+
+	UT_ASSERTeq(nallocs, nallocs2);
+
+	FREE(act);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -165,6 +194,8 @@ main(int argc, char *argv[])
 	struct foo *tx_published_foop =
 		(struct foo *)pmemobj_direct(rootp->tx_published.oid);
 	tx_published_foop->bar = 1; /* should NOT trigger memcheck error */
+
+	test_resv_cancel_huge(pop);
 
 	pmemobj_close(pop);
 
