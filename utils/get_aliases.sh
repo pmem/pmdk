@@ -88,6 +88,12 @@ function list_pages {
 		echo "${man_child[@]}" >> $map_file
 	fi
 
+	if [ "$parent" == "libpmemcto" ]; then
+		man_child=($(ls pmemcto_*.3))
+		echo -n "- $parent: " >> $map_file
+		echo "${man_child[@]}" >> $map_file
+	fi
+
 	if [ "$parent" == "libpmemlog" ]; then
 		man_child=($(ls pmemlog_*.3))
 		echo -n "- $parent: " >> $map_file
