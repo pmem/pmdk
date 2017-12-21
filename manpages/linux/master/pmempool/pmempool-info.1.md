@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-INFO
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 
@@ -60,7 +60,7 @@ $ pmempool info [<options>] <file>
 # DESCRIPTION #
 
 The **pmempool** invoked with *info* command analyzes an existing pool
-created by **NVML** libraries provided by **file** parameter.
+created by **PMDK** libraries provided by **file** parameter.
 The **file** can be either existing pool file, a part file or a poolset file.
 
 The main task of this command is to print all usable information from

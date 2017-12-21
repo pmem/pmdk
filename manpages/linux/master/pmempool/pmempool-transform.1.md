@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-TRANSFORM
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 
@@ -65,27 +65,42 @@ The following operations are supported:
 * adding replicas - one or more new replicas can be added and synchronized with
 other replicas in the pool set,
 
-* removing replicas - one or more replicas can be removed from the pool set,
+* removing replicas - one or more replicas can be removed from the pool set
+,
 
-* reordering of replicas - the order of existing replicas can be changed.
+* adding or removing pool set options.
 
-Currently these operations are allowed only for **pmemobj** pools (see
-**libpmemobj**(7)).
+Only one of the above operations can be performed at a time.
+
+Currently adding and removing replicas are allowed only for **pmemobj** pools
+(see **libpmemobj**(7)).
 
 
 The *poolset_file_src* argument provides the source pool set to be changed.
 
 The *poolset_file_dst* argument points to the target pool set.
 
+
+
 When adding or deleting replicas, the two pool set files can differ only in the
-definitions of replicas which are to be added or deleted. One cannot add and
-remove replicas in the same step. Only one of these operations can be performed
-at a time. Reordering replicas can be combined with any of them.
-Also, to add a replica it is necessary for its effective size to match or exceed
-the pool size. Otherwise the whole operation fails and no changes are applied.
-Effective size of a replica is the sum of sizes of all its part files decreased
-by 4096 bytes per each part file. The 4096 bytes of each part file is
-utilized for storing internal metadata of the pool part files.
+definitions of replicas which are to be added or deleted. When adding or
+removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
+files have to be of the same structure. The operation of adding/removing the
+*NOHDRS* option can be performed on a poolset with local replicas only. To
+add/remove the *NOHDRS* option to/from a poolset with remote replicas, one has
+to remove the remote replicas first, then add/remove the option, and finally
+recreate the remote replicas having added/removed the *NOHDRS* option to/from
+the remote replicas' poolset files.
+To add a replica it is
+necessary for its effective size to match or exceed the pool size. Otherwise
+the whole operation fails and no changes are applied.
+If the option *NOHDRS* is not used, the effective size of a replica is the sum
+of sizes of all its part files decreased by 4096 bytes per each part file.
+The 4096 bytes of each part file is utilized for storing internal metadata of
+the pool part files.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files decreased once by 4096 bytes. In this case only
+the first part contains internal metadata.
 
 
 ##### Available options: #####

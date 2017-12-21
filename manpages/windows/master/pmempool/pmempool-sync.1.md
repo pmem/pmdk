@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMPOOL-SYNC
 collection: pmempool
-header: NVM Library
+header: PMDK
 date: pmem Tools version 1.3
 ...
 
@@ -65,6 +65,8 @@ the corrupted or missing parts are recreated and filled with data from one of
 the healthy replicas.
 Currently synchronizing data is allowed only for **pmemobj** pools (see
 **libpmemobj**(7)).
+
+
 
 ##### Available options: #####
 

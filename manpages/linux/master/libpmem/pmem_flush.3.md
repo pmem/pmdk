@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEM_FLUSH
 collection: libpmem
-header: NVM Library
+header: PMDK
 date: pmem API version 1.0
 ...
 
@@ -116,11 +116,13 @@ else
 /* ... */
 ```
 
+
 >WARNING:
 On Linux, **pmem_msync**() and **msync**(2) have no effect on memory ranges
 mapped from Device DAX.  In case of memory ranges where **pmem_is_pmem**(3)
 returns true use **pmem_persist**() to force the changes to be stored durably
 in persistent memory.
+
 
 The **pmem_flush**() and **pmem_drain**() functions provide
 partial versions of the **pmem_persist**() function.

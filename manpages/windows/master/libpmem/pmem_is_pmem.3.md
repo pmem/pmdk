@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEM_IS_PMEM
 collection: libpmem
-header: NVM Library
+header: PMDK
 date: pmem API version 1.0
 ...
 
@@ -34,20 +34,22 @@ date: pmem API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem_is_pmem.3 -- man page for most commonly used functions from libpmem library)
+[comment]: <> (pmem_is_pmem.3 -- man page for libpmem persistence and mapping functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
 [NOTES](#notes)<br />
+[CAVEATS](#caveats)<br />
+[BUGS](#bugs)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**pmem_is_pmem**(), **pmem_map_fileU**()/**pmem_map_fileW**()
-**pmem_unmap**() -- check persistency, store persistent data and delete mappings
+**pmem_is_pmem**(), **pmem_map_fileU**()/**pmem_map_fileW**(),
+**pmem_unmap**() -- check persistency, create and delete mappings
 
 
 # SYNOPSIS #
@@ -63,14 +65,15 @@ void *pmem_map_fileW(const wchar_t *path, size_t len, int flags,
 int pmem_unmap(void *addr, size_t len);
 ```
 
->NOTE: NVML API supports UNICODE. If **NVML_UTF8_API** macro is defined then
-basic API functions are expanded to UTF-8 API with postfix *U*,
-otherwise they are expanded to UNICODE API with postfix *W*.
+
+>NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
+defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
+Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
 Most pmem-aware applications will take advantage of higher level
-libraries that alleviate the application from calling into **libpmem**
+libraries that alleviate the need for the application to call into **libpmem**
 directly. Application developers that wish to access raw memory mapped
 persistence directly (via **mmap**(2)) and that wish to take on the
 responsibility for flushing stores to persistence will find the
@@ -87,50 +90,56 @@ appropriate for flushing changes to persistence. Calling
 **pmem_is_pmem**() each time changes are flushed to persistence will
 not perform well.
 
-The **pmem_map_fileU**()/**pmem_map_fileW**() function creates a new read/write
-mapping for the given *path* file. It will map the file using **mmap**(2),
-but it also takes extra steps to make large page mappings more likely.
+The **pmem_map_fileU**()/**pmem_map_fileW**() function creates a new read/write mapping for a
+file. If **PMEM_FILE_CREATE** is not specified in *flags*, the entire existing
+file *path* is mapped, *len* must be zero, and *mode* is ignored. Otherwise,
+*path* is opened or created as specified by *flags* and *mode*, and *len*
+must be non-zero. **pmem_map_fileU**()/**pmem_map_fileW**() maps the file using **mmap**(2), but it
+also takes extra steps to make large page mappings more likely.
 
-On success, **pmem_map_fileU**()/**pmem_map_fileW**() returns a pointer to mapped area. If
-*mapped_lenp* is not NULL, the length of the mapping is also stored at
-the address it points to. The *is_pmemp* argument, if non-NULL, points
-to a flag that **pmem_is_pmem**() sets to say if the mapped file is
-actual pmem, or if **msync**() must be used to flush writes for the
-mapped range.
+On success, **pmem_map_fileU**()/**pmem_map_fileW**() returns a pointer to the mapped area. If
+*mapped_lenp* is not NULL, the length of the mapping is stored into
+\**mapped_lenp*. If *is_pmemp* is not NULL, a flag indicating whether the
+mapped file is actual pmem, or if **msync**() must be used to flush writes
+for the mapped range, is stored into \**is_pmemp*.
 
-The *flags* argument can be 0 or bitwise OR of one or more of the
+The *flags* argument is 0 or the bitwise OR of one or more of the
 following file creation flags:
 
-+ **PMEM_FILE_CREATE** - Create the named file if it does not exist.
++ **PMEM_FILE_CREATE** - Create the file named *path* if it does not exist.
   *len* must be non-zero and specifies the size of the file to be created.
-  *mode* has the same meaning as for **open**(2) and specifies the mode to
-  use in case a new file is created. If neither **PMEM_FILE_CREATE** nor
-  **PMEM_FILE_TMPFILE** is specified, then *mode* is ignored.
+  If the file already exists, it will be extended or truncated to *len.*
+  The new or existing file is then fully allocated to size *len* using
+  **posix_fallocate**(3).
+  *mode* specifies the mode to use in case a new file is created (see
+  **creat**(2)).
 
-+ **PMEM_FILE_EXCL** - Same meaning as **O_EXCL** on **open**(2) -
-  Ensure that this call creates the file. If this flag is specified in
-  conjunction with **PMEM_FILE_CREATE**, and pathname already exists,
-  then **pmem_map_fileU**()/**pmem_map_fileW**() will fail.
+The remaining flags modify the behavior of **pmem_map_fileU**()/**pmem_map_fileW**() when
+**PMEM_FILE_CREATE** is specified.
 
-+ **PMEM_FILE_TMPFILE** - Same meaning as **O_TMPFILE** on **open**(2).
-  Create a mapping for an unnamed temporary file. **PMEM_FILE_CREATE**
-  and *len* must be specified and *path* must be an existing directory
-  name.
++ **PMEM_FILE_EXCL** - If specified in conjunction with **PMEM_FILE_CREATE**,
+  and *path* already exists, then **pmem_map_fileU**()/**pmem_map_fileW**() will fail with **EEXIST**.
+  Otherwise, has the same meaning as **O_EXCL** on **open**(2), which is
+  generally undefined.
 
-+ **PMEM_FILE_SPARSE** - When creating a file, create a sparse (holey)
-  file instead of calling **posix_fallocate**(2). Valid only if specified
-  in conjunction with **PMEM_FILE_CREATE** or **PMEM_FILE_TMPFILE**,
-  otherwise ignored.
++ **PMEM_FILE_SPARSE** - When specified in conjunction with
+  **PMEM_FILE_CREATE**, create a sparse (holey) file using **ftruncate**(2)
+  rather than allocating it using **posix_fallocate**(3). Otherwise ignored.
 
-If creation flags are not supplied, then **pmem_map_fileU**()/**pmem_map_fileW**() creates a
-mapping for an existing file. In such case, *len* should be zero. The
-entire file is mapped to memory; its length is used as the length of the
-mapping and returned via *mapped_lenp*.
++ **PMEM_FILE_TMPFILE** - Create a mapping for an unnamed temporary file.
+  Must be specified with **PMEM_FILE_CREATE**. *len* must be non-zero,
+  *mode* is ignored (the temporary file is always created with mode 0600),
+  and *path* must specify an existing directory name. If the underlying file
+  system supports **O_TMPFILE**, the unnamed temporary file is created in
+  the filesystem containing the directory *path*; if **PMEM_FILE_EXCL**
+  is also specified, the temporary file may not subsequently be linked into
+  the filesystem (see **open**(2)).
+  Otherwise, the file is created in *path* and immediately unlinked.
 
-The path of a file can point to a Device DAX and in such case only
-**PMEM_FILE_CREATE** and **PMEM_FILE_SPARSE** flags are valid, but they both
-effectively do nothing. For Device DAX mappings, the *len* argument must be,
-regardless of the flags, equal to either 0 or the exact size of the device.
+The *path* can point to a Device DAX. In this case only the
+**PMEM_FILE_CREATE** and **PMEM_FILE_SPARSE** flags are valid, but they are
+both ignored. For Device DAX mappings, *len* must be equal to
+either 0 or the exact size of the device.
 
 To delete mappings created with **pmem_map_fileU**()/**pmem_map_fileW**(), use **pmem_unmap**().
 
@@ -139,7 +148,7 @@ specified address range, and causes further references to addresses
 within the range to generate invalid memory references. It will use the
 address specified by the parameter *addr*, where *addr* must be a
 previously mapped region. **pmem_unmap**() will delete the mappings
-using the **munmap**(2).
+using **munmap**(2).
 
 
 # RETURN VALUE #
@@ -150,12 +159,13 @@ from **pmem_is_pmem**() means it is safe to use **pmem_persist**(3)
 and the related functions to make changes durable for that memory
 range.
 
-The **pmem_map_fileU**()/**pmem_map_fileW**() function returns pointer to the memory-mapped region.
-On error, NULL is returned, *errno* is set appropriately,
-and *mapped_lenp* and *is_pmemp* are left untouched.
+On success, **pmem_map_fileU**()/**pmem_map_fileW**() returns a pointer to the memory-mapped region
+and sets \**mapped_lenp* and \**is_pmemp* if they are not NULL.
+On error, it returns NULL, sets *errno* appropriately, and does not modify
+\**mapped_lenp* or \**is_pmemp*.
 
-The **pmem_unmap**() function on success returns zero.
-On error, -1 is returned, and *errno* is set appropriately.
+On success, **pmem_unmap**() returns 0. On error, it returns -1 and sets
+*errno* appropriately.
 
 
 # NOTES #
@@ -167,7 +177,15 @@ flushing with **pmem_persist**(3), **pmem_is_pmem**() will return true
 as appropriate.
 
 
+# CAVEATS #
+
+Not all file systems support **posix_fallocate**(3). **pmem_map_fileU**()/**pmem_map_fileW**() will
+fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
+the underlying file system does not support **posix_fallocate**(3).
+
+
 # SEE ALSO #
 
-**mmap**(2),  **msync**(2), **munmap**(2), **pmem_persist**(3),
-**posix_fallocate**(2), **libpmem**(7) and **<http://pmem.io>**
+**creat**(2), **ftruncate**(2), **mmap**(2),  **msync**(2), **munmap**(2),
+**open**(2), **pmem_persist**(3),
+**posix_fallocate**(3), **libpmem**(7) and **<http://pmem.io>**

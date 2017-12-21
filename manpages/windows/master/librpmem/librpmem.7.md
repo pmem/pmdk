@@ -320,9 +320,9 @@ that impact performance and never logs any trace information or performs any
 run-time assertions.
 
 A second version of **librpmem**, accessed when a program uses the libraries
-under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points. The
+under **/pmdk/src/x64/Debug**, contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**, as appropriate. Debugging output is
+**LD_LIBRARY_PATH** to **/pmdk/src/x64/Debug**. Debugging output is
 controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 

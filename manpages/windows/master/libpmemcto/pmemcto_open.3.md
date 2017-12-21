@@ -3,7 +3,7 @@ layout: manual
 Content-Style: 'text/css'
 title: PMEMCTO_OPEN
 collection: libpmemcto
-header: NVM Library
+header: PMDK
 date: libpmemcto API version 1.0
 ...
 
@@ -70,7 +70,7 @@ int pmemcto_checkW(const wchar_t *path, *layout);;
 ```
 
 
->NOTE: The NVML API supports UNICODE. If the **NVML_UTF8_API** macro is
+>NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
 
