@@ -1,4 +1,22 @@
 
+Wed Dec 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+
+	* Version 1.3.1
+	Bug fixes:
+	- rpmem: fix issues reported by Coverity
+	- rpmem: fix read error handling
+	- rpmem: add fip monitor (#597)
+	- test: add rpmemd termination handling test
+	- cpp: fix pop.persist function in obj_cpp_ptr
+	- rpmem: return failure for a failed allocation
+	- rpmem: fix potential memory leak
+	- common: fix available rm options msg (#651)
+	- pool: fix pmempool_get_max_size
+	- obj: fix potential deadlock during realloc (#635, #636, #637)
+	- obj: initialize TLS data
+	- rpmem: fix cleanup if fork() failed (#634)
+	- obj: fix bogus OOM after exhausting first zone
+
 Thu Jul 13 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.3
