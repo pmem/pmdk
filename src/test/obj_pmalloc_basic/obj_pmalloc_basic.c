@@ -40,6 +40,7 @@
 #include "pmalloc.h"
 #include "unittest.h"
 #include "valgrind_internal.h"
+#include "set.h"
 
 #define MOCK_POOL_SIZE (PMEMOBJ_MIN_POOL * 3)
 #define TEST_MEGA_ALLOC_SIZE (10 * 1024 * 1024)
@@ -230,8 +231,6 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
-#define MOCK_RUN_ID 5
-
 #define PMALLOC_EXTRA 20
 #define PALLOC_FLAG (1 << 15)
 
@@ -286,12 +285,10 @@ test_mock_pool_allocs(void)
 	addr = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE, Ut_mmap_align);
 	mock_pop = &addr->p;
 	mock_pop->addr = addr;
-	mock_pop->size = MOCK_POOL_SIZE;
 	mock_pop->rdonly = 0;
 	mock_pop->is_pmem = 0;
 	mock_pop->heap_offset = offsetof(struct mock_pop, ptr);
 	UT_ASSERTeq(mock_pop->heap_offset % Ut_pagesize, 0);
-	mock_pop->heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 	mock_pop->nlanes = 1;
 	mock_pop->lanes_offset = sizeof(PMEMobjpool);
 	mock_pop->is_master_replica = 1;
@@ -306,20 +303,22 @@ test_mock_pool_allocs(void)
 	mock_pop->p_ops.memcpy_persist = obj_memcpy;
 	mock_pop->p_ops.memset_persist = obj_memset;
 	mock_pop->p_ops.base = mock_pop;
-	mock_pop->p_ops.pool_size = mock_pop->size;
+	mock_pop->set = MALLOC(sizeof(*(mock_pop->set)));
+	mock_pop->set->directory_based = 0;
 
 	mock_pop->redo = redo_log_config_new(addr, &mock_pop->p_ops,
 			redo_log_check_offset, mock_pop, REDO_NUM_ENTRIES);
 
 	void *heap_start = (char *)mock_pop + mock_pop->heap_offset;
-	uint64_t heap_size = mock_pop->heap_size;
+	uint64_t heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 
 	struct stats *s = stats_new(mock_pop);
 	UT_ASSERTne(s, NULL);
 
-	heap_init(heap_start, heap_size, &mock_pop->p_ops);
-	heap_boot(&mock_pop->heap, heap_start, heap_size, MOCK_RUN_ID, mock_pop,
-			&mock_pop->p_ops, s);
+	heap_init(heap_start, heap_size, &mock_pop->heap_size,
+		&mock_pop->p_ops);
+	heap_boot(&mock_pop->heap, heap_start, heap_size, &mock_pop->heap_size,
+		mock_pop, &mock_pop->p_ops, s, mock_pop->set);
 	heap_buckets_init(&mock_pop->heap);
 
 	/* initialize runtime lanes structure */
@@ -372,6 +371,7 @@ test_mock_pool_allocs(void)
 	redo_log_config_delete(mock_pop->redo);
 	heap_cleanup(&mock_pop->heap);
 
+	FREE(mock_pop->set);
 	MUNMAP_ANON_ALIGNED(addr, MOCK_POOL_SIZE);
 }
 

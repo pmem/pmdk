@@ -50,12 +50,18 @@
 #include "container_seglists.h"
 #include "alloc_class.h"
 #include "os_thread.h"
+#include "set.h"
 
 /* calculates the size of the entire run, including any additional chunks */
 #define SIZEOF_RUN(runp, size_idx)\
 	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
 
 #define MAX_RUN_LOCKS 1024
+
+/*
+ * This is the value by which the heap might grow once we hit an OOM.
+ */
+#define HEAP_GROW_SIZE (1 << 27) /* 128 megabytes */
 
 /*
  * Arenas store the collection of buckets for allocation classes. Each thread
@@ -84,7 +90,7 @@ struct heap_rt {
 	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
 
 	os_mutex_t run_locks[MAX_RUN_LOCKS];
-	unsigned max_zone;
+	unsigned nzones;
 	unsigned zones_exhausted;
 	unsigned narenas;
 };
@@ -258,10 +264,10 @@ heap_max_zone(size_t size)
 }
 
 /*
- * get_zone_size_idx -- (internal) calculates zone size index
+ * zone_calc_size_idx -- (internal) calculates zone size index
  */
 static uint32_t
-get_zone_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
+zone_calc_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 {
 	ASSERT(max_zone > 0);
 	if (zone_id < max_zone - 1)
@@ -324,13 +330,17 @@ heap_chunk_init(struct palloc_heap *heap, struct chunk_header *hdr,
  * heap_zone_init -- (internal) writes zone's first chunk and header
  */
 static void
-heap_zone_init(struct palloc_heap *heap, uint32_t zone_id)
+heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
+	uint32_t first_chunk_id)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
-	uint32_t size_idx = get_zone_size_idx(zone_id, heap->rt->max_zone,
-			heap->size);
+	uint32_t size_idx = zone_calc_size_idx(zone_id, heap->rt->nzones,
+			*heap->sizep);
 
-	heap_chunk_init(heap, &z->chunk_headers[0], CHUNK_TYPE_FREE, size_idx);
+	ASSERT(size_idx - first_chunk_id > 0);
+
+	heap_chunk_init(heap, &z->chunk_headers[first_chunk_id],
+		CHUNK_TYPE_FREE, size_idx - first_chunk_id);
 
 	struct zone_header nhdr = {
 		.size_idx = size_idx,
@@ -706,7 +716,7 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 {
 	struct heap_rt *h = heap->rt;
 
-	if (h->zones_exhausted == h->max_zone)
+	if (h->zones_exhausted == h->nzones)
 		return ENOMEM;
 
 	uint32_t zone_id = h->zones_exhausted++;
@@ -717,7 +727,7 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 		sizeof(z->chunk_headers));
 
 	if (z->header.magic != ZONE_HEADER_MAGIC)
-		heap_zone_init(heap, zone_id);
+		heap_zone_init(heap, zone_id, 0);
 
 	return heap_reclaim_zone_garbage(heap, bucket, zone_id);
 }
@@ -775,8 +785,28 @@ heap_reclaim_garbage(struct palloc_heap *heap, struct bucket *bucket)
 static int
 heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 {
-	return (heap_reclaim_garbage(heap, bucket) == 0 ||
-		heap_populate_bucket(heap, bucket) == 0) ? 0 : ENOMEM;
+	if (heap_reclaim_garbage(heap, bucket) == 0)
+		return 0;
+
+	if (heap_populate_bucket(heap, bucket) == 0)
+		return 0;
+
+	int extend;
+	if ((extend = heap_extend(heap, bucket, HEAP_GROW_SIZE)) < 0)
+		return ENOMEM;
+
+	if (extend == 1)
+		return 0;
+
+	/*
+	 * Extending the pool does not automatically add the chunks into the
+	 * runtime state of the bucket - we need to traverse the new zone if
+	 * it was created.
+	 */
+	if (heap_populate_bucket(heap, bucket) == 0)
+		return 0;
+
+	return ENOMEM;
 }
 
 /*
@@ -1071,9 +1101,9 @@ heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
 void *
 heap_end(struct palloc_heap *h)
 {
-	ASSERT(h->rt->max_zone > 0);
+	ASSERT(h->rt->nzones > 0);
 
-	struct zone *last_zone = ZID_TO_ZONE(h->layout, h->rt->max_zone - 1);
+	struct zone *last_zone = ZID_TO_ZONE(h->layout, h->rt->nzones - 1);
 
 	return &last_zone->chunks[last_zone->header.size_idx];
 }
@@ -1164,15 +1194,101 @@ error_bucket_create:
 }
 
 /*
+ * heap_extend -- extend the heap by the given size
+ *
+ * Returns 0 if the current zone has been extended, 1 if a new zone had to be
+ *	created, -1 if unsuccessful.
+ *
+ * If this function has to create a new zone, it will NOT populate buckets with
+ * the new chunks.
+ */
+int
+heap_extend(struct palloc_heap *heap, struct bucket *b, size_t size)
+{
+	void *nptr = util_pool_extend(heap->set, size);
+	if (nptr == NULL)
+		return -1;
+
+	*heap->sizep += size;
+	pmemops_persist(&heap->p_ops, heap->sizep, sizeof(*heap->sizep));
+
+	/*
+	 * If interrupted after changing the size, the heap will just grow
+	 * automatically on the next heap_boot.
+	 */
+
+	uint32_t nzones = heap_max_zone(*heap->sizep);
+	uint32_t zone_id = nzones - 1;
+	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+	uint32_t chunk_id = heap->rt->nzones == nzones ? z->header.size_idx : 0;
+	heap_zone_init(heap, zone_id, chunk_id);
+
+	if (heap->rt->nzones != nzones) {
+		heap->rt->nzones = nzones;
+		return 0;
+	}
+
+	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
+
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.chunk_id = chunk_id;
+	m.zone_id = zone_id;
+	m.block_off = 0;
+	m.size_idx = hdr->size_idx;
+	memblock_rebuild_state(heap, &m);
+
+	heap_free_chunk_reuse(heap, b, hdr, &m);
+
+	return 1;
+}
+
+/*
+ * heap_zone_update_if_needed -- updates the zone metadata if the pool has been
+ *	extended.
+ */
+static void
+heap_zone_update_if_needed(struct palloc_heap *heap)
+{
+	struct zone *z;
+
+	for (uint32_t i = 0; i < heap->rt->nzones; ++i) {
+		z = ZID_TO_ZONE(heap->layout, i);
+		if (z->header.magic != ZONE_HEADER_MAGIC)
+			continue;
+
+		size_t size_idx = zone_calc_size_idx(i, heap->rt->nzones,
+			*heap->sizep);
+		if (size_idx == z->header.size_idx)
+			continue;
+
+		heap_zone_init(heap, i, z->header.size_idx);
+	}
+}
+
+/*
  * heap_boot -- opens the heap region of the pmemobj pool
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
 heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
-		uint64_t run_id, void *base, struct pmem_ops *p_ops,
-		struct stats *stats)
+		uint64_t *sizep, void *base, struct pmem_ops *p_ops,
+		struct stats *stats, struct pool_set *set)
 {
+	/*
+	 * The size can be 0 if interrupted during heap_init or this is the
+	 * first time booting the heap with the persistent size field.
+	 */
+	if (*sizep == 0) {
+		*sizep = heap_size;
+		pmemops_persist(p_ops, sizep, sizeof(*sizep));
+	}
+
+	if (heap_size < *sizep) {
+		ERR("mapped region smaller than the heap size");
+		return EINVAL;
+	}
+
 	struct heap_rt *h = Malloc(sizeof(*h));
 	int err;
 	if (h == NULL) {
@@ -1193,7 +1309,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_arenas_malloc;
 	}
 
-	h->max_zone = heap_max_zone(heap_size);
+	h->nzones = heap_max_zone(heap_size);
+
 	h->zones_exhausted = 0;
 
 	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
@@ -1206,9 +1323,10 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
 	heap->rt = h;
-	heap->size = heap_size;
+	heap->sizep = sizep;
 	heap->base = base;
 	heap->stats = stats;
+	heap->set = set;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
 	for (unsigned i = 0; i < h->narenas; ++i)
@@ -1216,6 +1334,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	for (unsigned i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
 		h->recyclers[i] = NULL;
+
+	heap_zone_update_if_needed(heap);
 
 	return 0;
 
@@ -1232,13 +1352,13 @@ error_heap_malloc:
  * heap_write_header -- (internal) creates a clean header
  */
 static void
-heap_write_header(struct heap_header *hdr, size_t size)
+heap_write_header(struct heap_header *hdr)
 {
 	struct heap_header newhdr = {
 		.signature = HEAP_SIGNATURE,
 		.major = HEAP_MAJOR,
 		.minor = HEAP_MINOR,
-		.size = size,
+		.unused = 0,
 		.chunksize = CHUNKSIZE,
 		.chunks_per_zone = MAX_CHUNK,
 		.reserved = {0},
@@ -1255,7 +1375,8 @@ heap_write_header(struct heap_header *hdr, size_t size)
  * If successful function returns zero. Otherwise an error number is returned.
  */
 int
-heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops)
+heap_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
+	struct pmem_ops *p_ops)
 {
 	if (heap_size < HEAP_MIN_SIZE)
 		return EINVAL;
@@ -1263,7 +1384,7 @@ heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops)
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(heap_start, heap_size);
 
 	struct heap_layout *layout = heap_start;
-	heap_write_header(&layout->header, heap_size);
+	heap_write_header(&layout->header);
 	pmemops_persist(p_ops, &layout->header, sizeof(struct heap_header));
 
 	unsigned zones = heap_max_zone(heap_size);
@@ -1280,6 +1401,9 @@ heap_init(void *heap_start, uint64_t heap_size, struct pmem_ops *p_ops)
 			&ZID_TO_ZONE(layout, i)->chunk_headers,
 			sizeof(struct chunk_header));
 	}
+
+	*sizep = heap_size;
+	pmemops_persist(p_ops, sizep, sizeof(*sizep));
 
 	return 0;
 }
@@ -1347,6 +1471,9 @@ heap_verify_header(struct heap_header *hdr)
 static int
 heap_verify_zone_header(struct zone_header *hdr)
 {
+	if (hdr->magic != ZONE_HEADER_MAGIC) /* not initialized */
+		return 0;
+
 	if (hdr->size_idx == 0) {
 		ERR("heap: invalid zone size");
 		return -1;
@@ -1428,15 +1555,10 @@ heap_check(void *heap_start, uint64_t heap_size)
 
 	struct heap_layout *layout = heap_start;
 
-	if (heap_size != layout->header.size) {
-		ERR("heap: heap size missmatch");
-		return -1;
-	}
-
 	if (heap_verify_header(&layout->header))
 		return -1;
 
-	for (unsigned i = 0; i < heap_max_zone(layout->header.size); ++i) {
+	for (unsigned i = 0; i < heap_max_zone(heap_size); ++i) {
 		if (heap_verify_zone(ZID_TO_ZONE(layout, i)))
 			return -1;
 	}
@@ -1467,11 +1589,6 @@ heap_check_remote(void *heap_start, uint64_t heap_size, struct remote_ops *ops)
 		return -1;
 	}
 
-	if (heap_size != header.size) {
-		ERR("heap: heap size mismatch");
-		return -1;
-	}
-
 	if (heap_verify_header(&header))
 		return -1;
 
@@ -1480,7 +1597,7 @@ heap_check_remote(void *heap_start, uint64_t heap_size, struct remote_ops *ops)
 		ERR("heap: zone_buff malloc error");
 		return -1;
 	}
-	for (unsigned i = 0; i < heap_max_zone(header.size); ++i) {
+	for (unsigned i = 0; i < heap_max_zone(heap_size); ++i) {
 		if (ops->read(ops->ctx, ops->base, zone_buff,
 				ZID_TO_ZONE(layout, i), sizeof(struct zone))) {
 			ERR("heap: obj_read_remote error");
@@ -1610,9 +1727,7 @@ void
 heap_foreach_object(struct palloc_heap *heap, object_callback cb, void *arg,
 	struct memory_block m)
 {
-	struct heap_layout *layout = heap->layout;
-
-	for (; m.zone_id < heap_max_zone(layout->header.size); ++m.zone_id) {
+	for (; m.zone_id < heap->rt->nzones; ++m.zone_id) {
 		if (heap_zone_foreach_object(heap, cb, arg, &m) != 0)
 			break;
 
@@ -1668,13 +1783,13 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 	void *arg, int objects)
 {
 	ASSERTne(cb, NULL);
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(heap->layout, heap->size);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(heap->layout, *heap->sizep);
 
 	struct heap_layout *layout = heap->layout;
 
 	VALGRIND_DO_MAKE_MEM_DEFINED(&layout->header, sizeof(layout->header));
 
-	unsigned zones = heap_max_zone(heap->size);
+	unsigned zones = heap_max_zone(*heap->sizep);
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	for (unsigned i = 0; i < zones; ++i) {

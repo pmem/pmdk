@@ -120,7 +120,7 @@ struct heap_header {
 	char signature[HEAP_SIGNATURE_LEN];
 	uint64_t major;
 	uint64_t minor;
-	uint64_t size;
+	uint64_t unused; /* might be garbage */
 	uint64_t chunksize;
 	uint64_t chunks_per_zone;
 	uint8_t reserved[960];

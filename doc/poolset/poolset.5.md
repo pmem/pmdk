@@ -226,6 +226,33 @@ The files in the object pool set may be created by running the following command
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
 
+# DIRECTORIES #
+
+Providing a directory as a part's *pathname* allows the pool to dynamically
+create files and consequently removes the user-imposed limit on the size
+of the pool.
+
+The *size* argument of a part in a directory poolset becomes the size of the
+address space reservation required for the pool. In other words, the size
+argument is the maximum theoretical size of the mapping. This value can be
+freely increased between instances of the application, but decreasing it below
+the real required space will result in an error when attempting to open the
+pool.
+
+The directory must NOT contain user created files with extension *.pmem*,
+otherwise the behavior is undefined. If a file created by the library within
+the directory is in any way altered (resized, renamed) the behavior is
+undefined.
+
+A directory poolset must exclusively use directories to specify paths -
+combining files and directories will result in an error. A single replica can
+consist of one or more directories. If there are multiple directories, the
+address space reservation is equal to the sum of the sizes.
+
+The order in which the files are created is unspecified, but the library will
+try to maintain equal usage of the directories.
+
+Only poolsets with *OPTION NOHDRS* can safely use directories.
 
 # NOTES #
 
