@@ -52,7 +52,7 @@ require_node_dax_device 1 1
 
 setup
 
-create_poolset $DIR/pool0.set AUTO:${NODE_DEVICE_DAX_PATH[0]}
+create_poolset $DIR/pool0.set AUTO:$(get_node_devdax_path 0 0)
 
 expect_normal_exit run_on_node 0 rm -rf $PART_DIR
 expect_normal_exit run_on_node 0 mkdir -p ${RPMEM_POOLSET_DIR[0]}
@@ -60,13 +60,13 @@ expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
 expect_normal_exit copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${RPMEM_POOLSET_DIR[0]}/pool0.set
-expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DEVICE_DAX_PATH[0]}
+expect_normal_exit run_on_node 1 ../pmempool rm -sf $(get_node_devdax_path 0 0)
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[1]} 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0\
 	test_persist 0 0 1 1\
 	test_close 0\
-	test_open 0 pool0.set ${NODE_ADDR[0]} ${NODE_DEVICE_DAX_PATH[1]} 0 init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init\
 	test_persist 0 0 8 8\
 	test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 0
