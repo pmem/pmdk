@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -353,8 +353,8 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			void *dst_addr = ADDR_SUM(part->addr, fpoff);
 
 			if (rep->remote) {
-				int ret = Rpmem_persist(rep->remote->rpp,
-						off - POOL_HDR_SIZE, len, 0);
+				int ret = Rpmem_persist(rep->remote->rpp, off,
+						len, 0);
 				if (ret) {
 					LOG(1, "Copying data to remote node "
 						"failed -- '%s' on '%s'",
@@ -364,8 +364,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 				}
 			} else if (rep_h->remote) {
 				int ret = Rpmem_read(rep_h->remote->rpp,
-						dst_addr,
-						off - POOL_HDR_SIZE, len, 0);
+						dst_addr, off, len, 0);
 				if (ret) {
 					LOG(1, "Reading data from remote node "
 						"failed -- '%s' on '%s'",

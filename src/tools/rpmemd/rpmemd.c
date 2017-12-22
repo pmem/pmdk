@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -180,7 +180,7 @@ rpmemd_check_pool(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		return -1;
 	}
 
-	if (rpmemd->pool->pool_size - POOL_HDR_SIZE < req->pool_size) {
+	if (rpmemd->pool->pool_size < req->pool_size) {
 		RPMEMD_LOG(ERR, "requested size is too big");
 		*status = RPMEM_ERR_BADSIZE;
 		return -1;
@@ -200,7 +200,7 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 	void *addr = (void *)((uintptr_t)rpmemd->pool->pool_addr);
 	struct rpmemd_fip_attr fip_attr = {
 		.addr		= addr,
-		.size		= req->pool_size + POOL_HDR_SIZE,
+		.size		= req->pool_size,
 		.nlanes		= req->nlanes,
 		.nthreads	= rpmemd->nthreads,
 		.provider	= req->provider,
@@ -222,9 +222,6 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		*status = (int)err;
 		goto err_fip_init;
 	}
-
-	/* let user use the pool without header */
-	resp->raddr += POOL_HDR_SIZE;
 
 	return 0;
 err_fip_init:

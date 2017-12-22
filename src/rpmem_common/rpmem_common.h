@@ -128,6 +128,7 @@ struct rpmem_resp_attr {
 #define RPMEM_MAX_USER		(32 + 1)   /* see useradd(8) + 1 for '\0' */
 #define RPMEM_MAX_NODE		(255 + 1)  /* see gethostname(2) + 1 for '\0' */
 #define RPMEM_MAX_SERVICE	(NI_MAXSERV + 1)  /* + 1 for '\0' */
+#define RPMEM_HDR_SIZE		4096
 
 struct rpmem_target_info {
 	char user[RPMEM_MAX_USER];
