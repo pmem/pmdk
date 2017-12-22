@@ -77,6 +77,7 @@ OBJ_TESTS = \
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
 	obj_ctl_config\
+	obj_ctl_heap_size\
 	obj_ctl_prefault\
 	obj_ctree\
 	obj_cuckoo\
