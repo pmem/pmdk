@@ -1451,7 +1451,7 @@ arena_i_dss_ctl(const size_t *mib, size_t miblen, void *oldp, size_t *oldlenp,
 {
 	int ret, i;
 	bool match, err;
-	const char *dss;
+	const char *dss = "";
 	size_t pool_ind = mib[1];
 	size_t arena_ind = mib[3];
 	dss_prec_t dss_prec_old = dss_prec_limit;
