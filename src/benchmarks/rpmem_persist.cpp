@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -333,8 +333,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_poolset_free;
 	}
 
-	mb->pool_size = mb->mapped_len - POOL_HDR_SIZE;
-	mb->pool = (void *)((uintptr_t)mb->addrp + POOL_HDR_SIZE);
+	mb->pool_size = mb->mapped_len;
+	mb->pool = (void *)((uintptr_t)mb->addrp);
 
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;

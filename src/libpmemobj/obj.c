@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -349,13 +349,7 @@ obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
 
 	ASSERTne(pop->rpp, NULL);
 
-	/*
-	 * The pool header is not visible on remote node from the local host
-	 * perspective. It means the pool descriptor is at offset 0
-	 * on remote node.
-	 */
 	uintptr_t offset = (uintptr_t)addr - pop->remote_base;
-
 	int rv = Rpmem_persist(pop->rpp, offset, len, lane);
 	if (rv) {
 		ERR("!rpmem_persist(rpp %p offset %zu length %zu lane %u)"
@@ -755,8 +749,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	ASSERTeq(poolsize % Pagesize, 0);
 
 	/* opaque info lives at the beginning of mapped memory pool */
-	void *dscp = (void *)((uintptr_t)pop +
-				sizeof(struct pool_hdr));
+	void *dscp = (void *)((uintptr_t)pop + sizeof(struct pool_hdr));
 
 	/* create the persistent part of pool's descriptor */
 	memset(dscp, 0, OBJ_DSC_P_SIZE);
@@ -822,8 +815,8 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	if (pop->rpp) {
 		/* read remote descriptor */
-		if (obj_read_remote(pop->rpp, pop->remote_base, dscp,
-				dscp, OBJ_DSC_P_SIZE)) {
+		if (obj_read_remote(pop->rpp, pop->remote_base, dscp, dscp,
+				OBJ_DSC_P_SIZE)) {
 			ERR("!obj_read_remote");
 			return -1;
 		}
@@ -924,8 +917,8 @@ obj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 
 	rep->rpp = repset->remote->rpp;
 
-	/* pop_desc - beginning of the pool's descriptor */
-	rep->remote_base = (uintptr_t)rep->addr + sizeof(struct pool_hdr);
+	/* remote_base - beginning of the remote pool */
+	rep->remote_base = (uintptr_t)rep->addr;
 
 	/* init hooks */
 	rep->persist_remote = obj_remote_persist;
@@ -1541,8 +1534,7 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 
 	for (unsigned r = 1; r < pop->set->nreplicas; r++) {
 		rep = pop->set->replica[r]->part[0].addr;
-		void *dst = (void *)((uintptr_t)rep +
-					pop->lanes_offset);
+		void *dst = (void *)((uintptr_t)rep + pop->lanes_offset);
 		if (rep->rpp == NULL) {
 			rep->memcpy_persist_local(dst, src, len);
 		} else {
