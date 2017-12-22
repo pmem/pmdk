@@ -1666,7 +1666,6 @@ pool_create_empty(pool_t *pool, size_t size, int zeroed, unsigned pool_id)
 	/* prepare pool and internal structures */
 	if (pool_new(pool, pool_id)) {
 		assert(pools[pool_id] == NULL);
-		malloc_mutex_unlock(&pools_lock);
 		pools_shared_data_destroy();
 		return NULL;
 	}
@@ -1682,7 +1681,6 @@ pool_create_empty(pool_t *pool, size_t size, int zeroed, unsigned pool_id)
 	pool->seqno = pool_seqno++;
 	pools[pool_id] = pool;
 	npools_cnt++;
-	malloc_mutex_unlock(&pools_lock);
 
 	pool->memory_range_list =
 			base_alloc(pool, sizeof(*pool->memory_range_list));
@@ -1734,12 +1732,6 @@ pool_open(pool_t *pool, size_t size, unsigned pool_id)
 	pool->seqno = pool_seqno++;
 	pools[pool_id] = pool;
 	npools_cnt++;
-	malloc_mutex_unlock(&pools_lock);
-
-#ifdef JEMALLOC_VALGRIND
-	if (config_valgrind)
-		vg_pool_init(pool, size);
-#endif
 
 	return pool;
 }
@@ -1779,10 +1771,8 @@ je_pool_create(void *addr, size_t size, int zeroed, int empty)
 		size_t npools_new = npools * 2;
 		pool_t **pools_new = base_alloc(&base_pool,
 					npools_new * sizeof (pool_t *));
-		if (pools_new == NULL) {
-			malloc_mutex_unlock(&pools_lock);
-			return (NULL);
-		}
+		if (pools_new == NULL)
+			goto err;
 
 		memcpy(pools_new, pools, npools * sizeof (pool_t *));
 		memset(&pools_new[npools], 0,
@@ -1795,14 +1785,29 @@ je_pool_create(void *addr, size_t size, int zeroed, int empty)
 	if (pool_id == POOLS_MAX) {
 		malloc_printf("<jemalloc>: Error in pool_create(): "
 			"exceeded max number of pools (%u)\n", POOLS_MAX);
-		malloc_mutex_unlock(&pools_lock);
-		return (NULL);
+		goto err;
 	}
 
-	if (empty)
-		return pool_create_empty(pool, size, zeroed, pool_id);
-	else
-		return pool_open(pool, size, pool_id);
+	pool_t *ret;
+	if (empty) {
+		ret = pool_create_empty(pool, size, zeroed, pool_id);
+	} else {
+		ret = pool_open(pool, size, pool_id);
+	}
+
+	malloc_mutex_unlock(&pools_lock);
+
+#ifdef JEMALLOC_VALGRIND
+	/* must be done with unlocked 'pools_lock' */
+	if (config_valgrind && !empty)
+		vg_pool_init(pool, size);
+#endif
+
+	return ret;
+
+err:
+	malloc_mutex_unlock(&pools_lock);
+	return (NULL);
 }
 
 int
