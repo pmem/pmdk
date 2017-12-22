@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -149,7 +149,6 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 
 		pool->is_mem = 0;
 		os_unlink(pool_path);
-		pool->size -= POOL_HDR_SIZE;
 	}
 }
 
@@ -162,8 +161,7 @@ free_pool(struct pool_entry *pool)
 	if (pool->is_mem)
 		FREE(pool->pool);
 	else
-		UT_ASSERTeq(pmem_unmap(pool->pool,
-			pool->size + POOL_HDR_SIZE), 0);
+		UT_ASSERTeq(pmem_unmap(pool->pool, pool->size), 0);
 
 	pool->pool = NULL;
 	pool->rpp = NULL;
@@ -381,11 +379,12 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 	int nthreads = atoi(argv[2]);
 	int nops = atoi(argv[3]);
 
-	size_t buff_size = pool->size;
+	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
 	if (seed) {
 		srand(seed);
-		uint8_t *buff = (uint8_t *)pool->pool;
+		uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool +
+				POOL_HDR_SIZE);
 		for (size_t i = 0; i < buff_size; i++)
 			buff[i] = rand();
 	}
@@ -399,7 +398,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		args[i].rpp = pool->rpp;
 		args[i].nops = nops;
 		args[i].lane = (unsigned)i;
-		args[i].off = i * size_per_thread;
+		args[i].off = POOL_HDR_SIZE + i * size_per_thread;
 		size_t size_left = buff_size - size_per_thread * i;
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
@@ -435,7 +434,7 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool + POOL_HDR_SIZE);
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
-	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
+	ret = rpmem_read(pool->rpp, buff, POOL_HDR_SIZE, buff_size, 0);
 	check_return_and_errno(ret, pool->exp_errno);
 
 	if (ret == 0) {
@@ -692,6 +691,27 @@ rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_persist_illegal -- test case for persisting data with offset < 4096
+ */
+static int
+test_persist_illegal(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_persist_illegal <id>");
+
+	int id = atoi(argv[0]);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	struct pool_entry *pool = &pools[id];
+
+	for (size_t off = 0; off < POOL_HDR_SIZE; ++off) {
+		int ret = rpmem_persist(pool->rpp, off, 1, 0);
+		UT_ASSERTeq(ret, -1);
+	}
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -705,6 +725,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
 	TEST_CASE(rpmemd_terminate),
+	TEST_CASE(test_persist_illegal),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
