@@ -207,7 +207,8 @@ OTHER_TESTS = \
 	util_is_absolute\
 	util_is_poolset\
 	util_poolset_size\
-	util_poolset_foreach
+	util_poolset_foreach\
+	util_sds
 
 PMEM_TESTS = \
 	pmem_is_pmem\

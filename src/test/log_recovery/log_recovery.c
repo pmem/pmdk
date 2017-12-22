@@ -238,6 +238,7 @@ main(int argc, char *argv[])
 			do_appendv(plp);
 	}
 
+	MPROTECT(plp, len, PROT_READ | PROT_WRITE);
 	pmemlog_close(plp);
 
 	/* check consistency */

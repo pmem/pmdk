@@ -21,6 +21,7 @@
     <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="set.c" />
+    <ClCompile Include="shutdown_state.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="util_windows.c" />
     <ClCompile Include="uuid.c" />

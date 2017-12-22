@@ -55,6 +55,7 @@
 #include "set.h"
 #include "util.h"
 #include "uuid.h"
+#include "shutdown_state.h"
 
 /*
  * check_flags_sync -- (internal) check if flags are supported for sync
@@ -528,6 +529,41 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 }
 
 /*
+ * check_shutdown_state -- (internal) check if replica has
+ *			   healthy shutdown_state
+ */
+static int
+check_shutdown_state(struct pool_set *set,
+	struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+	for (unsigned r = 0; r < set->nreplicas; ++r) {\
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+		struct pool_hdr *hdrp = HDR(rep, 0);
+
+		if (hdrp == NULL)
+			continue;
+
+		struct shutdown_state sds;
+		shutdown_state_init(&sds);
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (shutdown_state_add_part(&sds, PART(rep, p).path)) {
+				rep_hs->flags |= IS_BROKEN;
+				continue;
+			}
+		}
+
+		if (shutdown_state_check(&sds, &hdrp->sds))
+				rep_hs->flags |= IS_BROKEN;
+
+		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+
+	}
+	return 0;
+}
+
+/*
  * check_uuids_between_parts -- (internal) check if uuids between adjacent
  *                              parts are consistent for a given replica
  */
@@ -782,6 +818,41 @@ get_replica_uuid(struct pool_replica *rep, unsigned repn,
  *                                 consistent adjacent replicas are consistent
  */
 static int
+check_replica_cycles(struct pool_set *set,
+		struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+	unsigned first_healthy;
+	unsigned count_healthy = 0;
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (!replica_is_replica_healthy(r, set_hs)) {
+			count_healthy = 0;
+			continue;
+		}
+
+		if (count_healthy == 0)
+			first_healthy = r;
+
+		++count_healthy;
+		struct pool_hdr *hdrh =
+				PART(REP(set, first_healthy), 0).hdr;
+		struct pool_hdr *hdr = PART(REP(set, r), 0).hdr;
+		if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
+				count_healthy < set->nreplicas) {
+			/*
+			 * healthy replicas form a cycle shorter than
+			 * the number of all replicas; for the user it
+			 * means that:
+			 */
+			ERR("there exist healthy replicas which come"
+				" from a different poolset file");
+			return -1;
+		}
+	}
+	return 0;
+}
+
+static int
 check_uuids_between_replicas(struct pool_set *set,
 		struct poolset_health_status *set_hs)
 {
@@ -836,40 +907,6 @@ check_uuids_between_replicas(struct pool_set *set,
  * check_replica_cycles -- (internal) check if healthy replicas form cycles
  *	shorter than the number of all replicas
  */
-static int
-check_replica_cycles(struct pool_set *set,
-		struct poolset_health_status *set_hs)
-{
-	LOG(3, "set %p, set_hs %p", set, set_hs);
-	unsigned first_healthy;
-	unsigned count_healthy = 0;
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (!replica_is_replica_healthy(r, set_hs)) {
-			count_healthy = 0;
-			continue;
-		}
-
-		if (count_healthy == 0)
-			first_healthy = r;
-
-		++count_healthy;
-		struct pool_hdr *hdrh =
-				PART(REP(set, first_healthy), 0).hdr;
-		struct pool_hdr *hdr = PART(REP(set, r), 0).hdr;
-		if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
-				count_healthy < set->nreplicas) {
-			/*
-			 * healthy replicas form a cycle shorter than
-			 * the number of all replicas; for the user it
-			 * means that:
-			 */
-			ERR("there exist healthy replicas which come"
-				" from a different poolset file");
-			return -1;
-		}
-	}
-	return 0;
-}
 
 /*
  * check_replica_sizes -- (internal) check if all replicas are large
@@ -918,6 +955,10 @@ replica_check_poolset_health(struct pool_set *set,
 		LOG(1, "flags check failed");
 		goto err;
 	}
+	if (check_shutdown_state(set, set_hs)) {
+		LOG(1, "replica shutdown_state check failed");
+		goto err;
+	}
 
 	/* check if uuids in parts across each replica are consistent */
 	if (check_replicas_consistency(set, set_hs)) {
@@ -959,6 +1000,7 @@ replica_check_poolset_health(struct pool_set *set,
 	return 0;
 
 err:
+	errno = EINVAL;
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
 	replica_free_poolset_health_status(set_hs);

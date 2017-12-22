@@ -40,6 +40,7 @@
     <ClCompile Include="..\common\out.c" />
     <ClCompile Include="..\common\pool_hdr.c" />
     <ClCompile Include="..\common\set.c" />
+    <ClCompile Include="..\common\shutdown_state.c" />
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />

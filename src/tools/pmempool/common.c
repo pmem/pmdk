@@ -492,7 +492,7 @@ int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
 	if (util_is_poolset_file(fname) != 1) {
-		int ret = util_poolset_create_set(poolset, fname, 0, 0);
+		int ret = util_poolset_create_set(poolset, fname, 0, 0, true);
 		if (ret < 0) {
 			outv_err("cannot open pool set -- '%s'", fname);
 			return -1;
@@ -513,6 +513,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 		os_close(fd);
 		return -1;
 	}
+	set->disable_sds = true;
 	os_close(fd);
 
 	/* read the pool header from first pool set file */
@@ -550,7 +551,8 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			hdr.signature, hdr.major,
 			hdr.compat_features,
 			hdr.incompat_features,
-			hdr.ro_compat_features, &nlanes, NULL)) {
+			hdr.ro_compat_features, &nlanes, true,
+			NULL)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}
@@ -603,7 +605,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 				goto out_close;
 			}
 		} else {
-			ret = util_poolset_create_set(&set, fname, 0, 0);
+			ret = util_poolset_create_set(&set, fname, 0, 0, true);
 			if (ret < 0) {
 				outv_err("cannot open pool set -- '%s'", fname);
 				ret = -1;
@@ -1242,7 +1244,8 @@ pool_set_file_open(const char *fname,
 				goto err_free_fname;
 		} else {
 			int ret = util_poolset_create_set(&file->poolset,
-				file->fname, 0, 0);
+				file->fname, 0, 0, true);
+
 			if (ret < 0) {
 				outv_err("cannot open pool set -- '%s'",
 					file->fname);

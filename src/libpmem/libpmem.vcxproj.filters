@@ -68,6 +68,9 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\shutdown_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h">

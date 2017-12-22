@@ -45,6 +45,7 @@ SOURCE =\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
+	$(COMMON)/shutdown_state.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
 	$(COMMON)/$(call osdep, uuid,.c)\

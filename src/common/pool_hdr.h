@@ -41,7 +41,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "uuid.h"
-
+#include "shutdown_state.h"
 /*
  * Number of bits per type in alignment descriptor
  */
@@ -123,7 +123,8 @@ struct pool_hdr {
 	uuid_t next_repl_uuid; /* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[3944];	/* must be zero */
+	struct shutdown_state sds;
+	unsigned char unused[3880];	/* must be zero */
 	uint64_t checksum;		/* checksum of above fields */
 };
 

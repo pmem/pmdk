@@ -902,6 +902,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (!replica_is_poolset_healthy(set_in_hs)) {
 		ERR("source poolset is broken");
 		ret = -1;
+		errno = EINVAL;
 		goto free_hs_in;
 	}
 

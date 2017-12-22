@@ -1576,7 +1576,8 @@ err:
  * pool set structure.  Otherwise, NULL is returned.
  */
 static struct pool_set *
-util_poolset_single(const char *path, size_t filesize, int create)
+util_poolset_single(const char *path, size_t filesize, int create,
+	int disable_sds)
 {
 	LOG(3, "path %s filesize %zu create %d",
 			path, filesize, create);
@@ -1633,7 +1634,7 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	set->resvsize = rep->resvsize;
 
 	set->nreplicas = 1;
-
+	set->disable_sds = disable_sds;
 	return set;
 }
 
@@ -2001,7 +2002,7 @@ util_poolset_read(struct pool_set **setp, const char *path)
  */
 int
 util_poolset_create_set(struct pool_set **setp, const char *path,
-				size_t poolsize, size_t minsize)
+	size_t poolsize, size_t minsize, int disable_sds)
 {
 	LOG(3, "setp %p path %s poolsize %zu minsize %zu",
 		setp, path, poolsize, minsize);
@@ -2018,7 +2019,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 			ERR("size must be zero for device dax");
 			return -1;
 		}
-		*setp = util_poolset_single(path, poolsize, 1);
+		*setp = util_poolset_single(path, poolsize, 1, disable_sds);
 		if (*setp == NULL)
 			return -1;
 
@@ -2054,7 +2055,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 			errno = EINVAL;
 			return -1;
 		}
-		*setp = util_poolset_single(path, size, 0);
+		*setp = util_poolset_single(path, size, 0, disable_sds);
 		if (*setp == NULL)
 			return -1;
 
@@ -2062,11 +2063,11 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	}
 
 	ret = util_poolset_parse(setp, path, fd);
-
-#ifdef _WIN32
 	if (ret)
 		goto err;
 
+	(*setp)->disable_sds = disable_sds;
+#ifdef _WIN32
 	/* remote replication is not supported on Windows */
 	if ((*setp)->remote) {
 		util_poolset_free(*setp);
@@ -2177,6 +2178,15 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 				sizeof(struct arch_flags));
 	}
 
+	if (!set->disable_sds && partidx == 0) {
+		shutdown_state_init(&hdrp->sds);
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (shutdown_state_add_part(&hdrp->sds,
+					PART(rep, 0).path))
+				return -1;
+		}
+		shutdown_state_set_flag(&hdrp->sds);
+	}
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
 
 	/* store pool's header */
@@ -2676,6 +2686,19 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 	struct pool_replica *rep = set->replica[repidx];
 
 	if (rep->remote == NULL) {
+		struct pool_set_part *part = &PART(rep, 0);
+		if (!set->disable_sds && part->addr != NULL &&
+				part->size != 0) {
+			/* XXX: DEEP FLUSH */
+			struct pool_hdr *hdr = part->addr;
+			RANGE_NONE(hdr, sizeof(*hdr), part->is_dev_dax);
+			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
+			shutdown_state_clear_flag(&hdr->sds);
+			util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
+			/* XXX: DEEP FLUSH */
+			pmem_persist(&hdr->checksum, sizeof(hdr->checksum));
+
+		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
 		util_unmap_part(&rep->part[0]);
@@ -2888,7 +2911,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	int ret = util_poolset_create_set(setp, path, poolsize, minsize);
+	int ret = util_poolset_create_set(setp, path, poolsize, minsize, false);
 	if (ret < 0) {
 		LOG(2, "cannot create pool set -- '%s'", path);
 		return -1;
@@ -3359,8 +3382,22 @@ util_replica_check(struct pool_set *set, const char *sig, uint32_t major,
 			errno = EINVAL;
 			return -1;
 		}
-	}
+		if (!set->disable_sds) {
+			struct shutdown_state sds;
+			shutdown_state_init(&sds);
+			for (unsigned p = 0; p < rep->nparts; p++) {
+				if (shutdown_state_add_part(&sds,
+						PART(rep, p).path))
+					return -1;
+			}
 
+			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds)) {
+				ERR("adr failure detected");
+				errno = EINVAL;
+				return -1;
+			}
+		}
+	}
 	return 0;
 }
 
@@ -3438,7 +3475,7 @@ int
 util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, const char *sig, uint32_t major,
 	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes, void *addr)
+	unsigned *nlanes, int disable_sds, void *addr)
 {
 	LOG(3, "setp %p path %s cow %d minpartsize %zu sig %.8s major %u "
 		"compat %#x incompat %#x ro_compat %#x nlanes %p addr %p",
@@ -3449,7 +3486,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 	int oerrno;
 
 	/* do not check minsize */
-	int ret = util_poolset_create_set(setp, path, 0, 0);
+	int ret = util_poolset_create_set(setp, path, 0, 0, disable_sds);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
@@ -3508,7 +3545,7 @@ err_replica:
 	oerrno = errno;
 	for (unsigned r = 0; r < set->nreplicas; r++)
 		util_replica_close(set, r);
-	errno = oerrno;
+	errno = oerrno;\
 err_poolset:
 	oerrno = errno;
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
@@ -3543,7 +3580,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	int oerrno;
 
 	/* do not check minsize */
-	int ret = util_poolset_create_set(setp, path, 0, 0);
+	int ret = util_poolset_create_set(setp, path, 0, 0, false);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;

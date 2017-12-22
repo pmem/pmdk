@@ -36,3 +36,21 @@
 
 #include <string.h>
 #include <stdint.h>
+
+#ifdef __linux__
+int os_dimm_uid(const char *path, char *uid);
+int os_dimm_uid_size(const char *path, size_t *len);
+int os_dimm_usc(const char *path, uint64_t *usc);
+#else
+static inline int os_dimm_uid(const char *path, char *uid) {
+	*uid = '\0';
+	return 0;
+}
+static inline os_dimm_uid_size(const char *path, size_t *len) {
+	*len = 1;
+	return 0;
+}
+static inline int os_dimm_usc(const char *path, uint64_t *usc) {
+	return 0;
+}
+#endif

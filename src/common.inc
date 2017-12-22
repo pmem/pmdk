@@ -255,5 +255,8 @@ LIBUUID=
 ifeq ($(call check_package, libndctl --atleast-version 58.2.37),n)
 $(error libndctl(version >= 58.2.37) is missing -- see README)
 endif
+ifeq ($(call check_package, libdaxctl --atleast-version 58.2.37),n)
+$(error libdaxclt(version >= 58.2.37) is missing -- see README)
+endif
 LIBNDCTL := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
 endif

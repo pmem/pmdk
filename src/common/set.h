@@ -41,6 +41,7 @@
 extern "C" {
 #endif
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -149,6 +150,7 @@ struct pool_set {
 	unsigned next_id;
 	unsigned next_directory_id;
 
+	int disable_sds;	/* don't use shutdown state */
 	struct pool_replica *replica[];
 };
 
@@ -219,7 +221,7 @@ extern int Prefault_at_create;
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);
 int util_poolset_create_set(struct pool_set **setp, const char *path,
-	size_t poolsize, size_t minsize);
+	size_t poolsize, size_t minsize, int disable_sds);
 int util_poolset_open(struct pool_set *set);
 void util_poolset_close(struct pool_set *set, enum del_parts_mode del);
 void util_poolset_free(struct pool_set *set);
@@ -268,7 +270,8 @@ int util_unmap_hdr(struct pool_set_part *part);
 int util_pool_open_nocheck(struct pool_set *set, int cow);
 int util_pool_open(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes, void *addr);
+	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes,
+	int disable_sds, void *addr);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, char *sig, uint32_t *major,
 	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
