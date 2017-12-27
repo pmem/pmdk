@@ -94,5 +94,8 @@
     <ClInclude Include="os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

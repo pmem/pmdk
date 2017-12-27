@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_minimal", "examples\libpmemobj\pmemlog\obj_pmemlog_minimal.vcxproj", "{0056B0B6-CB3E-4F0E-B6DC-48D59CB8E235}"
 EndProject
@@ -205,6 +205,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj++", "libpmemobj+
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_getopt", "test\win_getopt\win_getopt.vcxproj", "{433F7840-C597-4950-84C9-E4FF7DF6A298}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sys", "sys", "{45027FC5-4A32-47BD-AC5B-66CC7616B1D2}"
+	ProjectSection(SolutionItems) = preProject
+		windows\include\sys\file.h = windows\include\sys\file.h
+		windows\include\sys\mman.h = windows\include\sys\mman.h
+		windows\include\sys\mount.h = windows\include\sys\mount.h
+		windows\include\sys\param.h = windows\include\sys\param.h
+		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
+		windows\include\sys\uio.h = windows\include\sys\uio.h
+		windows\include\sys\wait.h = windows\include\sys\wait.h
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libvmem", "libvmem", "{45E74E38-35CA-4CB6-8965-BC20D39659AF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_lookup", "test\obj_pool_lookup\obj_pool_lookup.vcxproj", "{4850F425-9128-4E91-973C-5AE7BD97395B}"
@@ -374,6 +385,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{746BA101
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store_tx_type\reader.vcxproj", "{74D655D5-F661-4887-A1EB-5A6222AF5FCA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{774627B7-6532-4464-AEE4-02F72CA44F95}"
+	ProjectSection(SolutionItems) = preProject
+		windows\include\linux\limits.h = windows\include\linux\limits.h
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_lock", "test\blk_pool_lock\blk_pool_lock.vcxproj", "{779425B1-2211-499B-A7CC-4F9EC6CB0D25}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
@@ -510,22 +526,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{9A84
 		windows\include\endian.h = windows\include\endian.h
 		windows\include\err.h = windows\include\err.h
 		windows\include\features.h = windows\include\features.h
-		windows\include\sys\file.h = windows\include\sys\file.h
 		windows\include\libgen.h = windows\include\libgen.h
-		windows\include\linux\limits.h = windows\include\linux\limits.h
-		windows\include\sys\mman.h = windows\include\sys\mman.h
-		windows\include\sys\mount.h = windows\include\sys\mount.h
-		windows\include\sys\param.h = windows\include\sys\param.h
 		windows\include\platform.h = windows\include\platform.h
 		include\pmemcompat.h = include\pmemcompat.h
-		windows\include\pthread.h = windows\include\pthread.h
-		windows\include\sys\queue.h = windows\include\sys\queue.h
 		windows\include\sched.h = windows\include\sched.h
-		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
+		windows\include\srcversion.h = windows\include\srcversion.h
 		windows\include\strings.h = windows\include\strings.h
-		windows\include\sys\uio.h = windows\include\sys\uio.h
 		windows\include\unistd.h = windows\include\unistd.h
-		windows\include\sys\wait.h = windows\include\sys\wait.h
+		windows\include\win_mmap.h = windows\include\win_mmap.h
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_realloc", "test\obj_tx_realloc\obj_tx_realloc.vcxproj", "{9AE2DAF9-10C4-4EC3-AE52-AD5EE9C77C55}"
@@ -594,8 +602,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signal_handle", "test\signa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_config", "test\obj_ctl_config\obj_ctl_config.vcxproj", "{AEAA72CD-E060-417C-9CA1-49B4738384E0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_heap_size", "test\obj_ctl_heap_size\obj_ctl_heap_size.vcxproj", "{AEAA72CD-E060-417C-9CA1-49B4738384E0}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "checksum", "test\checksum\checksum.vcxproj", "{AF0B7480-EBE3-486B-B0C8-134910BC9324}"
 	ProjectSection(ProjectDependencies) = postProject
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
@@ -613,6 +619,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_multiple_pools", "test\cto_multiple_pools\cto_multiple_pools.vcxproj", "{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_memset\pmem_memset.vcxproj", "{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_heap_size", "test\obj_ctl_heap_size\obj_ctl_heap_size.vcxproj", "{B379539C-E130-460D-AE82-4EBDD1A97845}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_linkedlist", "test\ex_linkedlist\ex_linkedlist.vcxproj", "{B440BB05-37A8-42EA-98D3-D83EB113E497}"
 EndProject
@@ -720,7 +728,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fifo", "examples\libpmemobj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_help", "test\pmempool_help\pmempool_help.vcxproj", "{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "pmdk_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PMDK_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_file_create", "test\util_file_create\util_file_create.vcxproj", "{D829DB63-E046-474D-8EA3-43A6659294D8}"
 EndProject
@@ -1590,6 +1598,10 @@ Global
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Debug|x64.Build.0 = Debug|x64
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.ActiveCfg = Release|x64
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}.Release|x64.Build.0 = Release|x64
+		{B379539C-E130-460D-AE82-4EBDD1A97845}.Debug|x64.ActiveCfg = Debug|x64
+		{B379539C-E130-460D-AE82-4EBDD1A97845}.Debug|x64.Build.0 = Debug|x64
+		{B379539C-E130-460D-AE82-4EBDD1A97845}.Release|x64.ActiveCfg = Release|x64
+		{B379539C-E130-460D-AE82-4EBDD1A97845}.Release|x64.Build.0 = Release|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.ActiveCfg = Debug|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.Build.0 = Debug|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Release|x64.ActiveCfg = Release|x64
@@ -1936,7 +1948,7 @@ Global
 		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{2DE6B085-3C19-49B1-894A-AD9376000E09} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
-		{2ED26FDA-3C4E-4514-B387-5E77C302FF71} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
+		{2ED26FDA-3C4E-4514-B387-5E77C302FF71} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{2EFFC590-BF5E-46A2-AF04-E67E1D571D2E} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{2F543422-4B8A-4898-BE6B-590F52B4E9D1} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{3142CB13-CADA-48D3-9A25-E6ACB243760A} = {F09A0864-9221-47AD-872F-D4538104D747}
@@ -1955,6 +1967,7 @@ Global
 		{42CCEF95-5ADD-460C-967E-DD5B2C744943} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
 		{42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{433F7840-C597-4950-84C9-E4FF7DF6A298} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
+		{45027FC5-4A32-47BD-AC5B-66CC7616B1D2} = {9A8482A7-BF0C-423D-8266-189456ED41F6}
 		{45E74E38-35CA-4CB6-8965-BC20D39659AF} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{4850F425-9128-4E91-973C-5AE7BD97395B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{48A3AE10-200B-454E-9D82-EC1A88CF1151} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
@@ -2017,6 +2030,7 @@ Global
 		{74243B75-816C-4077-8DF0-98D2C78B0E5D} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
 		{746BA101-5C93-42A5-AC7A-64DCEB186572} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{74D655D5-F661-4887-A1EB-5A6222AF5FCA} = {E3229AF7-1FA2-4632-BB0B-B74F709F1A33}
+		{774627B7-6532-4464-AEE4-02F72CA44F95} = {9A8482A7-BF0C-423D-8266-189456ED41F6}
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
 		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{7D71EE07-6CE2-49FA-8AB8-976800A050A0} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
@@ -2088,6 +2102,7 @@ Global
 		{B35BFA09-DE68-483B-AB61-8790E8F060A8} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{B379539C-E130-460D-AE82-4EBDD1A97845} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{B440BB05-37A8-42EA-98D3-D83EB113E497} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
 		{B6DA6617-D98F-4A4D-A7C4-A317212924BF} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
 		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
@@ -2172,5 +2187,8 @@ Global
 		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
 		{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E690324-2D48-486A-8D3C-DCB520D3F693}
 	EndGlobalSection
 EndGlobal

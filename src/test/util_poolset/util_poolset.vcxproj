@@ -90,14 +90,24 @@
     <None Include="grep0w.log.match" />
     <None Include="grep1w.log.match" />
     <None Include="grep2w.log.match" />
+    <None Include="grep3w.log.match" />
+    <None Include="grep4w.log.match" />
+    <None Include="grep5w.log.match" />
+    <None Include="grep6w.log.match" />
     <None Include="out0w.log.match" />
     <None Include="out1w.log.match" />
     <None Include="out2w.log.match" />
+    <None Include="out4w.log.match" />
+    <None Include="out5w.log.match" />
+    <None Include="out6w.log.match" />
     <None Include="README" />
     <None Include="TEST0w.PS1" />
     <None Include="TEST1w.PS1" />
     <None Include="TEST2w.PS1" />
     <None Include="TEST3w.PS1" />
+    <None Include="TEST4w.PS1" />
+    <None Include="TEST5w.PS1" />
+    <None Include="TEST6w.PS1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

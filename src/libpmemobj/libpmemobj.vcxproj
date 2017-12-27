@@ -71,9 +71,13 @@
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\os.h" />
+    <ClInclude Include="..\common\os_thread.h" />
     <ClInclude Include="..\common\pmemcommon.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
+    <ClInclude Include="..\common\queue.h" />
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />

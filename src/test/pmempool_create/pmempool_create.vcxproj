@@ -25,7 +25,7 @@
     <None Include="TEST4w.PS1" />
     <None Include="TEST5w.PS1" />
     <None Include="TEST6w.PS1" />
-    <None Include="TEST7w.PS1" />
+    <None Include="TEST8w.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{92388A20-50FC-45F8-89E3-71F1618EFABB}</ProjectGuid>

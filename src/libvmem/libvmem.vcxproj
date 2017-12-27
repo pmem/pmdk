@@ -12,11 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\os.h" />
+    <ClInclude Include="..\common\os_thread.h" />
     <ClInclude Include="..\common\out.h" />
     <ClInclude Include="..\common\util.h" />
     <ClInclude Include="..\include\libvmem.h" />
-    <ClInclude Include="..\windows\include\pthread.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="..\windows\jemalloc_gen\include\jemalloc\jemalloc.h" />
     <ClInclude Include="vmem.h" />
