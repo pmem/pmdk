@@ -71,7 +71,7 @@ check_flag = $(shell echo "int main(){return 0;}" |\
 check_compiler = $(shell $(CC) --version | grep $(1) && echo y || echo n)
 
 # Check for issues with older clang compilers which assert on delete persistent<[][]>.
-check_clang_template_bug = $(shell echo "using namespace pmdk::obj; int main() { delete_persistent<int[][3]>(make_persistent<int[][3]>(2), 2); return 0; }" |\
+check_clang_template_bug = $(shell echo "using namespace pmem::obj; int main() { delete_persistent<int[][3]>(make_persistent<int[][3]>(2), 2); return 0; }" |\
 	$(CXX) --std=c++11 -x c++ -I$(TOP)/src/include/ -include libpmemobj++/make_persistent_array.hpp -L$(TOP)/src/debug/ -c -o /dev/null - 2>/dev/null && echo y || echo n)
 
 # Check for issues with older gcc compilers which do not expand variadic template
