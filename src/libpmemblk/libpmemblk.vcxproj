@@ -40,7 +40,10 @@
     <ClInclude Include="..\..\src\libpmemblk\btt_layout.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\os.h" />
+    <ClInclude Include="..\common\os_thread.h" />
     <ClInclude Include="..\common\pmemcommon.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
     <ClInclude Include="..\common\set.h" />

@@ -78,5 +78,35 @@
     <None Include="TEST3w.PS1">
       <Filter>Test scripts</Filter>
     </None>
+    <None Include="TEST4w.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST5w.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="TEST6w.PS1">
+      <Filter>Test scripts</Filter>
+    </None>
+    <None Include="grep3w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep4w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep5w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep6w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out4w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out5w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out6w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

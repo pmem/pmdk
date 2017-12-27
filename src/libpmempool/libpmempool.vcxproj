@@ -13,7 +13,9 @@
   <ItemGroup>
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\os.h" />
     <ClInclude Include="..\common\out.h" />
     <ClInclude Include="..\common\pmemcommon.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
@@ -23,6 +25,7 @@
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\common\valgrind_internal.h" />
     <ClInclude Include="..\include\libpmempool.h" />
+    <ClInclude Include="..\libpmemblk\btt.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="check_util.h" />
     <ClInclude Include="pmempool.h" />

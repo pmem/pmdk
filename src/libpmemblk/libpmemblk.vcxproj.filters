@@ -110,6 +110,15 @@
     <ClInclude Include="..\common\dlsym.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\fs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemblk.def">

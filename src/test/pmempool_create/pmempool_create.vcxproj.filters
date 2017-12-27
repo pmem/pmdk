@@ -33,9 +33,9 @@
     <None Include="TEST6w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST7w.PS1">
+    <None Include="README" />
+    <None Include="TEST8w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="README" />
   </ItemGroup>
 </Project>

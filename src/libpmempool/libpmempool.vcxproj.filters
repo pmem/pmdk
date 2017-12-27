@@ -153,6 +153,15 @@
     <ClInclude Include="..\include\libpmempool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\libpmemblk\btt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\fs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
