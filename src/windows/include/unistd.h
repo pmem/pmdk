@@ -47,6 +47,9 @@
 #define X_OK 00 /* execute permission doesn't exist on Windows */
 #define F_OK 00
 
+/*
+ * sysconf -- get configuration information at run time
+ */
 static __inline long
 sysconf(int p)
 {
@@ -73,7 +76,7 @@ sysconf(int p)
 #define getpid _getpid
 
 /*
- * pread - windows port of pread function
+ * pread -- read from a file descriptor at given offset
  */
 static ssize_t
 pread(int fd, void *buf, size_t count, os_off_t offset)
@@ -86,7 +89,7 @@ pread(int fd, void *buf, size_t count, os_off_t offset)
 }
 
 /*
- * pwrite - windows port of pwrite function
+ * pwrite -- write to a file descriptor at given offset
  */
 static ssize_t
 pwrite(int fd, const void *buf, size_t count, os_off_t offset)
@@ -101,7 +104,7 @@ pwrite(int fd, const void *buf, size_t count, os_off_t offset)
 #define S_ISBLK(x) 0 /* BLK devices not exist on Windows */
 
 /*
- * basename - windows implementation of basename function
+ * basename -- parse pathname and return filename component
  */
 static char *
 basename(char *path)
@@ -116,7 +119,7 @@ basename(char *path)
 }
 
 /*
- * dirname - windows implementation of dirname function
+ * dirname -- parse pathname and return directory component
  */
 static char *
 dirname(char *path)
@@ -158,7 +161,5 @@ dirname(char *path)
 
 	return path;
 }
-
-int ftruncate(int fd, os_off_t length);
 
 #endif /* UNISTD_H */
