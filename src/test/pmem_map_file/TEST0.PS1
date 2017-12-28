@@ -47,14 +47,7 @@ $Env:UNITTEST_NUM = "0"
 require_test_type medium
 require_fs_type any
 
-# XXX: no valgrind for Windows
-#configure_valgrind memcheck force-disable
-
 setup
-
-# XXX: no AddressSanitizer on Windows
-# this test invokes sigsegvs by design
-# export ASAN_OPTIONS=handle_segv=0
 
 create_holey_file 2G $DIR\testfile1
 

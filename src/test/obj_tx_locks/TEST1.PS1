@@ -58,9 +58,7 @@ $Env:PMEMOBJ_LOG_FILE = ""
 
 require_fs_type any
 require_build_type debug nondebug
-# XXX no windows equivalent for these yet
-#require_valgrind_dev_version 3.10
-#configure_valgrind drd force-enable
+
 setup
 
 expect_normal_exit $Env:EXE_DIR\obj_tx_locks$Env:EXESUFFIX $DIR\testfile1 m

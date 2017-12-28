@@ -47,14 +47,7 @@ $Env:UNITTEST_NUM = "1"
 require_test_type medium
 require_fs_type any
 
-# XXX: we don't have valgrind in Windows yet
-# configure_valgrind memcheck force-disable
-
 setup
-
-# XXX: no AddressSanitizer on Windows
-# this test invokes sigsegvs by design
-# export ASAN_OPTIONS=handle_segv=0
 
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem>
 

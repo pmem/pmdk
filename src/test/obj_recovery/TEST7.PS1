@@ -56,11 +56,6 @@ $Env:PMEMOBJ_VG_CHECK_UNDEF=1
 
 setup
 
-# XXX: no memcheck on Windows yet, but whatever tool we'll use instead,
-# it must ignore memory leak in this test
-# exits in the middle of transaction, so pool cannot be closed
-#$Env:MEMCHECK_DONT_CHECK_LEAKS=1
-
 create_holey_file 16M $DIR\testfile
 
 expect_normal_exit $Env:EXE_DIR\obj_recovery$Env:EXESUFFIX $DIR\testfile y c n

@@ -89,7 +89,7 @@
     <None Include="out2.log.match" />
     <None Include="out3.log.match" />
     <None Include="out4.log.match" />
-    <None Include="out5.log.match" />
+    <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST2.PS1" />

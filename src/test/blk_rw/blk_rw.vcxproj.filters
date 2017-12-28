@@ -20,36 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err2.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err3.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err4.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err5.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err6.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err7.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err8w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err9w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -69,9 +39,6 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="out6.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="out7.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="out8w.log.match">
@@ -99,9 +66,6 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST6.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST7.PS1">
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST8w.PS1">

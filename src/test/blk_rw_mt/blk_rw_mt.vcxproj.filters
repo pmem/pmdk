@@ -29,15 +29,6 @@
     <None Include="TEST2.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="err0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="err2.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>

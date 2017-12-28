@@ -46,11 +46,6 @@ $Env:UNITTEST_NUM = "0"
 
 require_test_type medium
 
-# mocked allocator does not play well with memcheck
-# XXX: no memcheck for Windows yet, but whatever tool we'll use, it must
-# be aware we're mocking the system allocator
-#configure_valgrind memcheck force-disable
-
 setup
 
 expect_normal_exit $Env:EXE_DIR\obj_bucket$Env:EXESUFFIX

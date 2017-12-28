@@ -50,11 +50,6 @@ require_test_type medium
 
 setup
 
-# XXX: no memcheck on Windows yet, but whatever tool we'll use instead,
-# it must ignore memory leak in this test
-# exits in the middle of transaction, so pool cannot be closed
-#$Env:MEMCHECK_DONT_CHECK_LEAKS=1
-
 create_poolset $DIR\testset 16M:$DIR\testfile1 R 16M:$DIR\testfile2
 
 expect_normal_exit $Env:EXE_DIR\obj_recovery$Env:EXESUFFIX $DIR\testset n c f

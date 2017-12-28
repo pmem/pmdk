@@ -52,10 +52,6 @@ require_test_type medium
 require_fs_type pmem non-pmem
 require_unlimited_vm
 
-# this test creates huge file
-# XXX: however we don't have valgrind in Windows yet
-# configure_valgrind memcheck force-disable
-
 setup
 
 # multi-arena case

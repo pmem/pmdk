@@ -47,10 +47,6 @@ $Env:UNITTEST_NUM = "2"
 require_test_type medium
 require_build_type debug
 
-# XXX - no Valgrind equivalent for Windows yet
-# test causes 5 pmemcheck errors by design
-#configure_valgrind pmemcheck force-disable
-
 setup
 
 $Env:PMEMOBJ_LOG_LEVEL = "4"

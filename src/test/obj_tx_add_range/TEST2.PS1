@@ -47,10 +47,6 @@ $ENV:UNITTEST_NUM = "2"
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
-# XXX: we don't have valgrind in Windows yet
-# configure_valgrind memcheck force-disable
-
 require_fs_type pmem
 
 setup

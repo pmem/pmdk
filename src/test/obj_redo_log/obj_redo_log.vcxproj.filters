@@ -38,9 +38,6 @@
     <None Include="out5.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out6.log.match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -60,9 +57,6 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST5.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST6.PS1">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>

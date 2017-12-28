@@ -23,14 +23,6 @@
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="config0" />
-    <None Include="config1" />
-    <None Include="config2" />
-    <None Include="config3" />
-    <None Include="config4" />
-    <None Include="config5" />
-    <None Include="config6" />
-    <None Include="config7" />
     <None Include="out0.log.match">
       <Filter>Match Files</Filter>
     </None>
@@ -54,6 +46,30 @@
     </None>
     <None Include="out7.log.match">
       <Filter>Match Files</Filter>
+    </None>
+    <None Include="config0">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config2">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config3">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config4">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config5">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config6">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="config7">
+      <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

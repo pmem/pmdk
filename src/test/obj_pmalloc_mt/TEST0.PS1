@@ -41,15 +41,11 @@ Param(
 $Env:UNITTEST_NAME = "obj_pmalloc_mt/TEST0"
 $Env:UNITTEST_NUM = "0"
 
-
 # standard unit test setup
-
 . ..\unittest\unittest.ps1
-# XXX: valgrind
-# require_valgrind_dev_version 3.10
-require_fs_type pmem non-pmem
+
+require_fs_type any
 require_test_type long
-# configure_valgrind helgrind force-enable
 
 setup
 

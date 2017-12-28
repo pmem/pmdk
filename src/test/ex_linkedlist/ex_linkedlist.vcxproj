@@ -26,10 +26,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="out0.log.match" />
-    <None Include="out1.log.match" />
     <None Include="README" />
     <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\examples\libpmemobj\linkedlist\pmemobj_list.h" />
