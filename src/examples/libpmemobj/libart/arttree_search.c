@@ -163,10 +163,10 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 
 	if (ctx->art_tree_root_offset == 0) {
 		fprintf(stderr, "search functions require knowledge"
-			    "about the art_tree_root.\n");
+			    " about the art_tree_root.\n");
 		fprintf(stderr, "Use \"set_root <offset>\""
-			    "to define where the \nart_tree_root object"
-			    "resides in the pmem file.\n");
+			    " to define where the \nart_tree_root object"
+			    " resides in the pmem file.\n");
 		errors++;
 	}
 
@@ -249,6 +249,17 @@ get_search(char *type_name)
 	return NULL;
 }
 
+static void *
+get_node(struct search_ctx *ctx, int node_type, uint64_t off)
+{
+	if (!VALID_NODE_TYPE(node_type))
+		return NULL;
+
+	printf("%s at off 0x%" PRIx64 "\n", art_node_names[node_type], off);
+
+	return ctx->pmem_ctx->addr + off;
+}
+
 static int
 leaf_matches(struct search_ctx *ctx, art_leaf *n,
 	unsigned char *key, int key_len, int depth)
@@ -259,11 +270,13 @@ leaf_matches(struct search_ctx *ctx, art_leaf *n,
 	n_key = (var_string *)get_node(ctx, VAR_STRING, n->key.oid.off);
 	if (n_key == NULL)
 		return 1;
+
 	// HACK for stupid null-terminated strings....
-	// if (n_key->len != key_len)
-	//	return 1;
+	// else if (n_key->len != key_len)
+	//	ret = 1;
 	if (n_key->len != key_len + 1)
 		return 1;
+
 	return memcmp(n_key->s, key, key_len);
 }
 
@@ -367,65 +380,6 @@ get_offset_an(art_node_u *au)
 	return offset;
 }
 
-static void *
-get_node(struct search_ctx *ctx, int node_type, uint64_t off)
-{
-	int fd;
-	size_t obj_len;
-	uint64_t off_in_page, off_pages;
-	int pagesize;
-	void *p;
-
-	if (!VALID_NODE_TYPE(node_type)) {
-		return NULL;
-	}
-
-	fd = ctx->pmem_ctx->fd;
-	pagesize = ctx->pmem_ctx->sys_pagesize;
-
-	obj_len = art_node_sizes[node_type];
-	off_pages = (off / pagesize) * pagesize;
-	off_in_page = off - off_pages;
-	printf("%s at off 0x%" PRIx64 "\n", art_node_names[node_type], off);
-	p = mmap(NULL, off_in_page + obj_len,
-		    PROT_READ, MAP_SHARED, fd, off_pages);
-	if (node_type == VAR_STRING) {
-		var_string *vp;
-		size_t new_len;
-		vp = (var_string *)p;
-		new_len = vp->len + sizeof(size_t);
-		munmap(p, obj_len);
-		p = mmap(NULL, off_in_page + new_len,
-		    PROT_READ, MAP_SHARED, fd, off_pages);
-	}
-	return p + off_in_page;
-}
-
-static void
-release_node(struct search_ctx *ctx, void *p, int node_type, uint64_t off)
-{
-	size_t obj_len;
-	uint64_t off_in_page, off_pages;
-	int pagesize;
-
-	if (!VALID_NODE_TYPE(node_type)) {
-		return;
-	}
-
-	pagesize = ctx->pmem_ctx->sys_pagesize;
-
-	obj_len = art_node_sizes[node_type];
-	off_pages = (off / pagesize) * pagesize;
-	off_in_page = off - off_pages;
-
-	if (node_type == VAR_STRING) {
-		var_string *vp = (var_string *)p;
-		obj_len = vp->len + sizeof(size_t);
-	}
-
-	munmap(p - off_in_page, off_in_page + obj_len);
-}
-
 static char *
 search_key(char *appname, struct search_ctx *ctx)
 {
@@ -450,18 +404,12 @@ search_key(char *appname, struct search_ctx *ctx)
 	p_off = ctx->pmem_ctx->art_tree_root_offset;
 	p = get_node(ctx, ART_TREE_ROOT, p_off);
 	assert(p != NULL);
-	if (p != MAP_FAILED) {
-		dump_art_tree_root("art_tree_root", p_off, p);
-	} else {
-		perror("search_key mmap failed");
+
+	dump_art_tree_root("art_tree_root", p_off, p);
+	p_au_off = ((art_tree_root *)p)->root.oid.off;
+	p_au = (art_node_u *)get_node(ctx, ART_NODE_U, p_au_off);
+	if (p_au == NULL)
 		errors++;
-	}
-	if (!errors) {
-		p_au_off = ((art_tree_root *)p)->root.oid.off;
-		p_au = (art_node_u *)get_node(ctx, ART_NODE_U, p_au_off);
-		if (p_au == NULL)
-			errors++;
-	}
 
 	if (!errors) {
 		while (p_au) {
@@ -490,8 +438,6 @@ search_key(char *appname, struct search_ctx *ctx)
 			child_off = find_child(an, p_au->art_node_type,
 				    ctx->search_key[depth]);
 
-			release_node(ctx, p_au, ART_NODE_U, p_au_off);
-
 			if (child_off != 0) {
 				p_au_off = child_off;
 				p_au = get_node(ctx, ART_NODE_U, p_au_off);
@@ -501,8 +447,6 @@ search_key(char *appname, struct search_ctx *ctx)
 			depth++;
 		}
 	}
-
-	release_node(ctx, p, ART_TREE_ROOT, p_off);
 
 	if (errors) {
 		return NULL;
