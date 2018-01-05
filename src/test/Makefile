@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,7 +60,9 @@ LOG_TESTS = \
 	log_recovery\
 	log_walker
 
-OBJ_DEPS = obj_list
+OBJ_DEPS = \
+	obj_list
+
 # long tests first
 OBJ_TESTS = \
 	obj_async_postcommit\
@@ -72,6 +74,7 @@ OBJ_TESTS = \
 	obj_action\
 	obj_bucket\
 	obj_check\
+	obj_constructor\
 	obj_convert\
 	obj_ctl\
 	obj_ctl_alloc_class\
@@ -79,6 +82,7 @@ OBJ_TESTS = \
 	obj_ctl_config\
 	obj_ctl_heap_size\
 	obj_ctl_prefault\
+	obj_ctl_stats\
 	obj_ctree\
 	obj_cuckoo\
 	obj_debug\
@@ -102,6 +106,7 @@ OBJ_TESTS = \
 	obj_locks\
 	obj_memblock\
 	obj_memcheck\
+	obj_oid\
 	obj_out_of_memory\
 	obj_persist_count\
 	obj_pmalloc_basic\
@@ -120,75 +125,77 @@ OBJ_TESTS = \
 	obj_toid\
 	obj_tx_alloc\
 	obj_tx_add_range\
-	obj_tx_callbacks\
-	obj_tx_lock\
 	obj_tx_add_range_direct\
+	obj_tx_callbacks\
 	obj_tx_flow\
 	obj_tx_free\
 	obj_tx_invalid\
+	obj_tx_lock\
 	obj_tx_locks\
 	obj_tx_locks_abort\
 	obj_tx_mt\
 	obj_tx_realloc\
 	obj_tx_strdup\
-	obj_constructor\
-	obj_oid\
-	obj_zones\
-	obj_ctl_stats
+	obj_zones
+
+OBJ_REMOTE_DEPS = \
+	obj_basic_integration\
+	obj_heap_interrupt\
+	obj_heap_state
 
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\
-	obj_rpmem_heap_state\
-	obj_rpmem_heap_interrupt
+	obj_rpmem_heap_interrupt\
+	obj_rpmem_heap_state
 
 OBJ_CPP_TESTS = \
-	obj_cpp_ptr\
-	obj_cpp_p_ext\
-	obj_cpp_pool\
-	obj_cpp_ptr_arith\
-	obj_cpp_mutex_posix\
-	obj_cpp_shared_mutex_posix\
-	obj_cpp_pool_primitives\
+	obj_cpp_allocator\
 	obj_cpp_make_persistent\
-	obj_cpp_make_persistent_atomic\
 	obj_cpp_make_persistent_array\
 	obj_cpp_make_persistent_array_atomic\
-	obj_cpp_transaction\
-	obj_cpp_allocator
+	obj_cpp_make_persistent_atomic\
+	obj_cpp_mutex_posix\
+	obj_cpp_p_ext\
+	obj_cpp_pool\
+	obj_cpp_pool_primitives\
+	obj_cpp_ptr\
+	obj_cpp_ptr_arith\
+	obj_cpp_shared_mutex_posix\
+	obj_cpp_transaction
 
 OBJ_CPP_CONTAINER_TESTS = \
-	obj_cpp_vector\
 	obj_cpp_deque\
 	obj_cpp_list\
-	obj_cpp_set\
-	obj_cpp_multiset\
-	obj_cpp_unordered_multiset\
-	obj_cpp_unordered_set\
 	obj_cpp_map\
 	obj_cpp_multimap\
+	obj_cpp_multiset\
+	obj_cpp_priority_queue\
+	obj_cpp_queue\
+	obj_cpp_set\
+	obj_cpp_stack\
 	obj_cpp_unordered_map\
 	obj_cpp_unordered_multimap\
-	obj_cpp_queue\
-	obj_cpp_priority_queue\
-	obj_cpp_stack
+	obj_cpp_unordered_multiset\
+	obj_cpp_unordered_set\
+	obj_cpp_vector
 
 CHRONO_TESTS = \
-	obj_cpp_mutex\
-	obj_cpp_shared_mutex\
 	obj_cpp_cond_var\
 	obj_cpp_cond_var_posix\
+	obj_cpp_mutex\
+	obj_cpp_shared_mutex\
 	obj_cpp_timed_mtx\
 	obj_cpp_timed_mtx_posix
 
 OTHER_TESTS = \
 	arch_flags\
+	bttdevice\
 	checksum\
 	magic\
 	out_err\
 	out_err_mt\
 	pmemobjcli\
 	pmemspoil\
-	bttdevice\
 	scope\
 	set_funcs\
 	traces\
@@ -197,24 +204,24 @@ OTHER_TESTS = \
 	unicode_api\
 	unicode_match_script\
 	util_cpuid\
-	util_uuid_generate\
-	util_vec\
 	util_file_create\
 	util_file_open\
+	util_is_absolute\
+	util_is_poolset\
 	util_map_proc\
 	util_parse_size\
 	util_plugin\
 	util_poolset\
+	util_poolset_foreach\
 	util_poolset_parse\
-	util_is_absolute\
-	util_is_poolset\
 	util_poolset_size\
-	util_poolset_foreach
+	util_uuid_generate\
+	util_vec
 
 PMEM_TESTS = \
+	pmem_include\
 	pmem_is_pmem\
 	pmem_is_pmem_linux\
-	pmem_include\
 	pmem_map_file\
 	pmem_memcpy\
 	pmem_memmove\
@@ -233,20 +240,20 @@ PMEMPOOL_TESTS = \
 	pmempool_sync\
 	pmempool_transform
 
-RPMEM_TESTS =\
-	rpmemd_config\
-	rpmemd_util\
-	rpmemd_log\
-	rpmemd_dbg\
-	rpmem_proto\
-	rpmem_obc\
-	rpmemd_obc\
-	rpmem_obc_int\
-	rpmemd_db\
-	rpmem_fip\
-	rpmem_basic\
+RPMEM_TESTS = \
 	rpmem_addr\
-	rpmem_addr_ext
+	rpmem_addr_ext\
+	rpmem_basic\
+	rpmem_fip\
+	rpmem_obc\
+	rpmem_obc_int\
+	rpmem_proto\
+	rpmemd_config\
+	rpmemd_db\
+	rpmemd_dbg\
+	rpmemd_log\
+	rpmemd_obc\
+	rpmemd_util
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\
@@ -294,15 +301,16 @@ VMMALLOC_TESTS = \
 EXAMPLES_TESTS = \
 	ex_libpmem\
 	ex_libpmemblk\
+	ex_libpmemcto\
 	ex_libpmemlog\
 	ex_libpmemobj\
-	ex_linkedlist\
-	ex_libpmemcto
+	ex_linkedlist
 
 CPP_EXAMPLE_TESTS = \
 	ex_libpmemobj_cpp
 
-LIBPMEMPOOL_DEPS = libpmempool_api
+LIBPMEMPOOL_DEPS = \
+	libpmempool_api
 
 LIBPMEMPOOL_TESTS = \
 	libpmempool_include\
@@ -313,6 +321,7 @@ LIBPMEMPOOL_TESTS = \
 
 LIBPMEMPOOL_MOD_DEPS = \
 	libpmempool_sync
+
 LIBPMEMPOOL_MOD_TESTS = \
 	libpmempool_transform
 
@@ -330,6 +339,7 @@ CTO_TESTS = \
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
+	$(CTO_TESTS)\
 	$(LOG_TESTS)\
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
@@ -340,18 +350,17 @@ LOCAL_TESTS = \
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
-	$(CTO_TESTS)
 
 REMOTE_TESTS = \
-	remote_basic\
-	remote_obj_basic\
 	$(OBJ_REMOTE_TESTS)\
 	$(RPMEM_TESTS)\
+	libpmempool_rm_remote\
+	remote_basic\
+	remote_obj_basic\
 	pmempool_info_remote\
 	pmempool_rm_remote\
 	pmempool_sync_remote\
-	pmempool_transform_remote\
-	libpmempool_rm_remote
+	pmempool_transform_remote
 
 ifeq ($(filter n,$(call check_cxx_flags, -std=c++11) $(call check_clang_template_bug)),)
 LOCAL_TESTS += $(OBJ_CPP_TESTS)
@@ -415,6 +424,7 @@ clean clobber: $(TESTS_BUILD)
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS) $(VMMALLOC_DUMMY_FUNCS_DEPS): $(TEST_DEPS)
 
 $(OBJ_TESTS): $(OBJ_DEPS)
+$(OBJ_REMOTE_TESTS): $(OBJ_REMOTE_DEPS)
 $(LIBPMEMPOOL_TESTS): $(LIBPMEMPOOL_DEPS)
 $(LIBPMEMPOOL_MOD_TESTS): $(LIBPMEMPOOL_MOD_DEPS)
 $(VMMALLOC_DUMMY_FUNCS_TESTS): $(VMMALLOC_DUMMY_FUNCS_DEPS)
