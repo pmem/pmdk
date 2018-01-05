@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,12 +43,6 @@ export UNITTEST_NUM=12
 require_test_type medium
 
 SETUP_MANUAL_INIT_RPMEM=1
-# libfabric sockets provider in version below 1.5.0 falls into infinite loop
-# in rpmem_read if rpmemd is terminated. To handle it properly it requires
-# fix https://github.com/ofiwg/libfabric/commit/c975c80ac3250d1ed4100bdd99656fffa60c90c6
-if [ "$RPMEM_PROVIDER" == "sockets" ]; then
-	SETUP_LIBFABRIC_VERSION=1.5.0
-fi
 . setup.sh
 
 PID_FILE=rpmemd.pid
