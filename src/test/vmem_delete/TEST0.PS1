@@ -48,10 +48,6 @@ require_fs_type none
 
 setup
 
-# this test invokes sigsegvs by design
-# XXX - AddressSanitizer detector not supported on Windows
-#$Env:ASAN_OPTIONS="handle_segv=0"
-
 expect_normal_exit $Env:EXE_DIR\vmem_delete$Env:EXESUFFIX h f m c r a s d
 
 check

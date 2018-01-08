@@ -79,12 +79,8 @@
     <ClCompile Include="obj_tx_alloc.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match" />
-    <None Include="err1.log.match" />
     <None Include="out0.log.match" />
-    <None Include="out1w.log.match" />
     <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

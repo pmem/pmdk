@@ -47,7 +47,6 @@ $Env:UNITTEST_NUM = "7"
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type none
 require_build_type debug nondebug
 

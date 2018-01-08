@@ -84,9 +84,6 @@
     <ClCompile Include="blk_rw_mt.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="err0.log.match" />
-    <None Include="err1.log.match" />
-    <None Include="err2.log.match" />
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
     <None Include="out2.log.match" />

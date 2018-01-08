@@ -48,8 +48,6 @@
     <None Include="out4.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out5.log.match">
-      <Filter>Match Files</Filter>
-    </None>
+    <None Include="README" />
   </ItemGroup>
 </Project>

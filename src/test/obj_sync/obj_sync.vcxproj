@@ -75,31 +75,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="err0.log.match" />
-    <None Include="err1.log.match" />
-    <None Include="err2.log.match" />
     <None Include="err3.log.match" />
-    <None Include="err4.log.match" />
     <None Include="err5.log.match" />
-    <None Include="err6.log.match" />
+    <None Include="err7.log.match" />
     <None Include="out0.log.match" />
-    <None Include="out1.log.match" />
-    <None Include="out2.log.match" />
     <None Include="out3.log.match" />
-    <None Include="out4.log.match" />
     <None Include="out5.log.match" />
-    <None Include="out6.log.match" />
     <None Include="out7.log.match" />
     <None Include="README" />
     <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
-    <None Include="TEST2.PS1" />
     <None Include="TEST3.PS1" />
-    <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />
-    <None Include="TEST6.PS1" />
     <None Include="TEST7.PS1" />
-    <None Include="TEST8.PS1" />
-    <None Include="TEST9.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">

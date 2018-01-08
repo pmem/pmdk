@@ -5,10 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{60f0bac0-1b76-4dcd-8caf-adc1268df705}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{b94ffedf-6586-4a6f-9776-10034cce5db9}</UniqueIdentifier>
       <Extensions>PS1</Extensions>
@@ -21,9 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST1.PS1">
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST2.PS1">

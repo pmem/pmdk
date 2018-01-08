@@ -45,10 +45,6 @@ $Env:UNITTEST_NUM = "0"
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
-# XXX: however we don't have valgrind in Windows yet
-#configure_valgrind memcheck force-disable
-
 require_fs_type any
 
 setup
