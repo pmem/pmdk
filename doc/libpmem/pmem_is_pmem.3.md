@@ -152,7 +152,7 @@ The **pmem_is_pmem**() function returns true only if the entire range
 \[*addr*, *addr*+*len*) consists of persistent memory. A true return
 from **pmem_is_pmem**() means it is safe to use **pmem_persist**(3)
 and the related functions to make changes durable for that memory
-range.
+range. See also **CAVEATS**.
 
 On success, _UW(pmem_map_file) returns a pointer to the memory-mapped region
 and sets \**mapped_lenp* and \**is_pmemp* if they are not NULL.
@@ -173,6 +173,11 @@ as appropriate.
 
 
 # CAVEATS #
+
+The result of **pmem_is_pmem**() query is only valid for the mappings
+created using _UW(pmem_map_file). For other memory regions, in particular
+those created by a direct call to **mmap**(2), **pmem_is_pmem**() always
+returns false, even if the queried range is entirely persistent memory.
 
 Not all file systems support **posix_fallocate**(3). _UW(pmem_map_file) will
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
