@@ -293,10 +293,10 @@ ifeq ($(USE_LLVM_LIBCPP),1)
 $(call check_defined, LIBCPP_LIBDIR LIBCPP_INCDIR, when using USE_LLVM_LIBCPP)
 
 ifeq ($(COMPILE_LANG), cpp)
-CXXFLAGS += -stdlib=libc++
+CXXFLAGS += -nostdinc++
 INCS += -I$(LIBCPP_INCDIR)
-LIBS += -L$(LIBCPP_LIBDIR) -lc++ -lc++abi
-LDFLAGS += -stdlib=libc++ -Wl,-rpath,$(LIBCPP_LIBDIR)
+LIBS += -L$(LIBCPP_LIBDIR) -lc++ $(LIBCXXABI)
+LDFLAGS += -Wl,-rpath,$(LIBCPP_LIBDIR)
 endif
 endif
 

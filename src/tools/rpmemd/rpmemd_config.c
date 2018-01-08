@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -316,6 +316,8 @@ static void
 parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 	struct rpmemd_config *config, uint64_t disabled)
 {
+	errno = 0;
+
 	if (pos->comment_char < pos->equal_char)
 		pos->equal_char = INVALID_CHAR_POS;
 

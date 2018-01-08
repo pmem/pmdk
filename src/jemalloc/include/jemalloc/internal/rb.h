@@ -24,7 +24,7 @@
 
 /* XXX Avoid super-slow compile with clang */
 #define NOSANITIZE
-#ifdef __clang__
+#if (__clang_major__ == 3 && __clang_minor__ < 9)
 #if __has_attribute(__no_sanitize__)
 #undef NOSANITIZE
 #define NOSANITIZE __attribute__((no_sanitize("undefined")))

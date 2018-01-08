@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -240,6 +240,7 @@ OS_LIBS=-L/usr/local/lib
 LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
+LIBCXXABI=-lcxxrt
 else
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
@@ -248,4 +249,5 @@ OS_LIBS=
 LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
+LIBCXXABI=-lc++abi
 endif

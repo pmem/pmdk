@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,6 @@ configure_valgrind helgrind force-disable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_mt$EXESUFFIX 32 1000 100 $DIR/testfile
+	./obj_pmalloc_mt$EXESUFFIX 32 800 100 $DIR/testfile
 
 pass
