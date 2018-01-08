@@ -162,6 +162,8 @@ main(int argc, char *argv[])
 	int fd;
 	char *dest;
 	char *src;
+	char *dest_orig;
+	char *src_orig;
 	os_off_t dest_off = 0;
 	os_off_t src_off = 0;
 	uint64_t bytes = 0;
@@ -224,11 +226,12 @@ main(int argc, char *argv[])
 	/* for overlap the src and dest must be created differently */
 	if (who == 0) {
 		/* src > dest */
-		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
+			&mapped_len, NULL);
 		if (dest == NULL)
 			UT_FATAL("!could not mmap dest file %s", argv[1]);
 
-		src = MMAP(dest + mapped_len, mapped_len,
+		src_orig = src = MMAP(dest + mapped_len, mapped_len,
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
 			-1, 0);
 		/*
@@ -255,11 +258,15 @@ main(int argc, char *argv[])
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
 			bytes);
-		MUNMAP(dest, mapped_len);
-		MUNMAP(src, mapped_len);
+
+		int ret = pmem_unmap(dest_orig, mapped_len);
+		UT_ASSERTeq(ret, 0);
+
+		MUNMAP(src_orig, mapped_len);
 	} else if (who == 1) {
 		/* src overlap with dest */
-		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
+			&mapped_len, NULL);
 		if (dest == NULL)
 			UT_FATAL("!Could not mmap %s: \n", argv[1]);
 
@@ -268,20 +275,25 @@ main(int argc, char *argv[])
 		util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
-		MUNMAP(dest, mapped_len);
+
+		int ret = pmem_unmap(dest_orig, mapped_len);
+		UT_ASSERTeq(ret, 0);
 	} else {
 		/* dest overlap with src */
-		dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
-		if (dest == NULL) {
+		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
+			&mapped_len, NULL);
+		if (dest == NULL)
 			UT_FATAL("!Could not mmap %s: \n", argv[1]);
-		}
+
 		src = dest;
 		dest = src + overlap;
 		memset(src, 0, bytes);
 		util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
-		MUNMAP(src, mapped_len);
+
+		int ret = pmem_unmap(dest_orig, mapped_len);
+		UT_ASSERTeq(ret, 0);
 	}
 
 	CLOSE(fd);

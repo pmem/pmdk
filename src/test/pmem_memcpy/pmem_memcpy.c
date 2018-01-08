@@ -132,6 +132,8 @@ main(int argc, char *argv[])
 	int fd;
 	char *dest;
 	char *src;
+	char *dest_orig;
+	char *src_orig;
 	size_t mapped_len;
 
 	START(argc, argv, "pmem_memcpy");
@@ -145,12 +147,12 @@ main(int argc, char *argv[])
 	size_t bytes = strtoul(argv[4], NULL, 0);
 
 	/* src > dst */
-	dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+	dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
 	if (dest == NULL)
 		UT_FATAL("!could not map file: %s", argv[1]);
 
-	src = MMAP(dest + mapped_len, mapped_len, PROT_READ|PROT_WRITE,
-		MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+	src_orig = src = MMAP(dest + mapped_len, mapped_len,
+			PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
 	/*
 	 * Its very unlikely that src would not be > dest. pmem_map_file
 	 * chooses the first unused address >= 1TB, large
@@ -178,8 +180,11 @@ main(int argc, char *argv[])
 	}
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, argv[1]);
-	MUNMAP(dest, mapped_len);
-	MUNMAP(src, mapped_len);
+
+	int ret = pmem_unmap(dest_orig, mapped_len);
+	UT_ASSERTeq(ret, 0);
+
+	MUNMAP(src_orig, mapped_len);
 
 	CLOSE(fd);
 
