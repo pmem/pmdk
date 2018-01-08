@@ -1,5 +1,6 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,8 +56,9 @@
  */
 struct pmem_context {
     char *filename;
+    size_t psize;
     int fd;
-    int sys_pagesize;
+    char *addr;
     uint64_t art_tree_root_offset;
 };
 

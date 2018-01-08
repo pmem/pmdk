@@ -56,7 +56,6 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <sys/mman.h>
 #include "arttree_structures.h"
 
 /*
@@ -298,292 +297,167 @@ dump_PMEMoid(char *prefix, PMEMoid *oid)
 static int
 examine_PMEMoid(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	void *p;
-	size_t obj_len;
+	void *p = (void *)(ctx->pmem_ctx->addr + off);
+	dump_PMEMoid("PMEMoid", p);
 
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(PMEMoid);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		dump_PMEMoid("PMEMoid", p);
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_PMEMoid mmap failed");
-		errors++;
-	}
-
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_tree_root(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	void *p;
-	size_t obj_len;
-	art_tree_root *tree_root;
+	art_tree_root *tree_root = (art_tree_root *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_tree_root {\n", (long long)off);
+	printf("    size %d\n", tree_root->size);
+	dump_PMEMoid("    art_node_u", (PMEMoid *)&(tree_root->root));
+	printf("\n};\n");
 
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_tree_root);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		tree_root = (art_tree_root *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_tree_root {\n", (long long)off);
-		printf("    size %d\n", tree_root->size);
-		dump_PMEMoid("    art_node_u", (PMEMoid *)&(tree_root->root));
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_tree_root mmap failed");
-		errors++;
-	}
-
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_node_u(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	void *p;
-	size_t obj_len;
-	art_node_u *node_u;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node_u);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		node_u = (art_node_u *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node_u {\n", (long long)off);
-		printf("    type %d [%s]\n", node_u->art_node_type,
-		    art_node_names[node_u->art_node_type]);
-		printf("    tag %d\n", node_u->art_node_tag);
-		switch (node_u->art_node_type) {
-		case ART_NODE4:
-			dump_PMEMoid("    art_node4 oid",
-			    &(node_u->u.an4.oid));
-			break;
-		case ART_NODE16:
-			dump_PMEMoid("    art_node16 oid",
-			    &(node_u->u.an16.oid));
-			break;
-		case ART_NODE48:
-			dump_PMEMoid("    art_node48 oid",
-			    &(node_u->u.an48.oid));
-			break;
-		case ART_NODE256:
-			dump_PMEMoid("    art_node256 oid",
-			    &(node_u->u.an256.oid));
-			break;
-		case ART_LEAF:
-			dump_PMEMoid("    art_leaf oid",
-			    &(node_u->u.al.oid));
-			break;
-		default: printf("ERROR: unknown node type\n");
-			break;
-		}
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node_u mmap failed");
-		errors++;
+	art_node_u *node_u = (art_node_u *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node_u {\n", (long long)off);
+	printf("    type %d [%s]\n", node_u->art_node_type,
+	    art_node_names[node_u->art_node_type]);
+	printf("    tag %d\n", node_u->art_node_tag);
+	switch (node_u->art_node_type) {
+	case ART_NODE4:
+		dump_PMEMoid("    art_node4 oid",
+		    &(node_u->u.an4.oid));
+		break;
+	case ART_NODE16:
+		dump_PMEMoid("    art_node16 oid",
+		    &(node_u->u.an16.oid));
+		break;
+	case ART_NODE48:
+		dump_PMEMoid("    art_node48 oid",
+		    &(node_u->u.an48.oid));
+		break;
+	case ART_NODE256:
+		dump_PMEMoid("    art_node256 oid",
+		    &(node_u->u.an256.oid));
+		break;
+	case ART_LEAF:
+		dump_PMEMoid("    art_leaf oid",
+		    &(node_u->u.al.oid));
+		break;
+	default: printf("ERROR: unknown node type\n");
+		break;
 	}
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_node4(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	int i;
-	void *p;
-	size_t obj_len;
-	art_node4 *an4;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node4);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		an4 = (art_node4 *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node4 {\n", (long long)off);
-		examine_art_node(&(an4->n));
-		printf("keys [");
-		for (i = 0; i < 4; i++) {
-			printf("%c ", an4->keys[i]);
-		}
-		printf("]\nnodes [\n");
-		for (i = 0; i < 4; i++) {
-			dump_PMEMoid("       art_node_u oid",
-			    &(an4->children[i].oid));
-		}
-		printf("\n]");
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node4 mmap failed");
-		errors++;
+	art_node4 *an4 = (art_node4 *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node4 {\n", (long long)off);
+	examine_art_node(&(an4->n));
+	printf("keys [");
+	for (int i = 0; i < 4; i++) {
+		printf("%c ", an4->keys[i]);
 	}
+	printf("]\nnodes [\n");
+	for (int i = 0; i < 4; i++) {
+		dump_PMEMoid("       art_node_u oid",
+		    &(an4->children[i].oid));
+	}
+	printf("\n]");
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_node16(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	int i;
-	void *p;
-	size_t obj_len;
-	art_node16 *an16;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node16);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		an16 = (art_node16 *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node16 {\n", (long long)off);
-		examine_art_node(&(an16->n));
-		printf("keys [");
-		for (i = 0; i < 16; i++) {
-			printf("%c ", an16->keys[i]);
-		}
-		printf("]\nnodes [\n");
-		for (i = 0; i < 16; i++) {
-			dump_PMEMoid("       art_node_u oid",
-			    &(an16->children[i].oid));
-		}
-		printf("\n]");
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node16 mmap failed");
-		errors++;
+	art_node16 *an16 = (art_node16 *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node16 {\n", (long long)off);
+	examine_art_node(&(an16->n));
+	printf("keys [");
+	for (int i = 0; i < 16; i++) {
+		printf("%c ", an16->keys[i]);
 	}
+	printf("]\nnodes [\n");
+	for (int i = 0; i < 16; i++) {
+		dump_PMEMoid("       art_node_u oid",
+		    &(an16->children[i].oid));
+	}
+	printf("\n]");
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_node48(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	int i;
-	void *p;
-	size_t obj_len;
-	art_node48 *an48;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node48);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		an48 = (art_node48 *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node48 {\n", (long long)off);
-		examine_art_node(&(an48->n));
-		printf("keys [");
-		for (i = 0; i < 256; i++) {
-			printf("%c ", an48->keys[i]);
-		}
-		printf("]\nnodes [\n");
-		for (i = 0; i < 48; i++) {
-			dump_PMEMoid("       art_node_u oid",
-			    &(an48->children[i].oid));
-		}
-		printf("\n]");
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node48 mmap failed");
-		errors++;
+	art_node48 *an48 = (art_node48 *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node48 {\n", (long long)off);
+	examine_art_node(&(an48->n));
+	printf("keys [");
+	for (int i = 0; i < 256; i++) {
+		printf("%c ", an48->keys[i]);
 	}
+	printf("]\nnodes [\n");
+	for (int i = 0; i < 48; i++) {
+		dump_PMEMoid("       art_node_u oid",
+		    &(an48->children[i].oid));
+	}
+	printf("\n]");
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 
 static int
 examine_art_node256(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	int i;
-	void *p;
-	size_t obj_len;
-	art_node256 *an256;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node256);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		an256 = (art_node256 *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node256 {\n", (long long)off);
-		examine_art_node(&(an256->n));
-		printf("nodes [\n");
-		for (i = 0; i < 256; i++) {
-			dump_PMEMoid("       art_node_u oid",
-			    &(an256->children[i].oid));
-		}
-		printf("\n]");
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node256 mmap failed");
-		errors++;
+	art_node256 *an256 = (art_node256 *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node256 {\n", (long long)off);
+	examine_art_node(&(an256->n));
+	printf("nodes [\n");
+	for (int i = 0; i < 256; i++) {
+		dump_PMEMoid("       art_node_u oid",
+		    &(an256->children[i].oid));
 	}
+	printf("\n]");
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 
 #if 0 /* XXX */
 static int
 examine_art_node(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	int i;
-	void *p;
-	size_t obj_len;
-	art_node *an;
-
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_node);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		an = (art_node *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_node {\n", (long long)off);
-		printf("     num_children  %d\n", an->num_children);
-		printf("     partial_len   %d\n", an->partial_len);
-		printf("     partial [");
-		for (i = 0; i < 10; i++) {
-			printf("%c ", an->partial[i]);
-		}
-		printf("\n]");
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_node mmap failed");
-		errors++;
+	art_node *an = (art_node *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_node {\n", (long long)off);
+	printf("     num_children  %d\n", an->num_children);
+	printf("     partial_len   %d\n", an->partial_len);
+	printf("     partial [");
+	for (int i = 0; i < 10; i++) {
+		printf("%c ", an->partial[i]);
 	}
+	printf("\n]");
+	printf("\n};\n");
 
-	return errors;
+	return 0;
 }
 #else
 static int
 examine_art_node(art_node *an)
 {
-	int i;
-
 	printf("art_node {\n");
 	printf("     num_children  %d\n", an->num_children);
 	printf("     partial_len   %d\n", an->partial_len);
 	printf("     partial [");
-	for (i = 0; i < 10; i++) {
+	for (int i = 0; i < 10; i++) {
 		printf("%c ", an->partial[i]);
 	}
 	printf("\n]");
@@ -596,52 +470,22 @@ examine_art_node(art_node *an)
 static int
 examine_art_leaf(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	void *p;
-	size_t obj_len;
-	art_leaf *al;
+	art_leaf *al = (art_leaf *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, art_leaf {\n", (long long)off);
+	dump_PMEMoid("       var_string key oid  ", &(al->key.oid));
+	dump_PMEMoid("       var_string value oid", &(al->value.oid));
+	printf("\n};\n");
 
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(art_leaf);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		al = (art_leaf *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, art_leaf {\n", (long long)off);
-		dump_PMEMoid("       var_string key oid  ", &(al->key.oid));
-		dump_PMEMoid("       var_string value oid", &(al->value.oid));
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_art_leaf mmap failed");
-		errors++;
-	}
-
-	return errors;
+	return 0;
 }
 
 static int
 examine_var_string(char *appname, struct examine_ctx *ctx, off_t off)
 {
-	int fd;
-	int errors = 0;
-	void *p;
-	size_t obj_len;
-	var_string *vs;
+	var_string *vs = (var_string *)(ctx->pmem_ctx->addr + off);
+	printf("at offset 0x%llx, var_string {\n", (long long)off);
+	printf("    len %ld s [%s]", vs->len, vs->s);
+	printf("\n};\n");
 
-	fd = ctx->pmem_ctx->fd;
-	obj_len = sizeof(var_string);
-	p = mmap(NULL, off + obj_len, PROT_READ, MAP_SHARED, fd, 0);
-	if (p != MAP_FAILED) {
-		vs = (var_string *)(((unsigned char *)p) + off);
-		printf("at offset 0x%llx, var_string {\n", (long long)off);
-		printf("    len %ld s [%s]", vs->len, vs->s);
-		printf("\n};\n");
-		munmap(p, off + obj_len);
-	} else {
-		perror("examine_var_string mmap failed");
-		errors++;
-	}
-
-	return errors;
+	return 0;
 }

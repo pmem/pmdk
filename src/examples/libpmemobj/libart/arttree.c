@@ -63,6 +63,7 @@
 #include <fcntl.h>
 #include <emmintrin.h>
 #include <sys/types.h>
+#include <sys/mman.h>
 #include "libpmemobj.h"
 #include "arttree.h"
 
@@ -89,6 +90,7 @@ struct ds_context
 	bool fileio;
 	unsigned fmode;
 	int fd;			/* file descriptor for file io mode */
+	char *addr;		/* base mapping address for file io mode */
 	unsigned char *key;	/* for SEARCH, INSERT and REMOVE */
 	uint32_t key_len;
 	unsigned char *value;	/* for INSERT */
@@ -291,12 +293,22 @@ art_tree_map_init(struct datastore *ds, struct ds_context *ctx)
 			perror("posix_fallocate");
 			errors++;
 		}
+
+		/* map file to memory */
+		if ((ctx->addr = mmap(NULL, ctx->psize, PROT_READ, MAP_SHARED,
+				ctx->fd, 0)) == MAP_FAILED) {
+			perror("mmap");
+			errors++;
+		}
 	}
 
 	if (!errors) {
 		pmemobj_ds_set_priv(ds, ctx);
 	} else {
 		if (ctx->fileio) {
+			if (ctx->addr != NULL) {
+				munmap(ctx->addr, ctx->psize);
+			}
 			if (ctx->fd >= 0) {
 				close(ctx->fd);
 			}

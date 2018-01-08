@@ -47,7 +47,7 @@
 # ===========================================================================
 #
 
-PROGS = arttree arttree_structures
+PROGS = arttree examine_arttree
 LIBRARIES = art
 
 LIBS = -lpmemobj
@@ -60,4 +60,4 @@ $(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart
 libart.o: art.o
 
 arttree: arttree.o
-arttree_structures: arttree_structures.o arttree_examine.o arttree_search.o
+examine_arttree: arttree_structures.o arttree_examine.o arttree_search.o
