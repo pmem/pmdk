@@ -660,13 +660,13 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
 
-			/* skip not created parts */
-			if (!part->created)
+			/* skip not created or closed parts */
+			if (!part->created || part->fd == -1)
 				continue;
 
 			os_stat_t stbuf;
 			if (os_fstat(part->fd, &stbuf) != 0) {
-				ERR("!fstat");
+				ERR("!fstat %d %s", part->fd, part->path);
 				return -1;
 			}
 
@@ -945,6 +945,8 @@ static int
 util_replica_add_part(struct pool_replica **repp,
 	const char *path, size_t filesize)
 {
+	LOG(3, "replica %p path \"%s\" filesize %zu", *repp, path, filesize);
+
 	return util_replica_add_part_by_idx(repp, path,
 		filesize, (*repp)->nparts);
 }
@@ -1104,6 +1106,8 @@ util_poolset_check_devdax(struct pool_set *set)
 static void
 util_poolset_set_size(struct pool_set *set)
 {
+	LOG(3, "set %p", set);
+
 	set->poolsize = SIZE_MAX;
 	set->resvsize = SIZE_MAX;
 
@@ -1181,6 +1185,8 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 static char *
 util_readline(FILE *fh)
 {
+	LOG(10, "fh %p", fh);
+
 	size_t bufsize = PARSER_MAX_LINE;
 	size_t position = 0;
 	char *buffer = NULL;
@@ -1217,6 +1223,8 @@ util_readline(FILE *fh)
 static long
 util_part_idx_by_file_name(const char *filename)
 {
+	LOG(3, "filename \"%s\"", filename);
+
 	int olderrno = errno;
 	errno = 0;
 	long part_idx = strtol(filename, NULL, 0);
@@ -1235,9 +1243,13 @@ util_part_idx_by_file_name(const char *filename)
 static int
 util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 {
+	LOG(3, "rep %p dir \"%s\"", *repp, directory);
+
 	struct fs *f = fs_new(directory);
-	if (f == NULL)
+	if (f == NULL) {
+		ERR("!fs_new: \"%s\"", directory);
 		return -1;
+	}
 
 	int nparts = 0;
 	char *path = NULL;
@@ -1259,33 +1271,29 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 
 		ssize_t size = util_file_get_size(entry->path);
 		if (size < 0) {
-			LOG(3,
+			LOG(2,
 			"cannot read size of file (%s) in a poolset directory",
 			entry->path);
-			goto err_file_size;
+			goto err;
 		}
 
-		if ((path = Strdup(entry->path)) == NULL)
-			goto err_path_alloc;
+		if ((path = Strdup(entry->path)) == NULL) {
+			ERR("!Strdup");
+			goto err;
+		}
 
 		if (util_replica_add_part_by_idx(repp, path,
 				(size_t)size, (unsigned)part_idx) != 0) {
-
-			ERR("unable to load part %s",
-				entry->path);
-			goto err_replica_add;
+			ERR("unable to load part %s", entry->path);
+			goto err;
 		}
 		nparts++;
 	}
 
 	fs_delete(f);
-
 	return nparts;
 
-err_replica_add:
-	Free(path);
-err_file_size:
-err_path_alloc:
+err:
 	fs_delete(f);
 	return -1;
 }
@@ -1362,12 +1370,15 @@ util_poolset_directories_load(struct pool_set *set)
 			*p = mrep->part[pidx];
 
 			size_t path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
-			if ((p->path = Malloc(path_len)) == NULL)
+			if ((p->path = Malloc(path_len)) == NULL) {
+				ERR("!Malloc");
 				return -1;
+			}
 
-			snprintf((char *)p->path, path_len, "%s/%0*u%s",
-				d->path, PMEM_FILE_PADDING,
-				pidx, PMEM_EXT);
+			snprintf((char *)p->path, path_len,
+					"%s" OS_DIR_SEP_STR "%0*u%s",
+					d->path, PMEM_FILE_PADDING,
+					pidx, PMEM_EXT);
 		}
 		rep->nparts = mrep->nparts;
 	}
@@ -1387,6 +1398,7 @@ int
 util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 {
 	LOG(3, "setp %p path %s fd %d", setp, path, fd);
+
 	struct pool_set *set = NULL;
 	enum parser_codes result;
 	char *line;
@@ -1555,7 +1567,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	}
 
 	LOG(4, "set file format correct (%s)", path);
-	(void) fclose(fs);
+	(void) os_fclose(fs);
 	Free(line);
 	util_poolset_set_size(set);
 	*setp = set;
@@ -1563,7 +1575,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 
 err:
 	Free(line);
-	(void) fclose(fs);
+	(void) os_fclose(fs);
 	if (set)
 		util_poolset_free(set);
 	return -1;
@@ -1686,6 +1698,7 @@ void
 util_part_fdclose(struct pool_set_part *part)
 {
 	LOG(3, "part %p", part);
+
 	if (part->fd != -1) {
 		(void) os_close(part->fd);
 		part->fd = -1;
@@ -1788,6 +1801,7 @@ int
 util_update_remote_header(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
+
 	ASSERTne(REP(set, repn)->remote, NULL);
 	ASSERTne(REP(set, repn)->remote->rpp, NULL);
 
@@ -1982,8 +1996,10 @@ util_poolset_read(struct pool_set **setp, const char *path)
 	int ret = 0;
 	int fd;
 
-	if ((fd = os_open(path, O_RDONLY)) < 0)
+	if ((fd = os_open(path, O_RDONLY)) < 0) {
+		ERR("!open: path \"%s\"", path);
 		return -1;
+	}
 
 	ret = util_poolset_parse(setp, path, fd);
 
@@ -2706,57 +2722,29 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 
 	struct pool_set_directory *d;
 	size_t directory_id;
+	char *path;
+	size_t path_len;
 
-	struct part {
-		char *path;
-		size_t path_len;
-		int fd;
-	} *parts = Zalloc(sizeof(*parts) * set->nreplicas);
-	if (parts == NULL)
-		return -1;
-
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (util_replica_reserve(&set->replica[r],
-			set->replica[r]->nparts + 1) != 0)
-			goto err_part_init;
-
+	unsigned r;
+	for (r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 
 		directory_id = set->next_directory_id %
 			VEC_SIZE(&rep->directory);
 		d = VEC_GET(&rep->directory, directory_id);
 
-		struct part *p = &parts[r];
-
-		p->path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
-		if ((p->path = Malloc(p->path_len)) == NULL)
+		path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
+		if ((path = Malloc(path_len)) == NULL) {
+			ERR("!Malloc");
 			goto err_part_init;
+		}
 
-		snprintf(p->path, p->path_len, "%s/%0*u%s",
+		snprintf(path, path_len, "%s" OS_DIR_SEP_STR "%0*u%s",
 			d->path, PMEM_FILE_PADDING, set->next_id, PMEM_EXT);
 
-		p->fd = os_open(p->path, O_RDWR | O_CREAT | O_EXCL,
-			S_IRUSR | S_IWUSR);
-		if (p->fd < 0)
-			goto err_part_init;
-
-		if (os_posix_fallocate(p->fd, 0, (os_off_t)size) != 0)
-			goto err_part_init;
-	}
-
-	/* we cannot easily recover during this loop */
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct part *p = &parts[r];
-
-		/* the capacity is reserved, so this should never fail */
-		if (util_replica_add_part(&set->replica[r], p->path, size) != 0)
+		if (util_replica_add_part(&set->replica[r], path, size) != 0)
 			FATAL("cannot add a new part to the replica info");
-
-		os_close(p->fd);
-		p->fd = 0;
 	}
-
-	Free(parts);
 
 	set->next_directory_id += 1;
 	set->next_id += 1;
@@ -2766,16 +2754,13 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 	return 0;
 
 err_part_init:
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct part *p = &parts[r];
-		if (p->path != NULL) {
-			os_unlink(p->path);
-			Free(p->path);
-		}
-		if (p->fd > 0)
-			os_close(p->fd);
+	/* for each replica 0..r-1 remove the last part */
+	for (unsigned rn = 0; rn < r; ++rn) {
+		struct pool_replica *rep = set->replica[rn];
+		unsigned pidx = rep->nparts - 1;
+		Free((void *)(rep->part[pidx].path));
+		rep->nparts--;
 	}
-	Free(parts);
 
 	return -1;
 }
@@ -2821,7 +2806,7 @@ util_pool_extend(struct pool_set *set, size_t size)
 		unsigned pidx = rep->nparts - 1;
 		struct pool_set_part *p = &rep->part[pidx];
 
-		if (util_part_open(p, 0, 0) != 0) {
+		if (util_part_open(p, 0, 1 /* create */) != 0) {
 			ERR("cannot open the new part");
 			goto err;
 		}
@@ -2837,6 +2822,12 @@ util_pool_extend(struct pool_set *set, size_t size)
 		}
 	}
 
+	/* XXX: mode should be the same as for pmemxxx_create() */
+	if (util_poolset_chmod(set, S_IWUSR | S_IRUSR))
+		goto err;
+
+	util_poolset_fdclose(set);
+
 	return addr_base;
 
 err:
@@ -2847,8 +2838,10 @@ err:
 		rep->nparts--;
 
 		if (p->fd != 0)
-			os_close(p->fd);
-		os_unlink(p->path);
+			(void) os_close(p->fd);
+		if (p->created)
+			os_unlink(p->path);
+		Free((void *)p->path);
 	}
 	util_poolset_set_size(set);
 
@@ -2931,8 +2924,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	}
 
 	if (set->remote && util_remote_load()) {
-		ERR("the pool set requires a remote replica, "
-			"but the '%s' library cannot be loaded",
+		ERR(
+		"the pool set requires a remote replica, but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
 		util_poolset_free(set);
 		return -1;
