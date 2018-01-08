@@ -153,6 +153,7 @@ memory.
 A true return from \f[B]pmem_is_pmem\f[]() means it is safe to use
 \f[B]pmem_persist\f[](3) and the related functions to make changes
 durable for that memory range.
+See also \f[B]CAVEATS\f[].
 .PP
 On success, \f[B]pmem_map_file\f[]() returns a pointer to the
 memory\-mapped region and sets *\f[I]mapped_lenp\f[] and
@@ -171,6 +172,12 @@ In the future, as file systems become available that support flushing
 with \f[B]pmem_persist\f[](3), \f[B]pmem_is_pmem\f[]() will return true
 as appropriate.
 .SH CAVEATS
+.PP
+The result of \f[B]pmem_is_pmem\f[]() query is only valid for the
+mappings created using \f[B]pmem_map_file\f[]().
+For other memory regions, in particular those created by a direct call
+to \f[B]mmap\f[](2), \f[B]pmem_is_pmem\f[]() always returns false, even
+if the queried range is entirely persistent memory.
 .PP
 Not all file systems support \f[B]posix_fallocate\f[](3).
 \f[B]pmem_map_file\f[]() will fail if \f[B]PMEM_FILE_CREATE\f[] is
