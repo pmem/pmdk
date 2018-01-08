@@ -57,6 +57,14 @@ The remote node is identified by the \f[I]rpp\f[] handle which must be
 returned from either \f[B]rpmem_open\f[](3) or \f[B]rpmem_create\f[](3).
 The \f[I]offset\f[] is relative to the \f[I]pool_addr\f[] specified in
 the \f[B]rpmem_open\f[](3) or \f[B]rpmem_create\f[](3) call.
+If the remote pool was created using \f[B]rpmem_create\f[]() with
+non\-NULL \f[I]create_attr\f[] argument, \f[I]offset\f[] has to be
+greater or equal to 4096.
+In that case the first 4096 bytes of the pool is used for storing the
+pool matadata and cannot be overwritten.
+If the pool was created with NULL \f[I]create_attr\f[] argument, the
+pool metadata is not stored with the pool and \f[I]offset\f[] can be any
+nonnegative number.
 The \f[I]offset\f[] and \f[I]length\f[] combined must not exceed the
 \f[I]pool_size\f[] passed to \f[B]rpmem_open\f[](3) or
 \f[B]rpmem_create\f[](3).
