@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,3 +36,8 @@
 
 #include <string.h>
 #include <stdint.h>
+
+
+int os_dimm_uid(const char *path, char *uid);
+int os_dimm_uid_size(const char *path, size_t *len);
+int os_dimm_usc(const char *path, uint64_t *usc);

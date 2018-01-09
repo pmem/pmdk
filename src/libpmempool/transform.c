@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -902,6 +902,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (!replica_is_poolset_healthy(set_in_hs)) {
 		ERR("source poolset is broken");
 		ret = -1;
+		errno = EINVAL;
 		goto free_hs_in;
 	}
 

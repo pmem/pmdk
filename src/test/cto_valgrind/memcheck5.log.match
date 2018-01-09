@@ -27,7 +27,7 @@ $(OPT)==$(N)==    by 0x$(X): pmemcto_malloc (cto.c:$(N))
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
 ==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
-==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
+==$(N)==   total heap usage: $(NC) allocs, $(NC) frees, $(*) bytes allocated
 ==$(N)== 
 ==$(N)== 8,388,608 bytes in 1 blocks are definitely lost in loss record $(N) of $(N)
 ==$(N)==    at 0x$(X): je_cto_pool_malloc ($(*))

@@ -215,6 +215,7 @@ OTHER_TESTS = \
 	util_poolset_foreach\
 	util_poolset_parse\
 	util_poolset_size\
+	util_sds\
 	util_uuid_generate\
 	util_vec
 

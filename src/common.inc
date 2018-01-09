@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -231,7 +231,6 @@ see src/librpmem/README for details.
 endif
 
 export NDCTL_DISABLE ?= n
-export NDCTL_AVAILABLE := $(call check_package, libndctl)
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
@@ -244,6 +243,7 @@ LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
 LIBNDCTL=
+OS_DIMM=none
 else
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
@@ -252,8 +252,17 @@ OS_LIBS=
 LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
+ifeq ($(NDCTL_DISABLE), n)
 ifeq ($(call check_package, libndctl --atleast-version 58.2.37),n)
 $(error libndctl(version >= 58.2.37) is missing -- see README)
 endif
-LIBNDCTL := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
+ifeq ($(call check_package, libdaxctl --atleast-version 58.2.37),n)
+$(error libdaxclt(version >= 58.2.37) is missing -- see README)
+endif
+LIBNDCTL = $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
+OS_DIMM=ndctl
+else
+OS_DIMM=none
+LIBNDCTL=
+endif
 endif
