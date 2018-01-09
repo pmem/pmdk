@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -96,6 +96,7 @@ struct pool_entry {
 	size_t size;
 	int is_mem;
 	int exp_errno;
+	int errno_must_occur; /* if it is sure expected errno will occur */
 };
 
 #define MAX_IDS	1024
@@ -216,10 +217,16 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 /*
  * check_return_and_errno - validate return value and errno
  */
-#define check_return_and_errno(ret, exp_errno) \
+#define check_return_and_errno(ret, exp_errno, errno_must_occur) \
 	if (exp_errno != 0) { \
-		UT_ASSERTne(ret, 0); \
-		UT_ASSERTeq(errno, exp_errno); \
+		if (errno_must_occur) { \
+			UT_ASSERTne(ret, 0); \
+			UT_ASSERTeq(errno, exp_errno); \
+		} else { \
+			if (ret != 0) { \
+				UT_ASSERTeq(errno, exp_errno); \
+			} \
+		} \
 	} else { \
 		UT_ASSERTeq(ret, 0); \
 	}
@@ -323,7 +330,7 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(pool->rpp, NULL);
 
 	int ret = rpmem_close(pool->rpp);
-	check_return_and_errno(ret, pool->exp_errno);
+	check_return_and_errno(ret, pool->exp_errno, pool->errno_must_occur);
 
 	free_pool(pool);
 
@@ -340,6 +347,7 @@ struct thread_arg {
 	int nops;
 	unsigned lane;
 	int exp_errno;
+	int errno_must_occur; /* if it is sure expected errno will occur */
 };
 
 /*
@@ -358,7 +366,8 @@ persist_thread(void *arg)
 				left : persist_size;
 
 		int ret = rpmem_persist(args->rpp, off, size, args->lane);
-		check_return_and_errno(ret, args->exp_errno);
+		check_return_and_errno(ret, args->exp_errno,
+			args->errno_must_occur);
 	}
 
 	return NULL;
@@ -404,6 +413,7 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
 		args[i].exp_errno = pool->exp_errno;
+		args[i].errno_must_occur = pool->errno_must_occur;
 		PTHREAD_CREATE(&threads[i], NULL, persist_thread, &args[i]);
 	}
 
@@ -436,7 +446,7 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
 	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
-	check_return_and_errno(ret, pool->exp_errno);
+	check_return_and_errno(ret, pool->exp_errno, pool->errno_must_occur);
 
 	if (ret == 0) {
 		for (size_t i = 0; i < buff_size; i++) {
@@ -686,6 +696,11 @@ rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 	pool->exp_errno = ECONNRESET;
 
 	enum wait_type wait = str2wait(wait_str);
+	/*
+	 * if process will wait for rpmemd to terminate it is sure expected
+	 * errno must occur.
+	 */
+	pool->errno_must_occur = wait == WAIT;
 	rpmemd_kill_wait(pool->target, pid_file, wait);
 
 	return 3;
