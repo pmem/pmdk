@@ -1,9 +1,9 @@
-rpmemd_config/TEST0: START: rpmemd_config
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 rpmemd version $(*)
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 rpmemd version $(*)
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
 
@@ -26,7 +26,7 @@ Options:
                                         debug   debug-level message
 
 For complete documentation see rpmemd(1) manual page.
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
 
@@ -49,9 +49,9 @@ Options:
                                         debug   debug-level message
 
 For complete documentation see rpmemd(1) manual page.
-rpmemd_config/TEST0: START: rpmemd_config
-rpmemd_config/TEST0: START: rpmemd_config
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 $(*): No such file or directory
-rpmemd_config/TEST0: START: rpmemd_config
+$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 $(*): No such file or directory

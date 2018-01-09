@@ -191,7 +191,7 @@ static FILE *Outfp;
 static FILE *Errfp;
 static FILE *Tracefp;
 
-static int Quiet;		/* set by UNITTEST_QUIET env variable */
+static int LogLevel;		/* set by UNITTEST_LOG_LEVEL env variable */
 static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 unsigned long Ut_pagesize;
@@ -209,7 +209,6 @@ static char Buff_stdout[MAXPRINT];
 #define OF_NONL		1	/* do not append newline */
 #define OF_ERR		2	/* output is error output */
 #define OF_TRACE	4	/* output to trace file only */
-#define OF_LOUD		8	/* output even in Quiet mode */
 #define OF_NAME		16	/* include Testname in the output */
 
 /*
@@ -221,16 +220,12 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	char buf[MAXPRINT];
 	unsigned cc = 0;
 	int sn;
-	int quiet = Quiet;
 	const char *sep = "";
 	char errstr[UT_MAX_ERR_MSG] = "";
 	const char *nl = "\n";
 
 	if (Force_quiet)
 		return;
-
-	if (flags & OF_LOUD)
-		quiet = 0;
 
 	if (flags & OF_NONL)
 		nl = "";
@@ -275,11 +270,11 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	fputs(buf, Tracefp);
 	if (flags & OF_ERR) {
 		fputs(buf, Errfp);
-		if (!quiet)
+		if (LogLevel >= 2)
 			fputs(buf, stderr);
 	} else if ((flags & OF_TRACE) == 0) {
 		fputs(buf, Outfp);
-		if (!quiet)
+		if (LogLevel >= 2)
 			fputs(buf, stdout);
 	}
 }
@@ -745,8 +740,10 @@ ut_start_common(const char *file, int line, const char *func,
 	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
 
-	if (os_getenv("UNITTEST_QUIET") != NULL)
-		Quiet++;
+	if (os_getenv("UNITTEST_LOG_LEVEL") != NULL)
+		LogLevel = atoi(os_getenv("UNITTEST_LOG_LEVEL"));
+	else
+		LogLevel = 2;
 
 	if (os_getenv("UNITTEST_FORCE_QUIET") != NULL)
 		Force_quiet++;
@@ -790,7 +787,7 @@ ut_start_common(const char *file, int line, const char *func,
 	setvbuf(stdout, Buff_stdout, _IOLBF, MAXPRINT);
 
 	prefix(file, line, func, 0);
-	vout(OF_LOUD|OF_NAME, "START", fmt, ap);
+	vout(OF_NAME, "START", fmt, ap);
 
 #ifdef __FreeBSD__
 	/* XXX Record the fd that will be leaked by uuid_generate */
