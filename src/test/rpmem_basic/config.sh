@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,3 +42,8 @@ CONF_GLOBAL_RPMEM_PMETHOD=all
 
 CONF_RPMEM_PMETHOD[10]=APM
 CONF_RPMEM_PMETHOD[11]=GPSPM
+
+# Sockets provider does not detect fi_cq_signal so it does not return
+# from fi_cq_sread. It causes this test to hang sporadically.
+# https://github.com/ofiwg/libfabric/pull/3645
+CONF_RPMEM_PROVIDER[12]=verbs
