@@ -50,13 +50,17 @@ SOURCE =\
 	pmem.c\
 	pmem_linux.c
 
+
 ifeq ($(NDCTL_AVAILABLE), y)
-SOURCE += $(COMMON)/ddax_range_deep_flush.c
 CFLAGS += -DNVML_COMMON_MMAP_DAX_DEEP_FLUSH=1
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libndctl)
 endif
 
 include ../Makefile.inc
+
+ifeq ($(NDCTL_DISABLE), y)
+CFLAGS += -DNDCTL_DISABLE
+endif
 
 LIBS += -pthread
 

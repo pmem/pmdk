@@ -45,7 +45,7 @@ if [ $# -lt 6 -o $# -gt 9 ]
 then
 	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
 					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
-					"BUILD_RPMEM [TEST_CONFIG_FILE] [DISTRO] "
+					"BUILD_RPMEM [TEST_CONFIG_FILE] [NDCTL_DISABLE] [DISTRO] "
 	exit 1
 fi
 
@@ -56,6 +56,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$8
+NDCTL_DISABLE=$9
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -757,6 +758,11 @@ if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
 	append_rpmem_control;
 	rpmem_install_triggers_overrides;
+fi
+
+if [ "$NDCTL_DISABLE" == "y" ]
+then
+	export EXTRA_CFLAGS+=" -DNDCTL_DISABLE "
 fi
 
 # Convert ChangeLog to debian format
