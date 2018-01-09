@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1863,6 +1863,7 @@ pmemobj_checkU(const char *path, const char *layout)
 	if (consistent) {
 		obj_pool_cleanup(pop);
 	} else {
+		stats_delete(pop, pop->stats);
 		tx_params_delete(pop->tx_params);
 		ctl_delete(pop->ctl);
 
