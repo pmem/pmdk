@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,17 +35,17 @@
 #
 
 all: $(EXAMPLES)
-	$(MAKE) -C $(EX_LIBPMEMOBJ)
+	$(MAKE) -C $(EX_LIBPMEMOBJCPP)
 
 include ../Makefile.inc
 
-EXAMPLES=$(EX_LIBPMEMOBJ)/cpp/queue
+EXAMPLES=$(EX_LIBPMEMOBJCPP)/queue/queue
 
 NCURSES := $(call check_package, ncurses)
 
 ifeq ($(NCURSES),y)
-EXAMPLES += $(EX_LIBPMEMOBJ)/pman/pman
+EXAMPLES += $(EX_LIBPMEMOBJCPP)/pman/pman
 else
 $(info NOTE: Skipping pman test because ncurses is missing \
--- see src/examples/libpmemobj/pman/README for details.)
+-- see src/examples/libpmemobj++/pman/README for details.)
 endif
