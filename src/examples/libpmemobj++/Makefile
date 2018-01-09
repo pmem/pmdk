@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,38 +31,10 @@
 #
 
 #
-# src/test/ex_libpmemobj_cpp/TEST1 -- unit test for libpmemobj cpp examples
+# examples/libpmemobj++/Makefile -- build the libpmemobj++ examples
 #
-export UNITTEST_NAME=ex_libpmemobj_cpp/TEST1
-export UNITTEST_NUM=1
+include ../../common.inc
 
-# standard unit test setup
-. ../unittest/unittest.sh
+DIRS = queue pman map_cli panaconda pmpong doc_snippets
 
-require_test_type medium
-
-require_build_type debug nondebug
-require_fs_type pmem
-require_pkg ncurses
-require_tty
-
-require_cxx11
-
-setup
-
-EX_PATH=../../examples/libpmemobj++/pman
-INPUT=$DIR/input.txt
-
-dd if=/dev/zero bs=64 count=1 2>>prep$UNITTEST_NUM.log >> $INPUT
-echo -n slkiiijjbjjii >> $INPUT
-dd if=/dev/zero bs=128 count=1 2>>prep$UNITTEST_NUM.log >> $INPUT
-echo -n q >> $INPUT
-
-if [ -t 1 -a -z "$NOTTY" ]
-then
-	expect_normal_exit $EX_PATH/pman $DIR/testfile1 $EX_PATH/map < $INPUT
-else
-	expect_normal_exit $EX_PATH/pman $DIR/testfile1 $EX_PATH/map >/dev/null 2>/dev/null < $INPUT
-fi
-
-pass
+include ../Makefile.inc

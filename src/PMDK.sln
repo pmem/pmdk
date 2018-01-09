@@ -464,7 +464,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jemalloc", "jemalloc\msvc\j
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_persist_count", "test\obj_persist_count\obj_persist_count.vcxproj", "{8D75FA1A-EC74-4F88-8AC1-CE3F98E4D828}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "doc_snippets", "examples\libpmemobj\doc_snippets\doc_snippets.vcxproj", "{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "doc_snippets", "examples\libpmemobj++\doc_snippets\doc_snippets.vcxproj", "{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_flow", "test\obj_tx_flow\obj_tx_flow.vcxproj", "{8E374371-30E1-4623-8755-2A2F3742170B}"
 EndProject
@@ -538,7 +538,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_realloc", "test\obj_
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{9C37B8CC-F810-4787-924D-65BC227091A3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map_cli", "examples\libpmemobj\cpp_map\map_cli.vcxproj", "{9D1C3F29-1268-4241-BEFB-89D2859C62D3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map_cli", "examples\libpmemobj++\map_cli\map_cli.vcxproj", "{9D1C3F29-1268-4241-BEFB-89D2859C62D3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_invalid", "test\obj_tx_invalid\obj_tx_invalid.vcxproj", "{9D9E33EB-4C24-4646-A3FB-35DA17247917}"
 EndProject
@@ -586,7 +586,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_transaction", "test
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "queue", "examples\libpmemobj\cpp\queue.vcxproj", "{A6CC801B-CF30-4703-BC54-3E21F90B787D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "queue", "examples\libpmemobj++\queue\queue.vcxproj", "{A6CC801B-CF30-4703-BC54-3E21F90B787D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addlog", "examples\libpmemlog\logfile\addlog.vcxproj", "{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}"
 EndProject
@@ -669,7 +669,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "printlog", "examples\libpme
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_sync", "test\pmempool_sync\pmempool_sync.vcxproj", "{C5E8B8DB-2507-4904-847F-A52196B075F0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "examples\libpmemobj\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "examples\libpmemobj++\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool_win", "test\log_pool_win\log_pool_win.vcxproj", "{C71DAF3E-9361-4723-93E2-C475D1D0C0D0}"
 EndProject

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\examples\libpmemobj\cpp\queue.vcxproj">
+    <ProjectReference Include="..\..\examples\libpmemobj++\queue\queue.vcxproj">
       <Project>{a6cc801b-cf30-4703-bc54-3e21f90b787d}</Project>
     </ProjectReference>
   </ItemGroup>
