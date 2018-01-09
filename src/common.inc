@@ -230,6 +230,7 @@ ifneq ($(BUILD_RPMEM),y)
 see src/librpmem/README for details.
 endif
 
+export NDCTL_DISABLE ?= n
 export NDCTL_AVAILABLE := $(call check_package, libndctl)
 
 ifeq ($(shell uname -s),Linux)
