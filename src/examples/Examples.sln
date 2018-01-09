@@ -53,11 +53,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "printlog", "libpmemlog\logf
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "libpmemlog\manpage.vcxproj", "{9FF51F3E-AF36-4F45-A797-C5F03A090298}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "doc_snippets", "libpmemobj\doc_snippets\doc_snippets.vcxproj", "{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "doc_snippets", "libpmemobj++\doc_snippets\doc_snippets.vcxproj", "{8DB4158E-96EE-4DE5-A425-C9638F50B9ED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map_cli", "libpmemobj\cpp_map\map_cli.vcxproj", "{9D1C3F29-1268-4241-BEFB-89D2859C62D3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "map_cli", "libpmemobj++\map_cli\map_cli.vcxproj", "{9D1C3F29-1268-4241-BEFB-89D2859C62D3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "queue", "libpmemobj\cpp\queue.vcxproj", "{A6CC801B-CF30-4703-BC54-3E21F90B787D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "queue", "libpmemobj++\queue\queue.vcxproj", "{A6CC801B-CF30-4703-BC54-3E21F90B787D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "array", "libpmemobj\array\array.vcxproj", "{7264C8F6-73FB-4830-9306-1558D3EAC71B}"
 EndProject
@@ -113,7 +113,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "data_store", "libpmemobj\ma
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mapcli", "libpmemobj\map\mapcli.vcxproj", "{BB248BAC-6E1B-433C-A254-75140A273AB5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "libpmemobj\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmpong", "libpmemobj++\pmpong\pmpong.vcxproj", "{C6E9D8C2-D5C1-441B-95ED-378E10DC5723}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

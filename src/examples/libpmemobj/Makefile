@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,12 +40,6 @@ DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
 	linkedlist list_map slab_allocator
 
-ifeq ($(call cxx_ok), y)
-DIRS += cpp pman cpp_map panaconda pmpong doc_snippets
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
-
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 
 include ../Makefile.inc
@@ -56,7 +50,6 @@ pmemobjfs: map
 manpage: manpage.o
 btree: btree.o
 pi: pi.o
-queue: queue.o
 lists: lists.o
 
 setjmp: CFLAGS += -O2
