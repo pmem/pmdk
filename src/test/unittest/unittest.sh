@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1049,6 +1049,8 @@ function require_dev_dax_node() {
 
 #
 # get_node_devdax_path -- get path of a Device DAX device on a node
+#
+# usage: get_node_devdax_path <node> <device>
 #
 get_node_devdax_path() {
 	local node=$1
@@ -2836,4 +2838,3 @@ minimum() {
 	done
 	echo $min
 }
-
