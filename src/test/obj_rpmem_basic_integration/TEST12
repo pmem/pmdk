@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,9 +62,9 @@ TEST_SET_LOCAL="testset_local"
 TEST_SET_REMOTE="testset_remote"
 
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL AUTO:${NODE_DEVICE_DAX_PATH[1]}:x \
+create_poolset $DIR/$TEST_SET_LOCAL AUTO:$(get_node_devdax_path 1 0):x \
 	m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
-create_poolset $DIR/$TEST_SET_REMOTE AUTO:${NODE_DEVICE_DAX_PATH[0]}:x
+create_poolset $DIR/$TEST_SET_REMOTE AUTO:$(get_node_devdax_path 0 0):x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
