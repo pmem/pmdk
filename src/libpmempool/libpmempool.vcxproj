@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\ddax_deep_flush.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
@@ -34,7 +33,6 @@
     <ClInclude Include="replica.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\ddax_deep_flush.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />

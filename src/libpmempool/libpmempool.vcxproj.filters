@@ -100,9 +100,6 @@
     <ClCompile Include="check_log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\ddax_deep_flush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\mmap.h">

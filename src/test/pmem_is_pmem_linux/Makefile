@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,7 +51,8 @@ OBJS = pmem_is_pmem_linux.o\
 	pmem.o\
 	pmem_linux.o\
 	cpu.o\
-	ddax_deep_flush.o
+	common_deep_persist.o\
+	os_deep_persist_linux.o
 
 include ../Makefile.inc
 

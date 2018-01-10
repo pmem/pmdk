@@ -45,7 +45,7 @@ date: pmem API version 1.0
 
 # NAME #
 
-**pmem_flush**(), **pmem_deep_flush**(), **pmem_drain**(),
+**pmem_flush**(), **pmem_deep_persist**(), **pmem_drain**(),
 **pmem_persist**(), **pmem_msync**(),
 **pmem_has_hw_drain**() -- check persistency, store persistent data and delete mappings
 
@@ -58,7 +58,7 @@ date: pmem API version 1.0
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
-void pmem_deep_flush(const void *addr, size_t len);
+void pmem_deep_persist(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 ```
@@ -147,11 +147,14 @@ of **pmem_persist**(). For example, a program that needs to flush
 several discontiguous ranges can call **pmem_flush**() for each range
 and then follow up by calling **pmem_drain**() once.
 
-The **pmem_deep_flush**() function forces any changes in the range
-\[*addr*, *addr*+*len*) to be stored durably. On memory ranges mapped
-from Device DAX using **pmem_map_file**(3) it is similar to
-**pmem_persist**(), but additionaly it flushes WPQ.
-In other cases it works exactly like **pmem_msync**().
+The semantics of **pmem_deep_persist**() function is the same as **pmem_persist**(),
+except that it provides higher reliability by flushing persistent memory stores to
+the most reliable persistence domain available to software rather than depending on
+automatic cache flushes on power failure (ADR).
+Since this operation is usually much more expensive than **pmem_persist**(),
+it should be used rarely. Typically the application should use this function
+only to flush the most critical data, which are required to recover after
+the power failure.
 
 The **pmem_has_hw_drain**() function checks if the machine
 supports an explicit *hardware drain*
@@ -167,7 +170,7 @@ The **pmem_msync**() return value is the return value of
 
 The **pmem_flush**() and **pmem_drain**() functions return no value.
 
-The **pmem_deep_flush**() returns 0 on success, otherwise it
+The **pmem_deep_persist**() returns 0 on success. Otherwise it
 returns -1 and set *errno* appropriately.
 
 The **pmem_has_hw_drain**() function returns true if the machine

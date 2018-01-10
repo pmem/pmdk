@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,6 @@ struct pool_set_part {
 	int is_dev_dax;		/* indicates if the part is on device dax */
 	size_t alignment;	/* internal alignment (Device DAX only) */
 	int created;		/* indicates newly created (zeroed) file */
-	int region_id;		/* pool set part dax region id */
 
 	/* util_poolset_open/create */
 	void *remote_hdr;	/* allocated header for remote replica */

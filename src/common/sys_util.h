@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,6 +102,51 @@ util_mutex_unlock(os_mutex_t *m)
 }
 
 /*
+ * util_rwlock_init -- os_rwlock_init variant that never fails from
+ * caller perspective. If os_rwlock_init failed, this function aborts
+ * the program.
+ */
+static inline void
+util_rwlock_init(os_rwlock_t *m)
+{
+	int tmp = os_rwlock_init(m);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!os_rwlock_init");
+	}
+}
+
+/*
+ * util_rwlock_rdlock -- os_rwlock_rdlock variant that never fails from
+ * caller perspective. If os_rwlock_rdlock failed, this function aborts
+ * the program.
+ */
+static inline void
+util_rwlock_rdlock(os_rwlock_t *m)
+{
+	int tmp = os_rwlock_rdlock(m);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!os_rwlock_rdlock");
+	}
+}
+
+/*
+ * util_rwlock_wrlock -- os_rwlock_wrlock variant that never fails from
+ * caller perspective. If os_rwlock_wrlock failed, this function aborts
+ * the program.
+ */
+static inline void
+util_rwlock_wrlock(os_rwlock_t *m)
+{
+	int tmp = os_rwlock_wrlock(m);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!os_rwlock_wrlock");
+	}
+}
+
+/*
  * util_rwlock_unlock -- os_rwlock_unlock variant that never fails from
  * caller perspective. If os_rwlock_unlock failed, this function aborts
  * the program.
@@ -113,6 +158,21 @@ util_rwlock_unlock(os_rwlock_t *m)
 	if (tmp) {
 		errno = tmp;
 		FATAL("!os_rwlock_unlock");
+	}
+}
+
+/*
+ * util_rwlock_destroy -- os_rwlock_destroy variant that never fails from
+ * caller perspective. If os_rwlock_destroy failed, this function aborts
+ * the program.
+ */
+static inline void
+util_rwlock_destroy(os_rwlock_t *m)
+{
+	int tmp = os_rwlock_destroy(m);
+	if (tmp) {
+		errno = tmp;
+		FATAL("!os_rwlock_destroy");
 	}
 }
 
