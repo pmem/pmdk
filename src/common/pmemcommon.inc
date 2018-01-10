@@ -41,6 +41,7 @@ SOURCE =\
 	$(COMMON)/mmap_posix.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/os_deep_persist_posix.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
