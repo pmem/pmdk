@@ -60,7 +60,7 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\ddax_deep_flush.c">
+    <ClCompile Include="..\common\os_deep_persist_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_deep_persist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
