@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1227,7 +1227,7 @@ util_part_idx_by_file_name(const char *filename)
 
 	int olderrno = errno;
 	errno = 0;
-	long part_idx = strtol(filename, NULL, 0);
+	long part_idx = strtol(filename, NULL, 10);
 	if (errno != 0)
 		return -1;
 
