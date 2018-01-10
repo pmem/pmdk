@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ SOURCE =\
 	$(COMMON)/file_linux.c\
 	$(COMMON)/os_linux.c\
 	$(COMMON)/os_thread_linux.c\
-	$(COMMON)/ddax_deep_flush.c\
+	$(COMMON)/os_deep_persist_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_linux.c\
