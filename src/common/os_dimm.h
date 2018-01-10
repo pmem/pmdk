@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright 2017-2018, Intel Corporation
-=======
- * Copyright 2017, Intel Corporation
->>>>>>> 69b840f... pmem: pmem_deep_flush draft
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

@@ -26,6 +26,7 @@
     <ClCompile Include="util.c" />
     <ClCompile Include="util_windows.c" />
     <ClCompile Include="uuid.c" />
+    <ClCompile Include="ddax_deep_flush.c" />
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +42,7 @@
     <ClInclude Include="set.h" />
     <ClInclude Include="sys_util.h" />
     <ClInclude Include="util.h" />
+    <ClCompile Include="ddax_deep_flush.h" />
     <ClInclude Include="uuid.h" />
     <ClInclude Include="valgrind_internal.h" />
   </ItemGroup>
