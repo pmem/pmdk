@@ -291,3 +291,21 @@ util_file_device_dax_alignment(const char *path)
 
 	return device_dax_alignment(path);
 }
+
+
+/*
+ * util_get_dev_id -- returns dev_id freom file stat
+ */
+os_dev_t
+util_get_dev_id(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	os_stat_t st;
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
+		return (unsigned int) - 1;
+	}
+
+	return st.st_rdev;
+}

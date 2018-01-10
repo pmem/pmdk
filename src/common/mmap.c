@@ -48,7 +48,6 @@
 #include "sys_util.h"
 #include "os.h"
 
-
 int Mmap_no_random;
 void *Mmap_hint;
 os_rwlock_t Mmap_list_lock;
