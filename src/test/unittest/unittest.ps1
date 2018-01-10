@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 . "..\testconfig.ps1"
+
+function verbose_msg {
+    if ($Env:UNITTEST_LOG_LEVEL -ge "2") {
+        Write-Host $args[0]
+    }
+}
+
+function msg {
+    if ($Env:UNITTEST_LOG_LEVEL -ge "1") {
+        Write-Host $args[0]
+    }
+}
+
+function fatal {
+    throw $args[0]
+}
 
 function touch {
     out-file -InputObject $null -Encoding ascii -literalpath $args[0]
@@ -120,8 +136,7 @@ function convert_to_bytes() {
         # not be aware of the silent conversion by powershell.  If the caller
         # knows what she is doing, she can always append 'b' to the number.
         #
-        Write-Error "Error suspicious byte value to convert_to_bytes"
-        exit 1
+        fatal "Error suspicious byte value to convert_to_bytes"
     }
 
     return $size
@@ -195,7 +210,7 @@ function create_holey_file {
         $fname = $args[$i]
         & $SPARSEFILE $mode $fname $size
         if ($Global:LASTEXITCODE -ne 0) {
-            throw "Error $Global:LASTEXITCODE with sparsefile create"
+            fatal "Error $Global:LASTEXITCODE with sparsefile create"
         }
         Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
     }
@@ -347,7 +362,7 @@ function create_poolset {
             'n' { create_file $asize $fpath }
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4K $fpath }
-			# create empty directory
+            # create empty directory
             'd' { new-item $fpath -itemtype directory }
         }
 
@@ -369,12 +384,12 @@ function dump_last_n_lines {
         sv -Name ln (getLineCount $fname)
         if ($ln -gt $UT_DUMP_LINES) {
             $ln = $UT_DUMP_LINES
-            Write-Host "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
+            msg "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
         } else {
-            Write-Host "$fname below."
+            msg "$fname below."
         }
         foreach ($line in Get-Content $fname -Tail $ln) {
-            Write-Host $line
+            msg $line
         }
     }
 }
@@ -386,7 +401,7 @@ function check_exit_code {
     if ($Global:LASTEXITCODE -ne 0) {
         sv -Name msg "failed with exit code $Global:LASTEXITCODE"
         if (Test-Path $Env:ERR_LOG_FILE) {
-            if ($Env:UNITTEST_QUIET) {
+            if ($Env:UNITTEST_LOG_LEVEL -ge "1") {
                 echo "${Env:UNITTEST_NAME}: $msg. $Env:ERR_LOG_FILE" >> $Env:ERR_LOG_FILE
             } else {
                 Write-Error "${Env:UNITTEST_NAME}: $msg.  $Env:ERR_LOG_FILE"
@@ -405,7 +420,7 @@ function check_exit_code {
         dump_last_n_lines $Env:VMEM_LOG_FILE
         dump_last_n_lines $Env:VMMALLOC_LOG_FILE
 
-        fail 1
+        fail ""
     }
 }
 
@@ -467,8 +482,7 @@ function expect_abnormal_exit {
     $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
     if ($Global:LASTEXITCODE -eq 0) {
-        Write-Error "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
-        fail 1
+        fail "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
 }
 
@@ -481,8 +495,7 @@ function check_pool {
         Write-Verbose "$Env:UNITTEST_NAME: checking consistency of pool $file"
         Invoke-Expression "$PMEMPOOL check $file 2>&1 1>>$Env:CHECK_POOL_LOG_FILE"
         if ($Global:LASTEXITCODE -ne 0) {
-            Write-Error("$PMEMPOOL returned error code $Global:LASTEXITCODE")
-            Exit $Global:LASTEXITCODE
+            fail "error: $PMEMPOOL returned error code ${Global:LASTEXITCODE}"
         }
     }
 }
@@ -506,7 +519,7 @@ function check_pools {
 # - unlimited virtual memory (ulimit -v is unlimited)
 #
 function require_unlimited_vm {
-    Write-Host "${Env:UNITTEST_NAME}: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+    msg "${Env:UNITTEST_NAME}: SKIP required: overcommit_memory enabled and unlimited virtual memory"
     exit 0
 }
 
@@ -516,7 +529,7 @@ function require_unlimited_vm {
 # XXX: not sure how to translate
 #
 function require_no_superuser {
-    Write-Host "${Env:UNITTEST_NAME}: SKIP required: run without superuser rights"
+    msg "${Env:UNITTEST_NAME}: SKIP required: run without superuser rights"
     exit 0
 }
 
@@ -546,9 +559,7 @@ function require_test_type() {
                 }
             }
         }
-        if (-Not $Env:UNITTEST_QUIET) {
-            echo "${Env:UNITTEST_NAME}: SKIP test-type $Env:TYPE ($* required)"
-        }
+        verbose_msg "${Env:UNITTEST_NAME}: SKIP test-type $Env:TYPE ($* required)"
         exit 0
     }
 }
@@ -563,9 +574,7 @@ function require_build_type {
         }
     }
 
-    if (-Not $Env:UNITTEST_QUIET) {
-        echo "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
-    }
+    verbose_msg "${Env:UNITTEST_NAME}: SKIP build-type $Env:BUILD ($* required)"
     exit 0
 }
 
@@ -582,10 +591,9 @@ function require_pkg {
 # In case of conditional compilation, skip this test.
 #
 function require_binary() {
+    # XXX:  check if binary provided
     if (-Not (Test-Path $Args[0])) {
-       if (-Not $Env:UNITTEST_QUIET) {
-            Write-Host "${Env:UNITTEST_NAME}: SKIP no binary found"
-       }
+       msg "${Env:UNITTEST_NAME}: SKIP no binary found"
        exit 0
     }
 }
@@ -600,8 +608,7 @@ function check {
     #	..\match $(find . -regex "[^0-9]*${UNITTEST_NUM}\.log\.match" | xargs)
     $perl = Get-Command -Name perl -ErrorAction SilentlyContinue
     If ($perl -eq $null) {
-        Write-Error "Perl is missing, cannot check test results"
-        fail 1
+        fail "error: Perl is missing, cannot check test results"
     }
 
     # If errX.log.match does not exist, assume errX.log should be empty
@@ -613,7 +620,7 @@ function check {
     if (-not (Test-Path "${Env:ERR_LOG_FILE}.match") -and ($ERR_LOG_LEN -ne 0)) {
         Write-Error "unexpected output in ${Env:ERR_LOG_FILE}"
         dump_last_n_lines $Env:ERR_LOG_FILE
-        fail 1
+        fail ""
     }
 
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
@@ -621,7 +628,7 @@ function check {
         if (Test-Path $listing) {
             Invoke-Expression "perl ..\..\..\src\test\match $listing"
             if ($Global:LASTEXITCODE -ne 0) {
-                fail 1
+                fail ""
             }
         }
     }
@@ -638,11 +645,12 @@ function pass {
         sv -Name end_time $null
     }
 
-    sv -Name msg "PASS"
-    Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
-    Write-Host -NoNewline -foregroundcolor green $msg
-    if ($end_time) {
-        Write-Host -NoNewline ("`t`t`t" + "[" + $end_time + " s]")
+    if ($Env:UNITTEST_LOG_LEVEL -ge "1") {
+        Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
+        Write-Host -NoNewline -foregroundcolor green "PASS"
+        if ($end_time) {
+            Write-Host -NoNewline ("`t`t`t" + "[" + $end_time + " s]")
+        }
     }
 
     if ($Env:FS -ne "none") {
@@ -650,18 +658,18 @@ function pass {
              rm -Force -Recurse $DIR
         }
     }
-    Write-Host ""
+
+    msg ""
 }
 
 #
 # fail -- print message that the test has failed
 #
 function fail {
-    sv -Name msg "FAILED"
+    Write-Error $args[0]
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
-    Write-Host -NoNewLine -foregroundcolor red $msg
-    Write-Host (" with errorcode " + $args[0])
-    throw $Env:UNITTEST_NAME + ": FAILED with errorcode $args[0]"
+    Write-Host -NoNewLine -foregroundcolor red "FAILED"
+    throw "${Env:UNITTEST_NAME}: FAILED"
 }
 
 #
@@ -682,8 +690,7 @@ function remove_files {
 function check_file {
     sv -Name fname $Args[0]
     if (-Not (Test-Path $fname)) {
-        Write-Error "Missing File: $fname"
-        fail 1
+        fail "error: Missing File: $fname"
     }
 }
 
@@ -702,8 +709,7 @@ function check_files {
 function check_no_file {
     sv -Name fname $Args[0]
     if (Test-Path $fname) {
-        Write-Error "Not deleted file: $fname"
-        fail 1
+        fail "error: Not deleted file: $fname"
     }
 }
 
@@ -760,8 +766,7 @@ function check_size {
     sv -Name file_size -Scope "Local" (get_size $file)
 
     if ($file_size -ne $size) {
-        Write-Error "error: wrong size $file_size != $size"
-        fail 1
+        fail "error: wrong size $file_size != $size"
     }
 }
 
@@ -776,15 +781,13 @@ function check_mode {
 
     if ($mode -band 2) {
         if ($read_only -eq $true) {
-            Write-Error "error: wrong file mode"
-            fail 1
+            fail "error: wrong file mode"
         } else {
             return
         }
     }
     if ($read_only -eq $false) {
-        Write-Error "error: wrong file mode"
-        fail 1
+        fail "error: wrong file mode"
     } else {
         return
     }
@@ -804,8 +807,7 @@ function check_signature {
     $file_sig = [System.Text.Encoding]::Ascii.GetString($buff)
     $stream.Close()
     if ($file_sig -ne $sig) {
-        Write-Error "error: $file signature doesn't match $file_sig != $sig"
-        fail 1
+        fail "error: $file signature doesn't match $file_sig != $sig"
     }
 }
 
@@ -833,8 +835,7 @@ function check_layout {
     $enc = [System.Text.Encoding]::UTF8.GetString($buff)
     $stream.Close()
     if ($enc -ne $layout) {
-        Write-Error "error: layout doesn't match $enc != $layout"
-        fail 1
+        fail "error: layout doesn't match $enc != $layout"
     }
 }
 
@@ -852,8 +853,7 @@ function check_arena {
     $enc = [System.Text.Encoding]::ASCII.GetString($buff)
     $stream.Close()
     if ($enc -ne $ARENA_SIG) {
-        Write-Error "error: can't find arena signature"
-        fail 1
+        fail "error: can't find arena signature"
     }
 }
 
@@ -942,7 +942,7 @@ function require_pmem {
     if ($Global:PMEM_IS_PMEM -eq "0") {
         return $true
     } else {
-        throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
+        fatal "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
     }
 }
 
@@ -953,7 +953,7 @@ function require_non_pmem {
     if ($Global:NON_PMEM_IS_PMEM -eq "1") {
         return $true
     } else {
-        throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
+        fatal "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
     }
 }
 
@@ -975,9 +975,7 @@ function require_fs_type {
             }
         }
     }
-    if (-Not $Env:UNITTEST_QUIET) {
-        Write-Host "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
-    }
+    verbose_msg "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
     exit 0
 }
 
@@ -986,9 +984,7 @@ function require_fs_type {
 #
 function require_dax_devices() {
     # XXX: no device dax on Windows
-    if (-Not $Env:UNITTEST_QUIET) {
-        Write-Host "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
-    }
+    msg "${Env:UNITTEST_NAME}: SKIP DEVICE_DAX_PATH does not specify enough dax devices"
     exit 0
 }
 
@@ -1010,9 +1006,7 @@ function require_no_unicode {
             [System.Text.Encoding]::UTF8, $u.getbytes($DIR))
 
     if ($DIR_UTF8 -ne $DIR_ASCII) {
-        #if (-Not $Env:UNITTEST_QUIET) {
-            Write-Host "${Env:UNITTEST_NAME}: SKIP required: test directory path without non-ASCII characters"
-        #}
+        msg "${Env:UNITTEST_NAME}: SKIP required: test directory path without non-ASCII characters"
         exit 0
     }
 }
@@ -1024,9 +1018,7 @@ function require_short_path {
     $Env:DIRSUFFIX = ""
 
     if ($DIR.Length -ge 256) {
-        if (-Not $Env:UNITTEST_QUIET) {
-            Write-Host "${Env:UNITTEST_NAME}: SKIP required: test directory path below 256 characters"
-        }
+        msg "${Env:UNITTEST_NAME}: SKIP required: test directory path below 256 characters"
         exit 0
     }
 }
@@ -1039,7 +1031,7 @@ function setup {
 
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
-        throw "error: required test type is not specified"
+        fatal "error: required test type is not specified"
     }
 
     # fs type "none" must be explicitly enabled
@@ -1052,7 +1044,7 @@ function setup {
         exit 0
     }
 
-    Write-Host "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD)"
+    msg "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD)"
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
@@ -1158,17 +1150,17 @@ sv -Name curtestdir (Get-Item -Path ".\").BaseName
 
 # just in case
 if (-Not $curtestdir) {
-    Write-Error -Message "$curtestdir does not exist"
+    fatal "$curtestdir does not exist"
 }
 
 sv -Name curtestdir ("test_" + $curtestdir)
 
 if (-Not $Env:UNITTEST_NUM) {
-    throw "UNITTEST_NUM does not have a value"
+    fatal "UNITTEST_NUM does not have a value"
 }
 
 if (-Not $Env:UNITTEST_NAME) {
-    throw "UNITTEST_NAME does not have a value"
+    fatal "UNITTEST_NAME does not have a value"
 }
 
 $Global:REAL_FS = $Env:FS
@@ -1200,16 +1192,14 @@ if ($DIR) {
                 sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
                 $Global:REAL_FS='non-pmem'
             } Else {
-                throw "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
+                fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
             }
         }
         'none' {
             sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
         }
         default {
-            if (-Not $Env:UNITTEST_QUIET) {
-                throw "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
-            }
+            fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
         }
     } # switch
 }
