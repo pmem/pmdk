@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -612,6 +612,13 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 		return -1;
 	}
 
+	if (offset < RPMEM_HDR_SIZE) {
+		ERR("offset (%zu) in pool is less than %d bytes", offset,
+				RPMEM_HDR_SIZE);
+		errno = EINVAL;
+		return -1;
+	}
+
 	int ret = rpmem_fip_persist(rpp->fip, offset, length, lane);
 	if (unlikely(ret)) {
 		ERR("persist operation failed");
@@ -642,6 +649,10 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 		errno = rpp->error;
 		return -1;
 	}
+
+	if (offset < RPMEM_HDR_SIZE)
+		LOG(1, "reading from pool at offset (%zu) less than %d bytes",
+				offset, RPMEM_HDR_SIZE);
 
 	int ret = rpmem_fip_read(rpp->fip, buff, length, offset, lane);
 	if (unlikely(ret)) {

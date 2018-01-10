@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1227,7 +1227,7 @@ util_part_idx_by_file_name(const char *filename)
 
 	int olderrno = errno;
 	errno = 0;
-	long part_idx = strtol(filename, NULL, 0);
+	long part_idx = strtol(filename, NULL, 10);
 	if (errno != 0)
 		return -1;
 
@@ -1946,16 +1946,10 @@ util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
 	}
 #endif
 
-	/*
-	 * The pool header is not visible on the remote node from the local host
-	 * perspective, so we replicate the pool without the pool header.
-	 */
-	void *pool_addr = (void *)((uintptr_t)set->replica[0]->part[0].addr +
-								POOL_HDR_SIZE);
-	size_t pool_size = set->poolsize - POOL_HDR_SIZE;
+	void *pool_addr = (void *)((uintptr_t)set->replica[0]->part[0].addr);
 
 	return util_poolset_remote_open(set->replica[repidx], repidx, minsize,
-			create, pool_addr, pool_size, nlanes);
+			create, pool_addr, set->poolsize, nlanes);
 }
 
 /*

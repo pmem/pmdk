@@ -143,9 +143,7 @@ TM=1
 
 #
 # NODE_DEVICE_DAX_PATH variable for each remote node which
-# can be used to specify path to device dax on remote node.
-#
-# There can be only one device dax specified for each node.
+# can be used to specify path to multiple device daxes on remote node.
 #
 # All remote tests assume the master replica is present on a node of index 1.
 # So the size of device dax on the node of index 1 should not be bigger than

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -126,8 +126,8 @@ static int
 init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 	     enum operation_mode op_mode)
 {
-	size_t n_ops_by_size =
-		mb->pool_size / (args->n_threads * mb->csize_align);
+	size_t n_ops_by_size = (mb->pool_size - POOL_HDR_SIZE) /
+		(args->n_threads * mb->csize_align);
 
 	mb->n_offsets = args->n_ops_per_thread * args->n_threads;
 	mb->offsets = (size_t *)malloc(mb->n_offsets * sizeof(*mb->offsets));
@@ -169,7 +169,8 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 					return -1;
 			}
 
-			mb->offsets[off_idx] = chunk_idx * mb->csize_align +
+			mb->offsets[off_idx] = POOL_HDR_SIZE +
+				chunk_idx * mb->csize_align +
 				mb->pargs->dest_off;
 		}
 	}
@@ -184,17 +185,21 @@ static int
 do_warmup(struct rpmem_bench *mb)
 {
 	/* clear the entire pool */
-	memset(mb->pool, 0, mb->pool_size);
+	memset((char *)mb->pool + POOL_HDR_SIZE, 0,
+	       mb->pool_size - POOL_HDR_SIZE);
 
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		int ret = rpmem_persist(mb->rpp[r], 0, mb->pool_size, 0);
+		int ret = rpmem_persist(mb->rpp[r], POOL_HDR_SIZE,
+					mb->pool_size - POOL_HDR_SIZE, 0);
 		if (ret)
 			return ret;
 	}
 
 	/* if no memset for each operation, do one big memset */
-	if (mb->pargs->no_memset)
-		memset(mb->pool, 0xFF, mb->pool_size);
+	if (mb->pargs->no_memset) {
+		memset((char *)mb->pool + POOL_HDR_SIZE, 0xFF,
+		       mb->pool_size - POOL_HDR_SIZE);
+	}
 
 	return 0;
 }
@@ -333,8 +338,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		goto err_poolset_free;
 	}
 
-	mb->pool_size = mb->mapped_len - POOL_HDR_SIZE;
-	mb->pool = (void *)((uintptr_t)mb->addrp + POOL_HDR_SIZE);
+	mb->pool_size = mb->mapped_len;
+	mb->pool = (void *)((uintptr_t)mb->addrp);
 
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
