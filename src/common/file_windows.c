@@ -211,3 +211,14 @@ util_file_device_dax_alignment(const char *path)
 
 	return 0;
 }
+
+/*
+ * util_get_dev_id -- returns dev_id from file stat
+ */
+os_dev_t
+util_get_dev_id(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	return -1;
+}

@@ -69,6 +69,7 @@ int util_file_dir_next(struct dir_handle *a, struct file_info *info);
 int util_file_dir_close(struct dir_handle *a);
 int util_file_dir_remove(const char *path);
 int util_file_is_device_dax(const char *path);
+os_dev_t util_get_dev_id(const char *path);
 int util_fd_is_device_dax(int fd);
 ssize_t util_file_get_size(const char *path);
 size_t util_file_device_dax_alignment(const char *path);

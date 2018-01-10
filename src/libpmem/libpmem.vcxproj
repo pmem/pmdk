@@ -28,6 +28,7 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
+    <ClInclude Include="..\common\ddax_deep_flush.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c" />
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="cpu.c" />
@@ -49,6 +50,7 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\common\ddax_deep_flush.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="cpu.h" />
   </ItemGroup>
