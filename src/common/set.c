@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,6 @@
 #include "sys_util.h"
 #include "util_pmem.h"
 #include "fs.h"
-#include "ddax_deep_flush.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -927,14 +926,10 @@ util_replica_add_part_by_idx(struct pool_replica **repp,
 	rep->part[p].addr = NULL;
 	rep->part[p].remote_hdr = NULL;
 
-	if (is_dev_dax) {
+	if (is_dev_dax)
 		rep->part[p].alignment = util_file_device_dax_alignment(path);
-		rep->part[p].region_id = ddax_region_find(
-			util_get_dev_id(path));
-	} else {
+	else
 		rep->part[p].alignment = Mmap_align;
-		rep->part[p].region_id = -1;
-	}
 
 	ASSERTne(rep->part[p].alignment, 0);
 
@@ -1627,14 +1622,10 @@ util_poolset_single(const char *path, size_t filesize, int create)
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
 
-	if (rep->part[0].is_dev_dax) {
+	if (rep->part[0].is_dev_dax)
 		rep->part[0].alignment = util_file_device_dax_alignment(path);
-		rep->part[0].region_id = ddax_region_find(
-			util_get_dev_id(path));
-	} else {
+	else
 		rep->part[0].alignment = Mmap_align;
-		rep->part[0].region_id = -1;
-	}
 
 	ASSERTne(rep->part[0].alignment, 0);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@
 #include "out.h"
 
 #define MAX_SIZE_LENGTH 64
+#define DAX_REGION_ID_LEN 6 /* 5 numbers + \0 */
 
 /*
  * util_tmpfile_mkstemp --  (internal) create temporary file
@@ -293,18 +294,46 @@ util_file_device_dax_alignment(const char *path)
 }
 
 /*
- * util_get_dev_id -- returns dev_id from file stat
+ * util_ddax_region_find -- returns DEV dax region id that contains file
  */
-os_dev_t
-util_get_dev_id(const char *path)
+int
+util_ddax_region_find(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
+	int dax_reg_id_fd;
+	char dax_region_path[PATH_MAX];
+	char reg_id[DAX_REGION_ID_LEN];
 	os_stat_t st;
+
 	if (os_stat(path, &st) < 0) {
 		ERR("!stat \"%s\"", path);
-		return (unsigned int) - 1;
+		return -1;
 	}
 
-	return st.st_rdev;
+	dev_t dev_id = st.st_rdev;
+
+	snprintf(dax_region_path, PATH_MAX,
+		"/sys/dev/char/%u:%u/device/dax_region/id",
+		major(dev_id), minor(dev_id));
+
+	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
+		ERR("!open(\"%s\", O_RDONLY", dax_region_path);
+		return -1;
+	}
+
+	ssize_t len = read(dax_reg_id_fd, reg_id, DAX_REGION_ID_LEN);
+
+	if (len <= 1) {
+		ERR("!read(%d, %p, %d)", dax_reg_id_fd, reg_id,
+			DAX_REGION_ID_LEN);
+		goto err;
+	}
+
+	os_close(dax_reg_id_fd);
+	return atoi(reg_id);
+
+err:
+	os_close(dax_reg_id_fd);
+	return -1;
 }

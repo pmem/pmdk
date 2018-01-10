@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,64 @@
  */
 
 /*
- * pmem_is_pmem_linux.c -- Linux specific unit test for is_pmem_proc()
- *
- * usage: pmem_is_pmem_linux op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * os_deep_persist_linux.c -- Linux abstraction layer
  */
 
-#include <stdlib.h>
+#define _GNU_SOURCE
 
-#include "unittest.h"
+#include <inttypes.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include "out.h"
+#include "os.h"
 #include "mmap.h"
+#include "libpmem.h"
+#include "os_deep_persist.h"
+#include "common_deep_persist.h"
 
+/*
+ * os_range_deep_persist -- (internal) perform deep persist of
+ * given address range
+ */
 int
-main(int argc, char *argv[])
+os_range_deep_persist(uintptr_t addr, size_t len)
 {
-	START(argc, argv, "pmem_is_pmem_linux");
+	LOG(3, "addr 0x%016" PRIxPTR " len %zu", addr, len);
 
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
-				argv[0]);
+	while (len != 0) {
+		const struct map_tracker *mt = util_range_find(addr, len);
 
-	/* insert memory regions to the list */
-	int i;
-	for (i = 1; i < argc; i += 3) {
-		UT_ASSERT(i + 2 < argc);
-
-		errno = 0;
-		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		size_t len = strtoull(argv[i + 2], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		int ret;
-
-		switch (argv[i][0]) {
-		case 'a':
-			ret = util_range_register(addr, len, NULL);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			break;
-		default:
-			FATAL("invalid op");
+		if (mt == NULL) /* no more overlapping track regions */
+			return pmem_msync((void *)addr, len);
+/*
+ * for input deep_persist range that cover found mapping
+ * it call write to deep_flush file, for addresses away
+ * from tracker range it calls msync
+ */
+		if (mt->base_addr > addr) {
+			size_t curr_len = mt->base_addr - addr;
+			if (curr_len > len)
+				curr_len = len;
+			if (pmem_msync((void *)addr, curr_len) != 0)
+				return -1;
+			if ((len -= curr_len) == 0)
+				return 0;
+			addr = mt->base_addr;
 		}
-	}
+		size_t mt_len = mt->end_addr - mt->base_addr;
+		pmem_persist((void *)mt->base_addr, mt_len);
+		if (ddax_deep_flush_write(mt->region_id) < 0) {
+			ERR("cannot write to deep_flush in region %d",
+				mt->region_id);
+			return -1;
+		}
 
-	DONE(NULL);
+		if (mt->end_addr >= addr + len)
+			return 0;
+
+		size_t diff = mt->end_addr - addr;
+		len -= diff;
+		addr = mt->end_addr;
+	}
+	return 0;
 }

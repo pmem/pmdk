@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,18 @@
  */
 
 /*
- * pmem_is_pmem_linux.c -- Linux specific unit test for is_pmem_proc()
- *
- * usage: pmem_is_pmem_linux op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * common_deep_persist.h -- Internal utility functions for deep persist
+ * flushing a memory range
  */
 
-#include <stdlib.h>
+#ifndef PMDK_COMMON_DEEP_PERSIST_H
+#define PMDK_COMMON_DEEP_PERSIST_H 1
+#endif
 
-#include "unittest.h"
-#include "mmap.h"
+#include <sys/types.h>
+#include "os.h"
+#include "set.h"
 
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "pmem_is_pmem_linux");
-
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
-				argv[0]);
-
-	/* insert memory regions to the list */
-	int i;
-	for (i = 1; i < argc; i += 3) {
-		UT_ASSERT(i + 2 < argc);
-
-		errno = 0;
-		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		size_t len = strtoull(argv[i + 2], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		int ret;
-
-		switch (argv[i][0]) {
-		case 'a':
-			ret = util_range_register(addr, len, NULL);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			break;
-		default:
-			FATAL("invalid op");
-		}
-	}
-
-	DONE(NULL);
-}
+int common_deep_persist(const void *addr, size_t len,
+		struct pool_set *set, unsigned region_id);
+int ddax_deep_flush_write(int region_id);

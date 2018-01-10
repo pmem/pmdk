@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,18 +31,14 @@
  */
 
 /*
- * ddax_deep_flush.h -- Internal utility functions for flushing
- * a memory range residing on a DAX device.
+ * os_deep_persist.h -- os deep_persist abstaction layer
  */
 
+#ifndef PMDK_OS_DEEP_PERSIST_H
+#define PMDK_OS_DEEP_PERSIST_H 1
+#endif
 
-#include <sys/types.h>
-#include "os.h"
-#include "set.h"
+#include <sys/stat.h>
+#include <stdio.h>
 
-int ddax_region_find(os_dev_t dev_id);
-int ddax_deep_flush(const void *addr, size_t len,
-struct pool_set *set, unsigned region_id);
-int ddax_replica_deep_flush(const void *addr, size_t len,
-struct pool_set *set, unsigned region_id);
-int ddax_deep_flush_write(int region_id);
+int os_range_deep_persist(uintptr_t addr, size_t len);
