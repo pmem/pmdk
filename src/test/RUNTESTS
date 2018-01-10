@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -308,9 +308,22 @@ runtest() {
 		local sid=${runscript#TEST}
 		read_test_configuration $sid
 
-		ttype=$(intersection "$testtype" "$req_testtype" "short medium long check")
+		local _testtype="$testtype"
+		# unwind check test type to its subtypes
+		[ "$_testtype" == "check" ] && _testtype="short medium"
+		ttype=$(intersection "$_testtype" "$req_testtype" "short medium long")
 		[ -z "$ttype" ] && {
+			echo "$UNITTEST_NAME: SKIP test-type $testtype ($req_testtype required)"
 			continue
+		}
+		# collapse test type to check if its valid superset
+		[ "$ttype" == "short medium" ] && ttype="check"
+
+		# check if output test type is single value
+		ttype_array=($ttype)
+		[ "${#ttype_array[@]}" -gt 1 ] && {
+			echo "$UNITTEST_NAME: multiple test types ($ttype)"
+			exit 1
 		}
 
 		[ "$req_rpmem_valgrind" == "y" -a "$RPMEM_VALGRIND_ENABLED" != "y" ] && {
@@ -349,7 +362,7 @@ runtest() {
 			for build in $builds
 			do
 				export RUNTEST_DIR=$1
-				export RUNTEST_PARAMS="TEST=$testtype FS=$fs BUILD=$build"
+				export RUNTEST_PARAMS="TEST=$ttype FS=$fs BUILD=$build"
 				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
 					$special_params"
 				export RUNTEST_SCRIPT="$runscript"
