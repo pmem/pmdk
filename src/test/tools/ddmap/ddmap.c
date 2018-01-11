@@ -253,7 +253,6 @@ ddmap_write(const char *path, const char *str, size_t offset_in, size_t bytes,
 	os_off_t offset = (os_off_t)(bytes * offset_in);
 	size_t len = bytes * count;
 	if (len == 0)
-		/* i.e. if 'l' option was not used or was set to 0 */
 		length = str_len;
 	else
 		length = min(len, str_len);
@@ -398,15 +397,18 @@ validate_args(struct ddmap_context *ctx)
 			return -1;
 		}
 	} else if (ctx->file_in == NULL) {
+		/* ddmap_write requirements */
 		if (ctx->str == NULL && (ctx->count * ctx->bytes) == 0) {
 			outv_err("when writing, 'data' or 'count' and 'bytes' "
 				"have to be provided");
 			return -1;
 		}
-	}
-	if ((ctx->bytes == 0) || (ctx->count == 0)) {
-		outv_err("number of bytes and count must be provided");
-		return -1;
+	} else {
+		/* scenarios other than ddmap_write requirement */
+		if ((ctx->bytes * ctx->count) == 0) {
+			outv_err("number of bytes and count must be provided");
+			return -1;
+		}
 	}
 	return 0;
 }
