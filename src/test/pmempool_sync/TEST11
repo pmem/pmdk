@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -85,8 +85,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET2
 cat $LOG >> $LOG_TEMP
 
 # Spoil the first and the third replicas
-expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part00 -l 10
-expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part20 -l 10
+expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part00 -n 10 -b 1
+expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part20 -n 10 -b 1
 
 # Try to synchronize replicas using the third poolset
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET3 &>> $LOG_TEMP

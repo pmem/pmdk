@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -321,6 +321,10 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 			break;
 		case 'd':
 			ctx->str = optarg;
+			if (ctx->count == 0)
+				ctx->count = strlen(ctx->str);
+			if (ctx->bytes == 0)
+				ctx->bytes = 1;
 			break;
 		case 's':
 			errno = 0;
@@ -394,9 +398,9 @@ validate_args(struct ddmap_context *ctx)
 			return -1;
 		}
 	} else if (ctx->file_in == NULL) {
-		if (ctx->str == NULL) {
-			outv_err("when writing, 'data' option has to be "
-				"provided");
+		if (ctx->str == NULL && (ctx->count * ctx->bytes) == 0) {
+			outv_err("when writing, 'data' or 'count' and 'bytes' "
+				"have to be provided");
 			return -1;
 		}
 	}
