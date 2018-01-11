@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,25 @@
  * This is the front-end part of the persistent memory allocator. It uses both
  * transient and persistent representation of the heap to provide memory blocks
  * in a reasonable time and with an acceptable common-case fragmentation.
+ *
+ * Lock ordering in the entirety of the allocator is simple, but might be hard
+ * to follow at times because locks are, by necessity, externalized.
+ * There are two sets of locks that need to be taken into account:
+ *	- runtime state locks, represented by buckets.
+ *	- persistent state locks, represented by memory block mutexes.
+ *
+ * To properly use them, follow these rules:
+ *	- When nesting, always lock runtime state first.
+ *	Doing the reverse might cause deadlocks in other parts of the code.
+ *
+ *	- When introducing functions that would require runtime state locks,
+ *	always try to move the lock acquiring to the upper most layer. This
+ *	usually means that the functions will simply take "struct bucket" as
+ *	their argument. By doing so most of the locking can happen in
+ *	the frontend part of the allocator and it's easier to follow the first
+ *	rule because all functions in the backend can safely use the persistent
+ *	state locks - the runtime lock, if it is needed, will be already taken
+ *	by the upper layer.
  */
 
 #include "valgrind_internal.h"
@@ -231,10 +250,10 @@ out:
 }
 
 /*
- * palloc_exec_heap_action -- executes a single heap action (alloc, free)
+ * palloc_heap_action_exec -- executes a single heap action (alloc, free)
  */
 static void
-palloc_exec_heap_action(struct palloc_heap *heap,
+palloc_heap_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
@@ -267,8 +286,6 @@ static void
 palloc_restore_free_chunk_state(struct palloc_heap *heap,
 	struct memory_block *m)
 {
-	VALGRIND_DO_MEMPOOL_FREE(heap->layout, m->m_ops->get_user_data(m));
-
 	if (m->type == MEMORY_BLOCK_HUGE) {
 		struct bucket *b = heap_bucket_acquire_by_id(heap,
 			DEFAULT_ALLOC_CLASS_ID);
@@ -278,68 +295,103 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 }
 
 /*
- * palloc_finalize_heap_action -- finalizes a single heap action (alloc, free)
+ * palloc_mem_action_noop -- empty handler for unused memory action funcs
  */
 static void
-palloc_finalize_heap_action(struct palloc_heap *heap,
-	struct pobj_action_internal *act, int canceled)
+palloc_mem_action_noop(struct palloc_heap *heap,
+	struct pobj_action_internal *act)
+{
+
+}
+
+/*
+ * palloc_heap_action_on_cancel -- restores the state of the heap
+ */
+static void
+palloc_heap_action_on_cancel(struct palloc_heap *heap,
+	struct pobj_action_internal *act)
 {
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
-		if (canceled) {
-			palloc_restore_free_chunk_state(heap, &act->m);
-			act->m.m_ops->invalidate_header(&act->m);
-		} else {
-			STATS_INC(heap->stats, persistent, heap_curr_allocated,
-				act->m.m_ops->get_real_size(&act->m));
-		}
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+			act->m.m_ops->get_user_data(&act->m));
 
-		/* resvp has to be updated regardless of reservation outcome */
+		act->m.m_ops->invalidate_header(&act->m);
+		palloc_restore_free_chunk_state(heap, &act->m);
+	}
+
+	if (act->resvp)
+		util_fetch_and_sub64(act->resvp, 1);
+}
+
+/*
+ * palloc_heap_action_on_process -- performs finalization steps under a lock
+ *	on the persistent state
+ */
+static void
+palloc_heap_action_on_process(struct palloc_heap *heap,
+	struct pobj_action_internal *act)
+{
+	if (act->new_state == MEMBLOCK_ALLOCATED) {
+		STATS_INC(heap->stats, persistent, heap_curr_allocated,
+			act->m.m_ops->get_real_size(&act->m));
 		if (act->resvp)
 			util_fetch_and_sub64(act->resvp, 1);
-	} else if (act->new_state == MEMBLOCK_FREE && !canceled) {
+	} else if (act->new_state == MEMBLOCK_FREE) {
+		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+			act->m.m_ops->get_user_data(&act->m));
+
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
-
 		heap_memblock_on_free(heap, &act->m);
+	}
+}
+
+/*
+ * palloc_heap_action_on_unlock -- performs finalization steps that need to be
+ *	performed without a lock on persistent state
+ */
+static void
+palloc_heap_action_on_unlock(struct palloc_heap *heap,
+	struct pobj_action_internal *act)
+{
+	if (act->new_state == MEMBLOCK_FREE) {
 		palloc_restore_free_chunk_state(heap, &act->m);
 	}
 }
 
 /*
- * palloc_exec_mem_action -- executes a single memory action (set, and, or)
+ * palloc_mem_action_exec -- executes a single memory action (set, and, or)
  */
 static void
-palloc_exec_mem_action(struct palloc_heap *heap,
+palloc_mem_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
 	operation_add_entry(ctx, act->ptr, act->value, OPERATION_SET);
 }
 
-/*
- * palloc_finalize_mem_action -- finalizes a single memory action (set, and, or)
- */
-static void
-palloc_finalize_mem_action(struct palloc_heap *heap,
-	struct pobj_action_internal *act, int canceled)
-{
-
-}
-
 static struct {
 	void (*exec)(struct palloc_heap *heap,
 		const struct pobj_action_internal *act,
 		struct operation_context *ctx);
-	void (*finalize)(struct palloc_heap *heap,
-		struct pobj_action_internal *act, int canceled);
+	void (*on_cancel)(struct palloc_heap *heap,
+		struct pobj_action_internal *act);
+	void (*on_process)(struct palloc_heap *heap,
+		struct pobj_action_internal *act);
+	void (*on_unlock)(struct palloc_heap *heap,
+		struct pobj_action_internal *act);
 } action_funcs[POBJ_MAX_ACTION_TYPE] = {
 	[POBJ_ACTION_TYPE_HEAP] = {
-		.exec = palloc_exec_heap_action,
-		.finalize = palloc_finalize_heap_action
+		.exec = palloc_heap_action_exec,
+		.on_cancel = palloc_heap_action_on_cancel,
+		.on_process = palloc_heap_action_on_process,
+		.on_unlock = palloc_heap_action_on_unlock,
 	},
 	[POBJ_ACTION_TYPE_MEM] = {
-		.exec = palloc_exec_mem_action,
-		.finalize = palloc_finalize_mem_action
+		.exec = palloc_mem_action_exec,
+		.on_cancel = palloc_mem_action_noop,
+		.on_process = palloc_mem_action_noop,
+		.on_unlock = palloc_mem_action_noop,
 	}
 };
 
@@ -405,12 +457,18 @@ palloc_exec_actions(struct palloc_heap *heap,
 	for (int i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
 
-		action_funcs[act->type].finalize(heap, act, 0);
+		action_funcs[act->type].on_process(heap, act);
 
 		if (i == 0 || act->lock != actv[i - 1].lock) {
 			if (act->lock)
 				util_mutex_unlock(act->lock);
 		}
+	}
+
+	for (int i = 0; i < actvcnt; ++i) {
+		act = &actv[i];
+
+		action_funcs[act->type].on_unlock(heap, act);
 	}
 }
 
@@ -442,7 +500,7 @@ palloc_cancel(struct palloc_heap *heap,
 	struct pobj_action_internal *act;
 	for (int i = 0; i < actvcnt; ++i) {
 		act = (struct pobj_action_internal *)&actv[i];
-		action_funcs[act->type].finalize(heap, act, 1);
+		action_funcs[act->type].on_cancel(heap, act);
 	}
 }
 
