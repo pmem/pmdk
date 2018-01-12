@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ create_args[cto]="cto $POOLSET"
 # Known compat flags:
 
 # Known incompat flags:
-let "POOL_FEAT_NOHDRS = 0x0001"
+let "POOL_FEAT_SINGLEHDR = 0x0001"
 
 # Unknown compat flags:
 UNKNOWN_COMPAT=(1 2 3 1111)

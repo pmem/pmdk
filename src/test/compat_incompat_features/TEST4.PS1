@@ -54,7 +54,7 @@ setup
 
 # Create poolset file
 create_poolset $POOLSET `
-    o NOHDRS `
+    o SINGLEHDR `
     20M:$DIR\part0:x `
     20M:$DIR\part1:x
 
@@ -63,7 +63,7 @@ Foreach ($type in $POOL_TYPES)
     expect_normal_exit $PMEMPOOL rm -f $POOLSET | out-file -append -encoding ascii -literalpath $LOG_TEMP
     expect_normal_exit $PMEMPOOL create $create_args[$type] | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
-    # Clear POOL_FEAT_NOHDRS incompat flag in header
+    # Clear POOL_FEAT_SINGLEHDR incompat flag in header
     set_incompat $DIR\part0 0 | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
     # Check if pool fails to open

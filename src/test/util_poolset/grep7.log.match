@@ -1,0 +1,9 @@
+pid $(N): program: $(nW)util_poolset$(nW)
+ut version 1.0
+src version: $(nW)
+the NOHDRS poolset option is not supported for local poolsets
+the NOHDRS poolset option is not supported for local poolsets
+the NOHDRS poolset option is not supported for local poolsets
+the NOHDRS poolset option is not supported for local poolsets
+the NOHDRS poolset option is not supported for local poolsets
+the NOHDRS poolset option is not supported for local poolsets
