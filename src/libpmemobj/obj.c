@@ -1439,10 +1439,13 @@ static int
 obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
-	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
-			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
-			OBJ_FORMAT_RO_COMPAT_CHECK, nlanes, NULL) != 0) {
+	struct pool_attr attr;
+	util_set_attr(&attr, OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
+		OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
+		OBJ_FORMAT_RO_COMPAT_CHECK, NULL, NULL, NULL, NULL, NULL);
+
+	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART, &attr, nlanes,
+			NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}

@@ -191,9 +191,11 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'o':
+			util_set_attr(&attr, SIG, 1, 0,
+				TEST_FORMAT_INCOMPAT_CHECK, 0, NULL, NULL, NULL,
+				NULL, NULL);
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, NULL);
+				MIN_PART, &attr, NULL, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
@@ -202,9 +204,11 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'e':
+			util_set_attr(&attr, SIG, 1, 0,
+				TEST_FORMAT_INCOMPAT_CHECK, 0, NULL, NULL, NULL,
+				NULL, NULL);
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, NULL);
+				MIN_PART, &attr, NULL, NULL);
 			UT_ASSERTeq(ret, 0);
 			void *nptr = util_pool_extend(set, Extend_size);
 			if (nptr == NULL)
