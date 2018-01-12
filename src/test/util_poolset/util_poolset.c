@@ -169,11 +169,12 @@ main(int argc, char *argv[])
 		arg += mock_options(argv[arg]);
 		fname = argv[arg];
 		struct pool_attr attr;
+		memset(&attr, 0, sizeof(attr));
 
 		switch (argv[1][0]) {
 		case 'c':
-			util_set_attr(&attr, SIG, 1, 0, 0, 0, NULL, NULL, NULL,
-					NULL, NULL);
+			attr.signature = SIG;
+			attr.major = 1;
 			ret = util_pool_create(&set, fname, 0, minsize,
 				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
@@ -191,9 +192,11 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'o':
+			attr.signature = SIG;
+			attr.major = 1;
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, NULL);
+				MIN_PART, &attr, NULL, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
@@ -202,9 +205,11 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'e':
+			attr.signature = SIG;
+			attr.major = 1;
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, NULL);
+				MIN_PART, &attr, NULL, NULL);
 			UT_ASSERTeq(ret, 0);
 			void *nptr = util_pool_extend(set, Extend_size);
 			if (nptr == NULL)

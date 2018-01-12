@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -546,11 +546,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
 	 */
+	struct pool_attr attr;
+	util_get_attr_from_header(&attr, &hdr);
 	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
-			hdr.signature, hdr.major,
-			hdr.compat_features,
-			hdr.incompat_features,
-			hdr.ro_compat_features, &nlanes, NULL)) {
+			&attr, &nlanes, NULL)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}
