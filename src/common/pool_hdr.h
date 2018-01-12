@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -163,6 +163,7 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 /*
  * incompat features
  */
-#define POOL_FEAT_NOHDRS 0x0001 /* pool header only in the first part */
+#define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
+#define POOL_FEAT_NOHDRS	0x0002	/* no pool headers */
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,7 @@
 #define CTO_FORMAT_RO_COMPAT_DEFAULT 0x0000
 
 #define CTO_FORMAT_COMPAT_CHECK 0x0000
-#define CTO_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define CTO_FORMAT_INCOMPAT_CHECK POOL_FEAT_SINGLEHDR
 #define CTO_FORMAT_RO_COMPAT_CHECK 0x0000
 
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */

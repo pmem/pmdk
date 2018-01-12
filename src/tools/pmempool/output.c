@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -855,18 +855,18 @@ out_get_incompat_features_str(uint32_t incompat)
 			return "<error>";
 		}
 
-		/* print the name of NOHDRS option */
+		/* print the name of SINGLEHDR option */
 		int count = 0;
 		int curr = ret;
-		if (incompat & POOL_FEAT_NOHDRS) {
+		if (incompat & POOL_FEAT_SINGLEHDR) {
 			ret = snprintf(str_buff + curr,
-				(size_t)(STR_MAX - curr), "%s", "NOHDRS");
+				(size_t)(STR_MAX - curr), "%s", "SINGLEHDR");
 			if (ret < 0 || curr + ret >= STR_MAX)
 				return "";
 			curr += ret;
 			++count;
 			/* take off the flag */
-			incompat &= (uint32_t)(~(POOL_FEAT_NOHDRS));
+			incompat &= (uint32_t)(~(POOL_FEAT_SINGLEHDR));
 		}
 
 		/* handle other flags here */
