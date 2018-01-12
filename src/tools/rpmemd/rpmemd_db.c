@@ -213,7 +213,6 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 			size_t pool_size, const struct rpmem_pool_attr *rattr)
 {
 	RPMEMD_ASSERT(db != NULL);
-	RPMEMD_ASSERT(rattr != NULL);
 
 	util_mutex_lock(&db->lock);
 
@@ -234,9 +233,14 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 	}
 
 	struct pool_attr attr;
-	rpmemd_get_attr(&attr, rattr);
+	struct pool_attr *pattr = NULL;
+	if (rattr != NULL) {
+		rpmemd_get_attr(&attr, rattr);
+		pattr = &attr;
+	}
+
 	ret = util_pool_create_uuids(&set, path, 0, RPMEM_MIN_POOL,
-			RPMEM_MIN_PART, &attr, NULL, REPLICAS_DISABLED,
+			RPMEM_MIN_PART, pattr, NULL, REPLICAS_DISABLED,
 			POOL_REMOTE);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
@@ -301,17 +305,7 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_prp;
 	}
 
-	ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_PART,
-					rattr->signature,
-					&rattr->major,
-					&rattr->compat_features,
-					&rattr->incompat_features,
-					&rattr->ro_compat_features,
-					rattr->poolset_uuid,
-					rattr->uuid,
-					rattr->prev_uuid,
-					rattr->next_uuid,
-					rattr->user_flags);
+	ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_PART, rattr);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
 		goto err_free_path;
@@ -368,17 +362,7 @@ rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
 	RPMEMD_ASSERT(prp->set != NULL);
 	RPMEMD_ASSERT(prp->set->nreplicas == 1);
 
-	return util_replica_set_attr(prp->set->replica[0],
-		rattr->signature,
-		rattr->major,
-		rattr->compat_features,
-		rattr->incompat_features,
-		rattr->ro_compat_features,
-		rattr->poolset_uuid,
-		rattr->uuid,
-		rattr->next_uuid,
-		rattr->prev_uuid,
-		rattr->user_flags);
+	return util_replica_set_attr(prp->set->replica[0], rattr);
 }
 
 /*
@@ -425,18 +409,9 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
 			goto err_free_path;
 		}
 	} else {
-		struct rpmem_pool_attr attr;
+		struct rpmem_pool_attr rattr;
 		ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_PART,
-				attr.signature,
-				&attr.major,
-				&attr.compat_features,
-				&attr.incompat_features,
-				&attr.ro_compat_features,
-				attr.poolset_uuid,
-				attr.uuid,
-				attr.prev_uuid,
-				attr.next_uuid,
-				attr.user_flags);
+				&rattr);
 		if (ret) {
 			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
 			goto err_free_path;

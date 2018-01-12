@@ -247,12 +247,8 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
-int util_replica_set_attr(struct pool_replica *rep, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	const unsigned char *poolset_uuid, const unsigned char *uuid,
-	const unsigned char *next_repl_uuid,
-	const unsigned char *prev_repl_uuid,
-	const unsigned char *arch_flags);
+int util_replica_set_attr(struct pool_replica *rep,
+		const struct rpmem_pool_attr *rattr);
 void util_zero_attr(struct pool_attr *attr);
 void util_set_attr(struct pool_attr *attr, const char *signature,
 	uint32_t major, uint32_t compat_features, uint32_t incompat_features,
@@ -262,7 +258,8 @@ void util_set_attr(struct pool_attr *attr, const char *signature,
 	const unsigned char *next_repl_uuid,
 	const unsigned char *arch_flags);
 void util_get_attr_from_header(struct pool_attr *attr, struct pool_hdr *hdr);
-void util_copy_attr_to_header(struct pool_hdr *hdr, struct pool_attr *attr);
+void util_copy_attr_to_header(struct pool_hdr *hdr,
+		const struct pool_attr *attr);
 int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	size_t offset, int flags, int rdonly);
@@ -277,14 +274,10 @@ int util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_open_nocheck(struct pool_set *set, int cow);
 int util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes, void *addr);
+	size_t minpartsize, struct pool_attr *attr, unsigned *nlanes,
+	void *addr);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, char *sig, uint32_t *major,
-	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
-	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
-	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
-	unsigned char *arch_flags);
+	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
 void *util_pool_extend(struct pool_set *set, size_t size);
 

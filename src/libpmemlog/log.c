@@ -180,7 +180,8 @@ pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 		LOG_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
 
 	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
-			PMEMLOG_MIN_PART, &attr, NULL, REPLICAS_DISABLED) != 0) {
+			PMEMLOG_MIN_PART, &attr, NULL,
+			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
@@ -268,10 +269,13 @@ log_open_common(const char *path, int cow)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART,
-			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
-			LOG_FORMAT_COMPAT_CHECK, LOG_FORMAT_INCOMPAT_CHECK,
-			LOG_FORMAT_RO_COMPAT_CHECK, NULL, NULL) != 0) {
+	struct pool_attr attr;
+	util_set_attr(&attr, LOG_HDR_SIG, LOG_FORMAT_MAJOR,
+		LOG_FORMAT_COMPAT_CHECK, LOG_FORMAT_INCOMPAT_CHECK,
+		LOG_FORMAT_RO_COMPAT_CHECK, NULL, NULL, NULL, NULL, NULL);
+
+	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART, &attr, NULL,
+			NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
