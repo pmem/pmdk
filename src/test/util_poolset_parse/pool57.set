@@ -1,0 +1,6 @@
+PMEMPOOLSET
+OPTION	NOHDRS	# comment
+100G /mountpoint1/part0
+OPTION	SINGLEHDR		# comment
+REPLICA
+100G /mountpoint2/part0

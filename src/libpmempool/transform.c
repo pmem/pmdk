@@ -475,8 +475,8 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if ((is_removing_replicas || is_adding_replicas) &&
 			(set_in_s->flags & OPTION_SINGLEHDR) !=
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		LOG(2, "cannot add/remove replicas and change the SINGLEHDR option"
-				" at the same time");
+		LOG(2,
+		"cannot add/remove replicas and change the SINGLEHDR option at the same time");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -621,9 +621,8 @@ create_missing_headers(struct pool_set *set, unsigned repn)
 	struct pool_hdr *src_hdr = HDR(REP(set, repn), 0);
 	for (unsigned p = 1; p < set->replica[repn]->nhdrs; ++p) {
 		struct pool_attr attr;
-		util_get_attr_from_header(&attr, src_hdr);
+		util_pool_hdr2attr(&attr, src_hdr);
 		attr.incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
-		//XXX: uuids + flags = NULL ?
 		if (util_header_create(set, repn, p, &attr, 1) != 0) {
 			LOG(1, "part headers create failed for"
 					" replica %u part %u", repn, p);
@@ -850,9 +849,9 @@ out:
 }
 
 /*
- * remove_hdrs -- (internal) transform a poolset without the SINGLEHDR option (with
- *                headers) into a poolset with the SINGLEHDR option (without
- *                headers)
+ * remove_hdrs -- (internal) transform a poolset without the SINGLEHDR option
+ *                (with headers) into a poolset with the SINGLEHDR option
+ *                (without headers)
  */
 static int
 remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,

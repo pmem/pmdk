@@ -75,6 +75,7 @@ struct rpmem_pool {
 	enum rpmem_provider provider;
 	os_thread_t monitor;
 	int closing;
+	int no_headers;
 	/*
 	 * Last error code, need to be volatile because it can
 	 * be accessed by multiple threads.
@@ -471,6 +472,10 @@ rpmem_create(const char *target, const char *pool_set_name,
 		goto err_obc_create;
 	}
 
+	if (create_attr == NULL ||
+			util_is_zeroed(create_attr, sizeof(*create_attr)))
+		rpp->no_headers = 1;
+
 	rpmem_log_resp("create", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
@@ -542,6 +547,9 @@ rpmem_open(const char *target, const char *pool_set_name,
 		goto err_obc_create;
 	}
 
+	if (open_attr == NULL || util_is_zeroed(open_attr, sizeof(*open_attr)))
+		rpp->no_headers = 1;
+
 	rpmem_log_resp("open", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
@@ -612,7 +620,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 		return -1;
 	}
 
-	if (offset < RPMEM_HDR_SIZE) {
+	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE) {
 		ERR("offset (%zu) in pool is less than %d bytes", offset,
 				RPMEM_HDR_SIZE);
 		errno = EINVAL;
@@ -650,7 +658,7 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 		return -1;
 	}
 
-	if (offset < RPMEM_HDR_SIZE)
+	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE)
 		LOG(1, "reading from pool at offset (%zu) less than %d bytes",
 				offset, RPMEM_HDR_SIZE);
 

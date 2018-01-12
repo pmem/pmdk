@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -248,8 +248,6 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 	struct rpmem_msg_hdr *hdrp)
 {
 	struct rpmem_msg_create *msg = (struct rpmem_msg_create *)hdrp;
-	struct rpmem_pool_attr attr;
-	unpack_rpmem_pool_attr(&msg->pool_attr, &attr);
 	struct rpmem_req_attr req = {
 		.pool_size = msg->pool_size,
 		.nlanes = (unsigned)msg->nlanes,
@@ -257,7 +255,13 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 		.provider = (enum rpmem_provider)msg->provider,
 	};
 
-	return req_cb->create(obc, arg, &req, &attr);
+	struct rpmem_pool_attr *rattr = NULL;
+	struct rpmem_pool_attr rpmem_attr;
+	unpack_rpmem_pool_attr(&msg->pool_attr, &rpmem_attr);
+	if (!util_is_zeroed(&rpmem_attr, sizeof(rpmem_attr)))
+		rattr = &rpmem_attr;
+
+	return req_cb->create(obc, arg, &req, rattr);
 }
 
 /*
@@ -299,10 +303,13 @@ rpmemd_obc_process_set_attr(struct rpmemd_obc *obc,
 	struct rpmem_msg_hdr *hdrp)
 {
 	struct rpmem_msg_set_attr *msg = (struct rpmem_msg_set_attr *)hdrp;
-	struct rpmem_pool_attr attr;
-	unpack_rpmem_pool_attr(&msg->pool_attr, &attr);
+	struct rpmem_pool_attr *rattr = NULL;
+	struct rpmem_pool_attr rpmem_attr;
+	unpack_rpmem_pool_attr(&msg->pool_attr, &rpmem_attr);
+	if (!util_is_zeroed(&rpmem_attr, sizeof(rpmem_attr)))
+		rattr = &rpmem_attr;
 
-	return req_cb->set_attr(obc, arg, &attr);
+	return req_cb->set_attr(obc, arg, rattr);
 }
 
 typedef int (*rpmemd_obc_process_fn)(struct rpmemd_obc *obc,
