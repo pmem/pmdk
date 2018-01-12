@@ -7,7 +7,7 @@ configuration
     number of threads: $(*)
 create request:
     pool descriptor: '$(nW)testset_remote'
-    pool size: 18837504
+    pool size: 18841600
     nlanes: $(nW)
     provider: $(nW)
 pool attributes:
