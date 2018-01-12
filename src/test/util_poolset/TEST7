@@ -32,46 +32,67 @@
 #
 
 #
-# src/test/util_poolset_parse/TEST3 -- unit test for parsing a pool set file
+# src/test/util_poolset/TEST7 -- unit test for util_pool_open()
 #
-export UNITTEST_NAME=util_poolset_parse/TEST3
-export UNITTEST_NUM=3
+# case: negative test for local poolsets with the NOHDRS option
+#
+export UNITTEST_NAME=util_poolset/TEST7
+export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-
-require_build_type debug
 require_fs_type any
-require_dax_device_alignments 2097152 2097152 # 2MiB
 
 setup
 
-export PARSER_LOG_LEVEL=4
-export PARSER_LOG_FILE=./parser$UNITTEST_NUM.log
+RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
+MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
+export TEST_LOG_LEVEL=4
+export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]}
+# prepare pool sets
 
-create_poolset $DIR/testset2 AUTO:${DEVICE_DAX_PATH[1]}
-
-create_poolset $DIR/testset3 AUTO:${DEVICE_DAX_PATH[0]} 100G:$DIR/testfile1:x
-
-create_poolset $DIR/testset4 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]} \
-	O SINGLEHDR
-
-create_poolset $DIR/testset5 AUTO:${DEVICE_DAX_PATH[0]} \
+create_poolset $DIR/testset1 \
+	$MIN_POOL:$DIR/testfile11:x \
 	O NOHDRS
 
-create_poolset $DIR/testset6 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]} \
+create_poolset $DIR/testset2 \
+	$MIN_POOL:$DIR/testfile21:x \
+	$MIN_POOL:$DIR/testfile22:x \
 	O NOHDRS
 
-POOLSETS="$DIR/testset1 $DIR/testset2 $DIR/testset3 $DIR/testset4 $DIR/testset5 $DIR/testset6"
+create_poolset $DIR/testset3 \
+	$MIN_POOL:$DIR/testfile31:x \
+	r \
+	$MIN_POOL:$DIR/testfile32:x \
+	O NOHDRS
 
-expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
+create_poolset $DIR/testset4\
+	$RESVSIZE:$DIR/testdir41:d\
+	O NOHDRS
 
-$GREP -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
-	sed -e "s/^.*util_poolset_parse][ ]*//g" > grep$UNITTEST_NUM.log
+create_poolset $DIR/testset5\
+	$RESVSIZE:$DIR/testdir51:d $RESVSIZE:$DIR/testdir52:d\
+	O NOHDRS
+
+create_poolset $DIR/testset6\
+	$RESVSIZE:$DIR/testdir61:d R $RESVSIZE:$DIR/testdir62:d\
+	O NOHDRS
+
+# attempt to create the pool sets
+
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
+	$DIR/testset1\
+	$DIR/testset2\
+	$DIR/testset3\
+	$DIR/testset4\
+	$DIR/testset5\
+	$DIR/testset6
+
+# Extract level 1 messages from the test log
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
 

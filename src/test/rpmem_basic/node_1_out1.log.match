@@ -9,4 +9,6 @@ subdir/pool2.set: opened
 pool3.set: opened
 pool3.set: Device or resource busy
 pool4.set: Device or resource busy
+pool5.set: opened
+pool6.set: opened
 rpmem_basic/TEST1: DONE

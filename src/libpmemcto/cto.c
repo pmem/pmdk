@@ -65,6 +65,24 @@
 /* default hint address for mmap() when PMEM_MMAP_HINT is not specified */
 #define CTO_MMAP_HINT ((void *)0x10000000000)
 
+static const struct pool_attr Cto_create_attr = {
+		CTO_HDR_SIG,
+		CTO_FORMAT_MAJOR,
+		CTO_FORMAT_COMPAT_DEFAULT,
+		CTO_FORMAT_INCOMPAT_DEFAULT,
+		CTO_FORMAT_RO_COMPAT_DEFAULT,
+		{0}, {0}, {0}, {0}, {0}
+};
+
+static const struct pool_attr Cto_open_attr = {
+		CTO_HDR_SIG,
+		CTO_FORMAT_MAJOR,
+		CTO_FORMAT_COMPAT_CHECK,
+		CTO_FORMAT_INCOMPAT_CHECK,
+		CTO_FORMAT_RO_COMPAT_CHECK,
+		{0}, {0}, {0}, {0}, {0}
+};
+
 static os_mutex_t Pool_lock; /* guards pmemcto_create and pmemcto_open */
 
 /*
@@ -265,13 +283,9 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 		Mmap_hint = CTO_MMAP_HINT; /* XXX: add randomization */
 	}
 
-	struct pool_attr attr;
-	util_set_attr(&attr, CTO_HDR_SIG, CTO_FORMAT_MAJOR,
-		CTO_FORMAT_COMPAT_DEFAULT, CTO_FORMAT_INCOMPAT_DEFAULT,
-		CTO_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
-
 	if (util_pool_create(&set, path, poolsize, PMEMCTO_MIN_POOL,
-			PMEMCTO_MIN_PART, &attr, NULL, REPLICAS_DISABLED) != 0) {
+			PMEMCTO_MIN_PART, &Cto_create_attr, NULL,
+			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		Mmap_no_random = old_no_random;
 		util_mutex_unlock(&Pool_lock);
@@ -393,10 +407,8 @@ cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL,
-			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
-			CTO_FORMAT_COMPAT_CHECK, CTO_FORMAT_INCOMPAT_CHECK,
-			CTO_FORMAT_RO_COMPAT_CHECK, NULL, false, addr) != 0) {
+	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL, &Cto_open_attr,
+			NULL, false, addr) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

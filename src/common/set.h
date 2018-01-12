@@ -65,8 +65,8 @@ extern "C" {
 /* pool set option flags */
 enum pool_set_option_flag {
 	OPTION_UNKNOWN = 0x0,
-	OPTION_SINGLEHDR = 0x1,
-	OPTION_NOHDRS = 0x2,
+	OPTION_SINGLEHDR = 0x1,	/* pool headers only in the first part */
+	OPTION_NOHDRS = 0x2,	/* no pool headers, remote replicas only */
 };
 
 struct pool_set_option {
@@ -163,16 +163,16 @@ struct part_file {
 };
 
 struct pool_attr {
-	const char *signature; /* pool signature */
+	char signature[POOL_HDR_SIG_LEN];	/* pool signature */
 	uint32_t major;			/* format major version number */
 	uint32_t compat_features;	/* mask: compatible "may" features */
 	uint32_t incompat_features;	/* mask: "must support" features */
 	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
-	const unsigned char *poolset_uuid;	/* pool uuid */
-	const unsigned char *first_part_uuid;	/* first part uuid */
-	const unsigned char *prev_repl_uuid;	/* prev replica uuid */
-	const unsigned char *next_repl_uuid;	/* next replica uuid */
-	const unsigned char *arch_flags;	/* arch flags */
+	unsigned char poolset_uuid[POOL_HDR_UUID_LEN];		/* pool uuid */
+	unsigned char first_part_uuid[POOL_HDR_UUID_LEN]; /* first part uuid */
+	unsigned char prev_repl_uuid[POOL_HDR_UUID_LEN]; /* prev replica uuid */
+	unsigned char next_repl_uuid[POOL_HDR_UUID_LEN]; /* next replica uuid */
+	unsigned char arch_flags[POOL_HDR_ARCH_LEN];		/* arch flags */
 };
 
 /* get index of the (r)th replica */
@@ -239,31 +239,21 @@ int util_poolset_foreach_part(const char *path,
 size_t util_poolset_size(const char *path);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize, size_t minpartsize, struct pool_attr *attr,
+	size_t minsize, size_t minpartsize, const struct pool_attr *attr,
 	unsigned *nlanes, int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, size_t minpartsize,
-	struct pool_attr *attr, unsigned *nlanes, int can_have_rep, int remote);
+	const struct pool_attr *attr, unsigned *nlanes, int can_have_rep,
+	int remote);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
-int util_replica_set_attr(struct pool_replica *rep, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	const unsigned char *poolset_uuid, const unsigned char *uuid,
-	const unsigned char *next_repl_uuid,
-	const unsigned char *prev_repl_uuid,
-	const unsigned char *arch_flags);
-void util_zero_attr(struct pool_attr *attr);
-void util_set_attr(struct pool_attr *attr, const char *signature,
-	uint32_t major, uint32_t compat_features, uint32_t incompat_features,
-	uint32_t ro_compat_features, const unsigned char *poolset_uuid,
-	const unsigned char *first_part_uuid,
-	const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid,
-	const unsigned char *arch_flags);
-void util_get_attr_from_header(struct pool_attr *attr, struct pool_hdr *hdr);
-void util_copy_attr_to_header(struct pool_hdr *hdr, struct pool_attr *attr);
+int util_replica_set_attr(struct pool_replica *rep,
+		const struct rpmem_pool_attr *rattr);
+void util_pool_hdr2attr(struct pool_attr *attr, struct pool_hdr *hdr);
+void util_pool_attr2hdr(struct pool_hdr *hdr,
+		const struct pool_attr *attr);
 int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	size_t offset, int flags, int rdonly);
@@ -271,22 +261,17 @@ int util_unmap_part(struct pool_set_part *part);
 int util_unmap_parts(struct pool_replica *rep, unsigned start_index,
 	unsigned end_index);
 int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
-	struct pool_attr *attr, int overwrite);
+	const struct pool_attr *attr, int overwrite);
 
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_open_nocheck(struct pool_set *set, int cow);
 int util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const char *sig, uint32_t major, uint32_t compat,
-	uint32_t incompat, uint32_t ro_compat, unsigned *nlanes,
+	size_t minpartsize, const struct pool_attr *attr, unsigned *nlanes,
 	int ignore_sds, void *addr);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, char *sig, uint32_t *major,
-	uint32_t *compat, uint32_t *incompat, uint32_t *ro_compat,
-	unsigned char *poolset_uuid, unsigned char *first_part_uuid,
-	unsigned char *prev_repl_uuid, unsigned char *next_repl_uuid,
-	unsigned char *arch_flags);
+	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
 void *util_pool_extend(struct pool_set *set, size_t size);
 
