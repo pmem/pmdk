@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,7 +52,7 @@
 #define BLK_FORMAT_RO_COMPAT_DEFAULT 0x0000
 
 #define BLK_FORMAT_COMPAT_CHECK 0x0000
-#define BLK_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define BLK_FORMAT_INCOMPAT_CHECK POOL_FEAT_SINGLEHDR
 #define BLK_FORMAT_RO_COMPAT_CHECK 0x0000
 
 struct pmemblk {

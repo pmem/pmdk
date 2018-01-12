@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,9 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST19 -- test for transform with NOHDRS option
+# pmempool_transform/TEST19 -- test for transform with SINGLEHDR option
 #
-# removing the NOHDRS option
+# removing the SINGLEHDR option
 # case: two replicas larger than the pool size, able to embrace new headers
 #
 export UNITTEST_NAME=pmempool_transform/TEST19
@@ -60,13 +60,13 @@ POOLSET_5=$DIR/poolset.5
 
 # Create poolset files
 create_poolset $POOLSET_1 \
-	O NOHDRS \
+	O SINGLEHDR \
 	20M:$DIR/part00:x \
 	20M:$DIR/part01:x \
 	20M:$DIR/part02:x
 
 create_poolset $POOLSET_2 \
-	O NOHDRS \
+	O SINGLEHDR \
 	20M:$DIR/part00:x \
 	20M:$DIR/part01:x \
 	20M:$DIR/part02:x \
@@ -77,14 +77,14 @@ create_poolset $POOLSET_2 \
 	10M:$DIR/part13:x
 
 create_poolset $POOLSET_3 \
-	O NOHDRS \
+	O SINGLEHDR \
 	20M:$DIR/part10:x \
 	20M:$DIR/part11:x \
 	20M:$DIR/part12:x \
 	10M:$DIR/part13:x
 
 create_poolset $POOLSET_4 \
-	O NOHDRS \
+	O SINGLEHDR \
 	20M:$DIR/part00:x \
 	20M:$DIR/part01:x \
 	20M:$DIR/part02:x \

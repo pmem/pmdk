@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,9 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform/TEST24 -- test for transforming poolsets with NOHDRS option
+# pmempool_transform/TEST24 -- test for transforming poolsets with SINGLEHDR option
 #
-# case: dry run for removing the NOHDRS option
+# case: dry run for removing the SINGLEHDR option
 #
 export UNITTEST_NAME=pmempool_transform/TEST24
 export UNITTEST_NUM=24
@@ -61,7 +61,7 @@ create_poolset $POOLSET_IN \
 	20M:$DIR/part02:x
 
 create_poolset $POOLSET_OUT \
-	O NOHDRS \
+	O SINGLEHDR \
 	20M:$DIR/part00:x \
 	20M:$DIR/part01:x \
 	20M:$DIR/part02:x
