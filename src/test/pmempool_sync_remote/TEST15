@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync_remote/TEST15 -- a test for pmempool sync with the NOHDRS option
+# pmempool_sync_remote/TEST15 -- a test for pmempool sync with the SINGLEHDR option
 #                                and a remote replica;
 #
 # (like TEST11 but with different alignment)
@@ -60,14 +60,14 @@ node_dax_device_zero 1
 
 # Create poolset files
 create_poolset $DIR/pool.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 1 0) \
 	AUTO:$(get_node_devdax_path 1 1) \
         m \
 	${NODE_ADDR[0]}:remote.set
 
 create_poolset $DIR/remote.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 0 0) \
 	AUTO:$(get_node_devdax_path 0 1)
 

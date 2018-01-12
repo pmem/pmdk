@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 #
 # Checking if data are actually synced.
 # A case with file-based replicas.
-# Similar to: TEST0 + NOHDRS + directories
+# Similar to: TEST0 + SINGLEHDR + directories
 #
 export UNITTEST_NAME=pmempool_sync/TEST22
 export UNITTEST_NUM=22
@@ -58,7 +58,7 @@ POOLSET=$DIR/pool0.set
 
 # Create poolset file
 create_poolset $POOLSET \
-	O NOHDRS \
+	O SINGLEHDR \
 	200M:$DIR/testdir1:d \
 	R \
 	200M:$DIR/testdir2:d \

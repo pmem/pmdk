@@ -50,7 +50,7 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
-#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_SINGLEHDR
 
 size_t Extend_size = MIN_PART * 2;
 
@@ -95,7 +95,7 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 			size_t partsize =
 				(part->filesize & ~(Ut_mmap_align - 1));
 			repsize += partsize;
-			if (i > 0 && (set->options & OPTION_NO_HDRS) == 0)
+			if (i > 0 && (set->options & OPTION_SINGLEHDR) == 0)
 				UT_ASSERTeq(part->size,
 					partsize - Ut_mmap_align); /* XXX */
 		}

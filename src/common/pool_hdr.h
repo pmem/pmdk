@@ -173,6 +173,6 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 /*
  * incompat features
  */
-#define POOL_FEAT_NOHDRS 0x0001 /* pool header only in the first part */
+#define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
 
 #endif

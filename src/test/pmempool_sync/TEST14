@@ -58,7 +58,7 @@ rm -rf $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:${DEVICE_DAX_PATH[0]} \
 	AUTO:${DEVICE_DAX_PATH[1]} \
 	R \
