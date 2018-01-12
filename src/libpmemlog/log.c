@@ -43,6 +43,7 @@
 #include <errno.h>
 #include <time.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "libpmem.h"
 #include "libpmemlog.h"
@@ -55,6 +56,24 @@
 #include "sys_util.h"
 #include "util_pmem.h"
 #include "valgrind_internal.h"
+
+static const struct pool_attr Log_create_attr = {
+		LOG_HDR_SIG,
+		LOG_FORMAT_MAJOR,
+		LOG_FORMAT_COMPAT_DEFAULT,
+		LOG_FORMAT_INCOMPAT_DEFAULT,
+		LOG_FORMAT_RO_COMPAT_DEFAULT,
+		{0}, {0}, {0}, {0}, {0}
+};
+
+static const struct pool_attr Log_open_attr = {
+		LOG_HDR_SIG,
+		LOG_FORMAT_MAJOR,
+		LOG_FORMAT_COMPAT_CHECK,
+		LOG_FORMAT_INCOMPAT_CHECK,
+		LOG_FORMAT_RO_COMPAT_CHECK,
+		{0}, {0}, {0}, {0}, {0}
+};
 
 /*
  * log_descr_create -- (internal) create log memory pool descriptor
@@ -174,13 +193,9 @@ pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 
 	struct pool_set *set;
 
-	struct pool_attr attr;
-	util_set_attr(&attr, LOG_HDR_SIG, LOG_FORMAT_MAJOR,
-		LOG_FORMAT_COMPAT_DEFAULT, LOG_FORMAT_INCOMPAT_DEFAULT,
-		LOG_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
-
 	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
-			PMEMLOG_MIN_PART, &attr, NULL, REPLICAS_DISABLED) != 0) {
+			PMEMLOG_MIN_PART, &Log_create_attr, NULL,
+			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
@@ -268,10 +283,8 @@ log_open_common(const char *path, int cow)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART,
-			LOG_HDR_SIG, LOG_FORMAT_MAJOR,
-			LOG_FORMAT_COMPAT_CHECK, LOG_FORMAT_INCOMPAT_CHECK,
-			LOG_FORMAT_RO_COMPAT_CHECK, NULL, 0, NULL) != 0) {
+	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART, &Log_open_attr,
+			NULL, false, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

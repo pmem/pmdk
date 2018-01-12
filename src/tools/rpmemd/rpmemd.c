@@ -248,22 +248,27 @@ rpmemd_print_req_attr(const struct rpmem_req_attr *req)
 static void
 rpmemd_print_pool_attr(const struct rpmem_pool_attr *attr)
 {
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "signature: '%s'",
-			_str(attr->signature));
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "major: %u", attr->major);
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "compat_features: 0x%x",
-			attr->compat_features);
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "incompat_features: 0x%x",
-			attr->incompat_features);
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "ro_compat_features: 0x%x",
-			attr->ro_compat_features);
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "poolset_uuid: %s",
-			uuid2str(attr->poolset_uuid));
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "uuid: %s", uuid2str(attr->uuid));
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "next_uuid: %s",
-			uuid2str(attr->next_uuid));
-	RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "prev_uuid: %s",
+	if (attr == NULL) {
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "NULL");
+	} else {
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "signature: '%s'",
+				_str(attr->signature));
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "major: %u", attr->major);
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "compat_features: 0x%x",
+				attr->compat_features);
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "incompat_features: 0x%x",
+				attr->incompat_features);
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "ro_compat_features: 0x%x",
+				attr->ro_compat_features);
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "poolset_uuid: %s",
+				uuid2str(attr->poolset_uuid));
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "uuid: %s",
+				uuid2str(attr->uuid));
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "next_uuid: %s",
+				uuid2str(attr->next_uuid));
+		RPMEMD_LOG(INFO, RPMEMD_LOG_INDENT "prev_uuid: %s",
 			uuid2str(attr->prev_uuid));
+	}
 }
 
 /*

@@ -64,8 +64,8 @@ Foreach ($type in $POOL_TYPES)
     expect_normal_exit $PMEMPOOL create $create_args[$type] | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
     # Set compat flag in part 0 header
-    set_incompat $DIR\part0 $POOL_FEAT_NOHDRS | out-file -append -encoding ascii -literalpath $LOG_TEMP
-    set_incompat $DIR\part1 $POOL_FEAT_NOHDRS | out-file -append -encoding ascii -literalpath $LOG_TEMP
+    set_incompat $DIR\part0 $POOL_FEAT_SINGLEHDR | out-file -append -encoding ascii -literalpath $LOG_TEMP
+    set_incompat $DIR\part1 $POOL_FEAT_SINGLEHDR | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
     # Check if pool fails to open
     expect_abnormal_exit $Env:EXE_DIR\pool_open$Env:EXESUFFIX $type $POOLSET 2>&1

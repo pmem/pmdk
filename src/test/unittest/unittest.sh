@@ -513,8 +513,10 @@ function create_holey_file() {
 #   and 32MB, a local replica with only one part of 48MB and a remote replica.
 #   The first part file is not created, the second is zeroed.  The only replica
 #   part is non-zeroed. Also, the last file is read-only and its size
-#   does not match the information from pool set file. The last line describes
-#   a remote replica.
+#   does not match the information from pool set file. The last but one line
+#   describes a remote replica. The SINGLEHDR poolset option is set, so only
+#   the first part in each replica contains a pool header. The remote poolset
+#   also has to have the SINGLEHDR option.
 #
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
 #				R 48M:testfile3:n:11M:0400 \

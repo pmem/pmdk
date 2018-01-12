@@ -548,12 +548,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 * from the first poolset file, these values are then compared with
 	 * the values from all headers of poolset files.
 	 */
+	struct pool_attr attr;
+	util_pool_hdr2attr(&attr, &hdr);
 	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
-			hdr.signature, hdr.major,
-			hdr.compat_features,
-			hdr.incompat_features,
-			hdr.ro_compat_features, &nlanes, true,
-			NULL)) {
+			&attr, &nlanes, true, NULL)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}

@@ -30,70 +30,70 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# compat_incompat_features/TEST3 -- test for compat/incompat feature flags
-#
-# check if pool fails to open when incompat flags differ between parts
-#
-export UNITTEST_NAME=compat_incompat_features/TEST3
-export UNITTEST_NUM=3
 
+#
+# src/test/util_poolset/TEST7 -- unit test for util_pool_open()
+#
+# case: negative test for local poolsets with the NOHDRS option
+#
+export UNITTEST_NAME=util_poolset/TEST7
+export UNITTEST_NUM=7
+
+# standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type	medium
-require_fs_type		any
+require_test_type medium
+require_fs_type any
 
 setup
 
-. ./common.sh
+RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
+MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
+export TEST_LOG_LEVEL=4
+export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
-# Create poolset file
-create_poolset $POOLSET \
-	20M:$DIR/part0:x \
-	20M:$DIR/part1:x
+# prepare pool sets
 
-for type in ${POOL_TYPES[@]}; do
-	# Create poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[$type]} \
-		>> $LOG_TEMP
+create_poolset $DIR/testset1 \
+	$MIN_POOL:$DIR/testfile11:x \
+	O NOHDRS
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
+create_poolset $DIR/testset2 \
+	$MIN_POOL:$DIR/testfile21:x \
+	$MIN_POOL:$DIR/testfile22:x \
+	O NOHDRS
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+create_poolset $DIR/testset3 \
+	$MIN_POOL:$DIR/testfile31:x \
+	r \
+	$MIN_POOL:$DIR/testfile32:x \
+	O NOHDRS
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 0 >> $LOG_TEMP
-	set_incompat $DIR/part1 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
+create_poolset $DIR/testset4\
+	$RESVSIZE:$DIR/testdir41:d\
+	O NOHDRS
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+create_poolset $DIR/testset5\
+	$RESVSIZE:$DIR/testdir51:d $RESVSIZE:$DIR/testdir52:d\
+	O NOHDRS
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 ${UNKNOWN_INCOMPAT[0]} >> $LOG_TEMP
+create_poolset $DIR/testset6\
+	$RESVSIZE:$DIR/testdir61:d R $RESVSIZE:$DIR/testdir62:d\
+	O NOHDRS
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+# attempt to create the pool sets
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part1 ${UNKNOWN_INCOMPAT[1]} >> $LOG_TEMP
+expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
+	$DIR/testset1\
+	$DIR/testset2\
+	$DIR/testset3\
+	$DIR/testset4\
+	$DIR/testset5\
+	$DIR/testset6
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
-done
-
-mv $LOG_TEMP $LOG
-mv $ERR_TEMP $ERR
+# Extract level 1 messages from the test log
+$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check
+
 pass

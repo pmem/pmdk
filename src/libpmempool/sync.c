@@ -290,8 +290,7 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 				continue;
 
 			struct pool_attr attr;
-			util_get_attr_from_header(&attr, src_hdr);
-			//XXX: uuids + flags = NULL ?
+			util_pool_hdr2attr(&attr, src_hdr);
 			if (util_header_create(set, r, p, &attr, 0) != 0) {
 				LOG(1, "part headers create failed for"
 						" replica %u part %u", r, p);
@@ -579,7 +578,6 @@ update_remote_headers(struct pool_set *set)
 				PART(REP(set, r), 0).created == 1)
 			continue;
 
-		//XXX
 		if (util_update_remote_header(set, r)) {
 			LOG(1, "updating header of a remote replica no. %u"
 					" failed", r);

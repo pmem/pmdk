@@ -90,6 +90,8 @@ struct arch_flags {
 	uint16_t machine;		/* required architecture */
 };
 
+#define POOL_HDR_ARCH_LEN sizeof(struct arch_flags)
+
 /* possible values of the machine class field in the above struct */
 #define PMDK_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
 
