@@ -620,13 +620,11 @@ create_missing_headers(struct pool_set *set, unsigned repn)
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_hdr *src_hdr = HDR(REP(set, repn), 0);
 	for (unsigned p = 1; p < set->replica[repn]->nhdrs; ++p) {
-		if (util_header_create(set, repn, p,
-				src_hdr->signature, src_hdr->major,
-				src_hdr->compat_features,
-				src_hdr->incompat_features &
-					(uint32_t)(~POOL_FEAT_SINGLEHDR),
-				src_hdr->ro_compat_features,
-				NULL, NULL, NULL, 1) != 0) {
+		struct pool_attr attr;
+		util_get_attr_from_header(&attr, src_hdr);
+		attr.incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
+		//XXX: uuids + flags = NULL ?
+		if (util_header_create(set, repn, p, &attr, 1) != 0) {
 			LOG(1, "part headers create failed for"
 					" replica %u part %u", repn, p);
 			errno = EINVAL;

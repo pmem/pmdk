@@ -265,12 +265,13 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 		Mmap_hint = CTO_MMAP_HINT; /* XXX: add randomization */
 	}
 
-	if (util_pool_create(&set, path,
-			poolsize, PMEMCTO_MIN_POOL, PMEMCTO_MIN_PART,
-			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
-			CTO_FORMAT_COMPAT_DEFAULT, CTO_FORMAT_INCOMPAT_DEFAULT,
-			CTO_FORMAT_RO_COMPAT_DEFAULT, NULL,
-			REPLICAS_DISABLED) != 0) {
+	struct pool_attr attr;
+	util_set_attr(&attr, CTO_HDR_SIG, CTO_FORMAT_MAJOR,
+		CTO_FORMAT_COMPAT_DEFAULT, CTO_FORMAT_INCOMPAT_DEFAULT,
+		CTO_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
+
+	if (util_pool_create(&set, path, poolsize, PMEMCTO_MIN_POOL,
+			PMEMCTO_MIN_PART, &attr, NULL, REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		Mmap_no_random = old_no_random;
 		util_mutex_unlock(&Pool_lock);

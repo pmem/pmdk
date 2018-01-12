@@ -415,12 +415,13 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 
 	struct pool_set *set;
 
-	if (util_pool_create(&set, path,
-			poolsize, PMEMBLK_MIN_POOL, PMEMBLK_MIN_PART,
-			BLK_HDR_SIG, BLK_FORMAT_MAJOR,
-			BLK_FORMAT_COMPAT_DEFAULT, BLK_FORMAT_INCOMPAT_DEFAULT,
-			BLK_FORMAT_RO_COMPAT_DEFAULT, NULL,
-			REPLICAS_DISABLED) != 0) {
+	struct pool_attr attr;
+	util_set_attr(&attr, BLK_HDR_SIG, BLK_FORMAT_MAJOR,
+		BLK_FORMAT_COMPAT_DEFAULT, BLK_FORMAT_INCOMPAT_DEFAULT,
+		BLK_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
+
+	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
+			PMEMBLK_MIN_PART, &attr, NULL, REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}

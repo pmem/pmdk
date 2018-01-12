@@ -1237,11 +1237,13 @@ pmemobj_createU(const char *path, const char *layout,
 	 */
 	unsigned runtime_nlanes = obj_get_nlanes();
 
-	if (util_pool_create(&set, path,
-			poolsize, PMEMOBJ_MIN_POOL, PMEMOBJ_MIN_PART,
-			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT_DEFAULT, OBJ_FORMAT_INCOMPAT_DEFAULT,
-			OBJ_FORMAT_RO_COMPAT_DEFAULT, &runtime_nlanes,
+	struct pool_attr attr;
+	util_set_attr(&attr, OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
+		OBJ_FORMAT_COMPAT_DEFAULT, OBJ_FORMAT_INCOMPAT_DEFAULT,
+		OBJ_FORMAT_RO_COMPAT_DEFAULT, NULL, NULL, NULL, NULL, NULL);
+
+	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
+			PMEMOBJ_MIN_PART, &attr, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
