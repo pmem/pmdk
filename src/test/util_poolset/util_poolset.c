@@ -168,12 +168,14 @@ main(int argc, char *argv[])
 	for (int arg = 3; arg < argc; arg++) {
 		arg += mock_options(argv[arg]);
 		fname = argv[arg];
+		struct pool_attr attr;
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname,
-				0, minsize, MIN_PART,
-				SIG, 1, 0, 0, 0, NULL, REPLICAS_ENABLED);
+			util_set_attr(&attr, SIG, 1, 0, 0, 0, NULL, NULL, NULL,
+					NULL, NULL);
+			ret = util_pool_create(&set, fname, 0, minsize,
+				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {
