@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ require_dax_device_alignments 2097152 2097152 # 2MiB
 setup
 
 create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]} \
-	O NOHDRS
+	O SINGLEHDR
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -af $DIR/testset1
 

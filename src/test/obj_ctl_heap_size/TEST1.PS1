@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,7 +51,7 @@ setup
 
 create_poolset $DIR\testset1 `
 	4G:$DIR\testdir11:d `
-	O NOHDRS
+	O SINGLEHDR
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout obj_ctl_heap_size `
 	$DIR\testset1

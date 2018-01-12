@@ -8,7 +8,7 @@ $(nW) $(nW)part00
 
 poolset_out
 PMEMPOOLSET
-OPTION NOHDRS
+OPTION SINGLEHDR
 AUTO $(nW)
 AUTO $(nW)
 REPLICA

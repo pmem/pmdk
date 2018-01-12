@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,8 @@ extern "C" {
 /* pool set option flags */
 enum pool_set_option_flag {
 	OPTION_UNKNOWN = 0x0,
-	OPTION_NO_HDRS = 0x1,
+	OPTION_SINGLEHDR = 0x1,
+	OPTION_NOHDRS = 0x2,
 };
 
 struct pool_set_option {

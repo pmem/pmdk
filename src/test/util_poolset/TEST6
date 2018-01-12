@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -61,18 +61,18 @@ create_poolset $DIR/testset4\
 
 create_poolset $DIR/testset6\
 	$RESVSIZE:$DIR/testdir61:d $RESVSIZE:$DIR/testfile62\
-	O NOHDRS
+	O SINGLEHDR
 create_poolset $DIR/testset7\
 	$RESVSIZE:$DIR/testdir71:d R $RESVSIZE:$DIR/testfile72\
-	O NOHDRS
+	O SINGLEHDR
 create_poolset $DIR/testset8\
 	$RESVSIZE:$DIR/testdir81:d $RESVSIZE:$DIR/testdir82:d\
 	R $RESVSIZE:$DIR/testdir83:d $RESVSIZE:$DIR/testfile84\
-	O NOHDRS
+	O SINGLEHDR
 
 create_poolset $DIR/testset9\
 	$RESVSIZE:$DIR/testdir91 $RESVSIZE:$DIR/testfile92:d\
-	O NOHDRS
+	O SINGLEHDR
 
 # create pool sets
 expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
