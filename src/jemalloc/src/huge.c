@@ -375,13 +375,28 @@ huge_prof_ctx_set(const void *ptr, prof_ctx_t *ctx)
 	malloc_mutex_unlock(&pools_lock);
 }
 
+/*
+ * Called at each pool opening.
+ */
 bool
 huge_boot(pool_t *pool)
 {
-
-	/* Initialize chunks data. */
 	if (malloc_mutex_init(&pool->huge_mtx))
 		return (true);
+
+	return (false);
+}
+
+/*
+ * Called only at pool creation.
+ */
+bool
+huge_init(pool_t *pool)
+{
+	if (huge_boot(pool))
+		return (true);
+
+	/* Initialize chunks data. */
 	extent_tree_ad_new(&pool->huge);
 
 	return (false);

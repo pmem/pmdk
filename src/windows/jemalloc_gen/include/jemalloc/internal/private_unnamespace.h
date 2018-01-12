@@ -90,8 +90,11 @@
 #undef base_alloc
 #undef base_boot
 #undef base_calloc
+#undef base_free_fn
+#undef base_malloc_fn
 #undef base_node_alloc
 #undef base_node_dalloc
+#undef base_pool
 #undef base_postfork_child
 #undef base_postfork_parent
 #undef base_prefork
@@ -274,6 +277,8 @@
 #undef narenas_total_get
 #undef ncpus
 #undef nhbins
+#undef npools
+#undef npools_cnt
 #undef opt_abort
 #undef opt_dss
 #undef opt_junk
@@ -299,6 +304,7 @@
 #undef opt_zero
 #undef p2rz
 #undef pages_purge
+#undef pools_shared_data_initialized
 #undef pow2_ceil
 #undef prof_backtrace
 #undef prof_boot0

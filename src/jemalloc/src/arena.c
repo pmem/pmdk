@@ -2400,6 +2400,31 @@ arena_stats_merge(arena_t *arena, const char **dss, size_t *nactive,
 	}
 }
 
+/*
+ * Called at each pool opening.
+ */
+bool
+arena_boot(arena_t *arena)
+{
+	unsigned i;
+	arena_bin_t *bin;
+
+	if (malloc_mutex_init(&arena->lock))
+		return (true);
+
+	/* Initialize bins. */
+	for (i = 0; i < NBINS; i++) {
+		bin = &arena->bins[i];
+		if (malloc_mutex_init(&bin->lock))
+			return (true);
+	}
+
+	return (false);
+}
+
+/*
+ * Called only at pool/arena creation.
+ */
 bool
 arena_new(pool_t *pool, arena_t *arena, unsigned ind)
 {
@@ -2606,7 +2631,7 @@ bin_info_init(void)
 }
 
 void
-arena_boot(void)
+arena_params_boot(void)
 {
 	size_t header_size;
 	unsigned i;

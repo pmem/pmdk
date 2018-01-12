@@ -15,6 +15,7 @@ extent_node_t *base_node_alloc(pool_t *pool);
 void	base_node_dalloc(pool_t *pool, extent_node_t *node);
 size_t	base_node_prealloc(pool_t *pool, size_t number);
 bool	base_boot(pool_t *pool);
+bool	base_init(pool_t *pool);
 void	base_prefork(pool_t *pool);
 void	base_postfork_parent(pool_t *pool);
 void	base_postfork_child(pool_t *pool);
