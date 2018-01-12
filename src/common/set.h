@@ -124,7 +124,7 @@ struct remote_replica {
 struct pool_replica {
 	unsigned nparts;
 	unsigned nallocated;
-	unsigned nhdrs;		/* should be either 1 or nparts */
+	unsigned nhdrs;		/* should be 0, 1 or nparts */
 	size_t repsize;		/* total size of all the parts (mappings) */
 	size_t resvsize;	/* min size of the address space reservation */
 	int is_pmem;		/* true if all the parts are in PMEM */
@@ -163,11 +163,16 @@ struct part_file {
 };
 
 struct pool_attr {
+	const char *signature; /* pool signature */
+	uint32_t major;			/* format major version number */
+	uint32_t compat_features;	/* mask: compatible "may" features */
+	uint32_t incompat_features;	/* mask: "must support" features */
+	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
 	const unsigned char *poolset_uuid;	/* pool uuid */
 	const unsigned char *first_part_uuid;	/* first part uuid */
 	const unsigned char *prev_repl_uuid;	/* prev replica uuid */
 	const unsigned char *next_repl_uuid;	/* next replica uuid */
-	const unsigned char *user_flags;	/* user flags */
+	const unsigned char *arch_flags;	/* arch flags */
 };
 
 /* get index of the (r)th replica */
@@ -234,14 +239,11 @@ int util_poolset_foreach_part(const char *path,
 size_t util_poolset_size(const char *path);
 
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
-	size_t minsize, size_t minpartsize, const char *sig, uint32_t major,
-	uint32_t compat, uint32_t incompat, uint32_t ro_compat,
+	size_t minsize, size_t minpartsize, struct pool_attr *attr,
 	unsigned *nlanes, int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
-	size_t poolsize, size_t minsize, size_t minpartsize, const char *sig,
-	uint32_t major, uint32_t compat, uint32_t incompat, uint32_t ro_compat,
-	unsigned *nlanes, int can_have_rep, int remote,
-	struct pool_attr *poolattr);
+	size_t poolsize, size_t minsize, size_t minpartsize,
+	struct pool_attr *attr, unsigned *nlanes, int can_have_rep, int remote);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create);
 void util_part_fdclose(struct pool_set_part *part);
@@ -252,6 +254,16 @@ int util_replica_set_attr(struct pool_replica *rep, const char *sig,
 	const unsigned char *next_repl_uuid,
 	const unsigned char *prev_repl_uuid,
 	const unsigned char *arch_flags);
+void util_zero_attr(struct pool_attr *attr);
+void util_set_attr(struct pool_attr *attr, const char *signature,
+	uint32_t major, uint32_t compat_features, uint32_t incompat_features,
+	uint32_t ro_compat_features, const unsigned char *poolset_uuid,
+	const unsigned char *first_part_uuid,
+	const unsigned char *prev_repl_uuid,
+	const unsigned char *next_repl_uuid,
+	const unsigned char *arch_flags);
+void util_get_attr_from_header(struct pool_attr *attr, struct pool_hdr *hdr);
+void util_copy_attr_to_header(struct pool_hdr *hdr, struct pool_attr *attr);
 int util_replica_close(struct pool_set *set, unsigned repidx);
 int util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	size_t offset, int flags, int rdonly);
@@ -259,10 +271,7 @@ int util_unmap_part(struct pool_set_part *part);
 int util_unmap_parts(struct pool_replica *rep, unsigned start_index,
 	unsigned end_index);
 int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
-	const char *sig, uint32_t major, uint32_t compat, uint32_t incompat,
-	uint32_t ro_compat, const unsigned char *prev_repl_uuid,
-	const unsigned char *next_repl_uuid, const unsigned char *arch_flags,
-	int overwrite);
+	struct pool_attr *attr, int overwrite);
 
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
@@ -312,7 +321,7 @@ extern int (*Rpmem_remove)(const char *target,
 		const char *pool_set_name, int flags);
 
 extern int (*Rpmem_set_attr)(RPMEMpool *rpp,
-		const struct rpmem_pool_attr *attr);
+		const struct rpmem_pool_attr *rattr);
 
 
 #ifdef __cplusplus

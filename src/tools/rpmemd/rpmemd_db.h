@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,13 +49,13 @@ struct rpmemd_db_pool {
 struct rpmemd_db *rpmemd_db_init(const char *root_dir, mode_t mode);
 struct rpmemd_db_pool *rpmemd_db_pool_create(struct rpmemd_db *db,
 	const char *pool_desc, size_t pool_size,
-	const struct rpmem_pool_attr *attr);
+	const struct rpmem_pool_attr *rattr);
 struct rpmemd_db_pool *rpmemd_db_pool_open(struct rpmemd_db *db,
-	const char *pool_desc, size_t pool_size, struct rpmem_pool_attr *attr);
+	const char *pool_desc, size_t pool_size, struct rpmem_pool_attr *rattr);
 int rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
 		int force, int pool_set);
 int rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
-	const struct rpmem_pool_attr *attr);
+	const struct rpmem_pool_attr *rattr);
 void rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp);
 void rpmemd_db_fini(struct rpmemd_db *db);
 int rpmemd_db_check_dir(struct rpmemd_db *db);
