@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync_remote/TEST9 -- a test for pmempool sync with the NOHDRS option
+# pmempool_sync_remote/TEST9 -- a test for pmempool sync with the SINGLEHDR option
 #                               and a remote replica
 #
 # case: damaged remote replica
@@ -51,14 +51,14 @@ setup
 
 # Create poolset files
 create_poolset $DIR/pool.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	10M:${NODE_DIR[1]}part00:x \
 	10M:${NODE_DIR[1]}part01:x \
         m \
 	${NODE_ADDR[0]}:remote.set
 
 create_poolset $DIR/remote.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	21M:${NODE_DIR[0]}partr00:x
 
 # CLI script for writing some data hitting all the parts

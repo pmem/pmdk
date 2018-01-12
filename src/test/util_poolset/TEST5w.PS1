@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -69,17 +69,17 @@ create_poolset $DIR\testset4 `
 
 create_poolset $DIR\testset5 `
 	${RESVSIZE_STR}:$DIR\testdir51:d `
-	O NOHDRS
+	O SINGLEHDR
 create_poolset $DIR\testset6 `
 	${RESVSIZE_STR}:$DIR\testdir61:d ${RESVSIZE_STR}:$DIR\testdir62:d `
-	O NOHDRS
+	O SINGLEHDR
 create_poolset $DIR\testset7 `
 	${RESVSIZE_STR}:$DIR\testdir71:d R ${RESVSIZE_STR}:$DIR\testdir72:d `
-	O NOHDRS
+	O SINGLEHDR
 create_poolset $DIR\testset8 `
 	${RESVSIZE_STR}:$DIR\testdir81:d ${RESVSIZE_STR}:$DIR\testdir82:d `
 	R ${RESVSIZE_STR}:$DIR\testdir83:d ${RESVSIZE_STR}:$DIR\testdir84:d `
-	O NOHDRS
+	O SINGLEHDR
 
 # create pool sets
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `

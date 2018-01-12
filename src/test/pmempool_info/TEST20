@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ REPS="$REPL1 $REPL2"
 rm -f $POOLSET
 create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z\
 	R 32M:$REPL1:z 32M:$REPL2:z \
-	O NOHDRS
+	O SINGLEHDR
 
 check_file $POOLSET
 

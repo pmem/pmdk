@@ -192,13 +192,13 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 		}
 
 		if (!replica_is_part_broken(repn, p - 1, set_hs) &&
-				!(set->options & OPTION_NO_HDRS)) {
+				!(set->options & OPTION_SINGLEHDR)) {
 			/* try to get part uuid from the previous part */
 			hdrp = HDRP(rep, p);
 			memcpy(rep->part[p].uuid, hdrp->next_part_uuid,
 					POOL_HDR_UUID_LEN);
 		} else if (!replica_is_part_broken(repn, p + 1, set_hs) &&
-				!(set->options & OPTION_NO_HDRS)) {
+				!(set->options & OPTION_SINGLEHDR)) {
 			/* try to get part uuid from the next part */
 			hdrp = HDRN(rep, p);
 			memcpy(rep->part[p].uuid, hdrp->prev_part_uuid,

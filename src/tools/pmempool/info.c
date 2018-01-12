@@ -660,8 +660,8 @@ pmempool_info_poolset(struct pmem_info *pip, int v)
 
 	if (pip->pfile->poolset->options > 0) {
 		outv_title(v, "Poolset options");
-		if (pip->pfile->poolset->options & OPTION_NO_HDRS)
-			outv(v, "%s", "NOHDRS\n");
+		if (pip->pfile->poolset->options & OPTION_SINGLEHDR)
+			outv(v, "%s", "SINGLEHDR\n");
 	}
 
 	return 0;

@@ -7,7 +7,7 @@ alignment                : 2097152
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x1 [NOHDRS]
+Mandatory features       : 0x1 [SINGLEHDR]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)

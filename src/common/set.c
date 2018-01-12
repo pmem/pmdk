@@ -102,7 +102,8 @@ int Prefault_at_create = 0;
 
 /* list of pool set option names and flags */
 static struct pool_set_option Options[] = {
-	{ "NOHDRS", OPTION_NO_HDRS },
+	{ "SINGLEHDR", OPTION_SINGLEHDR },
+	{ "NOHDRS", OPTION_NOHDRS },
 	{ NULL, OPTION_UNKNOWN }
 };
 
@@ -1088,7 +1089,7 @@ util_poolset_check_devdax(struct pool_set *set)
 			}
 
 			if (is_dev_dax && rep->nparts > 1 &&
-			    (set->options & OPTION_NO_HDRS) == 0 &&
+			    (set->options & OPTION_SINGLEHDR) == 0 &&
 			    util_file_device_dax_alignment(rep->part[p].path)
 					!= Pagesize) {
 				ERR(
@@ -1113,7 +1114,7 @@ util_poolset_set_size(struct pool_set *set)
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		rep->nhdrs = (set->options & OPTION_NO_HDRS) ? 1 : rep->nparts;
+		rep->nhdrs = (set->options & OPTION_SINGLEHDR) ? 1 : rep->nparts;
 		rep->repsize = 0;
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			rep->repsize +=
@@ -2151,14 +2152,14 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	hdrp->incompat_features = incompat;
 	hdrp->ro_compat_features = ro_compat;
 
-	if (set->options & OPTION_NO_HDRS)
-		hdrp->incompat_features |= POOL_FEAT_NOHDRS;
+	if (set->options & OPTION_SINGLEHDR)
+		hdrp->incompat_features |= POOL_FEAT_SINGLEHDR;
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 	memcpy(hdrp->uuid, PART(rep, partidx).uuid, POOL_HDR_UUID_LEN);
 
 	/* link parts */
-	if (set->options & OPTION_NO_HDRS) {
+	if (set->options & OPTION_SINGLEHDR) {
 		/* next/prev part point to part #0 */
 		ASSERTeq(partidx, 0);
 		memcpy(hdrp->prev_part_uuid, PART(rep, 0).uuid,
@@ -2454,7 +2455,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 #endif
 	int retry_for_contiguous_addr;
 	size_t mapsize;
-	size_t hdrsize = (set->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
+	size_t hdrsize = (set->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
 	void *addr;
 	struct pool_replica *rep = set->replica[repidx];
 
@@ -2828,7 +2829,7 @@ util_pool_extend(struct pool_set *set, size_t size)
 		return NULL;
 	}
 
-	if ((set->options & OPTION_NO_HDRS) == 0) {
+	if ((set->options & OPTION_SINGLEHDR) == 0) {
 		ERR(
 		"extending the pool by appending parts with headers is not supported!");
 		return NULL;
@@ -2846,7 +2847,7 @@ util_pool_extend(struct pool_set *set, size_t size)
 		return NULL;
 	}
 
-	size_t hdrsize = (set->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
+	size_t hdrsize = (set->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
 	void *addr = NULL;
 	void *addr_base = NULL;
 
@@ -3121,7 +3122,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	int remaining_retries = 10;
 	int retry_for_contiguous_addr;
 	size_t mapsize;
-	size_t hdrsize = (set->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
+	size_t hdrsize = (set->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
 	struct pool_replica *rep = set->replica[repidx];
 	void *addr = rep->mapaddr;
 

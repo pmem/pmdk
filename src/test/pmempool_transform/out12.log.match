@@ -18,12 +18,12 @@ size                     : $(nW)
 alignment                : $(nW)
 
 Poolset options:
-NOHDRS
+SINGLEHDR
 
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x1 [NOHDRS]
+Mandatory features       : 0x1 [SINGLEHDR]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -45,7 +45,7 @@ alignment                : $(nW)
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x1 [NOHDRS]
+Mandatory features       : 0x1 [SINGLEHDR]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
