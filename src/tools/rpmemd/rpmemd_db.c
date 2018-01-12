@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -188,14 +188,32 @@ rpmemd_db_pool_madvise(struct pool_set *set)
 }
 
 /*
+ * rpmemd_get_attr -- (internal) get pool attributes from remote pool attributes
+ */
+static void
+rpmemd_get_attr(struct pool_attr *attr, const struct rpmem_pool_attr *rattr)
+{
+	attr->signature = rattr->signature;
+	attr->major = rattr->major;
+	attr->compat_features = rattr->compat_features;
+	attr->incompat_features = rattr->incompat_features;
+	attr->ro_compat_features = rattr->ro_compat_features;
+	attr->poolset_uuid = rattr->poolset_uuid;
+	attr->first_part_uuid = rattr->uuid;
+	attr->prev_repl_uuid = rattr->prev_uuid;
+	attr->next_repl_uuid = rattr->next_uuid;
+	attr->arch_flags = rattr->user_flags;
+}
+
+/*
  * rpmemd_db_pool_create -- create a new pool set
  */
 struct rpmemd_db_pool *
 rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
-			size_t pool_size, const struct rpmem_pool_attr *attr)
+			size_t pool_size, const struct rpmem_pool_attr *rattr)
 {
 	RPMEMD_ASSERT(db != NULL);
-	RPMEMD_ASSERT(attr != NULL);
+	RPMEMD_ASSERT(rattr != NULL);
 
 	util_mutex_lock(&db->lock);
 
@@ -215,24 +233,11 @@ rpmemd_db_pool_create(struct rpmemd_db *db, const char *pool_desc,
 		goto err_free_prp;
 	}
 
-	struct pool_attr pattr;
-	pattr.poolset_uuid = attr->poolset_uuid;
-	pattr.first_part_uuid = attr->uuid;
-	pattr.prev_repl_uuid = attr->prev_uuid;
-	pattr.next_repl_uuid = attr->next_uuid;
-	pattr.user_flags = attr->user_flags;
-
-	ret = util_pool_create_uuids(&set, path,
-					0, RPMEM_MIN_POOL, RPMEM_MIN_PART,
-					attr->signature,
-					attr->major,
-					attr->compat_features,
-					attr->incompat_features,
-					attr->ro_compat_features,
-					NULL,
-					REPLICAS_DISABLED,
-					POOL_REMOTE,
-					&pattr);
+	struct pool_attr attr;
+	rpmemd_get_attr(&attr, rattr);
+	ret = util_pool_create_uuids(&set, path, 0, RPMEM_MIN_POOL,
+			RPMEM_MIN_PART, &attr, NULL, REPLICAS_DISABLED,
+			POOL_REMOTE);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot create pool set -- '%s'", path);
 		goto err_free_path;
@@ -273,10 +278,10 @@ err_unlock:
  */
 struct rpmemd_db_pool *
 rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
-			size_t pool_size, struct rpmem_pool_attr *attr)
+			size_t pool_size, struct rpmem_pool_attr *rattr)
 {
 	RPMEMD_ASSERT(db != NULL);
-	RPMEMD_ASSERT(attr != NULL);
+	RPMEMD_ASSERT(rattr != NULL);
 
 	util_mutex_lock(&db->lock);
 
@@ -297,16 +302,16 @@ rpmemd_db_pool_open(struct rpmemd_db *db, const char *pool_desc,
 	}
 
 	ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_PART,
-					attr->signature,
-					&attr->major,
-					&attr->compat_features,
-					&attr->incompat_features,
-					&attr->ro_compat_features,
-					attr->poolset_uuid,
-					attr->uuid,
-					attr->prev_uuid,
-					attr->next_uuid,
-					attr->user_flags);
+					rattr->signature,
+					&rattr->major,
+					&rattr->compat_features,
+					&rattr->incompat_features,
+					&rattr->ro_compat_features,
+					rattr->poolset_uuid,
+					rattr->uuid,
+					rattr->prev_uuid,
+					rattr->next_uuid,
+					rattr->user_flags);
 	if (ret) {
 		RPMEMD_LOG(ERR, "!cannot open pool set -- '%s'", path);
 		goto err_free_path;
@@ -357,23 +362,23 @@ rpmemd_db_pool_close(struct rpmemd_db *db, struct rpmemd_db_pool *prp)
  */
 int
 rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
-	const struct rpmem_pool_attr *attr)
+	const struct rpmem_pool_attr *rattr)
 {
 	RPMEMD_ASSERT(prp != NULL);
 	RPMEMD_ASSERT(prp->set != NULL);
 	RPMEMD_ASSERT(prp->set->nreplicas == 1);
 
 	return util_replica_set_attr(prp->set->replica[0],
-		attr->signature,
-		attr->major,
-		attr->compat_features,
-		attr->incompat_features,
-		attr->ro_compat_features,
-		attr->poolset_uuid,
-		attr->uuid,
-		attr->next_uuid,
-		attr->prev_uuid,
-		attr->user_flags);
+		rattr->signature,
+		rattr->major,
+		rattr->compat_features,
+		rattr->incompat_features,
+		rattr->ro_compat_features,
+		rattr->poolset_uuid,
+		rattr->uuid,
+		rattr->next_uuid,
+		rattr->prev_uuid,
+		rattr->user_flags);
 }
 
 /*
