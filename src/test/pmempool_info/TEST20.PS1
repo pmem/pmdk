@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 # pmempool_info\TEST20.PS1 -- test for info command
 #
-# check if poolset file with NOHDRS option is handled properly
+# check if poolset file with SINGLEHDR option is handled properly
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -64,7 +64,7 @@ $REPS="$REPL1 $REPL2"
 remove_files $POOLSET
 create_poolset $POOLSET 32M:${POOL1}:z 32M:${POOL2}:z `
 	R 32M:${REPL1}:z 32M:${REPL2}:z `
-	O NOHDRS
+	O SINGLEHDR
 
 check_file $POOLSET
 

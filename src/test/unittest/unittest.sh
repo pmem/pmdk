@@ -519,7 +519,7 @@ function create_holey_file() {
 #	create_poolset ./pool.set 16M:testfile1 32M:testfile2:z \
 #				R 48M:testfile3:n:11M:0400 \
 #				M remote_node:remote_pool.set \
-#                               O NOHDRS
+#                               O SINGLEHDR
 #
 function create_poolset() {
 	psfile=$1
