@@ -1,0 +1,3 @@
+PMEMPOOLSET
+OPTION NOHDRS
+100G /mountpoint1/part0

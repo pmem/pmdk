@@ -1,7 +1,15 @@
 rpmem_basic/TEST9: START: rpmem_basic
  ./rpmem_basic$(nW) $(*)
-pool.set: created
-pool.set: opened
+pool0.set: created
+pool0.set: opened
 set attributes succeeded (alt)
-pool.set: opened
+pool0.set: opened
+pool1.set: created
+pool1.set: opened
+set attributes succeeded (alt)
+pool1.set: opened
+pool2.set: created
+pool2.set: opened
+set attributes failed (alt)
+pool2.set: opened
 rpmem_basic/TEST9: DONE
