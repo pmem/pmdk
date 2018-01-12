@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -319,8 +319,10 @@ heap_chunk_init(struct palloc_heap *heap, struct chunk_header *hdr,
 		.size_idx = size_idx
 	};
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
 
 	*hdr = nhdr; /* write the entire header (8 bytes) at once */
+
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
 	heap_chunk_write_footer(hdr, size_idx);
@@ -402,6 +404,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	for (unsigned i = 1; i < m->size_idx; ++i) {
 		data_hdr = &z->chunk_headers[m->chunk_id + i];
 		VALGRIND_DO_MAKE_MEM_UNDEFINED(data_hdr, sizeof(*data_hdr));
+		VALGRIND_ANNOTATE_NEW_MEMORY(data_hdr, sizeof(*data_hdr));
 		run_data_hdr.size_idx = i;
 		*data_hdr = run_data_hdr;
 	}
@@ -411,6 +414,8 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 
 	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 	ASSERT(hdr->type == CHUNK_TYPE_FREE);
+
+	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
 
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
