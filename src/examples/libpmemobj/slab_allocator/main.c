@@ -46,9 +46,9 @@
 #include "slab_allocator.h"
 
 POBJ_LAYOUT_BEGIN(slab_allocator);
-POBJ_LAYOUT_ROOT(slab_allocator, struct foo);
+POBJ_LAYOUT_ROOT(slab_allocator, struct root);
 POBJ_LAYOUT_TOID(slab_allocator, struct bar);
-POBJ_LAYOUT_TOID(slab_allocator, struct root);
+POBJ_LAYOUT_TOID(slab_allocator, struct foo);
 POBJ_LAYOUT_END(slab_allocator);
 
 struct foo {
