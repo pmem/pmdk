@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -312,7 +312,7 @@ parse_config_key(const char *key)
  *
  * Return newly written option flag. Store possible errors in errno.
  */
-static void
+static int
 parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 	struct rpmemd_config *config, uint64_t disabled)
 {
@@ -324,9 +324,10 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 
 	if (pos->equal_char == INVALID_CHAR_POS) {
 		char *leftover = trim_line_element(line, 0, end_of_content);
-		if (leftover != NULL)
+		if (leftover != NULL) {
 			errno = EINVAL;
-		return;
+			return -1;
+		}
 	}
 
 	char *key_name = trim_line_element(line, 0, pos->equal_char);
@@ -335,15 +336,19 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 
 	if (key_name == NULL || value == NULL) {
 		errno = EINVAL;
-		return;
+		return -1;
 	}
 
 	enum rpmemd_option key = parse_config_key(key_name);
 	if (key != RPD_OPT_INVALID) {
 		if ((disabled & (uint64_t)(1 << key)) == 0)
 			set_option(key, value, config);
-	} else
+	} else {
 		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -401,8 +406,9 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 
 		if (pos.EOL_char != INVALID_CHAR_POS) {
 			strcpy(line_copy, line);
-			parse_config_line(line_copy, &pos, config, disabled);
-			if (errno != 0) {
+			int ret = parse_config_line(line_copy, &pos, config,
+					disabled);
+			if (ret != 0) {
 				size_t len = strlen(line);
 				if (len > 0 && line[len - 1] == '\n')
 					line[len - 1] = '\0';
