@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -64,8 +64,8 @@ echo "Number of LBAs [error]: $NERR" >> $LOG
 echo "Number of LBAs [no flag]: $NNON" >> $LOG
 
 NSUM=$(($NZER + $NERR + $NNON))
-[[ $NSUM == $NLBA ]] || $(echo "$NSUM != $NLBA" && exit 1)
-[[ $NSUM == $INFO_NLBA ]] || $(echo "$NSUM != $INFO_NLBA" && exit 1)
+[[ $NSUM == $NLBA ]] || fatal "$NSUM != $NLBA"
+[[ $NSUM == $INFO_NLBA ]] || fatal "$NSUM != $INFO_NLBA"
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -dz $POOL >> $LOG
 
