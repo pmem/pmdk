@@ -57,8 +57,7 @@ expect_normal_exit ./traces$EXESUFFIX
 
 # check results
 [ -s ./custom_file.log-* ] || {
-	echo "error: ./custom_file.log-PID not found"
-	exit 1
+	fatal "error: ./custom_file.log-PID not found"
 }
 mv ./custom_file.log-* custom_file$UNITTEST_NUM.log
 check
