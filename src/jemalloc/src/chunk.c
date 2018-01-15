@@ -428,7 +428,8 @@ chunk_boot(pool_t *pool)
 
 	if (pool->chunks_rtree) {
 		rtree_t *rtree = pool->chunks_rtree;
-		malloc_mutex_init(&rtree->mutex);
+		if (malloc_mutex_init(&rtree->mutex))
+			return (true);
 	}
 
 	return (false);
