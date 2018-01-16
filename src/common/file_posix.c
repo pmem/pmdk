@@ -52,7 +52,7 @@
 #include "out.h"
 
 #define MAX_SIZE_LENGTH 64
-#define DAX_REGION_ID_LEN 6 /* 5 numbers + \0 */
+#define DAX_REGION_ID_LEN 6 /* 5 digits + \0 */
 
 /*
  * util_tmpfile_mkstemp --  (internal) create temporary file

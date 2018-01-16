@@ -1,4 +1,6 @@
-# Copyright 2017-2018, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,24 +30,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
-#
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
-	$(COMMON)/os_deep_persist_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+#
+# src/test/pmem_deep_persist/TEST9 -- unit test for pmem_deep_persist
+#
+export UNITTEST_NAME=pmem_deep_persist/TEST9
+export UNITTEST_NUM=9
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+require_fs_type any
+
+require_dax_devices 2
+
+setup
+
+dax_device_zero
+
+export PMEM_LOG_LEVEL=15
+
+create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
+
+DEEP_PERSIST_SIZE=$(get_devdax_size 0)
+OFFSET=$(convert_to_bytes 20M)
+expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE $OFFSET
+
+$GREP -e "<libpmem>: <3>.*part_deep_persist.*" pmem$UNITTEST_NUM.log | wc -l > ./grep$UNITTEST_NUM.log
+$GREP -e "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log | wc -l >> ./grep$UNITTEST_NUM.log
+
+check
+
+pass

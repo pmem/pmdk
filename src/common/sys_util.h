@@ -101,7 +101,6 @@ util_mutex_unlock(os_mutex_t *m)
 	}
 }
 
-
 /*
  * util_rwlock_init -- os_rwlock_init variant that never fails from
  * caller perspective. If os_rwlock_init failed, this function aborts
@@ -162,7 +161,6 @@ util_rwlock_unlock(os_rwlock_t *m)
 	}
 }
 
-
 /*
  * util_rwlock_destroy -- os_rwlock_destroy variant that never fails from
  * caller perspective. If os_rwlock_destroy failed, this function aborts
@@ -171,8 +169,11 @@ util_rwlock_unlock(os_rwlock_t *m)
 static inline void
 util_rwlock_destroy(os_rwlock_t *m)
 {
-	if (os_rwlock_destroy(m) != 0)
+	int tmp = os_rwlock_destroy(m);
+	if (tmp) {
+		errno = tmp;
 		FATAL("!os_rwlock_destroy");
+	}
 }
 
 /*

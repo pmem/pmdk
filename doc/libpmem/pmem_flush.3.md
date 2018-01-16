@@ -45,8 +45,9 @@ date: pmem API version 1.0
 
 # NAME #
 
-**pmem_flush**(), **pmem_deep_persist**(), **pmem_drain**(),
+**pmem_flush**(), **pmem_drain**(),
 **pmem_persist**(), **pmem_msync**(),
+**pmem_deep_persist**(),
 **pmem_has_hw_drain**() -- check persistency, store persistent data and delete mappings
 
 
@@ -150,7 +151,7 @@ and then follow up by calling **pmem_drain**() once.
 The semantics of **pmem_deep_persist**() function are the same as **pmem_persist**(),
 except that it provides higher reliability by flushing persistent memory stores to
 the most reliable persistence domain available to software rather than depending on
-automatic WPQ (write pending queue) flushes on power failure (ADR).
+automatic WPQ (write pending queue) flush on power failure (ADR).
 Since this operation is usually much more expensive than **pmem_persist**(),
 it should be used rarely. Typically the application should use this function
 only to flush the most critical data, which are required to recover after
@@ -171,7 +172,8 @@ The **pmem_msync**() return value is the return value of
 The **pmem_flush**() and **pmem_drain**() functions return no value.
 
 The **pmem_deep_persist**() returns 0 on success. Otherwise it
-returns -1 and set *errno* appropriately.
+returns -1 and sets *errno* appropriately. If *len* is equal zero
+**pmem_deep_persist**() returns 0 but no flushing take place.
 
 The **pmem_has_hw_drain**() function returns true if the machine
 supports an explicit *hardware drain*
