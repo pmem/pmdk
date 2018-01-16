@@ -25,7 +25,7 @@
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\libpmemobj\ctl.c" />
     <ClCompile Include="..\..\libpmemobj\ctl_global.c" />
-    <ClCompile Include="..\..\libpmemobj\ctree.c" />
+    <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_HEAP</PreprocessorDefinitions>
@@ -53,7 +53,7 @@
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\pvector.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\container_ctree.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_REDO</PreprocessorDefinitions>

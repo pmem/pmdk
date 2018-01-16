@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,19 +32,19 @@
 #
 
 #
-# src/test/obj_ctree/Makefile -- build crit-bit tree unit test
+# src/test/obj_ravl/TEST0 -- unit test for obj_ravl interface
 #
-TOP = ../../..
+export UNITTEST_NAME=obj_ctree/TEST0
+export UNITTEST_NUM=0
 
-vpath %.c $(TOP)/src/libpmemobj
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = obj_ctree
-OBJS = obj_ctree.o ctree.o
+require_fs_type none
+require_test_type medium
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
+setup
 
-include ../Makefile.inc
+expect_normal_exit ./obj_ravl$EXESUFFIX
 
-LDFLAGS += $(call extract_funcs, obj_ctree.c)
-INCS += -I$(TOP)/src/libpmemobj/
+pass

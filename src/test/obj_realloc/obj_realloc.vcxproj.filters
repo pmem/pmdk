@@ -21,7 +21,7 @@
     <ClCompile Include="..\..\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctree.c">
+    <ClCompile Include="..\..\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\cuckoo.c">
@@ -69,7 +69,7 @@
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\container_ctree.c">
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\container_seglists.c">

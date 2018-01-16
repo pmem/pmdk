@@ -4,7 +4,7 @@
     <ClCompile Include="..\..\src\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\ctree.c">
+    <ClCompile Include="..\..\src\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\cuckoo.c">
@@ -91,7 +91,7 @@
     <ClCompile Include="recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="container_ctree.c">
+    <ClCompile Include="container_ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="container_seglists.c">
@@ -129,7 +129,7 @@
     <ClInclude Include="..\..\src\libpmemobj\bucket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\ctree.h">
+    <ClInclude Include="..\..\src\libpmemobj\ravl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libpmemobj\heap.h">
@@ -258,7 +258,7 @@
     <ClInclude Include="container.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="container_ctree.h">
+    <ClInclude Include="container_ravl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="container_seglists.h">

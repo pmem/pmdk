@@ -83,7 +83,6 @@ OBJ_TESTS = \
 	obj_ctl_heap_size\
 	obj_ctl_prefault\
 	obj_ctl_stats\
-	obj_ctree\
 	obj_cuckoo\
 	obj_debug\
 	obj_direct\
@@ -117,6 +116,7 @@ OBJ_TESTS = \
 	obj_pool_lock\
 	obj_pool_lookup\
 	obj_pvector\
+	obj_ravl\
 	obj_recovery\
 	obj_recreate\
 	obj_redo_log\

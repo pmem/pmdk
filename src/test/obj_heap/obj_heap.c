@@ -40,7 +40,7 @@
 #include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "container_ctree.h"
+#include "container_ravl.h"
 #include "container_seglists.h"
 #include "container.h"
 #include "alloc_class.h"
@@ -130,7 +130,7 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 	struct memory_block a = {1, 0, 1, 0};
 	struct memory_block b = {2, 0, 2, 0};
 	struct memory_block c = {3, 0, 3, 0};
-	struct memory_block d = {3, 0, 5, 0};
+	struct memory_block d = {5, 0, 5, 0};
 	init_run_with_score(heap->layout, 1, 128);
 	init_run_with_score(heap->layout, 2, 128);
 	init_run_with_score(heap->layout, 3, 128);
@@ -175,7 +175,7 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 	struct memory_block d_ret = {0, 0, 4, 0}; /* less one than target */
 	ret = bc->c_ops->get_rm_bestfit(bc, &d_ret);
 	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(d_ret.chunk_id, c.chunk_id);
+	UT_ASSERTeq(d_ret.chunk_id, d.chunk_id);
 
 	ret = bc->c_ops->get_rm_bestfit(bc, &c_ret);
 	UT_ASSERTeq(ret, ENOMEM);
@@ -233,7 +233,7 @@ test_heap(void)
 
 	test_alloc_class_bitmap_correctness();
 
-	test_container((struct block_container *)container_new_ctree(heap),
+	test_container((struct block_container *)container_new_ravl(heap),
 		heap);
 
 	test_container((struct block_container *)container_new_seglists(heap),

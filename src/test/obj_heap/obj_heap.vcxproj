@@ -12,14 +12,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
-    <ClCompile Include="..\..\libpmemobj\ctree.c" />
+    <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c" />
-    <ClCompile Include="..\..\libpmemobj\container_ctree.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
     <ClCompile Include="..\..\libpmemobj\ctl.c" />

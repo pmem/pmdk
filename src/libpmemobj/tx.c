@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,19 +38,12 @@
 #include <wchar.h>
 
 #include "queue.h"
-#include "ctree.h"
+#include "ravl.h"
 #include "obj.h"
 #include "out.h"
 #include "pmalloc.h"
 #include "tx.h"
 #include "valgrind_internal.h"
-
-#define RANGE_FLAGS_MIN_BIT 48
-#define RANGE_FLAGS_MASK (0xffffULL << RANGE_FLAGS_MIN_BIT)
-
-#define RANGE_GET_SIZE(val) ((val) & ~RANGE_FLAGS_MASK)
-
-#define RANGE_FLAG_NO_FLUSH (0x1ULL << RANGE_FLAGS_MIN_BIT)
 
 struct tx_data {
 	SLIST_ENTRY(tx_data) tx_entry;
@@ -100,7 +93,7 @@ struct tx_undo_runtime {
 
 struct lane_tx_runtime {
 	unsigned lane_idx;
-	struct ctree *ranges;
+	struct ravl *ranges;
 	uint64_t cache_offset;
 	struct tx_undo_runtime undo;
 	struct pobj_action alloc_actv[MAX_TX_ALLOC_RESERVATIONS];
@@ -120,8 +113,7 @@ struct tx_alloc_args {
 #define ALLOC_ARGS(flags)\
 (struct tx_alloc_args){flags, NULL, 0}
 
-struct tx_add_range_args {
-	PMEMobjpool *pop;
+struct tx_range_def {
 	uint64_t offset;
 	uint64_t size;
 	uint64_t flags;
@@ -151,6 +143,23 @@ struct tx_parameters {
 	size_t cache_size;
 	size_t cache_threshold;
 };
+
+/*
+ * tx_range_def_cmp -- compares two snapshot ranges
+ */
+static int
+tx_range_def_cmp(const void *lhs, const void *rhs)
+{
+	const struct tx_range_def *l = lhs;
+	const struct tx_range_def *r = rhs;
+
+	if (l->offset > r->offset)
+		return 1;
+	else if (l->offset < r->offset)
+		return -1;
+
+	return 0;
+}
 
 /*
  * tx_params_new -- creates a new transactional parameters instance and fills it
@@ -253,7 +262,7 @@ constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
-	struct tx_add_range_args *args = arg;
+	struct tx_range_def *args = arg;
 	struct tx_range *range = ptr;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
@@ -263,7 +272,7 @@ constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 	range->offset = args->offset;
 	range->size = args->size;
 
-	void *src = OBJ_OFF_TO_PTR(args->pop, args->offset);
+	void *src = OBJ_OFF_TO_PTR(pop, args->offset);
 
 	/* flush offset and size */
 	pmemops_flush(p_ops, range, sizeof(struct tx_range));
@@ -749,19 +758,6 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx *tx,
 }
 
 /*
- * tx_flush_range -- (internal) flush one range
- */
-static void
-tx_flush_range(uint64_t offset, uint64_t size_flags, void *ctx)
-{
-	if (size_flags & RANGE_FLAG_NO_FLUSH)
-		return;
-	PMEMobjpool *pop = ctx;
-	pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, offset),
-			RANGE_GET_SIZE(size_flags));
-}
-
-/*
  * tx_fulfill_reservations -- fulfills all volatile state
  *	allocation reservations
  */
@@ -800,6 +796,33 @@ tx_cancel_reservations(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 }
 
 /*
+ * tx_delete_range -- deletes a range definition
+ */
+static void
+tx_delete_range(void *data, void *ctx)
+{
+	struct tx_range_def *range = data;
+
+	Free(range);
+}
+
+/*
+ * tx_flush_range -- (internal) flush one range
+ */
+static void
+tx_flush_range(void *data, void *ctx)
+{
+	PMEMobjpool *pop = ctx;
+	struct tx_range_def *range = data;
+	if (!(range->flags & POBJ_FLAG_NO_FLUSH)) {
+		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
+				range->size);
+	}
+
+	Free(range);
+}
+
+/*
  * tx_pre_commit -- (internal) do pre-commit operations
  */
 static void
@@ -812,7 +835,7 @@ tx_pre_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_runtime *lane)
 	tx_fulfill_reservations(tx);
 
 	/* Flush all regions and destroy the whole tree. */
-	ctree_delete_cb(lane->ranges, tx_flush_range, pop);
+	ravl_delete_cb(lane->ranges, tx_flush_range, pop);
 	lane->ranges = NULL;
 }
 
@@ -938,7 +961,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 	} else {
 		tx_cancel_reservations(pop, lane);
 		ASSERTne(lane, NULL);
-		ctree_delete(lane->ranges);
+		ravl_delete_cb(lane->ranges, tx_delete_range, NULL);
 		lane->ranges = NULL;
 	}
 }
@@ -1035,6 +1058,25 @@ release_and_free_tx_locks(struct tx *tx)
 }
 
 /*
+ * tx_lane_ranges_insert_def -- (internal) allocates and inserts a new range
+ *	definition into the ranges tree
+ */
+static int
+tx_lane_ranges_insert_def(struct lane_tx_runtime *lane,
+	const struct tx_range_def *rdef)
+{
+	LOG(3, "rdef->offset %"PRIu64" rdef->size %"PRIu64,
+		rdef->offset, rdef->size);
+
+	struct tx_range_def *r = Malloc(sizeof(*r));
+	if (r == NULL)
+		return -1;
+
+	*r = *rdef;
+	return ravl_insert(lane->ranges, r);
+}
+
+/*
  * tx_alloc_common -- (internal) common function for alloc and zalloc
  */
 static PMEMoid
@@ -1073,14 +1115,10 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	PMEMoid retoid = OID_NULL;
 	retoid.off = lane->alloc_actv[rs].heap.offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
-
-	uint64_t range_flags = (flags & POBJ_FLAG_NO_FLUSH) ?
-			RANGE_FLAG_NO_FLUSH : 0;
 	size = palloc_usable_size(&pop->heap, retoid.off);
-	ASSERTeq(size & RANGE_FLAGS_MASK, 0);
 
-	if (ctree_insert_unlocked(lane->ranges, retoid.off,
-			size | range_flags) != 0)
+	const struct tx_range_def r = {retoid.off, size, flags};
+	if (tx_lane_ranges_insert_def(lane, &r) != 0)
 		goto err_oom;
 
 	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
@@ -1196,7 +1234,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		SLIST_INIT(&tx->tx_entries);
 		SLIST_INIT(&tx->tx_locks);
 
-		lane->ranges = ctree_new();
+		lane->ranges = ravl_new(tx_range_def_cmp);
 		lane->cache_offset = 0;
 		lane->lane_idx = idx;
 
@@ -1580,7 +1618,7 @@ pmemobj_tx_process(void)
  * pmemobj_tx_add_large -- (internal) adds large memory range to undo log
  */
 static int
-pmemobj_tx_add_large(struct tx *tx, struct tx_add_range_args *args)
+pmemobj_tx_add_large(struct tx *tx, struct tx_range_def *args)
 {
 	struct lane_tx_runtime *runtime = tx->section->runtime;
 	struct pvector_context *undo = runtime->undo.ctx[UNDO_SET];
@@ -1591,7 +1629,7 @@ pmemobj_tx_add_large(struct tx *tx, struct tx_add_range_args *args)
 	}
 
 	/* insert snapshot to undo log */
-	int ret = pmalloc_construct(args->pop, entry,
+	int ret = pmalloc_construct(tx->pop, entry,
 			args->size + sizeof(struct tx_range),
 			constructor_tx_add_range, args,
 			0, OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -1678,9 +1716,9 @@ pmemobj_tx_get_range_cache(PMEMobjpool *pop, struct tx *tx,
  * pmemobj_tx_add_small -- (internal) adds small memory range to undo log cache
  */
 static int
-pmemobj_tx_add_small(struct tx *tx, struct tx_add_range_args *args)
+pmemobj_tx_add_small(struct tx *tx, struct tx_range_def *args)
 {
-	PMEMobjpool *pop = args->pop;
+	PMEMobjpool *pop = tx->pop;
 
 	struct lane_tx_runtime *runtime = tx->section->runtime;
 	struct pvector_context *undo = runtime->undo.ctx[UNDO_SET_CACHE];
@@ -1742,7 +1780,7 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_add_range_args *args)
  *				into the transaction
  */
 static int
-pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
+pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 {
 	LOG(15, NULL);
 
@@ -1751,76 +1789,93 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_add_range_args *args)
 		return obj_tx_abort_err(EINVAL);
 	}
 
-	if (args->offset < args->pop->heap_offset ||
+	if (args->offset < tx->pop->heap_offset ||
 		(args->offset + args->size) >
-		(args->pop->heap_offset + args->pop->heap_size)) {
+		(tx->pop->heap_offset + tx->pop->heap_size)) {
 		ERR("object outside of heap");
 		return obj_tx_abort_err(EINVAL);
 	}
 
+	int ret = 0;
 	struct lane_tx_runtime *runtime = tx->section->runtime;
 
-	/* starting from the end, search for all overlapping ranges */
-	uint64_t spoint = args->offset + args->size - 1; /* start point */
-	uint64_t apoint = 0; /* add point */
-	int ret = 0;
-	uint64_t range_flags = (args->flags & POBJ_FLAG_NO_FLUSH) ?
-			RANGE_FLAG_NO_FLUSH : 0;
+	struct tx_range_def r = *args;
+	/* there can only ever be one range overlapping on the left edge */
+	struct ravl_node *n = ravl_find(runtime->ranges, &r,
+		RAVL_PREDICATE_LESS);
+	struct tx_range_def *f = n ? ravl_data(n) : NULL;
+	if (f != NULL && f->offset + f->size > r.offset) {
+		size_t fend = f->offset + f->size;
+		size_t rend = r.offset + r.size;
+		if (fend >= rend) /* earlier snapshot covers this one */
+			return 0;
+		r.offset = fend;
+		r.size = rend - fend;
+	}
 
-	while (spoint >= args->offset) {
-		apoint = spoint + 1;
-		/* find range less than starting point */
-		uint64_t size_flags = ctree_find_le_unlocked(runtime->ranges,
-				&spoint);
-		uint64_t size = RANGE_GET_SIZE(size_flags);
-		struct tx_add_range_args nargs;
-		nargs.pop = args->pop;
-
-		if (spoint < args->offset) { /* the found offset is earlier */
-			nargs.size = apoint - args->offset;
-			/* overlap on the left edge */
-			if (spoint + size > args->offset) {
-				nargs.offset = spoint + size;
-				if (nargs.size <= nargs.offset - args->offset)
-					break;
-				nargs.size -= nargs.offset - args->offset;
-			} else {
-				nargs.offset = args->offset;
-			}
-
-			if (args->size == 0)
-				break;
-
-			spoint = 0; /* this is the end of our search */
-		} else { /* found offset is equal or greater than offset */
-			nargs.offset = spoint + size;
-			spoint -= 1;
-			if (nargs.offset >= apoint)
-				continue;
-
-			nargs.size = apoint - nargs.offset;
+	/*
+	 * We need to handle the following cases:
+	 *	1. no range found or the found range exceeds the
+	 *	snapshot, in this case we can just snapshot the
+	 *	entire range.
+	 *	2. the found range starts at the same offset.
+	 *		a) the found range contains the entire snapshot,
+	 *		we can just end the search.
+	 *		b) the found range only partially contains the
+	 *		snapshot, we have to loop around and search from
+	 *		the end of the found range.
+	 *	3. The found range starts at an offset in the middle of
+	 *	the snapshot, in this case we must create a partial
+	 *	snapshot and resume the search from the end of the found
+	 *	offset.
+	 */
+	do {
+		n = ravl_find(runtime->ranges, &r,
+			RAVL_PREDICATE_GREATER_EQUAL);
+		f = n ? ravl_data(n) : NULL;
+		uint64_t offd = f ? f->offset - r.offset : r.size;
+		if (offd == 0) {
+			if (f->size >= r.size)
+				return 0;
+			r.offset += f->size;
+			r.size -= f->size;
+			continue;
 		}
+		r.size = offd <= r.size ? offd : r.size;
 
-		ret = ctree_insert_unlocked(runtime->ranges, nargs.offset,
-				nargs.size | range_flags);
+		ret = tx_lane_ranges_insert_def(runtime, &r);
 		if (ret != 0) {
 			if (ret == EEXIST)
 				FATAL("invalid state of ranges tree");
-
 			break;
 		}
+
+		/* need to make a copy because the range def arg isn't const */
+		struct tx_range_def ndef = r;
 
 		/*
 		 * Depending on the size of the block, either allocate an
 		 * entire new object or use cache.
 		 */
-		ret = nargs.size > tx->pop->tx_params->cache_threshold ?
-			pmemobj_tx_add_large(tx, &nargs) :
-			pmemobj_tx_add_small(tx, &nargs);
-
+		ret = ndef.size > tx->pop->tx_params->cache_threshold ?
+			pmemobj_tx_add_large(tx, &ndef) :
+			pmemobj_tx_add_small(tx, &ndef);
 		if (ret != 0)
 			break;
-	}
+
+		/*
+		 * The next potential offset to snapshot is AFTER the found
+		 * range...
+		 */
+		r.offset = f ? f->offset + f->size : r.offset + r.size;
+		offd = r.offset - args->offset;
+
+		/*
+		 * ...and if that happens to exceed the snapshot range, we can
+		 * finish...
+		 */
+		r.size = offd < args->size ? args->size - offd : 0;
+	} while (r.size != 0);
 
 	if (ret != 0) {
 		ERR("out of memory");
@@ -1850,8 +1905,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 		return obj_tx_abort_err(EINVAL);
 	}
 
-	struct tx_add_range_args args = {
-		.pop = pop,
+	struct tx_range_def args = {
 		.offset = (uint64_t)((char *)ptr - (char *)pop),
 		.size = size,
 		.flags = 0,
@@ -1883,8 +1937,7 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 		return obj_tx_abort_err(EINVAL);
 	}
 
-	struct tx_add_range_args args = {
-		.pop = tx->pop,
+	struct tx_range_def args = {
 		.offset = (uint64_t)((char *)ptr - (char *)tx->pop),
 		.size = size,
 		.flags = flags,
@@ -1911,8 +1964,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	}
 	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
-	struct tx_add_range_args args = {
-		.pop = tx->pop,
+	struct tx_range_def args = {
 		.offset = oid.off + hoff,
 		.size = size,
 		.flags = 0,
@@ -1944,8 +1996,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 		return obj_tx_abort_err(EINVAL);
 	}
 
-	struct tx_add_range_args args = {
-		.pop = tx->pop,
+	struct tx_range_def args = {
 		.offset = oid.off + hoff,
 		.size = size,
 		.flags = flags,
@@ -2187,10 +2238,10 @@ pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 
 		size_t size = palloc_usable_size(&tx->pop->heap,
 			actv[i].heap.offset);
-		ASSERTeq(size & RANGE_FLAGS_MASK, 0);
 
-		if (ctree_insert_unlocked(lane->ranges, actv[i].heap.offset,
-				size | RANGE_FLAG_NO_FLUSH) != 0)
+		const struct tx_range_def r = {actv[i].heap.offset,
+				size, POBJ_FLAG_NO_FLUSH};
+		if (tx_lane_ranges_insert_def(lane, &r) != 0)
 			break;
 	}
 
