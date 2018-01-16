@@ -45,10 +45,10 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "out.h"
 #include "queue.h"
-#include "sys_util.h"
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;

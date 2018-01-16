@@ -1,4 +1,5 @@
-# Copyright 2017-2018, Intel Corporation
+#
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,24 +29,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
-#
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
-	$(COMMON)/os_deep_persist_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+#
+# src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
+#
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
+
+TARGET = pmem_deep_persist
+
+OBJS = pmem_deep_persist.o\
+	mmap.o\
+	mmap_posix.o\
+	util.o\
+	util_posix.o\
+	file.o\
+	file_posix.o\
+	os_posix.o\
+	out.o\
+	fs_posix.o\
+	libpmem.o\
+	pmem.o\
+	pmem_posix.o\
+	uuid.o\
+	uuid_linux.o\
+	pool_hdr.o\
+	cpu.o\
+	set.o\
+	os_deep_persist_linux.o\
+	shutdown_state.o\
+	os_dimm_none.o
+# this test does not require ndctl
+# to enable builds we use os_dimm_none
+
+LIBPMEMOBJ=y
+LIBPMEM=y
+
+include ../Makefile.inc
+
+CFLAGS += -DSRCVERSION="" -DDEBUG
+CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmemobj/
+LDFLAGS += $(call extract_funcs, pmem_deep_persist.c)

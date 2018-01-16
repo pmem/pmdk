@@ -179,7 +179,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <limits.h>
-#include <inttypes.h>
 
 #ifdef _WIN32
 #include <memoryapi.h>
@@ -192,7 +191,6 @@
 #include "util.h"
 #include "os.h"
 #include "mmap.h"
-#include "sys_util.h"
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep_persist.h"
