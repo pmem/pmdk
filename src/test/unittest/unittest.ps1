@@ -967,7 +967,7 @@ function require_fs_type {
         $type = $args[$i]
 
         # treat 'any' as either 'pmem' or 'non-pmem'
-        if (($type -eq $Env:FS) -or (($type -eq "any") -and ($Env:FS -ne "none"))) {
+        if (($type -eq $Env:FS) -or (($type -eq "any") -and ($Env:FS -ne "none") -and $Env:FORCE_FS -eq 1)) {
             switch ($Global:REAL_FS) {
                 'pmem' { if (require_pmem) { return } }
                 'non-pmem' { if (require_non_pmem) { return } }
