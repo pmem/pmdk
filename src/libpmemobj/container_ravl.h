@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,14 +31,14 @@
  */
 
 /*
- * container_ctree.h -- internal definitions for ctree-based block container
+ * container_ravl.h -- internal definitions for ravl-based block container
  */
 
-#ifndef LIBPMEMOBJ_CONTAINER_CTREE_H
-#define LIBPMEMOBJ_CONTAINER_CTREE_H 1
+#ifndef LIBPMEMOBJ_CONTAINER_RAVL_H
+#define LIBPMEMOBJ_CONTAINER_RAVL_H 1
 
 #include "container.h"
 
-struct block_container *container_new_ctree(struct palloc_heap *heap);
+struct block_container *container_new_ravl(struct palloc_heap *heap);
 
-#endif /* LIBPMEMOBJ_CONTAINER_CTREE_H */
+#endif /* LIBPMEMOBJ_CONTAINER_RAVL_H */

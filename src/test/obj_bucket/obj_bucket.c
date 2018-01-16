@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
  * obj_bucket.c -- unit test for bucket
  */
 #include "bucket.h"
-#include "container_ctree.h"
+#include "container_ravl.h"
 #include "util.h"
 #include "unittest.h"
 
