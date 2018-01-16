@@ -311,6 +311,8 @@ runtest() {
 		local _testtype="$testtype"
 		# unwind check test type to its subtypes
 		[ "$_testtype" == "check" ] && _testtype="short medium"
+		[ "$_testtype" == "all" ] && _testtype="short medium long"
+
 		ttype=$(intersection "$_testtype" "$req_testtype" "short medium long")
 		[ -z "$ttype" ] && {
 			echo "$UNITTEST_NAME: SKIP test-type $testtype ($req_testtype required)"
@@ -318,6 +320,7 @@ runtest() {
 		}
 		# collapse test type to check if its valid superset
 		[ "$ttype" == "short medium" ] && ttype="check"
+		[ "$ttype" == "short medium long" ] && ttype="all"
 
 		# check if output test type is single value
 		ttype_array=($ttype)
