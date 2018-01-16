@@ -1,0 +1,4 @@
+pmem_deep_persist$(nW)TEST4: START: pmem_deep_persist$(nW)
+ $(nW)pmem_deep_persist$(nW) $(*)
+deep_persist 0
+pmem_deep_persist$(nW)TEST4: DONE
