@@ -966,6 +966,11 @@ function require_fs_type {
     for ($i = 0; $i -lt $args.count; $i++) {
         $type = $args[$i]
 
+        # run "any" tests only once if fstype == all
+        if ($Env:FORCE_FS -eq 0 -and $type -eq "any" -and $Env:FS -ne "any") {
+            exit 0
+        }
+
         # treat 'any' as either 'pmem' or 'non-pmem'
         if (($type -eq $Env:FS) -or (($type -eq "any") -and ($Env:FS -ne "none"))) {
             switch ($Global:REAL_FS) {
