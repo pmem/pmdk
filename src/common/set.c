@@ -3831,36 +3831,39 @@ util_replica_deep_persist(const void *addr, size_t len,
 		addr, len, set, replica_id);
 
 	struct pool_replica *rep = set->replica[replica_id];
-	uintptr_t rep_addr = (uintptr_t)rep->part[0].addr;
-	uintptr_t rep_end = rep_addr + rep->repsize;
-	uintptr_t end = (uintptr_t)addr + len;
+	uintptr_t rep_start = (uintptr_t)rep->part[0].addr;
+	uintptr_t rep_end = rep_start + rep->repsize;
+	uintptr_t start = (uintptr_t)addr;
+	uintptr_t end = start + len;
 
-	ASSERT((uintptr_t)addr >= rep_addr);
+	ASSERT(start >= rep_start);
 	ASSERT(end <= rep_end);
 
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		struct pool_set_part *part = &rep->part[p];
-		uintptr_t padd = (uintptr_t)part->addr;
-		uintptr_t pend = padd + part->size;
+		uintptr_t part_start = (uintptr_t)part->addr;
+		uintptr_t part_end = part_start + part->size;
 		/* init intersection start and end addresses */
-		uintptr_t isa = (uintptr_t)addr;
-		uintptr_t ise = end;
-		if (padd < end && pend > (uintptr_t)addr) {
-		/* recalculate intersection addresses */
-			if (padd > (uintptr_t)addr)
-				isa = padd;
-			if (pend < end)
-				ise = pend;
-			size_t islen = ise - isa;
+		uintptr_t range_start = start;
+		uintptr_t range_end = end;
 
-			LOG(15, "perform deep_persist for replica %u "
-				"part %p, addr %p, len %lu",
-				replica_id, part, (void *)isa, islen);
-			if (os_part_deep_persist(part, (void *)isa, islen)) {
-				LOG(1, "os_part_deep_persist(%p, %p, %lu)",
-					part, (void *)isa, islen);
-				return -1;
-			}
+		if (part_start > end || part_end < start)
+			continue;
+		/* recalculate intersection addresses */
+		if (part_start > start)
+			range_start = part_start;
+		if (part_end < end)
+			range_end = part_end;
+		size_t range_len = range_end - range_start;
+
+		LOG(15, "perform deep_persist for replica %u "
+			"part %p, addr %p, len %lu",
+			replica_id, part, (void *)range_start, range_len);
+		if (os_part_deep_persist(part,
+				(void *)range_start, range_len)) {
+			LOG(1, "os_part_deep_persist(%p, %p, %lu)",
+				part, (void *)range_start, range_len);
+			return -1;
 		}
 	}
 	return 0;

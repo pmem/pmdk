@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,30 +32,30 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_deep_persist/TEST5 -- unit test for pmem_deep_persist
 #
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
+export UNITTEST_NAME=pmem_deep_persist/TEST5
+export UNITTEST_NUM=5
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	cpu.o\
-	os_deep_persist_linux.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type medium
+require_fs_type pmem non-pmem
 
-CFLAGS += -DSRCVERSION="" -DDEBUG
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmem
+setup
+
+export PMEM_LOG_LEVEL=15
+
+create_poolset $DIR/testset1 16M:$DIR/testfile1 16M:$DIR/testfile2 r\
+	64M:$DIR/testfile3
+
+DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
+expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE 1024
+
+$GREP -e "<libpmem>: <3>.*part_deep_persist.*" pmem$UNITTEST_NUM.log | wc -l > ./grep$UNITTEST_NUM.log
+$GREP -e "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log | wc -l >> ./grep$UNITTEST_NUM.log
+
+check
+
+pass

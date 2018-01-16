@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +31,15 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
 #
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
+TARGET = pmem_deep_persist
+
+OBJS = pmem_deep_persist.o\
 	mmap.o\
 	mmap_posix.o\
 	util.o\
@@ -47,14 +48,26 @@ OBJS = pmem_is_pmem_posix.o\
 	file_posix.o\
 	os_posix.o\
 	out.o\
+	fs_posix.o\
 	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
+	uuid.o\
+	uuid_linux.o\
+	pool_hdr.o\
 	cpu.o\
-	os_deep_persist_linux.o
+	set.o\
+	os_deep_persist_linux.o\
+	shutdown_state.o\
+	os_dimm_ndctl.o
+
+LIBPMEMOBJ=y
+LIBPMEM=y
 
 include ../Makefile.inc
 
 CFLAGS += -DSRCVERSION="" -DDEBUG
-CFLAGS += -I$(TOP)/src/common
+LDFLAGS += $(call extract_funcs, pmem_deep_persist.c)
 CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/libpmemobj/

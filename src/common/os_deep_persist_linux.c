@@ -31,7 +31,7 @@
  */
 
 /*
- * os_deep_persist_posix.c -- Posix abstraction layer
+ * os_deep_persist_linux.c -- Linux abstraction layer
  */
 
 #define _GNU_SOURCE
@@ -62,7 +62,7 @@ os_deep_flush_write(int region_id)
 		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
-		ERR("!os_open(\"%s\", O_RDWR)", deep_flush_path);
+		ERR("!os_open(\"%s\", O_WRONLY)", deep_flush_path);
 		return -1;
 	}
 
@@ -89,16 +89,16 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 	while (len != 0) {
 		const struct map_tracker *mt = util_range_find(addr, len);
 
-		/* no more overlapping track regions */
+		/* no more overlapping track regions or NOT a device DAX */
 		if (mt == NULL) {
 			LOG(15, "pmem_msync addr %p, len %lu",
 				(void *)addr, len);
 			return pmem_msync((void *)addr, len);
 		}
 		/*
-		 * for input deep_persist range that cover found mapping
-		 * it call write to deep_flush file, for addresses away
-		 * from tracker range it calls msync
+		 * For range that intersects with the found mapping
+		 * write to (Device DAX) deep_flush file.
+		 * Call msync for the non-intersecting part.
 		 */
 		if (mt->base_addr > addr) {
 			size_t curr_len = mt->base_addr - addr;
@@ -106,14 +106,14 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 				curr_len = len;
 			if (pmem_msync((void *)addr, curr_len) != 0)
 				return -1;
-			if ((len -= curr_len) == 0)
+			len -= curr_len;
+			if (len == 0)
 				return 0;
 			addr = mt->base_addr;
 		}
 		size_t mt_in_len = mt->end_addr - addr;
-		size_t persist_len = len;
-		if (mt_in_len <= len)
-			persist_len = mt_in_len;
+		size_t persist_len = MIN(len, mt_in_len);
+
 		/* XXX: to be replaced with pmem_deep_flush() */
 		LOG(15, "pmem_persist addr %p, len %lu",
 			(void *)addr, persist_len);

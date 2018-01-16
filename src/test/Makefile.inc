@@ -194,6 +194,7 @@ OBJS +=\
 	$(TOP)/src/nodebug/common/$(COMMON)/pool_hdr.o\
 	$(TOP)/src/nodebug/common/$(COMMON)/set.o\
 	$(TOP)/src/nodebug/common/$(COMMON)/shutdown_state.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/os_deep_persist_linux.o\
 	$(TOP)/src/nodebug/common/$(COMMON)/util.o\
 	$(TOP)/src/nodebug/common/$(COMMON)/uuid.o\
 	$(TOP)/src/nodebug/common/$(COMMON)/uuid_linux.o\
@@ -217,6 +218,7 @@ OBJS +=\
 	$(TOP)/src/debug/common/$(COMMON)/pool_hdr.o\
 	$(TOP)/src/debug/common/$(COMMON)/set.o\
 	$(TOP)/src/debug/common/$(COMMON)/shutdown_state.o\
+	$(TOP)/src/debug/common/$(COMMON)/os_deep_persist_linux.o\
 	$(TOP)/src/debug/common/$(COMMON)/util.o\
 	$(TOP)/src/debug/common/$(COMMON)/uuid.o\
 	$(TOP)/src/debug/common/$(COMMON)/uuid_linux.o\

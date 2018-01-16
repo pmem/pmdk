@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,30 +32,27 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_deep_persist/TEST3 -- unit test for pmem_deep_persist
 #
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
+export UNITTEST_NAME=pmem_deep_persist/TEST3
+export UNITTEST_NUM=3
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	cpu.o\
-	os_deep_persist_linux.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type medium
+require_fs_type any
+require_dax_devices 1
 
-CFLAGS += -DSRCVERSION="" -DDEBUG
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmem
+setup
+
+create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]}
+
+expect_normal_exit ./pmem_deep_persist$EXESUFFIX ${DEVICE_DAX_PATH[0]} m -1 0
+
+$GREP -e "<libpmem>: <1>.*pmem\.c.*pmem_msync.*" pmem$UNITTEST_NUM.log | wc -l > ./grep$UNITTEST_NUM.log
+$GREP -e "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log | wc -l >> ./grep$UNITTEST_NUM.log
+
+check
+
+pass
