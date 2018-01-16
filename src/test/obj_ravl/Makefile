@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,19 +31,17 @@
 #
 
 #
-# src/test/obj_ctree/Makefile -- build crit-bit tree unit test
+# src/test/obj_ravl/Makefile -- build ravl tree unit test
 #
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
 
-TARGET = obj_ctree
-OBJS = obj_ctree.o ctree.o
+TARGET = obj_ravl
+OBJS = obj_ravl.o ravl.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
 
 include ../Makefile.inc
-
-LDFLAGS += $(call extract_funcs, obj_ctree.c)
 INCS += -I$(TOP)/src/libpmemobj/

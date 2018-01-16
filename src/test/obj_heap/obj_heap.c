@@ -40,7 +40,7 @@
 #include "obj.h"
 #include "unittest.h"
 #include "util.h"
-#include "container_ctree.h"
+#include "container_ravl.h"
 #include "container_seglists.h"
 #include "container.h"
 #include "alloc_class.h"
@@ -233,7 +233,7 @@ test_heap(void)
 
 	test_alloc_class_bitmap_correctness();
 
-	test_container((struct block_container *)container_new_ctree(heap),
+	test_container((struct block_container *)container_new_ravl(heap),
 		heap);
 
 	test_container((struct block_container *)container_new_seglists(heap),
