@@ -333,6 +333,7 @@ CTO_TESTS = \
 	cto_multiple_pools\
 	cto_pool\
 	cto_realloc_inplace\
+	cto_reopen\
 	cto_stats\
 	cto_valgrind
 

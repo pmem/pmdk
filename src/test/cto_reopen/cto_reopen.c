@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,14 +31,14 @@
  */
 
 /*
- * cto_check_allocations -- unit test for cto_check_allocations
+ * cto_reopen -- unit test for cto_reopen
  *
- * usage: cto_check_allocations filename
+ * usage: cto_reopen filename nrep
  */
 
 #include "unittest.h"
 
-#define MAX_ALLOC_SIZE (4L * 1024L * 1024L)
+#define ALLOC_SIZE (1024L)
 #define NALLOCS 16
 #define POOL_SIZE (2 * PMEMCTO_MIN_POOL)
 
@@ -48,21 +48,28 @@ static char *ptrs[NALLOCS];
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "cto_check_allocations");
+	START(argc, argv, "cto_reopen");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s filename", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s filename nrep", argv[0]);
 
-	PMEMctopool *pcp = pmemcto_create(argv[1], "test",
-			POOL_SIZE, 0666);
-	UT_ASSERTne(pcp, NULL);
+	int nrep = atoi(argv[2]);
 
-	for (size_t size = 8; size <= MAX_ALLOC_SIZE; size *= 2) {
+	PMEMctopool *pcp;
+	for (int r = 0; r < nrep; r++) {
+		if (r == 0) {
+			pcp = pmemcto_create(argv[1], "test",
+					POOL_SIZE, 0666);
+		} else {
+			pcp = pmemcto_open(argv[1], "test");
+		}
+		UT_ASSERTne(pcp, NULL);
+
 		memset(ptrs, 0, sizeof(ptrs));
 
 		int i;
 		for (i = 0; i < NALLOCS; ++i) {
-			ptrs[i] =  pmemcto_malloc(pcp, size);
+			ptrs[i] =  pmemcto_malloc(pcp, ALLOC_SIZE);
 			if (ptrs[i] == NULL) {
 				/* out of memory in pool */
 				break;
@@ -72,22 +79,17 @@ main(int argc, char *argv[])
 			UT_ASSERTrange(ptrs[i], pcp, POOL_SIZE);
 
 			/* fill each allocation with a unique value */
-			memset(ptrs[i], (char)i, size);
+			memset(ptrs[i], (char)i, ALLOC_SIZE);
 		}
-		UT_OUT("size %zu cnt %d", size, i);
 
-		UT_ASSERT((i > 0) && (i + 1 < MAX_ALLOC_SIZE));
+		UT_OUT("rep %d cnt %d", r, i);
+		UT_ASSERTeq(i, NALLOCS);
 
-		/* check for unexpected modifications of the data */
-		for (i = 0; i < NALLOCS && ptrs[i] != NULL; ++i) {
-			for (size_t j = 0; j < size; ++j)
-				UT_ASSERTeq(ptrs[i][j], (char)i);
+		for (i = 0; i < NALLOCS && ptrs[i] != NULL; ++i)
 			pmemcto_free(pcp, ptrs[i]);
-		}
 
+		pmemcto_close(pcp);
 	}
-
-	pmemcto_close(pcp);
 
 	DONE(NULL);
 }

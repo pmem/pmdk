@@ -2419,6 +2419,8 @@ arena_boot(arena_t *arena)
 			return (true);
 	}
 
+	arena->nthreads = 0;
+
 	return (false);
 }
 
