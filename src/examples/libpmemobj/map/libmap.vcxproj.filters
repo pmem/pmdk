@@ -44,7 +44,7 @@
     <ClCompile Include="map_hashmap_atomic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="map_ctree.c">
+    <ClCompile Include="map_ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="map_btree.c">

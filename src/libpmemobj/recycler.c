@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,21 +39,16 @@
 #include "out.h"
 #include "util.h"
 #include "sys_util.h"
-#include "ctree.h"
+#include "ravl.h"
 #include "valgrind_internal.h"
 
-/*
- * The zone variable is offset by 1 to make sure the key is never 0.
- * XXX: The tree API should change so that a 0 key is valid, once that happens,
- * this workaround can be removed.
- */
 #define RUN_KEY_PACK(z, c, free_space, max_block)\
 ((uint64_t)(max_block) << 48 |\
 (uint64_t)(free_space) << 32 |\
-(uint64_t)(c) << 16 | (z + 1))
+(uint64_t)(c) << 16 | (z))
 
 #define RUN_KEY_GET_ZONE_ID(k)\
-((uint16_t)(((int16_t)(k)) - 1))
+((uint16_t)((int16_t)(k)))
 
 #define RUN_KEY_GET_CHUNK_ID(k)\
 ((uint16_t)((k) >> 16))
@@ -68,8 +63,22 @@ struct recycler_element {
 	uint32_t zone_id;
 };
 
+/*
+ * recycler_run_key_cmp -- compares two keys by pointer value
+ */
+static int
+recycler_run_key_cmp(const void *lhs, const void *rhs)
+{
+	if (lhs > rhs)
+		return 1;
+	else if (lhs < rhs)
+		return -1;
+
+	return 0;
+}
+
 struct recycler {
-	struct ctree *runs;
+	struct ravl *runs;
 	struct palloc_heap *heap;
 
 	/*
@@ -99,7 +108,7 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 	if (r == NULL)
 		goto error_alloc_recycler;
 
-	r->runs = ctree_new();
+	r->runs = ravl_new(recycler_run_key_cmp);
 	if (r->runs == NULL)
 		goto error_alloc_tree;
 
@@ -135,7 +144,7 @@ recycler_delete(struct recycler *r)
 	}
 	VEC_DELETE(&r->pending);
 	os_mutex_destroy(&r->lock);
-	ctree_delete(r->runs);
+	ravl_delete(r->runs);
 	Free(r);
 }
 
@@ -218,7 +227,7 @@ recycler_put(struct recycler *r, const struct memory_block *m, uint64_t score)
 
 	util_mutex_lock(&r->lock);
 
-	ret = ctree_insert_unlocked(r->runs, score, 0);
+	ret = ravl_insert(r->runs, (void *)score);
 
 	util_mutex_unlock(&r->lock);
 
@@ -240,7 +249,7 @@ recycler_pending_check(struct recycler *r)
 		if (mr->nresv == 0) {
 			uint64_t score = recycler_calc_score(r->heap,
 				&mr->m, NULL);
-			if (ctree_insert_unlocked(r->runs, score, 0) != 0) {
+			if (ravl_insert(r->runs, (void *)score) != 0) {
 				ERR("unable to track run %u due to OOM",
 					mr->m.chunk_id);
 			}
@@ -263,10 +272,15 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	recycler_pending_check(r);
 
 	uint64_t key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
-	if ((key = ctree_remove_unlocked(r->runs, key, 0)) == 0) {
+	struct ravl_node *n = ravl_find(r->runs, (void *)key,
+		RAVL_PREDICATE_GREATER_EQUAL);
+	if (n == NULL) {
 		ret = ENOMEM;
 		goto out;
 	}
+
+	key = (uint64_t)ravl_data(n);
+	ravl_remove(r->runs, n);
 
 	m->chunk_id = RUN_KEY_GET_CHUNK_ID(key);
 	m->zone_id = RUN_KEY_GET_ZONE_ID(key);
@@ -320,9 +334,13 @@ recycler_recalc(struct recycler *r, int force)
 	uint64_t free_space = 0;
 	struct memory_block nm = MEMORY_BLOCK_NONE;
 	uint64_t key;
+	struct ravl_node *n;
 	do {
-		if ((key = ctree_remove_unlocked(r->runs, 0, 0)) == 0)
+		if ((n = ravl_find(r->runs, (void *)0,
+			RAVL_PREDICATE_GREATER_EQUAL)) == NULL)
 			break;
+		key = (uint64_t)ravl_data(n);
+		ravl_remove(r->runs, n);
 
 		nm.chunk_id = RUN_KEY_GET_CHUNK_ID(key);
 		nm.zone_id = RUN_KEY_GET_ZONE_ID(key);
@@ -344,7 +362,7 @@ recycler_recalc(struct recycler *r, int force)
 	} while (found_units < search_limit);
 
 	VEC_FOREACH(key, &r->recalc) {
-		ctree_insert_unlocked(r->runs, key, 0);
+		ravl_insert(r->runs, (void *)key);
 	}
 
 	VEC_CLEAR(&r->recalc);

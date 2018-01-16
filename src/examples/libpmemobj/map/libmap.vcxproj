@@ -88,7 +88,7 @@
   <ItemGroup>
     <ClCompile Include="map.c" />
     <ClCompile Include="map_btree.c" />
-    <ClCompile Include="map_ctree.c" />
+    <ClCompile Include="map_ravl.c" />
     <ClCompile Include="map_hashmap_atomic.c" />
     <ClCompile Include="map_hashmap_tx.c" />
     <ClCompile Include="map_rbtree.c" />
