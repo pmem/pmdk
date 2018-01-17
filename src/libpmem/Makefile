@@ -53,5 +53,3 @@ SOURCE =\
 include ../Makefile.inc
 
 LIBS += -pthread
-
-LIBS += $(LIBNDCTL)

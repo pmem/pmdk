@@ -93,6 +93,9 @@
     <ClCompile Include="..\..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\shutdown_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\common\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -130,6 +133,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\os_dimm_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

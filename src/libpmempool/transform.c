@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -636,7 +636,8 @@ update_replica_header(struct pool_set *set, unsigned repn)
 		hdr->incompat_features &= (uint32_t)(~POOL_FEAT_NOHDRS);
 
 	}
-	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1);
+	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
+		POOL_HDR_NOT_CHECKSUM_OFF);
 	util_persist_auto(part.is_dev_dax, hdr, sizeof(*hdr));
 }
 
@@ -681,7 +682,8 @@ update_uuids(struct pool_set *set, unsigned repn)
 				POOL_HDR_UUID_LEN);
 		memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
 				POOL_HDR_UUID_LEN);
-		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1);
+		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1,
+			POOL_HDR_NOT_CHECKSUM_OFF);
 		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 }
@@ -902,6 +904,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (!replica_is_poolset_healthy(set_in_hs)) {
 		ERR("source poolset is broken");
 		ret = -1;
+		errno = EINVAL;
 		goto free_hs_in;
 	}
 

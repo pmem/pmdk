@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -104,14 +104,15 @@ main(int argc, char *argv[])
 			/*
 			 * calculate a checksum and have it installed
 			 */
-			util_checksum(addr, stbuf.st_size, ptr, 1);
+			util_checksum(addr, stbuf.st_size, ptr, 1, 0);
 
 			uint64_t csum = *ptr;
 
 			/*
 			 * verify inserted checksum checks out
 			 */
-			UT_ASSERT(util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(util_checksum(addr, stbuf.st_size, ptr,
+					0, 0));
 
 			/* put a zero where the checksum was installed */
 			*ptr = 0;
@@ -125,7 +126,8 @@ main(int argc, char *argv[])
 			/*
 			 * verify checksum now fails
 			 */
-			UT_ASSERT(!util_checksum(addr, stbuf.st_size, ptr, 0));
+			UT_ASSERT(!util_checksum(addr, stbuf.st_size, ptr,
+					0, 0));
 
 			/*
 			 * verify the checksum matched the gold version

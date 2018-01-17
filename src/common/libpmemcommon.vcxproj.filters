@@ -53,6 +53,12 @@
     <ClCompile Include="os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shutdown_state.c">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="os_dimm_none.c">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlsym.h">

@@ -52,6 +52,8 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\shutdown_state.c" />
+    <ClCompile Include="..\common\os_dimm_none.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmemlog.h">
