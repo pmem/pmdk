@@ -197,7 +197,7 @@ pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
 			hdr.signature, hdr.major, hdr.compat_features,
 			hdr.incompat_features, hdr.ro_compat_features,
-			NULL, NULL)) {
+			NULL, true, NULL)) {
 		ERR("opening poolset failed");
 		return -1;
 	}
@@ -290,7 +290,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			if (pool_set_map(ppc->path, &set, 0))
 				return -1;
 		} else {
-			ret = util_poolset_create_set(&set, ppc->path, 0, 0);
+			ret = util_poolset_create_set(&set, ppc->path,
+				0, 0, true);
 			if (ret < 0) {
 				LOG(2, "cannot open pool set -- '%s'",
 					ppc->path);
@@ -416,7 +417,8 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 	const char *path = file->fname;
 
 	if (params->type != POOL_TYPE_BTT) {
-		int ret = util_poolset_create_set(&file->poolset, path, 0, 0);
+		int ret = util_poolset_create_set(&file->poolset, path,
+			0, 0, true);
 		if (ret < 0) {
 			LOG(2, "cannot open pool set -- '%s'", path);
 			goto err_free_fname;
@@ -1007,7 +1009,7 @@ pool_btt_info_valid(struct btt_info *infop)
 	if (memcmp(infop->sig, BTTINFO_SIG, BTTINFO_SIG_LEN) != 0)
 		return 0;
 
-	return util_checksum(infop, sizeof(*infop), &infop->checksum, 0);
+	return util_checksum(infop, sizeof(*infop), &infop->checksum, 0, 0);
 }
 
 /*

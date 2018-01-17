@@ -122,6 +122,7 @@ OBJ_TESTS = \
 	obj_redo_log\
 	obj_ringbuf\
 	obj_strdup\
+	obj_sds\
 	obj_toid\
 	obj_tx_alloc\
 	obj_tx_add_range\
@@ -218,6 +219,7 @@ OTHER_TESTS = \
 	util_poolset_foreach\
 	util_poolset_parse\
 	util_poolset_size\
+	util_sds\
 	util_uuid_generate\
 	util_vec
 

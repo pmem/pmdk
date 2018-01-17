@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -336,7 +336,7 @@ read_info(struct btt *bttp, struct btt_info *infop)
 	}
 
 	/* to be valid, the fields must checksum correctly */
-	if (!util_checksum(infop, sizeof(*infop), &infop->checksum, 0)) {
+	if (!util_checksum(infop, sizeof(*infop), &infop->checksum, 0, 0)) {
 		LOG(3, "invalid checksum");
 		return 0;
 	}
@@ -663,7 +663,7 @@ arena_setf(struct btt *bttp, struct arena *arenap, unsigned lane, uint32_t setf)
 	info.flags |= htole32(setf);
 
 	/* update checksum */
-	util_checksum(&info, sizeof(info), &info.checksum, 1);
+	util_checksum(&info, sizeof(info), &info.checksum, 1, 0);
 
 	if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
 				sizeof(info), arena_off) < 0) {
@@ -1230,7 +1230,7 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		info.minor = BTTINFO_MINOR_VERSION;
 		btt_info_convert2le(&info);
 
-		util_checksum(&info, sizeof(info), &info.checksum, 1);
+		util_checksum(&info, sizeof(info), &info.checksum, 1, 0);
 
 		if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &info,
 				sizeof(info), arena_off) < 0)

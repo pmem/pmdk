@@ -14,7 +14,7 @@ $(OPT)==$(N)==    by 0x$(X): pmemcto_malloc $(*)
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
 ==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
-==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(*) bytes allocated
+==$(N)==   total heap usage: $(NC) allocs, $(NC) frees, $(*) bytes allocated
 ==$(N)== 
 $(OPT)==$(N)== All heap blocks were freed -- no leaks are possible
 $(OPT)==$(N)== LEAK SUMMARY:

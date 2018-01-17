@@ -118,6 +118,12 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\shutdown_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_dimm_none.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">

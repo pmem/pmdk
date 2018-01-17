@@ -779,7 +779,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1);
+	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1, 0);
 
 	/* store the persistent part of pool's descriptor (2kB) */
 	pmemops_persist(p_ops, dscp, OBJ_DSC_P_SIZE);
@@ -822,7 +822,7 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		}
 	}
 
-	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0)) {
+	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0, 0)) {
 		ERR("invalid checksum of pool descriptor");
 		errno = EINVAL;
 		return -1;
@@ -1445,7 +1445,7 @@ obj_pool_open(struct pool_set **set, const char *path, int cow,
 	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
 			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
 			OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
-			OBJ_FORMAT_RO_COMPAT_CHECK, nlanes, NULL) != 0) {
+			OBJ_FORMAT_RO_COMPAT_CHECK, nlanes, 0, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}
