@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -138,7 +138,8 @@ util_convert_hdr(struct pool_hdr *hdrp)
 	}
 
 	/* and to be valid, the fields must checksum correctly */
-	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
+	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
+			0, POOL_HDR_CSUM_END_OFF)) {
 		ERR("invalid checksum of pool header");
 		return 0;
 	}
@@ -164,7 +165,8 @@ util_convert_hdr_remote(struct pool_hdr *hdrp)
 	util_convert2h_hdr_nocheck(hdrp);
 
 	/* and to be valid, the fields must checksum correctly */
-	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0)) {
+	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
+			0, POOL_HDR_CSUM_END_OFF)) {
 		ERR("invalid checksum of pool header");
 		return 0;
 	}

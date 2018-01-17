@@ -55,6 +55,7 @@
 #include "set.h"
 #include "util.h"
 #include "uuid.h"
+#include "shutdown_state.h"
 
 /*
  * check_flags_sync -- (internal) check if flags are supported for sync
@@ -355,7 +356,8 @@ replica_check_store_size(struct pool_set *set,
 
 	void *dscp = (void *)((uintptr_t)&pop + sizeof(pop.hdr));
 
-	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop.checksum, 0)) {
+	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop.checksum, 0,
+			0)) {
 		set_hs->replica[repn]->flags |= IS_BROKEN;
 		return 0;
 	}
@@ -515,14 +517,47 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 			} else {
 				hdr = HDR(rep, p);
 			}
-			if (!util_checksum(hdr, sizeof(*hdr),
-					&hdr->checksum, 0)) {;
+			if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0,
+					POOL_HDR_CSUM_END_OFF)) {
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p] |= IS_BROKEN;
 			} else if (util_is_zeroed(hdr, sizeof(*hdr))) {
 					rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
+	}
+	return 0;
+}
+
+/*
+ * check_shutdown_state -- (internal) check if replica has
+ *			   healthy shutdown_state
+ */
+static int
+check_shutdown_state(struct pool_set *set,
+	struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+	for (unsigned r = 0; r < set->nreplicas; ++r) {\
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+		struct pool_hdr *hdrp = HDR(rep, 0);
+
+		if (hdrp == NULL)
+			continue;
+
+		struct shutdown_state sds;
+		shutdown_state_init(&sds);
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (shutdown_state_add_part(&sds, PART(rep, p).path)) {
+				rep_hs->flags |= IS_BROKEN;
+				continue;
+			}
+		}
+
+		if (shutdown_state_check(&sds, &hdrp->sds))
+				rep_hs->flags |= IS_BROKEN;
+
 	}
 	return 0;
 }
@@ -863,7 +898,7 @@ check_uuids_between_replicas(struct pool_set *set,
  */
 static int
 check_replica_cycles(struct pool_set *set,
-		struct poolset_health_status *set_hs)
+	struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	unsigned first_healthy;
@@ -879,10 +914,10 @@ check_replica_cycles(struct pool_set *set,
 
 		++count_healthy;
 		struct pool_hdr *hdrh =
-				PART(REP(set, first_healthy), 0).hdr;
+			PART(REP(set, first_healthy), 0).hdr;
 		struct pool_hdr *hdr = PART(REP(set, r), 0).hdr;
 		if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
-				count_healthy < set->nreplicas) {
+			count_healthy < set->nreplicas) {
 			/*
 			 * healthy replicas form a cycle shorter than
 			 * the number of all replicas; for the user it
@@ -986,6 +1021,11 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+	if (check_shutdown_state(set, set_hs)) {
+		LOG(1, "replica shutdown_state check failed");
+		goto err;
+	}
+
 	/* check if uuids in parts across each replica are consistent */
 	if (check_replicas_consistency(set, set_hs)) {
 		LOG(1, "replica consistency check failed");
@@ -1026,6 +1066,7 @@ replica_check_poolset_health(struct pool_set *set,
 	return 0;
 
 err:
+	errno = EINVAL;
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
 	replica_free_poolset_health_status(set_hs);

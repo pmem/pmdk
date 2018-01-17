@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -108,13 +108,13 @@ pmem_pool_checksum(const void *base_pool_addr)
 		memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
 		btt_info_convert2h(&bttinfo);
 		return util_checksum(&bttinfo, sizeof(bttinfo),
-				&bttinfo.checksum, 0);
+			&bttinfo.checksum, 0, 0);
 	} else {
 		/* it's not btt device - first page contains header */
 		struct pool_hdr hdrp;
 		memcpy(&hdrp, base_pool_addr, sizeof(hdrp));
 		return util_checksum(&hdrp, sizeof(hdrp),
-				&hdrp.checksum, 0);
+			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF);
 	}
 }
 
@@ -161,13 +161,14 @@ pmem_pool_type_parse_str(const char *str)
  * util_validate_checksum -- validate checksum and return valid one
  */
 int
-util_validate_checksum(void *addr, size_t len, uint64_t *csum)
+util_validate_checksum(void *addr, size_t len, uint64_t *csum,
+	uint64_t skip_off)
 {
 	/* validate checksum */
-	int csum_valid = util_checksum(addr, len, csum, 0);
+	int csum_valid = util_checksum(addr, len, csum, 0, skip_off);
 	/* get valid one */
 	if (!csum_valid)
-		util_checksum(addr, len, csum, 1);
+		util_checksum(addr, len, csum, 1, skip_off);
 	return csum_valid;
 }
 
@@ -492,7 +493,7 @@ int
 util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 {
 	if (util_is_poolset_file(fname) != 1) {
-		int ret = util_poolset_create_set(poolset, fname, 0, 0);
+		int ret = util_poolset_create_set(poolset, fname, 0, 0, true);
 		if (ret < 0) {
 			outv_err("cannot open pool set -- '%s'", fname);
 			return -1;
@@ -513,6 +514,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 		os_close(fd);
 		return -1;
 	}
+	set->ignore_sds = true;
 	os_close(fd);
 
 	/* read the pool header from first pool set file */
@@ -550,7 +552,8 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			hdr.signature, hdr.major,
 			hdr.compat_features,
 			hdr.incompat_features,
-			hdr.ro_compat_features, &nlanes, NULL)) {
+			hdr.ro_compat_features, &nlanes, true,
+			NULL)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}
@@ -603,7 +606,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 				goto out_close;
 			}
 		} else {
-			ret = util_poolset_create_set(&set, fname, 0, 0);
+			ret = util_poolset_create_set(&set, fname, 0, 0, true);
 			if (ret < 0) {
 				outv_err("cannot open pool set -- '%s'", fname);
 				ret = -1;
@@ -1242,7 +1245,8 @@ pool_set_file_open(const char *fname,
 				goto err_free_fname;
 		} else {
 			int ret = util_poolset_create_set(&file->poolset,
-				file->fname, 0, 0);
+				file->fname, 0, 0, true);
+
 			if (ret < 0) {
 				outv_err("cannot open pool set -- '%s'",
 					file->fname);

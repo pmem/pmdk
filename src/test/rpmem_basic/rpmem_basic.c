@@ -533,7 +533,7 @@ check_pool(const struct test_case *tc, int argc, char *argv[])
 	size -= POOL_HDR_SIZE;
 
 	struct pool_set *set;
-	ret = util_poolset_create_set(&set, pool_set, 0, 0);
+	ret = util_poolset_create_set(&set, pool_set, 0, 0, 0);
 	UT_ASSERTeq(ret, 0);
 	ret = util_pool_open_nocheck(set, 0);
 	UT_ASSERTeq(ret, 0);
@@ -564,7 +564,7 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 	int ret;
 
 	struct pool_set *set;
-	ret = util_poolset_create_set(&set, pool_set, 0, 0);
+	ret = util_poolset_create_set(&set, pool_set, 0, 0, 0);
 	UT_ASSERTeq(ret, 0);
 	ret = util_pool_open_nocheck(set, 0);
 	UT_ASSERTeq(ret, 0);
