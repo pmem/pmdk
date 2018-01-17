@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -395,7 +395,7 @@ cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
 	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL,
 			CTO_HDR_SIG, CTO_FORMAT_MAJOR,
 			CTO_FORMAT_COMPAT_CHECK, CTO_FORMAT_INCOMPAT_CHECK,
-			CTO_FORMAT_RO_COMPAT_CHECK, NULL, addr) != 0) {
+			CTO_FORMAT_RO_COMPAT_CHECK, NULL, false, addr) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

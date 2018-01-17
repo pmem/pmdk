@@ -291,7 +291,7 @@ ddmap_checksum(const char *path, size_t bytes, size_t count, size_t offset_in)
 	util_init();
 	src = util_file_map_whole(path);
 
-	util_checksum(src + offset, len, &checksum, 1);
+	util_checksum(src + offset, len, &checksum, 1, 0);
 	util_unmap(src, (size_t)filesize);
 
 	printf("%" PRIu64 "\n", checksum);

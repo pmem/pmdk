@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,7 +56,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$8
-NDCTL_DISABLE=$9
+export NDCTL_DISABLE=$9
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -760,11 +760,6 @@ then
 	rpmem_install_triggers_overrides;
 fi
 
-if [ "$NDCTL_DISABLE" == "y" ]
-then
-	export EXTRA_CFLAGS+=" -DNDCTL_DISABLE "
-fi
-
 # Convert ChangeLog to debian format
 CHANGELOG_TMP=changelog.tmp
 dch --create --empty --package $PACKAGE_NAME -v $PACKAGE_VERSION-$PACKAGE_RELEASE -M -c $CHANGELOG_TMP
@@ -782,6 +777,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CFLAGS \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
+	--preserve-envvar=NDCTL_DISABLE \
 	-us -uc
 
 cd $OLD_DIR

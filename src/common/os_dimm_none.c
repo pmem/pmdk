@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,15 +31,33 @@
  */
 
 /*
- * os_dimm_linux.c -- Linux dimm abstraction layer
+ * os_dimm_none.c -- fake dimm stats
  */
-#define _GNU_SOURCE
 
-#include <sys/types.h>
-#include <libgen.h>
-#include <limits.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "os.h"
+#include "out.h"
 #include "os_dimm.h"
+/*
+ * os_dimm_uid -- returns empty uid
+ */
+int
+os_dimm_uid(const char *path, char *uid, size_t *len)
+{
+	LOG(3, "path %s, uid %p, len %lu", path, uid, *len);
+	if (uid == NULL) {
+		*len = 1;
+	} else {
+		*uid = '\0';
+	}
+	return 0;
+}
+
+/*
+ * os_dimm_usc -- returns fake unsafe shutdown count
+ */
+int
+os_dimm_usc(const char *path, uint64_t *usc)
+{
+	LOG(3, "path %s, usc %p", path, usc);
+	*usc = 0;
+	return 0;
+}
