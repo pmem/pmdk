@@ -40,18 +40,18 @@ export LC_ALL="C"
 
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
-		echo "$1"
+		echo "$*"
 	fi
 }
 
 function msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
-		echo "$1"
+		echo "$*"
 	fi
 }
 
 function fatal() {
-	echo "$1" >&2
+	echo "$*" >&2
 	exit 1
 }
 
@@ -1195,7 +1195,6 @@ function require_node_dax_device_alignments() {
 	do
 		for (( i=j; i<cnt; i++ ))
 		do
-			#echo "j=$j i=$i alignment=$alignment"
 			path=${device_dax_path[$i]}
 
 			disable_exit_on_error
@@ -1204,7 +1203,6 @@ function require_node_dax_device_alignments() {
 			restore_exit_on_error
 
 			if [ "$ret" == "0" ]; then
-				#echo "found $path alignment=$alignment"
 				if [ $i -ne $j ]; then
 					# swap device paths
 					tmp=${device_dax_path[$j]}
@@ -1224,7 +1222,7 @@ function require_node_dax_device_alignments() {
 			if [ "$node" == "-1" ]; then
 				msg "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
 			else
-				msg "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment " \
+				msg "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment" \
 					"$alignment on node $node"
 			fi
 			exit 0
