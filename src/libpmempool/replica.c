@@ -288,14 +288,15 @@ replica_is_poolset_transformed(unsigned flags)
 }
 
 /*
- * replica_find_unbroken_part -- find a part number in a given
- * replica, which is not marked as broken in the helping structure
+ * replica_find_unbroken_part_with_header -- find a part number in a given
+ * replica, which is not marked as broken in the helping structure and contains
+ * a pool header
  */
 unsigned
 replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 {
 	LOG(3, "repn %u, set_hs %p", repn, set_hs);
-	for (unsigned p = 0; p < REP(set_hs, repn)->nparts; ++p) {
+	for (unsigned p = 0; p < REP(set_hs, repn)->nhdrs; ++p) {
 		if (!replica_is_part_broken(repn, p, set_hs))
 			return p;
 	}
@@ -755,8 +756,7 @@ static int
 get_replica_uuid(struct pool_replica *rep, unsigned repn,
 		struct poolset_health_status *set_hs, uuid_t **uuidpp)
 {
-	/* XXX: why not rep->nhdrs */
-	unsigned nhdrs = REP(set_hs, repn)->nhdrs;
+	unsigned nhdrs = rep->nhdrs;
 	if (!replica_is_part_broken(repn, 0, set_hs)) {
 		/* the first part is not broken */
 		*uuidpp = &HDR(rep, 0)->uuid;
@@ -794,38 +794,64 @@ check_uuids_between_replicas(struct pool_set *set,
 		struct pool_replica *rep = REP(set, r);
 		struct pool_replica *rep_n = REPN(set, r);
 
-		/* get uuids for the two adjacent replicas */
-		uuid_t *rep_uuidp;
-		uuid_t *rep_n_uuidp;
-
-		if (get_replica_uuid(rep, r, set_hs, &rep_uuidp)) {
-			LOG(2, "cannot get replica uuid, replica %u", r);
-			continue;
-		}
-
+		/* get uuids of the two adjacent replicas */
+		uuid_t *rep_uuidp = NULL;
+		uuid_t *rep_n_uuidp = NULL;
 		unsigned r_n = REPNidx(set_hs, r);
-		if (get_replica_uuid(rep_n, r_n, set_hs, &rep_n_uuidp)) {
+		if (get_replica_uuid(rep, r, set_hs, &rep_uuidp))
+			LOG(2, "cannot get replica uuid, replica %u", r);
+		if (get_replica_uuid(rep_n, r_n, set_hs, &rep_n_uuidp))
 			LOG(2, "cannot get replica uuid, replica %u", r_n);
-			continue;
-		}
 
-		/* check if we can compare uuids between the replicas */
+		/*
+		 * check if replica uuids are consistent between two adjacent
+		 * replicas
+		 */
 		unsigned p = replica_find_unbroken_part(r, set_hs);
 		unsigned p_n = replica_find_unbroken_part(r_n, set_hs);
-
-		if (p == UNDEF_PART || p_n == UNDEF_PART) {
-			LOG(2, "cannot compare uuids between replicas %u and"
-					" %u", r, r_n);
-			continue;
+		if (p_n != UNDEF_PART && rep_uuidp != NULL &&
+				uuidcmp(*rep_uuidp,
+					HDR(rep_n, p_n)->prev_repl_uuid)) {
+			ERR(
+			"inconsistent replica uuids between replicas %u and %u",
+				r, r_n);
+			return -1;
+		}
+		if (p != UNDEF_PART && rep_n_uuidp != NULL &&
+				uuidcmp(*rep_n_uuidp,
+					HDR(rep, p)->next_repl_uuid)) {
+			ERR(
+			"inconsistent replica uuids between replicas %u and %u",
+				r, r_n);
+			return -1;
 		}
 
-		/* check if replica uuids are consistent between the replicas */
-		if (uuidcmp(*rep_uuidp, HDR(rep_n, p_n)->prev_repl_uuid) ||
-				uuidcmp(*rep_n_uuidp,
-						HDR(rep, p)->next_repl_uuid)) {
-			ERR("inconsistent replica uuids between replicas %u and"
-				" %u", r, r_n);
-			return -1;
+		/*
+		 * check if replica uuids on borders of a broken replica are
+		 * consistent
+		 */
+		unsigned r_nn = REPNidx(set_hs, r_n);
+		if (set->nreplicas > 1 && p != UNDEF_PART &&
+				replica_is_replica_broken(r_n, set_hs) &&
+				replica_is_replica_consistent(r_nn, set_hs)) {
+			unsigned p_nn =
+				replica_find_unbroken_part(r_nn, set_hs);
+			if (p_nn == UNDEF_PART) {
+				LOG(2,
+				"cannot compare uuids on borders of replica %u",
+					r);
+				continue;
+			}
+			struct pool_replica *rep_nn = REP(set, r_nn);
+			if (uuidcmp(HDR(rep, p)->next_repl_uuid,
+					HDR(rep_nn, p_nn)->prev_repl_uuid)) {
+				ERR(
+				"inconsistent replica uuids on borders of replica %u",
+					r);
+				return -1;
+			}
+
+
 		}
 	}
 	return 0;

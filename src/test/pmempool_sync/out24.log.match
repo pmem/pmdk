@@ -1,0 +1,48 @@
+poolset1:
+PMEMPOOLSET
+8M $(nW)part00
+REPLICA
+8M $(nW)part10
+REPLICA
+8M $(nW)part20
+poolset2:
+PMEMPOOLSET
+8M $(nW)part00
+REPLICA
+8M $(nW)part10
+error: failed to synchronize: poolset health check failed
+error: Invalid argument
+Poolset structure:
+Number of replicas       : 3
+Replica 0 (master) - local, 1 part(s):
+part 0:
+path                     : $(nW)part00
+type                     : regular file
+size                     : $(nW)
+Replica 1 - local, 1 part(s):
+part 0:
+path                     : $(nW)part10
+type                     : regular file
+size                     : $(nW)
+Replica 2 - local, 1 part(s):
+part 0:
+path                     : $(nW)part20
+type                     : regular file
+size                     : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : $(nW)
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT$(nW)
+Lanes offset             : $(nW)
+Number of lanes          : 1024
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : $(nW) [OK]
+Root offset              : $(nW)
