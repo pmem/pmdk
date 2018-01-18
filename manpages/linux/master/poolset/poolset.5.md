@@ -40,6 +40,7 @@ date: poolset API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [REPLICAS](#replicas)<br />
+[POOL SET OPTIONS](#pool-set-options)<br />
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -85,6 +86,9 @@ are formatted as follows:
 + *Replica* sections, if any, start with the literal string "REPLICA".
 See **REPLICAS**, below, for further details.
 
++ Pool set options, if any, start with literal string *OPTION*.
+See **POOL SET OPTIONS** below for details.
+
 + Lines starting with "#" are considered comments and are ignored.
 
 The *size* must be compliant with the format specified in IEC 80000-13, IEEE 1541
@@ -105,21 +109,9 @@ Pools created on Device DAX have additional options and restrictions:
 automatically resolved at pool creation time.
 
 + To concatenate more than one Device DAX device into a single pool set, the
-configured internal alignment of the devices must be 4KiB, unless the *NOHDRS*
-option is used in the pool set file.
-
-+ If a line containing the string *OPTION NOHDRS* appears anywhere after the
-*PMEMPOOLSET* string in a pool set file, Device DAX devices with different
-internal alignment can be concatenated.
-
-+ The *NOHDRS* option concerns only local poolset files, i.e. if one wants to
-create a poolset with the *NOHDRS* option and with remote replicas, one has to
-add this option to the local poolset file as well as to every single remote
-poolset file.
-
-+ Using the *NOHDRS* option has important implications for data integrity
-checking and recoverability in case of a pool set damage. See **pmempool_sync**()
-API for more information about pool set recovery.
+configured internal alignment of the devices must be 4KiB, unless the
+*SINGLEHDR* or *NOHDRS* option is used in the pool set file.
+See **POOL SET OPTIONS** below for details.
 
 Please see **ndctl-create-namespace**(1) for more information on Device DAX,
 including how to configure desired alignment.
@@ -157,6 +149,7 @@ Here is an example "mypool.set" file:
 
 ```
 PMEMPOOLSET
+OPTION NOHDRS
 100G /mountpoint0/myfile.part0
 200G /mountpoint1/myfile.part1
 400G /mountpoint2/myfile.part2
@@ -174,7 +167,6 @@ To create a log pool:
 ```
 $ pmempool create log mypool.set
 ```
-
 
 # REPLICAS #
 
@@ -225,6 +217,45 @@ The files in the object pool set may be created by running the following command
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
 
+Remote replica cannot have replicas, i.e. a remote pool set file cannot
+define any replicas.
+
+
+# POOL SET OPTIONS #
+
+Pool set options can appear anywhere after the line with *PMEMPOOLSET* string.
+Pool set file can contain several pool set options. The following options are
+supported:
+
++ *SINGLEHDR*
+
++ *NOHDRS*
+
+If the *SINGLEHDR* option is used, only the first part in each replica contains
+the pool part internal metadata. In that case the effective size of a replica
+is the sum of sizes of all its part files decreased once by 4096 bytes.
+
+The *NOHDRS* option can appear only in the remote pool set file, when
+**librpmem** does not serve as a means of replication for **libpmemobj** pool.
+In that case none of the pool parts contains internal metadata.
+The effective size of such a replica is the sum of sizes of all its part files.
+
+Options *SINGLEHDR* and *NOHDRS* are mutually exclusive. If both are specified
+in a pool set file, creating or opening the pool will fail with an error.
+
+When using the *SINGLEHDR* or *NOHDRS* option, one can concatenate more than one
+Device DAX devices with any internal alignments in one replica.
+
+The *SINGLEHDR* option concerns only replicas that are local to the pool set
+file. That is if one wants to create a pool set with the *SINGLEHDR* option
+and with remote replicas, one has to add this option to the local pool set file
+as well as to every single remote pool set file.
+
+Using the *SINGLEHDR* and *NOHDRS* options has important implications for data
+integrity checking and recoverability in case of a pool set damage.
+See **pmempool_sync**() API for more information about pool set recovery.
+
+
 # DIRECTORIES #
 
 Providing a directory as a part's *pathname* allows the pool to dynamically
@@ -251,7 +282,8 @@ address space reservation is equal to the sum of the sizes.
 The order in which the files are created is unspecified, but the library will
 try to maintain equal usage of the directories.
 
-Only poolsets with *OPTION NOHDRS* can safely use directories.
+Only poolsets with *SINGLEHDR* or *NOHDRS* option can safely use directories.
+
 
 # NOTES #
 
