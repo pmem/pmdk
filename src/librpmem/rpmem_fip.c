@@ -635,7 +635,7 @@ rpmem_fip_monitor_thread(void *arg)
 			RPMEM_LOG(ERR, "event queue got FI_SHUTDOWN");
 
 			/* mark in-band connection as closing */
-			fip->closing = 1;
+			util_fetch_and_or32(&fip->closing, 1);
 
 			for (unsigned i = 0; i < fip->nlanes; i++) {
 				fi_cq_signal(fip->lanes[i].base.cq);
@@ -668,7 +668,7 @@ rpmem_fip_monitor_init(struct rpmem_fip *fip)
 static int
 rpmem_fip_monitor_fini(struct rpmem_fip *fip)
 {
-	fip->closing = 1;
+	util_fetch_and_or32(&fip->closing, 1);
 
 	int ret = os_thread_join(&fip->monitor, NULL);
 	if (ret) {
