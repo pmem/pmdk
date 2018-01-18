@@ -73,6 +73,7 @@ int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 The **rpmem_create**() function creates a remote pool on a given *target* node,
 using pool *set* file *pool_set_name* to map the remote pool. *pool_set_name*
 is a relative path in the root config directory on the *target* node.
+For pool set file format and options see **poolset**(5).
 *pool_addr* is a pointer to the associated local memory pool with size
 *pool_size*. Both *pool_addr* and *pool_size* must be aligned to the system's
 page size (see **sysconf**(3)). The size of the remote pool must be at least
@@ -82,9 +83,15 @@ Upon successful creation of the remote pool, \**nlanes* is set to the
 maximum number of lanes supported by both the local and remote nodes.
 See **LANES**, below, for details.
 The *create_attr* structure contains the attributes used for creating the
-remote pool. If *create_attr* is NULL, a zeroed structure with attributes will
-be used to create the pool. The attributes are stored in pool's metadata and
-can be read when opening the remote pool with **rpmem_open**().
+remote pool. If the *create_attr* structure is not NULL, a pool with internal
+metadata is created. The metadata is stored in the first 4096
+bytes of the pool and can be read when opening the remote pool with
+**rpmem_open**(). To prevent user from overwriting the pool metadata, this
+region is not accessible to the user via **rpmem_persist**().
+If *create_attr* is NULL, remote pool set file must contain the *NOHDRS* option.
+In that case the remote pool is created without internal metadata in it and the
+entire pool space is available to the user.
+See **rpmem_persist**(3) for details.
 
 The **rpmem_open**() function opens the existing remote pool with *set* file
 *pool_set_name* on remote node *target*. *pool_set_name* is a relative path
@@ -133,8 +140,10 @@ the remote pool from being created, **rpmem_create**() returns
 NULL and sets *errno* appropriately.
 
 On success, **rpmem_open**() returns an opaque handle to the remote
-pool for in subsequent **librpmem** calls. If the *open_attr* argument
+pool for subsequent **librpmem** calls. If the *open_attr* argument
 is not NULL, the remote pool attributes are returned in the provided structure.
+If the remote pool was created without internal metadata, zeroes are returned
+in the *open_attr* structure on successful call to **rpmem_open**().
 If any error prevents the remote pool from being opened, **rpmem_open**()
 returns NULL and sets *errno* appropriately.
 
@@ -151,12 +160,22 @@ and sets *errno* appropriately.
 # NOTES #
 
 ## REMOTE POOL SIZE ##
-The size of a remote pool depends on the configuration in the pool *set* file
-on the remote node. The remote pool size is the sum of the sizes of all part
-files, decreased by 4096 bytes per part file. 4096 bytes of each part file are
-utilized for storing internal metadata. **RPMEM_MIN_PART** and
-**RPMEM_MIN_POOL** in **\<librpmem.h\>** define the minimum size allowed by
-**librpmem** for a part file and a remote pool, respectively.
+The size of a remote pool depends on the configuration in the pool set file
+on the remote node (see **poolset**(5)). If no pool set options is used in
+the remote pool set file, the remote pool size is the sum of the sizes of all
+part files, decreased by 4096 bytes per part file. 4096 bytes of each part file
+are utilized for storing internal metadata.
+If the *SINGLEHDR* option is used in the remote pool set file, the remote pool
+size is the sum of sizes of all part files, decreased once by 4096 bytes.
+In this case only the first part contains internal metadata.
+If a remote pool set file contains the *NOHDRS* option, the remote pool size
+is the sum of sizes of all its part files. In this case none of the parts
+contains internal metadata. For other consequences of using the *SINGLEHDR* and
+*NOHDRS* options see **rpmem_persist**(3).
+**RPMEM_MIN_PART** and **RPMEM_MIN_POOL** in **\<librpmem.h\>** define
+the minimum size allowed by **librpmem** for a part file and a remote pool,
+respectively.
+
 
 ## LANES ##
 The term *lane* means an isolated path of execution. The underlying hardware

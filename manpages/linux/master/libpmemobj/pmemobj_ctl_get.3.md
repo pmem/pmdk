@@ -328,11 +328,27 @@ performance impact.
 
 Always returns 0.
 
-stats.heap.allocated_curr | r- | - | int | - | - | -
+stats.heap.curr_allocated | r- | - | int | - | - | -
 
 Returns the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be
 inaccurate.
+
+heap.size.granularity | rw- | - | uint64_t | uint64_t | - | long long
+
+Reads or modifies the granularity with which the heap grows when OOM.
+Valid only if the poolset has been defined with directories.
+
+A granularity of 0 specifies that the pool will not grow automatically.
+
+This function returns 0 if the granularity value is 0, or is larger than
+*PMEMOBJ_MIN_PART*, -1 otherwise.
+
+heap.size.extend | --x | - | - | - | uint64_t | -
+
+Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_PART*.
+
+This function returns 0 if successful, -1 otherwise.
 
 # CTL EXTERNAL CONFIGURATION #
 

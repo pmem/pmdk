@@ -85,7 +85,6 @@ at a time. Reordering replicas is not supported
 Also, to add a replica it is necessary for its effective size to match or exceed
 the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased
-
 by 4096 bytes per each part file. The 4096 bytes of each part file is
 utilized for storing internal metadata of the pool part files.
 

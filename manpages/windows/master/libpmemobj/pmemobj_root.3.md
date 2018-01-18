@@ -72,14 +72,16 @@ persistent memory pool the root object always exists, and there is exactly
 one root object in each pool.
 
 The **pmemobj_root**() function creates or resizes the root object for the
-persistent memory pool *pop*. If this is the first call to **pmemobj_root**()
-and the root object does not exist, it is implicitly allocated in a
-thread-safe manner, so the function may be called by more than one
+persistent memory pool *pop*. If this is the first call to **pmemobj_root**(),
+the requested *size* is greater than zero and the root object does not exist,
+it is implicitly allocated
+in a thread-safe manner, so the function may be called by more than one
 thread simultaneously (as long as all threads use the identical *size* value).
 The size of the root object is guaranteed to be not less than the requested
 *size*. If the requested size is larger than the current size, the root
 object is automatically resized. In such case, the old data is preserved and
 the extra space is zeroed.
+If the requested *size* is equal to zero, the root object is not allocated.
 
 **pmemobj_root_construct**() performs the same actions as **pmemobj_root**(),
 but instead of zeroing the newly allocated object a *constructor* function
@@ -101,6 +103,8 @@ in all the threads. If the requested object size is larger than the maximum
 allocation size supported for the pool, or if there is not enough free
 space in the pool to satisfy a reallocation request, **pmemobj_root**() returns
 **OID_NULL** and sets *errno* appropriately.
+If the *size* was equal to zero and the root object has not been allocated,
+**pmemobj_root**() returns **OID_NULL**.
 
 If the **pmemobj_root_construct**() constructor fails, the allocation is
 canceled, **pmemobj_root_construct**() returns *OID_NULL*, and *errno* is set

@@ -88,10 +88,11 @@ a pool set is consistent, i.e. all parts are healthy, and if any of them is
 not, the corrupted or missing parts are recreated and filled with data from
 one of the healthy replicas.
 
-If a pool set has the option *NOHDRS* (see **poolset**(5)), the internal
-metadata of each replica is limited to the beginning of the first part in the
-replica. In that case, only missing parts or the ones which cannot be opened
-are recreated with the **pmempool_sync**() function.
+If a pool set has the option *SINGLEHDR* (see **poolset**(5)),
+the internal metadata of each replica is limited to the beginning of the first
+part in the replica. If the option *NOHDRS* is used, replicas contain no
+internal metadata. In both cases, only the missing parts or the ones which
+cannot be opened are recreated with the **pmempool_sync**() function.
 
 **pmempool_transform**() modifies the internal structure of a pool set.
 It supports the following operations:
@@ -122,24 +123,27 @@ transformation.
 
 
 
-When adding or deleting replicas, the two pool set files can differ only in the
-definitions of replicas which are to be added or deleted. When adding or
-removing the *NOHDRS* option (see **poolset**(5)), the rest of both pool set
-files have to be of the same structure. The operation of adding/removing the
-*NOHDRS* option can be performed on a poolset with local replicas only. To
-add/remove the *NOHDRS* option to/from a poolset with remote replicas, one has
+When adding or deleting replicas, the two pool set files can differ
+only in the definitions of replicas which are to be added or deleted. When
+adding or removing pool set options (see **poolset**(5)), the rest of both pool
+set files have to be of the same structure. The operation of adding/removing
+a pool set option can be performed on a pool set with local replicas only. To
+add/remove a pool set option to/from a pool set with remote replicas, one has
 to remove the remote replicas first, then add/remove the option, and finally
-recreate the remote replicas having added/removed the *NOHDRS* option to/from
+recreate the remote replicas having added/removed the pool set option to/from
 the remote replicas' poolset files.
 To add a replica it is necessary for its effective size to match or exceed the
 pool size. Otherwise the whole operation fails and no changes are applied.
-If the option *NOHDRS* is not used, the effective size of a replica is the sum
-of sizes of all its part files decreased by 4096 bytes per each part file.
+If none of the pool set options is used, the effective size of a replica is the
+sum of sizes of all its part files decreased by 4096 bytes per each part file.
 The 4096 bytes of each part file is utilized for storing internal metadata of
 the pool part files.
-If the option *NOHDRS* is used, the effective size of a replica is the sum of
+If the option *SINGLEHDR* is used, the effective size of a replica is the sum of
 sizes of all its part files decreased once by 4096 bytes. In this case only
 the first part contains internal metadata.
+If the option *NOHDRS* is used, the effective size of a replica is the sum of
+sizes of all its part files. In this case none of the parts contains internal
+metadata.
 
 
 # RETURN VALUE #
