@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -120,7 +120,7 @@ int replica_is_replica_healthy(unsigned repn,
 unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
 int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
 int replica_is_poolset_transformed(unsigned flags);
-size_t replica_get_pool_size(struct pool_set *set, unsigned repn);
+ssize_t replica_get_pool_size(struct pool_set *set, unsigned repn);
 int replica_check_part_sizes(struct pool_set *set, size_t min_size);
 int replica_check_part_dirs(struct pool_set *set);
 int replica_check_local_part_dir(struct pool_set *set, unsigned repn,

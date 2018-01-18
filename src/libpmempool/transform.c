@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -229,7 +229,13 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * structure has enough capacity to accommodate the effective size of
 	 * the source poolset
 	 */
-	if (set_out->poolsize < replica_get_pool_size(set_in, 0)) {
+	ssize_t master_pool_size = replica_get_pool_size(set_in, 0);
+	if (master_pool_size < 0) {
+		ERR("getting pool size from master replica failed");
+		goto err;
+	}
+
+	if (set_out->poolsize < (size_t)master_pool_size) {
 		ERR("target poolset is too small");
 		goto err;
 	}
@@ -559,7 +565,13 @@ copy_replica_data_fw(struct pool_set *set_dst, struct pool_set *set_src,
 		unsigned repn)
 {
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
-	size_t len = replica_get_pool_size(set_src, repn) - POOL_HDR_SIZE -
+	ssize_t pool_size = replica_get_pool_size(set_src, repn);
+	if (pool_size < 0) {
+		LOG(1, "getting pool size from replica %u failed", repn);
+		pool_size = (ssize_t)set_src->poolsize;
+	}
+
+	size_t len = (size_t)pool_size - POOL_HDR_SIZE -
 			replica_get_part_data_len(set_src, repn, 0);
 	void *src = PART(REP(set_src, repn), 1).addr;
 	void *dst = PART(REP(set_dst, repn), 1).addr;
@@ -580,7 +592,13 @@ copy_replica_data_bw(struct pool_set *set_dst, struct pool_set *set_src,
 		unsigned repn)
 {
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
-	size_t len = replica_get_pool_size(set_src, repn) - POOL_HDR_SIZE -
+	ssize_t pool_size = replica_get_pool_size(set_src, repn);
+	if (pool_size < 0) {
+		LOG(1, "getting pool size from replica %u failed", repn);
+		pool_size = (ssize_t)set_src->poolsize;
+	}
+
+	size_t len = (size_t)pool_size - POOL_HDR_SIZE -
 			replica_get_part_data_len(set_src, repn, 0);
 	size_t count = len / POOL_HDR_SIZE;
 	void *src = ADDR_SUM(PART(REP(set_src, repn), 1).addr, len);
