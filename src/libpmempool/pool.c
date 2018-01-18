@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1096,4 +1096,25 @@ pool_get_first_valid_btt(struct pool_data *pool, struct btt_info *infop,
 	}
 
 	return 0;
+}
+
+/*
+ * pool_get_min_size -- return the minimum pool size of a pool of a given type
+ */
+size_t
+pool_get_min_size(enum pool_type type)
+{
+	switch (type) {
+	case POOL_TYPE_LOG:
+		return PMEMLOG_MIN_POOL;
+	case POOL_TYPE_BLK:
+		return PMEMBLK_MIN_POOL;
+	case POOL_TYPE_OBJ:
+		return PMEMOBJ_MIN_POOL;
+	case POOL_TYPE_CTO:
+		return PMEMCTO_MIN_POOL;
+	default:
+		ERR("unknown type of a pool");
+		return SIZE_MAX;
+	}
 }
