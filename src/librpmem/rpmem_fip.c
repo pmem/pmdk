@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,7 +153,7 @@ struct rpmem_fip {
 	struct fid_domain *domain; /* fabric protection domain */
 	struct fid_eq *eq; /* event queue */
 
-	volatile int closing; /* closing connections in progress */
+	volatile uint32_t closing; /* closing connections in progress */
 
 	size_t cq_size;	/* completion queue size */
 
@@ -190,6 +190,19 @@ struct rpmem_fip {
 
 	cq_read_fn cq_read;		/* CQ read function */
 };
+
+/*
+ * rpmem_fip_start_closing -- (internal) mark fip as closing
+ */
+static inline void
+rpmem_fip_start_closing(struct rpmem_fip *fip)
+{
+	/*
+	 * load and store without barriers should be good enough here.
+	 * fetch_and_or are used as workaround for helgrind issue.
+	 */
+	util_fetch_and_or32(&fip->closing, 1);
+}
 
 /*
  * rpmem_fip_lane_begin -- (internal) intialize list of events for lane
@@ -635,7 +648,7 @@ rpmem_fip_monitor_thread(void *arg)
 			RPMEM_LOG(ERR, "event queue got FI_SHUTDOWN");
 
 			/* mark in-band connection as closing */
-			fip->closing = 1;
+			rpmem_fip_start_closing(fip);
 
 			for (unsigned i = 0; i < fip->nlanes; i++) {
 				fi_cq_signal(fip->lanes[i].base.cq);
@@ -668,7 +681,7 @@ rpmem_fip_monitor_init(struct rpmem_fip *fip)
 static int
 rpmem_fip_monitor_fini(struct rpmem_fip *fip)
 {
-	fip->closing = 1;
+	rpmem_fip_start_closing(fip);
 
 	int ret = os_thread_join(&fip->monitor, NULL);
 	if (ret) {
