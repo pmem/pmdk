@@ -22,9 +22,9 @@
 #ifndef RB_H_
 #define	RB_H_
 
-/* XXX Avoid super-slow compile with clang */
+/* XXX Avoid super-slow compile with older versions of clang */
 #define NOSANITIZE
-#ifdef __clang__
+#if (__clang_major__ == 3 && __clang_minor__ < 9)
 #if __has_attribute(__no_sanitize__)
 #undef NOSANITIZE
 #define NOSANITIZE __attribute__((no_sanitize("undefined")))
