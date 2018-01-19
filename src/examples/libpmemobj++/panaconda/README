@@ -1,6 +1,6 @@
 Persistent Memory Development Kit
 
-This is examples/libpmemobj/panconda/README.
+This is examples/libpmemobj++/panconda/README.
 
 This directory contains an example application implemented using libpmemobj,
 it's a game in which all the objects are stored on persistent memory.

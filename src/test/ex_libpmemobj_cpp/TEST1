@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,7 +51,7 @@ require_cxx11
 
 setup
 
-EX_PATH=../../examples/libpmemobj/pman
+EX_PATH=../../examples/libpmemobj++/pman
 INPUT=$DIR/input.txt
 
 dd if=/dev/zero bs=64 count=1 2>>prep$UNITTEST_NUM.log >> $INPUT

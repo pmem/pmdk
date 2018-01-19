@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -83,7 +83,7 @@ srpr 21M 9
 "@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Clean the dax devices
-expect_normal_exit $DDMAP -o ${Env:DEVICE_DAX_PATH[0]} -l $HDR_LEN
+expect_normal_exit $DDMAP -o ${Env:DEVICE_DAX_PATH[0]} -n $HDR_LEN -b 1
 
 # Create poolset1
 expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET >> $LOG_TEMP

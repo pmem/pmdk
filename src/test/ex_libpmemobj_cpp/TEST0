@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ require_cxx11
 
 setup
 
-EX_PATH=../../examples/libpmemobj/cpp
+EX_PATH=../../examples/libpmemobj++/queue
 
 expect_normal_exit $EX_PATH/queue $DIR/testfile1 push 1
 expect_normal_exit $EX_PATH/queue $DIR/testfile1 push 2

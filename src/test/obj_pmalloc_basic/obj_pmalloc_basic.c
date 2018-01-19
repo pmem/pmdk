@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -304,6 +304,7 @@ test_mock_pool_allocs(void)
 	mock_pop->p_ops.memset_persist = obj_memset;
 	mock_pop->p_ops.base = mock_pop;
 	mock_pop->set = MALLOC(sizeof(*(mock_pop->set)));
+	mock_pop->set->options = 0;
 	mock_pop->set->directory_based = 0;
 
 	mock_pop->redo = redo_log_config_new(addr, &mock_pop->p_ops,

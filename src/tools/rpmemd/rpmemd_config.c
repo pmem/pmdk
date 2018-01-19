@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -168,7 +168,7 @@ parse_config_string(const char *value)
 /*
  * parse_config_bool -- (internal) parse yes / no flag
  */
-static inline void
+static inline int
 parse_config_bool(bool *config_value, const char *value)
 {
 	if (value == NULL)
@@ -177,8 +177,12 @@ parse_config_bool(bool *config_value, const char *value)
 		*config_value = true;
 	else if (strcmp("no", value) == 0)
 		*config_value = false;
-	else
+	else {
 		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -188,40 +192,45 @@ static int
 set_option(enum rpmemd_option option, const char *value,
 	struct rpmemd_config *config)
 {
-	errno = 0;
+	int ret = 0;
 
 	switch (option) {
 	case RPD_OPT_LOG_FILE:
 		free(config->log_file);
 		config->log_file = parse_config_string(value);
-		config->use_syslog = false;
+		if (config->log_file == NULL)
+			return -1;
+		else
+			config->use_syslog = false;
 		break;
 	case RPD_OPT_POOLSET_DIR:
 		free(config->poolset_dir);
 		config->poolset_dir = parse_config_string(value);
+		if (config->poolset_dir == NULL)
+			return -1;
 		break;
 	case RPD_OPT_PERSIST_APM:
-		parse_config_bool(&config->persist_apm, value);
+		ret = parse_config_bool(&config->persist_apm, value);
 		break;
 	case RPD_OPT_PERSIST_GENERAL:
-		parse_config_bool(&config->persist_general, value);
+		ret = parse_config_bool(&config->persist_general, value);
 		break;
 	case RPD_OPT_USE_SYSLOG:
-		parse_config_bool(&config->use_syslog, value);
+		ret = parse_config_bool(&config->use_syslog, value);
 		break;
 	case RPD_OPT_LOG_LEVEL:
 		config->log_level = rpmemd_log_level_from_str(value);
-		if (config->log_level == MAX_RPD_LOG)
+		if (config->log_level == MAX_RPD_LOG) {
 			errno = EINVAL;
+			return -1;
+		}
 		break;
 	default:
 		errno = EINVAL;
+		return -1;
 	}
 
-	if (errno != 0)
-		return 1;
-	else
-		return 0;
+	return ret;
 }
 
 /*
@@ -312,7 +321,7 @@ parse_config_key(const char *key)
  *
  * Return newly written option flag. Store possible errors in errno.
  */
-static void
+static int
 parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 	struct rpmemd_config *config, uint64_t disabled)
 {
@@ -324,9 +333,12 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 
 	if (pos->equal_char == INVALID_CHAR_POS) {
 		char *leftover = trim_line_element(line, 0, end_of_content);
-		if (leftover != NULL)
+		if (leftover != NULL) {
 			errno = EINVAL;
-		return;
+			return -1;
+		} else {
+			return 0;
+		}
 	}
 
 	char *key_name = trim_line_element(line, 0, pos->equal_char);
@@ -335,15 +347,20 @@ parse_config_line(char *line, struct rpmemd_special_chars_pos *pos,
 
 	if (key_name == NULL || value == NULL) {
 		errno = EINVAL;
-		return;
+		return -1;
 	}
 
 	enum rpmemd_option key = parse_config_key(key_name);
 	if (key != RPD_OPT_INVALID) {
 		if ((disabled & (uint64_t)(1 << key)) == 0)
-			set_option(key, value, config);
-	} else
+			if (set_option(key, value, config) != 0)
+				return -1;
+	} else {
 		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -401,8 +418,9 @@ parse_config_file(const char *filename, struct rpmemd_config *config,
 
 		if (pos.EOL_char != INVALID_CHAR_POS) {
 			strcpy(line_copy, line);
-			parse_config_line(line_copy, &pos, config, disabled);
-			if (errno != 0) {
+			int ret = parse_config_line(line_copy, &pos, config,
+					disabled);
+			if (ret != 0) {
 				size_t len = strlen(line);
 				if (len > 0 && line[len - 1] == '\n')
 					line[len - 1] = '\0';

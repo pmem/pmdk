@@ -40,6 +40,7 @@
 
 #define MAX_ALLOC_SIZE (4L * 1024L * 1024L)
 #define NALLOCS 16
+#define POOL_SIZE (2 * PMEMCTO_MIN_POOL)
 
 /* buffer for all allocation pointers */
 static char *ptrs[NALLOCS];
@@ -52,11 +53,11 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		UT_FATAL("usage: %s filename", argv[0]);
 
-	for (size_t size = 8; size <= MAX_ALLOC_SIZE; size *= 2) {
-		PMEMctopool *pcp = pmemcto_create(argv[1], "test",
-				PMEMCTO_MIN_POOL, 0666);
-		UT_ASSERTne(pcp, NULL);
+	PMEMctopool *pcp = pmemcto_create(argv[1], "test",
+			POOL_SIZE, 0666);
+	UT_ASSERTne(pcp, NULL);
 
+	for (size_t size = 8; size <= MAX_ALLOC_SIZE; size *= 2) {
 		memset(ptrs, 0, sizeof(ptrs));
 
 		int i;
@@ -68,11 +69,12 @@ main(int argc, char *argv[])
 			}
 
 			/* check that pointer came from mem_pool */
-			UT_ASSERTrange(ptrs[i], pcp, PMEMCTO_MIN_POOL);
+			UT_ASSERTrange(ptrs[i], pcp, POOL_SIZE);
 
 			/* fill each allocation with a unique value */
 			memset(ptrs[i], (char)i, size);
 		}
+		UT_OUT("size %zu cnt %d", size, i);
 
 		UT_ASSERT((i > 0) && (i + 1 < MAX_ALLOC_SIZE));
 
@@ -83,10 +85,9 @@ main(int argc, char *argv[])
 			pmemcto_free(pcp, ptrs[i]);
 		}
 
-		pmemcto_close(pcp);
-
-		UNLINK(argv[1]);
 	}
+
+	pmemcto_close(pcp);
 
 	DONE(NULL);
 }

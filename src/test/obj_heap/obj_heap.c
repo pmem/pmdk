@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -211,6 +211,7 @@ test_heap(void)
 	pop->p_ops.memset_persist = obj_heap_memset_persist;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));
+	pop->set->options = 0;
 	pop->set->directory_based = 0;
 
 	struct stats *s = stats_new(pop);
@@ -306,6 +307,7 @@ test_recycler(void)
 	pop->p_ops.memset_persist = obj_heap_memset_persist;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));
+	pop->set->options = 0;
 	pop->set->directory_based = 0;
 
 	void *heap_start = (char *)pop + pop->heap_offset;

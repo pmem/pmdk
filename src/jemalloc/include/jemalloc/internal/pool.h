@@ -126,6 +126,8 @@ struct tsd_pool_s {
 /******************************************************************************/
 #ifdef JEMALLOC_H_EXTERNS
 
+bool pool_boot(pool_t *pool, unsigned pool_id);
+bool pool_runtime_init(pool_t *pool, unsigned pool_id);
 bool pool_new(pool_t *pool, unsigned pool_id);
 void pool_destroy(pool_t *pool);
 

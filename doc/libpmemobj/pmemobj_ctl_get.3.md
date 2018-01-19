@@ -331,7 +331,7 @@ performance impact.
 
 Always returns 0.
 
-stats.heap.allocated_curr | r- | - | int | - | - | -
+stats.heap.curr_allocated | r- | - | int | - | - | -
 
 Returns the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be

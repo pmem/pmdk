@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,11 +60,11 @@ expect_normal_exit ./obj_ctl_prefault$EXESUFFIX $DIR/testfile1 1 1
 pagefault_open_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
 
 if [ ${pagefault_create_baseline} -ge ${pagefault_create_prefault} ]; then
-	exit 1
+	fatal "create: ${pagefault_create_baseline} >= ${pagefault_create_prefault} "
 fi
 
 if [ ${pagefault_open_baseline} -ge ${pagefault_open_prefault} ]; then
-	exit 1
+	fatal "open: ${pagefault_open_baseline} >= ${pagefault_open_prefault}"
 fi
 
 pass

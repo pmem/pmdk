@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,14 +65,11 @@ thread_func_open(void *arg)
 			Pools[pool_id] = pmemcto_open(filename, "test");
 			UT_ASSERTne(Pools[pool_id], NULL);
 
-#if 0
-			/* XXX re-enable once the bug is fixed */
 			void *ptr = pmemcto_malloc(Pools[pool_id], sizeof(int));
 			UT_OUT("pcp %p ptr %p", Pools[pool_id], ptr);
 			UT_ASSERTne(ptr, NULL);
 
 			pmemcto_free(Pools[pool_id], ptr);
-#endif
 
 			pmemcto_close(Pools[pool_id]);
 		}

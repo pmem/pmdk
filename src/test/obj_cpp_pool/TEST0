@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,8 +53,7 @@ umask 0
 expect_normal_exit ./obj_cpp_pool$EXESUFFIX c $DIR/testfile "test" 20 0600
 
 [ -f $DIR/testfile ] || {
-    echo "error: $DIR/testfile doesn't exist"
-    exit 1
+    fatal "error: $DIR/testfile doesn't exist"
 }
 
 check

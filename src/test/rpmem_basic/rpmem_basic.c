@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -95,6 +95,7 @@ struct pool_entry {
 	void *pool;
 	size_t size;
 	int is_mem;
+	int error_must_occur;
 	int exp_errno;
 };
 
@@ -149,7 +150,6 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 
 		pool->is_mem = 0;
 		os_unlink(pool_path);
-		pool->size -= POOL_HDR_SIZE;
 	}
 }
 
@@ -162,8 +162,7 @@ free_pool(struct pool_entry *pool)
 	if (pool->is_mem)
 		FREE(pool->pool);
 	else
-		UT_ASSERTeq(pmem_unmap(pool->pool,
-			pool->size + POOL_HDR_SIZE), 0);
+		UT_ASSERTeq(pmem_unmap(pool->pool, pool->size), 0);
 
 	pool->pool = NULL;
 	pool->rpp = NULL;
@@ -216,10 +215,16 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 /*
  * check_return_and_errno - validate return value and errno
  */
-#define check_return_and_errno(ret, exp_errno) \
+#define check_return_and_errno(ret, error_must_occur, exp_errno) \
 	if (exp_errno != 0) { \
-		UT_ASSERTne(ret, 0); \
-		UT_ASSERTeq(errno, exp_errno); \
+		if (error_must_occur) { \
+			UT_ASSERTne(ret, 0); \
+			UT_ASSERTeq(errno, exp_errno); \
+		} else { \
+			if (ret != 0) { \
+				UT_ASSERTeq(errno, exp_errno); \
+			} \
+		} \
 	} else { \
 		UT_ASSERTeq(ret, 0); \
 	}
@@ -323,7 +328,7 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(pool->rpp, NULL);
 
 	int ret = rpmem_close(pool->rpp);
-	check_return_and_errno(ret, pool->exp_errno);
+	check_return_and_errno(ret, pool->error_must_occur, pool->exp_errno);
 
 	free_pool(pool);
 
@@ -339,6 +344,7 @@ struct thread_arg {
 	size_t size;
 	int nops;
 	unsigned lane;
+	int error_must_occur;
 	int exp_errno;
 };
 
@@ -358,7 +364,8 @@ persist_thread(void *arg)
 				left : persist_size;
 
 		int ret = rpmem_persist(args->rpp, off, size, args->lane);
-		check_return_and_errno(ret, args->exp_errno);
+		check_return_and_errno(ret, args->error_must_occur,
+				args->exp_errno);
 	}
 
 	return NULL;
@@ -381,11 +388,12 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 	int nthreads = atoi(argv[2]);
 	int nops = atoi(argv[3]);
 
-	size_t buff_size = pool->size;
+	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
 	if (seed) {
 		srand(seed);
-		uint8_t *buff = (uint8_t *)pool->pool;
+		uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool +
+				POOL_HDR_SIZE);
 		for (size_t i = 0; i < buff_size; i++)
 			buff[i] = rand();
 	}
@@ -399,11 +407,12 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		args[i].rpp = pool->rpp;
 		args[i].nops = nops;
 		args[i].lane = (unsigned)i;
-		args[i].off = i * size_per_thread;
+		args[i].off = POOL_HDR_SIZE + i * size_per_thread;
 		size_t size_left = buff_size - size_per_thread * i;
 		args[i].size = size_left < size_per_thread ?
 				size_left : size_per_thread;
 		args[i].exp_errno = pool->exp_errno;
+		args[i].error_must_occur = pool->error_must_occur;
 		PTHREAD_CREATE(&threads[i], NULL, persist_thread, &args[i]);
 	}
 
@@ -435,8 +444,8 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool + POOL_HDR_SIZE);
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
 
-	ret = rpmem_read(pool->rpp, buff, 0, buff_size, 0);
-	check_return_and_errno(ret, pool->exp_errno);
+	ret = rpmem_read(pool->rpp, buff, POOL_HDR_SIZE, buff_size, 0);
+	check_return_and_errno(ret, pool->error_must_occur, pool->exp_errno);
 
 	if (ret == 0) {
 		for (size_t i = 0; i < buff_size; i++) {
@@ -686,9 +695,35 @@ rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 	pool->exp_errno = ECONNRESET;
 
 	enum wait_type wait = str2wait(wait_str);
+	/*
+	 * if process will wait for rpmemd to terminate it is sure error will
+	 * occur
+	 */
+	pool->error_must_occur = wait == WAIT;
 	rpmemd_kill_wait(pool->target, pid_file, wait);
 
 	return 3;
+}
+
+/*
+ * test_persist_illegal -- test case for persisting data with offset < 4096
+ */
+static int
+test_persist_illegal(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_persist_illegal <id>");
+
+	int id = atoi(argv[0]);
+	UT_ASSERT(id >= 0 && id < MAX_IDS);
+	struct pool_entry *pool = &pools[id];
+
+	for (size_t off = 0; off < POOL_HDR_SIZE; ++off) {
+		int ret = rpmem_persist(pool->rpp, off, 1, 0);
+		UT_ASSERTeq(ret, -1);
+	}
+
+	return 1;
 }
 
 /*
@@ -705,6 +740,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
 	TEST_CASE(rpmemd_terminate),
+	TEST_CASE(test_persist_illegal),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

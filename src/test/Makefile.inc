@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@ EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
+EX_LIBPMEMOBJCPP=$(EXAMPLES_DIR)/libpmemobj++
 EX_LIBPMEMCTO=$(EXAMPLES_DIR)/libpmemcto
 
 UT = ../unittest/libut.a
@@ -292,10 +293,10 @@ ifeq ($(USE_LLVM_LIBCPP),1)
 $(call check_defined, LIBCPP_LIBDIR LIBCPP_INCDIR, when using USE_LLVM_LIBCPP)
 
 ifeq ($(COMPILE_LANG), cpp)
-CXXFLAGS += -stdlib=libc++
+CXXFLAGS += -nostdinc++
 INCS += -I$(LIBCPP_INCDIR)
-LIBS += -L$(LIBCPP_LIBDIR) -lc++ -lc++abi
-LDFLAGS += -stdlib=libc++ -Wl,-rpath,$(LIBCPP_LIBDIR)
+LIBS += -L$(LIBCPP_LIBDIR) -lc++ $(LIBCXXABI)
+LDFLAGS += -Wl,-rpath,$(LIBCPP_LIBDIR)
 endif
 endif
 

@@ -176,7 +176,7 @@ struct pmemobjpool {
 
 	/* remote replica section */
 	void *rpp;	/* RPMEMpool opaque handle if it is a remote replica */
-	uintptr_t remote_base;	/* beginning of the pool's descriptor */
+	uintptr_t remote_base;	/* beginning of the remote pool */
 	char *node_addr;	/* address of a remote node */
 	char *pool_desc;	/* descriptor of a poolset */
 

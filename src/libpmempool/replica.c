@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,8 +85,7 @@ replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn)
 {
 	size_t hdrsize = (set_in->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
-	return MMAP_ALIGN_DOWN(
-			set_in->replica[repn]->part[partn].filesize) -
+	return MMAP_ALIGN_DOWN(set_in->replica[repn]->part[partn].filesize) -
 			((partn == 0) ? POOL_HDR_SIZE : hdrsize);
 }
 
@@ -337,7 +336,7 @@ replica_check_store_size(struct pool_set *set,
 	if (rep->remote) {
 		memcpy(&pop.hdr, rep->part[0].hdr, sizeof(pop.hdr));
 		void *descr = (void *)((uintptr_t)&pop + POOL_HDR_SIZE);
-		if (Rpmem_read(rep->remote->rpp, descr, 0,
+		if (Rpmem_read(rep->remote->rpp, descr, POOL_HDR_SIZE,
 			sizeof(pop) - POOL_HDR_SIZE, 0)) {
 			return -1;
 		}

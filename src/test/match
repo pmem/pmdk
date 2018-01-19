@@ -59,6 +59,10 @@
 #	$(OPX)	ends a contiguous list of $(OPT)...$(OPX) lines, at least
 #		one of which must match
 #
+# Additionally, if any "X.ignore" file exists, strings or phrases found per
+# line in the file will be ignored if found as a substring in the
+# corresponding output file (making it easy to skip entire output lines).
+#
 # arguments are:
 #
 #	-a	find all files of the form "X.match" in the current
@@ -146,31 +150,76 @@ if ($opt_a) {
 
 my $mfile;
 my $ofile;
+my $ifile;
 print "Files to be processed:\n" if $opt_v;
 foreach $mfile (sort keys %match2file) {
 	$ofile = $match2file{$mfile};
-	print "        match-file \"$mfile\" output-file \"$ofile\"\n"
-		if $opt_v;
-	match($mfile, $ofile);
+	$ifile = $ofile . ".ignore";
+	$ifile = undef unless (-f $ifile);
+	if ($opt_v) {
+		print "        match-file \"$mfile\" output-file \"$ofile\"";
+		if ($ifile) {
+			print " ignore-file $ifile\n";
+		} else {
+			print "\n";
+		}
+	}
+	match($mfile, $ofile, $ifile);
 }
 
 exit 0;
 
 #
+# strip_it - user can optionally ignore lines from files that contain
+# any number of substrings listed in a file called "X.ignore" where X
+# is the name of the output file.
+#
+sub strip_it {
+	my ($ifile, $file, $input) = @_;
+	# if there is no ignore file just return unaltered input
+	return $input unless $ifile;
+	my @lines_in = split /^/, $input;
+	my $output;
+	my $line_in;
+	my @i_file = split /^/, snarf($ifile);
+	my $i_line;
+	my $ignore_it = 0;
+
+	foreach $line_in (@lines_in) {
+		my @i_lines = @i_file;
+		foreach $i_line (@i_lines) {
+			chop($i_line);
+			if (index($line_in, $i_line) != -1) {
+				$ignore_it = 1;
+				if ($opt_v) {
+					print "Ignoring (from $file): $line_in";
+				}
+			}
+		}
+		if ($ignore_it == 0) {
+			$output .= $line_in;
+		}
+		$ignore_it = 0;
+	}
+	return $output;
+}
+
+#
 # match -- process a match-file, output-file pair
 #
 sub match {
-	my ($mfile, $ofile) = @_;
+	my ($mfile, $ofile, $ifile) = @_;
 	my $pat;
 	my $output = snarf($ofile);
+	$output = strip_it($ifile, $ofile, $output);
 	my $all_lines = $output;
 	my $line_pat = 0;
 	my $line_out = 0;
 	my $opt = 0;
 	my $opx = 0;
 	my $opt_found = 0;
-
 	my $fstr = snarf($mfile);
+	$fstr = strip_it($ifile, $mfile, $fstr);
 	for (split /^/, $fstr) {
 		$pat = $_;
 		$line_pat++;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -240,10 +240,15 @@ main(int argc, char *argv[])
 
 	for (int i = 3; i < argc;) {
 		queue_op op = parse_queue_op(argv[i++]);
-		if (type == "volatile")
-			exec_op<vmap>(pop, vtree, op, argv, i);
-		else
-			exec_op<pmap>(pop, q->ptree, op, argv, i);
+		try {
+			if (type == "volatile")
+				exec_op<vmap>(pop, vtree, op, argv, i);
+			else
+				exec_op<pmap>(pop, q->ptree, op, argv, i);
+		} catch (std::exception &e) {
+			std::cerr << e.what() << std::endl;
+			break;
+		}
 	}
 
 	pop.close();

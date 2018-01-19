@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -91,7 +91,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 
 # Clear part header on the dax device
-expect_normal_exit $DDMAP -o ${Env:DEVICE_DAX_PATH[0]} -l $HDR_LEN
+expect_normal_exit $DDMAP -o ${Env:DEVICE_DAX_PATH[0]} -n $HDR_LEN -b 1
 
 # Synchronize replicas
 expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
