@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -203,6 +203,6 @@ nonnt:
 	memset_small_avx(dest, ymm, len);
 end:
 	avx_zeroupper();
-	/* serialize non-temporal store instructions */
-	_mm_sfence();
+
+	maybe_barrier();
 }

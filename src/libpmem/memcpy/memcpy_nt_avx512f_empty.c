@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,4 +33,5 @@
 #include "pmem.h"
 #define flush flush_empty_nolog
 #define EXPORTED_SYMBOL memmove_movnt_avx512f_empty
+#define maybe_barrier barrier_after_ntstores
 #include "memcpy_nt_avx512f.h"
