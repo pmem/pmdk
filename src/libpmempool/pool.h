@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -155,3 +155,4 @@ int pool_blk_bsize_valid(uint32_t bsize, uint64_t fsize);
 uint64_t pool_next_arena_offset(struct pool_data *pool, uint64_t header_offset);
 uint64_t pool_get_first_valid_btt(struct pool_data *pool,
 	struct btt_info *infop, uint64_t offset, bool *zeroed);
+size_t pool_get_min_size(enum pool_type);

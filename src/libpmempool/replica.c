@@ -904,12 +904,54 @@ static int
 check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
-	unsigned healthy_replica = replica_find_healthy_replica(set_hs);
-	if (set->poolsize < replica_get_pool_size(set, healthy_replica)) {
-		ERR("some replicas are too small to hold synchronized data");
-		return -1;
-	}
+	ssize_t pool_size = -1;
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		/* skip broken replicas */
+		if (!replica_is_replica_healthy(r, set_hs))
+			continue;
 
+		/* get the size of a pool in the replica */
+		ssize_t replica_pool_size;
+		if (REP(set, r)->remote)
+			/* XXX: no way to get the size of a remote pool yet */
+			replica_pool_size = (ssize_t)set->poolsize;
+		else
+			replica_pool_size = replica_get_pool_size(set, r);
+
+		if (replica_pool_size < 0) {
+			LOG(1, "getting pool size from replica %u failed", r);
+			set_hs->replica[r]->flags |= IS_BROKEN;
+			continue;
+		}
+
+		/* check if the pool is bigger than minimum size */
+		enum pool_type type = pool_hdr_get_type(HDR(REP(set, r), 0));
+		if ((size_t)replica_pool_size < pool_get_min_size(type)) {
+			LOG(1,
+			"pool size from replica %u is smaller than the minimum size allowed for the pool",
+			r);
+			set_hs->replica[r]->flags |= IS_BROKEN;
+			continue;
+		}
+
+		/* check if each replica is big enough to hold the pool data */
+		if (set->poolsize < (size_t)replica_pool_size) {
+			ERR(
+			"some replicas are too small to hold synchronized data");
+			return -1;
+		}
+
+		if (pool_size < 0) {
+			pool_size = replica_pool_size;
+			continue;
+		}
+
+		/* check if pools in all healthy replicas are of equal size */
+		if (pool_size != replica_pool_size) {
+			ERR("pool sizes from different replicas differ");
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -994,7 +1036,7 @@ err:
  * replica_get_pool_size -- find the effective size (mapped) of a pool based
  *                          on metadata from given replica
  */
-size_t
+ssize_t
 replica_get_pool_size(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
@@ -1003,7 +1045,7 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 	int should_unmap_part = 0;
 	if (part->fd == -1) {
 		if (util_part_open(part, 0, 0))
-			return set->poolsize;
+			return -1;
 
 		should_close_part = 1;
 	}
@@ -1013,13 +1055,13 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 				MMAP_ALIGN_UP(sizeof(PMEMobjpool)), 0,
 				MAP_SHARED, 1)) {
 			util_part_fdclose(part);
-			return set->poolsize;
+			return -1;
 		}
 		should_unmap_part = 1;
 	}
 
 	PMEMobjpool *pop = (PMEMobjpool *)part->addr;
-	size_t ret = pop->heap_offset + pop->heap_size;
+	ssize_t ret = (ssize_t)(pop->heap_offset + pop->heap_size);
 
 	if (should_unmap_part)
 		util_unmap_part(part);
