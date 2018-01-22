@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -108,11 +108,12 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
-		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3\
-		   pmemcto_close.3 pmemcto_create.3\
-		   pmemcto_check.3\
-		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3\
-		   pmemcto_get_root_pointer.3
+		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 \
+		   pmemcto_close.3 pmemcto_create.3 \
+		   pmemcto_check.3 \
+		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3 \
+		   pmemcto_get_root_pointer.3 \
+		   pmemcto_check_version.3 pmemcto_set_funcs.3
 
 
 MANPAGES_BUILDDIR = generated
