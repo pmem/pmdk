@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -112,7 +112,12 @@ main(int argc, char *argv[])
 	case 'o':
 		pool_open(argv[2], layout);
 		break;
-
+	case 'f':
+		os_setenv("PMEMOBJ_CONF", "invalid-query", 1);
+		pool_open(argv[2], layout);
+		os_unsetenv("PMEMOBJ_CONF");
+		pool_open(argv[2], layout);
+		break;
 	default:
 		UT_FATAL("unknown operation");
 	}

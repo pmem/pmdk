@@ -1112,13 +1112,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			pop->set->resvsize))
 				!= 0) {
 			ERR("!ctree_insert");
-			goto err;
+			goto err_tree_insert;
 		}
 	}
 
 	if (obj_ctl_init_and_load(pop) != 0) {
 		errno = EINVAL;
-		goto err;
+		goto err_ctl;
 	}
 
 	/*
@@ -1130,6 +1130,11 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	RANGE_NONE(pop->addr, sizeof(struct pool_hdr), pop->is_dev_dax);
 
 	return 0;
+
+err_ctl:
+	ctree_remove(pools_tree, (uint64_t)pop, 1);
+err_tree_insert:
+	cuckoo_remove(pools_ht, pop->uuid_lo);
 err:
 	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
