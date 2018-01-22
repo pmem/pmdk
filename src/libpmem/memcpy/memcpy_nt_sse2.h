@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -299,6 +299,5 @@ EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 	else
 		memmove_movnt_sse_bw(dest, src, len);
 
-	/* serialize non-temporal store instructions */
-	_mm_sfence();
+	maybe_barrier();
 }

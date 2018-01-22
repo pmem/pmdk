@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,25 @@
 void pmem_init(void);
 
 int is_pmem_detect(const void *addr, size_t len);
+
+static inline void
+barrier_after_ntstores(void)
+{
+	/*
+	 * In this configuration pmem_drain does not contain sfence, so we have
+	 * to serialize non-temporal store instructions.
+	 */
+	_mm_sfence();
+}
+
+static inline void
+no_barrier_after_ntstores(void)
+{
+	/*
+	 * In this configuration pmem_drain contains sfence, so we don't have
+	 * to serialize non-temporal store instructions
+	 */
+}
 
 #ifndef AVX512F_AVAILABLE
 #ifdef _MSC_VER
