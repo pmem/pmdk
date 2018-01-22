@@ -1968,6 +1968,7 @@ je_pool_check(pool_t *pool)
 	pool_memory_range_node_t *node;
 
 	malloc_mutex_lock(&pools_lock);
+
 	if ((pool->pool_id == 0) || (pool->pool_id >= npools)) {
 		malloc_write("<jemalloc>: Error in pool_check(): "
 				"invalid pool id\n");
@@ -1981,7 +1982,6 @@ je_pool_check(pool_t *pool)
 		malloc_mutex_unlock(&pools_lock);
 		return -1;
 	}
-	malloc_mutex_unlock(&pools_lock);
 
 	malloc_mutex_lock(&pool->memory_range_mtx);
 
@@ -1996,6 +1996,7 @@ je_pool_check(pool_t *pool)
 			malloc_write("<jemalloc>: Error in pool_check(): "
 					"corrupted pool memory\n");
 			malloc_mutex_unlock(&pool->memory_range_mtx);
+			malloc_mutex_unlock(&pools_lock);
 			return 0;
 		}
 
@@ -2007,7 +2008,6 @@ je_pool_check(pool_t *pool)
 	}
 
 	/* check memory collision with other pools */
-	malloc_mutex_lock(&pools_lock);
 	for (i = 1; i < npools; i++) {
 		pool_t *pool_cmp = pools[i];
 		if (pool_cmp != NULL && i != pool->pool_id) {
@@ -2020,10 +2020,10 @@ je_pool_check(pool_t *pool)
 							(node2->addr <= node->addr &&
 							node->addr < node2->addr_end)) {
 
-						malloc_mutex_unlock(&pools_lock);
 						malloc_write("<jemalloc>: Error in pool_check(): "
 							"pool uses the same as another pool\n");
 						malloc_mutex_unlock(&pool->memory_range_mtx);
+						malloc_mutex_unlock(&pools_lock);
 						return 0;
 					}
 					node2 = node2->next;
@@ -2032,7 +2032,6 @@ je_pool_check(pool_t *pool)
 			}
 		}
 	}
-	malloc_mutex_unlock(&pools_lock);
 
 	/* check the addresses of the chunks are inside memory region */
 	check_data_cb_t arg_cb;
@@ -2080,6 +2079,7 @@ je_pool_check(pool_t *pool)
 	malloc_mutex_unlock(&pool->chunks_mtx);
 
 	malloc_mutex_unlock(&pool->memory_range_mtx);
+	malloc_mutex_unlock(&pools_lock);
 
 	if (arg_cb.error != 0) {
 		return 0;
