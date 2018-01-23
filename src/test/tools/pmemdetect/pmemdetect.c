@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -130,19 +130,36 @@ static int
 is_pmem(const char *path)
 {
 	int ret;
+	int flags;
+	size_t size;
 
-	void *addr = util_map_tmpfile(path, SIZE, 0);
+	os_stat_t buf;
+	ret = os_stat(path, &buf);
+	if (ret) {
+		if (errno != ENOENT) {
+			perror(path);
+			return -1;
+		}
+
+		flags = PMEM_FILE_TMPFILE | PMEM_FILE_CREATE;
+		size = SIZE;
+	} else {
+		size = 0;
+		flags = 0;
+	}
+
+	void *addr = pmem_map_file(path, size, flags, 0, &size, NULL);
 	if (addr == NULL) {
-		fprintf(stderr, "file creation failed\n");
+		perror("pmem_map_file failed");
 		return -1;
 	}
 
-	if (pmem_is_pmem(addr, SIZE))
+	if (pmem_is_pmem(addr, size))
 		ret = 1;
 	else
 		ret = 0;
 
-	util_unmap(addr, SIZE);
+	util_unmap(addr, size);
 
 	return ret;
 }
