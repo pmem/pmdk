@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,7 +50,6 @@ require_fs_type		any
 
 . common.sh
 
-require_node_dax_device 0 2
 require_node_dax_device_alignments 0 $SIZE_2MB $SIZE_2MB
 
 setup

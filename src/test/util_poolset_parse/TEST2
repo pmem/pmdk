@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +44,6 @@ require_test_type medium
 
 require_build_type debug
 require_fs_type any
-require_dax_devices 2
 require_dax_device_alignments 4096 4096
 
 setup

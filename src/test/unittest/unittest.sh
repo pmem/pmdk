@@ -1007,6 +1007,12 @@ unlock_devdax() {
 # usage: require_dev_dax_node <N devices> [<node>]
 #
 function require_dev_dax_node() {
+	req_dax_dev=1
+	if  [ "$req_dax_dev_align" == "1" ]; then
+		fatal "$UNITTEST_NAME: Do not use 'require_(node_)dax_devices' and "
+			"'require_(node_)dax_device_alignments' together. Use the latter instead."
+	fi
+
 	local min=$1
 	local node=$2
 	if [ -n "$node" ]; then
@@ -1045,6 +1051,23 @@ function require_dev_dax_node() {
 		fi
 	done
 	DEVDAX_TO_LOCK=1
+}
+
+#
+# require_dax_devices -- only allow script to continue if there is a required
+# number of Device DAX devices
+#
+function require_dax_devices() {
+	require_dev_dax_node $1
+}
+
+#
+# require_node_dax_device -- only allow script to continue if specified node
+# has enough Device DAX devices defined in testconfig.sh
+#
+function require_node_dax_device() {
+	validate_node_number $1
+	require_dev_dax_node $2 $1
 }
 
 #
@@ -1135,7 +1158,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		fatal "UNITTEST_NAME: stat on node $node: $out"
+		fatal "$UNITTEST_NAME: stat on node $node: $out"
 	fi
 	local minor=$((16#$out))
 
@@ -1144,7 +1167,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		fatal "UNITTEST_NAME: stat on node $node: $out"
+		fatal "$UNITTEST_NAME: stat on node $node: $out"
 	fi
 	echo $out
 }
@@ -1160,12 +1183,6 @@ function dax_get_alignment() {
 	cat /sys/dev/char/$major_dec:$minor_dec/device/align
 }
 
-#
-# require_dax_devices -- only allow script to continue for a dax device
-#
-function require_dax_devices() {
-	require_dev_dax_node $1
-}
 
 #
 # require_dax_device_node_alignments -- only allow script to continue if
@@ -1176,6 +1193,12 @@ function require_dax_devices() {
 # usage: require_node_dax_device_alignments <node> <alignment1> [ alignment2 ... ]
 #
 function require_node_dax_device_alignments() {
+	req_dax_dev_align=1
+	if  [ "$req_dax_dev" == "$1" ]; then
+		fatal "$UNITTEST_NAME: Do not use 'require_(node_)dax_devices' and "
+			"'require_(node_)dax_device_alignments' together. Use the latter instead."
+	fi
+
 	local node=$1
 	shift
 
@@ -1220,10 +1243,11 @@ function require_node_dax_device_alignments() {
 
 		if [ $i -eq $cnt ]; then
 			if [ "$node" == "-1" ]; then
-				msg "$UNITTEST_NAME: SKIP Cannot find Device DAX #$j with alignment $alignment"
+				msg "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH"\
+					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			else
-				msg "$UNITTEST_NAME: SKIP NODE $node: Cannot find Device DAX #$j with alignment" \
-					"$alignment on node $node"
+				msg "$UNITTEST_NAME: SKIP NODE $node: NODE_${node}_DEVICE_DAX_PATHi"\
+					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			fi
 			exit 0
 		fi
@@ -1244,14 +1268,6 @@ require_dax_device_alignments() {
 	require_node_dax_device_alignments -1 $*
 }
 
-#
-# require_node_dax_device -- only allow script to continue if specified node
-# has defined device dax in testconfig.sh
-#
-function require_node_dax_device() {
-	validate_node_number $1
-	require_dev_dax_node $2 $1
-}
 
 #
 # require_fs_type -- only allow script to continue for a certain fs type
