@@ -1174,7 +1174,7 @@ if ($DIR) {
     switch ($Env:FS) {
         'pmem' {
             sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-            if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+            if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1" -or $Env:PMEM_FS_DIR_FORCE_PMEM -eq "2") {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
         }
@@ -1185,7 +1185,7 @@ if ($DIR) {
              if ($Env:PMEM_FS_DIR) {
                 sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
                 $Global:REAL_FS='pmem'
-                if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+		if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1" -or $Env:PMEM_FS_DIR_FORCE_PMEM -eq "2") {
                     $Env:PMEM_IS_PMEM_FORCE = "1"
                 }
             } ElseIf ($Env:NON_PMEM_FS_DIR) {
@@ -1205,7 +1205,7 @@ if ($DIR) {
 }
 
 if (isDir($Env:PMEM_FS_DIR)) {
-    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+	if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1" -or $Env:PMEM_FS_DIR_FORCE_PMEM -eq "2") {
         # "0" means there is PMEM
         $Global:PMEM_IS_PMEM = "0"
     } else {
