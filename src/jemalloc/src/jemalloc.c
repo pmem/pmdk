@@ -1581,7 +1581,8 @@ vg_pool_init(pool_t *pool, size_t size)
 			sizeof(pool_t));
 	char *base_end = pool->base_next_addr;
 	JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(base_start, base_end - base_start);
-	JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(base_end, (char *)pool->base_past_addr - base_end);
+	JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(base_end,
+			(char *)pool->base_past_addr - base_end);
 
 	/* pointer to the address of chunks, align the address to chunksize */
 	void *usable_addr =
@@ -1611,7 +1612,8 @@ vg_pool_init(pool_t *pool, size_t size)
 	for (unsigned i = 0; i < pool->narenas_total; ++i) {
 		arena_t *arena = pool->arenas[i];
 		if (arena != NULL) {
-			JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(arena, sizeof(*arena));
+			JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(arena,
+					sizeof(*arena));
 
 			/* bins */
 			for (unsigned b = 0; b < NBINS; b++) {
@@ -1629,9 +1631,8 @@ vg_pool_init(pool_t *pool, size_t size)
 
 			arena_chunk_t *spare = arena->spare;
 			if (spare != NULL) {
-				/* XXX - size */
-				JEMALLOC_VALGRIND_MAKE_MEM_NOACCESS(
-						spare, chunksize);
+				JEMALLOC_VALGRIND_MAKE_MEM_DEFINED(
+						spare, sizeof(*spare));
 			}
 		}
 	}
