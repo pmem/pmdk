@@ -62,9 +62,9 @@ static size_t Align;
 static void
 print_usage(void)
 {
-	printf("Usage: pmemdetect [options] path\n");
+	printf("Usage: pmemdetect [options] <path>\n");
 	printf("Valid options:\n");
-	printf("-d, --devdax    - check if path is Device DAX\n");
+	printf("-d, --devdax    - check if <path> is Device DAX\n");
 	printf("-a, --align=N   - check Device DAX alignment\n");
 	printf("-h, --help      - print this usage info\n");
 }
