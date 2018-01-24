@@ -46,10 +46,17 @@
 #include "file.h"
 #include "os.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #define SIZE 4096
 
 #define DEVDAX_DETECT	(1 << 0)
 #define DEVDAX_ALIGN	(1 << 1)
+#define MAP_SYNC_SUPP	(1 << 2)
 
 /* arguments */
 static int Opts;
@@ -66,6 +73,7 @@ print_usage(void)
 	printf("Valid options:\n");
 	printf("-d, --devdax    - check if <path> is Device DAX\n");
 	printf("-a, --align=N   - check Device DAX alignment\n");
+	printf("-s, --map-sync  - check if <path> supports MAP_SYNC\n");
 	printf("-h, --help      - print this usage info\n");
 }
 
@@ -75,6 +83,7 @@ print_usage(void)
 static const struct option long_options[] = {
 	{"devdax",	no_argument,		NULL,	'd'},
 	{"align",	required_argument,	NULL,	'a'},
+	{"map-sync",	no_argument,		NULL,	's'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
 };
@@ -86,7 +95,7 @@ static int
 parse_args(int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "a:dh",
+	while ((opt = getopt_long(argc, argv, "a:dsh",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
@@ -103,6 +112,9 @@ parse_args(int argc, char *argv[])
 				return -1;
 			}
 			Align = (size_t)align;
+			break;
+		case 's':
+			Opts |= MAP_SYNC_SUPP;
 			break;
 		case 'h':
 			print_usage();
@@ -124,6 +136,38 @@ parse_args(int argc, char *argv[])
 }
 
 /*
+ * get_params -- get parameters for pmem_map_file
+ */
+static int
+get_params(const char *path, int *flags, size_t *size)
+{
+	int ret;
+
+	os_stat_t buf;
+	ret = os_stat(path, &buf);
+	if (ret && errno != ENOENT) {
+		/* error other than no such file */
+		perror(path);
+		return -1;
+	}
+
+	if (ret) {
+		/* no such file */
+		*flags = PMEM_FILE_CREATE;
+		*size = SIZE;
+	} else if (S_ISDIR(buf.st_mode)) {
+		*flags = PMEM_FILE_CREATE | PMEM_FILE_TMPFILE;
+		*size = SIZE;
+	} else {
+		/* file exist */
+		*size = 0;
+		*flags = 0;
+	}
+
+	return 0;
+}
+
+/*
  * is_pmem -- checks if given path points to pmem-aware filesystem
  */
 static int
@@ -133,24 +177,9 @@ is_pmem(const char *path)
 	int flags;
 	size_t size;
 
-	os_stat_t buf;
-	ret = os_stat(path, &buf);
-	if (ret) {
-		if (errno != ENOENT) {
-			perror(path);
-			return -1;
-		}
-
-		flags = PMEM_FILE_CREATE;
-		size = SIZE;
-
-	} else if (S_ISDIR(buf.st_mode)) {
-		flags = PMEM_FILE_CREATE | PMEM_FILE_TMPFILE;
-		size = SIZE;
-	} else {
-		size = 0;
-		flags = 0;
-	}
+	ret = get_params(path, &flags, &size);
+	if (ret)
+		return ret;
 
 	int is_pmem;
 	void *addr = pmem_map_file(path, size, flags, 0, &size, &is_pmem);
@@ -159,7 +188,7 @@ is_pmem(const char *path)
 		return -1;
 	}
 
-	util_unmap(addr, size);
+	pmem_unmap(addr, size);
 
 	return is_pmem;
 }
@@ -196,6 +225,62 @@ is_dev_dax_align(const char *path, size_t req_align)
 	return (req_align == align) ? 1 : 0;
 }
 
+/*
+ * supports_map_sync -- checks if MAP_SYNC is supported on a filesystem
+ * from given path
+ */
+static int
+supports_map_sync(const char *path)
+{
+	int ret;
+	int flags;
+	size_t size;
+
+	ret = get_params(path, &flags, &size);
+	if (ret)
+		return ret;
+
+	int fd;
+	if (flags & PMEM_FILE_TMPFILE)
+		fd = util_tmpfile(path, "/pmemdetect.XXXXXX", 0);
+	else if (flags & PMEM_FILE_CREATE)
+		fd = os_open(path, O_CREAT|O_RDWR, 0);
+	else
+		fd = os_open(path, O_RDWR, 0);
+
+	if (fd < 0) {
+		perror(path);
+		return -1;
+	}
+
+	if (flags & PMEM_FILE_CREATE) {
+		ret = os_ftruncate(fd, (off_t)size);
+		if (ret) {
+			perror(path);
+			os_close(fd);
+			return -1;
+		}
+	}
+
+	void *addr = mmap(NULL, size, PROT_READ|PROT_WRITE,
+		MAP_SHARED|MAP_SYNC|MAP_SHARED_VALIDATE, fd, 0);
+
+	os_close(fd);
+
+	if (flags & PMEM_FILE_CREATE)
+		util_unlink(path);
+
+	if (addr == MAP_FAILED) {
+		fprintf(stderr, "mmap failed %s\n", strerror(errno));
+		if (errno == EOPNOTSUPP)
+			return 0;
+
+		return -1;
+	}
+
+	return 1;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -225,6 +310,8 @@ main(int argc, char *argv[])
 		ret = is_dev_dax(Path);
 	else if (Opts & DEVDAX_ALIGN)
 		ret = is_dev_dax_align(Path, Align);
+	else if (Opts & MAP_SYNC_SUPP)
+		ret = supports_map_sync(Path);
 	else
 		ret = is_pmem(Path);
 
