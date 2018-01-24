@@ -193,6 +193,7 @@ OTHER_TESTS = \
 	arch_flags\
 	bttdevice\
 	checksum\
+	compat_incompat_features\
 	magic\
 	out_err\
 	out_err_mt\

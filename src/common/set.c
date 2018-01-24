@@ -2095,6 +2095,25 @@ err:
 }
 
 /*
+ * util_poolset_check_options -- (internal) check if poolset options match given
+ *                               flags
+ */
+static int
+util_poolset_check_options(struct pool_set *set, uint32_t incompat)
+{
+	LOG(3, "set %p, incompat %#x", set, incompat);
+	if (((set->options & OPTION_NO_HDRS) == 0) !=
+			((incompat & POOL_FEAT_NOHDRS) == 0)) {
+		LOG(2,
+			"poolset file options (%u) do not match incompat feature flags (%#x)",
+			set->options, incompat);
+		errno = EINVAL;
+		return -1;
+	}
+	return 0;
+}
+
+/*
  * util_header_create -- create header of a single pool set file
  */
 int
@@ -2279,6 +2298,10 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	rep->part[partidx].rdonly = 0;
+
+	/* check poolset options */
+	if (util_poolset_check_options(set, HDR(rep, 0)->incompat_features))
+		return -1;
 
 	int retval = util_feature_check(&hdr, incompat, ro_compat, compat);
 	if (retval < 0)
