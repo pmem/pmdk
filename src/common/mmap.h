@@ -66,6 +66,14 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define OS_MAPFILE "/proc/self/maps"
 #endif
 
+#ifndef MAP_SYNC
+#define MAP_SYNC 0x80000
+#endif
+
+#ifndef MAP_SHARED_VALIDATE
+#define MAP_SHARED_VALIDATE 0x03
+#endif
+
 /*
  * macros for micromanaging range protections for the debug version
  */
