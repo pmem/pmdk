@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +102,7 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 
 		repsize -= (rep->nhdrs - 1) * Ut_mmap_align;
 		UT_ASSERTeq(rep->repsize, repsize);
-		UT_ASSERT(rep->part[0].size >= repsize);
+		UT_ASSERT(rep->resvsize >= repsize);
 
 		if (rep->repsize < poolsize)
 			poolsize = rep->repsize;

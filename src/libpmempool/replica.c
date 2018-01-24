@@ -407,7 +407,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 			int ret = util_poolset_remote_open(rep, r,
 					rep->repsize, 0,
 					rep->part[0].addr,
-					rep->part[0].size, &nlanes);
+					rep->resvsize, &nlanes);
 			if (ret)
 				rep_hs->flags |= IS_BROKEN;
 
