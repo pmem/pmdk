@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/pmem_is_pmem_linux/TEST0 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_posix/TEST2 -- unit test for pmem_is_pmem
 #
-export UNITTEST_NAME=pmem_is_pmem_linux/TEST0
-export UNITTEST_NUM=0
+export UNITTEST_NAME=pmem_is_pmem_posix/TEST2
+export UNITTEST_NUM=2
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -45,37 +45,36 @@ require_fs_type none
 
 setup
 
-# two mm entries
+# single mm entry - 0x7fff77424000 2147479552
 #
 # 7fff77423000 2147479552
-#	start at first mm entry, extends into second: should produce: 1
+#	starts before mm entry, should produce: 0
 # 7fff77423000 2147483648
-#	exactly matches sum of both mm entries: should produce: 1
+#	starts before mm entry, should produce: 0
 # 7fff77423000 8192
-#	start at first mm entry, extends into second: should produce: 1
+#	starts before mm entry, should produce: 0
 # 7fff77423000 4096
-#	entirely encompassed by first mm entry: should produce: 1
+#	starts before mm entry, should produce: 0
 # 7fff77424000 2147479552
-#	exactly matches second mm entry, should produce: 1
+#	exactly matches mm entry, should produce: 1
 # 7fff77424000 2147483648
-#	extends past second mm entry, should produce: 0
+#	extends past mm entry, should produce: 0
 # 7fff77424000 8192
-#	entirely encompassed by second mm entry: should produce: 1
+#	entirely encompassed by mm entry: should produce: 1
 # 7fff77428000 10240
-#	subset of second mm entry: should produce: 1
+#	subset of mm entry: should produce: 1
 # 7fff77423000 0
-#	starts at first mm entry: should produce: 1
+#	starts before mm entry, should produce: 0
 # 7fff77424000 0
-#	starts at second mm entry: should produce: 1
+#	starts at mm entry: should produce: 1
 # 7fff77424000 0xffffffffffffffff
 #	extends past second mm entry, should produce: 0
 # 7fff77423008 1
-#	entirely encompassed by first mm entry: should produce: 1
+#	entirely encompassed by first mm entry: should produce: 0
 # 7fff77423ff0 32
-#	start at first mm entry, extends into second: should produce: 1
+#	start at first mm entry, extends into second: should produce: 0
 
-expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
-	a 0x7fff77423000 4096\
+expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
 	a 0x7fff77424000 2147479552\
 	\
 	t 0x7fff77423000 2147479552\

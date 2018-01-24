@@ -1,5 +1,5 @@
-pmem_is_pmem_linux/TEST0: START: pmem_is_pmem_linux
- ./pmem_is_pmem_linux$(nW) $(*)
+pmem_is_pmem_posix/TEST0: START: pmem_is_pmem_posix
+ ./pmem_is_pmem_posix$(nW) $(*)
 addr 0x7fff77423000 len 2147479552 is_pmem 1
 addr 0x7fff77423000 len 2147483648 is_pmem 1
 addr 0x7fff77423000 len 8192 is_pmem 1
@@ -13,4 +13,4 @@ addr 0x7fff77424000 len 0 is_pmem 1
 addr 0x7fff77424000 len 18446744073709551615 is_pmem 0
 addr 0x7fff77423008 len 1 is_pmem 1
 addr 0x7fff77423ff0 len 32 is_pmem 1
-pmem_is_pmem_linux/TEST0: DONE
+pmem_is_pmem_posix/TEST0: DONE

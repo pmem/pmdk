@@ -1,4 +1,4 @@
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,6 @@ CFLAGS += -I$(TOP)/src/common
 
 TARGET = ctrld
 
-OBJS = ctrld.o os_linux.o
+OBJS = ctrld.o os_posix.o
 
 include $(TOP)/src/tools/Makefile.inc

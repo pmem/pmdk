@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * util_linux.c -- misc utilities with OS-specific implementation
+ * util_posix.c -- Abstraction layer for misc utilities (Posix implementation)
  */
 
 #include <string.h>
@@ -43,7 +43,7 @@
 #include "os.h"
 #include "out.h"
 
-/* pass through for Linux */
+/* pass through for Posix */
 void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
