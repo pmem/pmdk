@@ -49,13 +49,14 @@ extern "C" {
 
 #include "out.h"
 #include "queue.h"
+#include "os.h"
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
 extern char *Mmap_mapfile;
 
 void *util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
-	off_t offset, int *map_sync);
+	os_off_t offset, int *map_sync);
 void *util_map(int fd, size_t len, int flags, int rdonly,
 		size_t req_align, int *map_sync);
 int util_unmap(void *addr, size_t len);

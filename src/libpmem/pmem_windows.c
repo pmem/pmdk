@@ -40,6 +40,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "win_mmap.h"
+#include "sys/mman.h"
 
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 PQVM Func_qvmi = NULL;
@@ -185,5 +186,5 @@ pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 	/* there is no device dax on windows */
 	ASSERTeq(is_dev_dax, 0);
 
-	return util_map(fd, len, MAP_SHARED, 0, 0);
+	return util_map(fd, len, MAP_SHARED, 0, 0, NULL);
 }
