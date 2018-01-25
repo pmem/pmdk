@@ -348,6 +348,24 @@ util_replica_force_page_allocation(struct pool_replica *rep)
 }
 
 /*
+ * util_map_part_type -- memory map part file into memory according
+ * to the type of file.
+ */
+static void *
+util_map_part_type(struct pool_set_part *part, void *addr, size_t len,
+	int prot, int flags, size_t offset, int *map_sync)
+{
+	if (part->is_dev_dax) {
+		*map_sync = 0;
+		return mmap(addr, len, prot, flags, part->fd,
+				(os_off_t)offset);
+	}
+
+	return util_map_sync(addr, len, prot, flags, part->fd,
+			(os_off_t)offset, map_sync);
+}
+
+/*
  * util_map_hdr -- map a header of a pool set
  */
 int
@@ -386,9 +404,9 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	}
 #endif
 
-	void *hdrp = mmap(addr, hdrsize,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, 0);
+	int prot = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
+	void *hdrp = util_map_part_type(part, addr, hdrsize, prot, flags,
+			0, &part->hdr_map_sync);
 	if (hdrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
@@ -444,13 +462,9 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	else
 		size = roundup(size, part->alignment);
 
-	void *addrp = mmap(addr, size,
-			rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, part->fd, (os_off_t)offset);
-	if (addrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
-		return -1;
-	}
+	int prot = rdonly ? PROT_READ : PROT_READ | PROT_WRITE;
+	void *addrp = util_map_part_type(part, addr, size, prot, flags,
+			offset, &part->map_sync);
 	if (addr != NULL && (flags & MAP_FIXED) && addrp != addr) {
 		ERR("unable to map at requested address %p", addr);
 		munmap(addrp, size);
@@ -1068,6 +1082,51 @@ util_parse_add_replica(struct pool_set **setp)
 	return 0;
 }
 
+/*
+ * util_replica_check_map_sync -- (internal) check MAP_SYNC restrictions
+ */
+static int
+util_replica_check_map_sync(struct pool_set *set, unsigned repidx,
+	int check_hdr)
+{
+	LOG(3, "set %p repidx %u", set, repidx);
+
+	struct pool_replica *rep = set->replica[repidx];
+
+	int map_sync = rep->part[0].map_sync;
+
+
+	for (unsigned p = 1; p < rep->nparts; p++) {
+		if (map_sync == rep->part[p].map_sync)
+			continue;
+		if (rep->part[p].map_sync)
+			ERR("replica #%u part %u mapped with MAP_SYNC",
+				repidx, p);
+		else
+			ERR("replica #%u part %u not mapped with MAP_SYNC",
+				repidx, p);
+		return -1;
+	}
+
+	if (check_hdr) {
+		for (unsigned p = 0; p < rep->nhdrs; p++) {
+			if (map_sync == rep->part[p].hdr_map_sync)
+				continue;
+
+			if (rep->part[p].hdr_map_sync)
+				ERR(
+					"replica #%u part %u header mapped with MAP_SYNC",
+					repidx, p);
+			else
+				ERR(
+					"replica #%u part %u header not mapped with MAP_SYNC",
+					repidx, p);
+			return -1;
+		}
+	}
+
+	return 0;
+}
 
 /*
  * util_poolset_check_devdax -- (internal) check Device DAX restrictions
@@ -2213,7 +2272,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		1, POOL_HDR_CSUM_END_OFF);
 
 	/* store pool's header */
-	util_persist_auto(rep->part[partidx].is_dev_dax, hdrp, sizeof(*hdrp));
+	util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
 
 	return 0;
 }
@@ -2427,6 +2486,23 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 }
 
 /*
+ * util_replica_set_is_pmem -- sets per-replica is_pmem flag
+ *
+ * The replica is PMEM if:
+ * - all parts are on device dax, or
+ * - all parts are mapped with MAP_SYNC.
+ *
+ * It's enough to check only first part because it's already verified
+ * that either all or none parts are deivce dax or mapped with MAP_SYNC.
+ */
+static void
+util_replica_set_is_pmem(struct pool_replica *rep)
+{
+	rep->is_pmem = rep->part[0].is_dev_dax || rep->part[0].map_sync ||
+		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
+}
+
+/*
  * util_replica_map_local -- (internal) map memory pool for local replica
  */
 static int
@@ -2539,12 +2615,10 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 	 */
 	rep->part[0].size = rep->part[0].filesize & ~(Mmap_align - 1);
 
-	/*
-	 * If replica is on Device DAX, it may be assumed PMEM.
-	 * It's enough to check the first part only.
-	 */
-	rep->is_pmem = rep->part[0].is_dev_dax ||
-		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
+	if (util_replica_check_map_sync(set, repidx, 0))
+		goto err;
+
+	util_replica_set_is_pmem(rep);
 
 	if (Prefault_at_create)
 		util_replica_force_page_allocation(rep);
@@ -2841,6 +2915,18 @@ util_pool_extend(struct pool_set *set, size_t size)
 		if (util_map_part(p, addr, 0, hdrsize,
 				MAP_SHARED | MAP_FIXED, 0) != 0) {
 			ERR("cannot map the new part");
+			goto err;
+		}
+
+		/*
+		 * new part must be mapped the same way as all the rest
+		 * within a replica
+		 */
+		if (p->map_sync != rep->part[0].map_sync) {
+			if (p->map_sync)
+				ERR("new part cannot be mapped with MAP_SYNC");
+			else
+				ERR("new part mapped with MAP_SYNC");
 			goto err;
 		}
 	}
@@ -3207,12 +3293,10 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	 */
 	rep->part[0].size = rep->part[0].filesize & ~(Mmap_align - 1);
 
-	/*
-	 * If replica is on Device DAX, it may be assumed PMEM.
-	 * It's enough to check the first part only.
-	 */
-	rep->is_pmem = rep->part[0].is_dev_dax ||
-		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
+	if (util_replica_check_map_sync(set, repidx, 1))
+		goto err;
+
+	util_replica_set_is_pmem(rep);
 
 	if (Prefault_at_open)
 		util_replica_force_page_allocation(rep);
@@ -3284,10 +3368,10 @@ util_replica_open(struct pool_set *set, unsigned repidx, int flags)
 {
 	LOG(3, "set %p repidx %u flags %d", set, repidx, flags);
 
-	if (set->replica[repidx]->remote == NULL)
-		return util_replica_open_local(set, repidx, flags);
-	else
+	if (set->replica[repidx]->remote)
 		return util_replica_open_remote(set, repidx, flags);
+
+	return util_replica_open_local(set, repidx, flags);
 }
 
 /*
@@ -3337,7 +3421,7 @@ util_replica_set_attr(struct pool_replica *rep,
 			1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist_auto(rep->part[p].is_dev_dax, hdrp, sizeof(*hdrp));
+		util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
 	}
 
 	/* unmap all headers */
@@ -3494,11 +3578,12 @@ util_pool_open_nocheck(struct pool_set *set, int cow)
 
 	set->rdonly = 0;
 
-	for (unsigned r = 0; r < set->nreplicas; r++)
+	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (util_replica_open(set, r, flags) != 0) {
 			LOG(2, "replica #%u open failed", r);
 			goto err_replica;
 		}
+	}
 
 	if (set->remote) {
 		ret = util_poolset_files_remote(set, 0, NULL, 0);
@@ -3574,11 +3659,12 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 	if (ret != 0)
 		goto err_poolset;
 
-	for (unsigned r = 0; r < set->nreplicas; r++)
+	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (util_replica_open(set, r, flags) != 0) {
 			LOG(2, "replica #%u open failed", r);
 			goto err_replica;
 		}
+	}
 
 	if (set->remote) {
 		/* do not check minsize */
