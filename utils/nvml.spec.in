@@ -704,7 +704,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%package tools
+%package -n pmempool
 Summary: Utilities for Persistent Memory
 Group: __GROUP_SYS_BASE__
 Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
@@ -713,10 +713,15 @@ Requires: libpmemblk__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemobj__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmempool__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemcto__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description tools
-Useful applications for administration and diagnosis of persistent memory.
+Obsoletes: nvml-tools
+%description -n pmempool
+The pmempool is a standalone utility for management and off-line analysis
+of Persistent Memory pools created by PMDK libraries. It provides a set
+of utilities for administration and diagnostics of Persistent Memory pools.
+The pmempool may be useful for troubleshooting by system administrators
+and users of the applications based on PMDK libraries.
 
-%files tools
+%files -n pmempool
 %{_bindir}/pmempool
 %{_mandir}/man1/pmempool.1.gz
 %{_mandir}/man1/pmempool-*.1.gz
