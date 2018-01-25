@@ -2835,7 +2835,7 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 		run_command ssh $SSH_OPTS ${NODE[$i]} "rm -rf ${N[$i]}; mkdir ${N[$i]}"
 
 		if [ $? -eq 0 ]; then
-			msg "Removed data from: ${NODE[$i]}:${N[$i]}"
+			verbose_msg "Removed data from: ${NODE[$i]}:${N[$i]}"
 		fi
 	done
 	exit 0

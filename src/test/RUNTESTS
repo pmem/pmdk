@@ -138,8 +138,8 @@ runtest_local() {
 				fi
 				dir_rm=$(<$TEMP_LOC)
 				rm -Rf $dir_rm
-				if [ $? -eq 0 ]; then
-					echo -e "Removed directory with data: $dir_rm"
+				if [ $? -ne 0 ]; then
+					echo -e "Cannot remove directory with data: $dir_rm"
 				fi
 			fi
 		else
