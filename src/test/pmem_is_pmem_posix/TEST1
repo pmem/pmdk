@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/pmem_is_pmem_linux/TEST4 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_posix/TEST1 -- unit test for pmem_is_pmem
 #
-export UNITTEST_NAME=pmem_is_pmem_linux/TEST4
-export UNITTEST_NUM=4
+export UNITTEST_NAME=pmem_is_pmem_posix/TEST1
+export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -45,38 +45,51 @@ require_fs_type none
 
 setup
 
-# test adding/removing ranges to/from map tracking list
-expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
-	a 0x000000010000 0x10000\
-	t 0x000000010000 0x10000\
-	t 0x000000020000 0x10000\
-	t 0x000000030000 0x10000\
-	t 0x000000040000 0x10000\
-	t 0x000000010000 0x40000\
-	a 0x000000020000 0x10000\
-	t 0x000000010000 0x10000\
-	t 0x000000020000 0x10000\
-	t 0x000000030000 0x10000\
-	t 0x000000040000 0x10000\
-	t 0x000000010000 0x40000\
-	a 0x000000030000 0x20000\
-	t 0x000000010000 0x10000\
-	t 0x000000020000 0x10000\
-	t 0x000000030000 0x10000\
-	t 0x000000040000 0x10000\
-	t 0x000000010000 0x40000\
-	r 0x000000020000 0x20000\
-	t 0x000000010000 0x10000\
-	t 0x000000020000 0x10000\
-	t 0x000000030000 0x10000\
-	t 0x000000040000 0x10000\
-	t 0x000000010000 0x40000\
-	r 0x000000010000 0x40000\
-	t 0x000000010000 0x10000\
-	t 0x000000020000 0x10000\
-	t 0x000000030000 0x10000\
-	t 0x000000040000 0x10000\
-	t 0x000000010000 0x40000
+# single mm entry - 0x7fff77423000 4096
+#
+# 7fff77423000 2147479552
+#	extends past mm entry, should produce: 0
+# 7fff77423000 2147483648
+#	extends past mm entry, should produce: 0
+# 7fff77423000 8192
+#	extends past mm entry, should produce: 0
+# 7fff77423000 4096
+#	entirely encompassed by mm entry: should produce: 1
+# 7fff77424000 2147479552
+#	extends past mm entry, should produce: 0
+# 7fff77424000 2147483648
+#	extends past mm entry, should produce: 0
+# 7fff77424000 8192
+#	extends past mm entry, should produce: 0
+# 7fff77428000 10240
+#	extends past mm entry, should produce: 0
+# 7fff77423000 0
+#	starts at mm entry: should produce: 1
+# 7fff77424000 0
+#	starts behind mm entry, should produce: 0
+# 7fff77424000 0xffffffffffffffff
+#	starts behind mm entry, should produce: 0
+# 7fff77423008 1
+#	entirely encompassed by first mm entry: should produce: 0
+# 7fff77423ff0 32
+#	start at first mm entry, extends into second: should produce: 0
+
+expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
+	a 0x7fff77423000 4096\
+	\
+	t 0x7fff77423000 2147479552\
+	t 0x7fff77423000 2147483648\
+	t 0x7fff77423000 8192\
+	t 0x7fff77423000 4096\
+	t 0x7fff77424000 2147479552\
+	t 0x7fff77424000 2147483648\
+	t 0x7fff77424000 8192\
+	t 0x7fff77428000 10240\
+	t 0x7fff77423000 0\
+	t 0x7fff77424000 0\
+	t 0x7fff77424000 0xffffffffffffffff\
+	t 0x7fff77423008 1\
+	t 0x7fff77423FF0 32
 
 check
 

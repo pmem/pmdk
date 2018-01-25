@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,51 +31,57 @@
  */
 
 /*
- * mocks_linux.c -- mocked functions used in pmem_map_file.c (Linux-specific)
+ * mocks_posix.c -- mocked functions used in util_poolset.c (Posix version)
  */
 
-#define _GNU_SOURCE
 #include "unittest.h"
-#include <dlfcn.h>
 
-#define MAX_LEN (4 * 1024 * 1024)
-
-/*
- * posix_fallocate -- interpose on libc posix_fallocate()
- */
-int
-posix_fallocate(int fd, os_off_t offset, off_t len)
-{
-	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
-
-	static int (*posix_fallocate_ptr)(int fd, os_off_t offset, off_t len);
-
-	if (posix_fallocate_ptr == NULL)
-		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
-
-	if (len > MAX_LEN)
-		return ENOSPC;
-
-	return (*posix_fallocate_ptr)(fd, offset, len);
-}
+extern const char *Open_path;
+extern os_off_t Fallocate_len;
+extern size_t Is_pmem_len;
 
 /*
- * ftruncate -- interpose on libc ftruncate()
+ * open -- open mock
  */
-int
-ftruncate(int fd, os_off_t len)
-{
-	UT_OUT("ftruncate: len %ju", len);
-
-	static int (*ftruncate_ptr)(int fd, os_off_t len);
-
-	if (ftruncate_ptr == NULL)
-		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");
-
-	if (len > MAX_LEN) {
-		errno = ENOSPC;
+FUNC_MOCK(open, int, const char *path, int flags, ...)
+FUNC_MOCK_RUN_DEFAULT {
+	if (strcmp(Open_path, path) == 0) {
+		UT_OUT("mocked open: %s", path);
+		errno = EACCES;
 		return -1;
 	}
 
-	return (*ftruncate_ptr)(fd, len);
+	va_list ap;
+	va_start(ap, flags);
+	int mode = va_arg(ap, int);
+	va_end(ap);
+
+	return _FUNC_REAL(open)(path, flags, mode);
 }
+FUNC_MOCK_END
+
+/*
+ * posix_fallocate -- posix_fallocate mock
+ */
+FUNC_MOCK(posix_fallocate, int, int fd, os_off_t offset, off_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	if (Fallocate_len == len) {
+		UT_OUT("mocked fallocate: %ju", len);
+		return ENOSPC;
+	}
+	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
+}
+FUNC_MOCK_END
+
+/*
+ * pmem_is_pmem -- pmem_is_pmem mock
+ */
+FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
+FUNC_MOCK_RUN_DEFAULT {
+	if (Is_pmem_len == len) {
+		UT_OUT("mocked pmem_is_pmem: %zu", len);
+		return 1;
+	}
+	return _FUNC_REAL(pmem_is_pmem)(addr, len);
+}
+FUNC_MOCK_END

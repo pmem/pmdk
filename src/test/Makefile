@@ -224,7 +224,7 @@ OTHER_TESTS = \
 PMEM_TESTS = \
 	pmem_include\
 	pmem_is_pmem\
-	pmem_is_pmem_linux\
+	pmem_is_pmem_posix\
 	pmem_map_file\
 	pmem_memcpy\
 	pmem_memmove\

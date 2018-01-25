@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,57 @@
  */
 
 /*
- * mocks.c -- mocked functions used in util_poolset.c
+ * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
+ *
+ * usage: pmem_is_pmem_posix op addr len [op addr len ...]
+ * where op can be: 'a' (add), 'r' (remove), 't' (test)
  */
+
+#include <stdlib.h>
 
 #include "unittest.h"
+#include "mmap.h"
 
-extern const char *Open_path;
-extern os_off_t Fallocate_len;
-extern size_t Is_pmem_len;
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "pmem_is_pmem_posix");
 
-/*
- * open -- open mock
- */
-FUNC_MOCK(open, int, const char *path, int flags, ...)
-FUNC_MOCK_RUN_DEFAULT {
-	if (strcmp(Open_path, path) == 0) {
-		UT_OUT("mocked open: %s", path);
-		errno = EACCES;
-		return -1;
+	if (argc < 3)
+		UT_FATAL("usage: %s op addr len [op addr len ...]",
+				argv[0]);
+
+	/* insert memory regions to the list */
+	int i;
+	for (i = 1; i < argc; i += 3) {
+		UT_ASSERT(i + 2 < argc);
+
+		errno = 0;
+		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
+		UT_ASSERTeq(errno, 0);
+
+		size_t len = strtoull(argv[i + 2], NULL, 0);
+		UT_ASSERTeq(errno, 0);
+
+		int ret;
+
+		switch (argv[i][0]) {
+		case 'a':
+			ret = util_range_register(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 'r':
+			ret = util_range_unregister(addr, len);
+			UT_ASSERTeq(ret, 0);
+			break;
+		case 't':
+			UT_OUT("addr %p len %zu is_pmem %d",
+					addr, len, pmem_is_pmem(addr, len));
+			break;
+		default:
+			FATAL("invalid op");
+		}
 	}
 
-	va_list ap;
-	va_start(ap, flags);
-	int mode = va_arg(ap, int);
-	va_end(ap);
-
-	return _FUNC_REAL(open)(path, flags, mode);
+	DONE(NULL);
 }
-FUNC_MOCK_END
-
-/*
- * posix_fallocate -- posix_fallocate mock
- */
-FUNC_MOCK(posix_fallocate, int, int fd, os_off_t offset, off_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Fallocate_len == len) {
-		UT_OUT("mocked fallocate: %ju", len);
-		return ENOSPC;
-	}
-	return _FUNC_REAL(posix_fallocate)(fd, offset, len);
-}
-FUNC_MOCK_END
-
-/*
- * pmem_is_pmem -- pmem_is_pmem mock
- */
-FUNC_MOCK(pmem_is_pmem, int, const void *addr, size_t len)
-FUNC_MOCK_RUN_DEFAULT {
-	if (Is_pmem_len == len) {
-		UT_OUT("mocked pmem_is_pmem: %zu", len);
-		return 1;
-	}
-	return _FUNC_REAL(pmem_is_pmem)(addr, len);
-}
-FUNC_MOCK_END

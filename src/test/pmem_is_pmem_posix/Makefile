@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,36 +31,29 @@
 #
 
 #
-# src/test/pmem_is_pmem_linux/TEST3 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
 #
-export UNITTEST_NAME=pmem_is_pmem_linux/TEST3
-export UNITTEST_NUM=3
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = pmem_is_pmem_posix
+OBJS = pmem_is_pmem_posix.o\
+	mmap.o\
+	mmap_posix.o\
+	util.o\
+	util_posix.o\
+	file.o\
+	file_posix.o\
+	os_posix.o\
+	out.o\
+	libpmem.o\
+	pmem.o\
+	pmem_posix.o\
+	cpu.o
 
-require_test_type medium
-require_fs_type none
+include ../Makefile.inc
 
-setup
-
-# empty list - all queries should produce 0
-
-expect_normal_exit ./pmem_is_pmem_linux$EXESUFFIX\
-	t 0x7fff77423000 2147479552\
-	t 0x7fff77423000 2147483648\
-	t 0x7fff77423000 8192\
-	t 0x7fff77423000 4096\
-	t 0x7fff77424000 2147479552\
-	t 0x7fff77424000 2147483648\
-	t 0x7fff77424000 8192\
-	t 0x7fff77428000 10240\
-	t 0x7fff77423000 0\
-	t 0x7fff77424000 0\
-	t 0x7fff77424000 0xffffffffffffffff\
-	t 0x7fff77423008 1\
-	t 0x7fff77423FF0 32
-
-check
-
-pass
+CFLAGS += -DSRCVERSION="" -DDEBUG
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem

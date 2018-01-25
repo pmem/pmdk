@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * mmap_linux.c -- memory-mapped files for Linux
+ * mmap_posix.c -- memory-mapped files for Posix
  */
 
 #include <stdio.h>

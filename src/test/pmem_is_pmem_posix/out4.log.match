@@ -1,5 +1,5 @@
-pmem_is_pmem_linux/TEST4: START: pmem_is_pmem_linux
- ./pmem_is_pmem_linux$(nW) $(*)
+pmem_is_pmem_posix/TEST4: START: pmem_is_pmem_posix
+ ./pmem_is_pmem_posix$(nW) $(*)
 addr 0x10000 len 65536 is_pmem 1
 addr 0x20000 len 65536 is_pmem 0
 addr 0x30000 len 65536 is_pmem 0
@@ -25,4 +25,4 @@ addr 0x20000 len 65536 is_pmem 0
 addr 0x30000 len 65536 is_pmem 0
 addr 0x40000 len 65536 is_pmem 0
 addr 0x10000 len 262144 is_pmem 0
-pmem_is_pmem_linux/TEST4: DONE
+pmem_is_pmem_posix/TEST4: DONE

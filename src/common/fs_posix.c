@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * fs_linux.c -- file system traversal linux implementation
+ * fs_posix.c -- file system traversal Posix implementation
  */
 
 #include <fts.h>

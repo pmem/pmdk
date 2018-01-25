@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,31 +31,38 @@
  */
 
 /*
- * pmem_linux.c -- pmem utilities with OS-specific implementation
+ * mocks_posix.c -- redefinitions of lock functions (Posix implementation)
  */
 
-#include <stddef.h>
+#include <pthread.h>
 
-#include "pmem.h"
-#include "out.h"
-#include "mmap.h"
+#include "util.h"
+#include "os.h"
+#include "unittest.h"
 
-/*
- * is_pmem_detect -- implement pmem_is_pmem()
- *
- * This function returns true only if the entire range can be confirmed
- * as being direct access persistent memory.  Finding any part of the
- * range is not direct access, or failing to look up the information
- * because it is unmapped or because any sort of error happens, just
- * results in returning false.
- */
-int
-is_pmem_detect(const void *addr, size_t len)
-{
-	LOG(3, "addr %p len %zu", addr, len);
+FUNC_MOCK(pthread_mutex_init, int,
+		pthread_mutex_t *__restrict mutex,
+		const pthread_mutexattr_t *__restrict attr)
+	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_mutex_init, mutex, attr)
+	FUNC_MOCK_RUN(1) {
+		return -1;
+	}
+FUNC_MOCK_END
 
-	int retval = util_range_is_pmem(addr, len);
+FUNC_MOCK(pthread_rwlock_init, int,
+		pthread_rwlock_t *__restrict rwlock,
+		const pthread_rwlockattr_t *__restrict attr)
+	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_rwlock_init, rwlock, attr)
+	FUNC_MOCK_RUN(1) {
+		return -1;
+	}
+FUNC_MOCK_END
 
-	LOG(4, "returning %d", retval);
-	return retval;
-}
+FUNC_MOCK(pthread_cond_init, int,
+		pthread_cond_t *__restrict cond,
+		const pthread_condattr_t *__restrict attr)
+	FUNC_MOCK_RUN_RET_DEFAULT_REAL(pthread_cond_init, cond, attr)
+	FUNC_MOCK_RUN(1) {
+		return -1;
+	}
+FUNC_MOCK_END

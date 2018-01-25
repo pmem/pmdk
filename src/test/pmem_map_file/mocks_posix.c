@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,51 @@
  */
 
 /*
- * pmem_is_pmem_linux.c -- Linux specific unit test for is_pmem_proc()
- *
- * usage: pmem_is_pmem_linux op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * mocks_posix.c -- mocked functions used in pmem_map_file.c (Posix-specific)
  */
 
-#include <stdlib.h>
-
+#define _GNU_SOURCE
 #include "unittest.h"
-#include "mmap.h"
+#include <dlfcn.h>
 
+#define MAX_LEN (4 * 1024 * 1024)
+
+/*
+ * posix_fallocate -- interpose on libc posix_fallocate()
+ */
 int
-main(int argc, char *argv[])
+posix_fallocate(int fd, os_off_t offset, off_t len)
 {
-	START(argc, argv, "pmem_is_pmem_linux");
+	UT_OUT("posix_fallocate: off %ju len %ju", offset, len);
 
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
-				argv[0]);
+	static int (*posix_fallocate_ptr)(int fd, os_off_t offset, off_t len);
 
-	/* insert memory regions to the list */
-	int i;
-	for (i = 1; i < argc; i += 3) {
-		UT_ASSERT(i + 2 < argc);
+	if (posix_fallocate_ptr == NULL)
+		posix_fallocate_ptr = dlsym(RTLD_NEXT, "posix_fallocate");
 
-		errno = 0;
-		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
-		UT_ASSERTeq(errno, 0);
+	if (len > MAX_LEN)
+		return ENOSPC;
 
-		size_t len = strtoull(argv[i + 2], NULL, 0);
-		UT_ASSERTeq(errno, 0);
+	return (*posix_fallocate_ptr)(fd, offset, len);
+}
 
-		int ret;
+/*
+ * ftruncate -- interpose on libc ftruncate()
+ */
+int
+ftruncate(int fd, os_off_t len)
+{
+	UT_OUT("ftruncate: len %ju", len);
 
-		switch (argv[i][0]) {
-		case 'a':
-			ret = util_range_register(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			break;
-		default:
-			FATAL("invalid op");
-		}
+	static int (*ftruncate_ptr)(int fd, os_off_t len);
+
+	if (ftruncate_ptr == NULL)
+		ftruncate_ptr = dlsym(RTLD_NEXT, "ftruncate");
+
+	if (len > MAX_LEN) {
+		errno = ENOSPC;
+		return -1;
 	}
 
-	DONE(NULL);
+	return (*ftruncate_ptr)(fd, len);
 }

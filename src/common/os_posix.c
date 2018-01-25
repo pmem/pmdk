@@ -31,7 +31,7 @@
  */
 
 /*
- * os_linux.c -- Linux abstraction layer
+ * os_posix.c -- abstraction layer for basic Posix functions
  */
 
 #define _GNU_SOURCE

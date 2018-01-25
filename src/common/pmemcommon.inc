@@ -1,4 +1,4 @@
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,16 +35,16 @@ osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
 
 SOURCE =\
 	$(COMMON)/file.c\
-	$(COMMON)/file_linux.c\
-	$(COMMON)/fs_linux.c\
+	$(COMMON)/file_posix.c\
+	$(COMMON)/fs_posix.c\
 	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_linux.c\
-	$(COMMON)/os_linux.c\
-	$(COMMON)/os_thread_linux.c\
+	$(COMMON)/mmap_posix.c\
+	$(COMMON)/os_posix.c\
+	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
 	$(COMMON)/util.c\
+	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
-	$(COMMON)/$(call osdep, uuid,.c)\
-	$(COMMON)/util_linux.c
+	$(COMMON)/$(call osdep, uuid,.c)

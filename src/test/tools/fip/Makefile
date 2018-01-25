@@ -1,4 +1,4 @@
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@ ifeq ($(BUILD_RPMEM),y)
 SCP_TO_REMOTE_NODES = y
 TARGET = fip
 
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o os_linux.o
+OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o os_posix.o
 
 else
 $(info NOTE: Skipping fip because $(BUILD_RPMEM_INFO))
