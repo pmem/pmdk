@@ -124,6 +124,16 @@ The **pmem_memmove_persist**(), **pmem_memcpy_persist**(), **pmem_memset_persist
 functions return the address of the destination.
 
 
+# CAVEATS #
+After calling any of the *\_nodrain* functions (**pmem_memmove_nodrain**(),
+**pmem_memcpy_nodrain**() or **pmem_memset_nodrain**()) you should not expect
+memory to be visible to other threads before calling **pmem_drain**(3) or any
+of the *\_persist* functions.  This is because those functions may use non-temporal
+store instructions, which are weakly ordered. See "Intel 64 and IA-32 Architectures
+Software Developer's Manual", Volume 1, "Caching of Temporal vs. Non-Temporal
+Data" section for details.
+
+
 # SEE ALSO #
 
 **memcpy**(3), **memmove**(3), **memset**(3),
