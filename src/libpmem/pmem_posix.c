@@ -67,7 +67,8 @@ is_pmem_detect(const void *addr, size_t len)
 void *
 pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 {
-	LOG(3, "fd %d len %zu path %s id_dev_dax %d", fd, len, path, is_dev_dax);
+	LOG(3, "fd %d len %zu path %s id_dev_dax %d",
+			fd, len, path, is_dev_dax);
 
 	void *addr;
 	int map_sync;

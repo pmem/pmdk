@@ -101,8 +101,10 @@ struct pool_set_part {
 	void *remote_hdr;	/* allocated header for remote replica */
 	void *hdr;		/* base address of header */
 	size_t hdrsize;		/* size of the header mapping */
+	int hdr_map_sync;	/* header mapped with MAP_SYNC */
 	void *addr;		/* base address of the mapping */
 	size_t size;		/* size of the mapping - page aligned */
+	int map_sync;		/* part has been mapped with MAP_SYNC flag */
 	int rdonly;		/* is set based on compat features, affects */
 				/* the whole poolset */
 	uuid_t uuid;

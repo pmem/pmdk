@@ -144,7 +144,7 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 
 		if (os_deep_persist_type(mt, (void *)addr, persist_len))
 			return -1;
-		
+
 		if (mt->end_addr >= addr + len)
 			return 0;
 

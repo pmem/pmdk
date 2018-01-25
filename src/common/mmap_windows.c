@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2015-2017, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,4 +130,20 @@ util_map_hint(size_t len, size_t req_align)
 
 	LOG(4, "hint %p", hint_addr);
 	return hint_addr;
+}
+
+/*
+ * util_map_sync -- memory map given file into memory
+ */
+void *
+util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
+	os_off_t offset, int *map_sync)
+{
+	LOG(15, "addr %p len %zu proto %x flags %x fd %d offset %ld",
+		addr, len, proto, flags, fd, offset);
+
+	if (map_sync)
+		*map_sync = 0;
+
+	return mmap(addr, len, proto, flags, fd, offset);
 }
