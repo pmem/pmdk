@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,7 +68,8 @@ Foreach ($type in $POOL_TYPES)
     set_incompat $DIR\part1 $POOL_FEAT_NOHDRS | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
     # Check if pool fails to open
-    expect_abnormal_exit $Env:EXE_DIR\pool_open$Env:EXESUFFIX $type $POOLSET 2>&1 | out-file -append -encoding ascii -literalpath $LOG_TEMP
+    expect_abnormal_exit $Env:EXE_DIR\pool_open$Env:EXESUFFIX $type $POOLSET 2>&1
+    cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
     cat -Encoding Ascii $ERR | out-file -append -encoding ascii -literalpath $ERR_TEMP
 
     Foreach ($flag in $UNKNOWN_INCOMPAT)
@@ -78,7 +79,8 @@ Foreach ($type in $POOL_TYPES)
         set_incompat $DIR\part1 $flag | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
         # Check if pool fails to open
-        expect_abnormal_exit $Env:EXE_DIR\pool_open$Env:EXESUFFIX $type $POOLSET 2>&1 | out-file -append -encoding ascii -literalpath $LOG_TEMP
+        expect_abnormal_exit $Env:EXE_DIR\pool_open$Env:EXESUFFIX $type $POOLSET 2>&1
+        cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
         cat -Encoding Ascii $ERR | out-file -append -encoding ascii -literalpath $ERR_TEMP
     }
 }

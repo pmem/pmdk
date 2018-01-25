@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,16 +62,16 @@ for type in ${POOL_TYPES[@]}; do
 	set_compat $DIR/part0 ${UNKNOWN_COMPAT[0]} >> $LOG_TEMP
 
 	# Check if pool opens
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET \
-		>> $LOG_TEMP 2>&1
+	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
+	cat $LOG >> $LOG_TEMP
 	cat $ERR >> $ERR_TEMP
 
 	# Set compat flag in part 1 headers
 	set_compat $DIR/part1 ${UNKNOWN_COMPAT[1]} >> $LOG_TEMP
 
 	# Check if pool opens
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET \
-		>> $LOG_TEMP 2>&1
+	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
+	cat $LOG >> $LOG_TEMP
 	cat $ERR >> $ERR_TEMP
 done
 
