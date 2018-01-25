@@ -2535,7 +2535,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 	 * It's enough to check the first part only.
 	 */
 	rep->is_pmem = rep->part[0].is_dev_dax ||
-		pmem_is_pmem(rep->part[0].addr, rep->repsize);
+		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
 
 	if (Prefault_at_create)
 		util_replica_force_page_allocation(rep);
