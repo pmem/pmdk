@@ -6,11 +6,11 @@ $(nW)testset1: created: nreps 1 poolsize 4194304 zeroed 1
     part[0] path $(nW)testfile11 filesize 4194304 size 4194304
 $(nW)testset2: created: nreps 1 poolsize 8323072 zeroed 1
   replica[0]: nparts 2 nhdrs 2 repsize 8323072 is_pmem 0
-    part[0] path $(nW)testfile21 filesize 4194304 size 8323072
+    part[0] path $(nW)testfile21 filesize 4194304 size 4194304
     part[1] path $(nW)testfile22 filesize 4194304 size 4128768
 $(nW)testset3: created: nreps 1 poolsize 8323072 zeroed 0
   replica[0]: nparts 2 nhdrs 2 repsize 8323072 is_pmem 0
-    part[0] path $(nW)testfile31 filesize 4194304 size 8323072
+    part[0] path $(nW)testfile31 filesize 4194304 size 4194304
     part[1] path $(nW)testfile32 filesize 4194304 size 4128768
 $(nW)testset4: util_pool_create: Invalid argument
 $(nW)testset5: util_pool_create: Invalid argument
@@ -28,30 +28,30 @@ $(nW)testset14: util_pool_create: Invalid argument
 $(nW)testset15: util_pool_create: Invalid argument
 $(nW)testset18: created: nreps 1 poolsize 6225920 zeroed 0
   replica[0]: nparts 2 nhdrs 2 repsize 6225920 is_pmem 0
-    part[0] path $(nW)subdir1$(nW)testfile181 filesize 3145728 size 6225920
+    part[0] path $(nW)subdir1$(nW)testfile181 filesize 3145728 size 3145728
     part[1] path $(nW)subdir2$(nW)testfile182 filesize 3145728 size 3080192
 $(nW)testset20: util_pool_create: File exists
 $(nW)testset21: util_pool_create: File exists
 $(nW)testset22: created: nreps 1 poolsize 8323072 zeroed 0
   replica[0]: nparts 2 nhdrs 2 repsize 8323072 is_pmem 0
-    part[0] path $(nW)testfile221 filesize 4194304 size 8323072
+    part[0] path $(nW)testfile221 filesize 4194304 size 4194304
     part[1] path $(nW)testfile222 filesize 4194304 size 4128768
 mocked open: $(nW)testset23
 $(nW)testset23: util_pool_create: Permission denied
 $(nW)testset24: created: nreps 3 poolsize 8323072 zeroed 1
   replica[0]: nparts 2 nhdrs 2 repsize 8323072 is_pmem 0
-    part[0] path $(nW)testfile241 filesize 4194304 size 8323072
+    part[0] path $(nW)testfile241 filesize 4194304 size 4194304
     part[1] path $(nW)testfile242 filesize 4194304 size 4128768
   replica[1]: nparts 1 nhdrs 1 repsize 8388608 is_pmem 0
     part[0] path $(nW)testfile243 filesize 8388608 size 8388608
   replica[2]: nparts 2 nhdrs 2 repsize 8323072 is_pmem 0
-    part[0] path $(nW)testfile244 filesize 6291456 size 8323072
+    part[0] path $(nW)testfile244 filesize 6291456 size 6291456
     part[1] path $(nW)testfile245 filesize 2097152 size 2031616
 $(nW)testset25: util_pool_create: Invalid argument
 mocked pmem_is_pmem: 5242880
 $(nW)testset26: created: nreps 3 poolsize 5242880 zeroed 0
   replica[0]: nparts 2 nhdrs 2 repsize 6225920 is_pmem 0
-    part[0] path $(nW)testfile261 filesize 4194304 size 6225920
+    part[0] path $(nW)testfile261 filesize 4194304 size 4194304
     part[1] path $(nW)testfile262 filesize 2097152 size 2031616
   replica[1]: nparts 1 nhdrs 1 repsize 7340032 is_pmem 0
     part[0] path $(nW)testfile263 filesize 7340032 size 7340032

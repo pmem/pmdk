@@ -336,7 +336,7 @@ static void
 util_replica_force_page_allocation(struct pool_replica *rep)
 {
 	volatile char *cur_addr = rep->part[0].addr;
-	char *addr_end = (char *)cur_addr + rep->part[0].size;
+	char *addr_end = (char *)cur_addr + rep->resvsize;
 	for (; cur_addr < addr_end; cur_addr += Pagesize) {
 		*cur_addr = *cur_addr;
 		VALGRIND_SET_CLEAN(cur_addr, 1);
@@ -2521,11 +2521,21 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 	} while (retry_for_contiguous_addr);
 
 	/*
+	 * Initially part[0].size is the size of address space
+	 * reservation for all parts from given replica. After
+	 * mapping that space we need to overwrite part[0].size
+	 * with its actual size to be consistent - size for each
+	 * part should be the actual mapping size of this part
+	 * only - it simplifies future calculations.
+	 */
+	rep->part[0].size = rep->part[0].filesize & ~(Mmap_align - 1);
+
+	/*
 	 * If replica is on Device DAX, it may be assumed PMEM.
 	 * It's enough to check the first part only.
 	 */
 	rep->is_pmem = rep->part[0].is_dev_dax ||
-		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+		pmem_is_pmem(rep->part[0].addr, rep->repsize);
 
 	if (Prefault_at_create)
 		util_replica_force_page_allocation(rep);
@@ -2711,6 +2721,8 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 	if (rep->remote == NULL) {
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
+
+		rep->part[0].size = rep->resvsize;
 		util_unmap_part(&rep->part[0]);
 	} else {
 		LOG(4, "freeing volatile header of remote replica #%u", repidx);
@@ -3118,7 +3130,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		VALGRIND_REGISTER_PMEM_MAPPING(rep->part[0].addr,
 			rep->resvsize);
 		VALGRIND_REGISTER_PMEM_FILE(rep->part[0].fd,
-			rep->part[0].addr, rep->part[0].size, 0);
+			rep->part[0].addr, rep->resvsize, 0);
 
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
@@ -3172,11 +3184,21 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	} while (retry_for_contiguous_addr);
 
 	/*
+	 * Initially part[0].size is the size of address space
+	 * reservation for all parts from given replica. After
+	 * mapping that space we need to overwrite part[0].size
+	 * with its actual size to be consistent - size for each
+	 * part should be the actual mapping size of this part
+	 * only - it simplifies future calculations.
+	 */
+	rep->part[0].size = rep->part[0].filesize & ~(Mmap_align - 1);
+
+	/*
 	 * If replica is on Device DAX, it may be assumed PMEM.
 	 * It's enough to check the first part only.
 	 */
 	rep->is_pmem = rep->part[0].is_dev_dax ||
-		pmem_is_pmem(rep->part[0].addr, rep->part[0].size);
+		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
 
 	if (Prefault_at_open)
 		util_replica_force_page_allocation(rep);
