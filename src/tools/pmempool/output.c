@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -515,7 +515,7 @@ outv_hexdump(int vlevel, const void *addr, size_t len, size_t offset, int sep)
  * out_get_checksum -- return checksum string with result
  */
 const char *
-out_get_checksum(void *addr, size_t len, uint64_t *csump)
+out_get_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 {
 	static char str_buff[STR_MAX] = {0, };
 	int ret = 0;
@@ -538,7 +538,7 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump)
 	uint64_t csum = *csump;
 
 	/* validate checksum and get correct one */
-	int valid = util_validate_checksum(buf, len, ncsump);
+	int valid = util_validate_checksum(buf, len, ncsump, skip_off);
 
 	if (valid)
 		ret = snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]",

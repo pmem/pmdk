@@ -41,9 +41,11 @@ SOURCE =\
 	$(COMMON)/mmap_linux.c\
 	$(COMMON)/os_linux.c\
 	$(COMMON)/os_thread_linux.c\
+	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
+	$(COMMON)/shutdown_state.c\
 	$(COMMON)/util.c\
 	$(COMMON)/uuid.c\
 	$(COMMON)/$(call osdep, uuid,.c)\

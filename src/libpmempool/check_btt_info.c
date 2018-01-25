@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -343,7 +343,7 @@ btt_info_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	switch (question) {
 	case Q_REGENERATE_CHECKSUM:
 		util_checksum(&loc->arenap->btt_info, sizeof(struct btt_info),
-			&loc->arenap->btt_info.checksum, 1);
+			&loc->arenap->btt_info.checksum, 1, 0);
 		loc->valid.btti_header = 1;
 		break;
 

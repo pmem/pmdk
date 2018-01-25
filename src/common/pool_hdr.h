@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "uuid.h"
-
+#include "shutdown_state.h"
 /*
  * Number of bits per type in alignment descriptor
  */
@@ -109,6 +109,13 @@ struct arch_flags {
  */
 #define POOL_HDR_SIG_LEN 8
 
+
+/*
+ * defines the first not checksumed field - all fields after this will be
+ * ignored during checksum calculations
+ */
+#define POOL_HDR_CSUM_END_OFF offsetof(struct pool_hdr, unused2)
+
 struct pool_hdr {
 	char signature[POOL_HDR_SIG_LEN];
 	uint32_t major;			/* format major version number */
@@ -123,7 +130,10 @@ struct pool_hdr {
 	uuid_t next_repl_uuid; /* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[3944];	/* must be zero */
+	unsigned char unused[1888];	/* must be zero */
+	/* not checksumed */
+	unsigned char unused2[1992];	/* must be zero */
+	struct shutdown_state sds;	/* shutdown status */
 	uint64_t checksum;		/* checksum of above fields */
 };
 

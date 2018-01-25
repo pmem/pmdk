@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -520,7 +520,7 @@ info_obj_heap(struct pmem_info *pip)
 			out_get_size_str(heap->chunksize, pip->args.human));
 	outv_field(v, "Chunks per zone", "%ld", heap->chunks_per_zone);
 	outv_field(v, "Checksum", "%s", out_get_checksum(heap, sizeof(*heap),
-				&heap->checksum));
+			&heap->checksum, 0));
 }
 
 /*
@@ -851,7 +851,7 @@ info_obj_descriptor(struct pmem_info *pip)
 	outv_field(v, "Heap offset", "0x%lx", pop->heap_offset);
 	outv_field(v, "Heap size", "%lu", pop->heap_size);
 	outv_field(v, "Checksum", "%s", out_get_checksum(dscp, OBJ_DSC_P_SIZE,
-				&pop->checksum));
+			&pop->checksum, 0));
 	outv_field(v, "Root offset", "0x%lx", pop->root_offset);
 
 	/* run id with -v option */

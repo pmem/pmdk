@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,4 +68,4 @@ include ../Makefile.inc
 
 CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
 
-LIBS += -pthread -lpmem $(LIBDL)
+LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL)

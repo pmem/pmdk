@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -174,7 +174,7 @@ btt_data_write(PMEMpoolcheck *ppc, location *loc)
 
 			util_checksum(&arenap->btt_info,
 					sizeof(arenap->btt_info),
-					&arenap->btt_info.checksum, 1);
+				&arenap->btt_info.checksum, 1, 0);
 		}
 
 		if (pool_write(ppc->pool, &arenap->btt_info,

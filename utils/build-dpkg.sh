@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ if [ $# -lt 6 -o $# -gt 9 ]
 then
 	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
 					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
-					"BUILD_RPMEM [TEST_CONFIG_FILE] [DISTRO] "
+					"BUILD_RPMEM [TEST_CONFIG_FILE] [NDCTL_DISABLE] [DISTRO] "
 	exit 1
 fi
 
@@ -56,6 +56,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$8
+export NDCTL_DISABLE=$9
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -776,6 +777,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CFLAGS \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
+	--preserve-envvar=NDCTL_DISABLE \
 	-us -uc
 
 cd $OLD_DIR

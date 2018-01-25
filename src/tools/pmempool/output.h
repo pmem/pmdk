@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,8 @@ const char *out_get_uuid_str(uuid_t uuid);
 const char *out_get_time_str(time_t time);
 const char *out_get_size_str(uint64_t size, int human);
 const char *out_get_percentage(double percentage);
-const char *out_get_checksum(void *addr, size_t len, uint64_t *csump);
+const char *out_get_checksum(void *addr, size_t len, uint64_t *csump,
+		uint64_t skip_off);
 const char *out_get_btt_map_entry(uint32_t map);
 const char *out_get_pool_type_str(pmem_pool_type_t type);
 const char *out_get_pool_signature(pmem_pool_type_t type);

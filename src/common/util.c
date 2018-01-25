@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,19 +102,26 @@ util_is_zeroed(const void *addr, size_t len)
  * the range checksummed correctly).
  */
 int
-util_checksum(void *addr, size_t len, uint64_t *csump, int insert)
+util_checksum(void *addr, size_t len, uint64_t *csump,
+	int insert, size_t skip_off)
 {
 	if (len % 4 != 0)
 		abort();
 
 	uint32_t *p32 = addr;
 	uint32_t *p32end = (uint32_t *)((char *)addr + len);
+	uint32_t *skip;
 	uint32_t lo32 = 0;
 	uint32_t hi32 = 0;
 	uint64_t csum;
 
+	if (skip_off)
+		skip = (uint32_t *)((char *)addr + skip_off);
+	else
+		skip = (uint32_t *)((char *)addr + len);
+
 	while (p32 < p32end)
-		if (p32 == (uint32_t *)csump) {
+		if (p32 == (uint32_t *)csump || p32 >= skip) {
 			/* lo32 += 0; treat first 32-bits as zero */
 			p32++;
 			hi32 += lo32;

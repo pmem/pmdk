@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -699,7 +699,7 @@ static int
 pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, struct checksum_args args)
 {
-	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum, 1);
+	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum, 1, 0);
 	return 0;
 }
 

@@ -222,13 +222,18 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
+NDCTL_MIN_VERSION := 58.2.37
+LIBFABRIC_MIN_VERSION := 1.4.2
+
 # Keep in sync with requirements in src/test/unittest/unittest.sh and
 # utils/docker/images/install-libfabric.sh.
-export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=1.4.2)
+export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=$(LIBFABRIC_MIN_VERSION))
 ifneq ($(BUILD_RPMEM),y)
-	export BUILD_RPMEM_INFO := libfabric (version >= 1.4.2) is missing -- \
+export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is missing -- \
 see src/librpmem/README for details.
 endif
+
+export NDCTL_DISABLE ?= n
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
@@ -241,6 +246,8 @@ LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
 LIBCXXABI=-lcxxrt
+LIBNDCTL=
+OS_DIMM=none
 else
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
@@ -250,4 +257,17 @@ LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
 LIBCXXABI=-lc++abi
+ifeq ($(NDCTL_DISABLE), n)
+ifeq ($(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION)),n)
+$(error libndctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
+endif
+ifeq ($(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION)),n)
+$(error libdaxclt(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
+endif
+LIBNDCTL = $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
+OS_DIMM=ndctl
+else
+OS_DIMM=none
+LIBNDCTL=
+endif
 endif
