@@ -128,6 +128,7 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
 LIBS += $(LIBDL)
+LIBS += $(LIBNDCTL)
 endif
 
 ifeq ($(LIBPMEMPOOL), y)

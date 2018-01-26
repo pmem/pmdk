@@ -68,7 +68,7 @@ endif
 endif
 
 LIBS += -L$(LIBS_DIR)/debug
-LIBS += -pthread $(LIBUTIL)
+LIBS += -pthread $(LIBUTIL) $(LIBNDCTL)
 
 # XXX: required by clock_gettime(), if glibc version < 2.17
 # The os_clock_gettime() function is now in OS abstraction layer,
@@ -133,7 +133,7 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 LIBS += $(LIBDL)
 INCS += -I$(TOP)/src/libpmemobj
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMCOMMON=internal-debug
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
@@ -164,7 +164,7 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 
 INCS += -I$(TOP)/src/libpmemobj
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMCOMMON=internal-nondebug
 endif
 
 ifeq ($(LIBPMEMCTO), y)
@@ -175,6 +175,52 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), y)
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
+INCS += -I$(TOP)/src/common
+LIBS += $(LIBDL)
+LIBPMEM=y
+endif
+
+ifeq ($(LIBPMEMCOMMON), internal-nondebug)
+OBJS +=\
+	$(TOP)/src/nodebug/common/$(COMMON)/file.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/file_posix.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/fs_posix.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/mmap.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/mmap_posix.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/os_posix.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/os_thread_posix.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/os_dimm_$(OS_DIMM).o\
+	$(TOP)/src/nodebug/common/$(COMMON)/out.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/pool_hdr.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/set.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/shutdown_state.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/util.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/uuid.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/uuid_linux.o\
+	$(TOP)/src/nodebug/common/$(COMMON)/util_posix.o
+INCS += -I$(TOP)/src/common
+LIBS += $(LIBDL)
+LIBPMEM=y
+endif
+
+ifeq ($(LIBPMEMCOMMON), internal-debug)
+OBJS +=\
+	$(TOP)/src/debug/common/$(COMMON)/file.o\
+	$(TOP)/src/debug/common/$(COMMON)/file_posix.o\
+	$(TOP)/src/debug/common/$(COMMON)/fs_posix.o\
+	$(TOP)/src/debug/common/$(COMMON)/mmap.o\
+	$(TOP)/src/debug/common/$(COMMON)/mmap_posix.o\
+	$(TOP)/src/debug/common/$(COMMON)/os_posix.o\
+	$(TOP)/src/debug/common/$(COMMON)/os_thread_posix.o\
+	$(TOP)/src/debug/common/$(COMMON)/os_dimm_$(OS_DIMM).o\
+	$(TOP)/src/debug/common/$(COMMON)/out.o\
+	$(TOP)/src/debug/common/$(COMMON)/pool_hdr.o\
+	$(TOP)/src/debug/common/$(COMMON)/set.o\
+	$(TOP)/src/debug/common/$(COMMON)/shutdown_state.o\
+	$(TOP)/src/debug/common/$(COMMON)/util.o\
+	$(TOP)/src/debug/common/$(COMMON)/uuid.o\
+	$(TOP)/src/debug/common/$(COMMON)/uuid_linux.o\
+	$(TOP)/src/debug/common/$(COMMON)/util_posix.o
 INCS += -I$(TOP)/src/common
 LIBS += $(LIBDL)
 LIBPMEM=y

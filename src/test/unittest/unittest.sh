@@ -714,6 +714,10 @@ function expect_normal_exit() {
 		export ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}"
 	fi
 
+	if [ "$CHECK_TYPE" = "helgrind" ]; then
+		export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
+	fi
+
 	# in case of preloading libvmmalloc.so force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then

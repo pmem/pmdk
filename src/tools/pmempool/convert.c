@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -240,7 +240,8 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 					struct pool_hdr *hdr = part->hdr;
 					hdr->major = htole32(target_m);
 					util_checksum(hdr, sizeof(*hdr),
-						&hdr->checksum, 1);
+						&hdr->checksum, 1,
+						POOL_HDR_CSUM_END_OFF);
 					util_persist_auto(part->is_dev_dax, hdr,
 						sizeof(struct pool_hdr));
 				}

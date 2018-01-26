@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -136,7 +136,7 @@ pkg-clean:
 
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/pmdk $(DESTDIR) $(CURDIR)/$@\
-			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} ${BUILD_RPMEM} ${TEST_CONFIG_FILE} ${DISTRO}
+			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} ${BUILD_RPMEM} ${TEST_CONFIG_FILE} ${NDCTL_DISABLE} ${DISTRO}
 
 install uninstall:
 	$(MAKE) -C src $@

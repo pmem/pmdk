@@ -1368,7 +1368,7 @@ heap_write_header(struct heap_header *hdr)
 		.checksum = 0
 	};
 
-	util_checksum(&newhdr, sizeof(newhdr), &newhdr.checksum, 1);
+	util_checksum(&newhdr, sizeof(newhdr), &newhdr.checksum, 1, 0);
 	*hdr = newhdr;
 }
 
@@ -1454,7 +1454,7 @@ heap_cleanup(struct palloc_heap *heap)
 static int
 heap_verify_header(struct heap_header *hdr)
 {
-	if (util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0) != 1) {
+	if (util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0, 0) != 1) {
 		ERR("heap: invalid header's checksum");
 		return -1;
 	}

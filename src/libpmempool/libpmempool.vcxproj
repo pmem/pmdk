@@ -38,11 +38,13 @@
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
+    <ClCompile Include="..\common\os_dimm_none.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
     <ClCompile Include="..\common\pool_hdr.c" />
     <ClCompile Include="..\common\set.c" />
+    <ClCompile Include="..\common\shutdown_state.c" />
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />

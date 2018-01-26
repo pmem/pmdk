@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,8 @@ extern void *Zalloc(size_t sz);
 
 void util_init(void);
 int util_is_zeroed(const void *addr, size_t len);
-int util_checksum(void *addr, size_t len, uint64_t *csump, int insert);
+int util_checksum(void *addr, size_t len, uint64_t *csump,
+		int insert, size_t skip_off);
 int util_parse_size(const char *str, size_t *sizep);
 char *util_fgets(char *buffer, int max, FILE *stream);
 char *util_getexecname(char *path, size_t pathlen);

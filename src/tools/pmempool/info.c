@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -763,7 +763,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 			out_get_arch_machine_str(hdr->arch_flags.machine));
 
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
-				&hdr->checksum));
+			&hdr->checksum, POOL_HDR_CSUM_END_OFF));
 
 	free(hdr);
 

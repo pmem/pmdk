@@ -41,9 +41,11 @@ SOURCE =\
 	$(COMMON)/mmap_posix.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
+	$(COMMON)/shutdown_state.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
