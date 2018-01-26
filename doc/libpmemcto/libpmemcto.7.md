@@ -70,7 +70,7 @@ _UNICODE()
 ```c
 _UWFUNC(pmemcto_check_version, =q=
 	unsigned major_required,
-	unsigned minor_required=e=);
+	unsigned minor_required=e=)
 ```
 
 ##### Managing library behavior: #####
