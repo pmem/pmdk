@@ -97,6 +97,14 @@ TM=1
 #CLEAN_FAILED=y
 
 #
+# Changes logging level. Possible values:
+# 0 - silent (only error messages)
+# 1 - normal (above + SETUP + START + DONE + PASS + important SKIP messages)
+# 2 - verbose (above + all SKIP messages + stdout from test binaries)
+#
+#UNITTEST_LOG_LEVEL=1
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
