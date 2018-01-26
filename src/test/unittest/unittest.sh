@@ -56,15 +56,17 @@ function fatal() {
 }
 
 # defaults
-[ "$UNITTEST_LOG_LEVEL" ] || export UNITTEST_LOG_LEVEL=2
-[ "$GREP" ] || export GREP="grep -a"
-[ "$TEST" ] || export TEST=check
-[ "$FS" ] || export FS=any
-[ "$BUILD" ] || export BUILD=debug
-[ "$CHECK_TYPE" ] || export CHECK_TYPE=auto
-[ "$CHECK_POOL" ] || export CHECK_POOL=0
-[ "$VERBOSE" ] || export VERBOSE=0
-[ -n "${SUFFIX+x}" ] || export SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
+[ "$UNITTEST_LOG_LEVEL" ] || UNITTEST_LOG_LEVEL=2
+[ "$GREP" ] || GREP="grep -a"
+[ "$TEST" ] || TEST=check
+[ "$FS" ] || FS=any
+[ "$BUILD" ] || BUILD=debug
+[ "$CHECK_TYPE" ] || CHECK_TYPE=auto
+[ "$CHECK_POOL" ] || CHECK_POOL=0
+[ "$VERBOSE" ] || VERBOSE=0
+[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
+
+export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
 TOOLS=../tools
 # Paths to some useful tools
