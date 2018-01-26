@@ -39,7 +39,7 @@
 
 #include "valgrind_internal.h"
 #include "libpmem.h"
-#include "ctree.h"
+#include "ravl.h"
 #include "cuckoo.h"
 #include "list.h"
 #include "mmap.h"
@@ -72,7 +72,7 @@
 #define OBJ_NLANES_ENV_VARIABLE "PMEMOBJ_NLANES"
 
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
-static struct ctree *pools_tree; /* tree used for searching by address */
+static struct ravl *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
 
@@ -201,6 +201,20 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 }
 
 /*
+ * obj_pool_cmp -- (internal) compares two PMEMobjpool pointers
+ */
+static int
+obj_pool_cmp(const void *lhs, const void *rhs)
+{
+	if (lhs > rhs)
+		return 1;
+	else if (lhs < rhs)
+		return -1;
+
+	return 0;
+}
+
+/*
  * obj_pool_init -- (internal) allocate global structs holding all opened pools
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
@@ -218,9 +232,9 @@ obj_pool_init(void)
 	if (pools_ht == NULL)
 		FATAL("!cuckoo_new");
 
-	pools_tree = ctree_new();
+	pools_tree = ravl_new(obj_pool_cmp);
 	if (pools_tree == NULL)
-		FATAL("!ctree_new");
+		FATAL("!ravl_new");
 }
 
 /*
@@ -294,7 +308,7 @@ obj_fini(void)
 	if (pools_ht)
 		cuckoo_delete(pools_ht);
 	if (pools_tree)
-		ctree_delete(pools_tree);
+		ravl_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
 
@@ -1108,10 +1122,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			goto err;
 		}
 
-		if ((errno = ctree_insert(pools_tree, (uint64_t)pop,
-			pop->set->resvsize))
-				!= 0) {
-			ERR("!ctree_insert");
+		if ((errno = ravl_insert(pools_tree, pop)) != 0) {
+			ERR("!ravl_insert");
 			goto err_tree_insert;
 		}
 	}
@@ -1131,8 +1143,11 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 
+	struct ravl_node *n;
 err_ctl:
-	ctree_remove(pools_tree, (uint64_t)pop, 1);
+	n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
+	ASSERTne(n, NULL);
+	ravl_remove(pools_tree, n);
 err_tree_insert:
 	cuckoo_remove(pools_ht, pop->uuid_lo);
 err:
@@ -1798,9 +1813,11 @@ pmemobj_close(PMEMobjpool *pop)
 		ERR("cuckoo_remove");
 	}
 
-	if (ctree_remove(pools_tree, (uint64_t)pop, 1) != (uint64_t)pop) {
-		ERR("ctree_remove");
+	struct ravl_node *n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
+	if (n == NULL) {
+		ERR("ravl_find");
 	}
+	ravl_remove(pools_tree, n);
 
 	if (pop->tx_postcommit_tasks != NULL) {
 		ringbuf_delete(pop->tx_postcommit_tasks);
@@ -1946,22 +1963,17 @@ pmemobj_pool_by_ptr(const void *addr)
 	if (pools_tree == NULL)
 		return NULL;
 
-	uint64_t key = (uint64_t)addr;
-	size_t resv_size = ctree_find_le_unlocked(pools_tree, &key);
-
-	if (resv_size == 0)
+	struct ravl_node *n = ravl_find(pools_tree, addr,
+		RAVL_PREDICATE_LESS_EQUAL);
+	if (n == NULL)
 		return NULL;
 
-	pop = (PMEMobjpool *)key;
+	pop = ravl_data(n);
 	size_t pool_size = pop->heap_offset + pop->heap_size;
-
-	ASSERT((uint64_t)addr >= key);
-	uint64_t addr_off = (uint64_t)addr - key;
-
-	if (pool_size <= addr_off)
+	if ((char *)addr >= (char *)pop + pool_size)
 		return NULL;
 
-	return (PMEMobjpool *)key;
+	return pop;
 }
 
 /* arguments for constructor_alloc_bytype */

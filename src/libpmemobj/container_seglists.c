@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +39,6 @@
  */
 
 #include "container_seglists.h"
-#include "ctree.h"
 #include "out.h"
 #include "sys_util.h"
 #include "util.h"
@@ -211,7 +210,7 @@ static struct block_container_ops container_seglists_ops = {
 };
 
 /*
- * container_new_seglists -- allocates and initializes a ctree container
+ * container_new_seglists -- allocates and initializes a seglists container
  */
 struct block_container *
 container_new_seglists(struct palloc_heap *heap)

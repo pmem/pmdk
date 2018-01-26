@@ -1,6 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,25 +31,17 @@
 #
 
 #
-# src/test/obj_ctree/TEST0 -- unit test for obj_ctree interface
+# src/test/obj_ravl/Makefile -- build ravl tree unit test
 #
+TOP = ../../..
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-$ENV:UNITTEST_NAME = "obj_ctree/TEST0"
-$ENV:UNITTEST_NUM = "0"
+vpath %.c $(TOP)/src/libpmemobj
 
+TARGET = obj_ravl
+OBJS = obj_ravl.o ravl.o
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+LIBPMEMCOMMON=y
+LIBPMEM=y
 
-require_test_type medium
-
-setup
-
-expect_normal_exit $Env:EXE_DIR\obj_ctree$Env:EXESUFFIX
-
-pass
+include ../Makefile.inc
+INCS += -I$(TOP)/src/libpmemobj/

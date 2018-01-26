@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,40 +31,40 @@
  */
 
 /*
- * ctree.h -- internal definitions for crit-bit tree
+ * ravl.h -- internal definitions for ravl tree
  */
 
-#ifndef LIBPMEMOBJ_CTREE_H
-#define LIBPMEMOBJ_CTREE_H 1
+#ifndef LIBPMEMOBJ_RAVL_H
+#define LIBPMEMOBJ_RAVL_H 1
 
 #include <stdint.h>
 
-struct ctree;
+struct ravl;
+struct ravl_node;
 
-struct ctree *ctree_new(void);
-void ctree_delete(struct ctree *t);
-typedef void (*ctree_destroy_cb)(uint64_t key, uint64_t value, void *ctx);
-void ctree_delete_cb(struct ctree *t, ctree_destroy_cb cb, void *ctx);
+enum ravl_predicate {
+	RAVL_PREDICATE_EQUAL		=	1 << 0,
+	RAVL_PREDICATE_GREATER		=	1 << 1,
+	RAVL_PREDICATE_LESS		=	1 << 2,
+	RAVL_PREDICATE_LESS_EQUAL	=
+		RAVL_PREDICATE_EQUAL | RAVL_PREDICATE_LESS,
+	RAVL_PREDICATE_GREATER_EQUAL	=
+		RAVL_PREDICATE_EQUAL | RAVL_PREDICATE_GREATER,
+};
 
-void ctree_clear(struct ctree *t);
-void ctree_clear_unlocked(struct ctree *t);
+typedef int ravl_compare(const void *lhs, const void *rhs);
+typedef void ravl_cb(void *data, void *arg);
 
-int ctree_insert(struct ctree *t, uint64_t key, uint64_t value);
-int ctree_insert_unlocked(struct ctree *t, uint64_t key, uint64_t value);
+struct ravl *ravl_new(ravl_compare *compare);
+void ravl_delete(struct ravl *ravl);
+void ravl_delete_cb(struct ravl *ravl, ravl_cb cb, void *arg);
+int ravl_empty(struct ravl *ravl);
+void ravl_clear(struct ravl *ravl);
+int ravl_insert(struct ravl *ravl, const void *data);
 
-uint64_t ctree_find(struct ctree *t, uint64_t key);
-uint64_t ctree_find_unlocked(struct ctree *t, uint64_t key);
+struct ravl_node *ravl_find(struct ravl *ravl, const void *data,
+	enum ravl_predicate predicate_flags);
+void *ravl_data(struct ravl_node *node);
+void ravl_remove(struct ravl *ravl, struct ravl_node *node);
 
-uint64_t ctree_find_le(struct ctree *t, uint64_t *key);
-uint64_t ctree_find_le_unlocked(struct ctree *t, uint64_t *key);
-
-uint64_t ctree_remove(struct ctree *t, uint64_t key, int eq);
-uint64_t ctree_remove_unlocked(struct ctree *t, uint64_t key, int eq);
-
-int ctree_remove_max(struct ctree *t, uint64_t *key, uint64_t *value);
-int ctree_remove_max_unlocked(struct ctree *t, uint64_t *key, uint64_t *value);
-
-int ctree_is_empty(struct ctree *t);
-int ctree_is_empty_unlocked(struct ctree *t);
-
-#endif
+#endif /* LIBPMEMOBJ_RAVL_H */

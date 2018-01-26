@@ -46,7 +46,7 @@
 #include "sys_util.h"
 #include "valgrind_internal.h"
 #include "recycler.h"
-#include "container_ctree.h"
+#include "container_ravl.h"
 #include "container_seglists.h"
 #include "alloc_class.h"
 #include "os_thread.h"
@@ -1180,7 +1180,7 @@ heap_buckets_init(struct palloc_heap *heap)
 		}
 	}
 
-	h->default_bucket = bucket_new(container_new_ctree(heap),
+	h->default_bucket = bucket_new(container_new_ravl(heap),
 		alloc_class_by_id(h->alloc_classes, DEFAULT_ALLOC_CLASS_ID));
 
 	if (h->default_bucket == NULL)

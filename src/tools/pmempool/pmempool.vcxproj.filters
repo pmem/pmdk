@@ -71,13 +71,13 @@
     <ClCompile Include="..\..\libpmemobj\bucket.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\container_ctree.c">
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c">
       <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\container_seglists.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctree.c">
+    <ClCompile Include="..\..\libpmemobj\ravl.c">
       <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\cuckoo.c">

@@ -41,11 +41,10 @@ include ../common/pmemcommon.inc
 SOURCE +=\
 	alloc_class.c\
 	bucket.c\
-	container_ctree.c\
+	container_ravl.c\
 	container_seglists.c\
 	ctl.c\
 	ctl_global.c\
-	ctree.c\
 	cuckoo.c\
 	heap.c\
 	lane.c\
@@ -57,6 +56,7 @@ SOURCE +=\
 	palloc.c\
 	pmalloc.c\
 	pvector.c\
+	ravl.c\
 	recycler.c\
 	redo.c\
 	ringbuf.c\
