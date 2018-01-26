@@ -76,7 +76,7 @@ const char *pmemcto_check_versionU(
 	unsigned minor_required);
 const wchar_t *pmemcto_check_versionW(
 	unsigned major_required,
-	unsigned minor_required);;
+	unsigned minor_required);
 ```
 
 ##### Managing library behavior: #####
