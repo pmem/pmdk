@@ -172,7 +172,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#ifndef AARCH64
+#ifndef __aarch64__
 #include <emmintrin.h>
 #endif
 #include <errno.h>
@@ -193,7 +193,7 @@
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
-#ifdef AARCH64
+#ifdef __aarch64__
 #include "arm_cacheops.h"
 #endif
 
@@ -204,17 +204,17 @@
  * functions are defined here in terms of asm statements for now.
  */
 
-#ifndef AARCH64
+#ifndef __aarch64__
 #define _mm_clflushopt(addr)\
 	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#endif /* AARCH64 */
+#endif /* __aarch64__ */
 #endif /* _MSC_VER */
 
 #define FLUSH_ALIGN ((uintptr_t)64)
 
-#ifndef AARCH64
+#ifndef __aarch64__
 #define ALIGN_MASK	(FLUSH_ALIGN - 1)
 
 #define CHUNK_SIZE	128 /* 16*8 */
@@ -266,7 +266,7 @@ static void
 predrain_memory_barrier(void)
 {
 	LOG(15, NULL);
-#ifndef AARCH64
+#ifndef __aarch64__
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
 #else
 	arm_data_memory_barrier();
@@ -297,7 +297,7 @@ pmem_drain(void)
 }
 
 
-#ifdef AARCH64
+#ifdef __aarch64__
 /*
  * flush_dcache does similar to clwb using DC CVAC
  */
@@ -367,7 +367,7 @@ flush_dcache(const void *addr, size_t len)
  * for aarch64 (see arm_cacheops.h) {DC CIVAC}
  */
 
-#ifdef AARCH64
+#ifdef __aarch64__
 static void
 flush_dcache_invalidate_opt(const void *addr, size_t len)
 {
@@ -420,10 +420,10 @@ flush_empty(const void *addr, size_t len)
  * clflushopt feature is confirmed by pmem_init() at library
  * initialization time, Func_flush is set to flush_dcache_invalidate_opt().
  * That's the most common case on modern hardware that supports persistent
- * memory. In case of AARCH64, there is no difference between clflush and
+ * memory. In case of aarch64, there is no difference between clflush and
  * clflushopt so both refer to flush_data_clean_invalidate.
  */
-#ifndef AARCH64
+#ifndef __aarch64__
 static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate;
 #else
 static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate_opt;
@@ -820,7 +820,7 @@ memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
 	return pmemdest;
 }
 
-#ifndef AARCH64
+#ifndef __aarch64__
 /*
  * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
  */
@@ -1122,7 +1122,7 @@ memset_nodrain_normal(void *pmemdest, int c, size_t len)
 /*
  * memset_nodrain_movnt -- (internal) memset to pmem without hw drain, movnt
  */
-#ifndef AARCH64
+#ifndef __aarch64__
 static void *
 memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 {
@@ -1265,7 +1265,7 @@ pmem_log_cpuinfo(void)
 {
 	LOG(3, NULL);
 
-#ifndef AARCH64
+#ifndef __aarch64__
 	if (Func_flush == flush_dcache)
 		LOG(3, "using clwb");
 	else if (Func_flush == flush_dcache_invalidate_opt)
@@ -1287,7 +1287,7 @@ pmem_log_cpuinfo(void)
 
 	if (Func_memmove_nodrain == memmove_nodrain_normal)
 		LOG(3, "not using movnt");
-#ifndef AARCH64
+#ifndef __aarch64__
 	else if (Func_memmove_nodrain == memmove_nodrain_movnt)
 		LOG(3, "using movnt");
 #endif
@@ -1354,7 +1354,7 @@ pmem_init(void)
  * non-temporal is currently not supported in ARM so defaulting to
  * memcpy_nodrain_normal
  */
-#ifndef AARCH64
+#ifndef __aarch64__
 	/*
 	 * For testing, allow overriding the default threshold
 	 * for using non-temporal stores in pmem_memcpy_*(), pmem_memmove_*()
