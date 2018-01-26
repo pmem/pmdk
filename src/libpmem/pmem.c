@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1031,8 +1031,18 @@ memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
 		}
 	}
 
-	/* serialize non-temporal store instructions */
-	predrain_memory_barrier();
+	/*
+	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
+	 * to serialize non-temporal store instructions.  (It could be only
+	 * one drain after a sequence of pmem_*_nodrain calls).
+	 * However, on platforms that only support strongly-ordered CLFLUSH
+	 * for flushing the CPU cache (or that are forced to not use
+	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
+	 * the flush, so the pmem_drain() is a no-op function.  In such case,
+	 * we need to put a memory barrier here.
+	 */
+	if (Func_predrain_fence == predrain_fence_empty)
+		predrain_memory_barrier();
 
 	return pmemdest;
 }
@@ -1195,8 +1205,18 @@ memset_nodrain_movnt(void *pmemdest, int c, size_t len)
 		}
 	}
 
-	/* serialize non-temporal store instructions */
-	predrain_memory_barrier();
+	/*
+	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
+	 * to serialize non-temporal store instructions.  (It could be only
+	 * one drain after a sequence of pmem_*_nodrain calls).
+	 * However, on platforms that only support strongly-ordered CLFLUSH
+	 * for flushing the CPU cache (or that are forced to not use
+	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
+	 * the flush, so the pmem_drain() is a no-op function.  In such case,
+	 * we need to put a memory barrier here.
+	 */
+	if (Func_predrain_fence == predrain_fence_empty)
+		predrain_memory_barrier();
 
 	return pmemdest;
 }
