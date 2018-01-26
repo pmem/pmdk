@@ -70,7 +70,7 @@ cc ... -lpmemcto -lpmem
 ```c
 const char *pmemcto_check_version(
 	unsigned major_required,
-	unsigned minor_required);;
+	unsigned minor_required);
 ```
 
 ##### Managing library behavior: #####

@@ -58,11 +58,11 @@ date: libpmemcto API version 1.0
 ```c
 #include <libpmemcto.h>
 
-PMEMctopool *pmemcto_create(const char *path, *layout);
-		size_t poolsize, mode_t mode;
-PMEMctopool *pmemcto_open(const char *path, *layout);;
-void pmemcto_close(PMEMctopool *pbp);
-int pmemcto_check(const char *path, *layout);;
+PMEMctopool *pmemcto_create(const char *path, const char *layout,
+		size_t poolsize, mode_t mode);
+PMEMctopool *pmemcto_open(const char *path, const char *layout);
+void pmemcto_close(PMEMctopool *pcp);
+int pmemcto_check(const char *path, const char *layout);
 ```
 
 
@@ -78,7 +78,7 @@ familiar *malloc-like* programming model for the memory pool.
 created. *layout* specifies the application's layout type in the form of a
 string. The layout name is not interpreted by **libpmemcto**(7), but may be
 used as a check when **pmemcto_open**() is called. The layout name, including
-the terminating null byte ('\0'), cannot be longer than **PMEMCTO_MAX_LAYOUT**
+the terminating null byte ('\\0'), cannot be longer than **PMEMCTO_MAX_LAYOUT**
 as defined in **\<libpmemcto.h\>**. A NULL *layout* is equivalent
 to using an empty string as a layout name. *mode* specifies the permissions to
 use when creating the file, as described by **creat**(2). The memory pool file
