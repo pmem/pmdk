@@ -68,7 +68,7 @@ endif
 endif
 
 LIBS += -L$(LIBS_DIR)/debug
-LIBS += -pthread $(LIBUTIL) $(LIBNDCTL)
+LIBS += -pthread $(LIBUTIL)
 
 # XXX: required by clock_gettime(), if glibc version < 2.17
 # The os_clock_gettime() function is now in OS abstraction layer,
@@ -78,33 +78,38 @@ LIBS += -lrt
 endif
 
 ifeq ($(LIBPMEMPOOL), y)
+LIBPMEM=y
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
-LIBS += $(LIBDL)
+# XXX: is it required?
 CFLAGS += -DUSE_LIBDL
 endif
 
 ifeq ($(LIBPMEMBLK), y)
+LIBPMEM=y
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
 endif
 
 ifeq ($(LIBPMEMLOG), y)
+LIBPMEM=y
 DYNAMIC_LIBS += -lpmemlog
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemlog.a
 endif
 
 ifeq ($(LIBPMEMOBJ), y)
-LIBS += $(LIBDL)
+LIBPMEM=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
+LIBPMEM=y
+LIBPMEMCOMMON=internal-debug
 OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ravl.o\
@@ -130,13 +135,12 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
 	$(TOP)/src/debug/libpmemobj/stats.o
 
-LIBS += $(LIBDL)
 INCS += -I$(TOP)/src/libpmemobj
-LIBPMEM=y
-LIBPMEMCOMMON=internal-debug
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
+LIBPMEM=y
+LIBPMEMCOMMON=internal-nondebug
 OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
@@ -163,24 +167,23 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/stats.o
 
 INCS += -I$(TOP)/src/libpmemobj
-LIBPMEM=y
-LIBPMEMCOMMON=internal-nondebug
 endif
 
 ifeq ($(LIBPMEMCTO), y)
+LIBPMEM=y
 DYNAMIC_LIBS += -lpmemcto
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemcto.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemcto.a
 endif
 
 ifeq ($(LIBPMEMCOMMON), y)
+LIBPMEM=y
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
 INCS += -I$(TOP)/src/common
-LIBS += $(LIBDL)
-LIBPMEM=y
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
+LIBPMEM=y
 OBJS +=\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -200,11 +203,10 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
 
 INCS += -I$(TOP)/src/common
-LIBS += $(LIBDL)
-LIBPMEM=y
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
+LIBPMEM=y
 OBJS +=\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\
@@ -224,8 +226,6 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)
 
 INCS += -I$(TOP)/src/common
-LIBS += $(LIBDL)
-LIBPMEM=y
 endif
 
 ifeq ($(LIBPMEM),y)
@@ -245,6 +245,19 @@ DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
+
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO)$(LIBVMEM)$(LIBRPMEM),)
+LIBS += -pthread
+endif
+
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEMOBJ),)
+LIBS += $(LIBDL)
+endif
+
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO),)
+LIBS += $(LIBNDCTL)
+endif
+
 
 #
 # This is a helper function to be combined with usage of macros available

@@ -45,7 +45,7 @@ if [ $# -lt 6 -o $# -gt 9 ]
 then
 	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
 					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
-					"BUILD_RPMEM [TEST_CONFIG_FILE] [NDCTL_DISABLE] [DISTRO] "
+					"BUILD_RPMEM [TEST_CONFIG_FILE] [NDCTL_ENABLE] [DISTRO] "
 	exit 1
 fi
 
@@ -56,7 +56,7 @@ OUT_DIR=$4
 EXPERIMENTAL=$5
 BUILD_PACKAGE_CHECK=$6
 TEST_CONFIG_FILE=$8
-export NDCTL_DISABLE=$9
+export NDCTL_ENABLE=$9
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -777,7 +777,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CFLAGS \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
-	--preserve-envvar=NDCTL_DISABLE \
+	--preserve-envvar=NDCTL_ENABLE \
 	-us -uc
 
 cd $OLD_DIR

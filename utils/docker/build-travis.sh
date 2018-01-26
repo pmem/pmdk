@@ -117,7 +117,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
-	--env NDCTL_DISABLE=$NDCTL_DISABLE \
+	--env NDCTL_ENABLE=$NDCTL_ENABLE \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \
