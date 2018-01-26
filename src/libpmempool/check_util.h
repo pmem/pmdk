@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -145,7 +145,7 @@ void check_end(struct check_data *data);
 int check_is_end_util(struct check_data *data);
 
 int check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
-		uint32_t question, const char *fmt, ...) FORMAT_PRINTF(4, 5);
+		uint32_t arg, const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void check_status_release(PMEMpoolcheck *ppc, struct check_status *status);
 void check_clear_status_cache(struct check_data *data);
 struct check_status *check_pop_question(struct check_data *data);
@@ -163,6 +163,11 @@ int check_status_is(struct check_status *status,
 /* create info status */
 #define CHECK_INFO(ppc, ...)\
 	check_status_create(ppc, PMEMPOOL_CHECK_MSG_TYPE_INFO, 0, __VA_ARGS__)
+
+/* create info status and append error message based on errno */
+#define CHECK_INFO_ERRNO(ppc, ...)\
+	check_status_create(ppc, PMEMPOOL_CHECK_MSG_TYPE_INFO,\
+			(uint32_t)errno, __VA_ARGS__)
 
 /* create error status */
 #define CHECK_ERR(ppc, ...)\
