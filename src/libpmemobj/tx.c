@@ -1835,6 +1835,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 		f = n ? ravl_data(n) : NULL;
 		uint64_t offd = f ? f->offset - r.offset : r.size;
 		if (offd == 0) {
+			ASSERTne(f, NULL);
 			if (f->size >= r.size)
 				return 0;
 			r.offset += f->size;

@@ -1816,8 +1816,9 @@ pmemobj_close(PMEMobjpool *pop)
 	struct ravl_node *n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
 	if (n == NULL) {
 		ERR("ravl_find");
+	} else {
+		ravl_remove(pools_tree, n);
 	}
-	ravl_remove(pools_tree, n);
 
 	if (pop->tx_postcommit_tasks != NULL) {
 		ringbuf_delete(pop->tx_postcommit_tasks);
