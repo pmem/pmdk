@@ -355,11 +355,6 @@ are not ported yet and may not get built on ARM cores.
 The support for ARM processors is highly experimental. The libraries
 are only validated to "early access" quality with Cortex-A53 processor.
 
-To trigger the build on an ARM processor, run:
-```
-    $ make EXTRA_CFLAGS="-DAARCH64" BUILD_AARCH64=y
-```
-
 ### Contacts ###
 
 For more information on this library, contact

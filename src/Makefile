@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,14 +36,15 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 include $(TOP)/src/version.inc
 
+ARCH := $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 		  libpmemcto libvmmalloc tools
 ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
 
-ifeq ($(BUILD_AARCH64),y)
+ifeq ($(ARCH), aarch64)
 	TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 		  libvmmalloc libpmemcto
-	ALL_TARGETS = $(TARGET) common
+	ALL_TARGETS = $(TARGETS) common
 endif
 
 SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
