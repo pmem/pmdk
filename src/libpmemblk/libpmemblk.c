@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,9 @@
 #include "pmemcommon.h"
 #include "blk.h"
 
+static const char *Ver = LIBVERSTR(PMEMBLK_LOG_PREFIX,
+		PMEMBLK_MAJOR_VERSION, PMEMBLK_MINOR_VERSION);
+
 /*
  * libpmemblk_init -- (internal) load-time initialization for blk
  *
@@ -81,6 +84,11 @@ pmemblk_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != PMEMBLK_MAJOR_VERSION) {
 		ERR("libpmemblk major version mismatch (need %u, found %u)",

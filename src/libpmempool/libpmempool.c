@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,6 +54,9 @@
 #define ANSWER_BUFFSIZE 256
 #endif
 
+static const char *Ver = LIBVERSTR(PMEMPOOL_LOG_PREFIX,
+		PMEMPOOL_MAJOR_VERSION, PMEMPOOL_MINOR_VERSION);
+
 /*
  * libpmempool_init -- load-time initialization for libpmempool
  *
@@ -103,6 +106,11 @@ pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != PMEMPOOL_MAJOR_VERSION) {
 		ERR("libpmempool major version mismatch (need %u, found %u)",
