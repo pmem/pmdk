@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,4 +48,10 @@
 #define pmem_flush __wrap_pmem_flush
 #define pmem_drain __wrap_pmem_drain
 #define pmem_msync __wrap_pmem_msync
+#define pmem_memcpy_persist __wrap_pmem_memcpy_persist
+#define pmem_memcpy_nodrain __wrap_pmem_memcpy_nodrain
+#define pmem_memmove_persist __wrap_pmem_memmove_persist
+#define pmem_memmove_nodrain __wrap_pmem_memmove_nodrain
+#define pmem_memset_persist __wrap_pmem_memset_persist
+#define pmem_memset_nodrain __wrap_pmem_memset_nodrain
 #endif

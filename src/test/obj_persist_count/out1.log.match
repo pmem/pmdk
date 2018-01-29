@@ -1,18 +1,19 @@
 obj_persist_count$(nW)TEST1: START: obj_persist_count
  $(nW)obj_persist_count$(nW) $(nW)testfile
-persist	;msync	;flush	;drain	;task
-15	;0	;0	;0	;pool_create
-4	;0	;3	;1	;root_alloc
-1	;0	;1	;1	;atomic_alloc
-1	;0	;0	;1	;atomic_free
-6	;0	;2	;2	;tx_alloc
-5	;0	;2	;2	;tx_alloc_next
-8	;0	;1	;2	;tx_free
-7	;0	;1	;2	;tx_free_next
-15	;0	;3	;2	;tx_add
-3	;0	;1	;1	;tx_add_next
-4	;0	;2	;1	;pmalloc
-4	;0	;1	;1	;pfree
-1	;0	;1	;1	;pmalloc_stack
-1	;0	;0	;1	;pfree_stack
+task           cl(all) drain(all) pmem_persist pmem_msync pmem_flush pmem_drain pmem_memcpy_cls pmem_memcpy_drain pmem_memset_cls pmem_memset_drain potential_cache_misses 
+pool_create    49292   19         15           0          0          0          0               0                 49163           4                 133                    
+root_alloc     9       6          4            0          3          1          0               0                 2               1                 9                      
+atomic_alloc   2       2          1            0          1          1          0               0                 0               0                 2                      
+atomic_free    1       2          1            0          0          1          0               0                 0               0                 1                      
+tx_begin_end   2       3          2            0          0          1          0               0                 0               0                 2                      
+tx_alloc       7       5          4            0          2          1          0               0                 0               0                 7                      
+tx_alloc_next  6       4          3            0          2          1          0               0                 0               0                 6                      
+tx_free        7       7          6            0          1          1          0               0                 0               0                 7                      
+tx_free_next   6       6          5            0          1          1          0               0                 0               0                 6                      
+tx_add         538     17         13           0          3          1          1               1                 516             2                 24                     
+tx_add_next    4       3          1            0          1          0          1               1                 1               1                 4                      
+pmalloc        6       5          4            0          2          1          0               0                 0               0                 6                      
+pfree          5       5          4            0          1          1          0               0                 0               0                 5                      
+pmalloc_stack  2       2          1            0          1          1          0               0                 0               0                 2                      
+pfree_stack    1       2          1            0          0          1          0               0                 0               0                 1                      
 obj_persist_count$(nW)TEST1: DONE
