@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,13 @@
 #include "synchronize.h"
 #include "transform.h"
 #include "set.h"
+
+#include "libpmem.h"
+#include "libpmemblk.h"
+#include "libpmemcto.h"
+#include "libpmemlog.h"
+#include "libpmemobj.h"
+#include "libpmempool.h"
 
 #ifndef _WIN32
 #include "rpmem_common.h"
@@ -186,6 +193,19 @@ static void
 print_version(char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
+
+#if 0
+	/* XXX: extra flag? '-l'? */
+	printf("%s\n", pmem_check_version(0, 0));
+	printf("%s\n", pmemblk_check_version(0, 0));
+	printf("%s\n", pmemcto_check_version(0, 0));
+	printf("%s\n", pmemlog_check_version(0, 0));
+	printf("%s\n", pmemobj_check_version(0, 0));
+	printf("%s\n", pmempool_check_version(0, 0));
+#ifndef _WIN32
+	printf("%s", rpmem_check_version(0, 0)); /* XXX */
+#endif
+#endif
 }
 
 /*
