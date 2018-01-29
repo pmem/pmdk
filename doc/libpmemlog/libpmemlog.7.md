@@ -189,6 +189,13 @@ On success, _UW(pmemlog_check_version) returns NULL. Otherwise, the return
 value is a static string describing the reason the version check failed. The
 string returned by _UW(pmemlog_check_version) must not be modified or freed.
 
+When _UW(pmemlog_check_version) is called with both *major_required* and
+*minor_required* equal 0, the return value is a static string
+containing the detailed information about the library version, source
+version, build type, etc.
+>NOTE: The application should not make any assumptions about the format
+of this string, as it may be a subject for change in the future.
+
 
 # MANAGING LIBRARY BEHAVIOR #
 
