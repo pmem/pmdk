@@ -66,18 +66,18 @@ date: pmemobj API version 2.2
 
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
-int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags); (EXPERIMENTAL)
-int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags); (EXPERIMENTAL)
+int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size, uint64_t flags);
+int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
 
 TX_ADD(TOID o)
 TX_ADD_FIELD(TOID o, FIELD)
 TX_ADD_DIRECT(TYPE *p)
 TX_ADD_FIELD_DIRECT(TYPE *p, FIELD)
 
-TX_XADD(TOID o, uint64_t flags) (EXPERIMENTAL)
-TX_XADD_FIELD(TOID o, FIELD, uint64_t flags) (EXPERIMENTAL)
-TX_XADD_DIRECT(TYPE *p, uint64_t flags) (EXPERIMENTAL)
-TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags) (EXPERIMENTAL)
+TX_XADD(TOID o, uint64_t flags)
+TX_XADD_FIELD(TOID o, FIELD, uint64_t flags)
+TX_XADD_DIRECT(TYPE *p, uint64_t flags)
+TX_XADD_FIELD_DIRECT(TYPE *p, FIELD, uint64_t flags)
 
 TX_SET(TOID o, FIELD, VALUE)
 TX_SET_DIRECT(TYPE *p, FIELD, VALUE)

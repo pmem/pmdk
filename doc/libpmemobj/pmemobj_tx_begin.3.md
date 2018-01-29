@@ -75,7 +75,7 @@ int pmemobj_tx_errno(void);
 void pmemobj_tx_process(void);
 
 TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
-TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
 TX_BEGIN(PMEMobjpool *pop)
 TX_ONABORT
 TX_ONCOMMIT
@@ -154,7 +154,7 @@ of values. Currently there are 4 types:
 
 + **TX_PARAM_RWLOCK**, followed by one value, a pmem-resident PMEMrwlock
 
-+ (EXPERIMENTAL) **TX_PARAM_CB**, followed by two values: a callback function
++ **TX_PARAM_CB**, followed by two values: a callback function
 of type *pmemobj_tx_callback*, and a void pointer
 
 Using **TX_PARAM_MUTEX** or **TX_PARAM_RWLOCK** causes the specified lock to
@@ -276,7 +276,7 @@ TX_BEGIN(Pop) {
 
 ```c
 TX_BEGIN_PARAM(PMEMobjpool *pop, ...)
-TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...) (EXPERIMENTAL)
+TX_BEGIN_CB(PMEMobjpool *pop, cb, arg, ...)
 TX_BEGIN(PMEMobjpool *pop)
 ```
 

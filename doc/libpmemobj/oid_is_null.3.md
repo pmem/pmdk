@@ -62,7 +62,7 @@ OID_IS_NULL(PMEMoid oid)
 OID_EQUALS(PMEMoid lhs, PMEMoid rhs)
 
 void *pmemobj_direct(PMEMoid oid);
-PMEMoid pmemobj_oid(const void *addr); (EXPERIMENTAL)
+PMEMoid pmemobj_oid(const void *addr);
 uint64_t pmemobj_type_num(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);

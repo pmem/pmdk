@@ -149,8 +149,6 @@ void *pmemobj_direct(PMEMoid oid);
 
 /*
  * Returns the OID of the object pointed to by addr.
- *
- * EXPERIMENTAL
  */
 PMEMoid pmemobj_oid(const void *addr);
 
