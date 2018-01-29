@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,7 +85,6 @@ _pobj_validate_cb_sig(pmemobj_tx_callback cb)
 	return cb;
 }
 
-/* EXPERIMENTAL */
 #define TX_BEGIN_CB(pop, cb, arg, ...) _POBJ_TX_BEGIN(pop, TX_PARAM_CB,\
 		_pobj_validate_cb_sig(cb), arg, ##__VA_ARGS__)
 
@@ -132,19 +131,15 @@ pmemobj_tx_add_range_direct(p, sizeof(*p))
 #define TX_ADD_FIELD_DIRECT(p, field)\
 pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
 
-/* EXPERIMENTAL */
 #define TX_XADD(o, flags)\
 pmemobj_tx_xadd_range((o).oid, 0, sizeof(*(o)._type), flags)
 
-/* EXPERIMENTAL */
 #define TX_XADD_FIELD(o, field, flags)\
 	TX_XADD_DIRECT(&(D_RO(o)->field), flags)
 
-/* EXPERIMENTAL */
 #define TX_XADD_DIRECT(p, flags)\
 pmemobj_tx_xadd_range_direct(p, sizeof(*p), flags)
 
-/* EXPERIMENTAL */
 #define TX_XADD_FIELD_DIRECT(p, field, flags)\
 pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
 
@@ -161,7 +156,6 @@ pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
 #define TX_ZALLOC(t, size)\
 ((TOID(t))pmemobj_tx_zalloc(size, TOID_TYPE_NUM(t)))
 
-/* EXPERIMENTAL */
 #define TX_XALLOC(t, size, flags)\
 ((TOID(t))pmemobj_tx_xalloc(size, TOID_TYPE_NUM(t), flags))
 

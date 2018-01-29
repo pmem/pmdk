@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -149,8 +149,6 @@ void *pmemobj_direct(PMEMoid oid);
 
 /*
  * Returns the OID of the object pointed to by addr.
- *
- * EXPERIMENTAL
  */
 PMEMoid pmemobj_oid(const void *addr);
 
