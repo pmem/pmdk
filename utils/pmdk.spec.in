@@ -106,7 +106,6 @@ convenient.
 %files -n libpmem-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmem.so
-%{_libdir}/libpmem.a
 %{_libdir}/pkgconfig/libpmem.pc
 %{_includedir}/libpmem.h
 %{_mandir}/man7/libpmem.7.gz
@@ -134,7 +133,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmem.so
 %{_libdir}/pmdk_debug/libpmem.so.*
-%{_libdir}/pmdk_debug/libpmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -174,7 +172,6 @@ more generally useful.
 %files -n libpmemblk-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmemblk.so
-%{_libdir}/libpmemblk.a
 %{_libdir}/pkgconfig/libpmemblk.pc
 %{_includedir}/libpmemblk.h
 %{_mandir}/man7/libpmemblk.7.gz
@@ -203,7 +200,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmemblk.so
 %{_libdir}/pmdk_debug/libpmemblk.so.*
-%{_libdir}/pmdk_debug/libpmemblk.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -238,7 +234,6 @@ level libraries like libpmemobj to be more generally useful.
 %files -n libpmemlog-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmemlog.so
-%{_libdir}/libpmemlog.a
 %{_libdir}/pkgconfig/libpmemlog.pc
 %{_includedir}/libpmemlog.h
 %{_mandir}/man7/libpmemlog.7.gz
@@ -268,7 +263,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmemlog.so
 %{_libdir}/pmdk_debug/libpmemlog.so.*
-%{_libdir}/pmdk_debug/libpmemlog.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -303,7 +297,6 @@ probably want to start with this library.
 %files -n libpmemobj-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmemobj.so
-%{_libdir}/libpmemobj.a
 %{_libdir}/pkgconfig/libpmemobj.pc
 %{_includedir}/libpmemobj.h
 %{_includedir}/libpmemobj/*.h
@@ -340,7 +333,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmemobj.so
 %{_libdir}/pmdk_debug/libpmemobj.so.*
-%{_libdir}/pmdk_debug/libpmemobj.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -375,7 +367,6 @@ applications that want to make use of libvmem.
 %files -n libvmem-devel
 %defattr(-,root,root,-)
 %{_libdir}/libvmem.so
-%{_libdir}/libvmem.a
 %{_libdir}/pkgconfig/libvmem.pc
 %{_includedir}/libvmem.h
 %{_mandir}/man7/libvmem.7.gz
@@ -403,7 +394,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libvmem.so
 %{_libdir}/pmdk_debug/libvmem.so.*
-%{_libdir}/pmdk_debug/libvmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -443,7 +433,6 @@ applications that want to specifically make use of libvmmalloc.
 %files -n libvmmalloc-devel
 %defattr(-,root,root,-)
 %{_libdir}/libvmmalloc.so
-%{_libdir}/libvmmalloc.a
 %{_libdir}/pkgconfig/libvmmalloc.pc
 %{_includedir}/libvmmalloc.h
 %{_mandir}/man7/libvmmalloc.7.gz
@@ -471,7 +460,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libvmmalloc.so
 %{_libdir}/pmdk_debug/libvmmalloc.so.*
-%{_libdir}/pmdk_debug/libvmmalloc.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -529,7 +517,6 @@ pools created by libpmemlog, libpemblk and libpmemobj libraries.
 %files -n libpmempool-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmempool.so
-%{_libdir}/libpmempool.a
 %{_libdir}/pkgconfig/libpmempool.pc
 %{_includedir}/libpmempool.h
 %{_mandir}/man7/libpmempool.7.gz
@@ -558,7 +545,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmempool.so
 %{_libdir}/pmdk_debug/libpmempool.so.*
-%{_libdir}/pmdk_debug/libpmempool.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -596,7 +582,6 @@ applications that want to specifically make use of librpmem.
 %files -n librpmem-devel
 %defattr(-,root,root,-)
 %{_libdir}/librpmem.so
-%{_libdir}/librpmem.a
 %{_libdir}/pkgconfig/librpmem.pc
 %{_includedir}/librpmem.h
 %{_mandir}/man7/librpmem.7.gz
@@ -624,7 +609,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/librpmem.so
 %{_libdir}/pmdk_debug/librpmem.so.*
-%{_libdir}/pmdk_debug/librpmem.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -671,7 +655,6 @@ imposed by run-time flushing or transactional updates.
 %files -n libpmemcto-devel
 %defattr(-,root,root,-)
 %{_libdir}/libpmemcto.so
-%{_libdir}/libpmemcto.a
 %{_libdir}/pkgconfig/libpmemcto.pc
 %{_includedir}/libpmemcto.h
 %{_mandir}/man7/libpmemcto.7.gz
@@ -699,7 +682,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmemcto.so
 %{_libdir}/pmdk_debug/libpmemcto.so.*
-%{_libdir}/pmdk_debug/libpmemcto.a
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
@@ -744,6 +726,7 @@ make %{?_smp_mflags} __MAKE_FLAGS__
 # Override LIB_AR with empty string to skip installation of static libraries
 %install
 make install DESTDIR=%{buildroot} \
+	LIB_AR= \
 	prefix=%{_prefix} \
 	libdir=%{_libdir} \
 	includedir=%{_includedir} \
