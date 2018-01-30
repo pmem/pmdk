@@ -182,22 +182,23 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
-	$(TOP)/src/nodebug/common/$(COMMON)/file.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/file_posix.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/fs_posix.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/mmap.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/mmap_posix.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/os_posix.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/os_thread_posix.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/os_dimm_$(OS_DIMM).o\
-	$(TOP)/src/nodebug/common/$(COMMON)/out.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/pool_hdr.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/set.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/shutdown_state.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/util.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/uuid.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/uuid_linux.o\
-	$(TOP)/src/nodebug/common/$(COMMON)/util_posix.o
+	$(TOP)/src/nondebug/common/file.o\
+	$(TOP)/src/nondebug/common/file_posix.o\
+	$(TOP)/src/nondebug/common/fs_posix.o\
+	$(TOP)/src/nondebug/common/mmap.o\
+	$(TOP)/src/nondebug/common/mmap_posix.o\
+	$(TOP)/src/nondebug/common/os_posix.o\
+	$(TOP)/src/nondebug/common/os_thread_posix.o\
+	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
+	$(TOP)/src/nondebug/common/out.o\
+	$(TOP)/src/nondebug/common/pool_hdr.o\
+	$(TOP)/src/nondebug/common/set.o\
+	$(TOP)/src/nondebug/common/shutdown_state.o\
+	$(TOP)/src/nondebug/common/util.o\
+	$(TOP)/src/nondebug/common/util_posix.o\
+	$(TOP)/src/nondebug/common/uuid.o\
+	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
+
 INCS += -I$(TOP)/src/common
 LIBS += $(LIBDL)
 LIBPMEM=y
@@ -205,22 +206,23 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
 OBJS +=\
-	$(TOP)/src/debug/common/$(COMMON)/file.o\
-	$(TOP)/src/debug/common/$(COMMON)/file_posix.o\
-	$(TOP)/src/debug/common/$(COMMON)/fs_posix.o\
-	$(TOP)/src/debug/common/$(COMMON)/mmap.o\
-	$(TOP)/src/debug/common/$(COMMON)/mmap_posix.o\
-	$(TOP)/src/debug/common/$(COMMON)/os_posix.o\
-	$(TOP)/src/debug/common/$(COMMON)/os_thread_posix.o\
-	$(TOP)/src/debug/common/$(COMMON)/os_dimm_$(OS_DIMM).o\
-	$(TOP)/src/debug/common/$(COMMON)/out.o\
-	$(TOP)/src/debug/common/$(COMMON)/pool_hdr.o\
-	$(TOP)/src/debug/common/$(COMMON)/set.o\
-	$(TOP)/src/debug/common/$(COMMON)/shutdown_state.o\
-	$(TOP)/src/debug/common/$(COMMON)/util.o\
-	$(TOP)/src/debug/common/$(COMMON)/uuid.o\
-	$(TOP)/src/debug/common/$(COMMON)/uuid_linux.o\
-	$(TOP)/src/debug/common/$(COMMON)/util_posix.o
+	$(TOP)/src/debug/common/file.o\
+	$(TOP)/src/debug/common/file_posix.o\
+	$(TOP)/src/debug/common/fs_posix.o\
+	$(TOP)/src/debug/common/mmap.o\
+	$(TOP)/src/debug/common/mmap_posix.o\
+	$(TOP)/src/debug/common/os_posix.o\
+	$(TOP)/src/debug/common/os_thread_posix.o\
+	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
+	$(TOP)/src/debug/common/out.o\
+	$(TOP)/src/debug/common/pool_hdr.o\
+	$(TOP)/src/debug/common/set.o\
+	$(TOP)/src/debug/common/shutdown_state.o\
+	$(TOP)/src/debug/common/util.o\
+	$(TOP)/src/debug/common/util_posix.o\
+	$(TOP)/src/debug/common/uuid.o\
+	$(call osdep, $(TOP)/src/debug/common/uuid,.o)
+
 INCS += -I$(TOP)/src/common
 LIBS += $(LIBDL)
 LIBPMEM=y
