@@ -63,7 +63,6 @@ test_script:
 - ps: >-
     if ($Env:CONFIGURATION -ne "Setup") {
         cd src/test
-        md C:\temp
         echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1

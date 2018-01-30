@@ -1204,20 +1204,22 @@ if ($DIR) {
     } # switch
 }
 
-if (isDir($Env:PMEM_FS_DIR)) {
-    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-        # "0" means there is PMEM
-        $Global:PMEM_IS_PMEM = "0"
-    } else {
-        &$PMEMDETECT $Env:PMEM_FS_DIR
-        $Global:PMEM_IS_PMEM = $Global:LASTEXITCODE
-    }
+if (-Not (isDir($Env:PMEM_FS_DIR))) {
+    ni -ItemType directory -Path $Env:PMEM_FS_DIR | out-null
+}
+if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+    # "0" means there is PMEM
+    $Global:PMEM_IS_PMEM = "0"
+} else {
+    &$PMEMDETECT $Env:PMEM_FS_DIR
+    $Global:PMEM_IS_PMEM = $Global:LASTEXITCODE
 }
 
-if (isDir($Env:NON_PMEM_FS_DIR)) {
-    &$PMEMDETECT $Env:NON_PMEM_FS_DIR
-    $Global:NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
+if (-Not (isDir($Env:NON_PMEM_FS_DIR))) {
+    ni -ItemType directory -Path $Env:NON_PMEM_FS_DIR | out-null
 }
+&$PMEMDETECT $Env:NON_PMEM_FS_DIR
+$Global:NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
 
 # Length of pool file's signature
 sv -Name SIG_LEN 8
