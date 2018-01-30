@@ -12,7 +12,6 @@
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -39,7 +38,6 @@ $(OPT)==$(N)==    by 0x$(X): pmemobj_persist $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is 0 bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -74,7 +72,6 @@ $(OPT)==$(N)==  Address 0x$(X) is in a rw- mapped file $(nW) segment
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -101,7 +98,6 @@ $(OPT)==$(N)==    by 0x$(X): pmemobj_persist $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -124,7 +120,6 @@ $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
 ==$(N)==    at 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is $(N) bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -151,7 +146,6 @@ $(OPT)==$(N)==    by 0x$(X): pmemobj_persist $(*)
 ==$(N)==    by 0x$(X): test_everything (obj_memcheck.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_memcheck.c:$(N))
 ==$(N)==  Address 0x$(X) is 0 bytes inside a block of size $(N) free'd
-$(OPT)==$(N)==    $(S) 0x$(X): palloc_restore_free_chunk_state $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_heap_action_on_process $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_exec_actions $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): palloc_operation $(*)
@@ -169,13 +163,13 @@ $(OPT)==$(N)==    $(S) 0x$(X): obj_realloc_common $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): pmemobj_realloc $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): test_everything $(*)
 $(OPT)==$(N)==    $(S) 0x$(X): main $(*)
-==$(N)== 
-==$(N)== Invalid write of size $(N)
-==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
-==$(N)==    by 0x$(X): main $(*)
-==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
-==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
-==$(N)==    by 0x$(X): main $(*)
+$(OPT)==$(N)== 
+$(OPT)==$(N)== Invalid write of size $(N)
+$(OPT)==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
+$(OPT)==$(N)==  Address 0x$(X) is $(N) bytes after a block of size $(N) free'd
+$(OPT)==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
 $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
 $(OPT)==$(N)==    by 0x$(X): main $(*)
