@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -115,7 +115,8 @@ struct section_operations {
 	section_destr destroy_rt;
 	section_layout_op check;
 	section_layout_op recover;
-	section_global_op boot;
+	section_global_op init;
+	section_global_op cleanup;
 };
 
 struct lane_info {
@@ -141,7 +142,8 @@ void lane_info_destroy(void);
 
 int lane_boot(PMEMobjpool *pop);
 void lane_cleanup(PMEMobjpool *pop);
-int lane_recover_and_section_boot(PMEMobjpool *pop);
+int lane_recover_and_section_init(PMEMobjpool *pop);
+void lane_section_cleanup(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
 unsigned lane_hold(PMEMobjpool *pop, struct lane_section **section,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -288,10 +288,11 @@ lane_cleanup(PMEMobjpool *pop)
 }
 
 /*
- * lane_recover_and_boot -- performs initialization and recovery of all lanes
+ * lane_recover_and_section_init -- performs initialization and recovery of all
+ * lanes
  */
 int
-lane_recover_and_section_boot(PMEMobjpool *pop)
+lane_recover_and_section_init(PMEMobjpool *pop)
 {
 	int err = 0;
 	int i; /* section index */
@@ -311,13 +312,28 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 			}
 		}
 
-		if ((err = Section_ops[i]->boot(pop)) != 0) {
+		if ((err = Section_ops[i]->init(pop)) != 0) {
 			LOG(2, "section_ops->init %d %d", i, err);
 			return err;
 		}
 	}
 
 	return err;
+}
+
+/*
+ * lane_section_cleanup -- performs runtime cleanup of all lanes
+ */
+void
+lane_section_cleanup(PMEMobjpool *pop)
+{
+	int err;
+
+	for (int i = 0; i < MAX_LANE_SECTION; i++) {
+		if ((err = Section_ops[i]->cleanup(pop)) != 0) {
+			LOG(2, "section_ops->cleanup %d %d", i, err);
+		}
+	}
 }
 
 /*

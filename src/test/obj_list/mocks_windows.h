@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,6 +74,7 @@ extern "C" {
 #define lane_hold __wrap_lane_hold
 #define lane_release __wrap_lane_release
 #define lane_recover_and_section_boot __wrap_lane_recover_and_section_boot
+#define lane_section_cleanup __wrap_lane_section_cleanup
 #endif
 
 #ifndef WRAP_REAL_HEAP

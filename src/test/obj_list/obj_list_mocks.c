@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -294,13 +294,22 @@ FUNC_MOCK_END
 FUNC_MOCK_RET_ALWAYS_VOID(lane_release, PMEMobjpool *pop);
 
 /*
- * lane_recover_and_section_boot -- lane_recover_and_section_boot mock
+ * lane_recover_and_section_init -- lane_recover_and_section_init mock
  */
-FUNC_MOCK(lane_recover_and_section_boot, int, PMEMobjpool *pop)
+FUNC_MOCK(lane_recover_and_section_init, int, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
 		return Section_ops[LANE_SECTION_LIST]->recover(Pop,
 				Lane_section.layout,
 				sizeof(*Lane_section.layout));
+	}
+FUNC_MOCK_END
+
+/*
+ * lane_section_cleanup -- lane_section_cleanup mock
+ */
+FUNC_MOCK(lane_section_cleanup, int, PMEMobjpool *pop)
+	FUNC_MOCK_RUN_DEFAULT {
+		return 0;
 	}
 FUNC_MOCK_END
 
