@@ -1,4 +1,4 @@
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -86,7 +86,7 @@ LIBPMEMLOG_PRIV_FUNCS=log_convert2h log_convert2le
 
 include ../Makefile.inc
 
-LIBS += -lpmem -ldl
+LIBS += -pthread -lpmem -ldl
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM
 

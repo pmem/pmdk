@@ -1,4 +1,4 @@
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@ ifneq ($(DEBUG),)
 CFLAGS += -DDEBUG
 endif
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+
+LIBS += -pthread
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 
 INSTALL_TARGET=y
