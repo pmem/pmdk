@@ -201,7 +201,7 @@ void
 rpmem_util_get_env_max_nlanes(unsigned *max_nlanes)
 {
 	char *env_nlanes = os_getenv(RPMEM_MAX_NLANES_ENV);
-	if (env_nlanes) {
+	if (env_nlanes && env_nlanes[0] != '\0') {
 		int nlanes = atoi(env_nlanes);
 		if (nlanes <= 0) {
 			RPMEM_LOG(ERR, "%s variable must be a positive integer",
