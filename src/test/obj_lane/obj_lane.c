@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,9 +110,17 @@ lane_noop_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 static int
-lane_noop_boot(PMEMobjpool *pop)
+lane_noop_init(PMEMobjpool *pop)
 {
 	UT_OUT("lane_noop_init");
+
+	return 0;
+}
+
+static int
+lane_noop_cleanup(PMEMobjpool *pop)
+{
+	UT_OUT("lane_noop_cleanup");
 
 	return 0;
 }
@@ -122,7 +130,8 @@ static struct section_operations noop_ops = {
 	.destroy_rt = lane_noop_destroy_rt,
 	.recover = lane_noop_recovery,
 	.check = lane_noop_check,
-	.boot = lane_noop_boot
+	.init = lane_noop_init,
+	.cleanup = lane_noop_cleanup,
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &noop_ops);
@@ -189,7 +198,7 @@ test_lane_recovery_check_ok(void)
 	base_ptr = &pop->p;
 	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
-	UT_ASSERTeq(lane_recover_and_section_boot(&pop->p), 0);
+	UT_ASSERTeq(lane_recover_and_section_init(&pop->p), 0);
 	UT_ASSERTeq(lane_check(&pop->p), 0);
 
 	FREE(pop);
@@ -206,7 +215,7 @@ test_lane_recovery_check_fail(void)
 
 	recovery_check_fail = 1;
 
-	UT_ASSERTne(lane_recover_and_section_boot(&pop->p), 0);
+	UT_ASSERTne(lane_recover_and_section_init(&pop->p), 0);
 	UT_ASSERTne(lane_check(&pop->p), 0);
 
 	FREE(pop);
