@@ -55,7 +55,7 @@ CTL_READ_HANDLER(enabled)(PMEMobjpool *pop,
 {
 	int *arg_out = arg;
 
-	*arg_out = pop->stats->enabled;
+	*arg_out = pop->stats->enabled > 0;
 
 	return 0;
 }
@@ -70,7 +70,7 @@ CTL_WRITE_HANDLER(enabled)(PMEMobjpool *pop,
 {
 	int arg_in = *(int *)arg;
 
-	pop->stats->enabled = arg_in;
+	pop->stats->enabled = arg_in > 0;
 
 	return 0;
 }
