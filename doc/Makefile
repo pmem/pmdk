@@ -56,7 +56,8 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemcto/pmemcto_strdup.3.md libpmemcto/pmemcto_wcsdup.3.md \
 		libpmemcto/pmemcto_set_root_pointer.3.md \
 		libpmemcto/pmemcto_malloc_usable_size.3.md \
-		libpmemcto/pmemcto_stats_print.3.md
+		libpmemcto/pmemcto_stats_print.3.md \
+		libpmemcto/pmemcto_errormsg.3.md
 
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
