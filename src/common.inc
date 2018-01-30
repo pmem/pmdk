@@ -59,6 +59,8 @@ GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
 GCOV_LIBS=-lgcov
 
+osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
+
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
 endif

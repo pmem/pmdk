@@ -31,8 +31,6 @@
 # src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
 #
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
-
 SOURCE =\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
@@ -49,4 +47,4 @@ SOURCE =\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
-	$(COMMON)/$(call osdep, uuid,.c)
+	$(call osdep, $(COMMON)/uuid,.c)
