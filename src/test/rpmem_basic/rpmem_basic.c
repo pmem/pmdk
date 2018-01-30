@@ -94,6 +94,7 @@ struct pool_entry {
 	const char *target;
 	void *pool;
 	size_t size;
+	unsigned nlanes;
 	int is_mem;
 	int error_must_occur;
 	int exp_errno;
@@ -111,6 +112,7 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 {
 	pool->target = target;
 	pool->exp_errno = 0;
+	pool->nlanes = NLANES;
 
 	int ret = util_parse_size(pool_size, &pool->size);
 	UT_ASSERTeq(ret, 0);
@@ -245,7 +247,6 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
 
-	unsigned nlanes = NLANES;
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
@@ -255,10 +256,10 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
-			pool->size, &nlanes, &pool_attr);
+			pool->size, &pool->nlanes, &pool_attr);
 
 	if (pool->rpp) {
-		UT_ASSERTne(nlanes, 0);
+		UT_ASSERTne(pool->nlanes, 0);
 		UT_OUT("%s: created", pool_set);
 	} else {
 		UT_OUT("!%s", pool_set);
@@ -291,17 +292,15 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(pool->rpp, NULL);
 	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
 
-	unsigned nlanes = NLANES;
-
 	init_pool(pool, target, pool_path, size_str);
 
 	struct rpmem_pool_attr pool_attr;
 	pool->rpp = rpmem_open(target, pool_set, pool->pool,
-			pool->size, &nlanes, &pool_attr);
+			pool->size, &pool->nlanes, &pool_attr);
 
 	if (pool->rpp) {
 		cmp_pool_attr(&pool_attr, &pool_attrs[pool_attr_id]);
-		UT_ASSERTne(nlanes, 0);
+		UT_ASSERTne(pool->nlanes, 0);
 
 		UT_OUT("%s: opened", pool_set);
 	} else {
@@ -385,7 +384,8 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 	struct pool_entry *pool = &pools[id];
 	int seed = atoi(argv[1]);
 
-	int nthreads = atoi(argv[2]);
+	UT_ASSERTne(pool->nlanes, 0);
+	int nthreads = min(atoi(argv[2]), pool->nlanes);
 	int nops = atoi(argv[3]);
 
 	size_t buff_size = pool->size - POOL_HDR_SIZE;
