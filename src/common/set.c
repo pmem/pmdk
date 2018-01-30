@@ -2808,6 +2808,7 @@ err_part_init:
 		struct pool_replica *rep = set->replica[rn];
 		unsigned pidx = rep->nparts - 1;
 		Free((void *)(rep->part[pidx].path));
+		rep->part[pidx].path = NULL;
 		rep->nparts--;
 	}
 
@@ -2891,6 +2892,7 @@ err:
 		if (p->created)
 			os_unlink(p->path);
 		Free((void *)p->path);
+		p->path = NULL;
 	}
 	util_poolset_set_size(set);
 
