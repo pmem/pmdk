@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -201,9 +201,15 @@ void
 rpmem_util_get_env_max_nlanes(unsigned *max_nlanes)
 {
 	char *env_nlanes = os_getenv(RPMEM_MAX_NLANES_ENV);
-	if (env_nlanes) {
-		int nlanes = atoi(env_nlanes);
-		if (nlanes <= 0) {
+	if (env_nlanes && env_nlanes[0] != '\0') {
+		char *endptr;
+		errno = 0;
+
+		long nlanes = strtol(env_nlanes, &endptr, 10);
+
+		if (endptr[0] != '\0' || nlanes <= 0 ||
+			(errno == ERANGE &&
+			(nlanes == LONG_MAX || nlanes == LONG_MIN))) {
 			RPMEM_LOG(ERR, "%s variable must be a positive integer",
 					RPMEM_MAX_NLANES_ENV);
 		} else {
