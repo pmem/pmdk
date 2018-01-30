@@ -75,7 +75,7 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 
 include ../Makefile.inc
 
-LIBS += -lpmem $(LIBDL) $(LIBNDCTL)
+LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL)
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM
 
