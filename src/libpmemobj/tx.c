@@ -2335,10 +2335,20 @@ lane_transaction_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 /*
- * lane_transaction_boot -- initializes transaction section
+ * lane_transaction_boot -- global runtime init routine of tx section
  */
 static int
 lane_transaction_boot(PMEMobjpool *pop)
+{
+	/* NOP */
+	return 0;
+}
+
+/*
+ * lane_transaction_cleanup -- global runtime cleanup routine of tx section
+ */
+static int
+lane_transaction_cleanup(PMEMobjpool *pop)
 {
 	/* NOP */
 	return 0;
@@ -2349,7 +2359,8 @@ static struct section_operations transaction_ops = {
 	.destroy_rt = lane_transaction_destroy_rt,
 	.recover = lane_transaction_recovery,
 	.check = lane_transaction_check,
-	.boot = lane_transaction_boot
+	.boot = lane_transaction_boot,
+	.cleanup = lane_transaction_cleanup,
 };
 
 SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1102,10 +1102,20 @@ lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
 }
 
 /*
- * lane_list_boot -- initializes list section
+ * lane_list_boot -- global runtime init routine of list section
  */
 static int
 lane_list_boot(PMEMobjpool *pop)
+{
+	/* NOP */
+	return 0;
+}
+
+/*
+ * lane_list_cleanup -- global runtime cleanup routine of list section
+ */
+static int
+lane_list_cleanup(PMEMobjpool *pop)
 {
 	/* NOP */
 	return 0;
@@ -1116,7 +1126,8 @@ static struct section_operations list_ops = {
 	.destroy_rt = lane_list_destroy_rt,
 	.recover = lane_list_recovery,
 	.check = lane_list_check,
-	.boot = lane_list_boot
+	.boot = lane_list_boot,
+	.cleanup = lane_list_cleanup,
 };
 
 SECTION_PARM(LANE_SECTION_LIST, &list_ops);
