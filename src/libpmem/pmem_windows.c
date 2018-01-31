@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <memoryapi.h>
 #include "pmem.h"
 #include "out.h"
+#include "mmap.h"
 #include "win_mmap.h"
 
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
@@ -173,4 +174,16 @@ is_pmem_detect(const void *addr, size_t len)
 
 	LOG(4, "returning %d", retval);
 	return retval;
+}
+
+/*
+ * pmem_map_register -- memory map file and register mapping
+ */
+void *
+pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
+{
+	/* there is no device dax on windows */
+	ASSERTeq(is_dev_dax, 0);
+
+	return util_map(fd, len, MAP_SHARED, 0, 0);
 }

@@ -109,10 +109,11 @@ util_mmap_fini(void)
  * appropriate arguments and includes our trace points.
  */
 void *
-util_map(int fd, size_t len, int flags, int rdonly, size_t req_align)
+util_map(int fd, size_t len, int flags, int rdonly, size_t req_align,
+	int *map_sync)
 {
-	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu", fd, len, flags,
-			rdonly, req_align);
+	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu map_sync %p",
+			fd, len, flags, rdonly, req_align, map_sync);
 
 	void *base;
 	void *addr = util_map_hint(len, req_align);
@@ -124,8 +125,9 @@ util_map(int fd, size_t len, int flags, int rdonly, size_t req_align)
 	if (req_align)
 		ASSERTeq((uintptr_t)addr % req_align, 0);
 
-	if ((base = mmap(addr, len, rdonly ? PROT_READ : PROT_READ|PROT_WRITE,
-			flags, fd, 0)) == MAP_FAILED) {
+	int proto = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
+	base = util_map_sync(addr, len, proto, flags, fd, 0, map_sync);
+	if (base == MAP_FAILED) {
 		ERR("!mmap %zu bytes", len);
 		return NULL;
 	}
@@ -181,7 +183,8 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 	}
 
 	void *base;
-	if ((base = util_map(fd, size, MAP_SHARED, 0, req_align)) == NULL) {
+	if ((base = util_map(fd, size, MAP_SHARED,
+			0, req_align, NULL)) == NULL) {
 		LOG(2, "cannot mmap temporary file");
 		goto err;
 	}
@@ -346,9 +349,10 @@ util_range_find(uintptr_t addr, size_t len)
  * util_range_register -- add a memory range into a map tracking list
  */
 int
-util_range_register(const void *addr, size_t len, const char *path)
+util_range_register(const void *addr, size_t len, const char *path,
+	enum pmem_map_type type)
 {
-	LOG(3, "addr %p len %zu path %s", addr, len, path);
+	LOG(3, "addr %p len %zu path %s type %d", addr, len, path, type);
 
 	/* check if not tracked already */
 	ASSERTeq(util_range_find((uintptr_t)addr, len), NULL);
@@ -362,7 +366,9 @@ util_range_register(const void *addr, size_t len, const char *path)
 
 	mt->base_addr = (uintptr_t)addr;
 	mt->end_addr = mt->base_addr + len;
-	mt->region_id = util_ddax_region_find(path);
+	mt->type = type;
+	if (type == PMEM_DEV_DAX)
+		mt->region_id = util_ddax_region_find(path);
 
 	util_rwlock_wrlock(&Mmap_list_lock);
 
@@ -414,6 +420,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		mtb->base_addr = mt->base_addr;
 		mtb->end_addr = (uintptr_t)addr;
 		mtb->region_id = mt->region_id;
+		mtb->type = mt->type;
 	}
 
 	if (end < mt->end_addr) {
@@ -428,6 +435,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		mte->base_addr = end;
 		mte->end_addr = mt->end_addr;
 		mte->region_id = mt->region_id;
+		mte->type = mt->type;
 	}
 
 	SORTEDQ_REMOVE(&Mmap_list, mt, entry);

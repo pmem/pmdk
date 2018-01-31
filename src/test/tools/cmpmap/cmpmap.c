@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -228,7 +228,8 @@ do_cmpmap(void)
 
 	/* map the first file */
 	void *addr1;
-	if ((addr1 = util_map(fd1, size1, MAP_SHARED, 1, 0)) == MAP_FAILED) {
+	if ((addr1 = util_map(fd1, size1, MAP_SHARED,
+			1, 0, NULL)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, offset 0,"
 				" errno %d\n", File1, size1, errno);
 		ret = EXIT_FAILURE;
@@ -237,7 +238,7 @@ do_cmpmap(void)
 
 	/* map the second file, or do anonymous mapping to get zeroed bytes */
 	void *addr2;
-	if ((addr2 = util_map(fd2, size2, flag, 1, 0)) == MAP_FAILED) {
+	if ((addr2 = util_map(fd2, size2, flag, 1, 0, NULL)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, errno %d\n",
 			File2 ? File2 : "(anonymous)", size2, errno);
 		ret = EXIT_FAILURE;

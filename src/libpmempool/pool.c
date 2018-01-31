@@ -321,6 +321,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			goto out_unmap;
 		}
 		params->is_dev_dax = set->replica[0]->part[0].is_dev_dax;
+		params->is_pmem = set->replica[0]->is_pmem;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
 #ifndef _WIN32
@@ -338,12 +339,15 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			goto out_close;
 		}
 		params->size = (size_t)s;
-		addr = util_map(fd, params->size, MAP_SHARED, 1, 0);
+		int map_sync;
+		addr = util_map(fd, params->size, MAP_SHARED, 1, 0, &map_sync);
 		if (addr == NULL) {
 			ret = -1;
 			goto out_close;
 		}
 		params->is_dev_dax = util_file_is_device_dax(ppc->path);
+		params->is_pmem = params->is_dev_dax || map_sync ||
+			pmem_is_pmem(addr, params->size);
 	}
 
 	/* stop processing for BTT device */
@@ -643,7 +647,7 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 
 	if (pool->params.type != POOL_TYPE_BTT) {
 		memcpy((char *)pool->set_file->addr + off, buff, nbytes);
-		util_persist_auto(pool->params.is_dev_dax,
+		util_persist_auto(pool->params.is_pmem,
 				(char *)pool->set_file->addr + off, nbytes);
 	} else {
 		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
