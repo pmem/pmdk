@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,7 +50,10 @@ main(int argc, char *argv[])
 
 	int ret = pmempool_transform(argv[1], argv[2],
 			(unsigned)strtoul(argv[3], NULL, 0));
-	UT_OUT("result: %d, errno: %d", ret, errno);
+	if (ret)
+		UT_OUT("result: %d, errno: %d", ret, errno);
+	else
+		UT_OUT("result: %d", ret);
 
 	DONE(NULL);
 }
