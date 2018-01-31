@@ -720,6 +720,7 @@ and users of the applications based on PMDK libraries.
 # For debug build default flags may be overriden to disable compiler
 # optimizations.
 CFLAGS="%{optflags}" \
+LDFLAGS="%{?__global_ldflags}" \
 make %{?_smp_mflags} __MAKE_FLAGS__
 
 
