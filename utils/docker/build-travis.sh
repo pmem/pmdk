@@ -116,7 +116,6 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
-	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env NDCTL_ENABLE=$NDCTL_ENABLE \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \

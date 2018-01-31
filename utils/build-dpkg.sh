@@ -39,24 +39,88 @@ set -e
 SCRIPT_DIR=$(dirname $0)
 source $SCRIPT_DIR/pkg-common.sh
 
-# two arguments - BUILD_RPMEM and DISTRO are defined
-# and used only for build-rpm and they are ignored here
-if [ $# -lt 6 -o $# -gt 9 ]
-then
-	echo "Usage: $(basename $0) VERSION_TAG SOURCE_DIR WORKING_DIR"\
-					"OUT_DIR EXPERIMENTAL RUN_CHECK"\
-					"BUILD_RPMEM [TEST_CONFIG_FILE] [NDCTL_ENABLE] [DISTRO] "
+#
+# usage -- print usage message and exit
+#
+usage()
+{
+	[ "$1" ] && echo Error: $1
+	cat >&2 <<EOF
+Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
+	[ -e build-experimental ] [ -c run-check ]
+	[ -n with-ndctl ] [ -f testconfig-file ]
+
+-h			print this help message
+-t version-tag		source version tag
+-s source-dir		source directory
+-w working-dir		working directory
+-o output-dir		outut directory
+-e build-experimental	build experimental packages
+-c run-check		run package check
+-n with-ndctl		build with libndctl
+-f testconfig-file	custom testconfig.sh
+EOF
 	exit 1
+}
+
+#
+# command-line argument processing...
+#
+args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
+[ $? != 0 ] && usage
+set -- $args
+for arg
+do
+	receivetype=auto
+	case "$arg"
+	in
+	-e)
+		EXPERIMENTAL="$2"
+		shift 2
+		;;
+	-c)
+		BUILD_PACKAGE_CHECK="$2"
+		shift 2
+		;;
+	-f)
+		TEST_CONFIG_FILE="$2"
+		shift 2
+		;;
+	-n)
+		NDCTL_ENABLE="$2"
+		shift 2
+		;;
+	-t)
+		PACKAGE_VERSION_TAG="$2"
+		shift 2
+		;;
+	-s)
+		SOURCE="$2"
+		shift 2
+		;;
+	-w)
+		WORKING_DIR="$2"
+		shift 2
+		;;
+	-o)
+		OUT_DIR="$2"
+		shift 2
+		;;
+	--)
+		shift
+		break
+		;;
+	esac
+done
+
+
+# check for mandatory arguments
+if [ -z "$PACKAGE_VERSION_TAG" -o -z "$SOURCE" -o -z "$WORKING_DIR" -o -z "$OUT_DIR" ]
+then
+	error "Mandatory arguments missing"
+	usage
 fi
 
-PACKAGE_VERSION_TAG=$1
-SOURCE=$2
-WORKING_DIR=$3
-OUT_DIR=$4
-EXPERIMENTAL=$5
-BUILD_PACKAGE_CHECK=$6
-TEST_CONFIG_FILE=$8
-export NDCTL_ENABLE=$9
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
