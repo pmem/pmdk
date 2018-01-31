@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -449,7 +449,9 @@ if [ -f $TEST_CONFIG_FILE ]; then
 else
 	cp src/test/testconfig.sh.example src/test/testconfig.sh
 fi
-%{__make} NORPATH=1
+CFLAGS="%{optflags}" \
+LDFLAGS="%{?__global_ldflags}" \
+make %{?_smp_mflags} NORPATH=1
 
 %install
 rm -rf %{buildroot}
