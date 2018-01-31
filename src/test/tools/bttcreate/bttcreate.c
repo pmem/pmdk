@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -329,7 +329,7 @@ main(int argc, char *argv[])
 	}
 
 	/* map created file */
-	void *base = util_map(fd, opts.poolsize, MAP_SHARED, 0, 0);
+	void *base = util_map(fd, opts.poolsize, MAP_SHARED, 0, 0, NULL);
 	if (!base) {
 		perror("util_map");
 		res = file_error(fd, opts.fpath);
