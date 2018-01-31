@@ -182,7 +182,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 			ERR("unable to parse config stored in %s "
 				"environment variable",
 				OBJ_CONFIG_ENV_VARIABLE);
-			return -1;
+			goto err;
 		}
 	}
 
@@ -193,11 +193,15 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 				"file (from %s environment variable)",
 				env_config_file,
 				OBJ_CONFIG_FILE_ENV_VARIABLE);
-			return -1;
+			goto err;
 		}
 	}
 
 	return 0;
+err:
+	if (pop)
+		ctl_delete(pop->ctl);
+	return -1;
 }
 
 /*
@@ -728,10 +732,12 @@ obj_vg_boot(struct pmemobjpool *pop)
 #endif
 
 /*
- * obj_boot -- (internal) boots the pmemobj pool
+ * obj_runtime_init_common -- (internal) runtime initialization
+ *
+ * Common routine for create/open and check.
  */
 static int
-obj_boot(PMEMobjpool *pop)
+obj_runtime_init_common(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
 
@@ -750,6 +756,18 @@ obj_boot(PMEMobjpool *pop)
 		&pop->conversion_flags, sizeof(pop->conversion_flags));
 
 	return 0;
+}
+
+/*
+ * obj_runtime_cleanup_common -- (internal) runtime cleanup
+ *
+ * Common routine for create/open and check
+ */
+static void
+obj_runtime_cleanup_common(PMEMobjpool *pop)
+{
+	lane_section_cleanup(pop);
+	lane_cleanup(pop);
 }
 
 /*
@@ -1101,8 +1119,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	pop->cond_head = NULL;
 
 	if (boot) {
-		if ((errno = obj_boot(pop)) != 0)
-			goto err;
+		if ((errno = obj_runtime_init_common(pop)) != 0)
+			goto err_boot;
 
 #ifdef USE_VG_MEMCHECK
 		if (On_valgrind) {
@@ -1119,7 +1137,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
 			ERR("!cuckoo_insert");
-			goto err;
+			goto err_cuckoo_insert;
 		}
 
 		if ((errno = ravl_insert(pools_tree, pop)) != 0) {
@@ -1150,7 +1168,9 @@ err_ctl:
 	ravl_remove(pools_tree, n);
 err_tree_insert:
 	cuckoo_remove(pools_ht, pop->uuid_lo);
-err:
+err_cuckoo_insert:
+	obj_runtime_cleanup_common(pop);
+err_boot:
 	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
 
@@ -1790,8 +1810,7 @@ obj_pool_cleanup(PMEMobjpool *pop)
 
 	obj_pool_lock_cleanup(pop);
 
-	palloc_heap_cleanup(&pop->heap);
-
+	lane_section_cleanup(pop);
 	lane_cleanup(pop);
 
 	/* unmap all the replicas */
@@ -1870,7 +1889,7 @@ pmemobj_checkU(const char *path, const char *layout)
 	if (pop->replica == NULL)
 		consistent = obj_check_basic(pop, pop->set->poolsize);
 
-	if (consistent && (errno = obj_boot(pop)) != 0) {
+	if (consistent && (errno = obj_runtime_init_common(pop)) != 0) {
 		LOG(3, "!obj_boot");
 		consistent = 0;
 	}

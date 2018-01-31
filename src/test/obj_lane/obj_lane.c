@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -117,12 +117,21 @@ lane_noop_boot(PMEMobjpool *pop)
 	return 0;
 }
 
+static int
+lane_noop_cleanup(PMEMobjpool *pop)
+{
+	UT_OUT("lane_noop_cleanup");
+
+	return 0;
+}
+
 static struct section_operations noop_ops = {
 	.construct_rt = lane_noop_construct_rt,
 	.destroy_rt = lane_noop_destroy_rt,
 	.recover = lane_noop_recovery,
 	.check = lane_noop_check,
-	.boot = lane_noop_boot
+	.boot = lane_noop_boot,
+	.cleanup = lane_noop_cleanup,
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &noop_ops);
