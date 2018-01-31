@@ -729,22 +729,15 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		len = (size_t)actual_size;
 	}
 
-	void *addr;
-	if ((addr = util_map(fd, len, MAP_SHARED, 0, 0)) == NULL)
-		goto err;    /* util_map() set errno, called LOG */
-
-#ifndef _WIN32
-	/* XXX only Device DAX regions (PMEM) are tracked so far */
-	if (is_dev_dax && util_range_register(addr, len, path) != 0) {
-		LOG(2, "can't track mapped region");
-	}
-#endif
+	void *addr = pmem_map_register(fd, len, path, is_dev_dax);
+	if (addr == NULL)
+		goto err;
 
 	if (mapped_lenp != NULL)
 		*mapped_lenp = len;
 
 	if (is_pmemp != NULL)
-		*is_pmemp = is_dev_dax || pmem_is_pmem(addr, len);
+		*is_pmemp = pmem_is_pmem(addr, len);
 
 	LOG(3, "returning %p", addr);
 
@@ -754,7 +747,6 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	(void) os_close(fd);
 
 	return addr;
-
 err:
 	oerrno = errno;
 	(void) os_close(fd);

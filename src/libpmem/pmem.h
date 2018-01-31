@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@
 void pmem_init(void);
 
 int is_pmem_detect(const void *addr, size_t len);
+void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
 
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 typedef BOOL (WINAPI *PQVM)(

@@ -641,6 +641,7 @@ static void
 update_replica_header(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
+	struct pool_replica *rep = REP(set, repn);
 	struct pool_set_part part = PART(REP(set, repn), 0);
 	struct pool_hdr *hdr = (struct pool_hdr *)part.hdr;
 	if (set->options & OPTION_SINGLEHDR) {
@@ -653,7 +654,7 @@ update_replica_header(struct pool_set *set, unsigned repn)
 	}
 	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
 		POOL_HDR_CSUM_END_OFF);
-	util_persist_auto(part.is_dev_dax, hdr, sizeof(*hdr));
+	util_persist_auto(rep->is_pmem, hdr, sizeof(*hdr));
 }
 
 /*

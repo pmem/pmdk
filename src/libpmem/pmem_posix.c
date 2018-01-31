@@ -35,6 +35,7 @@
  */
 
 #include <stddef.h>
+#include <sys/mman.h>
 
 #include "pmem.h"
 #include "out.h"
@@ -58,4 +59,38 @@ is_pmem_detect(const void *addr, size_t len)
 
 	LOG(4, "returning %d", retval);
 	return retval;
+}
+
+/*
+ * pmem_map_register -- memory map file and register mapping
+ */
+void *
+pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
+{
+	void *addr;
+	if (is_dev_dax) {
+		if ((addr = util_map(fd, len, MAP_SHARED, 0, 0, NULL)) == NULL)
+			return NULL;
+
+		if (util_range_register(addr, len, path, PMEM_DEV_DAX) != 0) {
+			LOG(1, "can't track mapped region");
+			goto err_unmap;
+		}
+
+		return addr;
+	}
+
+	int map_sync;
+	addr = util_map(fd, len, MAP_SHARED, 0, 0, &map_sync);
+	if (addr != NULL && map_sync) {
+		if (util_range_register(addr, len, path, PMEM_MAP_SYNC)) {
+			LOG(1, "can't track mapped region");
+			goto err_unmap;
+		}
+	}
+
+	return addr;
+err_unmap:
+	util_unmap(addr, len);
+	return NULL;
 }

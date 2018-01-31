@@ -42,18 +42,30 @@
 #include "unittest.h"
 #include "mmap.h"
 
+static enum pmem_map_type
+str2type(char *str)
+{
+	if (strcmp(str, "DEV_DAX") == 0)
+		return PMEM_DEV_DAX;
+	if (strcmp(str, "MAP_SYNC") == 0)
+		return PMEM_MAP_SYNC;
+
+	FATAL("unknown type '%s'", str);
+	return MAX_PMEM_TYPE;
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem_is_pmem_posix");
 
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
+	if (argc < 4)
+		UT_FATAL("usage: %s op addr len type [op addr len type ...]",
 				argv[0]);
 
 	/* insert memory regions to the list */
 	int i;
-	for (i = 1; i < argc; i += 3) {
+	for (i = 1; i < argc; ) {
 		UT_ASSERT(i + 2 < argc);
 
 		errno = 0;
@@ -67,19 +79,23 @@ main(int argc, char *argv[])
 
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len, NULL);
+			ret = util_range_register(addr, len, NULL,
+					str2type(argv[i + 3]));
 			UT_ASSERTeq(ret, 0);
+			i += 4;
 			break;
 		case 'r':
 			ret = util_range_unregister(addr, len);
 			UT_ASSERTeq(ret, 0);
+			i += 3;
 			break;
 		case 't':
 			UT_OUT("addr %p len %zu is_pmem %d",
 					addr, len, pmem_is_pmem(addr, len));
+			i += 3;
 			break;
 		default:
-			FATAL("invalid op");
+			FATAL("invalid op '%c'", argv[i][0]);
 		}
 	}
 

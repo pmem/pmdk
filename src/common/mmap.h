@@ -54,7 +54,10 @@ extern int Mmap_no_random;
 extern void *Mmap_hint;
 extern char *Mmap_mapfile;
 
-void *util_map(int fd, size_t len, int flags, int rdonly, size_t req_align);
+void *util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
+	off_t offset, int *map_sync);
+void *util_map(int fd, size_t len, int flags, int rdonly,
+		size_t req_align, int *map_sync);
 int util_unmap(void *addr, size_t len);
 
 void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
@@ -93,6 +96,14 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define RANGE_RW(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, rw)
 #define RANGE_NONE(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, none)
 
+/* pmem mapping type */
+enum pmem_map_type {
+	PMEM_DEV_DAX,	/* device dax */
+	PMEM_MAP_SYNC,	/* mapping with MAP_SYNC flag on dax fs */
+
+	MAX_PMEM_TYPE
+};
+
 /*
  * this structure tracks the file mappings outstanding per file handle
  */
@@ -101,6 +112,7 @@ struct map_tracker {
 	uintptr_t base_addr;
 	uintptr_t end_addr;
 	int region_id;
+	enum pmem_map_type type;
 #ifdef _WIN32
 	/* Windows-specific data */
 	HANDLE FileHandle;
@@ -143,7 +155,8 @@ util_map_hint_align(size_t len, size_t req_align)
 	return align;
 }
 
-int util_range_register(const void *addr, size_t len, const char *path);
+int util_range_register(const void *addr, size_t len, const char *path,
+		enum pmem_map_type type);
 int util_range_unregister(const void *addr, size_t len);
 struct map_tracker *util_range_find(uintptr_t addr, size_t len);
 int util_range_is_pmem(const void *addr, size_t len);

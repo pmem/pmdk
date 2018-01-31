@@ -67,6 +67,7 @@ struct pool_params {
 	int is_poolset;
 	int is_part;
 	int is_dev_dax;
+	int is_pmem;
 	union {
 		struct {
 			uint64_t bsize;
