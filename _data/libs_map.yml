@@ -36,7 +36,7 @@
   pmemcto_check_version: libpmemcto.7
   pmemcto_close: pmemcto_open.3
   pmemcto_create: pmemcto_open.3
-  pmemcto_errormsg: pmemcto_errormsg.3
+  pmemcto_errormsg: libpmemcto.7
   pmemcto_free: pmemcto_malloc.3
   pmemcto_get_root_pointer: pmemcto_set_root_pointer.3
   pmemcto_malloc: pmemcto_malloc.3
