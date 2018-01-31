@@ -72,7 +72,8 @@ RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
 EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
-TEST_CONFIG_FILE ?=$(CURDIR)/src/test/testconfig.sh
+BUILD_RPMEM ?= y
+TEST_CONFIG_FILE ?= $(CURDIR)/src/test/testconfig.sh
 
 rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
 dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
@@ -135,8 +136,9 @@ pkg-clean:
 	$(RM) -r $(DESTDIR)
 
 rpm dpkg: pkg-clean source
-	+utils/build-$@.sh $(SRCVERSION) $(DESTDIR)/pmdk $(DESTDIR) $(CURDIR)/$@\
-			${EXPERIMENTAL} ${BUILD_PACKAGE_CHECK} ${BUILD_RPMEM} ${TEST_CONFIG_FILE} ${NDCTL_DISABLE} ${DISTRO}
+	+utils/build-$@.sh -t $(SRCVERSION) -s $(DESTDIR)/pmdk -w $(DESTDIR) -o $(CURDIR)/$@\
+			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
+			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE)
 
 install uninstall:
 	$(MAKE) -C src $@

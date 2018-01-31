@@ -224,7 +224,6 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-NDCTL_MIN_VERSION := 58.2.37
 LIBFABRIC_MIN_VERSION := 1.4.2
 
 # Keep in sync with requirements in src/test/unittest/unittest.sh and
@@ -235,11 +234,12 @@ export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is mi
 see src/librpmem/README for details.
 endif
 
-export NDCTL_DISABLE ?= n
+NDCTL_MIN_VERSION := 58.2.37
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
 ifeq ($(shell uname -s),FreeBSD)
+
 GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
 UNIX98_CFLAGS=
 OS_INCS=-I$(TOP)/src/freebsd/include -I/usr/local/include
@@ -250,7 +250,9 @@ LIBUUID=-luuid
 LIBCXXABI=-lcxxrt
 LIBNDCTL=
 OS_DIMM=none
+
 else
+
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
 OS_INCS=
@@ -259,11 +261,27 @@ LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
 LIBCXXABI=-lc++abi
-ifeq ($(NDCTL_DISABLE), n)
-ifeq ($(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION)),n)
+
+# Detect libndctl if not disabled.
+ifneq ($(NDCTL_ENABLE),n)
+HAS_NDCTL := $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
+HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
+endif
+
+# If neither disabled or enabled, set it based on libndctl presence.
+ifeq ($(NDCTL_ENABLE),)
+ifeq ($(HAS_NDCTL)$(HAS_DAXCTL),yy)
+export NDCTL_ENABLE=y
+else
+export NDCTL_ENABLE=n
+endif
+endif
+
+ifeq ($(NDCTL_ENABLE),y)
+ifeq ($(HAS_NDCTL),n)
 $(error libndctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
 endif
-ifeq ($(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION)),n)
+ifeq ($(HAS_DAXCTL),n)
 $(error libdaxclt(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
 endif
 LIBNDCTL = $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
@@ -272,4 +290,5 @@ else
 OS_DIMM=none
 LIBNDCTL=
 endif
+
 endif
