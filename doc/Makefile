@@ -113,7 +113,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
 		   pmemcto_check.3 \
 		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3 \
 		   pmemcto_get_root_pointer.3 \
-		   pmemcto_check_version.3 pmemcto_set_funcs.3
+		   pmemcto_check_version.3 pmemcto_set_funcs.3 pmemcto_errormsg.3
 
 
 MANPAGES_BUILDDIR = generated
