@@ -65,7 +65,7 @@ date: pmemobj API version 2.2
 
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
-PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
+PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
@@ -76,7 +76,7 @@ TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
 TX_ZNEW(TYPE)
 TX_ZALLOC(TYPE, size_t size)
-TX_XALLOC(TYPE, size_t size, uint64_t flags) (EXPERIMENTAL)
+TX_XALLOC(TYPE, size_t size, uint64_t flags)
 TX_REALLOC(TOID o, size_t size)
 TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
