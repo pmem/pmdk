@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,9 @@ static size_t Align;
 static void
 print_usage(void)
 {
-	printf("Usage: pmemdetect [options] path\n");
+	printf("Usage: pmemdetect [options] <path>\n");
 	printf("Valid options:\n");
-	printf("-d, --devdax    - check if path is Device DAX\n");
+	printf("-d, --devdax    - check if <path> is Device DAX\n");
 	printf("-a, --align=N   - check Device DAX alignment\n");
 	printf("-h, --help      - print this usage info\n");
 }
@@ -130,21 +130,38 @@ static int
 is_pmem(const char *path)
 {
 	int ret;
+	int flags;
+	size_t size;
 
-	void *addr = util_map_tmpfile(path, SIZE, 0);
+	os_stat_t buf;
+	ret = os_stat(path, &buf);
+	if (ret) {
+		if (errno != ENOENT) {
+			perror(path);
+			return -1;
+		}
+
+		flags = PMEM_FILE_CREATE;
+		size = SIZE;
+
+	} else if (S_ISDIR(buf.st_mode)) {
+		flags = PMEM_FILE_CREATE | PMEM_FILE_TMPFILE;
+		size = SIZE;
+	} else {
+		size = 0;
+		flags = 0;
+	}
+
+	int is_pmem;
+	void *addr = pmem_map_file(path, size, flags, 0, &size, &is_pmem);
 	if (addr == NULL) {
-		fprintf(stderr, "file creation failed\n");
+		perror("pmem_map_file failed");
 		return -1;
 	}
 
-	if (pmem_is_pmem(addr, SIZE))
-		ret = 1;
-	else
-		ret = 0;
+	util_unmap(addr, size);
 
-	util_unmap(addr, SIZE);
-
-	return ret;
+	return is_pmem;
 }
 
 /*

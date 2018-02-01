@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -165,7 +165,7 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 	}
 
 	if (pool_set_parse(&loc->set, ppc->backup_path)) {
-		CHECK_INFO(ppc, "invalid poolset backup file: %s",
+		CHECK_INFO_ERRNO(ppc, "invalid poolset backup file: %s",
 			ppc->backup_path);
 		goto err;
 	}

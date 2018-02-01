@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -269,7 +269,7 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 }
 
 /*
- * pmalloc_boot -- initializes allocator section
+ * pmalloc_boot -- global runtime init routine of allocator section
  */
 static int
 pmalloc_boot(PMEMobjpool *pop)
@@ -293,12 +293,24 @@ pmalloc_boot(PMEMobjpool *pop)
 	return ret;
 }
 
+/*
+ * pmalloc_cleanup -- global cleanup routine of allocator section
+ */
+static int
+pmalloc_cleanup(PMEMobjpool *pop)
+{
+	palloc_heap_cleanup(&pop->heap);
+
+	return 0;
+}
+
 static struct section_operations allocator_ops = {
 	.construct_rt = pmalloc_construct_rt,
 	.destroy_rt = pmalloc_destroy_rt,
 	.recover = pmalloc_recovery,
 	.check = pmalloc_check,
-	.boot = pmalloc_boot
+	.boot = pmalloc_boot,
+	.cleanup = pmalloc_cleanup,
 };
 
 SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
