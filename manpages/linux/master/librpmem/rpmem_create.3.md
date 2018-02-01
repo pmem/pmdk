@@ -88,9 +88,9 @@ metadata is created. The metadata is stored in the first 4096
 bytes of the pool and can be read when opening the remote pool with
 **rpmem_open**(). To prevent user from overwriting the pool metadata, this
 region is not accessible to the user via **rpmem_persist**().
-If *create_attr* is NULL, remote pool set file must contain the *NOHDRS* option.
-In that case the remote pool is created without internal metadata in it and the
-entire pool space is available to the user.
+If *create_attr* is NULL or zeroed, remote pool set file must contain
+the *NOHDRS* option. In that case the remote pool is created without internal
+metadata in it and the entire pool space is available to the user.
 See **rpmem_persist**(3) for details.
 
 The **rpmem_open**() function opens the existing remote pool with *set* file
