@@ -262,8 +262,7 @@ address space reservation is equal to the sum of the sizes.
 The order in which the files are created is unspecified, but the library will
 try to maintain equal usage of the directories.
 
-Only poolsets with *SINGLEHDR* or *NOHDRS* option can safely use directories.
-
+Only poolsets with the *SINGLEHDR* option can safely use directories.
 
 # NOTES #
 
