@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,12 +39,6 @@
 #include <malloc.h>
 #include "unittest.h"
 
-#ifdef __MALLOC_HOOK_VOLATILE
-#define MALLOC_HOOK_VOLATILE __MALLOC_HOOK_VOLATILE
-#else
-#define MALLOC_HOOK_VOLATILE /* */
-#endif
-
 static void *(*old_malloc_hook) (size_t, const void *);
 static void *(*old_realloc_hook) (void *, size_t, const void *);
 static void *(*old_memalign_hook) (size_t, size_t, const void *);
@@ -62,7 +56,7 @@ hook_malloc(size_t size, const void *caller)
 	malloc_cnt++;
 	__malloc_hook = old_malloc_hook;
 	p = malloc(size);
-	old_malloc_hook = __malloc_hook; // might changed
+	old_malloc_hook = __malloc_hook; /* might changed */
 	__malloc_hook = hook_malloc;
 	return p;
 }
@@ -74,7 +68,7 @@ hook_realloc(void *ptr, size_t size, const void *caller)
 	realloc_cnt++;
 	__realloc_hook = old_realloc_hook;
 	p = realloc(ptr, size);
-	old_realloc_hook = __realloc_hook; // might changed
+	old_realloc_hook = __realloc_hook; /* might changed */
 	__realloc_hook = hook_realloc;
 	return p;
 }
@@ -86,7 +80,7 @@ hook_memalign(size_t alignment, size_t size, const void *caller)
 	memalign_cnt++;
 	__memalign_hook = old_memalign_hook;
 	p = memalign(alignment, size);
-	old_memalign_hook = __memalign_hook; // might changed
+	old_memalign_hook = __memalign_hook; /* might changed */
 	__memalign_hook = hook_memalign;
 	return p;
 }
@@ -97,14 +91,14 @@ hook_free(void *ptr, const void *caller)
 	free_cnt++;
 	__free_hook = old_free_hook;
 	free(ptr);
-	old_free_hook = __free_hook;
+	old_free_hook = __free_hook; /* might changed */
 	__free_hook = hook_free;
 }
 
 static void
 hook_init(void)
 {
-	printf("installing hooks\n");
+	UT_OUT("installing hooks");
 
 	old_malloc_hook = __malloc_hook;
 	old_realloc_hook = __realloc_hook;
@@ -117,8 +111,6 @@ hook_init(void)
 	__free_hook = hook_free;
 }
 
-void (*MALLOC_HOOK_VOLATILE __malloc_initialize_hook)(void) = hook_init;
-
 int
 main(int argc, char *argv[])
 {
@@ -126,13 +118,16 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "vmmalloc_malloc_hooks");
 
+	hook_init();
+
 	ptr = malloc(4321);
 	free(ptr);
 
 	ptr = calloc(1, 4321);
 	free(ptr);
 
-	ptr = realloc(NULL, 4321);
+	ptr = malloc(8);
+	ptr = realloc(ptr, 4321);
 	free(ptr);
 
 	ptr = memalign(16, 4321);
