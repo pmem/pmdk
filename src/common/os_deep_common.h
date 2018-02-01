@@ -31,7 +31,7 @@
  */
 
 /*
- * os_deep_persist.h -- os deep_persist abstaction layer
+ * os_deep_common.h -- abstaction layer for common usage of deep_* functions
  */
 
 #ifndef PMDK_OS_DEEP_PERSIST_H
@@ -41,7 +41,8 @@
 #include <stddef.h>
 #include "set.h"
 
-int os_range_deep_persist(uintptr_t addr, size_t len);
-int os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len);
+int os_range_deep_common(uintptr_t addr, size_t len, int flush);
+int os_part_deep_common(struct pool_set_part *part, void *addr,
+			size_t len, int flush);
 
 #endif

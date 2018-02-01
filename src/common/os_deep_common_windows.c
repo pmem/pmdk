@@ -40,25 +40,28 @@
 #include "libpmem.h"
 
 /*
- * os_range_deep_persist -- (internal) perform deep persist of
+ * os_range_deep_common -- (internal) perform deep persist of
  * given address range in case of systems without DAX device support it is msync
  */
 int
-os_range_deep_persist(uintptr_t addr, size_t len)
+os_range_deep_common(uintptr_t addr, size_t len, int flush)
 {
-	LOG(3, "os_range_deep_persist addr %p len %lu", addr, len);
+	LOG(3, "os_range_deep_common addr %p len %lu flush %d",
+		addr, len, flush);
 
 	return pmem_msync((void *)addr, len);
 }
 
 
 /*
- * os_part_deep_persist -- (internal) call msync for non DEV dax
+ * os_part_deep_common -- (internal) call msync for non DEV dax
  */
 int
-os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len)
+os_part_deep_common(struct pool_set_part *part, void *addr,
+			size_t len, int flush)
 {
-	LOG(3, "part %p addr %p len %lu", part, addr, len);
+	LOG(3, "part %p addr %p len %lu flush %d",
+		part, addr, len, flush);
 
 	return pmem_msync(addr, len);
 }

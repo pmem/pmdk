@@ -108,8 +108,9 @@ main(int argc, char *argv[])
 				UT_FATAL("!pmemobj_create: %s", path);
 
 			void *start = (void *)((uintptr_t)pop + offset);
-			ret = util_replica_deep_persist(start,
-						persist_size, pop->set, 0);
+			int flush = 1;
+			ret = util_replica_deep_common(start, persist_size,
+					pop->set, 0, flush);
 			pmemobj_close(pop);
 		}
 	}

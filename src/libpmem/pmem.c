@@ -193,7 +193,7 @@
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
-#include "os_deep_persist.h"
+#include "os_deep_common.h"
 #ifdef __aarch64__
 #include "arm_cacheops.h"
 #endif
@@ -431,6 +431,19 @@ static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate_opt;
 #endif
 
 /*
+ * pmem_deep_flush -- flush processor cache for the given range
+ */
+void
+pmem_deep_flush(const void *addr, size_t len)
+{
+	LOG(15, "addr %p len %zu", addr, len);
+
+	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
+
+	Func_flush(addr, len);
+}
+
+/*
  * pmem_flush -- flush processor cache for the given range
  */
 void
@@ -438,9 +451,15 @@ pmem_flush(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 
-	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
-
-	Func_flush(addr, len);
+	/*
+	 * XXX - check if eADR is available
+	 * replace with pmem_auto_flush()
+	 */
+	char *auto_flush = os_getenv("PMEM_AUTO_FLUSH");
+	if (auto_flush && strcmp(auto_flush, "1") == 0)
+		Func_flush = flush_empty;
+	else
+		pmem_deep_flush(addr, len);
 }
 
 /*
@@ -1405,5 +1424,21 @@ pmem_deep_persist(const void *addr, size_t len)
 	if (len == 0)
 		return 0;
 
-	return os_range_deep_persist((uintptr_t)addr, len);
+	int flush = 1;
+	return os_range_deep_common((uintptr_t)addr, len, flush);
+}
+
+/*
+ * pmem_deep_drain -- perform deep drain on a memory range
+ */
+int
+pmem_deep_drain(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	if (len == 0)
+		return 0;
+
+	int flush = 0;
+	return os_range_deep_common((uintptr_t)addr, len, flush);
 }
