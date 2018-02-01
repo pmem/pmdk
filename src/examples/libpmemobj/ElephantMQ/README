@@ -1,0 +1,130 @@
+This directory contains a message broker implementation, humorously
+named ElephantMQ, that relies on libpmemobj to ensure persistence of queues and
+messages.
+
+Usage:
+$ ./broker <file> <port>
+
+The file must exist and be a libpmemobj pool with layout name "broker". This can
+be done through pmempool:
+
+$ pmempool create obj <file> --layout broker
+
+Once the server is running, clients can connect and talk to the broker with
+the following human readable protocol:
+
+SUB <queue name>
+	Subscribes to queue with the given name. Can only be called once during
+	a client connection.
+
+PUB <data length>\n<data>
+	Publishes a message to the default topic.
+
+BYE
+	Terminates the client connection
+
+SHUTDOWN
+	Terminates the client connection and gracefully shutdowns the server
+
+All messages must be delimited by '\n'.
+
+A queue that has been subscribed to at least once will remain operational in
+the persistent state of the broker and it will continue to receive all published
+messages, even if no client is currently subscribed.
+When a client connects to a previously abandoned queue, all messages are sent
+out. This allows the publishers to operate even in the absence of subscribers.
+
+All queues and messages in those queues survive server restarts and unexpected
+failures.
+
+** Example session **
+$ ./broker /mnt/pmem/messages 9876 &
+
+$ nc 127.0.0.1 9876
+SUB Hello
+PUB 6
+World
+
+** DEPENDENCIES: **
+In order to build ElephantMQ you need to install libevent and libevent-pthreads
+development packages, at least in version 2.0.
+
+** Design **
+
+The message broker was designed with the goal of demonstrating the features of
+libpmemobj. While it is certainly adequate, it should not be looked at as a
+showcase of a good design of this type of software. Many simplifications
+were made to both the protocol and the code to minimize its size and
+complexity.
+
+The primary design consideration was to achieve zero copy persistent messages,
+beginning with `read()` from client's socket directly to reserved persistent
+memory, through reference counted messages in queues, circling back to `write()`
+directly from persistent objects to client's socket.
+
+The second large consideration was achieving scalability through multi-threading
+by relying on transient object reservations in clients' thread pool and atomic
+aggregated publication in common topic worker thread.
+
+
+        +---------------------------------------------------------------+
+        |                        message broker                         |
+
+                                    +-------- reserve > -----+
+                                    |                        |
+     +------------------------+     |  +-------+    +-------------+
+     | connection thread pool |     |  | topic | -- | msg pending |
+     +------------------------+     |  +-------+    +-------------+
+        |                           |      |                 |
+        |                           |      |                 |
+        |           +-- PUB msg > --+	   |   +-- persist --+
+        |           |                      |   |
+        |       +--------+                 |   |   +-------+    +-----+    +-----+
+        +-------| client |- < subscribe > -+--->---| queue | -- | msg | -- | msg |
+        |       +--------+                 |   |   +-------+    +-----+    +-----+
+        |                                  |   |
+        |       +--------+                 |   |   +-------+    +-----+    +-----+
+        +-------| client |- < subscribe > -+--->---| queue | -- | msg | -- | msg |
+        |       +--------+                 |       +-------+    +-----+    +-----+
+        |                                  |
+        +------- ...                       +------- ...
+        .                                  .
+        .                                  .
+        .                                  .
+
+        |                                                               |
+        +---------------------------------------------------------------+
+
+The I/O is non-blocking and handled by libevent. The clients' connections are
+accepted in the main thread and then handed over to one of the worker threads
+running the event loops dedicated to handling client's socket read and write
+events.
+When a client sends a publish request, a new object is reserved through
+`pmemobj_reserve()` function and the data is read into the resulting buffer.
+Once a message is read in its entirety, it's moved to the topic for publication.
+
+For simplicity's sake, there's only one topic to which all clients subscribe by
+default. A topic has its own worker thread that is woken up whenever there's
+a message to be published. When that happens, the thread first collects as many
+pending messages as possible and calls `pmemobj_persist()` on them to make sure
+that the data is safely on the storage. Next, all of the objects are
+atomically published using `pmemobj_publish()` function.
+Once a message is fully persisted and resides safely on pmem, it is pushed into
+each queue in the topic so that it can be sent our to the subscribers' sockets.
+
+Queues are persistent collections of messages. They are also named so that
+clients can reconnect after failure on either side. Once a message is pushed
+into a queue, it won't leave it until a subscriber is connected and the
+message's data is successfully written to client's socket. When a queue is not
+empty and the queue has a connected client, the queue schedules a write event
+to occur in client's thread. The write event is repeated until the client's
+queue is emptied. There can only be one client for each queue.
+
+To avoid having to copy messages for queues a reference counting is used to
+store the messages by pointer instead of by value. It's a transient variable
+in the persistent message that is increased every time the message is pushed
+into a queue and decreased every time the message is popped from it, once
+reference count reaches zero, the message is freed.
+This mechanism relies on atomic instructions and requires recovery at the time
+of the broker startup to recalculate the reference count value and free any
+messages that are not present on any of the queues.
