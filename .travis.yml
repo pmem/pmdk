@@ -29,6 +29,7 @@ env:
     - COVERITY=1 REMOTE_TESTS=1 PMDK_CC=gcc PMDK_CXX=g++ OS=ubuntu OS_VER=16.04
 
 before_install:
+  - echo $TRAVIS_COMMIT_RANGE
   - export HOST_WORKDIR=`pwd`
   - cd utils/docker
   - ./pull-or-rebuild-image.sh
