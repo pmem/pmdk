@@ -82,7 +82,6 @@ LIBPMEM=y
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
-# XXX: is it required?
 CFLAGS += -DUSE_LIBDL
 endif
 
@@ -250,7 +249,7 @@ ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPM
 LIBS += -pthread
 endif
 
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMOBJ),)
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
 LIBS += $(LIBDL)
 endif
 
