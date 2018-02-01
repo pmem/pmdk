@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,26 +31,25 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# examples/libpmemobj/ElephantMQ/Makefile -- builds the message broker example
 #
-include ../../common.inc
+TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
+include $(TOP)/src/common.inc
 
-PROGS = manpage btree pi lists setjmp
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator ElephantMQ
+LIBEVENT := $(call check_package, libevent_pthreads --atleast-version 2.0)
+ifeq ($(LIBEVENT),y)
+PROGS += broker
+else
+$(info NOTE: Skipping ElephantMQ because libevent is missing \
+-- see src/examples/libpmemobj/ElephantMQ/README for details.)
+endif
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+LIBS = -lpmemobj -lpmem -pthread
 
-include ../Makefile.inc
+ifeq ($(LIBEVENT),y)
+LIBS += $(shell $(PKG_CONFIG) --libs libevent_pthreads)
+endif
 
-map: hashmap tree_map
-pmemobjfs: map
+include ../../Makefile.inc
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-lists: lists.o
-
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+broker: broker.o client.o message.o queue.o topic.o
