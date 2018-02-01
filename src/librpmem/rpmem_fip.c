@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,7 +153,7 @@ struct rpmem_fip {
 	struct fid_domain *domain; /* fabric protection domain */
 	struct fid_eq *eq; /* event queue */
 
-	volatile int closing; /* closing connections in progress */
+	int closing; /* closing connections in progress */
 
 	size_t cq_size;	/* completion queue size */
 
@@ -190,6 +190,31 @@ struct rpmem_fip {
 
 	cq_read_fn cq_read;		/* CQ read function */
 };
+
+/*
+ * rpmem_fip_is_closing -- (internal) atomically reads and returns the
+ * closing flag
+ */
+static inline int
+rpmem_fip_is_closing(struct rpmem_fip *fip)
+{
+	int ret;
+	util_atomic_load_explicit32(&fip->closing, &ret, memory_order_acquire);
+	return ret;
+}
+
+/*
+ * rpmem_fip_set_closing -- (internal) atomically set the closing flag
+ */
+static inline void
+rpmem_fip_set_closing(struct rpmem_fip *fip)
+{
+	/*
+	 * load and store without barriers should be good enough here.
+	 * fetch_and_or are used as workaround for helgrind issue.
+	 */
+	util_fetch_and_or32(&fip->closing, 1);
+}
 
 /*
  * rpmem_fip_lane_begin -- (internal) intialize list of events for lane
@@ -316,7 +341,7 @@ rpmem_fip_lane_wait(struct rpmem_fip *fip, struct rpmem_fip_lane *lanep,
 	struct fi_cq_msg_entry cq_entry;
 
 	while (lanep->event & e) {
-		if (unlikely(fip->closing))
+		if (unlikely(rpmem_fip_is_closing(fip)))
 			return ECONNRESET;
 
 		sret = fip->cq_read(lanep->cq, &cq_entry, 1);
@@ -344,7 +369,7 @@ err_cq_read:
 	str_err = fi_cq_strerror(lanep->cq, err.prov_errno, NULL, NULL, 0);
 	RPMEM_LOG(ERR, "error reading from completion queue: %s", str_err);
 err:
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
 	return ret;
@@ -628,14 +653,14 @@ rpmem_fip_monitor_thread(void *arg)
 	uint32_t event;
 	int ret;
 
-	while (!fip->closing) {
+	while (!rpmem_fip_is_closing(fip)) {
 		ret = rpmem_fip_read_eq(fip->eq, &entry, &event,
 				RPMEM_MONITOR_TIMEOUT);
 		if (unlikely(ret == 0) && event == FI_SHUTDOWN) {
 			RPMEM_LOG(ERR, "event queue got FI_SHUTDOWN");
 
 			/* mark in-band connection as closing */
-			fip->closing = 1;
+			rpmem_fip_set_closing(fip);
 
 			for (unsigned i = 0; i < fip->nlanes; i++) {
 				fi_cq_signal(fip->lanes[i].base.cq);
@@ -668,7 +693,7 @@ rpmem_fip_monitor_init(struct rpmem_fip *fip)
 static int
 rpmem_fip_monitor_fini(struct rpmem_fip *fip)
 {
-	fip->closing = 1;
+	rpmem_fip_set_closing(fip);
 
 	int ret = os_thread_join(&fip->monitor, NULL);
 	if (ret) {
@@ -1185,7 +1210,7 @@ rpmem_fip_close(struct rpmem_fip *fip)
 	int ret;
 	int lret = 0;
 
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		goto close_monitor;
 
 	rpmem_fip_fini_memory(fip);
@@ -1210,7 +1235,7 @@ int
 rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	unsigned lane)
 {
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
 	RPMEM_ASSERT(lane < fip->nlanes);
@@ -1240,7 +1265,7 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		len -= tmp_len;
 	}
 err:
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
 	return ret;
@@ -1255,7 +1280,7 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len,
 {
 	int ret;
 
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
 	RPMEM_ASSERT(lane < fip->nlanes);
@@ -1341,7 +1366,7 @@ err_readmsg:
 err_rd_mr:
 	free(rd_buff);
 err_malloc_rd_buff:
-	if (unlikely(fip->closing))
+	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
 	return ret;
