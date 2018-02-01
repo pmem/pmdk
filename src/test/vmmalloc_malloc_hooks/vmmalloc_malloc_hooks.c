@@ -126,7 +126,8 @@ main(int argc, char *argv[])
 	ptr = calloc(1, 4321);
 	free(ptr);
 
-	ptr = realloc(NULL, 4321);
+	ptr = malloc(8);
+	ptr = realloc(ptr, 4321);
 	free(ptr);
 
 	ptr = memalign(16, 4321);
