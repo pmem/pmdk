@@ -1,0 +1,14 @@
+This directory contains a message broker implementation that relies on
+libpmemobj to ensure persistence of queues and messages.
+
+Usage:
+$ ./broker <file> <port>
+
+The file must exist and be a libpmemobj pool with layout name "broker". This can
+be done through pmempool:
+
+$ pmempool create obj <file> --layout broker
+
+** DEPENDENCIES: **
+In order to build ElephantMQ you need to install libevent and libevent-pthreads
+development packages, at least in version 2.0.
