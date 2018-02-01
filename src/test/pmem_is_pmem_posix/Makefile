@@ -51,7 +51,7 @@ OBJS = pmem_is_pmem_posix.o\
 	pmem.o\
 	pmem_posix.o\
 	cpu.o\
-	os_deep_persist_linux.o
+	os_deep_linux.o
 
 include ../Makefile.inc
 

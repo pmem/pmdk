@@ -191,7 +191,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/mmap_posix.o\
 	$(TOP)/src/nondebug/common/os_posix.o\
 	$(TOP)/src/nondebug/common/os_thread_posix.o\
-	$(TOP)/src/nondebug/common/os_deep_persist_linux.o\
+	$(TOP)/src/nondebug/common/os_deep_linux.o\
 	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/out.o\
 	$(TOP)/src/nondebug/common/pool_hdr.o\
@@ -215,7 +215,7 @@ OBJS +=\
 	$(TOP)/src/debug/common/mmap_posix.o\
 	$(TOP)/src/debug/common/os_posix.o\
 	$(TOP)/src/debug/common/os_thread_posix.o\
-	$(TOP)/src/debug/common/os_deep_persist_linux.o\
+	$(TOP)/src/debug/common/os_deep_linux.o\
 	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/out.o\
 	$(TOP)/src/debug/common/pool_hdr.o\

@@ -106,7 +106,7 @@
     <ClCompile Include="..\common\os_dimm_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_deep_persist_windows.c">
+    <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -171,7 +171,7 @@
     <ClInclude Include="..\common\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os_deep_persist.h">
+    <ClInclude Include="..\common\os_deep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

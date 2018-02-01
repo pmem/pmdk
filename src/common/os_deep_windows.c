@@ -31,17 +31,34 @@
  */
 
 /*
- * os_deep_persist.h -- os deep_persist abstaction layer
+ * os_deep_windows.c -- Windows abstraction layer for deep_* functions
  */
 
-#ifndef PMDK_OS_DEEP_PERSIST_H
-#define PMDK_OS_DEEP_PERSIST_H 1
+#include <windows.h>
+#include "out.h"
+#include "os.h"
+#include "libpmem.h"
 
-#include <stdint.h>
-#include <stddef.h>
-#include "set.h"
+/*
+ * os_range_deep_common -- call msnyc for non DEV dax
+ */
+int
+os_range_deep_common(uintptr_t addr, size_t len)
+{
+	LOG(3, "os_range_deep_common addr %p len %lu", addr, len);
 
-int os_range_deep_persist(uintptr_t addr, size_t len);
-int os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len);
+	return pmem_msync((void *)addr, len);
+}
 
-#endif
+/*
+ * os_part_deep_common -- call msync for non DEV dax
+ */
+int
+os_part_deep_common(struct pool_set_part *part, void *addr,
+			size_t len, int flush)
+{
+	LOG(3, "part %p addr %p len %lu flush %d",
+		part, addr, len, flush);
+
+	return pmem_msync(addr, len);
+}
