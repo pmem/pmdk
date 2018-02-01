@@ -24,7 +24,7 @@
     <ClCompile Include="..\..\common\mmap.c" />
     <ClCompile Include="..\..\common\mmap_windows.c" />
     <ClCompile Include="..\..\common\fs_windows.c" />
-    <ClCompile Include="..\..\common\os_deep_persist_windows.c" />
+    <ClCompile Include="..\..\common\os_deep_windows.c" />
     <ClCompile Include="..\..\common\os_dimm_none.c" />
     <ClCompile Include="..\..\common\os_thread_windows.c" />
     <ClCompile Include="..\..\common\os_windows.c" />

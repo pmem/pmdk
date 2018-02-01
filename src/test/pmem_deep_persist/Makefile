@@ -53,11 +53,11 @@ OBJS = pmem_deep_persist.o\
 	pmem.o\
 	pmem_posix.o\
 	uuid.o\
-	uuid_linux.o\
+	$(call osdep, uuid,.o)\
 	pool_hdr.o\
 	cpu.o\
 	set.o\
-	os_deep_persist_linux.o\
+	os_deep_linux.o\
 	shutdown_state.o\
 	os_dimm_none.o
 # this test does not require ndctl

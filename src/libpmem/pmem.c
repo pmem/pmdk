@@ -193,7 +193,7 @@
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
-#include "os_deep_persist.h"
+#include "os_deep.h"
 #ifdef __aarch64__
 #include "arm_cacheops.h"
 #endif
@@ -425,10 +425,28 @@ flush_empty(const void *addr, size_t len)
  * clflushopt so both refer to flush_data_clean_invalidate.
  */
 #ifndef __aarch64__
+static void (*Func_deep_flush)(const void *, size_t) = flush_dcache_invalidate;
 static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate;
 #else
-static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate_opt;
+static void (*Func_deep_flush)(const void *, size_t) =
+						flush_dcache_invalidate_opt;
+static void (*Func_flush)(const void *, size_t) =
+						flush_dcache_invalidate_opt;
 #endif
+
+/*
+ * pmem_deep_flush -- flush processor cache for the given range
+ * regardless of eADR support on platform
+ */
+void
+pmem_deep_flush(const void *addr, size_t len)
+{
+	LOG(15, "addr %p len %zu", addr, len);
+
+	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
+
+	Func_deep_flush(addr, len);
+}
 
 /*
  * pmem_flush -- flush processor cache for the given range
@@ -1259,20 +1277,24 @@ pmem_log_cpuinfo(void)
 	LOG(3, NULL);
 
 #ifndef __aarch64__
-	if (Func_flush == flush_dcache)
+	if (Func_deep_flush == flush_dcache)
 		LOG(3, "using clwb");
-	else if (Func_flush == flush_dcache_invalidate_opt)
+	else if (Func_deep_flush == flush_dcache_invalidate_opt)
 		LOG(3, "using clflushopt");
-	else if (Func_flush == flush_dcache_invalidate)
+	else if (Func_deep_flush == flush_dcache_invalidate)
 		LOG(3, "using clflush");
-	else if (Func_flush == flush_empty)
-		LOG(3, "not flushing CPU cache");
 	else
+		FATAL("invalid deep flush function address");
+
+	if (Func_flush == flush_empty)
+		LOG(3, "not flushing CPU cache");
+	else if (Func_flush != Func_deep_flush)
 		FATAL("invalid flush function address");
+
 #else
-	if (Func_flush == flush_dcache)
+	if (Func_deep_flush == flush_dcache)
 		LOG(3, "Using ARM invalidate");
-	else if (Func_flush == flush_dcache_invalidate_opt)
+	else if (Func_deep_flush == flush_dcache_invalidate_opt)
 		LOG(3, "Synchronize VA to poc for ARM");
 	else
 		FATAL("invalid flush function address");
@@ -1308,7 +1330,7 @@ pmem_get_cpuinfo(void)
 		if (e && strcmp(e, "1") == 0)
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		else {
-			Func_flush = flush_dcache_invalidate_opt;
+			Func_deep_flush = flush_dcache_invalidate_opt;
 			Func_predrain_fence = predrain_memory_barrier;
 		}
 	}
@@ -1320,7 +1342,7 @@ pmem_get_cpuinfo(void)
 		if (e && strcmp(e, "1") == 0)
 			LOG(3, "PMEM_NO_CLWB forced no clwb");
 		else {
-			Func_flush = flush_dcache;
+			Func_deep_flush = flush_dcache;
 			Func_predrain_fence = predrain_memory_barrier;
 		}
 	}
@@ -1336,9 +1358,22 @@ pmem_init(void)
 
 	pmem_get_cpuinfo();
 
+	Func_flush = Func_deep_flush;
+
 	char *e = os_getenv("PMEM_NO_FLUSH");
 	if (e && strcmp(e, "1") == 0) {
 		LOG(3, "forced not flushing CPU cache");
+		Func_flush = flush_empty;
+		Func_predrain_fence = predrain_memory_barrier;
+	}
+
+	/*
+	 * XXX - check if eADR is available
+	 * replace with pmem_auto_flush()
+	 */
+	char *auto_flush = os_getenv("PMEM_NO_FLUSH");
+	if (auto_flush && strcmp(auto_flush, "1") == 0) {
+		LOG(3, "eADR is available");
 		Func_flush = flush_empty;
 		Func_predrain_fence = predrain_memory_barrier;
 	}
@@ -1394,8 +1429,17 @@ pmem_deep_persist(const void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-	if (len == 0)
-		return 0;
+	pmem_deep_flush(addr, len);
+	return pmem_deep_drain(addr, len);
+}
 
-	return os_range_deep_persist((uintptr_t)addr, len);
+/*
+ * pmem_deep_drain -- perform deep drain on a memory range
+ */
+int
+pmem_deep_drain(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	return os_range_deep_common((uintptr_t)addr, len);
 }
