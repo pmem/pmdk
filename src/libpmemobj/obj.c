@@ -36,6 +36,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <wchar.h>
+#include <stdbool.h>
 
 #include "valgrind_internal.h"
 #include "libpmem.h"
@@ -70,6 +71,24 @@
  * The variable which overwrites a number of lanes available at runtime.
  */
 #define OBJ_NLANES_ENV_VARIABLE "PMEMOBJ_NLANES"
+
+static const struct pool_attr Obj_create_attr = {
+		OBJ_HDR_SIG,
+		OBJ_FORMAT_MAJOR,
+		OBJ_FORMAT_COMPAT_DEFAULT,
+		OBJ_FORMAT_INCOMPAT_DEFAULT,
+		OBJ_FORMAT_RO_COMPAT_DEFAULT,
+		{0}, {0}, {0}, {0}, {0}
+};
+
+static const struct pool_attr Obj_open_attr = {
+		OBJ_HDR_SIG,
+		OBJ_FORMAT_MAJOR,
+		OBJ_FORMAT_COMPAT_CHECK,
+		OBJ_FORMAT_INCOMPAT_CHECK,
+		OBJ_FORMAT_RO_COMPAT_CHECK,
+		{0}, {0}, {0}, {0}, {0}
+};
 
 static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
 static struct ravl *pools_tree; /* tree used for searching by address */
@@ -1237,11 +1256,8 @@ pmemobj_createU(const char *path, const char *layout,
 	 */
 	unsigned runtime_nlanes = obj_get_nlanes();
 
-	if (util_pool_create(&set, path,
-			poolsize, PMEMOBJ_MIN_POOL, PMEMOBJ_MIN_PART,
-			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT_DEFAULT, OBJ_FORMAT_INCOMPAT_DEFAULT,
-			OBJ_FORMAT_RO_COMPAT_DEFAULT, &runtime_nlanes,
+	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
+			PMEMOBJ_MIN_PART, &Obj_create_attr, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
@@ -1477,10 +1493,8 @@ static int
 obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
-	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART,
-			OBJ_HDR_SIG, OBJ_FORMAT_MAJOR,
-			OBJ_FORMAT_COMPAT_CHECK, OBJ_FORMAT_INCOMPAT_CHECK,
-			OBJ_FORMAT_RO_COMPAT_CHECK, nlanes, 0, NULL) != 0) {
+	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART, &Obj_open_attr,
+			nlanes, false, NULL) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}

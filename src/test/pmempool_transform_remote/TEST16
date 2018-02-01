@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_transform_remote/TEST16 -- test for pmempool transform with NOHDRS
+# pmempool_transform_remote/TEST16 -- test for pmempool transform with SINGLEHDR
 #                                    option
 #
 # (like TEST15 but with different alignment)
@@ -59,19 +59,19 @@ node_dax_device_zero 0
 
 # Create poolset files
 create_poolset $DIR/$POOLSET_LOCAL_IN \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 1 0) \
 	AUTO:$(get_node_devdax_path 1 1) \
 	m \
 	${NODE_ADDR[0]}:$POOLSET_REMOTE
 
 create_poolset $DIR/$POOLSET_LOCAL_OUT \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 1 0) \
 	AUTO:$(get_node_devdax_path 1 1)
 
 create_poolset $DIR/$POOLSET_REMOTE \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 0 0) \
 	AUTO:$(get_node_devdax_path 0 1)
 

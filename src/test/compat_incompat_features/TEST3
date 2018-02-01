@@ -59,7 +59,7 @@ for type in ${POOL_TYPES[@]}; do
 		>> $LOG_TEMP
 
 	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 $POOL_FEAT_NOHDRS >> $LOG_TEMP
+	set_incompat $DIR/part0 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
 
 	# Check if pool fails to open
 	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
@@ -68,7 +68,7 @@ for type in ${POOL_TYPES[@]}; do
 
 	# Set compat/incompat flags in headers
 	set_incompat $DIR/part0 0 >> $LOG_TEMP
-	set_incompat $DIR/part1 $POOL_FEAT_NOHDRS >> $LOG_TEMP
+	set_incompat $DIR/part1 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
 
 	# Check if pool fails to open
 	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1

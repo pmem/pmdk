@@ -49,7 +49,7 @@ GRANULARITY=$((1024 * 1024 * 10)) # 10 megabytes
 # prepare pool sets
 create_poolset $DIR/testset2\
 	$RESVSIZE:$DIR/testdir21:d\
-	O NOHDRS
+	O SINGLEHDR
 
 PMEMOBJ_CONF="heap.size.granularity=$GRANULARITY"\
 	expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset2

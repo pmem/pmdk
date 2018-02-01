@@ -46,7 +46,7 @@
 #
 # Same as TEST1, but run on a pool set that spans two Device DAX devices
 # with 2M alignment. Expected failure, as 2M alignment is not supported
-# if NOHDRS option is not specified.
+# if SINGLEHDR option is not specified.
 #
 export UNITTEST_NAME=log_basic/TEST9
 export UNITTEST_NUM=9

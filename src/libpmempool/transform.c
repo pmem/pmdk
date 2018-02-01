@@ -362,11 +362,11 @@ check_compare_poolsets_options(struct pool_set *set_in,
 		struct poolset_compare_status *set_in_s,
 		struct poolset_compare_status *set_out_s)
 {
-	if (set_in->options & OPTION_NO_HDRS)
-		set_in_s->flags |= OPTION_NO_HDRS;
+	if (set_in->options & OPTION_SINGLEHDR)
+		set_in_s->flags |= OPTION_SINGLEHDR;
 
-	if (set_out->options & OPTION_NO_HDRS)
-		set_out_s->flags |= OPTION_NO_HDRS;
+	if (set_out->options & OPTION_SINGLEHDR)
+		set_out_s->flags |= OPTION_SINGLEHDR;
 }
 
 
@@ -465,18 +465,18 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 
 	/* check if there is anything to do */
 	if (!is_removing_replicas && !is_adding_replicas &&
-			(set_in_s->flags & OPTION_NO_HDRS) ==
-				(set_out_s->flags & OPTION_NO_HDRS)) {
+			(set_in_s->flags & OPTION_SINGLEHDR) ==
+				(set_out_s->flags & OPTION_SINGLEHDR)) {
 		LOG(2, "both poolsets are equal");
 		return NOT_TRANSFORMABLE;
 	}
 
-	/* allow changing the NOHDRS option only as the sole operation */
+	/* allow changing the SINGLEHDR option only as the sole operation */
 	if ((is_removing_replicas || is_adding_replicas) &&
-			(set_in_s->flags & OPTION_NO_HDRS) !=
-				(set_out_s->flags & OPTION_NO_HDRS)) {
-		LOG(2, "cannot add/remove replicas and change the NOHDRS option"
-				" at the same time");
+			(set_in_s->flags & OPTION_SINGLEHDR) !=
+				(set_out_s->flags & OPTION_SINGLEHDR)) {
+		LOG(2,
+		"cannot add/remove replicas and change the SINGLEHDR option at the same time");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -486,10 +486,10 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if (is_adding_replicas)
 		return ADD_REPLICAS;
 
-	if (set_out_s->flags & OPTION_NO_HDRS)
+	if (set_out_s->flags & OPTION_SINGLEHDR)
 		return RM_HDRS;
 
-	if (set_in_s->flags & OPTION_NO_HDRS)
+	if (set_in_s->flags & OPTION_SINGLEHDR)
 		return ADD_HDRS;
 
 	ASSERT(0);
@@ -620,13 +620,10 @@ create_missing_headers(struct pool_set *set, unsigned repn)
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_hdr *src_hdr = HDR(REP(set, repn), 0);
 	for (unsigned p = 1; p < set->replica[repn]->nhdrs; ++p) {
-		if (util_header_create(set, repn, p,
-				src_hdr->signature, src_hdr->major,
-				src_hdr->compat_features,
-				src_hdr->incompat_features &
-					(uint32_t)(~POOL_FEAT_NOHDRS),
-				src_hdr->ro_compat_features,
-				NULL, NULL, NULL, 1) != 0) {
+		struct pool_attr attr;
+		util_pool_hdr2attr(&attr, src_hdr);
+		attr.incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
+		if (util_header_create(set, repn, p, &attr, 1) != 0) {
 			LOG(1, "part headers create failed for"
 					" replica %u part %u", repn, p);
 			errno = EINVAL;
@@ -646,12 +643,12 @@ update_replica_header(struct pool_set *set, unsigned repn)
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_set_part part = PART(REP(set, repn), 0);
 	struct pool_hdr *hdr = (struct pool_hdr *)part.hdr;
-	if (set->options & OPTION_NO_HDRS) {
-		hdr->incompat_features |= POOL_FEAT_NOHDRS;
+	if (set->options & OPTION_SINGLEHDR) {
+		hdr->incompat_features |= POOL_FEAT_SINGLEHDR;
 		memcpy(hdr->next_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdr->prev_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
 	} else {
-		hdr->incompat_features &= (uint32_t)(~POOL_FEAT_NOHDRS);
+		hdr->incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
 
 	}
 	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
@@ -852,9 +849,9 @@ out:
 }
 
 /*
- * remove_hdrs -- (internal) transform a poolset without the NOHDRS option (with
- *                headers) into a poolset with the NOHDRS option (without
- *                headers)
+ * remove_hdrs -- (internal) transform a poolset without the SINGLEHDR option
+ *                (with headers) into a poolset with the SINGLEHDR option
+ *                (without headers)
  */
 static int
 remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,
@@ -875,8 +872,8 @@ remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,
 }
 
 /*
- * add_hdrs -- (internal) transform a poolset with the NOHDRS option (without
- *             headers) into a poolset without the NOHDRS option (with
+ * add_hdrs -- (internal) transform a poolset with the SINGLEHDR option (without
+ *             headers) into a poolset without the SINGLEHDR option (with
  *             headers)
  */
 static int

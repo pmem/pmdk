@@ -5,7 +5,7 @@ AUTO $(nW)
 
 poolset_out
 PMEMPOOLSET
-OPTION NOHDRS
+OPTION SINGLEHDR
 AUTO $(nW)
 AUTO $(nW)
 

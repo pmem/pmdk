@@ -90,6 +90,8 @@ struct arch_flags {
 	uint16_t machine;		/* required architecture */
 };
 
+#define POOL_HDR_ARCH_LEN sizeof(struct arch_flags)
+
 /* possible values of the machine class field in the above struct */
 #define PMDK_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
 
@@ -173,6 +175,6 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 /*
  * incompat features
  */
-#define POOL_FEAT_NOHDRS 0x0001 /* pool header only in the first part */
+#define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
 
 #endif

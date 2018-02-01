@@ -85,7 +85,7 @@ size_t
 replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn)
 {
-	size_t hdrsize = (set_in->options & OPTION_NO_HDRS) ? 0 : Mmap_align;
+	size_t hdrsize = (set_in->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
 	return MMAP_ALIGN_DOWN(set_in->replica[repn]->part[partn].filesize) -
 			((partn == 0) ? POOL_HDR_SIZE : hdrsize);
 }
@@ -692,8 +692,8 @@ check_replica_options(struct pool_set *set, unsigned repn,
 			continue;
 
 		struct pool_hdr *hdr = HDR(rep, p);
-		if (((hdr->incompat_features & POOL_FEAT_NOHDRS) == 0) !=
-				((set->options & OPTION_NO_HDRS) == 0)) {
+		if (((hdr->incompat_features & POOL_FEAT_SINGLEHDR) == 0) !=
+				((set->options & OPTION_SINGLEHDR) == 0)) {
 			LOG(1, "improper options are set in part %u's header in"
 					" replica %u", p, repn);
 			rep_hs->part[p] |= IS_BROKEN;

@@ -36,6 +36,7 @@
  * usage: util_poolset cmd minlen hdrsize [mockopts] setfile ...
  */
 
+#include <stdbool.h>
 #include "unittest.h"
 #include "pmemcommon.h"
 #include "set.h"
@@ -50,7 +51,7 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
-#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_NOHDRS
+#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_SINGLEHDR
 
 size_t Extend_size = MIN_PART * 2;
 
@@ -95,7 +96,7 @@ poolset_info(const char *fname, struct pool_set *set, int o)
 			size_t partsize =
 				(part->filesize & ~(Ut_mmap_align - 1));
 			repsize += partsize;
-			if (i > 0 && (set->options & OPTION_NO_HDRS) == 0)
+			if (i > 0 && (set->options & OPTION_SINGLEHDR) == 0)
 				UT_ASSERTeq(part->size,
 					partsize - Ut_mmap_align); /* XXX */
 		}
@@ -168,12 +169,15 @@ main(int argc, char *argv[])
 	for (int arg = 3; arg < argc; arg++) {
 		arg += mock_options(argv[arg]);
 		fname = argv[arg];
+		struct pool_attr attr;
+		memset(&attr, 0, sizeof(attr));
+		memcpy(attr.signature, SIG, sizeof(SIG));
+		attr.major = 1;
 
 		switch (argv[1][0]) {
 		case 'c':
-			ret = util_pool_create(&set, fname,
-				0, minsize, MIN_PART,
-				SIG, 1, 0, 0, 0, NULL, REPLICAS_ENABLED);
+			ret = util_pool_create(&set, fname, 0, minsize,
+				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {
@@ -189,9 +193,9 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'o':
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, 0, NULL);
+				MIN_PART, &attr, NULL, false, NULL);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
@@ -200,9 +204,9 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'e':
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, SIG, 1, 0, TEST_FORMAT_INCOMPAT_CHECK,
-				0, NULL, 0, NULL);
+				MIN_PART, &attr, NULL, false, NULL);
 			UT_ASSERTeq(ret, 0);
 			void *nptr = util_pool_extend(set, Extend_size);
 			if (nptr == NULL)

@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST13 -- test for pools with device dax and NOHDRS option
+# pmempool_sync/TEST13 -- test for pools with device dax and SINGLEHDR option
 #
 # Device DAX devices: 2 x 2MB alignment + 2 x 4KB alignment.
 # 1st variant of alignment configuration
@@ -57,7 +57,7 @@ LOG=out${UNITTEST_NUM}.log
 
 POOLSET=$DIR/poolset
 create_poolset $POOLSET \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:${DEVICE_DAX_PATH[0]} \
 	AUTO:${DEVICE_DAX_PATH[1]} \
 	R \

@@ -122,7 +122,7 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 		flags |= PMEM_FILE_EXCL;
 
 
-	if (strcmp(pool_path, "mem") == 0) {
+	if (strncmp(pool_path, "mem", strlen("mem")) == 0) {
 		pool->pool = PAGEALIGNMALLOC(pool->size);
 
 		pool->is_mem = 1;
@@ -198,20 +198,25 @@ static void
 cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 	const struct rpmem_pool_attr *attr2)
 {
-	UT_ASSERTeq(memcmp(attr1->signature, attr2->signature,
+	if (attr2 == NULL) {
+		UT_ASSERTeq(util_is_zeroed(attr1, sizeof(*attr1)), 1);
+	} else {
+		UT_ASSERTeq(memcmp(attr1->signature, attr2->signature,
 				sizeof(attr1->signature)), 0);
-	UT_ASSERTeq(attr1->major, attr2->major);
-	UT_ASSERTeq(attr1->compat_features, attr2->compat_features);
-	UT_ASSERTeq(attr1->ro_compat_features, attr2->ro_compat_features);
-	UT_ASSERTeq(attr1->incompat_features, attr2->incompat_features);
-	UT_ASSERTeq(memcmp(attr1->uuid, attr2->uuid,
+		UT_ASSERTeq(attr1->major, attr2->major);
+		UT_ASSERTeq(attr1->compat_features, attr2->compat_features);
+		UT_ASSERTeq(attr1->ro_compat_features,
+				attr2->ro_compat_features);
+		UT_ASSERTeq(attr1->incompat_features, attr2->incompat_features);
+		UT_ASSERTeq(memcmp(attr1->uuid, attr2->uuid,
 				sizeof(attr1->uuid)), 0);
-	UT_ASSERTeq(memcmp(attr1->poolset_uuid, attr2->poolset_uuid,
+		UT_ASSERTeq(memcmp(attr1->poolset_uuid, attr2->poolset_uuid,
 				sizeof(attr1->poolset_uuid)), 0);
-	UT_ASSERTeq(memcmp(attr1->prev_uuid, attr2->prev_uuid,
+		UT_ASSERTeq(memcmp(attr1->prev_uuid, attr2->prev_uuid,
 				sizeof(attr1->prev_uuid)), 0);
-	UT_ASSERTeq(memcmp(attr1->next_uuid, attr2->next_uuid,
+		UT_ASSERTeq(memcmp(attr1->next_uuid, attr2->next_uuid,
 				sizeof(attr1->next_uuid)), 0);
+	}
 }
 
 /*
@@ -233,6 +238,10 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 
 /*
  * test_create -- test case for creating remote pool
+ *
+ * if <size> argument equals -1 or pool_path equals either "poolnoattr" or
+ * "memnoattr", pool size is assumed 0 and NULL is passed to rpmem_create()
+ * for pool attributes argument
  */
 static int
 test_create(const struct test_case *tc, int argc, char *argv[])
@@ -252,11 +261,19 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
 
+	struct rpmem_pool_attr *rattr = NULL;
+	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
+	if (strcmp(size_str, "-1") == 0) {
+		size_str = "0";
+	} else if (strcmp(pool_path, "poolnoattr") != 0 &&
+			strcmp(pool_path, "memnoattr") != 0) {
+		rattr = &pool_attr;
+	}
+
 	init_pool(pool, target, pool_path, size_str);
 
-	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
 	pool->rpp = rpmem_create(target, pool_set, pool->pool,
-			pool->size, &pool->nlanes, &pool_attr);
+			pool->size, &pool->nlanes, rattr);
 
 	if (pool->rpp) {
 		UT_ASSERTne(pool->nlanes, 0);
@@ -290,7 +307,12 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTeq(pool->rpp, NULL);
-	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+
+	const struct rpmem_pool_attr *rattr = NULL;
+	if (strcmp(pool_attr_name, "noattr") != 0) {
+		const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+		rattr = &pool_attrs[pool_attr_id];
+	}
 
 	init_pool(pool, target, pool_path, size_str);
 
@@ -299,7 +321,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 			pool->size, &pool->nlanes, &pool_attr);
 
 	if (pool->rpp) {
-		cmp_pool_attr(&pool_attr, &pool_attrs[pool_attr_id]);
+		cmp_pool_attr(&pool_attr, rattr);
 		UT_ASSERTne(pool->nlanes, 0);
 
 		UT_OUT("%s: opened", pool_set);
@@ -507,9 +529,11 @@ test_set_attr(const struct test_case *tc, int argc, char *argv[])
 	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
 
 	int ret = rpmem_set_attr(pool->rpp, &pool_attrs[pool_attr_id]);
-	UT_ASSERTeq(ret, 0);
 
-	UT_OUT("set attributes succeeded (%s)", pool_attr_name);
+	if (ret)
+		UT_OUT("set attributes failed (%s)", pool_attr_name);
+	else
+		UT_OUT("set attributes succeeded (%s)", pool_attr_name);
 
 	return 2;
 }
@@ -706,24 +730,36 @@ rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_persist_illegal -- test case for persisting data with offset < 4096
+ * test_persist_header -- test case for persisting data with offset < 4096
+ *
+ * if 'hdr' argument is used, test passes if rpmem_persist fails
+ * if 'nohdr' argument is used, test passes if rpmem_persist passes
  */
 static int
-test_persist_illegal(const struct test_case *tc, int argc, char *argv[])
+test_persist_header(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 1)
-		UT_FATAL("usage: test_persist_illegal <id>");
+	if (argc < 2)
+		UT_FATAL("usage: test_persist_header <id> <hdr|nohdr>");
 
 	int id = atoi(argv[0]);
+	const char *hdr_str = argv[1];
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 
-	for (size_t off = 0; off < POOL_HDR_SIZE; ++off) {
-		int ret = rpmem_persist(pool->rpp, off, 1, 0);
-		UT_ASSERTeq(ret, -1);
+	int with_hdr;
+	if (strcmp(hdr_str, "hdr") == 0)
+		with_hdr = 1;
+	else if (strcmp(hdr_str, "nohdr") == 0)
+		with_hdr = 0;
+	else
+		UT_ASSERT(0);
+
+	for (size_t off = 0; off < POOL_HDR_SIZE; off += 8) {
+		int ret = rpmem_persist(pool->rpp, off, 8, 0);
+		UT_ASSERTeq(ret, with_hdr ? -1 : 0);
 	}
 
-	return 1;
+	return 2;
 }
 
 /*
@@ -740,7 +776,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(check_pool),
 	TEST_CASE(fill_pool),
 	TEST_CASE(rpmemd_terminate),
-	TEST_CASE(test_persist_illegal),
+	TEST_CASE(test_persist_header),
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))

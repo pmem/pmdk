@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@ RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
 # prepare pool sets
 create_poolset $DIR/testset1\
 	$RESVSIZE:$DIR/testdir11:d\
-	O NOHDRS
+	O SINGLEHDR
 
 expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset1
 

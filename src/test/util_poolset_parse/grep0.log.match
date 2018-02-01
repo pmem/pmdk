@@ -51,3 +51,10 @@ $(*)set file format correct ($(nW)pool49$(nW).set)
 $(*)set file format correct ($(nW)pool50$(nW).set)
 $(*)pool51$(nW).set [unknown option:2]
 $(*)pool52$(nW).set [missing option name:2]
+$(*)set file format correct ($(nW)pool53$(nW).set)
+$(*)set file format correct ($(nW)pool54$(nW).set)
+$(*)set file format correct ($(nW)pool55$(nW).set)
+$(*)set file format correct ($(nW)pool56$(nW).set)
+$(*)set file format correct ($(nW)pool57$(nW).set)
+$(*)set file format correct ($(nW)pool58$(nW).set)
+$(*)set file format correct ($(nW)pool59$(nW).set)

@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync_remote/TEST16 -- a test for pmempool sync with the NOHDRS option
+# pmempool_sync_remote/TEST16 -- a test for pmempool sync with the SINGLEHDR option
 #                                and a remote replica;
 #
 # case: damaged local file-based master replica
@@ -57,14 +57,14 @@ node_dax_device_zero 0
 
 # Create poolset files
 create_poolset $DIR/pool.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	1000M:${NODE_DIR[1]}part00:x \
 	1000M:${NODE_DIR[1]}part01:x \
         m \
 	${NODE_ADDR[0]}:remote.set
 
 create_poolset $DIR/remote.set \
-	O NOHDRS \
+	O SINGLEHDR \
 	AUTO:$(get_node_devdax_path 0 0) \
 	AUTO:$(get_node_devdax_path 0 1)
 

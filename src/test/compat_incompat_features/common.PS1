@@ -57,7 +57,7 @@ $create_args.cto = @("cto", "$POOLSET")
 # Known compat flags:
 
 # Known incompat flags:
-$POOL_FEAT_NOHDRS = 0x0001
+$POOL_FEAT_SINGLEHDR = 0x0001
 
 # Unknown compat flags:
 $UNKNOWN_COMPAT = 1, 2, 3, 1111
