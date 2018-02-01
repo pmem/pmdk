@@ -93,6 +93,8 @@ int pmem_is_pmem(const void *addr, size_t len);
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
+void pmem_deep_flush(const void *addr, size_t len);
+int pmem_deep_drain(const void *addr, size_t len);
 int pmem_deep_persist(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);

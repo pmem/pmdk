@@ -31,34 +31,18 @@
  */
 
 /*
- * os_deep_persist_windows.c -- Windows abstraction layer for deep_persist usage
+ * os_deep.h -- abstraction layer for common usage of deep_* functions
  */
 
-#include <windows.h>
-#include "out.h"
-#include "os.h"
-#include "libpmem.h"
+#ifndef PMDK_OS_DEEP_PERSIST_H
+#define PMDK_OS_DEEP_PERSIST_H 1
 
-/*
- * os_range_deep_persist -- (internal) perform deep persist of
- * given address range in case of systems without DAX device support it is msync
- */
-int
-os_range_deep_persist(uintptr_t addr, size_t len)
-{
-	LOG(3, "os_range_deep_persist addr %p len %lu", addr, len);
+#include <stdint.h>
+#include <stddef.h>
+#include "set.h"
 
-	return pmem_msync((void *)addr, len);
-}
+int os_range_deep_common(uintptr_t addr, size_t len);
+int os_part_deep_common(struct pool_set_part *part, void *addr,
+			size_t len, int flush);
 
-
-/*
- * os_part_deep_persist -- (internal) call msync for non DEV dax
- */
-int
-os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len)
-{
-	LOG(3, "part %p addr %p len %lu", part, addr, len);
-
-	return pmem_msync(addr, len);
-}
+#endif
