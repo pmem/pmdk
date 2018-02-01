@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -127,7 +127,8 @@ main(int argc, char *argv[])
 	ptr = calloc(1, 4321);
 	free(ptr);
 
-	ptr = realloc(NULL, 4321);
+	ptr = malloc(8);
+	ptr = realloc(ptr, 4321);
 	free(ptr);
 
 	ptr = memalign(16, 4321);
