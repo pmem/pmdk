@@ -1,0 +1,14 @@
+{
+   <ndctl_memleak>
+   Memcheck:Leak
+   ...
+   fun:ndctl_dax_get_daxctl_region
+   ...
+}
+{
+   <daxctl_memleak>
+   Memcheck:Leak
+   ...
+   fun:daxctl_dev_get_first
+   ...
+}

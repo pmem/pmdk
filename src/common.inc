@@ -264,7 +264,8 @@ LIBCXXABI=-lc++abi
 
 # Detect libndctl if not disabled.
 ifneq ($(NDCTL_ENABLE),n)
-HAS_NDCTL := $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
+HAS_NDCTL :=  $(shell echo "int main() {struct ndctl_cmd *cmd; ndctl_cmd_smart_get_shutdown_count(cmd);return 0;}" | \
+ $(CC) -x c -include ndctl/libndctl.h -o /dev/null - -lndctl 2>/dev/null && echo y || echo n)
 HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
 endif
 
