@@ -75,16 +75,16 @@ os_dimm_interleave_set(struct ndctl_ctx *ctx, os_stat_t st)
 	dev_t dev = S_ISCHR(st.st_mode) ? st.st_rdev : st.st_dev;
 
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
-		struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-		struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
-		struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
+		struct ndctl_btt *btt;
+		struct ndctl_dax *dax;
+		struct ndctl_pfn *pfn;
 		const char *devname;
 
-		if (btt) {
+		if ((btt = ndctl_namespace_get_btt(ndns))) {
 			devname = ndctl_btt_get_block_device(btt);
-		} else if (pfn) {
+		} else if ((pfn = ndctl_namespace_get_pfn(ndns))) {
 			devname = ndctl_pfn_get_block_device(pfn);
-		} else if (dax) {
+		} else if ((dax = ndctl_namespace_get_dax(ndns))) {
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
 			/* there is always one dax device in dax_region */
