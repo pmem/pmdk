@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,3 +56,10 @@ include ../../Makefile.inc
 INCS += -I../
 
 pmpong: MainGame.o Paddle.o Ball.o PongGameStatus.o GameController.o Pool.o GameView.o MenuView.o GameOverView.o
+
+rm-fontconf:
+	rm -f fontConf
+
+clobber: rm-fontconf
+
+clean: rm-fontconf

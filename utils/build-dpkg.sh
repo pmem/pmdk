@@ -411,13 +411,17 @@ Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpm
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
 
-Package: $PACKAGE_NAME-tools
+Package: pmempool
 Section: misc
 Architecture: any
 Priority: optional
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Tools for $PACKAGE_NAME
- Utilities for $PACKAGE_NAME.
+Description: pmempool utility
+ Pmempool is a standalone utility for management and off-line analysis
+ of Persistent Memory pools created by PMDK libraries. It provides a set
+ of utilities for administration and diagnostics of Persistent Memory pools.
+ Pmempool may be useful for troubleshooting by system administrators
+ and users of the applications based on PMDK libraries.
 
 Package: ${OBJ_CPP_NAME}
 Section: libdevel
@@ -769,18 +773,18 @@ $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
 
-cat << EOF > debian/$PACKAGE_NAME-tools.install
+cat << EOF > debian/pmempool.install
 usr/bin/pmempool
 $MAN1_DIR/pmempool.1.gz
 $MAN1_DIR/pmempool-*.1.gz
 etc/bash_completion.d/pmempool.sh
 EOF
 
-cat << EOF > debian/$PACKAGE_NAME-tools.triggers
+cat << EOF > debian/pmempool.triggers
 interest man-db
 EOF
 
-cat << EOF > debian/$PACKAGE_NAME-tools.lintian-overrides
+cat << EOF > debian/pmempool.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
