@@ -65,7 +65,7 @@ MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmem
 
 
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
-		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_unmap.3 \
+		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_unmap.3 \
 		   pmem_memcpy_persist.3 pmem_memset_persist.3 pmem_memmove_nodrain.3 pmem_memcpy_nodrain.3 pmem_memset_nodrain.3 \
 		   pmem_check_version.3 pmem_errormsg.3 \
 		   pmemblk_nblock.3 \
