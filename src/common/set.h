@@ -96,7 +96,6 @@ struct pool_set_part {
 	int is_dev_dax;		/* indicates if the part is on device dax */
 	size_t alignment;	/* internal alignment (Device DAX only) */
 	int created;		/* indicates newly created (zeroed) file */
-	int region_id;		/* pool set part dax region id */
 
 	/* util_poolset_open/create */
 	void *remote_hdr;	/* allocated header for remote replica */
@@ -238,7 +237,8 @@ int util_is_poolset_file(const char *path);
 int util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
-
+int util_replica_deep_persist(const void *addr, size_t len,
+	struct pool_set *set, unsigned replica_id);
 int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	size_t minsize, size_t minpartsize, const struct pool_attr *attr,
 	unsigned *nlanes, int can_have_rep);

@@ -124,6 +124,9 @@
     <ClCompile Include="..\common\os_dimm_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\os_deep_persist_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
@@ -298,6 +301,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_deep_persist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

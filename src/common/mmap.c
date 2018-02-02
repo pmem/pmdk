@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,8 +50,10 @@
 
 int Mmap_no_random;
 void *Mmap_hint;
-os_rwlock_t Mmap_list_lock;
+static os_rwlock_t Mmap_list_lock;
 
+static SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
+		SORTEDQ_HEAD_INITIALIZER(Mmap_list);
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -63,8 +65,7 @@ util_mmap_init(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = os_rwlock_init(&Mmap_list_lock)))
-		FATAL("!os_rwlock_init");
+	util_rwlock_init(&Mmap_list_lock);
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
@@ -98,8 +99,7 @@ util_mmap_fini(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = os_rwlock_destroy(&Mmap_list_lock)))
-		FATAL("!os_rwlock_destroy");
+	util_rwlock_destroy(&Mmap_list_lock);
 }
 
 /*
@@ -280,6 +280,251 @@ util_range_none(void *addr, size_t len)
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
 		ERR("!mprotect: PROT_NONE");
+
+	return retval;
+}
+
+/*
+ * util_range_comparer -- (internal) compares the two mapping trackers
+ */
+static intptr_t
+util_range_comparer(struct map_tracker *a, struct map_tracker *b)
+{
+	return ((intptr_t)a->base_addr - (intptr_t)b->base_addr);
+}
+
+/*
+ * util_range_find_unlocked -- (internal) find the map tracker
+ * for given address range
+ *
+ * Returns the first entry at least partially overlapping given range.
+ * It's up to the caller to check whether the entry exactly matches the range,
+ * or if the range spans multiple entries.
+ */
+static struct map_tracker *
+util_range_find_unlocked(uintptr_t addr, size_t len)
+{
+	LOG(10, "addr 0x%016" PRIxPTR " len %zu", addr, len);
+
+	uintptr_t end = addr + len;
+
+	struct map_tracker *mt;
+
+	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+		if (addr < mt->end_addr &&
+		    (addr >= mt->base_addr || end > mt->base_addr))
+			goto out;
+
+		/* break if there is no chance to find matching entry */
+		if (addr < mt->base_addr)
+			break;
+	}
+	mt = NULL;
+
+out:
+	return mt;
+}
+
+/*
+ * util_range_find -- find the map tracker for given address range
+ * the same as util_range_find_unlocked but locked
+ */
+struct map_tracker *
+util_range_find(uintptr_t addr, size_t len)
+{
+	LOG(10, "addr 0x%016" PRIxPTR " len %zu", addr, len);
+
+	util_rwlock_rdlock(&Mmap_list_lock);
+
+	struct map_tracker *mt = util_range_find_unlocked(addr, len);
+
+	util_rwlock_unlock(&Mmap_list_lock);
+	return mt;
+}
+
+/*
+ * util_range_register -- add a memory range into a map tracking list
+ */
+int
+util_range_register(const void *addr, size_t len, const char *path)
+{
+	LOG(3, "addr %p len %zu path %s", addr, len, path);
+
+	/* check if not tracked already */
+	ASSERTeq(util_range_find((uintptr_t)addr, len), NULL);
+
+	struct map_tracker *mt;
+	mt  = Malloc(sizeof(struct map_tracker));
+	if (mt == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
+
+	mt->base_addr = (uintptr_t)addr;
+	mt->end_addr = mt->base_addr + len;
+	mt->region_id = util_ddax_region_find(path);
+
+	util_rwlock_wrlock(&Mmap_list_lock);
+
+	SORTEDQ_INSERT(&Mmap_list, mt, entry, struct map_tracker,
+			util_range_comparer);
+
+	util_rwlock_unlock(&Mmap_list_lock);
+
+	return 0;
+}
+
+/*
+ * util_range_split -- (internal) remove or split a map tracking entry
+ */
+static int
+util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
+{
+	LOG(3, "begin %p end %p", addrp, endp);
+
+	uintptr_t addr = (uintptr_t)addrp;
+	uintptr_t end = (uintptr_t)endp;
+	ASSERTne(mt, NULL);
+	ASSERTeq(addr % Mmap_align, 0);
+	ASSERTeq(end % Mmap_align, 0);
+
+	struct map_tracker *mtb = NULL;
+	struct map_tracker *mte = NULL;
+
+	/*
+	 * 1)    b    e           b     e
+	 *    xxxxxxxxxxxxx => xxx.......xxxx  -  mtb+mte
+	 * 2)       b     e           b     e
+	 *    xxxxxxxxxxxxx => xxxxxxx.......  -  mtb
+	 * 3) b     e          b      e
+	 *    xxxxxxxxxxxxx => ........xxxxxx  -  mte
+	 * 4) b           e    b            e
+	 *    xxxxxxxxxxxxx => ..............  -  <none>
+	 */
+
+	if (addr > mt->base_addr) {
+		/* case #1/2 */
+		/* new mapping at the beginning */
+		mtb = Malloc(sizeof(struct map_tracker));
+		if (mtb == NULL) {
+			ERR("!Malloc");
+			goto err;
+		}
+
+		mtb->base_addr = mt->base_addr;
+		mtb->end_addr = (uintptr_t)addr;
+		mtb->region_id = mt->region_id;
+	}
+
+	if (end < mt->end_addr) {
+		/* case #1/3 */
+		/* new mapping at the end */
+		mte = Malloc(sizeof(struct map_tracker));
+		if (mte == NULL) {
+			ERR("!Malloc");
+			goto err;
+		}
+
+		mte->base_addr = end;
+		mte->end_addr = mt->end_addr;
+		mte->region_id = mt->region_id;
+	}
+
+	SORTEDQ_REMOVE(&Mmap_list, mt, entry);
+
+	if (mtb) {
+		SORTEDQ_INSERT(&Mmap_list, mtb, entry,
+				struct map_tracker, util_range_comparer);
+	}
+
+	if (mte) {
+		SORTEDQ_INSERT(&Mmap_list, mte, entry,
+				struct map_tracker, util_range_comparer);
+	}
+
+	/* free entry for the original mapping */
+	Free(mt);
+	return 0;
+
+err:
+	Free(mtb);
+	Free(mte);
+	return -1;
+}
+
+/*
+ * util_range_unregister -- remove a memory range
+ * from map tracking list
+ *
+ * Remove the region between [begin,end].  If it's in a middle of the existing
+ * mapping, it results in two new map trackers.
+ */
+int
+util_range_unregister(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	int ret = 0;
+
+	util_rwlock_wrlock(&Mmap_list_lock);
+
+	void *end = (char *)addr + len;
+
+	/* XXX optimize the loop */
+	struct map_tracker *mt;
+	while ((mt = util_range_find_unlocked((uintptr_t)addr, len)) != NULL) {
+		if (util_range_split(mt, addr, end) != 0) {
+			ret = -1;
+			break;
+		}
+	}
+
+	util_rwlock_unlock(&Mmap_list_lock);
+	return ret;
+}
+
+/*
+ * util_range_is_pmem -- return true if entire range
+ * is persistent memory
+ */
+int
+util_range_is_pmem(const void *addrp, size_t len)
+{
+	LOG(10, "addr %p len %zu", addrp, len);
+
+	uintptr_t addr = (uintptr_t)addrp;
+	int retval = 1;
+
+	util_rwlock_rdlock(&Mmap_list_lock);
+
+	do {
+		struct map_tracker *mt = util_range_find(addr, len);
+		if (mt == NULL) {
+			LOG(4, "address not found 0x%016" PRIxPTR, addr);
+			retval = 0;
+			break;
+		}
+
+		LOG(10, "range found - begin 0x%016" PRIxPTR
+				" end 0x%016" PRIxPTR,
+				mt->base_addr, mt->end_addr);
+
+		if (mt->base_addr > addr) {
+			LOG(10, "base address doesn't match: "
+				"0x%" PRIxPTR " > 0x%" PRIxPTR,
+					mt->base_addr, addr);
+			retval = 0;
+			break;
+		}
+
+		uintptr_t map_len = mt->end_addr - addr;
+		if (map_len > len)
+			map_len = len;
+		len -= map_len;
+		addr += map_len;
+	} while (len > 0);
+
+	util_rwlock_unlock(&Mmap_list_lock);
 
 	return retval;
 }

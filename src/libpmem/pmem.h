@@ -41,9 +41,6 @@
 void pmem_init(void);
 
 int is_pmem_detect(const void *addr, size_t len);
-int map_range_is_pmem(const void *addrp, size_t len);
-int map_range_register(const void *addr, size_t len, int fd);
-int map_range_unregister(const void *addr, size_t len);
 
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
 typedef BOOL (WINAPI *PQVM)(

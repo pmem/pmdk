@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,57 +31,34 @@
  */
 
 /*
- * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
- *
- * usage: pmem_is_pmem_posix op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * os_deep_persist_windows.c -- Windows abstraction layer for deep_persist usage
  */
 
-#include <stdlib.h>
+#include <windows.h>
+#include "out.h"
+#include "os.h"
+#include "libpmem.h"
 
-#include "unittest.h"
-#include "mmap.h"
-
+/*
+ * os_range_deep_persist -- (internal) perform deep persist of
+ * given address range in case of systems without DAX device support it is msync
+ */
 int
-main(int argc, char *argv[])
+os_range_deep_persist(uintptr_t addr, size_t len)
 {
-	START(argc, argv, "pmem_is_pmem_posix");
+	LOG(3, "os_range_deep_persist addr %p len %lu", addr, len);
 
-	if (argc < 3)
-		UT_FATAL("usage: %s op addr len [op addr len ...]",
-				argv[0]);
+	return pmem_msync((void *)addr, len);
+}
 
-	/* insert memory regions to the list */
-	int i;
-	for (i = 1; i < argc; i += 3) {
-		UT_ASSERT(i + 2 < argc);
 
-		errno = 0;
-		void *addr = (void *)strtoull(argv[i + 1], NULL, 0);
-		UT_ASSERTeq(errno, 0);
+/*
+ * os_part_deep_persist -- (internal) call msync for non DEV dax
+ */
+int
+os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len)
+{
+	LOG(3, "part %p addr %p len %lu", part, addr, len);
 
-		size_t len = strtoull(argv[i + 2], NULL, 0);
-		UT_ASSERTeq(errno, 0);
-
-		int ret;
-
-		switch (argv[i][0]) {
-		case 'a':
-			ret = util_range_register(addr, len, NULL);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			break;
-		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			break;
-		default:
-			FATAL("invalid op");
-		}
-	}
-
-	DONE(NULL);
+	return pmem_msync(addr, len);
 }
