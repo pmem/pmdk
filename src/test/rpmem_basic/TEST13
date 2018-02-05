@@ -69,9 +69,9 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 
 # pool1 (w/ SIGNLEHDR option):
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M\
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M\
 	test_close 0\
-	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init_singlehdr\
 	test_persist_header 0 hdr\
 	test_close 0
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
@@ -80,7 +80,7 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M\
 	test_close 0\
-	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr\
+	test_open 0 pool2.set ${NODE_ADDR[0]} poolnoattr 8M init\
 	test_persist_header 0 nohdr\
 	test_close 0
 run_on_node 1 "cat $LOG >> $LOG_TEMP"

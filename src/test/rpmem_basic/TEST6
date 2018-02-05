@@ -82,11 +82,11 @@ expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool0.set ]"
 # pool1 (w/ SIGNLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 0 0\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 1 0\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 0 1
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool1.set ]"

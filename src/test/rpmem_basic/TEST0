@@ -89,7 +89,7 @@ ARGS="$ARGS test_create 2 pool4.set ${NODE_ADDR[0]} mem 8M"
 # Close previously created pool
 ARGS="$ARGS test_close 0"
 # Create a pool with the SINGLEHDR option
-ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} poolsinglehdr 8M test_close 0"
 # Create a pool with the NOHDRS option
 ARGS="$ARGS test_create 0 pool6.set ${NODE_ADDR[0]} poolnoattr 8M test_close 0"
 # Attempt to create a pool with the SINGLEHDR option and NULL pool attributes

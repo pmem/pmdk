@@ -6,7 +6,7 @@ set attributes succeeded (alt)
 pool0.set: opened
 pool1.set: created
 pool1.set: opened
-set attributes succeeded (alt)
+set attributes succeeded (alt_singlehdr)
 pool1.set: opened
 pool2.set: created
 pool2.set: opened

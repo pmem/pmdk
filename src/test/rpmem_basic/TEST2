@@ -70,11 +70,11 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 # pool1 (w/ SINGLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool1.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init_singlehdr\
 	test_read 0 1234\
 	test_close 0
 
@@ -85,7 +85,7 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool2.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr\
+	test_open 0 pool2.set ${NODE_ADDR[0]} poolnoattr 8M init\
 	test_read 0 1234\
 	test_close 0
 

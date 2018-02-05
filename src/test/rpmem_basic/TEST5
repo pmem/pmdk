@@ -82,13 +82,13 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 # pool1 (w/ SIGNLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool1.set ${NODE_ADDR[0]} memsinglehdr 8M test_close 0
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init_singlehdr\
 	test_close 0
 expect_normal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool1.set"
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init
+	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init_singlehdr
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 
 # pool2 (w/ NOHDRS option):
@@ -96,11 +96,11 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M test_close 0
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr\
+	test_open 0 pool2.set ${NODE_ADDR[0]} poolnoattr 8M init\
 	test_close 0
 expect_normal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool2.set"
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr
+	test_open 0 pool2.set ${NODE_ADDR[0]} poolnoattr 8M init
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 
 run_on_node 1 mv $LOG_TEMP $LOG
