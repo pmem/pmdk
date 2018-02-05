@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@ create_poolset $DIR/pool.set 8M:$PART_DIR/pool.part0 8M:$PART_DIR/pool.part1
 copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool.set
 
 # create pool and close it - local pool from file
-SIMPLE_ARGS="test_create 0 pool.set ${NODE_ADDR[0]} pool 8M test_close 0"
+SIMPLE_ARGS="test_create 0 pool.set ${NODE_ADDR[0]} pool 8M none test_close 0"
 
 function test_pm_policy()
 {

@@ -59,33 +59,33 @@ copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/{pool0.set,pool1.set,pool2.se
 # pool0:
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
 	test_read 0 1234\
 	test_close 0
 
 # pool1 (w/ SINGLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M singlehdr test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool1.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init singlehdr\
 	test_read 0 1234\
 	test_close 0
 
 # pool2 (w/ NOHDRS option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M test_close 0
+	test_create 0 pool2.set ${NODE_ADDR[0]} mem 8M noattr test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool2.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr\
+	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M init noattr\
 	test_read 0 1234\
 	test_close 0
 

@@ -56,33 +56,33 @@ copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set
 
 # pool0:
 # Create pool
-ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M none test_close 0"
 # Open pool and verify if its header is in initial state
-ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init"
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none"
 # Overwrite pool header to alternate state and close pool
-ARGS="$ARGS test_set_attr 0 alt test_close 0"
+ARGS="$ARGS test_set_attr 0 alt none test_close 0"
 # Open pool and verify if its header is in alternate state
-ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M alt test_close 0"
+ARGS="$ARGS test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M alt none test_close 0"
 
 # pool1 (w/ SIGNLEHDR option):
 # Create pool
-ARGS="$ARGS test_create 0 pool1.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool1.set ${NODE_ADDR[0]} pool 8M singlehdr test_close 0"
 # Open pool and verify if its header is in initial state
-ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init"
+ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init singlehdr"
 # Overwrite pool header to alternate state and close pool
-ARGS="$ARGS test_set_attr 0 alt test_close 0"
+ARGS="$ARGS test_set_attr 0 alt singlehdr test_close 0"
 # Open pool and verify if its header is in alternate state
-ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M alt test_close 0"
+ARGS="$ARGS test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M alt singlehdr test_close 0"
 
 # pool2 (w/ NOHDRS option):
 # Create pool
-ARGS="$ARGS test_create 0 pool2.set ${NODE_ADDR[0]} poolnoattr 8M test_close 0"
+ARGS="$ARGS test_create 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr test_close 0"
 # Open pool and verify if its header is in initial state
-ARGS="$ARGS test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr"
+ARGS="$ARGS test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M init noattr"
 # Overwrite pool header to alternate state and close pool
-ARGS="$ARGS test_set_attr 0 alt test_close 0"
+ARGS="$ARGS test_set_attr 0 alt none test_close 0"
 # Open pool and verify if its header is in alternate state
-ARGS="$ARGS test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M noattr test_close 0"
+ARGS="$ARGS test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M alt noattr test_close 0"
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 
