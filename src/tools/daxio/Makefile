@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,45 +28,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for tools
+# Makefile -- top Makefile for daxio
 #
+vpath %.c ../../common
 
-TOP = ../..
+TOP = ../../..
+include $(TOP)/src/common.inc
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+ifeq ($(NDCTL_ENABLE),y)
 
-TARGETS = pmempool rpmemd daxio
-SCOPEDIRS=$(TARGETS)
-SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
+#SCP_TO_REMOTE_NODES = y
 
-all    : TARGET = all
-check  : TARGET = check
-test   : TARGET = test
-clean  : TARGET = clean
-clobber: TARGET = clobber
-cstyle : TARGET = cstyle
-format : TARGET = format
-install: TARGET = install
-uninstall: TARGET = uninstall
-sync-remotes: TARGET = sync-remotes
-sparse: TARGET = sparse
+TARGET = daxio
+OBJS = daxio.o
 
-all clean clobber cstyle install uninstall check format test sparse: $(TARGETS)
+LIBPMEM=y
 
-$(TESTCONFIG):
+INCS += -I$(TOP)/src/common
+LIBS += $(LIBNDCTL)
+LIBS += $(LIBDAXCTL)
 
-sync-remotes: $(TARGETS) $(TESTCONFIG)
+MANPAGES = $(TOP)/doc/daxio.1
 
-$(TARGETS):
-	$(MAKE) -C $@ $(TARGET)
+#BASH_COMP_FILES = daxio.sh
 
-clean:
-	$(RM) TAGS cscope.in.out cscope.out cscope.po.out
+else
+$(info NOTE: Skipping daxio because ndctl is not available)
+endif
 
-clobber: clean
+include ../Makefile.inc
 
-cscope:
-	cscope -q -b $(SCOPEFILES)
-	ctags -e $(SCOPEFILES)
-
-.PHONY: all clean clobber cstyle format install uninstall common cscope sync-remotes $(TARGETS)
+.PHONY: test check

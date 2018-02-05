@@ -1,0 +1,9 @@
+daxio: copied 16384 bytes to device "$(nW)"
+daxio: copied 16384 bytes to device "$(nW)"
+daxio: requested size $(N) larger than source
+daxio: copied 4096 bytes to device "$(nW)"
+daxio: requested size $(N) larger than source
+daxio: copied 4096 bytes to device "$(nW)"
+daxio: copied 2048 bytes to device "$(nW)"
+daxio: copied 2048 bytes to device "$(nW)"
+daxio: copied 2048 bytes to device "$(nW)"

@@ -352,6 +352,9 @@ CTO_TESTS = \
 	cto_stats\
 	cto_valgrind
 
+DAXIO_TESTS = \
+	daxio
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -366,6 +369,7 @@ LOCAL_TESTS = \
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
+	$(DAXIO_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
