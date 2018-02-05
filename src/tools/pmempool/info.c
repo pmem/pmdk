@@ -498,12 +498,15 @@ parse_args(char *appname, int argc, char *argv[],
 		case 'p':
 		{
 			char *endptr;
+			int olderrno = errno;
+			errno = 0;
 			long long ll = strtoll(optarg, &endptr, 10);
 			if ((endptr && *endptr != '\0') || errno) {
 				outv_err("'%s' -- invalid replica number",
 						optarg);
 				return -1;
 			}
+			errno = olderrno;
 			argsp->obj.replica = (size_t)ll;
 			break;
 		}
