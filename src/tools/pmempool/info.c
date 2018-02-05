@@ -497,6 +497,7 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'p':
 		{
+			errno = 0;
 			char *endptr;
 			int olderrno = errno;
 			errno = 0;
