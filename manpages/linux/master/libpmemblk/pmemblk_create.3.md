@@ -95,7 +95,7 @@ maximum size of the pmemblk memory pool could be limited by the capacity of a
 single memory device. **libpmemblk**(7) allows building a persistent memory
 resident array spanning multiple memory devices by creation of persistent
 memory pools consisting of multiple files, where each part of such a *pool set*
-may be stored on a different pmem-aware filesystem.
+may be stored on a different memory device or pmem-aware filesystem.
 
 Creation of all the parts of the pool set can be done with **pmemblk_create**();
 however, the recommended method for creating pool sets is by using the
@@ -104,7 +104,7 @@ however, the recommended method for creating pool sets is by using the
 When creating a pool set consisting of multiple files, the *path* argument
 passed to **pmemblk_create**() must point to the special *set* file that defines
 the pool layout and the location of all the parts of the pool set. The
-*poolsize* argument must be 0. The meaning of the *layout* and *mode* arguments
+*poolsize* argument must be 0. The meaning of the *mode* argument
 does not change, except that the same *mode* is used for creation of all the
 parts of the pool set.
 

@@ -107,9 +107,34 @@ transactional object store is defined in **\<libpmemobj.h\>** as
 **PMEMOBJ_MIN_POOL**. For remote replicas the minimum file size
 is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.
 
+Depending on the configuration of the system, the available non-volatile
+memory space may be divided into multiple memory devices.
+In such case, the maximum size of the pmemobj memory pool
+could be limited by the capacity of a single memory device.
+**libpmemobj**(7) allows building persistent memory
+resident object store spanning multiple memory devices by creation of
+persistent memory pools consisting of multiple files, where each part of
+such a *pool set* may be stored on a different memory device
+or pmem-aware filesystem.
+
+Creation of all the parts of the pool set can be done with **pmemobj_create**();
+however, the recommended method for creating pool sets is with the
+**pmempool**(1) utility.
+
+When creating a pool set consisting of multiple files, the *path* argument
+passed to **pmemobj_create**() must point to the special *set* file that defines
+the pool layout and the location of all the parts of the pool set. The
+*poolsize* argument must be 0. The meaning of the *layout* and *mode* arguments
+does not change, except that the same *mode* is used for creation of all the
+parts of the pool set.
+
+The *set* file is a plain text file, the structure of which is described in
+**poolset**(5).
+
 The **pmemobj_open**() function opens an existing object store memory pool.
-*path* must be an existing file containing a pmemobj memory pool as created
-by **pmemobj_create**(). If *layout* is non-NULL, it is compared to the layout
+Similar to **pmemobj_create**(), *path* must identify either an existing
+obj memory pool file, or the *set* file used to create a pool set.
+If *layout* is non-NULL, it is compared to the layout
 name provided to **pmemobj_create**() when the pool was first created. This can
 be used to verify that the layout of the pool matches what was expected.
 The application must have permission to open the file and memory map it with
