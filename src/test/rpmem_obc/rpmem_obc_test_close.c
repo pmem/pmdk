@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,7 +84,7 @@ client_close_errno(char *target, int ex_errno)
 
 	client_connect_wait(rpc, target);
 
-	ret = rpmem_obc_close(rpc);
+	ret = rpmem_obc_close(rpc, 0);
 	if (ex_errno) {
 		UT_ASSERTne(ret, 0);
 		UT_ASSERTeq(errno, ex_errno);
@@ -165,7 +165,7 @@ client_close_error(char *target)
 
 		client_connect_wait(rpc, target);
 
-		ret = rpmem_obc_close(rpc);
+		ret = rpmem_obc_close(rpc, 0);
 		UT_ASSERTne(ret, 0);
 		UT_ASSERTeq(errno, ex_errno);
 
