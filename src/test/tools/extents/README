@@ -1,0 +1,11 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/extents/README.
+
+This directory contains a tool for listing physical extents of a file.
+
+Usage:
+	$ extents file
+
+Output of this command is a simple list of pairs: offset and length expressed
+in sectors (offset from the beginning of the device).
