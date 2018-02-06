@@ -32,6 +32,7 @@
 #
 
 SOURCE =\
+	$(COMMON)/extent_linux.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/fs_posix.c\
