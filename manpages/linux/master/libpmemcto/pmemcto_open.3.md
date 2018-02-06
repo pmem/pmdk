@@ -98,7 +98,7 @@ maximum size of the pmemcto memory pool could be limited by the capacity of a
 single memory device. **libpmemcto**(7) allows building a close-to-open
 persistence pool spanning multiple memory devices by creation of persistent
 memory pools consisting of multiple files, where each part of such a *pool set*
-may be stored on a different pmem-aware filesystem.
+may be stored on a different memory device or pmem-aware filesystem.
 
 Creation of all the parts of the pool set can be done with **pmemcto_create**();
 however, the recommended method for creating pool sets is by using the
