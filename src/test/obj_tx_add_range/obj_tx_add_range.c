@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,7 +85,7 @@ struct overlap_object {
  * do_tx_alloc -- do tx allocation with specified type number
  */
 static PMEMoid
-do_tx_zalloc(PMEMobjpool *pop, int type_num)
+do_tx_zalloc(PMEMobjpool *pop, uint64_t type_num)
 {
 	PMEMoid ret = OID_NULL;
 
@@ -620,6 +620,21 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 	UT_ASSERTne(errno, 0);
 }
 
+static void
+do_tx_add_range_zero(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, 0, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTne(errno, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -663,6 +678,8 @@ main(int argc, char *argv[])
 		do_tx_add_range_too_large(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_huge_range_abort(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_zero(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_commit(pop);
 		pmemobj_close(pop);
