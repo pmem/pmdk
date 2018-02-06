@@ -52,6 +52,7 @@ static void
 shutdown_state_checksum(struct shutdown_state *sds)
 {
 	LOG(3, "sds %p", sds);
+
 	util_checksum(sds, sizeof(*sds), &sds->checksum, 1, 0);
 	FLUSH_SDS(sds);
 }
@@ -65,6 +66,7 @@ shutdown_state_init(struct shutdown_state *sds)
 	/* check if we didn't change size of shutdown_state accidentally */
 	COMPILE_ERROR_ON(sizeof(struct shutdown_state) != 64);
 	LOG(3, "sds %p", sds);
+
 	memset(sds, 0, sizeof(*sds));
 
 	shutdown_state_checksum(sds);
@@ -79,6 +81,7 @@ int
 shutdown_state_add_part(struct shutdown_state *sds, const char *path)
 {
 	LOG(3, "sds %p, path %s", sds, path);
+
 	size_t len = 0;
 	char *uid;
 	uint64_t usc;
@@ -213,7 +216,6 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 		return 0;
 	}
 	/* an ADR failure - the pool might be corrupted */
-	ERR(
-		"an ADR failure was detected, the pool might be corrupted");
+	ERR("an ADR failure was detected, the pool might be corrupted");
 	return 1;
 }

@@ -2199,7 +2199,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		memcpy(&hdrp->arch_flags, attr->arch_flags, POOL_HDR_ARCH_LEN);
 	}
 
-	if (!set->ignore_sds && partidx == 0) {
+	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
 		shutdown_state_init(&hdrp->sds);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
@@ -3439,7 +3439,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			errno = EINVAL;
 			return -1;
 		}
-		if (!set->ignore_sds) {
+		if (!set->ignore_sds && !rep->remote) {
 			struct shutdown_state sds;
 			shutdown_state_init(&sds);
 			for (unsigned p = 0; p < rep->nparts; p++) {
