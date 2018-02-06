@@ -543,19 +543,24 @@ check_shutdown_state(struct pool_set *set,
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		struct pool_hdr *hdrp = HDR(rep, 0);
 
-		if (hdrp == NULL)
+		if (rep->remote)
 			continue;
 
-		struct shutdown_state sds;
-		shutdown_state_init(&sds);
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (shutdown_state_add_part(&sds, PART(rep, p).path)) {
-				rep_hs->flags |= IS_BROKEN;
-				continue;
-			}
+		if (hdrp == NULL) {
+			/* cannot verify shutdown state */
+			rep_hs->flags |= IS_BROKEN;
+			continue;
 		}
 
-		if (shutdown_state_check(&sds, &hdrp->sds))
+		struct shutdown_state curr_sds;
+		shutdown_state_init(&curr_sds);
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			shutdown_state_add_part(&curr_sds, PART(rep, p).path);
+		}
+		/* make a copy of sds as we shouldn't modify a pool */
+		struct shutdown_state pool_sds = hdrp->sds;
+
+		if (shutdown_state_check(&curr_sds, &pool_sds))
 				rep_hs->flags |= IS_BROKEN;
 
 	}
