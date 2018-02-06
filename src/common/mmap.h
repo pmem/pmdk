@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "out.h"
 #include "queue.h"
@@ -84,6 +85,23 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define RANGE_RW(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, rw)
 #define RANGE_NONE(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, none)
 
+/*
+ * this structure tracks the file mappings outstanding per file handle
+ */
+struct map_tracker {
+	SORTEDQ_ENTRY(map_tracker) entry;
+	uintptr_t base_addr;
+	uintptr_t end_addr;
+	int region_id;
+#ifdef _WIN32
+	/* Windows-specific data */
+	HANDLE FileHandle;
+	HANDLE FileMappingHandle;
+	DWORD Access;
+	os_off_t Offset;
+	size_t FileLen;
+#endif
+};
 
 void util_mmap_init(void);
 void util_mmap_fini(void);
@@ -117,8 +135,9 @@ util_map_hint_align(size_t len, size_t req_align)
 	return align;
 }
 
-int util_range_register(const void *addr, size_t len);
+int util_range_register(const void *addr, size_t len, const char *path);
 int util_range_unregister(const void *addr, size_t len);
+struct map_tracker *util_range_find(uintptr_t addr, size_t len);
 int util_range_is_pmem(const void *addr, size_t len);
 
 #ifdef __cplusplus

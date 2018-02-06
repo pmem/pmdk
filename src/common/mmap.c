@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
  */
 
 #include <errno.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,36 +50,10 @@
 
 int Mmap_no_random;
 void *Mmap_hint;
-
-enum map_tracker_flag {
-	MTF_DIRECT_MAPPED = 0x0001,
-
-	/* this should hold the value of all flags ORed for debug purpose */
-	MTF_MASK = MTF_DIRECT_MAPPED
-};
-
-/*
- * this structure tracks the file mappings outstanding per file handle
- */
-struct map_tracker {
-	SORTEDQ_ENTRY(map_tracker) entry;
-	const void *base_addr;
-	const void *end_addr;
-	enum map_tracker_flag flags;
-
-#ifdef _WIN32
-	/* Windows-specific data */
-	HANDLE FileHandle;
-	HANDLE FileMappingHandle;
-	DWORD Access;
-	os_off_t Offset;
-	size_t FileLen;
-#endif
-};
+static os_rwlock_t Mmap_list_lock;
 
 static SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
 		SORTEDQ_HEAD_INITIALIZER(Mmap_list);
-static os_rwlock_t Mmap_list_lock;
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -90,8 +65,7 @@ util_mmap_init(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = os_rwlock_init(&Mmap_list_lock)))
-		FATAL("!os_rwlock_init");
+	util_rwlock_init(&Mmap_list_lock);
 
 	/*
 	 * For testing, allow overriding the default mmap() hint address.
@@ -125,8 +99,7 @@ util_mmap_fini(void)
 {
 	LOG(3, NULL);
 
-	if ((errno = os_rwlock_destroy(&Mmap_list_lock)))
-		FATAL("!os_rwlock_destroy");
+	util_rwlock_destroy(&Mmap_list_lock);
 }
 
 /*
@@ -321,85 +294,99 @@ util_range_comparer(struct map_tracker *a, struct map_tracker *b)
 }
 
 /*
- * util_range_find -- find the map tracker for given address range
+ * util_range_find_unlocked -- (internal) find the map tracker
+ * for given address range
  *
  * Returns the first entry at least partially overlapping given range.
  * It's up to the caller to check whether the entry exactly matches the range,
  * or if the range spans multiple entries.
- * The caller is also responsible for acquiring/releasing a lock on
- * the map tracking list.
  */
 static struct map_tracker *
-util_range_find(const void *addr, size_t len)
+util_range_find_unlocked(uintptr_t addr, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(10, "addr 0x%016" PRIxPTR " len %zu", addr, len);
 
-	void *end = (char *)addr + len;
+	uintptr_t end = addr + len;
 
 	struct map_tracker *mt;
+
 	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
 		if (addr < mt->end_addr &&
 		    (addr >= mt->base_addr || end > mt->base_addr))
-			return mt;
+			goto out;
 
 		/* break if there is no chance to find matching entry */
 		if (addr < mt->base_addr)
 			break;
 	}
+	mt = NULL;
 
-	return NULL;
+out:
+	return mt;
+}
+
+/*
+ * util_range_find -- find the map tracker for given address range
+ * the same as util_range_find_unlocked but locked
+ */
+struct map_tracker *
+util_range_find(uintptr_t addr, size_t len)
+{
+	LOG(10, "addr 0x%016" PRIxPTR " len %zu", addr, len);
+
+	util_rwlock_rdlock(&Mmap_list_lock);
+
+	struct map_tracker *mt = util_range_find_unlocked(addr, len);
+
+	util_rwlock_unlock(&Mmap_list_lock);
+	return mt;
 }
 
 /*
  * util_range_register -- add a memory range into a map tracking list
  */
 int
-util_range_register(const void *addr, size_t len)
+util_range_register(const void *addr, size_t len, const char *path)
 {
-	LOG(3, "addr %p len %zu", addr, len);
+	LOG(3, "addr %p len %zu path %s", addr, len, path);
 
-	int ret = 0;
+	/* check if not tracked already */
+	ASSERTeq(util_range_find((uintptr_t)addr, len), NULL);
 
-	if (os_rwlock_wrlock(&Mmap_list_lock)) {
-		errno = EBUSY;
-		ERR("!cannot lock map tracking list");
+	struct map_tracker *mt;
+	mt  = Malloc(sizeof(struct map_tracker));
+	if (mt == NULL) {
+		ERR("!Malloc");
 		return -1;
 	}
 
-	/* check if not tracked already */
-	struct map_tracker *mt = util_range_find(addr, len);
-	ASSERTeq(mt, NULL);
+	mt->base_addr = (uintptr_t)addr;
+	mt->end_addr = mt->base_addr + len;
+	mt->region_id = util_ddax_region_find(path);
 
-	mt = Malloc(sizeof(struct map_tracker));
-	if (mt == NULL) {
-		ERR("!Malloc");
-		ret = -1;
-		goto err;
-	}
-
-	mt->base_addr = addr;
-	mt->end_addr = (void *)((char *)addr + len);
-	mt->flags = MTF_DIRECT_MAPPED;
+	util_rwlock_wrlock(&Mmap_list_lock);
 
 	SORTEDQ_INSERT(&Mmap_list, mt, entry, struct map_tracker,
 			util_range_comparer);
 
-err:
 	util_rwlock_unlock(&Mmap_list_lock);
-	return ret;
+
+	return 0;
 }
 
 /*
  * util_range_split -- (internal) remove or split a map tracking entry
  */
 static int
-util_range_split(struct map_tracker *mt, const void *addr, const void *end)
+util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 {
-	LOG(3, "begin %p end %p", addr, end);
+	LOG(3, "begin %p end %p", addrp, endp);
 
+	uintptr_t addr = (uintptr_t)addrp;
+	uintptr_t end = (uintptr_t)endp;
 	ASSERTne(mt, NULL);
-	ASSERTeq((uintptr_t)addr % Mmap_align, 0);
-	ASSERTeq((uintptr_t)end % Mmap_align, 0);
+	ASSERTeq(addr % Mmap_align, 0);
+	ASSERTeq(end % Mmap_align, 0);
 
 	struct map_tracker *mtb = NULL;
 	struct map_tracker *mte = NULL;
@@ -424,9 +411,9 @@ util_range_split(struct map_tracker *mt, const void *addr, const void *end)
 			goto err;
 		}
 
-		mtb->flags = mt->flags;
 		mtb->base_addr = mt->base_addr;
-		mtb->end_addr = addr;
+		mtb->end_addr = (uintptr_t)addr;
+		mtb->region_id = mt->region_id;
 	}
 
 	if (end < mt->end_addr) {
@@ -438,9 +425,9 @@ util_range_split(struct map_tracker *mt, const void *addr, const void *end)
 			goto err;
 		}
 
-		mte->flags = mt->flags;
 		mte->base_addr = end;
 		mte->end_addr = mt->end_addr;
+		mte->region_id = mt->region_id;
 	}
 
 	SORTEDQ_REMOVE(&Mmap_list, mt, entry);
@@ -466,7 +453,8 @@ err:
 }
 
 /*
- * util_range_unregister -- remove a memory range from map tracking list
+ * util_range_unregister -- remove a memory range
+ * from map tracking list
  *
  * Remove the region between [begin,end].  If it's in a middle of the existing
  * mapping, it results in two new map trackers.
@@ -478,17 +466,13 @@ util_range_unregister(const void *addr, size_t len)
 
 	int ret = 0;
 
-	if (os_rwlock_wrlock(&Mmap_list_lock)) {
-		errno = EBUSY;
-		ERR("!cannot lock map tracking list");
-		return -1;
-	}
+	util_rwlock_wrlock(&Mmap_list_lock);
 
 	void *end = (char *)addr + len;
 
 	/* XXX optimize the loop */
 	struct map_tracker *mt;
-	while ((mt = util_range_find(addr, len)) != NULL) {
+	while ((mt = util_range_find_unlocked((uintptr_t)addr, len)) != NULL) {
 		if (util_range_split(mt, addr, end) != 0) {
 			ret = -1;
 			break;
@@ -500,49 +484,44 @@ util_range_unregister(const void *addr, size_t len)
 }
 
 /*
- * util_range_is_pmem -- return true if entire range is persistent memory
- *
- * XXX Once the Linux and Windows implementation is unified, this function
- * would just become a new is_pmem_detect().
+ * util_range_is_pmem -- return true if entire range
+ * is persistent memory
  */
 int
-util_range_is_pmem(const void *addr, size_t len)
+util_range_is_pmem(const void *addrp, size_t len)
 {
-	LOG(10, "addr %p len %zu", addr, len);
+	LOG(10, "addr %p len %zu", addrp, len);
 
+	uintptr_t addr = (uintptr_t)addrp;
 	int retval = 1;
 
-	if (os_rwlock_rdlock(&Mmap_list_lock)) {
-		errno = EBUSY;
-		ERR("!cannot lock map tracking list");
-		return 0;
-	}
+	util_rwlock_rdlock(&Mmap_list_lock);
 
 	do {
 		struct map_tracker *mt = util_range_find(addr, len);
 		if (mt == NULL) {
-			LOG(4, "address not found %p", addr);
+			LOG(4, "address not found 0x%016" PRIxPTR, addr);
 			retval = 0;
 			break;
 		}
 
-		LOG(10, "range found - begin %p end %p flags %x",
-				mt->base_addr, mt->end_addr, mt->flags);
+		LOG(10, "range found - begin 0x%016" PRIxPTR
+				" end 0x%016" PRIxPTR,
+				mt->base_addr, mt->end_addr);
 
 		if (mt->base_addr > addr) {
-			LOG(10, "base address doesn't match: %p > %p",
+			LOG(10, "base address doesn't match: "
+				"0x%" PRIxPTR " > 0x%" PRIxPTR,
 					mt->base_addr, addr);
 			retval = 0;
 			break;
 		}
 
-		retval &= ((mt->flags & MTF_DIRECT_MAPPED) != 0);
-
-		uintptr_t map_len = ((uintptr_t)mt->end_addr - (uintptr_t)addr);
+		uintptr_t map_len = mt->end_addr - addr;
 		if (map_len > len)
 			map_len = len;
 		len -= map_len;
-		addr = (char *)addr + map_len;
+		addr += map_len;
 	} while (len > 0);
 
 	util_rwlock_unlock(&Mmap_list_lock);

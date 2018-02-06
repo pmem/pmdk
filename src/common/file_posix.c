@@ -52,6 +52,7 @@
 #include "out.h"
 
 #define MAX_SIZE_LENGTH 64
+#define DAX_REGION_ID_LEN 6 /* 5 digits + \0 */
 
 /*
  * util_tmpfile_mkstemp --  (internal) create temporary file
@@ -290,4 +291,56 @@ util_file_device_dax_alignment(const char *path)
 	LOG(3, "path \"%s\"", path);
 
 	return device_dax_alignment(path);
+}
+
+/*
+ * util_ddax_region_find -- returns Device DAX region id
+ */
+int
+util_ddax_region_find(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	int dax_reg_id_fd;
+	char dax_region_path[PATH_MAX];
+	char reg_id[DAX_REGION_ID_LEN];
+	char *end_addr;
+	os_stat_t st;
+
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
+		return -1;
+	}
+
+	dev_t dev_id = st.st_rdev;
+
+	snprintf(dax_region_path, PATH_MAX,
+		"/sys/dev/char/%u:%u/device/dax_region/id",
+		major(dev_id), minor(dev_id));
+
+	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
+		ERR("!open(\"%s\", O_RDONLY)", dax_region_path);
+		return -1;
+	}
+
+	ssize_t len = read(dax_reg_id_fd, reg_id, DAX_REGION_ID_LEN);
+
+	if (len < 2 || reg_id[len - 1] != '\n') {
+		ERR("!read(%d, %p, %d)", dax_reg_id_fd, reg_id,
+			DAX_REGION_ID_LEN);
+		goto err;
+	}
+
+	int reg_num = (int)strtol(reg_id, &end_addr, 10);
+	if (*end_addr != '\n') {
+		ERR("!strtol(%s, %s, 10)", reg_id, end_addr);
+		goto err;
+	}
+
+	os_close(dax_reg_id_fd);
+	return reg_num;
+
+err:
+	os_close(dax_reg_id_fd);
+	return -1;
 }

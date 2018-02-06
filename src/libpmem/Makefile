@@ -42,6 +42,7 @@ SOURCE =\
 	$(COMMON)/mmap_posix.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/os_deep_persist_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\

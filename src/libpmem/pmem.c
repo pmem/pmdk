@@ -193,6 +193,7 @@
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
+#include "os_deep_persist.h"
 #ifdef __aarch64__
 #include "arm_cacheops.h"
 #endif
@@ -734,7 +735,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 #ifndef _WIN32
 	/* XXX only Device DAX regions (PMEM) are tracked so far */
-	if (is_dev_dax && util_range_register(addr, len) != 0) {
+	if (is_dev_dax && util_range_register(addr, len, path) != 0) {
 		LOG(2, "can't track mapped region");
 	}
 #endif
@@ -1388,4 +1389,21 @@ pmem_init(void)
 			GetModuleHandle(TEXT("KernelBase.dll")),
 			"QueryVirtualMemoryInformation");
 #endif
+}
+
+/*
+ * pmem_deep_persist -- perform deep persist on a memory range
+ *
+ * It merely acts as wrapper around an msync call in most cases, the only
+ * exception is the case of an mmap'ed DAX device on Linux.
+ */
+int
+pmem_deep_persist(const void *addr, size_t len)
+{
+	LOG(3, "addr %p len %zu", addr, len);
+
+	if (len == 0)
+		return 0;
+
+	return os_range_deep_persist((uintptr_t)addr, len);
 }
