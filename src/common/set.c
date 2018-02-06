@@ -79,7 +79,6 @@
 #define PMEM_FILE_NAME_MAX_LEN 20
 #define PMEM_FILE_MAX_LEN (PMEM_FILE_NAME_MAX_LEN + PMEM_FILE_PADDING)
 
-static void *Rpmem_handle_remote;
 static RPMEMpool *(*Rpmem_create)(const char *target, const char *pool_set_name,
 			void *pool_addr, size_t pool_size, unsigned *nlanes,
 			const struct rpmem_pool_attr *rpmem_attr);
@@ -96,7 +95,7 @@ int (*Rpmem_set_attr)(RPMEMpool *rpp, const struct rpmem_pool_attr *rattr);
 
 static int Remote_replication_available;
 static os_mutex_t Remote_lock;
-static int Remote_usage_counter;
+static void *Rpmem_handle_remote;
 
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
@@ -132,6 +131,8 @@ void
 util_remote_fini(void)
 {
 	LOG(3, NULL);
+
+	util_remote_unload();
 
 	/* XXX Okay to be here if not initialized? */
 	if (Remote_replication_available) {
@@ -190,18 +191,8 @@ util_remote_unload(void)
 
 	util_mutex_lock(&Remote_lock);
 
-	if (Remote_usage_counter == 0)
-		goto end_unlock;
-
-	if (Remote_usage_counter > 1)
-		goto end_dec;
-
-	/* Remote_usage_counter == 1 */
 	util_remote_unload_core();
 
-end_dec:
-	Remote_usage_counter--;
-end_unlock:
 	util_mutex_unlock(&Remote_lock);
 }
 
@@ -227,7 +218,7 @@ util_remote_load(void)
 
 	util_mutex_lock(&Remote_lock);
 
-	if (Remote_usage_counter > 0)
+	if (Rpmem_handle_remote)
 		goto end;
 
 	Rpmem_handle_remote = util_dlopen(LIBRARY_REMOTE);
@@ -281,7 +272,6 @@ util_remote_load(void)
 	}
 
 end:
-	Remote_usage_counter++;
 	util_mutex_unlock(&Remote_lock);
 	return 0;
 
@@ -630,9 +620,6 @@ util_poolset_close(struct pool_set *set, enum del_parts_mode del)
 		else
 			(void) util_replica_close_remote(rep, r, del);
 	}
-
-	if (set->remote)
-		util_remote_unload();
 
 	/*
 	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
@@ -2991,7 +2978,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			ret = util_uuid_generate(set->uuid);
 			if (ret < 0) {
 				LOG(2, "cannot generate pool set UUID");
-				goto err_unload;
+				goto err_poolset;
 			}
 		}
 
@@ -3003,7 +2990,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 				if (ret < 0) {
 					LOG(2,
 					"cannot generate pool set part UUID");
-					goto err_unload;
+					goto err_poolset;
 				}
 			}
 		}
@@ -3072,12 +3059,6 @@ err_create:
 err_poolset:
 	oerrno = errno;
 	util_poolset_close(set, DELETE_CREATED_PARTS);
-	errno = oerrno;
-	return -1;
-err_unload:
-	oerrno = errno;
-	if (set->remote)
-		util_remote_unload();
 	errno = oerrno;
 	return -1;
 }
