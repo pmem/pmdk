@@ -53,7 +53,21 @@
 	.signature		= "<RPMEM>",\
 	.major			= 1,\
 	.compat_features	= 2,\
-	.incompat_features	= 3,\
+	.incompat_features	= 0,\
+	.ro_compat_features	= 4,\
+	.poolset_uuid		= "POOLSET_UUID0123",\
+	.uuid			= "UUID0123456789AB",\
+	.next_uuid		= "NEXT_UUID0123456",\
+	.prev_uuid		= "PREV_UUID0123456",\
+	.user_flags		= "USER_FLAGS\0\0\0\n~.",\
+}
+
+/* as above but with SINGLEHDR incompat feature */
+#define POOL_ATTR_INIT_SINGLEHDR {\
+	.signature		= "<RPMEM>",\
+	.major			= 1,\
+	.compat_features	= 2,\
+	.incompat_features	= 1,\
 	.ro_compat_features	= 4,\
 	.poolset_uuid		= "POOLSET_UUID0123",\
 	.uuid			= "UUID0123456789AB",\
@@ -66,7 +80,21 @@
 	.signature		= "<ALT>",\
 	.major			= 5,\
 	.compat_features	= 6,\
-	.incompat_features	= 7,\
+	.incompat_features	= 0,\
+	.ro_compat_features	= 8,\
+	.poolset_uuid		= "UUID_POOLSET_ALT",\
+	.uuid			= "ALT_UUIDCDEFFEDC",\
+	.next_uuid		= "456UUID_NEXT_ALT",\
+	.prev_uuid		= "UUID012_ALT_PREV",\
+	.user_flags		= "\0\0\0\n~._ALT_FLAGS",\
+}
+
+/* as above but with SINGLEHDR incompat feature */
+#define POOL_ATTR_ALT_SINGLEHDR {\
+	.signature		= "<ALT>",\
+	.major			= 5,\
+	.compat_features	= 6,\
+	.incompat_features	= 1,\
 	.ro_compat_features	= 8,\
 	.poolset_uuid		= "UUID_POOLSET_ALT",\
 	.uuid			= "ALT_UUIDCDEFFEDC",\
@@ -77,12 +105,16 @@
 
 const struct rpmem_pool_attr pool_attrs[] = {
 	POOL_ATTR_INIT,
-	POOL_ATTR_ALT
+	POOL_ATTR_INIT_SINGLEHDR,
+	POOL_ATTR_ALT,
+	POOL_ATTR_ALT_SINGLEHDR
 };
 
 const char *pool_attr_names[] = {
 	"init",
-	"alt"
+	"init_singlehdr",
+	"alt",
+	"alt_singlehdr"
 };
 
 #define POOL_ATTR_INIT_INDEX	0
@@ -239,22 +271,24 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
 /*
  * test_create -- test case for creating remote pool
  *
- * if <size> argument equals -1 or pool_path equals either "poolnoattr" or
- * "memnoattr", pool size is assumed 0 and NULL is passed to rpmem_create()
- * for pool attributes argument
+ * The <option> argument values:
+ * - "singlehdr" - the incompat feature flag is set to POOL_FEAT_SINGLEHDR,
+ * - "noattr" - NULL pool attributes are passed to rpmem_create(),
+ * - "none" or any other string - no options.
  */
 static int
 test_create(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 5)
+	if (argc < 6)
 		UT_FATAL("usage: test_create <id> <pool set> "
-				"<target> <pool> <size>");
+				"<target> <pool> <size> <option>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
 	const char *target = argv[2];
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
+	const char *option = argv[5];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -263,10 +297,12 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_pool_attr *rattr = NULL;
 	struct rpmem_pool_attr pool_attr = pool_attrs[POOL_ATTR_INIT_INDEX];
-	if (strcmp(size_str, "-1") == 0) {
-		size_str = "0";
-	} else if (strcmp(pool_path, "poolnoattr") != 0 &&
-			strcmp(pool_path, "memnoattr") != 0) {
+
+	if (strcmp(option, "noattr") == 0) {
+		/* pass NULL pool attributes */
+	} else {
+		if (strcmp(option, "singlehdr") == 0)
+			pool_attr.incompat_features |= POOL_FEAT_SINGLEHDR;
 		rattr = &pool_attr;
 	}
 
@@ -283,18 +319,24 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 5;
+	return 6;
 }
 
 /*
  * test_open -- test case for opening remote pool
+ *
+ * The <option> argument values:
+ * - "singlehdr" - the incompat feature flag is set to POOL_FEAT_SINGLEHDR,
+ * - "noattr" - NULL pool attributes are passed to rpmem_create(),
+ * - "none" or any other string - no options.
  */
 static int
 test_open(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 6)
+	if (argc < 7)
 		UT_FATAL("usage: test_open <id> <pool set> "
-				"<target> <pool> <pool attr name>");
+				"<target> <pool> <size> <pool attr name> "
+				"<option>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
@@ -302,6 +344,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 	const char *pool_path = argv[3];
 	const char *size_str = argv[4];
 	const char *pool_attr_name = argv[5];
+	const char *option = argv[6];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -309,19 +352,25 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(pool->rpp, NULL);
 
 	const struct rpmem_pool_attr *rattr = NULL;
-	if (strcmp(pool_attr_name, "noattr") != 0) {
-		const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
-		rattr = &pool_attrs[pool_attr_id];
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+	struct rpmem_pool_attr pool_attr = pool_attrs[pool_attr_id];
+	if (strcmp(option, "noattr") == 0) {
+		/* pass NULL pool attributes */
+	} else {
+		/* pass non-NULL pool attributes */
+		if (strcmp(option, "singlehdr") == 0)
+			pool_attr.incompat_features |= POOL_FEAT_SINGLEHDR;
+		rattr = &pool_attr;
 	}
 
 	init_pool(pool, target, pool_path, size_str);
 
-	struct rpmem_pool_attr pool_attr;
+	struct rpmem_pool_attr pool_attr_open;
 	pool->rpp = rpmem_open(target, pool_set, pool->pool,
-			pool->size, &pool->nlanes, &pool_attr);
+			pool->size, &pool->nlanes, &pool_attr_open);
 
 	if (pool->rpp) {
-		cmp_pool_attr(&pool_attr, rattr);
+		cmp_pool_attr(&pool_attr_open, rattr);
 		UT_ASSERTne(pool->nlanes, 0);
 
 		UT_OUT("%s: opened", pool_set);
@@ -330,7 +379,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 		free_pool(pool);
 	}
 
-	return 6;
+	return 7;
 }
 
 /*
@@ -516,26 +565,38 @@ test_remove(const struct test_case *tc, int argc, char *argv[])
 static int
 test_set_attr(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 2)
-		UT_FATAL("usage: test_set_attr <id> <pool attr name>");
+	if (argc < 3)
+		UT_FATAL("usage: test_set_attr <id> <pool attr name> <option>");
 
 	const char *id_str = argv[0];
 	const char *pool_attr_name = argv[1];
+	const char *option = argv[2];
 
 	int id = atoi(id_str);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 	UT_ASSERTne(pool->rpp, NULL);
-	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
 
-	int ret = rpmem_set_attr(pool->rpp, &pool_attrs[pool_attr_id]);
+	struct rpmem_pool_attr *rattr = NULL;
+	const int pool_attr_id = str_2_pool_attr_index(pool_attr_name);
+	struct rpmem_pool_attr pool_attr = pool_attrs[pool_attr_id];
+	if (strcmp(option, "noattr") == 0) {
+		/* pass NULL pool attributes */
+	} else {
+		/* pass non-NULL pool attributes */
+		if (strcmp(option, "singlehdr") == 0)
+			pool_attr.incompat_features |= POOL_FEAT_SINGLEHDR;
+		rattr = &pool_attr;
+	}
+
+	int ret = rpmem_set_attr(pool->rpp, rattr);
 
 	if (ret)
 		UT_OUT("set attributes failed (%s)", pool_attr_name);
 	else
 		UT_OUT("set attributes succeeded (%s)", pool_attr_name);
 
-	return 2;
+	return 3;
 }
 
 /*

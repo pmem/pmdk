@@ -70,10 +70,10 @@ expect_normal_exit run_on_node 1 ../pmempool rm -sf $(get_node_devdax_path 0 0)
 # pool0:
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 none\
 	test_persist 0 0 1 1\
 	test_close 0\
-	test_open 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init none\
 	test_persist 0 0 8 8\
 	test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 0
@@ -82,10 +82,10 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 # pool1 (w/ SIGNLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 singlehdr\
 	test_persist 0 0 1 1\
 	test_close 0\
-	test_open 0 pool1.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init\
+	test_open 0 pool1.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init singlehdr\
 	test_persist 0 0 8 8\
 	test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 0 0
@@ -94,10 +94,10 @@ run_on_node 1 "cat $LOG >> $LOG_TEMP"
 # pool2 (w/ NOHDRS option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool2.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) -1\
+	test_create 0 pool2.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 noattr\
 	test_persist 0 0 1 1\
 	test_close 0\
-	test_open 0 pool2.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 noattr\
+	test_open 0 pool2.set ${NODE_ADDR[0]} $(get_node_devdax_path 1 0) 0 init noattr\
 	test_persist 0 0 8 8\
 	test_close 0\
 	test_remove ${NODE_ADDR[0]} pool2.set 0 0

@@ -67,35 +67,35 @@ copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR/subdir/ $DIR/pool2.set
 run_on_node 0 chmod a-r ${NODE_DIR[0]}$POOLS_DIR/pool0r.set
 
 # Create pool from non-existing pool set file
-ARGS="$ARGS test_create 0 poolX.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_create 0 poolX.set ${NODE_ADDR[0]} pool 8M none"
 # Create pool from pool set file which can't be read
-ARGS="$ARGS test_create 0 pool0r.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_create 0 pool0r.set ${NODE_ADDR[0]} pool 8M none"
 # Create too big pool
-ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 32M"
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 32M none"
 # Create pool and close it - local pool from file
-ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M none test_close 0"
 # Create already existing pool
-ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M none"
 # Create pool and close it - local pool from memory
-ARGS="$ARGS test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0"
+ARGS="$ARGS test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M none test_close 0"
 # Create pool from pool set with subdirectory
-ARGS="$ARGS test_create 0 subdir/pool2.set ${NODE_ADDR[0]} mem 8M test_close 0"
+ARGS="$ARGS test_create 0 subdir/pool2.set ${NODE_ADDR[0]} mem 8M none test_close 0"
 # Create pool but don't close it immediately
-ARGS="$ARGS test_create 0 pool3.set ${NODE_ADDR[0]} mem 8M"
+ARGS="$ARGS test_create 0 pool3.set ${NODE_ADDR[0]} mem 8M none"
 # Create already created and not closed pool
-ARGS="$ARGS test_create 1 pool3.set ${NODE_ADDR[0]} mem 8M"
+ARGS="$ARGS test_create 1 pool3.set ${NODE_ADDR[0]} mem 8M none"
 # Create pool from pool set which has duplicated part file
-ARGS="$ARGS test_create 2 pool4.set ${NODE_ADDR[0]} mem 8M"
+ARGS="$ARGS test_create 2 pool4.set ${NODE_ADDR[0]} mem 8M none"
 # Close previously created pool
 ARGS="$ARGS test_close 0"
 # Create a pool with the SINGLEHDR option
-ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} pool 8M test_close 0"
+ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} pool 8M singlehdr test_close 0"
 # Create a pool with the NOHDRS option
-ARGS="$ARGS test_create 0 pool6.set ${NODE_ADDR[0]} poolnoattr 8M test_close 0"
+ARGS="$ARGS test_create 0 pool6.set ${NODE_ADDR[0]} pool 8M noattr test_close 0"
 # Attempt to create a pool with the SINGLEHDR option and NULL pool attributes
-ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} poolnoattr 8M"
+ARGS="$ARGS test_create 0 pool5.set ${NODE_ADDR[0]} pool 8M noattr"
 # Attempt to create a pool with the NOHDRS option and non-NULL pool attributes
-ARGS="$ARGS test_create 0 pool6.set ${NODE_ADDR[0]} pool 8M"
+ARGS="$ARGS test_create 0 pool6.set ${NODE_ADDR[0]} pool 8M none"
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
 

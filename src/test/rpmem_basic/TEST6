@@ -70,11 +70,11 @@ expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove poo
 # pool0:
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 0\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 1 0\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0\
 	test_remove ${NODE_ADDR[0]} pool0.set 0 1
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool0.set ]"
@@ -82,11 +82,11 @@ expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool0.set ]"
 # pool1 (w/ SIGNLEHDR option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M singlehdr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 0 0\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M singlehdr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 1 0\
-	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M test_close 0\
+	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M singlehdr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool1.set 0 1
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool1.set ]"
@@ -94,11 +94,11 @@ expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool1.set ]"
 # pool2 (w/ NOHDRS option):
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M test_close 0\
+	test_create 0 pool2.set ${NODE_ADDR[0]} mem 8M noattr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool2.set 0 0\
-	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M test_close 0\
+	test_create 0 pool2.set ${NODE_ADDR[0]} mem 8M noattr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool2.set 1 0\
-	test_create 0 pool2.set ${NODE_ADDR[0]} memnoattr 8M test_close 0\
+	test_create 0 pool2.set ${NODE_ADDR[0]} mem 8M noattr test_close 0\
 	test_remove ${NODE_ADDR[0]} pool2.set 0 1
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 expect_normal_exit run_on_node 0 "[ ! -f ${RPMEM_POOLSET_DIR[0]}/pool2.set ]"

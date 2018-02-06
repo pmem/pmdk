@@ -2951,6 +2951,17 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			errno = EINVAL;
 			return -1;
 		}
+
+		/* check if poolset options match remote pool attributes */
+		if (attr != NULL &&
+				((set->options & OPTION_SINGLEHDR) == 0) !=
+				((attr->incompat_features &
+						POOL_FEAT_SINGLEHDR) == 0)) {
+			ERR(
+			"pool incompat feature flags and remote poolset options do not match");
+			errno = EINVAL;
+			return -1;
+		}
 	}
 
 	if (!can_have_rep && set->nreplicas > 1) {

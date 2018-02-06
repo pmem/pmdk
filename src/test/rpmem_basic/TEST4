@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,13 +53,13 @@ run_on_node 0 "rm -rf ${NODE_DIR[0]}$POOLS_DIR ${NODE_DIR[0]}$POOLS_PART && mkdi
 copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/pool0.set
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M test_close 0
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
-	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
 	test_persist 0 4321 8 8\
 	test_close 0
 
