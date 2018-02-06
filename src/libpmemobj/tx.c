@@ -1829,7 +1829,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	 *	snapshot and resume the search from the end of the found
 	 *	offset.
 	 */
-	do {
+	while (r.size != 0) {
 		n = ravl_find(runtime->ranges, &r,
 			RAVL_PREDICATE_GREATER_EQUAL);
 		f = n ? ravl_data(n) : NULL;
@@ -1876,7 +1876,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 		 * finish...
 		 */
 		r.size = offd < args->size ? args->size - offd : 0;
-	} while (r.size != 0);
+	}
 
 	if (ret != 0) {
 		ERR("out of memory");
