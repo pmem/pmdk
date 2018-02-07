@@ -363,6 +363,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			pool_check_type_to_pool_type(ppc->args.pool_type);
 		if ((params->type & ~declared_type) != 0) {
 			ERR("declared pool type does not match");
+			errno = EINVAL;
 			ret = 1;
 			goto out_unmap;
 		}
