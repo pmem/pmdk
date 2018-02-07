@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -334,7 +334,7 @@ test_offset(nvobj::pool<root> &pop)
 	};
 
 	try {
-		nvobj::transaction::exec_tx(pop, [&pop] {
+		nvobj::transaction::exec_tx(pop, [] {
 			auto cptr = nvobj::make_persistent<C>();
 			nvobj::persistent_ptr<B> bptr = cptr;
 			UT_ASSERT((bptr.raw().off - cptr.raw().off) ==
