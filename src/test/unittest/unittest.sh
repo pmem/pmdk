@@ -194,7 +194,7 @@ else
 	in
 	pmem)
 		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
-		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
+		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
 		;;
@@ -205,7 +205,7 @@ else
 		if [ "$PMEM_FS_DIR" != "" ]; then
 			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 			REAL_FS=pmem
-			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
+			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 				export PMEM_IS_PMEM_FORCE=1
 			fi
 		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
@@ -226,7 +226,7 @@ else
 fi
 
 if [ -d "$PMEM_FS_DIR" ]; then
-	if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
+	if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 		PMEM_IS_PMEM=0
 	else
 		$PMEMDETECT "$PMEM_FS_DIR" && true
