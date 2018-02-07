@@ -305,6 +305,11 @@ LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif
 
+ifeq ($(VALGRIND),1)
+CFLAGS += -DUSE_VALGRIND
+CXXFLAGS += -DUSE_VALGRIND
+endif
+
 ifneq ($(SANITIZE),)
 CFLAGS += -fsanitize=$(SANITIZE)
 CXXFLAGS += -fsanitize=$(SANITIZE)
