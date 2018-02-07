@@ -35,11 +35,13 @@
  * http://sidsen.azurewebsites.net//papers/ravl-trees-journal.pdf
  */
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "out.h"
 #include "ravl.h"
+
+#define RAVL_DEFAULT_DATA_SIZE (sizeof(void *))
 
 enum ravl_slot_type {
 	RAVL_LEFT,
@@ -53,20 +55,22 @@ enum ravl_slot_type {
 struct ravl_node {
 	struct ravl_node *parent;
 	struct ravl_node *slots[MAX_SLOTS];
-	const void *data;
-	int rank; /* cannot be greater than height of the subtree */
+	int32_t rank; /* cannot be greater than height of the subtree */
+	int32_t pointer_based;
+	char data[];
 };
 
 struct ravl {
 	struct ravl_node *root;
 	ravl_compare *compare;
+	size_t data_size;
 };
 
 /*
  * ravl_new -- creates a new ravl tree instance
  */
 struct ravl *
-ravl_new(ravl_compare *compare)
+ravl_new_sized(ravl_compare *compare, size_t data_size)
 {
 	struct ravl *r = Malloc(sizeof(*r));
 	if (r == NULL)
@@ -74,8 +78,18 @@ ravl_new(ravl_compare *compare)
 
 	r->compare = compare;
 	r->root = NULL;
+	r->data_size = data_size;
 
 	return r;
+}
+
+/*
+ * ravl_new -- creates a new tree that stores data pointers
+ */
+struct ravl *
+ravl_new(ravl_compare *compare)
+{
+	return ravl_new_sized(compare, RAVL_DEFAULT_DATA_SIZE);
 }
 
 /*
@@ -135,12 +149,31 @@ ravl_empty(struct ravl *ravl)
 }
 
 /*
+ * ravl_node_insert_constructor -- node data constructor for ravl_insert
+ */
+static void
+ravl_node_insert_constructor(void *data, size_t data_size, void *arg)
+{
+	/* copy only the 'arg' pointer */
+	memcpy(data, &arg, sizeof(arg));
+}
+
+/*
+ * ravl_node_copy_constructor -- node data constructor for ravl_emplace_copy
+ */
+static void
+ravl_node_copy_constructor(void *data, size_t data_size, void *arg)
+{
+	memcpy(data, arg, data_size);
+}
+
+/*
  * ravl_new_node -- (internal) allocates and initializes a new node
  */
 static struct ravl_node *
-ravl_new_node(const void *data)
+ravl_new_node(struct ravl *ravl, ravl_constr constr, void *arg)
 {
-	struct ravl_node *n = Malloc(sizeof(*n));
+	struct ravl_node *n = Malloc(sizeof(*n) + ravl->data_size);
 	if (n == NULL)
 		return NULL;
 
@@ -148,7 +181,8 @@ ravl_new_node(const void *data)
 	n->slots[RAVL_LEFT] = NULL;
 	n->slots[RAVL_RIGHT] = NULL;
 	n->rank = 0;
-	n->data = data;
+	n->pointer_based = constr == ravl_node_insert_constructor;
+	constr(n->data, ravl->data_size, arg);
 
 	return n;
 }
@@ -351,9 +385,27 @@ ravl_balance(struct ravl *ravl, struct ravl_node *n)
 int
 ravl_insert(struct ravl *ravl, const void *data)
 {
+	return ravl_emplace(ravl, ravl_node_insert_constructor, (void *)data);
+}
+
+/*
+ * ravl_insert -- copy construct data inside of a new tree node
+ */
+int
+ravl_emplace_copy(struct ravl *ravl, const void *data)
+{
+	return ravl_emplace(ravl, ravl_node_copy_constructor, (void *)data);
+}
+
+/*
+ * ravl_emplace -- construct data inside of a new tree node
+ */
+int
+ravl_emplace(struct ravl *ravl, ravl_constr constr, void *arg)
+{
 	LOG(6, NULL);
 
-	struct ravl_node *n = ravl_new_node(data);
+	struct ravl_node *n = ravl_new_node(ravl, constr, arg);
 	if (n == NULL)
 		return -1;
 
@@ -362,7 +414,7 @@ ravl_insert(struct ravl *ravl, const void *data)
 	struct ravl_node *dst = NULL;
 	while (*dstp != NULL) {
 		dst = (*dstp);
-		int cmp_result = ravl->compare(data, dst->data);
+		int cmp_result = ravl->compare(ravl_data(n), ravl_data(dst));
 		if (cmp_result == 0)
 			return -1;
 
@@ -451,7 +503,7 @@ ravl_predicate_holds(struct ravl *ravl, int result,
 		if (result < 0) { /* data < n->data */
 			/* if this is the first bigger value */
 			struct ravl_node *p = ravl_node_predecessor(n);
-			if (p == NULL || ravl->compare(data, p->data) > 0)
+			if (p == NULL || ravl->compare(data, ravl_data(p)) > 0)
 				return n;
 		} else if (result == 0) {
 			return ravl_node_successor(n);
@@ -461,10 +513,11 @@ ravl_predicate_holds(struct ravl *ravl, int result,
 		if (result > 0) { /* data > n->data */
 			/* if this is the first smaller value */
 			struct ravl_node *s = ravl_node_successor(n);
-			if (s == NULL || ravl->compare(data, s->data) < 0)
+			if (s == NULL || ravl->compare(data, ravl_data(s)) < 0)
 				return n;
-		} else if (result == 0)
+		} else if (result == 0) {
 			return ravl_node_predecessor(n);
+		}
 	}
 
 	return NULL;
@@ -481,7 +534,7 @@ ravl_find(struct ravl *ravl, const void *data, enum ravl_predicate flags)
 	struct ravl_node *r;
 	struct ravl_node *n = ravl->root;
 	while (n) {
-		int result = ravl->compare(data, n->data);
+		int result = ravl->compare(data, ravl_data(n));
 		r = ravl_predicate_holds(ravl, result, n, data, flags);
 		if (r != NULL)
 			return r;
@@ -503,7 +556,7 @@ ravl_remove(struct ravl *ravl, struct ravl_node *n)
 	if (n->slots[RAVL_LEFT] != NULL && n->slots[RAVL_RIGHT] != NULL) {
 		/* if both children are present, remove the successor instead */
 		struct ravl_node *s = ravl_node_successor(n);
-		n->data = s->data;
+		memcpy(n->data, s->data, ravl->data_size);
 
 		ravl_remove(ravl, s);
 	} else {
@@ -524,5 +577,11 @@ ravl_remove(struct ravl *ravl, struct ravl_node *n)
 void *
 ravl_data(struct ravl_node *node)
 {
-	return (void *)node->data;
+	if (node->pointer_based) {
+		void *data;
+		memcpy(&data, node->data, sizeof(void *));
+		return data;
+	} else {
+		return (void *)node->data;
+	}
 }
