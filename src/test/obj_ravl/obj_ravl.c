@@ -185,6 +185,50 @@ test_stress(void)
 	ravl_delete(r);
 }
 
+struct foo {
+	int a;
+	int b;
+	int c;
+};
+
+static int
+cmpfoo(const void *lhs, const void *rhs)
+{
+	const struct foo *l = lhs;
+	const struct foo *r = rhs;
+
+	return (int)((l->a + l->b + l->c) - (r->a + r->b + r->c));
+}
+
+static void
+test_emplace(void)
+{
+	struct ravl *r = ravl_new_sized(cmpfoo, sizeof(struct foo));
+
+	struct foo a = {1, 2, 3};
+	struct foo b = {2, 3, 4};
+	struct foo z = {0, 0, 0};
+
+	ravl_emplace_copy(r, &a);
+	ravl_emplace_copy(r, &b);
+
+	struct ravl_node *n = ravl_find(r, &z, RAVL_PREDICATE_GREATER);
+	struct foo *fn = ravl_data(n);
+	UT_ASSERTeq(fn->a, a.a);
+	UT_ASSERTeq(fn->b, a.b);
+	UT_ASSERTeq(fn->c, a.c);
+	ravl_remove(r, n);
+
+	n = ravl_find(r, &z, RAVL_PREDICATE_GREATER);
+	fn = ravl_data(n);
+	UT_ASSERTeq(fn->a, b.a);
+	UT_ASSERTeq(fn->b, b.b);
+	UT_ASSERTeq(fn->c, b.c);
+	ravl_remove(r, n);
+
+	ravl_delete(r);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -193,6 +237,7 @@ main(int argc, char *argv[])
 	test_predicate();
 	test_misc();
 	test_stress();
+	test_emplace();
 
 	DONE(NULL);
 }

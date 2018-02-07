@@ -796,17 +796,6 @@ tx_cancel_reservations(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 }
 
 /*
- * tx_delete_range -- deletes a range definition
- */
-static void
-tx_delete_range(void *data, void *ctx)
-{
-	struct tx_range_def *range = data;
-
-	Free(range);
-}
-
-/*
  * tx_flush_range -- (internal) flush one range
  */
 static void
@@ -818,8 +807,6 @@ tx_flush_range(void *data, void *ctx)
 		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
 				range->size);
 	}
-
-	Free(range);
 }
 
 /*
@@ -961,7 +948,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 	} else {
 		tx_cancel_reservations(pop, lane);
 		ASSERTne(lane, NULL);
-		ravl_delete_cb(lane->ranges, tx_delete_range, NULL);
+		ravl_delete(lane->ranges);
 		lane->ranges = NULL;
 	}
 }
@@ -1068,12 +1055,7 @@ tx_lane_ranges_insert_def(struct lane_tx_runtime *lane,
 	LOG(3, "rdef->offset %"PRIu64" rdef->size %"PRIu64,
 		rdef->offset, rdef->size);
 
-	struct tx_range_def *r = Malloc(sizeof(*r));
-	if (r == NULL)
-		return -1;
-
-	*r = *rdef;
-	return ravl_insert(lane->ranges, r);
+	return ravl_emplace_copy(lane->ranges, rdef);
 }
 
 /*
@@ -1234,7 +1216,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		SLIST_INIT(&tx->tx_entries);
 		SLIST_INIT(&tx->tx_locks);
 
-		lane->ranges = ravl_new(tx_range_def_cmp);
+		lane->ranges = ravl_new_sized(tx_range_def_cmp,
+			sizeof(struct tx_range_def));
 		lane->cache_offset = 0;
 		lane->lane_idx = idx;
 
