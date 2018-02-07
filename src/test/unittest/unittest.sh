@@ -2860,3 +2860,13 @@ minimum() {
 	done
 	echo $min
 }
+
+#
+# count_lines - count number of lines that match pattern $1 in file $2
+#
+function count_lines() {
+	# grep returns 1 on no match
+	disable_exit_on_error
+	$GREP -ce "$1" $2
+	restore_exit_on_error
+}
