@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -93,6 +93,11 @@ ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
+endif
+
+ifeq ($(VALGRIND),1)
+CFLAGS += -DUSE_VALGRIND
+CXXFLAGS += -DUSE_VALGRIND
 endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan

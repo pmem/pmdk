@@ -64,6 +64,7 @@ export USE_LLVM_LIBCPP=${USE_LLVM_LIBCPP:-}
 export LIBCPP_LIBDIR=${LIBCPP_LIBDIR:-}
 export LIBCPP_INCDIR=${LIBCPP_INCDIR:-}
 export EXPERIMENTAL=${EXPERIMENTAL:-n}
+export VALGRIND=${VALGRIND:-1}
 
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
@@ -107,6 +108,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env https_proxy=$https_proxy \
 	--env CC=$PMDK_CC \
 	--env CXX=$PMDK_CXX \
+	--env VALGRIND=$VALGRIND \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
 	--env USE_LLVM_LIBCPP=$USE_LLVM_LIBCPP \
