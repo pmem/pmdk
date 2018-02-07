@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,11 +41,16 @@
 void vmem_init(void);
 void vmem_fini(void);
 
+void jemalloc_constructor(void);
+void jemalloc_destructor(void);
+
+
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
+		jemalloc_constructor();
 		vmem_init();
 		break;
 
@@ -55,6 +60,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
 	case DLL_PROCESS_DETACH:
 		vmem_fini();
+		jemalloc_destructor();
 		break;
 	}
 	return TRUE;

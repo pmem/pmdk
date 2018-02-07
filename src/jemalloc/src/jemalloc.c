@@ -3122,7 +3122,7 @@ je_malloc_usable_size(JEMALLOC_USABLE_SIZE_CONST void *ptr)
  * a library constructor that runs before jemalloc's runs.
  */
 JEMALLOC_ATTR(constructor(102))
-static void
+void
 jemalloc_constructor(void)
 {
 
@@ -3130,9 +3130,11 @@ jemalloc_constructor(void)
 }
 
 JEMALLOC_ATTR(destructor(101))
-static void
+void
 jemalloc_destructor(void)
 {
+	if (base_pool_initialized == false)
+		return;
 
 	tcache_thread_cleanup(tcache_tsd_get());
 	arenas_cleanup(arenas_tsd_get());
