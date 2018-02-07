@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -202,7 +202,7 @@ req_cb_open(struct rpmemd_obc *obc, void *arg,
  * struct req_cb_arg.
  */
 static int
-req_cb_close(struct rpmemd_obc *obc, void *arg)
+req_cb_close(struct rpmemd_obc *obc, void *arg, int flags)
 {
 	UT_ASSERTne(arg, NULL);
 

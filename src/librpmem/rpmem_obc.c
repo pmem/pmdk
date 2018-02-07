@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -665,7 +665,7 @@ err_notconnected:
  * closed using rpmem_obc_disconnect function.
  */
 int
-rpmem_obc_close(struct rpmem_obc *rpc)
+rpmem_obc_close(struct rpmem_obc *rpc, int flags)
 {
 	if (!rpmem_obc_is_connected(rpc)) {
 		errno = ENOTCONN;
@@ -674,6 +674,7 @@ rpmem_obc_close(struct rpmem_obc *rpc)
 
 	struct rpmem_msg_close msg;
 	rpmem_obc_set_msg_hdr(&msg.hdr, RPMEM_MSG_TYPE_CLOSE, sizeof(msg));
+	msg.flags = (uint32_t)flags;
 
 	RPMEM_LOG(INFO, "sending close request message");
 

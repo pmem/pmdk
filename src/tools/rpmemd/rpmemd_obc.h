@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ struct rpmemd_obc_requests {
 			const struct rpmem_pool_attr *pool_attr);
 	int (*open)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_req_attr *req);
-	int (*close)(struct rpmemd_obc *obc, void *arg);
+	int (*close)(struct rpmemd_obc *obc, void *arg, int flags);
 	int (*set_attr)(struct rpmemd_obc *obc, void *arg,
 			const struct rpmem_pool_attr *pool_attr);
 };

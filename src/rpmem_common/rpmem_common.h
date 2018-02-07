@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -129,6 +129,7 @@ struct rpmem_resp_attr {
 #define RPMEM_MAX_NODE		(255 + 1)  /* see gethostname(2) + 1 for '\0' */
 #define RPMEM_MAX_SERVICE	(NI_MAXSERV + 1)  /* + 1 for '\0' */
 #define RPMEM_HDR_SIZE		4096
+#define RPMEM_CLOSE_FLAGS_REMOVE 0x1
 
 struct rpmem_target_info {
 	char user[RPMEM_MAX_USER];

@@ -603,7 +603,7 @@ err_pool_opened:
  * rpmemd_req_close -- handle close request
  */
 static int
-rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
+rpmemd_req_close(struct rpmemd_obc *obc, void *arg, int flags)
 {
 	RPMEMD_ASSERT(arg != NULL);
 	RPMEMD_LOG(NOTICE, "close request");
@@ -629,7 +629,8 @@ rpmemd_req_close(struct rpmemd_obc *obc, void *arg)
 		rpmemd_fip_fini(rpmemd->fip);
 	}
 
-	int remove = rpmemd->created && status;
+	int remove = rpmemd->created &&
+			(status || (flags & RPMEM_CLOSE_FLAGS_REMOVE));
 	if (rpmemd_close_pool(rpmemd, remove))
 		RPMEMD_LOG(ERR, "closing pool failed");
 

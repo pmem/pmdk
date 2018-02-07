@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -143,7 +143,7 @@ client_create(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
 
-	ret = rpmem_obc_close(rpc);
+	ret = rpmem_obc_close(rpc, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = rpmem_obc_disconnect(rpc);
@@ -201,7 +201,7 @@ client_open(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
 
-	ret = rpmem_obc_close(rpc);
+	ret = rpmem_obc_close(rpc, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = rpmem_obc_disconnect(rpc);
@@ -249,7 +249,7 @@ client_set_attr(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_obc_monitor(rpc, 1);
 	UT_ASSERTeq(ret, 1);
 
-	ret = rpmem_obc_close(rpc);
+	ret = rpmem_obc_close(rpc, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = rpmem_obc_disconnect(rpc);
@@ -329,7 +329,7 @@ req_set_attr(struct rpmemd_obc *obc, void *arg,
  * req_close -- process close request
  */
 static int
-req_close(struct rpmemd_obc *obc, void *arg)
+req_close(struct rpmemd_obc *obc, void *arg, int flags)
 {
 	UT_ASSERTne(arg, NULL);
 
