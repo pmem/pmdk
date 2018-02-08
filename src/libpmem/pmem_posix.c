@@ -59,3 +59,8 @@ is_pmem_detect(const void *addr, size_t len)
 	LOG(4, "returning %d", retval);
 	return retval;
 }
+
+void
+pmem_os_init(void)
+{
+}

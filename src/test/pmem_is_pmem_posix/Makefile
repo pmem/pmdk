@@ -33,9 +33,17 @@
 #
 # src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
 #
+include ../../common.inc
+ARCH := $(call get_arch)
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
+
+ifeq ($(ARCH), x86_64)
+  vpath %.c $(TOP)/src/libpmem/x86_64
+else
+  vpath %.c $(TOP)/src/libpmem/arm64
+endif
 
 TARGET = pmem_is_pmem_posix
 OBJS = pmem_is_pmem_posix.o\
@@ -51,6 +59,7 @@ OBJS = pmem_is_pmem_posix.o\
 	pmem.o\
 	pmem_posix.o\
 	cpu.o\
+	init.o\
 	os_deep_persist_linux.o
 
 include ../Makefile.inc
@@ -58,3 +67,8 @@ include ../Makefile.inc
 CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmem
+ifeq ($(ARCH), x86_64)
+  CFLAGS += -I$(TOP)/src/libpmem/x86_64
+else
+  CFLAGS += -I$(TOP)/src/libpmem/arm64
+endif

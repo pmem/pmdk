@@ -38,6 +38,8 @@
 
 include ../common.inc
 
+ARCH := $(call get_arch)
+
 TEST_DEPS = \
 	unittest\
 	tools
@@ -207,7 +209,6 @@ OTHER_TESTS = \
 	traces_pmem\
 	unicode_api\
 	unicode_match_script\
-	util_cpuid\
 	util_file_create\
 	util_file_open\
 	util_is_absolute\
@@ -222,6 +223,11 @@ OTHER_TESTS = \
 	util_sds\
 	util_uuid_generate\
 	util_vec
+
+ifeq ($(ARCH), x86_64)
+OTHER_TESTS += \
+	util_cpuid
+endif
 
 PMEM_TESTS = \
 	pmem_include\

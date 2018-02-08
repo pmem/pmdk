@@ -33,9 +33,18 @@
 #
 # src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
 #
+include ../../common.inc
+ARCH := $(call get_arch)
+
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
+
+ifeq ($(ARCH), x86_64)
+  vpath %.c $(TOP)/src/libpmem/x86_64
+else
+  vpath %.c $(TOP)/src/libpmem/arm64
+endif
 
 TARGET = pmem_deep_persist
 
@@ -55,13 +64,17 @@ OBJS = pmem_deep_persist.o\
 	uuid.o\
 	uuid_linux.o\
 	pool_hdr.o\
-	cpu.o\
 	set.o\
 	os_deep_persist_linux.o\
 	shutdown_state.o\
-	os_dimm_none.o
+	os_dimm_none.o \
+	init.o
 # this test does not require ndctl
 # to enable builds we use os_dimm_none
+
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
 
 LIBPMEMOBJ=y
 LIBPMEM=y

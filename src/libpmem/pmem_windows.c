@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,12 @@
 #include "win_mmap.h"
 
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-PQVM Func_qvmi = NULL;
+typedef BOOL (WINAPI *PQVM)(
+		HANDLE, const void *,
+		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
+		SIZE_T, PSIZE_T);
+
+static PQVM Func_qvmi = NULL;
 #endif
 
 /*
@@ -173,4 +178,14 @@ is_pmem_detect(const void *addr, size_t len)
 
 	LOG(4, "returning %d", retval);
 	return retval;
+}
+
+void
+pmem_os_init(void)
+{
+#if NTDDI_VERSION >= NTDDI_WIN10_RS1
+	Func_qvmi = (PQVM)GetProcAddress(
+			GetModuleHandle(TEXT("KernelBase.dll")),
+			"QueryVirtualMemoryInformation");
+#endif
 }
