@@ -1,5 +1,6 @@
-- libpmem: pmem_check_version.3 pmem_drain.3 pmem_errormsg.3 pmem_flush.3 pmem_has_hw_drain.3 pmem_is_pmem.3 pmem_map_file.3 pmem_memcpy_nodrain.3 pmem_memcpy_persist.3 pmem_memmove_nodrain.3 pmem_memmove_persist.3 pmem_memset_nodrain.3 pmem_memset_persist.3 pmem_msync.3 pmem_persist.3 pmem_unmap.3
+- libpmem: pmem_check_version.3 pmem_deep_persist.3 pmem_drain.3 pmem_errormsg.3 pmem_flush.3 pmem_has_hw_drain.3 pmem_is_pmem.3 pmem_map_file.3 pmem_memcpy_nodrain.3 pmem_memcpy_persist.3 pmem_memmove_nodrain.3 pmem_memmove_persist.3 pmem_memset_nodrain.3 pmem_memset_persist.3 pmem_msync.3 pmem_persist.3 pmem_unmap.3
   pmem_check_version: libpmem.7
+  pmem_deep_persist: pmem_flush.3
   pmem_drain: pmem_flush.3
   pmem_errormsg: libpmem.7
   pmem_flush: pmem_flush.3
