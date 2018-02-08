@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,9 +33,13 @@
 #
 # src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
 #
+include ../../common.inc
+ARCH := $(call get_arch)
+
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
 TARGET = pmem_deep_persist
 
@@ -55,13 +59,17 @@ OBJS = pmem_deep_persist.o\
 	uuid.o\
 	$(call osdep, uuid,.o)\
 	pool_hdr.o\
-	cpu.o\
 	set.o\
 	os_deep_linux.o\
 	shutdown_state.o\
-	os_dimm_none.o
+	os_dimm_none.o \
+	init.o
 # this test does not require ndctl
 # to enable builds we use os_dimm_none
+
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
 
 LIBPMEMOBJ=y
 LIBPMEM=y

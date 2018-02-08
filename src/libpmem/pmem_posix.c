@@ -94,3 +94,12 @@ err_unmap:
 	util_unmap(addr, len);
 	return NULL;
 }
+
+/*
+ * pmem_os_init -- os-dependent part of pmem initialization
+ */
+void
+pmem_os_init(void)
+{
+	LOG(3, NULL);
+}

@@ -152,11 +152,11 @@
  *		flush_dcache_invalidate()
  *
  *	Func_memmove_nodrain is used by memmove_nodrain() to call one of:
- *		memmove_nodrain_normal()
+ *		memmove_nodrain_libc()
  *		memmove_nodrain_movnt()
  *
  *	Func_memset_nodrain is used by memset_nodrain() to call one of:
- *		memset_nodrain_normal()
+ *		memset_nodrain_libc()
  *		memset_nodrain_movnt()
  *
  * DEBUG LOGGING
@@ -168,35 +168,19 @@
 
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <limits.h>
-
-#ifdef _WIN32
-#include <memoryapi.h>
-#endif
 
 #include "libpmem.h"
 #include "pmem.h"
-#include "cpu.h"
 #include "out.h"
-#include "util.h"
 #include "os.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep.h"
 
-#ifndef __aarch64__
-#define MOVNT_THRESHOLD	256
-
-size_t Movnt_threshold = MOVNT_THRESHOLD;
-#endif
+static struct pmem_funcs funcs;
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -212,41 +196,6 @@ pmem_has_hw_drain(void)
 }
 
 /*
- * predrain_fence_empty -- (internal) issue the pre-drain fence instruction
- */
-static void
-predrain_fence_empty(void)
-{
-	LOG(15, NULL);
-
-	VALGRIND_DO_FENCE;
-	/* nothing to do (because CLFLUSH did it for us) */
-}
-
-/*
- * predrain_memory_barrier -- (internal) issue the pre-drain fence instruction
- */
-static void
-predrain_memory_barrier(void)
-{
-	LOG(15, NULL);
-#ifndef __aarch64__
-	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
-#else
-	arm_data_memory_barrier();
-#endif
-}
-
-/*
- * pmem_drain() calls through Func_predrain_fence to do the fence.  Although
- * initialized to predrain_fence_empty(), once the existence of the CLWB or
- * CLFLUSHOPT feature is confirmed by pmem_init() at library initialization
- * time, Func_predrain_fence is set to predrain_memory_barrier().  That's the
- * most common case on modern hardware that supports persistent memory.
- */
-static void (*Func_predrain_fence)(void) = predrain_fence_empty;
-
-/*
  * pmem_drain -- wait for any PM stores to drain from HW buffers
  */
 void
@@ -254,78 +203,11 @@ pmem_drain(void)
 {
 	LOG(15, NULL);
 
-	Func_predrain_fence();
+	funcs.predrain_fence();
 
 	VALGRIND_DO_COMMIT;
 	VALGRIND_DO_FENCE;
 }
-
-#ifndef __aarch64__
-/*
- * flush_dcache_invalidate -- (internal) flush the CPU cache, using clflush
- */
-static void
-flush_dcache_invalidate(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_dcache_invalidate_nolog(addr, len);
-}
-#endif
-
-/*
- * flush_dcache_invalidate_opt -- (internal) flush the CPU cache,
- * using clflushopt for X86 and arm_clean_and_invalidate_va_to_poc
- * for aarch64 (see arm_cacheops.h) {DC CIVAC}
- */
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_dcache_invalidate_opt_nolog(addr, len);
-}
-
-/*
- * flush_dcache -- (internal) flush the CPU cache, using clwb
- */
-static void
-flush_dcache(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_dcache_nolog(addr, len);
-}
-
-/*
- * flush_empty -- (internal) do not flush the CPU cache
- */
-static void
-flush_empty(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_empty_nolog(addr, len);
-}
-
-/*
- * pmem_flush() calls through Func_flush to do the work.  Although
- * initialized to flush_dcache_invalidate(), once the existence of the
- * clflushopt feature is confirmed by pmem_init() at library
- * initialization time, Func_flush is set to flush_dcache_invalidate_opt().
- * That's the most common case on modern hardware that supports persistent
- * memory. In case of aarch64, there is no difference between clflush and
- * clflushopt so both refer to flush_data_clean_invalidate.
- */
-#ifndef __aarch64__
-static void (*Func_deep_flush)(const void *, size_t) = flush_dcache_invalidate;
-static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate;
-#else
-static void (*Func_deep_flush)(const void *, size_t) =
-						flush_dcache_invalidate_opt;
-static void (*Func_flush)(const void *, size_t) =
-						flush_dcache_invalidate_opt;
-#endif
 
 /*
  * pmem_deep_flush -- flush processor cache for the given range
@@ -338,7 +220,7 @@ pmem_deep_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	Func_deep_flush(addr, len);
+	funcs.deep_flush(addr, len);
 }
 
 /*
@@ -351,7 +233,7 @@ pmem_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	Func_flush(addr, len);
+	funcs.flush(addr, len);
 }
 
 /*
@@ -435,15 +317,6 @@ is_pmem_never(const void *addr, size_t len)
 }
 
 /*
- * pmem_is_pmem() calls through Func_is_pmem to do the work.  Although
- * initialized to is_pmem_never(), once the existence of the clflush
- * feature is confirmed by pmem_init() at library initialization time,
- * Func_is_pmem is set to is_pmem_detect().  That's the most common case
- * on modern hardware.
- */
-static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
-
-/*
  * pmem_is_pmem_init -- (internal) initialize Func_is_pmem pointer
  *
  * This should be done only once - on the first call to pmem_is_pmem().
@@ -476,14 +349,17 @@ pmem_is_pmem_init(void)
 			int val = atoi(ptr);
 
 			if (val == 0)
-				Func_is_pmem = is_pmem_never;
+				funcs.is_pmem = is_pmem_never;
 			else if (val == 1)
-				Func_is_pmem = is_pmem_always;
+				funcs.is_pmem = is_pmem_always;
 
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Func_is_pmem);
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&funcs.is_pmem);
 
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
+
+		if (funcs.is_pmem == NULL)
+			funcs.is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
 			FATAL("util_bool_compare_and_swap32");
@@ -506,8 +382,8 @@ pmem_is_pmem(const void *addr, size_t len)
 		util_fetch_and_add32(&once, 1);
 	}
 
-	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Func_is_pmem);
-	return Func_is_pmem(addr, len);
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&funcs.is_pmem);
+	return funcs.is_pmem(addr, len);
 }
 
 #define PMEM_FILE_ALL_FLAGS\
@@ -712,29 +588,6 @@ pmem_unmap(void *addr, size_t len)
 }
 
 /*
- * memmove_nodrain_normal -- (internal) memmove to pmem without hw drain
- */
-static void *
-memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
-{
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-
-	memmove(pmemdest, src, len);
-	pmem_flush(pmemdest, len);
-	return pmemdest;
-}
-
-/*
- * pmem_memmove_nodrain() calls through Func_memmove_nodrain to do the work.
- * Although initialized to memmove_nodrain_normal(), once the existence of the
- * sse2 feature is confirmed by pmem_init() at library initialization time,
- * Func_memmove_nodrain is set to memmove_nodrain_movnt().  That's the most
- * common case on modern hardware that supports persistent memory.
- */
-static void *(*Func_memmove_nodrain)
-	(void *pmemdest, const void *src, size_t len) = memmove_nodrain_normal;
-
-/*
  * pmem_memmove_nodrain -- memmove to pmem without hw drain
  */
 void *
@@ -742,7 +595,7 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	return Func_memmove_nodrain(pmemdest, src, len);
+	return funcs.memmove_nodrain(pmemdest, src, len);
 }
 
 /*
@@ -783,29 +636,6 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * memset_nodrain_normal -- (internal) memset to pmem without hw drain, normal
- */
-static void *
-memset_nodrain_normal(void *pmemdest, int c, size_t len)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
-
-	memset(pmemdest, c, len);
-	pmem_flush(pmemdest, len);
-	return pmemdest;
-}
-
-/*
- * pmem_memset_nodrain() calls through Func_memset_nodrain to do the work.
- * Although initialized to memset_nodrain_normal(), once the existence of the
- * sse2 feature is confirmed by pmem_init() at library initialization time,
- * Func_memset_nodrain is set to memset_nodrain_movnt().  That's the most
- * common case on modern hardware that supports persistent memory.
- */
-static void *(*Func_memset_nodrain)
-	(void *pmemdest, int c, size_t len) = memset_nodrain_normal;
-
-/*
  * pmem_memset_nodrain -- memset to pmem without hw drain
  */
 void *
@@ -813,7 +643,7 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	return Func_memset_nodrain(pmemdest, c, len);
+	return funcs.memset_nodrain(pmemdest, c, len);
 }
 
 /*
@@ -829,299 +659,6 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 	return pmemdest;
 }
 
-#if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
-#define MEMCPY_TEMPLATE(postfix) \
-static void *\
-memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
-{\
-	if (len == 0 || src == dest)\
-		return dest;\
-\
-	if (len < Movnt_threshold)\
-		memmove_mov_##postfix(dest, src, len);\
-	else\
-		memmove_movnt_##postfix(dest, src, len);\
-\
-	return dest;\
-}
-
-#define MEMSET_TEMPLATE(postfix)\
-static void *\
-memset_nodrain_##postfix(void *dest, int c, size_t len)\
-{\
-	if (len == 0)\
-		return dest;\
-\
-	if (len < Movnt_threshold)\
-		memset_mov_##postfix(dest, c, len);\
-	else\
-		memset_movnt_##postfix(dest, c, len);\
-\
-	return dest;\
-}
-#endif
-
-#if SSE2_AVAILABLE
-MEMCPY_TEMPLATE(sse2_clflush)
-MEMCPY_TEMPLATE(sse2_clflushopt)
-MEMCPY_TEMPLATE(sse2_clwb)
-MEMCPY_TEMPLATE(sse2_empty)
-
-MEMSET_TEMPLATE(sse2_clflush)
-MEMSET_TEMPLATE(sse2_clflushopt)
-MEMSET_TEMPLATE(sse2_clwb)
-MEMSET_TEMPLATE(sse2_empty)
-#endif
-
-#if AVX_AVAILABLE
-MEMCPY_TEMPLATE(avx_clflush)
-MEMCPY_TEMPLATE(avx_clflushopt)
-MEMCPY_TEMPLATE(avx_clwb)
-MEMCPY_TEMPLATE(avx_empty)
-
-MEMSET_TEMPLATE(avx_clflush)
-MEMSET_TEMPLATE(avx_clflushopt)
-MEMSET_TEMPLATE(avx_clwb)
-MEMSET_TEMPLATE(avx_empty)
-#endif
-
-#if AVX512F_AVAILABLE
-MEMCPY_TEMPLATE(avx512f_clflush)
-MEMCPY_TEMPLATE(avx512f_clflushopt)
-MEMCPY_TEMPLATE(avx512f_clwb)
-MEMCPY_TEMPLATE(avx512f_empty)
-
-MEMSET_TEMPLATE(avx512f_clflush)
-MEMSET_TEMPLATE(avx512f_clflushopt)
-MEMSET_TEMPLATE(avx512f_clwb)
-MEMSET_TEMPLATE(avx512f_empty)
-#endif
-
-/*
- * pmem_log_cpuinfo -- log the results of cpu dispatching decisions,
- * and verify them
- */
-static void
-pmem_log_cpuinfo(void)
-{
-	LOG(3, NULL);
-
-#ifndef __aarch64__
-	if (Func_deep_flush == flush_dcache)
-		LOG(3, "using clwb");
-	else if (Func_deep_flush == flush_dcache_invalidate_opt)
-		LOG(3, "using clflushopt");
-	else if (Func_deep_flush == flush_dcache_invalidate)
-		LOG(3, "using clflush");
-	else
-		FATAL("invalid deep flush function address");
-
-	if (Func_flush == flush_empty)
-		LOG(3, "not flushing CPU cache");
-	else if (Func_flush != Func_deep_flush)
-		FATAL("invalid flush function address");
-
-#else
-	if (Func_deep_flush == flush_dcache)
-		LOG(3, "Using ARM invalidate");
-	else if (Func_deep_flush == flush_dcache_invalidate_opt)
-		LOG(3, "Synchronize VA to poc for ARM");
-	else
-		FATAL("invalid flush function address");
-#endif
-
-#if AVX512F_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_avx512f_clflush ||
-		Func_memmove_nodrain == memmove_nodrain_avx512f_clflushopt ||
-			Func_memmove_nodrain == memmove_nodrain_avx512f_clwb ||
-			Func_memmove_nodrain == memmove_nodrain_avx512f_empty)
-		LOG(3, "using movnt AVX512F");
-	else
-#endif
-#if AVX_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_avx_clflush ||
-		Func_memmove_nodrain == memmove_nodrain_avx_clflushopt ||
-			Func_memmove_nodrain == memmove_nodrain_avx_clwb ||
-			Func_memmove_nodrain == memmove_nodrain_avx_empty)
-		LOG(3, "using movnt AVX");
-	else
-#endif
-#if SSE2_AVAILABLE
-	if (Func_memmove_nodrain == memmove_nodrain_sse2_clflush ||
-		Func_memmove_nodrain == memmove_nodrain_sse2_clflushopt ||
-			Func_memmove_nodrain == memmove_nodrain_sse2_clwb ||
-			Func_memmove_nodrain == memmove_nodrain_sse2_empty)
-		LOG(3, "using movnt SSE2");
-	else
-#endif
-	if (Func_memmove_nodrain == memmove_nodrain_normal)
-		LOG(3, "not using movnt");
-	else
-		FATAL("invalid memove_nodrain function address");
-}
-
-static void
-use_sse2_memcpy_memset(void)
-{
-#if SSE2_AVAILABLE
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memmove_nodrain = memmove_nodrain_sse2_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memmove_nodrain = memmove_nodrain_sse2_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memmove_nodrain = memmove_nodrain_sse2_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memmove_nodrain = memmove_nodrain_sse2_empty;
-	else
-		ASSERT(0);
-
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memset_nodrain = memset_nodrain_sse2_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memset_nodrain = memset_nodrain_sse2_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memset_nodrain = memset_nodrain_sse2_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memset_nodrain = memset_nodrain_sse2_empty;
-	else
-		ASSERT(0);
-#else
-	LOG(3, "sse2 disabled at build time");
-#endif
-
-}
-
-static void
-use_avx_memcpy_memset(void)
-{
-#if AVX_AVAILABLE
-	LOG(3, "avx supported");
-
-	char *e = os_getenv("PMEM_AVX");
-	if (e == NULL || strcmp(e, "1") != 0) {
-		LOG(3, "PMEM_AVX not set or not == 1");
-		return;
-	}
-
-	LOG(3, "PMEM_AVX enabled");
-
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memmove_nodrain = memmove_nodrain_avx_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memmove_nodrain = memmove_nodrain_avx_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memmove_nodrain = memmove_nodrain_avx_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memmove_nodrain = memmove_nodrain_avx_empty;
-	else
-		ASSERT(0);
-
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memset_nodrain = memset_nodrain_avx_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memset_nodrain = memset_nodrain_avx_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memset_nodrain = memset_nodrain_avx_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memset_nodrain = memset_nodrain_avx_empty;
-	else
-		ASSERT(0);
-#else
-	LOG(3, "avx supported, but disabled at build time");
-#endif
-}
-
-static void
-use_avx512f_memcpy_memset(void)
-{
-#if AVX512F_AVAILABLE
-	LOG(3, "avx512f supported");
-
-	char *e = os_getenv("PMEM_AVX512F");
-	if (e == NULL || strcmp(e, "1") != 0) {
-		LOG(3, "PMEM_AVX512F not set or not == 1");
-		return;
-	}
-
-	LOG(3, "PMEM_AVX512F enabled");
-
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memmove_nodrain = memmove_nodrain_avx512f_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memmove_nodrain = memmove_nodrain_avx512f_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memmove_nodrain = memmove_nodrain_avx512f_empty;
-	else
-		ASSERT(0);
-
-	if (Func_flush == flush_dcache_invalidate)
-		Func_memset_nodrain = memset_nodrain_avx512f_clflush;
-	else if (Func_flush == flush_dcache_invalidate_opt)
-		Func_memset_nodrain = memset_nodrain_avx512f_clflushopt;
-	else if (Func_flush == flush_dcache)
-		Func_memset_nodrain = memset_nodrain_avx512f_clwb;
-	else if (Func_flush == flush_empty)
-		Func_memset_nodrain = memset_nodrain_avx512f_empty;
-	else
-		ASSERT(0);
-#else
-	LOG(3, "avx512f supported, but disabled at build time");
-#endif
-}
-
-/*
- * pmem_get_cpuinfo -- configure libpmem based on CPUID
- */
-static void
-pmem_get_cpuinfo(void)
-{
-	LOG(3, NULL);
-
-	if (is_cpu_clflush_present()) {
-		Func_is_pmem = is_pmem_detect;
-		LOG(3, "clflush supported");
-	}
-
-	if (is_cpu_clflushopt_present()) {
-		LOG(3, "clflushopt supported");
-
-		char *e = os_getenv("PMEM_NO_CLFLUSHOPT");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
-		else {
-			Func_deep_flush = flush_dcache_invalidate_opt;
-			Func_predrain_fence = predrain_memory_barrier;
-		}
-	}
-
-	if (is_cpu_clwb_present()) {
-		LOG(3, "clwb supported");
-
-		char *e = os_getenv("PMEM_NO_CLWB");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_CLWB forced no clwb");
-		else {
-			Func_deep_flush = flush_dcache;
-			Func_predrain_fence = predrain_memory_barrier;
-		}
-	}
-
-	char *ptr = os_getenv("PMEM_NO_MOVNT");
-	if (ptr && strcmp(ptr, "1") == 0) {
-		LOG(3, "PMEM_NO_MOVNT forced no movnt");
-	} else {
-		use_sse2_memcpy_memset();
-
-		if (is_cpu_avx_present())
-			use_avx_memcpy_memset();
-
-		if (is_cpu_avx512f_present())
-			use_avx512f_memcpy_memset();
-	}
-}
-
 /*
  * pmem_init -- load-time initialization for pmem.c
  */
@@ -1130,60 +667,8 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
-	pmem_get_cpuinfo();
-
-	Func_flush = Func_deep_flush;
-
-	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && strcmp(e, "1") == 0) {
-		LOG(3, "forced not flushing CPU cache");
-		Func_flush = flush_empty;
-		Func_predrain_fence = predrain_memory_barrier;
-	}
-
-	/*
-	 * XXX - check if eADR is available
-	 * replace with pmem_auto_flush()
-	 */
-	char *auto_flush = os_getenv("PMEM_NO_FLUSH");
-	if (auto_flush && strcmp(auto_flush, "1") == 0) {
-		LOG(3, "eADR is available");
-		Func_flush = flush_empty;
-		Func_predrain_fence = predrain_memory_barrier;
-	}
-
-/*
- * non-temporal is currently not supported in ARM so defaulting to
- * memcpy_nodrain_normal
- */
-#ifndef __aarch64__
-	/*
-	 * For testing, allow overriding the default threshold
-	 * for using non-temporal stores in pmem_memcpy_*(), pmem_memmove_*()
-	 * and pmem_memset_*().
-	 * It has no effect if movnt is not supported or disabled.
-	 */
-	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
-	if (ptr) {
-		long long val = atoll(ptr);
-
-		if (val < 0)
-			LOG(3, "Invalid PMEM_MOVNT_THRESHOLD");
-		else {
-			LOG(3, "PMEM_MOVNT_THRESHOLD set to %zu", (size_t)val);
-			Movnt_threshold = (size_t)val;
-		}
-	}
-
-#endif
-
-	pmem_log_cpuinfo();
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-	Func_qvmi = (PQVM)GetProcAddress(
-			GetModuleHandle(TEXT("KernelBase.dll")),
-			"QueryVirtualMemoryInformation");
-#endif
+	funcs = pmem_arch_init();
+	pmem_os_init();
 }
 
 /*

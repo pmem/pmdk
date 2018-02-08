@@ -36,7 +36,7 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 include $(TOP)/src/version.inc
 
-ARCH := $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
+ARCH := $(call get_arch)
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 		  libpmemcto libvmmalloc tools
 ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
