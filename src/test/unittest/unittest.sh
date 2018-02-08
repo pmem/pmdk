@@ -225,20 +225,6 @@ else
 	esac
 fi
 
-if [ -d "$PMEM_FS_DIR" ]; then
-	if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
-		PMEM_IS_PMEM=0
-	else
-		$PMEMDETECT "$PMEM_FS_DIR" && true
-		PMEM_IS_PMEM=$?
-	fi
-fi
-
-if [ -d "$NON_PMEM_FS_DIR" ]; then
-	$PMEMDETECT "$NON_PMEM_FS_DIR" && true
-	NON_PMEM_IS_PMEM=$?
-fi
-
 # writes test working directory to temporary file
 # that allows read location of data after test failure
 if [ -f "$TEMP_LOC" ]; then
@@ -977,22 +963,6 @@ function require_test_type() {
 }
 
 #
-# require_pmem -- only allow script to continue for a real PMEM device
-#
-function require_pmem() {
-	[ $PMEM_IS_PMEM -eq 0 ] && return
-	fatal "error: PMEM_FS_DIR=$PMEM_FS_DIR does not point to a PMEM device"
-}
-
-#
-# require_non_pmem -- only allow script to continue for a non-PMEM device
-#
-function require_non_pmem() {
-	[ $NON_PMEM_IS_PMEM -ne 0 ] && return
-	fatal "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"
-}
-
-#
 # lock_devdax -- acquire a lock on Device DAXes
 #
 lock_devdax() {
@@ -1287,19 +1257,7 @@ function require_fs_type() {
 		# treat any as either pmem or non-pmem
 		[ "$type" = "$FS" ] ||
 			([ -n "${FORCE_FS:+x}" ] && [ "$type" = "any" ] &&
-			[ "$FS" != "none" ]) &&
-		case "$REAL_FS"
-		in
-		pmem)
-			require_pmem && return
-			;;
-		non-pmem)
-			require_non_pmem && return
-			;;
-		none)
-			return
-			;;
-		esac
+			[ "$FS" != "none" ]) && return
 	done
 	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
 	exit 0
