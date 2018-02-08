@@ -33,6 +33,7 @@
 #
 # examples/libpmemcto/Makefile -- build the libpmemcto examples
 #
+
 PROGS = manpage
 DIRS = life libart
 

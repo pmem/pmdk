@@ -36,16 +36,9 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 include $(TOP)/src/version.inc
 
-ARCH := $(call get_arch)
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 		  libpmemcto libvmmalloc tools
 ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
-
-ifeq ($(ARCH), aarch64)
-	TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
-		  libvmmalloc libpmemcto
-	ALL_TARGETS = $(TARGETS) common
-endif
 
 SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
 
