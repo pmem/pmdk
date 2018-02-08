@@ -278,7 +278,7 @@ info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
 		exit(EXIT_FAILURE);
 	}
 
-	size_t nvalues = pvector_nvalues(ctx);
+	size_t nvalues = pvector_size(ctx);
 	outv_field(vnum, name, "%lu element%s", nvalues,
 			nvalues != 1 ? "s" : "");
 
