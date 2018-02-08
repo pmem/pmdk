@@ -553,14 +553,15 @@ check_shutdown_state(struct pool_set *set,
 		}
 
 		struct shutdown_state curr_sds;
-		shutdown_state_init(&curr_sds);
+		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			shutdown_state_add_part(&curr_sds, PART(rep, p).path);
+			shutdown_state_add_part(&curr_sds, PART(rep, p).path,
+				NULL);
 		}
 		/* make a copy of sds as we shouldn't modify a pool */
 		struct shutdown_state pool_sds = hdrp->sds;
 
-		if (shutdown_state_check(&curr_sds, &pool_sds))
+		if (shutdown_state_check(&curr_sds, &pool_sds, NULL))
 				rep_hs->flags |= IS_BROKEN;
 
 	}
