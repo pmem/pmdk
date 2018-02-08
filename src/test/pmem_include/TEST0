@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,13 +34,14 @@
 #
 # src/test/pmem_include/TEST0 - if it compiles it's perfect
 #
-export UNITTEST_NAME=obj_include/TEST0
+export UNITTEST_NAME=pmem_include/TEST0
 export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type medium
+require_test_type short
+require_fs_type none
 
 setup
 
