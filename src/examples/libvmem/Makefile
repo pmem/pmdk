@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,15 @@
 #
 # examples/libvmem/Makefile -- build the libvmem examples
 #
+include ../../common.inc
+ARCH := $(call get_arch)
+
 PROGS = manpage
-DIRS = libart
+DIRS =
+
+ifeq ($(ARCH), x86_64)
+DIRS += libart
+endif
 
 LIBS = -lvmem -pthread
 

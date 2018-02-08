@@ -34,11 +34,16 @@
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
 include ../../common.inc
+ARCH := $(call get_arch)
 
 PROGS = manpage btree pi lists setjmp
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
+	string_store_tx_type hashmap tree_map pmemobjfs map array\
 	linkedlist list_map slab_allocator
+
+ifeq ($(ARCH), x86_64)
+DIRS += libart
+endif
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 

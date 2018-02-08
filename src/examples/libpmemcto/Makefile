@@ -33,8 +33,17 @@
 #
 # examples/libpmemcto/Makefile -- build the libpmemcto examples
 #
+
+include ../../common.inc
+
+ARCH := $(call get_arch)
+
 PROGS = manpage
-DIRS = life libart
+DIRS = life
+
+ifeq ($(ARCH), x86_64)
+DIRS += libart
+endif
 
 LIBS = -lpmemcto -lpmem -pthread
 
