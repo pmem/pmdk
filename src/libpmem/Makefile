@@ -32,6 +32,10 @@
 # src/libpmem/Makefile -- Makefile for libpmem
 #
 
+include ../common.inc
+
+ARCH := $(call get_arch)
+
 LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -47,109 +51,14 @@ SOURCE =\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	libpmem.c\
-	cpu.c\
 	pmem.c\
-	pmem_posix.c \
-	memcpy_nt_avx_clflush.c\
-	memcpy_nt_avx_clflushopt.c\
-	memcpy_nt_avx_clwb.c\
-	memcpy_nt_avx_empty.c\
-	memcpy_nt_sse2_clflush.c\
-	memcpy_nt_sse2_clflushopt.c\
-	memcpy_nt_sse2_clwb.c\
-	memcpy_nt_sse2_empty.c\
-	memset_nt_avx_clflush.c\
-	memset_nt_avx_clflushopt.c\
-	memset_nt_avx_clwb.c\
-	memset_nt_avx_empty.c\
-	memset_nt_sse2_clflush.c\
-	memset_nt_sse2_clflushopt.c\
-	memset_nt_sse2_clwb.c\
-	memset_nt_sse2_empty.c\
-	memcpy_t_avx_clflush.c\
-	memcpy_t_avx_clflushopt.c\
-	memcpy_t_avx_clwb.c\
-	memcpy_t_avx_empty.c\
-	memcpy_t_sse2_clflush.c\
-	memcpy_t_sse2_clflushopt.c\
-	memcpy_t_sse2_clwb.c\
-	memcpy_t_sse2_empty.c\
-	memset_t_avx_clflush.c\
-	memset_t_avx_clflushopt.c\
-	memset_t_avx_clwb.c\
-	memset_t_avx_empty.c\
-	memset_t_sse2_clflush.c\
-	memset_t_sse2_clflushopt.c\
-	memset_t_sse2_clwb.c\
-	memset_t_sse2_empty.c
+	pmem_posix.c
 
-AVX512F_PROG="\#include <immintrin.h>\n\#include <stdint.h>\nint main(){ uint64_t v[8]; __m512i zmm0 = _mm512_loadu_si512((__m512i *)&v); return 0;}"
-AVX512F_AVAILABLE := $(shell printf $(AVX512F_PROG) |\
-	$(CC) $(CFLAGS) -x c -mavx512f -o /dev/null - 2>/dev/null && echo y || echo n)
-
-ifeq ($(AVX512F_AVAILABLE), y)
-SOURCE += memcpy_nt_avx512f_clflush.c\
-	memcpy_nt_avx512f_clflushopt.c\
-	memcpy_nt_avx512f_clwb.c\
-	memcpy_nt_avx512f_empty.c\
-	memset_nt_avx512f_clflush.c\
-	memset_nt_avx512f_clflushopt.c\
-	memset_nt_avx512f_clwb.c\
-	memset_nt_avx512f_empty.c\
-	memcpy_t_avx512f_clflush.c\
-	memcpy_t_avx512f_clflushopt.c\
-	memcpy_t_avx512f_clwb.c\
-	memcpy_t_avx512f_empty.c\
-	memset_t_avx512f_clflush.c\
-	memset_t_avx512f_clflushopt.c\
-	memset_t_avx512f_clwb.c\
-	memset_t_avx512f_empty.c
-endif
+include $(ARCH)/sources.inc
 
 include ../Makefile.inc
 
-vpath %.c $(TOP)/src/libpmem/memcpy
-vpath %.c $(TOP)/src/libpmem/memset
-
-$(objdir)/memcpy_nt_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_empty.o: CFLAGS += -mavx
-
-$(objdir)/memcpy_t_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_empty.o: CFLAGS += -mavx
+include $(ARCH)/flags.inc
 
 CFLAGS += -I.
-ifeq ($(AVX512F_AVAILABLE), y)
-CFLAGS += -DAVX512F_AVAILABLE=1
-else
-CFLAGS += -DAVX512F_AVAILABLE=0
-endif
-
 LIBS += -pthread

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,6 +43,7 @@ export UNITTEST_NUM=1
 require_test_type medium
 require_build_type debug nondebug
 require_fs_type any
+require_x86_64
 
 setup
 
