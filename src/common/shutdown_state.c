@@ -41,27 +41,30 @@
 #include "os_dimm.h"
 #include "out.h"
 #include "util.h"
-#include <libpmem.h> /* XXX: deepflush from common */
-/* XXX: deep flush */
-#define FLUSH_SDS(sds) pmem_persist(sds, sizeof(*sds))
+#include "set.h"
+
+#define FLUSH_SDS(sds, set, idx) \
+	if (set != NULL) util_replica_deep_persist(sds, sizeof(*sds), set, idx)
 
 /*
  * shutdown_state_checksum -- (internal) counts SDS checksum and flush it
  */
 static void
-shutdown_state_checksum(struct shutdown_state *sds)
+shutdown_state_checksum(struct shutdown_state *sds, struct pool_set *set,
+	unsigned repidx)
 {
 	LOG(3, "sds %p", sds);
 
 	util_checksum(sds, sizeof(*sds), &sds->checksum, 1, 0);
-	FLUSH_SDS(sds);
+	FLUSH_SDS(sds, set, repidx);
 }
 
 /*
  * shutdown_state_init -- initializes shutdown_state struct
  */
 int
-shutdown_state_init(struct shutdown_state *sds)
+shutdown_state_init(struct shutdown_state *sds, struct pool_set *set,
+	unsigned repidx)
 {
 	/* check if we didn't change size of shutdown_state accidentally */
 	COMPILE_ERROR_ON(sizeof(struct shutdown_state) != 64);
@@ -69,7 +72,7 @@ shutdown_state_init(struct shutdown_state *sds)
 
 	memset(sds, 0, sizeof(*sds));
 
-	shutdown_state_checksum(sds);
+	shutdown_state_checksum(sds, set, repidx);
 
 	return 0;
 }
@@ -78,7 +81,8 @@ shutdown_state_init(struct shutdown_state *sds)
  * shutdown_state_add_part -- adds file uuid and usc to shutdown_state struct
  */
 int
-shutdown_state_add_part(struct shutdown_state *sds, const char *path)
+shutdown_state_add_part(struct shutdown_state *sds, const char *path,
+	struct pool_set *set, unsigned repidx)
 {
 	LOG(3, "sds %p, path %s", sds, path);
 
@@ -116,9 +120,9 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path)
 	util_checksum(uid, len, &tmp, 1, 0);
 	sds->uuid = htole64(le64toh(sds->uuid) + tmp);
 
-	FLUSH_SDS(sds);
+	FLUSH_SDS(sds, set, repidx);
 	Free(uid);
-	shutdown_state_checksum(sds);
+	shutdown_state_checksum(sds, set, repidx);
 	return 0;
 }
 
@@ -126,26 +130,28 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path)
  * shutdown_state_set_flag -- sets dirty pool flag
  */
 void
-shutdown_state_set_flag(struct shutdown_state *sds)
+shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set *set,
+	unsigned repidx)
 {
 	LOG(3, "sds %p", sds);
 	sds->dirty = 1;
-	FLUSH_SDS(sds);
+	FLUSH_SDS(sds, set, repidx);
 
-	shutdown_state_checksum(sds);
+	shutdown_state_checksum(sds, set, repidx);
 }
 
 /*
  * pmem_shutdown_clear_flag -- clears dirty pool flag
  */
 void
-shutdown_state_clear_flag(struct shutdown_state *sds)
+shutdown_state_clear_flag(struct shutdown_state *sds, struct pool_set *set,
+	unsigned repidx)
 {
 	LOG(3, "sds %p", sds);
 	sds->dirty = 0;
-	FLUSH_SDS(sds);
+	FLUSH_SDS(sds, set, repidx);
 
-	shutdown_state_checksum(sds);
+	shutdown_state_checksum(sds, set, repidx);
 }
 
 /*
@@ -153,17 +159,17 @@ shutdown_state_clear_flag(struct shutdown_state *sds)
  */
 static void
 shutdown_state_reinit(struct shutdown_state *curr_sds,
-			struct shutdown_state *pool_sds)
+	struct shutdown_state *pool_sds, struct pool_set *set, unsigned repidx)
 {
 	LOG(3, "curr_sds %p, pool_sds %p", curr_sds, pool_sds);
-	shutdown_state_init((struct shutdown_state *)pool_sds);
+	shutdown_state_init((struct shutdown_state *)pool_sds, set, repidx);
 	pool_sds->uuid = htole64(curr_sds->uuid);
 	pool_sds->usc = htole64(curr_sds->usc);
 	pool_sds->dirty = 0;
 
-	FLUSH_SDS(pool_sds);
+	FLUSH_SDS(pool_sds, set, repidx);
 
-	shutdown_state_checksum(pool_sds);
+	shutdown_state_checksum(pool_sds, set, repidx);
 }
 
 /*
@@ -171,12 +177,12 @@ shutdown_state_reinit(struct shutdown_state *curr_sds,
  */
 int
 shutdown_state_check(struct shutdown_state *curr_sds,
-	struct shutdown_state *pool_sds)
+	struct shutdown_state *pool_sds, struct pool_set *set, unsigned repidx)
 {
 	LOG(3, "curr_sds %p, pool_sds %p", curr_sds, pool_sds);
 
 	if (util_is_zeroed(pool_sds, sizeof(*pool_sds))) {
-		shutdown_state_reinit(curr_sds, pool_sds);
+		shutdown_state_reinit(curr_sds, pool_sds, set, repidx);
 		return 0;
 	}
 
@@ -192,7 +198,7 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 	if (!is_checksum_correct) {
 		/* the program was killed during opening or closing the pool */
 		LOG(2, "incorrect checksum - SDS will be reinitialized");
-		shutdown_state_reinit(curr_sds, pool_sds);
+		shutdown_state_reinit(curr_sds, pool_sds, set, repidx);
 		return 0;
 	}
 
@@ -205,14 +211,14 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 		 */
 		LOG(2,
 			"the pool was not closed - SDS will be reinitialized");
-		shutdown_state_reinit(curr_sds, pool_sds);
+		shutdown_state_reinit(curr_sds, pool_sds, set, repidx);
 		return 0;
 	}
 	if (dirty == 0) {
 		/* an ADR failure but the pool was closed */
 		LOG(2,
 			"an ADR failure was detected but the pool was closed - SDS will be reinitialized");
-		shutdown_state_reinit(curr_sds, pool_sds);
+		shutdown_state_reinit(curr_sds, pool_sds, set, repidx);
 		return 0;
 	}
 	/* an ADR failure - the pool might be corrupted */

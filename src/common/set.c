@@ -2200,13 +2200,13 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
-		shutdown_state_init(&hdrp->sds);
+		shutdown_state_init(&hdrp->sds, set, repidx);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, 0).path))
+					PART(rep, 0).path, set, repidx))
 				return -1;
 		}
-		shutdown_state_set_flag(&hdrp->sds);
+		shutdown_state_set_flag(&hdrp->sds, set, repidx);
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
@@ -2710,7 +2710,7 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
-			shutdown_state_clear_flag(&hdr->sds);
+			shutdown_state_clear_flag(&hdr->sds, set, repidx);
 		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
@@ -3441,19 +3441,20 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 		}
 		if (!set->ignore_sds && !rep->remote) {
 			struct shutdown_state sds;
-			shutdown_state_init(&sds);
+			shutdown_state_init(&sds, NULL, 0);
 			for (unsigned p = 0; p < rep->nparts; p++) {
 				if (shutdown_state_add_part(&sds,
-						PART(rep, p).path))
+						PART(rep, p).path, NULL, 0))
 					return -1;
 			}
 
-			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds)) {
+			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
+					set, r)) {
 				LOG(2, "ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
-			shutdown_state_set_flag(&HDR(rep, 0)->sds);
+			shutdown_state_set_flag(&HDR(rep, 0)->sds, set, r);
 		}
 	}
 	return 0;
@@ -3842,13 +3843,8 @@ util_replica_deep_persist(const void *addr, size_t len,
 		addr, len, set, replica_id);
 
 	struct pool_replica *rep = set->replica[replica_id];
-	uintptr_t rep_start = (uintptr_t)rep->part[0].addr;
-	uintptr_t rep_end = rep_start + rep->repsize;
 	uintptr_t start = (uintptr_t)addr;
 	uintptr_t end = start + len;
-
-	ASSERT(start >= rep_start);
-	ASSERT(end <= rep_end);
 
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		struct pool_set_part *part = &rep->part[p];
@@ -3865,6 +3861,34 @@ util_replica_deep_persist(const void *addr, size_t len,
 			range_start = part_start;
 		if (part_end < end)
 			range_end = part_end;
+		size_t range_len = range_end - range_start;
+
+		LOG(15, "perform deep_persist for replica %u "
+			"part %p, addr %p, len %lu",
+			replica_id, part, (void *)range_start, range_len);
+		if (os_part_deep_persist(part,
+				(void *)range_start, range_len)) {
+			LOG(1, "os_part_deep_persist(%p, %p, %lu)",
+				part, (void *)range_start, range_len);
+			return -1;
+		}
+	}
+
+	for (unsigned p = 0; p < rep->nhdrs; p++) {
+		struct pool_set_part *part = &rep->part[p];
+		uintptr_t hdr_start = (uintptr_t)part->hdr;
+		uintptr_t hdr_end = hdr_start + part->hdrsize;
+		/* init intersection start and end addresses */
+		uintptr_t range_start = start;
+		uintptr_t range_end = end;
+
+		if (hdr_start > end || hdr_end < start)
+			continue;
+		/* recalculate intersection addresses */
+		if (hdr_start > start)
+			range_start = hdr_start;
+		if (hdr_end < end)
+			range_end = hdr_end;
 		size_t range_len = range_end - range_start;
 
 		LOG(15, "perform deep_persist for replica %u "
