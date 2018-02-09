@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@ struct pvector_context {
 	PMEMobjpool *pop;
 	struct pvector *vec;
 	size_t nvalues;
+	size_t capacity;
 
 	size_t iter; /* a simple embedded iterator value. */
 };
@@ -83,6 +84,8 @@ pvector_new(PMEMobjpool *pop, struct pvector *vec)
 			ctx->nvalues += 1ULL << (narrays + PVECTOR_INIT_SHIFT);
 	}
 
+	ctx->capacity = ctx->nvalues;
+
 	if (narrays != 0) {
 		/*
 		 * But if the last array is found and non-null it needs to be
@@ -92,10 +95,16 @@ pvector_new(PMEMobjpool *pop, struct pvector *vec)
 
 		size_t arr_size = 1ULL << (last_array + PVECTOR_INIT_SHIFT);
 		uint64_t *arrp = OBJ_OFF_TO_PTR(pop, vec->arrays[last_array]);
-		size_t nvalues;
-		for (nvalues = 0; nvalues < arr_size; ++nvalues) {
-			if (arrp[nvalues] == 0)
-				break;
+		size_t nvalues = 0;
+		size_t nzeros = 0;
+		/* zero entries are valid, so count them too */
+		for (size_t n = 0; n < arr_size; ++n) {
+			if (arrp[n] != 0) {
+				nvalues += nzeros + 1;
+				nzeros = 0;
+			} else {
+				nzeros++;
+			}
 		}
 
 		/*
@@ -106,8 +115,10 @@ pvector_new(PMEMobjpool *pop, struct pvector *vec)
 		 */
 		if (nvalues == 0 && last_array != 0 /* 0 array is embedded*/)
 			pfree(pop, &vec->arrays[last_array]);
-		else
+		else {
 			ctx->nvalues += nvalues;
+			ctx->capacity += arr_size;
+		}
 	}
 
 	return ctx;
@@ -137,6 +148,24 @@ pvector_reinit(struct pvector_context *ctx)
 		uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[n]);
 		VALGRIND_ANNOTATE_NEW_MEMORY(arrp, sizeof(*arrp) * arr_size);
 	}
+}
+
+/*
+ * pvector_size -- returns the number of elements in the vector
+ */
+size_t
+pvector_size(struct pvector_context *ctx)
+{
+	return ctx->nvalues;
+}
+
+/*
+ * pvector_capacity -- returns the size of allocated memory capacity
+ */
+size_t
+pvector_capacity(struct pvector_context *ctx)
+{
+	return ctx->capacity;
 }
 
 /*
@@ -205,19 +234,18 @@ pvector_array_constr(void *ctx, void *ptr, size_t usable_size, void *arg)
 }
 
 /*
- * pvector_push_back -- bumps the number of values in the vector and returns
- *	the pointer to the value position to which the caller must set the
- *	value. Calling this method without actually setting the value will
- *	result in an inconsistent vector state.
+ * pvector_reserve -- attempts to reserve memory for at least size entries
  */
-uint64_t *
-pvector_push_back(struct pvector_context *ctx)
+int
+pvector_reserve(struct pvector_context *ctx, size_t size)
 {
-	uint64_t idx = ctx->nvalues;
-	struct array_spec s = pvector_get_array_spec(idx);
+	if (size <= ctx->capacity)
+		return 0;
+
+	struct array_spec s = pvector_get_array_spec(size);
 	if (s.idx >= PVECTOR_MAX_ARRAYS) {
 		ERR("Exceeded maximum number of entries in persistent vector");
-		return NULL;
+		return -1;
 	}
 	PMEMobjpool *pop = ctx->pop;
 
@@ -248,12 +276,32 @@ pvector_push_back(struct pvector_context *ctx)
 				&ctx->vec->arrays[s.idx],
 				arr_size, pvector_array_constr, NULL,
 				0, OBJ_INTERNAL_OBJECT_MASK, 0) != 0)
-					return NULL;
+					return -1;
 		}
 	}
+	ctx->capacity += (1ULL << (s.idx + PVECTOR_INIT_SHIFT));
+
+	return 0;
+}
+
+/*
+ * pvector_push_back -- bumps the number of values in the vector and returns
+ *	the pointer to the value position to which the caller must set the
+ *	value. Calling this method without actually setting the value will
+ *	result in an inconsistent vector state.
+ */
+uint64_t *
+pvector_push_back(struct pvector_context *ctx)
+{
+	if (pvector_reserve(ctx, ctx->nvalues + 1) != 0)
+		return NULL;
+
+	uint64_t idx = ctx->nvalues;
+
+	struct array_spec s = pvector_get_array_spec(idx);
+	uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[s.idx]);
 
 	ctx->nvalues++;
-	uint64_t *arrp = OBJ_OFF_TO_PTR(pop, ctx->vec->arrays[s.idx]);
 
 	return &arrp[s.pos];
 }
@@ -285,21 +333,13 @@ pvector_pop_back(struct pvector_context *ctx, entry_op_callback cb)
 			VALGRIND_REMOVE_FROM_TX(arrp, usable_size);
 		}
 #endif
+		ctx->capacity -= (1ULL << (s.idx + PVECTOR_INIT_SHIFT));
 		pfree(ctx->pop, &ctx->vec->arrays[s.idx]);
 	}
 
 	ctx->nvalues--;
 
 	return ret;
-}
-
-/*
- * pvector_nvalues -- returns the number of values present in the vector
- */
-uint64_t
-pvector_nvalues(struct pvector_context *ctx)
-{
-	return ctx->nvalues;
 }
 
 /*
