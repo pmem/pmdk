@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "valgrind_internal.h"
 
 /*
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
@@ -235,5 +236,53 @@ const char *out_get_errormsg(void);
 const char *out_get_errormsgU(void);
 const wchar_t *out_get_errormsgW(void);
 #endif
+
+
+#ifdef DEBUG
+#define BUILD_STR "debug"
+#else
+#define BUILD_STR "nondebug"
+#endif
+
+#ifdef USE_VG_PMEMCHECK
+#define VALGRIND_PMEMCHECK_STR " pmemcheck"
+#else
+#define VALGRIND_PMEMCHECK_STR ""
+#endif /* USE_VG_PMEMCHECK */
+
+#ifdef USE_VG_HELGRIND
+#define VALGRIND_HELGRIND_STR " helgrind"
+#else
+#define VALGRIND_HELGRIND_STR ""
+#endif /* USE_VG_HELGRIND */
+
+#ifdef USE_VG_MEMCHECK
+#define VALGRIND_MEMCHECK_STR " memcheck"
+#else
+#define VALGRIND_MEMCHECK_STR ""
+#endif /* USE_VG_MEMCHECK */
+
+#ifdef USE_VG_DRD
+#define VALGRIND_DRD_STR " drd"
+#else
+#define VALGRIND_DRD_STR ""
+#endif /* USE_VG_DRD */
+
+#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
+	defined(USE_VG_MEMCHECK) || defined (USE_VG_DRD)
+#define VALGRIND_STR ", with support for Valgrind:"\
+	VALGRIND_PMEMCHECK_STR VALGRIND_HELGRIND_STR\
+	VALGRIND_MEMCHECK_STR VALGRIND_DRD_STR
+#else
+#define VALGRIND_STR ""
+#endif
+
+#define xstr(x) str(x)
+#define str(x) #x
+
+#define LIBVERSTR(prefix, major, minor)\
+	prefix " version: " xstr(major) "." xstr(minor)\
+	", src version: " SRCVERSION ", build: " BUILD_STR\
+	VALGRIND_STR
 
 #endif

@@ -159,6 +159,13 @@ Otherwise, _UW(vmem_check_version) returns a static string describing the
 reason for failing the version check. The returned string must not be modified
 or freed.
 
+When _UW(vmem_check_version) is called with both *major_required* and
+*minor_required* equal 0, the return value is a static string
+containing the detailed information about the library version, source
+version, build type, etc.
+>NOTE: The application should not make any assumptions about the format
+of this string, as it may be a subject for change in the future.
+
 The **vmem_set_funcs**() function allows an application to override some
 interfaces used internally by **libvmem**. Passing NULL for any of the
 handlers will cause the **libvmem** default function to be used. The only

@@ -154,6 +154,13 @@ return value is a static string describing the reason for
 failing the version check. The string returned by
 _UW(pmempool_check_version) must not be modified or freed.
 
+When _UW(pmempool_check_version) is called with both *major_required* and
+*minor_required* equal 0, the return value is a static string
+containing the detailed information about the library version, source
+version, build type, etc.
+>NOTE: The application should not make any assumptions about the format
+of this string, as it may be a subject for change in the future.
+
 
 # DEBUGGING AND ERROR HANDLING #
 

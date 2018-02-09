@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,9 @@
 #include "cto.h"
 #include "jemalloc.h"
 
+static const char *Ver = LIBVERSTR(PMEMCTO_LOG_PREFIX,
+		PMEMCTO_MAJOR_VERSION, PMEMCTO_MINOR_VERSION);
+
 /*
  * libpmemcto_init -- load-time initialization for log
  *
@@ -83,6 +86,11 @@ pmemcto_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != PMEMCTO_MAJOR_VERSION) {
 		ERR("libpmemcto major version mismatch (need %u, found %u)",

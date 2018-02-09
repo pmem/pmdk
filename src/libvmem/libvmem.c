@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,9 @@
 #include "out.h"
 #include "vmem.h"
 
+static const char *Ver = LIBVERSTR(VMEM_LOG_PREFIX,
+		VMEM_MAJOR_VERSION, VMEM_MINOR_VERSION);
+
 /*
  * vmem_check_versionU -- see if library meets application version requirements
  */
@@ -54,6 +57,11 @@ vmem_check_versionU(unsigned major_required, unsigned minor_required)
 	vmem_construct();
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != VMEM_MAJOR_VERSION) {
 		ERR("libvmem major version mismatch (need %u, found %u)",

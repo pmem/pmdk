@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,9 @@
 
 #include "pmemcommon.h"
 #include "obj.h"
+
+static const char *Ver = LIBVERSTR(PMEMOBJ_LOG_PREFIX,
+		PMEMOBJ_MAJOR_VERSION, PMEMOBJ_MINOR_VERSION);
 
 /*
  * libpmemobj_init -- load-time initialization for obj
@@ -78,6 +81,11 @@ pmemobj_check_versionU(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != PMEMOBJ_MAJOR_VERSION) {
 		ERR("libpmemobj major version mismatch (need %u, found %u)",

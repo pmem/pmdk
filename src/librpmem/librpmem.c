@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,9 @@
 #include "util.h"
 #include "out.h"
 
+static const char *Ver = LIBVERSTR(RPMEM_LOG_PREFIX,
+		RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
+
 /*
  * librpmem_init -- load-time initialization for librpmem
  *
@@ -89,6 +92,11 @@ rpmem_check_version(unsigned major_required, unsigned minor_required)
 {
 	LOG(3, "major_required %u minor_required %u",
 			major_required, minor_required);
+
+	if (major_required == 0 && minor_required == 0) {
+		LOG(4, Ver);
+		return Ver;
+	}
 
 	if (major_required != RPMEM_MAJOR_VERSION) {
 		ERR("librpmem major version mismatch (need %u, found %u)",
