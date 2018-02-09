@@ -3933,6 +3933,45 @@ out:
 	os_close(fd);
 	return ret;
 }
+/*
+ * util_poolset_foreach_part_struct -- walk through all poolset file parts
+ *                                  of the given set
+ *
+ * Stops processing if callback returns non-zero value.
+ * The value returned by callback is returned to the caller.
+ */
+int
+util_poolset_foreach_part_struct(struct pool_set *set,
+	int (*callback)(struct part_file *pf, void *arg), void *arg)
+{
+	LOG(3, "set %p callback %p arg %p", set, callback, arg);
+
+	ASSERTne(callback, NULL);
+
+	int ret;
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct part_file part;
+		if (set->replica[r]->remote) {
+			part.is_remote = 1;
+			part.node_addr = set->replica[r]->remote->node_addr;
+			part.pool_desc = set->replica[r]->remote->pool_desc;
+			ret = (*callback)(&part, arg);
+			if (ret)
+				return ret;
+		} else {
+			part.is_remote = 0;
+			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
+				part.path = set->replica[r]->part[p].path;
+				ret = (*callback)(&part, arg);
+				if (ret)
+					return ret;
+			}
+		}
+	}
+
+	return 0;
+}
 
 /*
  * util_poolset_foreach_part -- walk through all poolset file parts
@@ -3946,39 +3985,28 @@ out:
  */
 int
 util_poolset_foreach_part(const char *path,
-	int (*cb)(struct part_file *pf, void *arg), void *arg)
+	int (*callback)(struct part_file *pf, void *arg), void *arg)
 {
+	LOG(3, "path %s callback %p arg %p", path, callback, arg);
+
+	ASSERTne(callback, NULL);
+
 	int fd = os_open(path, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("!open: path \"%s\"", path);
 		return -1;
+	}
 
 	struct pool_set *set;
 	int ret = util_poolset_parse(&set, path, fd);
 	if (ret) {
+		ERR("util_poolset_parse failed -- '%s'", path);
 		ret = -1;
 		goto err_close;
 	}
 
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct part_file part;
-		if (set->replica[r]->remote) {
-			part.is_remote = 1;
-			part.node_addr = set->replica[r]->remote->node_addr;
-			part.pool_desc = set->replica[r]->remote->pool_desc;
-			ret = cb(&part, arg);
-			if (ret)
-				goto out;
-		} else {
-			part.is_remote = 0;
-			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-				part.path = set->replica[r]->part[p].path;
-				ret = cb(&part, arg);
-				if (ret)
-					goto out;
-			}
-		}
-	}
-out:
+	ret = util_poolset_foreach_part_struct(set, callback, arg);
+
 	/*
 	 * Make sure callback does not return -1,
 	 * because this value is reserved for parsing
@@ -3986,6 +4014,7 @@ out:
 	 */
 	ASSERTne(ret, -1);
 	util_poolset_free(set);
+
 err_close:
 	os_close(fd);
 	return ret;
