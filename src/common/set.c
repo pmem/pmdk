@@ -2187,13 +2187,13 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
-		shutdown_state_init(&hdrp->sds);
+		shutdown_state_init(&hdrp->sds, &PART(rep, 0));
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, 0).path))
+					PART(rep, p).path, &PART(rep, 0)))
 				return -1;
 		}
-		shutdown_state_set_flag(&hdrp->sds);
+		shutdown_state_set_flag(&hdrp->sds, &PART(rep, 0));
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
@@ -2697,7 +2697,7 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
-			shutdown_state_clear_flag(&hdr->sds);
+			shutdown_state_clear_flag(&hdr->sds, part);
 		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
@@ -3422,19 +3422,21 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 		}
 		if (!set->ignore_sds && !rep->remote) {
 			struct shutdown_state sds;
-			shutdown_state_init(&sds);
+			shutdown_state_init(&sds, NULL);
 			for (unsigned p = 0; p < rep->nparts; p++) {
 				if (shutdown_state_add_part(&sds,
-						PART(rep, p).path))
+						PART(rep, p).path, NULL))
 					return -1;
 			}
 
-			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds)) {
+			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
+					&PART(rep, 0))) {
 				LOG(2, "ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
-			shutdown_state_set_flag(&HDR(rep, 0)->sds);
+			shutdown_state_set_flag(&HDR(rep, 0)->sds,
+				&PART(rep, 0));
 		}
 	}
 	return 0;
