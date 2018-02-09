@@ -58,6 +58,8 @@
 #define DEVDAX_ALIGN	(1 << 1)
 #define MAP_SYNC_SUPP	(1 << 2)
 
+#define err(fmt, ...) fprintf(stderr, "pmemdetect: " fmt, __VA_ARGS__)
+
 /* arguments */
 static int Opts;
 static char *Path;
@@ -107,8 +109,7 @@ parse_args(int argc, char *argv[])
 			errno = 0;
 			size_t align = strtoull(optarg, &endptr, 0);
 			if ((endptr && *endptr != '\0') || errno) {
-				fprintf(stderr, "'%s' -- invalid alignment",
-						optarg);
+				err("'%s' -- invalid alignment", optarg);
 				return -1;
 			}
 			Align = (size_t)align;
@@ -244,9 +245,9 @@ supports_map_sync(const char *path)
 	if (flags & PMEM_FILE_TMPFILE)
 		fd = util_tmpfile(path, "/pmemdetect.XXXXXX", 0);
 	else if (flags & PMEM_FILE_CREATE)
-		fd = os_open(path, O_CREAT|O_RDWR, 0);
+		fd = os_open(path, O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
 	else
-		fd = os_open(path, O_RDWR, 0);
+		fd = os_open(path, O_RDWR);
 
 	if (fd < 0) {
 		perror(path);
@@ -265,20 +266,21 @@ supports_map_sync(const char *path)
 	void *addr = mmap(NULL, size, PROT_READ|PROT_WRITE,
 		MAP_SHARED|MAP_SYNC|MAP_SHARED_VALIDATE, fd, 0);
 
-	os_close(fd);
-
-	if (flags & PMEM_FILE_CREATE)
-		util_unlink(path);
-
-	if (addr == MAP_FAILED) {
-		fprintf(stderr, "mmap failed %s\n", strerror(errno));
-		if (errno == EOPNOTSUPP)
-			return 0;
-
-		return -1;
+	if (addr == MAP_FAILED &&
+		!(errno == EOPNOTSUPP || errno == EINVAL)) {
+		err("mmap: %s\n", strerror(errno));
+		ret = -1;
+	} else {
+		ret = 0;
 	}
 
-	return 1;
+	os_close(fd);
+
+	if (flags & PMEM_FILE_CREATE && !(flags & PMEM_FILE_TMPFILE))
+		util_unlink(path);
+
+
+	return ret;
 }
 
 int
@@ -291,7 +293,7 @@ main(int argc, char *argv[])
 		if (argv[i] == NULL) {
 			for (i--; i >= 0; i--)
 				free(argv[i]);
-			fprintf(stderr, "Error during arguments conversion\n");
+			err("error during arguments conversion\n");
 			return 2;
 		}
 	}
