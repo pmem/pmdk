@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -193,7 +193,7 @@ struct rpmem_msg_open_resp {
  */
 struct rpmem_msg_close {
 	struct rpmem_msg_hdr hdr;	/* message header */
-	/* no more fields */
+	uint32_t flags;				/* flags */
 } PACKED;
 
 /*

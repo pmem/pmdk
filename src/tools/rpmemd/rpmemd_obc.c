@@ -291,7 +291,8 @@ rpmemd_obc_process_close(struct rpmemd_obc *obc,
 	struct rpmemd_obc_requests *req_cb, void *arg,
 	struct rpmem_msg_hdr *hdrp)
 {
-	return req_cb->close(obc, arg);
+	struct rpmem_msg_close *msg = (struct rpmem_msg_close *)hdrp;
+	return req_cb->close(obc, arg, (int)msg->flags);
 }
 
 /*

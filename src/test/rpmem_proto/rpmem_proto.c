@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -130,6 +130,7 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_close);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_close, hdr);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_close, flags);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_close);
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_close_resp);

@@ -494,7 +494,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 err_monitor:
 	rpmem_common_fip_fini(rpp);
 err_fip_init:
-	rpmem_obc_close(rpp->obc);
+	rpmem_obc_close(rpp->obc, RPMEM_CLOSE_FLAGS_REMOVE);
 err_obc_create:
 	rpmem_common_fini(rpp, 0);
 err_common_init:
@@ -568,7 +568,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 err_monitor:
 	rpmem_common_fip_fini(rpp);
 err_fip_init:
-	rpmem_obc_close(rpp->obc);
+	rpmem_obc_close(rpp->obc, 0);
 err_obc_create:
 	rpmem_common_fini(rpp, 0);
 err_common_init:
@@ -589,7 +589,7 @@ rpmem_close(RPMEMpool *rpp)
 
 	rpmem_fip_close(rpp->fip);
 
-	int ret = rpmem_obc_close(rpp->obc);
+	int ret = rpmem_obc_close(rpp->obc, 0);
 	if (ret)
 		ERR("!close request failed");
 
