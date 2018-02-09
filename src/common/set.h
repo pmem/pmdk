@@ -236,6 +236,8 @@ int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
 void util_poolset_fdclose_always(struct pool_set *set);
 int util_is_poolset_file(const char *path);
+int util_poolset_foreach_part_struct(struct pool_set *set,
+	int (*cb)(struct part_file *pf, void *arg), void *arg);
 int util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
