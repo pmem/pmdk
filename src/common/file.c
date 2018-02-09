@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -260,7 +260,7 @@ util_file_map_whole(const char *path)
 		goto out;
 	}
 
-	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
+	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
 		LOG(2, "failed to map entire file \"%s\"", path);
 		goto out;
@@ -311,7 +311,7 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 		len = (size_t)(size - off);
 	}
 
-	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0);
+	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
 		LOG(2, "failed to map entire file \"%s\"", path);
 		ret = -1;

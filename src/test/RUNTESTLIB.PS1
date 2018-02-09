@@ -327,3 +327,27 @@ and edit testconfig.ps1 to describe the local machine configuration.
 }
 
 . .\testconfig.ps1
+
+if (isDir($Env:PMEM_FS_DIR)) {
+    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+        # "0" means there is PMEM
+        $Local:PMEM_IS_PMEM = "0"
+    } else {
+        &$PMEMDETECT $Env:PMEM_FS_DIR
+        $Local:PMEM_IS_PMEM = $Global:LASTEXITCODE
+    }
+
+    if ($Local:PMEM_IS_PMEM -ne "0") {
+        throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
+    }
+}
+
+if (isDir($Env:NON_PMEM_FS_DIR)) {
+    &$PMEMDETECT $Env:NON_PMEM_FS_DIR
+    $Local:NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
+
+    if ($Local:NON_PMEM_IS_PMEM -eq "0") {
+        throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
+    }
+}
+

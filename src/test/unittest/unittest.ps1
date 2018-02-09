@@ -935,29 +935,6 @@ function compare_replicas {
 }
 
 #
-# require_pmem -- only allow script to continue for a real PMEM device
-#
-function require_pmem {
-    # note: PMEM_IS_PMEM 0 means it is PMEM, 1 means it is not
-    if ($Global:PMEM_IS_PMEM -eq "0") {
-        return $true
-    } else {
-        fatal "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR does not point to a PMEM device"
-    }
-}
-
-#
-# require_non_pmem -- only allow script to continue for a non-PMEM device
-#
-function require_non_pmem {
-    if ($Global:NON_PMEM_IS_PMEM -eq "1") {
-        return $true
-    } else {
-        fatal "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR does not point to a non-PMEM device"
-    }
-}
-
-#
 # require_fs_type -- only allow script to continue for a certain fs type
 #
 function require_fs_type {
@@ -968,11 +945,7 @@ function require_fs_type {
 
         # treat 'any' as either 'pmem' or 'non-pmem'
         if (($type -eq $Env:FS) -or (($type -eq "any") -and ($Env:FS -ne "none") -and $Env:FORCE_FS -eq 1)) {
-            switch ($Global:REAL_FS) {
-                'pmem' { if (require_pmem) { return } }
-                'non-pmem' { if (require_non_pmem) { return } }
-                'none' { return }
-            }
+		return;
         }
     }
     verbose_msg "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
@@ -1202,21 +1175,6 @@ if ($DIR) {
             fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
         }
     } # switch
-}
-
-if (isDir($Env:PMEM_FS_DIR)) {
-    if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-        # "0" means there is PMEM
-        $Global:PMEM_IS_PMEM = "0"
-    } else {
-        &$PMEMDETECT $Env:PMEM_FS_DIR
-        $Global:PMEM_IS_PMEM = $Global:LASTEXITCODE
-    }
-}
-
-if (isDir($Env:NON_PMEM_FS_DIR)) {
-    &$PMEMDETECT $Env:NON_PMEM_FS_DIR
-    $Global:NON_PMEM_IS_PMEM = $Global:LASTEXITCODE
 }
 
 # Length of pool file's signature

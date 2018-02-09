@@ -79,6 +79,34 @@ os_deep_flush_write(int region_id)
 }
 
 /*
+ * os_deep_persist_type -- perform deep persist operation based on a pmem
+ * mapping type
+ */
+static int
+os_deep_persist_type(const struct map_tracker *mt, void *addr, size_t len)
+{
+	LOG(15, "mt %p addr %p len %zu", mt, addr, len);
+
+	switch (mt->type) {
+	case PMEM_DEV_DAX:
+		pmem_persist(addr, len);
+
+		if (os_deep_flush_write(mt->region_id) < 0) {
+			LOG(2, "cannot write to deep_flush in region %d",
+				mt->region_id);
+			return -1;
+		}
+
+		return 0;
+	case PMEM_MAP_SYNC:
+		return pmem_msync((void *)addr, len);
+	default:
+		ASSERT(0);
+		return -1;
+	}
+}
+
+/*
  * os_range_deep_persist -- perform deep persist of given address range
  */
 int
@@ -114,16 +142,8 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 		size_t mt_in_len = mt->end_addr - addr;
 		size_t persist_len = MIN(len, mt_in_len);
 
-		/* XXX: to be replaced with pmem_deep_flush() */
-		LOG(15, "pmem_persist addr %p, len %lu",
-			(void *)addr, persist_len);
-		pmem_persist((void *)addr, persist_len);
-
-		if (os_deep_flush_write(mt->region_id) < 0) {
-			LOG(2, "cannot write to deep_flush in region %d",
-				mt->region_id);
+		if (os_deep_persist_type(mt, (void *)addr, persist_len))
 			return -1;
-		}
 
 		if (mt->end_addr >= addr + len)
 			return 0;

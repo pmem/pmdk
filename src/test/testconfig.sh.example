@@ -38,9 +38,15 @@
 NON_PMEM_FS_DIR=/tmp
 
 #
-# If you don't have real PMEM or PMEM emulation set up, but still want to test
-# PMEM codepaths uncomment this line. It will set PMEM_IS_PMEM_FORCE to 1 for
-# tests that require pmem.
+# If you don't have real PMEM or PMEM emulation set up and/or the filesystem
+# does not support MAP_SYNC flag, but still want to test PMEM codepaths
+# uncomment this line. It will set PMEM_IS_PMEM_FORCE to 1 for tests that
+# require pmem.
+#
+# Setting this flag to 1, if the PMEM_FS_DIR filesystem supports MAP_SYNC will
+# cause an error. This flag cannot be used with filesystems which support
+# MAP_SYNC because it would prevent from testing the target PMEM codepaths.
+# If you want to ignore this error set the value to 2.
 #
 #PMEM_FS_DIR_FORCE_PMEM=1
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,11 +62,11 @@ util_persist(int is_pmem, const void *addr, size_t len)
  * util_persist_auto -- flush to persistence
  */
 static inline void
-util_persist_auto(int is_dev_dax, const void *addr, size_t len)
+util_persist_auto(int is_pmem, const void *addr, size_t len)
 {
-	LOG(3, "is_dev_dax %d, addr %p, len %zu", is_dev_dax, addr, len);
+	LOG(3, "is_pmem %d, addr %p, len %zu", is_pmem, addr, len);
 
-	util_persist(is_dev_dax || pmem_is_pmem(addr, len), addr, len);
+	util_persist(is_pmem || pmem_is_pmem(addr, len), addr, len);
 }
 
 #ifdef __cplusplus
