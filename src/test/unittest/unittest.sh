@@ -1502,33 +1502,14 @@ function valgrind_version() {
 #
 function require_valgrind_dev_version() {
 	require_valgrind
-	local version=(${1//./ })
-	local major=${version[0]}
-	local minor=${version[1]}
-	local define="VALGRIND_VERSION_${major}_${minor}_OR_LATER"
+	available=$(valgrind_version)
+	require_command bc
+	required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
 
-	case "$define" in
-		VALGRIND_VERSION_3_7_OR_LATER)
-			local code=" \
-        #include <valgrind/valgrind.h>
-        #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
-        $define
-        #endif"
-			;;
-		*)
-			local code=" \
-        #include <valgrind/valgrind.h>
-        #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
-        #if (__VALGRIND_MAJOR__ > $major) || \
-             ((__VALGRIND_MAJOR__ == $major) && (__VALGRIND_MINOR__ >= $minor))
-        $define
-        #endif
-        #endif"
-			;;
-	esac
-	echo "$code" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | grep -q $define && return
-	msg "$UNITTEST_NAME: SKIP valgrind-devel package (ver $major.$minor or later) required"
-	exit 0
+	if [ $available -lt $required ]; then
+		msg "$UNITTEST_NAME: SKIP valgrind package (ver $1 or later) required"
+		exit 0
+	fi
 }
 
 #

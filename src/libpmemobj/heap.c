@@ -1738,7 +1738,7 @@ heap_foreach_object(struct palloc_heap *heap, object_callback cb, void *arg,
 	}
 }
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 
 /*
  * heap_vg_open_chunk -- (internal) notifies Valgrind about chunk layout

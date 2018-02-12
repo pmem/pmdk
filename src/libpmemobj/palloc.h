@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,7 +116,7 @@ size_t palloc_heap(void *heap_start);
 /* foreach callback, terminates iteration if return value is non-zero */
 typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 void palloc_vg_register_off(struct palloc_heap *heap, uint64_t off);
 void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif

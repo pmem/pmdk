@@ -914,8 +914,8 @@ fi
 )
 if test "x$enable_valgrind" = "x1" ; then
   JE_COMPILABLE([valgrind], [
-#include <valgrind/valgrind.h>
-#include <valgrind/memcheck.h>
+#include "valgrind/valgrind.h"
+#include "valgrind/memcheck.h"
 
 #if !defined(VALGRIND_RESIZEINPLACE_BLOCK)
 #  error "Incompatible Valgrind version"
