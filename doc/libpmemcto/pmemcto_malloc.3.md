@@ -99,7 +99,7 @@ then the call is equivalent to *pmemcto_malloc(pcp, size)*, for all values
 of *size*; if *size* is equal to zero and *ptr* is not NULL, then the call
 is equivalent to *pmemcto_free(pcp, ptr)*.  Unless *ptr* is NULL,
 it must have been returned by an earlier call to **pmemcto_malloc**(),
-**pmemcto_calloc**() or **pmemcto_realloc**().
+**pmemcto_calloc**(), **pmemcto_realloc**() or **pmemcto_aligned_alloc**(3).
 If the area pointed to was moved, a *pmemcto_free(pcp, ptr)* is done.
 
 
@@ -132,5 +132,7 @@ to and never attempts to grow or shrink that memory pool.
 
 # SEE ALSO #
 
-**malloc**(3), **jemalloc**(3), **libpmemcto**(7)
+**malloc**(3), **jemalloc**(3),
+**pmemcto_aligned_alloc**(3),
+**libpmemcto**(7)
 and **<http://pmem.io>**
