@@ -46,7 +46,7 @@ require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
 
-require_valgrind_dev_version 3.8
+require_valgrind 3.8
 configure_valgrind drd force-enable
 
 setup

@@ -1392,6 +1392,15 @@ function configure_valgrind() {
 }
 
 #
+# valgrind_version_no_check -- returns Valgrind version without checking
+#   for valgrind first
+#
+function valgrind_version_no_check() {
+	require_command bc
+	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
+}
+
+#
 # require_valgrind -- continue script execution only if
 #	valgrind package is installed
 #
@@ -1406,6 +1415,17 @@ function require_valgrind() {
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
+
+	if [ ! -z "$1" ]; then
+		available=$(valgrind_version_no_check)
+		required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
+
+		if [ $available -lt $required ]; then
+			msg "$UNITTEST_NAME: SKIP valgrind package (ver $1 or later) required"
+			exit 0
+		fi
+	fi
+
 	for N in $NODES_SEQ; do
 		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
 			disable_exit_on_error
@@ -1418,6 +1438,14 @@ function require_valgrind() {
 			fi
 		fi
 	done
+}
+
+#
+# valgrind_version -- returns Valgrind version
+#
+function valgrind_version() {
+	require_valgrind
+	valgrind_version_no_check
 }
 
 #
@@ -1485,31 +1513,6 @@ function set_valgrind_exe_name() {
 			fatal ${NODE_VALGRINDEXE[$N]}
 		fi
 	done
-}
-
-#
-# valgrind_version -- returns Valgrind version
-#
-function valgrind_version() {
-	require_valgrind
-	require_command bc
-	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
-}
-
-#
-# require_valgrind_dev_version -- continue script execution only if
-#	certain version (or later) of valgrind-devel package is installed
-#
-function require_valgrind_dev_version() {
-	require_valgrind
-	available=$(valgrind_version)
-	require_command bc
-	required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
-
-	if [ $available -lt $required ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind package (ver $1 or later) required"
-		exit 0
-	fi
 }
 
 #
