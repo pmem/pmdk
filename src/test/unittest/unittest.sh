@@ -1411,7 +1411,7 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind package required"
+		msg "$UNITTEST_NAME: SKIP valgrind required"
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
@@ -1421,7 +1421,7 @@ function require_valgrind() {
 		required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
 
 		if [ $available -lt $required ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind package (ver $1 or later) required"
+			msg "$UNITTEST_NAME: SKIP valgrind required (ver $1 or later)"
 			exit 0
 		fi
 	fi
@@ -1433,7 +1433,7 @@ function require_valgrind() {
 			ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
@@ -1476,7 +1476,7 @@ function require_valgrind_tool() {
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind package with $tool required"
+			msg "$UNITTEST_NAME: SKIP valgrind with $tool required"
 			exit 0;
 		fi
 	fi
@@ -1829,7 +1829,7 @@ function require_nodes() {
 			local ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
