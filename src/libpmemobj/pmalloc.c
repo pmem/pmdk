@@ -109,7 +109,7 @@ pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
 	struct operation_context *ctx)
 {
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	uint64_t tmp;
 	if (size && On_valgrind && dest_off == NULL)
 		dest_off = &tmp;
@@ -281,7 +281,7 @@ pmalloc_boot(PMEMobjpool *pop)
 	if (ret)
 		return ret;
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	if (On_valgrind)
 		palloc_heap_vg_open(&pop->heap, pop->vg_boot);
 #endif

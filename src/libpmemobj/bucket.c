@@ -93,7 +93,7 @@ error_active_alloc:
 int
 bucket_insert_block(struct bucket *b, const struct memory_block *m)
 {
-#if defined(USE_VG_MEMCHECK) || defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
+#if VG_MEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_DRD_ENABLED
 	if (On_valgrind) {
 		size_t size = m->m_ops->get_real_size(m);
 		void *data = m->m_ops->get_real_data(m);

@@ -191,13 +191,13 @@ check-remote: test
 	$(MAKE) -C test $@
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
-	$(MAKE) -C jemalloc -f Makefile.libvmem $@
-	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@
-	$(MAKE) -C jemalloc -f Makefile.libpmemcto $@
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libvmem $@
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libvmmalloc $@
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libpmemcto $@
 ifeq ($(custom_build),)
-	$(MAKE) -C jemalloc -f Makefile.libvmem $@ DEBUG=1
-	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ DEBUG=1
-	$(MAKE) -C jemalloc -f Makefile.libpmemcto $@ DEBUG=1
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libvmem $@ DEBUG=1
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ DEBUG=1
+	EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common" $(MAKE) -C jemalloc -f Makefile.libpmemcto $@ DEBUG=1
 endif
 
 install-cpp:

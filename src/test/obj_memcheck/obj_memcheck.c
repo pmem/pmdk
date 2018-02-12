@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,11 +31,7 @@
  */
 
 #include "unittest.h"
-
-#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
-#include <valgrind/valgrind.h>
-#include <valgrind/memcheck.h>
-#endif
+#include "valgrind_internal.h"
 
 /*
  * Layout definition
@@ -58,7 +54,7 @@ struct root {
 static void
 test_memcheck_bug(void)
 {
-#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
+#if VG_MEMCHECK_ENABLED
 	volatile char tmp[100];
 
 	VALGRIND_CREATE_MEMPOOL(tmp, 0, 0);
@@ -73,7 +69,7 @@ test_memcheck_bug(void)
 static void
 test_memcheck_bug2(void)
 {
-#if defined(USE_VG_MEMCHECK) || defined(USE_VALGRIND)
+#if VG_MEMCHECK_ENABLED
 	volatile char tmp[1000];
 
 	VALGRIND_CREATE_MEMPOOL(tmp, 0, 0);

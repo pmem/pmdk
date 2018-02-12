@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -287,7 +287,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	static __attribute__((used)) const char *version_msg =
 			"src version: " SRCVERSION;
 	LOG(1, "%s", version_msg);
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
 	 * when LOG expands to no code (!DEBUG)
@@ -295,22 +295,22 @@ out_init(const char *log_prefix, const char *log_level_var,
 	static __attribute__((used)) const char *pmemcheck_msg =
 			"compiled with support for Valgrind pmemcheck";
 	LOG(1, "%s", pmemcheck_msg);
-#endif /* USE_VG_PMEMCHECK */
-#ifdef USE_VG_HELGRIND
+#endif /* VG_PMEMCHECK_ENABLED */
+#if VG_HELGRIND_ENABLED
 	static __attribute__((used)) const char *helgrind_msg =
 			"compiled with support for Valgrind helgrind";
 	LOG(1, "%s", helgrind_msg);
-#endif /* USE_VG_HELGRIND */
-#ifdef USE_VG_MEMCHECK
+#endif /* VG_HELGRIND_ENABLED */
+#if VG_MEMCHECK_ENABLED
 	static __attribute__((used)) const char *memcheck_msg =
 			"compiled with support for Valgrind memcheck";
 	LOG(1, "%s", memcheck_msg);
-#endif /* USE_VG_MEMCHECK */
-#ifdef USE_VG_DRD
+#endif /* VG_MEMCHECK_ENABLED */
+#if VG_DRD_ENABLED
 	static __attribute__((used)) const char *drd_msg =
 			"compiled with support for Valgrind drd";
 	LOG(1, "%s", drd_msg);
-#endif /* USE_VG_DRD */
+#endif /* VG_DRD_ENABLED */
 
 	Last_errormsg_key_alloc();
 }

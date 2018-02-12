@@ -797,7 +797,7 @@ palloc_heap_cleanup(struct palloc_heap *heap)
 	heap_cleanup(heap);
 }
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 /*
  * palloc_vg_register_alloc -- (internal) registers allocation header
  * in Valgrind

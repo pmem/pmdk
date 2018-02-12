@@ -95,9 +95,9 @@ LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif
 
-ifeq ($(VALGRIND),1)
-CFLAGS += -DUSE_VALGRIND
-CXXFLAGS += -DUSE_VALGRIND
+ifeq ($(VALGRIND),0)
+CFLAGS += -DVALGRIND_ENABLED=0
+CXXFLAGS += -DVALGRIND_ENABLED=0
 endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan

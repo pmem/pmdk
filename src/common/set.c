@@ -364,7 +364,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 
 	void *addr = NULL;
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	if (On_valgrind) {
 		/* this is required only for Device DAX & memcheck */
 		addr = util_map_hint(hdrsize, hdrsize);

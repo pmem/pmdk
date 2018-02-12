@@ -336,7 +336,7 @@ pvector_pop_back(struct pvector_context *ctx, entry_op_callback cb)
 		if (i == 0 || ctx->vec->arrays[i] == 0)
 			continue;
 
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 		if (On_valgrind) {
 			size_t usable_size = palloc_usable_size(
 				&ctx->pop->heap,
