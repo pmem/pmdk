@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@ require_test_type medium
 
 require_fs_type non-pmem
 
-require_valgrind_dev_version 3.10
+require_valgrind 3.10
 configure_valgrind memcheck force-enable
 
 setup
