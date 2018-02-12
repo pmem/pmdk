@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,8 +52,9 @@
 
 typedef void *(*mem_fn)(void *, const void *, size_t);
 
-static char *src, *dst;
-static char *scratch;
+static char *Src;
+static char *Dst;
+static char *Scratch;
 
 /*
  * check_memmove -- invoke check function with pmem_memmove_persist
@@ -61,12 +62,12 @@ static char *scratch;
 static void
 check_memmove(size_t doff, size_t soff, size_t len)
 {
-	memset(dst + doff, 1, len);
-	memset(src + soff, 0, len);
+	memset(Dst + doff, 1, len);
+	memset(Src + soff, 0, len);
 
-	pmem_memmove_persist(dst + doff, src + soff, len);
+	pmem_memmove_persist(Dst + doff, Src + soff, len);
 
-	if (memcmp(dst + doff, src + soff, len))
+	if (memcmp(Dst + doff, Src + soff, len))
 		UT_FATAL("memcpy/memmove failed");
 }
 
@@ -76,17 +77,17 @@ check_memmove(size_t doff, size_t soff, size_t len)
 static void
 check_memcpy(size_t doff, size_t soff, size_t len)
 {
-	memset(dst, 2, N_BYTES);
-	memset(src, 3, N_BYTES);
-	memset(scratch, 2, N_BYTES);
+	memset(Dst, 2, N_BYTES);
+	memset(Src, 3, N_BYTES);
+	memset(Scratch, 2, N_BYTES);
 
-	memset(dst + doff, 1, len);
-	memset(src + soff, 0, len);
-	memcpy(scratch + doff, src + soff, len);
+	memset(Dst + doff, 1, len);
+	memset(Src + soff, 0, len);
+	memcpy(Scratch + doff, Src + soff, len);
 
-	pmem_memcpy_persist(dst + doff, src + soff, len);
+	pmem_memcpy_persist(Dst + doff, Src + soff, len);
 
-	if (memcmp(dst, scratch, N_BYTES))
+	if (memcmp(Dst, Scratch, N_BYTES))
 		UT_FATAL("memcpy/memmove failed");
 }
 
@@ -96,13 +97,13 @@ check_memcpy(size_t doff, size_t soff, size_t len)
 static void
 check_memset(size_t off, size_t len)
 {
-	memset(scratch, 2, N_BYTES);
-	memset(scratch + off, 1, len);
+	memset(Scratch, 2, N_BYTES);
+	memset(Scratch + off, 1, len);
 
-	memset(dst, 2, N_BYTES);
-	pmem_memset_persist(dst + off, 1, len);
+	memset(Dst, 2, N_BYTES);
+	pmem_memset_persist(Dst + off, 1, len);
 
-	if (memcmp(dst, scratch, N_BYTES))
+	if (memcmp(Dst, Scratch, N_BYTES))
 		UT_FATAL("memset failed");
 }
 
@@ -126,12 +127,12 @@ main(int argc, char *argv[])
 	switch (type) {
 	case 'C': /* memcpy */
 		/* mmap with guard pages */
-		src = MMAP_ANON_ALIGNED(N_BYTES, 0);
-		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
-		if (src == NULL || dst == NULL)
+		Src = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		Dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		if (Src == NULL || Dst == NULL)
 			UT_FATAL("!mmap");
 
-		scratch = MALLOC(N_BYTES);
+		Scratch = MALLOC(N_BYTES);
 
 		/* check memcpy with 0 size */
 		check_memcpy(0, 0, 0);
@@ -148,16 +149,16 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memcpy(s, s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(src, N_BYTES);
-		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
-		FREE(scratch);
+		MUNMAP_ANON_ALIGNED(Src, N_BYTES);
+		MUNMAP_ANON_ALIGNED(Dst, N_BYTES);
+		FREE(Scratch);
 
 		break;
 	case 'B': /* memmove backward */
 		/* mmap with guard pages */
-		src = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
-		dst = src + N_BYTES - 4096;
-		if (src == NULL)
+		Src = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
+		Dst = Src + N_BYTES - 4096;
+		if (Src == NULL)
 			UT_FATAL("!mmap");
 
 		/* check memmove in backward direction with 0 size */
@@ -178,13 +179,13 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove(s, s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(src, 2 * N_BYTES - 4096);
+		MUNMAP_ANON_ALIGNED(Src, 2 * N_BYTES - 4096);
 		break;
 	case 'F': /* memmove forward */
 		/* mmap with guard pages */
-		dst = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
-		src = dst + N_BYTES - 4096;
-		if (src == NULL)
+		Dst = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
+		Src = Dst + N_BYTES - 4096;
+		if (Src == NULL)
 			UT_FATAL("!mmap");
 
 		/* check memmove in forward direction with 0 size */
@@ -205,16 +206,16 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove(s, s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(dst, 2 * N_BYTES - 4096);
+		MUNMAP_ANON_ALIGNED(Dst, 2 * N_BYTES - 4096);
 
 		break;
 	case 'S': /* memset */
 		/* mmap with guard pages */
-		dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
-		if (dst == NULL)
+		Dst = MMAP_ANON_ALIGNED(N_BYTES, 0);
+		if (Dst == NULL)
 			UT_FATAL("!mmap");
 
-		scratch = MALLOC(N_BYTES);
+		Scratch = MALLOC(N_BYTES);
 
 		/* check memset with 0 size */
 		check_memset(0, 0);
@@ -231,8 +232,8 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memset(s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(dst, N_BYTES);
-		FREE(scratch);
+		MUNMAP_ANON_ALIGNED(Dst, N_BYTES);
+		FREE(Scratch);
 
 		break;
 	default:
