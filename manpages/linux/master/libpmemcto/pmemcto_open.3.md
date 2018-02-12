@@ -157,10 +157,10 @@ The **pmemcto_close**() function returns no value.
 
 **pmemcto_check**() returns 1 if the memory pool is found to be consistent.
 If the check is successfully performed but the pool is found to be inconsistent,
-**pmemcto_check**() returns 0. This includes the case where *layout* is non-NULL
-and does not match the layout string given when the pool was created. If the
-consistency check cannot be performed, **pmemcto_check**() returns -1 and sets
-*errno* appropriately.
+**pmemcto_check**() returns 0.  If the consistency check cannot be performed,
+**pmemcto_check**() returns -1 and sets *errno* appropriately.
+This includes the case where *layout* is non-NULL and does not match
+the layout string given when the pool was created.
 
 
 # ERRORS #
@@ -171,18 +171,18 @@ consistency check cannot be performed, **pmemcto_check**() returns -1 and sets
 
 **EINVAL** *poolsize* is less than **PMEMCTO_MIN_POOL**.
 
-**EINVAL** *path* passed to **pmemcto_create**() points to a pool set file,
-  but *poolsize* is not zero.
-
-**EINVAL** *path* passed to **pmemcto_create**() points to an existing file,
-  but *poolsize* is not zero.
-
-**EINVAL** *path* passed to **pmemcto_create**() points to an existing file,
-  which is not-empty.
-
 **EINVAL** Invalid format of the pool set file.
 
 **EINVAL** Invalid pool header.
+
+**EEXIST** *path* passed to **pmemcto_create**() points to a pool set file,
+  but *poolsize* is not zero.
+
+**EEXIST** *path* passed to **pmemcto_create**() points to an existing file,
+  but *poolsize* is not zero.
+
+**EEXIST** *path* passed to **pmemcto_create**() points to an existing file,
+  which is not-empty.
 
 **EAGAIN** The pmemcto pool pointed by *path* is already open.
 
@@ -206,6 +206,6 @@ Thus, it is not allowed to specify replica sections in pool set files.
 
 # SEE ALSO #
 
-**pmempool-create**(1), **ndctl-create-namespace**(1),
+**ndctl-create-namespace**(1), **pmempool-create**(1),
 **jemalloc**(3), **poolset**(5),
 **libpmemcto**(7), **libpmemobj**(7) and **<http://pmem.io>**
