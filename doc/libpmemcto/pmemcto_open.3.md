@@ -157,10 +157,10 @@ The **pmemcto_close**() function returns no value.
 
 _UW(pmemcto_check) returns 1 if the memory pool is found to be consistent.
 If the check is successfully performed but the pool is found to be inconsistent,
-_UW(pmemcto_check) returns 0. This includes the case where *layout* is non-NULL
-and does not match the layout string given when the pool was created. If the
-consistency check cannot be performed, _UW(pmemcto_check) returns -1 and sets
-*errno* appropriately.
+_UW(pmemcto_check) returns 0.  If the consistency check cannot be performed,
+_UW(pmemcto_check) returns -1 and sets *errno* appropriately.
+This includes the case where *layout* is non-NULL and does not match
+the layout string given when the pool was created.
 
 
 # ERRORS #
