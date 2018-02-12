@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,8 @@ Param(
     [alias("h")]
     [switch]$help= $false
 )
+
+$ErrorActionPreference="Stop"
 
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     throw $MyInvocation.MyCommand.Name + " require powershell version >= 5"
