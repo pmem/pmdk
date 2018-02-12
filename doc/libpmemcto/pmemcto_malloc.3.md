@@ -132,7 +132,7 @@ to and never attempts to grow or shrink that memory pool.
 
 # SEE ALSO #
 
-**malloc**(3), **jemalloc**(3),
+**jemalloc**(3), **malloc**(3),
 **pmemcto_aligned_alloc**(3),
 **libpmemcto**(7)
 and **<http://pmem.io>**

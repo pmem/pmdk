@@ -206,6 +206,6 @@ Thus, it is not allowed to specify replica sections in pool set files.
 
 # SEE ALSO #
 
-**pmempool-create**(1), **ndctl-create-namespace**(1),
+**ndctl-create-namespace**(1), **pmempool-create**(1),
 **jemalloc**(3), **poolset**(5),
 **libpmemcto**(7), **libpmemobj**(7) and **<http://pmem.io>**

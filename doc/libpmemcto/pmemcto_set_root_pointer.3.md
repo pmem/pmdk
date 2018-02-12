@@ -87,6 +87,6 @@ object in given pool, or NULL if the root pointer was never set.
 
 # SEE ALSO #
 
-**pmemcto_malloc**(3), **pmemcto_calloc**(3), **pmemcto_realloc**(3),
-**pmemcto_aligned_alloc**(3),
+**pmemcto_aligned_alloc**(3), **pmemcto_calloc**(3), **pmemcto_malloc**(3),
+**pmemcto_realloc**(3),
 **libpmemcto**(7) and **<http://pmem.io>**
