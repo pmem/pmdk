@@ -171,18 +171,18 @@ consistency check cannot be performed, _UW(pmemcto_check) returns -1 and sets
 
 **EINVAL** *poolsize* is less than **PMEMCTO_MIN_POOL**.
 
-**EINVAL** *path* passed to _UW(pmemcto_create) points to a pool set file,
-  but *poolsize* is not zero.
-
-**EINVAL** *path* passed to _UW(pmemcto_create) points to an existing file,
-  but *poolsize* is not zero.
-
-**EINVAL** *path* passed to _UW(pmemcto_create) points to an existing file,
-  which is not-empty.
-
 **EINVAL** Invalid format of the pool set file.
 
 **EINVAL** Invalid pool header.
+
+**EEXIST** *path* passed to _UW(pmemcto_create) points to a pool set file,
+  but *poolsize* is not zero.
+
+**EEXIST** *path* passed to _UW(pmemcto_create) points to an existing file,
+  but *poolsize* is not zero.
+
+**EEXIST** *path* passed to _UW(pmemcto_create) points to an existing file,
+  which is not-empty.
 
 **EAGAIN** The pmemcto pool pointed by *path* is already open.
 
