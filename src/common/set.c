@@ -3341,6 +3341,7 @@ util_replica_set_attr(struct pool_replica *rep,
 		const struct rpmem_pool_attr *rattr)
 {
 	LOG(3, "rep %p, rattr %p", rep, rattr);
+	ASSERT(rattr != NULL || rep->nhdrs == 0);
 
 	if (rattr != NULL && rep->nhdrs == 0) {
 		ERR(
