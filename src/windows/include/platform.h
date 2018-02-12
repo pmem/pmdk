@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -223,4 +223,5 @@ MSVC_CONSTR(_##func##_reg)
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* PLATFORM_H */
