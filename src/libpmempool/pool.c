@@ -196,8 +196,9 @@ pool_set_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 */
 	struct pool_attr attr;
 	util_pool_hdr2attr(&attr, &hdr);
-	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
-			&attr, NULL, true, NULL)) {
+	unsigned flags = (rdonly ? UPO_COW : 0) | UPO_IGNORE_SDS;
+	if (util_pool_open(poolset, fname, 0 /* minpartsize */,
+			&attr, NULL, NULL, flags)) {
 		ERR("opening poolset failed");
 		return -1;
 	}
@@ -428,7 +429,7 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 			LOG(2, "cannot open pool set -- '%s'", path);
 			goto err_free_fname;
 		}
-		if (util_pool_open_nocheck(file->poolset, rdonly))
+		if (util_pool_open_nocheck(file->poolset, rdonly ? UPO_COW : 0))
 			goto err_free_fname;
 
 		file->size = file->poolset->poolsize;

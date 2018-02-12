@@ -407,8 +407,8 @@ cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL, &Cto_open_attr,
-			NULL, false, addr) != 0) {
+	if (util_pool_open(&set, path, PMEMCTO_MIN_POOL, &Cto_open_attr,
+			NULL, addr, cow ? UPO_COW : 0) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

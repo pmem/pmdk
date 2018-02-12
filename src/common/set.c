@@ -69,6 +69,7 @@
 #include "util_pmem.h"
 #include "fs.h"
 #include "os_deep.h"
+#include "badblock_poolset.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -2998,6 +2999,24 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	ASSERT(set->nreplicas > 0);
 
+	const char **files_bbs = NULL;
+	int bbs = os_badblocks_check_poolset(set, &files_bbs);
+	if (bbs < 0) {
+		LOG(1, "WARNING: failed to check pool set for bad blocks");
+	}
+
+	if (bbs > 0) {
+		ERR("pool set contains bad blocks and cannot be created");
+		if (files_bbs) {
+			int i;
+			for (i = 0; i < bbs; i++)
+				ERR("the file contains bad blocks: %s",
+					files_bbs[i]);
+			Free(files_bbs);
+		}
+		return -1;
+	}
+
 	if (set->poolsize < minsize) {
 		ERR("net pool size %zu smaller than %zu", set->poolsize,
 			minsize);
@@ -3522,9 +3541,11 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
  * This function opens opens a pool set without checking the header values.
  */
 int
-util_pool_open_nocheck(struct pool_set *set, int cow)
+util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 {
-	LOG(3, "set %p cow %i", set, cow);
+	LOG(3, "set %p flags 0x%x", set, flags);
+
+	int cow = flags & UPO_COW;
 
 	if (cow && set->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
@@ -3532,11 +3553,27 @@ util_pool_open_nocheck(struct pool_set *set, int cow)
 		return -1;
 	}
 
-	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int mmap_flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
 	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
+
+	int bbs = os_badblocks_check_poolset(set, NULL);
+	if (bbs < 0) {
+		LOG(1, "WARNING: failed to check pool set for bad blocks");
+	}
+
+	if (bbs > 0) {
+		if (flags & UPO_IGNORE_BAD_BLOCKS) {
+			LOG(1,
+				"WARNING: pool set contains bad blocks, ignoring");
+		} else {
+			LOG(1,
+				"pool set contains bad blocks and cannot be opened");
+			return -1;
+		}
+	}
 
 	if (set->remote && util_remote_load()) {
 		ERR("the pool set requires a remote replica, "
@@ -3552,7 +3589,7 @@ util_pool_open_nocheck(struct pool_set *set, int cow)
 	set->rdonly = 0;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
-		if (util_replica_open(set, r, flags) != 0) {
+		if (util_replica_open(set, r, mmap_flags) != 0) {
 			LOG(2, "replica #%u open failed", r);
 			goto err_replica;
 		}
@@ -3588,19 +3625,21 @@ err_poolset:
  * calls can map a read-only pool if required.
  */
 int
-util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const struct pool_attr *attr, unsigned *nlanes,
-	int ignore_sds, void *addr)
+util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
+	const struct pool_attr *attr, unsigned *nlanes,	void *addr,
+	unsigned flags)
 {
-	LOG(3, "setp %p path %s cow %d minpartsize %zu attr %p nlanes %p "
-		"ignore_sds %d addr %p", setp, path, cow, minpartsize, attr,
-		nlanes, ignore_sds, addr);
+	LOG(3, "setp %p path %s minpartsize %zu attr %p nlanes %p "
+		"addr %p flags 0x%x ", setp, path, minpartsize, attr, nlanes,
+		addr, flags);
 
-	int flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
+	int cow = flags & UPO_COW;
+	int mmap_flags = cow ? MAP_PRIVATE|MAP_NORESERVE : MAP_SHARED;
 	int oerrno;
 
 	/* do not check minsize */
-	int ret = util_poolset_create_set(setp, path, 0, 0, ignore_sds);
+	int ret = util_poolset_create_set(setp, path, 0, 0,
+						flags & UPO_IGNORE_SDS);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
@@ -3620,6 +3659,26 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 
 	ASSERT(set->nreplicas > 0);
 
+	int bbs = os_badblocks_check_poolset(set, NULL);
+	if (bbs < 0) {
+		LOG(1,
+			"WARNING: failed to check pool set for bad blocks -- '%s'",
+			path);
+	}
+
+	if (bbs > 0) {
+		if (flags & UPO_IGNORE_BAD_BLOCKS) {
+			LOG(1,
+				"WARNING: pool set contains bad blocks, ignoring -- '%s'",
+				path);
+		} else {
+			LOG(1,
+				"pool set contains bad blocks and cannot be opened -- '%s'",
+				path);
+			return -1;
+		}
+	}
+
 	if (set->remote && util_remote_load()) {
 		ERR("the pool set requires a remote replica, "
 			"but the '%s' library cannot be loaded",
@@ -3633,7 +3692,7 @@ util_pool_open(struct pool_set **setp, const char *path, int cow,
 		goto err_poolset;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
-		if (util_replica_open(set, r, flags) != 0) {
+		if (util_replica_open(set, r, mmap_flags) != 0) {
 			LOG(2, "replica #%u open failed", r);
 			goto err_replica;
 		}

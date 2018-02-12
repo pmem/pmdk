@@ -283,8 +283,8 @@ log_open_common(const char *path, int cow)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART, &Log_open_attr,
-			NULL, false, NULL) != 0) {
+	if (util_pool_open(&set, path, PMEMLOG_MIN_PART, &Log_open_attr,
+			NULL, NULL, cow ? UPO_COW : 0) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
