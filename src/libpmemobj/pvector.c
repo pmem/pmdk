@@ -50,6 +50,16 @@ struct pvector_context {
 };
 
 /*
+ * pvector_arr_size -- (internal) returns the number of entries of an array with
+ *	the given index
+ */
+static size_t
+pvector_arr_size(size_t idx)
+{
+	return 1ULL << (idx + PVECTOR_INIT_SHIFT);
+}
+
+/*
  * pvector_new -- allocates and initializes persistent vector runtime context.
  *
  * To make sure the runtime information is correct (the number of values) the
@@ -64,58 +74,41 @@ pvector_new(PMEMobjpool *pop, struct pvector *vec)
 		return NULL;
 	}
 	ctx->nvalues = 0;
+	ctx->capacity = 0;
 	ctx->pop = pop;
 	ctx->vec = vec;
 	ctx->iter = 0;
 
 	/*
-	 * First the arrays are traversed to find position of the last element.
-	 * To save some time calculating the sum of the sequence at each step
-	 * the number of values from the array is added to the global nvalues
-	 * counter.
+	 * Traverse the entire vector backwards, if an array is entirely zeroed,
+	 * free it, otherwise count all of its elements.
 	 */
-	size_t narrays;
-	for (narrays = 0; narrays < PVECTOR_MAX_ARRAYS; ++narrays) {
-		if (vec->arrays[narrays] == 0)
-			break;
+	for (int i = PVECTOR_MAX_ARRAYS - 1; i >= 0; --i) {
+		if (vec->arrays[i] == 0)
+			continue;
 
-		if (narrays != PVECTOR_MAX_ARRAYS - 1 &&
-			vec->arrays[narrays + 1] != 0)
-			ctx->nvalues += 1ULL << (narrays + PVECTOR_INIT_SHIFT);
-	}
+		uint64_t *arrp = OBJ_OFF_TO_PTR(pop, vec->arrays[i]);
 
-	ctx->capacity = ctx->nvalues;
-
-	if (narrays != 0) {
-		/*
-		 * But if the last array is found and non-null it needs to be
-		 * iterated over to count the number of values present.
-		 */
-		size_t last_array = narrays - 1;
-
-		size_t arr_size = 1ULL << (last_array + PVECTOR_INIT_SHIFT);
-		uint64_t *arrp = OBJ_OFF_TO_PTR(pop, vec->arrays[last_array]);
-		size_t nvalues = 0;
-		size_t nzeros = 0;
-		/* zero entries are valid, so count them too */
-		for (size_t n = 0; n < arr_size; ++n) {
-			if (arrp[n] != 0) {
-				nvalues += nzeros + 1;
-				nzeros = 0;
-			} else {
-				nzeros++;
+		size_t arr_size = pvector_arr_size((size_t)i);
+		size_t nvalues = arr_size;
+		/* only count nvalues for the last array */
+		if (i == PVECTOR_MAX_ARRAYS - 1 || vec->arrays[i + 1] == 0) {
+			nvalues = 0;
+			size_t nzeros = 0;
+			/* zero entries are valid, so count them too */
+			for (size_t n = 0; n < arr_size; ++n) {
+				if (arrp[n] != 0) {
+					nvalues += nzeros + 1;
+					nzeros = 0;
+				} else {
+					nzeros++;
+				}
 			}
 		}
 
-		/*
-		 * If the last array is not the embedded one and is empty
-		 * it means that the application was interrupted in either
-		 * the push_back or pop_back methods. Either way there's really
-		 * no point in keeping the array.
-		 */
-		if (nvalues == 0 && last_array != 0 /* 0 array is embedded*/)
-			pfree(pop, &vec->arrays[last_array]);
-		else {
+		if (nvalues == 0 && i != 0 /* skip embedded array */) {
+			pfree(pop, &vec->arrays[i]);
+		} else {
 			ctx->nvalues += nvalues;
 			ctx->capacity += arr_size;
 		}
@@ -144,7 +137,7 @@ pvector_reinit(struct pvector_context *ctx)
 	for (size_t n = 1; n < PVECTOR_MAX_ARRAYS; ++n) {
 		if (ctx->vec->arrays[n] == 0)
 			break;
-		size_t arr_size = 1ULL << (n + PVECTOR_INIT_SHIFT);
+		size_t arr_size = pvector_arr_size(n);
 		uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[n]);
 		VALGRIND_ANNOTATE_NEW_MEMORY(arrp, sizeof(*arrp) * arr_size);
 	}
@@ -165,6 +158,15 @@ pvector_size(struct pvector_context *ctx)
 size_t
 pvector_capacity(struct pvector_context *ctx)
 {
+#ifdef DEBUG
+	size_t capacity = 0;
+	for (size_t i = 0; i < PVECTOR_MAX_ARRAYS; ++i) {
+		if (ctx->vec->arrays[i] == 0)
+			break;
+		capacity += pvector_arr_size(i);
+	}
+	ASSERTeq(ctx->capacity, capacity);
+#endif
 	return ctx->capacity;
 }
 
@@ -239,7 +241,7 @@ pvector_array_constr(void *ctx, void *ptr, size_t usable_size, void *arg)
 int
 pvector_reserve(struct pvector_context *ctx, size_t size)
 {
-	if (size <= ctx->capacity)
+	if (size <= pvector_capacity(ctx))
 		return 0;
 
 	struct array_spec s = pvector_get_array_spec(size);
@@ -249,12 +251,11 @@ pvector_reserve(struct pvector_context *ctx, size_t size)
 	}
 	PMEMobjpool *pop = ctx->pop;
 
-	/*
-	 * If the destination array does not exist, calculate its size
-	 * and allocate it.
-	 */
-	if (ctx->vec->arrays[s.idx] == 0) {
-		if (s.idx == 0) {
+	for (int i = (int)s.idx; i >= 0; --i) {
+		if (ctx->vec->arrays[i] != 0)
+			continue;
+
+		if (i == 0) {
 			/*
 			 * In the case the vector is completely empty the
 			 * initial embedded array must be assigned as the first
@@ -270,16 +271,16 @@ pvector_reserve(struct pvector_context *ctx, size_t size)
 				sizeof(ctx->vec->arrays[0]));
 		} else {
 			size_t arr_size = sizeof(uint64_t) *
-				(1ULL << (s.idx + PVECTOR_INIT_SHIFT));
+				pvector_arr_size((size_t)i);
 
 			if (pmalloc_construct(pop,
-				&ctx->vec->arrays[s.idx],
+				&ctx->vec->arrays[i],
 				arr_size, pvector_array_constr, NULL,
 				0, OBJ_INTERNAL_OBJECT_MASK, 0) != 0)
 					return -1;
 		}
+		ctx->capacity += pvector_arr_size((size_t)i);
 	}
-	ctx->capacity += (1ULL << (s.idx + PVECTOR_INIT_SHIFT));
 
 	return 0;
 }
@@ -299,6 +300,7 @@ pvector_push_back(struct pvector_context *ctx)
 	uint64_t idx = ctx->nvalues;
 
 	struct array_spec s = pvector_get_array_spec(idx);
+	ASSERTne(ctx->vec->arrays[s.idx], 0);
 	uint64_t *arrp = OBJ_OFF_TO_PTR(ctx->pop, ctx->vec->arrays[s.idx]);
 
 	ctx->nvalues++;
@@ -325,19 +327,26 @@ pvector_pop_back(struct pvector_context *ctx, entry_op_callback cb)
 	if (cb)
 		cb(ctx->pop, &arrp[s.pos]);
 
-	if (s.pos == 0 && s.idx != 0 /* the array 0 is embedded */) {
+	ctx->nvalues--;
+	if (s.pos != 0)
+		return ret;
+
+	/* free all potentially reserved but unused arrays */
+	for (int i = PVECTOR_MAX_ARRAYS - 1; i >= (int)s.idx; --i) {
+		if (i == 0 || ctx->vec->arrays[i] == 0)
+			continue;
+
 #ifdef USE_VG_PMEMCHECK
 		if (On_valgrind) {
-			size_t usable_size = palloc_usable_size(&ctx->pop->heap,
+			size_t usable_size = palloc_usable_size(
+				&ctx->pop->heap,
 				ctx->vec->arrays[s.idx]);
 			VALGRIND_REMOVE_FROM_TX(arrp, usable_size);
 		}
 #endif
-		ctx->capacity -= (1ULL << (s.idx + PVECTOR_INIT_SHIFT));
-		pfree(ctx->pop, &ctx->vec->arrays[s.idx]);
+		ctx->capacity -= pvector_arr_size((size_t)i);
+		pfree(ctx->pop, &ctx->vec->arrays[i]);
 	}
-
-	ctx->nvalues--;
 
 	return ret;
 }

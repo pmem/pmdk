@@ -199,6 +199,8 @@ tx2_worker(void *arg)
 					pmemobj_tx_add_range(oids[i], j, STEP);
 				}
 			}
+		} TX_ONABORT {
+			UT_ASSERT(0);
 		} TX_END
 
 		TX_BEGIN(a->pop) {
