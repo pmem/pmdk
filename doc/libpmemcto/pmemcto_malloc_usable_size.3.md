@@ -76,5 +76,6 @@ If *ptr* is NULL, 0 is returned.
 
 # SEE ALSO #
 
-**malloc**(3), **malloc_usable_size**(3), **pmemcto_malloc**(3),
-**jemalloc**(3), **libpmemcto**(7) and **<http://pmem.io>**
+**jemalloc**(3), **malloc**(3), **malloc_usable_size**(3),
+**pmemcto_malloc**(3),
+**libpmemcto**(7) and **<http://pmem.io>**

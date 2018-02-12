@@ -70,8 +70,8 @@ There is exactly one root object in each pool.
 
 The **pmemcto_set_root_pointer**() function saves the pointer to the root
 object in given pool.  The *ptr* must have been returned by a previous call
-to **pmemcto_malloc**(3), **pmemcto_calloc**(3) or **pmemcto_realloc**(3)
-for *the same pool of memory*.
+to **pmemcto_malloc**(3), **pmemcto_calloc**(3), **pmemcto_realloc**(3)
+or **pmemcto_aligned_alloc**(3) for *the same pool of memory*.
 
 The **pmemcto_get_root_pointer**() function returns the pointer to the root
 object in given pool, or NULL if the root pointer was never set.
@@ -87,4 +87,6 @@ object in given pool, or NULL if the root pointer was never set.
 
 # SEE ALSO #
 
+**pmemcto_aligned_alloc**(3), **pmemcto_calloc**(3), **pmemcto_malloc**(3),
+**pmemcto_realloc**(3),
 **libpmemcto**(7) and **<http://pmem.io>**
