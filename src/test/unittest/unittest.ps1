@@ -60,11 +60,7 @@ function isDir {
     if (-Not $args[0]) {
         return $false
     }
-    if ((Get-Item $args[0] -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo]) {
-        return $true
-    } Else {
-        return $false
-    }
+    return Test-Path $args[0] -PathType Container
 }
 
 # force dir w/wildcard to fail if no match
@@ -1082,7 +1078,6 @@ $PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
-$PMEMDETECT="$Env:EXE_DIR\pmemdetect$Env:EXESUFFIX"
 $PMEMOBJCLI="$Env:EXE_DIR\pmemobjcli$Env:EXESUFFIX"
 $DDMAP="$Env:EXE_DIR\ddmap$Env:EXESUFFIX"
 $BTTCREATE="$Env:EXE_DIR\bttcreate$Env:EXESUFFIX"
@@ -1146,13 +1141,21 @@ if ($DIR) {
     # choose based on FS env variable
     switch ($Env:FS) {
         'pmem' {
+            # if a variable is set - it must point to a valid directory
+            if (-Not $Env:PMEM_FS_DIR) {
+                fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
+            }
             sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
             if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
         }
         'non-pmem' {
-             sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+            # if a variable is set - it must point to a valid directory
+            if (-Not $Env:NON_PMEM_FS_DIR) {
+                fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
+            }
+            sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
         }
         'any' {
              if ($Env:PMEM_FS_DIR) {
