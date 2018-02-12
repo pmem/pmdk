@@ -123,7 +123,7 @@ void util_set_alloc_funcs(
 #endif
 
 #ifdef _MSC_VER
-#define force_inline inline
+#define force_inline inline __forceinline
 #else
 #define force_inline __attribute__((always_inline)) inline
 #endif
