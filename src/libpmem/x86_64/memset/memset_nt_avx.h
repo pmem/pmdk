@@ -186,7 +186,7 @@ EXPORTED_SYMBOL(char *dest, int c, size_t len)
 		goto end;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (single_bit_set(len)) {
+	if (util_is_pow2(len)) {
 		if (len == 32)
 			memset_movnt1x32b(dest, ymm);
 		else if (len == 16)

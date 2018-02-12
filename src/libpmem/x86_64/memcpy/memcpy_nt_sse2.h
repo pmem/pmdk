@@ -201,7 +201,7 @@ memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
 		return;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (single_bit_set(len)) {
+	if (util_is_pow2(len)) {
 		if (len == 32)
 			memmove_movnt1x32b(dest, src);
 		else if (len == 16)
@@ -263,7 +263,7 @@ memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
 		return;
 
 	/* There's no point in using more than 1 nt store for 1 cache line. */
-	if (single_bit_set(len)) {
+	if (util_is_pow2(len)) {
 		if (len == 32) {
 			dest -= 32;
 			src -= 32;

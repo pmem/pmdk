@@ -156,7 +156,7 @@ util_clrbit(uint8_t *b, uint32_t i)
  * single_bit_set -- returns !0 when there's only 1 bit set in v, 0 otherwise
  */
 static inline int
-single_bit_set(uint64_t v)
+util_is_pow2(uint64_t v)
 {
 	return v && !(v & (v - 1));
 }
