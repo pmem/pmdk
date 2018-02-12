@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -199,6 +199,8 @@ tx2_worker(void *arg)
 					pmemobj_tx_add_range(oids[i], j, STEP);
 				}
 			}
+		} TX_ONABORT {
+			UT_ASSERT(0);
 		} TX_END
 
 		TX_BEGIN(a->pop) {
