@@ -153,10 +153,10 @@ util_clrbit(uint8_t *b, uint32_t i)
 #define util_flag_isclr(a, f) (((a) & (f)) == 0)
 
 /*
- * single_bit_set -- returns !0 when there's only 1 bit set in v, 0 otherwise
+ * util_is_pow2 -- returns !0 when there's only 1 bit set in v, 0 otherwise
  */
-static inline int
-single_bit_set(uint64_t v)
+static force_inline int
+util_is_pow2(uint64_t v)
 {
 	return v && !(v & (v - 1));
 }
