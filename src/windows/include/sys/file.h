@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,4 @@
 
 /*
  * sys/file.h -- file locking
- */
-
-/*
- * XXX - see mmap_file.c for details
  */
