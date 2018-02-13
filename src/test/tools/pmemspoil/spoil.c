@@ -121,7 +121,7 @@ default:\
 	break;\
 }
 
-/* _max - sizeof array - if _arg is not an array _max must be 1 */
+/* _max - size of _arg is it is array (if not it must be 1) */
 #define PROCESS(_name, _arg, _max, _type) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
@@ -137,7 +137,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 }\
 } while (0)
 
-/* _max - sizeof array - if _arg is not an array _max must be 1 */
+/* _max - size of _arg is it is array (if not it must be 1) */
 #define PROCESS_NAME(_name, _func, _arg, _max) do {\
 if (pmemspoil_check_field(_pfp, (_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
@@ -707,6 +707,9 @@ pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 	return 0;
 }
 
+/*
+ * pmemspoil_process_shutdown_state -- process shutdown_state fields
+ */
 static int
 pmemspoil_process_shutdown_state(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, void *arg)
