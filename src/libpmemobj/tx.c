@@ -1754,6 +1754,39 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_range_def *args)
 }
 
 /*
+ * vg_verify_initialized -- when executed under Valgrind verifies that
+ *   the buffer has been initialized; explicit check at snapshotting time,
+ *   because Valgrind may find it much later when it's impossible to tell
+ *   for which snapshot it triggered
+ */
+static void
+vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
+{
+#ifdef USE_VG_MEMCHECK
+	if (!On_valgrind)
+		return;
+
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
+	char *start = (char *)pop + def->offset;
+	char *uninit = (char *)VALGRIND_CHECK_MEM_IS_DEFINED(start, def->size);
+	if (uninit) {
+		VALGRIND_PRINTF(
+			"Snapshotting uninitialized data in range <%p,%p> (<offset:0x%lx,size:0x%lx>)\n",
+			start, start + def->size, def->offset, def->size);
+
+		if (uninit != start)
+			VALGRIND_PRINTF("Uninitialized data starts at: %p\n",
+					uninit);
+
+		VALGRIND_DO_ENABLE_ERROR_REPORTING;
+		VALGRIND_CHECK_MEM_IS_DEFINED(start, def->size);
+	} else {
+		VALGRIND_DO_ENABLE_ERROR_REPORTING;
+	}
+#endif
+}
+
+/*
  * pmemobj_tx_add_common -- (internal) common code for adding persistent memory
  *				into the transaction
  */
@@ -1828,6 +1861,8 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 				FATAL("invalid state of ranges tree");
 			break;
 		}
+
+		vg_verify_initialized(tx->pop, &r);
 
 		/* need to make a copy because the range def arg isn't const */
 		struct tx_range_def ndef = r;
