@@ -337,6 +337,12 @@ util_ddax_region_find(const char *path)
 		goto err;
 	}
 
+	if (reg_num == -1) {
+		errno = ENOTSUP;
+		ERR("!invalid dax region id");
+		goto err;
+	}
+
 	os_close(dax_reg_id_fd);
 	return reg_num;
 

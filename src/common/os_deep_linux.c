@@ -176,7 +176,6 @@ os_part_deep_common(struct pool_set_part *part, void *addr,
 
 	if (part->is_dev_dax) {
 		int region_id = util_ddax_region_find(part->path);
-		ASSERTne(region_id, -1);
 
 		if (flush) {
 			LOG(15, "pmem_deep_flush addr %p, len %lu", addr, len);
