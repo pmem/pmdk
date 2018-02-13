@@ -642,15 +642,13 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 }
 
 /*
- * pmemobj_direct_volatile -- atomically initialize, record and return a
+ * pmemobj_volatile -- atomically initialize, record and return a
  *	generic value
  */
 void *
-pmemobj_direct_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	int (*constr)(void *ptr, void *arg), void *arg)
 {
-	void *ptr = (char *)vlt + sizeof(struct pmemvlt);
-
 	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
 		return NULL;
 
