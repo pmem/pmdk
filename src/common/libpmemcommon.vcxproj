@@ -16,8 +16,8 @@
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
     <ClCompile Include="fs_windows.c" />
+    <ClCompile Include="os_deep_windows.c" />
     <ClCompile Include="os_dimm_none.c" />
-    <ClCompile Include="os_deep_persist_windows.c" />
     <ClCompile Include="os_thread_windows.c" />
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
@@ -35,7 +35,7 @@
     <ClInclude Include="mmap.h" />
     <ClInclude Include="fs.h" />
     <ClInclude Include="os.h" />
-    <ClInclude Include="os_deep_persist.h" />
+    <ClInclude Include="os_deep.h" />
     <ClInclude Include="os_thread.h" />
     <ClInclude Include="out.h" />
     <ClInclude Include="pmemcommon.h" />

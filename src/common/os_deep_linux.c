@@ -31,7 +31,7 @@
  */
 
 /*
- * os_deep_persist_linux.c -- Linux abstraction layer
+ * os_deep_linux.c -- Linux abstraction layer
  */
 
 #define _GNU_SOURCE
@@ -44,7 +44,7 @@
 #include "mmap.h"
 #include "file.h"
 #include "libpmem.h"
-#include "os_deep_persist.h"
+#include "os_deep.h"
 
 /*
  * os_deep_flush_write -- (internal) perform write to deep_flush file
@@ -79,17 +79,17 @@ os_deep_flush_write(int region_id)
 }
 
 /*
- * os_deep_persist_type -- perform deep persist operation based on a pmem
+ * os_deep_type -- (internal) perform deep operation based on a pmem
  * mapping type
  */
 static int
-os_deep_persist_type(const struct map_tracker *mt, void *addr, size_t len)
+os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 {
 	LOG(15, "mt %p addr %p len %zu", mt, addr, len);
 
 	switch (mt->type) {
 	case PMEM_DEV_DAX:
-		pmem_persist(addr, len);
+		pmem_drain();
 
 		if (os_deep_flush_write(mt->region_id) < 0) {
 			LOG(2, "cannot write to deep_flush in region %d",
@@ -107,10 +107,10 @@ os_deep_persist_type(const struct map_tracker *mt, void *addr, size_t len)
 }
 
 /*
- * os_range_deep_persist -- perform deep persist of given address range
+ * os_range_deep_common -- perform deep action of given address range
  */
 int
-os_range_deep_persist(uintptr_t addr, size_t len)
+os_range_deep_common(uintptr_t addr, size_t len)
 {
 	LOG(3, "addr 0x%016" PRIxPTR " len %zu", addr, len);
 
@@ -142,7 +142,7 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 		size_t mt_in_len = mt->end_addr - addr;
 		size_t persist_len = MIN(len, mt_in_len);
 
-		if (os_deep_persist_type(mt, (void *)addr, persist_len))
+		if (os_deep_type(mt, (void *)addr, persist_len))
 			return -1;
 
 		if (mt->end_addr >= addr + len)
@@ -155,21 +155,34 @@ os_range_deep_persist(uintptr_t addr, size_t len)
 }
 
 /*
- * os_part_deep_persist -- search DEV dax region id for part file
- * on device dax and perform write to deep_flush file
- * or call msync for non DEV dax
+ * os_part_deep_common -- common function to handle both;
+ * deep_persist and deep_drain part flush cases.
+ *
+ * During deep_persist for part on device DAX it search
+ * device region id, then flushes CPU cache, does SFENCE
+ * and performs WPQ flush on found device DAX region.
+ *
+ * During deep_drain for part on device DAX it search
+ * device region id, then does SFENCE
+ * and performs WPQ flush on found device DAX region.
+ *
+ * In case of parts not on device DAX it calls msync on the range.
  */
 int
-os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len)
+os_part_deep_common(struct pool_set_part *part, void *addr,
+			size_t len, int flush)
 {
-	LOG(3, "part %p addr %p len %lu", part, addr, len);
+	LOG(3, "part %p addr %p len %lu flush %d", part, addr, len, flush);
 
 	if (part->is_dev_dax) {
 		int region_id = util_ddax_region_find(part->path);
 		ASSERTne(region_id, -1);
-		/* XXX: to be replaced with pmem_deep_flush() */
-		LOG(15, "pmem_persist addr %p, len %lu", addr, len);
-		pmem_persist(addr, len);
+
+		if (flush) {
+			LOG(15, "pmem_deep_flush addr %p, len %lu", addr, len);
+			pmem_deep_flush(addr, len);
+		}
+		pmem_drain();
 		if (os_deep_flush_write(region_id)) {
 			LOG(1, "ddax_deep_flush_write(%d)",
 				region_id);

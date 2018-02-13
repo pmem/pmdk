@@ -41,10 +41,10 @@
 #include "os_dimm.h"
 #include "out.h"
 #include "util.h"
-#include "os_deep_persist.h"
+#include "os_deep.h"
 
 #define FLUSH_SDS(sds, part) \
-	if (part != NULL) os_part_deep_persist(part, sds, sizeof(*sds))
+	if (part != NULL) os_part_deep_common(part, sds, sizeof(*sds), 1)
 
 /*
  * shutdown_state_checksum -- (internal) counts SDS checksum and flush it

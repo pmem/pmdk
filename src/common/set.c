@@ -68,7 +68,7 @@
 #include "sys_util.h"
 #include "util_pmem.h"
 #include "fs.h"
-#include "os_deep_persist.h"
+#include "os_deep.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -3878,16 +3878,17 @@ util_replica_fdclose(struct pool_replica *rep)
 }
 
 /*
- * util_replica_deep_persist -- perform deep persist on replica's parts
- * for a given range. For dev dax write to deep_flush file from sysfs.
- * Otherwise call msync.
+ * util_replica_deep_common -- performs common calculations
+ * on all parts from replica to define intersection ranges
+ * for final flushing operations that take place in
+ * os_part_deep_common function.
  */
 int
-util_replica_deep_persist(const void *addr, size_t len,
-			struct pool_set *set, unsigned replica_id)
+util_replica_deep_common(const void *addr, size_t len, struct pool_set *set,
+				unsigned replica_id, int flush)
 {
-	LOG(3, "addr %p len %zu set %p replica_id %u",
-		addr, len, set, replica_id);
+	LOG(3, "addr %p len %zu set %p replica_id %u flush %d",
+		addr, len, set, replica_id, flush);
 
 	struct pool_replica *rep = set->replica[replica_id];
 	uintptr_t rep_start = (uintptr_t)rep->part[0].addr;
@@ -3915,15 +3916,47 @@ util_replica_deep_persist(const void *addr, size_t len,
 			range_end = part_end;
 		size_t range_len = range_end - range_start;
 
-		LOG(15, "perform deep_persist for replica %u "
+		LOG(15, "perform deep flushing for replica %u "
 			"part %p, addr %p, len %lu",
 			replica_id, part, (void *)range_start, range_len);
-		if (os_part_deep_persist(part,
-				(void *)range_start, range_len)) {
-			LOG(1, "os_part_deep_persist(%p, %p, %lu)",
+		if (os_part_deep_common(part, (void *)range_start,
+				range_len, flush)) {
+			LOG(1, "os_part_deep_common(%p, %p, %lu)",
 				part, (void *)range_start, range_len);
 			return -1;
 		}
 	}
 	return 0;
+}
+
+/*
+ * util_replica_deep_persist -- wrapper for util_replica_deep_common
+ * Calling the target precedes initialization of function that
+ * partly defines way of deep replica flushing.
+ */
+int
+util_replica_deep_persist(const void *addr, size_t len, struct pool_set *set,
+				unsigned replica_id)
+{
+	LOG(3, "addr %p len %zu set %p replica_id %u",
+		addr, len, set, replica_id);
+
+	int flush = 1;
+	return util_replica_deep_common(addr, len, set, replica_id, flush);
+}
+
+/*
+ * util_replica_deep_drain -- wrapper for util_replica_deep_common
+ * Calling the target precedes initialization of function that
+ * partly defines way of deep replica flushing.
+ */
+int
+util_replica_deep_drain(const void *addr, size_t len, struct pool_set *set,
+				unsigned replica_id)
+{
+	LOG(3, "addr %p len %zu set %p replica_id %u",
+		addr, len, set, replica_id);
+
+	int flush = 0;
+	return util_replica_deep_common(addr, len, set, replica_id, flush);
 }

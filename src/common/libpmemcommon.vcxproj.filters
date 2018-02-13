@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -59,7 +59,7 @@
     <ClCompile Include="os_dimm_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="os_deep_persist_windows.c">
+    <ClCompile Include="os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -106,7 +106,7 @@
     <ClInclude Include="fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="os_deep_persist.h">
+    <ClInclude Include="os_deep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
