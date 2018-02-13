@@ -314,9 +314,17 @@ util_ddax_region_find(const char *path)
 
 	dev_t dev_id = st.st_rdev;
 
-	snprintf(dax_region_path, PATH_MAX,
+	unsigned major = major(dev_id);
+	unsigned minor = minor(dev_id);
+	int ret = snprintf(dax_region_path, PATH_MAX,
 		"/sys/dev/char/%u:%u/device/dax_region/id",
-		major(dev_id), minor(dev_id));
+		major, minor);
+	if (ret < 0) {
+		ERR("!snprintf(%p, %d, /sys/dev/char/%u:%u/device/"
+			"dax_region/id, %u, %u)",
+			dax_region_path, PATH_MAX, major, minor, major, minor);
+		return -1;
+	}
 
 	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
 		ERR("!open(\"%s\", O_RDONLY)", dax_region_path);
@@ -325,20 +333,40 @@ util_ddax_region_find(const char *path)
 
 	ssize_t len = read(dax_reg_id_fd, reg_id, DAX_REGION_ID_LEN);
 
-	if (len < 2 || reg_id[len - 1] != '\n') {
-		ERR("!read(%d, %p, %d)", dax_reg_id_fd, reg_id,
-			DAX_REGION_ID_LEN);
+	if (len == -1) {
+		ERR("!read(%d, %p, %d)", dax_reg_id_fd,
+			reg_id, DAX_REGION_ID_LEN);
+		goto err;
+	} else if (len < 2 || reg_id[len - 1] != '\n') {
+		errno = EINVAL;
+		ERR("!read(%d, %p, %d) invalid format", dax_reg_id_fd,
+			reg_id, DAX_REGION_ID_LEN);
 		goto err;
 	}
 
-	int reg_num = (int)strtol(reg_id, &end_addr, 10);
+	int olderrno = errno;
+	errno = 0;
+	long reg_num = strtol(reg_id, &end_addr, 10);
+	if ((errno == ERANGE && (reg_num == LONG_MAX || reg_num == LONG_MIN)) ||
+			(errno != 0 && reg_num == 0)) {
+		ERR("!strtol(%p, %p, 10)", reg_id, end_addr);
+		goto err;
+	}
+	errno = olderrno;
+
+	if (end_addr == reg_id) {
+		ERR("!strtol(%p, %p, 10) no digits were found",
+			reg_id, end_addr);
+		goto err;
+	}
 	if (*end_addr != '\n') {
-		ERR("!strtol(%s, %s, 10)", reg_id, end_addr);
+		ERR("!strtol(%s, %s, 10) invalid format",
+			reg_id, end_addr);
 		goto err;
 	}
 
 	os_close(dax_reg_id_fd);
-	return reg_num;
+	return (int)reg_num;
 
 err:
 	os_close(dax_reg_id_fd);
