@@ -11,6 +11,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="badblock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="badblock_poolset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -64,6 +70,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="badblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="badblock_poolset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="dlsym.h">
       <Filter>Header Files</Filter>
     </ClInclude>

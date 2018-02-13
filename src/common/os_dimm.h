@@ -31,12 +31,13 @@
  */
 
 /*
- * os_dimm.h -- dimm features abstraction layer
+ * os_dimm.h -- DIMMs API based on the ndctl library
  */
 
 #include <string.h>
 #include <stdint.h>
 
-
 int os_dimm_uid(const char *path, char *uid, size_t *len);
 int os_dimm_usc(const char *path, uint64_t *usc);
+struct badblocks *os_dimm_files_namespace_badblocks(const char *path);
+int os_dimm_badblocks_clear_devdax(const char *path);
