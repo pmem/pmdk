@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -172,7 +172,7 @@ struct allocation_header_legacy {
 };
 
 static void
-obj_root_restore_size(struct pmemobjpool *pop)
+obj_root_restore_size(void *psf, struct pmemobjpool *pop)
 {
 #define LEGACY_INTERNAL_OBJECT_MASK ((1ULL) << 63)
 	if (pop->root_offset == 0)
@@ -184,6 +184,8 @@ obj_root_restore_size(struct pmemobjpool *pop)
 		(struct allocation_header_legacy *)((uintptr_t)pop + off);
 
 	pop->root_size = hdr->root_size & ~LEGACY_INTERNAL_OBJECT_MASK;
+	pmempool_convert_persist(psf, &pop->root_size,
+		sizeof(pop->root_size));
 }
 
 #define CONVERSION_FLAG_OLD_SET_CACHE ((1ULL) << 0)
@@ -196,13 +198,15 @@ convert_v3_v4(void *psf, void *addr)
 	assert(sizeof(struct pmemobjpool) == 8192);
 
 	pop->conversion_flags = CONVERSION_FLAG_OLD_SET_CACHE;
+	pmempool_convert_persist(psf, &pop->conversion_flags,
+		sizeof(pop->conversion_flags));
 
 	/* zero out the pmem reserved part of the header */
 	memset(pop->pmem_reserved, 0, sizeof(pop->pmem_reserved));
+	pmempool_convert_persist(psf, pop->pmem_reserved,
+		sizeof(pop->pmem_reserved));
 
-	obj_root_restore_size(pop);
-
-	pmempool_convert_persist(psf, pop, sizeof(*pop));
+	obj_root_restore_size(psf, pop);
 
 	return 0;
 }
