@@ -164,7 +164,8 @@ OBJ_CPP_TESTS = \
 	obj_cpp_ptr\
 	obj_cpp_ptr_arith\
 	obj_cpp_shared_mutex_posix\
-	obj_cpp_transaction
+	obj_cpp_transaction\
+	obj_cpp_v
 
 OBJ_CPP_ARRAY_TESTS = \
 	obj_cpp_make_persistent_array\
