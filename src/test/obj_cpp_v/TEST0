@@ -31,18 +31,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_direct_volatile/TEST0 -- unit test for direct_volatile
-#
-
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
 require_fs_type any
 
+require_cxx11
+
 setup
 
-expect_normal_exit ./obj_direct_volatile$EXESUFFIX $DIR/test0
+expect_normal_exit\
+    ./obj_cpp_v$EXESUFFIX $DIR/testfile1
 
 pass

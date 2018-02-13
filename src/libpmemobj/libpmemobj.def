@@ -123,7 +123,7 @@ EXPORTS
 	pmemobj_flush
 	pmemobj_drain
 	pmemobj_direct
-	pmemobj_direct_volatile
+	pmemobj_volatile
 	pmemobj_oid
 	pmemobj_reserve
 	pmemobj_xreserve

@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,17 +31,13 @@
 #
 
 #
-# src/test/obj_direct_volatile/TEST0 -- unit test for direct_volatile
+# src/test/obj_cpp_v/Makefile -- build obj_cpp_v test
 #
+TARGET = obj_cpp_v
+OBJS = obj_cpp_v.o
+COMPILE_LANG = cpp
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-require_test_type medium
-require_fs_type any
-
-setup
-
-expect_normal_exit ./obj_direct_volatile$EXESUFFIX $DIR/test0
-
-pass
+include ../Makefile.inc

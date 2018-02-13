@@ -33,9 +33,6 @@
 #
 # src/test/obj_direct_volatile/Makefile -- build obj_direct_volatile unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
-
 TARGET = obj_direct_volatile
 OBJS = obj_direct_volatile.o
 
@@ -43,5 +40,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-INCS += -I../../libpmemobj/ -I../../common/

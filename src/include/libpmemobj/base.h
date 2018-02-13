@@ -157,7 +157,7 @@ struct {\
 	T value;\
 }
 
-void *pmemobj_direct_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	int (*constr)(void *ptr, void *arg), void *arg);
 
 /*

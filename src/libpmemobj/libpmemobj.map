@@ -115,7 +115,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_xpersist;
 		pmemobj_xflush;
 		pmemobj_direct;
-		pmemobj_direct_volatile;
+		pmemobj_volatile;
 		pmemobj_reserve;
 		pmemobj_xreserve;
 		pmemobj_set_value;

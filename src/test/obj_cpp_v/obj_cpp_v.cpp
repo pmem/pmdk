@@ -31,75 +31,76 @@
  */
 
 /*
- * obj_direct_volatile.c -- unit test for pmemobj_direct_volatile()
+ * obj_cpp_v.c -- cpp bindings test
+ *
  */
+
 #include "unittest.h"
 
-PMEMobjpool *pop;
+#include <atomic>
+#include <libpmemobj++/persistent_ptr.hpp>
+#include <libpmemobj++/pool.hpp>
+#include <libpmemobj++/v.hpp>
 
-struct test {
-	PMEMvlt(int) count;
+#define LAYOUT "cpp"
+
+namespace nvobj = pmem::obj;
+
+namespace
+{
+
+static const int TEST_VALUE = 10;
+
+struct foo {
+	foo() : counter(TEST_VALUE){};
+	int counter;
 };
 
-#define TEST_OBJECTS 100
-#define TEST_WORKERS 10
-struct test *tests[TEST_OBJECTS];
+struct root {
+	nvobj::v<foo> f;
+};
 
-static int
-test_constructor(void *ptr, void *arg)
+/*
+ * test_init -- test volatile value initialization
+ */
+void
+test_init(nvobj::pool<root> &pop)
 {
-	int *count = ptr;
-	util_fetch_and_add32(count, 1);
-	return 0;
+	UT_ASSERTeq(pop.get_root()->f.get().counter, TEST_VALUE);
 }
-
-static void *
-test_worker(void *arg)
-{
-	for (int i = 0; i < TEST_OBJECTS; ++i) {
-		int *count = pmemobj_volatile(pop, &tests[i]->count.vlt,
-			&tests[i]->count.value,
-			test_constructor, NULL);
-		UT_ASSERTne(count, NULL);
-		UT_ASSERTeq(*count, 1);
-	}
-	return NULL;
 }
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_direct_volatile");
+	START(argc, argv, "obj_cpp_v");
 
 	if (argc != 2)
-		UT_FATAL("usage: %s file", argv[0]);
+		UT_FATAL("usage: %s file-name", argv[0]);
 
-	char *path = argv[1];
-	pop = pmemobj_create(path, "obj_direct_volatile",
-		PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
-	if (pop == NULL)
-		UT_FATAL("!pmemobj_create");
+	const char *path = argv[1];
 
-	for (int i = 0; i < TEST_OBJECTS; ++i) {
-		PMEMoid oid;
-		pmemobj_zalloc(pop, &oid, sizeof(struct test), 1);
-		UT_ASSERT(!OID_IS_NULL(oid));
-		tests[i] = pmemobj_direct(oid);
+	nvobj::pool<root> pop;
+
+	try {
+		pop = nvobj::pool<struct root>::create(
+			path, LAYOUT, PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+	} catch (pmem::pool_error &pe) {
+		UT_FATAL("!pool::create: %s %s", pe.what(), path);
 	}
 
-	os_thread_t t[TEST_WORKERS];
+	test_init(pop);
 
-	for (int i = 0; i < TEST_WORKERS; ++i) {
-		PTHREAD_CREATE(&t[i], NULL, test_worker, NULL);
-	}
+	pop.get_root()->f.get().counter = 20;
+	UT_ASSERTeq(pop.get_root()->f.get().counter, 20);
 
-	for (int i = 0; i < TEST_WORKERS; ++i) {
-		PTHREAD_JOIN(&t[i], NULL);
-	}
+	pop.close();
 
-	for (int i = 0; i < TEST_OBJECTS; ++i) {
-		UT_ASSERTeq(tests[i]->count.value, 1);
-	}
+	pop = nvobj::pool<struct root>::open(path, LAYOUT);
 
-	DONE(NULL);
+	test_init(pop);
+
+	pop.close();
+
+	DONE(nullptr);
 }

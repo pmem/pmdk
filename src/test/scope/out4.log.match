@@ -18,7 +18,6 @@ pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
 pmemobj_direct
-pmemobj_direct_volatile
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
@@ -83,6 +82,7 @@ pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
+pmemobj_volatile
 pmemobj_wcsdup
 pmemobj_xalloc
 pmemobj_xflush

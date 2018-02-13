@@ -67,6 +67,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree", "examples\libpmemob
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct", "test\obj_direct\obj_direct.vcxproj", "{10469175-EEF7-44A0-9961-AC4E45EFD800}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct_volatile", "test\obj_direct_volatile\obj_direct_volatile.vcxproj", "{10469175-EEF7-44A0-9961-AC4E45EFD800}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pi", "examples\libpmemobj\pi.vcxproj", "{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\tools\pmemspoil\pmemspoil.vcxproj", "{11E158AE-C85A-4A6E-B66A-ED2994709276}"
@@ -836,12 +838,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{E1A205C5-FD08-4356-B69C-B5689F2D6053}"
-	ProjectSection(SolutionItems) = preProject
-		..\doc\libpmem\libpmem.7.md = ..\doc\libpmem\libpmem.7.md
-		..\doc\libpmem\pmem_flush.3.md = ..\doc\libpmem\pmem_flush.3.md
-		..\doc\libpmem\pmem_is_pmem.3.md = ..\doc\libpmem\pmem_is_pmem.3.md
-		..\doc\libpmem\pmem_memmove_persist.3.md = ..\doc\libpmem\pmem_memmove_persist.3.md
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_v", "test\obj_cpp_v\obj_cpp_v.vcxproj", "{DFEBEBAA-9624-445C-82A0-93363E22D806}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
@@ -2272,7 +2273,6 @@ Global
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
 		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{DFEBEBAA-9624-445C-82A0-93363E22D806} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
-		{E1A205C5-FD08-4356-B69C-B5689F2D6053} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{E23BB160-006E-44F2-8FB4-3A2240BBC20C} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{E3229AF7-1FA2-4632-BB0B-B74F709F1A33} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
