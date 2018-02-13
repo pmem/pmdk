@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -161,46 +161,6 @@ Last_errormsg_get(void)
 
 #endif /* NO_LIBPTHREAD */
 
-#ifndef _WIN32
-/*
- * out_prefork -- lock output file prior to fork. This prevents any
- *	running threads (which will not be duplicated in the child)
- *	from holding the output file lock and deadlocking the child.
- */
-static void
-out_prefork(void)
-{
-	if (Out_fp != NULL) {
-		flockfile(Out_fp);
-	}
-}
-
-/*
- * out_postfork_parent -- unlock output file after fork
- */
-static void
-out_postfork_parent(void)
-{
-	if (Out_fp != NULL) {
-		funlockfile(Out_fp);
-	}
-}
-
-/*
- * out_postfork_child -- unlock output file after fork
- */
-static void
-out_postfork_child(void)
-{
-/* Handled by standard library on Linux */
-#ifdef __FreeBSD__
-	if (Out_fp != NULL) {
-		funlockfile(Out_fp);
-	}
-#endif
-}
-#endif
-
 /*
  * out_init -- initialize the log
  *
@@ -269,13 +229,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 		Out_fp = stderr;
 	else
 		setlinebuf(Out_fp);
-
-#ifndef _WIN32
-	if (os_thread_atfork(out_prefork, out_postfork_parent,
-		out_postfork_child)) {
-		FATAL("!os_thread_atfork");
-	}
-#endif
 
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
