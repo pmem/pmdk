@@ -33,6 +33,11 @@
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
+# import user variables
+ifneq ($(wildcard $(TOP)/user.inc),)
+include $(TOP)/user.inc
+endif
+
 LN = ln
 OBJCOPY ?= objcopy
 MKDIR = mkdir
