@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,35 +37,43 @@
 #ifndef PMDK_VALGRIND_INTERNAL_H
 #define PMDK_VALGRIND_INTERNAL_H 1
 
-#ifdef USE_VALGRIND
-#define USE_VG_PMEMCHECK
-#define USE_VG_HELGRIND
-#define USE_VG_MEMCHECK
-#define USE_VG_DRD
+#ifndef _WIN32
+#ifndef VALGRIND_ENABLED
+#define VALGRIND_ENABLED 1
+#endif
 #endif
 
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VG_HELGRIND) ||\
-	defined(USE_VG_MEMCHECK) || defined(USE_VG_DRD)
-#define ANY_VG_TOOL_ENABLED
+#if VALGRIND_ENABLED
+#define VG_PMEMCHECK_ENABLED 1
+#define VG_HELGRIND_ENABLED 1
+#define VG_MEMCHECK_ENABLED 1
+#define VG_DRD_ENABLED 1
 #endif
 
-#ifdef ANY_VG_TOOL_ENABLED
+#if VG_PMEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_MEMCHECK_ENABLED || \
+	VG_DRD_ENABLED
+#define ANY_VG_TOOL_ENABLED 1
+#else
+#define ANY_VG_TOOL_ENABLED 0
+#endif
+
+#if ANY_VG_TOOL_ENABLED
 extern unsigned _On_valgrind;
 #define On_valgrind __builtin_expect(_On_valgrind, 0)
-#include <valgrind/valgrind.h>
+#include "valgrind/valgrind.h"
 #else
 #define On_valgrind (0)
 #endif
 
-#if defined(USE_VG_HELGRIND)
-#include <valgrind/helgrind.h>
+#if VG_HELGRIND_ENABLED
+#include "valgrind/helgrind.h"
 #endif
 
-#if defined(USE_VG_DRD)
-#include <valgrind/drd.h>
+#if VG_DRD_ENABLED
+#include "valgrind/drd.h"
 #endif
 
-#if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
+#if VG_HELGRIND_ENABLED || VG_DRD_ENABLED
 
 #define VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do {\
 	if (On_valgrind) \
@@ -123,9 +131,9 @@ extern unsigned _On_valgrind;
 
 #endif
 
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 
-#include <valgrind/pmemcheck.h>
+#include "valgrind/pmemcheck.h"
 
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	if (On_valgrind)\
@@ -380,9 +388,9 @@ extern unsigned _On_valgrind;
 
 #endif
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 
-#include <valgrind/memcheck.h>
+#include "valgrind/memcheck.h"
 
 #define VALGRIND_DO_DISABLE_ERROR_REPORTING do {\
 	if (On_valgrind)\

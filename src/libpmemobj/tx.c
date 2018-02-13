@@ -336,7 +336,7 @@ tx_free_existing_vec_entry(PMEMobjpool *pop, uint64_t *entry)
 static void
 tx_clear_undo_log_vg(PMEMobjpool *pop, uint64_t off, enum tx_clr_flag flags)
 {
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 	if (!On_valgrind)
 		return;
 
@@ -709,7 +709,7 @@ tx_post_commit_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 /*
  * tx_post_commit_range_vg_tx_remove -- (internal) removes object from
  * transaction tracked by pmemcheck
@@ -733,7 +733,7 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx *tx,
 {
 	LOG(7, NULL);
 
-#ifdef USE_VG_PMEMCHECK
+#if VG_PMEMCHECK_ENABLED
 	if (On_valgrind)
 		tx_foreach_set(pop, tx, tx_rt,
 				tx_post_commit_range_vg_tx_remove);
@@ -906,7 +906,7 @@ tx_post_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_layout *layout,
 		tx_destroy_undo_runtime(tx_rt);
 }
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 /*
  * tx_abort_register_valgrind -- tells Valgrind about objects from specified
  *				 undo log
@@ -941,7 +941,7 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 		tx_rt = &lane->undo;
 	}
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	if (recovery && On_valgrind) {
 		tx_abort_register_valgrind(pop, tx_rt->ctx[UNDO_SET]);
 		tx_abort_register_valgrind(pop, tx_rt->ctx[UNDO_ALLOC]);
@@ -1415,7 +1415,7 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	struct tx *tx = get_tx();
 
 	if (detached) {
-#if defined(USE_VG_HELGRIND) || defined(USE_VG_DRD)
+#if VG_HELGRIND_ENABLED || VG_DRD_ENABLED
 		/* cleanup the state of lane data in race detection tools */
 		if (On_valgrind) {
 			VALGRIND_ANNOTATE_NEW_MEMORY(layout, sizeof(*layout));
@@ -1762,7 +1762,7 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_range_def *args)
 static void
 vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
 {
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	if (!On_valgrind)
 		return;
 

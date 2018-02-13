@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,8 +34,8 @@
  * obj_recovery.c -- unit test for pool recovery
  */
 #include "unittest.h"
-#if defined(USE_VG_PMEMCHECK) || defined(USE_VALGRIND)
-#include <valgrind/pmemcheck.h>
+#include "valgrind_internal.h"
+#if VG_PMEMCHECK_ENABLED
 #define VALGRIND_PMEMCHECK_END_TX VALGRIND_PMC_END_TX
 #else
 #define VALGRIND_PMEMCHECK_END_TX

@@ -1,4 +1,4 @@
-Copyright 2014-2017, Intel Corporation
+Copyright 2014-2018, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -34,5 +34,9 @@ with the following exceptions:
 
 * src/jemalloc has its own (somewhat similar) license contained in
   src/jemalloc/COPYING.
+
+* src/common/valgrind/valgrind.h, src/common/valgrind/memcheck.h,
+  src/common/valgrind/helgrind.h, src/common/valgrind/drd.h are covered by
+  another similar BSD license variant, contained in those files.
 
 * utils/cstyle (used only during development) licensed under CDDL.

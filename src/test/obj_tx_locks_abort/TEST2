@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ unset PMEMOBJ_LOG_FILE
 
 require_fs_type any
 require_build_type debug nondebug
-require_valgrind_dev_version 3.10
+require_valgrind 3.10
 configure_valgrind helgrind force-enable
 setup
 

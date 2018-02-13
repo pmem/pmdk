@@ -635,7 +635,7 @@ obj_rep_drain(void *ctx)
 	}
 }
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 /*
  * Arbitrary value. When there's more undefined regions than MAX_UNDEFS, it's
  * not worth reporting everything - developer should fix the code.
@@ -1141,7 +1141,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		if ((errno = obj_runtime_init_common(pop)) != 0)
 			goto err_boot;
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 		if (On_valgrind) {
 			/* mark unused part of the pool as not accessible */
 			void *end = palloc_heap_end(&pop->heap);
@@ -1662,7 +1662,7 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 	 */
 	pop->lanes_desc.runtime_nlanes = 0;
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	pop->vg_boot = boot;
 #endif
 	/* initialize runtime parts - lanes, obj stores, ... */
@@ -1671,7 +1671,7 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 		goto err_runtime_init;
 	}
 
-#ifdef USE_VG_MEMCHECK
+#if VG_MEMCHECK_ENABLED
 	if (boot)
 		obj_vg_boot(pop);
 #endif

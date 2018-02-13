@@ -1392,6 +1392,15 @@ function configure_valgrind() {
 }
 
 #
+# valgrind_version_no_check -- returns Valgrind version without checking
+#   for valgrind first
+#
+function valgrind_version_no_check() {
+	require_command bc
+	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
+}
+
+#
 # require_valgrind -- continue script execution only if
 #	valgrind package is installed
 #
@@ -1402,10 +1411,21 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind package required"
+		msg "$UNITTEST_NAME: SKIP valgrind required"
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
+
+	if [ ! -z "$1" ]; then
+		available=$(valgrind_version_no_check)
+		required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
+
+		if [ $available -lt $required ]; then
+			msg "$UNITTEST_NAME: SKIP valgrind required (ver $1 or later)"
+			exit 0
+		fi
+	fi
+
 	for N in $NODES_SEQ; do
 		if [ "${NODE_VALGRINDEXE[$N]}" = "" ]; then
 			disable_exit_on_error
@@ -1413,11 +1433,19 @@ function require_valgrind() {
 			ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
 	done
+}
+
+#
+# valgrind_version -- returns Valgrind version
+#
+function valgrind_version() {
+	require_valgrind
+	valgrind_version_no_check
 }
 
 #
@@ -1448,7 +1476,7 @@ function require_valgrind_tool() {
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind package with $tool required"
+			msg "$UNITTEST_NAME: SKIP valgrind with $tool required"
 			exit 0;
 		fi
 	fi
@@ -1485,50 +1513,6 @@ function set_valgrind_exe_name() {
 			fatal ${NODE_VALGRINDEXE[$N]}
 		fi
 	done
-}
-
-#
-# valgrind_version -- returns Valgrind version
-#
-function valgrind_version() {
-	require_valgrind
-	require_command bc
-	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
-}
-
-#
-# require_valgrind_dev_version -- continue script execution only if
-#	certain version (or later) of valgrind-devel package is installed
-#
-function require_valgrind_dev_version() {
-	require_valgrind
-	local version=(${1//./ })
-	local major=${version[0]}
-	local minor=${version[1]}
-	local define="VALGRIND_VERSION_${major}_${minor}_OR_LATER"
-
-	case "$define" in
-		VALGRIND_VERSION_3_7_OR_LATER)
-			local code=" \
-        #include <valgrind/valgrind.h>
-        #if defined (VALGRIND_RESIZEINPLACE_BLOCK)
-        $define
-        #endif"
-			;;
-		*)
-			local code=" \
-        #include <valgrind/valgrind.h>
-        #if defined (__VALGRIND_MAJOR__) && defined (__VALGRIND_MINOR__)
-        #if (__VALGRIND_MAJOR__ > $major) || \
-             ((__VALGRIND_MAJOR__ == $major) && (__VALGRIND_MINOR__ >= $minor))
-        $define
-        #endif
-        #endif"
-			;;
-	esac
-	echo "$code" | gcc ${EXTRA_CFLAGS} -E - 2>&1 | grep -q $define && return
-	msg "$UNITTEST_NAME: SKIP valgrind-devel package (ver $major.$minor or later) required"
-	exit 0
 }
 
 #
@@ -1845,7 +1829,7 @@ function require_nodes() {
 			local ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind package required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
