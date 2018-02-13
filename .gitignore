@@ -18,6 +18,7 @@ nbproject/
 /dpkgbuild/
 /rpm/
 /dpkg/
+/user.mk
 *.user
 ~*
 *.db
