@@ -120,16 +120,19 @@ The **OID_EQUALS**() macro compares two *PMEMoid* objects.
 
 For special cases where volatile (transient) variables need to be stored on
 persistent memory, there's a mechanism composed of *struct pmemvlt* type and
-**pmemobj_direct_volatile()** function. To use it the *struct pmemvlt* need to
-be placed at the beginning of the region of transient data. Macro *PMEMvlt* can
-be used to construct such a region.
-When the **pmemobj_direct_volatile()** function is called on such region,
+**pmemobj_direct_volatile()** function. To use it, the *struct pmemvlt* needs to
+be placed at the beginning of the region of transient data. The *PMEMvlt* macro
+can be used to construct such a region.
+When the **pmemobj_direct_volatile()** function is called on a *struct pmemvlt*,
 it will return the pointer to the data and it will ensure that the provided
 constructor function is called exactly once in the current instance of the
 application.
-The constructor is called with the *ptr* pointer to the data after the
-*struct pmemvlt*, and this function will return the same pointer if the
-constructor returns *0*, otherwise NULL is returned.
+The constructor is called with the *ptr* pointer to the data that is located
+immediately after the *struct pmemvlt*, and this function will return the same
+pointer if the constructor returns *0*, otherwise NULL is returned.
+For this mechanism to be effective, all accesses to transient variables must
+go through it, otherwise there's a risk of the constructor not being called
+on the first load.
 
 # RETURN VALUE #
 
