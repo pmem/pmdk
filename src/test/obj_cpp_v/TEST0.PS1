@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -30,19 +29,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/test/obj_cpp_v/TEST0 -- unit test for pmem::obj::v<>
 #
-# src/test/obj_direct_volatile/TEST0 -- unit test for direct_volatile
 #
+# parameter handling
+#
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type any
 
 setup
 
-expect_normal_exit ./obj_direct_volatile$EXESUFFIX $DIR/test0
+expect_normal_exit $Env:EXE_DIR\obj_cpp_v$Env:EXESUFFIX `
+    $DIR\testfile
+
+check_files $DIR\testfile
 
 pass

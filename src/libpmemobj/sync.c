@@ -60,8 +60,8 @@
 
 /*
  * _get_value -- (internal) atomically initialize and return a value.
- *	Returns -1 on error, 0 if the caller is not the lock
- *	initializer, 1 if the caller is the lock initializer.
+ *	Returns -1 on error, 0 if the caller is not the value
+ *	initializer, 1 if the caller is the value initializer.
  */
 static int
 _get_value(uint64_t pop_runid, volatile uint64_t *runid, void *value, void *arg,
@@ -642,14 +642,15 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 }
 
 /*
- * pmemobj_direct_volatile -- atomically initialize, record and return a
+ * pmemobj_volatile -- atomically initialize, record and return a
  *	generic value
  */
 void *
-pmemobj_direct_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	int (*constr)(void *ptr, void *arg), void *arg)
 {
-	void *ptr = (char *)vlt + sizeof(struct pmemvlt);
+	LOG(3, "pop %p vlt %p ptr %p constr %p arg %p", pop, vlt, ptr,
+		constr, arg);
 
 	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
 		return NULL;

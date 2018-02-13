@@ -84,7 +84,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   vmem_create_in_region.3 vmem_delete.3 vmem_check.3 vmem_stats_print.3 \
 		   vmem_calloc.3 vmem_realloc.3 vmem_free.3 vmem_aligned_alloc.3 vmem_strdup.3 vmem_wcsdup.3 vmem_malloc_usable_size.3 \
 		   vmem_check_version.3 vmem_errormsg.3 vmem_set_funcs.3 \
-		   oid_equals.3 pmemobj_direct.3 pmemobj_oid.3 pmemobj_type_num.3 pmemobj_pool_by_oid.3 pmemobj_pool_by_ptr.3 \
+		   oid_equals.3 pmemobj_direct.3 pmemobj_oid.3 pmemobj_type_num.3 pmemobj_pool_by_oid.3 pmemobj_pool_by_ptr.3 pmemobj_volatile.3\
 		   pmemobj_zalloc.3 pmemobj_xalloc.3 pmemobj_free.3 pmemobj_realloc.3 pmemobj_zrealloc.3 pmemobj_strdup.3 pmemobj_wcsdup.3 pmemobj_alloc_usable_size.3 \
 		   pobj_new.3 pobj_alloc.3 pobj_znew.3 pobj_zalloc.3 pobj_realloc.3 pobj_zrealloc.3 pobj_free.3 \
 		   pobj_layout_toid.3 pobj_layout_root.3 pobj_layout_name.3 pobj_layout_end.3 pobj_layout_types_num.3 \
