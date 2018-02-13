@@ -166,7 +166,11 @@ os_part_deep_persist(struct pool_set_part *part, void *addr, size_t len)
 
 	if (part->is_dev_dax) {
 		int region_id = util_ddax_region_find(part->path);
-		ASSERTne(region_id, -1);
+		if (region_id == -1) {
+			ERR("!invalid dax region id");
+			errno = EINVAL;
+			return -1;
+		}
 		/* XXX: to be replaced with pmem_deep_flush() */
 		LOG(15, "pmem_persist addr %p, len %lu", addr, len);
 		pmem_persist(addr, len);
