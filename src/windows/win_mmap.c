@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2015-2017, Microsoft Corporation. All rights reserved.
  * Copyright (c) 2016, Hewlett Packard Enterprise Development LP
  *
@@ -502,6 +502,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 
 	if (base == NULL) {
 		ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
+		errno = ENOMEM;
 		CloseHandle(fh);
 		CloseHandle(fmh);
 		return MAP_FAILED;
