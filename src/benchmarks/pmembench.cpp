@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -583,6 +583,7 @@ err:
 	errno = EINVAL;
 	perror("pmembench_parse_affinity");
 	free(*saveptr);
+	*saveptr = NULL;
 	return -1;
 }
 
@@ -597,6 +598,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 	size_t i;
 	int ncpus = 0;
 	char *saveptr = NULL;
+	int ret = 0;
 
 	if (args->thread_affinity) {
 		ncpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -614,8 +616,10 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 			if (*args->affinity_list != '\0') {
 				cpu = pmembench_parse_affinity(
 					args->affinity_list, &saveptr);
-				if (cpu == -1)
-					return -1;
+				if (cpu == -1) {
+					ret = -1;
+					goto end;
+				}
 			} else {
 				cpu = (int)i;
 			}
@@ -628,7 +632,8 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 							 &cpuset);
 			if (errno) {
 				perror("os_thread_setaffinity_np");
-				return -1;
+				ret = -1;
+				goto end;
 			}
 		}
 
@@ -650,10 +655,9 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		benchmark_worker_init(workers[i]);
 	}
 
-	if (saveptr != NULL) {
-		free(saveptr);
-	}
-	return 0;
+end:
+	free(saveptr);
+	return ret;
 }
 
 /*
