@@ -138,12 +138,14 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_close_resp);
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_persist);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist, flags);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist, lane);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist, addr);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist, size);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_persist);
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_persist_resp);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist_resp, flags);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_persist_resp, lane);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_persist_resp);
 

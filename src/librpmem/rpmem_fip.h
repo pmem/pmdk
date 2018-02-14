@@ -61,7 +61,7 @@ int rpmem_fip_process_start(struct rpmem_fip *fip);
 int rpmem_fip_process_stop(struct rpmem_fip *fip);
 
 int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
-		unsigned lane);
+		unsigned lane, unsigned flags);
 
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);

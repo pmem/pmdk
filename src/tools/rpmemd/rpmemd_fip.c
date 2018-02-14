@@ -90,30 +90,13 @@ rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t event)
 }
 
 /*
- * rpmemd_fip_lane -- daemon's lane for GPSPM
+ * rpmemd_fip_lane -- daemon's lane
  */
 struct rpmemd_fip_lane {
 	struct rpmem_fip_lane base;	/* lane base structure */
 	struct rpmem_fip_msg recv;	/* RECV message */
 	struct rpmem_fip_msg send;	/* SEND message */
 	struct rpmemd_fip_worker *worker; /* lane's worker */
-};
-
-typedef int (*rpmemd_fip_init_fn)(struct rpmemd_fip *fip);
-typedef int (*rpmemd_fip_lane_fn)(struct rpmemd_fip *fip,
-		struct rpmemd_fip_lane *lanep);
-typedef int (*rpmemd_fip_fini_fn)(struct rpmemd_fip *fip);
-typedef int (*rpmemd_fip_process_fn)(struct rpmemd_fip *fip);
-
-/*
- * rpmemd_fip_ops -- operations specific for persistency method
- */
-struct rpmemd_fip_ops {
-	rpmemd_fip_init_fn init;
-	rpmemd_fip_fini_fn fini;
-	rpmemd_fip_lane_fn post;
-	rpmemd_fip_process_fn process_start;
-	rpmemd_fip_process_fn process_stop;
 };
 
 struct rpmemd_fip_worker {
@@ -132,9 +115,10 @@ struct rpmemd_fip {
 	struct fid_eq *eq;		/* event queue */
 	struct fid_pep *pep;		/* passive endpoint - listener */
 	struct fid_mr *mr;		/* memory region for pool */
-	struct rpmemd_fip_ops *ops;	/* ops specific for persist method */
 
 	int (*persist)(const void *addr, size_t len);	/* persist function */
+	int (*deep_persist)(const void *addr, size_t len, void *ctx);
+	void *ctx;
 	void *addr;			/* pool's address */
 	size_t size;			/* size of the pool */
 	enum rpmem_persist_method persist_method;
@@ -144,7 +128,6 @@ struct rpmemd_fip {
 	size_t nthreads;	/* number of threads for processing */
 	size_t cq_size;		/* size of completion queue */
 
-	/* the following fields are used only for GPSPM */
 	struct rpmemd_fip_lane *lanes;
 	struct rpmem_fip_lane rd_lane;
 
@@ -431,64 +414,14 @@ rpmemd_fip_fini_ep(struct rpmem_fip_lane *lanep)
 }
 
 /*
- * rpmemd_fip_init_apm -- initialize APM resources
- */
-static int
-rpmemd_fip_init_apm(struct rpmemd_fip *fip)
-{
-	/* nothing to do */
-	return 0;
-}
-
-/*
- * rpmemd_fip_fini_apm -- deinitialize APM resources
- */
-static int
-rpmemd_fip_fini_apm(struct rpmemd_fip *fip)
-{
-	/* nothing to do */
-	return 0;
-}
-
-/*
- * rpmemd_fip_fini_apm -- post work requests for APM
- */
-static int
-rpmemd_fip_post_apm(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
-{
-	/* nothing to do */
-	return 0;
-}
-
-/*
- * rpmemd_fip_process_start_apm -- start processing APM
- */
-static int
-rpmemd_fip_process_start_apm(struct rpmemd_fip *fip)
-{
-	/* nothing to do */
-	return 0;
-}
-
-/*
- * rpmemd_fip_process_stop_apm -- stop processing APM
- */
-static int
-rpmemd_fip_process_stop_apm(struct rpmemd_fip *fip)
-{
-	/* nothing to do */
-	return 0;
-}
-
-/*
- * rpmemd_fip_gpspm_post_msg -- post RECV buffer for GPSPM
+ * rpmemd_fip_post_msg -- post RECV buffer
  */
 static inline int
-rpmemd_fip_gpspm_post_msg(struct rpmemd_fip_lane *lanep)
+rpmemd_fip_post_msg(struct rpmemd_fip_lane *lanep)
 {
 	int ret = rpmem_fip_recvmsg(lanep->base.ep, &lanep->recv);
 	if (ret) {
-		RPMEMD_FI_ERR(ret, "posting GPSPM recv buffer");
+		RPMEMD_FI_ERR(ret, "posting recv buffer");
 		return ret;
 	}
 
@@ -496,14 +429,14 @@ rpmemd_fip_gpspm_post_msg(struct rpmemd_fip_lane *lanep)
 }
 
 /*
- * rpmemd_fip_gpspm_post_resp -- post SEND buffer for GPSPM
+ * rpmemd_fip_post_resp -- post SEND buffer
  */
 static inline int
-rpmemd_fip_gpspm_post_resp(struct rpmemd_fip_lane *lanep)
+rpmemd_fip_post_resp(struct rpmemd_fip_lane *lanep)
 {
 	int ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send);
 	if (ret) {
-		RPMEMD_FI_ERR(ret, "posting GPSPM send buffer");
+		RPMEMD_FI_ERR(ret, "posting send buffer");
 		return ret;
 	}
 
@@ -511,14 +444,14 @@ rpmemd_fip_gpspm_post_resp(struct rpmemd_fip_lane *lanep)
 }
 
 /*
- * rpmemd_fip_post_gpspm -- post all RECV messages
+ * rpmemd_fip_post_common -- post all RECV messages
  */
 static int
-rpmemd_fip_post_gpspm(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
+rpmemd_fip_post_common(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 {
 	int ret = rpmem_fip_recvmsg(lanep->base.ep, &lanep->recv);
 	if (ret) {
-		RPMEMD_FI_ERR(ret, "posting GPSPM recv buffer");
+		RPMEMD_FI_ERR(ret, "posting recv buffer");
 		return ret;
 	}
 
@@ -593,10 +526,10 @@ err_alloc:
 }
 
 /*
- * rpmemd_fip_lanes_fini -- deinitialize all lanes
+ * rpmemd_fip_fini_lanes -- deinitialize all lanes
  */
 static void
-rpmemd_fip_lanes_fini(struct rpmemd_fip *fip)
+rpmemd_fip_fini_lanes(struct rpmemd_fip *fip)
 {
 	for (unsigned i = 0; i < fip->nlanes; i++)
 		rpmemd_fip_lane_fini(fip, &fip->lanes[i].base);
@@ -605,10 +538,10 @@ rpmemd_fip_lanes_fini(struct rpmemd_fip *fip)
 }
 
 /*
- * rpmemd_fip_init_gpspm -- initialize GPSPM resources
+ * rpmemd_fip_init_common -- initialize common resources
  */
 static int
-rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
+rpmemd_fip_init_common(struct rpmemd_fip *fip)
 {
 	int ret;
 
@@ -616,7 +549,7 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 	size_t msg_size = fip->nlanes * sizeof(struct rpmem_msg_persist);
 	fip->pmsg = malloc(msg_size);
 	if (!fip->pmsg) {
-		RPMEMD_LOG(ERR, "!allocating GPSPM messages buffer");
+		RPMEMD_LOG(ERR, "!allocating messages buffer");
 		goto err_msg_malloc;
 	}
 
@@ -624,7 +557,7 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 	ret = fi_mr_reg(fip->domain, fip->pmsg, msg_size, FI_RECV,
 			0, 0, 0, &fip->pmsg_mr, NULL);
 	if (ret) {
-		RPMEMD_FI_ERR(ret, "registering GPSPM messages buffer");
+		RPMEMD_FI_ERR(ret, "registering messages buffer");
 		goto err_mr_reg_msg;
 	}
 
@@ -636,7 +569,7 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 		sizeof(struct rpmem_msg_persist_resp);
 	fip->pres = malloc(msg_resp_size);
 	if (!fip->pres) {
-		RPMEMD_FI_ERR(ret, "allocating GPSPM messages response buffer");
+		RPMEMD_FI_ERR(ret, "allocating messages response buffer");
 		goto err_msg_resp_malloc;
 	}
 
@@ -644,7 +577,7 @@ rpmemd_fip_init_gpspm(struct rpmemd_fip *fip)
 	ret = fi_mr_reg(fip->domain, fip->pres, msg_resp_size, FI_SEND,
 			0, 0, 0, &fip->pres_mr, NULL);
 	if (ret) {
-		RPMEMD_FI_ERR(ret, "registering GPSPM messages "
+		RPMEMD_FI_ERR(ret, "registering messages "
 				"response buffer");
 		goto err_mr_reg_msg_resp;
 	}
@@ -679,7 +612,7 @@ err_mr_reg_msg_resp:
 	free(fip->pres);
 err_msg_resp_malloc:
 	RPMEMD_FI_CLOSE(fip->pmsg_mr,
-			"unregistering GPSPM messages buffer");
+			"unregistering messages buffer");
 err_mr_reg_msg:
 	free(fip->pmsg);
 err_msg_malloc:
@@ -687,22 +620,22 @@ err_msg_malloc:
 }
 
 /*
- * rpmemd_fip_fini_gpspm -- deinitialize GPSPM resources and return last
+ * rpmemd_fip_fini_common -- deinitialize common resources and return last
  * error code
  */
 static int
-rpmemd_fip_fini_gpspm(struct rpmemd_fip *fip)
+rpmemd_fip_fini_common(struct rpmemd_fip *fip)
 {
 	int lret = 0;
 	int ret;
 
 	ret = RPMEMD_FI_CLOSE(fip->pmsg_mr,
-			"unregistering GPSPM messages buffer");
+			"unregistering messages buffer");
 	if (ret)
 		lret = ret;
 
 	ret = RPMEMD_FI_CLOSE(fip->pres_mr,
-			"unregistering GPSPM messages response buffer");
+			"unregistering messages response buffer");
 	if (ret)
 		lret = ret;
 
@@ -719,7 +652,7 @@ static inline int
 rpmemd_fip_check_pmsg(struct rpmemd_fip *fip, struct rpmem_msg_persist *pmsg)
 {
 	if (pmsg->lane >= fip->nlanes) {
-		RPMEMD_LOG(ERR, "invalid lane number -- %lu", pmsg->lane);
+		RPMEMD_LOG(ERR, "invalid lane number -- %u", pmsg->lane);
 		return -1;
 	}
 
@@ -762,24 +695,18 @@ rpmemd_fip_process_one(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 	/* return back the lane id */
 	pres->lane = pmsg->lane;
 
-	/*
-	 * Perform the persist operation.
-	 *
-	 * XXX
-	 *
-	 * Maybe the persist could be divided into flush + drain.
-	 * We could issue flush operation, do some other work like
-	 * posting RECV buffer and then call drain. Need to consider this.
-	 */
-	fip->persist((void *)pmsg->addr, pmsg->size);
+	if (pmsg->flags & RPMEM_DEEP_PERSIST)
+		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);
+	else
+		fip->persist((void *)pmsg->addr, pmsg->size);
 
 	/* post lane's RECV buffer */
-	ret = rpmemd_fip_gpspm_post_msg(lanep);
+	ret = rpmemd_fip_post_msg(lanep);
 	if (unlikely(ret))
 		goto err;
 
 	/* post lane's SEND buffer */
-	ret = rpmemd_fip_gpspm_post_resp(lanep);
+	ret = rpmemd_fip_post_resp(lanep);
 
 err:
 	return ret;
@@ -834,7 +761,7 @@ err:
 
 /*
  * rpmemd_fip_worker -- worker callback which processes persist
- * operation in GPSPM
+ * operation
  */
 static void *
 rpmemd_fip_worker(void *arg)
@@ -867,92 +794,6 @@ err:
 }
 
 /*
- * rpmemd_fip_process_start_gpspm -- start processing GPSPM messages
- */
-static int
-rpmemd_fip_process_start_gpspm(struct rpmemd_fip *fip)
-{
-	fip->workers = malloc(fip->nlanes * sizeof(*fip->workers));
-	if (!fip->workers) {
-		RPMEMD_LOG(ERR, "!allocating workers");
-		goto err_alloc_workers;
-	}
-
-	unsigned i;
-	for (i = 0; i < fip->nlanes; i++) {
-		fip->workers[i].fip = fip;
-		fip->workers[i].lanep = &fip->lanes[i];
-		errno = os_thread_create(&fip->workers[i].thread, NULL,
-				rpmemd_fip_worker, &fip->workers[i]);
-		if (errno) {
-			RPMEMD_ERR("!running worker thread");
-			goto err_thread_create;
-		}
-	}
-
-	return 0;
-err_thread_create:
-	free(fip->workers);
-err_alloc_workers:
-	return -1;
-}
-
-/*
- * rpmemd_fip_process_stop_gpspm -- stop processing GPSPM messages
- */
-static int
-rpmemd_fip_process_stop_gpspm(struct rpmemd_fip *fip)
-{
-	/* this stops all worker threads */
-	util_fetch_and_or32(&fip->closing, 1);
-	int ret;
-	int lret = 0;
-
-	for (unsigned i = 0; i < fip->nlanes; i++) {
-		struct rpmemd_fip_worker *worker = &fip->workers[i];
-		ret = fi_cq_signal(worker->lanep->base.cq);
-		if (ret) {
-			RPMEMD_FI_ERR(ret, "sending signal to CQ");
-			lret = ret;
-		}
-		void *tret;
-		errno = os_thread_join(&worker->thread, &tret);
-		if (errno) {
-			RPMEMD_LOG(ERR, "!joining cq thread");
-			lret = -1;
-		} else {
-			ret = (int)(uintptr_t)tret;
-			if (ret) {
-				RPMEMD_LOG(ERR, "cq thread failed with "
-					"code -- %d", ret);
-				lret = ret;
-			}
-		}
-	}
-
-	free(fip->workers);
-
-	return lret;
-}
-
-static struct rpmemd_fip_ops rpmemd_fip_ops[MAX_RPMEM_PM] = {
-	[RPMEM_PM_GPSPM] = {
-		.init = rpmemd_fip_init_gpspm,
-		.fini = rpmemd_fip_fini_gpspm,
-		.post = rpmemd_fip_post_gpspm,
-		.process_start = rpmemd_fip_process_start_gpspm,
-		.process_stop = rpmemd_fip_process_stop_gpspm,
-	},
-	[RPMEM_PM_APM] = {
-		.init = rpmemd_fip_init_apm,
-		.fini = rpmemd_fip_fini_apm,
-		.post = rpmemd_fip_post_apm,
-		.process_start = rpmemd_fip_process_start_apm,
-		.process_stop = rpmemd_fip_process_stop_apm,
-	},
-};
-
-/*
  * rpmemd_fip_set_attr -- save required attributes in rpmemd_fip handle
  */
 static void
@@ -963,6 +804,8 @@ rpmemd_fip_set_attr(struct rpmemd_fip *fip, struct rpmemd_fip_attr *attr)
 	fip->nthreads = attr->nthreads;
 	fip->persist_method = attr->persist_method;
 	fip->persist = attr->persist;
+	fip->deep_persist = attr->deep_persist;
+	fip->ctx = attr->ctx;
 
 	rpmemd_fip_set_nlanes(fip, attr->nlanes);
 
@@ -970,7 +813,6 @@ rpmemd_fip_set_attr(struct rpmemd_fip *fip, struct rpmemd_fip_attr *attr)
 			RPMEM_FIP_NODE_SERVER);
 
 	RPMEMD_ASSERT(fip->persist_method < MAX_RPMEM_PM);
-	fip->ops = &rpmemd_fip_ops[fip->persist_method];
 }
 
 /*
@@ -1022,7 +864,7 @@ rpmemd_fip_init(const char *node, const char *service,
 		goto err_init_lanes;
 	}
 
-	ret = fip->ops->init(fip);
+	ret = rpmemd_fip_init_common(fip);
 	if (ret) {
 		*err = RPMEM_ERR_FATAL;
 		goto err_init;
@@ -1044,9 +886,9 @@ rpmemd_fip_init(const char *node, const char *service,
 err_set_resp:
 	RPMEMD_FI_CLOSE(fip->pep, "closing passive endpoint");
 err_fi_listen:
-	fip->ops->fini(fip);
+	rpmemd_fip_fini_common(fip);
 err_init:
-	rpmemd_fip_lanes_fini(fip);
+	rpmemd_fip_fini_lanes(fip);
 err_init_lanes:
 	rpmemd_fip_fini_memory(fip);
 err_init_memory:
@@ -1064,8 +906,8 @@ err_getinfo:
 void
 rpmemd_fip_fini(struct rpmemd_fip *fip)
 {
-	rpmemd_fip_lanes_fini(fip);
-	fip->ops->fini(fip);
+	rpmemd_fip_fini_common(fip);
+	rpmemd_fip_fini_lanes(fip);
 	rpmemd_fip_fini_memory(fip);
 	rpmemd_fip_fini_fabric_res(fip);
 	fi_freeinfo(fip->fi);
@@ -1085,7 +927,7 @@ rpmemd_fip_accept_one(struct rpmemd_fip *fip,
 	if (ret)
 		goto err_init_ep;
 
-	ret = fip->ops->post(fip, lanep);
+	ret = rpmemd_fip_post_common(fip, lanep);
 	if (ret)
 		goto err_post;
 
@@ -1203,7 +1045,29 @@ rpmemd_fip_close(struct rpmemd_fip *fip)
 int
 rpmemd_fip_process_start(struct rpmemd_fip *fip)
 {
-	return fip->ops->process_start(fip);
+	fip->workers = malloc(fip->nlanes * sizeof(*fip->workers));
+	if (!fip->workers) {
+		RPMEMD_LOG(ERR, "!allocating workers");
+		goto err_alloc_workers;
+	}
+
+	unsigned i;
+	for (i = 0; i < fip->nlanes; i++) {
+		fip->workers[i].fip = fip;
+		fip->workers[i].lanep = &fip->lanes[i];
+		errno = os_thread_create(&fip->workers[i].thread, NULL,
+				rpmemd_fip_worker, &fip->workers[i]);
+		if (errno) {
+			RPMEMD_ERR("!running worker thread");
+			goto err_thread_create;
+		}
+	}
+
+	return 0;
+err_thread_create:
+	free(fip->workers);
+err_alloc_workers:
+	return -1;
 }
 
 /*
@@ -1212,5 +1076,35 @@ rpmemd_fip_process_start(struct rpmemd_fip *fip)
 int
 rpmemd_fip_process_stop(struct rpmemd_fip *fip)
 {
-	return fip->ops->process_stop(fip);
+	/* this stops all worker threads */
+	util_fetch_and_or32(&fip->closing, 1);
+	int ret;
+	int lret = 0;
+
+	for (unsigned i = 0; i < fip->nlanes; i++) {
+		struct rpmemd_fip_worker *worker = &fip->workers[i];
+		ret = fi_cq_signal(worker->lanep->base.cq);
+		if (ret) {
+			RPMEMD_FI_ERR(ret, "sending signal to CQ");
+			lret = ret;
+		}
+		void *tret;
+		errno = os_thread_join(&worker->thread, &tret);
+		if (errno) {
+			RPMEMD_LOG(ERR, "!joining cq thread");
+			lret = -1;
+		} else {
+			ret = (int)(uintptr_t)tret;
+			if (ret) {
+				RPMEMD_LOG(ERR,
+					"cq thread failed with code -- %d",
+					ret);
+				lret = ret;
+			}
+		}
+	}
+
+	free(fip->workers);
+
+	return lret;
 }

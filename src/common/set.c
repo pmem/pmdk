@@ -88,6 +88,8 @@ static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
 int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 			unsigned lane);
+int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
+			unsigned lane);
 int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
 		size_t length, unsigned lane);
 int (*Rpmem_remove)(const char *target, const char *pool_set_name, int flags);
@@ -173,6 +175,7 @@ util_remote_unload_core(void)
 	Rpmem_open = NULL;
 	Rpmem_close = NULL;
 	Rpmem_persist = NULL;
+	Rpmem_deep_persist = NULL;
 	Rpmem_read = NULL;
 	Rpmem_remove = NULL;
 	Rpmem_set_attr = NULL;
@@ -213,6 +216,7 @@ util_remote_load(void)
 	CHECK_FUNC_COMPATIBLE(rpmem_open, *Rpmem_open);
 	CHECK_FUNC_COMPATIBLE(rpmem_close, *Rpmem_close);
 	CHECK_FUNC_COMPATIBLE(rpmem_persist, *Rpmem_persist);
+	CHECK_FUNC_COMPATIBLE(rpmem_deep_persist, *Rpmem_deep_persist);
 	CHECK_FUNC_COMPATIBLE(rpmem_read, *Rpmem_read);
 	CHECK_FUNC_COMPATIBLE(rpmem_remove, *Rpmem_remove);
 
@@ -250,6 +254,13 @@ util_remote_load(void)
 	Rpmem_persist = util_dlsym(Rpmem_handle_remote, "rpmem_persist");
 	if (util_dl_check_error(Rpmem_persist, "dlsym")) {
 		ERR("symbol 'rpmem_persist' not found");
+		goto err;
+	}
+
+	Rpmem_deep_persist = util_dlsym(Rpmem_handle_remote,
+			"rpmem_deep_persist");
+	if (util_dl_check_error(Rpmem_deep_persist, "dlsym")) {
+		ERR("symbol 'rpmem_deep_persist' not found");
 		goto err;
 	}
 
