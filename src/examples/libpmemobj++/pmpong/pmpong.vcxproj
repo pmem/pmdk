@@ -110,5 +110,8 @@
     <ClCompile Include="PongGameStatus.cpp" />
     <ClCompile Include="Pool.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="buildScript.ps1" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
