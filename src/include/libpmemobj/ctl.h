@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,6 +153,12 @@ struct pobj_alloc_class_desc {
 	 * The identifier of this allocation class.
 	 */
 	unsigned class_id;
+
+	/*
+	 * Desired alignment of objects from the allocation class.
+	 * If non zero, must be an even divisor of unit size.
+	 */
+	size_t alignment;
 };
 
 #ifndef _WIN32

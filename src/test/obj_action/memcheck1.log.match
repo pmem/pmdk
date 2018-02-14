@@ -11,10 +11,36 @@
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)==  Address 0x$(X) is $(*)
+$(OPT)==$(N)==    at 0x$(X): palloc_heap_action_on_cancel $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_cancel $(*)
+$(OPT)==$(N)==    by 0x$(X): tx_cancel_reservations $(*)
+$(OPT)==$(N)==    by 0x$(X): tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): obj_tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    at 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_reservation_create $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_reserve $(*)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_reserve $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)==  Address 0x$(X) is $(*)
+$(OPT)==$(N)==    at 0x$(X): palloc_heap_action_on_cancel $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_cancel $(*)
+$(OPT)==$(N)==    by 0x$(X): tx_cancel_reservations $(*)
+$(OPT)==$(N)==    by 0x$(X): tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): obj_tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_tx_abort $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
+$(OPT)==$(N)==  Block was alloc'd at
+$(OPT)==$(N)==    at 0x$(X): alloc_prep_block $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_reservation_create $(*)
+$(OPT)==$(N)==    by 0x$(X): palloc_reserve $(*)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_reserve $(*)
+$(OPT)==$(N)==    by 0x$(X): main $(*)
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:

@@ -411,6 +411,44 @@ huge_get_real_data(const struct memory_block *m)
 }
 
 /*
+ * run_get_data_start -- returns the pointer to the beginning of allocations
+ *	in a run
+ */
+static char *
+run_get_data_start(struct chunk_header *hdr, struct chunk_run *run,
+	enum header_type htype)
+{
+	if (hdr->flags & CHUNK_FLAG_ALIGNED) {
+		uintptr_t alignment = run->alignment;
+		uintptr_t mask = ~(alignment - 1);
+		uintptr_t base = (uintptr_t)run->data;
+		uintptr_t aligned = (base + alignment) & mask;
+		/*
+		 * Alignment is a property of user data in allocations. And
+		 * since objects have headers, we need to take them into
+		 * account when calculating the final address.
+		 */
+		uintptr_t hsize = header_type_to_size[htype];
+		if ((aligned - base) < hsize)
+			return (char *)(aligned + (alignment - hsize));
+		return (char *)(aligned - hsize);
+	} else {
+		return (char *)&run->data;
+	}
+}
+
+/*
+ * run_get_alignment_padding -- returns the number of bytes of padding in
+ *	aligned runs
+ */
+static size_t
+run_get_alignment_padding(struct chunk_header *hdr, struct chunk_run *run,
+	enum header_type htype)
+{
+	return (size_t)run_get_data_start(hdr, run, htype) - (size_t)&run->data;
+}
+
+/*
  * run_get_real_data -- returns pointer to the beginning data of a run block
  */
 static void *
@@ -420,9 +458,12 @@ run_get_real_data(const struct memory_block *m)
 
 	struct chunk_run *run =
 		(struct chunk_run *)&z->chunks[m->chunk_id].data;
+	struct chunk_header *hdr =
+		(struct chunk_header *)&z->chunk_headers[m->chunk_id];
 	ASSERT(run->block_size != 0);
 
-	return (char *)&run->data + (run->block_size * m->block_off);
+	return run_get_data_start(hdr, run, m->header_type) +
+		(run->block_size * m->block_off);
 }
 
 /*
@@ -828,8 +869,8 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
 
-	struct chunk_header *hdr = &ZID_TO_ZONE(heap->layout, m.zone_id)
-						->chunk_headers[m.chunk_id];
+	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
 
 	if (hdr->type == CHUNK_TYPE_RUN_DATA)
 		m.chunk_id -= hdr->size_idx;
@@ -850,6 +891,10 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	uint64_t unit_size = m.m_ops->block_size(&m);
 
 	if (off != 0) { /* run */
+		struct chunk_run *run = (struct chunk_run *)
+			&z->chunks[m.chunk_id];
+
+		off -= run_get_alignment_padding(hdr, run, m.header_type);
 		off -= RUN_METASIZE;
 		m.block_off = (uint16_t)(off / unit_size);
 		off -= m.block_off * unit_size;
@@ -938,6 +983,10 @@ memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
 
 	if (off != 0) { /* run */
 		off -= RUN_METASIZE;
+		struct chunk_run *run = (struct chunk_run *)
+			&z->chunks[m.chunk_id];
+
+		off -= run_get_alignment_padding(hdr, run, m.header_type);
 		m.block_off = (uint16_t)(off / unit_size);
 		off -= m.block_off * unit_size;
 	}
