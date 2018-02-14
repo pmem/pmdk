@@ -755,6 +755,13 @@ function expect_normal_exit() {
 		$trace $*
 	ret=$?
 
+	# Valgrind issues unsupressable warnings when setting large permission
+	# ranges. Strip them out of files so we don't have to include
+	# them in match files.
+	if [ -e $VALGRIND_LOG_FILE ]; then
+		sed -i '/Warning: set address range perms: large range/d' $VALGRIND_LOG_FILE
+	fi
+
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
 		for node in $CHECK_NODES
 		do

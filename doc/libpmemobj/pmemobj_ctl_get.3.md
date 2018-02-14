@@ -238,6 +238,7 @@ struct pobj_alloc_class_desc {
 	unsigned units_per_block;
 	enum pobj_header_type header_type;
 	unsigned class_id;
+	size_t alignment;
 };
 ```
 
@@ -278,6 +279,10 @@ There are three types:
 The `class_id` field is an optional, runtime-only variable that allows the
 user to retrieve the identifier of the class. This will be equivalent to the
 provided `[class_id]`. This field cannot be set from a config file.
+
+The `alignment` field specifies the user data alignment of objects allocated
+using the class. If 0, no alignment guarantees are made. If set, must be an
+even divisor of unit size.
 
 The allocation classes are a runtime state of the library and must be created
 after every open. It is highly recommended to use the configuration file to

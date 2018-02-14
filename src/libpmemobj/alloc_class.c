@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,9 +44,9 @@
 #include "bucket.h"
 #include "cuckoo.h"
 
-#define RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s)\
+#define RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s)\
 ((uint64_t)(map_idx_s) << 32 |\
-(uint64_t)(header_type_s) << 16 |\
+(uint64_t)(flags_s) << 16 |\
 (uint64_t)(size_idx_s))
 
 /*
@@ -200,10 +200,11 @@ alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
  */
 void
 alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
-	size_t unit_size, uint32_t size_idx)
+	size_t unit_size, uint32_t size_idx, size_t alignment)
 {
 	ASSERTne(size_idx, 0);
 	dest->size_idx = size_idx;
+	dest->alignment = alignment;
 
 	/*
 	 * Here the bitmap definition is calculated based on the
@@ -263,82 +264,69 @@ alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
 }
 
 /*
- * alloc_class_register -- registers an allocation classes in the collection
+ * alloc_class_new -- creates a new allocation class
  */
 struct alloc_class *
-alloc_class_register(struct alloc_class_collection *ac,
-	struct alloc_class *c)
-{
-	struct alloc_class *nc = Malloc(sizeof(*nc));
-	if (nc == NULL)
-		goto error_class_alloc;
-
-	*nc = *c;
-
-	if (c->type == CLASS_RUN) {
-		size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(nc->unit_size,
-			ac->granularity);
-		ASSERT(map_idx <= UINT32_MAX);
-		uint32_t map_idx_s = (uint32_t)map_idx;
-		ASSERT(nc->run.size_idx <= UINT16_MAX);
-		uint16_t size_idx_s = (uint16_t)nc->run.size_idx;
-		uint16_t header_type_s = (uint16_t)nc->header_type;
-		uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
-			header_type_s, size_idx_s);
-		if (cuckoo_insert(ac->class_map_by_unit_size, k, nc) != 0) {
-			ERR("unable to register allocation class");
-			goto error_map_insert;
-		}
-	}
-
-	ac->aclasses[nc->id] = nc;
-
-	return nc;
-
-error_map_insert:
-	Free(nc);
-error_class_alloc:
-	alloc_class_reservation_clear(ac, c->id);
-	return NULL;
-}
-
-/*
- * alloc_class_from_params -- (internal) creates a new allocation class
- */
-static struct alloc_class *
-alloc_class_from_params(struct alloc_class_collection *ac,
-	enum alloc_class_type type,
-	size_t unit_size,
-	unsigned unit_max, unsigned unit_max_alloc,
+alloc_class_new(int id, struct alloc_class_collection *ac,
+	enum alloc_class_type type, enum header_type htype,
+	size_t unit_size, size_t alignment,
 	uint32_t size_idx)
 {
-	struct alloc_class c;
+	struct alloc_class *c = Malloc(sizeof(*c));
+	if (c == NULL)
+		goto error_class_alloc;
 
-	c.unit_size = unit_size;
-	c.header_type = HEADER_COMPACT;
-	c.type = type;
+	c->unit_size = unit_size;
+	c->header_type = htype;
+	c->type = type;
+	c->flags = (uint16_t)
+		(header_type_to_flag[c->header_type] |
+		(alignment ? CHUNK_FLAG_ALIGNED : 0));
 
 	switch (type) {
 		case CLASS_HUGE:
-			c.id = DEFAULT_ALLOC_CLASS_ID;
+			id = DEFAULT_ALLOC_CLASS_ID;
 			break;
 		case CLASS_RUN:
-			alloc_class_generate_run_proto(&c.run, unit_size,
-				size_idx);
+			alloc_class_generate_run_proto(&c->run, unit_size,
+				size_idx, alignment);
 
-			uint8_t slot;
-			if (alloc_class_find_first_free_slot(ac, &slot) != 0) {
-				return NULL;
+			uint8_t slot = (uint8_t)id;
+			if (id < 0 && alloc_class_find_first_free_slot(ac,
+			    &slot) != 0)
+				goto error_class_alloc;
+			id = slot;
+
+			size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
+				ac->granularity);
+			ASSERT(map_idx <= UINT32_MAX);
+			uint32_t map_idx_s = (uint32_t)map_idx;
+			ASSERT(c->run.size_idx <= UINT16_MAX);
+			uint16_t size_idx_s = (uint16_t)c->run.size_idx;
+			uint16_t flags_s = (uint16_t)c->flags;
+			uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
+				flags_s, size_idx_s);
+			if (cuckoo_insert(ac->class_map_by_unit_size,
+			    k, c) != 0) {
+				ERR("unable to register allocation class");
+				goto error_map_insert;
 			}
-
-			c.id = slot;
 
 			break;
 		default:
 			ASSERT(0);
 	}
 
-	return alloc_class_register(ac, &c);
+	c->id = (uint8_t)id;
+	ac->aclasses[c->id] = c;
+	return c;
+
+error_map_insert:
+	Free(c);
+error_class_alloc:
+	if (id >= 0)
+		alloc_class_reservation_clear(ac, id);
+	return NULL;
 }
 
 /*
@@ -409,8 +397,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 			return c;
 	}
 
-	return alloc_class_from_params(ac, CLASS_RUN, n,
-		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, required_size_idx);
+	return alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT, n, 0,
+		required_size_idx);
 }
 
 /*
@@ -486,12 +474,13 @@ alloc_class_collection_new()
 
 	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);
 
-	if (alloc_class_from_params(ac, CLASS_HUGE, CHUNKSIZE, 0, 0, 1) == NULL)
+	if (alloc_class_new(-1, ac, CLASS_HUGE, HEADER_COMPACT,
+		CHUNKSIZE, 0, 1) == NULL)
 		goto error;
 
 	struct alloc_class *predefined_class =
-		alloc_class_from_params(ac, CLASS_RUN, MIN_RUN_SIZE,
-			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, 1);
+		alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT,
+			MIN_RUN_SIZE, 0, 1);
 	if (predefined_class == NULL)
 		goto error;
 
@@ -558,7 +547,7 @@ alloc_class_collection_new()
 		if (c != NULL && c->type == CLASS_RUN) {
 			ASSERTeq(i, c->id);
 			ASSERTeq(alloc_class_by_run(ac, c->unit_size,
-				c->header_type, c->run.size_idx), c);
+				c->flags, c->run.size_idx), c);
 		}
 	}
 #endif
@@ -650,17 +639,17 @@ alloc_class_by_alloc_size(struct alloc_class_collection *ac, size_t size)
  */
 struct alloc_class *
 alloc_class_by_run(struct alloc_class_collection *ac,
-	size_t unit_size, enum header_type header_type, uint32_t size_idx)
+	size_t unit_size, uint16_t flags, uint32_t size_idx)
 {
 	size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(unit_size, ac->granularity);
 	ASSERT(map_idx <= UINT32_MAX);
 	uint32_t map_idx_s = (uint32_t)map_idx;
 	ASSERT(size_idx <= UINT16_MAX);
 	uint16_t size_idx_s = (uint16_t)size_idx;
-	uint16_t header_type_s = (uint16_t)header_type;
+	uint16_t flags_s = (uint16_t)flags;
 
 	return cuckoo_get(ac->class_map_by_unit_size,
-		RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s));
+		RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s));
 }
 
 /*

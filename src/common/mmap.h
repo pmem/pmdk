@@ -138,22 +138,17 @@ char *util_map_hint(size_t len, size_t req_align);
 #define GIGABYTE ((uintptr_t)1 << 30)
 
 /*
- * util_map_hint_align -- choose the desired mapping alignment
+ * util_map_hint_align -- always align to the largest possible page size
  *
- * Use 2MB/1GB page alignment only if the mapping length is at least
- * twice as big as the page size.
+ * We choose a fixed large alignment because it ensures that users can relibly
+ * align their objects to offsets smaller equal to this base alignment.
+ *
+ * Changing this to anything smaller consitutes a layout change!
  */
 static inline size_t
-util_map_hint_align(size_t len, size_t req_align)
+util_map_hint_align()
 {
-	size_t align = Mmap_align;
-	if (req_align)
-		align = req_align;
-	else if (len >= 2 * GIGABYTE)
-		align = GIGABYTE;
-	else if (len >= 4 * MEGABYTE)
-		align = 2 * MEGABYTE;
-	return align;
+	return GIGABYTE;
 }
 
 int util_range_register(const void *addr, size_t len, const char *path,
