@@ -92,14 +92,6 @@ class Config {
             # "any" as either pmem or non-pmem with "-f"
             #
             $this.forcefs = $true
-
-            $fstype.Split() | % {
-                if ($fs.Split().Contains($_)) {
-                    $this.fstype += $_ + " ";
-                } else {
-                    Write-Host "SKIP: $_ directory not defined"
-                }
-            }
             $this.fstype = $fstype
         } else {
             $this.fstype = $fs
@@ -318,6 +310,13 @@ function runtest {
     } # for runscripts
 }
 
+function isDir {
+    if (-Not $args[0]) {
+        return $false
+    }
+    return Test-Path $args[0] -PathType Container
+}
+
 if (-Not (Test-Path "./testconfig.ps1")) {
     throw $MyInvocation.MyCommand.Name + " stopping because no testconfig.ps1 is found.
 To create one:
@@ -326,7 +325,26 @@ and edit testconfig.ps1 to describe the local machine configuration.
 "
 }
 
+# need to manually clear variables, if definition of a variable was removed
+# from testconfig RUNTEST would use previously exported value
+$Env:PMEM_FS_DIR=""
+$Env:NON_PMEM_FS_DIR=""
+
 . .\testconfig.ps1
+
+if ($Env:PMEM_FS_DIR -And (-Not (isDir($Env:PMEM_FS_DIR)))) {
+	throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR doesn't exist"
+}
+
+if ($Env:NON_PMEM_FS_DIR -And (-Not (isDir($Env:NON_PMEM_FS_DIR)))) {
+	throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR doesn't exist"
+}
+
+$PMEMDETECT="..\x64\Debug\pmemdetect.exe"
+
+if (-Not (Test-Path $PMEMDETECT)) {
+    $PMEMDETECT="..\x64\Release\pmemdetect.exe"
+}
 
 if (isDir($Env:PMEM_FS_DIR)) {
     if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {

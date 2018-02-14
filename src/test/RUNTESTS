@@ -348,21 +348,19 @@ runtest() {
 		for fs in $fss
 		do
 			# don't bother trying when fs-type isn't available...
-			[ "$fs" = pmem -a -z "$PMEM_FS_DIR" ] && {
+			if [ "$fs" == "pmem" ] && [ -z "$PMEM_FS_DIR" ] && [ "$fstype" == "all" ]; then
 				pmem_skip=1
 				continue
-			}
+			fi
 
-			[ "$fs" = non-pmem -a -z "$NON_PMEM_FS_DIR" ] && {
+			if [ "$fs" == "non-pmem" ] && [ -z "$NON_PMEM_FS_DIR" ] && [ "$fstype" == "all" ]; then
 				non_pmem_skip=1
 				continue
-			}
+			fi
 
-			[ "$fs" = any -a -z "$PMEM_FS_DIR" -a -z "$NON_PMEM_FS_DIR" ] && {
+			if [ "$fs" == "any" ] && [ -z "$PMEM_FS_DIR" ] && [ -z "$NON_PMEM_FS_DIR" ] && [ "$fstype" == "all" ]; then
 				continue
-			}
-
-
+			fi
 			# for each build-type being tested...
 			for build in $builds
 			do
@@ -449,6 +447,16 @@ if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
 		echo "If you want to ignore this error, please set PMEM_FS_DIR_FORCE_PMEM=2."
 		exit 1
 	fi
+fi
+
+if [ -v PMEM_FS_DIR ] && [ ! -d "$PMEM_FS_DIR" ]; then
+	echo "error: PMEM_FS_DIR=$PMEM_FS_DIR doesn't exist"
+	exit 1
+fi
+
+if [ -v NON_PMEM_FS_DIR ] && [ ! -d "$NON_PMEM_FS_DIR" ]; then
+	echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR doesn't exist"
+	exit 1
 fi
 
 if [ -d "$PMEM_FS_DIR" ]; then
@@ -741,8 +749,10 @@ else
 		runtest $testdir
 	done
 fi
+
 [ "$pmem_skip" ] && echo "SKIPPED fs-type \"pmem\" runs: testconfig.sh doesn't set PMEM_FS_DIR"
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
+
 if [ "$fail_count" != "0" ]; then
 	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0) $fail_list"
 	exit $keep_going_exit_code

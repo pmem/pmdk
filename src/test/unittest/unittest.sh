@@ -193,12 +193,20 @@ else
 	case "$FS"
 	in
 	pmem)
+		# if a variable is set - it must point to a valid directory
+		if [ "$PMEM_FS_DIR" == "" ]; then
+			fatal "$UNITTEST_NAME: PMEM_FS_DIR is not set"
+		fi
 		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
 		;;
 	non-pmem)
+		# if a variable is set - it must point to a valid directory
+		if [ "$NON_PMEM_FS_DIR" == "" ]; then
+			fatal "$UNITTEST_NAME: NON_PMEM_FS_DIR is not set"
+		fi
 		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
 		;;
 	any)
