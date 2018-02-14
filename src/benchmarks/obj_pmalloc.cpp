@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -107,6 +107,7 @@ struct obj_bench {
 static int
 obj_init(struct benchmark *bench, struct benchmark_args *args)
 {
+	struct my_root *root = NULL;
 	assert(bench != NULL);
 	assert(args != NULL);
 	assert(args->opts != NULL);
@@ -167,15 +168,17 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		goto free_pop;
 	}
 
-	POBJ_ZALLOC(ob->pop, &D_RW(ob->root)->offs, uint64_t,
+	root = D_RW(ob->root);
+	assert(root != NULL);
+	POBJ_ZALLOC(ob->pop, &root->offs, uint64_t,
 		    n_ops_total * sizeof(PMEMoid));
-	if (TOID_IS_NULL(D_RW(ob->root)->offs)) {
+	if (TOID_IS_NULL(root->offs)) {
 		fprintf(stderr, "POBJ_ZALLOC off_vect: %s\n",
 			pmemobj_errormsg());
 		goto free_pop;
 	}
 
-	ob->offs = D_RW(D_RW(ob->root)->offs);
+	ob->offs = D_RW(root->offs);
 
 	ob->sizes = (size_t *)malloc(n_ops_total * sizeof(size_t));
 	if (ob->sizes == NULL) {
