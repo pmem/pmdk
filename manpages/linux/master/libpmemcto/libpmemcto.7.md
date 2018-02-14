@@ -387,8 +387,8 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**ndctl-create-namespace**(1), **dlclose**(2), **mmap**(2), **jemalloc**(3),
-**malloc**(3),
+**ndctl-create-namespace**(1), **dlclose**(2), **mmap**(2),
+**jemalloc**(3), **malloc**(3),
 **pmemcto_aligned_alloc**(3), **pmemcto_errormsg**(3), **pmemcto_malloc**(3),
 **pmemcto_malloc_usable_size**(3), **pmemcto_open**(3),
 **pmemcto_set_root_pointer**(3), **pmemcto_stats_print**(3),
