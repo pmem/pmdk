@@ -112,7 +112,7 @@ typedef struct {
 	}								\
 } while (0)
 #else
-#  define UTRACE(a, b, c)
+#  define UTRACE(a, b, c) do { (void)(a); (void)(b); (void)(c); } while (0)
 #endif
 
 /* data structures for callbacks used in je_pool_check() to browse trees */
