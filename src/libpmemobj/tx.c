@@ -405,6 +405,7 @@ tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		TX_CLR_FLAG_VG_CLEAN |
 		(lane ? TX_CLR_FLAG_FREE : TX_CLR_FLAG_FREE_IF_EXISTS);
 
+	ASSERTne(tx_rt->ctx, NULL);
 	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], flags);
 }
 
