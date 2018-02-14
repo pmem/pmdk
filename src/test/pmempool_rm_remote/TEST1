@@ -84,6 +84,8 @@ check_no_files_on_node 0 test_part_remote2
 
 expect_abnormal_exit run_on_node 1 ../pmempool rm ${NODE_DIR[1]}$TEST_SET_LOCAL 1>> $OUT 2>&1
 
+check_no_files_on_node 0 test_part_remote0 test_part_remote1 test_part_remote2 test_part_remote3
+
 check_local
 
 pass
