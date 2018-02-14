@@ -502,6 +502,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 
 	if (base == NULL) {
 		ERR("MapViewOfFileEx, gle: 0x%08x", GetLastError());
+		errno = ENOMEM;
 		CloseHandle(fh);
 		CloseHandle(fmh);
 		return MAP_FAILED;
