@@ -757,7 +757,7 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	obj_worker->max_level = obj_bench->obj_args->nested;
 	if (obj_bench->lib_mode != LIB_MODE_DRAM)
 		obj_worker->oids = (TOID(struct item) *)calloc(
-			obj_bench->n_objs, sizeof(PMEMoid));
+			obj_bench->n_objs, sizeof(TOID(struct item)));
 	else
 		obj_worker->items =
 			(char **)calloc(obj_bench->n_objs, sizeof(char *));
