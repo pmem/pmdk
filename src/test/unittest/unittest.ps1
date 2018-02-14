@@ -156,7 +156,8 @@ function truncate {
     [int64]$size_in_bytes = (convert_to_bytes $size)
 
     if (-Not (Test-Path $fname)) {
-        & $SPARSEFILE $fname $size_in_bytes
+        & $SPARSEFILE $fname $size_in_bytes 2>&1 1>> $Env:PREP_LOG_FILE
+
     } else {
         $file = new-object System.IO.FileStream $fname, Open, ReadWrite
         $file.SetLength($size_in_bytes)
@@ -181,7 +182,7 @@ function create_file {
         $stream = new-object system.IO.StreamWriter($args[$i], "False", [System.Text.Encoding]::Ascii)
         1..$size | %{ $stream.Write("0") }
         $stream.close()
-        Get-ChildItem $args[$i]* >> ("prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i]* >> $Env:PREP_LOG_FILE
     }
 }
 
@@ -208,7 +209,7 @@ function create_holey_file {
         if ($Global:LASTEXITCODE -ne 0) {
             fatal "Error $Global:LASTEXITCODE with sparsefile create"
         }
-        Get-ChildItem $fname >> ("prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $fname >> $Env:PREP_LOG_FILE
     }
 }
 
@@ -236,11 +237,11 @@ function create_nonzeroed_file {
         $file = new-object System.IO.FileStream $args[$i], Create, ReadWrite
         $file.SetLength($offset)
         $file.Close()
-        Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i] >> $Env:PREP_LOG_FILE
         $stream = new-object system.IO.StreamWriter($args[$i], "True", [System.Text.Encoding]::Ascii)
         1..$numz | %{ $stream.Write($Z) }
         $stream.close()
-        Get-ChildItem $args[$i] >> ("prep" + $Env:UNITTEST_NUM + ".log")
+        Get-ChildItem $args[$i] >> $Env:PREP_LOG_FILE
     }
 }
 
@@ -406,6 +407,7 @@ function check_exit_code {
             Write-Error "${Env:UNITTEST_NAME}: $msg"
         }
 
+        dump_last_n_lines $Env:PREP_LOG_FLE
         dump_last_n_lines $Env:TRACE_LOG_FILE
         dump_last_n_lines $Env:PMEM_LOG_FILE
         dump_last_n_lines $Env:PMEMOBJ_LOG_FILE
@@ -1223,6 +1225,7 @@ $Env:VMMALLOC_LOG_FILE = "vmmalloc${Env:UNITTEST_NUM}.log"
 $Env:TRACE_LOG_FILE = "trace${Env:UNITTEST_NUM}.log"
 $Env:ERR_LOG_FILE = "err${Env:UNITTEST_NUM}.log"
 $Env:OUT_LOG_FILE = "out${Env:UNITTEST_NUM}.log"
+$Env:PREP_LOG_FILE = "prep${Env:UNITTEST_NUM}.log"
 
 if (-Not($UT_DUMP_LINES)) {
     sv -Name "UT_DUMP_LINES" 30
@@ -1238,5 +1241,6 @@ function enable_log_append() {
     rm -Force -ErrorAction SilentlyContinue $Env:OUT_LOG_FILE
     rm -Force -ErrorAction SilentlyContinue $Env:ERR_LOG_FILE
     rm -Force -ErrorAction SilentlyContinue $Env:TRACE_LOG_FILE
+    rm -Force -ErrorAction SilentlyContinue $Env:PREP_LOG_FILE
     $Env:UNITTEST_LOG_APPEND=1
 }
