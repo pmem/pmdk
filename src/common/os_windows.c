@@ -76,7 +76,7 @@ os_open(const char *pathname, int flags, ...)
 		if (_read(ret, bom, sizeof(bom)) != 3 ||
 				memcmp(bom, UTF8_BOM, 3) != 0) {
 			/* UTF-8 bom not found - reset file to the beginning */
-			lseek(ret, 0, SEEK_SET);
+			_lseek(ret, 0, SEEK_SET);
 		}
 	}
 	errno = orig_errno;
