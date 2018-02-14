@@ -2827,6 +2827,11 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
 
+	ASSERT(pe_offset <= pmemobj_alloc_usable_size(dest)
+			- sizeof(struct list_entry));
+	ASSERT(pe_offset <= pmemobj_alloc_usable_size(oid)
+			- sizeof(struct list_entry));
+
 	return list_insert(pop, (ssize_t)pe_offset, head, dest, before, oid);
 }
 
@@ -2846,6 +2851,10 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
+
+	ASSERT(pe_offset <= pmemobj_alloc_usable_size(dest)
+			- sizeof(struct list_entry));
+	ASSERT(pe_offset <= size - sizeof(struct list_entry));
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
@@ -2881,6 +2890,9 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
+	ASSERT(pe_offset <= pmemobj_alloc_usable_size(oid)
+			- sizeof(struct list_entry));
+
 	if (free) {
 		return list_remove_free_user(pop, pe_offset, head, &oid);
 	} else {
@@ -2907,6 +2919,15 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 	ASSERT(OBJ_OID_IS_VALID(pop, dest));
+
+	ASSERT(pe_old_offset <= pmemobj_alloc_usable_size(oid)
+			- sizeof(struct list_entry));
+	ASSERT(pe_new_offset <= pmemobj_alloc_usable_size(oid)
+			- sizeof(struct list_entry));
+	ASSERT(pe_old_offset <= pmemobj_alloc_usable_size(dest)
+			- sizeof(struct list_entry));
+	ASSERT(pe_new_offset <= pmemobj_alloc_usable_size(dest)
+			- sizeof(struct list_entry));
 
 	return list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,
