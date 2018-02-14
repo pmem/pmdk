@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -145,6 +145,10 @@ vmem_fini(void)
 	LOG(3, NULL);
 	util_mutex_destroy(&Pool_lock);
 	util_mutex_destroy(&Vmem_init_lock);
+
+	/* set up jemalloc messages back to stderr */
+	je_vmem_malloc_message = NULL;
+
 	common_fini();
 }
 
