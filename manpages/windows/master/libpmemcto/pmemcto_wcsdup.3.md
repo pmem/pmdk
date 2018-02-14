@@ -82,6 +82,6 @@ allocation request, a NULL pointer is returned and *errno* is set appropriately.
 
 # SEE ALSO #
 
+**jemalloc**(3), **malloc**(3), **strdup**(3), **wcsdup**(3),
 **pmemcto_malloc**(3), **pmemcto_strdup**(3),
-**strdup**(3), **wcsdup**(3), **malloc**(3),
-**jemalloc**(3), **libpmemcto**(7) and **<http://pmem.io>**
+**libpmemcto**(7) and **<http://pmem.io>**

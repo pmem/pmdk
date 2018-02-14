@@ -89,5 +89,6 @@ appropriately.
 
 # SEE ALSO #
 
-**pmemcto_malloc**(3), **aligned_alloc**(3), **malloc**(3),
-**jemalloc**(3), **libpmemcto**(7) and **<http://pmem.io>**
+**aligned_alloc**(3), **malloc**(3), **jemalloc**(3),
+**pmemcto_malloc**(3),
+**libpmemcto**(7) and **<http://pmem.io>**

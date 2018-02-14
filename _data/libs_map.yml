@@ -43,7 +43,7 @@
   pmemcto_malloc: pmemcto_malloc.3
   pmemcto_malloc_usable_size: pmemcto_malloc_usable_size.3
   pmemcto_open: pmemcto_open.3
-  pmemcto_realloc: pmemcto_realloc.3
+  pmemcto_realloc: pmemcto_malloc.3
   pmemcto_set_funcs: libpmemcto.7
   pmemcto_set_root_pointer: pmemcto_set_root_pointer.3
   pmemcto_stats_print: pmemcto_stats_print.3
