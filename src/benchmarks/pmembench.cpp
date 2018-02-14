@@ -602,7 +602,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 
 	if (args->thread_affinity) {
 		ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-		if (ncpus < 0)
+		if (ncpus <= 0)
 			return -1;
 	}
 
@@ -624,6 +624,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 				cpu = (int)i;
 			}
 
+			assert(ncpus > 0);
 			cpu %= ncpus;
 			os_cpu_zero(&cpuset);
 			os_cpu_set(cpu, &cpuset);
@@ -729,6 +730,7 @@ results_alloc(size_t nrepeats, size_t nthreads, size_t nops)
 
 	for (size_t i = 0; i < nrepeats; i++) {
 		struct bench_results *res = &total->res[i];
+		assert(nthreads != 0);
 		res->thres = (struct thread_results **)malloc(
 			nthreads * sizeof(*res->thres));
 		assert(res->thres != NULL);
@@ -764,6 +766,10 @@ results_free(struct total_results *total)
 static void
 get_total_results(struct total_results *tres)
 {
+	assert(tres->nrepeats != 0);
+	assert(tres->nthreads != 0);
+	assert(tres->nops != 0);
+
 	/* reset results */
 	memset(&tres->total, 0, sizeof(tres->total));
 	memset(&tres->latency, 0, sizeof(tres->latency));
@@ -880,6 +886,7 @@ get_total_results(struct total_results *tres)
 
 	/* average latency */
 	size_t count = tres->nrepeats * tres->nthreads * tres->nops;
+	assert(count > 0);
 	tres->latency.avg /= count;
 
 	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
@@ -1211,6 +1218,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	assert(bench->info->operation != NULL);
+	assert(args->n_threads != 0);
 
 	struct benchmark_worker **workers;
 	workers = (struct benchmark_worker **)malloc(
