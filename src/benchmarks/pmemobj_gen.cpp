@@ -363,6 +363,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			goto free_random_types;
 	}
 
+	assert(bench_priv->n_pools > 0);
 	bench_priv->pop = (PMEMobjpool **)calloc(bench_priv->n_pools,
 						 sizeof(PMEMobjpool *));
 	if (bench_priv->pop == NULL) {
