@@ -1,0 +1,2 @@
+error: '$(nW)/testset1' -- the file contains bad blocks: /dev/dax$(N).0
+error: creating pool file failed
