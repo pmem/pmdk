@@ -34,8 +34,8 @@
  * shutdown_state.h -- unsafe shudown detection
  */
 
-#ifndef NVML_SHUTDOWN_STATE_H
-#define NVML_SHUTDOWN_STATE_H 1
+#ifndef PMDK_SHUTDOWN_STATE_H
+#define PMDK_SHUTDOWN_STATE_H 1
 
 #include <stdint.h>
 

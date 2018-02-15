@@ -64,7 +64,7 @@ function fatal() {
 [ "$CHECK_TYPE" ] || CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || CHECK_POOL=0
 [ "$VERBOSE" ] || VERBOSE=0
-[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠝⠧⠍⠇ɗNVMLӜ⥺🙋"
+[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 

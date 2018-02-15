@@ -47,7 +47,7 @@ issue in https://github.com/pmem/issues. There are also blog articles in
 http://pmem.io/blog/ which you might find helpful.
 
 Have fun!
-The NVML team
+The PMDK team
 
 ### Compiler notice ###
 The C++ bindings require a C++11 compliant compiler, therefore the minimal
