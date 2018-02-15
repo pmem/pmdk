@@ -81,8 +81,8 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=pmem/nvml:${OS}-${OS_VER}
-containerName=nvml-${OS}-${OS_VER}
+imageName=pmem/pmdk:${OS}-${OS_VER}
+containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
 	command="./run-build-package.sh"

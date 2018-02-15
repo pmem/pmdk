@@ -62,8 +62,8 @@ COPY install-libcxx.sh install-libcxx.sh
 RUN ./install-libcxx.sh
 
 # Add user
-ENV USER nvmluser
-ENV USERPASS nvmlpass
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
 RUN useradd -m $USER
 RUN echo $USERPASS | passwd $USER --stdin
 RUN gpasswd wheel -a $USER
