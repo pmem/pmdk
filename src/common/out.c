@@ -218,7 +218,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 #endif	/* DEBUG */
 
-	char *log_alignment = os_getenv("NVML_LOG_ALIGN");
+	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
 	if (log_alignment) {
 		int align = atoi(log_alignment);
 		if (align > 0)

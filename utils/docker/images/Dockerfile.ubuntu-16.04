@@ -64,8 +64,8 @@ COPY install-libndctl.sh install-libndctl.sh
 RUN ./install-libndctl.sh
 
 # Add user
-ENV USER nvmluser
-ENV USERPASS nvmlpass
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
 USER $USER
 
