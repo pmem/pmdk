@@ -1,0 +1,2 @@
+error: '$(nW)/testset1' -- pool set contains bad blocks and cannot be created, use 'pmempool' command to clear bad blocks first
+error: creating pool file failed
