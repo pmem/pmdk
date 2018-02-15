@@ -92,11 +92,15 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 		pmem_drain();
 
 		if (os_deep_flush_write(mt->region_id) < 0) {
-			LOG(2, "cannot write to deep_flush in region %d",
-				mt->region_id);
+			if (errno == ENOENT) {
+				errno = ENOTSUP;
+				ERR("!deep_flush not supported");
+			} else {
+				LOG(2, "cannot write to deep_flush"
+					"in region %d", mt->region_id);
+			}
 			return -1;
 		}
-
 		return 0;
 	case PMEM_MAP_SYNC:
 		return pmem_msync((void *)addr, len);
@@ -176,8 +180,16 @@ os_part_deep_common(struct pool_set_part *part, void *addr,
 
 	if (part->is_dev_dax) {
 		int region_id = util_ddax_region_find(part->path);
-		ASSERTne(region_id, -1);
 
+		if (region_id < 0) {
+			if (errno == ENOENT) {
+				errno = ENOTSUP;
+				ERR("!deep_flush not supported");
+			} else {
+				LOG(1, "invalid dax_region id %d", region_id);
+			}
+			return -1;
+		}
 		if (flush) {
 			LOG(15, "pmem_deep_flush addr %p, len %lu", addr, len);
 			pmem_deep_flush(addr, len);
