@@ -1,0 +1,2 @@
+error: '$(nW)/testset1' -- the file contains bad blocks: $(nW)/mnt-pmem/file
+error: creating pool file failed
