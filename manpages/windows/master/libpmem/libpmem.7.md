@@ -218,9 +218,10 @@ library testing.
 
 + **PMEM_NO_FLUSH**=1
 
-Setting this environment variable to 1 forces **libpmem** to never issue
-any of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions on Intel hardware.
-This variable is intended for use during library testing.
+Setting this environment variable to 1 forces most **libpmem** functions
+to never issue any of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions
+on Intel hardware. The only exceptions are **pmem_deep_flush**(3) and
+**pmem_deep_persist**(3) functions.
 
 + **PMEM_NO_MOVNT**=1
 
