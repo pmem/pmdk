@@ -47,7 +47,7 @@ date: pmem API version 1.0
 
 **pmem_flush**(), **pmem_drain**(),
 **pmem_persist**(), **pmem_msync**(),
-**pmem_deep_persist**(),
+**pmem_deep_flush**(), **pmem_deep_drain**(), **pmem_deep_persist**(),
 **pmem_has_hw_drain**() -- check persistency, store persistent data and delete mappings
 
 
@@ -59,7 +59,9 @@ date: pmem API version 1.0
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
-void pmem_deep_persist(const void *addr, size_t len);
+void pmem_deep_flush(const void *addr, size_t len);
+int pmem_deep_drain(const void *addr, size_t len);
+int pmem_deep_persist(const void *addr, size_t len);
 void pmem_drain(void);
 int pmem_has_hw_drain(void);
 ```
@@ -142,10 +144,31 @@ of **pmem_persist**(). For example, a program that needs to flush
 several discontiguous ranges can call **pmem_flush**() for each range
 and then follow up by calling **pmem_drain**() once.
 
-The semantics of **pmem_deep_persist**() function are the same as **pmem_persist**(),
+The semantics of **pmem_deep_flush**() function is the same as
+**pmem_flush**() function except that **pmem_deep_flush**() is indifferent to
+**PMEM_NO_FLUSH** environment variable (see **ENVIRONMENT** section in **libpmem**(7))
+and always flushes processor caches.
+
+The behavior of **pmem_deep_persist**() function is the same as **pmem_persist**(),
 except that it provides higher reliability by flushing persistent memory stores to
 the most reliable persistence domain available to software rather than depending on
 automatic WPQ (write pending queue) flush on power failure (ADR).
+
+The **pmem_deep_flush**() and **pmem_deep_drain**() functions provide
+partial varsions of **pmem_deep_persist**() function.
+**pmem_deep_persist**() can be thought of as this:
+
+```
+int pmem_deep_persist(const void *addr, size_t len)
+{
+	/* flush the processor caches */
+	pmem_deep_flush(addr, len);
+
+	/* wait for any pmem stores to drain from HW buffers */
+	return pmem_deep_drain(addr, len);
+}
+```
+
 Since this operation is usually much more expensive than **pmem_persist**(),
 it should be used rarely. Typically the application should use this function
 only to flush the most critical data, which are required to recover after
@@ -163,11 +186,12 @@ The **pmem_persist**() function returns no value.
 The **pmem_msync**() return value is the return value of
 **msync**(), which can return -1 and set *errno* to indicate an error.
 
-The **pmem_flush**() and **pmem_drain**() functions return no value.
+The **pmem_flush**(), **pmem_drain**() and **pmem_deep_flush**()
+functions return no value.
 
-The **pmem_deep_persist**() returns 0 on success. Otherwise it
-returns -1 and sets *errno* appropriately. If *len* is equal zero
-**pmem_deep_persist**() returns 0 but no flushing take place.
+The **pmem_deep_persist**() and **pmem_deep_drain**() return 0 on success.
+Otherwise it returns -1 and sets *errno* appropriately. If *len* is equal zero
+**pmem_deep_persist**() and **pmem_deep_drain**() return 0 but no flushing take place.
 
 The **pmem_has_hw_drain**() function returns true if the machine
 supports an explicit *hardware drain*
