@@ -609,29 +609,6 @@ test_remove(const char *root_dir, const char *pool_desc)
 
 	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr);
 	UT_ASSERTne(prp, NULL);
-
-	struct pool_hdr *pool_hdr = prp->pool_addr;
-	const char *uuid = (char *)pool_hdr->poolset_uuid;
-	const size_t uuid_size = sizeof(pool_hdr->poolset_uuid);
-	strncpy((char *)uuid, "ERROR", uuid_size);
-	util_persist_auto(prp->set->replica[0]->part[0].is_dev_dax, uuid,
-			uuid_size);
-	rpmemd_db_pool_close(db, prp);
-
-	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 0);
-	UT_ASSERTne(ret, 0);
-
-	ret = util_poolset_foreach_part(path, exists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
-
-	ret = rpmemd_db_pool_remove(db, pool_desc, 1, 0);
-	UT_ASSERTeq(ret, 0);
-
-	ret = util_poolset_foreach_part(path, noexists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
-
-	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr);
-	UT_ASSERTne(prp, NULL);
 	rpmemd_db_pool_close(db, prp);
 
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 1);

@@ -31,10 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_rm_remotie/TEST1 -- test for cli rm command with remote replica
+# pmempool_rm_remotie/TEST2 -- test for cli rm command with remote replica
 #
-export UNITTEST_NAME=pmempool_rm_remote/TEST1
-export UNITTEST_NUM=1
+export UNITTEST_NAME=pmempool_rm_remote/TEST2
+export UNITTEST_NUM=2
 
 . ../unittest/unittest.sh
 
@@ -82,7 +82,7 @@ check_files_on_node 1 $TEST_SET_LOCAL test_part0 test_part1 test_part2 test_part
 rm_files_from_node 0 ${NODE_DIR[0]}test_part_remote2
 check_no_files_on_node 0 test_part_remote2
 
-expect_abnormal_exit run_on_node 1 ../pmempool rm ${NODE_DIR[1]}$TEST_SET_LOCAL 1>> $OUT 2>&1
+expect_normal_exit run_on_node 1 ../pmempool rm -f ${NODE_DIR[1]}$TEST_SET_LOCAL 1>> $OUT 2>&1
 
 check_no_files_on_node 0 test_part_remote0 test_part_remote1 test_part_remote2 test_part_remote3
 

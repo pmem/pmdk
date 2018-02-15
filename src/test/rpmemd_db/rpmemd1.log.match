@@ -3,4 +3,3 @@ duplicate found in pool set file -- $(nW)/pool$(N).set: File exists
 cannot create pool set -- '$(nW)pool1.set': Resource temporarily unavailable
 cannot create pool set -- '$(nW)pool1.set': File exists
 cannot create pool set -- '$(nW)pool1.set': File exists
-removing '$(nW)pool0.set' failed: Invalid argument

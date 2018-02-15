@@ -366,18 +366,29 @@ rpmemd_db_pool_set_attr(struct rpmemd_db_pool *prp,
 	return util_replica_set_attr(prp->set->replica[0], rattr);
 }
 
+struct rm_cb_args {
+	int force;
+	int ret;
+};
+
 /*
  * rm_poolset_cb -- (internal) callback for removing part files
  */
 static int
 rm_poolset_cb(struct part_file *pf, void *arg)
 {
+	struct rm_cb_args *args = (struct rm_cb_args *)arg;
 	if (pf->is_remote) {
 		RPMEMD_LOG(ERR, "removing remote replica not supported");
 		return -1;
 	}
 
-	util_unlink(pf->path);
+	int ret = util_unlink(pf->path);
+	if (!args->force && ret) {
+		RPMEMD_LOG(ERR, "!unlink -- '%s'", pf->path);
+		args->ret = ret;
+	}
+
 	return 0;
 }
 
@@ -393,45 +404,22 @@ rpmemd_db_pool_remove(struct rpmemd_db *db, const char *pool_desc,
 
 	util_mutex_lock(&db->lock);
 
-	struct pool_set *set;
+	struct rm_cb_args args;
+	args.force = force;
+	args.ret = 0;
 	char *path;
-	int ret = 0;
 
 	path = rpmemd_db_get_path(db, pool_desc);
 	if (!path) {
-		ret = -1;
+		args.ret = -1;
 		goto err_unlock;
 	}
 
-	if (force) {
-		ret = util_poolset_foreach_part(path, rm_poolset_cb, NULL);
-		if (ret) {
-			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
-			goto err_free_path;
-		}
-	} else {
-		struct rpmem_pool_attr rattr;
-		ret = util_pool_open_remote(&set, path, 0, RPMEM_MIN_PART,
-				&rattr);
-		if (ret) {
-			RPMEMD_LOG(ERR, "!removing '%s' failed", path);
-			goto err_free_path;
-		}
-
-		for (unsigned r = 0; r < set->nreplicas; r++) {
-			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-				const char *part_file =
-					set->replica[r]->part[p].path;
-				ret = util_unlink(part_file);
-				if (ret) {
-					RPMEMD_LOG(ERR, "!unlink -- '%s'",
-							part_file);
-				}
-			}
-		}
-
-		util_poolset_close(set, DO_NOT_DELETE_PARTS);
-
+	int ret = util_poolset_foreach_part(path, rm_poolset_cb, &args);
+	if (!force && ret) {
+		RPMEMD_LOG(ERR, "!removing '%s' failed", path);
+		args.ret = ret;
+		goto err_free_path;
 	}
 
 	if (pool_set)
@@ -441,7 +429,7 @@ err_free_path:
 	free(path);
 err_unlock:
 	util_mutex_unlock(&db->lock);
-	return ret;
+	return args.ret;
 }
 
 /*
