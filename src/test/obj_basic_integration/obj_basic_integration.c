@@ -480,7 +480,7 @@ test_tx_api(PMEMobjpool *pop)
 	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
 		D_RW(root)->node = TX_ZNEW(struct dummy_node);
-		TX_REALLOC(D_RO(root)->node, SIZE_MAX);
+		D_RW(root)->node = TX_REALLOC(D_RO(root)->node, SIZE_MAX);
 		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
 		UT_ASSERTeq(errno, ENOMEM);
@@ -491,7 +491,8 @@ test_tx_api(PMEMobjpool *pop)
 	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
 		D_RW(root)->node = TX_ZNEW(struct dummy_node);
-		TX_REALLOC(D_RO(root)->node, PMEMOBJ_MAX_ALLOC_SIZE + 1);
+		D_RW(root)->node = TX_REALLOC(D_RO(root)->node,
+				PMEMOBJ_MAX_ALLOC_SIZE + 1);
 		UT_ASSERT(0); /* should not get to this point */
 	} TX_ONABORT {
 		UT_ASSERTeq(errno, ENOMEM);
