@@ -356,7 +356,7 @@ check_compare_poolsets_status(struct pool_set *set_in,
 /*
  * check_compare_poolset_options -- (internal) check poolset options
  */
-static void
+static int
 check_compare_poolsets_options(struct pool_set *set_in,
 		struct pool_set *set_out,
 		struct poolset_compare_status *set_in_s,
@@ -367,6 +367,16 @@ check_compare_poolsets_options(struct pool_set *set_in,
 
 	if (set_out->options & OPTION_SINGLEHDR)
 		set_out_s->flags |= OPTION_SINGLEHDR;
+
+	if ((set_in->options & OPTION_NOHDRS) ||
+			(set_out->options & OPTION_NOHDRS)) {
+		errno = EINVAL;
+		ERR(
+		"the NOHDRS poolset option is not supported in local poolset files");
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -392,7 +402,9 @@ compare_poolsets(struct pool_set *set_in, struct pool_set *set_out,
 			*set_out_s))
 		goto err_free_out;
 
-	check_compare_poolsets_options(set_in, set_out, *set_in_s, *set_out_s);
+	if (check_compare_poolsets_options(set_in, set_out, *set_in_s,
+			*set_out_s))
+		goto err_free_out;
 
 	return 0;
 
