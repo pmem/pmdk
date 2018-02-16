@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,22 +32,20 @@
 #
 
 #
-# src/test/obj_action/TEST0 -- unit test (short) for obj_action
+# src/test/obj_action/TEST2 -- unit test (pmemcheck) for obj_action
 #
-export UNITTEST_NUM=0
+export UNITTEST_NUM=2
 export UNITTEST_NAME=obj_action/TEST$UNITTEST_NUM
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type short
+require_test_type medium
 require_fs_type any
+require_build_type debug
 
-# TEST1 runs valgrind memcheck
-configure_valgrind memcheck force-disable
-
-# TEST2 runs valgrind pmemcheck
-configure_valgrind pmemcheck force-disable
+require_valgrind 3.12
+configure_valgrind pmemcheck force-enable
 
 setup
 
@@ -55,5 +53,7 @@ export PMEM_IS_PMEM_FORCE=1
 export PMEMOBJ_LOG_LEVEL=1
 
 expect_normal_exit ./obj_action$EXESUFFIX $DIR/testfile
+
+check
 
 pass
