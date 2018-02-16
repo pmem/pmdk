@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -259,7 +259,7 @@ timer_tick(unsigned *timer)
 static TOID(struct star)
 create_star(unsigned x, unsigned y, TOID(struct star) next)
 {
-	TOID(struct star) s = TX_NEW(struct star);
+	TOID(struct star) s = TX_ZNEW(struct star);
 	struct star *sp = D_RW(s);
 
 	sp->x = x;
@@ -343,7 +343,7 @@ process_stars(PMEMobjpool *pop, TOID(struct root) r)
 static TOID(struct alien)
 create_alien(unsigned x, unsigned y, TOID(struct alien) next)
 {
-	TOID(struct alien) a = TX_NEW(struct alien);
+	TOID(struct alien) a = TX_ZNEW(struct alien);
 	struct alien *ap = D_RW(a);
 
 	ap->x = x;
@@ -427,7 +427,7 @@ move_aliens(PMEMobjpool *pop, TOID(struct root) r, int dx, int dy)
 static TOID(struct player)
 create_player(void)
 {
-	TOID(struct player) p = TX_NEW(struct player);
+	TOID(struct player) p = TX_ZNEW(struct player);
 	struct player *pp = D_RW(p);
 
 	pp->x = GAME_WIDTH / 2;
@@ -442,7 +442,7 @@ create_player(void)
 static TOID(struct bullet)
 create_bullet(unsigned x, TOID(struct bullet) next)
 {
-	TOID(struct bullet) b = TX_NEW(struct bullet);
+	TOID(struct bullet) b = TX_ZNEW(struct bullet);
 	struct bullet *bp = D_RW(b);
 
 	bp->x = x;
@@ -462,7 +462,7 @@ create_bullet(unsigned x, TOID(struct bullet) next)
 static TOID(struct state)
 create_state(void)
 {
-	TOID(struct state) s = TX_NEW(struct state);
+	TOID(struct state) s = TX_ZNEW(struct state);
 	struct state *sp = D_RW(s);
 
 	sp->timer = 1;

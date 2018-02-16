@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -137,13 +137,13 @@ main(int argc, char *argv[])
 
 	TX_BEGIN_PARAM(pop, TX_PARAM_MUTEX, &D_RW(root)->lock) {
 		TX_ADD(root);
-		D_RW(root)->head = TX_NEW(struct obj);
+		D_RW(root)->head = TX_ZNEW(struct obj);
 		TOID(struct obj) o;
 		o = D_RW(root)->head;
 		D_RW(o)->data = 100;
 		pmemobj_mutex_zero(pop, &D_RW(o)->lock);
 		for (int i = 0; i < 3; i++) {
-			D_RW(o)->next = TX_NEW(struct obj);
+			D_RW(o)->next = TX_ZNEW(struct obj);
 			o = D_RO(o)->next;
 			D_RW(o)->data = 101 + i;
 			pmemobj_mutex_zero(pop, &D_RW(o)->lock);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@ tx_alloc_free(void *arg)
 		TX_BEGIN(pop) {
 			os_mutex_lock(&mtx);
 			locked = 1;
-			tab = pmemobj_tx_alloc(128, 1);
+			tab = pmemobj_tx_zalloc(128, 1);
 		} TX_ONCOMMIT {
 			if (locked)
 				os_mutex_unlock(&mtx);

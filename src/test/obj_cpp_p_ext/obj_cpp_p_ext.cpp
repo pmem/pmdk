@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -344,8 +344,8 @@ swap_test(nvobj::pool_base &pop)
 	nvobj::persistent_ptr<_bar> swap_two;
 	try {
 		nvobj::transaction::exec_tx(pop, [&] {
-			swap_one = pmemobj_tx_alloc(sizeof(_bar), 0);
-			swap_two = pmemobj_tx_alloc(sizeof(_bar), 0);
+			swap_one = pmemobj_tx_zalloc(sizeof(_bar), 0);
+			swap_two = pmemobj_tx_zalloc(sizeof(_bar), 0);
 		});
 
 		nvobj::transaction::exec_tx(pop, [&] {
