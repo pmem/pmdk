@@ -105,7 +105,7 @@ pmemblk_map(PMEMobjpool *pop, size_t bsize, size_t fsize)
 		D_RW(bp)->bsize = bsize;
 		size_t pool_size = (size_t)(fsize * USABLE_SIZE);
 		D_RW(bp)->nblocks = pool_size / bsize;
-		D_RW(bp)->data = TX_ALLOC(uint8_t, pool_size);
+		D_RW(bp)->data = TX_ZALLOC(uint8_t, pool_size);
 		D_RW(bp)->flags = TX_ZALLOC(uint8_t,
 				sizeof(uint8_t) * D_RO(bp)->nblocks);
 	} TX_ONABORT {

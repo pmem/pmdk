@@ -54,7 +54,7 @@ tx_alloc_free(void *arg)
 		TX_BEGIN(pop) {
 			os_mutex_lock(&mtx);
 			locked = 1;
-			tab = pmemobj_tx_alloc(128, 1);
+			tab = pmemobj_tx_zalloc(128, 1);
 		} TX_ONCOMMIT {
 			if (locked)
 				os_mutex_unlock(&mtx);
