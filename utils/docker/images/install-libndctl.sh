@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,8 +36,9 @@
 
 set -e
 
-git clone -b pending https://github.com/pmem/ndctl.git
+git clone https://github.com/pmem/ndctl.git
 cd ndctl
+git checkout tags/v59.2
 ./autogen.sh
 ./configure
 make

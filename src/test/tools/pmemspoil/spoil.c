@@ -121,7 +121,7 @@ default:\
 	break;\
 }
 
-/* _max - size of _arg is it is array (if not it must be 1) */
+/* _max - size of _arg if it is array (if not it must be 1) */
 #define PROCESS(_name, _arg, _max, _type) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
@@ -137,7 +137,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 }\
 } while (0)
 
-/* _max - size of _arg is it is array (if not it must be 1) */
+/* _max - size of _arg if it is array (if not it must be 1) */
 #define PROCESS_NAME(_name, _func, _arg, _max) do {\
 if (pmemspoil_check_field(_pfp, (_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
