@@ -416,7 +416,7 @@ ravl_emplace(struct ravl *ravl, ravl_constr constr, void *arg)
 		dst = (*dstp);
 		int cmp_result = ravl->compare(ravl_data(n), ravl_data(dst));
 		if (cmp_result == 0)
-			return -1;
+			goto error_duplicate;
 
 		dstp = &dst->slots[cmp_result > 0];
 	}
@@ -426,6 +426,11 @@ ravl_emplace(struct ravl *ravl, ravl_constr constr, void *arg)
 	ravl_balance(ravl, n);
 
 	return 0;
+
+error_duplicate:
+	errno = EEXIST;
+	Free(n);
+	return -1;
 }
 
 /*
