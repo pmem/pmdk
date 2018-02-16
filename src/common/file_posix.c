@@ -307,6 +307,7 @@ util_ddax_region_find(const char *path)
 	char *end_addr;
 	os_stat_t st;
 
+	ASSERTne(path, NULL);
 	if (os_stat(path, &st) < 0) {
 		ERR("!stat \"%s\"", path);
 		return -1;
