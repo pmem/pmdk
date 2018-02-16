@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -583,6 +583,7 @@ err:
 	errno = EINVAL;
 	perror("pmembench_parse_affinity");
 	free(*saveptr);
+	*saveptr = NULL;
 	return -1;
 }
 
@@ -597,10 +598,11 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 	size_t i;
 	int ncpus = 0;
 	char *saveptr = NULL;
+	int ret = 0;
 
 	if (args->thread_affinity) {
 		ncpus = sysconf(_SC_NPROCESSORS_ONLN);
-		if (ncpus < 0)
+		if (ncpus <= 0)
 			return -1;
 	}
 
@@ -614,12 +616,15 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 			if (*args->affinity_list != '\0') {
 				cpu = pmembench_parse_affinity(
 					args->affinity_list, &saveptr);
-				if (cpu == -1)
-					return -1;
+				if (cpu == -1) {
+					ret = -1;
+					goto end;
+				}
 			} else {
 				cpu = (int)i;
 			}
 
+			assert(ncpus > 0);
 			cpu %= ncpus;
 			os_cpu_zero(&cpuset);
 			os_cpu_set(cpu, &cpuset);
@@ -628,7 +633,8 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 							 &cpuset);
 			if (errno) {
 				perror("os_thread_setaffinity_np");
-				return -1;
+				ret = -1;
+				goto end;
 			}
 		}
 
@@ -650,10 +656,9 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 		benchmark_worker_init(workers[i]);
 	}
 
-	if (saveptr != NULL) {
-		free(saveptr);
-	}
-	return 0;
+end:
+	free(saveptr);
+	return ret;
 }
 
 /*
@@ -725,6 +730,7 @@ results_alloc(size_t nrepeats, size_t nthreads, size_t nops)
 
 	for (size_t i = 0; i < nrepeats; i++) {
 		struct bench_results *res = &total->res[i];
+		assert(nthreads != 0);
 		res->thres = (struct thread_results **)malloc(
 			nthreads * sizeof(*res->thres));
 		assert(res->thres != NULL);
@@ -760,6 +766,10 @@ results_free(struct total_results *total)
 static void
 get_total_results(struct total_results *tres)
 {
+	assert(tres->nrepeats != 0);
+	assert(tres->nthreads != 0);
+	assert(tres->nops != 0);
+
 	/* reset results */
 	memset(&tres->total, 0, sizeof(tres->total));
 	memset(&tres->latency, 0, sizeof(tres->latency));
@@ -876,6 +886,7 @@ get_total_results(struct total_results *tres)
 
 	/* average latency */
 	size_t count = tres->nrepeats * tres->nthreads * tres->nops;
+	assert(count > 0);
 	tres->latency.avg /= count;
 
 	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
@@ -1207,6 +1218,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	assert(bench->info->operation != NULL);
+	assert(args->n_threads != 0);
 
 	struct benchmark_worker **workers;
 	workers = (struct benchmark_worker **)malloc(

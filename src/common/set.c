@@ -3371,6 +3371,8 @@ util_replica_set_attr(struct pool_replica *rep,
 	}
 
 	for (unsigned p = 0; p < rep->nhdrs; p++) {
+		ASSERTne(rattr, NULL);
+
 		struct pool_hdr *hdrp = HDR(rep, p);
 		ASSERTne(hdrp, NULL);
 		util_convert2h_hdr_nocheck(hdrp);
@@ -3503,6 +3505,8 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 					return -1;
 			}
 
+			ASSERTne(rep->nhdrs, 0);
+			ASSERTne(rep->nparts, 0);
 			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
 					&PART(rep, 0))) {
 				LOG(2, "ADR failure detected");

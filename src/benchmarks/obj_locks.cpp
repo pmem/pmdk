@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -385,7 +385,10 @@ init_bench_mutex(struct mutex_bench *mb)
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	struct my_root *root = D_RW(mb->root);
+	assert(root != NULL);
+	mb->locks = D_RW(root->locks);
+	assert(mb->locks != NULL);
 
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM mutexes */
@@ -466,14 +469,18 @@ op_bench_mutex(struct mutex_bench *mb)
 static int
 init_bench_rwlock(struct mutex_bench *mb)
 {
-	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
+	struct my_root *root = D_RW(mb->root);
+	assert(root != NULL);
+
+	POBJ_ZALLOC(mb->pop, &root->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
-	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
+	if (TOID_IS_NULL(root->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	mb->locks = D_RW(root->locks);
+	assert(mb->locks != NULL);
 
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM rwlocks */
@@ -560,14 +567,18 @@ op_bench_rwlock(struct mutex_bench *mb)
 static int
 init_bench_vmutex(struct mutex_bench *mb)
 {
-	POBJ_ZALLOC(mb->pop, &D_RW(mb->root)->locks, lock_t,
+	struct my_root *root = D_RW(mb->root);
+	assert(root != NULL);
+
+	POBJ_ZALLOC(mb->pop, &root->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
-	if (TOID_IS_NULL(D_RO(mb->root)->locks)) {
+	if (TOID_IS_NULL(root->locks)) {
 		perror("POBJ_ZALLOC");
 		return -1;
 	}
 
-	mb->locks = D_RW(D_RW(mb->root)->locks);
+	mb->locks = D_RW(root->locks);
+	assert(mb->locks != NULL);
 
 	/* initialize PMEM volatile mutexes */
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {

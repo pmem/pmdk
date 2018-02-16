@@ -210,6 +210,7 @@ heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id)
 		b = rt->default_bucket;
 	} else {
 		struct arena *arena = heap_thread_arena(heap->rt);
+		ASSERTne(arena->buckets, NULL);
 		b = arena->buckets[class_id];
 	}
 
