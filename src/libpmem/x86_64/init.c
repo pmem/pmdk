@@ -206,13 +206,22 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len)
 	return pmemdest;
 }
 
+enum memcpy_impl {
+	MEMCPY_INVALID,
+	MEMCPY_LIBC,
+	MEMCPY_SSE2,
+	MEMCPY_AVX,
+	MEMCPY_AVX512F
+};
+
 /*
  * use_sse2_memcpy_memset -- (internal) SSE2 detected, use it if possible
  */
 static void
-use_sse2_memcpy_memset(struct pmem_funcs *funcs)
+use_sse2_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
 {
 #if SSE2_AVAILABLE
+	*impl = MEMCPY_SSE2;
 	if (funcs->deep_flush == flush_clflush)
 		funcs->memmove_nodrain = memmove_nodrain_sse2_clflush;
 	else if (funcs->deep_flush == flush_clflushopt)
@@ -244,7 +253,7 @@ use_sse2_memcpy_memset(struct pmem_funcs *funcs)
  * use_avx_memcpy_memset -- (internal) AVX detected, use it if possible
  */
 static void
-use_avx_memcpy_memset(struct pmem_funcs *funcs)
+use_avx_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
 {
 #if AVX_AVAILABLE
 	LOG(3, "avx supported");
@@ -256,6 +265,7 @@ use_avx_memcpy_memset(struct pmem_funcs *funcs)
 	}
 
 	LOG(3, "PMEM_AVX enabled");
+	*impl = MEMCPY_AVX;
 
 	if (funcs->deep_flush == flush_clflush)
 		funcs->memmove_nodrain = memmove_nodrain_avx_clflush;
@@ -287,7 +297,7 @@ use_avx_memcpy_memset(struct pmem_funcs *funcs)
  * use_avx512f_memcpy_memset -- (internal) AVX512F detected, use it if possible
  */
 static void
-use_avx512f_memcpy_memset(struct pmem_funcs *funcs)
+use_avx512f_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
 {
 #if AVX512F_AVAILABLE
 	LOG(3, "avx512f supported");
@@ -299,6 +309,7 @@ use_avx512f_memcpy_memset(struct pmem_funcs *funcs)
 	}
 
 	LOG(3, "PMEM_AVX512F enabled");
+	*impl = MEMCPY_AVX512F;
 
 	if (funcs->deep_flush == flush_clflush)
 		funcs->memmove_nodrain = memmove_nodrain_avx512f_clflush;
@@ -330,7 +341,7 @@ use_avx512f_memcpy_memset(struct pmem_funcs *funcs)
  * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
 static void
-pmem_cpuinfo_to_funcs(struct pmem_funcs *funcs)
+pmem_cpuinfo_to_funcs(struct pmem_funcs *funcs, enum memcpy_impl *impl)
 {
 	LOG(3, NULL);
 
@@ -367,13 +378,13 @@ pmem_cpuinfo_to_funcs(struct pmem_funcs *funcs)
 	if (ptr && strcmp(ptr, "1") == 0) {
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	} else {
-		use_sse2_memcpy_memset(funcs);
+		use_sse2_memcpy_memset(funcs, impl);
 
 		if (is_cpu_avx_present())
-			use_avx_memcpy_memset(funcs);
+			use_avx_memcpy_memset(funcs, impl);
 
 		if (is_cpu_avx512f_present())
-			use_avx512f_memcpy_memset(funcs);
+			use_avx512f_memcpy_memset(funcs, impl);
 	}
 }
 
@@ -390,8 +401,9 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->is_pmem = NULL;
 	funcs->memmove_nodrain = memmove_nodrain_libc;
 	funcs->memset_nodrain = memset_nodrain_libc;
+	enum memcpy_impl impl = MEMCPY_LIBC;
 
-	pmem_cpuinfo_to_funcs(funcs);
+	pmem_cpuinfo_to_funcs(funcs, &impl);
 
 	funcs->flush = funcs->deep_flush;
 
@@ -434,32 +446,14 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	else if (funcs->flush != funcs->deep_flush)
 		FATAL("invalid flush function address");
 
-#if AVX512F_AVAILABLE
-	if (funcs->memmove_nodrain == memmove_nodrain_avx512f_clflush ||
-		funcs->memmove_nodrain == memmove_nodrain_avx512f_clflushopt ||
-		funcs->memmove_nodrain == memmove_nodrain_avx512f_clwb ||
-		funcs->memmove_nodrain == memmove_nodrain_avx512f_empty)
+	if (impl == MEMCPY_AVX512F)
 		LOG(3, "using movnt AVX512F");
-	else
-#endif
-#if AVX_AVAILABLE
-	if (funcs->memmove_nodrain == memmove_nodrain_avx_clflush ||
-		funcs->memmove_nodrain == memmove_nodrain_avx_clflushopt ||
-		funcs->memmove_nodrain == memmove_nodrain_avx_clwb ||
-		funcs->memmove_nodrain == memmove_nodrain_avx_empty)
+	else if (impl == MEMCPY_AVX)
 		LOG(3, "using movnt AVX");
-	else
-#endif
-#if SSE2_AVAILABLE
-	if (funcs->memmove_nodrain == memmove_nodrain_sse2_clflush ||
-		funcs->memmove_nodrain == memmove_nodrain_sse2_clflushopt ||
-		funcs->memmove_nodrain == memmove_nodrain_sse2_clwb ||
-		funcs->memmove_nodrain == memmove_nodrain_sse2_empty)
+	else if (impl == MEMCPY_SSE2)
 		LOG(3, "using movnt SSE2");
-	else
-#endif
-	if (funcs->memmove_nodrain == memmove_nodrain_libc)
+	else if (impl == MEMCPY_LIBC)
 		LOG(3, "using libc memmove");
 	else
-		FATAL("invalid memove_nodrain function address");
+		FATAL("invalid memcpy impl");
 }
