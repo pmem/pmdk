@@ -307,6 +307,11 @@ util_ddax_region_find(const char *path)
 	char *end_addr;
 	os_stat_t st;
 
+	if (path == NULL) {
+		errno = EINVAL;
+		ERR("!invalid path %p", path);
+		return -1;
+	}
 	if (os_stat(path, &st) < 0) {
 		ERR("!stat \"%s\"", path);
 		return -1;
