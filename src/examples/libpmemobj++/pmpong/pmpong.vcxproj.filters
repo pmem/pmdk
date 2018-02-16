@@ -71,4 +71,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="buildScript.ps1" />
+  </ItemGroup>
 </Project>
