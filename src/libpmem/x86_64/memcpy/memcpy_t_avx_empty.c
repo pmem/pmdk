@@ -30,7 +30,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define flush64b noflush
+#define flush64b flush64b_empty
 #define flush flush_empty_nolog
 #define EXPORTED_SYMBOL memmove_mov_avx_empty
 #include "memcpy_t_avx.h"

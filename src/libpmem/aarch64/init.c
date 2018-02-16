@@ -122,43 +122,43 @@ flush_empty(const void *addr, size_t len)
 	flush_empty_nolog(addr, len);
 }
 
-struct pmem_funcs
-pmem_arch_init(void)
+/*
+ * pmem_init_funcs -- initialize architecture-specific list of pmem operations
+ */
+void
+pmem_init_funcs(struct pmem_funcs *funcs)
 {
-	struct pmem_funcs funcs;
+	LOG(3, NULL);
 
-	funcs.predrain_fence = predrain_fence_empty;
-	funcs.deep_flush = flush_dcache_invalidate_opt;
-	funcs.is_pmem = is_pmem_detect;
-	funcs.memmove_nodrain = memmove_nodrain_libc;
-	funcs.memset_nodrain = memset_nodrain_libc;
+	funcs->predrain_fence = predrain_fence_empty;
+	funcs->deep_flush = flush_dcache_invalidate_opt;
+	funcs->is_pmem = is_pmem_detect;
+	funcs->memmove_nodrain = memmove_nodrain_libc;
+	funcs->memset_nodrain = memset_nodrain_libc;
 
-	funcs.flush = funcs.deep_flush;
+	funcs->flush = funcs->deep_flush;
 
 	char *e = os_getenv("PMEM_NO_FLUSH");
 	if (e && strcmp(e, "1") == 0) {
 		LOG(3, "forced not flushing CPU cache");
-		funcs.flush = flush_empty;
-		funcs.predrain_fence = predrain_memory_barrier;
+		funcs->flush = flush_empty;
+		funcs->predrain_fence = predrain_memory_barrier;
 	}
 
-	if (funcs.deep_flush == flush_dcache)
+	if (funcs->deep_flush == flush_dcache)
 		LOG(3, "Using ARM invalidate");
-	else if (funcs.deep_flush == flush_dcache_invalidate_opt)
+	else if (funcs->deep_flush == flush_dcache_invalidate_opt)
 		LOG(3, "Synchronize VA to poc for ARM");
 	else
 		FATAL("invalid deep flush function address");
 
-	if (funcs.deep_flush == flush_empty)
+	if (funcs->deep_flush == flush_empty)
 		LOG(3, "not flushing CPU cache");
-	else if (funcs.flush != funcs.deep_flush)
+	else if (funcs->flush != funcs->deep_flush)
 		FATAL("invalid flush function address");
 
-	if (funcs.memmove_nodrain == memmove_nodrain_libc)
+	if (funcs->memmove_nodrain == memmove_nodrain_libc)
 		LOG(3, "using libc memmove");
 	else
 		FATAL("invalid memove_nodrain function address");
-
-	return funcs;
-
 }

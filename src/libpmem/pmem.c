@@ -180,7 +180,7 @@
 #include "valgrind_internal.h"
 #include "os_deep.h"
 
-static struct pmem_funcs funcs;
+static struct pmem_funcs Funcs;
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -203,7 +203,7 @@ pmem_drain(void)
 {
 	LOG(15, NULL);
 
-	funcs.predrain_fence();
+	Funcs.predrain_fence();
 
 	VALGRIND_DO_COMMIT;
 	VALGRIND_DO_FENCE;
@@ -220,7 +220,7 @@ pmem_deep_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	funcs.deep_flush(addr, len);
+	Funcs.deep_flush(addr, len);
 }
 
 /*
@@ -233,7 +233,7 @@ pmem_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	funcs.flush(addr, len);
+	Funcs.flush(addr, len);
 }
 
 /*
@@ -349,17 +349,17 @@ pmem_is_pmem_init(void)
 			int val = atoi(ptr);
 
 			if (val == 0)
-				funcs.is_pmem = is_pmem_never;
+				Funcs.is_pmem = is_pmem_never;
 			else if (val == 1)
-				funcs.is_pmem = is_pmem_always;
+				Funcs.is_pmem = is_pmem_always;
 
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&funcs.is_pmem);
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Funcs.is_pmem);
 
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
 
-		if (funcs.is_pmem == NULL)
-			funcs.is_pmem = is_pmem_never;
+		if (Funcs.is_pmem == NULL)
+			Funcs.is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
 			FATAL("util_bool_compare_and_swap32");
@@ -382,8 +382,8 @@ pmem_is_pmem(const void *addr, size_t len)
 		util_fetch_and_add32(&once, 1);
 	}
 
-	VALGRIND_ANNOTATE_HAPPENS_AFTER(&funcs.is_pmem);
-	return funcs.is_pmem(addr, len);
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Funcs.is_pmem);
+	return Funcs.is_pmem(addr, len);
 }
 
 #define PMEM_FILE_ALL_FLAGS\
@@ -595,7 +595,7 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	return funcs.memmove_nodrain(pmemdest, src, len);
+	return Funcs.memmove_nodrain(pmemdest, src, len);
 }
 
 /*
@@ -643,7 +643,7 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	return funcs.memset_nodrain(pmemdest, c, len);
+	return Funcs.memset_nodrain(pmemdest, c, len);
 }
 
 /*
@@ -667,7 +667,7 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
-	funcs = pmem_arch_init();
+	pmem_init_funcs(&Funcs);
 	pmem_os_init();
 }
 

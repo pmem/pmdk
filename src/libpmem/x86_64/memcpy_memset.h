@@ -57,6 +57,7 @@ no_barrier_after_ntstores(void)
 }
 
 #ifndef AVX512F_AVAILABLE
+/* XXX not supported in MSVC version we currently use */
 #ifdef _MSC_VER
 #define AVX512F_AVAILABLE 0
 #else

@@ -61,15 +61,10 @@ struct pmem_funcs {
 
 void pmem_init(void);
 void pmem_os_init(void);
-struct pmem_funcs pmem_arch_init(void);
+void pmem_init_funcs(struct pmem_funcs *funcs);
 
 int is_pmem_detect(const void *addr, size_t len);
 void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
-
-static force_inline void
-noflush(const char *addr)
-{
-}
 
 /*
  * flush_empty_nolog -- (internal) do not flush the CPU cache
@@ -78,6 +73,14 @@ static force_inline void
 flush_empty_nolog(const void *addr, size_t len)
 {
 	/* NOP */
+}
+
+/*
+ * flush64b_empty -- (internal) do not flush the CPU cache
+ */
+static force_inline void
+flush64b_empty(const char *addr)
+{
 }
 
 #endif
