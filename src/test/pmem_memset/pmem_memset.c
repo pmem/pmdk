@@ -49,10 +49,18 @@ main(int argc, char *argv[])
 	char *dest1;
 	char *ret;
 
-	START(argc, argv, "pmem_memset");
-
 	if (argc != 4)
 		UT_FATAL("usage: %s file offset length", argv[0]);
+
+	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
+	const char *avx = getenv("PMEM_AVX");
+	const char *avx512f = getenv("PMEM_AVX512F");
+
+	START(argc, argv, "pmem_memset %s %s %s %savx %savx512f",
+			argv[2], argv[3],
+			thr ? thr : "default",
+			avx ? "" : "!",
+			avx512f ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
 
@@ -94,13 +102,13 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
 
 	if (memcmp(dest, dest1, bytes / 2))
-		UT_ERR("%s: first %zu bytes do not match",
+		UT_FATAL("%s: first %zu bytes do not match",
 			argv[1], bytes / 2);
 
 	LSEEK(fd, (os_off_t)0, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(buf, dest, bytes / 2))
-			UT_ERR("%s: first %zu bytes do not match",
+			UT_FATAL("%s: first %zu bytes do not match",
 				argv[1], bytes / 2);
 	}
 

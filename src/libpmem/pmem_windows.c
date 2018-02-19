@@ -43,7 +43,12 @@
 #include "sys/mman.h"
 
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-PQVM Func_qvmi = NULL;
+typedef BOOL (WINAPI *PQVM)(
+		HANDLE, const void *,
+		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
+		SIZE_T, PSIZE_T);
+
+static PQVM Func_qvmi = NULL;
 #endif
 
 /*
@@ -187,4 +192,18 @@ pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 	ASSERTeq(is_dev_dax, 0);
 
 	return util_map(fd, len, MAP_SHARED, 0, 0, NULL);
+}
+
+/*
+ * pmem_os_init -- os-dependent part of pmem initialization
+ */
+void
+pmem_os_init(void)
+{
+	LOG(3, NULL);
+#if NTDDI_VERSION >= NTDDI_WIN10_RS1
+	Func_qvmi = (PQVM)GetProcAddress(
+			GetModuleHandle(TEXT("KernelBase.dll")),
+			"QueryVirtualMemoryInformation");
+#endif
 }

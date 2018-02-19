@@ -54,12 +54,38 @@ require_fs_type any
 
 setup
 
-create_holey_file 4M $DIR\testfile1
+function test {
+	remove_files $DIR\testfile1
+	create_holey_file 4M $DIR\testfile1
+	expect_normal_exit $Env:EXE_DIR\pmem_memcpy$Env:EXESUFFIX $DIR\testfile1 $args
+}
 
+function test_all {
+	# aligned everything
+	test 0 0 4096
 
-# aligned everything
-expect_normal_exit $Env:EXE_DIR\pmem_memcpy$Env:EXESUFFIX $DIR\testfile1 0 0 4096
+	# unaligned dest
+	test 7 0 4096
 
-check
+	# unaligned dest, unaligned src
+	test 7 9 4096
+
+	# aligned dest, unaligned src
+	test 0 9 4096
+}
+
+test_all
+
+$Env:PMEM_AVX512F = 1
+
+test_all
+
+$Env:PMEM_AVX = 1
+
+test_all
+
+$Env:PMEM_NO_MOVNT = 1
+
+test_all
 
 pass

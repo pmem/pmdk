@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,21 +102,9 @@ FUNC_MOCK_END
  *
  * Called automatically by the run-time loader.
  */
-ATTR_CONSTRUCTOR
+CONSTRUCTOR(libpmem_init)
 void
 libpmem_init(void)
 {
 	pmem_init();
-}
-
-/*
- * libpmem_fini -- libpmem cleanup routine
- *
- * Called automatically when the process terminates.
- */
-ATTR_DESTRUCTOR
-void
-libpmem_fini(void)
-{
-	/* nothing to do */
 }

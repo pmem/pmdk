@@ -597,6 +597,16 @@ function require_binary() {
 }
 
 #
+# match -- execute match
+#
+function match {
+    Invoke-Expression "perl ..\..\..\src\test\match $args"
+    if ($Global:LASTEXITCODE -ne 0) {
+        fail ""
+    }
+}
+
+#
 # check -- check test results (using .match files)
 #
 # note: win32 version slightly different since the caller can't as
@@ -624,10 +634,7 @@ function check {
     [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
         if (Test-Path $listing) {
-            Invoke-Expression "perl ..\..\..\src\test\match $listing"
-            if ($Global:LASTEXITCODE -ne 0) {
-                fail ""
-            }
+            match $listing
         }
     }
 }

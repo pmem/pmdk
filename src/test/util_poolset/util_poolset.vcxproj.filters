@@ -14,36 +14,45 @@
     <Filter Include="Header Files">
       <UniqueIdentifier>{12d6e366-de81-43aa-a860-c1bc106d91ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libpmem">
+      <UniqueIdentifier>{b945b405-712b-4620-b3d8-70cc9665b46f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem\pmem.h">
+      <Filter>libpmem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem\x86_64\cpu.h">
+      <Filter>libpmem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_poolset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\pmem.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmem\cpu.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmem\pmem_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\windows\win_mmap.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mocks_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\file.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\libpmem\pmem.c">
+      <Filter>libpmem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\set.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\libpmem\pmem_windows.c">
+      <Filter>libpmem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
+      <Filter>libpmem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem\x86_64\init.c">
+      <Filter>libpmem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\windows\win_mmap.c">
+      <Filter>libpmem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\file.c">
+      <Filter>libpmem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -152,11 +152,11 @@
  *		flush_dcache_invalidate()
  *
  *	Func_memmove_nodrain is used by memmove_nodrain() to call one of:
- *		memmove_nodrain_normal()
+ *		memmove_nodrain_libc()
  *		memmove_nodrain_movnt()
  *
  *	Func_memset_nodrain is used by memset_nodrain() to call one of:
- *		memset_nodrain_normal()
+ *		memset_nodrain_libc()
  *		memset_nodrain_movnt()
  *
  * DEBUG LOGGING
@@ -168,72 +168,19 @@
 
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#ifndef __aarch64__
-#include <emmintrin.h>
-#endif
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <limits.h>
-
-#ifdef _WIN32
-#include <memoryapi.h>
-#endif
 
 #include "libpmem.h"
 #include "pmem.h"
-#include "cpu.h"
 #include "out.h"
-#include "util.h"
 #include "os.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep.h"
-#ifdef __aarch64__
-#include "arm_cacheops.h"
-#endif
 
-#ifndef _MSC_VER
-/*
- * The x86 memory instructions are new enough that the compiler
- * intrinsic functions are not always available.  The intrinsic
- * functions are defined here in terms of asm statements for now.
- */
-
-#ifndef __aarch64__
-#define _mm_clflushopt(addr)\
-	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
-#define _mm_clwb(addr)\
-	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
-#endif /* __aarch64__ */
-#endif /* _MSC_VER */
-
-#define FLUSH_ALIGN ((uintptr_t)64)
-
-#ifndef __aarch64__
-#define ALIGN_MASK	(FLUSH_ALIGN - 1)
-
-#define CHUNK_SIZE	128 /* 16*8 */
-#define CHUNK_SHIFT	7
-#define CHUNK_MASK	(CHUNK_SIZE - 1)
-
-#define DWORD_SIZE	4
-#define DWORD_SHIFT	2
-#define DWORD_MASK	(DWORD_SIZE - 1)
-
-#define MOVNT_SIZE	16
-#define MOVNT_MASK	(MOVNT_SIZE - 1)
-#define MOVNT_SHIFT	4
-
-#define MOVNT_THRESHOLD	256
-
-static size_t Movnt_threshold = MOVNT_THRESHOLD;
-#endif
+static struct pmem_funcs Funcs;
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -249,41 +196,6 @@ pmem_has_hw_drain(void)
 }
 
 /*
- * predrain_fence_empty -- (internal) issue the pre-drain fence instruction
- */
-static void
-predrain_fence_empty(void)
-{
-	LOG(15, NULL);
-
-	VALGRIND_DO_FENCE;
-	/* nothing to do (because CLFLUSH did it for us) */
-}
-
-/*
- * predrain_memory_barrier -- (internal) issue the pre-drain fence instruction
- */
-static void
-predrain_memory_barrier(void)
-{
-	LOG(15, NULL);
-#ifndef __aarch64__
-	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
-#else
-	arm_data_memory_barrier();
-#endif
-}
-
-/*
- * pmem_drain() calls through Func_predrain_fence to do the fence.  Although
- * initialized to predrain_fence_empty(), once the existence of the CLWB or
- * CLFLUSHOPT feature is confirmed by pmem_init() at library initialization
- * time, Func_predrain_fence is set to predrain_memory_barrier().  That's the
- * most common case on modern hardware that supports persistent memory.
- */
-static void (*Func_predrain_fence)(void) = predrain_fence_empty;
-
-/*
  * pmem_drain -- wait for any PM stores to drain from HW buffers
  */
 void
@@ -291,148 +203,11 @@ pmem_drain(void)
 {
 	LOG(15, NULL);
 
-	Func_predrain_fence();
+	Funcs.predrain_fence();
 
 	VALGRIND_DO_COMMIT;
 	VALGRIND_DO_FENCE;
 }
-
-
-#ifdef __aarch64__
-/*
- * flush_dcache does similar to clwb using DC CVAC
- */
-static void
-flush_dcache(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		arm_clean_va_to_poc((char *)uptr);
-	}
-}
-
-#else
-
-/*
- * flush_dcache_invalidate -- (internal) flush the CPU cache, using clflush
- */
-static void
-flush_dcache_invalidate(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clflush((char *)uptr);
-	}
-}
-
-/*
- * flush_dcache -- (internal) flush the CPU cache, using clwb
- */
-static void
-flush_dcache(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clwb((char *)uptr);
-	}
-}
-#endif
-
-/*
- * flush_dcache_invalidate_opt -- (internal) flush the CPU cache,
- * using clflushopt for X86 and arm_clean_and_invalidate_va_to_poc
- * for aarch64 (see arm_cacheops.h) {DC CIVAC}
- */
-
-#ifdef __aarch64__
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len  %zu", addr, len);
-
-	uintptr_t uptr;
-
-	arm_data_memory_barrier();
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		arm_clean_and_invalidate_va_to_poc((char *)uptr);
-	}
-	arm_data_memory_barrier();
-}
-
-#else
-
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	uintptr_t uptr;
-
-	/*
-	 * Loop through cache-line-size (typically 64B) aligned chunks
-	 * covering the given range.
-	 */
-	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
-		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
-		_mm_clflushopt((char *)uptr);
-	}
-}
-#endif
-
-/*
- * flush_empty -- (internal) do not flush the CPU cache
- */
-static void
-flush_empty(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	/* NOP */
-}
-
-/*
- * pmem_flush() calls through Func_flush to do the work.  Although
- * initialized to flush_dcache_invalidate(), once the existence of the
- * clflushopt feature is confirmed by pmem_init() at library
- * initialization time, Func_flush is set to flush_dcache_invalidate_opt().
- * That's the most common case on modern hardware that supports persistent
- * memory. In case of aarch64, there is no difference between clflush and
- * clflushopt so both refer to flush_data_clean_invalidate.
- */
-#ifndef __aarch64__
-static void (*Func_deep_flush)(const void *, size_t) = flush_dcache_invalidate;
-static void (*Func_flush)(const void *, size_t) = flush_dcache_invalidate;
-#else
-static void (*Func_deep_flush)(const void *, size_t) =
-						flush_dcache_invalidate_opt;
-static void (*Func_flush)(const void *, size_t) =
-						flush_dcache_invalidate_opt;
-#endif
 
 /*
  * pmem_deep_flush -- flush processor cache for the given range
@@ -445,7 +220,7 @@ pmem_deep_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	Func_deep_flush(addr, len);
+	Funcs.deep_flush(addr, len);
 }
 
 /*
@@ -458,7 +233,7 @@ pmem_flush(const void *addr, size_t len)
 
 	VALGRIND_DO_CHECK_MEM_IS_ADDRESSABLE(addr, len);
 
-	Func_flush(addr, len);
+	Funcs.flush(addr, len);
 }
 
 /*
@@ -542,15 +317,6 @@ is_pmem_never(const void *addr, size_t len)
 }
 
 /*
- * pmem_is_pmem() calls through Func_is_pmem to do the work.  Although
- * initialized to is_pmem_never(), once the existence of the clflush
- * feature is confirmed by pmem_init() at library initialization time,
- * Func_is_pmem is set to is_pmem_detect().  That's the most common case
- * on modern hardware.
- */
-static int (*Func_is_pmem)(const void *addr, size_t len) = is_pmem_never;
-
-/*
  * pmem_is_pmem_init -- (internal) initialize Func_is_pmem pointer
  *
  * This should be done only once - on the first call to pmem_is_pmem().
@@ -583,14 +349,17 @@ pmem_is_pmem_init(void)
 			int val = atoi(ptr);
 
 			if (val == 0)
-				Func_is_pmem = is_pmem_never;
+				Funcs.is_pmem = is_pmem_never;
 			else if (val == 1)
-				Func_is_pmem = is_pmem_always;
+				Funcs.is_pmem = is_pmem_always;
 
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Func_is_pmem);
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Funcs.is_pmem);
 
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
+
+		if (Funcs.is_pmem == NULL)
+			Funcs.is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
 			FATAL("util_bool_compare_and_swap32");
@@ -613,8 +382,8 @@ pmem_is_pmem(const void *addr, size_t len)
 		util_fetch_and_add32(&once, 1);
 	}
 
-	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Func_is_pmem);
-	return Func_is_pmem(addr, len);
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Funcs.is_pmem);
+	return Funcs.is_pmem(addr, len);
 }
 
 #define PMEM_FILE_ALL_FLAGS\
@@ -819,257 +588,6 @@ pmem_unmap(void *addr, size_t len)
 }
 
 /*
- * memmove_nodrain_normal -- (internal) memmove to pmem without hw drain
- */
-static void *
-memmove_nodrain_normal(void *pmemdest, const void *src, size_t len)
-{
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-
-	memmove(pmemdest, src, len);
-	pmem_flush(pmemdest, len);
-	return pmemdest;
-}
-
-#ifndef __aarch64__
-/*
- * memmove_nodrain_movnt -- (internal) memmove to pmem without hw drain, movnt
- */
-static void *
-memmove_nodrain_movnt(void *pmemdest, const void *src, size_t len)
-{
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
-	__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-	size_t i;
-	__m128i *d;
-	__m128i *s;
-	void *dest1 = pmemdest;
-	size_t cnt;
-
-	if (len == 0 || src == pmemdest)
-		return pmemdest;
-
-	if (len < Movnt_threshold) {
-		memmove(pmemdest, src, len);
-		pmem_flush(pmemdest, len);
-		return pmemdest;
-	}
-
-	if ((uintptr_t)dest1 - (uintptr_t)src >= len) {
-		/*
-		 * Copy the range in the forward direction.
-		 *
-		 * This is the most common, most optimized case, used unless
-		 * the overlap specifically prevents it.
-		 */
-
-		/* copy up to FLUSH_ALIGN boundary */
-		cnt = (uint64_t)dest1 & ALIGN_MASK;
-		if (cnt > 0) {
-			cnt = FLUSH_ALIGN - cnt;
-
-			/* never try to copy more the len bytes */
-			if (cnt > len)
-				cnt = len;
-
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
-			for (i = 0; i < cnt; i++) {
-				*d8 = *s8;
-				d8++;
-				s8++;
-			}
-			pmem_flush(dest1, cnt);
-			dest1 = (char *)dest1 + cnt;
-			src = (char *)src + cnt;
-			len -= cnt;
-		}
-
-		d = (__m128i *)dest1;
-		s = (__m128i *)src;
-
-		cnt = len >> CHUNK_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			xmm0 = _mm_loadu_si128(s);
-			xmm1 = _mm_loadu_si128(s + 1);
-			xmm2 = _mm_loadu_si128(s + 2);
-			xmm3 = _mm_loadu_si128(s + 3);
-			xmm4 = _mm_loadu_si128(s + 4);
-			xmm5 = _mm_loadu_si128(s + 5);
-			xmm6 = _mm_loadu_si128(s + 6);
-			xmm7 = _mm_loadu_si128(s + 7);
-			s += 8;
-			_mm_stream_si128(d,	xmm0);
-			_mm_stream_si128(d + 1,	xmm1);
-			_mm_stream_si128(d + 2,	xmm2);
-			_mm_stream_si128(d + 3,	xmm3);
-			_mm_stream_si128(d + 4,	xmm4);
-			_mm_stream_si128(d + 5, xmm5);
-			_mm_stream_si128(d + 6,	xmm6);
-			_mm_stream_si128(d + 7,	xmm7);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-			d += 8;
-		}
-
-		/* copy the tail (<128 bytes) in 16 bytes chunks */
-		len &= CHUNK_MASK;
-		if (len != 0) {
-			cnt = len >> MOVNT_SHIFT;
-			for (i = 0; i < cnt; i++) {
-				xmm0 = _mm_loadu_si128(s);
-				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
-				s++;
-				d++;
-			}
-		}
-
-		/* copy the last bytes (<16), first dwords then bytes */
-		len &= MOVNT_MASK;
-		if (len != 0) {
-			cnt = len >> DWORD_SHIFT;
-			int32_t *d32 = (int32_t *)d;
-			int32_t *s32 = (int32_t *)s;
-			for (i = 0; i < cnt; i++) {
-				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-				d32++;
-				s32++;
-			}
-			cnt = len & DWORD_MASK;
-			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t *s8 = (uint8_t *)s32;
-
-			for (i = 0; i < cnt; i++) {
-				*d8 = *s8;
-				d8++;
-				s8++;
-			}
-			pmem_flush(d32, cnt);
-		}
-	} else {
-		/*
-		 * Copy the range in the backward direction.
-		 *
-		 * This prevents overwriting source data due to an
-		 * overlapped destination range.
-		 */
-
-		dest1 = (char *)dest1 + len;
-		src = (char *)src + len;
-
-		cnt = (uint64_t)dest1 & ALIGN_MASK;
-		if (cnt > 0) {
-			/* never try to copy more the len bytes */
-			if (cnt > len)
-				cnt = len;
-
-			uint8_t *d8 = (uint8_t *)dest1;
-			const uint8_t *s8 = (uint8_t *)src;
-			for (i = 0; i < cnt; i++) {
-				d8--;
-				s8--;
-				*d8 = *s8;
-			}
-			pmem_flush(d8, cnt);
-			dest1 = (char *)dest1 - cnt;
-			src = (char *)src - cnt;
-			len -= cnt;
-		}
-
-		d = (__m128i *)dest1;
-		s = (__m128i *)src;
-
-		cnt = len >> CHUNK_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			xmm0 = _mm_loadu_si128(s - 1);
-			xmm1 = _mm_loadu_si128(s - 2);
-			xmm2 = _mm_loadu_si128(s - 3);
-			xmm3 = _mm_loadu_si128(s - 4);
-			xmm4 = _mm_loadu_si128(s - 5);
-			xmm5 = _mm_loadu_si128(s - 6);
-			xmm6 = _mm_loadu_si128(s - 7);
-			xmm7 = _mm_loadu_si128(s - 8);
-			s -= 8;
-			_mm_stream_si128(d - 1, xmm0);
-			_mm_stream_si128(d - 2, xmm1);
-			_mm_stream_si128(d - 3, xmm2);
-			_mm_stream_si128(d - 4, xmm3);
-			_mm_stream_si128(d - 5, xmm4);
-			_mm_stream_si128(d - 6, xmm5);
-			_mm_stream_si128(d - 7, xmm6);
-			_mm_stream_si128(d - 8, xmm7);
-			d -= 8;
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-		}
-
-		/* copy the tail (<128 bytes) in 16 bytes chunks */
-		len &= CHUNK_MASK;
-		if (len != 0) {
-			cnt = len >> MOVNT_SHIFT;
-			for (i = 0; i < cnt; i++) {
-				d--;
-				s--;
-				xmm0 = _mm_loadu_si128(s);
-				_mm_stream_si128(d, xmm0);
-				VALGRIND_DO_FLUSH(d, sizeof(*d));
-			}
-		}
-
-		/* copy the last bytes (<16), first dwords then bytes */
-		len &= MOVNT_MASK;
-		if (len != 0) {
-			cnt = len >> DWORD_SHIFT;
-			int32_t *d32 = (int32_t *)d;
-			int32_t *s32 = (int32_t *)s;
-			for (i = 0; i < cnt; i++) {
-				d32--;
-				s32--;
-				_mm_stream_si32(d32, *s32);
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-			}
-
-			cnt = len & DWORD_MASK;
-			uint8_t *d8 = (uint8_t *)d32;
-			const uint8_t *s8 = (uint8_t *)s32;
-
-			for (i = 0; i < cnt; i++) {
-				d8--;
-				s8--;
-				*d8 = *s8;
-			}
-			pmem_flush(d8, cnt);
-		}
-	}
-
-	/*
-	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
-	 * to serialize non-temporal store instructions.  (It could be only
-	 * one drain after a sequence of pmem_*_nodrain calls).
-	 * However, on platforms that only support strongly-ordered CLFLUSH
-	 * for flushing the CPU cache (or that are forced to not use
-	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
-	 * the flush, so the pmem_drain() is a no-op function.  In such case,
-	 * we need to put a memory barrier here.
-	 */
-	if (Func_predrain_fence == predrain_fence_empty)
-		predrain_memory_barrier();
-
-	return pmemdest;
-}
-#endif
-
-/*
- * pmem_memmove_nodrain() calls through Func_memmove_nodrain to do the work.
- * Although initialized to memmove_nodrain_normal(), once the existence of the
- * sse2 feature is confirmed by pmem_init() at library initialization time,
- * Func_memmove_nodrain is set to memmove_nodrain_movnt().  That's the most
- * common case on modern hardware that supports persistent memory.
- */
-static void *(*Func_memmove_nodrain)
-	(void *pmemdest, const void *src, size_t len) = memmove_nodrain_normal;
-
-/*
  * pmem_memmove_nodrain -- memmove to pmem without hw drain
  */
 void *
@@ -1077,7 +595,7 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 {
 	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
 
-	return Func_memmove_nodrain(pmemdest, src, len);
+	return Funcs.memmove_nodrain(pmemdest, src, len);
 }
 
 /*
@@ -1118,132 +636,6 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * memset_nodrain_normal -- (internal) memset to pmem without hw drain, normal
- */
-static void *
-memset_nodrain_normal(void *pmemdest, int c, size_t len)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
-
-	memset(pmemdest, c, len);
-	pmem_flush(pmemdest, len);
-	return pmemdest;
-}
-
-/*
- * memset_nodrain_movnt -- (internal) memset to pmem without hw drain, movnt
- */
-#ifndef __aarch64__
-static void *
-memset_nodrain_movnt(void *pmemdest, int c, size_t len)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
-
-	size_t i;
-	void *dest1 = pmemdest;
-	size_t cnt;
-	__m128i xmm0;
-	__m128i *d;
-
-	if (len < Movnt_threshold) {
-		memset(pmemdest, c, len);
-		pmem_flush(pmemdest, len);
-		return pmemdest;
-	}
-
-	/* memset up to the next FLUSH_ALIGN boundary */
-	cnt = (uint64_t)dest1 & ALIGN_MASK;
-	if (cnt != 0) {
-		cnt = FLUSH_ALIGN - cnt;
-
-		if (cnt > len)
-			cnt = len;
-
-		memset(dest1, c, cnt);
-		pmem_flush(dest1, cnt);
-		len -= cnt;
-		dest1 = (char *)dest1 + cnt;
-	}
-
-	xmm0 = _mm_set1_epi8((char)c);
-
-	d = (__m128i *)dest1;
-	cnt = len / CHUNK_SIZE;
-	if (cnt != 0) {
-		for (i = 0; i < cnt; i++) {
-			_mm_stream_si128(d, xmm0);
-			_mm_stream_si128(d + 1, xmm0);
-			_mm_stream_si128(d + 2, xmm0);
-			_mm_stream_si128(d + 3, xmm0);
-			_mm_stream_si128(d + 4, xmm0);
-			_mm_stream_si128(d + 5, xmm0);
-			_mm_stream_si128(d + 6, xmm0);
-			_mm_stream_si128(d + 7, xmm0);
-			VALGRIND_DO_FLUSH(d, 8 * sizeof(*d));
-			d += 8;
-		}
-	}
-	/* memset the tail (<128 bytes) in 16 bytes chunks */
-	len &= CHUNK_MASK;
-	if (len != 0) {
-		cnt = len >> MOVNT_SHIFT;
-		for (i = 0; i < cnt; i++) {
-			_mm_stream_si128(d, xmm0);
-			VALGRIND_DO_FLUSH(d, sizeof(*d));
-			d++;
-		}
-	}
-
-	/* memset the last bytes (<16), first dwords then bytes */
-	len &= MOVNT_MASK;
-	if (len != 0) {
-		int32_t *d32 = (int32_t *)d;
-		cnt = len >> DWORD_SHIFT;
-		if (cnt != 0) {
-			for (i = 0; i < cnt; i++) {
-				_mm_stream_si32(d32,
-					_mm_cvtsi128_si32(xmm0));
-				VALGRIND_DO_FLUSH(d32, sizeof(*d32));
-				d32++;
-			}
-		}
-
-		/* at this point the cnt < 16 so use memset */
-		cnt = len & DWORD_MASK;
-		if (cnt != 0) {
-			memset((void *)d32, c, cnt);
-			pmem_flush(d32, cnt);
-		}
-	}
-
-	/*
-	 * The call to pmem_*_nodrain() should be followed by pmem_drain()
-	 * to serialize non-temporal store instructions.  (It could be only
-	 * one drain after a sequence of pmem_*_nodrain calls).
-	 * However, on platforms that only support strongly-ordered CLFLUSH
-	 * for flushing the CPU cache (or that are forced to not use
-	 * CLWB/CLFLUSHOPT) there is no need to put any memory barrier after
-	 * the flush, so the pmem_drain() is a no-op function.  In such case,
-	 * we need to put a memory barrier here.
-	 */
-	if (Func_predrain_fence == predrain_fence_empty)
-		predrain_memory_barrier();
-
-	return pmemdest;
-}
-#endif
-
-/*
- * pmem_memset_nodrain() calls through Func_memset_nodrain to do the work.
- * Although initialized to memset_nodrain_normal(), once the existence of the
- * sse2 feature is confirmed by pmem_init() at library initialization time,
- * Func_memset_nodrain is set to memset_nodrain_movnt().  That's the most
- * common case on modern hardware that supports persistent memory.
- */
-static void *(*Func_memset_nodrain)
-	(void *pmemdest, int c, size_t len) = memset_nodrain_normal;
-
-/*
  * pmem_memset_nodrain -- memset to pmem without hw drain
  */
 void *
@@ -1251,7 +643,7 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
 
-	return Func_memset_nodrain(pmemdest, c, len);
+	return Funcs.memset_nodrain(pmemdest, c, len);
 }
 
 /*
@@ -1268,87 +660,6 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 }
 
 /*
- * pmem_log_cpuinfo -- log the results of cpu dispatching decisions,
- * and verify them
- */
-static void
-pmem_log_cpuinfo(void)
-{
-	LOG(3, NULL);
-
-#ifndef __aarch64__
-	if (Func_deep_flush == flush_dcache)
-		LOG(3, "using clwb");
-	else if (Func_deep_flush == flush_dcache_invalidate_opt)
-		LOG(3, "using clflushopt");
-	else if (Func_deep_flush == flush_dcache_invalidate)
-		LOG(3, "using clflush");
-	else
-		FATAL("invalid deep flush function address");
-
-	if (Func_flush == flush_empty)
-		LOG(3, "not flushing CPU cache");
-	else if (Func_flush != Func_deep_flush)
-		FATAL("invalid flush function address");
-
-#else
-	if (Func_deep_flush == flush_dcache)
-		LOG(3, "Using ARM invalidate");
-	else if (Func_deep_flush == flush_dcache_invalidate_opt)
-		LOG(3, "Synchronize VA to poc for ARM");
-	else
-		FATAL("invalid flush function address");
-#endif
-
-	if (Func_memmove_nodrain == memmove_nodrain_normal)
-		LOG(3, "not using movnt");
-#ifndef __aarch64__
-	else if (Func_memmove_nodrain == memmove_nodrain_movnt)
-		LOG(3, "using movnt");
-#endif
-	else
-		FATAL("invalid memove_nodrain function address");
-}
-
-/*
- * pmem_get_cpuinfo -- configure libpmem based on CPUID
- */
-static void
-pmem_get_cpuinfo(void)
-{
-	LOG(3, NULL);
-
-	if (is_cpu_clflush_present()) {
-		Func_is_pmem = is_pmem_detect;
-		LOG(3, "clflush supported");
-	}
-
-	if (is_cpu_clflushopt_present()) {
-		LOG(3, "clflushopt supported");
-
-		char *e = os_getenv("PMEM_NO_CLFLUSHOPT");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
-		else {
-			Func_deep_flush = flush_dcache_invalidate_opt;
-			Func_predrain_fence = predrain_memory_barrier;
-		}
-	}
-
-	if (is_cpu_clwb_present()) {
-		LOG(3, "clwb supported");
-
-		char *e = os_getenv("PMEM_NO_CLWB");
-		if (e && strcmp(e, "1") == 0)
-			LOG(3, "PMEM_NO_CLWB forced no clwb");
-		else {
-			Func_deep_flush = flush_dcache;
-			Func_predrain_fence = predrain_memory_barrier;
-		}
-	}
-}
-
-/*
  * pmem_init -- load-time initialization for pmem.c
  */
 void
@@ -1356,66 +667,8 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
-	pmem_get_cpuinfo();
-
-	Func_flush = Func_deep_flush;
-
-	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && strcmp(e, "1") == 0) {
-		LOG(3, "forced not flushing CPU cache");
-		Func_flush = flush_empty;
-		Func_predrain_fence = predrain_memory_barrier;
-	}
-
-	/*
-	 * XXX - check if eADR is available
-	 * replace with pmem_auto_flush()
-	 */
-	char *auto_flush = os_getenv("PMEM_NO_FLUSH");
-	if (auto_flush && strcmp(auto_flush, "1") == 0) {
-		LOG(3, "eADR is available");
-		Func_flush = flush_empty;
-		Func_predrain_fence = predrain_memory_barrier;
-	}
-
-/*
- * non-temporal is currently not supported in ARM so defaulting to
- * memcpy_nodrain_normal
- */
-#ifndef __aarch64__
-	/*
-	 * For testing, allow overriding the default threshold
-	 * for using non-temporal stores in pmem_memcpy_*(), pmem_memmove_*()
-	 * and pmem_memset_*().
-	 * It has no effect if movnt is not supported or disabled.
-	 */
-	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
-	if (ptr) {
-		long long val = atoll(ptr);
-
-		if (val < 0)
-			LOG(3, "Invalid PMEM_MOVNT_THRESHOLD");
-		else {
-			LOG(3, "PMEM_MOVNT_THRESHOLD set to %zu", (size_t)val);
-			Movnt_threshold = (size_t)val;
-		}
-	}
-
-	ptr = os_getenv("PMEM_NO_MOVNT");
-	if (ptr && strcmp(ptr, "1") == 0)
-		LOG(3, "PMEM_NO_MOVNT forced no movnt");
-	else {
-		Func_memmove_nodrain = memmove_nodrain_movnt;
-		Func_memset_nodrain = memset_nodrain_movnt;
-	}
-#endif
-	pmem_log_cpuinfo();
-
-#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
-	Func_qvmi = (PQVM)GetProcAddress(
-			GetModuleHandle(TEXT("KernelBase.dll")),
-			"QueryVirtualMemoryInformation");
-#endif
+	pmem_init_funcs(&Funcs);
+	pmem_os_init();
 }
 
 /*

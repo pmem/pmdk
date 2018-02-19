@@ -152,6 +152,13 @@ ifneq ($(TESTBUILD), 1)
 $(error "$(TESTCMD)" failed)
 endif
 
+ARCH := $(call get_arch)
+ifneq ($(ARCH), x86_64)
+ifneq ($(ARCH), aarch64)
+$(error unsupported architecture: $(ARCH))
+endif
+endif
+
 LP64 := $(shell $(CC) $(CFLAGS) -dM -E -x c /dev/null | grep -Ec "__SIZEOF_LONG__.+8|__SIZEOF_POINTER__.+8" )
 ifneq ($(LP64), 2)
 $(error $(arch32_error_msg))

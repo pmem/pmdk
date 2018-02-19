@@ -121,9 +121,15 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 	UT_ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2))
-		UT_ERR("%s: %zu bytes do not match with memcmp",
+	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2)) {
+		for (int i = 0; i < bytes / 2; ++i)
+			UT_ERR("%d 0x%02x 0x%02x %s", i, *(src1 + src_off + i),
+					*(dest + dest_off + i),
+					*(src1 + src_off + i) !=
+					*(dest + dest_off + i) ? "!!!" : "");
+		UT_FATAL("%s: %zu bytes do not match with memcmp",
 			file_name, bytes / 2);
+	}
 
 	/*
 	 * This is a special case. An overlapping dest means that
@@ -138,14 +144,14 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 		LSEEK(fd, (os_off_t)dest_off + off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
-				UT_ERR("%s: first %zu bytes do not match",
+				UT_FATAL("%s: first %zu bytes do not match",
 					file_name, bytes / 2);
 		}
 	} else {
 		LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
 		if (READ(fd, buf, bytes / 2) == bytes / 2) {
 			if (memcmp(src1 + src_off, buf, bytes / 2))
-				UT_ERR("%s: first %zu bytes do not match",
+				UT_FATAL("%s: first %zu bytes do not match",
 					file_name, bytes / 2);
 		}
 	}
@@ -171,7 +177,17 @@ main(int argc, char *argv[])
 	os_off_t overlap = 0;
 	size_t mapped_len;
 
-	START(argc, argv, "pmem_memmove");
+	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
+	const char *avx = getenv("PMEM_AVX");
+	const char *avx512f = getenv("PMEM_AVX512F");
+
+	START(argc, argv, "pmem_memmove %s %s %s %s %savx %savx512f",
+			argc > 2 ? argv[2] : "null",
+			argc > 3 ? argv[3] : "null",
+			argc > 4 ? argv[4] : "null",
+			thr ? thr : "default",
+			avx ? "" : "!",
+			avx512f ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
 
@@ -244,7 +260,7 @@ main(int argc, char *argv[])
 		if (src <= dest) {
 			swap_mappings(&dest, &src, mapped_len, fd);
 			if (src <= dest)
-				UT_ERR("cannot map files in memory order");
+				UT_FATAL("cannot map files in memory order");
 		}
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
@@ -254,7 +270,7 @@ main(int argc, char *argv[])
 		swap_mappings(&dest, &src, mapped_len, fd);
 
 		if (dest <= src)
-			UT_ERR("cannot map files in memory order");
+			UT_FATAL("cannot map files in memory order");
 
 		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
 			bytes);

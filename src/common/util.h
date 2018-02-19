@@ -122,6 +122,12 @@ void util_set_alloc_funcs(
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #endif
 
+#ifdef _MSC_VER
+#define force_inline inline __forceinline
+#else
+#define force_inline __attribute__((always_inline)) inline
+#endif
+
 /*
  * util_setbit -- setbit macro substitution which properly deals with types
  */
@@ -145,6 +151,15 @@ util_clrbit(uint8_t *b, uint32_t i)
 
 #define util_flag_isset(a, f) ((a) & (f))
 #define util_flag_isclr(a, f) (((a) & (f)) == 0)
+
+/*
+ * util_is_pow2 -- returns !0 when there's only 1 bit set in v, 0 otherwise
+ */
+static force_inline int
+util_is_pow2(uint64_t v)
+{
+	return v && !(v & (v - 1));
+}
 
 /*
  * util_bool_compare_and_swap -- perform an atomic compare and swap

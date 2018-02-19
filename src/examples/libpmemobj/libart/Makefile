@@ -1,6 +1,6 @@
 #
 # Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,8 +47,15 @@
 # ===========================================================================
 #
 
+include ../../../common.inc
+
+ARCH := $(call get_arch)
+
+ifeq ($(ARCH), x86_64)
+# libart uses x86 intrinsics
 PROGS = arttree examine_arttree
 LIBRARIES = art
+endif
 
 LIBS = -lpmemobj
 

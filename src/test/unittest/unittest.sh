@@ -944,6 +944,16 @@ function require_procfs() {
 	exit 0
 }
 
+function get_arch() {
+	gcc -dumpmachine | awk -F'[/-]' '{print $1}'
+}
+
+function require_x86_64() {
+	[ $(get_arch) = "x86_64" ] && return
+	msg "$UNITTEST_NAME: SKIP: Not supported on arch != x86_64"
+	exit 0
+}
+
 #
 # require_test_type -- only allow script to continue for a certain test type
 #
@@ -2237,6 +2247,13 @@ function check_local() {
 }
 
 #
+# match -- execute match
+#
+function match() {
+	../match $@
+}
+
+#
 # check -- check local or remote test results (using .match files)
 #
 function check() {
@@ -2272,7 +2289,7 @@ function check() {
 		done
 
 		if [ -n "$FILES" ]; then
-			../match $option $FILES
+			match $option $FILES
 		fi
 	fi
 }

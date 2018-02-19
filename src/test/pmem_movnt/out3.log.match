@@ -1,3 +1,0 @@
-pmem_movnt$(nW)TEST3: START: pmem_movnt
- $(nW)pmem_movnt$(nW)
-pmem_movnt$(nW)TEST3: DONE
