@@ -193,6 +193,18 @@ If you want to build packages without running tests, run:
 ```
 **DEPENDENCIES:** devscripts
 
+If you want to invoke make with the same variables multiple times, you can
+create user.mk file in the top level directory and put all variables there.
+For example:
+```
+	$ cat user.mk
+	EXTRA_CFLAGS_RELEASE = -ggdb -fno-omit-frame-pointer
+	PATH += :$HOME/valgrind/bin
+```
+This feature is intended to be used only by developers and it may not work for
+all variables. Please do not file bug reports about it. Just fix it and make
+a PR.
+
 ><sup>5</sup> For FreeBSD, use `gmake` rather than `make`.
 >
 ><sup>6</sup> By default all code is built with the -Werror flag, which fails

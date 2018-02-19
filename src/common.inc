@@ -33,13 +33,18 @@
 
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
+# import user variables
+ifneq ($(wildcard $(TOP)/user.mk),)
+include $(TOP)/user.mk
+endif
+
 LN = ln
 OBJCOPY ?= objcopy
 MKDIR = mkdir
 INSTALL = install
 CP = cp
 CSTYLE = $(TOP)/utils/cstyle
-CSTYLEON = 0
+CSTYLEON ?= 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 CHECK_SHEBANG = $(TOP)/utils/check-shebang.sh
 CHECK_OS = $(TOP)/utils/check-os.sh
