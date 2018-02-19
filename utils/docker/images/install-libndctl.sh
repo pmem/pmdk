@@ -36,7 +36,7 @@
 
 set -e
 
-git clone -b pending https://github.com/pmem/ndctl.git
+git clone -b v59.2 https://github.com/pmem/ndctl.git
 cd ndctl
 ./autogen.sh
 ./configure
