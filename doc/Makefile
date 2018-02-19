@@ -65,7 +65,7 @@ MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmem
 
 
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 \
-		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_unmap.3 \
+		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_deep_flush.3 pmem_deep_drain.3 pmem_unmap.3 \
 		   pmem_memcpy_persist.3 pmem_memset_persist.3 pmem_memmove_nodrain.3 pmem_memcpy_nodrain.3 pmem_memset_nodrain.3 \
 		   pmem_check_version.3 pmem_errormsg.3 \
 		   pmemblk_nblock.3 \
@@ -133,7 +133,9 @@ MANPAGES_7_MD += librpmem/librpmem.7.md
 MANPAGES_3_MD += librpmem/rpmem_create.3.md
 MANPAGES_3_MD += librpmem/rpmem_persist.3.md
 MANPAGES_1_MD += rpmemd/rpmemd.1.md
-MANPAGES_3_DUMMY += rpmem_open.3 rpmem_set_attr.3 rpmem_close.3 rpmem_read.3 rpmem_remove.3 rpmem_check_version.3 rpmem_errormsg.3
+MANPAGES_3_DUMMY += rpmem_open.3 rpmem_set_attr.3 rpmem_close.3 \
+		    rpmem_read.3 rpmem_remove.3 rpmem_check_version.3 \
+		    rpmem_errormsg.3 rpmem_deep_persist.3
 endif
 
 MANPAGES_7_GROFF = $(MANPAGES_7_MD:.7.md=.7)
