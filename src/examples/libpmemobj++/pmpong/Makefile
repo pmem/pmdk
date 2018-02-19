@@ -39,7 +39,7 @@ FONTDIR=/usr/local/share/fonts
 else
 FONTDIR=/usr/share/fonts
 endif
-PROGS = pmpong $(shell find $(FONTDIR) -name *.ttf | head -n 1 >| fontConf $<)
+PROGS = pmpong
 else
 $(info NOTE: Skipping pmpong because sfml is missing \
 -- see src/examples/libpmemobj/pmpong/README for details.)
@@ -63,3 +63,8 @@ rm-fontconf:
 clobber: rm-fontconf
 
 clean: rm-fontconf
+
+fontConf:
+	find $(FONTDIR) -name *.ttf | head -n 1 > fontConf
+
+all: fontConf
