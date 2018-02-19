@@ -269,6 +269,7 @@ RPMEM_TESTS = \
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\
+	vmem_aligned_alloc_lazy\
 	vmem_calloc\
 	vmem_check_allocations\
 	vmem_check_version\

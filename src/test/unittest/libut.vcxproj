@@ -17,6 +17,7 @@
     <ClCompile Include="..\unittest\ut_alloc.c" />
     <ClCompile Include="..\unittest\ut_file.c" />
     <ClCompile Include="ut_backtrace.c" />
+    <ClCompile Include="ut_lazy_load.c" />
     <ClCompile Include="ut_signal.c" />
     <ClCompile Include="ut_pthread.c" />
   </ItemGroup>

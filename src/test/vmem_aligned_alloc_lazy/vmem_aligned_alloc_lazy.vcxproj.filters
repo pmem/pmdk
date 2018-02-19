@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Tests Scripts</Filter>
+    </None>
+    <None Include="TEST1.PS1">
+      <Filter>Tests Scripts</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Tests Scripts">
+      <UniqueIdentifier>{e9faa074-f7a9-4c1a-823b-d80bea67f96a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{0715b1f5-327e-4f53-97dc-39273ebdd0d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{238d55a7-559d-4392-b772-bc0aa45b6948}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\vmem_aligned_alloc\vmem_aligned_alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vmem_aligned_alloc\vmem_lazy_loading.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\vmem_aligned_alloc\vmem_lazy_loading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

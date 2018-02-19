@@ -42,6 +42,7 @@ vpath %.h $(TOP)/src/common
 
 TARGET = libut.a
 OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
+	ut_lazy_load.o\
 	os_posix.o os_thread_posix.o
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
