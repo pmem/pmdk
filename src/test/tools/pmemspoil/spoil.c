@@ -121,6 +121,7 @@ default:\
 	break;\
 }
 
+/* _max - size of _arg if it is array (if not it must be 1) */
 #define PROCESS(_name, _arg, _max, _type) do {\
 if (pmemspoil_check_field(_pfp, STR(_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
@@ -136,6 +137,7 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 }\
 } while (0)
 
+/* _max - size of _arg if it is array (if not it must be 1) */
 #define PROCESS_NAME(_name, _func, _arg, _max) do {\
 if (pmemspoil_check_field(_pfp, (_name))) {\
 	PROCESS_STATE = PROCESS_STATE_FOUND;\
@@ -271,6 +273,7 @@ struct checksum_args {
 	void *ptr;
 	size_t len;
 	void *checksum;
+	size_t skip_off;
 };
 
 /*
@@ -699,8 +702,37 @@ static int
 pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, struct checksum_args args)
 {
-	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum, 1, 0);
+	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum,
+		1, args.skip_off);
 	return 0;
+}
+
+/*
+ * pmemspoil_process_shutdown_state -- process shutdown_state fields
+ */
+static int
+pmemspoil_process_shutdown_state(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, void *arg)
+{
+	struct shutdown_state *sds = arg;
+	PROCESS_BEGIN(psp, pfp) {
+		struct checksum_args checksum_args = {
+			.ptr = sds,
+			.len = sizeof(*sds),
+			.checksum = &sds->checksum,
+			.skip_off = 0,
+		};
+
+		PROCESS_FIELD_LE(sds, usc, uint64_t);
+		PROCESS_FIELD_LE(sds, uuid, uint64_t);
+		PROCESS_FIELD_LE(sds, dirty, uint64_t);
+		PROCESS_FIELD(sds, reserved, char);
+		PROCESS_FIELD_LE(sds, checksum, uint64_t);
+
+		PROCESS_FUNC("checksum_gen", checksum_gen, checksum_args);
+	} PROCESS_END;
+
+	return PROCESS_RET;
 }
 
 /*
@@ -719,6 +751,7 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 			.ptr = &pool_hdr,
 			.len = sizeof(pool_hdr),
 			.checksum = &pool_hdr.checksum,
+			.skip_off = POOL_HDR_CSUM_END_OFF,
 		};
 
 		PROCESS_FIELD(&pool_hdr, signature, char);
@@ -729,19 +762,23 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		PROCESS_FIELD(&pool_hdr, prev_repl_uuid, char);
 		PROCESS_FIELD(&pool_hdr, next_repl_uuid, char);
 		PROCESS_FIELD(&pool_hdr, unused, char);
+		PROCESS_FIELD(&pool_hdr, unused2, char);
 		PROCESS_FIELD_LE(&pool_hdr, major, uint32_t);
 		PROCESS_FIELD_LE(&pool_hdr, compat_features, uint32_t);
 		PROCESS_FIELD_LE(&pool_hdr, incompat_features, uint32_t);
 		PROCESS_FIELD_LE(&pool_hdr, ro_compat_features, uint32_t);
 		PROCESS_FIELD_LE(&pool_hdr, crtime, uint64_t);
 		PROCESS_FIELD(&pool_hdr, arch_flags, char); /* XXX */
+		PROCESS(shutdown_state, &pool_hdr.sds, 1,
+			struct shutdown_state *);
 		PROCESS_FIELD_LE(&pool_hdr, checksum, uint64_t);
 
 		PROCESS_FUNC("checksum_gen", checksum_gen, checksum_args);
 	} PROCESS_END
 
 	if (PROCESS_STATE == PROCESS_STATE_FIELD ||
-	    PROCESS_STATE == PROCESS_STATE_FUNC) {
+	    PROCESS_STATE == PROCESS_STATE_FUNC ||
+	    PROCESS_STATE == PROCESS_STATE_FOUND) {
 		if (pmemspoil_write(psp, &pool_hdr, sizeof(pool_hdr), 0))
 			return -1;
 	}
@@ -1257,6 +1294,7 @@ pmemspoil_process_pmemobj(struct pmemspoil *psp,
 			.ptr = pop,
 			.len = OBJ_DSC_P_SIZE,
 			.checksum = &pop->checksum,
+			.skip_off = 0,
 		};
 
 		PROCESS_FIELD(pop, layout, char);

@@ -2360,10 +2360,12 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
  *                             pool set file
  */
 static int
-util_header_check_remote(struct pool_replica *rep, unsigned partidx)
+util_header_check_remote(struct pool_set *set, unsigned partidx)
 {
-	LOG(3, "rep %p partidx %u ", rep, partidx);
+	LOG(3, "set %p partidx %u ", set, partidx);
 
+	/* there is only one replica in remote poolset */
+	struct pool_replica *rep = set->replica[0];
 	/* opaque info lives at the beginning of mapped memory pool */
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
 	struct pool_hdr hdr;
@@ -2455,6 +2457,25 @@ util_header_check_remote(struct pool_replica *rep, unsigned partidx)
 		errno = EINVAL;
 		return -1;
 	}
+
+	if (!set->ignore_sds && partidx == 0) {
+		struct shutdown_state sds;
+		shutdown_state_init(&sds, NULL);
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			if (shutdown_state_add_part(&sds,
+					PART(rep, p).path, NULL))
+				return -1;
+		}
+
+		if (shutdown_state_check(&sds, &hdrp->sds,
+				&PART(rep, 0))) {
+			errno = EINVAL;
+			return -1;
+		}
+
+		shutdown_state_set_flag(&hdrp->sds, &PART(rep, 0));
+	}
+
 
 	rep->part[partidx].rdonly = 0;
 
@@ -3496,7 +3517,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			errno = EINVAL;
 			return -1;
 		}
-		if (!set->ignore_sds && !rep->remote) {
+		if (!set->ignore_sds && !rep->remote && rep->nhdrs) {
 			struct shutdown_state sds;
 			shutdown_state_init(&sds, NULL);
 			for (unsigned p = 0; p < rep->nparts; p++) {
@@ -3723,7 +3744,7 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 
 	/* check headers, check UUID's, check replicas linkage */
 	for (unsigned p = 0; p < rep->nhdrs; p++) {
-		if (util_header_check_remote(rep, p) != 0) {
+		if (util_header_check_remote(set, p) != 0) {
 			LOG(2, "header check failed - part #%d", p);
 			goto err_replica;
 		}

@@ -185,8 +185,8 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 	}
 
 	bool is_uuid_usc_correct =
-		htole64(pool_sds->usc) == htole64(curr_sds->usc) &&
-		htole64(pool_sds->uuid) == htole64(curr_sds->uuid);
+		le64toh(pool_sds->usc) == le64toh(curr_sds->usc) &&
+		le64toh(pool_sds->uuid) == le64toh(curr_sds->uuid);
 
 	bool is_checksum_correct = util_checksum(pool_sds,
 		sizeof(*pool_sds), &pool_sds->checksum, 0, 0);

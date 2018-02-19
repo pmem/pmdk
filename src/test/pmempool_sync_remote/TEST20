@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,19 +29,34 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# install-libndctl.sh - installs libndctl
 #
+# pmempool_sync_remote/TEST20 -- pmempool sync with remote replication
+#
+export UNITTEST_NAME=pmempool_sync_remote/TEST20
+export UNITTEST_NUM=20
 
-set -e
+# standard unit test setup
+. ../unittest/unittest.sh
 
-git clone https://github.com/pmem/ndctl.git
-cd ndctl
-git checkout tags/v59.2
-./autogen.sh
-./configure
-make
-make install
-cd ..
-rm -rf ndctl
+require_test_type medium
+
+. common.sh
+
+setup
+
+configure_poolsets 0 1
+
+run_on_node 1 ../pmemspoil  ${NODE_DIR[1]}pool.part.1 \
+				   pool_hdr.shutdown_state.usc=999 \
+				   pool_hdr.shutdown_state.dirty=1 \
+				   "pool_hdr.shutdown_state.checksum_gen\(\)"
+
+run_on_node 0 ../pmemspoil ${NODE_DIR[0]}remote.0.part.1 \
+				   pool_hdr.shutdown_state.usc=999 \
+				   pool_hdr.shutdown_state.dirty=1 \
+				   "pool_hdr.shutdown_state.checksum_gen\(\)"
+
+expect_abnormal_exit run_on_node 1 "../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL 2> /dev/null"
+
+pass
