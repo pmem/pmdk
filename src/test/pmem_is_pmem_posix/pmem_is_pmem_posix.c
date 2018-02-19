@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len, NULL,
+			ret = util_range_register(addr, len, "",
 					str2type(argv[i + 3]));
 			UT_ASSERTeq(ret, 0);
 			i += 4;
