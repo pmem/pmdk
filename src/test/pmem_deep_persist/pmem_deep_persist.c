@@ -48,6 +48,7 @@
 #include "file.h"
 #include "set.h"
 #include "obj.h"
+#include "valgrind_internal.h"
 #define LAYOUT_NAME "deep_persist"
 
 int
@@ -109,6 +110,7 @@ main(int argc, char *argv[])
 
 			void *start = (void *)((uintptr_t)pop + offset);
 			int flush = 1;
+			VALGRIND_DO_MAKE_MEM_DEFINED(start, persist_size);
 			ret = util_replica_deep_common(start, persist_size,
 					pop->set, 0, flush);
 			pmemobj_close(pop);
