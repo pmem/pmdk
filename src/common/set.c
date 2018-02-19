@@ -300,7 +300,7 @@ enum parser_codes {
 	PARSER_CONTINUE = 0,
 	PARSER_PMEMPOOLSET,
 	PARSER_REPLICA,
-	PARSER_SIZE_PATH_EXPECTED,
+	PARSER_INVALID_TOKEN,
 	PARSER_REMOTE_REPLICA_EXPECTED,
 	PARSER_WRONG_SIZE,
 	PARSER_ABSOLUTE_PATH_EXPECTED,
@@ -319,7 +319,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"", /* parsing */
 	"the first line must be exactly 'PMEMPOOLSET'",
 	"exactly 'REPLICA' expected",
-	"size and path expected",
+	"invalid token found in the current line",
 	"address of remote node and descriptor of remote pool set expected",
 	"incorrect format of size",
 	"incorrect path (must be an absolute one)",
@@ -748,7 +748,7 @@ parser_read_line(char *line, size_t *size, char **path)
 	path_str = strtok_r(NULL, " \t", &saveptr);
 
 	if (!size_str || !path_str)
-		return PARSER_SIZE_PATH_EXPECTED;
+		return PARSER_INVALID_TOKEN;
 
 	LOG(10, "size '%s' path '%s'", size_str, path_str);
 
