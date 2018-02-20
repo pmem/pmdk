@@ -102,8 +102,12 @@
 typedef void (*persist_local_fn)(const void *, size_t);
 typedef void (*flush_local_fn)(const void *, size_t);
 typedef void (*drain_local_fn)(void);
-typedef void *(*memcpy_local_fn)(void *dest, const void *src, size_t len);
-typedef void *(*memset_local_fn)(void *dest, int c, size_t len);
+
+typedef void *(*memcpy_local_fn)(void *dest, const void *src, size_t len,
+		unsigned flags);
+typedef void *(*memmove_local_fn)(void *dest, const void *src, size_t len,
+		unsigned flags);
+typedef void *(*memset_local_fn)(void *dest, int c, size_t len, unsigned flags);
 
 typedef void *(*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
 					size_t len, unsigned lane);
@@ -164,8 +168,9 @@ struct pmemobjpool {
 	persist_local_fn persist_local;	/* persist function */
 	flush_local_fn flush_local;	/* flush function */
 	drain_local_fn drain_local;	/* drain function */
-	memcpy_local_fn memcpy_persist_local; /* persistent memcpy function */
-	memset_local_fn memset_persist_local; /* persistent memset function */
+	memcpy_local_fn memcpy_local; /* persistent memcpy function */
+	memmove_local_fn memmove_local; /* persistent memmove function */
+	memset_local_fn memset_local; /* persistent memset function */
 
 	/* for 'master' replica: with or without data replication */
 	struct pmem_ops p_ops;
@@ -197,7 +202,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[1004];
+	char unused2[984];
 };
 
 /*
