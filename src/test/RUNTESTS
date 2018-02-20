@@ -128,6 +128,7 @@ runtest_local() {
 		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
 		if [ "$keep_going" == "y" ]; then
 			keep_going_exit_code=1
+			keep_going_skip=y
 			fail_list="$fail_list $RUNTEST_DIR/$RUNTEST_SCRIPT"
 			((fail_count+=1))
 
@@ -377,14 +378,18 @@ runtest() {
 					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
 					export TEMP_LOC=$temp_loc
 				fi
-
-				if [ -n "$provs" -a -n "$pmeths" ]; then
-					runtest_remote "$provs" "$pmeths"
-				else
-					runtest_local
+				# to not overwrite logs skip other tests from the group
+				# if KEEP_GOING=y and test fail
+				if [ "$keep_going_skip" == "n" ]; then
+					if [ -n "$provs" -a -n "$pmeths" ]; then
+						runtest_remote "$provs" "$pmeths"
+					else
+						runtest_local
+					fi
 				fi
 			done
 		done
+		keep_going_skip=n
 	done
 
 	cd ..
@@ -419,6 +424,7 @@ check_pool=0
 checktype="none"
 skip_dir=""
 keep_going=n
+keep_going_skip=n
 keep_going_exit_code=0
 fail_count=0
 fail_list=""
