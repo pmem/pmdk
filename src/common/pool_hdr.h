@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -116,8 +116,6 @@ struct pool_hdr {
 
 void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
-int util_convert_hdr(struct pool_hdr *hdrp);
-int util_convert_hdr_remote(struct pool_hdr *hdrp);
 int util_get_arch_flags(struct arch_flags *arch_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
