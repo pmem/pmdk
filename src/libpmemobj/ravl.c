@@ -494,38 +494,38 @@ ravl_node_predecessor(struct ravl_node *n)
  *	the current node in the search path
  *
  * If the predicate holds for the given node or a node that can be directly
- * derived from it, return the node. Otherwise returns NULL.
+ * derived from it, returns 1. Otherwise returns 0.
  */
-static struct ravl_node *
-ravl_predicate_holds(struct ravl *ravl, int result,
+static int
+ravl_predicate_holds(struct ravl *ravl, int result, struct ravl_node **ret,
 	struct ravl_node *n, const void *data, enum ravl_predicate flags)
 {
 	if (flags & RAVL_PREDICATE_EQUAL) {
-		if (result == 0)
-			return n;
+		if (result == 0) {
+			*ret = n;
+			return 1;
+		}
 	}
 	if (flags & RAVL_PREDICATE_GREATER) {
 		if (result < 0) { /* data < n->data */
-			/* if this is the first bigger value */
-			struct ravl_node *p = ravl_node_predecessor(n);
-			if (p == NULL || ravl->compare(data, ravl_data(p)) > 0)
-				return n;
+			*ret = n;
+			return 0;
 		} else if (result == 0) {
-			return ravl_node_successor(n);
+			*ret = ravl_node_successor(n);
+			return 1;
 		}
 	}
 	if (flags & RAVL_PREDICATE_LESS) {
 		if (result > 0) { /* data > n->data */
-			/* if this is the first smaller value */
-			struct ravl_node *s = ravl_node_successor(n);
-			if (s == NULL || ravl->compare(data, ravl_data(s)) < 0)
-				return n;
+			*ret = n;
+			return 0;
 		} else if (result == 0) {
-			return ravl_node_predecessor(n);
+			*ret = ravl_node_predecessor(n);
+			return 1;
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 /*
@@ -536,18 +536,17 @@ ravl_find(struct ravl *ravl, const void *data, enum ravl_predicate flags)
 {
 	LOG(6, NULL);
 
-	struct ravl_node *r;
+	struct ravl_node *r = NULL;
 	struct ravl_node *n = ravl->root;
 	while (n) {
 		int result = ravl->compare(data, ravl_data(n));
-		r = ravl_predicate_holds(ravl, result, n, data, flags);
-		if (r != NULL)
+		if (ravl_predicate_holds(ravl, result, &r, n, data, flags))
 			return r;
 
 		n = n->slots[result > 0];
 	}
 
-	return NULL;
+	return r;
 }
 
 /*
