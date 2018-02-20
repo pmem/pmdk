@@ -76,8 +76,8 @@ device_dax_size(const char *path)
 	}
 
 	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/size",
-		major(st.st_rdev), minor(st.st_rdev));
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
+		os_major(st.st_rdev), os_minor(st.st_rdev));
 
 	LOG(4, "device size path \"%s\"", spath);
 
@@ -155,8 +155,8 @@ util_fd_is_device_dax(int fd)
 	}
 
 	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/subsystem",
-		major(st.st_rdev), minor(st.st_rdev));
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/subsystem",
+		os_major(st.st_rdev), os_minor(st.st_rdev));
 
 	LOG(4, "device subsystem path \"%s\"", spath);
 

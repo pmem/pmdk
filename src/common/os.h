@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,6 +68,15 @@ extern "C" {
 /* dlopen() */
 #ifdef __FreeBSD__
 #define RTLD_DEEPBIND 0	/* XXX */
+#endif
+
+/* major(), minor() */
+#ifdef __FreeBSD__
+#define os_major (unsigned)major
+#define os_minor (unsigned)minor
+#else
+#define os_major major
+#define os_minor minor
 #endif
 
 #endif /* #ifndef _WIN32 */
