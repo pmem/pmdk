@@ -199,7 +199,7 @@ pvector_array_constr(void *ctx, void *ptr, size_t usable_size, void *arg)
 	 */
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	pmemops_memset_persist(&pop->p_ops, ptr, 0, usable_size);
+	pmemops_memset(&pop->p_ops, ptr, 0, usable_size, 0);
 
 	return 0;
 }
