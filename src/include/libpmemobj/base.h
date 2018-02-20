@@ -186,6 +186,24 @@ void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
 
 /*
+ * Pmemobj version of memcpy. Data copied is made persistent.
+ */
+void *pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags);
+
+/*
+ * Pmemobj version of memmove. Data copied is made persistent.
+ */
+void *pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags);
+
+/*
+ * Pmemobj version of memset. Data range set is made persistent.
+ */
+void *pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len,
+		unsigned flags);
+
+/*
  * Pmemobj version of pmem_persist.
  */
 void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
