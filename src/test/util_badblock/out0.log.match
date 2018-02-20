@@ -1,0 +1,4 @@
+util_badblock$(nW)TEST0: START: util_badblock
+ $(nW)util_badblock$(nW) $(nW)testfile1 l
+No bad blocks found.
+util_badblock$(nW)TEST0: DONE
