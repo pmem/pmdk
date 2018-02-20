@@ -145,8 +145,7 @@ struct pool_hdr {
 
 void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
-int util_convert_hdr(struct pool_hdr *hdrp);
-int util_convert_hdr_remote(struct pool_hdr *hdrp);
+
 void util_get_arch_flags(struct arch_flags *arch_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
@@ -176,5 +175,8 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
  * incompat features
  */
 #define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
+#define POOL_FEAT_CKSUM_2K	0x0002	/* only first 2K of hdr checksummed */
+
+#define POOL_FEAT_ALL	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K)
 
 #endif
