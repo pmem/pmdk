@@ -80,6 +80,10 @@ struct pool_set_option {
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
 
+/*  util_pool_open flags */
+#define POOL_OPEN_COW			1	/* copy-on-write mode */
+#define POOL_OPEN_IGNORE_SDS		2	/* ignore shutdown state */
+
 enum del_parts_mode {
 	DO_NOT_DELETE_PARTS,	/* do not delete part files */
 	DELETE_CREATED_PARTS,	/* delete only newly created parts files */
@@ -279,10 +283,10 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
-int util_pool_open_nocheck(struct pool_set *set, int cow);
-int util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const struct pool_attr *attr, unsigned *nlanes,
-	int ignore_sds, void *addr);
+int util_pool_open_nocheck(struct pool_set *set, unsigned flags);
+int util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
+	const struct pool_attr *attr, unsigned *nlanes, void *addr,
+	unsigned flags);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
