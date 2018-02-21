@@ -85,6 +85,9 @@ fs_read(struct fs *f)
 	case FTS_F:
 		f->entry.type = FS_ENTRY_FILE;
 		break;
+	case FTS_SL:
+		f->entry.type = FS_ENTRY_SYMLINK;
+		break;
 	default:
 		f->entry.type = FS_ENTRY_OTHER;
 		break;
@@ -94,6 +97,7 @@ fs_read(struct fs *f)
 	f->entry.namelen = entry->fts_namelen;
 	f->entry.path = entry->fts_path;
 	f->entry.pathlen = entry->fts_pathlen;
+	f->entry.level = entry->fts_level;
 
 	return &f->entry;
 }

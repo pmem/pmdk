@@ -62,6 +62,9 @@
     <ClCompile Include="os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="os_auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlsym.h">
@@ -107,6 +110,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_deep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_auto_flush.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -41,6 +41,7 @@ SOURCE =\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/os_deep_linux.c\
+	$(COMMON)/os_auto_flush_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\

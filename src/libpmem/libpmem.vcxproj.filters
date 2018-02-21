@@ -176,6 +176,9 @@
     <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_avx_empty.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\os_auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h">
@@ -293,6 +296,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="x86_64\memcpy_memset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_auto_flush.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

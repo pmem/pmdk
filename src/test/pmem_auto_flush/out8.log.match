@@ -1,0 +1,4 @@
+pmem_auto_flush$(nW)TEST8: START: pmem_auto_flush$(nW)
+ $(nW)pmem_auto_flush$(nW)
+pmem_auto_flush 0
+pmem_auto_flush$(nW)TEST8: DONE
