@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.2
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -234,6 +234,7 @@ This entry point takes a complex argument.
 
 ```
 struct pobj_alloc_class_desc {
+	size_t size;
 	size_t unit_size;
 	unsigned units_per_block;
 	enum pobj_header_type header_type;
@@ -241,7 +242,14 @@ struct pobj_alloc_class_desc {
 };
 ```
 
-The first field, `unit_size`, is an 8-byte unsigned integer that defines the
+The `size` field is the size of the argument structure. This field should NOT
+be included when creating string queries. Normally, setting this field takes the
+form of:
+```
+[class_desc].size = sizeof(struct pobj_alloc_class_desc);
+```
+
+The first real field, `unit_size`, is an 8-byte unsigned integer that defines the
 allocation class size. While theoretically limited only by
 **PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
 8 bytes and 2 megabytes.
