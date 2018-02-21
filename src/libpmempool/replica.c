@@ -425,7 +425,14 @@ check_and_open_poolset_part_files(struct pool_set *set,
 				if (is_dry_run(flags))
 					continue;
 			}
-			if (util_part_open(&rep->part[p], 0, 0)) {
+			int ret;
+			if ((ret = util_part_open(&rep->part[p], 0, 0))) {
+				if (ret == -2) {
+					ERR(
+					"size of the existing part %s does not match its size declared in the poolset file",
+					rep->part[p].path);
+					return -1;
+				}
 				LOG(1, "opening part %s failed",
 						rep->part[p].path);
 				errno = 0;
@@ -1012,8 +1019,11 @@ replica_check_poolset_health(struct pool_set *set,
 
 	struct poolset_health_status *set_hs = *set_hsp;
 
-	/* check if part files exist, and if not - create them, and open them */
-	check_and_open_poolset_part_files(set, set_hs, flags);
+	/* check if part files exist and are accessible */
+	if (check_and_open_poolset_part_files(set, set_hs, flags)) {
+		LOG(1, "poolset part files check failed");
+		goto err;
+	}
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);

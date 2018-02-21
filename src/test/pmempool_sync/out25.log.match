@@ -1,0 +1,35 @@
+error: failed to synchronize: poolset health check failed
+error: Invalid argument
+error: failed to synchronize: poolset health check failed
+error: Invalid argument
+Poolset structure:
+Number of replicas       : 2
+Replica 0 (master) - local, 1 part(s):
+part 0:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+alignment                : $(nW)
+Replica 1 - local, 1 part(s):
+part 0:
+path                     : $(nW)
+type                     : device dax
+size                     : $(nW)
+alignment                : $(nW)
+
+POOL Header:
+Signature                : PMEMOBJ
+Major                    : $(nW)
+Mandatory features       : 0x0
+Not mandatory features   : 0x0
+Forced RO                : 0x0
+Pool set UUID            : $(nW)
+
+PMEM OBJ Header:
+Layout                   : OBJ_LAYOUT$(nW)
+Lanes offset             : $(nW)
+Number of lanes          : 1024
+Heap offset              : $(nW)
+Heap size                : $(nW)
+Checksum                 : $(nW) [OK]
+Root offset              : $(nW)

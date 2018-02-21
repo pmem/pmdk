@@ -1751,7 +1751,8 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 			ERR("file size does not match config: %s, %zu != %zu",
 				part->path, size, part->filesize);
 			errno = EINVAL;
-			return -1;
+			/* if the part is device dax, signal that */
+			return util_file_is_device_dax(part->path) ? -2 : -1;
 		}
 	}
 
