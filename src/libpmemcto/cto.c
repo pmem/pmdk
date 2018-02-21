@@ -402,15 +402,16 @@ pmemcto_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
  * This routine opens the pool, but does not any run-time initialization.
  */
 static PMEMctopool *
-cto_open_noinit(const char *path, const char *layout, int cow, void *addr)
+cto_open_noinit(const char *path, const char *layout, unsigned flags,
+		void *addr)
 {
-	LOG(3, "path \"%s\" layout \"%s\" cow %d addr %p",
-			path, layout, cow, addr);
+	LOG(3, "path \"%s\" layout \"%s\" flags 0x%x addr %p",
+			path, layout, flags, addr);
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMCTO_MIN_POOL, &Cto_open_attr,
-			NULL, false, addr) != 0) {
+	if (util_pool_open(&set, path, PMEMCTO_MIN_POOL, &Cto_open_attr,
+				NULL, addr, flags) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -464,9 +465,9 @@ err:
  * calls can map a read-only pool if required.
  */
 static PMEMctopool *
-cto_open_common(const char *path, const char *layout, int cow)
+cto_open_common(const char *path, const char *layout, unsigned flags)
 {
-	LOG(3, "path \"%s\" layout \"%s\" cow %d", path, layout, cow);
+	LOG(3, "path \"%s\" layout \"%s\" flags 0x%x", path, layout, flags);
 
 	PMEMctopool *pcp;
 	struct pool_set *set;
@@ -480,7 +481,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 	util_mutex_lock(&Pool_lock);
 
 	/* open pool set to check consistency and to get the mapping address */
-	if ((pcp = cto_open_noinit(path, layout, cow, NULL)) == NULL) {
+	if ((pcp = cto_open_noinit(path, layout, flags, NULL)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
 		util_mutex_unlock(&Pool_lock);
 		return NULL;
@@ -495,7 +496,7 @@ cto_open_common(const char *path, const char *layout, int cow)
 	errno = oerrno;
 
 	/* open the pool once again using the mapping address as a hint */
-	if ((pcp = cto_open_noinit(path, layout, cow, mapaddr)) == NULL) {
+	if ((pcp = cto_open_noinit(path, layout, flags, mapaddr)) == NULL) {
 		LOG(2, "cannot open pool or pool set");
 		util_mutex_unlock(&Pool_lock);
 		return NULL;
@@ -679,7 +680,7 @@ pmemcto_checkU(const char *path, const char *layout)
 {
 	LOG(3, "path \"%s\" layout \"%s\"", path, layout);
 
-	PMEMctopool *pcp = cto_open_common(path, layout, 1);
+	PMEMctopool *pcp = cto_open_common(path, layout, POOL_OPEN_COW);
 	if (pcp == NULL)
 		return -1;	/* errno set by pmemcto_open_common() */
 
