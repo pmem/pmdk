@@ -53,9 +53,12 @@ OBJS = pmem_is_pmem_posix.o\
 	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
-	cpu.o\
 	init.o\
 	os_deep_linux.o
+
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
 
 include ../Makefile.inc
 
