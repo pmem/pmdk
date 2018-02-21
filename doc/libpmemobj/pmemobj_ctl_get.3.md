@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.2
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -96,6 +96,13 @@ is returned.
 Entry points are the leaves of the CTL namespace structure. Each entry point
 can read from the internal state, write to the internal state,
 exec a function or a combination of these operations.
+
+If an entry point takes a complex structure for its argument, the C `struct`
+will contain `size` of the argument structure as its first field.
+This variable is used for versioning. Normally, setting it takes the form of:
+```
+[arg].size = sizeof(struct [arg_type]);
+```
 
 The entry points are listed in the following format:
 
@@ -234,6 +241,7 @@ This entry point takes a complex argument.
 
 ```
 struct pobj_alloc_class_desc {
+	size_t size;
 	size_t unit_size;
 	unsigned units_per_block;
 	enum pobj_header_type header_type;
@@ -241,7 +249,13 @@ struct pobj_alloc_class_desc {
 };
 ```
 
-The first field, `unit_size`, is an 8-byte unsigned integer that defines the
+The `size` field is the size of the argument structure. Can be set by:
+```
+[class_desc].size = sizeof(struct pobj_alloc_class_desc);
+```
+This field must not be present in a config string.
+
+The first real field, `unit_size`, is an 8-byte unsigned integer that defines the
 allocation class size. While theoretically limited only by
 **PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
 8 bytes and 2 megabytes.
@@ -389,6 +403,8 @@ separated by a ',':
 ```
 first_arg,second_arg
 ```
+
+Complex argument types never contain the size of the argument structure.
 
 In summary, a full configuration sequence looks like this:
 

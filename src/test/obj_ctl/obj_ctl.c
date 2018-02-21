@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -126,6 +126,7 @@ CTL_WRITE_HANDLER(test_config_complex_arg)(PMEMobjpool *pop,
 }
 
 struct ctl_argument CTL_ARG(test_config_complex_arg) = {
+	.sized = 0,
 	.dest_size = sizeof(struct complex_arg),
 	.parsers = {
 		CTL_ARG_PARSER_STRUCT(struct complex_arg, a, ctl_arg_integer),
@@ -135,6 +136,44 @@ struct ctl_argument CTL_ARG(test_config_complex_arg) = {
 		CTL_ARG_PARSER_END
 	}
 };
+
+struct sized_arg {
+	size_t size;
+	int a;
+	int b;
+};
+
+static int
+CTL_WRITE_HANDLER(sized_arg)(PMEMobjpool *pop,
+	enum ctl_query_source source, void *arg,
+	struct ctl_indexes *indexes)
+{
+	struct sized_arg *sarg = arg;
+
+	if (source == CTL_QUERY_CONFIG_INPUT) {
+		UT_ASSERT(sarg->size == sizeof(struct sized_arg) ||
+			sarg->size == sizeof(struct sized_arg) - sizeof(int));
+	} else {
+		UT_ASSERTeq(sarg->size, sizeof(struct sized_arg));
+	}
+	sarg->a = 10;
+	sarg->b = 15;
+	test_config_written++;
+
+	return 0;
+}
+
+struct ctl_argument CTL_ARG(sized_arg) = {
+	.sized = 1,
+	.dest_size = sizeof(struct sized_arg),
+	.parsers = {
+		CTL_ARG_PARSER_STRUCT(struct sized_arg, a, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT_OPTIONAL(struct sized_arg, b,
+			ctl_arg_integer),
+		CTL_ARG_PARSER_END
+	}
+};
+
 
 static int
 CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
@@ -188,6 +227,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_INDEXED(test_index),
 	CTL_LEAF_WO(test_config),
 	CTL_LEAF_WO(test_config_complex_arg),
+	CTL_LEAF_WO(sized_arg),
 
 	CTL_NODE_END
 };
@@ -344,6 +384,17 @@ test_ctl_parser(PMEMobjpool *pop)
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
 	UT_ASSERTeq(arg_runnable, 0);
+
+	struct sized_arg sarg;
+	sarg.a = 5;
+	sarg.b = 10;
+	sarg.size = sizeof(sarg);
+
+	ret = pmemobj_ctl_set(pop, "debug.sized_arg", &sarg);
+
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(sarg.a, 10);
+	UT_ASSERTeq(sarg.b, 15);
 }
 
 static void
@@ -396,6 +447,18 @@ test_string_config(PMEMobjpool *pop)
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
 			"debug.test_config="TEST_CONFIG_VALUE";");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(test_config_written, 1);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop,
+			"debug.sized_arg=5,10;");
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(test_config_written, 1);
+
+	test_config_written = 0;
+	ret = ctl_load_config_from_string(pop,
+			"debug.sized_arg=5;");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 1);
 }
