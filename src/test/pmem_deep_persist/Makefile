@@ -61,6 +61,7 @@ OBJS = pmem_deep_persist.o\
 	pool_hdr.o\
 	set.o\
 	os_deep_linux.o\
+	os_auto_flush_linux.o\
 	shutdown_state.o\
 	os_dimm_none.o \
 	init.o

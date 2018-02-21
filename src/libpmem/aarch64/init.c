@@ -136,11 +136,25 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->memmove_nodrain = memmove_nodrain_libc;
 	funcs->memset_nodrain = memset_nodrain_libc;
 
-	funcs->flush = funcs->deep_flush;
-
+	int flush;
 	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && strcmp(e, "1") == 0) {
-		LOG(3, "forced not flushing CPU cache");
+	if (e && (strcmp(e, "1") == 0)) {
+		flush = 0;
+		LOG(3, "Forced not flushing CPU_cache");
+	} else if (e && (strcmp(e, "0") == 0)) {
+		flush = 1;
+		LOG(3, "Forced flushing CPU_cache");
+	} else if (pmem_has_auto_flush() == 1) {
+		flush = 0;
+		LOG(3, "Not flushing CPU_cache, eADR detected");
+	} else {
+		flush = 1;
+		LOG(3, "Flushing CPU cache");
+	}
+
+	if (flush) {
+		funcs->flush = funcs->deep_flush;
+	} else {
 		funcs->flush = flush_empty;
 		funcs->predrain_fence = predrain_memory_barrier;
 	}

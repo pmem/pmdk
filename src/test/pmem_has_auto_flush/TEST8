@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,40 +32,34 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_has_auto_flush/TEST8 -- unit test for pmem_has_auto_flush
 #
-include ../../common.inc
-ARCH := $(call get_arch)
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
+# tests regions with one improper and one proper value in persistence_domain files
+#
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	fs_posix.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	init.o\
-	os_deep_linux.o\
-	os_auto_flush_linux.o
+require_test_type medium
+require_fs_type pmem non-pmem
 
-ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
-endif
+setup
 
-include ../Makefile.inc
+ROOT=$DIR/pmem_has_auto_flush/root
+export BUS_DEVICE_PATH=$ROOT
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
+mkdir -p $ROOT/regiond0 $ROOT/regiond1
+ln -sf $ROOT/regiond0 $ROOT/region0
+ln -sf $ROOT/regiond1 $ROOT/region1
+
+touch $ROOT/regiond0/persistent $ROOT/regiond1/domain \
+	$ROOT/regiond0/abcd $ROOT/regiond1/abcd \
+	$ROOT/regiond0/persistence_domain $ROOT/regiond1/persistence_domain \
+	$ROOT/regiond0/tempname $ROOT/regiond1/defg
+echo "cpu_cache" > $ROOT/regiond1/persistence_domain
+echo "memory_controller" > $ROOT/regiond0/persistence_domain
+
+expect_normal_exit ./pmem_has_auto_flush$EXESUFFIX
+
+check
+
+pass

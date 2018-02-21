@@ -405,8 +405,6 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 
 	pmem_cpuinfo_to_funcs(funcs, &impl);
 
-	funcs->flush = funcs->deep_flush;
-
 	/*
 	 * For testing, allow overriding the default threshold
 	 * for using non-temporal stores in pmem_memcpy_*(), pmem_memmove_*()
@@ -425,9 +423,25 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		}
 	}
 
+	int flush;
 	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && strcmp(e, "1") == 0) {
-		LOG(3, "forced not flushing CPU cache");
+	if (e && (strcmp(e, "1") == 0)) {
+		flush = 0;
+		LOG(3, "Forced not flushing CPU_cache");
+	} else if (e && (strcmp(e, "0") == 0)) {
+		flush = 1;
+		LOG(3, "Forced flushing CPU_cache");
+	} else if (pmem_has_auto_flush() == 1) {
+		flush = 0;
+		LOG(3, "Not flushing CPU_cache, eADR detected");
+	} else {
+		flush = 1;
+		LOG(3, "Flushing CPU cache");
+	}
+
+	if (flush) {
+		funcs->flush = funcs->deep_flush;
+	} else {
 		funcs->flush = flush_empty;
 		funcs->predrain_fence = predrain_memory_barrier;
 	}
