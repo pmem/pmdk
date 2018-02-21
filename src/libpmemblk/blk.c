@@ -529,8 +529,8 @@ blk_open_common(const char *path, size_t bsize, int cow)
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMBLK_MIN_PART, &Blk_open_attr,
-			NULL, false, NULL) != 0) {
+	if (util_pool_open(&set, path, PMEMBLK_MIN_PART, &Blk_open_attr,
+			NULL, NULL, cow ? UPO_COW : 0) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}

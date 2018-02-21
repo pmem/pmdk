@@ -1493,8 +1493,8 @@ static int
 obj_pool_open(struct pool_set **set, const char *path, int cow,
 	unsigned *nlanes)
 {
-	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART, &Obj_open_attr,
-			nlanes, false, NULL) != 0) {
+	if (util_pool_open(set, path, PMEMOBJ_MIN_PART, &Obj_open_attr,
+			nlanes, NULL, cow ? UPO_COW : 0) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}
