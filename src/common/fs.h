@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@ struct fs;
 enum fs_entry_type {
 	FS_ENTRY_FILE,
 	FS_ENTRY_DIRECTORY,
+	FS_ENTRY_SYMLINK,
 	FS_ENTRY_OTHER,
 
 	MAX_FS_ENTRY_TYPES
@@ -57,6 +58,8 @@ struct fs_entry {
 
 	const char *path;
 	size_t pathlen;
+	/* the depth of the traversal */
+	short level;
 };
 
 struct fs *fs_new(const char *path);

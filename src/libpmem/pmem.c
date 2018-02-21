@@ -179,6 +179,7 @@
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep.h"
+#include "os_auto_flush.h"
 
 static struct pmem_funcs Funcs;
 
@@ -207,6 +208,17 @@ pmem_drain(void)
 
 	VALGRIND_DO_COMMIT;
 	VALGRIND_DO_FENCE;
+}
+
+/*
+ * pmem_has_auto_flush -- check if platform supports eADR
+ */
+int
+pmem_has_auto_flush()
+{
+	LOG(3, NULL);
+
+	return os_auto_flush();
 }
 
 /*
