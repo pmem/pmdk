@@ -1033,7 +1033,11 @@ tx_lane_ranges_insert_def(struct lane_tx_runtime *lane,
 	LOG(3, "rdef->offset %"PRIu64" rdef->size %"PRIu64,
 		rdef->offset, rdef->size);
 
-	return ravl_emplace_copy(lane->ranges, rdef);
+	int ret = ravl_emplace_copy(lane->ranges, rdef);
+	if (ret == EEXIST)
+		FATAL("invalid state of ranges tree");
+
+	return ret;
 }
 
 /*
@@ -1770,6 +1774,23 @@ vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
 }
 
 /*
+ * pmemobj_tx_add_snapshot -- (internal) creates a variably sized snapshot
+ */
+static int
+pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
+{
+	vg_verify_initialized(tx->pop, snapshot);
+
+	/*
+	 * Depending on the size of the block, either allocate an
+	 * entire new object or use cache.
+	 */
+	return snapshot->size > tx->pop->tx_params->cache_threshold ?
+		pmemobj_tx_add_large(tx, snapshot) :
+		pmemobj_tx_add_small(tx, snapshot);
+}
+
+/*
  * pmemobj_tx_add_common -- (internal) common code for adding persistent memory
  *				into the transaction
  */
@@ -1793,85 +1814,136 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	int ret = 0;
 	struct lane_tx_runtime *runtime = tx->section->runtime;
 
-	struct tx_range_def r = *args;
-	/* there can only ever be one range overlapping on the left edge */
-	struct ravl_node *n = ravl_find(runtime->ranges, &r,
-		RAVL_PREDICATE_LESS);
-	struct tx_range_def *f = n ? ravl_data(n) : NULL;
-	if (f != NULL && f->offset + f->size > r.offset) {
-		size_t fend = f->offset + f->size;
-		size_t rend = r.offset + r.size;
-		if (fend >= rend) /* earlier snapshot covers this one */
-			return 0;
-		r.offset = fend;
-		r.size = rend - fend;
-	}
-
 	/*
-	 * We need to handle the following cases:
-	 *	1. no range found or the found range exceeds the
-	 *	snapshot, in this case we can just snapshot the
-	 *	entire range.
-	 *	2. the found range starts at the same offset.
-	 *		a) the found range contains the entire snapshot,
-	 *		we can just end the search.
-	 *		b) the found range only partially contains the
-	 *		snapshot, we have to loop around and search from
-	 *		the end of the found range.
-	 *	3. The found range starts at an offset in the middle of
-	 *	the snapshot, in this case we must create a partial
-	 *	snapshot and resume the search from the end of the found
-	 *	offset.
+	 * Search existing ranges backwards starting from the end of the
+	 * snapshot.
 	 */
+	struct tx_range_def r = *args;
+	struct tx_range_def search = {0, 0, 0};
+	/*
+	 * If the range is directly adjacent to an existing one,
+	 * they can be merged, so search for less or equal elements.
+	 */
+	enum ravl_predicate p = RAVL_PREDICATE_LESS_EQUAL;
+	struct ravl_node *nprev = NULL;
 	while (r.size != 0) {
-		n = ravl_find(runtime->ranges, &r,
-			RAVL_PREDICATE_GREATER_EQUAL);
-		f = n ? ravl_data(n) : NULL;
-		uint64_t offd = f ? f->offset - r.offset : r.size;
-		if (offd == 0) {
-			ASSERTne(f, NULL);
-			if (f->size >= r.size)
-				return 0;
-			r.offset += f->size;
-			r.size -= f->size;
-			continue;
-		}
-		r.size = offd <= r.size ? offd : r.size;
+		search.offset = r.offset + r.size;
+		struct ravl_node *n = ravl_find(runtime->ranges, &search, p);
+		p = RAVL_PREDICATE_LESS_EQUAL;
+		struct tx_range_def *f = n ? ravl_data(n) : NULL;
 
-		ret = tx_lane_ranges_insert_def(runtime, &r);
-		if (ret != 0) {
-			if (ret == EEXIST)
-				FATAL("invalid state of ranges tree");
+		size_t fend = f == NULL ? 0: f->offset + f->size;
+		size_t rend = r.offset + r.size;
+		if (fend == 0 || fend < r.offset) {
+			/*
+			 * If found no range or the found range is not
+			 * overlapping or adjacent on the left side, we can just
+			 * create the entire r.offset + r.size snapshot.
+			 *
+			 * Snapshot:
+			 *	--+-
+			 * Existing ranges:
+			 *	---- (no ranges)
+			 * or	+--- (no overlap)
+			 * or	---+ (adjacent on on right side)
+			 */
+			if (nprev != NULL) {
+				/*
+				 * But, if we have an existing adjacent snapshot
+				 * on the right side, we can just extend it to
+				 * include the desired range.
+				 */
+				struct tx_range_def *fprev = ravl_data(nprev);
+				ASSERTeq(rend, fprev->offset);
+				fprev->offset -= r.size;
+				fprev->size += r.size;
+			} else {
+				/*
+				 * If we don't have anything adjacent, create
+				 * a new range in the tree.
+				 */
+				ret = tx_lane_ranges_insert_def(runtime, &r);
+				if (ret != 0)
+					break;
+			}
+			ret = pmemobj_tx_add_snapshot(tx, &r);
 			break;
+		} else if (fend <= rend) {
+			/*
+			 * If found range has its end inside of the desired
+			 * snapshot range, we can extend the found range by the
+			 * size leftover on the left side.
+			 *
+			 * Snapshot:
+			 *	--+++--
+			 * Existing ranges:
+			 *	+++---- (overlap on left)
+			 * or	---+--- (found snapshot is inside)
+			 * or	---+-++ (inside, and adjacent on the rigt)
+			 * or	+++++-- (desired snapshot is inside)
+			 *
+			 */
+			struct tx_range_def snapshot = *args;
+			snapshot.offset = fend;
+			/* the side not yet covered by an existing snapshot */
+			snapshot.size = rend - fend;
+
+			/* the number of bytes intersecting in both ranges */
+			size_t intersection = fend - MAX(f->offset, r.offset);
+			r.size -= intersection + snapshot.size;
+			f->size += snapshot.size;
+
+			if (snapshot.size != 0) {
+				ret = pmemobj_tx_add_snapshot(tx, &snapshot);
+				if (ret != 0)
+					break;
+			}
+
+			/*
+			 * We have to skip searching for LESS_EQUAL because
+			 * the snapshot we would just find the snapshot we just
+			 * created, which would be a waste of time.
+			 */
+			p = RAVL_PREDICATE_LESS;
+
+			/*
+			 * If there's a snapshot adjacent on right side, merge
+			 * the two ranges together.
+			 */
+			if (nprev != NULL) {
+				struct tx_range_def *fprev = ravl_data(nprev);
+				ASSERTeq(rend, fprev->offset);
+				f->size += fprev->size;
+				ravl_remove(runtime->ranges, nprev);
+			}
+		} else if (fend >= r.offset) {
+			/*
+			 * If found range has its end extending beyond the
+			 * desired snapshot.
+			 *
+			 * Snapshot:
+			 *	--+++--
+			 * Existing ranges:
+			 *	-----++ (adjacent on the right)
+			 * or	----++- (overlapping on the right)
+			 * or	----+++ (overlapping and adjacent on the right)
+			 * or	--+++++ (desired snapshot is inside)
+			 *
+			 * Notice that we cannot create a snapshot based solely
+			 * on this information without risking overwritting an
+			 * existing one. We have to continue iterating, but we
+			 * keep the information about adjacent snapshots in the
+			 * nprev variable.
+			 */
+			size_t overlap = rend - MAX(f->offset, r.offset);
+			r.size -= overlap;
+
+			p = RAVL_PREDICATE_LESS;
+		} else {
+			ASSERT(0);
 		}
 
-		vg_verify_initialized(tx->pop, &r);
-
-		/* need to make a copy because the range def arg isn't const */
-		struct tx_range_def ndef = r;
-
-		/*
-		 * Depending on the size of the block, either allocate an
-		 * entire new object or use cache.
-		 */
-		ret = ndef.size > tx->pop->tx_params->cache_threshold ?
-			pmemobj_tx_add_large(tx, &ndef) :
-			pmemobj_tx_add_small(tx, &ndef);
-		if (ret != 0)
-			break;
-
-		/*
-		 * The next potential offset to snapshot is AFTER the found
-		 * range...
-		 */
-		r.offset = f ? f->offset + f->size : r.offset + r.size;
-		offd = r.offset - args->offset;
-
-		/*
-		 * ...and if that happens to exceed the snapshot range, we can
-		 * finish...
-		 */
-		r.size = offd < args->size ? args->size - offd : 0;
+		nprev = n;
 	}
 
 	if (ret != 0) {
