@@ -523,14 +523,14 @@ pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
  * will supply the block size).
  */
 static PMEMblkpool *
-blk_open_common(const char *path, size_t bsize, int cow)
+blk_open_common(const char *path, size_t bsize, unsigned flags)
 {
-	LOG(3, "path %s bsize %zu cow %d", path, bsize, cow);
+	LOG(3, "path %s bsize %zu flags 0x%x", path, bsize, flags);
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMBLK_MIN_PART, &Blk_open_attr,
-			NULL, false, NULL) != 0) {
+	if (util_pool_open(&set, path, PMEMBLK_MIN_PART, &Blk_open_attr,
+			NULL, NULL, flags) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -801,7 +801,7 @@ pmemblk_checkU(const char *path, size_t bsize)
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
 	/* map the pool read-only */
-	PMEMblkpool *pbp = blk_open_common(path, bsize, 1);
+	PMEMblkpool *pbp = blk_open_common(path, bsize, POOL_OPEN_COW);
 	if (pbp == NULL)
 		return -1;	/* errno set by blk_open_common() */
 
