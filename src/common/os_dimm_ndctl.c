@@ -65,14 +65,14 @@
  * where the pool file is located
  */
 static struct ndctl_interleave_set *
-os_dimm_interleave_set(struct ndctl_ctx *ctx, os_stat_t st)
+os_dimm_interleave_set(struct ndctl_ctx *ctx, const os_stat_t *st)
 {
 	LOG(3, "ctx %p", ctx);
 
 	struct ndctl_bus *bus;
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
-	dev_t dev = S_ISCHR(st.st_mode) ? st.st_rdev : st.st_dev;
+	dev_t dev = S_ISCHR(st->st_mode) ? st->st_rdev : st->st_dev;
 
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
 		struct ndctl_btt *btt;
@@ -144,7 +144,7 @@ os_dimm_uid(const char *path, char *uid, size_t *buff_len)
 		*buff_len = 1; /* '\0' */
 	}
 
-	set = os_dimm_interleave_set(ctx, st);
+	set = os_dimm_interleave_set(ctx, &st);
 	if (set == NULL)
 		goto end;
 
@@ -193,7 +193,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	}
 
 	struct ndctl_interleave_set *iset =
-		os_dimm_interleave_set(ctx, st);
+		os_dimm_interleave_set(ctx, &st);
 
 	if (iset == NULL)
 		goto out;
