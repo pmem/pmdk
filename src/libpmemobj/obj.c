@@ -1490,11 +1490,11 @@ obj_pool_close(struct pool_set *set)
  * obj_pool_open -- (internal) open the given pool
  */
 static int
-obj_pool_open(struct pool_set **set, const char *path, int cow,
+obj_pool_open(struct pool_set **set, const char *path, unsigned flags,
 	unsigned *nlanes)
 {
-	if (util_pool_open(set, path, cow, PMEMOBJ_MIN_PART, &Obj_open_attr,
-			nlanes, false, NULL) != 0) {
+	if (util_pool_open(set, path, PMEMOBJ_MIN_PART, &Obj_open_attr,
+				nlanes, NULL, flags) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return -1;
 	}
@@ -1604,13 +1604,13 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 /*
  * obj_open_common -- open a transactional memory pool (set)
  *
- * This routine does all the work, but takes a cow flag so internal
- * calls can map a read-only pool if required.
+ * This routine takes flags and does all the work
+ * (flag POOL_OPEN_COW - internal calls can map a read-only pool if required).
  */
 static PMEMobjpool *
-obj_open_common(const char *path, const char *layout, int cow, int boot)
+obj_open_common(const char *path, const char *layout, unsigned flags, int boot)
 {
-	LOG(3, "path %s layout %s cow %d", path, layout, cow);
+	LOG(3, "path %s layout %s flags 0x%x", path, layout, flags);
 
 	PMEMobjpool *pop = NULL;
 	struct pool_set *set;
@@ -1623,7 +1623,7 @@ obj_open_common(const char *path, const char *layout, int cow, int boot)
 	 * environment variable whichever is lower.
 	 */
 	unsigned runtime_nlanes = obj_get_nlanes();
-	if (obj_pool_open(&set, path, cow, &runtime_nlanes))
+	if (obj_pool_open(&set, path, flags, &runtime_nlanes))
 		return NULL;
 
 	/* pop is master replica from now on */
@@ -1703,7 +1703,7 @@ pmemobj_openU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	return obj_open_common(path, layout, Open_cow, 1);
+	return obj_open_common(path, layout, Open_cow ? POOL_OPEN_COW : 0, 1);
 }
 
 #ifndef _WIN32
@@ -1890,7 +1890,7 @@ pmemobj_checkU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	PMEMobjpool *pop = obj_open_common(path, layout, 1, 0);
+	PMEMobjpool *pop = obj_open_common(path, layout, POOL_OPEN_COW, 0);
 	if (pop == NULL)
 		return -1;	/* errno set by obj_open_common() */
 
