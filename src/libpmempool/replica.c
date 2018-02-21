@@ -417,17 +417,22 @@ check_and_open_poolset_part_files(struct pool_set *set,
 		}
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (os_access(rep->part[p].path, R_OK|W_OK) != 0) {
-				LOG(1, "part file %s is not accessible",
-						rep->part[p].path);
+			const char *path = rep->part[p].path;
+			if (os_access(path, R_OK|W_OK) != 0) {
+				LOG(1, "part file %s is not accessible", path);
 				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
 				if (is_dry_run(flags))
 					continue;
 			}
 			if (util_part_open(&rep->part[p], 0, 0)) {
-				LOG(1, "opening part %s failed",
-						rep->part[p].path);
+				if (util_file_is_device_dax(path)) {
+					LOG(1,
+					"opening part on Device DAX %s failed",
+					path);
+					return -1;
+				}
+				LOG(1, "opening part %s failed", path);
 				errno = 0;
 				rep_hs->part[p] |= IS_BROKEN;
 			}
@@ -1012,8 +1017,11 @@ replica_check_poolset_health(struct pool_set *set,
 
 	struct poolset_health_status *set_hs = *set_hsp;
 
-	/* check if part files exist, and if not - create them, and open them */
-	check_and_open_poolset_part_files(set, set_hs, flags);
+	/* check if part files exist and are accessible */
+	if (check_and_open_poolset_part_files(set, set_hs, flags)) {
+		LOG(1, "poolset part files check failed");
+		goto err;
+	}
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
