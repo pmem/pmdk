@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,6 +118,9 @@ enum pobj_header_type {
  * Description of allocation classes
  */
 struct pobj_alloc_class_desc {
+	/* sizeof this structure */
+	size_t size;
+
 	/*
 	 * The number of bytes in a single unit of allocation. A single
 	 * allocation can span up to 64 units (or 1 in the case of no header).

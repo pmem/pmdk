@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,13 +82,20 @@ enum ctl_node_type {
 
 typedef int (*ctl_arg_parser)(const void *arg, void *dest, size_t dest_size);
 
+struct ctl_argument_header {
+	/* sizeof the successfully parsed argument */
+	size_t size;
+};
+
 struct ctl_argument_parser {
+	int optional;
 	size_t dest_offset; /* offset of the field inside of the argument */
 	size_t dest_size; /* size of the field inside of the argument */
 	ctl_arg_parser parser;
 };
 
 struct ctl_argument {
+	int sized;
 	size_t dest_size; /* sizeof the entire argument */
 	struct ctl_argument_parser parsers[]; /* array of 'fields' in arg */
 };
@@ -96,12 +103,15 @@ struct ctl_argument {
 #define sizeof_member(t, m) sizeof(((t *)0)->m)
 
 #define CTL_ARG_PARSER(t, p)\
-{0, sizeof(t), p}
+{0, 0, sizeof(t), p}
 
 #define CTL_ARG_PARSER_STRUCT(t, m, p)\
-{offsetof(t, m), sizeof_member(t, m), p}
+{0, offsetof(t, m), sizeof_member(t, m), p}
 
-#define CTL_ARG_PARSER_END {0, 0, NULL}
+#define CTL_ARG_PARSER_STRUCT_OPTIONAL(t, m, p)\
+{1, offsetof(t, m), sizeof_member(t, m), p}
+
+#define CTL_ARG_PARSER_END {0, 0, 0, NULL}
 
 /*
  * CTL Tree node structure, do not use directly. All the necessery functionality
@@ -128,22 +138,22 @@ void ctl_register_module_node(struct ctl *c,
 	const char *name, struct ctl_node *n);
 
 int ctl_arg_boolean(const void *arg, void *dest, size_t dest_size);
-#define CTL_ARG_BOOLEAN {sizeof(int),\
-	{{0, sizeof(int), ctl_arg_boolean},\
+#define CTL_ARG_BOOLEAN {0, sizeof(int),\
+	{{0, 0, sizeof(int), ctl_arg_boolean},\
 	CTL_ARG_PARSER_END}};
 
 int ctl_arg_integer(const void *arg, void *dest, size_t dest_size);
-#define CTL_ARG_INT {sizeof(int),\
-	{{0, sizeof(int), ctl_arg_integer},\
+#define CTL_ARG_INT {0, sizeof(int),\
+	{{0, 0, sizeof(int), ctl_arg_integer},\
 	CTL_ARG_PARSER_END}};
 
-#define CTL_ARG_LONG_LONG {sizeof(long long),\
-	{{0, sizeof(long long), ctl_arg_integer},\
+#define CTL_ARG_LONG_LONG {0, sizeof(long long),\
+	{{0, 0, sizeof(long long), ctl_arg_integer},\
 	CTL_ARG_PARSER_END}};
 
 int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
-#define CTL_ARG_STRING(len) {len,\
-	{{0, len, ctl_arg_string},\
+#define CTL_ARG_STRING(len) {0, len,\
+	{{0, 0, len, ctl_arg_string},\
 	CTL_ARG_PARSER_END}};
 
 #define CTL_STR(name) #name

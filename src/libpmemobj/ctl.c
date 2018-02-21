@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -158,23 +158,36 @@ ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
 {
 	ASSERTne(arg, NULL);
 
-	char *dest_arg = Malloc(arg_proto->dest_size);
+	char *dest_arg = Zalloc(arg_proto->dest_size);
 	if (dest_arg == NULL)
 		return NULL;
 
 	char *sptr = NULL;
 	char *arg_sep = strtok_r(arg, CTL_VALUE_ARG_SEPARATOR, &sptr);
-	for (struct ctl_argument_parser *p = arg_proto->parsers;
-			p->parser != NULL; ++p) {
+	struct ctl_argument_parser *p;
+	for (p = arg_proto->parsers; p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
-		if (arg_sep == NULL)
+		if (arg_sep == NULL) {
+			if (p->optional)
+				break;
+
 			goto error_parsing;
+		}
 
 		if (p->parser(arg_sep, dest_arg + p->dest_offset,
 			p->dest_size) != 0)
 			goto error_parsing;
 
 		arg_sep = strtok_r(NULL, CTL_VALUE_ARG_SEPARATOR, &sptr);
+	}
+
+	if (arg_proto->sized) {
+		struct ctl_argument_header *hdr =
+			(struct ctl_argument_header *)dest_arg;
+		ASSERTne(p, arg_proto->parsers);
+		struct ctl_argument_parser *oldp = (--p);
+
+		hdr->size = oldp->dest_offset + oldp->dest_size;
 	}
 
 	return dest_arg;
