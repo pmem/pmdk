@@ -1,3 +1,4 @@
+#
 # Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,25 +29,53 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
-#
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
-	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/os_auto_flush_posix.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+#
+# src/test/pmem_auto_flush/Makefile -- build pmem_auto_flush test
+#
+include ../../common.inc
+ARCH := $(call get_arch)
+
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/libpmem/$(ARCH)
+
+TARGET = pmem_auto_flush
+
+OBJS = pmem_auto_flush.o\
+	mmap.o\
+	mmap_posix.o\
+	util.o\
+	util_posix.o\
+	file.o\
+	file_posix.o\
+	os_posix.o\
+	out.o\
+	fs_posix.o\
+	libpmem.o\
+	pmem.o\
+	pmem_posix.o\
+	uuid.o\
+	$(call osdep, uuid,.o)\
+	pool_hdr.o\
+	set.o\
+	os_deep_linux.o\
+	os_auto_flush_posix.o\
+	shutdown_state.o\
+	os_dimm_none.o \
+	init.o
+# this test does not require ndctl
+# to enable builds we use os_dimm_none
+
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
+
+LIBPMEM=y
+
+include ../Makefile.inc
+
+CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
+CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/common

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,41 +31,26 @@
  */
 
 /*
- * fs.h -- file system traversal abstraction layer
+ * pmem_auto_flush.c -- unit test for pmem_auto_flush() function
+ *
+ * this test checks if function pmem_auto_flush handle sysfs path
+ * and persistence_domain file in proper way
  */
 
-#ifndef PMDK_FS_H
-#define PMDK_FS_H 1
+#include <string.h>
+#include "unittest.h"
 
-#include <unistd.h>
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "pmem_auto_flush");
 
-struct fs;
+	if (argc != 1)
+		UT_FATAL("usage: %s", argv[0]);
 
-enum fs_entry_type {
-	FS_ENTRY_FILE,
-	FS_ENTRY_DIRECTORY,
-	FS_ENTRY_SYMLINK,
-	FS_ENTRY_OTHER,
+	int ret = pmem_auto_flush();
 
-	MAX_FS_ENTRY_TYPES
-};
+	UT_OUT("pmem_auto_flush %d", ret);
 
-struct fs_entry {
-	enum fs_entry_type type;
-
-	const char *name;
-	size_t namelen;
-
-	const char *path;
-	size_t pathlen;
-
-	short level;
-};
-
-struct fs *fs_new(const char *path);
-void fs_delete(struct fs *f);
-
-/* this call invalidates the previous entry */
-struct fs_entry *fs_read(struct fs *f);
-
-#endif /* PMDK_FS_H */
+	DONE(NULL);
+}

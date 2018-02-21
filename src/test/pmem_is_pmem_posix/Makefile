@@ -47,6 +47,7 @@ OBJS = pmem_is_pmem_posix.o\
 	util.o\
 	util_posix.o\
 	file.o\
+	fs_posix.o\
 	file_posix.o\
 	os_posix.o\
 	out.o\
@@ -54,7 +55,8 @@ OBJS = pmem_is_pmem_posix.o\
 	pmem.o\
 	pmem_posix.o\
 	init.o\
-	os_deep_linux.o
+	os_deep_linux.o\
+	os_auto_flush_posix.o
 
 ifeq ($(ARCH), x86_64)
 OBJS += cpu.o

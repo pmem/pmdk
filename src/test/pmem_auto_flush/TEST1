@@ -1,4 +1,6 @@
-# Copyright 2017-2018, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,25 +30,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
+
+#
+# src/test/pmem_auto_flush/TEST1 -- unit test for pmem_auto_flush
+#
+# tests case when there is no regions inside
 #
 
-SOURCE =\
-	$(COMMON)/file.c\
-	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
-	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/os_auto_flush_posix.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+require_fs_type pmem non-pmem
+
+setup
+
+ROOT=$DIR/pmem_auto_flush/root
+export BUS_DEVICE_PATH=$ROOT
+
+expect_normal_exit ./pmem_auto_flush$EXESUFFIX
+
+check
+
+pass

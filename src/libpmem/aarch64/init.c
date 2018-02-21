@@ -138,9 +138,14 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 
 	funcs->flush = funcs->deep_flush;
 
+	int eADR = pmem_auto_flush();
+
 	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && strcmp(e, "1") == 0) {
-		LOG(3, "forced not flushing CPU cache");
+	if (e && strcmp(e, "1"))
+		eADR = 1;
+
+	if (eADR == 1) {
+		LOG(3, "eADR supported - forced not flushing CPU cache");
 		funcs->flush = flush_empty;
 		funcs->predrain_fence = predrain_memory_barrier;
 	}

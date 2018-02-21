@@ -1,5 +1,6 @@
 scope/TEST1:
 $(*)debug/libpmem.so:
+pmem_auto_flush
 pmem_check_version
 pmem_deep_drain
 pmem_deep_flush
@@ -20,6 +21,7 @@ pmem_msync
 pmem_persist
 pmem_unmap
 $(*)nondebug/libpmem.so:
+pmem_auto_flush
 pmem_check_version
 pmem_deep_drain
 pmem_deep_flush
@@ -40,6 +42,7 @@ pmem_msync
 pmem_persist
 pmem_unmap
 $(*)debug/libpmem.a:
+pmem_auto_flush
 pmem_check_version
 pmem_deep_drain
 pmem_deep_flush
@@ -60,6 +63,7 @@ pmem_msync
 pmem_persist
 pmem_unmap
 $(*)nondebug/libpmem.a:
+pmem_auto_flush
 pmem_check_version
 pmem_deep_drain
 pmem_deep_flush

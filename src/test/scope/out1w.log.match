@@ -5,6 +5,7 @@ mmap
 mprotect
 msync
 munmap
+pmem_auto_flush
 pmem_check_versionU
 pmem_check_versionW
 pmem_deep_drain

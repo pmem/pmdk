@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,41 +31,20 @@
  */
 
 /*
- * fs.h -- file system traversal abstraction layer
+ * os_auto_flush.h -- abstraction layer for auto flush detection functinality
  */
 
-#ifndef PMDK_FS_H
-#define PMDK_FS_H 1
+#ifndef PMDK_OS_AUTO_FLUSH_H
+#define PMDK_OS_AUTO_FLUSH_H 1
 
-#include <unistd.h>
+#include <stdint.h>
+#include <stddef.h>
+#include "set.h"
 
-struct fs;
+#define BUS_DEVICE_PATH "/sys/bus/nd/devices"
+#define PERSISTENCE_DOMAIN "persistence_domain"
+#define DOMAIN_VALUE_LEN 32
 
-enum fs_entry_type {
-	FS_ENTRY_FILE,
-	FS_ENTRY_DIRECTORY,
-	FS_ENTRY_SYMLINK,
-	FS_ENTRY_OTHER,
+int os_auto_flush(void);
 
-	MAX_FS_ENTRY_TYPES
-};
-
-struct fs_entry {
-	enum fs_entry_type type;
-
-	const char *name;
-	size_t namelen;
-
-	const char *path;
-	size_t pathlen;
-
-	short level;
-};
-
-struct fs *fs_new(const char *path);
-void fs_delete(struct fs *f);
-
-/* this call invalidates the previous entry */
-struct fs_entry *fs_read(struct fs *f);
-
-#endif /* PMDK_FS_H */
+#endif
