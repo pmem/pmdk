@@ -220,8 +220,8 @@ device_dax_alignment(const char *path)
 	}
 
 	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/device/align",
-		major(st.st_rdev), minor(st.st_rdev));
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/device/align",
+		os_major(st.st_rdev), os_minor(st.st_rdev));
 
 	LOG(4, "device align path \"%s\"", spath);
 
@@ -315,8 +315,8 @@ util_ddax_region_find(const char *path)
 
 	dev_t dev_id = st.st_rdev;
 
-	unsigned major = major(dev_id);
-	unsigned minor = minor(dev_id);
+	unsigned major = os_major(dev_id);
+	unsigned minor = os_minor(dev_id);
 	int ret = snprintf(dax_region_path, PATH_MAX,
 		"/sys/dev/char/%u:%u/device/dax_region/id",
 		major, minor);
