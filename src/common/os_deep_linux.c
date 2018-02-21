@@ -62,12 +62,12 @@ os_deep_flush_write(int region_id)
 		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
-		ERR("!os_open(\"%s\", O_WRONLY)", deep_flush_path);
+		LOG(1, "!os_open(\"%s\", O_WRONLY)", deep_flush_path);
 		return -1;
 	}
 
 	if (write(deep_flush_fd, "1", 1) != 1) {
-		ERR("!write(%d, \"1\")", deep_flush_fd);
+		LOG(1, "!write(%d, \"1\")", deep_flush_fd);
 		int oerrno = errno;
 		os_close(deep_flush_fd);
 		errno = oerrno;
