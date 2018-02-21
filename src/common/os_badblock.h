@@ -31,85 +31,33 @@
  */
 
 /*
- * util_badblock.c -- unit test for the linux bad block API
- *
+ * badblock.h -- linux bad block API
  */
 
-#include "unittest.h"
-#include "util.h"
-#include "out.h"
-#include "os_dimm.h"
-#include "os_badblock.h"
+#ifndef PMDK_BADBLOCK_H
+#define PMDK_BADBLOCK_H 1
+
+#include <stdint.h>
+#include <sys/types.h>
 
 /*
- * do_list -- (internal) list bad blocks in the file
+ * 'struct badblock' is already defined in ndctl/libndctl.h,
+ * so we cannot use this name
  */
-static int
-do_list(const char *path)
-{
-	struct badblocks *bbs = os_badblocks_get(path);
-	if (bbs == NULL || bbs->bbv == NULL) {
-		UT_OUT("No bad blocks found.");
-		goto exit_no_bbs;
-	}
+struct onebadblock {
+	unsigned long long offset;	/* in bytes */
+	unsigned length;		/* in bytes */
+};
 
-	UT_OUT("Found %u bad block(s):", bbs->bbc);
+struct badblocks {
+	unsigned long long ns_resource;	/* address of the namespace */
+	unsigned bbc;			/* number of bad blocks */
+	struct onebadblock *bbv;	/* array of bad blocks */
+};
 
-	unsigned b;
-	for (b = 0; b < bbs->bbc; b++) {
-		UT_OUT("%llu %u",
-			bbs->bbv[b].offset >> 9,
-			bbs->bbv[b].length >> 9);
-	}
+long os_badblocks_count(const char *path);
+struct badblocks *os_badblocks_get(const char *path);
+int os_badblocks_clear(const char *path);
+int os_badblocks_check_file(const char *path);
 
-exit_no_bbs:
-	if (bbs) {
-		if (bbs->bbv)
-			Free(bbs->bbv);
-		Free(bbs);
-	}
-
-	return 0;
-}
-
-/*
- * do_clear -- (internal) clear bad blocks in the file
- */
-static int
-do_clear(const char *path)
-{
-	return os_badblocks_clear(path);
-}
-
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "util_badblock");
-	util_init();
-	out_init("UTIL_BADBLOCK", "UTIL_BADBLOCK", "", 1, 0);
-
-	if (argc < 3)
-		UT_FATAL("usage: %s file op:l|c", argv[0]);
-
-	const char *path = argv[1];
-
-	/* go through all arguments one by one */
-	for (int arg = 2; arg < argc; arg++) {
-		/* scan the character of each argument */
-		if (strchr("lc", argv[arg][0]) == NULL || argv[arg][1] != '\0')
-			UT_FATAL("op must be l or c (list or clear)");
-
-		switch (argv[arg][0]) {
-			case 'l':
-				do_list(path);
-				break;
-
-			case 'c':
-				do_clear(path);
-				break;
-		}
-	}
-
-	out_fini();
-	DONE(NULL);
-}
+#endif /* PMDK_BADBLOCK_H */

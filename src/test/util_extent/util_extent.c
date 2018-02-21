@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,16 +44,18 @@
 static void
 test_size(const char *path, size_t size)
 {
-	struct fiemap *fmap = os_extents_get(path, NULL);
-	UT_ASSERTne(fmap, NULL);
+	struct extents *exts = malloc(sizeof(struct extents));
+	UT_ASSERTne(exts, NULL);
+
+	UT_ASSERTeq(os_extents_get(path, exts), 0);
 
 	size_t total_length = 0;
 
 	unsigned e;
-	for (e = 0; e < fmap->fm_extent_count; e++)
-		total_length += fmap->fm_extents[e].fe_length;
+	for (e = 0; e < exts->extents_count; e++)
+		total_length += exts->extents[e].length;
 
-	free(fmap);
+	free(exts);
 
 	UT_ASSERTeq(total_length, size);
 }

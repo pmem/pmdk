@@ -32,7 +32,7 @@
 #
 
 SOURCE =\
-	$(COMMON)/badblock.c\
+	$(COMMON)/os_badblock_linux.c\
 	$(COMMON)/badblock_poolset.c\
 	$(COMMON)/extent_linux.c\
 	$(COMMON)/file.c\

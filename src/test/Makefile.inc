@@ -184,7 +184,7 @@ endif
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 LIBPMEM=y
 OBJS +=\
-	$(TOP)/src/nondebug/common/badblock.o\
+	$(TOP)/src/nondebug/common/os_badblock_linux.o\
 	$(TOP)/src/nondebug/common/badblock_poolset.o\
 	$(TOP)/src/nondebug/common/extent_linux.o\
 	$(TOP)/src/nondebug/common/file.o\
@@ -211,7 +211,7 @@ endif
 ifeq ($(LIBPMEMCOMMON), internal-debug)
 LIBPMEM=y
 OBJS +=\
-	$(TOP)/src/debug/common/badblock.o\
+	$(TOP)/src/debug/common/os_badblock_linux.o\
 	$(TOP)/src/debug/common/badblock_poolset.o\
 	$(TOP)/src/debug/common/extent_linux.o\
 	$(TOP)/src/debug/common/file.o\

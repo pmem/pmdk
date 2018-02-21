@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,8 +37,21 @@
 #ifndef PMDK_EXTENT_H
 #define PMDK_EXTENT_H 1
 
-#include <linux/fiemap.h>
+#include <stdint.h>
+#include <stddef.h>
 
-struct fiemap *os_extents_get(const char *path, long *blksize);
+struct extent {
+	uint64_t offset_physical;
+	uint64_t offset_logical;
+	uint64_t length;
+};
+
+struct extents {
+	uint64_t blksize;
+	uint32_t extents_count;
+	struct extent *extents;
+};
+
+int os_extents_get(const char *path, struct extents *exts);
 
 #endif /* PMDK_EXTENT_H */

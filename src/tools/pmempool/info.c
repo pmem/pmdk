@@ -57,7 +57,7 @@
 #include "info.h"
 #include "set.h"
 #include "file.h"
-#include "badblock.h"
+#include "os_badblock.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\

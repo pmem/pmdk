@@ -46,8 +46,8 @@
 #include <linux/ndctl.h>
 
 #include "os.h"
-#include "badblock.h"
 #include "os_dimm.h"
+#include "os_badblock.h"
 #include "out.h"
 
 /*

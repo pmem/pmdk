@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,9 +34,12 @@
  * extent_linux.c - implementation of the linux fs extent query API
  */
 
+#include <string.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/fs.h>
+#include <linux/fiemap.h>
+
 #include "file.h"
 #include "out.h"
 #include "extent.h"
@@ -45,22 +48,36 @@
  * os_extents_get -- get extents of the given file
  *                   (and optionally read its block size)
  */
-struct fiemap *
-os_extents_get(const char *path, long *blksize)
+int
+os_extents_get(const char *path, struct extents *exts)
 {
 	LOG(3, "path %s", path);
 
-	struct fiemap *fmap = NULL;
+	ASSERTne(exts, NULL);
+
+	memset(exts, 0, sizeof(*exts));
+
+	int ret = -1;
 
 	int fd = open(path, O_RDONLY);
 	if (fd == -1)
-		return NULL;
+		return -1;
 
 	os_stat_t st;
 	if (os_fstat(fd, &st) < 0)
 		goto error_close;
 
-	fmap = Zalloc(sizeof(struct fiemap));
+	LOG(10, "%s: block size: %li", path, st.st_blksize);
+
+	exts->blksize = (uint64_t)st.st_blksize;
+
+	/* devdax does not have any extents */
+	if (util_fd_is_device_dax(fd)) {
+		close(fd);
+		return 0;
+	}
+
+	struct fiemap *fmap = Zalloc(sizeof(struct fiemap));
 	if (fmap == NULL)
 		goto error_close;
 
@@ -68,17 +85,6 @@ os_extents_get(const char *path, long *blksize)
 	fmap->fm_length = (size_t)st.st_size;
 	fmap->fm_flags = 0;
 	fmap->fm_extent_count = 0;
-
-	LOG(10, "%s: block size: %li", path, st.st_blksize);
-
-	if (blksize)
-		*blksize = st.st_blksize;
-
-	/* devdax does not have any extents */
-	if (util_fd_is_device_dax(fd)) {
-		close(fd);
-		return fmap;
-	}
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0)
 		goto error_free;
@@ -94,11 +100,24 @@ os_extents_get(const char *path, long *blksize)
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0)
 		goto error_free;
 
+	exts->extents = Malloc(fmap->fm_extent_count * sizeof(struct extent));
+	if (exts->extents == NULL)
+		goto error_free;
+
 	LOG(4, "%s: number of extents: %u", path, fmap->fm_extent_count);
 
-	close(fd);
+	exts->extents_count = fmap->fm_extent_count;
 
-	return fmap;
+	unsigned e;
+	for (e = 0; e < fmap->fm_extent_count; e++) {
+		exts->extents[e].offset_physical =
+						fmap->fm_extents[e].fe_physical;
+		exts->extents[e].offset_logical =
+						fmap->fm_extents[e].fe_logical;
+		exts->extents[e].length = fmap->fm_extents[e].fe_length;
+	}
+
+	ret = 0;
 
 error_free:
 	Free(fmap);
@@ -106,5 +125,5 @@ error_free:
 error_close:
 	close(fd);
 
-	return NULL;
+	return ret;
 }

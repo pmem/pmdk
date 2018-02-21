@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,33 +31,71 @@
  */
 
 /*
- * badblock.h -- linux bad block API
+ * os_badblock_windows.c - implementation of the windows bad block API
  */
 
-#ifndef PMDK_BADBLOCK_H
-#define PMDK_BADBLOCK_H 1
-
-#include <stdint.h>
-#include <sys/types.h>
+#include "out.h"
+#include "os_badblock.h"
 
 /*
- * 'struct badblock' is already defined in ndctl/libndctl.h,
- * so we cannot use this name
+ * os_badblocks_check_file -- check if the file contains bad blocks
+ *
+ * Return value:
+ * -1 : an error
+ *  0 : no bad blocks
+ *  1 : bad blocks detected
  */
-struct onebadblock {
-	unsigned long long offset;	/* in bytes */
-	unsigned length;		/* in bytes */
-};
+int
+os_badblocks_check_file(const char *file)
+{
+	LOG(3, "file %s", file);
 
-struct badblocks {
-	unsigned long long ns_resource;	/* address of the namespace */
-	unsigned bbc;			/* number of bad blocks */
-	struct onebadblock *bbv;	/* array of bad blocks */
-};
+	return 0;
+}
 
-long os_badblocks_count(const char *path);
-struct badblocks *os_badblocks_get(const char *path);
-int os_badblocks_clear(const char *path);
-int os_badblocks_check_file(const char *path);
+/*
+ * os_badblocks_count -- returns number of bad blocks in the file
+ *                       or -1 in case of an error
+ */
+long
+os_badblocks_count(const char *file)
+{
+	LOG(3, "file %s", file);
 
-#endif /* PMDK_BADBLOCK_H */
+	return 0;
+}
+
+/*
+ * os_badblocks_get -- returns list of bad blocks in the file
+ */
+struct badblocks *
+os_badblocks_get(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	return NULL;
+}
+
+/*
+ * os_badblocks_clear_file -- clears bad blocks in the regular file
+ *                            (not in a dax device)
+ */
+static int
+os_badblocks_clear_file(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	return 0;
+}
+
+/*
+ * os_badblocks_clear -- clears bad blocks in a file
+ *                      (regular file or dax device)
+ */
+int
+os_badblocks_clear(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	return 0;
+}

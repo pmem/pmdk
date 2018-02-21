@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock_poolset.h - linux bad block API for poolsets
+ * badblock_poolset.h - bad block API for poolsets
  */
 
 #ifndef PMDK_BADBLOCK_POOLSET_H
@@ -39,6 +39,6 @@
 
 #include "set.h"
 
-int os_badblocks_check_poolset(struct pool_set *set, const char ***files_bbs);
+int os_badblocks_check_poolset(struct pool_set *set, char ***files_bbs);
 
 #endif /* PMDK_BADBLOCK_POOLSET_H */

@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="badblock.c">
+    <ClCompile Include="os_badblock_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="badblock_poolset.c">
@@ -70,12 +70,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="badblock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="badblock_poolset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dlsym.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -119,6 +113,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_deep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_badblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="badblock_poolset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

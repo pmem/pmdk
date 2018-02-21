@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock_poolset.c - implementation of linux bad block API for poolsets
+ * badblock_poolset.c - implementation of bad block API for poolsets
  */
 #define _GNU_SOURCE
 
@@ -41,13 +41,13 @@
 #include "os.h"
 #include "out.h"
 #include "extent.h"
-#include "badblock.h"
+#include "os_badblock.h"
 #include "badblock_poolset.h"
 
 /* structure with paths of pool files containing bad blocks */
 struct files_bbs_s {
-	int n_files_bbs;		/* number of files with bad blocks */
-	const char ***files_bbs;	/* pointer to array of file paths */
+	int n_files_bbs;	/* number of files with bad blocks */
+	char ***files_bbs;	/* pointer to array of file paths */
 };
 
 /*
@@ -73,11 +73,11 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
 
 		if (pfbbs->files_bbs) {
 			/* save the path of the pool file with bad blocks */
-			const char **files_bbs = *(pfbbs->files_bbs);
+			char **files_bbs = *(pfbbs->files_bbs);
 			size_t size = (size_t)pfbbs->n_files_bbs *
 						sizeof(const char *);
 			files_bbs = Realloc(files_bbs, size);
-			files_bbs[pfbbs->n_files_bbs - 1] = pf->path;
+			files_bbs[pfbbs->n_files_bbs - 1] = (char *)pf->path;
 			*(pfbbs->files_bbs) = files_bbs;
 		}
 	}
@@ -91,7 +91,7 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
  *                                of pool files containing bad blocks)
  */
 int
-os_badblocks_check_poolset(struct pool_set *set, const char ***files_bbs)
+os_badblocks_check_poolset(struct pool_set *set, char ***files_bbs)
 {
 	LOG(3, "set %p", set);
 

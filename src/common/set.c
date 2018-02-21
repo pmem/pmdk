@@ -3020,7 +3020,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	ASSERT(set->nreplicas > 0);
 
-	const char **files_bbs = NULL;
+	char **files_bbs = NULL;
 	int bbs = os_badblocks_check_poolset(set, &files_bbs);
 	if (bbs < 0) {
 		LOG(1, "WARNING: failed to check pool set for bad blocks");

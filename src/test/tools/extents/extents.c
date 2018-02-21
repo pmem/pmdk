@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,17 +50,18 @@ main(int argc, char *argv[])
 		return -1;
 	}
 
-	struct fiemap *fmap = os_extents_get(argv[1], NULL);
-	if (!fmap)
+	struct extents *exts = malloc(sizeof(struct extents));
+
+	if (os_extents_get(argv[1], exts))
 		return -1;
 
 	unsigned e;
-	for (e = 0; e < fmap->fm_extent_count; e++)
-		printf("%llu %llu\n",
-			fmap->fm_extents[e].fe_physical >> 9,
-			fmap->fm_extents[e].fe_length >> 9);
+	for (e = 0; e < exts->extents_count; e++)
+		printf("%lu %lu\n",
+			exts->extents[e].offset_physical >> 9,
+			exts->extents[e].length >> 9);
 
-	free(fmap);
+	free(exts);
 
 	return 0;
 }

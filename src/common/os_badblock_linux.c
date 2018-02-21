@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock.c - implementation of the linux bad block API
+ * os_badblock_linux.c - implementation of the linux bad block API
  */
 
 #define _GNU_SOURCE
@@ -41,12 +41,8 @@
 #include "os.h"
 #include "out.h"
 #include "extent.h"
-#include "badblock.h"
 #include "os_dimm.h"
-
-#ifndef _WIN32
-#include "badblock_poolset.h"
-#endif
+#include "os_badblock.h"
 
 /*
  * os_badblocks_extents_common -- (internal) common operations for bad blocks:
@@ -57,23 +53,19 @@
 static int
 os_badblocks_extents_common(const char *file,
 				struct badblocks **bbs,
-				struct fiemap **fmap,
-				long *blksize)
+				struct extents *ext)
 {
 	ASSERTne(bbs, NULL);
-	ASSERTne(fmap, NULL);
+	ASSERTne(ext, NULL);
 
 	*bbs = os_dimm_files_namespace_badblocks(file);
 	if (*bbs == NULL)
 		return 0;
 
-	if ((*bbs)->bbc == 0) {
-		*fmap = NULL;
+	if ((*bbs)->bbc == 0)
 		return 0;
-	}
 
-	*fmap = os_extents_get(file, blksize);
-	if (*fmap == NULL) {
+	if (os_extents_get(file, ext)) {
 		Free(*bbs);
 		return -1;
 	}
@@ -118,13 +110,13 @@ os_badblocks_count(const char *file)
 	LOG(3, "file %s", file);
 
 	unsigned long long bb_beg, bb_end;
-	unsigned long long fe_beg, fe_end;
+	unsigned long long off_beg, off_end;
 
+	struct extents *exts = Zalloc(sizeof(struct extents));
 	struct badblocks *bbs = NULL;
-	struct fiemap *fmap = NULL;
 	long bb_found;
 
-	if (os_badblocks_extents_common(file, &bbs, &fmap, NULL)) {
+	if (os_badblocks_extents_common(file, &bbs, exts)) {
 		bb_found = -1; /* an error */
 		goto exit_free_all;
 	}
@@ -135,26 +127,26 @@ os_badblocks_count(const char *file)
 		goto exit_free_all;
 	}
 
-	if (bbs->bbc == 0 || fmap->fm_extent_count == 0) {
+	if (bbs->bbc == 0 || exts->extents_count == 0) {
 		bb_found = bbs->bbc;
 		goto exit_free_all;
 	}
 
 	unsigned b, e;
 	for (b = 0; b < bbs->bbc; b++)
-		for (e = 0; e < fmap->fm_extent_count; e++) {
+		for (e = 0; e < exts->extents_count; e++) {
 			bb_beg = bbs->bbv[b].offset;
 			bb_end = bb_beg + bbs->bbv[b].length - 1;
-			fe_beg = fmap->fm_extents[e].fe_physical;
-			fe_end = fe_beg + fmap->fm_extents[e].fe_length - 1;
+			off_beg = exts->extents[e].offset_physical;
+			off_end = off_beg + exts->extents[e].length - 1;
 
-			if (bb_beg <= fe_end && fe_beg <= bb_end)
+			if (bb_beg <= off_end && off_beg <= bb_end)
 				bb_found++;
 		}
 
 exit_free_all:
-	if (fmap)
-		Free(fmap);
+	if (exts)
+		Free(exts);
 
 	if (bbs)
 		Free(bbs);
@@ -171,42 +163,42 @@ os_badblocks_get(const char *file)
 	LOG(3, "file %s", file);
 
 	unsigned long long bb_beg, bb_end;
-	unsigned long long fe_beg, fe_end;
+	unsigned long long off_beg, off_end;
 	unsigned long long beg, end;
 
+	struct extents *exts = Zalloc(sizeof(struct extents));
 	struct badblocks *bbs = NULL;
-	struct fiemap *fmap = NULL;
 
 	struct onebadblock *bbvp = NULL;
 	unsigned bb_count = 0;
 
-	if (os_badblocks_extents_common(file, &bbs, &fmap, NULL))
+	if (os_badblocks_extents_common(file, &bbs, exts))
 		goto exit_free_all;
 
-	if (bbs == NULL || bbs->bbc == 0 || fmap->fm_extent_count == 0)
+	if (bbs == NULL || bbs->bbc == 0 || exts->extents_count == 0)
 		goto exit_free_all;
 
 	unsigned b, e;
 	for (b = 0; b < bbs->bbc; b++)
-		for (e = 0; e < fmap->fm_extent_count; e++) {
+		for (e = 0; e < exts->extents_count; e++) {
 			bb_beg = bbs->bbv[b].offset;
 			bb_end = bb_beg + bbs->bbv[b].length - 1;
-			fe_beg = fmap->fm_extents[e].fe_physical;
-			fe_end = fe_beg + fmap->fm_extents[e].fe_length - 1;
+			off_beg = exts->extents[e].offset_physical;
+			off_end = off_beg + exts->extents[e].length - 1;
 
-			if (bb_beg > fe_end || fe_beg > bb_end)
+			if (bb_beg > off_end || off_beg > bb_end)
 				continue;
 
-			beg = (bb_beg > fe_beg) ? bb_beg : fe_beg;
-			end = (bb_end < fe_end) ? bb_end : fe_end;
+			beg = (bb_beg > off_beg) ? bb_beg : off_beg;
+			end = (bb_end < off_end) ? bb_end : off_end;
 
 			bbvp = Realloc(bbvp,
 				(++bb_count) * sizeof(struct onebadblock));
 
 			bbvp[bb_count - 1].length = (unsigned)(end - beg + 1);
 			bbvp[bb_count - 1].offset =
-					beg + fmap->fm_extents[e].fe_logical
-					- fmap->fm_extents[e].fe_physical;
+					beg + exts->extents[e].offset_logical
+					- exts->extents[e].offset_physical;
 		}
 
 	if (bbs->bbv)
@@ -216,8 +208,8 @@ os_badblocks_get(const char *file)
 	bbs->bbv = bbvp;
 
 exit_free_all:
-	if (fmap)
-		Free(fmap);
+	if (exts)
+		Free(exts);
 
 	LOG(10, "bad blocks detected: %u", bbs ? bbs->bbc : 0);
 
@@ -234,46 +226,45 @@ os_badblocks_clear_file(const char *file)
 	LOG(3, "file %s", file);
 
 	unsigned long long bb_beg, bb_end;
-	unsigned long long fe_beg, fe_end;
-	off_t beg, end, off, len, not_block_aligned;
+	unsigned long long off_beg, off_end;
+	unsigned long long beg, end, off, len, not_block_aligned;
 
+	struct extents *exts = Zalloc(sizeof(struct extents));
 	struct badblocks *bbs = NULL;
-	struct fiemap *fmap = NULL;
-	long blksize;
 	int fd;
 
 	if ((fd = os_open(file, O_RDWR)) < 0)
 		return -1;
 
-	if (os_badblocks_extents_common(file, &bbs, &fmap, &blksize)) {
+	if (os_badblocks_extents_common(file, &bbs, exts)) {
 		close(fd);
 		return -1;
 	}
 
-	if (bbs->bbc == 0 || fmap->fm_extent_count == 0)
+	if (bbs->bbc == 0 || exts->extents_count == 0)
 		goto exit_free_all;
 
 	unsigned b, e;
 	for (b = 0; b < bbs->bbc; b++)
-		for (e = 0; e < fmap->fm_extent_count; e++) {
+		for (e = 0; e < exts->extents_count; e++) {
 			bb_beg = bbs->bbv[b].offset;
 			bb_end = bb_beg + bbs->bbv[b].length - 1;
 
-			fe_beg = fmap->fm_extents[e].fe_physical;
-			fe_end = fe_beg + fmap->fm_extents[e].fe_length - 1;
+			off_beg = exts->extents[e].offset_physical;
+			off_end = off_beg + exts->extents[e].length - 1;
 
-			if (bb_beg > fe_end || fe_beg > bb_end)
+			if (bb_beg > off_end || off_beg > bb_end)
 				continue;
 
-			beg = (off_t)((bb_beg > fe_beg) ? bb_beg : fe_beg);
-			end = (off_t)((bb_end < fe_end) ? bb_end : fe_end);
+			beg = (bb_beg > off_beg) ? bb_beg : off_beg;
+			end = (bb_end < off_end) ? bb_end : off_end;
 
 			len = end - beg + 1;
-			off = beg + (off_t)(fmap->fm_extents[e].fe_logical
-					- fmap->fm_extents[e].fe_physical);
+			off = beg + exts->extents[e].offset_logical
+					- exts->extents[e].offset_physical;
 
 			/* check if off is block-aligned */
-			not_block_aligned = off & (blksize - 1);
+			not_block_aligned = off & (exts->blksize - 1);
 			if (not_block_aligned) {
 				beg -= not_block_aligned;
 				off -= not_block_aligned;
@@ -281,30 +272,32 @@ os_badblocks_clear_file(const char *file)
 			}
 
 			/* check if len is block-aligned */
-			not_block_aligned = len & (blksize - 1);
+			not_block_aligned = len & (exts->blksize - 1);
 			if (not_block_aligned) {
-				len += blksize - not_block_aligned;
+				len += exts->blksize - not_block_aligned;
 			}
 
 			LOG(10,
-				"clearing bad block: physical offset %lu logical offset %li length %li (sectors)",
+				"clearing bad block: physical offset %llu logical offset %llu length %llu (sectors)",
 				beg >> 9, off >> 9, len >> 9);
 
 			/* deallocate bad blocks */
 			if (fallocate(fd, FALLOC_FL_PUNCH_HOLE |
-					FALLOC_FL_KEEP_SIZE, off, len)) {
+					FALLOC_FL_KEEP_SIZE,
+					(off_t)off, (off_t)len)) {
 				perror("fallocate");
 			}
 
 			/* allocate new blocks */
-			if (fallocate(fd, FALLOC_FL_KEEP_SIZE, off, len)) {
+			if (fallocate(fd, FALLOC_FL_KEEP_SIZE,
+					(off_t)off, (off_t)len)) {
 				perror("fallocate");
 			}
 		}
 
 exit_free_all:
-	if (fmap)
-		Free(fmap);
+	if (exts)
+		Free(exts);
 
 	if (bbs)
 		Free(bbs);
@@ -327,5 +320,4 @@ os_badblocks_clear(const char *file)
 		return os_dimm_badblocks_clear_devdax(file);
 
 	return os_badblocks_clear_file(file);
-
 }
