@@ -328,7 +328,7 @@ util_ddax_region_find(const char *path)
 	}
 
 	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
-		ERR("!open(\"%s\", O_RDONLY)", dax_region_path);
+		LOG(1, "!open(\"%s\", O_RDONLY)", dax_region_path);
 		return -1;
 	}
 
