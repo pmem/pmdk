@@ -96,6 +96,32 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 	FREE(act);
 }
 
+static void
+test_defer_free(PMEMobjpool *pop)
+{
+	PMEMoid oid;
+
+	int ret = pmemobj_alloc(pop, &oid, sizeof(struct foo), 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	struct pobj_action act;
+	pmemobj_defer_free(pop, oid, &act);
+
+	pmemobj_publish(pop, &act, 1);
+
+	struct foo *f = pmemobj_direct(oid);
+	f->bar = 5; /* should trigger memcheck error */
+
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo), 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	pmemobj_defer_free(pop, oid, &act);
+
+	pmemobj_cancel(pop, &act, 1);
+	f = pmemobj_direct(oid);
+	f->bar = 5; /* should NOT trigger memcheck error */
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -196,6 +222,8 @@ main(int argc, char *argv[])
 	tx_published_foop->bar = 1; /* should NOT trigger memcheck error */
 
 	test_resv_cancel_huge(pop);
+
+	test_defer_free(pop);
 
 	pmemobj_close(pop);
 

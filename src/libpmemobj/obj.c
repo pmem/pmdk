@@ -2787,6 +2787,15 @@ pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 }
 
 /*
+ * pmemobj_defer_free -- creates a deferred free action
+ */
+void
+pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act)
+{
+	palloc_defer_free(&pop->heap, oid.off, act);
+}
+
+/*
  * pmemobj_publish -- publishes a collection of actions
  */
 void
