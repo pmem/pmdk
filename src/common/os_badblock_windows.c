@@ -31,56 +31,71 @@
  */
 
 /*
- * os_dimm_none.c -- fake dimm functions
+ * os_badblock_windows.c - implementation of the windows bad block API
  */
 
 #include "out.h"
-#include "os_dimm.h"
-/*
- * os_dimm_uid -- returns empty uid
- */
-int
-os_dimm_uid(const char *path, char *uid, size_t *len)
-{
-	LOG(3, "path %s, uid %p, len %lu", path, uid, *len);
-	if (uid == NULL) {
-		*len = 1;
-	} else {
-		*uid = '\0';
-	}
-	return 0;
-}
+#include "os_badblock.h"
 
 /*
- * os_dimm_usc -- returns fake unsafe shutdown count
+ * os_badblocks_check_file -- check if the file contains bad blocks
+ *
+ * Return value:
+ * -1 : an error
+ *  0 : no bad blocks
+ *  1 : bad blocks detected
  */
 int
-os_dimm_usc(const char *path, uint64_t *usc)
+os_badblocks_check_file(const char *file)
 {
-	LOG(3, "path %s, usc %p", path, usc);
-	*usc = 0;
-	return 0;
-}
-
-/*
- * os_dimm_files_namespace_badblocks -- returns no badblocks
- *                                      for the namespace of the given file
- */
-int
-os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
+	LOG(3, "file %s", file);
 
 	return 0;
 }
 
 /*
- * os_dimm_badblocks_clear_devdax -- do not clear bad blocks on the dax device
+ * os_badblocks_count -- returns number of bad blocks in the file
+ *                       or -1 in case of an error
+ */
+long
+os_badblocks_count(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	return 0;
+}
+
+/*
+ * os_badblocks_get -- returns list of bad blocks in the file
  */
 int
-os_dimm_badblocks_clear_devdax(const char *path)
+os_badblocks_get(const char *file, struct badblocks *bbs)
 {
-	LOG(3, "path %s", path);
+	LOG(3, "file %s", file);
+
+	return 0;
+}
+
+/*
+ * os_badblocks_clear_file -- clears bad blocks in the regular file
+ *                            (not in a dax device)
+ */
+static int
+os_badblocks_clear_file(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	return 0;
+}
+
+/*
+ * os_badblocks_clear -- clears bad blocks in a file
+ *                      (regular file or dax device)
+ */
+int
+os_badblocks_clear(const char *file)
+{
+	LOG(3, "file %s", file);
 
 	return 0;
 }

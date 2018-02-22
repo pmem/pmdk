@@ -31,56 +31,33 @@
  */
 
 /*
- * os_dimm_none.c -- fake dimm functions
+ * os_badblock.h -- linux bad block API
  */
 
-#include "out.h"
-#include "os_dimm.h"
-/*
- * os_dimm_uid -- returns empty uid
- */
-int
-os_dimm_uid(const char *path, char *uid, size_t *len)
-{
-	LOG(3, "path %s, uid %p, len %lu", path, uid, *len);
-	if (uid == NULL) {
-		*len = 1;
-	} else {
-		*uid = '\0';
-	}
-	return 0;
-}
+#ifndef PMDK_BADBLOCK_H
+#define PMDK_BADBLOCK_H 1
+
+#include <stdint.h>
+#include <sys/types.h>
 
 /*
- * os_dimm_usc -- returns fake unsafe shutdown count
+ * 'struct badblock' is already defined in ndctl/libndctl.h,
+ * so we cannot use this name
  */
-int
-os_dimm_usc(const char *path, uint64_t *usc)
-{
-	LOG(3, "path %s, usc %p", path, usc);
-	*usc = 0;
-	return 0;
-}
+struct onebadblock {
+	unsigned long long offset;	/* in bytes */
+	unsigned length;		/* in bytes */
+};
 
-/*
- * os_dimm_files_namespace_badblocks -- returns no badblocks
- *                                      for the namespace of the given file
- */
-int
-os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
+struct badblocks {
+	unsigned long long ns_resource;	/* address of the namespace */
+	unsigned bbc;			/* number of bad blocks */
+	struct onebadblock *bbv;	/* array of bad blocks */
+};
 
-	return 0;
-}
+long os_badblocks_count(const char *path);
+int os_badblocks_get(const char *file, struct badblocks *bbs);
+int os_badblocks_clear(const char *path);
+int os_badblocks_check_file(const char *path);
 
-/*
- * os_dimm_badblocks_clear_devdax -- do not clear bad blocks on the dax device
- */
-int
-os_dimm_badblocks_clear_devdax(const char *path)
-{
-	LOG(3, "path %s", path);
-
-	return 0;
-}
+#endif /* PMDK_BADBLOCK_H */

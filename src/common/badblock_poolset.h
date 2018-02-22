@@ -31,56 +31,15 @@
  */
 
 /*
- * os_dimm_none.c -- fake dimm functions
+ * badblock_poolset.h - bad block API for poolsets
  */
 
-#include "out.h"
-#include "os_dimm.h"
-/*
- * os_dimm_uid -- returns empty uid
- */
-int
-os_dimm_uid(const char *path, char *uid, size_t *len)
-{
-	LOG(3, "path %s, uid %p, len %lu", path, uid, *len);
-	if (uid == NULL) {
-		*len = 1;
-	} else {
-		*uid = '\0';
-	}
-	return 0;
-}
+#ifndef PMDK_BADBLOCK_POOLSET_H
+#define PMDK_BADBLOCK_POOLSET_H 1
 
-/*
- * os_dimm_usc -- returns fake unsafe shutdown count
- */
-int
-os_dimm_usc(const char *path, uint64_t *usc)
-{
-	LOG(3, "path %s, usc %p", path, usc);
-	*usc = 0;
-	return 0;
-}
+#include "set.h"
 
-/*
- * os_dimm_files_namespace_badblocks -- returns no badblocks
- *                                      for the namespace of the given file
- */
-int
-os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
+int os_badblocks_check_poolset(struct pool_set *set, char ***files_bbs,
+				int create);
 
-	return 0;
-}
-
-/*
- * os_dimm_badblocks_clear_devdax -- do not clear bad blocks on the dax device
- */
-int
-os_dimm_badblocks_clear_devdax(const char *path)
-{
-	LOG(3, "path %s", path);
-
-	return 0;
-}
+#endif /* PMDK_BADBLOCK_POOLSET_H */
