@@ -42,7 +42,7 @@ export UNITTEST_NUM=8
 
 require_test_type medium
 require_fs_type any
-
+require_dev_dax_region
 require_dax_devices 2
 
 setup
