@@ -143,6 +143,7 @@ struct pool_set {
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
+	int has_bad_blocks;	/* pool set contains bad blocks */
 	int remote;		/* true if contains a remote replica */
 	unsigned options;	/* enabled pool set options */
 
@@ -159,6 +160,7 @@ struct pool_set {
 struct part_file {
 	int is_remote;
 	const char *path;	/* not-NULL only for a local part file */
+	int has_bad_blocks;	/* pool set file contains bad blocks */
 	const char *node_addr;	/* address of a remote node */
 	/* poolset descriptor is a pool set file name on a remote node */
 	const char *pool_desc;	/* descriptor of a poolset */
