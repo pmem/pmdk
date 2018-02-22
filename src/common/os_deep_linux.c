@@ -94,7 +94,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 		if (os_deep_flush_write(mt->region_id) < 0) {
 			if (errno == ENOENT) {
 				errno = ENOTSUP;
-				ERR("!deep_flush not supported");
+				LOG(1, "!deep_flush not supported");
 			} else {
 				LOG(2, "cannot write to deep_flush"
 					"in region %d", mt->region_id);
@@ -184,7 +184,7 @@ os_part_deep_common(struct pool_set_part *part, void *addr,
 		if (region_id < 0) {
 			if (errno == ENOENT) {
 				errno = ENOTSUP;
-				ERR("!deep_flush not supported");
+				LOG(1, "!deep_flush not supported");
 			} else {
 				LOG(1, "invalid dax_region id %d", region_id);
 			}
