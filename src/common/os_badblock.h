@@ -31,63 +31,36 @@
  */
 
 /*
- * os_dimm_none.c -- fake dimm functions
+ * os_badblock.h -- linux bad block API
  */
 
-#include "out.h"
-#include "os.h"
-#include "os_dimm.h"
-/*
- * os_dimm_uid -- returns empty uid
- */
-int
-os_dimm_uid(const char *path, char *uid, size_t *len)
-{
-	LOG(3, "path %s, uid %p, len %lu", path, uid, *len);
-	if (uid == NULL) {
-		*len = 1;
-	} else {
-		*uid = '\0';
-	}
-	return 0;
-}
+#ifndef PMDK_BADBLOCK_H
+#define PMDK_BADBLOCK_H 1
+
+#include <stdint.h>
+#include <sys/types.h>
+
+#define B2SEC(n) ((n) >> 9)	/* convert bytes to sectors */
+#define SEC2B(n) ((n) << 9)	/* convert sectors to bytes */
 
 /*
- * os_dimm_usc -- returns fake unsafe shutdown count
+ * 'struct badblock' is already defined in ndctl/libndctl.h,
+ * so we cannot use this name
  */
-int
-os_dimm_usc(const char *path, uint64_t *usc)
-{
-	LOG(3, "path %s, usc %p", path, usc);
-	*usc = 0;
-	return 0;
-}
+struct bad_block {
+	unsigned long long offset;	/* in bytes */
+	unsigned length;		/* in bytes */
+};
 
-/*
- * os_dimm_files_namespace_badblocks -- fake os_dimm_files_namespace_badblocks()
- */
-int
-os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
+struct badblocks {
+	unsigned long long ns_resource;	/* address of the namespace */
+	unsigned bb_cnt;		/* number of bad blocks */
+	struct bad_block *bbv;		/* array of bad blocks */
+};
 
-	os_stat_t st;
+long os_badblocks_count(const char *path);
+int os_badblocks_get(const char *file, struct badblocks *bbs);
+int os_badblocks_clear(const char *path);
+int os_badblocks_check_file(const char *path);
 
-	if (os_stat(path, &st)) {
-		ERR("!stat %s", path);
-		return -1;
-	}
-
-	return 0;
-}
-
-/*
- * os_dimm_devdax_clear_badblocks -- fake bad block clearing routine
- */
-int
-os_dimm_devdax_clear_badblocks(const char *path)
-{
-	LOG(3, "path %s", path);
-
-	return 0;
-}
+#endif /* PMDK_BADBLOCK_H */

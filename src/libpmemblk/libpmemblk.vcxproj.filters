@@ -72,6 +72,8 @@
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\badblock_poolset.c" />
+    <ClCompile Include="..\common\badblock_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmemblk.h">
