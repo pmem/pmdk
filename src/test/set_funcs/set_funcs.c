@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,9 @@
  * set_funcs.c -- unit test for pmem*_set_funcs()
  */
 #include "unittest.h"
+
+#define EXISTING_FILE "/root"
+#define NON_ZERO_POOL_SIZE 1
 
 #define GUARD 0x2BEE5AFEULL
 #define EXTRA sizeof(GUARD)
@@ -269,6 +272,15 @@ cto_strdup(const char *s)
 static void
 test_obj(const char *path)
 {
+	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
+
+	/*
+	 * Generate ERR() call, that calls malloc() once,
+	 * but only when it is called for the first time
+	 * (free() is called in the destructor of the library).
+	 */
+	pmemobj_create(EXISTING_FILE, "", NON_ZERO_POOL_SIZE, 0);
+
 	memset(cnt, 0, sizeof(cnt));
 
 	PMEMobjpool *pop;
@@ -312,6 +324,15 @@ test_obj(const char *path)
 static void
 test_blk(const char *path)
 {
+	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
+
+	/*
+	 * Generate ERR() call, that calls malloc() once,
+	 * but only when it is called for the first time
+	 * (free() is called in the destructor of the library).
+	 */
+	pmemblk_create(EXISTING_FILE,  0, NON_ZERO_POOL_SIZE, 0);
+
 	memset(cnt, 0, sizeof(cnt));
 
 	PMEMblkpool *blk = pmemblk_create(path, 512, PMEMBLK_MIN_POOL, 0600);
@@ -343,6 +364,15 @@ test_blk(const char *path)
 static void
 test_log(const char *path)
 {
+	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
+
+	/*
+	 * Generate ERR() call, that calls malloc() once,
+	 * but only when it is called for the first time
+	 * (free() is called in the destructor of the library).
+	 */
+	pmemlog_create(EXISTING_FILE, NON_ZERO_POOL_SIZE, 0);
+
 	memset(cnt, 0, sizeof(cnt));
 
 	PMEMlogpool *log = pmemlog_create(path, PMEMLOG_MIN_POOL, 0600);
@@ -389,6 +419,15 @@ test_log(const char *path)
 static void
 test_cto(const char *path)
 {
+	pmemcto_set_funcs(cto_malloc, cto_free, cto_realloc, cto_strdup, NULL);
+
+	/*
+	 * Generate ERR() call, that calls malloc() once,
+	 * but only when it is called for the first time
+	 * (free() is called in the destructor of the library).
+	 */
+	pmemcto_create(EXISTING_FILE, "", NON_ZERO_POOL_SIZE, 0);
+
 	memset(cnt, 0, sizeof(cnt));
 
 	PMEMctopool *pcp;
@@ -430,6 +469,16 @@ test_cto(const char *path)
 static void
 test_vmem(const char *dir)
 {
+	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
+			NULL);
+
+	/*
+	 * Generate ERR() call, that calls malloc() once,
+	 * but only when it is called for the first time
+	 * (free() is called in the destructor of the library).
+	 */
+	vmem_create(EXISTING_FILE, 0);
+
 	memset(cnt, 0, sizeof(cnt));
 
 	VMEM *v[VMEM_POOLS];
@@ -471,13 +520,6 @@ main(int argc, char *argv[])
 
 	if (argc < 3)
 		UT_FATAL("usage: %s file dir", argv[0]);
-
-	pmemobj_set_funcs(obj_malloc, obj_free, obj_realloc, obj_strdup);
-	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
-	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
-	pmemcto_set_funcs(cto_malloc, cto_free, cto_realloc, cto_strdup, NULL);
-	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
-			NULL);
 
 	test_obj(argv[1]);
 	test_blk(argv[1]);
