@@ -34,6 +34,7 @@
     <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\init.c" />
     <ClCompile Include="pmem_windows.c" />
+    <ClCompile Include="..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>

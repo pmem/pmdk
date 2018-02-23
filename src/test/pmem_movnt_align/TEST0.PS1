@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -56,27 +56,21 @@ setup
 $Env:PMEM_LOG_LEVEL=15
 
 function test {
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX $args[0]
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX F
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX B
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX S
 }
 
 function test_all {
 	$Env:PMEM_MOVNT_THRESHOLD=$null
-	test C
-	test F
-	test B
-	test S
+	test
 
 	$Env:PMEM_MOVNT_THRESHOLD=0
-	test C
-	test F
-	test B
-	test S
+	test
 
 	$Env:PMEM_MOVNT_THRESHOLD=99999
-	test C
-	test F
-	test B
-	test S
+	test
 }
 
 test_all
@@ -88,5 +82,10 @@ test_all
 $Env:PMEM_AVX = 1
 
 test_all
+
+$Env:PMEM_NO_MOVNT = 1
+$Env:PMEM_NO_GENERIC_MEMCPY = 1
+
+test
 
 pass

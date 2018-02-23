@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -77,6 +77,10 @@ $Env:PMEM_AVX = 1
 test_all
 
 $Env:PMEM_NO_MOVNT = 1
+
+test_all
+
+$Env:PMEM_NO_GENERIC_MEMCPY = 1
 
 test_all
 

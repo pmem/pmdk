@@ -83,4 +83,8 @@ flush64b_empty(const char *addr)
 {
 }
 
+void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags);
+
 #endif
