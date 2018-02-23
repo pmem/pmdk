@@ -69,6 +69,7 @@
 #include "util_pmem.h"
 #include "fs.h"
 #include "os_deep.h"
+#include "badblock_poolset.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -3019,6 +3020,28 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	ASSERT(set->nreplicas > 0);
 
+	char **files_bbs = NULL;
+	int bbs = os_badblocks_check_poolset(set, &files_bbs, 1 /* create */);
+	if (bbs < 0) {
+		LOG(1,
+			"WARNING: failed to check pool set for bad blocks -- '%s'",
+			path);
+	}
+
+	if (bbs > 0) {
+		ERR(
+			"pool set contains bad blocks and cannot be created -- '%s'",
+			path);
+		if (files_bbs) {
+			int i;
+			for (i = 0; i < bbs; i++)
+				ERR("the file contains bad blocks: %s",
+					files_bbs[i]);
+			Free(files_bbs);
+		}
+		return -1;
+	}
+
 	if (set->poolsize < minsize) {
 		ERR("net pool size %zu smaller than %zu", set->poolsize,
 			minsize);
@@ -3565,6 +3588,22 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
 
+	int bbs = os_badblocks_check_poolset(set, NULL, 0 /* not create */);
+	if (bbs < 0) {
+		LOG(1, "WARNING: failed to check pool set for bad blocks");
+	}
+
+	if (bbs > 0) {
+		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+			LOG(1,
+				"WARNING: pool set contains bad blocks, ignoring");
+		} else {
+			LOG(1,
+				"pool set contains bad blocks and cannot be opened");
+			return -1;
+		}
+	}
+
 	if (set->remote && util_remote_load()) {
 		ERR("the pool set requires a remote replica, "
 			"but the '%s' library cannot be loaded",
@@ -3648,6 +3687,26 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	struct pool_set *set = *setp;
 
 	ASSERT(set->nreplicas > 0);
+
+	int bbs = os_badblocks_check_poolset(set, NULL, 0 /* not create */);
+	if (bbs < 0) {
+		LOG(1,
+			"WARNING: failed to check pool set for bad blocks -- '%s'",
+			path);
+	}
+
+	if (bbs > 0) {
+		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+			LOG(1,
+				"WARNING: pool set contains bad blocks, ignoring -- '%s'",
+				path);
+		} else {
+			LOG(1,
+				"pool set contains bad blocks and cannot be opened -- '%s'",
+				path);
+			return -1;
+		}
+	}
 
 	if (set->remote && util_remote_load()) {
 		ERR("the pool set requires a remote replica, "
