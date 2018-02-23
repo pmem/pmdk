@@ -8,7 +8,19 @@ $(OPT)compiled with support for Valgrind drd
 open "$(nW)/testset0": No such file or directory
 invalid major version (0)
 open "$(nW)/testset2": Permission denied
+stat $(nW)/testfile31: No such file or directory
+checking the file for bad blocks failed -- '$(nW)/testfile31'
+counting bad blocks failed -- '$(nW)/testfile31'
+checking the pool file for bad blocks failed -- '$(nW)/testfile31'
+checking the pool set for bad blocks failed
+WARNING: failed to check pool set for bad blocks -- '$(nW)/testset3'
 open "$(nW)/testfile31": No such file or directory
+stat $(nW)/testfile42: No such file or directory
+checking the file for bad blocks failed -- '$(nW)/testfile42'
+counting bad blocks failed -- '$(nW)/testfile42'
+checking the pool file for bad blocks failed -- '$(nW)/testfile42'
+checking the pool set for bad blocks failed
+WARNING: failed to check pool set for bad blocks -- '$(nW)/testset4'
 open "$(nW)/testfile42": No such file or directory
 size 1048576 smaller than 2097152
 size 1048576 smaller than 2097152
