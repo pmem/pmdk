@@ -133,8 +133,18 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->predrain_fence = predrain_fence_empty;
 	funcs->deep_flush = flush_dcache_invalidate_opt;
 	funcs->is_pmem = is_pmem_detect;
-	funcs->memmove_nodrain = memmove_nodrain_libc;
-	funcs->memset_nodrain = memset_nodrain_libc;
+	funcs->memmove_nodrain = memmove_nodrain_generic;
+	funcs->memset_nodrain = memset_nodrain_generic;
+
+	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
+	if (ptr) {
+		long long val = atoll(ptr);
+
+		if (val) {
+			funcs->memmove_nodrain = memmove_nodrain_libc;
+			funcs->memset_nodrain = memset_nodrain_libc;
+		}
+	}
 
 	int flush;
 	char *e = os_getenv("PMEM_NO_FLUSH");
@@ -171,7 +181,9 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	else if (funcs->flush != funcs->deep_flush)
 		FATAL("invalid flush function address");
 
-	if (funcs->memmove_nodrain == memmove_nodrain_libc)
+	if (funcs->memmove_nodrain == memmove_nodrain_generic)
+		LOG(3, "using generic memmove");
+	else if (funcs->memmove_nodrain == memmove_nodrain_libc)
 		LOG(3, "using libc memmove");
 	else
 		FATAL("invalid memove_nodrain function address");

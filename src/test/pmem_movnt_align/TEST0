@@ -48,27 +48,21 @@ setup
 export PMEM_LOG_LEVEL=15
 
 function test() {
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX $1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S
 }
 
 function test_all() {
 	unset PMEM_MOVNT_THRESHOLD
-	test C
-	test F
-	test B
-	test S
+	test
 
 	export PMEM_MOVNT_THRESHOLD=0
-	test C
-	test F
-	test B
-	test S
+	test
 
 	export PMEM_MOVNT_THRESHOLD=99999
-	test C
-	test F
-	test B
-	test S
+	test
 }
 
 test_all
@@ -80,5 +74,10 @@ test_all
 export PMEM_AVX=1
 
 test_all
+
+export PMEM_NO_MOVNT=1
+export PMEM_NO_GENERIC_MEMCPY=1
+
+test
 
 pass

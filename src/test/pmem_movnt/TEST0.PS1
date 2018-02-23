@@ -76,4 +76,9 @@ $Env:PMEM_AVX = 1
 
 test_all
 
+$Env:PMEM_NO_MOVNT = 1
+$Env:PMEM_NO_GENERIC_MEMCPY = 1
+
+test
+
 pass

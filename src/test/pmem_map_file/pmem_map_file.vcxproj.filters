@@ -24,6 +24,9 @@
     <ClCompile Include="..\..\libpmem\libpmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem\memops_generic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>

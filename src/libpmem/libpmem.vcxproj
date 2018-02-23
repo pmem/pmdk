@@ -37,6 +37,7 @@
     <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\init.c" />
     <ClCompile Include="pmem_windows.c" />
+    <ClCompile Include="..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clwb.c" />
