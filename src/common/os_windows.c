@@ -168,7 +168,7 @@ os_fopen(const char *pathname, const char *mode)
 		return NULL;
 
 	wchar_t *wmode = util_toUTF16(mode);
-	if (path == NULL) {
+	if (wmode == NULL) {
 		util_free_UTF16(path);
 		return NULL;
 	}
