@@ -53,6 +53,7 @@ OBJS = pmem_is_pmem_posix.o\
 	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
+	memops_generic.o\
 	init.o\
 	os_deep_linux.o
 

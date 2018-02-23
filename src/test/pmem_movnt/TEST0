@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -77,5 +77,10 @@ test_all
 export PMEM_AVX=1
 
 test_all
+
+export PMEM_NO_MOVNT=1
+export PMEM_NO_GENERIC_MEMCPY=1
+
+test
 
 pass
