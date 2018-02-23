@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -168,7 +168,7 @@ os_fopen(const char *pathname, const char *mode)
 		return NULL;
 
 	wchar_t *wmode = util_toUTF16(mode);
-	if (path == NULL) {
+	if (wmode == NULL) {
 		util_free_UTF16(path);
 		return NULL;
 	}
