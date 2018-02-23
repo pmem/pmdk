@@ -64,6 +64,7 @@ OBJS = pmem_deep_persist.o\
 	os_auto_flush_linux.o\
 	shutdown_state.o\
 	os_dimm_none.o\
+	memops_generic.o\
 	init.o\
 	$(call osdep, extent,.o)\
 	$(call osdep, badblock,.o)\

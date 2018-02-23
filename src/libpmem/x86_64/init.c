@@ -209,6 +209,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len)
 enum memcpy_impl {
 	MEMCPY_INVALID,
 	MEMCPY_LIBC,
+	MEMCPY_GENERIC,
 	MEMCPY_SSE2,
 	MEMCPY_AVX,
 	MEMCPY_AVX512F
@@ -399,9 +400,20 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->predrain_fence = predrain_fence_empty;
 	funcs->deep_flush = flush_clflush;
 	funcs->is_pmem = NULL;
-	funcs->memmove_nodrain = memmove_nodrain_libc;
-	funcs->memset_nodrain = memset_nodrain_libc;
-	enum memcpy_impl impl = MEMCPY_LIBC;
+	funcs->memmove_nodrain = memmove_nodrain_generic;
+	funcs->memset_nodrain = memset_nodrain_generic;
+	enum memcpy_impl impl = MEMCPY_GENERIC;
+
+	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
+	if (ptr) {
+		long long val = atoll(ptr);
+
+		if (val) {
+			funcs->memmove_nodrain = memmove_nodrain_libc;
+			funcs->memset_nodrain = memset_nodrain_libc;
+			impl = MEMCPY_LIBC;
+		}
+	}
 
 	pmem_cpuinfo_to_funcs(funcs, &impl);
 
@@ -411,7 +423,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	 * and pmem_memset_*().
 	 * It has no effect if movnt is not supported or disabled.
 	 */
-	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	if (ptr) {
 		long long val = atoll(ptr);
 
@@ -468,6 +480,8 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		LOG(3, "using movnt SSE2");
 	else if (impl == MEMCPY_LIBC)
 		LOG(3, "using libc memmove");
+	else if (impl == MEMCPY_GENERIC)
+		LOG(3, "using generic memmove");
 	else
 		FATAL("invalid memcpy impl");
 }

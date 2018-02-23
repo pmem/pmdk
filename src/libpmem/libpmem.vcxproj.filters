@@ -86,6 +86,9 @@
     <ClCompile Include="..\common\badblock_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\libpmem\memops_generic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
