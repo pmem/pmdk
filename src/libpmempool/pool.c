@@ -197,7 +197,8 @@ pool_set_map(const char *fname, struct pool_set **poolset, unsigned flags)
 	struct pool_attr attr;
 	util_pool_hdr2attr(&attr, &hdr);
 	if (util_pool_open(poolset, fname, 0 /* minpartsize */, &attr,
-				NULL, NULL, flags | POOL_OPEN_IGNORE_SDS)) {
+				NULL, NULL, flags | POOL_OPEN_IGNORE_SDS |
+						POOL_OPEN_IGNORE_BAD_BLOCKS)) {
 		ERR("opening poolset failed");
 		return -1;
 	}
@@ -302,7 +303,8 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 					"supported");
 				return -1;
 			}
-			if (util_pool_open_nocheck(set, 0))
+			if (util_pool_open_nocheck(set,
+						POOL_OPEN_IGNORE_BAD_BLOCKS))
 				return -1;
 		}
 
@@ -428,8 +430,9 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 			LOG(2, "cannot open pool set -- '%s'", path);
 			goto err_free_fname;
 		}
-		if (util_pool_open_nocheck(file->poolset,
-						rdonly ? POOL_OPEN_COW : 0))
+		unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+					POOL_OPEN_IGNORE_BAD_BLOCKS;
+		if (util_pool_open_nocheck(file->poolset, flags))
 			goto err_free_fname;
 
 		file->size = file->poolset->poolsize;
