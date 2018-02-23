@@ -30,6 +30,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+$ErrorActionPreference="Stop"
+
 . "..\testconfig.ps1"
 
 function verbose_msg {
@@ -448,7 +450,13 @@ function expect_normal_exit {
     # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
     # status of some other command executed before.
     $Global:LASTEXITCODE = 1
+
+    # If test would be run with default ErrorActionPreference="Stop"
+    # then every attempt to write to stderr would result
+    # in powershell error and program abort
+    $ErrorActionPreference="Continue"
     Invoke-Expression "$command $params"
+    $ErrorActionPreference="Stop"
 
     check_exit_code
 }
@@ -478,7 +486,14 @@ function expect_abnormal_exit {
     # of missing binaries / wrong path / etc.) and $LASTEXITCODE contains the
     # status of some other command executed before.
     $Global:LASTEXITCODE = 0
+
+    # If test would be run with default ErrorActionPreference="Stop"
+    # then every attempt to write to stderr would result
+    # in powershell error and program abort
+    $ErrorActionPreference="Continue"
     Invoke-Expression "$command $params"
+    $ErrorActionPreference="Stop"
+
     if ($Global:LASTEXITCODE -eq 0) {
         fail "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
