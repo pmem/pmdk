@@ -45,14 +45,14 @@ namespace examples
 namespace pchess
 {
 
-enum piece { pawn, rook, bishop, knight, queen, king };
+enum piece { PAWN, ROOK, BISHOP, KNIGHT, QUEEN, KING };
 
-enum side { white, black };
+enum side { WHITE, BLACK };
 
 constexpr side
 opponent(side who)
 {
-	return (who == white) ? black : white;
+	return (who == WHITE) ? BLACK : WHITE;
 }
 
 struct square {
@@ -77,26 +77,26 @@ struct square {
 	}
 };
 
-constexpr square white_king = {true, false, king, white};
-constexpr square black_king = {true, false, king, black};
-constexpr square white_pawn = {true, false, pawn, white};
-constexpr square black_pawn = {true, false, pawn, black};
+constexpr square white_king = {true, false, KING, WHITE};
+constexpr square black_king = {true, false, KING, BLACK};
+constexpr square white_pawn = {true, false, PAWN, WHITE};
+constexpr square black_pawn = {true, false, PAWN, BLACK};
 
 enum class move_type {
-	general,
-	pawn_double_push,
-	castle,
-	en_passant,
-	promote_queen,
-	promote_knight,
-	promote_bishop,
-	promote_rook
+	GENERAL,
+	PAWN_DOUBLE_PUSH,
+	CASTLE,
+	EN_PASSANT,
+	PROMOTE_QUEEN,
+	PROMOTE_KNIGHT,
+	PROMOTE_BISHOP,
+	PROMOTE_ROOK
 };
 
 struct move {
 	int from;
 	int to;
-	move_type type = move_type::general;
+	move_type type = move_type::GENERAL;
 
 	bool
 	is_null() const
@@ -104,7 +104,7 @@ struct move {
 		return from == 0 and to == 0;
 	}
 
-	constexpr move(int f, int t, move_type ty = move_type::general)
+	constexpr move(int f, int t, move_type ty = move_type::GENERAL)
 	    : from(f), to(t), type(ty)
 	{
 	}
@@ -136,95 +136,95 @@ index_at(int file, int rank)
 	return rank * 10 + file;
 }
 
-enum { rank_1 = 9,
-       rank_2 = 8,
-       rank_3 = 7,
-       rank_4 = 6,
-       rank_5 = 5,
-       rank_6 = 4,
-       rank_7 = 3,
-       rank_8 = 2,
+enum { RANK_1 = 9,
+       RANK_2 = 8,
+       RANK_3 = 7,
+       RANK_4 = 6,
+       RANK_5 = 5,
+       RANK_6 = 4,
+       RANK_7 = 3,
+       RANK_8 = 2,
 
-       file_a = 8,
-       file_b = 7,
-       file_c = 6,
-       file_d = 5,
-       file_e = 4,
-       file_f = 3,
-       file_g = 2,
-       file_h = 1,
+       FILE_A = 8,
+       FILE_B = 7,
+       FILE_C = 6,
+       FILE_D = 5,
+       FILE_E = 4,
+       FILE_F = 3,
+       FILE_G = 2,
+       FILE_H = 1,
 
-       sq_h8 = 21,
-       sq_g8 = 22,
-       sq_f8 = 23,
-       sq_e8 = 24,
-       sq_d8 = 25,
-       sq_c8 = 26,
-       sq_b8 = 27,
-       sq_a8 = 28,
+       SQ_H8 = 21,
+       SQ_G8 = 22,
+       SQ_F8 = 23,
+       SQ_E8 = 24,
+       SQ_D8 = 25,
+       SQ_C8 = 26,
+       SQ_B8 = 27,
+       SQ_A8 = 28,
 
-       sq_h7 = 31,
-       sq_g7 = 32,
-       sq_f7 = 33,
-       sq_e7 = 34,
-       sq_d7 = 35,
-       sq_c7 = 36,
-       sq_b7 = 37,
-       sq_a7 = 38,
+       SQ_H7 = 31,
+       SQ_G7 = 32,
+       SQ_F7 = 33,
+       SQ_E7 = 34,
+       SQ_D7 = 35,
+       SQ_C7 = 36,
+       SQ_B7 = 37,
+       SQ_A7 = 38,
 
-       sq_h6 = 41,
-       sq_g6 = 42,
-       sq_f6 = 43,
-       sq_e6 = 44,
-       sq_d6 = 45,
-       sq_c6 = 46,
-       sq_b6 = 47,
-       sq_a6 = 48,
+       SQ_H6 = 41,
+       SQ_G6 = 42,
+       SQ_F6 = 43,
+       SQ_E6 = 44,
+       SQ_D6 = 45,
+       SQ_C6 = 46,
+       SQ_B6 = 47,
+       SQ_A6 = 48,
 
-       sq_h5 = 51,
-       sq_g5 = 52,
-       sq_f5 = 53,
-       sq_e5 = 54,
-       sq_d5 = 55,
-       sq_c5 = 56,
-       sq_b5 = 57,
-       sq_a5 = 58,
+       SQ_H5 = 51,
+       SQ_G5 = 52,
+       SQ_F5 = 53,
+       SQ_E5 = 54,
+       SQ_D5 = 55,
+       SQ_C5 = 56,
+       SQ_B5 = 57,
+       SQ_A5 = 58,
 
-       sq_h4 = 61,
-       sq_g4 = 62,
-       sq_f4 = 63,
-       sq_e4 = 64,
-       sq_d4 = 65,
-       sq_c4 = 66,
-       sq_b4 = 67,
-       sq_a4 = 68,
+       SQ_H4 = 61,
+       SQ_G4 = 62,
+       SQ_F4 = 63,
+       SQ_E4 = 64,
+       SQ_D4 = 65,
+       SQ_C4 = 66,
+       SQ_B4 = 67,
+       SQ_A4 = 68,
 
-       sq_h3 = 71,
-       sq_g3 = 72,
-       sq_f3 = 73,
-       sq_e3 = 74,
-       sq_d3 = 75,
-       sq_c3 = 76,
-       sq_b3 = 77,
-       sq_a3 = 78,
+       SQ_H3 = 71,
+       SQ_G3 = 72,
+       SQ_F3 = 73,
+       SQ_E3 = 74,
+       SQ_D3 = 75,
+       SQ_C3 = 76,
+       SQ_B3 = 77,
+       SQ_A3 = 78,
 
-       sq_h2 = 81,
-       sq_g2 = 82,
-       sq_f2 = 83,
-       sq_e2 = 84,
-       sq_d2 = 85,
-       sq_c2 = 86,
-       sq_b2 = 87,
-       sq_a2 = 88,
+       SQ_H2 = 81,
+       SQ_G2 = 82,
+       SQ_F2 = 83,
+       SQ_E2 = 84,
+       SQ_D2 = 85,
+       SQ_C2 = 86,
+       SQ_B2 = 87,
+       SQ_A2 = 88,
 
-       sq_h1 = 91,
-       sq_g1 = 92,
-       sq_f1 = 93,
-       sq_e1 = 94,
-       sq_d1 = 95,
-       sq_c1 = 96,
-       sq_b1 = 97,
-       sq_a1 = 98
+       SQ_H1 = 91,
+       SQ_G1 = 92,
+       SQ_F1 = 93,
+       SQ_E1 = 94,
+       SQ_D1 = 95,
+       SQ_C1 = 96,
+       SQ_B1 = 97,
+       SQ_A1 = 98
 
 };
 

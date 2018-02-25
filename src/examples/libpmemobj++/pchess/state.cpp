@@ -187,7 +187,7 @@ state::state()
       search_resolution(4),
       time_per_move(5s),
       board_on_move(false),
-      computer_side(black)
+      computer_side(BLACK)
 {
 	game.start();
 }
@@ -301,7 +301,7 @@ void
 state::cmd_new()
 {
 	game.reset(starting_FEN);
-	computer_side = black;
+	computer_side = BLACK;
 	game.start();
 }
 

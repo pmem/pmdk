@@ -63,29 +63,29 @@ char_to_square(char c) noexcept
 
 	switch (std::toupper(c)) {
 		case 'R':
-			sq.piece_type = rook;
+			sq.piece_type = ROOK;
 			break;
 		case 'B':
-			sq.piece_type = bishop;
+			sq.piece_type = BISHOP;
 			break;
 		case 'N':
-			sq.piece_type = knight;
+			sq.piece_type = KNIGHT;
 			break;
 		case 'Q':
-			sq.piece_type = queen;
+			sq.piece_type = QUEEN;
 			break;
 		case 'K':
-			sq.piece_type = king;
+			sq.piece_type = KING;
 			break;
 		case 'P':
-			sq.piece_type = pawn;
+			sq.piece_type = PAWN;
 			break;
 	}
 
 	if (std::isupper(c))
-		sq.piece_side = white;
+		sq.piece_side = WHITE;
 	else
-		sq.piece_side = black;
+		sq.piece_side = BLACK;
 
 	return sq;
 }
@@ -138,13 +138,13 @@ parse_coordinates(string::const_iterator c)
 char
 rank_to_char(int rank) noexcept
 {
-	return (char)('1' + (rank_1 - rank));
+	return (char)('1' + (RANK_1 - rank));
 }
 
 char
 file_to_char(int file) noexcept
 {
-	return (char)('a' + (file_a - file));
+	return (char)('a' + (FILE_A - file));
 }
 
 string
@@ -164,29 +164,29 @@ square_to_char(square sq) noexcept
 	char c;
 
 	switch (sq.piece_type) {
-		case pawn:
+		case PAWN:
 			c = 'P';
 			break;
-		case bishop:
+		case BISHOP:
 			c = 'B';
 			break;
-		case rook:
+		case ROOK:
 			c = 'R';
 			break;
-		case knight:
+		case KNIGHT:
 			c = 'N';
 			break;
-		case queen:
+		case QUEEN:
 			c = 'Q';
 			break;
-		case king:
+		case KING:
 			c = 'K';
 			break;
 		default:
 			__builtin_unreachable();
 	}
 
-	if (sq.piece_side == black)
+	if (sq.piece_side == BLACK)
 		c = std::tolower(c);
 
 	return c;

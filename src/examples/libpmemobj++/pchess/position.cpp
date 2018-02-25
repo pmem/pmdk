@@ -59,7 +59,7 @@ string starting_FEN =
 string
 position::print_board() const
 {
-	int index = sq_a8;
+	int index = SQ_A8;
 	string result;
 
 	result = "   A B C D E F G H\n";
@@ -75,7 +75,7 @@ position::print_board() const
 	result += "\n";
 
 	do {
-		if (file_at(index) == file_a) {
+		if (file_at(index) == FILE_A) {
 			result += rank_to_char(rank_at(index));
 			result += ' ';
 		}
@@ -126,7 +126,7 @@ static const array<int, 8> king_moves = {{north + west, north, north + east,
 bool
 is_attacked(const chess_board &board, int where, side by)
 {
-	if (by == white) {
+	if (by == WHITE) {
 		if (board[east_of(south_of(where))] == white_pawn)
 			return true;
 		if (board[west_of(south_of(where))] == white_pawn)
@@ -142,7 +142,7 @@ is_attacked(const chess_board &board, int where, side by)
 		auto sq = board[where + delta];
 
 		if (sq.is_valid and not sq.is_empty and
-		    sq.piece_type == king and sq.piece_side == by)
+		    sq.piece_type == KING and sq.piece_side == by)
 			return true;
 	}
 
@@ -150,7 +150,7 @@ is_attacked(const chess_board &board, int where, side by)
 		auto sq = board[where + delta];
 
 		if (sq.is_valid and not sq.is_empty and
-		    sq.piece_type == knight and sq.piece_side == by)
+		    sq.piece_type == KNIGHT and sq.piece_side == by)
 			return true;
 	}
 
@@ -159,8 +159,8 @@ is_attacked(const chess_board &board, int where, side by)
 		while (board[index].is_valid and board[index].is_empty)
 			index += delta;
 		if (board[index].is_valid and board[index].piece_side == by and
-		    (board[index].piece_type == bishop or
-		     board[index].piece_type == queen))
+		    (board[index].piece_type == BISHOP or
+		     board[index].piece_type == QUEEN))
 			return true;
 	}
 
@@ -169,8 +169,8 @@ is_attacked(const chess_board &board, int where, side by)
 		while (board[index].is_valid and board[index].is_empty)
 			index += delta;
 		if (board[index].is_valid and board[index].piece_side == by and
-		    (board[index].piece_type == rook or
-		     board[index].piece_type == queen))
+		    (board[index].piece_type == ROOK or
+		     board[index].piece_type == QUEEN))
 			return true;
 	}
 
@@ -190,12 +190,12 @@ position::cadd_move(move m)
 	new_board[m.to] = new_board[m.from];
 	new_board[m.from].is_empty = true;
 
-	if (m.type == move_type::en_passant)
+	if (m.type == move_type::EN_PASSANT)
 		new_board[en_passant_target].is_empty = true;
 
-	if (board[m.from].piece_type == king)
+	if (board[m.from].piece_type == KING)
 		where = m.to;
-	else if (side_to_move == white)
+	else if (side_to_move == WHITE)
 		where = white_king_index;
 	else
 		where = black_king_index;
@@ -218,24 +218,24 @@ position::gen_pawn_moves(int from)
 {
 	int push, dpush, pawn_home_rank, last_rank;
 
-	if (side_to_move == white) {
+	if (side_to_move == WHITE) {
 		push = from + north;
 		dpush = push + north;
-		pawn_home_rank = rank_2;
-		last_rank = rank_7;
+		pawn_home_rank = RANK_2;
+		last_rank = RANK_7;
 	} else {
 		push = from + south;
 		dpush = push + south;
-		pawn_home_rank = rank_7;
-		last_rank = rank_2;
+		pawn_home_rank = RANK_7;
+		last_rank = RANK_2;
 	}
 
 	if (board[push].is_empty) {
 		if (rank_at(from) == last_rank) {
-			cadd_move({from, push, move_type::promote_queen});
-			cadd_move({from, push, move_type::promote_knight});
-			cadd_move({from, push, move_type::promote_rook});
-			cadd_move({from, push, move_type::promote_bishop});
+			cadd_move({from, push, move_type::PROMOTE_QUEEN});
+			cadd_move({from, push, move_type::PROMOTE_KNIGHT});
+			cadd_move({from, push, move_type::PROMOTE_ROOK});
+			cadd_move({from, push, move_type::PROMOTE_BISHOP});
 		} else {
 			cadd_move({from, push});
 		}
@@ -243,7 +243,7 @@ position::gen_pawn_moves(int from)
 		if (rank_at(from) == pawn_home_rank) {
 			if (board[dpush].is_empty)
 				cadd_move({from, dpush,
-					   move_type::pawn_double_push});
+					   move_type::PAWN_DOUBLE_PUSH});
 		}
 	}
 
@@ -275,50 +275,50 @@ position::gen_en_passants()
 	if (en_passant_target <= 0)
 		return;
 
-	int vdir = (side_to_move == white) ? 1 : -1;
+	int vdir = (side_to_move == WHITE) ? 1 : -1;
 
 	for (int hdir : {west, east}) {
 		int from = en_passant_target + hdir;
 		if (board[from].piece_side == side_to_move and
-		    board[from].piece_type == pawn and not board[from].is_empty)
+		    board[from].piece_type == PAWN and not board[from].is_empty)
 			cadd_move({from, en_passant_target + vdir * north,
-				   move_type::en_passant});
+				   move_type::EN_PASSANT});
 	}
 }
 
 void
 position::gen_castles()
 {
-	if (side_to_move == white and can_white_castle()) {
-		if (is_attacked(board, sq_e1, black))
+	if (side_to_move == WHITE and can_white_castle()) {
+		if (is_attacked(board, SQ_E1, BLACK))
 			return;
 
-		if (white_can_castle_king_side and board[sq_f1].is_empty and
-		    board[sq_g1].is_empty and
-		    not is_attacked(board, sq_f1, black) and
-		    not is_attacked(board, sq_g1, black))
-			moves.push_back({sq_e1, sq_g1, move_type::castle});
+		if (white_can_castle_king_side and board[SQ_F1].is_empty and
+		    board[SQ_G1].is_empty and
+		    not is_attacked(board, SQ_F1, BLACK) and
+		    not is_attacked(board, SQ_G1, BLACK))
+			moves.push_back({SQ_E1, SQ_G1, move_type::CASTLE});
 
-		if (white_can_castle_queen_side and board[sq_b1].is_empty and
-		    board[sq_c1].is_empty and board[sq_d1].is_empty and
-		    not is_attacked(board, sq_d1, black) and
-		    not is_attacked(board, sq_c1, black))
-			moves.push_back({sq_e1, sq_c1, move_type::castle});
-	} else if (side_to_move == black and can_black_castle()) {
-		if (is_attacked(board, sq_e8, white))
+		if (white_can_castle_queen_side and board[SQ_B1].is_empty and
+		    board[SQ_C1].is_empty and board[SQ_D1].is_empty and
+		    not is_attacked(board, SQ_D1, BLACK) and
+		    not is_attacked(board, SQ_C1, BLACK))
+			moves.push_back({SQ_E1, SQ_C1, move_type::CASTLE});
+	} else if (side_to_move == BLACK and can_black_castle()) {
+		if (is_attacked(board, SQ_E8, WHITE))
 			return;
 
-		if (black_can_castle_king_side and board[sq_f8].is_empty and
-		    board[sq_g8].is_empty and
-		    not is_attacked(board, sq_f8, white) and
-		    not is_attacked(board, sq_g8, white))
-			moves.push_back({sq_e8, sq_g8, move_type::castle});
+		if (black_can_castle_king_side and board[SQ_F8].is_empty and
+		    board[SQ_G8].is_empty and
+		    not is_attacked(board, SQ_F8, WHITE) and
+		    not is_attacked(board, SQ_G8, WHITE))
+			moves.push_back({SQ_E8, SQ_G8, move_type::CASTLE});
 
-		if (black_can_castle_queen_side and board[sq_b8].is_empty and
-		    board[sq_c8].is_empty and board[sq_d8].is_empty and
-		    not is_attacked(board, sq_d8, white) and
-		    not is_attacked(board, sq_c8, white))
-			moves.push_back({sq_e8, sq_c8, move_type::castle});
+		if (black_can_castle_queen_side and board[SQ_B8].is_empty and
+		    board[SQ_C8].is_empty and board[SQ_D8].is_empty and
+		    not is_attacked(board, SQ_D8, WHITE) and
+		    not is_attacked(board, SQ_C8, WHITE))
+			moves.push_back({SQ_E8, SQ_C8, move_type::CASTLE});
 	}
 }
 
@@ -332,23 +332,23 @@ position::generate_moves()
 			continue;
 
 		switch (sq.piece_type) {
-			case knight:
+			case KNIGHT:
 				gen_non_sliding_moves(knight_moves, from);
 				break;
-			case king:
+			case KING:
 				gen_non_sliding_moves(king_moves, from);
 				break;
-			case bishop:
+			case BISHOP:
 				gen_sliding_moves(bishop_directions, from);
 				break;
-			case rook:
+			case ROOK:
 				gen_sliding_moves(rook_directions, from);
 				break;
-			case queen:
+			case QUEEN:
 				gen_sliding_moves(rook_directions, from);
 				gen_sliding_moves(bishop_directions, from);
 				break;
-			case pawn:
+			case PAWN:
 				gen_pawn_moves(from);
 				break;
 		}
@@ -380,7 +380,7 @@ position::generate_moves()
 static void
 FEN_parse_board(string::const_iterator &c, chess_board &board)
 {
-	int index = sq_a8;
+	int index = SQ_A8;
 
 	do {
 		do {
@@ -424,9 +424,9 @@ FEN_parse_side_to_move(string::const_iterator &c)
 {
 	switch (std::tolower(*c++)) {
 		case 'w':
-			return white;
+			return WHITE;
 		case 'b':
-			return black;
+			return BLACK;
 		default:
 			throw;
 	}
@@ -484,10 +484,10 @@ FEN_parse_en_passant_square(string::const_iterator &c, side to_move)
 
 	index = parse_coordinates(c);
 
-	if (to_move == white and rank_at(index) != rank_6)
+	if (to_move == WHITE and rank_at(index) != RANK_6)
 		throw;
 
-	if (to_move == black and rank_at(index) != rank_3)
+	if (to_move == BLACK and rank_at(index) != RANK_3)
 		throw;
 
 	c += 2;
@@ -562,7 +562,7 @@ position::position(string FEN)
 		throw;
 	setup_king_index(board, white_king_index, black_king_index);
 	is_king_attacked =
-		is_attacked(board, (side_to_move == white) ? white_king_index
+		is_attacked(board, (side_to_move == WHITE) ? white_king_index
 							   : black_king_index,
 			    opponent(side_to_move));
 	generate_moves();
@@ -582,7 +582,7 @@ position::clear()
 	black_can_castle_king_side = false;
 	black_can_castle_queen_side = false;
 	en_passant_target = -1;
-	side_to_move = white;
+	side_to_move = WHITE;
 	half_move_counter = 0;
 	full_move_counter = 1;
 }
@@ -590,7 +590,7 @@ position::clear()
 static void
 FEN_print_board(string &result, const chess_board &board)
 {
-	int index = sq_a8;
+	int index = SQ_A8;
 	int empty_count = 0;
 
 	do {
@@ -623,7 +623,7 @@ FEN_print_board(string &result, const chess_board &board)
 static void
 FEN_print_side_to_move(string &result, side to_move)
 {
-	if (to_move == white)
+	if (to_move == WHITE)
 		result += 'w';
 	else
 		result += 'b';
@@ -684,27 +684,27 @@ position::is_move_reversible(move m) const
 {
 	if (not board[m.to].is_empty)
 		return false;
-	if (board[m.from].piece_type == pawn)
+	if (board[m.from].piece_type == PAWN)
 		return false;
-	if (m.from == sq_e1 and can_white_castle())
+	if (m.from == SQ_E1 and can_white_castle())
 		return false;
-	if (m.from == sq_e8 and can_black_castle())
+	if (m.from == SQ_E8 and can_black_castle())
 		return false;
-	if (m.from == sq_a1 and white_can_castle_queen_side)
+	if (m.from == SQ_A1 and white_can_castle_queen_side)
 		return false;
-	if (m.from == sq_h1 and white_can_castle_king_side)
+	if (m.from == SQ_H1 and white_can_castle_king_side)
 		return false;
-	if (m.from == sq_a8 and black_can_castle_queen_side)
+	if (m.from == SQ_A8 and black_can_castle_queen_side)
 		return false;
-	if (m.from == sq_h8 and black_can_castle_king_side)
+	if (m.from == SQ_H8 and black_can_castle_king_side)
 		return false;
-	if (m.to == sq_a1 and white_can_castle_queen_side)
+	if (m.to == SQ_A1 and white_can_castle_queen_side)
 		return false;
-	if (m.to == sq_h1 and white_can_castle_king_side)
+	if (m.to == SQ_H1 and white_can_castle_king_side)
 		return false;
-	if (m.to == sq_a8 and black_can_castle_queen_side)
+	if (m.to == SQ_A8 and black_can_castle_queen_side)
 		return false;
-	if (m.to == sq_h8 and black_can_castle_king_side)
+	if (m.to == SQ_H8 and black_can_castle_king_side)
 		return false;
 	return true;
 }
@@ -718,27 +718,27 @@ position::make_move(move m) const
 	child.board[m.to] = child.board[m.from];
 	child.board[m.from].is_empty = true;
 
-	child.side_to_move = (side_to_move == white) ? black : white;
+	child.side_to_move = (side_to_move == WHITE) ? BLACK : WHITE;
 
 	child.en_passant_target = -1;
 	switch (m.type) {
-		case move_type::pawn_double_push:
+		case move_type::PAWN_DOUBLE_PUSH:
 			child.en_passant_target = m.to;
 			break;
-		case move_type::en_passant:
+		case move_type::EN_PASSANT:
 			child.board[en_passant_target].is_empty = true;
 			break;
-		case move_type::promote_queen:
-			child.board[m.to].piece_type = queen;
+		case move_type::PROMOTE_QUEEN:
+			child.board[m.to].piece_type = QUEEN;
 			break;
-		case move_type::promote_knight:
-			child.board[m.to].piece_type = knight;
+		case move_type::PROMOTE_KNIGHT:
+			child.board[m.to].piece_type = KNIGHT;
 			break;
-		case move_type::promote_rook:
-			child.board[m.to].piece_type = rook;
+		case move_type::PROMOTE_ROOK:
+			child.board[m.to].piece_type = ROOK;
 			break;
-		case move_type::promote_bishop:
-			child.board[m.to].piece_type = bishop;
+		case move_type::PROMOTE_BISHOP:
+			child.board[m.to].piece_type = BISHOP;
 			break;
 		default:
 			break;
@@ -748,41 +748,41 @@ position::make_move(move m) const
 		child.white_king_index = m.to;
 		child.white_can_castle_king_side = false;
 		child.white_can_castle_queen_side = false;
-		if (m.type == move_type::castle and m.to == sq_c1) {
-			child.board[sq_d1] = child.board[sq_a1];
-			child.board[sq_a1].is_empty = true;
+		if (m.type == move_type::CASTLE and m.to == SQ_C1) {
+			child.board[SQ_D1] = child.board[SQ_A1];
+			child.board[SQ_A1].is_empty = true;
 		}
-		if (m.type == move_type::castle and m.to == sq_g1) {
-			child.board[sq_f1] = child.board[sq_h1];
-			child.board[sq_h1].is_empty = true;
+		if (m.type == move_type::CASTLE and m.to == SQ_G1) {
+			child.board[SQ_F1] = child.board[SQ_H1];
+			child.board[SQ_H1].is_empty = true;
 		}
 	}
 
-	if (m.from == sq_a1 or m.to == sq_a1)
+	if (m.from == SQ_A1 or m.to == SQ_A1)
 		child.white_can_castle_queen_side = false;
-	if (m.from == sq_h1 or m.to == sq_h1)
+	if (m.from == SQ_H1 or m.to == SQ_H1)
 		child.white_can_castle_king_side = false;
 
 	if (board[m.from] == black_king) {
 		child.black_king_index = m.to;
 		child.black_can_castle_king_side = false;
 		child.black_can_castle_queen_side = false;
-		if (m.type == move_type::castle and m.to == sq_c8) {
-			child.board[sq_d8] = child.board[sq_a8];
-			child.board[sq_a8].is_empty = true;
+		if (m.type == move_type::CASTLE and m.to == SQ_C8) {
+			child.board[SQ_D8] = child.board[SQ_A8];
+			child.board[SQ_A8].is_empty = true;
 		}
-		if (m.type == move_type::castle and m.to == sq_g8) {
-			child.board[sq_f8] = child.board[sq_h8];
-			child.board[sq_h8].is_empty = true;
+		if (m.type == move_type::CASTLE and m.to == SQ_G8) {
+			child.board[SQ_F8] = child.board[SQ_H8];
+			child.board[SQ_H8].is_empty = true;
 		}
 	}
 
-	if (m.from == sq_a8 or m.to == sq_a8)
+	if (m.from == SQ_A8 or m.to == SQ_A8)
 		child.black_can_castle_queen_side = false;
-	if (m.from == sq_h8 or m.to == sq_h8)
+	if (m.from == SQ_H8 or m.to == SQ_H8)
 		child.black_can_castle_king_side = false;
 
-	if (side_to_move == black)
+	if (side_to_move == BLACK)
 		child.full_move_counter++;
 
 	if (is_move_reversible(m))
@@ -791,7 +791,7 @@ position::make_move(move m) const
 		child.half_move_counter = 0;
 
 	child.is_king_attacked = is_attacked(
-		child.board, (side_to_move == white) ? child.black_king_index
+		child.board, (side_to_move == WHITE) ? child.black_king_index
 						     : child.white_king_index,
 		side_to_move);
 
@@ -809,13 +809,13 @@ position::print_move(move m) const
 	result += print_coordinates(m.from);
 	result += print_coordinates(m.to);
 
-	if (m.type == move_type::promote_queen)
+	if (m.type == move_type::PROMOTE_QUEEN)
 		result += 'q';
-	else if (m.type == move_type::promote_rook)
+	else if (m.type == move_type::PROMOTE_ROOK)
 		result += 'r';
-	else if (m.type == move_type::promote_bishop)
+	else if (m.type == move_type::PROMOTE_BISHOP)
 		result += 'b';
-	else if (m.type == move_type::promote_knight)
+	else if (m.type == move_type::PROMOTE_KNIGHT)
 		result += 'n';
 
 	return result;
@@ -855,18 +855,18 @@ void
 position::add_white_pawn_attacks(int from)
 {
 	if (board[from + north + east].is_valid)
-		white_attacks[pawn].push(from + north + east);
+		white_attacks[PAWN].push(from + north + east);
 	if (board[from + north + west].is_valid)
-		white_attacks[pawn].push(from + north + west);
+		white_attacks[PAWN].push(from + north + west);
 }
 
 void
 position::add_black_pawn_attacks(int from)
 {
 	if (board[from + south + east].is_valid)
-		white_attacks[pawn].push(from + south + east);
+		white_attacks[PAWN].push(from + south + east);
 	if (board[from + south + west].is_valid)
-		white_attacks[pawn].push(from + south + west);
+		white_attacks[PAWN].push(from + south + west);
 }
 
 void
@@ -876,7 +876,7 @@ position::add_non_sliding_attacks(int from, const std::array<int, 8> &dirs)
 		int to = from + dir;
 
 		if (board[to].is_valid) {
-			if (board[from].piece_side == white)
+			if (board[from].piece_side == WHITE)
 				white_attacks[board[from].piece_type].push(to);
 			else
 				black_attacks[board[from].piece_type].push(to);
@@ -891,7 +891,7 @@ position::add_sliding_attacks(int from, const std::array<int, 4> &dirs)
 		int to = from + dir;
 
 		while (board[to].is_valid) {
-			if (board[from].piece_side == white)
+			if (board[from].piece_side == WHITE)
 				white_attacks[board[from].piece_type].push(to);
 			else
 				black_attacks[board[from].piece_type].push(to);
@@ -920,26 +920,26 @@ position::update_attack_lists()
 			continue;
 
 		switch (sq.piece_type) {
-			case pawn:
-				if (sq.piece_side == white)
+			case PAWN:
+				if (sq.piece_side == WHITE)
 					add_white_pawn_attacks(from);
 				else
 					add_black_pawn_attacks(from);
 				break;
-			case king:
+			case KING:
 				add_non_sliding_attacks(from, king_moves);
 				break;
-			case bishop:
+			case BISHOP:
 				add_sliding_attacks(from, bishop_directions);
 				break;
-			case rook:
+			case ROOK:
 				add_sliding_attacks(from, rook_directions);
 				break;
-			case queen:
+			case QUEEN:
 				add_sliding_attacks(from, rook_directions);
 				add_sliding_attacks(from, bishop_directions);
 				break;
-			case knight:
+			case KNIGHT:
 				add_non_sliding_attacks(from, knight_moves);
 				break;
 		}
@@ -949,7 +949,7 @@ position::update_attack_lists()
 const attack_list &
 position::get_attack_list(piece p, side s) const
 {
-	if (s == white)
+	if (s == WHITE)
 		return white_attacks[p];
 	else
 		return black_attacks[p];

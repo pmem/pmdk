@@ -190,7 +190,7 @@ search::node::filter_tactical_moves()
 		 * searched during quiescence search, to avoid a very bad
 		 * horizon effect.
 		 */
-		if (is_capture(m) or m.type == move_type::promote_queen)
+		if (is_capture(m) or m.type == move_type::PROMOTE_QUEEN)
 			tacticals.push_back(m);
 	}
 	moves = tacticals;
@@ -208,18 +208,18 @@ search::node::sort_moves()
 	const chess_board &board = pos.get_ro().get_board();
 
 	for (move m : moves.get_ro()) {
-		if ((is_capture(m) and board[m.to].piece_type != pawn) or
-		    m.type == move_type::promote_queen)
+		if ((is_capture(m) and board[m.to].piece_type != PAWN) or
+		    m.type == move_type::PROMOTE_QUEEN)
 			ordered.push_back(m);
 	}
 
 	for (move m : moves.get_ro()) {
-		if (is_capture(m) and board[m.to].piece_type == pawn)
+		if (is_capture(m) and board[m.to].piece_type == PAWN)
 			ordered.push_back(m);
 	}
 
 	for (move m : moves.get_ro()) {
-		if (not is_capture(m) and m.type != move_type::promote_queen)
+		if (not is_capture(m) and m.type != move_type::PROMOTE_QUEEN)
 			ordered.push_back(m);
 	}
 

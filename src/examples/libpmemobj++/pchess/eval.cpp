@@ -60,15 +60,15 @@ static int
 piece_value(enum piece p)
 {
 	switch (p) {
-		case pawn:
+		case PAWN:
 			return pawn_value;
-		case bishop:
+		case BISHOP:
 			return bishop_value;
-		case rook:
+		case ROOK:
 			return rook_value;
-		case knight:
+		case KNIGHT:
 			return knight_value;
-		case queen:
+		case QUEEN:
 			return queen_value;
 		default:
 			return 0;
@@ -78,7 +78,7 @@ piece_value(enum piece p)
 static bool
 is_center(int i)
 {
-	return i == sq_d4 or i == sq_d5 or i == sq_e4 or i == sq_e5;
+	return i == SQ_D4 or i == SQ_D5 or i == SQ_E4 or i == SQ_E5;
 }
 
 static int
@@ -86,9 +86,9 @@ center_pawns(const chess_board &board)
 {
 	int value = 0;
 
-	for (int i : {sq_d4, sq_d5, sq_e4, sq_e5}) {
-		if (not board[i].is_empty and board[i].piece_type == pawn) {
-			if (board[i].piece_side == white)
+	for (int i : {SQ_D4, SQ_D5, SQ_E4, SQ_E5}) {
+		if (not board[i].is_empty and board[i].piece_type == PAWN) {
+			if (board[i].piece_side == WHITE)
 				value += pawn_in_center_value;
 			else
 				value -= pawn_in_center_value;
@@ -101,8 +101,8 @@ center_pawns(const chess_board &board)
 static int
 king_safety(const chess_board &board, int king_index, side who)
 {
-	int home_rank = (who == white) ? rank_1 : rank_8;
-	int dir = (who == white) ? 1 : -1;
+	int home_rank = (who == WHITE) ? RANK_1 : RANK_8;
+	int dir = (who == WHITE) ? 1 : -1;
 	int value;
 
 	if (rank_at(king_index) != home_rank)
@@ -113,7 +113,7 @@ king_safety(const chess_board &board, int king_index, side who)
 	for (int d : {(int)north, north + east, north + west, north + north}) {
 		auto sq = board[king_index + d * dir];
 
-		if (sq.piece_type == pawn and sq.piece_side == who and
+		if (sq.piece_type == PAWN and sq.piece_side == who and
 		    not sq.is_empty)
 			value += pawn_shield_value;
 	}
@@ -128,7 +128,7 @@ attack_scores(const position *pos, side who, int opponent_home_rank_0,
 	const chess_board &board = pos->get_board();
 	int value = 0;
 
-	for (int target : pos->get_attack_list(pawn, who)) {
+	for (int target : pos->get_attack_list(PAWN, who)) {
 		value += square_attacked;
 
 		if (is_center(target))
@@ -139,7 +139,7 @@ attack_scores(const position *pos, side who, int opponent_home_rank_0,
 			value += pawn_defends_own_piece;
 	}
 
-	for (int target : pos->get_attack_list(rook, who)) {
+	for (int target : pos->get_attack_list(ROOK, who)) {
 		value += square_attacked;
 
 		if (rank_at(target) == opponent_home_rank_0 or
@@ -147,7 +147,7 @@ attack_scores(const position *pos, side who, int opponent_home_rank_0,
 			value += rook_opponent_home_attacked;
 	}
 
-	for (auto p : {bishop, knight, queen}) {
+	for (auto p : {BISHOP, KNIGHT, QUEEN}) {
 		for (int target : pos->get_attack_list(p, who)) {
 			value += square_attacked;
 
@@ -175,14 +175,14 @@ eval(const position *pos)
 
 		++piece_count;
 
-		if (sq.piece_type == pawn)
+		if (sq.piece_type == PAWN)
 			++pawn_count;
-		else if (sq.piece_type == queen and sq.piece_side == white)
+		else if (sq.piece_type == QUEEN and sq.piece_side == WHITE)
 			++white_queen_count;
-		else if (sq.piece_type == queen and sq.piece_side == black)
+		else if (sq.piece_type == QUEEN and sq.piece_side == BLACK)
 			++black_queen_count;
 
-		if (sq.piece_side == white)
+		if (sq.piece_side == WHITE)
 			value += piece_value(sq.piece_type);
 		else
 			value -= piece_value(sq.piece_type);
@@ -192,16 +192,16 @@ eval(const position *pos)
 		value += center_pawns(board);
 
 	if (white_queen_count > 0) {
-		value -= king_safety(board, pos->get_black_king_index(), black);
+		value -= king_safety(board, pos->get_black_king_index(), BLACK);
 	}
 	if (black_queen_count > 0) {
-		value += king_safety(board, pos->get_white_king_index(), white);
+		value += king_safety(board, pos->get_white_king_index(), WHITE);
 	}
 
-	value += attack_scores(pos, white, rank_7, rank_8);
-	value -= attack_scores(pos, black, rank_2, rank_1);
+	value += attack_scores(pos, WHITE, RANK_7, RANK_8);
+	value -= attack_scores(pos, BLACK, RANK_2, RANK_1);
 
-	if (pos->get_side_to_move() == black)
+	if (pos->get_side_to_move() == BLACK)
 		value = -value;
 
 	return value;
