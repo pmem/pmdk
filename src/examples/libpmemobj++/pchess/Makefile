@@ -37,7 +37,9 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../../../../
 include $(TOP)/src/common.inc
 
+ifeq ($(filter n,$(call check_cxx_flags, -std=c++14)),)
 PROGS = pchess
+endif
 
 LIBS = -lpmemobj -lpmem
 
@@ -45,6 +47,6 @@ COMPILE_LANG = cpp
 include ../../Makefile.inc
 INCS += -I../
 
-EXTRA_CXXFLAGS=-std=c++14
+CXXFLAGS += -std=c++14
 
 pchess: pchess.o chess.o position.o state.o chess_game.o search.o eval.o
