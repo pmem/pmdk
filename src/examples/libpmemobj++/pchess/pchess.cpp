@@ -91,7 +91,7 @@ main(int argc, char **argv)
 	 * error message.
 	 */
 	if (access(argv[1], F_OK) != 0)
-		pop = state_pool::create(argv[1], layout_name, PMEMOBJ_MIN_POOL,
+		pop = state_pool::create(argv[1], layout_name, 100 << 20,
 					 S_IRWXU);
 	else
 		pop = state_pool::open(argv[1], layout_name);
