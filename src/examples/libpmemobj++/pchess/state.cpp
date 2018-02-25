@@ -95,7 +95,7 @@ static const string help_play =
 	"\n"
 	" As some help, the engine can print a visual representation\n"
 	" of the current board. This is controlled by a flag, which can\n"
-	" be toggled using the boardonmove command\n"
+	" be toggled using the boardonmove command.\n"
 	"\n"
 	" Upon starting a new game, the engine is set to play black,\n"
 	" but the operator can easily switch sides using the go command.\n"
@@ -107,7 +107,7 @@ static const string help_play =
 	" new game can of course be started with the new command.\n"
 	" Alternatively, one can set up a custom starting position in force\n"
 	" mode, using the setboard command, and then start a game from that\n"
-	" position using the go command\n"
+	" position using the go command.\n"
 	"\n"
 	" Of course the process can be terminated any time during the game,\n"
 	" and next time pchess is started with the same pmem pool, it just\n"
@@ -122,7 +122,7 @@ static const string help_go =
 
 static const string help_new =
 	"new - Start a new game.\n"
-	"      Setup the regulat chess starting position, and assign the\n"
+	"      Setup the regular chess starting position, and assign the\n"
 	"      engine to play black. The engine than waits for the users\n"
 	"      to make the first move as white\n";
 
@@ -139,7 +139,7 @@ static const string help_notation =
 	" and rank of the moves target square.\n"
 	" Promotions are specified by a letter following the coordinates,\n"
 	" one of 'q', 'r', 'b', or 'n'.\n Castling moves are described using\n"
-	" the kings source and desination squares. Examples:\n"
+	" the kings source and destination squares. Examples:\n"
 	" a pawn push: e2e4\n"
 	" an en-passant capture: e4d3\n"
 	" a promotion to bishop: c7c8b\n"
@@ -155,7 +155,7 @@ static const string help_notation =
 	" eval, value\n"
 	" See: https://en.wikipedia.org/wiki/Evaluation_function\n"
 	" Heuristic score computer for a position, from the point of view of"
-	" the player to move, meauserd in pawns.\n"
+	" the player to move, measured in pawns.\n"
 	" e.g.: in the thinking output: \"value: 1.04\" means the engine"
 	" thinks it is a pawn up, \"value: -5.50\" means the engine"
 	" thinks it is five pawns down -- maybe lost a rook.\n"

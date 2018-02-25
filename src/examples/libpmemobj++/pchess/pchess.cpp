@@ -161,7 +161,7 @@ static void
 print_welcome()
 {
 	std::cout << "Welcome, this is pchess. To get some help using\n"
-		  << " the command line interface, type help<enter>\n";
+		  << " the command line interface, type help<enter>.\n";
 }
 
 static void
