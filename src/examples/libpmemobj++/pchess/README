@@ -1,13 +1,12 @@
 pchess
 
-This is examples/libpmemobj/pchess/README.
+This is examples/libpmemobj++/pchess/README.
 
-A simple chess engine, using persistent memory to
-store the current state of its thinking. It uses libpmemobj++
-in many of its data structures, to present how a
-non-trivial application can be easily created/transformed to
-use persistent memory, without understanding all the intricate details
-hidden behind the wrappers provided by the libpmemobj++ library.
+A simple chess engine, using persistent memory to store the current state of
+its thinking. It uses libpmemobj++ in many of its data structures, to present
+how a non-trivial application can be easily created/transformed to use
+persistent memory, without understanding all the intricate details hidden behind
+the wrappers provided by the libpmemobj++ library.
 
 To use, start with a path to a pmem pool file to use:
 	./pchess /dev/shm/chess
