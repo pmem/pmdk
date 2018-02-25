@@ -37,6 +37,7 @@
 #include "chess.hpp"
 #include "position.hpp"
 
+#include <cassert>
 #include <cctype>
 #include <cstring>
 
@@ -183,7 +184,7 @@ square_to_char(square sq) noexcept
 			c = 'K';
 			break;
 		default:
-			__builtin_unreachable();
+			assert(0);
 	}
 
 	if (sq.piece_side == BLACK)
