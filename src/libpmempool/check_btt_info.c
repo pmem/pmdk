@@ -467,7 +467,7 @@ step_exe(PMEMpoolcheck *ppc, location *loc)
 	if (!step->fix)
 		return step->check(ppc, loc);
 
-	if (!check_answer_loop(ppc, loc, NULL, step->fix))
+	if (!check_answer_loop(ppc, loc, NULL, 1, step->fix))
 		return 0;
 
 	if (check_has_error(ppc->data))

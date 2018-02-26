@@ -1,0 +1,10 @@
+replica 0: an ADR failure was detected - your pool might be corrputed
+$(nW): not consistent
+replica 0: checking shutdown state
+An ADR failure was detected - your pool might be corrputed. Do you want to reset shutdown state for replica: 0 to be able to open pool on your own risk? If you have more then one replica you will have to synchronize your pool after this operation [Y/n] n
+replica 1: checking shutdown state
+An ADR failure was detected - your pool might be corrputed. Do you want to reset shutdown state for replica: 1 to be able to open pool on your own risk? If you have more then one replica you will have to synchronize your pool after this operation [Y/n] n
+scannot complete repair, reverting changes
+$(nW): not consistent
+replica 0: an ADR failure was detected - your pool might be corrputed
+$(nW): not consistent

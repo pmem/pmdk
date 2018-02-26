@@ -127,6 +127,7 @@ typedef struct {
 void check_backup(PMEMpoolcheck *ppc);
 void check_pool_hdr(PMEMpoolcheck *ppc);
 void check_pool_hdr_uuids(PMEMpoolcheck *ppc);
+void check_sds(PMEMpoolcheck *ppc);
 void check_log(PMEMpoolcheck *ppc);
 void check_blk(PMEMpoolcheck *ppc);
 void check_cto(PMEMpoolcheck *ppc);
@@ -183,7 +184,8 @@ int check_status_is(struct check_status *status,
 		((steps)[(loc)->step].check != NULL ||\
 		(steps)[(loc)->step].fix != NULL))
 
-int check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx,
+int check_answer_loop(PMEMpoolcheck *ppc, location *data,
+	void *ctx, int fail_on_no,
 	int (*callback)(PMEMpoolcheck *, location *, uint32_t, void *ctx));
 int check_questions_sequence_validate(PMEMpoolcheck *ppc);
 
