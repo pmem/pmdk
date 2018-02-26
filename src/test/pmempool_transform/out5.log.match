@@ -19,7 +19,7 @@ TestOK111
 TestOK222
 TestOK333
 error: No such file or directory
-error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: transformation failed
+error: failed to transform $(nW)/poolset.in -> $(nW)/poolset.out: directory $(nW) for part 0 in replica 1 does not exist or is not accessible
 TestOK111
 TestOK222
 TestOK333
