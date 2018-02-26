@@ -43,9 +43,11 @@
  * memmove_nodrain_libc -- (internal) memmove to pmem without hw drain
  */
 static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
+memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
 {
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
+			flags);
 
 	memmove(pmemdest, src, len);
 	pmem_flush(pmemdest, len);
@@ -56,9 +58,10 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
  * memset_nodrain_libc -- (internal) memset to pmem without hw drain
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 {
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
+			flags);
 
 	memset(pmemdest, c, len);
 	pmem_flush(pmemdest, len);
