@@ -51,7 +51,7 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
-#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_SINGLEHDR
+#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_ALL
 
 size_t Extend_size = MIN_PART * 2;
 

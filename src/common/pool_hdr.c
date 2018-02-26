@@ -117,65 +117,6 @@ util_convert2h_hdr_nocheck(struct pool_hdr *hdrp)
 }
 
 /*
- * util_convert_hdr -- convert header to host byte order & validate
- *
- * Returns true if header is valid, and all the integer fields are
- * converted to host byte order.  If the header is not valid, this
- * routine returns false and the header passed in is left in an
- * unknown state.
- */
-int
-util_convert_hdr(struct pool_hdr *hdrp)
-{
-	LOG(3, "hdrp %p", hdrp);
-
-	util_convert2h_hdr_nocheck(hdrp);
-
-	/* to be valid, a header must have a major version of at least 1 */
-	if (hdrp->major == 0) {
-		ERR("invalid major version (0)");
-		return 0;
-	}
-
-	/* and to be valid, the fields must checksum correctly */
-	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			0, POOL_HDR_CSUM_END_OFF)) {
-		ERR("invalid checksum of pool header");
-		return 0;
-	}
-
-	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
-	return 1;
-}
-
-/*
- * util_convert_hdr_remote -- convert remote header to host byte order
- *                            and validate
- *
- * Returns true if header is valid, and all the integer fields are
- * converted to host byte order.  If the header is not valid, this
- * routine returns false and the header passed in is left in an
- * unknown state.
- */
-int
-util_convert_hdr_remote(struct pool_hdr *hdrp)
-{
-	LOG(3, "hdrp %p", hdrp);
-
-	util_convert2h_hdr_nocheck(hdrp);
-
-	/* and to be valid, the fields must checksum correctly */
-	if (!util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			0, POOL_HDR_CSUM_END_OFF)) {
-		ERR("invalid checksum of pool header");
-		return 0;
-	}
-
-	LOG(3, "valid header, signature \"%.8s\"", hdrp->signature);
-	return 1;
-}
-
-/*
  * util_arch_flags_check -- validates arch_flags
  */
 int

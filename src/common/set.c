@@ -2137,9 +2137,10 @@ static int
 util_poolset_check_header_options(struct pool_set *set, uint32_t incompat)
 {
 	LOG(3, "set %p, incompat %#x", set, incompat);
+
 	if (((set->options & OPTION_SINGLEHDR) == 0) !=
 			((incompat & POOL_FEAT_SINGLEHDR) == 0)) {
-		LOG(2,
+		ERR(
 			"poolset file options (%u) do not match incompat feature flags (%#x)",
 			set->options, incompat);
 		errno = EINVAL;
@@ -2274,18 +2275,24 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
 	/* local copy of a remote header does not need to be converted */
-	if (rep->remote == NULL && !util_convert_hdr(&hdr)) {
+	if (rep->remote == NULL)
+		util_convert2h_hdr_nocheck(&hdr);
+
+	/* to be valid, a header must have a major version of at least 1 */
+	if (hdr.major == 0) {
+		ERR("invalid major version (0)");
 		errno = EINVAL;
 		return -1;
 	}
 
-	/* valid header found */
+	/* check signature */
 	if (memcmp(hdr.signature, attr->signature, POOL_HDR_SIG_LEN)) {
 		ERR("wrong pool type: \"%.8s\"", hdr.signature);
 		errno = EINVAL;
 		return -1;
 	}
 
+	/* check format version number */
 	if (hdr.major != attr->major) {
 		ERR("pool version %d (library expects %d)", hdr.major,
 				attr->major);
@@ -2295,6 +2302,35 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		}
 		errno = EINVAL;
 		return -1;
+	}
+
+	rep->part[partidx].rdonly = 0;
+
+	int retval = util_feature_check(&hdr, attr->incompat_features,
+			attr->ro_compat_features, attr->compat_features);
+	if (retval < 0)
+		return -1;
+
+	if (retval == 0)
+		rep->part[partidx].rdonly = 1;
+
+	if (rep->remote == NULL) {
+		/*
+		 * and to be valid, the fields must checksum correctly
+		 *
+		 * NOTE: checksum validation is performed after format version
+		 * and feature check, because if POOL_FEAT_CKSUM_2K flag is set,
+		 * we want to report it as incompatible feature, rather than
+		 * invalid checksum.
+		 */
+		if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
+				0, POOL_HDR_CSUM_END_OFF)) {
+			ERR("invalid checksum of pool header");
+			errno = EINVAL;
+			return -1;
+		}
+
+		LOG(3, "valid header, signature \"%.8s\"", hdr.signature);
 	}
 
 	if (util_check_arch_flags(&hdr.arch_flags)) {
@@ -2337,20 +2373,10 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		return -1;
 	}
 
-	rep->part[partidx].rdonly = 0;
-
 	/* check poolset options */
 	if (util_poolset_check_header_options(set,
 			HDR(rep, 0)->incompat_features))
 		return -1;
-
-	int retval = util_feature_check(&hdr, attr->incompat_features,
-			attr->ro_compat_features, attr->compat_features);
-	if (retval < 0)
-		return -1;
-
-	if (retval == 0)
-		rep->part[partidx].rdonly = 1;
 
 	return 0;
 }
@@ -2378,10 +2404,7 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
-	if (!util_convert_hdr_remote(&hdr)) {
-		errno = EINVAL;
-		return -1;
-	}
+	util_convert2h_hdr_nocheck(&hdr);
 
 	/* valid header found */
 	if (memcmp(HDR(rep, 0)->signature, hdrp->signature, POOL_HDR_SIG_LEN)) {
@@ -2416,6 +2439,22 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 		errno = EINVAL;
 		return -1;
 	}
+
+	/*
+	 * and to be valid, the fields must checksum correctly
+	 *
+	 * NOTE: checksum validation is performed after format version and
+	 * feature check, because if POOL_FEAT_CKSUM_2K flag is set,
+	 * we want to report it as incompatible feature, rather than invalid
+	 * checksum.
+	 */
+	if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
+			0, POOL_HDR_CSUM_END_OFF)) {
+		ERR("invalid checksum of pool header");
+		return -1;
+	}
+
+	LOG(3, "valid header, signature \"%.8s\"", hdr.signature);
 
 	/* check pool set UUID */
 	if (memcmp(HDR(rep, 0)->poolset_uuid, hdrp->poolset_uuid,
