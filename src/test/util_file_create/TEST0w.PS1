@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,65 +29,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync/TEST10 -- test for checking pmempool sync;
-#                         check for healthy replicas cycles
+# src/test/util_file_create/TEST0 -- unit test for util_file_create()
+#
+# parameter handling
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync/TEST10"
-$Env:UNITTEST_NUM = "10w"
 
+# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+
 require_fs_type any
 
 setup
 
-$LOG = "out${Env:UNITTEST_NUM}.log"
-$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
-touch $LOG
-rm $LOG_TEMP -Force -ea si
-touch $LOG_TEMP
+create_holey_file 32K $DIR\testfile1
 
-$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET1 = "$DIR\poolset1"
-$POOLSET2 = "$DIR\poolset2"
+mkdir $DIR\testdir1 > $null
 
-# Create poolset files
-create_poolset $POOLSET1 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x
+expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
+    0x4000:$DIR\testdir1 `
+    0x4000:NUL `
+    0x4000:$DIR\testfile1
 
-create_poolset $POOLSET2 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x `
-	r `
-	20M:$DIR\part10:x `
-	20M:$DIR\part11:x
+rm -Force -Recurse $DIR\testdir1
 
-# Log poolset structures
-echo poolset1: >> $LOG_TEMP
-cat $POOLSET1 >> $LOG_TEMP
-echo poolset2: >> $LOG_TEMP
-cat $POOLSET2 >> $LOG_TEMP
-
-# Create a poolset
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
-cat $LOG >> $LOG_TEMP
-
-# Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
-
-# Check metadata using pmempool info
-dump_pool_info $POOLSET1 >> $LOG_TEMP
-
-mv -Force $LOG_TEMP $LOG
 check
 
 pass

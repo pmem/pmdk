@@ -39,8 +39,6 @@ Param(
     $DIR = ""
     )
 
-$Env:UNITTEST_NAME = "obj_pool/TEST31"
-$Env:UNITTEST_NUM = "31"
 
 
 # standard unit test setup

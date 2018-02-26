@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,17 +29,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/obj_pool/TEST30w -- create a pool with the smallest parts possible
+#
+# pmempool_sync/TEST10 -- test for checking pmempool sync;
+#                         check for healthy replicas cycles
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_pool/TEST30w"
-$Env:UNITTEST_NUM = "30w"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -47,13 +46,46 @@ require_fs_type any
 
 setup
 
-$MIN_PART = (2 * 1024 * 1024).toString() + "B" # 2MiB
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
+rm $LOG -Force -ea si
+touch $LOG
+rm $LOG_TEMP -Force -ea si
+touch $LOG_TEMP
 
-create_poolset $DIR\testset ${MIN_PART}:$DIR\testfile1:x ${MIN_PART}:$DIR\testfile2:x `
-    ${MIN_PART}:$DIR\testfile3:x ${MIN_PART}:$DIR\testfile4:x ${MIN_PART}:$DIR\testfile5:x
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
+$POOLSET1 = "$DIR\poolset1"
+$POOLSET2 = "$DIR\poolset2"
 
-expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX c $DIR\testset test 0 0600
+# Create poolset files
+create_poolset $POOLSET1 `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x
 
+create_poolset $POOLSET2 `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x `
+	r `
+	20M:$DIR\part10:x `
+	20M:$DIR\part11:x
+
+# Log poolset structures
+echo poolset1: >> $LOG_TEMP
+cat $POOLSET1 >> $LOG_TEMP
+echo poolset2: >> $LOG_TEMP
+cat $POOLSET2 >> $LOG_TEMP
+
+# Create a poolset
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
+cat $LOG >> $LOG_TEMP
+
+# Try to synchronize replicas using the second poolset
+expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+
+# Check metadata using pmempool info
+dump_pool_info $POOLSET1 >> $LOG_TEMP
+
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

@@ -38,8 +38,6 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_ctl_heap_size/TEST1"
-$Env:UNITTEST_NUM = "1"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

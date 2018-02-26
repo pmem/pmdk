@@ -24,9 +24,6 @@
     <None Include="out4w.log.match" />
     <None Include="out5w.log.match" />
     <None Include="out6w.log.match" />
-    <None Include="out7.log.match" />
-    <None Include="out8.log.match" />
-    <None Include="out9.log.match" />
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
@@ -34,11 +31,8 @@
     <None Include="TEST2w.PS1" />
     <None Include="TEST3w.PS1" />
     <None Include="TEST4.PS1" />
-    <None Include="TEST5.PS1" />
+    <None Include="TEST5w.PS1" />
     <None Include="TEST6w.PS1" />
-    <None Include="TEST7.PS1" />
-    <None Include="TEST8.PS1" />
-    <None Include="TEST9.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{26166DF1-3C94-44AF-9075-BA31DCD2F6BB}</ProjectGuid>

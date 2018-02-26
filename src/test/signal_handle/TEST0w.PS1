@@ -1,4 +1,4 @@
-# Copyright 2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,8 +37,6 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "signal_handle/TEST0w"
-$Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
