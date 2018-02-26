@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 # obj_rpmem_basic_integration/TEST10 -- rpmem replication from two local parts
 #       to single remote replica with valgrind memcheck
 #
-export UNITTEST_NAME=obj_rpmem_basic_integration/TEST10
-export UNITTEST_NUM=10
 
 EXE=obj_basic_integration
 

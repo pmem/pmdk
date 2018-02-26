@@ -38,8 +38,6 @@
 # 1. two 4KB-aligned device daxes
 # 2. three file-based parts
 #
-export UNITTEST_NAME=pmempool_transform/TEST14
-export UNITTEST_NUM=14
 
 . ../unittest/unittest.sh
 

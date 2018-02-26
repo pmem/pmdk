@@ -36,8 +36,6 @@
 # Checking if data are actually synced.
 # A case with file-based replicas, 1 part master replica
 #
-export UNITTEST_NAME=pmempool_sync/TEST17
-export UNITTEST_NUM=17
 
 . ../unittest/unittest.sh
 

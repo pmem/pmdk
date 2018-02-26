@@ -37,8 +37,6 @@
 # case: single file-based replica with three parts
 # revert transformation hdrs->nohdrs (TEST13)
 #
-export UNITTEST_NAME=pmempool_transform/TEST17
-export UNITTEST_NUM=17
 
 . ../unittest/unittest.sh
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
 #                               a case with files larger than the pool;
 #                               Ref: pmem/issue#498
 #
-export UNITTEST_NAME=pmempool_sync_remote/TEST7
-export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh

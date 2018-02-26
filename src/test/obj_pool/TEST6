@@ -34,8 +34,6 @@
 #
 # src/test/obj_pool/TEST6 -- unit test for pmemobj_create
 #
-export UNITTEST_NAME=obj_pool/TEST6
-export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST1 -- unit test for rpmem open request
 #
-export UNITTEST_NAME=rpmem_basic/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

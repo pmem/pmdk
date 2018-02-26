@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,6 @@
 #
 # pmempool_check/TEST19 -- test for checking and fixing pool files arch_flags
 #
-export UNITTEST_NAME=pmempool_check/TEST19
-export UNITTEST_NUM=19
 
 . ../unittest/unittest.sh
 

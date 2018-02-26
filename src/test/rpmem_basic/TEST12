@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST12 -- unit test for handling rpmemd termination
 #
-export UNITTEST_NAME=rpmem_basic/TEST12
-export UNITTEST_NUM=12
 
 # standard unit test setup
 . ../unittest/unittest.sh

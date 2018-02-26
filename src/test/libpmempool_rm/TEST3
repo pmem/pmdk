@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,6 @@
 #
 # libpmempool_rm/TEST3 -- test for pmempool_rm with directories
 #
-export UNITTEST_NAME=libpmempool_rm/TEST3
-export UNITTEST_NUM=3
 
 . ../unittest/unittest.sh
 

@@ -34,8 +34,6 @@
 # pmempool_sync/TEST7 -- test for checking pmempool sync;
 #                        with device dax
 #
-export UNITTEST_NAME=pmempool_sync/TEST7
-export UNITTEST_NUM=7
 
 . ../unittest/unittest.sh
 

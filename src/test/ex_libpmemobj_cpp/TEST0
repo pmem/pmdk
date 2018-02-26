@@ -34,8 +34,6 @@
 #
 # src/test/ex_libpmemobj_cpp/TEST0 -- unit test for libpmemobj cpp examples
 #
-export UNITTEST_NAME=ex_libpmemobj_cpp/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -55,6 +55,14 @@ function fatal() {
 	exit 1
 }
 
+if [ -z "${UNITTEST_NAME}" ]; then
+	CURDIR=$(basename $(pwd))
+	SCRIPTNAME=$(basename $0)
+
+	export UNITTEST_NAME=$CURDIR/$SCRIPTNAME
+	export UNITTEST_NUM=$(echo $SCRIPTNAME | sed "s/TEST//")
+fi
+
 # defaults
 [ "$UNITTEST_LOG_LEVEL" ] || UNITTEST_LOG_LEVEL=2
 [ "$GREP" ] || GREP="grep -a"

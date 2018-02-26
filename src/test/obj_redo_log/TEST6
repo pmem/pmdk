@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
 # src/test/obj_redo_log/TEST6 -- unit test for redo log with valgrind
 # pmemcheck tool
 #
-export UNITTEST_NAME=obj_redo_log/TEST6
-export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh

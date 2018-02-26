@@ -35,8 +35,6 @@
 #
 # case: adding a second device-dax-based replica with different alignment
 #
-export UNITTEST_NAME=pmempool_transform/TEST22
-export UNITTEST_NUM=22
 
 . ../unittest/unittest.sh
 

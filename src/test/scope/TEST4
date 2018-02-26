@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/scope/TEST4 -- scope test to check libpmemobj symbols
 #
-export UNITTEST_NAME=scope/TEST4
-export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh

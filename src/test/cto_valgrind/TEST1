@@ -34,8 +34,6 @@
 #
 # src/test/cto_valgrind/TEST1 -- unit test for cto_valgrind
 #
-export UNITTEST_NAME=cto_valgrind/TEST1
-export UNITTEST_NUM=1
 
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp\
 	--leak-check=full\

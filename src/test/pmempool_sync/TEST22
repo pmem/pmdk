@@ -37,8 +37,6 @@
 # A case with file-based replicas.
 # Similar to: TEST0 + SINGLEHDR + directories
 #
-export UNITTEST_NAME=pmempool_sync/TEST22
-export UNITTEST_NUM=22
 
 . ../unittest/unittest.sh
 

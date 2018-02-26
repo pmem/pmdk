@@ -34,8 +34,6 @@
 #
 # src/test/obj_convert/TEST19 -- unit test for pool conversion
 #
-export UNITTEST_NAME=obj_convert/TEST19
-export UNITTEST_NUM=19
 
 # standard unit test setup
 . ../unittest/unittest.sh

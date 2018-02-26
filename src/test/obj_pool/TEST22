@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/obj_pool/TEST22 -- unit test for pmemobj_open
 #
-export UNITTEST_NAME=obj_pool/TEST22
-export UNITTEST_NUM=22
 
 # standard unit test setup
 . ../unittest/unittest.sh

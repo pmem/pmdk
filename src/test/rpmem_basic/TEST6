@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST6 -- unit test for rpmemd --remove
 #
-export UNITTEST_NAME=rpmem_basic/TEST6
-export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh

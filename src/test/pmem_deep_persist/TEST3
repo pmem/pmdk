@@ -34,8 +34,6 @@
 #
 # src/test/pmem_deep_persist/TEST3 -- unit test for pmem_deep_persist
 #
-export UNITTEST_NAME=pmem_deep_persist/TEST3
-export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh

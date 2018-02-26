@@ -36,8 +36,6 @@
 # Check syncing data between device-dax-based replicas with various alignment
 # Alignment variant: replica 0: 4KB, 2MB; replica 1: 2MB, 4KB
 #
-export UNITTEST_NAME=pmempool_sync/TEST20
-export UNITTEST_NUM=20
 
 . ../unittest/unittest.sh
 

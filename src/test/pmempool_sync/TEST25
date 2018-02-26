@@ -37,8 +37,6 @@
 # part, also in dry-run mode
 # Ref: pmem/issues#805
 #
-export UNITTEST_NAME=pmempool_sync/TEST25
-export UNITTEST_NUM=25
 
 . ../unittest/unittest.sh
 

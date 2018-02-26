@@ -47,8 +47,6 @@
 # Same as TEST1, but run on a pool set that spans two Device DAX devices
 # with 4K alignment.
 #
-export UNITTEST_NAME=log_basic/TEST8
-export UNITTEST_NUM=8
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/cto_pool/TEST28 -- unit test for pmemcto_open
 #
-export UNITTEST_NAME=cto_pool/TEST28
-export UNITTEST_NUM=28
 
 # standard unit test setup
 . ../unittest/unittest.sh

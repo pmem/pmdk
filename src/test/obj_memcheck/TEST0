@@ -34,8 +34,6 @@
 #
 # src/test/obj_memcheck/TEST0 -- unit test for obj_memcheck
 #
-export UNITTEST_NAME=obj_memcheck/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -35,8 +35,6 @@
 #
 # check if pool fails to open when compat flags differ between parts
 #
-export UNITTEST_NAME=compat_incompat_features/TEST1
-export UNITTEST_NUM=1
 
 . ../unittest/unittest.sh
 

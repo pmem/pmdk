@@ -34,8 +34,6 @@
 #
 # src/test/pmem_include/TEST0 - if it compiles it's perfect
 #
-export UNITTEST_NAME=pmem_include/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

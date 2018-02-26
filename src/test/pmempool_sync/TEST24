@@ -36,8 +36,6 @@
 # sync with lacking replica
 # Ref: pmem/issues#731
 #
-export UNITTEST_NAME=pmempool_sync/TEST24
-export UNITTEST_NUM=24
 
 . ../unittest/unittest.sh
 

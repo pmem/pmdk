@@ -38,8 +38,6 @@
 # with 2M alignment. Expected success, as pool is created with SINGLEHDR option.
 # if SINGLEHDR option is not specified.
 #
-export UNITTEST_NAME=obj_basic_integration/TEST13
-export UNITTEST_NUM=13
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -34,8 +34,6 @@
 #
 # src/test/obj_sync/TEST9 -- unit test for PMEM-resident locks
 #
-export UNITTEST_NAME=obj_sync/TEST9
-export UNITTEST_NUM=9
 
 # standard unit test setup
 . ../unittest/unittest.sh

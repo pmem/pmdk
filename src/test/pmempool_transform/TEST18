@@ -39,8 +39,6 @@
 # 2. three file-based parts
 # revert transformation hdrs->nohdrs (TEST14)
 #
-export UNITTEST_NAME=pmempool_transform/TEST18
-export UNITTEST_NUM=18
 
 . ../unittest/unittest.sh
 

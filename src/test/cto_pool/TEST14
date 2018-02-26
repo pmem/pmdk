@@ -34,8 +34,6 @@
 #
 # src/test/cto_pool/TEST14 -- unit test for pmemcto_create
 #
-export UNITTEST_NAME=cto_pool/TEST14
-export UNITTEST_NUM=14
 
 # standard unit test setup
 . ../unittest/unittest.sh

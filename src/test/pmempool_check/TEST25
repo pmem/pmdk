@@ -36,8 +36,6 @@
 # Same as TEST14, but run on a pool set that spans two Device DAX devices
 # with 4K alignment.
 #
-export UNITTEST_NAME=pmempool_check/TEST25
-export UNITTEST_NUM=25
 
 . ../unittest/unittest.sh
 

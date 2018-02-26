@@ -33,8 +33,6 @@
 #
 # pmempool_sync_remote/TEST1 -- pmempool sync with remote replication
 #
-export UNITTEST_NAME=pmempool_sync_remote/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

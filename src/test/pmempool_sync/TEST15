@@ -36,8 +36,6 @@
 # Device DAX devices with 2M alignment.
 # 3rd variant of alignment configuration
 #
-export UNITTEST_NAME=pmempool_sync/TEST15
-export UNITTEST_NUM=15
 
 . ../unittest/unittest.sh
 

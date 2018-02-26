@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST10 -- test rpmemd persistency policy for APM
 #
-export UNITTEST_NAME=rpmem_basic/TEST10
-export UNITTEST_NUM=10
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -34,8 +34,6 @@
 # pmempool_check/TEST20 -- test for checking pools with device dax under
 #			valgrind
 #
-export UNITTEST_NAME=pmempool_check/TEST20
-export UNITTEST_NUM=20
 
 . ../unittest/unittest.sh
 

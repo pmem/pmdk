@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
 # src/test/blk_non_zero/TEST5 -- unit test for
 # pmemblk_read/write/set_zero/set_error
 #
-export UNITTEST_NAME=blk_non_zero/TEST5
-export UNITTEST_NUM=5
 
 # standard unit test setup
 . ../unittest/unittest.sh

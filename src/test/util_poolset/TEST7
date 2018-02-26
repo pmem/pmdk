@@ -36,8 +36,6 @@
 #
 # case: negative test for local poolsets with the NOHDRS option
 #
-export UNITTEST_NAME=util_poolset/TEST7
-export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh

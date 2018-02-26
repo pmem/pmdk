@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,6 @@
 #
 # pmempool_info/TEST22 -- test for info command with directory poolsets
 #
-export UNITTEST_NAME=pmempool_info/TEST22
-export UNITTEST_NUM=22
 
 . ../unittest/unittest.sh
 

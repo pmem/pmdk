@@ -35,8 +35,6 @@
 # src/test/obj_pmalloc_mt/TEST0 -- multithreaded allocator test
 #	(long helgrind version)
 #
-export UNITTEST_NAME=obj_pmalloc_mt/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

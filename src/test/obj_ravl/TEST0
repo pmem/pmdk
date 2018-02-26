@@ -34,8 +34,6 @@
 #
 # src/test/obj_ravl/TEST0 -- unit test for obj_ravl interface
 #
-export UNITTEST_NAME=obj_ravl/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

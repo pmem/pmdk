@@ -36,8 +36,6 @@
 #
 # case: damaged remote replica
 #
-export UNITTEST_NAME=pmempool_sync_remote/TEST9
-export UNITTEST_NUM=9
 
 # standard unit test setup
 . ../unittest/unittest.sh
