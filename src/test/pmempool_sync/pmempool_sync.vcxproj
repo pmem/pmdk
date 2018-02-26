@@ -33,6 +33,7 @@
     <None Include="TEST10.PS1" />
     <None Include="TEST11w.PS1" />
     <None Include="TEST12.PS1" />
+    <None Include="TEST26.PS1" />
     <None Include="TEST2w.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4w.PS1" />

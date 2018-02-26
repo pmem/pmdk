@@ -1285,8 +1285,15 @@ pmempool_syncU(const char *poolset, unsigned flags)
 		goto err_close_file;
 	}
 
+	if (set->nreplicas == 1) {
+		ERR("no replica(s) found in the pool set");
+		errno = EINVAL;
+		goto err_close_file;
+	}
+
 	if (set->remote && util_remote_load()) {
 		ERR("remote replication not available");
+		errno = ENOTSUP;
 		goto err_close_file;
 	}
 
