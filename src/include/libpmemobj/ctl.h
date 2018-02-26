@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -130,6 +130,15 @@ struct pobj_alloc_class_desc {
 	 * allocation will be 240 bytes: 2 * 128 - 16 (header).
 	 */
 	size_t unit_size;
+
+	/*
+	 * Currently unsupported. All allocation classes have default alignment
+	 * of 64. User data alignment is affected by the size of a header. For
+	 * compact one this means that the aligment is 48 bytes.
+	 *
+	 * Must be 0.
+	 */
+	size_t alignment;
 
 	/*
 	 * The minimum number of units that must be present in a
