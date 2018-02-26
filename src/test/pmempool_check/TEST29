@@ -1,4 +1,6 @@
-# Copyright 2016-2018, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,59 +29,50 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# src/libpmempool/Makefile -- Makefile for libpmempool
 #
+# pmempool_check/TEST29 -- test for checking pools
+#
+export UNITTEST_NAME=pmempool_check/TEST29
+export UNITTEST_NUM=29
 
-LIBRARY_NAME = pmempool
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
+. ../unittest/unittest.sh
 
-INCS += -I$(TOP)/src/libpmemlog
-INCS += -I$(TOP)/src/libpmemblk
-INCS += -I$(TOP)/src/libpmemobj
-INCS += -I$(TOP)/src/libpmemcto
-INCS += -I$(TOP)/src/rpmem_common
-INCS += -I$(TOP)/src/librpmem
+require_test_type medium
 
-vpath %.c ../librpmem
+require_fs_type any
 
-include ../common/pmemcommon.inc
+setup
 
-SOURCE +=\
-	libpmempool.c\
-	check.c\
-	check_backup.c\
-	check_btt_info.c\
-	check_btt_map_flog.c\
-	check_log.c\
-	check_blk.c\
-	check_cto.c\
-	check_pool_hdr.c\
-	check_sds.c\
-	check_util.c\
-	check_write.c\
-	pool.c\
-	replica.c\
-	$(RPMEM_COMMON)/rpmem_common.c\
-	rpmem_ssh.c\
-	rpmem_cmd.c\
-	rpmem_util.c\
-	sync.c\
-	transform.c\
-	rm.c
+LOG=out${UNITTEST_NUM}.log
+rm -rf $LOG && touch $LOG
 
-LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
-	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
-	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
+LAYOUT=OBJ_LAYOUT$SUFFIX
+POOLSET=$DIR/poolset
 
-include ../Makefile.inc
+create_poolset $POOLSET \
+			   8M:$DIR/part00:x \
+			   r \
+			   8M:$DIR/part10:x
 
-LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL)
-CFLAGS += -DUSE_LIBDL
-CFLAGS += -DUSE_RPMEM
 
-pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \
-	$< $@
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+
+# corrupt sds on both replicas
+expect_normal_exit $PMEMSPOIL --replica 0 $POOLSET \
+				   pool_hdr.shutdown_state.usc=999 \
+				   pool_hdr.shutdown_state.dirty=1 \
+				   "pool_hdr.shutdown_state.checksum_gen\(\)"
+
+expect_normal_exit $PMEMSPOIL --replica 1 $POOLSET \
+				   pool_hdr.shutdown_state.usc=999 \
+				   pool_hdr.shutdown_state.dirty=1 \
+				   "pool_hdr.shutdown_state.checksum_gen\(\)"
+
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+echo -e "y\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+
+check
+
+pass

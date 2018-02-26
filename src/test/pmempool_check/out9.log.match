@@ -1,3 +1,5 @@
+checking shutdown state
+shutdown state correct
 checking pool header
 pool header correct
 $(nW)file.pool: consistent
@@ -6,6 +8,8 @@ $(nW)file.pool: spoil: pool_hdr.compat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.incompat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.ro_compat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.unused=ERROR
+checking shutdown state
+shutdown state correct
 checking pool header
 incorrect pool header
 the repair of pmemobj pools is not supported

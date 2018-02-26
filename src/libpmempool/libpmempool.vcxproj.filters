@@ -19,6 +19,9 @@
     <ClCompile Include="check_pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="check_sds.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="check_util.c">
       <Filter>Source Files</Filter>
     </ClCompile>

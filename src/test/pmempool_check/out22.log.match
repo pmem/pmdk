@@ -1,3 +1,5 @@
+checking shutdown state
+shutdown state correct
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid

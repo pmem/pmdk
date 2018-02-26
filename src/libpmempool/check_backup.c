@@ -365,7 +365,7 @@ step_exe(PMEMpoolcheck *ppc, location *loc)
 	if (!check_has_answer(ppc->data))
 		return 0;
 
-	if (check_answer_loop(ppc, loc, NULL, step->fix))
+	if (check_answer_loop(ppc, loc, NULL, 1, step->fix))
 		return -1;
 
 	ppc->result = CHECK_RESULT_CONSISTENT;

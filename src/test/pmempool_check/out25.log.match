@@ -1,8 +1,12 @@
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
 replica 0 part 1: pool header correct
 $(nW) consistent
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -10,6 +14,8 @@ replica 0 part 1: pool header correct
 checking pmemlog header
 pmemlog header correct
 $(nW) consistent
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
