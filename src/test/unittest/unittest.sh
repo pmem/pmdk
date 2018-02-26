@@ -621,13 +621,19 @@ function dump_last_n_lines() {
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=810295
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=780173
 # https://bugs.kde.org/show_bug.cgi?id=303877
-function ignore_debug_info_errors() {
+#
+# valgrind issues an unsuppressable warning when exceeding
+# the brk segment, causing matching failures. We can safely
+# ignore it because malloc() will fallback to mmap() anyway.
+function valgrind_ignore_warnings() {
 	cat $1 | grep -v \
 		-e "WARNING: Serious error when reading debug info" \
 		-e "When reading debug info from " \
 		-e "Ignoring non-Dwarf2/3/4 block in .debug_info" \
 		-e "Last block truncated in .debug_info; ignoring" \
 		-e "parse_CU_Header: is neither DWARF2 nor DWARF3 nor DWARF4" \
+		-e "brk segment overflow" \
+		-e "see section Limitations in user manual" \
 		>  $1.tmp
 	mv $1.tmp $1
 }
@@ -815,12 +821,12 @@ function expect_normal_exit() {
 			for node in $CHECK_NODES
 			do
 				local log_file=node\_$node\_$VALGRIND_LOG_FILE
-				ignore_debug_info_errors $new_log_file
+				valgrind_ignore_warnings $new_log_file
 				validate_valgrind_log $new_log_file
 			done
 		else
 			if [ -f $VALGRIND_LOG_FILE ]; then
-				ignore_debug_info_errors $VALGRIND_LOG_FILE
+				valgrind_ignore_warnings $VALGRIND_LOG_FILE
 				validate_valgrind_log $VALGRIND_LOG_FILE
 			fi
 		fi
