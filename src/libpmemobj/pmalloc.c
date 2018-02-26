@@ -487,6 +487,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 }
 
 static struct ctl_argument CTL_ARG(desc) = {
+	.sized = 1,
 	.dest_size = sizeof(struct pobj_alloc_class_desc),
 	.parsers = {
 		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,

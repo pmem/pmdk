@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,7 @@ main(int argc, char *argv[])
 	size_t usable_size;
 
 	struct pobj_alloc_class_desc alloc_class_128;
+	alloc_class_128.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_128.header_type = POBJ_HEADER_NONE;
 	alloc_class_128.unit_size = 128;
 	alloc_class_128.units_per_block = 1000;
@@ -69,6 +70,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	struct pobj_alloc_class_desc alloc_class_129;
+	alloc_class_129.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_129.header_type = POBJ_HEADER_COMPACT;
 	alloc_class_129.unit_size = 1024;
 	alloc_class_129.units_per_block = 1000;
@@ -158,6 +160,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, -1);
 
 	struct pobj_alloc_class_desc alloc_class_new;
+	alloc_class_new.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_new.header_type = POBJ_HEADER_NONE;
 	alloc_class_new.unit_size = 777;
 	alloc_class_new.units_per_block = 200;
@@ -168,6 +171,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	struct pobj_alloc_class_desc alloc_class_fail;
+	alloc_class_fail.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_fail.header_type = POBJ_HEADER_NONE;
 	alloc_class_fail.unit_size = 777;
 	alloc_class_fail.units_per_block = 200;
@@ -188,6 +192,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(usable_size, 777);
 
 	struct pobj_alloc_class_desc alloc_class_new_huge;
+	alloc_class_new_huge.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_new_huge.header_type = POBJ_HEADER_NONE;
 	alloc_class_new_huge.unit_size = (2 << 23);
 	alloc_class_new_huge.units_per_block = 1;
@@ -204,6 +209,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(usable_size, (2 << 23));
 
 	struct pobj_alloc_class_desc alloc_class_new_max;
+	alloc_class_new_max.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_new_max.header_type = POBJ_HEADER_COMPACT;
 	alloc_class_new_max.unit_size = PMEMOBJ_MAX_ALLOC_SIZE;
 	alloc_class_new_max.units_per_block = 1024;
@@ -218,6 +224,7 @@ main(int argc, char *argv[])
 	UT_ASSERTne(ret, 0);
 
 	struct pobj_alloc_class_desc alloc_class_new_loop;
+	alloc_class_new_loop.size = sizeof(struct pobj_alloc_class_desc);
 	alloc_class_new_loop.header_type = POBJ_HEADER_COMPACT;
 	alloc_class_new_loop.unit_size = 16384;
 	alloc_class_new_loop.units_per_block = 63;
