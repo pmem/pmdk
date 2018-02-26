@@ -1070,6 +1070,14 @@ function cmp {
 #######################################################
 #######################################################
 
+if (-Not $Env:UNITTEST_NAME) {
+    $CURDIR = (Get-Item -Path ".\").BaseName
+    $SCRIPTNAME = (Get-Item $MyInvocation.ScriptName).BaseName
+
+    $Env:UNITTEST_NAME = "$CURDIR/$SCRIPTNAME"
+    $Env:UNITTEST_NUM = ($SCRIPTNAME).Replace("TEST", "")
+}
+
 # defaults
 if (-Not $Env:TYPE) { $Env:TYPE = 'check'}
 if (-Not $Env:FS) { $Env:FS = 'any'}

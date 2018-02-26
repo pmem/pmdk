@@ -42,12 +42,6 @@
     <None Include="TEST7.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST9.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST10.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
     <None Include="README" />
     <None Include="out2w.log.match">
       <Filter>Match Files</Filter>
@@ -83,6 +77,12 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST26.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST9w.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST10w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>

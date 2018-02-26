@@ -40,8 +40,6 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "compat_incompat_features/TEST2"
-$Env:UNITTEST_NUM = "2"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

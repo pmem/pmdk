@@ -30,7 +30,7 @@
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
-    <None Include="TEST10.PS1" />
+    <None Include="TEST10w.PS1" />
     <None Include="TEST11w.PS1" />
     <None Include="TEST12.PS1" />
     <None Include="TEST26.PS1" />
@@ -41,7 +41,7 @@
     <None Include="TEST6.PS1" />
     <None Include="TEST7.PS1" />
     <None Include="TEST8w.PS1" />
-    <None Include="TEST9.PS1" />
+    <None Include="TEST9w.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5E8B8DB-2507-4904-847F-A52196B075F0}</ProjectGuid>

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,17 +31,13 @@
 #
 
 #
-# src/test/util_file_create/TEST0 -- unit test for util_file_create()
-#
-# parameter handling
+# src/test/util_file_open/TEST1 -- unit test for util_file_open()
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_file_create/TEST0w"
-$Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -49,19 +45,30 @@ $Env:UNITTEST_NUM = "0w"
 require_test_type medium
 
 require_fs_type any
+require_no_superuser
 
 setup
 
 create_holey_file 32K $DIR\testfile1
 
-mkdir $DIR\testdir1 > $null
+# remove write permissions
+& icacls $DIR\testfile1 /deny ${Env:USERNAME}:W >$null
 
-expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
-    0x4000:$DIR\testdir1 `
-    0x4000:NUL `
-    0x4000:$DIR\testfile1
+create_holey_file 32K $DIR\testfile2
 
-rm -Force -Recurse $DIR\testdir1
+# remove write permissions
+& icacls $DIR\testfile2 /deny ${Env:USERNAME}:W >$null
+
+expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
+    $DIR\testfile1 `
+    $DIR\testfile2
+
+# grant full permissions so test code can cleanup
+& icacls $DIR\testfile1 /grant ${Env:USERNAME}:F >$null
+& icacls $DIR\testfile2 /grant ${Env:USERNAME}:F >$null
+
+rm -Force $DIR\testfile1
+rm -Force $DIR\testfile2
 
 check
 

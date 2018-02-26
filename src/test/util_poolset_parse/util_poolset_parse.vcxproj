@@ -57,7 +57,7 @@
     <ClCompile Include="util_poolset_parse.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="grep0.log.match" />
+    <None Include="grep0w.log.match" />
     <None Include="pool0w.set" />
     <None Include="pool10w.set" />
     <None Include="pool11w.set" />
@@ -111,7 +111,7 @@
     <None Include="pool7w.set" />
     <None Include="pool8w.set" />
     <None Include="pool9w.set" />
-    <None Include="TEST0.PS1" />
+    <None Include="TEST0w.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">

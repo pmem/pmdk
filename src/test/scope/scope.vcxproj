@@ -70,14 +70,15 @@
     <None Include="out4w.log.match" />
     <None Include="out5w.log.match" />
     <None Include="out6w.log.match" />
-    <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
-    <None Include="TEST2.PS1" />
-    <None Include="TEST3.PS1" />
-    <None Include="TEST4.PS1" />
-    <None Include="TEST5.PS1" />
-    <None Include="TEST6.PS1" />
-    <None Include="TEST7.PS1" />
+    <None Include="out7w.log.match" />
+    <None Include="TEST0w.PS1" />
+    <None Include="TEST1w.PS1" />
+    <None Include="TEST2w.PS1" />
+    <None Include="TEST3w.PS1" />
+    <None Include="TEST4w.PS1" />
+    <None Include="TEST5w.PS1" />
+    <None Include="TEST6w.PS1" />
+    <None Include="TEST7w.PS1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tools\dllview\dllview.vcxproj">

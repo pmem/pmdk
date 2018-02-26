@@ -38,8 +38,6 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_poolset/TEST4w"
-$Env:UNITTEST_NUM = "4w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

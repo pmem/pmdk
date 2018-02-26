@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,37 +31,31 @@
 #
 
 #
-# src/test/util_file_open/TEST0 -- unit test for util_file_open()
+# src/test/scope/TEST7 -- scope test to check libpmemcto symbols
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_file_open/TEST0w"
-$Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
 
-require_fs_type any
+require_fs_type none
+require_build_type debug
 
 setup
 
-create_holey_file 1K $DIR\testfile1
-create_holey_file 32K $DIR\testfile2
-mkdir $DIR\testdir1 > $null
+function parse_lib {
+    echo "${args}:" >> out$Env:UNITTEST_NUM.log
+    & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
+}
 
-expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
-    $DIR\testdir1 `
-    NUL `
-    $DIR\testfile0 `
-    $DIR\testfile1 `
-    $DIR\testfile2
-
-rm -Force -Recurse $DIR\testdir1
+echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
+parse_lib "$Env:EXE_DIR\libpmemcto.dll"
 
 check
 

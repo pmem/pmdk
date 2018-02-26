@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,49 +29,70 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/util_file_open/TEST1 -- unit test for util_file_open()
+# pmempool_sync/TEST9 -- test for checking pmempool sync;
+#                        pmem/issues#304
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "util_file_open/TEST1w"
-$Env:UNITTEST_NUM = "1w"
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type any
-require_no_superuser
 
 setup
 
-create_holey_file 32K $DIR\testfile1
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
+rm $LOG -Force -ea si
+touch $LOG
+rm $LOG_TEMP -Force -ea si
+touch $LOG_TEMP
 
-# remove write permissions
-& icacls $DIR\testfile1 /deny ${Env:USERNAME}:W >$null
+$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
+$POOLSET1 = "$DIR\poolset1"
+$POOLSET2 = "$DIR\poolset2"
 
-create_holey_file 32K $DIR\testfile2
+# Create poolset files
+create_poolset $POOLSET1 `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x `
+	r `
+	20M:$DIR\part10:x `
+	20M:$DIR\part11:x
 
-# remove write permissions
-& icacls $DIR\testfile2 /deny ${Env:USERNAME}:W >$null
+create_poolset $POOLSET2 `
+	20M:$DIR\part00:x `
+	20M:$DIR\part01:x `
+	r `
+	20M:$DIR\part10:x `
+	10M:$DIR\part11:x
 
-expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
-    $DIR\testfile1 `
-    $DIR\testfile2
+# Log poolset structures
+echo poolset1: >> $LOG_TEMP
+cat $POOLSET1 >> $LOG_TEMP
+echo poolset2: >> $LOG_TEMP
+cat $POOLSET2 >> $LOG_TEMP
 
-# grant full permissions so test code can cleanup
-& icacls $DIR\testfile1 /grant ${Env:USERNAME}:F >$null
-& icacls $DIR\testfile2 /grant ${Env:USERNAME}:F >$null
+# Create a poolset
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
+cat $LOG >> $LOG_TEMP
 
-rm -Force $DIR\testfile1
-rm -Force $DIR\testfile2
+# Try to synchronize replicas using the second poolset
+expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
 
+# Delete parts from the second replica
+rm $DIR\part00 -Force -ea si
+rm $DIR\part01 -Force -ea si
+
+# Try to synchronize replicas using the second poolset
+expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+
+mv -Force $LOG_TEMP $LOG
 check
 
 pass

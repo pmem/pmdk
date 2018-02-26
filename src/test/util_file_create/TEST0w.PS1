@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,30 +29,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/test/obj_pool/TEST30w -- create a pool with the smallest parts possible
+
+#
+# src/test/util_file_create/TEST0 -- unit test for util_file_create()
+#
+# parameter handling
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "obj_pool/TEST30w"
-$Env:UNITTEST_NUM = "30w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+
 require_fs_type any
 
 setup
 
-$MIN_PART = (2 * 1024 * 1024).toString() + "B" # 2MiB
+create_holey_file 32K $DIR\testfile1
 
-create_poolset $DIR\testset ${MIN_PART}:$DIR\testfile1:x ${MIN_PART}:$DIR\testfile2:x `
-    ${MIN_PART}:$DIR\testfile3:x ${MIN_PART}:$DIR\testfile4:x ${MIN_PART}:$DIR\testfile5:x
+mkdir $DIR\testdir1 > $null
 
-expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX c $DIR\testset test 0 0600
+expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
+    0x4000:$DIR\testdir1 `
+    0x4000:NUL `
+    0x4000:$DIR\testfile1
+
+rm -Force -Recurse $DIR\testdir1
 
 check
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,35 +29,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/scope/TEST0 -- scope test to check libvmem symbols
+# src/test/obj_pool/TEST30w -- create a pool with the smallest parts possible
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "scope/TEST0"
-$Env:UNITTEST_NUM = "0w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
-require_fs_type none
-require_build_type debug
+require_fs_type any
 
 setup
 
-function parse_lib {
-    echo "${args}:" >> out$Env:UNITTEST_NUM.log
-    & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
-}
+$MIN_PART = (2 * 1024 * 1024).toString() + "B" # 2MiB
 
-echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libvmem.dll"
+create_poolset $DIR\testset ${MIN_PART}:$DIR\testfile1:x ${MIN_PART}:$DIR\testfile2:x `
+    ${MIN_PART}:$DIR\testfile3:x ${MIN_PART}:$DIR\testfile4:x ${MIN_PART}:$DIR\testfile5:x
+
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX c $DIR\testset test 0 0600
 
 check
 

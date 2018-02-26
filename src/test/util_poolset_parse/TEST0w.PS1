@@ -1,5 +1,6 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,33 +32,34 @@
 #
 
 #
-# src/test/scope/TEST2 -- scope test to check libpmemlog symbols
+# src\test\util_poolset_parse\TEST0 -- unit test for parsing a pool set file
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "scope/TEST2"
-$Env:UNITTEST_NUM = "2w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
 
-require_fs_type none
 require_build_type debug
+require_fs_type none
 
 setup
 
-function parse_lib {
-    echo "${args}:" >> out$Env:UNITTEST_NUM.log
-    & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
-}
+$Env:PARSER_LOG_LEVEL = 4
+$Env:PARSER_LOG_FILE = ".\parser$Env:UNITTEST_NUM.log"
 
-echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libpmemlog.dll"
+$POOLSETS = ls -Name pool[0-9]*w.set | sort {$_ -replace "\D+" -as [Int]}
+
+expect_normal_exit $Env:EXE_DIR\util_poolset_parse$Env:EXESUFFIX $POOLSETS
+
+Get-Content .\parser$Env:UNITTEST_NUM.log | Select-String `
+	-Pattern "<[14]>.*\[.*util_poolset_parse\]" | %{[string]$_} `
+	> grep$Env:UNITTEST_NUM.log
 
 check
 

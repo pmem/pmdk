@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,65 +29,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync/TEST10 -- test for checking pmempool sync;
-#                         check for healthy replicas cycles
+# src/test/scope/TEST4 -- scope test to check libpmemobj symbols
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync/TEST10"
-$Env:UNITTEST_NUM = "10w"
 
+# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type any
+
+require_fs_type none
+require_build_type debug
 
 setup
 
-$LOG = "out${Env:UNITTEST_NUM}.log"
-$LOG_TEMP = "out${Env:UNITTEST_NUM}_part.log"
-rm $LOG -Force -ea si
-touch $LOG
-rm $LOG_TEMP -Force -ea si
-touch $LOG_TEMP
+function parse_lib {
+    echo "${args}:" >> out$Env:UNITTEST_NUM.log
+    & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
+}
 
-$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET1 = "$DIR\poolset1"
-$POOLSET2 = "$DIR\poolset2"
+echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
+parse_lib "$Env:EXE_DIR\libpmemobj.dll"
 
-# Create poolset files
-create_poolset $POOLSET1 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x
-
-create_poolset $POOLSET2 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x `
-	r `
-	20M:$DIR\part10:x `
-	20M:$DIR\part11:x
-
-# Log poolset structures
-echo poolset1: >> $LOG_TEMP
-cat $POOLSET1 >> $LOG_TEMP
-echo poolset2: >> $LOG_TEMP
-cat $POOLSET2 >> $LOG_TEMP
-
-# Create a poolset
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
-cat $LOG >> $LOG_TEMP
-
-# Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
-
-# Check metadata using pmempool info
-dump_pool_info $POOLSET1 >> $LOG_TEMP
-
-mv -Force $LOG_TEMP $LOG
 check
 
 pass
