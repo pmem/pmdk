@@ -12,7 +12,7 @@ REPLICA
 pr($(N)): off = $(nW) uuid = $(nW)
 TestOK111
 error: Invalid argument
-error: failed to transform $(nW)poolset.in -> $(nW)poolset.out: transformation failed
+error: failed to transform $(nW)poolset.in -> $(nW)poolset.out: part sizes check failed
 TestOK111
 Poolset structure:
 Number of replicas       : 1

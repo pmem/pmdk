@@ -147,6 +147,7 @@ void pool_set_file_unmap_headers(struct pool_set_file *file);
 void pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp);
 enum pool_type pool_hdr_get_type(const struct pool_hdr *hdrp);
 enum pool_type pool_set_type(struct pool_set *set);
+const char *pool_get_pool_type_str(enum pool_type type);
 
 int pool_btt_info_valid(struct btt_info *infop);
 

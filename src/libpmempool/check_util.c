@@ -686,28 +686,6 @@ check_get_uuid_str(uuid_t uuid)
 }
 
 /*
- * check_get_pool_type_str -- return human-readable pool type string
- */
-const char *
-check_get_pool_type_str(enum pool_type type)
-{
-	switch (type) {
-	case POOL_TYPE_BTT:
-		return "btt";
-	case POOL_TYPE_LOG:
-		return "pmemlog";
-	case POOL_TYPE_BLK:
-		return "pmemblk";
-	case POOL_TYPE_OBJ:
-		return "pmemobj";
-	case POOL_TYPE_CTO:
-		return "pmemcto";
-	default:
-		return "unknown";
-	}
-}
-
-/*
  * pmempool_check_insert_arena -- insert arena to list
  */
 void
