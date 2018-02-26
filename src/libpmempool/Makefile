@@ -57,6 +57,7 @@ SOURCE +=\
 	check_blk.c\
 	check_cto.c\
 	check_pool_hdr.c\
+	check_sds.c\
 	check_util.c\
 	check_write.c\
 	pool.c\

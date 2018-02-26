@@ -4,6 +4,8 @@ $(nW): spoil: pool_hdr.compat_features=$(*)
 $(nW): spoil: pool_hdr.incompat_features=$(*)
 $(nW): spoil: pool_hdr.ro_compat_features=$(*)
 $(nW): spoil: pool_hdr.unused=$(*)
+checking shutdown state
+shutdown state correct
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid
@@ -22,6 +24,8 @@ $(nW): repaired
 PMEMLOG: pmemlog
 $(nW): spoil: pmemlog.start_offset=$(*)
 $(nW): spoil: pmemlog.end_offset=$(*)
+checking shutdown state
+shutdown state correct
 checking pool header
 pool header correct
 checking pmemlog header
