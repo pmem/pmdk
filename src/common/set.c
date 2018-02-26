@@ -303,6 +303,7 @@ enum parser_codes {
 	PARSER_INVALID_TOKEN,
 	PARSER_REMOTE_REPLICA_EXPECTED,
 	PARSER_WRONG_SIZE,
+	PARSER_CANNOT_READ_SIZE,
 	PARSER_ABSOLUTE_PATH_EXPECTED,
 	PARSER_RELATIVE_PATH_EXPECTED,
 	PARSER_SET_NO_PARTS,
@@ -322,6 +323,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"invalid token found in the current line",
 	"address of remote node and descriptor of remote pool set expected",
 	"incorrect format of size",
+	"cannot determine size of a part",
 	"incorrect path (must be an absolute one)",
 	"incorrect descriptor (must be a relative path)",
 	"no pool set parts",
@@ -778,7 +780,7 @@ parser_read_line(char *line, size_t *size, char **path)
 		if (s < 0) {
 			Free(*path);
 			*path = NULL;
-			return PARSER_WRONG_SIZE;
+			return PARSER_CANNOT_READ_SIZE;
 		}
 
 		*size = (size_t)s;
@@ -1473,6 +1475,7 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	char *cp;
 	size_t psize;
 	FILE *fs;
+	int oerrno;
 
 	if (os_lseek(fd, 0, SEEK_SET) != 0) {
 		ERR("!lseek %d", fd);
@@ -1617,7 +1620,14 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 
 	if (result != PARSER_FORMAT_OK) {
 		ERR("%s [%s:%d]", path, parser_errstr[result], nlines);
-		errno = EINVAL;
+		switch (result) {
+		case PARSER_CANNOT_READ_SIZE:
+		case PARSER_OUT_OF_MEMORY:
+			/* do not overwrite errno */
+			break;
+		default:
+			errno = EINVAL;
+		}
 		goto err;
 	}
 
@@ -1640,10 +1650,12 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	return 0;
 
 err:
+	oerrno = errno;
 	Free(line);
 	(void) os_fclose(fs);
 	if (set)
 		util_poolset_free(set);
+	errno = oerrno;
 	return -1;
 }
 
