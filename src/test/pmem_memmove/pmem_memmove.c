@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,25 @@
 #include "util_pmem.h"
 #include "file.h"
 
+typedef void *pmem_memmove_fn(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+
+static void *
+pmem_memmove_persist_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_persist(pmemdest, src, len);
+}
+
+static void *
+pmem_memmove_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_nodrain(pmemdest, src, len);
+}
+
 /*
  * swap_mappings - given to mmapped regions swap them.
  *
@@ -83,8 +102,9 @@ swap_mappings(char **dest, char **src, size_t size, int fd)
  * so as not to introduce any possible side affects.
  */
 static void
-do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
-	os_off_t src_off, os_off_t off, os_off_t bytes)
+do_memmove(int fd, char *dest, char *src, const char *file_name,
+		os_off_t dest_off, os_off_t src_off, os_off_t off,
+		os_off_t bytes, pmem_memmove_fn fn, unsigned flags)
 {
 	void *ret;
 	char *src1 = MALLOC(bytes);
@@ -101,13 +121,13 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 
 	/* dest == src */
 	old = *(char *)(dest + dest_off);
-	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes / 2);
+	ret = fn(dest + dest_off, dest + dest_off, bytes / 2, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 	UT_ASSERTeq(*(char *)(dest + dest_off), old);
 
 	/* len == 0 */
 	old = *(char *)(dest + dest_off);
-	ret = pmem_memmove_persist(dest + dest_off, src + src_off, 0);
+	ret = fn(dest + dest_off, src + src_off, 0, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 	UT_ASSERTeq(*(char *)(dest + dest_off), old);
 
@@ -117,7 +137,7 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 	 * addresses.
 	 */
 	memcpy(src1, src, bytes / 2);
-	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes / 2);
+	ret = fn(dest + dest_off, src + src_off, bytes / 2, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 
 	/* memcmp will validate that what I expect in memory. */
@@ -161,6 +181,37 @@ do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
 
 #define USAGE() do { UT_FATAL("usage: %s file  b:length [d:{offset}] "\
 	"[s:{offset}] [o:{1|2} S:{overlap}]", argv[0]); } while (0)
+
+static unsigned Flags[] = {
+		0,
+		PMEM_MEM_NODRAIN,
+		PMEM_MEM_NONTEMPORAL,
+		PMEM_MEM_TEMPORAL,
+		PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL,
+		PMEM_MEM_NONTEMPORAL | PMEM_MEM_NODRAIN,
+		PMEM_MEM_WC,
+		PMEM_MEM_WB,
+		/* all possible flags */
+		PMEM_MEM_NODRAIN |
+			PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL |
+			PMEM_MEM_WC | PMEM_MEM_WB,
+};
+
+static void
+do_memmove_variants(int fd, char *dest, char *src, const char *file_name,
+	os_off_t dest_off, os_off_t src_off, os_off_t off, os_off_t bytes)
+{
+	do_memmove(fd, dest, src, file_name, dest_off, src_off,
+			off, bytes, pmem_memmove_persist_wrapper, 0);
+
+	do_memmove(fd, dest, src, file_name, dest_off, src_off,
+			off, bytes, pmem_memmove_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
+		do_memmove(fd, dest, src, file_name, dest_off, src_off,
+				off, bytes, pmem_memmove, Flags[i]);
+	}
+}
 
 int
 main(int argc, char *argv[])
@@ -263,8 +314,8 @@ main(int argc, char *argv[])
 				UT_FATAL("cannot map files in memory order");
 		}
 
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
-			0, bytes);
+		do_memmove_variants(fd, dest, src, argv[1], dest_off, src_off,
+				0, bytes);
 
 		/* dest > src */
 		swap_mappings(&dest, &src, mapped_len, fd);
@@ -272,8 +323,8 @@ main(int argc, char *argv[])
 		if (dest <= src)
 			UT_FATAL("cannot map files in memory order");
 
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
-			bytes);
+		do_memmove_variants(fd, dest, src, argv[1], dest_off, src_off,
+				0, bytes);
 
 		int ret = pmem_unmap(dest_orig, mapped_len);
 		UT_ASSERTeq(ret, 0);
@@ -289,7 +340,7 @@ main(int argc, char *argv[])
 		src = dest + overlap;
 		memset(dest, 0, bytes);
 		util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
+		do_memmove_variants(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
 
 		int ret = pmem_unmap(dest_orig, mapped_len);
@@ -305,7 +356,7 @@ main(int argc, char *argv[])
 		dest = src + overlap;
 		memset(src, 0, bytes);
 		util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
+		do_memmove_variants(fd, dest, src, argv[1], dest_off, src_off,
 			overlap, bytes);
 
 		int ret = pmem_unmap(dest_orig, mapped_len);

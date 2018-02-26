@@ -54,6 +54,9 @@ LIBPMEM_1.0 {
 		pmem_memmove_nodrain;
 		pmem_memcpy_nodrain;
 		pmem_memset_nodrain;
+		pmem_memmove;
+		pmem_memcpy;
+		pmem_memset;
 	local:
 		*;
 };

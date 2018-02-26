@@ -54,10 +54,10 @@ setup
 $Env:PMEM_LOG_LEVEL=15
 
 function test {
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX F
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX B
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX S
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX F 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX B 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX S 1
 }
 
 function test_all {

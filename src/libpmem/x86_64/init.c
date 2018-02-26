@@ -115,12 +115,17 @@ flush_empty(const void *addr, size_t len)
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
 #define MEMCPY_TEMPLATE(postfix) \
 static void *\
-memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
+memmove_nodrain_##postfix(void *dest, const void *src, size_t len, \
+		unsigned flags)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
+	if (flags & (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL))\
+		memmove_movnt_##postfix(dest, src, len);\
+	else if (flags & (PMEM_MEM_WB | PMEM_MEM_TEMPORAL))\
+		memmove_mov_##postfix(dest, src, len);\
+	else if (len < Movnt_threshold)\
 		memmove_mov_##postfix(dest, src, len);\
 	else\
 		memmove_movnt_##postfix(dest, src, len);\
@@ -130,12 +135,16 @@ memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
 
 #define MEMSET_TEMPLATE(postfix)\
 static void *\
-memset_nodrain_##postfix(void *dest, int c, size_t len)\
+memset_nodrain_##postfix(void *dest, int c, size_t len, unsigned flags)\
 {\
 	if (len == 0)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
+	if (flags & (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL))\
+		memset_movnt_##postfix(dest, c, len);\
+	else if (flags & (PMEM_MEM_WB | PMEM_MEM_TEMPORAL))\
+		memset_mov_##postfix(dest, c, len);\
+	else if (len < Movnt_threshold)\
 		memset_mov_##postfix(dest, c, len);\
 	else\
 		memset_movnt_##postfix(dest, c, len);\
@@ -181,12 +190,15 @@ MEMSET_TEMPLATE(avx512f_empty)
 #endif
 
 /*
- * memmove_nodrain_libc -- (internal) memmove to pmem without hw drain
+ * memmove_nodrain_libc -- (internal) memmove to pmem using libc
  */
 static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
+memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
 {
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
+			flags);
+	(void) flags;
 
 	memmove(pmemdest, src, len);
 	pmem_flush(pmemdest, len);
@@ -194,12 +206,14 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * memset_nodrain_libc -- (internal) memset to pmem without hw drain, normal
+ * memset_nodrain_libc -- (internal) memset to pmem using libc
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 {
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
+			flags);
+	(void) flags;
 
 	memset(pmemdest, c, len);
 	pmem_flush(pmemdest, len);

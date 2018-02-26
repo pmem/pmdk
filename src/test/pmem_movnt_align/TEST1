@@ -50,10 +50,10 @@ setup
 export PMEM_LOG_LEVEL=15
 
 function test() {
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C 0
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F 0
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B 0
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S 0
 }
 
 function test_all() {
