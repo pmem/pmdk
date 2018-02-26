@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +56,7 @@ slab_new(PMEMobjpool *pop, size_t size)
 
 	slab->class.header_type = POBJ_HEADER_NONE;
 	slab->class.unit_size = size;
+	slab->class.alignment = 0;
 
 	/* should be a reasonably high number, but not too crazy */
 	slab->class.units_per_block = 1000;
