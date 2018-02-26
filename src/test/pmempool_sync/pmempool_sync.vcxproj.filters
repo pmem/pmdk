@@ -82,5 +82,8 @@
     <None Include="TEST12.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+    <None Include="TEST26.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
