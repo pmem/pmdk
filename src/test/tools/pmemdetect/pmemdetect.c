@@ -54,9 +54,10 @@
 
 #define SIZE 4096
 
-#define DEVDAX_DETECT	(1 << 0)
-#define DEVDAX_ALIGN	(1 << 1)
-#define MAP_SYNC_SUPP	(1 << 2)
+#define DEVDAX_DETECT		(1 << 0)
+#define DEVDAX_ALIGN		(1 << 1)
+#define MAP_SYNC_SUPP		(1 << 2)
+#define DAX_REGION_DETECT	(1 << 3)
 
 #define err(fmt, ...) fprintf(stderr, "pmemdetect: " fmt, __VA_ARGS__)
 
@@ -73,10 +74,11 @@ print_usage(void)
 {
 	printf("Usage: pmemdetect [options] <path>\n");
 	printf("Valid options:\n");
-	printf("-d, --devdax    - check if <path> is Device DAX\n");
-	printf("-a, --align=N   - check Device DAX alignment\n");
-	printf("-s, --map-sync  - check if <path> supports MAP_SYNC\n");
-	printf("-h, --help      - print this usage info\n");
+	printf("-d, --devdax      - check if <path> is Device DAX\n");
+	printf("-a, --align=N     - check Device DAX alignment\n");
+	printf("-r, --dax-region  - check if Dev DAX <path> has region id\n");
+	printf("-s, --map-sync    - check if <path> supports MAP_SYNC\n");
+	printf("-h, --help        - print this usage info\n");
 }
 
 /*
@@ -85,6 +87,7 @@ print_usage(void)
 static const struct option long_options[] = {
 	{"devdax",	no_argument,		NULL,	'd'},
 	{"align",	required_argument,	NULL,	'a'},
+	{"dax-region",	no_argument,		NULL,	'r'},
 	{"map-sync",	no_argument,		NULL,	's'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
@@ -97,11 +100,14 @@ static int
 parse_args(int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "a:dsh",
+	while ((opt = getopt_long(argc, argv, "a:dshr",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
 			Opts |= DEVDAX_DETECT;
+			break;
+		case 'r':
+			Opts |= DAX_REGION_DETECT;
 			break;
 		case 'a':
 			Opts |= DEVDAX_ALIGN;
@@ -310,7 +316,15 @@ main(int argc, char *argv[])
 
 	if (Opts & DEVDAX_DETECT)
 		ret = is_dev_dax(Path);
-	else if (Opts & DEVDAX_ALIGN)
+	else if (Opts & DAX_REGION_DETECT) {
+		ret = util_ddax_region_find(Path);
+		if (ret < 0) {
+			printf("Cannot detect region id for path: %s\n", Path);
+			ret = 0;
+		} else {
+			ret = 1;
+		}
+	} else if (Opts & DEVDAX_ALIGN)
 		ret = is_dev_dax_align(Path, Align);
 	else if (Opts & MAP_SYNC_SUPP)
 		ret = supports_map_sync(Path);

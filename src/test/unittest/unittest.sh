@@ -981,6 +981,32 @@ function require_test_type() {
 }
 
 #
+# require_dev_dax_region -- check if region id file exist for dev dax
+#
+function require_dev_dax_region() {
+	local prefix="$UNITTEST_NAME: SKIP"
+	local cmd="$PMEMDETECT -r"
+
+	for path in ${DEVICE_DAX_PATH[@]}
+	do
+		disable_exit_on_error
+		out=$($cmd $path 2>&1)
+		ret=$?
+		restore_exit_on_error
+
+		if [ "$ret" == "0" ]; then
+			continue
+		elif [ "$ret" == "1" ]; then
+			msg "$prefix $out"
+			exit 0
+		else
+			fatal "$UNITTEST_NAME: pmemdetect: $out"
+		fi
+	done
+	DEVDAX_TO_LOCK=1
+}
+
+#
 # lock_devdax -- acquire a lock on Device DAXes
 #
 lock_devdax() {
