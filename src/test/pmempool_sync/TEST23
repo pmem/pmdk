@@ -36,8 +36,6 @@
 # sync with replica with switched parts
 # Ref: pmem/issues#730
 #
-export UNITTEST_NAME=pmempool_sync/TEST23
-export UNITTEST_NUM=23
 
 . ../unittest/unittest.sh
 

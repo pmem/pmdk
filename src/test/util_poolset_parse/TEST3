@@ -34,8 +34,6 @@
 #
 # src/test/util_poolset_parse/TEST3 -- unit test for parsing a pool set file
 #
-export UNITTEST_NAME=util_poolset_parse/TEST3
-export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh

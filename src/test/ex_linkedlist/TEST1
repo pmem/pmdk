@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,8 +40,6 @@
 # in multiply stores to the same field. This is not en error considering
 # the transactional nature of the test.
 
-export UNITTEST_NAME=ex_linkedlist/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

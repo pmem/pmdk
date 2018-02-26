@@ -38,8 +38,6 @@
 # with 2M alignment. Expected failure, as 2M alignment is not supported
 # if NODHRS option is not specified.
 #
-export UNITTEST_NAME=blk_rw/TEST12
-export UNITTEST_NUM=12
 
 # standard unit test setup
 . ../unittest/unittest.sh

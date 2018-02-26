@@ -34,8 +34,6 @@
 #
 # src/test/vmmalloc_valgrind/TEST1 -- unit test for libvmmalloc valgrind
 #
-export UNITTEST_NAME=vmmalloc_valgrind/TEST1
-export UNITTEST_NUM=1
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
 	--show-reachable=yes"
 # standard unit test setup

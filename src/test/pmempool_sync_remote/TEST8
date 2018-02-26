@@ -36,8 +36,6 @@
 #
 # case: damaged local master replica
 #
-export UNITTEST_NAME=pmempool_sync_remote/TEST8
-export UNITTEST_NUM=8
 
 # standard unit test setup
 . ../unittest/unittest.sh

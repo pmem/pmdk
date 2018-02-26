@@ -35,8 +35,6 @@
 #
 # case: removing a replica
 #
-export UNITTEST_NAME=pmempool_transform/TEST21
-export UNITTEST_NUM=21
 
 . ../unittest/unittest.sh
 

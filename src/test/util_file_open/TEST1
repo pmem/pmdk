@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/util_file_open/TEST1 -- unit test for util_file_open()
 #
-export UNITTEST_NAME=util_file_open/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

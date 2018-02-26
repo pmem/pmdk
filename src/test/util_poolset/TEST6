@@ -34,8 +34,6 @@
 #
 # src/test/util_poolset/TEST6 -- unit test for util_pool_open()
 #
-export UNITTEST_NAME=util_poolset/TEST6
-export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh

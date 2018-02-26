@@ -35,8 +35,6 @@
 #
 # case: dry run for adding the SINGLEHDR option
 #
-export UNITTEST_NAME=pmempool_transform/TEST23
-export UNITTEST_NUM=23
 
 . ../unittest/unittest.sh
 

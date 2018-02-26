@@ -48,8 +48,6 @@
 # with 2M alignment. Expected failure, as 2M alignment is not supported
 # if SINGLEHDR option is not specified.
 #
-export UNITTEST_NAME=log_basic/TEST9
-export UNITTEST_NUM=9
 
 # standard unit test setup
 . ../unittest/unittest.sh

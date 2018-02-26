@@ -37,8 +37,6 @@
 # Same as TEST0, but run on a pool set that spans two Device DAX devices
 # with 4K alignment.
 #
-export UNITTEST_NAME=obj_basic_integration/TEST11
-export UNITTEST_NUM=11
 
 # standard unit test setup
 . ../unittest/unittest.sh

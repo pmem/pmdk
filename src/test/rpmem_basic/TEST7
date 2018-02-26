@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST7 -- unit test for rpmem with device dax
 #
-export UNITTEST_NAME=rpmem_basic/TEST7
-export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh

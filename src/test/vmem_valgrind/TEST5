@@ -34,8 +34,6 @@
 #
 # src/test/vmem_valgrind/TEST5 -- unit test for vmem_valgrind
 #
-export UNITTEST_NAME=vmem_valgrind/TEST5
-export UNITTEST_NUM=5
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
 	--show-reachable=yes"
 # standard unit test setup

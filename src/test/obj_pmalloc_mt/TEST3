@@ -35,8 +35,6 @@
 # src/test/obj_pmalloc_mt/TEST3 -- multithreaded allocator test
 #	(medium drd version)
 #
-export UNITTEST_NUM=3
-export UNITTEST_NAME=obj_pmalloc_mt/TEST$UNITTEST_NUM
 
 # standard unit test setup
 . ../unittest/unittest.sh

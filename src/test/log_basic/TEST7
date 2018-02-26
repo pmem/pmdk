@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,8 +46,6 @@
 #
 # Same as TEST1, but run on a single Device DAX device.
 #
-export UNITTEST_NAME=log_basic/TEST7
-export UNITTEST_NUM=7
 
 # standard unit test setup
 . ../unittest/unittest.sh

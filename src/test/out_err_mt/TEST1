@@ -34,8 +34,6 @@
 #
 # src/test/out_err_mt/TEST1 -- unit test for error messages
 #
-export UNITTEST_NAME=out_err_mt/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

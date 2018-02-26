@@ -34,8 +34,6 @@
 #
 # src/test/cto_valgrind/TEST7 -- unit test for cto_valgrind
 #
-export UNITTEST_NAME=cto_valgrind/TEST7
-export UNITTEST_NUM=7
 
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp"
 

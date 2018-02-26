@@ -34,8 +34,6 @@
 #
 # src/test/obj_pmalloc_rand_mt/TEST0 -- multithreaded allocator test
 #
-export UNITTEST_NAME=obj_pmalloc_rand_mt/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

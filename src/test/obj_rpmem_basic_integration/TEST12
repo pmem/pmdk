@@ -34,8 +34,6 @@
 # obj_rpmem_basic_integration/TEST12 -- remote replication from and to
 # device dax
 #
-export UNITTEST_NAME=obj_rpmem_basic_integration/TEST12
-export UNITTEST_NUM=12
 
 EXE=obj_basic_integration
 

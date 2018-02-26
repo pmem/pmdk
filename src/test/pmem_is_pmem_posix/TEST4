@@ -34,8 +34,6 @@
 #
 # src/test/pmem_is_pmem_posix/TEST4 -- unit test for pmem_is_pmem
 #
-export UNITTEST_NAME=pmem_is_pmem_posix/TEST4
-export UNITTEST_NUM=4
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -36,8 +36,6 @@
 # check if pool fails to open when incompat flags are equal, nonzero and other
 # than poolset options
 #
-export UNITTEST_NAME=compat_incompat_features/TEST2
-export UNITTEST_NUM=2
 
 . ../unittest/unittest.sh
 

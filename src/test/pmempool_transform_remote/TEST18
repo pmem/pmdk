@@ -39,8 +39,6 @@
 # local replica: files
 # remote replica: device daxes, 2MB alignment
 #
-export UNITTEST_NAME=pmempool_transform_remote/TEST18
-export UNITTEST_NUM=18
 
 . ../unittest/unittest.sh
 

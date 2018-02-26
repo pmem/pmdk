@@ -33,8 +33,6 @@
 #
 # pmempool_rm_remotie/TEST1 -- test for cli rm command with remote replica
 #
-export UNITTEST_NAME=pmempool_rm_remote/TEST1
-export UNITTEST_NUM=1
 
 . ../unittest/unittest.sh
 

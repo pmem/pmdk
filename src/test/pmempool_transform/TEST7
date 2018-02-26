@@ -34,8 +34,6 @@
 # pmempool_transform/TEST7 -- test for checking pmempool transform;
 #                             add replica with dax device
 #
-export UNITTEST_NAME=pmempool_transform/TEST7
-export UNITTEST_NUM=7
 
 . ../unittest/unittest.sh
 

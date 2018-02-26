@@ -35,8 +35,6 @@
 #
 # case: dry run for removing the SINGLEHDR option
 #
-export UNITTEST_NAME=pmempool_transform/TEST24
-export UNITTEST_NUM=24
 
 . ../unittest/unittest.sh
 

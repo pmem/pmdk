@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,6 @@
 #
 # libpmempool_api/TEST7 -- test for checking API
 #
-export UNITTEST_NAME=libpmempool_api/TEST7
-export UNITTEST_NUM=7
 
 . ../unittest/unittest.sh
 

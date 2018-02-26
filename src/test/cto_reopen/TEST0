@@ -34,8 +34,6 @@
 #
 # src/test/cto_reopen/TEST0 -- unit test for cto_reopen
 #
-export UNITTEST_NAME=cto_reopen/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

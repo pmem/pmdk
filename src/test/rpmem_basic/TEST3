@@ -34,8 +34,6 @@
 #
 # src/test/rpmem_basic/TEST3 -- unit test for rpmem_persist
 #
-export UNITTEST_NAME=rpmem_basic/TEST3
-export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh

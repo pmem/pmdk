@@ -37,8 +37,6 @@
 # case: single replica with two 4KB-aligned device daxes
 # revert transformation hdrs->nohdrs (TEST11)
 #
-export UNITTEST_NAME=pmempool_transform/TEST15
-export UNITTEST_NUM=15
 
 . ../unittest/unittest.sh
 

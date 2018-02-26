@@ -36,8 +36,6 @@
 #
 # case: invalid offset provided to rpmem_persist()
 #
-export UNITTEST_NAME=rpmem_basic/TEST13
-export UNITTEST_NUM=13
 
 # standard unit test setup
 . ../unittest/unittest.sh

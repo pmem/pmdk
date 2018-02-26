@@ -36,8 +36,6 @@
 # obj_constructor/TEST1 -- test for obj_constructor
 #
 
-export UNITTEST_NAME=obj_constructor/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

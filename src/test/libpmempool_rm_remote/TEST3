@@ -35,8 +35,6 @@
 #
 # Remove pool, do not remove local and remote pool sets.
 #
-export UNITTEST_NAME=libpmempool_rm_remote/TEST3
-export UNITTEST_NUM=3
 
 # standard unit test setup
 . ../unittest/unittest.sh

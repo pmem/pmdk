@@ -36,8 +36,6 @@
 # case: adding a device-dax-based replica with 2MB alignment to a poolset with
 # SINGLEHDR option
 #
-export UNITTEST_NAME=pmempool_transform/TEST16
-export UNITTEST_NUM=16
 
 . ../unittest/unittest.sh
 

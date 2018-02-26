@@ -34,8 +34,6 @@
 # pmempool_sync/TEST11 -- test for checking pmempool sync
 #                         pmem/issues#344
 #
-export UNITTEST_NAME=pmempool_sync/TEST11
-export UNITTEST_NUM=11
 
 . ../unittest/unittest.sh
 

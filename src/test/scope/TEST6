@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 #
 # src/test/scope/TEST6 -- scope test to check libpmempool symbols
 #
-export UNITTEST_NAME=scope/TEST6
-export UNITTEST_NUM=6
 
 # standard unit test setup
 . ../unittest/unittest.sh

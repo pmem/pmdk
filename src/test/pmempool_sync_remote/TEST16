@@ -38,8 +38,6 @@
 # 1 local replica with 2 part files,
 # 1 remote replica with 2 device daxes, 4KB alignment
 #
-export UNITTEST_NAME=pmempool_sync_remote/TEST16
-export UNITTEST_NUM=16
 
 # standard unit test setup
 . ../unittest/unittest.sh

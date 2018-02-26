@@ -34,8 +34,6 @@
 #
 # src/test/ex_libpmemcto/TEST1 -- unit test for libpmemcto examples
 #
-export UNITTEST_NAME=ex_libpmemcto/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

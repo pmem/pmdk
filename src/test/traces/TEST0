@@ -34,8 +34,6 @@
 #
 # src/test/traces/TEST0 -- unit test for traces
 #
-export UNITTEST_NAME=traces/TEST0
-export UNITTEST_NUM=0
 
 # standard unit test setup
 . ../unittest/unittest.sh

@@ -33,8 +33,6 @@
 #
 # pmempool_create/TEST8 -- test for pmempool create command with poolset
 #
-export UNITTEST_NAME=pmempool_create/TEST8
-export UNITTEST_NUM=8
 
 . ../unittest/unittest.sh
 

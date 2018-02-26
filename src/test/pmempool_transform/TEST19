@@ -36,8 +36,6 @@
 # removing the SINGLEHDR option
 # case: two replicas larger than the pool size, able to embrace new headers
 #
-export UNITTEST_NAME=pmempool_transform/TEST19
-export UNITTEST_NUM=19
 
 . ../unittest/unittest.sh
 

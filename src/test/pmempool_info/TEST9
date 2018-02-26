@@ -33,8 +33,6 @@
 #
 # pmempool_info/TEST9 -- test for info command
 #
-export UNITTEST_NAME=pmempool_info/TEST9
-export UNITTEST_NUM=9
 
 . ../unittest/unittest.sh
 

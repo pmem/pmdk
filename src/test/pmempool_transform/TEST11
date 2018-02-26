@@ -36,8 +36,6 @@
 # adding the SINGLEHDR option
 # case: single replica with two 4KB-aligned device daxes
 #
-export UNITTEST_NAME=pmempool_transform/TEST11
-export UNITTEST_NUM=11
 
 . ../unittest/unittest.sh
 

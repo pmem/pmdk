@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
 #
 # Remove pool and local pool set, do not remove remote pool set.
 #
-export UNITTEST_NAME=libpmempool_rm_remote/TEST1
-export UNITTEST_NUM=1
 
 # standard unit test setup
 . ../unittest/unittest.sh

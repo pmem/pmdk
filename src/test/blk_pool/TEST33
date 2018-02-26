@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,6 @@
 # src/test/blk_pool/TEST33 -- create a pool with the smallest parts
 # possible
 #
-export UNITTEST_NAME=blk_pool/TEST33
-export UNITTEST_NUM=33
 
 # standard unit test setup
 . ../unittest/unittest.sh

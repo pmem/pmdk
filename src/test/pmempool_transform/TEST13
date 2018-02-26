@@ -36,8 +36,6 @@
 # adding the SINGLEHDR option
 # case: single file-based replica with three parts
 #
-export UNITTEST_NAME=pmempool_transform/TEST13
-export UNITTEST_NUM=13
 
 . ../unittest/unittest.sh
 

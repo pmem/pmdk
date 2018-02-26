@@ -35,8 +35,6 @@
 # src/test/rpmem_basic/TEST15 -- unit test for rpmem_deep_persist
 # with device dax
 #
-export UNITTEST_NAME=rpmem_basic/TEST15
-export UNITTEST_NUM=15
 
 # standard unit test setup
 . ../unittest/unittest.sh

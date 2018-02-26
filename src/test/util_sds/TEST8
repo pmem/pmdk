@@ -34,8 +34,6 @@
 #
 # src/test/util_sds/TEST8 -- unittest for shutdown state
 #
-export UNITTEST_NAME=util_sds/TEST8
-export UNITTEST_NUM=8
 
 # standard unit test setup
 . ../unittest/unittest.sh
