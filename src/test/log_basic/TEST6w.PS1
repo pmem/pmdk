@@ -42,9 +42,6 @@ Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "log_basic/TEST6w"
-$Env:UNITTEST_NUM = "6w"
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
