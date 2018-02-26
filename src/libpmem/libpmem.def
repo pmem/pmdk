@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2015-2017, Intel Corporation
+; Copyright 2015-2018, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -79,6 +79,9 @@ EXPORTS
 	pmem_memmove_nodrain
 	pmem_memcpy_nodrain
 	pmem_memset_nodrain
+	pmem_memmove
+	pmem_memcpy
+	pmem_memset
 	pmem_check_versionU
 	pmem_check_versionW
 	pmem_errormsgU

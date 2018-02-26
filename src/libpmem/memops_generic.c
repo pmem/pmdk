@@ -102,12 +102,15 @@ store8(uint64_t *dst, uint64_t c)
  * memmove_nodrain_generic -- generic memmove to pmem without hw drain
  */
 void *
-memmove_nodrain_generic(void *dst, const void *src, size_t len)
+memmove_nodrain_generic(void *dst, const void *src, size_t len,
+		unsigned flags)
 {
-	LOG(15, "pmemdest %p src %p len %zu", dst, src, len);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", dst, src, len,
+			flags);
 	char *cdst = dst;
 	const char *csrc = src;
 	size_t remaining;
+	(void) flags;
 
 	if ((uintptr_t)cdst - (uintptr_t)csrc >= len) {
 		size_t cnt = (uint64_t)cdst & 7;
@@ -208,9 +211,11 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len)
  * memset_nodrain_generic -- generic memset to pmem without hw drain
  */
 void *
-memset_nodrain_generic(void *dst, int c, size_t len)
+memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 {
-	LOG(15, "pmemdest %p c 0x%x len %zu", dst, c, len);
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", dst, c, len,
+			flags);
+	(void) flags;
 
 	char *cdst = dst;
 	size_t cnt = (uint64_t)cdst & 7;
