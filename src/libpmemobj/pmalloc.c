@@ -327,6 +327,12 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 
 	struct pobj_alloc_class_desc *p = arg;
 
+	if (p->alignment != 0) {
+		ERR("Allocation class alignment is not supported yet");
+		errno = ENOTSUP;
+		return -1;
+	}
+
 	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
 		p->units_per_block <= 0) {
 		errno = EINVAL;
@@ -482,6 +488,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
+	p->alignment = 0;
 
 	return 0;
 }
@@ -491,6 +498,8 @@ static struct ctl_argument CTL_ARG(desc) = {
 	.parsers = {
 		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
 			unit_size, ctl_arg_integer),
+		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
+			alignment, ctl_arg_integer),
 		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
 			units_per_block, ctl_arg_integer),
 		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,

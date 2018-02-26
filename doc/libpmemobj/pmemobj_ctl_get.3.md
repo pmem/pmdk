@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.2
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -235,6 +235,7 @@ This entry point takes a complex argument.
 ```
 struct pobj_alloc_class_desc {
 	size_t unit_size;
+	size_t alignment;
 	unsigned units_per_block;
 	enum pobj_header_type header_type;
 	unsigned class_id;
@@ -245,6 +246,10 @@ The first field, `unit_size`, is an 8-byte unsigned integer that defines the
 allocation class size. While theoretically limited only by
 **PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
 8 bytes and 2 megabytes.
+
+The `alignment` field is currently unsupported and must be set to 0. All objects
+have default alignment of 64 bytes, but the user data alignment is affected
+by the size of the chosen header.
 
 The `units_per_block` field defines how many units a single block of memory
 contains. This value will be rounded up to match the internal size of the
@@ -293,7 +298,7 @@ functions.
 
 Example of a valid alloc class query string:
 ```
-heap.alloc_class.128.desc=500,1000,compact
+heap.alloc_class.128.desc=500,0,1000,compact
 ```
 This query, if executed, will create an allocation class with an id of 128 that
 has a unit size of 500 bytes, has at least 1000 units per block and uses

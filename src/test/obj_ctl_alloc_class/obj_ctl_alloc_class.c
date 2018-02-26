@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -63,6 +63,7 @@ main(int argc, char *argv[])
 	alloc_class_128.header_type = POBJ_HEADER_NONE;
 	alloc_class_128.unit_size = 128;
 	alloc_class_128.units_per_block = 1000;
+	alloc_class_128.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.128.desc",
 		&alloc_class_128);
@@ -72,6 +73,8 @@ main(int argc, char *argv[])
 	alloc_class_129.header_type = POBJ_HEADER_COMPACT;
 	alloc_class_129.unit_size = 1024;
 	alloc_class_129.units_per_block = 1000;
+	alloc_class_129.alignment = 0;
+
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.129.desc",
 		&alloc_class_129);
@@ -162,6 +165,7 @@ main(int argc, char *argv[])
 	alloc_class_new.unit_size = 777;
 	alloc_class_new.units_per_block = 200;
 	alloc_class_new.class_id = 0;
+	alloc_class_new.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_new);
@@ -172,6 +176,7 @@ main(int argc, char *argv[])
 	alloc_class_fail.unit_size = 777;
 	alloc_class_fail.units_per_block = 200;
 	alloc_class_fail.class_id = 0;
+	alloc_class_fail.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_fail);
@@ -192,6 +197,7 @@ main(int argc, char *argv[])
 	alloc_class_new_huge.unit_size = (2 << 23);
 	alloc_class_new_huge.units_per_block = 1;
 	alloc_class_new_huge.class_id = 0;
+	alloc_class_new_huge.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_new_huge);
@@ -208,6 +214,7 @@ main(int argc, char *argv[])
 	alloc_class_new_max.unit_size = PMEMOBJ_MAX_ALLOC_SIZE;
 	alloc_class_new_max.units_per_block = 1024;
 	alloc_class_new_max.class_id = 0;
+	alloc_class_new_max.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_new_max);
@@ -222,6 +229,7 @@ main(int argc, char *argv[])
 	alloc_class_new_loop.unit_size = 16384;
 	alloc_class_new_loop.units_per_block = 63;
 	alloc_class_new_loop.class_id = 0;
+	alloc_class_new_loop.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_new_loop);
