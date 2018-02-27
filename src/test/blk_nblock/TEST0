@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../TEST.sh -t medium -f any -c
 #
 # Copyright 2014-2018, Intel Corporation
 #
@@ -35,12 +35,6 @@
 # src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
 require_unlimited_vm
 
 # this test creates huge files
@@ -176,7 +170,3 @@ check_pools $DIR/testfile2.512\
 	$DIR/testfile7.4096\
 	$DIR/testfile7.4160\
 	$DIR/testfile7.4224
-
-check
-
-pass

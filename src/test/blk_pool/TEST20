@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../TEST.sh -t medium -s -c
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -35,19 +35,9 @@
 # src/test/blk_pool/TEST20 -- unit test for pmemblk_open
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-setup
 umask 0
 
 #
 # TEST20 non-existing file, bsize == 0
 #
 expect_normal_exit ./blk_pool$EXESUFFIX o $DIR/testfile 0
-
-check
-
-pass
