@@ -998,6 +998,31 @@ util_parse_add_directory(struct pool_set *set, const char *path,
 		set->directory_based = 1;
 	}
 
+	char *rpath = util_part_realpath(path);
+	if (rpath == NULL) {
+		ERR("cannot resolve realpath of new directory");
+		return -1;
+	}
+
+	for (unsigned i = 0; i < set->nreplicas; ++i) {
+		struct pool_replica *r = set->replica[i];
+		struct pool_set_directory *dir;
+		char *dpath = NULL;
+		VEC_FOREACH_BY_PTR(dir, &r->directory) {
+			dpath = util_part_realpath(dir->path);
+			ASSERTne(dpath, NULL); /* must have been resolved */
+			if (strcmp(rpath, dpath) == 0) {
+				ERR("cannot use the same directory twice");
+				errno = EEXIST;
+				free(dpath);
+				free(rpath);
+				return -1;
+			}
+			free(dpath);
+		}
+	}
+	free(rpath);
+
 	struct pool_set_directory d;
 	d.path = path;
 	d.resvsize = filesize;
