@@ -744,12 +744,14 @@ parser_read_line(char *line, size_t *size, char **path)
 	int ret;
 	char *size_str;
 	char *path_str;
+	char *rest_str;
 	char *saveptr = NULL; /* must be NULL initialized on Windows */
 
 	size_str = strtok_r(line, " \t", &saveptr);
 	path_str = strtok_r(NULL, " \t", &saveptr);
+	rest_str = strtok_r(NULL, " \t", &saveptr);
 
-	if (!size_str || !path_str)
+	if (!size_str || !path_str || rest_str)
 		return PARSER_INVALID_TOKEN;
 
 	LOG(10, "size '%s' path '%s'", size_str, path_str);
@@ -807,13 +809,18 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 {
 	char *addr_str;
 	char *desc_str;
+	char *rest_str;
 	char *saveptr = NULL; /* must be NULL initialized on Windows */
 
 	addr_str = strtok_r(line, " \t", &saveptr);
 	desc_str = strtok_r(NULL, " \t", &saveptr);
+	rest_str = strtok_r(NULL, " \t", &saveptr);
 
 	if (!addr_str || !desc_str)
 		return PARSER_REMOTE_REPLICA_EXPECTED;
+
+	if (rest_str)
+		return PARSER_INVALID_TOKEN;
 
 	LOG(10, "node address '%s' pool set descriptor '%s'",
 		addr_str, desc_str);
