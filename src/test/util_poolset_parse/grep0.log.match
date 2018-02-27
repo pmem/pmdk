@@ -58,3 +58,6 @@ $(*)set file format correct ($(nW)pool56$(nW).set)
 $(*)set file format correct ($(nW)pool57$(nW).set)
 $(*)set file format correct ($(nW)pool58$(nW).set)
 $(*)set file format correct ($(nW)pool59$(nW).set)
+$(*)pool60$(nW).set [invalid token found in the current line:2]
+$(*)pool61$(nW).set [invalid token found in the current line:3]
+$(*)pool62$(nW).set [unexpected parts for remote replica:4]

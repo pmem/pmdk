@@ -308,6 +308,7 @@ enum parser_codes {
 	PARSER_RELATIVE_PATH_EXPECTED,
 	PARSER_SET_NO_PARTS,
 	PARSER_REP_NO_PARTS,
+	PARSER_REMOTE_REP_UNEXPECTED_PARTS,
 	PARSER_SIZE_MISMATCH,
 	PARSER_OUT_OF_MEMORY,
 	PARSER_OPTION_UNKNOWN,
@@ -328,6 +329,7 @@ static const char *parser_errstr[PARSER_MAX_CODE] = {
 	"incorrect descriptor (must be a relative path)",
 	"no pool set parts",
 	"no replica parts",
+	"unexpected parts for remote replica",
 	"sizes of pool set and replica mismatch",
 	"allocating memory failed",
 	"unknown option",
@@ -744,12 +746,14 @@ parser_read_line(char *line, size_t *size, char **path)
 	int ret;
 	char *size_str;
 	char *path_str;
+	char *rest_str;
 	char *saveptr = NULL; /* must be NULL initialized on Windows */
 
 	size_str = strtok_r(line, " \t", &saveptr);
 	path_str = strtok_r(NULL, " \t", &saveptr);
+	rest_str = strtok_r(NULL, " \t", &saveptr);
 
-	if (!size_str || !path_str)
+	if (!size_str || !path_str || rest_str)
 		return PARSER_INVALID_TOKEN;
 
 	LOG(10, "size '%s' path '%s'", size_str, path_str);
@@ -807,13 +811,18 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 {
 	char *addr_str;
 	char *desc_str;
+	char *rest_str;
 	char *saveptr = NULL; /* must be NULL initialized on Windows */
 
 	addr_str = strtok_r(line, " \t", &saveptr);
 	desc_str = strtok_r(NULL, " \t", &saveptr);
+	rest_str = strtok_r(NULL, " \t", &saveptr);
 
 	if (!addr_str || !desc_str)
 		return PARSER_REMOTE_REPLICA_EXPECTED;
+
+	if (rest_str)
+		return PARSER_INVALID_TOKEN;
 
 	LOG(10, "node address '%s' pool set descriptor '%s'",
 		addr_str, desc_str);
@@ -1628,6 +1637,12 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 					result = PARSER_REP_NO_PARTS;
 			}
 		} else {
+			/* there could be no parts for remote replicas */
+			if (set->replica[set->nreplicas - 1]->remote) {
+				result = PARSER_REMOTE_REP_UNEXPECTED_PARTS;
+				continue;
+			}
+
 			/* read size and path */
 			result = parser_read_line(line, &psize, &ppath);
 			if (result == PARSER_CONTINUE) {
