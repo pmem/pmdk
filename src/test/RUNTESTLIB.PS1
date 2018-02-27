@@ -333,11 +333,11 @@ $Env:NON_PMEM_FS_DIR=""
 . .\testconfig.ps1
 
 if ($Env:PMEM_FS_DIR -And (-Not (isDir($Env:PMEM_FS_DIR)))) {
-	throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR doesn't exist"
+    throw "error: PMEM_FS_DIR=$Env:PMEM_FS_DIR doesn't exist"
 }
 
 if ($Env:NON_PMEM_FS_DIR -And (-Not (isDir($Env:NON_PMEM_FS_DIR)))) {
-	throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR doesn't exist"
+    throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR doesn't exist"
 }
 
 $PMEMDETECT="..\x64\Debug\pmemdetect.exe"
