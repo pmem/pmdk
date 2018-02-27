@@ -33,8 +33,6 @@
 # RUNTESTSLIB.PS1 -- functions used in runtest script
 #
 
-$ErrorActionPreference="Stop"
-
 class Config {
     [bool] $dryrun
     [String] $buildtype

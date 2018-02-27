@@ -91,8 +91,6 @@ Param(
     [switch]$help= $false
 )
 
-$ErrorActionPreference="Stop"
-
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     throw $MyInvocation.MyCommand.Name + " require powershell version >= 5"
 }
