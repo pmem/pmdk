@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,29 +30,108 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# utils/check-shebang.sh -- interpreter directive check script
-#
-set -e
 
-err_count=0
+function usage() {
+	fatal "invalid getopt configuration"
+}
 
-for file in $@ ; do
-        [ ! -f $file ] && continue
-	SHEBANG=`head -n1 $file | cut -d" " -f1`
-	[ "${SHEBANG:0:2}" != "#!" ] && continue
-	if [ "$SHEBANG" != "#!/usr/bin/env" -a $SHEBANG != "#!/bin/sh" -a $SHEBANG != "#!../TEST.sh" ]; then
-		INTERP=`echo $SHEBANG | rev | cut -d"/" -f1 | rev`
-		echo "$file:1: error: invalid interpreter directive:" >&2
-		echo "	(is: \"$SHEBANG\", should be: \"#!/usr/bin/env $INTERP\")" >&2
-		((err_count+=1))
-	fi
+args=`getopt t:f:b:m:p:e:d:sc "$@"`
+
+[ $? != 0 ] && usage
+
+eval set -- $args
+
+while true; do
+	case "$1" in
+		-t)
+			TEST_req_test_type=$2
+			shift 2
+			;;
+		-f)
+			TEST_req_fs_type=$2
+			shift 2
+			;;
+		-b)
+			TEST_req_build_type=$2
+			shift 2
+			;;
+		-m)
+			TEST_memcheck=$2
+			shift 2
+			;;
+		-p)
+			TEST_pmemcheck=$2
+			shift 2
+			;;
+		-e)
+			TEST_helgrind=$2
+			shift 2
+			;;
+		-d)
+			TEST_drd=$2
+			shift 2
+			;;
+		-s)
+			TEST_run_setup=1
+			shift
+			;;
+		-c)
+			TEST_run_check=1
+			shift
+			;;
+		--)
+			# end of options
+			shift
+			break
+			;;
+		*)
+			echo $1
+			echo $2
+			fatal "getopt error"
+			;;
+	esac
 done
 
-if [ "$err_count" == "0" ]; then
-	echo "Interpreter directives are OK."
-else
-	echo "Found $err_count errors in interpreter directives!" >&2
-	err_count=1
+export SCRIPTNAME=$(basename $1)
+
+source ../unittest/unittest.sh
+
+if [ -n "${TEST_req_test_type}" ]; then
+	require_test_type ${TEST_req_test_type}
 fi
 
-exit $err_count
+if [ -n "${TEST_req_fs_type}" ]; then
+	require_fs_type ${TEST_req_fs_type}
+fi
+
+if [ -n "${TEST_req_build_type}" ]; then
+	require_build_type ${TEST_req_build_type}
+fi
+
+if [ -n "${TEST_memcheck}" ]; then
+	configure_valgrind memcheck ${TEST_memcheck}
+fi
+
+if [ -n "${TEST_pmemcheck}" ]; then
+	configure_valgrind pmemcheck ${TEST_pmemcheck}
+fi
+
+if [ -n "${TEST_helgrind}" ]; then
+	configure_valgrind helgrind ${TEST_helgrind}
+fi
+
+if [ -n "${TEST_drd}" ]; then
+	configure_valgrind drd ${TEST_drd}
+fi
+
+if [ -n "${TEST_run_setup}" ]; then
+	setup
+fi
+
+source $1
+
+if [ -n "${TEST_run_check}" ]; then
+	check
+fi
+
+pass
