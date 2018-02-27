@@ -182,13 +182,27 @@
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="..\..\src\libpmem\x86_64\cpu.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\avx.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\flush.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\memcpy_memset.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\memcpy\memcpy_sse2.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\memcpy\memcpy_avx.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\memset\memset_sse2.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\memset\memset_avx.h" />
+    <ClInclude Include="x86_64\avx.h" />
+    <ClInclude Include="x86_64\flush.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_avx.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_avx512f.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_nt_avx.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_nt_avx512f.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_nt_sse2.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_sse2.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_t_avx.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_t_avx512f.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_t_sse2.h" />
+    <ClInclude Include="x86_64\memcpy_memset.h" />
+    <ClInclude Include="x86_64\memset\memset_avx.h" />
+    <ClInclude Include="x86_64\memset\memset_avx512f.h" />
+    <ClInclude Include="x86_64\memset\memset_nt_avx.h" />
+    <ClInclude Include="x86_64\memset\memset_nt_avx512f.h" />
+    <ClInclude Include="x86_64\memset\memset_nt_sse2.h" />
+    <ClInclude Include="x86_64\memset\memset_sse2.h" />
+    <ClInclude Include="x86_64\memset\memset_t_avx.h" />
+    <ClInclude Include="x86_64\memset\memset_t_avx512f.h" />
+    <ClInclude Include="x86_64\memset\memset_t_sse2.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem.def" />
@@ -235,7 +249,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem\x86_64\</IncludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" >
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem\x86_64\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
