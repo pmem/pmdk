@@ -1,0 +1,4 @@
+PMEMPOOLSET
+100G /mountpoint1/part0
+REPLICA foo bar abc
+100G /mountpoint2/part0

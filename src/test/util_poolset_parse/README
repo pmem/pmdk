@@ -75,6 +75,16 @@ There are following test set files available:
 	- TEST 42 - incorrect set file: invalid part size (AUTO),
                     but it's not Device DAX
 
+	- TEST 50-59 - pool set options
+
+	- TEST 60 - incorrect set file: too many tokens in part's line
+	- TEST 61 - incorrect set file: invalid "REPLICA" line (too many tokens)
+	- TEST 62 - incorrect set file: unexpected parts for remote replica
+
 Additional scenarios for Device DAX (require Device DAX to be present):
 	- TEST1 - set file with one Device DAX part
 	- TEST2 - set file with two Device DAX parts
+	- TEST3 - set file with two Device DAX parts and pool set options
+
+Pool sets with directories:
+	- TEST4 - incorrect set file: duplicated directories
