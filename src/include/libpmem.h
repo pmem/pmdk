@@ -115,6 +115,8 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 #define PMEM_MEM_WC		(1U << 3)
 #define PMEM_MEM_WB		(1U << 4)
 
+#define PMEM_MEM_NOFLUSH	(1U << 7)
+
 void *pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags);
 void *pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags);
 void *pmem_memset(void *pmemdest, int c, size_t len, unsigned flags);
