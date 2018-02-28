@@ -48,10 +48,10 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
-	(void) flags;
 
 	memmove(pmemdest, src, len);
-	pmem_flush(pmemdest, len);
+	if (!(flags & PMEM_MEM_NOFLUSH))
+		pmem_flush(pmemdest, len);
 	return pmemdest;
 }
 
@@ -63,10 +63,10 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
-	(void) flags;
 
 	memset(pmemdest, c, len);
-	pmem_flush(pmemdest, len);
+	if (!(flags & PMEM_MEM_NOFLUSH))
+		pmem_flush(pmemdest, len);
 	return pmemdest;
 }
 
