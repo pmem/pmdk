@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,16 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_sync/TEST9 -- test for checking pmempool sync;
-#                        pmem/issues#304
+# pmempool_transform/TEST5 -- test for checking pmempool transform;
+#                             pmem/issues#262
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "pmempool_sync/TEST9"
-$Env:UNITTEST_NUM = "9w"
 
 . ..\unittest\unittest.ps1
 
@@ -55,44 +53,73 @@ touch $LOG
 rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
-$LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
-$POOLSET1 = "$DIR\poolset1"
-$POOLSET2 = "$DIR\poolset2"
+$LAYOUT = "OBJ_LAYOUT${Env:$SUFFIX}"
+$POOLSET_IN = "$DIR\poolset.in"
+$POOLSET_OUT = "$DIR\poolset.out"
 
 # Create poolset files
-create_poolset $POOLSET1 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x `
-	r `
-	20M:$DIR\part10:x `
-	20M:$DIR\part11:x
+create_poolset $POOLSET_IN `
+    20M:$DIR\testfile00:x `
+    20M:$DIR\testfile01:x `
+    20M:$DIR\testfile02:x `
+    R `
+    60M:$DIR\testfile10:x
 
-create_poolset $POOLSET2 `
-	20M:$DIR\part00:x `
-	20M:$DIR\part01:x `
-	r `
-	20M:$DIR\part10:x `
-	10M:$DIR\part11:x
+create_poolset $POOLSET_OUT `
+    20M:$DIR\testfile00:x `
+    20M:$DIR\testfile01:x `
+    20M:$DIR\testfile02:x `
+    R `
+    90M:$DIR\abc\testfile10:x
+
+# CLI script for writing some data hitting all the parts
+$WRITE_SCRIPT = "$DIR\write_data"
+echo @"
+pr 50M
+srcp 0 TestOK111
+srcp 25M TestOK222
+srcp 45M TestOK333
+"@ | out-file -encoding ASCII -literalpath $WRITE_SCRIPT
+
+# CLI script for reading 9 characters from all the parts
+$READ_SCRIPT = "$DIR\read_data"
+echo @"
+srpr 0 9
+srpr 25M 9
+srpr 45M 9
+"@ | out-file -encoding ASCII -literalpath $READ_SCRIPT
 
 # Log poolset structures
-echo poolset1: >> $LOG_TEMP
-cat $POOLSET1 >> $LOG_TEMP
-echo poolset2: >> $LOG_TEMP
-cat $POOLSET2 >> $LOG_TEMP
+echo poolset_in >> $LOG_TEMP
+cat $POOLSET_IN >> $LOG_TEMP
+echo "" >> $LOG_TEMP
+echo poolset_out >> $LOG_TEMP
+cat $POOLSET_OUT >> $LOG_TEMP
+echo "" >> $LOG_TEMP
 
-# Create a poolset
-expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET1
+# Create a pool
+expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat $LOG >> $LOG_TEMP
 
-# Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+# Write some data into the pool, hitting two part files
+expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
-# Delete parts from the second replica
-rm $DIR\part00 -Force -ea si
-rm $DIR\part01 -Force -ea si
+# Check if correctly written
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
-# Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+# Try to transform the poolset
+expect_abnormal_exit $PMEMPOOL transform `
+    $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
+
+# Check if correctly read
+expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
+
+# Check metadata by pmempool info
+dump_pool_info $POOLSET_IN >> $LOG_TEMP
+dump_pool_info $DIR\testfile00 >> $LOG_TEMP
+dump_pool_info $DIR\testfile01 >> $LOG_TEMP
+dump_pool_info $DIR\testfile02 >> $LOG_TEMP
+dump_pool_info $DIR\testfile10 >> $LOG_TEMP
 
 mv -Force $LOG_TEMP $LOG
 check

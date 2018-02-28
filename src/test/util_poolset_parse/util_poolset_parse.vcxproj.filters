@@ -24,12 +24,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="grep0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="TEST0.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
     <None Include="pool0w.set">
       <Filter>Pool Set Files</Filter>
     </None>
@@ -188,6 +182,12 @@
     </None>
     <None Include="pool52w.set">
       <Filter>Pool Set Files</Filter>
+    </None>
+    <None Include="grep0w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST0w.PS1">
+      <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

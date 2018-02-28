@@ -1,4 +1,4 @@
-scope/TEST3:
+scope/TEST3w:
 $(*)\libpmemblk.dll:
 DllMain
 pmemblk_bsize

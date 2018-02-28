@@ -31,25 +31,32 @@
 #
 
 #
-# src/test/obj_direct/TEST0 -- unit test for direct
+# src/test/scope/TEST0 -- scope test to check libvmem symbols
 #
-
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
 
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
 
-require_fs_type any
+require_fs_type none
+require_build_type debug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_direct$Env:EXESUFFIX $DIR 9
+function parse_lib {
+    echo "${args}:" >> out$Env:UNITTEST_NUM.log
+    & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
+}
+
+echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
+parse_lib "$Env:EXE_DIR\libvmem.dll"
+
+check
 
 pass

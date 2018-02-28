@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,15 +31,13 @@
 #
 
 #
-# src/test/scope/TEST5 -- scope test to check libvmmalloc symbols
+# src/test/scope/TEST6 -- scope test to check libpmempool symbols
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
     $DIR = ""
     )
-$Env:UNITTEST_NAME = "scope/TEST5"
-$Env:UNITTEST_NUM = "5w"
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -56,11 +54,9 @@ function parse_lib {
     & $DLLVIEW $args | Sort-Object >> out$Env:UNITTEST_NUM.log
 }
 
-# XXX: libvmmalloc not yet ported to Windows
+echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
+parse_lib "$Env:EXE_DIR\libpmempool.dll"
 
-#echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-#parse_lib "$Env:EXE_DIR\libvmmalloc.dll"
-
-#check
+check
 
 pass
