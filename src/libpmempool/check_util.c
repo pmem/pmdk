@@ -591,7 +591,7 @@ check_status_get_util(struct check_status *status)
  * check_answer_loop -- loop through all available answers and process them
  */
 int
-check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx,
+check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx, int fail_on_no,
 	int (*callback)(PMEMpoolcheck *, location *, uint32_t, void *ctx))
 {
 	struct check_status *answer;
@@ -599,10 +599,17 @@ check_answer_loop(PMEMpoolcheck *ppc, location *data, void *ctx,
 	while ((answer = pop_answer(ppc->data)) != NULL) {
 		/* if answer is "no" we cannot fix an issue */
 		if (answer->answer != PMEMPOOL_CHECK_ANSWER_YES) {
-			CHECK_ERR(ppc,
-				"cannot complete repair, reverting changes");
-			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
-			goto error;
+			if (fail_on_no ||
+				answer->answer != PMEMPOOL_CHECK_ANSWER_NO) {
+				CHECK_ERR(ppc,
+					"cannot complete repair, reverting changes");
+				ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+				goto error;
+			}
+
+			ppc->result = CHECK_RESULT_REPAIRED;
+			check_status_release(ppc, answer);
+			continue;
 		}
 
 		/* perform fix */

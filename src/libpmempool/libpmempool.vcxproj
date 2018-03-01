@@ -61,6 +61,7 @@
     <ClCompile Include="check_cto.c" />
     <ClCompile Include="check_log.c" />
     <ClCompile Include="check_pool_hdr.c" />
+    <ClCompile Include="check_sds.c" />
     <ClCompile Include="check_util.c" />
     <ClCompile Include="check_write.c" />
     <ClCompile Include="libpmempool.c" />

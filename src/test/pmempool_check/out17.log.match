@@ -1,4 +1,6 @@
 $(nW)pool.p1: spoil: pool_hdr.checksum=$(nW)
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header
@@ -7,6 +9,8 @@ replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED
 replica 0 part 0: invalid pool_hdr.checksum
 $(nW)pool.set: cannot repair
 $(nW)pool.p1: spoil: pool_hdr.uuid=$(nW)
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header
@@ -16,6 +20,8 @@ replica 0 part 0: setting pool_hdr.uuid to $(nW)
 replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 replica 0 part 0: invalid pool_hdr.checksum
 $(nW)pool.set: cannot repair
+replica 0: checking shutdown state
+replica 0: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header

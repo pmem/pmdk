@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -217,7 +217,7 @@ step_exe(PMEMpoolcheck *ppc, location *loc)
 		return -1;
 	}
 
-	return check_answer_loop(ppc, loc, NULL, step->fix);
+	return check_answer_loop(ppc, loc, NULL, 1,  step->fix);
 }
 
 /*
