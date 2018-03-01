@@ -134,7 +134,7 @@ struct pobj_alloc_class_desc {
 	/*
 	 * Currently unsupported. All allocation classes have default alignment
 	 * of 64. User data alignment is affected by the size of a header. For
-	 * compact one this means that the aligment is 48 bytes.
+	 * compact one this means that the alignment is 48 bytes.
 	 *
 	 * Must be 0.
 	 */
