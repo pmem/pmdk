@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../TEST.sh -t medium -s -c
 #
 # Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
@@ -36,12 +36,6 @@
 # src/test/blk_pool/TEST8 -- unit test for pmemblk_create
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-setup
 umask 0
 
 create_nonzeroed_file 17M 8K $DIR/testfile
@@ -54,7 +48,3 @@ chmod 0600 $DIR/testfile
 expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 4096 0 0600
 
 check_files $DIR/testfile
-
-check
-
-pass

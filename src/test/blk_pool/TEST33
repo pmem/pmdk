@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../TEST.sh -t medium -s -c
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -36,12 +36,6 @@
 # possible
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-setup
 umask 0
 
 #
@@ -60,7 +54,3 @@ expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testset 100 0 0640
 check_files $DIR/testset $DIR/testfile1 $DIR/testfile2 $DIR/testfile3 \
     $DIR/testfile4 $DIR/testfile5 $DIR/testfile6 $DIR/testfile7 $DIR/testfile8 \
     $DIR/testfile9
-
-check
-
-pass

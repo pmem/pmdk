@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../TEST.sh -t short -f none -s
 #
 # Copyright 2016-2018, Intel Corporation
 #
@@ -34,13 +34,3 @@
 #
 # src/test/blk_include/TEST0 - if it compiles it's perfect
 #
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type short
-require_fs_type none
-
-setup
-
-pass

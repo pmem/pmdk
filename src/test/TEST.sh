@@ -1,6 +1,6 @@
-#!../TEST.sh -t medium -s -c
+#!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,107 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/blk_pool/TEST5 -- unit test for pmemblk_create
-#
+function usage() {
+	fatal "invalid getopt configuration"
+}
 
-umask 0
+args=`getopt t:f:b:m:p:e:d:sc "$@"`
 
-#
-# TEST5 non-existing file, poolsize > 0
-#       path is invalid (directory not exist)
-#
-expect_normal_exit ./blk_pool$EXESUFFIX c /NULL/testfile 4096 20 0640
+[ $? != 0 ] && usage
 
-check_no_files $DIR/testfile
+eval set -- $args
+
+while true; do
+	case "$1" in
+		-t)
+			TEST_req_test_type=$2
+			shift 2
+			;;
+		-f)
+			TEST_req_fs_type=$2
+			shift 2
+			;;
+		-b)
+			TEST_req_build_type=$2
+			shift 2
+			;;
+		-m)
+			TEST_memcheck=$2
+			shift 2
+			;;
+		-p)
+			TEST_pmemcheck=$2
+			shift 2
+			;;
+		-e)
+			TEST_helgrind=$2
+			shift 2
+			;;
+		-d)
+			TEST_drd=$2
+			shift 2
+			;;
+		-s)
+			TEST_run_setup=1
+			shift
+			;;
+		-c)
+			TEST_run_check=1
+			shift
+			;;
+		--)
+			# end of options
+			shift
+			break
+			;;
+		*)
+			echo $1
+			echo $2
+			fatal "getopt error"
+			;;
+	esac
+done
+
+export SCRIPTNAME=$(basename $1)
+
+source ../unittest/unittest.sh
+
+if [ -n "${TEST_req_test_type}" ]; then
+	require_test_type ${TEST_req_test_type}
+fi
+
+if [ -n "${TEST_req_fs_type}" ]; then
+	require_fs_type ${TEST_req_fs_type}
+fi
+
+if [ -n "${TEST_req_build_type}" ]; then
+	require_build_type ${TEST_req_build_type}
+fi
+
+if [ -n "${TEST_memcheck}" ]; then
+	configure_valgrind memcheck ${TEST_memcheck}
+fi
+
+if [ -n "${TEST_pmemcheck}" ]; then
+	configure_valgrind pmemcheck ${TEST_pmemcheck}
+fi
+
+if [ -n "${TEST_helgrind}" ]; then
+	configure_valgrind helgrind ${TEST_helgrind}
+fi
+
+if [ -n "${TEST_drd}" ]; then
+	configure_valgrind drd ${TEST_drd}
+fi
+
+if [ -n "${TEST_run_setup}" ]; then
+	setup
+fi
+
+source $1
+
+if [ -n "${TEST_run_check}" ]; then
+	check
+fi
+
+pass
