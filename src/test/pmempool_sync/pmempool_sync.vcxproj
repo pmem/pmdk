@@ -23,8 +23,6 @@
     <None Include="out3.log.match" />
     <None Include="out4w.log.match" />
     <None Include="out5.log.match" />
-    <None Include="out6.log.match" />
-    <None Include="out7.log.match" />
     <None Include="out8w.log.match" />
     <None Include="out9w.log.match" />
     <None Include="README" />
@@ -38,8 +36,6 @@
     <None Include="TEST3.PS1" />
     <None Include="TEST4w.PS1" />
     <None Include="TEST5w.PS1" />
-    <None Include="TEST6.PS1" />
-    <None Include="TEST7.PS1" />
     <None Include="TEST8w.PS1" />
     <None Include="TEST9w.PS1" />
   </ItemGroup>
