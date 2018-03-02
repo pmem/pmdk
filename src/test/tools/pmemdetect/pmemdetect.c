@@ -58,6 +58,7 @@
 #define DEVDAX_ALIGN		(1 << 1)
 #define MAP_SYNC_SUPP		(1 << 2)
 #define DAX_REGION_DETECT	(1 << 3)
+#define FILE_SIZE		(1 << 4)
 
 #define err(fmt, ...) fprintf(stderr, "pmemdetect: " fmt, __VA_ARGS__)
 
@@ -78,6 +79,7 @@ print_usage(void)
 	printf("-a, --align=N     - check Device DAX alignment\n");
 	printf("-r, --dax-region  - check if Dev DAX <path> has region id\n");
 	printf("-s, --map-sync    - check if <path> supports MAP_SYNC\n");
+	printf("-z, --size        - print file/Device DAX size\n");
 	printf("-h, --help        - print this usage info\n");
 }
 
@@ -89,6 +91,7 @@ static const struct option long_options[] = {
 	{"align",	required_argument,	NULL,	'a'},
 	{"dax-region",	no_argument,		NULL,	'r'},
 	{"map-sync",	no_argument,		NULL,	's'},
+	{"size",	no_argument,		NULL,	'z'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
 };
@@ -100,7 +103,7 @@ static int
 parse_args(int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "a:dshr",
+	while ((opt = getopt_long(argc, argv, "a:dshrz",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
@@ -122,6 +125,9 @@ parse_args(int argc, char *argv[])
 			break;
 		case 's':
 			Opts |= MAP_SYNC_SUPP;
+			break;
+		case 'z':
+			Opts |= FILE_SIZE;
 			break;
 		case 'h':
 			print_usage();
@@ -324,12 +330,16 @@ main(int argc, char *argv[])
 		} else {
 			ret = 1;
 		}
-	} else if (Opts & DEVDAX_ALIGN)
+	} else if (Opts & DEVDAX_ALIGN) {
 		ret = is_dev_dax_align(Path, Align);
-	else if (Opts & MAP_SYNC_SUPP)
+	} else if (Opts & FILE_SIZE) {
+		printf("%zu", (size_t)util_file_get_size(Path));
+		ret = 1;
+	} else if (Opts & MAP_SYNC_SUPP) {
 		ret = supports_map_sync(Path);
-	else
+	} else {
 		ret = is_pmem(Path);
+	}
 
 	/*
 	 * Return 0 on 'true'. Otherwise return 1.
