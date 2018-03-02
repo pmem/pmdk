@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
  */
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmem.h"
 #include "libpmemblk.h"
 #include "os.h"
@@ -418,6 +419,8 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 			return -1;
 		}
 
+		ba->fsize = 0;
+	} else if (util_file_is_device_dax(args->fname)) {
 		ba->fsize = 0;
 	}
 

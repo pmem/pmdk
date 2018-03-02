@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "util.h"
 
@@ -210,9 +211,10 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 			goto free_ob;
 		}
 		poolsize = 0;
-	} else {
-		if (poolsize < PMEMOBJ_MIN_POOL)
-			poolsize = PMEMOBJ_MIN_POOL;
+	} else if (util_file_is_device_dax(args->fname)) {
+		poolsize = 0;
+	} else if (poolsize < PMEMOBJ_MIN_POOL) {
+		poolsize = PMEMOBJ_MIN_POOL;
 	}
 
 	poolsize = PAGE_ALIGNED_UP_SIZE(poolsize);

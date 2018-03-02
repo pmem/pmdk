@@ -43,6 +43,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 
 #define LAYOUT_NAME "benchmark"
@@ -1027,7 +1028,10 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		psize = 0;
+	} else if (util_file_is_device_dax(args->fname)) {
+		psize = 0;
 	}
+
 	obj_bench.pop =
 		pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
 	if (obj_bench.pop == NULL) {

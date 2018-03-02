@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include <cassert>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "os.h"
 #include "os_thread.h"
 
@@ -553,9 +554,10 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		map_bench->pool_size = 0;
-	} else {
-		if (map_bench->pool_size < 2 * PMEMOBJ_MIN_POOL)
-			map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
+	} else if (util_file_is_device_dax(args->fname)) {
+		map_bench->pool_size = 0;
+	} else if (map_bench->pool_size < 2 * PMEMOBJ_MIN_POOL) {
+		map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
 	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",

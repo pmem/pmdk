@@ -415,6 +415,8 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 				goto free_pools;
 			}
 			psize = 0;
+		} else if (util_file_is_device_dax(args->fname)) {
+			psize = 0;
 		}
 		bench_priv->sets[0] = (const char *)args->fname;
 		bench_priv->pop[0] = pmemobj_create(

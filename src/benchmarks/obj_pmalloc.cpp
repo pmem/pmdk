@@ -44,6 +44,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "os.h"
 #include "valgrind_internal.h"
@@ -150,9 +151,10 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 			goto free_ob;
 		}
 		poolsize = 0;
-	} else {
-		if (poolsize < PMEMOBJ_MIN_POOL)
-			poolsize = PMEMOBJ_MIN_POOL;
+	} else if (util_file_is_device_dax(args->fname)) {
+		poolsize = 0;
+	} else if (poolsize < PMEMOBJ_MIN_POOL) {
+		poolsize = PMEMOBJ_MIN_POOL;
 	}
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),

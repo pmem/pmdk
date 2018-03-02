@@ -40,6 +40,7 @@
 #include "benchmark.hpp"
 #include "libpmemobj.h"
 
+#include "file.h"
 #include "lane.h"
 #include "list.h"
 #include "memops.h"
@@ -711,6 +712,8 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 			goto err_free_mb;
 		}
 
+		poolsize = 0;
+	} else if (util_file_is_device_dax(args->fname)) {
 		poolsize = 0;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemlog.h"
 #include "os.h"
 
@@ -502,6 +503,8 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 			goto err_free_lb;
 		}
 
+		lb->psize = 0;
+	} else if (util_file_is_device_dax(args->fname)) {
 		lb->psize = 0;
 	}
 
