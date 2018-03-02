@@ -64,6 +64,7 @@ struct ddmap_context {
 	size_t bytes;	/* size of blocks to write at the time */
 	size_t count;	/* number of blocks to read/write */
 	int checksum;	/* compute checksum */
+	int runlen;	/* print bytes as runlen/char sequence */
 };
 
 /*
@@ -87,6 +88,7 @@ print_usage(void)
 	printf("-b N              - read/write N bytes at a time\n");
 	printf("-n N              - copy N input blocks\n");
 	printf("-c                - compute checksum\n");
+	printf("-r                - print file content as runlen/char pairs\n");
 	printf("-h                - print this usage info\n");
 }
 
@@ -102,29 +104,68 @@ static const struct option long_options[] = {
 	{"block-size",	required_argument,	NULL,	'b'},
 	{"count",	required_argument,	NULL,	'n'},
 	{"checksum",	no_argument,		NULL,	'c'},
+	{"runlen",	no_argument,		NULL,	'r'},
 	{"help",	no_argument,		NULL,	'h'},
 	{NULL,		0,			NULL,	 0 },
 };
 
 /*
- * ddmap_print_bytes -- (internal) print array of bytes to stdout;
- *	printable ASCII characters are printed normally,
- *	NUL character is printed as a little circle (the degree symbol),
- *	non-printable ASCII characters are printed as centered dots
+ * ddmap_print_char -- (internal) print single char
+ *
+ * Printable ASCII characters are printed normally,
+ * NUL character is printed as a little circle (the degree symbol),
+ * non-printable ASCII characters are printed as centered dots.
+ */
+static void
+ddmap_print_char(char c)
+{
+	if (c == '\0')
+		/* print the degree symbol for NUL */
+		printf("\u00B0");
+	else if (c >= ' ' && c <= '~')
+		/* print printable ASCII character */
+		printf("%c", c);
+	else
+		/* print centered dot for non-printable character */
+		printf("\u00B7");
+}
+
+/*
+ * ddmap_print_runlen -- (internal) print file content as length/char pairs
+ *
+ * For each sequence of chars of the same value (could be just 1 byte)
+ * print length of the sequence and the char value.
+ */
+static void
+ddmap_print_runlen(char *addr, size_t len)
+{
+	char c = '\0';
+	ssize_t cnt = 0;
+	for (size_t i = 0; i < len; i++) {
+		if (i > 0 && c != addr[i] && cnt != 0) {
+			printf("%zu ", cnt);
+			ddmap_print_char(c);
+			printf("\n");
+			cnt = 0;
+		}
+		c = addr[i];
+		cnt++;
+	}
+	if (cnt) {
+		printf("%zu ", cnt);
+		ddmap_print_char(c);
+		printf("\n");
+	}
+}
+
+/*
+ * ddmap_print_bytes -- (internal) print array of bytes
  */
 static void
 ddmap_print_bytes(const char *data, size_t len)
 {
 	for (size_t i = 0; i < len; ++i) {
-		if (data[i] == '\0')
-			/* print the degree symbol for NUL */
-			printf("\u00B0");
-		else if (data[i] >= ' ' && data[i] <= '~')
-			/* print printable ASCII character */
-			printf("%c", data[i]);
-		else
-			/* print centered dot for non-printable character */
-			printf("\u00B7");
+		ddmap_print_char(data[i]);
 	}
 	printf("\n");
 }
@@ -134,7 +175,8 @@ ddmap_print_bytes(const char *data, size_t len)
  *	print it to stdout
  */
 static int
-ddmap_read(const char *path, size_t offset_in, size_t bytes, size_t count)
+ddmap_read(const char *path, size_t offset_in, size_t bytes, size_t count,
+		int runlen)
 {
 	size_t len = bytes * count;
 	os_off_t offset = (os_off_t)(bytes * offset_in);
@@ -154,7 +196,10 @@ ddmap_read(const char *path, size_t offset_in, size_t bytes, size_t count)
 				read_len, len);
 	}
 
-	ddmap_print_bytes(read_buff, (size_t)read_len);
+	if (runlen)
+		ddmap_print_runlen(read_buff, (size_t)read_len);
+	else
+		ddmap_print_bytes(read_buff, (size_t)read_len);
 	Free(read_buff);
 	return 0;
 }
@@ -309,7 +354,7 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 	size_t offset;
 	size_t count;
 	size_t bytes;
-	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:b:n:chv",
+	while ((opt = getopt_long(argc, argv, "i:o:d:s:q:b:n:crhv",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'i':
@@ -365,6 +410,9 @@ parse_args(struct ddmap_context *ctx, int argc, char *argv[])
 			break;
 		case 'c':
 			ctx->checksum = 1;
+			break;
+		case 'r':
+			ctx->runlen = 1;
 			break;
 		case 'h':
 			print_usage();
@@ -436,7 +484,7 @@ do_ddmap(struct ddmap_context *ctx)
 
 	if (ctx->file_in != NULL) {
 		if (ddmap_read(ctx->file_in, ctx->offset_in, ctx->bytes,
-			ctx->count))
+			ctx->count, ctx->runlen))
 			return -1;
 	} else { /* ctx->file_out != NULL */
 		if (ddmap_write(ctx->file_out, ctx->str, ctx->offset_in,
