@@ -138,6 +138,10 @@ MANPAGES_3_DUMMY += rpmem_open.3 rpmem_set_attr.3 rpmem_close.3 \
 		    rpmem_errormsg.3 rpmem_deep_persist.3
 endif
 
+ifeq ($(NDCTL_ENABLE),y)
+MANPAGES_1_MD += daxio/daxio.1.md
+endif
+
 MANPAGES_7_GROFF = $(MANPAGES_7_MD:.7.md=.7)
 MANPAGES_5_GROFF = $(MANPAGES_5_MD:.5.md=.5)
 MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
