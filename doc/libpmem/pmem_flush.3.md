@@ -48,7 +48,8 @@ date: pmem API version 1.0
 **pmem_flush**(), **pmem_drain**(),
 **pmem_persist**(), **pmem_msync**(),
 **pmem_deep_flush**(), **pmem_deep_drain**(), **pmem_deep_persist**(),
-**pmem_has_hw_drain**() -- check persistency, store persistent data and delete mappings
+**pmem_has_hw_drain**(), **pmem_has_auto_flush**()  -- check persistency,
+				store persistent data and delete mappings
 
 
 # SYNOPSIS #
@@ -63,6 +64,7 @@ void pmem_deep_flush(const void *addr, size_t len);
 int pmem_deep_drain(const void *addr, size_t len);
 int pmem_deep_persist(const void *addr, size_t len);
 void pmem_drain(void);
+int pmem_has_auto_flush(void);
 int pmem_has_hw_drain(void);
 ```
 
@@ -180,6 +182,10 @@ it should be used rarely. Typically the application should use this function
 only to flush the most critical data, which are required to recover after
 the power failure.
 
+The **pmem_has_auto_flush**() function checks if the machine supports automatic
+CPU cache flush on power failure.
+Function returns true only when each NVDIMM supports eADR.
+
 The **pmem_has_hw_drain**() function checks if the machine
 supports an explicit *hardware drain*
 instruction for persistent memory.
@@ -198,6 +204,10 @@ functions return no value.
 The **pmem_deep_persist**() and **pmem_deep_drain**() return 0 on success.
 Otherwise it returns -1 and sets *errno* appropriately. If *len* is equal zero
 **pmem_deep_persist**() and **pmem_deep_drain**() return 0 but no flushing take place.
+
+The **pmem_has_auto_flush**() function returns 1 if eADR is supported
+and 0 if eADR is not supported.
+On error it returns -1 and sets *errno* appropriately.
 
 The **pmem_has_hw_drain**() function returns true if the machine
 supports an explicit *hardware drain*
