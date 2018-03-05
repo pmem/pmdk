@@ -51,6 +51,8 @@
 #include <ndctl/libdaxctl.h>
 #include <libpmem.h>
 
+#include "util.h"
+
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align) - 1))
 
@@ -152,7 +154,6 @@ static int
 parse_args(struct daxio_context *ctx, int argc, char * const argv[])
 {
 	int opt;
-	char *endptr;
 	size_t offset;
 	size_t len;
 
@@ -166,28 +167,21 @@ parse_args(struct daxio_context *ctx, int argc, char * const argv[])
 			ctx->dst.path = optarg;
 			break;
 		case 'k':
-			errno = 0;
-			offset = strtoul(optarg, &endptr, 0);
-			if ((endptr && *endptr != '\0') || errno) {
+			if (util_parse_size(optarg, &offset)) {
 				ERR("'%s' -- invalid input offset\n", optarg);
 				return -1;
 			}
 			ctx->src.offset = offset;
 			break;
 		case 's':
-			errno = 0;
-			offset = strtoul(optarg, &endptr, 0);
-			if ((endptr && *endptr != '\0') || errno) {
+			if (util_parse_size(optarg, &offset)) {
 				ERR("'%s' -- invalid output offset\n", optarg);
 				return -1;
 			}
 			ctx->dst.offset = offset;
 			break;
 		case 'l':
-			/* XXX: parse size with suffix, i.e. 10MB */
-			errno = 0;
-			len = strtoull(optarg, &endptr, 0);
-			if ((endptr && *endptr != '\0') || errno) {
+			if (util_parse_size(optarg, &len)) {
 				ERR("'%s' -- invalid length\n", optarg);
 				return -1;
 			}
