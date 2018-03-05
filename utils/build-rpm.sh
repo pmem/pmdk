@@ -155,6 +155,8 @@ if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 fi
 
 LIBFABRIC_MIN_VERSION=1.4.2
+NDCTL_MIN_VERSION=58.2.37
+
 RPMBUILD_OPTS=""
 PACKAGE_VERSION=$(get_version $PACKAGE_VERSION_TAG)
 
@@ -216,6 +218,7 @@ sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
 	-e "s/__MAKE_FLAGS__/$RPM_MAKE_FLAGS/g" \
 	-e "s/__MAKE_INSTALL_FDUPES__/$RPM_MAKE_INSTALL/g" \
 	-e "s/__LIBFABRIC_MIN_VER__/$LIBFABRIC_MIN_VERSION/g" \
+	-e "s/__NDCTL_MIN_VER__/$NDCTL_MIN_VERSION/g" \
 	$OLDPWD/$SCRIPT_DIR/pmdk.spec.in > $RPM_SPEC_FILE
 
 if [ "$DISTRO" = "SLES" ]
@@ -236,6 +239,14 @@ then
 	RPMBUILD_OPTS+="--with rpmem "
 else
 	RPMBUILD_OPTS+="--without rpmem "
+fi
+
+# daxio
+if [ "${NDCTL_ENABLE}" = "y" ]
+then
+	RPMBUILD_OPTS+="--with ndctl "
+else
+	RPMBUILD_OPTS+="--without ndctl "
 fi
 
 # use specified testconfig file or default

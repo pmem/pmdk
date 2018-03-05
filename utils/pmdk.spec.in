@@ -1,6 +1,7 @@
 
 # rpmbuild options:
 #   --with | --without rpmem
+#   --with | --without ndctl
 #   --define "_testconfig <path to custom testconfig.sh or 'default'>"
 #   --define "_check <1|0>" - run make check or not
 #
@@ -21,7 +22,11 @@
 %bcond_with rpmem
 %endif
 
+# by default build w/o ndctl, unless explicitly enabled
+%bcond_with ndctl
+
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
+%define min_ndctl_ver __NDCTL_MIN_VER__
 
 Name:		pmdk
 Version:	__VERSION__
@@ -32,7 +37,7 @@ Group:		__GROUP_SYS_LIBS__
 License:	__LICENSE__
 URL:		http://pmem.io/pmdk
 
-Source0:        %{name}-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.gz
 
 BuildRequires:	gcc
 BuildRequires:	make
@@ -43,6 +48,11 @@ BuildRequires:	man
 BuildRequires:	pkgconfig
 BuildRequires:	doxygen
 BuildRequires:	gdb
+
+%if %{with ndctl}
+BuildRequires:	ndctl-devel >= %{min_ndctl_ver}
+BuildRequires:	daxctl-devel >= %{min_ndctl_ver}
+%endif
 
 %if %{with rpmem}
 BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
@@ -550,6 +560,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 
 
 %if %{with rpmem}
+
 %package -n librpmem__PKG_NAME_SUFFIX__
 Summary: Remote Access to Persistent Memory library
 Group: __GROUP_SYS_LIBS__
@@ -710,6 +721,29 @@ and users of the applications based on PMDK libraries.
 %config(noreplace) %{_sysconfdir}/bash_completion.d/pmempool.sh
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
+
+
+%if %{with ndctl}
+
+%package -n daxio
+Summary: Perform I/O on Device DAX devices or zero a Device DAX device
+Group: __GROUP_SYS_BASE__
+Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
+%description -n daxio
+The daxio utility performs I/O on Device DAX devices or zero
+a Device DAX device.  Since the standard I/O APIs (read/write) cannot be used
+with Device DAX, data transfer is performed on a memory-mapped device.
+The daxio may be used to dump Device DAX data to a file, restore data from
+a backup copy, move/copy data to another device or to erase data from
+a device.
+
+%files -n daxio
+%{_bindir}/daxio
+%{_mandir}/man1/daxio.1.gz
+%license LICENSE
+%doc ChangeLog CONTRIBUTING.md README.md
+
+%endif # _with_ndctl
 
 
 %prep
