@@ -1,5 +1,5 @@
 
-Mon Feb 26 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+Mon Mar 05 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.3.2
 	Bug fixes:
@@ -8,6 +8,8 @@ Mon Feb 26 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- test: fix vmmalloc_malloc_hooks (#773)
 	- test: fix compilation with clang-5.0 (#783)
 	- pool: fix set convert of v3 -> v4
+	- common: generate pkg-config files on make install (#610)
+	- common: fix dependencies for Debian's dev packages
 
 Wed Dec 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
