@@ -62,7 +62,8 @@ The daxio utility performs I/O on Device DAX devices or zero
 a Device DAX device.  Since the standard I/O APIs (read/write) cannot be used
 with Device DAX, data transfer is performed on a memory-mapped device.
 The **daxio** may be used to dump Device DAX data to a file, restore data from
-a backup copy, or move/copy data to another device.
+a backup copy, move/copy data to another device or to erase data from
+a device.
 
 There must be at least one Device DAX device involved either as the input
 or output.  If input or output is not specified, it will default to stdin
@@ -84,19 +85,25 @@ Input device or file to read from.
 Output device or file to write to.
 
 `-z, --zero`
-Zero the output device for 'len' size.  Or the entire device if no
-length was provided. The output device must be a Device DAX device.
+Zero the output device for *len* size, or the entire device if no
+length was provided.  The output device must be a Device DAX device.
 
 `-l, --len`
-The length in bytes to perform the I/O.  The following suffixes are
-supported to make passing in size easier for kibi, mebi, gibi, and
-tebi bytes: k/K,m/M,g/G,t/T. i.e. 20m - 20 Mebibytes
+The length in bytes to perform the I/O.  To make passing in size easier
+for kibi, mebi, gibi, and tebi bytes, *len* may include unit suffix.
+The *len* format must be compliant with the format specified in IEC 80000-13,
+IEEE 1541 or the Metric Interchange Format.  These standards accept SI units
+with obligatory B - kB, MB, GB, ... (multiplier by 1000) suffixes,
+and IEC units with optional "iB" - KiB, MiB, GiB, ..., K, M, G, ...
+(multiplier by 1024) suffixes.
 
 `-s, --seek`
 The number of bytes to skip over on the output before performing a write.
+The same suffixes are accepted as for *len*.
 
 `-k, --skip`
 The number of bytes to skip over on the input before performing a read.
+The same suffixes are accepted as for *len*.
 
 `-V, --version`
 

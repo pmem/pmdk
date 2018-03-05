@@ -40,7 +40,7 @@ ifeq ($(NDCTL_ENABLE),y)
 #SCP_TO_REMOTE_NODES = y
 
 TARGET = daxio
-OBJS = daxio.o
+OBJS = daxio.o util.o
 
 LIBPMEM=y
 
@@ -50,7 +50,8 @@ LIBS += $(LIBDAXCTL)
 
 MANPAGES = $(TOP)/doc/daxio.1
 
-#BASH_COMP_FILES = daxio.sh
+# XXX: to be done
+# BASH_COMP_FILES = daxio.sh
 
 else
 $(info NOTE: Skipping daxio because ndctl is not available)
