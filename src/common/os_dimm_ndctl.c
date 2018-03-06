@@ -206,7 +206,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 		if (ndctl_cmd_submit(cmd))
 			goto out;
 
-		if (ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)
+		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG))
 			goto out;
 
 		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
