@@ -168,10 +168,7 @@ os_auto_flush(void)
 	char *device_path;
 	int cpu_cache = 0;
 
-	device_path = os_getenv("BUS_DEVICE_PATH");
-	if (!device_path) {
-		device_path = BUS_DEVICE_PATH;
-	}
+	device_path = BUS_DEVICE_PATH;
 
 	os_stat_t sdev;
 	if (os_stat(device_path, &sdev) != 0 ||

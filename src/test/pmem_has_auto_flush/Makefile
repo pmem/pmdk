@@ -34,17 +34,17 @@
 # src/test/pmem_has_auto_flush/Makefile -- build pmem_has_auto_flush test
 #
 include ../../common.inc
-#ARCH := $(call get_arch)
+ARCH := $(call get_arch)
 
-#TOP = ../../..
-#vpath %.c $(TOP)/src/common
-#vpath %.c $(TOP)/src/libpmem
-#vpath %.c $(TOP)/src/libpmem/$(ARCH)
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
 TARGET = pmem_has_auto_flush
 
-OBJS = pmem_has_auto_flush.o#\
-#	mmap.o\
+OBJS = pmem_has_auto_flush.o\
+	mmap.o\
 	mmap_posix.o\
 	util.o\
 	util_posix.o\
@@ -63,19 +63,19 @@ OBJS = pmem_has_auto_flush.o#\
 	os_deep_linux.o\
 	os_auto_flush_linux.o\
 	shutdown_state.o\
-	os_dimm_none.o \
-	init.o
-# this test does not require ndctl
-# to enable builds we use os_dimm_none
+	os_dimm_$(OS_DIMM).o\
+	init.o\
+	mocks_posix.o
 
-#ifeq ($(ARCH), x86_64)
-#OBJS += cpu.o
-#endif
-
-LIBPMEM=y
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
 
 include ../Makefile.inc
 
-#CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-#CFLAGS += -I$(TOP)/src/libpmem
-#CFLAGS += -I$(TOP)/src/common
+CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
+
+LDFLAGS += $(call extract_funcs, mocks_posix.c)
