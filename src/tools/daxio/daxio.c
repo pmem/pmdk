@@ -52,6 +52,7 @@
 #include <libpmem.h>
 
 #include "util.h"
+#include "os_dimm.h"
 
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align) - 1))
@@ -378,16 +379,14 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 	if (!dev->dax)
 		return 0;
 
-#if 0
-	/* XXX - uncomment when badblock support is integrated */
 	if (is_dst) {
-		if (clear_badblocks(dev, ctx->len) < 0) {
+		/* XXX - clear only badblocks in range bound by offset/len */
+		if (os_dimm_devdax_clear_badblocks(dev->path)) {
 			ERR("failed to clear badblocks on \"%s\"\n",
 					dev->path);
 			return -1;
 		}
 	}
-#endif
 
 	if (dev->align == ULONG_MAX) {
 		ERR("cannot determine device alignment for \"%s\"\n",

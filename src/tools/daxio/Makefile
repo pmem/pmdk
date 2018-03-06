@@ -40,7 +40,13 @@ ifeq ($(NDCTL_ENABLE),y)
 #SCP_TO_REMOTE_NODES = y
 
 TARGET = daxio
-OBJS = daxio.o util.o
+OBJS = daxio.o \
+	util.o \
+	out.o \
+	os_dimm_ndctl.o \
+	os_posix.o \
+	os_thread_posix.o \
+	util_posix.o
 
 LIBPMEM=y
 
