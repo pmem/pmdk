@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 set -e
 
 # Keep in sync with requirements in src/common.inc.
-libfabric_ver=1.4.2
+libfabric_ver=1.6.0rc2
 libfabric_url=https://github.com/ofiwg/libfabric/archive
 libfabric_dir=libfabric-$libfabric_ver
 libfabric_tarball=v${libfabric_ver}.zip
