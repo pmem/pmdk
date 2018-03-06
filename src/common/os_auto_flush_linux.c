@@ -71,10 +71,7 @@ os_auto_flush(void)
 	int CPU_cache = 0;
 	struct fs *reg = NULL;
 
-	device_path = os_getenv("BUS_DEVICE_PATH");
-	if (!device_path) {
-		device_path = BUS_DEVICE_PATH;
-	}
+	device_path = BUS_DEVICE_PATH;
 
 	os_stat_t sdev;
 	if (os_stat(device_path, &sdev) != 0 ||
