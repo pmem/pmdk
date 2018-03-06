@@ -36,6 +36,8 @@
 
 set -e
 
+OS=$1
+
 # Keep in sync with requirements in src/common.inc.
 libfabric_ver=1.6.0rc2
 libfabric_url=https://github.com/ofiwg/libfabric/archive
