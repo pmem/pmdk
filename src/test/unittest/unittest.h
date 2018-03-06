@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,6 +110,7 @@ extern "C" {
 #include <sys/mman.h>
 #include <sys/file.h>
 #include <sys/mount.h>
+#include <sys/select.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
