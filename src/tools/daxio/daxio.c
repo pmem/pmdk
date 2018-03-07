@@ -44,6 +44,7 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include <limits.h>
 #include <string.h>
 
