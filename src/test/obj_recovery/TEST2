@@ -45,6 +45,7 @@ require_no_asan
 # exits with locked mutexes
 configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
+configure_valgrind pmemcheck force-disable
 
 setup
 

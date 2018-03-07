@@ -41,6 +41,8 @@
 require_test_type medium
 require_no_asan
 
+configure_valgrind pmemcheck force-disable
+
 setup
 
 # exits in the middle of transaction, so pool cannot be closed
