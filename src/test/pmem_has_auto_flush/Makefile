@@ -34,48 +34,14 @@
 # src/test/pmem_has_auto_flush/Makefile -- build pmem_has_auto_flush test
 #
 include ../../common.inc
-ARCH := $(call get_arch)
 
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
+LIBPMEMCOMMON=internal-debug
+LIBPMEM=internal-debug
 
 TARGET = pmem_has_auto_flush
 
-OBJS = pmem_has_auto_flush.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	fs_posix.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	uuid.o\
-	$(call osdep, uuid,.o)\
-	pool_hdr.o\
-	set.o\
-	os_deep_linux.o\
-	os_auto_flush_linux.o\
-	shutdown_state.o\
-	os_dimm_$(OS_DIMM).o\
-	init.o\
+OBJS = pmem_has_auto_flush.o \
 	mocks_posix.o
 
-ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
-endif
-
 include ../Makefile.inc
-
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
-
 LDFLAGS += $(call extract_funcs, mocks_posix.c)

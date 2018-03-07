@@ -40,6 +40,8 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 
 include $(TOP)/src/common.inc
+ARCH := $(call get_arch)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 
 INCS += $(OS_INCS)
 LDFLAGS += $(OS_LIBS)
@@ -175,6 +177,32 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemcto.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemcto.a
 endif
 
+ifeq ($(LIBPMEM), internal-nondebug)
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem/libpmem.o\
+	$(TOP)/src/nondebug/libpmem/pmem.o\
+	$(TOP)/src/nondebug/libpmem/pmem_posix.o
+
+OBJS_MEM = $(SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
+
+INCS += -I$(TOP)/src/libpmem
+INCS += -I$(TOP)/src/libpmem/$(ARCH)
+endif
+
+ifeq ($(LIBPMEM), internal-debug)
+OBJS +=\
+	$(TOP)/src/debug/libpmem/libpmem.o\
+	$(TOP)/src/debug/libpmem/pmem.o\
+	$(TOP)/src/debug/libpmem/pmem_posix.o
+
+OBJS_MEM = $(SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})
+
+INCS += -I$(TOP)/src/libpmem
+INCS += -I$(TOP)/src/libpmem/$(ARCH)
+endif
+
 ifeq ($(LIBPMEMCOMMON), y)
 LIBPMEM=y
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
@@ -182,7 +210,6 @@ INCS += -I$(TOP)/src/common
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
-LIBPMEM=y
 OBJS +=\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -207,7 +234,6 @@ INCS += -I$(TOP)/src/common
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
-LIBPMEM=y
 OBJS +=\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\
