@@ -134,7 +134,9 @@ DOC_DIR=$PREFIX/share/doc
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
+
 LIBFABRIC_MIN_VERSION=1.4.2
+NDCTL_MIN_VERSION=58.2.37
 
 function convert_changelog() {
 	while read line
@@ -233,6 +235,43 @@ Description: rpmem daemon
  Daemon for Remote Persistent Memory support
 EOF
 }
+
+function daxio_install_triggers_overrides() {
+cat << EOF > debian/daxio.install
+usr/bin/daxio
+$MAN1_DIR/daxio.1.gz
+EOF
+
+cat << EOF > debian/daxio.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/daxio.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+EOF
+}
+
+function append_daxio_control() {
+cat << EOF >> $CONTROL_FILE
+
+Package: daxio
+Section: misc
+Architecture: any
+Priority: optional
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Depends: libndctl (>= $NDCTL_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
+Depends: libdaxctl (>= $NDCTL_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
+Description: daxio utility
+ The daxio utility performs I/O on Device DAX devices or zero
+ a Device DAX device.  Since the standard I/O APIs (read/write) cannot be used
+ with Device DAX, data transfer is performed on a memory-mapped device.
+ The daxio may be used to dump Device DAX data to a file, restore data from
+ a backup copy, move/copy data to another device or to erase data from
+ a device.
+EOF
+}
+
 
 if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
 then
@@ -827,6 +866,14 @@ then
 	append_rpmem_control;
 	rpmem_install_triggers_overrides;
 fi
+
+# daxio
+if [ "${NDCTL_ENABLE}" = "y" ]
+then
+	append_daxio_control;
+	daxio_install_triggers_overrides;
+fi
+
 
 # Convert ChangeLog to debian format
 CHANGELOG_TMP=changelog.tmp

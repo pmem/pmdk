@@ -249,9 +249,9 @@ do_cmpmap(void)
 	if ((ret = memcmp(ADDR_SUM(addr1, Offset), ADDR_SUM(addr2, Offset),
 			Length))) {
 		if (Opts & CMPMAP_ZERO)
-			fprintf(stdout, "%s is not zeroed\n", File1);
+			fprintf(stderr, "%s is not zeroed\n", File1);
 		else
-			fprintf(stdout, "%s %s differ\n", File1, File2);
+			fprintf(stderr, "%s %s differ\n", File1, File2);
 		ret = EXIT_FAILURE;
 	}
 
