@@ -1282,7 +1282,7 @@ function require_node_dax_device_alignments() {
 				msg "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH"\
 					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			else
-				msg "$UNITTEST_NAME: SKIP NODE $node: NODE_${node}_DEVICE_DAX_PATHi"\
+				msg "$UNITTEST_NAME: SKIP NODE $node: NODE_${node}_DEVICE_DAX_PATH"\
 					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			fi
 			exit 0
