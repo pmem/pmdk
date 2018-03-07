@@ -42,6 +42,8 @@
 require_test_type long
 require_no_asan
 
+configure_valgrind pmemcheck force-disable
+
 configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1
 

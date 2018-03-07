@@ -46,6 +46,7 @@ require_build_type nondebug static-nondebug
 # exits with locked mutexes
 configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
+configure_valgrind pmemcheck force-disable
 
 setup
 
