@@ -40,5 +40,6 @@
 #include "set.h"
 
 int os_badblocks_check_poolset(struct pool_set *set, int create);
+int os_badblocks_clear_poolset(struct pool_set *set, int create);
 
 #endif /* PMDK_BADBLOCK_POOLSET_H */

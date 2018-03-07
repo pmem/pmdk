@@ -59,13 +59,14 @@ struct check_file_cb {
 static int
 os_badblocks_check_file_cb(struct part_file *pf, void *arg)
 {
+	LOG(3, "part_file %p arg %p", pf, arg);
+
 	struct check_file_cb *pcfcb = arg;
 
 	if (pf->is_remote) { /* XXX not supported yet */
-		ERR(
-			"checking remote replicas for bad blocks is not supported yet -- '%s'",
+		LOG(1,
+			"WARNING: checking remote replicas for bad blocks is not supported yet -- '%s'",
 			pf->path);
-		errno = ENOTSUP;
 		return 0;
 	}
 
@@ -74,7 +75,7 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
 		 * Poolset is just being created - check if file exists
 		 * and if we can read it.
 		 */
-		int exists = os_access(pf->path, F_OK | R_OK) == 0;
+		int exists = os_access(pf->path, F_OK) == 0;
 		if (!exists)
 			return 0;
 	}
@@ -115,7 +116,6 @@ os_badblocks_check_poolset(struct pool_set *set, int create)
 
 	if (util_poolset_foreach_part_struct(set, os_badblocks_check_file_cb,
 						&cfcb)) {
-		ERR("checking the pool set for bad blocks failed");
 		return -1;
 	}
 
@@ -125,4 +125,63 @@ os_badblocks_check_poolset(struct pool_set *set, int create)
 	}
 
 	return (cfcb.n_files_bbs > 0);
+}
+
+/*
+ * os_badblocks_clear_poolset_cb -- (internal) callback clearing bad blocks
+ *                                  in the given file
+ */
+static int
+os_badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
+{
+	LOG(3, "part_file %p arg %p", pf, arg);
+
+	int *create = arg;
+
+	if (pf->is_remote) { /* XXX not supported yet */
+		LOG(1,
+			"WARNING: clearing bad blocks in remote replicas is not supported yet -- '%s'",
+			pf->path);
+		return 0;
+	}
+
+	if (*create) {
+		/*
+		 * Poolset is just being created - check if file exists
+		 * and if we can read it.
+		 */
+		int exists = os_access(pf->path, F_OK) == 0;
+		if (!exists)
+			return 0;
+	}
+
+	int ret = os_badblocks_clear(pf->path);
+	if (ret < 0) {
+		ERR("clearing bad blocks in the pool file failed -- '%s'",
+			pf->path);
+		errno = EIO;
+		return -1;
+	}
+
+	pf->has_bad_blocks = 0;
+
+	return 0;
+}
+
+/*
+ * os_badblocks_clear_poolset -- clears bad blocks in the pool set
+ */
+int
+os_badblocks_clear_poolset(struct pool_set *set, int create)
+{
+	LOG(3, "set %p create %i", set, create);
+
+	if (util_poolset_foreach_part_struct(set, os_badblocks_clear_poolset_cb,
+						&create)) {
+		return -1;
+	}
+
+	set->has_bad_blocks = 0;
+
+	return 0;
 }
