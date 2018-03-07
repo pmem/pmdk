@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,5 +37,7 @@ TARGET = util_sds
 OBJS = util_sds.o
 
 LIBPMEMCOMMON=internal-debug
+LIBPMEM=y
+
 include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, util_sds.c)
