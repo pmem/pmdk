@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,8 +42,13 @@ if [ ! -f ../testconfig.sh ]; then
 fi
 
 # defined only to be able to source unittest.sh
-UNITTEST_NAME=0
+UNITTEST_NAME=sync-remotes
 UNITTEST_NUM=0
+
+# Override default FS (any).
+# This is not a real test, so it should not depend on whether
+# PMEM_FS_DIR/NON_PMEM_FS_DIR are set.
+FS=none
 
 . ../unittest/unittest.sh
 
