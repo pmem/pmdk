@@ -43,6 +43,9 @@
 #include <stdlib.h>
 #include <ndctl/libndctl.h>
 #include <ndctl/libdaxctl.h>
+
+/* XXX: workaround for missing PAGE_SIZE - should be fixed in linux/ndctl.h */
+#include <sys/user.h>
 #include <linux/ndctl.h>
 
 #include "out.h"
