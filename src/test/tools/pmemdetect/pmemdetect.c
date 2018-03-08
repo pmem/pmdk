@@ -325,7 +325,8 @@ main(int argc, char *argv[])
 	else if (Opts & DAX_REGION_DETECT) {
 		ret = util_ddax_region_find(Path);
 		if (ret < 0) {
-			printf("Cannot detect region id for path: %s\n", Path);
+			printf("Sysfs id file for dax_region is not supported:"
+				" %s\n", Path);
 			ret = 0;
 		} else {
 			ret = 1;
