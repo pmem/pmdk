@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -710,15 +710,11 @@ block_flush_header(const struct memory_block *m)
 }
 
 /*
- * block_invalidate -- invalidates allocation data and header
+ * block_invalidate_header -- invalidates allocation header
  */
 static void
-block_invalidate(const struct memory_block *m)
+block_invalidate_header(const struct memory_block *m)
 {
-	void *data = m->m_ops->get_user_data(m);
-	size_t size = m->m_ops->get_user_size(m);
-	VALGRIND_SET_CLEAN(data, size);
-
 	memblock_header_ops[m->header_type].invalidate(m);
 }
 
@@ -761,7 +757,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
 		.flush_header = block_flush_header,
-		.invalidate = block_invalidate,
+		.invalidate_header = block_invalidate_header,
 		.ensure_header_type = huge_ensure_header_type,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,
@@ -778,7 +774,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
 		.flush_header = block_flush_header,
-		.invalidate = block_invalidate,
+		.invalidate_header = block_invalidate_header,
 		.ensure_header_type = run_ensure_header_type,
 		.reinit_header = block_reinit_header,
 		.get_extra = block_get_extra,

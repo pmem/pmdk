@@ -98,6 +98,7 @@ struct lane_tx_runtime {
 	struct tx_undo_runtime undo;
 	struct pobj_action alloc_actv[MAX_TX_ALLOC_RESERVATIONS];
 	int actvcnt; /* reservation count */
+	int actvundo; /* reservations in undo log (to skip) */
 };
 
 struct tx_alloc_args {
@@ -324,7 +325,7 @@ tx_free_vec_entry(PMEMobjpool *pop, uint64_t *entry)
 static void
 tx_free_existing_vec_entry(PMEMobjpool *pop, uint64_t *entry)
 {
-	if (*entry != 0 && palloc_is_allocated(&pop->heap, *entry))
+	if (palloc_is_allocated(&pop->heap, *entry))
 		pfree(pop, entry);
 	else
 		tx_clear_vec_entry(pop, entry);
@@ -368,7 +369,7 @@ tx_clear_undo_log_vg(PMEMobjpool *pop, uint64_t off, enum tx_clr_flag flags)
  * tx_clear_undo_log -- (internal) clear undo log pointed by head
  */
 static void
-tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo,
+tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo, int nskip,
 	enum tx_clr_flag flags)
 {
 	LOG(7, NULL);
@@ -377,6 +378,12 @@ tx_clear_undo_log(PMEMobjpool *pop, struct pvector_context *undo,
 
 	while ((val = pvector_last(undo)) != 0) {
 		tx_clear_undo_log_vg(pop, val, flags);
+
+		if (nskip > 0) {
+			nskip--;
+			pvector_pop_back(undo, tx_clear_vec_entry);
+			continue;
+		}
 
 		if (flags & TX_CLR_FLAG_FREE) {
 			pvector_pop_back(undo, tx_free_vec_entry);
@@ -405,8 +412,9 @@ tx_abort_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 		TX_CLR_FLAG_VG_CLEAN |
 		(lane ? TX_CLR_FLAG_FREE : TX_CLR_FLAG_FREE_IF_EXISTS);
 
-	ASSERTne(tx_rt->ctx, NULL);
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], flags);
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC],
+		lane ? lane->actvundo : 0,
+		flags);
 }
 
 /*
@@ -417,7 +425,7 @@ tx_abort_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
 	LOG(5, NULL);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0);
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0, 0);
 }
 
 struct tx_range_data {
@@ -674,13 +682,13 @@ tx_abort_set(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt, int recovery)
 		tx_foreach_set(pop, tx, tx_rt, tx_abort_restore_range);
 
 	if (recovery) /* if recovering from a crash, remove all of the caches */
-		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
+		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE], 0,
 			TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
 	else /* otherwise leave the first one */
 		tx_clear_set_cache_but_first(pop, tx_rt, tx,
 			TX_CLR_FLAG_VG_CLEAN);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET],
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET], 0,
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_CLEAN);
 }
 
@@ -693,7 +701,7 @@ tx_post_commit_alloc(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
 	LOG(7, NULL);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC],
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_ALLOC], 0,
 			TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
@@ -706,7 +714,7 @@ tx_post_commit_free(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt)
 {
 	LOG(7, NULL);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE],
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_FREE], 0,
 		TX_CLR_FLAG_FREE | TX_CLR_FLAG_VG_TX_REMOVE);
 }
 
@@ -741,12 +749,12 @@ tx_post_commit_set(PMEMobjpool *pop, struct tx *tx,
 #endif
 
 	if (recovery) /* if recovering from a crash, remove all of the caches */
-		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE],
+		tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET_CACHE], 0,
 			TX_CLR_FLAG_FREE);
 	else /* otherwise leave the first one */
 		tx_clear_set_cache_but_first(pop, tx_rt, tx, 0);
 
-	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET], TX_CLR_FLAG_FREE);
+	tx_clear_undo_log(pop, tx_rt->ctx[UNDO_SET], 0, TX_CLR_FLAG_FREE);
 }
 
 /*
@@ -764,35 +772,16 @@ tx_fulfill_reservations(struct tx *tx)
 
 	PMEMobjpool *pop = tx->pop;
 
-	uint64_t *fentry = NULL;
-	size_t sizesum = 0;
-
-	int i;
-	for (i = 0; i < lane->actvcnt; ++i) {
-		uint64_t *entry = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
-
-		/* flush if switched to a new vector array */
-		if ((uintptr_t)fentry + sizesum != (uintptr_t)entry) {
-			if (fentry != NULL)
-				pmemops_flush(&pop->p_ops, fentry, sizesum);
-			fentry = entry;
-			sizesum = 0;
-		}
-		*entry = lane->alloc_actv[i].heap.offset;
-		sizesum += sizeof(*entry);
-	}
-	pmemops_persist(&pop->p_ops, fentry, sizesum);
-
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 
 	struct operation_context ctx;
 	operation_init(&ctx, pop, pop->redo, redo);
 
 	palloc_publish(&pop->heap, lane->alloc_actv, lane->actvcnt, &ctx);
+	lane->actvcnt = 0;
+	lane->actvundo = 0;
 
 	pmalloc_redo_release(pop);
-
-	lane->actvcnt = 0;
 }
 
 /*
@@ -803,6 +792,7 @@ tx_cancel_reservations(PMEMobjpool *pop, struct lane_tx_runtime *lane)
 {
 	palloc_cancel(&pop->heap, lane->alloc_actv, lane->actvcnt);
 	lane->actvcnt = 0;
+	lane->actvundo = 0;
 }
 
 /*
@@ -1086,21 +1076,20 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 		(struct lane_tx_runtime *)tx->section->runtime;
 
 	PMEMobjpool *pop = tx->pop;
-	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
 
-	if (lane->actvcnt == MAX_TX_ALLOC_RESERVATIONS)
+	if ((lane->actvcnt + 1) == MAX_TX_ALLOC_RESERVATIONS) {
 		tx_fulfill_reservations(tx);
+	}
 
 	int rs = lane->actvcnt;
-
-	if (pvector_reserve(ctx, pvector_size(ctx) + (unsigned)rs + 1) != 0)
-		goto err_oom;
 
 	uint64_t flags = args.flags;
 
 	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
-		CLASS_ID_FROM_FLAG(flags), &lane->alloc_actv[rs]) != 0)
-		goto err_oom;
+		CLASS_ID_FROM_FLAG(flags), &lane->alloc_actv[rs]) != 0) {
+		ERR("out of memory");
+		return obj_tx_abort_null(ENOMEM);
+	}
 
 	lane->actvcnt++;
 
@@ -1113,6 +1102,22 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	const struct tx_range_def r = {retoid.off, size, flags};
 	if (tx_lane_ranges_insert_def(lane, &r) != 0)
 		goto err_oom;
+
+	uint64_t *entry_offset = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
+	if (entry_offset == NULL)
+		goto err_oom;
+
+	/*
+	 * The offset of the object is stored in the undo vector before it is
+	 * actually allocated. The only phase at which we are sure the objects
+	 * in the undo logs are actually allocated is in post-commit.
+	 * This means that when handling abort, each offset needs to be checked
+	 * whether it should be freed or not.
+	 */
+	*entry_offset = retoid.off;
+	pmemops_persist(&pop->p_ops, entry_offset, sizeof(*entry_offset));
+
+	lane->actvundo++;
 
 	return retoid;
 
@@ -1217,6 +1222,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		lane->lane_idx = idx;
 
 		lane->actvcnt = 0;
+		lane->actvundo = 0;
 
 		struct lane_tx_layout *layout =
 			(struct lane_tx_layout *)tx->section->layout;
@@ -1442,11 +1448,11 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	runtime->cache_offset = 0;
 	/* cleanup cache */
 
-	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_ALLOC]), 0);
-	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_SET]), 0);
-	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_FREE]), 0);
-	ASSERT(pvector_size(runtime->undo.ctx[UNDO_FREE]) == 0 ||
-		pvector_size(runtime->undo.ctx[UNDO_FREE]) == 1);
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_ALLOC]), 0);
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_SET]), 0);
+	ASSERTeq(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]), 0);
+	ASSERT(pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 0 ||
+		pvector_nvalues(runtime->undo.ctx[UNDO_FREE]) == 1);
 
 	lane_release(pop);
 }
@@ -2227,37 +2233,50 @@ pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
 
+	tx_fulfill_reservations(tx);
 	ASSERT((unsigned)actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
 	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
-	if (pvector_reserve(ctx, pvector_size(ctx) + (unsigned)actvcnt) != 0)
-		return -1;
 
-	while (actvcnt != 0) {
-		if (lane->actvcnt == MAX_TX_ALLOC_RESERVATIONS)
-			tx_fulfill_reservations(tx);
-
-		int avail = (int)(MAX_TX_ALLOC_RESERVATIONS -
-			(unsigned)lane->actvcnt);
-		int n = avail > actvcnt ? actvcnt : avail;
-		for (int i = 0; i < n; ++i) {
-			if (actv[i].type != POBJ_ACTION_TYPE_HEAP) {
-				ERR("only heap actions can be "
-				"published with a transaction");
-				break;
-			}
-			size_t size = palloc_usable_size(&tx->pop->heap,
-				actv[i].heap.offset);
-
-			const struct tx_range_def r = {actv[i].heap.offset,
-					size, POBJ_FLAG_NO_FLUSH};
-			tx_lane_ranges_insert_def(lane, &r);
-			lane->alloc_actv[lane->actvcnt++] = actv[i];
+	int nentries = 0;
+	int i;
+	for (i = 0; i < actvcnt; ++i) {
+		if (actv[i].type != POBJ_ACTION_TYPE_HEAP) {
+			ERR("only heap actions can be "
+			"published with a transaction");
+			break;
 		}
-		actvcnt -= n;
+		uint64_t *e = pvector_push_back(ctx);
+		if (e == NULL)
+			break;
+		*e = actv[i].heap.offset;
+		pmemops_persist(&tx->pop->p_ops, e, sizeof(*e));
+		nentries++;
+
+		size_t size = palloc_usable_size(&tx->pop->heap,
+			actv[i].heap.offset);
+
+		const struct tx_range_def r = {actv[i].heap.offset,
+				size, POBJ_FLAG_NO_FLUSH};
+		if (tx_lane_ranges_insert_def(lane, &r) != 0)
+			break;
 	}
+
+	if (i != actvcnt) { /* failed to store entries in the undo log */
+		while (nentries--) {
+			pvector_pop_back(ctx, tx_clear_vec_entry);
+		}
+		ERR("alloc undo log too large");
+		return obj_tx_abort_err(ENOMEM);
+	}
+
+	memcpy(lane->alloc_actv, actv,
+		sizeof(struct pobj_action) * (unsigned)actvcnt);
+
+	lane->actvcnt = actvcnt;
+	lane->actvundo = actvcnt;
 
 	return 0;
 }

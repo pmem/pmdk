@@ -315,7 +315,7 @@ palloc_heap_action_on_cancel(struct palloc_heap *heap,
 		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
 			act->m.m_ops->get_user_data(&act->m));
 
-		act->m.m_ops->invalidate(&act->m);
+		act->m.m_ops->invalidate_header(&act->m);
 		palloc_restore_free_chunk_state(heap, &act->m);
 	}
 
