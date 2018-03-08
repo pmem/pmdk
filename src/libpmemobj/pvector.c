@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -294,10 +294,10 @@ pvector_pop_back(struct pvector_context *ctx, entry_op_callback cb)
 }
 
 /*
- * pvector_nvalues -- returns the number of values present in the vector
+ * pvector_size -- returns the number of values present in the vector
  */
 uint64_t
-pvector_nvalues(struct pvector_context *ctx)
+pvector_size(struct pvector_context *ctx)
 {
 	return ctx->nvalues;
 }

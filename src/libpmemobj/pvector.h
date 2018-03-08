@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,7 +85,7 @@ uint64_t *pvector_push_back(struct pvector_context *ctx);
 uint64_t pvector_pop_back(struct pvector_context *ctx,
 	entry_op_callback cb);
 
-uint64_t pvector_nvalues(struct pvector_context *ctx);
+uint64_t pvector_size(struct pvector_context *ctx);
 uint64_t pvector_first(struct pvector_context *ctx);
 uint64_t pvector_last(struct pvector_context *ctx);
 uint64_t pvector_prev(struct pvector_context *ctx);
