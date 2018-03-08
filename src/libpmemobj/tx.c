@@ -770,7 +770,6 @@ tx_fulfill_reservations(struct tx *tx)
 	int i;
 	for (i = 0; i < lane->actvcnt; ++i) {
 		uint64_t *entry = pvector_push_back(lane->undo.ctx[UNDO_ALLOC]);
-		ASSERTne(entry, NULL);
 
 		/* flush if switched to a new vector array */
 		if ((uintptr_t)fentry + sizesum != (uintptr_t)entry) {
@@ -1093,13 +1092,14 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 		tx_fulfill_reservations(tx);
 
 	int rs = lane->actvcnt;
-	ASSERT((unsigned)rs < MAX_TX_ALLOC_RESERVATIONS);
 
 	if (pvector_reserve(ctx, pvector_size(ctx) + (unsigned)rs + 1) != 0)
 		goto err_oom;
 
+	uint64_t flags = args.flags;
+
 	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
-		CLASS_ID_FROM_FLAG(args.flags), &lane->alloc_actv[rs]) != 0)
+		CLASS_ID_FROM_FLAG(flags), &lane->alloc_actv[rs]) != 0)
 		goto err_oom;
 
 	lane->actvcnt++;
@@ -1110,7 +1110,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	retoid.pool_uuid_lo = pop->uuid_lo;
 	size = palloc_usable_size(&pop->heap, retoid.off);
 
-	const struct tx_range_def r = {retoid.off, size, args.flags};
+	const struct tx_range_def r = {retoid.off, size, flags};
 	if (tx_lane_ranges_insert_def(lane, &r) != 0)
 		goto err_oom;
 
@@ -1443,8 +1443,6 @@ tx_post_commit_cleanup(PMEMobjpool *pop,
 	/* cleanup cache */
 
 	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_ALLOC]), 0);
-	ASSERT(pvector_capacity(runtime->undo.ctx[UNDO_ALLOC]) == 8 ||
-		pvector_capacity(runtime->undo.ctx[UNDO_ALLOC]) == 0);
 	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_SET]), 0);
 	ASSERTeq(pvector_size(runtime->undo.ctx[UNDO_FREE]), 0);
 	ASSERT(pvector_size(runtime->undo.ctx[UNDO_FREE]) == 0 ||

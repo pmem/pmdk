@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2017, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -70,9 +70,6 @@ main(int argc, char *argv[])
 	struct test_root *r = (struct test_root *)pmemobj_direct(root);
 	UT_ASSERTne(r, NULL);
 
-	size_t embedded_size =
-		sizeof(r->vec.embedded) / sizeof(r->vec.embedded[0]);
-
 	struct pvector_context *ctx = pvector_new(pop, &r->vec);
 
 	uint64_t *val = pvector_push_back(ctx);
@@ -100,7 +97,7 @@ main(int argc, char *argv[])
 		n++;
 	}
 
-	uint64_t removed = pvector_pop_back(ctx, vec_zero_entry);
+	uint64_t removed = pvector_pop_back(ctx, NULL);
 	UT_ASSERTeq(removed, 15);
 
 	n = 0;
@@ -120,20 +117,7 @@ main(int argc, char *argv[])
 	pvector_delete(ctx);
 
 	ctx = pvector_new(pop, &r->vec);
-	pvector_reserve(ctx, 128);
-	UT_ASSERT(pvector_capacity(ctx) >= 128);
-	UT_ASSERTeq(pvector_size(ctx), 0);
-	val = pvector_push_back(ctx);
-	*val = 5;
-	UT_ASSERTeq(pvector_size(ctx), 1);
-	pvector_pop_back(ctx, vec_zero_entry);
-	UT_ASSERTeq(pvector_size(ctx), 0);
-	UT_ASSERTeq(pvector_capacity(ctx), embedded_size);
-
-	pvector_delete(ctx);
-
-	ctx = pvector_new(pop, &r->vec);
-	for (uint64_t i = 0; i < PVECTOR_INSERT_VALUES; ++i) {
+	for (int i = 0; i < PVECTOR_INSERT_VALUES; ++i) {
 		val = pvector_push_back(ctx);
 		UT_ASSERTne(val, NULL);
 		*val = i;
@@ -153,7 +137,6 @@ main(int argc, char *argv[])
 	}
 
 	UT_ASSERTeq(pvector_first(ctx), 0);
-	UT_ASSERTeq(pvector_capacity(ctx), embedded_size);
 
 	pvector_delete(ctx);
 
