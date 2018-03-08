@@ -32,6 +32,8 @@
 #
 
 SOURCE =\
+	$(COMMON)/badblock_linux.c\
+	$(COMMON)/badblock_poolset.c\
 	$(COMMON)/extent_linux.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\

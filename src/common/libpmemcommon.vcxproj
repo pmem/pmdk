@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="badblock_windows.c" />
+    <ClCompile Include="badblock_poolset.c" />
     <ClCompile Include="file.c" />
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
@@ -31,6 +33,8 @@
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="os_badblock.h" />
+    <ClInclude Include="badblock_poolset.h" />
     <ClInclude Include="dlsym.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="mmap.h" />
