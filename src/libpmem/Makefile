@@ -42,11 +42,13 @@ LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
+	$(COMMON)/fs_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/os_deep_linux.c\
+	$(COMMON)/os_auto_flush_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\

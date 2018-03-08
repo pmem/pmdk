@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,14 +31,34 @@
  */
 
 /*
- * fs_posix.c -- file system traversal Posix implementation
+ * mocks_posix.c -- mocked functions used in pmem_has_auto_flush.c
  */
-
 #include <fts.h>
-#include "util.h"
-#include "out.h"
-#include "vec.h"
 #include "fs.h"
+#include "unittest.h"
+
+#define BUS_DEVICE_PATH "/sys/bus/nd/devices"
+
+/*
+ * open -- open mock
+ */
+FUNC_MOCK(open, int, const char *path, int flags, ...)
+FUNC_MOCK_RUN_DEFAULT {
+	va_list ap;
+	va_start(ap, flags);
+	int mode = va_arg(ap, int);
+	va_end(ap);
+
+	if (!strstr(path, BUS_DEVICE_PATH))
+		return _FUNC_REAL(open)(path, flags, mode);
+
+	const char *prefix = os_getenv("BUS_DEVICE_PATH");
+	char path2[PATH_MAX] = { 0 };
+	strcat(path2, prefix);
+	strcat(path2, path + strlen(BUS_DEVICE_PATH));
+	return _FUNC_REAL(open)(path2, flags, mode);
+}
+FUNC_MOCK_END
 
 struct fs {
 	FTS *ft;
@@ -48,66 +68,15 @@ struct fs {
 /*
  * fs_new -- creates fs traversal instance
  */
-struct fs *
-fs_new(const char *path)
-{
-	struct fs *f = Zalloc(sizeof(*f));
-	if (f == NULL)
-		goto error_fs_alloc;
+FUNC_MOCK(fs_new, struct fs *, const char *path)
+FUNC_MOCK_RUN_DEFAULT {
+	if (!strstr(path, BUS_DEVICE_PATH))
+		return _FUNC_REAL(fs_new)(path);
 
-	const char *paths[2] = {path, NULL};
-	f->ft = fts_open((char * const *)paths, FTS_COMFOLLOW | FTS_XDEV, NULL);
-	if (f->ft == NULL)
-		goto error_fts_open;
-
-	return f;
-
-error_fts_open:
-	Free(f);
-error_fs_alloc:
-	return NULL;
+	const char *prefix = os_getenv("BUS_DEVICE_PATH");
+	char path2[PATH_MAX] = { 0 };
+	strcat(path2, prefix);
+	strcat(path2, path + strlen(BUS_DEVICE_PATH));
+	return _FUNC_REAL(fs_new)(path2);
 }
-
-/*
- * fs_read -- reads an entry from the fs path
- */
-struct fs_entry *
-fs_read(struct fs *f)
-{
-	FTSENT *entry = fts_read(f->ft);
-	if (entry == NULL)
-		return NULL;
-
-	switch (entry->fts_info) {
-	case FTS_D:
-		f->entry.type = FS_ENTRY_DIRECTORY;
-		break;
-	case FTS_F:
-		f->entry.type = FS_ENTRY_FILE;
-		break;
-	case FTS_SL:
-		f->entry.type = FS_ENTRY_SYMLINK;
-		break;
-	default:
-		f->entry.type = FS_ENTRY_OTHER;
-		break;
-	}
-
-	f->entry.name = entry->fts_name;
-	f->entry.namelen = entry->fts_namelen;
-	f->entry.path = entry->fts_path;
-	f->entry.pathlen = entry->fts_pathlen;
-	f->entry.level = entry->fts_level;
-
-	return &f->entry;
-}
-
-/*
- * fs_delete -- deletes a fs traversal instance
- */
-void
-fs_delete(struct fs *f)
-{
-	fts_close(f->ft);
-	Free(f);
-}
+FUNC_MOCK_END
