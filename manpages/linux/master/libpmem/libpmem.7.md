@@ -216,6 +216,12 @@ to never issue any of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions
 on Intel hardware. The only exceptions are **pmem_deep_flush**(3) and
 **pmem_deep_persist**(3) functions.
 
++ **PMEM_NO_FLUSH**=0
+
+Setting this environment variable to 0 forces to always flush CPU caches
+using one of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions
+even if **pmem_has_auto_flush**(3) function returns true and eADR is supported.
+
 + **PMEM_NO_MOVNT**=1
 
 Setting this environment variable to 1 forces **libpmem** to never use
